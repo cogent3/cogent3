@@ -2,7 +2,7 @@
 """Code for geometric operations, e.g. distances and center of mass."""
 
 from numpy import array, take, sum, newaxis, sqrt, sqrt, sin, cos, pi, c_, \
-                  vstack, dot, ones
+    vstack, dot, ones
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -140,7 +140,7 @@ def coords_to_crystal(coords, fmx, omx, n=1):
     # a vstack(arrays) with a following reshape is faster then 
     # the equivalent creation of a new array via array(arrays) 
     all_coords = vstack(all_coords).reshape((len(all_coords), \
-                                        coords.shape[0], coords.shape[1], 3))
+                                             coords.shape[0], coords.shape[1], 3))
     all_coords = dot(all_coords, omx.transpose()) # orthogonalize
     return all_coords
 

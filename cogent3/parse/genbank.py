@@ -10,7 +10,7 @@ from cogent3.core.info import Info
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield",
-                    "Gavin Huttley"]
+               "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"
@@ -246,7 +246,7 @@ def parse_simple_location_segment(segment):
             second = int(second)
 
         return Location([Location(first, Ambiguity=first_ambiguity), \
-            Location(second, Ambiguity=second_ambiguity)])
+                         Location(second, Ambiguity=second_ambiguity)])
     else:
         if not segment[0].isdigit():
             first_ambiguity = segment[0]
@@ -299,7 +299,7 @@ class Location(object):
     WARNING: Coordinates are based on 1, not 0, as in GenBank format.
     """
     def __init__(self, data, Ambiguity=None, IsBetween=False, IsBounds=False, \
-            Accession=None, Db=None, Strand=1):
+                 Accession=None, Db=None, Strand=1):
         """Returns new LocalLocation object."""
         try:
             data = int(data)
@@ -448,7 +448,7 @@ def parse_feature_table(lines):
 
 reference_label_marker = ' ' * 11
 reference_field_finder = LabeledRecordFinder(lambda x: \
-    not x.startswith(reference_label_marker), constructor=None)
+                                             not x.startswith(reference_label_marker), constructor=None)
 
 def parse_reference(lines):
     """Simple parser for single reference."""
@@ -501,7 +501,7 @@ handlers = {
 }
 
 def MinimalGenbankParser(lines, handlers=handlers,\
-    default_handler=generic_adaptor):
+                         default_handler=generic_adaptor):
     for rec in GbFinder(lines):
         curr = {}
         bad_record = False
@@ -574,7 +574,7 @@ def extract_nt_prot_seqs(rec, wanted=wanted_types):
         print('s :', seq)
 
 def RichGenbankParser(handle, info_excludes=None, moltype=None,
-    skip_contigs=False, add_annotation=None):
+                      skip_contigs=False, add_annotation=None):
     """Returns annotated sequences from GenBank formatted file.
 
     Arguments:
@@ -602,7 +602,7 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
 
         try:
             seq = moltype.makeSequence(rec['sequence'].upper(), Info=info,
-                                        Name=rec['locus'])
+                                       Name=rec['locus'])
         except KeyError:
             if not skip_contigs:
                 if 'contig' in rec:
@@ -617,7 +617,7 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
             spans = []
             reversed = None
             if feature['location'] == None or feature['type'] in ['source', \
-                                                                'organism']:
+                                                                  'organism']:
                 continue
             for location in feature['location']:
                 (lo, hi) = (location.first() - 1, location.last())

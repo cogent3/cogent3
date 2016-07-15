@@ -186,7 +186,7 @@ class DictArray(object):
             return True
         elif isinstance(other, DictArray):
             return self.template == other.template and numpy.all(
-                    self.array == other.array)
+                self.array == other.array)
         elif type(other) is type(self.array):
             return self.array == other
         elif isinstance(other, dict):

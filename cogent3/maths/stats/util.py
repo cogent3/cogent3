@@ -131,7 +131,7 @@ class SummaryStatisticsError(ValueError):
 class SummaryStatistics(object):
     """Minimal statistics interface. Object is read-only once created."""
     def __init__(self, Count=None, Sum=None, Mean=None, StandardDeviation=None,
-        Variance=None, SumSquares=None, Median=None):
+                 Variance=None, SumSquares=None, Median=None):
         """Returns a new SummaryStatistics object."""
         self._count = Count
         self._sum = Sum
@@ -145,7 +145,7 @@ class SummaryStatistics(object):
         """Returns string representation of SummaryStatistics object."""
         result = []
         for field in ["Count", "Sum", "Median", "Mean", "StandardDeviation", \
-                       "Variance", "SumSquares"]:
+                      "Variance", "SumSquares"]:
             try:
                 val = getattr(self, field)
                 if not val:
@@ -156,7 +156,7 @@ class SummaryStatistics(object):
         if not result:
             return ''
         return str(Table("Statistic Value".split(), result,
-            column_templates={'Value': "%.4g"}))
+                         column_templates={'Value': "%.4g"}))
 
     def _get_count(self):
         """Returns Count if possible (tries to calculate as sum/mean)."""
@@ -537,7 +537,7 @@ class NumbersI(object):
     def summarize(self):
         """Returns summary statistics for self."""
         return SummaryStatistics(Count=self.Count, Sum=self.Sum, \
-            Variance=self.Variance, Median = self.Median)
+                                 Variance=self.Variance, Median = self.Median)
 
     def choice(self):
         """Returns random element from self."""
@@ -1137,7 +1137,7 @@ class FreqsI(object):
     def summarize(self):
         """Returns summary statistics for self."""
         return SummaryStatistics(Count=self.Count, Sum=self.Sum, \
-            SumSquares=self.SumSquares, Variance=self.Variance)
+                                 SumSquares=self.SumSquares, Variance=self.Variance)
 
     def getSortedList(self, descending=True, by_val=True):
         """Returns sorted list of tuples.
@@ -1206,7 +1206,7 @@ class Freqs(FreqsI, MappedDict):
         ValueMask:      function applied to values before addition
         """
         super(Freqs, self).__init__(Constraint=Constraint, Mask=Mask, \
-                ValueMask=ValueMask)
+                                    ValueMask=ValueMask)
         self += data
         for key in self.RequiredKeys:
             if key not in self:
@@ -1350,7 +1350,7 @@ class NumberFreqs(NumberFreqsI, MappedDict):
         ValueMask:      function applied to values before addition
         """
         super(NumberFreqs, self).__init__(Constraint=Constraint, Mask=Mask, \
-                ValueMask=ValueMask)
+                                          ValueMask=ValueMask)
         self += data
         r = self.RequiredKeys
         if r:

@@ -20,8 +20,8 @@ __all__ = ['fit_function'
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Matthew Wakefield",
-                    "Rob Knight", "Edward Lang", "Sandra Smit",
-                    "Antonio Gonzalez Pena", "Ben Kaehler"]
+               "Rob Knight", "Edward Lang", "Sandra Smit",
+               "Antonio Gonzalez Pena", "Ben Kaehler"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"

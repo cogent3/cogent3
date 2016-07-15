@@ -50,10 +50,10 @@ class EbiTests(TestCase):
         """rstrip_ should generate the expected function"""
         test = ' aaa;  '
         self.assertEqual(rstrip_('; ')(test),
-                test.rstrip('; '))
+                         test.rstrip('; '))
         #test default
         self.assertEqual(rstrip_()(test),
-                test.rstrip())
+                         test.rstrip())
 
     def test_hanging_paragraph_finder(self):
         """hanging_paragraph_finder should give expected results"""
@@ -66,7 +66,7 @@ class EbiTests(TestCase):
             '  bbb',
             'c',]
         self.assertEqual(list(f(test)),
-                [test[0:3], test[3:-1], test[-1:]])
+                         [test[0:3], test[3:-1], test[-1:]])
 
         #test all indent lines
         all_indent = ['  aa', '  bb']
@@ -79,17 +79,17 @@ class EbiTests(TestCase):
         """period_tail_finder should yield each group of expected lines."""
         test = "a\naa.\nb\nbb.".splitlines()
         self.assertEqual(list(period_tail_finder(test)),
-                [['a','aa.'],['b','bb.']])
+                         [['a','aa.'],['b','bb.']])
 
     def test_EbiFinder(self):
         """EbiFinder should return expected list"""
         test = "a\n//\nb\n//".splitlines()
         self.assertEqual(list(EbiFinder(test)),
-                [['a','//'],['b','//']])
+                         [['a','//'],['b','//']])
 
         test_fail = test + ['c']
         self.assertRaises(RecordError, 
-                list, EbiFinder(test_fail))
+                          list, EbiFinder(test_fail))
 
 
     def test_pairs_to_dict(self):
@@ -103,23 +103,23 @@ class EbiTests(TestCase):
 
         #test default all
         self.assertEqual(pairs_to_dict(sorted_items),
-                {'a': 1, 'b': 3})
+                         {'a': 1, 'b': 3})
 
         #test 'overwrite_value' 
         self.assertEqual(pairs_to_dict(sorted_items, 'overwrite_value'),
-                {'a': 1, 'b': 3})
+                         {'a': 1, 'b': 3})
 
         #test no_duplicated_key, raise 
         self.assertRaises(ValueError, pairs_to_dict,
-                sorted_items, 'no_duplicated_key')
+                          sorted_items, 'no_duplicated_key')
 
         #test always_multi_value
         self.assertEqual(pairs_to_dict(sorted_items, 'always_multi_value'),
-                {'a': [1], 'b': [2, 3]})
+                         {'a': [1], 'b': [2, 3]})
 
         #test allow multi_value
         self.assertEqual(pairs_to_dict(sorted_items, 'allow_multi_value'),
-                {'a': 1, 'b': [2, 3]})
+                         {'a': 1, 'b': [2, 3]})
 
         #test raise error when  key not found in all_keys 
         f = curry(pairs_to_dict, all_keys=['a','c'])
@@ -128,7 +128,7 @@ class EbiTests(TestCase):
         #test handlers
         sorted_items.append(('c', 4))
         self.assertEqual(pairs_to_dict(sorted_items, handlers=handlers,
-            default_handler=set_zero), {'a': 2, 'b': 6, 'c': 0})
+                                       default_handler=set_zero), {'a': 2, 'b': 6, 'c': 0})
 
         #test raise error when  no valid handlers were found 
         f = curry(pairs_to_dict, handlers=handlers)
@@ -137,7 +137,7 @@ class EbiTests(TestCase):
         #test sanity
         test_dict = dict(sorted_items)
         self.assertEqual(pairs_to_dict(list(test_dict.items())),
-                test_dict)
+                         test_dict)
 
     def test_linecode_maker(self):
         """linecode_maker: should return expected tuple"""
@@ -146,10 +146,10 @@ class EbiTests(TestCase):
                  'CC C   cc.',
                  'DD dd.']
         expected_linecodes =[
-                'AA', 'BB', 'CC C', 'DD dd.']
+            'AA', 'BB', 'CC C', 'DD dd.']
         #pprint(map(linecode_maker, tests)) 
         self.assertEqual(list(map(linecode_maker, tests)), 
-                list(zip(expected_linecodes, tests)))
+                         list(zip(expected_linecodes, tests)))
 
     def test_labeloff(self):
         """labeloff: should return expected lines"""
@@ -169,16 +169,16 @@ class EbiTests(TestCase):
         test_str = 'aaa bb. '
         #test default, list input
         self.assertEqual(join_parser(test_list),
-                '"aaa bbb  ccc"')
+                         '"aaa bbb  ccc"')
         #test default, str input
         self.assertEqual(join_parser(test_str),
-                'aaa bb')
+                         'aaa bb')
         #test no strip
         self.assertEqual(join_parser(test_list, chars_to_strip=''),
-                '"aaa bbb  ccc"; ')
+                         '"aaa bbb  ccc"; ')
         #test strip 
         self.assertEqual(join_parser(test_list, chars_to_strip='"; '),
-                'aaa bbb  ccc')
+                         'aaa bbb  ccc')
         #test empty
         self.assertEqual(join_parser([]),'')
         self.assertEqual(join_parser(['', ' ']),'')
@@ -191,15 +191,15 @@ class EbiTests(TestCase):
         assertEqual = self.assertEqual
 
         assertEqual(f(['aa; bb;', 'cc.']),
-                ['aa', 'bb', 'cc'])
+                    ['aa', 'bb', 'cc'])
         assertEqual(f(['aa; bb, bbb;', 'cc.'],delimiters=';,'),
-                ['aa', ['bb','bbb'], 'cc'])
+                    ['aa', ['bb','bbb'], 'cc'])
         #test item_modifer
         got = f('aa (bb) (cc).', '(', 
-                      item_modifier=rstrip_(') '))
+                item_modifier=rstrip_(') '))
         assertEqual(got, ['aa','bb','cc'])
         assertEqual(f('aa (bb)xx (cc).', '(', item_modifier=rstrip_(') ')),
-                ['aa','bb)xx','cc'])
+                    ['aa','bb)xx','cc'])
 
         #test empty
         assertEqual(f([]),[''])
@@ -211,10 +211,10 @@ class EbiTests(TestCase):
         f = join_split_dict_parser
         #test default
         self.assertEqual(f('aa=1; bb=2,3; cc=4 (if aa=1);'),
-            {'aa':'1', 'bb': ['2','3'], 'cc': '4 (if aa=1)'})
+                         {'aa':'1', 'bb': ['2','3'], 'cc': '4 (if aa=1)'})
 
         self.assertEqual(f('aa=1; bb=2,3; cc=4:5', delimiters=';=,:'),
-                {'aa':'1', 'bb': ['2','3'], 'cc': '4:5'})
+                         {'aa':'1', 'bb': ['2','3'], 'cc': '4:5'})
 
         #test strict=False -> splits without dict() 
         self.assertEqual(f('aa=1; bb.', strict=False), [['aa', '1'], ['bb']])
@@ -267,26 +267,26 @@ class EbiTests(TestCase):
         #the first fake record use only the required labels, the header is
         #deleted of '', which was assigned to sequence
         self.assertEqual(list(sorted(header.keys())),
-                list(sorted(required_labels))[1:]) #[1:] to exclude the '' 
+                         list(sorted(required_labels))[1:]) #[1:] to exclude the '' 
 
         #test selected_labels
         selected_labels = ['ID', 'DE']
         select_result = list(f(fake_records_valid, 
-            selected_labels=selected_labels))
+                               selected_labels=selected_labels))
         self.assertEqual(list(sorted(select_result[0][1].keys())),
-                list(sorted(selected_labels)))
+                         list(sorted(selected_labels)))
 
         #test bad record - unknown linecode or wrong line format
         self.assertRaises(ValueError, list, 
-                f(fake_records_valid + ['ID   id.', 'RR   not valid.','//']))
+                          f(fake_records_valid + ['ID   id.', 'RR   not valid.','//']))
         self.assertRaises(ValueError, list, 
-                f(fake_records_valid + ['ID   id.', ' RN   bad format.','//']))
+                          f(fake_records_valid + ['ID   id.', ' RN   bad format.','//']))
         self.assertRaises(ValueError, list, 
-                f(fake_records_valid + ['ID   id.', 'RN  bad format.','//']))
+                          f(fake_records_valid + ['ID   id.', 'RN  bad format.','//']))
 
         #test bad record - not end with '//'
         self.assertRaises(RecordError, list, f(fake_records_valid +
-                ['ID   not end with //', '   seq']))
+                                               ['ID   not end with //', '   seq']))
 
         #test strict: lacking required linecodes
         #?? How to test the error message?  warn message?
@@ -296,7 +296,7 @@ class EbiTests(TestCase):
         self.assertEqual(len(the_first_valid[1]),9) 
 
         self.assertRaises(RecordError, list, 
-                f(fake_records_valid, strict=True))
+                          f(fake_records_valid, strict=True))
 
     def test_EbiParser(self):
         """EbiParser: """
@@ -320,16 +320,16 @@ class RootParsersKnownValues(TestCase):
         id_line = [
             'ID   CYC_BOVIN      STANDARD;      PRT;   104 AA.']
         self.assertEqual( id_parser(id_line),
-            {'DataClass': 'STANDARD', 'Length': 104, 'MolType': 'PRT', 
-            'EntryName': 'CYC_BOVIN'})
+                          {'DataClass': 'STANDARD', 'Length': 104, 'MolType': 'PRT', 
+                           'EntryName': 'CYC_BOVIN'})
 
     def test_sq_parser(self):
         """sq_parser should return expected dict"""
         lines = [
             "SQ   SEQUENCE   486 AA;  55639 MW;  D7862E867AD74383 CRC64;"]
         self.assertEqual( sq_parser(lines),
-            {'Crc64': 'D7862E867AD74383', 'Length': 486, 
-            'MolWeight': 55639})
+                          {'Crc64': 'D7862E867AD74383', 'Length': 486, 
+                           'MolWeight': 55639})
 
     def test_ac_parser(self):
         """ac_parser should return expected list"""
@@ -337,7 +337,7 @@ class RootParsersKnownValues(TestCase):
             "AC   Q16653; O00713; O00714;",
             "AC   Q92892; Q92893;"]
         self.assertEqual( ac_parser(lines),
-                ['Q16653', 'O00713', 'O00714', 'Q92892', 'Q92893'])
+                          ['Q16653', 'O00713', 'O00714', 'Q92892', 'Q92893'])
 
     def test_oc_parser(self):   
         """oc_parser should return expected list"""
@@ -345,7 +345,7 @@ class RootParsersKnownValues(TestCase):
             "OC   Eukaryota; Metazoa; Chordata;",
             "OC   Mammalia;"]
         self.assertEqual(oc_parser(lines),
-                ['Eukaryota', 'Metazoa', 'Chordata', 'Mammalia'])
+                         ['Eukaryota', 'Metazoa', 'Chordata', 'Mammalia'])
 
     def test_dt_parser(self):
         """dt_parser should return expected list of list"""
@@ -354,9 +354,9 @@ class RootParsersKnownValues(TestCase):
             "DT   30-MAY-2000 (Rel. 39, Last sequence update)\n"\
             "DT   10-MAY-2005 (Rel. 47, Last annotation update)\n".splitlines()
         self.assertEqual( dt_parser(lines),
-                ['01-AUG-1988 (Rel. 08, Created)',
-                '30-MAY-2000 (Rel. 39, Last sequence update)',
-                '10-MAY-2005 (Rel. 47, Last annotation update)'])
+                          ['01-AUG-1988 (Rel. 08, Created)',
+                           '30-MAY-2000 (Rel. 39, Last sequence update)',
+                           '10-MAY-2005 (Rel. 47, Last annotation update)'])
 
     def test_de_itemparser(self):
         """de_itemparser: known values"""
@@ -397,12 +397,12 @@ class RootParsersKnownValues(TestCase):
             'OS   Solanum melongena (Eggplant) (Auber-',
             'OS   gine).']
         self.assertEqual(os_parser(lines),
-                ['Solanum melongena', 'Eggplant', 'Auber- gine'])
+                         ['Solanum melongena', 'Eggplant', 'Auber- gine'])
 
         lines = \
             """OS   Escherichia coli.""".splitlines()
         self.assertEqual(os_parser(lines),
-                ['Escherichia coli'])
+                         ['Escherichia coli'])
 
     def test_og_parser(self):   
         """og_parser should return expected list"""
@@ -411,7 +411,7 @@ class RootParsersKnownValues(TestCase):
             "OG   Plasmid R6-5, Plasmid IncFII R100 (NR1), and",
             "OG   Plasmid IncFII R1-19 (R1 drd-19)."]
         self.assertEqual(og_parser(lines),
-            ['XXX; xx', [
+                         ['XXX; xx', [
                 'Plasmid R6-5', 'Plasmid IncFII R100 (NR1)',
                 'Plasmid IncFII R1-19 (R1 drd-19)']])
 
@@ -420,7 +420,7 @@ class RootParsersKnownValues(TestCase):
         lines = ["OX   NCBI_TaxID=9606;"]
 
         self.assertEqual(ox_parser(lines),
-                {'NCBI_TaxID': '9606'})
+                         {'NCBI_TaxID': '9606'})
 
     def test_gn_parser(self):   
         """gn_parser should return expected list of dict"""
@@ -429,19 +429,19 @@ class RootParsersKnownValues(TestCase):
             "GN   Name=hns; Synonyms=bglY, cur, topS;",
             "GN   OrderedLocusNames=b1237, c1701, ECs1739;"]
         self.assertEqual(gn_parser(lines),
-            [{'Synonyms': ['bglY', 'cur', 'topS'], 
-            'OrderedLocusNames': ['b1237', 'c1701', 'ECs1739'],
-            'Name': 'hns'}])
+                         [{'Synonyms': ['bglY', 'cur', 'topS'], 
+                           'OrderedLocusNames': ['b1237', 'c1701', 'ECs1739'],
+                           'Name': 'hns'}])
 
         lines = [
             "GN   Name=Jon99Cii; Synonyms=SER1, Ser99Da; ORFNames=CG7877;",
             "GN   and",
             "GN   Name=Jon99Ciii; Synonyms=SER2, Ser99Db; ORFNames=CG15519;"]
         self.assertEqual(gn_parser(lines),
-            [{'ORFNames': 'CG7877', 'Synonyms': ['SER1', 'Ser99Da'],
-            'Name': 'Jon99Cii'},
-            {'ORFNames': 'CG15519', 'Synonyms': ['SER2', 'Ser99Db'],
-            'Name': 'Jon99Ciii'}])
+                         [{'ORFNames': 'CG7877', 'Synonyms': ['SER1', 'Ser99Da'],
+                           'Name': 'Jon99Cii'},
+                          {'ORFNames': 'CG15519', 'Synonyms': ['SER2', 'Ser99Db'],
+                           'Name': 'Jon99Ciii'}])
 
     def test_dr_parser(self):   
         """dr_parser should return expected dict"""
@@ -456,9 +456,9 @@ class FT_Tests(TestCase):
             ['DNA_BIND    >102    292'],
             ['CONFLICT    327    327       E -> R (in Ref. 2).'],
             ['PROPEP      ?25     48',
-            '                             /FTId=PRO_021449.',],
+             '                             /FTId=PRO_021449.',],
             ['VARIANT     214    214       V -> I.',
-            '                             /FTId=VAR_009122.',],]
+             '                             /FTId=VAR_009122.',],]
         expects = [
             ('DNA_BIND', '>102', 292, ''),
             ('CONFLICT', 327, 327, 'E -> R (in Ref. 2)'),
@@ -476,11 +476,11 @@ class FT_Tests(TestCase):
     def test_ft_id_parser(self):
         """ft_id_parser: known values"""
         inputs = [
-             '',
-             'ddd',
-             '/FTId=PRO_021449',
-             'V -> I. /FTId=VAR_009122',
-             'E -> R (tumor). /FTId=VAR_002343',]
+            '',
+            'ddd',
+            '/FTId=PRO_021449',
+            'V -> I. /FTId=VAR_009122',
+            'E -> R (tumor). /FTId=VAR_002343',]
         expects = [
             {'Description': '', 'Id': ''},
             {'Description': 'ddd', 'Id': ''},
@@ -494,12 +494,12 @@ class FT_Tests(TestCase):
     def test_ft_mutation_parser(self):
         """ft_mutation_parser: known values"""
         inputs = [
-             '',
-             'ddd',  #should raise error?
-             'V -> I. /FTId=xxxxxx',  #should raise error?
-             'V -> I',
-             'E -> R (tumor)',
-             'missing (tumor)', ]
+            '',
+            'ddd',  #should raise error?
+            'V -> I. /FTId=xxxxxx',  #should raise error?
+            'V -> I',
+            'E -> R (tumor)',
+            'missing (tumor)', ]
         expects = [
             {'MutateFrom': '', 'Comment': '', 'MutateTo': ''},
             {'MutateFrom': 'ddd', 'Comment': '', 'MutateTo': ''},
@@ -517,8 +517,8 @@ class FT_Tests(TestCase):
     def test_ft_mutagen_parser(self):
         """ft_mutagen_parser: known values"""
         inputs = [
-             'C->R,E,A: Loss of cADPr hydrolas',
-             'Missing: Abolishes ATP-binding', ]
+            'C->R,E,A: Loss of cADPr hydrolas',
+            'Missing: Abolishes ATP-binding', ]
         expects = [
             {'Comment': ' Loss of cADPr hydrolas',
              'MutateFrom': 'C', 'MutateTo': 'R,E,A'},
@@ -555,7 +555,7 @@ class CC_Tests(TestCase):
         """cc_itemfinder: raise RecordError if license block bad.""" 
         input_with_license_lacking_bottom = labeloff(cc_lines[:-1]) 
         self.assertRaises(FieldError, cc_itemfinder,
-            input_with_license_lacking_bottom)
+                          input_with_license_lacking_bottom)
 
     def test_cc_basic_itemparser(self):
         """cc_basic_itemparser: known results or FieldError"""
@@ -569,7 +569,7 @@ class CC_Tests(TestCase):
             ('topic3', ['not treated invalid topic format']),]
 
         self.assertEqual(list(map(cc_basic_itemparser, valid_topics)),
-                expects)
+                         expects)
 
         bad_topic = ['-!- bad_topic without colon', '    FieldError']
         self.assertRaises(FieldError, cc_basic_itemparser, bad_topic)
@@ -578,15 +578,15 @@ class CC_Tests(TestCase):
         """cc_interaction_parser: known values"""
         inputs = [ 
             ['Self; NbExp=1; IntAct=EBI-123485, EBI-123485;',
-            'Q9W158:CG4612; NbExp=1; IntAct=EBI-123485, EBI-89895;',
-            'Q9VYI0:fne; NbExp=1; IntAct=EBI-123485, EBI-126770;',]]
+             'Q9W158:CG4612; NbExp=1; IntAct=EBI-123485, EBI-89895;',
+             'Q9VYI0:fne; NbExp=1; IntAct=EBI-123485, EBI-126770;',]]
         expects =[
             [('Self', {'NbExp': '1', 
-                'IntAct': ['EBI-123485', 'EBI-123485']}),
-            ('Q9W158:CG4612', {'NbExp': '1', 
-                'IntAct': ['EBI-123485', 'EBI-89895']}),
-            ('Q9VYI0:fne', {'NbExp': '1', 
-                    'IntAct': ['EBI-123485', 'EBI-126770']})]]
+                       'IntAct': ['EBI-123485', 'EBI-123485']}),
+             ('Q9W158:CG4612', {'NbExp': '1', 
+                                'IntAct': ['EBI-123485', 'EBI-89895']}),
+             ('Q9VYI0:fne', {'NbExp': '1', 
+                             'IntAct': ['EBI-123485', 'EBI-126770']})]]
         self.assertEqual(list(map(cc_interaction_parser, inputs)), expects)
 
     def test_cc_biophysicochemical_properties_parser(self):
@@ -595,17 +595,17 @@ class CC_Tests(TestCase):
         f = cc_biophysicochemical_properties_parser
         valid_inputs = [
             ['Kinetic parameters:',
-            '  KM=98 uM for ATP;',
-            '  KM=688 uM for pyridoxal;',
-            '  Vmax=1.604 mmol/min/mg enzyme;',
-            'pH dependence:',
-            '  Optimum pH is 6.0. Active pH 4.5 to 10.5;',]
+             '  KM=98 uM for ATP;',
+             '  KM=688 uM for pyridoxal;',
+             '  Vmax=1.604 mmol/min/mg enzyme;',
+             'pH dependence:',
+             '  Optimum pH is 6.0. Active pH 4.5 to 10.5;',]
         ]
         expects = [
             {'Kinetic parameters': {
                 'KM': ['98 uM for ATP', '688 uM for pyridoxal'],
                 'Vmax': '1.604 mmol/min/mg enzyme'},
-            'pH dependence': 'Optimum pH is 6.0. Active pH 4.5 to 10.5'},
+             'pH dependence': 'Optimum pH is 6.0. Active pH 4.5 to 10.5'},
         ]
         self.assertEqual(list(map(f, valid_inputs)), expects)
 
@@ -615,14 +615,14 @@ class CC_Tests(TestCase):
         valid_inputs = [
             ['Event=Alternative initiation;'
              '  Comment=Free text;',
-            'Event=Alternative splicing; Named isoforms=3;',
-            '  Comment=Additional isoforms seem to exist.',
-            '  confirmation;',
-            'Name=1; Synonyms=AIRE-1;',
-            '  IsoId=O43918-1; Sequence=Displayed;',
-            'Name=3; Synonyms=AIRE-3,',
-            'ai-2, ai-3;',  #broken the hanging_paragraph_finder
-            '  IsoId=O43918-3; Sequence=VSP_004089, VSP_004090;',]]
+             'Event=Alternative splicing; Named isoforms=3;',
+             '  Comment=Additional isoforms seem to exist.',
+             '  confirmation;',
+             'Name=1; Synonyms=AIRE-1;',
+             '  IsoId=O43918-1; Sequence=Displayed;',
+             'Name=3; Synonyms=AIRE-3,',
+             'ai-2, ai-3;',  #broken the hanging_paragraph_finder
+             '  IsoId=O43918-3; Sequence=VSP_004089, VSP_004090;',]]
         expects = \
             [[{'Comment': 'Free text', 'Event': 'Alternative initiation'},
               {'Comment': 'Additional isoforms seem to exist. confirmation',
@@ -646,24 +646,24 @@ class CC_Tests(TestCase):
         #pprint(cc)
         #print cc.keys()
         self.assertEqual(list(sorted(cc.keys())), 
-                ['ALLERGEN', 'ALTERNATIVE PRODUCTS', 
-                'BIOPHYSICOCHEMICAL PROPERTIES', 'DATABASE', 'DISEASE',
-                'INTERACTION', 'LICENSE', 'MASS SPECTROMETRY'])
+                         ['ALLERGEN', 'ALTERNATIVE PRODUCTS', 
+                          'BIOPHYSICOCHEMICAL PROPERTIES', 'DATABASE', 'DISEASE',
+                          'INTERACTION', 'LICENSE', 'MASS SPECTROMETRY'])
 
         #test Disease topic (default_handler)
         self.assertEqual(cc['DISEASE'], [
             'Defects in PHKA1 are linked to X-linked muscle glycogenosis '
-                '[MIM:311870]',
+            '[MIM:311870]',
             'Defects in ABCD1 are the cause of recessive X-linked '
-                'adrenoleukodystrophy (X-ALD) [MIM:300100]. X-ALD is a rare '
-                'phenotype'
+            'adrenoleukodystrophy (X-ALD) [MIM:300100]. X-ALD is a rare '
+            'phenotype'
         ])
 
         #test License (default_handler)
         #pprint(cc['LICENSE'])
         self.assertEqual(cc['LICENSE'], [
             'This SWISS-PROT entry is copyright. It is produced through a '
-                'collaboration removed'])
+            'collaboration removed'])
 
         #pprint(cc['DATABASE'])  #join_split_dict
         self.assertEqual(cc['DATABASE'], [{
@@ -675,9 +675,9 @@ class CC_Tests(TestCase):
         cc_lines_with_unknown_topic = ['CC   -!- BLAHBLAH: xxxxx'] + cc_lines
         #pprint(cc_parser(cc_lines_with_unknown_topic))
         self.assertEqual(cc_parser(cc_lines_with_unknown_topic)['BLAHBLAH'],
-                ['xxxxx'])
+                         ['xxxxx'])
         self.assertRaises(FieldError, cc_parser,
-                cc_lines_with_unknown_topic, strict=True)
+                          cc_lines_with_unknown_topic, strict=True)
 
 
 class ReferenceTests(TestCase):
@@ -693,12 +693,12 @@ class ReferenceTests(TestCase):
     def test_single_ref_parser(self):
         """single_ref_parser: should return the expected dict"""
         fake_ref_block = ['RN   [1]',
-            'RP   NUCLEOTIDE',
-            'RC   STRAIN=Bristol N2;',
-            'RX   PubMed=1113;',
-            'RA   Zhang L., Wu S.-L., Rubin C.S.;',
-            'RT   "A novel ";',
-            'RL   J. Biol. Chem. 276:10.',]
+                          'RP   NUCLEOTIDE',
+                          'RC   STRAIN=Bristol N2;',
+                          'RX   PubMed=1113;',
+                          'RA   Zhang L., Wu S.-L., Rubin C.S.;',
+                          'RT   "A novel ";',
+                          'RL   J. Biol. Chem. 276:10.',]
         rn, others = single_ref_parser(fake_ref_block)
         self.assertEqual(rn, 1)
         self.assertEqual(len(others), 6)
@@ -707,7 +707,7 @@ class ReferenceTests(TestCase):
         self.assertEqual(len(single_ref_parser(
             fake_ref_block[:-1], strict=False)[1]), 5)
         self.assertRaises(RecordError, single_ref_parser, fake_ref_block[:-1],
-                True)
+                          True)
 
     def test_ra_parser(self):
         """ra_parser should return expected list"""
@@ -715,8 +715,8 @@ class ReferenceTests(TestCase):
             "RA   Galinier A., Bleicher F., Negre D.,\n"\
             "RA   Cozzone A.J., Cortay J.-C.;\n".splitlines()
         self.assertEqual( ra_parser(lines),
-            ['Galinier A.', 'Bleicher F.', 'Negre D.', 'Cozzone A.J.', 
-            'Cortay J.-C.'])
+                          ['Galinier A.', 'Bleicher F.', 'Negre D.', 'Cozzone A.J.', 
+                           'Cortay J.-C.'])
 
     def test_rx_parser(self):   
         """rx_parser should return expected dict"""
@@ -739,8 +739,8 @@ class ReferenceTests(TestCase):
             "RC   STRAIN=AL.012, AZ.026;"]
 
         self.assertEqual(rc_parser(lines),
-             {'TRANSPOSON': 'Tn3', 'PLASMID': 'R1 (R7268)', 
-             'STRAIN': ['AL.012', 'AZ.026']})
+                         {'TRANSPOSON': 'Tn3', 'PLASMID': 'R1 (R7268)', 
+                          'STRAIN': ['AL.012', 'AZ.026']})
 
     def test_rt_parser(self):
         """rt_parser should return expected str"""
@@ -748,14 +748,14 @@ class ReferenceTests(TestCase):
             'RT   "New insulin-like proteins',
             'RT   analysis and homology modeling.";']
         self.assertEqual( rt_parser(lines),
-            'New insulin-like proteins analysis and homology modeling')
+                          'New insulin-like proteins analysis and homology modeling')
 
     def test_rl_parser(self):
         """rl_parser should return expected str"""
         lines = [
             "RL   J. Mol. Biol. 168:321-331(1983)."]
         self.assertEqual( rl_parser(lines),
-            'J. Mol. Biol. 168:321-331(1983)')
+                          'J. Mol. Biol. 168:321-331(1983)')
 
     def test_rn_parser(self):
         """rn_parser should return expected str"""
@@ -766,13 +766,13 @@ class ReferenceTests(TestCase):
         """rg_parser should return expected str"""
         lines = [ "RG   The mouse genome sequencing consortium;"]
         self.assertEqual( rg_parser(lines),
-            ['The mouse genome sequencing consortium'])
+                          ['The mouse genome sequencing consortium'])
 
     def test_rp_parser(self):
         """rp_parser should return expected str"""
         lines = [ "RP   X-RAY CRYSTALLOGRAPHY (1.8 ANGSTROMS)."]
         self.assertEqual( rp_parser(lines),
-                 'X-RAY CRYSTALLOGRAPHY (1.8 ANGSTROMS)')
+                          'X-RAY CRYSTALLOGRAPHY (1.8 ANGSTROMS)')
 
 #################################
 # global test data
@@ -791,30 +791,30 @@ FT   TURN         37     38""".splitlines()
 
 ft_expect = \
     {'ACT_SITE': [{'Start': 69, 'End': 69, 'Description': 'Charge relay system'}],
- 'CHAIN': [{'Description': {'Description': 'Granzyme A',
-                            'Id': 'PRO_0000027394'},
-            'End': 262,
-            'Start': 29}],
- 'CONFLICT': [{'Description': {'Comment': 'in Ref. 18',
-                               'MutateFrom': 'R',
-                               'MutateTo': 'Q'},
-               'End': 282,
-               'Start': 282}],
- 'SecondaryStructure': [('STRAND', 30, 30),
-                        ('STRAND', 33, 34),
-                        ('TURN', 37, 38)],
- 'VARIANT': [{'Description': {'Comment': 'in dbSNP:3104233',
-                              'Id': 'VAR_024291',
-                              'MutateFrom': 'T',
-                              'MutateTo': 'M'},
-              'End': 121,
-              'Start': 121},
-             {'Description': {'Comment': 'in a skin tumor',
-                              'Id': 'VAR_005851',
-                              'MutateFrom': 'unknown  ',
-                              'MutateTo': ''},
-              'End': 7,
-              'Start': 1}]}
+     'CHAIN': [{'Description': {'Description': 'Granzyme A',
+                                'Id': 'PRO_0000027394'},
+                'End': 262,
+                'Start': 29}],
+     'CONFLICT': [{'Description': {'Comment': 'in Ref. 18',
+                                   'MutateFrom': 'R',
+                                   'MutateTo': 'Q'},
+                   'End': 282,
+                   'Start': 282}],
+     'SecondaryStructure': [('STRAND', 30, 30),
+                            ('STRAND', 33, 34),
+                            ('TURN', 37, 38)],
+     'VARIANT': [{'Description': {'Comment': 'in dbSNP:3104233',
+                                  'Id': 'VAR_024291',
+                                  'MutateFrom': 'T',
+                                  'MutateTo': 'M'},
+                  'End': 121,
+                  'Start': 121},
+                 {'Description': {'Comment': 'in a skin tumor',
+                                  'Id': 'VAR_005851',
+                                  'MutateFrom': 'unknown  ',
+                                  'MutateTo': ''},
+                  'End': 7,
+                  'Start': 1}]}
 
 dr_lines =\
     """DR   MIM; 140050; gene.
@@ -829,14 +829,14 @@ DR   Pfam; PF00089; Trypsin; 1.""".splitlines()
 
 dr_expect =\
     {'GO': [['GO:0001772', 'C:immunological synapse', 'TAS'],
-        ['GO:0005634', 'C:nucleus', 'TAS'],
-        ['GO:0006915', 'P:apoptosis', 'TAS'],
-        ['GO:0006922', 'P:cleavage of lamin', 'IDA'],
-        ['GO:0006955', 'P:immune response', 'TAS']],
-    'Pfam': [['PF00089', 'Trypsin', '1']],
-    'InterPro': [['IPR001254', 'Peptidase_S1_S6'],
-        ['IPR001314', 'Peptidase_S1A']],
-    'MIM': [['140050', 'gene']]}
+            ['GO:0005634', 'C:nucleus', 'TAS'],
+            ['GO:0006915', 'P:apoptosis', 'TAS'],
+            ['GO:0006922', 'P:cleavage of lamin', 'IDA'],
+            ['GO:0006955', 'P:immune response', 'TAS']],
+     'Pfam': [['PF00089', 'Trypsin', '1']],
+     'InterPro': [['IPR001254', 'Peptidase_S1_S6'],
+                  ['IPR001314', 'Peptidase_S1A']],
+     'MIM': [['140050', 'gene']]}
 
 cc_lines = \
     """CC   -!- ALLERGEN: Causes an allergic reaction in human. Binds to IgE.

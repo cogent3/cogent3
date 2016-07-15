@@ -112,15 +112,15 @@ class arrayTests(TestCase):
         p3 = [1, 2, 0.6]
         pairs = [p1, p2, p3]
         self.assertEqual(p2a(pairs), \
-            array([[0,.5,0,0],[0,0,.6,0],[0,0,0,.9],[0,0,0,0]]))
+                         array([[0,.5,0,0],[0,0,.6,0],[0,0,0,.9],[0,0,0,0]]))
         #try it without weights -- should assign 1
         new_pairs = [[0,1],[2,3],[1,2]]
         self.assertEqual(p2a(new_pairs), \
-            array([[0,1,0,0],[0,0,1,0],[0,0,0,1],[0,0,0,0]]))
+                         array([[0,1,0,0],[0,0,1,0],[0,0,0,1],[0,0,0,0]]))
         #try it with explicit array size
         self.assertEqual(p2a(pairs, 5), \
-            array([[0,.5,0,0,0],[0,0,.6,0,0],[0,0,0,.9,0],[0,0,0,0,0],\
-            [0,0,0,0,0]]))
+                         array([[0,.5,0,0,0],[0,0,.6,0,0],[0,0,0,.9,0],[0,0,0,0,0],\
+                                [0,0,0,0,0]]))
         #try it when we want to map the indices into gapped coords
         #we're effectively doing ABCD -> -A--BC-D-
         transform = array([1,4,5,7])
@@ -209,12 +209,12 @@ class ArrayMathTests(TestCase):
         #negative number
         try:
             self.assertFloatEqual(safe_log(array([0,3,-4]))[0:2], \
-                array([0,1.5849625007]))
+                                  array([0,1.5849625007]))
         except ValueError:      #platform-dependent
             pass
         try:
             self.assertNotEqual(safe_log(array([0,3,-4]))[2],\
-                safe_log(array([0,3,-4]))[2])
+                                safe_log(array([0,3,-4]))[2])
         except ValueError:      #platform-dependent
             pass
         #empty array
@@ -227,11 +227,11 @@ class ArrayMathTests(TestCase):
         """
         #normal valid array
         b = transpose(array([[.25,.2,.45,.25,1],[.25,.2,.45,0,0],\
-            [.25,.3,.05,.75,0],[.25,.3,.05,0,0]]))
+                             [.25,.3,.05,.75,0],[.25,.3,.05,0,0]]))
         self.assertFloatEqual(row_uncertainty(b),[2,1.97,1.47,0.81,0],1e-3)
         #one-dimensional array
         self.assertRaises(ValueError, row_uncertainty,\
-            array([.25,.25,.25,.25]))
+                          array([.25,.25,.25,.25]))
         #zeros
         self.assertEqual(row_uncertainty(array([[0,0]])),array([0]))
         #empty 2D array
@@ -244,11 +244,11 @@ class ArrayMathTests(TestCase):
         """column_uncertainty: should handle pos/neg/zero/empty arrays
         """
         b = array([[.25,.2,.45,.25,1],[.25,.2,.45,0,0],[.25,.3,.05,.75,0],\
-            [.25,.3,.05,0,0]])
+                   [.25,.3,.05,0,0]])
         self.assertFloatEqual(column_uncertainty(b),[2,1.97,1.47,0.81,0],1e-3)
         #one-dimensional array
         self.assertRaises(ValueError, column_uncertainty,\
-            array([.25,.25,.25,.25]))
+                          array([.25,.25,.25,.25]))
         #zeros
         self.assertEqual(column_uncertainty(array([[0,0]])),array([0,0]))
         #empty 2D array
@@ -265,7 +265,7 @@ class ArrayMathTests(TestCase):
         self.assertEqual(row_degeneracy(a,cutoff=.95),[4,3,3])
         #one-dimensional array
         self.assertRaises(ValueError, row_degeneracy,\
-            array([.25,.25,.25,.25]))
+                          array([.25,.25,.25,.25]))
         #if cutoff value is not found, results are clipped to the
         #number of columns in the array
         self.assertEqual(row_degeneracy(a,cutoff=2), [4,4,4])
@@ -280,7 +280,7 @@ class ArrayMathTests(TestCase):
         self.assertEqual(column_degeneracy(a,cutoff=.45),[1,1,2])
         #one-dimensional array
         self.assertRaises(ValueError, column_degeneracy,\
-            array([.25,.25,.25,.25]))
+                          array([.25,.25,.25,.25]))
         #if cutoff value is not found, results are clipped to the
         #number of rows in the array
         self.assertEqual(column_degeneracy(a,cutoff=2), [3,3,3])
@@ -408,10 +408,10 @@ class ArrayMathTests(TestCase):
         m = array([[1.0, 2,3,4],[2,4,4,0],[1,1,1,1],[0,0,0,100]])
         scale_row_sum(m)
         self.assertFloatEqual(m, [[0.1,0.2,0.3,0.4],[0.2,0.4,0.4,0],\
-                [0.25,0.25,0.25,0.25],[0,0,0,1.0]])
+                                  [0.25,0.25,0.25,0.25],[0,0,0,1.0]])
         scale_row_sum(m,4)
         self.assertFloatEqual(m, [[0.4,0.8,1.2,1.6],[0.8,1.6,1.6,0],\
-                [1,1,1,1],[0,0,0,4.0]])
+                                  [1,1,1,1],[0,0,0,4.0]])
         #if any of the rows sums to zero, an exception will be raised.
 
         #SUPPORT2425
@@ -419,7 +419,7 @@ class ArrayMathTests(TestCase):
         try:
             numpy.seterr(invalid='raise')
             self.assertRaises((ZeroDivisionError, FloatingPointError), \
-                scale_row_sum, array([[1,0],[0,0]], float))            
+                              scale_row_sum, array([[1,0],[0,0]], float))            
         finally:
             numpy.seterr(**ori_err)
 
@@ -429,10 +429,10 @@ class ArrayMathTests(TestCase):
         m = array([[1.0,2,3,4],[2,4,4,0],[1,1,1,1],[0,0,0,100]])
         scale_row_sum_naive(m)
         self.assertFloatEqual(m, [[0.1,0.2,0.3,0.4],[0.2,0.4,0.4,0],\
-                [0.25,0.25,0.25,0.25],[0,0,0,1.0]])
+                                  [0.25,0.25,0.25,0.25],[0,0,0,1.0]])
         scale_row_sum_naive(m,4)
         self.assertFloatEqual(m, [[0.4,0.8,1.2,1.6],[0.8,1.6,1.6,0],\
-                [1,1,1,1],[0,0,0,4.0]])
+                                  [1,1,1,1],[0,0,0,4.0]])
         #if any of the rows sums to zero, an exception will be raised.
 
         #SUPPORT2425
@@ -441,7 +441,7 @@ class ArrayMathTests(TestCase):
         try:
             numpy.seterr(invalid='raise')
             self.assertRaises((ZeroDivisionError, FloatingPointError), \
-                scale_row_sum_naive, array([[1,0],[0,0]]))
+                              scale_row_sum_naive, array([[1,0],[0,0]]))
         finally:
             numpy.seterr(**ori_err)
 
@@ -454,10 +454,10 @@ class ArrayMathTests(TestCase):
         self.assertFloatEqual(m, [[-0.5, 0],[0,-0.5]])
         #should work even with zero rows
         m = array([
-                [1.0,2,3,4],
-                [2,4,4,0],
-                [1,1,0,1],
-                [0,0,0,0]
+            [1.0,2,3,4],
+            [2,4,4,0],
+            [1,1,0,1],
+            [0,0,0,0]
         ])
         m_orig = m.copy()
         scale_trace(m)
@@ -471,7 +471,7 @@ class ArrayMathTests(TestCase):
         try:
         #with numpy_err(divide='raise'):
             self.assertRaises((ZeroDivisionError, FloatingPointError), \
-                scale_trace, m)
+                              scale_trace, m)
         finally:
             numpy.seterr(**ori_err)
 
@@ -519,13 +519,13 @@ class ArrayMathTests(TestCase):
         self.assertEqual(cartesian_product([a]), [('a',),('b',),('c',)])
         #should combine two lists correctly
         self.assertEqual(cartesian_product([a,b]), \
-            [('a',1),('a',2),('a',3),('b',1),('b',2),\
-             ('b',3),('c',1),('c',2),('c',3)])
+                         [('a',1),('a',2),('a',3),('b',1),('b',2),\
+                          ('b',3),('c',1),('c',2),('c',3)])
         #should combine three lists correctly
         self.assertEqual(cartesian_product([d,d,d]), \
-            [(0,0,0),(0,0,1),(0,1,0),(0,1,1),(1,0,0),(1,0,1),(1,1,0),(1,1,1)])
+                         [(0,0,0),(0,0,1),(0,1,0),(0,1,1),(1,0,0),(1,0,1),(1,1,0),(1,1,1)])
         self.assertEqual(cartesian_product([c,d,d]), \
-            [(1.0,0,0),(1.0,0,1),(1.0,1,0),(1.0,1,1)])
+                         [(1.0,0,0),(1.0,0,1),(1.0,1,0),(1.0,1,1)])
 
     def test_without_diag(self):
         """without_diag should omit diagonal from matrix"""
@@ -547,9 +547,9 @@ class ArrayMathTests(TestCase):
         #expect result to be rows 0, 2 and 3 of a
         result = only_nonzero(a)
         self.assertEqual(result,
-            array([[[1,2,3],[4,5,6],[7,8,9]],\
-                [[19,20,21],[22,23,24],[25,26,27]],
-                [[37,38,39],[40,41,42],[43,44,45]]]))
+                         array([[[1,2,3],[4,5,6],[7,8,9]],\
+                                [[19,20,21],[22,23,24],[25,26,27]],
+                                [[37,38,39],[40,41,42],[43,44,45]]]))
 
     def test_combine_dimensions(self):
         """combine_dimensions should aggregate expected dimensions"""
@@ -609,7 +609,7 @@ class ArrayMathTests(TestCase):
         a = reshape(arange(27), (3,9))
         m = non_diag(a)
         self.assertEqual(m, array([[1,2,3,5,6,7],[10,11,12,14,15,16],\
-            [19,20,21,23,24,25]]))
+                                   [19,20,21,23,24,25]]))
 
     def test_perturb_one_off_diag(self):
         """perturb_element should perturb a random off-diagonal element"""
@@ -652,7 +652,7 @@ class ArrayMathTests(TestCase):
     def test_merge_samples(self):
         """merge_samples should keep the sample label"""
         self.assertEqual(merge_samples(array([1,2]),array([3,4]),array([5])),
-            array([[1,2,3,4,5],[0,0,1,1,2]]))
+                         array([[1,2,3,4,5],[0,0,1,1,2]]))
 
     def test_sort_merged_samples_by_value(self):
         """sort_merged_samples_by_value should keep label associations"""

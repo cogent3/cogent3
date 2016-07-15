@@ -12,13 +12,13 @@ from cogent3.phylo.tree_collection import LogLikelihoodScoredTreeCollection,\
     WeightedTreeCollection, LoadTrees, ScoredTreeCollection
 from cogent3.evolve.models import JC69, HKY85, F81
 from cogent3.phylo.consensus import majorityRule, weightedMajorityRule, \
-        getSplits, getTree
+    getSplits, getTree
 from cogent3.util.misc import remove_files
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2015, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield",\
-        "Daniel McDonald", "Ben Kaehler"]
+               "Daniel McDonald", "Ben Kaehler"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
@@ -34,91 +34,91 @@ def Tree(t):
 class ConsensusTests(unittest.TestCase):
     def setUp(self):
         self.trees = [
-                Tree("((a,b),c,d);"),
-                Tree("((a,b),c,d);"),
-                Tree("((a,c),b,d);"),
-                Tree("((a,b),c,d);")]
+            Tree("((a,b),c,d);"),
+            Tree("((a,b),c,d);"),
+            Tree("((a,c),b,d);"),
+            Tree("((a,b),c,d);")]
 
         weights = list(map(log, [0.4,0.4,0.05,0.15])) # emphasizing the a,b clade
         self.scored_trees = list(zip(weights, self.trees))
         self.scored_trees.sort(reverse=True)
 
         self.rooted_trees = [
-                Tree("((a,b),(c,d));"),
-                Tree("((a,b),(c,d));"),
-                Tree("((a,c),(b,d));"),
-                Tree("((a,b),c,d);")]
+            Tree("((a,b),(c,d));"),
+            Tree("((a,b),(c,d));"),
+            Tree("((a,c),(b,d));"),
+            Tree("((a,b),c,d);")]
 
         self.trees_randomly_rooted = \
-                [(-3416.3820971172017, Tree("(((F,(M,(P,(K,J)))),A),Q,(H,((S,(X,((Z,N),((O,(L,D)),E)))),((G,((I,(R,T)),Y)),(C,(((U,W),V),B))))));")), 
-                 (-3416.3820974814785, Tree("(R,T,(I,(Y,(G,((((X,((Z,N),((O,(L,D)),E))),S),((Q,((F,(M,(P,(K,J)))),A)),H)),((((U,W),V),C),B))))));")), 
-                 (-3416.571172739171, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,(S,((X,((Z,N),((O,(L,D)),E))),(((G,((I,(R,T)),Y)),C),(((U,W),V),B)))))));")), 
-                 (-3416.5721393589474, Tree("(P,(K,J),(M,(F,(A,(Q,(H,(((((Z,N),((O,(L,D)),E)),S),X),((C,(G,((I,(R,T)),Y))),(((U,W),V),B)))))))));")), 
-                 (-3416.5721493054643, Tree("(R,T,(I,(Y,(G,(C,((S,(X,((Z,N),((O,(L,D)),E)))),((((U,W),V),B),((Q,((F,(M,(P,(K,J)))),A)),H))))))));")), 
-                 (-3416.572149424391, Tree("((U,W),V,(B,(((G,((I,(R,T)),Y)),C),((S,(X,((Z,N),((O,(L,D)),E)))),(H,(Q,((F,(M,(P,(K,J)))),A)))))));")), 
-                 (-3416.596424489769, Tree("(S,(X,((Z,N),((O,(L,D)),E))),((((G,((I,(R,T)),Y)),C),(((U,W),V),B)),((H,Q),((F,(M,(P,(K,J)))),A))));")),
-                 (-3416.6335053806333, Tree("(M,(P,(K,J)),(F,(A,(Q,(H,(((((((O,(L,D)),E),N),Z),X),S),((C,((V,(U,W)),B)),(G,((I,(R,T)),Y)))))))));")), 
-                 (-3416.7626687401867, Tree("(Z,N,(((O,(L,D)),E),(X,(S,((((F,(M,(P,(K,J)))),A),Q),(H,((G,((I,(R,T)),Y)),(C,(((U,W),V),B)))))))));")), 
-                 (-3416.7670692165866, Tree("(X,((Z,N),((O,(L,D)),E)),(S,((B,(((G,((I,(R,T)),Y)),C),((U,W),V))),((Q,((F,(M,(P,(K,J)))),A)),H))));")), 
-                 (-3416.7670696377254, Tree("(P,(K,J),(M,(F,(A,(Q,(H,(((X,((Z,N),((O,(L,D)),E))),S),(((U,W),V),(((G,((I,(R,T)),Y)),C),B)))))))));")), 
-                 (-3416.848062302587, Tree("(((O,(L,D)),E),N,(Z,(X,(S,(((((F,(M,(P,(K,J)))),A),Q),H),(((V,(U,W)),B),(C,(G,((I,(R,T)),Y)))))))));")), 
-                 (-3416.9943503002764, Tree("((U,W),V,(B,((C,(G,((I,(R,T)),Y))),(H,(((((Z,N),((O,(L,D)),E)),S),X),(((F,(M,(P,(K,J)))),A),Q))))));")), 
-                 (-3417.014782481302, Tree("(Q,((F,(M,(P,(K,J)))),A),(((((U,W),V),B),((G,((I,(R,T)),Y)),C)),((S,(X,((Z,N),((O,(L,D)),E)))),H)));")), 
-                 (-3417.015470262783, Tree("(L,D,(O,(E,((Z,N),(X,(S,((Q,((F,(M,(P,(K,J)))),A)),(H,((((U,W),V),B),((G,((I,(R,T)),Y)),C))))))))));")), 
-                 (-3417.241619414339, Tree("(Z,N,(((O,(L,D)),E),(X,(S,(H,((Q,((F,(M,(P,(K,J)))),A)),(B,(((G,((I,(R,T)),Y)),C),((U,W),V)))))))));")), 
-                 (-3417.242009280534, Tree("(X,((Z,N),((O,(L,D)),E)),(S,((Q,((F,(M,(P,(K,J)))),A)),(H,(B,(((G,((I,(R,T)),Y)),C),((U,W),V)))))));")), 
-                 (-3417.2637092520818, Tree("(K,J,(P,(M,(F,(A,(Q,(((((((O,(L,D)),E),N),Z),X),S),(((B,(V,(U,W))),(C,(G,((I,(R,T)),Y)))),H))))))));")), 
-                 (-3417.420526572887, Tree("(B,(V,(U,W)),(((H,(Q,(A,(F,(M,(P,(K,J))))))),((((((O,(L,D)),E),N),X),Z),S)),(C,(((I,(R,T)),Y),G))));")), 
-                 (-3417.4205266767162, Tree("(R,T,(I,(Y,(G,(C,((B,(V,(U,W))),((H,((A,(F,(M,(P,(K,J))))),Q)),(Z,(((((O,(L,D)),E),N),X),S)))))))));")), 
-                 (-3417.620921910812, Tree("((O,(L,D)),E,(N,(X,(Z,(S,(((Q,(A,(F,(M,(P,(K,J)))))),H),((((((I,(R,T)),Y),G),C),(V,(U,W))),B)))))));")), 
-                 (-3417.6209219461302, Tree("(F,(M,(P,(K,J))),(A,(Q,(H,((Z,(((((O,(L,D)),E),N),X),S)),((((G,((I,(R,T)),Y)),C),(V,(U,W))),B))))));")), 
-                 (-3417.6209224304744, Tree("(H,((A,(F,(M,(P,(K,J))))),Q),(B,((Z,(((((O,(L,D)),E),N),X),S)),(((G,((I,(R,T)),Y)),C),(V,(U,W))))));")), 
-                 (-3417.9379715010136, Tree("((I,(R,T)),Y,(G,(C,((B,(V,(U,W))),(H,((Q,(A,(F,(M,(P,(K,J)))))),((((((O,(L,D)),E),N),X),Z),S)))))));")), 
-                 (-3417.9379715187215, Tree("(((O,(L,D)),E),N,(X,(S,(Z,(((A,(F,(M,(P,(K,J))))),Q),(((B,(V,(U,W))),(C,(G,((I,(R,T)),Y)))),H))))));"))]
+        [(-3416.3820971172017, Tree("(((F,(M,(P,(K,J)))),A),Q,(H,((S,(X,((Z,N),((O,(L,D)),E)))),((G,((I,(R,T)),Y)),(C,(((U,W),V),B))))));")), 
+         (-3416.3820974814785, Tree("(R,T,(I,(Y,(G,((((X,((Z,N),((O,(L,D)),E))),S),((Q,((F,(M,(P,(K,J)))),A)),H)),((((U,W),V),C),B))))));")), 
+         (-3416.571172739171, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,(S,((X,((Z,N),((O,(L,D)),E))),(((G,((I,(R,T)),Y)),C),(((U,W),V),B)))))));")), 
+         (-3416.5721393589474, Tree("(P,(K,J),(M,(F,(A,(Q,(H,(((((Z,N),((O,(L,D)),E)),S),X),((C,(G,((I,(R,T)),Y))),(((U,W),V),B)))))))));")), 
+         (-3416.5721493054643, Tree("(R,T,(I,(Y,(G,(C,((S,(X,((Z,N),((O,(L,D)),E)))),((((U,W),V),B),((Q,((F,(M,(P,(K,J)))),A)),H))))))));")), 
+         (-3416.572149424391, Tree("((U,W),V,(B,(((G,((I,(R,T)),Y)),C),((S,(X,((Z,N),((O,(L,D)),E)))),(H,(Q,((F,(M,(P,(K,J)))),A)))))));")), 
+         (-3416.596424489769, Tree("(S,(X,((Z,N),((O,(L,D)),E))),((((G,((I,(R,T)),Y)),C),(((U,W),V),B)),((H,Q),((F,(M,(P,(K,J)))),A))));")),
+         (-3416.6335053806333, Tree("(M,(P,(K,J)),(F,(A,(Q,(H,(((((((O,(L,D)),E),N),Z),X),S),((C,((V,(U,W)),B)),(G,((I,(R,T)),Y)))))))));")), 
+         (-3416.7626687401867, Tree("(Z,N,(((O,(L,D)),E),(X,(S,((((F,(M,(P,(K,J)))),A),Q),(H,((G,((I,(R,T)),Y)),(C,(((U,W),V),B)))))))));")), 
+         (-3416.7670692165866, Tree("(X,((Z,N),((O,(L,D)),E)),(S,((B,(((G,((I,(R,T)),Y)),C),((U,W),V))),((Q,((F,(M,(P,(K,J)))),A)),H))));")), 
+         (-3416.7670696377254, Tree("(P,(K,J),(M,(F,(A,(Q,(H,(((X,((Z,N),((O,(L,D)),E))),S),(((U,W),V),(((G,((I,(R,T)),Y)),C),B)))))))));")), 
+         (-3416.848062302587, Tree("(((O,(L,D)),E),N,(Z,(X,(S,(((((F,(M,(P,(K,J)))),A),Q),H),(((V,(U,W)),B),(C,(G,((I,(R,T)),Y)))))))));")), 
+         (-3416.9943503002764, Tree("((U,W),V,(B,((C,(G,((I,(R,T)),Y))),(H,(((((Z,N),((O,(L,D)),E)),S),X),(((F,(M,(P,(K,J)))),A),Q))))));")), 
+         (-3417.014782481302, Tree("(Q,((F,(M,(P,(K,J)))),A),(((((U,W),V),B),((G,((I,(R,T)),Y)),C)),((S,(X,((Z,N),((O,(L,D)),E)))),H)));")), 
+         (-3417.015470262783, Tree("(L,D,(O,(E,((Z,N),(X,(S,((Q,((F,(M,(P,(K,J)))),A)),(H,((((U,W),V),B),((G,((I,(R,T)),Y)),C))))))))));")), 
+         (-3417.241619414339, Tree("(Z,N,(((O,(L,D)),E),(X,(S,(H,((Q,((F,(M,(P,(K,J)))),A)),(B,(((G,((I,(R,T)),Y)),C),((U,W),V)))))))));")), 
+         (-3417.242009280534, Tree("(X,((Z,N),((O,(L,D)),E)),(S,((Q,((F,(M,(P,(K,J)))),A)),(H,(B,(((G,((I,(R,T)),Y)),C),((U,W),V)))))));")), 
+         (-3417.2637092520818, Tree("(K,J,(P,(M,(F,(A,(Q,(((((((O,(L,D)),E),N),Z),X),S),(((B,(V,(U,W))),(C,(G,((I,(R,T)),Y)))),H))))))));")), 
+         (-3417.420526572887, Tree("(B,(V,(U,W)),(((H,(Q,(A,(F,(M,(P,(K,J))))))),((((((O,(L,D)),E),N),X),Z),S)),(C,(((I,(R,T)),Y),G))));")), 
+         (-3417.4205266767162, Tree("(R,T,(I,(Y,(G,(C,((B,(V,(U,W))),((H,((A,(F,(M,(P,(K,J))))),Q)),(Z,(((((O,(L,D)),E),N),X),S)))))))));")), 
+         (-3417.620921910812, Tree("((O,(L,D)),E,(N,(X,(Z,(S,(((Q,(A,(F,(M,(P,(K,J)))))),H),((((((I,(R,T)),Y),G),C),(V,(U,W))),B)))))));")), 
+         (-3417.6209219461302, Tree("(F,(M,(P,(K,J))),(A,(Q,(H,((Z,(((((O,(L,D)),E),N),X),S)),((((G,((I,(R,T)),Y)),C),(V,(U,W))),B))))));")), 
+         (-3417.6209224304744, Tree("(H,((A,(F,(M,(P,(K,J))))),Q),(B,((Z,(((((O,(L,D)),E),N),X),S)),(((G,((I,(R,T)),Y)),C),(V,(U,W))))));")), 
+         (-3417.9379715010136, Tree("((I,(R,T)),Y,(G,(C,((B,(V,(U,W))),(H,((Q,(A,(F,(M,(P,(K,J)))))),((((((O,(L,D)),E),N),X),Z),S)))))));")), 
+         (-3417.9379715187215, Tree("(((O,(L,D)),E),N,(X,(S,(Z,(((A,(F,(M,(P,(K,J))))),Q),(((B,(V,(U,W))),(C,(G,((I,(R,T)),Y)))),H))))));"))]
         self.trees_rooted_at_A = \
-                [(-3416.3820971172017, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,((S,(X,((Z,N),((O,(L,D)),E)))),((G,((I,(R,T)),Y)),(C,(((U,W),V),B)))))));")), 
-                 (-3416.3820974814785, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,(((X,((Z,N),((O,(L,D)),E))),S),((G,((I,(R,T)),Y)),((((U,W),V),C),B))))));")), 
-                 (-3416.571172739171, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,(S,((X,((Z,N),((O,(L,D)),E))),(((G,((I,(R,T)),Y)),C),(((U,W),V),B)))))));")), 
-                 (-3416.5721393589474, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,(((((Z,N),((O,(L,D)),E)),S),X),((C,(G,((I,(R,T)),Y))),(((U,W),V),B))))));")), 
-                 (-3416.5721493054643, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,((((U,W),V),B),(((G,((I,(R,T)),Y)),C),(S,(X,((Z,N),((O,(L,D)),E)))))))));")), 
-                 (-3416.572149424391, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,((S,(X,((Z,N),((O,(L,D)),E)))),(((G,((I,(R,T)),Y)),C),(((U,W),V),B))))));")), 
-                 (-3416.596424489769, Tree("((F,(M,(P,(K,J)))),A,(((S,(X,((Z,N),((O,(L,D)),E)))),(((G,((I,(R,T)),Y)),C),(((U,W),V),B))),(H,Q)));")),
-                 (-3416.6335053806333, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,(((((((O,(L,D)),E),N),Z),X),S),((C,((V,(U,W)),B)),(G,((I,(R,T)),Y)))))));")),
-                 (-3416.7626687401867, Tree("((F,(M,(P,(K,J)))),A,(Q,((H,((G,((I,(R,T)),Y)),(C,(((U,W),V),B)))),(S,(X,((Z,N),((O,(L,D)),E)))))));")),
-                 (-3416.7670692165866, Tree("((F,(M,(P,(K,J)))),A,(Q,(((B,(((G,((I,(R,T)),Y)),C),((U,W),V))),((X,((Z,N),((O,(L,D)),E))),S)),H)));")),
-                 (-3416.7670696377254, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,(((X,((Z,N),((O,(L,D)),E))),S),(((U,W),V),(((G,((I,(R,T)),Y)),C),B))))));")),
-                 (-3416.848062302587, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,(((((((O,(L,D)),E),N),Z),X),S),(((V,(U,W)),B),(C,(G,((I,(R,T)),Y))))))));")),
-                 (-3416.9943503002764, Tree("((F,(M,(P,(K,J)))),A,(((((C,(G,((I,(R,T)),Y))),(((U,W),V),B)),H),((((Z,N),((O,(L,D)),E)),S),X)),Q));")),
-                 (-3417.014782481302, Tree("((F,(M,(P,(K,J)))),A,(Q,(((((U,W),V),B),((G,((I,(R,T)),Y)),C)),((S,(X,((Z,N),((O,(L,D)),E)))),H))));")),
-                 (-3417.015470262783, Tree("((F,(M,(P,(K,J)))),A,(Q,((H,((((U,W),V),B),((G,((I,(R,T)),Y)),C))),(S,(X,((Z,N),((O,(L,D)),E)))))));")),
-                 (-3417.241619414339, Tree("((F,(M,(P,(K,J)))),A,(Q,((H,((X,((Z,N),((O,(L,D)),E))),S)),(B,(((G,((I,(R,T)),Y)),C),((U,W),V))))));")),
-                 (-3417.242009280534, Tree("((F,(M,(P,(K,J)))),A,(Q,(((X,((Z,N),((O,(L,D)),E))),S),(H,(B,(((G,((I,(R,T)),Y)),C),((U,W),V)))))));")),
-                 (-3417.2637092520818, Tree("((F,(M,(P,(K,J)))),A,(Q,(((((((O,(L,D)),E),N),Z),X),S),(((B,(V,(U,W))),(C,(G,((I,(R,T)),Y)))),H))));")),
-                 (-3417.420526572887, Tree("(A,(F,(M,(P,(K,J)))),(Q,(H,(((((((O,(L,D)),E),N),X),Z),S),((B,(V,(U,W))),(C,(((I,(R,T)),Y),G)))))));")),
-                 (-3417.4205266767162, Tree("(A,(F,(M,(P,(K,J)))),(Q,(H,(((B,(V,(U,W))),(C,(G,((I,(R,T)),Y)))),(Z,(((((O,(L,D)),E),N),X),S))))));")),
-                 (-3417.620921910812, Tree("(A,(F,(M,(P,(K,J)))),(Q,(H,(((((((O,(L,D)),E),N),X),Z),S),((((((I,(R,T)),Y),G),C),(V,(U,W))),B)))));")),
-                 (-3417.6209219461302, Tree("(A,(F,(M,(P,(K,J)))),(Q,(H,((Z,(((((O,(L,D)),E),N),X),S)),((((G,((I,(R,T)),Y)),C),(V,(U,W))),B)))));")),
-                 (-3417.6209224304744, Tree("(A,(F,(M,(P,(K,J)))),(Q,(H,(B,((Z,(((((O,(L,D)),E),N),X),S)),(((G,((I,(R,T)),Y)),C),(V,(U,W))))))));")),
-                 (-3417.9379715010136, Tree("(A,(F,(M,(P,(K,J)))),(Q,((H,((B,(V,(U,W))),(C,(((I,(R,T)),Y),G)))),((((((O,(L,D)),E),N),X),Z),S))));")),
-                 (-3417.9379715187215, Tree("(A,(F,(M,(P,(K,J)))),(Q,((Z,(((((O,(L,D)),E),N),X),S)),(((B,(V,(U,W))),(C,(G,((I,(R,T)),Y)))),H))));"))]
+        [(-3416.3820971172017, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,((S,(X,((Z,N),((O,(L,D)),E)))),((G,((I,(R,T)),Y)),(C,(((U,W),V),B)))))));")), 
+         (-3416.3820974814785, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,(((X,((Z,N),((O,(L,D)),E))),S),((G,((I,(R,T)),Y)),((((U,W),V),C),B))))));")), 
+         (-3416.571172739171, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,(S,((X,((Z,N),((O,(L,D)),E))),(((G,((I,(R,T)),Y)),C),(((U,W),V),B)))))));")), 
+         (-3416.5721393589474, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,(((((Z,N),((O,(L,D)),E)),S),X),((C,(G,((I,(R,T)),Y))),(((U,W),V),B))))));")), 
+         (-3416.5721493054643, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,((((U,W),V),B),(((G,((I,(R,T)),Y)),C),(S,(X,((Z,N),((O,(L,D)),E)))))))));")), 
+         (-3416.572149424391, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,((S,(X,((Z,N),((O,(L,D)),E)))),(((G,((I,(R,T)),Y)),C),(((U,W),V),B))))));")), 
+         (-3416.596424489769, Tree("((F,(M,(P,(K,J)))),A,(((S,(X,((Z,N),((O,(L,D)),E)))),(((G,((I,(R,T)),Y)),C),(((U,W),V),B))),(H,Q)));")),
+         (-3416.6335053806333, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,(((((((O,(L,D)),E),N),Z),X),S),((C,((V,(U,W)),B)),(G,((I,(R,T)),Y)))))));")),
+         (-3416.7626687401867, Tree("((F,(M,(P,(K,J)))),A,(Q,((H,((G,((I,(R,T)),Y)),(C,(((U,W),V),B)))),(S,(X,((Z,N),((O,(L,D)),E)))))));")),
+         (-3416.7670692165866, Tree("((F,(M,(P,(K,J)))),A,(Q,(((B,(((G,((I,(R,T)),Y)),C),((U,W),V))),((X,((Z,N),((O,(L,D)),E))),S)),H)));")),
+         (-3416.7670696377254, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,(((X,((Z,N),((O,(L,D)),E))),S),(((U,W),V),(((G,((I,(R,T)),Y)),C),B))))));")),
+         (-3416.848062302587, Tree("((F,(M,(P,(K,J)))),A,(Q,(H,(((((((O,(L,D)),E),N),Z),X),S),(((V,(U,W)),B),(C,(G,((I,(R,T)),Y))))))));")),
+         (-3416.9943503002764, Tree("((F,(M,(P,(K,J)))),A,(((((C,(G,((I,(R,T)),Y))),(((U,W),V),B)),H),((((Z,N),((O,(L,D)),E)),S),X)),Q));")),
+         (-3417.014782481302, Tree("((F,(M,(P,(K,J)))),A,(Q,(((((U,W),V),B),((G,((I,(R,T)),Y)),C)),((S,(X,((Z,N),((O,(L,D)),E)))),H))));")),
+         (-3417.015470262783, Tree("((F,(M,(P,(K,J)))),A,(Q,((H,((((U,W),V),B),((G,((I,(R,T)),Y)),C))),(S,(X,((Z,N),((O,(L,D)),E)))))));")),
+         (-3417.241619414339, Tree("((F,(M,(P,(K,J)))),A,(Q,((H,((X,((Z,N),((O,(L,D)),E))),S)),(B,(((G,((I,(R,T)),Y)),C),((U,W),V))))));")),
+         (-3417.242009280534, Tree("((F,(M,(P,(K,J)))),A,(Q,(((X,((Z,N),((O,(L,D)),E))),S),(H,(B,(((G,((I,(R,T)),Y)),C),((U,W),V)))))));")),
+         (-3417.2637092520818, Tree("((F,(M,(P,(K,J)))),A,(Q,(((((((O,(L,D)),E),N),Z),X),S),(((B,(V,(U,W))),(C,(G,((I,(R,T)),Y)))),H))));")),
+         (-3417.420526572887, Tree("(A,(F,(M,(P,(K,J)))),(Q,(H,(((((((O,(L,D)),E),N),X),Z),S),((B,(V,(U,W))),(C,(((I,(R,T)),Y),G)))))));")),
+         (-3417.4205266767162, Tree("(A,(F,(M,(P,(K,J)))),(Q,(H,(((B,(V,(U,W))),(C,(G,((I,(R,T)),Y)))),(Z,(((((O,(L,D)),E),N),X),S))))));")),
+         (-3417.620921910812, Tree("(A,(F,(M,(P,(K,J)))),(Q,(H,(((((((O,(L,D)),E),N),X),Z),S),((((((I,(R,T)),Y),G),C),(V,(U,W))),B)))));")),
+         (-3417.6209219461302, Tree("(A,(F,(M,(P,(K,J)))),(Q,(H,((Z,(((((O,(L,D)),E),N),X),S)),((((G,((I,(R,T)),Y)),C),(V,(U,W))),B)))));")),
+         (-3417.6209224304744, Tree("(A,(F,(M,(P,(K,J)))),(Q,(H,(B,((Z,(((((O,(L,D)),E),N),X),S)),(((G,((I,(R,T)),Y)),C),(V,(U,W))))))));")),
+         (-3417.9379715010136, Tree("(A,(F,(M,(P,(K,J)))),(Q,((H,((B,(V,(U,W))),(C,(((I,(R,T)),Y),G)))),((((((O,(L,D)),E),N),X),Z),S))));")),
+         (-3417.9379715187215, Tree("(A,(F,(M,(P,(K,J)))),(Q,((Z,(((((O,(L,D)),E),N),X),S)),(((B,(V,(U,W))),(C,(G,((I,(R,T)),Y)))),H))));"))]
 
         self.unrooted_conflicting_trees = [
-                Tree('((a,b),c,d);'),
-                Tree('((a,c),b,d);'),
-                Tree('((a,d),b,c);')]
+            Tree('((a,b),c,d);'),
+            Tree('((a,c),b,d);'),
+            Tree('((a,d),b,c);')]
 
         self.rooted_conflicting_trees = [
-                Tree('((a,b),(c,d));'),
-                Tree('((a,c),(b,d));'),
-                Tree('((a,d),(b,c));')]
+            Tree('((a,b),(c,d));'),
+            Tree('((a,c),(b,d));'),
+            Tree('((a,d),(b,c));')]
 
         self.unrooted_trees_lengths = [
-                (2, Tree('((a:0.3,c:0.4):0.5,b:0.2,d:0.1);')),
-                (1, Tree('((a:0.1,b:0.1):0.1,c:0.1,d:0.1);'))]
+            (2, Tree('((a:0.3,c:0.4):0.5,b:0.2,d:0.1);')),
+            (1, Tree('((a:0.1,b:0.1):0.1,c:0.1,d:0.1);'))]
 
         self.rooted_trees_lengths = [
-                (2, Tree('((a:0.3,c:0.4):0.2,(b:0.2,d:0.1):0.3);')),
-                (1, Tree('((a:0.1,b:0.1):0.05,(c:0.1,d:0.1):0.05);'))]
+            (2, Tree('((a:0.3,c:0.4):0.2,(b:0.2,d:0.1):0.3);')),
+            (1, Tree('((a:0.1,b:0.1):0.05,(c:0.1,d:0.1):0.05);'))]
 
     def test_majorityRule(self):
         """Tests for majority rule consensus trees"""
@@ -214,7 +214,7 @@ class ConsensusTests(unittest.TestCase):
 
         # convert lnL into p
         eval_klass(WeightedTreeCollection([(exp(s), t) 
-                                    for s,t in self.scored_trees]))
+                                           for s,t in self.scored_trees]))
         remove_files(['sample.trees'], error_on_missing=False)
 
 
@@ -251,10 +251,10 @@ class TreeReconstructionTests(unittest.TestCase):
 
         # From GNJ paper. Pearson, Robins, Zhang 1999.
         tied_dists = {
-                ('a', 'b'):3, ('a', 'c'):3, ('a', 'd'):4, ('a', 'e'):3, 
-                ('b', 'c'):3, ('b', 'd'):3, ('b', 'e'):4,
-                ('c', 'd'):3, ('c', 'e'):3, 
-                ('d', 'e'):3}
+            ('a', 'b'):3, ('a', 'c'):3, ('a', 'd'):4, ('a', 'e'):3, 
+            ('b', 'c'):3, ('b', 'd'):3, ('b', 'e'):4,
+            ('c', 'd'):3, ('c', 'e'):3, 
+            ('d', 'e'):3}
         results = gnj(tied_dists, keep=3)
         scores = [score for (score, tree) in results]
         self.assertEqual(scores[:2], [7.75, 7.75])
@@ -283,19 +283,19 @@ class TreeReconstructionTests(unittest.TestCase):
         self.assertRaises(Exception, wls, self.dists, start=[init, init3])
         # if start tree has all seq names, should raise an error
         self.assertRaises(Exception, wls, self.dists,
-                start=[LoadTree(treestring='((a,c),b,(d,(e,f)))')])
+                          start=[LoadTree(treestring='((a,c),b,(d,(e,f)))')])
 
 
 class DistancesTests(unittest.TestCase):
     def setUp(self):
         self.al = LoadSeqs(data = {'a':'GTACGTACGATC',
-                            'b':'GTACGTACGTAC',
-                            'c':'GTACGTACGTTC',
-                            'e':'GTACGTACTGGT'})
+                                   'b':'GTACGTACGTAC',
+                                   'c':'GTACGTACGTTC',
+                                   'e':'GTACGTACTGGT'})
         self.collection = LoadSeqs(data = {'a':'GTACGTACGATC',
-                            'b':'GTACGTACGTAC',
-                            'c':'GTACGTACGTTC',
-                            'e':'GTACGTACTGGT'}, aligned=False)
+                                           'b':'GTACGTACGTAC',
+                                           'c':'GTACGTACGTTC',
+                                           'e':'GTACGTACTGGT'}, aligned=False)
 
     def assertDistsAlmostEqual(self, expected, observed, precision=4):
         observed = dict([(frozenset(k),v) for (k,v) in list(observed.items())])
@@ -308,11 +308,11 @@ class DistancesTests(unittest.TestCase):
         d = EstimateDistances(self.al, JC69())
         d.run()
         canned_result = {('b', 'e'): 0.440840,
-                        ('c', 'e'): 0.440840,
-                        ('a', 'c'): 0.088337,
-                        ('a', 'b'): 0.188486,
-                        ('a', 'e'): 0.440840,
-                        ('b', 'c'): 0.0883373}
+                         ('c', 'e'): 0.440840,
+                         ('a', 'c'): 0.088337,
+                         ('a', 'b'): 0.188486,
+                         ('a', 'e'): 0.440840,
+                         ('b', 'c'): 0.0883373}
         result = d.getPairwiseDistances()
         self.assertDistsAlmostEqual(canned_result, result)
 
@@ -329,11 +329,11 @@ class DistancesTests(unittest.TestCase):
         d = EstimateDistances(self.al, HKY85(), motif_probs=motif_probs)
         d.run()
         canned_result = {('a', 'c'): 0.07537,
-                       ('b', 'c'): 0.07537,
-                        ('a', 'e'): 0.39921,
-                        ('a', 'b'): 0.15096,
-                        ('b', 'e'): 0.39921,
-                        ('c', 'e'): 0.37243}
+                         ('b', 'c'): 0.07537,
+                         ('a', 'e'): 0.39921,
+                         ('a', 'b'): 0.15096,
+                         ('b', 'e'): 0.39921,
+                         ('c', 'e'): 0.37243}
         result = d.getPairwiseDistances()
         self.assertDistsAlmostEqual(canned_result, result)
 
@@ -342,37 +342,37 @@ class DistancesTests(unittest.TestCase):
         d = EstimateDistances(self.al, JC69(), threeway=True)
         d.run()
         canned_result = {('b', 'e'): 0.495312,
-                        ('c', 'e'): 0.479380,
-                        ('a', 'c'): 0.089934,
-                        ('a', 'b'): 0.190021,
-                        ('a', 'e'): 0.495305,
-                        ('b', 'c'): 0.0899339}
+                         ('c', 'e'): 0.479380,
+                         ('a', 'c'): 0.089934,
+                         ('a', 'b'): 0.190021,
+                         ('a', 'e'): 0.495305,
+                         ('b', 'c'): 0.0899339}
         result = d.getPairwiseDistances(summary_function="mean")
         self.assertDistsAlmostEqual(canned_result, result)
 
     def test_EstimateDistances_fromUnaligned(self):
         """Excercising estimate distances from unaligned sequences"""
         d = EstimateDistances(self.collection, JC69(), do_pair_align=True,
-                                rigorous_align=True)
+                              rigorous_align=True)
         d.run()
         canned_result = {('b', 'e'): 0.440840,
-                        ('c', 'e'): 0.440840,
-                        ('a', 'c'): 0.088337,
-                        ('a', 'b'): 0.188486,
-                        ('a', 'e'): 0.440840,
-                        ('b', 'c'): 0.0883373}
+                         ('c', 'e'): 0.440840,
+                         ('a', 'c'): 0.088337,
+                         ('a', 'b'): 0.188486,
+                         ('a', 'e'): 0.440840,
+                         ('b', 'c'): 0.0883373}
         result = d.getPairwiseDistances()
         self.assertDistsAlmostEqual(canned_result, result)
 
         d = EstimateDistances(self.collection, JC69(), do_pair_align=True,
-                                rigorous_align=False)
+                              rigorous_align=False)
         d.run()
         canned_result = {('b', 'e'): 0.440840,
-                        ('c', 'e'): 0.440840,
-                        ('a', 'c'): 0.088337,
-                        ('a', 'b'): 0.188486,
-                        ('a', 'e'): 0.440840,
-                        ('b', 'c'): 0.0883373}
+                         ('c', 'e'): 0.440840,
+                         ('a', 'c'): 0.088337,
+                         ('a', 'b'): 0.188486,
+                         ('a', 'e'): 0.440840,
+                         ('b', 'c'): 0.0883373}
         result = d.getPairwiseDistances()
         self.assertDistsAlmostEqual(canned_result, result)
 
@@ -407,11 +407,11 @@ class DistancesTests(unittest.TestCase):
         d = EstimateDistances(self.al, HKY85(), est_params=['kappa'])
         d.run()
         expect = {('a', 'b'): {'kappa': 1.0000226766004808e-06, 'length': 0.18232155856115662},
-                 ('a', 'c'): {'kappa': 1.0010380037049357e-06, 'length': 0.087070406623635604},
-                 ('a', 'e'): {'kappa': 2.3965871843412687, 'length': 0.4389176272584539},
-                 ('b', 'e'): {'kappa': 2.3965871854366592, 'length': 0.43891762729173389},
-                 ('b', 'c'): {'kappa': 1.0010380037049357e-06, 'length': 0.087070406623635604},
-                 ('c', 'e'): {'kappa': 0.57046787478038707, 'length': 0.43260232210282784}}
+                  ('a', 'c'): {'kappa': 1.0010380037049357e-06, 'length': 0.087070406623635604},
+                  ('a', 'e'): {'kappa': 2.3965871843412687, 'length': 0.4389176272584539},
+                  ('b', 'e'): {'kappa': 2.3965871854366592, 'length': 0.43891762729173389},
+                  ('b', 'c'): {'kappa': 1.0010380037049357e-06, 'length': 0.087070406623635604},
+                  ('c', 'e'): {'kappa': 0.57046787478038707, 'length': 0.43260232210282784}}
         got = d.getAllParamValues()
         for pair in expect:
             for param in expect[pair]:

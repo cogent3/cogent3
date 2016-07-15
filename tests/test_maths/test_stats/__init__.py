@@ -5,7 +5,7 @@ __all__ = ['test_distribution','test_histogram', 'test_special',
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Catherine Lozupone", "Gavin Huttley",
-                    "Sandra Smit"]
+               "Sandra Smit"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"

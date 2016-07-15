@@ -41,11 +41,11 @@ def upgma(pairwise_distances):
         if i[1] not in items_in_matrix:
             items_in_matrix.append(i[1])
     dict2d_input = [(i[0], i[1], pairwise_distances[i]) for i in \
-            pairwise_distances]
+                    pairwise_distances]
     dict2d_input.extend([(i[1], i[0], pairwise_distances[i]) for i in \
-            pairwise_distances])
+                         pairwise_distances])
     dict2d_input = Dict2D(dict2d_input, RowOrder=items_in_matrix, \
-            ColOrder=items_in_matrix, Pad=True, Default=BIG_NUM)
+                          ColOrder=items_in_matrix, Pad=True, Default=BIG_NUM)
     matrix_a, node_order = inputs_from_dict2D(dict2d_input)
     tree = UPGMA_cluster(matrix_a, node_order, BIG_NUM)
     index = 0
@@ -153,7 +153,7 @@ def UPGMA_cluster(matrix, node_order, large_number):
             matrix[diag([True]*len(matrix))] = large_number
             smallest_index = find_smallest_index(matrix)
         row_order = condense_node_order(matrix, smallest_index, \
-                node_order)
+                                        node_order)
         matrix = condense_matrix(matrix, smallest_index, large_number)
         tree = node_order[smallest_index[0]]
     return tree

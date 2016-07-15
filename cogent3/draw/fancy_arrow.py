@@ -19,8 +19,8 @@ class FancyArrow(Polygon):
     """Like Arrow, but lets you set head width and head height independently."""
 
     def __init__(self, x, y, dx, dy, width=0.001, length_includes_head=False, \
-        head_width=None, head_length=None, shape='full', overhang=0, \
-        head_starts_at_zero=False,**kwargs):
+                 head_width=None, head_length=None, shape='full', overhang=0, \
+                 head_starts_at_zero=False,**kwargs):
         """Returns a new Arrow.
 
         length_includes_head: True if head is counted in calculating the length.

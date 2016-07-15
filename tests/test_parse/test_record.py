@@ -26,7 +26,7 @@ class recordsTests(TestCase):
         self.assertEqual(string_and_strip(), [])
         self.assertEqual(string_and_strip('\t', ' ', '\n\t'), ['','',''])
         self.assertEqual(string_and_strip('\ta\tb', 3, '   cde   e', None), \
-            ['a\tb', '3', 'cde   e', 'None'])
+                         ['a\tb', '3', 'cde   e', 'None'])
 
     def test_raise_unknown_field(self):
         """raise_unknown_field should always raise FieldError"""
@@ -82,11 +82,11 @@ class DelimitedSplitterTests(TestCase):
         self.assertEqual(semicolon('  a  ; b   ;  c  d'), ['a','b   ;  c  d'])
         self.assertEqual(twosplits('  a  ; b   ;  c  d'), ['a','b', 'c  d'])
         self.assertEqual(allsplits(' a ;  b  ; c;;d;e  ;'),\
-            ['a','b','c','','d','e',''])
+                         ['a','b','c','','d','e',''])
         self.assertEqual(lastone(' a ;  b  ; c;;d;e  ;'),\
-            ['a ;  b  ; c;;d;e',''])
+                         ['a ;  b  ; c;;d;e',''])
         self.assertEqual(lasttwo(' a ;  b  ; c;;d;e  ;'),\
-            ['a ;  b  ; c;;d','e',''])
+                         ['a ;  b  ; c;;d','e',''])
         self.assertEqual(lasttwo(''), [])
         self.assertEqual(lasttwo('x'), ['x'])
         self.assertEqual(lasttwo('x;'), ['x', ''])
@@ -453,7 +453,7 @@ class LineOrientedConstructorTests(TestCase):
     def test_full_LOC(self):
         """LOC should behave as expected when initialized with rich data"""
         data = ["abc\t def"," 3 \t n","  abc   \txyz\n\n", "x\t5", "fgh   ", 
-            "x\t3    "]
+                "x\t3    "]
         class rec(MappedRecord):
             Required = {'abc':[]}
         maps = {'abc':list_adder, 'x':int_setter, 'fgh':bool_setter}
@@ -461,15 +461,15 @@ class LineOrientedConstructorTests(TestCase):
         constructor = rec
         strict = True
         loc_bad = LineOrientedConstructor(data, label_splitter, maps, \
-            constructor, strict)
+                                          constructor, strict)
         self.assertRaises(FieldError, loc_bad)
         strict = False
         loc_good = LineOrientedConstructor(data, label_splitter, maps, \
-            constructor, strict)
+                                           constructor, strict)
         result = loc_good()
         assert isinstance(result, rec)
         self.assertEqual(result, \
-            {'abc':['def','xyz'], '3':'n','fgh':False,'x':3})
+                         {'abc':['def','xyz'], '3':'n','fgh':False,'x':3})
 
 class fake_dict(dict):
     """Test that constructors return the correct subclass"""
@@ -484,7 +484,7 @@ class FieldWrapperTests(TestCase):
         self.assertEqual(f(''), {})
         self.assertEqual(f('xy za '), {'a':'xy','b':'za'})
         self.assertEqual(f('1   2\t\t 3  \n4 5 6'), \
-            {'a':'1','b':'2','c':'3','d':'4','e':'5'})
+                         {'a':'1','b':'2','c':'3','d':'4','e':'5'})
 
     def test_splitter(self):
         """FieldWrapper with splitter should use that splitter"""
@@ -509,7 +509,7 @@ class StrictFieldWrapperTests(TestCase):
         fields = list('abcde')
         f = StrictFieldWrapper(fields)
         self.assertEqual(f('1   2\t\t 3  \n4 5 '), \
-            {'a':'1','b':'2','c':'3','d':'4','e':'5'})
+                         {'a':'1','b':'2','c':'3','d':'4','e':'5'})
         self.assertRaises(FieldError, f, '')
         self.assertRaises(FieldError, f, 'xy za ')
 

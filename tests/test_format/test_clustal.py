@@ -22,16 +22,16 @@ class ClustalTests(TestCase):
     def setUp(self):
         """Setup for Clustal tests."""
         self.unaligned_dict = {'1st':'AAA','2nd':'CCCC','3rd':'GGGG',
-            '4th':'UUUU'}
+                               '4th':'UUUU'}
         self.alignment_dict = {'1st':'AAAA','2nd':'CCCC','3rd':'GGGG',
-            '4th':'UUUU'}
+                               '4th':'UUUU'}
         #create alignment change order.
         self.alignment_object = Alignment(self.alignment_dict)
         self.alignment_order = ['2nd','4th','3rd','1st']
         self.alignment_object.RowOrder=self.alignment_order
 
         self.clustal_with_label=\
-"""CLUSTAL
+        """CLUSTAL
 
 1st    AAAA
 2nd    CCCC
@@ -39,7 +39,7 @@ class ClustalTests(TestCase):
 4th    UUUU
 """
         self.clustal_with_label_lw2=\
-"""CLUSTAL
+        """CLUSTAL
 
 1st    AA
 2nd    CC
@@ -53,7 +53,7 @@ class ClustalTests(TestCase):
 """
 
         self.clustal_with_label_reordered=\
-"""CLUSTAL
+        """CLUSTAL
 
 2nd    CCCC
 4th    UUUU
@@ -62,7 +62,7 @@ class ClustalTests(TestCase):
 """
 
         self.clustal_with_label_lw2_reordered=\
-"""CLUSTAL
+        """CLUSTAL
 
 2nd    CC
 4th    UU
@@ -78,22 +78,22 @@ class ClustalTests(TestCase):
     def test_clustal_from_alignment_unaligned(self):
         """should raise error with unaligned seqs."""
         self.assertRaises(ValueError,\
-            clustal_from_alignment,self.unaligned_dict)
+                          clustal_from_alignment,self.unaligned_dict)
 
     def test_clustal_from_alignment(self):
         """should return correct clustal string."""
         self.assertEqual(clustal_from_alignment({}),'')
         self.assertEqual(clustal_from_alignment(self.alignment_dict),\
-            self.clustal_with_label)
+                         self.clustal_with_label)
         self.assertEqual(clustal_from_alignment(self.alignment_dict,
-                interleave_len=2),self.clustal_with_label_lw2)
+                                                interleave_len=2),self.clustal_with_label_lw2)
 
     def test_clustal_from_alignment_reordered(self):
         """should return correct clustal string."""
         self.assertEqual(clustal_from_alignment(self.alignment_object),\
-            self.clustal_with_label_reordered)
+                         self.clustal_with_label_reordered)
         self.assertEqual(clustal_from_alignment(self.alignment_object,
-                interleave_len=2),self.clustal_with_label_lw2_reordered)
+                                                interleave_len=2),self.clustal_with_label_lw2_reordered)
 
 if __name__ == "__main__":
     main()

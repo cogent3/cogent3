@@ -53,7 +53,7 @@ class Dict2DTests(TestCase):
 
         #should compare equal to the relevant dict
         for d in [self.empty, self.single_same, self.single_diff, self.dense, \
-            self.sparse]:
+                  self.sparse]:
             d2d = Dict2D(d)
             self.assertEqual(d2d, d)
             self.assertEqual(d2d.__class__, Dict2D)
@@ -106,7 +106,7 @@ class Dict2DTests(TestCase):
         """Dict2D init can correctly guess input type: Lists """
         # Will fail if Error is raised
         d = Dict2D(data=[[1,2,3],[4,5,6]], RowOrder=list('ab'), \
-                ColOrder=list('def'))
+                   ColOrder=list('def'))
 
     def test_guess_input_type_fromDict(self):
         """Dict2D init can correctly guess input type: Dict """
@@ -300,7 +300,7 @@ class Dict2DTests(TestCase):
     def test_getRows(self):
         """Dict2D getRows should get specified rows"""
         self.assertEqual(Dict2D(self.square).getRows(['a','c']), \
-            {'a':{'a':1,'b':2,'c':3},'c':{'a':3,'b':6,'c':9}})
+                         {'a':{'a':1,'b':2,'c':3},'c':{'a':3,'b':6,'c':9}})
         #should work on sparse matrix
         self.assertEqual(Dict2D(self.sparse).getRows(['d']), {'d':{'b':2}})
         #should raise KeyError if row doesn't exist...
@@ -311,7 +311,7 @@ class Dict2DTests(TestCase):
         self.assertEqual(d.getRows('c'), {'c':{}})
         #should work when we negate it
         self.assertEqual(Dict2D(self.square).getRows(['a','c'], negate=True),
-            {'b':{'a':2,'b':4,'c':6}})
+                         {'b':{'a':2,'b':4,'c':6}})
 
     def test_getRowIndices(self):
         """Dict2D getRowIndices should return indices of rows where f(x) True"""
@@ -331,15 +331,15 @@ class Dict2DTests(TestCase):
         d = Dict2D(self.square)
         lt_15 = lambda x: sum(x) < 15
         self.assertEqual(d.getRowsIf(lt_15), \
-            {'a':{'a':1,'b':2,'c':3},'b':{'a':2,'b':4,'c':6}})
+                         {'a':{'a':1,'b':2,'c':3},'b':{'a':2,'b':4,'c':6}})
         #should do test by RowOrder, but copy the whole row
         d.RowOrder = d.ColOrder = 'ac'
         self.assertEqual(d.getRowsIf(lt_15), \
-            {'a':{'a':1,'b':2,'c':3},'c':{'a':3,'b':6,'c':9}})
+                         {'a':{'a':1,'b':2,'c':3},'c':{'a':3,'b':6,'c':9}})
         #negate should work
         d.RowOrder = d.ColOrder = None
         self.assertEqual(d.getRowsIf(lt_15, negate=True), \
-            {'c':{'a':3,'b':6,'c':9}})
+                         {'c':{'a':3,'b':6,'c':9}})
 
     def test_getCols(self):
         """Dict2D getCols should return object with specified cols only"""
@@ -377,13 +377,13 @@ class Dict2DTests(TestCase):
         })
         #check that negate works
         self.assertEqual(d.getColsIf(lt_15, negate=True), \
-            {'a':{'c':3},'b':{'c':6},'c':{'c':9}})
+                         {'a':{'c':3},'b':{'c':6},'c':{'c':9}})
 
     def test_getItems(self):
         """Dict2D getItems should return list of relevant items"""
         d = Dict2D(self.square)
         self.assertEqual(d.getItems([('a','a'),('b','c'),('c','a'),('a','a')]),\
-            [1,6,3,1])
+                         [1,6,3,1])
         #should work on ragged matrices...
         d = Dict2D(self.top_triangle)
         self.assertEqual(d.getItems([('a','c'),('c','c')]), [3,9])
@@ -397,7 +397,7 @@ class Dict2DTests(TestCase):
         d.Pad = False
         d.RowOrder = d.ColOrder = 'abc'
         self.assertEqual(d.getItems([('a','c'),('c','a'),('a','a')], \
-            negate=True), [2,4,6,9])
+                                    negate=True), [2,4,6,9])
 
     def test_getItemIndices(self):
         """Dict2D getItemIndices should return indices when f(item) is True"""
@@ -405,13 +405,13 @@ class Dict2DTests(TestCase):
         d = Dict2D(self.square)
         d.RowOrder = d.ColOrder = 'abc'
         self.assertEqual(d.getItemIndices(lt_5), \
-            [('a','a'),('a','b'),('a','c'),('b','a'),('b','b'),('c','a')])
+                         [('a','a'),('a','b'),('a','c'),('b','a'),('b','b'),('c','a')])
         self.assertEqual(d.getItemIndices(lt_5, negate=True), \
-            [('b','c'),('c','b'),('c','c')])
+                         [('b','c'),('c','b'),('c','c')])
         d = Dict2D(self.top_triangle)
         d.RowOrder = d.ColOrder = 'abc'
         self.assertEqual(d.getItemIndices(lt_5), \
-            [('a','a'),('a','b'),('a','c'),('b','b')])
+                         [('a','a'),('a','b'),('a','c'),('b','b')])
 
     def test_getItemsIf(self):
         """Dict2D getItemsIf should return list of items when f(item) is True"""
@@ -433,11 +433,11 @@ class Dict2DTests(TestCase):
         d.ColOrder = 'abc'
         self.assertEqual(d.toLists(), [[1,2,3],[2,4,6],[3,6,9]])
         self.assertEqual(d.toLists(headers=True), \
-            [['-', 'a', 'b', 'c'],
-             ['a', 1, 2, 3],
-             ['b', 2, 4, 6],
-             ['c', 3, 6, 9],
-             ])
+                         [['-', 'a', 'b', 'c'],
+                          ['a', 1, 2, 3],
+                          ['b', 2, 4, 6],
+                          ['c', 3, 6, 9],
+            ])
         #should raise error if called on sparse matrix...	
         self.assertRaises(Dict2DSparseError, Dict2D(self.sparse).toLists)
         #...unless self.Pad is True
@@ -447,7 +447,7 @@ class Dict2DTests(TestCase):
         d.Pad = True
         d.Default = 'x'
         self.assertEqual(d.toLists(headers=True), \
-            [['-','a','b','c'],['a',1,'x',3],['d','x',2,'x']])
+                         [['-','a','b','c'],['a',1,'x',3],['d','x',2,'x']])
 
         #works without RowOrder or ColOrder
         goal = [[1,2,3],[2,4,6],[3,6,9]]
@@ -599,7 +599,7 @@ class Dict2DTests(TestCase):
         d.ColOrder = 'abc'
         d.transpose()
         self.assertEqual(d, \
-            {'a':{'a':1,'b':2},'b':{'a':2,'b':4},'c':{'a':3,'b':6}})
+                         {'a':{'a':1,'b':2},'b':{'a':2,'b':4},'c':{'a':3,'b':6}})
         self.assertEqual(d.ColOrder, 'ab')
         self.assertEqual(d.RowOrder, 'abc')
 
@@ -630,9 +630,9 @@ class Dict2DTests(TestCase):
             'c':{'a':3,'b':6},
         })
         d = Dict2D({
-                'a':{'a':2,'b':4,'c':6},
-                'b':{'a':10,'b':20, 'c':30},
-                'c':{'a':30, 'b':60, 'c':90},
+            'a':{'a':2,'b':4,'c':6},
+            'b':{'a':10,'b':20, 'c':30},
+            'c':{'a':30, 'b':60, 'c':90},
         })
         d.ColOrder = d.RowOrder = 'abc'
         d.reflect(average)
@@ -647,9 +647,9 @@ class Dict2DTests(TestCase):
         d = Dict2D(self.square)
         d.RowOrder = d.ColOrder = 'abc'
         self.assertEqual(d.toDelimited(), \
-        '-\ta\tb\tc\na\t1\t2\t3\nb\t2\t4\t6\nc\t3\t6\t9')
+                         '-\ta\tb\tc\na\t1\t2\t3\nb\t2\t4\t6\nc\t3\t6\t9')
         self.assertEqual(d.toDelimited(headers=False), \
-            '1\t2\t3\n2\t4\t6\n3\t6\t9')
+                         '1\t2\t3\n2\t4\t6\n3\t6\t9')
         #set up a custom formatter...
         def my_formatter(x):
             try:
@@ -658,8 +658,8 @@ class Dict2DTests(TestCase):
                 return str(x)
         #...and use it
         self.assertEqual(d.toDelimited(headers=True, item_delimiter='x', \
-            row_delimiter='y', formatter=my_formatter), \
-            '-xaxbxcyax1.0x2.0x3.0ybx2.0x4.0x6.0ycx3.0x6.0x9.0')
+                                       row_delimiter='y', formatter=my_formatter), \
+                         '-xaxbxcyax1.0x2.0x3.0ybx2.0x4.0x6.0ycx3.0x6.0x9.0')
 
 
 

@@ -31,7 +31,7 @@ class UrlGetter(object):
         to_get.update(self._temp_args)
         return self.BaseUrl + self.FieldDelimiter.join(\
             [quote_plus(k)+self.KeyValDelimiter+quote_plus(str(v)) for k, v in list(to_get.items())\
-            if k in self.PrintedFields])
+             if k in self.PrintedFields])
 
     def open(self, **kwargs):
         """Returns a stream handle to URL result, temporarily overriding kwargs.."""
@@ -77,7 +77,7 @@ def expand_slice(s):
     field_width = str(len(start) - start_index)
     format_string = '%'+field_width+'.'+field_width+'d'
     return [prefix + format_string % i \
-        for i in range(range_start, range_end+1, step)]
+            for i in range(range_start, range_end+1, step)]
 
 def make_lists_of_expanded_slices_of_set_size(s,size_limit=200):
     """Returns a list of Accessions terms from 'expand_slice'.

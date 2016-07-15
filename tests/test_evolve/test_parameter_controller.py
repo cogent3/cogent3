@@ -56,15 +56,15 @@ class test_parameter_controller(unittest.TestCase):
 
     def test_scoped_local(self):
         model = cogent3.evolve.substitution_model.Nucleotide(
-                do_scaling=True, equal_motif_probs=True, model_gaps=True,
-                predicates = {'kappa':'transition'})
+            do_scaling=True, equal_motif_probs=True, model_gaps=True,
+            predicates = {'kappa':'transition'})
         lf = model.makeLikelihoodFunction(self.tree)
         lf.setConstantLengths()
         lf.setAlignment(self.al)
         null = lf.getNumFreeParams()
         lf.setParamRule(par_name='kappa',
-                            is_independent=True,
-                            edges=['b','d'])
+                        is_independent=True,
+                        edges=['b','d'])
         self.assertEqual(null+2, lf.getNumFreeParams())
 
     def test_setMotifProbs(self):
@@ -72,7 +72,7 @@ class test_parameter_controller(unittest.TestCase):
         model = cogent3.evolve.substitution_model.Nucleotide(
             model_gaps=True, motif_probs=None)
         lf = model.makeLikelihoodFunction(self.tree, 
-                motif_probs_from_align=False)
+                                          motif_probs_from_align=False)
 
         mprobs = {'A':0.1,'C':0.2,'G':0.2,'T':0.5,'-':0.0}
         lf.setMotifProbs(mprobs)
@@ -86,7 +86,7 @@ class test_parameter_controller(unittest.TestCase):
 
         # test with consideration of ambiguous states
         al = LoadSeqs(data = {'seq1': 'ACGTAAGNA', 'seq2': 'ACGTANGTC',
-                               'seq3': 'ACGTACGTG'})
+                              'seq3': 'ACGTACGTG'})
         lf.setMotifProbsFromData(al, include_ambiguity=True, is_constant=True)
         motif_probs = dict(lf.getMotifProbs())
         correct_probs = {'A': 8.5/27, 'C': 5.5/27, '-': 0.0, 'T': 5.5/27,
@@ -98,7 +98,7 @@ class test_parameter_controller(unittest.TestCase):
         """2 loci each with own mprobs"""
         model = cogent3.evolve.substitution_model.Nucleotide(motif_probs=None)
         lf = model.makeLikelihoodFunction(self.tree, 
-                motif_probs_from_align=False, loci=["a", "b"])
+                                          motif_probs_from_align=False, loci=["a", "b"])
 
         mprobs_a = dict(A=.2, T=.2, C=.3, G=.3)
         mprobs_b = dict(A=.1, T=.2, C=.3, G=.4)
@@ -123,7 +123,7 @@ class test_parameter_controller(unittest.TestCase):
         for rule_set in bad_rule_sets:
             lf.setDefaultParamRules()
             self.assertRaises((KeyError, TypeError,
-                    AssertionError, ValueError), do_rules, rule_set)
+                               AssertionError, ValueError), do_rules, rule_set)
 
     def test_setLocalClock(self):
         pass
@@ -141,8 +141,8 @@ class test_parameter_controller(unittest.TestCase):
         al = LoadSeqs(data={'a':'agct','b':'ggct'})
         tree = LoadTree(treestring='(a,b);')
         model = cogent3.evolve.substitution_model.Dinucleotide(
-                do_scaling=True, equal_motif_probs=True, model_gaps=True,
-                mprob_model='tuple')
+            do_scaling=True, equal_motif_probs=True, model_gaps=True,
+            mprob_model='tuple')
         lf = model.makeLikelihoodFunction(tree)
         lf.setLocalClock('a','b')
         lf.setAlignment(al)
@@ -156,7 +156,7 @@ class test_parameter_controller(unittest.TestCase):
         lf.setLocalClock('c','d')
         lf.setAlignment(self.al)
         lf.optimise(local=True, 
-                tolerance=1e-8, max_restarts=2)
+                    tolerance=1e-8, max_restarts=2)
         rd = lf.getParamValueDict(['edge'], params=['length'])
         self.assertAlmostEqual(lf.getLogLikelihood(),-27.84254174)
         self.assertEqual(rd['length']['c'],rd['length']['d'])
@@ -166,16 +166,16 @@ class test_parameter_controller(unittest.TestCase):
             # This test has many local minima and so does not cope
             # with changes to optimiser details.
         model = cogent3.evolve.substitution_model.Nucleotide(
-                do_scaling=True, equal_motif_probs=True, model_gaps=True,
-                predicates = {'kappa':'transition'})
+            do_scaling=True, equal_motif_probs=True, model_gaps=True,
+            predicates = {'kappa':'transition'})
         lf = model.makeLikelihoodFunction(self.tree)
         lf.setParamRule(par_name='kappa',
-                                is_independent=True)
+                        is_independent=True)
         lf.setParamRule(par_name='kappa',
-                                is_independent=False,
-                                edges=['b','d'])
+                        is_independent=False,
+                        edges=['b','d'])
         lf.setConstantLengths(LoadTree(
-                            treestring='((a:1,b:1):1,(c:2,d:1):1,e:1);'))
+            treestring='((a:1,b:1):1,(c:2,d:1):1,e:1);'))
         #print self.pc
         lf.setAlignment(self.al)
         lf.optimise(local=True)
@@ -197,7 +197,7 @@ class test_parameter_controller(unittest.TestCase):
 
         # upper < lower bounds should fail
         self.assertRaises(ValueError, lf.setParamRule, 
-            'length', lower=2, upper=0)
+                          'length', lower=2, upper=0)
 
 
 if __name__ == '__main__':

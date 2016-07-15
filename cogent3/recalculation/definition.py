@@ -117,7 +117,7 @@ class CalculationDefn(_NonLeafDefn):
         # can't calc outside correct parallel context, so can't do
         # if [arg for arg in args if not arg.is_constant]:
         cell = EvaluatedCell(self.name, calc, args,
-                recycling=self.recycling, default=self.default)
+                             recycling=self.recycling, default=self.default)
         return cell
 
     def makeCells(self, input_soup, variable=None):
@@ -166,7 +166,7 @@ class WeightedPartitionDefn(CalculationDefn):
         partition = PartitionDefn(size=N, name=name+'_partition')
         partition.user_param = False
         CalculationDefn.__init__(self, weights, partition,
-                name=name+'_distrib')
+                                 name=name+'_distrib')
 
     def calc(self, weights, values):
         scale = numpy.sum(weights * values)
@@ -192,10 +192,10 @@ class GammaDefn(MonotonicDefn):
     name = 'gamma'
 
     def __init__(self, weights, name=None, default_shape=1.0,
-            extra_label=None, dimensions=()):
+                 extra_label=None, dimensions=()):
         name = self.makeName(name, extra_label)
         shape = PositiveParamDefn(name+'_shape',
-            default=default_shape, dimensions=dimensions, lower=1e-2)
+                                  default=default_shape, dimensions=dimensions, lower=1e-2)
         CalculationDefn.__init__(self, weights, shape, name=name+'_distrib')
 
     def calc(self, weights, a):
@@ -212,7 +212,7 @@ class _InputDefn(_LeafDefn):
     user_param = True
 
     def __init__(self, name=None, default=None, dimensions=None,
-            lower=None, upper=None, **kw):
+                 lower=None, upper=None, **kw):
         _LeafDefn.__init__(self, name=name, dimensions=dimensions, **kw)
         if default is not None:
             if hasattr(default, '__len__'):
@@ -259,7 +259,7 @@ class ParamDefn(_InputDefn):
         uniq_cells = []
         for (i, v) in enumerate(self.uniq):
             scope = [key for key in self.assignments
-                    if self.assignments[key] is v]
+                     if self.assignments[key] is v]
             if v.is_constant or (variable is not None and variable is not v):
                 cell = ConstCell(self.name, v.value)
             else:
@@ -306,7 +306,7 @@ class NonScalarDefn(_InputDefn):
         if None in self.uniq:
             if [v for v in self.uniq if v is not None]:
                 scope = [key for key in self.assignments
-                            if self.assignments[key] is None]
+                         if self.assignments[key] is None]
                 msg = 'Unoptimisable input "%%s" not set for %s' % scope
             else:
                 msg = 'Unoptimisable input "%s" not given'
@@ -354,7 +354,7 @@ class PartitionDefn(_InputDefn):
     independent_by_default = False
 
     def __init__(self, default=None, name=None, dimensions=None,
-            dimension=None, size=None, **kw):
+                 dimension=None, size=None, **kw):
         assert name
         if size is not None:
             pass
@@ -376,7 +376,7 @@ class PartitionDefn(_InputDefn):
         else:
             default = numpy.asarray(default)
         _InputDefn.__init__(self, name=name, default=default,
-            dimensions=dimensions, **kw)
+                            dimensions=dimensions, **kw)
         self.checkValueIsValid(default, True)
 
     def _makeDefaultValue(self):
@@ -393,7 +393,7 @@ class PartitionDefn(_InputDefn):
     def checkValueIsValid(self, value, is_constant):
         if value.shape != (self.size,):
             raise ValueError("Wrong array shape %s for %s, expected (%s,)" % 
-                    (value.shape, self.name, self.size))
+                             (value.shape, self.name, self.size))
         for part in value:
             if part < 0:
                 raise ValueError("Negative probability in %s" % self.name)                
@@ -403,13 +403,13 @@ class PartitionDefn(_InputDefn):
                 # 0 or 1 leads to log(0) or log(inf) in optimiser code
                 if part == 0:
                     raise ValueError("Zeros allowed in %s only when constant" % 
-                        self.name)                
+                                     self.name)                
                 if part == 1:
                     raise ValueError("Ones allowed in %s only when constant" % 
-                        self.name)
+                                     self.name)
         if abs(sum(value) - 1.0) > .00001:
             raise ValueError("Elements of %s must sum to 1.0, not %s" %
-                (self.name, sum(value)))
+                             (self.name, sum(value)))
 
     def _makePartitionCell(self, name, scope, value):
         # This was originally put in its own function so as to provide a 
@@ -419,7 +419,7 @@ class PartitionDefn(_InputDefn):
         assert abs(sum(value) - 1.0) < .00001
         ratios = _unpack_proportions(value)
         ratios = [LogOptPar(name+'_ratio', scope, (1e-6,r,1e+6))
-                for r in ratios]
+                  for r in ratios]
         def r2p(*ratios):
             return numpy.asarray(_proportions(1.0, ratios))
         partition = EvaluatedCell(name, r2p, tuple(ratios))
@@ -436,13 +436,13 @@ class PartitionDefn(_InputDefn):
             assert hasattr(value, 'shape'), value
             assert value.shape == (self.size,)
             scope = [key for key in self.assignments
-                    if self.assignments[key] is v]
+                     if self.assignments[key] is v]
             assert value is not None
             if v.is_constant or (variable is not None and variable is not v):
                 partition = ConstCell(self.name, value)
             else:
                 (ratios, partition) = self._makePartitionCell(
-                        self.name, scope, value)
+                    self.name, scope, value)
                 all_cells.extend(ratios)
             all_cells.append(partition)
             uniq_cells.append(partition)
@@ -560,8 +560,8 @@ class ParallelSumDefn(CalculationDefn):
 
 
 __all__ = ['ConstDefn', 'NonParamDefn', 'CalcDefn', 'SumDefn', 'ProductDefn',
-        'CallDefn', 'ParallelSumDefn'] + [
-        n for (n,c) in list(vars().items())
-        if (isinstance(c, type) and issubclass(c, _Defn) and n[0] != '_')
-        or isinstance(c, CalcDefn)]
+           'CallDefn', 'ParallelSumDefn'] + [
+    n for (n,c) in list(vars().items())
+    if (isinstance(c, type) and issubclass(c, _Defn) and n[0] != '_')
+    or isinstance(c, CalcDefn)]
 

@@ -3,11 +3,11 @@ import numpy
 import warnings
 
 from cogent3.recalculation.definition import PositiveParamDefn, RatioParamDefn, \
-        CalculationDefn, MonotonicDefn, ProductDefn, ConstDefn, PartitionDefn, \
-        NonParamDefn, CallDefn, SelectForDimension, \
-        GammaDefn, WeightedPartitionDefn, CalcDefn
+    CalculationDefn, MonotonicDefn, ProductDefn, ConstDefn, PartitionDefn, \
+    NonParamDefn, CallDefn, SelectForDimension, \
+    GammaDefn, WeightedPartitionDefn, CalcDefn
 from cogent3.maths.matrix_exponentiation import PadeExponentiator, \
-        FastExponentiator, CheckedExponentiator, LinAlgError
+    FastExponentiator, CheckedExponentiator, LinAlgError
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -67,7 +67,7 @@ class ExpDefn(CalculationDefn):
                 except (ArithmeticError, LinAlgError) as detail:
                     if not _both.given_expm_warning:
                         warnings.warn("using slow exponentiator because '%s'"
-                                % str(detail))
+                                      % str(detail))
                         _both.given_expm_warning = True
                     return PadeExponentiator(Q)
             _both.given_expm_warning = False

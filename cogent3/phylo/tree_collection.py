@@ -23,7 +23,7 @@ class ScoredTreeCollection(_UserList):
         for (score, tree) in self:
             f.writelines(
                 self.scoredTreeFormat(tree.getNewick(with_distances=True),
-                str(score)))
+                                      str(score)))
         f.close()
 
     def scoredTreeFormat(self, tree, score):
@@ -107,7 +107,7 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
         denominator = sum(weights)
         weights.reverse()
         return WeightedTreeCollection((weight/denominator, tree)
-                for (weight, (lnL, tree)) in zip(weights, self))
+                                      for (weight, (lnL, tree)) in zip(weights, self))
 
 
 def LoadTrees(filename):

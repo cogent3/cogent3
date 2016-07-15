@@ -88,7 +88,7 @@ def _read_map(line):
     return MappedRecord(map_wrapper(line))
 
 sts_wrapper = FieldWrapper(['Name','Chromosome','StsId','Segment',\
-    'SequenceKnown', 'Evidence'], pipes)
+                            'SequenceKnown', 'Evidence'], pipes)
 def _read_sts(line):
     """Reads STS lines: format is in the full docstring.
 
@@ -103,7 +103,7 @@ def _read_cdd(line):
     return MappedRecord(cdd_wrapper(line))
 
 comp_wrapper = FieldWrapper(['TaxonId','Symbol','Chromosome','Position',\
-    'LocusId', 'ChromosomeSelf','SymbolSelf','MapName'], pipes)
+                             'LocusId', 'ChromosomeSelf','SymbolSelf','MapName'], pipes)
 def _read_comp(line):
     """Reads COMP lines: format is in the full docstring.
 
@@ -121,19 +121,19 @@ def _read_pmid(line):
     return commas(line)
 
 go_wrapper = FieldWrapper(['Category','Term','EvidenceCode','GoId','Source',\
-    'PubMedId'], pipes)
+                           'PubMedId'], pipes)
 def _read_go(line):
     """Reads GO lines. Format: Category|Term|EvidenceCode|GoId|Source|PubMedId"""
     return MappedRecord(go_wrapper(line))
 
 extannot_wrapper = FieldWrapper(['Category','Term','EvidenceCode','Source',\
-    'PubMedId'], pipes)
+                                 'PubMedId'], pipes)
 def _read_extannot(line):
     """Reads EXTANNOT lines. format: Category|Term|EvidenceCode|Source|PubMedId"""
     return MappedRecord(extannot_wrapper(line))
 
 contig_wrapper = FieldWrapper(['Accession', 'Gi', 'Strain', 'From', 'To', \
-    'Orientation', 'Chromosome', 'Assembly'], pipes)
+                               'Orientation', 'Chromosome', 'Assembly'], pipes)
 def _read_contig(line):
     """Reads CONTIG lines. Format described in full docstring.
 
@@ -149,23 +149,23 @@ class LocusLink(MappedRecord):
     """Holds data for a LocusLink record."""
     Required = _ll_multi
     Aliases = {'LOCUSID':'LocusLinkId','CURRENT_LOCUS_ID':'CurrentLocusId',
-        'LOCUS_CONFIRMED':'LocusConfirmed','LOCUS_TYPE':'LocusType',
-        'ORGANISM':'Species','RELL':'RelatedLoci','STATUS':'LocusStatus',
-        'PRODUCT':'Products','TRANSVAR':'TranscriptionVariants',
-        'ASSEMBLY':'Assemblies','CONTIG':'Contigs','EVID':'ContigEvidenceCodes',
-        'ACCNUM':'AccessionNumbers','TYPE':'AccessionTypes','PROT':'ProteinIds',
-        'OFFICIAL_SYMBOL':'OfficialSymbol','PREFERRED_SYMBOL':'PreferredSymbol',
-        'OFFICIAL_GENE_NAME':'OfficialGeneName',
-        'PREFERRED_GENE_NAME':'PreferredGeneName', 
-        'PREFERRED_PRODUCT':'PreferredProducts',
-        'ALIAS_SYMBOL':'SymbolAliases','ALIAS_PROT':'ProteinAliases',
-        'PHENOTYPE':'Phenotypes', 'PHENOTYPE_ID':'PhenotypeIds',
-        'SUMMARY':'Summaries', 'UNIGENE':'UnigeneIds','OMIM':'OmimIds',
-        'CHR':'Chromosomes','MAP':'Maps','MAPLINK':'MapLinks','STS':'Sts',
-        'COMP':'ComparativeMapLinks','ECNUM':'EcIds','BUTTON':'Buttons',
-        'LINK':'Links', 'DB_DESCR':'DbDescriptions','DB_LINK':'DbLinks',
-        'PMID':'PubMedIds','GRIF':'Grifs', 'SUMFUNC':'FunctionSummaries',
-        'GO':'GoIds', 'EXTANNOT':'ExternalAnnotations'}
+               'LOCUS_CONFIRMED':'LocusConfirmed','LOCUS_TYPE':'LocusType',
+               'ORGANISM':'Species','RELL':'RelatedLoci','STATUS':'LocusStatus',
+               'PRODUCT':'Products','TRANSVAR':'TranscriptionVariants',
+               'ASSEMBLY':'Assemblies','CONTIG':'Contigs','EVID':'ContigEvidenceCodes',
+               'ACCNUM':'AccessionNumbers','TYPE':'AccessionTypes','PROT':'ProteinIds',
+               'OFFICIAL_SYMBOL':'OfficialSymbol','PREFERRED_SYMBOL':'PreferredSymbol',
+               'OFFICIAL_GENE_NAME':'OfficialGeneName',
+               'PREFERRED_GENE_NAME':'PreferredGeneName', 
+               'PREFERRED_PRODUCT':'PreferredProducts',
+               'ALIAS_SYMBOL':'SymbolAliases','ALIAS_PROT':'ProteinAliases',
+               'PHENOTYPE':'Phenotypes', 'PHENOTYPE_ID':'PhenotypeIds',
+               'SUMMARY':'Summaries', 'UNIGENE':'UnigeneIds','OMIM':'OmimIds',
+               'CHR':'Chromosomes','MAP':'Maps','MAPLINK':'MapLinks','STS':'Sts',
+               'COMP':'ComparativeMapLinks','ECNUM':'EcIds','BUTTON':'Buttons',
+               'LINK':'Links', 'DB_DESCR':'DbDescriptions','DB_LINK':'DbLinks',
+               'PMID':'PubMedIds','GRIF':'Grifs', 'SUMFUNC':'FunctionSummaries',
+               'GO':'GoIds', 'EXTANNOT':'ExternalAnnotations'}
 
 def _accession_adder(obj, field, line):
     """Adds accessions to relevant field"""

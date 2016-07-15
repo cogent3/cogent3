@@ -46,71 +46,71 @@ class test_aaindex1_parser(TestCase):
     def test_single_line_Description_entries(self):
         """ AAI1: Test Single Line Description Entries """
         self.assertEqual(self.AAIndexObjects['ANDN920101'].Description,\
-        'alpha-CH chemical shifts (Andersen et al., 1992)')
+                         'alpha-CH chemical shifts (Andersen et al., 1992)')
         self.assertEqual(self.AAIndexObjects['ARGP820103'].Description,\
-        'Membrane-buried preference parameters (Argos et al., 1982)')
+                         'Membrane-buried preference parameters (Argos et al., 1982)')
 
     def test_multi_line_Description_entries(self):
         """ AAI1: Test Multi Line Description Entries """        
         self.assertEqual(self.AAIndexObjects['JURD980101'].Description,\
-        'Modified Kyte-Doolittle hydrophobicity scale (Juretic et al., 1998)')
+                         'Modified Kyte-Doolittle hydrophobicity scale (Juretic et al., 1998)')
 
     def test_LITDB_entries(self):
         """ AAI1: Test LITDB Entries """
         self.assertEqual(self.AAIndexObjects['ANDN920101'].LITDBEntryNum,\
-        'LIT:1810048b PMID:1575719')
+                         'LIT:1810048b PMID:1575719')
         self.assertEqual(self.AAIndexObjects['ARGP820103'].LITDBEntryNum,\
-        'LIT:0901079b PMID:7151796')
+                         'LIT:0901079b PMID:7151796')
         self.assertEqual(self.AAIndexObjects['JURD980101'].LITDBEntryNum,\
-        '')
+                         '')
 
     def test_Authors_entries(self):
         """ AAI1: Test Authors Entries """
         self.assertEqual(self.AAIndexObjects['ANDN920101'].Authors,\
-        'Andersen, N.H., Cao, B. and Chen, C.')
+                         'Andersen, N.H., Cao, B. and Chen, C.')
         self.assertEqual(self.AAIndexObjects['ARGP820103'].Authors,\
-        'Argos, P., Rao, J.K.M. and Hargrave, P.A.')
+                         'Argos, P., Rao, J.K.M. and Hargrave, P.A.')
         self.assertEqual(self.AAIndexObjects['JURD980101'].Authors,\
-        'Juretic, D., Lucic, B., Zucic, D. and Trinajstic, N.')                
+                         'Juretic, D., Lucic, B., Zucic, D. and Trinajstic, N.')                
 
     def test_mult_line_Title_entries(self):
         """ AAI1: Test Multi Line Title Entries """
         self.assertEqual(self.AAIndexObjects['ANDN920101'].Title,\
-        'Peptide/protein structure analysis using the chemical shift index ' +\
-        'method: upfield alpha-CH values reveal dynamic helices and aL sites')
+                         'Peptide/protein structure analysis using the chemical shift index ' +\
+                         'method: upfield alpha-CH values reveal dynamic helices and aL sites')
         self.assertEqual(self.AAIndexObjects['JURD980101'].Title,\
-        'Protein transmembrane structure: recognition and prediction by ' +\
-        'using hydrophobicity scales through preference functions')
+                         'Protein transmembrane structure: recognition and prediction by ' +\
+                         'using hydrophobicity scales through preference functions')
 
     def test_sing_line_Title_entries(self):
         """ AAI1: Test Single Line Title Entries """
         self.assertEqual(self.AAIndexObjects['ARGP820103'].Title,\
-        'Structural prediction of membrane-bound proteins')     
+                         'Structural prediction of membrane-bound proteins')     
 
     def test_Citation_entries(self):
         """ AAI1: Test Citation Entries """
         self.assertEqual(self.AAIndexObjects['ANDN920101'].Citation,\
-        'Biochem. and Biophys. Res. Comm. 184, 1008-1014 (1992)')
+                         'Biochem. and Biophys. Res. Comm. 184, 1008-1014 (1992)')
         self.assertEqual(self.AAIndexObjects['ARGP820103'].Citation,\
-        'Eur. J. Biochem. 128, 565-575 (1982)')
+                         'Eur. J. Biochem. 128, 565-575 (1982)')
         self.assertEqual(self.AAIndexObjects['JURD980101'].Citation,\
-        'Theoretical and Computational Chemistry, 5, 405-445 (1998)')
+                         'Theoretical and Computational Chemistry, 5, 405-445 (1998)')
 
     def test_Comments_entries(self):
         """ AAI1: Test Comments Entries """
         self.assertEqual(self.AAIndexObjects['ANDN920101'].Comments,\
-        '')
+                         '')
         self.assertEqual(self.AAIndexObjects['ARGP820103'].Comments,\
-        '')
+                         '')
         self.assertEqual(self.AAIndexObjects['JURD980101'].Comments,\
-        '')
+                         '')
         self.assertEqual(self.AAIndexObjects['TSAJ990102'].Comments,\
-        '(Cyh 113.7)')
+                         '(Cyh 113.7)')
 
     def test_single_line_Correlating_entries(self):
         """ AAI1: Test single line Correlating Entries """
         self.assertEqual(self.AAIndexObjects['ANDN920101'].\
-        Correlating['BUNA790102'], 0.949)
+                         Correlating['BUNA790102'], 0.949)
 
     def test_empty_Correlating_entries(self):
         """ AAI1: Test empty Correlating Entries """       
@@ -119,39 +119,39 @@ class test_aaindex1_parser(TestCase):
     def test_multi_line_Correlating_entries(self):
         """ AAI1: Test multi line Correlating Entries """
         self.assertEqual(self.AAIndexObjects['ARGP820103'].\
-        Correlating['ARGP820102'], 0.961)
+                         Correlating['ARGP820102'], 0.961)
         self.assertEqual(self.AAIndexObjects['ARGP820103'].\
-        Correlating['MIYS850101'], 0.822)
+                         Correlating['MIYS850101'], 0.822)
         self.assertEqual(self.AAIndexObjects['ARGP820103'].\
-        Correlating['JURD980101'], 0.800)
+                         Correlating['JURD980101'], 0.800)
 
         self.assertEqual(self.AAIndexObjects['JURD980101'].\
-        Correlating['KYTJ820101'], 0.996)
+                         Correlating['KYTJ820101'], 0.996)
         self.assertEqual(self.AAIndexObjects['JURD980101'].\
-        Correlating['NADH010101'], 0.925)
+                         Correlating['NADH010101'], 0.925)
         self.assertEqual(self.AAIndexObjects['JURD980101'].\
-        Correlating['OOBM770101'], -0.903)
+                         Correlating['OOBM770101'], -0.903)
 
     def test_Data_entries(self):
         """ AAI1: Test Data Entries """
         self.assertEqual(self.AAIndexObjects['ANDN920101'].Data['A'],\
-        4.35)
+                         4.35)
         self.assertEqual(self.AAIndexObjects['ANDN920101'].Data['Q'],\
-        4.37)
+                         4.37)
         self.assertEqual(self.AAIndexObjects['ANDN920101'].Data['V'],\
-        3.95)
+                         3.95)
         self.assertEqual(self.AAIndexObjects['ARGP820103'].Data['A'],\
-        1.56)
+                         1.56)
         self.assertEqual(self.AAIndexObjects['ARGP820103'].Data['Q'],\
-        0.51)
+                         0.51)
         self.assertEqual(self.AAIndexObjects['ARGP820103'].Data['V'],\
-        1.14)
+                         1.14)
         self.assertEqual(self.AAIndexObjects['JURD980101'].Data['A'],\
-        1.10)
+                         1.10)
         self.assertEqual(self.AAIndexObjects['JURD980101'].Data['Q'],\
-        -3.68)
+                         -3.68)
         self.assertEqual(self.AAIndexObjects['JURD980101'].Data['V'],\
-        4.2)                  
+                         4.2)                  
 
 
 class test_aaindex2_parser(TestCase):
@@ -182,97 +182,97 @@ class test_aaindex2_parser(TestCase):
     def test_Description_entries(self):
         """ AAI2: Test Description Entries """
         self.assertEqual(self.AAIndexObjects['ALTS910101'].Description,\
-        'The PAM-120 matrix (Altschul, 1991)')
+                         'The PAM-120 matrix (Altschul, 1991)')
         self.assertEqual(self.AAIndexObjects['BENS940103'].Description,\
-        'Log-odds scoring matrix collected in 74-100 PAM (Benner et al., '+\
-        '1994)')
+                         'Log-odds scoring matrix collected in 74-100 PAM (Benner et al., '+\
+                         '1994)')
         self.assertEqual(self.AAIndexObjects['QUIB020101'].Description,\
-        'STROMA score matrix for the alignment of known distant homologs ' +\
-        '(Qian-Goldstein, 2002)')
+                         'STROMA score matrix for the alignment of known distant homologs ' +\
+                         '(Qian-Goldstein, 2002)')
 
     def test_LITDB_entries(self):
         """ AAI2: Test LITDB Entries """
         self.assertEqual(self.AAIndexObjects['ALTS910101'].LITDBEntryNum,\
-        'LIT:1713145 PMID:2051488')
+                         'LIT:1713145 PMID:2051488')
         self.assertEqual(self.AAIndexObjects['BENS940103'].LITDBEntryNum,\
-        'LIT:2023094 PMID:7700864')
+                         'LIT:2023094 PMID:7700864')
         self.assertEqual(self.AAIndexObjects['QUIB020101'].LITDBEntryNum,\
-        'PMID:12211027')
+                         'PMID:12211027')
 
     def test_Authors_entries(self):
         """ AAI2: Test Atuthor Entries """
         self.assertEqual(self.AAIndexObjects['ALTS910101'].Authors,\
-        'Altschul, S.F.')
+                         'Altschul, S.F.')
         self.assertEqual(self.AAIndexObjects['BENS940103'].Authors,\
-        'Benner, S.A., Cohen, M.A. and Gonnet, G.H.')
+                         'Benner, S.A., Cohen, M.A. and Gonnet, G.H.')
         self.assertEqual(self.AAIndexObjects['QUIB020101'].Authors,\
-        'Qian, B. and Goldstein, R.A.')
+                         'Qian, B. and Goldstein, R.A.')
 
     def test_Title_entries(self):
         """ AAI2: Test Title Entries """
         self.assertEqual(self.AAIndexObjects['ALTS910101'].Title,\
-        'Amino acid substitution matrices from an information theoretic ' +\
-        'perspective')         
+                         'Amino acid substitution matrices from an information theoretic ' +\
+                         'perspective')         
         self.assertEqual(self.AAIndexObjects['BENS940103'].Title,\
-        'Amino acid substitution during functionally constrained divergent ' +\
-        'evolution of protein sequences')
+                         'Amino acid substitution during functionally constrained divergent ' +\
+                         'evolution of protein sequences')
         self.assertEqual(self.AAIndexObjects['QUIB020101'].Title,\
-        'Optimization of a new score function for the generation of '+\
-        'accurate alignments')
+                         'Optimization of a new score function for the generation of '+\
+                         'accurate alignments')
 
     def test_Citation_entries(self):
         """ AAI2: Test citation entries """
         self.assertEqual(self.AAIndexObjects['ALTS910101'].Citation,\
-        'J. Mol. Biol. 219, 555-565 (1991)')
+                         'J. Mol. Biol. 219, 555-565 (1991)')
         self.assertEqual(self.AAIndexObjects['BENS940103'].Citation,\
-        'Protein Engineering 7, 1323-1332 (1994)')
+                         'Protein Engineering 7, 1323-1332 (1994)')
         self.assertEqual(self.AAIndexObjects['QUIB020101'].Citation,\
-        'Proteins. 48, 605-610 (2002)')
+                         'Proteins. 48, 605-610 (2002)')
 
     def test_Comments_entries(self):
         """ AAI2: Tests null, single line, multi line comments """
         self.assertEqual(self.AAIndexObjects['ALTS910101'].Comments,\
-        '')
+                         '')
         self.assertEqual(self.AAIndexObjects['BENS940103'].Comments,\
-        'extrapolated to 250 PAM')
+                         'extrapolated to 250 PAM')
         self.assertEqual(self.AAIndexObjects['QUIB020101'].Comments,\
-        '')
+                         '')
         self.assertEqual(self.AAIndexObjects['HENS920104'].Comments,\
-        '#  Matrix made by matblas from blosum50.iij ' +
-        '* #  BLOSUM Clustered Scoring Matrix in 1/3 Bit Units ' +
-        '* #  Blocks Database = /data/blocks_5.0/blocks.dat ' +
-        '* #  Cluster Percentage: >= 50 ' +
-        '* #  Entropy =   0.4808, Expected =  -0.3573')
+                         '#  Matrix made by matblas from blosum50.iij ' +
+                         '* #  BLOSUM Clustered Scoring Matrix in 1/3 Bit Units ' +
+                         '* #  Blocks Database = /data/blocks_5.0/blocks.dat ' +
+                         '* #  Cluster Percentage: >= 50 ' +
+                         '* #  Entropy =   0.4808, Expected =  -0.3573')
 
     def test_Data_entries_20x20_LTM(self):
         """ AAI2: correct data entries when 20x20 LTM"""
         self.assertEqual(self.AAIndexObjects['ALTS910101'].Data['A']['A'],\
-        3.)
+                         3.)
         self.assertEqual(self.AAIndexObjects['ALTS910101'].Data['Y']['R'],\
-        -6.)
+                         -6.)
         self.assertEqual(self.AAIndexObjects['ALTS910101'].Data['V']['V'],\
-        5.)
+                         5.)
         self.assertEqual(self.AAIndexObjects['BENS940103'].Data['A']['A'],\
-        2.4)
+                         2.4)
         self.assertEqual(self.AAIndexObjects['BENS940103'].Data['Y']['R'],\
-        -2.0)
+                         -2.0)
         self.assertEqual(self.AAIndexObjects['BENS940103'].Data['V']['V'],\
-        3.4)
+                         3.4)
         self.assertEqual(self.AAIndexObjects['QUIB020101'].Data['A']['A'],\
-        2.5)
+                         2.5)
         self.assertEqual(self.AAIndexObjects['QUIB020101'].Data['Y']['R'],\
-        -0.9)
+                         -0.9)
         self.assertEqual(self.AAIndexObjects['QUIB020101'].Data['V']['V'],\
-        4.2)
+                         4.2)
 
     def test_Data_entries_20x20_Square(self):
         """ AAI2: correct data entries when 20x20 squ matrix """
         self.assertEqual(self.AAIndexObjects['HENS920104'].Data['V']['Y'],\
-        -1)
+                         -1)
         self.assertEqual(self.AAIndexObjects['HENS920104'].Data['Q']['A'],\
-        -1)
+                         -1)
         self.assertEqual(self.AAIndexObjects['HENS920104'].Data['N']['N'],\
-        7)
+                         7)
 
     def test_Data_entries_with_abnormal_fields(self):
         """ AAI2: test correct data entries when more than std fields present
@@ -289,21 +289,21 @@ class test_aaindex2_parser(TestCase):
     def test_Data_entries_21x21_LTM(self):
         """ AAI2: correct data entries when 21x21 LTM"""
         self.assertEqual(self.AAIndexObjects['KOSJ950101'].Data['-']['-'],\
-        55.7)
+                         55.7)
         self.assertEqual(self.AAIndexObjects['KOSJ950101'].Data['Y']['-'],\
-        0.3)
+                         0.3)
         self.assertEqual(self.AAIndexObjects['KOSJ950101'].Data['N']['R'],\
-        3.0)
+                         3.0)
 
     def test_Data_entries_22x21_square(self):
         """ AAI2: correct data entries when 22x21 square matrix """
         # It's not really a sqaure matrix, but it's fully populated ...
         self.assertEqual(self.AAIndexObjects['OVEJ920102'].Data['J']['D'],\
-        0.001)
+                         0.001)
         self.assertEqual(self.AAIndexObjects['OVEJ920102'].Data['-']['I'],\
-        0.022)
+                         0.022)
         self.assertEqual(self.AAIndexObjects['OVEJ920102'].Data['D']['E'],\
-        0.109)
+                         0.109)
 
 
 class AAIndexRecordTests(TestCase):
@@ -335,15 +335,15 @@ class AAIndex1RecordTests(AAIndexRecordTests):
         self.data = dict(list(zip(keys,values)))
 
         self.aar = AAIndex1Record(self.id, self.description,\
-                self.LITDB_entry_num, self.authors, self.title,\
-                self.citation, self.comments, self.correlating, self.data)
+                                  self.LITDB_entry_num, self.authors, self.title,\
+                                  self.citation, self.comments, self.correlating, self.data)
 
     def test_init(self):
         """ AAIR1: Tests init method returns with no errors"""
 
         test_aar = AAIndex1Record(self.id, self.description,\
-                self.LITDB_entry_num, self.authors, self.title,\
-                self.citation, self.comments, self.correlating, self.data)
+                                  self.LITDB_entry_num, self.authors, self.title,\
+                                  self.citation, self.comments, self.correlating, self.data)
 
     def test_general_init_data(self):
         """ AAIR1: Tests init correctly initializes data"""
@@ -351,7 +351,7 @@ class AAIndex1RecordTests(AAIndexRecordTests):
         self.assertEqual(self.aar.ID, str(self.id))
         self.assertEqual(self.aar.Description, str(self.description))
         self.assertEqual(self.aar.LITDBEntryNum,\
-                str(self.LITDB_entry_num))
+                         str(self.LITDB_entry_num))
         self.assertEqual(self.aar.Authors, str(self.authors))
         self.assertEqual(self.aar.Title, str(self.title))
         self.assertEqual(self.aar.Citation, str(self.citation))
@@ -459,8 +459,8 @@ class AAIndex2RecordTests(AAIndexRecordTests):
 
 
         self.aarLTM = AAIndex2Record(self.id, self.description,\
-                self.LITDB_entry_num, self.authors, self.title,\
-                self.citation, self.comments, self.LTMdata)
+                                     self.LITDB_entry_num, self.authors, self.title,\
+                                     self.citation, self.comments, self.LTMdata)
 
         # Build Square matrix data
         values = list(range(400))
@@ -476,15 +476,15 @@ class AAIndex2RecordTests(AAIndexRecordTests):
             self.SQUdata[r] = new_row
 
         self.aarSquare = AAIndex2Record(self.id, self.description,\
-                self.LITDB_entry_num, self.authors, self.title,\
-                self.citation, self.comments, self.SQUdata)
+                                        self.LITDB_entry_num, self.authors, self.title,\
+                                        self.citation, self.comments, self.SQUdata)
 
     def test_init(self):
         """ AAIR2: Tests init method returns with no errors"""
 
         test_aar = AAIndex2Record(self.id, self.description,\
-                self.LITDB_entry_num, self.authors, self.title,\
-                self.citation, self.comments, self.SQUdata)
+                                  self.LITDB_entry_num, self.authors, self.title,\
+                                  self.citation, self.comments, self.SQUdata)
 
     def test_init_data(self):
         """ AAIR2: Tests init correctly initializes data"""
@@ -492,7 +492,7 @@ class AAIndex2RecordTests(AAIndexRecordTests):
         self.assertEqual(self.aarLTM.ID, str(self.id))
         self.assertEqual(self.aarLTM.Description, str(self.description))
         self.assertEqual(self.aarLTM.LITDBEntryNum,\
-                str(self.LITDB_entry_num))
+                         str(self.LITDB_entry_num))
         self.assertEqual(self.aarLTM.Authors, str(self.authors))
         self.assertEqual(self.aarLTM.Title, str(self.title))
         self.assertEqual(self.aarLTM.Citation, str(self.citation))

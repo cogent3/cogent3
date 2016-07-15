@@ -31,7 +31,7 @@ Int = numpy.core.numerictypes.sctype2char(int)
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
-                    "Andrew Butterfield"]
+               "Andrew Butterfield"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
@@ -175,7 +175,7 @@ class Enumeration(tuple):
         if len(self._quick_motifset) != len(self):
             #got duplicates: show user what they sent in
             raise TypeError('Alphabet initialized with duplicate values:\n' +\
-                str(self))
+                            str(self))
         self._obj_to_index = dict(list(zip(self, list(range(len(self))))))
         #handle gaps
         self.Gap = Gap
@@ -347,7 +347,7 @@ class JointEnumeration(Enumeration):
         """Fills in the tuple with tuples from the enumerations in data."""
         sub_enums = cls._coerce_enumerations(data)
         return Enumeration.__new__(cls, cartesian_product(sub_enums), \
-            MolType=MolType)
+                                   MolType=MolType)
 
     def __init__(self, data=[], Gap=None, MolType=None):
         """Returns a new JointEnumeration object. See class docstring for info.
@@ -502,12 +502,12 @@ class Alphabet(Enumeration):
     def __new__(cls, motifset, Gap='-', MolType=None):
         """Returns a new Alphabet object."""
         return Enumeration.__new__(cls, data=motifset, Gap=Gap, \
-            MolType=MolType)
+                                   MolType=MolType)
 
     def __init__(self, motifset, Gap='-', MolType=None):
         """Returns a new Alphabet object."""
         super(Alphabet, self).__init__(data=motifset, Gap=Gap, \
-            MolType=MolType)
+                                       MolType=MolType)
 
     def getWordAlphabet(self, length):
         """Returns a new Alphabet object with items as length-n strings.
@@ -660,14 +660,14 @@ class Alphabet(Enumeration):
             sample = list(motif_probs.keys())[0]
             if sample not in self:
                 raise ValueError("Can't find motif %s in alphabet" %
-                                sample)
+                                 sample)
             motif_probs = numpy.array(
-                    [motif_probs[motif] for motif in self])
+                [motif_probs[motif] for motif in self])
         else:
             if len(motif_probs) != len(self):
                 if len(motif_probs) != len(self):
                     raise ValueError("Can't match %s probs to %s alphabet" %
-                            (len(motif_probs), len(self)))
+                                     (len(motif_probs), len(self)))
             motif_probs = numpy.asarray(motif_probs)
         assert abs(sum(motif_probs)-1.0) < 0.0001, motif_probs
         return motif_probs

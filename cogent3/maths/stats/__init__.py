@@ -5,8 +5,8 @@ Also provides NumberList and FrequencyDistribution, two classes for
 working with statistical data.
 """
 __all__ = ['distribution',
-    'information_criteria', 'kendall', 'ks', 'special', 'test',
-    'util']
+           'information_criteria', 'kendall', 'ks', 'special', 'test',
+           'util']
 
 # GAH: this is a temporary introduction, so users get notice of structure change and
 # renaming of this function
@@ -15,7 +15,7 @@ from .distribution import chi_high as chisqprob
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit",
-                    "Catherine Lozupone", "Micah Hamady"]
+               "Catherine Lozupone", "Micah Hamady"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"

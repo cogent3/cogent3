@@ -43,7 +43,7 @@ def order_to_cluster_similar(S, elts=None, start=None):
     if start is not None:
         position[start] = (False, [start])
     similarity = [numpy.unravel_index(p, S.shape) 
-                for p in numpy.argsort(S, axis=None)]
+                  for p in numpy.argsort(S, axis=None)]
     for (x, y) in similarity[::-1]:
         if x==y or x in unavailable or y in unavailable:
             continue
@@ -217,14 +217,14 @@ def boolean_similarity(matrix):
     return both_true + both_false
 
 def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
-        include_incomplete=False, print_stats=True, max_site_labels=50):
+                include_incomplete=False, print_stats=True, max_site_labels=50):
     if print_stats:
         print("%s sequences in %s bp alignment" % (
-                alignment.getNumSeqs(), len(alignment)))
+            alignment.getNumSeqs(), len(alignment)))
     (sites, columns, partitions) = binary_partitions(alignment)
     if print_stats:
         print("%s unique binary partitions from %s informative sites" % (
-                len(partitions), len(sites)))
+            len(partitions), len(sites)))
     partpart = min_edges(partitions)      # [partition,partition]
     partimatrix = partpart[columns,:]     # [site, partition]
     sitematrix = partimatrix[:,columns]   # [site, site]
@@ -236,10 +236,10 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         print("Overall compatibility %.6f" % intra_region_average(compatiblity))
         if samples == 0:
             print("Neighbour similarity score = %.6f" % \
-                    neighbour_similarity_score(compatiblity))
+                  neighbour_similarity_score(compatiblity))
         else:
             print("Neighbour similarity = %.6f, avg random = %.6f, p < %s" % \
-                    nss_significance(compatiblity, samples=samples))
+                  nss_significance(compatiblity, samples=samples))
 
     # PARTIMATRIX, JWE 1997
 
@@ -305,7 +305,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
             s_size *= extra
 
         genemap = Display(alignment, recursive=s_size>0, 
-                colour_sequences=False, draw_bases=False)
+                          colour_sequences=False, draw_bases=False)
         annot_width = max(genemap.height / 80, 0.1)
         figwidth = max(figwidth, figwidth/2 + annot_width)
 
@@ -335,13 +335,13 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         kw = dict(axisbg=fig.get_facecolor())
         axC = fig.add_axes([x_margin, y_margin, c_width, c_height], **kw)
         axP = fig.add_axes([vert, y_margin, p_width, c_height], 
-                sharey=axC, **kw)
+                           sharey=axC, **kw)
         axS = fig.add_axes([vert, top, p_width, s_height or .001], 
-                sharex=axP, **kw)
+                           sharex=axP, **kw)
         axB = fig.add_axes([vert, top+ypad+s_height, p_width, bar_height], 
-                sharex=axP, **kw)
+                           sharex=axP, **kw)
         axZ = fig.add_axes([vert+p_width, y_margin, link_width, c_height], 
-            frameon=False)
+                           frameon=False)
 
         axA = genemap.asAxes(
             fig, [vert+p_width+link_width, y_margin, annot_width, c_height], 
@@ -387,7 +387,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         # Species dimension
         if s_size:
             seq_names = [name.split('  ')[0] 
-                    for name in alignment.getSeqNames()]
+                         for name in alignment.getSeqNames()]
             axS.yaxis.set_minor_locator(matplotlib.ticker.IndexLocator(1,0))
             axS.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
             axS.yaxis.set_major_locator(matplotlib.ticker.IndexLocator(1,0.5))
@@ -402,7 +402,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         axC.plot([0,c_size], [0, c_size], color='lightgreen')
         (sx, sy) = numpy.nonzero(partimatrix.T==0)
         axP.scatter(sx+0.5, sy+0.5, color='lightgreen', marker='^',
-            s=15)
+                    s=15)
 
         # Make [partition, sequence] matrix
         # Not a good idea with too many sequences
@@ -433,17 +433,17 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         #axB.set_autoscalex_on(False)
         if conflict.sum():
             axB.bar(numpy.arange(len(partitions)), -conflict/conflict.sum(), 
-                1.0, color='black', align='edge')
+                    1.0, color='black', align='edge')
         if support.sum():
             axB.bar(numpy.arange(len(partitions)), +support/support.sum(), 
-                1.0, color='lightgreen', align='edge')
+                    1.0, color='lightgreen', align='edge')
         axB.set_xlim(0.0, len(partitions))
 
         # Alignment features
         axA.set_ylim(0, len(alignment))
         axA.set_autoscale_on(False)
         axA.yaxis.set_major_formatter(
-                matplotlib.ticker.FuncFormatter(lambda y,pos:str(int(y))))
+            matplotlib.ticker.FuncFormatter(lambda y,pos:str(int(y))))
         axA.yaxis.tick_right()
         axA.yaxis.set_label_position('right')
         axA.xaxis.tick_top()
@@ -479,20 +479,20 @@ if __name__ == '__main__':
     import sys, optparse, os.path
     parser = optparse.OptionParser("usage: %prog [options] alignment")
     parser.add_option("-p", "--print", action="store_true", 
-            default=True, dest="print_stats", 
-            help="print neighbour similarity score etc.")
+                      default=True, dest="print_stats", 
+                      help="print neighbour similarity score etc.")
     parser.add_option("-d", "--display", action="store_true", 
-            default=False, dest="display", 
-            help="show matrices via matplotlib")
+                      default=False, dest="display", 
+                      help="show matrices via matplotlib")
     parser.add_option("-i", "--incomplete", action="store_true", 
-            default=False, dest="include_incomplete", 
-            help="include partitions containing ambiguities")
+                      default=False, dest="include_incomplete", 
+                      help="include partitions containing ambiguities")
     parser.add_option("-t", "--taxalimit", 
-                dest="s_limit", default=20, type="int", 
-                help="maximum number of species that can be displayed")
+                      dest="s_limit", default=20, type="int", 
+                      help="maximum number of species that can be displayed")
     parser.add_option("-s", "--samples",
-                dest="samples", default=10000, type="int",
-                help="samples for significance test")
+                      dest="samples", default=10000, type="int",
+                      help="samples for significance test")
     (options, args) = parser.parse_args()
     if len(args) != 1:
         parser.print_help()

@@ -74,7 +74,7 @@ class OptimiserTestCase(TestCase):
 
     def test_limited(self):
         self.assertRaises(MaximumEvaluationsReached, 
-            self._test_optimisation, max_evaluations=5)
+                          self._test_optimisation, max_evaluations=5)
 
     # def test_limited_warning(self):
     #     """optimiser warning if max_evaluations exceeded"""
@@ -84,7 +84,7 @@ class OptimiserTestCase(TestCase):
         """return the evaluation count from optimisation"""
         f, last, evals = MakeF()
         x, e = quiet(maximise, f, xinit=[1.0], bounds=([-10,10]),
-                    return_eval_count=True)
+                     return_eval_count=True)
         self.assertTrue(e > 500)
 
     def test_checkpointing(self):
@@ -94,7 +94,7 @@ class OptimiserTestCase(TestCase):
         self._test_optimisation(filename=filename, seed=1, init_temp=10)
         self._test_optimisation(filename=filename, seed=1, init_temp=10)
         self.assertRaises(Exception, self._test_optimisation, 
-                filename=filename, seed=1, init_temp=3.21)
+                          filename=filename, seed=1, init_temp=3.21)
         if os.path.exists(filename):
             os.remove(filename)
 

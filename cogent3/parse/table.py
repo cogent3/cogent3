@@ -52,7 +52,7 @@ class ConvertFields(object):
 
 
 def SeparatorFormatParser(with_header=True, converter = None, ignore = None,
-                sep=",", strip_wspace=True, limit=None, **kw):
+                          sep=",", strip_wspace=True, limit=None, **kw):
     """Returns a parser for a delimited tabular file.
 
     Arguments:
@@ -129,7 +129,7 @@ def autogen_reader(infile, sep, with_title, limit=None):
                                  sep=sep, limit=limit)
 
 def load_delimited(filename, header = True, delimiter = ',',
-        with_title = False, with_legend = False, limit=None):
+                   with_title = False, with_legend = False, limit=None):
     if limit is not None:
         limit += 1 # don't count header line
 

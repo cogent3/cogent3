@@ -6,7 +6,7 @@ Translated from R 2.4 by Gavin Huttley
 """
 
 from numpy import sqrt, log, pi, exp, fabs, floor, zeros, asarray,\
-            dot as matrixmultiply, ones, array, reshape, ravel, sum, arange
+    dot as matrixmultiply, ones, array, reshape, ravel, sum, arange
 from cogent3.maths.stats.special import combinations
 
 __author__ = "Gavin Huttley"
@@ -42,7 +42,7 @@ def pkolmogorov1x(statistic, n):
     j = arange(0, to)
     coeffs = asarray([log(combinations(n, i)) for i in j])
     p = sum(exp(coeffs + (n-j)*log(1-statistic-j/n) + \
-                                            (j-1)*(log(statistic+j/n))))
+                (j-1)*(log(statistic+j/n))))
     return 1 - statistic * p
 
 def pkolmogorov2x(statistic, n):

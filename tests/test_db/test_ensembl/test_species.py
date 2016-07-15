@@ -25,7 +25,7 @@ class TestSpeciesNamemaps(TestCase):
         self.assertEqual(Species.getEnsemblDbPrefix("human"), "homo_sapiens")
         self.assertEqual(Species.getEnsemblDbPrefix("mouse"), "mus_musculus")
         self.assertEqual(Species.getEnsemblDbPrefix("Mus musculus"),
-                                                "mus_musculus")
+                         "mus_musculus")
 
     def test_add_new_species(self):
         """should correctly add a new species/common combination and infer the
@@ -55,16 +55,16 @@ class TestSpeciesNamemaps(TestCase):
         self.assertEqual(Species.getCommonName(species_name), common_name2)
         self.assertEqual(Species.getCommonName(ensembl_pref), common_name2)
         self.assertEqual(Species.getEnsemblDbPrefix(species_name),
-            ensembl_pref)
+                         ensembl_pref)
         self.assertEqual(Species.getEnsemblDbPrefix(common_name2),
-            ensembl_pref)
+                         ensembl_pref)
 
     def test_get_compara_name(self):
         """should correctly form valid names for assignment onto objects"""
         self.assertEqual(Species.getComparaName('pika'), 'Pika')
         self.assertEqual(Species.getComparaName('C.elegans'), 'Celegans')
         self.assertEqual(Species.getComparaName('Caenorhabditis elegans'),
-                'Celegans')
+                         'Celegans')
 
 
 if __name__ == "__main__":

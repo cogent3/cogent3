@@ -39,7 +39,7 @@ class LightweightTreeNode(frozenset):
         if constructor is None:
             constructor = TreeBuilder().createEdge
         children = [child.convert(constructor, clength) 
-                for (clength, child) in self]
+                    for (clength, child) in self]
         node = constructor(children, None, {})
         if length is not None:
             node.Length = max(0.0, length)
@@ -88,7 +88,7 @@ class PartialTree(object):
 
         # Join i and k to make new node
         new_node = LightweightTreeNode(
-                [(left_length, nodes[i]), (right_length, nodes[j])])
+            [(left_length, nodes[i]), (right_length, nodes[j])])
 
         # Store new node at i
         new_dists = 0.5 * (d[i] + d[j] - d[i,j])

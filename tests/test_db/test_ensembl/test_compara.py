@@ -37,7 +37,7 @@ def calc_slope(x1, y1, x2, y2):
 
 class ComparaTestBase(TestCase):
     comp = Compara(['human', 'mouse', 'rat', 'platypus'], Release=Release,
-                    account=account)
+                   account=account)
 
 class TestCompara(ComparaTestBase):
     def test_query_genome(self):
@@ -49,21 +49,21 @@ class TestCompara(ComparaTestBase):
         """should correctly return the related gene regions from each genome"""
         brca2 = self.comp.Mouse.getGeneByStableId("ENSMUSG00000041147")
         Orthologs = self.comp.getRelatedGenes(gene_region=brca2,
-                Relationship="ortholog_one2one")
+                                              Relationship="ortholog_one2one")
         self.assertEqual("ortholog_one2one", Orthologs.Relationships[0])
 
     def test_get_related_genes2(self):
         """should handle case where gene is absent from one of the genomes"""
         clec2d = self.comp.Mouse.getGeneByStableId(
-                                        StableId='ENSMUSG00000030157')
+            StableId='ENSMUSG00000030157')
         orthologs = self.comp.getRelatedGenes(gene_region=clec2d,
-                        Relationship='ortholog_one2many')
+                                              Relationship='ortholog_one2many')
         self.assertTrue(len(orthologs.Members) < 4)
 
     def test_get_collection(self):
         brca2 = self.comp.Human.getGeneByStableId(StableId="ENSG00000139618")
         Orthologs = self.comp.getRelatedGenes(gene_region=brca2,
-                        Relationship="ortholog_one2one")
+                                              Relationship="ortholog_one2one")
         collection = Orthologs.getSeqCollection()
         self.assertTrue(len(collection.Seqs[0])> 1000)
 
@@ -71,7 +71,7 @@ class TestCompara(ComparaTestBase):
         mid = "ENSMUSG00000041147"
         brca2 = self.comp.Mouse.getGeneByStableId(StableId=mid)
         result = list(self.comp.getSyntenicRegions(region=brca2,
-                        align_method='PECAN', align_clade='vertebrates'))[0]
+                                                   align_method='PECAN', align_clade='vertebrates'))[0]
         aln = result.getAlignment(feature_types='gene')
         # to improve test robustness across Ensembl releases, where alignment
         # coordinates change due to inclusion of new species, we search for
@@ -107,8 +107,8 @@ class TestCompara(ComparaTestBase):
         Start = 100000
         End = Start + 100000
         related = list(self.comp.getSyntenicRegions(Species='mouse',
-                        CoordName='1', Start=Start, End=End,
-                        align_method='PECAN', align_clade='vertebrates'))
+                                                    CoordName='1', Start=Start, End=End,
+                                                    align_method='PECAN', align_clade='vertebrates'))
         self.assertEqual(related, [])
 
     def test_get_species_set(self):
@@ -117,34 +117,34 @@ class TestCompara(ComparaTestBase):
                       'Mus musculus', 'Rattus norvegicus'])
         brca1 = self.comp.Human.getGeneByStableId(StableId="ENSG00000012048")
         Orthologs = self.comp.getRelatedGenes(gene_region=brca1,
-                        Relationship="ortholog_one2one")
+                                              Relationship="ortholog_one2one")
         self.assertEqual(Orthologs.getSpeciesSet(), expect)
 
     def test_pool_connection(self):
         """excercising ability to specify pool connection"""
         dog = Compara(['chimp', 'dog'], Release=Release, account=account,
-                pool_recycle=1000)
+                      pool_recycle=1000)
 
 
 
 class TestSyntenicRegions(TestCase):
     comp = Compara(['human', 'chimp', 'macaque'], account=account,
-                  Release=Release)
+                   Release=Release)
 
     def test_correct_alignments(self):
         """should return the correct alignments"""
         # following cases have a mixture of strand between ref seq and others
         coords_expected = [
             [{'CoordName': 4, 'End': 78207, 'Species': 'human', 'Start': 78107, 'Strand':-1},
-              {'Homo sapiens:chromosome:4:77999-78099:-1':
-               'ATGTAAATCAAAACCAAAGTCTGCATTTATTTGCGGAAAGAGATGCTACATGTTCAAAGATAAATATGGAACATTTTTTAAAAGCATTCATGACTTAGAA',
-               'Macaca mulatta:chromosome:1:3891064-3891163:1':
-               'ATGTCAATCAAAACCAAAGTCTGTATTTATTTGCAGAAAGAGATACTGCATGTTCAAAGATAAATATGGAAC-TTTTTAAAAAGCATTAATGACTTATAC',
-               'Pan troglodytes:chromosome:4:102056-102156:-1':
-               'ATGTAAATCAAAACCAAAGTCTGCATTTATTTGCGGAAAGAGATGCTACATGTTCAAAGATAAATATGGAACATTTTTAAAAAGCATTCATGACTTAGAA'}],
+             {'Homo sapiens:chromosome:4:77999-78099:-1':
+              'ATGTAAATCAAAACCAAAGTCTGCATTTATTTGCGGAAAGAGATGCTACATGTTCAAAGATAAATATGGAACATTTTTTAAAAGCATTCATGACTTAGAA',
+              'Macaca mulatta:chromosome:1:3891064-3891163:1':
+              'ATGTCAATCAAAACCAAAGTCTGTATTTATTTGCAGAAAGAGATACTGCATGTTCAAAGATAAATATGGAAC-TTTTTAAAAAGCATTAATGACTTATAC',
+              'Pan troglodytes:chromosome:4:102056-102156:-1':
+              'ATGTAAATCAAAACCAAAGTCTGCATTTATTTGCGGAAAGAGATGCTACATGTTCAAAGATAAATATGGAACATTTTTAAAAAGCATTCATGACTTAGAA'}],
             [{'CoordName': 18, 'End': 213739, 'Species': 'human', 'Start': 213639, 'Strand':-1},
                 {'Homo sapiens:chromosome:18:213639-213739:-1':
-                'ATAAGCATTTCCCTTTAGGGCTCTAAGATGAGGTCATCATCGTTTTTAATCCTGAAGAAGGGCTACTGAGTGAGTGCAGATTATTCGGTAAACACT----CTTA',
+                 'ATAAGCATTTCCCTTTAGGGCTCTAAGATGAGGTCATCATCGTTTTTAATCCTGAAGAAGGGCTACTGAGTGAGTGCAGATTATTCGGTAAACACT----CTTA',
                  'Macaca mulatta:chromosome:18:13858303-13858397:1':
                  '------GTTTCCCTTTAGGGCTCTAAGATGAGGTCATCATTGTTTTTAATCCTGAAGAAGGGCTACTGA----GTGCAGATTATTCTGTAAATGTGCTTACTTG',
                  'Pan troglodytes:chromosome:18:16601082-16601182:1':
@@ -205,8 +205,8 @@ class TestSyntenicRegions(TestCase):
         gene = self.comp.Human.getGeneByStableId(StableId='ENSG00000188554')
         # this should simply not raise any exceptions
         syntenic_regions = list(self.comp.getSyntenicRegions(region=gene,
-                                align_method='PECAN',
-                                align_clade='vertebrates'))
+                                                             align_method='PECAN',
+                                                             align_clade='vertebrates'))
 
 
 

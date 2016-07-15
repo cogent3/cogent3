@@ -10,7 +10,7 @@ from cogent3.parse.record import FileFormatError
 __author__ = "Cath Lawrence"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Cath Lawrence", "Gavin Huttley", "Peter Maxwell",
-                    "Matthew Wakefield", "Rob Knight"]
+               "Matthew Wakefield", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
@@ -65,26 +65,26 @@ def format_from_filename(filename, format=None):
         return filename[filename.rfind('.')+1:]
 
 PARSERS  = {
-        'phylip': phylip.MinimalPhylipParser,
-        'paml':  paml.PamlParser,
-        'fasta': fasta.MinimalFastaParser,
-        'mfa': fasta.MinimalFastaParser,
-        'fa': fasta.MinimalFastaParser,
-        'faa': fasta.MinimalFastaParser,
-        'fna': fasta.MinimalFastaParser,
-        'xmfa': fasta.MinimalXmfaParser,
-        'gde': fasta.MinimalGdeParser,
-        'aln': clustal.ClustalParser,
-        'clustal': clustal.ClustalParser,
-        'gb': genbank.RichGenbankParser,
-        'gbk': genbank.RichGenbankParser,
-        'genbank': genbank.RichGenbankParser,
-        'msf': gcg.MsfParser,
-        }
+    'phylip': phylip.MinimalPhylipParser,
+    'paml':  paml.PamlParser,
+    'fasta': fasta.MinimalFastaParser,
+    'mfa': fasta.MinimalFastaParser,
+    'fa': fasta.MinimalFastaParser,
+    'faa': fasta.MinimalFastaParser,
+    'fna': fasta.MinimalFastaParser,
+    'xmfa': fasta.MinimalXmfaParser,
+    'gde': fasta.MinimalGdeParser,
+    'aln': clustal.ClustalParser,
+    'clustal': clustal.ClustalParser,
+    'gb': genbank.RichGenbankParser,
+    'gbk': genbank.RichGenbankParser,
+    'genbank': genbank.RichGenbankParser,
+    'msf': gcg.MsfParser,
+    }
 
 XML_PARSERS = {
-        'gbseq': gbseq.GbSeqXmlParser,
-        'tseq': tinyseq.TinyseqParser,
-        'macsim': macsim.MacsimParser,
-        }
+    'gbseq': gbseq.GbSeqXmlParser,
+    'tseq': tinyseq.TinyseqParser,
+    'macsim': macsim.MacsimParser,
+    }
 

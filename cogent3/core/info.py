@@ -27,7 +27,7 @@ class DbRef(object):
     str(DbRef) always returns the accession.
     """
     def __init__(self, Accession, Db='', Name='', Description='', \
-        Data=None):
+                 Data=None):
         """Returns new DbRef.
 
         str(DbRef) always returns the accession as a string.
@@ -97,10 +97,10 @@ class DbRefs(MappedRecord, ConstrainedDict):
     DefaultValue = []
 
 KnownDatabases = dict.fromkeys(['RefSeq', 'GenBank', 'GenNucl', 'GenPept', 
-    'GI', 'SwissProt', 'PIR', 'EMBL', 'DDBJ',
-    'NDB', 'PDB', 'Taxon', 'LocusLink', 'UniGene', 'OMIM', 'PubMed', 'COGS', 
-    'CDD', 'Pfam', 'Rfam', 'GO', 'dbEST', 'IPI', 'rRNA', 'EC', 'HomoloGene', 
-    'KEGG', 'BRENDA', 'EcoCyc', 'HumanCyc', 'BLOCKS'])
+                                'GI', 'SwissProt', 'PIR', 'EMBL', 'DDBJ',
+                                'NDB', 'PDB', 'Taxon', 'LocusLink', 'UniGene', 'OMIM', 'PubMed', 'COGS', 
+                                'CDD', 'Pfam', 'Rfam', 'GO', 'dbEST', 'IPI', 'rRNA', 'EC', 'HomoloGene', 
+                                'KEGG', 'BRENDA', 'EcoCyc', 'HumanCyc', 'BLOCKS'])
 
 class Info(MappedRecord, Delegator):
     """Dictionary that stores attributes for Sequence objects.

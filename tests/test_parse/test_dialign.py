@@ -88,9 +88,9 @@ Tree constructed using UPGMAbased on DIALIGN fragment weight scores
 class TestDialign(unittest.TestCase):
     def setUp(self):
         aln_seqs = {"HTL2": "ldtapC-LFSDGS------PQKAAYVL-------WDQTILQQDITPLPSHethSAQKGELLALICGLRAak------------",
-        "MMLV": "pdadhtw-YTDGSSLLQEGQRKAGAAVtteteviWa----KALDAG---T---SAQRAELIALTQALKm--------------",
-        "HEPB": "rpgl-CQVFADAT------PTGWGLVM-------GHQRMRGTFSAPLPIHt------AELLAA-CFARSrsganiigtdnsvv",
-        "ECOL": "mlkqv-EIFTDGSCLGNPGPGGYGAIL-------RYRGREKTFSAGytrT---TNNRMELMAAIv------------------"}
+                    "MMLV": "pdadhtw-YTDGSSLLQEGQRKAGAAVtteteviWa----KALDAG---T---SAQRAELIALTQALKm--------------",
+                    "HEPB": "rpgl-CQVFADAT------PTGWGLVM-------GHQRMRGTFSAPLPIHt------AELLAA-CFARSrsganiigtdnsvv",
+                    "ECOL": "mlkqv-EIFTDGSCLGNPGPGGYGAIL-------RYRGREKTFSAGytrT---TNNRMELMAAIv------------------"}
         self.aln_seqs = {}
         for name, seq in list(aln_seqs.items()):
             self.aln_seqs[name] = PROTEIN.Sequence(seq,Name=name)
@@ -111,7 +111,7 @@ class TestDialign(unittest.TestCase):
     def test_quality_scores(self):
         """test quality scores correctly returned"""
         result = dict(list(DialignParser(data, seq_maker=PROTEIN.Sequence,
-                                        get_scores=True)))
+                                         get_scores=True)))
         assert result["QualityScores"] == self.QualityScores
 
 

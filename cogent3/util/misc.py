@@ -19,8 +19,8 @@ import hashlib
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Amanda Birmingham",
-                    "Sandra Smit", "Zongzhi Liu", "Daniel McDonald",
-                    "Kyle Bittinger", "Marcin Cieslik"]
+               "Sandra Smit", "Zongzhi Liu", "Daniel McDonald",
+               "Kyle Bittinger", "Marcin Cieslik"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"
@@ -96,7 +96,7 @@ def get_tmp_filename(tmp_dir=gettempdir(), prefix="tmp", suffix=".txt",
     picks = chars + chars.upper() + "0123456790"
     return result_constructor(tmp_dir) + result_constructor(prefix) +\
         result_constructor("%s%s" % \
-        (''.join([choice(picks) for i in range(20)]),suffix))
+                           (''.join([choice(picks) for i in range(20)]),suffix))
 
 
 def safe_md5(open_file, block_size=2**20):
@@ -285,14 +285,14 @@ def is_char(obj):
     return isinstance(obj, str) and len(obj) <= 1
 
 is_char_or_noniterable = lambda x: is_char(x) or\
-        not is_iterable(x)
+    not is_iterable(x)
 
 is_str_or_noniterable = lambda x: isinstance(x, str) or\
-        not is_iterable(x)
+    not is_iterable(x)
 
 
 def recursive_flatten(items, max_depth=None, curr_depth=1,
-        is_leaf=is_char_or_noniterable):
+                      is_leaf=is_char_or_noniterable):
     """Removes all nesting from items, recursively.
 
     Note: Default max_depth is None, which removes all nesting (including
@@ -314,7 +314,7 @@ def recursive_flatten(items, max_depth=None, curr_depth=1,
             result.append(i)
         else:
             result.extend(recursive_flatten(i,
-                    max_depth, curr_depth + 1, is_leaf))
+                                            max_depth, curr_depth + 1, is_leaf))
     return result
 #end recursive_flatten
 
@@ -491,7 +491,7 @@ def extract_delimited(line, left, right, start_index=0):
             field_end = line.index(right, field_start)
         except ValueError:  #left but no right delimiter: raise error
             raise ValueError("Found '%s' but not '%s' in line %s, starting at %s." \
-            % (left, right, line, start_index))
+                             % (left, right, line, start_index))
     #if we got here, we found the start and end of the field
     return line[field_start + 1:field_end]
 
@@ -863,7 +863,7 @@ class ConstrainedString(str, ConstrainedContainer):
         if not self.otherIsValid(other):
             raise ConstraintError("Sequence '%s' doesn't meet constraint" % other)
         result = self.__class__(str(self) + ''.join(map(self.Mask, other)), \
-            Constraint=self.Constraint)
+                                Constraint=self.Constraint)
         mask = self._mask_for_new()
         if mask:
             result.Mask = mask
@@ -872,7 +872,7 @@ class ConstrainedString(str, ConstrainedContainer):
     def __mul__(self, multiplier):
         """Returns copy of self multiplied by multiplier."""
         result = self.__class__(str.__mul__(self, multiplier),
-            Constraint=self.Constraint)
+                                Constraint=self.Constraint)
         mask = self._mask_for_new()
         if mask:
             result.Mask = mask
@@ -881,7 +881,7 @@ class ConstrainedString(str, ConstrainedContainer):
     def __rmul__(self, multiplier):
         """Returns copy of self multiplied by multiplier."""
         result = self.__class__(str.__rmul__(self, multiplier),
-            Constraint=self.Constraint)
+                                Constraint=self.Constraint)
         mask = self._mask_for_new()
         if mask:
             result.Mask = mask
@@ -890,7 +890,7 @@ class ConstrainedString(str, ConstrainedContainer):
     def __getslice__(self, *args, **kwargs):
         """Make sure slice remembers the constraint."""
         result = self.__class__(str.__getslice__(self, *args, **kwargs), \
-            Constraint=self.Constraint)
+                                Constraint=self.Constraint)
         mask = self._mask_for_new()
         if mask:
             result.Mask = mask
@@ -931,7 +931,7 @@ class ConstrainedList(ConstrainedContainer, list):
     def __add__(self, other):
         """Returns copy of self added to copy of other if constraint correct."""
         result = self.__class__(list(self) + list(map(self.Mask, other)) , \
-            Constraint=self.Constraint)
+                                Constraint=self.Constraint)
         mask = self._mask_for_new()
         if mask:
             result.Mask = mask
@@ -944,12 +944,12 @@ class ConstrainedList(ConstrainedContainer, list):
             return list.__iadd__(self, other)
         else:
             raise ConstraintError("Sequence '%s' has items not in constraint '%s'" \
-                % (other, self.Constraint))
+                                  % (other, self.Constraint))
 
     def __mul__(self, multiplier):
         """Returns copy of self multiplied by multiplier."""
         result = self.__class__(list(self) * multiplier,
-            Constraint=self.Constraint)
+                                Constraint=self.Constraint)
         mask = self._mask_for_new()
         if mask:
             result.Mask = mask
@@ -958,7 +958,7 @@ class ConstrainedList(ConstrainedContainer, list):
     def __rmul__(self, multiplier):
         """Returns copy of self multiplied by multiplier."""
         result = self.__class__(list(self) * multiplier,
-            Constraint=self.Constraint)
+                                Constraint=self.Constraint)
         mask = self._mask_for_new()
         if mask:
             result.Mask = mask
@@ -969,12 +969,12 @@ class ConstrainedList(ConstrainedContainer, list):
         if isinstance(index, slice):
             if not self.otherIsValid(item):
                 raise ConstraintError("Sequence '%s' contains items not in constraint '%s'." % \
-                (item, self.Constraint))
+                                      (item, self.Constraint))
             item = list(map(self.Mask, item))
         else:
             if not self.itemIsValid(item):
                 raise ConstraintError("Item '%s' not in constraint '%s'" % \
-                    (item, self.Constraint))
+                                      (item, self.Constraint))
             item = self.Mask(item)
         list.__setitem__(self, index, item)
 
@@ -984,13 +984,13 @@ class ConstrainedList(ConstrainedContainer, list):
             list.__setslice__(self, start, end, list(map(self.Mask, sequence)))
         else:
             raise ConstraintError("Sequence '%s' has items not in constraint '%s'"\
-                % (sequence, self.Constraint))
+                                  % (sequence, self.Constraint))
 
     def append(self, item):
         """Appends item to self."""
         if not self.itemIsValid(item):
             raise ConstraintError("Item '%s' not in constraint '%s'" % \
-                (item, self.Constraint))
+                                  (item, self.Constraint))
         list.append(self, self.Mask(item))
 
     def extend(self, sequence):
@@ -999,13 +999,13 @@ class ConstrainedList(ConstrainedContainer, list):
             list.extend(self, list(map(self.Mask, sequence)))
         else:
             raise ConstraintError("Some items in '%s' not in constraint '%s'"\
-                % (sequence, self.Constraint))
+                                  % (sequence, self.Constraint))
 
     def insert(self, position, item):
         """Inserts item at position in self."""
         if not self.itemIsValid(item):
             raise ConstraintError("Item '%s' not in constraint '%s'" % \
-                (item, self.Constraint))
+                                  (item, self.Constraint))
         list.insert(self, position, self.Mask(item))
 
     def __getslice__(self, *args, **kwargs):
@@ -1081,7 +1081,7 @@ class ConstrainedDict(ConstrainedContainer, dict):
         """Sets self[key] to value if value in constraint."""
         if not self.itemIsValid(key):
             raise ConstraintError("Item '%s' not in constraint '%s'" % \
-                (key, self.Constraint))
+                                  (key, self.Constraint))
         key, value = self.Mask(key), self.ValueMask(value)
         dict.__setitem__(self, key, value)
 
@@ -1089,13 +1089,13 @@ class ConstrainedDict(ConstrainedContainer, dict):
         """Should return copy of self, including constraint."""
         mask, valmask = self._get_mask_and_valmask()
         return self.__class__(self, Constraint=self.Constraint, Mask=mask,
-                ValueMask=valmask)
+                              ValueMask=valmask)
 
     def fromkeys(self, keys, value=None):
         """Returns new dictionary with same constraint as self."""
         mask, valmask = self._get_mask_and_valmask()
         return self.__class__(dict.fromkeys(keys, value),
-            Constraint=self.Constraint, Mask=mask, ValueMask=valmask)
+                              Constraint=self.Constraint, Mask=mask, ValueMask=valmask)
 
     def setdefault(self, key, default=None):
         """Returns self[key], setting self[key]=default if absent."""
@@ -1156,7 +1156,7 @@ def toString(obj):
     """
 
     ignored_types = [types.BuiltinFunctionType, types.BuiltinMethodType,
-                    type, types.FunctionType, types.MethodType]
+                     type, types.FunctionType, types.MethodType]
     result = []
     for slot in obj.__dict__:
         if not slot.startswith("__"):
@@ -1212,8 +1212,8 @@ def reverse_complement(seq, use_DNA=True):
     bad_chars = set(seq) - set("ACGTUacgtu")
     if len(bad_chars) > 0:
         raise ValueError("Only ACGTU characters may be passed to reverse_complement. Other "
-          "characters were identified: %s. Use cogent3.DNA.rc if you need to "
-          "reverse complement ambiguous bases." % ''.join(bad_chars))
+                         "characters were identified: %s. Use cogent3.DNA.rc if you need to "
+                         "reverse complement ambiguous bases." % ''.join(bad_chars))
     #decide which translation to use for complementation
     if use_DNA:
         trans_table = str.maketrans("ACGTacgt", "TGCAtgca")
@@ -1260,7 +1260,7 @@ def get_items_except(seq, indices, seq_constructor=None):
     sequence = list(seq)
     index_lookup = dict.fromkeys(indices)
     result = [sequence[i] for i in range(len(seq)) \
-                if i not in index_lookup]
+              if i not in index_lookup]
     if not seq_constructor:
         if isinstance(seq, str):
             return ''.join(result)
@@ -1270,7 +1270,7 @@ def get_items_except(seq, indices, seq_constructor=None):
 #end get_items_except
 
 def NestedSplitter(delimiters=[None], same_level=False,
-        constructor=str.strip, filter_=False):
+                   constructor=str.strip, filter_=False):
     """return a splitter which return a list (maybe nested) from a str using 
     delimiters nestedly
 
@@ -1311,7 +1311,7 @@ def NestedSplitter(delimiters=[None], same_level=False,
         #undo split if curr not in line and same_level==False
         #ignore the first delimiter
         if not same_level and index > 0 \
-            and len(result) == 1 and isinstance(result[0], str):
+                and len(result) == 1 and isinstance(result[0], str):
             result = result[0]
 
         return result
@@ -1404,12 +1404,12 @@ def handle_error_codes(dir_name, supress_errors=False,
 
     error_strings = \
         {error_code_lookup['DIR_EXISTS'] :
-          "Directory already exists: %s" % dir_name,
+         "Directory already exists: %s" % dir_name,
          error_code_lookup['FILE_EXISTS'] : 
-          "File with same name exists: %s" % dir_name,
+         "File with same name exists: %s" % dir_name,
          error_code_lookup['OTHER_OS_ERROR']: 
-          "Could not create output directory: %s. " % dir_name +
-          "Check the permissions."}
+         "Could not create output directory: %s. " % dir_name +
+         "Check the permissions."}
 
     if error_code == error_code_lookup['NO_ERROR']:
         return error_code_lookup['NO_ERROR']
@@ -1432,12 +1432,12 @@ def remove_files(list_of_filepaths, error_on_missing=True):
         raise OSError("Some filepaths were not accessible: %s" % '\t'.join(missing))
 
 def get_random_directory_name(suppress_mkdir=False,\
-    timestamp_pattern='%Y%m%d%H%M%S',\
-    rand_length=20,\
-    output_dir=None,\
-    prefix='',
-    suffix='',
-    return_absolute_path=True):
+                              timestamp_pattern='%Y%m%d%H%M%S',\
+                              rand_length=20,\
+                              output_dir=None,\
+                              prefix='',
+                              suffix='',
+                              return_absolute_path=True):
     """Build a random directory name and create the directory 
 
         suppress_mkdir: only build the directory name, don't
@@ -1461,8 +1461,8 @@ def get_random_directory_name(suppress_mkdir=False,\
 
     # Construct the directory name
     dirname = '%s%s%s%s' % (prefix,timestamp,\
-                        ''.join([choice(picks) for i in range(rand_length)]),\
-                        suffix)
+                            ''.join([choice(picks) for i in range(rand_length)]),\
+                            suffix)
     dirpath = join(output_dir,dirname)
     abs_dirpath = abspath(dirpath)
 

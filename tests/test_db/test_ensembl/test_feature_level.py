@@ -32,18 +32,18 @@ else:
 class TestFeatureCoordLevels(TestCase):
     def setUp(self):
         self.chicken = Genome(Species='chicken', Release=Release,
-                            account=account)
+                              account=account)
 
     def test_feature_levels(self):
         ChickenFeatureLevels = FeatureCoordLevels('chicken')
         chicken_feature_levels = ChickenFeatureLevels(
-                    feature_types=['gene', 'cpg', 'est'],
-                    core_db=self.chicken.CoreDb,
-                    otherfeature_db=self.chicken.OtherFeaturesDb)
+            feature_types=['gene', 'cpg', 'est'],
+            core_db=self.chicken.CoreDb,
+            otherfeature_db=self.chicken.OtherFeaturesDb)
         self.assertEqual(chicken_feature_levels['repeat'].levels,
-                                ['chromosome', 'scaffold'])
+                         ['chromosome', 'scaffold'])
         self.assertEqual(set(chicken_feature_levels['cpg'].levels),
-                            set(['chromosome', 'scaffold']))
+                         set(['chromosome', 'scaffold']))
 
     def test_repeat(self):
         # use chicken genome as it need to do conversion

@@ -4,8 +4,8 @@
 
 from cogent3.util.unit_test import TestCase, main
 from cogent3.parse.nexus import get_tree_info, parse_nexus_tree, parse_PAUP_log, \
-     split_tree_info, parse_trans_table, parse_dnd, get_BL_table, parse_taxa, \
-     find_fields
+    split_tree_info, parse_trans_table, parse_dnd, get_BL_table, parse_taxa, \
+    find_fields
 
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -205,7 +205,7 @@ class NexusParserTests(TestCase):
 
         #check the full dendrogram string is returned
         self.assertEqual(dnd['tree PAUP_1'],\
-         "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
+                         "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
 
         #check that all taxa are returned in the Trans_table
         self.assertEqual(Trans_table['1'], 'outgroup25')
@@ -230,7 +230,7 @@ class NexusParserTests(TestCase):
 
         #check the full dendrogram string is returned
         self.assertEqual(dnd['tree PAUP_1'],\
-         "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
+                         "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
 
         #check that all taxa are returned in the Trans_table
         self.assertEqual(Trans_table['1'], 'outgroup25')
@@ -249,9 +249,9 @@ class NexusParserTests(TestCase):
         result = get_tree_info(Nexus_tree)
         self.assertEqual(len(result), 33)
         self.assertEqual(result[0],\
-            "Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]")
+                         "Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]")
         self.assertEqual(result[31], \
-            "tree PAUP_1 = [&R] (1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")
+                         "tree PAUP_1 = [&R] (1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")
 
     def test_split_tree_info(self):
         """split_tree_info splits lines into header, Trans_table, and dnd"""
@@ -265,14 +265,14 @@ class NexusParserTests(TestCase):
         self.assertEqual(len(dnd), 2)
 
         self.assertEqual(header[0],\
-            "Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]")
+                         "Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]")
         self.assertEqual(header[8], "\tTranslate")
 
         self.assertEqual(trans_table[0], "\t\t1 outgroup25,")
         self.assertEqual(trans_table[21], "\t\t;")
 
         self.assertEqual(dnd[0], \
-            "tree PAUP_1 = [&R] (1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")
+                         "tree PAUP_1 = [&R] (1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")
 
     def test_parse_trans_table(self):
         """parse_trans_table returns a dict with the taxa names indexed by number"""
@@ -299,7 +299,7 @@ class NexusParserTests(TestCase):
         header, trans_table, dnd = split_tree_info(tree_info)
         dnd_dict = parse_dnd(dnd)
         self.assertEqual(dnd_dict['tree PAUP_1'],\
-         "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
+                         "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);")  
 #------------------------------------------------------        
 
     def test_get_BL_table(self):
@@ -307,9 +307,9 @@ class NexusParserTests(TestCase):
         BL_table = get_BL_table(PAUP_log)
         self.assertEqual(len(BL_table), 40)
         self.assertEqual(BL_table[0], \
-        "    40                root                  0             0             0")         
+                         "    40                root                  0             0             0")         
         self.assertEqual(BL_table[39], \
-        "outgroup258 (21)*       40                 45            27            67")
+                         "outgroup258 (21)*       40                 45            27            67")
 
     def test_find_fields(self):
         """find_fields takes BL table line and returns field names mapped to info"""

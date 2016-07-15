@@ -22,20 +22,20 @@ def fail(msg):
 def importVersionedModule(name, exec_globals, min_version, alt_desc):
     if 'COGENT_PURE_PYTHON' in os.environ:
         fail('Not using compiled module "%s".  Will use %s.' % 
-                (name, alt_desc))
+             (name, alt_desc))
     try:
         m = __import__(name, exec_globals)
     except ImportError:
         fail('Compiled module "%s" not found.  Will use %s.' % 
-                (name, alt_desc))
+             (name, alt_desc))
     version = getattr(m, 'version_info', (0, 0))
     desc = '.'.join(str(n) for n in version)
     min_desc = '.'.join(str(n) for n in min_version)
     max_desc = str(min_version[0])+'.x'
     if version < min_version:
         fail('Compiled module "%s" is too old as %s < %s. '
-                'Will use %s.' % (name, desc, min_desc, alt_desc))
+             'Will use %s.' % (name, desc, min_desc, alt_desc))
     if version[0] > min_version[0]:
         fail('Compiled module "%s" is too new as %s > %s. '
-                'Will use %s.' % (name, desc, max_desc, alt_desc))
+             'Will use %s.' % (name, desc, max_desc, alt_desc))
     return m

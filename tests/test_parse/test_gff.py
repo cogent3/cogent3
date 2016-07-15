@@ -33,13 +33,13 @@ headers = [
 
 data_lines = [
     ('seq1\tBLASTX\tsimilarity\t101\t235\t87.1\t+\t0\tTarget "HBA_HUMAN" 11 55 ; E_value 0.0003\n',
-('seq1', 'BLASTX', 'similarity', 100, 235, '87.1', '+', '0', 'Target "HBA_HUMAN" 11 55 ; E_value 0.0003', None)),
+     ('seq1', 'BLASTX', 'similarity', 100, 235, '87.1', '+', '0', 'Target "HBA_HUMAN" 11 55 ; E_value 0.0003', None)),
     ('dJ102G20\tGD_mRNA\tcoding_exon\t7105\t7201\t.\t-\t2\tSequence "dJ102G20.C1.1"\n',
-('dJ102G20', 'GD_mRNA', 'coding_exon', 7201, 7104, '.', '-', '2', 'Sequence "dJ102G20.C1.1"', None)),
+     ('dJ102G20', 'GD_mRNA', 'coding_exon', 7201, 7104, '.', '-', '2', 'Sequence "dJ102G20.C1.1"', None)),
     ('dJ102G20\tGD_mRNA\tcoding_exon\t7105\t7201\t.\t-\t2\t\n',
-('dJ102G20', 'GD_mRNA', 'coding_exon', 7201, 7104, '.', '-', '2', '', None)),
+     ('dJ102G20', 'GD_mRNA', 'coding_exon', 7201, 7104, '.', '-', '2', '', None)),
     ('12345\tSource with spaces\tfeature with spaces\t-100\t3600000000\t1e-5\t-\t.\tSequence "BROADO5" ; Note "This is a \\t tab containing \\n multi line comment"\n',
-('12345', 'Source with spaces', 'feature with spaces', 3600000000, 101, '1e-5', '-', '.', 'Sequence "BROADO5" ; Note "This is a \\t tab containing \\n multi line comment"', None)),
+     ('12345', 'Source with spaces', 'feature with spaces', 3600000000, 101, '1e-5', '-', '.', 'Sequence "BROADO5" ; Note "This is a \\t tab containing \\n multi line comment"', None)),
 ]
 
 class GffTest(TestCase):
@@ -60,7 +60,7 @@ class GffTest(TestCase):
     def test_parse_attributes(self):
         """Test parse_attributes"""
         self.assertEqual([parse_attributes(x[1][8]) for x in data_lines],
-                    ['HBA_HUMAN', 'dJ102G20.C1.1', '', 'BROADO5'])
+                         ['HBA_HUMAN', 'dJ102G20.C1.1', '', 'BROADO5'])
 
 if __name__ == '__main__':
     main()

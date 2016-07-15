@@ -2,8 +2,8 @@ import numpy
 
 from cogent3.util.warning import deprecated
 from cogent3.recalculation.definition import (NonParamDefn, CalcDefn, 
-    EvaluatedCell, PartitionDefn, ConstCell, ConstDefn,
-    DictArrayTemplate)
+                                              EvaluatedCell, PartitionDefn, ConstCell, ConstDefn,
+                                              DictArrayTemplate)
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -22,9 +22,9 @@ class PsubMatrixDefn(PartitionDefn):
     independent_by_default = True
 
     def __init__(self, default=None, name=None, dimensions=None,
-            dimension=None, size=None, **kw):
+                 dimension=None, size=None, **kw):
         PartitionDefn.__init__(self, default, name, dimensions,
-            dimension, size, **kw)
+                               dimension, size, **kw)
 
         (dim_name, dim_cats) = self.internal_dimension
         self.internal_dimensions = (dim_name, dim_name+"2")
@@ -39,7 +39,7 @@ class PsubMatrixDefn(PartitionDefn):
     def checkValueIsValid(self, value, is_constant):
         if value.shape != (self.size,self.size):
             raise ValueError("Wrong array shape %s for %s, expected (%s,%s)" % 
-                    (value.shape, self.name, self.size, self.size))
+                             (value.shape, self.name, self.size, self.size))
         for part in value:
             PartitionDefn.checkValueIsValid(self, part, is_constant)
 
@@ -54,28 +54,28 @@ class PsubMatrixDefn(PartitionDefn):
             assert hasattr(value, 'shape'), value
             assert value.shape == (self.size,self.size)
             scope = [key for key in self.assignments
-                    if self.assignments[key] is v]
+                     if self.assignments[key] is v]
             if v.is_constant or (variable is not None and variable is not v):
                 matrix = ConstCell(self.name, value)
             else:
                 rows = []
                 for part in value:
                     (ratios, partition) = self._makePartitionCell(
-                            self.name+'_part', scope, part)
+                        self.name+'_part', scope, part)
                     all_cells.extend(ratios)
                     rows.append(partition)
                 all_cells.extend(rows)
                 matrix = EvaluatedCell(self.name, lambda *x:numpy.array(x), 
-                        rows)
+                                       rows)
             all_cells.append(matrix)
             uniq_cells.append(matrix)
         return (all_cells, uniq_cells)
 
 def DiscreteSubstitutionModel(*args, **kw):
     deprecated("class",
-        "cogent3.evolve.discrete_markov.DiscreteSubstitutionModel",
-        "cogent3.evolve.substitution_model.DiscreteSubstitutionModel",
-        '1.6')
+               "cogent3.evolve.discrete_markov.DiscreteSubstitutionModel",
+               "cogent3.evolve.substitution_model.DiscreteSubstitutionModel",
+               '1.6')
     from cogent3.evolve.substitution_model import DiscreteSubstitutionModel
     return DiscreteSubstitutionModel(*args, **kw)
 

@@ -16,8 +16,8 @@ __all__ = ['test_alignment',
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Catherine Lozupone", "Peter Maxwell", "Rob Knight",
-                "Gavin Huttley", "Jeremy Widmann", "Greg Caporaso",
-                "Sandra Smit", "Justin Kuczynski"]
+               "Gavin Huttley", "Jeremy Widmann", "Greg Caporaso",
+               "Sandra Smit", "Justin Kuczynski"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"

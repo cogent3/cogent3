@@ -27,7 +27,7 @@ def GffParser(f):
             cols.append('')
         assert len(cols) == 9, line
         (seqname, source, feature, start, end, score,
-                strand, frame, attributes) = cols
+         strand, frame, attributes) = cols
 
         # adjust for python 0-based indexing etc.
         (start, end) = (int(start) - 1, int(end))
@@ -46,7 +46,7 @@ def GffParser(f):
 
         # should parse attributes too
         yield (seqname, source, feature, start, end, score,
-                strand, frame, attributes, comments)
+               strand, frame, attributes, comments)
 
 def parse_attributes(attribute_string):
     """Returns region of attribute string between first pair of double quotes"""

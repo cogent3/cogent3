@@ -49,7 +49,7 @@ class TestGenome(GenomeTestBase):
         est = self.human.getEstMatching(StableId='ENSESTG00000000010')
         direct = list(est)[0]
         ests = self.human.getFeatures(feature_types='est', CoordName=6,
-                                                Start=99994000 , End=100076519)
+                                      Start=99994000 , End=100076519)
         stable_ids = [est.StableId for est in ests]
         self.assertContains(stable_ids, direct.StableId)
 
@@ -69,7 +69,7 @@ class TestGenome(GenomeTestBase):
         Start = 11137
         End = Start+20
         region = self.human.getRegion(CoordName=chrom, Start=Start, End=End,
-                        ensembl_coord=True)
+                                      ensembl_coord=True)
         self.assertEqual(region.Location.Start, Start-1)
         self.assertEqual(region.Location.End, End)
         self.assertEqual(region.Location.CoordName, str(chrom))
@@ -80,7 +80,7 @@ class TestGenome(GenomeTestBase):
         """should return correct sequence for region with an assembly
         exception"""
         region = self.human.getRegion(CoordName="Y", Start=57211873,
-                            End=57211894, Strand=1, ensembl_coord=True)
+                                      End=57211894, Strand=1, ensembl_coord=True)
 
         self.assertEqual(str(region.Seq), 'CGAGGACGACTGGGAATCCTAG')
 
@@ -90,7 +90,7 @@ class TestGenome(GenomeTestBase):
         Start=24385
         End=Start+100
         region = krat.getRegion(CoordName='scaffold_13754', Start=Start,
-            End=End)
+                                End=End)
         self.assertEqual(str(region.Seq), 'N' * (End-Start))
 
     def test_getting_annotated_seq(self):
@@ -118,7 +118,7 @@ class TestGenome(GenomeTestBase):
     def test_pool_connection(self):
         """excercising ability to specify pool connection"""
         dog = Genome(Species="dog", Release=Release, account=account,
-                pool_recycle=1000)
+                     pool_recycle=1000)
 
     def test_gorilla(self):
         """should correctly return a gorilla gene"""
@@ -131,9 +131,9 @@ class TestGenome(GenomeTestBase):
         gene = self.gorilla.getGeneByStableId('ENSGGOG00000001953')
         cds = gene.CanonicalTranscript.Cds
         self.assertEqual(str(cds), 'ATGGCCCAGGATCTCAGCGAGAAGGACCTGTTGAAGATG'
-        'GAGGTGGAGCAGCTGAAGAAAGAAGTGAAAAACACAAGAATTCCGATTTCCAAAGCGGGAAAGGAAAT'
-        'CAAAGAGTACGTGGAGGCCCAAGCAGGAAACGATCCTTTTCTCAAAGGCATCCCTGAGGACAAGAATC'
-        'CCTTCAAGGAGAAAGGTGGCTGTCTGATAAGCTGA')
+                         'GAGGTGGAGCAGCTGAAGAAAGAAGTGAAAAACACAAGAATTCCGATTTCCAAAGCGGGAAAGGAAAT'
+                         'CAAAGAGTACGTGGAGGCCCAAGCAGGAAACGATCCTTTTCTCAAAGGCATCCCTGAGGACAAGAATC'
+                         'CCTTCAAGGAGAAAGGTGGCTGTCTGATAAGCTGA')
 
     def test_get_distinct_biotype(self):
         """Genome instance getDistinct for biotype should work on all genomes"""
@@ -156,7 +156,7 @@ class TestGene(GenomeTestBase):
         self.assertContains(brca2.Description.lower(), 'breast cancer')
         self.assertEqual(brca2.Status, 'KNOWN')
         self.assertEqual(brca2.CanonicalTranscript.StableId,
-                        'ENST00000380152')
+                         'ENST00000380152')
         # note length can change between genome builds
         self.assertGreaterThan(len(brca2), 83700)
         transcript = brca2.getMember('ENST00000544455')
@@ -202,8 +202,8 @@ class TestGene(GenomeTestBase):
         trunc_cds = transcript.Cds[: l - (l % 3)]
         prot_seq = trunc_cds.getTranslation()
         self.assertEqual(str(prot_seq),
-            'MPSSPLRVAVVCSSNQNRSMEAHNILSKRGFSVRSFGTGTHVKLPGPAPDKPNVYDFKTT'\
-               'YDQMYNDLLRKDKELYTQNGILHMLDRNKRIKPRPERFQNCKDLFDLILTCEERVY')
+                         'MPSSPLRVAVVCSSNQNRSMEAHNILSKRGFSVRSFGTGTHVKLPGPAPDKPNVYDFKTT'\
+                         'YDQMYNDLLRKDKELYTQNGILHMLDRNKRIKPRPERFQNCKDLFDLILTCEERVY')
 
     def test_exon_phases(self):
         """correctly identify phase for an exon"""
@@ -315,7 +315,7 @@ class TestGene(GenomeTestBase):
     def test_get_by_decsr_biotype(self):
         """combining the description and biotype should return a result"""
         results = list(self.human.getGenesMatching(BioType="protein_coding",
-                    Description="cancer"))
+                                                   Description="cancer"))
         self.assertTrue(len(results) > 50)
 
     def test_variant(self):
@@ -363,9 +363,9 @@ class TestGene(GenomeTestBase):
     def test_intron_number(self):
         """number of introns should be correct"""
         for gene_id, transcript_id, exp_number in [
-                            ('ENSG00000227268', 'ENST00000445946', 0),
-                            ('ENSG00000132199', 'ENST00000583771', 5),
-                            ('ENSG00000132199', 'ENST00000340116', 14)]:
+            ('ENSG00000227268', 'ENST00000445946', 0),
+            ('ENSG00000132199', 'ENST00000583771', 5),
+            ('ENSG00000132199', 'ENST00000340116', 14)]:
             gene = asserted_one(self.human.getGenesMatching(StableId=gene_id))
             transcript = asserted_one(
                 [t for t in gene.Transcripts if t.StableId==transcript_id])
@@ -379,17 +379,17 @@ class TestGene(GenomeTestBase):
         """should get correct Intron sequence, regardless of strand"""
         # IL2 is on - strand, IL13 is on + strand, both have three introns
         IL2_exp_introns = [
-                    (1, 122456203, 122456293, 'gtaagtatat', 'actttcttag'),
-                    (2, 122453853, 122456143, 'gtaagtacaa', 'attattctag'),
-                    (3, 122451862, 122453709, 'gtaaggcatt', 'tcttttatag')]
+            (1, 122456203, 122456293, 'gtaagtatat', 'actttcttag'),
+            (2, 122453853, 122456143, 'gtaagtacaa', 'attattctag'),
+            (3, 122451862, 122453709, 'gtaaggcatt', 'tcttttatag')]
         IL13_exp_introns = [
-                    (1, 132658360, 132659417, 'gtgagtgtcg', 'gctcccacag'),
-                    (2, 132659471, 132659723, 'gtaaggacct', 'ctccccacag'),
-                    (3, 132659828, 132660174, 'gtaaggcatc', 'tgtcctgcag')]
+            (1, 132658360, 132659417, 'gtgagtgtcg', 'gctcccacag'),
+            (2, 132659471, 132659723, 'gtaaggacct', 'ctccccacag'),
+            (3, 132659828, 132660174, 'gtaaggcatc', 'tgtcctgcag')]
 
         for symbol, stable_id, exp_introns in [
-                    ('IL2', 'ENST00000226730', IL2_exp_introns),
-                    ('IL13', 'ENST00000304506', IL13_exp_introns)]:
+            ('IL2', 'ENST00000226730', IL2_exp_introns),
+            ('IL13', 'ENST00000304506', IL13_exp_introns)]:
             gene = asserted_one(self.human.getGenesMatching(Symbol=symbol))
             strand = gene.Location.Strand
             transcript = asserted_one(
@@ -402,7 +402,7 @@ class TestGene(GenomeTestBase):
                 start, end = loc.Start, loc.End
                 seq = str(intron.Seq)
                 exp_rank, exp_start, exp_end, exp_seq5, \
-                                    exp_seq3 = exp_introns[idx]
+                exp_seq3 = exp_introns[idx]
                 self.assertEqual(loc.Strand, strand)
                 # test the order using rank
                 self.assertEqual(intron.Rank, exp_rank)
@@ -422,7 +422,7 @@ class TestGene(GenomeTestBase):
             gene = asserted_one(self.human.getGenesMatching(Symbol=symbol))
             seq = gene.getAnnotatedSeq(feature_types='gene')
             intron = asserted_one(seq.getAnnotationsMatching('intron',
-                                                '%s-%d'%(stable_id, rank)))
+                                                             '%s-%d'%(stable_id, rank)))
             intron_seq = str(seq.getRegionCoveringAll(intron).getSlice())
             self.assertEqual(intron_seq[:10], exp_seq5.upper())
             self.assertEqual(intron_seq[-10:], exp_seq3.upper())
@@ -437,19 +437,19 @@ class TestVariation(GenomeTestBase):
                    ['intron_variant', 'missense_variant'],
                    ['intron_variant', 'missense_variant'],
                    ['upstream_gene_variant', 'missense_variant',
-                   'regulatory_region_variant'],
+                    'regulatory_region_variant'],
                    ['non_synonymous_codon']]
     snp_nt_len = [1, 1, 1, 1, 12]
     map_weights = [1,1,1,1,1]
     snp_flanks = [
         ('CTGAGGTGAGCCAGCGTTGGAGCTGTTTTTCCTTTCAGTATGAATTCCACAAGGAAATCATCTCAGGAGGAAGGGCTCATACTTGGATCCAGAAAATATCAACATAGCCAAAGAAAAACAATCAAGACATACCTCCAGGAGCTGTGTAACAGCAACCGGAAAGAGAAACAATGGTGTGTTCCTATGTGGGATATAAAGAGCCGGGGCTCAGGGGGCTCCACACCTGCACCTCCTTCTCACCTGCTCCTCTACCTGCTCCACCCTCAATCCACCAGAACCATGGGCTGCTGTGGCTGCTCC',
-      'GAGGCTGTGGCTCCAGCTGTGGAGGCTGTGACTCCAGCTGTGGGAGCTGTGGCTCTGGCTGCAGGGGCTGTGGCCCCAGCTGCTGTGCACCCGTCTACTGCTGCAAGCCCGTGTGCTGCTGTGTTCCAGCCTGTTCCTGCTCTAGCTGTGGCAAGCGGGGCTGTGGCTCCTGTGGGGGCTCCAAGGGAGGCTGTGGTTCTTGTGGCTGCTCCCAGTGCAGTTGCTGCAAGCCCTGCTGTTGCTCTTCAGGCTGTGGGTCATCCTGCTGCCAGTGCAGCTGCTGCAAGCCCTACTGCTCCC'),
+         'GAGGCTGTGGCTCCAGCTGTGGAGGCTGTGACTCCAGCTGTGGGAGCTGTGGCTCTGGCTGCAGGGGCTGTGGCCCCAGCTGCTGTGCACCCGTCTACTGCTGCAAGCCCGTGTGCTGCTGTGTTCCAGCCTGTTCCTGCTCTAGCTGTGGCAAGCGGGGCTGTGGCTCCTGTGGGGGCTCCAAGGGAGGCTGTGGTTCTTGTGGCTGCTCCCAGTGCAGTTGCTGCAAGCCCTGCTGTTGCTCTTCAGGCTGTGGGTCATCCTGCTGCCAGTGCAGCTGCTGCAAGCCCTACTGCTCCC'),
         ('GAAAATATCAACATAGCCAAAGAAAAACAATCAAGACATACCTCCAGGAGCTGTGTAACAGCAACCGGAAAGAGAAACAATGGTGTGTTCCTATGTGGGATATAAAGAGCCGGGGCTCAGGGGGCTCCACACCTGCACCTCCTTCTCACCTGCTCCTCTACCTGCTCCACCCTCAATCCACCAGAACCATGGGCTGCTGTGGCTGCTCCGGAGGCTGTGGCTCCAGCTGTGGAGGCTGTGACTCCAGCTGTGGGAGCTGTGGCTCTGGCTGCAGGGGCTGTGGCCCCAGCTGCTGTGCAC',
-      'CGTCTACTGCTGCAAGCCCGTGTGCTGCTGTGTTCCAGCCTGTTCCTGCTCTAGCTGTGGCAAGCGGGGCTGTGGCTCCTGTGGGGGCTCCAAGGGAGGCTGTGGTTCTTGTGGCTGCTCCCAGTGCAGTTGCTGCAAGCCCTGCTGTTGCTCTTCAGGCTGTGGGTCATCCTGCTGCCAGTGCAGCTGCTGCAAGCCCTACTGCTCCCAGTGCAGCTGCTGTAAGCCCTGTTGCTCCTCCTCGGGTCGTGGGTCATCCTGCTGCCAATCCAGCTGCTGCAAGCCCTGCTGCTCATCCTC'),
+         'CGTCTACTGCTGCAAGCCCGTGTGCTGCTGTGTTCCAGCCTGTTCCTGCTCTAGCTGTGGCAAGCGGGGCTGTGGCTCCTGTGGGGGCTCCAAGGGAGGCTGTGGTTCTTGTGGCTGCTCCCAGTGCAGTTGCTGCAAGCCCTGCTGTTGCTCTTCAGGCTGTGGGTCATCCTGCTGCCAGTGCAGCTGCTGCAAGCCCTACTGCTCCCAGTGCAGCTGCTGTAAGCCCTGTTGCTCCTCCTCGGGTCGTGGGTCATCCTGCTGCCAATCCAGCTGCTGCAAGCCCTGCTGCTCATCCTC'),
         ('ATCAACATAGCCAAAGAAAAACAATCAAGACATACCTCCAGGAGCTGTGTAACAGCAACCGGAAAGAGAAACAATGGTGTGTTCCTATGTGGGATATAAAGAGCCGGGGCTCAGGGGGCTCCACACCTGCACCTCCTTCTCACCTGCTCCTCTACCTGCTCCACCCTCAATCCACCAGAACCATGGGCTGCTGTGGCTGCTCCGGAGGCTGTGGCTCCAGCTGTGGAGGCTGTGACTCCAGCTGTGGGAGCTGTGGCTCTGGCTGCAGGGGCTGTGGCCCCAGCTGCTGTGCACCCGTCT',
-      'CTGCTGCAAGCCCGTGTGCTGCTGTGTTCCAGCCTGTTCCTGCTCTAGCTGTGGCAAGCGGGGCTGTGGCTCCTGTGGGGGCTCCAAGGGAGGCTGTGGTTCTTGTGGCTGCTCCCAGTGCAGTTGCTGCAAGCCCTGCTGTTGCTCTTCAGGCTGTGGGTCATCCTGCTGCCAGTGCAGCTGCTGCAAGCCCTACTGCTCCCAGTGCAGCTGCTGTAAGCCCTGTTGCTCCTCCTCGGGTCGTGGGTCATCCTGCTGCCAATCCAGCTGCTGCAAGCCCTGCTGCTCATCCTCAGGCTG'),
+         'CTGCTGCAAGCCCGTGTGCTGCTGTGTTCCAGCCTGTTCCTGCTCTAGCTGTGGCAAGCGGGGCTGTGGCTCCTGTGGGGGCTCCAAGGGAGGCTGTGGTTCTTGTGGCTGCTCCCAGTGCAGTTGCTGCAAGCCCTGCTGTTGCTCTTCAGGCTGTGGGTCATCCTGCTGCCAGTGCAGCTGCTGCAAGCCCTACTGCTCCCAGTGCAGCTGCTGTAAGCCCTGTTGCTCCTCCTCGGGTCGTGGGTCATCCTGCTGCCAATCCAGCTGCTGCAAGCCCTGCTGCTCATCCTCAGGCTG'),
         ('GCTGAAGAAACCATTTCAAACAGGATTGGAATAGGGAAACCCGGCACTCAGCTCGGCGCAAGCCGGCGGTGCCTTCAGACTAGAGAGCCTCTCCTCCGGTGCGCTGCAAGTAGGGCCTCGGCTCGAGGTCAACATTCTAGTTGTCCAGCGCTCCCTCTCCGGCACCTCGGTGAGGCTAGTTGACCCGACAGGCGCGGATCATGAGCAGCTGCAGGAGAATGAAGAGCGGGGACGTAATGAGGCCGAACCAGAGCTCCCGAGTCTGCTCCGCCAGCTTCTGGCACAACAGCATCTCGAAGA',
-'GAACTTGAGACTCAGGACCGTAAGTACCCAGAAAAGGCGGAGCACCGCCAGCCGCTTCTCTCCATCCTGGAAGAGGCGCACGGACACGATGGTGGTGAAGTAGGTGCTGAGCCCGTCAGCGGCGAAGAAAGGCACGAACACGTTCCACCAGGAGAGGCCCGGGACCAGGCCATCCACACGCAGTGCCAGCAGCACAGAGAACACCAACAGGGCCAGCAGGTGCACGAAGATCTCGAAGGTGGCGAAGCCTAGCCACTGCACCAGCTCCCGGAGCGAGAAGAGCATCGCGCCCGTTGAGCG')]
+         'GAACTTGAGACTCAGGACCGTAAGTACCCAGAAAAGGCGGAGCACCGCCAGCCGCTTCTCTCCATCCTGGAAGAGGCGCACGGACACGATGGTGGTGAAGTAGGTGCTGAGCCCGTCAGCGGCGAAGAAAGGCACGAACACGTTCCACCAGGAGAGGCCCGGGACCAGGCCATCCACACGCAGTGCCAGCAGCACAGAGAACACCAACAGGGCCAGCAGGTGCACGAAGATCTCGAAGGTGGCGAAGCCTAGCCACTGCACCAGCTCCCGGAGCGAGAAGAGCATCGCGCCCGTTGAGCG')]
     ancestral = [None, None, None, 'C', None]
 
     def test_get_variation_by_symbol(self):
@@ -469,7 +469,7 @@ class TestVariation(GenomeTestBase):
         symbols_somatic = [('COSM256414', True), ('rs80359189', False)]
         for symbol, expect in symbols_somatic:
             snp = list(self.human.getVariation(Symbol=symbol, somatic=True,
-                        flanks_match_ref=False))[0]
+                                               flanks_match_ref=False))[0]
             self.assertEqual(snp.Somatic, expect)
 
     def test_num_alleles(self):
@@ -519,7 +519,7 @@ class TestVariation(GenomeTestBase):
 
         for i in range(4): # only have flanking sequence for 3
             snp = list(self.human.getVariation(Symbol=self.snp_names[i],
-                            flanks_match_ref=False))[0]
+                                               flanks_match_ref=False))[0]
             self.assertEqual(snp.FlankingSeq, self.snp_flanks[i])
 
     def test_variation_seq(self):
@@ -540,7 +540,7 @@ class TestVariation(GenomeTestBase):
         expect = set([('A', '0.0303'), ('G', '0.9697')])
         allele_freqs = snp.AlleleFreqs
         allele_freqs = set((a, '%.4f' % f )
-                    for a, f in allele_freqs.getRawData(['allele', 'freq']) if f)
+                           for a, f in allele_freqs.getRawData(['allele', 'freq']) if f)
         self.assertTrue(expect.issubset(allele_freqs))
 
     def test_by_effect(self):
@@ -553,8 +553,8 @@ class TestVariation(GenomeTestBase):
         i = 0
         limit = 10
         for snp in self.human.getVariation(Effect='missense_variant', like=False,
-                            validated=True, somatic=False,
-                            flanks_match_ref=True, limit=limit):
+                                           validated=True, somatic=False,
+                                           flanks_match_ref=True, limit=limit):
             self.assertEqual(snp.Somatic, False)
             self.assertEqual('missense_variant', snp.Effect)
             self.assertNotEqual(snp.FlankingSeq, NULL_VALUE)
@@ -571,10 +571,10 @@ class TestFeatures(GenomeTestBase):
     def test_CpG_island(self):
         """should return correct CpG islands"""
         CpGislands = self.human.getFeatures(region=self.igf2,
-                            feature_types='CpG')
+                                            feature_types='CpG')
         expected_stats = [(630, 757), (652, 537), (3254, 3533)]
         obs_stats = [(int(island.Score), len(island)) \
-                                            for island in CpGislands]
+                     for island in CpGislands]
         obs_stats.sort()
         self.assertTrue(set(expected_stats) & set(obs_stats) != set())
 
@@ -582,7 +582,7 @@ class TestFeatures(GenomeTestBase):
         """should not fail to get multiple feature types"""
         regions =\
             self.human.getFeatures(feature_types=['repeat','gene','cpg'],
-                                    CoordName=1, Start=869936,End=901867)
+                                   CoordName=1, Start=869936,End=901867)
         for region in regions:
             pass
 
@@ -590,7 +590,7 @@ class TestFeatures(GenomeTestBase):
         """should correctly return a repeat"""
         loc = self.igf2.Location.resized(-1000, 1000)
         repeats = list(self.human.getFeatures(
-                                    region=loc, feature_types='repeat'))
+            region=loc, feature_types='repeat'))
         self.assertTrue(len(repeats) >= 4)
 
     def test_genes(self):
@@ -603,9 +603,9 @@ class TestFeatures(GenomeTestBase):
     def test_other_genes(self):
         """docstring for est_other_genes"""
         mouse = self.mouse.getRegion(CoordName='5', Start=150791005,
-                                        End=150838512, Strand='-')
+                                     End=150838512, Strand='-')
         rat = self.rat.getRegion(CoordName='12', Start=4282534, End=4324019,
-                                        Strand='+')
+                                 Strand='+')
         for region in [mouse, rat]:
             features = region.getFeatures(feature_types=['gene'])
             ann_seq = region.getAnnotatedSeq(feature_types='gene')
@@ -615,7 +615,7 @@ class TestFeatures(GenomeTestBase):
     def test_get_variation_feature(self):
         """should correctly return variation features within a region"""
         snps = self.human.getFeatures(feature_types='variation',
-                                        region=self.brca2)
+                                      region=self.brca2)
         # snp coordname, start, end should satsify constraints of brca2 loc
         c = 0
         loc = self.brca2.Location
@@ -677,8 +677,8 @@ class TestFeatures(GenomeTestBase):
         ms_repeat = self.human.getRegion(Strand=-1, **coord)
         # note this MER3 repeat is annotated on the -1 strand
         exp = DNA.makeSequence('AGCTTACTGTGAGGATGGGAACATTTTACAGCTGTGCTGTCCAAA'\
-                'CCGGTGCCACTAGCCACATTAAGCACTCGAAACGTGGCTAGTGCGACTAGAGAAGAGGAT'\
-                'TTTCATACGATTTAGTTTCAATCACGCTAACCAGTGACGCGTGGCTAGTGG')
+                               'CCGGTGCCACTAGCCACATTAAGCACTCGAAACGTGGCTAGTGCGACTAGAGAAGAGGAT'\
+                               'TTTCATACGATTTAGTTTCAATCACGCTAACCAGTGACGCGTGGCTAGTGG')
 
         self.assertEqual(ms_repeat.Seq, ps_repeat.Seq.rc())
 
@@ -723,7 +723,7 @@ class TestAssembly(TestCase):
         expect = DNA.makeSequence(''.join(frags))
         positions = [(10, 23)]
         self.assertEqual(_assemble_seq([''.join(frags)],10,23,positions),
-                                expect)
+                         expect)
 
 if __name__ == "__main__":
     main()

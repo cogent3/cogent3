@@ -38,7 +38,7 @@ class TransitionMatrix(object):
             # just trust it
             assert len(stationary_probs) == self.size
             self._stationary_probs = numpy.array(
-                    stationary_probs, Float)
+                stationary_probs, Float)
 
     def _getStationaryProbs(self):
         if self._stationary_probs is None:
@@ -56,7 +56,7 @@ class TransitionMatrix(object):
             assert abs(row[-1]-1.0) < 1e-6, (state, self.Matrix[state])
         x = random_series.uniform(0.0, 1.0)
         state = bisect.bisect_left(
-                numpy.add.accumulate(self.StationaryProbs), x)
+            numpy.add.accumulate(self.StationaryProbs), x)
         while 1:
             yield self.Tags[state]
             x = random_series.uniform(0.0, 1.0)
@@ -81,7 +81,7 @@ class TransitionMatrix(object):
         false tag value"""
         N = self.size
         silent = numpy.array(
-                [(not max(tag)) for tag in self.Tags], Float)
+            [(not max(tag)) for tag in self.Tags], Float)
         matrix = numpy.zeros([N, N], Float)
         for i in range(N):
             row = numpy.zeros([N], Float)
@@ -185,8 +185,8 @@ def SiteClassTransitionMatrix(switch, probs):
     assert numpy.allclose(sum(probs), 1.0), probs
     I = numpy.identity(len(probs), Float)
     switch_probs =  (1.0 - I) * (probs * switch) + \
-            I * (1.0 - (1.0 - probs) * switch)
+    I * (1.0 - (1.0 - probs) * switch)
     tags = [i+1 for i in range(len(switch_probs))]
     return TransitionMatrix(
-            switch_probs, tags, stationary_probs=probs.copy())
+        switch_probs, tags, stationary_probs=probs.copy())
 

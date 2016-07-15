@@ -22,7 +22,7 @@ data_path = os.path.join(base_path, 'data')
 class NucleotideModelTestMethods(TestCase):
     def setUp(self):
         self.submodel = substitution_model.Nucleotide(
-                do_scaling=True, model_gaps=False)
+            do_scaling=True, model_gaps=False)
 
     def test_isTransition(self):
         """testing isTransition"""
@@ -43,7 +43,7 @@ class NucleotideModelTestMethods(TestCase):
     def test_isIndel(self):
         """testing indel comparison nucleotide model"""
         model = substitution_model.Nucleotide(
-                do_scaling=True, model_gaps=True)
+            do_scaling=True, model_gaps=True)
         isIndel = model.getPredefinedPredicate('indel')
         assert isIndel('A', '-')
         assert isIndel('-', 'G')
@@ -53,16 +53,16 @@ class NucleotideModelTestMethods(TestCase):
     def test_PredicateChecks(self):
         # overparameterisation
         self.assertRaises(ValueError, substitution_model.Nucleotide,
-                model_gaps=False, predicates=['transition', 'transversion'])
+                          model_gaps=False, predicates=['transition', 'transversion'])
 
 class MultiLetterMotifSubstModelTests(TestCase):
     def setUp(self):
         self.submodel = substitution_model.Dinucleotide(do_scaling=True, 
-                model_gaps=True, mprob_model='tuple')
+                                                        model_gaps=True, mprob_model='tuple')
 
     def test_asciiArt(self):
         model = substitution_model.Dinucleotide(mprob_model='tuple', 
-            predicates=['k:transition'])    
+                                                predicates=['k:transition'])    
         model.asciiArt()
         model = substitution_model.Dinucleotide(mprob_model='tuple')
         model.asciiArt()
@@ -106,12 +106,12 @@ class TupleModelMotifProbFuncs(TestCase):
         T=set([(1,0),(2,0),(3,0),(4,0),(5,1),(5,4),(6,2),(6,4),(7,3),
                (7,4),(8,0),(9,1),(9,8),(10,2),(10,8),(11,3),(11,8),(12,0),
                (13,1),(13,12),(14,2),(14,12),(15,3),(15,12)])
-           )
+        )
 
 class ThreeLetterMotifSubstModelTests(TestCase):
     def setUp(self):
         self.submodel = substitution_model.Nucleotide(motif_length=3,
-            mprob_model='tuple')
+                                                      mprob_model='tuple')
 
     def test_isIndel(self):
         """testing indel comparison for trinucleotide model"""
@@ -129,9 +129,9 @@ class ThreeLetterMotifSubstModelTests(TestCase):
 class CodonSubstModelTests(TestCase):
     def setUp(self):
         self.standardcode = substitution_model.Codon(model_gaps=True, gc=1,
-            mprob_model='tuple')
+                                                     mprob_model='tuple')
         self.mitocode = substitution_model.Codon(model_gaps=False, gc=2,
-            mprob_model='tuple')
+                                                 mprob_model='tuple')
 
     def test_isTransition(self):
         """testing codon isTransition"""

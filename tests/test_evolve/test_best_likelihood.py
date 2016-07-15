@@ -3,7 +3,7 @@
 from cogent3.util.unit_test import TestCase, main
 from cogent3 import LoadSeqs, DNA
 from cogent3.evolve.best_likelihood import aligned_columns_to_rows, count_column_freqs, get_ML_probs, \
-     get_G93_lnL_from_array, BestLogLikelihood, _transpose, _take
+    get_G93_lnL_from_array, BestLogLikelihood, _transpose, _take
 import math
 
 __author__ = "Helen Lindsay"

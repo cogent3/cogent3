@@ -13,9 +13,9 @@ from cogent3.maths.stats.kendall import pkendall, kendalls_tau
 from cogent3.maths.stats.special import Gamma
 
 from numpy import absolute, arctanh, array, asarray, concatenate, transpose, \
-        ravel, take, nonzero, log, sum, mean, cov, corrcoef, fabs, any, \
-        reshape, tanh, clip, nan, isnan, isinf, sqrt, trace, exp, \
-        median as _median, zeros, ones
+    ravel, take, nonzero, log, sum, mean, cov, corrcoef, fabs, any, \
+    reshape, tanh, clip, nan, isnan, isinf, sqrt, trace, exp, \
+    median as _median, zeros, ones
         #, std - currently incorrect
 from numpy.random import permutation, randint
 from cogent3.maths.stats.util import Numbers
@@ -233,7 +233,7 @@ def G_ind(m, williams=False):
     G = 2*(f_ln_f_elements-f_ln_f_rows-f_ln_f_cols+f_ln_f_table)
     if williams:
         q = 1+((tot*sum(1.0/sum(m,1))-1)*(tot*sum(1.0/sum(m,0))-1)/ \
-            (6*tot*df))
+               (6*tot*df))
         G = G/q
     return G, chi_high(max(G,0), df)
 
@@ -334,7 +334,7 @@ def chi_square_from_Dict2D(data):
 
     """
     test =  sum([((item[0] - item[1]) * (item[0] - item[1]))/item[1] \
-                   for item in data.Items])
+                 for item in data.Items])
     num_rows = len(data)
     num_cols = len([col for col in data.Cols])
     if num_rows == 1:
@@ -440,7 +440,7 @@ def t_paired(a,b, tails=None, exp_diff=0):
         diffs = array(a) - array(b)
         return t_one_sample(diffs, popmean=exp_diff, tails=tails)
     except (ZeroDivisionError, ValueError, AttributeError, TypeError, \
-        FloatingPointError):
+            FloatingPointError):
         return (None, None)
 
 
@@ -458,7 +458,7 @@ def t_one_sample(a,popmean=0, tails=None):
         n = len(a)
         t = (mean(a) - popmean)/(std(a)/sqrt(n))
     except (ZeroDivisionError, ValueError, AttributeError, TypeError, \
-        FloatingPointError):
+            FloatingPointError):
         return None, None
     if isnan(t) or isinf(t):
         return None, None
@@ -508,7 +508,7 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
         n1 = len(a)
         if n1 < 2:
             return t_one_observation(sum(a), b, tails, exp_diff,
-                    none_on_zero_variance=none_on_zero_variance)
+                                     none_on_zero_variance=none_on_zero_variance)
 
         b = array(b)
         if b.shape:
@@ -518,7 +518,7 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
 
         if n2 < 2:
             t, prob = t_one_observation(sum(b), a, reverse_tails(tails),
-                    exp_diff, none_on_zero_variance=none_on_zero_variance)
+                                        exp_diff, none_on_zero_variance=none_on_zero_variance)
 
             # Negate the t-statistic because we swapped the order of the inputs
             # in the t_one_observation call, as well as tails.
@@ -618,8 +618,8 @@ def mc_t_two_sample(x_items, y_items, tails=None, permutations=999,
     if (len(x_items) == 1 and len(y_items) == 1) or \
        (len(x_items) < 1 or len(y_items) < 1):
         raise ValueError("At least one of the sequences of observations is "
-                "empty, or the sequences each contain only a single "
-                "observation. Cannot perform the t-test.")
+                         "empty, or the sequences each contain only a single "
+                         "observation. Cannot perform the t-test.")
 
     # Perform t-test using original observations.
     obs_t, param_p_val = t_two_sample(x_items, y_items, tails=tails,
@@ -728,7 +728,7 @@ def pearson(x_items, y_items):
                          "coefficient.")
     if len(x_items) < 2:
         raise ValueError("The two vectors must both contain at least 2 "
-                "elements. The vectors are of length %d." % len(x_items))
+                         "elements. The vectors are of length %d." % len(x_items))
 
     sum_x = sum(x_items)
     sum_y = sum(y_items)
@@ -768,7 +768,7 @@ def spearman(x_items, y_items):
                          "order to calculate Spearman's rho.")
     if len(x_items) < 2:
         raise ValueError("The two vectors must both contain at least 2 "
-                "elements. The vectors are of length %d." % len(x_items))
+                         "elements. The vectors are of length %d." % len(x_items))
 
     # Rank the two input vectors.
     rank1, ties1 = _get_rank(x_items)
@@ -1093,7 +1093,7 @@ tails should be None (default), 'high', or 'low'.
         z = (mean(a) - popmean)/popstdev*sqrt(len(a))
         return z, z_tailed_prob(z, tails)
     except (ValueError, TypeError, ZeroDivisionError, AttributeError, \
-        FloatingPointError):
+            FloatingPointError):
         return None
 
 def z_tailed_prob(z, tails):
@@ -1408,7 +1408,7 @@ def ks_boot(x, y, alt = "two sided", num_reps=1000):
     num_greater = 0
     for sampled_x, sampled_y in _get_bootstrap_sample(x, y, num_reps):
         sample_stat, _p = ks_test(sampled_x, sampled_y, alt=alt, exact=False,
-                                    warn_for_ties=False)
+                                  warn_for_ties=False)
         if sample_stat >= (observed_stat - tol):
             num_greater += 1
     return observed_stat, num_greater / num_reps
@@ -1665,8 +1665,8 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
 ## Start functions for distance_matrix_permutation_test
 
 def distance_matrix_permutation_test(matrix, cells, cells2=None,\
-        f=t_two_sample, tails=None, n=1000, return_scores=False,\
-        is_symmetric=True):
+                                     f=t_two_sample, tails=None, n=1000, return_scores=False,\
+                                     is_symmetric=True):
     """performs a monte carlo permutation test to determine if the 
     values denoted in cells are significantly different than the rest
     of the values in the matrix
@@ -1701,7 +1701,7 @@ def distance_matrix_permutation_test(matrix, cells, cells2=None,\
         permuted_matrix = permute_2d(matrix,permutation(indices))
         special_values, other_values = \
             get_values_from_matrix(permuted_matrix, cells,\
-            cells2, is_symmetric)
+                                   cells2, is_symmetric)
         # calc the stat and p for a random subset (we don't do anything 
         # with these p-values, we only use the current_stat value)
         current_stat, current_p = f(special_values, other_values, tails)

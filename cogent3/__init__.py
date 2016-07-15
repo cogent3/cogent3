@@ -7,12 +7,12 @@ import numpy
 __author__ = ""
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Peter Maxwell",
-                    "Jeremy Widmann", "Catherine Lozupone", "Matthew Wakefield",
-                    "Edward Lang", "Greg Caporaso", "Mike Robeson",
-                    "Micah Hamady", "Sandra Smit", "Zongzhi Liu",
-                    "Andrew Butterfield", "Amanda Birmingham", "Brett Easton",
-                    "Hua Ying", "Jason Carnes", "Raymond Sammut",
-                    "Helen Lindsay", "Daniel McDonald"]
+               "Jeremy Widmann", "Catherine Lozupone", "Matthew Wakefield",
+               "Edward Lang", "Greg Caporaso", "Mike Robeson",
+               "Micah Hamady", "Sandra Smit", "Zongzhi Liu",
+               "Andrew Butterfield", "Amanda Birmingham", "Brett Easton",
+               "Hua Ying", "Jason Carnes", "Raymond Sammut",
+               "Helen Lindsay", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
@@ -44,7 +44,7 @@ from cogent3.parse.sequence import FromFilenameParser
 #note that moltype has to be imported last, because it sets the moltype in
 #the objects created by the other modules.
 from cogent3.core.moltype import ASCII, DNA, RNA, PROTEIN, STANDARD_CODON, \
-        CodonAlphabet
+    CodonAlphabet
 
 def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
     if seq is None:
@@ -64,8 +64,8 @@ def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
     return seq
 
 def LoadSeqs(filename=None, format=None, data=None, moltype=None,
-            name=None, aligned=True, label_to_name=None, parser_kw={},
-            constructor_kw={}, **kw):
+             name=None, aligned=True, label_to_name=None, parser_kw={},
+             constructor_kw={}, **kw):
     """Initialize an alignment or collection of sequences.
 
     Arguments:
@@ -104,18 +104,18 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     if aligned: #if callable, call it -- expect either f(data) or bool
         if hasattr(aligned, '__call__'):
             return aligned(data=data, MolType=moltype, Name=name,
-                label_to_name=label_to_name, **constructor_kw)
+                           label_to_name=label_to_name, **constructor_kw)
         else:   #was not callable, but wasn't False
             return Alignment(data=data, MolType=moltype, Name=name,
-                label_to_name=label_to_name, **constructor_kw)
+                             label_to_name=label_to_name, **constructor_kw)
     else:   #generic case: return SequenceCollection
         return SequenceCollection(data, MolType=moltype, Name=name,
-            label_to_name=label_to_name, **constructor_kw)
+                                  label_to_name=label_to_name, **constructor_kw)
 
 def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
-            row_order=None, digits=4, space=4, title='', missing_data='',
-            max_width = 1e100, row_ids=False, legend='', column_templates=None,
-            dtype=None, static_column_types=False, limit=None, **kwargs):
+              row_order=None, digits=4, space=4, title='', missing_data='',
+              max_width = 1e100, row_ids=False, legend='', column_templates=None,
+              dtype=None, static_column_types=False, limit=None, **kwargs):
     """
     Arguments:
     - filename: path to file containing a pickled table
@@ -155,28 +155,28 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
 
         sep = sep or kwargs.pop('delimiter', None)
         header, rows, loaded_title, legend = load_delimited(filename,
-                                    delimiter = sep, limit=limit, **kwargs)
+                                                            delimiter = sep, limit=limit, **kwargs)
         title = title or loaded_title
     elif filename and (reader or static_column_types):
         f = open(filename, newline=None)
         if not reader:
             reader = autogen_reader(f, sep, limit=limit,
-                        with_title=kwargs.get('with_title', False))
+                                    with_title=kwargs.get('with_title', False))
 
         rows = [row for row in reader(f)]
         f.close()
         header = rows.pop(0)
 
     table = _Table(header=header, rows=rows, digits=digits, row_order=row_order,
-                title=title,
-                dtype=dtype, column_templates=column_templates, space=space,
-                missing_data=missing_data, max_width=max_width, row_ids=row_ids,
-                legend=legend)
+                   title=title,
+                   dtype=dtype, column_templates=column_templates, space=space,
+                   missing_data=missing_data, max_width=max_width, row_ids=row_ids,
+                   legend=legend)
 
     return table
 
 def LoadTree(filename=None, treestring=None, tip_names=None, format=None, \
-    underscore_unmunge=False):
+             underscore_unmunge=False):
 
     """Constructor for tree.
 
@@ -208,7 +208,7 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None, \
         #FIXME: More general strategy for underscore_unmunge
         if parser is newick_parse_string:
             tree = parser(treestring, tree_builder, \
-                    underscore_unmunge=underscore_unmunge)
+                          underscore_unmunge=underscore_unmunge)
         else:
             tree = parser(treestring, tree_builder)
         if not tree.NameLoaded:

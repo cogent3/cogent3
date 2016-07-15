@@ -40,7 +40,7 @@ from cogent3.draw.compatibility import partimatrix
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
-                    "Matthew Wakefield"]
+               "Matthew Wakefield"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
@@ -108,7 +108,7 @@ class CheckOutput(object):
         html = ['<html><head><title>Drawing Test Output</title></head>',
                 '<body>']
         html.append('<p>%s figures of which %s differ from baseline' % (
-                len(self.results), sum(d for (m,d) in self.results)))
+            len(self.results), sum(d for (m,d) in self.results)))
         for (msg, different) in self.results:
             fn1 = file_for_test(msg, True, False)
             fn2 = file_for_test(msg, False, False)
@@ -253,7 +253,7 @@ class DrawingTests(unittest.TestCase):
         aln = aln.takeSeqs(species5)
         aln = aln[:500]
         fig = partimatrix(aln, samples=0, display=True, print_stats=False,
-                s_limit=10, title="brca1")
+                          s_limit=10, title="brca1")
         test_figure('compatibility', fig)
 
 

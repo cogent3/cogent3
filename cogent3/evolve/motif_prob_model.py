@@ -42,8 +42,8 @@ class MotifProbModel(object):
         """Makes the first part of a parameter controller definition for this
         model, the calculation of motif probabilities"""
         return substitution_calculation.PartitionDefn(
-                name="mprobs", default=None, dimensions = ('locus','edge'),
-                dimension=('motif', tuple(self.getInputAlphabet())))
+            name="mprobs", default=None, dimensions = ('locus','edge'),
+            dimension=('motif', tuple(self.getInputAlphabet())))
 
     def setParamControllerMotifProbs(self, pc, motif_probs, **kw):
         pc.setParamRule('mprobs', value=motif_probs, **kw)
@@ -53,7 +53,7 @@ class MotifProbModel(object):
         for seq_name in alignment.getSeqNames():
             sequence = alignment.getGappedSeq(seq_name, recode_gaps)
             leaf = makeLikelihoodTreeLeaf(sequence, self.getCountedAlphabet(), 
-                    seq_name)
+                                          seq_name)
             count = leaf.getMotifCounts(include_ambiguity=include_ambiguity)
             if result is None:
                 result = count.copy()
@@ -175,9 +175,9 @@ class MonomerProbModel(ComplexMotifProbModel):
     def makeMotifWordProbDefns(self):
         monomer_probs = self.makeMotifProbsDefn()
         word_probs = substitution_calculation.CalcDefn(
-                self.calcWordProbs, name="wprobs")(monomer_probs)
+            self.calcWordProbs, name="wprobs")(monomer_probs)
         mprobs_matrix = substitution_calculation.CalcDefn(
-                self.calcWordWeightMatrix, name="mprobs_matrix")(monomer_probs)
+            self.calcWordWeightMatrix, name="mprobs_matrix")(monomer_probs)
         return (monomer_probs, word_probs, mprobs_matrix)
 
     def adaptMotifProbs(self, motif_probs, auto=False):
@@ -206,7 +206,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
             len(monomer_probs), type(monomer_probs), self.m2w.shape)
         result = numpy.product(
             [monomer_probs[i].take(self.m2w[:,i]) 
-            for i in positions], axis=0)
+             for i in positions], axis=0)
         result /= result.sum()
         return result
 
@@ -226,18 +226,18 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
 
     def makeMotifWordProbDefns(self):
         monomer_probs = substitution_calculation.PartitionDefn(
-                name="psmprobs", default=None, 
-                dimensions = ('locus', 'position', 'edge'),
-                dimension=('motif', tuple(self.getInputAlphabet())))
+            name="psmprobs", default=None, 
+            dimensions = ('locus', 'position', 'edge'),
+            dimension=('motif', tuple(self.getInputAlphabet())))
         monomer_probs3 = monomer_probs.acrossDimension('position', [
             str(i) for i in range(self.word_length)])
         monomer_probs3 = substitution_calculation.CalcDefn(
-                lambda *x:numpy.array(x), name='mprobs')(*monomer_probs3)
+            lambda *x:numpy.array(x), name='mprobs')(*monomer_probs3)
         word_probs = substitution_calculation.CalcDefn(
-                self.calcWordProbs, name="wprobs")(monomer_probs3)
+            self.calcWordProbs, name="wprobs")(monomer_probs3)
         mprobs_matrix = substitution_calculation.CalcDefn(
-                self.calcWordWeightMatrix, name="mprobs_matrix")(
-                    monomer_probs3)
+            self.calcWordWeightMatrix, name="mprobs_matrix")(
+            monomer_probs3)
         return (monomer_probs, word_probs, mprobs_matrix)
 
     def setParamControllerMotifProbs(self, pc, motif_probs, **kw):
@@ -271,6 +271,6 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
     def makeMotifWordProbDefns(self):
         mprobs = self.makeMotifProbsDefn()
         mprobs_matrix = substitution_calculation.CalcDefn(
-                self.calcWordWeightMatrix, name="mprobs_matrix")(mprobs)
+            self.calcWordWeightMatrix, name="mprobs_matrix")(mprobs)
         return (mprobs, mprobs, mprobs_matrix)
 

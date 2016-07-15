@@ -169,7 +169,7 @@ class JackknifeStats(object):
         header = ['Sample Stat', 'Jackknife Stat', 'Standard Error']
         title = 'Summary Statistics'
         rows = np.vstack((self._sample_statistic,
-                self._jackknifed_stat, self._standard_error))
+                          self._jackknifed_stat, self._standard_error))
         rows = rows.transpose()
         return LoadTable(header=header, rows=rows, title=title)
 

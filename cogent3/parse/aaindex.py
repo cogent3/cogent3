@@ -85,8 +85,8 @@ class AAIndexParser(object):
                 i += 1
                 # and see if it's a continuation from the above line
                 while (i < len(lines) and\
-                     (lines[i].startswith(' ') or\
-                     lines[i].startswith(field_identifier))):
+                       (lines[i].startswith(' ') or\
+                        lines[i].startswith(field_identifier))):
                     # if continuation combine the lines while treating the
                     # spaces nicely, ie, multiple spaces -> one space
                     # this is mostly just important for the
@@ -127,7 +127,7 @@ class AAIndex1Parser(AAIndexParser):
         data = self._parse_data(self._get_field('I', lines))
 
         return AAIndex1Record(id, description, LITDB, authors,\
-                title, citations, comments, correlating, data)
+                              title, citations, comments, correlating, data)
 
 
     def _parse_correlating(self, raw):
@@ -208,12 +208,12 @@ class AAIndex2Parser(AAIndexParser):
         rowscols = self._parse_rowscols(raw_data[:raw_data.find('BRK')])
         try:
             data = self._parse_data(raw_data[raw_data.find('BRK')+3:],\
-            rowscols[0], rowscols[1])
+                                    rowscols[0], rowscols[1])
         except IndexError:
             return None
 
         return AAIndex2Record(id, description, LITDB, authors,\
-            title, citations, comments, data)                       
+                              title, citations, comments, data)                       
 
     def _parse_data(self, raw, rows, cols):
         """ Parse the data field from current record into dict """
@@ -273,9 +273,9 @@ class AAIndexRecord(object):
     """ Abstract class, stores records from AAIndex files """
 
     def __init__(self, id,
-                  description, LITDB_entry_num,
-                  authors, title,
-                  citation, comments, data):
+                 description, LITDB_entry_num,
+                 authors, title,
+                 citation, comments, data):
         """ Stores data for individual AAIndex entires """
 
         self.ID = str(id)
@@ -313,17 +313,17 @@ class AAIndex1Record(AAIndexRecord):
     """ Stores records from AAIndex1, inherits from AAIndexRecord """
 
     def __init__(self, id,
-                  description, LITDB_entry_num,
-                  authors, title,
-                  citation, comments,
-                  correlating, data):
+                 description, LITDB_entry_num,
+                 authors, title,
+                 citation, comments,
+                 correlating, data):
         """ Stores data for individual AAIndex 1 entires """
 
         # Call init from super class
         AAIndexRecord.__init__(self, id,
-                  description, LITDB_entry_num,
-                  authors, title,
-                  citation, comments, data)
+                               description, LITDB_entry_num,
+                               authors, title,
+                               citation, comments, data)
 
         self.Correlating = correlating
 
@@ -350,7 +350,7 @@ class AAIndex1Record(AAIndexRecord):
                     try:
                         new_row[c] =\
                             abs(float(self.Data[r])
-                             - float(self.Data[c]))
+                                - float(self.Data[c]))
                     except ValueError:
                         return None
             result[r] = new_row
@@ -361,16 +361,16 @@ class AAIndex1Record(AAIndexRecord):
 class AAIndex2Record(AAIndexRecord):
     """ Stores records from AAIndex2, inherits from AAIndexRecord  """
     def __init__(self, id,
-                  description, LITDB_entry_num,
-                  authors, title,
-                  citation, comments, data):
+                 description, LITDB_entry_num,
+                 authors, title,
+                 citation, comments, data):
         """ Stores data for individual AAIndex 2 entires """
 
         # Call init from super class
         AAIndexRecord.__init__(self, id,
-                  description, LITDB_entry_num,
-                  authors, title,
-                  citation, comments, data)
+                               description, LITDB_entry_num,
+                               authors, title,
+                               citation, comments, data)
 
 
     def _toSquareDistanceMatrix(self, include_stops=False):

@@ -72,7 +72,7 @@ class VonBingIntegratingExponentiator(_Exponentiator):
 
     def __call__(self, t=1.0):
         int_roots = array([t if abs(x.real) < 1e-6 else
-            (exp(x*t)-1)/x for x in self.roots])
+                           (exp(x*t)-1)/x for x in self.roots])
         result = inner(self.evT * int_roots, self.evI)
         if result.dtype.kind == "c":
             result = asarray(result.real)

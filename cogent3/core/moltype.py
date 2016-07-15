@@ -15,7 +15,7 @@ types and the MolType can be made after the objects are created.
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", \
-        "Daniel McDonald"]
+               "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
@@ -69,7 +69,7 @@ IUPAC_DNA_ambiguities = {
     'D': ('A','T','G'),
     'H': ('A','C','T'),
     'V': ('A','C','G')
-        }
+    }
 IUPAC_DNA_ambiguities_complements = {
     'A':'T','C':'G','G':'C','T':'A', '-':'-',
     'M':'K', 'K':'M',
@@ -104,7 +104,7 @@ IUPAC_RNA_ambiguities = {
     'D': ('A','U','G'),
     'H': ('A','C','U'),
     'V': ('A','C','G')
-        }
+    }
 
 IUPAC_RNA_ambiguities_complements = {
     'A':'U','C':'G','G':'C','U':'A', '-':'-',
@@ -364,7 +364,7 @@ class AlphabetGroup(CoreObjectGroup):
     """Container relating gapped, ungapped, degen, and non-degen alphabets."""
 
     def __init__(self, chars, degens, gap=IUPAC_gap, missing=IUPAC_missing, \
-        MolType=None, constructor=None):
+                 MolType=None, constructor=None):
         """Returns new AlphabetGroup."""
         if constructor is None:
             if max(list(map(len, chars))) == 1:
@@ -377,7 +377,7 @@ class AlphabetGroup(CoreObjectGroup):
         self.Degen = constructor(chars+degens, MolType=MolType)
         self.Gapped = constructor(chars+gap, gap, MolType=MolType)
         self.DegenGapped = constructor(chars+gap+degens+missing, gap, \
-            MolType=MolType)
+                                       MolType=MolType)
         self._items = [self.Base, self.Degen, self.Gapped, self.DegenGapped]
         self._set_relationships()
         #set complements if MolType was specified
@@ -400,11 +400,11 @@ class MolType(object):
     don't want to reset the moltype.
     """
     def __init__(self, motifset, Gap=IUPAC_gap, Missing=IUPAC_missing,\
-            Gaps=None,
-            Sequence=None, Ambiguities=None,
-            label=None, Complements=None, Pairs=None, MWCalculator=None, \
-            add_lower=False, preserve_existing_moltypes=False, \
-            make_alphabet_group=False, ModelSeq=None):
+                 Gaps=None,
+                 Sequence=None, Ambiguities=None,
+                 label=None, Complements=None, Pairs=None, MWCalculator=None, \
+                 add_lower=False, preserve_existing_moltypes=False, \
+                 make_alphabet_group=False, ModelSeq=None):
         """Returns a new MolType object. Note that the parameters are in flux.
 
         Currently:
@@ -481,7 +481,7 @@ class MolType(object):
 
         if make_alphabet_group: #note: must use _original_ ambiguities here
             self.Alphabets = AlphabetGroup(motifset, Ambiguities, \
-                MolType=self)
+                                           MolType=self)
             self.Alphabet = self.Alphabets.Base
         else:
             if isinstance(motifset, Enumeration):
@@ -496,7 +496,7 @@ class MolType(object):
         self.Matches = make_matches(motifset, self.Gaps, self.Degenerates)
         self.Pairs = Pairs and Pairs.copy() or {}
         self.Pairs.update(make_pairs(Pairs, motifset, self.Gaps, \
-            self.Degenerates))
+                                     self.Degenerates))
         self.MWCalculator = MWCalculator
         #add lowercase characters, if we're doing that
         if add_lower:
@@ -619,7 +619,7 @@ class MolType(object):
     def _add_lowercase(self):
         """Adds lowercase versions of keys and vals to each internal dict."""
         for name in ['Alphabet', 'Degenerates', 'Gaps', 'Complements', 'Pairs',
-            'Matches']:
+                     'Matches']:
             curr = getattr(self, name)
             #temp hack to get around re-ordering
             if isinstance(curr, Alphabet):
@@ -1010,7 +1010,7 @@ class MolType(object):
 
         #if we got here, nothing worked
         raise TypeError("Cannot find degenerate char for symbols: %s" \
-                % symbols)
+                        % symbols)
 
 ASCII = MolType(
     # A default type for text read from a file etc. when we don't

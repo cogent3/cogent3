@@ -5,7 +5,7 @@ following Brett Easton's suggestion, and a taylor series expansion approach.
 WARNING: The methods are not robust!
 """
 from numpy import array, dot, eye, zeros, transpose, log, \
-        allclose, inner as innerproduct, exp, diag, isclose, pi, argmin, ones
+    allclose, inner as innerproduct, exp, diag, isclose, pi, argmin, ones
 from numpy.linalg import inv as inverse, eig as eigenvectors, norm
 
 from itertools import combinations

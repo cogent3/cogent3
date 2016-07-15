@@ -115,9 +115,9 @@ def kendalls_tau(x, y, return_p=True):
         vu = sum(y_tied * (y_tied - 1) * (2 * y_tied + 5))
         v1 = sum(x_tied * (x_tied - 1)) * sum(y_tied * (y_tied - 1))
         v2 = sum(x_tied * (x_tied - 1) * (x_tied - 2)) * \
-               sum(y_tied * (y_tied - 1) * (y_tied - 2))
+        sum(y_tied * (y_tied - 1) * (y_tied - 2))
         variance = (v0 - vt - vu) / 18 + v1 / (2 * n * (n - 1)) + v2 / (9 * n * \
-                                                        (n - 1) * (n - 2))
+                                                                        (n - 1) * (n - 2))
     if return_p:
         return tau, zprob(stat / variance**0.5)
     else:

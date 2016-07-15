@@ -30,13 +30,13 @@ from cogent3.util.modules import importVersionedModule, ExpectedImportError
 def _importedPyrexAligningModule(name):  
     try:
         return importVersionedModule(name, globals(), (3, 1),
-                "slow Python alignment implementation")
+                                     "slow Python alignment implementation")
     except ExpectedImportError:
         return None
 
 try:
     from . import _pairwise_pogs as pyrex_align_module,\
-            _pairwise_seqs as pyrex_seq_align_module
+        _pairwise_seqs as pyrex_seq_align_module
 except ImportError:
     pyrex_align_module = pyrex_seq_align_module = None
 
@@ -96,9 +96,9 @@ class PointerEncoding(object):
 DEBUG = False
 
 def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
-        preds, state_directions, T,
-        xgap_scores, ygap_scores, match_scores, rows, track, track_enc, 
-        viterbi, local=False, use_scaling=False, use_logs=False):
+                 preds, state_directions, T,
+                 xgap_scores, ygap_scores, match_scores, rows, track, track_enc, 
+                 viterbi, local=False, use_scaling=False, use_logs=False):
     """Pure python version of the dynamic programming algorithms
     Forward and Viterbi.  Works on sequences and POGs.  Unli"""
     if use_scaling:
@@ -184,8 +184,8 @@ class TrackBack(object):
 
     def __str__(self):
         return ''.join('(%s,%s)%s' % 
-            (x,y, '.xym'[dx+2*dy]) for (state, (x,y), (dx,dy))
-            in self.tlist)
+                       (x,y, '.xym'[dx+2*dy]) for (state, (x,y), (dx,dy))
+                       in self.tlist)
 
     def offset(self, X, Y):
         tlist = [(state, (x+X, y+Y), dxy) for (state, (x,y), dxy) in self.tlist]
@@ -199,11 +199,11 @@ class TrackBack(object):
 
     def asBinPosTuples(self, state_directions):
         bin_map = dict((state, bin) for (state, bin, dx, dy) in
-            state_directions)
+                       state_directions)
         result = []
         for (state, posn, (dx, dy)) in self.tlist:
             pos = [[None, i-1][d] for (i,d) in zip(
-                    posn, [dx, dy])]
+                posn, [dx, dy])]
             result.append((bin_map.get(int(state), None), pos))
         return result
 
@@ -268,7 +268,7 @@ class Pair(object):
     def __getitem__(self, index):
         assert len(index) == 2, index
         children = [child[dim_index] for (child, dim_index) in zip(
-                self.children, index)]
+            self.children, index)]
         return Pair(*children)
 
     def _decode_state(self, track, encoding, posn, pstate):
@@ -291,7 +291,7 @@ class Pair(object):
         started = False
         while 1:
             (nposn, (a, b), nstate) = self._decode_state(track, encoding, 
-                    posn, state)
+                                                         posn, state)
             if state:
                 result.append((state, posn, (a>0, b>0)))
             if started and state == 0:
@@ -306,7 +306,7 @@ class Pair(object):
     def edge2plh(self, edge, plhs):
         bins = plhs[0].shape[0]
         plh = [edge.sumInputLikelihoods(*[p[bin][1:-1] for p in plhs])
-                for bin in range(bins)]
+               for bin in range(bins)]
         return plh
 
     def getPOG(self, aligned_positions):
@@ -335,14 +335,14 @@ class Pair(object):
         return (mantissas, exponents)
 
     def calcRows(self, i_low, i_high, j_low, j_high, state_directions,
-            T, scores, rows, track, track_encoding, viterbi, **kw):
+                 T, scores, rows, track, track_encoding, viterbi, **kw):
         (match_scores, (xscores, yscores)) = scores
         track_enc = track_encoding and track_encoding.positions
         #print T
         return self.aligner(self.plan, self.x_index, self.y_index,
-                i_low, i_high, j_low, j_high, self.children, state_directions,
-                T, xscores, yscores, match_scores, rows, track, 
-                track_enc, viterbi, **kw)
+                            i_low, i_high, j_low, j_high, self.children, state_directions,
+                            T, xscores, yscores, match_scores, rows, track, 
+                            track_enc, viterbi, **kw)
 
 
 class _Alignable(object):
@@ -582,7 +582,7 @@ class PairEmissionProbs(object):
     def _makeEmissionProbs(self, use_cost_function):
         (plhs, gap_scores) = self.makePartialLikelihoods(use_cost_function)
         match_scores = numpy.zeros([len(self.bins)] + self.pair.uniq_size,
-                                    float)
+                                   float)
         for (b, (x, y, bin)) in enumerate(zip(plhs[0], plhs[1], self.bins)):
             match_scores[b] = numpy.inner(x*bin.mprobs, y)
         match_scores[:, 0, 0] = match_scores[:, -1, -1] = 1.0
@@ -600,7 +600,7 @@ class PairEmissionProbs(object):
         return self.scores[key]
 
     def _calc_global_probs(self, pair, scores, kw, state_directions,
-            T, rows, cells, backward=False):
+                           T, rows, cells, backward=False):
         if kw['use_logs']:
             (impossible, inevitable) = (-numpy.inf, 0.0)
         else:
@@ -616,7 +616,7 @@ class PairEmissionProbs(object):
         for (state, (i,j)) in cells:
             if i > last_i:
                 rr = pair.calcRows(last_i+1, i+1, 0, N-1,
-                    state_directions, T, scores, rows, None, None, **kw)
+                                   state_directions, T, scores, rows, None, None, **kw)
             else:
                 assert i == last_i, (i, last_i)
             last_i = i
@@ -630,7 +630,7 @@ class PairEmissionProbs(object):
             _d = DEBUG
             DEBUG = False
             (maxpos, state, score) = pair.calcRows(
-                    i, i+1, j, j+1, to_end, T2, scores, rows, None, None, **kw)
+                i, i+1, j, j+1, to_end, T2, scores, rows, None, None, **kw)
             DEBUG = _d
             probs.append(score)
         return numpy.array(probs)
@@ -744,10 +744,10 @@ class PairEmissionProbs(object):
             track = encoder = None
 
         kw = dict(
-                use_scaling=dp_options.use_scaling,
-                use_logs=dp_options.use_logs,
-                viterbi=dp_options.viterbi,
-                local=dp_options.local)
+            use_scaling=dp_options.use_scaling,
+            use_logs=dp_options.use_logs,
+            viterbi=dp_options.viterbi,
+            local=dp_options.local)
 
         if dp_options.backward:
             backward = not backward
@@ -766,32 +766,32 @@ class PairEmissionProbs(object):
             T = numpy.log(T)
 
         scores = self._getEmissionProbs(
-                dp_options.use_logs, dp_options.use_cost_function)
+            dp_options.use_logs, dp_options.use_cost_function)
 
         rows = pair.getEmptyScoreArrays(len(T), dp_options)
 
         if cells is not None:
             assert not dp_options.local
             result = self._calc_global_probs(
-                    pair, scores, kw, state_directions, T, rows, cells,
-                    backward)
+                pair, scores, kw, state_directions, T, rows, cells,
+                backward)
         else:
             (M, N) = pair.size
             if dp_options.local:
                 (maxpos, state, score) =  pair.calcRows(1, M-1, 1, N-1,
-                    state_directions, T, scores, rows, track, encoder, **kw)
+                                                        state_directions, T, scores, rows, track, encoder, **kw)
             else:
                 pair.calcRows(0, M-1, 0, N-1,
-                    state_directions, T, scores, rows, track, encoder, **kw)
+                              state_directions, T, scores, rows, track, encoder, **kw)
                 end_state_only = numpy.array([(len(T)-1, 0, 1, 1)])
                 (maxpos, state, score) = pair.calcRows(M-1, M, N-1, N,
-                    end_state_only, T, scores, rows, track, encoder, **kw)
+                                                       end_state_only, T, scores, rows, track, encoder, **kw)
 
             if track is None:
                 result = score
             else:
                 tb = self.pair.traceback(track, encoder, maxpos, state,
-                    skip_last = not dp_options.local)
+                                         skip_last = not dp_options.local)
                 result = (score, tb)
         return result
 
@@ -866,7 +866,7 @@ class ReversiblePairEmissionProbs(object):
 
 class DPFlags(object):
     def __init__(self, viterbi, local=False, use_logs=None,
-            use_cost_function=True, use_scaling=None, backward=False):
+                 use_cost_function=True, use_scaling=None, backward=False):
         if use_logs is None:
             use_logs = viterbi and not use_scaling
         if use_scaling is None:
@@ -881,8 +881,8 @@ class DPFlags(object):
         self.viterbi = bool(viterbi)
         self.backward = bool(backward)
         self.as_tuple = tuple(n for n in 
-                ['viterbi', 'local', 'use_logs', 'use_cost_function', 'use_scaling', 'backward']
-                if getattr(self, n))
+                              ['viterbi', 'local', 'use_logs', 'use_cost_function', 'use_scaling', 'backward']
+                              if getattr(self, n))
 
     def __repr__(self):
         return '%s(%s)' % (type(self).__name__, ', '.join(self.as_tuple))
@@ -899,7 +899,7 @@ class PairHMM(object):
         self.emission_probs = emission_probs
         self.transition_matrix = transition_matrix
         self._transition_matrix = adaptPairTM(transition_matrix,
-                finite=finite)
+                                              finite=finite)
         self.results = {}
 
     def _getDPResult(self, **kw):
@@ -921,7 +921,7 @@ class PairHMM(object):
         cells = [(state, (N-x-2, M-y-2)) for (state, (x,y)) in cells]
         tb.reverse()
         bck = self.emission_probs.dp(self._transition_matrix, dp_options, cells,
-                backward=True)[::-1]
+                                     backward=True)[::-1]
         return fwd + bck - score
 
     def getViterbiPath(self, local=False, **kw):
@@ -941,7 +941,7 @@ class PairHMM(object):
 
     def getLocalViterbiScoreAndAlignment(self, posterior_probs=False, **kw):
         deprecated('method', 'getLocalViterbiScoreAndAlignment', 
-                'getViterbiScoreAndAlignment(local=True)', '1.7', stack_level=3)
+                   'getViterbiScoreAndAlignment(local=True)', '1.7', stack_level=3)
         kw['posterior_probs'] = posterior_probs
         return self.getViterbiScoreAndAlignment(local=True, **kw)
 
@@ -968,7 +968,7 @@ class GlobalViterbiPath(_ViterbiPath):
         # to calculate the partial likelihoods even if the root of the 2-seq
         # tree is moved around.
         alignable = self.pair_hmm.emission_probs.getAlignable(
-                self.aligned_positions, ratio=ratio)
+            self.aligned_positions, ratio=ratio)
         return alignable
 
     def getAlignment(self):

@@ -36,7 +36,7 @@ def never_ignore(line):
     return False
 
 def DelimitedRecordFinder(delimiter, constructor=strip, ignore=is_empty,
-        keep_delimiter=True, strict=True):
+                          keep_delimiter=True, strict=True):
     """Returns function that returns successive delimited records from file.
 
     Includes delimiter in return value. Returns list of relevant lines.
@@ -75,7 +75,7 @@ def DelimitedRecordFinder(delimiter, constructor=strip, ignore=is_empty,
         if curr:
             if strict:
                 raise RecordError("Found additional data after records: %s"%\
-                        (curr))
+                                  (curr))
             else:
                 yield curr
     return parser
@@ -84,7 +84,7 @@ def DelimitedRecordFinder(delimiter, constructor=strip, ignore=is_empty,
 GbFinder = DelimitedRecordFinder('//')
 
 def TailedRecordFinder(is_tail_line, constructor=rstrip, ignore=is_empty,
-        strict=True):
+                       strict=True):
     """Returns function that returns successive tailed records from lines.
 
     Includes tail line in return value. Returns list of relevant lines.
@@ -116,7 +116,7 @@ def TailedRecordFinder(is_tail_line, constructor=rstrip, ignore=is_empty,
         if curr:
             if strict:
                 raise RecordError('lines exist after the last tail_line '
-                        'or no tail_line at all')
+                                  'or no tail_line at all')
             else:
                 yield curr
 

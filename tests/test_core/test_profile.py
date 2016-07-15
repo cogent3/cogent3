@@ -14,7 +14,7 @@ from cogent3.core.alignment import DenseAlignment as Alignment
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Sandra Smit", "Gavin Huttley", "Rob Knight",
-                    "Peter Maxwell"]
+               "Peter Maxwell"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Sandra Smit"
@@ -33,16 +33,16 @@ class ProfileTests(TestCase):
         self.empty_row = Profile(array([[1,1],[0,0]]), "AB")
         self.empty_col = Profile(array([[0,1],[0,1]]), "AB")
         self.consensus = Profile(array([[.2,0,.8,0],[0,.1,.2,.7],[0,0,0,1],\
-            [.2,.3,.4,.1],[.5,.5,0,0]]),\
-            Alphabet=DNA, CharOrder="TCAG")
+                                        [.2,.3,.4,.1],[.5,.5,0,0]]),\
+                                 Alphabet=DNA, CharOrder="TCAG")
         self.not_same_value = Profile(array([[.3,.5,.1,.1],[.4,.6,0,.7],\
-            [.3,.2,0,0],[0,0,4,0]]),Alphabet=DNA, CharOrder="TCAG")
+                                             [.3,.2,0,0],[0,0,4,0]]),Alphabet=DNA, CharOrder="TCAG")
         self.zero_entry = Profile(array([[.3,.2,0,.5],[0,0,.8,.2]]),\
-            Alphabet="UCAG")
+                                  Alphabet="UCAG")
         self.score1 = Profile(Data=array([[-1,0,1,2],[-2,2,0,0],[-3,5,1,0]]),\
-            Alphabet=DNA, CharOrder="ATGC")
+                              Alphabet=DNA, CharOrder="ATGC")
         self.score2 = Profile(array([[.2,.4,.4,0],[.1,0,.9,0],[.1,.2,.3,.4]]),\
-            Alphabet="TCAG")
+                              Alphabet="TCAG")
         self.oned = Profile(array([.25,.25,.25,.25]),"ABCD")
         self.pp = Profile(array([[1,2,3,4],[5,6,7,8],[9,10,11,12]]),"ABCD")
 
@@ -56,15 +56,15 @@ class ProfileTests(TestCase):
         self.assertEqual(p.Alphabet, "AB")
         self.assertEqual(p.CharOrder, list("AB"))
         self.assertEqual(translate("ABBA",p._translation_table),
-            "\x00\x01\x01\x00")
+                         "\x00\x01\x01\x00")
         #alphabet and char order
         p = Profile(array([[.1,.2],[.4,.3]]),Alphabet=DNA,
-            CharOrder="AG")
+                    CharOrder="AG")
         self.assertEqual(p.CharOrder,"AG")
         assert p.Alphabet is DNA
         #non-character alphabet        
         p = Profile(array([[.1,.2],[.4,.3]]),Alphabet=[7,3],
-            CharOrder=[3,7])
+                    CharOrder=[3,7])
         self.assertEqual(p.CharOrder,[3,7])
         self.assertEqual(p.Alphabet, [7,3])
         self.assertEqual(p.Data, [[.1,.2],[.4,.3]])
@@ -79,7 +79,7 @@ class ProfileTests(TestCase):
         """
         p = Profile(array([[.2,.8],[.7,.3]]),"ABCDE","AB")
         self.assertEqual(translate("ABBA",p._translation_table),
-            "\x00\x01\x01\x00")
+                         "\x00\x01\x01\x00")
 
     def test_hasValidData(self):
         """hasValidData: should work on full and empty profiles"""
@@ -118,7 +118,7 @@ class ProfileTests(TestCase):
     def test_dataAt(self):
         """dataAt: should work on valid position and character"""
         p = Profile(array([[.2,.4,.4,0],[.1,0,.9,0],[.1,.2,.3,.4]]),\
-            Alphabet="TCAG")
+                    Alphabet="TCAG")
         self.assertEqual(p.dataAt(0,'C'),.4)
         self.assertEqual(p.dataAt(1,'T'),.1)
         self.assertRaises(ProfileError, p.dataAt, 1, 'U')
@@ -199,11 +199,11 @@ class ProfileTests(TestCase):
         p = self.full
         self.assertEqual(p.prettyPrint(),"2\t4\n3\t5\n4\t8")
         self.assertEqual(p.prettyPrint(include_header=True),\
-            "A\tB\n2\t4\n3\t5\n4\t8")
+                         "A\tB\n2\t4\n3\t5\n4\t8")
         self.assertEqual(p.prettyPrint(transpose_data=True),\
-            "2\t3\t4\n4\t5\t8")
+                         "2\t3\t4\n4\t5\t8")
         self.assertEqual(p.prettyPrint(include_header=True,\
-            transpose_data=True),"A\t2\t3\t4\nB\t4\t5\t8")
+                                       transpose_data=True),"A\t2\t3\t4\nB\t4\t5\t8")
         #empty
         self.assertEqual(self.empty.prettyPrint(),"")
         self.assertEqual(self.empty.prettyPrint(transpose_data=True),"")
@@ -214,32 +214,32 @@ class ProfileTests(TestCase):
         p.CharOrder="ABC"
 
         self.assertEqual(p.prettyPrint(include_header=True),\
-            "A\tB\tC\n2\t4\t \n3\t5\t \n4\t8\t ")
+                         "A\tB\tC\n2\t4\t \n3\t5\t \n4\t8\t ")
         #it will truncate the CharOrder if data is transposed
         #and CharOrder is longer then the number of rows in the 
         #transposed data
         self.assertEqual(p.prettyPrint(include_header=True,\
-            transpose_data=True),"A\t2\t3\t4\nB\t4\t5\t8")
+                                       transpose_data=True),"A\t2\t3\t4\nB\t4\t5\t8")
 
     def test_prettyPrint_four_cases(self):
         """prettyPrint: with/without header/transpose/limit"""
         p = self.full
         p = self.pp
         self.assertEqual(p.prettyPrint(),\
-            "1\t 2\t 3\t 4\n5\t 6\t 7\t 8\n9\t10\t11\t12")
+                         "1\t 2\t 3\t 4\n5\t 6\t 7\t 8\n9\t10\t11\t12")
         self.assertEqual(p.prettyPrint(column_limit=3),\
-            "1\t 2\t 3\n5\t 6\t 7\n9\t10\t11")
+                         "1\t 2\t 3\n5\t 6\t 7\n9\t10\t11")
         self.assertEqual(p.prettyPrint(column_limit=3, include_header=True),\
-            "A\t B\t C\n1\t 2\t 3\n5\t 6\t 7\n9\t10\t11")
+                         "A\t B\t C\n1\t 2\t 3\n5\t 6\t 7\n9\t10\t11")
         self.assertEqual(p.prettyPrint(column_limit=3, include_header=False,\
-            transpose_data=True),\
-            "1\t5\t 9\n2\t6\t10\n3\t7\t11\n4\t8\t12")
+                                       transpose_data=True),\
+                         "1\t5\t 9\n2\t6\t10\n3\t7\t11\n4\t8\t12")
         self.assertEqual(p.prettyPrint(column_limit=2, include_header=False,\
-            transpose_data=True),\
-            "1\t5\n2\t6\n3\t7\n4\t8")
+                                       transpose_data=True),\
+                         "1\t5\n2\t6\n3\t7\n4\t8")
         self.assertEqual(p.prettyPrint(column_limit=3, include_header=True,\
-            transpose_data=True),\
-            "A\t1\t5\nB\t2\t6\nC\t3\t7\nD\t4\t8")
+                                       transpose_data=True),\
+                         "A\t1\t5\nB\t2\t6\nC\t3\t7\nD\t4\t8")
 
     def test_reduce_wrong_size(self):
         """reduce: should fail when profiles have different sizes"""
@@ -268,35 +268,35 @@ class ProfileTests(TestCase):
 
         self.assertEqual(p1.reduce(p2).Data,array([[1,0,0],[0,.5,.5]]))
         self.assertEqual(p1.reduce(p2,add,normalize_input=True,\
-            normalize_output=False).Data,array([[2,0,0],[0,1,1]]))
+                                   normalize_output=False).Data,array([[2,0,0],[0,1,1]]))
         self.assertEqual(p1.reduce(p2,subtract,normalize_input=True,\
-            normalize_output=False).Data,array([[0,0,0],[0,1,-1]]))
+                                   normalize_output=False).Data,array([[0,0,0],[0,1,-1]]))
         self.assertEqual(p1.reduce(p2,multiply,normalize_input=True,\
-            normalize_output=False).Data,array([[1,0,0],[0,0,0]]))
+                                   normalize_output=False).Data,array([[1,0,0],[0,0,0]]))
 
         self.assertRaises(ProfileError,p1.reduce,p2,divide,\
-            normalize_input=True,normalize_output=False)
+                          normalize_input=True,normalize_output=False)
 
         #don't normalize and normalize only input
         p3 = Profile(array([[1,2],[3,4]]),Alphabet="AB")
         p4 = Profile(array([[4,3],[2,1]]),Alphabet="AB")
 
         self.assertEqual(p3.reduce(p4,add,normalize_input=False,\
-            normalize_output=False).Data,array([[5,5],[5,5]]))
+                                   normalize_output=False).Data,array([[5,5],[5,5]]))
         self.assertFloatEqual(p3.reduce(p4,add,normalize_input=True,\
-            normalize_output=False).Data,array([[19/21,23/21],[23/21,19/21]]))
+                                        normalize_output=False).Data,array([[19/21,23/21],[23/21,19/21]]))
 
         #normalize input and output
         p5 = Profile(array([[1,1,0,0],[1,1,1,1]]),Alphabet="ABCD")
         p6 = Profile(array([[1,0,0,0],[1,0,0,1]]),Alphabet="ABCD")
 
         self.assertEqual(p5.reduce(p6,add,normalize_input=True,\
-            normalize_output=True).Data,array([[.75,.25,0,0],\
-            [.375,.125,.125,.375]]))
+                                   normalize_output=True).Data,array([[.75,.25,0,0],\
+                                                                      [.375,.125,.125,.375]]))
 
         #it can collapse empty profiles when normalizing is turned off
         self.assertEqual(self.empty.reduce(self.empty,\
-            normalize_input=False,normalize_output=False).Data.tolist(),[[]])
+                                           normalize_input=False,normalize_output=False).Data.tolist(),[[]])
 
         #more specific tests of the operators will be in the 
         #separate functions
@@ -314,14 +314,14 @@ class ProfileTests(TestCase):
         p1 = Profile(array([[.3,.4,.1,0],[.1,.1,.1,.7]]),Alphabet="ABCD")
         p2 = Profile(array([[1,0,0,0],[1,0,0,1]]),Alphabet="ABCD")
         self.assertFloatEqual((p1-p2).Data, array([[-.7,.4,.1,0],\
-            [-.9,.1,.1,-.3]]))
+                                                   [-.9,.1,.1,-.3]]))
 
     def test__mul_(self):
         """__mul__: should multiply two profiles, no normalization"""
         p1 = Profile(array([[1,-2,3,0],[1,1,1,.5]]),Alphabet="ABCD")
         p2 = Profile(array([[1,0,0,0],[1,0,3,2]]),Alphabet="ABCD")
         self.assertEqual((p1*p2).Data, array([[1,0,0,0],\
-            [1,0,3,1]]))
+                                              [1,0,3,1]]))
 
     def test__div_(self):
         """__div__ and __truediv__: always true division b/c __future__.division
@@ -359,44 +359,44 @@ class ProfileTests(TestCase):
         """toOddsMatrix: should work on valid data or raise an error
         """
         p = Profile(array([[.1,.3,.5,.1],[.25,.25,.25,.25],\
-            [.05,.8,.05,.1],[.7,.1,.1,.1],[.6,.15,.05,.2]]),\
-            Alphabet="ACTG")
+                           [.05,.8,.05,.1],[.7,.1,.1,.1],[.6,.15,.05,.2]]),\
+                    Alphabet="ACTG")
         p_exp = Profile(array([[.4, 1.2, 2, .4],[1,1,1,1],[.2,3.2,.2,.4],\
-            [2.8,.4,.4,.4],[2.4,.6,.2,.8]]),Alphabet="ACTG")
+                               [2.8,.4,.4,.4],[2.4,.6,.2,.8]]),Alphabet="ACTG")
         self.assertEqual(p.toOddsMatrix().Data,p_exp.Data)
         assert p.Alphabet is p.toOddsMatrix().Alphabet
         self.assertEqual(p.toOddsMatrix([.25,.25,.25,.25]).Data,p_exp.Data)
 
         #fails if symbol_freqs has wrong size
         self.assertRaises(ProfileError, p.toOddsMatrix,\
-            [.25,.25,.25,.25,.25,.25])
+                          [.25,.25,.25,.25,.25,.25])
         self.assertRaises(ProfileError, self.zero_entry.toOddsMatrix,\
-            [.1,.2,.3])
+                          [.1,.2,.3])
         #works on empty profile
         self.assertEqual(self.empty.toOddsMatrix().Data.tolist(),[[]])
         #works with different input
         self.assertEqual(self.zero_entry.toOddsMatrix().Data,\
-            array([[1.2,.8,0,2],[0,0,3.2,.8]]))
+                         array([[1.2,.8,0,2],[0,0,3.2,.8]]))
         self.assertFloatEqual(self.zero_entry.toOddsMatrix([.1,.2,.3,.4]).Data,\
-            array([[3,1,0,1.25],[0,0,2.667,.5]]),1e-3)
+                              array([[3,1,0,1.25],[0,0,2.667,.5]]),1e-3)
         #fails when one of the background frequencies is 0
         self.assertRaises(ProfileError, self.zero_entry.toOddsMatrix,\
-            [.1,.2,.3,0])
+                          [.1,.2,.3,0])
 
     def test_toLogOddsMatrix(self):
         """toLogOddsMatrix: should work as expected"""
         #This test can be short, because it mainly depends on toOddsMatrix
         #for which everything has been tested
         p = Profile(array([[.1,.3,.5,.1],[.25,.25,.25,.25],\
-            [.05,.8,.05,.1],[.7,.1,.1,.1],[.6,.15,.05,.2]]),\
-            Alphabet="ACTG")
+                           [.05,.8,.05,.1],[.7,.1,.1,.1],[.6,.15,.05,.2]]),\
+                    Alphabet="ACTG")
         p_exp = Profile(array(\
             [[-1.322, 0.263, 1., -1.322],\
              [ 0., 0., 0., 0.],\
              [-2.322,  1.678, -2.322, -1.322],\
              [ 1.485, -1.322, -1.322, -1.322],\
              [ 1.263, -0.737, -2.322, -0.322]]),\
-             Alphabet="ACTG")
+            Alphabet="ACTG")
         self.assertFloatEqual(p.toLogOddsMatrix().Data,p_exp.Data,eps=1e-3) 
         #works on empty matrix
         self.assertEqual(self.empty.toLogOddsMatrix().Data.tolist(),[[]])
@@ -404,7 +404,7 @@ class ProfileTests(TestCase):
     def test__score_indices(self):
         """_score_indices: should work on valid input"""
         self.assertEqual(self.score1._score_indices(array([0,1,1,3,0,3]),\
-            offset=0),[6,2,-3,0])
+                                                    offset=0),[6,2,-3,0])
         self.assertFloatEqual(self.score2._score_indices(\
             array([3,1,2,0,2,2,3]), offset=0),[.3,1.4,.8,1.4,1.7])
         self.assertFloatEqual(self.score2._score_indices(\
@@ -412,28 +412,28 @@ class ProfileTests(TestCase):
         #Errors will be raised on invalid input. Errors are not handled
         #in this method. Validation of the input is done elsewhere
         self.assertRaises(IndexError,self.score2._score_indices,\
-            array([3,1,63,0,4,2,3]), offset=3) 
+                          array([3,1,63,0,4,2,3]), offset=3) 
 
     def test__score_profile(self):
         """_score_profile: should work on valid input"""
         p1 = Profile(array([[1,0,0,0],[0,1,0,0],[0,0,.5,.5],[0,0,0,1],\
-            [.25,.25,.25,.25]]),"TCAG")
+                            [.25,.25,.25,.25]]),"TCAG")
         p2 = Profile(array([[0,1,0,0],[.2,0,.8,0],[0,0,.5,.5],[1/3,1/3,0,1/3],\
-            [.25,.25,.25,.25]]),"TCAG")
+                            [.25,.25,.25,.25]]),"TCAG")
 
         self.assertFloatEqual(self.score2._score_profile(p1,offset=0),\
-            [.55,1.25,.45])
+                              [.55,1.25,.45])
         self.assertFloatEqual(self.score2._score_profile(p1,offset=2),\
-            [.45])
+                              [.45])
         self.assertFloatEqual(self.score2._score_profile(p2,offset=0),\
-            [1.49,1.043,.483],1e-3)
+                              [1.49,1.043,.483],1e-3)
 
         #Errors will be raised on invalid input. Errors are not handled
         #in this method. Validation of the input is done elsewhere
         #In this case you don't get an error, but for sure an unexpected
         #result
         self.assertFloatEqual(self.score2._score_profile(p1,offset=3).tolist(),\
-            [])
+                              [])
 
     def test_score_sequence(self):
         """score: should work correctly for Sequence as input
@@ -441,20 +441,20 @@ class ProfileTests(TestCase):
        #works on normal valid data
         s1 = self.score1.score("ATTCAC",offset=0)
         self.assertEqual(s1,\
-            [6,2,-3,0])
+                         [6,2,-3,0])
         self.assertFloatEqual(self.score2.score("TCAAGT",offset=0),
-            [.5,1.6,1.7,0.5])
+                              [.5,1.6,1.7,0.5])
         #works with different offset
         self.assertFloatEqual(self.score2.score("TCAAGT",offset=2),
-            [1.7,0.5])
+                              [1.7,0.5])
         self.assertFloatEqual(self.score2.score("TCAAGT",offset=3),
-            [0.5])
+                              [0.5])
         #raises error on invalid offset 
         self.assertRaises(ProfileError,self.score2.score,\
-            "TCAAGT",offset=4)
+                          "TCAAGT",offset=4)
         #works on seq of minimal length
         self.assertFloatEqual(self.score2.score("AGT",offset=0),
-            [0.5])
+                              [0.5])
         #raises error when sequence is too short
         self.assertRaises(ProfileError, self.score2.score,"",offset=0)
         #raises error on empty profile
@@ -471,14 +471,14 @@ class ProfileTests(TestCase):
         self.assertEqual(ds, [6,2,-3,0])
         # ModelSequence object
         ms = self.score1.score(ModelSequence("ATTCAC", Alphabet=DNA.Alphabet),\
-            offset=0)
+                               offset=0)
         self.assertEqual(ms, [6,2,-3,0])
 
     def test_score_no_trans_table(self):
         """score: should work when no translation table is present
         """
         p = Profile(Data=array([[-1,0,1,2],[-2,2,0,0],[-3,5,1,0]]),\
-            Alphabet=DNA, CharOrder="ATGC")
+                    Alphabet=DNA, CharOrder="ATGC")
         # remove translation table
         del p.__dict__['_translation_table']
         # then score the profile
@@ -489,29 +489,29 @@ class ProfileTests(TestCase):
         """score: should work correctly for Profile as input
         """
         p1 = Profile(array([[1,0,0,0],[0,1,0,0],[0,0,.5,.5],[0,0,0,1],\
-            [.25,.25,.25,.25]]),"TCAG")
+                            [.25,.25,.25,.25]]),"TCAG")
         p2 = Profile(array([[0,1,0,0],[.2,0,.8,0],[0,0,.5,.5],[1/3,1/3,0,1/3],\
-            [.25,.25,.25,.25]]),"TCAG")
+                            [.25,.25,.25,.25]]),"TCAG")
         p3 = Profile(array([[1,0,0,0],[0,1,0,0],[0,0,0,1]]),"TCAG")
         p4 = Profile(array([[1,0,0,0],[0,1,0,0]]),"TCAG")
         p5 = Profile(array([[1,0,0,0],[0,1,0,0],[0,0,0,1]]),"AGTC")
 
         #works on normal valid data
         self.assertFloatEqual(self.score2.score(p1,offset=0),\
-            [.55,1.25,.45])
+                              [.55,1.25,.45])
         self.assertFloatEqual(self.score2.score(p2,offset=0),
-            [1.49,1.043,.483],1e-3)
+                              [1.49,1.043,.483],1e-3)
         #works with different offset
         self.assertFloatEqual(self.score2.score(p1,offset=1),
-            [1.25,0.45])
+                              [1.25,0.45])
         self.assertFloatEqual(self.score2.score(p1,offset=2),
-            [0.45])
+                              [0.45])
         #raises error on invalid offset 
         self.assertRaises(ProfileError,self.score2.score,\
-            p1,offset=3)
+                          p1,offset=3)
         #works on profile of minimal length
         self.assertFloatEqual(self.score2.score(p3,offset=0),
-            [0.6])
+                              [0.6])
         #raises error when profile is too short
         self.assertRaises(ProfileError, self.score2.score,p4,offset=0)
         #raises error on empty profile
@@ -614,7 +614,7 @@ class ProfileTests(TestCase):
         #when you specify both fully_generate and a cutoff value
         #the cutoff takes priority and is used in the calculation
         self.assertEqual(p.toConsensus(cutoff=0.75,fully_degenerate=True),\
-            "YSYA")
+                         "YSYA")
 
         #raises AttributeError when Alphabet doens't have Degenerates
         p = Profile(array([[.2,.8],[.7,.3]]),"AB")
@@ -624,15 +624,15 @@ class ProfileTests(TestCase):
         """toConsensus: Should include all possibilities when include_all=True
         """
         p1 = Profile(array([[.2,0,.8,0],[0,.1,.2,.7],[0,0,0,1],\
-            [.2,.3,.4,.1],[.5,.5,0,0]]),\
-            Alphabet=DNA, CharOrder="TCAG")
+                            [.2,.3,.4,.1],[.5,.5,0,0]]),\
+                     Alphabet=DNA, CharOrder="TCAG")
         self.assertEqual(p1.toConsensus(cutoff=0.4, include_all=True),\
-            "AGGAY")
+                         "AGGAY")
         p2 = Profile(array([[.25,0.25,.25,0.25],[0.1,.1,.1,0],\
-            [.4,0,.4,0],[0,.2,0.2,0.3]]),\
-            Alphabet=DNA, CharOrder="TCAG")
+                            [.4,0,.4,0],[0,.2,0.2,0.3]]),\
+                     Alphabet=DNA, CharOrder="TCAG")
         self.assertEqual(p2.toConsensus(cutoff=0.4,\
-            include_all=True), "NHWV")
+                                        include_all=True), "NHWV")
 
     def test_randomIndices(self):
         """randomIndices: 99% of new frequencies should be within 3*SD
@@ -709,42 +709,42 @@ class ModuleLevelFunctionsTest(TestCase):
         """
         p1 = CharMeaningProfile(self.alt_dna,"AGCT")
         p1_exp = [('A',[1,0,0,0]),('G',[0,1,0,0]),('C',[0,0,1,0]),\
-            ('T',[0,0,0,1])]
+                  ('T',[0,0,0,1])]
         p2 = CharMeaningProfile(self.alt_dna,"TCAG")
         p2_exp = [('A',[0,0,1,0]),('G',[0,0,0,1]),('C',[0,1,0,0]),\
-            ('T',[1,0,0,0])]
+                  ('T',[1,0,0,0])]
         #split_degen, but only whose chars are all in char order
         #so ? is ignored right now
         p3 = CharMeaningProfile(self.alt_dna,"TCAG",split_degenerates=True)
         p3_exp = [('A',[0,0,1,0]),('G',[0,0,0,1]),('C',[0,1,0,0]),\
-            ('T',[1,0,0,0]),('R',[0,0,.5,.5]),('Y',[.5,.5,0,0]),\
-            ('N',[.25,.25,.25,.25])]
+                  ('T',[1,0,0,0]),('R',[0,0,.5,.5]),('Y',[.5,.5,0,0]),\
+                  ('N',[.25,.25,.25,.25])]
         #if we add '-' to the character order, ? is split up as well
         p4 = CharMeaningProfile(self.alt_dna,"TCAG-",split_degenerates=True)
         p4_exp = [('A',[0,0,1,0,0]),('G',[0,0,0,1,0]),('C',[0,1,0,0,0]),\
-            ('T',[1,0,0,0,0]),('R',[0,0,.5,.5,0]),('Y',[.5,.5,0,0,0]),\
-            ('N',[.25,.25,.25,.25,0]),('-',[0,0,0,0,1]),('?',[.2,.2,.2,.2,.2])]
+                  ('T',[1,0,0,0,0]),('R',[0,0,.5,.5,0]),('Y',[.5,.5,0,0,0]),\
+                  ('N',[.25,.25,.25,.25,0]),('-',[0,0,0,0,1]),('?',[.2,.2,.2,.2,.2])]
         #Degenerate characters in the character order, when split_degenerates
         #is True, won't be split up, they'll get a 1 in their own column.
         p5 = CharMeaningProfile(self.alt_dna,"AGN",split_degenerates=True)
         p5_exp = [('A',[1,0,0]),('G',[0,1,0]),('N',[0,0,1]),\
-            ('R',[.5,.5,0])]
+                  ('R',[.5,.5,0])]
         #defaults char_order to list(alphabet)
         p6 = CharMeaningProfile(self.alt_dna)
         p6_exp = [('A',[0,0,1,0]),('G',[0,0,0,1]),('C',[0,1,0,0]),\
-            ('T',[1,0,0,0])]
+                  ('T',[1,0,0,0])]
         #also accepts empty char_order -> set to list(alphabet)
         p7 = CharMeaningProfile(self.alt_dna,"")
         p7_exp = [('A',[0,0,1,0]),('G',[0,0,0,1]),('C',[0,1,0,0]),\
-            ('T',[1,0,0,0])]
+                  ('T',[1,0,0,0])]
 
         for obs,exp in [(p1,p1_exp),(p2,p2_exp),(p3,p3_exp),(p4,p4_exp),\
-            (p5,p5_exp),(p6,p6_exp),(p7,p7_exp)]:
+                        (p5,p5_exp),(p6,p6_exp),(p7,p7_exp)]:
             nz = [(chr(i),r.tolist()) for i,r in enumerate(obs.Data) if r.any()]
             self.assertEqualItems(nz, exp)
 
         self.assertRaises(ValueError,CharMeaningProfile,self.alt_dna,\
-            "AGNX",split_degenerates=True)
+                          "AGNX",split_degenerates=True)
 
 if __name__ == "__main__":
     main()

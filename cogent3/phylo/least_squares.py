@@ -44,7 +44,7 @@ class WLS(TreeEvaluator):
 
         self.dists = dists
         self.weights = weights or \
-                            dict((key, 1.0/(dists[key]**2)) for key in dists)
+        dict((key, 1.0/(dists[key]**2)) for key in dists)
         (self.names, dists) = distanceDictTo1D(self.dists)
 
     def makeTreeScorer(self, names):
@@ -54,13 +54,13 @@ class WLS(TreeEvaluator):
         # The order of the tip-to-tip paths is the same for dists, weights and A  
         weights_dists = weights * dists
         def evaluate(ancestry,
-                lengths=None,
-                sum=sum,
-                _ancestry2paths=_ancestry2paths,
-                dot=numpy.dot,
-                maximum=numpy.maximum,
-                transpose=numpy.transpose,
-                solve=solve_linear_equations):
+                     lengths=None,
+                     sum=sum,
+                     _ancestry2paths=_ancestry2paths,
+                     dot=numpy.dot,
+                     maximum=numpy.maximum,
+                     transpose=numpy.transpose,
+                     solve=solve_linear_equations):
             A = _ancestry2paths(ancestry)
             if lengths is None:
                 At = transpose(A)

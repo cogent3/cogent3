@@ -146,12 +146,12 @@ class TreeEvaluator(object):
         else:
             ordered_names = self.names
         names = list(fixed_names) + [n for n in ordered_names 
-                if n not in fixed_names_set]
+                                     if n not in fixed_names_set]
         return names
 
     @UI.display_wrap
     def trex(self, a=8, k=1000, start=None, order=None, return_all=False, 
-            filename=None, interval=None, ui=None):
+             filename=None, interval=None, ui=None):
         """TrexML policy for tree sampling - all trees up to size 'a' and
         then keep no more than 'k' best trees at each tree size.
         'order' is an optional list of tip names.  
@@ -181,7 +181,7 @@ class TreeEvaluator(object):
                     "Starting tree names not a subset of the sequence names"
 
                 (ancestry, fixed_names2, lengths) = tree2ancestry(
-                        tree, order=fixed_names)
+                    tree, order=fixed_names)
                 assert fixed_names2 == fixed_names
                 trees.append((None, None, ancestry))
             init_tree_size = len(fixed_names)
@@ -229,21 +229,21 @@ class TreeEvaluator(object):
                 return (err, tree_ordinal, split_edge, lengths, ancestry)
 
             specs = [(i, tree, edge) 
-                        for (i,tree) in enumerate(trees) 
-                        for edge in range(n*2-5)]
+                     for (i,tree) in enumerate(trees) 
+                     for edge in range(n*2-5)]
 
             candidates = ui.imap(grown_tree, specs, noun=('%s leaf tree' % n),
-                start=work_done[n-1]/total_work, end=work_done[n]/total_work)
+                                 start=work_done[n-1]/total_work, end=work_done[n]/total_work)
 
             best = ismallest(candidates, k)
 
             trees = [(err, lengths, ancestry) for (err, parent_ordinal, 
-                    split_edge, lengths, ancestry) in best]
+                                                   split_edge, lengths, ancestry) in best]
 
             checkpointer.record((n, names[:n], trees))
 
         results = (self.result2output(err, ancestry, lengths, names)
-                    for (err, lengths, ancestry) in trees)
+                   for (err, lengths, ancestry) in trees)
         if return_all:
             result = self.results2output(results)
         else:

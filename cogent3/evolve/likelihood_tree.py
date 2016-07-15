@@ -57,7 +57,7 @@ class _LikelihoodTreeEdge(object):
                     else:
                         u = c.index[col]
                         assert 0 <= u < len(c.uniq)-1, (
-                                u, len(c.uniq), c.uniq[-1], align_index)
+                            u, len(c.uniq), c.uniq[-1], align_index)
                     a.append(u)
                 assignments.append(a)
         (uniq, counts, self.index) = _indexed(list(zip(*assignments)))
@@ -70,8 +70,8 @@ class _LikelihoodTreeEdge(object):
 
         # For faster math, a contiguous index array for each child
         self.indexes = [
-                numpy.array(list(ch), self.integer_type)
-                for ch in numpy.transpose(self.uniq)]
+            numpy.array(list(ch), self.integer_type)
+            for ch in numpy.transpose(self.uniq)]
 
         # If this is the root it will need to weight the total
         # log likelihoods by these counts:
@@ -88,7 +88,7 @@ class _LikelihoodTreeEdge(object):
     def getSitePatterns(self, cols):
         # Recursive lookup of Site Patterns aka Alignment Columns
         child_motifs = [child.getSitePatterns(index[cols])
-                for (index, child) in self._indexed_children]
+                        for (index, child) in self._indexed_children]
         return [''.join(child[u] for child in child_motifs)
                 for u in range(len(cols))]
 
@@ -112,7 +112,7 @@ class _LikelihoodTreeEdge(object):
         assert sum(share_sizes) == U
         (lo,hi) = [sum(share_sizes[:i]) for i in (rank, rank+1)]
         local_cols = [i for (i,u) in enumerate(self.index) 
-                if lo <= u < hi]
+                      if lo <= u < hi]
         local = self.selectColumns(local_cols)
 
         # Attributes for reconstructing/refinding the global arrays.
@@ -186,7 +186,7 @@ class _LikelihoodTreeEdge(object):
         (self, likelihoods) = self.parallelReconstructColumns(likelihoods)
         assert len(likelihoods) == len(self.counts)
         return LikelihoodTreeLeaf(likelihoods, likelihoods, 
-                self.counts, self.index, self.edge_name, self.alphabet, None)
+                                  self.counts, self.index, self.edge_name, self.alphabet, None)
 
 class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
     # Should be a subclass of regular tree edge?
@@ -240,7 +240,7 @@ class _PyxLikelihoodTreeEdge(_LikelihoodTreeEdge):
 
     def getTotalLogLikelihood(self, input_likelihoods, mprobs):
         return pyrex.getTotalLogLikelihood(self.counts, input_likelihoods, 
-                mprobs)
+                                           mprobs)
 
     def getLogSumAcrossSites(self, lhs):
         return pyrex.getLogSumAcrossSites(self.counts, lhs)
@@ -298,14 +298,14 @@ def makeLikelihoodTreeLeaf(sequence, alphabet=None, seq_name=None):
         motif = str(detail)
         posn = list(sequence2).index(motif) * motif_len
         raise ValueError('%s at %s:%s not in alphabet' % (
-                repr(motif), seq_name, posn))
+            repr(motif), seq_name, posn))
 
     return LikelihoodTreeLeaf(uniq_motifs, likelihoods, 
-                counts, index, seq_name, alphabet, sequence)
+                              counts, index, seq_name, alphabet, sequence)
 
 class LikelihoodTreeLeaf(object):
     def __init__(self, uniq, likelihoods, counts, index, edge_name, 
-            alphabet, sequence):
+                 alphabet, sequence):
         if sequence is not None:
             self.sequence = sequence 
         self.alphabet = alphabet
@@ -321,7 +321,7 @@ class LikelihoodTreeLeaf(object):
     def backward(self):
         index = numpy.array(self.index[::-1,...])
         result = self.__class__(self.uniq, self.input_likelihoods, self.counts, 
-                index, self.edge_name, self.alphabet, None)
+                                index, self.edge_name, self.alphabet, None)
         return result
 
     def __len__(self):
@@ -355,8 +355,8 @@ class LikelihoodTreeLeaf(object):
         uniq = [self.uniq[u] for u in keep]
         likelihoods = self.input_likelihoods[keep]
         return self.__class__(
-                uniq, likelihoods, counts, index, self.edge_name, 
-                self.alphabet, None)
+            uniq, likelihoods, counts, index, self.edge_name, 
+            self.alphabet, None)
 
     def getEdge(self, name):
         if self.edge_name == name:

@@ -88,13 +88,13 @@ class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
         eMZ = (eMX + eMY)
 
         eXM =  extend * secondary_deletion * same_len + \
-                close * (deletion/4 + (1.0-indel))
+        close * (deletion/4 + (1.0-indel))
         eXX =  extend * (secondary_insert*extend/close + 
-                    secondary_deletion*shorted) + \
-                close * insert + extend
+                         secondary_deletion*shorted) + \
+        close * insert + extend
         #eXX = a + a**2/(1-a**2)*secondary_indel + (1-a)*insert
         eXY =  extend * secondary_deletion * longer + \
-                close * deletion*3/4
+        close * deletion*3/4
 
         #e = 1 + ( extend * secondary_indel/2 / close)
         #print e, (eXM + eXX + eXY)

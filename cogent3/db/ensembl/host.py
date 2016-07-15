@@ -83,10 +83,10 @@ class EngineCache(object):
             if db_name == "PARENT":
                 args = {password_arg: account.passwd}
                 engine = mysql_connect.connect(host=account.host, user=account.user,
-                                    port=account.port, **args)
+                                               port=account.port, **args)
             else:
                 engine = sql.create_engine(connect_template % dict(account=account, 
-                                        db_name=db_name), pool_recycle=pool_recycle)
+                                                                   db_name=db_name), pool_recycle=pool_recycle)
             if db_name not in self._db_account:
                 self._db_account[db_name] = {}
             self._db_account[db_name][account] = engine
@@ -136,7 +136,7 @@ def get_db_name(account=None, species=None, db_type=None, release=None,
                 continue
             name = EnsemblDbName(row[0])
             if (release is None or name.Release == str(release)) and\
-                                (db_type is None or name.Type == db_type):
+            (db_type is None or name.Type == db_type):
                 dbs.append(name)
         except (IndexError, RuntimeError):
             if DEBUG:

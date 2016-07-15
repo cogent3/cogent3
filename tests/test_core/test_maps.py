@@ -8,7 +8,7 @@ from cogent3 import LoadSeqs, DNA
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
-                    "Matthew Wakefield"]
+               "Matthew Wakefield"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
@@ -60,13 +60,13 @@ class MapTest(unittest.TestCase):
 
         seq2 = seq[5:]
         self.assertEqual(structure(seq), ('seq', 50,
-            [('fake', '[10:20]/50',
-                [('fake2', '[3:5]/10')]),
-            ('left', '[1:3]/50')])
+                                          [('fake', '[10:20]/50',
+                                            [('fake2', '[3:5]/10')]),
+                                           ('left', '[1:3]/50')])
         )
         self.assertEqual(structure(seq2), ('seq', 45,
-            [('fake', '[5:15]/45',
-                [('fake2', '[3:5]/10')])])
+                                           [('fake', '[5:15]/45',
+                                             [('fake2', '[3:5]/10')])])
         )
 
 
@@ -92,8 +92,8 @@ class MapTest(unittest.TestCase):
 
     def test_getBySequenceAnnotation(self):
         aln = LoadSeqs(data={
-                'a': 'ATCGAAATCGAT',
-                'b': 'ATCGA--TCGAT'})
+            'a': 'ATCGAAATCGAT',
+            'b': 'ATCGA--TCGAT'})
         b = aln.getSeq('b')
         b.addAnnotation(Feature, 'test_type', 'test_label', [(4,6)])
 

@@ -367,7 +367,7 @@ def has_neg_off_diags_naive(m):
 def sum_neg_off_diags(m):
     """Returns sum of negative off-diags in m."""
     return sum(compress(ravel(less(m,0)), \
-        ravel((m * logical_not(identity(len(m)))))))
+                        ravel((m * logical_not(identity(len(m)))))))
 
 def sum_neg_off_diags_naive(m):
     """Returns sum of negative off-diags in m.
@@ -512,7 +512,7 @@ def non_diag(m):
     all_wanted = repeat([wanted], num_rows,axis=0)
     all_wanted += (arange(num_rows) * num_elements)[:,newaxis]
     return reshape(take(ravel(m), ravel(all_wanted), axis=0), \
-        (num_rows, num_elements-side_length))
+                   (num_rows, num_elements-side_length))
 
 def perturb_one_off_diag(m, mean=0, sd=0.01, element_to_change=None):
     """Perturbs one off-diagonal element of rate matrix m by random number.
@@ -590,7 +590,7 @@ def merge_samples(*samples):
     array([[1,2,3,4,5,6],[0,0,0,1,1,1]])
     """
     return concatenate([array((a, zeros(a.shape)+i)) \
-        for i,a in enumerate(samples)], 1)
+                        for i,a in enumerate(samples)], 1)
 
 def sort_merged_samples_by_value(a):
     """Sorts result of merge_samples by value (i.e. first row)."""

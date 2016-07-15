@@ -27,12 +27,12 @@ class db_util_tests(TestCase):
     def test_expand_slice(self):
         """expand_slice should get accession range"""
         self.assertEqual(expand_slice(slice('AF1001','AF1003')), \
-            ['AF1001','AF1002','AF1003'])
+                         ['AF1001','AF1002','AF1003'])
         #can't expand if accession prefixes
         self.assertRaises(TypeError, expand_slice, slice('AF100:','AG1002'))
         #should keep leading zeros
         self.assertEqual(expand_slice(slice('AF0001','AF0003')), \
-            ['AF0001','AF0002','AF0003'])
+                         ['AF0001','AF0002','AF0003'])
 
     def test_make_lists_of_expanded_slices_of_set_size(self):
         """make_lists_of_expanded_slices_of_set_size: should return a

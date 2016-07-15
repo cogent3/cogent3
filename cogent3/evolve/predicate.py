@@ -171,7 +171,7 @@ class ModelSays(predicate):
 
 class DirectedMotifChange(predicate):
     def __init__(self, from_motif, to_motif,
-                diff_at = None):
+                 diff_at = None):
 
         self.from_motif = from_motif
         self.motiflen = len(from_motif)
@@ -211,7 +211,7 @@ class DirectedMotifChange(predicate):
         alphabet = model.getAlphabet()
         if alphabet.getMotifLen() < self.motiflen:
             raise ValueError("Alphabet motifs (%s) too short for %s (%s)" %
-                (alphabet.getMotifLen(), repr(self), self.motiflen))
+                             (alphabet.getMotifLen(), repr(self), self.motiflen))
 
         resolve = model.MolType.Ambiguities.__getitem__
 
@@ -263,7 +263,7 @@ class UserPredicate(predicate):
         self.f = f
     def __repr__(self):
         return 'UserPredicate(%s)' % (
-                getattr(self.f, '__name__', None) or repr(self.f))
+            getattr(self.f, '__name__', None) or repr(self.f))
     def interpret(self, model):
         return self.f
 

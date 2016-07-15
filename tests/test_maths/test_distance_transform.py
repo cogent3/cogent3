@@ -24,28 +24,28 @@ class functionTests(TestCase):
     """Tests of top-level functions."""
     def setUp(self):
         self.mat_test = asmatrix([[10, 10, 20],
-            [10, 15, 10],
-            [15,  5,  5]], 'float')
+                                  [10, 15, 10],
+                                  [15,  5,  5]], 'float')
 
         self.emptyarray = array([], 'd')
         self.mtx1 = array([[1, 3],
-                        [0.0, 23.1]],'d')
+                           [0.0, 23.1]],'d')
         self.dense1 = array([[1, 3],
-                            [5, 2],
-                            [0.1, 22]],'d')
+                             [5, 2],
+                             [0.1, 22]],'d')
 
         self.zeromtx = array([[ 0.0,  0.0,  0.0],
-                            [ 0.0,  0.0 ,  0.0],
-                            [ 0.0,  0.0,  0.0 ],
-                            [ 0.0,  0.0,  0.0 ]],'d')
+                              [ 0.0,  0.0 ,  0.0],
+                              [ 0.0,  0.0,  0.0 ],
+                              [ 0.0,  0.0,  0.0 ]],'d')
         self.sparse1 = array([[ 0.0,  0.0,  5.33],
-                        [ 0.0,  0.0 ,  0.4],
-                        [ 1.0,  0.0,  0.0 ],
-                        [ 0.0,  0.0,  0.0 ]],'d')
+                              [ 0.0,  0.0 ,  0.4],
+                              [ 1.0,  0.0,  0.0 ],
+                              [ 0.0,  0.0,  0.0 ]],'d')
         self.input_binary_dist_otu_gain1 = array([[2,1,0,0],
-          [1,0,0,1],
-            [0,0,3,0],
-            [0,0,0,1]])
+                                                  [1,0,0,1],
+                                                  [0,0,3,0],
+                                                  [0,0,0,1]])
 
 
     def get_sym_mtx_from_uptri(self, mtx):
@@ -67,7 +67,7 @@ class functionTests(TestCase):
         self.assertFloatEqual(dist_canberra(self.zeromtx), zeros((4,4),'d'))
 
         mtx1expected = array([[ 0.0,  46.2/52.2],
-                    [ 46.2/52.2,  0.0 ]],'d')
+                              [ 46.2/52.2,  0.0 ]],'d')
         self.assertFloatEqual(dist_canberra(self.mtx1), mtx1expected)
 
         sparse1exp = ones((self.sparse1.shape[0],self.sparse1.shape[0]))
@@ -87,8 +87,8 @@ class functionTests(TestCase):
         self.assertFloatEqual(dist_euclidean(self.zeromtx), zeros((4,4),'d'))
 
         dense1expected = array([[ 0.0,  sqrt(17.),  sqrt(.9**2 + 19**2)],
-                            [ sqrt(17.),  0.0 ,  sqrt(4.9**2 + 20**2)],
-                    [ sqrt(.9**2 + 19**2),  sqrt(4.9**2 + 20**2),  0.0 ]],'d')
+                                [ sqrt(17.),  0.0 ,  sqrt(4.9**2 + 20**2)],
+                                [ sqrt(.9**2 + 19**2),  sqrt(4.9**2 + 20**2),  0.0 ]],'d')
         self.assertFloatEqual(dist_euclidean(self.dense1), dense1expected)       
 
     def test_dist_gower(self):
@@ -100,13 +100,13 @@ class functionTests(TestCase):
         self.assertFloatEqual(dist_gower(self.zeromtx), zeros((4,4),'d'))
 
         mtx1expected = array([[ 0.0,  2.],
-                    [ 2.,  0.0 ]],'d')
+                              [ 2.,  0.0 ]],'d')
         self.assertFloatEqual(dist_gower(self.mtx1), mtx1expected)
 
         sparse1expected = array([[ 0.0,  4.93/5.33,  2, 1],
-                            [  4.93/5.33 ,  0.0 ,  1 + .4/5.33, .4/5.33],
-                            [ 2, 1 + .4/5.33, 0,1],
-                            [1, .4/5.33, 1, 0.0]],'d')
+                                 [  4.93/5.33 ,  0.0 ,  1 + .4/5.33, .4/5.33],
+                                 [ 2, 1 + .4/5.33, 0,1],
+                                 [1, .4/5.33, 1, 0.0]],'d')
         self.assertFloatEqual(dist_gower(self.sparse1), sparse1expected)
 
     def test_dist_manhattan(self):
@@ -118,8 +118,8 @@ class functionTests(TestCase):
         self.assertFloatEqual(dist_manhattan(self.zeromtx), zeros((4,4),'d'))
 
         dense1expected = array([[ 0.0,  5.0,  019.9],
-                            [ 5.0,  0.0 ,  24.9],
-                            [ 19.9,  24.90,  0.0 ]],'d')
+                                [ 5.0,  0.0 ,  24.9],
+                                [ 19.9,  24.90,  0.0 ]],'d')
         self.assertFloatEqual(dist_manhattan(self.dense1), dense1expected)
 
     def test_dist_abund_jaccard(self):
@@ -145,13 +145,13 @@ class functionTests(TestCase):
 
 
         self.assertFloatEqual(dist_morisita_horn(self.zeromtx),
-            zeros((4,4),'d'))
+                              zeros((4,4),'d'))
 
         a = 1 - 2*69.3/(26/16. * 23.1 * 4)
         mtx1expected = array([[0, a],
-                             [a,0]],'d')
+                              [a,0]],'d')
         self.assertFloatEqual(dist_morisita_horn(self.mtx1),
-            mtx1expected)
+                              mtx1expected)
 
     def test_dist_bray_curtis(self):
         """tests dist_bray_curtis
@@ -163,7 +163,7 @@ class functionTests(TestCase):
         self.assertFloatEqual(dist_manhattan(self.zeromtx), zeros((4,4)*1,'d'))
 
         mtx1expected = array([[0, 21.1/27.1],
-                                [21.1/27.1, 0]],'d')
+                              [21.1/27.1, 0]],'d')
         self.assertFloatEqual(dist_bray_curtis(self.mtx1), mtx1expected)
 
     def test_dist_bray_curtis_faith(self):
@@ -176,7 +176,7 @@ class functionTests(TestCase):
         self.assertFloatEqual(dist_manhattan(self.zeromtx), zeros((4,4)*1,'d'))
 
         mtx1expected = array([[0, 21.1/27.1],
-                                [21.1/27.1, 0]],'d')
+                              [21.1/27.1, 0]],'d')
         self.assertFloatEqual(dist_bray_curtis_faith(self.mtx1), mtx1expected)
 
     def test_dist_soergel(self):
@@ -204,10 +204,10 @@ class functionTests(TestCase):
 
 
         self.assertFloatEqual(dist_kulczynski(self.zeromtx),
-            zeros((4,4)*1,'d'))
+                              zeros((4,4)*1,'d'))
 
         mtx1expected = array([[0, 1.-1./2.*(3./4. + 3./23.1)],
-                                [1.-1./2.*(3./4. + 3./23.1), 0]],'d')
+                              [1.-1./2.*(3./4. + 3./23.1), 0]],'d')
 
         self.assertFloatEqual(dist_kulczynski(self.mtx1), mtx1expected)
 
@@ -222,15 +222,15 @@ class functionTests(TestCase):
         self.assertFloatEqual(dist_pearson(self.zeromtx), zeros((4,4),'d'))
 
         mtx1expected = array([[0, 0],
-                            [0, 0]],'d')
+                              [0, 0]],'d')
         self.assertFloatEqual(dist_pearson(self.mtx1), mtx1expected)
 
         # example 1 from http://davidmlane.com/hyperstat/A56626.html
         ex1 = array([[1, 2, 3, ],
-                        [2,5,6]],'d')
+                     [2,5,6]],'d')
         ex1res = 1 - 4./sqrt(2.*(8+2./3.))
         ex1expected = array([[0, ex1res],
-                            [ex1res, 0]],'d')
+                             [ex1res, 0]],'d')
 
         self.assertFloatEqual(dist_pearson(ex1), ex1expected)
 
@@ -241,14 +241,14 @@ class functionTests(TestCase):
         """
 
         self.assertFloatEqual(dist_spearman_approx(self.zeromtx),
-            zeros((4,4)*1,'d'))
+                              zeros((4,4)*1,'d'))
 
         # ex1 from wikipedia Spearman's_rank_correlation_coefficient 20jan2009
         ex1 = array([[106 ,86 ,100 ,101 ,99 ,103 ,97 ,113 ,112 ,110],
-                    [7,0,27,50,28,29,20,12,6,17]],'d')
+                     [7,0,27,50,28,29,20,12,6,17]],'d')
         ex1res = 6.*194./(10.*99.)
         ex1expected = array([[0, ex1res],
-                            [ex1res, 0]],'d')
+                             [ex1res, 0]],'d')
         self.assertFloatEqual(dist_spearman_approx(ex1), ex1expected)
 
     # now binary fns
@@ -268,12 +268,12 @@ class functionTests(TestCase):
         by hand"""
 
         self.assertFloatEqual(binary_dist_chisq(self.zeromtx),
-            zeros((4,4),'d'))
+                              zeros((4,4),'d'))
 
         mtx1expected = array([[0,sqrt(9/8.)],
-                               [ sqrt(9/8.),0]],'d')
+                              [ sqrt(9/8.),0]],'d')
         self.assertFloatEqual(binary_dist_chisq(self.mtx1),
-            mtx1expected)
+                              mtx1expected)
 
     def test_binary_dist_chord(self):
         """tests binary_dist_chord
@@ -283,12 +283,12 @@ class functionTests(TestCase):
 
 
         self.assertFloatEqual(binary_dist_chord(self.zeromtx),
-            zeros((4,4),'d'))
+                              zeros((4,4),'d'))
 
         mtx1expected = array([[0,sqrt( 1/2. + (1./sqrt(2.) -1.)**2)],
-                               [ sqrt( 1/2. + (1./sqrt(2.) -1.)**2),0]],'d')
+                              [ sqrt( 1/2. + (1./sqrt(2.) -1.)**2),0]],'d')
         self.assertFloatEqual(binary_dist_chord(self.mtx1),
-            mtx1expected)
+                              mtx1expected)
 
 
     def test_binary_dist_lennon(self):
@@ -299,22 +299,22 @@ class functionTests(TestCase):
 
 
         self.assertFloatEqual(binary_dist_lennon(self.zeromtx),
-            zeros((4,4),'d'))
+                              zeros((4,4),'d'))
 
         mtxa = array([[5.2,9,0.2],
-                        [0,99,1],
-                        [0,0.0,8233.1]],'d')
+                      [0,99,1],
+                      [0,0.0,8233.1]],'d')
         self.assertFloatEqual(binary_dist_lennon(mtxa),
-            zeros((3,3),'d') )
+                              zeros((3,3),'d') )
 
         mtxb = array([[5.2,0,0.2, 9.2],
-                        [0,0,0,1],
-                        [0,3.2,0,8233.1]],'d')
+                      [0,0,0,1],
+                      [0,3.2,0,8233.1]],'d')
         mtxbexpected = array([[0,0,0.5],
-                        [0,0,0],
-                        [0.5,0,0]],'d')
+                              [0,0,0],
+                              [0.5,0,0]],'d')
         self.assertFloatEqual(binary_dist_lennon(mtxb),
-            mtxbexpected)
+                              mtxbexpected)
 
     def test_binary_dist_pearson(self):
         """tests binary_dist_pearson
@@ -323,7 +323,7 @@ class functionTests(TestCase):
         by hand"""
 
         self.assertFloatEqual(binary_dist_pearson(self.zeromtx),
-            zeros((4,4),'d'))
+                              zeros((4,4),'d'))
 
         self.assertFloatEqual(binary_dist_pearson(self.dense1), zeros((3,3)))
 
@@ -335,23 +335,23 @@ class functionTests(TestCase):
         by hand"""
 
         self.assertFloatEqual(binary_dist_jaccard(self.zeromtx),
-            zeros((4,4),'d'))
+                              zeros((4,4),'d'))
 
         sparse1expected = array([[0, 0, 1., 1.],
-                                [0, 0, 1, 1],
-                                [1,1,0,1],
-                                [1,1,1,0]],'d')
+                                 [0, 0, 1, 1],
+                                 [1,1,0,1],
+                                 [1,1,1,0]],'d')
         self.assertFloatEqual(binary_dist_jaccard(self.sparse1),
-            sparse1expected)
+                              sparse1expected)
 
         sparse1expected = dist_manhattan(self.sparse1.astype(bool))
         sparse1norm = array([[ 1, 1,2,1],
-                    [1,1,2,1],
-                    [2,2,1,1],
-                    [1,1,1,100]],'d')
+                             [1,1,2,1],
+                             [2,2,1,1],
+                             [1,1,1,100]],'d')
         sparse1expected /= sparse1norm
         self.assertFloatEqual(binary_dist_jaccard(self.sparse1),
-            sparse1expected)
+                              sparse1expected)
 
     def test_binary_dist_ochiai(self):
         """tests binary_dist_ochiai
@@ -360,10 +360,10 @@ class functionTests(TestCase):
         by hand"""
 
         self.assertFloatEqual(binary_dist_ochiai(self.zeromtx),
-            zeros((4,4),'d'))
+                              zeros((4,4),'d'))
 
         mtx1expected = array([[0,1-1/sqrt(2.)],
-                    [1-1/sqrt(2.), 0,]],'d')
+                              [1-1/sqrt(2.), 0,]],'d')
         self.assertFloatEqual(binary_dist_ochiai(self.mtx1),mtx1expected)
 
     def test_binary_dist_hamming(self):
@@ -373,10 +373,10 @@ class functionTests(TestCase):
         by hand"""        
 
         self.assertFloatEqual(binary_dist_hamming(self.zeromtx),
-            zeros((4,4),'d'))
+                              zeros((4,4),'d'))
 
         mtx1expected = array([[0,1],
-                            [1, 0,]],'d')
+                              [1, 0,]],'d')
         self.assertFloatEqual(binary_dist_hamming(self.mtx1),mtx1expected)
 
     def test_binary_dist_sorensen_dice(self):
@@ -387,20 +387,20 @@ class functionTests(TestCase):
 
 
         self.assertFloatEqual(binary_dist_sorensen_dice(self.zeromtx),
-            zeros((4,4),'d'))
+                              zeros((4,4),'d'))
 
         mtx1expected = array([[0,1/3.],
-                            [1/3., 0,]],'d')
+                              [1/3., 0,]],'d')
         self.assertFloatEqual(binary_dist_sorensen_dice(self.mtx1),
-            mtx1expected)
+                              mtx1expected)
 
         sparse1expected = array([[0, 0, 1., 1.],
-                                [0, 0, 1, 1],
-                                [1,1,0,1],
-                                [1,1,1,0]],'d') 
+                                 [0, 0, 1, 1],
+                                 [1,1,0,1],
+                                 [1,1,1,0]],'d') 
 
         self.assertFloatEqual(binary_dist_sorensen_dice(self.sparse1),
-            sparse1expected)
+                              sparse1expected)
 
     def test_binary_dist_euclidean(self):
         """tests binary_dist_euclidean
@@ -408,8 +408,8 @@ class functionTests(TestCase):
         tests two inputs compared with calculations by hand, and runs zeros
         and an empty input"""
         dense1expected = array([[ 0.0,  0.0,  0.0],
-                        [ 0.0,  0.0 ,  0.0],
-                        [ 0.0,  0.0,  0.0 ]],'d')
+                                [ 0.0,  0.0 ,  0.0],
+                                [ 0.0,  0.0,  0.0 ]],'d')
         sparse1expected = zeros((4,4),'d')
         sparse1expected[0,2] = sqrt(2)
         sparse1expected[0,3] = 1.0
@@ -419,11 +419,11 @@ class functionTests(TestCase):
         sparse1expected = self.get_sym_mtx_from_uptri(sparse1expected)
 
         self.assertFloatEqual(binary_dist_euclidean(self.dense1),
-            dense1expected)
+                              dense1expected)
         self.assertFloatEqual(binary_dist_euclidean(self.sparse1),
-            sparse1expected)
+                              sparse1expected)
         self.assertFloatEqual(binary_dist_euclidean(self.zeromtx),
-            zeros((4,4),'d'))
+                              zeros((4,4),'d'))
 
 
     #zj's stuff
@@ -450,8 +450,8 @@ class functionTests(TestCase):
     def test_chisq_transform(self):
         """trans_chisq should return the exp result in the ref paper."""
         exp_m = [[ 0.42257713,  0.45643546,  0.84515425],
-                [ 0.48294529,  0.7824608 ,  0.48294529],
-                [ 1.01418511,  0.36514837,  0.3380617 ]]
+                 [ 0.48294529,  0.7824608 ,  0.48294529],
+                 [ 1.01418511,  0.36514837,  0.3380617 ]]
         res_m = trans_chisq(self.mat_test)
         self.assertFloatEqual(res_m, exp_m)
 
@@ -461,8 +461,8 @@ class functionTests(TestCase):
         self.assertFloatEqual(dist_chisq(self.zeromtx), zeros((4,4),'d'))
 
         exp_d = [[ 0.        ,  0.4910521 ,  0.78452291],
-                [ 0.4910521 ,  0.        ,  0.69091002],
-                [ 0.78452291,  0.69091002,  0.        ]]
+                 [ 0.4910521 ,  0.        ,  0.69091002],
+                 [ 0.78452291,  0.69091002,  0.        ]]
         res_d = dist_chisq(self.mat_test)
         self.assertFloatEqual(res_d, exp_d)
 
@@ -508,28 +508,28 @@ class functionTests(TestCase):
         """ zero values should return zero dist, or 1 with nonzero samples"""
         res = dist_bray_curtis_magurran(
             numpy.array([[0,0,0],
-                        [0,0,0],
-                        [1,1,1],
+                         [0,0,0],
+                         [1,1,1],
                          ]))
         self.assertFloatEqual(res,numpy.array([
-                        [0,0,1],
-                        [0,0,1],
-                        [1,1,0],
-                        ]))
+            [0,0,1],
+            [0,0,1],
+            [1,1,0],
+            ]))
 
 
     def test_dist_bray_curtis_magurran2(self):
         """ should match hand-calculated values"""
         res = dist_bray_curtis_magurran(
             numpy.array([[1,4,3],
-                        [1,3,5],
-                        [0,2,0],
+                         [1,3,5],
+                         [0,2,0],
                          ]))
         self.assertFloatEqual(res,numpy.array([
-                        [0,1-14/17,1-(.4)],
-                        [1-14/17,0,1-4/11],
-                        [1-.4,1-4/11,0],
-                        ]))
+            [0,1-14/17,1-(.4)],
+            [1-14/17,0,1-4/11],
+            [1-.4,1-4/11,0],
+            ]))
 
     #def test_no_dupes(self):
         #""" here we check all distance functions in distance_transform for 

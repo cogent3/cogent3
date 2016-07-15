@@ -93,7 +93,7 @@ class ProgressContext(object):
     user interface.  Calls self.progress_bar.set(progress, message)"""
 
     def __init__(self, progress_bar=None, prefix=None, base=0.0, segment=1.0, 
-            parent=None, rate=1.0):
+                 parent=None, rate=1.0):
         self.progress_bar = progress_bar
         self.desc = ''
         self.base = base
@@ -243,8 +243,8 @@ class LogFileOutput(object):
             delta = '+%s' % int(time.time() - self.t0)
             progress = int(100*progress+0.5)
             print("%s %5s %3i%% %s" % (
-                    self.lpad, delta, progress,
-                    str(message.encode('utf8'))), file=self.output)
+                self.lpad, delta, progress,
+                str(message.encode('utf8'))), file=self.output)
 
 
 class CursesTerminalProgressBar(object):
@@ -263,7 +263,7 @@ class CursesTerminalProgressBar(object):
         self.pending_eol = False
         self.line_count = 0
         (sys.stdout, sys.stderr, self._stdout, self._stderr) = (
-                self.stdout_log, self.stderr_log, sys.stdout, sys.stderr)
+            self.stdout_log, self.stderr_log, sys.stdout, sys.stderr)
 
     def done(self):
         self.set(None, None)

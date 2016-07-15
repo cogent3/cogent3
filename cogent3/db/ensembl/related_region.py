@@ -86,7 +86,7 @@ class SyntenicRegion(LazyRecord):
     """a class that takes the genome, compara instances and is used to build
     Aligned sequences for Ensembl multiple alignments"""
     def __init__(self, parent, genome, identifiers_values, am_ref_member,
-                    Location=None):
+                 Location=None):
         # create with method_link_species_set_id, at least, in
         # identifiers_values
         super(SyntenicRegion, self).__init__()
@@ -97,7 +97,7 @@ class SyntenicRegion(LazyRecord):
         self.aln_map = None
         self.aln_loc = None
         self._make_map_func = [self._make_map_from_ref,
-                                  self._make_ref_map][am_ref_member]
+                               self._make_ref_map][am_ref_member]
 
         if Location is not None:
             if hasattr(Location, 'Location'): # likely to be a feature region
@@ -127,10 +127,10 @@ class SyntenicRegion(LazyRecord):
 
     def _get_cigar_record(self):
         genomic_align_table = \
-                self.parent.compara.ComparaDb.getTable('genomic_align')
+            self.parent.compara.ComparaDb.getTable('genomic_align')
         query = sql.select([genomic_align_table.c.cigar_line],
-                    genomic_align_table.c.genomic_align_id == \
-                                        self._cached['genomic_align_id'])
+                           genomic_align_table.c.genomic_align_id == \
+                           self._cached['genomic_align_id'])
         record = asserted_one(query.execute())
         self._cached['cigar_line'] = record['cigar_line']
         return record
@@ -150,10 +150,10 @@ class SyntenicRegion(LazyRecord):
         record_strand = ref_record['dnafrag_strand']
 
         block_loc = self.genome.makeLocation(CoordName=ref_record['name'],
-                                       Start=record_start,
-                                       End=record_end,
-                                       Strand=record_strand,
-                                       ensembl_coord=True)
+                                             Start=record_start,
+                                             End=record_end,
+                                             Strand=record_strand,
+                                             ensembl_coord=True)
 
         ref_location = self.parent.ref_location
         relative_start = ref_location.Start-block_loc.Start
@@ -163,7 +163,7 @@ class SyntenicRegion(LazyRecord):
             relative_end = relative_start + len(ref_location)
 
         aln_map, aln_loc = cigar.slice_cigar(self.cigar_line, relative_start,
-                                         relative_end, by_align = False)
+                                             relative_end, by_align = False)
 
         self.aln_map = aln_map
         self.aln_loc = aln_loc
@@ -179,18 +179,18 @@ class SyntenicRegion(LazyRecord):
         record = self._cached
         try:
             aln_map, aln_loc = cigar.slice_cigar(self.cigar_line,
-                                            self.parent.CigarStart,
-                                            self.parent.CigarEnd,
-                                            by_align=True)
+                                                 self.parent.CigarStart,
+                                                 self.parent.CigarEnd,
+                                                 by_align=True)
             self.aln_map = aln_map
             self.aln_loc = aln_loc # probably unnecesary to store??
 
             # we make a loc for the aligned region
             block_loc = self.genome.makeLocation(CoordName=record['name'],
-                                             Start=record['dnafrag_start'],
-                                             End = record['dnafrag_end'],
-                                             Strand=record['dnafrag_strand'],
-                                             ensembl_coord=True)
+                                                 Start=record['dnafrag_start'],
+                                                 End = record['dnafrag_end'],
+                                                 Strand=record['dnafrag_strand'],
+                                                 ensembl_coord=True)
             relative_start = aln_loc[0]
             relative_end = aln_loc[1]
             # new location with correct length
@@ -236,7 +236,7 @@ class SyntenicRegion(LazyRecord):
         if region is None:
             return None
         self._make_aligned(feature_types=feature_types,
-                                    where_feature=where_feature)
+                           where_feature=where_feature)
         return self.AlignedSeq
 
 
@@ -251,10 +251,10 @@ class SyntenicRegions(_RelatedRegions):
         for genome, data in Members:
             if genome is ref_location.genome:
                 ref_member = SyntenicRegion(self, genome, dict(data),
-                                    am_ref_member=True, Location=ref_location)
+                                            am_ref_member=True, Location=ref_location)
             else:
                 members += [SyntenicRegion(self, genome, dict(data),
-                                                    am_ref_member=False)]
+                                           am_ref_member=False)]
 
         assert ref_member is not None, "Can't match a member to ref_location"
         self.ref_member = ref_member
@@ -268,7 +268,7 @@ class SyntenicRegions(_RelatedRegions):
 
         display = ['%s:' % my_type]
         display += ['  %r' % m.Location for m in self.Members \
-                                                if m.Region is not None]
+                    if m.Region is not None]
         return '\n'.join(display)
 
     def __repr__(self):
@@ -308,7 +308,7 @@ class SyntenicRegions(_RelatedRegions):
     CigarEnd = property(_get_ref_end)
 
     def getAlignment(self, feature_types=None, where_feature=None,
-                        omit_redundant=True):
+                     omit_redundant=True):
         """Arguments:
             - feature_types: annotations to be applied to the returned
               sequences

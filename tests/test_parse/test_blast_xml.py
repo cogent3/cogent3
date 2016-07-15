@@ -16,8 +16,8 @@ __status__ = "Prototype"
 
 from cogent3.util.unit_test import main, TestCase
 from cogent3.parse.blast_xml import BlastXMLResult, MinimalBlastParser7,\
-     get_tag, parse_hsp, parse_hit, parse_header, parse_parameters,\
-     HSP_XML_FIELDNAMES, HIT_XML_FIELDNAMES
+    get_tag, parse_hsp, parse_hit, parse_header, parse_parameters,\
+    HSP_XML_FIELDNAMES, HIT_XML_FIELDNAMES
 
 import xml.dom.minidom
 
@@ -95,7 +95,7 @@ class MinimalBlastParser7Tests(TestCase):
         d = dict(list(zip(HIT_XML_FIELDNAMES,data[0])))
         self.assertEqual(d['SUBJECT_ID'],"gi|148670104|gb|EDL02051.1|")
         self.assertEqual(d['HIT_DEF'],
-          "insulin-like growth factor 2 receptor, isoform CRA_c [Mus musculus]")
+                         "insulin-like growth factor 2 receptor, isoform CRA_c [Mus musculus]")
         self.assertEqual(d['HIT_ACCESSION'],"2001")
         self.assertEqual(int(d['HIT_LENGTH']),707)
         # check hit with more HSPs
@@ -159,9 +159,9 @@ class BlastXmlResultTests(TestCase):
         for query in self.result:
             first_hsp = self.result[query][0][0]
             self.assertEqual(first_hsp['SUBJECT_ID'],
-                "gi|148670104|gb|EDL02051.1|")
+                             "gi|148670104|gb|EDL02051.1|")
             self.assertEqual(first_hsp['HIT_DEF'],
-                "insulin-like growth factor 2 receptor, isoform CRA_c [Mus musculus]")
+                             "insulin-like growth factor 2 receptor, isoform CRA_c [Mus musculus]")
             self.assertEqual(first_hsp['HIT_ACCESSION'],"2001")
             self.assertEqual(first_hsp['HIT_LENGTH'],707)
 
