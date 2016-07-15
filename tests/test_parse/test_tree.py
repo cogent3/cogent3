@@ -6,7 +6,7 @@ from cogent3.core.tree import PhyloNode
 from cogent3.util.unit_test import TestCase, main
 
 #from cogent3.parse.newick import parse_string, TreeParseError as RecordError
-#def DndParser(data, NodeClass=PhyloNode, unescape_name=True):
+# def DndParser(data, NodeClass=PhyloNode, unescape_name=True):
 #    if not unescape_name:
 #        raise NotImplementedError
 #    def constructor(children, name, attribs):
@@ -76,12 +76,12 @@ class DndTokenizerTests(TestCase):
              ',', 'mno', ':', '0.03627', ')', ':', '0.17710', ')', ':', '0.04870', \
              ',', 'abc', ':', '0.05925', ',', '(', 'ghi', ':', '0.06914', ',', \
              'jkl', ':', '0.13776', ')', ':', '0.09853', ')', ';']
-        #split it up for debugging on an item-by-item basis
+        # split it up for debugging on an item-by-item basis
         obs = list(DndTokenizer(sample))
         self.assertEqual(len(obs), len(exp))
         for i, j in zip(obs, exp):
             self.assertEqual(i, j)
-        #try it all in one go
+        # try it all in one go
         self.assertEqual(list(DndTokenizer(sample)), exp)
 
     def test_nonames(self):
@@ -154,16 +154,16 @@ class DndParserTests(TestCase):
         """DndParser should work correctly with nested data"""
         t = DndParser(onenest)
         self.assertEqual(len(t), 2)
-        self.assertEqual(len(t[0]), 0)  #first child is terminal
-        self.assertEqual(len(t[1]), 2)  #second child has two children
+        self.assertEqual(len(t[0]), 0)  # first child is terminal
+        self.assertEqual(len(t[1]), 2)  # second child has two children
         self.assertEqual(str(t), '(abc:3.0,(def:4.0,ghi:5.0):6.0);')
 
     def test_gnodedata(self):
         """DndParser should assign Name to internal nodes correctly"""
         t = DndParser(nodedata)
         self.assertEqual(len(t), 2)
-        self.assertEqual(len(t[0]), 0)  #first child is terminal
-        self.assertEqual(len(t[1]), 2)  #second child has two children
+        self.assertEqual(len(t[0]), 0)  # first child is terminal
+        self.assertEqual(len(t[1]), 2)  # second child has two children
         self.assertEqual(str(t), '(abc:3.0,(def:4.0,ghi:5.0)jkl:6.0);')
         info_dict = {}
         for node in t.traverse():
@@ -229,7 +229,7 @@ class PhyloNodeTests(TestCase):
         p.Name = 'abc'
         self.assertEqual(str(p), 'abc;')
         p.Length = 3
-        self.assertEqual(str(p), 'abc:3;')   #don't suppress branch from root
+        self.assertEqual(str(p), 'abc:3;')  # don't suppress branch from root
         q = PhyloNode()
         p.append(q)
         self.assertEqual(str(p), '()abc:3;')

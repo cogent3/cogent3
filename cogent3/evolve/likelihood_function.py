@@ -188,7 +188,7 @@ class LikelihoodFunction(ParameterController):
         motif_probs_array = self.getParamValue(
             'mprobs', edge=edge, bin=bin, locus=locus)
         return DictArrayTemplate(self._mprob_motifs).wrap(motif_probs_array)
-        #return dict(zip(self._motifs, motif_probs_array))
+        # return dict(zip(self._motifs, motif_probs_array))
 
     def getBinPriorProbs(self, locus=None):
         bin_probs_array = self.getParamValue('bprobs', locus=locus)
@@ -389,7 +389,7 @@ class LikelihoodFunction(ParameterController):
             lht = self.getParamValue('lht', locus=locus)
             sequence_length = len(lht.index)
             leaves = self.getParamValue('leaf_likelihoods', locus=locus)
-            orig_ambig = {} #alignment.getPerSequenceAmbiguousPositions()
+            orig_ambig = {}  # alignment.getPerSequenceAmbiguousPositions()
             for (seq_name, leaf) in list(leaves.items()):
                 orig_ambig[seq_name] = leaf.getAmbiguousPositions()
         else:
@@ -412,7 +412,7 @@ class LikelihoodFunction(ParameterController):
         evolver = AlignmentEvolver(random_series, orig_ambig, exclude_internal,
                                    self.bin_names, site_bins, psub_for, self._motifs)
 
-        if root_sequence is not None: # we convert to a vector of motifs
+        if root_sequence is not None:  # we convert to a vector of motifs
             if isinstance(root_sequence, str):
                 root_sequence = self._model.MolType.makeSequence(root_sequence)
             motif_len = self._model.getAlphabet().getMotifLen()

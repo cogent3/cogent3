@@ -55,7 +55,7 @@ class functionTests(TestCase):
             for j in range(i):
                 if i == j:
                     break
-                mtx[i, j] = mtx[j, i] # j < i, so row<col => upper triangle
+                mtx[i, j] = mtx[j, i]  # j < i, so row<col => upper triangle
         return mtx
 
     def test_dist_canberra(self):
@@ -426,7 +426,7 @@ class functionTests(TestCase):
                               zeros((4, 4), 'd'))
 
 
-    #zj's stuff
+    # zj's stuff
     def test_chord_transform(self):
         """trans_chord should return the exp result in the ref paper."""
 
@@ -531,18 +531,18 @@ class functionTests(TestCase):
             [1 - .4, 1 - 4 / 11, 0],
             ]))
 
-    #def test_no_dupes(self):
+    # def test_no_dupes(self):
         #""" here we check all distance functions in distance_transform for 
-        #duplicate
-        #results.  Uses an unsafe hack to get all distance functions, 
-        #thus disabled by default
-        #The dataset is from Legendre 2001, Ecologically Meaningful... 
-        #also, doesn't actually raise an error on failing, just prints to
-        #stdout
+        # duplicate
+        # results.  Uses an unsafe hack to get all distance functions, 
+        # thus disabled by default
+        # The dataset is from Legendre 2001, Ecologically Meaningful... 
+        # also, doesn't actually raise an error on failing, just prints to
+        # stdout
         #"""
         #import distance_transform
-        ## L19 dataset
-        #L19data = array(
+        # L19 dataset
+        # L19data = array(
         #[[7,1,0,0,0,0,0,0,0],
         #[4,2,0,0,0,1,0,0,0],
         #[2,4,0,0,0,1,0,0,0],
@@ -565,22 +565,22 @@ class functionTests(TestCase):
 
         #distfns = []
         #distfn_strs = dir(distance_transform)
-        ## warning: dangerous eval, and might catch bad or not functions
-        #for fnstr in distfn_strs:
-            #if fnstr.find('dist') != -1:
+        # warning: dangerous eval, and might catch bad or not functions
+        # for fnstr in distfn_strs:
+            # if fnstr.find('dist') != -1:
                 #distfns.append(eval('%s' % fnstr))
 
         #dist_results = []
-        #for distfn in distfns:
-            #dist_results.append(distfn(L19data))
-        #for i in range(len(dist_results)):
-            #for j in range(i):
-                #try:
+        # for distfn in distfns:
+            # dist_results.append(distfn(L19data))
+        # for i in range(len(dist_results)):
+            # for j in range(i):
+                # try:
                     #self.assertFloatEqual(dist_results[i], dist_results[j])
-                #except:
-                    #pass # should not be equal, so catch error and proceed
-                #else:
-                    #print "duplicates found: ", distfns[i], distfns[j]
+                # except:
+                    # pass # should not be equal, so catch error and proceed
+                # else:
+                    # print "duplicates found: ", distfns[i], distfns[j]
 
 if __name__ == '__main__':
     main()

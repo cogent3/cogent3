@@ -38,7 +38,7 @@ def get_tree_info(tree_f):
     in_tree = False
     result = []
     for line in tree_f:
-        #get lines from the 'Begin trees;' tag to the 'End;' tag
+        # get lines from the 'Begin trees;' tag to the 'End;' tag
         line_lower = line.lower()
         if line_lower.startswith('begin trees;'):
             in_tree = True
@@ -93,7 +93,7 @@ def parse_trans_table(trans_table):
             pass
         else:
             label, name = line.split(None, 1)
-            #take comma out of name if it is there
+            # take comma out of name if it is there
             if name.endswith(','):
                 name = name[0:-1]
             # remove single quotes
@@ -103,13 +103,13 @@ def parse_trans_table(trans_table):
     return result
 
 
-def parse_dnd(dnd):#get rooted info
+def parse_dnd(dnd):  # get rooted info
     """returns a dict with dnd indexed by name"""
     dnd_dict = {}
     for line in dnd:
         line = line.strip()
         name, dnd_s = list(map(strip, line.split('=', 1)))
-        #get dnd from dnd_s and populate
+        # get dnd from dnd_s and populate
         dnd_index = dnd_s.find('(')
         data = dnd_s[dnd_index:]
         dnd_dict[name] = data
@@ -157,7 +157,7 @@ def find_fields(line, field_order=["taxa", "parent", "bl"], \
 def parse_taxa(taxa_field):
     """gets taxa # from taxa field extracted with find_fields"""
 
-    #look for lines with a number in parentheses
+    # look for lines with a number in parentheses
     term_match = re.search(r'\(\d+\)', taxa_field)
     if not term_match:
         data = taxa_field

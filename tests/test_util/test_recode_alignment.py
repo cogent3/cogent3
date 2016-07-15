@@ -278,7 +278,7 @@ class RecodeMatrixTests(TestCase):
         self.input_freqs1 = dict(list(zip(self.aa_order1, [0.2] * 5)))
         self.alphabet1 = [('D', 'DE'), ('L', 'LIV')]
 
-        #create_recoded_rate_matrix(alphabets['a1_4'])
+        # create_recoded_rate_matrix(alphabets['a1_4'])
         self.m2 = [[0, 8, 6, 5, 1], [8, 0, 7, 3, 0], [6, 7, 0, 4, 2], [5, 3, 4, 0, 0], [1, 0, 2, 0, 0]]
         self.recoded_m2 =\
             [[0, 0, 21, 0, 1], [0, 0, 0, 0, 0], [21, 0, 0, 0, 2], [0, 0, 0, 0, 0], [1, 0, 2, 0, 0]]

@@ -176,7 +176,7 @@ class Genome(object):
         return condition
 
     def _build_gene_query(self, db, condition, gene_table, gene_id_table, xref_table=None):
-        if gene_id_table is None: # Ensembl releases later than >= 65
+        if gene_id_table is None:  # Ensembl releases later than >= 65
             join_obj = gene_table
             select_obj = [gene_table]
         else:
@@ -328,7 +328,7 @@ class Genome(object):
         return query
 
     def _build_transcript_query(self, db, condition, transcript_table, transcript_id_table, xref_table=None):
-        if transcript_id_table is None: # Ensembl releases later than >= 65
+        if transcript_id_table is None:  # Ensembl releases later than >= 65
             join_obj = transcript_table
             select_obj = [transcript_table]
         else:
@@ -549,7 +549,7 @@ class Genome(object):
 
         consequence_type = 'consequence_type'
         if self.GeneralRelease > 67:
-            consequence_type += 's' # change to plural column name
+            consequence_type += 's'  # change to plural column name
 
 
         if Effect is not None:
@@ -622,7 +622,7 @@ class Genome(object):
 
         consequence_type = 'consequence_type'
         if self.GeneralRelease > 67:
-            consequence_type += 's' # change to plural column name
+            consequence_type += 's'  # change to plural column name
 
 
         property_map = {'effect': ('variation_feature', consequence_type),

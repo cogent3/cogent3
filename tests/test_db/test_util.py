@@ -28,9 +28,9 @@ class db_util_tests(TestCase):
         """expand_slice should get accession range"""
         self.assertEqual(expand_slice(slice('AF1001', 'AF1003')), \
                          ['AF1001', 'AF1002', 'AF1003'])
-        #can't expand if accession prefixes
+        # can't expand if accession prefixes
         self.assertRaises(TypeError, expand_slice, slice('AF100:', 'AG1002'))
-        #should keep leading zeros
+        # should keep leading zeros
         self.assertEqual(expand_slice(slice('AF0001', 'AF0003')), \
                          ['AF0001', 'AF0002', 'AF0003'])
 
@@ -56,12 +56,12 @@ class UrlGetterTests(TestCase):
         class Google(UrlGetter):
             BaseUrl = 'http://www.google.com'
         g = Google()
-        #test URL construction
+        # test URL construction
         self.assertEqual(str(g), 'http://www.google.com')
-        #test reading
+        # test reading
         text = g.read()
         assert '<title>Google</title>' in text
-        #test file getting
+        # test file getting
         fname = '/tmp/google_test'
         g.retrieve(fname)
         g_file = open(fname)

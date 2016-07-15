@@ -29,7 +29,7 @@ class DbRefTests(TestCase):
         self.assertEqual(d.Name, '')
         self.assertEqual(d.Description, '')
         self.assertEqual(d.Data, None)
-        #empty init not allowed
+        # empty init not allowed
         self.assertRaises(TypeError, DbRef)
 
     def test_init(self):
@@ -55,7 +55,7 @@ class DbRefTests(TestCase):
         self.assertEqual(DbRef('abc'), DbRef('abc'))
         self.assertGreaterThan(DbRef('123'), DbRef('14'))
         self.assertLessThan(DbRef('123'), DbRef('abc'))
-        #check that it ignores other attributes
+        # check that it ignores other attributes
         self.assertEqual(DbRef('x', 'y', 'z', 'a', 'b'), DbRef('x'))
 
 class infoTests(TestCase):
@@ -93,9 +93,9 @@ class InfoTests(TestCase):
 
     def test_init_data(self):
         """Info init with data should put items in correct places"""
-        #need to check init, setting, and resetting of attributes that belong
-        #in the Info object and attributes that belong in Info.Refs. Also need
-        #to check __getitem__, __setitem__, and __contains__.
+        # need to check init, setting, and resetting of attributes that belong
+        # in the Info object and attributes that belong in Info.Refs. Also need
+        # to check __getitem__, __setitem__, and __contains__.
         d = Info({'x': 3, 'GO': 12345})
         self.assertEqual(d.x, 3)
         self.assertEqual(d.GO, [12345])
@@ -130,6 +130,6 @@ class InfoTests(TestCase):
         self.assertNotSameObj(i, j)
         self.assertNotSameObj(i.Refs, j.Refs)
 
-#run the following if invoked from command-line
+# run the following if invoked from command-line
 if __name__ == "__main__":
     main()

@@ -50,7 +50,7 @@ def LabelLineParser(record, splitter, strict=True):
             if strict:
                 raise RecordError("Failed to extract key and value from line %s" % line)
             else:
-                continue    #just skip the line if not strict
+                continue  # just skip the line if not strict
 
         if key in result:
             result[key].append(val)
@@ -80,7 +80,7 @@ def delete_trailing_number(line):
     try:
         int(pieces[-1])
         return ' '.join(pieces[:-1])
-    except ValueError:  #no trailing numbers
+    except ValueError:  # no trailing numbers
         return line
 
 def MinimalClustalParser(record, strict=True):

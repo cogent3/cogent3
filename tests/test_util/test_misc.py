@@ -114,7 +114,7 @@ class UtilsTests(TestCase):
 
     # this test and the code it tests is architecture dependent. that is not
     # good.
-    #def test_timeLimitReached(self):
+    # def test_timeLimitReached(self):
     #    """should return true if timelimit has been reached, else return false"""
     #    start = clock()
     #    timelimit = .0002
@@ -168,9 +168,9 @@ class UtilsTests(TestCase):
 
     def test_flatten_no_change(self):
         """flatten should not change non-nested sequences (except to list)"""
-        self.assertEqual(flatten('abcdef'), list('abcdef')) #test identities
-        self.assertEqual(flatten([]), []) #test empty sequence
-        self.assertEqual(flatten(''), []) #test empty string
+        self.assertEqual(flatten('abcdef'), list('abcdef'))  # test identities
+        self.assertEqual(flatten([]), [])  # test empty sequence
+        self.assertEqual(flatten(''), [])  # test empty string
 
     def test_flatten(self):
         """flatten should remove one level of nesting from nested sequences"""
@@ -179,11 +179,11 @@ class UtilsTests(TestCase):
 
     def test_is_iterable(self):
         """is_iterable should return True for iterables"""
-        #test str
+        # test str
         self.assertEqual(is_iterable('aa'), True)
-        #test list
+        # test list
         self.assertEqual(is_iterable([3, 'aa']), True)
-        #test Number, expect False
+        # test Number, expect False
         self.assertEqual(is_iterable(3), False)
 
     def test_is_char(self):
@@ -212,12 +212,12 @@ class UtilsTests(TestCase):
         """recursive_flatten should remove all nesting from nested sequences"""
         self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]]), [1, 2, 3, 4, 5])
 
-        #test default behavior on str unpacking
+        # test default behavior on str unpacking
         self.assertEqual(recursive_flatten(
             ['aa', [8, 'cc', 'dd'], ['ee', ['ff', 'gg']]]),
             ['a', 'a', 8, 'c', 'c', 'd', 'd', 'e', 'e', 'f', 'f', 'g', 'g'])
 
-        #test str untouched flattening using is_leaf=is_str_or_noniterable
+        # test str untouched flattening using is_leaf=is_str_or_noniterable
         self.assertEqual(recursive_flatten(
             ['aa', [8, 'cc', 'dd'], ['ee', ['ff', 'gg']]],
             is_leaf=is_str_or_noniterable),
@@ -289,11 +289,11 @@ class UtilsTests(TestCase):
         self.assertEqual(unflatten("abcdef", 2), ['ab', 'cd', 'ef'])
         self.assertEqual(unflatten("abcdef", 3), ['abc', 'def'])
         self.assertEqual(unflatten("abcdef", 4), ['abcd'])
-        #should be able to preserve extra items
+        # should be able to preserve extra items
         self.assertEqual(unflatten("abcdef", 4, True), ['abcd', 'ef'])
         self.assertEqual(unflatten("abcdef", 10), [])
         self.assertEqual(unflatten("abcdef", 10, True), ['abcdef'])
-        #should succeed on empty sequnce
+        # should succeed on empty sequnce
         self.assertEqual(unflatten('', 10), [])
 
     def test_unflatten_bad_row_width(self):
@@ -341,7 +341,7 @@ class UtilsTests(TestCase):
         self.assertEqual(select('abc', values), [5, 2, 4])
         self.assertEqual(select(['e', 'e', 'e'], values), [7, 7, 7])
         self.assertEqual(select(('e', 'b', 'a'), values), [7, 2, 5])
-        #check that it raises KeyError on anything out of range
+        # check that it raises KeyError on anything out of range
         self.assertRaises(KeyError, select, 'abx', values)
 
     def test_find_all(self):
@@ -356,15 +356,15 @@ class UtilsTests(TestCase):
 
     def test_find_many(self):
         """find_many should return list of all occurrences of all items"""
-        #should be same as find_all for single chars
+        # should be same as find_all for single chars
         self.assertEqual(find_many('abc', 'd'), [])
         self.assertEqual(find_many('abc', 'a'), [0])
         self.assertEqual(find_many('abcabca', 'a'), [0, 3, 6])
         self.assertEqual(find_many('abcabca', 'c'), [2, 5])
         self.assertEqual(find_many('abcabca', '3'), [])
-        #should sort together the items from the two lists
+        # should sort together the items from the two lists
         self.assertEqual(find_many('abcabca', 'bc'), [1, 2, 4, 5])
-        #note difference between 2-char string and 1-string list
+        # note difference between 2-char string and 1-string list
         self.assertEqual(find_many('abcabca', ['bc']), [1, 4])
         self.assertRaises(TypeError, find_many, 'abcabca', [3])
 
@@ -402,10 +402,10 @@ class UtilsTests(TestCase):
     def test_caps_from_underscores(self):
         """caps_from_underscores should become CapsFromUnderscores"""
         cfu = caps_from_underscores
-        #should still convert strings without underscores
+        # should still convert strings without underscores
         self.assertEqual(cfu('ABCDE  abcde!$'), 'Abcde  Abcde!$')
         self.assertEqual(cfu('abc_def'), 'AbcDef')
-        #should read through multiple underscores
+        # should read through multiple underscores
         self.assertEqual(cfu('_caps__from_underscores___'), 
                          'CapsFromUnderscores')
 
@@ -423,16 +423,16 @@ class UtilsTests(TestCase):
                              'D': [3], 'd': [3], 'AbC': 'XyZ', 'abc': 'xyz', None: '3', '$': 'abc', \
                              145: '5'})
 
-        #should work with strings
+        # should work with strings
         d = 'ABC'
         self.assertEqual(add_lowercase(d), 'ABCabc')
-        #should work with tuples
+        # should work with tuples
         d = tuple('ABC')
         self.assertEqual(add_lowercase(d), tuple('ABCabc'))
-        #should work with lists
+        # should work with lists
         d = list('ABC')
         self.assertEqual(add_lowercase(d), list('ABCabc'))
-        #should work with sets
+        # should work with sets
         d = set('ABC')
         self.assertEqual(add_lowercase(d), set('ABCabc'))
         #...even frozensets
@@ -544,9 +544,9 @@ class UtilsTests(TestCase):
             ('c', 'a'), ('c', 'b'), ('c', 'c'), \
             ('x', 'x'), ('x', 'y'), ('y', 'x'), ('y', 'y'), \
         ]))
-        #if there's overlap, note that the groups should _not_ be expanded
+        # if there's overlap, note that the groups should _not_ be expanded
         #(e.g. in the following case, 'x' is _not_ similar to 'c', even though
-        #both 'x' and 'c' are similar to 'a'.
+        # both 'x' and 'c' are similar to 'a'.
         overlap = ['ax', 'abc']
         self.assertEqual(PairsFromGroups(overlap), dict.fromkeys([ \
             ('a', 'a'), ('a', 'b'), ('a', 'c'), \
@@ -693,7 +693,7 @@ class UtilsTests(TestCase):
         self.assertEqual(list(got), expect)
 
         # raise an exception if try and provide a converter and num digits
-        def wrap_gen(): # need to wrap generator so we can actually test this
+        def wrap_gen():  # need to wrap generator so we can actually test this
             gen = get_run_start_indices(data, digits=1,
                                         converter_func=lambda x: x)
             def call():
@@ -859,42 +859,42 @@ class DelegatorTests(TestCase):
     def test_getattr(self):
         """Delegator should find attributes in correct places"""
         ls = _list_and_string([1, 2, 3], 'abcd')
-        #behavior as list
+        # behavior as list
         self.assertEqual(len(ls), 3)
         self.assertEqual(ls[0], 1)
         ls.reverse()
         self.assertEqual(ls, [3, 2, 1])
-        #behavior as string
+        # behavior as string
         self.assertEqual(ls.upper(), 'ABCD')
         self.assertEqual(len(ls.upper()), 4)
         self.assertEqual(ls.replace('a', 'x'), 'xbcd')
-        #behavior of normal attributes
+        # behavior of normal attributes
         self.assertEqual(ls.NormalAttribute, 'default')
-        #behavior of properties
+        # behavior of properties
         self.assertEqual(ls.prop, None)
         self.assertEqual(ls.constant, 'c')
-        #shouldn't be allowed to get unknown properties
+        # shouldn't be allowed to get unknown properties
         self.assertRaises(AttributeError, getattr, ls, 'xyz')
-        #if the unknown property can be set in the forwarder, do it there
+        # if the unknown property can be set in the forwarder, do it there
         flex = modifiable_string('abcd')
         ls_flex = _list_and_string([1, 2, 3], flex)
         ls_flex.blah = 'zxc'
         self.assertEqual(ls_flex.blah, 'zxc')
         self.assertEqual(flex.blah, 'zxc')
-        #should get AttributeError if changing a read-only property
+        # should get AttributeError if changing a read-only property
         self.assertRaises(AttributeError, setattr, ls, 'constant', 'xyz')
 
 
     def test_setattr(self):
         """Delegator should set attributes in correct places"""
         ls = _list_and_string([1, 2, 3], 'abcd')
-        #ability to create a new attribute
+        # ability to create a new attribute
         ls.xyz = 3
         self.assertEqual(ls.xyz, 3)
-        #modify a normal attribute
+        # modify a normal attribute
         ls.NormalAttribute = 'changed'
         self.assertEqual(ls.NormalAttribute, 'changed')
-        #modify a read/write property
+        # modify a read/write property
         ls.prop = 'xyz'
         self.assertEqual(ls.prop, 'xyz')
 
@@ -936,8 +936,8 @@ class FunctionWrapperTests(TestCase):
         assert c is not f
         assert c.Function is f.Function
 
-    #NOTE: deepcopy does not work for FunctionWrapper objects because you
-    #can't copy a function.
+    # NOTE: deepcopy does not work for FunctionWrapper objects because you
+    # can't copy a function.
 
 
 class _simple_container(object):
@@ -1023,12 +1023,12 @@ class ConstrainedStringTests(TestCase):
         self.assertEqual(ConstrainedString('abc', 'abcd'), 'abc')
         self.assertEqual(ConstrainedString('', 'abcd'), '')
         items = [1, 2, 3.2234, (['a'], ['b'],), 'xyz']
-        #should accept anything str() does if no constraint is passed
+        # should accept anything str() does if no constraint is passed
         self.assertEqual(ConstrainedString(items), str(items))
         self.assertEqual(ConstrainedString(items, None), str(items))
         self.assertEqual(ConstrainedString('12345'), str(12345))
         self.assertEqual(ConstrainedString(12345, '1234567890'), str(12345))
-        #check that list is formatted correctly and chars are all there
+        # check that list is formatted correctly and chars are all there
         test_list = [1, 2, 3, 4, 5]
         self.assertEqual(ConstrainedString(test_list, '][, 12345'), str(test_list))
 
@@ -1048,15 +1048,15 @@ class ConstrainedStringTests(TestCase):
         self.assertEqual(a + c, '12345')
         self.assertRaises(ConstraintError, b.__add__, c)
         self.assertRaises(ConstraintError, c.__add__, d)
-        #should be OK if constraint removed
+        # should be OK if constraint removed
         b.Constraint = None
         self.assertEqual(b + c, '44445')
         self.assertEqual(b + d, '444x')
-        #should fail if we add the constraint back
+        # should fail if we add the constraint back
         b.Constraint = '4x'
         self.assertEqual(b + d, '444x')
         self.assertRaises(ConstraintError, b.__add__, c)
-        #check that added strings retain constraint
+        # check that added strings retain constraint
         self.assertRaises(ConstraintError, (a + b).__add__, d)
 
     def test_mul(self):
@@ -1115,11 +1115,11 @@ class ConstrainedListTests(TestCase):
         self.assertEqual(ConstrainedList('abc', 'abcd'), list('abc'))
         self.assertEqual(ConstrainedList('', 'abcd'), list(''))
         items = [1, 2, 3.2234, (['a'], ['b'],), list('xyz')]
-        #should accept anything str() does if no constraint is passed
+        # should accept anything str() does if no constraint is passed
         self.assertEqual(ConstrainedList(items), items)
         self.assertEqual(ConstrainedList(items, None), items)
         self.assertEqual(ConstrainedList('12345'), list('12345'))
-        #check that list is formatted correctly and chars are all there
+        # check that list is formatted correctly and chars are all there
         test_list = list('12345')
         self.assertEqual(ConstrainedList(test_list, '12345'), test_list)
 
@@ -1138,11 +1138,11 @@ class ConstrainedListTests(TestCase):
         self.assertEqual(a + c, list('12345'))
         self.assertRaises(ConstraintError, b.__add__, c)
         self.assertRaises(ConstraintError, c.__add__, d)
-        #should be OK if constraint removed
+        # should be OK if constraint removed
         b.Constraint = None
         self.assertEqual(b + c, list('44445'))
         self.assertEqual(b + d, list('444x'))
-        #should fail if we add the constraint back
+        # should fail if we add the constraint back
         b.Constraint = {'4': 1, 5: 2}
         self.assertRaises(ConstraintError, b.__add__, c)
 
@@ -1258,14 +1258,14 @@ class ConstrainedDictTests(TestCase):
                          dict.fromkeys('abc'))
         self.assertEqual(ConstrainedDict('', 'abcd'), dict(''))
         items = [1, 2, 3.2234, tuple('xyz')]
-        #should accept anything dict() does if no constraint is passed
+        # should accept anything dict() does if no constraint is passed
         self.assertEqual(ConstrainedDict(dict.fromkeys(items)), \
                          dict.fromkeys(items))
         self.assertEqual(ConstrainedDict(dict.fromkeys(items), None), \
                          dict.fromkeys(items))
         self.assertEqual(ConstrainedDict([(x, 1) for x in '12345']), \
                          dict.fromkeys('12345', 1))
-        #check that list is formatted correctly and chars are all there
+        # check that list is formatted correctly and chars are all there
         test_dict = dict.fromkeys('12345')
         self.assertEqual(ConstrainedDict(test_dict, '12345'), test_dict)
 
@@ -1326,13 +1326,13 @@ class ConstrainedDictTests(TestCase):
         self.assertEqual(a, dict.fromkeys('12345'))
         self.assertRaises(ConstraintError, b.update, c)
         self.assertRaises(ConstraintError, c.update, d)
-        #should be OK if constraint removed
+        # should be OK if constraint removed
         b.Constraint = None
         b.update(c)
         self.assertEqual(b, dict.fromkeys('45'))
         b.update(d)
         self.assertEqual(b, {'4': None, '5': None, 'x': 'y'})
-        #should fail if we add the constraint back
+        # should fail if we add the constraint back
         b.Constraint = {'4': 1, 5: 2, '5': 1, 'x': 1}
         self.assertRaises(ConstraintError, b.update, {4: 1})
         b.update({5: 1})
@@ -1410,20 +1410,20 @@ class makeNonnegIntTests(TestCase):
         """Should return an input nonneg int unchanged"""
 
         self.assertEqual(makeNonnegInt(3), 3)
-    #end test_makeNonnegInt_unchanged
+    # end test_makeNonnegInt_unchanged
 
     def test_makeNonnegInt_castable(self):
         """Should return nonneg int version of a castable input"""
 
         self.assertEqual(makeNonnegInt(-4.2), 4)
-    #end test_makeNonnegInt_castable
+    # end test_makeNonnegInt_castable
 
     def test_makeNonnegInt_noncastable(self):
         """Should raise a special NonnegIntError if input isn't castable"""
 
         self.assertRaises(NonnegIntError, makeNonnegInt, "blue")
-    #end test_makeNonnegInt_noncastable
-#end makeNonnegIntTests
+    # end test_makeNonnegInt_noncastable
+# end makeNonnegIntTests
 
 class reverse_complementTests(TestCase):
     """Tests of the public reverse_complement function"""
@@ -1431,9 +1431,9 @@ class reverse_complementTests(TestCase):
     def test_reverse_complement_DNA(self):
         """reverse_complement should correctly return reverse complement of DNA"""
 
-        #input and correct output taken from example at 
-        #http://bioweb.uwlax.edu/GenWeb/Molecular/Seq_Anal/
-        #Reverse_Comp/reverse_comp.html
+        # input and correct output taken from example at 
+        # http://bioweb.uwlax.edu/GenWeb/Molecular/Seq_Anal/
+        # Reverse_Comp/reverse_comp.html
         user_input = "ATGCAGGGGAAACATGATTCAGGAC"
         correct_output = "GTCCTGAATCATGTTTCCCCTGCAT"
         real_output = reverse_complement(user_input)
@@ -1443,20 +1443,20 @@ class reverse_complementTests(TestCase):
         # compatibility)
         real_output = revComp(user_input)
         self.assertEqual(real_output, correct_output)
-    #end test_reverse_complement_DNA
+    # end test_reverse_complement_DNA
 
     def test_reverse_complement_RNA(self):
         """reverse_complement should correctly return reverse complement of RNA"""
 
-        #input and correct output taken from test_reverse_complement_DNA test,
-        #with all Ts changed to Us
+        # input and correct output taken from test_reverse_complement_DNA test,
+        # with all Ts changed to Us
         user_input = "AUGCAGGGGAAACAUGAUUCAGGAC"
         correct_output = "GUCCUGAAUCAUGUUUCCCCUGCAU"
 
-        #remember to use False toggle to get RNA instead of DNA
+        # remember to use False toggle to get RNA instead of DNA
         real_output = reverse_complement(user_input, False)
         self.assertEqual(real_output, correct_output)        
-    #end test_reverse_complement_RNA
+    # end test_reverse_complement_RNA
 
     def test_reverse_complement_caseSensitive(self):
         """reverse_complement should convert bases without changing case"""
@@ -1465,36 +1465,36 @@ class reverse_complementTests(TestCase):
         correct_output = "AcgTaCGt"
         real_output = reverse_complement(user_input)
         self.assertEqual(real_output, correct_output) 
-    #end test_reverse_complement_caseSensitive
+    # end test_reverse_complement_caseSensitive
 
     def test_reverse_complement_nonNucleicSeq(self):
         """reverse_complement should just reverse any chars but ACGT/U"""
 
         user_input = "BDeF"
         self.assertRaises(ValueError, reverse_complement, user_input)
-    #end test_reverse_complement_nonNucleicSeq
+    # end test_reverse_complement_nonNucleicSeq
 
     def test_reverse_complement_emptySeq(self):
         """reverse_complement should return empty string if given empty sequence"""
 
-        #shouldn't matter whether in DNA or RNA mode
+        # shouldn't matter whether in DNA or RNA mode
         real_output = reverse_complement("")
         self.assertEqual(real_output, "") 
-    #end test_reverse_complement_emptySeq
+    # end test_reverse_complement_emptySeq
 
     def test_reverse_complement_noSeq(self):
         """reverse_complement should return error if given no sequence argument"""
 
         self.assertRaises(TypeError, reverse_complement)
-    #end test_reverse_complement_noSeq
-#end reverse_complementTests
+    # end test_reverse_complement_noSeq
+# end reverse_complementTests
 
     def test_not_none(self):
         """not_none should return True if none of the items is None"""
         assert not_none([1, 2, 3, 4])
         assert not not_none([1, 2, 3, None])
         self.assertEqual(list(filter(not_none, [(1, 2), (3, None)])), [(1, 2)])
-    #end test_not_none
+    # end test_not_none
 
     def test_get_items_except(self):
         """get_items_except should return all items of seq not in indices"""
@@ -1503,11 +1503,11 @@ class reverse_complementTests(TestCase):
         self.assertEqual(get_items_except((0, 1, 2, 3, 4, 5, 6), [1, 3, 5]), (0, 2, 4, 6))
         self.assertEqual(get_items_except('a-b-c-d', [1, 3, 5], tuple),
                          ('a', 'b', 'c', 'd'))
-    #end test_get_items_except    
+    # end test_get_items_except    
 
     def test_NestedSplitter(self):
         """NestedSplitter should make a function which return expected list"""
-        #test delimiters, constructor, filter_
+        # test delimiters, constructor, filter_
         line = 'ii=0; oo= 9, 6 5;  ; xx=  8;  '
         cmds = [
             "NestedSplitter(';=,')(line)",
@@ -1528,12 +1528,12 @@ class reverse_complementTests(TestCase):
         for cmd, result in zip(cmds, results):
             self.assertEqual(eval(cmd), result)
 
-        #test uncontinous level of delimiters
-        test = 'a; b,c; d,e:f; g:h;' #g:h should get [[g,h]] instead of [g,h]
+        # test uncontinous level of delimiters
+        test = 'a; b,c; d,e:f; g:h;'  # g:h should get [[g,h]] instead of [g,h]
         self.assertEqual(NestedSplitter(';,:')(test),
                          ['a', ['b', 'c'], ['d', ['e', 'f']], [['g', 'h']], ''])
 
-        #test empty
+        # test empty
         self.assertEqual(NestedSplitter(';,:')(''), [''])
         self.assertEqual(NestedSplitter(';,:')('  '), [''])
         self.assertEqual(NestedSplitter(';,:', filter_=None)(' ;, :'), [[[]]])

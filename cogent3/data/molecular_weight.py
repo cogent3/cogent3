@@ -48,8 +48,8 @@ DnaWeights = {
     'G': 313.21,
 }
 
-ProteinWeightCorrection = 18.0          #terminal residues not dehydrated
-DnaWeightCorrection = 61.96             #assumes 5' monophosphate, 3' OH
+ProteinWeightCorrection = 18.0  # terminal residues not dehydrated
+DnaWeightCorrection = 61.96  # assumes 5' monophosphate, 3' OH
 RnaWeightCorrection = DnaWeightCorrection
 
 class WeightCalculator(object):

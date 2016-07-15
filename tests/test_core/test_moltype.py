@@ -21,13 +21,13 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-#ind some of the standard alphabets to reduce typing
+# ind some of the standard alphabets to reduce typing
 RnaBases = RNA.Alphabets.Base
 DnaBases = DNA.Alphabets.Base
 AminoAcids = PROTEIN.Alphabets.Base
 
-#the following classes are to preserve compatibility for older test code
-#that assumes mixed-case is OK.
+# the following classes are to preserve compatibility for older test code
+# that assumes mixed-case is OK.
 RnaMolType = MolType(
     Sequence=sequence.RnaSequence,
     motifset=IUPAC_RNA_chars,
@@ -257,11 +257,11 @@ class MolTypeTests(TestCase):
         self.assertEqual(DnaMolType.complement('TatCG-NR'), 'AtaGC-NY')
         self.assertEqual(RnaMolType.complement(''), '')
         self.assertRaises(TypeError, ProteinMolType.complement, 'ACD')
-        #if it wasn't a string, result should be a list
+        # if it wasn't a string, result should be a list
         self.assertEqual(RnaMolType.complement(list('UauCG-NR')), 
                          list('AuaGC-NY'))
         self.assertEqual(RnaMolType.complement(('a', 'c')), ('u', 'g')) 
-        #constructor should fail for a dict
+        # constructor should fail for a dict
         self.assertRaises(ValueError, RnaMolType.complement, {'a': 'c'})
 
     def test_rc(self):
@@ -272,11 +272,11 @@ class MolTypeTests(TestCase):
         self.assertEqual(RnaMolType.rc('UauCG-NR'), 'YN-CGauA')
         self.assertEqual(DnaMolType.rc('TatCG-NR'), 'YN-CGatA')
         self.assertRaises(TypeError, ProteinMolType.rc, 'ACD')
-        #if it wasn't a string, result should be a list
+        # if it wasn't a string, result should be a list
         self.assertEqual(RnaMolType.rc(list('UauCG-NR')),
                          list('YN-CGauA'))
         self.assertEqual(RnaMolType.rc(('a', 'c')), ('g', 'u'))
-        #constructor should fail for a dict
+        # constructor should fail for a dict
         self.assertRaises(ValueError, RnaMolType.rc, {'a': 'c'})
 
     def test_contains(self):
@@ -316,16 +316,16 @@ class MolTypeTests(TestCase):
     def test_isGap(self):
         """MolType isGap should return True if char is a gap"""
         g = RnaMolType.isGap
-        #True for the empty string
+        # True for the empty string
         self.assertFalse(g(''))
-        #True for all the standard and degenerate symbols
+        # True for all the standard and degenerate symbols
         s = 'ACGUCAGUACGUCAGNRCGAUcaguaguacYRNRYRN'
         self.assertFalse(g(s))
         for i in s:
             self.assertFalse(g(i))
-        #should be true for a single gap
+        # should be true for a single gap
         self.assertTrue(g('-'))
-        #note that it _shouldn't_ be true for a run of gaps: use a.isGapped()
+        # note that it _shouldn't_ be true for a run of gaps: use a.isGapped()
         self.assertFalse(g('--'))
 
     def test_isDegenerate(self):
@@ -423,7 +423,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(d(tuple('UCAG'), 'random'), tuple('UCAG'))
         self.assertEqual(len(s), len(t))
         self.assertSameObj(RnaMolType.firstDegenerate(t), None)
-        #should raise exception on unknown disambiguation method
+        # should raise exception on unknown disambiguation method
         self.assertRaises(NotImplementedError, d, s, 'xyz')
 
     def test_degap(self):
@@ -655,26 +655,26 @@ class RnaMolTypeTests(TestCase):
     def test_degenerateFromSequence(self):
         """RnaMolType degenerateFromSequence should give correct results"""
         d = RnaMolType.degenerateFromSequence
-        #check monomers
+        # check monomers
         self.assertEqual(d('a'), 'a')
         self.assertEqual(d('C'), 'C')
-        #check seq of monomers
+        # check seq of monomers
         self.assertEqual(d('aaaaa'), 'a')
-        #check some 2- to 4-way cases
+        # check some 2- to 4-way cases
         self.assertEqual(d('aaaaag'), 'r')
         self.assertEqual(d('ccgcgcgcggcc'), 's')
         self.assertEqual(d('accgcgcgcggcc'), 'v')
         self.assertEqual(d('aaaaagcuuu'), 'n')
-        #check some cases with gaps
+        # check some cases with gaps
         self.assertEqual(d('aa---aaagcuuu'), '?')
         self.assertEqual(d('aaaaaaaaaaaaaaa-'), '?')
         self.assertEqual(d('----------------'), '-')
-        #check mixed case example
+        # check mixed case example
         self.assertEqual(d('AaAAaa'), 'A')
-        #check example with degenerate symbols in set
+        # check example with degenerate symbols in set
         self.assertEqual(d('RS'), 'V')
         self.assertEqual(d('RN-'), '?')
-        #check that it works for proteins as well
+        # check that it works for proteins as well
         p = ProteinMolType.degenerateFromSequence
         self.assertEqual(p('A'), 'A')
         self.assertEqual(p('AAA'), 'A')

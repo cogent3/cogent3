@@ -144,7 +144,7 @@ def get_sequence(coord=None, genome=None, coord_name=None, start=None, end=None,
     try: 
         sequence = _get_sequence_from_direct_assembly(coord, DEBUG)
     except NoItemError:
-        ## means there is no assembly, so we do a thorough assembly by converting according to the "rank"
+        # means there is no assembly, so we do a thorough assembly by converting according to the "rank"
         sequence = _get_sequence_from_lower_assembly(coord, DEBUG)
 
     if strand == -1:

@@ -12,7 +12,7 @@ import numpy
 # setting global state on module load is bad practice and can be ineffective,
 # and this setting matches the defaults anyway, but left here as reference 
 # in case it needs to be put back in a more runtime way.
-#numpy.seterr(all='ignore')
+# numpy.seterr(all='ignore')
 
 import warnings
 
@@ -76,7 +76,7 @@ class PointerEncoding(object):
         assert x > 0 and y > 0, (x, y)
         (x, y) = (numpy.ceil(numpy.log2([x + 1, y + 1]))).astype(int)
         s = 8 * self.bytes - sum([x, y])
-        assert s**2 >= 4 + 1, (x, y, s) # min states required
+        assert s**2 >= 4 + 1, (x, y, s)  # min states required
         self.widths = numpy.array([x, y, s]).astype(int)
         self.limits = 2 ** self.widths
         self.max_states = self.limits[-1]
@@ -145,7 +145,7 @@ def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
                                     candidate = prev_value + transition
                                 else:
                                     candidate = prev_value * transition
-                                #if DEBUG:
+                                # if DEBUG:
                                 #    print prev_state, prev_value, state
                                 if candidate > cumulative_score:
                                     cumulative_score = candidate
@@ -160,7 +160,7 @@ def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
                     d_score = ygap_scores[bin, y]
                 else:
                     d_score = neutral_score
-                #if DEBUG:
+                # if DEBUG:
                 #    print (dx, dy), d_score, cumulative_score
                 if use_logs:
                     current_row[j, state] = cumulative_score + d_score
@@ -171,7 +171,7 @@ def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
                 if (i == i_high - 1 and j == j_high - 1 and not local) or (
                         local and dx and dy and current_row[j, state] > best_score):
                     (best, best_score) = (((i, j), state), current_row[j, state])
-    #if DEBUG:
+    # if DEBUG:
     #    print i_low, i_high, j_low, j_high
     #    print 'best_score %5.1f  at  %s' % (numpy.log(best_score), best)
     if not use_logs:
@@ -338,7 +338,7 @@ class Pair(object):
                  T, scores, rows, track, track_encoding, viterbi, **kw):
         (match_scores, (xscores, yscores)) = scores
         track_enc = track_encoding and track_encoding.positions
-        #print T
+        # print T
         return self.aligner(self.plan, self.x_index, self.y_index,
                             i_low, i_high, j_low, j_high, self.children, state_directions,
                             T, xscores, yscores, match_scores, rows, track, 
@@ -502,14 +502,14 @@ class AlignableSeq(_Alignable):
                 return [index - 1]
             else:
                 raise IndexError(index)
-        #elif index == slice(None, None, None):
+        # elif index == slice(None, None, None):
         #    return self
         else:
             return AlignableSeq(self.leaf[index])
 
     def midlinks(self):
         half = len(self.leaf) // 2
-        return  [(half, half)]
+        return [(half, half)]
 
     def getOuterLoopDiscardPoints(self):
         return [[]] + [[i] for i in range(len(self) - 1)]
@@ -531,8 +531,8 @@ def adaptPairTM(pairTM, finite=False):
         T = pairTM.Matrix
         full_matrix = numpy.zeros([len(T) + 2, len(T) + 2], float)
         full_matrix[1:-1, 1:-1] = T
-        full_matrix[0, 1:-1] = stationary_probs # from BEGIN
-        full_matrix[:, -1] = 1.0  #  to END
+        full_matrix[0, 1:-1] = stationary_probs  # from BEGIN
+        full_matrix[:, -1] = 1.0  # to END
         T = full_matrix
         state_directions_list = list(enumerate(pairTM.Tags))
 
@@ -797,7 +797,7 @@ class PairEmissionProbs(object):
 
     def getAlignable(self, aligned_positions, ratio=None):
         assert ratio is None, "already 2-branched"
-        children = self.pair.children # alignables
+        children = self.pair.children  # alignables
         leaves = [c.leaf for c in children]
         aligned_positions = [posn for (bin, posn) in aligned_positions]
         pog = self.pair.getPOG(aligned_positions)
@@ -805,7 +805,7 @@ class PairEmissionProbs(object):
         (plhs, gapscores) = self.makePartialLikelihoods(use_cost_function=False)
         plh = self.pair.edge2plh(edge, plhs)
         assert len(plh) == 1, ('bins!', len(plh))
-        leaf = edge.asLeaf(plh[0]) # like profile
+        leaf = edge.asLeaf(plh[0])  # like profile
         return AlignablePOG(leaf, pog, children)
 
     def makePairHMM(self, transition_matrix, finite=False):
@@ -930,7 +930,7 @@ class PairHMM(object):
         return VP(self, result)
 
     def getViterbiScoreAndAlignment(self, ratio=None, posterior_probs=False, **kw):
-        #deprecated('method', 'getViterbiScoreAndAlignment', 
+        # deprecated('method', 'getViterbiScoreAndAlignment', 
         #        'getViterbiPath().getAlignment()', '1.8', stack_level=3)
         assert ratio in [None, 0.5], ratio
         vpath = self.getViterbiPath(**kw)

@@ -129,7 +129,7 @@ class PhylipWriter(_AlignmentWriter):
               print in.
         (Assumes complete and correct list of names)
         """
-        #setup
+        # setup
         if not order:
             order = list(alignmentdict.keys())
         self.setaligninfo(alignmentdict, order)
@@ -171,16 +171,16 @@ class PamlWriter(_AlignmentWriter):
         (Assumes order is a complete and correct list of names)
         """
 
-        #setup
+        # setup
         if not order:
             order = list(alignmentdict.keys())
         self.setaligninfo(alignmentdict, order)
         self.setblocksize(block_size)
 
-        #header
+        # header
         self.file.write('%d  %d\n' % (self.number_sequences, self.align_length))
 
-        #sequences
+        # sequences
         for seq in self.align_order:
             self.file.writelines('%s\n%s' % (seq, self.wrapstringtoblocksize(alignmentdict[seq], altblocksize=block_size)))
 
@@ -198,13 +198,13 @@ class FastaWriter(_AlignmentWriter):
 
         (Assumes complete and correct list of names)
         """
-        #setup
+        # setup
         if not order:
             order = list(alignmentdict.keys())
         self.setaligninfo(alignmentdict, order)
         self.setblocksize(block_size)
 
-        #sequences
+        # sequences
         for seq in self.align_order:
             self.file.writelines('>%s\n%s' % (seq,
                                               self.wrapstringtoblocksize(alignmentdict[seq],
@@ -225,7 +225,7 @@ class GDEWriter(_AlignmentWriter):
         (Assumes complete and correct list of names)
         """
 
-        #setup
+        # setup
         if not order:
             order = list(alignmentdict.keys())
         self.setaligninfo(alignmentdict, order)

@@ -14,15 +14,15 @@ import warnings
 def MsfParser(f):
     """Read sequences from a msf format file"""
     alignmentdict = {}
-    #parse optional header
-    #parse optional text information
-    #file header and sequence header are seperated by a line ending in '..'
+    # parse optional header
+    # parse optional text information
+    # file header and sequence header are seperated by a line ending in '..'
     line = f.readline().strip()
     for line in f:
         line = line.strip()
         if line.endswith('..'):
             break
-    #parse sequence info
+    # parse sequence info
     seqinfo = {}
     for line in f:
         line = line.strip()
@@ -31,7 +31,7 @@ def MsfParser(f):
         line = line.split()
         if line and line[0] == 'Name:':
             seqinfo[line[1]] = int(line[3])
-    #parse sequences
+    # parse sequences
     sequences = {}
     for line in f:
         line = line.strip().split()
@@ -39,7 +39,7 @@ def MsfParser(f):
             sequences[line[0]] += ''.join(line[1:])
         elif line and line[0] in seqinfo:
             sequences[line[0]] = ''.join(line[1:])
-    #consistency check
+    # consistency check
     if len(sequences) != len(seqinfo):
         warnings.warn("Number of loaded seqs[%s] not same as "\
                       "expected[%s]." % (len(sequences), len(seqinfo)))
@@ -48,6 +48,6 @@ def MsfParser(f):
             warnings.warn("Length of loaded seqs [%s] is [%s] not "\
                           "[%s] as expected." % (name, len(sequences[name]), seqinfo[name]))
 
-    #yield sequences
+    # yield sequences
     for name in sequences:
         yield (name, sequences[name])

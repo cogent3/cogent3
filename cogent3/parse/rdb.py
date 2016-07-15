@@ -50,7 +50,7 @@ def InfoMaker(header_lines):
     info = Info()
     for line in header_lines:
         all = line.strip().split(':', 1)
-        #strip out empty lines, lines without name, lines without colon
+        # strip out empty lines, lines without name, lines without colon
         if not all[0] or len(all) != 2: 
             continue
         try:
@@ -76,7 +76,7 @@ def MinimalRdbParser(infile, strict=True):
         index = None
         for line in rec:
             if is_seq_label(line):
-                index = rec.index(line) + 1 #index of first sequence line
+                index = rec.index(line) + 1  # index of first sequence line
 
         # if there is no line that starts with 'seq:' throw error or skip
         if not index:
@@ -87,11 +87,11 @@ def MinimalRdbParser(infile, strict=True):
                 continue
 
         headerLines = rec[:index]
-        sequence = ''.join(rec[index:-1]) #strip off the delimiter
+        sequence = ''.join(rec[index:-1])  # strip off the delimiter
         if sequence.endswith('*'):
-            sequence = sequence[:-1] #strip off '*'
+            sequence = sequence[:-1]  # strip off '*'
 
-        #if there are no sequences throw error or skip
+        # if there are no sequences throw error or skip
         if not sequence:
             if strict:
                 raise RecordError("Found Rdb record without sequences: %s"\
@@ -113,7 +113,7 @@ def create_acceptable_sequence(sequence):
     trans_table = dict([(ord(c), None) for c in "{}[]()^"])
     trans_table[ord("o")] = ord('?')
     # strip out secondary structure annotation {}[]()^
-    return sequence.translate(trans_table) #should be accepted by RnaSequence
+    return sequence.translate(trans_table)  # should be accepted by RnaSequence
 
 
 def RdbParser(lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker, \
@@ -137,7 +137,7 @@ def RdbParser(lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker, \
         # add original raw sequence to info
         info['OriginalSeq'] = sequence
         if strict:
-            #need to do error checking while constructing info and sequence
+            # need to do error checking while constructing info and sequence
             try:
                 yield SeqConstructor(clean_seq, Info=info)
             except AlphabetError:
@@ -145,7 +145,7 @@ def RdbParser(lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker, \
                     "Sequence construction failed on record with reference %s."\
                     % (info.Refs))
         else:
-            #not strict: just skip any record that raises an exception
+            # not strict: just skip any record that raises an exception
             try:
                 yield SeqConstructor(clean_seq, Info=info)
             except:

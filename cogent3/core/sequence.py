@@ -42,7 +42,7 @@ __status__ = "Production"
 
 ARRAY_TYPE = type(array(1))
 
-#standard distance functions: left  because generally useful
+# standard distance functions: left  because generally useful
 frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
 frac_diff = for_seq(f=ne, aggregator=sum, normalizer=per_shortest)
 
@@ -53,10 +53,10 @@ class SequenceI(object):
     Specifies methods that Sequence delegates to its MolType, and methods for
     detecting gaps.
     """
-    #String methods delegated to self._seq -- remember to override if self._seq
-    #isn't a string in your base class, but it's probably better to make
-    #self._seq a property that contains the string.
-    LineWrap = None #used for formatting FASTA strings
+    # String methods delegated to self._seq -- remember to override if self._seq
+    # isn't a string in your base class, but it's probably better to make
+    # self._seq a property that contains the string.
+    LineWrap = None  # used for formatting FASTA strings
     def __str__(self):
         """__str__ returns self._seq unmodified."""
         return self._seq
@@ -141,7 +141,7 @@ class SequenceI(object):
 
         If char is not supplied, tests whether self is gaps only.
         """
-        if char is None:    #no char - so test if self is all gaps
+        if char is None:  # no char - so test if self is all gaps
             return len(self) == self.countGaps()
         else:
             return self.MolType.isGap(char)
@@ -327,7 +327,7 @@ class SequenceI(object):
         these functions and that acts on two complete sequences.
         """
         if function is None:
-            #use identity scoring function
+            # use identity scoring function
             function = lambda a, b: a != b
         distance = 0
         for first, second in zip(self, other):
@@ -420,7 +420,7 @@ class SequenceI(object):
 
         if count:
             return identities / count
-        else:   #there were no positions that weren't gaps
+        else:  # there were no positions that weren't gaps
             return 0
 
     def fracDiffNonGaps(self, other):
@@ -448,7 +448,7 @@ class SequenceI(object):
 
         if count:
             return diffs / count
-        else:   #there were no positions that weren't gaps
+        else:  # there were no positions that weren't gaps
             return 0
 
     def fracSimilar(self, other, similar_pairs):
@@ -482,7 +482,7 @@ class SequenceI(object):
                     first_nongap = i
                 last_nongap = i
         missing = self.MolType.Missing
-        if first_nongap is None:    #sequence was all gaps
+        if first_nongap is None:  # sequence was all gaps
             result = self.__class__([missing for i in len(self)], Info=self.Info)
         else:
             prefix = missing * first_nongap
@@ -494,7 +494,7 @@ class SequenceI(object):
 @total_ordering
 class Sequence(_Annotatable, SequenceI):
     """Holds the standard Sequence object. Immutable."""
-    MolType = None      #connected to ACSII when moltype is imported
+    MolType = None  # connected to ACSII when moltype is imported
 
     def __init__(self, Seq='', Name=None, Info=None, check=True, \
                  preserve_case=False, gaps_allowed=True, wildcards_allowed=True):
@@ -552,7 +552,7 @@ class Sequence(_Annotatable, SequenceI):
         return {}
         #dict([(motif,colours.black) for motif in self.MolType])
 
-    def getColorScheme(self, colors):   #alias to support US spelling
+    def getColorScheme(self, colors):  # alias to support US spelling
         return self.getColourScheme(colours=colors)
 
     def copyAnnotations(self, other):
@@ -763,8 +763,8 @@ class ProteinWithStopSequence(Sequence):
 
 class NucleicAcidSequence(Sequence):
     """Base class for DNA and RNA sequences. Abstract."""
-    PROTEIN = None #will set in moltype
-    CodonAlphabet = None   #will set in moltype
+    PROTEIN = None  # will set in moltype
+    CodonAlphabet = None  # will set in moltype
     def reversecomplement(self):
         """Converts a nucleic acid sequence to its reverse complement.
         Synonymn for rc."""
@@ -945,10 +945,10 @@ class ModelSequenceBase(object):
     because it is often important to store just a subset of the possible
     characters (e.g. the non-degenerate bases) for modeling purposes.
     """
-    Alphabet = None     #REPLACE IN SUBCLASSES
-    MolType = None      #REPLACE IN SUBCLASSES
-    Delimiter = ''      #Used for string conversions
-    LineWrap = 80       #Wrap sequences at 80 characters by default.
+    Alphabet = None  # REPLACE IN SUBCLASSES
+    MolType = None  # REPLACE IN SUBCLASSES
+    Delimiter = ''  # Used for string conversions
+    LineWrap = 80  # Wrap sequences at 80 characters by default.
 
     def __init__(self, data='', Alphabet=None, Name=None, Info=None, \
                  check='ignored'):
@@ -965,22 +965,22 @@ class ModelSequenceBase(object):
             Name = data.Name
         if Info is None and hasattr(data, 'Info'):
             Info = data.Info
-        #set the label
+        # set the label
         self.Name = Name
-        #override the class alphabet if supplied
+        # override the class alphabet if supplied
         if Alphabet is not None:
             self.Alphabet = Alphabet
-        #if we haven't already set self._data (e.g. in a subclass __init__),
-        #guess the data type and set it here
+        # if we haven't already set self._data (e.g. in a subclass __init__),
+        # guess the data type and set it here
         if not hasattr(self, '_data'):
-            #if data is a sequence, copy its data and alphabet
+            # if data is a sequence, copy its data and alphabet
             if isinstance(data, ModelSequence):
                 self._data = data._data
                 self.Alphabet = data.Alphabet
-            #if it's an array
+            # if it's an array
             elif type(data) == ARRAY_TYPE:
                 self._data = data
-            else:    #may be set in subclass init
+            else:  # may be set in subclass init
                 self._from_sequence(data)
 
         self.MolType = self.Alphabet.MolType
@@ -1165,7 +1165,7 @@ class ModelSequenceBase(object):
         these functions and that acts on two complete sequences.
         """
         if function is None:
-            #use identity scoring
+            # use identity scoring
             shortest = min(len(self), len(other))
             if not hasattr(other, '_data'):
                 other = self.__class__(other)
@@ -1371,8 +1371,8 @@ class ModelNucleicAcidSequence(ModelSequence):
 
 
 class ModelRnaSequence(ModelNucleicAcidSequence):
-    MolType = None  #set to RNA in moltype.py
-    Alphabet = None #set to RNA.Alphabets.DegenGapped in moltype.py
+    MolType = None  # set to RNA in moltype.py
+    Alphabet = None  # set to RNA.Alphabets.DegenGapped in moltype.py
 
     def __init__(self, data='', *args, **kwargs):
         """Returns new ModelRnaSequence, converting T -> U"""
@@ -1382,8 +1382,8 @@ class ModelRnaSequence(ModelNucleicAcidSequence):
                                                               *args, **kwargs)
 
 class ModelDnaSequence(ModelNucleicAcidSequence):
-    MolType = None  #set to DNA in moltype.py
-    Alphabet = None #set to DNA.Alphabets.DegenGapped in moltype.py
+    MolType = None  # set to DNA in moltype.py
+    Alphabet = None  # set to DNA.Alphabets.DegenGapped in moltype.py
 
     def __init__(self, data='', *args, **kwargs):
         """Returns new ModelRnaSequence, converting U -> T"""
@@ -1403,7 +1403,7 @@ class ModelCodonSequence(ModelSequence):
 
     def _from_string(self, s):
         """Reads from a raw string, rather than a DnaSequence."""
-        s = s.upper().replace('U', 'T')    #convert to uppercase DNA
+        s = s.upper().replace('U', 'T')  # convert to uppercase DNA
         d = self.SequenceClass(s, \
                                Alphabet=self.Alphabet.SubEnumerations[0])
         self._data = d.toCodons()._data
@@ -1438,25 +1438,25 @@ class ModelCodonSequence(ModelSequence):
 
 class ModelDnaCodonSequence(ModelCodonSequence):
     """Holds non-degenerate DNA codon sequence."""
-    Alphabet = None #set to DNA.Alphabets.Base.Triples in moltype.py
+    Alphabet = None  # set to DNA.Alphabets.Base.Triples in moltype.py
     SequenceClass = ModelDnaSequence
 
 class ModelRnaCodonSequence(ModelCodonSequence):
     """Holds non-degenerate DNA codon sequence."""
-    Alphabet = None #set to RNA.Alphabets.Base.Triples in motype.py
+    Alphabet = None  # set to RNA.Alphabets.Base.Triples in motype.py
     SequenceClass = ModelRnaSequence
 
     def _from_string(self, s):
         """Reads from a raw string, rather than a DnaSequence."""
-        s = s.upper().replace('T', 'U')    #convert to uppercase DNA
+        s = s.upper().replace('T', 'U')  # convert to uppercase DNA
         d = self.SequenceClass(s, \
                                Alphabet=self.Alphabet.SubEnumerations[0])
         self._data = d.toCodons()._data
 
 class ModelProteinSequence(ModelSequence):
-    MolType = None  #set to PROTEIN in moltype.py
-    Alphabet = None #set to PROTEIN.Alphabets.DegenGapped in moltype.py
+    MolType = None  # set to PROTEIN in moltype.py
+    Alphabet = None  # set to PROTEIN.Alphabets.DegenGapped in moltype.py
 
 class ModelProteinWithStopSequence(ModelSequence):
-    MolType = None #set to PROTEIN_WITH_STOP in moltype.py
-    Alphabet = None #set to PROTEIN_WITH_STOP.Alphabets.DegenGapped in moltype.py
+    MolType = None  # set to PROTEIN_WITH_STOP in moltype.py
+    Alphabet = None  # set to PROTEIN_WITH_STOP.Alphabets.DegenGapped in moltype.py

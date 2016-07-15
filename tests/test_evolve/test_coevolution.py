@@ -65,7 +65,7 @@ class CoevolutionTests(TestCase):
     def setUp(self):
         """Set up variables for us in tests """
         self.run_slow_tests = int(environ.get('TEST_SLOW_APPC', 0))
-        ## Data used in SCA tests
+        # Data used in SCA tests
         self.dna_aln = DenseAlignment(data=list(zip(\
             list(range(4)), ['ACGT', 'AGCT', 'ACCC', 'TAGG'])), MolType=DNA)
         self.rna_aln = DenseAlignment(data=list(zip(\
@@ -932,8 +932,8 @@ class CoevolutionTests(TestCase):
     def test_is_parsimony_informative_non_default(self):
         """ is_parsimony_informative functions w non default paramters
         """
-        ## NEED TO UPDATE THESE TESTS BASED ON MY ERROR IN THE 
-        ## DEFINITION OF PARSIMONY INFORMATIVE.
+        # NEED TO UPDATE THESE TESTS BASED ON MY ERROR IN THE 
+        # DEFINITION OF PARSIMONY INFORMATIVE.
         # changed minimum_count
         freqs = {'A': 25, 'B': 2}
         self.assertFalse(is_parsimony_informative(freqs,\
@@ -1320,18 +1320,18 @@ class CoevolutionTests(TestCase):
 
     def test_freqs_to_array(self):
         """freqs_to_array: should convert Freqs object to array"""
-        #should work with empty object
+        # should work with empty object
         f = Freqs()
         f2a = freqs_to_array
         self.assertFloatEqual(f2a(f, AAGapless), zeros(20))
-        #should work with full object, omitting unwanted keys
+        # should work with full object, omitting unwanted keys
         f = Freqs({'A': 20, 'Q': 30, 'X': 20})
         expected = zeros(20)
         expected[AAGapless.index('A')] = 20
         expected[AAGapless.index('Q')] = 30
         self.assertFloatEqual(expected, f2a(f, AAGapless))
 
-        #should work for normal dict and any alphabet
+        # should work for normal dict and any alphabet
         d = {'A': 3, 'D': 1, 'C': 5, 'E': 2}
         alpha = "ABCD"
         exp = array([3, 0, 5, 1])
@@ -1605,8 +1605,8 @@ class CoevolutionTests(TestCase):
         sca_input_validation(self.dna_aln, cutoff=0.50, alphabet='A',\
                              background_freqs={'A': 1.0})
 
-        ## Note: don't need a full set of tests of validate_alphabet here --
-        ## it's tested on it's own.
+        # Note: don't need a full set of tests of validate_alphabet here --
+        # it's tested on it's own.
 
     def test_sca_pair_no_error(self):
         """sca_pair: returns w/o error """
@@ -1685,7 +1685,7 @@ class CoevolutionTests(TestCase):
                          alphabet='ACGT', background_freqs=self.dna_base_freqs)
         self.assertFloatEqual(r[1], 3.387, 0.01)
 
-        ## same tests, but called via coevolve_position
+        # same tests, but called via coevolve_position
         r = coevolve_position(sca_position, self.dna_aln, 1, cutoff=0.50,\
                               alphabet='ACGT', background_freqs=self.dna_base_freqs)
         # sanity check -- coupling w/ self
@@ -1742,7 +1742,7 @@ class CoevolutionTests(TestCase):
         # sanity check -- coupling w/ self
         self.assertFloatEqual(r[0][0], 2.32222608171)
 
-        ## same test, but called via coevolve_alignment
+        # same test, but called via coevolve_alignment
         r = coevolve_alignment(sca_alignment, self.dna_aln,\
                                cutoff=0.50, alphabet='ACGT',\
                                background_freqs=self.dna_base_freqs)
@@ -2466,7 +2466,7 @@ ALN_FILE_WRONG_KEY =\
 Seq_2   JINCK-
 Seq_3 VX.MAB"""
 
-#last seq too long
+# last seq too long
 ALN_FILE_INC_SHAPE =\
     """Seq_1   ACDKLM
 Seq_2   LINCK-

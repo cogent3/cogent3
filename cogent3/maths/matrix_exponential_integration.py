@@ -40,7 +40,7 @@ class VanLoanIntegratingExponentiator(_Exponentiator):
         if R is None:
             self.R = identity(Qdim)
         else:
-            if len(R.shape) == 1: # Be kind to rank-1 arrays
+            if len(R.shape) == 1:  # Be kind to rank-1 arrays
                 self.R = R.reshape((R.shape[0], 1))
             else:
                 self.R = R

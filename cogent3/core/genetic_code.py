@@ -51,9 +51,9 @@ class GeneticCode(object):
 
     GeneticCode is immutable once created.
     """
-    #class data: need the bases, the list of codons in UUU -> GGG order, and
-    #a mapping from positions in the list back to codons. These should be the
-    #same for all GeneticCode instances, and are immutable (therefore private).
+    # class data: need the bases, the list of codons in UUU -> GGG order, and
+    # a mapping from positions in the list back to codons. These should be the
+    # same for all GeneticCode instances, and are immutable (therefore private).
     _nt = _bases
     _codons = tuple(map("".join, product(_bases, _bases, _bases)))
 
@@ -79,7 +79,7 @@ class GeneticCode(object):
         self.StartCodons = start_codons
         codon_lookup = dict(list(zip(self._codons, CodeSequence)))
         self.Codons = codon_lookup
-        #create synonyms for each aa
+        # create synonyms for each aa
         aa_lookup = {}
         for codon in self._codons:
             aa = codon_lookup[codon]
@@ -89,12 +89,12 @@ class GeneticCode(object):
                 aa_lookup[aa].append(codon)
         self.Synonyms = aa_lookup
         sense_codons = codon_lookup.copy()
-        #create sense codons
+        # create sense codons
         stop_codons = self['*']
         for c in stop_codons:
             del sense_codons[c]
         self.SenseCodons = sense_codons
-        #create anticodons    
+        # create anticodons    
         ac = {}
         for aa, codons in list(self.Synonyms.items()):
             ac[aa] = list(map(_simple_rc, codons))
@@ -163,7 +163,7 @@ class GeneticCode(object):
             curr_codons = []
             curr_aa = []
             for index, codon, aa in zip(list(range(64)), self._codons, self.CodeSequence):
-                #we're in a new block if it's a new quartet or a different aa
+                # we're in a new block if it's a new quartet or a different aa
                 new_quartet = not index % 4
                 if new_quartet and curr_codons:
                     blocks.extend(self._analyze_quartet(curr_codons, curr_aa))
@@ -171,7 +171,7 @@ class GeneticCode(object):
                     curr_aa = []
                 curr_codons.append(codon)
                 curr_aa.append(aa)
-            #don't forget to append last block
+            # don't forget to append last block
             if curr_codons:
                 blocks.extend(self._analyze_quartet(curr_codons, curr_aa))
             self._blocks = blocks
@@ -199,9 +199,9 @@ class GeneticCode(object):
         Returns [] for empty list of codons, 'X' for unknown amino acid.
         """
         item = str(item)
-        if len(item) == 1:  #amino acid
+        if len(item) == 1:  # amino acid
             return self.Synonyms.get(item, [])
-        elif len(item) == 3:    #codon
+        elif len(item) == 3:  # codon
             key = item.upper()
             key = key.replace('U', 'T')
             return self.Codons.get(key, 'X')
@@ -261,7 +261,7 @@ class GeneticCode(object):
         changes = {}
         try:
             other_code = other.CodeSequence
-        except AttributeError:  #try using other directly as sequence
+        except AttributeError:  # try using other directly as sequence
             other_code = other
         for codon, old, new in zip(self._codons, self.CodeSequence, other_code):
             if old != new:
@@ -373,9 +373,9 @@ NcbiGeneticCodeData = [GeneticCode(*data) for data in [
     ],
 ]]
 
-#build dict of GeneticCodes keyed by ID (as int, not str)
+# build dict of GeneticCodes keyed by ID (as int, not str)
 GeneticCodes = dict([(i.ID, i) for i in NcbiGeneticCodeData])
-#add str versions for convenience
+# add str versions for convenience
 for key, value in list(GeneticCodes.items()):
     GeneticCodes[str(key)] = value
 

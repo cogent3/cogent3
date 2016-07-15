@@ -102,16 +102,16 @@ def coords_to_symmetry(coords, fmx, omx, mxs, mode):
         - mode: if mode 'table' assumes rotation matrices operate on 
           fractional coordinates (like in crystallographic tables).
     """
-    all_coords = [coords] # the first matrix is identity
-    if mode == 'fractional': # working with fractional matrices
+    all_coords = [coords]  # the first matrix is identity
+    if mode == 'fractional':  # working with fractional matrices
         coords = dot(coords, fmx.transpose())
     # add column of 1.    
     coords4 = c_[coords, array([ones(len(coords))]).transpose()]
-    for i in range(1, len(mxs)): # skip identity
+    for i in range(1, len(mxs)):  # skip identity
         rot_mx = mxs[i].transpose()
-        new_coords = dot(coords4, rot_mx)[:, :3] # rotate and translate, remove
+        new_coords = dot(coords4, rot_mx)[:, :3]  # rotate and translate, remove
         if mode == 'fractional':                 # ones column
-            new_coords = dot(new_coords, omx.transpose()) # return to orthogonal
+            new_coords = dot(new_coords, omx.transpose())  # return to orthogonal
         all_coords.append(new_coords)
     # a vstack(arrays) with a following reshape is faster then 
     # the equivalent creation of a new array via array(arrays).
@@ -129,8 +129,8 @@ def coords_to_crystal(coords, fmx, omx, n=1):
         - omx: orthogonalization matrix
         - n: number of layers of unit-cells == (2*n+1)^2 unit-cells
     """
-    rng = list(range(-n, n + 1)) # a range like -2, -1, 0, 1, 2
-    fcoords = dot(coords, fmx.transpose()) # fractionalize 
+    rng = list(range(-n, n + 1))  # a range like -2, -1, 0, 1, 2
+    fcoords = dot(coords, fmx.transpose())  # fractionalize 
     vectors = [(x, y, z) for x in rng for y in rng for z in rng]
     # looking for the center Thickened cube numbers: 
     # a(n)=n*(n^2+(n-1)^2)+(n-1)*2*n*(n-1) ;)
@@ -141,7 +141,7 @@ def coords_to_crystal(coords, fmx, omx, n=1):
     # the equivalent creation of a new array via array(arrays) 
     all_coords = vstack(all_coords).reshape((len(all_coords), \
                                              coords.shape[0], coords.shape[1], 3))
-    all_coords = dot(all_coords, omx.transpose()) # orthogonalize
+    all_coords = dot(all_coords, omx.transpose())  # orthogonalize
     return all_coords
 
 

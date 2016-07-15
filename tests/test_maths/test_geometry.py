@@ -40,9 +40,9 @@ class CenterOfMassTests(TestCase):
     def test_CoM_one_array_wrong(self):
         """center_of_mass_one_array should fail on wrong input"""
         com1 = center_of_mass_one_array
-        self.assertRaises(TypeError, com1, self.simple, 'a') #weight_idx wrong
-        self.assertRaises(IndexError, com1, self.simple, 100) #w_idx out of range
-        self.assertRaises(IndexError, com1, [1, 2, 3], 2) #shape[1] out of range
+        self.assertRaises(TypeError, com1, self.simple, 'a')  # weight_idx wrong
+        self.assertRaises(IndexError, com1, self.simple, 100)  # w_idx out of range
+        self.assertRaises(IndexError, com1, [1, 2, 3], 2)  # shape[1] out of range
 
     def test_center_of_mass_two_array(self):
         """center_of_mass_two_array should behave correctly"""
@@ -57,8 +57,8 @@ class CenterOfMassTests(TestCase):
         """center_of_mass_two_array should fail on wrong input"""
         com2 = center_of_mass_two_array
         weights = [1, 2]
-        self.assertRaises(TypeError, com2, self.simple, 'a') #weight_idx wrong
-        self.assertRaises(ValueError, com2, self.simple, weights) #not aligned
+        self.assertRaises(TypeError, com2, self.simple, 'a')  # weight_idx wrong
+        self.assertRaises(ValueError, com2, self.simple, weights)  # not aligned
 
     def test_center_of_mass(self):
         """center_of_mass should make right choice between functional methods
@@ -77,18 +77,18 @@ class CenterOfMassTests(TestCase):
 
     def test_distance(self):
         """distance should return Euclidean distance correctly."""
-        #for single dimension, should return difference
+        # for single dimension, should return difference
         a1 = array([3])
         a2 = array([-1])
         self.assertEqual(distance(a1, a2), 4)
-        #for two dimensions, should work e.g. for 3, 4, 5 triangle
+        # for two dimensions, should work e.g. for 3, 4, 5 triangle
         a1 = array([0, 0])
         a2 = array([3, 4])
         self.assertEqual(distance(a1, a2), 5)
-        #vector should be the same as itself for any dimensions
+        # vector should be the same as itself for any dimensions
         a1 = array([1.3, 23, 5.4, 2.6, -1.2])
         self.assertEqual(distance(a1, a1), 0)
-        #should match hand-calculated case for an array
+        # should match hand-calculated case for an array
         a1 = array([[1, -2], [3, 4]])
         a2 = array([[1, 0], [-1, 2.5]])
         self.assertEqual(distance(a1, a1), 0)

@@ -74,7 +74,7 @@ def pkolmogorov2x(statistic, n):
 
 def pkstwo(x_vector, tolerance=1e-6):
     """Probability from the Kolmogorov asymptotic distribution."""
-    #if isinstance(x_vector, float):
+    # if isinstance(x_vector, float):
     #    x_vector = asarray(x_vector)
     x_vector = array(x_vector, ndmin=1)
     size = len(x_vector)
@@ -108,7 +108,7 @@ def psmirnov2x(statistic, least, most):
     q = floor(statistic * most * least - 1e-7) / (least * most)
     u_vector = zeros(most + 1, 'd')
     for j in range(most + 1):
-        #SUPPORT2425
+        # SUPPORT2425
         u_vector[j] = [1, 0][int(j / most > q)]
     for i in range(1, least + 1):
         w = i / (i + most)

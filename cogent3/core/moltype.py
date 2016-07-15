@@ -77,7 +77,7 @@ IUPAC_DNA_ambiguities_complements = {
     'R': 'Y', 'Y': 'R',
     'W': 'W',
     'S': 'S',
-    'X': 'X', # not technically an IUPAC ambiguity, but used by repeatmasker
+    'X': 'X',  # not technically an IUPAC ambiguity, but used by repeatmasker
     'V': 'B', 'B': 'V',
     'H': 'D', 'D': 'H'
 }
@@ -91,7 +91,7 @@ IUPAC_DNA_complements = {
 }
 
 
-IUPAC_RNA_chars = ['U', 'C', 'A', 'G']     #note change in standard order from DNA
+IUPAC_RNA_chars = ['U', 'C', 'A', 'G']  # note change in standard order from DNA
 IUPAC_RNA_ambiguities = {
     'N': ('A', 'C', 'U', 'G'),
     'R': ('A', 'G'),
@@ -113,7 +113,7 @@ IUPAC_RNA_ambiguities_complements = {
     'R': 'Y', 'Y': 'R',
     'W': 'W',
     'S': 'S',
-    'X': 'X', # not technically an IUPAC ambiguity, but used by repeatmasker
+    'X': 'X',  # not technically an IUPAC ambiguity, but used by repeatmasker
     'V': 'B', 'B': 'V',
     'H': 'D', 'D': 'H'
 }
@@ -123,9 +123,9 @@ IUPAC_RNA_complements = {
 }
 
 
-#Standard RNA pairing: GU pairs count as 'weak' pairs
+# Standard RNA pairing: GU pairs count as 'weak' pairs
 RnaStandardPairs = {
-    ('A', 'U'): True,    #True vs False for 'always' vs 'sometimes' pairing
+    ('A', 'U'): True,  # True vs False for 'always' vs 'sometimes' pairing
     ('C', 'G'): True,
     ('G', 'C'): True,
     ('U', 'A'): True,
@@ -133,7 +133,7 @@ RnaStandardPairs = {
     ('U', 'G'): False,
 }
 
-#Watson-Crick RNA pairing only: GU pairs don't count as pairs
+# Watson-Crick RNA pairing only: GU pairs don't count as pairs
 RnaWCPairs = {
     ('A', 'U'): True,
     ('C', 'G'): True,
@@ -141,7 +141,7 @@ RnaWCPairs = {
     ('U', 'A'): True,
 }
 
-#RNA pairing with GU counted as standard pairs
+# RNA pairing with GU counted as standard pairs
 RnaGUPairs = {
     ('A', 'U'): True,
     ('C', 'G'): True,
@@ -151,7 +151,7 @@ RnaGUPairs = {
     ('U', 'G'): True,
 }
 
-#RNA pairing with GU, AA, GA, CA and UU mismatches allowed as weak pairs
+# RNA pairing with GU, AA, GA, CA and UU mismatches allowed as weak pairs
 RnaExtendedPairs = {
     ('A', 'U'): True,
     ('C', 'G'): True,
@@ -166,7 +166,7 @@ RnaExtendedPairs = {
     ('A', 'C'): False,
     ('U', 'U'): False,
 }
-#Standard DNA pairing: only Watson-Crick pairs count as pairs
+# Standard DNA pairing: only Watson-Crick pairs count as pairs
 DnaStandardPairs = {
     ('A', 'T'): True,
     ('C', 'G'): True,
@@ -209,25 +209,25 @@ def make_matches(monomers=None, gaps=None, degenerates=None):
     match (e.g. A always matches A, but W sometimes matches R).
     """
     result = {}
-    #allow defaults to be left blank without problems
+    # allow defaults to be left blank without problems
     monomers = monomers or {}
     gaps = gaps or {}
     degenerates = degenerates or {}
-    #all monomers always match themselves and no other monomers
+    # all monomers always match themselves and no other monomers
     for i in monomers:
         result[(i, i)] = True
-    #all gaps always match all other gaps
+    # all gaps always match all other gaps
     for i in gaps:
-        for j  in gaps:
+        for j in gaps:
             result[(i, j)] = True
-    #monomers sometimes match degenerates that contain them
+    # monomers sometimes match degenerates that contain them
     for i in monomers:
         for j in degenerates:
             if i in degenerates[j]:
                 result[(i, j)] = False
                 result[(j, i)] = False
-    #degenerates sometimes match degenerates that contain at least one of
-    #the same monomers
+    # degenerates sometimes match degenerates that contain at least one of
+    # the same monomers
     for i in degenerates:
         for j in degenerates:
             try:
@@ -236,7 +236,7 @@ def make_matches(monomers=None, gaps=None, degenerates=None):
                         result[(i, j)] = False
                         raise FoundMatch
             except FoundMatch:
-                pass    #flow control: break out of doubly nested loop
+                pass  # flow control: break out of doubly nested loop
     return result
 
 def make_pairs(pairs=None, monomers=None, gaps=None, degenerates=None):
@@ -250,26 +250,26 @@ def make_pairs(pairs=None, monomers=None, gaps=None, degenerates=None):
     that have (G,U) and (U, G) mapped to True rather than False.
     """
     result = {}
-    #allow defaults to be left blank without problems
+    # allow defaults to be left blank without problems
     pairs = pairs or {}
     monomers = monomers or {}
     gaps = gaps or {}
     degenerates = degenerates or {}
-    #add in the original pairs: should be complete monomer pairs
+    # add in the original pairs: should be complete monomer pairs
     result.update(pairs)
-    #all gaps 'weakly' pair with each other
+    # all gaps 'weakly' pair with each other
     for i in gaps:
         for j in gaps:
             result[(i, j)] = False
-    #monomers sometimes pair with degenerates if the monomer's complement
-    #is in the degenerate symbol
+    # monomers sometimes pair with degenerates if the monomer's complement
+    # is in the degenerate symbol
     for i in monomers:
         for j in degenerates:
             found = False
             try:
                 for curr_j in degenerates[j]:
-                    #check if (i,curr_j) and/or (curr_j,i) is a valid pair:
-                    #not mutually required if pairs are not all commutative!
+                    # check if (i,curr_j) and/or (curr_j,i) is a valid pair:
+                    # not mutually required if pairs are not all commutative!
                     if (i, curr_j) in pairs:
                         result[(i, j)] = False
                         found = True
@@ -279,9 +279,9 @@ def make_pairs(pairs=None, monomers=None, gaps=None, degenerates=None):
                     if found:
                         raise FoundMatch
             except FoundMatch:
-                pass    #flow control: break out of nested loop
-    #degenerates sometimes pair with each other if the first degenerate
-    #contains the complement of one of the bases in the second degenerate
+                pass  # flow control: break out of nested loop
+    # degenerates sometimes pair with each other if the first degenerate
+    # contains the complement of one of the bases in the second degenerate
     for i in degenerates:
         for j in degenerates:
             try:
@@ -291,14 +291,14 @@ def make_pairs(pairs=None, monomers=None, gaps=None, degenerates=None):
                             result[(i, j)] = False
                             raise FoundMatch
             except FoundMatch:
-                pass    #just using for flow control
-    #don't forget the return value!
+                pass  # just using for flow control
+    # don't forget the return value!
     return result
 
-#RnaPairingRules is a dict of {name:(base_pairs,degen_pairs)} where base_pairs
-#is a dict with the non-degenerate pairing rules and degen_pairs is a dict with
-#both the degenerate and non-degenerate pairing rules.
-#NOTE: uses make_pairs to augment the initial dict after construction.
+# RnaPairingRules is a dict of {name:(base_pairs,degen_pairs)} where base_pairs
+# is a dict with the non-degenerate pairing rules and degen_pairs is a dict with
+# both the degenerate and non-degenerate pairing rules.
+# NOTE: uses make_pairs to augment the initial dict after construction.
 RnaPairingRules = {
     'Standard': RnaStandardPairs,
     'WC': RnaWCPairs,
@@ -372,7 +372,7 @@ class AlphabetGroup(CoreObjectGroup):
                 chars = ''.join(chars)
                 degens = ''.join(degens)
             else:
-                constructor = Alphabet  #assume multi-char
+                constructor = Alphabet  # assume multi-char
         self.Base = constructor(chars, MolType=MolType)
         self.Degen = constructor(chars + degens, MolType=MolType)
         self.Gapped = constructor(chars + gap, gap, MolType=MolType)
@@ -380,7 +380,7 @@ class AlphabetGroup(CoreObjectGroup):
                                        MolType=MolType)
         self._items = [self.Base, self.Degen, self.Gapped, self.DegenGapped]
         self._set_relationships()
-        #set complements if MolType was specified
+        # set complements if MolType was specified
         if MolType is not None:
             comps = MolType.Complements
             for i in self._items:
@@ -461,14 +461,14 @@ class MolType(object):
         if Gaps:
             self.Gaps = self.Gaps.union(frozenset(Gaps))
         self.label = label
-        #set the sequence constructor
+        # set the sequence constructor
         if Sequence is None:
-            Sequence = ''.join     #safe default string constructor
+            Sequence = ''.join  # safe default string constructor
         elif not preserve_existing_moltypes:
             Sequence.MolType = self
         self.Sequence = Sequence
 
-        #set the ambiguities
+        # set the ambiguities
         ambigs = {self.Missing: tuple(motifset) + (self.Gap,), self.Gap: (self.Gap,)}
         if Ambiguities:
             ambigs.update(Ambiguities)
@@ -476,10 +476,10 @@ class MolType(object):
             ambigs[c] = (c,)
         self.Ambiguities = ambigs
 
-        #set Complements -- must set before we make the alphabet group
+        # set Complements -- must set before we make the alphabet group
         self.Complements = Complements or {}
 
-        if make_alphabet_group: #note: must use _original_ ambiguities here
+        if make_alphabet_group:  # note: must use _original_ ambiguities here
             self.Alphabets = AlphabetGroup(motifset, Ambiguities, \
                                            MolType=self)
             self.Alphabet = self.Alphabets.Base
@@ -490,7 +490,7 @@ class MolType(object):
                 self.Alphabet = CharAlphabet(motifset, MolType=self)
             else:
                 self.Alphabet = Alphabet(motifset, MolType=self)
-        #set the other properties
+        # set the other properties
         self.Degenerates = Ambiguities and Ambiguities.copy() or {}
         self.Degenerates[self.Missing] = ''.join(motifset) + self.Gap
         self.Matches = make_matches(motifset, self.Gaps, self.Degenerates)
@@ -498,10 +498,10 @@ class MolType(object):
         self.Pairs.update(make_pairs(Pairs, motifset, self.Gaps, \
                                      self.Degenerates))
         self.MWCalculator = MWCalculator
-        #add lowercase characters, if we're doing that
+        # add lowercase characters, if we're doing that
         if add_lower:
             self._add_lowercase()
-        #cache various other data that make the calculations faster
+        # cache various other data that make the calculations faster
         self._make_all()
         self._make_comp_table()
         # a gap can be a true gap char or a degenerate character, typically '?'
@@ -515,8 +515,8 @@ class MolType(object):
         to_keep = set(self.Alphabet) ^ set(self.Degenerates) - set(self.Gaps)
         self.stripBadAndGaps = FunctionWrapper(keep_chars(''.join(to_keep)))
 
-        #make inverse degenerates from degenerates
-        #ensure that lowercase versions also exist if appropriate
+        # make inverse degenerates from degenerates
+        # ensure that lowercase versions also exist if appropriate
         inv_degens = {}
         for key, val in list(self.Degenerates.items()):
             inv_degens[frozenset(val)] = key.upper()
@@ -530,13 +530,13 @@ class MolType(object):
             inv_degens[frozenset(m)] = m
         self.InverseDegenerates = inv_degens
 
-        #set array type for modeling alphabets
+        # set array type for modeling alphabets
         try:
             self.ArrayType = self.Alphabet.ArrayType
         except AttributeError:
             self.ArrayType = None
 
-        #set modeling sequence
+        # set modeling sequence
         self.ModelSeq = ModelSeq
 
     def __repr__(self):
@@ -574,7 +574,7 @@ class MolType(object):
             if badchar:
                 motif = badchar.group()
                 raise AlphabetError(motif)
-        except TypeError:   #not alphabetic sequence: try slow method
+        except TypeError:  # not alphabetic sequence: try slow method
             for motif in seq:
                 if motif not in alpha:
                     raise AlphabetError(motif)
@@ -621,7 +621,7 @@ class MolType(object):
         for name in ['Alphabet', 'Degenerates', 'Gaps', 'Complements', 'Pairs',
                      'Matches']:
             curr = getattr(self, name)
-            #temp hack to get around re-ordering
+            # temp hack to get around re-ordering
             if isinstance(curr, Alphabet):
                 curr = tuple(curr)
             new = add_lowercase(curr)
@@ -882,7 +882,7 @@ class MolType(object):
             return 0
         try:
             return self.MWCalculator(sequence, delta)
-        except KeyError:    #assume sequence was ambiguous
+        except KeyError:  # assume sequence was ambiguous
             return self.MWCalculator(self.disambiguate(sequence, method), delta)
 
     def canMatch(self, first, second):
@@ -973,12 +973,12 @@ class MolType(object):
         conversion fails.
         """
         symbols = frozenset(sequence)
-        #check if symbols are already known
+        # check if symbols are already known
         inv_degens = self.InverseDegenerates
         result = inv_degens.get(symbols, None)
         if result:
             return result
-        #then, try converting the symbols
+        # then, try converting the symbols
         degens = self.All
         converted = set()
         for sym in symbols:
@@ -988,7 +988,7 @@ class MolType(object):
         result = inv_degens.get(symbols, None)
         if result:
             return result
-        #then, try converting case
+        # then, try converting case
         symbols = frozenset([s.upper() for s in symbols])
         result = inv_degens.get(symbols, None)
         if result:
@@ -997,18 +997,18 @@ class MolType(object):
         result = inv_degens.get(symbols, None)
         if result:
             return result
-        #finally, try to find the minimal subset containing the symbols
+        # finally, try to find the minimal subset containing the symbols
         symbols = frozenset([s.upper() for s in symbols])
         lengths = {}
         for i in inv_degens:
             if symbols.issubset(i):
                 lengths[len(i)] = i
-        if lengths:  #found at least some matches
+        if lengths:  # found at least some matches
             sorted = list(lengths.keys())
             sorted.sort()
             return inv_degens[lengths[sorted[0]]]
 
-        #if we got here, nothing worked
+        # if we got here, nothing worked
         raise TypeError("Cannot find degenerate char for symbols: %s" \
                         % symbols)
 
@@ -1073,7 +1073,7 @@ BYTES = MolType(
     ModelSeq=ModelSequence,
     label='bytes')
 
-#following is a two-state MolType useful for testing
+# following is a two-state MolType useful for testing
 AB = MolType(
     Sequence=ABSequence,
     motifset='ab',
@@ -1118,7 +1118,7 @@ def _method_codon_alphabet(ignore, *args, **kwargs):
 
 STANDARD_CODON = CodonAlphabet()
 
-#Modify NucleicAcidSequence to avoid circular import
+# Modify NucleicAcidSequence to avoid circular import
 NucleicAcidSequence.CodonAlphabet = _method_codon_alphabet
 NucleicAcidSequence.PROTEIN = PROTEIN
 ModelRnaSequence.MolType = RNA
@@ -1141,6 +1141,6 @@ DenseAlignment.MolType = BYTES
 ModelDnaCodonSequence.Alphabet = DNA.Alphabets.Base.Triples
 ModelRnaCodonSequence.Alphabet = RNA.Alphabets.Base.Triples
 
-#Modify Alignment to avoid circular import
+# Modify Alignment to avoid circular import
 Alignment.MolType = ASCII
 SequenceCollection.MolType = BYTES

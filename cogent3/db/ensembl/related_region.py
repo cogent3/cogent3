@@ -100,7 +100,7 @@ class SyntenicRegion(LazyRecord):
                                self._make_ref_map][am_ref_member]
 
         if Location is not None:
-            if hasattr(Location, 'Location'): # likely to be a feature region
+            if hasattr(Location, 'Location'):  # likely to be a feature region
                 region = Location
             else:
                 region = genome.getRegion(region=Location)
@@ -183,7 +183,7 @@ class SyntenicRegion(LazyRecord):
                                                  self.parent.CigarEnd,
                                                  by_align=True)
             self.aln_map = aln_map
-            self.aln_loc = aln_loc # probably unnecesary to store??
+            self.aln_loc = aln_loc  # probably unnecesary to store??
 
             # we make a loc for the aligned region
             block_loc = self.genome.makeLocation(CoordName=record['name'],
@@ -203,12 +203,12 @@ class SyntenicRegion(LazyRecord):
                 shift = relative_start
             loc = loc.shifted(shift)
             region = self.genome.getRegion(region=loc)
-        except IndexError: # TODO ask Hua where these index errors occur
+        except IndexError:  # TODO ask Hua where these index errors occur
             region = None
         self._cached['Region'] = region
 
     def _make_aligned(self, feature_types=None, where_feature=None):
-        if self.aln_loc is None or self.aln_map is None: # is this required?
+        if self.aln_loc is None or self.aln_map is None:  # is this required?
             self._make_map_func()
         region = self._cached['Region']
         if region is None:
@@ -325,7 +325,7 @@ class SyntenicRegions(_RelatedRegions):
                 continue
             name = seq.Name
 
-            if self._rc: # names should reflect change to strand
+            if self._rc:  # names should reflect change to strand
                 loc = member.Location.copy()
                 loc.Strand *= -1
                 name = str(loc)

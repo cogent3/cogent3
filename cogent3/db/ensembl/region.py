@@ -300,10 +300,10 @@ class Gene(_StableRegion):
              ('Description', self._get_gene_record),
              ('Symbol', self._get_xref_record),
              ('Location', self._get_gene_record)]:
-            if name == 'Symbol' and 'display_label' not in list(data.keys()): # For EST
+            if name == 'Symbol' and 'display_label' not in list(data.keys()):  # For EST
                 continue
             self._table_rows[self._attr_ensembl_table_map[name]] = data
-            func() # this populates the attributes
+            func()  # this populates the attributes
 
     def __str__(self):
         my_type = self.__class__.__name__
@@ -437,7 +437,7 @@ class Gene(_StableRegion):
         result = sorted([(ts.getCdsLength(), ts) for ts in self.Transcripts
                          if ts.BioType == self.BioType])
 
-        if result: # last result is longest
+        if result:  # last result is longest
             result = result[-1][1]
 
         return result
@@ -650,7 +650,7 @@ class Transcript(_StableRegion):
             if len(coord) != 0:
                 untranslated_5exons.append(Exon(self.genome, self.db,
                                                 exon.exon_id, exon.Rank, Location=coord))
-        for exon in exons[end_exon.Rank - 1: num_exons]: # get 3'UTR
+        for exon in exons[end_exon.Rank - 1: num_exons]:  # get 3'UTR
             coord = exon.Location.copy()
             if exon.StableId == end_exon.StableId:
                 coord.Start = [end_exon.Location.End, coord.Start][flip_coords]
@@ -1004,7 +1004,7 @@ class Variation(_Region):
             if value is not None:
                 self._table_rows[self._attr_ensembl_table_map[name]] = data
                 if func is not None:
-                    func() # this populates the attributes
+                    func()  # this populates the attributes
 
         self.db = db or self.genome.CoreDb
 
@@ -1022,7 +1022,7 @@ class Variation(_Region):
         # this is actually the variation_feature table
         consequence_type = 'consequence_type'
         if self.genome.GeneralRelease > 67:
-            consequence_type += 's' # change to plural column name
+            consequence_type += 's'  # change to plural column name
 
         attr_name_map = [('Effect', consequence_type, _set_to_string),
                          ('Alleles', 'allele_string', _quoted),

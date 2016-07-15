@@ -517,7 +517,7 @@ class TestVariation(GenomeTestBase):
     def test_get_flanking_seq(self):
         """should correctly get the flanking sequence if matches reference genome"""
 
-        for i in range(4): # only have flanking sequence for 3
+        for i in range(4):  # only have flanking sequence for 3
             snp = list(self.human.getVariation(Symbol=self.snp_names[i],
                                                flanks_match_ref=False))[0]
             self.assertEqual(snp.FlankingSeq, self.snp_flanks[i])

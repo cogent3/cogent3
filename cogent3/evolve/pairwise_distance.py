@@ -12,7 +12,7 @@ __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha" # pending addition of protein distance metrics
+__status__ = "Alpha"  # pending addition of protein distance metrics
 
 def _same_moltype(ref, query):
     """if ref and query have the same states"""
@@ -84,7 +84,7 @@ def _jc69_from_matrix(matrix):
         return invalid
 
     p = diffs / total
-    if p >= 0.75: # cannot take log
+    if p >= 0.75:  # cannot take log
         return invalid
 
     factor = (1 - (4 / 3) * p)
@@ -131,7 +131,7 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_c
     term2 = 1 - pyr_ts_diffs / coeff2 - tv_diffs / (2 * freq_pyrs)
     term3 = 1 - tv_diffs / (2 * freq_purs * freq_pyrs)
 
-    if term1 <= 0 or term2 <= 0 or term3 <= 0: # log will fail
+    if term1 <= 0 or term2 <= 0 or term3 <= 0:  # log will fail
         return invalid
 
     dist = -coeff1 * log(term1) - coeff2 * log(term2) - coeff3 * log(term3)
@@ -157,7 +157,7 @@ def _logdetcommon(matrix):
 
     p = diffs / total
 
-    if diffs == 0: # seqs indentical
+    if diffs == 0:  # seqs indentical
         return invalid
 
     # we replace the missing diagonal states with a frequency of 0.5,
@@ -166,7 +166,7 @@ def _logdetcommon(matrix):
     frequency[(frequency == 0) * eye(*matrix.shape, dtype=bool)] = 0.5
     frequency /= frequency.sum()
 
-    if det(frequency) <= 0: #if the result is nan
+    if det(frequency) <= 0:  # if the result is nan
         return invalid
 
     # the inverse matrix of frequency, every element is squared
@@ -266,7 +266,7 @@ class _PairwiseDistance(object):
 
     @staticmethod
     def func():
-        pass # over ride in subclasses
+        pass  # over ride in subclasses
 
     @display_wrap
     def run(self, alignment=None, ui=None):

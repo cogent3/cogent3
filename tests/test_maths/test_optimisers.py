@@ -55,7 +55,7 @@ class OptimiserTestCase(TestCase):
         f, last, evals = MakeF()
 
         x = quiet(maximise, f, [xinit], bounds, **kw)
-        self.assertEqual(x, last[0]) # important for Calculator
+        self.assertEqual(x, last[0])  # important for Calculator
         error = abs(x[0] - target)
         self.assertTrue(error < .0001, (kw, x, target, x))
 

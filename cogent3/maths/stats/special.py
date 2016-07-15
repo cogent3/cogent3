@@ -14,24 +14,24 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
-log_epsilon = 1e-6  #for threshold in log/exp close to 1
-#For IEEE arithmetic (IBMPC):
-MACHEP = 1.11022302462515654042E-16       #2**-53
-MAXLOG = 7.09782712893383996843E2         #log(2**1024)
-MINLOG = -7.08396418532264106224E2         #log(2**-1022)
-MAXNUM = 1.7976931348623158E308           #2**1024
+log_epsilon = 1e-6  # for threshold in log/exp close to 1
+# For IEEE arithmetic (IBMPC):
+MACHEP = 1.11022302462515654042E-16  # 2**-53
+MAXLOG = 7.09782712893383996843E2  # log(2**1024)
+MINLOG = -7.08396418532264106224E2  # log(2**-1022)
+MAXNUM = 1.7976931348623158E308  # 2**1024
 
-PI = 3.14159265358979323846           #pi
-PIO2 = 1.57079632679489661923           #pi/2
-PIO4 = 7.85398163397448309616E-1        #pi/4
-SQRT2 = 1.41421356237309504880           #sqrt(2)
-SQRTH = 7.07106781186547524401E-1        #sqrt(2)/2
-LOG2E = 1.4426950408889634073599         #1/log(2)
-SQ2OPI = 7.9788456080286535587989E-1      #sqrt( 2/pi )
-LOGE2 = 6.93147180559945309417E-1        #log(2)
-LOGSQ2 = 3.46573590279972654709E-1        #log(2)/2
-THPIO4 = 2.35619449019234492885           #3*pi/4
-TWOOPI = 6.36619772367581343075535E-1     #2/pi
+PI = 3.14159265358979323846  # pi
+PIO2 = 1.57079632679489661923  # pi/2
+PIO4 = 7.85398163397448309616E-1  # pi/4
+SQRT2 = 1.41421356237309504880  # sqrt(2)
+SQRTH = 7.07106781186547524401E-1  # sqrt(2)/2
+LOG2E = 1.4426950408889634073599  # 1/log(2)
+SQ2OPI = 7.9788456080286535587989E-1  # sqrt( 2/pi )
+LOGE2 = 6.93147180559945309417E-1  # log(2)
+LOGSQ2 = 3.46573590279972654709E-1  # log(2)/2
+THPIO4 = 2.35619449019234492885  # 3*pi/4
+TWOOPI = 6.36619772367581343075535E-1  # 2/pi
 
 ROUND_ERROR = 1e-14    # fp rounding error: causes some tests to fail
                         # will round to 0 if smaller in magnitude than this
@@ -71,7 +71,7 @@ def permutations(n, k):
 
     Defined as n!/(n-k)!.
     """
-    #Validation: k must be be between 0 and n (inclusive), and n must be >=0.
+    # Validation: k must be be between 0 and n (inclusive), and n must be >=0.
     if k > n:
         raise IndexError("Can't choose %s items from %s" % (k, n))
     elif k < 0:
@@ -110,14 +110,14 @@ def combinations(n, k):
 
     Defined as n!/(k!(n-k)!).
     """
-    #Validation: k must be be between 0 and n (inclusive), and n must be >=0.
+    # Validation: k must be be between 0 and n (inclusive), and n must be >=0.
     if k > n:
         raise IndexError("Can't choose %s items from %s" % (k, n))
     elif k < 0:
         raise IndexError("Can't choose negative number of items")
     elif n < 0:
         raise IndexError("Can't choose from negative number of items")
-    #if min(n, k) < 20:
+    # if min(n, k) < 20:
     if min(n, k) < 20 and isinstance(n, int) and isinstance(k, int):
         return combinations_exact(n, k)
     else:
@@ -130,8 +130,8 @@ def combinations_exact(n, k):
 
     Note: no error checking (expects to be called through combinations())
     """
-    #permutations(n, k) = permutations(n, n-k), so reduce computation by
-    #figuring out which requires calculation of fewer terms.
+    # permutations(n, k) = permutations(n, n-k), so reduce computation by
+    # figuring out which requires calculation of fewer terms.
     if k > (n - k):
         larger = k
         smaller = n - k
@@ -140,13 +140,13 @@ def combinations_exact(n, k):
         smaller = k
 
     product = 1
-    #compute n!/(n-larger)! by multiplying terms from n to (n-larger+1)
+    # compute n!/(n-larger)! by multiplying terms from n to (n-larger+1)
     for i in range(larger + 1, n + 1):
         product *= i
 
-    #divide by (smaller)! by multiplying terms from 2 to smaller
-    for i in range(2, smaller + 1): #no need to divide by 1...
-        product /= i    #ok to use integer division: should always be factor
+    # divide by (smaller)! by multiplying terms from 2 to smaller
+    for i in range(2, smaller + 1):  # no need to divide by 1...
+        product /= i  # ok to use integer division: should always be factor
 
     return product
 
@@ -175,7 +175,7 @@ def ln_binomial(successes, trials, prob):
         (trials - successes) * log(1.0 - prob) 
 
 
-#Translations of functions from Cephes Math Library, by Stephen L. Moshier
+# Translations of functions from Cephes Math Library, by Stephen L. Moshier
 
 
 def polevl(x, coef):
@@ -188,7 +188,7 @@ def polevl(x, coef):
         result = result * x + c
     return result
 
-#Coefficients for zdist follow:
+# Coefficients for zdist follow:
 ZP = [
     2.46196981473530512524E-10,
     5.64189564831068821977E-1,
@@ -265,7 +265,7 @@ def erfc(a):
         return 1 - erf(a)
 
     z = -a * a
-    if z < -MAXLOG: #underflow
+    if z < -MAXLOG:  # underflow
         if a < 0:
             return 2
         else:
@@ -284,7 +284,7 @@ def erfc(a):
     if a < 0:
         y = 2 - y
 
-    if y == 0:  #underflow
+    if y == 0:  # underflow
         if a < 0:
             return 2
         else:
@@ -292,7 +292,7 @@ def erfc(a):
     else:
         return y
 
-#Coefficients for Gamma follow:
+# Coefficients for Gamma follow:
 GA = [
     8.11614167470508450300E-4,
     -5.95061904284301438324E-4,
@@ -356,7 +356,7 @@ LOGPI = 1.14472988584940017414
 SQTPI = 2.50662827463100050242E0
 LS2PI = 0.91893853320467274178
 
-#Generally useful constants
+# Generally useful constants
 SQRTH = 7.07106781186547524401E-1
 SQRT2 = 1.41421356237309504880
 MAXLOG = 7.09782712893383996843E2
@@ -375,10 +375,10 @@ def igamc(a, x):
     if x < 1 or x < a:
         return 1 - igam(a, x)
     ax = a * log(x) - x - lgam(a)
-    if ax < -MAXLOG:    #underflow
+    if ax < -MAXLOG:  # underflow
         return 0
     ax = exp(ax)
-    #continued fraction
+    # continued fraction
     y = 1 - a
     z = x + y + 1
     c = 0
@@ -421,14 +421,14 @@ def igam(a, x):
     if x > 1 and x > a:
         return 1 - igamc(a, x)
 
-    #Compute x**a * exp(x) / Gamma(a)
+    # Compute x**a * exp(x) / Gamma(a)
 
     ax = a * log(x) - x - lgam(a)
-    if ax < -MAXLOG:    #underflow
+    if ax < -MAXLOG:  # underflow
         return 0.0
     ax = exp(ax)
 
-    #power series
+    # power series
     r = a
     c = 1
     ans = 1
@@ -521,7 +521,7 @@ def betai(aa, bb, xx):
         t = pseries(aa, bb, xx)
         return betai_result(t, flag)
     w = 1 - xx
-    #reverse a and b if x is greater than the mean
+    # reverse a and b if x is greater than the mean
     if xx > (aa / (aa + bb)):
         flag = 1
         a = bb
@@ -536,7 +536,7 @@ def betai(aa, bb, xx):
     if (flag == 1) and ((b * x) <= 1) and (x <= 0.95):
         t = pseries(a, b, x)
         return betai_result(t, flag)
-    #choose expansion for better convergence
+    # choose expansion for better convergence
     y = x * (a + b - 2) - (a - 1)
     if y < 0:
         w = incbcf(a, b, x)
@@ -551,7 +551,7 @@ def betai(aa, bb, xx):
         t *= w
         t *= Gamma(a + b) / (Gamma(a) * Gamma(b))
         return betai_result(t, flag)
-    #resort to logarithms
+    # resort to logarithms
     y += t + lgam(a + b) - lgam(a) - lgam(b)
     y += log(w / a)
     if y < MINLOG:
@@ -568,7 +568,7 @@ def betai_result(t, flag):
             t = 1 - t
     return t
 
-incbet = betai  #shouldn't have renamed in first place...
+incbet = betai  # shouldn't have renamed in first place...
 
 def incbcf(a, b, x):
     """Incomplete beta integral, first continued fraction representation.
@@ -779,7 +779,7 @@ def stirf(x):
     w = 1 + w * polevl(w, STIR)
     y = exp(x)
     if x > MAXSTIR:
-        #avoid overflow in pow()
+        # avoid overflow in pow()
         v = pow(x, 0.5 * x - 0.25)
         y = v * (v / y)
     else:
@@ -873,21 +873,21 @@ EQ = [
 ]
 
 def igami(a, y0):
-    #bound the solution
+    # bound the solution
     x0 = MAXNUM
     yl = 0
     x1 = 0
     yh = 1.0
     dithresh = 5.0 * MACHEP
 
-    #handle easy cases
+    # handle easy cases
     if ((y0 < 0.0) or (y0 > 1.0) or (a <= 0)):
         raise ZeroDivisionError("y0 must be between 0 and 1; a >= 0")
     elif (y0 == 0.0):
         return MAXNUM
     elif (y0 == 1.0):
         return 0.0
-    #approximation to inverse function
+    # approximation to inverse function
     d = 1.0 / (9.0 * a)
     y = (1.0 - d - ndtri(y0) * sqrt(d))
     x = a * y * y * y
@@ -895,7 +895,7 @@ def igami(a, y0):
     lgm = lgam(a);
 
     for i in range(10):
-        #this loop is just to eliminate gotos
+        # this loop is just to eliminate gotos
         while 1:
             if(x > x0 or x < x1):
                 break
@@ -908,19 +908,19 @@ def igami(a, y0):
             else:
                 x1 = x
                 yh = y
-            #compute the derivative of the function at this point
+            # compute the derivative of the function at this point
             d = (a - 1.0) * log(x) - x - lgm
             if d < -MAXLOG:
                 break
             d = -exp(d)
-            #compute the step to the next approximation of x
+            # compute the step to the next approximation of x
             d = (y - y0) / d
             if abs(d / x) < MACHEP:
                 return x
             x -= d
             break
 
-    #Resort to interval halving if Newton iteration did not converge.
+    # Resort to interval halving if Newton iteration did not converge.
     d = 0.0625
     if x0 == MAXNUM:
         if x <= 0.0:
@@ -1050,7 +1050,7 @@ def ndtri(y0):
 
     This is here and not in distributions because igami depends on it..."""
     y0 = fix_rounding_error(y0)
-    #handle easy cases
+    # handle easy cases
     if y0 <= 0.0:
         return -MAXNUM
     elif y0 >= 1.0:
@@ -1083,13 +1083,13 @@ def ndtri(y0):
 
 def incbi(aa, bb, yy0):
     """Incomplete beta inverse function. See Cephes for docs."""
-    #handle easy cases first
+    # handle easy cases first
     i = 0
     if yy0 <= 0:
         return 0.0
     elif yy0 >= 1.0:
         return 1.0
-    #define inscrutable parameters
+    # define inscrutable parameters
     x0 = 0.0
     yl = 0.0
     x1 = 1.0

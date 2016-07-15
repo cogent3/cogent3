@@ -51,15 +51,15 @@ def bad_dnd_tokens(s, is_valid_name):
     for t in DndTokenizer(s):
         if t in _dnd_tokens:
             continue
-        #also OK if it's a number
+        # also OK if it's a number
         try:
             float(t)
             continue
-        except: #wasn't a number -- further tests
+        except:  # wasn't a number -- further tests
             pass
         if is_valid_name(t):
             continue
-        #if we got here, nothing worked, so yield the current token
+        # if we got here, nothing worked, so yield the current token
         yield t
 
 
@@ -96,7 +96,7 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
         data = lines
     else:
         data = ''.join(lines)
-    #skip arb comment stuff if present: start at first paren
+    # skip arb comment stuff if present: start at first paren
     paren_index = data.find('(')
     data = data[paren_index:]
     left_count = data.count('(')
@@ -111,26 +111,26 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
     state1 = 'PreClosed'
     last_token = None
     for t in tokens:
-        if t == ':':    #expecting branch length
+        if t == ':':  # expecting branch length
             state = 'PostColon'
-            #prevent state reset
+            # prevent state reset
             last_token = t
             continue
-        if t == ')' and (last_token == ',' or last_token == '('): # node without name
+        if t == ')' and (last_token == ',' or last_token == '('):  # node without name
             new_node = _new_child(curr_node, constructor)
             new_node.Name = None
             curr_node = new_node.Parent
             state1 = 'PostClosed'
             last_token = t
             continue
-        if t == ')':  #closing the current node
+        if t == ')':  # closing the current node
             curr_node = curr_node.Parent
             state1 = 'PostClosed'
             last_token = t
             continue
-        if t == '(':    #opening a new node
+        if t == '(':  # opening a new node
             curr_node = _new_child(curr_node, constructor)
-        elif t == ';':  #end of data
+        elif t == ';':  # end of data
             last_token = t
             break
         # node without name
@@ -138,9 +138,9 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
             new_node = _new_child(curr_node, constructor)
             new_node.Name = None
             curr_node = new_node.Parent
-        elif t == ',':  #separator: next node adds to this node's parent
+        elif t == ',':  # separator: next node adds to this node's parent
             curr_node = curr_node.Parent
-        elif state == 'PreColon' and state1 == 'PreClosed':   #data for the current node
+        elif state == 'PreColon' and state1 == 'PreClosed':  # data for the current node
             new_node = _new_child(curr_node, constructor)
             if unescape_name:
                 if t.startswith("'") and t.endswith("'"):
@@ -156,20 +156,20 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
                 while t.startswith("'") and t.endswith("'"):
                     t = t[1:-1]
             curr_node.Name = t
-        elif state == 'PostColon':  #length data for the current node
+        elif state == 'PostColon':  # length data for the current node
             curr_node.Length = float(t)
-        else:   #can't think of a reason to get here
+        else:  # can't think of a reason to get here
             raise RecordError("Incorrect PhyloNode state? %s" % t)
-        state = 'PreColon'  #get here for any non-colon token
+        state = 'PreColon'  # get here for any non-colon token
         state1 = 'PreClosed'
         last_token = t
 
     if curr_node is not None and curr_node.Parent is not None:
         raise RecordError("Didn't get back to root of tree.")
 
-    if curr_node is None:       #no data -- return empty node
+    if curr_node is None:  # no data -- return empty node
         return constructor()
-    return curr_node    #this should be the root of the tree
+    return curr_node  # this should be the root of the tree
 
 def _new_child(old_node, constructor):
     """Returns new_node which has old_node as its parent."""

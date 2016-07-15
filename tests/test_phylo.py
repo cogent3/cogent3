@@ -39,7 +39,7 @@ class ConsensusTests(unittest.TestCase):
             Tree("((a,c),b,d);"),
             Tree("((a,b),c,d);")]
 
-        weights = list(map(log, [0.4, 0.4, 0.05, 0.15])) # emphasizing the a,b clade
+        weights = list(map(log, [0.4, 0.4, 0.05, 0.15]))  # emphasizing the a,b clade
         self.scored_trees = list(zip(weights, self.trees))
         self.scored_trees.sort(reverse=True)
 
@@ -175,7 +175,7 @@ class ConsensusTests(unittest.TestCase):
         #cts = sct.getConsensusTrees(method='rooted')
         ct = sct.getConsensusTrees(method='rooted')[0]
         self.assertTrue(ct.sameTopology(Tree("(a,b,c,d);")))
-        #for tree in cts:
+        # for tree in cts:
         #    print str(tree)
         #self.assertTrue(set(map(str, cts))==set(['('+c+');' for c in 'abcd']))
 
@@ -321,7 +321,7 @@ class DistancesTests(unittest.TestCase):
         try:
             os.remove('junk.txt')
         except OSError:
-            pass # probably parallel
+            pass  # probably parallel
 
     def test_EstimateDistancesWithMotifProbs(self):
         """EstimateDistances with supplied motif probs"""

@@ -80,7 +80,7 @@ class _SciPyOptimiser(object):
                 function, xopt, disp=False, callback=_callback, 
                 ftol=tolerance, full_output=True)
 
-            xopt = numpy.atleast_1d(xopt) # unsqueeze incase only one param
+            xopt = numpy.atleast_1d(xopt)  # unsqueeze incase only one param
 
             if warnflag:
                 warnings.warn('Unexpected warning from scipy %s' % warnflag)

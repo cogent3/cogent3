@@ -203,7 +203,7 @@ class POG(object):
         pred_sets = self.asListOfPredLists()
         print('digraph POG {', file=dot)
         for (i, preds) in enumerate(pred_sets):
-            #print i, preds
+            # print i, preds
             for pred in preds:
                 print('  ', ('node%s -> node%s' % (pred, i)), file=dot)
             if i == 0:

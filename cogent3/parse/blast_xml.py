@@ -114,7 +114,7 @@ def parse_header(tag):
     result['database'] = get_tag(tag, 'BlastOutput_db')
     # add data fro Parameters tag
     for param_tag in tag.getElementsByTagName('BlastOutput_param'):
-        #for param_tag in tag.getElementsByTagName('Parameters'):
+        # for param_tag in tag.getElementsByTagName('Parameters'):
         data = parse_parameters(param_tag)
         for k in data:
             result[k] = data[k]
@@ -167,7 +167,7 @@ class BlastXMLResult(BlastResult):
     SCORE = 'SCORE'
     POSITIVE = 'POSITIVE'
 
-    #FieldComparisonOperators = (
+    # FieldComparisonOperators = (
     #    BlastResult.FieldComparisonOperators = {
     #        HIT_DEF:(_gt, float)
     #        }

@@ -142,7 +142,7 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
         queue = new_queue
 
     for root in list(nodes.values()):
-        root.Name = 'root' # Yuk
+        root.Name = 'root'  # Yuk
 
     return [root for root in list(nodes.values())]
 
@@ -248,13 +248,13 @@ def getTree(splits):
         included = []
         test_half = frozenset([])
         for child in edge.Children:
-            if child.Split > half: # This is not the droid you are looking for
+            if child.Split > half:  # This is not the droid you are looking for
                 return addHalfSplit(child, half, params)
             if child.Split <= half:
                 included.append(child)
                 test_half = test_half.union(child.Split)
 
-        if test_half == half: # Found it
+        if test_half == half:  # Found it
             split = Edge(included, None, params)
             split.Split = half
             for moved in included:

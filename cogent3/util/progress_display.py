@@ -76,7 +76,7 @@ class TextBuffer(object):
             text = ''.join(self.chunks)
             if self.pending_eol:
                 out.write(CLEAR)
-            #out.write(CODES['YELLOW'])
+            # out.write(CODES['YELLOW'])
             out.write(text)
             if text.endswith('\n'):
                 self.pending_eol = False
@@ -85,7 +85,7 @@ class TextBuffer(object):
                 self.pending_eol = True
                 self.chunks = [text.split('\n')[-1]]
                 out.write('\n')
-            #out.write(CODES['NORMAL'])
+            # out.write(CODES['NORMAL'])
 
 
 class ProgressContext(object):
@@ -166,7 +166,7 @@ class ProgressContext(object):
     # .info() (and maybe other logging analogues such as .warning()) would
     # avoid the need to capture stdout:
 
-    #def info(self, text):
+    # def info(self, text):
     #    """Display some information which may be more than fleetingly useful, 
     #    such as a summary of intermediate statistics or a very mild warning.  
     #    A GUI should make this information retrievable but not intrusive.
@@ -233,7 +233,7 @@ class LogFileOutput(object):
     def __init__(self):
         self.t0 = time.time()
         self.lpad = ''
-        self.output = sys.stdout # sys.stderr
+        self.output = sys.stdout  # sys.stderr
 
     def done(self):
         pass
@@ -384,12 +384,12 @@ def demo(ui):
     print("done")
 
 if __name__ == '__main__':
-    #setupRootUiContext(rate=0.2)
+    # setupRootUiContext(rate=0.2)
     demo()
 
 # This messes up interactive shells a bit:
-#CURRENT.start()
-#atexit.register(CURRENT.done)
+# CURRENT.start()
+# atexit.register(CURRENT.done)
 
 
 

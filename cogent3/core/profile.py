@@ -4,7 +4,7 @@
 Owner: Sandra Smit (Sandra Smit)
 """
 
-#SUPPORT2425
+# SUPPORT2425
 #from __future__ import with_statement
 
 from numpy import array, sum, transpose, reshape, ones, zeros,\
@@ -16,8 +16,8 @@ from numpy.random import random
 from cogent3.util.array import euclidean_distance, row_degeneracy,\
     column_degeneracy, row_uncertainty, column_uncertainty, safe_log
 from cogent3.format.table import formattedCells
-##SUPPORT2425
-import numpy #from cogent3.util.unit_test import numpy_err
+# SUPPORT2425
+import numpy  # from cogent3.util.unit_test import numpy_err
 from functools import reduce
 
 __author__ = "Sandra Smit"
@@ -61,10 +61,10 @@ class Profile(object):
             self.CharOrder = list(self.Alphabet)
         else:
             self.CharOrder = CharOrder
-        #the translation table is needed for making consensus sequences,
-        #but will fail if the alphabet isn't made of chars (in which case,
-        #we'll just skip the translation table, and certain downstream
-        #operations may fail).
+        # the translation table is needed for making consensus sequences,
+        # but will fail if the alphabet isn't made of chars (in which case,
+        # we'll just skip the translation table, and certain downstream
+        # operations may fail).
         try:
             self._translation_table = self._make_translation_table()
         except:
@@ -253,12 +253,12 @@ class Profile(object):
             other.normalizePositions()
 
         try:
-            ##SUPPORT2425
+            # SUPPORT2425
             ori_err = numpy.geterr()
             numpy.seterr(divide='raise')
             try: new_data = op(self.Data, other.Data)
             finally: numpy.seterr(**ori_err)
-            #with numpy_err(divide='raise'):
+            # with numpy_err(divide='raise'):
                 #new_data = op(self.Data, other.Data)
         except (OverflowError, ZeroDivisionError, FloatingPointError):
             raise ProfileError("Can't do operation on input profiles")
@@ -326,7 +326,7 @@ class Profile(object):
         """
         try:
             return method(self.Data, other.Data)
-        except ValueError: #frames not aligned 
+        except ValueError:  # frames not aligned 
             raise ProfileError("Profiles have different size (and are not aligned): %s %s"\
                                % (self.Data.shape, other.Data.shape))
 
@@ -344,25 +344,25 @@ class Profile(object):
         ZeroDivisionError (raised when zero is an int) or 'inf' in the 
         resulting matrix (which happens when zero is a float).
         """
-        pl = self.Data.shape[1] #profile length
-        #if symbol_freqs is None, create an array with equal frequencies
+        pl = self.Data.shape[1]  # profile length
+        # if symbol_freqs is None, create an array with equal frequencies
         if symbol_freqs is None:
             symbol_freqs = ones(pl) / pl
         else:
             symbol_freqs = array(symbol_freqs)
 
-        #raise error when symbol_freqs has wrong length
+        # raise error when symbol_freqs has wrong length
         if len(symbol_freqs) != pl:
             raise ProfileError("Length of symbol freqs should be %s, but is %s"\
                                % (pl, len(symbol_freqs)))
 
-        #raise error when symbol freqs contains zero (to prevent 
-        #ZeroDivisionError or 'inf' in the resulting matrix)
+        # raise error when symbol freqs contains zero (to prevent 
+        # ZeroDivisionError or 'inf' in the resulting matrix)
         if sum(symbol_freqs != 0, 0) != len(symbol_freqs):
             raise ProfileError("Symbol frequency is not allowed to be zero: %s"\
                                % (symbol_freqs))
 
-        #calculate the OddsMatrix
+        # calculate the OddsMatrix
         log_odds = self.Data / symbol_freqs
         return Profile(log_odds, self.Alphabet, self.CharOrder)
 
@@ -390,10 +390,10 @@ class Profile(object):
         See method 'score' for more information.
         """
         data = self.Data
-        pl = len(data) #profile length (number of positions)
+        pl = len(data)  # profile length (number of positions)
         sl = len(seq_indices)
 
-        r = list(range(pl)) #fixed range
+        r = list(range(pl))  # fixed range
         result = []
         for starting_pos in range(offset, len(seq_indices) - pl + 1):
             slice = seq_indices[starting_pos:starting_pos + pl]
@@ -410,8 +410,8 @@ class Profile(object):
         See method 'score' for more information.
         """
         data = self.Data
-        self_l = len(data) #profile length
-        other_l = len(profile.Data) #other profile length
+        self_l = len(data)  # profile length
+        other_l = len(profile.Data)  # other profile length
         result = []
         for start in range(offset, other_l - self_l + 1):
             stop = start + self_l
@@ -466,50 +466,50 @@ class Profile(object):
         pos 2: rows 2,3,4 -> 0.45
         """
 
-        #set up some local variables
+        # set up some local variables
         data = self.Data
-        pl = len(data) #profile length
+        pl = len(data)  # profile length
         is_profile = False
 
-        #raise error if profile is empty
+        # raise error if profile is empty
         if not data.any():
             raise ProfileError("Can't score an empty profile")
 
-        #figure out what the input_data type is
+        # figure out what the input_data type is
         if isinstance(input_data, Profile):
             is_profile = True
             to_score_length = len(input_data.Data)
-            #raise error if CharOrders don't match
+            # raise error if CharOrders don't match
             if self.CharOrder != input_data.CharOrder:
                 raise ProfileError("Profiles must have same character order")
-        else: #assumes it get a sequence
+        else:  # assumes it get a sequence
             to_score_length = len(input_data)
 
-        #Profile should fit at least once in the sequence/profile_to_score
+        # Profile should fit at least once in the sequence/profile_to_score
         if to_score_length < pl:
             raise ProfileError("Sequence or Profile to score should be at least %s " % (pl) +\
                                "characters long, but is %s." % (to_score_length))
-        #offset should be valid
+        # offset should be valid
         if not offset <= (to_score_length - pl):
             raise ProfileError("Offset must be <= %s, but is %s"\
                                % ((to_score_length - pl), offset))
 
-        #call the apropriate scoring function
+        # call the apropriate scoring function
         if is_profile:
             return self._score_profile(input_data, offset)
         else:
-            #translate seq to indices
+            # translate seq to indices
             if hasattr(self, '_translation_table'):
                 seq_indices = array(list(map(ord, translate(str(input_data),\
                                                            self._translation_table))))
-            else:   #need to figure out where each item is in the charorder
+            else:  # need to figure out where each item is in the charorder
                 idx = self.CharOrder.index
                 seq_indices = array(list(map(idx, input_data)))
-            #raise error if some sequence characters are not in the CharOrder
+            # raise error if some sequence characters are not in the CharOrder
             if (seq_indices > len(self.CharOrder)).any():
                 raise ProfileError("Sequence contains characters that are not in the " +\
                                    "CharOrder")
-            #now the profile is scored against the list of indices   
+            # now the profile is scored against the list of indices   
             return self._score_indices(seq_indices, offset)
 
     def rowUncertainty(self):
@@ -596,18 +596,18 @@ class Profile(object):
         gets passed in, the maximum argument is chosen. In the first example
         above G will be returned.
         """
-        #set up some local variables
+        # set up some local variables
         co = array(self.CharOrder, 'c')
         alpha = self.Alphabet
         data = self.Data
 
-        #determine the action. Cutoff takes priority over fully_degenerate
+        # determine the action. Cutoff takes priority over fully_degenerate
         if cutoff:
             result = []
             degen = self.rowDegeneracy(cutoff)
             sorted = argsort(data)
             if include_all:
-                #if include_all include all possiblilities in the degen char 
+                # if include_all include all possiblilities in the degen char 
                 for row_idx, (num_to_keep, row) in enumerate(zip(degen, sorted)):
                     to_take = [item for item in row[-num_to_keep:]\
                                if item in nonzero(data[row_idx])[0]] +\
@@ -729,29 +729,29 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
     Errors are raised when the character order is empty or when there's a
     character in the character order that is not in the alphabet.
     """
-    if not char_order: #both testing for None and for empty string
+    if not char_order:  # both testing for None and for empty string
         char_order = list(alphabet)
 
     char_order = array(char_order, 'c')
-    lc = len(char_order) #length char_order
+    lc = len(char_order)  # length char_order
 
-    #initialize the profile. 255 rows (one for each ascii char), one column
-    #for each character in the character order
+    # initialize the profile. 255 rows (one for each ascii char), one column
+    # for each character in the character order
     result = zeros([255, lc], float64)
 
     if split_degenerates:
         degen = alphabet.Degenerates
         for degen_char in degen:
-            #if all characters that the degenerate character maps onto are
-            #in the character order, split its value up according to the
-            #alphabet
+            # if all characters that the degenerate character maps onto are
+            # in the character order, split its value up according to the
+            # alphabet
             curr_degens = list(map(lambda x: x.encode('utf8'), degen[degen_char]))
             if all(list(map(char_order.__contains__, curr_degens))):
                 contains = list(map(curr_degens.__contains__, char_order))
                 result[ord(degen_char)] = \
                 array(contains, float) / len(curr_degens)
-    #for each character in the character order, make an entry of ones and 
-    #zeros, matching the character order
+    # for each character in the character order, make an entry of ones and 
+    # zeros, matching the character order
     for c in char_order:
         c = c.decode('utf8')
         if c not in alphabet:

@@ -26,7 +26,7 @@ def MacsimParser(doc):
         raw_seq = record.getElementsByTagName(
             'seq-data')[0].childNodes[0].nodeValue
 
-        #cast as string to de-unicode
+        # cast as string to de-unicode
         raw_string = ''.join(str(raw_seq).upper().split())
         name = str(name).strip()
 

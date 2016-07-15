@@ -23,7 +23,7 @@ class locuslinkTests(TestCase):
         """_read_accession should perform correct conversions"""
         self.assertEqual(_read_accession('NP_035835|6755985|na\n'), \
                          {'Accession': 'NP_035835', 'Gi': '6755985', 'Strain': 'na'})
-        #check that it ignores additional fields
+        # check that it ignores additional fields
         self.assertEqual(_read_accession('NG_002740|30172554|na|1|1315\n'), \
                          {'Accession': 'NG_002740', 'Gi': '30172554', 'Strain': 'na'})
 
@@ -183,7 +183,7 @@ PMID: 14499652"""
         self.assertEqual(len(records), 2)
         first, second = list(map(LinesToLocusLink, records))
 
-        #test the second one first, since it's shorter
+        # test the second one first, since it's shorter
         self.assertEqual(second.LOCUSID, 386590)
         self.assertEqual(second.LOCUS_CONFIRMED, 'yes')
         self.assertEqual(second.LOCUS_TYPE, \
@@ -202,7 +202,7 @@ PMID: 14499652"""
                          ['http://zfin.org/cgi-bin/ZFIN_jump?record=ZDB-GENE-031002-1'])
         self.assertEqual(second.PMID, ['14499652'])
 
-        #now for the annoying test on the longer record
+        # now for the annoying test on the longer record
         self.assertEqual(first.LOCUSID, 1)
         self.assertEqual(first.LOCUS_CONFIRMED, 'yes')
         self.assertEqual(first.ORGANISM, 'Homo sapiens')

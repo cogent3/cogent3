@@ -31,7 +31,7 @@ __status__ = "Production"
 
 maketrans = str.maketrans
 
-#standard combinatorial HOF's from Mertz
+# standard combinatorial HOF's from Mertz
 def apply_each(functions, *args, **kwargs):
     """Returns list containing result of applying each function to args."""
     return [f(*args, **kwargs) for f in functions]
@@ -60,8 +60,8 @@ def all(functions):
 def both(f, g):
     """Returns function that returns True when functions f and g return True."""
     def apply_to(*args, **kwargs):
-        #use operator.__and__ to make it compatible to numpy array operation
-        #return logical_and(f(*args, **kwargs), g(*args, **kwargs))
+        # use operator.__and__ to make it compatible to numpy array operation
+        # return logical_and(f(*args, **kwargs), g(*args, **kwargs))
         return f(*args, **kwargs) and g(*args, **kwargs)
     return apply_to
 
@@ -121,7 +121,7 @@ def compose_many(*functions):
         return result
     return apply_to
 
-#factory for making functions that apply to sequences
+# factory for making functions that apply to sequences
 
 def per_shortest(total, x, y):
     """Divides total by min(len(x), len(y)).
@@ -176,7 +176,7 @@ class for_seq(object):
             return self.normalizer(self.aggregator(\
                 [f(i, j) for i, j in zip(first, second)]), first, second)
 
-#convenience functions for modifying objects
+# convenience functions for modifying objects
 
 def has_field(field_name):
     """Returns a function that returns True if the obj has the field_name."""
@@ -663,4 +663,4 @@ def cross_comb(vectors):
         result = _increment_comb(result, vector)
     return result
 
-cartesian_product = cross_comb  #standard, but obscure, name for this function
+cartesian_product = cross_comb  # standard, but obscure, name for this function

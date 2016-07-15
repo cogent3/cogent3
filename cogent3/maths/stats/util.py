@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#file cogent/maths/stats/util.py
+# file cogent/maths/stats/util.py
 
 """Provides classes and utility methods for statistics.
 
@@ -345,10 +345,10 @@ class NumbersI(object):
     def normalize(self, x=None):
         """Normalizes items in Numbers by dividing by x (sum by default)."""
         if not self:
-            return      #do nothing of empty
+            return  # do nothing of empty
         if x is None:
             x = self.Sum
-        if not x:       #do nothing if items are empty
+        if not x:  # do nothing if items are empty
             return
         x = float(x)
         for index, item in enumerate(self):
@@ -378,10 +378,10 @@ class NumbersI(object):
         for i, curr in enumerate(self):
             if operator(curr, value):
                 return i
-        #only get here if we didn't find anything greater
+        # only get here if we didn't find anything greater
         if stop_at_ends:
             return i
-        #default is to return None
+        # default is to return None
 
     def firstIndexLessThan(self, value, inclusive=False, stop_at_ends=False):
         """Returns first index of self that is less than value.
@@ -399,10 +399,10 @@ class NumbersI(object):
         for i, curr in enumerate(self):
             if operator(curr, value):
                 return i
-        #only get here if we didn't find anything greater
+        # only get here if we didn't find anything greater
         if stop_at_ends:
             return i
-        #default is to return None
+        # default is to return None
 
     def lastIndexGreaterThan(self, value, inclusive=False, stop_at_ends=False):
         """Returns last index of self that is greater than value.
@@ -472,7 +472,7 @@ class NumbersI(object):
             return None
         total = self.Sum
         count = self.Count
-        if count <= 1:  #no variance for a single item
+        if count <= 1:  # no variance for a single item
             variance = 0.0
         else:
             variance = (self.SumSquares - (total * total) / count) / (count - 1)
@@ -565,7 +565,7 @@ class NumbersI(object):
         """Rounds each item in self to ndigits."""
         self[:] = [round(i, ndigits) for i in self]
 
-    #following properties/methods are handled by conversion to Freqs.
+    # following properties/methods are handled by conversion to Freqs.
     # Uncertainty, Mode
 
     def _get_uncertainty(self):
@@ -618,7 +618,7 @@ class Numbers(NumbersI, MappedList):
         is OK, but a single number by itself is not OK).
         """
         if data is not None:
-            data = list(map(float, data)) #fails if any items are not floatable
+            data = list(map(float, data))  # fails if any items are not floatable
         else:
             data = []
         MappedList.__init__(self, data, Constraint, Mask)
@@ -766,7 +766,7 @@ class FreqsI(object):
         # kind: elements could be dicts, tuples, or second-level sequences.
         # We know it's not empty, so we can get the first element
         first = data[0]
-        #if the first item is a dict, assume they all are
+        # if the first item is a dict, assume they all are
         if isinstance(first, dict):
             return self.fromDicts
         # otherwise, if all items have two elements and the second is a number,
@@ -818,7 +818,7 @@ class FreqsI(object):
     def __iadd__(self, other):
         """Adds items from other to self."""
         f = self._find_conversion_function(other)
-        if f:   #do nothing if we got None, since it means other was empty
+        if f:  # do nothing if we got None, since it means other was empty
             f(other, op=add)
         return self
 
@@ -831,7 +831,7 @@ class FreqsI(object):
     def __isub__(self, other):
         """Subtracts items in other from self."""
         f = self._find_conversion_function(other)
-        if f:   #do nothing if we got None, since it means other was empty
+        if f:  # do nothing if we got None, since it means other was empty
             f(other, op=sub)
         return self
 
@@ -849,10 +849,10 @@ class FreqsI(object):
         """
         if self:
             lines = ["Value\tCount"]
-            items = list(self.items())  #make and sort list of (key, value) pairs
+            items = list(self.items())  # make and sort list of (key, value) pairs
             items.sort()
             for key, val in items:
-                lines.append("\t".join([str(key), str(val)]))  #add pair
+                lines.append("\t".join([str(key), str(val)]))  # add pair
             return "\n".join(lines)
         else:
             return "Empty frequency distribution"
@@ -931,7 +931,7 @@ class FreqsI(object):
 
         if total is None:
             total = self.Sum
-        if total != 0:          #avoid divide by zero
+        if total != 0:  # avoid divide by zero
             for item, freq in list(self.items()):
                 f = float(freq)
                 if f < 0:
@@ -946,7 +946,7 @@ class FreqsI(object):
             sum += freq
             if prob <= sum:
                 return item
-        return items[-1][0]    #return the last value if we run off the end
+        return items[-1][0]  # return the last value if we run off the end
 
     def randomSequence(self, n):
         """Returns list of n random choices, with replacement.
@@ -961,9 +961,9 @@ class FreqsI(object):
         if keep:
             to_delete = []
             for i in self:
-                try: #fails if i is not a string but items is
+                try:  # fails if i is not a string but items is
                     delete = i not in items
-                except TypeError: #i was wrong type, so can't be in items... 
+                except TypeError:  # i was wrong type, so can't be in items... 
                     to_delete.append(i)
                 else:
                     if delete:
@@ -975,7 +975,7 @@ class FreqsI(object):
             try:
                 del self[i]
             except KeyError:
-                pass #don't care if it wasn't in the dictionary
+                pass  # don't care if it wasn't in the dictionary
 
     def scale(self, factor=1, offset=0):
         """Linear transform of values in freqs where val = facto*val + offset.
@@ -1075,7 +1075,7 @@ class FreqsI(object):
             return None
         total = self.Sum
         count = self.Count
-        if count <= 1: #no variance for a single item
+        if count <= 1:  # no variance for a single item
             variance = 0.0
         else:
             variance = (self.SumSquares - (total * total) / count) / (count - 1)

@@ -5,9 +5,9 @@ to think about the assumptions in these models and consider if their problem cou
 benefit from a user defined model.
 Note that models that do not traditionally deal with gaps are implemented with
 gap recoding that will convert gaps to Ns, and model gaps set to False."""
-#The models are constructed in a strait forward manner with no attempt to condense
-#this file using functions etc. to allow each model to serve as an example for users
-#wishing to construct their own models
+# The models are constructed in a strait forward manner with no attempt to condense
+# this file using functions etc. to allow each model to serve as an example for users
+# wishing to construct their own models
 
 import numpy
 from cogent3.evolve import substitution_model

@@ -42,7 +42,7 @@ def _merge_cells(row):
     returns a list with structure [((span_start, span_end), cell value),..]"""
     new_row = []
     last = 0
-    span = 1 # the minimum
+    span = 1  # the minimum
     for i in range(1, len(row), 1):
         if row[i - 1] != row[i]:
             new_row.append(((last, last + span), row[i - 1]))
@@ -197,7 +197,7 @@ def simpleFormat(header, formatted_table, title=None, legend=None, max_width=1e1
         subtable_boundaries.append((begin, len(header), width))
         # generate the table
         for start, end, width in subtable_boundaries:
-            if start > identifiers: # we are doing a sub-table
+            if start > identifiers:  # we are doing a sub-table
                 table.append("continued: %s" % title)
 
             subhead = space.join([space.join(header[:identifiers]),
@@ -419,19 +419,19 @@ def formattedCells(rows, header=None, digits=4, column_templates=None, missing_d
             else:
                 if not entry:
                     try:
-                        float(entry) # could numerically be 0, so not missing
+                        float(entry)  # could numerically be 0, so not missing
                     except (ValueError, TypeError):
                         entry = '%s' % missing_data
 
             # attempt formatting
             if col_head in column_templates:
-                try: # for functions
+                try:  # for functions
                     entry = column_templates[col_head](entry)
                 except TypeError:
                     entry = column_templates[col_head] % entry
             elif isinstance(entry, float):
                 entry = float_template.format(float(entry))
-            else: # for any other python object
+            else:  # for any other python object
                 entry = '%s' % str(entry)
 
             formatted.append(entry)
@@ -502,7 +502,7 @@ def phylipMatrix(rows, names):
     # determine wrapped table boundaries, if any
     prefix = 13
     mat_breaks = [0]
-    line_len = 75 # for the first block
+    line_len = 75  # for the first block
     col_widths = [len(col) for col in rows[0]]
     for i in range(numseqs):
         num_cols = i - mat_breaks[-1]
@@ -514,7 +514,7 @@ def phylipMatrix(rows, names):
     # build the formatted distance matrix
     dmat = ['   %d' % numseqs]
     for i in range(numseqs):
-        name = names[i].strip() # we determine white space
+        name = names[i].strip()  # we determine white space
         if len(name) > 10:
             name = new_name(names, name)
         dmat += append_species(name, rows[i], mat_breaks)

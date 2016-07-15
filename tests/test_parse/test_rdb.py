@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#test_rdb.py
+# test_rdb.py
 """Unit test for RDB Parser
 """
 from cogent3.util.unit_test import TestCase, main
@@ -97,19 +97,19 @@ class MinimalRdbParserTests(GenericRdbTest):
 
     def test_only_labels(self):
         """MinimalRdbParser should return empty list from file w/o seqs"""
-        #should fail if strict (the default)
+        # should fail if strict (the default)
         self.assertRaises(RecordError, list, 
                           MinimalRdbParser(self.labels, strict=True))
-        #if not strict, should skip the records
+        # if not strict, should skip the records
         self.assertEqual(list(MinimalRdbParser(self.labels, strict=False)), 
                          [])
 
     def test_only_sequences(self):
         """MinimalRdbParser should return empty list form file w/o lables"""
-        #should fail if strict (the default)
+        # should fail if strict (the default)
         self.assertRaises(RecordError, list,
                           MinimalRdbParser(self.nolabels, strict=True))
-        #if not strict, should skip the records
+        # if not strict, should skip the records
         self.assertEqual(list(MinimalRdbParser(self.nolabels, strict=False)), 
                          [])
 
@@ -162,18 +162,18 @@ class RdbParserTests(GenericRdbTest):
 
     def test_only_labels(self):
         """RdbParser should return empty list from file w/o seqs"""
-        #should fail if strict (the default)
+        # should fail if strict (the default)
         self.assertRaises(RecordError, list, 
                           RdbParser(self.labels, strict=True))
-        #if not strict, should skip the records
+        # if not strict, should skip the records
         self.assertEqual(list(RdbParser(self.labels, strict=False)), [])
 
     def test_only_sequences(self):
         """RdbParser should return empty list form file w/o lables"""
-        #should fail if strict (the default)
+        # should fail if strict (the default)
         self.assertRaises(RecordError, list,
                           RdbParser(self.nolabels, strict=True))
-        #if not strict, should skip the records
+        # if not strict, should skip the records
         self.assertEqual(list(RdbParser(self.nolabels, strict=False)), 
                          [])
 
@@ -208,7 +208,7 @@ class RdbParserTests(GenericRdbTest):
             info = Info()
             for line in header_lines:
                 all = line.strip().split(':', 1)
-                #strip out empty lines, lines without name, lines without colon
+                # strip out empty lines, lines without name, lines without colon
                 if not all[0] or len(all) != 2: 
                     continue
                 name = all[0].upper()

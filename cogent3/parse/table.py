@@ -65,7 +65,7 @@ def SeparatorFormatParser(with_header=True, converter=None, ignore=None,
         - strip_wspace: removes redundant white-space from strings.
         - limit: exits after this many lines"""
     sep = kw.get("delim", sep)
-    if ignore is None: # keep all lines
+    if ignore is None:  # keep all lines
         ignore = lambda x: False
 
     by_column = getattr(converter, 'by_column', True)
@@ -111,7 +111,7 @@ def autogen_reader(infile, sep, with_title, limit=None):
         if sep in first_data_row and not seen_title_line:
             seen_title_line = True
 
-    infile.seek(0) # reset to start of file
+    infile.seek(0)  # reset to start of file
 
     numeric_fields = []
     for index, value in enumerate(first_data_row.strip().split(sep)):
@@ -131,7 +131,7 @@ def autogen_reader(infile, sep, with_title, limit=None):
 def load_delimited(filename, header=True, delimiter=',',
                    with_title=False, with_legend=False, limit=None):
     if limit is not None:
-        limit += 1 # don't count header line
+        limit += 1  # don't count header line
 
     if filename.endswith('gz'):
         f = open_(filename, 'rt')

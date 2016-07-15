@@ -4,7 +4,7 @@ import numpy
 
 try:
     from math import factorial
-except ImportError: # python version < 2.6
+except ImportError:  # python version < 2.6
     from cogent3.maths.stats.special import Gamma
     factorial = lambda x: Gamma(x + 1)
 
@@ -176,7 +176,7 @@ def blockwise_bootstrap(signal, calc, block_size, num_reps, seq_to_symbols=None,
     if seq_to_symbols is not None:
         dtype = 'c'
     else:
-        dtype = None # let numpy guess
+        dtype = None  # let numpy guess
 
     signal = numpy.array(list(signal), dtype=dtype)
 

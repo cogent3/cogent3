@@ -49,11 +49,11 @@ class Grouper(object):
                 curr = [item]
             else:
                 curr.append(item)
-        #return any leftover items
+        # return any leftover items
         if curr:
             yield curr
 
-#Example of the instances Grouper provides:
+# Example of the instances Grouper provides:
 ByPairs = Grouper(2)
 
 def string_and_strip(*items):
@@ -77,32 +77,32 @@ def DelimitedSplitter(delimiter=None, max_splits=1):
             return [i.strip() for i in line.split(delimiter, max_splits)]
     elif is_int and (max_splits < 0):
         def parser(line):
-            to_insert = delimiter or ' '    #re-join fields w/ space if None
+            to_insert = delimiter or ' '  # re-join fields w/ space if None
             fields = line.split(delimiter)
             if (fields == []) or (fields == ['']):  
-                return []   #empty string or only delimiter: return nothing
-            #if not enough fields, count from the start, not the end
+                return []  # empty string or only delimiter: return nothing
+            # if not enough fields, count from the start, not the end
             if len(fields) < max_splits:
                 first_fields = fields[0]
                 last_fields = fields[1:]
-            #otherwise, count off the last n fields and join the remainder
+            # otherwise, count off the last n fields and join the remainder
             else:
                 first_fields = fields[:max_splits]
                 last_fields = fields[max_splits:]
             pieces = []
-            #if first_fields is empty, don't make up an extra empty string
+            # if first_fields is empty, don't make up an extra empty string
             if first_fields:
                 pieces.append(to_insert.join(first_fields))
             pieces.extend(last_fields)
             return [i.strip() for i in pieces]
 
-    else:   #ignore max_splits if it was 0
+    else:  # ignore max_splits if it was 0
         def parser(line):
             return [i.strip() for i in line.split(delimiter)]
     return parser
 
-#The following provide examples of the kinds of functions DelimitedSplitter
-#returns.
+# The following provide examples of the kinds of functions DelimitedSplitter
+# returns.
 semi_splitter = DelimitedSplitter(';', None)
 space_pairs = DelimitedSplitter(None)
 equal_pairs = DelimitedSplitter('=')
@@ -127,8 +127,8 @@ class GenericRecord(dict):
     Required = {}
     def __init__(self, *args, **kwargs):
         """Reads kwargs as properties of self."""
-        #perform init on temp dict to preserve interface: will then translate
-        #aliased keys when loading into self
+        # perform init on temp dict to preserve interface: will then translate
+        # aliased keys when loading into self
         temp = {}
         dict.__init__(temp, *args, **kwargs)
         self.update(temp)
@@ -151,7 +151,7 @@ class GenericRecord(dict):
     def copy(self):
         """Coerces copy to correct type"""
         temp = self.__class__(super(GenericRecord, self).copy())
-        #don't forget to copy attributes!
+        # don't forget to copy attributes!
         for attr, val in self.__dict__.items():
             temp.__dict__[attr] = deepcopy(val)
         return temp
@@ -194,14 +194,14 @@ class MappedRecord(GenericRecord):
         elif isinstance(prototype, str) or isinstance(prototype, int) or\
                 isinstance(prototype, int) or isinstance(prototype, tuple)\
                 or isinstance(prototype, complex) or prototype is None: 
-            return prototype     #immutable type: use directly
+            return prototype  # immutable type: use directly
         else:
             return deepcopy(prototype)
 
     def __init__(self, *args, **kwargs):
         """Reads kwargs as properties of self."""
-        #perform init on temp dict to preserve interface: will then translate
-        #aliased keys when loading into self
+        # perform init on temp dict to preserve interface: will then translate
+        # aliased keys when loading into self
         temp = {}
         unalias = self.unalias
         dict.__init__(temp, *args, **kwargs)
@@ -225,7 +225,7 @@ class MappedRecord(GenericRecord):
             return self[attr]
         elif attr in self.__dict__:
             return self.__dict__[attr]
-        elif attr.startswith('__'):     #don't retrieve private class attrs
+        elif attr.startswith('__'):  # don't retrieve private class attrs
             raise AttributeError
         elif hasattr(self.__class__, attr):
             return getattr(self.__class__, attr)
@@ -235,9 +235,9 @@ class MappedRecord(GenericRecord):
     def __setattr__(self, attr, value):
         """Sets attribute in self if absent, converting name if necessary."""
         normal_attr = self.unalias(attr)
-        #we overrode __getattr__, so have to simulate getattr(self, attr) by
-        #calling superclass method and checking for AttributeError.
-        #BEWARE: dict defines __getattribute__, not __getattr__!
+        # we overrode __getattr__, so have to simulate getattr(self, attr) by
+        # calling superclass method and checking for AttributeError.
+        # BEWARE: dict defines __getattribute__, not __getattr__!
         try:
             super(MappedRecord, self).__getattribute__(normal_attr)
             super(MappedRecord, self).__setattr__(normal_attr, value)
@@ -292,8 +292,8 @@ class MappedRecord(GenericRecord):
         for key, val in temp.items():
             self[unalias(key)] = val
 
-#The following methods are useful for handling particular types of fields in
-#line-oriented parsers
+# The following methods are useful for handling particular types of fields in
+# line-oriented parsers
 
 def TypeSetter(constructor=None):
     """Returns function that takes obj, field, val and sets obj.field = val.
@@ -384,20 +384,20 @@ class LineOrientedConstructor(object):
 
         splitter = self.LabelSplitter
         for line in Lines:
-            #find out how many items we got, setting key and val appropiately
+            # find out how many items we got, setting key and val appropiately
             items = list(splitter(line))
             num_items = len(items)
-            if num_items == 2: #typical case: key-value pair
+            if num_items == 2:  # typical case: key-value pair
                 raw_field, val = items
             elif num_items > 2:
                 raw_field = items[0]
                 val = items[1:]
             elif len(items) == 1:
                 raw_field, val = items[0], None
-            elif not items:     #presumably had line with just a delimiter?
+            elif not items:  # presumably had line with just a delimiter?
                 continue
-            #figure out if we know the field under its original name or as
-            #an alias
+            # figure out if we know the field under its original name or as
+            # an alias
             if raw_field in fieldmap:
                 field, mapper = raw_field, fieldmap[raw_field]
             else:
@@ -410,11 +410,11 @@ class LineOrientedConstructor(object):
                     else:
                         identity_setter(result, raw_field, val)
                     continue
-            #if we found the field in the fieldmap, apply the correct function
+            # if we found the field in the fieldmap, apply the correct function
             try:
                 mapper(result, field, val)
-            except:     #Warning: this is a catchall for _any_ exception,
-                        #and may mask what's actually going wrong.
+            except:  # Warning: this is a catchall for _any_ exception,
+                        # and may mask what's actually going wrong.
                 if self.Strict:
                     raise FieldError("Could not handle line %s" % (line,))
         return result
@@ -509,10 +509,10 @@ class FieldMorpher(object):
                 result[key] = cons[key](val)
             else:
                 new_key, new_val = default(key, val)
-                #if we now recognize the key, use its constructor on the old val
+                # if we now recognize the key, use its constructor on the old val
                 if new_key in cons:
                     result[new_key] = cons[new_key](val)
-                #otherwise, enter the new key and the new val
+                # otherwise, enter the new key and the new val
                 else:
                     result[new_key] = new_val
         return result

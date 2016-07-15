@@ -48,7 +48,7 @@ def is_blat_junk(line):
     """Ignore empty line or lines with blat info"""
     return _is_junk(line, ("BLAT",))
 
-label_constructors = {'ITERATION': int} #add other label constructors here
+label_constructors = {'ITERATION': int}  # add other label constructors here
 
 def make_label(line):
     """Make key, value for colon-delimited comment lines.
@@ -115,7 +115,7 @@ def TableToValues(table, constructors=None, header=None):
     Use dict([(val, i) for i, val in enumerate(header)]) to get back
     a dict mapping the fields to indices in each row.
     """
-    if header is None:  #assume first row of table
+    if header is None:  # assume first row of table
         header = table[0]
         table = table[1:]
     c_list = [constructors.get(k, str) for k in header]
@@ -124,7 +124,7 @@ def TableToValues(table, constructors=None, header=None):
 psiblast_constructors = {'% identity': float, 'alignment length': int, \
                        'mismatches': int, 'gap openings': int, 'q. start': int, 'q. end': int, \
                        's. start': int, 's. end': int, 'e-value': float, 'bit score': float}
-#make case-insensitive
+# make case-insensitive
 for key, val in list(psiblast_constructors.items()):
     psiblast_constructors[key.upper()] = val
 
@@ -163,7 +163,7 @@ def PsiBlastParser9(lines):
     WARNING: designed for ease of use, not efficiency!"""
     result = {}
     for query in PsiBlastQueryFinder(lines):
-        first_query = True  #if it's the first, need to make the entry
+        first_query = True  # if it's the first, need to make the entry
         for properties, record in MinimalPsiBlastParser9(query, True):
             if first_query:
                 curr_resultset = []
@@ -196,7 +196,7 @@ def get_blast_ids(props, data, filter_identity, threshold, keep_values):
         # will raise exception if invalid threshold passed 
         max_val = float(threshold)
 
-        #figure out what we're keeping
+        # figure out what we're keeping
         def ok_val(val):
             if threshold:
                 return (val <= max_val)
@@ -337,8 +337,8 @@ class BlastResult(dict):
     E_VALUE = 'E-VALUE'
     BIT_SCORE = 'BIT SCORE'
 
-    #standard comparison for each field, e.g.  
-    #want long matches, small e-values
+    # standard comparison for each field, e.g.  
+    # want long matches, small e-values
     _lt = lambda x, y: cmp(x, y) == -1
     _le = lambda x, y: cmp(x, y) <= 0 
     _gt = lambda x, y: cmp(x, y) == 1 
@@ -468,7 +468,7 @@ class BlastResult(dict):
 
         Negative indices count backwards."""
 
-    #raise error if both field and f passed, uses same dict as filterByField
+    # raise error if both field and f passed, uses same dict as filterByField
 
 fastacmd_taxonomy_splitter = DelimitedRecordFinder(delimiter='', \
                                                    ignore=never_ignore)

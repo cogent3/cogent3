@@ -31,8 +31,8 @@ class unigeneTests(TestCase):
 
     def test_read_seq(self):
         """_read_seq should perform correct conversions"""
-        #reset the found fields, since we can't guarantee order of test
-        #execution and it's persistent class data
+        # reset the found fields, since we can't guarantee order of test
+        # execution and it's persistent class data
         UniGeneSeqRecord.found_fields = {}
         self.assertEqual(_read_seq('ACC=BC025044.1\n'), \
                          UniGeneSeqRecord({'ACC': 'BC025044.1'}))
@@ -134,7 +134,7 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
              'CLONE': 'IMAGE:1513482', 'END': "5'", 'LID': '1043',
              'SEQTYPE': 'EST', 'TRACE': '94472873'}])))
 
-        #test that the synonym mapping works OK
+        # test that the synonym mapping works OK
         self.assertEqual(second.SequenceIds[0].NucleotideId, 'g8185938')
 
 if __name__ == '__main__':

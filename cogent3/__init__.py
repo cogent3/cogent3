@@ -19,7 +19,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-#SUPPORT2425
+# SUPPORT2425
 if sys.version_info < (2, 6):
     py_version = ".".join([str(n) for n in sys.version_info])
     raise RuntimeError("Python-2.6 or greater is required, Python-%s used." % py_version)
@@ -41,8 +41,8 @@ from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.core.alignment import SequenceCollection
 from cogent3.core.alignment import Alignment
 from cogent3.parse.sequence import FromFilenameParser
-#note that moltype has to be imported last, because it sets the moltype in
-#the objects created by the other modules.
+# note that moltype has to be imported last, because it sets the moltype in
+# the objects created by the other modules.
 from cogent3.core.moltype import ASCII, DNA, RNA, PROTEIN, STANDARD_CODON, \
     CodonAlphabet
 
@@ -101,14 +101,14 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
         data = list(FromFilenameParser(filename, format, **parser_kw))
 
     # the following is a temp hack until we have the load API sorted out.
-    if aligned: #if callable, call it -- expect either f(data) or bool
+    if aligned:  # if callable, call it -- expect either f(data) or bool
         if hasattr(aligned, '__call__'):
             return aligned(data=data, MolType=moltype, Name=name,
                            label_to_name=label_to_name, **constructor_kw)
-        else:   #was not callable, but wasn't False
+        else:  # was not callable, but wasn't False
             return Alignment(data=data, MolType=moltype, Name=name,
                              label_to_name=label_to_name, **constructor_kw)
-    else:   #generic case: return SequenceCollection
+    else:  # generic case: return SequenceCollection
         return SequenceCollection(data, MolType=moltype, Name=name,
                                   label_to_name=label_to_name, **constructor_kw)
 
@@ -205,7 +205,7 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None, \
         else:
             parser = newick_parse_string
         tree_builder = TreeBuilder().createEdge
-        #FIXME: More general strategy for underscore_unmunge
+        # FIXME: More general strategy for underscore_unmunge
         if parser is newick_parse_string:
             tree = parser(treestring, tree_builder, \
                           underscore_unmunge=underscore_unmunge)

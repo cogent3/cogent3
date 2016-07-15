@@ -18,7 +18,7 @@ strip = str.strip
 class MissingParentError(Exception):
     pass
 
-#Note: numbers not guaranteed to be consistent if new taxa are invented...
+# Note: numbers not guaranteed to be consistent if new taxa are invented...
 RanksToNumbers = {
     'forma': 1,
     'varietas': 2,
@@ -84,18 +84,18 @@ class NcbiTaxon(object):
         line_pieces = list(map(strip, line.split('|')))
         for i in [0, 1, 5, 6, 7, 8, 9, 10, 11]:
             line_pieces[i] = int(line_pieces[i])
-        #fix trailing delimiter
+        # fix trailing delimiter
         last = line_pieces[-1]
         if last.endswith('|'):
             line_pieces[-1] = last[:-1]
         self.__dict__ = dict(list(zip(self.Fields, line_pieces)))
-        self.Name = '' #will get name field from names.dmp; fillNames
+        self.Name = ''  # will get name field from names.dmp; fillNames
         self.RankId = RanksToNumbers.get(self.Rank, None)
 
     def __str__(self):
         """Writes data out in format we got it."""
         pieces = [str(getattr(self, f)) for f in self.Fields]
-        #remember to set the parent of the root to itself
+        # remember to set the parent of the root to itself
         if pieces[1] == 'None':
             pieces[1] = pieces[0]
         return '\t|\t'.join(pieces) + '\t|\n'
@@ -105,7 +105,7 @@ class NcbiTaxon(object):
         try:
             return self.RankId < other.RankId
         except AttributeError:
-            return True    #always sort ranked nodes above unranked
+            return True  # always sort ranked nodes above unranked
 
     def __eq__(self, other):
         """Compare by taxon rank."""
@@ -148,7 +148,7 @@ class NcbiName(object):
     def __init__(self, line):
         """Returns new NcbiName from line containing name data."""
         line_pieces = list(map(strip, line.split('|')))
-        line_pieces[0] = int(line_pieces[0])    #convert taxon_id
+        line_pieces[0] = int(line_pieces[0])  # convert taxon_id
         self.__dict__ = dict(list(zip(self.Fields, line_pieces)))
 
     def __str__(self):
@@ -201,14 +201,14 @@ class NcbiTaxonomy(object):
         self.ById = ids_to_nodes
 
         deadbeats = {}
-        #build the tree by connecting each node to its parent
+        # build the tree by connecting each node to its parent
         for t_id, t in ids_to_nodes.items():
             if t.ParentId == t.TaxonId:
                 t.Parent = None
             else:
                 try:
                     ids_to_nodes[t.ParentId].append(t)
-                except KeyError:    #found a child whose parent doesn't exist
+                except KeyError:  # found a child whose parent doesn't exist
                     if strict:
                         raise MissingParentError("Node %s has parent %s, which isn't in taxa." % \
                                                  (t_id, t.ParentId))

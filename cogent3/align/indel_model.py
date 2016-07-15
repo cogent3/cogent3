@@ -97,7 +97,7 @@ class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
         close * deletion * 3 / 4
 
         #e = 1 + ( extend * secondary_indel/2 / close)
-        #print e, (eXM + eXX + eXY)
+        # print e, (eXM + eXX + eXY)
         e = eXM + eXX + eXY
 
         #assert eMM + eMX + eMY == 1.0, (eMM + eMX + eMY)

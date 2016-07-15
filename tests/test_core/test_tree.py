@@ -27,10 +27,10 @@ class TreeTests(TestCase):
 
     def test_LoadTree(self):
         """LoadTree should load a tree from a file or a string"""
-        #NOTE: This method now sits in cogent3.__init__
+        # NOTE: This method now sits in cogent3.__init__
 
         t_str = '(a_a:10,(b_b:2,c_c:4):5);'
-        #NOTE: Tree quotes these labels because they have underscores in them.
+        # NOTE: Tree quotes these labels because they have underscores in them.
         result_str = "('a_a':10.0,('b_b':2.0,'c_c':4.0):5.0);"
         t = LoadTree(treestring=t_str)
         #t = DndParser(t_str)
@@ -39,8 +39,8 @@ class TreeTests(TestCase):
         self.assertEqual(str(t), result_str) 
         self.assertEqual(t.getNewick(with_distances=True), result_str) 
         t_str = '(a_a:10.0,(b_b:2.0,c_c:4.0):5.0);'
-        #NOTE: Tree silently converts spaces to underscores (only for output),
-        #presumably for Newick compatibility.
+        # NOTE: Tree silently converts spaces to underscores (only for output),
+        # presumably for Newick compatibility.
         result_str = "(a_a:10.0,(b_b:2.0,c_c:4.0):5.0);"
         t = LoadTree(treestring=t_str, underscore_unmunge=True)
         #t = DndParser(t_str, unescape_name=True)
@@ -138,7 +138,7 @@ class TreeNodeTests(TestCase):
 
     def test_str(self):
         """TreeNode str should give Newick-style representation"""
-        #note: name suppressed if None
+        # note: name suppressed if None
         self.assertEqual(str(self.Empty), ';')
         self.assertEqual(str(self.OneChild), '(b)a;')
         self.assertEqual(str(self.BigParent), '(0,1,2,3,4,5,6,7,8,9)x;')
@@ -176,7 +176,7 @@ class TreeNodeTests(TestCase):
         t = DndParser(t_str, constructor=TreeNode)
         obs = t.multifurcating(2)
         self.assertEqual(obs.getNewick(with_distances=True), exp_str)
-        obs = t.multifurcating(2, eps=10) # no effect on TreeNode type
+        obs = t.multifurcating(2, eps=10)  # no effect on TreeNode type
         self.assertEqual(obs.getNewick(with_distances=True), exp_str)
 
         self.assertRaises(TreeError, t.multifurcating, 1)
@@ -244,7 +244,7 @@ class TreeNodeTests(TestCase):
         f.Name += 0.1
         self.assertNotEqual(f, g)
 
-        #however, two TreeNodes that have no name should not compare equal
+        # however, two TreeNodes that have no name should not compare equal
         f = TreeNode()
         g = TreeNode()
         self.assertNotEqual(f, g)
@@ -272,7 +272,7 @@ class TreeNodeTests(TestCase):
         self.OneChild.append(6)
         self.assertEqual(len(self.OneChild), 3)
         self.assertEqual(self.OneChild[-1].Name, 6)
-        #check that refs are updated when moved from one tree to another
+        # check that refs are updated when moved from one tree to another
         empty = TreeNode()
         empty.append(self.OneChild[-1])
         self.assertEqual(len(empty), 1)
@@ -458,10 +458,10 @@ class TreeNodeTests(TestCase):
         assert c is not u
         assert c.Name == u.Name
         assert c.Name is not u.Name
-        #note: Name _is_ same object if it's immutable, e.g. a string.
-        #deepcopy doesn't copy data for immutable objects.
+        # note: Name _is_ same object if it's immutable, e.g. a string.
+        # deepcopy doesn't copy data for immutable objects.
 
-        #need to check that we also copy arbitrary attributes
+        # need to check that we also copy arbitrary attributes
         t.XYZ = [3]
         c = t.copy()
         assert c is not t
@@ -477,7 +477,7 @@ class TreeNodeTests(TestCase):
 
     def test_copy(self):
         """TreeNode.copy() should work on deep trees"""
-        t = comb_tree(1024) # should break recursion limit on regular copy
+        t = comb_tree(1024)  # should break recursion limit on regular copy
         t.Name = 'foo' 
         t.XYZ = [3]
         t2 = t.copy()
@@ -512,10 +512,10 @@ class TreeNodeTests(TestCase):
         c = u.copyTopology()
         assert c is not u
         self.assertEqual(c.Name, u.Name)
-        #note: Name _is_ same object if it's immutable, e.g. a string.
-        #deepcopy doesn't copy data for immutable objects.
+        # note: Name _is_ same object if it's immutable, e.g. a string.
+        # deepcopy doesn't copy data for immutable objects.
 
-        #need to check that we do not also copy arbitrary attributes
+        # need to check that we do not also copy arbitrary attributes
         t.XYZ = [3]
         c = t.copyTopology()
         assert c is not t
@@ -547,10 +547,10 @@ class TreeNodeTests(TestCase):
         assert c is not u
         assert c.Name == u.Name
         assert c.Name is not u.Name
-        #note: Name _is_ same object if it's immutable, e.g. a string.
-        #deepcopy doesn't copy data for immutable objects.
+        # note: Name _is_ same object if it's immutable, e.g. a string.
+        # deepcopy doesn't copy data for immutable objects.
 
-        #need to check that we also copy arbitrary attributes
+        # need to check that we also copy arbitrary attributes
         t.XYZ = [3]
         c = deepcopy(t)
         assert c is not t
@@ -567,22 +567,22 @@ class TreeNodeTests(TestCase):
 
     def test_Parent(self):
         """TreeNode Parent should hold correct data and be mutable"""
-        #check initial conditions
+        # check initial conditions
         self.assertEqual(self.Single.Parent, None)
-        #set parent and check parent/child relations
+        # set parent and check parent/child relations
         self.Single.Parent = self.Empty
         assert self.Single.Parent is self.Empty
         self.assertEqual(self.Empty[0], self.Single)
         assert self.Single in self.Empty
         self.assertEqual(len(self.Empty), 1)
-        #reset parent and check parent/child relations
+        # reset parent and check parent/child relations
         self.Single.Parent = self.OneChild
         assert self.Single.Parent is self.OneChild
         assert self.Single not in self.Empty
         assert self.Single is self.OneChild[-1]
 
-        #following is added to check that we don't screw up when there are
-        #nodes with different ids that still compare equal
+        # following is added to check that we don't screw up when there are
+        # nodes with different ids that still compare equal
         for i in self.Repeated:
             assert i.Parent is self.Repeated
         last = self.Repeated[-1]
@@ -679,7 +679,7 @@ class TreeNodeTests(TestCase):
         self.assertEqual([i.Name for i in r.traverse(False, False, False)], \
                          ['d', 'e', 'g', 'h'])
 
-        #this previously failed
+        # this previously failed
         t = DndParser('((a:6,(b:1,c:2):8):12,(d:3,(e:1,f:1):4):10);')
         t0 = t.Children[0]
         list(t0.traverse(self_before=False, self_after=True))
@@ -717,7 +717,7 @@ class TreeNodeTests(TestCase):
         self.assertEqual(len(t), 3)
         u, v = TreeNode('u'), TreeNode('v')
 
-        #WARNING: If you set Children directly, Parent refs will _not_ update!
+        # WARNING: If you set Children directly, Parent refs will _not_ update!
         t.Children = [u, v]
 
         assert t[0] is u
@@ -895,10 +895,10 @@ class TreeNodeTests(TestCase):
         t2 = t1.copy()
         t3 = t1.copy()
         t4 = t1.copy()
-        input1 = ['a'] # return self
-        input2 = ['a', 'b'] # return e
-        input3 = ['b', 'c'] # return d
-        input4 = ['a', 'h', 'g'] # return j
+        input1 = ['a']  # return self
+        input2 = ['a', 'b']  # return e
+        input3 = ['b', 'c']  # return d
+        input4 = ['a', 'h', 'g']  # return j
         exp1 = t1.getNodeMatchingName('a')
         exp2 = t2.getNodeMatchingName('e')
         exp3 = t3.getNodeMatchingName('d')
@@ -1004,7 +1004,7 @@ class TreeNodeTests(TestCase):
                          array([[1, 1, 1, 1], [1, 1, 1, 0], [1, 1, 1, 0], [0, 0, 1, 0]]))
         nodes = [node.Name for node in node_list]
         self.assertEqual(nodes, ['a', 'b', 'c', 'f'])
-        #test if works with a dec_list supplied
+        # test if works with a dec_list supplied
         dec_list = ['d', 'added', 'e', 'g', 'h']
         result2, node_list = tree.makeTreeArray(dec_list)
         self.assertEqual(result2, \
@@ -1282,7 +1282,7 @@ class PhyloNodeTests(TestCase):
 
     def test_compareByTipDistances(self):
         obs = self.t.compareByTipDistances(self.t3)
-        #note: common taxa are H, G, R (only)
+        # note: common taxa are H, G, R (only)
         m1 = array([[0, 2, 6.5], [2, 0, 6.5], [6.5, 6.5, 0]])
         m2 = array([[0, 2, 6], [2, 0, 6], [6, 6, 0]])
         r = correlation(m1.flat, m2.flat)[0]
@@ -1290,7 +1290,7 @@ class PhyloNodeTests(TestCase):
 
     def test_compareByTipDistances_sample(self):
         obs = self.t.compareByTipDistances(self.t3, sample=3, shuffle_f=sorted)
-        #note: common taxa are H, G, R (only)
+        # note: common taxa are H, G, R (only)
         m1 = array([[0, 2, 6.5], [2, 0, 6.5], [6.5, 6.5, 0]])
         m2 = array([[0, 2, 6], [2, 0, 6], [6, 6, 0]])
         r = correlation(m1.flat, m2.flat)[0]
@@ -1339,16 +1339,16 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(str(h), 'h:2;')
         self.assertEqual(str(f), '(g:3)f:2;')
         self.assertEqual(str(a), '(((d:1,e:4,(g:3)f:2)c:3)b:0,h:2)a;')
-        #check that None isn't converted any more
+        # check that None isn't converted any more
         h.Length = None
-        c.Length = None   #need to test both leaf and internal node
+        c.Length = None  # need to test both leaf and internal node
         self.assertEqual(str(a), '(((d:1,e:4,(g:3)f:2)c)b:0,h)a;')
 
     def test_getMaxTipTipDistance(self):
         """getMaxTipTipDistance should get max tip distance across tree"""
         nodes, tree = self.TreeNode, self.TreeRoot
         dist, names, node = tree.getMaxTipTipDistance()
-        self.assertEqual(dist, 15.0) # due to nodes with single descendents!!
+        self.assertEqual(dist, 15.0)  # due to nodes with single descendents!!
         self.assertEqual(sorted(names), ['e', 'g'])
         self.assertEqual(node.Name, 'b')
 
@@ -1384,12 +1384,12 @@ class PhyloNodeTests(TestCase):
     def test_rootAtMidpoint(self):
         """rootAtMidpoint performs midpoint rooting"""
         nodes, tree = self.TreeNode, self.TreeRoot
-        #works when the midpoint falls on an existing edge
+        # works when the midpoint falls on an existing edge
         tree1 = deepcopy(tree)
         result = tree1.rootAtMidpoint()
         self.assertEqual(result.distance(result.getNodeMatchingName('e')), 4)
         self.assertEqual(result.getDistances(), tree1.getDistances())
-        #works when the midpoint falls between two existing edges
+        # works when the midpoint falls between two existing edges
         nodes['f'].Length = 1
         nodes['c'].Length = 4
         result = tree.rootAtMidpoint()
@@ -1401,7 +1401,7 @@ class PhyloNodeTests(TestCase):
 
     def test_rootAtMidpoint2(self):
         """rootAtMidpoint works when midpoint is on both sides of root"""
-        #also checks whether it works if the midpoint is adjacent to a tip
+        # also checks whether it works if the midpoint is adjacent to a tip
         nodes, tree = self.TreeNode, self.TreeRoot
         nodes['h'].Length = 20
         result = tree.rootAtMidpoint()
@@ -1461,9 +1461,9 @@ class PhyloNodeTests(TestCase):
         """setTipDistances should correctly set tip distances."""
         tree = DndParser('(((A1:.1,B1:.1):.1,(A2:.1,B2:.1):.1):.3,((A3:.1,B3:.1):.1,(A4:.1,B4:.1):.1):.3);', constructor=PhyloNode)
 
-        #expected distances for a post order traversal
+        # expected distances for a post order traversal
         expected_tip_distances = [0, 0, 0.1, 0, 0, 0.1, 0.2, 0, 0, 0.1, 0, 0, 0.1, 0.2, 0.5]
-        #tips should have distance of 0
+        # tips should have distance of 0
         tree.setTipDistances()
         for node in tree.tips():
             self.assertEqual(node.TipDistance, 0)
@@ -1821,7 +1821,7 @@ class TestTree(TestCase):
         """tree.getSubTree() has same pairwise tip dists as tree (len0 node)
         """
         t1 = DndParser('((a:1,b:2):4,((c:3, j:17.2):0,(d:1,e:1):2):3)', \
-                       PhyloNode) # note c,j is len 0 node
+                       PhyloNode)  # note c,j is len 0 node
         orig_dists = t1.getDistances()
         subtree = t1.getSubTree(set(['a', 'b', 'd', 'e', 'c']))
         sub_dists = subtree.getDistances()
@@ -1834,14 +1834,14 @@ class TestTree(TestCase):
         (nonzero nodes)
         """
         t1 = DndParser('((a:1,b:2):4,((c:3, j:17):0,(d:1,e:1):2):3)', \
-                       PhyloNode) # note c,j is len 0 node
+                       PhyloNode)  # note c,j is len 0 node
         orig_dists = t1.getDistances()
         subtree = t1.getSubTree(set(['a', 'b', 'd', 'e', 'c']))
         sub_dists = subtree.getDistances()
         # for pair, dist in sub_dists.items():
             # self.assertEqual((pair,dist), (pair,orig_dists[pair]))
         t2 = DndParser('((a:1,b:2):4,((c:2, j:16):1,(d:1,e:1):2):3)', \
-                       PhyloNode) # note c,j similar to above
+                       PhyloNode)  # note c,j similar to above
         t2_dists = t2.getDistances()
         # ensure t2 is same as t1, except j->c or c->j
         for pair, dist in list(t2_dists.items()):
@@ -1898,7 +1898,7 @@ class TestTree(TestCase):
 
         true_root_dists = {'a': 5, 'b': 6, 'c': 6, 'j': 20, 'd': 6, 'e': 9}
 
-        t1_dists = t1.getDistances() # 
+        t1_dists = t1.getDistances()
         subtree = t1.getSubTree(set(['d', 'e', 'c']))
         sub_dists = subtree.getDistances()
         true_sub_root_dists = {'c': 3, 'd': 3, 'e': 6}
@@ -1976,6 +1976,6 @@ class BigTreeSingleTests(TestTree):
         tips = self.tree.getTipNames()
         self.assertEqual(len(tips), 55)
 
-#run if called from command line
+# run if called from command line
 if __name__ == '__main__':
     main()

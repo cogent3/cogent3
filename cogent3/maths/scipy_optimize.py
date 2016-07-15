@@ -235,11 +235,11 @@ def fmin(func, x0, args=(), xtol=1e-4, ftol=1e-4, maxiter=None, maxfun=None,
             else:
                 sim[-1] = xr
                 fsim[-1] = fxr
-        else: # fsim[0] <= fxr
+        else:  # fsim[0] <= fxr
             if fxr < fsim[-2]:
                 sim[-1] = xr
                 fsim[-1] = fxr
-            else: # fxr >= fsim[-2]
+            else:  # fxr >= fsim[-2]
                 # Perform contraction
                 if fxr < fsim[-1]:
                     xc = (1 + psi * rho) * xbar - psi * rho * sim[-1]
@@ -507,7 +507,7 @@ def line_search(f, myfprime, xk, pk, gfk, old_fval, old_old_fval,
         fprime_star = None
 
     phi_a1 = phi(alpha1)
-    #derphi_a1 = phiprime(alpha1)  evaluated below
+    # derphi_a1 = phiprime(alpha1)  evaluated below
 
     phi_a0 = phi0
     derphi_a0 = derphi0
@@ -576,7 +576,7 @@ def line_search_BFGS(f, xk, pk, gfk, old_fval, args=(), c1=1e-4, alpha0=1):
 
     xk = atleast_1d(xk)
     fc = 0
-    phi0 = old_fval # compute f(xk) -- done in past loop
+    phi0 = old_fval  # compute f(xk) -- done in past loop
     phi_a0 = f(*((xk + alpha0 * pk,) + args))
     fc = fc + 1
     derphi0 = numpy.dot(gfk, pk)
@@ -767,12 +767,12 @@ def fmin_bfgs(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf,
         if (gnorm <= gtol):
             break
 
-        try: # this was handled in numeric, let it remaines for more safety
+        try:  # this was handled in numeric, let it remaines for more safety
             rhok = 1.0 / (numpy.dot(yk, sk))
         except ZeroDivisionError:
             rhok = 1000.0
             print("Divide-by-zero encountered: rhok assumed large")
-        if isinf(rhok): # this is patch for numpy
+        if isinf(rhok):  # this is patch for numpy
             rhok = 1000.0
             print("Divide-by-zero encountered: rhok assumed large")
         A1 = I - sk[:, numpy.newaxis] * yk[numpy.newaxis, :] * rhok
@@ -1087,7 +1087,7 @@ def fmin_ncg(f, x0, fprime, fhess_p=None, fhess=None, args=(), avextol=1e-5,
             else:
                 Ap = numpy.dot(A, psupi)
             # check curvature
-            Ap = asarray(Ap).squeeze() # get rid of matrices...
+            Ap = asarray(Ap).squeeze()  # get rid of matrices...
             curv = numpy.dot(psupi, Ap)
             if curv == 0.0:
                 break
@@ -1319,7 +1319,7 @@ def fminbound(func, x1, x2, args=(), xtol=1e-5, maxfun=500,
         return xf
 
 class Brent:
-    #need to rethink design of __init__
+    # need to rethink design of __init__
     def __init__(self, func, tol=1.48e-8, maxiter=500):
         self.func = func
         self.tol = tol
@@ -1333,13 +1333,13 @@ class Brent:
         self.brack = None
         self._brack_info = None
 
-    #need to rethink design of set_bracket (new options, etc)
+    # need to rethink design of set_bracket (new options, etc)
     def set_bracket(self, brack=None):
         self.brack = brack
         self._brack_info = self.get_bracket_info()
 
     def get_bracket_info(self):
-        #set up
+        # set up
         func = self.func
         brack = self.brack
         ### BEGIN core bracket_info code ###
@@ -1366,7 +1366,7 @@ class Brent:
         return xa, xb, xc, fa, fb, fc
 
     def optimize(self):
-        #set up for optimization
+        # set up for optimization
         func = self.func
         if self._brack_info is None:
             self.set_bracket(None)
@@ -1374,8 +1374,8 @@ class Brent:
         _mintol = self._mintol
         _cg = self._cg
         #################################
-        #BEGIN CORE ALGORITHM
-        #we are making NO CHANGES in this
+        # BEGIN CORE ALGORITHM
+        # we are making NO CHANGES in this
         #################################
         x = w = v = xb
         fw = fv = fx = func(x)
@@ -1415,7 +1415,7 @@ class Brent:
                         if xmid - x >= 0: rat = tol1
                         else: rat = -tol1
                 else:
-                    if (x >= xmid): deltax = a - x # if it's not do a golden section step
+                    if (x >= xmid): deltax = a - x  # if it's not do a golden section step
                     else: deltax = b - x
                     rat = _cg * deltax
 
@@ -1442,7 +1442,7 @@ class Brent:
 
             iter += 1
         #################################
-        #END CORE ALGORITHM
+        # END CORE ALGORITHM
         #################################
 
         self.xmin = x

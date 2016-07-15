@@ -230,7 +230,7 @@ class LineGrouperTests(TestCase):
         self.assertEqual(list(c(good)), [['>abc'], ['def'], ['>efg'], ['ghi']])
         c = LineGrouper(4)
         self.assertEqual(list(c(good)), [['>abc', 'def', '>efg', 'ghi']])
-        #shouldn't work if not evenly divisible
+        # shouldn't work if not evenly divisible
         c = LineGrouper(3)
         self.assertRaises(RecordError, list, c(good))
 

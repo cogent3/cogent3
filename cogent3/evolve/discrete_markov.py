@@ -17,7 +17,7 @@ __status__ = "Production"
 class PsubMatrixDefn(PartitionDefn):
     "Square 2D array made of 1D partitions"
 
-    numeric = False # well, not scalar anyway
+    numeric = False  # well, not scalar anyway
     const_by_default = False
     independent_by_default = True
 

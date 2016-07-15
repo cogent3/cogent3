@@ -51,8 +51,8 @@ class SpecialTests(TestCase):
 
     def test_permutations_range(self):
         """permutations should increase gradually with increasing k"""
-        start = 5 #permuations(10,5) = 30240
-        end = 6 #permutations(10,6) = 151200
+        start = 5  # permuations(10,5) = 30240
+        end = 6  # permutations(10,6) = 151200
         step = 0.1
         lower_lim = 30240
         upper_lim = 151200
@@ -120,8 +120,8 @@ class SpecialTests(TestCase):
 
     def test_combinations_range(self):
         """combinations should decrease gradually with increasing k"""
-        start = 5 #combinations(10,5) = 252
-        end = 6 #combinations(10,6) = 210
+        start = 5  # combinations(10,5) = 252
+        end = 6  # combinations(10,6) = 210
         step = 0.1
         lower_lim = 210
         upper_lim = 252
@@ -549,9 +549,9 @@ class SpecialTests(TestCase):
                     e = exp[i]
                     self.assertFloatEqual(e, result)
                     i += 1
-        #specific cases that failed elsewhere
+        # specific cases that failed elsewhere
         self.assertFloatEqual(incbi(999, 2, 1e-10), 0.97399698104554944)
 
-#execute tests if called from command line
+# execute tests if called from command line
 if __name__ == '__main__':
     main()

@@ -164,7 +164,7 @@ class MonomerProbModel(ComplexMotifProbModel):
     def calcWordProbs(self, monomer_probs):  
         result = numpy.product(monomer_probs.take(self.m2w), axis=-1)
         # maybe simpler but slower, works ok:
-        #result = numpy.product(monomer_probs ** (w2m, axis=-1))
+        # result = numpy.product(monomer_probs ** (w2m, axis=-1))
         result /= result.sum()
         return result
 
@@ -212,12 +212,12 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
 
     def calcWordWeightMatrix(self, monomer_probs):  
         positions = list(range(self.word_length))
-        monomer_probs = numpy.array(monomer_probs) # so [posn, motif]
+        monomer_probs = numpy.array(monomer_probs)  # so [posn, motif]
         size = monomer_probs.shape[-1]
         # should be constant
         extended_indices = self.mutated_posn * size + self.mutant_motif
-        #print size, self.word_length
-        #for a in [extended_indices, self.mutated_posn, self.mutant_motif, 
+        # print size, self.word_length
+        # for a in [extended_indices, self.mutated_posn, self.mutant_motif, 
         #        monomer_probs]:
         #    print a.shape, a.max()
 

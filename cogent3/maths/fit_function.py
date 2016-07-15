@@ -48,7 +48,7 @@ def fit_function(x_vals, y_vals, func, n_params, iterations=2):
 
     # internal function to minimize the error
     def f2min(a):
-        #sum square deviation
+        # sum square deviation
         return ((func(x_vals, a) - y_vals)**2).sum()
 
     param_guess = array(list(range(n_params)))
@@ -59,5 +59,5 @@ def fit_function(x_vals, y_vals, func, n_params, iterations=2):
     return xopt
 
 
-#if __name__ == "__main__":
+# if __name__ == "__main__":
 #    main()

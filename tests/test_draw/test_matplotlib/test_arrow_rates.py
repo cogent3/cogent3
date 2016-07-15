@@ -20,8 +20,8 @@ class arrow_rates_tests(TestCase):
     def test_make_arrow_plot(self):
         """arrow_plot should write correct file and not raise exception"""
         make_arrow_plot(sample_data, graph_name='arrows.png')
-        #comment out line below to see the result
-        #remove('arrows.png')
+        # comment out line below to see the result
+        # remove('arrows.png')
 
 if __name__ == '__main__':
     main()

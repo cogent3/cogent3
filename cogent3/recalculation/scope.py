@@ -303,7 +303,7 @@ class _Defn(object):
         for d in kw:
             if d not in valid_dimensions:
                 continue
-            if kw[d] is None: #i.e.: ALL
+            if kw[d] is None:  # i.e.: ALL
                 continue
             if isinstance(kw[d], str):
                 kw[d] = [kw[d]]
@@ -354,7 +354,7 @@ class _Defn(object):
                 if key not in d: d[key] = {}
                 (d, key) = (d[key], key2)
 
-            if key in d and  value != d[key]:
+            if key in d and value != d[key]:
                 msg = 'Multiple values for %s' % self.name
                 if scope:
                     msg += ' within scope %s' % '/'.join(scope)
@@ -588,7 +588,7 @@ class _LeafDefn(_Defn):
                 else:
                     assignments.append(a.value)
             else:
-                assignments.append('Var') # %s' % str(i))
+                assignments.append('Var')  # %s' % str(i))
         return '%-20s%s' % (self.name[:19],
                             _fmtrow(col_width + 1, assignments, max_width))
 
@@ -637,7 +637,7 @@ class ParameterController(object):
 
         self.defn_for = {}
         for defn in self.defns:
-            #if not defn.args:
+            # if not defn.args:
             #assert defn.name not in self.defn_for, defn.name
             if defn.name in self.defn_for:
                 self.defn_for[defn.name] = None
@@ -726,7 +726,7 @@ class ParameterController(object):
 
     def updateIntermediateValues(self, changed=None):
         if changed is None:
-            changed = self.defns # all
+            changed = self.defns  # all
         self._changed.update(id(defn) for defn in changed)
         self._updateIntermediateValues()
 
@@ -798,7 +798,7 @@ class ParameterController(object):
         both the global and local optimisers. 'filename' and 'interval'
         control checkpointing.  Unknown keyword arguments get passed on to
         the optimiser(s)."""
-        return_calculator = kw.pop('return_calculator', False) # only for debug
+        return_calculator = kw.pop('return_calculator', False)  # only for debug
         for n in ['local', 'filename', 'interval', 'max_evaluations', 
                   'tolerance', 'global_tolerance']:
             kw[n] = locals()[n]

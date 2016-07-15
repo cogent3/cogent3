@@ -184,7 +184,7 @@ class _LikelihoodParameterController(_LF):
                 raise TreeError("Only ONE of edge, edges or tip_names")
             edges = [edge]
         elif tip_names is None:
-            edges = None # meaning all edges
+            edges = None  # meaning all edges
         elif len(tip_names) != 2:
             raise TreeError("tip_names must contain 2 species")
         else:
@@ -379,7 +379,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
         for (name, seq) in list(seqs.items()):
             # if has uniq, probably already a likelihood tree leaf obj already
             if hasattr(seq, 'uniq'):
-                leaf = seq # XXX more checks - same alphabet as model, name etc ...
+                leaf = seq  # XXX more checks - same alphabet as model, name etc ...
             else:
                 leaf = self.model.convertSequence(seq, name)
             leaf = AlignableSeq(leaf)

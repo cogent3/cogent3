@@ -58,7 +58,7 @@ class AnnealingHistory(object):
 
     def __init__(self, sample=4):
         self.sample_size = sample
-        #self.values = deque([None]*sample, sample) Py2.6
+        # self.values = deque([None]*sample, sample) Py2.6
         self.values = deque([None] * sample)
 
     def note(self, F):

@@ -425,7 +425,7 @@ def dist_chord(datamtx, strict=True):
         return zeros((0, 0), 'd')
     dists = zeros((numrows, numrows), 'd')
     for i in range(numrows):
-        r1 = datamtx[i] # cache here
+        r1 = datamtx[i]  # cache here
         r1norm = norm(r1)
         for j in range(i):
             r2 = datamtx[j]
@@ -520,7 +520,7 @@ def dist_gower(datamtx, strict=True):
     coldiffs = datamtx.max(axis=0) - datamtx.min(axis=0)
     for i in range(numcols):
         if coldiffs[i] == 0.0:
-            coldiffs[i] = 1.0 # numerator will be zero anyway
+            coldiffs[i] = 1.0  # numerator will be zero anyway
 
     for i in range(numrows):
         r1 = datamtx[i]
@@ -629,9 +629,9 @@ def dist_kulczynski(datamtx, strict=True):
             jrowsum = rowsums[j]
             rowminsum = float(sum(where(r1 < r2, r1, r2)))
             if (irowsum == 0.0 and jrowsum == 0.0):
-                cur_d = 0.0 # => two rows of zeros
+                cur_d = 0.0  # => two rows of zeros
             elif (irowsum == 0.0 or jrowsum == 0.0):
-                cur_d = 1.0 # one row zeros, one not all zeros
+                cur_d = 1.0  # one row zeros, one not all zeros
             else:
                 cur_d = 1.0 - (((rowminsum / irowsum) + (rowminsum / jrowsum)) / 2.0)
             dists[i][j] = dists[j][i] = cur_d
@@ -670,7 +670,7 @@ def dist_manhattan(datamtx, strict=True):
         return zeros((0, 0), 'd')
     dists = zeros((numrows, numrows), 'd')
     for i in range(numrows):
-        r1 = datamtx[i] # cache here
+        r1 = datamtx[i]  # cache here
         for j in range(i):
             dists[i, j] = dists[j, i] = sum(abs(r1 - datamtx[j]))
 
@@ -786,7 +786,7 @@ def dist_morisita_horn(datamtx, strict=True):
     dists = zeros((numrows, numrows), 'd')
 
     rowsums = datamtx.sum(axis=1, dtype='float')
-    row_ds = (datamtx**2).sum(axis=1, dtype='float') # these are d_a, etc
+    row_ds = (datamtx**2).sum(axis=1, dtype='float')  # these are d_a, etc
 
     for i in range(numrows):
         if row_ds[i] != 0.:
@@ -974,7 +974,7 @@ def dist_spearman_approx(datamtx, strict=True):
     dists = zeros((numrows, numrows), 'd')
 
     if numcols < 2:
-        return dists # formula fails for < 2 elements per row
+        return dists  # formula fails for < 2 elements per row
 
     for i in range(numrows):
         r1 = datamtx[i, :]

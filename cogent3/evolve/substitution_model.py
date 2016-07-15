@@ -194,7 +194,7 @@ class _SubstitutionModel(object):
             assert len(alphabet) == len(motif_probs)
             motif_probs = dict(list(zip(alphabet, motif_probs)))
         if motif_probs:
-            self.adaptMotifProbs(motif_probs) # to check
+            self.adaptMotifProbs(motif_probs)  # to check
             self.motif_probs = motif_probs
             if motif_probs_from_data is None:
                 motif_probs_from_data = False
@@ -401,7 +401,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         """
 
         _SubstitutionModel.__init__(self, alphabet, **kw)
-        alphabet = self.getAlphabet() # as may be altered by recode_gaps etc.
+        alphabet = self.getAlphabet()  # as may be altered by recode_gaps etc.
 
         if do_scaling is None:
             do_scaling = self._scalableQ
@@ -481,9 +481,9 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
                     gap_start = i
                     gap_strand = [X, Y].index(G)
                 elif gap_end is not None or [X, Y].index(G) != gap_strand:
-                    return False # can't start a second gap
+                    return False  # can't start a second gap
                 else:
-                    pass # extend open gap
+                    pass  # extend open gap
             elif gap_start is not None:
                 gap_end = i
         return True
@@ -575,7 +575,7 @@ class General(_ContinuousSubstitutionModel):
     def __init__(self, alphabet, **kw):
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
 
-        alphabet = self.getAlphabet() # as may be altered by recode_gaps etc.
+        alphabet = self.getAlphabet()  # as may be altered by recode_gaps etc.
         mask = self._instantaneous_mask
         N = len(alphabet)
         self.param_pick = numpy.zeros([N, N], int)
@@ -602,7 +602,7 @@ class GeneralStationary(_ContinuousSubstitutionModel):
     def __init__(self, alphabet, **kw):
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
 
-        alphabet = self.getAlphabet() # as may be altered by recode_gaps etc.
+        alphabet = self.getAlphabet()  # as may be altered by recode_gaps etc.
         mask = self._instantaneous_mask
         N = len(alphabet)
         self.param_pick = numpy.zeros([N, N], int)

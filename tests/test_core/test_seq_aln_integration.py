@@ -54,8 +54,8 @@ class AllTests(TestCase):
 
     def test_printing_named_seqs(self):
         """Printing named seqs should work the same on Aln and DenseAln"""
-        #Note: the newline trailing each sequence is intentional, because
-        #we want each FASTA-format record to be separated.
+        # Note: the newline trailing each sequence is intentional, because
+        # we want each FASTA-format record to be separated.
         exp_lines_general = ['>rna1', 'UCAGGG', '>rna2', 'YCU-RG', '>rna3', 'CAA-NR']
         self.assertEqual(str(self.aln), '\n'.join(exp_lines_general) + '\n')
         self.assertEqual(str(self.da), '\n'.join(exp_lines_general) + '\n')
@@ -169,7 +169,7 @@ class AllTests(TestCase):
 
     def test_takePositions_sequence_order(self):
         """Alignment takePositions should maintain seq order"""
-        #This works        
+        # This works        
         self.assertEqual(self.da.Names, ['rna1', 'rna2', 'rna3'])
         sub_da = self.da.getSubAlignment(pos=[0, 1, 5])
         self.assertEqual(sub_da.Names, ['rna1', 'rna2', 'rna3'])
@@ -259,7 +259,7 @@ class AllTests(TestCase):
     def test_the_rest_of_ModelSequence(self):
         """The class ModelSequence has 14 methods, but only 2 unittests.
         You might want to add some tests there..."""
-        #note: mostly these are tested in derived classes, for convenience.
+        # note: mostly these are tested in derived classes, for convenience.
         pass
 
 if __name__ == "__main__":

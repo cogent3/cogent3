@@ -21,7 +21,7 @@ def _goertzel_inner(x, N, period):
     pwr = sqrt(s_prev2**2 + s_prev**2 - coeff * s_prev2 * s_prev)
     return pwr
 
-def _ipdft_inner(x, X, W, ulim, N): # naive python
+def _ipdft_inner(x, X, W, ulim, N):  # naive python
     for p in range(ulim):
         w = 1
         for n in range(N):
@@ -30,17 +30,17 @@ def _ipdft_inner(x, X, W, ulim, N): # naive python
             X[p] = X[p] + x[n] * w
     return X
 
-def _ipdft_inner2(x, X, W, ulim, N): # fastest python
-    p = x[::-1] # reversed
+def _ipdft_inner2(x, X, W, ulim, N):  # fastest python
+    p = x[::-1]  # reversed
     X = polyval(p, W)
     return X
 
-def _autocorr_inner2(x, xc, N): # fastest python
+def _autocorr_inner2(x, xc, N):  # fastest python
     products = multiply.outer(x, x)
     v = [products.trace(offset=m) for m in range(-len(x) + 1, len(x))]
     xc.put(range(xc.shape[0]), v)
 
-def _autocorr_inner(x, xc, N): # naive python
+def _autocorr_inner(x, xc, N):  # naive python
     for m in range(-N + 1, N):
         for n in range(N):
             if 0 <= n - m < N:

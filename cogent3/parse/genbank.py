@@ -32,7 +32,7 @@ rna_trans = maketrans(rna_lc + rna_lc.upper(), rna_lc_cmp + rna_lc_cmp.upper())
 locus_fields = [None, 'locus', 'length', None, 'mol_type', 'topology', 'db', 'date']
 _locus_parser = FieldWrapper(locus_fields)
 
-#need to turn off line stripping, because whitespace is significant
+# need to turn off line stripping, because whitespace is significant
 GbFinder = DelimitedRecordFinder('//', constructor=rstrip)
 
 class PartialRecordError(Exception):
@@ -66,18 +66,18 @@ def indent_splitter(lines):
     first_line = True
     curr = []
     for line in lines:
-        #skip blank lines
+        # skip blank lines
         line = line.rstrip()
         if not line:
             continue
-        #need to figure out indent if first line
+        # need to figure out indent if first line
         if first_line:
             indent = len(line) - len(line.lstrip())
             curr.append(line)
             first_line = False
         elif len(line) > indent and line[indent].isspace():
             curr.append(line)
-        else:   #got a line that doesn't match the indent
+        else:  # got a line that doesn't match the indent
             yield curr
             curr = [line]
     if curr:
@@ -105,7 +105,7 @@ def block_consolidator(lines):
     first = True
     label = None
     for line in lines:
-        if first:   #find label
+        if first:  # find label
             line = line.split(None, 1)
             if len(line) == 2:
                 label, curr = line
@@ -124,15 +124,15 @@ def parse_organism(lines):
     NOTE: Adds species to end of taxonomy if identifiable.
     """
     label, data = block_consolidator(lines)
-    #get 'species'
+    # get 'species'
     species = data[0].strip()
-    #get rest of taxonomy
+    # get rest of taxonomy
     taxonomy = ' '.join(data[1:])
-    #normalize whitespace, including deleting newlines
+    # normalize whitespace, including deleting newlines
     taxonomy = ' '.join(taxonomy.split())
-    #separate by semicolons
-    taxa = list(map(strip, taxonomy.split(';')))  #get rid of leading/trailing spaces
-    #delete trailing period if present
+    # separate by semicolons
+    taxa = list(map(strip, taxonomy.split(';')))  # get rid of leading/trailing spaces
+    # delete trailing period if present
     last = taxa[-1]
     if last.endswith('.'):
         taxa[-1] = last[:-1]
@@ -178,16 +178,16 @@ def parse_feature(lines):
         return result
     fci = feature_component_iterator
     for feature_component in fci(data[curr_line_idx:]):
-        first = feature_component[0].lstrip()[1:]   #remove leading space, '/'
+        first = feature_component[0].lstrip()[1:]  # remove leading space, '/'
         try:
             label, first_line = first.split('=', 1)
-        except ValueError:   #sometimes not delimited by =
+        except ValueError:  # sometimes not delimited by =
             label, first_line = first, ''
-        #chop off leading quote if appropriate
+        # chop off leading quote if appropriate
         if first_line.startswith('"'):
             first_line = first_line[1:]
         remainder = [first_line] + feature_component[1:]
-        #chop off trailing quote, if appropriate
+        # chop off trailing quote, if appropriate
         last_line = remainder[-1].rstrip()
         if last_line.endswith('"'):
             remainder[-1] = last_line[:-1]
@@ -262,7 +262,7 @@ def parse_location_line(tokens, parser=parse_simple_location_segment):
             new = [curr, t]
             curr.append(new)
             curr = new
-        elif t == ',':  #ignore
+        elif t == ',':  # ignore
             continue
         elif t == ')':
             parent, type_ = curr[:2]
@@ -304,7 +304,7 @@ class Location(object):
         try:
             data = int(data)
         except TypeError:
-            pass    #assume was two Location objects.
+            pass  # assume was two Location objects.
         self._data = data
         self.Ambiguity = Ambiguity
         self.IsBetween = IsBetween
@@ -320,34 +320,34 @@ class Location(object):
         you abuse this object, you'll get results that aren't valid GenBank
         locations.
         """
-        if self.IsBetween:  #between two bases
+        if self.IsBetween:  # between two bases
             try:
                 first, last = self._data
                 curr = '%s^%s' % (first, last)
-            except TypeError:   #only one base? must be this or the next
+            except TypeError:  # only one base? must be this or the next
                 curr = '%s^%s' % (first, first + 1)
-        else:   #not self.IsBetween
+        else:  # not self.IsBetween
             try:
                 data = int(self._data)
-                #if the above line succeeds, we've got a single item
+                # if the above line succeeds, we've got a single item
                 if self.Ambiguity:
                     curr = self.Ambiguity + str(data)
                 else:
                     curr = str(data)
             except TypeError:
-                #if long conversion failed, should have two LocalLocation objects
+                # if long conversion failed, should have two LocalLocation objects
                 first, last = self._data
                 if self.IsBounds:
                     curr = '(%s%s%s)' % (first, '.', last)
                 else:
                     curr = '%s%s%s' % (first, '..', last)
-        #check if we need to add on the accession and database
+        # check if we need to add on the accession and database
         if self.Accession:
             curr = self.Accession + ':' + curr
-            #we're only going to add the Db if we got an accession
+            # we're only going to add the Db if we got an accession
             if self.Db:
                 curr = self.Db + '::' + curr
-        #check if it's complemented
+        # check if it's complemented
         if self.Strand == -1:
             curr = 'complement(%s)' % curr
         return curr
@@ -407,7 +407,7 @@ class LocationList(list):
         curr = {}
         for i in self:
             curr[i.Strand] = 1
-        if len(curr) >= 2:  #found stuff on both strands
+        if len(curr) >= 2:  # found stuff on both strands
             return 0
         else:
             return list(curr.keys())[0]
@@ -425,13 +425,13 @@ class LocationList(list):
         """Extracts pieces of self from sequence."""
         result = []
         for i in self:
-            first, last = i.first(), i.last() + 1   #inclusive, not exclusive
-            #translate to 0-based indices and check if it wraps around
+            first, last = i.first(), i.last() + 1  # inclusive, not exclusive
+            # translate to 0-based indices and check if it wraps around
             if first < last:
                 curr = sequence[first - 1:last - 1]
             else:
                 curr = sequence[first - 1:] + sequence[:last - 1]
-            #reverse-complement if necessary
+            # reverse-complement if necessary
             if i.Strand == -1:
                 curr = curr.translate(trans_table)[::-1]
             result.append(curr)
@@ -471,7 +471,7 @@ def parse_source(lines):
     result['taxonomy'] = taxonomy
     return result
 
-#adaptors to update curr with data from each parser
+# adaptors to update curr with data from each parser
 def locus_adaptor(lines, curr):
     curr.update(parse_locus(lines[0]))
 def source_adaptor(lines, curr):
@@ -533,17 +533,17 @@ def parse_location_segment(location_segment):
     accession:a     a occurs in accession, not in the current sequence
     db::accession:a a occurrs in accession in db, not in the current sequence
     """
-    s = location_segment    #save some typing...
+    s = location_segment  # save some typing...
     lsp = parse_location_segment
-    #check if it's a range
+    # check if it's a range
     if '..' in s:
         first, second = s.split('..')
         return Location([lsp(first), lsp(second)])
-    #check if it's between two adjacent bases
+    # check if it's between two adjacent bases
     elif '^' in s:
         first, second = s.split('^')
         return Location([lsp(first), lsp(second)], IsBetween=True)
-    #check if it's a single base reference -- but don't be fooled by accessions!
+    # check if it's a single base reference -- but don't be fooled by accessions!
     elif '.' in s and s.startswith('(') and s.endswith(')'):
         first, second = s.split('.')
         return Location([lsp(first[1:]), lsp(second[:-1])])
@@ -551,10 +551,10 @@ def parse_location_segment(location_segment):
 def parse_location_atom(location_atom):
     """Parses a location atom, supposed to be a single-base position."""
     a = location_atom
-    if a.startswith('<') or a.startswith('>'):   #fuzzy
+    if a.startswith('<') or a.startswith('>'):  # fuzzy
         position = int(a[1:])
         return Location(position, Ambiguity=a[0])
-    #otherwise, should just be an integer
+    # otherwise, should just be an integer
     return Location(int(a))
 
 wanted_types = dict.fromkeys(['CDS'])

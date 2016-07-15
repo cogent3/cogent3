@@ -5,7 +5,7 @@ from cogent3 import LoadTree
 from cogent3.evolve import substitution_model
 
 def a_c(x, y):
-    return  (x == 'A' and y == 'C') or (x == 'C' and y == 'A')
+    return (x == 'A' and y == 'C') or (x == 'C' and y == 'A')
 
 from cogent3.evolve.predicate import MotifChange, replacement
 

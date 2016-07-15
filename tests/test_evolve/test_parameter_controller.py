@@ -47,7 +47,7 @@ bad_rule_sets = [
 class test_parameter_controller(unittest.TestCase):
     """Tesing Parameter Controller"""
     def setUp(self):
-        #length all edges 1 except c=2.  b&d transitions all other transverions
+        # length all edges 1 except c=2.  b&d transitions all other transverions
         self.al = LoadSeqs(
             data={'a': 'tata', 'b': 'tgtc', 'c': 'gcga', 'd': 'gaac', 'e': 'gagc', })
         self.tree = LoadTree(treestring='((a,b),(c,d),e);')
@@ -130,7 +130,7 @@ class test_parameter_controller(unittest.TestCase):
 
     def test_setConstantLengths(self):
         t = LoadTree(treestring='((a:1,b:2):3,(c:4,d:5):6,e:7);')
-        lf = self.model.makeLikelihoodFunction(t)#self.tree)
+        lf = self.model.makeLikelihoodFunction(t)  # self.tree)
         lf.setParamRule('length', is_constant=True)
         # lf.setConstantLengths(t)
         lf.setAlignment(self.al)
@@ -176,7 +176,7 @@ class test_parameter_controller(unittest.TestCase):
                         edges=['b', 'd'])
         lf.setConstantLengths(LoadTree(
             treestring='((a:1,b:1):1,(c:2,d:1):1,e:1);'))
-        #print self.pc
+        # print self.pc
         lf.setAlignment(self.al)
         lf.optimise(local=True)
         rd = lf.getParamValueDict(['edge'], params=['kappa'])

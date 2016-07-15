@@ -110,7 +110,7 @@ def MinimalPhylipParser(data, id_map=None, interleaved=True):
                         interleaved_id_map[curr_id_ix], len(join_seq), seq_len))
 
             yield interleaved_id_map[curr_id_ix], join_seq
-    #return last seq if not interleaved
+    # return last seq if not interleaved
     else:
         if seq_cache:
             yield seq_cache[0], ''.join(seq_cache[1:])

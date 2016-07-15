@@ -25,7 +25,7 @@ class ClustalTests(TestCase):
                                '4th': 'UUUU'}
         self.alignment_dict = {'1st': 'AAAA', '2nd': 'CCCC', '3rd': 'GGGG',
                                '4th': 'UUUU'}
-        #create alignment change order.
+        # create alignment change order.
         self.alignment_object = Alignment(self.alignment_dict)
         self.alignment_order = ['2nd', '4th', '3rd', '1st']
         self.alignment_object.RowOrder = self.alignment_order

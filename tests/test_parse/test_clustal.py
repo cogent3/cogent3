@@ -16,10 +16,10 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
-#Note: the data are all strings and hence immutable, so it's OK to define
-#them here instead of in setUp and then subclassing everything from that
-#base class. If the data were mutable, we'd need to take more precautions
-#to avoid crossover between tests.
+# Note: the data are all strings and hence immutable, so it's OK to define
+# them here instead of in setUp and then subclassing everything from that
+# base class. If the data were mutable, we'd need to take more precautions
+# to avoid crossover between tests.
 
 minimal = 'abc\tucag'
 two = 'abc\tuuu\ndef\tccc\n\n    ***\n\ndef ggg\nabc\taaa\n'.split('\n')
@@ -83,7 +83,7 @@ class MinimalClustalParserTests(TestCase):
 
     def test_minimal(self):
         """MinimalClustalParser should handle single-line input correctly"""
-        result = MinimalClustalParser([minimal]) #expects seq of lines
+        result = MinimalClustalParser([minimal])  # expects seq of lines
         self.assertEqual(result, ({'abc': ['ucag']}, ['abc']))
 
     def test_two(self):
@@ -118,7 +118,7 @@ class MinimalClustalParserTests(TestCase):
         """MinimalClustalParser should reject bad data if strict"""
         result = MinimalClustalParser(bad, strict=False)
         self.assertEqual(result, ({}, []))
-        #should fail unless we turned strict processing off
+        # should fail unless we turned strict processing off
         self.assertRaises(RecordError, MinimalClustalParser, bad)
 
     def test_space_labels(self):

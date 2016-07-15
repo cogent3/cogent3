@@ -64,7 +64,7 @@ def great_deluge(a, step_factor=500, max_iter=100, max_total_iters=1000):
        write a wrapper that passes these through to methods of an internal
        data object, or functions acting on that object.
     """
-    water_level = curr_cost = a.cost() # can't be worse than initial guess
+    water_level = curr_cost = a.cost()  # can't be worse than initial guess
     step_size = abs(water_level) / step_factor
     iter_count = 0
     total_iters = 0

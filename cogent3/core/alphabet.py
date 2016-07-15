@@ -160,24 +160,24 @@ class Enumeration(tuple):
         """
         self.MolType = MolType
 
-        #check if motif lengths are homogeneous -- if so, set length
+        # check if motif lengths are homogeneous -- if so, set length
         try:
             motif_lengths = frozenset(list(map(len, self)))
             if len(motif_lengths) > 1:
                 self._motiflen = None
             else:
                 self._motiflen = list(motif_lengths)[0]
-        except TypeError:       #some motifs don't support __len__, e.g. ints
+        except TypeError:  # some motifs don't support __len__, e.g. ints
             self._motiflen = None
 
-        #make the quick_motifset for fast lookups; check for duplicates.
+        # make the quick_motifset for fast lookups; check for duplicates.
         self._quick_motifset = frozenset(self)
         if len(self._quick_motifset) != len(self):
-            #got duplicates: show user what they sent in
+            # got duplicates: show user what they sent in
             raise TypeError('Alphabet initialized with duplicate values:\n' +\
                             str(self))
         self._obj_to_index = dict(list(zip(self, list(range(len(self))))))
-        #handle gaps
+        # handle gaps
         self.Gap = Gap
         if Gap and (Gap in self):
             gap_index = self.index(Gap)
@@ -185,14 +185,14 @@ class Enumeration(tuple):
                 self.GapIndex = gap_index
         try:
             self._gapmotif = self.Gap * self._motiflen
-        except TypeError:       #self._motiflen was probably None
+        except TypeError:  # self._motiflen was probably None
             self._gapmotif = self.Gap
 
         self.Shape = (len(self),)
         #_allowed_range provides for fast sums of matching items
         self._allowed_range = arange(len(self))[:, newaxis]
         self.ArrayType = get_array_type(len(self))
-        self._complement_array = None   #set in moltypes.py for standard types
+        self._complement_array = None  # set in moltypes.py for standard types
 
     def index(self, item):
         """Returns the index of a specified item.
@@ -239,14 +239,14 @@ class Enumeration(tuple):
         to each element in the input.
 
         """
-        #if it's a normal Python type, map will work
+        # if it's a normal Python type, map will work
         try:
             return list(map(self.__getitem__, data))
-        #otherwise, it's probably an array object.
+        # otherwise, it's probably an array object.
         except TypeError:
             try:
                 data = list(map(int, data))
-            except (TypeError, ValueError): #might be char array?
+            except (TypeError, ValueError):  # might be char array?
                 print("DATA", data)
                 print("FIRST MAP:", list(map(str, data)))
                 print("SECOND MAP:", list(map(ord, list(map(str, data)))))
@@ -309,10 +309,10 @@ class Enumeration(tuple):
         """
         try:
             data = ravel(a)
-        except ValueError:  #ravel failed; try coercing to array
+        except ValueError:  # ravel failed; try coercing to array
             try:
                 data = ravel(array(a))
-            except ValueError: #try mapping to string
+            except ValueError:  # try mapping to string
                 data = ravel(array(list(map(str, a))))
         return sum(asarray(self._allowed_range == data, Int), axis=-1)
 
@@ -360,7 +360,7 @@ class JointEnumeration(Enumeration):
         """
         self.SubEnumerations = self._coerce_enumerations(data)
         sub_enum_lengths = list(map(len, self.SubEnumerations))
-        #build factors for combining symbols.
+        # build factors for combining symbols.
         curr_factor = 1
         sub_enum_factors = [curr_factor]
         for i in sub_enum_lengths[-1:0:-1]:
@@ -369,17 +369,17 @@ class JointEnumeration(Enumeration):
         self._sub_enum_factors = transpose(array([sub_enum_factors]))
 
         try:
-            #figure out the gaps correctly
+            # figure out the gaps correctly
             gaps = [i.Gap for i in self.SubEnumerations]
             self.Gap = tuple(gaps)
             gap_indices = array([i.GapIndex for i in self.SubEnumerations])
             gap_indices *= sub_enum_factors
             self.GapIndex = sum(gap_indices)
-        except (TypeError, AttributeError): #index not settable
+        except (TypeError, AttributeError):  # index not settable
             self.Gap = None
 
         super(JointEnumeration, self).__init__(self, self.Gap)
-        #remember to reset shape after superclass init
+        # remember to reset shape after superclass init
         self.Shape = tuple(sub_enum_lengths)
 
     def _coerce_enumerations(cls, enums):
@@ -719,7 +719,7 @@ class CharAlphabet(Alphabet):
     def isValid(self, seq):
         """Returns True if seq contains only items in self."""
         try:
-            if len(seq) == 0:   #can't be invalid if empty
+            if len(seq) == 0:  # can't be invalid if empty
                 return True
             ind = self.toIndices(seq)
             return max(ind) < len(self) and min(ind) >= 0

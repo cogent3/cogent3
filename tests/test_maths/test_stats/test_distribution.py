@@ -220,8 +220,8 @@ class DistributionsTests(TestCase):
 
     def test_poisson_low(self):
         """Lower tail of poisson should match R for integer successes"""
-        #WARNING: Results only guaranteed for integer successes: floating
-        #point _should_ yield reasonable values, but R rounds to int.
+        # WARNING: Results only guaranteed for integer successes: floating
+        # point _should_ yield reasonable values, but R rounds to int.
         expected = {
             (0, 0): 1,
             (0, 0.75): 0.4723666,
@@ -242,8 +242,8 @@ class DistributionsTests(TestCase):
 
     def test_poisson_high(self):
         """Upper tail of poisson should match R for integer successes"""
-        #WARNING: Results only guaranteed for integer successes: floating
-        #point _should_ yield reasonable values, but R rounds to int.
+        # WARNING: Results only guaranteed for integer successes: floating
+        # point _should_ yield reasonable values, but R rounds to int.
         expected = {
             (0, 0): 0,
             (0, 0.75): 0.5276334,
@@ -295,12 +295,12 @@ class DistributionsTests(TestCase):
             (299, 300, 0.099): 4.904089e-302,
             (9, 27, 0.0003): 4.958496e-29,
             (1032, 2050, 0.5): 0.3702155,
-            (-1, 3, 0.1): 1,            #if successes less than 0, return 1
+            (-1, 3, 0.1): 1,  # if successes less than 0, return 1
             (-0.5, 3, 0.1): 1,
         }
         for (key, value) in list(expected.items()):
             self.assertFloatEqualRel(binomial_high(*key), value, 1e-4)
-        #should reject if successes > trials or successes < -1
+        # should reject if successes > trials or successes < -1
         self.assertRaises(ValueError, binomial_high, 7, 5, 0.5)
 
     def test_binomial_low(self):
@@ -382,8 +382,8 @@ class DistributionsTests(TestCase):
             (1, 10, 20): 0.001193467,
             (10, 1, 0): 1,
             (10, 10, 14.7): 0.0001062585,
-            (13.7, 11.9, 3.8): 0.01340347,  #test non-integer degrees of freedom
-            #used following series to track down a bug after a failed test case
+            (13.7, 11.9, 3.8): 0.01340347,  # test non-integer degrees of freedom
+            # used following series to track down a bug after a failed test case
             (28, 29, 2): 0.03424088,
             (28, 29, 10): 1.053019e-08,
             (28, 29, 20): 1.628245e-12,
@@ -437,9 +437,9 @@ class DistributionsTests(TestCase):
     def test_fprob(self):
         """fprob should return twice the tail on a particular side"""
         error = 1e-4
-        #right-hand side
+        # right-hand side
         self.assertFloatEqualAbs(fprob(10, 10, 1.2), 0.7788, eps=error)
-        #left-hand side
+        # left-hand side
         self.assertFloatEqualAbs(fprob(10, 10, 1.2, side='left'), 1.2212,
                                  eps=error)
         self.assertRaises(ValueError, fprob, 10, 10, -3)

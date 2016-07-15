@@ -108,7 +108,7 @@ class EstimateDistances(object):
         self._param_ests = {}
         self._est_params = list(est_params or [])
 
-        self._run = False # a flag indicating whether estimation completed
+        self._run = False  # a flag indicating whether estimation completed
         # whether we're on the master CPU or not
         self._on_master_cpu = parallel.getCommunicator().Get_rank() == 0
 

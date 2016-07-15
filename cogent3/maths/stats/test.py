@@ -35,7 +35,7 @@ __status__ = "Production"
 
 class IndexOrValueError(IndexError, ValueError): pass
 
-var = cov   #cov will calculate variance if called on a vector
+var = cov  # cov will calculate variance if called on a vector
 
 def std_(x, axis=None):
     """Returns standard deviations by axis (similiar to numpy.std)
@@ -80,12 +80,12 @@ def var(x, axis=None):
         See p. 37 of Zar (1999) Biostatistical Analysis.
     """
     x = asarray(x)
-    #figure out sample size along the axis
+    # figure out sample size along the axis
     if axis is None:
         n = x.size
     else:
         n = x.shape[axis]
-    #compute the sum of squares from the mean(s)
+    # compute the sum of squares from the mean(s)
     sample_SS = sum(x**2, axis) - sum(x, axis)**2 / n
     return sample_SS / (n - 1)
 
@@ -100,7 +100,7 @@ def std(x, axis=None):
     """
     try:
         sample_variance = var(x, axis=axis)
-    except IndexError as e: #just to avoid breaking the old test code
+    except IndexError as e:  # just to avoid breaking the old test code
         raise IndexOrValueError(e)
     return sqrt(sample_variance)
 
@@ -165,43 +165,43 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
     """
     cells = [a, b, c, d]
     n = sum(cells)
-    #return 0 if table was empty
+    # return 0 if table was empty
     if not n:
         return (0, 1)
-    #raise error if any counts were negative
+    # raise error if any counts were negative
     if min(cells) < 0:
         raise ValueError("G_2_by_2 got negative cell counts(s): must all be >= 0.")
 
     G = 0
-    #Add x ln x for items, adding zero for items whose counts are zero
+    # Add x ln x for items, adding zero for items whose counts are zero
     for i in [_f for _f in cells if _f]:
         G += i * log(i)
-    #Find totals for rows and cols
+    # Find totals for rows and cols
     ab = a + b
     cd = c + d
     ac = a + c
     bd = b + d
     rows_cols = [ab, cd, ac, bd]
-    #exit if we are missing a row or column entirely: result counts as
-    #never significant
+    # exit if we are missing a row or column entirely: result counts as
+    # never significant
     if min(rows_cols) == 0:
         return (0, 1)
-    #Subtract x ln x for rows and cols
+    # Subtract x ln x for rows and cols
     for i in [_f for _f in rows_cols if _f]:
         G -= i * log(i)
-    #Add x ln x for table
+    # Add x ln x for table
     G += n * log(n)
-    #Result needs to be multiplied by 2 
+    # Result needs to be multiplied by 2 
     G *= 2
 
-    #apply Williams correction
+    # apply Williams correction
     if williams:
         q = 1 + ((((n / ab) + (n / cd)) - 1) * (((n / ac) + (n / bd)) - 1)) / (6 * n)
         G /= q
 
     p = chi_high(max(G, 0), 1)
 
-    #find which tail we were in if the test was directional
+    # find which tail we were in if the test was directional
     if directional:
         is_high = ((b == 0) or (d != 0 and (a / b > c / d)))
         p = tail(p, is_high)
@@ -251,20 +251,20 @@ def calc_contingency_expected(matrix):
     The returned matrix (dict2D) has lists of the observed and the 
     expected frequency as values
     """
-    #transpose matrix for calculating column totals
+    # transpose matrix for calculating column totals
     t_matrix = matrix.copy()
     t_matrix.transpose()
 
     overall_total = sum(list(matrix.Items))
-    #make new matrix for storing results
+    # make new matrix for storing results
     result = matrix.copy()
 
-    #populate result with expected values
+    # populate result with expected values
     for row in matrix:
         row_sum = sum(list(matrix[row].values()))
         for item in matrix[row]:
             column_sum = sum(list(t_matrix[item].values()))
-            #calculate expected frequency
+            # calculate expected frequency
             Expected = (row_sum * column_sum) / overall_total
             result[row][item] = [result[row][item]]
             result[row][item].append(Expected)
@@ -293,7 +293,7 @@ def G_fit(obs, exp, williams=1):
             raise ValueError("G_fit requires all observed values to be positive.")
         if e <= 0:
             raise ZeroExpectedError("G_fit requires all expected values to be positive.")
-        if o:   #if o is zero, o * log(o/e) must be zero as well.
+        if o:  # if o is zero, o * log(o/e) must be zero as well.
             G += o * log(o / e)
             n += o
 
@@ -357,16 +357,16 @@ def likelihoods(d_given_h, priors):
     d_given_h and priors are equal-length lists of probabilities. Returns
     a list of the same length of numbers (not probabilities).
     """
-    #check that the lists of Pr(D|H_i) and priors are equal
+    # check that the lists of Pr(D|H_i) and priors are equal
     length = len(d_given_h)
     if length != len(priors):
         raise ValueError("Lists not equal lengths.")
-    #find weighted sum of Pr(H_i) * Pr(D|H_i)
+    # find weighted sum of Pr(H_i) * Pr(D|H_i)
     wt_sum = 0
     for d, p in zip(d_given_h, priors):
         wt_sum += d * p
-    #divide each Pr(D|H_i) by the weighted sum and multiply by its prior
-    #to get its likelihood
+    # divide each Pr(D|H_i) by the weighted sum and multiply by its prior
+    # to get its likelihood
     return [d / wt_sum for d in d_given_h]
 
 def posteriors(likelihoods, priors):
@@ -377,10 +377,10 @@ def posteriors(likelihoods, priors):
     likelihoods is a list of numbers. priors is a list of probabilities.
     Returns a list of probabilities (0-1).
     """
-    #Check that there is a prior for each likelihood
+    # Check that there is a prior for each likelihood
     if len(likelihoods) != len(priors):
         raise ValueError("Lists not equal lengths.")
-    #Posterior probability is defined as prior * likelihood
+    # Posterior probability is defined as prior * likelihood
     return [l * p for l, p in zip(likelihoods, priors)]
 
 def bayes_updates(ds_given_h, priors=None):
@@ -395,27 +395,27 @@ def bayes_updates(ds_given_h, priors=None):
     try:
         first_list = ds_given_h[0]
         length = len(first_list)
-        #calculate flat prior if none was passed
+        # calculate flat prior if none was passed
         if not priors:
             priors = [1 / length] * length
-        #apply each form of data to the priors to get posterior probabilities
+        # apply each form of data to the priors to get posterior probabilities
         for index, d in enumerate(ds_given_h):
-            #first, ignore the form of data if all the d's are the same
+            # first, ignore the form of data if all the d's are the same
             all_the_same = True
             first_element = d[0]
             for i in d:
                 if i != first_element:
                     all_the_same = False
                     break
-            if not all_the_same:    #probabilities won't change
+            if not all_the_same:  # probabilities won't change
                 if len(d) != length:
                     raise ValueError("bayes_updates requires equal-length lists.")
                 liks = likelihoods(d, priors)
                 pr = posteriors(liks, priors)
                 priors = pr
-        return priors #posteriors after last calculation are 'priors' for next
-    #return column of zeroes if anything went wrong, e.g. if the sum of one of
-    #the ds_given_h is zero.
+        return priors  # posteriors after last calculation are 'priors' for next
+    # return column of zeroes if anything went wrong, e.g. if the sum of one of
+    # the ds_given_h is zero.
     except (ZeroDivisionError, FloatingPointError):
         return [0] * length
 
@@ -503,8 +503,8 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
                          "'high', or 'low'." % tails)
 
     try:
-        #see if we need to back off to the single-observation for single-item
-        #groups
+        # see if we need to back off to the single-observation for single-item
+        # groups
         n1 = len(a)
         if n1 < 2:
             return t_one_observation(sum(a), b, tails, exp_diff,
@@ -527,7 +527,7 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
 
             return (t, prob)
 
-        #otherwise, calculate things properly
+        # otherwise, calculate things properly
         x1 = mean(a)
         x2 = mean(b)
         var1 = var(a)
@@ -552,8 +552,8 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
                 result = (t, prob)
     except (ZeroDivisionError, ValueError, AttributeError, TypeError,
             FloatingPointError) as e:
-        #invalidate if the sample sizes are wrong, the values aren't numeric or
-        #aren't present, etc.
+        # invalidate if the sample sizes are wrong, the values aren't numeric or
+        # aren't present, etc.
         result = (None, None)
 
     return result
@@ -740,9 +740,9 @@ def pearson(x_items, y_items):
     try:
         r = 1.0 * ((n * sum_xy) - (sum_x * sum_y)) / \
             (sqrt((n * sum_x_sq) - (sum_x * sum_x)) * sqrt((n * sum_y_sq) - (sum_y * sum_y)))
-    except (ZeroDivisionError, ValueError, FloatingPointError): #no variation
+    except (ZeroDivisionError, ValueError, FloatingPointError):  # no variation
         r = 0.0
-    #check we didn't get a naughty value for r due to rounding error
+    # check we didn't get a naughty value for r due to rounding error
     if r > 1.0:
         r = 1.0
     elif r < -1.0:
@@ -964,7 +964,7 @@ def correlation_matrix(series, as_rows=True):
     """Returns pairwise correlations between each pair of series.
     """
     return corrcoef(series, rowvar=as_rows)
-    #unused codes below
+    # unused codes below
     if as_rows:
         return corrcoef(transpose(array(series)))
     else:
@@ -1143,7 +1143,7 @@ def multiple_comparisons(p, n):
     Calculates directly if p is large and n is small; resorts to logs
     otherwise to avoid rounding (1-p) to 1
     """
-    if p > 1e-6:   #if p is large and n small, calculate directly
+    if p > 1e-6:  # if p is large and n small, calculate directly
         return 1 - (1 - p)**n
     else:
         return one_minus_exp(-n * p)
@@ -1236,11 +1236,11 @@ def ANOVA_one_way(a):
         group_variances.append(i.Variance * (len(i) - 1))
         all_vals.extend(i)
     group_means = Numbers(group_means)
-    #get within group variances (denominator)
+    # get within group variances (denominator)
     group_variances = Numbers(group_variances)
     dfd = num_cases - len(group_means)
     within_MS = sum(group_variances) / dfd
-    #get between group variances (numerator)
+    # get between group variances (numerator)
     grand_mean = Numbers(all_vals).Mean
     between_MS = 0
     for i in a:
@@ -1326,7 +1326,7 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
     hi = ["greater", "hi", "high", "h", "g", "gt"]
     two = ["two sided", "2", 2, "two tailed", "two", "two.sided"]
     Pval = None
-    if y is not None: # in anticipation of actually implementing the 1-sample cases
+    if y is not None:  # in anticipation of actually implementing the 1-sample cases
         num_y = len(y)
         y = list(zip(y, ones(len(y), int)))
         n = num_x * num_y / (num_x + num_y)
@@ -1368,7 +1368,7 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
     if ties and warn_for_ties:
         warnings.warn("Cannot compute correct KS probability with ties")
 
-    try: # if numpy arrays were input, the Pval can be an array of len==1
+    try:  # if numpy arrays were input, the Pval can be an array of len==1
         Pval = Pval[0]
     except (TypeError, IndexError):
         pass
@@ -1497,7 +1497,7 @@ def mw_boot(x, y, num_reps=1000):
 def permute_2d(m, p):
     """Performs 2D permutation of matrix m according to p."""
     return m[p][:, p]
-    #unused below
+    # unused below
     m_t = transpose(m)
     r_t = take(m_t, p, axis=0)
     return take(transpose(r_t), p, axis=0)
@@ -1662,7 +1662,7 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
             p = 1 - p / 2
     return tau, p
 
-## Start functions for distance_matrix_permutation_test
+# Start functions for distance_matrix_permutation_test
 
 def distance_matrix_permutation_test(matrix, cells, cells2=None,\
                                      f=t_two_sample, tails=None, n=1000, return_scores=False,\
@@ -1682,7 +1682,7 @@ def distance_matrix_permutation_test(matrix, cells, cells2=None,\
     is_symmetric: corrects if the matrix is symmetric. Need to only look at
         one half otherwise the degrees of freedom value will be incorrect.
     """
-    #if matrix is symmetric convert all indices to lower trangular
+    # if matrix is symmetric convert all indices to lower trangular
     if is_symmetric:
         cells = get_ltm_cells(cells)
         if cells2:
@@ -1692,7 +1692,7 @@ def distance_matrix_permutation_test(matrix, cells, cells2=None,\
         get_values_from_matrix(matrix, cells, cells2, is_symmetric)
     # calc the stat and parameteric p-value for real data
     stat, p = f(special_values, other_values, tails)
-    #calc for randomized matrices
+    # calc for randomized matrices
     count_more_extreme = 0
     stats = []
     indices = list(range(len(matrix)))
@@ -1763,8 +1763,8 @@ def get_ltm_cells(cells):
             new_cells.append((cell[1], cell[0]))
         elif cell[0] > cell[1]:
             new_cells.append(cell)
-    #remove duplicates
+    # remove duplicates
     new_cells = set(new_cells)
     return list(new_cells)
 
-## End functions for distance_matrix_permutation_test
+# End functions for distance_matrix_permutation_test

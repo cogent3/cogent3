@@ -429,7 +429,7 @@ class _FeatureStyle(object):
             opts['strokeColor'] = None
             opts['strokeWidth'] = 0
         else:
-            opts['fillColor'] = colors.white # otherwise matplotlib blue!
+            opts['fillColor'] = colors.white  # otherwise matplotlib blue!
             opts['strokeColor'] = color
             opts['strokeWidth'] = 1
         self.filled = fill
@@ -443,7 +443,7 @@ class _FeatureStyle(object):
         self.one_span = one_span
 
     def __call__(self, height, label, map, value, yrange, rotated):
-        #return self.FeatureClass(label, map)
+        # return self.FeatureClass(label, map)
         g = rlg2mpl.Group()
         last = first = None
         if self.range_required and not yrange:
@@ -452,7 +452,7 @@ class _FeatureStyle(object):
         if map.useful and self.one_span:
             map = map.getCoveringSpan()
         for (i, span) in enumerate(map.spans):
-            #if last is not None:
+            # if last is not None:
             #    g.add(rlg2mpl.Line(last, height, part.Start, height))
             if span.lost or (value is None and self.range_required):
                 continue
@@ -471,18 +471,18 @@ class _FeatureStyle(object):
             if first is None:
                 first = start
         if self.showLabel and label and last is not None and height > 7:
-            font_height = 12 #self.label_font.get_size_in_points()
+            font_height = 12  # self.label_font.get_size_in_points()
             text_width = llen(label, font_height)
             if (text_width < abs(first - last)):
                 label_shape = Text(
                     (first + last) / 2, height / 2, label,
                     ha="center", va="center", 
                     rotation=[0, 90][rotated],
-                    #font_properties=self.label_font,
+                    # font_properties=self.label_font,
                 )
                 g.add(label_shape)
             else:
-                pass #warnings.warn("couldn't fit feature label '%s'" % label)
+                pass  # warnings.warn("couldn't fit feature label '%s'" % label)
         return g
 
 class _VariableThicknessFeatureStyle(_FeatureStyle):
@@ -539,7 +539,7 @@ class Line(_FeatureStyle):
     def _item_shape(self, start, end, tidy_start, tidy_end, height, value,
                     yrange, rotated, last=False):
         altitude = value * (height - 1) / yrange
-        #if self.orientation < 0:
+        # if self.orientation < 0:
         #    altitude = height - altitude
         return rlg2mpl.Line(start, altitude, end, altitude, **self.opts)
 
@@ -550,7 +550,7 @@ class Area(_FeatureStyle):
     def _item_shape(self, start, end, tidy_start, tidy_end, height, value,
                     yrange, rotated, last=False):
         altitude = value * (height - 1) / yrange
-        #if self.orientation < 0:
+        # if self.orientation < 0:
         #    altitude = height - altitude
         if end < start:
             start, end = end, start
@@ -561,7 +561,7 @@ class Area(_FeatureStyle):
 class DisplayPolicy(object):
     def _makeFeatureStyles(self):
         return {
-            #gene structure
+            # gene structure
             'misc_RNA': Box(True, colors.lightcyan),
             'precursor_RNA': Box(True, colors.lightcyan),
             'prim_transcript': Box(True, colors.lightcyan),
@@ -582,7 +582,7 @@ class DisplayPolicy(object):
                                showLabel=True, closed=False),
             'operon': BluntArrow(False, colors.royalblue,
                                  showLabel=True, closed=False),
-            #regulation
+            # regulation
             'attenuator': Box(False, colors.red),
             'enhancer': Box(True, colors.green),
             'CAAT_signal': Diamond(True, colors.blue),
@@ -597,20 +597,20 @@ class DisplayPolicy(object):
             'misc_signal': Box(False, colors.maroon),
             'rep_origin': Box(True, colors.linen),
             'RBS': Diamond(True, colors.navy),
-            #repeats
+            # repeats
             'repeat_region': Box(True, colors.brown),
             'repeat_unit': Arrow(True, colors.brown),
             'LTR': Box(False, colors.black),
             'satellite': Box(False, colors.brown),
             'stem_loop': Box(False, colors.dimgray),
             'misc_structure': Box(False, colors.darkslategray),
-            #rna genes
+            # rna genes
             'rRNA': Arrow(False, colors.darkorchid, showLabel=True),
             'scRNA': Arrow(False, colors.darkslateblue, showLabel=True),
             'snRNA': Arrow(False, colors.darkviolet, showLabel=True),
             'snoRNA': Arrow(False, colors.darkviolet, showLabel=True),
             'tRNA': Arrow(False, colors.darkturquoise, showLabel=True),
-            #sequence
+            # sequence
             'source': Box(False, colors.black, showLabel=True),
             'misc_recomb': Box(False, colors.black, showLabel=True),
             'variation': Diamond(True, colors.violet, showLabel=True),
@@ -626,11 +626,11 @@ class DisplayPolicy(object):
             'primer_bind': Arrow(False, colors.green, showLabel=True),
             'STS': Box(False, colors.black),
             'gap': Box(True, colors.gray),
-            #graphs
+            # graphs
             'blueline': Line(False, colors.blue),
             'redline': Line(False, colors.red),
-            #other
-            ##immune system specific
+            # other
+            # immune system specific
             #'C_region': Diamond(True, colors.mediumblue),
             #'N_region': Box(False, colors.linen),
             #'S_region': Box(False, colors.linen),
@@ -639,9 +639,9 @@ class DisplayPolicy(object):
             #'J_segment': Box(False, colors.linen),
             #'V_segment': Box(False, colors.linen),
             #'iDNA': Box(False, colors.grey),
-            ##Mitocondria specific
+            # Mitocondria specific
             #'D-loop': Diamond(True, colors.linen),
-            ##Bacterial element specific
+            # Bacterial element specific
             #'oriT': Box(False, colors.linen),
         }
 
@@ -726,7 +726,7 @@ class DisplayPolicy(object):
     _default_keep_unexpected_tracks = True
 
     dont_merge = []
-    show_text = None # auto
+    show_text = None  # auto
     draw_bases = None
     show_gaps = None
     colour_sequences = None
@@ -812,7 +812,7 @@ class DisplayPolicy(object):
         for track in orig_tracks:
             if not track.tag in tracks:
                 tracks[track.tag] = {}
-                orig_track_tags.append(track.tag) # ordered list
+                orig_track_tags.append(track.tag)  # ordered list
             if not track.level in tracks[track.tag]:
                 tracks[track.tag][track.level] = []
             tracks[track.tag][track.level].append(track)
@@ -1077,13 +1077,13 @@ class Display(rlg2mpl.Drawable):
         if left is None:
             if labeled and self._tracks:
                 left = max(len(p.label) for (y, ym, p) in self._tracks)
-                left *= 12 / 72 * .5 # guess mixed chars, 12pt, inaccurate!
+                left *= 12 / 72 * .5  # guess mixed chars, 12pt, inaccurate!
             else:
                 left = 0
 
         height = height or (self.height or 0.1) / 72
 
-        useful_width = len(self) * 16 / 72 # ie bigish font, wide chars
+        useful_width = len(self) * 16 / 72  # ie bigish font, wide chars
 
         fkw = dict(leftovers=True, width=width, height=height, left=left, 
                    useful_width=useful_width, **kw)  

@@ -453,7 +453,7 @@ class Calculator(object):
 
         # Set new OptPar values
         changed_optpars = []
-        for (i, v)  in changes:
+        for (i, v) in changes:
             if i < len(self.opt_pars):
                 assert isinstance(v * 1.0, float), v
                 changed_optpars.append((i, self.last_values[i]))

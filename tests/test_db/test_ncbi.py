@@ -38,8 +38,8 @@ class EUtilsTests(TestCase):
         loci = list(filter(is_locus, lines))
         self.assertEqual(len(loci), 3)
 
-        #EUtils access of a slice should work, while limiting 
-        #the esearch term length
+        # EUtils access of a slice should work, while limiting 
+        # the esearch term length
         g = EUtils(db='protein', rettype='gp', retmax=1, url_limit=2)
         result = g['NP_003320':'NP_003322'].read()
         lines = result.splitlines()
@@ -57,8 +57,8 @@ class EUtilsTests(TestCase):
         loci = list(filter(is_locus, lines))
         self.assertEqual(len(loci), 3)
 
-        #EUtils access of a slice should work, while limiting
-        #the esearch term length
+        # EUtils access of a slice should work, while limiting
+        # the esearch term length
         g = EUtils(db='protein', rettype='gp', url_limit=2)
         result = g['NP_003320', 'NP_003321', 'NP_003322'].read()
         lines = result.splitlines()
@@ -77,7 +77,7 @@ class EUtilsTests(TestCase):
 
     def test_get_from_taxonomy_db(self):
         """EUtils access from taxonomy database should work"""
-        #note: this is more fragile than the nucleotide databases
+        # note: this is more fragile than the nucleotide databases
         g = EUtils(db='taxonomy', rettype='xml', retmode='xml')
         ids = '9606[taxid] OR 28901[taxid]'
         fh = StringIO()
@@ -92,16 +92,16 @@ class EUtilsTests(TestCase):
         """EUtils access via a query should work"""
         g = EUtils(db='protein', rettype='gi', retmax=100)
         result = g['homo[organism] AND erf1[ti]'].read().splitlines()
-        assert '5499721' in result  #gi of human eRF1
-        #note: successfully retrieved 841,821 ids on a query for 'rrna',
-        #although it took about 40 min so not in the tests. RK 1/3/07.
+        assert '5499721' in result  # gi of human eRF1
+        # note: successfully retrieved 841,821 ids on a query for 'rrna',
+        # although it took about 40 min so not in the tests. RK 1/3/07.
 
     def test_query_retmax(self):
         """EUtils should join results taken retmax at a time"""
         g = EUtils(db='protein', rettype='gi', retmax=3, DEBUG=False)
         result = g['homo[organism] AND myh7'].read().splitlines()
         assert len(result) > 1
-        assert '83304912' in result  #gi of human myh7
+        assert '83304912' in result  # gi of human myh7
 
     def test_query_max_recs(self):
         """EUtils should stop query at max_recs when max_recs < retmax"""
@@ -126,7 +126,7 @@ class ESearchTests(TestCase):
                     term='homo[organism] AND myh7')
         result = s.read()
         parsed = ESearchResultParser(result)
-        assert '83304912' in parsed.IdList  #gi of human cardiac beta myh7
+        assert '83304912' in parsed.IdList  # gi of human cardiac beta myh7
 
 class ELinkTests(TestCase):
     """Tests of the ELink class: converts ids between databases"""
@@ -135,7 +135,7 @@ class ELinkTests(TestCase):
         l = ELink(db='taxonomy', dbfrom='protein', id='83304912')
         result = l.read()
         parsed = ELinkResultParser(result)
-        self.assertEqual(parsed, ['9606'])  #human sequence
+        self.assertEqual(parsed, ['9606'])  # human sequence
 
     def test_multiple_elink(self):
         """ELink should find unique links in a set of ids"""
@@ -144,7 +144,7 @@ class ELinkTests(TestCase):
         result = l.read()
         parsed = ELinkResultParser(result)
         self.assertEqual(sorted(parsed), ['10090', '9606'])  
-        #human and mouse sequences
+        # human and mouse sequences
 
 class EFetchTests(TestCase):
     """Tests of the EFetch class: gets records using primary ids."""

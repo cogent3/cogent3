@@ -108,7 +108,7 @@ class GeneticCodeTests(TestCase):
         codes = list(map(GeneticCode, code_strings))
         for code, string in zip(codes, code_strings):
             self.assertEqual(str(code), string)
-        #check an example directly in case strings are bad
+        # check an example directly in case strings are bad
         self.assertEqual(str(self.SGC), \
                          "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG")
 
@@ -116,40 +116,40 @@ class GeneticCodeTests(TestCase):
         """GeneticCode cmp() should act on code strings"""
         sgc_1 = GeneticCode(self.SGC)
         sgc_2 = GeneticCode(self.SGC)
-        self.assertEqual(sgc_1 is sgc_2, False) #ensure different objects
-        #self.assertNotEqual(sgc_1, sgc_2) # GREG
+        self.assertEqual(sgc_1 is sgc_2, False)  # ensure different objects
+        # self.assertNotEqual(sgc_1, sgc_2) # GREG
         self.assertEqual(sgc_1, sgc_2)
         mtgc = GeneticCode(self.mt)
         self.assertNotEqual(sgc_1, mtgc)
 
     def test_getitem_codon(self):
         """GeneticCode getitem should return amino acid for codon"""
-        #specific checks of a particular codon in the standard code
+        # specific checks of a particular codon in the standard code
         variant_codons = ['AUU', 'AUU', 'AUU', 'ATT', 'ATU', 'ATU']
         sgc = GeneticCode(self.SGC)
         for i in variant_codons:
             self.assertEqual(sgc[i], 'I')
-        #full check for the standard code
+        # full check for the standard code
         codons = [a + b + c for a in 'UCAG' for b in 'TCAG' for c in 'UCAG']
         for codon, aa in zip(codons, self.SGC):
             self.assertEqual(sgc[codon], aa)
-        #full check for another code
+        # full check for another code
         allg = GeneticCode(self.AllG)
         for codon, aa in zip(codons, self.AllG):
             self.assertEqual(allg[codon], aa)
-        #check that degenerate codon returns X
+        # check that degenerate codon returns X
         self.assertEqual(sgc['NNN'], 'X')
 
     def test_getitem_aa(self):
         """GeneticCode getitem should return codon set for aa"""
-        #for all G, should return all the codons (in some order)
+        # for all G, should return all the codons (in some order)
         allg = GeneticCode(self.AllG)
         codons = [a + b + c for a in 'TCAG' for b in 'TCAG' for c in 'TCAG']
         g_codons = allg['G']
         codons_copy = codons[:]
         self.assertEqual(g_codons, codons_copy)
 
-        #check some known cases in the standard genetic code
+        # check some known cases in the standard genetic code
         sgc = GeneticCode(self.SGC)
         exp_ile = ['ATT', 'ATC', 'ATA']
         obs_ile = sgc['I']
@@ -167,7 +167,7 @@ class GeneticCodeTests(TestCase):
         obs_met = sgc['M']
         self.assertEqual(obs_met, exp_met)
 
-        #unknown aa should return []
+        # unknown aa should return []
         self.assertEqual(sgc['U'], [])
 
     def test_getitem_invalid_length(self):
@@ -262,14 +262,14 @@ class GeneticCodeTests(TestCase):
         self.assertEqual(sgc.translate(seq, 9), 'F*')
         self.assertEqual(sgc.translate(seq, 12), '*')
         self.assertEqual(sgc.translate(seq, 14), '')
-        #check shortest translatable sequences
+        # check shortest translatable sequences
         self.assertEqual(sgc.translate('AAA'), 'K')
         self.assertEqual(sgc.translate(''), '')
 
-        #check that different code gives different results
+        # check that different code gives different results
         self.assertEqual(mt.translate(seq), 'MHDFW')
 
-        #check translation with invalid codon(s)
+        # check translation with invalid codon(s)
         self.assertEqual(sgc.translate('AAANNNCNC123UUU'), 'KXXXF')
 
     def test_sixframes(self):
@@ -332,11 +332,11 @@ class GeneticCodeTests(TestCase):
             '*': ['TAA', 'TAG', 'TGA'],
         }
         obs_synonyms = GeneticCode(self.SGC).Synonyms
-        #note that the lists will be arbitrary-order
+        # note that the lists will be arbitrary-order
         for i in expected_synonyms:
             self.assertEqualItems(obs_synonyms[i], expected_synonyms[i])
 
-#Run tests if called from command line
+# Run tests if called from command line
 if __name__ == '__main__':
     main()
 
