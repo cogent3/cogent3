@@ -150,7 +150,7 @@ class RecodeAlignmentTests(TestCase):
         # non-alphabetic character mapped same as alphabetic characters
         actual = recode_dense_alignment(self.aln, alphabet_def=[('.','-')])
         expected = DenseAlignment(\
-         data={'1':'CDDFBXZ', '2':'CDD.BXZ', '3':'AAAASS.'})
+            data={'1':'CDDFBXZ', '2':'CDD.BXZ', '3':'AAAASS.'})
         self.assertEqual(actual,expected)
 
     def test_recode_dense_alignment_to_orig(self):
@@ -158,10 +158,10 @@ class RecodeAlignmentTests(TestCase):
         """
         # provided with alphabet_id
         self.assertEqual(recode_dense_alignment(\
-         self.aln, alphabet_id='orig'), self.aln)
+            self.aln, alphabet_id='orig'), self.aln)
         # provided with alphabet_def
         self.assertEqual(recode_dense_alignment(\
-         self.aln, alphabet_def=self.orig), self.aln)
+            self.aln, alphabet_def=self.orig), self.aln)
 
     # THE FUNCTION THAT THESE TESTS APPLY TO ONLY EXISTS AS A STUB RIGHT 
     # NOW -- WILL UNCOMMENT THE TESTS WHEN THE FUNCTIONS IS READY.

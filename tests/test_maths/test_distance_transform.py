@@ -44,8 +44,8 @@ class functionTests(TestCase):
                         [ 0.0,  0.0,  0.0 ]],'d')
         self.input_binary_dist_otu_gain1 = array([[2,1,0,0],
           [1,0,0,1],
-          [0,0,3,0],
-          [0,0,0,1]])
+            [0,0,3,0],
+            [0,0,0,1]])
 
 
     def get_sym_mtx_from_uptri(self, mtx):

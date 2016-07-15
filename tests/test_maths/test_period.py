@@ -7,7 +7,7 @@ from cogent3.maths.period import ipdft, dft, auto_corr, hybrid, goertzel
 # algorithms I'm separating out those imports to make it clear
 
 from cogent3.maths.period import _ipdft_inner2 as py_ipdft_inner, \
-  _goertzel_inner as py_goertzel_inner, _autocorr_inner2 as py_autocorr_inner
+    _goertzel_inner as py_goertzel_inner, _autocorr_inner2 as py_autocorr_inner
 
 try:
     from cogent3.maths._period import ipdft_inner as pyx_ipdft_inner, \

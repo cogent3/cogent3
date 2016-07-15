@@ -67,11 +67,11 @@ class CoevolutionTests(TestCase):
         self.run_slow_tests = int(environ.get('TEST_SLOW_APPC',0))
         ## Data used in SCA tests
         self.dna_aln = DenseAlignment(data=list(zip(\
-         list(range(4)),['ACGT','AGCT','ACCC','TAGG'])),MolType=DNA)
+            list(range(4)),['ACGT','AGCT','ACCC','TAGG'])),MolType=DNA)
         self.rna_aln = DenseAlignment(data=list(zip(\
-         list(range(4)),['ACGU','AGCU','ACCC','UAGG'])),MolType=RNA)
+            list(range(4)),['ACGU','AGCU','ACCC','UAGG'])),MolType=RNA)
         self.protein_aln = DenseAlignment(data=list(zip(\
-         list(range(4)),['ACGP','AGCT','ACCC','TAGG'])),MolType=PROTEIN)
+            list(range(4)),['ACGP','AGCT','ACCC','TAGG'])),MolType=PROTEIN)
         self.dna_aln_gapped = DenseAlignment(data=list(zip(list(range(4)),\
             ['A-CGT','AGC-T','-ACCC','TAGG-'])),MolType=DNA)
         self.freq = DenseAlignment(data=list(zip(list(range(20)),\
@@ -212,8 +212,8 @@ class CoevolutionTests(TestCase):
         self.assertFloatEqual(coevolve_position(nmi_position,aln,position=0),\
             nmi_position(aln,position=0))
         self.assertFloatEqual(coevolve_position(\
-         ancestral_state_position,aln,position=0,\
-         tree=t),ancestral_state_position(aln,position=0,tree=t))
+            ancestral_state_position,aln,position=0,\
+            tree=t),ancestral_state_position(aln,position=0,tree=t))
         self.assertFloatEqual(coevolve_position(sca_position,aln,position=0,\
             cutoff=cutoff),sca_position(aln,position=0,cutoff=cutoff))
 
@@ -251,7 +251,7 @@ class CoevolutionTests(TestCase):
         # text before the colon
         aln1 = DenseAlignment(data={'1+a':'AC','2+b':'AD'},MolType=PROTEIN)
         aln2 = DenseAlignment(\
-         data={'1 + c':'EFW','2 + d':'EGY'},MolType=PROTEIN)
+            data={'1 + c':'EFW','2 + d':'EGY'},MolType=PROTEIN)
         t = LoadTree(treestring='(1+e:0.5,2 + f:0.5);')
         # OK w/ no tree
         coevolve_alignments_validation(method,aln1,aln2,2,None)
@@ -275,7 +275,7 @@ class CoevolutionTests(TestCase):
 
         # mismatch b/w alignments in number of seqs
         aln1 = DenseAlignment(\
-         data={'1':'AC','2':'AD','3':'AA'},MolType=PROTEIN)
+            data={'1':'AC','2':'AD','3':'AA'},MolType=PROTEIN)
         aln2 = DenseAlignment(data={'1':'EFW','2':'EGY'},MolType=PROTEIN)
         t = LoadTree(treestring='(1:0.5,2:0.5);')
         self.assertRaises(AssertionError,coevolve_alignments_validation,\
@@ -325,7 +325,7 @@ class CoevolutionTests(TestCase):
         coevolve_alignments_validation(mi_alignment,aln1,aln2,2,None)
         coevolve_alignments_validation(nmi_alignment,aln1,aln2,2,None)
         coevolve_alignments_validation(\
-         resampled_mi_alignment,aln1,aln2,2,None)
+            resampled_mi_alignment,aln1,aln2,2,None)
         self.assertRaises(AssertionError,coevolve_alignments_validation,\
            sca_alignment,aln1,aln2,2,None)
         self.assertRaises(AssertionError,coevolve_alignments_validation,\
@@ -361,7 +361,7 @@ class CoevolutionTests(TestCase):
         expected = array([[m[2,0],m[2,1]],\
                     [m[3,0],m[3,1]],[m[4,0],m[4,1]]])
         self.assertFloatEqual(\
-         coevolve_alignments(ancestral_state_alignment,aln1,aln2,\
+            coevolve_alignments(ancestral_state_alignment,aln1,aln2,\
          tree=t),expected)
         # SCA
         m = sca_alignment(combined_aln,cutoff=cutoff)
@@ -393,7 +393,7 @@ class CoevolutionTests(TestCase):
 
         # keep all seqs
         tmp_filepath = get_tmp_filename(\
-         prefix='tmp_test_coevolution',suffix='.fasta')
+            prefix='tmp_test_coevolution',suffix='.fasta')
         coevolve_alignments(mi_alignment,aln1,aln2,max_num_seqs=3,\
          merged_aln_filepath=tmp_filepath)
         self.assertEqual(LoadSeqs(tmp_filepath).getNumSeqs(),3)    
@@ -524,8 +524,8 @@ class CoevolutionTests(TestCase):
 
         # gap in first column 
         expected = array([\
-         [gDefaultNullValue, gDefaultNullValue, gDefaultNullValue],\
-         [gDefaultNullValue,0.0,0.0], [gDefaultNullValue,0.0,0.0]])
+            [gDefaultNullValue, gDefaultNullValue, gDefaultNullValue],\
+            [gDefaultNullValue,0.0,0.0], [gDefaultNullValue,0.0,0.0]])
         aln = DenseAlignment(data={'1':'-CG','2':'ACG'},MolType=PROTEIN)
         self.assertFloatEqual(mi_alignment(aln),expected)
 
@@ -569,9 +569,9 @@ class CoevolutionTests(TestCase):
     def test_build_coevolution_matrix_filepath(self):
         """ build_coevolution_matrix_filepath functions w/ varied input """
         self.assertEqual(build_coevolution_matrix_filepath(\
-         './blah.fasta'),'./blah')
+            './blah.fasta'),'./blah')
         self.assertEqual(build_coevolution_matrix_filepath(\
-         'blah.fasta'),'./blah')
+            'blah.fasta'),'./blah')
         self.assertEqual(build_coevolution_matrix_filepath('blah'),'./blah')
         self.assertEqual(build_coevolution_matrix_filepath('./blah'),'./blah')
 
@@ -645,18 +645,18 @@ class CoevolutionTests(TestCase):
         """Parsing matrix filepaths works as expected. """
         expected = ('myosin_995', 'a1_4', 'nmi')
         self.assertEqual(\
-         parse_coevolution_matrix_filepath('pkls/myosin_995.a1_4.nmi.pkl'),\
-         expected)
+            parse_coevolution_matrix_filepath('pkls/myosin_995.a1_4.nmi.pkl'),\
+            expected)
         self.assertEqual(\
-         parse_coevolution_matrix_filepath('pkls/myosin_995.a1_4.nmi.csv'),\
-         expected)
+            parse_coevolution_matrix_filepath('pkls/myosin_995.a1_4.nmi.csv'),\
+            expected)
         expected = ('p53','orig','mi')
         self.assertEqual(\
-         parse_coevolution_matrix_filepath('p53.orig.mi.pkl'),\
-         expected)
+            parse_coevolution_matrix_filepath('p53.orig.mi.pkl'),\
+            expected)
         self.assertEqual(\
-         parse_coevolution_matrix_filepath('p53.orig.mi.csv'),\
-         expected)
+            parse_coevolution_matrix_filepath('p53.orig.mi.csv'),\
+            expected)
 
     def test_parse_coevolution_matrix_filepath_error(self):
         """Parsing matrix file paths handles invalid filepaths """
@@ -672,11 +672,11 @@ class CoevolutionTests(TestCase):
     def test_identify_aln_positions_above_threshold(self):
         """Extracting scores above threshold works as expected """
         m = array([\
-         [gDefaultNullValue,gDefaultNullValue,\
+            [gDefaultNullValue,gDefaultNullValue,\
           gDefaultNullValue,gDefaultNullValue],\
-         [0.3, 1.0,gDefaultNullValue,gDefaultNullValue],\
-         [0.25,0.75,1.0,gDefaultNullValue],
-         [0.9,0.751,0.8,1.0]])
+            [0.3, 1.0,gDefaultNullValue,gDefaultNullValue],\
+            [0.25,0.75,1.0,gDefaultNullValue],
+            [0.9,0.751,0.8,1.0]])
         self.assertEqual(identify_aln_positions_above_threshold(m,0.75,0),[])
         self.assertEqual(identify_aln_positions_above_threshold(m,0.75,1),\
           [1])
@@ -770,9 +770,9 @@ class CoevolutionTests(TestCase):
 
         # null and mixed values 
         m = array([\
-         [0,gDefaultNullValue,gDefaultNullValue],\
-         [3,4,gDefaultNullValue],\
-         [gDefaultNullValue,7,8]])
+            [0,gDefaultNullValue,gDefaultNullValue],\
+            [3,4,gDefaultNullValue],\
+            [gDefaultNullValue,7,8]])
         self.assertEqual(count_ge_threshold(m,4),(3,5))
         self.assertEqual(count_ge_threshold(m,4,symmetric=True),(3,5))
         self.assertEqual(count_ge_threshold(m,4,ignore_diagonal=True),(1,2))
@@ -808,9 +808,9 @@ class CoevolutionTests(TestCase):
 
         # null and mixed values 
         m = array([\
-         [0,gDefaultNullValue,gDefaultNullValue],\
-         [3,4,gDefaultNullValue],\
-         [gDefaultNullValue,7,8]])
+            [0,gDefaultNullValue,gDefaultNullValue],\
+            [3,4,gDefaultNullValue],\
+            [gDefaultNullValue,7,8]])
         self.assertEqual(count_le_threshold(m,4),(3,5))
         self.assertEqual(count_le_threshold(m,4,symmetric=True),(3,5))
         self.assertEqual(count_le_threshold(m,4,ignore_diagonal=True),(1,2))
@@ -821,16 +821,16 @@ class CoevolutionTests(TestCase):
         """aln_position_pairs_ge_threshold: intramolecular matrix
         """
         m = array([\
-         [0,gDefaultNullValue,gDefaultNullValue],\
-         [3,4,gDefaultNullValue],\
-         [gDefaultNullValue,7,8]])
+            [0,gDefaultNullValue,gDefaultNullValue],\
+            [3,4,gDefaultNullValue],\
+            [gDefaultNullValue,7,8]])
         # cmp_function = ge
         self.assertEqual(aln_position_pairs_cmp_threshold(m,3.5,greater_equal),\
          [(1,1),(2,1),(2,2)])
         # cmp_function = greater_equal, alt null_value
         self.assertEqual(aln_position_pairs_cmp_threshold(\
-         m,3.5,greater_equal,null_value=4),\
-         [(2,1),(2,2)])
+            m,3.5,greater_equal,null_value=4),\
+            [(2,1),(2,2)])
         # cmp_function = le
         self.assertEqual(aln_position_pairs_cmp_threshold(m,3.5,less_equal),\
          [(0,0),(1,0)])
@@ -841,11 +841,11 @@ class CoevolutionTests(TestCase):
         self.assertEqual(aln_position_pairs_cmp_threshold(m,3.5,less_equal),\
          aln_position_pairs_le_threshold(m,3.5))
         self.assertEqual(aln_position_pairs_cmp_threshold(\
-         m,3.5,greater_equal,null_value=4),\
-         aln_position_pairs_ge_threshold(m,3.5,null_value=4))
+            m,3.5,greater_equal,null_value=4),\
+            aln_position_pairs_ge_threshold(m,3.5,null_value=4))
         self.assertEqual(aln_position_pairs_cmp_threshold(\
-         m,3.5,less_equal,null_value=0),\
-         aln_position_pairs_le_threshold(m,3.5,null_value=0))
+            m,3.5,less_equal,null_value=0),\
+            aln_position_pairs_le_threshold(m,3.5,null_value=0))
 
     def test_aln_position_pairs_ge_threshold_intermolecular(self):
         """aln_position_pairs_ge_threshold: intermolecular matrix
@@ -856,32 +856,32 @@ class CoevolutionTests(TestCase):
          m,3.5,greater_equal)
         # cmp_function = ge
         self.assertEqual(aln_position_pairs_cmp_threshold(\
-         m,3.5,greater_equal,intermolecular_data_only=True),\
-         [(1,4),(2,4),(0,5),(1,5),(2,5),(3,5)])
+            m,3.5,greater_equal,intermolecular_data_only=True),\
+            [(1,4),(2,4),(0,5),(1,5),(2,5),(3,5)])
         # cmp_function = greater_equal, alt null_value
         self.assertEqual(aln_position_pairs_cmp_threshold(\
-         m,3.5,greater_equal,null_value=18.,intermolecular_data_only=True),\
-         [(1,4),(2,4),(0,5),(2,5),(3,5)])
+            m,3.5,greater_equal,null_value=18.,intermolecular_data_only=True),\
+            [(1,4),(2,4),(0,5),(2,5),(3,5)])
         # cmp_function = le
         self.assertEqual(aln_position_pairs_cmp_threshold(\
-         m,3.5,less_equal,intermolecular_data_only=True),\
-         [(0,4),(3,4)])        
+            m,3.5,less_equal,intermolecular_data_only=True),\
+            [(0,4),(3,4)])        
 
         # results equal results with wrapper functions
         self.assertEqual(aln_position_pairs_cmp_threshold(\
-         m,3.5,greater_equal,intermolecular_data_only=True),\
-         aln_position_pairs_ge_threshold(m,3.5,intermolecular_data_only=True))
+            m,3.5,greater_equal,intermolecular_data_only=True),\
+            aln_position_pairs_ge_threshold(m,3.5,intermolecular_data_only=True))
         self.assertEqual(aln_position_pairs_cmp_threshold(\
-         m,3.5,less_equal,intermolecular_data_only=True),\
-         aln_position_pairs_le_threshold(m,3.5,intermolecular_data_only=True))
+            m,3.5,less_equal,intermolecular_data_only=True),\
+            aln_position_pairs_le_threshold(m,3.5,intermolecular_data_only=True))
 
         self.assertEqual(aln_position_pairs_cmp_threshold(\
-         m,3.5,greater_equal,null_value=4.,intermolecular_data_only=True),\
-         aln_position_pairs_ge_threshold(m,3.5,null_value=4.,\
+            m,3.5,greater_equal,null_value=4.,intermolecular_data_only=True),\
+            aln_position_pairs_ge_threshold(m,3.5,null_value=4.,\
          intermolecular_data_only=True))
         self.assertEqual(aln_position_pairs_cmp_threshold(\
-         m,3.5,less_equal,null_value=18.,intermolecular_data_only=True),\
-         aln_position_pairs_le_threshold(m,3.5,null_value=18.,\
+            m,3.5,less_equal,null_value=18.,intermolecular_data_only=True),\
+            aln_position_pairs_le_threshold(m,3.5,null_value=18.,\
          intermolecular_data_only=True))
 
     def test_is_parsimony_informative_strict(self):
@@ -953,10 +953,10 @@ class CoevolutionTests(TestCase):
         # changed minimum_differences
         freqs = {'A':25,'B':25}
         self.assertFalse(is_parsimony_informative(\
-         freqs,minimum_differences=3,strict=False))
+            freqs,minimum_differences=3,strict=False))
         freqs = {'A':25}
         self.assertTrue(is_parsimony_informative(\
-         freqs,minimum_differences=1,strict=False))
+            freqs,minimum_differences=1,strict=False))
 
         # changed ignored
         freqs = {'A':25,'-':25,'?':25}
@@ -1502,8 +1502,8 @@ class CoevolutionTests(TestCase):
     def test_coevolve_functions_validate_alignment(self):
         """coevolve_*: functions run validate alignment"""
         aln = DenseAlignment(\
-         data={'0':'BA','1':'AC','2':'CG','3':'CT','4':'TA'},\
-         MolType=PROTEIN)
+            data={'0':'BA','1':'AC','2':'CG','3':'CT','4':'TA'},\
+            MolType=PROTEIN)
         self.assertRaises(ValueError,coevolve_pair,mi_pair,aln,0,1)
         self.assertRaises(ValueError,coevolve_position,mi_position,aln,0)
         self.assertRaises(ValueError,coevolve_alignment,mi_alignment,aln)
@@ -1705,8 +1705,8 @@ class CoevolutionTests(TestCase):
             background_freqs=self.dna_base_freqs)
         # bad cutoff
         self.assertRaises(\
-         ValueError,coevolve_position,sca_position,self.dna_aln,\
-         1,cutoff=-8.2,alphabet=a,background_freqs=self.dna_base_freqs)
+            ValueError,coevolve_position,sca_position,self.dna_aln,\
+            1,cutoff=-8.2,alphabet=a,background_freqs=self.dna_base_freqs)
 
         # incompatible alphabet and background freqs
         self.assertRaises(ValueError,coevolve_position,sca_position,\
@@ -1819,7 +1819,7 @@ class CoevolutionTests(TestCase):
         aln1 = DenseAlignment(data={'1':'AC','2':'AD'},MolType=PROTEIN)
         aln2 = DenseAlignment(data={'1':'EF','2':'EG'},MolType=PROTEIN)
         combined_aln = DenseAlignment(\
-         data={'1':'ACEF','2':'ADEG'},MolType=PROTEIN)
+            data={'1':'ACEF','2':'ADEG'},MolType=PROTEIN)
         actual = merge_alignments(aln1,aln2)
         self.assertEqual(actual,combined_aln)
         self.assertEqual(actual.MolType,PROTEIN)
@@ -1842,15 +1842,15 @@ class CoevolutionTests(TestCase):
         """ merge_alignments ignores all seq id characters after '+' """
         aln1 = DenseAlignment(data={'1+a':'AC','2+b':'AD'},MolType=PROTEIN)
         aln2 = DenseAlignment(\
-         data={'1 + c':'EFW','2 + d':'EGY'},MolType=PROTEIN)
+            data={'1 + c':'EFW','2 + d':'EGY'},MolType=PROTEIN)
         combined_aln = DenseAlignment(\
-         data={'1':'ACEFW','2':'ADEGY'},MolType=PROTEIN)
+            data={'1':'ACEFW','2':'ADEGY'},MolType=PROTEIN)
         self.assertEqual(merge_alignments(aln1,aln2),combined_aln)
         # not all ids have a +
         aln1 = DenseAlignment(data={'1':'AC','2+b':'AD'},MolType=PROTEIN)
         aln2 = DenseAlignment(data={'1+c':'EFW','2':'EGY'},MolType=PROTEIN)
         combined_aln = DenseAlignment(\
-         data={'1':'ACEFW','2':'ADEGY'},MolType=PROTEIN)
+            data={'1':'ACEFW','2':'ADEGY'},MolType=PROTEIN)
         self.assertEqual(merge_alignments(aln1,aln2),combined_aln)
 
     def test_merge_alignments_different_moltype(self):
@@ -1954,7 +1954,7 @@ class AncestorCoevolve(TestCase):
         self.t3_1 = LoadTree(treestring='(A:0.5,(B:0.5,C:0.5):0.5);')
         self.t3_2 = LoadTree(treestring='((A:0.5,B:0.5):0.5,C:0.5);')
         self.ancestral_states3 = DenseAlignment(\
-         data={'root':'CC','edge.0':'AD'},MolType=PROTEIN)
+            data={'root':'CC','edge.0':'AD'},MolType=PROTEIN)
         self.aln3 = DenseAlignment(data={'A':'AC','B':'CA','C':'CC'},\
             MolType=PROTEIN)
 
@@ -1965,31 +1965,31 @@ class AncestorCoevolve(TestCase):
         aln = DenseAlignment(data={'A':'AC','B':'CA','C':'CC'},MolType=PROTEIN)
         self.assertRaises(ValueError,validate_ancestral_seqs,aln,\
          tree=LoadTree(treestring='((A:0.5,B:0.5):0.5,C:0.5);'),\
-         ancestral_seqs=DenseAlignment(data={'root':'AA'},MolType=PROTEIN))
+            ancestral_seqs=DenseAlignment(data={'root':'AA'},MolType=PROTEIN))
         # root missing
         self.assertRaises(ValueError,validate_ancestral_seqs,aln,\
          tree=LoadTree(treestring='((A:0.5,B:0.5):0.5,C:0.5);'),\
-         ancestral_seqs=DenseAlignment(data={'edge.0':'AA'},MolType=PROTEIN))
+            ancestral_seqs=DenseAlignment(data={'edge.0':'AA'},MolType=PROTEIN))
         # correct numSeqs but wrong names
         self.assertRaises(ValueError,validate_ancestral_seqs,aln,\
          tree=LoadTree(treestring='((A:0.5,B:0.5):0.5,C:0.5);'),\
-         ancestral_seqs=DenseAlignment(data={'root':'AA','edge.1':'AA'},\
+            ancestral_seqs=DenseAlignment(data={'root':'AA','edge.1':'AA'},\
             MolType=PROTEIN))
         self.assertRaises(ValueError,validate_ancestral_seqs,aln,\
          tree=LoadTree(treestring='((A:0.5,B:0.5):0.5,C:0.5);'),\
-         ancestral_seqs=DenseAlignment(data={'r':'AA','edge.0':'AA'},\
+            ancestral_seqs=DenseAlignment(data={'r':'AA','edge.0':'AA'},\
             MolType=PROTEIN))
         self.assertRaises(ValueError,validate_ancestral_seqs,aln,\
          tree=LoadTree(treestring='((A:0.5,B:0.5):0.5,C:0.5);'),\
-         ancestral_seqs=DenseAlignment(data={'r':'AA','e':'AA'},\
+            ancestral_seqs=DenseAlignment(data={'r':'AA','e':'AA'},\
             MolType=PROTEIN))
         # different tree: invalid
         aln = DenseAlignment(data={'A':'AC','B':'CA','C':'CC','D':'DD'},\
             MolType=PROTEIN)
         self.assertRaises(ValueError,validate_ancestral_seqs,aln,\
          tree=LoadTree(treestring='((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);'),\
-         ancestral_seqs=DenseAlignment(\
-          data={'root':'AA','e':'AA','edge.1':'AA'},MolType=PROTEIN))
+            ancestral_seqs=DenseAlignment(\
+             data={'root':'AA','e':'AA','edge.1':'AA'},MolType=PROTEIN))
 
     def test_validate_ancestral_seqs_valid(self):
         """validate_ancestral_seqs: does nothing on compatible anc. seqs & tree
@@ -1997,15 +1997,15 @@ class AncestorCoevolve(TestCase):
         aln = DenseAlignment(data={'A':'AC','B':'CA','C':'CC'},MolType=PROTEIN)
         # valid data -> no error
         validate_ancestral_seqs(aln,tree=LoadTree(\
-         treestring='((A:0.5,B:0.5):0.5,C:0.5);'),\
-         ancestral_seqs=DenseAlignment(data={'root':'AA','edge.0':'AA'},\
+            treestring='((A:0.5,B:0.5):0.5,C:0.5);'),\
+            ancestral_seqs=DenseAlignment(data={'root':'AA','edge.0':'AA'},\
          MolType=PROTEIN))
         # different tree: valid
         aln = DenseAlignment(data={'A':'AC','B':'CA','C':'CC','D':'DD'},\
          MolType=PROTEIN)
         validate_ancestral_seqs(aln,tree=LoadTree(\
-         treestring='((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);'),\
-         ancestral_seqs=DenseAlignment(data=\
+            treestring='((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);'),\
+            ancestral_seqs=DenseAlignment(data=\
          {'root':'AA','edge.0':'AA','edge.1':'AA'},MolType=PROTEIN))
 
     def test_ancestral_states_input_validation(self):
@@ -2016,7 +2016,7 @@ class AncestorCoevolve(TestCase):
         # test_validate_ancestral_seqs) 
         self.assertRaises(ValueError,ancestral_states_input_validation,aln,\
          tree=LoadTree(treestring='((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);'),\
-         ancestral_seqs=DenseAlignment(data={'root':'AA','e':'AA',\
+            ancestral_seqs=DenseAlignment(data={'root':'AA','e':'AA',\
          'edge.1':'AA'},MolType=PROTEIN))
         # no tree provided
         self.assertRaises(ValueError,ancestral_states_input_validation,aln,\
@@ -2035,7 +2035,7 @@ class AncestorCoevolve(TestCase):
         validate_tree(aln,t)
         t = LoadTree(treestring='((A:0.5,B:0.5):0.5,C:0.5);')
         aln = DenseAlignment(\
-         data={'A':'AC','B':'CA','C':'CC'},MolType=PROTEIN)
+            data={'A':'AC','B':'CA','C':'CC'},MolType=PROTEIN)
         validate_tree(aln,t)
 
     def test_validate_tree_invalid(self):
