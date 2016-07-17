@@ -594,11 +594,11 @@ class SequenceCollectionBaseTests(object):
             self.assertEqual(result.NamedSeqs[seq], aln.NamedSeqs[seq])
         self.assertEqual(len(result.NamedSeqs), 2)
 
-    def test_distanceMatrix(self):
-        """SequenceCollection distanceMatrix should produce correct scores"""
-        self.assertEqual(self.one_seq.distanceMatrix(
+    def test_distance_matrix(self):
+        """SequenceCollection distance_matrix should produce correct scores"""
+        self.assertEqual(self.one_seq.distance_matrix(
             frac_same), {'a': {'a': 1}})
-        self.assertEqual(self.gaps.distanceMatrix(frac_same),
+        self.assertEqual(self.gaps.distance_matrix(frac_same),
                          {'a': {'a': 7 / 7.0, 'b': 4 / 7.0, 'c': 2 / 7.0},
                              'b': {'a': 4 / 7.0, 'b': 7 / 7.0, 'c': 3 / 7.0},
                              'c': {'a': 2 / 7.0, 'b': 3 / 7.0, 'c': 7 / 7.0},
