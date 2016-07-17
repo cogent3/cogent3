@@ -122,7 +122,7 @@ The table ``Header`` is immutable. Changing column headings is done as follows.
     >>> table = LoadTable('stats.txt', sep=',')
     >>> print table.Header
     ['Locus', 'Region', 'Ratio']
-    >>> table = table.withNewHeader('Ratio', 'Stat')
+    >>> table = table.with_new_header('Ratio', 'Stat')
     >>> print table.Header
     ['Locus', 'Region', 'Stat']
 

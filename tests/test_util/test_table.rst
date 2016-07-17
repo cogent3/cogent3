@@ -138,15 +138,15 @@ and this is immutable (cannot be changed).
 
     >>> t2.Header[1] = 'Data'
     Traceback (most recent call last):
-    RuntimeError: Table Header is immutable, use withNewHeader
+    RuntimeError: Table Header is immutable, use with_new_header
 
-If you want to change the Header, use the ``withNewHeader`` method. This can be done one column at a time, or as a batch. The returned Table is identical aside from the modified column labels.
+If you want to change the Header, use the ``with_new_header`` method. This can be done one column at a time, or as a batch. The returned Table is identical aside from the modified column labels.
 
 .. doctest::
 
-    >>> mod_header = t2.withNewHeader('abcd', 'ABCD')
+    >>> mod_header = t2.with_new_header('abcd', 'ABCD')
     >>> assert mod_header.Header == ['ABCD', 'data']
-    >>> mod_header = t2.withNewHeader(['abcd', 'data'], ['ABCD', 'DATA'])
+    >>> mod_header = t2.with_new_header(['abcd', 'data'], ['ABCD', 'DATA'])
     >>> print(mod_header)
     =========================
                ABCD      DATA
