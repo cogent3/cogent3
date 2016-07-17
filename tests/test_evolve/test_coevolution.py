@@ -395,12 +395,12 @@ class CoevolutionTests(TestCase):
             prefix='tmp_test_coevolution', suffix='.fasta')
         coevolve_alignments(mi_alignment, aln1, aln2, max_num_seqs=3,
                             merged_aln_filepath=tmp_filepath)
-        self.assertEqual(LoadSeqs(tmp_filepath).getNumSeqs(), 3)
+        self.assertEqual(LoadSeqs(tmp_filepath).num_seqs, 3)
 
         # keep 2 seqs
         coevolve_alignments(mi_alignment, aln1, aln2, max_num_seqs=2,
                             merged_aln_filepath=tmp_filepath)
-        self.assertEqual(LoadSeqs(tmp_filepath).getNumSeqs(), 2)
+        self.assertEqual(LoadSeqs(tmp_filepath).num_seqs, 2)
 
         # error if no sequence filter
         self.assertRaises(ValueError,
@@ -1893,14 +1893,14 @@ class CoevolutionTests(TestCase):
         aln1 = LoadSeqs(data=list(zip(list('abcd'), ['AA', 'AC', 'DD', 'GG'])),
                         moltype=PROTEIN, aligned=DenseAlignment)
         # Number of returned sequences correct
-        self.assertEqual(n_random_seqs(aln1, 1).getNumSeqs(), 1)
-        self.assertEqual(n_random_seqs(aln1, 2).getNumSeqs(), 2)
-        self.assertEqual(n_random_seqs(aln1, 3).getNumSeqs(), 3)
-        self.assertEqual(n_random_seqs(aln1, 4).getNumSeqs(), 4)
+        self.assertEqual(n_random_seqs(aln1, 1).num_seqs, 1)
+        self.assertEqual(n_random_seqs(aln1, 2).num_seqs, 2)
+        self.assertEqual(n_random_seqs(aln1, 3).num_seqs, 3)
+        self.assertEqual(n_random_seqs(aln1, 4).num_seqs, 4)
 
         # Sequences are correct
         new_aln = n_random_seqs(aln1, 3)
-        self.assertEqual(new_aln.getNumSeqs(), 3)
+        self.assertEqual(new_aln.num_seqs, 3)
         for n in new_aln.Names:
             self.assertEqual(new_aln.getSeq(n), aln1.getSeq(n))
 
@@ -2123,7 +2123,7 @@ class AncestorCoevolve(TestCase):
             data={'A': 'AX', 'B': 'Z-', 'C': 'BC'}, MolType=PROTEIN)
         actual = get_ancestral_seqs(aln, t, optimise=False)
         self.assertEqual(len(actual), 2)
-        self.assertEqual(actual.getNumSeqs(), 1)
+        self.assertEqual(actual.num_seqs, 1)
 
     def test_ancestral_state_alignment_handles_ancestral_state_calc(self):
         """ancestral_state_alignment: functions when calc'ing ancestral states

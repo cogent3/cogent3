@@ -234,7 +234,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
                 include_incomplete=False, print_stats=True, max_site_labels=50):
     if print_stats:
         print("%s sequences in %s bp alignment" % (
-            alignment.getNumSeqs(), len(alignment)))
+            alignment.num_seqs, len(alignment)))
     (sites, columns, partitions) = binary_partitions(alignment)
     if print_stats:
         print("%s unique binary partitions from %s informative sites" % (
@@ -259,7 +259,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
     # PARTIMATRIX, JWE 1997
 
     # Remove the incomplete partitions with gaps or other ambiguities
-    mask = 2**alignment.getNumSeqs() - 1
+    mask = 2**alignment.num_seqs - 1
     complete = [i for (i, (x, xz)) in enumerate(partitions) if xz == mask]
     if not include_incomplete:
         partimatrix = partimatrix[:, complete]
@@ -304,7 +304,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         figwidth = 8.0
 
         (c_size, p_size) = partimatrix.shape
-        s_size = num_seqs = alignment.getNumSeqs()
+        s_size = num_seqs = alignment.num_seqs
 
         # Layout (including figure height) chosen to get aspect ratio of
         # 1.0 for the compatibility matrix, and if possible the other

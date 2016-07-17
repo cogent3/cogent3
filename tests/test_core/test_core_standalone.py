@@ -98,8 +98,8 @@ class AlignmentTestMethods(unittest.TestCase):
         align = LoadSeqs(moltype=DNA, data=new_seqs)
         assert len(align) == 6, align
 
-    def test_getNumSeqs(self):
-        self.assertEqual(self.alignment.getNumSeqs(), 5)
+    def test_num_seqs(self):
+        self.assertEqual(self.alignment.num_seqs, 5)
 
     def test_variablePositions(self):
         new_seqs = {'seq1': 'ACGTACGT', 'seq2': 'ACCGACGT', 'seq3': 'ACGTACGT'}
