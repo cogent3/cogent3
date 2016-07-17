@@ -262,7 +262,7 @@ class _PairwiseDistance(object):
         self._func_args = []
 
     def _convert_seqs_to_indices(self, alignment):
-        assert type(alignment.MolType) == type(self.moltype), \
+        assert isinstance(alignment.MolType, type(self.moltype)), \
             'Alignment does not have correct MolType'
 
         self._dists = {}

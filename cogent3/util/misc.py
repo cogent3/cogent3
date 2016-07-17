@@ -1366,7 +1366,7 @@ def NestedSplitter(delimiters=[None], same_level=False,
         if constructor:
             result = list(map(constructor, result))
         # allow filter(None,..) to rip off the empty items
-        if filter_ != False:
+        if filter_ is not False:
             result = list(filter(filter_, result))
 
         # repeat recursively for next delimiter
@@ -1380,7 +1380,7 @@ def NestedSplitter(delimiters=[None], same_level=False,
             result = result[0]
 
         return result
-    #parser.__doc__ = make_innerdoc(NestedSplitter, parser, locals())
+    # parser.__doc__ = make_innerdoc(NestedSplitter, parser, locals())
     return parser
 # end NestedSplitter
 
@@ -1441,7 +1441,7 @@ def create_dir(dir_name, fail_on_exist=False, handle_errors_externally=False):
 
     if exists(dir_name):
         if isdir(dir_name):
-            #dir is there
+            # dir is there
             if fail_on_exist:
                 return ror(error_code_lookup['DIR_EXISTS'])
             else:
@@ -1469,7 +1469,7 @@ def handle_error_codes(dir_name, supress_errors=False,
     """
     error_code_lookup = get_create_dir_error_codes()
 
-    if error_code == None:
+    if error_code is None:
         error_code = error_code_lookup['NO_ERROR']
 
     error_strings = \

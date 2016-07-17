@@ -371,7 +371,7 @@ class Gene(_StableRegion):
     Status = property(_get_status)
 
     def _make_canonical_transcript(self):
-        if not 'gene' in self._table_rows:
+        if 'gene' not in self._table_rows:
             self._get_gene_record()
         canonical_id = self._table_rows['gene']['canonical_transcript_id']
         transcript_table = self.db.getTable('transcript')
@@ -392,7 +392,7 @@ class Gene(_StableRegion):
     CanonicalTranscript = property(_get_canonical_transcript)
 
     def _make_transcripts(self):
-        if not 'gene' in self._table_rows:
+        if 'gene' not in self._table_rows:
             self._get_gene_record()
         gene_id = self._table_rows['gene']['gene_id']
         transcript_table = self.db.getTable('transcript')
@@ -982,7 +982,6 @@ class Variation(_Region):
         get_table = genome.VarDb.getTable
         self.variation_feature_table = get_table('variation_feature')
         self.transcript_variation_table = get_table('transcript_variation')
-        #self.flanking_sequence_table = get_table('flanking_sequence')
         self.allele_table = get_table('allele')
         self.variation_table = get_table('variation')
         try:
@@ -1218,7 +1217,7 @@ class Variation(_Region):
     MapWeight = property(_get_map_weight)
 
     def _get_transcript_record(self):
-        if not 'variation_feature' in self._table_rows:
+        if 'variation_feature' not in self._table_rows:
             raise NotImplementedError
 
         try:
@@ -1268,7 +1267,7 @@ class Variation(_Region):
                             table.c.translation_start,
                             table.columns[consequence_type]],
                            sql.and_(table.c.variation_feature_id == var_feature_id,
-                                    table.columns[pep_allele_string] != None))
+                                    table.columns[pep_allele_string] is not None))
         records = query.execute().fetchall()
         pep_alleles = []
         translation_location = []

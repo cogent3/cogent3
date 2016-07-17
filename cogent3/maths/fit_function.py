@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ fitting funtions
-     
+
 module to fit x and y samples to a model
 
 """

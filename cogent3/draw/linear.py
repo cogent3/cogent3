@@ -320,7 +320,7 @@ class SeqText(_MultiShapeSeqRepresentation):
         rot = 0
         if rotated:
             rot += 90
-        #if span.Reverse: rot+= 180
+        # if span.Reverse: rot+= 180
         g = rlg2mpl.Group()
         kw = dict(ha='center', va='baseline', rotation=rot,
                   font_properties=self.font_properties)
@@ -369,7 +369,7 @@ class SeqDots(_SingleShapeSeqRepresentation):
     def shape(self, height, yrange, rotated):
         g = rlg2mpl.Group()
         (X, Y, I) = (0, 1, 2)
-        #scaled_axes = [[X, I], [I, Y]][rotated]
+        # scaled_axes = [[X, I], [I, Y]][rotated]
         scaled_axes = [[X, X], [Y, Y]][rotated]
         scaled_axes = [[X, Y], [X, Y]][rotated]
         trans = TransformScalePart(g.combined_transform, scaled_axes)
@@ -429,7 +429,7 @@ class Feature(Annotation):
         self.label = label
         self.value = value
         self.height = style.height
-        #self.values = self._make_values(*args, **kw)
+        # self.values = self._make_values(*args, **kw)
 
     def shape(self, height, yrange, rotated):
         return self.style(height, self.label, self.map, self.value, yrange,
@@ -528,10 +528,10 @@ class Box(_VariableThicknessFeatureStyle):
         kw = dict(min_width=self.min_width, pointy=False, closed=self.closed,
                   blunt=self.blunt, proportion_of_track=self.proportion_of_track)
         kw['rounded'] = tidy_start
-        #kw['closed'] = self.closed or tidy_start
+        # kw['closed'] = self.closed or tidy_start
         end1 = rlg2mpl.End(start, end, bottom, top, **kw)
         kw['rounded'] = tidy_end
-        #kw['closed'] = self.closed or tidy_end or self.filled
+        # kw['closed'] = self.closed or tidy_end or self.filled
         kw['pointy'] = last and self.arrow
         end2 = rlg2mpl.End(end, start, top, bottom, **kw)
         path = end1 + end2
@@ -661,18 +661,18 @@ class DisplayPolicy(object):
             'redline': Line(False, colors.red),
             # other
             # immune system specific
-            #'C_region': Diamond(True, colors.mediumblue),
-            #'N_region': Box(False, colors.linen),
-            #'S_region': Box(False, colors.linen),
-            #'V_region': Box(False, colors.linen),
-            #'D_segment': Diamond(True, colors.mediumpurple),
-            #'J_segment': Box(False, colors.linen),
-            #'V_segment': Box(False, colors.linen),
-            #'iDNA': Box(False, colors.grey),
-            # Mitocondria specific
-            #'D-loop': Diamond(True, colors.linen),
-            # Bacterial element specific
-            #'oriT': Box(False, colors.linen),
+            # 'C_region': Diamond(True, colors.mediumblue),
+            # 'N_region': Box(False, colors.linen),
+            # 'S_region': Box(False, colors.linen),
+            # 'V_region': Box(False, colors.linen),
+            # 'D_segment': Diamond(True, colors.mediumpurple),
+            # 'J_segment': Box(False, colors.linen),
+            # 'V_segment': Box(False, colors.linen),
+            # 'iDNA': Box(False, colors.grey),
+            #  Mitocondria specific
+            # 'D-loop': Diamond(True, colors.linen),
+            #  Bacterial element specific
+            # 'oriT': Box(False, colors.linen),
         }
 
     def _makeTrackDefns(self):
@@ -773,7 +773,7 @@ class DisplayPolicy(object):
                  **kw):
 
         self.seq_font = FontProperties(size=10)
-        #self.label_font = FontProperties()
+        # self.label_font = FontProperties()
 
         if min_graph_height is None:
             min_graph_height = min_feature_height * 2
@@ -840,10 +840,10 @@ class DisplayPolicy(object):
         tracks = {}
         orig_track_tags = []
         for track in orig_tracks:
-            if not track.tag in tracks:
+            if track.tag not in tracks:
                 tracks[track.tag] = {}
                 orig_track_tags.append(track.tag)  # ordered list
-            if not track.level in tracks[track.tag]:
+            if track.level not in tracks[track.tag]:
                 tracks[track.tag][track.level] = []
             tracks[track.tag][track.level].append(track)
 
@@ -1122,7 +1122,7 @@ class Display(rlg2mpl.Drawable):
                    useful_width=useful_width, **kw)
         (w, h), posn, kw = rlg2mpl.figureLayout(**fkw)
 
-        #points_per_base = w * posn[3] / len(self)
+        # points_per_base = w * posn[3] / len(self)
         if vertical:
             (w, h) = (h, w)
             posn[0:2] = reversed(posn[0:2])

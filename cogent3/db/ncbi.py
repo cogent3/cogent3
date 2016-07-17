@@ -180,7 +180,7 @@ def str_constructor(node):
     return str(node.firstChild.data)
 
 # the following are the only keys we explicitly handle now:
-#(note difference in capitalization from parameters passed in)
+# (note difference in capitalization from parameters passed in)
 esearch_constructors = {'Count': int_constructor, 'RetMax': int_constructor,
                         'RetStart': int_constructor, 'QueryKey': int_constructor,
                         'WebEnv': str_constructor, 'IdList': id_list_constructor}
@@ -254,13 +254,13 @@ class EUtils(object):
         """
         # check if it's a slice
         if isinstance(query, slice):
-            #query = expand_slice(query)
+            # query = expand_slice(query)
             queries = make_lists_of_expanded_slices_of_set_size(query)
             return self.grab_data(queries)
 
         # check if it's a list -- if so, delimit with ' '
         if isinstance(query, list) or isinstance(query, tuple):
-            #query = ' '.join(map(str, query))
+            # query = ' '.join(map(str, query))
             queries = make_lists_of_accessions_of_set_size(query)
             return self.grab_data(queries)
 
@@ -445,7 +445,6 @@ def get_taxa_names_lineages(lines):
 #        DEBUG=False)
 #    ids = fix_taxon_ids(ids)
 #    result = e[ids].read().splitlines()
-#    #print result
 #    return get_taxa_names_lineages(result)
 
 def parse_taxonomy_using_elementtree_xml_parse(search_result):

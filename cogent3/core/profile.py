@@ -4,20 +4,16 @@
 Owner: Sandra Smit (Sandra Smit)
 """
 
-# SUPPORT2425
-#from __future__ import with_statement
-
 from numpy import array, sum, transpose, reshape, ones, zeros,\
     take, float64, ravel, nonzero, log, put, concatenate, argmax, cumsum,\
     sort, argsort, searchsorted, logical_and, asarray, uint8, add, subtract,\
     multiply, divide, newaxis, alltrue, max, all, isfinite
-#from numpy.oldnumeric import sum
 from numpy.random import random
 from cogent3.util.array import euclidean_distance, row_degeneracy,\
     column_degeneracy, row_uncertainty, column_uncertainty, safe_log
 from cogent3.format.table import formattedCells
 # SUPPORT2425
-import numpy  # from cogent3.util.unit_test import numpy_err
+import numpy
 from functools import reduce
 
 __author__ = "Sandra Smit"
@@ -263,7 +259,7 @@ class Profile(object):
             finally:
                 numpy.seterr(**ori_err)
             # with numpy_err(divide='raise'):
-                #new_data = op(self.Data, other.Data)
+            #     new_data = op(self.Data, other.Data)
         except (OverflowError, ZeroDivisionError, FloatingPointError):
             raise ProfileError("Can't do operation on input profiles")
         result = Profile(new_data, self.Alphabet, self.CharOrder)

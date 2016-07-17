@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+import sys
+try:
+    import curses
+except ImportError:
+    curses = None
+
 __author__ = "Nadia Alramli"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Nadia Alramli"]
@@ -11,12 +17,6 @@ __status__ = "Production"
 
 # Copyright: 2008 Nadia Alramli
 # License: BSD
-
-import sys
-try:
-    import curses
-except ImportError:
-    curses = None
 
 COLORS = "BLUE GREEN CYAN RED MAGENTA YELLOW WHITE BLACK".split()
 

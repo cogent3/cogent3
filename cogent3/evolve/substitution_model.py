@@ -462,7 +462,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
 
         # CACHED SHORTCUTS
         self._exponentiator = None
-        #self._ident = numpy.identity(len(self.alphabet), float)
+        # self._ident = numpy.identity(len(self.alphabet), float)
 
     def checkParamsExist(self):
         """Raise an error if the parameters specified to be partitioned or
@@ -551,7 +551,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         """Everything one step short of the psubs, because cogent3.align code
         needs to handle Q*t itself."""
         defns = self.makeParamControllerDefns(bin_names, endAtQd=True)
-        assert not 'length' in defns
+        assert 'length' not in defns
         defns['length'] = LengthDefn()
         return defns
 
@@ -585,7 +585,7 @@ class General(_ContinuousSubstitutionModel):
     # k<=N:   apply Kth exchangeability parameter
     # k==N+1: no parameter, should be 1.0 in unscaled Q
 
-    #@extend_docstring_from(_ContinuousSubstitutionModel)
+    # @extend_docstring_from(_ContinuousSubstitutionModel)
     def __init__(self, alphabet, **kw):
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
 
@@ -613,7 +613,7 @@ class GeneralStationary(_ContinuousSubstitutionModel):
     every possible instantaneous substitution, except the last in each column.
     As general as can be while still having stationary motif probabilities"""
 
-    #@extend_docstring_from(_ContinuousSubstitutionModel)
+    # @extend_docstring_from(_ContinuousSubstitutionModel)
     def __init__(self, alphabet, **kw):
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
 

@@ -34,7 +34,7 @@ THPIO4 = 2.35619449019234492885  # 3*pi/4
 TWOOPI = 6.36619772367581343075535E-1  # 2/pi
 
 ROUND_ERROR = 1e-14    # fp rounding error: causes some tests to fail
-                        # will round to 0 if smaller in magnitude than this
+# will round to 0 if smaller in magnitude than this
 
 
 def fix_rounding_error(x):
@@ -1151,7 +1151,7 @@ def incbi(aa, bb, yy0):
     lgm = (yp * yp - 3.0) / 6.0
     x = 2.0 / (1.0 / (2.0 * a - 1.0) + 1.0 / (2.0 * b - 1.0))
     d = yp * sqrt(x + lgm) / x \
-        - ( 1.0 / (2.0 * b - 1.0) - 1.0 / (2.0 * a - 1.0) ) \
+        - (1.0 / (2.0 * b - 1.0) - 1.0 / (2.0 * a - 1.0)) \
         * (lgm + 5.0 / 6.0 - 2.0 / (3.0 * x))
     d *= 2.0
     if d < MINLOG:

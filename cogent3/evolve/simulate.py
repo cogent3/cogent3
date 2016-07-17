@@ -80,9 +80,9 @@ class AlignmentEvolver(object):
         self.motifs = motifs
 
     def __call__(self, tree, root_sequence):
-        #probsd = dict(enumerate(self.bin_probs))
-        #bprobs = _randomMotifGenerator(self.random_series, probsd)
-        #site_bins = [bprobs.next() for c in range(len(root_sequence))]
+        # probsd = dict(enumerate(self.bin_probs))
+        # bprobs = _randomMotifGenerator(self.random_series, probsd)
+        # site_bins = [bprobs.next() for c in range(len(root_sequence))]
         return self.generateSimulatedSeqs(tree, root_sequence)
 
     def generateSimulatedSeqs(self, parent, parent_seq):

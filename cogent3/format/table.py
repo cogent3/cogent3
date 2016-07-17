@@ -482,7 +482,7 @@ def phylipMatrix(rows, names):
         newname = None
         for i in range(max_num_digits):
             trial_name = "%s%s" % (name_base, i)
-            if not trial_name in names:
+            if trial_name not in names:
                 newname = trial_name
                 break
 

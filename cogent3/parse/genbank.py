@@ -656,7 +656,7 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
         for feature in rec['features']:
             spans = []
             reversed = None
-            if feature['location'] == None or feature['type'] in ['source',
+            if feature['location'] is None or feature['type'] in ['source',
                                                                   'organism']:
                 continue
             for location in feature['location']:

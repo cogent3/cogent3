@@ -237,7 +237,7 @@ class SpeciesNameMap(dict):
     def _purge_species(self, species_name):
         """removes a species record"""
         species_name = CaseInsensitiveString(species_name)
-        if not species_name in self._species_common:
+        if species_name not in self._species_common:
             return
         common_name = self._species_common.pop(species_name)
         ensembl_name = self._species_ensembl.pop(species_name)

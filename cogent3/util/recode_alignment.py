@@ -28,7 +28,7 @@ Alphabet definition convention: When defining reduced alphabets, a reduced
  allows for alignments to not have to support new characeters (by changing
  the MolType of the alignment) and it allows for easier interpretation of the
  alignment states.
- 
+
 Many of the alphabets presented here are discussed in:
 Detecting Coevolution by Disregarding Evolution? Tree-Ignorant Metrics of
 Coevolution Perform As Well As Tree-Aware Metrics; J. Gregory Caporaso,

@@ -82,7 +82,7 @@ numbers along an axis, and the values are assumed to be the counts at each
 point. Thus, Count returns the number of _observations_ (not categories), Sum
 returns the sum of key * value, Mean returns the mean value of the observations,
 and so forth. An example of how this works is as follows:
-    
+
     Freqs([1,2,2,1,1,1,3,3]) gives you the dict {1:4,2:2,3:2}. These values are
     interpreted as coming from 3 categories, so the Count is 3. There are 8
     observations, so the Sum is 8. The Mean across categories is 8/3.

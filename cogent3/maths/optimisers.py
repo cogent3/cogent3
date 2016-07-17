@@ -183,7 +183,7 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
         if do_local:
             callback = unsteadyProgressIndicator(
                 ui.display, 'Local', gend, 1.0)
-            #ui.display('local opt', 1.0-per_opt, per_opt)
+            # ui.display('local opt', 1.0-per_opt, per_opt)
             opt = LocalOptimiser()
             x = opt.maximise(f, x, tolerance=tolerance,
                              max_restarts=max_restarts, show_remaining=callback)

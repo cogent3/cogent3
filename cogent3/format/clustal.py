@@ -25,7 +25,7 @@ def clustal_from_alignment(aln, interleave_len=None):
     if not aln:
         return ''
 
-     # get seq output order
+    # get seq output order
     try:
         order = aln.RowOrder
     except:

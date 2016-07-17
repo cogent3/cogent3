@@ -7,14 +7,8 @@ produced by the same code."""
 # Should probably set to about half of physical memory / PointerEncoder.bytes
 HIRSCHBERG_LIMIT = 10**8
 
-import numpy
-
-# setting global state on module load is bad practice and can be ineffective,
-# and this setting matches the defaults anyway, but left here as reference
-# in case it needs to be put back in a more runtime way.
-# numpy.seterr(all='ignore')
-
 import warnings
+import numpy
 
 from cogent3.align.traceback import alignment_traceback
 from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge
@@ -24,8 +18,6 @@ from cogent3.core.alignment import Aligned
 from cogent3.align.traceback import map_traceback
 from cogent3.util import parallel
 from cogent3.util.warning import discontinued, deprecated
-
-
 from cogent3.util.modules import importVersionedModule, ExpectedImportError
 
 
@@ -42,8 +34,8 @@ try:
 except ImportError:
     pyrex_align_module = pyrex_seq_align_module = None
 
-#pyrex_align_module = _importedPyrexAligningModule('_pairwise_pogs')
-#pyrex_seq_align_module = _importedPyrexAligningModule('_pairwise_seqs')
+# pyrex_align_module = _importedPyrexAligningModule('_pairwise_pogs')
+# pyrex_seq_align_module = _importedPyrexAligningModule('_pairwise_seqs')
 
 # Deal with minor API change between _pairwise_*.pyx versions 3.1 and 3.2
 # rather than forcing everyone to recompile immediately.
@@ -88,7 +80,7 @@ class PointerEncoding(object):
         if DEBUG:
             print(self.max_states, "states allowed in viterbi traceback")
         self.positions = numpy.array([0, x, x + y], int)
-        #a.flags.writeable = False
+        # a.flags.writeable = False
 
     def encode(self, x, y, s):
         parts = numpy.asarray([x, y, s], int)
@@ -128,7 +120,6 @@ def py_calc_rows(plan, x_index, y_index, i_low, i_high, j_low, j_high,
         x = x_index[i]
         i_sources = preds[0][i]
         current_row = rows[plan[i]]
-        #current_row[:] = 0.0
         current_row[:, 0] = impossible
         if i == 0 and not local:
             current_row[0, 0] = neutral_score
@@ -437,7 +428,6 @@ class AlignablePOG(_Alignable):
         aligneds = []
         for (dim, child) in enumerate(children):
             for (seq_name, aligned) in child.aligneds:
-                #aligned = aligned[(starts[dim]-1)*word_length:(ends[dim]-1)*word_length]
                 aligned = aligned.remappedTo(
                     (maps[dim] * word_length).inverse())
                 aligneds.append((seq_name, aligned))

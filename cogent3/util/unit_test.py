@@ -30,7 +30,6 @@ differs from the original result, repeating the test a specified number of times
 before giving up and assuming that the result is always the same.
 
 """
-#from contextlib import contextmanager
 import numpy
 from numpy import testing, array, asarray, ravel, zeros, logical_and, logical_or, isfinite
 from unittest import main, TestCase as orig_TestCase, TestSuite, findTestCases
@@ -48,21 +47,6 @@ __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
 # SUPPORT2425
-#@contextmanager
-# def numpy_err(**kw):
-#    """a numpy err context manager.
-
-#    **kw: pass to numpy.seterr(all=None, divide=None, over=None, under=None,
-#    invalid=None)
-
-#    Example:
-#    with numpy_err(divide='raise'):
-#        self.assertRaises(FloatingPointError, log, 0)
-#    """
-#    ori_err = numpy.geterr()
-#    numpy.seterr(**kw)
-#    try: yield None
-#    finally: numpy.seterr(**ori_err)
 
 
 class FakeRandom(object):

@@ -17,7 +17,7 @@ Implementation Notes
 Span and Range behave much like Python's slices: a Span contains the element
 after its Start but does not contain the element after its End. It may help to
 think of the Span indices occurring _between_ the list elements:
-    
+
     a b c d e
    | | | | | |
    0 1 2 3 4 5
@@ -93,9 +93,9 @@ def as_map(slice, length):
         map = Map(spans=spans, parent_length=length)
     elif isinstance(slice, Map):
         map = slice
-        # reasons for failure when the following is not commented out
+        # TODO reasons for failure when the following is not commented out
         # should be checked further
-        #assert map.parent_length == length, (map, length)
+        # assert map.parent_length == length, (map, length)
     else:
         (lo, hi, step) = _norm_slice(slice, length)
         assert (step or 1) == 1
