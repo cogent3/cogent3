@@ -420,16 +420,16 @@ class Dict2DTests(TestCase):
                          [('a', 'a'), ('a', 'b'), ('a', 'c'), ('b', 'b')])
 
     def test_getItemsIf(self):
-        """Dict2D getItemsIf should return list of items when f(item) is True"""
+        """Dict2D items_if should return list of items when f(item) is True"""
         lt_5 = lambda x: x < 5
         d = Dict2D(self.square)
         d.RowOrder = d.ColOrder = 'abc'
-        self.assertEqual(d.getItemsIf(lt_5), [1, 2, 3, 2, 4, 3])
-        self.assertEqual(d.getItemsIf(lt_5, negate=True), [6, 6, 9])
+        self.assertEqual(d.items_if(lt_5), [1, 2, 3, 2, 4, 3])
+        self.assertEqual(d.items_if(lt_5, negate=True), [6, 6, 9])
         d = Dict2D(self.top_triangle)
         d.RowOrder = d.ColOrder = 'abc'
-        self.assertEqual(d.getItemsIf(lt_5), [1, 2, 3, 4])
-        self.assertEqual(d.getItemsIf(lt_5, negate=True), [6, 9])
+        self.assertEqual(d.items_if(lt_5), [1, 2, 3, 4])
+        self.assertEqual(d.items_if(lt_5, negate=True), [6, 9])
 
     def test_toLists(self):
         """Dict2D toLists should convert dict into list of lists"""

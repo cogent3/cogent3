@@ -595,7 +595,7 @@ class Dict2D(dict):
                     result.append((row_label, col_label))
         return result
 
-    def getItemsIf(self, f, negate=False):
+    def items_if(self, f, negate=False):
         """Returns list of items where f(self[row][col]) is True."""
         return self.getItems(self.item_indices_if(f, negate))
 
