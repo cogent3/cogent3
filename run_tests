@@ -13,4 +13,4 @@ set -e
 $PYTHON_EXE setup.py build_ext --inplace
 export PYTHONPATH=`pwd`:$PYTHONPATH
 cd tests
-nice $PYTHON_EXE alltests.py "$@"
+nice $PYTHON_EXE -Wd alltests.py "$@"
