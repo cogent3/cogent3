@@ -317,7 +317,7 @@ class EstimateDistances(object):
 
         return trees
 
-    def writeToFile(self, filename, summary_function="mean", format='phylip',
+    def write(self, filename, summary_function="mean", format='phylip',
                     **kwargs):
         """Save the pairwise distances to a file using phylip format. Other
         formats can be obtained by getting to a Table.  If running in parallel,
@@ -334,4 +334,4 @@ class EstimateDistances(object):
         if self._on_master_cpu:
             # only write output from 0th node
             table = self.getTable(summary_function=summary_function, **kwargs)
-            table.writeToFile(filename, format=format)
+            table.write(filename, format=format)

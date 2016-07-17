@@ -22,7 +22,7 @@ class _UserList(list):
 class ScoredTreeCollection(_UserList):
     """An ordered list of (score, tree) tuples"""
 
-    def writeToFile(self, filename):
+    def write(self, filename):
         f = open(filename, 'w')
         for (score, tree) in self:
             f.writelines(

@@ -32,17 +32,17 @@ class ReadingWritingFileFormats(unittest.TestCase):
         if test_write:
             suffix = filename.split('.')[-1]
             fn = tempfile.mktemp(suffix='.' + suffix)
-            aln.writeToFile(filename=fn)
+            aln.write(filename=fn)
             os.remove(fn)
 
     def test_write_unknown_raises(self):
         """writing unknown format raises FileFormatError"""
         filename = os.path.join(data_path, "primates_brca1.fasta")
         aln = LoadSeqs(filename)
-        self.assertRaises(FileFormatError, aln.writeToFile, filename='blah')
-        self.assertRaises(FileFormatError, aln.writeToFile,
+        self.assertRaises(FileFormatError, aln.write, filename='blah')
+        self.assertRaises(FileFormatError, aln.write,
                           filename='blah.txt')
-        self.assertRaises(FileFormatError, aln.writeToFile,
+        self.assertRaises(FileFormatError, aln.write,
                           filename='blah.fasta', format='noway')
 
     def test_fasta(self):

@@ -39,7 +39,7 @@ In order to ensure the alignment algorithm preserves the coding frame, we align 
     >rat
     LNKQPLSNKK
 
-The translated seqs can then be written to file, using the method ``writeToFile``. That file then serves as input for an alignment program. The resulting alignment file can be read back in. (We won't write to file in this example.) For this example we will specify the aligned sequences in the dict, rather than from file.
+The translated seqs can then be written to file, using the method ``write``. That file then serves as input for an alignment program. The resulting alignment file can be read back in. (We won't write to file in this example.) For this example we will specify the aligned sequences in the dict, rather than from file.
 
 .. doctest::
 

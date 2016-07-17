@@ -289,12 +289,12 @@ This necessarily returns a ``SequenceCollection``.
     >>> print type(degapped)
     <class 'cogent.core.alignment.SequenceCollection'>
 
-.. TODO the following should be preceded by a section describing the writeToFile method and format argument
+.. TODO the following should be preceded by a section describing the write method and format argument
 
 Writing sequences to file
 """""""""""""""""""""""""
 
-Both collection and alignment objects have a ``writeToFile`` method. The output format is inferred from the filename suffix,
+Both collection and alignment objects have a ``write`` method. The output format is inferred from the filename suffix,
 
 .. doctest::
     
@@ -302,13 +302,13 @@ Both collection and alignment objects have a ``writeToFile`` method. The output 
     >>> dna  = {'seq1': 'ATGACC',
     ...         'seq2': 'ATCGCC'}
     >>> aln = LoadSeqs(data=dna, moltype=DNA)
-    >>> aln.writeToFile('sample.fasta')
+    >>> aln.write('sample.fasta')
 
 or by the ``format`` argument.
 
 .. doctest::
     
-    >>> aln.writeToFile('sample', format='fasta')
+    >>> aln.write('sample', format='fasta')
 
 .. now clean the files up
 

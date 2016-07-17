@@ -22,4 +22,4 @@ To translate a DNA alignment, read it in assigning the DNA alphabet. Note settin
     >NineBande
     RQQSRWAESKETCNDRQT
 
-To save this result to a file, use the ``writeToFile`` method.
+To save this result to a file, use the ``write`` method.

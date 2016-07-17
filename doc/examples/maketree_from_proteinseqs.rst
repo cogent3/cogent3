@@ -65,7 +65,7 @@ This tree can be saved to file, the ``with_distances`` argument specifies that b
 
 .. doctest::
 
-    >>> mytree.writeToFile('test_nj.tree', with_distances=True)
+    >>> mytree.write('test_nj.tree', with_distances=True)
 
 .. clean up
 

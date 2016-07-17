@@ -53,7 +53,7 @@ We can save this tree to file.
 
 .. doctest::
 
-    >>> mytree.writeToFile('test_nj.tree')
+    >>> mytree.write('test_nj.tree')
 
 .. clean up
 

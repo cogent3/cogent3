@@ -52,7 +52,7 @@ We can save these results to a file in a delimited format (we'll use tab here) t
 
 .. doctest::
 
-    >>> PCoA_result.writeToFile('PCoA_results.txt',sep='\t')
+    >>> PCoA_result.write('PCoA_results.txt',sep='\t')
 
 ..
     We don't actually want to keep that file now, so I'm importing the ``os`` module to delete it.

@@ -588,14 +588,14 @@ The bedgraph formatter defaults to rounding values to 2 decimal places. You can 
     1	100	118	1.00
     1	118	161	2.00
 
-.. note:: Writing files in bedgraph format is done using the ``writeToFile(format='bedgraph', name='test track', description='test of bedgraph', color=(255,0,0))``.
+.. note:: Writing files in bedgraph format is done using the ``write(format='bedgraph', name='test track', description='test of bedgraph', color=(255,0,0))``.
 
 .. _bedGraph: https://cgwb.nci.nih.gov/goldenPath/help/bedgraph.html
 
 Saving a table for reloading
 ----------------------------
 
-Saving a table object to file for later reloading can be done using the standard ``writeToFile`` method and ``filename`` argument to the ``Table`` constructor, specifying any of the formats supported by ``tostring``. The table loading will recreate a table from raw data located at ``filename``. To illustrate this, we first write out the table ``t3`` in ``pickle`` format and then the table ``t2`` in a csv (comma separated values format).
+Saving a table object to file for later reloading can be done using the standard ``write`` method and ``filename`` argument to the ``Table`` constructor, specifying any of the formats supported by ``tostring``. The table loading will recreate a table from raw data located at ``filename``. To illustrate this, we first write out the table ``t3`` in ``pickle`` format and then the table ``t2`` in a csv (comma separated values format).
 
 .. doctest::
     :options: +NORMALIZE_WHITESPACE
@@ -604,7 +604,7 @@ Saving a table object to file for later reloading can be done using the standard
     ... row_order = row_order, missing_data='*', space=8, max_width = 50,
     ... row_ids = True, title = 'My Title',
     ... legend = 'Legend: this is a nonsense example.')
-    >>> t3.writeToFile("t3.pickle", mode='wb')
+    >>> t3.write("t3.pickle", mode='wb')
     >>> t3_loaded = LoadTable(filename = "t3.pickle")
     >>> print(t3_loaded)
     My Title
@@ -649,7 +649,7 @@ Saving a table object to file for later reloading can be done using the standard
     Legend: this is a nonsense example.
     >>> t2 = Table(['abcd', 'data'], [[str([1, 2, 3, 4, 5]), '0'], ['x', 5.0],
     ... ['y', None]], missing_data='*', title = 'A \ntitle')
-    >>> t2.writeToFile('t2.csv', sep=',')
+    >>> t2.write('t2.csv', sep=',')
     >>> t2_loaded = LoadTable(filename='t2.csv', header=True, with_title=True,
     ...  sep = ',')
     >>> print(t2_loaded)
@@ -670,7 +670,7 @@ Note the ``missing_data`` attribute is not saved in the delimited format, but is
     >>> t2 = Table(['abcd', 'data'], [[str([1, 2, 3, 4, 5]), '0'], ['x', 5.0],
     ... ['y', None]], missing_data='*', title = 'A \ntitle',
     ... legend = "And\na legend too")
-    >>> t2.writeToFile('t2.csv', sep=',')
+    >>> t2.write('t2.csv', sep=',')
     >>> t2_loaded = LoadTable(filename = 't2.csv', header = True,
     ... with_title = True, with_legend = True, sep = ',', digits = 2)
     >>> print(t2_loaded) # doctest: +NORMALIZE_WHITESPACE
@@ -707,12 +707,12 @@ You can also read and write tables in gzip compressed format. This can be done s
 
 .. doctest::
 
-    >>> t2.writeToFile('t2.csv.gz', sep=',')
+    >>> t2.write('t2.csv.gz', sep=',')
     >>> t2_gz = LoadTable('t2.csv.gz', sep=',', with_title=True,
     ...                 with_legend=True)
     >>> t2_gz.Shape == t2.Shape
     True
-    >>> t2.writeToFile('t2.csv', sep=',', compress=True)
+    >>> t2.write('t2.csv', sep=',', compress=True)
     >>> t2_gz = LoadTable('t2.csv.gz', sep=',', with_title=True,
     ...                 with_legend=True)
     >>> t2_gz.Shape == t2.Shape
@@ -737,7 +737,7 @@ We convert columns 2-5 to floats by specifying a field convertor. We then create
     >>> comma_sep = [line for line in reader(comma_sep)]
     >>> print(comma_sep)
     [['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], ['Human',...
-    >>> t3.writeToFile("t3.tab", sep="\t")
+    >>> t3.write("t3.tab", sep="\t")
     >>> reader = SeparatorFormatParser(with_header=True,converter=converter,
     ...      sep="\t")
     >>> t3a = LoadTable(filename="t3.tab", reader=reader, title="new title",
@@ -834,7 +834,7 @@ If you invoke the ``static_column_types`` argument and the column data are not s
     1    1
     a    2
     ------
-    >>> t3b.writeToFile('test3b.txt', sep='\t')
+    >>> t3b.write('test3b.txt', sep='\t')
     >>> t3b = LoadTable('test3b.txt', sep = '\t', static_column_types=True)
     Traceback (most recent call last):
     ValueError: invalid literal for int() with base 10: 'a'
@@ -906,7 +906,7 @@ We can likewise specify a writer, using a custom field formatter and provide thi
     "DogFaced" | "root" | 4.0 | 1.0 | 3.0 | 6.0
     "edge.0" | "edge.1" | 4.0 | 1.0 | 3.0 | 6.0
     "edge.1" | "root" | 4.0 | 1.0 | 3.0 | 6.0
-    >>> t3.writeToFile(filename="t3.tab", writer=writer)
+    >>> t3.write(filename="t3.tab", writer=writer)
     >>> strip = lambda x: x.replace('"', '')
     >>> converter = ConvertFields([(0,strip), (1, strip)])
     >>> reader = SeparatorFormatParser(with_header=True, converter=converter,

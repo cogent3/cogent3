@@ -214,7 +214,7 @@ class ConsensusTests(unittest.TestCase):
     def test_tree_collection_read_write_file(self):
         """should correctly read / write a collection from a file"""
         def eval_klass(coll):
-            coll.writeToFile('sample.trees')
+            coll.write('sample.trees')
             read = LoadTrees('sample.trees')
             self.assertTrue(type(read) == type(coll))
 
@@ -330,7 +330,7 @@ class DistancesTests(unittest.TestCase):
         self.assertDistsAlmostEqual(canned_result, result)
 
         # excercise writing to file
-        d.writeToFile('junk.txt')
+        d.write('junk.txt')
         try:
             os.remove('junk.txt')
         except OSError:
