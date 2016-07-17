@@ -340,7 +340,7 @@ class Table(DictArray):
             return table_format.simpleFormat(*args + (self._max_width,
                                                       self._row_ids, borders, self.Space))
 
-    def toRichHtmlTable(self, row_cell_func=None, header_cell_func=None,
+    def to_rich_html(self, row_cell_func=None, header_cell_func=None,
                         element_formatters={}, merge_identical=True, compact=True):
         """returns just the table html code.
         Arguments:
