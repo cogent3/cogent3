@@ -1025,7 +1025,7 @@ class SequenceCollection(object):
 
         return combined_aln
 
-    def writeToFile(self, filename=None, format=None, **kwargs):
+    def write(self, filename=None, format=None, **kwargs):
         """Write the alignment to a file, preserving order of sequences.
 
         Arguments:

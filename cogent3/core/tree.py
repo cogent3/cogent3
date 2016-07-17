@@ -1327,7 +1327,7 @@ class TreeNode(object):
         header = ['<?xml version="1.0"?>']  # <!DOCTYPE ...
         return '\n'.join(header + self._getXmlLines())
 
-    def writeToFile(self, filename, with_distances=True, format=None):
+    def write(self, filename, with_distances=True, format=None):
         """Save the tree to filename
 
         Arguments:

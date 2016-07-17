@@ -58,7 +58,7 @@ We can save these results to a file in a delimited format (we'll use tab here) t
 
 .. doctest::
 
-    >>> PCoA_result.writeToFile('PCoA_results.txt',sep='\t')
+    >>> PCoA_result.write('PCoA_results.txt',sep='\t')
 
 
 Fast-MDS
@@ -271,7 +271,7 @@ We demonstrate saving this UPGMA cluster to a file.
 
 .. doctest::
 
-    >>> mycluster.writeToFile('test_upgma.tree')
+    >>> mycluster.write('test_upgma.tree')
 
 ..
     We don't actually want to keep that file now, so I'm importing the ``os`` module to delete it.

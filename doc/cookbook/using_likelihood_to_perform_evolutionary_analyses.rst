@@ -624,7 +624,7 @@ We need an annotated tree object to do the drawing, we write this out to an XML 
 .. doctest::
     
     >>> annot_tree = lf.getAnnotatedTree()
-    >>> annot_tree.writeToFile('result_tree.xml')
+    >>> annot_tree.write('result_tree.xml')
 
 We first import an unrooted dendrogram and then generate a heat mapped image to file where edges are colored red by the magnitude of ``omega`` with maximal saturation when ``omega=1``.
 

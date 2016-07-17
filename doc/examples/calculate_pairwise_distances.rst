@@ -67,7 +67,7 @@ We'll write a phylip formatted distance matrix.
 
 .. doctest::
 
-    >>> d.writeToFile('dists_for_phylo.phylip', format="phylip")
+    >>> d.write('dists_for_phylo.phylip', format="phylip")
 
 We'll also save the distances to file in Python's pickle format.
 

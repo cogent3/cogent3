@@ -31,7 +31,7 @@ Writing a tree to a file
 
     >>> from cogent import LoadTree
     >>> tr = LoadTree('data/test.tree')
-    >>> tr.writeToFile('data/temp.tree')
+    >>> tr.write('data/temp.tree')
 
 Getting the individual nodes of a tree by name
 """"""""""""""""""""""""""""""""""""""""""""""

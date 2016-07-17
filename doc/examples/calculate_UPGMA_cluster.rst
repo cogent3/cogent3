@@ -52,7 +52,7 @@ We demonstrate saving this UPGMA cluster to a file.
 
 .. doctest::
 
-    >>> mycluster.writeToFile('test_upgma.tree')
+    >>> mycluster.write('test_upgma.tree')
 
 ..
     We don't actually want to keep that file now, so I'm importing the ``os`` module to delete it.

@@ -802,11 +802,11 @@ class SequenceCollectionBaseTests(object):
                 got.update([str(seq).strip()])
             self.assertEqual(got, exp)
 
-    def test_writeToFile(self):
-        """SequenceCollection.writeToFile should write in correct format"""
+    def test_write(self):
+        """SequenceCollection.write should write in correct format"""
         aln = self.Class([('a', 'AAAA'), ('b', 'TTTT'), ('c', 'CCCC')])
         fn = mktemp(suffix='.fasta')
-        aln.writeToFile(fn)
+        aln.write(fn)
         with open(fn, newline=None) as infile:
             result = infile.read()
         self.assertEqual(result, '>a\nAAAA\n>b\nTTTT\n>c\nCCCC\n')

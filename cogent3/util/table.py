@@ -368,7 +368,7 @@ class Table(DictArray):
                                       element_formatters=element_formatters,
                                       compact=compact)
 
-    def writeToFile(self, filename, mode='w', writer=None, format=None,
+    def write(self, filename, mode='w', writer=None, format=None,
                     sep=None, compress=None, **kwargs):
         """Write table to filename in the specified format. If a format is not
         specified, it attempts to use a filename suffix. Note if a sep argument

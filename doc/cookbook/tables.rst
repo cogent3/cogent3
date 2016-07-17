@@ -14,7 +14,7 @@ Tabular data
     ... ('NP_005500', 'NonCon', 0.73827030202664901e-07),
     ... ('NP_055852', 'NonCon', 1.0933217708952725e+07))
     >>> table = LoadTable(header=['Locus', 'Region', 'Ratio'], rows=rows)
-    >>> table.writeToFile('stats.txt', sep=',')
+    >>> table.write('stats.txt', sep=',')
 
 Loading delimited formats
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -506,7 +506,7 @@ Writing delimited formats
 .. doctest::
 
     >>> table = LoadTable('stats.txt', sep=',')
-    >>> table.writeToFile('stats_tab.txt', sep='\t')
+    >>> table.write('stats_tab.txt', sep='\t')
 
 Writing latex format
 """"""""""""""""""""
