@@ -356,7 +356,7 @@ class _PairwiseDistance(object):
         var_formatter = _number_formatter("%.2e")
         if table is not None:
             for name in self.Names:
-                table.setColumnFormat(name, var_formatter)
+                table.format_column(name, var_formatter)
 
         return table
 

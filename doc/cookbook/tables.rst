@@ -65,7 +65,7 @@ We change the ``Ratio`` column to using scientific notation.
 
 .. doctest::
 
-    >>> table.setColumnFormat('Ratio', '%.1e')
+    >>> table.format_column('Ratio', '%.1e')
     >>> print table
     ==============================
         Locus    Region      Ratio

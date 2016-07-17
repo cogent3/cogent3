@@ -293,7 +293,7 @@ We then format the ``LR`` column to use a scientific number format.
 .. doctest::
 
     >>> t46 = Table(['Gene', 'Type', 'LR'], rows)
-    >>> t46.setColumnFormat('LR', "%.4e")
+    >>> t46.format_column('LR', "%.4e")
     >>> print(t46)
     ============================================
                       Gene    Type            LR
@@ -331,8 +331,8 @@ We can provide settings for multiple columns.
 
     >>> t3 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
     ... row_order = row_order)
-    >>> t3.setColumnFormat('x', "%.1e")
-    >>> t3.setColumnFormat('y', "%.2f")
+    >>> t3.format_column('x', "%.1e")
+    >>> t3.format_column('y', "%.2f")
     >>> print(t3)
     ===============================================================
     edge.name    edge.parent    length          x       y         z
