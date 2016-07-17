@@ -1175,7 +1175,7 @@ This can also be done using the string approach.
     NP_116116_hs_mm_rn_dna    Unco     9.7474     1    0.0018
     ---------------------------------------------------------
 
-We can also filter table columns using ``filteredByColumn``. Say we only want the numerical columns, we can write a callback that returns ``False`` if some numerical operation fails, ``True`` otherwise.
+We can also filter table columns using ``filtered_by_column``. Say we only want the numerical columns, we can write a callback that returns ``False`` if some numerical operation fails, ``True`` otherwise.
 
 .. doctest::
 
@@ -1185,7 +1185,7 @@ We can also filter table columns using ``filteredByColumn``. Say we only want th
     ...     except TypeError:
     ...         return False
     ...     return True
-    >>> print(t5.filteredByColumn(callback=is_numeric))
+    >>> print(t5.filtered_by_column(callback=is_numeric))
     =======================
          LR    df      Prob
     -----------------------

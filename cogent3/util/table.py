@@ -535,7 +535,7 @@ class Table(DictArray):
         kw.update(kwargs)
         return Table(header=self.Header, rows=sub_set, **kw)
 
-    def filteredByColumn(self, callback, **kwargs):
+    def filtered_by_column(self, callback, **kwargs):
         """Returns a table with columns identified by callback
 
         Arguments:
