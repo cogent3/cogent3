@@ -22,15 +22,15 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 # SUPPORT2425
-if sys.version_info < (2, 6):
-    py_version = ".".join([str(n) for n in sys.version_info])
+if sys.version_info < (3, 5):
+    PY_VERSION = ".".join([str(n) for n in sys.version_info])
     raise RuntimeError(
-        "Python-2.6 or greater is required, Python-%s used." % py_version)
+        "Python-3.5 or greater is required, Python-%s used." % PY_VERSION)
 
-numpy_version = re.split("[^\d]", numpy.__version__)
-numpy_version_info = tuple([int(i) for i in numpy_version if i.isdigit()])
+NUMPY_VERSION = re.split(r"[^\d]", numpy.__version__)
+numpy_version_info = tuple([int(i) for i in NUMPY_VERSION if i.isdigit()])
 if numpy_version_info < (1, 3):
-    raise RuntimeError("Numpy-1.3 is required, %s found." % numpy_version)
+    raise RuntimeError("Numpy-1.3 is required, %s found." % NUMPY_VERSION)
 
 version = __version__
 version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])
@@ -69,8 +69,8 @@ def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
 
 
 def LoadSeqs(filename=None, format=None, data=None, moltype=None,
-             name=None, aligned=True, label_to_name=None, parser_kw={},
-             constructor_kw={}, **kw):
+             name=None, aligned=True, label_to_name=None, parser_kw=None,
+             constructor_kw=None, **kw):
     """Initialize an alignment or collection of sequences.
 
     Arguments:
@@ -96,6 +96,9 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     suffix. If label_to_name is None, will attempt to infer correct
     conversion from the format.
     """
+    
+    constructor_kw = constructor_kw or {}
+    parser_kw = parser_kw or {}
 
     if filename is None:
         assert data is not None
