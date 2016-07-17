@@ -1032,7 +1032,7 @@ You can get disjoint rows.
 
 .. doctest::
 
-    >>> print(t4.getDisjointRows(['Human', 'Mouse', 'DogFaced']))
+    >>> print(t4.get_disjoint_rows(['Human', 'Mouse', 'DogFaced']))
     My Title
     ================================================================
     edge.name    edge.parent    length         x         y         z
