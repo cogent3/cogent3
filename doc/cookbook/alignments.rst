@@ -46,12 +46,12 @@ Converting a ``SequenceCollection`` to FASTA format
 Adding new sequences to an existing collection or alignment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-New sequences can be either appended or inserted using the ``addSeqs`` method. More than one sequence can be added at the same time. Note that ``addSeqs`` does not modify the existing collection/alignment, it creates new one.
+New sequences can be either appended or inserted using the ``add_seqs`` method. More than one sequence can be added at the same time. Note that ``add_seqs`` does not modify the existing collection/alignment, it creates new one.
 
 Appending the sequences
 """""""""""""""""""""""
 
-``addSeqs`` without additional parameters will append the sequences to the end of the collection/alignment. 
+``add_seqs`` without additional parameters will append the sequences to the end of the collection/alignment. 
 
 .. doctest::
 
@@ -69,7 +69,7 @@ Appending the sequences
     <BLANKLINE>
     >>> new_seqs = LoadSeqs(data= [('seq0', 'ATG-AGT-AGG'),
     ...                            ('seq4', 'ATGCC------')], moltype=DNA)
-    >>> new_aln = aln.addSeqs(new_seqs)
+    >>> new_aln = aln.add_seqs(new_seqs)
     >>> print new_aln
     >seq1
     ATGAA------
@@ -92,7 +92,7 @@ Sequences can be inserted into an alignment at the specified position using eith
 
 .. doctest::
 
-   >>> new_aln = aln.addSeqs(new_seqs, before_name='seq2')
+   >>> new_aln = aln.add_seqs(new_seqs, before_name='seq2')
    >>> print new_aln
    >seq1
    ATGAA------
@@ -105,7 +105,7 @@ Sequences can be inserted into an alignment at the specified position using eith
    >seq3
    AT--AG-GATG
    <BLANKLINE>
-   >>> new_aln = aln.addSeqs(new_seqs, after_name='seq2')
+   >>> new_aln = aln.add_seqs(new_seqs, after_name='seq2')
    >>> print new_aln
    >seq1
    ATGAA------
@@ -147,7 +147,7 @@ Already aligned sequences can be added to an existing ``Alignment`` object and a
     AT--GC-TGGG
     <BLANKLINE>
 
-``addFromReferenceAln`` has the same arguments as ``addSeqs`` so ``before_name`` and ``after_name`` can be used to insert the new sequences at the desired position.
+``addFromReferenceAln`` has the same arguments as ``add_seqs`` so ``before_name`` and ``after_name`` can be used to insert the new sequences at the desired position.
 
 .. note:: This method does not work with the ``DenseAlignment`` class.
 

@@ -756,8 +756,8 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(
             concatdict, {'a': 'AAAAGGGG', 'b': 'TTTT----', 'c': 'CCCCNNNN'})
 
-    def test_addSeqs(self):
-        """addSeqs should return an alignment with the new sequences appended or inserted"""
+    def test_add_seqs(self):
+        """add_seqs should return an alignment with the new sequences appended or inserted"""
         data = [('name1', 'AAA'), ('name2', 'AAA'),
                  ('name3', 'AAA'), ('name4', 'AAA')]
         data1 = [('name1', 'AAA'), ('name2', 'AAA')]
@@ -766,39 +766,39 @@ class SequenceCollectionBaseTests(object):
         aln = self.Class(data)
         aln3 = self.Class(data3)
 
-        out_aln = aln.addSeqs(aln3)
+        out_aln = aln.add_seqs(aln3)
         # test append at the end
         self.assertEqual(str(out_aln), str(self.Class(data + data3)))
 
-        out_aln = aln.addSeqs(aln3, before_name='name3')
+        out_aln = aln.add_seqs(aln3, before_name='name3')
         self.assertEqual(str(out_aln), str(self.Class(
             data1 + data3 + data2)))  # test insert before
 
-        out_aln = aln.addSeqs(aln3, after_name='name2')
+        out_aln = aln.add_seqs(aln3, after_name='name2')
         self.assertEqual(str(out_aln), str(self.Class(
             data1 + data3 + data2)))  # test insert after
 
-        out_aln = aln.addSeqs(aln3, before_name='name1')
+        out_aln = aln.add_seqs(aln3, before_name='name1')
         # test if insert before first seq works
         self.assertEqual(str(out_aln), str(self.Class(data3 + data)))
 
-        out_aln = aln.addSeqs(aln3, after_name='name4')
+        out_aln = aln.add_seqs(aln3, after_name='name4')
         # test if insert after last seq works
         self.assertEqual(str(out_aln), str(self.Class(data + data3)))
 
-        self.assertRaises(ValueError, aln.addSeqs, aln3,
+        self.assertRaises(ValueError, aln.add_seqs, aln3,
                           before_name='name5')  # wrong after/before name
-        self.assertRaises(ValueError, aln.addSeqs, aln3,
+        self.assertRaises(ValueError, aln.add_seqs, aln3,
                           after_name='name5')  # wrong after/before name
 
         if isinstance(aln, Alignment) or isinstance(aln, DenseAlignment):
             self.assertRaises((DataError, ValueError),
-                              aln.addSeqs, aln3 + aln3)
+                              aln.add_seqs, aln3 + aln3)
         else:
             exp = set([seq for name, seq in data])
             exp.update([seq + seq for name, seq in data3])
             got = set()
-            for seq in aln.addSeqs(aln3 + aln3).Seqs:
+            for seq in aln.add_seqs(aln3 + aln3).Seqs:
                 got.update([str(seq).strip()])
             self.assertEqual(got, exp)
 

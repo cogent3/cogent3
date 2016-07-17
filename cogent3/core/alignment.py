@@ -961,7 +961,7 @@ class SequenceCollection(object):
             new.annotations = left + right
         return new
 
-    def addSeqs(self, other, before_name=None, after_name=None):
+    def add_seqs(self, other, before_name=None, after_name=None):
         """Returns new object of class self with sequences from other added.
 
         By default the sequence is appended to the end of the alignment,
@@ -1015,13 +1015,13 @@ class SequenceCollection(object):
         if len(names_before) > 0:
             aln_before = self.takeSeqs(names_before)
             combined_aln = aln_before
-            combined_aln = combined_aln.addSeqs(aln_new)
+            combined_aln = combined_aln.add_seqs(aln_new)
         else:
             combined_aln = aln_new
 
         if len(names_after) > 0:
             aln_after = self.takeSeqs(names_after)
-            combined_aln = combined_aln.addSeqs(aln_after)
+            combined_aln = combined_aln.add_seqs(aln_after)
 
         return combined_aln
 
@@ -2800,9 +2800,9 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             if not temp_aln:
                 temp_aln = self.__class__({new_seq.Name: str(new_seq)})
             else:
-                temp_aln = temp_aln.addSeqs(self.__class__({new_seq.Name:
+                temp_aln = temp_aln.add_seqs(self.__class__({new_seq.Name:
                                                             str(new_seq)}))
 
-        aln = self.addSeqs(temp_aln, before_name, after_name)
+        aln = self.add_seqs(temp_aln, before_name, after_name)
 
         return aln
