@@ -651,19 +651,19 @@ class SequenceCollectionBaseTests(object):
         got = align_norm.toNexus('protein')
         self.assertEqual(got, expect)
 
-    def test_getIntMap(self):
-        """SequenceCollection.getIntMap should return correct mapping."""
+    def test_get_int_map(self):
+        """SequenceCollection.get_int_map should return correct mapping."""
         aln = self.Class({'seq1': 'ACGU', 'seq2': 'CGUA', 'seq3': 'CCGU'})
         int_keys = {'seq_0': 'seq1', 'seq_1': 'seq2', 'seq_2': 'seq3'}
         int_map = {'seq_0': 'ACGU', 'seq_1': 'CGUA', 'seq_2': 'CCGU'}
-        im, ik = aln.getIntMap()
+        im, ik = aln.get_int_map()
         self.assertEqual(ik, int_keys)
         self.assertEqual(im, int_map)
         # test change prefix from default 'seq_'
         prefix = 'seqn_'
         int_keys = {'seqn_0': 'seq1', 'seqn_1': 'seq2', 'seqn_2': 'seq3'}
         int_map = {'seqn_0': 'ACGU', 'seqn_1': 'CGUA', 'seqn_2': 'CCGU'}
-        im, ik = aln.getIntMap(prefix=prefix)
+        im, ik = aln.get_int_map(prefix=prefix)
         self.assertEqual(ik, int_keys)
         self.assertEqual(im, int_map)
 
@@ -672,15 +672,15 @@ class SequenceCollectionBaseTests(object):
         aln = self.Class({'seq1': 'ACGU', 'seq2': 'CGUA', 'seq3': 'CCGU'})
         self.assertEqual(aln.num_seqs, 3)
 
-    def test_copyAnnotations(self):
-        """SequenceCollection copyAnnotations should copy from seq objects"""
+    def test_copy_annotations(self):
+        """SequenceCollection copy_annotations should copy from seq objects"""
         aln = self.Class({'seq1': 'ACGU', 'seq2': 'CGUA', 'seq3': 'CCGU'})
         seq_1 = Sequence('ACGU', Name='seq1')
         seq_1.addFeature('xyz', 'abc', [(1, 2)])
         seq_5 = Sequence('ACGUAAAAAA', Name='seq5')
         seq_5.addFeature('xyzzz', 'abc', [(1, 2)])
         annot = {'seq1': seq_1, 'seq5': seq_5}
-        aln.copyAnnotations(annot)
+        aln.copy_annotations(annot)
         aln_seq_1 = aln.NamedSeqs['seq1']
         if not hasattr(aln_seq_1, 'annotations'):
             aln_seq_1 = aln_seq_1.data

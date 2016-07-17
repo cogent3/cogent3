@@ -194,7 +194,7 @@ We copy the annotations from another sequence,
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--CCCC']])
     >>> s = DNA.makeSequence("AAAAAAAAA", Name="x")
     >>> exon = s.addAnnotation(Feature, 'exon', 'fred', [(3,8)])
-    >>> exon = aln.getSeq('x').copyAnnotations(s)
+    >>> exon = aln.getSeq('x').copy_annotations(s)
     >>> aln_exons = list(aln.getAnnotationsFromSequence('x', 'exon'))
     >>> print(aln_exons)
     [exon "fred" at [4:9]/10]
@@ -203,7 +203,7 @@ even if the name is different.
 
 .. doctest::
     
-    >>> exon = aln.getSeq('y').copyAnnotations(s)
+    >>> exon = aln.getSeq('y').copy_annotations(s)
     >>> aln_exons = list(aln.getAnnotationsFromSequence('y', 'exon'))
     >>> print(aln_exons)
     [exon "fred" at [3:4, 6:10]/10]
@@ -221,7 +221,7 @@ If the feature lies outside the sequence being copied to, you get a lost span
     >>> aln = LoadSeqs(data=[['x', '-AAAA'], ['y', 'TTTTT']])
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> exon = seq.addFeature('exon', 'A', [(5,8)])
-    >>> aln.getSeq('x').copyAnnotations(seq)
+    >>> aln.getSeq('x').copy_annotations(seq)
     >>> copied = list(aln.getAnnotationsFromSequence('x', 'exon'))
     >>> copied
     [exon "A" at [5:5, -4-]/5]
@@ -235,7 +235,7 @@ You can copy to a sequence with a different name, in a different alignment if th
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> match_exon = seq.addFeature('exon', 'A', [(5,8)])
-    >>> aln.getSeq('y').copyAnnotations(seq)
+    >>> aln.getSeq('y').copy_annotations(seq)
     >>> copied = list(aln.getAnnotationsFromSequence('y', 'exon'))
     >>> copied
     [exon "A" at [7:10]/10]
@@ -247,7 +247,7 @@ If the sequence is shorter, again you get a lost span.
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
     >>> diff_len_seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCCCCCCCCCC', 'x')
     >>> nonmatch = diff_len_seq.addFeature('repeat', 'A', [(12,14)])
-    >>> aln.getSeq('y').copyAnnotations(diff_len_seq)
+    >>> aln.getSeq('y').copy_annotations(diff_len_seq)
     >>> copied = list(aln.getAnnotationsFromSequence('y', 'repeat'))
     >>> copied
     [repeat "A" at [10:10, -6-]/10]
