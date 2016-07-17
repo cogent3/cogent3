@@ -1134,7 +1134,7 @@ Using the above table we test the function to extract the raw data for a single 
 
 .. doctest::
 
-    >>> raw = sub_table1.getRawData('LR')
+    >>> raw = sub_table1.tolist('LR')
     >>> raw
     [34.3081..., 89.9766..., 11.8912, 9.7474...]
 
@@ -1142,7 +1142,7 @@ and from multiple columns.
 
 .. doctest::
 
-    >>> raw = sub_table1.getRawData(columns = ['df', 'Prob'])
+    >>> raw = sub_table1.tolist(columns = ['df', 'Prob'])
     >>> raw
     [[1, 0.0], [1, 0.0],...
 
@@ -1698,15 +1698,15 @@ It's also possible to specify index columns using numerical values, the results 
 
 .. doctest::
 
-    >>> assert a.joined(b,[0, 2]).getRawData() ==\
-    ...                          a.joined(b,["index","col3"]).getRawData()
+    >>> assert a.joined(b,[0, 2]).tolist() ==\
+    ...                          a.joined(b,["index","col3"]).tolist()
 
 Additionally, it's possible to provide two series of indices for the two tables. Here, they have identical values.
 
 .. doctest::
 
-    >>> assert a.joined(b, ["index", "col3"],["index", "col3"]).getRawData()\
-    ...         == a.joined(b,["index","col3"]).getRawData()
+    >>> assert a.joined(b, ["index", "col3"],["index", "col3"]).tolist()\
+    ...         == a.joined(b,["index","col3"]).tolist()
 
 The results of a standard join between tables ``a`` and ``b`` are
 
@@ -1793,8 +1793,8 @@ We establish the ``joined`` method works for mixtures of character and numerical
     ...         rows=[[1,2,"3"],["2",3,1],[2,6,5]], title="A")
     >>> b=Table(header=["index", "col2","col3"],
     ...         rows=[[1,2,"3"],["2",2,1],[3,6,3]], title="B")
-    >>> assert a.joined(b, ["index", "col3"],["index", "col3"]).getRawData()\
-    ...         == a.joined(b,["index","col3"]).getRawData()
+    >>> assert a.joined(b, ["index", "col3"],["index", "col3"]).tolist()\
+    ...         == a.joined(b,["index","col3"]).tolist()
 
 We test that the ``joined`` method works when the column index orders differ.
 

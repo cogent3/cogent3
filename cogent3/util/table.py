@@ -221,7 +221,7 @@ class Table(DictArray):
     def __getstate__(self):
         data = self._get_persistent_attrs()
         del(data['column_templates'])
-        data.update(dict(header=self.Header, rows=self.getRawData()))
+        data.update(dict(header=self.Header, rows=self.tolist()))
         return data
 
     def __setstate__(self, data):
@@ -263,7 +263,7 @@ class Table(DictArray):
 
         kw = self._get_persistent_attrs()
         kw.update(kwargs)
-        return Table(header=new_header, rows=self.getRawData(), **kw)
+        return Table(header=new_header, rows=self.tolist(), **kw)
 
     def _get_persistent_attrs(self):
         kws = dict(row_ids=self._row_ids, title=self.Title,
@@ -408,7 +408,7 @@ class Table(DictArray):
             sep = sep or ','
 
         if writer:
-            rows = self.getRawData()
+            rows = self.tolist()
             rows.insert(0, self.Header[:])
             rows = writer(rows, has_header=True)
             outfile.writelines("\n".join(rows))
@@ -470,7 +470,7 @@ class Table(DictArray):
         kw.update(kwargs)
         return Table(header, big_twoD, **kw)
 
-    def getRawData(self, columns=None):
+    def tolist(self, columns=None):
         """Returns raw data as a 1D or 2D list of rows from columns. If one
         column, its a 1D list.
 
@@ -737,7 +737,7 @@ class Table(DictArray):
     def getDistinctValues(self, column):
         """returns the set of distinct values for the named column(s)"""
         columns = [column, [column]][type(column) == str]
-        data = self.getRawData(column)
+        data = self.tolist(column)
 
         if len(columns) > 1:
             data = [tuple(row) for row in data]
@@ -950,7 +950,7 @@ class Table(DictArray):
         assert select_as_header in self.Header, \
             '"%s" not in table Header' % select_as_header
 
-        raw_data = self.getRawData()
+        raw_data = self.tolist()
         raw_data.insert(0, self.Header)
         transposed = numpy.array(raw_data, dtype='O')
         transposed = transposed.transpose()

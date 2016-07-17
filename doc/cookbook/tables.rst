@@ -395,7 +395,7 @@ For a single column
 .. doctest::
 
     >>> table = LoadTable('stats.txt', sep=',')
-    >>> raw = table.getRawData('Region')
+    >>> raw = table.tolist('Region')
     >>> print raw
     ['Con', 'Con', 'Con', 'NonCon', 'NonCon']
 
@@ -405,7 +405,7 @@ For multiple columns
 .. doctest::
 
     >>> table = LoadTable('stats.txt', sep=',')
-    >>> raw = table.getRawData(['Locus', 'Region'])
+    >>> raw = table.tolist(['Locus', 'Region'])
     >>> print raw
     [['NP_003077', 'Con'], ['NP_004893', 'Con'], ...
 
