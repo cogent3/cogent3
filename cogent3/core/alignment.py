@@ -703,8 +703,8 @@ class SequenceCollection(object):
         else:
             return [get(row)[col] for row, col in items]
 
-    def getItemIndices(self, f, negate=False):
-        """Returns list of (key,val) tuples where f(self.NamedSeqs[key][val])."""
+    def item_indices_if(self, f, negate=False):
+        """Returns list of (key,val) tuples where f(self.NamedSeqs[key][val]) is True"""
         get = self.NamedSeqs.__getitem__
         if negate:
             new_f = lambda x: not f(x)
@@ -720,7 +720,7 @@ class SequenceCollection(object):
 
     def getItemsIf(self, f, negate=False):
         """Returns list of items where f(self.NamedSeqs[row][col]) is True."""
-        return self.getItems(self.getItemIndices(f, negate))
+        return self.getItems(self.item_indices_if(f, negate))
 
     def getSimilar(self, target, min_similarity=0.0, max_similarity=1.0,
                    metric=frac_same, transform=None):

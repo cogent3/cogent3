@@ -405,18 +405,18 @@ class Dict2DTests(TestCase):
         self.assertEqual(d.getItems([('a', 'c'), ('c', 'a'), ('a', 'a')],
                                     negate=True), [2, 4, 6, 9])
 
-    def test_getItemIndices(self):
-        """Dict2D getItemIndices should return indices when f(item) is True"""
+    def test_item_indices_if(self):
+        """Dict2D item_indices_if should return indices when f(item) is True"""
         lt_5 = lambda x: x < 5
         d = Dict2D(self.square)
         d.RowOrder = d.ColOrder = 'abc'
-        self.assertEqual(d.getItemIndices(lt_5),
+        self.assertEqual(d.item_indices_if(lt_5),
                          [('a', 'a'), ('a', 'b'), ('a', 'c'), ('b', 'a'), ('b', 'b'), ('c', 'a')])
-        self.assertEqual(d.getItemIndices(lt_5, negate=True),
+        self.assertEqual(d.item_indices_if(lt_5, negate=True),
                          [('b', 'c'), ('c', 'b'), ('c', 'c')])
         d = Dict2D(self.top_triangle)
         d.RowOrder = d.ColOrder = 'abc'
-        self.assertEqual(d.getItemIndices(lt_5),
+        self.assertEqual(d.item_indices_if(lt_5),
                          [('a', 'a'), ('a', 'b'), ('a', 'c'), ('b', 'b')])
 
     def test_getItemsIf(self):
