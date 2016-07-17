@@ -1414,11 +1414,11 @@ by column.
 Extending tables
 ----------------
 
-In some cases it is desirable to compute an additional column from existing column values. This is done using the ``withNewColumn`` method. We'll use t4 from above, adding two of the columns to create an additional column.
+In some cases it is desirable to compute an additional column from existing column values. This is done using the ``with_new_column`` method. We'll use t4 from above, adding two of the columns to create an additional column.
 
 .. doctest::
 
-    >>> t7 = t4.withNewColumn('Sum', callback="z+x", digits=2)
+    >>> t7 = t4.with_new_column('Sum', callback="z+x", digits=2)
     >>> print(t7)
     My Title
     ==================================================================
@@ -1438,7 +1438,7 @@ We test this with an externally defined function.
 .. doctest::
 
     >>> func = lambda x_y: x_y[0] * x_y[1]
-    >>> t7 = t4.withNewColumn('Sum', callback=func, columns=("y","z"),
+    >>> t7 = t4.with_new_column('Sum', callback=func, columns=("y","z"),
     ... digits=2)
     >>> print(t7)
     My Title
@@ -1454,7 +1454,7 @@ We test this with an externally defined function.
        edge.1           root      4.00    1.00    3.00    6.00    18.00
     -------------------------------------------------------------------
     >>> func = lambda x: x**3
-    >>> t7 = t4.withNewColumn('Sum', callback=func, columns="y", digits=2)
+    >>> t7 = t4.with_new_column('Sum', callback=func, columns="y", digits=2)
     >>> print(t7)
     My Title
     ===================================================================

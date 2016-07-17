@@ -134,7 +134,7 @@ This can be used to take a single, or multiple columns and generate a new column
 .. doctest::
 
     >>> table = LoadTable('stats.txt', sep=',')
-    >>> table = table.withNewColumn('LargeCon',
+    >>> table = table.with_new_column('LargeCon',
     ...                     lambda (r,v): r == 'Con' and v>10.0,
     ...                     columns=['Region', 'Ratio'])
     >>> print table
