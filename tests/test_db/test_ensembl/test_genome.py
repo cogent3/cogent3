@@ -549,7 +549,7 @@ class TestVariation(GenomeTestBase):
         expect = set([('A', '0.0303'), ('G', '0.9697')])
         allele_freqs = snp.AlleleFreqs
         allele_freqs = set((a, '%.4f' % f)
-                           for a, f in allele_freqs.getRawData(['allele', 'freq']) if f)
+                           for a, f in allele_freqs.tolist(['allele', 'freq']) if f)
         self.assertTrue(expect.issubset(allele_freqs))
 
     def test_by_effect(self):
