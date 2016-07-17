@@ -269,7 +269,7 @@ class _PairwiseDistance(object):
         self.Names = alignment.Names[:]
         indexed_seqs = []
         for name in self.Names:
-            seq = alignment.getGappedSeq(name)
+            seq = alignment.get_gapped_seq(name)
             indexed = seq_to_indices(str(seq), self.char_to_indices)
             indexed_seqs.append(indexed)
 
