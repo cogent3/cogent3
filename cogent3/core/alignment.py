@@ -1296,7 +1296,7 @@ class SequenceCollection(object):
 
         return probs
 
-    def getGapCount(self, seq_name):
+    def count_gaps(self, seq_name):
         return len(self.NamedSeqs[seq_name].map.gaps())
 
     def getSeqFreqs(self):
