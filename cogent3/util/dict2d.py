@@ -581,7 +581,7 @@ class Dict2D(dict):
             else:
                 return [self[row][col] for row, col in items]
 
-    def getItemIndices(self, f, negate=False):
+    def item_indices_if(self, f, negate=False):
         """Returns list of (key,val) tuples where f(self[key][val]) is True."""
         if negate:
             new_f = lambda x: not f(x)
@@ -597,7 +597,7 @@ class Dict2D(dict):
 
     def getItemsIf(self, f, negate=False):
         """Returns list of items where f(self[row][col]) is True."""
-        return self.getItems(self.getItemIndices(f, negate))
+        return self.getItems(self.item_indices_if(f, negate))
 
     def toLists(self, headers=False):
         """Return copy of self as list of lists, in order if specified.

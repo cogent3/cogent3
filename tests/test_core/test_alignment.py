@@ -469,17 +469,17 @@ class SequenceCollectionBaseTests(object):
         self.assertEqualItems(self.mixed.getItems([('a', 3), ('b', 4), ('a', 0)],
                                                   negate=True), ['B', 'C', 'E', 'L', 'M', 'N', 'O'])
 
-    def test_getItemIndices(self):
-        """SequenceCollection getItemIndices should return coordinates of matching items"""
+    def test_item_indices_if(self):
+        """SequenceCollection item_indices_if should return coordinates of matching items"""
         is_vowel = lambda x: x in 'AEIOU'
         # reverse name order to test that it's not alphabetical
         self.mixed = self.Class(self.mixed.NamedSeqs, Names=['b', 'a'])
-        self.assertEqual(self.mixed.getItemIndices(is_vowel),
+        self.assertEqual(self.mixed.item_indices_if(is_vowel),
                          [('b', 3), ('a', 0), ('a', 4)])
         is_lower = lambda x: x.islower()
-        self.assertEqual(self.ragged_padded.getItemIndices(is_lower), [])
+        self.assertEqual(self.ragged_padded.item_indices_if(is_lower), [])
         # should be able to negate
-        self.assertEqualItems(self.mixed.getItemIndices(is_vowel, negate=True),
+        self.assertEqualItems(self.mixed.item_indices_if(is_vowel, negate=True),
                               [('a', 1), ('a', 2), ('a', 3), ('b', 0), ('b', 1), ('b', 2), ('b', 4)])
 
     def test_getItemsIf(self):
