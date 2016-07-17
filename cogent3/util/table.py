@@ -273,7 +273,7 @@ class Table(DictArray):
                    column_templates=self._column_templates or None)
         return kws
 
-    def setColumnFormat(self, column_head, format_template):
+    def format_column(self, column_head, format_template):
         """Provide a formatting template for a named column.
 
         Arguments:
