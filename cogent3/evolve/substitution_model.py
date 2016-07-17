@@ -294,7 +294,7 @@ class _SubstitutionModel(object):
         # this is to support for everything but HMM
         result = {}
         for seq_name in alignment.getSeqNames():
-            sequence = alignment.getGappedSeq(seq_name, self.recode_gaps)
+            sequence = alignment.get_gapped_seq(seq_name, self.recode_gaps)
             result[seq_name] = self.convertSequence(sequence, seq_name)
         return result
 

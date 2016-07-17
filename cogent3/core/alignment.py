@@ -341,7 +341,7 @@ class SequenceCollection(object):
 
     def __str__(self):
         """Returns self in FASTA-format, respecting name order."""
-        return ''.join(['>%s\n%s\n' % (name, self.getGappedSeq(name))
+        return ''.join(['>%s\n%s\n' % (name, self.get_gapped_seq(name))
                         for name in self.Names])
 
     def _make_named_seqs(self, names, seqs):
@@ -929,7 +929,7 @@ class SequenceCollection(object):
 
         return self.__class__(new_seqs)
 
-    def getGappedSeq(self, seq_name, recode_gaps=False):
+    def get_gapped_seq(self, seq_name, recode_gaps=False):
         """Return a gapped Sequence object for the specified seqname.
 
         Note: return type may depend on what data was loaded into the
@@ -1067,7 +1067,7 @@ class SequenceCollection(object):
         try:
             for seqname in self.Names:
                 if aligned:
-                    seq = self.getGappedSeq(seqname)
+                    seq = self.get_gapped_seq(seqname)
                 else:
                     seq = self.NamedSeqs[seqname]
                 pep = seq.getTranslation(gc)
@@ -1102,7 +1102,7 @@ class SequenceCollection(object):
         result = {}
         for name in self.Names:
             result[name] = ambig = {}
-            for (i, motif) in enumerate(self.getGappedSeq(name)):
+            for (i, motif) in enumerate(self.get_gapped_seq(name)):
                 if self.MolType.isAmbiguity(motif):
                     ambig[i] = motif
         return result
@@ -1566,7 +1566,7 @@ class Aligned(object):
 
     def __str__(self):
         """Returns string representation of aligned sequence, incl. gaps."""
-        return str(self.getGappedSeq())
+        return str(self.get_gapped_seq())
 
     def __lt__(self, other):
         """Compares based on string representations."""
@@ -1584,7 +1584,7 @@ class Aligned(object):
         """Iterates over sequence one motif (e.g. char) at a time, incl. gaps"""
         return self.data.gappedByMapMotifIter(self.map)
 
-    def getGappedSeq(self, recode_gaps=False):
+    def get_gapped_seq(self, recode_gaps=False):
         """Returns sequence as an object, including gaps."""
         return self.data.gappedByMap(self.map, recode_gaps)
 
@@ -1598,7 +1598,7 @@ class Aligned(object):
         if self.data is other.data:
             (map, seq) = (self.map + other.map, self.data)
         else:
-            seq = self.getGappedSeq() + other.getGappedSeq()
+            seq = self.get_gapped_seq() + other.get_gapped_seq()
             (map, seq) = seq.parseOutGaps()
         return Aligned(map, seq)
 
@@ -1633,7 +1633,7 @@ class Aligned(object):
 
     def gapVector(self):
         """Returns gapVector of GappedSeq, for omitGapPositions."""
-        return self.getGappedSeq().gapVector()
+        return self.get_gapped_seq().gapVector()
 
     def _masked_annotations(self, annot_types, mask_char, shadow):
         """returns a new aligned sequence with regions defined by align_spans
@@ -2525,7 +2525,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             if count == 3:
                 seqs.append('...')
                 break
-            elts = list(self.getGappedSeq(name)[:limit + 1])
+            elts = list(self.get_gapped_seq(name)[:limit + 1])
             if len(elts) > limit:
                 elts.append('...')
             seqs.append("%s[%s]" % (name, delimiter.join(elts)))
@@ -2604,7 +2604,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         Arguments:
             - include_gap_motif: if False, sequences with a gap motif in a
               column are ignored."""
-        seqs = [self.getGappedSeq(n) for n in self.Names]
+        seqs = [self.get_gapped_seq(n) for n in self.Names]
         seq1 = seqs[0]
         positions = list(zip(*seqs[1:]))
         result = []
@@ -2630,7 +2630,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
               into, eg. 3 for filtering aligned codons."""
         gv = []
         kept = False
-        seqs = [self.getGappedSeq(n).getInMotifSize(motif_length,
+        seqs = [self.get_gapped_seq(n).getInMotifSize(motif_length,
                                                     **kwargs) for n in self.Names]
 
         positions = list(zip(*seqs))
@@ -2655,12 +2655,12 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         """
         return self.NamedSeqs[seqname].data
 
-    def getGappedSeq(self, seq_name, recode_gaps=False):
+    def get_gapped_seq(self, seq_name, recode_gaps=False):
         """Return a gapped Sequence object for the specified seqname.
 
         Note: always returns Sequence object, not ModelSequence.
         """
-        return self.NamedSeqs[seq_name].getGappedSeq(recode_gaps)
+        return self.NamedSeqs[seq_name].get_gapped_seq(recode_gaps)
 
     def iterPositions(self, pos_order=None):
         """Iterates over positions in the alignment, in order.
@@ -2696,11 +2696,11 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         tgp = template.Alphabet.Gap
         result = {}
         for name in self.Names:
-            seq = self.getGappedSeq(name)
+            seq = self.get_gapped_seq(name)
             if name not in template.Names:
                 raise ValueError("Template alignment doesn't have a '%s'"
                                  % name)
-            gsq = template.getGappedSeq(name)
+            gsq = template.get_gapped_seq(name)
             assert len(gsq) == len(seq)
             combo = []
             for (s, g) in zip(seq, gsq):
@@ -2725,7 +2725,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                              .format(name))
 
         gap = self.Alphabet.Gap
-        non_gap_cols = [i for i, col in enumerate(self.getGappedSeq(name))
+        non_gap_cols = [i for i, col in enumerate(self.get_gapped_seq(name))
                         if col != gap]
 
         return self.takePositions(non_gap_cols)
@@ -2785,7 +2785,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                              "not found in the alignment \n(names in the alignment:\n{1}\n)"
                              .format(ref_seq_name, "\n".join(self.Names)))
 
-        if str(ref_aln.getGappedSeq(ref_seq_name)) \
+        if str(ref_aln.get_gapped_seq(ref_seq_name)) \
                 != str(self.getSeq(ref_seq_name)):
             raise ValueError("Reference sequences are unequal."
                              "The reference sequence must not contain gaps")
@@ -2796,7 +2796,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 raise ValueError("The name of a sequence being added ({0})"
                                  "is already present".format(seq_name))
 
-            seq = ref_aln.getGappedSeq(seq_name)
+            seq = ref_aln.get_gapped_seq(seq_name)
             new_seq = Aligned(self.NamedSeqs[ref_seq_name].map, seq)
             if not temp_aln:
                 temp_aln = self.__class__({new_seq.Name: str(new_seq)})

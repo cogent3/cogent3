@@ -192,11 +192,11 @@ Using the ``getSeq`` method allows for extracting an unaligned sequence from a c
     >>> seq.isGapped()
     False
 
-Alternatively, if you want to extract the aligned (i.e., gapped) sequence from an alignment, you can use ``getGappedSeq``.
+Alternatively, if you want to extract the aligned (i.e., gapped) sequence from an alignment, you can use ``get_gapped_seq``.
 
 .. doctest::
 
-    >>> seq = aln.getGappedSeq('seq1')
+    >>> seq = aln.get_gapped_seq('seq1')
     >>> seq.isGapped()
     True
     >>> print seq
@@ -794,7 +794,7 @@ It's often important to know how an alignment position relates to a position in 
     >>> aln = LoadSeqs(data= [('seq1', 'ATGAAGG-TG--'),
     ...                       ('seq2', 'ATG-AGGTGATG'),
     ...                       ('seq3', 'ATGAAG--GATG')], moltype=DNA)
-    >>> seq_to_aln_map = aln.getGappedSeq('seq1').gapMaps()[0]
+    >>> seq_to_aln_map = aln.get_gapped_seq('seq1').gapMaps()[0]
 
 It's now possible to look up positions in the ``seq1``, and find out what they map to in the alignment:
 
@@ -811,7 +811,7 @@ Notice that we grabbed the first result from the call to ``gapMaps``. This is th
 
 .. doctest::
 
-    >>> aln_to_seq_map = aln.getGappedSeq('seq1').gapMaps()[1]
+    >>> aln_to_seq_map = aln.get_gapped_seq('seq1').gapMaps()[1]
     >>> aln_to_seq_map[3]
     3
     >>> aln_to_seq_map[8]

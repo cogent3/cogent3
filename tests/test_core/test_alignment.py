@@ -742,10 +742,10 @@ class SequenceCollectionBaseTests(object):
         self.assertTrue(id(aln1) != id(aln2))
         self.assertEqual(aln1.todict(), result.todict())
 
-    def test_getGappedSeq(self):
-        """SequenceCollection.getGappedSeq should return seq, with gaps"""
+    def test_get_gapped_seq(self):
+        """SequenceCollection.get_gapped_seq should return seq, with gaps"""
         aln = self.Class({'seq1': '--TTT?', 'seq2': 'GATC??'})
-        self.assertEqual(str(aln.getGappedSeq('seq1')), '--TTT?')
+        self.assertEqual(str(aln.get_gapped_seq('seq1')), '--TTT?')
 
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""

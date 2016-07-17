@@ -1400,13 +1400,13 @@ def merge_alignments(alignment1, alignment2):
 
     try:
         for merged_name, orig_name in list(aln1_name_map.items()):
-            result[merged_name] = alignment1.getGappedSeq(orig_name) +\
-                alignment2.getGappedSeq(aln2_name_map[merged_name])
+            result[merged_name] = alignment1.get_gapped_seq(orig_name) +\
+                alignment2.get_gapped_seq(aln2_name_map[merged_name])
     except ValueError:  # Differing MolTypes
         for merged_name, orig_name in list(aln1_name_map.items()):
             result[merged_name] =\
-                Sequence(alignment1.getGappedSeq(orig_name)) +\
-                Sequence(alignment2.getGappedSeq(aln2_name_map[merged_name]))
+                Sequence(alignment1.get_gapped_seq(orig_name)) +\
+                Sequence(alignment2.get_gapped_seq(aln2_name_map[merged_name]))
     except KeyError as e:
         raise KeyError('A sequence identifier is in alignment2 ' +
                        'but not alignment1 -- did you filter out sequences identifiers' +
