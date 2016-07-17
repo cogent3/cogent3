@@ -91,20 +91,20 @@ class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
         eMY = deletion + insert * secondary_deletion * longer
         eMZ = (eMX + eMY)
 
-        eXM =  extend * secondary_deletion * same_len + \
+        eXM = extend * secondary_deletion * same_len + \
             close * (deletion / 4 + (1.0 - indel))
         eXX = extend * (secondary_insert * extend / close +
                         secondary_deletion * shorted) + \
             close * insert + extend
-        #eXX = a + a**2/(1-a**2)*secondary_indel + (1-a)*insert
-        eXY =  extend * secondary_deletion * longer + \
+        # eXX = a + a**2/(1-a**2)*secondary_indel + (1-a)*insert
+        eXY = extend * secondary_deletion * longer + \
             close * deletion * 3 / 4
 
-        #e = 1 + ( extend * secondary_indel/2 / close)
+        # e = 1 + ( extend * secondary_indel/2 / close)
         # print e, (eXM + eXX + eXY)
         e = eXM + eXX + eXY
 
-        #assert eMM + eMX + eMY == 1.0, (eMM + eMX + eMY)
+        # assert eMM + eMX + eMY == 1.0, (eMM + eMX + eMY)
 
         tMX = tMY = eMZ / 2
         tMM = 1.0 - eMZ

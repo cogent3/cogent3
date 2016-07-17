@@ -274,8 +274,6 @@ def test_container(container):
             return False
     return result
 
-#allchars = maketrans('','')
-
 
 def trans_except(good_chars, default):
     """Returns translation table mapping all but the 'good chars' to default."""
@@ -429,7 +427,7 @@ def exclude_if_more_other(items, x, case_sens=False):
     return apply_to
 
 
-class keep_chars(object):
+class KeepChars(object):
     """Returns a filter object o(s): call to return a filtered string.
 
     Specifically, strips out everything in s that is not in keep.
@@ -438,7 +436,7 @@ class keep_chars(object):
     allchars = bytes(range(256))
 
     def __init__(self, keep, case_sens=True):
-        """Returns a new keep_chars object, based on string keep"""
+        """Returns a new KeepChars object, based on string keep"""
         if not case_sens:
             low = keep.lower()
             up = keep.upper()
@@ -468,7 +466,7 @@ def exclude_chars(exclude, case_sens=True):
         low = exclude.lower()
         up = exclude.upper()
         exclude = low + up
-    #strip_table = dict([(c, None) for c in self.allchars if c not in keep])
+
     exclude = exclude.encode('utf-8')
     strip_table = dict([(c, None) for c in exclude])
 
@@ -513,7 +511,7 @@ def reorder_inplace(order, attr=None):
             return obj
     return result
 
-maybe_number = keep_chars('0123456789.+-eE')
+maybe_number = KeepChars('0123456789.+-eE')
 
 
 def float_from_string(data):
@@ -571,7 +569,7 @@ def last_index_in_set(seq, items):
 def first_index_not_in_set(seq, items):
     """Returns index of first occurrence of any of items in seq, or None."""
     for i, s in enumerate(seq):
-        if not s in items:
+        if s not in items:
             return i
 
 
@@ -639,7 +637,7 @@ def last_in_set(seq, items):
 def first_not_in_set(seq, items):
     """Returns first occurrence of any of items in seq, or None."""
     for s in seq:
-        if not s in items:
+        if s not in items:
             return s
 
 

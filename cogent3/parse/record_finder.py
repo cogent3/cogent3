@@ -2,7 +2,7 @@
 """Provides some classes for treating files as sequences of records.
 
 Typically more useful as subclasses. Covers the three main types of records:
-    
+
     DelimitedRecordFinder:  Records demarcated by an end line, e.g. '\\'
     LabeledRecordFinder:    Records demarcated by a start line, e.g. '>label'
     LineGrouper:            Records consisting of a certain number of lines.

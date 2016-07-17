@@ -213,10 +213,10 @@ class Dict2D(dict):
                    (ColOrder is not None) and \
                    (len(data) == len(RowOrder)) and \
                    (len(data[0]) == len(ColOrder)):
-                       # assume list of lists
+                    # assume list of lists
                     return self.fromLists
                 elif len(data[0]) == 3:
-                # assume seq of 3-item seqs
+                    # assume seq of 3-item seqs
                     return self.fromIndices
             except:
                 # if there's any exception, we guessed the wrong type so
@@ -283,14 +283,14 @@ class Dict2D(dict):
         if self.RowOrder:
             wanted_keys = dict.fromkeys(self.RowOrder)
             for key in list(self.keys()):
-                if not key in wanted_keys:
+                if key not in wanted_keys:
                     del self[key]
         # then, purge unwanted cols
         if self.ColOrder:
             wanted_keys = dict.fromkeys(self.ColOrder)
             for row in list(self.values()):
                 for key in list(row.keys()):
-                    if not key in wanted_keys:
+                    if key not in wanted_keys:
                         del row[key]
 
     def rowKeys(self):

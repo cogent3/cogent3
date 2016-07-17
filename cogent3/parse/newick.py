@@ -143,7 +143,7 @@ def parse_string(text, constructor, **kw):
     often useful to suppress this behavior.
     """
     if "(" not in text and ";" not in text and text.strip():
-         # otherwise "filename" is a valid (if small) tree
+        # otherwise "filename" is a valid (if small) tree
         raise TreeParseError('Not a Newick tree: "%s"' % text[:10])
     sentinals = [';', EOT]
     stack = []

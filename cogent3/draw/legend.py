@@ -61,9 +61,9 @@ class Legend(Drawable):
                                   show_code=False,
                                   pad=0,)
                 sample = display.makeArtist()
-                #trans = sample.get_transform()
-                #offset = Affine2D()
-                #offset.translate(x*600+20 / columns, y*30)
+                # trans = sample.get_transform()
+                # offset = Affine2D()
+                # offset.translate(x*600+20 / columns, y*30)
                 sample.translate(x * 600 / columns + 10, y * 30)
                 ax.add_artist(sample)
                 ax.text(x * 600 / columns + 90, y * 30, feature)

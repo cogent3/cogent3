@@ -14,7 +14,7 @@ creation.
 
 from functools import total_ordering
 from .annotation import Map, Feature, _Annotatable
-from cogent3.util.transform import keep_chars, for_seq, per_shortest, \
+from cogent3.util.transform import KeepChars, for_seq, per_shortest, \
     per_longest
 from cogent3.util.misc import DistanceFromMatrix
 from cogent3.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE, \
@@ -554,7 +554,6 @@ class Sequence(_Annotatable, SequenceI):
 
     def getColourScheme(self, colours):
         return {}
-        #dict([(motif,colours.black) for motif in self.MolType])
 
     def getColorScheme(self, colors):  # alias to support US spelling
         return self.getColourScheme(colours=colors)

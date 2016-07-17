@@ -366,7 +366,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
 
         axP.yaxis.set_visible(False)
         # for ax in [axC, axP, axS]:
-            #ax.set_aspect(adjustable='box', aspect='equal')
+        # ax.set_aspect(adjustable='box', aspect='equal')
 
         fig.text(x_margin + c_width / 2, .995, title, ha='center', va='top')
 

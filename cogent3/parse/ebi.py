@@ -106,7 +106,7 @@ def pairs_to_dict(key_values, dict_mode=None,
 
             Warning: using outer auxillary dictionary: multiples"""
             if key in dictionary:
-                if not key in multiples:
+                if key not in multiples:
                     multiples[key] = True
                     dictionary[key] = [dictionary[key]]
                 dictionary[key].append(value)
@@ -838,10 +838,7 @@ ft_description_parsers = {
     'PEPTIDE': ft_id_parser,
     'PROPEP': ft_id_parser,
     'CONFLICT': ft_mutation_parser,
-    'MUTAGEN': ft_mutagen_parser,
-    #'NON_TER': ft_choplast_parser,
-    #'NON_CONS': ft_choplast_parser,
-
+    'MUTAGEN': ft_mutagen_parser
 }
 
 
@@ -1596,24 +1593,3 @@ SQ   SEQUENCE   218 AA;  24367 MW;  F24AE5E8A102FAC6 CRC64;
 //
 """.split('\n')
         pprint(list(EbiParser(lines, strict=False, selected_labels=[])))
-
-    #from time import time
-    # sys.exit()
-    # if len(sys.argv) > 1:
-    #    #f = open('/home/zongzhi/Projects/SNP/working/data/uniprot_sprot_human.dat')
-    #    f = open('/home/zongzhi/Projects/SNP/working/data/uniprot_sprot_fungi.dat')
-    #    #f = open('/home/zongzhi/Projects/SNP/snp_tests/ebi_test.txt')
-
-    #    i = 0
-    #    for sequence, head in MinimalEbiParser(f):
-    #        i += 1
-    #        if i>10000: sys.exit()
-    #        print '%s \r' % i,
-    #        try:
-    #            de = ' '.join(head['OG'])
-    #        except KeyError, e:
-    #            pass
-    #            #print e
-    #        else:
-    #            if 'Plasmid' in de:
-    #                print de, '\n'

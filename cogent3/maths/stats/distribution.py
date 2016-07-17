@@ -6,7 +6,7 @@ which is (c) Stephen L. Moshier 1984, 1995.
 from cogent3.maths.stats.special import erf, erfc, igamc, igam, betai, log1p, \
     expm1, SQRTH, MACHEP, MAXNUM, PI, ndtri, incbi, igami, fix_rounding_error,\
     ln_binomial
-    # ndtri import b/c it should be available via this module
+# ndtri import b/c it should be available via this module
 
 from numpy import sqrt, exp, arctan as atan
 

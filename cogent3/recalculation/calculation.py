@@ -588,7 +588,7 @@ class Calculator(object):
             last = []
             for j in range(rounds_per_sample):
                 for (i, v) in enumerate(x):
-                     # Not a real change, but works like one.
+                    # Not a real change, but works like one.
                     self.change(last + [(i, v)])
                     if sa and (i + j) % 2:
                         last = [(i, v)]
@@ -628,7 +628,7 @@ class Calculator(object):
     def _getCurrentCellInterval(self, opt_par, dropoff, xtol=None):
         # (min, opt, max) tuples for each parameter where f(min) ==
         # f(max) == f(opt)-dropoff.  Uses None when a bound is hit.
-        #assert self.optimised, "Call optimise() first"
+        # assert self.optimised, "Call optimise() first"
         origY = self.testfunction()
         (lower, upper) = opt_par.getOptimiserBounds()
         opt_value = self._getCurrentCellValue(opt_par)

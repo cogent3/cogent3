@@ -10,7 +10,7 @@ from cogent3.util.transform import apply_each, bools, bool_each, \
     has_field, extract_field, test_field, index, test_container, \
     trans_except, trans_all, find_any, find_no, find_all,\
     keep_if_more, exclude_if_more, keep_if_more_other, exclude_if_more_other,\
-    keep_chars, exclude_chars, reorder, reorder_inplace, float_from_string,\
+    KeepChars, exclude_chars, reorder, reorder_inplace, float_from_string,\
     first, last, first_in_set, last_in_set, first_not_in_set, last_not_in_set,\
     first_index, last_index, first_index_in_set, last_index_in_set, \
     first_index_not_in_set, last_index_not_in_set, perm, comb, cross_comb, _increment_comb
@@ -694,9 +694,9 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(f([0, 1, 2, 3, 4, 5]), 0)
         self.assertEqual(f([0, 1, 0, 1]), 1)
 
-    def test_keep_chars(self):
-        """keep_chars returns a string containing only chars in keep"""
-        f = keep_chars('ab c3*[')
+    def test_KeepChars(self):
+        """KeepChars returns a string containing only chars in keep"""
+        f = KeepChars('ab c3*[')
         self.assertEqual(f(''), '')  # empty
         self.assertRaises(TypeError, f, None)  # None
 
@@ -711,7 +711,7 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(f('f[ffff*ff*fff3fff'), '[**3')
 
         # case insensitive
-        f = keep_chars('AbC', False)
+        f = KeepChars('AbC', False)
         self.assertEqual(f('abcdef'), 'abc')
         self.assertEqual(f('ABCDEF'), 'ABC')
         self.assertEqual(f('aBcDeF'), 'aBc')

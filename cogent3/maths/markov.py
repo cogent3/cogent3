@@ -152,8 +152,8 @@ class TransitionMatrix(object):
 
         if blended is None:
             blended = lambda a, b: (a + b) / 2.0
-            #blended = lambda a,b: numpy.sqrt(a*b)
-            #blended = lambda a,b: b
+            # blended = lambda a,b: numpy.sqrt(a*b)
+            # blended = lambda a,b: b
 
         R = self.Matrix
         n = len(R)
@@ -185,7 +185,7 @@ def SiteClassTransitionMatrix(switch, probs):
     probs = numpy.asarray(probs)
     assert numpy.allclose(sum(probs), 1.0), probs
     I = numpy.identity(len(probs), Float)
-    switch_probs =  (1.0 - I) * (probs * switch) + \
+    switch_probs = (1.0 - I) * (probs * switch) + \
         I * (1.0 - (1.0 - probs) * switch)
     tags = [i + 1 for i in range(len(switch_probs))]
     return TransitionMatrix(

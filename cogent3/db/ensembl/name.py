@@ -93,7 +93,7 @@ class EnsemblDbName(object):
         self.Species = Species.getSpeciesName(self.Prefix)
 
     def __repr__(self):
-        build = ['', "; Build='%s'" % self.Build][self.Build != None]
+        build = ['', "; Build='%s'" % self.Build][self.Build is not None]
         s = "db(Prefix='%s'; Type='%s'; Release='%s'%s)" % (self.Prefix, self.Type,
                                                             self.Release, build)
         return s

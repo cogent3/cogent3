@@ -295,7 +295,7 @@ class TreeNode(object):
         if self._parent is not None:
             self._parent.removeNode(self)
         self._parent = Parent
-        if (Parent is not None) and (not self in Parent.Children):
+        if (Parent is not None) and (self not in Parent.Children):
             Parent.Children.append(self)
 
     Parent = property(_get_parent, _set_parent)
@@ -871,7 +871,7 @@ class TreeNode(object):
             top = nodes_stack[-1]
             top_node, num_unvisited_children = top
             if num_unvisited_children:  # has any child unvisited
-                top[1] -= 1  # decrease the #of children unvisited
+                top[1] -= 1  # decrease the # of children unvisited
                 # - for order
                 next_child = top_node.Children[-num_unvisited_children]
                 # pre-visit
@@ -899,7 +899,7 @@ class TreeNode(object):
 
                 if isinstance(self, PhyloNode):
                     if with_distances and top_node.Length is not None:
-                        #result.append(":%s" % top_node.Length)
+                        # result.append(":%s" % top_node.Length)
                         result[-1] = "%s:%s" % (result[-1], top_node.Length)
 
                 result.append(',')
@@ -1017,7 +1017,7 @@ class TreeNode(object):
         tipdistances = zeros((num_tips), float)
 
         def update_result():
-        # set tip_tip distance between tips of different child
+            # set tip_tip distance between tips of different child
             for child1, child2 in comb(node.Children, 2):
                 for tip1 in range(child1.__start, child1.__stop):
                     for tip2 in range(child2.__start, child2.__stop):
@@ -1144,9 +1144,9 @@ class TreeNode(object):
                 child = children[0]
                 if self.Length is not None and child.Length is not None:
                     shared_params = [n for (n, v) in list(self.params.items())
-                                     if v is not None
-                                     and child.params.get(n) is not None
-                                     and n is not "length"]
+                                     if v is not None and
+                                     child.params.get(n) is not None and
+                                     n is not "length"]
                     length = self.Length + child.Length
                     if length:
                         params = dict([(n,
@@ -1572,7 +1572,7 @@ class TreeNode(object):
         tipdistances = zeros((num_tips), float)
 
         def update_result():
-        # set tip_tip distance between tips of different child
+            # set tip_tip distance between tips of different child
             for child1, child2 in comb(node.Children, 2):
                 for tip1 in range(child1.__start, child1.__stop):
                     for tip2 in range(child2.__start, child2.__stop):
@@ -2003,7 +2003,7 @@ class PhyloNode(TreeNode):
         tipdistances = zeros((num_tips), float)
 
         def update_result():
-        # set tip_tip distance between tips of different child
+            # set tip_tip distance between tips of different child
             for child1, child2 in comb(node.Children, 2):
                 for tip1 in range(child1.__start, child1.__stop):
                     for tip2 in range(child2.__start, child2.__stop):
@@ -2078,7 +2078,7 @@ class PhyloNode(TreeNode):
         tipdistances = zeros((num_all_tips), float)
 
         def update_result():
-        # set tip_tip distance between tips of different child
+            # set tip_tip distance between tips of different child
             for child1, child2 in comb(node.Children, 2):
                 for tip1 in range(child1.__start, child1.__stop):
                     if tip1 not in result_map:

@@ -25,7 +25,7 @@ __status__ = "Production"
 try:
     from . import _likelihood_tree as pyrex
     # pyrex = importVersionedModule('_likelihood_tree', globals(),
-            #(2, 1), "pure Python/NumPy likelihoodihood tree")
+    # (2, 1), "pure Python/NumPy likelihoodihood tree")
 except ImportError:
     pyrex = None
 
@@ -155,7 +155,7 @@ class _LikelihoodTreeEdge(object):
         unambig = (self.ambig == 1.0).nonzero()[0]
         observed = self.counts[unambig].astype(int)
         expected = likelihoods[unambig] * observed.sum()
-        #chisq = ((observed-expected)**2 / expected).sum()
+        # chisq = ((observed-expected)**2 / expected).sum()
         G = 2 * observed.dot(numpy.log(observed / expected))
 
         if return_table:

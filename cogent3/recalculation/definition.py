@@ -46,7 +46,7 @@ Caching:
   when it isn't making progress, and
     [0,0,0] [0,0,3] [0,8,3] [7,8,3] [7,8,9] ...
   when it's having a lucky streak.
-  
+
   Each cell knows when it's out of date, but doesn't know why (ie: what input
   changed) which limits the undo strategy to all-or-nothing.  An optimiser that
   tried values
@@ -524,10 +524,10 @@ class SelectForDimension(_Defn):
 
 # Some simple CalcDefns
 
-#SumDefn = CalcDefn(lambda *args:sum(args), 'sum')
-#ProductDefn = CalcDefn(lambda *args:numpy.product(args), 'product')
-#CallDefn = CalcDefn(lambda func,*args:func(*args), 'call')
-#ParallelSumDefn = CalcDefn(lambda comm,local:comm.sum(local), 'parallel_sum')
+# SumDefn = CalcDefn(lambda *args:sum(args), 'sum')
+# ProductDefn = CalcDefn(lambda *args:numpy.product(args), 'product')
+# CallDefn = CalcDefn(lambda func,*args:func(*args), 'call')
+# ParallelSumDefn = CalcDefn(lambda comm,local:comm.sum(local), 'parallel_sum')
 
 class SwitchDefn(CalculationDefn):
     name = 'switch'

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ matrix based distance metrics, and related coordinate transforms
-     
+
 functions to compute distance matrices row by row from abundance matrices,
 typically samples (rows) vs. species/OTU's (cols)
 
@@ -45,12 +45,12 @@ EXAMPLE USAGE:
     >dists = dist_euclidean(abundance_data)
 
     >print dists
-    
+
     array([[  0.        ,   4.12310563,  19.02130385],
            [  4.12310563,   0.        ,  20.5915031 ],
            [ 19.02130385,  20.5915031 ,   0.        ]])
 
-    
+
 """
 
 import numpy
@@ -825,7 +825,7 @@ def dist_morisita_horn(datamtx, strict=True):
             elif N2 == 0.0 or N1 == 0.0:
                 dist = 1.0
             else:
-            # d's zero only if N's zero, and we already checked for that
+                # d's zero only if N's zero, and we already checked for that
                 similarity = 2 * sum(row1 * row2)
                 similarity = similarity / ((d1 + d2) * N1 * N2)
                 dist = 1 - similarity

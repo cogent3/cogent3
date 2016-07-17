@@ -7,7 +7,6 @@ All .py files descending from tests/ will be updated
 All .pyx and .h files descending from include/ will be updated
 docs/conf.py will be updated
 setup.py will be updated
-###cogent-requirements.txt will be updated### not being updated now
 """
 
 from optparse import make_option, OptionParser
@@ -69,8 +68,6 @@ class VersionUpdater(object):
     def _get_base_files(self):
         """Support method, provides relative locations for files in base dir"""
         setup_file = path.join(self.PyCogentDirectory, 'setup.py')
-        #reqs_file = path.join(self.PyCogentDirectory, 'cogent-requirements.txt')
-        # return [(setup_file, 'Python'), (reqs_file, 'Properties')]
         return [(setup_file, 'Python')]
 
     def _get_test_files(self):

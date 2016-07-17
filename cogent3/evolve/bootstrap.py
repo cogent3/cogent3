@@ -84,7 +84,7 @@ class ParametricBootstrapCore(object):
             concise_result = self.simplify(*self.parameter_controllers)
             return (memos, concise_result)
 
-        #optimisations = pcs * (self._numreplicates + 1)
+        # optimisations = pcs * (self._numreplicates + 1)
         init_work = pcs / (self._numreplicates + pcs)
         ui.display('Original data', 0.0, init_work)
         (starting_points, self.observed) = each_model(self.alignment)

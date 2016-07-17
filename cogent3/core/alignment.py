@@ -26,7 +26,7 @@ from functools import total_ordering
 
 from cogent3.core.annotation import Map, _Annotatable
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
-                # which is a circular import otherwise.
+# which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.sequence import frac_same, ModelSequence
@@ -61,7 +61,7 @@ class DataError(Exception):
     pass
 
 eps = 1e-6  # small number: 1-eps is almost 1, and is used for things like the
-            # default number of gaps to allow in a column.
+# default number of gaps to allow in a column.
 
 
 def assign_sequential_names(ignored, num_seqs, base_name='seq', start_at=0):
@@ -600,7 +600,8 @@ class SequenceCollection(object):
         for key in seq_order or self.Names:
             yield get(key)
 
-    def _take_seqs(self): return list(self.iterSeqs())
+    def _take_seqs(self):
+        return list(self.iterSeqs())
 
     Seqs = property(_take_seqs)  # access as attribute if using default order.
 

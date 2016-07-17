@@ -235,7 +235,7 @@ def mi_position(alignment, position,
     result = zeros(aln_length, float)
 
     # compile positional entropies if not passed in
-    if positional_entropies == None:
+    if positional_entropies is None:
         positional_entropies = \
             [Freqs(p).Uncertainty for p in alignment.Positions]
 
@@ -378,7 +378,7 @@ class SCAError(Exception):
 # rather than use PROTEIN.Alphabet. May want to revist this decision...
 AAGapless = CharAlphabet('ACDEFGHIKLMNPQRSTVWY')
 default_sca_alphabet = AAGapless
-#AAGapless = PROTEIN.Alphabet
+# AAGapless = PROTEIN.Alphabet
 
 # Dictionary of mean AA-frequencies in all natural proteins
 # Compiled by Rama Ranganathan from 36,498 unique eukaryotic proteins
@@ -1154,7 +1154,7 @@ def ancestral_state_pair(aln, tree, pos1, pos2,
                     # (alpha helices/myoglobin with several generally
                     # high scoring alphabets) weighting works better. A more
                     # detailed analysis is in order.
-                    #result += 1
+                    # result += 1
                     # Now I weight based on distance so
                     # changes in shorter time are scored higher than
                     # in longer time. (More ancient changes
@@ -2070,10 +2070,10 @@ def count_cmp_threshold(m, threshold, cmp_function, null_value=gDefaultNullValue
             # has to be a better way to do this... tril doesn't work b/c it
             # sets the upper triangle to zero -- if i could get it to set
             # that to null_value, and then apply flat, that'd be fine.
-            #values = tril(m,-1)
+            # values = tril(m,-1)
             values = [m[i, j] for i in range(len(m)) for j in range(i)]
         else:
-            #values = tril(m)
+            # values = tril(m)
             values = [m[i, j] for i in range(len(m)) for j in range(i + 1)]
 
     if isnan(null_value):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Wrapper for numpy arrays so that they can be indexed by name
-    
+
     >>> a = numpy.identity(3, int)
     >>> b = DictArrayTemplate('abc', 'ABC').wrap(a)
     >>> b[0]
@@ -191,7 +191,7 @@ class DictArray(object):
         elif isinstance(other, DictArray):
             return self.template == other.template and numpy.all(
                 self.array == other.array)
-        elif type(other) is type(self.array):
+        elif isinstance(other, type(self.array)):
             return self.array == other
         elif isinstance(other, dict):
             return self.asdict() == other

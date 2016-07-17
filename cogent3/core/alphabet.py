@@ -194,7 +194,7 @@ class Enumeration(tuple):
             self._gapmotif = self.Gap
 
         self.Shape = (len(self),)
-        #_allowed_range provides for fast sums of matching items
+        # _allowed_range provides for fast sums of matching items
         self._allowed_range = arange(len(self))[:, newaxis]
         self.ArrayType = get_array_type(len(self))
         self._complement_array = None  # set in moltypes.py for standard types

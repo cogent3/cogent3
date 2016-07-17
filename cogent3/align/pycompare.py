@@ -45,8 +45,8 @@ def py_segments_from_diagonal(seq1, seq2, window, threshold, min_gap_length,
 
 try:
     from . import _compare
-    #_compare = importVersionedModule('_compare', globals(),
-            #(1, 3), "slow Python dotplot")
+    # _compare = importVersionedModule('_compare', globals(),
+    # (1, 3), "slow Python dotplot")
     segments_from_diagonal = _compare.segments_from_diagonal
 except ImportError:
     _compare = None

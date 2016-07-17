@@ -403,7 +403,7 @@ class Genome(object):
                 coord = asserted_one(get_coord_conversion(
                     coord, target_coord.CoordType, self.CoreDb))[1]
 
-            # coord = coord.makeRelativeTo(query_coord) #TODO: fix here if query_coord and target_coord have different coordName
+            # coord = coord.makeRelativeTo(query_coord) # TODO: fix here if query_coord and target_coord have different coordName
             # coord = coord.makeRelativeTo(target_coord, False)
             yield klass(self, db, Location=coord, Score=record['score'])
 
@@ -428,7 +428,7 @@ class Genome(object):
             if query_coord.CoordName != target_coord.CoordName:
                 coord = asserted_one(get_coord_conversion(
                     coord, target_coord.CoordType, self.CoreDb))[1]
-            # coord = coord.makeRelativeTo(query_coord) #TODO: fix here if query_coord and target_coord have different coordName
+            # coord = coord.makeRelativeTo(query_coord) # TODO: fix here if query_coord and target_coord have different coordName
             # coord = coord.makeRelativeTo(target_coord, False)
             yield klass(self, db, Location=coord, Score=record['score'],
                         data=record)

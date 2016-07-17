@@ -25,7 +25,7 @@ __status__ = "Production"
 from cogent3.core.alphabet import CharAlphabet, Enumeration, Alphabet, \
     AlphabetError, _make_complement_array
 from cogent3.util.misc import FunctionWrapper, add_lowercase, iterable, if_
-from cogent3.util.transform import keep_chars, first_index_in_set
+from cogent3.util.transform import KeepChars, first_index_in_set
 from cogent3.data.molecular_weight import DnaMW, RnaMW, ProteinMW
 from cogent3.core.sequence import Sequence as DefaultSequence, RnaSequence, \
     DnaSequence, ProteinSequence, ABSequence, NucleicAcidSequence, \
@@ -518,10 +518,10 @@ class MolType(object):
         self.GapString = ''.join(self.Gaps)
         strict_gap = "".join(set(self.GapString) - set(self.Degenerates))
         self.stripDegenerate = FunctionWrapper(
-            keep_chars(strict_gap + ''.join(self.Alphabet)))
-        self.stripBad = FunctionWrapper(keep_chars(''.join(self.All)))
+            KeepChars(strict_gap + ''.join(self.Alphabet)))
+        self.stripBad = FunctionWrapper(KeepChars(''.join(self.All)))
         to_keep = set(self.Alphabet) ^ set(self.Degenerates) - set(self.Gaps)
-        self.stripBadAndGaps = FunctionWrapper(keep_chars(''.join(to_keep)))
+        self.stripBadAndGaps = FunctionWrapper(KeepChars(''.join(to_keep)))
 
         # make inverse degenerates from degenerates
         # ensure that lowercase versions also exist if appropriate
@@ -761,7 +761,7 @@ class MolType(object):
         """Returns the index of first invalid symbol in sequence, or None."""
         all = self.All
         for i, s in enumerate(sequence):
-            if not s in all:
+            if s not in all:
                 return i
         return None
 
@@ -769,7 +769,7 @@ class MolType(object):
         """Returns the index of first non-strict symbol in sequence, or None."""
         monomers = self.Alphabet
         for i, s in enumerate(sequence):
-            if not s in monomers:
+            if s not in monomers:
                 return i
         return None
 
@@ -787,7 +787,7 @@ class MolType(object):
                 ambi = self.Degenerates
 
                 def not_ambiguous(x):
-                    return not x in ambi
+                    return x not in ambi
                 return sequence.__class__(list(filter(not_ambiguous, sequence)))
 
         elif method == 'random':
@@ -814,7 +814,7 @@ class MolType(object):
             gap = self.Gaps
 
             def not_gap(x):
-                return not x in gap
+                return x not in gap
             return sequence.__class__(list(filter(not_gap, sequence)))
 
     def gapList(self, sequence):

@@ -408,7 +408,6 @@ class SelectFromDimension(_Defn):
     value has its own Defn, eg: edges of a tree"""
 
     name = 'select'
-    #params = {}
 
     def __init__(self, arg, **kw):
         assert not arg.activated, arg.name
@@ -446,7 +445,6 @@ class _NonLeafDefn(_Defn):
             for dimension in arg.valid_dimensions:
                 if dimension not in valid_dimensions:
                     valid_dimensions.append(dimension)
-            #print >>sys.stderr, arg.name, '>', valid_dimensions, '>', self.name
             arg.addClient(self)
         valid_dimensions.sort()
         self.valid_dimensions = tuple(valid_dimensions)
@@ -657,7 +655,7 @@ class ParameterController(object):
         self.defn_for = {}
         for defn in self.defns:
             # if not defn.args:
-            #assert defn.name not in self.defn_for, defn.name
+            # assert defn.name not in self.defn_for, defn.name
             if defn.name in self.defn_for:
                 self.defn_for[defn.name] = None
                 # duplicate

@@ -33,6 +33,16 @@ _all_chrs.reverse()
 _reversed_chrs = ''.join(_all_chrs)
 
 
+def _reverse_str(x):
+    """returns reverse translation of x"""
+    return x.translate(_reversed_chrs)
+
+
+def _reverse_num(x):
+    """returns reversed val of x"""
+    return x * -1
+
+
 def convert2DDict(twoDdict, header=None, row_order=None):
     """Returns a 2 dimensional list.
 
@@ -628,9 +638,9 @@ class Table(DictArray):
             val = aux_list[0, index]
             try:
                 val = val.translate(_reversed_chrs)
-                func = lambda x: x.translate(_reversed_chrs)
+                func = _reverse_str
             except AttributeError:
-                func = lambda x: x * -1
+                func = _reverse_num
             func = numpy.vectorize(func)
             aux_list[:, index] = func(aux_list[:, index])
 

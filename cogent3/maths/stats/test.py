@@ -16,7 +16,7 @@ from numpy import absolute, arctanh, array, asarray, concatenate, transpose, \
     ravel, take, nonzero, log, sum, mean, cov, corrcoef, fabs, any, \
     reshape, tanh, clip, nan, isnan, isinf, sqrt, trace, exp, \
     median as _median, zeros, ones
-        #, std - currently incorrect
+
 from numpy.random import permutation, randint
 from cogent3.maths.stats.util import Numbers
 from operator import add
@@ -352,7 +352,7 @@ def chi_square_from_Dict2D(data):
 
     """
     test = sum([((item[0] - item[1]) * (item[0] - item[1])) / item[1]
-                 for item in data.Items])
+         for item in data.Items])
     num_rows = len(data)
     num_cols = len([col for col in data.Cols])
     if num_rows == 1:
@@ -1398,7 +1398,7 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
         indices = combined['sample']
         cumsum = scales.take(indices)
         cumsum = cumsum.cumsum()
-        if exact == None:
+        if exact is None:
             exact = num_x * num_y < 1e4
 
         if alt in two:
@@ -1414,7 +1414,7 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
     else:
         raise NotImplementedError
 
-    if Pval == None:
+    if Pval is None:
         if alt in two:
             Pval = 1 - pkstwo(sqrt(n) * stat)
         else:
@@ -1776,7 +1776,7 @@ def distance_matrix_permutation_test(matrix, cells, cells2=None,
         # with these p-values, we only use the current_stat value)
         current_stat, current_p = f(special_values, other_values, tails)
         stats.append(current_stat)
-        if tails == None:
+        if tails is None:
             if abs(current_stat) > abs(stat):
                 count_more_extreme += 1
         elif tails == 'low':
