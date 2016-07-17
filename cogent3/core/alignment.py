@@ -866,7 +866,7 @@ class SequenceCollection(object):
             if name in self.NamedSeqs:
                 self.NamedSeqs[name].copyAnnotations(seq)
 
-    def annotateFromGff(self, f):
+    def annotate_from_gff(self, f):
         """Copies annotations from gff-format file to self.
 
         Matches by name of sequence. This method expects a file handle, not
@@ -1557,7 +1557,7 @@ class Aligned(object):
     def copyAnnotations(self, other):
         self.data.copyAnnotations(other)
 
-    def annotateFromGff(self, f):
+    def annotate_from_gff(self, f):
         self.data.annotate_from_gff(f)
 
     def addFeature(self, *args, **kwargs):

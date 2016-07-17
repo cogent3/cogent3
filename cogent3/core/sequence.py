@@ -561,7 +561,7 @@ class Sequence(_Annotatable, SequenceI):
     def copyAnnotations(self, other):
         self.annotations = other.annotations[:]
 
-    def annotateFromGff(self, f):
+    def annotate_from_gff(self, f):
         first_seqname = None
         for (seqname, source, feature, start, end, score, strand,
                 frame, attributes, comments) in gff.GffParser(f):

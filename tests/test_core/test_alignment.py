@@ -691,15 +691,15 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(aln_seq_1.annotations[0].Name, 'abc')
         self.assertEqual(len(aln_seq_2.annotations), 0)
 
-    def test_annotateFromGff(self):
-        """SequenceCollection.annotateFromGff should read gff features"""
+    def test_annotate_from_gff(self):
+        """SequenceCollection.annotate_from_gff should read gff features"""
         aln = self.Class({'seq1': 'ACGU', 'seq2': 'CGUA', 'seq3': 'CCGU'})
         gff = [
             ['seq1', 'prog1', 'snp', '1', '2', '1.0', '+', '1', '"abc"'],
             ['seq5', 'prog2', 'snp', '2', '3', '1.0', '+', '1', '"yyy"'],
         ]
         gff = list(map('\t'.join, gff))
-        aln.annotateFromGff(gff)
+        aln.annotate_from_gff(gff)
         aln_seq_1 = aln.NamedSeqs['seq1']
         if not hasattr(aln_seq_1, 'annotations'):
             aln_seq_1 = aln_seq_1.data
