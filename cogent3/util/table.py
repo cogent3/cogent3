@@ -680,7 +680,7 @@ class Table(DictArray):
         kw.update(kwargs)
         return Table(header=columns, rows=new, **kw)
 
-    def getDisjointRows(self, rows, **kwargs):
+    def get_disjoint_rows(self, rows, **kwargs):
         """Return the nominated disjoint rows."""
         if isinstance(rows, str):
             rows = [rows]
