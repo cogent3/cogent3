@@ -546,7 +546,7 @@ class Sequence(_Annotatable, SequenceI):
         self.Info = Info
 
         if isinstance(orig_seq, _Annotatable):
-            self.copyAnnotations(orig_seq)
+            self.copy_annotations(orig_seq)
 
     def _seq_filter(self, seq):
         """Returns filtered seq; used to do DNA/RNA conversions."""
@@ -558,7 +558,7 @@ class Sequence(_Annotatable, SequenceI):
     def getColorScheme(self, colors):  # alias to support US spelling
         return self.getColourScheme(colours=colors)
 
-    def copyAnnotations(self, other):
+    def copy_annotations(self, other):
         self.annotations = other.annotations[:]
 
     def annotate_from_gff(self, f):

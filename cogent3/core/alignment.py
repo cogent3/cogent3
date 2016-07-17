@@ -834,7 +834,7 @@ class SequenceCollection(object):
         return nexus_from_alignment(self, seq_type,
                                     interleave_len=interleave_len)
 
-    def getIntMap(self, prefix='seq_'):
+    def get_int_map(self, prefix='seq_'):
         """Returns a dict with names mapped to enumerates integer names.
 
             - prefix: prefix for sequence label. Default = 'seq_'
@@ -851,7 +851,7 @@ class SequenceCollection(object):
         """Returns the number of sequences in the alignment."""
         return len(self.NamedSeqs)
 
-    def copyAnnotations(self, unaligned):
+    def copy_annotations(self, unaligned):
         """Copies annotations from seqs in unaligned to self, matching by name.
 
         Alignment programs like ClustalW don't preserve annotations,
@@ -865,7 +865,7 @@ class SequenceCollection(object):
         """
         for name, seq in list(unaligned.items()):
             if name in self.NamedSeqs:
-                self.NamedSeqs[name].copyAnnotations(seq)
+                self.NamedSeqs[name].copy_annotations(seq)
 
     def annotate_from_gff(self, f):
         """Copies annotations from gff-format file to self.
@@ -1555,8 +1555,8 @@ class Aligned(object):
     def withTerminiUnknown(self):
         return self.__class__(self.map.withTerminiUnknown(), self.data)
 
-    def copyAnnotations(self, other):
-        self.data.copyAnnotations(other)
+    def copy_annotations(self, other):
+        self.data.copy_annotations(other)
 
     def annotate_from_gff(self, f):
         self.data.annotate_from_gff(f)
