@@ -539,12 +539,12 @@ class Dict2D(dict):
         return self.getCols(self.getColIndices(f, negate),
                             row_constructor=row_constructor)
 
-    def getItems(self, items, negate=False):
+    def get_items(self, items, negate=False):
         """Returns list containing only specified items.
 
         items should be a list of (row_key, col_key) tuples.
 
-        getItems will fail with KeyError if items that don't exist are
+        get_items will fail with KeyError if items that don't exist are
         requested, unless self.Pad is True.
 
         Items will be returned in order (according to self.ColOrder and
@@ -597,7 +597,7 @@ class Dict2D(dict):
 
     def items_if(self, f, negate=False):
         """Returns list of items where f(self[row][col]) is True."""
-        return self.getItems(self.item_indices_if(f, negate))
+        return self.get_items(self.item_indices_if(f, negate))
 
     def toLists(self, headers=False):
         """Return copy of self as list of lists, in order if specified.

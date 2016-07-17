@@ -386,23 +386,23 @@ class Dict2DTests(TestCase):
                          {'a': {'c': 3}, 'b': {'c': 6}, 'c': {'c': 9}})
 
     def test_getItems(self):
-        """Dict2D getItems should return list of relevant items"""
+        """Dict2D get_items should return list of relevant items"""
         d = Dict2D(self.square)
-        self.assertEqual(d.getItems([('a', 'a'), ('b', 'c'), ('c', 'a'), ('a', 'a')]),
+        self.assertEqual(d.get_items([('a', 'a'), ('b', 'c'), ('c', 'a'), ('a', 'a')]),
                          [1, 6, 3, 1])
         # should work on ragged matrices...
         d = Dict2D(self.top_triangle)
-        self.assertEqual(d.getItems([('a', 'c'), ('c', 'c')]), [3, 9])
+        self.assertEqual(d.get_items([('a', 'c'), ('c', 'c')]), [3, 9])
         #...unless absent items are asked for...
-        self.assertRaises(KeyError, d.getItems, [('a', 'a'), ('c', 'a')])
+        self.assertRaises(KeyError, d.get_items, [('a', 'a'), ('c', 'a')])
         #...unles self.Pad is True
         d.Pad = True
-        self.assertEqual(d.getItems([('a', 'c'), ('c', 'a')]), [3, None])
+        self.assertEqual(d.get_items([('a', 'c'), ('c', 'a')]), [3, None])
         # negate should work -- must specify RowOrder and ColOrder to get
         # results in predictable order
         d.Pad = False
         d.RowOrder = d.ColOrder = 'abc'
-        self.assertEqual(d.getItems([('a', 'c'), ('c', 'a'), ('a', 'a')],
+        self.assertEqual(d.get_items([('a', 'c'), ('c', 'a'), ('a', 'a')],
                                     negate=True), [2, 4, 6, 9])
 
     def test_item_indices_if(self):

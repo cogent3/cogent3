@@ -459,14 +459,14 @@ class SequenceCollectionBaseTests(object):
                          {'b': 'AAA---'})
 
     def test_getItems(self):
-        """SequenceCollection getItems should return list of items from k,v pairs"""
-        self.assertEqual(self.mixed.getItems([('a', 3), ('b', 4), ('a', 0)]),
+        """SequenceCollection get_items should return list of items from k,v pairs"""
+        self.assertEqual(self.mixed.get_items([('a', 3), ('b', 4), ('a', 0)]),
                          ['D', 'P', 'A'])
-        self.assertRaises(KeyError, self.mixed.getItems, [('x', 'y')])
-        self.assertRaises(IndexError, self.mixed.getItems, [('a', 1000)])
+        self.assertRaises(KeyError, self.mixed.get_items, [('x', 'y')])
+        self.assertRaises(IndexError, self.mixed.get_items, [('a', 1000)])
         # should be able to negate -- note that results will have seqs in
         # arbitrary order
-        self.assertEqualItems(self.mixed.getItems([('a', 3), ('b', 4), ('a', 0)],
+        self.assertEqualItems(self.mixed.get_items([('a', 3), ('b', 4), ('a', 0)],
                                                   negate=True), ['B', 'C', 'E', 'L', 'M', 'N', 'O'])
 
     def test_item_indices_if(self):

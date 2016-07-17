@@ -682,7 +682,7 @@ class SequenceCollection(object):
 
     Items = property(iterItems)
 
-    def getItems(self, items, negate=False):
+    def get_items(self, items, negate=False):
         """Returns list containing only specified items.
 
         items should be a list of (row_key, col_key) tuples.
@@ -720,7 +720,7 @@ class SequenceCollection(object):
 
     def items_if(self, f, negate=False):
         """Returns list of items where f(self.NamedSeqs[row][col]) is True."""
-        return self.getItems(self.item_indices_if(f, negate))
+        return self.get_items(self.item_indices_if(f, negate))
 
     def getSimilar(self, target, min_similarity=0.0, max_similarity=1.0,
                    metric=frac_same, transform=None):
