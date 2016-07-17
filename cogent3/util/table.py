@@ -700,7 +700,7 @@ class Table(DictArray):
         kw.update(kwargs)
         return Table(header=self.Header, rows=new, **kw)
 
-    def withNewColumn(self, new_column, callback, columns=None, **kwargs):
+    def with_new_column(self, new_column, callback, columns=None, **kwargs):
         """Returns a new table with an additional column, computed using
         callback.
 
