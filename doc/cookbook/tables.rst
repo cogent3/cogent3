@@ -464,7 +464,7 @@ Distinct values
 .. doctest::
 
     >>> table = LoadTable('stats.txt', sep=',')
-    >>> assert table.getDistinctValues('Region') == set(['NonCon', 'Con'])
+    >>> assert table.distinct_values('Region') == set(['NonCon', 'Con'])
 
 Counting
 """"""""

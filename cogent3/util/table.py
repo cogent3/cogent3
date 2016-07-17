@@ -553,7 +553,7 @@ class Table(DictArray):
             if callback(row):
                 append(index)
         columns = numpy.take(self.Header, column_indices)
-        return self.getColumns(columns, **kwargs)
+        return self.get_columns(columns, **kwargs)
 
     def count(self, callback, columns=None, **kwargs):
         """Returns number of rows for which the provided callback
@@ -652,8 +652,8 @@ class Table(DictArray):
         kw.update(kwargs)
         return Table(header=self.Header, rows=new_twoD, **kw)
 
-    def getColumns(self, columns, **kwargs):
-        """Return a slice of columns"""
+    def get_columns(self, columns, **kwargs):
+        """Return a Table with just columns"""
         # check whether we have integer columns
 
         if isinstance(columns, str):
@@ -734,7 +734,7 @@ class Table(DictArray):
         kw.update(kwargs)
         return Table(header=self.Header + [new_column], rows=twoD, **kw)
 
-    def getDistinctValues(self, column):
+    def distinct_values(self, column):
         """returns the set of distinct values for the named column(s)"""
         columns = [column, [column]][type(column) == str]
         data = self.tolist(column)

@@ -932,7 +932,7 @@ We can likewise specify a writer, using a custom field formatter and provide thi
 Table slicing and iteration
 ---------------------------
 
-The Table class is capable of slicing by row, range of rows, column or range of columns headings or used to identify a single cell. Slicing using the method ``getColumns`` can also be used to reorder columns. In the case of columns, either the string headings or their position integers can be used. For rows, if ``row_ids`` was specified as ``True`` the 0'th cell in each row can also be used.
+The Table class is capable of slicing by row, range of rows, column or range of columns headings or used to identify a single cell. Slicing using the method ``get_columns`` can also be used to reorder columns. In the case of columns, either the string headings or their position integers can be used. For rows, if ``row_ids`` was specified as ``True`` the 0'th cell in each row can also be used.
 
 .. doctest::
 
@@ -943,7 +943,7 @@ We subset ``t4`` by column and reorder them.
 
 .. doctest::
 
-    >>> new = t4.getColumns(['z', 'y'])
+    >>> new = t4.get_columns(['z', 'y'])
     >>> print(new)
     My Title
     =============================
@@ -962,7 +962,7 @@ We use the column position indexes to do get the same table.
 
 .. doctest::
 
-    >>> new = t4.getColumns([5, 4])
+    >>> new = t4.get_columns([5, 4])
     >>> print(new)
     My Title
     =============================
@@ -1290,14 +1290,14 @@ The distinct values can be obtained for a single column,
 
 .. doctest::
 
-    >>> distinct = new.getDistinctValues("edge.name")
+    >>> distinct = new.distinct_values("edge.name")
     >>> assert distinct == set(['Rat', 'Mouse', 'Human'])
 
 or multiple columns
 
 .. doctest::
 
-    >>> distinct = new.getDistinctValues(["edge.parent", "z"])
+    >>> distinct = new.distinct_values(["edge.parent", "z"])
     >>> assert distinct == set([('root', 6.0), ('root', 7.0)]), distinct
 
 We can compute column sums. Assuming only numerical values in a column.
