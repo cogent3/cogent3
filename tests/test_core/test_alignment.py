@@ -667,10 +667,10 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(ik, int_keys)
         self.assertEqual(im, int_map)
 
-    def test_getNumSeqs(self):
-        """SequenceCollection.getNumSeqs should count seqs."""
+    def test_num_seqs(self):
+        """SequenceCollection.num_seqs should count seqs."""
         aln = self.Class({'seq1': 'ACGU', 'seq2': 'CGUA', 'seq3': 'CCGU'})
-        self.assertEqual(aln.getNumSeqs(), 3)
+        self.assertEqual(aln.num_seqs, 3)
 
     def test_copyAnnotations(self):
         """SequenceCollection copyAnnotations should copy from seq objects"""

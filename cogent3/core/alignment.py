@@ -846,7 +846,8 @@ class SequenceCollection(object):
         int_map = dict([(k, copy(get(v))) for k, v in list(int_keys.items())])
         return int_map, int_keys
 
-    def getNumSeqs(self):
+    @property
+    def num_seqs(self):
         """Returns the number of sequences in the alignment."""
         return len(self.NamedSeqs)
 

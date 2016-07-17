@@ -98,7 +98,7 @@ Use ``LoadSeqs`` to load the unaligned sequences into a ``SequenceCollection`` o
 
 You can explore some properties of this sequence collection. For example, you can count how many sequences are in the sequence collection object::
 
-	seqs.getNumSeqs()
+	seqs..num_seqs
 
 .. _step5:
 

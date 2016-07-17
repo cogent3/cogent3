@@ -672,7 +672,7 @@ def sca_pair(alignment, pos1, pos2, cutoff,
             sca_pair(aln.takePositions([10,20]),0,1,0.85)
     """
     num_positions = len(alignment)
-    num_seqs = alignment.getNumSeqs()
+    num_seqs = alignment.num_seqs
 
     # Calculate frequency distributions
     natural_probs = probs_from_dict(background_freqs, alphabet)
@@ -789,7 +789,7 @@ def sca_position(alignment, position, cutoff,
          or a string.
 
     """
-    num_seqs = alignment.getNumSeqs()
+    num_seqs = alignment.num_seqs
     natural_probs = probs_from_dict(background_freqs, alphabet)
     aln_freqs = freqs_from_aln(alignment, alphabet, scaled_aln_size)
     aln_probs = get_positional_probabilities(
@@ -856,7 +856,7 @@ def sca_alignment(alignment, cutoff, null_value=gDefaultNullValue,
          or a string.
 
     """
-    num_seqs = alignment.getNumSeqs()
+    num_seqs = alignment.num_seqs
     natural_probs = probs_from_dict(background_freqs, alphabet)
     aln_freqs = freqs_from_aln(alignment, alphabet, scaled_aln_size)
     aln_probs = get_positional_probabilities(
@@ -1333,9 +1333,9 @@ def coevolve_alignments_validation(method, alignment1, alignment2,
             "Alignment sequence names must perfectly overlap"
 
     # Determine if the alignments have enough sequences to proceed.
-    if alignment1.getNumSeqs() < min_num_seqs:
+    if alignment1.num_seqs < min_num_seqs:
         raise ValueError("Too few sequences in merged alignment: %d < %d"
-                         % (alignment1.getNumSeqs(), min_num_seqs))
+                         % (alignment1.num_seqs, min_num_seqs))
 
     # Confirm that min_num_seqs <= max_num_seqs
     if max_num_seqs and min_num_seqs > max_num_seqs:
@@ -1509,7 +1509,7 @@ def coevolve_alignments(method, alignment1, alignment2,
     merged_alignment = merge_alignments(alignment1, alignment2)
     validate_alignment(merged_alignment)
 
-    if max_num_seqs and merged_alignment.getNumSeqs() > max_num_seqs:
+    if max_num_seqs and merged_alignment.num_seqs > max_num_seqs:
         try:
             merged_alignment = sequence_filter(merged_alignment, max_num_seqs)
         except TypeError:
