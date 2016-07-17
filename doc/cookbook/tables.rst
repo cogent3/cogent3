@@ -323,7 +323,7 @@ We select only columns that have a sum > 20 from the ``all_numeric`` table const
 
 .. doctest::
 
-    >>> big_numeric = all_numeric.filteredByColumn(lambda x: sum(x)>20)
+    >>> big_numeric = all_numeric.filtered_by_column(lambda x: sum(x)>20)
     >>> print big_numeric
     ========
      B     C
