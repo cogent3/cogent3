@@ -80,11 +80,11 @@ class _Header(list):
 
     def __setslice__(self, *args):
         """disallowed"""
-        raise RuntimeError("Table Header is immutable, use withNewHeader")
+        raise RuntimeError("Table Header is immutable, use with_new_header")
 
     def __setitem__(self, *args):
         """disallowed"""
-        raise RuntimeError("Table Header is immutable, use withNewHeader")
+        raise RuntimeError("Table Header is immutable, use with_new_header")
 
 
 class Table(DictArray):
@@ -242,7 +242,7 @@ class Table(DictArray):
 
     Header = property(_get_header, _set_header)
 
-    def withNewHeader(self, old, new, **kwargs):
+    def with_new_header(self, old, new, **kwargs):
         """returns a new Table with old header labels replaced by new
 
         Arguments:
@@ -427,10 +427,6 @@ class Table(DictArray):
             table = self.tostring(format=format, sep=sep, **kwargs)
             outfile.writelines(table + '\n')
         outfile.close()
-
-    def toBedgraph(self, chrom_col, start_col, end_col):
-        """docstring for toBedgraph"""
-        pass
 
     def appended(self, new_column, *tables, **kwargs):
         """Append an arbitrary number of tables to the end of this one.
