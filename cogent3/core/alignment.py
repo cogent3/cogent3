@@ -764,7 +764,7 @@ class SequenceCollection(object):
 
         return self.takeSeqsIf(f)
 
-    def distanceMatrix(self, f):
+    def distance_matrix(self, f):
         """Returns Matrix containing pairwise distances between sequences.
         f is the distance function f(x,y) -> distance between x and y.
 
