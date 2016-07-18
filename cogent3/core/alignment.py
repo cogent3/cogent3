@@ -635,7 +635,7 @@ class SequenceCollection(object):
         else:
             return {}  # safe value; can't construct empty alignment
 
-    def getSeqIndices(self, f, negate=False):
+    def get_seq_indices(self, f, negate=False):
         """Returns list of keys of seqs where f(row) is True.
 
         List will be in the same order as self.Names, if present.
@@ -656,7 +656,7 @@ class SequenceCollection(object):
         seqs in the old Alignment, not copies.
         """
         # pass negate to get SeqIndices
-        return self.takeSeqs(self.getSeqIndices(f, negate), **kwargs)
+        return self.takeSeqs(self.get_seq_indices(f, negate), **kwargs)
 
     def iterItems(self, seq_order=None, pos_order=None):
         """Iterates over elements in the alignment.
