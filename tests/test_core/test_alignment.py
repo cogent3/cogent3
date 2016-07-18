@@ -493,40 +493,40 @@ class SequenceCollectionBaseTests(object):
         self.assertEqualItems(self.mixed.items_if(is_vowel, negate=True),
                               list('BCDLMNP'))
 
-    def test_getSimilar(self):
-        """SequenceCollection getSimilar should get all sequences close to target seq"""
+    def test_get_similar(self):
+        """SequenceCollection get_similar should get all sequences close to target seq"""
         aln = self.many
         x = RnaSequence('GGGGGGGGGG')
         y = RnaSequence('----------')
         # test min and max similarity ranges
-        result = aln.getSimilar(aln.named_seqs['a'], min_similarity=0.4,
+        result = aln.get_similar(aln.named_seqs['a'], min_similarity=0.4,
                                 max_similarity=0.7)
         for seq in 'cefg':
             self.assertContains(result.named_seqs, seq)
             self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
         self.assertEqual(len(result.named_seqs), 4)
 
-        result = aln.getSimilar(aln.named_seqs['a'], min_similarity=0.95,
+        result = aln.get_similar(aln.named_seqs['a'], min_similarity=0.95,
                                 max_similarity=1)
         for seq in 'a':
             self.assertContains(result.named_seqs, seq)
             self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
         self.assertEqual(len(result.named_seqs), 1)
 
-        result = aln.getSimilar(aln.named_seqs['a'], min_similarity=0.75,
+        result = aln.get_similar(aln.named_seqs['a'], min_similarity=0.75,
                                 max_similarity=0.85)
         for seq in 'bd':
             self.assertContains(result.named_seqs, seq)
             self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
         self.assertEqual(len(result.named_seqs), 2)
 
-        result = aln.getSimilar(aln.named_seqs['a'], min_similarity=0,
+        result = aln.get_similar(aln.named_seqs['a'], min_similarity=0,
                                 max_similarity=0.2)
         self.assertEqual(result, {})
 
         # test some sequence transformations
         transform = lambda s: s[1:4]
-        result = aln.getSimilar(aln.named_seqs['a'], min_similarity=0.5,
+        result = aln.get_similar(aln.named_seqs['a'], min_similarity=0.5,
                                 transform=transform)
         for seq in 'abdfg':
             self.assertContains(result.named_seqs, seq)
@@ -534,7 +534,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(len(result.named_seqs), 5)
 
         transform = lambda s: s[-3:]
-        result = aln.getSimilar(aln.named_seqs['a'], min_similarity=0.5,
+        result = aln.get_similar(aln.named_seqs['a'], min_similarity=0.5,
                                 transform=transform)
         for seq in 'abcde':
             self.assertContains(result.named_seqs, seq)
@@ -543,7 +543,7 @@ class SequenceCollectionBaseTests(object):
 
         # test a different distance metric
         metric = lambda x, y: str(x).count('G') + str(y).count('G')
-        result = aln.getSimilar(aln.named_seqs['a'], min_similarity=5,
+        result = aln.get_similar(aln.named_seqs['a'], min_similarity=5,
                                 max_similarity=10, metric=metric)
         for seq in 'ef':
             self.assertContains(result.named_seqs, seq)
@@ -559,10 +559,10 @@ class SequenceCollectionBaseTests(object):
         null_transform = lambda s: RnaSequence(str(s))
         # first, do it without the transformation
         try:
-            result = aln.getSimilar(aln.named_seqs[0], min_similarity=0.5,
+            result = aln.get_similar(aln.named_seqs[0], min_similarity=0.5,
                                     metric=metric)
         except TypeError:  # need to coerce to RNA seq w/ null_transform
-            result = aln.getSimilar(aln.named_seqs[0], min_similarity=0.5,
+            result = aln.get_similar(aln.named_seqs[0], min_similarity=0.5,
                                     metric=metric, transform=null_transform)
         for seq in [0, 2]:
             self.assertContains(result.named_seqs, seq)
@@ -570,24 +570,24 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(len(result.named_seqs), 2)
         # repeat with higher similarity
         try:
-            result = aln.getSimilar(aln.named_seqs[0], min_similarity=0.8,
+            result = aln.get_similar(aln.named_seqs[0], min_similarity=0.8,
                                     metric=metric)
         except TypeError:  # need to coerce to RNA
-            result = aln.getSimilar(aln.named_seqs[0], min_similarity=0.8,
+            result = aln.get_similar(aln.named_seqs[0], min_similarity=0.8,
                                     metric=metric, transform=null_transform)
         for seq in [0]:
             self.assertContains(result.named_seqs, seq)
             self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
         self.assertEqual(len(result.named_seqs), 1)
         # then, verify that the transform changes the results
-        result = aln.getSimilar(aln.named_seqs[0], min_similarity=0.5,
+        result = aln.get_similar(aln.named_seqs[0], min_similarity=0.5,
                                 metric=metric, transform=transform)
         for seq in [0, 1, 2]:
             self.assertContains(result.named_seqs, seq)
             self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
         self.assertEqual(len(result.named_seqs), 3)
 
-        result = aln.getSimilar(aln.named_seqs[0], min_similarity=0.8,
+        result = aln.get_similar(aln.named_seqs[0], min_similarity=0.8,
                                 metric=metric, transform=transform)
         for seq in [0, 1]:
             self.assertContains(result.named_seqs, seq)
