@@ -72,7 +72,7 @@ def fasta_from_alignment(aln, make_seqlabel=None, line_wrap=None, sorted=True):
     """
     # get seq output order
     try:
-        order = aln.Names[:]
+        order = aln.names[:]
     except AttributeError:
         order = list(aln.keys())
 

@@ -329,7 +329,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
     lf.setMotifProbs(dict(A=0.1, C=0.2, G=0.3, T=0.4))
     aln = lf.simulateAlignment(seq_length)
     results = dict(aln=aln)
-    discrete_tree = LoadTree(tip_names=aln.Names)
+    discrete_tree = LoadTree(tip_names=aln.names)
 
     def fit_general(results=results):
         if 'general' in results:

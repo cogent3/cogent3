@@ -11,7 +11,7 @@ This is just about the simplest possible Cogent script for evolutionary modellin
     >>> from cogent import LoadSeqs, LoadTree
     >>> model = HKY85()
     >>> aln = LoadSeqs("data/primate_cdx2_promoter.fasta")
-    >>> tree = LoadTree(tip_names=aln.Names)
+    >>> tree = LoadTree(tip_names=aln.names)
     >>> lf = model.makeLikelihoodFunction(tree)
     >>> lf.setAlignment(aln)
     >>> lf.optimise()

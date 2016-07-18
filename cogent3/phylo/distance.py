@@ -209,11 +209,11 @@ class EstimateDistances(object):
         # analysed
         if self._threeway:
             combination_aligns = get_name_combinations(
-                self._seq_collection.Names, 3)
+                self._seq_collection.names, 3)
             desc = "triplet "
         else:
             combination_aligns = get_name_combinations(
-                self._seq_collection.Names, 2)
+                self._seq_collection.names, 2)
             desc = "pair "
         labels = [desc + ','.join(names) for names in combination_aligns]
 

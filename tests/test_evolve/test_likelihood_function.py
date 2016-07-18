@@ -129,13 +129,13 @@ class LikelihoodCalcs(TestCase):
 
     def test_no_seq_named_root(self):
         """root is a reserved name"""
-        aln = self.alignment.takeSeqs(self.alignment.Names[:4])
+        aln = self.alignment.takeSeqs(self.alignment.names[:4])
         aln = aln.todict()
         one = aln.pop("Mouse")
         aln["root"] = one
         aln = LoadSeqs(data=aln)
         submod = Nucleotide()
-        tree = LoadTree(treestring="%s" % str(tuple(aln.Names)))
+        tree = LoadTree(treestring="%s" % str(tuple(aln.names)))
         lf = submod.makeLikelihoodFunction(tree)
         try:
             lf.setAlignment(aln)

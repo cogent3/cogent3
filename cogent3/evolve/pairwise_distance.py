@@ -266,7 +266,7 @@ class _PairwiseDistance(object):
             'Alignment does not have correct MolType'
 
         self._dists = {}
-        self.Names = alignment.Names[:]
+        self.Names = alignment.names[:]
         indexed_seqs = []
         for name in self.Names:
             seq = alignment.get_gapped_seq(name)

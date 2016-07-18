@@ -83,11 +83,11 @@ class AllTests(TestCase):
 
     def test_names(self):
         # Should both alignments handle names the same way?
-        self.assertEqual(self.aln.Names, ['rna1', 'rna2', 'rna3'])
-        self.assertEqual(self.da.Names, ['rna1', 'rna2', 'rna3'])
+        self.assertEqual(self.aln.names, ['rna1', 'rna2', 'rna3'])
+        self.assertEqual(self.da.names, ['rna1', 'rna2', 'rna3'])
         # On unnamed sequences the behavior is now the same.
-        self.assertEqual(self.nn_aln.Names, ['seq_0', 'seq_1', 'seq_2'])
-        self.assertEqual(self.nn_da.Names, ['seq_0', 'seq_1', 'seq_2'])
+        self.assertEqual(self.nn_aln.names, ['seq_0', 'seq_1', 'seq_2'])
+        self.assertEqual(self.nn_da.names, ['seq_0', 'seq_1', 'seq_2'])
 
     def test_seqFreqs(self):
         """seqFreqs should work the same on Alignment and DenseAlignment"""
@@ -175,13 +175,13 @@ class AllTests(TestCase):
     def test_takePositions_sequence_order(self):
         """Alignment takePositions should maintain seq order"""
         # This works
-        self.assertEqual(self.da.Names, ['rna1', 'rna2', 'rna3'])
+        self.assertEqual(self.da.names, ['rna1', 'rna2', 'rna3'])
         sub_da = self.da.getSubAlignment(pos=[0, 1, 5])
-        self.assertEqual(sub_da.Names, ['rna1', 'rna2', 'rna3'])
+        self.assertEqual(sub_da.names, ['rna1', 'rna2', 'rna3'])
         # seq order not maintained in Alignment
-        self.assertEqual(self.aln.Names, ['rna1', 'rna2', 'rna3'])
+        self.assertEqual(self.aln.names, ['rna1', 'rna2', 'rna3'])
         sub_aln = self.aln.takePositions([0, 1, 5])
-        self.assertEqual(sub_aln.Names, ['rna1', 'rna2', 'rna3'])
+        self.assertEqual(sub_aln.names, ['rna1', 'rna2', 'rna3'])
 
     def test_subset_seqs_Alignment(self):
         rna1 = RnaSequence('UCG', Name='rna1')

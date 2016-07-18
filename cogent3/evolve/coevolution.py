@@ -1104,7 +1104,7 @@ def ancestral_state_pair(aln, tree, pos1, pos2,
     """
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     ancestral_names_to_seqs = \
-        dict(list(zip(ancestral_seqs.Names, ancestral_seqs.ArraySeqs)))
+        dict(list(zip(ancestral_seqs.names, ancestral_seqs.ArraySeqs)))
     distances = tree.getDistances()
     tips = tree.getNodeNames(tipsonly=True)
     # map names to nodes (there has to be a built-in way to do this
@@ -1115,7 +1115,7 @@ def ancestral_state_pair(aln, tree, pos1, pos2,
     # occuring on a single branch to be given the most weight
     distances.update(dict([((n, n), nodes[n].Length) for n in nodes]))
     result = 0
-    names_to_seqs = dict(list(zip(aln.Names, aln.ArraySeqs)))
+    names_to_seqs = dict(list(zip(aln.names, aln.ArraySeqs)))
     for i in range(len(tips)):
         org1 = tips[i]
         seq1 = names_to_seqs[org1]
@@ -1317,9 +1317,9 @@ def coevolve_alignments_validation(method, alignment1, alignment2,
                              ' '.join(map(str, list(valid_methods_for_different_moltypes.keys()))))
 
     alignment1_names = \
-        set([n.split('+')[0].strip() for n in alignment1.Names])
+        set([n.split('+')[0].strip() for n in alignment1.names])
     alignment2_names = \
-        set([n.split('+')[0].strip() for n in alignment2.Names])
+        set([n.split('+')[0].strip() for n in alignment2.names])
 
     if 'tree' in kwargs:
         tip_names = \
@@ -1394,9 +1394,9 @@ def merge_alignments(alignment1, alignment2):
     # Created maps from the final seq ids (i.e., seq id before plus) to the
     # seq ids in the original alignments
     aln1_name_map = \
-        dict([(n.split('+')[0].strip(), n) for n in alignment1.Names])
+        dict([(n.split('+')[0].strip(), n) for n in alignment1.names])
     aln2_name_map = \
-        dict([(n.split('+')[0].strip(), n) for n in alignment2.Names])
+        dict([(n.split('+')[0].strip(), n) for n in alignment2.names])
 
     try:
         for merged_name, orig_name in list(aln1_name_map.items()):
@@ -1420,7 +1420,7 @@ def n_random_seqs(alignment, n):
         This function is used by coevolve_alignments.
 
     """
-    seq_names = alignment.Names
+    seq_names = alignment.names
     shuffle(seq_names)
     return alignment.takeSeqs(seq_names[:n])
 

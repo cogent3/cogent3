@@ -99,7 +99,7 @@ class TestAnnotations(unittest.TestCase):
             assert observed == expected, (annot_type, expected, observed)
             if annot_type in ["misc_feature", "LTR"]:
                 continue  # because seqs haven't been annotated with it
-            for name in self.aln.Names:
+            for name in self.aln.names:
                 observed = list(self.aln.NamedSeqs[name].data.
                                 getByAnnotation(annot_type))[0]
                 observed = str(observed)
@@ -125,7 +125,7 @@ class TestAnnotations(unittest.TestCase):
             assert expected == new, (annot_type, expected, new)
             if annot_type in ["misc_feature", "LTR"]:
                 continue  # because seqs haven't been annotated with it
-            for name in self.aln.Names:
+            for name in self.aln.names:
                 orig = str(list(self.aln.getAnnotationsFromSequence(name,
                                                                     annot_type))[0].getSlice())
                 new = str(list(newaln.getAnnotationsFromSequence(name,
@@ -172,7 +172,7 @@ class TestAnnotations(unittest.TestCase):
 
             if annot_type in ["misc_feature", "LTR"]:
                 continue  # because seqs haven't been annotated with it
-            for name in self.aln.Names:
+            for name in self.aln.names:
                 observed = list(self.aln.NamedSeqs[name].data.
                                 getByAnnotation(annot_type))[0]
                 observed = str(observed)
