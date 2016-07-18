@@ -21,14 +21,14 @@ TREE = LoadTree(filename="data/murphy.tree")
 
 
 def subtree(size):
-    names = ALIGNMENT.getSeqNames()[:size]
+    names = ALIGNMENT.get_seq_names()[:size]
     assert len(names) == size
     tree = TREE.getSubTree(names)  # .balanced()
     return names, tree
 
 
 def brca_test(subMod, names, tree, length, par_rules, **kw):
-    #names = ALIGNMENT.getSeqNames()[:taxa]
+    #names = ALIGNMENT.get_seq_names()[:taxa]
     #assert len(names) == taxa
     tree = TREE.getSubTree(names)  # .balanced()
     aln = ALIGNMENT.takeSeqs(names).omitGapPositions()[:length]

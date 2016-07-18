@@ -22,7 +22,7 @@ We provide names for those alignments, then construct the tree, model instances.
 
     >>> loci_names = ["1st-half", "2nd-half"]
     >>> loci = [aln1, aln2]
-    >>> tree = LoadTree(tip_names=aln.getSeqNames())
+    >>> tree = LoadTree(tip_names=aln.get_seq_names())
     >>> mod = HKY85()
 
 To make a likelihood function with multiple alignments we provide the list of loci names. We can then specify a parameter (other than length) to be the same across the loci (using the imported ``ALL``) or different for each locus (using ``EACH``). We conduct a LR test as before.

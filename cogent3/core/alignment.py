@@ -1235,11 +1235,11 @@ class SequenceCollection(object):
 
         return self.__class__(MolType=self.MolType, data=new_seqs, **kwargs)
 
-    def getSeqNames(self):
+    def get_seq_names(self):
         """Return a list of sequence names."""
         return self.Names[:]
 
-    def getMotifProbs(self, alphabet=None, include_ambiguity=False,
+    def get_motif_probs(self, alphabet=None, include_ambiguity=False,
                       exclude_unobserved=False, allow_gap=False, pseudocount=0):
         """Return a dictionary of motif probs, calculated as the averaged
         frequency across sequences.

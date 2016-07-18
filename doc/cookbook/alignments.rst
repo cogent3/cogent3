@@ -202,13 +202,13 @@ Alternatively, if you want to extract the aligned (i.e., gapped) sequence from a
     >>> print seq
     ATGAA------
 
-To see the names of the sequences in a sequence collection, you can use either the ``Names`` attribute or ``getSeqNames`` method.
+To see the names of the sequences in a sequence collection, you can use either the ``Names`` attribute or ``get_seq_names`` method.
 
 .. doctest::
 
     >>> aln.Names
     ['seq1', 'seq2', 'seq3']
-    >>> aln.getSeqNames()
+    >>> aln.get_seq_names()
     ['seq1', 'seq2', 'seq3']
 
 Slice the sequences from an alignment like a list
@@ -672,13 +672,13 @@ Computing alignment statistics
 Computing motif probabilities from an alignment
 """""""""""""""""""""""""""""""""""""""""""""""
 
-The method ``getMotifProbs`` of ``Alignment`` objects returns the probabilities for all motifs of a given length. For individual nucleotides:
+The method ``get_motif_probs`` of ``Alignment`` objects returns the probabilities for all motifs of a given length. For individual nucleotides:
 
 .. doctest::
 
     >>> from cogent import LoadSeqs, DNA
     >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta', moltype=DNA)
-    >>> motif_probs = aln.getMotifProbs()
+    >>> motif_probs = aln.get_motif_probs()
     >>> print motif_probs
     {'A': 0.24...
 
@@ -689,7 +689,7 @@ For dinucleotides or longer, we need to pass in an ``Alphabet`` with the appropr
     >>> from cogent import LoadSeqs, DNA
     >>> trinuc_alphabet = DNA.Alphabet.getWordAlphabet(3)
     >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta', moltype=DNA)
-    >>> motif_probs = aln.getMotifProbs(alphabet=trinuc_alphabet)
+    >>> motif_probs = aln.get_motif_probs(alphabet=trinuc_alphabet)
     >>> for m in sorted(motif_probs, key=lambda x: motif_probs[x],
     ...                 reverse=True):
     ...     print m, motif_probs[m]
@@ -705,9 +705,9 @@ Some calculations in cogent require all non-zero values in the motif probabiliti
 .. doctest::
 
     >>> aln = LoadSeqs(data=[('a', 'AACAAC'),('b', 'AAGAAG')], moltype=DNA)
-    >>> motif_probs = aln.getMotifProbs()
+    >>> motif_probs = aln.get_motif_probs()
     >>> assert motif_probs['T'] == 0.0
-    >>> motif_probs = aln.getMotifProbs(pseudocount=1e-6)
+    >>> motif_probs = aln.get_motif_probs(pseudocount=1e-6)
     >>> assert 0 < motif_probs['T'] <= 1e-6
 
 It is important to notice that motif probabilities are computed by treating sequences as non-overlapping tuples. Below is a very simple pair of identical sequences where there are clearly 2 'AA' dinucleotides per sequence but only the first one is 'in-frame' (frame width = 2).
@@ -719,7 +719,7 @@ We then create a dinucleotide ``Alphabet`` object and use this to get dinucleoti
     >>> seqs = [('a', 'AACGTAAG'), ('b', 'AACGTAAG')]
     >>> aln = LoadSeqs(data=seqs, moltype=DNA)
     >>> dinuc_alphabet = DNA.Alphabet.getWordAlphabet(2)
-    >>> motif_probs = aln.getMotifProbs(alphabet=dinuc_alphabet)
+    >>> motif_probs = aln.get_motif_probs(alphabet=dinuc_alphabet)
     >>> assert motif_probs['AA'] == 0.25
 
 What about counting the total incidence of dinucleotides including those not in-frame?  A naive application of the Python string object's count method will not work as desired either because it "returns the number of non-overlapping occurrences".
