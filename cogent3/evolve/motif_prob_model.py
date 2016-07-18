@@ -53,7 +53,7 @@ class MotifProbModel(object):
 
     def countMotifs(self, alignment, include_ambiguity=False, recode_gaps=True):
         result = None
-        for seq_name in alignment.getSeqNames():
+        for seq_name in alignment.get_seq_names():
             sequence = alignment.get_gapped_seq(seq_name, recode_gaps)
             leaf = makeLikelihoodTreeLeaf(sequence, self.getCountedAlphabet(),
                                           seq_name)

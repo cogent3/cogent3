@@ -417,7 +417,7 @@ motif  mprobs
         simulated_alignment = likelihood_function.simulateAlignment(
             20, exclude_internal=False)
         self.assertEqual(len(simulated_alignment), 20)
-        self.assertEqual(len(simulated_alignment.getSeqNames()), 8)
+        self.assertEqual(len(simulated_alignment.get_seq_names()), 8)
 
     def test_simulateHetergeneousAlignment(self):
         "Simulate substitution-heterogeneous DNA alignment"
@@ -460,7 +460,7 @@ motif  mprobs
         lf.setAlignment(al)
         # print lf.simulateAlignment(sequence_length=10)
         simulated = lf.simulateAlignment()
-        self.assertEqual(len(simulated.getSeqNames()), 4)
+        self.assertEqual(len(simulated.get_seq_names()), 4)
         import re
         self.assertEqual(
             re.sub('[ATCG]', 'x', simulated.todict()['a']),

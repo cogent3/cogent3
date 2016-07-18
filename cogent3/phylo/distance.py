@@ -95,7 +95,7 @@ class EstimateDistances(object):
             self._threeway = [threeway, False][do_pair_align]
 
         self._seq_collection = seqs
-        self._seqnames = seqs.getSeqNames()
+        self._seqnames = seqs.get_seq_names()
         self._motif_probs = motif_probs
 
         # the following may be pairs or three way combinations
@@ -120,7 +120,7 @@ class EstimateDistances(object):
 
     def _make_pair_alignment(self, seqs, opt_kwargs):
         lf = self._sm.makeLikelihoodFunction(
-            LoadTree(tip_names=seqs.getSeqNames()),
+            LoadTree(tip_names=seqs.get_seq_names()),
             aligned=False)
         lf.setSequences(seqs.NamedSeqs)
 

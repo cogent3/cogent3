@@ -108,7 +108,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_numberseqs(self):
         """testing the number of sequences"""
-        assert len(self.alignment.getSeqNames()) == 5
+        assert len(self.alignment.get_seq_names()) == 5
 
     def test_alignlsength(self):
         """testing the alignment length"""
@@ -125,7 +125,7 @@ class AlignmentTestMethods(unittest.TestCase):
         subset = ['DogFaced', 'Human', 'HowlerMon', 'Mouse']
         subset.sort()
         sub_align = self.alignment.takeSeqs(subset)
-        new = sub_align.getSeqNames()
+        new = sub_align.get_seq_names()
         new.sort()
         assert new == subset, "included subset didn't work %s, %s" % (
             new, subset)
@@ -133,7 +133,7 @@ class AlignmentTestMethods(unittest.TestCase):
         # testing exclusion of one
         to_exclude = ['NineBande']
         sub_align = self.alignment.takeSeqs(to_exclude, negate=True)
-        new = sub_align.getSeqNames()
+        new = sub_align.get_seq_names()
         new.sort()
         assert new == subset, "excluded subset didn't work %s, %s" % (
             new, subset)
@@ -143,7 +143,7 @@ class AlignmentTestMethods(unittest.TestCase):
         subset.sort()
         to_exclude = ['Human', 'Mouse']
         sub_align = self.alignment.takeSeqs(to_exclude, negate=True)
-        new = sub_align.getSeqNames()
+        new = sub_align.get_seq_names()
         new.sort()
         assert new == subset, "excluded subset didn't work %s, %s" % (
             new, subset)
@@ -154,13 +154,13 @@ class AlignmentTestMethods(unittest.TestCase):
             data={'seq1': 'ACGTACGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'})
         sub_align = alignment[2: 5]
         self.assertEqual(len(sub_align), 3)
-        self.assertEqual(len(sub_align.getSeqNames()), 3)
+        self.assertEqual(len(sub_align.get_seq_names()), 3)
         self.assertEqual(sub_align.todict(), {
                          'seq1': 'GTA', 'seq2': 'GTA', 'seq3': 'GTA'})
 
         sub_align = alignment[5: 20]
         self.assertEqual(len(sub_align), 3)
-        self.assertEqual(len(sub_align.getSeqNames()), 3)
+        self.assertEqual(len(sub_align.get_seq_names()), 3)
         self.assertEqual(sub_align.todict(), {
                          'seq1': 'CGT', 'seq2': 'CGT', 'seq3': 'CGT'})
 
@@ -493,24 +493,24 @@ class AlignmentTestMethods(unittest.TestCase):
         """calculation of motif probs"""
         seqs = {'seq1': 'ACGTANGT', 'seq2': '-CGTACGT', 'seq3': 'ACGTACGT'}
         aln = LoadSeqs(data=seqs, moltype=DNA)
-        mprobs = aln.getMotifProbs(allow_gap=False)
+        mprobs = aln.get_motif_probs(allow_gap=False)
         expected = {'A': 5 / 22, 'T': 6 / 22, 'C': 5 / 22, 'G': 6 / 22}
         self.assertEqual(mprobs, expected)
-        mprobs = aln.getMotifProbs(allow_gap=True)
+        mprobs = aln.get_motif_probs(allow_gap=True)
         expected = {'A': 5 / 23, 'T': 6 / 23,
             'C': 5 / 23, 'G': 6 / 23, '-': 1 / 23}
         self.assertEqual(mprobs, expected)
-        mprobs = aln.getMotifProbs(allow_gap=False, include_ambiguity=True)
+        mprobs = aln.get_motif_probs(allow_gap=False, include_ambiguity=True)
         expected = {'A': 5.25 / 23, 'T': 6.25 /
             23, 'C': 5.25 / 23, 'G': 6.25 / 23}
         self.assertEqual(mprobs, expected)
-        mprobs = aln.getMotifProbs(allow_gap=True, include_ambiguity=True)
+        mprobs = aln.get_motif_probs(allow_gap=True, include_ambiguity=True)
         expected = {'A': 5.25 / 24, 'T': 6.25 / 24, 'C': 5.25 / 24, 'G': 6.25 / 24, '-':
                     1 / 24}
         self.assertEqual(mprobs, expected)
         seqs = {'seq1': 'ACGAANGA', 'seq2': '-CGAACGA', 'seq3': 'ACGAACGA'}
         aln = LoadSeqs(data=seqs, moltype=DNA)
-        mprobs = aln.getMotifProbs(exclude_unobserved=True)
+        mprobs = aln.get_motif_probs(exclude_unobserved=True)
         expected = {'A': 11 / 22, 'C': 5 / 22, 'G': 6 / 22}
         self.assertEqual(mprobs, expected)
 
