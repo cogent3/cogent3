@@ -767,7 +767,7 @@ class Transcript(_StableRegion):
                 sys.stderr.write('\n'.join(map(str, out)) + '\n')
             raise
 
-        self._cached['ProteinSeq'] = cds.getTranslation()
+        self._cached['ProteinSeq'] = cds.get_translation()
 
     def _get_protein_seq(self):
         return self._get_cached_value('ProteinSeq', self._make_protein_seq)

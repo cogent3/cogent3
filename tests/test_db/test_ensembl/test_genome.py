@@ -203,7 +203,7 @@ class TestGene(GenomeTestBase):
         # divisible by 3 to get the same protein sequence
         l = transcript.getCdsLength()
         trunc_cds = transcript.Cds[: l - (l % 3)]
-        prot_seq = trunc_cds.getTranslation()
+        prot_seq = trunc_cds.get_translation()
         self.assertEqual(str(prot_seq),
                          'MPSSPLRVAVVCSSNQNRSMEAHNILSKRGFSVRSFGTGTHVKLPGPAPDKPNVYDFKTT'
                          'YDQMYNDLLRKDKELYTQNGILHMLDRNKRIKPRPERFQNCKDLFDLILTCEERVY')
@@ -218,7 +218,7 @@ class TestGene(GenomeTestBase):
         # last two bases of codon missing
         self.assertEqual(exon1.PhaseEnd, 1)
         # can translate the sequence if we take those into account
-        seq = exon1.Seq[1:-1].getTranslation()
+        seq = exon1.Seq[1:-1].get_translation()
         self.assertEqual(str(seq), 'HMLSKVGMWDFDIFLFDRLTN')
 
     def test_cds_from_outofphase(self):

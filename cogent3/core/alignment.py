@@ -1057,7 +1057,7 @@ class SequenceCollection(object):
         """len of SequenceCollection returns length of longest sequence."""
         return self.SeqLen
 
-    def getTranslation(self, gc=None, **kwargs):
+    def get_translation(self, gc=None, **kwargs):
         """Returns a new alignment object with the DNA sequences translated,
         using the current codon moltype, into an amino acid sequence.
         """
@@ -1070,7 +1070,7 @@ class SequenceCollection(object):
                     seq = self.get_gapped_seq(seqname)
                 else:
                     seq = self.named_seqs[seqname]
-                pep = seq.getTranslation(gc)
+                pep = seq.get_translation(gc)
                 translated.append((seqname, pep))
             return self.__class__(translated, **kwargs)
         except AttributeError as msg:

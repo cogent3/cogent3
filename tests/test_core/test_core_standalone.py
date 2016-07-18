@@ -394,11 +394,11 @@ class AlignmentTestMethods(unittest.TestCase):
                 {'seq1': 'GATTTT', 'seq2': 'GATC??'},
                 {'seq1': 'GAT---', 'seq2': '?GATCT'}]:
             alignment = LoadSeqs(data=seqs, moltype=DNA)
-            self.assertEqual(len(alignment.getTranslation()), 2)
+            self.assertEqual(len(alignment.get_translation()), 2)
             # check for a failure when no moltype specified
             alignment = LoadSeqs(data=seqs)
             try:
-                peps = alignment.getTranslation()
+                peps = alignment.get_translation()
             except AttributeError:
                 pass
 
@@ -535,12 +535,12 @@ class SequenceTestMethods(unittest.TestCase):
 
     def test_translate(self):
         """test of translating seqs"""
-        seq = Sequence(DNA, 'ATGACGTTGCGTAGCATAGCTCGA').getTranslation()
+        seq = Sequence(DNA, 'ATGACGTTGCGTAGCATAGCTCGA').get_translation()
         self.assertEqual(str(seq), 'MTLRSIAR')
 
     def test_ambig_translate(self):
         """test of translating seqs"""
-        seq = Sequence(DNA, 'CGNTGN???---').getTranslation()
+        seq = Sequence(DNA, 'CGNTGN???---').get_translation()
         self.assertEqual(str(seq), 'RX?-')
 
     def test_slidingWindows(self):

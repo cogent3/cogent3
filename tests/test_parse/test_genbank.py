@@ -372,7 +372,7 @@ ORIGIN
 
         for locus in cds:
             got = cds[locus].getSlice().\
-                withoutTerminalStopCodon().getTranslation()
+                withoutTerminalStopCodon().get_translation()
             self.assertEqual(str(got), expects[locus])
         infile.close()
 

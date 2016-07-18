@@ -201,7 +201,7 @@ class TestPair(TestCase):
     def test_logdet_pair_aa(self):
         """logdet shouldn't fail to produce distances for aa seqs"""
         aln = LoadSeqs('data/brca1_5.paml', moltype=DNA)
-        aln = aln.getTranslation()
+        aln = aln.get_translation()
         logdet_calc = LogDetPair(moltype=PROTEIN, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
         dists = logdet_calc.getPairwiseDistances()
@@ -266,7 +266,7 @@ class TestPair(TestCase):
     def test_paralinear_pair_aa(self):
         """paralinear shouldn't fail to produce distances for aa seqs"""
         aln = LoadSeqs('data/brca1_5.paml', moltype=DNA)
-        aln = aln.getTranslation()
+        aln = aln.get_translation()
         paralinear_calc = ParalinearPair(moltype=PROTEIN, alignment=aln)
         paralinear_calc.run(show_progress=False)
         dists = paralinear_calc.getPairwiseDistances()

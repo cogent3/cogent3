@@ -817,17 +817,17 @@ class SequenceCollectionBaseTests(object):
         aln = self.Class([('a', 'AAAA'), ('b', 'TTTT'), ('c', 'CCCC')])
         self.assertEqual(len(aln), 4)
 
-    def test_getTranslation(self):
-        """SequenceCollection.getTranslation translates each seq"""
+    def test_get_translation(self):
+        """SequenceCollection.get_translation translates each seq"""
         for seqs in [
                 {'seq1': 'GATTTT', 'seq2': 'GATC??'},
                 {'seq1': 'GAT---', 'seq2': '?GATCT'}]:
             alignment = self.Class(data=seqs, MolType=DNA)
-            self.assertEqual(len(alignment.getTranslation()), 2)
+            self.assertEqual(len(alignment.get_translation()), 2)
             # check for a failure when no moltype specified
             alignment = self.Class(data=seqs)
             try:
-                peps = alignment.getTranslation()
+                peps = alignment.get_translation()
             except AttributeError:
                 pass
 
