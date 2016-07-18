@@ -101,7 +101,7 @@ class AlignmentTestCase(unittest.TestCase):
         pattern = DNA.makeSequence('cwc', Name='pattern')
         two_hit = DNA.makeSequence('cactc', Name='target')
         aln = local_pairwise(pattern, two_hit, score_matrix, 5, 2)
-        hit = aln.NamedSeqs['target']
+        hit = aln.named_seqs['target']
         self.assertEqual(str(hit).lower(), 'cac')
 
 
