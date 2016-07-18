@@ -34,7 +34,7 @@ def phylip_from_alignment(aln, generic_label=True, make_seqlabel=None):
     id_map = {}
     cur_seq_id = 1
 
-    for seq_name, seq in zip(aln.Names, aln.Seqs):
+    for seq_name, seq in zip(aln.names, aln.Seqs):
         if make_seqlabel is not None:
             label = make_seqlabel(seq)
         elif generic_label:

@@ -41,7 +41,7 @@ We'll illustrate this with a sample alignment and tree in ``data/primate_cdx2_pr
     >>> al = LoadSeqs("data/primate_cdx2_promoter.fasta", moltype=DNA)
     >>> al
     3 x 1525 dna alignment: human[AGCGCCCGCGG...], macaque[AGC...
-    >>> tr = LoadTree(tip_names=al.Names)
+    >>> tr = LoadTree(tip_names=al.names)
     >>> print tr
     (human,macaque,chimp)root;
 

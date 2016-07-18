@@ -425,7 +425,7 @@ You can also obtain the sequences as a ``cogent`` ``SequenceCollection`` (unalig
 .. doctest::
 
     >>> seqs = orthologs.getSeqCollection(feature_types='gene')
-    >>> print seqs.Names
+    >>> print seqs.names
     ['Rattus norvegicus:chromosome:12:491...
 
 We can also search for other relationship types, which we do here for a histone.

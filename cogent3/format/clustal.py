@@ -41,7 +41,7 @@ def clustal_from_alignment(aln, interleave_len=None):
 
     aln_len = seqs.SeqLen
     # Get all labels
-    labels = copy(seqs.Names)
+    labels = copy(seqs.names)
 
     # Find all label lengths in order to get padding.
     label_lengths = [len(l) for l in labels]

@@ -81,7 +81,7 @@ class TestCompara(ComparaTestBase):
         # coordinates change due to inclusion of new species, we search for
         # the mouse subseq and use the resulting coords to ensure we get the
         # same match as that from the Ensembl website
-        mouse_name = [n for n in aln.Names if "Mus musculus" in n][0]
+        mouse_name = [n for n in aln.names if "Mus musculus" in n][0]
         start = aln.todict()[mouse_name].find('AAGTCAAACTCTACCACTGG')
         sub_aln = aln[start: start + 20]
         seqs = list(sub_aln.todict().values())
@@ -191,7 +191,7 @@ class TestSyntenicRegions(TestCase):
             # check the slope computed from the expected and returned
             # coordinates is ~ 1
             got_names = dict([(n.split(':')[0], n.split(':'))
-                             for n in syntenic.getAlignment().Names])
+                             for n in syntenic.getAlignment().names])
             exp_names = dict([(n.split(':')[0], n.split(':'))
                              for n in list(expect.keys())])
             for species in exp_names:

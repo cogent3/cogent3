@@ -1901,7 +1901,7 @@ class CoevolutionTests(TestCase):
         # Sequences are correct
         new_aln = n_random_seqs(aln1, 3)
         self.assertEqual(new_aln.num_seqs, 3)
-        for n in new_aln.Names:
+        for n in new_aln.names:
             self.assertEqual(new_aln.getSeq(n), aln1.getSeq(n))
 
         # Objects are equal when all are requested

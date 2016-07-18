@@ -122,7 +122,7 @@ Sequences can be inserted into an alignment at the specified position using eith
 Inserting sequence(s) based on their alignment to a reference sequence
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Already aligned sequences can be added to an existing ``Alignment`` object and aligned at the same time using the ``addFromReferenceAln`` method. The alignment is performed based on their alignment to a reference sequence (which must be present in both alignments). The method assumes the first sequence in ``ref_aln.Names[0]`` is the reference.
+Already aligned sequences can be added to an existing ``Alignment`` object and aligned at the same time using the ``addFromReferenceAln`` method. The alignment is performed based on their alignment to a reference sequence (which must be present in both alignments). The method assumes the first sequence in ``ref_aln.names[0]`` is the reference.
 
 .. doctest::
 
@@ -206,7 +206,7 @@ To see the names of the sequences in a sequence collection, you can use either t
 
 .. doctest::
 
-    >>> aln.Names
+    >>> aln.names
     ['seq1', 'seq2', 'seq3']
     >>> aln.get_seq_names()
     ['seq1', 'seq2', 'seq3']
@@ -241,10 +241,10 @@ Getting a subset of sequences from the alignment
 
     >>> from cogent import LoadSeqs, DNA
     >>> aln = LoadSeqs('data/test.paml', moltype=DNA)
-    >>> aln.Names
+    >>> aln.names
     ['NineBande', 'Mouse', 'Human', 'HowlerMon', 'DogFaced']
     >>> new = aln.takeSeqs(['Human', 'HowlerMon'])
-    >>> new.Names
+    >>> new.names
     ['Human', 'HowlerMon']
 
 Note the subset contain references to the original sequences, not copies.
