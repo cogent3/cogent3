@@ -119,7 +119,7 @@ class LikelihoodCalcs(TestCase):
     def _makeLikelihoodFunction(self, submod, translate=False, **kw):
         alignment = self.alignment
         if translate:
-            alignment = alignment.getTranslation()
+            alignment = alignment.get_translation()
         calc = submod.makeLikelihoodFunction(self.tree, **kw)
         calc.setAlignment(alignment)
         calc.setParamRule('length', value=1.0, is_constant=True)
@@ -605,7 +605,7 @@ motif    mprobs
     def test_get_statistics_from_empirical_model(self):
         """should return valid dict from an empirical substitution model"""
         submod = JTT92()
-        aln = self.data.getTranslation()
+        aln = self.data.get_translation()
 
         lf = submod.makeLikelihoodFunction(self.tree)
         lf.setAlignment(aln)

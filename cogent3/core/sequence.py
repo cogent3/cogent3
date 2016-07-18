@@ -834,7 +834,7 @@ class NucleicAcidSequence(Sequence):
 
         return self.__class__(codons, Name=self.Name, Info=self.Info)
 
-    def getTranslation(self, gc=None):
+    def get_translation(self, gc=None):
         gc = self._gc_from_arg(gc)
         codon_alphabet = self.CodonAlphabet(gc).withGapMotif()
         # translate the codons
@@ -866,7 +866,7 @@ class NucleicAcidSequence(Sequence):
         gc = self._gc_from_arg(gc)
         orfs = []
         start = None
-        protein = self.getTranslation(gc=gc)
+        protein = self.get_translation(gc=gc)
         for (posn, aa) in enumerate(protein):
             posn *= 3
             if aa == '*':
