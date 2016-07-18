@@ -424,20 +424,20 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(set(subset.MolType), set(orig.MolType))
 
     def test_getSeqIndices(self):
-        """SequenceCollection getSeqIndices should return names of seqs where f(row) is True"""
+        """SequenceCollection get_seq_indices should return names of seqs where f(row) is True"""
         srp = self.ragged_padded
         is_long = lambda x: len(x) > 10
         is_med = lambda x: len(str(x).replace('-', '')) > 3  # strips gaps
         is_any = lambda x: len(x) > 0
-        self.assertEqual(srp.getSeqIndices(is_long), [])
+        self.assertEqual(srp.get_seq_indices(is_long), [])
         srp.names = 'cba'
-        self.assertEqual(srp.getSeqIndices(is_med), ['c', 'a'])
+        self.assertEqual(srp.get_seq_indices(is_med), ['c', 'a'])
         srp.names = 'bac'
-        self.assertEqual(srp.getSeqIndices(is_med), ['a', 'c'])
-        self.assertEqual(srp.getSeqIndices(is_any), ['b', 'a', 'c'])
+        self.assertEqual(srp.get_seq_indices(is_med), ['a', 'c'])
+        self.assertEqual(srp.get_seq_indices(is_any), ['b', 'a', 'c'])
         # should be able to negate
-        self.assertEqual(srp.getSeqIndices(is_med, negate=True), ['b'])
-        self.assertEqual(srp.getSeqIndices(is_any, negate=True), [])
+        self.assertEqual(srp.get_seq_indices(is_med, negate=True), ['b'])
+        self.assertEqual(srp.get_seq_indices(is_any, negate=True), [])
 
     def test_takeSeqsIf(self):
         """SequenceCollection takeSeqsIf should return seqs where f(row) is True"""
