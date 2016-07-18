@@ -369,13 +369,13 @@ class SequenceCollectionBaseTests(object):
         self.assertTrue((un_list == first_list) or (un_list == sec_list))
         self.assertNotEqual(first_list, sec_list)
 
-    def test_iterSeqs(self):
-        """SequenceCollection iterSeqs() method should support reordering of seqs"""
+    def test_iter_seqs(self):
+        """SequenceCollection iter_seqs() method should support reordering of seqs"""
         self.ragged_padded = self.Class(self.ragged_padded.named_seqs,
                                         Names=['a', 'b', 'c'])
-        seqs = list(self.ragged_padded.iterSeqs())
+        seqs = list(self.ragged_padded.iter_seqs())
         self.assertEqual(seqs, ['AAAAAA', 'AAA---', 'AAAA--'])
-        seqs = list(self.ragged_padded.iterSeqs(seq_order=['b', 'a', 'a']))
+        seqs = list(self.ragged_padded.iter_seqs(seq_order=['b', 'a', 'a']))
         self.assertEqual(seqs, ['AAA---', 'AAAAAA', 'AAAAAA'])
         self.assertSameObj(seqs[1], seqs[2])
         self.assertSameObj(seqs[0], self.ragged_padded.named_seqs['b'])
@@ -984,12 +984,12 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection padSeqs should work on alignment."""
         # pad to max length
         padded1 = self.ragged_padded.padSeqs()
-        seqs1 = list(padded1.iterSeqs(seq_order=['a', 'b', 'c']))
+        seqs1 = list(padded1.iter_seqs(seq_order=['a', 'b', 'c']))
         self.assertEqual(list(map(str, seqs1)), ['AAAAAA', 'AAA---', 'AAAA--'])
 
         # pad to alternate length
         padded1 = self.ragged_padded.padSeqs(pad_length=10)
-        seqs1 = list(padded1.iterSeqs(seq_order=['a', 'b', 'c']))
+        seqs1 = list(padded1.iter_seqs(seq_order=['a', 'b', 'c']))
         self.assertEqual(list(map(str, seqs1)), ['AAAAAA----', 'AAA-------',
                                                'AAAA------'])
 
@@ -1022,12 +1022,12 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         self.ragged.names = 'bac'
         self.assertEqual(list(self.ragged.Seqs), ['AAA', 'AAAAAA', 'AAAA'])
 
-    def test_iterSeqs_ragged(self):
-        """SequenceCollection iterSeqs() method should support reordering of seqs"""
+    def test_iter_seqs_ragged(self):
+        """SequenceCollection iter_seqs() method should support reordering of seqs"""
         self.ragged.names = ['a', 'b', 'c']
-        seqs = list(self.ragged.iterSeqs())
+        seqs = list(self.ragged.iter_seqs())
         self.assertEqual(seqs, ['AAAAAA', 'AAA', 'AAAA'])
-        seqs = list(self.ragged.iterSeqs(seq_order=['b', 'a', 'a']))
+        seqs = list(self.ragged.iter_seqs(seq_order=['b', 'a', 'a']))
         self.assertEqual(seqs, ['AAA', 'AAAAAA', 'AAAAAA'])
         self.assertSameObj(seqs[1], seqs[2])
         self.assertSameObj(seqs[0], self.ragged.named_seqs['b'])
@@ -1046,12 +1046,12 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         """SequenceCollection padSeqs should work on ragged alignment."""
         # pad to max length
         padded1 = self.ragged.padSeqs()
-        seqs1 = list(padded1.iterSeqs(seq_order=['a', 'b', 'c']))
+        seqs1 = list(padded1.iter_seqs(seq_order=['a', 'b', 'c']))
         self.assertEqual(list(map(str, seqs1)), ['AAAAAA', 'AAA---', 'AAAA--'])
 
         # pad to alternate length
         padded1 = self.ragged.padSeqs(pad_length=10)
-        seqs1 = list(padded1.iterSeqs(seq_order=['a', 'b', 'c']))
+        seqs1 = list(padded1.iter_seqs(seq_order=['a', 'b', 'c']))
         self.assertEqual(list(map(str, seqs1)), ['AAAAAA----', 'AAA-------',
                                                'AAAA------'])
 
