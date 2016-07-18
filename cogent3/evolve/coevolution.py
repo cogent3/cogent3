@@ -1297,7 +1297,7 @@ def validate_alignment(alignment):
     """ValueError on ambiguous alignment characters"""
     bad_seqs = []
     for name, ambiguous_pos in \
-            list(alignment.getPerSequenceAmbiguousPositions().items()):
+            list(alignment.get_ambiguous_positions().items()):
         if ambiguous_pos:
             bad_seqs.append(name)
     if bad_seqs:

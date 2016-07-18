@@ -1094,7 +1094,7 @@ class SequenceCollection(object):
 
         return align_dict
 
-    def getPerSequenceAmbiguousPositions(self):
+    def get_ambiguous_positions(self):
         """Returns dict of seq:{position:char} for ambiguous chars.
 
         Used in likelihood calculations.
