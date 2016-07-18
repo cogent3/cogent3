@@ -847,7 +847,7 @@ class SequenceCollectionBaseTests(object):
     def test_getPerSequenceAmbiguousPositions(self):
         """SequenceCollection.getPerSequenceAmbiguousPositions should return pos"""
         aln = self.Class({'s1': 'ATGRY?', 's2': 'T-AG??'}, MolType=DNA)
-        self.assertEqual(aln.getPerSequenceAmbiguousPositions(),
+        self.assertEqual(aln.get_ambiguous_positions(),
                          {'s2': {4: '?', 5: '?'}, 's1': {3: 'R', 4: 'Y', 5: '?'}})
 
     def test_degap(self):
