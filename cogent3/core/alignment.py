@@ -579,7 +579,7 @@ class SequenceCollection(object):
         """items returns (name, value) pairs."""
         return [(n, self.named_seqs[n]) for n in self.names]
 
-    def iterSeqs(self, seq_order=None):
+    def iter_seqs(self, seq_order=None):
         """Iterates over values (sequences) in the alignment, in order.
 
         seq_order: list of keys giving the order in which seqs will be returned.
@@ -601,7 +601,7 @@ class SequenceCollection(object):
             yield get(key)
 
     def _take_seqs(self):
-        return list(self.iterSeqs())
+        return list(self.iter_seqs())
 
     Seqs = property(_take_seqs)  # access as attribute if using default order.
 
@@ -672,11 +672,11 @@ class SequenceCollection(object):
         pairs).
         """
         if pos_order:
-            for row in self.iterSeqs(seq_order):
+            for row in self.iter_seqs(seq_order):
                 for i in pos_order:
                     yield row[i]
         else:
-            for row in self.iterSeqs(seq_order):
+            for row in self.iter_seqs(seq_order):
                 for i in row:
                     yield i
 
