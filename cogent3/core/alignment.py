@@ -1131,7 +1131,7 @@ class SequenceCollection(object):
             seqs.append((name, seq))
         return self.__class__(MolType=self.MolType, data=seqs)
 
-    def hasTerminalStops(self, gc=None, allow_partial=False):
+    def has_terminal_stops(self, gc=None, allow_partial=False):
         """Returns True if any sequence has a terminal stop codon.
 
         Arguments:
