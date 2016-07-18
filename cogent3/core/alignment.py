@@ -1119,7 +1119,7 @@ class SequenceCollection(object):
             new_seqs.append((seq_name, seq.degap()))
         return SequenceCollection(MolType=self.MolType, data=new_seqs, **kwargs)
 
-    def withModifiedTermini(self):
+    def with_modified_termini(self):
         """Changes the termini to include termini char instead of gapmotif.
 
         Useful to correct the standard gap char output by most
