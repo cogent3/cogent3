@@ -722,7 +722,7 @@ class SequenceCollection(object):
         """Returns list of items where f(self.named_seqs[row][col]) is True."""
         return self.get_items(self.item_indices_if(f, negate))
 
-    def getSimilar(self, target, min_similarity=0.0, max_similarity=1.0,
+    def get_similar(self, target, min_similarity=0.0, max_similarity=1.0,
                    metric=frac_same, transform=None):
         """Returns new Alignment containing sequences similar to target.
 
