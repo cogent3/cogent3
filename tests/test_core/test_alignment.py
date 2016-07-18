@@ -604,10 +604,10 @@ class SequenceCollectionBaseTests(object):
                              'c': {'a': 2 / 7.0, 'b': 3 / 7.0, 'c': 7 / 7.0},
             })
 
-    def test_isRagged(self):
-        """SequenceCollection isRagged should return true if ragged alignment"""
-        assert(not self.identical.isRagged())
-        assert(not self.gaps.isRagged())
+    def test_is_ragged(self):
+        """SequenceCollection is_ragged should return true if ragged alignment"""
+        assert(not self.identical.is_ragged())
+        assert(not self.gaps.is_ragged())
 
     def test_toPhylip(self):
         """SequenceCollection should return PHYLIP string format correctly"""
@@ -1013,9 +1013,9 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         """SequenceCollection SeqLen get should work for ragged seqs"""
         self.assertEqual(self.ragged.SeqLen, 6)
 
-    def test_isRagged_ragged(self):
-        """SequenceCollection isRagged should return True if ragged"""
-        self.assertTrue(self.ragged.isRagged())
+    def test_is_ragged_ragged(self):
+        """SequenceCollection is_ragged should return True if ragged"""
+        self.assertTrue(self.ragged.is_ragged())
 
     def test_Seqs_ragged(self):
         """SequenceCollection Seqs should work on ragged alignment"""
@@ -1262,10 +1262,10 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(alignmentUpper.IUPACConsensus(PROTEIN),
                          'ACBEFGHIKLMNPZRS?UVWX-')
 
-    def test_isRagged(self):
-        """SequenceCollection isRagged should return true if ragged alignment"""
-        assert(not self.identical.isRagged())
-        assert(not self.gaps.isRagged())
+    def test_is_ragged(self):
+        """SequenceCollection is_ragged should return true if ragged alignment"""
+        assert(not self.identical.is_ragged())
+        assert(not self.gaps.is_ragged())
 
     def test_columnProbs(self):
         """SequenceCollection.columnProbs should find Pr(symbol) in each column"""

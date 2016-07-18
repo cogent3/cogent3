@@ -23,7 +23,7 @@ def phylip_from_alignment(aln, generic_label=True, make_seqlabel=None):
           format.
     """
     assert generic_label or make_seqlabel is not None
-    if aln.isRagged():
+    if aln.is_ragged():
         raise ValueError("Sequences in alignment are not all the same " +
                          "length. Cannot generate PHYLIP format.")
     num_seqs = len(aln.Seqs)

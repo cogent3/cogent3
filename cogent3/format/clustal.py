@@ -35,7 +35,7 @@ def clustal_from_alignment(aln, interleave_len=None):
     seqs = SequenceCollection(aln)
     clustal_list = ["CLUSTAL\n"]
 
-    if seqs.isRagged():
+    if seqs.is_ragged():
         raise ValueError("Sequences in alignment are not all the same length." +
                          "Cannot generate Clustal format.")
 
