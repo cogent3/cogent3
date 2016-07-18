@@ -786,7 +786,7 @@ class SequenceCollection(object):
                 result[j][i] = d
         return result
 
-    def isRagged(self):
+    def is_ragged(self):
         """Returns True if alignment has sequences of different lengths."""
         seqs = self.Seqs  # Get all sequences in alignment
         length = len(seqs[0])  # Get length of first sequence
