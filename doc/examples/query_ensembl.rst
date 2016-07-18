@@ -404,13 +404,13 @@ I could also have done that query using a ``StableId``, which I now do using the
      Relationships=ortholog_one2one
       Gene(Species='Rattus norvegicus'; BioType='protein_coding'; Description='breast cancer...
 
-The ``RelatedGenes`` object has a number of properties allowing you to get access to data. A ``Members`` attribute holds each of the ``Gene`` instances displayed above. The length of this attribute tells you how many hits there were, while each member has all of the capabilities described for ``Gene`` above, eg. a ``Cds`` property. There is also a ``getSeqLengths`` method which returns the vector of sequence lengths for the members. This method returns just the lengths of the individual genes.
+The ``RelatedGenes`` object has a number of properties allowing you to get access to data. A ``Members`` attribute holds each of the ``Gene`` instances displayed above. The length of this attribute tells you how many hits there were, while each member has all of the capabilities described for ``Gene`` above, eg. a ``Cds`` property. There is also a ``get_seqLengths`` method which returns the vector of sequence lengths for the members. This method returns just the lengths of the individual genes.
 
 .. doctest::
 
     >>> print orthologs.Members
     (Gene(Species='Rattus norvegicus'; BioType='protein_coding'; Descr...
-    >>> print orthologs.getSeqLengths()
+    >>> print orthologs.get_seqLengths()
     [40748, 84793, 47117]
 
 In addition there's a ``getMaxCdsLengths`` method for returning the lengths of the longest ``Cds`` from each member.
@@ -424,7 +424,7 @@ You can also obtain the sequences as a ``cogent`` ``SequenceCollection`` (unalig
 
 .. doctest::
 
-    >>> seqs = orthologs.getSeqCollection(feature_types='gene')
+    >>> seqs = orthologs.get_seqCollection(feature_types='gene')
     >>> print seqs.names
     ['Rattus norvegicus:chromosome:12:491...
 

@@ -433,7 +433,7 @@ We get the sequences as a sequence collection, with annotations for gene.
 
 .. doctest::
     
-    >>> seqs = orthologs.getSeqCollection(feature_types='gene')
+    >>> seqs = orthologs.get_seqCollection(feature_types='gene')
 
 Get CDS for all one-to-one orthologs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

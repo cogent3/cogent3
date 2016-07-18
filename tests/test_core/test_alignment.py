@@ -832,10 +832,10 @@ class SequenceCollectionBaseTests(object):
                 pass
 
     def test_getSeq(self):
-        """SequenceCollection.getSeq should return specified seq"""
+        """SequenceCollection.get_seq should return specified seq"""
         aln = self.Class({'seq1': 'GATTTT', 'seq2': 'GATC??'})
-        self.assertEqual(aln.getSeq('seq1'), 'GATTTT')
-        self.assertRaises(KeyError, aln.getSeq, 'seqx')
+        self.assertEqual(aln.get_seq('seq1'), 'GATTTT')
+        self.assertRaises(KeyError, aln.get_seq, 'seqx')
 
     def test_todict(self):
         """SequenceCollection.todict should return dict of strings (not obj)"""

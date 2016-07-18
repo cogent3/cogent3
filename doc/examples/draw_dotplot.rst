@@ -16,8 +16,8 @@ Load the alignment for illustrative purposes, I'll make one sequence a different
     >>> aln = LoadSeqs("data/test.paml", moltype=DNA)
     >>> feature = aln.addAnnotation(annotation.Feature, "misc_feature",
     ...                             "pprobs", [(38, 55)])
-    >>> seq1 = aln.getSeq('NineBande')[10:-3]
-    >>> seq2 = aln.getSeq('DogFaced')
+    >>> seq1 = aln.get_seq('NineBande')[10:-3]
+    >>> seq2 = aln.get_seq('DogFaced')
 
 Write out the dotplot as a pdf file in the current directory note that seq1 will be the x-axis, and seq2 the y-axis.
 

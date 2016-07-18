@@ -403,7 +403,7 @@ class AlignmentTestMethods(unittest.TestCase):
                 pass
 
     def test_seqnames(self):
-        s1 = self.alignment.getSeq('Mouse')
+        s1 = self.alignment.get_seq('Mouse')
         self.assertEqual(s1.getName(), 'Mouse')
 
     def test_withoutTerminalStopCodons(self):

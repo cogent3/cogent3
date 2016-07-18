@@ -100,7 +100,7 @@ class MapTest(unittest.TestCase):
         aln = LoadSeqs(data={
             'a': 'ATCGAAATCGAT',
             'b': 'ATCGA--TCGAT'})
-        b = aln.getSeq('b')
+        b = aln.get_seq('b')
         b.addAnnotation(Feature, 'test_type', 'test_label', [(4, 6)])
 
         answer = aln.getBySequenceAnnotation('b', 'test_type')[0].todict()
