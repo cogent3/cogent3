@@ -80,7 +80,7 @@ def fasta_from_alignment(aln, make_seqlabel=None, line_wrap=None, sorted=True):
         order.sort()
 
     try:
-        seq_dict = aln.NamedSeqs
+        seq_dict = aln.named_seqs
     except AttributeError:
         seq_dict = aln
 

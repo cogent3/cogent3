@@ -235,7 +235,7 @@ class SequenceCollectionBaseTests(object):
         d = {'a': 'AAAAA', 'b': 'BBBBB'}
         a = self.Class(d, Names=['a', 'b'])
         self.assertEqual(a, d)
-        self.assertEqual(list(a.NamedSeqs.items()), list(d.items()))
+        self.assertEqual(list(a.named_seqs.items()), list(d.items()))
 
     def test_init_name_mapped(self):
         """SequenceCollection init should allow name mapping function"""
@@ -243,19 +243,19 @@ class SequenceCollectionBaseTests(object):
         f = lambda x: x.upper()
         a = self.Class(d, label_to_name=f)
         self.assertNotEqual(a, d)
-        self.assertNotEqual(sorted(a.NamedSeqs.items()), sorted(d.items()))
+        self.assertNotEqual(sorted(a.named_seqs.items()), sorted(d.items()))
         d_upper = {'A': 'AAAAA', 'B': 'BBBBB'}
         self.assertEqual(a, d_upper)
-        self.assertEqual(sorted(a.NamedSeqs.items()), sorted(d_upper.items()))
+        self.assertEqual(sorted(a.named_seqs.items()), sorted(d_upper.items()))
 
     def test_init_seq(self):
         """SequenceCollection init from list of sequences should use indices as keys"""
         seqs = ['AAAAA', 'BBBBB', 'CCCCC']
         a = self.Class(seqs)
-        self.assertEqual(len(a.NamedSeqs), 3)
-        self.assertEqual(a.NamedSeqs['seq_0'], 'AAAAA')
-        self.assertEqual(a.NamedSeqs['seq_1'], 'BBBBB')
-        self.assertEqual(a.NamedSeqs['seq_2'], 'CCCCC')
+        self.assertEqual(len(a.named_seqs), 3)
+        self.assertEqual(a.named_seqs['seq_0'], 'AAAAA')
+        self.assertEqual(a.named_seqs['seq_1'], 'BBBBB')
+        self.assertEqual(a.named_seqs['seq_2'], 'CCCCC')
         self.assertEqual(a.names, ['seq_0', 'seq_1', 'seq_2'])
         self.assertEqual(list(a.Seqs), ['AAAAA', 'BBBBB', 'CCCCC'])
 
@@ -283,10 +283,10 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection init from list of (key,val) pairs should work correctly"""
         seqs = [['x', 'XXX'], ['b', 'BBB'], ['c', 'CCC']]
         a = self.Class(seqs)
-        self.assertEqual(len(a.NamedSeqs), 3)
-        self.assertEqual(a.NamedSeqs['x'], 'XXX')
-        self.assertEqual(a.NamedSeqs['b'], 'BBB')
-        self.assertEqual(a.NamedSeqs['c'], 'CCC')
+        self.assertEqual(len(a.named_seqs), 3)
+        self.assertEqual(a.named_seqs['x'], 'XXX')
+        self.assertEqual(a.named_seqs['b'], 'BBB')
+        self.assertEqual(a.named_seqs['c'], 'CCC')
         self.assertEqual(a.names, ['x', 'b', 'c'])
         self.assertEqual(list(a.Seqs), ['XXX', 'BBB', 'CCC'])
 
@@ -307,7 +307,7 @@ class SequenceCollectionBaseTests(object):
 
         self.assertEqual(first.names, ['a', 'b'])
         self.assertEqual(sec.names, ['b', 'a'])
-        self.assertEqual(set(un.names), set(un.NamedSeqs.keys()))
+        self.assertEqual(set(un.names), set(un.named_seqs.keys()))
 
         first_list = list(first.Seqs)
         sec_list = list(sec.Seqs)
@@ -332,7 +332,7 @@ class SequenceCollectionBaseTests(object):
         s = '>aa\nAC\n>bb\nAA\n>c\nGG\n'.splitlines()
         p = MinimalFastaParser(s)
         aln = self.Class(p, MolType=DNA)
-        self.assertEqual(aln.NamedSeqs['aa'], 'AC')
+        self.assertEqual(aln.named_seqs['aa'], 'AC')
         self.assertEqual(aln.toFasta(), '>aa\nAC\n>bb\nAA\n>c\nGG')
         s2_ORIG = '>x\nCA\n>b\nAA\n>>xx\nGG'
         s2 = '>aa\nAC\n>bb\nAA\n>c\nGG\n'
@@ -371,14 +371,14 @@ class SequenceCollectionBaseTests(object):
 
     def test_iterSeqs(self):
         """SequenceCollection iterSeqs() method should support reordering of seqs"""
-        self.ragged_padded = self.Class(self.ragged_padded.NamedSeqs,
+        self.ragged_padded = self.Class(self.ragged_padded.named_seqs,
                                         Names=['a', 'b', 'c'])
         seqs = list(self.ragged_padded.iterSeqs())
         self.assertEqual(seqs, ['AAAAAA', 'AAA---', 'AAAA--'])
         seqs = list(self.ragged_padded.iterSeqs(seq_order=['b', 'a', 'a']))
         self.assertEqual(seqs, ['AAA---', 'AAAAAA', 'AAAAAA'])
         self.assertSameObj(seqs[1], seqs[2])
-        self.assertSameObj(seqs[0], self.ragged_padded.NamedSeqs['b'])
+        self.assertSameObj(seqs[0], self.ragged_padded.named_seqs['b'])
 
     def test_Items(self):
         """SequenceCollection Items should iterate over items in specified order."""
@@ -402,7 +402,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(list(r.iterItems(seq_order=['c', 'b'],
                                           pos_order=[5, 1, 3])), list('-AA-A-'))
         # should not interfere with superclass iteritems()
-        i = list(r.NamedSeqs.items())
+        i = list(r.named_seqs.items())
         i.sort()
         self.assertEqual(
             i, [('a', 'AAAAAA'), ('b', 'AAA---'), ('c', 'AAAA--')])
@@ -449,7 +449,7 @@ class SequenceCollectionBaseTests(object):
         srp.names = 'cba'
         self.assertEqual(srp.takeSeqsIf(is_med),
                          {'c': 'AAAA--', 'a': 'AAAAAA'})
-        srp.names = list(srp.NamedSeqs.keys())
+        srp.names = list(srp.named_seqs.keys())
         self.assertEqual(srp.takeSeqsIf(is_med),
                          {'c': 'AAAA--', 'a': 'AAAAAA'})
         self.assertEqual(srp.takeSeqsIf(is_any), srp)
@@ -473,7 +473,7 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection item_indices_if should return coordinates of matching items"""
         is_vowel = lambda x: x in 'AEIOU'
         # reverse name order to test that it's not alphabetical
-        self.mixed = self.Class(self.mixed.NamedSeqs, Names=['b', 'a'])
+        self.mixed = self.Class(self.mixed.named_seqs, Names=['b', 'a'])
         self.assertEqual(self.mixed.item_indices_if(is_vowel),
                          [('b', 3), ('a', 0), ('a', 4)])
         is_lower = lambda x: x.islower()
@@ -486,7 +486,7 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection items_if should return matching items"""
         is_vowel = lambda x: x in 'AEIOU'
         # reverse name order to test that it's not alphabetical
-        self.mixed = self.Class(self.mixed.NamedSeqs, Names=['b', 'a'])
+        self.mixed = self.Class(self.mixed.named_seqs, Names=['b', 'a'])
         self.assertEqual(self.mixed.items_if(is_vowel), ['O', 'A', 'E'])
         self.assertEqual(self.one_seq.items_if(is_vowel), list('AAAAA'))
         # should be able to negate
@@ -499,56 +499,56 @@ class SequenceCollectionBaseTests(object):
         x = RnaSequence('GGGGGGGGGG')
         y = RnaSequence('----------')
         # test min and max similarity ranges
-        result = aln.getSimilar(aln.NamedSeqs['a'], min_similarity=0.4,
+        result = aln.getSimilar(aln.named_seqs['a'], min_similarity=0.4,
                                 max_similarity=0.7)
         for seq in 'cefg':
-            self.assertContains(result.NamedSeqs, seq)
-            self.assertEqual(result.NamedSeqs[seq], aln.NamedSeqs[seq])
-        self.assertEqual(len(result.NamedSeqs), 4)
+            self.assertContains(result.named_seqs, seq)
+            self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
+        self.assertEqual(len(result.named_seqs), 4)
 
-        result = aln.getSimilar(aln.NamedSeqs['a'], min_similarity=0.95,
+        result = aln.getSimilar(aln.named_seqs['a'], min_similarity=0.95,
                                 max_similarity=1)
         for seq in 'a':
-            self.assertContains(result.NamedSeqs, seq)
-            self.assertEqual(result.NamedSeqs[seq], aln.NamedSeqs[seq])
-        self.assertEqual(len(result.NamedSeqs), 1)
+            self.assertContains(result.named_seqs, seq)
+            self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
+        self.assertEqual(len(result.named_seqs), 1)
 
-        result = aln.getSimilar(aln.NamedSeqs['a'], min_similarity=0.75,
+        result = aln.getSimilar(aln.named_seqs['a'], min_similarity=0.75,
                                 max_similarity=0.85)
         for seq in 'bd':
-            self.assertContains(result.NamedSeqs, seq)
-            self.assertEqual(result.NamedSeqs[seq], aln.NamedSeqs[seq])
-        self.assertEqual(len(result.NamedSeqs), 2)
+            self.assertContains(result.named_seqs, seq)
+            self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
+        self.assertEqual(len(result.named_seqs), 2)
 
-        result = aln.getSimilar(aln.NamedSeqs['a'], min_similarity=0,
+        result = aln.getSimilar(aln.named_seqs['a'], min_similarity=0,
                                 max_similarity=0.2)
         self.assertEqual(result, {})
 
         # test some sequence transformations
         transform = lambda s: s[1:4]
-        result = aln.getSimilar(aln.NamedSeqs['a'], min_similarity=0.5,
+        result = aln.getSimilar(aln.named_seqs['a'], min_similarity=0.5,
                                 transform=transform)
         for seq in 'abdfg':
-            self.assertContains(result.NamedSeqs, seq)
-            self.assertEqual(result.NamedSeqs[seq], aln.NamedSeqs[seq])
-        self.assertEqual(len(result.NamedSeqs), 5)
+            self.assertContains(result.named_seqs, seq)
+            self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
+        self.assertEqual(len(result.named_seqs), 5)
 
         transform = lambda s: s[-3:]
-        result = aln.getSimilar(aln.NamedSeqs['a'], min_similarity=0.5,
+        result = aln.getSimilar(aln.named_seqs['a'], min_similarity=0.5,
                                 transform=transform)
         for seq in 'abcde':
-            self.assertContains(result.NamedSeqs, seq)
-            self.assertEqual(result.NamedSeqs[seq], aln.NamedSeqs[seq])
-        self.assertEqual(len(result.NamedSeqs), 5)
+            self.assertContains(result.named_seqs, seq)
+            self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
+        self.assertEqual(len(result.named_seqs), 5)
 
         # test a different distance metric
         metric = lambda x, y: str(x).count('G') + str(y).count('G')
-        result = aln.getSimilar(aln.NamedSeqs['a'], min_similarity=5,
+        result = aln.getSimilar(aln.named_seqs['a'], min_similarity=5,
                                 max_similarity=10, metric=metric)
         for seq in 'ef':
-            self.assertContains(result.NamedSeqs, seq)
-            self.assertEqual(result.NamedSeqs[seq], aln.NamedSeqs[seq])
-        self.assertEqual(len(result.NamedSeqs), 2)
+            self.assertContains(result.named_seqs, seq)
+            self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
+        self.assertEqual(len(result.named_seqs), 2)
 
         # test the combination of a transform and a distance metric
         aln = self.Class(dict(enumerate(map(RnaSequence,
@@ -559,40 +559,40 @@ class SequenceCollectionBaseTests(object):
         null_transform = lambda s: RnaSequence(str(s))
         # first, do it without the transformation
         try:
-            result = aln.getSimilar(aln.NamedSeqs[0], min_similarity=0.5,
+            result = aln.getSimilar(aln.named_seqs[0], min_similarity=0.5,
                                     metric=metric)
         except TypeError:  # need to coerce to RNA seq w/ null_transform
-            result = aln.getSimilar(aln.NamedSeqs[0], min_similarity=0.5,
+            result = aln.getSimilar(aln.named_seqs[0], min_similarity=0.5,
                                     metric=metric, transform=null_transform)
         for seq in [0, 2]:
-            self.assertContains(result.NamedSeqs, seq)
-            self.assertEqual(result.NamedSeqs[seq], aln.NamedSeqs[seq])
-        self.assertEqual(len(result.NamedSeqs), 2)
+            self.assertContains(result.named_seqs, seq)
+            self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
+        self.assertEqual(len(result.named_seqs), 2)
         # repeat with higher similarity
         try:
-            result = aln.getSimilar(aln.NamedSeqs[0], min_similarity=0.8,
+            result = aln.getSimilar(aln.named_seqs[0], min_similarity=0.8,
                                     metric=metric)
         except TypeError:  # need to coerce to RNA
-            result = aln.getSimilar(aln.NamedSeqs[0], min_similarity=0.8,
+            result = aln.getSimilar(aln.named_seqs[0], min_similarity=0.8,
                                     metric=metric, transform=null_transform)
         for seq in [0]:
-            self.assertContains(result.NamedSeqs, seq)
-            self.assertEqual(result.NamedSeqs[seq], aln.NamedSeqs[seq])
-        self.assertEqual(len(result.NamedSeqs), 1)
+            self.assertContains(result.named_seqs, seq)
+            self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
+        self.assertEqual(len(result.named_seqs), 1)
         # then, verify that the transform changes the results
-        result = aln.getSimilar(aln.NamedSeqs[0], min_similarity=0.5,
+        result = aln.getSimilar(aln.named_seqs[0], min_similarity=0.5,
                                 metric=metric, transform=transform)
         for seq in [0, 1, 2]:
-            self.assertContains(result.NamedSeqs, seq)
-            self.assertEqual(result.NamedSeqs[seq], aln.NamedSeqs[seq])
-        self.assertEqual(len(result.NamedSeqs), 3)
+            self.assertContains(result.named_seqs, seq)
+            self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
+        self.assertEqual(len(result.named_seqs), 3)
 
-        result = aln.getSimilar(aln.NamedSeqs[0], min_similarity=0.8,
+        result = aln.getSimilar(aln.named_seqs[0], min_similarity=0.8,
                                 metric=metric, transform=transform)
         for seq in [0, 1]:
-            self.assertContains(result.NamedSeqs, seq)
-            self.assertEqual(result.NamedSeqs[seq], aln.NamedSeqs[seq])
-        self.assertEqual(len(result.NamedSeqs), 2)
+            self.assertContains(result.named_seqs, seq)
+            self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
+        self.assertEqual(len(result.named_seqs), 2)
 
     def test_distance_matrix(self):
         """SequenceCollection distance_matrix should produce correct scores"""
@@ -681,10 +681,10 @@ class SequenceCollectionBaseTests(object):
         seq_5.addFeature('xyzzz', 'abc', [(1, 2)])
         annot = {'seq1': seq_1, 'seq5': seq_5}
         aln.copy_annotations(annot)
-        aln_seq_1 = aln.NamedSeqs['seq1']
+        aln_seq_1 = aln.named_seqs['seq1']
         if not hasattr(aln_seq_1, 'annotations'):
             aln_seq_1 = aln_seq_1.data
-        aln_seq_2 = aln.NamedSeqs['seq2']
+        aln_seq_2 = aln.named_seqs['seq2']
         if not hasattr(aln_seq_2, 'annotations'):
             aln_seq_2 = aln_seq_2.data
         self.assertEqual(len(aln_seq_1.annotations), 1)
@@ -700,10 +700,10 @@ class SequenceCollectionBaseTests(object):
         ]
         gff = list(map('\t'.join, gff))
         aln.annotate_from_gff(gff)
-        aln_seq_1 = aln.NamedSeqs['seq1']
+        aln_seq_1 = aln.named_seqs['seq1']
         if not hasattr(aln_seq_1, 'annotations'):
             aln_seq_1 = aln_seq_1.data
-        aln_seq_2 = aln.NamedSeqs['seq2']
+        aln_seq_2 = aln.named_seqs['seq2']
         if not hasattr(aln_seq_2, 'annotations'):
             aln_seq_2 = aln_seq_2.data
         self.assertEqual(len(aln_seq_1.annotations), 1)
@@ -1030,7 +1030,7 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         seqs = list(self.ragged.iterSeqs(seq_order=['b', 'a', 'a']))
         self.assertEqual(seqs, ['AAA', 'AAAAAA', 'AAAAAA'])
         self.assertSameObj(seqs[1], seqs[2])
-        self.assertSameObj(seqs[0], self.ragged.NamedSeqs['b'])
+        self.assertSameObj(seqs[0], self.ragged.named_seqs['b'])
 
     def test_toPHYLIP_ragged(self):
         """SequenceCollection should refuse to convert ragged seqs to phylip"""
@@ -1076,11 +1076,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
     def test_iterPositions(self):
         #"""SequenceCollection iterPositions() method should support reordering of #cols"""
-        r = self.Class(self.ragged_padded.NamedSeqs, Names=['c', 'b'])
+        r = self.Class(self.ragged_padded.named_seqs, Names=['c', 'b'])
         self.assertEqual(list(r.iterPositions(pos_order=[5, 1, 3])),
                          list(map(list, ['--', 'AA', 'A-'])))
         # reorder names
-        r = self.Class(self.ragged_padded.NamedSeqs, Names=['a', 'b', 'c'])
+        r = self.Class(self.ragged_padded.named_seqs, Names=['a', 'b', 'c'])
         cols = list(r.iterPositions())
         self.assertEqual(cols, list(
             map(list, ['AAA', 'AAA', 'AAA', 'A-A', 'A--', 'A--'])))
@@ -1103,7 +1103,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         gap_2nd = lambda x: x[1] == '-'
         gap_3rd = lambda x: x[2] == '-'
         is_list = lambda x: isinstance(x, list)
-        self.gaps = self.Class(self.gaps.NamedSeqs, Names=['a', 'b', 'c'])
+        self.gaps = self.Class(self.gaps.named_seqs, Names=['a', 'b', 'c'])
 
         self.assertEqual(self.gaps.getPositionIndices(gap_1st), [])
         self.assertEqual(self.gaps.getPositionIndices(gap_2nd), [1, 2, 4])
@@ -1196,7 +1196,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
         # when we increase the number of sequences to 6, more differences
         # start to appear.
-        new_aln_data = aln.NamedSeqs.copy()
+        new_aln_data = aln.named_seqs.copy()
         new_aln_data['d'] = '-------'
         new_aln_data['e'] = 'XYZXYZX'
         new_aln_data['f'] = 'AB-CDEF'

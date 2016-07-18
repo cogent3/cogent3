@@ -41,7 +41,7 @@ class FastaTests(TestCase):
                                '4th': 'UUUU'}
         self.alignment_object = Alignment(self.alignment_dict)
         for label, info in zip(self.labels, self.infos):
-            self.alignment_object.NamedSeqs[label].Info = Info(species=info)
+            self.alignment_object.named_seqs[label].Info = Info(species=info)
         self.fasta_with_label_species =\
         '>1st:Dog\nAAAA\n>2nd:Cat\nCCCC\n>3rd:Mouse\nGGGG\n>4th:Rat\nUUUU'
         self.alignment_object.RowOrder = ['1st', '2nd', '3rd', '4th']
@@ -56,7 +56,7 @@ class FastaTests(TestCase):
         self.assertEqual(fasta_from_sequences(self.sequences_with_names),
                          self.fasta_with_label)
         make_seqlabel = lambda seq: "%s:%s" % (seq.Name, seq.Info.species)
-        seqs = [self.alignment_object.NamedSeqs[label]
+        seqs = [self.alignment_object.named_seqs[label]
             for label in self.labels]
         self.assertEqual(fasta_from_sequences(seqs,
                                               make_seqlabel=make_seqlabel), self.fasta_with_label_species)

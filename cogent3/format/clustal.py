@@ -49,7 +49,7 @@ def clustal_from_alignment(aln, interleave_len=None):
     max_spaces = label_max + 4
 
     # Get ordered seqs
-    ordered_seqs = [seqs.NamedSeqs[label] for label in order]
+    ordered_seqs = [seqs.named_seqs[label] for label in order]
 
     if interleave_len is not None:
         curr_ix = 0

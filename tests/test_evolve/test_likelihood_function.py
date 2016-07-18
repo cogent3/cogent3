@@ -142,7 +142,7 @@ class LikelihoodCalcs(TestCase):
         except AssertionError:
             pass
 
-        collection = aln.degap().NamedSeqs
+        collection = aln.degap().named_seqs
         collection.pop("Human")
         tree = LoadTree(treestring="%s" % str(tuple(collection.keys())))
         lf = submod.makeLikelihoodFunction(tree, aligned=False)
@@ -476,7 +476,7 @@ motif  mprobs
             lf.setAlignment(al)
             simalign = lf.simulateAlignment(exclude_internal=False,
                                             root_sequence=root_sequence)
-            root = simalign.NamedSeqs['root']
+            root = simalign.named_seqs['root']
             self.assertEqual(str(root), str(root_sequence))
 
         root_sequence = DNA.makeSequence('GTAATT')

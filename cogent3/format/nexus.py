@@ -30,7 +30,7 @@ def nexus_from_alignment(aln, seq_type, interleave_len=50):
                      seq_type + "gap=-;")
     nexus_out.append("    matrix")
     cur_ix = 0
-    names_seqs = sorted(aln.NamedSeqs.items())
+    names_seqs = sorted(aln.named_seqs.items())
     while cur_ix < aln_len:
         nexus_out.extend(["    %s    %s" % (x, y[cur_ix:cur_ix +
                                                  interleave_len]) for x, y in names_seqs])
