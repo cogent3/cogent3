@@ -855,10 +855,10 @@ class SequenceCollectionBaseTests(object):
         aln = self.Class({'s1': 'ATGRY?', 's2': 'T-AG??'}, MolType=DNA)
         self.assertEqual(aln.degap(), {'s1': 'ATGRY', 's2': 'TAG'})
 
-    def test_withModifiedTermini(self):
-        """SequenceCollection.withModifiedTermini should code trailing gaps as ?"""
+    def test_with_modified_termini(self):
+        """SequenceCollection.with_modified_termini should code trailing gaps as ?"""
         aln = self.Class({'s1': 'AATGR--', 's2': '-T-AG?-'}, MolType=DNA)
-        self.assertEqual(aln.withModifiedTermini(),
+        self.assertEqual(aln.with_modified_termini(),
                          {'s1': 'AATGR??', 's2': '?T-AG??'})
 
     def test_omitSeqsTemplate(self):
