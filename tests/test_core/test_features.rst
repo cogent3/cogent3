@@ -155,7 +155,7 @@ Sequence features can be accessed via a containing ``Alignment``:
     >y
     TTTT--TTTT
     <BLANKLINE>
-    >>> exon = aln.getSeq('x').addAnnotation(Feature, 'exon', 'fred', [(3,8)])
+    >>> exon = aln.get_seq('x').addAnnotation(Feature, 'exon', 'fred', [(3,8)])
     >>> aln_exons = aln.getAnnotationsFromSequence('x', 'exon')
     >>> aln_exons = aln.getAnnotationsFromAnySequence('exon')
 
@@ -184,7 +184,7 @@ Similarly alignment features can be projected onto the aligned sequences, where 
     >>> exons = aln.getProjectedAnnotations('y', 'exon') 
     >>> print(exons)
     [exon "fred" at [-2-, 4:7]/8]
-    >>> print(aln.getSeq('y')[exons[0].map.withoutGaps()])
+    >>> print(aln.get_seq('y')[exons[0].map.withoutGaps()])
     TTT
 
 We copy the annotations from another sequence,
@@ -194,7 +194,7 @@ We copy the annotations from another sequence,
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--CCCC']])
     >>> s = DNA.makeSequence("AAAAAAAAA", Name="x")
     >>> exon = s.addAnnotation(Feature, 'exon', 'fred', [(3,8)])
-    >>> exon = aln.getSeq('x').copy_annotations(s)
+    >>> exon = aln.get_seq('x').copy_annotations(s)
     >>> aln_exons = list(aln.getAnnotationsFromSequence('x', 'exon'))
     >>> print(aln_exons)
     [exon "fred" at [4:9]/10]
@@ -203,7 +203,7 @@ even if the name is different.
 
 .. doctest::
     
-    >>> exon = aln.getSeq('y').copy_annotations(s)
+    >>> exon = aln.get_seq('y').copy_annotations(s)
     >>> aln_exons = list(aln.getAnnotationsFromSequence('y', 'exon'))
     >>> print(aln_exons)
     [exon "fred" at [3:4, 6:10]/10]
@@ -221,7 +221,7 @@ If the feature lies outside the sequence being copied to, you get a lost span
     >>> aln = LoadSeqs(data=[['x', '-AAAA'], ['y', 'TTTTT']])
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> exon = seq.addFeature('exon', 'A', [(5,8)])
-    >>> aln.getSeq('x').copy_annotations(seq)
+    >>> aln.get_seq('x').copy_annotations(seq)
     >>> copied = list(aln.getAnnotationsFromSequence('x', 'exon'))
     >>> copied
     [exon "A" at [5:5, -4-]/5]
@@ -235,7 +235,7 @@ You can copy to a sequence with a different name, in a different alignment if th
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> match_exon = seq.addFeature('exon', 'A', [(5,8)])
-    >>> aln.getSeq('y').copy_annotations(seq)
+    >>> aln.get_seq('y').copy_annotations(seq)
     >>> copied = list(aln.getAnnotationsFromSequence('y', 'exon'))
     >>> copied
     [exon "A" at [7:10]/10]
@@ -247,7 +247,7 @@ If the sequence is shorter, again you get a lost span.
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
     >>> diff_len_seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCCCCCCCCCC', 'x')
     >>> nonmatch = diff_len_seq.addFeature('repeat', 'A', [(12,14)])
-    >>> aln.getSeq('y').copy_annotations(diff_len_seq)
+    >>> aln.get_seq('y').copy_annotations(diff_len_seq)
     >>> copied = list(aln.getAnnotationsFromSequence('y', 'repeat'))
     >>> copied
     [repeat "A" at [10:10, -6-]/10]
@@ -257,7 +257,7 @@ We consider cases where there are terminal gaps.
 .. doctest::
     
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', '------TTTT']])
-    >>> exon = aln.getSeq('x').addFeature('exon', 'fred', [(3,8)])
+    >>> exon = aln.get_seq('x').addFeature('exon', 'fred', [(3,8)])
     >>> aln_exons = list(aln.getAnnotationsFromSequence('x', 'exon'))
     >>> print(aln_exons)
     [exon "fred" at [4:9]/10]
@@ -268,7 +268,7 @@ We consider cases where there are terminal gaps.
     --TTT
     <BLANKLINE>
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--T---']])
-    >>> exon = aln.getSeq('x').addFeature('exon', 'fred', [(3,8)])
+    >>> exon = aln.get_seq('x').addFeature('exon', 'fred', [(3,8)])
     >>> aln_exons = list(aln.getAnnotationsFromSequence('x', 'exon'))
     >>> print(aln_exons[0].getSlice())
     >x
@@ -289,7 +289,7 @@ In this case, only those residues included within the feature are covered - note
     >y
     -T----TTTT
     <BLANKLINE>
-    >>> exon = aln.getSeq('x').addFeature('exon', 'ex1', [(0,4)])
+    >>> exon = aln.get_seq('x').addFeature('exon', 'ex1', [(0,4)])
     >>> print(exon)
     exon "ex1" at [0:4]/9
     >>> print(exon.getSlice())
@@ -356,13 +356,13 @@ We create an alignment with a sequence that has two different annotation types.
     >y
     -T----TTTTG-GTT
     <BLANKLINE>
-    >>> exon = aln.getSeq('x').addFeature('exon', 'norwegian', [(0,4)])
+    >>> exon = aln.get_seq('x').addFeature('exon', 'norwegian', [(0,4)])
     >>> print(exon.getSlice())
     CCCC
-    >>> repeat = aln.getSeq('x').addFeature('repeat', 'blue', [(9,12)])
+    >>> repeat = aln.get_seq('x').addFeature('repeat', 'blue', [(9,12)])
     >>> print(repeat.getSlice())
     GGG
-    >>> repeat = aln.getSeq('y').addFeature('repeat', 'frog', [(5,7)])
+    >>> repeat = aln.get_seq('y').addFeature('repeat', 'frog', [(5,7)])
     >>> print(repeat.getSlice())
     GG
 
@@ -370,22 +370,22 @@ Each sequence should correctly mask either the single feature, it's shadow, or t
 
 .. doctest::
     
-    >>> print(aln.getSeq('x').withMaskedAnnotations('exon', mask_char='?'))
+    >>> print(aln.get_seq('x').withMaskedAnnotations('exon', mask_char='?'))
     ????AAAAAGGGAA
-    >>> print(aln.getSeq('x').withMaskedAnnotations('exon', mask_char='?',
+    >>> print(aln.get_seq('x').withMaskedAnnotations('exon', mask_char='?',
     ...                                         shadow=True))
     CCCC??????????
-    >>> print(aln.getSeq('x').withMaskedAnnotations(['exon', 'repeat'],
+    >>> print(aln.get_seq('x').withMaskedAnnotations(['exon', 'repeat'],
     ...                                           mask_char='?'))
     ????AAAAA???AA
-    >>> print(aln.getSeq('x').withMaskedAnnotations(['exon', 'repeat'],
+    >>> print(aln.get_seq('x').withMaskedAnnotations(['exon', 'repeat'],
     ...                                           mask_char='?', shadow=True))
     CCCC?????GGG??
-    >>> print(aln.getSeq('y').withMaskedAnnotations('exon', mask_char='?'))
+    >>> print(aln.get_seq('y').withMaskedAnnotations('exon', mask_char='?'))
     TTTTTGGTT
-    >>> print(aln.getSeq('y').withMaskedAnnotations('repeat', mask_char='?'))
+    >>> print(aln.get_seq('y').withMaskedAnnotations('repeat', mask_char='?'))
     TTTTT??TT
-    >>> print(aln.getSeq('y').withMaskedAnnotations('repeat', mask_char='?',
+    >>> print(aln.get_seq('y').withMaskedAnnotations('repeat', mask_char='?',
     ...                                          shadow=True))
     ?????GG??
 
@@ -442,22 +442,22 @@ We add annotations to the sequences as a series.
 
 .. doctest::
     
-    >>> as_series.getSeq('human').addFeature('cpgsite', 'cpg', [(0,2), (5,7)])
+    >>> as_series.get_seq('human').addFeature('cpgsite', 'cpg', [(0,2), (5,7)])
     cpgsite "cpg" at [0:2, 5:7]/10
-    >>> as_series.getSeq('mouse').addFeature('cpgsite', 'cpg', [(5,7), (8,10)])
+    >>> as_series.get_seq('mouse').addFeature('cpgsite', 'cpg', [(5,7), (8,10)])
     cpgsite "cpg" at [5:7, 8:10]/10
 
 We add the annotations to the sequences one segment at a time.
 
 .. doctest::
     
-    >>> as_items.getSeq('human').addFeature('cpgsite', 'cpg', [(0,2)])
+    >>> as_items.get_seq('human').addFeature('cpgsite', 'cpg', [(0,2)])
     cpgsite "cpg" at [0:2]/10
-    >>> as_items.getSeq('human').addFeature('cpgsite', 'cpg', [(5,7)])
+    >>> as_items.get_seq('human').addFeature('cpgsite', 'cpg', [(5,7)])
     cpgsite "cpg" at [5:7]/10
-    >>> as_items.getSeq('mouse').addFeature('cpgsite', 'cpg', [(5,7)])
+    >>> as_items.get_seq('mouse').addFeature('cpgsite', 'cpg', [(5,7)])
     cpgsite "cpg" at [5:7]/10
-    >>> as_items.getSeq('mouse').addFeature('cpgsite', 'cpg', [(8,10)])
+    >>> as_items.get_seq('mouse').addFeature('cpgsite', 'cpg', [(8,10)])
     cpgsite "cpg" at [8:10]/10
 
 These different constructions should generate the same output.

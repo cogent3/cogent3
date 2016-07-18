@@ -176,7 +176,7 @@ The elements of a collection or alignment
 Accessing individual sequences from a collection or alignment by name
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Using the ``getSeq`` method allows for extracting an unaligned sequence from a collection or alignment by name.
+Using the ``get_seq`` method allows for extracting an unaligned sequence from a collection or alignment by name.
 
 .. doctest::
 
@@ -184,7 +184,7 @@ Using the ``getSeq`` method allows for extracting an unaligned sequence from a c
     >>> aln = LoadSeqs(data= [('seq1', 'ATGAA------'),
     ...                       ('seq2', 'ATG-AGTGATG'),
     ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
-    >>> seq = aln.getSeq('seq1')
+    >>> seq = aln.get_seq('seq1')
     >>> seq.Name
     'seq1'
     >>> type(seq)
@@ -253,9 +253,9 @@ Note the subset contain references to the original sequences, not copies.
 
     >>> from cogent import LoadSeqs, DNA
     >>> aln = LoadSeqs('data/test.paml', moltype=DNA)
-    >>> seq = aln.getSeq('Human')
+    >>> seq = aln.get_seq('Human')
     >>> new = aln.takeSeqs(['Human', 'HowlerMon'])
-    >>> id(new.getSeq('Human')) == id(aln.getSeq('Human'))
+    >>> id(new.get_seq('Human')) == id(aln.get_seq('Human'))
     True
 
 Alignments
@@ -728,7 +728,7 @@ What about counting the total incidence of dinucleotides including those not in-
 
     >>> seqs = [('my_seq', 'AAAGTAAG')]
     >>> aln = LoadSeqs(data=seqs, moltype=DNA)
-    >>> my_seq = aln.getSeq('my_seq')
+    >>> my_seq = aln.get_seq('my_seq')
     >>> my_seq.count('AA')
     2
     >>> 'AAA'.count('AA')

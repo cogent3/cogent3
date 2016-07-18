@@ -169,7 +169,7 @@ The following annotation is directly applied onto the sequence and so is in unga
     >>> from cogent import LoadSeqs
     >>> aln1 = LoadSeqs(data=[['x','-AAACCCCCA'],
     ...                       ['y','TTTT--TTTT']])
-    >>> seq_exon = aln1.getSeq('x').addFeature('exon', 'A', [(3,8)])
+    >>> seq_exon = aln1.get_seq('x').addFeature('exon', 'A', [(3,8)])
 
 Adding to an alignment
 """"""""""""""""""""""
@@ -299,7 +299,7 @@ You can copy annotations onto sequences with the same name, even if the length d
     >>> aln2 = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> match_exon = seq.addFeature('exon', 'A', [(3,8)])
-    >>> aln2.getSeq('x').copy_annotations(seq)
+    >>> aln2.get_seq('x').copy_annotations(seq)
     >>> copied = list(aln2.getAnnotationsFromSequence('x', 'exon'))
     >>> copied
     [exon "A" at [4:9]/10]
@@ -311,7 +311,7 @@ but if the feature lies outside the sequence being copied to, you get a lost spa
     >>> aln2 = LoadSeqs(data=[['x', '-AAAA'], ['y', 'TTTTT']])
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> match_exon = seq.addFeature('exon', 'A', [(5,8)])
-    >>> aln2.getSeq('x').copy_annotations(seq)
+    >>> aln2.get_seq('x').copy_annotations(seq)
     >>> copied = list(aln2.getAnnotationsFromSequence('x', 'exon'))
     >>> copied
     [exon "A" at [5:5, -4-]/5]
@@ -326,7 +326,7 @@ You can copy to a sequence with a different name, in a different alignment if th
     >>> aln2 = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> match_exon = seq.addFeature('exon', 'A', [(5,8)])
-    >>> aln2.getSeq('y').copy_annotations(seq)
+    >>> aln2.get_seq('y').copy_annotations(seq)
     >>> copied = list(aln2.getAnnotationsFromSequence('y', 'exon'))
     >>> copied
     [exon "A" at [7:10]/10]
@@ -338,7 +338,7 @@ If the sequence is shorter, again you get a lost span.
     >>> aln2 = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
     >>> diff_len_seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCCCCCCCCCC', 'x')
     >>> nonmatch = diff_len_seq.addFeature('repeat', 'A', [(12,14)])
-    >>> aln2.getSeq('y').copy_annotations(diff_len_seq)
+    >>> aln2.get_seq('y').copy_annotations(diff_len_seq)
     >>> copied = list(aln2.getAnnotationsFromSequence('y', 'repeat'))
     >>> copied
     [repeat "A" at [10:10, -6-]/10]
@@ -393,7 +393,7 @@ If you query for a feature from a sequence, it's alignment coordinates may be di
 .. doctest::
 
     >>> aln3 = LoadSeqs(data=[['x', 'C-CCCAAAAA'], ['y', '-T----TTTT']])
-    >>> exon = aln3.getSeq('x').addFeature('exon', 'ex1', [(0,4)])
+    >>> exon = aln3.get_seq('x').addFeature('exon', 'ex1', [(0,4)])
     >>> print exon.getSlice()
     CCCC
     >>> aln_exons = list(aln3.getAnnotationsFromSequence('x', 'exon'))
@@ -467,7 +467,7 @@ We mask exon's on an alignment.
     >>> from cogent import LoadSeqs, DNA
     >>> aln = LoadSeqs(data=[['x', 'C-CCCAAAAAGGGAA'],
     ...                       ['y', '-T----TTTTG-GTT']], moltype=DNA)
-    >>> exon = aln.getSeq('x').addFeature('exon', 'norwegian', [(0,4)])
+    >>> exon = aln.get_seq('x').addFeature('exon', 'norwegian', [(0,4)])
     >>> print aln.withMaskedAnnotations('exon', mask_char='?')
     >x
     ?-???AAAAAGGGAA
@@ -563,7 +563,7 @@ Sequence features can be accessed via a containing ``Alignment``.
     >y
     TTTT--TTTT
     <BLANKLINE>
-    >>> exon = aln.getSeq('x').addFeature('exon', '1', [(3,8)])
+    >>> exon = aln.get_seq('x').addFeature('exon', '1', [(3,8)])
     >>> aln_exons = aln.getAnnotationsFromSequence('x', 'exon')
     >>> aln_exons = aln.getAnnotationsFromAnySequence('exon')
     >>> aln_exons

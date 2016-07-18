@@ -81,7 +81,7 @@ Also, the application controller is set up to require a path to the data directo
     >>> from cogent import LoadSeqs, DNA
     >>> from cogent3.app.blast import blast_seqs, Blastall
     >>> seqs = LoadSeqs('data/inseqs.fasta', moltype=DNA, aligned=False)
-    >>> seq = seqs.getSeq('s2_like_seq')
+    >>> seq = seqs.get_seq('s2_like_seq')
     >>> seq
     DnaSequence(TGCAGCT... 28)
     >>> params={'-p':'blastn','-m':'9'}
@@ -153,7 +153,7 @@ NCBI recommends that you use XML as the output for BLAST. (They reserve the righ
     >>> from cogent import LoadSeqs, DNA
     >>> from cogent3.app.blast import blast_seqs, Blastall
     >>> seqs = LoadSeqs('data/inseqs.fasta', moltype=DNA, aligned=False)
-    >>> seq = seqs.getSeq('s2_like_seq')
+    >>> seq = seqs.get_seq('s2_like_seq')
     >>> params={'-p':'blastn','-m':'7'}
     >>> result = blast_seqs([seq], 
     ...    Blastall, 
@@ -238,7 +238,7 @@ Now that we have built our protein BLAST database, we can load our sequence and 
     >>> from cogent import LoadSeqs, PROTEIN
     >>> from cogent3.app.blast import blast_seqs, Blastall
     >>> seqs = LoadSeqs('data/inseqs_protein.fasta', moltype=PROTEIN, aligned=False)
-    >>> seq = seqs.getSeq('1091044_fragment')
+    >>> seq = seqs.get_seq('1091044_fragment')
 	>>> seq
 	ProteinSequence(IPLDFDK... 26)
 	

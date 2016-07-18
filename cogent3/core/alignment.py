@@ -1077,7 +1077,7 @@ class SequenceCollection(object):
             raise AttributeError("%s -- %s" %
                                  (msg, "Did you set a DNA MolType?"))
 
-    def getSeq(self, seqname):
+    def get_seq(self, seqname):
         """Return a sequence object for the specified seqname.
         """
         return self.named_seqs[seqname]
@@ -2648,7 +2648,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         keep = Map(locations, parent_length=len(self))
         return self.gappedByMap(keep, Info=self.Info)
 
-    def getSeq(self, seqname):
+    def get_seq(self, seqname):
         """Return a ungapped Sequence object for the specified seqname.
 
         Note: always returns Sequence object, not ModelSequence.
@@ -2786,7 +2786,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                              .format(ref_seq_name, "\n".join(self.names)))
 
         if str(ref_aln.get_gapped_seq(ref_seq_name)) \
-                != str(self.getSeq(ref_seq_name)):
+                != str(self.get_seq(ref_seq_name)):
             raise ValueError("Reference sequences are unequal."
                              "The reference sequence must not contain gaps")
 

@@ -1902,7 +1902,7 @@ class CoevolutionTests(TestCase):
         new_aln = n_random_seqs(aln1, 3)
         self.assertEqual(new_aln.num_seqs, 3)
         for n in new_aln.names:
-            self.assertEqual(new_aln.getSeq(n), aln1.getSeq(n))
+            self.assertEqual(new_aln.get_seq(n), aln1.get_seq(n))
 
         # Objects are equal when all are requested
         self.assertEqual(n_random_seqs(aln1, 4), aln1)
