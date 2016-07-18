@@ -457,31 +457,31 @@ class AlignmentTestMethods(unittest.TestCase):
         self.assertEqual(aln.todict(),
                          {'seq1': 'ACG-----', 'seq2': 'ACGAC---', 'seq3': 'ACGC-ATG'})
 
-    def test_hasTerminalStops(self):
+    def test_has_terminal_stops(self):
         """test truth values for terminal stops"""
         # seq collections
         seq_coll = LoadSeqs(data={'seq1': 'ACGTAA', 'seq2': 'ACG',
                                     'seq3': 'ACGCGT'}, moltype=DNA, aligned=False)
-        assert seq_coll.hasTerminalStops() == True
+        assert seq_coll.has_terminal_stops() == True
         seq_coll = LoadSeqs(data={'seq1': 'ACGTAC', 'seq2': 'ACGACG',
                                     'seq3': 'ACGCGT'}, moltype=DNA, aligned=False)
-        assert seq_coll.hasTerminalStops() == False
+        assert seq_coll.has_terminal_stops() == False
         # alignments
         aln = LoadSeqs(data={'seq1': 'ACGTAA', 'seq2': 'ACGCAA',
                                'seq3': 'ACGCGT'}, moltype=DNA)
-        assert aln.hasTerminalStops() == True
+        assert aln.has_terminal_stops() == True
         aln = LoadSeqs(data={'seq1': 'ACGTAA', 'seq2': 'ACGTAG',
                                'seq3': 'ACGTGA'}, moltype=DNA)
-        assert aln.hasTerminalStops() == True
+        assert aln.has_terminal_stops() == True
         aln = LoadSeqs(data={'seq1': 'ACGCAA', 'seq2': 'ACGCAA',
                                'seq3': 'ACGCGT'}, moltype=DNA)
-        assert aln.hasTerminalStops() == False
+        assert aln.has_terminal_stops() == False
 
         # ValueError if ragged end
         aln = LoadSeqs(data={'seq1': 'ACGCAA', 'seq2': 'ACGTAA',
                                'seq3': 'ACGCG-'}, moltype=DNA)
-        self.assertRaises(ValueError, aln.hasTerminalStops)
-        self.assertTrue(aln.hasTerminalStops(allow_partial=True))
+        self.assertRaises(ValueError, aln.has_terminal_stops)
+        self.assertTrue(aln.has_terminal_stops(allow_partial=True))
 
     def test_slice(self):
         seqs = {'seq1': 'ACGTANGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'}
