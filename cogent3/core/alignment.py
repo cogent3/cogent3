@@ -649,7 +649,7 @@ class SequenceCollection(object):
         # get all the seqs where the function is True
         return [key for key in self.names if new_f(get(key))]
 
-    def takeSeqsIf(self, f, negate=False, **kwargs):
+    def take_seqs_if(self, f, negate=False, **kwargs):
         """Returns new Alignment containing seqs where f(row) is True.
 
         Note that the seqs in the new Alignment are the same objects as the
@@ -762,7 +762,7 @@ class SequenceCollection(object):
                 result = m(x)
                 return min_similarity <= result <= max_similarity
 
-        return self.takeSeqsIf(f)
+        return self.take_seqs_if(f)
 
     def distance_matrix(self, f):
         """Returns Matrix containing pairwise distances between sequences.
@@ -1312,7 +1312,7 @@ class SequenceCollection(object):
 
         Need to make the function because if it's a method of Alignment, it
         has unwanted 'self' and 'allowed_gap_frac' parameters that impede the
-        use of map() in takeSeqsIf.
+        use of map() in take_seqs_if.
 
         WARNING: may not work correctly if component sequences have gaps that
         are not the Alignment gap character. This is because the gaps are
@@ -1405,9 +1405,9 @@ class SequenceCollection(object):
         """
         gaps_ok = self._make_gaps_ok(allowed_gap_frac)
 
-        return self.takeSeqsIf(gaps_ok)
+        return self.take_seqs_if(gaps_ok)
 
-    def omitGapRuns(self, allowed_run=1):
+    def omit_gap_runs(self, allowed_run=1):
         """Returns new alignment where all seqs have runs of gaps <=allowed_run.
 
         Note that seqs with exactly allowed_run gaps are not deleted.
@@ -1435,7 +1435,7 @@ class SequenceCollection(object):
             # does include the case where the sequence is empty)
             return True
 
-        return self.takeSeqsIf(ok_gap_run)
+        return self.take_seqs_if(ok_gap_run)
 
     def omitSeqsTemplate(self, template_name, gap_fraction, gap_run):
         """Returns new alignment where all seqs are well aligned with template.
@@ -1447,7 +1447,7 @@ class SequenceCollection(object):
         """
         template = self.named_seqs[template_name]
         gap_filter = make_gap_filter(template, gap_fraction, gap_run)
-        return self.takeSeqsIf(gap_filter)
+        return self.take_seqs_if(gap_filter)
 
     def toDna(self):
         """Returns the alignment as DNA."""
@@ -2357,7 +2357,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
 
         Need to make the function because if it's a method of Alignment, it
         has unwanted 'self' and 'allowed_gap_frac' parameters that impede the
-        use of map() in takeSeqsIf.
+        use of map() in take_seqs_if.
 
         WARNING: may not work correctly if component sequences have gaps that
         are not the Alignment gap character. This is because the gaps are

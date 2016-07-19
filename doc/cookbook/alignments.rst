@@ -646,7 +646,7 @@ Alternatively, you can extract only the sequences which are not specified by pas
 Extracting sequences using an arbitrary function into a new alignment object
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-You can use ``takeSeqsIf`` to extract sequences into a new alignment object based on whether an arbitrary function applied to the sequence evaluates to True. For example, to extract sequences which don't contain any N bases you could do the following:
+You can use ``take_seqs_if`` to extract sequences into a new alignment object based on whether an arbitrary function applied to the sequence evaluates to True. For example, to extract sequences which don't contain any N bases you could do the following:
 
 .. doctest::
 
@@ -656,14 +656,14 @@ You can use ``takeSeqsIf`` to extract sequences into a new alignment object base
     ...                       ('seq3', 'ATGAAGGNGATG')], moltype=DNA)
     >>> def no_N_chars(s):
     ...     return 'N' not in s
-    >>> aln.takeSeqsIf(no_N_chars)
+    >>> aln.take_seqs_if(no_N_chars)
     2 x 12 dna alignment: seq1[ATGAAGGTG--...], seq2[ATGAAGGTGAT...]
 
 You can additionally get the sequences where the provided function evaluates to False:
 
 .. doctest::
 
-    >>> aln.takeSeqsIf(no_N_chars,negate=True)
+    >>> aln.take_seqs_if(no_N_chars,negate=True)
     1 x 12 dna alignment: seq3[ATGAAGGNGAT...]
 
 Computing alignment statistics
