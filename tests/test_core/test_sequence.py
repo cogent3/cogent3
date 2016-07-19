@@ -77,11 +77,11 @@ class SequenceTests(TestCase):
         d = self.DNA('UCAtu')
         self.assertEqual(str(d), 'TCATT')
 
-    def test_toDna(self):
+    def test_to_dna(self):
         """Returns copy of self as DNA."""
         r = self.RNA('TCA')
         self.assertEqual(str(r), 'UCA')
-        self.assertEqual(str(r.toDna()), 'TCA')
+        self.assertEqual(str(r.to_dna()), 'TCA')
 
     def test_toRna(self):
         """Returns copy of self as RNA."""
@@ -849,7 +849,7 @@ class SequenceIntegrationTests(TestCase):
         self.assertEqual(str(d), 'TTTCGT')
         self.assertEqual(d._data, array([0, 28]))
         self.assertEqual(str(d.toRna()), 'UUUCGU')
-        self.assertEqual(str(d.toDna()), 'TTTCGT')
+        self.assertEqual(str(d.to_dna()), 'TTTCGT')
 
     def test_ModelRnaCodonSequence(self):
         """ModelRnaCodonSequence should behave as expected"""
@@ -857,7 +857,7 @@ class SequenceIntegrationTests(TestCase):
         self.assertEqual(str(r), 'UUUCGU')
         self.assertEqual(r._data, array([0, 28]))
         self.assertEqual(str(r.toRna()), 'UUUCGU')
-        self.assertEqual(str(r.toDna()), 'TTTCGT')
+        self.assertEqual(str(r.to_dna()), 'TTTCGT')
 
 
 class ModelSequenceTests(SequenceTests):
