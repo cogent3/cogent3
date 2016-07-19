@@ -672,6 +672,12 @@ def dist_manhattan(datamtx, strict=True):
     If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
+    def bool_diff(x,y):
+        return sum(abs(x ^ y))
+    
+    def number_diff(x,y):
+        return sum(abs(x - y))
+        
     if strict:
         if not all(isfinite(datamtx)):
             raise ValueError("non finite number in input matrix")
@@ -687,10 +693,16 @@ def dist_manhattan(datamtx, strict=True):
     if numrows == 0 or numcols == 0:
         return zeros((0, 0), 'd')
     dists = zeros((numrows, numrows), 'd')
+    
+    if datamtx.dtype == 'bool':
+        diff = bool_diff
+    else:
+        diff = number_diff
+    
     for i in range(numrows):
         r1 = datamtx[i]  # cache here
         for j in range(i):
-            dists[i, j] = dists[j, i] = sum(abs(r1 - datamtx[j]))
+            dists[i, j] = dists[j, i] = diff(r1, datamtx[j])
 
     return dists
 
