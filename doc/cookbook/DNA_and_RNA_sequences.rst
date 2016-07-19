@@ -132,7 +132,7 @@ Convert an RNA sequence to DNA
 
     >>> from cogent import RNA
    >>> rnaseq = RNA.makeSequence('ACGUACGUACGUACGU')
-   >>> print rnaseq.toDna()
+   >>> print rnaseq.to_dna()
    ACGTACGTACGTACGT
 
 Testing complementarity

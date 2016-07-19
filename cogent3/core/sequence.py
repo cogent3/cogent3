@@ -885,7 +885,7 @@ class NucleicAcidSequence(Sequence):
         """Returns copy of self as RNA."""
         return RnaSequence(self)
 
-    def toDna(self):
+    def to_dna(self):
         """Returns copy of self as DNA."""
         return DnaSequence(self)
 
@@ -1379,7 +1379,7 @@ class ModelNucleicAcidSequence(ModelSequence):
         """Returns self as RNA"""
         return ModelRnaSequence(self._data)
 
-    def toDna(self):
+    def to_dna(self):
         """Returns self as DNA"""
         return ModelDnaSequence(self._data)
 
@@ -1436,7 +1436,7 @@ class ModelCodonSequence(ModelSequence):
         Supports interface of other NucleicAcidSequences."""
         return self
 
-    def toDna(self):
+    def to_dna(self):
         """Returns a ModelDnaSequence from the data in self"""
         unpacked = self.Alphabet.unpackArrays(self._data)
         result = zeros((len(self._data), 3))

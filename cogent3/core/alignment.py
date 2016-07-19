@@ -1449,9 +1449,9 @@ class SequenceCollection(object):
         gap_filter = make_gap_filter(template, gap_fraction, gap_run)
         return self.take_seqs_if(gap_filter)
 
-    def toDna(self):
+    def to_dna(self):
         """Returns the alignment as DNA."""
-        seqs = [self.named_seqs[name].toDna() for name in self.names]
+        seqs = [self.named_seqs[name].to_dna() for name in self.names]
         aln = self.__class__(data=seqs, Names=self.names[
                              :], Name=self.Name, Info=self.Info)
         if isinstance(self, _Annotatable) and self.annotations:
@@ -1611,8 +1611,8 @@ class Aligned(object):
     def toRna(self):
         return Aligned(self.map, self.data.toRna())
 
-    def toDna(self):
-        return Aligned(self.map, self.data.toDna())
+    def to_dna(self):
+        return Aligned(self.map, self.data.to_dna())
 
     def getTracks(self, policy):
         policy = policy.at(self.map.inverse())

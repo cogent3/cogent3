@@ -274,10 +274,10 @@ class AlignmentTestMethods(unittest.TestCase):
         aln_Rna = LoadSeqs(data=dna, moltype=RNA)
         collect_Dna = LoadSeqs(data=dna, aligned=False, moltype=DNA)
         collect_Rna = LoadSeqs(data=rna, aligned=False, moltype=RNA)
-        assert aln_Rna.toDna().todict() == dna, (aln_Rna.toDna().todict(), dna)
+        assert aln_Rna.to_dna().todict() == dna, (aln_Rna.to_dna().todict(), dna)
         assert aln_Dna.toRna().todict() == rna, (aln_Dna.toRna().todict(), rna)
-        assert collect_Rna.toDna().todict() == dna, \
-        (collect_Rna.toDna().todict(), dna)
+        assert collect_Rna.to_dna().todict() == dna, \
+        (collect_Rna.to_dna().todict(), dna)
         assert collect_Dna.toRna().todict() == rna, \
         (collect_Dna.toRna().todict(), rna)
 
