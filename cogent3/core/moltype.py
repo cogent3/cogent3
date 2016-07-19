@@ -808,7 +808,7 @@ class MolType(object):
     def degap(self, sequence):
         """Deletes all gap characters from sequence."""
         try:
-            trans = dict([(i, None) for i in map(ord, '-?')])
+            trans = dict([(i, None) for i in map(ord, self.Gaps)])
             return sequence.__class__(sequence.translate(trans))
         except AttributeError:
             gap = self.Gaps
@@ -853,10 +853,7 @@ class MolType(object):
     def countGaps(self, sequence):
         """Counts the gaps in the specified sequence."""
         gaps = self.Gaps
-        gap_count = 0
-        for s in sequence:
-            if s in gaps:
-                gap_count += 1
+        gap_count = sum(1 for s in sequence if s in gaps)
         return gap_count
 
     def countDegenerate(self, sequence):
