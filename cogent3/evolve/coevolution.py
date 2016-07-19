@@ -1519,7 +1519,7 @@ def coevolve_alignments(method, alignment1, alignment2,
     # disk. This is sometimes useful for post-processing steps.
     if merged_aln_filepath:
         merged_aln_file = open(merged_aln_filepath, 'w')
-        merged_aln_file.write(merged_alignment.toFasta())
+        merged_aln_file.write(merged_alignment.to_fasta())
         merged_aln_file.close()
 
     if return_full:

@@ -467,7 +467,7 @@ We sample all one-to-one orthologs for a group of species, generating a FASTA fo
     ...             seqs = [] # exclude this gene
     ...             break
     ...     if len(seqs) == len(common_names):
-    ...         fasta = '\n'.join(s.toFasta() for s in seqs)
+    ...         fasta = '\n'.join(s.to_fasta() for s in seqs)
     ...         break
 
 Get within species paralogs

@@ -36,7 +36,7 @@ Converting to FASTA format
 
     >>> from cogent import DNA
     >>> my_seq = DNA.makeSequence('AGTACACTGGT')
-    >>> print my_seq.toFasta()
+    >>> print my_seq.to_fasta()
     >0
     AGTACACTGGT
 
@@ -47,7 +47,7 @@ Convert a RNA sequence to FASTA format
 
     >>> from cogent import RNA
     >>> rnaseq = RNA.makeSequence('ACGUACGUACGUACGU')
-    >>> rnaseq.toFasta()
+    >>> rnaseq.to_fasta()
     '>0\nACGUACGUACGUACGU'
 
 Creating a named sequence
@@ -70,7 +70,7 @@ Setting or changing the name of a sequence
     >>> from cogent import DNA
     >>> my_seq = DNA.makeSequence('AGTACACTGGT')
     >>> my_seq.Name = 'my_gene'
-    >>> print my_seq.toFasta()
+    >>> print my_seq.to_fasta()
     >my_gene
     AGTACACTGGT
 
@@ -111,7 +111,7 @@ Translate a ``DnaSequence`` to protein
     >>> pep = my_seq.getTranslation()
     >>> type(pep)
     <class 'cogent.core.sequence.ProteinSequence'>
-    >>> print pep.toFasta()
+    >>> print pep.to_fasta()
     >protein-X
     AWESQME
 

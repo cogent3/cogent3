@@ -67,7 +67,7 @@ We convert the sequences to a ``SequenceCollection`` using ``LoadSeqs`` and then
     
     >>> from cogent import LoadSeqs
     >>> seqs = LoadSeqs(data=seqs, aligned=False)
-    >>> print seqs.NamedSeqs['Clup.VWF_CANFA'].toFasta()
+    >>> print seqs.NamedSeqs['Clup.VWF_CANFA'].to_fasta()
     >Clup.VWF_CANFA
     MSPTRLVRVLLALALI...
 

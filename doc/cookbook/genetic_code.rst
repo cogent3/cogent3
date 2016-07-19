@@ -154,7 +154,7 @@ Remove the stop codon first
     >>> my_seq = DNA.makeSequence('ATGCACTGGTAA','my_gene')
     >>> seq = my_seq.withoutTerminalStopCodon()
     >>> pep = seq.getTranslation()
-    >>> print pep.toFasta()
+    >>> print pep.to_fasta()
     >my_gene
     MHW
     >>> print type(pep)
@@ -167,7 +167,7 @@ Or we can just grab the correct slice from the ``DnaSequence`` object
 
     >>> from cogent import DNA
     >>> my_seq = DNA.makeSequence('CAAATGTATTAA','my_gene')
-    >>> pep = my_seq[:-3].getTranslation().toFasta()
+    >>> pep = my_seq[:-3].getTranslation().to_fasta()
     >>> print pep
     >my_gene
     QMY

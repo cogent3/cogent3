@@ -73,7 +73,7 @@ def assign_sequential_names(ignored, num_seqs, base_name='seq', start_at=0):
 
 
 class SeqLabeler(object):
-    """Allows flexible seq labeling in toFasta()."""
+    """Allows flexible seq labeling in to_fasta()."""
 
     def __init__(self, aln, label_f=assign_sequential_names, **kwargs):
         """Initializes a new seq labeler."""
@@ -810,7 +810,7 @@ class SequenceCollection(object):
         return phylip_from_alignment(self, generic_label=generic_label,
                                      make_seqlabel=make_seqlabel)
 
-    def toFasta(self, make_seqlabel=None):
+    def to_fasta(self, make_seqlabel=None):
         """Return alignment in Fasta format
 
         Arguments:
