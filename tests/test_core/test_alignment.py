@@ -439,23 +439,23 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(srp.get_seq_indices(is_med, negate=True), ['b'])
         self.assertEqual(srp.get_seq_indices(is_any, negate=True), [])
 
-    def test_takeSeqsIf(self):
-        """SequenceCollection takeSeqsIf should return seqs where f(row) is True"""
+    def test_take_seqs_if(self):
+        """SequenceCollection take_seqs_if should return seqs where f(row) is True"""
         is_long = lambda x: len(x) > 10
         is_med = lambda x: len(str(x).replace('-', '')) > 3
         is_any = lambda x: len(x) > 0
         srp = self.ragged_padded
-        self.assertEqual(srp.takeSeqsIf(is_long), {})
+        self.assertEqual(srp.take_seqs_if(is_long), {})
         srp.names = 'cba'
-        self.assertEqual(srp.takeSeqsIf(is_med),
+        self.assertEqual(srp.take_seqs_if(is_med),
                          {'c': 'AAAA--', 'a': 'AAAAAA'})
         srp.names = list(srp.named_seqs.keys())
-        self.assertEqual(srp.takeSeqsIf(is_med),
+        self.assertEqual(srp.take_seqs_if(is_med),
                          {'c': 'AAAA--', 'a': 'AAAAAA'})
-        self.assertEqual(srp.takeSeqsIf(is_any), srp)
-        self.assertTrue(isinstance(srp.takeSeqsIf(is_med), SequenceCollection))
+        self.assertEqual(srp.take_seqs_if(is_any), srp)
+        self.assertTrue(isinstance(srp.take_seqs_if(is_med), SequenceCollection))
         # should be able to negate
-        self.assertEqual(srp.takeSeqsIf(is_med, negate=True),
+        self.assertEqual(srp.take_seqs_if(is_med, negate=True),
                          {'b': 'AAA---'})
 
     def test_getItems(self):
@@ -943,25 +943,25 @@ class SequenceCollectionBaseTests(object):
         self.assertTrue(isinstance(self.gaps_rna.omit_gap_seqs(3.0 / 7),
                                    SequenceCollection))
 
-    def test_omitGapRuns(self):
-        """SequenceCollection omitGapRuns should return alignment w/o runs of gaps"""
+    def test_omit_gap_runs(self):
+        """SequenceCollection omit_gap_runs should return alignment w/o runs of gaps"""
         # negative value will still let through ungapped sequences
-        self.assertEqual(self.gaps.omitGapRuns(-5), {'a': 'AAAAAAA'})
+        self.assertEqual(self.gaps.omit_gap_runs(-5), {'a': 'AAAAAAA'})
         # test edge effects
-        self.assertEqual(self.gaps.omitGapRuns(0), {'a': 'AAAAAAA'})
-        self.assertEqual(self.gaps.omitGapRuns(1), {'a': 'AAAAAAA'})
-        self.assertEqual(self.gaps.omitGapRuns(
+        self.assertEqual(self.gaps.omit_gap_runs(0), {'a': 'AAAAAAA'})
+        self.assertEqual(self.gaps.omit_gap_runs(1), {'a': 'AAAAAAA'})
+        self.assertEqual(self.gaps.omit_gap_runs(
             2), {'a': 'AAAAAAA', 'b': 'A--A-AA'})
-        self.assertEqual(self.gaps.omitGapRuns(
+        self.assertEqual(self.gaps.omit_gap_runs(
             3), {'a': 'AAAAAAA', 'b': 'A--A-AA'})
-        self.assertEqual(self.gaps.omitGapRuns(
+        self.assertEqual(self.gaps.omit_gap_runs(
             4), {'a': 'AAAAAAA', 'b': 'A--A-AA'})
-        self.assertEqual(self.gaps.omitGapRuns(5), self.gaps)
-        self.assertEqual(self.gaps.omitGapRuns(6), self.gaps)
-        self.assertEqual(self.gaps.omitGapRuns(1000), self.gaps)
+        self.assertEqual(self.gaps.omit_gap_runs(5), self.gaps)
+        self.assertEqual(self.gaps.omit_gap_runs(6), self.gaps)
+        self.assertEqual(self.gaps.omit_gap_runs(1000), self.gaps)
         # test new object creation
-        self.assertNotSameObj(self.gaps.omitGapRuns(6), self.gaps)
-        self.assertTrue(isinstance(self.gaps.omitGapRuns(6),
+        self.assertNotSameObj(self.gaps.omit_gap_runs(6), self.gaps)
+        self.assertTrue(isinstance(self.gaps.omit_gap_runs(6),
                                    SequenceCollection))
 
     def test_consistent_gap_degen_handling(self):
