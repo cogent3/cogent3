@@ -861,22 +861,6 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(aln.with_modified_termini(),
                          {'s1': 'AATGR??', 's2': '?T-AG??'})
 
-    def test_omitSeqsTemplate(self):
-        """SequenceCollection.omitSeqsTemplate returns new aln with well-aln to temp"""
-        aln = self.omitSeqsTemplate_aln
-        result = aln.omitSeqsTemplate('s3', 0.9, 5)
-        self.assertEqual(result, {'s3': 'UUCCUUCUU-UUC',
-                                  's4': 'UU-UUUU-UUUUC'})
-        result2 = aln.omitSeqsTemplate('s4', 0.9, 4)
-        self.assertEqual(result2, {'s3': 'UUCCUUCUU-UUC',
-                                   's4': 'UU-UUUU-UUUUC'})
-        result3 = aln.omitSeqsTemplate('s1', 0.9, 4)
-        self.assertEqual(result3, {'s2': 'UC------U---C',
-                                   's1': 'UC-----CU---C', 's5': '-------------'})
-        result4 = aln.omitSeqsTemplate('s3', 0.5, 13)
-        self.assertEqual(result4, {'s3': 'UUCCUUCUU-UUC',
-                                   's4': 'UU-UUUU-UUUUC'})
-
     def test_make_gap_filter(self):
         """make_gap_filter returns f(seq) -> True if aligned ok w/ query"""
         s1 = RnaSequence('UC-----CU---C')
@@ -1222,6 +1206,22 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(aln.omitGapPositions(0.5, del_seqs=True,
                                               seq_constructor=coerce_to_string),
                          {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF', 'd': '----'})
+
+    def test_omitSeqsTemplate(self):
+        """Alignment.omitSeqsTemplate returns new aln with well-aln to temp"""
+        aln = self.omitSeqsTemplate_aln
+        result = aln.omitSeqsTemplate('s3', 0.9, 5)
+        self.assertEqual(result, {'s3': 'UUCCUUCUU-UUC',
+                                  's4': 'UU-UUUU-UUUUC'})
+        result2 = aln.omitSeqsTemplate('s4', 0.9, 4)
+        self.assertEqual(result2, {'s3': 'UUCCUUCUU-UUC',
+                                   's4': 'UU-UUUU-UUUUC'})
+        result3 = aln.omitSeqsTemplate('s1', 0.9, 4)
+        self.assertEqual(result3, {'s2': 'UC------U---C',
+                                   's1': 'UC-----CU---C', 's5': '-------------'})
+        result4 = aln.omitSeqsTemplate('s3', 0.5, 13)
+        self.assertEqual(result4, {'s3': 'UUCCUUCUU-UUC',
+                                   's4': 'UU-UUUU-UUUUC'})
 
     def test_IUPACConsensus_RNA(self):
         """SequenceCollection IUPACConsensus should use RNA IUPAC symbols correctly"""

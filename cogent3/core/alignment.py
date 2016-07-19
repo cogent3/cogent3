@@ -1299,14 +1299,6 @@ class SequenceCollection(object):
     def count_gaps(self, seq_name):
         return len(self.named_seqs[seq_name].map.gaps())
 
-    def getSeqFreqs(self):
-        """Returns Profile of counts: seq by character.
-
-        See documentation for _get_freqs: this just wraps it and converts the
-        result into a Profile object organized per-sequence (i.e. per row).
-        """
-        return Profile(self._get_freqs(0), self.Alphabet)
-
     def _make_gaps_ok(self, allowed_gap_frac):
         """Makes the gaps_ok function used by omitGapPositions and omit_gap_seqs.
 
@@ -1330,72 +1322,6 @@ class SequenceCollection(object):
             return num_gaps / seq_len <= allowed_gap_frac
 
         return gaps_ok
-
-    def omitGapPositions(self, allowed_gap_frac=1 - eps, del_seqs=False,
-                         allowed_frac_bad_cols=0, seq_constructor=None):
-        """Returns new alignment where all cols have <= allowed_gap_frac gaps.
-
-        allowed_gap_frac says what proportion of gaps is allowed in each
-        column (default is 1-eps, i.e. all cols with at least one non-gap
-        character are preserved).
-
-        If del_seqs is True (default:False), deletes the sequences that don't
-        have gaps where everything else does. Otherwise, just deletes the
-        corresponding column from all sequences, in which case real data as
-        well as gaps can be removed.
-
-        Uses seq_constructor(seq) to make each new sequence object.
-
-        Note: a sequence that is all gaps will not be deleted by del_seqs
-        (even if all the positions have been deleted), since it has no non-gaps
-        in positions that are being deleted for their gap content. Possibly,
-        this decision should be revisited since it may be a surprising
-        result (and there are more convenient ways to return the sequences
-        that consist wholly of gaps).
-        """
-        if seq_constructor is None:
-            seq_constructor = self.MolType.Sequence
-        gaps_ok = self._make_gaps_ok(allowed_gap_frac)
-        # if we're not deleting the 'naughty' seqs that contribute to the
-        # gaps, it's easy...
-        if not del_seqs:
-            return self.takePositionsIf(f=gaps_ok,
-                                        seq_constructor=seq_constructor)
-        # otherwise, we have to figure out which seqs to delete.
-        # if we get here, we're doing del_seqs.
-        cols_to_delete = dict.fromkeys(self.getPositionIndices(gaps_ok,
-                                                               negate=True))
-        default_gap_f = self.MolType.Gaps.__contains__
-
-        bad_cols_per_row = {}
-        for key, row in list(self.named_seqs.items()):
-            try:
-                is_gap = row.Alphabet.Gaps.__contains__
-            except AttributeError:
-                is_gap = default_gap_f
-
-            for col in cols_to_delete:
-                if not is_gap(str(row)[col]):
-                    if key not in bad_cols_per_row:
-                        bad_cols_per_row[key] = 1
-                    else:
-                        bad_cols_per_row[key] += 1
-        # figure out which of the seqs we're deleting
-        get = self.named_seqs.__getitem__
-        seqs_to_delete = {}
-        for key, count in list(bad_cols_per_row.items()):
-            if float(count) / len(get(key)) >= allowed_frac_bad_cols:
-                seqs_to_delete[key] = True
-        # It's _much_ more efficient to delete the seqs before the cols.
-        good_seqs = self.take_seqs(seqs_to_delete, negate=True)
-        cols_to_keep = dict.fromkeys(list(range(self.SeqLen)))
-        for c in cols_to_delete:
-            del cols_to_keep[c]
-        if good_seqs:
-            return good_seqs.takePositions(cols=list(cols_to_keep.keys()),
-                                           seq_constructor=seq_constructor)
-        else:
-            return {}
 
     def omit_gap_seqs(self, allowed_gap_frac=0):
         """Returns new alignment with seqs that have <= allowed_gap_frac.
@@ -1436,18 +1362,6 @@ class SequenceCollection(object):
             return True
 
         return self.take_seqs_if(ok_gap_run)
-
-    def omitSeqsTemplate(self, template_name, gap_fraction, gap_run):
-        """Returns new alignment where all seqs are well aligned with template.
-
-        gap_fraction = fraction of positions that either have a gap in the
-            template but not in the seq or in the seq but not in the template
-        gap_run = number of consecutive gaps tolerated in query relative to
-            sequence or sequence relative to query
-        """
-        template = self.named_seqs[template_name]
-        gap_filter = make_gap_filter(template, gap_fraction, gap_run)
-        return self.take_seqs_if(gap_filter)
 
     def to_dna(self):
         """Returns the alignment as DNA."""
@@ -1840,6 +1754,14 @@ class AlignmentI(object):
         da = DenseAlignment(self, MolType=self.MolType, Alphabet=self.Alphabet)
         return da._get_freqs(index)
 
+    def getSeqFreqs(self):
+        """Returns Profile of counts: seq by character.
+
+        See documentation for _get_freqs: this just wraps it and converts the
+        result into a Profile object organized per-sequence (i.e. per row).
+        """
+        return Profile(self._get_freqs(0), self.Alphabet)
+
     def getPosFreqs(self):
         """Returns Profile of counts: position by character.
 
@@ -1847,6 +1769,84 @@ class AlignmentI(object):
         result into a Profile object organized per-position (i.e. per column).
         """
         return Profile(self._get_freqs(1), self.Alphabet)
+
+    def omitGapPositions(self, allowed_gap_frac=1 - eps, del_seqs=False,
+                         allowed_frac_bad_cols=0, seq_constructor=None):
+        """Returns new alignment where all cols have <= allowed_gap_frac gaps.
+
+        allowed_gap_frac says what proportion of gaps is allowed in each
+        column (default is 1-eps, i.e. all cols with at least one non-gap
+        character are preserved).
+
+        If del_seqs is True (default:False), deletes the sequences that don't
+        have gaps where everything else does. Otherwise, just deletes the
+        corresponding column from all sequences, in which case real data as
+        well as gaps can be removed.
+
+        Uses seq_constructor(seq) to make each new sequence object.
+
+        Note: a sequence that is all gaps will not be deleted by del_seqs
+        (even if all the positions have been deleted), since it has no non-gaps
+        in positions that are being deleted for their gap content. Possibly,
+        this decision should be revisited since it may be a surprising
+        result (and there are more convenient ways to return the sequences
+        that consist wholly of gaps).
+        """
+        if seq_constructor is None:
+            seq_constructor = self.MolType.Sequence
+        gaps_ok = self._make_gaps_ok(allowed_gap_frac)
+        # if we're not deleting the 'naughty' seqs that contribute to the
+        # gaps, it's easy...
+        if not del_seqs:
+            return self.takePositionsIf(f=gaps_ok,
+                                        seq_constructor=seq_constructor)
+        # otherwise, we have to figure out which seqs to delete.
+        # if we get here, we're doing del_seqs.
+        cols_to_delete = dict.fromkeys(self.getPositionIndices(gaps_ok,
+                                                               negate=True))
+        default_gap_f = self.MolType.Gaps.__contains__
+
+        bad_cols_per_row = {}
+        for key, row in list(self.named_seqs.items()):
+            try:
+                is_gap = row.Alphabet.Gaps.__contains__
+            except AttributeError:
+                is_gap = default_gap_f
+
+            for col in cols_to_delete:
+                if not is_gap(str(row)[col]):
+                    if key not in bad_cols_per_row:
+                        bad_cols_per_row[key] = 1
+                    else:
+                        bad_cols_per_row[key] += 1
+        # figure out which of the seqs we're deleting
+        get = self.named_seqs.__getitem__
+        seqs_to_delete = {}
+        for key, count in list(bad_cols_per_row.items()):
+            if float(count) / len(get(key)) >= allowed_frac_bad_cols:
+                seqs_to_delete[key] = True
+        # It's _much_ more efficient to delete the seqs before the cols.
+        good_seqs = self.take_seqs(seqs_to_delete, negate=True)
+        cols_to_keep = dict.fromkeys(list(range(self.SeqLen)))
+        for c in cols_to_delete:
+            del cols_to_keep[c]
+        if good_seqs:
+            return good_seqs.takePositions(cols=list(cols_to_keep.keys()),
+                                           seq_constructor=seq_constructor)
+        else:
+            return {}
+
+    def omitSeqsTemplate(self, template_name, gap_fraction, gap_run):
+        """Returns new alignment where all seqs are well aligned with template.
+
+        gap_fraction = fraction of positions that either have a gap in the
+            template but not in the seq or in the seq but not in the template
+        gap_run = number of consecutive gaps tolerated in query relative to
+            sequence or sequence relative to query
+        """
+        template = self.named_seqs[template_name]
+        gap_filter = make_gap_filter(template, gap_fraction, gap_run)
+        return self.take_seqs_if(gap_filter)
 
     def sample(self, n=None, with_replacement=False, motif_length=1,
                randint=randint, permutation=permutation):
