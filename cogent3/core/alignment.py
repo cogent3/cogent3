@@ -1458,9 +1458,9 @@ class SequenceCollection(object):
             aln.annotations = self.annotations[:]
         return aln
 
-    def toRna(self):
+    def to_rna(self):
         """Returns the alignment as RNA"""
-        seqs = [self.named_seqs[name].toRna() for name in self.names]
+        seqs = [self.named_seqs[name].to_rna() for name in self.names]
         aln = self.__class__(data=seqs, Names=self.names[
                              :], Name=self.Name, Info=self.Info)
         if isinstance(self, _Annotatable) and self.annotations:
@@ -1608,8 +1608,8 @@ class Aligned(object):
     def rc(self):
         return Aligned(self.map.reversed(), self.data)
 
-    def toRna(self):
-        return Aligned(self.map, self.data.toRna())
+    def to_rna(self):
+        return Aligned(self.map, self.data.to_rna())
 
     def to_dna(self):
         return Aligned(self.map, self.data.to_dna())

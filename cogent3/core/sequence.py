@@ -881,7 +881,7 @@ class NucleicAcidSequence(Sequence):
             orfs.append((start, posn + 3))
         return orfs
 
-    def toRna(self):
+    def to_rna(self):
         """Returns copy of self as RNA."""
         return RnaSequence(self)
 
@@ -1375,7 +1375,7 @@ class ModelNucleicAcidSequence(ModelSequence):
         comp = self.Alphabet._complement_array.take(self._data)
         return self.__class__(comp[::-1], Info=self.Info)
 
-    def toRna(self):
+    def to_rna(self):
         """Returns self as RNA"""
         return ModelRnaSequence(self._data)
 
@@ -1444,7 +1444,7 @@ class ModelCodonSequence(ModelSequence):
             result[:, i] = v
         return ModelDnaSequence(ravel(result), Name=self.Name)
 
-    def toRna(self):
+    def to_rna(self):
         """Returns a ModelDnaSequence from the data in self."""
         unpacked = self.Alphabet.unpackArrays(self._data)
         result = zeros((len(self._data), 3))

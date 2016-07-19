@@ -83,11 +83,11 @@ class SequenceTests(TestCase):
         self.assertEqual(str(r), 'UCA')
         self.assertEqual(str(r.to_dna()), 'TCA')
 
-    def test_toRna(self):
+    def test_to_rna(self):
         """Returns copy of self as RNA."""
         r = self.DNA('UCA')
         self.assertEqual(str(r), 'TCA')
-        self.assertEqual(str(r.toRna()), 'UCA')
+        self.assertEqual(str(r.to_rna()), 'UCA')
 
     def test_toFasta(self):
         """Sequence toFasta() should return Fasta-format string"""
@@ -848,7 +848,7 @@ class SequenceIntegrationTests(TestCase):
         d = ModelDnaCodonSequence('UUUCGU')
         self.assertEqual(str(d), 'TTTCGT')
         self.assertEqual(d._data, array([0, 28]))
-        self.assertEqual(str(d.toRna()), 'UUUCGU')
+        self.assertEqual(str(d.to_rna()), 'UUUCGU')
         self.assertEqual(str(d.to_dna()), 'TTTCGT')
 
     def test_ModelRnaCodonSequence(self):
@@ -856,7 +856,7 @@ class SequenceIntegrationTests(TestCase):
         r = ModelRnaCodonSequence('UUUCGU')
         self.assertEqual(str(r), 'UUUCGU')
         self.assertEqual(r._data, array([0, 28]))
-        self.assertEqual(str(r.toRna()), 'UUUCGU')
+        self.assertEqual(str(r.to_rna()), 'UUUCGU')
         self.assertEqual(str(r.to_dna()), 'TTTCGT')
 
 
