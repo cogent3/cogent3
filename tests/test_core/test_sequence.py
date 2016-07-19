@@ -700,10 +700,10 @@ class ModelSequenceTests(object):
         even_dna.LineWrap = 4
         self.assertEqual(even_dna.to_fasta(), '>even\nTCAG\nAT')
 
-    def test_toPhylip(self):
-        """Sequence toPhylip() should return one-line phylip string"""
+    def test_to_phylip(self):
+        """Sequence to_phylip() should return one-line phylip string"""
         s = self.SequenceClass('ACG', Name='xyz')
-        self.assertEqual(s.toPhylip(), 'xyz' + ' ' * 27 + 'ACG')
+        self.assertEqual(s.to_phylip(), 'xyz' + ' ' * 27 + 'ACG')
 
 
 class DnaSequenceTests(ModelSequenceTests, TestCase):

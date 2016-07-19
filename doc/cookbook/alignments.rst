@@ -336,7 +336,7 @@ Converting an alignment into Phylip format
     >>> from cogent3.core.alignment import Alignment
     >>> seq = LoadSeqs('data/test.paml')
     >>> aln = Alignment(seq)
-    >>> phylip_file, name_dictionary = aln.toPhylip()
+    >>> phylip_file, name_dictionary = aln.to_phylip()
 
 Converting an alignment to a list of strings
 """"""""""""""""""""""""""""""""""""""""""""
