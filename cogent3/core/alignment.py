@@ -1150,7 +1150,7 @@ class SequenceCollection(object):
                 gc=gc, allow_partial=allow_partial))
         return max(stops)
 
-    def withoutTerminalStopCodons(self, gc=None, allow_partial=False, **kwargs):
+    def trim_stop_codons(self, gc=None, allow_partial=False, **kwargs):
         """Removes any terminal stop codons from the sequences
 
         Arguments:

@@ -406,23 +406,23 @@ class AlignmentTestMethods(unittest.TestCase):
         s1 = self.alignment.get_seq('Mouse')
         self.assertEqual(s1.getName(), 'Mouse')
 
-    def test_withoutTerminalStopCodons(self):
+    def test_trim_stop_codons(self):
         """test without terminal stop handling"""
         seq_coll = LoadSeqs(data={'seq1': 'ACGTAA', 'seq2': 'ACGACG',
                                     'seq3': 'ACGCGT'}, moltype=DNA, aligned=False)
-        seq_coll = seq_coll.withoutTerminalStopCodons()
+        seq_coll = seq_coll.trim_stop_codons()
         seqs = seq_coll.todict()
         self.assertEqual(seqs['seq1'], 'ACG')   # note: not 'acg---'
         self.assertEqual(seqs['seq2'], 'ACGACG')
         # aligned
         aln = LoadSeqs(data={'seq1': 'ACGTAA', 'seq2': 'ACGTGA',
                                'seq3': 'ACGTAA'}, moltype=DNA)
-        aln = aln.withoutTerminalStopCodons()
+        aln = aln.trim_stop_codons()
         self.assertEqual(aln.todict(),
                          {'seq1': 'ACG', 'seq2': 'ACG', 'seq3': 'ACG'})   # note: not 'acg---'
         aln = LoadSeqs(data={'seq1': 'ACGAAA', 'seq2': 'ACGTGA',
                              'seq3': 'ACGTAA'}, moltype=DNA)
-        aln = aln.withoutTerminalStopCodons()
+        aln = aln.trim_stop_codons()
         self.assertEqual(aln.todict(),
                          {'seq1': 'ACGAAA', 'seq2': 'ACG---', 'seq3': 'ACG---'})
 
@@ -430,30 +430,30 @@ class AlignmentTestMethods(unittest.TestCase):
         seq_coll = LoadSeqs(data={'seq1': 'ACGTAA', 'seq2': 'ACGAC'},
                             moltype=DNA, aligned=False)
         # fail
-        self.assertRaises(ValueError, seq_coll.withoutTerminalStopCodons)
+        self.assertRaises(ValueError, seq_coll.trim_stop_codons)
         # unless explicitly over-ridden with allow_partial
-        new_coll = seq_coll.withoutTerminalStopCodons(allow_partial=True)
+        new_coll = seq_coll.trim_stop_codons(allow_partial=True)
         self.assertEqual(new_coll.todict(), dict(seq1='ACG', seq2='ACGAC'))
 
         # should work for alignments too
         aln = LoadSeqs(data={'seq1': 'ACGTAA---', 'seq2': 'ACGAC----',
                              'seq3': 'ACGCAATTT'}, moltype=DNA)
         # fail
-        self.assertRaises(ValueError, aln.withoutTerminalStopCodons)
+        self.assertRaises(ValueError, aln.trim_stop_codons)
         # unless explicitly over-ridden with allow_partial
-        aln = aln.withoutTerminalStopCodons(allow_partial=True)
+        aln = aln.trim_stop_codons(allow_partial=True)
         self.assertEqual(aln.todict(),
                          {'seq1': 'ACG------', 'seq2': 'ACGAC----', 'seq3': 'ACGCAATTT'})
         # mixed lengths
         aln = LoadSeqs(data={'seq1': 'ACGTAA---', 'seq2': 'ACGAC----',
                              'seq3': 'ACGCAATGA'}, moltype=DNA)
-        aln = aln.withoutTerminalStopCodons(allow_partial=True)
+        aln = aln.trim_stop_codons(allow_partial=True)
         self.assertEqual(aln.todict(),
                          {'seq1': 'ACG---', 'seq2': 'ACGAC-', 'seq3': 'ACGCAA'})
         # longest seq not divisible by 3
         aln = LoadSeqs(data={'seq1': 'ACGTAA--', 'seq2': 'ACGAC---',
                              'seq3': 'ACGC-ATG'}, moltype=DNA)
-        aln = aln.withoutTerminalStopCodons(allow_partial=True)
+        aln = aln.trim_stop_codons(allow_partial=True)
         self.assertEqual(aln.todict(),
                          {'seq1': 'ACG-----', 'seq2': 'ACGAC---', 'seq3': 'ACGC-ATG'})
 
