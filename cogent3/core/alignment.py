@@ -658,7 +658,7 @@ class SequenceCollection(object):
         # pass negate to get SeqIndices
         return self.take_seqs(self.get_seq_indices(f, negate), **kwargs)
 
-    def iterItems(self, seq_order=None, pos_order=None):
+    def iter_selected(self, seq_order=None, pos_order=None):
         """Iterates over elements in the alignment.
 
         seq_order (names) can be used to select a subset of seqs.
@@ -667,7 +667,7 @@ class SequenceCollection(object):
         Always iterates along a seq first, then down a position (transposes
         normal order of a[i][j]; possibly, this should change)..
 
-        WARNING: Alignment.iterItems() is not the same as alignment.iteritems()
+        WARNING: Alignment.iter_selected() is not the same as alignment.iteritems()
         (which is the built-in dict iteritems that iterates over key-value
         pairs).
         """
@@ -680,7 +680,7 @@ class SequenceCollection(object):
                 for i in row:
                     yield i
 
-    Items = property(iterItems)
+    Items = property(iter_selected)
 
     def get_items(self, items, negate=False):
         """Returns list containing only specified items.
