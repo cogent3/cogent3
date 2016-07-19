@@ -136,7 +136,7 @@ class EstimateDistances(object):
     @UI.display_wrap
     def _doset(self, sequence_names, dist_opt_args, aln_opt_args, ui):
         # slice the alignment
-        seqs = self._seq_collection.takeSeqs(sequence_names)
+        seqs = self._seq_collection.take_seqs(sequence_names)
         if self._do_pair_align:
             ui.display('Aligning', progress=0.0, current=.5)
             align = self._make_pair_alignment(seqs, aln_opt_args)

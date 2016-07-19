@@ -407,20 +407,20 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(
             i, [('a', 'AAAAAA'), ('b', 'AAA---'), ('c', 'AAAA--')])
 
-    def test_takeSeqs(self):
-        """SequenceCollection takeSeqs should return new SequenceCollection with selected seqs."""
-        a = self.ragged_padded.takeSeqs('bc')
+    def test_take_seqs(self):
+        """SequenceCollection take_seqs should return new SequenceCollection with selected seqs."""
+        a = self.ragged_padded.take_seqs('bc')
         self.assertTrue(isinstance(a, SequenceCollection))
         self.assertEqual(a, {'b': 'AAA---', 'c': 'AAAA--'})
         # should be able to negate
-        a = self.ragged_padded.takeSeqs('bc', negate=True)
+        a = self.ragged_padded.take_seqs('bc', negate=True)
         self.assertEqual(a, {'a': 'AAAAAA'})
 
-    def test_takeSeqs_moltype(self):
-        """takeSeqs should preserve the MolType"""
+    def test_take_seqs_moltype(self):
+        """take_seqs should preserve the MolType"""
         orig = self.Class(
             data={'a': 'CCCCCC', 'b': 'AAA---', 'c': 'AAAA--'}, MolType=DNA)
-        subset = orig.takeSeqs('ab')
+        subset = orig.take_seqs('ab')
         self.assertEqual(set(subset.MolType), set(orig.MolType))
 
     def test_getSeqIndices(self):

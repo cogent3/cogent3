@@ -605,7 +605,7 @@ class SequenceCollection(object):
 
     Seqs = property(_take_seqs)  # access as attribute if using default order.
 
-    def takeSeqs(self, seqs, negate=False, **kwargs):
+    def take_seqs(self, seqs, negate=False, **kwargs):
         """Returns new Alignment containing only specified seqs.
 
         Note that the seqs in the new alignment will be references to the
@@ -656,7 +656,7 @@ class SequenceCollection(object):
         seqs in the old Alignment, not copies.
         """
         # pass negate to get SeqIndices
-        return self.takeSeqs(self.get_seq_indices(f, negate), **kwargs)
+        return self.take_seqs(self.get_seq_indices(f, negate), **kwargs)
 
     def iterItems(self, seq_order=None, pos_order=None):
         """Iterates over elements in the alignment.
@@ -1012,16 +1012,16 @@ class SequenceCollection(object):
         names_after = self.names[index:]
         new_names = combined_aln.names[len(self.names):]
 
-        aln_new = combined_aln.takeSeqs(new_names)
+        aln_new = combined_aln.take_seqs(new_names)
         if len(names_before) > 0:
-            aln_before = self.takeSeqs(names_before)
+            aln_before = self.take_seqs(names_before)
             combined_aln = aln_before
             combined_aln = combined_aln.add_seqs(aln_new)
         else:
             combined_aln = aln_new
 
         if len(names_after) > 0:
-            aln_after = self.takeSeqs(names_after)
+            aln_after = self.take_seqs(names_after)
             combined_aln = combined_aln.add_seqs(aln_after)
 
         return combined_aln
@@ -1387,7 +1387,7 @@ class SequenceCollection(object):
             if float(count) / len(get(key)) >= allowed_frac_bad_cols:
                 seqs_to_delete[key] = True
         # It's _much_ more efficient to delete the seqs before the cols.
-        good_seqs = self.takeSeqs(seqs_to_delete, negate=True)
+        good_seqs = self.take_seqs(seqs_to_delete, negate=True)
         cols_to_keep = dict.fromkeys(list(range(self.SeqLen)))
         for c in cols_to_delete:
             del cols_to_keep[c]

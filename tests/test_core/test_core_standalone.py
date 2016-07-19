@@ -124,7 +124,7 @@ class AlignmentTestMethods(unittest.TestCase):
         fullset = ['DogFaced', 'Human', 'HowlerMon', 'Mouse', 'NineBande']
         subset = ['DogFaced', 'Human', 'HowlerMon', 'Mouse']
         subset.sort()
-        sub_align = self.alignment.takeSeqs(subset)
+        sub_align = self.alignment.take_seqs(subset)
         new = sub_align.get_seq_names()
         new.sort()
         assert new == subset, "included subset didn't work %s, %s" % (
@@ -132,7 +132,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
         # testing exclusion of one
         to_exclude = ['NineBande']
-        sub_align = self.alignment.takeSeqs(to_exclude, negate=True)
+        sub_align = self.alignment.take_seqs(to_exclude, negate=True)
         new = sub_align.get_seq_names()
         new.sort()
         assert new == subset, "excluded subset didn't work %s, %s" % (
@@ -142,7 +142,7 @@ class AlignmentTestMethods(unittest.TestCase):
         subset = ['DogFaced', 'HowlerMon', 'NineBande']
         subset.sort()
         to_exclude = ['Human', 'Mouse']
-        sub_align = self.alignment.takeSeqs(to_exclude, negate=True)
+        sub_align = self.alignment.take_seqs(to_exclude, negate=True)
         new = sub_align.get_seq_names()
         new.sort()
         assert new == subset, "excluded subset didn't work %s, %s" % (

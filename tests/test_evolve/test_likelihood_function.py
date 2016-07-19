@@ -113,7 +113,7 @@ class LikelihoodCalcs(TestCase):
     substitution models."""
 
     def setUp(self):
-        self.alignment = ALIGNMENT.takeSeqs(OTU_NAMES)[0: 42]
+        self.alignment = ALIGNMENT.take_seqs(OTU_NAMES)[0: 42]
         self.tree = LoadTree(tip_names=OTU_NAMES)
 
     def _makeLikelihoodFunction(self, submod, translate=False, **kw):
@@ -129,7 +129,7 @@ class LikelihoodCalcs(TestCase):
 
     def test_no_seq_named_root(self):
         """root is a reserved name"""
-        aln = self.alignment.takeSeqs(self.alignment.names[:4])
+        aln = self.alignment.take_seqs(self.alignment.names[:4])
         aln = aln.todict()
         one = aln.pop("Mouse")
         aln["root"] = one

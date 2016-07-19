@@ -1422,7 +1422,7 @@ def n_random_seqs(alignment, n):
     """
     seq_names = alignment.names
     shuffle(seq_names)
-    return alignment.takeSeqs(seq_names[:n])
+    return alignment.take_seqs(seq_names[:n])
 
 
 def coevolve_alignments(method, alignment1, alignment2,

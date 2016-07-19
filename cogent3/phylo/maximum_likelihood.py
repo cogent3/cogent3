@@ -38,13 +38,13 @@ class ML(TreeEvaluator):
 
     def evaluateTree(self, tree):
         names = tree.getTipNames()
-        subalign = self.alignment.takeSeqs(names)
+        subalign = self.alignment.take_seqs(names)
         lf = self.lf_factory(tree)
         lf.setAlignment(subalign)
         return lf.getLogLikelihood()
 
     def makeTreeScorer(self, names):
-        subalign = self.alignment.takeSeqs(names)
+        subalign = self.alignment.take_seqs(names)
         wls_eval = self.wlsMakeTreeScorer(names)
 
         def evaluate(ancestry, lengths=None):

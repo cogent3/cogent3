@@ -190,14 +190,14 @@ class AllTests(TestCase):
 
         sub_aln = Alignment([rna2, rna3], MolType=RNA)
         aln = Alignment([rna1, rna2, rna3], MolType=RNA)
-        obs_sub_aln = aln.takeSeqs(['rna2', 'rna3'])
+        obs_sub_aln = aln.take_seqs(['rna2', 'rna3'])
 
         self.assertEqual(obs_sub_aln, sub_aln)
         self.assertEqual(str(obs_sub_aln), str(sub_aln))
 
         # Selected sequences should be in specified order?
-        obs_sub_aln_1 = self.aln.takeSeqs(['rna3', 'rna2'])
-        obs_sub_aln_2 = self.aln.takeSeqs(['rna2', 'rna3'])
+        obs_sub_aln_1 = self.aln.take_seqs(['rna3', 'rna2'])
+        obs_sub_aln_2 = self.aln.take_seqs(['rna2', 'rna3'])
         self.assertNotEqual(str(obs_sub_aln_1), str(obs_sub_aln_2))
 
     def test_subset_seqs_DenseAlignment(self):
@@ -210,9 +210,9 @@ class AllTests(TestCase):
         sub_da = DenseAlignment([model1, model2, model3],
                                 MolType=RNA, Alphabet=RNA.Alphabets.DegenGapped)
 
-        # takeSeqs by name should have the same effect as
+        # take_seqs by name should have the same effect as
         # getSubAlignment by seq idx?
-        obs_sub_da_TS = self.da.takeSeqs(['rna1'])
+        obs_sub_da_TS = self.da.take_seqs(['rna1'])
         obs_sub_da_SA = self.da.getSubAlignment(seqs=[0])
 
         # These two are now the same. Fixed mapping of key to char array.
