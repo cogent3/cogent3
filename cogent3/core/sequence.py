@@ -1044,7 +1044,7 @@ class ModelSequenceBase(object):
         return fasta_from_sequences([self], make_seqlabel=make_seqlabel,
                                     line_wrap=self.LineWrap)
 
-    def toPhylip(self, name_len=28, label_len=30):
+    def to_phylip(self, name_len=28, label_len=30):
         """Return string of self in one line for PHYLIP, no newline.
 
         Default: max name length is 28, label length is 30.

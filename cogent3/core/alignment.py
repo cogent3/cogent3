@@ -797,7 +797,7 @@ class SequenceCollection(object):
         # lengths were all equal
         return False
 
-    def toPhylip(self, generic_label=True, make_seqlabel=None):
+    def to_phylip(self, generic_label=True, make_seqlabel=None):
         """
         Return alignment in PHYLIP format and mapping to sequence ids
 

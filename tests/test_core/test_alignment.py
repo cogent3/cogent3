@@ -609,7 +609,7 @@ class SequenceCollectionBaseTests(object):
         assert(not self.identical.is_ragged())
         assert(not self.gaps.is_ragged())
 
-    def test_toPhylip(self):
+    def test_to_phylip(self):
         """SequenceCollection should return PHYLIP string format correctly"""
         align_norm = self.Class(['ACDEFGHIKLMNPQRSTUVWY-',
                                   'ACDEFGHIKLMNPQRSUUVWF-',
@@ -617,7 +617,7 @@ class SequenceCollectionBaseTests(object):
                                   'ACNEFGHIKLMNPQRS-UVWP-',
                                   ])
 
-        phylip_str, id_map = align_norm.toPhylip()
+        phylip_str, id_map = align_norm.to_phylip()
 
         self.assertEqual(
             phylip_str, """4 22\nseq0000001 ACDEFGHIKLMNPQRSTUVWY-\nseq0000002 ACDEFGHIKLMNPQRSUUVWF-\nseq0000003 ACDEFGHIKLMNPERSKUVWC-\nseq0000004 ACNEFGHIKLMNPQRS-UVWP-""")
@@ -1040,7 +1040,7 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
                                  'ACNEFGHIKLMNUVWP-',
                                  ])
 
-        self.assertRaises(ValueError, align_rag.toPhylip)
+        self.assertRaises(ValueError, align_rag.to_phylip)
 
     def test_pad_seqs_ragged(self):
         """SequenceCollection pad_seqs should work on ragged alignment."""
