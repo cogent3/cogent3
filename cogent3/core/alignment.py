@@ -60,8 +60,9 @@ __status__ = "Production"
 class DataError(Exception):
     pass
 
-eps = 1e-6  # small number: 1-eps is almost 1, and is used for things like the
+# small number: 1-eps is almost 1, and is used for things like the
 # default number of gaps to allow in a column.
+eps = 1e-6
 
 
 def assign_sequential_names(ignored, num_seqs, base_name='seq', start_at=0):
@@ -1775,8 +1776,8 @@ class AlignmentI(object):
         """Returns new alignment where all cols have <= allowed_gap_frac gaps.
 
         allowed_gap_frac says what proportion of gaps is allowed in each
-        column (default is 1-eps, i.e. all cols with at least one non-gap
-        character are preserved).
+        column (default is 0, i.e. only cols without any gap character are
+        preserved). Set to 1 - e-6 to exclude strictly gapped columns.
 
         If del_seqs is True (default:False), deletes the sequences that don't
         have gaps where everything else does. Otherwise, just deletes the
@@ -1794,7 +1795,7 @@ class AlignmentI(object):
         """
         if seq_constructor is None:
             seq_constructor = self.MolType.Sequence
-        gaps_ok = self._make_gaps_ok(allowed_gap_frac)
+        gaps_ok = GapsOk(self.MolType.Gaps, allowed_gap_frac)
         # if we're not deleting the 'naughty' seqs that contribute to the
         # gaps, it's easy...
         if not del_seqs:
@@ -2417,10 +2418,40 @@ class DenseAlignment(AlignmentI, SequenceCollection):
             wrapped_locations = locations.reshape((n, motif_length))
             wrapped_locations += arange(motif_length)
         positions = take(self.ArrayPositions, locations, 0)
-        result = self.__class__(positions.T, force_same_data=True,
+        result = self.__class__(positions.T, MolType=self.MolType,
+                                force_same_data=True,
                                 Info=self.Info, Names=self.names)
         return result
+    
+    def filtered(self, predicate, motif_length=1, **kwargs):
+        """The alignment positions where predicate(column) is true.
 
+        Arguments:
+            - predicate: a callback function that takes an tuple of motifs and
+              returns True/False
+            - motif_length: length of the motifs the sequences should be split
+              into, eg. 3 for filtering aligned codons."""
+        length = self.SeqLen
+        if length % motif_length != 0:
+            raise ValueError("aligned length not divisible by "\
+                             "motif_length=%d" % motif_length)
+        
+        num_motifs = length // motif_length
+        shaped = self.ArraySeqs.reshape((self.num_seqs, num_motifs, motif_length))
+        indices = []
+        elements = arange(motif_length)
+        for i in range(num_motifs):
+            if not predicate(shaped[:, i]):
+                continue
+            
+            start = motif_length * i
+            indices.extend(elements+start)
+        
+        positions = self.ArraySeqs.take(indices, axis=1)
+        result = self.__class__(positions, force_same_data=True,
+                                MolType=self.MolType,
+                                Info=self.Info, Names=self.names)        
+        return result
 
 class CodonDenseAlignment(DenseAlignment):
     """Stores alignment of gapped codons, no degenerate symbols."""
