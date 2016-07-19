@@ -819,7 +819,7 @@ class SequenceCollection(object):
         """
         return fasta_from_alignment(self, make_seqlabel=make_seqlabel)
 
-    def toNexus(self, seq_type, interleave_len=50):
+    def to_nexus(self, seq_type, interleave_len=50):
         """
         Return alignment in NEXUS format and mapping to sequence ids
 

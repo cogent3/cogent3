@@ -634,7 +634,7 @@ class SequenceCollectionBaseTests(object):
         aln = self.Class(['AA', 'CC'])
         self.assertEqual(aln.to_fasta(), '>A\nA\n>C\nC')
 
-    def test_toNexus(self):
+    def test_to_nexus(self):
         """SequenceCollection should return correct Nexus string format"""
         align_norm = self.Class(['ACDEFGHIKLMNPQRSTUVWY-',
                                   'ACDEFGHIKLMNPQRSUUVWF-',
@@ -648,7 +648,7 @@ class SequenceCollectionBaseTests(object):
             '    seq_1    ACDEFGHIKLMNPQRSUUVWF-\n'\
             '    seq_2    ACDEFGHIKLMNPERSKUVWC-\n'\
             '    seq_3    ACNEFGHIKLMNPQRS-UVWP-\n\n    ;\nend;'
-        got = align_norm.toNexus('protein')
+        got = align_norm.to_nexus('protein')
         self.assertEqual(got, expect)
 
     def test_get_int_map(self):
