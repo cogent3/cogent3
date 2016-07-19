@@ -122,7 +122,7 @@ Converting a DNA sequence to RNA
 
     >>> from cogent import DNA
     >>> my_seq = DNA.makeSequence('ACGTACGTACGTACGT')
-    >>> print my_seq.toRna()
+    >>> print my_seq.to_rna()
     ACGUACGUACGUACGU
 
 Convert an RNA sequence to DNA

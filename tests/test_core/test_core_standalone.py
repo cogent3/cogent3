@@ -275,11 +275,11 @@ class AlignmentTestMethods(unittest.TestCase):
         collect_Dna = LoadSeqs(data=dna, aligned=False, moltype=DNA)
         collect_Rna = LoadSeqs(data=rna, aligned=False, moltype=RNA)
         assert aln_Rna.to_dna().todict() == dna, (aln_Rna.to_dna().todict(), dna)
-        assert aln_Dna.toRna().todict() == rna, (aln_Dna.toRna().todict(), rna)
+        assert aln_Dna.to_rna().todict() == rna, (aln_Dna.to_rna().todict(), rna)
         assert collect_Rna.to_dna().todict() == dna, \
         (collect_Rna.to_dna().todict(), dna)
-        assert collect_Dna.toRna().todict() == rna, \
-        (collect_Dna.toRna().todict(), rna)
+        assert collect_Dna.to_rna().todict() == rna, \
+        (collect_Dna.to_rna().todict(), rna)
 
     def test_reversecomplement(self):
         """test reverse complementing of Alignments and SequenceCollection."""

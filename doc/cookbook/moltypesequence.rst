@@ -102,7 +102,7 @@ Verify sequences
    True
    >>> RnaMolType.isValid(dnastr)
    False
-   >>> RnaMolType.isValid(NucleicAcidSequence(dnastr).toRna())
+   >>> RnaMolType.isValid(NucleicAcidSequence(dnastr).to_rna())
    True
 
 ``Sequence``
