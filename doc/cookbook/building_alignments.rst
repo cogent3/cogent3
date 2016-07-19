@@ -98,7 +98,7 @@ We load some unaligned DNA sequences and show their translation.
     ...         ('mus', 'AAGCAGATCCAGGAGAGCGGCGAGAGCGGCAGCCTGGCCGCGCGGCAGGAGAGGCAGGCCCAAGTCAACCTCACG'),
     ...         ('rat', 'CTGAACAAGCAGCCACTTTCAAACAAGAAA')]
     >>> unaligned_DNA = LoadSeqs(data=seqs, moltype = DNA, aligned = False)
-    >>> print unaligned_DNA.toFasta()
+    >>> print unaligned_DNA.to_fasta()
     >hum
     AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
     >mus

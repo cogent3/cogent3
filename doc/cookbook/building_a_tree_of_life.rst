@@ -150,7 +150,7 @@ You can also write the alignment and tree to fasta and newick files, respectivel
 
 ::
 
-	open('./tol.fasta','w').write(aln.toFasta())
+	open('./tol.fasta','w').write(aln.to_fasta())
 	open('./tol.tre','w').write(tree.getNewick(with_distances=True))
 
 

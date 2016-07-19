@@ -30,7 +30,7 @@ Converting a ``SequenceCollection`` to FASTA format
 
     >>> from cogent import LoadSeqs
     >>> seq = LoadSeqs('data/test.paml', aligned=False)
-    >>> fasta_data = seq.toFasta()
+    >>> fasta_data = seq.to_fasta()
     >>> print fasta_data
     >DogFaced
     GCAAGGAGCCAGCAGAACAGATGGGTTGAAACTAAGGAAACATGTAATGATAGGCAGACT
@@ -83,7 +83,7 @@ Appending the sequences
     ATGCC------
     <BLANKLINE>
 
-.. note:: The order is not preserved if you use ``toFasta`` method, which sorts sequences by name.
+.. note:: The order is not preserved if you use ``to_fasta`` method, which sorts sequences by name.
 
 Inserting the sequences
 """""""""""""""""""""""
@@ -269,8 +269,8 @@ Creating an ``Alignment`` object from a ``SequenceCollection``
     >>> from cogent3.core.alignment import Alignment
     >>> seq = LoadSeqs('data/test.paml', aligned=False)
     >>> aln = Alignment(seq)
-    >>> fasta_1 = seq.toFasta()
-    >>> fasta_2 = aln.toFasta()
+    >>> fasta_1 = seq.to_fasta()
+    >>> fasta_2 = aln.to_fasta()
     >>> assert fasta_1 == fasta_2
 
 Handling gaps
@@ -326,7 +326,7 @@ Converting an alignment to FASTA format
     >>> from cogent3.core.alignment import Alignment
     >>> seq = LoadSeqs('data/long_testseqs.fasta')
     >>> aln = Alignment(seq)
-    >>> fasta_align = aln.toFasta()
+    >>> fasta_align = aln.to_fasta()
 
 Converting an alignment into Phylip format
 """"""""""""""""""""""""""""""""""""""""""
@@ -839,7 +839,7 @@ The ``omitGapRuns`` method can be applied to remove long stretches of gaps in an
     >>> aln = LoadSeqs(data= [('seq1', 'ATGAA---TG-'),
     ...                       ('seq2', 'ATG-AGTGATG'),
     ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
-    >>> print aln.omitGapRuns(2).toFasta()
+    >>> print aln.omitGapRuns(2).to_fasta()
     >seq2
     ATG-AGTGATG
     >seq3
@@ -852,7 +852,7 @@ If instead, we just wanted to remove positions from the alignment which are gaps
     >>> aln = LoadSeqs(data= [('seq1', 'ATGAA---TG-'),
     ...                       ('seq2', 'ATG-AGTGATG'),
     ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
-    >>> print aln.omitGapPositions(0.40).toFasta()
+    >>> print aln.omitGapPositions(0.40).to_fasta()
     >seq1
     ATGA--TG-
     >seq2
@@ -868,7 +868,7 @@ If you wanted to remove sequences which contain more than a certain percent gap 
     ...                       ('seq2', 'ATG-AGTGATG'),
     ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
     >>> filtered_aln = aln.omit_gap_seqs(0.50)
-    >>> print filtered_aln.toFasta()
+    >>> print filtered_aln.to_fasta()
     >seq2
     ATG-AGTGATG
     >seq3
@@ -876,7 +876,7 @@ If you wanted to remove sequences which contain more than a certain percent gap 
 
 Note that following this call to ``omit_gap_seqs``, the 4th column of ``filtered_aln`` is 100% gaps. This is generally not desirable, so a call to ``omit_gap_seqs`` is frequently followed with a call to ``omitGapPositions`` with no parameters -- this defaults to removing positions which are all gaps:
 
-    >>> print filtered_aln.omitGapPositions().toFasta()
+    >>> print filtered_aln.omitGapPositions().to_fasta()
     >seq2
     ATGAGTGATG
     >seq3

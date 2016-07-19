@@ -130,7 +130,7 @@ class alignment_tests(TestCase):
         """aln_from_collection should initialize from existing alignment"""
         a = SequenceCollection(['AAA', 'GGG'])
         obs_a, obs_labels = aln_from_collection(a, Alphabet=RNA.Alphabet)
-        self.assertEqual(a.toFasta(), '>seq_0\nAAA\n>seq_1\nGGG')
+        self.assertEqual(a.to_fasta(), '>seq_0\nAAA\n>seq_1\nGGG')
         self.assertEqual(obs_a, array([[2, 2, 2], [3, 3, 3]]))
 
     def test_aln_from_empty(self):
@@ -333,18 +333,18 @@ class SequenceCollectionBaseTests(object):
         p = MinimalFastaParser(s)
         aln = self.Class(p, MolType=DNA)
         self.assertEqual(aln.named_seqs['aa'], 'AC')
-        self.assertEqual(aln.toFasta(), '>aa\nAC\n>bb\nAA\n>c\nGG')
+        self.assertEqual(aln.to_fasta(), '>aa\nAC\n>bb\nAA\n>c\nGG')
         s2_ORIG = '>x\nCA\n>b\nAA\n>>xx\nGG'
         s2 = '>aa\nAC\n>bb\nAA\n>c\nGG\n'
         d = DenseAlignment(MinimalFastaParser(s2.splitlines()))
-        da = d.toFasta()
-        self.assertEqual(d.toFasta(), aln.toFasta())
+        da = d.to_fasta()
+        self.assertEqual(d.to_fasta(), aln.to_fasta())
 
     def test_aln_from_fasta(self):
         """SequenceCollection should init from fasta-format string"""
         s = '>aa\nAC\n>bb\nAA\n>c\nGG\n'
         aln = self.Class(s)
-        self.assertEqual(aln.toFasta(), s.strip())
+        self.assertEqual(aln.to_fasta(), s.strip())
 
     def test_SeqLen_get(self):
         """SequenceCollection SeqLen should return length of longest seq"""
@@ -624,15 +624,15 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(id_map, {'seq0000004': 'seq_3', 'seq0000001': 'seq_0',
                                   'seq0000003': 'seq_2', 'seq0000002': 'seq_1'})
 
-    def test_toFasta(self):
+    def test_to_fasta(self):
         """SequenceCollection should return correct FASTA string"""
         aln = self.Class(['AAA', 'CCC'])
-        self.assertEqual(aln.toFasta(), '>seq_0\nAAA\n>seq_1\nCCC')
+        self.assertEqual(aln.to_fasta(), '>seq_0\nAAA\n>seq_1\nCCC')
 
         # NOTE THE FOLLOWING SURPRISING BEHAVIOR BECAUSE OF THE TWO-ITEM
         # SEQUENCE RULE:
         aln = self.Class(['AA', 'CC'])
-        self.assertEqual(aln.toFasta(), '>A\nA\n>C\nC')
+        self.assertEqual(aln.to_fasta(), '>A\nA\n>C\nC')
 
     def test_toNexus(self):
         """SequenceCollection should return correct Nexus string format"""
@@ -715,11 +715,11 @@ class SequenceCollectionBaseTests(object):
         a = Alignment({'seq1': 'ACGU', 'seq2': 'C-UA', 'seq3': 'C---'})
         seqs = {'seq1': 'AAACCCGGGUUU', 'seq2': 'CCCUUUAAA', 'seq3': 'CCC'}
         result = a.replace_seqs(seqs)  # default behaviour
-        self.assertEqual(result.toFasta(),
+        self.assertEqual(result.to_fasta(),
                          ">seq1\nAAACCCGGGUUU\n>seq2\nCCC---UUUAAA\n>seq3\nCCC---------")
 
         result = a.replace_seqs(seqs, aa_to_codon=True)  # default behaviour
-        self.assertEqual(result.toFasta(),
+        self.assertEqual(result.to_fasta(),
                          ">seq1\nAAACCCGGGUUU\n>seq2\nCCC---UUUAAA\n>seq3\nCCC---------")
 
         # should correctly gap the same sequences with same length
@@ -975,10 +975,10 @@ class SequenceCollectionBaseTests(object):
 
         aln = self.Class(data=[("a", dna), ("b", dna)])
         expect = self.Class(
-            data=[("a", raw_ungapped), ("b", raw_ungapped)]).toFasta()
-        self.assertEqual(aln.degap().toFasta(), expect)
+            data=[("a", raw_ungapped), ("b", raw_ungapped)]).to_fasta()
+        self.assertEqual(aln.degap().to_fasta(), expect)
         seqs = self.Class(data=[("a", dna), ("b", dna)])
-        self.assertEqual(seqs.degap().toFasta(), expect)
+        self.assertEqual(seqs.degap().to_fasta(), expect)
 
     def test_pad_seqs(self):
         """SequenceCollection pad_seqs should work on alignment."""

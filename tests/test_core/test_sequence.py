@@ -89,21 +89,21 @@ class SequenceTests(TestCase):
         self.assertEqual(str(r), 'TCA')
         self.assertEqual(str(r.to_rna()), 'UCA')
 
-    def test_toFasta(self):
-        """Sequence toFasta() should return Fasta-format string"""
+    def test_to_fasta(self):
+        """Sequence to_fasta() should return Fasta-format string"""
         even = 'TCAGAT'
         odd = even + 'AAA'
         even_dna = self.SEQ(even, Name='even')
         odd_dna = self.SEQ(odd, Name='odd')
-        self.assertEqual(even_dna.toFasta(), '>even\nTCAGAT')
+        self.assertEqual(even_dna.to_fasta(), '>even\nTCAGAT')
         # set line wrap to small number so we can test that it works
         even_dna.LineWrap = 2
-        self.assertEqual(even_dna.toFasta(), '>even\nTC\nAG\nAT')
+        self.assertEqual(even_dna.to_fasta(), '>even\nTC\nAG\nAT')
         odd_dna.LineWrap = 2
-        self.assertEqual(odd_dna.toFasta(), '>odd\nTC\nAG\nAT\nAA\nA')
+        self.assertEqual(odd_dna.to_fasta(), '>odd\nTC\nAG\nAT\nAA\nA')
         # check that changing the linewrap again works
         even_dna.LineWrap = 4
-        self.assertEqual(even_dna.toFasta(), '>even\nTCAG\nAT')
+        self.assertEqual(even_dna.to_fasta(), '>even\nTCAG\nAT')
 
     def test_serialize(self):
         """Sequence should be serializable"""
@@ -684,21 +684,21 @@ class ModelSequenceTests(object):
     """Base class for tests of specific ModelSequence objects."""
     SequenceClass = None  # override in derived classes
 
-    def test_toFasta(self):
-        """Sequence toFasta() should return Fasta-format string"""
+    def test_to_fasta(self):
+        """Sequence to_fasta() should return Fasta-format string"""
         even = 'TCAGAT'
         odd = even + 'AAA'
         even_dna = self.SequenceClass(even, Name='even')
         odd_dna = self.SequenceClass(odd, Name='odd')
-        self.assertEqual(even_dna.toFasta(), '>even\nTCAGAT')
+        self.assertEqual(even_dna.to_fasta(), '>even\nTCAGAT')
         # set line wrap to small number so we can test that it works
         even_dna.LineWrap = 2
-        self.assertEqual(even_dna.toFasta(), '>even\nTC\nAG\nAT')
+        self.assertEqual(even_dna.to_fasta(), '>even\nTC\nAG\nAT')
         odd_dna.LineWrap = 2
-        self.assertEqual(odd_dna.toFasta(), '>odd\nTC\nAG\nAT\nAA\nA')
+        self.assertEqual(odd_dna.to_fasta(), '>odd\nTC\nAG\nAT\nAA\nA')
         # check that changing the linewrap again works
         even_dna.LineWrap = 4
-        self.assertEqual(even_dna.toFasta(), '>even\nTCAG\nAT')
+        self.assertEqual(even_dna.to_fasta(), '>even\nTCAG\nAT')
 
     def test_toPhylip(self):
         """Sequence toPhylip() should return one-line phylip string"""

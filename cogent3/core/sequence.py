@@ -63,7 +63,7 @@ class SequenceI(object):
         """__str__ returns self._seq unmodified."""
         return self._seq
 
-    def toFasta(self, make_seqlabel=None):
+    def to_fasta(self, make_seqlabel=None):
         """Return string of self in FASTA format, no trailing newline
 
         Arguments:
@@ -1034,7 +1034,7 @@ class ModelSequenceBase(object):
         """Returns length of data."""
         return len(self._data)
 
-    def toFasta(self, make_seqlabel=None):
+    def to_fasta(self, make_seqlabel=None):
         """Return string of self in FASTA format, no trailing newline
 
         Arguments:

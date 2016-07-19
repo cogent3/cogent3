@@ -40,7 +40,7 @@ class ParseTinyseq(TestCase):
     def test_parse(self):
         for name, seq in [next(TinyseqParser(data)), next(TinyseqParser(xml.dom.minidom.parseString(data)))]:
             self.assertEqual(name, 'AY286018.1')
-            self.assertEqual(sample_seq, seq.toFasta())
+            self.assertEqual(sample_seq, seq.to_fasta())
             self.assertEqual(str(seq.annotations), sample_annotations)
     pass
 

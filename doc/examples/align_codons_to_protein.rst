@@ -18,7 +18,7 @@ First I'm going to construct an artificial example, using the seqs dict as a mea
     ... 'mus': 'AAGCAGATCCAGGAGAGCGGCGAGAGCGGCAGCCTGGCCGCGCGGCAGGAGAGGCAGGCCCAAGTCAACCTCACG',
     ... 'rat': 'CTGAACAAGCAGCCACTTTCAAACAAGAAA'}
     >>> unaligned_DNA = LoadSeqs(data=seqs, moltype = DNA, aligned = False)
-    >>> print unaligned_DNA.toFasta()
+    >>> print unaligned_DNA.to_fasta()
     >hum
     AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
     >mus
@@ -31,7 +31,7 @@ In order to ensure the alignment algorithm preserves the coding frame, we align 
 .. doctest::
 
     >>> unaligned_aa = unaligned_DNA.getTranslation()
-    >>> print unaligned_aa.toFasta()
+    >>> print unaligned_aa.to_fasta()
     >hum
     KQIQESSENGSLAARQERQAQVNLT
     >mus
