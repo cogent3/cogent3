@@ -138,7 +138,7 @@ class AAIndex1Parser(AAIndexParser):
         values = []
         raw = raw.lstrip()
         # Split by white space
-        data = re.split('\s*', raw)
+        data = re.split(r'\s+', raw)
 
         i = 0
         while(i < len(data)):
@@ -166,7 +166,7 @@ class AAIndex1Parser(AAIndexParser):
         # get rid of leading white spaces, it makes../ the reg exp act weird
         raw = raw.lstrip()
         # split by any number/ types of white spaces
-        data = re.split('\s*', raw)
+        data = re.split(r'\s+', raw)
         # convert the data to a float while checking for invlaid data,
         # specifically the string 'NA' is present sometimes instead of data
         for i in data:
@@ -224,7 +224,7 @@ class AAIndex2Parser(AAIndexParser):
         # get rid of leading white spaces, it make the reg exp act weird
         raw = raw.lstrip()
         # split by any number/ types of white spaces
-        data = re.split('\s*', raw)
+        data = re.split(r'\s+', raw)
 
         # If square matrix
         if len(data) == (len(rows) * len(cols)):
@@ -264,7 +264,7 @@ class AAIndex2Parser(AAIndexParser):
             for each record in AAIndex2 so we know what the data is that
             we are looking at.
         """
-        p = '[rows|cols]\s=\s([^ \t\n\r\f\v,]*)'
+        p = r'[rows|cols]\s=\s([^ \t\n\r\f\v,]*)'
         result = []
         result += re.findall(p, raw)
         return result
