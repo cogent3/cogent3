@@ -862,19 +862,19 @@ If instead, we just wanted to remove positions from the alignment which are gaps
 
 You'll notice that the 4th and 7th columns of the alignment have been removed because they contained 66% gaps -- more than the allowed 40%. 
 
-If you wanted to remove sequences which contain more than a certain percent gap characters, you could use the ``omitGapSeqs`` method. This is commonly applied to filter partial sequences from an alignment. 
+If you wanted to remove sequences which contain more than a certain percent gap characters, you could use the ``omit_gap_seqs`` method. This is commonly applied to filter partial sequences from an alignment. 
 
     >>> aln = LoadSeqs(data= [('seq1', 'ATGAA------'),
     ...                       ('seq2', 'ATG-AGTGATG'),
     ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
-    >>> filtered_aln = aln.omitGapSeqs(0.50)
+    >>> filtered_aln = aln.omit_gap_seqs(0.50)
     >>> print filtered_aln.toFasta()
     >seq2
     ATG-AGTGATG
     >seq3
     AT--AG-GATG
 
-Note that following this call to ``omitGapSeqs``, the 4th column of ``filtered_aln`` is 100% gaps. This is generally not desirable, so a call to ``omitGapSeqs`` is frequently followed with a call to ``omitGapPositions`` with no parameters -- this defaults to removing positions which are all gaps:
+Note that following this call to ``omit_gap_seqs``, the 4th column of ``filtered_aln`` is 100% gaps. This is generally not desirable, so a call to ``omit_gap_seqs`` is frequently followed with a call to ``omitGapPositions`` with no parameters -- this defaults to removing positions which are all gaps:
 
     >>> print filtered_aln.omitGapPositions().toFasta()
     >seq2
