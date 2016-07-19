@@ -1308,7 +1308,7 @@ class SequenceCollection(object):
         return Profile(self._get_freqs(0), self.Alphabet)
 
     def _make_gaps_ok(self, allowed_gap_frac):
-        """Makes the gaps_ok function used by omitGapPositions and omitGapSeqs.
+        """Makes the gaps_ok function used by omitGapPositions and omit_gap_seqs.
 
         Need to make the function because if it's a method of Alignment, it
         has unwanted 'self' and 'allowed_gap_frac' parameters that impede the
@@ -1397,7 +1397,7 @@ class SequenceCollection(object):
         else:
             return {}
 
-    def omitGapSeqs(self, allowed_gap_frac=0):
+    def omit_gap_seqs(self, allowed_gap_frac=0):
         """Returns new alignment with seqs that have <= allowed_gap_frac.
 
         allowed_gap_frac should be a fraction between 0 and 1 inclusive.
@@ -2353,7 +2353,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         return coerce_to_string(consensus)
 
     def _make_gaps_ok(self, allowed_gap_frac):
-        """Makes the gaps_ok function used by omitGapPositions and omitGapSeqs.
+        """Makes the gaps_ok function used by omitGapPositions and omit_gap_seqs.
 
         Need to make the function because if it's a method of Alignment, it
         has unwanted 'self' and 'allowed_gap_frac' parameters that impede the

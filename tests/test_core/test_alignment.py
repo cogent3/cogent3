@@ -902,45 +902,45 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(f1(s3), False)
         self.assertEqual(f3(s4), True)
 
-    def test_omitGapSeqs(self):
-        """SequenceCollection omitGapSeqs should return alignment w/o seqs with gaps"""
+    def test_omit_gap_seqs(self):
+        """SequenceCollection omit_gap_seqs should return alignment w/o seqs with gaps"""
         # check default params
-        self.assertEqual(self.gaps.omitGapSeqs(), self.gaps.omitGapSeqs(0))
+        self.assertEqual(self.gaps.omit_gap_seqs(), self.gaps.omit_gap_seqs(0))
         # check for boundary effects
-        self.assertEqual(self.gaps.omitGapSeqs(-1), {})
-        self.assertEqual(self.gaps.omitGapSeqs(0), {'a': 'AAAAAAA'})
-        self.assertEqual(self.gaps.omitGapSeqs(0.1), {'a': 'AAAAAAA'})
-        self.assertEqual(self.gaps.omitGapSeqs(
+        self.assertEqual(self.gaps.omit_gap_seqs(-1), {})
+        self.assertEqual(self.gaps.omit_gap_seqs(0), {'a': 'AAAAAAA'})
+        self.assertEqual(self.gaps.omit_gap_seqs(0.1), {'a': 'AAAAAAA'})
+        self.assertEqual(self.gaps.omit_gap_seqs(
             3.0 / 7 - 0.01), {'a': 'AAAAAAA'})
-        self.assertEqual(self.gaps.omitGapSeqs(3.0 / 7),
+        self.assertEqual(self.gaps.omit_gap_seqs(3.0 / 7),
                          {'a': 'AAAAAAA', 'b': 'A--A-AA'})
-        self.assertEqual(self.gaps.omitGapSeqs(3.0 / 7 + 0.01),
+        self.assertEqual(self.gaps.omit_gap_seqs(3.0 / 7 + 0.01),
                          {'a': 'AAAAAAA', 'b': 'A--A-AA'})
-        self.assertEqual(self.gaps.omitGapSeqs(5.0 / 7 - 0.01),
+        self.assertEqual(self.gaps.omit_gap_seqs(5.0 / 7 - 0.01),
                          {'a': 'AAAAAAA', 'b': 'A--A-AA'})
-        self.assertEqual(self.gaps.omitGapSeqs(5.0 / 7 + 0.01), self.gaps)
-        self.assertEqual(self.gaps.omitGapSeqs(0.99), self.gaps)
+        self.assertEqual(self.gaps.omit_gap_seqs(5.0 / 7 + 0.01), self.gaps)
+        self.assertEqual(self.gaps.omit_gap_seqs(0.99), self.gaps)
         # check new object creation
-        self.assertNotSameObj(self.gaps.omitGapSeqs(0.99), self.gaps)
-        self.assertTrue(isinstance(self.gaps.omitGapSeqs(3.0 / 7),
+        self.assertNotSameObj(self.gaps.omit_gap_seqs(0.99), self.gaps)
+        self.assertTrue(isinstance(self.gaps.omit_gap_seqs(3.0 / 7),
                                    SequenceCollection))
         # repeat tests for object that supplies its own gaps
-        self.assertEqual(self.gaps_rna.omitGapSeqs(-1), {})
-        self.assertEqual(self.gaps_rna.omitGapSeqs(0), {'a': 'AAAAAAA'})
-        self.assertEqual(self.gaps_rna.omitGapSeqs(0.1), {'a': 'AAAAAAA'})
-        self.assertEqual(self.gaps_rna.omitGapSeqs(3.0 / 7 - 0.01),
+        self.assertEqual(self.gaps_rna.omit_gap_seqs(-1), {})
+        self.assertEqual(self.gaps_rna.omit_gap_seqs(0), {'a': 'AAAAAAA'})
+        self.assertEqual(self.gaps_rna.omit_gap_seqs(0.1), {'a': 'AAAAAAA'})
+        self.assertEqual(self.gaps_rna.omit_gap_seqs(3.0 / 7 - 0.01),
                          {'a': 'AAAAAAA'})
-        self.assertEqual(self.gaps_rna.omitGapSeqs(3.0 / 7),
+        self.assertEqual(self.gaps_rna.omit_gap_seqs(3.0 / 7),
                          {'a': 'AAAAAAA', 'b': 'A--A-AA'})
-        self.assertEqual(self.gaps_rna.omitGapSeqs(3.0 / 7 + 0.01),
+        self.assertEqual(self.gaps_rna.omit_gap_seqs(3.0 / 7 + 0.01),
                          {'a': 'AAAAAAA', 'b': 'A--A-AA'})
-        self.assertEqual(self.gaps_rna.omitGapSeqs(5.0 / 7 - 0.01),
+        self.assertEqual(self.gaps_rna.omit_gap_seqs(5.0 / 7 - 0.01),
                          {'a': 'AAAAAAA', 'b': 'A--A-AA'})
-        self.assertEqual(self.gaps_rna.omitGapSeqs(
+        self.assertEqual(self.gaps_rna.omit_gap_seqs(
             5.0 / 7 + 0.01), self.gaps_rna)
-        self.assertEqual(self.gaps_rna.omitGapSeqs(0.99), self.gaps_rna)
-        self.assertNotSameObj(self.gaps_rna.omitGapSeqs(0.99), self.gaps_rna)
-        self.assertTrue(isinstance(self.gaps_rna.omitGapSeqs(3.0 / 7),
+        self.assertEqual(self.gaps_rna.omit_gap_seqs(0.99), self.gaps_rna)
+        self.assertNotSameObj(self.gaps_rna.omit_gap_seqs(0.99), self.gaps_rna)
+        self.assertTrue(isinstance(self.gaps_rna.omit_gap_seqs(3.0 / 7),
                                    SequenceCollection))
 
     def test_omitGapRuns(self):
