@@ -388,18 +388,18 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(list(self.ordered1.Items), ['A'] * 5 + ['B'] * 5)
         self.assertEqual(list(self.ordered2.Items), ['B'] * 5 + ['A'] * 5)
 
-    def test_iterItems(self):
-        """SequenceCollection iterItems() should iterate over items in correct order"""
+    def test_iter_selected(self):
+        """SequenceCollection iter_selected() should iterate over items in correct order"""
         # should work if one row
-        self.assertEqual(list(self.one_seq.iterItems()), ['A'] * 5)
+        self.assertEqual(list(self.one_seq.iter_selected()), ['A'] * 5)
         # should take order into account
-        self.assertEqual(list(self.ordered1.iterItems()),
+        self.assertEqual(list(self.ordered1.iter_selected()),
                          ['A'] * 5 + ['B'] * 5)
-        self.assertEqual(list(self.ordered2.iterItems()),
+        self.assertEqual(list(self.ordered2.iter_selected()),
                          ['B'] * 5 + ['A'] * 5)
         # should allow row and/or col specification
         r = self.ragged_padded
-        self.assertEqual(list(r.iterItems(seq_order=['c', 'b'],
+        self.assertEqual(list(r.iter_selected(seq_order=['c', 'b'],
                                           pos_order=[5, 1, 3])), list('-AA-A-'))
         # should not interfere with superclass iteritems()
         i = list(r.named_seqs.items())
