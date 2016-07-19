@@ -710,20 +710,20 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(aln_seq_1.annotations[0].Name, 'abc')
         self.assertEqual(len(aln_seq_2.annotations), 0)
 
-    def test_replaceSeqs(self):
-        """replaceSeqs should replace 1-letter w/ 3-letter seqs"""
+    def test_replace_seqs(self):
+        """replace_seqs should replace 1-letter w/ 3-letter seqs"""
         a = Alignment({'seq1': 'ACGU', 'seq2': 'C-UA', 'seq3': 'C---'})
         seqs = {'seq1': 'AAACCCGGGUUU', 'seq2': 'CCCUUUAAA', 'seq3': 'CCC'}
-        result = a.replaceSeqs(seqs)  # default behaviour
+        result = a.replace_seqs(seqs)  # default behaviour
         self.assertEqual(result.toFasta(),
                          ">seq1\nAAACCCGGGUUU\n>seq2\nCCC---UUUAAA\n>seq3\nCCC---------")
 
-        result = a.replaceSeqs(seqs, aa_to_codon=True)  # default behaviour
+        result = a.replace_seqs(seqs, aa_to_codon=True)  # default behaviour
         self.assertEqual(result.toFasta(),
                          ">seq1\nAAACCCGGGUUU\n>seq2\nCCC---UUUAAA\n>seq3\nCCC---------")
 
         # should correctly gap the same sequences with same length
-        result = a.replaceSeqs(
+        result = a.replace_seqs(
             a[:3].degap(), aa_to_codon=False)  # default behaviour
         self.assertEqual(result.todict(),
                          {'seq1': 'ACGU', 'seq2': 'C-UA', 'seq3': 'C---'})
@@ -732,13 +732,13 @@ class SequenceCollectionBaseTests(object):
         new = SequenceCollection([(n, s.replace('-', ''))
                                   for n, s in list(a[:3].todict().items())])
         self.assertRaises(ValueError,
-                          a.replaceSeqs, new, aa_to_codon=False)
+                          a.replace_seqs, new, aa_to_codon=False)
 
         # check the gaps are changed
         aln1 = Alignment(data={'a': 'AC-CT', 'b': 'ACGCT'})
         aln2 = Alignment(data={'a': 'ACC-T', 'b': 'ACGCT'})
 
-        result = aln1.replaceSeqs(aln2, aa_to_codon=False)
+        result = aln1.replace_seqs(aln2, aa_to_codon=False)
         self.assertTrue(id(aln1) != id(aln2))
         self.assertEqual(aln1.todict(), result.todict())
 

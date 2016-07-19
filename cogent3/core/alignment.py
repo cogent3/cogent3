@@ -890,7 +890,7 @@ class SequenceCollection(object):
                                 [(start, end)])
    '''
 
-    def replaceSeqs(self, seqs, aa_to_codon=True):
+    def replace_seqs(self, seqs, aa_to_codon=True):
         """Returns new alignment with same shape but with data taken from seqs.
 
         Arguments:

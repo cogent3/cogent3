@@ -47,7 +47,7 @@ The translated seqs can then be written to file, using the method ``write``. Tha
     ... 'mus': 'KQIQESGESGSLAARQERQAQVNLT',
     ... 'rat': 'LNKQ------PLS---------NKK'}
     >>> aligned_aa = LoadSeqs(data = aligned_aa_seqs, moltype = PROTEIN)
-    >>> aligned_DNA = aligned_aa.replaceSeqs(unaligned_DNA)
+    >>> aligned_DNA = aligned_aa.replace_seqs(unaligned_DNA)
 
 Just to be sure, we'll check that the DNA sequence has gaps in the right place.
 
