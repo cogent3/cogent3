@@ -327,7 +327,7 @@ class AlignmentTestMethods(unittest.TestCase):
         self.assertEqual(
             concatdict, {'a': 'AAAAGGGG', 'b': 'TTTT----', 'c': 'CCCCNNNN'})
 
-    def test_replaceSeqs(self):
+    def test_replace_seqs(self):
         """synchronize gaps between protein seqs and codon seqs"""
         pd = {'FlyingFox': 'C-TNAH',
             'DogFaced': 'CGTNT-',
@@ -343,7 +343,7 @@ class AlignmentTestMethods(unittest.TestCase):
             'DogFaced': 'TGTGGCACAAATACT'}
 
         co = LoadSeqs(moltype=DNA, data=cu, aligned=False)
-        cal = pal.replaceSeqs(co)
+        cal = pal.replace_seqs(co)
         result = cal.todict()
         for taxon, expected_sequence in [
                 ('FlyingFox', 'TGT---ACAAATGCTCAT'),

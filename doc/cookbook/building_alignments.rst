@@ -127,7 +127,7 @@ We then obtain an alignment of the DNA sequences from the alignment of their tra
 
 .. doctest::
     
-    >>> aligned_DNA = aligned_aa.replaceSeqs(unaligned_DNA, aa_to_codons=True)
+    >>> aligned_DNA = aligned_aa.replace_seqs(unaligned_DNA, aa_to_codons=True)
     >>> print aligned_DNA
     >hum
     AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
