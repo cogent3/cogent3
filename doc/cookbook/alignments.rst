@@ -243,7 +243,7 @@ Getting a subset of sequences from the alignment
     >>> aln = LoadSeqs('data/test.paml', moltype=DNA)
     >>> aln.names
     ['NineBande', 'Mouse', 'Human', 'HowlerMon', 'DogFaced']
-    >>> new = aln.takeSeqs(['Human', 'HowlerMon'])
+    >>> new = aln.take_seqs(['Human', 'HowlerMon'])
     >>> new.names
     ['Human', 'HowlerMon']
 
@@ -254,7 +254,7 @@ Note the subset contain references to the original sequences, not copies.
     >>> from cogent import LoadSeqs, DNA
     >>> aln = LoadSeqs('data/test.paml', moltype=DNA)
     >>> seq = aln.get_seq('Human')
-    >>> new = aln.takeSeqs(['Human', 'HowlerMon'])
+    >>> new = aln.take_seqs(['Human', 'HowlerMon'])
     >>> id(new.get_seq('Human')) == id(aln.get_seq('Human'))
     True
 
@@ -627,20 +627,20 @@ Filtering sequences
 Extracting sequences by sequence identifier into a new alignment object
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-You can use ``takeSeqs`` to extract some sequences by sequence identifier from an alignment to a new alignment object:
+You can use ``take_seqs`` to extract some sequences by sequence identifier from an alignment to a new alignment object:
 
 .. doctest::
 
     >>> from cogent import LoadSeqs
     >>> aln = LoadSeqs('data/long_testseqs.fasta')
-    >>> aln.takeSeqs(['Human','Mouse'])
+    >>> aln.take_seqs(['Human','Mouse'])
     2 x 2532 text alignment: Human[TGTGGCACAAA...], Mouse[TGTGGCACAGA...]
 
 Alternatively, you can extract only the sequences which are not specified by passing ``negate=True``:
 
 .. doctest::
 
-    >>> aln.takeSeqs(['Human','Mouse'],negate=True)
+    >>> aln.take_seqs(['Human','Mouse'],negate=True)
     3 x 2532 text alignment: NineBande[TGTGGCACAAA...], HowlerMon[TGTGGCACAAA...], DogFaced[TGTGGCACAAA...]
 
 Extracting sequences using an arbitrary function into a new alignment object

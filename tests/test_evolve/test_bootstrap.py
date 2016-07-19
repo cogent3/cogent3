@@ -60,7 +60,7 @@ class BootstrapTests(unittest.TestCase):
         alignmentobj = LoadSeqs(
             filename=os.path.join(data_path, "brca1.fasta"),
             moltype=moltype)
-        return alignmentobj.takeSeqs(seqnames)[:1000]
+        return alignmentobj.take_seqs(seqnames)[:1000]
 
     def getcontroller(self, treeobj, submodobj):
         return submodobj.makeParamController(treeobj)

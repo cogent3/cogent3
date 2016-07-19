@@ -267,7 +267,7 @@ class DrawingTests(unittest.TestCase):
     def test_partimatrix(self):
         aln = LoadSeqs(filename='data/brca1.fasta', moltype=DNA)
         species5 = ['Human', 'HowlerMon', 'Mouse', 'NineBande', 'DogFaced']
-        aln = aln.takeSeqs(species5)
+        aln = aln.take_seqs(species5)
         aln = aln[:500]
         fig = partimatrix(aln, samples=0, display=True, print_stats=False,
                           s_limit=10, title="brca1")
