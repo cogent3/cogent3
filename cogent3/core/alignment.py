@@ -1770,7 +1770,7 @@ class AlignmentI(object):
         """
         return Profile(self._get_freqs(1), self.Alphabet)
 
-    def omitGapPositions(self, allowed_gap_frac=1 - eps, del_seqs=False,
+    def omitGapPositions(self, allowed_gap_frac=1-eps, del_seqs=False,
                          allowed_frac_bad_cols=0, seq_constructor=None):
         """Returns new alignment where all cols have <= allowed_gap_frac gaps.
 
