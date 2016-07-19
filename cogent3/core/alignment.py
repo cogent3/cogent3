@@ -1480,7 +1480,7 @@ class SequenceCollection(object):
         """Returns the reverse complement alignment. A synonymn for rc."""
         return self.rc()
 
-    def padSeqs(self, pad_length=None, **kwargs):
+    def pad_seqs(self, pad_length=None, **kwargs):
         """Returns copy in which sequences are padded to same length.
 
             pad_length: Length all sequences are to be padded to.  Will pad

@@ -980,21 +980,21 @@ class SequenceCollectionBaseTests(object):
         seqs = self.Class(data=[("a", dna), ("b", dna)])
         self.assertEqual(seqs.degap().toFasta(), expect)
 
-    def test_padSeqs(self):
-        """SequenceCollection padSeqs should work on alignment."""
+    def test_pad_seqs(self):
+        """SequenceCollection pad_seqs should work on alignment."""
         # pad to max length
-        padded1 = self.ragged_padded.padSeqs()
+        padded1 = self.ragged_padded.pad_seqs()
         seqs1 = list(padded1.iter_seqs(seq_order=['a', 'b', 'c']))
         self.assertEqual(list(map(str, seqs1)), ['AAAAAA', 'AAA---', 'AAAA--'])
 
         # pad to alternate length
-        padded1 = self.ragged_padded.padSeqs(pad_length=10)
+        padded1 = self.ragged_padded.pad_seqs(pad_length=10)
         seqs1 = list(padded1.iter_seqs(seq_order=['a', 'b', 'c']))
         self.assertEqual(list(map(str, seqs1)), ['AAAAAA----', 'AAA-------',
                                                'AAAA------'])
 
         # assertRaises error when pad_length is less than max seq length
-        self.assertRaises(ValueError, self.ragged_padded.padSeqs, 5)
+        self.assertRaises(ValueError, self.ragged_padded.pad_seqs, 5)
 
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
@@ -1042,21 +1042,21 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
 
         self.assertRaises(ValueError, align_rag.toPhylip)
 
-    def test_padSeqs_ragged(self):
-        """SequenceCollection padSeqs should work on ragged alignment."""
+    def test_pad_seqs_ragged(self):
+        """SequenceCollection pad_seqs should work on ragged alignment."""
         # pad to max length
-        padded1 = self.ragged.padSeqs()
+        padded1 = self.ragged.pad_seqs()
         seqs1 = list(padded1.iter_seqs(seq_order=['a', 'b', 'c']))
         self.assertEqual(list(map(str, seqs1)), ['AAAAAA', 'AAA---', 'AAAA--'])
 
         # pad to alternate length
-        padded1 = self.ragged.padSeqs(pad_length=10)
+        padded1 = self.ragged.pad_seqs(pad_length=10)
         seqs1 = list(padded1.iter_seqs(seq_order=['a', 'b', 'c']))
         self.assertEqual(list(map(str, seqs1)), ['AAAAAA----', 'AAA-------',
                                                'AAAA------'])
 
         # assertRaises error when pad_length is less than max seq length
-        self.assertRaises(ValueError, self.ragged.padSeqs, 5)
+        self.assertRaises(ValueError, self.ragged.pad_seqs, 5)
 
 
 class AlignmentBaseTests(SequenceCollectionBaseTests):
