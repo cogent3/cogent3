@@ -1871,11 +1871,11 @@ def filter_exclude_positions(aln, coevolution_matrix,
          matrix contains only intermolecular data (default: False)
 
     """
-    # construct the function to be passed to aln.getPositionIndices
+    # construct the function to be passed to aln.get_position_indices
     f = make_positional_exclude_percentage_function(
         excludes, max_exclude_percent)
     # identify the positions containing too many exclude characters
-    exclude_positions = aln.getPositionIndices(f)
+    exclude_positions = aln.get_position_indices(f)
 
     # replace values from exclude_positions with null_value
     if not intermolecular_data_only:
