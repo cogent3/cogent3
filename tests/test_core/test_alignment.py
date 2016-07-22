@@ -1244,19 +1244,19 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                                               seq_constructor=coerce_to_string),
                          {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF', 'd': '----'})
 
-    def test_omitSeqsTemplate(self):
-        """Alignment.omitSeqsTemplate returns new aln with well-aln to temp"""
+    def test_matching_ref(self):
+        """Alignment.matching_ref returns new aln with well-aln to temp"""
         aln = self.omitSeqsTemplate_aln
-        result = aln.omitSeqsTemplate('s3', 0.9, 5)
+        result = aln.matching_ref('s3', 0.9, 5)
         self.assertEqual(result, {'s3': 'UUCCUUCUU-UUC',
                                   's4': 'UU-UUUU-UUUUC'})
-        result2 = aln.omitSeqsTemplate('s4', 0.9, 4)
+        result2 = aln.matching_ref('s4', 0.9, 4)
         self.assertEqual(result2, {'s3': 'UUCCUUCUU-UUC',
                                    's4': 'UU-UUUU-UUUUC'})
-        result3 = aln.omitSeqsTemplate('s1', 0.9, 4)
+        result3 = aln.matching_ref('s1', 0.9, 4)
         self.assertEqual(result3, {'s2': 'UC------U---C',
                                    's1': 'UC-----CU---C', 's5': '-------------'})
-        result4 = aln.omitSeqsTemplate('s3', 0.5, 13)
+        result4 = aln.matching_ref('s3', 0.5, 13)
         self.assertEqual(result4, {'s3': 'UUCCUUCUU-UUC',
                                    's4': 'UU-UUUU-UUUUC'})
 
