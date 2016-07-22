@@ -1959,7 +1959,7 @@ class AlignmentI(object):
             for pos in range(start, end, step):
                 yield self[pos:pos + window]
 
-    def toPretty(self, name_order=None, interleave_len=None):
+    def to_pretty(self, name_order=None, interleave_len=None):
         """returns a string representation of the alignment in pretty print format
 
         Arguments:
