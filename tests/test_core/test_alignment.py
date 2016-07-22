@@ -1069,15 +1069,15 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(cols, list(
             map(list, ['AAA', 'AAA', 'AAA', 'A-A', 'A--', 'A--'])))
 
-    def test_takePositions(self):
-        """SequenceCollection takePositions should return new alignment w/ specified pos"""
-        self.assertEqual(self.gaps.takePositions([5, 4, 0],
+    def test_take_positions(self):
+        """SequenceCollection take_positions should return new alignment w/ specified pos"""
+        self.assertEqual(self.gaps.take_positions([5, 4, 0],
                                                  seq_constructor=coerce_to_string),
                          {'a': 'AAA', 'b': 'A-A', 'c': '--A'})
-        self.assertTrue(isinstance(self.gaps.takePositions([0]),
+        self.assertTrue(isinstance(self.gaps.take_positions([0]),
                                    SequenceCollection))
         # should be able to negate
-        self.assertEqual(self.gaps.takePositions([5, 4, 0], negate=True,
+        self.assertEqual(self.gaps.take_positions([5, 4, 0], negate=True,
                                                  seq_constructor=coerce_to_string),
                          {'a': 'AAAA', 'b': '--AA', 'c': 'A---'})
 
@@ -1103,31 +1103,31 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(self.gaps.getPositionIndices(
             is_list, negate=True), [])
 
-    def test_takePositionsIf(self):
-        """SequenceCollection takePositionsIf should return cols where f(col) is True"""
+    def test_take_positions_if(self):
+        """SequenceCollection take_positions_if should return cols where f(col) is True"""
         gap_1st = lambda x: x[0] == '-'
         gap_2nd = lambda x: x[1] == '-'
         gap_3rd = lambda x: x[2] == '-'
         is_list = lambda x: isinstance(x, list)
         self.gaps.names = 'abc'
 
-        self.assertEqual(self.gaps.takePositionsIf(gap_1st, seq_constructor=coerce_to_string),
+        self.assertEqual(self.gaps.take_positions_if(gap_1st, seq_constructor=coerce_to_string),
                          {'a': '', 'b': '', 'c': ''})
-        self.assertEqual(self.gaps.takePositionsIf(gap_2nd, seq_constructor=coerce_to_string),
+        self.assertEqual(self.gaps.take_positions_if(gap_2nd, seq_constructor=coerce_to_string),
                          {'a': 'AAA', 'b': '---', 'c': 'A--'})
-        self.assertEqual(self.gaps.takePositionsIf(gap_3rd, seq_constructor=coerce_to_string),
+        self.assertEqual(self.gaps.take_positions_if(gap_3rd, seq_constructor=coerce_to_string),
                          {'a': 'AAAAA', 'b': '-A-AA', 'c': '-----'})
-        self.assertEqual(self.gaps.takePositionsIf(is_list, seq_constructor=coerce_to_string),
+        self.assertEqual(self.gaps.take_positions_if(is_list, seq_constructor=coerce_to_string),
                          self.gaps)
 
-        self.assertTrue(isinstance(self.gaps.takePositionsIf(gap_1st),
+        self.assertTrue(isinstance(self.gaps.take_positions_if(gap_1st),
                                    SequenceCollection))
         # should be able to negate
-        self.assertEqual(self.gaps.takePositionsIf(gap_1st, seq_constructor=coerce_to_string,
+        self.assertEqual(self.gaps.take_positions_if(gap_1st, seq_constructor=coerce_to_string,
                                                    negate=True), self.gaps)
-        self.assertEqual(self.gaps.takePositionsIf(gap_2nd, seq_constructor=coerce_to_string,
+        self.assertEqual(self.gaps.take_positions_if(gap_2nd, seq_constructor=coerce_to_string,
                                                    negate=True), {'a': 'AAAA', 'b': 'AAAA', 'c': 'A---'})
-        self.assertEqual(self.gaps.takePositionsIf(gap_3rd, seq_constructor=coerce_to_string,
+        self.assertEqual(self.gaps.take_positions_if(gap_3rd, seq_constructor=coerce_to_string,
                                                    negate=True), {'a': 'AA', 'b': 'A-', 'c': 'AA'})
 
     

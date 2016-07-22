@@ -256,7 +256,7 @@ We demo using the jackknife the estimate of mean GC% for an alignment. We first 
     
     >>> def CalcGc(aln):
     ...     def calc_gc(indices):
-    ...         new = aln.takePositions(indices)
+    ...         new = aln.take_positions(indices)
     ...         probs = new.get_motif_probs()
     ...         gc = sum(probs[b] for b in 'CG')
     ...         total = sum(probs[b] for b in 'ACGT')

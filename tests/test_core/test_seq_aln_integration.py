@@ -141,7 +141,7 @@ class AllTests(TestCase):
         self.assertEqual(sub_da.ArraySeqs, sub_data)
         self.assertEqual(sub_da.ArrayPositions, transpose(sub_data))
 
-        obs_sub_da_TP = self.da.takePositions([0, 1, 5])
+        obs_sub_da_TP = self.da.take_positions([0, 1, 5])
         obs_sub_da_SA = self.da.getSubAlignment(pos=[0, 1, 5])
 
         # When using the getSubAlignment method the data is right
@@ -150,7 +150,7 @@ class AllTests(TestCase):
         self.assertEqual(obs_sub_da_SA.ArraySeqs, sub_data)
         self.assertEqual(obs_sub_da_SA.ArrayPositions, transpose(sub_data))
 
-        # For the takePositions method: Why does this work
+        # For the take_positions method: Why does this work
         self.assertEqual(obs_sub_da_TP, sub_da)
         self.assertNotEqual(obs_sub_da_TP, self.da)
         # If the data doesn't match?
@@ -165,22 +165,22 @@ class AllTests(TestCase):
 
         sub_aln = Alignment([rna1, rna2, rna3], MolType=RNA)
 
-        obs_sub_aln = self.aln.takePositions([0, 1, 5])
+        obs_sub_aln = self.aln.take_positions([0, 1, 5])
         self.assertEqual(obs_sub_aln, sub_aln)
         self.assertNotEqual(obs_sub_aln, self.aln)
         # string representations should be the same. This fails right
         # now, because sequence order is not maintained. See separate test.
         self.assertEqual(str(obs_sub_aln), str(sub_aln))
 
-    def test_takePositions_sequence_order(self):
-        """Alignment takePositions should maintain seq order"""
+    def test_take_positions_sequence_order(self):
+        """Alignment take_positions should maintain seq order"""
         # This works
         self.assertEqual(self.da.names, ['rna1', 'rna2', 'rna3'])
         sub_da = self.da.getSubAlignment(pos=[0, 1, 5])
         self.assertEqual(sub_da.names, ['rna1', 'rna2', 'rna3'])
         # seq order not maintained in Alignment
         self.assertEqual(self.aln.names, ['rna1', 'rna2', 'rna3'])
-        sub_aln = self.aln.takePositions([0, 1, 5])
+        sub_aln = self.aln.take_positions([0, 1, 5])
         self.assertEqual(sub_aln.names, ['rna1', 'rna2', 'rna3'])
 
     def test_subset_seqs_Alignment(self):
