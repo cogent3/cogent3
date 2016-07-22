@@ -1261,7 +1261,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                                    's4': 'UU-UUUU-UUUUC'})
 
     def test_IUPACConsensus_RNA(self):
-        """SequenceCollection IUPACConsensus should use RNA IUPAC symbols correctly"""
+        """SequenceCollection iupac_consensus should use RNA IUPAC symbols correctly"""
         alignmentUpper = self.Class(['UCAGN-UCAGN-UCAGN-UCAGAGCAUN-',
                                       'UUCCAAGGNN--UUCCAAGGNNAGCAG--',
                                       'UUCCAAGGNN--UUCCAAGGNNAGCUA--',
@@ -1271,11 +1271,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
         # following IUPAC consensus calculated by hand
         # Test all uppper
-        self.assertEqual(alignmentUpper.IUPACConsensus(),
+        self.assertEqual(alignmentUpper.iupac_consensus(),
                          'UYHBN?BSNN??KBVSN?NN??AGCWD?-')
 
     def test_IUPACConsensus_DNA(self):
-        """SequenceCollection IUPACConsensus should use DNA IUPAC symbols correctly"""
+        """SequenceCollection iupac_consensus should use DNA IUPAC symbols correctly"""
         alignmentUpper = self.Class(['TCAGN-TCAGN-TCAGN-TCAGAGCATN-',
                                       'TTCCAAGGNN--TTCCAAGGNNAGCAG--',
                                       'TTCCAAGGNN--TTCCAAGGNNAGCTA--',
@@ -1284,11 +1284,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                                       ])
         # following IUPAC consensus calculated by hand
         # Test all uppper
-        self.assertEqual(alignmentUpper.IUPACConsensus(DNA),
+        self.assertEqual(alignmentUpper.iupac_consensus(DNA),
                          'TYHBN?BSNN??KBVSN?NN??AGCWD?-')
 
     def test_IUPACConsensus_Protein(self):
-        """SequenceCollection IUPACConsensus should use protein IUPAC symbols correctly"""
+        """SequenceCollection iupac_consensus should use protein IUPAC symbols correctly"""
         alignmentUpper = self.Class(['ACDEFGHIKLMNPQRSTUVWY-',
                                       'ACDEFGHIKLMNPQRSUUVWF-',
                                       'ACDEFGHIKLMNPERSKUVWC-',
@@ -1296,7 +1296,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                                       ])
         # following IUPAC consensus calculated by hand
         # Test all uppper
-        self.assertEqual(alignmentUpper.IUPACConsensus(PROTEIN),
+        self.assertEqual(alignmentUpper.iupac_consensus(PROTEIN),
                          'ACBEFGHIKLMNPZRS?UVWX-')
 
     def test_is_ragged(self):
@@ -1317,9 +1317,9 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         ])))
 
     def test_majorityConsensus(self):
-        """SequenceCollection.majorityConsensus should return commonest symbol per column"""
+        """SequenceCollection.majority_consensus should return commonest symbol per column"""
         # Check the exact strings expected from string transform
-        self.assertEqual(self.sequences.majorityConsensus(str), 'UCAG')
+        self.assertEqual(self.sequences.majority_consensus(str), 'UCAG')
 
     def test_uncertainties(self):
         """SequenceCollection.uncertainties should match hand-calculated values"""
