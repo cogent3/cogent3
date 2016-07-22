@@ -1130,6 +1130,43 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(self.gaps.takePositionsIf(gap_3rd, seq_constructor=coerce_to_string,
                                                    negate=True), {'a': 'AA', 'b': 'A-', 'c': 'AA'})
 
+    
+    def test_no_degenerates(self):
+        """no_degenerates correctly excludes columns containing IUPAC ambiguity codes"""
+        data = {'s1': 'AAA CCC GGG TTT'.replace(' ', ''),
+                's2': 'CCC GGG T-T AAA'.replace(' ', ''),
+                's3': 'GGR YTT AAA CCC'.replace(' ', '')}
+        aln = self.Class(data=data, MolType=DNA)
+        
+        # motif length of 1, defaults - no gaps allowed
+        result = aln.no_degenerates().todict()
+        expect = {'s1': 'AA CC GG TTT'.replace(' ', ''),
+                  's2': 'CC GG TT AAA'.replace(' ', ''),
+                  's3': 'GG TT AA CCC'.replace(' ', '')}
+        self.assertEqual(result, expect)
+    
+        # allow gaps
+        result = aln.no_degenerates(allow_gap=True).todict()
+        expect = {'s1': 'AA CC GGG TTT'.replace(' ', ''),
+                  's2': 'CC GG T-T AAA'.replace(' ', ''),
+                  's3': 'GG TT AAA CCC'.replace(' ', '')}
+        self.assertEqual(result, expect)
+    
+        # motif length of 3, defaults - no gaps allowed
+        result = aln.no_degenerates(motif_length=3).todict()
+        expect = {'s1': 'TTT'.replace(' ', ''),
+                  's2': 'AAA'.replace(' ', ''),
+                  's3': 'CCC'.replace(' ', '')}
+        self.assertEqual(result, expect)
+    
+        # allow gaps
+        result = aln.no_degenerates(motif_length=3, allow_gap=True).todict()
+        expect = {'s1': 'GGG TTT'.replace(' ', ''),
+                  's2': 'T-T AAA'.replace(' ', ''),
+                  's3': 'AAA CCC'.replace(' ', '')}
+        self.assertEqual(result, expect)
+    
+    
     def test_omitGapPositions(self):
         """SequenceCollection omitGapPositions should return alignment w/o positions of gaps"""
         aln = self.end_gaps

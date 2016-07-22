@@ -64,6 +64,41 @@ class DataError(Exception):
 # default number of gaps to allow in a column.
 eps = 1e-6
 
+# factory functions for identifying whether character set conditions are satsified
+def AllowedCharacters(chars, is_array=False, negate=False):
+    """factory function for evaluating whether a sequence contains only
+    the specified gap characters"""
+    chars = set(chars)
+    def just_chars(seq):
+        if is_array:
+            seq = set(seq.flatten())
+        else:
+            seq = set("".join(seq))
+        return seq <= chars
+    
+    def not_chars(seq):
+        if is_array:
+            seq = set(seq.flatten())
+        else:
+            seq = set("".join(seq))
+        return not seq & chars
+    
+    if negate:
+        return not_chars
+    
+    return just_chars
+
+def GapsOk(gap_chars, allowed_frac, motif_length=1, is_array=False):
+    """factory function for determinging whether sequence contains a
+    fraction of gaps <= allowed_frac"""
+    gap_chars = set(gap_chars)
+    def gap_frac_ok(seq):
+        length = len(seq) / motif_length
+        num_gap = sum(1 for c in seq if set(c) & gap_chars)
+        return allowed_frac >= (num_gap/length)
+    
+    return gap_frac_ok
+
 
 def assign_sequential_names(ignored, num_seqs, base_name='seq', start_at=0):
     """Returns list of num_seqs sequential, unique names.
@@ -1771,6 +1806,30 @@ class AlignmentI(object):
         """
         return Profile(self._get_freqs(1), self.Alphabet)
 
+    def no_degenerates(self, motif_length=1, allow_gap=False):
+        """returns new alignment without degenerate characters
+        
+        Arguments:
+        - motif_length: sequences are segmented into units of this size
+        - allow_gaps: whether gaps are to be treated as a degenerate
+          character (default, most evolutionary modelling treats gaps as
+          N) or not.
+        """
+        chars = list(self.MolType.Alphabet.NonDegen)
+        is_array = isinstance(self, DenseAlignment)
+        alpha = self.MolType.Alphabet
+        if allow_gap:
+            chars.extend(self.MolType.Gap)
+            alpha = self.MolType.Alphabet.Gapped
+        
+        if is_array:
+            chars = list(map(alpha.index, chars))
+        
+        predicate = AllowedCharacters(chars, is_array=is_array)
+        new = self.filtered(predicate, motif_length=motif_length)
+        return new
+            
+    
     def omitGapPositions(self, allowed_gap_frac=1-eps, del_seqs=False,
                          allowed_frac_bad_cols=0, seq_constructor=None):
         """Returns new alignment where all cols have <= allowed_gap_frac gaps.
