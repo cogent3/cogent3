@@ -1603,7 +1603,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         alignment = self.Class(
             {'seq1': 'ACGTACGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'})
         result = []
-        for bit in alignment.slidingWindows(5, 2):
+        for bit in alignment.sliding_windows(5, 2):
             result += [bit]
         self.assertEqual(result[0].todict(), {
                          'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
@@ -1611,7 +1611,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
                          'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
 
         result = []
-        for bit in alignment.slidingWindows(5, 1):
+        for bit in alignment.sliding_windows(5, 1):
             result += [bit]
         self.assertEqual(result[0].todict(), {
                          'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
