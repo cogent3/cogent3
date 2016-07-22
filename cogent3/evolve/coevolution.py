@@ -1744,7 +1744,7 @@ def is_parsimony_informative(column_freqs, minimum_count=2,
     """Return True is aln_position is parsimony informative
 
         column_freqs: dict of characters at alignmnet position mapped
-         to their counts -- this is the output of call alignment.columnFreqs()
+         to their counts -- this is the output of call alignment.column_freqs()
         minimum_count: the minimum number of times a character must show up
          for it to be acceptable (default: 2)
         minimum_differences: the minimum number of different characters
@@ -1825,7 +1825,7 @@ def filter_non_parsimony_informative(aln, coevolution_matrix,
     """
     if intermolecular_data_only:
         len_aln1 = coevolution_matrix.shape[1]
-    column_frequencies = aln.columnFreqs()
+    column_frequencies = aln.column_freqs()
     for i in range(len(column_frequencies)):
         if not is_parsimony_informative(column_frequencies[i], minimum_count,
                                         minimum_differences, ignored, strict):

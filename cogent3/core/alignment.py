@@ -1701,17 +1701,17 @@ class AlignmentI(object):
             consensus.append(degen(coerce_to_string(col)))
         return coerce_to_string(consensus)
 
-    def columnFreqs(self, constructor=Freqs):
+    def column_freqs(self, constructor=Freqs):
         """Returns list of Freqs with item counts for each column.
         """
         return list(map(constructor, self.Positions))
 
-    def columnProbs(self, constructor=Freqs):
+    def column_probs(self, constructor=Freqs):
         """Returns FrequencyDistribuutions w/ prob. of each item per column.
 
         Implemented as a list of normalized Freqs objects.
         """
-        freqs = self.columnFreqs(constructor)
+        freqs = self.column_freqs(constructor)
 
         for fd in freqs:
             fd.normalize()
@@ -1724,7 +1724,7 @@ class AlignmentI(object):
         will be converted (useful when consensus should be same type as
         originals).
         """
-        col_freqs = self.columnFreqs(constructor)
+        col_freqs = self.column_freqs(constructor)
 
         consensus = [freq.Mode for freq in col_freqs]
         if transform == str:
@@ -1747,7 +1747,7 @@ class AlignmentI(object):
         if hasattr(self, 'PositionumnProbs'):
             probs = self.PositionumnProbs
         else:
-            probs = self.columnProbs()
+            probs = self.column_probs()
         # calculate uncertainty for each column
         for prob in probs:
             # if there's a list of valid symbols, need to delete everything
@@ -2437,7 +2437,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
 
         return gaps_ok
 
-    def columnFreqs(self, constructor=Freqs):
+    def column_freqs(self, constructor=Freqs):
         """Returns list of Freqs with item counts for each column.
         """
         return list(map(constructor, self.Positions))
