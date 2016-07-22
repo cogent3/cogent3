@@ -1622,15 +1622,15 @@ class AlignmentI(object):
     DefaultGap = '-'  # default gap character for padding
     GapChars = dict.fromkeys('-?')  # default gap chars for comparisons
 
-    def iterPositions(self, pos_order=None):
+    def iter_positions(self, pos_order=None):
         """Iterates over positions in the alignment, in order.
 
         pos_order refers to a list of indices (ints) specifying the column
         order. This lets you rearrange positions if you want to (e.g. to pull
         out individual codon positions).
 
-        Note that self.iterPositions() always returns new objects, by default
-        lists of elements. Use map(f, self.iterPositions) to apply the
+        Note that self.iter_positions() always returns new objects, by default
+        lists of elements. Use map(f, self.iter_positions) to apply the
         constructor or function f to the resulting lists (f must take a single
         list as a parameter).
 
@@ -1644,7 +1644,7 @@ class AlignmentI(object):
         for pos in pos_order:
             yield [get(seq)[pos] for seq in seq_order]
 
-    Positions = property(iterPositions)
+    Positions = property(iter_positions)
 
     def takePositions(self, cols, negate=False, seq_constructor=None):
         """Returns new Alignment containing only specified positions.
@@ -2752,15 +2752,15 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         """
         return self.named_seqs[seq_name].get_gapped_seq(recode_gaps)
 
-    def iterPositions(self, pos_order=None):
+    def iter_positions(self, pos_order=None):
         """Iterates over positions in the alignment, in order.
 
         pos_order refers to a list of indices (ints) specifying the column
         order. This lets you rearrange positions if you want to (e.g. to pull
         out individual codon positions).
 
-        Note that self.iterPositions() always returns new objects, by default
-        lists of elements. Use map(f, self.iterPositions) to apply the
+        Note that self.iter_positions() always returns new objects, by default
+        lists of elements. Use map(f, self.iter_positions) to apply the
         constructor or function f to the resulting lists (f must take a single
         list as a parameter).
 
@@ -2776,7 +2776,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         for pos in pos_order:
             yield [seq[pos] for seq in seqs]
 
-    Positions = property(iterPositions)
+    Positions = property(iter_positions)
 
     def withGapsFrom(self, template):
         """Same alignment but overwritten with the gaps from 'template'"""
