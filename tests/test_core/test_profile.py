@@ -663,7 +663,7 @@ class ProfileTests(TestCase):
         a = Alignment(transpose(result))
 
         def absoluteProfile(alignment, char_order):
-            f = a.columnFreqs()
+            f = a.column_freqs()
             res = zeros([len(f), len(char_order)])
             for row, freq in enumerate(f):
                 for i in freq:
@@ -692,7 +692,7 @@ class ProfileTests(TestCase):
         a = Alignment([p.randomSequence() for x in range(n)])
 
         def absoluteProfile(alignment, char_order):
-            f = a.columnFreqs()
+            f = a.column_freqs()
             res = zeros([len(f), len(char_order)])
             for row, freq in enumerate(f):
                 for i in freq:

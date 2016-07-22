@@ -1305,10 +1305,10 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         assert(not self.gaps.is_ragged())
 
     def test_columnProbs(self):
-        """SequenceCollection.columnProbs should find Pr(symbol) in each column"""
+        """SequenceCollection.column_probs should find Pr(symbol) in each column"""
         # make an alignment with 4 seqs (easy to calculate probabilities)
         align = self.Class(["AAA", "ACA", "GGG", "GUC"])
-        cp = align.columnProbs()
+        cp = align.column_probs()
         # check that the column probs match the counts we expect
         self.assertEqual(cp, list(map(Freqs, [
             {'A': 0.5, 'G': 0.5},
@@ -1336,7 +1336,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertFloatEqual(obs, [2.0] * 3)
 
     def test_columnFreqs(self):
-        """Alignment.columnFreqs should count symbols in each column"""
+        """Alignment.column_freqs should count symbols in each column"""
         # calculate by hand what the first and last positions should look like in
         # each case
         firstvalues = [
@@ -1348,11 +1348,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             ]
         # check that the first positions are what we expected
         for obj, result in firstvalues:
-            freqs = obj.columnFreqs()
+            freqs = obj.column_freqs()
             self.assertEqual(str(freqs[0]), str(result))
         # check that the last positions are what we expected
         for obj, result in lastvalues:
-            freqs = obj.columnFreqs()
+            freqs = obj.column_freqs()
             self.assertEqual(str(freqs[-1]), str(result))
 
     def test_scoreMatrix(self):
