@@ -411,7 +411,7 @@ Iterating over alignment positions
 
     >>> from cogent import LoadSeqs
     >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta')
-    >>> col = aln[113:115].iterPositions()
+    >>> col = aln[113:115].iter_positions()
     >>> type(col)
     <type 'generator'>
     >>> list(col)
@@ -758,7 +758,7 @@ Filtering extracted columns for the gap character
 
     >>> from cogent import LoadSeqs
     >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta')
-    >>> col = aln[113:115].iterPositions()
+    >>> col = aln[113:115].iter_positions()
     >>> c1, c2 = list(col)
     >>> c1, c2
     (['A', 'A', 'A'], ['T', '-', '-'])
@@ -774,7 +774,7 @@ Calculating the gap fraction
 
     >>> from cogent import LoadSeqs
     >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta')
-    >>> for column in aln[113:150].iterPositions():
+    >>> for column in aln[113:150].iter_positions():
     ...     ungapped = filter(lambda x: x == '-', column)
     ...     gap_fraction = len(ungapped) * 1.0 / len(column)
     ...     print gap_fraction

@@ -1058,14 +1058,14 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(list(r.Positions), list(map(list,
                                                      ['AAA', 'AAA', 'AAA', 'A-A', 'A--', 'A--'])))
 
-    def test_iterPositions(self):
-        #"""SequenceCollection iterPositions() method should support reordering of #cols"""
+    def test_iter_positions(self):
+        #"""SequenceCollection iter_positions() method should support reordering of #cols"""
         r = self.Class(self.ragged_padded.named_seqs, Names=['c', 'b'])
-        self.assertEqual(list(r.iterPositions(pos_order=[5, 1, 3])),
+        self.assertEqual(list(r.iter_positions(pos_order=[5, 1, 3])),
                          list(map(list, ['--', 'AA', 'A-'])))
         # reorder names
         r = self.Class(self.ragged_padded.named_seqs, Names=['a', 'b', 'c'])
-        cols = list(r.iterPositions())
+        cols = list(r.iter_positions())
         self.assertEqual(cols, list(
             map(list, ['AAA', 'AAA', 'AAA', 'A-A', 'A--', 'A--'])))
 
