@@ -1790,7 +1790,7 @@ class AlignmentI(object):
         da = DenseAlignment(self, MolType=self.MolType, Alphabet=self.Alphabet)
         return da._get_freqs(index)
 
-    def getSeqFreqs(self):
+    def get_seq_freqs(self):
         """Returns Profile of counts: seq by character.
 
         See documentation for _get_freqs: this just wraps it and converts the
@@ -2378,12 +2378,12 @@ class DenseAlignment(AlignmentI, SequenceCollection):
     def getSeqEntropy(self):
         """Returns array containing Shannon entropy for each seq in self.
 
-        Uses the profile object from getSeqFreqs (see docstring) to calculate
+        Uses the profile object from get_seq_freqs (see docstring) to calculate
         the per-symbol entropy in each sequence in the alignment, i.e. the
         uncertainty about each symbol in each sequence (or row). This can be
         used to, for instance, filter low-complexity sequences.
         """
-        p = self.getSeqFreqs()
+        p = self.get_seq_freqs()
         p.normalizePositions()
         return p.rowUncertainty()
 
