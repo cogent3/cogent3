@@ -1356,8 +1356,8 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             self.assertEqual(str(freqs[-1]), str(result))
 
     def test_scoreMatrix(self):
-        """Alignment scoreMatrix should produce position specific score matrix."""
-        scoreMatrix = {
+        """Alignment get_pssm should produce position specific score matrix."""
+        get_pssm = {
             0: {'A': 1.0, 'C': 1.0, 'U': 5.0},
             1: {'C': 6.0, 'U': 1.0},
             2: {'A': 3.0, 'C': 2.0, 'G': 2.0},
@@ -1369,7 +1369,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             8: {'A': 1.0, 'C': 1.0, 'G': 1.0, 'U': 4.0},
             9: {'A': 1.0, 'C': 2.0, 'U': 4.0},
         }
-        self.assertEqual(self.many.scoreMatrix(), scoreMatrix)
+        self.assertEqual(self.many.get_pssm(), get_pssm)
 
     def test_sample(self):
         """Alignment.sample should permute alignment by default"""
@@ -1490,7 +1490,7 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(obs.CharOrder, list("TCAG"))
 
     def test_getPosFreqs_sequence(self):
-        """DenseAlignment getPosFreqs: should work with DnaSequences and strings
+        """DenseAlignment get_pos_freqs: should work with DnaSequences and strings
         """
         exp = array([[1, 1, 1, 0], [0, 2, 0, 1], [0, 0, 3, 0], [1, 1, 0, 1]])
 
@@ -1498,7 +1498,7 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         s2 = DNA.Sequence('CCAC', Name='s2')
         s3 = DNA.Sequence('AGAT', Name='s3')
         da = DenseAlignment([s1, s2, s3], MolType=DNA, Alphabet=DNA.Alphabet)
-        obs = da.getPosFreqs()
+        obs = da.get_pos_freqs()
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.Alphabet, DNA.Alphabet)
         self.assertEqual(obs.CharOrder, list("TCAG"))
@@ -1507,7 +1507,7 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         s2 = 'CCAC'
         s3 = 'AGAT'
         da = DenseAlignment([s1, s2, s3], MolType=DNA, Alphabet=DNA.Alphabet)
-        obs = da.getPosFreqs()
+        obs = da.get_pos_freqs()
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.Alphabet, DNA.Alphabet)
         self.assertEqual(obs.CharOrder, list("TCAG"))
@@ -1553,7 +1553,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(obs.CharOrder, list("TCAG"))
 
     def test_getPosFreqs(self):
-        """Alignment getPosFreqs: should work with DnaSequences and strings
+        """Alignment get_pos_freqs: should work with DnaSequences and strings
         """
         exp = array([[1, 1, 1, 0], [0, 2, 0, 1], [0, 0, 3, 0], [1, 1, 0, 1]])
 
@@ -1561,7 +1561,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         s2 = DNA.Sequence('CCAC', Name='s2')
         s3 = DNA.Sequence('AGAT', Name='s3')
         aln = Alignment([s1, s2, s3], MolType=DNA, Alphabet=DNA.Alphabet)
-        obs = aln.getPosFreqs()
+        obs = aln.get_pos_freqs()
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.Alphabet, DNA.Alphabet)
         self.assertEqual(obs.CharOrder, list("TCAG"))
@@ -1570,7 +1570,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         s2 = 'CCAC'
         s3 = 'AGAT'
         aln = Alignment([s1, s2, s3], MolType=DNA, Alphabet=DNA.Alphabet)
-        obs = aln.getPosFreqs()
+        obs = aln.get_pos_freqs()
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.Alphabet, DNA.Alphabet)
         self.assertEqual(obs.CharOrder, list("TCAG"))
@@ -1895,10 +1895,10 @@ class DenseAlignmentSpecificTests(TestCase):
         self.assertEqual(f.Data, array([[3, 1], [1, 3]]))
 
     def test_getPosFreqs(self):
-        """DenseAlignment getPosFreqs should get profile of freqs at each pos"""
+        """DenseAlignment get_pos_freqs should get profile of freqs at each pos"""
         ABModelSequence = self.ABModelSequence
         a = self.a
-        f = a.getPosFreqs()
+        f = a.get_pos_freqs()
         self.assertEqual(f.Data, array([[2, 0], [0, 2], [1, 1], [1, 1]]))
 
     def test_getSeqEntropy(self):

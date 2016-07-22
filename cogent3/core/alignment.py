@@ -1763,7 +1763,7 @@ class AlignmentI(object):
             uncertainties.append(prob.Uncertainty)
         return uncertainties
 
-    def scoreMatrix(self):
+    def get_pssm(self):
         """Returns a position specific score matrix for the alignment."""
         return Dict2D(dict([(i, Freqs(col)) for i, col in enumerate(self.Positions)]))
 
@@ -1798,7 +1798,7 @@ class AlignmentI(object):
         """
         return Profile(self._get_freqs(0), self.Alphabet)
 
-    def getPosFreqs(self):
+    def get_pos_freqs(self):
         """Returns Profile of counts: position by character.
 
         See documentation for _get_freqs: this just wraps it and converts the
@@ -2367,7 +2367,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         count_f = self.Alphabet.counts
         return array(list(map(count_f, a)))
 
-    def getPosFreqs(self):
+    def get_pos_freqs(self):
         """Returns Profile of counts: position by character.
 
         See documentation for _get_freqs: this just wraps it and converts the
@@ -2390,13 +2390,13 @@ class DenseAlignment(AlignmentI, SequenceCollection):
     def getPosEntropy(self):
         """Returns array containing Shannon entropy for each pos in self.
 
-        Uses the profile object from getPosFreqs (see docstring) to calculate
+        Uses the profile object from get_pos_freqs (see docstring) to calculate
         the per-symbol entropy in each position in the alignment, i.e. the
         uncertainty about each symbol at each position (or column). This can
         be used to, for instance, detect the level of conservation at each
         position in an alignment.
         """
-        p = self.getPosFreqs()
+        p = self.get_pos_freqs()
         p.normalizePositions()
         return p.rowUncertainty()
 
