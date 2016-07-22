@@ -704,7 +704,7 @@ class Sequence(_Annotatable, SequenceI):
         ambigs = self.MolType.resolveAmbiguity
         return [ambigs(motif) for motif in self._seq]
 
-    def slidingWindows(self, window, step, start=None, end=None):
+    def sliding_windows(self, window, step, start=None, end=None):
         """Generator function that yield new sequence objects
         of a given length at a given interval.
         Arguments:

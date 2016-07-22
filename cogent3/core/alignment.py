@@ -1942,7 +1942,7 @@ class AlignmentI(object):
         sample = Map(positions, parent_length=len(self))
         return self.gappedByMap(sample, Info=self.Info)
 
-    def slidingWindows(self, window, step, start=None, end=None):
+    def sliding_windows(self, window, step, start=None, end=None):
         """Generator yielding new Alignments of given length and interval.
 
         Arguments:

@@ -184,7 +184,7 @@ class AlignmentTestMethods(unittest.TestCase):
         alignment = LoadSeqs(
             data={'seq1': 'ACGTACGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'})
         result = []
-        for bit in alignment.slidingWindows(5, 2):
+        for bit in alignment.sliding_windows(5, 2):
             result += [bit]
         self.assertEqual(result[0].todict(), {
                          'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
@@ -193,7 +193,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
         # specify a starting window position
         result = []
-        for bit in alignment.slidingWindows(5, 2, start=1):
+        for bit in alignment.sliding_windows(5, 2, start=1):
             result += [bit]
         self.assertEqual(result[0].todict(), {
                          'seq3': 'CGTAC', 'seq2': 'CGTAC', 'seq1': 'CGTAC'})
@@ -202,7 +202,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
         # specify a ending window position
         result = []
-        for bit in alignment.slidingWindows(5, 1, start=1, end=3):
+        for bit in alignment.sliding_windows(5, 1, start=1, end=3):
             result += [bit]
         self.assertEqual(result[0].todict(), {
                          'seq3': 'CGTAC', 'seq2': 'CGTAC', 'seq1': 'CGTAC'})
@@ -212,12 +212,12 @@ class AlignmentTestMethods(unittest.TestCase):
         # start conditions < window-size from end don't return a window
         # specify a ending window position
         result = []
-        for bit in alignment.slidingWindows(5, 1, start=5):
+        for bit in alignment.sliding_windows(5, 1, start=5):
             result += [bit]
         self.assertEqual(result, [])
 
         result = []
-        for bit in alignment.slidingWindows(5, 1):
+        for bit in alignment.sliding_windows(5, 1):
             result += [bit]
         self.assertEqual(result[0].todict(), {
                          'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
@@ -546,14 +546,14 @@ class SequenceTestMethods(unittest.TestCase):
     def test_slidingWindows(self):
         """test sliding window along sequences"""
         result = []
-        for bit in self.seq.slidingWindows(5, 2):
+        for bit in self.seq.sliding_windows(5, 2):
             result += [bit]
         self.assertEqual([str(x) for x in result],
                          ['ATGAC', 'GACGT', 'CGTTG', 'TTGCG', 'GCGTA',
                           'GTAGC', 'AGCAT', 'CATAG', 'TAGCT', 'GCTCG'])
 
         result = []
-        for bit in self.seq.slidingWindows(5, 1):
+        for bit in self.seq.sliding_windows(5, 1):
             result += [bit]
         self.assertEqual([str(x) for x in result],
                          ['ATGAC', 'TGACG', 'GACGT', 'ACGTT', 'CGTTG',
@@ -562,14 +562,14 @@ class SequenceTestMethods(unittest.TestCase):
                           'ATAGC', 'TAGCT', 'AGCTC', 'GCTCG', 'CTCGA'])
 
         result = []
-        for bit in self.seq.slidingWindows(5, 1, start=3, end=6):
+        for bit in self.seq.sliding_windows(5, 1, start=3, end=6):
             result += [bit]
         self.assertEqual([str(x) for x in result],
                          ['ACGTT', 'CGTTG', 'GTTGC'])
 
         # should not get a window when starting conditions don't generate one
         result = []
-        for bit in self.seq.slidingWindows(20, 1, start=6):
+        for bit in self.seq.sliding_windows(20, 1, start=6):
             result += [bit]
         self.assertEqual(result, [])
 
