@@ -669,7 +669,7 @@ def sca_pair(alignment, pos1, pos2, cutoff,
          function as a subalignment. Your results would differ from calculating
          coupling of the same positions with the full alignment. For example:
             sca_pair(aln,10,20,0.85) != \
-            sca_pair(aln.takePositions([10,20]),0,1,0.85)
+            sca_pair(aln.take_positions([10,20]),0,1,0.85)
     """
     num_positions = len(alignment)
     num_seqs = alignment.num_seqs

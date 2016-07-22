@@ -1646,13 +1646,13 @@ class AlignmentI(object):
 
     Positions = property(iter_positions)
 
-    def takePositions(self, cols, negate=False, seq_constructor=None):
+    def take_positions(self, cols, negate=False, seq_constructor=None):
         """Returns new Alignment containing only specified positions.
 
         By default, the seqs will be lists, but an alternative constructor
         can be specified.
 
-        Note that takePositions will fail on ragged positions.
+        Note that take_positions will fail on ragged positions.
         """
         if seq_constructor is None:
             seq_constructor = self.MolType.Sequence
@@ -1679,7 +1679,7 @@ class AlignmentI(object):
             new_f = f
         return [i for i, col in enumerate(self.Positions) if new_f(col)]
 
-    def takePositionsIf(self, f, negate=False, seq_constructor=None):
+    def take_positions_if(self, f, negate=False, seq_constructor=None):
         """Returns new Alignment containing cols where f(col) is True.
 
         Note that the seqs in the new Alignment are always new objects. Default
@@ -1687,7 +1687,7 @@ class AlignmentI(object):
         """
         if seq_constructor is None:
             seq_constructor = self.MolType.Sequence
-        return self.takePositions(self.getPositionIndices(f, negate),
+        return self.take_positions(self.getPositionIndices(f, negate),
                                   seq_constructor=seq_constructor)
 
     def IUPACConsensus(self, alphabet=None):
@@ -1858,7 +1858,7 @@ class AlignmentI(object):
         # if we're not deleting the 'naughty' seqs that contribute to the
         # gaps, it's easy...
         if not del_seqs:
-            return self.takePositionsIf(f=gaps_ok,
+            return self.take_positions_if(f=gaps_ok,
                                         seq_constructor=seq_constructor)
         # otherwise, we have to figure out which seqs to delete.
         # if we get here, we're doing del_seqs.
@@ -1891,7 +1891,7 @@ class AlignmentI(object):
         for c in cols_to_delete:
             del cols_to_keep[c]
         if good_seqs:
-            return good_seqs.takePositions(cols=list(cols_to_keep.keys()),
+            return good_seqs.take_positions(cols=list(cols_to_keep.keys()),
                                            seq_constructor=seq_constructor)
         else:
             return {}
@@ -2818,7 +2818,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         non_gap_cols = [i for i, col in enumerate(self.get_gapped_seq(name))
                         if col != gap]
 
-        return self.takePositions(non_gap_cols)
+        return self.take_positions(non_gap_cols)
 
     def addFromReferenceAln(self, ref_aln, before_name=None, after_name=None):
         """

@@ -206,7 +206,7 @@ Next we'll identify and store the positions that have lower entropy than ``uncer
 
 Then we'll filter the alignment to contain only those positions::
 
-	entropy_gap_filtered_aln = gap_filtered_aln.takePositions(positions_to_keep)
+	entropy_gap_filtered_aln = gap_filtered_aln.take_positions(positions_to_keep)
 
 We can then rebuild and visualize the tree::
 
