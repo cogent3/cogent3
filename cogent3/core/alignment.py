@@ -1896,15 +1896,15 @@ class AlignmentI(object):
         else:
             return {}
 
-    def omitSeqsTemplate(self, template_name, gap_fraction, gap_run):
-        """Returns new alignment where all seqs are well aligned with template.
+    def matching_ref(self, ref_name, gap_fraction, gap_run):
+        """Returns new alignment with seqs well aligned with a reference.
 
         gap_fraction = fraction of positions that either have a gap in the
             template but not in the seq or in the seq but not in the template
         gap_run = number of consecutive gaps tolerated in query relative to
             sequence or sequence relative to query
         """
-        template = self.named_seqs[template_name]
+        template = self.named_seqs[ref_name]
         gap_filter = make_gap_filter(template, gap_fraction, gap_run)
         return self.take_seqs_if(gap_filter)
 
