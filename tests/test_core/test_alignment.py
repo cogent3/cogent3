@@ -1167,53 +1167,27 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(result, expect)
     
     
-    def test_omitGapPositions(self):
-        """SequenceCollection omitGapPositions should return alignment w/o positions of gaps"""
+    def test_omit_gap_pos(self):
+        """SequenceCollection omit_gap_pos should return alignment w/o positions of gaps"""
         aln = self.end_gaps
-
         # first, check behavior when we're just acting on the cols (and not
         # trying to delete the naughty seqs).
 
         # default should strip out cols that are 100% gaps
-        self.assertEqual(aln.omitGapPositions(seq_constructor=coerce_to_string),
+        result = aln.omit_gap_pos(seq_constructor=coerce_to_string)
+        self.assertEqual(result.todict(),
                          {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF'})
         # if allowed_gap_frac is 1, shouldn't delete anything
-        self.assertEqual(aln.omitGapPositions(1, seq_constructor=coerce_to_string),
+        self.assertEqual(aln.omit_gap_pos(1, seq_constructor=coerce_to_string).todict(),
                          {'a': '--A-BC-', 'b': '-CB-A--', 'c': '--D-EF-'})
         # if allowed_gap_frac is 0, should strip out any cols containing gaps
-        self.assertEqual(aln.omitGapPositions(0, seq_constructor=coerce_to_string),
+        self.assertEqual(aln.omit_gap_pos(0, seq_constructor=coerce_to_string).todict(),
                          {'a': 'AB', 'b': 'BA', 'c': 'DE'})
         # intermediate numbers should work as expected
-        self.assertEqual(aln.omitGapPositions(0.4, seq_constructor=coerce_to_string),
+        self.assertEqual(aln.omit_gap_pos(0.4, seq_constructor=coerce_to_string).todict(),
                          {'a': 'ABC', 'b': 'BA-', 'c': 'DEF'})
-        self.assertEqual(aln.omitGapPositions(0.7, seq_constructor=coerce_to_string),
+        self.assertEqual(aln.omit_gap_pos(0.7, seq_constructor=coerce_to_string).todict(),
                          {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF'})
-
-        # second, need to check behavior when the naughty seqs should be
-        # deleted as well.
-
-        # default should strip out cols that are 100% gaps
-        self.assertEqual(aln.omitGapPositions(seq_constructor=coerce_to_string,
-                                              del_seqs=True), {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF'})
-        # if allowed_gap_frac is 1, shouldn't delete anything
-        self.assertEqual(aln.omitGapPositions(1, seq_constructor=coerce_to_string,
-                                              del_seqs=True), {'a': '--A-BC-', 'b': '-CB-A--', 'c': '--D-EF-'})
-        # if allowed_gap_frac is 0, should strip out any cols containing gaps
-        self.assertEqual(aln.omitGapPositions(0, seq_constructor=coerce_to_string,
-                                              del_seqs=True), {})  # everything has at least one naughty non-gap
-        # intermediate numbers should work as expected
-        self.assertEqual(aln.omitGapPositions(0.4, seq_constructor=coerce_to_string,
-                                              del_seqs=True), {'a': 'ABC', 'c': 'DEF'})  # b has a naughty non-gap
-        # check that does not delete b if allowed_frac_bad_calls higher than
-        # 0.14
-        self.assertEqual(aln.omitGapPositions(0.4, seq_constructor=coerce_to_string,
-                                              del_seqs=True, allowed_frac_bad_cols=0.2),
-                         {'a': 'ABC', 'b': 'BA-', 'c': 'DEF'})
-        self.assertEqual(aln.omitGapPositions(0.4, seq_constructor=coerce_to_string,
-                                              del_seqs=True), {'a': 'ABC', 'c': 'DEF'})  # b has a naughty non-gap
-
-        self.assertEqual(aln.omitGapPositions(0.7, seq_constructor=coerce_to_string,
-                                              del_seqs=True), {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF'})  # all ok
 
         # when we increase the number of sequences to 6, more differences
         # start to appear.
@@ -1222,27 +1196,40 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         new_aln_data['e'] = 'XYZXYZX'
         new_aln_data['f'] = 'AB-CDEF'
         aln = self.Class(new_aln_data)
+        
+        # if no gaps are allowed, we get None
+        self.assertEqual(aln.omit_gap_pos(0), None)
+    
+    def test_omit_bad_seqs(self):
+        """omit_bad_seqs should return alignment w/o seqs causing most gaps"""
+        data = {'s1': '-ACC--TT',
+                's2': '-ACC--TT',
+                's3': '-ACC--TT',
+                's4': 'AACCGGTT',
+                's5': 'AACCGGTT',
+                's6': '--------'}
+        
+        aln = self.Class(data, MolType=DNA)
+        # with defaults, excludes the fully gapped seq
+        result = aln.omit_bad_seqs()
+        self.assertEqual(result.todict(),
+                         {'s1': '-ACC--TT',
+                          's2': '-ACC--TT',
+                          's3': '-ACC--TT',
+                          's4': 'AACCGGTT',
+                          's5': 'AACCGGTT'})
+        # unless exclude_just_gap=False, which should just return self
+        result = aln.omit_bad_seqs(exclude_just_gap=False)
+        self.assertEqual(result.todict(), data)
+        self.assertEqual(id(result), id(aln))
+        
+        # with disallowed_frac=0.6, we should drop s4&5 too
+        result = aln.omit_bad_seqs(disallowed_frac=0.5)
+        self.assertEqual(result.todict(),
+                         {'s1': '-ACC--TT',
+                          's2': '-ACC--TT',
+                          's3': '-ACC--TT'})
 
-        # if no gaps are allowed, everything is deleted...
-        result = aln.omitGapPositions(seq_constructor=coerce_to_string)
-        self.assertEqual(aln.omitGapPositions(0, del_seqs=False),
-                         {'a': '', 'b': '', 'c': '', 'd': '', 'e': '', 'f': ''})
-        #...though not a sequence that's all gaps, since it has no positions
-        # that are not gaps. This 'feature' should possibly be considered a
-        # bug.
-        self.assertEqual(aln.omitGapPositions(0, del_seqs=True), {'d': ''})
-        # if we're deleting only full positions of gaps, del_seqs does nothing.
-        self.assertEqual(aln.omitGapPositions(del_seqs=True,
-                                              seq_constructor=coerce_to_string), aln)
-        # at 50%, should delete a bunch of minority sequences
-        self.assertEqual(aln.omitGapPositions(0.5, del_seqs=True,
-                                              seq_constructor=coerce_to_string),
-                         {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF', 'd': '----'})
-        # shouldn't depend on order of seqs
-        aln.names = 'fadbec'
-        self.assertEqual(aln.omitGapPositions(0.5, del_seqs=True,
-                                              seq_constructor=coerce_to_string),
-                         {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF', 'd': '----'})
 
     def test_matching_ref(self):
         """Alignment.matching_ref returns new aln with well-aln to temp"""
@@ -1260,6 +1247,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(result4, {'s3': 'UUCCUUCUU-UUC',
                                    's4': 'UU-UUUU-UUUUC'})
 
+    
     def test_IUPACConsensus_RNA(self):
         """SequenceCollection iupac_consensus should use RNA IUPAC symbols correctly"""
         alignmentUpper = self.Class(['UCAGN-UCAGN-UCAGN-UCAGAGCAUN-',

@@ -21,7 +21,7 @@
 """
 
 from types import GeneratorType
-from collections import defaultdict
+from collections import defaultdict, Counter
 from functools import total_ordering
 
 from cogent3.core.annotation import Map, _Annotatable
@@ -68,36 +68,64 @@ eps = 1e-6
 def AllowedCharacters(chars, is_array=False, negate=False):
     """factory function for evaluating whether a sequence contains only
     the specified gap characters"""
-    chars = set(chars)
-    def just_chars(seq):
-        if is_array:
-            seq = set(seq.flatten())
-        else:
-            seq = set("".join(seq))
-        return seq <= chars
+    try:
+        chars = set(chars)
+    except TypeError:
+        chars = set([chars])
     
-    def not_chars(seq):
+    def just_chars(data):
         if is_array:
-            seq = set(seq.flatten())
+            data = set(data.flatten())
         else:
-            seq = set("".join(seq))
-        return not seq & chars
+            data = set("".join(data))
+        return data <= chars
+    
+    def not_chars(data):
+        if is_array:
+            data = set(data.flatten())
+        else:
+            data = set("".join(data))
+        return not data & chars
     
     if negate:
         return not_chars
     
     return just_chars
 
-def GapsOk(gap_chars, allowed_frac, motif_length=1, is_array=False):
+def GapsOk(gap_chars, allowed_frac, motif_length=1, is_array=False, negate=False):
     """factory function for determinging whether sequence contains a
     fraction of gaps <= allowed_frac"""
-    gap_chars = set(gap_chars)
-    def gap_frac_ok(seq):
-        length = len(seq) / motif_length
-        num_gap = sum(1 for c in seq if set(c) & gap_chars)
-        return allowed_frac >= (num_gap/length)
+    try:
+        gap_chars = set(gap_chars)
+    except TypeError:
+        gap_chars = set([gap_chars])
+        
+    def gap_frac_ok(data):
+        length = len(data) / motif_length
+        if is_array:
+            data = Counter(data.flatten())
+        else:
+            data = Counter(list(data))
+        
+        num_gap = sum(data[g] for g in gap_chars)
+        return num_gap / length <= allowed_frac
     
-    return gap_frac_ok
+    def gap_frac_not_ok(data):
+        """returns True when the frac of gaps is > allowed_frac"""
+        data = array(data)
+        length = len(data) / motif_length
+        if is_array:
+            data = Counter(data.flatten())
+        else:
+            data = Counter(list(data))
+        
+        num_gap = sum(data[g] for g in gap_chars)
+        return (num_gap / length) >= allowed_frac
+    
+    if negate:
+        return gap_frac_not_ok
+    else:
+        return gap_frac_ok
 
 
 def assign_sequential_names(ignored, num_seqs, base_name='seq', start_at=0):
@@ -1332,11 +1360,8 @@ class SequenceCollection(object):
 
         return probs
 
-    def count_gaps(self, seq_name):
-        return len(self.named_seqs[seq_name].map.gaps())
-
     def _make_gaps_ok(self, allowed_gap_frac):
-        """Makes the gaps_ok function used by omitGapPositions and omit_gap_seqs.
+        """Makes the gaps_ok function used by omit_gap_pos and omit_gap_seqs.
 
         Need to make the function because if it's a method of Alignment, it
         has unwanted 'self' and 'allowed_gap_frac' parameters that impede the
@@ -1582,7 +1607,7 @@ class Aligned(object):
             yield annot.remappedTo(alignment, self.map.inverse())
 
     def gapVector(self):
-        """Returns gapVector of GappedSeq, for omitGapPositions."""
+        """Returns gapVector of GappedSeq, for omit_gap_pos."""
         return self.get_gapped_seq().gapVector()
 
     def _masked_annotations(self, annot_types, mask_char, shadow):
@@ -1661,23 +1686,38 @@ class AlignmentI(object):
         # indices
         if negate:
             col_lookup = dict.fromkeys(cols)
-            for key, row in list(self.named_seqs.items()):
-                result[key] = seq_constructor([row[i] for i in range(len(row))
+            for name, seq in list(self.named_seqs.items()):
+                result[name] = seq_constructor([seq[i] for i in range(len(seq))
                                                if i not in col_lookup])
         # otherwise, just get the requested indices
         else:
-            for key, row in list(self.named_seqs.items()):
-                result[key] = seq_constructor([row[i] for i in cols])
+            for name, seq in list(self.named_seqs.items()):
+                result[name] = seq_constructor([seq[i] for i in cols])
         return self.__class__(result, Names=self.names)
 
-    def get_position_indices(self, f, negate=False):
-        """Returns list of column indices for which f(col) is True."""
+    def get_position_indices(self, f, native=False, negate=False):
+        """Returns list of column indices for which f(col) is True.
+        
+        f : callable
+          function that returns true/false given an alignment position
+        native : boolean
+          if True, and DenseAlignment, f is provided with slice of array
+          otherwise the string is used
+        negate : boolean
+          if True, not f() is used
+        """
         # negate f if necessary
         if negate:
             new_f = lambda x: not f(x)
         else:
             new_f = f
-        return [i for i, col in enumerate(self.Positions) if new_f(col)]
+        
+        if native and isinstance(self, DenseAlignment):
+            result = [i for i in range(self.SeqLen) if new_f(self.ArraySeqs[:,i])]
+        else:
+            result = [i for i, col in enumerate(self.Positions) if new_f(col)]
+        
+        return result
 
     def take_positions_if(self, f, negate=False, seq_constructor=None):
         """Returns new Alignment containing cols where f(col) is True.
@@ -1687,7 +1727,7 @@ class AlignmentI(object):
         """
         if seq_constructor is None:
             seq_constructor = self.MolType.Sequence
-        return self.take_positions(self.get_position_indices(f, negate),
+        return self.take_positions(self.get_position_indices(f, negate=negate),
                                   seq_constructor=seq_constructor)
 
     def iupac_consensus(self, alphabet=None):
@@ -1817,7 +1857,7 @@ class AlignmentI(object):
         """
         chars = list(self.MolType.Alphabet.NonDegen)
         is_array = isinstance(self, DenseAlignment)
-        alpha = self.MolType.Alphabet
+        alpha = self.Alphabet
         if allow_gap:
             chars.extend(self.MolType.Gap)
             alpha = self.MolType.Alphabet.Gapped
@@ -1830,71 +1870,81 @@ class AlignmentI(object):
         return new
             
     
-    def omitGapPositions(self, allowed_gap_frac=1-eps, del_seqs=False,
-                         allowed_frac_bad_cols=0, seq_constructor=None):
-        """Returns new alignment where all cols have <= allowed_gap_frac gaps.
+    def omit_gap_pos(self, allowed_gap_frac=1-eps, motif_length=1, seq_constructor=None):
+        """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
 
         allowed_gap_frac says what proportion of gaps is allowed in each
         column (default is 0, i.e. only cols without any gap character are
         preserved). Set to 1 - e-6 to exclude strictly gapped columns.
 
-        If del_seqs is True (default:False), deletes the sequences that don't
-        have gaps where everything else does. Otherwise, just deletes the
-        corresponding column from all sequences, in which case real data as
-        well as gaps can be removed.
-
         Uses seq_constructor(seq) to make each new sequence object.
-
-        Note: a sequence that is all gaps will not be deleted by del_seqs
-        (even if all the positions have been deleted), since it has no non-gaps
-        in positions that are being deleted for their gap content. Possibly,
-        this decision should be revisited since it may be a surprising
-        result (and there are more convenient ways to return the sequences
-        that consist wholly of gaps).
         """
         if seq_constructor is None:
             seq_constructor = self.MolType.Sequence
-        gaps_ok = GapsOk(self.MolType.Gaps, allowed_gap_frac)
+        
+        is_array = isinstance(self, DenseAlignment)
+        alpha = self.MolType.Alphabet
+        
+        gaps = list(self.MolType.Gaps)
+        if is_array:
+            gaps = list(map(alpha.index, gaps))
+        
+        gaps_ok = GapsOk(gaps, allowed_gap_frac, is_array=is_array)
         # if we're not deleting the 'naughty' seqs that contribute to the
         # gaps, it's easy...
-        if not del_seqs:
-            return self.take_positions_if(f=gaps_ok,
-                                        seq_constructor=seq_constructor)
-        # otherwise, we have to figure out which seqs to delete.
-        # if we get here, we're doing del_seqs.
-        cols_to_delete = dict.fromkeys(self.get_position_indices(gaps_ok,
-                                                               negate=True))
-        default_gap_f = self.MolType.Gaps.__contains__
+        result = self.filtered(gaps_ok, motif_length=motif_length)
+        return result
 
-        bad_cols_per_row = {}
-        for key, row in list(self.named_seqs.items()):
-            try:
-                is_gap = row.Alphabet.Gaps.__contains__
-            except AttributeError:
-                is_gap = default_gap_f
-
-            for col in cols_to_delete:
-                if not is_gap(str(row)[col]):
-                    if key not in bad_cols_per_row:
-                        bad_cols_per_row[key] = 1
-                    else:
-                        bad_cols_per_row[key] += 1
-        # figure out which of the seqs we're deleting
-        get = self.named_seqs.__getitem__
+    def omit_bad_seqs(self, disallowed_frac=0.9, allowed_frac_bad_cols=0, exclude_just_gap=True):
+        """Returns new alignment without the sequences responsible for exceeding disallowed_frac.
+        
+        disallowed_frac: used to identify columns with excessive gaps
+        allowed_frac_bad_cols: the fraction of gaps induced by the sequence
+        exclude_just_gap: sequences that are just gaps are excluded
+        """
+        is_array = isinstance(self, DenseAlignment)
+        alpha = self.Alphabet
+        
+        gaps = list(self.MolType.Gaps)
+        if is_array:
+            gaps = list(map(alpha.index, gaps))
+        
+        excess_gaps = GapsOk(gaps, disallowed_frac, is_array=is_array, negate=True)
+        gapped_cols = self.get_position_indices(excess_gaps, native=True)
+        
         seqs_to_delete = {}
-        for key, count in list(bad_cols_per_row.items()):
-            if float(count) / len(get(key)) >= allowed_frac_bad_cols:
-                seqs_to_delete[key] = True
-        # It's _much_ more efficient to delete the seqs before the cols.
+        if exclude_just_gap:
+            # any seqs that are all gaps?
+            length = len(self)
+            for name in self.names:
+                num_gaps = self.count_gaps(name)
+                if num_gaps == length:
+                    seqs_to_delete[name] = True
+        
+        # we treat array and string data the same, likely inefficient
+        is_gap = list(self.MolType.Gaps).__contains__
+        bad_cols_per_seq = Counter()
+        for name, seq in list(self.named_seqs.items()):
+            if name in seqs_to_delete:
+                continue
+            
+            seq = str(seq)
+            for col in gapped_cols:
+                element = seq[col]
+                if not is_gap(element):
+                    bad_cols_per_seq[name] += 1
+        
+        # figure out which of the seqs cause too many gaps
+        get = self.named_seqs.__getitem__
+        for name, count in list(bad_cols_per_seq.items()):
+            if count / len(get(name)) >= allowed_frac_bad_cols:
+                seqs_to_delete[name] = True
+        
+        if not seqs_to_delete:
+            return self
+        
         good_seqs = self.take_seqs(seqs_to_delete, negate=True)
-        cols_to_keep = dict.fromkeys(list(range(self.SeqLen)))
-        for c in cols_to_delete:
-            del cols_to_keep[c]
-        if good_seqs:
-            return good_seqs.take_positions(cols=list(cols_to_keep.keys()),
-                                           seq_constructor=seq_constructor)
-        else:
-            return {}
+        return good_seqs
 
     def matching_ref(self, ref_name, gap_fraction, gap_run):
         """Returns new alignment with seqs well aligned with a reference.
@@ -2006,6 +2056,23 @@ class AlignmentI(object):
             del(result[-1])
 
         return '\n'.join(result)
+    
+    def count_gaps(self, seq_name):
+        """returns number of gaps for seq_name"""
+        is_array = isinstance(self, DenseAlignment)
+        if not is_array:
+            seq = self.named_seqs[seq_name]
+            return len(seq.map.gaps())
+        
+        seq_index = self.names.index(seq_name)
+        seq = self.ArraySeqs[seq_index]
+        alpha = self.Alphabet
+        gaps = list(map(alpha.index, self.MolType.Gaps))
+        counts = Counter(seq)
+        num_gaps = sum(counts[g] for g in gaps)
+        return num_gaps
+
+    
 
 
 def aln_from_array(a, array_type=None, Alphabet=None):
@@ -2413,7 +2480,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         return coerce_to_string(consensus)
 
     def _make_gaps_ok(self, allowed_gap_frac):
-        """Makes the gaps_ok function used by omitGapPositions and omit_gap_seqs.
+        """Makes the gaps_ok function used by omit_gap_pos and omit_gap_seqs.
 
         Need to make the function because if it's a method of Alignment, it
         has unwanted 'self' and 'allowed_gap_frac' parameters that impede the
@@ -2505,6 +2572,9 @@ class DenseAlignment(AlignmentI, SequenceCollection):
             
             start = motif_length * i
             indices.extend(elements+start)
+        
+        if not indices:
+            return None
         
         positions = self.ArraySeqs.take(indices, axis=1)
         result = self.__class__(positions, force_same_data=True,
@@ -2732,7 +2802,10 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
         if kept:
             gv.append(len(positions) * motif_length)
-
+        
+        if not gv:
+            return None
+        
         locations = [(gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
 
         keep = Map(locations, parent_length=len(self))
