@@ -1670,7 +1670,7 @@ class AlignmentI(object):
                 result[key] = seq_constructor([row[i] for i in cols])
         return self.__class__(result, Names=self.names)
 
-    def getPositionIndices(self, f, negate=False):
+    def get_position_indices(self, f, negate=False):
         """Returns list of column indices for which f(col) is True."""
         # negate f if necessary
         if negate:
@@ -1687,7 +1687,7 @@ class AlignmentI(object):
         """
         if seq_constructor is None:
             seq_constructor = self.MolType.Sequence
-        return self.take_positions(self.getPositionIndices(f, negate),
+        return self.take_positions(self.get_position_indices(f, negate),
                                   seq_constructor=seq_constructor)
 
     def IUPACConsensus(self, alphabet=None):
@@ -1862,7 +1862,7 @@ class AlignmentI(object):
                                         seq_constructor=seq_constructor)
         # otherwise, we have to figure out which seqs to delete.
         # if we get here, we're doing del_seqs.
-        cols_to_delete = dict.fromkeys(self.getPositionIndices(gaps_ok,
+        cols_to_delete = dict.fromkeys(self.get_position_indices(gaps_ok,
                                                                negate=True))
         default_gap_f = self.MolType.Gaps.__contains__
 

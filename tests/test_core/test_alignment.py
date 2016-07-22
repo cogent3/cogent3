@@ -1081,26 +1081,26 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                                                  seq_constructor=coerce_to_string),
                          {'a': 'AAAA', 'b': '--AA', 'c': 'A---'})
 
-    def test_getPositionIndices(self):
-        """SequenceCollection getPositionIndices should return names of cols where f(col)"""
+    def test_get_position_indices(self):
+        """SequenceCollection get_position_indices should return names of cols where f(col)"""
         gap_1st = lambda x: x[0] == '-'
         gap_2nd = lambda x: x[1] == '-'
         gap_3rd = lambda x: x[2] == '-'
         is_list = lambda x: isinstance(x, list)
         self.gaps = self.Class(self.gaps.named_seqs, Names=['a', 'b', 'c'])
 
-        self.assertEqual(self.gaps.getPositionIndices(gap_1st), [])
-        self.assertEqual(self.gaps.getPositionIndices(gap_2nd), [1, 2, 4])
-        self.assertEqual(self.gaps.getPositionIndices(
+        self.assertEqual(self.gaps.get_position_indices(gap_1st), [])
+        self.assertEqual(self.gaps.get_position_indices(gap_2nd), [1, 2, 4])
+        self.assertEqual(self.gaps.get_position_indices(
             gap_3rd), [2, 3, 4, 5, 6])
-        self.assertEqual(self.gaps.getPositionIndices(
+        self.assertEqual(self.gaps.get_position_indices(
             is_list), [0, 1, 2, 3, 4, 5, 6])
         # should be able to negate
-        self.assertEqual(self.gaps.getPositionIndices(gap_2nd, negate=True),
+        self.assertEqual(self.gaps.get_position_indices(gap_2nd, negate=True),
                          [0, 3, 5, 6])
-        self.assertEqual(self.gaps.getPositionIndices(gap_1st, negate=True),
+        self.assertEqual(self.gaps.get_position_indices(gap_1st, negate=True),
                          [0, 1, 2, 3, 4, 5, 6])
-        self.assertEqual(self.gaps.getPositionIndices(
+        self.assertEqual(self.gaps.get_position_indices(
             is_list, negate=True), [])
 
     def test_take_positions_if(self):
