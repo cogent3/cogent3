@@ -31,7 +31,7 @@ def brca_test(subMod, names, tree, length, par_rules, **kw):
     #names = ALIGNMENT.get_seq_names()[:taxa]
     #assert len(names) == taxa
     tree = TREE.getSubTree(names)  # .balanced()
-    aln = ALIGNMENT.take_seqs(names).omitGapPositions()[:length]
+    aln = ALIGNMENT.take_seqs(names).omit_gap_pos()[:length]
     assert len(aln) == length, (len(aln), length)
     #the_tree_analysis = LikelihoodFunction(treeobj = tree, submodelobj = subMod, alignobj = aln)
     par_controller = subMod.makeParamController(tree, **kw)
