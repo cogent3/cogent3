@@ -1690,7 +1690,7 @@ class AlignmentI(object):
         return self.take_positions(self.get_position_indices(f, negate),
                                   seq_constructor=seq_constructor)
 
-    def IUPACConsensus(self, alphabet=None):
+    def iupac_consensus(self, alphabet=None):
         """Returns string containing IUPAC consensus sequence of the alignment.
         """
         if alphabet is None:
@@ -1717,7 +1717,7 @@ class AlignmentI(object):
             fd.normalize()
         return freqs
 
-    def majorityConsensus(self, transform=None, constructor=Freqs):
+    def majority_consensus(self, transform=None, constructor=Freqs):
         """Returns list containing most frequent item at each position.
 
         Optional parameter transform gives constructor for type to which result
@@ -2400,7 +2400,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         p.normalizePositions()
         return p.rowUncertainty()
 
-    def IUPACConsensus(self, alphabet=None):
+    def iupac_consensus(self, alphabet=None):
         """Returns string containing IUPAC consensus sequence of the alignment.
         """
         if alphabet is None:
