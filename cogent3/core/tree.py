@@ -1255,7 +1255,7 @@ class TreeNode(object):
         (score, tree) = self._sorted(full_sort_order)
         return tree
 
-    def _asciiArt(self, char1='-', show_internal=True, compact=False):
+    def _ascii_art(self, char1='-', show_internal=True, compact=False):
         LEN = 10
         PAD = ' ' * LEN
         PA = ' ' * (LEN - 1)
@@ -1270,7 +1270,7 @@ class TreeNode(object):
                     char2 = '\\'
                 else:
                     char2 = '-'
-                (clines, mid) = c._asciiArt(char2, show_internal, compact)
+                (clines, mid) = c._ascii_art(char2, show_internal, compact)
                 mids.append(mid + len(result))
                 result.extend(clines)
                 if not compact:
@@ -1290,14 +1290,14 @@ class TreeNode(object):
         else:
             return ([char1 + '-' + namestr], 0)
 
-    def asciiArt(self, show_internal=True, compact=False):
+    def ascii_art(self, show_internal=True, compact=False):
         """Returns a string containing an ascii drawing of the tree.
 
         Arguments:
         - show_internal: includes internal edge names.
         - compact: use exactly one line per tip.
         """
-        (lines, mid) = self._asciiArt(
+        (lines, mid) = self._ascii_art(
             show_internal=show_internal, compact=compact)
         return '\n'.join(lines)
 

@@ -64,12 +64,12 @@ class MultiLetterMotifSubstModelTests(TestCase):
         self.submodel = substitution_model.Dinucleotide(do_scaling=True,
                                                         model_gaps=True, mprob_model='tuple')
 
-    def test_asciiArt(self):
+    def test_ascii_art(self):
         model = substitution_model.Dinucleotide(mprob_model='tuple',
                                                 predicates=['k:transition'])
-        model.asciiArt()
+        model.ascii_art()
         model = substitution_model.Dinucleotide(mprob_model='tuple')
-        model.asciiArt()
+        model.ascii_art()
 
     def test_isIndel(self):
         """testing indel comparison for dinucleotide model"""

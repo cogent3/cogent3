@@ -1947,16 +1947,16 @@ class TestTree(TestCase):
                                   true_root_dists[tip.name])
 
     def test_ascii(self):
-        self.tree.asciiArt()
+        self.tree.ascii_art()
         # unlabeled internal node
         tr = DndParser("(B:0.2,(C:0.3,D:0.4):0.6)F;")
-        obs = tr.asciiArt(show_internal=True, compact=False)
+        obs = tr.ascii_art(show_internal=True, compact=False)
         exp = """          /-B\n-F-------|\n         |          /-C\n          \\--------|\n                    \\-D"""
         self.assertEqual(obs, exp)
-        obs = tr.asciiArt(show_internal=True, compact=True)
+        obs = tr.ascii_art(show_internal=True, compact=True)
         exp = """-F------- /-B\n          \-------- /-C\n                    \-D"""
         self.assertEqual(obs, exp)
-        obs = tr.asciiArt(show_internal=False, compact=False)
+        obs = tr.ascii_art(show_internal=False, compact=False)
         exp = """          /-B\n---------|\n         |          /-C\n          \\--------|\n                    \\-D"""
         self.assertEqual(obs, exp)
 

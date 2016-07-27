@@ -105,7 +105,7 @@ Phylogenetic Trees can be built by using the neighbour joining algorithm by prov
     >>> from cogent3.phylo import nj
     >>> njtree = nj.nj(d.getPairwiseDistances())
     >>> njtree = njtree.balanced()
-    >>> print njtree.asciiArt()
+    >>> print njtree.ascii_art()
                         /-Rhesus
               /edge.1--|
              |         |          /-HowlerMon
@@ -126,7 +126,7 @@ Or created manually as shown below.
     
     >>> dists = {('a', 'b'): 2.7, ('c', 'b'): 2.33, ('c', 'a'): 0.73}
     >>> njtree2 = nj.nj(dists)
-    >>> print njtree2.asciiArt()
+    >>> print njtree2.ascii_art()
               /-a
              |
     -root----|--b

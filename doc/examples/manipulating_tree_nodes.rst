@@ -35,7 +35,7 @@ Display the original tree.
 
 .. doctest ::
 
-    >>> print simple_tree.asciiArt()
+    >>> print simple_tree.ascii_art()
               /-B
     -F-------|
              |          /-C
@@ -72,7 +72,7 @@ Finally, display the modified tree.
 
 .. doctest ::
 
-    >>> print simple_tree.asciiArt()
+    >>> print simple_tree.ascii_art()
               /-B
     -F-------|
              |          /-A
@@ -85,7 +85,7 @@ When deleting tree nodes, it is often desirable to clean up any unbranched inter
 
     >>> simple_tree.Children[1].remove('A')
     True
-    >>> print simple_tree.asciiArt()
+    >>> print simple_tree.ascii_art()
               /-B
     -F-------|
               \E------- /-D
@@ -95,7 +95,7 @@ With the ``prune()`` method, internal nodes with only a single branch are remove
 .. doctest ::
 
     >>> simple_tree.prune()
-    >>> print simple_tree.asciiArt()
+    >>> print simple_tree.ascii_art()
               /-B
     -F-------|
               \-D
@@ -103,7 +103,7 @@ With the ``prune()`` method, internal nodes with only a single branch are remove
 An Example of Conditional Tree Node Modifications
 =================================================
 
-Now to look at the more complex and realistic tree.  In complex_tree, there are no internal nodes or a defined root.  In order to display this tree in a more succinct manner, we can rename these tips to only contain the genus and species names.  To step through the tips only, we can use the ``iterTips()`` iterator, and rename each node.  The ``asciiArt()`` function, by default, will attempt to display internal nodes; this can be suppressed by the parameter ``show_internal=False``.
+Now to look at the more complex and realistic tree.  In complex_tree, there are no internal nodes or a defined root.  In order to display this tree in a more succinct manner, we can rename these tips to only contain the genus and species names.  To step through the tips only, we can use the ``iterTips()`` iterator, and rename each node.  The ``ascii_art()`` function, by default, will attempt to display internal nodes; this can be suppressed by the parameter ``show_internal=False``.
 
 First, let's split the ungainly name string for each tip and only preserve the genus and species component, separated by a space.
 
@@ -112,11 +112,11 @@ First, let's split the ungainly name string for each tip and only preserve the g
     >>> for n in complex_tree.iterTips():
     ...     n.name=n.name.split()[2]+" "+n.name.split()[3]
 
-Now we display the tree with ``asciiArt()``.
+Now we display the tree with ``ascii_art()``.
 
 .. doctest ::
 
-    >>> print complex_tree.asciiArt(show_internal=False)
+    >>> print complex_tree.ascii_art(show_internal=False)
                                   /-Alkalibacterium putridalgicola
                         /--------|
                        |          \-Marinilactibacillus psychrotolerans
@@ -171,7 +171,7 @@ Finally, print the modified complex_tree.
 
 .. doctest ::
 
-    >>> print complex_tree.asciiArt(show_internal=False)
+    >>> print complex_tree.ascii_art(show_internal=False)
                                   /-Alkalibacterium putridalgicola
                         /--------|
                        |          \-Marinilactibacillus psychrotolerans

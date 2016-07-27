@@ -23,7 +23,7 @@ clustalw and muscle
     True
     >>> from cogent3.app.fasttree import build_tree_from_alignment
     >>> tr = build_tree_from_alignment(aln1,moltype=DNA)
-    >>> print tr.asciiArt()
+    >>> print tr.ascii_art()
               /-Mouse
              |
     ---------|--NineBande

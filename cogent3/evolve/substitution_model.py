@@ -742,7 +742,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
             R[indices] *= par
         return R
 
-    def asciiArt(self, delim='', delim2='|', max_width=70):
+    def ascii_art(self, delim='', delim2='|', max_width=70):
         """An ASCII-art table representing the model.  'delim' delimits
         parameter names, 'delim2' delimits motifs"""
         # Should be implemented with table module instead.

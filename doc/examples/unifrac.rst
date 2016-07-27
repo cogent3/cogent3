@@ -20,7 +20,7 @@ between species B, C, and D
 
     >>> tree_str = "(B:0.2,(C:0.3,D:0.4)E:0.6)F;"
     >>> tr = DndParser(tree_str, UniFracTreeNode)
-    >>> print tr.asciiArt() # doctest: +SKIP
+    >>> print tr.ascii_art() # doctest: +SKIP
               /-B
     -F-------|
              |          /-C
