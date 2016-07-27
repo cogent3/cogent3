@@ -98,7 +98,7 @@ class _LikelihoodParameterController(_LF):
         Other parameters are scoped based on the unique values found in the
         tree (if any) or default to having one value shared across the whole
         tree"""
-        with self.updatesPostponed():
+        with self.updates_postponed():
             edges = self.tree.get_edge_vector()
             for par_name in self.model.get_param_list():
                 try:
@@ -289,7 +289,7 @@ class _LikelihoodParameterController(_LF):
         if tree is None:
             tree = self.tree
 
-        with self.updatesPostponed():
+        with self.updates_postponed():
             for edge in tree.get_edge_vector():
                 if edge.length is None or edge.name in exclude_list:
                     continue
@@ -357,7 +357,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
                 (self.tree.get_tip_names(), aln.get_seq_names(),
                  locus_name)
             assert "root" not in aln.get_seq_names(), "'root' is a reserved name."
-        with self.updatesPostponed():
+        with self.updates_postponed():
             for (locus_name, align) in zip(self.locus_names, aligns):
                 self.assign_all(
                     'alignment', {'locus': [locus_name]},
@@ -395,7 +395,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
         self.set_pogs(leaves, locus=locus)
 
     def set_pogs(self, leaves, locus=None):
-        with self.updatesPostponed():
+        with self.updates_postponed():
             for (name, pog) in list(leaves.items()):
                 self.set_param_rule('leaf', edge=name,
                                   value=pog, is_constant=True)
