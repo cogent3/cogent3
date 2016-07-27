@@ -178,7 +178,7 @@ class _LikelihoodTreeEdge(object):
                     return r
         return None
 
-    def makePartialLikelihoodsArray(self):
+    def make_partial_likelihoods_array(self):
         return numpy.ones(self.shape, self.float_type)
 
     def sumInputLikelihoods(self, *likelihoods):

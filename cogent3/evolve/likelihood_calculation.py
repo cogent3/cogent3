@@ -50,7 +50,7 @@ class PartialLikelihoodProductDefn(_PartialLikelihoodDefn):
 
     def calc(self, recycled_result, lh_edge, *child_likelihoods):
         if recycled_result is None:
-            recycled_result = lh_edge.makePartialLikelihoodsArray()
+            recycled_result = lh_edge.make_partial_likelihoods_array()
         return lh_edge.sumInputLikelihoodsR(recycled_result, *child_likelihoods)
 
 
@@ -58,7 +58,7 @@ class PartialLikelihoodProductDefnFixedMotif(PartialLikelihoodProductDefn):
 
     def calc(self, recycled_result, fixed_motif, lh_edge, *child_likelihoods):
         if recycled_result is None:
-            recycled_result = lh_edge.makePartialLikelihoodsArray()
+            recycled_result = lh_edge.make_partial_likelihoods_array()
         result = lh_edge.sumInputLikelihoodsR(
             recycled_result, *child_likelihoods)
         if fixed_motif not in [None, -1]:
