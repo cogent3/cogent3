@@ -152,7 +152,7 @@ class _LikelihoodParameterController(_LF):
         motif_probs = self.model.adapt_motif_probs(motif_probs, auto=auto)
         if is_constant is None:
             is_constant = not self.optimise_motif_probs
-        self.model.setParamControllerMotifProbs(self, motif_probs,
+        self.model.set_param_controller_motif_probs(self, motif_probs,
                                                 is_constant=is_constant, bin=bin, locus=locus,
                                                 is_independent=is_independent, **kwargs)
         if not auto:

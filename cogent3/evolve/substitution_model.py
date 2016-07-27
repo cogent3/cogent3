@@ -243,8 +243,8 @@ class _SubstitutionModel(object):
         """Return the dictionary of motif probabilities."""
         return self.motif_probs.copy()
 
-    def setParamControllerMotifProbs(self, pc, mprobs, **kw):
-        return self.mprob_model.setParamControllerMotifProbs(pc, mprobs, **kw)
+    def set_param_controller_motif_probs(self, pc, mprobs, **kw):
+        return self.mprob_model.set_param_controller_motif_probs(pc, mprobs, **kw)
 
     def makeLikelihoodFunction(self, tree, motif_probs_from_align=None,
                                optimise_motif_probs=None, aligned=True, expm=None, digits=None,
