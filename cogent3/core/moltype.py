@@ -360,7 +360,7 @@ class CoreObjectGroup(object):
         """Allows container to be indexed into, by type of object (e.g. Gap)."""
         return self.__dict__[i]
 
-    def whichType(self, a):
+    def which_type(self, a):
         """Returns the type of an alphabet in self, or None if not present."""
         return self._types[self._items.find(a)]
 
