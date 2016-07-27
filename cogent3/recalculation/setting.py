@@ -27,7 +27,7 @@ class Var(Setting):
             assert len(bounds) == 3, bounds
         (self.lower, self.value, self.upper) = bounds
 
-    def getBounds(self):
+    def get_bounds(self):
         return (self.lower, self.value, self.upper)
 
     def getDefaultValue(self):
@@ -70,5 +70,5 @@ class ConstVal(Setting):
     def getDefaultValue(self):
         return self.value
 
-    def getBounds(self):
+    def get_bounds(self):
         return (None, self.value, None)
