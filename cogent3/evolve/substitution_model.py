@@ -548,12 +548,12 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         return defns
 
     def make_psubs_defn(self, bprobs, word_probs, mprobs_matrix, rate_params):
-        distance = self.makeDistanceDefn(bprobs)
+        distance = self.make_distance_defn(bprobs)
         P = self.make_continuous_psub_defn(
             word_probs, mprobs_matrix, distance, rate_params)
         return P
 
-    def makeDistanceDefn(self, bprobs):
+    def make_distance_defn(self, bprobs):
         length = LengthDefn()
         if self.with_rate and bprobs is not None:
             b_rate = self._make_bin_param_defn('rate', 'rate', bprobs)
