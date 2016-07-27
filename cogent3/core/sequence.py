@@ -453,7 +453,7 @@ class SequenceI(object):
         else:  # there were no positions that weren't gaps
             return 0
 
-    def fracSimilar(self, other, similar_pairs):
+    def frac_similar(self, other, similar_pairs):
         """Returns fraction of positions where self[i] is similar to other[i].
 
         similar_pairs must be a dict such that d[(i,j)] exists if i and j are
@@ -1329,7 +1329,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         """
         return self.MolType.mw(str(self), *args, **kwargs)
 
-    def fracSimilar(self, other, similar_pairs):
+    def frac_similar(self, other, similar_pairs):
         """Returns fraction of positions where self[i] is similar to other[i].
 
         similar_pairs must be a dict such that d[(i,j)] exists if i and j are
