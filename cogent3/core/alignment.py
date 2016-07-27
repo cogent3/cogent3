@@ -37,7 +37,7 @@ from cogent3.format.phylip import phylip_from_alignment
 from cogent3.format.nexus import nexus_from_alignment
 from cogent3.parse.gff import GffParser, parse_attributes
 from numpy import nonzero, array, logical_or, logical_and, logical_not, \
-    transpose, arange, zeros, ones, take, put, uint8, ndarray
+    transpose, arange, zeros, ones, take, put, uint8, ndarray, vstack
 from numpy.random import randint, permutation
 
 from cogent3.util.dict2d import Dict2D
@@ -2356,16 +2356,13 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         return iter(self.Positions)
 
     def __getitem__(self, item):
-        """getitem delegates to self.Positions., returning array slices.
-
-        The result is a column or slice of columns, supporting full slice
-        functionality (including stride). Use this to get a selection of
-        positions from the alignment.
-
-        Result shares data with the original array, so if you change the
-        result you change the Alignment.
-        """
-        return self.Positions[item]
+        if not isinstance(item, slice):
+            data = self.array_seqs[:, item]
+            data = vstack(data)
+        else:
+            data = self.array_seqs[:, item]
+        return self.__class__(data.T, list(map(str, self.names)), self.alphabet,
+                                      conversion_f=aln_from_array)
 
     def _coerce_seqs(self, seqs, is_array):
         """Controls how seqs are coerced in _names_seqs_order.
