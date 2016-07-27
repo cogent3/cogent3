@@ -92,7 +92,7 @@ class EnumerationTests(TestCase):
         # check that it works with gaps
         a = Enumeration('ab-', '-')
         self.assertEqual(a.gap, '-')
-        self.assertEqual(a.GapIndex, 2)
+        self.assertEqual(a.gap_index, 2)
 
         a = Enumeration(list(range(257)))  # too big to fit in uint8
         self.assertEqual(a.array_type, uint16)
@@ -147,7 +147,7 @@ class EnumerationTests(TestCase):
         b = a**3
         self.assertEqual(len(b), 27)
         self.assertEqual(b.gap, ('-', '-', '-'))
-        self.assertEqual(b.GapIndex, 13)
+        self.assertEqual(b.gap_index, 13)
         self.assertEqual(b.array_type, uint8)
 
         # check that array type is set correctly if needed
@@ -166,7 +166,7 @@ class EnumerationTests(TestCase):
         b = Enumeration('xz', 'z')
         x = a * b
         self.assertEqual(x.gap, ('-', 'z'))
-        self.assertEqual(x.GapIndex, 5)
+        self.assertEqual(x.gap_index, 5)
         self.assertEqual(len(x), 6)
         self.assertEqual(x, (('a', 'x'), ('a', 'z'), ('b', 'x'), ('b', 'z'), ('-', 'x'),
                              ('-', 'z')))
@@ -279,7 +279,7 @@ class JointEnumerationTests(TestCase):
         # should work for alphabet object
         a = JointEnumeration([DnaBases, RnaBases])
         self.assertEqual(len(a), 16)
-        self.assertEqual(a.Shape, (4, 4))
+        self.assertEqual(a.shape, (4, 4))
         self.assertEqual(a[0], ('T', 'U'))
         self.assertEqual(a[-1], ('G', 'G'))
         self.assertEqual(a._sub_enum_factors, array([[4], [1]]))
@@ -293,7 +293,7 @@ class JointEnumerationTests(TestCase):
 
         # should work for different length sequences
         a = JointEnumeration(['TCA', 'UCAG'])
-        self.assertEqual(a.Shape, (3, 4))
+        self.assertEqual(a.shape, (3, 4))
         self.assertEqual(len(a), 12)
         self.assertEqual(a[0], ('T', 'U'))
         self.assertEqual(a[-1], ('A', 'G'))

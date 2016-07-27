@@ -1094,7 +1094,7 @@ class ModelSequenceBase(object):
         WARNING: Only checks for standard gap character (for speed), and
         does not check for ambiguous gaps, etc.
         """
-        return self._data == self.alphabet.GapIndex
+        return self._data == self.alphabet.gap_index
 
     def nongaps(self):
         """Returns array contining 0 where self has gaps, 1 elsewhere.
@@ -1102,7 +1102,7 @@ class ModelSequenceBase(object):
         WARNING: Only checks for standard gap character (for speed), and
         does not check for ambiguous gaps, etc.
         """
-        return self._data != self.alphabet.GapIndex
+        return self._data != self.alphabet.gap_index
 
     def regap(self, other, strip_existing_gaps=False):
         """Inserts elements of self into gaps specified by other.
@@ -1116,7 +1116,7 @@ class ModelSequenceBase(object):
             s = self
         c = self.__class__
         a = self.alphabet.Gapped
-        result = zeros(len(other), a.array_type) + a.GapIndex
+        result = zeros(len(other), a.array_type) + a.gap_index
         put(result, nonzero(other.nongaps()), s._data)
         return c(result)
 
@@ -1417,7 +1417,7 @@ class ModelCodonSequence(ModelSequence):
         """Reads from a raw string, rather than a DnaSequence."""
         s = s.upper().replace('U', 'T')  # convert to uppercase DNA
         d = self.SequenceClass(s,
-                               alphabet=self.alphabet.SubEnumerations[0])
+                               alphabet=self.alphabet.sub_enumerations[0])
         self._data = d.to_codons()._data
 
     def __init__(self, data='', alphabet=None, name=None, Info=None):
@@ -1464,7 +1464,7 @@ class ModelRnaCodonSequence(ModelCodonSequence):
         """Reads from a raw string, rather than a DnaSequence."""
         s = s.upper().replace('T', 'U')  # convert to uppercase DNA
         d = self.SequenceClass(s,
-                               alphabet=self.alphabet.SubEnumerations[0])
+                               alphabet=self.alphabet.sub_enumerations[0])
         self._data = d.to_codons()._data
 
 
