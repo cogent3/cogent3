@@ -348,7 +348,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('AUGCnGUCAg-aurGauc--gauhcgauacgws'
                                   ).possibilities(), 96)
 
-    def test_MW(self):
+    def test_mw(self):
         """Sequence MW should return correct molecular weight"""
         self.assertEqual(self.PROT('').mw(), 0)
         self.assertEqual(self.RNA('').mw(), 0)
