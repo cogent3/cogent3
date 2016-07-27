@@ -131,8 +131,8 @@ class TreeNode(object):
         # if they are the same object then they must be the same tree...
         if self is other:
             return True
-        self_names = self.getNodeNames()
-        other_names = other.getNodeNames()
+        self_names = self.get_node_names()
+        other_names = other.get_node_names()
         self_names = [v for v in self_names if v is not None]
         self_names.sort()
         other_names = [v for v in other_names if v is not None]
@@ -983,7 +983,7 @@ class TreeNode(object):
         if getclade:
             # get the list of names contained by join_edge
             for child in join_edge.Children:
-                branchnames = child.getNodeNames(includeself=1)
+                branchnames = child.get_node_names(includeself=1)
                 edge_names.extend(branchnames)
 
         return edge_names
@@ -1173,7 +1173,7 @@ class TreeNode(object):
         If True, the root to tip distance remains constant, but root may only
         have one child node.
         """
-        edge_names = set(self.getNodeNames(includeself=1, tipsonly=False))
+        edge_names = set(self.get_node_names(includeself=1, tipsonly=False))
         if not ignore_missing:
             # this may take a long time
             for name in name_list:
@@ -1349,7 +1349,7 @@ class TreeNode(object):
         outf.writelines(data)
         outf.close()
 
-    def getNodeNames(self, includeself=True, tipsonly=False):
+    def get_node_names(self, includeself=True, tipsonly=False):
         """Return a list of edges from this edge - may or may not include self.
         This node (or first connection) will be the first, and then they will
         be listed in the natural traverse order.
@@ -1365,7 +1365,7 @@ class TreeNode(object):
     def getTipNames(self, includeself=False):
         """return the list of the names of all tips contained by this edge
         """
-        return self.getNodeNames(includeself, tipsonly=True)
+        return self.get_node_names(includeself, tipsonly=True)
 
     def getEdgeVector(self, include_root=True):
         """Collect the list of edges in postfix order

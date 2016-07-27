@@ -1014,7 +1014,7 @@ class TreeNodeTests(TestCase):
         mapping = dict([(x, str(i)) for i, x in enumerate('abfg')])
         exp_names = ['0', '1', '2', '3', 'c', 'd', 'e', 'h']
         t.reassignNames(mapping)
-        obs_names = sorted(t.getNodeNames())
+        obs_names = sorted(t.get_node_names())
         self.assertEqual(obs_names, exp_names)
 
     def test_reassignNames_specific_nodes(self):
@@ -1024,7 +1024,7 @@ class TreeNodeTests(TestCase):
         mapping = dict([(x, str(i)) for i, x in enumerate('abfg')])
         exp_names = ['0', '1', 'c', 'd', 'e', 'f', 'g', 'h']
         t.reassignNames(mapping, nodes)
-        obs_names = sorted(t.getNodeNames())
+        obs_names = sorted(t.get_node_names())
         self.assertEqual(obs_names, exp_names)
 
     def test_getNodesDict(self):
@@ -1486,8 +1486,8 @@ class PhyloNodeTests(TestCase):
         unrooted = rooted.unrooted()
         self.assertEqual(sorted(rooted.getTipNames()),
                          sorted(unrooted.getTipNames()))
-        self.assertLessThan(len(unrooted.getNodeNames()),
-                            len(rooted.getNodeNames()))
+        self.assertLessThan(len(unrooted.get_node_names()),
+                            len(rooted.get_node_names()))
 
 
 class Test_tip_tip_distances_I(object):

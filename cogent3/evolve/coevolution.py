@@ -1106,7 +1106,7 @@ def ancestral_state_pair(aln, tree, pos1, pos2,
     ancestral_names_to_seqs = \
         dict(list(zip(ancestral_seqs.names, ancestral_seqs.array_seqs)))
     distances = tree.get_distances()
-    tips = tree.getNodeNames(tipsonly=True)
+    tips = tree.get_node_names(tipsonly=True)
     # map names to nodes (there has to be a built-in way to do this
     # -- what is it?)
     nodes = dict([(n, tree.getNodeMatchingName(n)) for n in tips])
@@ -1267,7 +1267,7 @@ def validate_ancestral_seqs(alignment, tree, ancestral_seqs):
         raise ValueError("Alignment and ancestral seqs are different lengths.")
     # is there a better way to get all the ancestor names? why doesn't
     # tree.ancestors() do this?
-    edges = set(tree.getNodeNames()) - set(tree.getTipNames())
+    edges = set(tree.get_node_names()) - set(tree.getTipNames())
     seqs = set(ancestral_seqs.get_seq_names())
     if edges != seqs:
         raise ValueError(
