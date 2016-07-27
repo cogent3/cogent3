@@ -812,7 +812,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         """Return a list of parameter names."""
         return list(self.predicate_masks.keys())
 
-    def isInstantaneous(self, x, y):
+    def is_instantaneous(self, x, y):
         return self._is_instantaneous(x, y)
 
     def getSubstitutionRateValueFromQ(self, Q, motif_probs, pred):
