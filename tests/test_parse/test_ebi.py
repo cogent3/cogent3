@@ -323,7 +323,7 @@ class RootParsersKnownValues(TestCase):
         id_line = [
             'ID   CYC_BOVIN      STANDARD;      PRT;   104 AA.']
         self.assertEqual(id_parser(id_line),
-                          {'DataClass': 'STANDARD', 'Length': 104, 'MolType': 'PRT',
+                          {'DataClass': 'STANDARD', 'Length': 104, 'moltype': 'PRT',
                            'EntryName': 'CYC_BOVIN'})
 
     def test_sq_parser(self):

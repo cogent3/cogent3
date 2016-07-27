@@ -61,7 +61,7 @@ def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
                 raise ValueError("Multiple sequences in '%s'" % filename)
     if moltype is not None:
         seq = moltype.make_sequence(seq)
-    elif not hasattr(seq, 'MolType'):
+    elif not hasattr(seq, 'moltype'):
         seq = ASCII.make_sequence(seq)
     if name is not None:
         seq.Name = name
@@ -77,7 +77,7 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     - filename: name of the sequence file
     - format: format of the sequence file
     - data: optional explicit provision of sequences
-    - moltype: the MolType, eg DNA, PROTEIN
+    - moltype: the moltype, eg DNA, PROTEIN
     - aligned: set True if sequences are already aligned and have the same
       length, results in an Alignment object. If False, a SequenceCollection
       instance is returned instead. If callable, will use as a constructor
@@ -111,13 +111,13 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     # the following is a temp hack until we have the load API sorted out.
     if aligned:  # if callable, call it -- expect either f(data) or bool
         if hasattr(aligned, '__call__'):
-            return aligned(data=data, MolType=moltype, Name=name,
+            return aligned(data=data, moltype=moltype, Name=name,
                            label_to_name=label_to_name, **constructor_kw)
         else:  # was not callable, but wasn't False
-            return Alignment(data=data, MolType=moltype, Name=name,
+            return Alignment(data=data, moltype=moltype, Name=name,
                              label_to_name=label_to_name, **constructor_kw)
     else:  # generic case: return SequenceCollection
-        return SequenceCollection(data, MolType=moltype, Name=name,
+        return SequenceCollection(data, moltype=moltype, Name=name,
                                   label_to_name=label_to_name, **constructor_kw)
 
 

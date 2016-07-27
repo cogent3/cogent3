@@ -140,10 +140,10 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         # assert the alignment result is correct
         self.assertEqual(seqs, result)
         # assert the returned alignment has the correct parameter values in the
-        # align.Info object.
+        # align.info object.
         if param_vals:
             for param, val in param_vals:
-                self.assertEqual(aln.Info.AlignParams[param], val)
+                self.assertEqual(aln.info.AlignParams[param], val)
 
     def test_progressive1(self):
         """test progressive alignment, gaps in middle"""

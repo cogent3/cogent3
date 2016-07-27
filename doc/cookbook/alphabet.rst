@@ -20,7 +20,7 @@ Alphabets
 
 .. doctest::
     
-    >>> PROTEIN.Alphabet.MolType == PROTEIN
+    >>> PROTEIN.Alphabet.moltype == PROTEIN
     True
 
 Creating tuple alphabets

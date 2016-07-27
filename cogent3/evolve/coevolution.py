@@ -473,7 +473,7 @@ def freqs_from_aln(aln, alphabet, scaled_aln_size=100):
 
     """
     alphabet_as_indices = array([aln.Alphabet.to_indices(alphabet)]).transpose()
-    aln_data = ravel(aln.ArrayPositions)
+    aln_data = ravel(aln.array_positions)
     return (alphabet_as_indices == aln_data).sum(1) * \
         (scaled_aln_size / len(aln_data))
 
@@ -498,7 +498,7 @@ def get_positional_frequencies(aln, position_number, alphabet,
 
     """
     alphabet_as_indices = array([aln.Alphabet.to_indices(alphabet)]).transpose()
-    position_data = aln.ArrayPositions[position_number]
+    position_data = aln.array_positions[position_number]
     return (alphabet_as_indices == position_data).sum(1) * \
         (scaled_aln_size / len(position_data))
 
@@ -559,7 +559,7 @@ def get_subalignments(aln, position, selections):
     """
     result = []
     for s in aln.Alphabet.to_indices(selections):
-        seqs_to_keep = nonzero(aln.ArraySeqs[:, position] == s)[0]
+        seqs_to_keep = nonzero(aln.array_seqs[:, position] == s)[0]
         result.append(aln.get_sub_alignment(seqs=seqs_to_keep))
     return result
 
@@ -1070,7 +1070,7 @@ def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
     lf.setAlignment(aln, motif_pseudocount=pseudocount)
     if optimise:
         lf.optimise(local=True)
-    return DenseAlignment(lf.likelyAncestralSeqs(), MolType=aln.MolType)
+    return DenseAlignment(lf.likelyAncestralSeqs(), moltype=aln.moltype)
 
 
 def ancestral_state_alignment(aln, tree, ancestral_seqs=None,
@@ -1104,7 +1104,7 @@ def ancestral_state_pair(aln, tree, pos1, pos2,
     """
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     ancestral_names_to_seqs = \
-        dict(list(zip(ancestral_seqs.names, ancestral_seqs.ArraySeqs)))
+        dict(list(zip(ancestral_seqs.names, ancestral_seqs.array_seqs)))
     distances = tree.getDistances()
     tips = tree.getNodeNames(tipsonly=True)
     # map names to nodes (there has to be a built-in way to do this
@@ -1115,7 +1115,7 @@ def ancestral_state_pair(aln, tree, pos1, pos2,
     # occuring on a single branch to be given the most weight
     distances.update(dict([((n, n), nodes[n].Length) for n in nodes]))
     result = 0
-    names_to_seqs = dict(list(zip(aln.names, aln.ArraySeqs)))
+    names_to_seqs = dict(list(zip(aln.names, aln.array_seqs)))
     for i in range(len(tips)):
         org1 = tips[i]
         seq1 = names_to_seqs[org1]
@@ -1199,7 +1199,7 @@ def sca_input_validation(alignment, **kwargs):
     required_parameters = ['cutoff']
     # users must provide background frequencies for MolTypes other
     # than PROTEIN -- by default, protein background frequencies are used.
-    if alignment.MolType != PROTEIN:
+    if alignment.moltype != PROTEIN:
         required_parameters.append('background_freqs')
     for rp in required_parameters:
         if rp not in kwargs:
@@ -1216,10 +1216,10 @@ def sca_input_validation(alignment, **kwargs):
     except KeyError:
         # We want to use the PROTEIN alphabet minus the U character for
         # proteins since we don't have a background frequency for U
-        if alignment.MolType == PROTEIN:
+        if alignment.moltype == PROTEIN:
             alphabet = AAGapless
         else:
-            alphabet = alignment.MolType.Alphabet
+            alphabet = alignment.moltype.Alphabet
     try:
         background_freqs = kwargs['background_freqs']
     except KeyError:
@@ -1311,7 +1311,7 @@ def coevolve_alignments_validation(method, alignment1, alignment2,
     """
     valid_methods_for_different_moltypes = {}.fromkeys(
         [mi_alignment, nmi_alignment, resampled_mi_alignment])
-    if (alignment1.MolType != alignment2.MolType) and \
+    if (alignment1.moltype != alignment2.moltype) and \
             method not in valid_methods_for_different_moltypes:
         raise AssertionError("Different MolTypes only supported for %s" %
                              ' '.join(map(str, list(valid_methods_for_different_moltypes.keys()))))

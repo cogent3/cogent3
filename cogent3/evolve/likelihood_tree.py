@@ -282,7 +282,7 @@ def _indexed(values):
 
 def makeLikelihoodTreeLeaf(sequence, alphabet=None, seq_name=None):
     if alphabet is None:
-        alphabet = sequence.MolType.Alphabet
+        alphabet = sequence.moltype.Alphabet
     if seq_name is None:
         seq_name = sequence.get_name()
 

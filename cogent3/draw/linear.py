@@ -237,7 +237,7 @@ class _SeqRepresentation(object):
                  font_properties=None):
         self.font_properties = font_properties
 
-        alphabet = self.alphabet = sequence.MolType.Alphabets.Degen
+        alphabet = self.alphabet = sequence.moltype.Alphabets.Degen
 
         alphabet_colours = None
         if cvalues:
@@ -897,7 +897,7 @@ class DisplayPolicy(object):
             show_text = self.show_text
             draw_bases = self.draw_bases
             if draw_bases is None:
-                draw_bases = self.rowlen <= 500 and sequence.MolType is DNA
+                draw_bases = self.rowlen <= 500 and sequence.moltype is DNA
             if show_text is None:
                 show_text = self.rowlen <= 100
             if show_text and self.rowlen <= 200:

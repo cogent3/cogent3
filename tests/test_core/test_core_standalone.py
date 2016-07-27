@@ -256,7 +256,7 @@ class AlignmentTestMethods(unittest.TestCase):
                               aligned=False, moltype=DNA)
         observed = collection.degap()
         self.assertEqual(observed.todict(), expect)
-        self.assertEqual(observed.MolType, DNA)
+        self.assertEqual(observed.moltype, DNA)
 
     def test_DnaRna_interconversion(self):
         """test interconversion between Rna and Dna by SequenceCollection and

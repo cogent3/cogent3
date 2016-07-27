@@ -49,9 +49,9 @@ class _RelatedRegions(LazyRecord):
             if seq is None:
                 continue
             seqs.append((seq.Name, seq))
-        return SequenceCollection(data=seqs, MolType=DNA)
+        return SequenceCollection(data=seqs, moltype=DNA)
 
-    def getSeqLengths(self):
+    def getseq_lengths(self):
         """returns a vector of lengths"""
         return [len(member) for member in self.Members]
 
@@ -342,7 +342,7 @@ class SyntenicRegions(_RelatedRegions):
         if seqs is None:
             return None
 
-        aln = Alignment(data=seqs, MolType=DNA)
+        aln = Alignment(data=seqs, moltype=DNA)
 
         if self._rc:
             aln = aln.rc()

@@ -274,7 +274,7 @@ Parsing in more detail:  a single GenBank entry
     >>> def gene_and_cds(f):
     ...     return f['type'] == 'CDS' and 'gene' in f
     ... 
-    >>> cds_features = [f for f in seq.Info.features if gene_and_cds(f)]
+    >>> cds_features = [f for f in seq.info.features if gene_and_cds(f)]
     >>> for cds_feature in cds_features:
     ...     print cds_feature['gene'], cds_feature['location']
     ... 
@@ -311,7 +311,7 @@ dumps the result into the file directly, and returns you a handle to the open fi
     >>> accession, seq = [record for record in parser][0]
     >>> gene_and_cds = lambda f: f['type'] == 'CDS' and 'gene' in f
     >>> gene_name = lambda f: f['gene']
-    >>> all_cds = [f for f in seq.Info.features if gene_and_cds(f)]
+    >>> all_cds = [f for f in seq.info.features if gene_and_cds(f)]
     >>> for cds in sorted(all_cds, key=gene_name):
     ...     print cds['gene'][0].ljust(6),
     ...     print cds['protein_id'], cds['location']

@@ -86,7 +86,7 @@ Simple case of loading a ``list`` of aligned amino acid sequences in FASTA forma
     >>> from cogent import DNA, PROTEIN
     >>> protein_seqs = ['>seq1','DEKQL-RG','>seq2','DDK--SRG']
     >>> proteins_loaded = LoadSeqs(data=protein_seqs)
-    >>> proteins_loaded.MolType
+    >>> proteins_loaded.moltype
     MolType(('a', 'b', 'c', 'd', 'e', ...
     >>> print proteins_loaded
     >seq1
@@ -196,8 +196,8 @@ The ``RichLabel`` objects have an ``Info`` object as an attribute, allowing spec
     ...
     >>> for name, seq in MinimalFastaParser(fasta_data, label_to_name=label_to_name):
     ...     print name
-    ...     print name.Info.gi
-    ...     print name.Info.description
+    ...     print name.info.gi
+    ...     print name.info.description
     NP_055147.1
     10047090
      small muscle protein, X-linked [Homo sapiens]

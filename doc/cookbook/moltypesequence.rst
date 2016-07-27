@@ -63,7 +63,7 @@ Setting up a DNA ``MolType`` object allowing ``.`` as gaps
 .. doctest::
 
    >>> from cogent3.core import moltype as mt
-   >>> DNAgapped = mt.MolType(Sequence=mt.DnaSequence,
+   >>> DNAgapped = mt.moltype(Sequence=mt.DnaSequence,
    ...                        motifset=mt.IUPAC_DNA_chars,
    ...                        Ambiguities=mt.IUPAC_DNA_ambiguities,
    ...                        Complements=mt.IUPAC_DNA_ambiguities_complements,

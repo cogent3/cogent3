@@ -38,10 +38,10 @@ class SequenceTests(TestCase):
         # the dimensions of the array, and not worth special-casing.
         s = self.SEQ()
         self.assertEqual(s, '')
-        assert s.MolType in (ASCII, BYTES)
+        assert s.moltype in (ASCII, BYTES)
 
         r = self.RNA()
-        assert r.MolType is RNA
+        assert r.moltype is RNA
 
     def test_init_data(self):
         """Sequence init with data should set data in correct location"""
@@ -55,7 +55,7 @@ class SequenceTests(TestCase):
         s = Sequence(r)
         self.assertEqual(s._seq, 'UCAGG')
         self.assertEqual(s.Name, 'x')
-        self.assertEqual(s.Info.z, 3)
+        self.assertEqual(s.info.z, 3)
 
     def test_compare_to_string(self):
         """Sequence should compare equal to same string."""
@@ -254,8 +254,8 @@ class SequenceTests(TestCase):
         t = s.disambiguate('random')
         u = s.disambiguate('random')
         for i, j in zip(str(s), str(t)):
-            if i in s.MolType.Degenerates:
-                assert j in s.MolType.Degenerates[i]
+            if i in s.moltype.Degenerates:
+                assert j in s.moltype.Degenerates[i]
             else:
                 assert i == j
         self.assertNotEqual(t, u)
@@ -675,7 +675,7 @@ class SequenceSubclassTests(TestCase):
         x = DnaSequence('aaa') + DnaSequence('ccc')
         # note: doesn't preserve case
         self.assertEqual(x, 'AAACCC')
-        assert x.MolType is DNA
+        assert x.moltype is DNA
         self.assertRaises(AlphabetError, x.__add__, 'z')
         self.assertEqual(DnaSequence('TTTAc').rc(), 'GTAAA')
 
@@ -816,7 +816,7 @@ class SequenceIntegrationTests(TestCase):
         r = RNA.Sequence('AAA', Name='x')
         s = RNA.ModelSeq(r)
         self.assertEqual(str(s), 'AAA')
-        self.assertEqual(s.MolType, RNA)
+        self.assertEqual(s.moltype, RNA)
         self.assertEqual(s.Name, 'x')
 
     def test_model_to_regular(self):
@@ -824,7 +824,7 @@ class SequenceIntegrationTests(TestCase):
         r = RNA.ModelSeq('AAA', Name='x')
         s = RNA.Sequence(r)
         self.assertEqual(str(s), 'AAA')
-        self.assertEqual(s.MolType, RNA)
+        self.assertEqual(s.moltype, RNA)
         self.assertEqual(s.Name, 'x')
 
     def test_regular_to_regular(self):
@@ -832,7 +832,7 @@ class SequenceIntegrationTests(TestCase):
         r = RNA.Sequence('AAA', Name='x')
         s = RNA.Sequence(r)
         self.assertEqual(str(s), 'AAA')
-        self.assertEqual(s.MolType, RNA)
+        self.assertEqual(s.moltype, RNA)
         self.assertEqual(s.Name, 'x')
 
     def test_model_to_model(self):
@@ -840,7 +840,7 @@ class SequenceIntegrationTests(TestCase):
         r = RNA.ModelSeq('AAA', Name='x')
         s = RNA.ModelSeq(r)
         self.assertEqual(str(s), 'AAA')
-        self.assertEqual(s.MolType, RNA)
+        self.assertEqual(s.moltype, RNA)
         self.assertEqual(s.Name, 'x')
 
     def test_ModelDnaCodonSequence(self):

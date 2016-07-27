@@ -188,14 +188,14 @@ class RdbParserTests(GenericRdbTest):
         self.assertEqual(len(res), 1)
         first = res[0]
         self.assertEqual(first, Sequence('AGUCAUCUAGAUHCAUHC'))
-        self.assertEqual(first.Info, Info({'Species': 'H.Sapiens',
+        self.assertEqual(first.info, Info({'Species': 'H.Sapiens',
                                            'OriginalSeq': 'AGUCAUCUAGAUHCAUHC'}))
 
         res = list(RdbParser(self.multiline))
         self.assertEqual(len(res), 1)
         first = res[0]
         self.assertEqual(first, Sequence('AGUCAUUAGAUHCAUHC'))
-        self.assertEqual(first.Info, Info({'Species': 'H.Sapiens',
+        self.assertEqual(first.info, Info({'Species': 'H.Sapiens',
                                            'OriginalSeq': 'AGUCAUUAGAUHCAUHC'}))
 
     def test_single_constructor(self):
@@ -206,7 +206,7 @@ class RdbParserTests(GenericRdbTest):
         self.assertEqual(len(f), 1)
         a = f[0]
         self.assertEqual(a, 'AGTCATCTAGATHCATHC')
-        self.assertEqual(a.Info, Info({'Species': 'H.Sapiens',
+        self.assertEqual(a.info, Info({'Species': 'H.Sapiens',
                                        'OriginalSeq': 'AGUCAUCUAGAUHCAUHC'}))
 
         def alternativeConstr(header_lines):
@@ -228,7 +228,7 @@ class RdbParserTests(GenericRdbTest):
         self.assertEqual(a, 'AGTCATCTAGATHCATHC')
         exp_info = Info({'OriginalSeq': 'AGUCAUCUAGAUHCAUHC',
                          'Refs': {}, 'SEQ': 'H.SAPIENS'})
-        self.assertEqual(a.Info, Info({'OriginalSeq': 'AGUCAUCUAGAUHCAUHC',
+        self.assertEqual(a.info, Info({'OriginalSeq': 'AGUCAUCUAGAUHCAUHC',
                                        'Refs': {}, 'SEQ': 'H.SAPIENS'}))
 
     def test_multiple_constructor_bad(self):
@@ -246,10 +246,10 @@ class RdbParserTests(GenericRdbTest):
         a, b = f
 
         self.assertEqual(a, 'ACT')
-        self.assertEqual(a.Info, Info(
+        self.assertEqual(a.info, Info(
             {'Species': 'mit', 'OriginalSeq': 'ACT'}))
         self.assertEqual(b, 'AAA')
-        self.assertEqual(b.Info, Info(
+        self.assertEqual(b.info, Info(
             {'Species': 'pla', 'OriginalSeq': 'AAA'}))
 
     def test_full(self):
@@ -267,16 +267,16 @@ class RdbParserTests(GenericRdbTest):
         self.assertEqual(len(obs), 2)
         self.assertEqual(obs[0], r1)
         self.assertEqual(str(obs[0]), str(r1))
-        self.assertEqual(obs[0].Info, r1.Info)
+        self.assertEqual(obs[0].info, r1.info)
         self.assertEqual(obs[1], r2)
         self.assertEqual(str(obs[1]), str(r2))
-        self.assertEqual(obs[1].Info, r2.Info)
+        self.assertEqual(obs[1].info, r2.info)
 
         obs = list(RdbParser(RDB_LINES_ONLY_GOOD.split('\n'), strict=False))
         self.assertEqual(len(obs), 2)
         self.assertEqual(obs[0], r1)
         self.assertEqual(str(obs[0]), str(r1))
-        self.assertEqual(obs[0].Info, r1.Info)
+        self.assertEqual(obs[0].info, r1.info)
 
         # when strict, should raise error on invalid record
         f = RdbParser(RDB_LINES_GOOD_BAD.split('\n'), strict=True)
@@ -286,10 +286,10 @@ class RdbParserTests(GenericRdbTest):
         self.assertEqual(len(obs), 2)
         self.assertEqual(obs[0], r1)
         self.assertEqual(str(obs[0]), str(r1))
-        self.assertEqual(obs[0].Info, r1.Info)
+        self.assertEqual(obs[0].info, r1.info)
         self.assertEqual(obs[1], r2)
         self.assertEqual(str(obs[1]), str(r2))
-        self.assertEqual(obs[1].Info, r2.Info)
+        self.assertEqual(obs[1].info, r2.info)
 
 RDB_LINES_ONLY_GOOD =\
     """acc:AF027020

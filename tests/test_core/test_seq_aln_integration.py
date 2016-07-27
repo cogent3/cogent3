@@ -32,9 +32,9 @@ class AllTests(TestCase):
         self.model3 = ModelSequence('CAA-NR', Name='rna3',
                                     Alphabet=RNA.Alphabets.DegenGapped)
 
-        self.aln = Alignment([self.rna1, self.rna2, self.rna3], MolType=RNA)
+        self.aln = Alignment([self.rna1, self.rna2, self.rna3], moltype=RNA)
         self.da = DenseAlignment([self.model1, self.model2, self.model3],
-                                 MolType=RNA, Alphabet=RNA.Alphabets.DegenGapped)
+                                 moltype=RNA, Alphabet=RNA.Alphabets.DegenGapped)
 
         # seqs no name
         self.nn_rna1 = RnaSequence('UCAGGG')
@@ -49,9 +49,9 @@ class AllTests(TestCase):
                                        Alphabet=RNA.Alphabets.DegenGapped)
 
         self.nn_aln = Alignment([self.nn_rna1, self.nn_rna2, self.nn_rna3],
-                                MolType=RNA)
+                                moltype=RNA)
         self.nn_da = DenseAlignment([self.nn_model1, self.nn_model2,
-                                     self.nn_model3], MolType=RNA, Alphabet=RNA.Alphabets.DegenGapped)
+                                     self.nn_model3], moltype=RNA, Alphabet=RNA.Alphabets.DegenGapped)
 
     def test_printing_named_seqs(self):
         """Printing named seqs should work the same on Aln and DenseAln"""
@@ -131,15 +131,15 @@ class AllTests(TestCase):
         model3 = ModelSequence('CAR', Name='rna3',
                                Alphabet=RNA.Alphabets.DegenGapped)
         sub_da = DenseAlignment([model1, model2, model3],
-                                MolType=RNA, Alphabet=RNA.Alphabets.DegenGapped)
+                                moltype=RNA, Alphabet=RNA.Alphabets.DegenGapped)
 
         sub_data = array([[0, 1, 3], [Y, 1, 3], [1, 2, R]])
 
         # First check some data
-        self.assertEqual(self.da.ArraySeqs, full_data)
-        self.assertEqual(self.da.ArrayPositions, transpose(full_data))
-        self.assertEqual(sub_da.ArraySeqs, sub_data)
-        self.assertEqual(sub_da.ArrayPositions, transpose(sub_data))
+        self.assertEqual(self.da.array_seqs, full_data)
+        self.assertEqual(self.da.array_positions, transpose(full_data))
+        self.assertEqual(sub_da.array_seqs, sub_data)
+        self.assertEqual(sub_da.array_positions, transpose(sub_data))
 
         obs_sub_da_TP = self.da.take_positions([0, 1, 5])
         obs_sub_da_SA = self.da.get_sub_alignment(pos=[0, 1, 5])
@@ -147,15 +147,15 @@ class AllTests(TestCase):
         # When using the get_sub_alignment method the data is right
         self.assertEqual(obs_sub_da_SA, sub_da)
         self.assertNotEqual(obs_sub_da_SA, self.da)
-        self.assertEqual(obs_sub_da_SA.ArraySeqs, sub_data)
-        self.assertEqual(obs_sub_da_SA.ArrayPositions, transpose(sub_data))
+        self.assertEqual(obs_sub_da_SA.array_seqs, sub_data)
+        self.assertEqual(obs_sub_da_SA.array_positions, transpose(sub_data))
 
         # For the take_positions method: Why does this work
         self.assertEqual(obs_sub_da_TP, sub_da)
         self.assertNotEqual(obs_sub_da_TP, self.da)
         # If the data doesn't match?
-        self.assertEqual(obs_sub_da_TP.ArraySeqs, sub_data)
-        self.assertEqual(obs_sub_da_TP.ArrayPositions, transpose(sub_data))
+        self.assertEqual(obs_sub_da_TP.array_seqs, sub_data)
+        self.assertEqual(obs_sub_da_TP.array_positions, transpose(sub_data))
         # Shouldn't the __eq__ method check the data at least?
 
     def test_subset_positions_Alignment(self):
@@ -163,7 +163,7 @@ class AllTests(TestCase):
         rna2 = RnaSequence('YCG', Name='rna2')
         rna3 = RnaSequence('CAR', Name='rna3')
 
-        sub_aln = Alignment([rna1, rna2, rna3], MolType=RNA)
+        sub_aln = Alignment([rna1, rna2, rna3], moltype=RNA)
 
         obs_sub_aln = self.aln.take_positions([0, 1, 5])
         self.assertEqual(obs_sub_aln, sub_aln)
@@ -188,8 +188,8 @@ class AllTests(TestCase):
         rna2 = RnaSequence('YCG', Name='rna2')
         rna3 = RnaSequence('CAR', Name='rna3')
 
-        sub_aln = Alignment([rna2, rna3], MolType=RNA)
-        aln = Alignment([rna1, rna2, rna3], MolType=RNA)
+        sub_aln = Alignment([rna2, rna3], moltype=RNA)
+        aln = Alignment([rna1, rna2, rna3], moltype=RNA)
         obs_sub_aln = aln.take_seqs(['rna2', 'rna3'])
 
         self.assertEqual(obs_sub_aln, sub_aln)
@@ -208,7 +208,7 @@ class AllTests(TestCase):
         model3 = ModelSequence('CAR', Name='rna3',
                                Alphabet=RNA.Alphabets.DegenGapped)
         sub_da = DenseAlignment([model1, model2, model3],
-                                MolType=RNA, Alphabet=RNA.Alphabets.DegenGapped)
+                                moltype=RNA, Alphabet=RNA.Alphabets.DegenGapped)
 
         # take_seqs by name should have the same effect as
         # get_sub_alignment by seq idx?
@@ -224,19 +224,19 @@ class AllTests(TestCase):
         self.assertEqual(self.da == self.da, True)
         # one sequence less
         other_da1 = DenseAlignment([self.model1, self.model2],
-                                   MolType=RNA, Alphabet=RNA.Alphabets.DegenGapped)
+                                   moltype=RNA, Alphabet=RNA.Alphabets.DegenGapped)
         self.assertEqual(self.da == other_da1, False)
         # seqs in different order -- doesn't matter
         other_da2 = DenseAlignment([self.model1, self.model3, self.model2],
-                                   MolType=RNA, Alphabet=RNA.Alphabets.DegenGapped)
+                                   moltype=RNA, Alphabet=RNA.Alphabets.DegenGapped)
         self.assertEqual(self.da == other_da2, True)
         # seqs in different encoding -- doesn't matter, only looks at data
         other_da3 = DenseAlignment([self.model1, self.model2, self.model3])
         # Should this compare False even though the data is exactly the same?
-        # The MolType is different...
+        # The moltype is different...
         self.assertEqual(self.da == other_da3, True)
         assert alltrue(
-            list(map(alltrue, self.da.ArraySeqs == other_da3.ArraySeqs)))
+            list(map(alltrue, self.da.array_seqs == other_da3.array_seqs)))
 
     def test_seq_equality(self):
         model1 = ModelSequence('UCG', Name='rna1',

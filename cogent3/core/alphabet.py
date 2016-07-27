@@ -8,7 +8,7 @@ The provided alphabets are those encountered in biological sequences, but other
 alphabets are certainly possible.
 
 WARNING: do access the standard Alphabets directly. It is expected that you
-will access them through the appropriate MolType. Until the moltype module
+will access them through the appropriate moltype. Until the moltype module
 has been imported, the Alphabets will not know their MolType, which will
 cause problems. It is often useful to create Alphabets
 and/or Enumerations on the fly, however.
@@ -123,7 +123,7 @@ class Enumeration(tuple):
     will be '-' or None, depending on the application.
     """
 
-    def __new__(cls, data=[], Gap=None, MolType=None):
+    def __new__(cls, data=[], Gap=None, moltype=None):
         """Returns a new Enumeration object.
 
         data can be any sequence that can be passed to the tuple() constructor.
@@ -132,7 +132,7 @@ class Enumeration(tuple):
         """
         return tuple.__new__(cls, data)
 
-    def __init__(self, data=[], Gap=None, MolType=None):
+    def __init__(self, data=[], Gap=None, moltype=None):
         """Initializes self from data, and optionally a gap.
 
         An Enumeration object mainly provides the mapping between objects and
@@ -163,7 +163,7 @@ class Enumeration(tuple):
         accidentally use negative numbers as indices (this is very bad when
         doing indexed lookups).
         """
-        self.MolType = MolType
+        self.moltype = moltype
 
         # check if motif lengths are homogeneous -- if so, set length
         try:
@@ -272,7 +272,7 @@ class Enumeration(tuple):
         strings and the desired 3-letter strings). All subenumerations of a
         JointEnumeration made by __pow__ are identical.
         """
-        return JointEnumeration([self] * num, MolType=self.MolType)
+        return JointEnumeration([self] * num, moltype=self.moltype)
 
     def __mul__(self, other):
         """Returns JointEnumeration between self and other.
@@ -288,11 +288,11 @@ class Enumeration(tuple):
         JointEnumerations are useful as the basis for contingency tables,
         transition matrices, counts of dinucleotides, etc.
         """
-        if self.MolType is other.MolType:
-            MolType = self.MolType
+        if self.moltype is other.moltype:
+            moltype = self.moltype
         else:
-            MolType = None
-        return JointEnumeration([self, other], MolType=MolType)
+            moltype = None
+        return JointEnumeration([self, other], moltype=moltype)
 
     def counts(self, a):
         """Returns array containing counts of each item in a.
@@ -349,13 +349,13 @@ class JointEnumeration(Enumeration):
     often convenient if they are (e.g. pair enumerations that underlie
     substitution matrices).
     """
-    def __new__(cls, data=[], Gap=None, MolType=None):
+    def __new__(cls, data=[], Gap=None, moltype=None):
         """Fills in the tuple with tuples from the enumerations in data."""
         sub_enums = cls._coerce_enumerations(data)
         return Enumeration.__new__(cls, cartesian_product(sub_enums),
-                                   MolType=MolType)
+                                   moltype=moltype)
 
-    def __init__(self, data=[], Gap=None, MolType=None):
+    def __init__(self, data=[], Gap=None, moltype=None):
         """Returns a new JointEnumeration object. See class docstring for info.
 
         Expects a list of Enumeration objects, or objects that can be coerced
@@ -499,22 +499,22 @@ class Alphabet(Enumeration):
     The typical use is for the Alphabet to hold nucleic acid bases, amino acids,
     or codons.
 
-    The MolType, if supplied, handles ambiguities, coercion of the sequence
+    The moltype, if supplied, handles ambiguities, coercion of the sequence
     to the correct data type, and complementation (if appropriate).
     """
 
     # make this exception avalable to objects calling alphabet methods.
     AlphabetError = AlphabetError
 
-    def __new__(cls, motifset, Gap='-', MolType=None):
+    def __new__(cls, motifset, Gap='-', moltype=None):
         """Returns a new Alphabet object."""
         return Enumeration.__new__(cls, data=motifset, Gap=Gap,
-                                   MolType=MolType)
+                                   moltype=moltype)
 
-    def __init__(self, motifset, Gap='-', MolType=None):
+    def __init__(self, motifset, Gap='-', moltype=None):
         """Returns a new Alphabet object."""
         super(Alphabet, self).__init__(data=motifset, Gap=Gap,
-                                       MolType=MolType)
+                                       moltype=moltype)
 
     def get_word_alphabet(self, word_length):
         """Returns a new Alphabet object with items as word_length strings.
@@ -529,7 +529,7 @@ class Alphabet(Enumeration):
                 for m in self:
                     n.append(m + c)
             crossproduct = n
-        return Alphabet(crossproduct, MolType=self.MolType)
+        return Alphabet(crossproduct, moltype=self.moltype)
 
     def from_seq_to_array(self, sequence):
         """Returns an array of indices corresponding to items in sequence.
@@ -551,7 +551,7 @@ class Alphabet(Enumeration):
         the MolType is not set, this method will raise an AttributeError.
         """
         result = ''
-        return self.MolType.make_sequence(''.join(self[i] for i in data))
+        return self.moltype.make_sequence(''.join(self[i] for i in data))
 
     def get_matched_array(self, motifs, dtype=Float):
         """Returns an array in which rows are motifs, columns are items in self.
@@ -593,7 +593,7 @@ class Alphabet(Enumeration):
         Will always return a new Alphabet object even if the motifset is the
         same.
         """
-        return self.__class__(tuple(motifset), MolType=self.MolType)
+        return self.__class__(tuple(motifset), moltype=self.moltype)
 
     def with_gap_motif(self):
         """Returns an Alphabet object resembling self but including the gap.
@@ -632,9 +632,9 @@ class Alphabet(Enumeration):
             return (ambig_motif,)
 
         # resolve each letter, and build the possible sub motifs
-        ambiguities = self.MolType.Ambiguities
+        ambiguities = self.moltype.Ambiguities
         motif_set = ['']
-        ALL = self.MolType.Alphabet.with_gap_motif()
+        ALL = self.moltype.Alphabet.with_gap_motif()
         for character in ambig_motif:
             new_motifs = []
             if character == '?':
@@ -693,7 +693,7 @@ class CharAlphabet(Alphabet):
     searately for remapping.
     """
 
-    def __init__(self, data=[], Gap='-', MolType=None):
+    def __init__(self, data=[], Gap='-', moltype=None):
         """Initializes self from items.
 
         data should be a sequence (string, list, etc.) of characters that
@@ -701,7 +701,7 @@ class CharAlphabet(Alphabet):
 
         Gap should be a single character that represents the gap, e.g. '-'.
         """
-        super(CharAlphabet, self).__init__(data, Gap, MolType=MolType)
+        super(CharAlphabet, self).__init__(data, Gap, moltype=moltype)
         self._indices_to_chars, self._chars_to_indices = \
             _make_translation_tables(data)
         self._char_nums_to_indices = array(range(256), uint8)

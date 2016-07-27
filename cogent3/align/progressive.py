@@ -98,5 +98,5 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
     info["AlignParams"] = param_vals
     info["AlignParams"].update(
         dict(indel_length=indel_length, indel_rate=indel_rate))
-    align.Info = info
+    align.info = info
     return align, tree

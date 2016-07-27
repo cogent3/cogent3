@@ -255,7 +255,7 @@ def mapping_parser(line, fields, delimiters=[';', None],
 
     line: should be a str,  to be splitted.
     fields: field name and optional type constructor for mapping.  example:
-        ['EntryName', ('Length', int), 'MolType']
+        ['EntryName', ('Length', int), 'moltype']
     delimiters: separators used to split the line.
     flatten: a function used to flatten the list from nested splitting.
     """
@@ -294,7 +294,7 @@ def id_parser(lines):
     """
     lines = labeloff(lines)
     return mapping_parser(lines[0], delimiters=[';', None],
-                          fields=('EntryName', 'DataClass', 'MolType', ('Length', int)))
+                          fields=('EntryName', 'DataClass', 'moltype', ('Length', int)))
 
 
 def sq_parser(lines):

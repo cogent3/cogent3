@@ -30,7 +30,7 @@ def phylip_from_alignment(aln, generic_label=True, make_seqlabel=None):
     if not aln or not num_seqs:
         return ""
 
-    phylip_out = ["%d %d" % (num_seqs, aln.SeqLen)]
+    phylip_out = ["%d %d" % (num_seqs, aln.seq_len)]
     id_map = {}
     cur_seq_id = 1
 
