@@ -41,7 +41,7 @@ class ML(TreeEvaluator):
         subalign = self.alignment.take_seqs(names)
         lf = self.lf_factory(tree)
         lf.setAlignment(subalign)
-        return lf.getLogLikelihood()
+        return lf.get_log_likelihood()
 
     def makeTreeScorer(self, names):
         subalign = self.alignment.take_seqs(names)
@@ -58,7 +58,7 @@ class ML(TreeEvaluator):
             if lengths is not None:
                 lf.setParamRule('length', is_constant=True)
             lf.optimise(show_progress=False, **self.opt_args)
-            err = -1.0 * lf.getLogLikelihood()
+            err = -1.0 * lf.get_log_likelihood()
             tree = lf.getAnnotatedTree()
             return (err, tree)
         return evaluate

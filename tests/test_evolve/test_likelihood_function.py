@@ -215,7 +215,7 @@ class LikelihoodCalcs(TestCase):
 
         likelihood_function = self._makeLikelihoodFunction(submod)
         likelihood_function.setParamRule('omega', value=0.5, is_constant=True)
-        evolve_lnL = likelihood_function.getLogLikelihood()
+        evolve_lnL = likelihood_function.get_log_likelihood()
         self.assertFloatEqual(evolve_lnL, -80.67069614541883)
 
     def test_nucleotide(self):
@@ -229,7 +229,7 @@ class LikelihoodCalcs(TestCase):
         likelihood_function = self._makeLikelihoodFunction(
             submod)
         self.assertEqual(likelihood_function.getNumFreeParams(), 0)
-        evolve_lnL = likelihood_function.getLogLikelihood()
+        evolve_lnL = likelihood_function.get_log_likelihood()
         self.assertFloatEqual(evolve_lnL, -157.49363874840455)
 
     def test_discrete_nucleotide(self):
@@ -243,7 +243,7 @@ class LikelihoodCalcs(TestCase):
         likelihood_function = self._makeLikelihoodFunction(
             submod, discrete_edges=['Human'])
         self.assertEqual(likelihood_function.getNumFreeParams(), 12)
-        evolve_lnL = likelihood_function.getLogLikelihood()
+        evolve_lnL = likelihood_function.get_log_likelihood()
         self.assertNotEqual(evolve_lnL, -157.49363874840455)
 
     def test_dinucleotide(self):
@@ -255,7 +255,7 @@ class LikelihoodCalcs(TestCase):
             predicates={'kappa': 'transition'},
             mprob_model='tuple')
         likelihood_function = self._makeLikelihoodFunction(submod)
-        evolve_lnL = likelihood_function.getLogLikelihood()
+        evolve_lnL = likelihood_function.get_log_likelihood()
         self.assertFloatEqual(evolve_lnL, -102.48145536663735)
 
     def test_protein(self):
@@ -266,7 +266,7 @@ class LikelihoodCalcs(TestCase):
         likelihood_function = self._makeLikelihoodFunction(submod,
                                                            translate=True)
 
-        evolve_lnL = likelihood_function.getLogLikelihood()
+        evolve_lnL = likelihood_function.get_log_likelihood()
         self.assertFloatEqual(evolve_lnL, -89.830370754876185)
 
 
@@ -315,7 +315,7 @@ class LikelihoodFunctionTests(TestCase):
         """test get information criteria from a model."""
         lf = self._makeLikelihoodFunction()
         nfp = lf.getNumFreeParams()
-        lnL = lf.getLogLikelihood()
+        lnL = lf.get_log_likelihood()
         l = len(self.data)
         self.assertFloatEqual(lf.getAic(), aic(lnL, nfp))
         self.assertFloatEqual(lf.getAic(second_order=True),
@@ -381,7 +381,7 @@ motif  mprobs
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
         self.assertAlmostEqual(-250.686745262,
-                               likelihood_function.getLogLikelihood(), places=9)
+                               likelihood_function.get_log_likelihood(), places=9)
 
     def test_g_statistic(self):
         likelihood_function = self._makeLikelihoodFunction()

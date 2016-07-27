@@ -92,7 +92,7 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
         LF.setParamRule('indel_rate', value=indel_rate, is_constant=True)
         LF.setParamRule('indel_length', value=indel_length, is_constant=True)
         LF.setSequences(seqs)
-    edge = LF.getLogLikelihood().edge
+    edge = LF.get_log_likelihood().edge
     align = edge.getViterbiPath().getAlignment()
     info = Info()
     info["AlignParams"] = param_vals

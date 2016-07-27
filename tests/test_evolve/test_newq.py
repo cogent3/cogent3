@@ -98,8 +98,8 @@ class NewQ(TestCase):
 
         nuc_lf.setAlignment(self.aln)
         new_di_lf.setAlignment(self.aln)
-        self.assertFloatEqual(nuc_lf.getLogLikelihood(),
-                              new_di_lf.getLogLikelihood())
+        self.assertFloatEqual(nuc_lf.get_log_likelihood(),
+                              new_di_lf.get_log_likelihood())
 
     def test_lf_display(self):
         """str of likelihood functions should not fail"""
@@ -149,7 +149,7 @@ class NewQ(TestCase):
                 lf = di.makeLikelihoodFunction(self.tree)
                 lf.setParamRule('length', is_independent=False, init=0.4)
                 lf.setAlignment(self.aln)
-                lh = lf.getLogLikelihood()
+                lh = lf.get_log_likelihood()
                 for other in results[:i]:
                     self.assertNotAlmostEqual(other, lh, places=2)
                 for other in results[i:]:
@@ -177,14 +177,14 @@ class NewQ(TestCase):
                         do_scaling=False)
         lf = sm.makeLikelihoodFunction(self.tree)
         lf.setAlignment(posn1)
-        posn1_lnL = lf.getLogLikelihood()
+        posn1_lnL = lf.get_log_likelihood()
         lf.setAlignment(posn2)
-        posn2_lnL = lf.getLogLikelihood()
+        posn2_lnL = lf.get_log_likelihood()
         expect_lnL = posn1_lnL + posn2_lnL
 
         # the joint model
         lf.setAlignment(self.aln)
-        aln_lnL = lf.getLogLikelihood()
+        aln_lnL = lf.get_log_likelihood()
 
         # setting the full alignment, which has different motif probs, should
         # produce a different lnL
@@ -195,7 +195,7 @@ class NewQ(TestCase):
                         do_scaling=False)
         lf = sm.makeLikelihoodFunction(self.tree)
         lf.setAlignment(self.aln)
-        posn12_lnL = lf.getLogLikelihood()
+        posn12_lnL = lf.get_log_likelihood()
         self.assertFloatEqual(expect_lnL, posn12_lnL)
 
     def test_compute_conditional_mprobs(self):
@@ -215,8 +215,8 @@ class NewQ(TestCase):
             cd_lf = cd.makeLikelihoodFunction(self.tree)
             cd_lf.setParamRule('length', is_independent=False, init=0.4)
             cd_lf.setAlignment(self.aln)
-            self.assertFloatEqual(cd_lf.getLogLikelihood(),
-                                  ps_lf.getLogLikelihood())
+            self.assertFloatEqual(cd_lf.get_log_likelihood(),
+                                  ps_lf.get_log_likelihood())
 
         compare_models(self.posn_root_probs, 2)
         # trinucleotide
@@ -247,8 +247,8 @@ class NewQ(TestCase):
         cd_lf = cd.makeLikelihoodFunction(self.tree)
         cd_lf.setParamRule('length', is_independent=False, init=0.4)
         cd_lf.setAlignment(self.aln)
-        self.assertNotAlmostEqual(mg_lf.getLogLikelihood(),
-                                  cd_lf.getLogLikelihood())
+        self.assertNotAlmostEqual(mg_lf.get_log_likelihood(),
+                                  cd_lf.get_log_likelihood())
 
     def test_getting_node_mprobs(self):
         """return correct motif probability vector for tree nodes"""
@@ -398,24 +398,24 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 #     def test_discrete_vs_general1(self):
 #         """compares fully general models"""
 #         gen_lf = self.make_cached('general')
-#         gen_lnL = gen_lf.getLogLikelihood()
+#         gen_lnL = gen_lf.get_log_likelihood()
 #         dis_lf = self._setup_discrete_from_general(gen_lf)
-#         self.assertFloatEqual(gen_lnL, dis_lf.getLogLikelihood())
+#         self.assertFloatEqual(gen_lnL, dis_lf.get_log_likelihood())
 #
 #     def test_general_vs_constructed_general(self):
 #         """a constructed general lnL should be identical to General"""
 #         sm_lf = self.make_cached('constructed_gen')
-#         sm_lnL = sm_lf.getLogLikelihood()
+#         sm_lnL = sm_lf.get_log_likelihood()
 #         gen_lf = self.make_cached('general')
-#         gen_lnL = gen_lf.getLogLikelihood()
+#         gen_lnL = gen_lf.get_log_likelihood()
 #         self.assertFloatEqualAbs(sm_lnL, gen_lnL, eps=0.1)
 #
 #     def test_general_stationary(self):
 #         """General stationary should be close to General"""
 #         gen_stat_lf = self.make_cached('gen_stat')
 #         gen_lf = self.make_cached('general')
-#         gen_stat_lnL = gen_stat_lf.getLogLikelihood()
-#         gen_lnL = gen_lf.getLogLikelihood()
+#         gen_stat_lnL = gen_stat_lf.get_log_likelihood()
+#         gen_lnL = gen_lf.get_log_likelihood()
 #         self.assertLessThan(gen_stat_lnL, gen_lnL)
 #
 #     def test_general_stationary_is_stationary(self):
