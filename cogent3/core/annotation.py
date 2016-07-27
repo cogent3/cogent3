@@ -125,7 +125,7 @@ class _Annotatable(object):
                 result.append(annotation)
         return result
 
-    def getRegionCoveringAll(self, annotations, feature_class=None):
+    def get_region_covering_all(self, annotations, feature_class=None):
         spans = []
         annotation_types = []
         for annot in annotations:

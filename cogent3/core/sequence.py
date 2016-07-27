@@ -595,7 +595,7 @@ class Sequence(_Annotatable, SequenceI):
         for annot_type in annot_types:
             annotations += self.get_annotations_matching(annot_type)
 
-        region = self.getRegionCoveringAll(annotations)
+        region = self.get_region_covering_all(annotations)
         if shadow:
             region = region.getShadow()
 

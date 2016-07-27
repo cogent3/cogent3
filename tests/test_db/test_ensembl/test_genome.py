@@ -432,7 +432,7 @@ class TestGene(GenomeTestBase):
             seq = gene.getAnnotatedSeq(feature_types='gene')
             intron = asserted_one(seq.get_annotations_matching('intron',
                                                              '%s-%d' % (stable_id, rank)))
-            intron_seq = str(seq.getRegionCoveringAll(intron).getSlice())
+            intron_seq = str(seq.get_region_covering_all(intron).getSlice())
             self.assertEqual(intron_seq[:10], exp_seq5.upper())
             self.assertEqual(intron_seq[-10:], exp_seq3.upper())
 

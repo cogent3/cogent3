@@ -67,7 +67,7 @@ class TestAnnotations(unittest.TestCase):
         f2 = seq.add_annotation(NewFeat, as_map([(3, 5)], len(seq)),
                                type='gene', Name='def')
 
-        self.assertEqual(type(seq.getRegionCoveringAll([f, f2],
+        self.assertEqual(type(seq.get_region_covering_all([f, f2],
                                                        feature_class=NewFeat)),
                          NewFeat)
         # now use the new method
@@ -120,7 +120,7 @@ class TestAnnotations(unittest.TestCase):
         feature_list = newaln.get_annotations_matching("LTR")
         for annot_type in ["LTR", "misc_feature", "CDS", "5'UTR"]:
             feature_list = newaln.get_annotations_matching(annot_type)
-            new = newaln.getRegionCoveringAll(feature_list).getSlice().todict()
+            new = newaln.get_region_covering_all(feature_list).getSlice().todict()
             expected = aln_expecteds[annot_type]
             assert expected == new, (annot_type, expected, new)
             if annot_type in ["misc_feature", "LTR"]:
