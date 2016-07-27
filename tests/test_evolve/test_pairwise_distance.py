@@ -108,7 +108,7 @@ class TestPair(TestCase):
         """compute JC69 dists from an alignment"""
         calc = JC69Pair(DNA, alignment=self.alignment)
         calc.run(show_progress=False)
-        self.assertEqual(calc.Lengths['s1', 's2'], 10)
+        self.assertEqual(calc.lengths['s1', 's2'], 10)
         self.assertEqual(calc.proportions['s1', 's2'], 0.2)
         # value from OSX MEGA 5
         self.assertFloatEqual(calc.dists['s1', 's2'], 0.2326161962)
@@ -130,7 +130,7 @@ class TestPair(TestCase):
         """compute TN93 distances"""
         calc = TN93Pair(DNA, alignment=self.alignment)
         calc.run(show_progress=False)
-        self.assertEqual(calc.Lengths['s1', 's2'], 10)
+        self.assertEqual(calc.lengths['s1', 's2'], 10)
         self.assertEqual(calc.proportions['s1', 's2'], 0.2)
         # value from OSX MEGA 5
         self.assertFloatEqual(calc.dists['s1', 's2'], 0.2554128119)
