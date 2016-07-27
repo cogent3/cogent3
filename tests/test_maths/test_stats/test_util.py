@@ -1653,7 +1653,7 @@ class FreqsTests(FreqsTestsI, TestCase):
 
     def test_init_alphabet_success(self):
         """Freqs should init ok with keys matching alphabet"""
-        fd = self.ClassToTest('abc', Constraint='abcd')
+        fd = self.ClassToTest('abc', constraint='abcd')
         self.assertEqual(fd, {'a': 1, 'b': 1, 'c': 1})
         self.assertRaises(ConstraintError, fd.setdefault, 'x', 1)
         self.assertRaises(ConstraintError, fd.__setitem__, 'x', 1)
@@ -1661,7 +1661,7 @@ class FreqsTests(FreqsTestsI, TestCase):
     def test_init_alphabet_failure(self):
         """Freqs should fail if keys don't match alphabet"""
         try:
-            f = Freqs('abcd', Constraint='abc')
+            f = Freqs('abcd', constraint='abc')
         except ConstraintError:
             pass
         else:
