@@ -101,10 +101,10 @@ class AlignmentTestMethods(unittest.TestCase):
     def test_num_seqs(self):
         self.assertEqual(self.alignment.num_seqs, 5)
 
-    def test_variablePositions(self):
+    def test_variable_positions(self):
         new_seqs = {'seq1': 'ACGTACGT', 'seq2': 'ACCGACGT', 'seq3': 'ACGTACGT'}
         align = LoadSeqs(data=new_seqs)
-        self.assertEqual(align.variablePositions(), [2, 3])
+        self.assertEqual(align.variable_positions(), [2, 3])
 
     def test_numberseqs(self):
         """testing the number of sequences"""
