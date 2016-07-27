@@ -539,7 +539,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
             params.append(defn)
         return params
 
-    def makeFundamentalParamControllerDefns(self, bin_names):
+    def make_fundamental_param_controller_defns(self, bin_names):
         """Everything one step short of the psubs, because cogent3.align code
         needs to handle Q*t itself."""
         defns = self.make_param_controller_defns(bin_names, endAtQd=True)
