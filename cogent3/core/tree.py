@@ -1109,7 +1109,7 @@ class TreeNode(object):
                 names = [tip_a[1], tip_b[1]]
         return longest, names, best_node
 
-    def maxTipTipDistance(self):
+    def max_tip_tip_distance(self):
         """returns the max distance between any pair of tips
 
         Also returns the tip names  that it is between as a tuple"""
@@ -1869,10 +1869,10 @@ class PhyloNode(TreeNode):
         this fn doesn't preserve the internal node naming or structure,
         but does keep tip to tip distances correct.  uses unrootedDeepcopy()
         """
-        # max_dist, tip_names = tree.maxTipTipDistance()
+        # max_dist, tip_names = tree.max_tip_tip_distance()
         # this is slow
 
-        max_dist, tip_names = self.maxTipTipDistance()
+        max_dist, tip_names = self.max_tip_tip_distance()
         half_max_dist = max_dist / 2.0
         if max_dist == 0.0:  # only pathological cases with no lengths
             return self.unrootedDeepcopy()
@@ -1914,7 +1914,7 @@ class PhyloNode(TreeNode):
             return new_root.unrootedDeepcopy()
 
     def _find_midpoint_nodes(self, max_dist, tip_pair):
-        """returns the nodes surrounding the maxTipTipDistance midpoint
+        """returns the nodes surrounding the max_tip_tip_distance midpoint
 
         WAS used for midpoint rooting.  ORPHANED NOW
         max_dist: The maximum distance between any 2 tips
