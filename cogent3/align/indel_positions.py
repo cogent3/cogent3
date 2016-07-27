@@ -20,7 +20,7 @@ def pog_traceback(pogs, aligned_positions):
                 align_builder.add_skipped(dim, upto[dim], pos)
                 upto[dim] = pos + 1
 
-        align_builder.addAligned(posn)
+        align_builder.add_aligned(posn)
 
     for dim in [0, 1]:
         align_builder.add_skipped(dim, upto[dim], len(pogs[dim]))
@@ -47,9 +47,9 @@ class POGBuilder(object):
             fp = [None, None]
             fp[dim] = p
             fp = tuple(fp)
-            self.addAligned(fp, old_gap=old_gap)
+            self.add_aligned(fp, old_gap=old_gap)
 
-    def addAligned(self, posn, old_gap=False):
+    def add_aligned(self, posn, old_gap=False):
         pre_merged = set()
         assert len(posn) == 2
         for (dim, pos) in enumerate(posn):
