@@ -158,7 +158,7 @@ class EstimateDistances(object):
         if self._motif_probs:
             lf.set_motif_probs(self._motif_probs)
 
-        lf.setAlignment(align)
+        lf.set_alignment(align)
 
         # allow user modification of lf using the modify_lf
         if self._modify_lf:

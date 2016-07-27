@@ -42,7 +42,7 @@ def brca_test(subMod, names, tree, length, par_rules, **kw):
 
 
 def measure_evals_per_sec(pc, aln):
-    pc.setAlignment(aln)
+    pc.set_alignment(aln)
     return pc.measureEvalsPerSecond(time_limit=2.0, wall=False)
 
 

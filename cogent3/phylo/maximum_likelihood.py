@@ -40,7 +40,7 @@ class ML(TreeEvaluator):
         names = tree.get_tip_names()
         subalign = self.alignment.take_seqs(names)
         lf = self.lf_factory(tree)
-        lf.setAlignment(subalign)
+        lf.set_alignment(subalign)
         return lf.get_log_likelihood()
 
     def makeTreeScorer(self, names):
@@ -54,7 +54,7 @@ class ML(TreeEvaluator):
                 init_lengths = lengths
             tree = ancestry2tree(ancestry, init_lengths, names)
             lf = self.lf_factory(tree)
-            lf.setAlignment(subalign)
+            lf.set_alignment(subalign)
             if lengths is not None:
                 lf.set_param_rule('length', is_constant=True)
             lf.optimise(show_progress=False, **self.opt_args)

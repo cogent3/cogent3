@@ -40,7 +40,7 @@ Get the likelihood function object this object performs the actual likelihood ca
 
 .. doctest::
 
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
 
 Optimise the function capturing the return optimised lnL, and parameter value vector.
 

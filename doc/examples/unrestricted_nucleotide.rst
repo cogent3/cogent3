@@ -50,7 +50,7 @@ We now construct the parameter controller with each predicate constant across th
 .. doctest::
 
     >>> lf = sm.makeLikelihoodFunction(tr, digits=2, space=3)
-    >>> lf.setAlignment(al)
+    >>> lf.set_alignment(al)
     >>> lf.set_name('Unrestricted model')
     >>> lf.optimise(local=True)
 

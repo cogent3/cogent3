@@ -32,7 +32,7 @@ Start from scratch, optimising only rates and the rate probability ratio.
     >>> model = Nucleotide(equal_motif_probs=True, ordered_param="rate",
     ...                    distribution="free")
     >>> lf = model.makeLikelihoodFunction(tree, bins=2, digits=2, space=3)
-    >>> lf.setAlignment(aln3)
+    >>> lf.set_alignment(aln3)
     >>> lf.optimise(local=True, max_restarts=2)
 
 We want to know the bin probabilities and the posterior probabilities.
@@ -61,5 +61,5 @@ We'll now use a gamma distribution on the sample alignment, specifying the numbe
     ...                    distribution="gamma")
     >>> lf = model.makeLikelihoodFunction(tree, bins=4)
     >>> lf.set_param_rule('bprobs', is_constant=True)
-    >>> lf.setAlignment(aln3)
+    >>> lf.set_alignment(aln3)
     >>> lf.optimise(local=True, max_restarts=2)

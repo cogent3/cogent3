@@ -36,7 +36,7 @@ Make a likelihood function from a sample of the alignment the ``sample`` method 
 
     >>> lf = sm.makeLikelihoodFunction(t)
     >>> lf.setMotifProbsFromData(aln)
-    >>> lf.setAlignment(aln.sample(20))
+    >>> lf.set_alignment(aln.sample(20))
 
 Optimise with the local optimiser
 
@@ -48,7 +48,7 @@ Next use the whole alignment
 
 .. doctest::
 
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
 
 and the faster Powell optimiser that will only find the best result near the provided starting point
 

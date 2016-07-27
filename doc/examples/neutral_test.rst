@@ -34,7 +34,7 @@ Get the likelihood function object this object performs the actual likelihood ca
 
 .. doctest::
 
-    >>> lf.setAlignment(al)
+    >>> lf.set_alignment(al)
 
 By default, parameters other than branch lengths are treated as global in scope, so we don't need to do anything special here. We can influence how rigorous the optimisation will be, and switch between the global and local optimisers provided in the toolkit using arguments to the optimise method. The ``global_tolerance=1.0`` argument specifies conditions for an early break from simulated annealing which will be automatically followed by the Powell local optimiser. .. note:: the 'results' are of course nonsense.
 

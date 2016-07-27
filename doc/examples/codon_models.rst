@@ -69,7 +69,7 @@ We then provide an alignment and optimise the model. In the current case we just
 .. doctest::
     
     >>> optimiser_args = dict(local=True, max_restarts=5, tolerance=1e-8)
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
     >>> lf.optimise(**optimiser_args)
     >>> print lf
     Likelihood Function Table
@@ -180,7 +180,7 @@ It is also possible to specify rate-heterogeneity variants of these models. In t
 .. doctest::
 
     >>> lf = cnf.makeLikelihoodFunction(tree, digits=2, space=3)
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
     >>> lf.optimise(**optimiser_args)
     >>> non_neutral_lnL = lf.getLogLikelihood()
     >>> non_neutral_nfp = lf.getNumFreeParams()
@@ -225,7 +225,7 @@ The above statement essentially assigns a probability of nearly 1 to the 'neutra
 
 .. doctest::
 
-    >>> rate_lf.setAlignment(aln)
+    >>> rate_lf.set_alignment(aln)
     >>> rate_lf.optimise(**optimiser_args)
     >>> rate_lnL = rate_lf.getLogLikelihood()
     >>> rate_nfp = rate_lf.getNumFreeParams()
@@ -302,7 +302,7 @@ After Zhang et al, we first define a null model that has 2 rate classes '0' and 
     >>> rate_lf.set_param_rule('omega', bin='0', upper=1.0-epsilon,
     ...                      init=1-epsilon)
     >>> rate_lf.set_param_rule('omega', bins='1', is_constant=True, value=1.0)
-    >>> rate_lf.setAlignment(aln)
+    >>> rate_lf.set_alignment(aln)
     >>> rate_lf.optimise(**optimiser_args)
     >>> tables = rate_lf.get_statistics(with_titles=True)
     >>> for table in tables:
@@ -373,7 +373,7 @@ The result of these steps is to create a rate/branch model with initial paramete
 
 .. doctest::
     
-    >>> rate_branch_lf.setAlignment(aln)
+    >>> rate_branch_lf.set_alignment(aln)
 
 This function can then be optimised as before. The results of one such optimisation are shown below. As you can see, the ``omega`` value for the '2a' and '2b' bins is at the upper bounds, indicating the model is not maximised in this case.
 

@@ -66,7 +66,7 @@ class test_parameter_controller(unittest.TestCase):
             predicates={'kappa': 'transition'})
         lf = model.makeLikelihoodFunction(self.tree)
         lf.set_constant_lengths()
-        lf.setAlignment(self.al)
+        lf.set_alignment(self.al)
         null = lf.getNumFreeParams()
         lf.set_param_rule(par_name='kappa',
                         is_independent=True,
@@ -140,7 +140,7 @@ class test_parameter_controller(unittest.TestCase):
         lf = self.model.makeLikelihoodFunction(t)  # self.tree)
         lf.set_param_rule('length', is_constant=True)
         # lf.set_constant_lengths(t)
-        lf.setAlignment(self.al)
+        lf.set_alignment(self.al)
         self.assertEqual(lf.get_param_value('length', 'b'), 2)
         self.assertEqual(lf.get_param_value('length', 'd'), 5)
 
@@ -152,7 +152,7 @@ class test_parameter_controller(unittest.TestCase):
             mprob_model='tuple')
         lf = model.makeLikelihoodFunction(tree)
         lf.set_local_clock('a', 'b')
-        lf.setAlignment(al)
+        lf.set_alignment(al)
         lf.optimise(local=True)
         rd = lf.get_param_value_dict(['edge'], params=['length'])
         self.assertAlmostEqual(lf.get_log_likelihood(), -10.1774488956)
@@ -161,7 +161,7 @@ class test_parameter_controller(unittest.TestCase):
     def test_local_clock(self):
         lf = self.model.makeLikelihoodFunction(self.tree)
         lf.set_local_clock('c', 'd')
-        lf.setAlignment(self.al)
+        lf.set_alignment(self.al)
         lf.optimise(local=True,
                     tolerance=1e-8, max_restarts=2)
         rd = lf.get_param_value_dict(['edge'], params=['length'])
@@ -184,7 +184,7 @@ class test_parameter_controller(unittest.TestCase):
         lf.set_constant_lengths(LoadTree(
             treestring='((a:1,b:1):1,(c:2,d:1):1,e:1);'))
         # print self.pc
-        lf.setAlignment(self.al)
+        lf.set_alignment(self.al)
         lf.optimise(local=True)
         rd = lf.get_param_value_dict(['edge'], params=['kappa'])
         self.assertAlmostEqual(lf.get_log_likelihood(), -27.3252, 3)

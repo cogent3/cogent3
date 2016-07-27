@@ -107,7 +107,7 @@ You need to load an alignment and then provide it a likelihood function. I const
     >>> aln = LoadSeqs(data=[('a', 'ACGT'), ('b', 'AC-T'), ('c', 'ACGT'),
     ...                      ('d', 'AC-T')])
     ...                     
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
 
 Scoping parameters on trees
 ---------------------------
@@ -258,7 +258,7 @@ There are 2 types of optimiser: simulated annealing, a *global* optimiser; and P
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = F81()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=3, space=2)
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
 
 The default is to use the simulated annealing optimiser followed by Powell.
 
@@ -299,7 +299,7 @@ We can monitor this situation using the ``limit_action`` argument to ``optimise`
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = F81()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=3, space=2)
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
     >>> max_evals = 10
     >>> lf.optimise(show_progress=False, limit_action='raise',
     ...              max_evaluations=max_evals, return_calculator=True)
@@ -326,7 +326,7 @@ Log likelihood and number of free parameters
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.makeLikelihoodFunction(tree)
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
 
 We get the log-likelihood and the number of free parameters.
 
@@ -357,7 +357,7 @@ Aikake Information Criterion
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.makeLikelihoodFunction(tree)
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
     >>> AIC = lf.get_aic()
     >>> AIC
     49235.869...
@@ -383,7 +383,7 @@ Bayesian Information Criterion
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.makeLikelihoodFunction(tree)
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
     >>> BIC = lf.get_bic()
     >>> BIC
     49330.9475...
@@ -473,7 +473,7 @@ We test the molecular clock hypothesis for human and chimpanzee lineages. The nu
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = F81()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=3, space=2)
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
     >>> lf.set_param_rule('length', tip_names=['Human', 'Chimpanzee'],
     ...         outgroup_name='Galago', is_clade=True, is_independent=False)
     ...                 
@@ -544,7 +544,7 @@ In general, however, this capability derives from the ability of any defined ``e
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = F81()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=3, space=2)
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
     >>> lf.set_param_rule('length', tip_names=['Human', 'Chimpanzee'],
     ...         outgroup_name='Galago', is_clade=True, is_independent=False)
     ...                 
@@ -567,7 +567,7 @@ The profile method is used to calculate a confidence interval for a named parame
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = HKY85()
     >>> lf = sm.makeLikelihoodFunction(tree)
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
     >>> lf.optimise(local=True, show_progress=False)
     >>> kappa_lo, kappa_mle, kappa_hi = lf.getParamInterval('kappa')
     >>> print "lo=%.2f ; mle=%.2f ; hi = %.2f" % (kappa_lo, kappa_mle, kappa_hi)
@@ -595,7 +595,7 @@ We look at the distribution of ``omega`` from the CNF codon model family across 
     >>> sm = CNFGTR()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=2, space=2)
     >>> lf.set_param_rule('omega', is_independent=True, upper=10.0)
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
     >>> lf.optimise(show_progress=False, local=True)
     >>> print lf
     Likelihood Function Table
@@ -649,7 +649,7 @@ We first fit a likelihood function.
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = F81()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=3, space=2)
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
     >>> lf.optimise(show_progress=False, local=True)
 
 We then get the most likely ancestral sequences.

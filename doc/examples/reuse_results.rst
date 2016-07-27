@@ -18,7 +18,7 @@ We'll create a simple model, optimise it and save it for later reuse
     >>> t = LoadTree("data/test.tree")
     >>> sm = MG94HKY()
     >>> lf = sm.makeLikelihoodFunction(t, digits=2, space=2)
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
     >>> lf.optimise(local=True)
     >>> print lf
     Likelihood Function Table
@@ -67,7 +67,7 @@ Now create a more parameter rich model, in this case by allowing the ``Human`` e
     >>> new_lf = sm.makeLikelihoodFunction(nt, digits=2, space=2)
     >>> new_lf.set_param_rule('omega', edge='Human',
     ...                     is_independent=True)
-    >>> new_lf.setAlignment(aln)
+    >>> new_lf.set_alignment(aln)
     >>> new_lf.optimise(local=True)
     >>> print new_lf
     Likelihood Function Table
