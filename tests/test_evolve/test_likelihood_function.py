@@ -387,7 +387,7 @@ motif  mprobs
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
         self.assertAlmostEqual(230.77670557,
-                               likelihood_function.getGStatistic(), places=6)
+                               likelihood_function.get_G_statistic(), places=6)
 
     def test_ancestralsequences(self):
         likelihood_function = self._makeLikelihoodFunction()
