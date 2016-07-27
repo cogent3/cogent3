@@ -1376,7 +1376,7 @@ class SequenceCollection(object):
         def gaps_ok(seq):
             seq_len = len(seq)
             try:
-                num_gaps = seq.countGaps()
+                num_gaps = seq.count_gaps()
             except AttributeError:
                 num_gaps = len(
                     list(filter(self.MolType.Gaps.__contains__, seq)))
@@ -2514,8 +2514,8 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         """
         def gaps_ok(seq):
             seq_len = len(seq)
-            if hasattr(seq, 'countGaps'):
-                num_gaps = seq.countGaps()
+            if hasattr(seq, 'count_gaps'):
+                num_gaps = seq.count_gaps()
             elif hasattr(seq, 'count'):
                 num_gaps = seq.count(self.Alphabet.Gap)
             else:

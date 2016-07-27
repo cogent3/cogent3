@@ -850,7 +850,7 @@ class MolType(object):
                 gapped[i - num_gaps] = i
         return gapped, ungapped
 
-    def countGaps(self, sequence):
+    def count_gaps(self, sequence):
         """Counts the gaps in the specified sequence."""
         gaps = self.Gaps
         gap_count = sum(1 for s in sequence if s in gaps)
