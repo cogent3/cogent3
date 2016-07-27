@@ -69,7 +69,7 @@ def getLogSumAcrossSites(Double1D counts, Double1D input_likelihoods):
         total += log(input_likelihoods[col])*counts[col]
     return total
 
-def logDotReduce(Long1D index, object patch_probs, Double2D switch_probs, Double2D plhs):
+def log_dot_reduce(Long1D index, object patch_probs, Double2D switch_probs, Double2D plhs):
     cdef int i, j, col, site, N, U, S, most_probable_state
     cdef int exponent
     cdef double result, BASE

@@ -211,7 +211,7 @@ class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
 
     # For root
 
-    def logDotReduce(self, patch_probs, switch_probs, plhs):
+    def log_dot_reduce(self, patch_probs, switch_probs, plhs):
         (self, plhs) = self.parallel_reconstruct_columns(plhs)
         exponent = 0
         state_probs = patch_probs.copy()
@@ -240,9 +240,9 @@ class _PyxLikelihoodTreeEdge(_LikelihoodTreeEdge):
 
     # For root
 
-    def logDotReduce(self, patch_probs, switch_probs, plhs):
+    def log_dot_reduce(self, patch_probs, switch_probs, plhs):
         (self, plhs) = self.parallel_reconstruct_columns(plhs)
-        return pyrex.logDotReduce(self.index, patch_probs, switch_probs, plhs)
+        return pyrex.log_dot_reduce(self.index, patch_probs, switch_probs, plhs)
 
     def getTotalLogLikelihood(self, input_likelihoods, mprobs):
         return pyrex.getTotalLogLikelihood(self.counts, input_likelihoods,
