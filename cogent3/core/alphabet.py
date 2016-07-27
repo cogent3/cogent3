@@ -753,7 +753,7 @@ class CharAlphabet(Alphabet):
         """
         return take(self._indices_nums_to_chars, data.astype('B'))
 
-    def toString(self, data, delimiter='\n'):
+    def to_string(self, data, delimiter='\n'):
         """Converts array of data into string.
 
         For example, on the 'UCAG' RNA alphabet, an array with the data

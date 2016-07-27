@@ -23,7 +23,7 @@ from cogent3.util.misc import (iterable, max_index, min_index,
                                NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
                                revComp, safe_md5,
                                create_dir, handle_error_codes, identity, if_, deep_list, deep_tuple,
-                               combinate, gzip_dump, gzip_load, recursive_flatten_old, getNewId, toString,
+                               combinate, gzip_dump, gzip_load, recursive_flatten_old, getNewId, to_string,
                                timeLimitReached, get_independent_coords, get_merged_by_value_coords,
                                get_merged_overlapping_coords, get_run_start_indices, get_tmp_filename)
 from numpy import array
@@ -104,14 +104,14 @@ class UtilsTests(TestCase):
         exp = '111111111111'
         self.assertEqual(obs, exp)
 
-    def test_toString(self):
+    def test_to_string(self):
         """should stringify an object"""
         class foo(object):
 
             def __init__(self):
                 self.bar = 5
         exp = 'bar: 5'
-        obs = toString(foo())
+        obs = to_string(foo())
         self.assertEqual(obs, exp)
 
     # this test and the code it tests is architecture dependent. that is not
