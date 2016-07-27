@@ -1436,6 +1436,15 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                   "seq2    .C..",
                   "seq3    .C.."]
         self.assertEqual(got, '\n'.join(expect))
+    
+    def test_variable_positions(self):
+        """correctly identify variable positions"""
+        new_seqs = {'seq1': 'ACGTACGT',
+                    'seq2': 'ACCGACGT',
+                    'seq3': 'ACGTACGT'}
+        aln = self.Class(data=new_seqs, MolType=DNA)
+        self.assertEqual(aln.variable_positions(), [2, 3])
+    
 
 
 class DenseAlignmentTests(AlignmentBaseTests, TestCase):

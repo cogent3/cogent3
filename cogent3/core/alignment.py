@@ -2072,7 +2072,27 @@ class AlignmentI(object):
         num_gaps = sum(counts[g] for g in gaps)
         return num_gaps
 
-    
+    def variable_positions(self, include_gap_motif=True):
+        """Return a list of variable position indexes.
+
+        Arguments:
+            - include_gap_motif: if False, sequences with a gap motif in a
+              column are ignored."""
+        seqs = [str(self.named_seqs[n]) for n in self.names]
+        seq1 = seqs[0]
+        positions = list(zip(*seqs[1:]))
+        result = []
+        for (position, (motif1, column)) in enumerate(zip(seq1, positions)):
+            for motif in column:
+                if motif != motif1:
+                    if include_gap_motif:
+                        result.append(position)
+                        break
+                    elif motif != '-' and motif1 != '-':
+                        result.append(position)
+                        break
+
+        return result    
 
 
 def aln_from_array(a, array_type=None, Alphabet=None):
@@ -2758,27 +2778,6 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         new = self.__class__(data=masked_seqs, Info=self.Info, Name=self.Name)
         return new
 
-    def variable_positions(self, include_gap_motif=True):
-        """Return a list of variable position indexes.
-
-        Arguments:
-            - include_gap_motif: if False, sequences with a gap motif in a
-              column are ignored."""
-        seqs = [self.get_gapped_seq(n) for n in self.names]
-        seq1 = seqs[0]
-        positions = list(zip(*seqs[1:]))
-        result = []
-        for (position, (motif1, column)) in enumerate(zip(seq1, positions)):
-            for motif in column:
-                if motif != motif1:
-                    if include_gap_motif:
-                        result.append(position)
-                        break
-                    elif motif != '-' and motif1 != '-':
-                        result.append(position)
-                        break
-
-        return result
 
     def filtered(self, predicate, motif_length=1, **kwargs):
         """The alignment positions where predicate(column) is true.
