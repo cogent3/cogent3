@@ -59,7 +59,7 @@ class ALL(_ExistentialQualifier):
     independent = False
 
 
-def theOneItemIn(items):
+def the_one_item_in(items):
     assert len(items) == 1, items
     return next(iter(items))
 
@@ -222,7 +222,7 @@ class _Defn(object):
         if len(posns) > 1:
             raise IncompleteScopeError("%s distinct values of %s within %s" %
                                        (len(posns), self.name, scope))
-        return theOneItemIn(posns)
+        return the_one_item_in(posns)
 
     def wrap_value(self, value):
         if isinstance(value, Undefined):
@@ -385,7 +385,7 @@ class _Defn(object):
                 argname = arg.arg.name
                 for nums in self.uniq:
                     num = arg.uniq[nums[i]]
-                    row.append(theOneItemIn(num))
+                    row.append(the_one_item_in(num))
             else:
                 argname = arg.name
                 for nums in self.uniq:
