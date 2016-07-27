@@ -73,7 +73,7 @@ class LhtEdgeLookupDefn(CalculationDefn):
 
     def setup(self, edge_name):
         self.edge_name = edge_name
-        # so that it can be found by reconstructAncestralSeqs etc:
+        # so that it can be found by reconstruct_ancestral_seqs etc:
         if edge_name == 'root':
             self.name = 'root'
 

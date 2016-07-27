@@ -392,7 +392,7 @@ motif  mprobs
     def test_ancestralsequences(self):
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
-        result = likelihood_function.reconstructAncestralSeqs()['edge.0']
+        result = likelihood_function.reconstruct_ancestral_seqs()['edge.0']
         a_column_with_mostly_Ts = -1
         motif_G = 2
         self.assertAlmostEqual(2.28460181711e-05,
@@ -402,7 +402,7 @@ motif  mprobs
         lf.setParamRule('beta', bin='low', value=0.1)
         lf.setParamRule('beta', bin='high', value=10.0)
         lf.setAlignment(self.data)
-        result = lf.reconstructAncestralSeqs()
+        result = lf.reconstruct_ancestral_seqs()
 
     def test_likely_ancestral(self):
         """excercising the most likely ancestral sequences"""
