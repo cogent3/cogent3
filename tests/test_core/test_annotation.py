@@ -194,7 +194,7 @@ class TestMapSpans(unittest.TestCase):
     def test_span(self):
         length = 100
         forward = Span(20, 30)
-        reverse = Span(70, 80, Reverse=True)
+        reverse = Span(70, 80, reverse=True)
         assert forward.reversed_relative_to(100) == reverse
         assert reverse.reversed_relative_to(100) == forward
 
@@ -204,7 +204,7 @@ class TestMapSpans(unittest.TestCase):
         forward = [Span(20, 30), Span(40, 50)]
         fmap = Map(spans=forward, parent_length=100)
         fmap_reversed = fmap.nucleic_reversed()
-        reverse = [Span(70, 80, Reverse=True), Span(50, 60, Reverse=True)]
+        reverse = [Span(70, 80, reverse=True), Span(50, 60, reverse=True)]
         rmap = Map(spans=reverse, parent_length=100)
         for i in range(2):
             self.assertEqual(fmap_reversed.spans[i], rmap.spans[i])

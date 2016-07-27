@@ -1020,9 +1020,9 @@ class SequenceCollection(object):
 
         if aligned:
             left = [a for a in self._shifted_annotations(new, 0)
-                    if a.map.End <= len(self)]
+                    if a.map.end <= len(self)]
             right = [a for a in other._shifted_annotations(new, len(self))
-                     if a.map.Start >= len(self)]
+                     if a.map.start >= len(self)]
             new.annotations = left + right
         return new
 
@@ -1290,7 +1290,7 @@ class SequenceCollection(object):
                 else:
                     index = -1
 
-                spans[index].End -= diff
+                spans[index].end -= diff
                 spans[index].length -= diff
 
                 new_map = Map(spans=spans, parent_length=new_length)
@@ -2748,10 +2748,10 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
     def get_by_seq_annotation(self, seq_name, *args):
         result = []
         for feature in self.get_annotations_from_seq(seq_name, *args):
-            segment = self[feature.map.Start:feature.map.End]
+            segment = self[feature.map.start:feature.map.end]
             segment.name = '%s "%s" %s to %s of %s' % (
                 feature.type, feature.name,
-                feature.map.Start, feature.map.End, self.name or '')
+                feature.map.start, feature.map.end, self.name or '')
             result.append(segment)
         return result
 

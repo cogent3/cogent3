@@ -624,7 +624,7 @@ class Genome(object):
             region = region.Location
 
         return GenericRegion(self, self.CoreDb, CoordName=CoordName,
-                             Start=Start, End=End, Strand=Strand,
+                             Start=Start, end=end, Strand=Strand,
                              Location=region, ensembl_coord=ensembl_coord)
 
     def getDistinct(self, property_type):

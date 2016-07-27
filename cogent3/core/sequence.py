@@ -621,8 +621,8 @@ class Sequence(_Annotatable, SequenceI):
                 else:
                     raise ValueError('Gap(s) in map %s' % map)
             else:
-                seg = self._seq[span.Start:span.End]
-                if span.Reverse:
+                seg = self._seq[span.start:span.end]
+                if span.reverse:
                     complement = self.moltype.complement
                     seg = [complement(base) for base in seg[::-1]]
                     seg = ''.join(seg)
@@ -662,10 +662,10 @@ class Sequence(_Annotatable, SequenceI):
         # otherwise they will annotate the wrong part of the constructed
         # sequence.
         left = [a for a in self._shifted_annotations(new_seq, 0)
-                if a.map.End <= len(self)]
+                if a.map.end <= len(self)]
         if hasattr(other, '_shifted_annotations'):
             right = [a for a in other._shifted_annotations(new_seq, len(self))
-                     if a.map.Start >= len(self)]
+                     if a.map.start >= len(self)]
             new_seq.annotations = left + right
         else:
             new_seq.annotations = left
