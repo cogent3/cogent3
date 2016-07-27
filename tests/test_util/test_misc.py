@@ -978,57 +978,57 @@ class ConstrainedContainerTests(TestCase):
 
     def test_matchesConstraint(self):
         """ConstrainedContainer matchesConstraint should return true if items ok"""
-        self.assertEqual(self.alphabet.matchesConstraint(self.alphacontainer),
+        self.assertEqual(self.alphabet.matches_constraint(self.alphacontainer),
                          True)
-        self.assertEqual(self.alphabet.matchesConstraint(self.numbercontainer),
+        self.assertEqual(self.alphabet.matches_constraint(self.numbercontainer),
                          False)
-        self.assertEqual(self.numbers.matchesConstraint(self.alphacontainer),
+        self.assertEqual(self.numbers.matches_constraint(self.alphacontainer),
                          False)
-        self.assertEqual(self.numbers.matchesConstraint(self.numbercontainer),
+        self.assertEqual(self.numbers.matches_constraint(self.numbercontainer),
                          True)
 
-    def test_otherIsValid(self):
+    def test_other_is_valid(self):
         """ConstrainedContainer should use constraint for checking other"""
-        self.assertEqual(self.alphabet.otherIsValid('12d8jc'), True)
-        self.alphabet.Constraint = self.alphacontainer
-        self.assertEqual(self.alphabet.otherIsValid('12d8jc'), False)
-        self.alphabet.Constraint = list('abcdefghijkl12345678')
-        self.assertEqual(self.alphabet.otherIsValid('12d8jc'), True)
-        self.assertEqual(self.alphabet.otherIsValid('z'), False)
+        self.assertEqual(self.alphabet.other_is_valid('12d8jc'), True)
+        self.alphabet.constraint = self.alphacontainer
+        self.assertEqual(self.alphabet.other_is_valid('12d8jc'), False)
+        self.alphabet.constraint = list('abcdefghijkl12345678')
+        self.assertEqual(self.alphabet.other_is_valid('12d8jc'), True)
+        self.assertEqual(self.alphabet.other_is_valid('z'), False)
 
-    def test_itemIsValid(self):
+    def test_item_is_valid(self):
         """ConstrainedContainer should use constraint for checking item"""
-        self.assertEqual(self.alphabet.itemIsValid(3), True)
-        self.alphabet.Constraint = self.alphacontainer
-        self.assertEqual(self.alphabet.itemIsValid(3), False)
-        self.assertEqual(self.alphabet.itemIsValid('a'), True)
+        self.assertEqual(self.alphabet.item_is_valid(3), True)
+        self.alphabet.constraint = self.alphacontainer
+        self.assertEqual(self.alphabet.item_is_valid(3), False)
+        self.assertEqual(self.alphabet.item_is_valid('a'), True)
 
-    def test_sequenceIsValid(self):
+    def test_sequence_is_valid(self):
         """ConstrainedContainer should use constraint for checking sequence"""
-        self.assertEqual(self.alphabet.sequenceIsValid('12d8jc'), True)
-        self.alphabet.Constraint = self.alphacontainer
-        self.assertEqual(self.alphabet.sequenceIsValid('12d8jc'), False)
-        self.alphabet.Constraint = list('abcdefghijkl12345678')
-        self.assertEqual(self.alphabet.sequenceIsValid('12d8jc'), True)
-        self.assertEqual(self.alphabet.sequenceIsValid('z'), False)
+        self.assertEqual(self.alphabet.sequence_is_valid('12d8jc'), True)
+        self.alphabet.constraint = self.alphacontainer
+        self.assertEqual(self.alphabet.sequence_is_valid('12d8jc'), False)
+        self.alphabet.constraint = list('abcdefghijkl12345678')
+        self.assertEqual(self.alphabet.sequence_is_valid('12d8jc'), True)
+        self.assertEqual(self.alphabet.sequence_is_valid('z'), False)
 
     def test_Constraint(self):
         """ConstrainedContainer should only allow valid constraints to be set"""
         try:
-            self.alphabet.Constraint = self.numbers
+            self.alphabet.constraint = self.numbers
         except ConstraintError:
             pass
         else:
             raise AssertionError(
                 "Failed to raise ConstraintError with invalid constraint.")
-        self.alphabet.Constraint = 'abcdefghi'
-        self.alphabet.Constraint = ['a', 'b', 'c', 1, 2, 3]
-        self.numbers.Constraint = list(range(20))
-        self.numbers.Constraint = range(20)
-        self.numbers.Constraint = [5, 1, 3, 7, 2]
-        self.numbers.Constraint = {1: 'a', 2: 'b', 3: 'c'}
+        self.alphabet.constraint = 'abcdefghi'
+        self.alphabet.constraint = ['a', 'b', 'c', 1, 2, 3]
+        self.numbers.constraint = list(range(20))
+        self.numbers.constraint = range(20)
+        self.numbers.constraint = [5, 1, 3, 7, 2]
+        self.numbers.constraint = {1: 'a', 2: 'b', 3: 'c'}
         self.assertRaises(ConstraintError, setattr, self.numbers,
-                          'Constraint', '1')
+                          'constraint', '1')
 
 
 class ConstrainedStringTests(TestCase):
@@ -1066,11 +1066,11 @@ class ConstrainedStringTests(TestCase):
         self.assertRaises(ConstraintError, b.__add__, c)
         self.assertRaises(ConstraintError, c.__add__, d)
         # should be OK if constraint removed
-        b.Constraint = None
+        b.constraint = None
         self.assertEqual(b + c, '44445')
         self.assertEqual(b + d, '444x')
         # should fail if we add the constraint back
-        b.Constraint = '4x'
+        b.constraint = '4x'
         self.assertEqual(b + d, '444x')
         self.assertRaises(ConstraintError, b.__add__, c)
         # check that added strings retain constraint
@@ -1091,7 +1091,7 @@ class ConstrainedStringTests(TestCase):
         a = ConstrainedString('123333', '12345')
         b = a[2:4]
         self.assertEqual(b, '33')
-        self.assertEqual(b.Constraint, '12345')
+        self.assertEqual(b.constraint, '12345')
 
     def test_getitem(self):
         """ConstrainedString getitem should handle slice objects"""
@@ -1101,7 +1101,7 @@ class ConstrainedStringTests(TestCase):
         self.assertEqual(a[-1], '3')
         self.assertRaises(AttributeError, getattr, a[1], 'alphabet')
         self.assertEqual(a[1:6:2], '804')
-        self.assertEqual(a[1:6:2].Constraint, '1234567890')
+        self.assertEqual(a[1:6:2].constraint, '1234567890')
 
     def test_init_masks(self):
         """ConstrainedString should init OK with masks"""
@@ -1159,11 +1159,11 @@ class ConstrainedListTests(TestCase):
         self.assertRaises(ConstraintError, b.__add__, c)
         self.assertRaises(ConstraintError, c.__add__, d)
         # should be OK if constraint removed
-        b.Constraint = None
+        b.constraint = None
         self.assertEqual(b + c, list('44445'))
         self.assertEqual(b + d, list('444x'))
         # should fail if we add the constraint back
-        b.Constraint = {'4': 1, 5: 2}
+        b.constraint = {'4': 1, 5: 2}
         self.assertRaises(ConstraintError, b.__add__, c)
 
     def test_iadd_prevents_bad_data(self):
@@ -1171,7 +1171,7 @@ class ConstrainedListTests(TestCase):
         a = ConstrainedList('12', '123')
         a += '2'
         self.assertEqual(a, list('122'))
-        self.assertEqual(a.Constraint, '123')
+        self.assertEqual(a.constraint, '123')
         self.assertRaises(ConstraintError, a.__iadd__, '4')
 
     def test_imul(self):
@@ -1179,21 +1179,21 @@ class ConstrainedListTests(TestCase):
         a = ConstrainedList('12', '123')
         a *= 3
         self.assertEqual(a, list('121212'))
-        self.assertEqual(a.Constraint, '123')
+        self.assertEqual(a.constraint, '123')
 
     def test_mul(self):
         """ConstrainedList mul should preserve constraint"""
         a = ConstrainedList('12', '123')
         b = a * 3
         self.assertEqual(b, list('121212'))
-        self.assertEqual(b.Constraint, '123')
+        self.assertEqual(b.constraint, '123')
 
     def test_rmul(self):
         """ConstrainedList rmul should preserve constraint"""
         a = ConstrainedList('12', '123')
         b = 3 * a
         self.assertEqual(b, list('121212'))
-        self.assertEqual(b.Constraint, '123')
+        self.assertEqual(b.constraint, '123')
 
     def test_setitem(self):
         """ConstrainedList setitem should work only if item in constraint"""
@@ -1234,7 +1234,7 @@ class ConstrainedListTests(TestCase):
         a = ConstrainedList('123333', '12345')
         b = a[2:4]
         self.assertEqual(b, list('33'))
-        self.assertEqual(b.Constraint, '12345')
+        self.assertEqual(b.constraint, '12345')
 
     def test_setslice(self):
         """ConstrainedList setslice should fail if slice has invalid chars"""
@@ -1244,7 +1244,7 @@ class ConstrainedListTests(TestCase):
         self.assertRaises(ConstraintError, a.__setslice__, 2, 4, [2, 2])
         a[:] = []
         self.assertEqual(a, [])
-        self.assertEqual(a.Constraint, '12345')
+        self.assertEqual(a.constraint, '12345')
 
     def test_setitem_masks(self):
         """ConstrainedList setitem with masks should transform input"""
@@ -1252,7 +1252,7 @@ class ConstrainedListTests(TestCase):
         self.assertEqual(a, [2, 3, 4, 4, 4])
         self.assertRaises(ConstraintError, a.append, 4)
         b = a[1:3]
-        assert b.Mask is a.Mask
+        assert b.mask is a.mask
         assert '1' not in a
         assert '2' not in a
         assert 2 in a
@@ -1268,7 +1268,7 @@ class MappedListTests(TestCase):
         self.assertEqual(a, [2, 3, 4, 4, 4])
         self.assertRaises(ConstraintError, a.append, 4)
         b = a[1:3]
-        assert b.Mask is a.Mask
+        assert b.mask is a.mask
         assert '1' in a
         assert 'x' not in a
 
@@ -1316,7 +1316,7 @@ class ConstrainedDictTests(TestCase):
         """ConstrainedDict copy should retain constraint"""
         a = ConstrainedDict(dict.fromkeys('12'), '123')
         b = a.copy()
-        self.assertEqual(a.Constraint, b.Constraint)
+        self.assertEqual(a.constraint, b.constraint)
         self.assertRaises(ConstraintError, a.__setitem__, 1, '3')
         self.assertRaises(ConstraintError, b.__setitem__, 1, '3')
 
@@ -1324,7 +1324,7 @@ class ConstrainedDictTests(TestCase):
         """ConstrainedDict instance fromkeys should retain constraint"""
         a = ConstrainedDict(dict.fromkeys('12'), '123')
         b = a.fromkeys('23')
-        self.assertEqual(a.Constraint, b.Constraint)
+        self.assertEqual(a.constraint, b.constraint)
         self.assertRaises(ConstraintError, a.__setitem__, 1, '3')
         self.assertRaises(ConstraintError, b.__setitem__, 1, '3')
         b['2'] = 5
@@ -1352,13 +1352,13 @@ class ConstrainedDictTests(TestCase):
         self.assertRaises(ConstraintError, b.update, c)
         self.assertRaises(ConstraintError, c.update, d)
         # should be OK if constraint removed
-        b.Constraint = None
+        b.constraint = None
         b.update(c)
         self.assertEqual(b, dict.fromkeys('45'))
         b.update(d)
         self.assertEqual(b, {'4': None, '5': None, 'x': 'y'})
         # should fail if we add the constraint back
-        b.Constraint = {'4': 1, 5: 2, '5': 1, 'x': 1}
+        b.constraint = {'4': 1, 5: 2, '5': 1, 'x': 1}
         self.assertRaises(ConstraintError, b.update, {4: 1})
         b.update({5: 1})
         self.assertEqual(b, {'4': None, '5': None, 'x': 'y', 5: 1})
@@ -1374,7 +1374,7 @@ class ConstrainedDictTests(TestCase):
         self.assertEqual(d, {'1': 237, '2': 9, })
         self.assertRaises(ConstraintError, d.__setitem__, 4, '3')
         e = d.copy()
-        assert e.Mask is d.Mask
+        assert e.mask is d.mask
         assert '1' in d
         assert not 1 in d
 
@@ -1393,7 +1393,7 @@ class MappedDictTests(TestCase):
         self.assertEqual(d, {'1': 237, '2': 9, })
         self.assertRaises(ConstraintError, d.__setitem__, 4, '3')
         e = d.copy()
-        assert e.Mask is d.Mask
+        assert e.mask is d.mask
         assert '1' in d
         assert 1 in d
         assert 1 not in list(d.keys())

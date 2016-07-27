@@ -715,7 +715,7 @@ class Map(object):
 
 class SpansOnly(ConstrainedList):
     """List that converts elements to Spans on addition."""
-    Mask = FunctionWrapper(Span)
+    mask = FunctionWrapper(Span)
     _constraint = ClassChecker(Span)
 
 

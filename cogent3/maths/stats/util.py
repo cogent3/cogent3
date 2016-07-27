@@ -611,9 +611,9 @@ class Numbers(NumbersI, MappedList):
     potentially add new data to the list. This makes it much slower than
     UnsafeNumbers, but impossible for it to hold invalid data.
     """
-    Mask = FunctionWrapper(float)
+    mask = FunctionWrapper(float)
 
-    def __init__(self, data=None, Constraint=None, Mask=None):
+    def __init__(self, data=None, constraint=None, mask=None):
         """Initializes a new Numbers object.
 
         Usage: nl = Numbers(data)
@@ -633,7 +633,7 @@ class Numbers(NumbersI, MappedList):
             data = list(map(float, data))
         else:
             data = []
-        MappedList.__init__(self, data, Constraint, Mask)
+        MappedList.__init__(self, data, constraint, mask)
 
 
 class FreqsI(object):
@@ -1203,27 +1203,27 @@ class Freqs(FreqsI, MappedDict):
     """Holds a frequency distribution, i.e. a set of category -> count pairs.
 
     Class data:
-        ValueMask: function that transforms values before they are entered.
+        value_mask: function that transforms values before they are entered.
         RequiredKeys: keys that are automatically added with frequency 0 before
         frequencies are added.
 
     Performs (expensive) validation on many operations that change the
     dictionary. Use UnsafeFreqs if speed is more important than validation.
     """
-    ValueMask = FunctionWrapper(freqwatcher)
+    value_mask = FunctionWrapper(freqwatcher)
 
-    def __init__(self, data=None, Constraint=None, Mask=None, ValueMask=None):
+    def __init__(self, data=None, constraint=None, mask=None, value_mask=None):
         """Passes on to superclass, but adds required keys if absent.
 
         Parameters (for polymorphism with MappedDict superclass):
 
         data:           data to load into self
-        Constraint:     only items that Constraint __contains__ are allowed
-        Mask:           function applied to keys before lookup
-        ValueMask:      function applied to values before addition
+        constraint:     only items that constraint __contains__ are allowed
+        mask:           function applied to keys before lookup
+        value_mask:      function applied to values before addition
         """
-        super(Freqs, self).__init__(Constraint=Constraint, Mask=Mask,
-                                    ValueMask=ValueMask)
+        super(Freqs, self).__init__(constraint=constraint, mask=mask,
+                                    value_mask=value_mask)
         self += data
         for key in self.RequiredKeys:
             if key not in self:
@@ -1355,21 +1355,21 @@ class NumberFreqs(NumberFreqsI, MappedDict):
     All keys and values are automatically converted to float.
     """
     RequiredKeys = None
-    Mask = FunctionWrapper(float)
-    ValueMask = FunctionWrapper(freqwatcher)
+    mask = FunctionWrapper(float)
+    value_mask = FunctionWrapper(freqwatcher)
 
-    def __init__(self, data=None, Constraint=None, Mask=None, ValueMask=None):
+    def __init__(self, data=None, constraint=None, mask=None, value_mask=None):
         """Passes on to superclass, but adds required keys if absent.
 
         Parameters (for polymorphism with MappedDict superclass):
 
         data:           data to load into self
-        Constraint:     only items that Constraint __contains__ are allowed
-        Mask:           function applied to keys before lookup
-        ValueMask:      function applied to values before addition
+        constraint:     only items that constraint __contains__ are allowed
+        mask:           function applied to keys before lookup
+        value_mask:      function applied to values before addition
         """
-        super(NumberFreqs, self).__init__(Constraint=Constraint, Mask=Mask,
-                                          ValueMask=ValueMask)
+        super(NumberFreqs, self).__init__(constraint=constraint, mask=mask,
+                                          value_mask=value_mask)
         self += data
         r = self.RequiredKeys
         if r:

@@ -95,7 +95,7 @@ class DbRefs(MappedRecord, ConstrainedDict):
     DbRefs will ultimately contain methods for actually getting the records
     from known databases.
     """
-    ValueMask = FunctionWrapper(_make_list)
+    value_mask = FunctionWrapper(_make_list)
     DefaultValue = []
 
 KnownDatabases = dict.fromkeys(['RefSeq', 'GenBank', 'GenNucl', 'GenPept',

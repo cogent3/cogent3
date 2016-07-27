@@ -750,38 +750,38 @@ class ConstraintError(Exception):
 class ConstrainedContainer(object):
     """Mixin class providing constraint checking to a container.
 
-    Container should have a Constraint property that __contains__ the items
-    that will be allowed in the container. Can also have a Mask property that
+    Container should have a constraint property that __contains__ the items
+    that will be allowed in the container. Can also have a mask property that
     contains a function that will be applied to each item (a) on checking the
     item for validity, and (b) on inserting the item in the container.
 
-    WARNING: Because the Mask is evaluated both when the item is checked and
+    WARNING: Because the mask is evaluated both when the item is checked and
     when it is inserted, any side-effects it has are applied _twice_. This
-    means that any Mask that mutates the object or changes global variables
+    means that any mask that mutates the object or changes global variables
     is unlikely to do what you want!
     """
     _constraint = None
-    Mask = FunctionWrapper(identity)
+    mask = FunctionWrapper(identity)
 
     def _mask_for_new(self):
-        """Returns self.Mask only if different from class data."""
-        if self.Mask is not self.__class__.Mask:
-            return self.Mask
+        """Returns self.mask only if different from class data."""
+        if self.mask is not self.__class__.mask:
+            return self.mask
         else:
             return None
 
-    def __init__(self, Constraint=None, Mask=None):
+    def __init__(self, constraint=None, mask=None):
         """Returns new ConstrainedContainer, incorporating constraint.
 
         WARNING: Does not perform validation. It is the subclass's
         responsibility to perform validation during __init__ or __new__!
         """
-        if Constraint is not None:
-            self._constraint = Constraint
-        if Mask is not None:
-            self.Mask = Mask
+        if constraint is not None:
+            self._constraint = constraint
+        if mask is not None:
+            self.mask = mask
 
-    def matchesConstraint(self, constraint):
+    def matches_constraint(self, constraint):
         """Returns True if all items in self are allowed."""
         # First checks if constraints are compatible. If not, or if the current
         # sequence has no constraint, does item by item search.
@@ -790,10 +790,10 @@ class ConstrainedContainer(object):
         if not constraint or not self:
             return True
         # try checking constraints for compatibility
-        if self.Constraint:
+        if self.constraint:
             try:
                 constraint_ok = True
-                for c in self.Constraint:
+                for c in self.constraint:
                     if c not in constraint:
                         constraint_ok = False
                         break
@@ -802,8 +802,8 @@ class ConstrainedContainer(object):
             except TypeError:
                 pass  # e.g. tried to check wrong type item in string alphabet
 
-        # get here if either self.Constraint is empty, or if we found an item
-        # in self.Constraint that wasn't in the other constraint. In either case,
+        # get here if either self.constraint is empty, or if we found an item
+        # in self.constraint that wasn't in the other constraint. In either case,
         # we need to check self item by item.
         if self:
             try:
@@ -814,17 +814,17 @@ class ConstrainedContainer(object):
                 return False
         return True
 
-    def otherIsValid(self, other):
-        """Returns True if other has only items allowed in self.Constraint."""
+    def other_is_valid(self, other):
+        """Returns True if other has only items allowed in self.constraint."""
         # First, checks other.Constrant for compatibility.
-        # If other.Constraint is incompatible, checks items in other.
-        mask = self.Mask
-        constraint = self.Constraint
+        # If other.constraint is incompatible, checks items in other.
+        mask = self.mask
+        constraint = self.constraint
         if not constraint or not other:
             return True  # bail out if empty
         try:
             # if other has a constraint, check whether it's compatible
-            other_constraint = other.Constraint
+            other_constraint = other.constraint
             if other_constraint:
                 for c in map(mask, other_constraint):
                     if c not in constraint:
@@ -842,20 +842,20 @@ class ConstrainedContainer(object):
             return False  # e.g. tried to check int in str alphabet
         return True
 
-    def itemIsValid(self, item):
-        """Returns True if single item is in self.Constraint."""
+    def item_is_valid(self, item):
+        """Returns True if single item is in self.constraint."""
         try:
-            if (not self.Constraint) or self.Mask(item) in self.Constraint:
+            if (not self.constraint) or self.mask(item) in self.constraint:
                 return True
             else:
                 return False
         except (TypeError, ConstraintError):  # wrong type or not allowed
             return False
 
-    def sequenceIsValid(self, sequence):
-        """Returns True if all items in sequence are in self.Constraint."""
-        is_valid = self.itemIsValid
-        for i in map(self.Mask, sequence):
+    def sequence_is_valid(self, sequence):
+        """Returns True if all items in sequence are in self.constraint."""
+        is_valid = self.item_is_valid
+        for i in map(self.mask, sequence):
             if not is_valid(i):
                 return False
         return True
@@ -866,20 +866,20 @@ class ConstrainedContainer(object):
 
     def _set_constraint(self, constraint):
         """Mutator for constraint."""
-        if self.matchesConstraint(constraint):
+        if self.matches_constraint(constraint):
             self._constraint = constraint
         else:
             raise ConstraintError(
                 "Sequence '%s' incompatible with constraint '%s'" % (self, constraint))
 
-    Constraint = property(_get_constraint, _set_constraint)
+    constraint = property(_get_constraint, _set_constraint)
 
 
 class ConstrainedString(str, ConstrainedContainer):
     """String that is always valid on a specified constraint."""
-    def __new__(cls, data, Constraint=None, Mask=None):
+    def __new__(cls, data, constraint=None, mask=None):
         """Constructor class method for validated ConstrainedString."""
-        mask = Mask or cls.Mask
+        mask = mask or cls.mask
         if data == '':
             pass  # map can't handle an empty sequence, sadly...
         elif isinstance(data, str):
@@ -890,7 +890,7 @@ class ConstrainedString(str, ConstrainedContainer):
             except (TypeError, ValueError):
                 data = str(mask(data))
         new_string = str.__new__(cls, data)
-        curr_constraint = Constraint or new_string.Constraint
+        curr_constraint = constraint or new_string.constraint
         if curr_constraint and new_string:
             for c in new_string:
                 try:
@@ -902,47 +902,47 @@ class ConstrainedString(str, ConstrainedContainer):
                         "Character '%s' not in constraint '%s'" % (c, curr_constraint))
         return new_string
 
-    def __init__(self, data, Constraint=None, Mask=None):
+    def __init__(self, data, constraint=None, mask=None):
         """Constructor for validated ConstrainedString."""
-        ConstrainedContainer.__init__(self, Constraint, Mask)
+        ConstrainedContainer.__init__(self, constraint, mask)
 
     def __add__(self, other):
         """Returns copy of self added to copy of other if constraint correct."""
-        if not self.otherIsValid(other):
+        if not self.other_is_valid(other):
             raise ConstraintError(
                 "Sequence '%s' doesn't meet constraint" % other)
-        result = self.__class__(str(self) + ''.join(map(self.Mask, other)),
-                                Constraint=self.Constraint)
+        result = self.__class__(str(self) + ''.join(map(self.mask, other)),
+                                constraint=self.constraint)
         mask = self._mask_for_new()
         if mask:
-            result.Mask = mask
+            result.mask = mask
         return result
 
     def __mul__(self, multiplier):
         """Returns copy of self multiplied by multiplier."""
         result = self.__class__(str.__mul__(self, multiplier),
-                                Constraint=self.Constraint)
+                                constraint=self.constraint)
         mask = self._mask_for_new()
         if mask:
-            result.Mask = mask
+            result.mask = mask
         return result
 
     def __rmul__(self, multiplier):
         """Returns copy of self multiplied by multiplier."""
         result = self.__class__(str.__rmul__(self, multiplier),
-                                Constraint=self.Constraint)
+                                constraint=self.constraint)
         mask = self._mask_for_new()
         if mask:
-            result.Mask = mask
+            result.mask = mask
         return result
 
     def __getslice__(self, *args, **kwargs):
         """Make sure slice remembers the constraint."""
         result = self.__class__(str.__getslice__(self, *args, **kwargs),
-                                Constraint=self.Constraint)
+                                constraint=self.constraint)
         mask = self._mask_for_new()
         if mask:
-            result.Mask = mask
+            result.mask = mask
         return result
 
     def __getitem__(self, index):
@@ -950,9 +950,9 @@ class ConstrainedString(str, ConstrainedContainer):
         items = str.__getitem__(self, index)
         if isinstance(index, slice):
             mask = self._mask_for_new()
-            result = self.__class__(items, Constraint=self.Constraint)
+            result = self.__class__(items, constraint=self.constraint)
             if mask:
-                result.Mask = mask
+                result.mask = mask
             return result
         else:
             return items
@@ -964,7 +964,7 @@ class MappedString(ConstrainedString):
     def __contains__(self, item):
         """Ensure that contains applies the mask."""
         try:
-            return super(MappedString, self).__contains__(self.Mask(item))
+            return super(MappedString, self).__contains__(self.mask(item))
         except (TypeError, ValueError):
             return False
 
@@ -972,100 +972,100 @@ class MappedString(ConstrainedString):
 class ConstrainedList(ConstrainedContainer, list):
     """List that is always valid on a specified constraint."""
 
-    def __init__(self, data=None, Constraint=None, Mask=None):
+    def __init__(self, data=None, constraint=None, mask=None):
         """Constructor for validated ConstrainedList."""
-        ConstrainedContainer.__init__(self, Constraint, Mask)
+        ConstrainedContainer.__init__(self, constraint, mask)
         if data:
             self.extend(data)
 
     def __add__(self, other):
         """Returns copy of self added to copy of other if constraint correct."""
-        result = self.__class__(list(self) + list(map(self.Mask, other)),
-                                Constraint=self.Constraint)
+        result = self.__class__(list(self) + list(map(self.mask, other)),
+                                constraint=self.constraint)
         mask = self._mask_for_new()
         if mask:
-            result.Mask = mask
+            result.mask = mask
         return result
 
     def __iadd__(self, other):
         """Adds other to self if constraint correct."""
-        other = list(map(self.Mask, other))
-        if self.otherIsValid(other):
+        other = list(map(self.mask, other))
+        if self.other_is_valid(other):
             return list.__iadd__(self, other)
         else:
             raise ConstraintError("Sequence '%s' has items not in constraint '%s'"
-                                  % (other, self.Constraint))
+                                  % (other, self.constraint))
 
     def __mul__(self, multiplier):
         """Returns copy of self multiplied by multiplier."""
         result = self.__class__(list(self) * multiplier,
-                                Constraint=self.Constraint)
+                                constraint=self.constraint)
         mask = self._mask_for_new()
         if mask:
-            result.Mask = mask
+            result.mask = mask
         return result
 
     def __rmul__(self, multiplier):
         """Returns copy of self multiplied by multiplier."""
         result = self.__class__(list(self) * multiplier,
-                                Constraint=self.Constraint)
+                                constraint=self.constraint)
         mask = self._mask_for_new()
         if mask:
-            result.Mask = mask
+            result.mask = mask
         return result
 
     def __setitem__(self, index, item):
         """Sets self[index] to item if item in constraint. Handles slices"""
         if isinstance(index, slice):
-            if not self.otherIsValid(item):
+            if not self.other_is_valid(item):
                 raise ConstraintError("Sequence '%s' contains items not in constraint '%s'." %
-                                      (item, self.Constraint))
-            item = list(map(self.Mask, item))
+                                      (item, self.constraint))
+            item = list(map(self.mask, item))
         else:
-            if not self.itemIsValid(item):
+            if not self.item_is_valid(item):
                 raise ConstraintError("Item '%s' not in constraint '%s'" %
-                                      (item, self.Constraint))
-            item = self.Mask(item)
+                                      (item, self.constraint))
+            item = self.mask(item)
         list.__setitem__(self, index, item)
 
     def __setslice__(self, start, end, sequence):
         """Make sure invalid data can't get into slice."""
-        if self.otherIsValid(sequence):
-            list.__setslice__(self, start, end, list(map(self.Mask, sequence)))
+        if self.other_is_valid(sequence):
+            list.__setslice__(self, start, end, list(map(self.mask, sequence)))
         else:
             raise ConstraintError("Sequence '%s' has items not in constraint '%s'"
-                                  % (sequence, self.Constraint))
+                                  % (sequence, self.constraint))
 
     def append(self, item):
         """Appends item to self."""
-        if not self.itemIsValid(item):
+        if not self.item_is_valid(item):
             raise ConstraintError("Item '%s' not in constraint '%s'" %
-                                  (item, self.Constraint))
-        list.append(self, self.Mask(item))
+                                  (item, self.constraint))
+        list.append(self, self.mask(item))
 
     def extend(self, sequence):
         """Appends sequence to self."""
-        if self.otherIsValid(sequence):
-            list.extend(self, list(map(self.Mask, sequence)))
+        if self.other_is_valid(sequence):
+            list.extend(self, list(map(self.mask, sequence)))
         else:
             raise ConstraintError("Some items in '%s' not in constraint '%s'"
-                                  % (sequence, self.Constraint))
+                                  % (sequence, self.constraint))
 
     def insert(self, position, item):
         """Inserts item at position in self."""
-        if not self.itemIsValid(item):
+        if not self.item_is_valid(item):
             raise ConstraintError("Item '%s' not in constraint '%s'" %
-                                  (item, self.Constraint))
-        list.insert(self, position, self.Mask(item))
+                                  (item, self.constraint))
+        list.insert(self, position, self.mask(item))
 
     def __getslice__(self, *args, **kwargs):
         """Make sure slice remembers the constraint."""
         # to be deleted in py3
         val = list.__getslice__(self, *args, **kwargs)
-        result = self.__class__(val, Constraint=self.Constraint)
+        result = self.__class__(val, constraint=self.constraint)
         mask = self._mask_for_new()
         if mask:
-            result.Mask = mask
+            result.mask = mask
         return result
 
     def __getitem__(self, *args, **kwargs):
@@ -1075,10 +1075,10 @@ class ConstrainedList(ConstrainedContainer, list):
             return val
 
         val = list.__getitem__(self, *args, **kwargs)
-        result = self.__class__(val, Constraint=self.Constraint)
+        result = self.__class__(val, constraint=self.constraint)
         mask = self._mask_for_new()
         if mask:
-            result.Mask = mask
+            result.mask = mask
         return result
 
 
@@ -1088,7 +1088,7 @@ class MappedList(ConstrainedList):
     def __contains__(self, item):
         """Ensure that contains applies the mask."""
         try:
-            return super(MappedList, self).__contains__(self.Mask(item))
+            return super(MappedList, self).__contains__(self.mask(item))
         except (TypeError, ValueError):
             return False
 
@@ -1100,57 +1100,57 @@ class ConstrainedDict(ConstrainedContainer, dict):
     that sequence, which is not the standard dict interface (should raise a
     ValueError instead) but which is surprisingly useful in practice.
     """
-    ValueMask = FunctionWrapper(identity)
+    value_mask = FunctionWrapper(identity)
 
     def _get_mask_and_valmask(self):
-        """Helper method to check whether Mask and ValueMask were set."""
-        if self.Mask is self.__class__.Mask:
+        """Helper method to check whether mask and value_mask were set."""
+        if self.mask is self.__class__.mask:
             mask = None
         else:
-            mask = self.Mask
+            mask = self.mask
 
-        if self.ValueMask is self.__class__.ValueMask:
+        if self.value_mask is self.__class__.value_mask:
             valmask = None
         else:
-            valmask = self.ValueMask
+            valmask = self.value_mask
         return mask, valmask
 
-    def __init__(self, data=None, Constraint=None, Mask=None, ValueMask=None):
+    def __init__(self, data=None, constraint=None, mask=None, value_mask=None):
         """Constructor for validated ConstrainedDict."""
-        ConstrainedContainer.__init__(self, Constraint, Mask)
-        if ValueMask is not None:
-            self.ValueMask = ValueMask
+        ConstrainedContainer.__init__(self, constraint, mask)
+        if value_mask is not None:
+            self.value_mask = value_mask
         if data:
             try:
                 self.update(data)
             except (ValueError, TypeError):
-                for d in map(self.Mask, iterable(data)):
+                for d in map(self.mask, iterable(data)):
                     curr = self.get(d, 0)
                     self[d] = curr + 1
 
     def __setitem__(self, key, value):
         """Sets self[key] to value if value in constraint."""
-        if not self.itemIsValid(key):
+        if not self.item_is_valid(key):
             raise ConstraintError("Item '%s' not in constraint '%s'" %
-                                  (key, self.Constraint))
-        key, value = self.Mask(key), self.ValueMask(value)
+                                  (key, self.constraint))
+        key, value = self.mask(key), self.value_mask(value)
         dict.__setitem__(self, key, value)
 
     def copy(self):
         """Should return copy of self, including constraint."""
         mask, valmask = self._get_mask_and_valmask()
-        return self.__class__(self, Constraint=self.Constraint, Mask=mask,
-                              ValueMask=valmask)
+        return self.__class__(self, constraint=self.constraint, mask=mask,
+                              value_mask=valmask)
 
     def fromkeys(self, keys, value=None):
         """Returns new dictionary with same constraint as self."""
         mask, valmask = self._get_mask_and_valmask()
         return self.__class__(dict.fromkeys(keys, value),
-                              Constraint=self.Constraint, Mask=mask, ValueMask=valmask)
+                              constraint=self.constraint, mask=mask, value_mask=valmask)
 
     def setdefault(self, key, default=None):
         """Returns self[key], setting self[key]=default if absent."""
-        key, default = self.Mask(key), self.ValueMask(default)
+        key, default = self.mask(key), self.value_mask(default)
         if key not in self:
             self[key] = default
         return self[key]
@@ -1173,21 +1173,21 @@ class MappedDict(ConstrainedDict):
     def __contains__(self, item):
         """Ensure that contains applies the mask."""
         try:
-            return super(MappedDict, self).__contains__(self.Mask(item))
+            return super(MappedDict, self).__contains__(self.mask(item))
         except (TypeError, ValueError):
             return False
 
     def __getitem__(self, item):
         """Ensure that getitem applies the mask."""
-        return super(MappedDict, self).__getitem__(self.Mask(item))
+        return super(MappedDict, self).__getitem__(self.mask(item))
 
     def get(self, item, default=None):
         """Ensure that get applies the mask."""
-        return super(MappedDict, self).get(self.Mask(item), default)
+        return super(MappedDict, self).get(self.mask(item), default)
 
     def has_key(self, item):
         """Ensure that has_key applies the mask."""
-        return self.Mask(item) in super(MappedDict, self)
+        return self.mask(item) in super(MappedDict, self)
 
 
 def getNewId(rand_f=randrange):
