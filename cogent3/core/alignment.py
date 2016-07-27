@@ -1167,7 +1167,7 @@ class SequenceCollection(object):
         for name in self.names:
             result[name] = ambig = {}
             for (i, motif) in enumerate(self.get_gapped_seq(name)):
-                if self.MolType.isAmbiguity(motif):
+                if self.MolType.is_ambiguity(motif):
                     ambig[i] = motif
         return result
 

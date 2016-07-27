@@ -854,7 +854,7 @@ class NucleicAcidSequence(Sequence):
                 trans.append(aa)
             if not trans:
                 raise ValueError(orig_codon)
-            aa = self.PROTEIN.whatAmbiguity(trans)
+            aa = self.PROTEIN.what_ambiguity(trans)
             translation.append(aa)
 
         translation = self.PROTEIN.makeSequence(
