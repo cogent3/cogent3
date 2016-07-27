@@ -560,7 +560,7 @@ def get_subalignments(aln, position, selections):
     result = []
     for s in aln.Alphabet.toIndices(selections):
         seqs_to_keep = nonzero(aln.ArraySeqs[:, position] == s)[0]
-        result.append(aln.getSubAlignment(seqs=seqs_to_keep))
+        result.append(aln.get_sub_alignment(seqs=seqs_to_keep))
     return result
 
 
