@@ -55,7 +55,7 @@ class OptPar(object):
         self.order = (len(scope), scope and min(scope), name)
         self.label = self.name
 
-    def addClient(self, client):
+    def add_client(self, client):
         self.clients.append(client)
 
     def __lt__(self, other):
@@ -118,7 +118,7 @@ class EvaluatedCell(object):
 
         self.is_constant = True
         for arg in args:
-            arg.addClient(self)
+            arg.add_client(self)
             if not arg.is_constant:
                 self.is_constant = False
 
@@ -126,7 +126,7 @@ class EvaluatedCell(object):
         self.client_ranks = []
         self.failure_count = 0
 
-    def addClient(self, client):
+    def add_client(self, client):
         self.clients.append(client)
 
     def update(self, data):
@@ -168,7 +168,7 @@ class ConstCell(object):
         self.clients = []
         self.value = value
 
-    def addClient(self, client):
+    def add_client(self, client):
         self.clients.append(client)
 
 

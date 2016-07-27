@@ -155,7 +155,7 @@ class _Defn(object):
     def getDefaultSetting(self):
         return None
 
-    def addClient(self, client):
+    def add_client(self, client):
         assert not self.activated, self.name
         assert not self.assignments, self.assignments
         self.clients.append(client)
@@ -417,7 +417,7 @@ class SelectFromDimension(_Defn):
         self.valid_dimensions = tuple([
             d for d in arg.valid_dimensions if d not in kw])
         self.selection = kw
-        arg.addClient(self)
+        arg.add_client(self)
 
     def update(self):
         for scope_t in self.assignments:
@@ -445,7 +445,7 @@ class _NonLeafDefn(_Defn):
             for dimension in arg.valid_dimensions:
                 if dimension not in valid_dimensions:
                     valid_dimensions.append(dimension)
-            arg.addClient(self)
+            arg.add_client(self)
         valid_dimensions.sort()
         self.valid_dimensions = tuple(valid_dimensions)
         self.args = args
