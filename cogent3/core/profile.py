@@ -78,7 +78,7 @@ class Profile(object):
         chars = ''.join(map(str, self.CharOrder))
         return maketrans(chars, indices)
 
-    def hasValidData(self, err=1e-16):
+    def has_valid_data(self, err=1e-16):
         """Returns True if all rows in self.Data add up to one
 
         err -- float, maximum deviation from 1 allowed, default is 1e-16
@@ -94,7 +94,7 @@ class Profile(object):
             return True
         return False
 
-    def hasValidAttributes(self):
+    def has_valid_attributes(self):
         """Checks Alphabet, CharOrder, and size of self.Data"""
         if not reduce(logical_and, [c in self.Alphabet
                                     for c in self.CharOrder]):
@@ -105,11 +105,11 @@ class Profile(object):
 
     def is_valid(self):
         """Check whether everything in the Profile is valid"""
-        vd = self.hasValidData()
-        va = self.hasValidAttributes()
+        vd = self.has_valid_data()
+        va = self.has_valid_attributes()
         return vd and va
 
-    def dataAt(self, pos, character=None):
+    def data_at(self, pos, character=None):
         """Return data for a certain position (row!) and character (column)
 
         pos -- int, position (row) in the profile
@@ -139,7 +139,7 @@ class Profile(object):
         """
         return self.__class__(self.Data, self.Alphabet, self.CharOrder)
 
-    def normalizePositions(self):
+    def normalize_positions(self):
         """Normalizes the data by position (the rows!) to one
 
         It does not make sense to normalize anything with negative
@@ -163,7 +163,7 @@ class Profile(object):
         else:
             self.Data = self.Data / row_sums[:, newaxis]
 
-    def normalizeSequences(self):
+    def normalize_seqs(self):
         """Normalized the data by sequences (the columns) to one
 
         It does not make sense to normalize anything with negative
@@ -187,7 +187,7 @@ class Profile(object):
         else:
             self.Data = self.Data / col_sums
 
-    def prettyPrint(self, include_header=False, transpose_data=False,
+    def pretty_print(self, include_header=False, transpose_data=False,
                     column_limit=None, col_sep='\t'):
         """Returns a string method of the data and character order.
 
@@ -247,8 +247,8 @@ class Profile(object):
             raise ProfileError("Cannot collapse profiles of different size: %s, %s"
                                % (self.Data.shape, other.Data.shape))
         if normalize_input:
-            self.normalizePositions()
-            other.normalizePositions()
+            self.normalize_positions()
+            other.normalize_positions()
 
         try:
             # SUPPORT2425
@@ -265,7 +265,7 @@ class Profile(object):
         result = Profile(new_data, self.Alphabet, self.CharOrder)
 
         if normalize_output:
-            result.normalizePositions()
+            result.normalize_positions()
         return result
 
     def __add__(self, other):
@@ -330,7 +330,7 @@ class Profile(object):
             raise ProfileError("Profiles have different size (and are not aligned): %s %s"
                                % (self.Data.shape, other.Data.shape))
 
-    def toOddsMatrix(self, symbol_freqs=None):
+    def to_odds_matrix(self, symbol_freqs=None):
         """Returns the OddsMatrix of a profile as a new Profile.
 
         symbol_freqs: per character array of background frequencies
@@ -366,16 +366,16 @@ class Profile(object):
         log_odds = self.Data / symbol_freqs
         return Profile(log_odds, self.Alphabet, self.CharOrder)
 
-    def toLogOddsMatrix(self, symbol_freqs=None):
+    def to_log_odds_matrix(self, symbol_freqs=None):
         """Returns the LogOddsMatrix of a profile as a new Profile/
 
         symbol_freqs: per character array of background frequencies
         e.g. [.25,.25,.25,.25] for equal frequencies for each of the
         four bases.
 
-        See toOddsMatrix for more information.
+        See to_odds_matrix for more information.
         """
-        odds = self.toOddsMatrix(symbol_freqs)
+        odds = self.to_odds_matrix(symbol_freqs)
         log_odds = safe_log(odds.Data)
         return Profile(log_odds, self.Alphabet, self.CharOrder)
 
@@ -512,7 +512,7 @@ class Profile(object):
             # now the profile is scored against the list of indices
             return self._score_indices(seq_indices, offset)
 
-    def rowUncertainty(self):
+    def row_uncertainty(self):
         """Returns the uncertainty (Shannon's entropy) for each row in profile
 
         Entropy is returned in BITS (not in NATS).
@@ -523,9 +523,9 @@ class Profile(object):
             return row_uncertainty(self.Data)
         except ValueError:
             raise ProfileError(
-                "Profile has to be two dimensional to calculate rowUncertainty")
+                "Profile has to be two dimensional to calculate row_uncertainty")
 
-    def columnUncertainty(self):
+    def column_uncertainty(self):
         """Returns uncertainty (Shannon's entropy) for each column in profile
 
         Uncertainty is returned in BITS (not in NATS).
@@ -538,7 +538,7 @@ class Profile(object):
             raise ProfileError(
                 "Profile has to be two dimensional to calculate columnUncertainty")
 
-    def rowDegeneracy(self, cutoff=0.5):
+    def row_degeneracy(self, cutoff=0.5):
         """Returns how many chars are needed to cover the cutoff value.
 
         cutoff: value that should be covered in each row
@@ -557,24 +557,24 @@ class Profile(object):
             return row_degeneracy(self.Data, cutoff)
         except ValueError:
             raise ProfileError(
-                "Profile has to be two dimensional to calculate rowDegeneracy")
+                "Profile has to be two dimensional to calculate row_degeneracy")
 
-    def columnDegeneracy(self, cutoff=0.5):
+    def column_degeneracy(self, cutoff=0.5):
         """Returns how many chars are neede to cover the cutoff value
 
-        See rowDegeneracy for more information.
+        See row_degeneracy for more information.
         """
         try:
             return column_degeneracy(self.Data, cutoff)
         except ValueError:
             raise ProfileError(
-                "Profile has to be two dimensional to calculate columnDegeneracy")
+                "Profile has to be two dimensional to calculate column_degeneracy")
 
-    def rowMax(self):
+    def row_max(self):
         """Returns ara containing most frequent element in each row of the profile."""
         return max(self.Data, 1)
 
-    def toConsensus(self, cutoff=None, fully_degenerate=False,
+    def to_consensus(self, cutoff=None, fully_degenerate=False,
                     include_all=False):
         """Returns the consensus sequence from a profile.
 
@@ -608,7 +608,7 @@ class Profile(object):
         # determine the action. Cutoff takes priority over fully_degenerate
         if cutoff:
             result = []
-            degen = self.rowDegeneracy(cutoff)
+            degen = self.row_degeneracy(cutoff)
             sorted = argsort(data)
             if include_all:
                 # if include_all include all possiblilities in the degen char
@@ -644,7 +644,7 @@ class Profile(object):
 
         return val
 
-    def randomIndices(self, force_accumulate=False, random_f=random):
+    def random_indices(self, force_accumulate=False, random_f=random):
         """Returns random indices matching current probability matrix.
 
         Stores cumulative sum (sort of) of probability matrix in
@@ -660,7 +660,7 @@ class Profile(object):
         return array([searchsorted(v, c) for v, c in
                       zip(self._accumulated, choices)])
 
-    def randomSequence(self, force_accumulate=False, random_f=random):
+    def random_sequence(self, force_accumulate=False, random_f=random):
         """Returns random sequence matching current probability matrix.
 
         Stores cumulative sum (sort of) of probability matrix in
@@ -668,7 +668,7 @@ class Profile(object):
         the matrix in place (which you shouldn't do anyway).
         """
         co = self.CharOrder
-        random_indices = self.randomIndices(force_accumulate, random_f)
+        random_indices = self.random_indices(force_accumulate, random_f)
         try:
             val = ''.join(map(lambda x: x.decode(
                 'utf8'), take(co, random_indices)))

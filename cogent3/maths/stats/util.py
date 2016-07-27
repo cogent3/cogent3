@@ -39,7 +39,7 @@ Numbers holds a list of values that are all numbers (i.e. can be converted to
 float -- it does not try to do anything with complex values). Numbers supports
 the full list interface, and also supports methods like items (returns key,
 value pairs), toFixedWidth (for formatting), normalize, accumulate,
-firstIndexLessThan (and its relatives), randomSequence, round, and so forth.
+firstIndexLessThan (and its relatives), random_sequence, round, and so forth.
 
 UnsafeNumbers behaves like Numbers, except that it does not complain if you
 initialize it with non-numeric values or insert such values later (with insert,
@@ -55,7 +55,7 @@ of counts from a sequence, a dict, a list of dicts, a sequence of key, value
 pairs, and a sequence of sequences: in all cases, the counts are added (unlike
 dict.update(), which overwrites the value with the last one read from that
 key). Use +, +=, -, and -= to accumulate counts. Freqs supports all the stats
-functions that Numbers does. Notable features of Freqs include randomSequence
+functions that Numbers does. Notable features of Freqs include random_sequence
 (generates a random sequence of keys according to their frequencies), rekey
 (maps the freqs onto new keys, given a conversion dictionary), normalize,
 scale, round, and getSortedList (sorts items by key or value, ascending or
@@ -552,7 +552,7 @@ class NumbersI(object):
         """Returns random element from self."""
         return choice(self)
 
-    def randomSequence(self, n):
+    def random_sequence(self, n):
         """Returns list of n random choices from self, with replacement."""
         return [choice(self) for i in range(n)]
 
@@ -961,7 +961,7 @@ class FreqsI(object):
                 return item
         return items[-1][0]  # return the last value if we run off the end
 
-    def randomSequence(self, n):
+    def random_sequence(self, n):
         """Returns list of n random choices, with replacement.
 
         Will raise IndexError if there are no items in self.

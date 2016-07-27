@@ -2466,8 +2466,8 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         used to, for instance, filter low-complexity sequences.
         """
         p = self.get_seq_freqs()
-        p.normalizePositions()
-        return p.rowUncertainty()
+        p.normalize_positions()
+        return p.row_uncertainty()
 
     def get_pos_entropy(self):
         """Returns array containing Shannon entropy for each pos in self.
@@ -2479,8 +2479,8 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         position in an alignment.
         """
         p = self.get_pos_freqs()
-        p.normalizePositions()
-        return p.rowUncertainty()
+        p.normalize_positions()
+        return p.row_uncertainty()
 
     def iupac_consensus(self, alphabet=None):
         """Returns string containing IUPAC consensus sequence of the alignment.

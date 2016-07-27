@@ -426,9 +426,9 @@ class NumbersTestsI(object):
         v = Numbers(nums).Variance
         self.assertNotEqual(v, 0)
 
-    def test_randomSequence(self):
-        """Numbers randomSequence should return random sequence from self"""
-        nums = self.ints.randomSequence(10)
+    def test_random_sequence(self):
+        """Numbers random_sequence should return random sequence from self"""
+        nums = self.ints.random_sequence(10)
         nums = [self.ints.choice() for i in range(10)]
         self.assertEqual(len(nums), 10)
         for n in nums:
@@ -892,26 +892,26 @@ class StaticFreqsTestsI(object):
             self.assertEqual(self.Alphabetic.choice(
                 value + 0.01), keys[index + 1])
 
-    def test_randomSequence_good(self):
-        """Freqs randomSequence should give correct counts"""
+    def test_random_sequence_good(self):
+        """Freqs random_sequence should give correct counts"""
         self.Alphabetic.normalize()
         total = self.Alphabetic.Sum
         keys = list(self.Alphabetic.keys())
         probs = [float(i) / total for i in list(self.Alphabetic.values())]
 
-        rand_seq = self.Alphabetic.randomSequence(10000)
+        rand_seq = self.Alphabetic.random_sequence(10000)
         observed = [rand_seq.count(key) for key in keys]
         expected = [prob * 10000 for prob in probs]
         self.assertSimilarFreqs(observed, expected)
 
-    def test_randomSequence_bad(self):
-        """Empty Freqs should raise error on randomSequence"""
-        self.assertRaises(IndexError, self.Empty.randomSequence, 5)
+    def test_random_sequence_bad(self):
+        """Empty Freqs should raise error on random_sequence"""
+        self.assertRaises(IndexError, self.Empty.random_sequence, 5)
 
-    def test_randomSequence_one_item(self):
-        """Freqs randomSequence should work with one key"""
+    def test_random_sequence_one_item(self):
+        """Freqs random_sequence should work with one key"""
         self.Constant.normalize()
-        rand = self.Constant.randomSequence(1000)
+        rand = self.Constant.random_sequence(1000)
         self.assertEqual(rand.count('a'), 1000)
         self.assertEqual(len(rand), 1000)
 
@@ -1405,26 +1405,26 @@ class FreqsTestsI(object):
             self.assertEqual(self.Alphabetic.choice(
                 value + 0.01), keys[index + 1])
 
-    def test_randomSequence_good(self):
-        """Freqs randomSequence should give correct counts"""
+    def test_random_sequence_good(self):
+        """Freqs random_sequence should give correct counts"""
         self.Alphabetic.normalize()
         total = self.Alphabetic.Sum
         keys = list(self.Alphabetic.keys())
         probs = [float(i) / total for i in list(self.Alphabetic.values())]
 
-        rand_seq = self.Alphabetic.randomSequence(10000)
+        rand_seq = self.Alphabetic.random_sequence(10000)
         observed = [rand_seq.count(key) for key in keys]
         expected = [prob * 10000 for prob in probs]
         self.assertSimilarFreqs(observed, expected)
 
-    def test_randomSequence_bad(self):
-        """Empty Freqs should raise error on randomSequence"""
-        self.assertRaises(IndexError, self.Empty.randomSequence, 5)
+    def test_random_sequence_bad(self):
+        """Empty Freqs should raise error on random_sequence"""
+        self.assertRaises(IndexError, self.Empty.random_sequence, 5)
 
-    def test_randomSequence_one_item(self):
-        """Freqs randomSequence should work with one key"""
+    def test_random_sequence_one_item(self):
+        """Freqs random_sequence should work with one key"""
         self.Constant.normalize()
-        rand = self.Constant.randomSequence(1000)
+        rand = self.Constant.random_sequence(1000)
         self.assertEqual(rand.count(1), 1000)
         self.assertEqual(len(rand), 1000)
 
@@ -1907,10 +1907,10 @@ class NumberFreqsTestsI(object):
         self.assertEqual(self.NumericDuplicated.Mode, 1.5)
         self.assertEqual(self.Constant.Mode, 1)
 
-    def test_randomSequence_one_item(self):
-        """NumberFreqs randomSequence should work with one key"""
+    def test_random_sequence_one_item(self):
+        """NumberFreqs random_sequence should work with one key"""
         self.Constant.normalize()
-        rand = self.Constant.randomSequence(1000)
+        rand = self.Constant.random_sequence(1000)
         self.assertEqual(rand.count(1), 1000)
         self.assertEqual(len(rand), 1000)
 
