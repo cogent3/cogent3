@@ -31,7 +31,7 @@ class ML(TreeEvaluator):
         else:
             self.lf_factory = model
         if dists:
-            self.wlsMakeTreeScorer = WLS(dists).makeTreeScorer
+            self.wlsMakeTreeScorer = WLS(dists).make_tree_scorer
         else:
             fake_wls = lambda a: (None, None)
             self.wlsMakeTreeScorer = lambda n: fake_wls
@@ -43,7 +43,7 @@ class ML(TreeEvaluator):
         lf.set_alignment(subalign)
         return lf.get_log_likelihood()
 
-    def makeTreeScorer(self, names):
+    def make_tree_scorer(self, names):
         subalign = self.alignment.take_seqs(names)
         wls_eval = self.wlsMakeTreeScorer(names)
 

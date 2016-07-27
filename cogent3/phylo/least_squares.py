@@ -49,7 +49,7 @@ class WLS(TreeEvaluator):
             dict((key, 1.0 / (dists[key]**2)) for key in dists)
         (self.names, dists) = distanceDictTo1D(self.dists)
 
-    def makeTreeScorer(self, names):
+    def make_tree_scorer(self, names):
         dists = distanceDictAndNamesTo1D(self.dists, names)
         weights = distanceDictAndNamesTo1D(self.weights, names)
         # dists and weights are 1D forms of triangular tip x tip matrices

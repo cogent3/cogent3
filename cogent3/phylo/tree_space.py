@@ -120,7 +120,7 @@ def grown(B, split_edge):
 
 
 class TreeEvaluator(object):
-    """Subclass must provide makeTreeScorer and result2output"""
+    """Subclass must provide make_tree_scorer and result2output"""
 
     def results2output(self, results):
         return ScoredTreeCollection(results)
@@ -128,14 +128,14 @@ class TreeEvaluator(object):
     def evaluateTopology(self, tree):
         """Optimal (score, tree) for the one topology 'tree'"""
         (ancestry, names, lengths) = tree2ancestry(tree)
-        evaluate = self.makeTreeScorer(names)
+        evaluate = self.make_tree_scorer(names)
         (err, lengths) = evaluate(ancestry)
         return self.result2output(err, ancestry, lengths, names)
 
     def evaluateTree(self, tree):
         """score for 'tree' with lengths as-is"""
         (ancestry, names, lengths) = tree2ancestry(tree)
-        evaluate = self.makeTreeScorer(names)
+        evaluate = self.make_tree_scorer(names)
         (err, result) = evaluate(ancestry, lengths=lengths)
         return err
 
@@ -224,7 +224,7 @@ class TreeEvaluator(object):
 
         # For each tree size, grow at each edge of each tree. Keep best k.
         for n in range(init_tree_size + 1, tree_size + 1):
-            evaluate = self.makeTreeScorer(names[:n])
+            evaluate = self.make_tree_scorer(names[:n])
 
             def grown_tree(spec):
                 (tree_ordinal, tree, split_edge) = spec
