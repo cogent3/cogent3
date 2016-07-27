@@ -157,7 +157,7 @@ Sequence features can be accessed via a containing ``Alignment``:
     <BLANKLINE>
     >>> exon = aln.get_seq('x').addAnnotation(Feature, 'exon', 'fred', [(3,8)])
     >>> aln_exons = aln.getAnnotationsFromSequence('x', 'exon')
-    >>> aln_exons = aln.getAnnotationsFromAnySequence('exon')
+    >>> aln_exons = aln.get_annotations_from_any_seq('exon')
 
 But these will be returned as **alignment** features with locations in alignment coordinates.
 
@@ -321,7 +321,7 @@ These properties also are consistently replicated with reverse complemented sequ
 .. doctest::
     
     >>> aln_rc = aln.rc()
-    >>> rc_exons = list(aln_rc.getAnnotationsFromAnySequence('exon'))
+    >>> rc_exons = list(aln_rc.get_annotations_from_any_seq('exon'))
     >>> print(aln_rc[rc_exons]) # not using asOneSpan, so gap removed from x
     >x
     CCCC
