@@ -930,7 +930,7 @@ class PairHMM(object):
     def getForwardScore(self, **kw):
         return self._getDPResult(viterbi=False, **kw)
 
-    def _getPosteriorProbs(self, tb, **kw):
+    def _get_posterior_probs(self, tb, **kw):
         cells = tb.asStatePosTuples()
         score = self.getForwardScore(**kw)
         dp_options = DPFlags(viterbi=False, **kw)
@@ -955,7 +955,7 @@ class PairHMM(object):
         vpath = self.getViterbiPath(**kw)
         result_tuple = (vpath.getScore(), vpath.getAlignment())
         if posterior_probs:
-            result_tuple = result_tuple + (vpath.getPosteriorProbs(),)
+            result_tuple = result_tuple + (vpath.get_posterior_probs(),)
         return result_tuple
 
     def getLocalViterbiScoreAndAlignment(self, posterior_probs=False, **kw):
@@ -996,8 +996,8 @@ class GlobalViterbiPath(_ViterbiPath):
         """The alignment as a standard PyCogent Alignment object"""
         return self.getAlignable().getAlignment()
 
-    def getPosteriorProbs(self):
-        pp = self.pair_hmm._getPosteriorProbs(self.tb, use_cost_function=True)
+    def get_posterior_probs(self):
+        pp = self.pair_hmm._get_posterior_probs(self.tb, use_cost_function=True)
         return numpy.exp(pp)
 
 
@@ -1011,6 +1011,6 @@ class LocalViterbiPath(_ViterbiPath):
         aligned_positions = [posn for (bin, posn) in self.aligned_positions]
         return alignment_traceback(seqs, aligned_positions, word_length)
 
-    def getPosteriorProbs(self):
-        pp = self.pair_hmm._getPosteriorProbs(self.tb, use_cost_function=False)
+    def get_posterior_probs(self):
+        pp = self.pair_hmm._get_posterior_probs(self.tb, use_cost_function=False)
         return numpy.exp(pp)

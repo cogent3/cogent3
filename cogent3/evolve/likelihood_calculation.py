@@ -261,7 +261,7 @@ class BinnedLikelihood(object):
         result = self.distrib.getWeightedSumLh(lhs)
         return self.root.getLogSumAcrossSites(result)
 
-    def getPosteriorProbs(self, *lhs):
+    def get_posterior_probs(self, *lhs):
         # posterior bin probs, not motif probs
         assert len(lhs) == len(self.distrib.bprobs)
         result = numpy.array(
@@ -284,13 +284,13 @@ class SiteHmm(object):
         return self.root.logDotReduce(
             matrix.StationaryProbs, matrix.Matrix, plhs)
 
-    def getPosteriorProbs(self, *lhs):
+    def get_posterior_probs(self, *lhs):
         plhs = []
         for lh in self.distrib.getWeightedSumLhs(lhs):
             plh = self.root.getFullLengthLikelihoods(lh)
             plhs.append(plh)
         plhs = numpy.transpose(plhs)
-        pprobs = self.distrib.transition_matrix.getPosteriorProbs(plhs)
+        pprobs = self.distrib.transition_matrix.get_posterior_probs(plhs)
         pprobs = numpy.array(numpy.transpose(pprobs))
 
         lhs = numpy.array(lhs)

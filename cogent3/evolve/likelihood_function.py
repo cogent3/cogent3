@@ -138,7 +138,7 @@ class LikelihoodFunction(ParameterController):
         hmm = self.get_param_value('bindex', locus=locus)
         lhs = [self.get_param_value('lh', locus=locus, bin=bin)
                for bin in self.bin_names]
-        array = hmm.getPosteriorProbs(*lhs)
+        array = hmm.get_posterior_probs(*lhs)
         return DictArrayTemplate(self.bin_names, array.shape[1]).wrap(array)
 
     def _valuesForDimension(self, dim):
