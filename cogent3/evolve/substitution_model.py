@@ -337,7 +337,7 @@ class _SubstitutionModel(object):
 
         rate_params = self.make_rate_params(bprobs)
         if endAtQd:
-            defns['Qd'] = self.makeQdDefn(
+            defns['Qd'] = self.make_Qd_defn(
                 word_probs, mprobs_matrix, rate_params)
         else:
             defns['psubs'] = self.make_psubs_defn(
@@ -500,7 +500,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
             Q *= 1.0 / (word_probs * row_totals).sum()
         return Q
 
-    def makeQdDefn(self, word_probs, mprobs_matrix, rate_params):
+    def make_Qd_defn(self, word_probs, mprobs_matrix, rate_params):
         """Diagonalized Q, ie: rate matrix prepared for exponentiation"""
         Q = CalcDefn(self.calcQ, name='Q')(
             word_probs, mprobs_matrix, *rate_params)
@@ -563,7 +563,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         return distance
 
     def make_continuous_psub_defn(self, word_probs, mprobs_matrix, distance, rate_params):
-        Qd = self.makeQdDefn(word_probs, mprobs_matrix, rate_params)
+        Qd = self.make_Qd_defn(word_probs, mprobs_matrix, rate_params)
         P = CallDefn(Qd, distance, name='psubs')
         return P
 
