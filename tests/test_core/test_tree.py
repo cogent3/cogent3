@@ -448,8 +448,8 @@ class TreeNodeTests(TestCase):
         r = self.TreeRoot
         self.assertEqual(len(r), 2)
 
-    def test_copyRecursive(self):
-        """TreeNode.copyRecursive() should produce deep copy"""
+    def test_copy_recursive(self):
+        """TreeNode.copy_recursive() should produce deep copy"""
         t = TreeNode(['t'])
         u = TreeNode(['u'])
         t.append(u)
