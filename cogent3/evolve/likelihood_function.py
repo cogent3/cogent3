@@ -312,7 +312,7 @@ class LikelihoodFunction(ParameterController):
     def get_motif_probs_by_node(self, edges=None, bin=None, locus=None):
         kw = dict(bin=bin, locus=locus)
         mprobs = self.get_param_value('mprobs', **kw)
-        mprobs = self._model.calcWordProbs(mprobs)
+        mprobs = self._model.calc_word_probs(mprobs)
         result = self._nodeMotifProbs(self._tree, mprobs, kw)
         if edges is None:
             edges = [name for (name, m) in result]
@@ -376,7 +376,7 @@ class LikelihoodFunction(ParameterController):
             root_sequence = root_sequence.get_in_motif_size(motif_len)
         else:
             mprobs = self.get_param_value('mprobs', locus=locus, edge='root')
-            mprobs = self._model.calcWordProbs(mprobs)
+            mprobs = self._model.calc_word_probs(mprobs)
             mprobs = dict((m, p) for (m, p) in zip(self._motifs, mprobs))
             root_sequence = randomSequence(
                 random_series, mprobs, sequence_length)

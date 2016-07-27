@@ -320,8 +320,8 @@ class _SubstitutionModel(object):
         # Not presently used, always go monomer->word instead
         return self.mprob_model.calcMonomerProbs(word_probs)
 
-    def calcWordProbs(self, monomer_probs):
-        return self.mprob_model.calcWordProbs(monomer_probs)
+    def calc_word_probs(self, monomer_probs):
+        return self.mprob_model.calc_word_probs(monomer_probs)
 
     def calcWordWeightMatrix(self, monomer_probs):
         return self.mprob_model.calcWordWeightMatrix(monomer_probs)
@@ -847,7 +847,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         for (Q, bin_prob, motif_probs) in zip(Qs, bin_probs, motif_probss):
             row_totals = numpy.sum(rule * Q, axis=1)
             motif_probs = numpy.asarray(motif_probs)
-            word_probs = self.calcWordProbs(motif_probs)
+            word_probs = self.calc_word_probs(motif_probs)
             scale = sum(row_totals * word_probs)
             weighted_scale += bin_prob * scale
         return weighted_scale
