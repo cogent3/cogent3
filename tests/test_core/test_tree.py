@@ -1708,7 +1708,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
     def test_XML(self):
         # should add some non-length parameters
         orig = self.default_tree
-        xml = orig.getXML()
+        xml = orig.get_xml()
         parsed = LoadTree(treestring=xml)
         self.assertEqual(str(orig), str(parsed))
 
