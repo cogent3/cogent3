@@ -116,7 +116,7 @@ class _LikelihoodTreeEdge(object):
         (lo, hi) = [sum(share_sizes[:i]) for i in (rank, rank + 1)]
         local_cols = [i for (i, u) in enumerate(self.index)
                       if lo <= u < hi]
-        local = self.selectColumns(local_cols)
+        local = self.select_columns(local_cols)
 
         # Attributes for reconstructing/refinding the global arrays.
         # should maybe make a wrapping class instead.
@@ -125,10 +125,10 @@ class _LikelihoodTreeEdge(object):
         local.full_length_version = self
         return local
 
-    def selectColumns(self, cols):
+    def select_columns(self, cols):
         children = []
         for (index, child) in self._indexed_children:
-            child = child.selectColumns(cols)
+            child = child.select_columns(cols)
             children.append(child)
         return self.__class__(children, self.edge_name)
 
@@ -339,7 +339,7 @@ class LikelihoodTreeLeaf(object):
 
     def __getitem__(self, index):
         cols = list(range(*index.indices(len(self.index))))
-        return self.selectColumns(cols)
+        return self.select_columns(cols)
 
     def getMotifCounts(self, include_ambiguity=False):
         weights = self.counts / self.ambig
@@ -356,7 +356,7 @@ class LikelihoodTreeLeaf(object):
                 ambig[i] = self.uniq[u]
         return ambig
 
-    def selectColumns(self, cols):
+    def select_columns(self, cols):
         sub_index = [self.index[i] for i in cols]
         (keep, counts, index) = _indexed(sub_index)
         keep.append(len(self.uniq) - 1)  # extra column for gap
