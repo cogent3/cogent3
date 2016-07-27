@@ -299,7 +299,7 @@ class _SubstitutionModel(object):
         return self.mprob_model.count_motifs(alignment,
                                             include_ambiguity, self.recode_gaps)
 
-    def makeAlignmentDefn(self, model):
+    def make_alignment_defn(self, model):
         align = NonParamDefn('alignment', ('locus',))
         # The name of this matters, it's used in likelihood_function.py
         # to retrieve the correct (adapted) alignment.
@@ -330,7 +330,7 @@ class _SubstitutionModel(object):
             bprobs = None
 
         defns = {
-            'align': self.makeAlignmentDefn(ConstDefn(self, 'model')),
+            'align': self.make_alignment_defn(ConstDefn(self, 'model')),
             'bprobs': bprobs,
             'word_probs': word_probs,
         }
