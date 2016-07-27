@@ -595,7 +595,7 @@ class Alphabet(Enumeration):
         """
         return self.__class__(tuple(motifset), MolType=self.MolType)
 
-    def withGapMotif(self):
+    def with_gap_motif(self):
         """Returns an Alphabet object resembling self but including the gap.
 
         Always returns the same object.
@@ -634,7 +634,7 @@ class Alphabet(Enumeration):
         # resolve each letter, and build the possible sub motifs
         ambiguities = self.MolType.Ambiguities
         motif_set = ['']
-        ALL = self.MolType.Alphabet.withGapMotif()
+        ALL = self.MolType.Alphabet.with_gap_motif()
         for character in ambig_motif:
             new_motifs = []
             if character == '?':

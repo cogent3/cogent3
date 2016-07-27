@@ -836,7 +836,7 @@ class NucleicAcidSequence(Sequence):
 
     def get_translation(self, gc=None):
         gc = self._gc_from_arg(gc)
-        codon_alphabet = self.CodonAlphabet(gc).withGapMotif()
+        codon_alphabet = self.CodonAlphabet(gc).with_gap_motif()
         # translate the codons
         translation = []
         for posn in range(0, len(self._seq) - 2, 3):

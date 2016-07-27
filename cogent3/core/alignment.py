@@ -2866,7 +2866,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 else:
                     combo.append(s)
             result[name] = combo
-        return Alignment(result, Alphabet=self.Alphabet.withGapMotif())
+        return Alignment(result, Alphabet=self.Alphabet.with_gap_motif())
 
     def get_degapped_relative_to(self, name):
         """Remove all columns with gaps in sequence with given name.

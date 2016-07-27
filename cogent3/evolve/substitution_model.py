@@ -163,7 +163,7 @@ class _SubstitutionModel(object):
 
         self.MolType = alphabet.MolType
         if model_gaps:
-            alphabet = alphabet.withGapMotif()
+            alphabet = alphabet.with_gap_motif()
 
         if motif_length > 1:
             alphabet = alphabet.get_word_alphabet(motif_length)
