@@ -121,12 +121,12 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
         if t == ')' and (last_token == ',' or last_token == '('):  # node without name
             new_node = _new_child(curr_node, constructor)
             new_node.name = None
-            curr_node = new_node.Parent
+            curr_node = new_node.parent
             state1 = 'PostClosed'
             last_token = t
             continue
         if t == ')':  # closing the current node
-            curr_node = curr_node.Parent
+            curr_node = curr_node.parent
             state1 = 'PostClosed'
             last_token = t
             continue
@@ -139,9 +139,9 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
         elif t == ',' and (last_token == ',' or last_token == '('):
             new_node = _new_child(curr_node, constructor)
             new_node.name = None
-            curr_node = new_node.Parent
+            curr_node = new_node.parent
         elif t == ',':  # separator: next node adds to this node's parent
-            curr_node = curr_node.Parent
+            curr_node = curr_node.parent
         elif state == 'PreColon' and state1 == 'PreClosed':  # data for the current node
             new_node = _new_child(curr_node, constructor)
             if unescape_name:
@@ -159,14 +159,14 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
                     t = t[1:-1]
             curr_node.name = t
         elif state == 'PostColon':  # length data for the current node
-            curr_node.Length = float(t)
+            curr_node.length = float(t)
         else:  # can't think of a reason to get here
             raise RecordError("Incorrect PhyloNode state? %s" % t)
         state = 'PreColon'  # get here for any non-colon token
         state1 = 'PreClosed'
         last_token = t
 
-    if curr_node is not None and curr_node.Parent is not None:
+    if curr_node is not None and curr_node.parent is not None:
         raise RecordError("Didn't get back to root of tree.")
 
     if curr_node is None:  # no data -- return empty node
@@ -177,8 +177,8 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
 def _new_child(old_node, constructor):
     """Returns new_node which has old_node as its parent."""
     new_node = constructor()
-    new_node.Parent = old_node
+    new_node.parent = old_node
     if old_node is not None:
-        if id(new_node) not in list(map(id, old_node.Children)):
-            old_node.Children.append(new_node)
+        if id(new_node) not in list(map(id, old_node.children)):
+            old_node.children.append(new_node)
     return new_node

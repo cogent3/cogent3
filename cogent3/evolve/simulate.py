@@ -101,12 +101,12 @@ class AlignmentEvolver(object):
         # This depends on parameter names 'mprobs', 'alignment2', 'bprobs' and
         # 'psubs'.  Might be better to integrate it into likelihood_calculation.
 
-        if self.exclude_internal and parent.Children:
+        if self.exclude_internal and parent.children:
             simulated_sequences = {}
         else:
             simulated_sequences = {parent.name: ''.join(parent_seq)}
 
-        for edge in parent.Children:
+        for edge in parent.children:
             # The result for this edge - a list of motifs
 
             # Keep original ambiguity codes

@@ -208,7 +208,7 @@ class NcbiTaxonomyTests(TestCase):
         self.assertEqual(len(self.tx.ById), 6)
         self.assertEqual(self.tx[10].Name, 'Fakus namus')
         self.assertEqual(self.tx['1'].Name, 'root')
-        self.assertEqual(self.tx['root'].Parent, None)
+        self.assertEqual(self.tx['root'].parent, None)
         self.assertEqual(self.tx.Deadbeats, {})
 
     def test_init_bad(self):
@@ -232,11 +232,11 @@ class NcbiTaxonomyTests(TestCase):
         self.assertEqual(tax_ids, [6, 2, 1])
 
     def test_Parent(self):
-        """NcbiTaxonomy should support Parent correctly"""
-        assert self.tx[7].Parent is self.tx[6]
-        assert self.tx[6].Parent is self.tx[2]
-        assert self.tx[2].Parent is self.tx[1]
-        assert self.tx[1].Parent is None
+        """NcbiTaxonomy should support parent correctly"""
+        assert self.tx[7].parent is self.tx[6]
+        assert self.tx[6].parent is self.tx[2]
+        assert self.tx[2].parent is self.tx[1]
+        assert self.tx[1].parent is None
 
     def test_Siblings(self):
         """NcbiTaxonomy should support Siblings correctly"""
@@ -245,15 +245,15 @@ class NcbiTaxonomyTests(TestCase):
         assert sibs[0] is self.tx[10]
 
     def test_Children(self):
-        """NcbiTaxonomy should support Children correctly"""
-        children = self.tx[6].Children
+        """NcbiTaxonomy should support children correctly"""
+        children = self.tx[6].children
         self.assertEqual(len(children), 2)
         assert children[0] is self.tx[7]
         assert children[1] is self.tx[10]
         root_kids = self.tx['root']
         self.assertEqual(len(root_kids), 1)
         assert root_kids[0] is self.tx[2]
-        self.assertEqual(len(self.tx[10].Children), 0)
+        self.assertEqual(len(self.tx[10].children), 0)
 
     def test_Names(self):
         """NcbiTaxonomy should fill in names correctly"""

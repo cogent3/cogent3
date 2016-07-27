@@ -84,7 +84,7 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
             if tips not in cladecounts:
                 cladecounts[tips] = 0
             cladecounts[tips] += weight
-            length = edge.Length and edge.Length * weight
+            length = edge.length and edge.length * weight
             if edgelengths.get(tips, None):
                 edgelengths[tips] += length
             else:
@@ -200,29 +200,29 @@ def weightedUnrootedMajorityRule(weighted_trees, strict=False, attr='support'):
 
 def getSplits(tree):
     """Return a dict keyed by the splits equivalent to the tree.
-    Values are {'length' : edge.Length} for the corresponding edge.
+    Values are {'length' : edge.length} for the corresponding edge.
     """
-    if len(tree.Children) < 3:
+    if len(tree.children) < 3:
         warnings.warn('tree is rooted - will return splits for unrooted tree')
 
     def getTipsAndSplits(tree):
         if tree.is_tip():
-            return ({frozenset([tree.name]): {'length': tree.Length}},
+            return ({frozenset([tree.name]): {'length': tree.length}},
                     [tree.name])
 
         splits = defaultdict(lambda: {'length': 0.})
         tips = []
-        for child in tree.Children:
+        for child in tree.children:
             s, t = getTipsAndSplits(child)
             splits.update(s)
             tips.extend(t)
         if not tree.is_root():
             split = frozenset([t for s in splits for t in s])
-            if tree.Length is None:
+            if tree.length is None:
                 splits[split] = {'length': None}
             else:
                 splits[split] = {
-                    'length': tree.Length + splits[split]['length']}
+                    'length': tree.length + splits[split]['length']}
         return splits, tips
 
     splits, tips = getTipsAndSplits(tree)
@@ -255,7 +255,7 @@ def getTree(splits):
     def addHalfSplit(edge, half, params):
         included = []
         test_half = frozenset([])
-        for child in edge.Children:
+        for child in edge.children:
             if child.Split > half:  # This is not the droid you are looking for
                 return addHalfSplit(child, half, params)
             if child.Split <= half:

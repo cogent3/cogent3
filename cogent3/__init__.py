@@ -220,7 +220,7 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None,
                           underscore_unmunge=underscore_unmunge)
         else:
             tree = parser(treestring, tree_builder)
-        if not tree.NameLoaded:
+        if not tree.name_loaded:
             tree.name = 'root'
     elif tip_names:
         tree_builder = TreeBuilder().create_edge

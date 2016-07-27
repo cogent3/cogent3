@@ -89,7 +89,7 @@ def makePartialLikelihoodDefns(edge, lht, psubs, fixed_motifs):
     else:
         lht_edge = LhtEdgeLookupDefn(lht, **kw)
         children = []
-        for child in edge.Children:
+        for child in edge.children:
             child_plh = makePartialLikelihoodDefns(child, lht, psubs,
                                                    fixed_motifs)
             psub = psubs.selectFromDimension('edge', child.name)
@@ -111,7 +111,7 @@ def recursive_lht_build(edge, leaves):
         lhe = leaves[edge.name]
     else:
         lht_children = []
-        for child in edge.Children:
+        for child in edge.children:
             lht = recursive_lht_build(child, leaves)
             lht_children.append(lht)
         lhe = LikelihoodTreeEdge(lht_children, edge_name=edge.name)

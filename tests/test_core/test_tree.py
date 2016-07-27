@@ -54,10 +54,10 @@ class TreeTests(TestCase):
 def _new_child(old_node, constructor):
     """Returns new_node which has old_node as its parent."""
     new_node = constructor()
-    new_node.Parent = old_node
+    new_node.parent = old_node
     if old_node is not None:
-        if new_node not in old_node.Children:
-            old_node.Children.append(new_node)
+        if new_node not in old_node.children:
+            old_node.children.append(new_node)
     return new_node
 
 tree_std = """\
@@ -93,11 +93,11 @@ class TreeNodeTests(TestCase):
         self.Empty = TreeNode()
         self.Single = TreeNode(name='a')
         self.Child = TreeNode(name='b')
-        self.OneChild = TreeNode(name='a', Children=[self.Child])
-        self.Multi = TreeNode(name='a', Children='bcd')
-        self.Repeated = TreeNode(name='x', Children='aaa')
+        self.OneChild = TreeNode(name='a', children=[self.Child])
+        self.Multi = TreeNode(name='a', children='bcd')
+        self.Repeated = TreeNode(name='x', children='aaa')
         self.BigName = list(map(TreeNode, '0123456789'))
-        self.BigParent = TreeNode(name='x', Children=self.BigName)
+        self.BigParent = TreeNode(name='x', children=self.BigName)
         self.Comparisons = list(map(TreeNode, 'aab'))
 
         nodes = dict([(x, TreeNode(x)) for x in 'abcdefgh'])
@@ -122,15 +122,15 @@ class TreeNodeTests(TestCase):
         """Empty TreeNode should init OK"""
         t = self.Empty
         self.assertEqual(t.name, None)
-        self.assertEqual(t.Parent, None)
+        self.assertEqual(t.parent, None)
         self.assertEqual(len(t), 0)
 
     def test_init_full(self):
         """TreeNode should init OK with parent, data, and children"""
         t = self.Empty
-        u = TreeNode(Parent=t, name='abc', Children='xyz')
+        u = TreeNode(parent=t, name='abc', children='xyz')
         self.assertEqual(u.name, 'abc')
-        assert u.Parent is t
+        assert u.parent is t
         assert u in t
         self.assertEqual(u[0].name, 'x')
         self.assertEqual(u[1].name, 'y')
@@ -190,15 +190,15 @@ class TreeNodeTests(TestCase):
         exp_str = "((a:1.0,(b:2.0,c:3.0):0.0)d:4.0,((e:5.0,(f:6.0,g:7.0):0.0)h:8.0,(i:9.0,(j:10.0,k:11.0):0.0)l:12.0):0.0)m:14.0;"
         obs = t.multifurcating(2, name_unnamed=True)
 
-        c0, c1 = obs.Children
-        self.assertTrue(c0.Children[1].name.startswith('AUTO'))
+        c0, c1 = obs.children
+        self.assertTrue(c0.children[1].name.startswith('AUTO'))
         self.assertTrue(c1.name.startswith('AUTO'))
-        self.assertTrue(c1.Children[0].Children[1].name.startswith('AUTO'))
-        self.assertTrue(c1.Children[1].Children[1].name.startswith('AUTO'))
-        self.assertEqual(len(c0.Children[1].name), 22)
+        self.assertTrue(c1.children[0].children[1].name.startswith('AUTO'))
+        self.assertTrue(c1.children[1].children[1].name.startswith('AUTO'))
+        self.assertEqual(len(c0.children[1].name), 22)
         self.assertEqual(len(c1.name), 22)
-        self.assertEqual(len(c1.Children[0].Children[1].name), 22)
-        self.assertEqual(len(c1.Children[1].Children[1].name), 22)
+        self.assertEqual(len(c1.children[0].children[1].name), 22)
+        self.assertEqual(len(c1.children[1].children[1].name), 22)
         names = [n.name for n in t.nontips()]
         self.assertEqual(len(names), len(set(names)))
 
@@ -277,7 +277,7 @@ class TreeNodeTests(TestCase):
         empty.append(self.OneChild[-1])
         self.assertEqual(len(empty), 1)
         self.assertEqual(empty[0].name, 6)
-        self.assertEqual(empty[0].Parent, empty)
+        self.assertEqual(empty[0].parent, empty)
         self.assertEqual(self.OneChild[-1].name, 'c')
 
     def test_extend(self):
@@ -305,12 +305,12 @@ class TreeNodeTests(TestCase):
         self.assertEqual(len(parent), 10)
         last = parent.pop()
         assert last is nodes[-1]
-        assert last.Parent is None
+        assert last.parent is None
         self.assertEqual(len(parent), 9)
         assert parent[-1] is nodes[-2]
         first = parent.pop(0)
         assert first is nodes[0]
-        assert first.Parent is None
+        assert first.parent is None
         self.assertEqual(len(parent), 8)
         assert parent[0] is nodes[1]
         second_to_last = parent.pop(-2)
@@ -319,7 +319,7 @@ class TreeNodeTests(TestCase):
     def test_remove(self):
         """TreeNode remove should remove first match by value, not id"""
         nodes = list(map(TreeNode, 'abc' * 3))
-        parent = TreeNode(Children=nodes)
+        parent = TreeNode(children=nodes)
         self.assertEqual(len(parent), 9)
         parent.remove('a')
         self.assertEqual(len(parent), 8)
@@ -361,23 +361,23 @@ class TreeNodeTests(TestCase):
         t = TreeNode(1)
         parent[0] = t
         assert parent[0] is t
-        assert t.Parent is parent
-        assert nodes[0].Parent is None
+        assert t.parent is parent
+        assert nodes[0].parent is None
 
         u = TreeNode(2)
         parent[-2] = u
         assert parent[8] is u
-        assert u.Parent is parent
-        assert nodes[8].Parent is None
+        assert u.parent is parent
+        assert nodes[8].parent is None
 
         parent[1:6:2] = 'xyz'
         for i in [1, 3, 5]:
-            assert nodes[i].Parent is None
+            assert nodes[i].parent is None
         self.assertEqual(parent[1].name, 'x')
         self.assertEqual(parent[3].name, 'y')
         self.assertEqual(parent[5].name, 'z')
         for i in parent:
-            assert i.Parent is parent
+            assert i.parent is parent
 
     def test_setslice(self):
         """TreeNode setslice should set old-style slice of nodes"""
@@ -386,11 +386,11 @@ class TreeNodeTests(TestCase):
         parent[5:] = []
         self.assertEqual(len(parent), 5)
         for i in range(5, 10):
-            assert nodes[i].Parent is None
+            assert nodes[i].parent is None
         parent[1:3] = 'abcd'
         self.assertEqual(len(parent), 7)
         for i in parent:
-            assert i.Parent is parent
+            assert i.parent is parent
         data_list = [i.name for i in parent]
         self.assertEqual(data_list, list('0abcd34'))
         parent[1:3] = parent[2:3]
@@ -399,27 +399,27 @@ class TreeNodeTests(TestCase):
 
     def test_delitem(self):
         """TreeNode __delitem__ should delete item and set parent to None"""
-        self.assertEqual(self.Child.Parent, self.OneChild)
+        self.assertEqual(self.Child.parent, self.OneChild)
         self.assertEqual(len(self.OneChild), 1)
         del self.OneChild[0]
-        self.assertEqual(self.OneChild.Parent, None)
+        self.assertEqual(self.OneChild.parent, None)
         self.assertEqual(len(self.OneChild), 0)
 
         nodes = self.BigName
         parent = self.BigParent
         self.assertEqual(len(parent), 10)
         for n in nodes:
-            assert n.Parent is parent
+            assert n.parent is parent
         del parent[-1]
-        self.assertEqual(nodes[-1].Parent, None)
+        self.assertEqual(nodes[-1].parent, None)
         self.assertEqual(len(parent), 9)
         del parent[1:6:2]
         self.assertEqual(len(parent), 6)
         for i, n in enumerate(nodes):
             if i in [0, 2, 4, 6, 7, 8]:
-                assert n.Parent is parent
+                assert n.parent is parent
             else:
-                assert n.Parent is None
+                assert n.parent is None
 
     def test_delslice(self):
         """TreeNode __delslice__ should delete items from start to end"""
@@ -430,9 +430,9 @@ class TreeNodeTests(TestCase):
         self.assertEqual(len(parent), 5)
         for i, n in enumerate(nodes):
             if i in [3, 4, 5, 6, 7]:
-                assert n.Parent is None
+                assert n.parent is None
             else:
-                assert n.Parent is parent
+                assert n.parent is parent
 
     def test_iter(self):
         """TreeNode iter should iterate over children"""
@@ -564,38 +564,38 @@ class TreeNodeTests(TestCase):
         self.assertEqual(str(c), str(t))
 
     def test_Parent(self):
-        """TreeNode Parent should hold correct data and be mutable"""
+        """TreeNode parent should hold correct data and be mutable"""
         # check initial conditions
-        self.assertEqual(self.Single.Parent, None)
+        self.assertEqual(self.Single.parent, None)
         # set parent and check parent/child relations
-        self.Single.Parent = self.Empty
-        assert self.Single.Parent is self.Empty
+        self.Single.parent = self.Empty
+        assert self.Single.parent is self.Empty
         self.assertEqual(self.Empty[0], self.Single)
         assert self.Single in self.Empty
         self.assertEqual(len(self.Empty), 1)
         # reset parent and check parent/child relations
-        self.Single.Parent = self.OneChild
-        assert self.Single.Parent is self.OneChild
+        self.Single.parent = self.OneChild
+        assert self.Single.parent is self.OneChild
         assert self.Single not in self.Empty
         assert self.Single is self.OneChild[-1]
 
         # following is added to check that we don't screw up when there are
         # nodes with different ids that still compare equal
         for i in self.Repeated:
-            assert i.Parent is self.Repeated
+            assert i.parent is self.Repeated
         last = self.Repeated[-1]
-        last.Parent = self.OneChild
+        last.parent = self.OneChild
         self.assertEqual(len(self.Repeated), 2)
         for i in self.Repeated:
-            assert i.Parent is self.Repeated
-        assert last.Parent is self.OneChild
+            assert i.parent is self.Repeated
+        assert last.parent is self.OneChild
 
     def test_index_in_parent(self):
         """TreeNode index_in_parent should hold correct data"""
         first = TreeNode('a')
         second = TreeNode('b')
         third = TreeNode('c')
-        fourth = TreeNode('0', Children=[first, second, third])
+        fourth = TreeNode('0', children=[first, second, third])
         self.assertEqual(len(fourth), 3)
         self.assertEqual(first.index_in_parent(), 0)
         self.assertEqual(second.index_in_parent(), 1)
@@ -604,7 +604,7 @@ class TreeNodeTests(TestCase):
         self.assertEqual(second.index_in_parent(), 0)
         self.assertEqual(third.index_in_parent(), 1)
         self.assertEqual(len(fourth), 2)
-        assert first.Parent is None
+        assert first.parent is None
 
     def test_is_tip(self):
         """TreeNode is_tip should return True if node is a tip"""
@@ -680,7 +680,7 @@ class TreeNodeTests(TestCase):
 
         # this previously failed
         t = DndParser('((a:6,(b:1,c:2):8):12,(d:3,(e:1,f:1):4):10);')
-        t0 = t.Children[0]
+        t0 = t.children[0]
         list(t0.traverse(self_before=False, self_after=True))
         list(t0.traverse(self_before=True, self_after=True))
 
@@ -707,18 +707,18 @@ class TreeNodeTests(TestCase):
             assert i.root() is root
 
     def test_children(self):
-        """TreeNode Children should allow getting/setting children"""
+        """TreeNode children should allow getting/setting children"""
         nodes = self.TreeNode
         for n in nodes:
             node = nodes[n]
-            self.assertEqual(list(node), node.Children)
+            self.assertEqual(list(node), node.children)
 
-        t = TreeNode(Children='abc')
+        t = TreeNode(children='abc')
         self.assertEqual(len(t), 3)
         u, v = TreeNode('u'), TreeNode('v')
 
-        # WARNING: If you set Children directly, Parent refs will _not_ update!
-        t.Children = [u, v]
+        # WARNING: If you set children directly, parent refs will _not_ update!
+        t.children = [u, v]
 
         assert t[0] is u
         assert t[1] is v
@@ -841,7 +841,7 @@ class TreeNodeTests(TestCase):
 
     def test_child_groups(self):
         """TreeNode child_groups should divide children by grandchild presence"""
-        parent = TreeNode(Children='aababbbaaabbbababbb')
+        parent = TreeNode(children='aababbbaaabbbababbb')
         for node in parent:
             if node.name == 'a':
                 node.append('def')
@@ -851,7 +851,7 @@ class TreeNodeTests(TestCase):
         obs_group_sizes = [len(i) for i in groups]
         self.assertEqual(obs_group_sizes, exp_group_sizes)
 
-        parent = TreeNode(Children='aab')
+        parent = TreeNode(children='aab')
         for node in parent:
             if node.name == 'a':
                 node.append('def')
@@ -859,12 +859,12 @@ class TreeNodeTests(TestCase):
         self.assertEqual(len(groups), 2)
         self.assertEqual([len(i) for i in groups], [2, 1])
 
-        parent = TreeNode(Children='aaaaa')
+        parent = TreeNode(children='aaaaa')
         groups = parent.child_groups()
         self.assertEqual(len(groups), 1)
         self.assertEqual(len(groups[0]), 5)
 
-        parent = TreeNode(Children='aaba')
+        parent = TreeNode(children='aaba')
         for node in parent:
             if node.name == 'a':
                 node.append('def')
@@ -879,9 +879,9 @@ class TreeNodeTests(TestCase):
         self.assertEqual(len(parent), 3)
         self.assertEqual(parent.remove_node(children[1]), True)
         self.assertEqual(len(parent), 2)
-        assert children[0].Parent is parent
-        assert children[1].Parent is None
-        assert children[2].Parent is parent
+        assert children[0].parent is parent
+        assert children[1].parent is None
+        assert children[2].parent is parent
         self.assertEqual(children[0].compare_name(children[1]), True)
         self.assertEqual(parent.remove_node(children[1]), False)
         self.assertEqual(len(parent), 2)
@@ -960,7 +960,7 @@ class TreeNodeTests(TestCase):
             self.assertEqual(i.last_common_ancestor(t), None)
             self.assertEqual(t.last_common_ancestor(i), None)
 
-        u = TreeNode('a', Children=[t])
+        u = TreeNode('a', children=[t])
 
     def test_separation(self):
         """TreeNode separation should return correct number of edges"""
@@ -1036,8 +1036,8 @@ class TreeNodeTests(TestCase):
     def test_get_nodes_dict_nonunique_names(self):
         """get_nodes_dict raises if non unique names are in tree"""
         t = self.TreeRoot
-        t.Children[0].name = 'same'
-        t.Children[0].Children[0].name = 'same'
+        t.children[0].name = 'same'
+        t.children[0].children[0].name = 'same'
         self.assertRaises(TreeError, t.get_nodes_dict)
 
     def test_remove_deleted(self):
@@ -1075,9 +1075,9 @@ class TreeNodeTests(TestCase):
         """subset should return set of leaves that descends from node"""
         t = self.t
         self.assertEqual(t.subset(), frozenset('HGRM'))
-        c = t.Children[0]
+        c = t.children[0]
         self.assertEqual(c.subset(), frozenset('HG'))
-        leaf = c.Children[1]
+        leaf = c.children[1]
         self.assertEqual(leaf.subset(), frozenset(''))
 
     def test_subsets(self):
@@ -1126,14 +1126,14 @@ class PhyloNodeTests(TestCase):
         nodes['a'].append(nodes['h'])
         self.TreeNode = nodes
         self.TreeRoot = nodes['a']
-        nodes['a'].Length = None
-        nodes['b'].Length = 0
-        nodes['c'].Length = 3
-        nodes['d'].Length = 1
-        nodes['e'].Length = 4
-        nodes['f'].Length = 2
-        nodes['g'].Length = 3
-        nodes['h'].Length = 2
+        nodes['a'].length = None
+        nodes['b'].length = 0
+        nodes['c'].length = 3
+        nodes['d'].length = 1
+        nodes['e'].length = 4
+        nodes['f'].length = 2
+        nodes['g'].length = 3
+        nodes['h'].length = 2
 
         self.s = '((H:1,G:1):2,(R:0.5,M:0.7):3);'
         self.t = DndParser(self.s, PhyloNode)
@@ -1142,17 +1142,17 @@ class PhyloNodeTests(TestCase):
 
     def test_init(self):
         """Check PhyloNode constructor"""
-        n = PhyloNode('foo', Length=10)
+        n = PhyloNode('foo', length=10)
         self.assertEqual(n.name, 'foo')
-        self.assertEqual(n.Length, 10)
+        self.assertEqual(n.length, 10)
 
         n = PhyloNode('bar')
         self.assertEqual(n.name, 'bar')
-        self.assertEqual(n.Length, None)
+        self.assertEqual(n.length, None)
 
         n = PhyloNode()
         self.assertEqual(n.name, None)
-        self.assertEqual(n.Length, None)
+        self.assertEqual(n.length, None)
 
     def test_total_descending_branch_length(self):
         """total_descending_branch_length returns total branchlength below self"""
@@ -1339,8 +1339,8 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(str(f), '(g:3)f:2;')
         self.assertEqual(str(a), '(((d:1,e:4,(g:3)f:2)c:3)b:0,h:2)a;')
         # check that None isn't converted any more
-        h.Length = None
-        c.Length = None  # need to test both leaf and internal node
+        h.length = None
+        c.length = None  # need to test both leaf and internal node
         self.assertEqual(str(a), '(((d:1,e:4,(g:3)f:2)c)b:0,h)a;')
 
     def test_get_max_tip_tip_distance(self):
@@ -1389,8 +1389,8 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(result.distance(result.get_node_matching_name('e')), 4)
         self.assertEqual(result.get_distances(), tree1.get_distances())
         # works when the midpoint falls between two existing edges
-        nodes['f'].Length = 1
-        nodes['c'].Length = 4
+        nodes['f'].length = 1
+        nodes['c'].length = 4
         result = tree.root_at_midpoint()
         self.assertEqual(result.distance(result.get_node_matching_name('e')), 5.0)
         self.assertEqual(result.distance(result.get_node_matching_name('g')), 5.0)
@@ -1402,7 +1402,7 @@ class PhyloNodeTests(TestCase):
         """root_at_midpoint works when midpoint is on both sides of root"""
         # also checks whether it works if the midpoint is adjacent to a tip
         nodes, tree = self.TreeNode, self.TreeRoot
-        nodes['h'].Length = 20
+        nodes['h'].length = 20
         result = tree.root_at_midpoint()
         self.assertEqual(result.distance(result.get_node_matching_name('h')), 14)
         self.assertEqual(result.get_distances(), tree.get_distances())
@@ -1548,12 +1548,12 @@ def comb_tree(num_leaves):
     curr = root
 
     for i in range(num_leaves - 1):
-        curr.Children[:] = [TreeNode(Parent=curr), TreeNode(Parent=curr)]
-        curr = curr.Children[branch_child]
+        curr.children[:] = [TreeNode(parent=curr), TreeNode(parent=curr)]
+        curr = curr.children[branch_child]
     return root
 
 # Moved  from test_tree2.py during code sprint on 04/14/10
-# Missing tests: edge attributes (name, Length, Children) only get tested
+# Missing tests: edge attributes (name, length, children) only get tested
 # in passing by some of these tests.  See also xxx's
 
 
@@ -1773,7 +1773,7 @@ class SmallTreeReshapeTestClass(TestCase):
         """testing (well, exercising at least), unrooted"""
         new_tree = LoadTree(treestring="((a,b),(c,d))")
         new_tree = new_tree.unrooted()
-        self.assertTrue(len(new_tree.Children) > 2, 'not unrooted right')
+        self.assertTrue(len(new_tree.children) > 2, 'not unrooted right')
 
     def test_reroot(self):
         tree = LoadTree(treestring="((a,b),(c,d),e)")
@@ -1824,7 +1824,7 @@ class TestTree(TestCase):
         new_tree = LoadTree(treestring=self.newick_reduced).unrooted()
 
         # check we get the same names
-        self.assertEqual(*[len(t.Children) for t in (subtree, new_tree)])
+        self.assertEqual(*[len(t.children) for t in (subtree, new_tree)])
         self.assertEqual(str(subtree), str(new_tree))
 
     def test_getsubtree_2(self):
