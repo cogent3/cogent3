@@ -797,13 +797,13 @@ class TreeNode(object):
             # Connect child to current node's parent
             child.Parent = curr_parent
 
-    def sameShape(self, other):
+    def same_shape(self, other):
         """Ignores lengths and order, so trees should be sorted first"""
         if len(self.Children) != len(other.Children):
             return False
         if self.Children:
             for (self_child, other_child) in zip(self.Children, other.Children):
-                if not self_child.sameShape(other_child):
+                if not self_child.same_shape(other_child):
                     return False
             return True
         else:
@@ -1825,7 +1825,7 @@ class PhyloNode(TreeNode):
         root_at = tip_names[0]
         me = self.rootedWithTip(root_at).sorted(tip_names)
         them = other.rootedWithTip(root_at).sorted(tip_names)
-        return self is other or me.sameShape(them)
+        return self is other or me.same_shape(them)
 
     def unrooted(self):
         """A tree with at least 3 children at the root.
