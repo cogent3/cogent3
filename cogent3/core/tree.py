@@ -1118,7 +1118,7 @@ class TreeNode(object):
         max_pair = (tip_order[idx_max[0]].name, tip_order[idx_max[1]].name)
         return distmtx[idx_max], max_pair
 
-    def _getSubTree(self, included_names, constructor=None, keep_root=False):
+    def _get_sub_tree(self, included_names, constructor=None, keep_root=False):
         """An equivalent node with possibly fewer children, or None"""
 
         # Renumber autonamed edges
@@ -1130,7 +1130,7 @@ class TreeNode(object):
         else:
             # don't need to pass keep_root to children, though
             # internal nodes will be elminated this way
-            children = [child._getSubTree(included_names, constructor)
+            children = [child._get_sub_tree(included_names, constructor)
                         for child in self.Children]
             children = [child for child in children if child is not None]
             if len(children) == 0:
@@ -1160,11 +1160,11 @@ class TreeNode(object):
                 result = constructor(self, tuple(children))
         return result
 
-    def getSubTree(self, name_list, ignore_missing=False, keep_root=False):
+    def get_sub_tree(self, name_list, ignore_missing=False, keep_root=False):
         """A new instance of a sub tree that contains all the otus that are
         listed in name_list.
 
-        ignore_missing: if False, getSubTree will raise a ValueError if
+        ignore_missing: if False, get_sub_tree will raise a ValueError if
         name_list contains names that aren't nodes in the tree
 
         keep_root: if False, the root of the subtree will be the last common
@@ -1180,7 +1180,7 @@ class TreeNode(object):
                 if name not in edge_names:
                     raise ValueError("edge %s not found in tree" % name)
 
-        new_tree = self._getSubTree(name_list, keep_root=keep_root)
+        new_tree = self._get_sub_tree(name_list, keep_root=keep_root)
         if new_tree is None:
             raise TreeError("no tree created in make sub tree")
         elif new_tree.istip():
@@ -2178,7 +2178,7 @@ class TreeBuilder(object):
         return edge.params
 
     def edgeFromEdge(self, edge, children, params=None):
-        """Callback for tree-to-tree transforms like getSubTree"""
+        """Callback for tree-to-tree transforms like get_sub_tree"""
         if edge is None:
             assert not params
             return self.createEdge(children, "root", {}, False)

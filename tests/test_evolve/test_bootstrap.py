@@ -45,7 +45,7 @@ class BootstrapTests(unittest.TestCase):
     def gettree(self):
         treeobj = LoadTree(filename=os.path.join(data_path, "murphy.tree"))
 
-        return treeobj.getSubTree(seqnames)
+        return treeobj.get_sub_tree(seqnames)
 
     def getsubmod(self, choice='F81'):
         if choice == 'F81':
