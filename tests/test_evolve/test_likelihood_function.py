@@ -317,8 +317,8 @@ class LikelihoodFunctionTests(TestCase):
         nfp = lf.getNumFreeParams()
         lnL = lf.get_log_likelihood()
         l = len(self.data)
-        self.assertFloatEqual(lf.getAic(), aic(lnL, nfp))
-        self.assertFloatEqual(lf.getAic(second_order=True),
+        self.assertFloatEqual(lf.get_aic(), aic(lnL, nfp))
+        self.assertFloatEqual(lf.get_aic(second_order=True),
                               aic(lnL, nfp, l))
 
         self.assertFloatEqual(lf.getBic(), bic(lnL, nfp, l))

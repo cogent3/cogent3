@@ -296,7 +296,7 @@ class _LikelihoodParameterController(_LF):
                 self.set_param_rule("length", edge=edge.name, is_constant=1,
                                   value=edge.length)
 
-    def getAic(self, second_order=False):
+    def get_aic(self, second_order=False):
         """returns Aikake Information Criteria
 
         Arguments:
