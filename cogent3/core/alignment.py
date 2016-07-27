@@ -1731,7 +1731,7 @@ class AlignmentI(object):
         if alphabet is None:
             alphabet = self.MolType
         consensus = []
-        degen = alphabet.degenerateFromSequence
+        degen = alphabet.degenerate_from_seq
         for col in self.Positions:
             consensus.append(degen(coerce_to_string(col)))
         return coerce_to_string(consensus)
@@ -2488,7 +2488,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         if alphabet is None:
             alphabet = self.MolType
         consensus = []
-        degen = alphabet.degenerateFromSequence
+        degen = alphabet.degenerate_from_seq
         for col in self.Positions:
             consensus.append(degen(str(alphabet.ModelSeq(col,
                                                          Alphabet=alphabet.Alphabets.DegenGapped))))
