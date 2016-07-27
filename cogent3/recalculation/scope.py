@@ -224,7 +224,7 @@ class _Defn(object):
                                        (len(posns), self.name, scope))
         return theOneItemIn(posns)
 
-    def wrapValue(self, value):
+    def wrap_value(self, value):
         if isinstance(value, Undefined):
             raise ValueError('Input "%s" is not defined' % value.name)
         if getattr(self, 'array_template', None) is not None:
@@ -238,7 +238,7 @@ class _Defn(object):
 
     def getCurrentValueForScope(self, *args, **scope):
         posn = self._getPosnForScope(*args, **scope)
-        return self.wrapValue(self.values[posn])
+        return self.wrap_value(self.values[posn])
 
     def getCurrentSettingForScope(self, *args, **scope):
         posn = self._getPosnForScope(*args, **scope)
@@ -358,7 +358,7 @@ class _Defn(object):
             if d in self.valid_dimensions]
         for (scope_t, i) in list(self.index.items()):
             value = cell_value_lookup(self, i)
-            value = self.wrapValue(value)
+            value = self.wrap_value(value)
             scope = tuple([scope_t[i] for i in posns])
 
             (d, key) = (result, self.name)
