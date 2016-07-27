@@ -683,7 +683,7 @@ class ParameterController(object):
         posn = defn._getPosnForScope(*args, **kw)
         return callback(defn, posn)
 
-    def getParamInterval(self, par_name, *args, **kw):
+    def get_param_interval(self, par_name, *args, **kw):
         """Confidence interval for 'par_name' found by adjusting the
         single parameter until the final result falls by 'dropoff', which
         can be specified directly or via 'p' as chdtri(1, p).  Additional

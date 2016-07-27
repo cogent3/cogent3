@@ -147,12 +147,12 @@ Because this function has a maximum it is possible to ask it for a confidence
 interval around a parameter, ie: how far from 0.0 can we move x before f(x,y)
 falls bellow f(X,Y)-dropoff:
     
-    >>> pc.getParamInterval('X', dropoff=4, xtol=0.0)
+    >>> pc.get_param_interval('X', dropoff=4, xtol=0.0)
     (-2.0, 0.0, 2.0)
 
 We test the ability to omit xtol. Due to precision issues we convert the returned value to a string.
 
-    >>> '-2.0, 0.0, 2.0' == "%.1f, %.1f, %.1f" % pc.getParamInterval('X', dropoff=4)
+    >>> '-2.0, 0.0, 2.0' == "%.1f, %.1f, %.1f" % pc.get_param_interval('X', dropoff=4)
     True
 
 And finally intervals can be calculated in bulk by passing a dropoff value to

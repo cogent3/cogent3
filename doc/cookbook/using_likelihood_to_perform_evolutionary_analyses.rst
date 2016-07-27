@@ -569,10 +569,10 @@ The profile method is used to calculate a confidence interval for a named parame
     >>> lf = sm.make_likelihood_function(tree)
     >>> lf.set_alignment(aln)
     >>> lf.optimise(local=True, show_progress=False)
-    >>> kappa_lo, kappa_mle, kappa_hi = lf.getParamInterval('kappa')
+    >>> kappa_lo, kappa_mle, kappa_hi = lf.get_param_interval('kappa')
     >>> print "lo=%.2f ; mle=%.2f ; hi = %.2f" % (kappa_lo, kappa_mle, kappa_hi)
     lo=3.78 ; mle=4.44 ; hi = 5.22
-    >>> human_lo, human_mle, human_hi = lf.getParamInterval('length', 'Human')
+    >>> human_lo, human_mle, human_hi = lf.get_param_interval('length', 'Human')
     >>> print "lo=%.2f ; mle=%.2f ; hi = %.2f" % (human_lo, human_mle, human_hi)
     lo=0.00 ; mle=0.01 ; hi = 0.01
 
