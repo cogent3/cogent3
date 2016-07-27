@@ -521,7 +521,7 @@ class MolType(object):
             KeepChars(strict_gap + ''.join(self.Alphabet)))
         self.stripBad = FunctionWrapper(KeepChars(''.join(self.All)))
         to_keep = set(self.Alphabet) ^ set(self.Degenerates) - set(self.Gaps)
-        self.stripBadAndGaps = FunctionWrapper(KeepChars(''.join(to_keep)))
+        self.strip_bad_and_gaps = FunctionWrapper(KeepChars(''.join(to_keep)))
 
         # make inverse degenerates from degenerates
         # ensure that lowercase versions also exist if appropriate

@@ -126,15 +126,15 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('aaaxggg---!ccc', check=False).stripBad(),
                          'AAAGGG---CCC')
 
-    def test_stripBadAndGaps(self):
-        """Sequence stripBadAndGaps should remove gaps and bad chars"""
+    def test_strip_bad_and_gaps(self):
+        """Sequence strip_bad_and_gaps should remove gaps and bad chars"""
         # have to turn off check to get bad data in; no longer preserves case
         self.assertEqual(self.RNA('UxxCAGwsnyrHBNz#!D-D', check=False
-                                  ).stripBadAndGaps(), 'UCAGWSNYRHBNDD')
+                                  ).strip_bad_and_gaps(), 'UCAGWSNYRHBNDD')
         self.assertEqual(self.RNA('@#^*($@!#&()!@QZX', check=False
-                                  ).stripBadAndGaps(), '')
+                                  ).strip_bad_and_gaps(), '')
         self.assertEqual(self.RNA('aaa ggg ---!ccc', check=False
-                                  ).stripBadAndGaps(), 'AAAGGGCCC')
+                                  ).strip_bad_and_gaps(), 'AAAGGGCCC')
 
     def test_shuffle(self):
         """Sequence shuffle should return new random sequence w/ same monomers"""
@@ -660,7 +660,7 @@ class SequenceTests(TestCase):
         dna = self.DNA(raw_seq)
         self.assertEqual(dna.degap(), raw_ungapped)
         self.assertEqual(dna.strip_degenerate(), raw_no_ambigs)
-        self.assertEqual(dna.stripBadAndGaps(), raw_ungapped)
+        self.assertEqual(dna.strip_bad_and_gaps(), raw_ungapped)
 
 
 class SequenceSubclassTests(TestCase):
@@ -886,13 +886,13 @@ class ModelSequenceTests(SequenceTests):
         r._data[2] = 55
         self.assertEqual(r.stripBad(), 'CGRYU')
 
-    def test_stripBadAndGaps(self):
-        """Sequence stripBadAndGaps should remove gaps and bad chars"""
+    def test_strip_bad_and_gaps(self):
+        """Sequence strip_bad_and_gaps should remove gaps and bad chars"""
         # have to turn off check to get bad data in; no longer preserves case
         r = self.RNA('ACG--GRN?')
-        self.assertEqual(r.stripBadAndGaps(), 'ACGGRN')
+        self.assertEqual(r.strip_bad_and_gaps(), 'ACGGRN')
         r._data[0] = 99
-        self.assertEqual(r.stripBadAndGaps(), 'CGGRN')
+        self.assertEqual(r.strip_bad_and_gaps(), 'CGGRN')
 
     def test_gapArray(self):
         """Sequence gapArray should return array of gaps"""

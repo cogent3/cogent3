@@ -123,9 +123,9 @@ class SequenceI(object):
         """Removes any symbols not in the alphabet."""
         return self.__class__(self.MolType.stripBad(self), Info=self.Info)
 
-    def stripBadAndGaps(self):
+    def strip_bad_and_gaps(self):
         """Removes any symbols not in the alphabet, and any gaps."""
-        return self.__class__(self.MolType.stripBadAndGaps(self), Info=self.Info)
+        return self.__class__(self.MolType.strip_bad_and_gaps(self), Info=self.Info)
 
     def rc(self):
         """Returns reverse complement of self w/ data from MolType.
@@ -1271,7 +1271,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         result = compress(valid_indices, self._data)
         return self.__class__(result, Info=self.Info)
 
-    def stripBadAndGaps(self):
+    def strip_bad_and_gaps(self):
         """Returns copy of self with bad chars and gaps excised."""
         gap_indices = list(map(self.Alphabet.index, self.MolType.Gaps))
         valid_indices = self._data < len(self.Alphabet)
