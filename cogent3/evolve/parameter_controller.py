@@ -73,7 +73,7 @@ class _LikelihoodParameterController(_LF):
         defn = self.makeLikelihoodDefn(**kw)
         super(_LF, self).__init__(defn)
         self.setDefaultParamRules()
-        self.setDefaultTreeParameterRules()
+        self.set_default_tree_parameter_rules()
         self.mprobs_from_alignment = motif_probs_from_align
         self.optimise_motif_probs = optimise_motif_probs
         self._name = ''
@@ -92,7 +92,7 @@ class _LikelihoodParameterController(_LF):
                 if id(d) in temp:
                     d.values = temp[id(d)]
 
-    def setDefaultTreeParameterRules(self):
+    def set_default_tree_parameter_rules(self):
         """Lengths are set to the values found in the tree (if any), and
         free to be optimised independently.
         Other parameters are scoped based on the unique values found in the
