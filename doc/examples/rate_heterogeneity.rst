@@ -20,9 +20,9 @@ Make an alignment with equal split between rates 0.6 and 0.2, and then concatena
     >>> tree = LoadTree("data/test.tree")
     >>> lf = model.makeLikelihoodFunction(tree)
     >>> lf.setParamRule('length', value=0.6, is_constant=True)
-    >>> aln1 = lf.simulateAlignment(sequence_length=10000)
+    >>> aln1 = lf.simulate_alignment(sequence_length=10000)
     >>> lf.setParamRule('length', value=0.2, is_constant=True)
-    >>> aln2 = lf.simulateAlignment(sequence_length=10000)
+    >>> aln2 = lf.simulate_alignment(sequence_length=10000)
     >>> aln3 = aln1 + aln2
 
 Start from scratch, optimising only rates and the rate probability ratio.

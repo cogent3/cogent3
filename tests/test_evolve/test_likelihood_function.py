@@ -410,11 +410,11 @@ motif  mprobs
         self._setLengthsAndBetas(likelihood_function)
         result = likelihood_function.likely_ancestral_seqs()
 
-    def test_simulateAlignment(self):
+    def test_simulate_alignment(self):
         "Simulate DNA alignment"
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
-        simulated_alignment = likelihood_function.simulateAlignment(
+        simulated_alignment = likelihood_function.simulate_alignment(
             20, exclude_internal=False)
         self.assertEqual(len(simulated_alignment), 20)
         self.assertEqual(len(simulated_alignment.get_seq_names()), 8)
@@ -425,7 +425,7 @@ motif  mprobs
             self.tree, bins=['low', 'high'])
         lf.setParamRule('beta', bin='low', value=0.1)
         lf.setParamRule('beta', bin='high', value=10.0)
-        simulated_alignment = lf.simulateAlignment(100)
+        simulated_alignment = lf.simulate_alignment(100)
 
     def test_simulatePatchyHetergeneousAlignment(self):
         "Simulate patchy substitution-heterogeneous DNA alignment"
@@ -433,19 +433,19 @@ motif  mprobs
             self.tree, bins=['low', 'high'], sites_independent=False)
         lf.setParamRule('beta', bin='low', value=0.1)
         lf.setParamRule('beta', bin='high', value=10.0)
-        simulated_alignment = lf.simulateAlignment(100)
+        simulated_alignment = lf.simulate_alignment(100)
 
-    def test_simulateAlignment2(self):
+    def test_simulate_alignment2(self):
         "Simulate alignment with dinucleotide model"
         al = LoadSeqs(data={'a': 'ggaatt', 'c': 'cctaat'})
         t = LoadTree(treestring="(a,c);")
         sm = substitution_model.Dinucleotide(mprob_model='tuple')
         lf = sm.makeParamController(t)
         lf.setAlignment(al)
-        simalign = lf.simulateAlignment()
+        simalign = lf.simulate_alignment()
         self.assertEqual(len(simalign), 6)
 
-    def test_simulateAlignment3(self):
+    def test_simulate_alignment3(self):
         """Simulated alignment with gap-induced ambiguous positions
         preserved"""
         t = LoadTree(treestring='(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;')
@@ -458,15 +458,15 @@ motif  mprobs
         lf = sm.makeParamController(t)
         # pc.setConstantLengths()
         lf.setAlignment(al)
-        # print lf.simulateAlignment(sequence_length=10)
-        simulated = lf.simulateAlignment()
+        # print lf.simulate_alignment(sequence_length=10)
+        simulated = lf.simulate_alignment()
         self.assertEqual(len(simulated.get_seq_names()), 4)
         import re
         self.assertEqual(
             re.sub('[ATCG]', 'x', simulated.todict()['a']),
             'x??xxxxxx?')
 
-    def test_simulateAlignment_root_sequence(self):
+    def test_simulate_alignment_root_sequence(self):
         """provide a root sequence for simulating an alignment"""
         def use_root_seq(root_sequence):
             al = LoadSeqs(data={'a': 'ggaatt', 'c': 'cctaat'})
@@ -474,7 +474,7 @@ motif  mprobs
             sm = substitution_model.Dinucleotide(mprob_model='tuple')
             lf = sm.makeParamController(t)
             lf.setAlignment(al)
-            simalign = lf.simulateAlignment(exclude_internal=False,
+            simalign = lf.simulate_alignment(exclude_internal=False,
                                             root_sequence=root_sequence)
             root = simalign.named_seqs['root']
             self.assertEqual(str(root), str(root_sequence))

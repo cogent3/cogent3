@@ -127,7 +127,7 @@ class NewQ(TestCase):
             lf = di.makeLikelihoodFunction(self.tree)
             lf.setParamRule('length', is_independent=False, init=0.4)
             lf.setAlignment(self.aln)
-            sim = lf.simulateAlignment()
+            sim = lf.simulate_alignment()
 
     def test_reconstruct_ancestor(self):
         """should be able to reconstruct ancestral sequences under all
@@ -327,7 +327,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
     """simulates an alignment under F81, all models should be the same"""
     lf = model.makeLikelihoodFunction(tree)
     lf.setMotifProbs(dict(A=0.1, C=0.2, G=0.3, T=0.4))
-    aln = lf.simulateAlignment(seq_length)
+    aln = lf.simulate_alignment(seq_length)
     results = dict(aln=aln)
     discrete_tree = LoadTree(tip_names=aln.names)
 
