@@ -140,7 +140,7 @@ class TestAnnotations(unittest.TestCase):
             seq_ltr = self.aln.project_annotation(seq_name, aln_ltr)
             if '-' in expected:
                 self.assertRaises(ValueError, seq_ltr.getSlice)
-                seq_ltr = seq_ltr.withoutLostSpans()
+                seq_ltr = seq_ltr.without_lost_spans()
                 expected = expected.replace('-', '')
             self.assertEqual(seq_ltr.getSlice(), expected)
 

@@ -210,7 +210,7 @@ class _Feature(_Annotatable):
             map = map.withoutGaps()
         return self.base[map]
 
-    def withoutLostSpans(self):
+    def without_lost_spans(self):
         """Keeps only the parts which are actually present in the underlying sequence"""
         if self.map.complete:
             return self
@@ -287,7 +287,7 @@ class Source(_Feature):
         basemap = self.basemap[ng]
         return self.__class__(grandparent, new_map, self.accession, basemap)
 
-    def withoutLostSpans(self):
+    def without_lost_spans(self):
         return self
 
 
@@ -306,7 +306,7 @@ class _Variable(_Feature):
     def get_tracks(self, policy):
         return policy.tracksForVariable(self)
 
-    def withoutLostSpans(self):
+    def without_lost_spans(self):
         if self.map.complete:
             return self
         raise NotImplementedError
@@ -332,7 +332,7 @@ class _SimpleVariable(_Feature):
     def get_tracks(self, policy):
         return policy.tracks_for_value(self)
 
-    def withoutLostSpans(self):
+    def without_lost_spans(self):
         if self.map.complete:
             return self
         keep = self.map.nongap()
