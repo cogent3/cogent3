@@ -361,7 +361,7 @@ class _PairwiseDistance(object):
         return table
 
     @property
-    def Proportions(self):
+    def proportions(self):
         kwargs = dict(title='Proportion variable sites', digits=4)
         return self._get_stats(1, **kwargs)
 
