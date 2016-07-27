@@ -114,7 +114,7 @@ class _Annotatable(object):
                 self.annotations.remove(annot)
                 annot.attached = False
 
-    def addFeature(self, type, Name, spans):
+    def add_feature(self, type, Name, spans):
         return self.addAnnotation(Feature, type, Name, spans)
 
     def getAnnotationsMatching(self, annotation_type, Name=None):

@@ -942,13 +942,13 @@ class SequenceCollection(object):
         for (name, source, feature, start, end, score,
                 strand, frame, attributes, comments) in GffParser(f):
             if name in self.named_seqs:
-                self.named_seqs[name].addFeature(feature,
+                self.named_seqs[name].add_feature(feature,
                                                 parse_attributes(
                                                     attributes),
                                                 [(start, end)])
 
             '''
-            self.named_seqs[seqname].data.addFeature(
+            self.named_seqs[seqname].data.add_feature(
                                 feature,
                                 parse_attributes(attributes),
                                 [(start, end)])
@@ -1536,8 +1536,8 @@ class Aligned(object):
     def annotate_from_gff(self, f):
         self.data.annotate_from_gff(f)
 
-    def addFeature(self, *args, **kwargs):
-        self.data.addFeature(*args, **kwargs)
+    def add_feature(self, *args, **kwargs):
+        self.data.add_feature(*args, **kwargs)
 
     def __str__(self):
         """Returns string representation of aligned sequence, incl. gaps."""

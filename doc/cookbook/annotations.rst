@@ -88,7 +88,7 @@ Via
     >>> exon1 = s1.addAnnotation(Feature, 'exon', 'A', [(10,15)])
     >>> exon2 = s1.addAnnotation(Feature, 'exon', 'B', [(30,40)])
 
-``addFeature``
+``add_feature``
 ++++++++++++++
 
 .. doctest::
@@ -98,7 +98,7 @@ Via
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      Name="seq1")
     ...
-    >>> exon3 = s1.addFeature('exon', 'C', [(45, 48)])
+    >>> exon3 = s1.add_feature('exon', 'C', [(45, 48)])
 
 *There are other annotation types.*
 
@@ -109,10 +109,10 @@ Adding as a series or item-wise
 
     >>> from cogent import DNA
     >>> s2 = DNA.makeSequence("CGAAACGTTT", Name="seq2")
-    >>> cpgs_series = s2.addFeature('cpgsite', 'cpg', [(0,2), (5,7)])
+    >>> cpgs_series = s2.add_feature('cpgsite', 'cpg', [(0,2), (5,7)])
     >>> s3 = DNA.makeSequence("CGAAACGTTT", Name="seq3")
-    >>> cpg1 = s3.addFeature('cpgsite', 'cpg', [(0,2)])
-    >>> cpg2 = s3.addFeature('cpgsite', 'cpg', [(5,7)])
+    >>> cpg1 = s3.add_feature('cpgsite', 'cpg', [(0,2)])
+    >>> cpg2 = s3.add_feature('cpgsite', 'cpg', [(5,7)])
 
 Taking the union of annotations
 """""""""""""""""""""""""""""""
@@ -126,9 +126,9 @@ Construct a pseudo-feature (``cds``) that's a union of other features (``exon1``
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      Name="seq1")
     ...
-    >>> exon1 = s1.addFeature('exon', 'A', [(10,15)])
-    >>> exon2 = s1.addFeature('exon', 'B', [(30,40)])
-    >>> exon3 = s1.addFeature('exon', 'C', [(45, 48)])
+    >>> exon1 = s1.add_feature('exon', 'A', [(10,15)])
+    >>> exon2 = s1.add_feature('exon', 'B', [(30,40)])
+    >>> exon3 = s1.add_feature('exon', 'C', [(45, 48)])
     >>> cds = s1.getRegionCoveringAll([exon1, exon2, exon3])
 
 Getting annotation coordinates
@@ -169,7 +169,7 @@ The following annotation is directly applied onto the sequence and so is in unga
     >>> from cogent import LoadSeqs
     >>> aln1 = LoadSeqs(data=[['x','-AAACCCCCA'],
     ...                       ['y','TTTT--TTTT']])
-    >>> seq_exon = aln1.get_seq('x').addFeature('exon', 'A', [(3,8)])
+    >>> seq_exon = aln1.get_seq('x').add_feature('exon', 'A', [(3,8)])
 
 Adding to an alignment
 """"""""""""""""""""""
@@ -195,8 +195,8 @@ By a feature or coordinates returns same sequence span
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      Name="seq1")
     ...
-    >>> exon1 = s1.addFeature('exon', 'A', [(10,15)])
-    >>> exon2 = s1.addFeature('exon', 'B', [(30,40)])
+    >>> exon1 = s1.add_feature('exon', 'A', [(10,15)])
+    >>> exon2 = s1.add_feature('exon', 'B', [(30,40)])
     >>> s1[exon1]
     DnaSequence(CCCCC)
     >>> s1[10:15]
@@ -221,9 +221,9 @@ Slicing by pseudo-feature or feature series
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      Name="seq1")
     ...
-    >>> exon1 = s1.addFeature('exon', 'A', [(10,15)])
-    >>> exon2 = s1.addFeature('exon', 'B', [(30,40)])
-    >>> exon3 = s1.addFeature('exon', 'C', [(45, 48)])
+    >>> exon1 = s1.add_feature('exon', 'A', [(10,15)])
+    >>> exon2 = s1.add_feature('exon', 'B', [(30,40)])
+    >>> exon3 = s1.add_feature('exon', 'C', [(45, 48)])
     >>> cds = s1.getRegionCoveringAll([exon1, exon2, exon3])
     >>> print s1[cds]
     CCCCCTTTTTAAAAACCC
@@ -298,7 +298,7 @@ You can copy annotations onto sequences with the same name, even if the length d
 
     >>> aln2 = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
-    >>> match_exon = seq.addFeature('exon', 'A', [(3,8)])
+    >>> match_exon = seq.add_feature('exon', 'A', [(3,8)])
     >>> aln2.get_seq('x').copy_annotations(seq)
     >>> copied = list(aln2.get_annotations_from_seq('x', 'exon'))
     >>> copied
@@ -310,7 +310,7 @@ but if the feature lies outside the sequence being copied to, you get a lost spa
 
     >>> aln2 = LoadSeqs(data=[['x', '-AAAA'], ['y', 'TTTTT']])
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
-    >>> match_exon = seq.addFeature('exon', 'A', [(5,8)])
+    >>> match_exon = seq.add_feature('exon', 'A', [(5,8)])
     >>> aln2.get_seq('x').copy_annotations(seq)
     >>> copied = list(aln2.get_annotations_from_seq('x', 'exon'))
     >>> copied
@@ -325,7 +325,7 @@ You can copy to a sequence with a different name, in a different alignment if th
     >>> # new test
     >>> aln2 = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
-    >>> match_exon = seq.addFeature('exon', 'A', [(5,8)])
+    >>> match_exon = seq.add_feature('exon', 'A', [(5,8)])
     >>> aln2.get_seq('y').copy_annotations(seq)
     >>> copied = list(aln2.get_annotations_from_seq('y', 'exon'))
     >>> copied
@@ -337,7 +337,7 @@ If the sequence is shorter, again you get a lost span.
 
     >>> aln2 = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
     >>> diff_len_seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCCCCCCCCCC', 'x')
-    >>> nonmatch = diff_len_seq.addFeature('repeat', 'A', [(12,14)])
+    >>> nonmatch = diff_len_seq.add_feature('repeat', 'A', [(12,14)])
     >>> aln2.get_seq('y').copy_annotations(diff_len_seq)
     >>> copied = list(aln2.get_annotations_from_seq('y', 'repeat'))
     >>> copied
@@ -393,7 +393,7 @@ If you query for a feature from a sequence, it's alignment coordinates may be di
 .. doctest::
 
     >>> aln3 = LoadSeqs(data=[['x', 'C-CCCAAAAA'], ['y', '-T----TTTT']])
-    >>> exon = aln3.get_seq('x').addFeature('exon', 'ex1', [(0,4)])
+    >>> exon = aln3.get_seq('x').add_feature('exon', 'ex1', [(0,4)])
     >>> print exon.getSlice()
     CCCC
     >>> aln_exons = list(aln3.get_annotations_from_seq('x', 'exon'))
@@ -431,7 +431,7 @@ Reverse complementing a sequence **does not** reverse annotations, that is they 
 .. doctest::
 
     >>> plus = DNA.makeSequence("CCCCCAAAAAAAAAATTTTTTTTTTAAAGG")
-    >>> plus_rpt = plus.addFeature('blah', 'a', [(5,15), (25, 28)])
+    >>> plus_rpt = plus.add_feature('blah', 'a', [(5,15), (25, 28)])
     >>> print plus[plus_rpt]
     AAAAAAAAAAAAA
     >>> minus = plus.rc()
@@ -467,7 +467,7 @@ We mask exon's on an alignment.
     >>> from cogent import LoadSeqs, DNA
     >>> aln = LoadSeqs(data=[['x', 'C-CCCAAAAAGGGAA'],
     ...                       ['y', '-T----TTTTG-GTT']], moltype=DNA)
-    >>> exon = aln.get_seq('x').addFeature('exon', 'norwegian', [(0,4)])
+    >>> exon = aln.get_seq('x').add_feature('exon', 'norwegian', [(0,4)])
     >>> print aln.with_masked_annotations('exon', mask_char='?')
     >x
     ?-???AAAAAGGGAA
@@ -500,8 +500,8 @@ You can take mask of the shadow
 
     >>> from cogent import DNA
     >>> s = DNA.makeSequence('CCCCAAAAAGGGAA', 'x')
-    >>> exon = s.addFeature('exon', 'norwegian', [(0,4)])
-    >>> rpt = s.addFeature('repeat', 'norwegian', [(9, 12)])
+    >>> exon = s.add_feature('exon', 'norwegian', [(0,4)])
+    >>> rpt = s.add_feature('repeat', 'norwegian', [(9, 12)])
     >>> rc = s.rc()
     >>> print s.with_masked_annotations('exon', shadow=True)
     CCCC??????????
@@ -520,8 +520,8 @@ What features of a certain type are available?
     >>> from cogent import DNA
     >>> s = DNA.makeSequence('ATGACCCTGTAAAAAATGTGTTAACCC',
     ...    Name='a')
-    >>> cds1 = s.addFeature('cds','cds1', [(0,12)])
-    >>> cds2 = s.addFeature('cds','cds2', [(15,24)])
+    >>> cds1 = s.add_feature('cds','cds1', [(0,12)])
+    >>> cds2 = s.add_feature('cds','cds2', [(15,24)])
     >>> all_cds = s.getAnnotationsMatching('cds')
     >>> all_cds
     [cds "cds1" at [0:12]/27, cds "cds2" at [15:24]/27]
@@ -563,7 +563,7 @@ Sequence features can be accessed via a containing ``Alignment``.
     >y
     TTTT--TTTT
     <BLANKLINE>
-    >>> exon = aln.get_seq('x').addFeature('exon', '1', [(3,8)])
+    >>> exon = aln.get_seq('x').add_feature('exon', '1', [(3,8)])
     >>> aln_exons = aln.get_annotations_from_seq('x', 'exon')
     >>> aln_exons = aln.get_annotations_from_any_seq('exon')
     >>> aln_exons
@@ -582,9 +582,9 @@ We first make a sequence and add some annotations.
 
     >>> from cogent import DNA
     >>> seq = DNA.makeSequence('aaaccggttt' * 10)
-    >>> v = seq.addFeature('exon', 'exon', [(20,35)])
-    >>> v = seq.addFeature('repeat_unit', 'repeat_unit', [(39,49)])
-    >>> v = seq.addFeature('repeat_unit', 'rep2', [(49,60)])
+    >>> v = seq.add_feature('exon', 'exon', [(20,35)])
+    >>> v = seq.add_feature('repeat_unit', 'repeat_unit', [(39,49)])
+    >>> v = seq.add_feature('repeat_unit', 'rep2', [(49,60)])
 
 We then make a ``Display`` instance and write to file. This will use standard feature policy for colouring and shape of feature types.
 

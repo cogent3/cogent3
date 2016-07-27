@@ -7,7 +7,7 @@ Advanced sequence handling
 
 Individual sequences and alignments can be manipulated by annotations. Most value in the genome sequences arises from sequence annotations regarding specific sequence feature types, e.g. genes with introns / exons, repeat sequences. These can be applied to an alignment either using data formats available from genome portals (e.g. GFF, or GenBank annotation formats) or by custom assignments.
 
-Annotations can be added in two ways: using either the ``addAnnotation`` or the ``addFeature`` method. The distinction between these two is that ``addFeatures`` is more specialised. Features can be thought of as a type of annotation representing standard sequence properties eg introns/exons. Annotations are the more general case, such as a computed property which has, say a numerical value and a span.
+Annotations can be added in two ways: using either the ``addAnnotation`` or the ``add_feature`` method. The distinction between these two is that ``add_features`` is more specialised. Features can be thought of as a type of annotation representing standard sequence properties eg introns/exons. Annotations are the more general case, such as a computed property which has, say a numerical value and a span.
 
 For illustrative purposes we define a sequence with 2 exons and grab the 1\ :sup:`st` \ exon:
 
@@ -16,8 +16,8 @@ For illustrative purposes we define a sequence with 2 exons and grab the 1\ :sup
     >>> from cogent import DNA
     >>> s = DNA.makeSequence("aagaagaagacccccaaaaaaaaaattttttttttaaaaaaaaaaaaa",
     ... Name="Orig")
-    >>> exon1 = s.addFeature('exon', 'exon1', [(10,15)])
-    >>> exon2 = s.addFeature('exon', 'exon2', [(30,40)])
+    >>> exon1 = s.add_feature('exon', 'exon1', [(10,15)])
+    >>> exon2 = s.add_feature('exon', 'exon2', [(30,40)])
 
 Here, '``exon``' is the feature type, and '``exon#``' the feature name. The feature type is used for the display formatting, which won't be illustrated here, and also for selecting all features of the same type, shown below.
 

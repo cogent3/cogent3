@@ -189,7 +189,7 @@ Create the sequence feature and use it to slice the sequence.
 
 .. doctest::
 
-    >>> pos3 = seq.addFeature('pos3', 'pos3', indices)
+    >>> pos3 = seq.add_feature('pos3', 'pos3', indices)
     >>> pos3 = pos3.getSlice()
     >>> assert str(pos3) == 'GGGG'
 
@@ -203,7 +203,7 @@ The only difference here to above is that our spans cover 2 positions.
     >>> from cogent import DNA
     >>> seq = DNA.makeSequence('ATGATGATGATG')
     >>> indices = [(i, i+2) for i in range(len(seq))[::3]]
-    >>> pos12 = seq.addFeature('pos12', 'pos12', indices)
+    >>> pos12 = seq.add_feature('pos12', 'pos12', indices)
     >>> pos12 = pos12.getSlice()
     >>> assert str(pos12) == 'ATATATAT'
 
