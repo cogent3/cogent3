@@ -508,9 +508,9 @@ class MolTypeTests(TestCase):
         self.assertEqual(
             gm(mid_gaps), ({0: 2, 1: 5, 2: 7, 3: 8}, {2: 0, 5: 1, 7: 2, 8: 3}))
 
-    def test_countGaps(self):
-        """MolType countGaps should return correct gap count"""
-        c = RnaMolType.countGaps
+    def test_count_gaps(self):
+        """MolType count_gaps should return correct gap count"""
+        c = RnaMolType.count_gaps
         self.assertEqual(c(''), 0)
         self.assertEqual(c('ACUGUCAGUACGHFSDKJCUICDNINS'), 0)
         self.assertEqual(c('GUACGUIACAKJDC-SDFHJDSFK'), 1)
@@ -518,7 +518,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(c('UACHASJAIDS-'), 1)
         self.assertEqual(c('---CGAUgCAU---ACGHc---ACGUCAGU---'), 12)
         a = MolType({'A': 1}, Gaps=dict.fromkeys('!@#$%'))
-        c = a.countGaps
+        c = a.count_gaps
         self.assertEqual(c(''), 0)
         self.assertEqual(c('!!!'), 3)
         self.assertEqual(c('!@#$!@#$!@#$'), 12)

@@ -315,16 +315,16 @@ class SequenceTests(TestCase):
         self.assertEqual(
             gm(mid_gaps), ({0: 2, 1: 5, 2: 7, 3: 8}, {2: 0, 5: 1, 7: 2, 8: 3}))
 
-    def test_countGaps(self):
-        """Sequence countGaps should return correct gap count"""
-        self.assertEqual(self.RNA('').countGaps(), 0)
-        self.assertEqual(self.RNA('ACUGUCAGUACGHSDKCUCDNNS').countGaps(),
+    def test_count_gaps(self):
+        """Sequence count_gaps should return correct gap count"""
+        self.assertEqual(self.RNA('').count_gaps(), 0)
+        self.assertEqual(self.RNA('ACUGUCAGUACGHSDKCUCDNNS').count_gaps(),
                          0)
-        self.assertEqual(self.RNA('GUACGUACAKDC-SDHDSK').countGaps(), 1)
-        self.assertEqual(self.RNA('-DSHUHDS').countGaps(), 1)
-        self.assertEqual(self.RNA('UACHASADS-').countGaps(), 1)
+        self.assertEqual(self.RNA('GUACGUACAKDC-SDHDSK').count_gaps(), 1)
+        self.assertEqual(self.RNA('-DSHUHDS').count_gaps(), 1)
+        self.assertEqual(self.RNA('UACHASADS-').count_gaps(), 1)
         self.assertEqual(self.RNA('---CGAUgCAU---ACGHc---ACGUCAGU---'
-                                  ).countGaps(), 12)
+                                  ).count_gaps(), 12)
 
     def test_count_degenerate(self):
         """Sequence count_degenerate should return correct degen base count"""

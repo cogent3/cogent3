@@ -144,7 +144,7 @@ class SequenceI(object):
         If char is not supplied, tests whether self is gaps only.
         """
         if char is None:  # no char - so test if self is all gaps
-            return len(self) == self.countGaps()
+            return len(self) == self.count_gaps()
         else:
             return self.MolType.isGap(char)
 
@@ -202,9 +202,9 @@ class SequenceI(object):
         """Returns dicts mapping between gapped and ungapped positions."""
         return self.MolType.gapMaps(self)
 
-    def countGaps(self):
+    def count_gaps(self):
         """Counts the gaps in the specified sequence."""
-        return self.MolType.countGaps(self)
+        return self.MolType.count_gaps(self)
 
     def count_degenerate(self):
         """Counts the degenerate bases in the specified sequence."""
@@ -1290,7 +1290,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         return self.__class__(self.MolType.stripDegenerate(str(self)),
                               Info=self.Info)
 
-    def countGaps(self):
+    def count_gaps(self):
         """Returns count of gaps in self."""
         return self.gapArray().sum()
 
