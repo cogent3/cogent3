@@ -701,7 +701,7 @@ class Sequence(_Annotatable, SequenceI):
 
     def resolveambiguities(self):
         """Returns a list of tuples of strings."""
-        ambigs = self.MolType.resolveAmbiguity
+        ambigs = self.MolType.resolve_ambiguity
         return [ambigs(motif) for motif in self._seq]
 
     def sliding_windows(self, window, step, start=None, end=None):
@@ -841,7 +841,7 @@ class NucleicAcidSequence(Sequence):
         translation = []
         for posn in range(0, len(self._seq) - 2, 3):
             orig_codon = self._seq[posn:posn + 3]
-            resolved = codon_alphabet.resolveAmbiguity(orig_codon)
+            resolved = codon_alphabet.resolve_ambiguity(orig_codon)
             trans = []
             for codon in resolved:
                 if codon == '---':
