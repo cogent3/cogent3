@@ -1472,11 +1472,11 @@ class PhyloNodeTests(TestCase):
             self.assertEqual(node.TipDistance, expected_tip_distances[idx])
             idx += 1
 
-    def test_scaleBranchLengths(self):
-        """scaleBranchLengths should correclty scale branch lengths."""
+    def test_scale_branch_lengths(self):
+        """scale_branch_lengths should correclty scale branch lengths."""
         tree = DndParser(
             '(((A1:.1,B1:.1):.1,(A2:.1,B2:.1):.1):.3,((A3:.1,B3:.1):.1,(A4:.1,B4:.1):.1):.3);', constructor=PhyloNode)
-        tree.scaleBranchLengths(max_length=100, ultrametric=True)
+        tree.scale_branch_lengths(max_length=100, ultrametric=True)
         expected_tree = '(((A1:20,B1:20):20,(A2:20,B2:20):20):60,((A3:20,B3:20):20,(A4:20,B4:20):20):60);'
         self.assertEqual(str(tree), expected_tree)
 

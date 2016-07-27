@@ -1938,7 +1938,7 @@ class PhyloNode(TreeNode):
             else:
                 node.TipDistance = 0
 
-    def scaleBranchLengths(self, max_length=100, ultrametric=False):
+    def scale_branch_lengths(self, max_length=100, ultrametric=False):
         """Scales BranchLengths in place to integers for ascii output.
 
         Warning: tree might not be exactly the length you specify.
