@@ -212,7 +212,7 @@ class _Defn(object):
         return tuple(used) + self.internal_dimensions
 
     def _getPosnForScope(self, *args, **scope):
-        scope = self.interpretPositionalScopeArgs(*args, **scope)
+        scope = self.interpret_positional_scope_args(*args, **scope)
         posns = set()
         for scope_t in self.interpretScope(**scope):
             posns.add(self.index[scope_t])
@@ -244,7 +244,7 @@ class _Defn(object):
         posn = self._getPosnForScope(*args, **scope)
         return self.uniq[posn]
 
-    def interpretPositionalScopeArgs(self, *args, **scope):
+    def interpret_positional_scope_args(self, *args, **scope):
         # Carefully turn scope args into scope kwargs
         assert len(args) <= len(self.valid_dimensions), args
         for (dimension, arg) in zip(self.valid_dimensions, args):
