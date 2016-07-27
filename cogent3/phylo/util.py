@@ -62,7 +62,7 @@ def triangular_order(keys):
             yield (keys[i], keys[j])
 
 
-def distanceDictAndNamesTo1D(dists, names):
+def distance_dict_and_names_to_1D(dists, names):
     """Distances converted into a triangular matrix implemented as a 1D array
     where j > i and i is the inner dimension:
     d[0,1], d[0, 2], d[1, 2], d[0, 3]..."""
@@ -77,5 +77,5 @@ def distanceDictTo1D(dists):
     implemented as a 1D array where j > i and i is the inner dimension:
     d[0,1], d[0, 2], d[1, 2], d[0, 3]..."""
     names = names_from_distance_dict(dists)
-    d = distanceDictAndNamesTo1D(dists, names)
+    d = distance_dict_and_names_to_1D(dists, names)
     return (names, d)
