@@ -839,13 +839,13 @@ class TreeNodeTests(TestCase):
         self.assertEqual(h.non_tip_children(), [])
         self.assertEqual(a.non_tip_children(), [b])
 
-    def test_childGroups(self):
-        """TreeNode childGroups should divide children by grandchild presence"""
+    def test_child_groups(self):
+        """TreeNode child_groups should divide children by grandchild presence"""
         parent = TreeNode(Children='aababbbaaabbbababbb')
         for node in parent:
             if node.name == 'a':
                 node.append('def')
-        groups = parent.childGroups()
+        groups = parent.child_groups()
         self.assertEqual(len(groups), 10)
         exp_group_sizes = [2, 1, 1, 3, 3, 3, 1, 1, 1, 3]
         obs_group_sizes = [len(i) for i in groups]
@@ -855,12 +855,12 @@ class TreeNodeTests(TestCase):
         for node in parent:
             if node.name == 'a':
                 node.append('def')
-        groups = parent.childGroups()
+        groups = parent.child_groups()
         self.assertEqual(len(groups), 2)
         self.assertEqual([len(i) for i in groups], [2, 1])
 
         parent = TreeNode(Children='aaaaa')
-        groups = parent.childGroups()
+        groups = parent.child_groups()
         self.assertEqual(len(groups), 1)
         self.assertEqual(len(groups[0]), 5)
 
@@ -868,7 +868,7 @@ class TreeNodeTests(TestCase):
         for node in parent:
             if node.name == 'a':
                 node.append('def')
-        groups = parent.childGroups()
+        groups = parent.child_groups()
         self.assertEqual(len(groups), 3)
         self.assertEqual([len(i) for i in groups], [2, 1, 1])
 
