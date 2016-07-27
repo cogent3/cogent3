@@ -44,7 +44,7 @@ _bases = "TCAG"
 class GeneticCode(object):
     """Holds codon to amino acid mapping, and vice versa.
 
-    Usage:  gc = GeneticCode(CodeSequence)
+    Usage:  gc = GeneticCode(code_sequence)
             sgc = GeneticCode(
             'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG')
             sgc['UUU'] == 'F'
@@ -52,7 +52,7 @@ class GeneticCode(object):
             sgc['F'] == ['TTT', 'TTC']          #in arbitrary order
             sgc['*'] == ['TAA', 'TAG', 'TGA']   #in arbitrary order
 
-    CodeSequence : 64 character string containing NCBI genetic code translation
+    code_sequence : 64 character string containing NCBI genetic code translation
 
     GeneticCode is immutable once created.
     """
@@ -63,28 +63,28 @@ class GeneticCode(object):
     _nt = _bases
     _codons = tuple(map("".join, product(_bases, _bases, _bases)))
 
-    def __init__(self, CodeSequence, ID=None, name=None, StartCodonSequence=None):
+    def __init__(self, code_sequence, ID=None, name=None, start_codon_sequence=None):
         """Returns new GeneticCode object.
 
-        CodeSequence : 64-character string containing NCBI representation
+        code_sequence : 64-character string containing NCBI representation
         of the genetic code. Raises GeneticCodeInitError if length != 64.
         """
-        if (len(CodeSequence) != 64):
-            raise GeneticCodeInitError("CodeSequence: %s has length %d, but expected 64"
-                                       % (CodeSequence, len(CodeSequence)))
+        if (len(code_sequence) != 64):
+            raise GeneticCodeInitError("code_sequence: %s has length %d, but expected 64"
+                                       % (code_sequence, len(code_sequence)))
 
-        self.CodeSequence = CodeSequence
+        self.code_sequence = code_sequence
         self.ID = ID
         self.name = name
-        self.StartCodonSequence = StartCodonSequence
+        self.start_codon_sequence = start_codon_sequence
         start_codons = {}
-        if StartCodonSequence:
-            for codon, aa in zip(self._codons, StartCodonSequence):
+        if start_codon_sequence:
+            for codon, aa in zip(self._codons, start_codon_sequence):
                 if aa != '-':
                     start_codons[codon] = aa
-        self.StartCodons = start_codons
-        codon_lookup = dict(list(zip(self._codons, CodeSequence)))
-        self.Codons = codon_lookup
+        self.start_codons = start_codons
+        codon_lookup = dict(list(zip(self._codons, code_sequence)))
+        self.codons = codon_lookup
         # create synonyms for each aa
         aa_lookup = {}
         for codon in self._codons:
@@ -93,18 +93,18 @@ class GeneticCode(object):
                 aa_lookup[aa] = [codon]
             else:
                 aa_lookup[aa].append(codon)
-        self.Synonyms = aa_lookup
+        self.synonyms = aa_lookup
         sense_codons = codon_lookup.copy()
         # create sense codons
         stop_codons = self['*']
         for c in stop_codons:
             del sense_codons[c]
-        self.SenseCodons = sense_codons
+        self.sense_codons = sense_codons
         # create anticodons
         ac = {}
-        for aa, codons in list(self.Synonyms.items()):
+        for aa, codons in list(self.synonyms.items()):
             ac[aa] = list(map(_simple_rc, codons))
-        self.Anticodons = ac
+        self.anticodons = ac
 
     def _analyze_quartet(self, codons, aa):
         """Analyzes a quartet of codons and amino acids: returns list of lists.
@@ -168,7 +168,7 @@ class GeneticCode(object):
             blocks = []
             curr_codons = []
             curr_aa = []
-            for index, codon, aa in zip(list(range(64)), self._codons, self.CodeSequence):
+            for index, codon, aa in zip(list(range(64)), self._codons, self.code_sequence):
                 # we're in a new block if it's a new quartet or a different aa
                 new_quartet = not index % 4
                 if new_quartet and curr_codons:
@@ -186,8 +186,8 @@ class GeneticCode(object):
     Blocks = property(_get_blocks)
 
     def __str__(self):
-        """Returns CodeSequence that constructs the GeneticCode."""
-        return self.CodeSequence
+        """Returns code_sequence that constructs the GeneticCode."""
+        return self.code_sequence
 
     def __repr__(self):
         """Returns reconstructable representation of the GeneticCode."""
@@ -206,11 +206,11 @@ class GeneticCode(object):
         """
         item = str(item)
         if len(item) == 1:  # amino acid
-            return self.Synonyms.get(item, [])
+            return self.synonyms.get(item, [])
         elif len(item) == 3:  # codon
             key = item.upper()
             key = key.replace('U', 'T')
-            return self.Codons.get(key, 'X')
+            return self.codons.get(key, 'X')
         else:
             raise InvalidCodonError("Codon or aa %s has wrong length" % item)
 
@@ -251,7 +251,7 @@ class GeneticCode(object):
     def is_start(self, codon):
         """Returns True if codon is a start codon, False otherwise."""
         fixed_codon = codon.upper().replace('U', 'T')
-        return fixed_codon in self.StartCodons
+        return fixed_codon in self.start_codons
 
     def is_stop(self, codon):
         """Returns True if codon is a stop codon, False otherwise."""
@@ -266,10 +266,10 @@ class GeneticCode(object):
         """
         changes = {}
         try:
-            other_code = other.CodeSequence
+            other_code = other.code_sequence
         except AttributeError:  # try using other directly as sequence
             other_code = other
-        for codon, old, new in zip(self._codons, self.CodeSequence, other_code):
+        for codon, old, new in zip(self._codons, self.code_sequence, other_code):
             if old != new:
                 changes[codon] = old + new
         return changes
