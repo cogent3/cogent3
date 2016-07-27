@@ -227,14 +227,14 @@ class _SubstitutionModel(object):
         s.append("motifs = %s)\n" % motifs)
         return " ".join(s)
 
-    def getAlphabet(self):
+    def get_alphabet(self):
         return self.alphabet
 
     def getMprobAlphabet(self):
         return self.mprob_model.get_input_alphabet()
 
     def getMotifs(self):
-        return list(self.getAlphabet())
+        return list(self.get_alphabet())
 
     def getWordLength(self):
         return self._word_length
@@ -262,7 +262,7 @@ class _SubstitutionModel(object):
         if aligned:
             klass = parameter_controller.AlignmentLikelihoodFunction
         else:
-            alphabet = self.getAlphabet()
+            alphabet = self.get_alphabet()
             assert alphabet.get_gap_motif() not in alphabet
             klass = parameter_controller.SequenceLikelihoodFunction
 
@@ -301,7 +301,7 @@ class _SubstitutionModel(object):
     def convertSequence(self, sequence, name):
         # make_likelihood_tree_leaf, sort of an indexed profile where duplicate
         # columns stored once, so likelihoods only calc'd once
-        return make_likelihood_tree_leaf(sequence, self.getAlphabet(), name)
+        return make_likelihood_tree_leaf(sequence, self.get_alphabet(), name)
 
     def count_motifs(self, alignment, include_ambiguity=False):
         return self.mprob_model.count_motifs(alignment,
@@ -368,7 +368,7 @@ class DiscreteSubstitutionModel(_SubstitutionModel):
     def makePsubsDefn(self, bprobs, word_probs, mprobs_matrix, rate_params):
         assert len(rate_params) == 0
         assert word_probs is mprobs_matrix, "Must use simple mprob model"
-        motifs = tuple(self.getAlphabet())
+        motifs = tuple(self.get_alphabet())
         return PsubMatrixDefn(
             name="psubs", dimension=('motif', motifs), default=None,
             dimensions=('locus', 'edge'))
@@ -410,7 +410,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         """
 
         _SubstitutionModel.__init__(self, alphabet, **kw)
-        alphabet = self.getAlphabet()  # as may be altered by recode_gaps etc.
+        alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
 
         if do_scaling is None:
             do_scaling = self._scalableQ
@@ -589,7 +589,7 @@ class General(_ContinuousSubstitutionModel):
     def __init__(self, alphabet, **kw):
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
 
-        alphabet = self.getAlphabet()  # as may be altered by recode_gaps etc.
+        alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
         mask = self._instantaneous_mask
         N = len(alphabet)
         self.param_pick = numpy.zeros([N, N], int)
@@ -617,7 +617,7 @@ class GeneralStationary(_ContinuousSubstitutionModel):
     def __init__(self, alphabet, **kw):
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
 
-        alphabet = self.getAlphabet()  # as may be altered by recode_gaps etc.
+        alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
         mask = self._instantaneous_mask
         N = len(alphabet)
         self.param_pick = numpy.zeros([N, N], int)
@@ -665,7 +665,7 @@ class Empirical(_ContinuousSubstitutionModel):
         """
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
 
-        alphabet = self.getAlphabet()  # as may be altered by recode_gaps etc.
+        alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
         N = len(alphabet)
         assert rate_matrix.shape == (N, N)
         assert numpy.alltrue(numpy.diagonal(rate_matrix) == 0)
@@ -886,7 +886,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         pred_func = pred.make_model_predicate(self)
         label = label or repr(pred)
         mask = predicate2matrix(
-            self.getAlphabet(), pred_func, mask=self._instantaneous_mask)
+            self.get_alphabet(), pred_func, mask=self._instantaneous_mask)
         return (label, mask)
 
     def getPredicateMask(self, pred):
@@ -960,7 +960,7 @@ class Codon(_Nucleotide):
             return ndiffs == 1
 
     def getPredefinedPredicates(self):
-        gc = self.getAlphabet().get_genetic_code()
+        gc = self.get_alphabet().get_genetic_code()
 
         def silent(x, y):
             return x != '---' and y != '---' and gc[x] == gc[y]

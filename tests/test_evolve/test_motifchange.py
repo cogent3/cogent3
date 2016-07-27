@@ -21,7 +21,7 @@ class FakeModel(object):
         self.alphabet = alphabet
         self.moltype = alphabet.moltype
 
-    def getAlphabet(self):
+    def get_alphabet(self):
         return self.alphabet
 
 
