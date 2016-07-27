@@ -425,14 +425,14 @@ class SequenceI(object):
         else:  # there were no positions that weren't gaps
             return 0
 
-    def fracDiffNonGaps(self, other):
+    def frac_diff_non_gaps(self, other):
         """Returns fraction of non-gap positions where self differs from other.
 
         Doesn't count any position where self or other has a gap.
         Truncates at the length of the shorter sequence.
 
         Returns 0 if one sequence is empty. Note that this means that
-        fracDiffNonGaps is _not_ the same as 1 - fracSameNonGaps, since both
+        frac_diff_non_gaps is _not_ the same as 1 - fracSameNonGaps, since both
         return 0 if one sequence is empty.
         """
         if not self or not other:
