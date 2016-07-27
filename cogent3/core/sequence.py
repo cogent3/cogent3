@@ -552,11 +552,11 @@ class Sequence(_Annotatable, SequenceI):
         """Returns filtered seq; used to do DNA/RNA conversions."""
         return seq
 
-    def getColourScheme(self, colours):
+    def get_colour_scheme(self, colours):
         return {}
 
-    def getColorScheme(self, colors):  # alias to support US spelling
-        return self.getColourScheme(colours=colors)
+    def get_color_scheme(self, colors):  # alias to support US spelling
+        return self.get_colour_scheme(colours=colors)
 
     def copy_annotations(self, other):
         self.annotations = other.annotations[:]
@@ -892,7 +892,7 @@ class NucleicAcidSequence(Sequence):
 
 class DnaSequence(NucleicAcidSequence):
 
-    def getColourScheme(self, colours):
+    def get_colour_scheme(self, colours):
         return {
             'A': colours.black,
             'T': colours.red,
@@ -907,7 +907,7 @@ class DnaSequence(NucleicAcidSequence):
 
 class RnaSequence(NucleicAcidSequence):
 
-    def getColourScheme(self, colours):
+    def get_colour_scheme(self, colours):
         return {
             'A': colours.black,
             'U': colours.red,

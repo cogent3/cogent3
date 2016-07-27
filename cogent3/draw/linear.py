@@ -244,7 +244,7 @@ class _SeqRepresentation(object):
             assert len(cvalues) == len(sequence)
             cvalues = numpy.asarray(cvalues)
         elif colour_sequences:
-            colour_map = sequence.getColourScheme(colors)
+            colour_map = sequence.get_colour_scheme(colors)
             color_specs = [colour_map.get(m, 'grey') for m in self.alphabet]
             alphabet_colours = numpy.array([
                 matplotlib.colors.colorConverter.to_rgba(c, alpha=.5)
