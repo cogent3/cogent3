@@ -484,15 +484,15 @@ class SequenceTests(TestCase):
         # case-sensitive!
         self.assertEqual(self.RNA('AAAAA').distance('CCCCC', f), 50)
 
-    def test_matrixDistance(self):
-        """Sequence matrixDistance should look up distances from a matrix"""
+    def test_matrix_distance(self):
+        """Sequence matrix_distance should look up distances from a matrix"""
         # note that the score matrix must contain 'diagonal' elements m[i][i]
         # to avoid failure when the sequences match.
         m = {'U': {'U': 0, 'C': 1, 'A': 5}, 'C': {'C': 0, 'A': 2, 'G': 4}}
-        self.assertEqual(self.RNA('UUUCCC').matrixDistance('UCACGG', m), 14)
-        self.assertEqual(self.RNA('UUUCCC').matrixDistance('', m), 0)
-        self.assertEqual(self.RNA('UUU').matrixDistance('CAC', m), 7)
-        self.assertRaises(KeyError, self.RNA('UUU').matrixDistance, 'CAG', m)
+        self.assertEqual(self.RNA('UUUCCC').matrix_distance('UCACGG', m), 14)
+        self.assertEqual(self.RNA('UUUCCC').matrix_distance('', m), 0)
+        self.assertEqual(self.RNA('UUU').matrix_distance('CAC', m), 7)
+        self.assertRaises(KeyError, self.RNA('UUU').matrix_distance, 'CAG', m)
 
     def test_fracSame(self):
         """Sequence fracSame should return similarity between sequences"""
