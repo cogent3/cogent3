@@ -78,7 +78,7 @@ We'll get the lnL and number of free parameters for later use.
 .. doctest::
 
     >>> null_lnL = lf.getLogLikelihood()
-    >>> null_nfp = lf.getNumFreeParams()
+    >>> null_nfp = lf.get_num_free_params()
 
 Specify each edge has it's own omega by just modifying the existing ``lf``. This means the new function will start with the above values.
 
@@ -134,7 +134,7 @@ The lnL's from the two models are now used to calculate the likelihood ratio sta
 .. doctest::
 
     >>> LR = 2 * (lf.getLogLikelihood() - null_lnL)
-    >>> df = lf.getNumFreeParams() - null_nfp
+    >>> df = lf.get_num_free_params() - null_nfp
     >>> P = stats.chisqprob(LR, df)
 
 Print this and look up a chi-sq with number of edges - 1 degrees of freedom.

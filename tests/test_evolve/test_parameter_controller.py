@@ -67,11 +67,11 @@ class test_parameter_controller(unittest.TestCase):
         lf = model.make_likelihood_function(self.tree)
         lf.set_constant_lengths()
         lf.set_alignment(self.al)
-        null = lf.getNumFreeParams()
+        null = lf.get_num_free_params()
         lf.set_param_rule(par_name='kappa',
                         is_independent=True,
                         edges=['b', 'd'])
-        self.assertEqual(null + 2, lf.getNumFreeParams())
+        self.assertEqual(null + 2, lf.get_num_free_params())
 
     def test_set_motif_probs(self):
         """Mprobs supplied to the parameter controller"""

@@ -335,7 +335,7 @@ We get the log-likelihood and the number of free parameters.
     >>> lnL = lf.getLogLikelihood()
     >>> print lnL
     -24601.9...
-    >>> nfp = lf.getNumFreeParams()
+    >>> nfp = lf.get_num_free_params()
     >>> print nfp
     16
 
@@ -480,7 +480,7 @@ We test the molecular clock hypothesis for human and chimpanzee lineages. The nu
     >>> lf.set_name('Null Hypothesis')
     >>> lf.optimise(local=True, show_progress=False)
     >>> null_lnL = lf.getLogLikelihood()
-    >>> null_nfp = lf.getNumFreeParams()
+    >>> null_nfp = lf.get_num_free_params()
     >>> print lf
     Null Hypothesis
     ==========================
@@ -503,7 +503,7 @@ The alternate allows the human and chimpanzee branches to differ by just setting
     >>> lf.set_name('Alt Hypothesis')
     >>> lf.optimise(local=True, show_progress=False)
     >>> alt_lnL = lf.getLogLikelihood()
-    >>> alt_nfp = lf.getNumFreeParams()
+    >>> alt_nfp = lf.get_num_free_params()
     >>> print lf
     Alt Hypothesis
     ==========================

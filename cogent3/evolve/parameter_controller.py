@@ -309,7 +309,7 @@ class _LikelihoodParameterController(_LF):
             sequence_length = None
 
         lnL = self.get_log_likelihood()
-        nfp = self.getNumFreeParams()
+        nfp = self.get_num_free_params()
         return aic(lnL, nfp, sequence_length)
 
     def get_bic(self):
@@ -317,7 +317,7 @@ class _LikelihoodParameterController(_LF):
         sequence_length = sum(len(self.get_param_value('lht', locus=l).index)
                               for l in self.locus_names)
         lnL = self.get_log_likelihood()
-        nfp = self.getNumFreeParams()
+        nfp = self.get_num_free_params()
         return bic(lnL, nfp, sequence_length)
 
 

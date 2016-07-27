@@ -804,8 +804,8 @@ class ParameterController(object):
                 changed.append(defn)
         self.updateIntermediateValues(changed)
 
-    def getNumFreeParams(self):
-        return sum(defn.getNumFreeParams() for defn in self.defns if isinstance(defn, _LeafDefn))
+    def get_num_free_params(self):
+        return sum(defn.get_num_free_params() for defn in self.defns if isinstance(defn, _LeafDefn))
 
     def optimise(self, local=None,
                  filename=None, interval=None,

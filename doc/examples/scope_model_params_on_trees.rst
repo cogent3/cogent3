@@ -221,7 +221,7 @@ I'll demonstrate these cases sequentially as they involve gradually increasing t
     --------------
     >>> print lf.getLogLikelihood()
     -8640.9...
-    >>> print lf.getNumFreeParams()
+    >>> print lf.get_num_free_params()
     9
 
 I'll now free up ``omega`` on the primate clade, but making it a single value shared by all primate lineages.
@@ -259,7 +259,7 @@ I'll now free up ``omega`` on the primate clade, but making it a single value sh
     --------------
     >>> print lf.getLogLikelihood()
     -8639.7...
-    >>> print lf.getNumFreeParams()
+    >>> print lf.get_num_free_params()
     10
 
 Finally I'll allow all primate edges to have different values of ``omega``.
@@ -297,7 +297,7 @@ Finally I'll allow all primate edges to have different values of ``omega``.
     --------------
     >>> print lf.getLogLikelihood()
     -8638.9...
-    >>> print lf.getNumFreeParams()
+    >>> print lf.get_num_free_params()
     11
 
 We now allow ``omega`` to be different on all edges.
@@ -334,5 +334,5 @@ We now allow ``omega`` to be different on all edges.
     --------------
     >>> print lf.getLogLikelihood()
     -8636.1...
-    >>> print lf.getNumFreeParams()
+    >>> print lf.get_num_free_params()
     15

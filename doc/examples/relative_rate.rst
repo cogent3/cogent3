@@ -85,7 +85,7 @@ We extract the log-likelihood and number of free parameters for later use.
 .. doctest::
 
     >>> null_lnL = lf.getLogLikelihood()
-    >>> null_nfp = lf.getNumFreeParams()
+    >>> null_nfp = lf.get_num_free_params()
 
 Clear the local clock constraint, freeing up the branch lengths.
 
@@ -136,7 +136,7 @@ These two lnL's are now used to calculate the likelihood ratio statistic it's de
 .. doctest::
 
     >>> LR = 2 * (lf.getLogLikelihood() - null_lnL)
-    >>> df = lf.getNumFreeParams() - null_nfp
+    >>> df = lf.get_num_free_params() - null_nfp
     >>> P = stats.chisqprob(LR, df)
 
 Print this and look up a :math:`\chi^2` with number of edges - 1 degrees of freedom.
