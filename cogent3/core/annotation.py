@@ -201,7 +201,7 @@ class _Feature(_Annotatable):
         Name = "%s of %s" % (repr(slicemap), self.Name)
         return self.__class__(self, slicemap, type="slice", Name=Name)
 
-    def getSlice(self, complete=True):
+    def get_slice(self, complete=True):
         """The corresponding sequence fragment.  If 'complete' is true
         and the full length of this feature is not present in the sequence
         then this method will fail."""

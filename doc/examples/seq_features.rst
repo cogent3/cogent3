@@ -51,14 +51,14 @@ We can use this list to construct a pseudo-feature covering (or excluding) multi
 
     >>> print s.get_region_covering_all(exons)
     region "exon" at [10:15, 30:40]/48
-    >>> s.get_region_covering_all(exons).getSlice()
+    >>> s.get_region_covering_all(exons).get_slice()
     DnaSequence(CCCCCTT... 15)
 
 or not exons (the exon *shadow*):
 
 .. doctest::
 
-    >>> print s.get_region_covering_all(exons).getShadow().getSlice()
+    >>> print s.get_region_covering_all(exons).getShadow().get_slice()
     AAGAAGAAGAAAAAAAAAAATTTTTAAAAAAAA
 
 The first of these essentially returns the CDS of the gene.
@@ -67,7 +67,7 @@ Features are themselves sliceable:
 
 .. doctest::
 
-    >>> exon1[0:3].getSlice()
+    >>> exon1[0:3].get_slice()
     DnaSequence(CCC)
 
 This approach to sequence / alignment handling allows the user to manipulate them according to things they know about such as genes or repeat elements. Most of this annotation data can be obtained from genome portals.

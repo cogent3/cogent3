@@ -120,16 +120,16 @@ class TestAnnotations(unittest.TestCase):
         feature_list = newaln.get_annotations_matching("LTR")
         for annot_type in ["LTR", "misc_feature", "CDS", "5'UTR"]:
             feature_list = newaln.get_annotations_matching(annot_type)
-            new = newaln.get_region_covering_all(feature_list).getSlice().todict()
+            new = newaln.get_region_covering_all(feature_list).get_slice().todict()
             expected = aln_expecteds[annot_type]
             assert expected == new, (annot_type, expected, new)
             if annot_type in ["misc_feature", "LTR"]:
                 continue  # because seqs haven't been annotated with it
             for name in self.aln.names:
                 orig = str(list(self.aln.get_annotations_from_seq(name,
-                                                                    annot_type))[0].getSlice())
+                                                                    annot_type))[0].get_slice())
                 new = str(list(newaln.get_annotations_from_seq(name,
-                                                                 annot_type))[0].getSlice())
+                                                                 annot_type))[0].get_slice())
                 assert orig == new, (name, annot_type, orig, new)
 
     def test_feature_projection(self):
@@ -139,10 +139,10 @@ class TestAnnotations(unittest.TestCase):
             expected = expecteds[seq_name]
             seq_ltr = self.aln.project_annotation(seq_name, aln_ltr)
             if '-' in expected:
-                self.assertRaises(ValueError, seq_ltr.getSlice)
+                self.assertRaises(ValueError, seq_ltr.get_slice)
                 seq_ltr = seq_ltr.without_lost_spans()
                 expected = expected.replace('-', '')
-            self.assertEqual(seq_ltr.getSlice(), expected)
+            self.assertEqual(seq_ltr.get_slice(), expected)
 
     def test_reversecomplement(self):
         """test correct translation of annotations on reverse complement."""

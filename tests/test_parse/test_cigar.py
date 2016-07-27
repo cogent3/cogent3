@@ -72,7 +72,7 @@ class TestCigar(unittest.TestCase):
             self.aln.get_seq("FAKE01").add_feature("annot%d" %
                             i, "annot", [(start, end)])
             annot = self.aln.get_annotations_from_any_seq("annot%d" % i)
-            slice_aln = aln.get_region_covering_all(annot).asOneSpan().getSlice()
+            slice_aln = aln.get_region_covering_all(annot).asOneSpan().get_slice()
             i += 1
 
             cmp_aln = CigarParser(self.seqs, self.cigars, sliced=True,

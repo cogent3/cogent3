@@ -190,7 +190,7 @@ Create the sequence feature and use it to slice the sequence.
 .. doctest::
 
     >>> pos3 = seq.add_feature('pos3', 'pos3', indices)
-    >>> pos3 = pos3.getSlice()
+    >>> pos3 = pos3.get_slice()
     >>> assert str(pos3) == 'GGGG'
 
 Getting 1st and 2nd positions from codons
@@ -204,7 +204,7 @@ The only difference here to above is that our spans cover 2 positions.
     >>> seq = DNA.make_sequence('ATGATGATGATG')
     >>> indices = [(i, i+2) for i in range(len(seq))[::3]]
     >>> pos12 = seq.add_feature('pos12', 'pos12', indices)
-    >>> pos12 = pos12.getSlice()
+    >>> pos12 = pos12.get_slice()
     >>> assert str(pos12) == 'ATATATAT'
 
 Return a randomized version of the sequence

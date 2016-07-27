@@ -371,7 +371,7 @@ ORIGIN
             'DSNGLGVFCKWRRIKSTVVLYNHLACIKQMDNRF'}
 
         for locus in cds:
-            got = cds[locus].getSlice().\
+            got = cds[locus].get_slice().\
                 without_terminal_stop_sodon().get_translation()
             self.assertEqual(str(got), expects[locus])
         infile.close()
