@@ -132,7 +132,7 @@ class LikelihoodTreeAlignmentSplitterDefn(CalculationDefn):
     name = 'local_lht'
 
     def calc(self, parallel_context, lht):
-        return lht.parallelShare(parallel_context)
+        return lht.parallel_share(parallel_context)
 
 
 def make_total_loglikelihood_defn(tree, leaves, psubs, mprobs, bprobs, bin_names,
