@@ -171,7 +171,7 @@ def makeSampleAlignment():
     seq2 = seq2[:30] + seq2[50:]
     seq1.Name = 'FAKE01'
     seq2.Name = 'FAKE02'
-    names = (seq1.getName(), seq2.getName())
+    names = (seq1.get_name(), seq2.get_name())
     align = global_pairwise(seq1, seq2, DNA, 2, 1)
     align.addAnnotation(annotation.Variable, 'redline', 'align', [
                         ((0, 15), 1), ((15, 30), 2), ((30, 45), 3)])

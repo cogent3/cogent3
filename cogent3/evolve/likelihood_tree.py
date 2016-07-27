@@ -284,7 +284,7 @@ def makeLikelihoodTreeLeaf(sequence, alphabet=None, seq_name=None):
     if alphabet is None:
         alphabet = sequence.MolType.Alphabet
     if seq_name is None:
-        seq_name = sequence.getName()
+        seq_name = sequence.get_name()
 
     motif_len = alphabet.getMotifLen()
     sequence2 = sequence.getInMotifSize(motif_len)

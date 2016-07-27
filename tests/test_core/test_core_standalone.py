@@ -399,7 +399,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_seqnames(self):
         s1 = self.alignment.get_seq('Mouse')
-        self.assertEqual(s1.getName(), 'Mouse')
+        self.assertEqual(s1.get_name(), 'Mouse')
 
     def test_trim_stop_codons(self):
         """test without terminal stop handling"""

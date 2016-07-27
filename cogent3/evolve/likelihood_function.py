@@ -345,7 +345,7 @@ class LikelihoodFunction(ParameterController):
     def setName(self, name):
         self._name = name
 
-    def getName(self):
+    def get_name(self):
         return self._name or 'unnamed'
 
     def setTablesFormat(self, space=4, digits=4):
