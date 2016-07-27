@@ -121,7 +121,7 @@ class TransitionMatrix(object):
                 state_probs = numpy.dot(self.Matrix, state_probs * obs[i])
             return sum(state_probs * self.StationaryProbs)
 
-    def getPosteriorProbs(self, obs):
+    def get_posterior_probs(self, obs):
         """'obs' is a sequence of state probability vectors"""
         result = numpy.zeros([len(obs), self.size], Float)
 
