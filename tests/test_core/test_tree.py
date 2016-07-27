@@ -1777,7 +1777,7 @@ class SmallTreeReshapeTestClass(TestCase):
 
     def test_reroot(self):
         tree = LoadTree(treestring="((a,b),(c,d),e)")
-        tree2 = tree.rootedWithTip('b')
+        tree2 = tree.rooted_with_tip('b')
         self.assertEqual(tree2.get_newick(), "(a,b,((c,d),e));")
 
     def test_same_shape(self):
