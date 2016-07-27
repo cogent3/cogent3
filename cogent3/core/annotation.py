@@ -221,7 +221,7 @@ class _Feature(_Annotatable):
             new.attach_annotations(sliced_annots)
         return new
 
-    def asOneSpan(self):
+    def as_one_span(self):
         new_map = self.map.getCoveringSpan()
         return self.__class__(self.parent, new_map, type="span", Name=self.Name)
 

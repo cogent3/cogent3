@@ -305,11 +305,11 @@ In this case, only those residues included within the feature are covered - note
     <BLANKLINE>
 
 
-``Feature.asOneSpan()``, is applied to the exon that straddles the gap in ``x``. The result is we preserve that feature.
+``Feature.as_one_span()``, is applied to the exon that straddles the gap in ``x``. The result is we preserve that feature.
 
 .. doctest::
     
-    >>> print(aln_exons[0].asOneSpan().get_slice())
+    >>> print(aln_exons[0].as_one_span().get_slice())
     >x
     C-CCC
     >y
@@ -322,13 +322,13 @@ These properties also are consistently replicated with reverse complemented sequ
     
     >>> aln_rc = aln.rc()
     >>> rc_exons = list(aln_rc.get_annotations_from_any_seq('exon'))
-    >>> print(aln_rc[rc_exons]) # not using asOneSpan, so gap removed from x
+    >>> print(aln_rc[rc_exons]) # not using as_one_span, so gap removed from x
     >x
     CCCC
     >y
     ----
     <BLANKLINE>
-    >>> print(aln_rc[rc_exons[0].asOneSpan()])
+    >>> print(aln_rc[rc_exons[0].as_one_span()])
     >x
     C-CCC
     >y

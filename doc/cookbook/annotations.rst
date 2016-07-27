@@ -408,14 +408,14 @@ If you query for a feature from a sequence, it's alignment coordinates may be di
 
 .. note:: The ``T`` opposite the gap is missing since this approach only returns positions directly corresponding to the feature.
 
-``asOneSpan`` unifies features with discontinuous alignment coordinates
+``as_one_span`` unifies features with discontinuous alignment coordinates
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-To get positions spanned by a feature, including gaps, use ``asOneSpan``.
+To get positions spanned by a feature, including gaps, use ``as_one_span``.
 
 .. doctest::
 
-    >>> unified = aln_exons[0].asOneSpan()
+    >>> unified = aln_exons[0].as_one_span()
     >>> print aln3[unified]
     >x
     C-CCC
