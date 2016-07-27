@@ -148,7 +148,7 @@ class Display2D(Drawable):
         import numpy
         ax = comparison_display(self.seq1, self.seq2)
         alphabet = self.seq1.MolType.Alphabet
-        seq1 = alphabet.toIndices(self.seq1)
-        seq2 = alphabet.toIndices(self.seq2)
+        seq1 = alphabet.to_indices(self.seq1)
+        seq2 = alphabet.to_indices(self.seq2)
         ax.pcolorfast(numpy.equal.outer(seq2, seq1))
         return ax.get_figure()

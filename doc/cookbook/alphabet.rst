@@ -43,7 +43,7 @@ Convert a sequence into integers
 .. doctest::
     
     >>> seq = 'TAGT'
-    >>> indices = DNA.Alphabet.toIndices(seq)
+    >>> indices = DNA.Alphabet.to_indices(seq)
     >>> indices
     [0, 2, 3, 0]
 

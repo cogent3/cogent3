@@ -207,7 +207,7 @@ class Enumeration(tuple):
         recommended because the internal implementation may change."""
         return self._obj_to_index[item]
 
-    def toIndices(self, data):
+    def to_indices(self, data):
         """Returns sequence of indices from sequence of elements.
 
         Raises KeyError if some of the elements were not found.
@@ -226,7 +226,7 @@ class Enumeration(tuple):
     def is_valid(self, seq):
         """Returns True if seq contains only items in self."""
         try:
-            self.toIndices(seq)
+            self.to_indices(seq)
             return True
         except (KeyError, TypeError):
             return False
@@ -237,7 +237,7 @@ class Enumeration(tuple):
         Specifically, takes as input a sequence of numbers corresponding to
         elements in the Enumeration (i.e. the numbers must all be < len(self).
         Returns a list of the items in the same order as the indices. Inverse
-        of toIndices.
+        of to_indices.
 
         e.g. for the DNA alphabet ('U','C','A','G'), the sequence [1,1,2,0]
         would produce the result 'CCAU', returning the element corresponding
@@ -414,7 +414,7 @@ class JointEnumeration(Enumeration):
                 result.append(Enumeration(a))
         return result
 
-    def packArrays(self, arrays):
+    def pack_arrays(self, arrays):
         """Packs parallel arrays on subenums to single array on joint enum.
 
         WARNING: must pass arrays as single object.
@@ -423,7 +423,7 @@ class JointEnumeration(Enumeration):
         indices on the appropriate subenumeration. For example, you might have
         arrays for the bases at the first, second, and third positions of each
         codon in a gene, and want to pack them together into a single Codons
-        object. packArrays() allows you to do this without having to explicitly
+        object. pack_arrays() allows you to do this without having to explicitly
         interleave the arrays into a single sequence and then convert it back
         on the JointEnumeration.
 
@@ -439,7 +439,7 @@ class JointEnumeration(Enumeration):
         - Arrays must already be converted into indices -- for example, you
         can't pass in raw strings as sequences.
 
-        - This method is the inverse of unpackArrays().
+        - This method is the inverse of unpack_arrays().
 
         - Uses self.ArrayType to figure out the type of array to return (e.g.
         the amino acids may use a character array, but you need a larger
@@ -448,7 +448,7 @@ class JointEnumeration(Enumeration):
         """
         return sum(self._sub_enum_factors * array(arrays, self.ArrayType), axis=0)
 
-    def unpackArrays(self, a):
+    def unpack_arrays(self, a):
         """Unpacks array on joint enum to individual arrays on subenums.
 
         Returns result as single numpy array object.
@@ -458,7 +458,7 @@ class JointEnumeration(Enumeration):
         vectors of the appropriate indices on each subenumeration. For example,
         you might have a sequence on the Codons enumeration, and want to unpack
         it into the corresponding sequences of the first, second, and third
-        position bases in each codon. unpackArrays() allows you to do this .
+        position bases in each codon. unpack_arrays() allows you to do this .
 
         Notes:
 
@@ -534,9 +534,9 @@ class Alphabet(Enumeration):
     def fromSequenceToArray(self, sequence):
         """Returns an array of indices corresponding to items in sequence.
 
-        Unlike toIndices() in superclass, this method returns a numpy array
+        Unlike to_indices() in superclass, this method returns a numpy array
         object. It also breaks the seqeunce into items in the current alphabet
-        (e.g. breaking a raw DNA sequence into codons), which toIndices() does
+        (e.g. breaking a raw DNA sequence into codons), which to_indices() does
         not do. It also requires the sequence to be a Sequence object rather
         than an arbitrary string, tuple, etc.
         """
@@ -731,7 +731,7 @@ class CharAlphabet(Alphabet):
         try:
             if len(seq) == 0:  # can't be invalid if empty
                 return True
-            ind = self.toIndices(seq)
+            ind = self.to_indices(seq)
             return max(ind) < len(self) and min(ind) >= 0
         except (TypeError, KeyError):
             return False

@@ -472,7 +472,7 @@ def freqs_from_aln(aln, alphabet, scaled_aln_size=100):
          that one to be more generic) since they're doing the same thing now.
 
     """
-    alphabet_as_indices = array([aln.Alphabet.toIndices(alphabet)]).transpose()
+    alphabet_as_indices = array([aln.Alphabet.to_indices(alphabet)]).transpose()
     aln_data = ravel(aln.ArrayPositions)
     return (alphabet_as_indices == aln_data).sum(1) * \
         (scaled_aln_size / len(aln_data))
@@ -497,7 +497,7 @@ def get_positional_frequencies(aln, position_number, alphabet,
             ignored. Is this the desired behavior?
 
     """
-    alphabet_as_indices = array([aln.Alphabet.toIndices(alphabet)]).transpose()
+    alphabet_as_indices = array([aln.Alphabet.to_indices(alphabet)]).transpose()
     position_data = aln.ArrayPositions[position_number]
     return (alphabet_as_indices == position_data).sum(1) * \
         (scaled_aln_size / len(position_data))
@@ -558,7 +558,7 @@ def get_subalignments(aln, position, selections):
 
     """
     result = []
-    for s in aln.Alphabet.toIndices(selections):
+    for s in aln.Alphabet.to_indices(selections):
         seqs_to_keep = nonzero(aln.ArraySeqs[:, position] == s)[0]
         result.append(aln.get_sub_alignment(seqs=seqs_to_keep))
     return result

@@ -1017,7 +1017,7 @@ class ModelSequenceBase(object):
     def _from_sequence(self, data):
         """Fills self using the values in data, via the Alphabet."""
         if self.Alphabet:
-            indices = self.Alphabet.toIndices(data)
+            indices = self.Alphabet.to_indices(data)
             self._data = array(indices, self.Alphabet.ArrayType)
         else:
             self._data = array(data)
@@ -1434,7 +1434,7 @@ class ModelCodonSequence(ModelSequence):
 
     def to_dna(self):
         """Returns a ModelDnaSequence from the data in self"""
-        unpacked = self.Alphabet.unpackArrays(self._data)
+        unpacked = self.Alphabet.unpack_arrays(self._data)
         result = zeros((len(self._data), 3))
         for i, v in enumerate(unpacked):
             result[:, i] = v
@@ -1442,7 +1442,7 @@ class ModelCodonSequence(ModelSequence):
 
     def to_rna(self):
         """Returns a ModelDnaSequence from the data in self."""
-        unpacked = self.Alphabet.unpackArrays(self._data)
+        unpacked = self.Alphabet.unpack_arrays(self._data)
         result = zeros((len(self._data), 3))
         for i, v in enumerate(unpacked):
             result[:, i] = v
