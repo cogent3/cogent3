@@ -41,20 +41,20 @@ If the sequence does not have a matching feature you get back an empty list, and
     >>> s[dont_exist]
     DnaSequence()
 
-To construct a pseudo-feature covering (or excluding) multiple features, use ``getRegionCoveringAll``:
+To construct a pseudo-feature covering (or excluding) multiple features, use ``get_region_covering_all``:
 
 .. doctest::
     
-    >>> print(s.getRegionCoveringAll(exons))
+    >>> print(s.get_region_covering_all(exons))
     region "exon" at [10:15, 30:40]/48
-    >>> print(s.getRegionCoveringAll(exons).getShadow())
+    >>> print(s.get_region_covering_all(exons).getShadow())
     region "not exon" at [0:10, 15:30, 40:48]/48
 
 eg: all the exon sequence:
 
 .. doctest::
     
-    >>> s.getRegionCoveringAll(exons).getSlice()
+    >>> s.get_region_covering_all(exons).getSlice()
     DnaSequence(CCCCCTT... 15)
 
 or with slice notation:
@@ -64,11 +64,11 @@ or with slice notation:
     >>> s[exon1, exon2]
     DnaSequence(CCCCCTT... 15)
 
-Though ``.getRegionCoveringAll`` also guarantees no overlaps within the result, slicing does not:
+Though ``.get_region_covering_all`` also guarantees no overlaps within the result, slicing does not:
 
 .. doctest::
     
-    >>> print(s.getRegionCoveringAll(exons+exons))
+    >>> print(s.get_region_covering_all(exons+exons))
     region "exon" at [10:15, 30:40]/48
     >>> s[exon1, exon1, exon1, exon1, exon1]
     Traceback (most recent call last):
@@ -117,7 +117,7 @@ Features are generally attached to the thing they annotate, but in those cases w
     
     >>> len(s.annotations)
     2
-    >>> region = s.getRegionCoveringAll(exons)
+    >>> region = s.get_region_covering_all(exons)
     >>> len(s.annotations)
     2
     >>> region.attach()
@@ -339,7 +339,7 @@ Features can provide their coordinates, useful for custom analyses.
     
 .. doctest::
     
-    >>> all_exons = aln.getRegionCoveringAll(aln_exons)
+    >>> all_exons = aln.get_region_covering_all(aln_exons)
     >>> coords = all_exons.getCoordinates()
     >>> assert coords == [(0,1),(2,5)]
 

@@ -129,7 +129,7 @@ Construct a pseudo-feature (``cds``) that's a union of other features (``exon1``
     >>> exon1 = s1.add_feature('exon', 'A', [(10,15)])
     >>> exon2 = s1.add_feature('exon', 'B', [(30,40)])
     >>> exon3 = s1.add_feature('exon', 'C', [(45, 48)])
-    >>> cds = s1.getRegionCoveringAll([exon1, exon2, exon3])
+    >>> cds = s1.get_region_covering_all([exon1, exon2, exon3])
 
 Getting annotation coordinates
 """"""""""""""""""""""""""""""
@@ -224,7 +224,7 @@ Slicing by pseudo-feature or feature series
     >>> exon1 = s1.add_feature('exon', 'A', [(10,15)])
     >>> exon2 = s1.add_feature('exon', 'B', [(30,40)])
     >>> exon3 = s1.add_feature('exon', 'C', [(45, 48)])
-    >>> cds = s1.getRegionCoveringAll([exon1, exon2, exon3])
+    >>> cds = s1.get_region_covering_all([exon1, exon2, exon3])
     >>> print s1[cds]
     CCCCCTTTTTAAAAACCC
     >>> print s1[exon1, exon2, exon3]
@@ -257,11 +257,11 @@ Slice series must not be overlapping
     Traceback (most recent call last):
     ValueError: Uninvertable. Overlap: 10 < 15
 
-But ``getRegionCoveringAll`` resolves this, ensuring no overlaps.
+But ``get_region_covering_all`` resolves this, ensuring no overlaps.
 
 .. doctest::
 
-    >>> print s1.getRegionCoveringAll([exon3, exon3]).getSlice()
+    >>> print s1.get_region_covering_all([exon3, exon3]).getSlice()
     CCC
 
 You can slice an annotation itself
@@ -529,7 +529,7 @@ What features of a certain type are available?
 Getting all features of a type, or everything but that type
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-The annotation methods ``getRegionCoveringAll`` and ``getShadow`` can be used to grab all the coding sequences or non-coding sequences in a ``DnaSequence`` object.
+The annotation methods ``get_region_covering_all`` and ``getShadow`` can be used to grab all the coding sequences or non-coding sequences in a ``DnaSequence`` object.
 
 .. doctest::
 
@@ -537,7 +537,7 @@ The annotation methods ``getRegionCoveringAll`` and ``getShadow`` can be used to
     >>> parser = RichGenbankParser(open('data/ST_genome_part.gb'))
     >>> seq = [seq for accession, seq in parser][0]
     >>> all_cds = seq.get_annotations_matching('CDS')
-    >>> coding_seqs = seq.getRegionCoveringAll(all_cds)
+    >>> coding_seqs = seq.get_region_covering_all(all_cds)
     >>> coding_seqs
     region "CDS" at [189:255, 336:2799, 2800:3730, 3733...
     >>> coding_seqs.getSlice()

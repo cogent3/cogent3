@@ -45,20 +45,20 @@ You can query annotations by type and optionally by label, receiving a list of f
     >>> print exons
     [exon "exon1" at [10:15]/48, exon "exon2" at [30:40]/48]
 
-We can use this list to construct a pseudo-feature covering (or excluding) multiple features using ``getRegionCoveringAll``. For instance, getting all exons,
+We can use this list to construct a pseudo-feature covering (or excluding) multiple features using ``get_region_covering_all``. For instance, getting all exons,
 
 .. doctest::
 
-    >>> print s.getRegionCoveringAll(exons)
+    >>> print s.get_region_covering_all(exons)
     region "exon" at [10:15, 30:40]/48
-    >>> s.getRegionCoveringAll(exons).getSlice()
+    >>> s.get_region_covering_all(exons).getSlice()
     DnaSequence(CCCCCTT... 15)
 
 or not exons (the exon *shadow*):
 
 .. doctest::
 
-    >>> print s.getRegionCoveringAll(exons).getShadow().getSlice()
+    >>> print s.get_region_covering_all(exons).getShadow().getSlice()
     AAGAAGAAGAAAAAAAAAAATTTTTAAAAAAAA
 
 The first of these essentially returns the CDS of the gene.
