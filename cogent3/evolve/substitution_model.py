@@ -275,7 +275,7 @@ class _SubstitutionModel(object):
         if expm is None:
             expm = self._default_expm_setting
         if expm is not None:
-            result.setExpm(expm)
+            result.set_expm(expm)
 
         if digits or space:
             result.set_tables_format(digits=digits, space=space)
