@@ -1069,6 +1069,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(cols, list(
             map(list, ['AAA', 'AAA', 'AAA', 'A-A', 'A--', 'A--'])))
 
+    
     def test_take_positions(self):
         """SequenceCollection take_positions should return new alignment w/ specified pos"""
         self.assertEqual(self.gaps.take_positions([5, 4, 0],
@@ -1450,6 +1451,25 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 class DenseAlignmentTests(AlignmentBaseTests, TestCase):
     Class = DenseAlignment
 
+    def test_slice_align(self):
+        """slicing alignment should work correctly"""
+        data = {'seq1': 'ACGACGACG',
+                'seq2': 'ACGACGACG',
+                'seq3': 'ACGACGACG'}
+        alignment = self.Class(data=data)
+        sub_align = alignment[2:5]
+        self.assertTrue(isinstance(sub_align, self.Class))
+        expect = {'seq1': 'GAC',
+                  'seq2': 'GAC',
+                  'seq3': 'GAC'}
+        self.assertEqual(sub_align.todict(), expect)
+        # slice third positions
+        sub_align = alignment[2::3]
+        expect = {'seq1': 'GGG',
+                  'seq2': 'GGG',
+                  'seq3': 'GGG'}
+        self.assertEqual(sub_align.todict(), expect)
+    
     def test_get_freqs(self):
         """DenseAlignment get_seq_freqs: should work on positions and sequences 
         """
@@ -1834,10 +1854,14 @@ class DenseAlignmentSpecificTests(TestCase):
             self.assertEqual(i, j)
 
     def test_getitem(self):
-        """DenseAlignment getitem should default to positions as chars"""
+        """DenseAlignment getitem act like standard alignment slice"""
         a2 = self.a2
-        self.assertEqual(a2[1], ['B', 'E'])
-        self.assertEqual(a2[1:], [['B', 'E'], ['C', 'F']])
+        expect = {'x': 'B', 'y': 'E'}
+        got = a2[1]
+        self.assertEqual(got.todict(), expect)
+        expect = {'x': 'BC', 'y': 'EF'}
+        got = a2[1:]
+        self.assertEqual(got.todict(), expect)
 
     def test_get_sub_alignment(self):
         """DenseAlignment get_sub_alignment should get requested part of alignment."""

@@ -174,7 +174,7 @@ class AlignmentTestMethods(unittest.TestCase):
         self.assertEqual(sub_align.todict(), {
                          'seq1': 'T', 'seq2': 'T', 'seq3': 'T'})
 
-    def test_slidingWindows(self):
+    def test_sliding_windows(self):
         """test slicing of sequences"""
         alignment = LoadSeqs(
             data={'seq1': 'ACGTACGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'})
