@@ -745,7 +745,7 @@ class CharAlphabet(Alphabet):
         """
         return take(self._char_nums_to_indices, data.view('B'))
 
-    def toChars(self, data):
+    def to_chars(self, data):
         """Converts array of indices into array of elements.
 
         For example, on the 'UCAG' RNA alphabet, an array with the data
@@ -765,8 +765,8 @@ class CharAlphabet(Alphabet):
         if not s:
             return ''
         elif len(s) == 1:
-            val = self.toChars(data)
+            val = self.to_chars(data)
             val = val.tostring().decode('utf-8')
             return val
         else:
-            return delimiter.join([i.tostring().decode('utf-8') for i in self.toChars(data)])
+            return delimiter.join([i.tostring().decode('utf-8') for i in self.to_chars(data)])
