@@ -215,7 +215,7 @@ class ModelDataInteractionTestMethods(TestCase):
 
     def test_getMotifs(self):
         """testing return of motifs"""
-        model_motifs = substitution_model.Nucleotide().getMotifs()
+        model_motifs = substitution_model.Nucleotide().get_motifs()
 
     def test_get_param_list(self):
         """testing getting the parameter list"""

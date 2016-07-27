@@ -559,7 +559,7 @@ motif    mprobs
         assert hasattr(mprobs, 'keys'), mprobs
         keys = list(mprobs.keys())
         keys.sort()
-        obs = self.submodel.getMotifs()
+        obs = self.submodel.get_motifs()
         obs.sort()
         self.assertEqual(obs, keys)
 

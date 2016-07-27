@@ -68,7 +68,7 @@ class _LikelihoodParameterController(_LF):
         self.locus_names = _category_names('locus', loci)
         self.bin_names = _category_names('bin', bins)
         self.posn_names = [str(i) for i in range(model.getWordLength())]
-        self.motifs = self._motifs = model.getMotifs()
+        self.motifs = self._motifs = model.get_motifs()
         self._mprob_motifs = list(model.get_mprob_alphabet())
         defn = self.make_likelihood_defn(**kw)
         super(_LF, self).__init__(defn)

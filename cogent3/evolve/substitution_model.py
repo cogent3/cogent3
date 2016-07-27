@@ -222,7 +222,7 @@ class _SubstitutionModel(object):
         if hasattr(self, "predicate_masks"):
             parlist = list(self.predicate_masks.keys())
             s.append("params = %s;" % parlist)
-        motifs = self.getMotifs()
+        motifs = self.get_motifs()
         s.append("number of motifs = %s;" % len(motifs))
         s.append("motifs = %s)\n" % motifs)
         return " ".join(s)
@@ -233,7 +233,7 @@ class _SubstitutionModel(object):
     def get_mprob_alphabet(self):
         return self.mprob_model.get_input_alphabet()
 
-    def getMotifs(self):
+    def get_motifs(self):
         return list(self.get_alphabet())
 
     def getWordLength(self):
