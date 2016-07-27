@@ -137,7 +137,7 @@ class TestAnnotations(unittest.TestCase):
         aln_ltr = self.aln.getAnnotationsMatching('LTR')[0]
         for seq_name in ['FAKE01', 'FAKE02']:
             expected = expecteds[seq_name]
-            seq_ltr = self.aln.projectAnnotation(seq_name, aln_ltr)
+            seq_ltr = self.aln.project_annotation(seq_name, aln_ltr)
             if '-' in expected:
                 self.assertRaises(ValueError, seq_ltr.getSlice)
                 seq_ltr = seq_ltr.withoutLostSpans()
