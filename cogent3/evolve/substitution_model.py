@@ -863,14 +863,14 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         predicate_masks = {}
         order = []
         for (key, pred) in rules:
-            (label, mask) = self.adaptPredicate(pred, key)
+            (label, mask) = self.adapt_predicate(pred, key)
             if label in predicate_masks:
                 raise KeyError('Duplicate predicate name "%s"' % label)
             predicate_masks[label] = mask
             order.append(label)
         return predicate_masks, order
 
-    def adaptPredicate(self, pred, label=None):
+    def adapt_predicate(self, pred, label=None):
         if isinstance(pred, str):
             pred = predicate.parse(pred)
         elif isinstance(pred, collections.Callable):
@@ -887,7 +887,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         elif pred in self.predicate_masks:
             mask = self.predicate_masks[pred]
         else:
-            (label, mask) = self.adaptPredicate(pred)
+            (label, mask) = self.adapt_predicate(pred)
         return mask
 
 
