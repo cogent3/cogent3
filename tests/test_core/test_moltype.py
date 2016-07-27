@@ -452,9 +452,9 @@ class MolTypeTests(TestCase):
         self.assertEqual(g('---a---c---u----g---'), 'acug')
         self.assertEqual(g(tuple('---a---c---u----g---')), tuple('acug'))
 
-    def test_gapList(self):
-        """MolType gapList should return correct gap positions"""
-        g = RnaMolType.gapList
+    def test_gap_indices(self):
+        """MolType gap_indices should return correct gap positions"""
+        g = RnaMolType.gap_indices
         self.assertEqual(g(''), [])
         self.assertEqual(g('ACUGUCAGUACGHFSDKJCUICDNINS'), [])
         self.assertEqual(g('GUACGUIACAKJDC-SDFHJDSFK'), [14])
@@ -463,15 +463,15 @@ class MolTypeTests(TestCase):
         self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU---'),
                          [0, 1, 2, 11, 12, 13, 19, 20, 21, 30, 31, 32])
         a = MolType({'A': 1}, Gaps=dict.fromkeys('!@#$%'))
-        g = a.gapList
+        g = a.gap_indices
         self.assertEqual(g(''), [])
         self.assertEqual(g('!!!'), [0, 1, 2])
         self.assertEqual(g('!@#$!@#$!@#$'), list(range(12)))
         self.assertEqual(g('cguua!cgcuagua@cguasguadc#'), [5, 14, 25])
 
-    def test_gapVector(self):
-        """MolType gapVector should return correct gap positions"""
-        g = RnaMolType.gapVector
+    def test_gap_vector(self):
+        """MolType gap_vector should return correct gap positions"""
+        g = RnaMolType.gap_vector
         self.assertEqual(g(''), [])
         self.assertEqual(g('ACUGUCAGUACGHFSDKJCUICDNINS'), [False] * 27)
         self.assertEqual(g('GUACGUIACAKJDC-SDFHJDSFK'),
@@ -483,7 +483,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU---'),
                          list(map(bool, list(map(int, '111000000001110000011100000000111')))))
         a = MolType({'A': 1}, Gaps=dict.fromkeys('!@#$%'))
-        g = a.gapVector
+        g = a.gap_vector
         self.assertEqual(g(''), [])
         self.assertEqual(g('!!!'), list(map(bool, [1, 1, 1])))
         self.assertEqual(g('!@#$!@#$!@#$'), [True] * 12)

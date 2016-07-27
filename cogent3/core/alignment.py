@@ -1606,9 +1606,9 @@ class Aligned(object):
         for annot in self.data.getAnnotationsMatching(*args):
             yield annot.remappedTo(alignment, self.map.inverse())
 
-    def gapVector(self):
-        """Returns gapVector of GappedSeq, for omit_gap_pos."""
-        return self.get_gapped_seq().gapVector()
+    def gap_vector(self):
+        """Returns gap_vector of GappedSeq, for omit_gap_pos."""
+        return self.get_gapped_seq().gap_vector()
 
     def _masked_annotations(self, annot_types, mask_char, shadow):
         """returns a new aligned sequence with regions defined by align_spans
@@ -2624,11 +2624,11 @@ def make_gap_filter(template, gap_fraction, gap_run):
         but not in the seq or in the seq but not in the template
     NOTE: template and seq must both be ModelSequence objects.
     """
-    template_gaps = array(template.gapVector())
+    template_gaps = array(template.gap_vector())
 
     def result(seq):
         """Returns True if seq adhers to the gap threshold and gap fraction."""
-        seq_gaps = array(seq.gapVector())
+        seq_gaps = array(seq.gap_vector())
         # check if gap amount bad
         if sum(seq_gaps != template_gaps) / float(len(seq)) > gap_fraction:
             return False
