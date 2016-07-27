@@ -116,7 +116,7 @@ class TestPair(TestCase):
         self.assertFloatEqual(calc.Variances['s1', 's2'],
                               0.029752066125078681)
         # value from OSX MEGA 5
-        self.assertFloatEqual(calc.StdErr['s1', 's2'], 0.1724878724)
+        self.assertFloatEqual(calc.stderr['s1', 's2'], 0.1724878724)
 
         # same answer when using ambiguous alignment
         calc.run(self.ambig_alignment, show_progress=False)
@@ -137,7 +137,7 @@ class TestPair(TestCase):
         # value**2 from OSX MEGA 5
         self.assertFloatEqual(calc.Variances['s1', 's2'], 0.04444444445376601)
         # value from OSX MEGA 5
-        self.assertFloatEqual(calc.StdErr['s1', 's2'], 0.2108185107)
+        self.assertFloatEqual(calc.stderr['s1', 's2'], 0.2108185107)
 
         # same answer when using ambiguous alignment
         calc.run(self.ambig_alignment, show_progress=False)
