@@ -563,7 +563,7 @@ class TreeNode(object):
         """Returns direct children in self that have descendants."""
         return [i for i in self.Children if i.Children]
 
-    def childGroups(self):
+    def child_groups(self):
         """Returns list containing lists of children sharing a state.
 
         In other words, returns runs of tip and nontip children.
