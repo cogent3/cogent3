@@ -34,7 +34,7 @@ Set the local clock for humans & Howler Monkey. This method is just a special in
 
 .. doctest::
 
-    >>> lf.setLocalClock("Human", "HowlerMon")
+    >>> lf.set_local_clock("Human", "HowlerMon")
 
 Get the likelihood function object this object performs the actual likelihood calculation.
 

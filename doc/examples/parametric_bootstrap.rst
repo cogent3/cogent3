@@ -34,7 +34,7 @@ Define a function that takes an alignment object and returns an appropriately as
     >>> def create_null_function():
     ...     lf = create_alt_function()
     ...     # set the local clock for humans & howler monkey
-    ...     lf.setLocalClock("Human", "HowlerMon")
+    ...     lf.set_local_clock("Human", "HowlerMon")
     ...     return lf
 
 Get our observed data alignment

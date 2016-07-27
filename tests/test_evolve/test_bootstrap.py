@@ -73,7 +73,7 @@ class BootstrapTests(unittest.TestCase):
         controller = self.getcontroller(treeobj, submodobj)
 
         # we are setting a local molecular clock for human/chimp
-        controller.setLocalClock('Human', 'Chimpanzee')
+        controller.set_local_clock('Human', 'Chimpanzee')
         return controller
 
     def create_alt_controller(self, alignobj):
