@@ -100,7 +100,7 @@ class _LikelihoodParameterController(_LF):
         tree"""
         with self.updatesPostponed():
             edges = self.tree.get_edge_vector()
-            for par_name in self.model.getParamList():
+            for par_name in self.model.get_param_list():
                 try:
                     values = dict([(edge.name, edge.params[par_name])
                                    for edge in edges if not edge.isroot()])

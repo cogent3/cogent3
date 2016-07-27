@@ -63,7 +63,7 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
         ests_from_pairwise = False
     else:
         if ests_from_pairwise:
-            est_params = [param for param in model.getParamList()
+            est_params = [param for param in model.get_param_list()
                           if param not in _exclude_params]
         else:
             est_params = None
