@@ -204,7 +204,7 @@ class ConsensusTests(unittest.TestCase):
     def test_weighted_trees_satisyfing_cutoff(self):
         """build consensus tree from those satisfying cutoff"""
         sct = LogLikelihoodScoredTreeCollection(self.scored_trees)
-        cts = sct.getWeightedTrees(cutoff=0.8)
+        cts = sct.get_weighted_trees(cutoff=0.8)
         for weight, tree in cts:
             self.assertTrue(tree.same_topology(Tree('((a,b),c,d);')))
 
