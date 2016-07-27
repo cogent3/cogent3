@@ -894,16 +894,16 @@ class ModelSequenceTests(SequenceTests):
         r._data[0] = 99
         self.assertEqual(r.strip_bad_and_gaps(), 'CGGRN')
 
-    def test_gapArray(self):
-        """Sequence gapArray should return array of gaps"""
+    def test_gap_array(self):
+        """Sequence gap_array should return array of gaps"""
         r = self.RNA('-?A-?NRY-')
-        v = r.gapArray()
+        v = r.gap_array()
         self.assertEqual(v, array([1, 1, 0, 1, 1, 0, 0, 0, 1]))
         r = self.RNA('AC')
-        v = r.gapArray()
+        v = r.gap_array()
         self.assertEqual(v, array([0, 0]))
         r = self.RNA('-?')
-        v = r.gapArray()
+        v = r.gap_array()
         self.assertEqual(v, array([1, 1]))
 
     def test_gapIndices(self):

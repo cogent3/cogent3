@@ -1124,7 +1124,7 @@ class ModelSequenceBase(object):
         """Returns ungapped copy of self, not changing alphabet."""
         if not hasattr(self.Alphabet, 'Gap') or self.Alphabet.Gap is None:
             return self.copy()
-        d = take(self._data, nonzero(logical_not(self.gapArray()))[0])
+        d = take(self._data, nonzero(logical_not(self.gap_array()))[0])
         return self.__class__(d, Alphabet=self.Alphabet, Name=self.Name,
                               Info=self.Info)
 
@@ -1219,7 +1219,7 @@ class ModelSequenceBase(object):
         """Returns shuffled copy of self"""
         return self.__class__(permutation(self._data), Info=self.Info)
 
-    def gapArray(self):
+    def gap_array(self):
         """Returns array of 0/1 indicating whether each position is a gap."""
         gap_indices = []
         a = self.Alphabet
@@ -1236,16 +1236,16 @@ class ModelSequenceBase(object):
 
     def gapIndices(self):
         """Returns array of indices of gapped positions in self."""
-        return self.gapArray().nonzero()[0]
+        return self.gap_array().nonzero()[0]
 
     def frac_same_gaps(self, other):
         """Returns fraction of positions where gaps match other's gaps.
         """
         if not other:
             return 0
-        self_gaps = self.gapArray()
-        if hasattr(other, 'gapArray'):
-            other_gaps = other.gapArray()
+        self_gaps = self.gap_array()
+        if hasattr(other, 'gap_array'):
+            other_gaps = other.gap_array()
         elif hasattr(other, 'gap_vector'):
             other_gaps = array(other.gap_vector())
         else:
@@ -1292,11 +1292,11 @@ class ModelSequence(ModelSequenceBase, SequenceI):
 
     def count_gaps(self):
         """Returns count of gaps in self."""
-        return self.gapArray().sum()
+        return self.gap_array().sum()
 
     def gap_vector(self):
         """Returns list of bool containing whether each pos is a gap."""
-        return list(map(bool, self.gapArray()))
+        return list(map(bool, self.gap_array()))
 
     def gap_indices(self):
         """Returns list of gap indices."""
@@ -1304,7 +1304,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
 
     def gap_maps(self):
         """Returns dicts mapping gapped/ungapped positions."""
-        nongaps = logical_not(self.gapArray())
+        nongaps = logical_not(self.gap_array())
         indices = arange(len(self)).compress(nongaps)
         new_indices = arange(len(indices))
         return dict(list(zip(new_indices, indices))), dict(list(zip(indices, new_indices)))
