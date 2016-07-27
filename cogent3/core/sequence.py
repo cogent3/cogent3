@@ -237,13 +237,13 @@ class SequenceI(object):
         """
         return self.MolType.MW(self, method, delta)
 
-    def canMatch(self, other):
+    def can_match(self, other):
         """Returns True if every pos in self could match same pos in other.
 
         Truncates at length of shorter sequence.
         Gaps are only allowed to match other gaps.
         """
-        return self.MolType.canMatch(self, other)
+        return self.MolType.can_match(self, other)
 
     def canMismatch(self, other):
         """Returns True if any position in self could mismatch with other.
@@ -271,7 +271,7 @@ class SequenceI(object):
         """
         return self.MolType.canPair(self, other)
 
-    def canMispair(self, other):
+    def can_mispair(self, other):
         """Returns True if any position in self could mispair with other.
 
         Pairing occurs in reverse order, i.e. last position of other with
@@ -280,7 +280,7 @@ class SequenceI(object):
         Truncates at length of shorter sequence.
         Gaps are always counted as possible mispairs, as are weak pairs like GU.
         """
-        return self.MolType.canMispair(self, other)
+        return self.MolType.can_mispair(self, other)
 
     def mustPair(self, other):
         """Returns True if all positions in self must pair with other.
@@ -288,7 +288,7 @@ class SequenceI(object):
         Pairing occurs in reverse order, i.e. last position of other with
         first position of self, etc.
         """
-        return not self.MolType.canMispair(self, other)
+        return not self.MolType.can_mispair(self, other)
 
     def diff(self, other):
         """Returns number of differences between self and other.
