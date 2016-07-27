@@ -587,7 +587,7 @@ class MolType(object):
                 if motif not in alpha:
                     raise AlphabetError(motif)
 
-    def isAmbiguity(self, querymotif):
+    def is_ambiguity(self, querymotif):
         """Return True if querymotif is an amibiguity character in alphabet.
 
         Arguments:
@@ -595,7 +595,7 @@ class MolType(object):
 
         return len(self.Ambiguities[querymotif]) > 1
 
-    def _whatAmbiguity(self, motifs):
+    def _what_ambiguity(self, motifs):
         """The code that represents all of 'motifs', and minimal others.
 
         Does this duplicate DegenerateFromSequence directly?
@@ -612,7 +612,7 @@ class MolType(object):
                     result = code
         return result
 
-    def whatAmbiguity(self, motifs):
+    def what_ambiguity(self, motifs):
         """The code that represents all of 'motifs', and minimal others.
 
         Does this duplicate DegenerateFromSequence directly?
@@ -621,7 +621,7 @@ class MolType(object):
             self._reverse_ambiguities = {}
         motifs = frozenset(motifs)
         if motifs not in self._reverse_ambiguities:
-            self._reverse_ambiguities[motifs] = self._whatAmbiguity(motifs)
+            self._reverse_ambiguities[motifs] = self._what_ambiguity(motifs)
         return self._reverse_ambiguities[motifs]
 
     def _add_lowercase(self):
