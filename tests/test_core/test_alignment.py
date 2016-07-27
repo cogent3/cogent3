@@ -423,7 +423,7 @@ class SequenceCollectionBaseTests(object):
         subset = orig.take_seqs('ab')
         self.assertEqual(set(subset.MolType), set(orig.MolType))
 
-    def test_getSeqIndices(self):
+    def test_get_seq_indices(self):
         """SequenceCollection get_seq_indices should return names of seqs where f(row) is True"""
         srp = self.ragged_padded
         is_long = lambda x: len(x) > 10
@@ -458,7 +458,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(srp.take_seqs_if(is_med, negate=True),
                          {'b': 'AAA---'})
 
-    def test_getItems(self):
+    def test_get_items(self):
         """SequenceCollection get_items should return list of items from k,v pairs"""
         self.assertEqual(self.mixed.get_items([('a', 3), ('b', 4), ('a', 0)]),
                          ['D', 'P', 'A'])
@@ -482,7 +482,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqualItems(self.mixed.item_indices_if(is_vowel, negate=True),
                               [('a', 1), ('a', 2), ('a', 3), ('b', 0), ('b', 1), ('b', 2), ('b', 4)])
 
-    def test_getItemsIf(self):
+    def test_items_if(self):
         """SequenceCollection items_if should return matching items"""
         is_vowel = lambda x: x in 'AEIOU'
         # reverse name order to test that it's not alphabetical
@@ -831,7 +831,7 @@ class SequenceCollectionBaseTests(object):
             except AttributeError:
                 pass
 
-    def test_getSeq(self):
+    def test_get_seq(self):
         """SequenceCollection.get_seq should return specified seq"""
         aln = self.Class({'seq1': 'GATTTT', 'seq2': 'GATC??'})
         self.assertEqual(aln.get_seq('seq1'), 'GATTTT')
@@ -844,8 +844,8 @@ class SequenceCollectionBaseTests(object):
         for i in list(aln.todict().values()):
             assert isinstance(i, str)
 
-    def test_getPerSequenceAmbiguousPositions(self):
-        """SequenceCollection.getPerSequenceAmbiguousPositions should return pos"""
+    def test_get_ambiguous_positions(self):
+        """SequenceCollection.get_ambiguous_positions should return pos"""
         aln = self.Class({'s1': 'ATGRY?', 's2': 'T-AG??'}, MolType=DNA)
         self.assertEqual(aln.get_ambiguous_positions(),
                          {'s2': {4: '?', 5: '?'}, 's1': {3: 'R', 4: 'Y', 5: '?'}})
@@ -1248,7 +1248,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                                    's4': 'UU-UUUU-UUUUC'})
 
     
-    def test_IUPACConsensus_RNA(self):
+    def test_iupac_consensus_RNA(self):
         """SequenceCollection iupac_consensus should use RNA IUPAC symbols correctly"""
         alignmentUpper = self.Class(['UCAGN-UCAGN-UCAGN-UCAGAGCAUN-',
                                       'UUCCAAGGNN--UUCCAAGGNNAGCAG--',
@@ -1262,7 +1262,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(alignmentUpper.iupac_consensus(),
                          'UYHBN?BSNN??KBVSN?NN??AGCWD?-')
 
-    def test_IUPACConsensus_DNA(self):
+    def test_iupac_consensus_DNA(self):
         """SequenceCollection iupac_consensus should use DNA IUPAC symbols correctly"""
         alignmentUpper = self.Class(['TCAGN-TCAGN-TCAGN-TCAGAGCATN-',
                                       'TTCCAAGGNN--TTCCAAGGNNAGCAG--',
@@ -1275,7 +1275,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(alignmentUpper.iupac_consensus(DNA),
                          'TYHBN?BSNN??KBVSN?NN??AGCWD?-')
 
-    def test_IUPACConsensus_Protein(self):
+    def test_iupac_consensus_Protein(self):
         """SequenceCollection iupac_consensus should use protein IUPAC symbols correctly"""
         alignmentUpper = self.Class(['ACDEFGHIKLMNPQRSTUVWY-',
                                       'ACDEFGHIKLMNPQRSUUVWF-',
@@ -1292,7 +1292,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         assert(not self.identical.is_ragged())
         assert(not self.gaps.is_ragged())
 
-    def test_columnProbs(self):
+    def test_column_probs(self):
         """SequenceCollection.column_probs should find Pr(symbol) in each column"""
         # make an alignment with 4 seqs (easy to calculate probabilities)
         align = self.Class(["AAA", "ACA", "GGG", "GUC"])
@@ -1304,7 +1304,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             {'A': 0.5, 'G': 0.25, 'C': 0.25},
         ])))
 
-    def test_majorityConsensus(self):
+    def test_majority_consensus(self):
         """SequenceCollection.majority_consensus should return commonest symbol per column"""
         # Check the exact strings expected from string transform
         self.assertEqual(self.sequences.majority_consensus(str), 'UCAG')
@@ -1323,7 +1323,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         obs = aln.uncertainties('ABCDEFGHIJKLMNOP')
         self.assertFloatEqual(obs, [2.0] * 3)
 
-    def test_columnFreqs(self):
+    def test_column_freqs(self):
         """Alignment.column_freqs should count symbols in each column"""
         # calculate by hand what the first and last positions should look like in
         # each case
@@ -1343,7 +1343,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             freqs = obj.column_freqs()
             self.assertEqual(str(freqs[-1]), str(result))
 
-    def test_scoreMatrix(self):
+    def test_get_pssm(self):
         """Alignment get_pssm should produce position specific score matrix."""
         get_pssm = {
             0: {'A': 1.0, 'C': 1.0, 'U': 5.0},
@@ -1463,7 +1463,7 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(da._get_freqs(index=1), pos_exp)
         self.assertEqual(da._get_freqs(index=0), seq_exp)
 
-    def test_getSeqFreqs(self):
+    def test_get_seq_freqs(self):
         """DenseAlignment get_seq_freqs: should work with DnaSequences and strings
         """
         exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
@@ -1486,7 +1486,7 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(obs.Alphabet, DNA.Alphabet)
         self.assertEqual(obs.CharOrder, list("TCAG"))
 
-    def test_getPosFreqs_sequence(self):
+    def test_get_pos_freqs_sequence(self):
         """DenseAlignment get_pos_freqs: should work with DnaSequences and strings
         """
         exp = array([[1, 1, 1, 0], [0, 2, 0, 1], [0, 0, 3, 0], [1, 1, 0, 1]])
@@ -1526,7 +1526,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(aln._get_freqs(index=1), pos_exp)
         self.assertEqual(aln._get_freqs(index=0), seq_exp)
 
-    def test_getSeqFreqs(self):
+    def test_get_seq_freqs(self):
         """Alignment get_seq_freqs: should work with DnaSequences and strings
         """
         exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
@@ -1549,7 +1549,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(obs.Alphabet, DNA.Alphabet)
         self.assertEqual(obs.CharOrder, list("TCAG"))
 
-    def test_getPosFreqs(self):
+    def test_get_pos_freqs(self):
         """Alignment get_pos_freqs: should work with DnaSequences and strings
         """
         exp = array([[1, 1, 1, 0], [0, 2, 0, 1], [0, 0, 3, 0], [1, 1, 0, 1]])
@@ -1595,8 +1595,8 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.make_and_filter(
             raw, {'a': 'ACGACG', 'b': 'CCCCCC', 'c': 'AAAAAA'}, 3)
 
-    def test_slidingWindows(self):
-        """slidingWindows should return slices of alignments."""
+    def test_sliding_windows(self):
+        """sliding_windows should return slices of alignments."""
         alignment = self.Class(
             {'seq1': 'ACGTACGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'})
         result = []
@@ -1884,14 +1884,14 @@ class DenseAlignmentSpecificTests(TestCase):
         self.assertEqual(a._get_freqs(1), array(
             [[2, 0], [0, 2], [1, 1], [1, 1]]))
 
-    def test_getSeqFreqs(self):
+    def test_get_seq_freqs(self):
         """DenseAlignment get_seq_freqs should get profile of freqs in each seq"""
         ABModelSequence = self.ABModelSequence
         a = self.a
         f = a.get_seq_freqs()
         self.assertEqual(f.Data, array([[3, 1], [1, 3]]))
 
-    def test_getPosFreqs(self):
+    def test_get_pos_freqs(self):
         """DenseAlignment get_pos_freqs should get profile of freqs at each pos"""
         ABModelSequence = self.ABModelSequence
         a = self.a
