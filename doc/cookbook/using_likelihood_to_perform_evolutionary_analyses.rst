@@ -413,7 +413,7 @@ Just the motif probabilities
 
 .. doctest::
     
-    >>> mprobs = lf.getMotifProbs()
+    >>> mprobs = lf.get_motif_probs()
     >>> print mprobs
     ====================================
          T         C         A         G

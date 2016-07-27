@@ -293,7 +293,7 @@ class NewQ(TestCase):
         d = make_p(.1, (1, 2), 4)
         d = dot(e, d)
 
-        prob_vectors = lf.getMotifProbsByNode()
+        prob_vectors = lf.get_motif_probsByNode()
         self.assertFloatEqual(prob_vectors['a'].array, a)
         self.assertFloatEqual(prob_vectors['b'].array, b)
         self.assertFloatEqual(prob_vectors['c'].array, c)
@@ -392,7 +392,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 #         for edge in self.tree:
 #             init = gen_lf.get_psub_for_edge(edge.name)
 #             dis_lf.setParamRule('psubs', edge=edge.name, init=init)
-#         dis_lf.setMotifProbs(gen_lf.getMotifProbs())
+#         dis_lf.setMotifProbs(gen_lf.get_motif_probs())
 #         return dis_lf
 #
 #     def test_discrete_vs_general1(self):
@@ -421,7 +421,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 #     def test_general_stationary_is_stationary(self):
 #         """should be stationary"""
 #         gen_stat_lf = self.make_cached('gen_stat')
-#         mprobs = gen_stat_lf.getMotifProbs()
+#         mprobs = gen_stat_lf.get_motif_probs()
 #         mprobs = array([mprobs[nuc] for nuc in DNA.alphabet])
 #         for edge in self.tree:
 #             psub = gen_stat_lf.get_psub_for_edge(edge.name)
@@ -431,7 +431,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 #     def test_general_is_not_stationary(self):
 #         """should not be stationary"""
 #         gen_lf = self.make_cached('general')
-#         mprobs = gen_lf.getMotifProbs()
+#         mprobs = gen_lf.get_motif_probs()
 #         mprobs = array([mprobs[nuc] for nuc in DNA.alphabet])
 #         for edge in self.tree:
 #             psub = gen_lf.get_psub_for_edge(edge.name)

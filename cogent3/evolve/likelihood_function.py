@@ -183,7 +183,7 @@ class LikelihoodFunction(ParameterController):
                 edge.params[par] = d[par][edge.name]
         return tree
 
-    def getMotifProbs(self, edge=None, bin=None, locus=None):
+    def get_motif_probs(self, edge=None, bin=None, locus=None):
         motif_probs_array = self.get_param_value(
             'mprobs', edge=edge, bin=bin, locus=locus)
         return DictArrayTemplate(self._mprob_motifs).wrap(motif_probs_array)
@@ -351,7 +351,7 @@ class LikelihoodFunction(ParameterController):
         digits = [digits, 4][type(digits) != int]
         self._format = dict(space=space, digits=digits)
 
-    def getMotifProbsByNode(self, edges=None, bin=None, locus=None):
+    def get_motif_probsByNode(self, edges=None, bin=None, locus=None):
         kw = dict(bin=bin, locus=locus)
         mprobs = self.get_param_value('mprobs', **kw)
         mprobs = self._model.calcWordProbs(mprobs)
