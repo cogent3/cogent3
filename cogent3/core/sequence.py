@@ -637,7 +637,7 @@ class Sequence(_Annotatable, SequenceI):
         segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
         new = self.__class__(''.join(segments),
                              Name=self.Name, check=False, Info=self.Info)
-        annots = self._slicedAnnotations(new, map)
+        annots = self._sliced_annotations(new, map)
         new.annotations = annots
         return new
 
@@ -661,10 +661,10 @@ class Sequence(_Annotatable, SequenceI):
         # or past the left end of the right sequence are dropped because
         # otherwise they will annotate the wrong part of the constructed
         # sequence.
-        left = [a for a in self._shiftedAnnotations(new_seq, 0)
+        left = [a for a in self._shifted_annotations(new_seq, 0)
                 if a.map.End <= len(self)]
-        if hasattr(other, '_shiftedAnnotations'):
-            right = [a for a in other._shiftedAnnotations(new_seq, len(self))
+        if hasattr(other, '_shifted_annotations'):
+            right = [a for a in other._shifted_annotations(new_seq, len(self))
                      if a.map.Start >= len(self)]
             new_seq.annotations = left + right
         else:

@@ -18,7 +18,7 @@ class _Annotatable(object):
     # Subclasses should provide __init__, getOwnTracks, and a _mapped for use by
     # __getitem__
 
-    def _slicedAnnotations(self, new, slice):
+    def _sliced_annotations(self, new, slice):
         result = []
         if self.annotations:
             slicemap = self._as_map(slice)
@@ -38,7 +38,7 @@ class _Annotatable(object):
                             result.append(annot)
         return result
 
-    def _shiftedAnnotations(self, new, shift):
+    def _shifted_annotations(self, new, shift):
         result = []
         if self.annotations:
             newmap = Map([(shift, shift + len(self))], parent_length=len(new))
@@ -75,7 +75,7 @@ class _Annotatable(object):
     def __getitem__(self, index):
         map = self._as_map(index)
         new = self._mapped(map)
-        sliced_annots = self._slicedAnnotations(new, map)
+        sliced_annots = self._sliced_annotations(new, map)
         new.attach_annotations(sliced_annots)
         return new
 
@@ -217,7 +217,7 @@ class _Feature(_Annotatable):
         keep = self.map.nongap()
         new = self.__class__(self.parent, self.map[keep], original=self)
         if self.annotations:
-            sliced_annots = self._slicedAnnotations(new, keep)
+            sliced_annots = self._sliced_annotations(new, keep)
             new.attach_annotations(sliced_annots)
         return new
 
