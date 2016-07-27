@@ -305,7 +305,7 @@ class GeneticCodeTests(TestCase):
         seq = DNA.make_sequence('ATGCTAACATAAA')
         expected = [[9], [4], []]
         for frame, expect in enumerate(expected):
-            got = sgc.getStopIndices(seq, start=frame)
+            got = sgc.get_stop_indices(seq, start=frame)
             self.assertEqual(got, expect)
 
     def test_Synonyms(self):
