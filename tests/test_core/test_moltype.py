@@ -585,9 +585,9 @@ class MolTypeTests(TestCase):
         self.assertFalse(m('UCAG', 'UCAG'))
         self.assertFalse(m('U--', 'U--'))
 
-    def test_mustMatch(self):
-        """MolType mustMatch should return True when no possible mismatches"""
-        m = RnaMolType.mustMatch
+    def test_must_match(self):
+        """MolType must_match should return True when no possible mismatches"""
+        m = RnaMolType.must_match
         self.assertTrue(m('', ''))
         self.assertFalse(m('N', 'N'))
         self.assertFalse(m('R', 'R'))

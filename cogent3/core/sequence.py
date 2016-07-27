@@ -253,9 +253,9 @@ class SequenceI(object):
         """
         return self.MolType.canMismatch(self, other)
 
-    def mustMatch(self, other):
+    def must_match(self, other):
         """Returns True if all positions in self must match positions in other."""
-        return self.MolType.mustMatch(self, other)
+        return self.MolType.must_match(self, other)
 
     def can_pair(self, other):
         """Returns True if self and other could pair.

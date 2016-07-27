@@ -920,7 +920,7 @@ class MolType(object):
                 return True
         return False
 
-    def mustMatch(self, first, second):
+    def must_match(self, first, second):
         """Returns True if all positions in 1st must match positions in second."""
         return not self.canMismatch(first, second)
 
