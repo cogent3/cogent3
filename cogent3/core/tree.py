@@ -518,7 +518,7 @@ class TreeNode(object):
         result.remove(self)
         return result
 
-    def iterTips(self, include_self=False):
+    def iter_tips(self, include_self=False):
         """Iterates over tips descended from self, [] if self is a tip."""
         # bail out in easy case
         if not self.Children:
@@ -536,7 +536,7 @@ class TreeNode(object):
 
     def tips(self, include_self=False):
         """Returns tips descended from self, [] if self is a tip."""
-        return list(self.iterTips(include_self=include_self))
+        return list(self.iter_tips(include_self=include_self))
 
     def iterNontips(self, include_self=False):
         """Iterates over nontips descended from self, [] if none.
