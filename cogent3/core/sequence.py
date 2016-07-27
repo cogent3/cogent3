@@ -474,7 +474,7 @@ class SequenceI(object):
         return for_seq(f=lambda x, y: (x, y) in similar_pairs,
                        normalizer=per_shortest)(self, other)
 
-    def withTerminiUnknown(self):
+    def with_termini_unknown(self):
         """Returns copy of sequence with terminal gaps remapped as missing."""
         gaps = self.gap_vector()
         first_nongap = last_nongap = None

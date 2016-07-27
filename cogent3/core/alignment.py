@@ -1191,7 +1191,7 @@ class SequenceCollection(object):
         """
         seqs = []
         for name in self.names:
-            seq = self.named_seqs[name].withTerminiUnknown()
+            seq = self.named_seqs[name].with_termini_unknown()
             seqs.append((name, seq))
         return self.__class__(MolType=self.MolType, data=seqs)
 
@@ -1527,8 +1527,8 @@ class Aligned(object):
     def __repr__(self):
         return '%s of %s' % (repr(self.map), repr(self.data))
 
-    def withTerminiUnknown(self):
-        return self.__class__(self.map.withTerminiUnknown(), self.data)
+    def with_termini_unknown(self):
+        return self.__class__(self.map.with_termini_unknown(), self.data)
 
     def copy_annotations(self, other):
         self.data.copy_annotations(other)
