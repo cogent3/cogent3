@@ -83,9 +83,9 @@ class AlignmentEvolver(object):
         # probsd = dict(enumerate(self.bin_probs))
         # bprobs = _randomMotifGenerator(self.random_series, probsd)
         # site_bins = [bprobs.next() for c in range(len(root_sequence))]
-        return self.generateSimulatedSeqs(tree, root_sequence)
+        return self.generate_simulated_seqs(tree, root_sequence)
 
-    def generateSimulatedSeqs(self, parent, parent_seq):
+    def generate_simulated_seqs(self, parent, parent_seq):
         """recursively generate the descendant sequences by descending the tree
         from root.
         Each child will be set by mutating the parent motif based on the probs
@@ -123,7 +123,7 @@ class AlignmentEvolver(object):
                                       parent_seq, self.site_bins, psubs, orig_seq_ambig)
 
             # Pass this new edge sequence on down the tree
-            descendant_sequences = self.generateSimulatedSeqs(
+            descendant_sequences = self.generate_simulated_seqs(
                 edge, edge_seq)
             simulated_sequences.update(descendant_sequences)
 
