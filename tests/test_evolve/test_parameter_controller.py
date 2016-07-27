@@ -125,10 +125,10 @@ class test_parameter_controller(unittest.TestCase):
             for rule in rule_set:
                 lf.set_param_rule(**rule)
         for rule_set in good_rule_sets:
-            lf.setDefaultParamRules()
+            lf.set_default_param_rules()
             do_rules(rule_set)
         for rule_set in bad_rule_sets:
-            lf.setDefaultParamRules()
+            lf.set_default_param_rules()
             self.assertRaises((KeyError, TypeError,
                                AssertionError, ValueError), do_rules, rule_set)
 
