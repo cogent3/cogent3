@@ -556,9 +556,9 @@ class MolTypeTests(TestCase):
         self.assertFloatEqual(r('AAA'), 1001.59)
         self.assertFloatEqual(r('AAACCCA'), 2182.37)
 
-    def test_canMatch(self):
-        """MolType canMatch should return True if all positions can match"""
-        m = RnaMolType.canMatch
+    def test_can_match(self):
+        """MolType can_match should return True if all positions can match"""
+        m = RnaMolType.can_match
         self.assertTrue(m('', ''))
         self.assertTrue(m('UCAG', 'UCAG'))
         self.assertFalse(m('UCAG', 'ucag'))
@@ -619,9 +619,9 @@ class MolTypeTests(TestCase):
         d = DnaMolType.canPair
         self.assertFalse(d('T', 'G'))
 
-    def test_canMispair(self):
-        """MolType canMispair should return True on any possible mispair"""
-        m = RnaMolType.canMispair
+    def test_can_mispair(self):
+        """MolType can_mispair should return True on any possible mispair"""
+        m = RnaMolType.can_mispair
         self.assertFalse(m('', ''))
         self.assertTrue(m('N', 'N'))
         self.assertTrue(m('R', 'Y'))

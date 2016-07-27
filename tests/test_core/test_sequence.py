@@ -358,18 +358,18 @@ class SequenceTests(TestCase):
         self.assertFloatEqual(self.RNA('AAA').MW(), 1001.59)
         self.assertFloatEqual(self.RNA('AAACCCA').MW(), 2182.37)
 
-    def test_canMatch(self):
-        """Sequence canMatch should return True if all positions can match"""
-        assert self.RNA('').canMatch('')
-        assert self.RNA('UCAG').canMatch('UCAG')
-        assert not self.RNA('UCAG').canMatch('ucag')
-        assert self.RNA('UCAG').canMatch('NNNN')
-        assert self.RNA('NNNN').canMatch('UCAG')
-        assert self.RNA('NNNN').canMatch('NNNN')
-        assert not self.RNA('N').canMatch('x')
-        assert not self.RNA('N').canMatch('-')
-        assert self.RNA('UCAG').canMatch('YYRR')
-        assert self.RNA('UCAG').canMatch('KMWS')
+    def test_can_match(self):
+        """Sequence can_match should return True if all positions can match"""
+        assert self.RNA('').can_match('')
+        assert self.RNA('UCAG').can_match('UCAG')
+        assert not self.RNA('UCAG').can_match('ucag')
+        assert self.RNA('UCAG').can_match('NNNN')
+        assert self.RNA('NNNN').can_match('UCAG')
+        assert self.RNA('NNNN').can_match('NNNN')
+        assert not self.RNA('N').can_match('x')
+        assert not self.RNA('N').can_match('-')
+        assert self.RNA('UCAG').can_match('YYRR')
+        assert self.RNA('UCAG').can_match('KMWS')
 
     def test_canMismatch(self):
         """Sequence canMismatch should return True on any possible mismatch"""
@@ -416,22 +416,22 @@ class SequenceTests(TestCase):
 
         assert not self.DNA('T').canPair('G')
 
-    def test_canMispair(self):
-        """Sequence canMispair should return True on any possible mispair"""
-        assert not self.RNA('').canMispair('')
-        assert self.RNA('N').canMispair('N')
-        assert self.RNA('R').canMispair('Y')
-        assert self.RNA('N').canMispair('r')
-        assert self.RNA('CGUACGCAN').canMispair('NUHCHUACH')
-        assert self.RNA('U').canMispair('C')
-        assert self.RNA('U').canMispair('R')
-        assert self.RNA('UUU').canMispair('AAR')
-        assert self.RNA('UUU').canMispair('GAG')
-        assert not self.RNA('UUU').canMispair('AAA')
-        assert not self.RNA('UCAG').canMispair('CUGA')
-        assert self.RNA('U--').canMispair('--U')
+    def test_can_mispair(self):
+        """Sequence can_mispair should return True on any possible mispair"""
+        assert not self.RNA('').can_mispair('')
+        assert self.RNA('N').can_mispair('N')
+        assert self.RNA('R').can_mispair('Y')
+        assert self.RNA('N').can_mispair('r')
+        assert self.RNA('CGUACGCAN').can_mispair('NUHCHUACH')
+        assert self.RNA('U').can_mispair('C')
+        assert self.RNA('U').can_mispair('R')
+        assert self.RNA('UUU').can_mispair('AAR')
+        assert self.RNA('UUU').can_mispair('GAG')
+        assert not self.RNA('UUU').can_mispair('AAA')
+        assert not self.RNA('UCAG').can_mispair('CUGA')
+        assert self.RNA('U--').can_mispair('--U')
 
-        assert self.DNA('TCCAAAGRYY').canMispair('RRYCTTTGGA')
+        assert self.DNA('TCCAAAGRYY').can_mispair('RRYCTTTGGA')
 
     def test_mustPair(self):
         """Sequence mustPair should return True when no possible mispairs"""

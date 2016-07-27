@@ -893,7 +893,7 @@ class MolType(object):
         except KeyError:  # assume sequence was ambiguous
             return self.MWCalculator(self.disambiguate(sequence, method), delta)
 
-    def canMatch(self, first, second):
+    def can_match(self, first, second):
         """Returns True if every pos in 1st could match same pos in 2nd.
 
         Truncates at length of shorter sequence.
@@ -944,7 +944,7 @@ class MolType(object):
                 return False
         return True
 
-    def canMispair(self, first, second):
+    def can_mispair(self, first, second):
         """Returns True if any position in 1st could mispair with 2nd.
 
         Pairing occurs in reverse order, i.e. last position of second with
@@ -970,7 +970,7 @@ class MolType(object):
         Pairing occurs in reverse order, i.e. last position of second with
         first position of first, etc.
         """
-        return not self.canMispair(first, second)
+        return not self.can_mispair(first, second)
 
     def degenerateFromSequence(self, sequence):
         """Returns least degenerate symbol corresponding to chars in sequence.
