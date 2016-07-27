@@ -234,10 +234,10 @@ class CharAlphabetTests(TestCase):
         got = r.from_array(array(['UUC', 'UGA'], 'c'))
         self.assertEqual(got, array([[0, 0, 1], [0, 3, 2]], 'B'))
 
-    def test_toChars(self):
-        """CharAlphabet toChars should convert an input array to chars"""
+    def test_to_chars(self):
+        """CharAlphabet to_chars should convert an input array to chars"""
         r = CharAlphabet('UCAG')
-        c = r.toChars(array([[0, 0, 1], [0, 3, 2]], 'B'))
+        c = r.to_chars(array([[0, 0, 1], [0, 3, 2]], 'B'))
         self.assertEqual(c,
                          array(['UUC', 'UGA'], 'c'))
 
