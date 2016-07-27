@@ -590,19 +590,19 @@ class TreeNodeTests(TestCase):
             assert i.Parent is self.Repeated
         assert last.Parent is self.OneChild
 
-    def test_indexInParent(self):
-        """TreeNode indexInParent should hold correct data"""
+    def test_index_in_parent(self):
+        """TreeNode index_in_parent should hold correct data"""
         first = TreeNode('a')
         second = TreeNode('b')
         third = TreeNode('c')
         fourth = TreeNode('0', Children=[first, second, third])
         self.assertEqual(len(fourth), 3)
-        self.assertEqual(first.indexInParent(), 0)
-        self.assertEqual(second.indexInParent(), 1)
-        self.assertEqual(third.indexInParent(), 2)
+        self.assertEqual(first.index_in_parent(), 0)
+        self.assertEqual(second.index_in_parent(), 1)
+        self.assertEqual(third.index_in_parent(), 2)
         del fourth[0]
-        self.assertEqual(second.indexInParent(), 0)
-        self.assertEqual(third.indexInParent(), 1)
+        self.assertEqual(second.index_in_parent(), 0)
+        self.assertEqual(third.index_in_parent(), 1)
         self.assertEqual(len(fourth), 2)
         assert first.Parent is None
 
