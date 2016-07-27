@@ -46,7 +46,7 @@ class MotifProbModel(object):
         model, the calculation of motif probabilities"""
         return substitution_calculation.PartitionDefn(
             name="mprobs", default=None, dimensions=('locus', 'edge'),
-            dimension=('motif', tuple(self.getInputAlphabet())))
+            dimension=('motif', tuple(self.get_input_alphabet())))
 
     def set_param_controller_motif_probs(self, pc, motif_probs, **kw):
         pc.setParamRule('mprobs', value=motif_probs, **kw)
@@ -65,12 +65,12 @@ class MotifProbModel(object):
         return result
 
     def adapt_motif_probs(self, motif_probs, auto=False):
-        motif_probs = self.getInputAlphabet().adapt_motif_probs(motif_probs)
+        motif_probs = self.get_input_alphabet().adapt_motif_probs(motif_probs)
         assert abs(sum(motif_probs) - 1.0) < 0.0001, motif_probs
         return motif_probs
 
     def make_equal_motif_probs(self):
-        alphabet = self.getInputAlphabet()
+        alphabet = self.get_input_alphabet()
         p = 1.0 / len(alphabet)
         return dict([(m, p) for m in alphabet])
 
@@ -87,7 +87,7 @@ class SimpleMotifProbModel(MotifProbModel):
     def __init__(self, alphabet):
         self.alphabet = alphabet
 
-    def getInputAlphabet(self):
+    def get_input_alphabet(self):
         return self.alphabet
 
     def getCountedAlphabet(self):
@@ -155,7 +155,7 @@ class ComplexMotifProbModel(MotifProbModel):
 
 class MonomerProbModel(ComplexMotifProbModel):
 
-    def getInputAlphabet(self):
+    def get_input_alphabet(self):
         return self.monomer_alphabet
 
     def getCountedAlphabet(self):
@@ -234,7 +234,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
         monomer_probs = substitution_calculation.PartitionDefn(
             name="psmprobs", default=None,
             dimensions=('locus', 'position', 'edge'),
-            dimension=('motif', tuple(self.getInputAlphabet())))
+            dimension=('motif', tuple(self.get_input_alphabet())))
         monomer_probs3 = monomer_probs.acrossDimension('position', [
             str(i) for i in range(self.word_length)])
         monomer_probs3 = substitution_calculation.CalcDefn(
@@ -264,7 +264,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
 
 class ConditionalMotifProbModel(ComplexMotifProbModel):
 
-    def getInputAlphabet(self):
+    def get_input_alphabet(self):
         return self.tuple_alphabet
 
     def getCountedAlphabet(self):
