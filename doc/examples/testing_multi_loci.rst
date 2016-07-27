@@ -54,7 +54,7 @@ To make a likelihood function with multiple alignments we provide the list of lo
      3.98     0.13
     --------------
     >>> all_lnL = lf.getLogLikelihood()
-    >>> all_nfp = lf.getNumFreeParams()
+    >>> all_nfp = lf.get_num_free_params()
     >>> lf.set_param_rule('kappa', loci = EACH)
     >>> lf.optimise(local=True)
     >>> print lf
@@ -83,7 +83,7 @@ To make a likelihood function with multiple alignments we provide the list of lo
       0.13
     ------
     >>> each_lnL = lf.getLogLikelihood()
-    >>> each_nfp = lf.getNumFreeParams()
+    >>> each_nfp = lf.get_num_free_params()
     >>> LR = 2 * (each_lnL - all_lnL)
     >>> df = each_nfp - all_nfp
 

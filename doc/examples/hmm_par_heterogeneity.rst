@@ -46,7 +46,7 @@ We specify a null model with no bins, and optimise it.
     >>> lf_one.set_alignment(aln)
     >>> lf_one.optimise()
     >>> lnL_one = lf_one.getLogLikelihood()
-    >>> df_one = lf_one.getNumFreeParams()
+    >>> df_one = lf_one.get_num_free_params()
     >>> print lf_one
     Likelihood Function Table
     =====
@@ -89,7 +89,7 @@ Our next hypothesis is that there are two rate classes, or bins, with rates gamm
     >>> lf_bins.set_alignment(aln)
     >>> lf_bins.optimise(local=True)
     >>> lnL_bins = lf_bins.getLogLikelihood()
-    >>> df_bins = lf_bins.getNumFreeParams()
+    >>> df_bins = lf_bins.get_num_free_params()
     >>> assert df_bins == 9
     >>> print lf_bins
     Likelihood Function Table
@@ -137,7 +137,7 @@ We then specify a model with switches for changing between site-classes, the HMM
     >>> lf_patches.set_alignment(aln)
     >>> lf_patches.optimise(local=True)
     >>> lnL_patches = lf_patches.getLogLikelihood()
-    >>> df_patches = lf_patches.getNumFreeParams()
+    >>> df_patches = lf_patches.get_num_free_params()
     >>> print lf_patches
     Likelihood Function Table
     ===============================

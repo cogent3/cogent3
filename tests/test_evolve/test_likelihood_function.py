@@ -228,7 +228,7 @@ class LikelihoodCalcs(TestCase):
         # now do using the evolve
         likelihood_function = self._makeLikelihoodFunction(
             submod)
-        self.assertEqual(likelihood_function.getNumFreeParams(), 0)
+        self.assertEqual(likelihood_function.get_num_free_params(), 0)
         evolve_lnL = likelihood_function.get_log_likelihood()
         self.assertFloatEqual(evolve_lnL, -157.49363874840455)
 
@@ -242,7 +242,7 @@ class LikelihoodCalcs(TestCase):
             predicates={'kappa': 'transition'})
         likelihood_function = self._makeLikelihoodFunction(
             submod, discrete_edges=['Human'])
-        self.assertEqual(likelihood_function.getNumFreeParams(), 12)
+        self.assertEqual(likelihood_function.get_num_free_params(), 12)
         evolve_lnL = likelihood_function.get_log_likelihood()
         self.assertNotEqual(evolve_lnL, -157.49363874840455)
 
@@ -314,7 +314,7 @@ class LikelihoodFunctionTests(TestCase):
     def test_information_criteria(self):
         """test get information criteria from a model."""
         lf = self._makeLikelihoodFunction()
-        nfp = lf.getNumFreeParams()
+        nfp = lf.get_num_free_params()
         lnL = lf.get_log_likelihood()
         l = len(self.data)
         self.assertFloatEqual(lf.get_aic(), aic(lnL, nfp))

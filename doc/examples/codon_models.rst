@@ -112,7 +112,7 @@ We can then free up the omega parameter, but before we do that we'll store the l
 .. doctest::
 
     >>> neutral_lnL = lf.getLogLikelihood()
-    >>> neutral_nfp = lf.getNumFreeParams()
+    >>> neutral_nfp = lf.get_num_free_params()
     >>> lf.set_param_rule('omega', is_constant=False)
     >>> lf.optimise(**optimiser_args)
     >>> print lf
@@ -128,7 +128,7 @@ We can then free up the omega parameter, but before we do that we'll store the l
         Galago     root     0.53
      HowlerMon     root     0.14...
     >>> non_neutral_lnL = lf.getLogLikelihood()
-    >>> non_neutral_nfp = lf.getNumFreeParams()
+    >>> non_neutral_nfp = lf.get_num_free_params()
 
 We then conduct a likelihood ratio test whether the MLE of omega significantly improves the fit over the constraint it equals 1. We import the convenience function from the cogent stats module.
 
@@ -164,7 +164,7 @@ Not surprisingly, this is significant. We then ask whether the Human and Chimpan
     Chimpanzee   edge.0     0.01    2.39
         edge.0   edge.1     0.00    0.73...
     >>> chimp_human_clade_lnL = lf.getLogLikelihood()
-    >>> chimp_human_clade_nfp = lf.getNumFreeParams()
+    >>> chimp_human_clade_nfp = lf.get_num_free_params()
     >>> LR = 2*(chimp_human_clade_lnL-non_neutral_lnL)
     >>> df = chimp_human_clade_nfp-non_neutral_nfp
     >>> print chisqprob(LR, df)
@@ -183,7 +183,7 @@ It is also possible to specify rate-heterogeneity variants of these models. In t
     >>> lf.set_alignment(aln)
     >>> lf.optimise(**optimiser_args)
     >>> non_neutral_lnL = lf.getLogLikelihood()
-    >>> non_neutral_nfp = lf.getNumFreeParams()
+    >>> non_neutral_nfp = lf.get_num_free_params()
 
 Now, we have a null model which we know (from having fit it above) has a MLE < 1. We will construct a rate-heterogeneity model with just 2 rate-classes (neutral and adaptive) that are separated by the boundary of omega=1. These rate-classes are specified as discrete bins in PyCogent and the model configuration steps for a bin or bins are done using the ``set_param_rule`` method. To ensure the alternate model starts with a likelihood at least as good as the previous we need to make the probability of the neutral site-class bin ~= 1 (these are referenced by the ``bprobs`` parameter type) and assign the null model omega MLE to this class.
 
@@ -228,7 +228,7 @@ The above statement essentially assigns a probability of nearly 1 to the 'neutra
     >>> rate_lf.set_alignment(aln)
     >>> rate_lf.optimise(**optimiser_args)
     >>> rate_lnL = rate_lf.getLogLikelihood()
-    >>> rate_nfp = rate_lf.getNumFreeParams()
+    >>> rate_nfp = rate_lf.get_num_free_params()
     >>> LR = 2*(rate_lnL-non_neutral_lnL)
     >>> df = rate_nfp-non_neutral_nfp
     >>> print rate_lf

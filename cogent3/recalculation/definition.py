@@ -235,7 +235,7 @@ class _InputDefn(_LeafDefn):
         for (output, setting) in zip(outputs, self.uniq):
             setting.value = output
 
-    def getNumFreeParams(self):
+    def get_num_free_params(self):
         (cells, outputs) = self.make_cells({}, None)
         return len([c for c in cells if isinstance(c, OptPar)])
 
@@ -321,7 +321,7 @@ class NonScalarDefn(_InputDefn):
         uniq_cells = [ConstCell(self.name, v.value) for v in self.uniq]
         return (uniq_cells, uniq_cells)
 
-    def getNumFreeParams(self):
+    def get_num_free_params(self):
         return 0
 
     def update_from_calculator(self, calc):
