@@ -73,7 +73,7 @@ class OptPar(object):
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__, self.label)
 
-    def getOptimiserBounds(self):
+    def get_optimiser_bounds(self):
         lower = self.transformToOptimiser(self.lower)
         upper = self.transformToOptimiser(self.upper)
         return (lower, upper)
@@ -375,7 +375,7 @@ class Calculator(object):
         lower = numpy.zeros([len(self.opt_pars)], Float)
         upper = numpy.zeros([len(self.opt_pars)], Float)
         for (i, opt_par) in enumerate(self.opt_pars):
-            (lb, ub) = opt_par.getOptimiserBounds()
+            (lb, ub) = opt_par.get_optimiser_bounds()
             lower[i] = lb
             upper[i] = ub
         return (lower, upper)
@@ -630,7 +630,7 @@ class Calculator(object):
         # f(max) == f(opt)-dropoff.  Uses None when a bound is hit.
         # assert self.optimised, "Call optimise() first"
         origY = self.testfunction()
-        (lower, upper) = opt_par.getOptimiserBounds()
+        (lower, upper) = opt_par.get_optimiser_bounds()
         opt_value = self._getCurrentCellValue(opt_par)
         origX = opt_par.transformToOptimiser(opt_value)
 
