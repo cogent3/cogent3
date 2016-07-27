@@ -32,13 +32,13 @@ class ScaleRuleTests(unittest.TestCase):
             do_scaling=do_scaling, equal_motif_probs=True,
             model_gaps=False, predicates=predicates, scales=scale_rules)
 
-    def _getScaledLengths(self, model, params):
+    def _get_scaled_lengths(self, model, params):
         LF = model.makeLikelihoodFunction(TREE)
         for param in params:
             LF.setParamRule(param, value=params[param], is_constant=True)
         result = {}
         for predicate in model.scale_masks:
-            result[predicate] = LF.getScaledLengths(predicate)['a']
+            result[predicate] = LF.get_scaled_lengths(predicate)['a']
         return result
 
     def test_scaled(self):
@@ -47,7 +47,7 @@ class ScaleRuleTests(unittest.TestCase):
             'ts': trans, 'tv': ~trans})
 
         self.assertEqual(
-            self._getScaledLengths(model, {'k': 6.0, 'length': 4.0}),
+            self._get_scaled_lengths(model, {'k': 6.0, 'length': 4.0}),
             {'ts': 3.0, 'tv': 1.0})
 
     def test_binned(self):
@@ -60,7 +60,7 @@ class ScaleRuleTests(unittest.TestCase):
         LF.setParamRule('k', value=1.0, bin='bin1', is_constant=True)
 
         for (bin, expected) in [('bin0', 3.0), ('bin1', 4.0 / 3), (None, 13.0 / 6)]:
-            self.assertEqual(LF.getScaledLengths('ts', bin=bin)['a'], expected)
+            self.assertEqual(LF.get_scaled_lengths('ts', bin=bin)['a'], expected)
 
     def test_unscaled(self):
         """Scale rule on a model which has scaling performed after calculation
@@ -69,7 +69,7 @@ class ScaleRuleTests(unittest.TestCase):
             'ts': trans, 'tv': ~trans})
 
         self.assertEqual(
-            self._getScaledLengths(model, {'k': 6.0, 'length': 2.0}),
+            self._get_scaled_lengths(model, {'k': 6.0, 'length': 2.0}),
             {'ts': 3.0, 'tv': 1.0})
 
     def test_scaled_or(self):
@@ -78,7 +78,7 @@ class ScaleRuleTests(unittest.TestCase):
             'or': (trans | a_c), 'not': ~(trans | a_c)})
 
         self.assertEqual(
-            self._getScaledLengths(
+            self._get_scaled_lengths(
                 model, {'k': 6.0, 'length': 6.0, 'ac': 3.0}),
             {'or': 5.0, 'not': 1.0})
 
@@ -126,9 +126,9 @@ class ScaleRuleTests(unittest.TestCase):
         )
         length = 0.1115
 
-        a = self._getScaledLengths(model,
+        a = self._get_scaled_lengths(model,
                                    {'k': 3.6491, 'r': 0.6317, 'length': length})
-        b = self._getScaledLengths(model,
+        b = self._get_scaled_lengths(model,
                                    {'k': 3.6491, 'r': 1.0, 'length': length})
         dN = length * a['dN'] / (3.0 * b['dN'])
         dS = length * a['dS'] / (3.0 * b['dS'])

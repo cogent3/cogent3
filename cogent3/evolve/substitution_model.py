@@ -833,7 +833,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         inst_size = sum(self._instantaneous_mask.flat)
         return (r / pred_size) / ((t - r) / (inst_size - pred_size))
 
-    def getScaledLengthsFromQ(self, Q, motif_probs, length):
+    def get_scaled_lengthsFromQ(self, Q, motif_probs, length):
         lengths = {}
         for rule in self.scale_masks:
             lengths[rule] = length * self.getScaleFromQs(

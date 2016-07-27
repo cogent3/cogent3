@@ -193,9 +193,9 @@ class LikelihoodFunction(ParameterController):
         bin_probs_array = self.get_param_value('bprobs', locus=locus)
         return DictArrayTemplate(self.bin_names).wrap(bin_probs_array)
 
-    def getScaledLengths(self, predicate, bin=None, locus=None):
+    def get_scaled_lengths(self, predicate, bin=None, locus=None):
         """A dictionary of {scale:{edge:length}}"""
-        if not hasattr(self._model, 'getScaledLengthsFromQ'):
+        if not hasattr(self._model, 'get_scaled_lengthsFromQ'):
             return {}
 
         def valueOf(param, **kw):
@@ -316,7 +316,7 @@ class LikelihoodFunction(ParameterController):
 
         if hasattr(self.model, 'scale_masks'):
             for predicate in self.model.scale_masks:
-                stats_dict[predicate] = self.getScaledLengths(predicate)
+                stats_dict[predicate] = self.get_scaled_lengths(predicate)
 
         edge_vector = [e for e in self._tree.get_edge_vector() if not e.isroot()]
 
