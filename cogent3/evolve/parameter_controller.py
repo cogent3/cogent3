@@ -99,7 +99,7 @@ class _LikelihoodParameterController(_LF):
         tree (if any) or default to having one value shared across the whole
         tree"""
         with self.updatesPostponed():
-            edges = self.tree.getEdgeVector()
+            edges = self.tree.get_edge_vector()
             for par_name in self.model.getParamList():
                 try:
                     values = dict([(edge.name, edge.params[par_name])
@@ -290,7 +290,7 @@ class _LikelihoodParameterController(_LF):
             tree = self.tree
 
         with self.updatesPostponed():
-            for edge in tree.getEdgeVector():
+            for edge in tree.get_edge_vector():
                 if edge.Length is None or edge.name in exclude_list:
                     continue
                 self.setParamRule("length", edge=edge.name, is_constant=1,

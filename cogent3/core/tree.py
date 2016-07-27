@@ -1367,7 +1367,7 @@ class TreeNode(object):
         """
         return self.get_node_names(includeself, tipsonly=True)
 
-    def getEdgeVector(self, include_root=True):
+    def get_edge_vector(self, include_root=True):
         """Collect the list of edges in postfix order
 
         Arguments:

@@ -1624,14 +1624,14 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
             self.assertEqual(edge.name, name)
             self.assertEqual(edge.istip(), expect_tip)
 
-    def test_getEdgeVector(self):
+    def test_get_edge_vector(self):
         '''correctly return vector of edges from a tree'''
         tree = self.default_tree
-        names = [e.name for e in tree.getEdgeVector()]
+        names = [e.name for e in tree.get_edge_vector()]
         self.assertEqual(names,
                          ['A', 'B', 'ab', 'C', 'D', 'cd', 'E', 'cde', 'root'])
 
-        names = [e.name for e in tree.getEdgeVector(include_root=False)]
+        names = [e.name for e in tree.get_edge_vector(include_root=False)]
         self.assertEqual(names,
                          ['A', 'B', 'ab', 'C', 'D', 'cd', 'E', 'cde'])
 
