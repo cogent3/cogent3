@@ -2359,7 +2359,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         """
         return seqs
 
-    def getSubAlignment(self, seqs=None, pos=None, invert_seqs=False,
+    def get_sub_alignment(self, seqs=None, pos=None, invert_seqs=False,
                         invert_pos=False):
         """Returns subalignment of specified sequences and positions.
 

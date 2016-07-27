@@ -1830,33 +1830,33 @@ class DenseAlignmentSpecificTests(TestCase):
         self.assertEqual(a2[1], ['B', 'E'])
         self.assertEqual(a2[1:], [['B', 'E'], ['C', 'F']])
 
-    def test_getSubAlignment(self):
-        """DenseAlignment getSubAlignment should get requested part of alignment."""
+    def test_get_sub_alignment(self):
+        """DenseAlignment get_sub_alignment should get requested part of alignment."""
         a = DenseAlignment('>x ABCE >y FGHI >z JKLM'.split())
         # passing in positions should keep all seqs, but just selected
         # positions
         b = DenseAlignment('>x BC >y GH >z KL'.split())
-        a_1 = a.getSubAlignment(pos=[1, 2])
+        a_1 = a.get_sub_alignment(pos=[1, 2])
         self.assertEqual(a_1.names, b.names)
 
         self.assertEqual(a_1.Seqs, b.Seqs)
         #...and with invert_pos, should keep all except the positions passed in
-        a_2 = a.getSubAlignment(pos=[0, 3], invert_pos=True)
+        a_2 = a.get_sub_alignment(pos=[0, 3], invert_pos=True)
         self.assertEqual(a_2.Seqs, b.Seqs)
         self.assertEqual(a_2.names, b.names)
         # passing in seqs should keep all positions, but just selected seqs
         c = DenseAlignment('>x ABCE >z JKLM'.split())
-        a_3 = a.getSubAlignment(seqs=[0, 2])
+        a_3 = a.get_sub_alignment(seqs=[0, 2])
         self.assertEqual(a_3.Seqs, c.Seqs)
         # check that labels were updates as well...
         self.assertEqual(a_3.names, c.names)
         #...and should work with invert_seqs to exclude just selected seqs
-        a_4 = a.getSubAlignment(seqs=[1], invert_seqs=True)
+        a_4 = a.get_sub_alignment(seqs=[1], invert_seqs=True)
         self.assertEqual(a_4.Seqs, c.Seqs)
         self.assertEqual(a_4.names, c.names)
         # should be able to do both seqs and positions simultaneously
         d = DenseAlignment('>x BC >z KL'.split())
-        a_5 = a.getSubAlignment(seqs=[0, 2], pos=[1, 2])
+        a_5 = a.get_sub_alignment(seqs=[0, 2], pos=[1, 2])
         self.assertEqual(a_5.Seqs, d.Seqs)
         self.assertEqual(a_5.names, d.names)
 

@@ -119,7 +119,7 @@ class AlignmentTestMethods(unittest.TestCase):
         new_seqs = {'seq1': 'ACGTACGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'}
         LoadSeqs(data=new_seqs)
 
-    def test_getSubAlignment(self):
+    def test_get_sub_alignment(self):
         """test slicing otus, and return of new alignment"""
         fullset = ['DogFaced', 'Human', 'HowlerMon', 'Mouse', 'NineBande']
         subset = ['DogFaced', 'Human', 'HowlerMon', 'Mouse']

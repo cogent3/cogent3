@@ -142,9 +142,9 @@ class AllTests(TestCase):
         self.assertEqual(sub_da.ArrayPositions, transpose(sub_data))
 
         obs_sub_da_TP = self.da.take_positions([0, 1, 5])
-        obs_sub_da_SA = self.da.getSubAlignment(pos=[0, 1, 5])
+        obs_sub_da_SA = self.da.get_sub_alignment(pos=[0, 1, 5])
 
-        # When using the getSubAlignment method the data is right
+        # When using the get_sub_alignment method the data is right
         self.assertEqual(obs_sub_da_SA, sub_da)
         self.assertNotEqual(obs_sub_da_SA, self.da)
         self.assertEqual(obs_sub_da_SA.ArraySeqs, sub_data)
@@ -176,7 +176,7 @@ class AllTests(TestCase):
         """Alignment take_positions should maintain seq order"""
         # This works
         self.assertEqual(self.da.names, ['rna1', 'rna2', 'rna3'])
-        sub_da = self.da.getSubAlignment(pos=[0, 1, 5])
+        sub_da = self.da.get_sub_alignment(pos=[0, 1, 5])
         self.assertEqual(sub_da.names, ['rna1', 'rna2', 'rna3'])
         # seq order not maintained in Alignment
         self.assertEqual(self.aln.names, ['rna1', 'rna2', 'rna3'])
@@ -211,9 +211,9 @@ class AllTests(TestCase):
                                 MolType=RNA, Alphabet=RNA.Alphabets.DegenGapped)
 
         # take_seqs by name should have the same effect as
-        # getSubAlignment by seq idx?
+        # get_sub_alignment by seq idx?
         obs_sub_da_TS = self.da.take_seqs(['rna1'])
-        obs_sub_da_SA = self.da.getSubAlignment(seqs=[0])
+        obs_sub_da_SA = self.da.get_sub_alignment(seqs=[0])
 
         # These two are now the same. Fixed mapping of key to char array.
         self.assertEqual(obs_sub_da_TS, obs_sub_da_SA)
