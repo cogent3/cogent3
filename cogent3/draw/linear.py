@@ -878,7 +878,7 @@ class DisplayPolicy(object):
                 seqs_policy = self.copy(show_gaps=True)
             else:
                 seqs_policy = self
-            seq_tracks = alignment.getChildTracks(seqs_policy)
+            seq_tracks = alignment.get_child_tracks(seqs_policy)
         else:
             seq_tracks = []
         annot_tracks = self.mergeTracks(annot_tracks)
