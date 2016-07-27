@@ -326,7 +326,7 @@ class DistancesTests(unittest.TestCase):
                          ('a', 'b'): 0.188486,
                          ('a', 'e'): 0.440840,
                          ('b', 'c'): 0.0883373}
-        result = d.getPairwiseDistances()
+        result = d.get_pairwise_distances()
         self.assertDistsAlmostEqual(canned_result, result)
 
         # excercise writing to file
@@ -347,7 +347,7 @@ class DistancesTests(unittest.TestCase):
                          ('a', 'b'): 0.15096,
                          ('b', 'e'): 0.39921,
                          ('c', 'e'): 0.37243}
-        result = d.getPairwiseDistances()
+        result = d.get_pairwise_distances()
         self.assertDistsAlmostEqual(canned_result, result)
 
     def test_EstimateDistances_fromThreeway(self):
@@ -360,7 +360,7 @@ class DistancesTests(unittest.TestCase):
                          ('a', 'b'): 0.190021,
                          ('a', 'e'): 0.495305,
                          ('b', 'c'): 0.0899339}
-        result = d.getPairwiseDistances(summary_function="mean")
+        result = d.get_pairwise_distances(summary_function="mean")
         self.assertDistsAlmostEqual(canned_result, result)
 
     def test_EstimateDistances_fromUnaligned(self):
@@ -374,7 +374,7 @@ class DistancesTests(unittest.TestCase):
                          ('a', 'b'): 0.188486,
                          ('a', 'e'): 0.440840,
                          ('b', 'c'): 0.0883373}
-        result = d.getPairwiseDistances()
+        result = d.get_pairwise_distances()
         self.assertDistsAlmostEqual(canned_result, result)
 
         d = EstimateDistances(self.collection, JC69(), do_pair_align=True,
@@ -386,7 +386,7 @@ class DistancesTests(unittest.TestCase):
                          ('a', 'b'): 0.188486,
                          ('a', 'e'): 0.440840,
                          ('b', 'c'): 0.0883373}
-        result = d.getPairwiseDistances()
+        result = d.get_pairwise_distances()
         self.assertDistsAlmostEqual(canned_result, result)
 
     def test_EstimateDistances_other_model_params(self):
@@ -409,10 +409,10 @@ class DistancesTests(unittest.TestCase):
 
         d = EstimateDistances(self.al, HKY85(), modify_lf=constrain_fit)
         d.run()
-        result = d.getPairwiseDistances()
+        result = d.get_pairwise_distances()
         d = EstimateDistances(self.al, F81())
         d.run()
-        expect = d.getPairwiseDistances()
+        expect = d.get_pairwise_distances()
         self.assertDistsAlmostEqual(expect, result)
 
     def test_get_raw_estimates(self):
