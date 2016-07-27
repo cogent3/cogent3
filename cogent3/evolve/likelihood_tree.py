@@ -144,7 +144,7 @@ class _LikelihoodTreeEdge(object):
         result[-1] = likelihoods[-1]  # restore gap column
         return (self.full_length_version, result)
 
-    def getFullLengthLikelihoods(self, likelihoods):
+    def get_full_length_likelihoods(self, likelihoods):
         (self, likelihoods) = self.parallelReconstructColumns(likelihoods)
         return likelihoods[self.index]
 

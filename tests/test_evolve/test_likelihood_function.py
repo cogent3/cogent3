@@ -625,7 +625,7 @@ motif    mprobs
         """lf should return consistent rate matrix and psub"""
         lf = self.submodel.makeLikelihoodFunction(self.tree)
         lf.setAlignment(self.data)
-        Q = lf.getRateMatrixForEdge('NineBande')
+        Q = lf.get_rate_matrix_for_edge('NineBande')
         P = lf.get_psub_for_edge('NineBande')
         self.assertFloatEqual(expm(Q.array)(1.0), P.array)
 
@@ -633,7 +633,7 @@ motif    mprobs
         dm = substitution_model.DiscreteSubstitutionModel(DNA.alphabet)
         lf = dm.makeLikelihoodFunction(self.tree)
         lf.setAlignment(self.data)
-        self.assertRaises(Exception, lf.getRateMatrixForEdge, 'NineBande')
+        self.assertRaises(Exception, lf.get_rate_matrix_for_edge, 'NineBande')
 
     def test_make_discrete_markov(self):
         """lf ignores tree lengths if a discrete Markov model"""
