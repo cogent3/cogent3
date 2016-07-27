@@ -221,7 +221,7 @@ class TreeNode(object):
         return len(self.Children)
 
     # support for copy module
-    def copyRecursive(self, memo=None, _nil=[], constructor='ignored'):
+    def copy_recursive(self, memo=None, _nil=[], constructor='ignored'):
         """Returns copy of self's structure, including shallow copy of attrs.
 
         constructor is ignored; required to support old tree unit tests.
