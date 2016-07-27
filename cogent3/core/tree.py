@@ -126,7 +126,7 @@ class TreeNode(object):
 
         return self.name == other.name
 
-    def compareByNames(self, other):
+    def compare_by_names(self, other):
         """Equality test for trees by name"""
         # if they are the same object then they must be the same tree...
         if self is other:

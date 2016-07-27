@@ -225,11 +225,11 @@ class TreeNodeTests(TestCase):
         self.assertFalse(nodes['a'].compare_name(nodes['b']))
         self.assertFalse(nodes['b'].compare_name(nodes['a']))
 
-    def test_compareByNames(self):
+    def test_compare_by_names(self):
         """Compare names between trees"""
-        self.assertTrue(self.t.compareByNames(self.t2))
-        self.assertTrue(self.t.compareByNames(self.t))
-        self.assertFalse(self.t.compareByNames(self.t4))
+        self.assertTrue(self.t.compare_by_names(self.t2))
+        self.assertTrue(self.t.compare_by_names(self.t))
+        self.assertFalse(self.t.compare_by_names(self.t4))
 
     def test_eq(self):
         """TreeNode should compare equal if same id"""
