@@ -540,7 +540,7 @@ class Alphabet(Enumeration):
         not do. It also requires the sequence to be a Sequence object rather
         than an arbitrary string, tuple, etc.
         """
-        sequence = sequence.getInMotifSize(self._motiflen)
+        sequence = sequence.get_in_motif_size(self._motiflen)
         return array(list(map(self.index, sequence)))
 
     def fromOrdinalsToSequence(self, data):

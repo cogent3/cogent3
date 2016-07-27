@@ -419,7 +419,7 @@ class LikelihoodFunction(ParameterController):
             if isinstance(root_sequence, str):
                 root_sequence = self._model.MolType.makeSequence(root_sequence)
             motif_len = self._model.getAlphabet().getMotifLen()
-            root_sequence = root_sequence.getInMotifSize(motif_len)
+            root_sequence = root_sequence.get_in_motif_size(motif_len)
         else:
             mprobs = self.getParamValue('mprobs', locus=locus, edge='root')
             mprobs = self._model.calcWordProbs(mprobs)

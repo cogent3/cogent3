@@ -56,7 +56,7 @@ def aligned_columns_to_rows(aln, motif_len, exclude_chars=None, allowed_chars='A
     exclude_indices = set()
     array = []
     for name in aln.names:
-        motifs = list(aln.get_gapped_seq(name).getInMotifSize(motif_len))
+        motifs = list(aln.get_gapped_seq(name).get_in_motif_size(motif_len))
         array.append(motifs)
         for motif_index, motif in enumerate(motifs):
             if exclude_func(motif):
