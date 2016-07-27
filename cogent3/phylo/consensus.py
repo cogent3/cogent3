@@ -118,7 +118,7 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
 
     nodes = {}
     queue = []
-    tree_build = TreeBuilder().createEdge
+    tree_build = TreeBuilder().create_edge
     for clade in accepted_clades:
         if len(clade) == 1:
             tip_name = next(iter(clade))
@@ -233,9 +233,9 @@ def getSplits(tree):
 def getTree(splits):
     """Convert a dict keyed by splits into the equivalent tree.
     The dict values should be dicts appropriate for the params input to
-    TreeBuilder.createEdge.
+    TreeBuilder.create_edge.
     """
-    Edge = TreeBuilder().createEdge
+    Edge = TreeBuilder().create_edge
 
     # Create a star from the tips
     tips = []

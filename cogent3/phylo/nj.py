@@ -41,7 +41,7 @@ class LightweightTreeNode(frozenset):
 
     def convert(self, constructor=None, length=None):
         if constructor is None:
-            constructor = TreeBuilder().createEdge
+            constructor = TreeBuilder().create_edge
         children = [child.convert(constructor, clength)
                     for (clength, child) in self]
         node = constructor(children, None, {})

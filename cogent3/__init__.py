@@ -213,7 +213,7 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None,
             parser = tree_xml_parse_string
         else:
             parser = newick_parse_string
-        tree_builder = TreeBuilder().createEdge
+        tree_builder = TreeBuilder().create_edge
         # FIXME: More general strategy for underscore_unmunge
         if parser is newick_parse_string:
             tree = parser(treestring, tree_builder,
@@ -223,7 +223,7 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None,
         if not tree.NameLoaded:
             tree.name = 'root'
     elif tip_names:
-        tree_builder = TreeBuilder().createEdge
+        tree_builder = TreeBuilder().create_edge
         tips = [tree_builder([], tip_name, {}) for tip_name in tip_names]
         tree = tree_builder(tips, 'root', {})
     else:
