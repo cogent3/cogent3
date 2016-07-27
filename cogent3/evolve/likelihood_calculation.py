@@ -187,7 +187,7 @@ def make_total_loglikelihood_defn(tree, leaves, psubs, mprobs, bprobs, bin_names
 
 
 def log_sum_across_sites(root, root_lh):
-    return root.getLogSumAcrossSites(root_lh)
+    return root.get_log_sum_across_sites(root_lh)
 
 
 class BinnedSiteDistribution(object):
@@ -259,7 +259,7 @@ class BinnedLikelihood(object):
 
     def __call__(self, *lhs):
         result = self.distrib.get_weighted_sum_lh(lhs)
-        return self.root.getLogSumAcrossSites(result)
+        return self.root.get_log_sum_across_sites(result)
 
     def get_posterior_probs(self, *lhs):
         # posterior bin probs, not motif probs

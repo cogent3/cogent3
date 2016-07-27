@@ -56,7 +56,7 @@ def get_total_log_likelihood(Double1D counts, Double2D input_likelihoods, Double
         total += log(posn)*counts[col]
     return total
 
-def getLogSumAcrossSites(Double1D counts, Double1D input_likelihoods):
+def get_log_sum_across_sites(Double1D counts, Double1D input_likelihoods):
     cdef int S, col
     cdef double total
     

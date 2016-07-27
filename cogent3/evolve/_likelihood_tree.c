@@ -1408,7 +1408,6 @@ static const char __pyx_k_dtype_is_object[] = "dtype_is_object";
 static const char __pyx_k_input_likelihoods[] = "input_likelihoods";
 static const char __pyx_k_strided_and_direct[] = "<strided and direct>";
 static const char __pyx_k_most_probable_state[] = "most_probable_state";
-static const char __pyx_k_getLogSumAcrossSites[] = "getLogSumAcrossSites";
 static const char __pyx_k_strided_and_indirect[] = "<strided and indirect>";
 static const char __pyx_k_contiguous_and_direct[] = "<contiguous and direct>";
 static const char __pyx_k_sum_input_likelihoods[] = "sum_input_likelihoods";
@@ -1417,6 +1416,7 @@ static const char __pyx_k_Array_required_got_None[] = "Array required, got None"
 static const char __pyx_k_MemoryView_of_r_at_0x_x[] = "<MemoryView of %r at 0x%x>";
 static const char __pyx_k_contiguous_and_indirect[] = "<contiguous and indirect>";
 static const char __pyx_k_Cannot_index_with_type_s[] = "Cannot index with type '%s'";
+static const char __pyx_k_get_log_sum_across_sites[] = "get_log_sum_across_sites";
 static const char __pyx_k_get_total_log_likelihood[] = "get_total_log_likelihood";
 static const char __pyx_k_s_dimension_is_s_too_big[] = "%s dimension is %s, too big";
 static const char __pyx_k_Invalid_shape_in_axis_d_d[] = "Invalid shape in axis %d: %d.";
@@ -1487,7 +1487,7 @@ static PyObject *__pyx_n_s_flags;
 static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_fortran;
 static PyObject *__pyx_n_u_fortran;
-static PyObject *__pyx_n_s_getLogSumAcrossSites;
+static PyObject *__pyx_n_s_get_log_sum_across_sites;
 static PyObject *__pyx_n_s_get_total_log_likelihood;
 static PyObject *__pyx_kp_s_got_differing_extents_in_dimensi;
 static PyObject *__pyx_n_s_i;
@@ -1547,7 +1547,7 @@ static PyObject *__pyx_n_s_version;
 static PyObject *__pyx_n_s_version_info;
 static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_sum_input_likelihoods(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_child_indexes, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_result, PyObject *__pyx_v_likelihoods); /* proto */
 static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_2get_total_log_likelihood(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_input_likelihoods, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_mprobs); /* proto */
-static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_4getLogSumAcrossSites(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_input_likelihoods); /* proto */
+static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_4get_log_sum_across_sites(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_input_likelihoods); /* proto */
 static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_6log_dot_reduce(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Long1D __pyx_v_index, PyObject *__pyx_v_patch_probs, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_switch_probs, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_plhs); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
@@ -2938,7 +2938,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_2get_total_log_lik
  *         total += log(posn)*counts[col]
  *     return total             # <<<<<<<<<<<<<<
  * 
- * def getLogSumAcrossSites(Double1D counts, Double1D input_likelihoods):
+ * def get_log_sum_across_sites(Double1D counts, Double1D input_likelihoods):
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_9 = PyFloat_FromDouble(__pyx_v_total); if (unlikely(!__pyx_t_9)) __PYX_ERR(1, 57, __pyx_L1_error)
@@ -2972,20 +2972,20 @@ static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_2get_total_log_lik
 /* "cogent3/evolve/_likelihood_tree.pyx":59
  *     return total
  * 
- * def getLogSumAcrossSites(Double1D counts, Double1D input_likelihoods):             # <<<<<<<<<<<<<<
+ * def get_log_sum_across_sites(Double1D counts, Double1D input_likelihoods):             # <<<<<<<<<<<<<<
  *     cdef int S, col
  *     cdef double total
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_5getLogSumAcrossSites(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_7cogent3_6evolve_16_likelihood_tree_5getLogSumAcrossSites = {"getLogSumAcrossSites", (PyCFunction)__pyx_pw_7cogent3_6evolve_16_likelihood_tree_5getLogSumAcrossSites, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_5getLogSumAcrossSites(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_5get_log_sum_across_sites(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_7cogent3_6evolve_16_likelihood_tree_5get_log_sum_across_sites = {"get_log_sum_across_sites", (PyCFunction)__pyx_pw_7cogent3_6evolve_16_likelihood_tree_5get_log_sum_across_sites, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_5get_log_sum_across_sites(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts = { 0, 0, { 0 }, { 0 }, { 0 } };
   __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_input_likelihoods = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("getLogSumAcrossSites (wrapper)", 0);
+  __Pyx_RefNannySetupContext("get_log_sum_across_sites (wrapper)", 0);
   {
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_counts,&__pyx_n_s_input_likelihoods,0};
     PyObject* values[2] = {0,0};
@@ -3006,11 +3006,11 @@ static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_5getLogSumAcrossSi
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_input_likelihoods)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("getLogSumAcrossSites", 1, 2, 2, 1); __PYX_ERR(1, 59, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_log_sum_across_sites", 1, 2, 2, 1); __PYX_ERR(1, 59, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getLogSumAcrossSites") < 0)) __PYX_ERR(1, 59, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_log_sum_across_sites") < 0)) __PYX_ERR(1, 59, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -3023,20 +3023,20 @@ static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_5getLogSumAcrossSi
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("getLogSumAcrossSites", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 59, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_log_sum_across_sites", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 59, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.getLogSumAcrossSites", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.get_log_sum_across_sites", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_7cogent3_6evolve_16_likelihood_tree_4getLogSumAcrossSites(__pyx_self, __pyx_v_counts, __pyx_v_input_likelihoods);
+  __pyx_r = __pyx_pf_7cogent3_6evolve_16_likelihood_tree_4get_log_sum_across_sites(__pyx_self, __pyx_v_counts, __pyx_v_input_likelihoods);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_4getLogSumAcrossSites(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_input_likelihoods) {
+static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_4get_log_sum_across_sites(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_input_likelihoods) {
   int __pyx_v_S;
   int __pyx_v_col;
   double __pyx_v_total;
@@ -3047,7 +3047,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_4getLogSumAcrossSi
   Py_ssize_t __pyx_t_3;
   Py_ssize_t __pyx_t_4;
   PyObject *__pyx_t_5 = NULL;
-  __Pyx_RefNannySetupContext("getLogSumAcrossSites", 0);
+  __Pyx_RefNannySetupContext("get_log_sum_across_sites", 0);
 
   /* "cogent3/evolve/_likelihood_tree.pyx":63
  *     cdef double total
@@ -3125,7 +3125,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_4getLogSumAcrossSi
   /* "cogent3/evolve/_likelihood_tree.pyx":59
  *     return total
  * 
- * def getLogSumAcrossSites(Double1D counts, Double1D input_likelihoods):             # <<<<<<<<<<<<<<
+ * def get_log_sum_across_sites(Double1D counts, Double1D input_likelihoods):             # <<<<<<<<<<<<<<
  *     cdef int S, col
  *     cdef double total
  */
@@ -3133,7 +3133,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_4getLogSumAcrossSi
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.getLogSumAcrossSites", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.get_log_sum_across_sites", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_counts, 1);
@@ -16066,7 +16066,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_format, __pyx_k_format, sizeof(__pyx_k_format), 0, 0, 1, 1},
   {&__pyx_n_s_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 0, 1, 1},
   {&__pyx_n_u_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 1, 0, 1},
-  {&__pyx_n_s_getLogSumAcrossSites, __pyx_k_getLogSumAcrossSites, sizeof(__pyx_k_getLogSumAcrossSites), 0, 0, 1, 1},
+  {&__pyx_n_s_get_log_sum_across_sites, __pyx_k_get_log_sum_across_sites, sizeof(__pyx_k_get_log_sum_across_sites), 0, 0, 1, 1},
   {&__pyx_n_s_get_total_log_likelihood, __pyx_k_get_total_log_likelihood, sizeof(__pyx_k_get_total_log_likelihood), 0, 0, 1, 1},
   {&__pyx_kp_s_got_differing_extents_in_dimensi, __pyx_k_got_differing_extents_in_dimensi, sizeof(__pyx_k_got_differing_extents_in_dimensi), 0, 0, 1, 0},
   {&__pyx_n_s_i, __pyx_k_i, sizeof(__pyx_k_i), 0, 0, 1, 1},
@@ -16353,14 +16353,14 @@ static int __Pyx_InitCachedConstants(void) {
   /* "cogent3/evolve/_likelihood_tree.pyx":59
  *     return total
  * 
- * def getLogSumAcrossSites(Double1D counts, Double1D input_likelihoods):             # <<<<<<<<<<<<<<
+ * def get_log_sum_across_sites(Double1D counts, Double1D input_likelihoods):             # <<<<<<<<<<<<<<
  *     cdef int S, col
  *     cdef double total
  */
   __pyx_tuple__22 = PyTuple_Pack(5, __pyx_n_s_counts, __pyx_n_s_input_likelihoods, __pyx_n_s_S, __pyx_n_s_col, __pyx_n_s_total); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(1, 59, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__22);
   __Pyx_GIVEREF(__pyx_tuple__22);
-  __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(2, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_gavin_DevRepos_PyCogent3, __pyx_n_s_getLogSumAcrossSites, 59, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(1, 59, __pyx_L1_error)
+  __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(2, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_gavin_DevRepos_PyCogent3, __pyx_n_s_get_log_sum_across_sites, 59, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(1, 59, __pyx_L1_error)
 
   /* "cogent3/evolve/_likelihood_tree.pyx":72
  *     return total
@@ -16628,13 +16628,13 @@ PyMODINIT_FUNC PyInit__likelihood_tree(void)
   /* "cogent3/evolve/_likelihood_tree.pyx":59
  *     return total
  * 
- * def getLogSumAcrossSites(Double1D counts, Double1D input_likelihoods):             # <<<<<<<<<<<<<<
+ * def get_log_sum_across_sites(Double1D counts, Double1D input_likelihoods):             # <<<<<<<<<<<<<<
  *     cdef int S, col
  *     cdef double total
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_6evolve_16_likelihood_tree_5getLogSumAcrossSites, NULL, __pyx_n_s_cogent3_evolve__likelihood_tree); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 59, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_6evolve_16_likelihood_tree_5get_log_sum_across_sites, NULL, __pyx_n_s_cogent3_evolve__likelihood_tree); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 59, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getLogSumAcrossSites, __pyx_t_1) < 0) __PYX_ERR(1, 59, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_log_sum_across_sites, __pyx_t_1) < 0) __PYX_ERR(1, 59, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "cogent3/evolve/_likelihood_tree.pyx":72
