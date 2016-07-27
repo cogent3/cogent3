@@ -197,7 +197,7 @@ class Dict2D(dict):
     def _guess_input_type(self, data):
         """Guesses the input type of data, and returns appropriate init method.
 
-        Known init methods are fromDicts, fromIndices, and fromLists.
+        Known init methods are fromDicts, from_indices, and fromLists.
         Returns None if it can't figure out the data type.
         """
         if isinstance(data, dict):
@@ -217,7 +217,7 @@ class Dict2D(dict):
                     return self.fromLists
                 elif len(data[0]) == 3:
                     # assume seq of 3-item seqs
-                    return self.fromIndices
+                    return self.from_indices
             except:
                 # if there's any exception, we guessed the wrong type so
                 # will return None
@@ -232,7 +232,7 @@ class Dict2D(dict):
         except (TypeError, ValueError, AttributeError):
             raise Dict2DInitError("Dict2D init from dicts failed.")
 
-    def fromIndices(self, data):
+    def from_indices(self, data):
         """Fills self from sequence of (row, col, value) sequences."""
         constructor = self.RowConstructor
         try:

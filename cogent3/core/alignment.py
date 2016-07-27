@@ -2316,7 +2316,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
 
     def _get_positions(self):
         """Override superclass Positions to return positions as symbols."""
-        return list(map(self.Alphabet.fromIndices, self.ArrayPositions))
+        return list(map(self.Alphabet.from_indices, self.ArrayPositions))
 
     Positions = property(_get_positions)
 
@@ -2421,7 +2421,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         result = []
         names = list(map(str, self.names))
         max_label_length = max(list(map(len, names))) + 1
-        seq2str = self.Alphabet.fromIndices
+        seq2str = self.Alphabet.from_indices
         for l, s in zip(self.names, self.ArraySeqs):
             result.append('>' + str(l) + '\n' + ''.join(seq2str(s)))
         return '\n'.join(result) + '\n'

@@ -52,7 +52,7 @@ Convert integers to a sequence
 
 .. doctest::
     
-    >>> seq = DNA.Alphabet.fromIndices([0,2,3,0])
+    >>> seq = DNA.Alphabet.from_indices([0,2,3,0])
     >>> seq
     ['T', 'A', 'G', 'T']
 

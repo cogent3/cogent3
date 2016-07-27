@@ -128,11 +128,11 @@ class EnumerationTests(TestCase):
         self.assertEqual(a.is_valid(['a', 'b']), True)
         self.assertEqual(a.is_valid(['a', None]), False)
 
-    def test_fromIndices(self):
-        """Enumeration fromIndices should return elements from indices"""
+    def test_from_indices(self):
+        """Enumeration from_indices should return elements from indices"""
         a = Enumeration('bca')
-        self.assertEqual(a.fromIndices([]), [])
-        self.assertEqual(a.fromIndices([1, 1, 2, 0, 2, 1]), list('ccabac'))
+        self.assertEqual(a.from_indices([]), [])
+        self.assertEqual(a.from_indices([1, 1, 2, 0, 2, 1]), list('ccabac'))
 
     def test_pow(self):
         """Enumeration pow should produce JointEnumeration with n copies"""
@@ -306,10 +306,10 @@ class JointEnumerationTests(TestCase):
         i = a.toIndices([('T', 'U'), ('G', 'G'), ('G', 'G')])
         self.assertEqual(i, [0, 15, 15])
 
-    def test_fromIndices(self):
-        """JointEnumeration fromIndices should return correct tuples"""
+    def test_from_indices(self):
+        """JointEnumeration from_indices should return correct tuples"""
         a = JointEnumeration(['TCAG', 'UCAG'])
-        i = a.fromIndices([0, 15, 15])
+        i = a.from_indices([0, 15, 15])
         self.assertEqual(i, [('T', 'U'), ('G', 'G'), ('G', 'G')])
 
     def test_packArrays(self):
