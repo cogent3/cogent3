@@ -26,7 +26,7 @@ Define our Felsenstein 1981 substitution model.
     >>> sm = substitution_model.Nucleotide(motif_probs = {'A': 0.5, 'C': 0.2,
     ... 'G': 0.2, 'T': 0.1}, model_gaps=False)
     >>> lf = sm.makeLikelihoodFunction(t)
-    >>> lf.setConstantLengths()
+    >>> lf.set_constant_lengths()
     >>> lf.set_name('F81 model')
     >>> print lf
     F81 model
