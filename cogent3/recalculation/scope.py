@@ -534,7 +534,7 @@ class _LeafDefn(_Defn):
                         % self.name)
                 setting = Var((None, s_value, None))
             else:
-                (s_lower, s_upper) = self.getCurrentBounds(scope)
+                (s_lower, s_upper) = self.get_current_bounds(scope)
                 if lower is not None:
                     s_lower = lower
                 if upper is not None:
@@ -572,7 +572,7 @@ class _LeafDefn(_Defn):
                     break
         return s_value
 
-    def getCurrentBounds(self, scope):
+    def get_current_bounds(self, scope):
         lowest = highest = None
         for s in scope:
             (lower, init, upper) = self.assignments[s].getBounds()
