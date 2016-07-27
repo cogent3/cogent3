@@ -1113,9 +1113,9 @@ def CodonAlphabet(gc=DEFAULT_GENETIC_CODE, include_stop_codons=False):
     if isinstance(gc, (int, str)):
         gc = GeneticCodes[gc]
     if include_stop_codons:
-        motifset = list(gc.Codons)
+        motifset = list(gc.codons)
     else:
-        motifset = list(gc.SenseCodons)
+        motifset = list(gc.sense_codons)
     motifset = [codon.upper().replace('U', 'T') for codon in motifset]
     a = _CodonAlphabet(motifset, moltype=DNA)
     a._gc = gc
