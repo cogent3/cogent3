@@ -203,7 +203,7 @@ class DirectedMotifChange(predicate):
             diff = ''
         return '%s>%s%s' % (self.from_motif, self.to_motif, diff)
 
-    def testMotif(self, motifs, query):
+    def test_motif(self, motifs, query):
         """positions where motif pattern is found in query"""
         positions = set()
         for offset in range(len(query) - self.motiflen + 1):
@@ -216,8 +216,8 @@ class DirectedMotifChange(predicate):
 
     def test_motifs(self, from_motifs, to_motifs, x, y):
         """"positions where both motifs patterns are found"""
-        pre = self.testMotif(from_motifs, x)
-        post = self.testMotif(to_motifs, y)
+        pre = self.test_motif(from_motifs, x)
+        post = self.test_motif(to_motifs, y)
         return pre & post
 
     def interpret(self, model):
@@ -258,10 +258,10 @@ class UndirectedMotifChange(DirectedMotifChange):
         return '%s/%s%s' % (self.from_motif, self.to_motif, diff)
 
     def test_motifs(self, from_motifs, to_motifs, x, y):
-        preF = self.testMotif(from_motifs, x)
-        postF = self.testMotif(to_motifs, y)
-        preR = self.testMotif(from_motifs, y)
-        postR = self.testMotif(to_motifs, x)
+        preF = self.test_motif(from_motifs, x)
+        postF = self.test_motif(to_motifs, y)
+        preR = self.test_motif(from_motifs, y)
+        postR = self.test_motif(to_motifs, x)
         return (preF & postF) | (preR & postR)
 
 
