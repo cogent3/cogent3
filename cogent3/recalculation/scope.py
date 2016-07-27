@@ -231,7 +231,7 @@ class _Defn(object):
             value = self.array_template.wrap(value)
         return value
 
-    def unwrapValue(self, value):
+    def unwrap_value(self, value):
         if getattr(self, 'array_template', None) is not None:
             value = self.array_template.unwrap(value)
         return value
@@ -523,7 +523,7 @@ class _LeafDefn(_Defn):
             if value is None:
                 s_value = self.getMeanCurrentValue(scope)
             else:
-                s_value = self.unwrapValue(value)
+                s_value = self.unwrap_value(value)
 
             if const:
                 setting = ConstVal(s_value)
