@@ -732,7 +732,7 @@ class MolType(object):
             alphabet = self.Alphabet
         return first_index_in_set(sequence, alphabet) is not None
 
-    def firstNotInAlphabet(self, sequence, alphabet=None):
+    def first_not_in_alphabet(self, sequence, alphabet=None):
         """Returns index of first item not in alphabet, or None.
 
         Defaults to self.Alphabet if alphabet not supplied.
