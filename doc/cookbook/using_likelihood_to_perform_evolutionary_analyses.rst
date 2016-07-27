@@ -358,7 +358,7 @@ Aikake Information Criterion
     >>> lf = sm.makeLikelihoodFunction(tree)
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> lf.setAlignment(aln)
-    >>> AIC = lf.getAic()
+    >>> AIC = lf.get_aic()
     >>> AIC
     49235.869...
 
@@ -366,7 +366,7 @@ We can also get the second-order AIC.
 
 .. doctest::
     
-    >>> AICc = lf.getAic(second_order=True)
+    >>> AICc = lf.get_aic(second_order=True)
     >>> AICc
     49236.064...
 
