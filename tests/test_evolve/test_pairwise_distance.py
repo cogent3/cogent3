@@ -113,7 +113,7 @@ class TestPair(TestCase):
         # value from OSX MEGA 5
         self.assertFloatEqual(calc.dists['s1', 's2'], 0.2326161962)
         # value**2 from OSX MEGA 5
-        self.assertFloatEqual(calc.Variances['s1', 's2'],
+        self.assertFloatEqual(calc.variances['s1', 's2'],
                               0.029752066125078681)
         # value from OSX MEGA 5
         self.assertFloatEqual(calc.stderr['s1', 's2'], 0.1724878724)
@@ -135,7 +135,7 @@ class TestPair(TestCase):
         # value from OSX MEGA 5
         self.assertFloatEqual(calc.dists['s1', 's2'], 0.2554128119)
         # value**2 from OSX MEGA 5
-        self.assertFloatEqual(calc.Variances['s1', 's2'], 0.04444444445376601)
+        self.assertFloatEqual(calc.variances['s1', 's2'], 0.04444444445376601)
         # value from OSX MEGA 5
         self.assertFloatEqual(calc.stderr['s1', 's2'], 0.2108185107)
 
@@ -228,7 +228,7 @@ class TestPair(TestCase):
         aln = LoadSeqs(data=data, moltype=DNA)
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
-        self.assertEqual(logdet_calc.Variances[1, 1], None)
+        self.assertEqual(logdet_calc.variances[1, 1], None)
 
         index = dict(list(zip('ACGT', list(range(4)))))
         J = numpy.zeros((4, 4))
@@ -247,7 +247,7 @@ class TestPair(TestCase):
 
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
         dists = logdet_calc.get_pairwise_distances()
-        self.assertFloatEqual(logdet_calc.Variances[1, 1], var, eps=1e-3)
+        self.assertFloatEqual(logdet_calc.variances[1, 1], var, eps=1e-3)
 
     def test_logdet_for_determinant_lte_zero(self):
         """returns distance of None if the determinant is <= 0"""
@@ -319,7 +319,7 @@ class TestPair(TestCase):
             var -= 1 / numpy.sqrt(f[0][i] * f[1][i])
         var /= 16 * len(data[0][1])
 
-        self.assertFloatEqual(paralinear_calc.Variances[1, 1], var, eps=1e-3)
+        self.assertFloatEqual(paralinear_calc.variances[1, 1], var, eps=1e-3)
 
     def test_paralinear_for_determinant_lte_zero(self):
         """returns distance of None if the determinant is <= 0"""
@@ -347,8 +347,8 @@ class TestPair(TestCase):
 
         self.assertFloatEqual(logdet_calc.dists[1, 1],
                               paralinear_calc.dists[1, 1], eps=1e-3)
-        self.assertFloatEqual(paralinear_calc.Variances[1, 1],
-                              logdet_calc.Variances[1, 1], eps=1e-3)
+        self.assertFloatEqual(paralinear_calc.variances[1, 1],
+                              logdet_calc.variances[1, 1], eps=1e-3)
 
 if __name__ == '__main__':
     main()

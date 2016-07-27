@@ -350,8 +350,8 @@ class _PairwiseDistance(object):
         return self._get_stats(3, transform=stderr, **kwargs)
 
     @property
-    def Variances(self):
-        kwargs = dict(title='Variances of Pairwise Distances', digits=4)
+    def variances(self):
+        kwargs = dict(title='variances of Pairwise Distances', digits=4)
         table = self._get_stats(3, **kwargs)
         var_formatter = _number_formatter("%.2e")
         if table is not None:
