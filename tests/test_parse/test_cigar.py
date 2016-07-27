@@ -20,8 +20,8 @@ class TestCigar(unittest.TestCase):
         self.cigar_text = '3D2M3D6MDM2D3MD'
         self.aln_seq = DNA.makeSequence('---AA---GCTTAG-A--CCT-')
         self.aln_seq1 = DNA.makeSequence('CCAAAAAA---TAGT-GGC--G')
-        self.map, self.seq = self.aln_seq.parseOutGaps()
-        self.map1, self.seq1 = self.aln_seq1.parseOutGaps()
+        self.map, self.seq = self.aln_seq.parse_out_gaps()
+        self.map1, self.seq1 = self.aln_seq1.parse_out_gaps()
         self.slices = [(1, 4), (0, 8), (7, 12), (0, 1), (3, 5)]
         self.aln = LoadSeqs(
             data={"FAKE01": self.aln_seq, "FAKE02": self.aln_seq1})

@@ -739,7 +739,7 @@ class Sequence(_Annotatable, SequenceI):
             return [seq[i:i + motif_length]
                     for i in range(0, length - remainder, motif_length)]
 
-    def parseOutGaps(self):
+    def parse_out_gaps(self):
         gapless = []
         segments = []
         nongap = re.compile('([^%s]+)' % re.escape("-"))
