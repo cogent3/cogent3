@@ -1249,7 +1249,7 @@ class TreeNode(object):
         lowest scoring tip on the left.
         """
         sort_order = sort_order or []
-        tip_names = self.getTipNames()
+        tip_names = self.get_tip_names()
         tip_names.sort()
         full_sort_order = sort_order + tip_names
         (score, tree) = self._sorted(full_sort_order)
@@ -1362,7 +1362,7 @@ class TreeNode(object):
                 nodes = nodes[:-1]
         return [node.name for node in nodes]
 
-    def getTipNames(self, includeself=False):
+    def get_tip_names(self, includeself=False):
         """return the list of the names of all tips contained by this edge
         """
         return self.get_node_names(includeself, tipsonly=True)
@@ -1391,7 +1391,7 @@ class TreeNode(object):
         node = self._getNodeMatchingName(name)
         if node is None:
             raise TreeError("No node named '%s' in %s" %
-                            (name, self.getTipNames()))
+                            (name, self.get_tip_names()))
         return node
 
     def getConnectingNode(self, name1, name2):
@@ -1821,7 +1821,7 @@ class PhyloNode(TreeNode):
 
     def sameTopology(self, other):
         """Tests whether two trees have the same topology."""
-        tip_names = self.getTipNames()
+        tip_names = self.get_tip_names()
         root_at = tip_names[0]
         me = self.rootedWithTip(root_at).sorted(tip_names)
         them = other.rootedWithTip(root_at).sorted(tip_names)

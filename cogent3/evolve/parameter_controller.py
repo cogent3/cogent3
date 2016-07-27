@@ -64,7 +64,7 @@ class _LikelihoodParameterController(_LF):
                  optimise_motif_probs=False, motif_probs_from_align=False, **kw):
         self.model = self._model = model
         self.tree = self._tree = tree
-        self.seq_names = tree.getTipNames()
+        self.seq_names = tree.get_tip_names()
         self.locus_names = _category_names('locus', loci)
         self.bin_names = _category_names('bin', bins)
         self.posn_names = [str(i) for i in range(model.getWordLength())]
@@ -346,7 +346,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
         if type(aligns) is not list:
             aligns = [aligns]
         assert len(aligns) == len(self.locus_names), len(aligns)
-        tip_names = set(self.tree.getTipNames())
+        tip_names = set(self.tree.get_tip_names())
         for index, aln in enumerate(aligns):
             if len(aligns) > 1:
                 locus_name = "for locus '%s'" % self.locus_names[index]
@@ -354,7 +354,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
                 locus_name = ""
             assert not set(aln.get_seq_names()).symmetric_difference(tip_names),\
                 "Tree tip names %s and aln seq names %s don't match %s" % \
-                (self.tree.getTipNames(), aln.get_seq_names(),
+                (self.tree.get_tip_names(), aln.get_seq_names(),
                  locus_name)
             assert "root" not in aln.get_seq_names(), "'root' is a reserved name."
         with self.updatesPostponed():

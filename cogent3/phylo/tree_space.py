@@ -177,12 +177,12 @@ class TreeEvaluator(object):
         elif start is not None:
             if not isinstance(start, list):
                 start = [start]
-            fixed_names = start[0].getTipNames()
+            fixed_names = start[0].get_tip_names()
             names = self._consistentNameOrder(fixed_names, order)
             trees = []
             for tree in start:
                 # check the start tree represents a subset of tips
-                assert set(tree.getTipNames()) < set(self.names), \
+                assert set(tree.get_tip_names()) < set(self.names), \
                     "Starting tree names not a subset of the sequence names"
 
                 (ancestry, fixed_names2, lengths) = tree2ancestry(

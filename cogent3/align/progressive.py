@@ -51,7 +51,7 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
     two_seqs = len(seq_names) == 2
 
     if tree:
-        tip_names = tree.getTipNames()
+        tip_names = tree.get_tip_names()
         tip_names.sort()
         seq_names.sort()
         assert tip_names == seq_names, \
