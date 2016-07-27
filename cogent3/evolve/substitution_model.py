@@ -815,7 +815,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
     def is_instantaneous(self, x, y):
         return self._is_instantaneous(x, y)
 
-    def getSubstitutionRateValueFromQ(self, Q, motif_probs, pred):
+    def get_substitution_rate_value_from_Q(self, Q, motif_probs, pred):
         pred_mask = list(self._adapt_predicates([pred])[0].values())[0]
         pred_row_totals = numpy.sum(pred_mask * Q, axis=1)
         inst_row_totals = numpy.sum(self._instantaneous_mask * Q, axis=1)
