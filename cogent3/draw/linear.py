@@ -260,8 +260,8 @@ class _SeqRepresentation(object):
         used = numpy.zeros([len(sequence)], bool)
         x_offset = self.x_offset * 1.0
         for span in map.spans:
-            if not (span.lost or span.Reverse):
-                offsets.append(x_offset + span.Start - used_count)
+            if not (span.lost or span.reverse):
+                offsets.append(x_offset + span.start - used_count)
                 lengths.append(span.length)
                 used[posn:posn + span.length] = True
                 used_count += span.length
@@ -320,7 +320,7 @@ class SeqText(_MultiShapeSeqRepresentation):
         rot = 0
         if rotated:
             rot += 90
-        # if span.Reverse: rot+= 180
+        # if span.reverse: rot+= 180
         g = rlg2mpl.Group()
         kw = dict(ha='center', va='baseline', rotation=rot,
                   font_properties=self.font_properties)
@@ -405,7 +405,7 @@ class SeqLine(object):
 
     def __init__(self, map, *args, **kw):
         x_offset = 0.0
-        self.segments = [(span.Start + x_offset, span.End + x_offset)
+        self.segments = [(span.start + x_offset, span.end + x_offset)
                          for span in map.spans if not span.lost]
 
     def shape(self, height, yrange, rotated):
@@ -472,14 +472,14 @@ class _FeatureStyle(object):
             map = map.get_covering_span()
         for (i, span) in enumerate(map.spans):
             # if last is not None:
-            #    g.add(rlg2mpl.Line(last, height, part.Start, height))
+            #    g.add(rlg2mpl.Line(last, height, part.start, height))
             if span.lost or (value is None and self.range_required):
                 continue
-            if span.Reverse:
-                (start, end) = (span.End, span.Start)
+            if span.reverse:
+                (start, end) = (span.end, span.start)
                 (tidy_start, tidy_end) = (span.tidy_end, span.tidy_start)
             else:
-                (start, end) = (span.Start, span.End)
+                (start, end) = (span.start, span.end)
                 (tidy_start, tidy_end) = (span.tidy_start, span.tidy_end)
             shape = self._item_shape(
                 start, end,
@@ -1051,7 +1051,7 @@ class Display(rlg2mpl.Drawable):
         for (y, ym, p) in self._tracks:
             smap = self.smap.inverse()
             for s in p.getShapes(
-                    span=(smap.Start, smap.End),
+                    span=(smap.start, smap.end),
                     rotated=vertical,
                     height=float(p.height),
                     yrange=self.yrange[p.tag]):
@@ -1096,7 +1096,7 @@ class Display(rlg2mpl.Drawable):
             matplotlib.ticker.FuncFormatter(lambda x, pos: str(int(x))))
 
         smap = self.smap.inverse()
-        seq_lim = (smap.Start, smap.End)
+        seq_lim = (smap.start, smap.end)
         if vertical:
             ax.set_ylim(*seq_lim)
             ax.set_xlim(0, self.height or 0.1)

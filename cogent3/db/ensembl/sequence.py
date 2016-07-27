@@ -41,7 +41,7 @@ def _assemble_seq(frags, start, end, frag_positions):
 
 def _make_coord(genome, coord_name, start, end, strand):
     """returns a Coordinate"""
-    return Coordinate(CoordName=coord_name, Start=start, End=end,
+    return Coordinate(CoordName=coord_name, start=start, end=end,
                       Strand=strand, genome=genome)
 
 
@@ -105,8 +105,8 @@ def _get_sequence_from_direct_assembly(coord=None, DEBUG=False):
         if t_loc.Strand == -1:
             seq = seq.rc()
         seqs.append(str(seq))
-        positions.append((q_loc.Start, q_loc.End))
-    sequence = _assemble_seq(seqs, coord.Start, coord.End, positions)
+        positions.append((q_loc.start, q_loc.end))
+    sequence = _assemble_seq(seqs, coord.start, coord.end, positions)
     return sequence
 
 
@@ -132,9 +132,9 @@ def _get_sequence_from_lower_assembly(coord, DEBUG):
             print('temp_seq = ', temp_seq[:10], '\n')
 
         seqs.append(str(temp_seq))
-        positions.append((q_loc.Start, q_loc.End))
+        positions.append((q_loc.start, q_loc.end))
 
-    sequence = _assemble_seq(seqs, coord.Start, coord.End, positions)
+    sequence = _assemble_seq(seqs, coord.start, coord.end, positions)
     return sequence
 
 

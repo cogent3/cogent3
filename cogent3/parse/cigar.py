@@ -37,7 +37,7 @@ def map_to_cigar(map):
     cigar = ''
     for span in map.spans:
         if isinstance(span, Span):
-            num_chars = span.End - span.Start
+            num_chars = span.end - span.start
             char = 'M'
         else:
             num_chars = span.length
@@ -79,8 +79,8 @@ def aligned_from_cigar(cigar_text, seq, moltype=DNA):
 
 def _slice_by_aln(map, left, right):
     slicemap = map[left:right]
-    if hasattr(slicemap, 'Start'):
-        location = [slicemap.Start, slicemap.End]
+    if hasattr(slicemap, 'start'):
+        location = [slicemap.start, slicemap.end]
     else:
         location = []
     return slicemap, location
@@ -89,25 +89,25 @@ def _slice_by_aln(map, left, right):
 def _slice_by_seq(map, start, end):
     re_map = map.inverse()
     slicemap = re_map[start:end]
-    aln_start, aln_end = slicemap.Start, slicemap.End
+    aln_start, aln_end = slicemap.start, slicemap.end
     new_map = map[aln_start:aln_end]
     return new_map, [aln_start, aln_end]
 
 
 def _remap(map):
-    start = map.Start
+    start = map.start
     if start == 0:
         new_map = map
-        new_map.parent_length = map.End
+        new_map.parent_length = map.end
     else:
         spans = []
         for span in map.spans:
             if span.lost:
                 spans.append(span)
             else:
-                span.Start = span.Start - start
-                span.End = span.End - start
-                length = span.End
+                span.start = span.start - start
+                span.end = span.end - start
+                length = span.end
                 spans.append(span)
         new_map = Map(spans=spans, parent_length=length)
     return new_map
@@ -120,7 +120,7 @@ def slice_cigar(cigar_text, start, end, by_align=True):
         new_map, location = _slice_by_aln(map, start, end)
     else:
         new_map, location = _slice_by_seq(map, start, end)
-    if hasattr(new_map, 'Start'):
+    if hasattr(new_map, 'start'):
         new_map = _remap(new_map)
     return new_map, location
 

@@ -31,8 +31,8 @@ class _Annotatable(object):
                 for annot in self.annotations:
                     if not annot.map.useful:
                         continue
-                    if annot.map.Start < slicemap.End and \
-                            annot.map.End > slicemap.Start:
+                    if annot.map.start < slicemap.end and \
+                            annot.map.end > slicemap.start:
                         annot = annot.remapped_to(new, newmap)
                         if annot.map.useful:
                             result.append(annot)

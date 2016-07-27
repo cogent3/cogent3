@@ -26,30 +26,30 @@ class SpanTests(TestCase):
         self.inside = Span(31, 32)
         self.before = Span(25, 30)
         self.after = Span(35, 40)
-        self.reverse = Span(30, 35, Reverse=True)
+        self.reverse = Span(30, 35, reverse=True)
         self.spans_zero = Span(-5, 5)
 
     def test_init(self):
-        """Span object should init with Start, End, and Length"""
+        """Span object should init with start, end, and Length"""
         s = Span(0)
-        self.assertEqual(s.Start, 0)
-        self.assertEqual(s.End, 1)
-        self.assertEqual(s.Reverse, False)
+        self.assertEqual(s.start, 0)
+        self.assertEqual(s.end, 1)
+        self.assertEqual(s.reverse, False)
         # to get an empty interval, must specify start and end explicitly
         t = Span(0, 0)
-        self.assertEqual(t.Start, 0)
-        self.assertEqual(t.End, 0)
-        self.assertEqual(t.Reverse, False)
+        self.assertEqual(t.start, 0)
+        self.assertEqual(t.end, 0)
+        self.assertEqual(t.reverse, False)
         # should be able to specify direction also
-        u = Span(5, 15, Reverse=True)
-        self.assertEqual(u.Start, 5)
-        self.assertEqual(u.End, 15)
-        self.assertEqual(u.Reverse, True)
+        u = Span(5, 15, reverse=True)
+        self.assertEqual(u.start, 5)
+        self.assertEqual(u.end, 15)
+        self.assertEqual(u.reverse, True)
         # should be able to init from another span
         v = Span(u)
-        self.assertEqual(v.Start, 5)
-        self.assertEqual(v.End, 15)
-        self.assertEqual(v.Reverse, True)
+        self.assertEqual(v.start, 5)
+        self.assertEqual(v.end, 15)
+        self.assertEqual(v.reverse, True)
 
     def test_contains(self):
         """Span object contains its start but not its end"""
@@ -74,16 +74,16 @@ class SpanTests(TestCase):
         self.assertTrue(self.spans_zero.overlaps(self.empty))
         self.assertTrue(self.empty.overlaps(self.spans_zero))
 
-    def test_reverse(self):
-        """Span reverse should change direction"""
-        self.assertFalse(self.empty.Reverse)
-        self.empty.reverse()
-        self.assertTrue(self.empty.Reverse)
-        self.empty.reverse()
-        self.assertFalse(self.empty.Reverse)
-        self.assertTrue(self.reverse.Reverse)
-        self.reverse.reverse()
-        self.assertFalse(self.reverse.Reverse)
+    def test_reverses(self):
+        """Span.reverses should change direction"""
+        self.assertFalse(self.empty.reverse)
+        self.empty.reverses()
+        self.assertTrue(self.empty.reverse)
+        self.empty.reverses()
+        self.assertFalse(self.empty.reverse)
+        self.assertTrue(self.reverse.reverse)
+        self.reverse.reverses()
+        self.assertFalse(self.reverse.reverse)
 
     def test_iter(self):
         """Span iter should loop through (integer) contents"""
@@ -260,7 +260,7 @@ class RangeInterfaceTests(object):  # SpanTests):
         self.inside = Range(Span(31, 32))
         self.before = Range(Span(25, 30))
         self.after = Range(Span(35, 40))
-        self.reverse = Range(Span(30, 35, Reverse=True))
+        self.reverse = Range(Span(30, 35, reverse=True))
         self.spans_zero = Range(Span(-5, 5))
 
     def test_str(self):
@@ -326,37 +326,37 @@ class RangeTests(TestCase):
         self.assertEqual(Range(), Range())
 
     def test_start_end(self):
-        """Range Start and End should behave as expected"""
-        self.assertEqual(self.one.Start, 0)
-        self.assertEqual(self.one.End, 100)
-        self.assertEqual(self.overlapping.Start, 3)
-        self.assertEqual(self.overlapping.End, 10)
-        self.assertEqual(self.three.Start, 6)
-        self.assertEqual(self.three.End, 35)
+        """Range start and end should behave as expected"""
+        self.assertEqual(self.one.start, 0)
+        self.assertEqual(self.one.end, 100)
+        self.assertEqual(self.overlapping.start, 3)
+        self.assertEqual(self.overlapping.end, 10)
+        self.assertEqual(self.three.start, 6)
+        self.assertEqual(self.three.end, 35)
 
     def test_reverse(self):
         """Range reverse method should reverse each span"""
         for s in self.overlapping.Spans:
-            self.assertFalse(s.Reverse)
-        self.overlapping.reverse()
+            self.assertFalse(s.reverse)
+        self.overlapping.reverses()
         for s in self.overlapping.Spans:
-            self.assertTrue(s.Reverse)
+            self.assertTrue(s.reverse)
         self.overlapping.Spans.append(Span(0, 100))
-        self.overlapping.reverse()
+        self.overlapping.reverses()
         for s in self.overlapping.Spans[0:1]:
-            self.assertFalse(s.Reverse)
-        self.assertTrue(self.overlapping.Spans[-1].Reverse)
+            self.assertFalse(s.reverse)
+        self.assertTrue(self.overlapping.Spans[-1].reverse)
 
     def test_Reverse(self):
-        """Range Reverse property should return True if any span reversed"""
-        self.assertFalse(self.one.Reverse)
-        self.one.reverse()
-        self.assertTrue(self.one.Reverse)
-        self.assertFalse(self.two.Reverse)
-        self.two.Spans.append(Span(0, 100, Reverse=True))
-        self.assertTrue(self.two.Reverse)
-        self.two.reverse()
-        self.assertTrue(self.two.Reverse)
+        """Range reverse property should return True if any span reversed"""
+        self.assertFalse(self.one.reverse)
+        self.one.reverses()
+        self.assertTrue(self.one.reverse)
+        self.assertFalse(self.two.reverse)
+        self.two.Spans.append(Span(0, 100, reverse=True))
+        self.assertTrue(self.two.reverse)
+        self.two.reverses()
+        self.assertTrue(self.two.reverse)
 
     def test_contains(self):
         """Range contains an item if any span contains it"""
@@ -422,17 +422,17 @@ class RangeTests(TestCase):
         self.assertEqual(one.Spans, [Span(0, 100), Span(-20, -10)])
         one.sort()
         self.assertEqual(one.Spans, [Span(-20, -10), Span(0, 100)])
-        one.Spans.append(Span(-20, -10, Reverse=True))
+        one.Spans.append(Span(-20, -10, reverse=True))
         self.assertEqual(one.Spans, [Span(-20, -10), Span(0, 100),
-                                     Span(-20, -10, Reverse=True)])
+                                     Span(-20, -10, reverse=True)])
         one.sort()
-        self.assertEqual(one.Spans, [Span(-20, -10), Span(-20, -10, Reverse=True),
+        self.assertEqual(one.Spans, [Span(-20, -10), Span(-20, -10, reverse=True),
                                      Span(0, 100)])
 
     def test_iter(self):
         """Range iter should iterate through each span in turn"""
         self.assertEqual(list(iter(self.two)), [3, 4, 8, 9, 10])
-        self.two.Spans.insert(1, Span(103, 101, Reverse=True))
+        self.two.Spans.insert(1, Span(103, 101, reverse=True))
         self.assertEqual(list(iter(self.two)), [3, 4, 102, 101, 8, 9, 10])
 
     def test_Extent(self):
@@ -441,7 +441,7 @@ class RangeTests(TestCase):
         self.assertEqual(self.three.Extent, Span(6, 35))
         self.assertEqual(self.singles.Extent, Span(3, 12))
         self.assertEqual(self.single.Extent, Span(0, 1))
-        self.three.Spans.append(Span(100, 105, Reverse=True))
+        self.three.Spans.append(Span(100, 105, reverse=True))
         self.assertEqual(self.three.Extent, Span(6, 105))
         self.three.Spans.append(Span(-100, -1000))
         self.assertEqual(self.three.Extent, Span(-1000, 105))
@@ -472,9 +472,9 @@ class RangeTests(TestCase):
         self.assertEqual(s.Spans, [Span(-100, 100)])
         # however, can't consolidate span in other orientation
         s = Range(r)
-        s.Spans.append(Span(-100, 100, Reverse=True))
+        s.Spans.append(Span(-100, 100, reverse=True))
         self.assertEqual(s.Spans, [Span(-1, 5), Span(8, 14),
-                                   Span(-100, 100, Reverse=True)])
+                                   Span(-100, 100, reverse=True)])
 
 
 class RangeFromStringTests(TestCase):
