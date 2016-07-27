@@ -138,56 +138,56 @@ class SpanI(object):
         """Compares indices of self with indices of other."""
         raise NotImplementedError
 
-    def startsBefore(self, other):
+    def starts_before(self, other):
         """Returns True if self starts before other or other.Start."""
         try:
             return self.Start < other.Start
         except AttributeError:
             return self.Start < other
 
-    def startsAfter(self, other):
+    def starts_after(self, other):
         """Returns True if self starts after other or after other.Start."""
         try:
             return self.Start > other.Start
         except AttributeError:
             return self.Start > other
 
-    def startsAt(self, other):
+    def starts_at(self, other):
         """Returns True if self starts at the same place as other."""
         try:
             return self.Start == other.Start
         except AttributeError:
             return self.Start == other
 
-    def startsInside(self, other):
+    def starts_inside(self, other):
         """Returns True if self's start in other or equal to other."""
         try:
             return self.Start in other
         except (AttributeError, TypeError):  # count other as empty span
             return False
 
-    def endsBefore(self, other):
+    def ends_before(self, other):
         """Returns True if self ends before other or other.End."""
         try:
             return self.End < other.End
         except AttributeError:
             return self.End < other
 
-    def endsAfter(self, other):
+    def ends_after(self, other):
         """Returns True if self ends after other or after other.End."""
         try:
             return self.End > other.End
         except AttributeError:
             return self.End > other
 
-    def endsAt(self, other):
+    def ends_at(self, other):
         """Returns True if self ends at the same place as other."""
         try:
             return self.End == other.End
         except AttributeError:
             return self.End == other
 
-    def endsInside(self, other):
+    def ends_inside(self, other):
         """Returns True if self's end in other or equal to other."""
         try:
             return self.End in other
@@ -284,7 +284,7 @@ class Span(SpanI):
         return Span(self.Start // scale, self.End // scale,
                     self.tidy_start, self.tidy_end, self.value, self.Reverse)
 
-    def remapWith(self, map):
+    def remap_with(self, map):
         """The list of spans corresponding to this span on its grandparent, ie:
         C is a span of a feature on B which itself is a feature on A, so to
         place C on A return that part of B (map) covered by C (self)"""
@@ -364,7 +364,7 @@ class Span(SpanI):
         """Reverses self."""
         self.Reverse = not self.Reverse
 
-    def reversedRelativeTo(self, length):
+    def reversed_relative_to(self, length):
         """Returns a new span with positions adjusted relative to length. For
         use in reverse complementing of nucleic acids"""
 
@@ -455,10 +455,10 @@ class _LostSpan(object):
         assert not self.length % 3
         return LostSpan(self.length // scale, self.value)
 
-    def remapWith(self, map):
+    def remap_with(self, map):
         return [self]
 
-    def reversedRelativeTo(self, length):
+    def reversed_relative_to(self, length):
         return self
 
 
@@ -556,7 +556,7 @@ class Map(object):
         slice = as_map(slice, len(self))
         new_parts = []
         for span in slice.spans:
-            new_parts.extend(span.remapWith(self))
+            new_parts.extend(span.remap_with(self))
         return Map(spans=new_parts, parent_length=self.parent_length)
 
     def __mul__(self, scale):
@@ -583,7 +583,7 @@ class Map(object):
                    parent_length=self.parent_length,
                    termini_unknown=True)
 
-    def getCoveringSpan(self):
+    def get_covering_span(self):
         if self.Reverse:
             span = (self.End, self.Start)
         else:
@@ -626,9 +626,9 @@ class Map(object):
         spans.reverse()
         return Map(spans=spans, parent_length=self.parent_length)
 
-    def nucleicReversed(self):
+    def nucleic_reversed(self):
         """Same location on reversed parent"""
-        spans = [s.reversedRelativeTo(self.parent_length) for s in self.spans]
+        spans = [s.reversed_relative_to(self.parent_length) for s in self.spans]
         return Map(spans=spans, parent_length=self.parent_length)
 
     def gaps(self):
@@ -654,7 +654,7 @@ class Map(object):
             offset += s.length
         return Map(locations, parent_length=len(self))
 
-    def withoutGaps(self):
+    def without_gaps(self):
         return Map(
             spans=[s for s in self.spans if not s.lost],
             parent_length=self.parent_length)
@@ -831,7 +831,7 @@ class Range(SpanI):
                     return True
         return False
 
-    def overlapsExtent(self, other):
+    def overlaps_extent(self, other):
         """Returns True if any positions in self's extent also in other's."""
         if hasattr(other, 'Extent'):
             return self.Extent.overlaps(other.Extent)

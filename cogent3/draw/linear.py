@@ -469,7 +469,7 @@ class _FeatureStyle(object):
             warnings.warn("'%s' graph values are all zero" % label)
             yrange = 1.0
         if map.useful and self.one_span:
-            map = map.getCoveringSpan()
+            map = map.get_covering_span()
         for (i, span) in enumerate(map.spans):
             # if last is not None:
             #    g.add(rlg2mpl.Line(last, height, part.Start, height))

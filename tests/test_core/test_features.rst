@@ -184,7 +184,7 @@ Similarly alignment features can be projected onto the aligned sequences, where 
     >>> exons = aln.get_projected_annotations('y', 'exon') 
     >>> print(exons)
     [exon "fred" at [-2-, 4:7]/8]
-    >>> print(aln.get_seq('y')[exons[0].map.withoutGaps()])
+    >>> print(aln.get_seq('y')[exons[0].map.without_gaps()])
     TTT
 
 We copy the annotations from another sequence,
