@@ -622,8 +622,8 @@ class SequenceTests(TestCase):
         test(s4, s9, 1 / 3.0)
         test(e, s4, 0)
 
-    def test_fracSimilar(self):
-        """Sequence fracSimilar should return the fraction similarity"""
+    def test_frac_similar(self):
+        """Sequence frac_similar should return the fraction similarity"""
         transitions = dict.fromkeys([
             ('A', 'A'), ('A', 'G'), ('G', 'A'), ('G', 'G'),
             ('U', 'U'), ('U', 'C'), ('C', 'U'), ('C', 'C')])
@@ -634,7 +634,7 @@ class SequenceTests(TestCase):
         e = self.RNA('')
 
         test = lambda x, y, z: self.assertFloatEqual(
-            x.fracSimilar(y, transitions), z)
+            x.frac_similar(y, transitions), z)
 
         test(e, e, 0)
         test(s1, e, 0)
