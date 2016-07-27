@@ -237,7 +237,7 @@ class Calculator(object):
         self._programs = {}
         # Just for timings pre-calc these
         for opt_par in self.opt_pars:
-            self.cellsChangedBy([(opt_par.rank, None)])
+            self.cells_changed_by([(opt_par.rank, None)])
 
         self.last_values = self.get_value_array()
         self.last_undo = []
@@ -436,7 +436,7 @@ class Calculator(object):
                     self.last_values[i] = v
 
         self.last_undo = []
-        program = self.cellsChangedBy(changes)
+        program = self.cells_changed_by(changes)
 
         if self.with_undo:
             self._switch = not self._switch
@@ -495,7 +495,7 @@ class Calculator(object):
 
         return self.cell_values[self._switch][-1]
 
-    def cellsChangedBy(self, changes):
+    def cells_changed_by(self, changes):
         # What OptPars have been changed determines cells to update
         change_key = list(dict(changes).keys())
         change_key.sort()
