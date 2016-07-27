@@ -26,11 +26,11 @@ class ScoredTreeCollection(_UserList):
         f = open(filename, 'w')
         for (score, tree) in self:
             f.writelines(
-                self.scoredTreeFormat(tree.get_newick(with_distances=True),
+                self.scored_tree_format(tree.get_newick(with_distances=True),
                                       str(score)))
         f.close()
 
-    def scoredTreeFormat(self, tree, score):
+    def scored_tree_format(self, tree, score):
         return [tree, '\t[', score, ']\n']
 
     def getConsensusTree(self, strict=None, method='unrooted'):
@@ -46,7 +46,7 @@ class ScoredTreeCollection(_UserList):
 
 class UsefullyScoredTreeCollection(ScoredTreeCollection):
 
-    def scoredTreeFormat(self, tree, score):
+    def scored_tree_format(self, tree, score):
         return [score, '\t', tree, '\n']
 
 
