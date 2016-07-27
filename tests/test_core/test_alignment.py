@@ -1453,9 +1453,9 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
     def test_get_freqs(self):
         """DenseAlignment get_seq_freqs: should work on positions and sequences 
         """
-        s1 = DNA.Sequence('TCAG', name='s1')
-        s2 = DNA.Sequence('CCAC', name='s2')
-        s3 = DNA.Sequence('AGAT', name='s3')
+        s1 = DNA.make_sequence('TCAG', name='s1')
+        s2 = DNA.make_sequence('CCAC', name='s2')
+        s3 = DNA.make_sequence('AGAT', name='s3')
         da = DenseAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         seq_exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
         pos_exp = array([[1, 1, 1, 0], [0, 2, 0, 1],
@@ -1468,9 +1468,9 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         """
         exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
 
-        s1 = DNA.Sequence('TCAG', name='s1')
-        s2 = DNA.Sequence('CCAC', name='s2')
-        s3 = DNA.Sequence('AGAT', name='s3')
+        s1 = DNA.make_sequence('TCAG', name='s1')
+        s2 = DNA.make_sequence('CCAC', name='s2')
+        s3 = DNA.make_sequence('AGAT', name='s3')
         da = DenseAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = da.get_seq_freqs()
         self.assertEqual(obs.Data, exp)
@@ -1491,9 +1491,9 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         """
         exp = array([[1, 1, 1, 0], [0, 2, 0, 1], [0, 0, 3, 0], [1, 1, 0, 1]])
 
-        s1 = DNA.Sequence('TCAG', name='s1')
-        s2 = DNA.Sequence('CCAC', name='s2')
-        s3 = DNA.Sequence('AGAT', name='s3')
+        s1 = DNA.make_sequence('TCAG', name='s1')
+        s2 = DNA.make_sequence('CCAC', name='s2')
+        s3 = DNA.make_sequence('AGAT', name='s3')
         da = DenseAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = da.get_pos_freqs()
         self.assertEqual(obs.Data, exp)
@@ -1516,9 +1516,9 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
     def test_get_freqs(self):
         """Alignment _get_freqs: should work on positions and sequences 
         """
-        s1 = DNA.Sequence('TCAG', name='s1')
-        s2 = DNA.Sequence('CCAC', name='s2')
-        s3 = DNA.Sequence('AGAT', name='s3')
+        s1 = DNA.make_sequence('TCAG', name='s1')
+        s2 = DNA.make_sequence('CCAC', name='s2')
+        s3 = DNA.make_sequence('AGAT', name='s3')
         aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         seq_exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
         pos_exp = array([[1, 1, 1, 0], [0, 2, 0, 1],
@@ -1531,9 +1531,9 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         """
         exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
 
-        s1 = DNA.Sequence('TCAG', name='s1')
-        s2 = DNA.Sequence('CCAC', name='s2')
-        s3 = DNA.Sequence('AGAT', name='s3')
+        s1 = DNA.make_sequence('TCAG', name='s1')
+        s2 = DNA.make_sequence('CCAC', name='s2')
+        s3 = DNA.make_sequence('AGAT', name='s3')
         aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = aln.get_seq_freqs()
         self.assertEqual(obs.Data, exp)
@@ -1554,9 +1554,9 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         """
         exp = array([[1, 1, 1, 0], [0, 2, 0, 1], [0, 0, 3, 0], [1, 1, 0, 1]])
 
-        s1 = DNA.Sequence('TCAG', name='s1')
-        s2 = DNA.Sequence('CCAC', name='s2')
-        s3 = DNA.Sequence('AGAT', name='s3')
+        s1 = DNA.make_sequence('TCAG', name='s1')
+        s2 = DNA.make_sequence('CCAC', name='s2')
+        s3 = DNA.make_sequence('AGAT', name='s3')
         aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = aln.get_pos_freqs()
         self.assertEqual(obs.Data, exp)
@@ -1798,7 +1798,7 @@ class DenseAlignmentSpecificTests(TestCase):
     def test_get_alphabet_and_moltype(self):
         """DenseAlignment should figure out correct alphabet and moltype"""
         s1 = 'A'
-        s2 = RNA.Sequence('AA')
+        s2 = RNA.make_sequence('AA')
 
         d = DenseAlignment(s1)
         self.assertSameObj(d.moltype, BYTES)
@@ -1921,10 +1921,10 @@ class IntegrationTests(TestCase):
 
     def setUp(self):
         """Intialize some standard sequences"""
-        self.r1 = RNA.Sequence('AAA', name='x')
-        self.r2 = RNA.Sequence('CCC', name='y')
-        self.m1 = RNA.ModelSeq('AAA', name='xx')
-        self.m2 = RNA.ModelSeq('CCC', name='yy')
+        self.r1 = RNA.make_sequence('AAA', name='x')
+        self.r2 = RNA.make_sequence('CCC', name='y')
+        self.m1 = RNA.model_seq_constructor('AAA', name='xx')
+        self.m2 = RNA.model_seq_constructor('CCC', name='yy')
 
     def test_model_to_model(self):
         """Model seq should work with dense alignment"""

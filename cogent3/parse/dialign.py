@@ -57,7 +57,7 @@ def DialignParser(lines, seq_maker=None, get_scores=False):
     name 'QualityScores' when get_scores is True."""
 
     if seq_maker is None:
-        seq_maker = ASCII.Sequence
+        seq_maker = ASCII.make_sequence
     seqs = {}
     quality_scores = []
     for line in align_block_lines(lines):

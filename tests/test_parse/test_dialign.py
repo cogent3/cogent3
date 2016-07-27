@@ -95,7 +95,7 @@ class TestDialign(unittest.TestCase):
                     "ECOL": "mlkqv-EIFTDGSCLGNPGPGGYGAIL-------RYRGREKTFSAGytrT---TNNRMELMAAIv------------------"}
         self.aln_seqs = {}
         for name, seq in list(aln_seqs.items()):
-            self.aln_seqs[name] = PROTEIN.Sequence(seq, name=name)
+            self.aln_seqs[name] = PROTEIN.make_sequence(seq, name=name)
         self.QualityScores = "00000005888882222229999999900000006666666666633334000333345555333333000000000000000"
 
     def test_line_split(self):
@@ -112,12 +112,12 @@ class TestDialign(unittest.TestCase):
     def test_aligned_from_dialign(self):
         """test getting aligned seqs"""
         aligned_seq = dict(
-            list(DialignParser(data, seq_maker=PROTEIN.Sequence)))
+            list(DialignParser(data, seq_maker=PROTEIN.make_sequence)))
         assert aligned_seq == self.aln_seqs
 
     def test_quality_scores(self):
         """test quality scores correctly returned"""
-        result = dict(list(DialignParser(data, seq_maker=PROTEIN.Sequence,
+        result = dict(list(DialignParser(data, seq_maker=PROTEIN.make_sequence,
                                          get_scores=True)))
         assert result["QualityScores"] == self.QualityScores
 

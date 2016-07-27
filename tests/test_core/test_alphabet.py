@@ -40,7 +40,7 @@ class translation_table_tests(TestCase):
     def test_make_complement_array(self):
         """_make_complement_array should identify complements correctly"""
         complement_array = _make_complement_array(
-            RNA.alphabet, RNA.Complements)
+            RNA.alphabet, RNA.complements)
         test = 'UCAG'
         test_array = [RNA.alphabet.index(i) for i in test]
         complements = complement_array.take(test_array)
@@ -74,7 +74,7 @@ class EnumerationTests(TestCase):
         self.assertEqual(a[0], 'a')
         self.assertEqual(a[1], 'b')
         self.assertEqual(a[2], 'c')
-        self.assertEqual(a.ArrayType, uint8)
+        self.assertEqual(a.array_type, uint8)
 
         a = Enumeration('bca')
         self.assertEqual(a.index('b'), 0)
@@ -91,11 +91,11 @@ class EnumerationTests(TestCase):
 
         # check that it works with gaps
         a = Enumeration('ab-', '-')
-        self.assertEqual(a.Gap, '-')
+        self.assertEqual(a.gap, '-')
         self.assertEqual(a.GapIndex, 2)
 
         a = Enumeration(list(range(257)))  # too big to fit in uint8
-        self.assertEqual(a.ArrayType, uint16)
+        self.assertEqual(a.array_type, uint16)
 
     def test_index(self):
         """Enumeration index should return first index of item"""
@@ -140,19 +140,19 @@ class EnumerationTests(TestCase):
         self.assertEqual(a[0], (AminoAcids[0],) * 3)
         self.assertEqual(a[-1], (AminoAcids[-1],) * 3)
         self.assertEqual(len(a), len(AminoAcids)**3)
-        self.assertEqual(a.ArrayType, uint16)
+        self.assertEqual(a.array_type, uint16)
 
         # check that it works with gaps
         a = Enumeration('a-b', '-')
         b = a**3
         self.assertEqual(len(b), 27)
-        self.assertEqual(b.Gap, ('-', '-', '-'))
+        self.assertEqual(b.gap, ('-', '-', '-'))
         self.assertEqual(b.GapIndex, 13)
-        self.assertEqual(b.ArrayType, uint8)
+        self.assertEqual(b.array_type, uint8)
 
         # check that array type is set correctly if needed
         b = a**6  # too big to fit in char
-        self.assertEqual(b.ArrayType, uint16)
+        self.assertEqual(b.array_type, uint16)
 
     def test_mul(self):
         """Enumeration mul should produce correct JointEnumeration"""
@@ -165,7 +165,7 @@ class EnumerationTests(TestCase):
         a = Enumeration('ab-', '-')
         b = Enumeration('xz', 'z')
         x = a * b
-        self.assertEqual(x.Gap, ('-', 'z'))
+        self.assertEqual(x.gap, ('-', 'z'))
         self.assertEqual(x.GapIndex, 5)
         self.assertEqual(len(x), 6)
         self.assertEqual(x, (('a', 'x'), ('a', 'z'), ('b', 'x'), ('b', 'z'), ('-', 'x'),
@@ -173,7 +173,7 @@ class EnumerationTests(TestCase):
         # check that it doesn't work when only one seq has gaps
         c = Enumeration('c')
         x = a * c
-        self.assertEqual(x.Gap, None)
+        self.assertEqual(x.gap, None)
 
     def test_counts(self):
         """Enumeration counts should count freqs in array"""
@@ -257,9 +257,9 @@ class CharAlphabetTests(TestCase):
     def test_pairs(self):
         """pairs should cache the same object."""
         r = CharAlphabet('UCAG')
-        rp = r.Pairs
+        rp = r.pairs
         self.assertEqual(len(rp), 16)
-        rp2 = r.Pairs
+        rp2 = r.pairs
         self.assertSameObj(rp, rp2)
 
     def test_triples(self):

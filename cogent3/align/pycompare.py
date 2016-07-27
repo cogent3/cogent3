@@ -57,7 +57,7 @@ except ImportError:
 def dotplot(seq1, seq2, window, threshold, min_gap_length=0, band=None, ui=None):
     """A list of line segments covering the window-mers with identical matches > threshold
 
-    Gaps of size less than min_gap will be hidden, which saves on line segments.
+    gaps of size less than min_gap will be hidden, which saves on line segments.
     if 'band' is not None then it limits the searched area
     """
     def one_diagonal(dia):

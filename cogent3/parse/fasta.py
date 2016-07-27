@@ -22,7 +22,7 @@ __status__ = "Development"
 
 strip = str.strip
 
-Sequence = BYTES.Sequence
+Sequence = BYTES.make_sequence
 
 
 def is_fasta_label(x):

@@ -29,25 +29,25 @@ AminoAcids = PROTEIN.alphabets.Base
 # the following classes are to preserve compatibility for older test code
 # that assumes mixed-case is OK.
 RnaMolType = MolType(
-    Sequence=sequence.RnaSequence,
+    seq_constructor=sequence.RnaSequence,
     motifset=IUPAC_RNA_chars,
-    Ambiguities=IUPAC_RNA_ambiguities,
+    ambiguities=IUPAC_RNA_ambiguities,
     label="rna_with_lowercase",
-    MWCalculator=RnaMW,
-    Complements=IUPAC_RNA_ambiguities_complements,
-    Pairs=RnaStandardPairs,
+    mw_calculator=RnaMW,
+    complements=IUPAC_RNA_ambiguities_complements,
+    pairs=RnaStandardPairs,
     add_lower=True,
     preserve_existing_moltypes=True,
     make_alphabet_group=True,
 )
 DnaMolType = MolType(
-    Sequence=sequence.DnaSequence,
+    seq_constructor=sequence.DnaSequence,
     motifset=IUPAC_DNA_chars,
-    Ambiguities=IUPAC_DNA_ambiguities,
+    ambiguities=IUPAC_DNA_ambiguities,
     label="dna_with_lowercase",
-    MWCalculator=DnaMW,
-    Complements=IUPAC_DNA_ambiguities_complements,
-    Pairs=DnaStandardPairs,
+    mw_calculator=DnaMW,
+    complements=IUPAC_DNA_ambiguities_complements,
+    pairs=DnaStandardPairs,
     add_lower=True,
     preserve_existing_moltypes=True,
     make_alphabet_group=True,
@@ -234,8 +234,8 @@ class MolTypeTests(TestCase):
     def test_init_everything(self):
         """MolType should init OK with all parameters set"""
         k = dict.fromkeys
-        a = MolType(k('Abc'), Ambiguities={'d': 'bc'}, Gaps=k('~'),
-                    Complements={'b': 'c', 'c': 'b'}, Pairs={}, add_lower=False)
+        a = MolType(k('Abc'), ambiguities={'d': 'bc'}, gaps=k('~'),
+                    complements={'b': 'c', 'c': 'b'}, pairs={}, add_lower=False)
         for i in 'Abcd~':
             self.assertContains(a, i)
         self.assertEqual(a.complement('b'), 'c')
@@ -430,8 +430,8 @@ class MolTypeTests(TestCase):
         t = d(s, 'random')
         u = d(s, 'random')
         for i, j in zip(s, t):
-            if i in RnaMolType.Degenerates:
-                self.assertContains(RnaMolType.Degenerates[i], j)
+            if i in RnaMolType.degenerates:
+                self.assertContains(RnaMolType.degenerates[i], j)
             else:
                 self.assertEqual(i, j)
         self.assertNotEqual(t, u)
@@ -462,7 +462,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(g('UACHASJAIDS-'), [11])
         self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU---'),
                          [0, 1, 2, 11, 12, 13, 19, 20, 21, 30, 31, 32])
-        a = MolType({'A': 1}, Gaps=dict.fromkeys('!@#$%'))
+        a = MolType({'A': 1}, gaps=dict.fromkeys('!@#$%'))
         g = a.gap_indices
         self.assertEqual(g(''), [])
         self.assertEqual(g('!!!'), [0, 1, 2])
@@ -482,7 +482,7 @@ class MolTypeTests(TestCase):
                          list(map(bool, list(map(int, '000000000001')))))
         self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU---'),
                          list(map(bool, list(map(int, '111000000001110000011100000000111')))))
-        a = MolType({'A': 1}, Gaps=dict.fromkeys('!@#$%'))
+        a = MolType({'A': 1}, gaps=dict.fromkeys('!@#$%'))
         g = a.gap_vector
         self.assertEqual(g(''), [])
         self.assertEqual(g('!!!'), list(map(bool, [1, 1, 1])))
@@ -517,7 +517,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(c('-DSHFUHDSF'), 1)
         self.assertEqual(c('UACHASJAIDS-'), 1)
         self.assertEqual(c('---CGAUgCAU---ACGHc---ACGUCAGU---'), 12)
-        a = MolType({'A': 1}, Gaps=dict.fromkeys('!@#$%'))
+        a = MolType({'A': 1}, gaps=dict.fromkeys('!@#$%'))
         c = a.count_gaps
         self.assertEqual(c(''), 0)
         self.assertEqual(c('!!!'), 3)

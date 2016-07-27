@@ -25,7 +25,7 @@ def PairTransitionMatrix(order, a):
 
 
 def ClassicGapScores(d, e):
-    """Gap open / gap extend costs.  No X to Y transitions"""
+    """gap open / gap extend costs.  No X to Y transitions"""
     _ = numpy.inf
     C = numpy.array([
         [e, _, 0],

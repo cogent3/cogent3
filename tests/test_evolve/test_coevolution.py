@@ -2108,7 +2108,7 @@ class AncestorCoevolve(TestCase):
 
     def test_get_ancestral_seqs_handles_gaps(self):
         """get_ancestral_seqs: handles gaps """
-        # Gaps handled OK
+        # gaps handled OK
         t = LoadTree(treestring='(A:0.5,B:0.5,C:0.5);')
         aln = DenseAlignment(
             data={'A': 'A-', 'B': 'AA', 'C': 'AA'}, moltype=PROTEIN)

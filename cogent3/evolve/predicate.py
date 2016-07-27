@@ -231,7 +231,7 @@ class DirectedMotifChange(predicate):
             raise ValueError("alphabet motifs (%s) too short for %s (%s)" %
                              (alphabet.get_motif_len(), repr(self), self.motiflen))
 
-        resolve = model.moltype.Ambiguities.__getitem__
+        resolve = model.moltype.ambiguities.__getitem__
 
         from_motifs = [resolve(m) for m in self.from_motif]
         to_motifs = [resolve(m) for m in self.to_motif]

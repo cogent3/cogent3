@@ -213,7 +213,7 @@ class SequenceI(object):
     def possibilities(self):
         """Counts number of possible sequences matching the sequence.
 
-        Uses self.Degenerates to decide how many possibilites there are at
+        Uses self.degenerates to decide how many possibilites there are at
         each position in the sequence.
         """
         return self.moltype.possibilities(self)
@@ -241,7 +241,7 @@ class SequenceI(object):
         """Returns True if every pos in self could match same pos in other.
 
         Truncates at length of shorter sequence.
-        Gaps are only allowed to match other gaps.
+        gaps are only allowed to match other gaps.
         """
         return self.moltype.can_match(self, other)
 
@@ -249,7 +249,7 @@ class SequenceI(object):
         """Returns True if any position in self could mismatch with other.
 
         Truncates at length of shorter sequence.
-        Gaps are always counted as matches.
+        gaps are always counted as matches.
         """
         return self.moltype.can_mismatch(self, other)
 
@@ -264,7 +264,7 @@ class SequenceI(object):
         first position of self, etc.
 
         Truncates at length of shorter sequence.
-        Gaps are only allowed to pair with other gaps, and are counted as 'weak'
+        gaps are only allowed to pair with other gaps, and are counted as 'weak'
         (same category as GU and degenerate pairs).
 
         NOTE: second must be able to be reverse
@@ -278,7 +278,7 @@ class SequenceI(object):
         first position of self, etc.
 
         Truncates at length of shorter sequence.
-        Gaps are always counted as possible mispairs, as are weak pairs like GU.
+        gaps are always counted as possible mispairs, as are weak pairs like GU.
         """
         return self.moltype.can_mispair(self, other)
 
@@ -379,7 +379,7 @@ class SequenceI(object):
         if not self or not other:
             return 0.0
 
-        is_gap = self.moltype.Gaps.__contains__
+        is_gap = self.moltype.gaps.__contains__
         return sum([is_gap(i) == is_gap(j) for i, j in zip(self, other)]) \
             / min(len(self), len(other))
 
@@ -410,7 +410,7 @@ class SequenceI(object):
         if not self or not other:
             return 0.0
 
-        is_gap = self.moltype.Gaps.__contains__
+        is_gap = self.moltype.gaps.__contains__
         count = 0
         identities = 0
         for i, j in zip(self, other):
@@ -438,7 +438,7 @@ class SequenceI(object):
         if not self or not other:
             return 0.0
 
-        is_gap = self.moltype.Gaps.__contains__
+        is_gap = self.moltype.gaps.__contains__
         count = 0
         diffs = 0
         for i, j in zip(self, other):
@@ -483,7 +483,7 @@ class SequenceI(object):
                 if first_nongap is None:
                     first_nongap = i
                 last_nongap = i
-        missing = self.moltype.Missing
+        missing = self.moltype.missing
         if first_nongap is None:  # sequence was all gaps
             result = self.__class__(
                 [missing for i in len(self)], Info=self.info)
@@ -584,7 +584,7 @@ class Sequence(_Annotatable, SequenceI):
               the annotated regions"""
         if mask_char is None:
             ambigs = [(len(v), c)
-                      for c, v in list(self.moltype.Ambiguities.items())]
+                      for c, v in list(self.moltype.ambiguities.items())]
             ambigs.sort()
             mask_char = ambigs[-1][1]
         assert mask_char in self.moltype, 'Invalid mask_char %s' % mask_char
@@ -619,7 +619,7 @@ class Sequence(_Annotatable, SequenceI):
                     unknown = span.terminal or recode_gaps
                     seg = "-?"[unknown] * span.length
                 else:
-                    raise ValueError('Gap(s) in map %s' % map)
+                    raise ValueError('gap(s) in map %s' % map)
             else:
                 seg = self._seq[span.start:span.end]
                 if span.reverse:
@@ -1018,7 +1018,7 @@ class ModelSequenceBase(object):
         """Fills self using the values in data, via the alphabet."""
         if self.alphabet:
             indices = self.alphabet.to_indices(data)
-            self._data = array(indices, self.alphabet.ArrayType)
+            self._data = array(indices, self.alphabet.array_type)
         else:
             self._data = array(data)
 
@@ -1116,13 +1116,13 @@ class ModelSequenceBase(object):
             s = self
         c = self.__class__
         a = self.alphabet.Gapped
-        result = zeros(len(other), a.ArrayType) + a.GapIndex
+        result = zeros(len(other), a.array_type) + a.GapIndex
         put(result, nonzero(other.nongaps()), s._data)
         return c(result)
 
     def degap(self):
         """Returns ungapped copy of self, not changing alphabet."""
-        if not hasattr(self.alphabet, 'Gap') or self.alphabet.Gap is None:
+        if not hasattr(self.alphabet, 'gap') or self.alphabet.gap is None:
             return self.copy()
         d = take(self._data, nonzero(logical_not(self.gap_array()))[0])
         return self.__class__(d, alphabet=self.alphabet, name=self.name,
@@ -1223,7 +1223,7 @@ class ModelSequenceBase(object):
         """Returns array of 0/1 indicating whether each position is a gap."""
         gap_indices = []
         a = self.alphabet
-        for c in self.moltype.Gaps:
+        for c in self.moltype.gaps:
             if c in a:
                 gap_indices.append(a.index(c))
         gap_vector = None
@@ -1273,7 +1273,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
 
     def strip_bad_and_gaps(self):
         """Returns copy of self with bad chars and gaps excised."""
-        gap_indices = list(map(self.alphabet.index, self.moltype.Gaps))
+        gap_indices = list(map(self.alphabet.index, self.moltype.gaps))
         valid_indices = self._data < len(self.alphabet)
         for i in gap_indices:
             valid_indices[self._data == i] = False

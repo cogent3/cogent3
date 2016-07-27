@@ -316,7 +316,7 @@ for k, v in list(RnaPairingRules.items()):
 
 class CoreObjectGroup(object):
     """Container relating gapped, ungapped, degen, and non-degen objects."""
-    _types = ['Base', 'Degen', 'Gap', 'DegenGap']
+    _types = ['Base', 'Degen', 'gap', 'DegenGap']
 
     def __init__(self, Base, Degen=None, Gapped=None, DegenGapped=None):
         """Returns new CoreObjectGroup. Only Base is required"""
@@ -357,7 +357,7 @@ class CoreObjectGroup(object):
                 pass
 
     def __getitem__(self, i):
-        """Allows container to be indexed into, by type of object (e.g. Gap)."""
+        """Allows container to be indexed into, by type of object (e.g. gap)."""
         return self.__dict__[i]
 
     def which_type(self, a):
@@ -387,7 +387,7 @@ class AlphabetGroup(CoreObjectGroup):
         self._set_relationships()
         # set complements if MolType was specified
         if moltype is not None:
-            comps = moltype.Complements
+            comps = moltype.complements
             for i in self._items:
                 i._complement_array = _make_complement_array(i, comps)
 
@@ -406,45 +406,45 @@ class MolType(object):
     don't want to reset the moltype.
     """
 
-    def __init__(self, motifset, Gap=IUPAC_gap, Missing=IUPAC_missing,
-                 Gaps=None,
-                 Sequence=None, Ambiguities=None,
-                 label=None, Complements=None, Pairs=None, MWCalculator=None,
+    def __init__(self, motifset, gap=IUPAC_gap, missing=IUPAC_missing,
+                 gaps=None,
+                 seq_constructor=None, ambiguities=None,
+                 label=None, complements=None, pairs=None, mw_calculator=None,
                  add_lower=False, preserve_existing_moltypes=False,
-                 make_alphabet_group=False, ModelSeq=None):
+                 make_alphabet_group=False, model_seq_constructor=None):
         """Returns a new MolType object. Note that the parameters are in flux.
 
         Currently:
             motifset: Alphabet or sequence of items in the default
                 alphabet. Does not include degenerates.
 
-            Gap: default gap symbol
+            gap: default gap symbol
 
-            Missing: symbol for missing data
+            missing: symbol for missing data
 
-            Gaps: any other symbols that should be treated as gaps (doesn't have
-                  to include Gap or Missing; they will be silently added)
+            gaps: any other symbols that should be treated as gaps (doesn't have
+                  to include gap or missing; they will be silently added)
 
-            Sequence: Class for constructing sequences.
+            seq_constructor: Class for constructing sequences.
 
-            Ambiguities: dict of char:tuple, doesn't include gaps (these are
+            ambiguities: dict of char:tuple, doesn't include gaps (these are
                 hard-coded as - and ?, and added later.
 
             label: text label, don't know what this is used for. Unnecessary?
 
-            Complements: dict of symbol:symbol showing how the non-degenerate
+            complements: dict of symbol:symbol showing how the non-degenerate
                 single characters complement each other. Used for constructing
                 on the fly the complement table, incl. support for must_pair and
                 can_pair.
 
-            Pairs: dict in which keys are pairs of symbols that can pair
+            pairs: dict in which keys are pairs of symbols that can pair
                 with each other, values are True (must pair) or False (might
                 pair). Currently, the meaning of GU pairs as 'weak' is conflated
                 with the meaning of degenerate symbol pairs (which might pair
                 with each other but don't necessarily, depending on how the
                 symbol is resolved). This should be refactored.
 
-            MWCalculator: f(seq) -> molecular weight.
+            mw_calculator: f(seq) -> molecular weight.
 
             add_lower: if True (default: False) adds the lowercase versions of
                 everything into the alphabet. Slated for deletion.
@@ -455,40 +455,40 @@ class MolType(object):
             make_alphabet_group: if True, makes an AlphabetGroup relating
             the various alphabets to one another.
 
-            ModelSeq: sequence type for modeling
+            model_seq_constructor: sequence type for modeling
 
-        Note on "Degenerates" versus "Ambiguities": self.Degenerates contains
-        _only_ mappings for degenerate symbols, whereas self.Ambiguities
+        Note on "degenerates" versus "ambiguities": self.degenerates contains
+        _only_ mappings for degenerate symbols, whereas self.ambiguities
         contains mappings for both degenerate and non-degenerate symbols.
         Sometimes you want one, sometimes the other, so both are provided.
         """
-        self.Gap = Gap
-        self.Missing = Missing
-        self.Gaps = frozenset([Gap, Missing])
-        if Gaps:
-            self.Gaps = self.Gaps.union(frozenset(Gaps))
+        self.gap = gap
+        self.missing = missing
+        self.gaps = frozenset([gap, missing])
+        if gaps:
+            self.gaps = self.gaps.union(frozenset(gaps))
         self.label = label
         # set the sequence constructor
-        if Sequence is None:
-            Sequence = ''.join  # safe default string constructor
+        if seq_constructor is None:
+            seq_constructor = ''.join  # safe default string constructor
         elif not preserve_existing_moltypes:
-            Sequence.moltype = self
-        self.Sequence = Sequence
+            seq_constructor.moltype = self
+        self.make_sequence = seq_constructor
 
         # set the ambiguities
-        ambigs = {self.Missing: tuple(
-            motifset) + (self.Gap,), self.Gap: (self.Gap,)}
-        if Ambiguities:
-            ambigs.update(Ambiguities)
+        ambigs = {self.missing: tuple(
+            motifset) + (self.gap,), self.gap: (self.gap,)}
+        if ambiguities:
+            ambigs.update(ambiguities)
         for c in motifset:
             ambigs[c] = (c,)
-        self.Ambiguities = ambigs
+        self.ambiguities = ambigs
 
-        # set Complements -- must set before we make the alphabet group
-        self.Complements = Complements or {}
+        # set complements -- must set before we make the alphabet group
+        self.complements = complements or {}
 
         if make_alphabet_group:  # note: must use _original_ ambiguities here
-            self.alphabets = AlphabetGroup(motifset, Ambiguities,
+            self.alphabets = AlphabetGroup(motifset, ambiguities,
                                            moltype=self)
             self.alphabet = self.alphabets.Base
         else:
@@ -499,13 +499,13 @@ class MolType(object):
             else:
                 self.alphabet = Alphabet(motifset, moltype=self)
         # set the other properties
-        self.Degenerates = Ambiguities and Ambiguities.copy() or {}
-        self.Degenerates[self.Missing] = ''.join(motifset) + self.Gap
-        self.Matches = make_matches(motifset, self.Gaps, self.Degenerates)
-        self.Pairs = Pairs and Pairs.copy() or {}
-        self.Pairs.update(make_pairs(Pairs, motifset, self.Gaps,
-                                     self.Degenerates))
-        self.MWCalculator = MWCalculator
+        self.degenerates = ambiguities and ambiguities.copy() or {}
+        self.degenerates[self.missing] = ''.join(motifset) + self.gap
+        self.matches = make_matches(motifset, self.gaps, self.degenerates)
+        self.pairs = pairs and pairs.copy() or {}
+        self.pairs.update(make_pairs(pairs, motifset, self.gaps,
+                                     self.degenerates))
+        self.mw_calculator = mw_calculator
         # add lowercase characters, if we're doing that
         if add_lower:
             self._add_lowercase()
@@ -515,18 +515,18 @@ class MolType(object):
         # a gap can be a true gap char or a degenerate character, typically '?'
         # we therefore want to ensure consistent treatment across the definition
         # of characters as either gap or degenerate
-        self.GapString = ''.join(self.Gaps)
-        strict_gap = "".join(set(self.GapString) - set(self.Degenerates))
+        self.gap_string = ''.join(self.gaps)
+        strict_gap = "".join(set(self.gap_string) - set(self.degenerates))
         self.strip_degenerate = FunctionWrapper(
             KeepChars(strict_gap + ''.join(self.alphabet)))
         self.strip_bad = FunctionWrapper(KeepChars(''.join(self.All)))
-        to_keep = set(self.alphabet) ^ set(self.Degenerates) - set(self.Gaps)
+        to_keep = set(self.alphabet) ^ set(self.degenerates) - set(self.gaps)
         self.strip_bad_and_gaps = FunctionWrapper(KeepChars(''.join(to_keep)))
 
         # make inverse degenerates from degenerates
         # ensure that lowercase versions also exist if appropriate
         inv_degens = {}
-        for key, val in list(self.Degenerates.items()):
+        for key, val in list(self.degenerates.items()):
             inv_degens[frozenset(val)] = key.upper()
             if add_lower:
                 inv_degens[frozenset(''.join(val).lower())] = key.lower()
@@ -534,18 +534,18 @@ class MolType(object):
             inv_degens[frozenset(m)] = m
             if add_lower:
                 inv_degens[frozenset(''.join(m).lower())] = m.lower()
-        for m in self.Gaps:
+        for m in self.gaps:
             inv_degens[frozenset(m)] = m
-        self.InverseDegenerates = inv_degens
+        self.inverse_degenerates = inv_degens
 
         # set array type for modeling alphabets
         try:
-            self.ArrayType = self.alphabet.ArrayType
+            self.array_type = self.alphabet.array_type
         except AttributeError:
-            self.ArrayType = None
+            self.array_type = None
 
         # set modeling sequence
-        self.ModelSeq = ModelSeq
+        self.model_seq_constructor = model_seq_constructor
 
     def __repr__(self):
         """String representation of MolType.
@@ -561,7 +561,7 @@ class MolType(object):
 
     def make_sequence(self, Seq, name=None, **kwargs):
         """Returns sequence of correct type. Replace with just self.Sequence?"""
-        return self.Sequence(Seq, name, **kwargs)
+        return self.make_sequence(Seq, name, **kwargs)
 
     def verify_sequence(self, seq, gaps_allowed=True, wildcards_allowed=True):
         """Checks whether sequence is valid on the default alphabet.
@@ -571,11 +571,11 @@ class MolType(object):
         check specifically whether the sequence has gaps, degenerate symbols,
         etc., or that explicitly take an alphabet as input.
         """
-        alpha = frozenset(self.Ambiguities)
+        alpha = frozenset(self.ambiguities)
         if gaps_allowed:
-            alpha = alpha.union(self.Gaps)
+            alpha = alpha.union(self.gaps)
         if wildcards_allowed:
-            alpha = alpha.union(self.Missing)
+            alpha = alpha.union(self.missing)
         try:
             nonalpha = re.compile('[^%s]' % re.escape(''.join(alpha)))
             badchar = nonalpha.search(seq)
@@ -593,7 +593,7 @@ class MolType(object):
         Arguments:
             - querymotif: the motif being queried."""
 
-        return len(self.Ambiguities[querymotif]) > 1
+        return len(self.ambiguities[querymotif]) > 1
 
     def _what_ambiguity(self, motifs):
         """The code that represents all of 'motifs', and minimal others.
@@ -601,8 +601,8 @@ class MolType(object):
         Does this duplicate DegenerateFromSequence directly?
         """
         most_specific = len(self.alphabet) + 1
-        result = self.Missing
-        for (code, motifs2) in list(self.Ambiguities.items()):
+        result = self.missing
+        for (code, motifs2) in list(self.ambiguities.items()):
             for c in motifs:
                 if c not in motifs2:
                     break
@@ -626,8 +626,8 @@ class MolType(object):
 
     def _add_lowercase(self):
         """Adds lowercase versions of keys and vals to each internal dict."""
-        for name in ['alphabet', 'Degenerates', 'Gaps', 'Complements', 'Pairs',
-                     'Matches']:
+        for name in ['alphabet', 'degenerates', 'gaps', 'complements', 'pairs',
+                     'matches']:
             curr = getattr(self, name)
             # temp hack to get around re-ordering
             if isinstance(curr, Alphabet):
@@ -645,39 +645,39 @@ class MolType(object):
         for i in self.alphabet:
             curr = str(i)
             all[i] = i
-        for key, val in list(self.Degenerates.items()):
+        for key, val in list(self.degenerates.items()):
             all[key] = val
-        for i in self.Gaps:
+        for i in self.gaps:
             all[i] = i
         self.All = all
 
     def _make_comp_table(self):
         """Sets self.ComplementTable, which maps items onto their complements.
 
-        Note: self.ComplementTable is only set if self.Complements exists.
+        Note: self.ComplementTable is only set if self.complements exists.
         """
-        if self.Complements:
-            self.ComplementTable = maketrans(''.join(list(self.Complements.keys())),
-                                             ''.join(list(self.Complements.values())))
+        if self.complements:
+            self.ComplementTable = maketrans(''.join(list(self.complements.keys())),
+                                             ''.join(list(self.complements.values())))
 
     def complement(self, item):
-        """Returns complement of item, using data from self.Complements.
+        """Returns complement of item, using data from self.complements.
 
         Always tries to return same type as item: if item looks like a dict,
         will return list of keys.
         """
-        if not self.Complements:
+        if not self.complements:
             raise TypeError(
                 "Tried to complement sequence using alphabet without complements.")
         try:
             return item.translate(self.ComplementTable)
         except (AttributeError, TypeError):
             item = iterable(item)
-            get = self.Complements.get
+            get = self.complements.get
             return item.__class__([get(i, i) for i in item])
 
     def rc(self, item):
-        """Returns reverse complement of item w/ data from self.Complements.
+        """Returns reverse complement of item w/ data from self.complements.
 
         Always returns same type as input.
         """
@@ -698,7 +698,7 @@ class MolType(object):
 
     def is_gap(self, char):
         """Returns True if char is a gap."""
-        return char in self.Gaps
+        return char in self.gaps
 
     def is_gapped(self, sequence):
         """Returns True if sequence contains gaps."""
@@ -743,7 +743,7 @@ class MolType(object):
 
     def first_gap(self, sequence):
         """Returns the index of the first gap in the sequence, or None."""
-        gap = self.Gaps
+        gap = self.gaps
         for i, s in enumerate(sequence):
             if s in gap:
                 return i
@@ -751,7 +751,7 @@ class MolType(object):
 
     def first_degenerate(self, sequence):
         """Returns the index of first degenerate symbol in sequence, or None."""
-        degen = self.Degenerates
+        degen = self.degenerates
         for i, s in enumerate(sequence):
             if s in degen:
                 return i
@@ -784,14 +784,14 @@ class MolType(object):
             try:
                 return sequence.__class__(self.strip_degenerate(sequence))
             except:
-                ambi = self.Degenerates
+                ambi = self.degenerates
 
                 def not_ambiguous(x):
                     return x not in ambi
                 return sequence.__class__(list(filter(not_ambiguous, sequence)))
 
         elif method == 'random':
-            degen = self.Degenerates
+            degen = self.degenerates
             result = []
             for i in sequence:
                 if i in degen:
@@ -808,10 +808,10 @@ class MolType(object):
     def degap(self, sequence):
         """Deletes all gap characters from sequence."""
         try:
-            trans = dict([(i, None) for i in map(ord, self.Gaps)])
+            trans = dict([(i, None) for i in map(ord, self.gaps)])
             return sequence.__class__(sequence.translate(trans))
         except AttributeError:
-            gap = self.Gaps
+            gap = self.gaps
 
             def not_gap(x):
                 return x not in gap
@@ -819,7 +819,7 @@ class MolType(object):
 
     def gap_indices(self, sequence):
         """Returns list of indices of all gaps in the sequence, or []."""
-        gaps = self.Gaps
+        gaps = self.gaps
         return [i for i, s in enumerate(sequence) if s in gaps]
 
     def gap_vector(self, sequence):
@@ -852,13 +852,13 @@ class MolType(object):
 
     def count_gaps(self, sequence):
         """Counts the gaps in the specified sequence."""
-        gaps = self.Gaps
+        gaps = self.gaps
         gap_count = sum(1 for s in sequence if s in gaps)
         return gap_count
 
     def count_degenerate(self, sequence):
         """Counts the degenerate bases in the specified sequence."""
-        degen = self.Degenerates
+        degen = self.degenerates
         degen_count = 0
         for s in sequence:
             if s in degen:
@@ -868,10 +868,10 @@ class MolType(object):
     def possibilities(self, sequence):
         """Counts number of possible sequences matching the sequence.
 
-        Uses self.Degenerates to decide how many possibilites there are at
+        Uses self.degenerates to decide how many possibilites there are at
         each position in the sequence.
         """
-        degen = self.Degenerates
+        degen = self.degenerates
         count = 1
         for s in sequence:
             if s in degen:
@@ -889,17 +889,17 @@ class MolType(object):
         if not sequence:
             return 0
         try:
-            return self.MWCalculator(sequence, delta)
+            return self.mw_calculator(sequence, delta)
         except KeyError:  # assume sequence was ambiguous
-            return self.MWCalculator(self.disambiguate(sequence, method), delta)
+            return self.mw_calculator(self.disambiguate(sequence, method), delta)
 
     def can_match(self, first, second):
         """Returns True if every pos in 1st could match same pos in 2nd.
 
         Truncates at length of shorter sequence.
-        Gaps are only allowed to match other gaps.
+        gaps are only allowed to match other gaps.
         """
-        m = self.Matches
+        m = self.matches
         for pair in zip(first, second):
             if pair not in m:
                 return False
@@ -909,9 +909,9 @@ class MolType(object):
         """Returns True if any position in 1st could cause a mismatch with 2nd.
 
         Truncates at length of shorter sequence.
-        Gaps are always counted as matches.
+        gaps are always counted as matches.
         """
-        m = self.Matches
+        m = self.matches
         if not first or not second:
             return False
 
@@ -931,12 +931,12 @@ class MolType(object):
         first position of first, etc.
 
         Truncates at length of shorter sequence.
-        Gaps are only allowed to pair with other gaps, and are counted as 'weak'
+        gaps are only allowed to pair with other gaps, and are counted as 'weak'
         (same category as GU and degenerate pairs).
 
         NOTE: second must be able to be reverse
         """
-        p = self.Pairs
+        p = self.pairs
         sec = list(second)
         sec.reverse()
         for pair in zip(first, sec):
@@ -951,9 +951,9 @@ class MolType(object):
         first position of first, etc.
 
         Truncates at length of shorter sequence.
-        Gaps are always counted as possible mispairs, as are weak pairs like GU.
+        gaps are always counted as possible mispairs, as are weak pairs like GU.
         """
-        p = self.Pairs
+        p = self.pairs
         if not first or not second:
             return False
 
@@ -975,14 +975,14 @@ class MolType(object):
     def degenerate_from_seq(self, sequence):
         """Returns least degenerate symbol corresponding to chars in sequence.
 
-        First tries to look up in self.InverseDegenerates. Then disambiguates
-        and tries to look up in self.InverseDegenerates. Then tries converting
+        First tries to look up in self.inverse_degenerates. Then disambiguates
+        and tries to look up in self.inverse_degenerates. Then tries converting
         the case (tries uppercase before lowercase). Raises TypeError if
         conversion fails.
         """
         symbols = frozenset(sequence)
         # check if symbols are already known
-        inv_degens = self.InverseDegenerates
+        inv_degens = self.inverse_degenerates
         result = inv_degens.get(symbols, None)
         if result:
             return result
@@ -1023,70 +1023,70 @@ class MolType(object):
 ASCII = MolType(
     # A default type for text read from a file etc. when we don't
     # want to prematurely assume DNA or Protein.
-    Sequence=DefaultSequence,
+    seq_constructor=DefaultSequence,
     motifset=letters,
-    Ambiguities={},
+    ambiguities={},
     label='text',
-    ModelSeq=ModelSequence,
+    model_seq_constructor=ModelSequence,
 )
 
 DNA = MolType(
-    Sequence=DnaSequence,
+    seq_constructor=DnaSequence,
     motifset=IUPAC_DNA_chars,
-    Ambiguities=IUPAC_DNA_ambiguities,
+    ambiguities=IUPAC_DNA_ambiguities,
     label="dna",
-    MWCalculator=DnaMW,
-    Complements=IUPAC_DNA_ambiguities_complements,
-    Pairs=DnaStandardPairs,
+    mw_calculator=DnaMW,
+    complements=IUPAC_DNA_ambiguities_complements,
+    pairs=DnaStandardPairs,
     make_alphabet_group=True,
-    ModelSeq=ModelDnaSequence,
+    model_seq_constructor=ModelDnaSequence,
 )
 
 RNA = MolType(
-    Sequence=RnaSequence,
+    seq_constructor=RnaSequence,
     motifset=IUPAC_RNA_chars,
-    Ambiguities=IUPAC_RNA_ambiguities,
+    ambiguities=IUPAC_RNA_ambiguities,
     label="rna",
-    MWCalculator=RnaMW,
-    Complements=IUPAC_RNA_ambiguities_complements,
-    Pairs=RnaStandardPairs,
+    mw_calculator=RnaMW,
+    complements=IUPAC_RNA_ambiguities_complements,
+    pairs=RnaStandardPairs,
     make_alphabet_group=True,
-    ModelSeq=ModelRnaSequence,
+    model_seq_constructor=ModelRnaSequence,
 )
 
 PROTEIN = MolType(
-    Sequence=ProteinSequence,
+    seq_constructor=ProteinSequence,
     motifset=IUPAC_PROTEIN_chars,
-    Ambiguities=IUPAC_PROTEIN_ambiguities,
-    MWCalculator=ProteinMW,
+    ambiguities=IUPAC_PROTEIN_ambiguities,
+    mw_calculator=ProteinMW,
     make_alphabet_group=True,
-    ModelSeq=ModelProteinSequence,
+    model_seq_constructor=ModelProteinSequence,
     label="protein")
 
 PROTEIN_WITH_STOP = MolType(
-    Sequence=ProteinWithStopSequence,
+    seq_constructor=ProteinWithStopSequence,
     motifset=PROTEIN_WITH_STOP_chars,
-    Ambiguities=PROTEIN_WITH_STOP_ambiguities,
-    MWCalculator=ProteinMW,
+    ambiguities=PROTEIN_WITH_STOP_ambiguities,
+    mw_calculator=ProteinMW,
     make_alphabet_group=True,
-    ModelSeq=ModelProteinWithStopSequence,
+    model_seq_constructor=ModelProteinWithStopSequence,
     label="protein_with_stop")
 
 BYTES = MolType(
     # A default type for arbitrary chars read from a file etc. when we don't
     # want to prematurely assume _anything_ about the data.
-    Sequence=ByteSequence,
+    seq_constructor=ByteSequence,
     motifset=list(map(chr, list(range(256)))),
-    Ambiguities={},
-    ModelSeq=ModelSequence,
+    ambiguities={},
+    model_seq_constructor=ModelSequence,
     label='bytes')
 
 # following is a two-state MolType useful for testing
 AB = MolType(
-    Sequence=ABSequence,
+    seq_constructor=ABSequence,
     motifset='ab',
-    Ambiguities={},
-    ModelSeq=ModelSequence,
+    ambiguities={},
+    model_seq_constructor=ModelSequence,
     label='ab')
 
 
