@@ -575,7 +575,7 @@ class _LeafDefn(_Defn):
     def get_current_bounds(self, scope):
         lowest = highest = None
         for s in scope:
-            (lower, init, upper) = self.assignments[s].getBounds()
+            (lower, init, upper) = self.assignments[s].get_bounds()
             if upper == lower:
                 continue
             if lowest is None or lower < lowest:
@@ -585,7 +585,7 @@ class _LeafDefn(_Defn):
 
         if lowest is None or highest is None:
             # All current settings are consts so use the class defaults
-            (lowest, default, highest) = self.get_default_setting().getBounds()
+            (lowest, default, highest) = self.get_default_setting().get_bounds()
         return (lowest, highest)
 
     def __repr__(self):

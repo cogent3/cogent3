@@ -267,7 +267,7 @@ class ParamDefn(_InputDefn):
             if v.is_constant or (variable is not None and variable is not v):
                 cell = ConstCell(self.name, v.value)
             else:
-                cell = self.opt_par_class(self.name, scope, v.getBounds())
+                cell = self.opt_par_class(self.name, scope, v.get_bounds())
             uniq_cells.append(cell)
 
         return (uniq_cells, uniq_cells)
