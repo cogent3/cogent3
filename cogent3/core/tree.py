@@ -1598,7 +1598,7 @@ class TreeNode(object):
                 update_result()
         return result + result.T, tip_order
 
-    def compareByTipDistances(self, other, dist_f=distance_from_r):
+    def compare_by_tip_distances(self, other, dist_f=distance_from_r):
         """Compares self to other using tip-to-tip distance matrices.
 
         Value returned is dist_f(m1, m2) for the two matrices. Default is
@@ -2109,7 +2109,7 @@ class PhyloNode(TreeNode):
                 update_result()
         return result + result.T, tip_order
 
-    def compareByTipDistances(self, other, sample=None, dist_f=distance_from_r,
+    def compare_by_tip_distances(self, other, sample=None, dist_f=distance_from_r,
                               shuffle_f=shuffle):
         """Compares self to other using tip-to-tip distance matrices.
 

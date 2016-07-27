@@ -1280,16 +1280,16 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(h.distance(g), 10)
         self.assertEqual(h.distance(h), 0)
 
-    def test_compareByTipDistances(self):
-        obs = self.t.compareByTipDistances(self.t3)
+    def test_compare_by_tip_distances(self):
+        obs = self.t.compare_by_tip_distances(self.t3)
         # note: common taxa are H, G, R (only)
         m1 = array([[0, 2, 6.5], [2, 0, 6.5], [6.5, 6.5, 0]])
         m2 = array([[0, 2, 6], [2, 0, 6], [6, 6, 0]])
         r = correlation(m1.flat, m2.flat)[0]
         self.assertEqual(obs, (1 - r) / 2)
 
-    def test_compareByTipDistances_sample(self):
-        obs = self.t.compareByTipDistances(self.t3, sample=3, shuffle_f=sorted)
+    def test_compare_by_tip_distances_sample(self):
+        obs = self.t.compare_by_tip_distances(self.t3, sample=3, shuffle_f=sorted)
         # note: common taxa are H, G, R (only)
         m1 = array([[0, 2, 6.5], [2, 0, 6.5], [6.5, 6.5, 0]])
         m2 = array([[0, 2, 6], [2, 0, 6], [6, 6, 0]])
@@ -1301,7 +1301,7 @@ class PhyloNodeTests(TestCase):
         t = DndParser(self.s, PhyloNode)
         s3 = '(((H:1,G:1,O:1):2,R:3,Q:10):1,X:4);'
         t3 = DndParser(self.s3, PhyloNode)
-        obs = t.compareByTipDistances(t3, sample=3, shuffle_f=sorted)
+        obs = t.compare_by_tip_distances(t3, sample=3, shuffle_f=sorted)
 
     def test_tip_to_tip_distances_endpoints(self):
         """Test getting specifc tip distances  with tip_to_tip_distances"""
