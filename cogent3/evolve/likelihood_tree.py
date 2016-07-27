@@ -186,7 +186,7 @@ class _LikelihoodTreeEdge(object):
         self.sum_input_likelihoodsR(result, *likelihoods)
         return result
 
-    def asLeaf(self, likelihoods):
+    def as_leaf(self, likelihoods):
         (self, likelihoods) = self.parallel_reconstruct_columns(likelihoods)
         assert len(likelihoods) == len(self.counts)
         return LikelihoodTreeLeaf(likelihoods, likelihoods,
