@@ -2758,7 +2758,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         new = self.__class__(data=masked_seqs, Info=self.Info, Name=self.Name)
         return new
 
-    def variablePositions(self, include_gap_motif=True):
+    def variable_positions(self, include_gap_motif=True):
         """Return a list of variable position indexes.
 
         Arguments:
