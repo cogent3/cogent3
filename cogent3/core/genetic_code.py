@@ -248,7 +248,7 @@ class GeneticCode(object):
         return [self.translate(dna, start) for start in range(3)] + \
                [self.translate(reverse, start) for start in range(3)]
 
-    def isStart(self, codon):
+    def is_start(self, codon):
         """Returns True if codon is a start codon, False otherwise."""
         fixed_codon = codon.upper().replace('U', 'T')
         return fixed_codon in self.StartCodons

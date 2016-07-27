@@ -62,8 +62,8 @@ class GeneticCodeTests(TestCase):
         self.assertEqual(sgc.ID, 1)
         self.assertEqual(sgc.Name, 'Standard Nuclear')
         self.assertEqual(sgc['UUU'], 'F')
-        self.assertEqual(sgc.isStart('ATG'), True)
-        self.assertEqual(sgc.isStart('AAA'), False)
+        self.assertEqual(sgc.is_start('ATG'), True)
+        self.assertEqual(sgc.is_start('AAA'), False)
         self.assertEqual(sgc.isStop('UAA'), True)
         self.assertEqual(sgc.isStop('AAA'), False)
         self.assertEqual(len(sgc.SenseCodons), 61)
@@ -85,14 +85,14 @@ class GeneticCodeTests(TestCase):
             self.assertEqual(sgc.ID, 1)
             self.assertEqual(sgc.Name, 'Standard Nuclear')
             self.assertEqual(sgc['TTT'], 'F')
-            self.assertEqual(sgc.isStart('ATG'), True)
-            self.assertEqual(sgc.isStart('AAA'), False)
+            self.assertEqual(sgc.is_start('ATG'), True)
+            self.assertEqual(sgc.is_start('AAA'), False)
             self.assertEqual(sgc.isStop('TAA'), True)
             self.assertEqual(sgc.isStop('AAA'), False)
 
         mtgc = GeneticCodes[2]
         self.assertEqual(mtgc.Name, 'Vertebrate Mitochondrial')
-        self.assertEqual(mtgc.isStart('AUU'), True)
+        self.assertEqual(mtgc.is_start('AUU'), True)
         self.assertEqual(mtgc.isStop('UGA'), False)
 
         self.assertEqual(sgc_new.changes(mtgc), {'AGA': 'R*', 'AGG': 'R*',
