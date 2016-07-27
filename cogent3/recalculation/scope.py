@@ -145,7 +145,7 @@ class _Defn(object):
         self.assignments = {}
         self.activated = False
 
-    def makeName(self, name, extra_label=None):
+    def make_name(self, name, extra_label=None):
         if name is None:
             name = self.name
         if extra_label is not None:

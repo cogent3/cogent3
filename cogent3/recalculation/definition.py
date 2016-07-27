@@ -196,7 +196,7 @@ class GammaDefn(MonotonicDefn):
 
     def __init__(self, weights, name=None, default_shape=1.0,
                  extra_label=None, dimensions=()):
-        name = self.makeName(name, extra_label)
+        name = self.make_name(name, extra_label)
         shape = PositiveParamDefn(name + '_shape',
                                   default=default_shape, dimensions=dimensions, lower=1e-2)
         CalculationDefn.__init__(self, weights, shape, name=name + '_distrib')
