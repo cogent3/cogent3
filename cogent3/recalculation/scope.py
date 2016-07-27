@@ -38,7 +38,7 @@ class IncompleteScopeError(ScopeError):
     pass
 
 
-# Can be passed to _LeafDefn.interpretScopes()
+# Can be passed to _LeafDefn.interpret_scopes()
 class _ExistentialQualifier(object):
 
     def __init__(self, cats=None):
@@ -252,7 +252,7 @@ class _Defn(object):
             scope[dimension] = arg
         return scope
 
-    def interpretScopes(self, independent=None, **kw):
+    def interpret_scopes(self, independent=None, **kw):
         """A list of the scopes defined by the selecting keyword arguments.
 
         Keyword arguments should be of the form dimension=settings,
@@ -272,7 +272,7 @@ class _Defn(object):
         if independent is None:
             independent = self.independent_by_default
 
-        # interpretScopes is used for assigning, so should specify
+        # interpret_scopes is used for assigning, so should specify
         # the scope exactly
         for d in kw:
             if d not in self.valid_dimensions:
@@ -518,7 +518,7 @@ class _LeafDefn(_Defn):
         if const is None:
             const = self.const_by_default
 
-        for scope in self.interpretScopes(
+        for scope in self.interpret_scopes(
                 independent=independent, **(scope_spec or {})):
             if value is None:
                 s_value = self.getMeanCurrentValue(scope)
