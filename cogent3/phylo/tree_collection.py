@@ -34,11 +34,11 @@ class ScoredTreeCollection(_UserList):
         return [tree, '\t[', score, ']\n']
 
     def get_consensus_tree(self, strict=None, method='unrooted'):
-        ctrees = self.getConsensusTrees(strict, method=method)
+        ctrees = self.get_consensus_trees(strict, method=method)
         assert len(ctrees) == 1, len(ctrees)
         return ctrees[0]
 
-    def getConsensusTrees(self, strict=True, method='unrooted'):
+    def get_consensus_trees(self, strict=True, method='unrooted'):
         if strict is None:
             strict = True
         return consensus.weighted_majority_rule(self, strict, method=method)
@@ -53,7 +53,7 @@ class UsefullyScoredTreeCollection(ScoredTreeCollection):
 class WeightedTreeCollection(UsefullyScoredTreeCollection):
     """An ordered list of (weight, tree) tuples"""
 
-    def getConsensusTrees(self, strict=False, method='unrooted'):
+    def get_consensus_trees(self, strict=False, method='unrooted'):
         if strict is None:
             strict = False
         return consensus.weighted_majority_rule(self, strict, method=method)
@@ -68,10 +68,10 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
         assert self[0][0] >= self[-1][0]
 
     def get_consensus_tree(self, cutoff=None, strict=False, alpha=0.05):
-        """See documentation for getConsensusTrees"""
-        return self.getConsensusTrees(cutoff, strict, alpha)[0]
+        """See documentation for get_consensus_trees"""
+        return self.get_consensus_trees(cutoff, strict, alpha)[0]
 
-    def getConsensusTrees(self, cutoff=None, strict=False, alpha=0.05):
+    def get_consensus_trees(self, cutoff=None, strict=False, alpha=0.05):
         """Returns a weighted consensus tree as described in Holland (2006).
         Weights transformed according to the class IV transformation in Jermiin
         (1997).
@@ -95,7 +95,7 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
         maximum-likelihood analysis. Molecular Biology and Evolution,
         14(12):1296.
         """
-        return self.getWeightedTrees(cutoff, alpha).getConsensusTrees(strict)
+        return self.getWeightedTrees(cutoff, alpha).get_consensus_trees(strict)
 
     def getWeightedTrees(self, cutoff=None, alpha=0.05):
         if cutoff is None:

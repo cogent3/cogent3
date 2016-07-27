@@ -175,13 +175,13 @@ class ConsensusTests(unittest.TestCase):
         """strict consensus should handle conflicting trees"""
         sct = ScoredTreeCollection(
             list(zip([1] * 3, self.unrooted_conflicting_trees)))
-        ct = sct.getConsensusTrees()[0]
+        ct = sct.get_consensus_trees()[0]
         self.assertTrue(ct.same_topology(Tree("(a,b,c,d);")))
 
         sct = ScoredTreeCollection(
             list(zip([1] * 3, self.rooted_conflicting_trees)))
-        #cts = sct.getConsensusTrees(method='rooted')
-        ct = sct.getConsensusTrees(method='rooted')[0]
+        #cts = sct.get_consensus_trees(method='rooted')
+        ct = sct.get_consensus_trees(method='rooted')[0]
         self.assertTrue(ct.same_topology(Tree("(a,b,c,d);")))
         # for tree in cts:
         #    print str(tree)
