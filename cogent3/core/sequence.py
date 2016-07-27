@@ -160,9 +160,9 @@ class SequenceI(object):
         """Returns True if sequence contains only monomers."""
         return self.MolType.isStrict(self)
 
-    def firstGap(self):
+    def first_gap(self):
         """Returns the index of the first gap in the sequence, or None."""
-        return self.MolType.firstGap(self)
+        return self.MolType.first_gap(self)
 
     def firstDegenerate(self):
         """Returns the index of first degenerate symbol in sequence, or None."""
@@ -1309,7 +1309,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         new_indices = arange(len(indices))
         return dict(list(zip(new_indices, indices))), dict(list(zip(indices, new_indices)))
 
-    def firstGap(self):
+    def first_gap(self):
         """Returns position of first gap, or None."""
         a = self.gapIndices()
         try:

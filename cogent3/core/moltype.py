@@ -702,7 +702,7 @@ class MolType(object):
 
     def is_gapped(self, sequence):
         """Returns True if sequence contains gaps."""
-        return self.firstGap(sequence) is not None
+        return self.first_gap(sequence) is not None
 
     def is_degenerate(self, sequence):
         """Returns True if sequence contains degenerate characters."""
@@ -741,7 +741,7 @@ class MolType(object):
             alphabet = self.Alphabet
         return first_index_in_set(sequence, alphabet)
 
-    def firstGap(self, sequence):
+    def first_gap(self, sequence):
         """Returns the index of the first gap in the sequence, or None."""
         gap = self.Gaps
         for i, s in enumerate(sequence):

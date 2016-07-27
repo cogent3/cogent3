@@ -241,7 +241,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(a.complement('b'), 'c')
         self.assertEqual(a.complement('AbcAA'), 'AcbAA')
         self.assertEqual(a.firstDegenerate('AbcdA'), 3)
-        self.assertEqual(a.firstGap('a~c'), 1)
+        self.assertEqual(a.first_gap('a~c'), 1)
         self.assertEqual(a.firstInvalid('Abcx'), 3)
 
     def test_stripDegenerate(self):
@@ -376,9 +376,9 @@ class MolTypeTests(TestCase):
         self.assertFalse(s('CAGUCGAUCA-cgaucagUCGAUGAC'))
         self.assertFalse(s('ACGUGCAUXCAGUCAG'))
 
-    def test_firstGap(self):
-        """MolType firstGap should return index of first gap symbol, or None"""
-        g = RnaMolType.firstGap
+    def test_first_gap(self):
+        """MolType first_gap should return index of first gap symbol, or None"""
+        g = RnaMolType.first_gap
         self.assertEqual(g(''), None)
         self.assertEqual(g('a'), None)
         self.assertEqual(g('uhacucHuhacUIUIhacan'), None)
