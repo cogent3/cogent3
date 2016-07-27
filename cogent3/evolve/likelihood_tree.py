@@ -148,7 +148,7 @@ class _LikelihoodTreeEdge(object):
         (self, likelihoods) = self.parallel_reconstruct_columns(likelihoods)
         return likelihoods[self.index]
 
-    def calcGStatistic(self, likelihoods, return_table=False):
+    def calc_G_statistic(self, likelihoods, return_table=False):
         # A Goodness-of-fit statistic
         (self, likelihoods) = self.parallel_reconstruct_columns(likelihoods)
 
