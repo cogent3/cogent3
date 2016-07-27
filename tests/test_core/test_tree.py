@@ -1343,10 +1343,10 @@ class PhyloNodeTests(TestCase):
         c.Length = None  # need to test both leaf and internal node
         self.assertEqual(str(a), '(((d:1,e:4,(g:3)f:2)c)b:0,h)a;')
 
-    def test_getMaxTipTipDistance(self):
-        """getMaxTipTipDistance should get max tip distance across tree"""
+    def test_get_max_tip_tip_distance(self):
+        """get_max_tip_tip_distance should get max tip distance across tree"""
         nodes, tree = self.TreeNode, self.TreeRoot
-        dist, names, node = tree.getMaxTipTipDistance()
+        dist, names, node = tree.get_max_tip_tip_distance()
         self.assertEqual(dist, 15.0)  # due to nodes with single descendents!!
         self.assertEqual(sorted(names), ['e', 'g'])
         self.assertEqual(node.name, 'b')

@@ -1088,7 +1088,7 @@ class TreeNode(object):
                     tip_b[0] += child_b.Length or 0.0
                 n.MaxDistTips = [tip_a, tip_b]
 
-    def getMaxTipTipDistance(self):
+    def get_max_tip_tip_distance(self):
         """Returns the max tip tip distance between any pair of tips
 
         Returns (dist, tip_names, internal_node)
