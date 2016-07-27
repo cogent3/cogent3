@@ -700,7 +700,7 @@ class ParameterController(object):
     def getFinalResult(self):
         return self.defns[-1].getCurrentValueForScope()
 
-    def get_param_valueDict(self, dimensions, p=None, dropoff=None,
+    def get_param_value_dict(self, dimensions, p=None, dropoff=None,
                           params=None, xtol=None):
         """A dict tree of parameter values, with parameter names as the
         top level keys, and the various dimensions ('edge', 'bin', etc.)

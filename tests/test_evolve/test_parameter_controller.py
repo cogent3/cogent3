@@ -154,7 +154,7 @@ class test_parameter_controller(unittest.TestCase):
         lf.setLocalClock('a', 'b')
         lf.setAlignment(al)
         lf.optimise(local=True)
-        rd = lf.get_param_valueDict(['edge'], params=['length'])
+        rd = lf.get_param_value_dict(['edge'], params=['length'])
         self.assertAlmostEqual(lf.get_log_likelihood(), -10.1774488956)
         self.assertEqual(rd['length']['a'], rd['length']['b'])
 
@@ -164,7 +164,7 @@ class test_parameter_controller(unittest.TestCase):
         lf.setAlignment(self.al)
         lf.optimise(local=True,
                     tolerance=1e-8, max_restarts=2)
-        rd = lf.get_param_valueDict(['edge'], params=['length'])
+        rd = lf.get_param_value_dict(['edge'], params=['length'])
         self.assertAlmostEqual(lf.get_log_likelihood(), -27.84254174)
         self.assertEqual(rd['length']['c'], rd['length']['d'])
         self.assertNotEqual(rd['length']['a'], rd['length']['e'])
@@ -186,7 +186,7 @@ class test_parameter_controller(unittest.TestCase):
         # print self.pc
         lf.setAlignment(self.al)
         lf.optimise(local=True)
-        rd = lf.get_param_valueDict(['edge'], params=['kappa'])
+        rd = lf.get_param_value_dict(['edge'], params=['kappa'])
         self.assertAlmostEqual(lf.get_log_likelihood(), -27.3252, 3)
         self.assertEqual(rd['kappa']['b'], rd['kappa']['d'])
         self.assertNotEqual(rd['kappa']['a'], rd['kappa']['b'])

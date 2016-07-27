@@ -174,7 +174,7 @@ class LikelihoodFunction(ParameterController):
         return '\n'.join(map(str, result))
 
     def get_annotated_tree(self):
-        d = self.get_param_valueDict(['edge'])
+        d = self.get_param_value_dict(['edge'])
         tree = self._tree.deepcopy()
         for edge in tree.get_edge_vector():
             if edge.name == 'root':
@@ -251,7 +251,7 @@ class LikelihoodFunction(ParameterController):
         table_order = list(group.keys())
         table_order.sort()
         for table_dims in table_order:
-            raw_table = self.get_param_valueDict(
+            raw_table = self.get_param_value_dict(
                 dimensions=table_dims, params=group[table_dims])
             param_names = group[table_dims]
             param_names.sort()
@@ -309,10 +309,10 @@ class LikelihoodFunction(ParameterController):
         """
 
         discontinued('method', "'getStatisticsAsDict' "
-                     "use 'get_param_valueDict(['edge'])' is nearly equivalent",
+                     "use 'get_param_value_dict(['edge'])' is nearly equivalent",
                      '1.6')
 
-        stats_dict = self.get_param_valueDict(['edge'])
+        stats_dict = self.get_param_value_dict(['edge'])
 
         if hasattr(self.model, 'scale_masks'):
             for predicate in self.model.scale_masks:
