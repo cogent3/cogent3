@@ -158,7 +158,7 @@ def weighted_unrooted_majority_rule(weighted_trees, strict=False, attr='support'
     split_lengths = defaultdict(float)
     tips = None
     for (weight, tree) in weighted_trees:
-        for split, params in list(getSplits(tree).items()):
+        for split, params in list(get_splits(tree).items()):
             split_weights[split] += weight
             if params['length'] is None:
                 split_lengths[split] = None
@@ -198,7 +198,7 @@ def weighted_unrooted_majority_rule(weighted_trees, strict=False, attr='support'
     return [getTree(accepted_splits)]
 
 
-def getSplits(tree):
+def get_splits(tree):
     """Return a dict keyed by the splits equivalent to the tree.
     Values are {'length' : edge.length} for the corresponding edge.
     """

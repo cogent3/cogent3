@@ -12,7 +12,7 @@ from cogent3.phylo.tree_collection import LogLikelihoodScoredTreeCollection,\
     WeightedTreeCollection, LoadTrees, ScoredTreeCollection
 from cogent3.evolve.models import JC69, HKY85, F81
 from cogent3.phylo.consensus import majority_rule, weighted_majority_rule, \
-    getSplits, getTree
+    get_splits, getTree
 from cogent3.util.misc import remove_files
 
 __author__ = "Peter Maxwell"
@@ -135,9 +135,9 @@ class ConsensusTests(unittest.TestCase):
         self.assertTrue(outtrees[0].same_topology(Tree("(c,d,(a,b));")))
 
     def test_get_tree_get_splits(self):
-        """getTree should provide a reciprocal map of getSplits"""
+        """getTree should provide a reciprocal map of get_splits"""
         tree = LoadTree(filename=os.path.join(data_path, "murphy.tree"))
-        self.assertTrue(tree.same_topology(getTree(getSplits(tree))))
+        self.assertTrue(tree.same_topology(getTree(get_splits(tree))))
 
     def test_consensus_tree_branch_lengths(self):
         """consensus trees should average branch lengths properly"""
