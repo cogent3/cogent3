@@ -1785,9 +1785,9 @@ class SmallTreeReshapeTestClass(TestCase):
         t1 = LoadTree(treestring="(((s1,s5),s3),s2,s4);")
         t2 = LoadTree(treestring="((s1,s5),(s2,s4),s3);")
         t3 = LoadTree(treestring="((s1,s4),(s2,s5),s3);")
-        assert t1.sameTopology(t2), (t1, t2)
-        assert not t1.sameTopology(t3), (t1, t3)
-        assert not t2.sameTopology(t3), (t2, t3)
+        assert t1.same_topology(t2), (t1, t2)
+        assert not t1.same_topology(t3), (t1, t3)
+        assert not t2.same_topology(t3), (t2, t3)
 
 
 #=============================================================================

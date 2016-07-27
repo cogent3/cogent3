@@ -1819,7 +1819,7 @@ class PhyloNode(TreeNode):
             known_weight += 1
         return edge.unrooted_deepcopy()
 
-    def sameTopology(self, other):
+    def same_topology(self, other):
         """Tests whether two trees have the same topology."""
         tip_names = self.get_tip_names()
         root_at = tip_names[0]

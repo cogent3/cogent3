@@ -129,15 +129,15 @@ class ConsensusTests(unittest.TestCase):
         trees = self.rooted_trees
         outtrees = majorityRule(trees, strict=False)
         self.assertEqual(len(outtrees), 1)
-        self.assertTrue(outtrees[0].sameTopology(Tree("((c,d),(a,b));")))
+        self.assertTrue(outtrees[0].same_topology(Tree("((c,d),(a,b));")))
         outtrees = majorityRule(trees, strict=True)
         self.assertEqual(len(outtrees), 1)
-        self.assertTrue(outtrees[0].sameTopology(Tree("(c,d,(a,b));")))
+        self.assertTrue(outtrees[0].same_topology(Tree("(c,d,(a,b));")))
 
     def test_get_tree_get_splits(self):
         """getTree should provide a reciprocal map of getSplits"""
         tree = LoadTree(filename=os.path.join(data_path, "murphy.tree"))
-        self.assertTrue(tree.sameTopology(getTree(getSplits(tree))))
+        self.assertTrue(tree.same_topology(getTree(getSplits(tree))))
 
     def test_consensus_tree_branch_lengths(self):
         """consensus trees should average branch lengths properly"""
@@ -169,20 +169,20 @@ class ConsensusTests(unittest.TestCase):
         tree_list = [(1, t) for t in self.trees]
         sct = LogLikelihoodScoredTreeCollection(tree_list)
         ct = sct.getConsensusTree()
-        self.assertTrue(ct.sameTopology(Tree("((c,d),a,b);")))
+        self.assertTrue(ct.same_topology(Tree("((c,d),a,b);")))
 
     def test_consensus_from_scored_trees_collection_ii(self):
         """strict consensus should handle conflicting trees"""
         sct = ScoredTreeCollection(
             list(zip([1] * 3, self.unrooted_conflicting_trees)))
         ct = sct.getConsensusTrees()[0]
-        self.assertTrue(ct.sameTopology(Tree("(a,b,c,d);")))
+        self.assertTrue(ct.same_topology(Tree("(a,b,c,d);")))
 
         sct = ScoredTreeCollection(
             list(zip([1] * 3, self.rooted_conflicting_trees)))
         #cts = sct.getConsensusTrees(method='rooted')
         ct = sct.getConsensusTrees(method='rooted')[0]
-        self.assertTrue(ct.sameTopology(Tree("(a,b,c,d);")))
+        self.assertTrue(ct.same_topology(Tree("(a,b,c,d);")))
         # for tree in cts:
         #    print str(tree)
         #self.assertTrue(set(map(str, cts))==set(['('+c+');' for c in 'abcd']))
@@ -191,7 +191,7 @@ class ConsensusTests(unittest.TestCase):
         """weighted consensus from a tree collection should be different"""
         sct = LogLikelihoodScoredTreeCollection(self.scored_trees)
         ct = sct.getConsensusTree()
-        self.assertTrue(ct.sameTopology(Tree("((a,b),c,d);")))
+        self.assertTrue(ct.same_topology(Tree("((a,b),c,d);")))
 
     def test_weighted_consensus_from_scored_trees_collection_ii(self):
         """root positions in input tree collection should not effect result"""
@@ -199,17 +199,17 @@ class ConsensusTests(unittest.TestCase):
         ctrr = sct.getConsensusTree()
         sct = LogLikelihoodScoredTreeCollection(self.trees_rooted_at_A)
         ctra = sct.getConsensusTree()
-        self.assertTrue(ctrr.sameTopology(ctra))
+        self.assertTrue(ctrr.same_topology(ctra))
 
     def test_weighted_trees_satisyfing_cutoff(self):
         """build consensus tree from those satisfying cutoff"""
         sct = LogLikelihoodScoredTreeCollection(self.scored_trees)
         cts = sct.getWeightedTrees(cutoff=0.8)
         for weight, tree in cts:
-            self.assertTrue(tree.sameTopology(Tree('((a,b),c,d);')))
+            self.assertTrue(tree.same_topology(Tree('((a,b),c,d);')))
 
         ct = cts.getConsensusTree()
-        self.assertTrue(ct.sameTopology(Tree("((a,b),c,d);")))
+        self.assertTrue(ct.same_topology(Tree("((a,b),c,d);")))
 
     def test_tree_collection_read_write_file(self):
         """should correctly read / write a collection from a file"""
