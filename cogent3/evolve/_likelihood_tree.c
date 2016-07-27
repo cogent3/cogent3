@@ -1408,11 +1408,11 @@ static const char __pyx_k_dtype_is_object[] = "dtype_is_object";
 static const char __pyx_k_input_likelihoods[] = "input_likelihoods";
 static const char __pyx_k_strided_and_direct[] = "<strided and direct>";
 static const char __pyx_k_most_probable_state[] = "most_probable_state";
-static const char __pyx_k_sumInputLikelihoods[] = "sumInputLikelihoods";
 static const char __pyx_k_getLogSumAcrossSites[] = "getLogSumAcrossSites";
 static const char __pyx_k_strided_and_indirect[] = "<strided and indirect>";
 static const char __pyx_k_contiguous_and_direct[] = "<contiguous and direct>";
 static const char __pyx_k_getTotalLogLikelihood[] = "getTotalLogLikelihood";
+static const char __pyx_k_sum_input_likelihoods[] = "sum_input_likelihoods";
 static const char __pyx_k_MemoryView_of_r_object[] = "<MemoryView of %r object>";
 static const char __pyx_k_Array_required_got_None[] = "Array required, got None";
 static const char __pyx_k_MemoryView_of_r_at_0x_x[] = "<MemoryView of %r at 0x%x>";
@@ -1535,7 +1535,7 @@ static PyObject *__pyx_kp_s_strided_and_direct;
 static PyObject *__pyx_kp_s_strided_and_direct_or_indirect;
 static PyObject *__pyx_kp_s_strided_and_indirect;
 static PyObject *__pyx_n_s_struct;
-static PyObject *__pyx_n_s_sumInputLikelihoods;
+static PyObject *__pyx_n_s_sum_input_likelihoods;
 static PyObject *__pyx_n_s_switch_probs;
 static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_n_s_tmp;
@@ -1545,7 +1545,7 @@ static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_version;
 static PyObject *__pyx_n_s_version_info;
-static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_sumInputLikelihoods(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_child_indexes, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_result, PyObject *__pyx_v_likelihoods); /* proto */
+static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_sum_input_likelihoods(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_child_indexes, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_result, PyObject *__pyx_v_likelihoods); /* proto */
 static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_2getTotalLogLikelihood(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_input_likelihoods, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_mprobs); /* proto */
 static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_4getLogSumAcrossSites(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_input_likelihoods); /* proto */
 static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_6logDotReduce(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Long1D __pyx_v_index, PyObject *__pyx_v_patch_probs, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_switch_probs, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_plhs); /* proto */
@@ -2370,21 +2370,21 @@ static int __pyx_fuse_0_2__pyx_f_7cogent3_6evolve_16_likelihood_tree_checkArray2
 /* "cogent3/evolve/_likelihood_tree.pyx":12
  * 
  * 
- * def sumInputLikelihoods(child_indexes, Double2D result, likelihoods):             # <<<<<<<<<<<<<<
+ * def sum_input_likelihoods(child_indexes, Double2D result, likelihoods):             # <<<<<<<<<<<<<<
  *     cdef int M, S, U, C, motif, parent_col, child_col, child
  *     cdef Double2D plhs
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_1sumInputLikelihoods(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_7cogent3_6evolve_16_likelihood_tree_1sumInputLikelihoods = {"sumInputLikelihoods", (PyCFunction)__pyx_pw_7cogent3_6evolve_16_likelihood_tree_1sumInputLikelihoods, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_1sumInputLikelihoods(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_1sum_input_likelihoods(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_7cogent3_6evolve_16_likelihood_tree_1sum_input_likelihoods = {"sum_input_likelihoods", (PyCFunction)__pyx_pw_7cogent3_6evolve_16_likelihood_tree_1sum_input_likelihoods, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_1sum_input_likelihoods(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_child_indexes = 0;
   __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_result = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_v_likelihoods = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("sumInputLikelihoods (wrapper)", 0);
+  __Pyx_RefNannySetupContext("sum_input_likelihoods (wrapper)", 0);
   {
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_child_indexes,&__pyx_n_s_result,&__pyx_n_s_likelihoods,0};
     PyObject* values[3] = {0,0,0};
@@ -2406,16 +2406,16 @@ static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_1sumInputLikelihoo
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_result)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("sumInputLikelihoods", 1, 3, 3, 1); __PYX_ERR(1, 12, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("sum_input_likelihoods", 1, 3, 3, 1); __PYX_ERR(1, 12, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_likelihoods)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("sumInputLikelihoods", 1, 3, 3, 2); __PYX_ERR(1, 12, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("sum_input_likelihoods", 1, 3, 3, 2); __PYX_ERR(1, 12, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "sumInputLikelihoods") < 0)) __PYX_ERR(1, 12, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "sum_input_likelihoods") < 0)) __PYX_ERR(1, 12, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -2430,20 +2430,20 @@ static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_1sumInputLikelihoo
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("sumInputLikelihoods", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 12, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("sum_input_likelihoods", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 12, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.sumInputLikelihoods", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.sum_input_likelihoods", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_7cogent3_6evolve_16_likelihood_tree_sumInputLikelihoods(__pyx_self, __pyx_v_child_indexes, __pyx_v_result, __pyx_v_likelihoods);
+  __pyx_r = __pyx_pf_7cogent3_6evolve_16_likelihood_tree_sum_input_likelihoods(__pyx_self, __pyx_v_child_indexes, __pyx_v_result, __pyx_v_likelihoods);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_sumInputLikelihoods(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_child_indexes, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_result, PyObject *__pyx_v_likelihoods) {
+static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_sum_input_likelihoods(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_child_indexes, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_result, PyObject *__pyx_v_likelihoods) {
   int __pyx_v_M;
   int __pyx_v_S;
   int __pyx_v_U;
@@ -2477,7 +2477,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_sumInputLikelihood
   Py_ssize_t __pyx_t_19;
   Py_ssize_t __pyx_t_20;
   Py_ssize_t __pyx_t_21;
-  __Pyx_RefNannySetupContext("sumInputLikelihoods", 0);
+  __Pyx_RefNannySetupContext("sum_input_likelihoods", 0);
 
   /* "cogent3/evolve/_likelihood_tree.pyx":19
  *     # S is parent seq length, U is unique columns in child seq
@@ -2715,7 +2715,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_sumInputLikelihood
   /* "cogent3/evolve/_likelihood_tree.pyx":12
  * 
  * 
- * def sumInputLikelihoods(child_indexes, Double2D result, likelihoods):             # <<<<<<<<<<<<<<
+ * def sum_input_likelihoods(child_indexes, Double2D result, likelihoods):             # <<<<<<<<<<<<<<
  *     cdef int M, S, U, C, motif, parent_col, child_col, child
  *     cdef Double2D plhs
  */
@@ -2725,7 +2725,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_sumInputLikelihood
   __Pyx_XDECREF(__pyx_t_4);
   __PYX_XDEC_MEMVIEW(&__pyx_t_5, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
-  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.sumInputLikelihoods", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.sum_input_likelihoods", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_plhs, 1);
@@ -16114,7 +16114,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_strided_and_direct_or_indirect, __pyx_k_strided_and_direct_or_indirect, sizeof(__pyx_k_strided_and_direct_or_indirect), 0, 0, 1, 0},
   {&__pyx_kp_s_strided_and_indirect, __pyx_k_strided_and_indirect, sizeof(__pyx_k_strided_and_indirect), 0, 0, 1, 0},
   {&__pyx_n_s_struct, __pyx_k_struct, sizeof(__pyx_k_struct), 0, 0, 1, 1},
-  {&__pyx_n_s_sumInputLikelihoods, __pyx_k_sumInputLikelihoods, sizeof(__pyx_k_sumInputLikelihoods), 0, 0, 1, 1},
+  {&__pyx_n_s_sum_input_likelihoods, __pyx_k_sum_input_likelihoods, sizeof(__pyx_k_sum_input_likelihoods), 0, 0, 1, 1},
   {&__pyx_n_s_switch_probs, __pyx_k_switch_probs, sizeof(__pyx_k_switch_probs), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
   {&__pyx_n_s_tmp, __pyx_k_tmp, sizeof(__pyx_k_tmp), 0, 0, 1, 1},
@@ -16329,14 +16329,14 @@ static int __Pyx_InitCachedConstants(void) {
   /* "cogent3/evolve/_likelihood_tree.pyx":12
  * 
  * 
- * def sumInputLikelihoods(child_indexes, Double2D result, likelihoods):             # <<<<<<<<<<<<<<
+ * def sum_input_likelihoods(child_indexes, Double2D result, likelihoods):             # <<<<<<<<<<<<<<
  *     cdef int M, S, U, C, motif, parent_col, child_col, child
  *     cdef Double2D plhs
  */
   __pyx_tuple__18 = PyTuple_Pack(13, __pyx_n_s_child_indexes, __pyx_n_s_result, __pyx_n_s_likelihoods, __pyx_n_s_M, __pyx_n_s_S, __pyx_n_s_U, __pyx_n_s_C, __pyx_n_s_motif, __pyx_n_s_parent_col, __pyx_n_s_child_col, __pyx_n_s_child, __pyx_n_s_plhs, __pyx_n_s_index); if (unlikely(!__pyx_tuple__18)) __PYX_ERR(1, 12, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__18);
   __Pyx_GIVEREF(__pyx_tuple__18);
-  __pyx_codeobj__19 = (PyObject*)__Pyx_PyCode_New(3, 0, 13, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_gavin_DevRepos_PyCogent3, __pyx_n_s_sumInputLikelihoods, 12, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__19)) __PYX_ERR(1, 12, __pyx_L1_error)
+  __pyx_codeobj__19 = (PyObject*)__Pyx_PyCode_New(3, 0, 13, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_gavin_DevRepos_PyCogent3, __pyx_n_s_sum_input_likelihoods, 12, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__19)) __PYX_ERR(1, 12, __pyx_L1_error)
 
   /* "cogent3/evolve/_likelihood_tree.pyx":41
  *     return result
@@ -16604,13 +16604,13 @@ PyMODINIT_FUNC PyInit__likelihood_tree(void)
   /* "cogent3/evolve/_likelihood_tree.pyx":12
  * 
  * 
- * def sumInputLikelihoods(child_indexes, Double2D result, likelihoods):             # <<<<<<<<<<<<<<
+ * def sum_input_likelihoods(child_indexes, Double2D result, likelihoods):             # <<<<<<<<<<<<<<
  *     cdef int M, S, U, C, motif, parent_col, child_col, child
  *     cdef Double2D plhs
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_6evolve_16_likelihood_tree_1sumInputLikelihoods, NULL, __pyx_n_s_cogent3_evolve__likelihood_tree); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_6evolve_16_likelihood_tree_1sum_input_likelihoods, NULL, __pyx_n_s_cogent3_evolve__likelihood_tree); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_sumInputLikelihoods, __pyx_t_1) < 0) __PYX_ERR(1, 12, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_sum_input_likelihoods, __pyx_t_1) < 0) __PYX_ERR(1, 12, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "cogent3/evolve/_likelihood_tree.pyx":41

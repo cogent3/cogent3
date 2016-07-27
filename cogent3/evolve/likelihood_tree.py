@@ -181,9 +181,9 @@ class _LikelihoodTreeEdge(object):
     def make_partial_likelihoods_array(self):
         return numpy.ones(self.shape, self.float_type)
 
-    def sumInputLikelihoods(self, *likelihoods):
+    def sum_input_likelihoods(self, *likelihoods):
         result = numpy.ones(self.shape, self.float_type)
-        self.sumInputLikelihoodsR(result, *likelihoods)
+        self.sum_input_likelihoodsR(result, *likelihoods)
         return result
 
     def asLeaf(self, likelihoods):
@@ -203,7 +203,7 @@ class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
     BASE = 2.0 ** 100
     LOG_BASE = numpy.log(BASE)
 
-    def sumInputLikelihoodsR(self, result, *likelihoods):
+    def sum_input_likelihoodsR(self, result, *likelihoods):
         result[:] = 1.0
         for (i, index) in enumerate(self.indexes):
             result *= numpy.take(likelihoods[i], index, 0)
@@ -234,8 +234,8 @@ class _PyxLikelihoodTreeEdge(_LikelihoodTreeEdge):
     integer_type = numerictypes(int)   # match checkArrayInt1D
     float_type = numerictypes(float)   # match checkArrayDouble1D/2D
 
-    def sumInputLikelihoodsR(self, result, *likelihoods):
-        pyrex.sumInputLikelihoods(self.indexes, result, likelihoods)
+    def sum_input_likelihoodsR(self, result, *likelihoods):
+        pyrex.sum_input_likelihoods(self.indexes, result, likelihoods)
         return result
 
     # For root
