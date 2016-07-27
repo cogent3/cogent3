@@ -231,7 +231,7 @@ class _InputDefn(_LeafDefn):
         return ParameterController(self)
 
     def updateFromCalculator(self, calc):
-        outputs = calc.getCurrentCellValuesForDefn(self)
+        outputs = calc.get_current_cell_values_for_defn(self)
         for (output, setting) in zip(outputs, self.uniq):
             setting.value = output
 
