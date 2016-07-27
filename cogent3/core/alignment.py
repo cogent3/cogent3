@@ -2724,7 +2724,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         aligned = self.named_seqs[seq_name]
         return aligned.getAnnotationsMatching(self, *args)
 
-    def getAnnotationsFromAnySequence(self, *args):
+    def get_annotations_from_any_seq(self, *args):
         result = []
         for seq_name in self.names:
             result.extend(self.getAnnotationsFromSequence(seq_name, *args))

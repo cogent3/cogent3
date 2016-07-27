@@ -71,7 +71,7 @@ class TestCigar(unittest.TestCase):
         for start, end in self.slices:
             self.aln.get_seq("FAKE01").addFeature("annot%d" %
                             i, "annot", [(start, end)])
-            annot = self.aln.getAnnotationsFromAnySequence("annot%d" % i)
+            annot = self.aln.get_annotations_from_any_seq("annot%d" % i)
             slice_aln = aln.getRegionCoveringAll(annot).asOneSpan().getSlice()
             i += 1
 

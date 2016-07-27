@@ -350,7 +350,7 @@ You need to get a corresponding annotation projected into alignment coordinates 
 
 .. doctest::
 
-    >>> aln_exon = aln1.getAnnotationsFromAnySequence('exon')
+    >>> aln_exon = aln1.get_annotations_from_any_seq('exon')
     >>> print aln1[aln_exon]
     >x
     CCCCC
@@ -565,7 +565,7 @@ Sequence features can be accessed via a containing ``Alignment``.
     <BLANKLINE>
     >>> exon = aln.get_seq('x').addFeature('exon', '1', [(3,8)])
     >>> aln_exons = aln.getAnnotationsFromSequence('x', 'exon')
-    >>> aln_exons = aln.getAnnotationsFromAnySequence('exon')
+    >>> aln_exons = aln.get_annotations_from_any_seq('exon')
     >>> aln_exons
     [exon "1" at [4:9]/10]
 
