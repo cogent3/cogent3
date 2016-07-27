@@ -47,7 +47,7 @@ The resulting distances are passed to the nj function.
 
     >>> mytree = nj.nj(d.getPairwiseDistances())
 
-The shape of the resulting tree can be readily view by printing ``mytree.asciiArt()``. The result will be equivalent to.
+The shape of the resulting tree can be readily view by printing ``mytree.ascii_art()``. The result will be equivalent to.
 
 .. code-block:: python
 

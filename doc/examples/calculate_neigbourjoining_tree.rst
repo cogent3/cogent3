@@ -35,7 +35,7 @@ Now use this matrix to build a neighbour joining tree.
 
     >>> mytree = nj.nj(d.getPairwiseDistances())
 
-We can visualise this tree by ``print mytree.asciiArt()``, which generates the equivalent of:
+We can visualise this tree by ``print mytree.ascii_art()``, which generates the equivalent of:
 
 .. code-block:: python
     

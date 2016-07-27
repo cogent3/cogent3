@@ -228,7 +228,7 @@ Now use this matrix to build a UPGMA cluster.
 .. doctest::
 
     >>> mycluster = upgma(euc_distdict)
-    >>> print mycluster.asciiArt()
+    >>> print mycluster.ascii_art()
                                                       /-sample10
                                             /edge.3--|
                                   /edge.2--|          \-sample8
@@ -288,7 +288,7 @@ We can use neighbor joining (NJ) instead of UPGMA:
 
     >>> from cogent3.phylo.nj import nj
     >>> njtree = nj(euc_distdict)
-    >>> print njtree.asciiArt()
+    >>> print njtree.ascii_art()
               /-sample16
              |
              |                    /-sample12

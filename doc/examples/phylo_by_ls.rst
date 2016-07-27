@@ -90,7 +90,7 @@ From this you'll see that the first 5 results are very similar to each other and
 
     >>> t1 = trees[0][1].balanced()
     >>> t2 = trees[1][1].balanced()
-    >>> print t1.asciiArt()
+    >>> print t1.ascii_art()
                         /-Human
               /edge.0--|
              |          \-HowlerMon
@@ -100,7 +100,7 @@ From this you'll see that the first 5 results are very similar to each other and
              |          /-NineBande
               \edge.1--|
                         \-DogFaced
-    >>> print t2.asciiArt()
+    >>> print t2.ascii_art()
               /-DogFaced
              |
              |          /-Human

@@ -119,7 +119,7 @@ For many evolutionary analyses, it's desirable to allow different branches on a 
     >>> from cogent import LoadTree
     >>> from cogent3.evolve.models import CNFGTR
     >>> tree = LoadTree('data/primate_brca1.tree')
-    >>> print tree.asciiArt()
+    >>> print tree.ascii_art()
               /-Galago
              |
     -root----|--HowlerMon

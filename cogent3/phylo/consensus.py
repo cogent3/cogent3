@@ -290,4 +290,4 @@ if __name__ == "__main__":
     print("Consensus of %s trees from %s" % (len(trees), sys.argv[1:]))
     outtrees = majorityRule(trees, strict=True)
     for tree in outtrees:
-        print(tree.asciiArt(compact=True, show_internal=False))
+        print(tree.ascii_art(compact=True, show_internal=False))

@@ -28,7 +28,7 @@ At this point we have a likelihood function with two exchangeability parameters 
 
 .. doctest::
     
-    >>> print tree.asciiArt()
+    >>> print tree.ascii_art()
                                   /-Human
                         /edge.0--|
               /edge.1--|          \-HowlerMon

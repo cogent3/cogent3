@@ -6,14 +6,14 @@ Phylonodes Methods
 Basics
 ^^^^^^
 
-Loading a tree from a file and visualizing it with ``asciiArt()``
+Loading a tree from a file and visualizing it with ``ascii_art()``
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. doctest::
 
     >>> from cogent import LoadTree
     >>> tr = LoadTree('data/test.tree')
-    >>> print tr.asciiArt()
+    >>> print tr.ascii_art()
                                   /-Human
                         /edge.0--|
               /edge.1--|          \-HowlerMon
@@ -266,7 +266,7 @@ At a named node
 
     >>> from cogent import LoadTree
     >>> tr = LoadTree('data/test.tree')
-    >>> print tr.rootedAt('edge.0').asciiArt()
+    >>> print tr.rootedAt('edge.0').ascii_art()
               /-Human
              |
     -root----|--HowlerMon
@@ -285,7 +285,7 @@ At the midpoint
 
     >>> from cogent import LoadTree
     >>> tr = LoadTree('data/test.tree')
-    >>> print tr.rootAtMidpoint().asciiArt()
+    >>> print tr.rootAtMidpoint().ascii_art()
               /-Mouse
              |
     -root----|                    /-Human
@@ -295,7 +295,7 @@ At the midpoint
                        |          /-NineBande
                         \edge.1--|
                                   \-DogFaced
-    >>> print tr.asciiArt()
+    >>> print tr.ascii_art()
                                   /-Human
                         /edge.0--|
               /edge.1--|          \-HowlerMon
@@ -371,7 +371,7 @@ Here is the example tree for reference:
 
     >>> from cogent import LoadTree
     >>> tr = LoadTree('data/test.tree')
-    >>> print tr.asciiArt()
+    >>> print tr.ascii_art()
                                   /-Human
                         /edge.0--|
               /edge.1--|          \-HowlerMon
@@ -434,7 +434,7 @@ One way to do it
     ...     tip_names = tip.getTipNames()
     ...     print tip_names
     ...     sub_tree = tr.getSubTree(tip_names)
-    ...     print sub_tree.asciiArt()
+    ...     print sub_tree.ascii_art()
     ...     print
     ...
     ['Human', 'HowlerMon', 'Mouse']
