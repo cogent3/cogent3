@@ -1780,7 +1780,7 @@ class SmallTreeReshapeTestClass(TestCase):
         tree2 = tree.rootedWithTip('b')
         self.assertEqual(tree2.getNewick(), "(a,b,((c,d),e));")
 
-    def test_sameShape(self):
+    def test_same_shape(self):
         """test topology assessment"""
         t1 = LoadTree(treestring="(((s1,s5),s3),s2,s4);")
         t2 = LoadTree(treestring="((s1,s5),(s2,s4),s3);")
