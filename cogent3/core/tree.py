@@ -702,7 +702,7 @@ class TreeNode(object):
         return result, node_list
 
     def _default_tree_constructor(self):
-        return TreeBuilder(constructor=self.__class__).edgeFromEdge
+        return TreeBuilder(constructor=self.__class__).edge_from_edge
 
     def name_unnamed_nodes(self):
         """sets the Data property of unnamed nodes to an arbitrary value
@@ -2177,7 +2177,7 @@ class TreeBuilder(object):
         # default is just to keep it
         return edge.params
 
-    def edgeFromEdge(self, edge, children, params=None):
+    def edge_from_edge(self, edge, children, params=None):
         """Callback for tree-to-tree transforms like get_sub_tree"""
         if edge is None:
             assert not params
