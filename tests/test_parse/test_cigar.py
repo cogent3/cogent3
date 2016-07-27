@@ -50,7 +50,7 @@ class TestCigar(unittest.TestCase):
             map1, loc1 = slice_cigar(self.cigar_text, start, end)
             ori1 = self.aln_seq[start:end]
             if loc1:
-                slicealn1 = self.seq[loc1[0]:loc1[1]].gappedByMap(map1)
+                slicealn1 = self.seq[loc1[0]:loc1[1]].gapped_by_map(map1)
                 assert ori1 == slicealn1
             else:
                 assert map1.length == len(ori1)
@@ -58,7 +58,7 @@ class TestCigar(unittest.TestCase):
             # test by_align = False
             map2, loc2 = slice_cigar(
                 self.cigar_text, start, end, by_align=False)
-            slicealn2 = self.seq[start:end].gappedByMap(map2)
+            slicealn2 = self.seq[start:end].gapped_by_map(map2)
             ori2 = self.aln_seq[loc2[0]:loc2[1]]
             assert slicealn2 == ori2
 
