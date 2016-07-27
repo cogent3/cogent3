@@ -33,7 +33,7 @@ class _Annotatable(object):
                         continue
                     if annot.map.Start < slicemap.End and \
                             annot.map.End > slicemap.Start:
-                        annot = annot.remappedTo(new, newmap)
+                        annot = annot.remapped_to(new, newmap)
                         if annot.map.useful:
                             result.append(annot)
         return result
@@ -43,7 +43,7 @@ class _Annotatable(object):
         if self.annotations:
             newmap = Map([(shift, shift + len(self))], parent_length=len(new))
             for annot in self.annotations:
-                annot = annot.remappedTo(new, newmap)
+                annot = annot.remapped_to(new, newmap)
                 result.append(annot)
         return result
 
@@ -66,7 +66,7 @@ class _Annotatable(object):
                 raise ValueError("Can't map %s onto %s via %s" %
                                  (index, repr(self), containers))
             for base in containers:
-                feature = feature.remappedTo(base, base.map)
+                feature = feature.remapped_to(base, base.map)
             index = map
         else:
             map = as_map(index, len(self))
@@ -238,7 +238,7 @@ class _Feature(_Annotatable):
             Name = ' "%s"' % Name
         return '%s%s at %s' % (self.type, Name, self.map)
 
-    def remappedTo(self, grandparent, gmap):
+    def remapped_to(self, grandparent, gmap):
         map = gmap[self.map]
         return self.__class__(grandparent, map, original=self)
 
@@ -255,8 +255,8 @@ class AnnotatableFeature(_Feature):
         new_map = self.map[slicemap]
         return self.__class__(self.parent, new_map, type='slice', Name='')
 
-    def remappedTo(self, grandparent, gmap):
-        new = _Feature.remappedTo(self, grandparent, gmap)
+    def remapped_to(self, grandparent, gmap):
+        new = _Feature.remapped_to(self, grandparent, gmap)
         new.annotations = [
             annot for annot in self.annotations if annot.map.useful]
         return new
@@ -278,7 +278,7 @@ class Source(_Feature):
         self.map = map
         self.basemap = basemap
 
-    def remappedTo(self, grandparent, gmap):
+    def remapped_to(self, grandparent, gmap):
         new_map = gmap[self.map]
         # unlike other annotations, sources are divisible, so throw
         # away gaps.  since they don't have annotations it's simple.

@@ -428,7 +428,7 @@ class AlignablePOG(_Alignable):
         aligneds = []
         for (dim, child) in enumerate(children):
             for (seq_name, aligned) in child.aligneds:
-                aligned = aligned.remappedTo(
+                aligned = aligned.remapped_to(
                     (maps[dim] * word_length).inverse())
                 aligneds.append((seq_name, aligned))
         return aligneds
