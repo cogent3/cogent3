@@ -570,9 +570,9 @@ class MolTypeTests(TestCase):
         self.assertTrue(m('UCAG', 'YYRR'))
         self.assertTrue(m('UCAG', 'KMWS'))
 
-    def test_canMismatch(self):
-        """MolType canMismatch should return True on any possible mismatch"""
-        m = RnaMolType.canMismatch
+    def test_can_mismatch(self):
+        """MolType can_mismatch should return True on any possible mismatch"""
+        m = RnaMolType.can_mismatch
         self.assertFalse(m('', ''))
         self.assertTrue(m('N', 'N'))
         self.assertTrue(m('R', 'R'))

@@ -371,19 +371,19 @@ class SequenceTests(TestCase):
         assert self.RNA('UCAG').can_match('YYRR')
         assert self.RNA('UCAG').can_match('KMWS')
 
-    def test_canMismatch(self):
-        """Sequence canMismatch should return True on any possible mismatch"""
-        assert not self.RNA('').canMismatch('')
-        assert self.RNA('N').canMismatch('N')
-        assert self.RNA('R').canMismatch('R')
-        assert self.RNA('N').canMismatch('r')
-        assert self.RNA('CGUACGCAN').canMismatch('CGUACGCAN')
-        assert self.RNA('U').canMismatch('C')
-        assert self.RNA('UUU').canMismatch('UUC')
-        assert self.RNA('UUU').canMismatch('UUY')
-        assert not self.RNA('UUU').canMismatch('UUU')
-        assert not self.RNA('UCAG').canMismatch('UCAG')
-        assert not self.RNA('U--').canMismatch('U--')
+    def test_can_mismatch(self):
+        """Sequence can_mismatch should return True on any possible mismatch"""
+        assert not self.RNA('').can_mismatch('')
+        assert self.RNA('N').can_mismatch('N')
+        assert self.RNA('R').can_mismatch('R')
+        assert self.RNA('N').can_mismatch('r')
+        assert self.RNA('CGUACGCAN').can_mismatch('CGUACGCAN')
+        assert self.RNA('U').can_mismatch('C')
+        assert self.RNA('UUU').can_mismatch('UUC')
+        assert self.RNA('UUU').can_mismatch('UUY')
+        assert not self.RNA('UUU').can_mismatch('UUU')
+        assert not self.RNA('UCAG').can_mismatch('UCAG')
+        assert not self.RNA('U--').can_mismatch('U--')
 
     def test_must_match(self):
         """Sequence must_match should return True when no possible mismatches"""
