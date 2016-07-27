@@ -224,9 +224,9 @@ class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
 
     def get_total_log_likelihood(self, input_likelihoods, mprobs):
         lhs = numpy.inner(input_likelihoods, mprobs)
-        return self.getLogSumAcrossSites(lhs)
+        return self.get_log_sum_across_sites(lhs)
 
-    def getLogSumAcrossSites(self, lhs):
+    def get_log_sum_across_sites(self, lhs):
         return numpy.inner(numpy.log(lhs), self.counts)
 
 
@@ -248,8 +248,8 @@ class _PyxLikelihoodTreeEdge(_LikelihoodTreeEdge):
         return pyrex.get_total_log_likelihood(self.counts, input_likelihoods,
                                            mprobs)
 
-    def getLogSumAcrossSites(self, lhs):
-        return pyrex.getLogSumAcrossSites(self.counts, lhs)
+    def get_log_sum_across_sites(self, lhs):
+        return pyrex.get_log_sum_across_sites(self.counts, lhs)
 
 if pyrex is None:
     LikelihoodTreeEdge = _PyLikelihoodTreeEdge
