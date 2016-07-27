@@ -376,7 +376,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
                            with_indel_params=True, kn=True):
         assert sites_independent is None or not sites_independent
         assert len(self.locus_names) == 1
-        return dp_calculation.makeForwardTreeDefn(
+        return dp_calculation.make_forward_tree_defn(
             self.model, self.tree, self.bin_names,
             with_indel_params=with_indel_params, kn=kn)
 

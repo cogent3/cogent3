@@ -157,7 +157,7 @@ def _recursive_defns(edge, subst, leaf, edge_defn_constructor, bin_args):
     return (edge_defn, scores)
 
 
-def makeForwardTreeDefn(subst_model, tree, bin_names,
+def make_forward_tree_defn(subst_model, tree, bin_names,
                         with_indel_params=True, kn=True):
     """Pairwise Fwd"""
     indel = make_indel_model_defn(with_indel_params, kn)
