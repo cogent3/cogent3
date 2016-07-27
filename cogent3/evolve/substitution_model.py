@@ -739,7 +739,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         parameter names, 'delim2' delimits motifs"""
         # Should be implemented with table module instead.
 
-        pars = self.getMatrixParams()
+        pars = self.get_matrix_params()
         par_names = self.get_param_list()
         longest = max([len(name) for name in (par_names + [' '])])
         if delim:
@@ -793,7 +793,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
             rows.append(delim2.join(([motif + ' '] + row + [''])))
         return '\n'.join(rows)
 
-    def getMatrixParams(self):
+    def get_matrix_params(self):
         """Return the parameter assignment matrix."""
         dim = len(self.alphabet)
         Pars = numpy.zeros([dim, dim], object)
