@@ -239,7 +239,7 @@ class _SubstitutionModel(object):
     def getWordLength(self):
         return self._word_length
 
-    def getMotifProbs(self):
+    def get_motif_probs(self):
         """Return the dictionary of motif probabilities."""
         return self.motif_probs.copy()
 

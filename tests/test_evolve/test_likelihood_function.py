@@ -553,9 +553,9 @@ motif    mprobs
     G    0.2500
 ---------------""")
 
-    def test_getMotifProbs(self):
+    def test_get_motif_probs(self):
         likelihood_function = self._makeLikelihoodFunction()
-        mprobs = likelihood_function.getMotifProbs()
+        mprobs = likelihood_function.get_motif_probs()
         assert hasattr(mprobs, 'keys'), mprobs
         keys = list(mprobs.keys())
         keys.sort()

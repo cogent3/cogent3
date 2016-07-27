@@ -82,19 +82,19 @@ class test_parameter_controller(unittest.TestCase):
 
         mprobs = {'A': 0.1, 'C': 0.2, 'G': 0.2, 'T': 0.5, '-': 0.0}
         lf.setMotifProbs(mprobs)
-        self.assertEqual(lf.getMotifProbs(), mprobs)
+        self.assertEqual(lf.get_motif_probs(), mprobs)
 
         lf.setMotifProbsFromData(self.al[:1], is_constant=True)
-        self.assertEqual(lf.getMotifProbs()['G'], 0.6)
+        self.assertEqual(lf.get_motif_probs()['G'], 0.6)
 
         lf.setMotifProbsFromData(self.al[:1], pseudocount=1)
-        self.assertNotEqual(lf.getMotifProbs()['G'], 0.6)
+        self.assertNotEqual(lf.get_motif_probs()['G'], 0.6)
 
         # test with consideration of ambiguous states
         al = LoadSeqs(data={'seq1': 'ACGTAAGNA', 'seq2': 'ACGTANGTC',
                               'seq3': 'ACGTACGTG'})
         lf.setMotifProbsFromData(al, include_ambiguity=True, is_constant=True)
-        motif_probs = dict(lf.getMotifProbs())
+        motif_probs = dict(lf.get_motif_probs())
         correct_probs = {'A': 8.5 / 27, 'C': 5.5 / 27, '-': 0.0, 'T': 5.5 / 27,
                          'G': 7.5 / 27}
         self.assertEqual(motif_probs, correct_probs)
@@ -113,8 +113,8 @@ class test_parameter_controller(unittest.TestCase):
             lf.setMotifProbs(mprobs_a, is_constant=is_constant)
             s = str(lf)
             lf.setMotifProbs(mprobs_b, locus="b")
-            self.assertEqual(lf.getMotifProbs(locus="a"), mprobs_a)
-            self.assertEqual(lf.getMotifProbs(locus="b"), mprobs_b)
+            self.assertEqual(lf.get_motif_probs(locus="a"), mprobs_a)
+            self.assertEqual(lf.get_motif_probs(locus="b"), mprobs_b)
             s = str(lf)
             #lf.setParamRule('mprobs', is_independent=False)
 
