@@ -26,7 +26,7 @@ class AlignmentAdaptDefn(CalculationDefn):
     name = 'leaf_likelihoods'
 
     def calc(self, model, alignment):
-        return model.convertAlignment(alignment)
+        return model.convert_alignment(alignment)
 
 
 class LengthDefn(PositiveParamDefn):

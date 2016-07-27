@@ -27,7 +27,7 @@ called Q) is determined.
 
 >>> model = Nucleotide(equal_motif_probs=True)
 >>> model.setparameterrules({'alpha': model.istransition})
->>> parameter_controller = model.makeParamController(tree)
+>>> parameter_controller = model.make_likelihood_function(tree)
 """
 
 import numpy
@@ -282,15 +282,7 @@ class _SubstitutionModel(object):
 
         return result
 
-    def makeParamController(self, tree, motif_probs_from_align=None,
-                            optimise_motif_probs=None, **kw):
-        # deprecate
-        return self.make_likelihood_function(tree,
-                                           motif_probs_from_align=motif_probs_from_align,
-                                           optimise_motif_probs=optimise_motif_probs,
-                                           **kw)
-
-    def convertAlignment(self, alignment):
+    def convert_alignment(self, alignment):
         # this is to support for everything but HMM
         result = {}
         for seq_name in alignment.get_seq_names():

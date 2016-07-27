@@ -63,7 +63,7 @@ class BootstrapTests(unittest.TestCase):
         return alignmentobj.take_seqs(seqnames)[:1000]
 
     def getcontroller(self, treeobj, submodobj):
-        return submodobj.makeParamController(treeobj)
+        return submodobj.make_likelihood_function(treeobj)
 
     def create_null_controller(self, alignobj):
         """A null model controller creator.

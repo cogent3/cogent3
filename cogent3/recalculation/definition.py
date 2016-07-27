@@ -103,7 +103,7 @@ class CalculationDefn(_NonLeafDefn):
     # as static attributes of this CalculationDefn, to be used (as self.X)
     # by its 'calc' method.
 
-    def makeParamController(self):
+    def make_likelihood_function(self):
         return ParameterController(self)
 
     def setup(self):
@@ -227,7 +227,7 @@ class _InputDefn(_LeafDefn):
         if upper is not None:
             self.upper = upper
 
-    def makeParamController(self):
+    def make_likelihood_function(self):
         return ParameterController(self)
 
     def updateFromCalculator(self, calc):
