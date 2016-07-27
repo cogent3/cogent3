@@ -1040,17 +1040,17 @@ class TreeNodeTests(TestCase):
         t.Children[0].Children[0].name = 'same'
         self.assertRaises(TreeError, t.getNodesDict)
 
-    def test_removeDeleted(self):
-        """removeDeleted should remove all nodes where is_deleted tests true."""
+    def test_remove_deleted(self):
+        """remove_deleted should remove all nodes where is_deleted tests true."""
         tree = DndParser('((a:3,(b:2,(c:1,d:1):1):1):2,(e:3,f:3):2);',
                          constructor=TreeNode)
         result_not_deleted = deepcopy(tree)
-        tree.removeDeleted(lambda x: x.name in [])
+        tree.remove_deleted(lambda x: x.name in [])
         self.assertEqual(str(tree), str(result_not_deleted))
         deleted = set(['b', 'd', 'e', 'f'])
         result_tree = DndParser('((a:3,((c:1):1):1):2);', constructor=TreeNode)
         is_deleted = lambda x: x.name in deleted
-        tree.removeDeleted(is_deleted)
+        tree.remove_deleted(is_deleted)
         self.assertEqual(str(tree), str(result_tree))
 
     def test_prune(self):

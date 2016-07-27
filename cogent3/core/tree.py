@@ -753,7 +753,7 @@ class TreeNode(object):
                     result[i, j] = 1
         return result, node_list
 
-    def removeDeleted(self, is_deleted):
+    def remove_deleted(self, is_deleted):
         """Removes all nodes where is_deleted tests true.
 
         Internal nodes that have no children as a result of removing deleted
