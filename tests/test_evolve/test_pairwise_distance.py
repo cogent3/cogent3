@@ -111,7 +111,7 @@ class TestPair(TestCase):
         self.assertEqual(calc.Lengths['s1', 's2'], 10)
         self.assertEqual(calc.Proportions['s1', 's2'], 0.2)
         # value from OSX MEGA 5
-        self.assertFloatEqual(calc.Dists['s1', 's2'], 0.2326161962)
+        self.assertFloatEqual(calc.dists['s1', 's2'], 0.2326161962)
         # value**2 from OSX MEGA 5
         self.assertFloatEqual(calc.Variances['s1', 's2'],
                               0.029752066125078681)
@@ -120,11 +120,11 @@ class TestPair(TestCase):
 
         # same answer when using ambiguous alignment
         calc.run(self.ambig_alignment, show_progress=False)
-        self.assertFloatEqual(calc.Dists['s1', 's2'], 0.2326161962)
+        self.assertFloatEqual(calc.dists['s1', 's2'], 0.2326161962)
 
         # but different answer if subsequent alignment is different
         calc.run(self.diff_alignment, show_progress=False)
-        self.assertTrue(calc.Dists['s1', 's2'] != 0.2326161962)
+        self.assertTrue(calc.dists['s1', 's2'] != 0.2326161962)
 
     def test_tn93_from_matrix(self):
         """compute TN93 distances"""
@@ -133,7 +133,7 @@ class TestPair(TestCase):
         self.assertEqual(calc.Lengths['s1', 's2'], 10)
         self.assertEqual(calc.Proportions['s1', 's2'], 0.2)
         # value from OSX MEGA 5
-        self.assertFloatEqual(calc.Dists['s1', 's2'], 0.2554128119)
+        self.assertFloatEqual(calc.dists['s1', 's2'], 0.2554128119)
         # value**2 from OSX MEGA 5
         self.assertFloatEqual(calc.Variances['s1', 's2'], 0.04444444445376601)
         # value from OSX MEGA 5
@@ -141,11 +141,11 @@ class TestPair(TestCase):
 
         # same answer when using ambiguous alignment
         calc.run(self.ambig_alignment, show_progress=False)
-        self.assertFloatEqual(calc.Dists['s1', 's2'], 0.2554128119)
+        self.assertFloatEqual(calc.dists['s1', 's2'], 0.2554128119)
 
         # but different answer if subsequent alignment is different
         calc.run(self.diff_alignment, show_progress=False)
-        self.assertTrue(calc.Dists['s1', 's2'] != 0.2554128119)
+        self.assertTrue(calc.dists['s1', 's2'] != 0.2554128119)
 
     def test_distance_pair(self):
         """get distances dict"""
@@ -292,7 +292,7 @@ class TestPair(TestCase):
         dist = -0.25 * numpy.log( numpy.linalg.det(J) /
                                   numpy.sqrt(f[0].prod() * f[1].prod()))
 
-        self.assertFloatEqual(paralinear_calc.Dists[1, 1], dist, eps=1e-3)
+        self.assertFloatEqual(paralinear_calc.dists[1, 1], dist, eps=1e-3)
 
     def test_paralinear_variance(self):
         """calculate paralinear variance consistent with hand calculation"""
@@ -345,8 +345,8 @@ class TestPair(TestCase):
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(show_progress=False)
 
-        self.assertFloatEqual(logdet_calc.Dists[1, 1],
-                              paralinear_calc.Dists[1, 1], eps=1e-3)
+        self.assertFloatEqual(logdet_calc.dists[1, 1],
+                              paralinear_calc.dists[1, 1], eps=1e-3)
         self.assertFloatEqual(paralinear_calc.Variances[1, 1],
                               logdet_calc.Variances[1, 1], eps=1e-3)
 
