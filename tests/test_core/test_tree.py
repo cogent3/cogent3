@@ -1351,10 +1351,10 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(sorted(names), ['e', 'g'])
         self.assertEqual(node.name, 'b')
 
-    def test_setMaxTipTipDistance(self):
-        """setMaxTipTipDistance sets MaxDistTips across tree"""
+    def test_set_max_tip_tip_distance(self):
+        """set_max_tip_tip_distance sets MaxDistTips across tree"""
         nodes, tree = self.TreeNode, self.TreeRoot
-        tree.setMaxTipTipDistance()
+        tree.set_max_tip_tip_distance()
         tip_a, tip_b = tree.MaxDistTips
         self.assertEqual(tip_a[0] + tip_b[0], 10)
         self.assertEqual(sorted([tip_a[1], tip_b[1]]), ['g', 'h'])

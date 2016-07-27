@@ -1062,7 +1062,7 @@ class TreeNode(object):
         (root_dists, endpoint_dists) = self._get_distances(endpoints)
         return endpoint_dists
 
-    def setMaxTipTipDistance(self):
+    def set_max_tip_tip_distance(self):
         """Propagate tip distance information up the tree
 
         This method was originally implemented by Julia Goodrich with the intent
@@ -1094,7 +1094,7 @@ class TreeNode(object):
         Returns (dist, tip_names, internal_node)
         """
         if not hasattr(self, 'MaxDistTips'):
-            self.setMaxTipTipDistance()
+            self.set_max_tip_tip_distance()
 
         longest = 0.0
         names = [None, None]
