@@ -583,7 +583,7 @@ class Alphabet(Enumeration):
         """
         return self._gapmotif
 
-    def includesGapMotif(self):
+    def includes_gap_motif(self):
         """Returns True if self includes the gap motif, False otherwise."""
         return self._gapmotif in self
 
@@ -600,7 +600,7 @@ class Alphabet(Enumeration):
 
         Always returns the same object.
         """
-        if self.includesGapMotif():
+        if self.includes_gap_motif():
             return self
         if not hasattr(self, 'Gapped'):
             self.Gapped = self._with(list(self) + [self.get_gap_motif()])
