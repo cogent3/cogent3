@@ -240,7 +240,7 @@ class _Defn(object):
         posn = self._getPosnForScope(*args, **scope)
         return self.wrap_value(self.values[posn])
 
-    def getCurrentSettingForScope(self, *args, **scope):
+    def get_current_setting_for_scope(self, *args, **scope):
         posn = self._getPosnForScope(*args, **scope)
         return self.uniq[posn]
 
