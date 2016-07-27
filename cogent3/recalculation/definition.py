@@ -69,7 +69,7 @@ import numpy
 
 # In this module we bring together scopes, settings and calculations.
 # Most of the classes are 'Defns' with their superclasses in scope.py.
-# These supply a makeCells() method which instantiates 'Cell'
+# These supply a make_cells() method which instantiates 'Cell'
 # classes from calculation.py
 
 from .calculation import EvaluatedCell, OptPar, LogOptPar, ConstCell
@@ -120,7 +120,7 @@ class CalculationDefn(_NonLeafDefn):
                              recycling=self.recycling, default=self.default)
         return cell
 
-    def makeCells(self, input_soup, variable=None):
+    def make_cells(self, input_soup, variable=None):
         # input soups contains all necessary values for calc on self.
         # Going from defns to cells.
         cells = []
@@ -236,7 +236,7 @@ class _InputDefn(_LeafDefn):
             setting.value = output
 
     def getNumFreeParams(self):
-        (cells, outputs) = self.makeCells({}, None)
+        (cells, outputs) = self.make_cells({}, None)
         return len([c for c in cells if isinstance(c, OptPar)])
 
 
@@ -259,7 +259,7 @@ class ParamDefn(_InputDefn):
     def checkSettingIsValid(self, setting):
         pass
 
-    def makeCells(self, input_soup={}, variable=None):
+    def make_cells(self, input_soup={}, variable=None):
         uniq_cells = []
         for (i, v) in enumerate(self.uniq):
             scope = [key for key in self.assignments
@@ -309,7 +309,7 @@ class NonScalarDefn(_InputDefn):
         if not isinstance(setting, ConstVal):
             raise ValueError("%s can only be constant" % self.name)
 
-    def makeCells(self, input_soup={}, variable=None):
+    def make_cells(self, input_soup={}, variable=None):
         if None in self.uniq:
             if [v for v in self.uniq if v is not None]:
                 scope = [key for key in self.assignments
@@ -434,7 +434,7 @@ class PartitionDefn(_InputDefn):
         partition = EvaluatedCell(name, r2p, tuple(ratios))
         return (ratios, partition)
 
-    def makeCells(self, input_soup={}, variable=None):
+    def make_cells(self, input_soup={}, variable=None):
         uniq_cells = []
         all_cells = []
         for (i, v) in enumerate(self.uniq):
@@ -512,7 +512,7 @@ class SelectForDimension(_Defn):
     def _select(self, arg, p):
         return arg[p]
 
-    def makeCells(self, input_soup, variable=None):
+    def make_cells(self, input_soup, variable=None):
         cells = []
         distribs = input_soup[id(self.arg)]
         for (input_num, bin_num) in self.uniq:
