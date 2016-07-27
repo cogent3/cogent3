@@ -872,20 +872,20 @@ class TreeNodeTests(TestCase):
         self.assertEqual(len(groups), 3)
         self.assertEqual([len(i) for i in groups], [2, 1, 1])
 
-    def test_removeNode(self):
-        """TreeNode removeNode should delete node by id, not value"""
+    def test_remove_node(self):
+        """TreeNode remove_node should delete node by id, not value"""
         parent = self.Repeated
         children = list(self.Repeated)
         self.assertEqual(len(parent), 3)
-        self.assertEqual(parent.removeNode(children[1]), True)
+        self.assertEqual(parent.remove_node(children[1]), True)
         self.assertEqual(len(parent), 2)
         assert children[0].Parent is parent
         assert children[1].Parent is None
         assert children[2].Parent is parent
         self.assertEqual(children[0].compare_name(children[1]), True)
-        self.assertEqual(parent.removeNode(children[1]), False)
+        self.assertEqual(parent.remove_node(children[1]), False)
         self.assertEqual(len(parent), 2)
-        self.assertEqual(parent.removeNode(children[0]), True)
+        self.assertEqual(parent.remove_node(children[0]), True)
         self.assertEqual(len(parent), 1)
 
     def test_lowest_common_ancestor(self):
