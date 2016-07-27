@@ -1113,7 +1113,7 @@ class TreeNode(object):
         """returns the max distance between any pair of tips
 
         Also returns the tip names  that it is between as a tuple"""
-        distmtx, tip_order = self.tipToTipDistances()
+        distmtx, tip_order = self.tip_to_tip_distances()
         idx_max = divmod(distmtx.argmax(), distmtx.shape[1])
         max_pair = (tip_order[idx_max[0]].name, tip_order[idx_max[1]].name)
         return distmtx[idx_max], max_pair
@@ -1552,7 +1552,7 @@ class TreeNode(object):
             return 1
         return 1 - 2 * intersection_length / float(total_subsets)
 
-    def tipToTipDistances(self, default_length=1):
+    def tip_to_tip_distances(self, default_length=1):
         """Returns distance matrix between all pairs of tips, and a tip order.
 
         Warning: .__start and .__stop added to self and its descendants.
@@ -1624,8 +1624,8 @@ class TreeNode(object):
         # figure out correct order of the two name matrices
         self_order = [self_names.index(i) for i in common_names]
         other_order = [other_names.index(i) for i in common_names]
-        self_matrix = self.tipToTipDistances()[0][self_order][:, self_order]
-        other_matrix = other.tipToTipDistances()[0][other_order][
+        self_matrix = self.tip_to_tip_distances()[0][self_order][:, self_order]
+        other_matrix = other.tip_to_tip_distances()[0][other_order][
             :, other_order]
         return dist_f(self_matrix, other_matrix)
 
@@ -2047,7 +2047,7 @@ class PhyloNode(TreeNode):
         (root_dists, endpoint_dists) = self._get_distances(endpoints)
         return endpoint_dists
 
-    def tipToTipDistances(self, endpoints=None, default_length=1):
+    def tip_to_tip_distances(self, endpoints=None, default_length=1):
         """Returns distance matrix between all pairs of tips, and a tip order.
 
         Warning: .__start and .__stop added to self and its descendants.
@@ -2144,8 +2144,8 @@ class PhyloNode(TreeNode):
         self_nodes = [self_names[k] for k in common_names]
         other_nodes = [other_names[k] for k in common_names]
 
-        self_matrix = self.tipToTipDistances(endpoints=self_nodes)[0]
-        other_matrix = other.tipToTipDistances(endpoints=other_nodes)[0]
+        self_matrix = self.tip_to_tip_distances(endpoints=self_nodes)[0]
+        other_matrix = other.tip_to_tip_distances(endpoints=other_nodes)[0]
 
         return dist_f(self_matrix, other_matrix)
 

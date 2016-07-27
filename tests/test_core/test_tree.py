@@ -1303,17 +1303,17 @@ class PhyloNodeTests(TestCase):
         t3 = DndParser(self.s3, PhyloNode)
         obs = t.compareByTipDistances(t3, sample=3, shuffle_f=sorted)
 
-    def test_tipToTipDistances_endpoints(self):
-        """Test getting specifc tip distances  with tipToTipDistances"""
+    def test_tip_to_tip_distances_endpoints(self):
+        """Test getting specifc tip distances  with tip_to_tip_distances"""
         nodes = [self.t.get_node_matching_name('H'),
                  self.t.get_node_matching_name('G'),
                  self.t.get_node_matching_name('M')]
         names = ['H', 'G', 'M']
         exp = (array([[0, 2.0, 6.7], [2.0, 0, 6.7], [6.7, 6.7, 0.0]]), nodes)
-        obs = self.t.tipToTipDistances(endpoints=names)
+        obs = self.t.tip_to_tip_distances(endpoints=names)
         self.assertEqual(obs, exp)
 
-        obs = self.t.tipToTipDistances(endpoints=nodes)
+        obs = self.t.tip_to_tip_distances(endpoints=nodes)
         self.assertEqual(obs, exp)
 
     def test_prune(self):
@@ -1520,7 +1520,7 @@ class Test_tip_tip_distances_array(Test_tip_tip_distances_I, TestCase):
 
     def setUp(self):
         """Specify which method to call."""
-        self.fun = lambda x: x.tipToTipDistances()
+        self.fun = lambda x: x.tip_to_tip_distances()
         super(Test_tip_tip_distances_array, self).setUp()
 
     def test_std(self):
