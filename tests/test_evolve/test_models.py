@@ -42,7 +42,7 @@ class CannedModelsTest(TestCase):
     def test_empirical_values_roundtrip(self):
         model = WG01()
         assert model.get_motif_probs() == WG01_freqs
-        assert (model.calcExchangeabilityMatrix('dummy_mprobs') ==
+        assert (model.calc_exchangeability_matrix('dummy_mprobs') ==
                 WG01_matrix).all()
 
     def test_solved_models(self):
