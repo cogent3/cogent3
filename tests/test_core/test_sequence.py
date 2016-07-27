@@ -273,19 +273,19 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('---a---c---u----g---').degap(), 'ACUG')
         self.assertEqual(self.RNA('?a-').degap(), 'A')
 
-    def test_gapList(self):
-        """Sequence gapList should return correct gap positions"""
-        self.assertEqual(self.RNA('').gapList(), [])
-        self.assertEqual(self.RNA('ACUGUCAGUACGHSDKCUCDNNS').gapList(), [])
-        self.assertEqual(self.RNA('GUACGUACAKDC-SDHDSK').gapList(), [12])
-        self.assertEqual(self.RNA('-DSHUHDS').gapList(), [0])
-        self.assertEqual(self.RNA('UACHASADS-').gapList(), [9])
+    def test_gap_indices(self):
+        """Sequence gap_indices should return correct gap positions"""
+        self.assertEqual(self.RNA('').gap_indices(), [])
+        self.assertEqual(self.RNA('ACUGUCAGUACGHSDKCUCDNNS').gap_indices(), [])
+        self.assertEqual(self.RNA('GUACGUACAKDC-SDHDSK').gap_indices(), [12])
+        self.assertEqual(self.RNA('-DSHUHDS').gap_indices(), [0])
+        self.assertEqual(self.RNA('UACHASADS-').gap_indices(), [9])
         self.assertEqual(self.RNA('---CGAUgCAU---ACGHc---ACGUCAGU---'
-                                  ).gapList(), [0, 1, 2, 11, 12, 13, 19, 20, 21, 30, 31, 32])
+                                  ).gap_indices(), [0, 1, 2, 11, 12, 13, 19, 20, 21, 30, 31, 32])
 
-    def test_gapVector(self):
-        """Sequence gapVector should return correct gap positions"""
-        g = lambda x: self.RNA(x).gapVector()
+    def test_gap_vector(self):
+        """Sequence gap_vector should return correct gap positions"""
+        g = lambda x: self.RNA(x).gap_vector()
         self.assertEqual(g(''), [])
         self.assertEqual(g('ACUGUCAGUACGHCSDKCCUCCDNCNS'), [False] * 27)
         self.assertEqual(g('GUACGUAACAKADC-SDAHADSAK'),

@@ -190,13 +190,13 @@ class SequenceI(object):
         """Deletes all gap characters from sequence."""
         return self.__class__(self.MolType.degap(self), Info=self.Info)
 
-    def gapList(self):
+    def gap_indices(self):
         """Returns list of indices of all gaps in the sequence, or []."""
-        return self.MolType.gapList(self)
+        return self.MolType.gap_indices(self)
 
-    def gapVector(self):
+    def gap_vector(self):
         """Returns vector of True or False according to which pos are gaps."""
-        return self.MolType.gapVector(self)
+        return self.MolType.gap_vector(self)
 
     def gapMaps(self):
         """Returns dicts mapping between gapped and ungapped positions."""
@@ -476,7 +476,7 @@ class SequenceI(object):
 
     def withTerminiUnknown(self):
         """Returns copy of sequence with terminal gaps remapped as missing."""
-        gaps = self.gapVector()
+        gaps = self.gap_vector()
         first_nongap = last_nongap = None
         for i, state in enumerate(gaps):
             if not state:
@@ -1246,10 +1246,10 @@ class ModelSequenceBase(object):
         self_gaps = self.gapArray()
         if hasattr(other, 'gapArray'):
             other_gaps = other.gapArray()
-        elif hasattr(other, 'gapVector'):
-            other_gaps = array(other.gapVector())
+        elif hasattr(other, 'gap_vector'):
+            other_gaps = array(other.gap_vector())
         else:
-            other_gaps = array(self.MolType.gapVector(other))
+            other_gaps = array(self.MolType.gap_vector(other))
         min_len = min(len(self), len(other))
         self_gaps, other_gaps = self_gaps[:min_len], other_gaps[:min_len]
         return (self_gaps == other_gaps).sum() / float(min_len)
@@ -1294,11 +1294,11 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         """Returns count of gaps in self."""
         return self.gapArray().sum()
 
-    def gapVector(self):
+    def gap_vector(self):
         """Returns list of bool containing whether each pos is a gap."""
         return list(map(bool, self.gapArray()))
 
-    def gapList(self):
+    def gap_indices(self):
         """Returns list of gap indices."""
         return list(self.gapIndices())
 

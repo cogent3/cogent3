@@ -817,12 +817,12 @@ class MolType(object):
                 return x not in gap
             return sequence.__class__(list(filter(not_gap, sequence)))
 
-    def gapList(self, sequence):
+    def gap_indices(self, sequence):
         """Returns list of indices of all gaps in the sequence, or []."""
         gaps = self.Gaps
         return [i for i, s in enumerate(sequence) if s in gaps]
 
-    def gapVector(self, sequence):
+    def gap_vector(self, sequence):
         """Returns list of bool indicating gap or non-gap in sequence."""
         return list(map(self.is_gap, sequence))
 
@@ -842,7 +842,7 @@ class MolType(object):
         ungapped = {}
         gapped = {}
         num_gaps = 0
-        for i, is_gap in enumerate(self.gapVector(sequence)):
+        for i, is_gap in enumerate(self.gap_vector(sequence)):
             if is_gap:
                 num_gaps += 1
             else:
