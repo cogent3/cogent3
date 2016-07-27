@@ -2442,7 +2442,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         """
         return Profile(self._get_freqs(1), self.Alphabet)
 
-    def getSeqEntropy(self):
+    def get_seq_entropy(self):
         """Returns array containing Shannon entropy for each seq in self.
 
         Uses the profile object from get_seq_freqs (see docstring) to calculate
