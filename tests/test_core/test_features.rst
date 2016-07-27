@@ -20,7 +20,7 @@ The corresponding sequence can be extracted either with slice notation or by ask
     
     >>> s[exon1]
     DnaSequence(CCCCC)
-    >>> exon1.getSlice()
+    >>> exon1.get_slice()
     DnaSequence(CCCCC)
 
 Usually the only way to get a ``Feature`` object like ``exon1`` is to ask the sequence for it. There is one method for querying annotations by type and optionally by name:
@@ -54,7 +54,7 @@ eg: all the exon sequence:
 
 .. doctest::
     
-    >>> s.get_region_covering_all(exons).getSlice()
+    >>> s.get_region_covering_all(exons).get_slice()
     DnaSequence(CCCCCTT... 15)
 
 or with slice notation:
@@ -86,7 +86,7 @@ Features are themselves sliceable:
 
 .. doctest::
     
-    >>> exon1[0:3].getSlice()
+    >>> exon1[0:3].get_slice()
     DnaSequence(CCC)
 
 When sequences are concatenated they keep their (non-overlapping) annotations:
@@ -135,11 +135,11 @@ When dealing with sequences that can be reverse complemented (e.g. ``DnaSequence
     ... Name="plus")
     >>> plus_cds = plus.add_annotation(Feature, 'CDS', 'gene',
     ...                           [(2,6),(10,15),(25,35)])
-    >>> print(plus_cds.getSlice())
+    >>> print(plus_cds.get_slice())
     GGGGCCCCCTTTTTTTTTT
     >>> minus = plus.rc()
     >>> minus_cds = minus.get_annotations_matching('CDS')[0]
-    >>> print(minus_cds.getSlice())
+    >>> print(minus_cds.get_slice())
     GGGGCCCCCTTTTTTTTTT
 
 
@@ -167,7 +167,7 @@ But these will be returned as **alignment** features with locations in alignment
     exon "fred" at [3:8]/9
     >>> print(aln_exons[0])
     exon "fred" at [4:9]/10
-    >>> print(aln_exons[0].getSlice())
+    >>> print(aln_exons[0].get_slice())
     >x
     AAAAA
     >y
@@ -225,7 +225,7 @@ If the feature lies outside the sequence being copied to, you get a lost span
     >>> copied = list(aln.get_annotations_from_seq('x', 'exon'))
     >>> copied
     [exon "A" at [5:5, -4-]/5]
-    >>> copied[0].getSlice()
+    >>> copied[0].get_slice()
     2 x 4 text alignment: x[----], y[----]
 
 You can copy to a sequence with a different name, in a different alignment if the feature lies within the length
@@ -261,7 +261,7 @@ We consider cases where there are terminal gaps.
     >>> aln_exons = list(aln.get_annotations_from_seq('x', 'exon'))
     >>> print(aln_exons)
     [exon "fred" at [4:9]/10]
-    >>> print(aln_exons[0].getSlice())
+    >>> print(aln_exons[0].get_slice())
     >x
     AAAAA
     >y
@@ -270,7 +270,7 @@ We consider cases where there are terminal gaps.
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--T---']])
     >>> exon = aln.get_seq('x').add_feature('exon', 'fred', [(3,8)])
     >>> aln_exons = list(aln.get_annotations_from_seq('x', 'exon'))
-    >>> print(aln_exons[0].getSlice())
+    >>> print(aln_exons[0].get_slice())
     >x
     AAAAA
     >y
@@ -292,12 +292,12 @@ In this case, only those residues included within the feature are covered - note
     >>> exon = aln.get_seq('x').add_feature('exon', 'ex1', [(0,4)])
     >>> print(exon)
     exon "ex1" at [0:4]/9
-    >>> print(exon.getSlice())
+    >>> print(exon.get_slice())
     CCCC
     >>> aln_exons = list(aln.get_annotations_from_seq('x', 'exon'))
     >>> print(aln_exons)
     [exon "ex1" at [0:1, 2:5]/10]
-    >>> print(aln_exons[0].getSlice())
+    >>> print(aln_exons[0].get_slice())
     >x
     CCCC
     >y
@@ -309,7 +309,7 @@ In this case, only those residues included within the feature are covered - note
 
 .. doctest::
     
-    >>> print(aln_exons[0].asOneSpan().getSlice())
+    >>> print(aln_exons[0].asOneSpan().get_slice())
     >x
     C-CCC
     >y
@@ -357,13 +357,13 @@ We create an alignment with a sequence that has two different annotation types.
     -T----TTTTG-GTT
     <BLANKLINE>
     >>> exon = aln.get_seq('x').add_feature('exon', 'norwegian', [(0,4)])
-    >>> print(exon.getSlice())
+    >>> print(exon.get_slice())
     CCCC
     >>> repeat = aln.get_seq('x').add_feature('repeat', 'blue', [(9,12)])
-    >>> print(repeat.getSlice())
+    >>> print(repeat.get_slice())
     GGG
     >>> repeat = aln.get_seq('y').add_feature('repeat', 'frog', [(5,7)])
-    >>> print(repeat.getSlice())
+    >>> print(repeat.get_slice())
     GG
 
 Each sequence should correctly mask either the single feature, it's shadow, or the multiple features, or shadow.

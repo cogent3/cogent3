@@ -433,7 +433,7 @@ We'll do this by specifying the position indices of interest, creating a sequenc
     >>> indices
     [(2, 3), (5, 6), (8, 9), (11, 12)]
     >>> pos3 = aln.add_feature('pos3', 'pos3', indices)
-    >>> pos3 = pos3.getSlice()
+    >>> pos3 = pos3.get_slice()
     >>> print pos3
     >seq2
     GGGG

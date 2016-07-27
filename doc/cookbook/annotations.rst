@@ -202,13 +202,13 @@ By a feature or coordinates returns same sequence span
     >>> s1[10:15]
     DnaSequence(CCCCC)
 
-Using the annotation object ``getSlice`` method returns the same thing.
+Using the annotation object ``get_slice`` method returns the same thing.
 
 .. doctest::
 
     >>> s1[exon2]
     DnaSequence(TTTTTAAAAA)
-    >>> exon2.getSlice()
+    >>> exon2.get_slice()
     DnaSequence(TTTTTAAAAA)
 
 Slicing by pseudo-feature or feature series
@@ -261,7 +261,7 @@ But ``get_region_covering_all`` resolves this, ensuring no overlaps.
 
 .. doctest::
 
-    >>> print s1.get_region_covering_all([exon3, exon3]).getSlice()
+    >>> print s1.get_region_covering_all([exon3, exon3]).get_slice()
     CCC
 
 You can slice an annotation itself
@@ -315,7 +315,7 @@ but if the feature lies outside the sequence being copied to, you get a lost spa
     >>> copied = list(aln2.get_annotations_from_seq('x', 'exon'))
     >>> copied
     [exon "A" at [5:5, -4-]/5]
-    >>> copied[0].getSlice()
+    >>> copied[0].get_slice()
     2 x 4 text alignment: x[----], y[----]
 
 You can copy to a sequence with a different name, in a different alignment if the feature lies within the length
@@ -394,7 +394,7 @@ If you query for a feature from a sequence, it's alignment coordinates may be di
 
     >>> aln3 = LoadSeqs(data=[['x', 'C-CCCAAAAA'], ['y', '-T----TTTT']])
     >>> exon = aln3.get_seq('x').add_feature('exon', 'ex1', [(0,4)])
-    >>> print exon.getSlice()
+    >>> print exon.get_slice()
     CCCC
     >>> aln_exons = list(aln3.get_annotations_from_seq('x', 'exon'))
     >>> print aln_exons
@@ -540,12 +540,12 @@ The annotation methods ``get_region_covering_all`` and ``getShadow`` can be used
     >>> coding_seqs = seq.get_region_covering_all(all_cds)
     >>> coding_seqs
     region "CDS" at [189:255, 336:2799, 2800:3730, 3733...
-    >>> coding_seqs.getSlice()
+    >>> coding_seqs.get_slice()
     DnaSequence(ATGAACC... 9063)
     >>> noncoding_seqs = coding_seqs.getShadow()
     >>> noncoding_seqs
     region "not CDS" at [0:189, 255:336, 2799:2800, ...
-    >>> noncoding_seqs.getSlice()
+    >>> noncoding_seqs.get_slice()
     DnaSequence(AGAGATT... 957)
 
 Getting sequence features when you have an alignment object

@@ -432,7 +432,7 @@ class TestGene(GenomeTestBase):
             seq = gene.getAnnotatedSeq(feature_types='gene')
             intron = asserted_one(seq.get_annotations_matching('intron',
                                                              '%s-%d' % (stable_id, rank)))
-            intron_seq = str(seq.get_region_covering_all(intron).getSlice())
+            intron_seq = str(seq.get_region_covering_all(intron).get_slice())
             self.assertEqual(intron_seq[:10], exp_seq5.upper())
             self.assertEqual(intron_seq[-10:], exp_seq3.upper())
 
@@ -655,7 +655,7 @@ class TestFeatures(GenomeTestBase):
         # the Cds, however, from the annotated sequences should be identical
         plus_cds = plus_seq.get_annotations_matching('CDS')[0]
         minus_cds = minus_seq.get_annotations_matching('CDS')[0]
-        self.assertEqual(str(plus_cds.getSlice()), str(minus_cds.getSlice()))
+        self.assertEqual(str(plus_cds.get_slice()), str(minus_cds.get_slice()))
 
     def test_other_feature_data_correct(self):
         """should apply CpG feature data in a manner consistent with strand"""
@@ -673,11 +673,11 @@ class TestFeatures(GenomeTestBase):
 
         self.assertEqual(ps_feat.Seq, ms_feat.Seq.rc())
 
-        self.assertEqual(ps_cgi.getSlice().rc(), exp)
+        self.assertEqual(ps_cgi.get_slice().rc(), exp)
         ms_seq = ms_feat.getAnnotatedSeq(feature_types='CpG')
         ms_cgi = ms_seq.get_annotations_matching('CpGisland')[0]
 
-        self.assertEqual(ms_cgi.getSlice(), ps_cgi.getSlice())
+        self.assertEqual(ms_cgi.get_slice(), ps_cgi.get_slice())
 
     def test_other_repeat(self):
         """should apply repeat feature data in a manner consistent with strand"""
@@ -696,8 +696,8 @@ class TestFeatures(GenomeTestBase):
         ms_annot_seq = ms_repeat.getAnnotatedSeq(feature_types='repeat')
         ps_seq = ps_annot_seq.get_annotations_matching('repeat')[0]
         ms_seq = ms_annot_seq.get_annotations_matching('repeat')[0]
-        self.assertEqual(ms_seq.getSlice(), ps_seq.getSlice())
-        self.assertEqual(ps_seq.getSlice(), exp)
+        self.assertEqual(ms_seq.get_slice(), ps_seq.get_slice())
+        self.assertEqual(ps_seq.get_slice(), exp)
 
     def test_get_features_from_nt(self):
         """should correctly return the encompassing gene from 1nt"""
