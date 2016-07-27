@@ -470,7 +470,7 @@ class Calculator(object):
         with parallel.parallel_context(self.remaining_parallel_context):
             try:
                 if self.trace:
-                    self.tracingUpdate(changes, program, data)
+                    self.tracing_update(changes, program, data)
                 else:
                     self.plain_update(program, data)
 
@@ -523,7 +523,7 @@ class Calculator(object):
             cell.report_error(detail, data)
             raise CalculationInterupted(cell, detail)
 
-    def tracingUpdate(self, changes, program, data):
+    def tracing_update(self, changes, program, data):
         # Does the same thing as plain_update, but also produces lots of
         # output showing how long each step of the calculation takes.
         # One line per call, '-' for undo, '+' for calculation
