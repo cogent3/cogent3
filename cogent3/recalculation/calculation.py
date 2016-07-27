@@ -616,7 +616,7 @@ class Calculator(object):
     def _getCurrentCellValue(self, cell):
         return self.cell_values[self._switch][cell.rank]
 
-    def getCurrentCellValuesForDefn(self, defn):
+    def get_current_cell_values_for_defn(self, defn):
         cells = self.results_by_id[id(defn)]
         return [self.cell_values[self._switch][cell.rank] for cell in cells]
 
