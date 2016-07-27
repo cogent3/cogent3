@@ -1024,8 +1024,8 @@ class ModelSequenceBase(object):
 
     def __str__(self):
         """Uses alphabet to convert self to string, using delimiter."""
-        if hasattr(self.Alphabet, 'toString'):
-            return self.Alphabet.toString(self._data)
+        if hasattr(self.Alphabet, 'to_string'):
+            return self.Alphabet.to_string(self._data)
         else:
             return self.Delimiter.join(map(str,
                                            self.Alphabet.from_indices(self._data)))
@@ -1079,8 +1079,8 @@ class ModelSequenceBase(object):
 
     def __iter__(self):
         """iter returns characters of self, rather than slices."""
-        if hasattr(self.Alphabet, 'toString'):
-            return iter(self.Alphabet.toString(self._data))
+        if hasattr(self.Alphabet, 'to_string'):
+            return iter(self.Alphabet.to_string(self._data))
         else:
             return iter(self.Alpabet.from_indices(self._data))
 

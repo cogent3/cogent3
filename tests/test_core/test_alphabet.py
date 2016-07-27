@@ -241,18 +241,18 @@ class CharAlphabetTests(TestCase):
         self.assertEqual(c,
                          array(['UUC', 'UGA'], 'c'))
 
-    def test_toString(self):
-        """CharAlphabet toString should convert an input array to string"""
+    def test_to_string(self):
+        """CharAlphabet to_string should convert an input array to string"""
         r = CharAlphabet('UCAG')
-        self.assertEqual(r.toString(
+        self.assertEqual(r.to_string(
             array([[0, 0, 1], [0, 3, 2]], 'B')), 'UUC\nUGA')
         # should work with single seq
-        self.assertEqual(r.toString(
+        self.assertEqual(r.to_string(
             array([[0, 0, 1, 0, 3, 2]], 'B')), 'UUCUGA')
         # should work with single seq
-        self.assertEqual(r.toString(array([0, 0, 1, 0, 3, 2], 'B')), 'UUCUGA')
+        self.assertEqual(r.to_string(array([0, 0, 1, 0, 3, 2], 'B')), 'UUCUGA')
         # should work with empty seq
-        self.assertEqual(r.toString(array([], 'B')), '')
+        self.assertEqual(r.to_string(array([], 'B')), '')
 
     def test_pairs(self):
         """pairs should cache the same object."""

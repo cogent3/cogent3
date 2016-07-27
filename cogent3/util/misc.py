@@ -1198,7 +1198,7 @@ def getNewId(rand_f=randrange):
 # end function getNewId
 
 
-def toString(obj):
+def to_string(obj):
     """Public function to write a string of object's properties & their vals.
 
     This function looks only at the local properties/methods/etc of the
@@ -1232,7 +1232,7 @@ def toString(obj):
     # next property
 
     return "; ".join(result)
-# end toString
+# end to_string
 
 # A class for exceptions caused when param cannot be cast to nonneg int
 

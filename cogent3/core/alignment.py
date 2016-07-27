@@ -2322,7 +2322,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
 
     def _get_named_seqs(self):
         if not hasattr(self, '_named_seqs'):
-            seqs = list(map(self.Alphabet.toString, self.ArraySeqs))
+            seqs = list(map(self.Alphabet.to_string, self.ArraySeqs))
             if self.MolType:
                 seqs = list(map(self.MolType.Sequence, seqs))
             self._named_seqs = self._make_named_seqs(self.names, seqs)
