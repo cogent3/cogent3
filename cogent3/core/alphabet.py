@@ -553,7 +553,7 @@ class Alphabet(Enumeration):
         result = ''
         return self.MolType.make_sequence(''.join(self[i] for i in data))
 
-    def fromAmbigToLikelihoods(self, motifs, dtype=Float):
+    def get_matched_array(self, motifs, dtype=Float):
         """Returns an array in which rows are motifs, columns are items in self.
 
         Result is an array of Float in which a[i][j] indicates whether the ith

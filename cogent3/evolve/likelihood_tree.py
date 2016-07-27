@@ -300,7 +300,7 @@ def makeLikelihoodTreeLeaf(sequence, alphabet=None, seq_name=None):
 
     # Convert list of unique motifs to array of unique profiles
     try:
-        likelihoods = alphabet.fromAmbigToLikelihoods(
+        likelihoods = alphabet.get_matched_array(
             uniq_motifs, FLOAT_TYPE)
     except alphabet.AlphabetError as detail:
         motif = str(detail)
