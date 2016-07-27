@@ -69,7 +69,7 @@ class MotifProbModel(object):
         assert abs(sum(motif_probs) - 1.0) < 0.0001, motif_probs
         return motif_probs
 
-    def makeEqualMotifProbs(self):
+    def make_equal_motif_probs(self):
         alphabet = self.getInputAlphabet()
         p = 1.0 / len(alphabet)
         return dict([(m, p) for m in alphabet])
