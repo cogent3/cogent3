@@ -22,7 +22,7 @@ except ImportError:
 class PredefinedNucleotide(Nucleotide):
     _default_expm_setting = None
 
-    # Instead of providing calcExchangeabilityMatrix this subclass overrrides
+    # Instead of providing calc_exchangeability_matrix this subclass overrrides
     # make_continuous_psub_defn to bypass the Q / Qd step.
 
     def make_continuous_psub_defn(self, word_probs, mprobs_matrix, distance, rate_params):

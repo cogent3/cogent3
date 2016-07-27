@@ -372,7 +372,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
     # - parameter_order: a list of parameter names corresponding to the
     #   arguments of:
     #
-    # - calcExchangeabilityMatrix(*params)
+    # - calc_exchangeability_matrix(*params)
     #   convert len(self.parameter_order) params to a matrix
 
     """A substitution model for which the rate matrix (P) is derived from an
@@ -492,7 +492,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         return True
 
     def calcQ(self, word_probs, mprobs_matrix, *params):
-        Q = self.calcExchangeabilityMatrix(word_probs, *params)
+        Q = self.calc_exchangeability_matrix(word_probs, *params)
         Q *= mprobs_matrix
         row_totals = Q.sum(axis=1)
         Q -= numpy.diag(row_totals)
@@ -596,7 +596,7 @@ class General(_ContinuousSubstitutionModel):
         self.symmetric = False
         self.check_params_exist()
 
-    def calcExchangeabilityMatrix(self, mprobs, *params):
+    def calc_exchangeability_matrix(self, mprobs, *params):
         return numpy.array((0.0,) + params + (1.0,)).take(self.param_pick)
 
 
@@ -633,7 +633,7 @@ class GeneralStationary(_ContinuousSubstitutionModel):
         self.symmetric = False
         self.check_params_exist()
 
-    def calcExchangeabilityMatrix(self, mprobs, *params):
+    def calc_exchangeability_matrix(self, mprobs, *params):
         R = numpy.array((0.0,) + params + (1.0,)).take(self.param_pick)
         for (i, j) in self.last_in_column:
             assert i > j
@@ -667,7 +667,7 @@ class Empirical(_ContinuousSubstitutionModel):
         self.parameter_order = []
         self.check_params_exist()
 
-    def calcExchangeabilityMatrix(self, mprobs):
+    def calc_exchangeability_matrix(self, mprobs):
         return self._instantaneous_mask_f.copy()
 
 
@@ -727,7 +727,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         (self.scale_masks, scale_order) = self._adapt_predicates(scales or [])
         self.check_params_exist()
 
-    def calcExchangeabilityMatrix(self, mprobs, *params):
+    def calc_exchangeability_matrix(self, mprobs, *params):
         assert len(params) == len(self.predicate_indices), self.parameter_order
         R = self._instantaneous_mask_f.copy()
         for (indices, par) in zip(self.predicate_indices, params):
