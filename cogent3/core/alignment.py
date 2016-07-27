@@ -2454,7 +2454,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         p.normalizePositions()
         return p.rowUncertainty()
 
-    def getPosEntropy(self):
+    def get_pos_entropy(self):
         """Returns array containing Shannon entropy for each pos in self.
 
         Uses the profile object from get_pos_freqs (see docstring) to calculate
