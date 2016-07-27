@@ -920,7 +920,7 @@ class TreeNodeTests(TestCase):
         self.assertEqual(obs_1, exp_1)
         self.assertEqual(obs_2, exp_2)
 
-    def test_lastCommonAncestor(self):
+    def test_last_common_ancestor(self):
         """TreeNode LastCommonAncestor should provide last common ancestor"""
         nodes, tree = self.TreeNode, self.TreeRoot
         a = nodes['a']
@@ -932,33 +932,33 @@ class TreeNodeTests(TestCase):
         g = nodes['g']
         h = nodes['h']
 
-        self.assertEqual(a.lastCommonAncestor(a), a)
-        self.assertEqual(a.lastCommonAncestor(b), a)
-        self.assertEqual(a.lastCommonAncestor(g), a)
-        self.assertEqual(a.lastCommonAncestor(h), a)
+        self.assertEqual(a.last_common_ancestor(a), a)
+        self.assertEqual(a.last_common_ancestor(b), a)
+        self.assertEqual(a.last_common_ancestor(g), a)
+        self.assertEqual(a.last_common_ancestor(h), a)
 
-        self.assertEqual(b.lastCommonAncestor(g), b)
-        self.assertEqual(b.lastCommonAncestor(d), b)
-        self.assertEqual(b.lastCommonAncestor(a), a)
-        self.assertEqual(b.lastCommonAncestor(h), a)
+        self.assertEqual(b.last_common_ancestor(g), b)
+        self.assertEqual(b.last_common_ancestor(d), b)
+        self.assertEqual(b.last_common_ancestor(a), a)
+        self.assertEqual(b.last_common_ancestor(h), a)
 
-        self.assertEqual(d.lastCommonAncestor(f), c)
-        self.assertEqual(d.lastCommonAncestor(g), c)
-        self.assertEqual(d.lastCommonAncestor(a), a)
-        self.assertEqual(d.lastCommonAncestor(h), a)
+        self.assertEqual(d.last_common_ancestor(f), c)
+        self.assertEqual(d.last_common_ancestor(g), c)
+        self.assertEqual(d.last_common_ancestor(a), a)
+        self.assertEqual(d.last_common_ancestor(h), a)
 
-        self.assertEqual(g.lastCommonAncestor(g), g)
-        self.assertEqual(g.lastCommonAncestor(f), f)
-        self.assertEqual(g.lastCommonAncestor(e), c)
-        self.assertEqual(g.lastCommonAncestor(c), c)
-        self.assertEqual(g.lastCommonAncestor(b), b)
-        self.assertEqual(g.lastCommonAncestor(a), a)
-        self.assertEqual(g.lastCommonAncestor(h), a)
+        self.assertEqual(g.last_common_ancestor(g), g)
+        self.assertEqual(g.last_common_ancestor(f), f)
+        self.assertEqual(g.last_common_ancestor(e), c)
+        self.assertEqual(g.last_common_ancestor(c), c)
+        self.assertEqual(g.last_common_ancestor(b), b)
+        self.assertEqual(g.last_common_ancestor(a), a)
+        self.assertEqual(g.last_common_ancestor(h), a)
 
         t = TreeNode('h')
         for i in [a, b, c, d, e, f, g, h]:
-            self.assertEqual(i.lastCommonAncestor(t), None)
-            self.assertEqual(t.lastCommonAncestor(i), None)
+            self.assertEqual(i.last_common_ancestor(t), None)
+            self.assertEqual(t.last_common_ancestor(i), None)
 
         u = TreeNode('a', Children=[t])
 
