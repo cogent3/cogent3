@@ -665,7 +665,7 @@ class ParameterController(object):
         self._changed = set()
         self._update_suspended = False
         self.update_intermediate_values(self.defns)
-        self.setupParallelContext()
+        self.setup_parallel_context()
 
     def get_param_names(self, scalar_only=False):
         """The names of the numerical inputs to the calculation."""
@@ -773,7 +773,7 @@ class ParameterController(object):
     def measure_evals_per_second(self, *args, **kw):
         return self.make_calculator().measure_evals_per_second(*args, **kw)
 
-    def setupParallelContext(self, parallel_split=None):
+    def setup_parallel_context(self, parallel_split=None):
         self.overall_parallel_context = parallel.getContext()
         with parallel.split(parallel_split) as parallel_context:
             parallel_context = parallel_context.getCommunicator()

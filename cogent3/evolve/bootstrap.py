@@ -98,7 +98,7 @@ class ParametricBootstrapCore(object):
         def one_replicate(i):
             for (pc, start_point) in zip(self.parameter_controllers, starting_points):
                 # may have fewer CPUs per replicate than for original
-                pc.setupParallelContext()
+                pc.setup_parallel_context()
                 # using a calculator as a memo object to reset the params
                 pc.update_from_calculator(start_point)
             aln_rnd = random.Random(0)
