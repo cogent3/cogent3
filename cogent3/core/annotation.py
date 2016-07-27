@@ -336,7 +336,7 @@ class _SimpleVariable(_Feature):
         if self.map.complete:
             return self
         keep = self.map.nongap()
-        indicies = numpy.concatenate([list(span) for span in keep.Spans])
+        indicies = numpy.concatenate([list(span) for span in keep.spans])
         data = numpy.asarray(data)[indicies]
         new = self.__class__(self.parent, self.map[
                              keep], data=data, original=self)

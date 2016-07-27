@@ -8,7 +8,7 @@ Also provides Range and Point classes for dealing with parts of sequences.
 
 Span is a region with a start, an end, and a direction. Range is an ordered
 collection of Spans (note: Range does _not_ support the list interface, but
-you can always access Range.Spans directly). Map is like a Range but is
+you can always access Range.spans directly). Map is like a Range but is
 immutable and is able to be nested, i.e. Maps can be defined relative to
 other Maps.
 
@@ -723,26 +723,27 @@ class SpansOnly(ConstrainedList):
 class Range(SpanI):
     """Complex object consisting of many spans."""
 
-    def __init__(self, Spans=[]):
-        """Returns a new Range object with data in Spans.
+    def __init__(self, spans=None):
+        """Returns a new Range object with data in spans.
         """
+        spans = [] if spans is None else spans
         result = SpansOnly()
         # need to check if we got a single Span, since they define __iter__.
-        if isinstance(Spans, Span):
-            result.append(Spans)
-        elif hasattr(Spans, 'Spans'):  # probably a single range object?
-            result.extend(Spans.Spans)
+        if isinstance(spans, Span):
+            result.append(spans)
+        elif hasattr(spans, 'spans'):  # probably a single range object?
+            result.extend(spans.spans)
         else:
-            for s in iterable(Spans):
-                if hasattr(s, 'Spans'):
-                    result.extend(s.Spans)
+            for s in iterable(spans):
+                if hasattr(s, 'spans'):
+                    result.extend(s.spans)
                 else:
                     result.append(s)
-        self.Spans = result
+        self.spans = result
 
     def __str__(self):
         """Returns string representation of self."""
-        return '(%s)' % ','.join(map(str, self.Spans))
+        return '(%s)' % ','.join(map(str, self.spans))
 
     def __len__(self):
         """Returns sum of span lengths.
@@ -750,43 +751,43 @@ class Range(SpanI):
         NOTE: if spans overlap, will count multiple times. Use reduce() to
         get rid of overlaps.
         """
-        return sum(map(len, self.Spans))
+        return sum(map(len, self.spans))
 
     def __lt__(self, other):
         """Compares spans of self with indices of other."""
-        if hasattr(other, 'Spans'):
-            return self.Spans < other.Spans
-        elif len(self.Spans) == 1 and hasattr(other, 'start') and \
+        if hasattr(other, 'spans'):
+            return self.spans < other.spans
+        elif len(self.spans) == 1 and hasattr(other, 'start') and \
                 hasattr(other, 'end'):
-            return self.Spans[0].start < other.start or \
-                self.Spans[0].end < other.end
+            return self.spans[0].start < other.start or \
+                self.spans[0].end < other.end
         else:
             return object < other
 
     def __eq__(self, other):
         """Compares spans of self with indices of other."""
-        if hasattr(other, 'Spans'):
-            return self.Spans == other.Spans
-        elif len(self.Spans) == 1 and hasattr(other, 'start') and \
+        if hasattr(other, 'spans'):
+            return self.spans == other.spans
+        elif len(self.spans) == 1 and hasattr(other, 'start') and \
                 hasattr(other, 'end'):
-            return self.Spans[0].start == other.start and \
-                self.Spans[0].end == other.end
+            return self.spans[0].start == other.start and \
+                self.spans[0].end == other.end
         else:
             return object == other
 
     def _get_start(self):
-        """Finds earliest start of items in self.Spans."""
-        return min([i.start for i in self.Spans])
+        """Finds earliest start of items in self.spans."""
+        return min([i.start for i in self.spans])
     start = property(_get_start)
 
     def _get_end(self):
-        """Finds latest end of items in self.Spans."""
-        return max([i.end for i in self.Spans])
+        """Finds latest end of items in self.spans."""
+        return max([i.end for i in self.spans])
     end = property(_get_end)
 
     def _get_reverse(self):
         """reverse is True if any piece is reversed."""
-        for i in self.Spans:
+        for i in self.spans:
             if i.reverse:
                 return True
         return False
@@ -794,7 +795,7 @@ class Range(SpanI):
 
     def reverses(self):
         """Reverses all spans in self."""
-        for i in self.Spans:
+        for i in self.spans:
             i.reverses()
 
     def __contains__(self, other):
@@ -802,10 +803,10 @@ class Range(SpanI):
 
         other must either be a number or have start and end properties.
         """
-        if hasattr(other, 'Spans'):
-            for curr in other.Spans:
+        if hasattr(other, 'spans'):
+            for curr in other.spans:
                 found = False
-                for i in self.Spans:
+                for i in self.spans:
                     if curr in i:
                         found = True
                         break
@@ -813,43 +814,43 @@ class Range(SpanI):
                     return False
             return True
         else:
-            for i in self.Spans:
+            for i in self.spans:
                 if other in i:
                     return True
             return False
 
     def overlaps(self, other):
         """Returns True if any positions in self are also in other."""
-        if hasattr(other, 'Spans'):
-            for i in self.Spans:
-                for j in other.Spans:
+        if hasattr(other, 'spans'):
+            for i in self.spans:
+                for j in other.spans:
                     if i.overlaps(j):
                         return True
         else:
-            for i in self.Spans:
+            for i in self.spans:
                 if i.overlaps(other):
                     return True
         return False
 
     def overlaps_extent(self, other):
         """Returns True if any positions in self's extent also in other's."""
-        if hasattr(other, 'Extent'):
-            return self.Extent.overlaps(other.Extent)
+        if hasattr(other, 'extent'):
+            return self.extent.overlaps(other.extent)
         else:
-            return self.Extent.overlaps(other)
+            return self.extent.overlaps(other)
 
     def sort(self):
         """Sorts the spans in self."""
-        self.Spans.sort()
+        self.spans.sort()
 
     def __iter__(self):
         """Iterates over indices contained in self."""
-        return chain(*[iter(i) for i in self.Spans])
+        return chain(*[iter(i) for i in self.spans])
 
     def _get_extent(self):
         """Returns Span object representing the extent of self."""
         return Span(self.start, self.end)
-    Extent = property(_get_extent)
+    extent = property(_get_extent)
 
     def simplify(self):
         """Reduces the spans in self in-place to get fewest spans.
@@ -860,7 +861,7 @@ class Range(SpanI):
         """
         forward = []
         reverse = []
-        spans = self.Spans[:]
+        spans = self.spans[:]
         spans.sort()
         for span in spans:
             if span.reverse:
@@ -878,7 +879,7 @@ class Range(SpanI):
                     break
             if not found_overlap:
                 direction.append(span)
-        self.Spans[:] = forward + reverse
+        self.spans[:] = forward + reverse
 
 
 class Point(Span):
@@ -921,7 +922,7 @@ def RangeFromString(string, delimiter=','):
             continue
         if '-' in p:  # treat as pair
             first, second = p.split('-')
-            result.Spans.append(Span(int(first), int(second)))
+            result.spans.append(Span(int(first), int(second)))
         else:
-            result.Spans.append(Span(int(p)))
+            result.spans.append(Span(int(p)))
     return result
