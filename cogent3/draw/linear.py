@@ -971,7 +971,7 @@ class DisplayPolicy(object):
 class Display(rlg2mpl.Drawable):
     """Holds a list of tracks and displays them all aligned
 
-    base: A sequence, alignment, or anything else offering .getTracks(policy)
+    base: A sequence, alignment, or anything else offering .get_tracks(policy)
     policy: A DisplayPolicy subclass.
     pad: Gap between tracks in points.
 
@@ -1020,7 +1020,7 @@ class Display(rlg2mpl.Drawable):
     def _calc_tracks(self):
         y = 0
         self._tracks = []
-        for p in self.base.getTracks(self.policy)[::-1]:
+        for p in self.base.get_tracks(self.policy)[::-1]:
             if not isinstance(p, Track):
                 if not isinstance(p, list):
                     p = [p]

@@ -1589,9 +1589,9 @@ class Aligned(object):
     def to_dna(self):
         return Aligned(self.map, self.data.to_dna())
 
-    def getTracks(self, policy):
+    def get_tracks(self, policy):
         policy = policy.at(self.map.inverse())
-        return self.data.getTracks(policy)
+        return self.data.get_tracks(policy)
 
     def remappedTo(self, map):
         # assert map is self.parent_map or ... ?
@@ -2664,7 +2664,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         (map, seq) = self.MolType.Sequence(seq, key).parseOutGaps()
         return Aligned(map, seq)
 
-    def getTracks(self, policy):
+    def get_tracks(self, policy):
         # drawing code related
         # same as sequence but annotations go below sequence tracks
         return policy.tracksForAlignment(self)
@@ -2674,7 +2674,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         tracks = []
         for label in self.names:
             seq = self.named_seqs[label]
-            tracks += seq.getTracks(policy.copy(seqname=label))
+            tracks += seq.get_tracks(policy.copy(seqname=label))
         return tracks
 
     def __repr__(self):
@@ -2874,7 +2874,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             result[name] = combo
         return Alignment(result, Alphabet=self.Alphabet.withGapMotif())
 
-    def getDegappedRelativeTo(self, name):
+    def get_degapped_relative_to(self, name):
         """Remove all columns with gaps in sequence with given name.
 
         Returns Alignment object of the same class.

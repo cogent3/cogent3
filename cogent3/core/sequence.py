@@ -680,7 +680,7 @@ class Sequence(_Annotatable, SequenceI):
             seq = str(self._seq)
         return "%s(%s)" % (myclass, seq)
 
-    def getTracks(self, policy):
+    def get_tracks(self, policy):
         return policy.tracksForSequence(self)
 
     def getName(self):

@@ -85,7 +85,7 @@ class _Annotatable(object):
     def getAnnotationTracks(self, policy):
         result = []
         for annot in self.annotations:
-            result.extend(annot.getTracks(policy))
+            result.extend(annot.get_tracks(policy))
         return result
 
     def addAnnotation(self, klass, *args, **kw):
@@ -261,7 +261,7 @@ class AnnotatableFeature(_Feature):
             annot for annot in self.annotations if annot.map.useful]
         return new
 
-    def getTracks(self, policy):
+    def get_tracks(self, policy):
         return policy.at(self.map).tracksForFeature(self)
 
 
@@ -303,7 +303,7 @@ def Feature(parent, type, Name, spans, value=None):
 class _Variable(_Feature):
     qualifier_names = _Feature.qualifier_names + ['xxy_list']
 
-    def getTracks(self, policy):
+    def get_tracks(self, policy):
         return policy.tracksForVariable(self)
 
     def withoutLostSpans(self):
@@ -329,7 +329,7 @@ def Variable(parent, type, Name, xxy_list):
 class _SimpleVariable(_Feature):
     qualifier_names = _Feature.qualifier_names + ['data']
 
-    def getTracks(self, policy):
+    def get_tracks(self, policy):
         return policy.tracks_for_value(self)
 
     def withoutLostSpans(self):
