@@ -1154,16 +1154,16 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(n.name, None)
         self.assertEqual(n.Length, None)
 
-    def test_totalDescendingBranchLength(self):
-        """totalDescendingBranchLength returns total branchlength below self"""
+    def test_total_descending_branch_length(self):
+        """total_descending_branch_length returns total branchlength below self"""
         t = self.TreeRoot
         exp = 15
-        obs = t.totalDescendingBranchLength()
+        obs = t.total_descending_branch_length()
         self.assertEqual(obs, exp)
 
         node_c = self.TreeNode['c']
         exp = 10
-        obs = node_c.totalDescendingBranchLength()
+        obs = node_c.total_descending_branch_length()
         self.assertEqual(obs, exp)
 
     def test_tipsWithinDistance(self):

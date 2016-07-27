@@ -1684,7 +1684,7 @@ class PhyloNode(TreeNode):
             other = other._parent
         return None
 
-    def totalDescendingBranchLength(self):
+    def total_descending_branch_length(self):
         """Returns total descending branch length from self"""
         return sum([n.Length for n in self.traverse(include_self=False)
                     if n.Length is not None])
