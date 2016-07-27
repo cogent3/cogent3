@@ -33,7 +33,7 @@ class MotifProbModel(object):
     def __init__(self, *whatever, **kw):
         raise NotImplementedError
 
-    def calcWordProbs(self, *monomer_probs):
+    def calc_word_probs(self, *monomer_probs):
         assert len(monomer_probs) == 1
         return monomer_probs[0]
 
@@ -166,7 +166,7 @@ class MonomerProbModel(ComplexMotifProbModel):
         monomer_probs /= monomer_probs.sum()
         return monomer_probs
 
-    def calcWordProbs(self, monomer_probs):
+    def calc_word_probs(self, monomer_probs):
         result = numpy.product(monomer_probs.take(self.m2w), axis=-1)
         # maybe simpler but slower, works ok:
         # result = numpy.product(monomer_probs ** (w2m, axis=-1))
@@ -180,7 +180,7 @@ class MonomerProbModel(ComplexMotifProbModel):
     def makeMotifWordProbDefns(self):
         monomer_probs = self.makeMotifProbsDefn()
         word_probs = substitution_calculation.CalcDefn(
-            self.calcWordProbs, name="wprobs")(monomer_probs)
+            self.calc_word_probs, name="wprobs")(monomer_probs)
         mprobs_matrix = substitution_calculation.CalcDefn(
             self.calcWordWeightMatrix, name="mprobs_matrix")(monomer_probs)
         return (monomer_probs, word_probs, mprobs_matrix)
@@ -206,7 +206,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
         monomer_probs /= monomer_probs.sum(axis=1)[..., numpy.newaxis]
         return list(monomer_probs)
 
-    def calcWordProbs(self, monomer_probs):
+    def calc_word_probs(self, monomer_probs):
         positions = list(range(self.word_length))
         assert len(monomer_probs) == self.m2w.shape[1], (
             len(monomer_probs), type(monomer_probs), self.m2w.shape)
@@ -240,7 +240,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
         monomer_probs3 = substitution_calculation.CalcDefn(
             lambda *x: numpy.array(x), name='mprobs')(*monomer_probs3)
         word_probs = substitution_calculation.CalcDefn(
-            self.calcWordProbs, name="wprobs")(monomer_probs3)
+            self.calc_word_probs, name="wprobs")(monomer_probs3)
         mprobs_matrix = substitution_calculation.CalcDefn(
             self.calcWordWeightMatrix, name="mprobs_matrix")(
             monomer_probs3)
