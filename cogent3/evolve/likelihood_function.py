@@ -131,8 +131,8 @@ class LikelihoodFunction(ParameterController):
             for row in probs:
                 by_p = [(p, state) for state, p in list(row.items())]
                 seq.append(max(by_p)[1])
-            seqs += [(edge, self.model.MolType.make_sequence("".join(seq)))]
-        return Alignment(data=seqs, MolType=self.model.MolType)
+            seqs += [(edge, self.model.moltype.make_sequence("".join(seq)))]
+        return Alignment(data=seqs, moltype=self.model.moltype)
 
     def getBinProbs(self, locus=None):
         hmm = self.getParamValue('bindex', locus=locus)
@@ -417,7 +417,7 @@ class LikelihoodFunction(ParameterController):
 
         if root_sequence is not None:  # we convert to a vector of motifs
             if isinstance(root_sequence, str):
-                root_sequence = self._model.MolType.make_sequence(root_sequence)
+                root_sequence = self._model.moltype.make_sequence(root_sequence)
             motif_len = self._model.getAlphabet().get_motif_len()
             root_sequence = root_sequence.get_in_motif_size(motif_len)
         else:
@@ -431,7 +431,7 @@ class LikelihoodFunction(ParameterController):
 
         return Alignment(
             data=simulated_sequences,
-            MolType=self._model.MolType)
+            moltype=self._model.moltype)
 
     def allPsubsDLC(self):
         """Returns True if every Psub matrix is Diagonal Largest in Column"""

@@ -194,7 +194,7 @@ class RichLabel(str):
     def __new__(cls, info, template="%s"):
         """Arguments:
 
-            - info: a cogent3.core.info.Info instance
+            - info: a cogent3.core.info.info instance
             - template: a string template, using a subset of the keys in info.
               Defaults to just '%s'.
 
@@ -203,7 +203,7 @@ class RichLabel(str):
                         '%(name)s')"""
         label = template % info
         new = str.__new__(cls, label)
-        new.Info = info
+        new.info = info
         return new
 
 
@@ -251,7 +251,7 @@ def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
     Arguments:
         - data: line iterable data source
         - label_to_name: LabelParser callback
-        - group_key: name of group key in RichLabel.Info object
+        - group_key: name of group key in RichLabel.info object
         - aligned: whether sequences are to be considered aligned
         - moltype: default is ASCII
         - done_groups: series of group keys to be excluded
@@ -263,13 +263,13 @@ def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
     group_ids = []
     current_collection = {}
     for label, seq in parser:
-        seq = moltype.make_sequence(seq, Name=label, Info=label.Info)
+        seq = moltype.make_sequence(seq, Name=label, Info=label.info)
         if DEBUG:
             print("str(label) ", str(label), "repr(label)", repr(label))
-        if not group_ids or label.Info[group_key] in group_ids:
+        if not group_ids or label.info[group_key] in group_ids:
             current_collection[label] = seq
             if not group_ids:
-                group_ids.append(label.Info[group_key])
+                group_ids.append(label.info[group_key])
         else:
             # we finish off check of current before creating a collection
             if group_ids[-1] not in done_groups:
@@ -279,12 +279,12 @@ def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
                           list(current_collection.keys()))
                 seqs = cogent3.LoadSeqs(data=current_collection, moltype=moltype,
                                         aligned=aligned)
-                seqs.Info = info
+                seqs.info = info
                 yield seqs
             current_collection = {label: seq}
-            group_ids.append(label.Info[group_key])
+            group_ids.append(label.info[group_key])
     info = Info(Group=group_ids[-1])
     seqs = cogent3.LoadSeqs(data=current_collection, moltype=moltype,
                             aligned=aligned)
-    seqs.Info = info
+    seqs.info = info
     yield seqs

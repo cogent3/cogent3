@@ -39,7 +39,7 @@ def clustal_from_alignment(aln, interleave_len=None):
         raise ValueError("Sequences in alignment are not all the same length." +
                          "Cannot generate Clustal format.")
 
-    aln_len = seqs.SeqLen
+    aln_len = seqs.seq_len
     # Get all labels
     labels = copy(seqs.names)
 

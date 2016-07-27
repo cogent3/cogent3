@@ -22,7 +22,7 @@ def nexus_from_alignment(aln, seq_type, interleave_len=50):
     num_seq = len(aln.Seqs)
     if not aln or not num_seq:
         return ""
-    aln_len = aln.SeqLen
+    aln_len = aln.seq_len
     nexus_out = ["#NEXUS\n\nbegin data;"]
     nexus_out.append("    dimensions ntax=%d nchar=%d;" % (num_seq,
                                                            aln_len))

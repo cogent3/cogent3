@@ -228,8 +228,8 @@ def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
 
     # Map the old alphabet onto the new alphabet. Note: characters that
     # that are not mapped are ignored. Returns a new DenseAlignment.
-    return DenseAlignment(take(new_indices, aln.ArraySeqs).transpose(),
-                          aln.names[:], MolType=aln.MolType)
+    return DenseAlignment(take(new_indices, aln.array_seqs).transpose(),
+                          aln.names[:], moltype=aln.moltype)
 
 
 def recode_alignment(aln, alphabet_id=None, alphabet_def=None):

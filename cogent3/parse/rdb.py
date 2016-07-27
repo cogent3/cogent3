@@ -158,5 +158,5 @@ if __name__ == '__main__':
     from sys import argv
     filename = argv[1]
     for sequence in RdbParser(open(filename)):
-        print(sequence.Info.Species)
+        print(sequence.info.Species)
         print(sequence)

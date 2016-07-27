@@ -161,7 +161,7 @@ class _SubstitutionModel(object):
 
         self.recode_gaps = recode_gaps
 
-        self.MolType = alphabet.MolType
+        self.moltype = alphabet.moltype
         if model_gaps:
             alphabet = alphabet.with_gap_motif()
 

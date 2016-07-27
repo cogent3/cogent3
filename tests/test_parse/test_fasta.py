@@ -163,7 +163,7 @@ class FastaParserTests(GenericFastaTest):
         a = f[0]
         self.assertEqual(a, (None, 'TTTTCCAAAAAG'))
         self.assertEqual(a[1].Name, None)
-        self.assertEqual(a[1].Info.ABC, 'XYZ')
+        self.assertEqual(a[1].info.ABC, 'XYZ')
 
     def test_multiple(self):
         """FastaParser should read multiline records correctly"""
@@ -283,17 +283,17 @@ class NcbiFastaParserTests(TestCase):
         a, b = a[1], b[1]  # field 0 is the name
         self.assertEqual(
             a, 'MNMSKQPVSNVRAIQANINIPMGAFRPGAGQPPRRKECTPEVEEGVPPTSDEEKKPIPGAKKLPGPAVNLSEIQNIKSELKYVPKAEQ')
-        self.assertEqual(a.Info.GI, ['10047090'])
-        self.assertEqual(a.Info.RefSeq, ['NP_055147.1'])
-        self.assertEqual(a.Info.DDBJ, [])
-        self.assertEqual(a.Info.Description,
+        self.assertEqual(a.info.GI, ['10047090'])
+        self.assertEqual(a.info.RefSeq, ['NP_055147.1'])
+        self.assertEqual(a.info.DDBJ, [])
+        self.assertEqual(a.info.Description,
                          'small muscle protein, X-linked [Homo sapiens]')
 
         self.assertEqual(
             b, 'MANRGPSYGLSREVQEKIEQKYDADLENKLVDWIILQCAEDIEHPPPGRAHFQKWLMDGTVLCKLINSLYPPGQEPIPKISESKMAFKQMEQISQFLKAAETYGVRTTDIFQTVDLWEGKDMAAVQRTLMALGSVAVTKD')
-        self.assertEqual(b.Info.GI, ['10047092'])
-        self.assertEqual(b.Info.RefSeq, ['NP_037391.1'])
-        self.assertEqual(b.Info.Description, 'neuronal protein [Homo sapiens]')
+        self.assertEqual(b.info.GI, ['10047092'])
+        self.assertEqual(b.info.RefSeq, ['NP_037391.1'])
+        self.assertEqual(b.info.Description, 'neuronal protein [Homo sapiens]')
 
     def test_bad(self):
         """NcbiFastaParser should raise error on bad records if strict"""
@@ -309,28 +309,28 @@ class NcbiFastaParserTests(TestCase):
         r = list(NcbiFastaParser(self.nasty, Sequence, strict=False))
         self.assertEqual(len(r), 4)
         a, b, c, d = r
-        self.assertEqual((a[1], a[1].Info.GI, a[1].Info.RefSeq,
-                          a[1].Info.Description),
+        self.assertEqual((a[1], a[1].info.GI, a[1].info.RefSeq,
+                          a[1].info.Description),
                          ('UCAG', ['abc'], ['def'], ''))
-        self.assertEqual((b[1], b[1].Info.GI, b[1].Info.GenBank,
-                          b[1].Info.Description),
+        self.assertEqual((b[1], b[1].info.GI, b[1].info.GenBank,
+                          b[1].info.Description),
                          ('UUUUCCCC', ['xyz'], ['qwe'], 'descr'))
-        self.assertEqual((c[1], c[1].Info.GI, c[1].Info.RefSeq,
-                          c[1].Info.Description),
+        self.assertEqual((c[1], c[1].info.GI, c[1].info.RefSeq,
+                          c[1].info.Description),
                          ('XYZ', ['bad'], ['stuff'], 'label'))
-        self.assertEqual((d[1], d[1].Info.GI, d[1].Info.DDBJ,
-                          d[1].Info.Description),
+        self.assertEqual((d[1], d[1].info.GI, d[1].info.DDBJ,
+                          d[1].info.Description),
                          ('ucagUCAGtgacNNNN'.upper(), ['123'], ['456'], 'desc|with|pipes|'))
         #...and when we explicitly supply a constructor
         r = list(NcbiFastaParser(self.nasty, Dna, strict=False))
         self.assertEqual(len(r), 3)
         a, b, c = r
         a, b, c = a[1], b[1], c[1]
-        self.assertEqual((a, a.Info.GI, a.Info.RefSeq, a.Info.Description),
+        self.assertEqual((a, a.info.GI, a.info.RefSeq, a.info.Description),
                          ('TCAG', ['abc'], ['def'], ''))
-        self.assertEqual((b, b.Info.GI, b.Info.GenBank, b.Info.Description),
+        self.assertEqual((b, b.info.GI, b.info.GenBank, b.info.Description),
                          ('TTTTCCCC', ['xyz'], ['qwe'], 'descr'))
-        self.assertEqual((c, c.Info.GI, c.Info.DDBJ, c.Info.Description),
+        self.assertEqual((c, c.info.GI, c.info.DDBJ, c.info.Description),
                          ('tcagTCAGtgacNNNN'.upper(), ['123'], ['456'], 'desc|with|pipes|'))
 
 
@@ -358,8 +358,8 @@ class LabelParsingTest(TestCase):
         self.assertEqual(k, "rat")
 
         # the label should have Info object
-        self.assertEqual(k.Info.species, "rat")
-        self.assertEqual(k.Info.seq_id, "xy5")
+        self.assertEqual(k.info.species, "rat")
+        self.assertEqual(k.info.seq_id, "xy5")
 
         # label should be constructable just like a normal string
         self.assertEqual(RichLabel('a'), 'a')
@@ -410,7 +410,7 @@ class GroupFastaParsingTest(TestCase):
             got = group.todict()
             want = expected[count]
             self.assertEqual(got, want)
-            self.assertEqual(group.Info.Group, "group%s" % (count + 1))
+            self.assertEqual(group.info.Group, "group%s" % (count + 1))
             count += 1
 
         # check we don't return a done group
@@ -421,7 +421,7 @@ class GroupFastaParsingTest(TestCase):
             got = group.todict()
             want = expected[1]
             self.assertEqual(got, want)
-            self.assertEqual(group.Info.Group, "group2")
+            self.assertEqual(group.info.Group, "group2")
 
 
 if __name__ == '__main__':

@@ -19,7 +19,7 @@ class FakeModel(object):
 
     def __init__(self, alphabet):
         self.alphabet = alphabet
-        self.MolType = alphabet.MolType
+        self.moltype = alphabet.moltype
 
     def getAlphabet(self):
         return self.alphabet

@@ -35,8 +35,8 @@ The selected species are accumulated in a ``seqs`` dictionary, keyed by their na
     ...     if len(seq) < 2800:
     ...         continue
     ...     # we extract annotation data only from the human record
-    ...     if "Homo" in seq.Info.species:
-    ...         for feature in seq.Info.features:
+    ...     if "Homo" in seq.info.species:
+    ...         for feature in seq.info.features:
     ...             if "region_name" not in feature:
     ...                 continue # ignore this one, go to the next feature
     ...             if "Variant" in feature["region_name"]:
@@ -57,7 +57,7 @@ The selected species are accumulated in a ``seqs`` dictionary, keyed by their na
     ...                     lo = feature["location"].first() - 1
     ...                     hi = feature["location"].last()
     ...                     rows.append(["Domain", lo, hi, ' '.join(note).strip(), None])
-    ...     species = seq.Info.species.split()
+    ...     species = seq.info.species.split()
     ...     seq_name = "%s.%s" % (species[0][0] + species[1][:3], accession)
     ...     seqs[seq_name] = seq
 

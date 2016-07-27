@@ -155,7 +155,7 @@ class _Annotatable(object):
                 if ignore_partial:
                     continue
                 raise msg
-            seq.Info['Name'] = annotation.Name
+            seq.info['Name'] = annotation.Name
             yield seq
 
     def _annotations_nucleic_reversed_on(self, new):

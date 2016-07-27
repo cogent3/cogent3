@@ -369,7 +369,7 @@ class AlphabetGroup(CoreObjectGroup):
     """Container relating gapped, ungapped, degen, and non-degen alphabets."""
 
     def __init__(self, chars, degens, gap=IUPAC_gap, missing=IUPAC_missing,
-                 MolType=None, constructor=None):
+                 moltype=None, constructor=None):
         """Returns new AlphabetGroup."""
         if constructor is None:
             if max(list(map(len, chars))) == 1:
@@ -378,16 +378,16 @@ class AlphabetGroup(CoreObjectGroup):
                 degens = ''.join(degens)
             else:
                 constructor = Alphabet  # assume multi-char
-        self.Base = constructor(chars, MolType=MolType)
-        self.Degen = constructor(chars + degens, MolType=MolType)
-        self.Gapped = constructor(chars + gap, gap, MolType=MolType)
+        self.Base = constructor(chars, moltype=moltype)
+        self.Degen = constructor(chars + degens, moltype=moltype)
+        self.Gapped = constructor(chars + gap, gap, moltype=moltype)
         self.DegenGapped = constructor(chars + gap + degens + missing, gap,
-                                       MolType=MolType)
+                                       moltype=moltype)
         self._items = [self.Base, self.Degen, self.Gapped, self.DegenGapped]
         self._set_relationships()
         # set complements if MolType was specified
-        if MolType is not None:
-            comps = MolType.Complements
+        if moltype is not None:
+            comps = moltype.Complements
             for i in self._items:
                 i._complement_array = _make_complement_array(i, comps)
 
@@ -472,7 +472,7 @@ class MolType(object):
         if Sequence is None:
             Sequence = ''.join  # safe default string constructor
         elif not preserve_existing_moltypes:
-            Sequence.MolType = self
+            Sequence.moltype = self
         self.Sequence = Sequence
 
         # set the ambiguities
@@ -489,15 +489,15 @@ class MolType(object):
 
         if make_alphabet_group:  # note: must use _original_ ambiguities here
             self.Alphabets = AlphabetGroup(motifset, Ambiguities,
-                                           MolType=self)
+                                           moltype=self)
             self.Alphabet = self.Alphabets.Base
         else:
             if isinstance(motifset, Enumeration):
                 self.Alphabet = motifset
             elif max(len(motif) for motif in motifset) == 1:
-                self.Alphabet = CharAlphabet(motifset, MolType=self)
+                self.Alphabet = CharAlphabet(motifset, moltype=self)
             else:
-                self.Alphabet = Alphabet(motifset, MolType=self)
+                self.Alphabet = Alphabet(motifset, moltype=self)
         # set the other properties
         self.Degenerates = Ambiguities and Ambiguities.copy() or {}
         self.Degenerates[self.Missing] = ''.join(motifset) + self.Gap
@@ -1117,7 +1117,7 @@ def CodonAlphabet(gc=DEFAULT_GENETIC_CODE, include_stop_codons=False):
     else:
         motifset = list(gc.SenseCodons)
     motifset = [codon.upper().replace('U', 'T') for codon in motifset]
-    a = _CodonAlphabet(motifset, MolType=DNA)
+    a = _CodonAlphabet(motifset, moltype=DNA)
     a._gc = gc
     return a
 
@@ -1131,26 +1131,26 @@ STANDARD_CODON = CodonAlphabet()
 # Modify NucleicAcidSequence to avoid circular import
 NucleicAcidSequence.CodonAlphabet = _method_codon_alphabet
 NucleicAcidSequence.PROTEIN = PROTEIN
-ModelRnaSequence.MolType = RNA
+ModelRnaSequence.moltype = RNA
 ModelRnaSequence.Alphabet = RNA.Alphabets.DegenGapped
 
-ModelDnaSequence.MolType = DNA
+ModelDnaSequence.moltype = DNA
 ModelDnaSequence.Alphabet = DNA.Alphabets.DegenGapped
 
-ModelProteinSequence.MolType = PROTEIN
+ModelProteinSequence.moltype = PROTEIN
 ModelProteinSequence.Alphabet = PROTEIN.Alphabets.DegenGapped
 
-ModelProteinWithStopSequence.MolType = PROTEIN_WITH_STOP
+ModelProteinWithStopSequence.moltype = PROTEIN_WITH_STOP
 ModelProteinWithStopSequence.Alphabet = PROTEIN_WITH_STOP.Alphabets.DegenGapped
 
 ModelSequence.Alphabet = BYTES.Alphabet
 
 DenseAlignment.Alphabet = BYTES.Alphabet
-DenseAlignment.MolType = BYTES
+DenseAlignment.moltype = BYTES
 
 ModelDnaCodonSequence.Alphabet = DNA.Alphabets.Base.Triples
 ModelRnaCodonSequence.Alphabet = RNA.Alphabets.Base.Triples
 
 # Modify Alignment to avoid circular import
-Alignment.MolType = ASCII
-SequenceCollection.MolType = BYTES
+Alignment.moltype = ASCII
+SequenceCollection.moltype = BYTES

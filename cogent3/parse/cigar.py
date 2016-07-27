@@ -133,7 +133,7 @@ def CigarParser(seqs, cigars, sliced=False, ref_seqname=None, start=None, end=No
         seqs - raw sequences as {seqname: seq}
         cigars - corresponding cigar text as {seqname: cigar_text}
         cigars and seqs should have the same seqnames
-        MolType - optional default to DNA
+        moltype - optional default to DNA
     """
     data = {}
     if not sliced:

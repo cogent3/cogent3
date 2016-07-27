@@ -56,7 +56,7 @@ class BootstrapTests(unittest.TestCase):
                 predicates={'kappa': 'transition'})
 
     def getalignmentobj(self):
-        moltype = self.getsubmod().MolType
+        moltype = self.getsubmod().moltype
         alignmentobj = LoadSeqs(
             filename=os.path.join(data_path, "brca1.fasta"),
             moltype=moltype)

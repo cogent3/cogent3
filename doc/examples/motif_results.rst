@@ -22,7 +22,7 @@ Lets quickly look at an overview of the ``MotifResults``. First, we can check th
 
 .. doctest::
 
-    >>> results.MolType.label
+    >>> results.moltype.label
     'protein'
     >>> len(results.Alignment.NamedSeqs)
     96

@@ -282,7 +282,7 @@ class LikelihoodFunctionTests(TestCase):
 
         self.data = LoadSeqs(
             filename=os.path.join(data_path, 'brca1_5.paml'),
-            moltype=self.submodel.MolType)
+            moltype=self.submodel.moltype)
 
         self.tree = LoadTree(
             filename=os.path.join(data_path, 'brca1_5.tree'))
