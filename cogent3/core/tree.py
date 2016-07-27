@@ -2181,14 +2181,14 @@ class TreeBuilder(object):
         """Callback for tree-to-tree transforms like get_sub_tree"""
         if edge is None:
             assert not params
-            return self.createEdge(children, "root", {}, False)
+            return self.create_edge(children, "root", {}, False)
         else:
             if params is None:
                 params = self._params_for_edge(edge)
-            return self.createEdge(
+            return self.create_edge(
                 children, edge.name, params, nameLoaded=edge.NameLoaded)
 
-    def createEdge(self, children, name, params, nameLoaded=True):
+    def create_edge(self, children, name, params, nameLoaded=True):
         """Callback for newick parser"""
         if children is None:
             children = []

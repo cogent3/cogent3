@@ -80,7 +80,7 @@ def ancestry2tree(A, lengths, tip_names):
             tip += 1
     assert tip == len(tip_names)
 
-    constructor = TreeBuilder().createEdge
+    constructor = TreeBuilder().create_edge
     free = {}
     for i in numpy.argsort(numpy.sum(A, axis=0)):
         children = [j for j in range(len(A)) if A[j, i] and j != i]
