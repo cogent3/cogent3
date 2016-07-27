@@ -572,7 +572,7 @@ class Sequence(_Annotatable, SequenceI):
             feat_label = gff.parse_attributes(attributes)
             self.addFeature(feature, feat_label, [(start, end)])
 
-    def withMaskedAnnotations(self, annot_types, mask_char=None, shadow=False):
+    def with_masked_annotations(self, annot_types, mask_char=None, shadow=False):
         """returns a sequence with annot_types regions replaced by mask_char
         if shadow is False, otherwise all other regions are masked.
 
