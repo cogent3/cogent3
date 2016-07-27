@@ -197,7 +197,7 @@ class _Defn(object):
         scope_t = tuple([scope[d] for d in self.valid_dimensions])
         return self.index[scope_t]
 
-    def usedDimensions(self):
+    def used_dimensions(self):
         used = []
         for (d, dim) in enumerate(self.valid_dimensions):
             seen = {}
@@ -673,7 +673,7 @@ class ParameterController(object):
                 (defn.numeric or not scalar_only)]
 
     def getUsedDimensions(self, par_name):
-        return self.defn_for[par_name].usedDimensions()
+        return self.defn_for[par_name].used_dimensions()
 
     def get_param_value(self, par_name, *args, **kw):
         """The value for 'par_name'.  Additional arguments specify the scope.
