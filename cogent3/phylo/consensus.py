@@ -195,7 +195,7 @@ def weighted_unrooted_majority_rule(weighted_trees, strict=False, attr='support'
             accepted_splits[split] = \
                 {attr: weight, 'length': split_lengths[split]}
 
-    return [getTree(accepted_splits)]
+    return [get_tree(accepted_splits)]
 
 
 def get_splits(tree):
@@ -230,7 +230,7 @@ def get_splits(tree):
     return {frozenset([tips - s, s]): params for s, params in list(splits.items())}
 
 
-def getTree(splits):
+def get_tree(splits):
     """Convert a dict keyed by splits into the equivalent tree.
     The dict values should be dicts appropriate for the params input to
     TreeBuilder.create_edge.
