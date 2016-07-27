@@ -101,7 +101,7 @@ optimiser as logs, so .get_value_array(), .change() and .__call__() should only 
 used by optimisers.  For other purposes there is an alternative, human friendly
 interface:
     
-    >>> pc.updateFromCalculator(f)
+    >>> pc.update_from_calculator(f)
     >>> pc.get_param_value('A', category='x')
     2.0
     >>> pc.get_param_value('B', category=['x', 'y'])
@@ -134,7 +134,7 @@ Now ask it to find the maximum.  It is a simple function with only one local
 maximum so local optimisation should be enough:
     
     >>> f.optimise(local=True, show_progress=False)
-    >>> pc.updateFromCalculator(f)
+    >>> pc.update_from_calculator(f)
 
 There were two parameters, X and Y, and at the maximum they should both be 0.0:
     

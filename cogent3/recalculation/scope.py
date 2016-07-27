@@ -796,11 +796,11 @@ class ParameterController(object):
         kw['remaining_parallel_context'] = self.remaining_parallel_context
         return calculatorClass(cells, input_soup, **kw)
 
-    def updateFromCalculator(self, calc):
+    def update_from_calculator(self, calc):
         changed = []
         for defn in list(self.defn_for.values()):
             if isinstance(defn, _LeafDefn):
-                defn.updateFromCalculator(calc)
+                defn.update_from_calculator(calc)
                 changed.append(defn)
         self.updateIntermediateValues(changed)
 
@@ -834,7 +834,7 @@ class ParameterController(object):
             else:
                 raise ArithmeticError(err_msg)
         finally:
-            self.updateFromCalculator(lc)
+            self.update_from_calculator(lc)
         if return_calculator:
             return lc
 

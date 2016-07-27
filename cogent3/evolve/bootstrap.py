@@ -100,7 +100,7 @@ class ParametricBootstrapCore(object):
                 # may have fewer CPUs per replicate than for original
                 pc.setupParallelContext()
                 # using a calculator as a memo object to reset the params
-                pc.updateFromCalculator(start_point)
+                pc.update_from_calculator(start_point)
             aln_rnd = random.Random(0)
             aln_rnd.setstate(alignment_random_state)
             # TODO jumpahead was deprecated, we need to consider an alternate
