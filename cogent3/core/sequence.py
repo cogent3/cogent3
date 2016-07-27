@@ -862,7 +862,7 @@ class NucleicAcidSequence(Sequence):
 
         return translation
 
-    def getOrfPositions(self, gc=None, atg=False):
+    def get_orf_positions(self, gc=None, atg=False):
         gc = self._gc_from_arg(gc)
         orfs = []
         start = None
