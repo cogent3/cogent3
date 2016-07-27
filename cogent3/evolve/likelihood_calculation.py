@@ -135,7 +135,7 @@ class LikelihoodTreeAlignmentSplitterDefn(CalculationDefn):
         return lht.parallelShare(parallel_context)
 
 
-def makeTotalLogLikelihoodDefn(tree, leaves, psubs, mprobs, bprobs, bin_names,
+def make_total_loglikelihood_defn(tree, leaves, psubs, mprobs, bprobs, bin_names,
                                locus_names, sites_independent):
 
     fixed_motifs = NonParamDefn('fixed_motif', ['edge'])
