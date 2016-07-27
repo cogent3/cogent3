@@ -77,7 +77,7 @@ class LikelihoodFunction(ParameterController):
         root_lht = self.get_param_value('root', locus=locus)
         return root_lht.get_full_length_likelihoods(root_lh)
 
-    def getGStatistic(self, return_table=False, locus=None):
+    def get_G_statistic(self, return_table=False, locus=None):
         """Goodness-of-fit statistic derived from the unambiguous columns"""
         root_lh = self._getLikelihoodValuesSummedAcrossAnyBins(locus=locus)
         root_lht = self.get_param_value('root', locus=locus)
