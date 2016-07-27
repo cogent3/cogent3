@@ -268,7 +268,7 @@ class EstimateDistances(object):
         ests = self.get_pairwise_param(param, **kwargs)
         return Numbers(list(ests.values()))
 
-    def getAllParamValues(self):
+    def get_all_param_values(self):
         """returns raw estimated parameter dictionary"""
         return self._param_ests.copy()
 
