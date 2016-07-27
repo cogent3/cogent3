@@ -365,9 +365,9 @@ class MolTypeTests(TestCase):
         self.assertFalse(v('ACIUBHFWUIXZKLNJUCIHBICNSOWMOINJ'))
         self.assertFalse(v('CAGUCAGUCACA---GACCAUG-_--cgau'))
 
-    def test_isStrict(self):
-        """MolType isStrict should return True if all symbols in Monomers"""
-        s = RnaMolType.isStrict
+    def test_is_strict(self):
+        """MolType is_strict should return True if all symbols in Monomers"""
+        s = RnaMolType.is_strict
         self.assertFalse(s(3))
         self.assertFalse(s(None))
         self.assertTrue(s(''))

@@ -715,7 +715,7 @@ class MolType(object):
         except:
             return False
 
-    def isStrict(self, sequence):
+    def is_strict(self, sequence):
         """Returns True if sequence contains only items in self.Alphabet."""
         try:
             return (len(sequence) == 0) or (self.firstNonStrict(sequence) is None)
