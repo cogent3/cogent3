@@ -183,7 +183,7 @@ class ModelSays(predicate):
         return self.name
 
     def interpret(self, model):
-        return model.getPredefinedPredicate(self.name)
+        return model.get_predefined_predicate(self.name)
 
 
 class DirectedMotifChange(predicate):

@@ -28,7 +28,7 @@ class NucleotideModelTestMethods(TestCase):
 
     def test_isTransition(self):
         """testing isTransition"""
-        isTransition = self.submodel.getPredefinedPredicate('transition')
+        isTransition = self.submodel.get_predefined_predicate('transition')
         assert isTransition('A', 'G')
         assert isTransition('C', 'T')
         assert not isTransition('A', 'T')
@@ -36,7 +36,7 @@ class NucleotideModelTestMethods(TestCase):
 
     def test_isTransversion(self):
         """testing isTransversion"""
-        isTransversion = self.submodel.getPredefinedPredicate('transversion')
+        isTransversion = self.submodel.get_predefined_predicate('transversion')
         assert not isTransversion('A', 'G')
         assert not isTransversion('C', 'T')
         assert isTransversion('A', 'T')
@@ -46,7 +46,7 @@ class NucleotideModelTestMethods(TestCase):
         """testing indel comparison nucleotide model"""
         model = substitution_model.Nucleotide(
             do_scaling=True, model_gaps=True)
-        isIndel = model.getPredefinedPredicate('indel')
+        isIndel = model.get_predefined_predicate('indel')
         assert isIndel('A', '-')
         assert isIndel('-', 'G')
         #assert not self.submodel.isIndel('-', '-')
@@ -74,7 +74,7 @@ class MultiLetterMotifSubstModelTests(TestCase):
     def test_isIndel(self):
         """testing indel comparison for dinucleotide model"""
         # these are non-instantaneous
-        isIndel = self.submodel.getPredefinedPredicate('indel')
+        isIndel = self.submodel.get_predefined_predicate('indel')
         assert not isIndel('AA', '--')
         assert not isIndel('--', 'CT')
 
@@ -126,7 +126,7 @@ class ThreeLetterMotifSubstModelTests(TestCase):
 
     def test_isIndel(self):
         """testing indel comparison for trinucleotide model"""
-        isIndel = self.submodel.getPredefinedPredicate('indel')
+        isIndel = self.submodel.get_predefined_predicate('indel')
         assert isIndel('AAA', 'AA-')
         assert isIndel('-CA', 'CCA')
         assert isIndel('TAC', 'T-C')
@@ -148,7 +148,7 @@ class CodonSubstModelTests(TestCase):
 
     def test_isTransition(self):
         """testing codon isTransition"""
-        isTransition = self.standardcode.getPredefinedPredicate('transition')
+        isTransition = self.standardcode.get_predefined_predicate('transition')
         # first position
         assert isTransition('TGC', 'CGC')
         assert isTransition('GGC', 'AGC')
@@ -167,30 +167,30 @@ class CodonSubstModelTests(TestCase):
 
     def test_isReplacement(self):
         """test isReplacement for the two major genetic codes"""
-        isReplacement = self.standardcode.getPredefinedPredicate('replacement')
+        isReplacement = self.standardcode.get_predefined_predicate('replacement')
         # for the standard code, a replacement
         assert isReplacement('CTG', 'ATG')
         assert not isReplacement('AGT', 'TCC')
         assert not isReplacement('CTG', '---')
         assert not isReplacement('---', 'CTA')
         # for the vert mitocho code, instantaneous replacement
-        isReplacement = self.mitocode.getPredefinedPredicate('replacement')
+        isReplacement = self.mitocode.get_predefined_predicate('replacement')
         assert isReplacement('AAA', 'AAC')
 
     def test_isSilent(self):
         """testing isSilent for the two major genetic codes"""
-        isSilent = self.standardcode.getPredefinedPredicate('silent')
+        isSilent = self.standardcode.get_predefined_predicate('silent')
         assert isSilent('CTA', 'CTG')
         assert not isSilent('AGT', 'AAG')
         assert not isSilent('CTG', '---')
         assert not isSilent('---', 'CTG')
         # for vert mito code
-        isSilent = self.mitocode.getPredefinedPredicate('silent')
+        isSilent = self.mitocode.get_predefined_predicate('silent')
         assert isSilent('TCC', 'TCA')
 
     def test_isIndel(self):
         """test isIndel for codon model"""
-        isIndel = self.standardcode.getPredefinedPredicate('indel')
+        isIndel = self.standardcode.get_predefined_predicate('indel')
         assert isIndel('CTA', '---')
         assert not isIndel('---', '---')
         assert isIndel('---', 'TTC')
