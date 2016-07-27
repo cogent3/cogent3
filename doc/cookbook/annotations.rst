@@ -148,7 +148,7 @@ A shadow is a span representing everything but the annotation.
 
 .. doctest::
 
-    >>> not_cds = cds.getShadow()
+    >>> not_cds = cds.get_shadow()
     >>> not_cds
     region "not exon" at [0:10, 15:30, 40:45, 48:49]/49
 
@@ -529,7 +529,7 @@ What features of a certain type are available?
 Getting all features of a type, or everything but that type
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-The annotation methods ``get_region_covering_all`` and ``getShadow`` can be used to grab all the coding sequences or non-coding sequences in a ``DnaSequence`` object.
+The annotation methods ``get_region_covering_all`` and ``get_shadow`` can be used to grab all the coding sequences or non-coding sequences in a ``DnaSequence`` object.
 
 .. doctest::
 
@@ -542,7 +542,7 @@ The annotation methods ``get_region_covering_all`` and ``getShadow`` can be used
     region "CDS" at [189:255, 336:2799, 2800:3730, 3733...
     >>> coding_seqs.get_slice()
     DnaSequence(ATGAACC... 9063)
-    >>> noncoding_seqs = coding_seqs.getShadow()
+    >>> noncoding_seqs = coding_seqs.get_shadow()
     >>> noncoding_seqs
     region "not CDS" at [0:189, 255:336, 2799:2800, ...
     >>> noncoding_seqs.get_slice()

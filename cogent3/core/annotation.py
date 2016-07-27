@@ -225,7 +225,7 @@ class _Feature(_Annotatable):
         new_map = self.map.getCoveringSpan()
         return self.__class__(self.parent, new_map, type="span", Name=self.Name)
 
-    def getShadow(self):
+    def get_shadow(self):
         return self.__class__(self.parent, self.map.shadow(), type='region',
                               Name='not ' + self.Name)
 
