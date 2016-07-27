@@ -321,7 +321,7 @@ class LikelihoodFunctionTests(TestCase):
         self.assertFloatEqual(lf.get_aic(second_order=True),
                               aic(lnL, nfp, l))
 
-        self.assertFloatEqual(lf.getBic(), bic(lnL, nfp, l))
+        self.assertFloatEqual(lf.get_bic(), bic(lnL, nfp, l))
 
     def test_result_str(self):
         # actualy more a test of self._setLengthsAndBetas()

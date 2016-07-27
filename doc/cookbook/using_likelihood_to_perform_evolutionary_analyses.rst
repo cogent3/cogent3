@@ -384,7 +384,7 @@ Bayesian Information Criterion
     >>> lf = sm.makeLikelihoodFunction(tree)
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> lf.setAlignment(aln)
-    >>> BIC = lf.getBic()
+    >>> BIC = lf.get_bic()
     >>> BIC
     49330.9475...
 
