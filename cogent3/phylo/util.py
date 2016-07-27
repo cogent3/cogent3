@@ -26,7 +26,7 @@ def names_from_distance_dict(dists):
     return names
 
 
-def lookupSymmetricDict(dists, a, b):
+def lookup_symmetric_dict(dists, a, b):
     """dists[a,b] or dists[b,a], whichever is present, so long as they
     don't contradict each other"""
     v1 = dists.get((a, b), None)
@@ -48,7 +48,7 @@ def distanceDictTo2D(dists):
     for (i, a) in enumerate(names):
         for (j, b) in enumerate(names):
             if i != j:
-                d[i, j] = lookupSymmetricDict(dists, a, b)
+                d[i, j] = lookup_symmetric_dict(dists, a, b)
     return (names, d)
 
 
@@ -68,7 +68,7 @@ def distanceDictAndNamesTo1D(dists, names):
     d[0,1], d[0, 2], d[1, 2], d[0, 3]..."""
     d = []
     for (name_i, name_j) in triangularOrder(names):
-        d.append(lookupSymmetricDict(dists, name_i, name_j))
+        d.append(lookup_symmetric_dict(dists, name_i, name_j))
     return numpy.array(d)
 
 
