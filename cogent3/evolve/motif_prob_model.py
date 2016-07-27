@@ -3,7 +3,7 @@
 import numpy
 import warnings
 from . import substitution_calculation
-from cogent3.evolve.likelihood_tree import makeLikelihoodTreeLeaf
+from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -55,7 +55,7 @@ class MotifProbModel(object):
         result = None
         for seq_name in alignment.get_seq_names():
             sequence = alignment.get_gapped_seq(seq_name, recode_gaps)
-            leaf = makeLikelihoodTreeLeaf(sequence, self.getCountedAlphabet(),
+            leaf = make_likelihood_tree_leaf(sequence, self.getCountedAlphabet(),
                                           seq_name)
             count = leaf.getMotifCounts(include_ambiguity=include_ambiguity)
             if result is None:

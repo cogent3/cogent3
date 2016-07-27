@@ -280,7 +280,7 @@ def _indexed(values):
     return unique, counts, index
 
 
-def makeLikelihoodTreeLeaf(sequence, alphabet=None, seq_name=None):
+def make_likelihood_tree_leaf(sequence, alphabet=None, seq_name=None):
     if alphabet is None:
         alphabet = sequence.moltype.alphabet
     if seq_name is None:
