@@ -312,7 +312,7 @@ class _LikelihoodParameterController(_LF):
         nfp = self.getNumFreeParams()
         return aic(lnL, nfp, sequence_length)
 
-    def getBic(self):
+    def get_bic(self):
         """returns the Bayesian Information Criteria"""
         sequence_length = sum(len(self.get_param_value('lht', locus=l).index)
                               for l in self.locus_names)
