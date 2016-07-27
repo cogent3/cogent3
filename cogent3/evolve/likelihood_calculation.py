@@ -167,7 +167,7 @@ def make_total_loglikelihood_defn(tree, leaves, psubs, mprobs, bprobs, bin_names
             site_pattern = CalcDefn(PatchSiteDistribution, name='bdist')(
                 switch, bprobs)
         blh = CallDefn(site_pattern, lht, name='bindex')
-        tll = CallDefn(blh, *lh.acrossDimension('bin', bin_names),
+        tll = CallDefn(blh, *lh.across_dimension('bin', bin_names),
                        **dict(name='tll'))
     else:
         lh = lh.select_from_dimension('bin', bin_names[0])
@@ -176,7 +176,7 @@ def make_total_loglikelihood_defn(tree, leaves, psubs, mprobs, bprobs, bin_names
     if len(locus_names) > 1 or parallel_context is None:
         # "or parallel_context is None" only because SelectFromDimension
         # currently has no .make_likelihood_function() method.
-        tll = SumDefn(*tll.acrossDimension('locus', locus_names))
+        tll = SumDefn(*tll.across_dimension('locus', locus_names))
     else:
         tll = tll.select_from_dimension('locus', locus_names[0])
 
