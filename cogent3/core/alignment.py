@@ -2893,7 +2893,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
         return self.take_positions(non_gap_cols)
 
-    def addFromReferenceAln(self, ref_aln, before_name=None, after_name=None):
+    def add_from_ref_aln(self, ref_aln, before_name=None, after_name=None):
         """
         Insert sequence(s) to self based on their alignment to a reference
         sequence. Assumes the first sequence in ref_aln.Names[0] is the

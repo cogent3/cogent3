@@ -1638,7 +1638,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
 
         self.assertRaises(ValueError, aln.getDegappedRelativeTo, 'nameX')
 
-    def test_addFromReferenceAln(self):
+    def test_add_from_ref_aln(self):
         """should add or insert seqs based on align to reference"""
         aln1 = self.Class([
             ['name1', '-AC-DEFGHI---'],
@@ -1689,26 +1689,26 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
             ['name4', '-KL---MNPR---'],
             ])
 
-        out_aln = aln1.addFromReferenceAln(aln2, after_name='name1')
+        out_aln = aln1.add_from_ref_aln(aln2, after_name='name1')
         self.assertEqual(str(aligned_to_ref_out_aln_inserted),
                          str(out_aln))  # test insert_after
 
-        out_aln = aln1.addFromReferenceAln(aln2, before_name='name2')
+        out_aln = aln1.add_from_ref_aln(aln2, before_name='name2')
         self.assertEqual(aligned_to_ref_out_aln_inserted,
                          out_aln)  # test insert_before
 
-        self.assertRaises(ValueError, aln1.addFromReferenceAln,
+        self.assertRaises(ValueError, aln1.add_from_ref_aln,
                           aln2_wrong_refseq_name)  # test wrong_refseq_name
 
-        aln = aln1.addFromReferenceAln(aln2_different_aln_class)
+        aln = aln1.add_from_ref_aln(aln2_different_aln_class)
         self.assertEqual(aligned_to_ref_out_aln,
                          aln)  # test_align_to_refseq_different_aln_class
 
-        aln = aln1.addFromReferenceAln(aln2_list)
+        aln = aln1.add_from_ref_aln(aln2_list)
         self.assertEqual(aligned_to_ref_out_aln,
                          aln)  # test from_list
 
-        self.assertRaises(ValueError, aln1.addFromReferenceAln,
+        self.assertRaises(ValueError, aln1.add_from_ref_aln,
                           aln2_wrong_refseq)  # test wrong_refseq
 
 
