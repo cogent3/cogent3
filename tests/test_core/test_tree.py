@@ -620,9 +620,9 @@ class TreeNodeTests(TestCase):
         r = 'a'
         for n in list(self.TreeNode.values()):
             if n.name in r:
-                self.assertEqual(n.isRoot(), True)
+                self.assertEqual(n.is_root(), True)
             else:
-                self.assertEqual(n.isRoot(), False)
+                self.assertEqual(n.is_root(), False)
 
     def test_traverse(self):
         """TreeNode traverse should iterate over nodes in tree."""
@@ -1414,7 +1414,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(tmid.getDistances(), tree.getDistances())
         tipnames = tree.getTipNames()
         nontipnames = [t.name for t in tree.nontips()]
-        self.assertTrue(tmid.isRoot())
+        self.assertTrue(tmid.is_root())
         self.assertEqual(tmid.distance(tmid.getNodeMatchingName('d')), 2.75)
 
     def test_rootAtMidpoint4(self):
@@ -1435,7 +1435,7 @@ class PhyloNodeTests(TestCase):
         #           tree.getNodeMatchingName(nontipname).distance(orig_tip)
         #         print nontipname, tipname, 'assert'
                 # self.assertEqual(tmid_dist, orig_dist)
-        self.assertTrue(tmid.isRoot())
+        self.assertTrue(tmid.is_root())
         self.assertEqual(tmid.distance(
             tmid.getNodeMatchingName('d')), 3)
 
@@ -1448,7 +1448,7 @@ class PhyloNodeTests(TestCase):
         tipnames = tree.getTipNames()
         nontipnames = [t.name for t in tree.nontips()]
 
-        self.assertTrue(tmid.isRoot())
+        self.assertTrue(tmid.is_root())
         self.assertFloatEqual(tmid.distance(
             tmid.getNodeMatchingName('BLO_2')), 0.649351)
         self.assertFloatEqual(tmid.distance(
