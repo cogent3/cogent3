@@ -269,7 +269,7 @@ class _SubstitutionModel(object):
         result = klass(self, tree, **kw)
 
         if self.motif_probs is not None:
-            result.setMotifProbs(
+            result.set_motif_probs(
                 self.motif_probs, is_constant=not optimise_motif_probs, auto=True)
 
         if expm is None:

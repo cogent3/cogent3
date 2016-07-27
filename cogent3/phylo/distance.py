@@ -156,7 +156,7 @@ class EstimateDistances(object):
             lf.setParamRule('length', is_independent=False)
 
         if self._motif_probs:
-            lf.setMotifProbs(self._motif_probs)
+            lf.set_motif_probs(self._motif_probs)
 
         lf.setAlignment(align)
 

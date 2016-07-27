@@ -140,10 +140,10 @@ class _LikelihoodParameterController(_LF):
                 pseudocount = 0.5
         counts += pseudocount
         mprobs = counts / (1.0 * sum(counts))
-        self.setMotifProbs(mprobs, locus=locus, is_constant=is_constant,
+        self.set_motif_probs(mprobs, locus=locus, is_constant=is_constant,
                            is_independent=is_independent, auto=auto, **kwargs)
 
-    def setMotifProbs(self, motif_probs, locus=None, bin=None, is_constant=None,
+    def set_motif_probs(self, motif_probs, locus=None, bin=None, is_constant=None,
                       is_independent=None, auto=False, **kwargs):
         if 'is_const' in kwargs:
             is_constant = kwargs.pop('is_const')
@@ -403,5 +403,5 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
                 counts = numpy.sum([pog.leaf.get_motif_counts()
                                     for pog in list(leaves.values())], 0)
                 mprobs = counts / (1.0 * sum(counts))
-                self.setMotifProbs(mprobs, locus=locus,
+                self.set_motif_probs(mprobs, locus=locus,
                                    is_constant=True, auto=True)
