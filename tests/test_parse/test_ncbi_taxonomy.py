@@ -262,12 +262,12 @@ class NcbiTaxonomyTests(TestCase):
         self.assertEqual(self.tx['2'].Name, 'Bacteria')
         self.assertEqual(self.tx['7'].Name, 'Azorhizobium caulinodans')
 
-    def test_lastCommonAncestor(self):
-        """NcbiTaxonomy should support lastCommonAncestor()"""
-        assert self.tx[9].lastCommonAncestor(self.tx[9]) is self.tx[9]
-        assert self.tx[9].lastCommonAncestor(self.tx[7]) is self.tx[7]
-        assert self.tx[9].lastCommonAncestor(self.tx[10]) is self.tx[6]
-        assert self.tx[9].lastCommonAncestor(self.tx[1]) is self.tx[1]
+    def test_last_common_ancestor(self):
+        """NcbiTaxonomy should support last_common_ancestor()"""
+        assert self.tx[9].last_common_ancestor(self.tx[9]) is self.tx[9]
+        assert self.tx[9].last_common_ancestor(self.tx[7]) is self.tx[7]
+        assert self.tx[9].last_common_ancestor(self.tx[10]) is self.tx[6]
+        assert self.tx[9].last_common_ancestor(self.tx[1]) is self.tx[1]
 
 
 class NcbiTaxonNodeTests(TestCase):

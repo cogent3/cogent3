@@ -591,7 +591,7 @@ class TreeNode(object):
         result.append(curr)
         return result
 
-    def lastCommonAncestor(self, other):
+    def last_common_ancestor(self, other):
         """Finds last common ancestor of self and other, or None.
 
         Always tests by identity.
@@ -644,7 +644,7 @@ class TreeNode(object):
 
         return curr
 
-    lca = lastCommonAncestor  # for convenience
+    lca = last_common_ancestor  # for convenience
 
     # support for more advanced tree operations
 
@@ -1398,7 +1398,7 @@ class TreeNode(object):
         """Finds the last common ancestor of the two named edges."""
         edge1 = self.getNodeMatchingName(name1)
         edge2 = self.getNodeMatchingName(name2)
-        lca = edge1.lastCommonAncestor(edge2)
+        lca = edge1.last_common_ancestor(edge2)
         if lca is None:
             raise TreeError("No LCA found for %s and %s" % (name1, name2))
         return lca

@@ -1122,7 +1122,7 @@ def ancestral_state_pair(aln, tree, pos1, pos2,
         for j in range(i, len(tips)):
             org2 = tips[j]
             seq2 = names_to_seqs[org2]
-            ancestor = nodes[org1].lastCommonAncestor(nodes[org2]).name
+            ancestor = nodes[org1].last_common_ancestor(nodes[org2]).name
             if ancestor == org1 == org2:
                 # we're looking for correlated change along a
                 # single branch
