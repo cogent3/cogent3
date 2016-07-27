@@ -472,7 +472,7 @@ class Calculator(object):
                 if self.trace:
                     self.tracingUpdate(changes, program, data)
                 else:
-                    self.plainUpdate(program, data)
+                    self.plain_update(program, data)
 
                 # if non-optimiser parameter was set then undo is invalid
                 if (self.last_undo and
@@ -511,7 +511,7 @@ class Calculator(object):
                 [cell for cell in self._cells if cell.rank in consequences])
         return program
 
-    def plainUpdate(self, program, data):
+    def plain_update(self, program, data):
         try:
             for cell in program:
                 data[cell.rank] = cell.calc(*[data[a] for a in cell.arg_ranks])
@@ -524,7 +524,7 @@ class Calculator(object):
             raise CalculationInterupted(cell, detail)
 
     def tracingUpdate(self, changes, program, data):
-        # Does the same thing as plainUpdate, but also produces lots of
+        # Does the same thing as plain_update, but also produces lots of
         # output showing how long each step of the calculation takes.
         # One line per call, '-' for undo, '+' for calculation
 
