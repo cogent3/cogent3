@@ -503,13 +503,13 @@ class TreeNodeTests(TestCase):
 
         self.assertEqual(str(t_simple.copy()), str(t_simple.copy()))
 
-    def test_copyTopology(self):
-        """TreeNode.copyTopology() should produce deep copy ignoring attrs"""
+    def test_copy_topology(self):
+        """TreeNode.copy_topology() should produce deep copy ignoring attrs"""
         t = TreeNode(['t'])
         u = TreeNode(['u'])
         t.append(u)
 
-        c = u.copyTopology()
+        c = u.copy_topology()
         assert c is not u
         self.assertEqual(c.name, u.name)
         # note: name _is_ same object if it's immutable, e.g. a string.
@@ -517,7 +517,7 @@ class TreeNodeTests(TestCase):
 
         # need to check that we do not also copy arbitrary attributes
         t.XYZ = [3]
-        c = t.copyTopology()
+        c = t.copy_topology()
         assert c is not t
         assert c[0] is not u
         assert c[0].name is not u.name
