@@ -29,7 +29,7 @@ class PredefinedNucleotide(Nucleotide):
         # Only one set of mprobs will be used
         assert word_probs is mprobs_matrix
         # Order of bases is assumed later, so check it really is Y,Y,R,R:
-        alphabet = self.getAlphabet()
+        alphabet = self.get_alphabet()
         assert set(list(alphabet)[:2]) == set(['T', 'C'])
         assert set(list(alphabet)[2:]) == set(['G', 'A'])
         # Should produce the same P as an ordinary Q based model would:

@@ -26,7 +26,7 @@ class _CallablePredicate(object):
 
     def __init__(self, pred, model):
         self.model = model
-        self.alphabet = model.getAlphabet()
+        self.alphabet = model.get_alphabet()
         self.name = repr(pred)
         self.f = pred.interpret(model)
         self.__doc__ = pred.__doc__
@@ -226,7 +226,7 @@ class DirectedMotifChange(predicate):
 
         # may be looking for a 2nt pattern in a 3nt alphabet, but not
         # 3nt pattern in dinucleotide alphabet.
-        alphabet = model.getAlphabet()
+        alphabet = model.get_alphabet()
         if alphabet.get_motif_len() < self.motiflen:
             raise ValueError("alphabet motifs (%s) too short for %s (%s)" %
                              (alphabet.get_motif_len(), repr(self), self.motiflen))

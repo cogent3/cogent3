@@ -206,12 +206,12 @@ class ModelDataInteractionTestMethods(TestCase):
     def test_excludeinggaps(self):
         """testing excluding gaps from model"""
         model = substitution_model.Nucleotide(model_gaps=False)
-        assert len(model.getAlphabet()) == 4
+        assert len(model.get_alphabet()) == 4
 
     def test_includinggaps(self):
         """testing excluding gaps from model"""
         model = substitution_model.Nucleotide(model_gaps=True)
-        assert len(model.getAlphabet()) == 5
+        assert len(model.get_alphabet()) == 5
 
     def test_getMotifs(self):
         """testing return of motifs"""
