@@ -385,7 +385,7 @@ class PartitionDefn(_InputDefn):
             default = numpy.asarray(default)
         _InputDefn.__init__(self, name=name, default=default,
                             dimensions=dimensions, **kw)
-        self.checkValueIsValid(default, True)
+        self.check_value_is_valid(default, True)
 
     def _makeDefaultValue(self):
         return numpy.array([1.0 / self.size] * self.size)
@@ -396,9 +396,9 @@ class PartitionDefn(_InputDefn):
 
     def checkSettingIsValid(self, setting):
         value = setting.getDefaultValue()
-        return self.checkValueIsValid(value, setting.is_constant)
+        return self.check_value_is_valid(value, setting.is_constant)
 
-    def checkValueIsValid(self, value, is_constant):
+    def check_value_is_valid(self, value, is_constant):
         if value.shape != (self.size,):
             raise ValueError("Wrong array shape %s for %s, expected (%s,)" %
                              (value.shape, self.name, self.size))
