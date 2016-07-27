@@ -95,7 +95,7 @@ class LikelihoodFunction(ParameterController):
             - locus: a named locus"""
         result = {}
         array_template = None
-        for restricted_edge in self._tree.getEdgeVector():
+        for restricted_edge in self._tree.get_edge_vector():
             if restricted_edge.istip():
                 continue
             try:
@@ -144,7 +144,7 @@ class LikelihoodFunction(ParameterController):
     def _valuesForDimension(self, dim):
         # in support of __str__
         if dim == 'edge':
-            result = [e.name for e in self._tree.getEdgeVector()]
+            result = [e.name for e in self._tree.get_edge_vector()]
         elif dim == 'bin':
             result = self.bin_names[:]
         elif dim == 'locus':
@@ -180,7 +180,7 @@ class LikelihoodFunction(ParameterController):
     def getAnnotatedTree(self):
         d = self.getParamValueDict(['edge'])
         tree = self._tree.deepcopy()
-        for edge in tree.getEdgeVector():
+        for edge in tree.get_edge_vector():
             if edge.name == 'root':
                 continue
             for par in d:
@@ -218,7 +218,7 @@ class LikelihoodFunction(ParameterController):
         mprobs = [valueOf('mprobs', bin=b) for b in bin_names]
 
         scaled_lengths = {}
-        for edge in self._tree.getEdgeVector():
+        for edge in self._tree.get_edge_vector():
             if edge.isroot():
                 continue
             Qs = [valueOf('Qd', bin=b, edge=edge.name).Q for b in bin_names]
@@ -264,7 +264,7 @@ class LikelihoodFunction(ParameterController):
                     param_names.remove('length')
                     param_names.insert(0, 'length')
                 raw_table['parent'] = dict([(e.name, e.Parent.name)
-                                            for e in self._tree.getEdgeVector()
+                                            for e in self._tree.get_edge_vector()
                                             if not e.isroot()])
                 param_names.insert(0, 'parent')
             list_table = []
@@ -322,7 +322,7 @@ class LikelihoodFunction(ParameterController):
             for predicate in self.model.scale_masks:
                 stats_dict[predicate] = self.getScaledLengths(predicate)
 
-        edge_vector = [e for e in self._tree.getEdgeVector() if not e.isroot()]
+        edge_vector = [e for e in self._tree.get_edge_vector() if not e.isroot()]
 
         # do the edge names
         if with_parent_names:
@@ -435,7 +435,7 @@ class LikelihoodFunction(ParameterController):
 
     def allPsubsDLC(self):
         """Returns True if every Psub matrix is Diagonal Largest in Column"""
-        for edge in self.tree.getEdgeVector(include_root=False):
+        for edge in self.tree.get_edge_vector(include_root=False):
             P = self.getPsubForEdge(edge.name).asarray()
             if (P.diagonal() < P).any():
                 return False
@@ -443,7 +443,7 @@ class LikelihoodFunction(ParameterController):
 
     def allRateMatricesUnique(self):
         """Returns True if every rate matrix is unique for its Psub matrix"""
-        for edge in self.tree.getEdgeVector(include_root=False):
+        for edge in self.tree.get_edge_vector(include_root=False):
             Q = self.getRateMatrixForEdge(edge.name).asarray()
             t = self.getParamValue('length', edge=edge.name)
             if not is_generator_unique(Q * t):

@@ -77,7 +77,7 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
     total = 0
     for (weight, tree) in weighted_trees:
         total += weight
-        edges = tree.getEdgeVector()
+        edges = tree.get_edge_vector()
         for edge in edges:
             tips = edge.get_tip_names(includeself=True)
             tips = frozenset(tips)

@@ -46,7 +46,7 @@ def ismallest(data, size):
 
 
 def tree2ancestry(tree, order=None):
-    nodes = tree.unrooted().getEdgeVector()[:-1]
+    nodes = tree.unrooted().get_edge_vector()[:-1]
     if order is not None:
         lookup = dict([(k, i) for (i, k) in enumerate(order)])
 
