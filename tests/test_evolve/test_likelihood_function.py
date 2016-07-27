@@ -408,7 +408,7 @@ motif  mprobs
         """excercising the most likely ancestral sequences"""
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
-        result = likelihood_function.likelyAncestralSeqs()
+        result = likelihood_function.likely_ancestral_seqs()
 
     def test_simulateAlignment(self):
         "Simulate DNA alignment"
