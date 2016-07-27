@@ -186,7 +186,7 @@ class _SubstitutionModel(object):
         isinst = self._isInstantaneous
         self._instantaneous_mask = predicate2matrix(self.alphabet, isinst)
         self._instantaneous_mask_f = self._instantaneous_mask * 1.0
-        self.mprob_model = motif_prob_model.makeModel(mprob_model, alphabet,
+        self.mprob_model = motif_prob_model.make_model(mprob_model, alphabet,
                                                       self._instantaneous_mask_f)
 
         # MOTIF PROBS

@@ -15,7 +15,7 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-def makeModel(mprob_model, tuple_alphabet, mask):
+def make_model(mprob_model, tuple_alphabet, mask):
     if mprob_model == "monomers":
         return PosnSpecificMonomerProbModel(tuple_alphabet, mask)
     elif mprob_model == "monomer":
