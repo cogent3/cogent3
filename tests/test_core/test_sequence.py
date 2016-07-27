@@ -110,11 +110,11 @@ class SequenceTests(TestCase):
         r = self.RNA('ugagg')
         assert dumps(r)
 
-    def test_stripDegenerate(self):
-        """Sequence stripDegenerate should remove any degenerate bases"""
-        self.assertEqual(self.RNA('UCAG-').stripDegenerate(), 'UCAG-')
-        self.assertEqual(self.RNA('NRYSW').stripDegenerate(), '')
-        self.assertEqual(self.RNA('USNG').stripDegenerate(), 'UG')
+    def test_strip_degenerate(self):
+        """Sequence strip_degenerate should remove any degenerate bases"""
+        self.assertEqual(self.RNA('UCAG-').strip_degenerate(), 'UCAG-')
+        self.assertEqual(self.RNA('NRYSW').strip_degenerate(), '')
+        self.assertEqual(self.RNA('USNG').strip_degenerate(), 'UG')
 
     def test_stripBad(self):
         """Sequence stripBad should remove any non-base, non-gap chars"""
@@ -659,7 +659,7 @@ class SequenceTests(TestCase):
         raw_no_ambigs = re.sub("[N?]+", "", raw_seq)
         dna = self.DNA(raw_seq)
         self.assertEqual(dna.degap(), raw_ungapped)
-        self.assertEqual(dna.stripDegenerate(), raw_no_ambigs)
+        self.assertEqual(dna.strip_degenerate(), raw_no_ambigs)
         self.assertEqual(dna.stripBadAndGaps(), raw_ungapped)
 
 

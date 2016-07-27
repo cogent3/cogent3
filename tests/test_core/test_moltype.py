@@ -244,9 +244,9 @@ class MolTypeTests(TestCase):
         self.assertEqual(a.first_gap('a~c'), 1)
         self.assertEqual(a.firstInvalid('Abcx'), 3)
 
-    def test_stripDegenerate(self):
-        """MolType stripDegenerate should remove any degenerate bases"""
-        s = RnaMolType.stripDegenerate
+    def test_strip_degenerate(self):
+        """MolType strip_degenerate should remove any degenerate bases"""
+        s = RnaMolType.strip_degenerate
         self.assertEqual(s('UCAG-'), 'UCAG-')
         self.assertEqual(s('NRYSW'), '')
         self.assertEqual(s('USNG'), 'UG')
