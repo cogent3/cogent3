@@ -341,7 +341,7 @@ class LikelihoodTreeLeaf(object):
         cols = list(range(*index.indices(len(self.index))))
         return self.select_columns(cols)
 
-    def getMotifCounts(self, include_ambiguity=False):
+    def get_motif_counts(self, include_ambiguity=False):
         weights = self.counts / self.ambig
         profile = self.input_likelihoods * weights[..., numpy.newaxis]
         if not include_ambiguity:
