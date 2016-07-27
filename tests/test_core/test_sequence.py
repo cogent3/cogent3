@@ -116,14 +116,14 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('NRYSW').strip_degenerate(), '')
         self.assertEqual(self.RNA('USNG').strip_degenerate(), 'UG')
 
-    def test_stripBad(self):
-        """Sequence stripBad should remove any non-base, non-gap chars"""
+    def test_strip_bad(self):
+        """Sequence strip_bad should remove any non-base, non-gap chars"""
         # have to turn off check to get bad data in; no longer preserves case
         self.assertEqual(self.RNA('UCxxxAGwsnyrHBNzzzD-D', check=False
-                                  ).stripBad(), 'UCAGWSNYRHBND-D')
+                                  ).strip_bad(), 'UCAGWSNYRHBND-D')
         self.assertEqual(self.RNA('@#^*($@!#&()!@QZX', check=False
-                                  ).stripBad(), '')
-        self.assertEqual(self.RNA('aaaxggg---!ccc', check=False).stripBad(),
+                                  ).strip_bad(), '')
+        self.assertEqual(self.RNA('aaaxggg---!ccc', check=False).strip_bad(),
                          'AAAGGG---CCC')
 
     def test_strip_bad_and_gaps(self):
@@ -878,13 +878,13 @@ class ModelSequenceTests(SequenceTests):
             return 0
         self.assertEqual(s1.distance(s2, f, use_indices=True), 20)
 
-    def test_stripBad(self):
-        """Sequence stripBad should remove any non-base, non-gap chars"""
+    def test_strip_bad(self):
+        """Sequence strip_bad should remove any non-base, non-gap chars"""
         # have to turn off check to get bad data in; no longer preserves case
         r = self.RNA('UCAGRYU')
         r._data[0] = 31
         r._data[2] = 55
-        self.assertEqual(r.stripBad(), 'CGRYU')
+        self.assertEqual(r.strip_bad(), 'CGRYU')
 
     def test_strip_bad_and_gaps(self):
         """Sequence strip_bad_and_gaps should remove gaps and bad chars"""

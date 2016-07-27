@@ -519,7 +519,7 @@ class MolType(object):
         strict_gap = "".join(set(self.GapString) - set(self.Degenerates))
         self.strip_degenerate = FunctionWrapper(
             KeepChars(strict_gap + ''.join(self.Alphabet)))
-        self.stripBad = FunctionWrapper(KeepChars(''.join(self.All)))
+        self.strip_bad = FunctionWrapper(KeepChars(''.join(self.All)))
         to_keep = set(self.Alphabet) ^ set(self.Degenerates) - set(self.Gaps)
         self.strip_bad_and_gaps = FunctionWrapper(KeepChars(''.join(to_keep)))
 
