@@ -722,7 +722,7 @@ class MolType(object):
         except:
             return False
 
-    def is_validOnAlphabet(self, sequence, alphabet=None):
+    def valid_on_alphabet(self, sequence, alphabet=None):
         """Returns True if sequence contains only items in alphabet.
 
         Alphabet can actually be anything that implements __contains__.
