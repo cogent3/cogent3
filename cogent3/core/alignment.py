@@ -1557,11 +1557,11 @@ class Aligned(object):
 
     def __iter__(self):
         """Iterates over sequence one motif (e.g. char) at a time, incl. gaps"""
-        return self.data.gappedByMapMotifIter(self.map)
+        return self.data.gapped_by_mapMotifIter(self.map)
 
     def get_gapped_seq(self, recode_gaps=False):
         """Returns sequence as an object, including gaps."""
-        return self.data.gappedByMap(self.map, recode_gaps)
+        return self.data.gapped_by_map(self.map, recode_gaps)
 
     def __len__(self):
         # these make it look like Aligned should be a subclass of Map,
@@ -1990,7 +1990,7 @@ class AlignmentI(object):
         positions = [(loc * motif_length, (loc + 1) * motif_length)
                      for loc in locations]
         sample = Map(positions, parent_length=len(self))
-        return self.gappedByMap(sample, Info=self.Info)
+        return self.gapped_by_map(sample, Info=self.Info)
 
     def sliding_windows(self, window, step, start=None, end=None):
         """Generator yielding new Alignments of given length and interval.
@@ -2700,13 +2700,13 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             align.append((name, self.named_seqs[name][slicemap]))
         return self.__class__(MolType=self.MolType, data=align)
 
-    def gappedByMap(self, keep, **kwargs):
+    def gapped_by_map(self, keep, **kwargs):
         # keep is a Map
         seqs = []
         for seq_name in self.names:
             aligned = self.named_seqs[seq_name]
             seqmap = aligned.map[keep]
-            seq = aligned.data.gappedByMap(seqmap)
+            seq = aligned.data.gapped_by_map(seqmap)
             seqs.append((seq_name, seq))
         return self.__class__(MolType=self.MolType, data=seqs, **kwargs)
 
@@ -2809,7 +2809,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         locations = [(gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
 
         keep = Map(locations, parent_length=len(self))
-        return self.gappedByMap(keep, Info=self.Info)
+        return self.gapped_by_map(keep, Info=self.Info)
 
     def get_seq(self, seqname):
         """Return a ungapped Sequence object for the specified seqname.

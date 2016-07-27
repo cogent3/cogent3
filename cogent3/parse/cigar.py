@@ -73,7 +73,7 @@ def aligned_from_cigar(cigar_text, seq, moltype=DNA):
     if isinstance(seq, str):
         seq = moltype.makeSequence(seq)
     map = cigar_to_map(cigar_text)
-    aligned_seq = seq.gappedByMap(map)
+    aligned_seq = seq.gapped_by_map(map)
     return aligned_seq
 
 
@@ -153,7 +153,7 @@ def CigarParser(seqs, cigars, sliced=False, ref_seqname=None, start=None, end=No
                 seq = seqs[seqname]
                 if isinstance(seq, str):
                     seq = moltype.makeSequence(seq)
-                data[seqname] = seq[seq_loc[0]:seq_loc[1]].gappedByMap(m)
+                data[seqname] = seq[seq_loc[0]:seq_loc[1]].gapped_by_map(m)
             else:
                 data[seqname] = DNA.makeSequence(
                     '-' * (aln_loc[1] - aln_loc[0]))
