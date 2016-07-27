@@ -231,7 +231,7 @@ class Enumeration(tuple):
         except (KeyError, TypeError):
             return False
 
-    def fromIndices(self, data):
+    def from_indices(self, data):
         """Returns sequence of elements from sequence of indices.
 
         Specifically, takes as input a sequence of numbers corresponding to
@@ -546,7 +546,7 @@ class Alphabet(Enumeration):
     def fromOrdinalsToSequence(self, data):
         """Returns a Sequence object corresponding to indices in data.
 
-        Unlike fromIndices() in superclass, this method uses the MolType to
+        Unlike from_indices() in superclass, this method uses the MolType to
         coerce the result into a sequence of the correct class. Note that if
         the MolType is not set, this method will raise an AttributeError.
         """

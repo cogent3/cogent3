@@ -80,14 +80,14 @@ class Dict2DTests(TestCase):
         self.assertRaises(KeyError, d2d.__getitem__, 'c')
         self.assertRaises(Dict2DInitError, d2d.fromDicts, [1, 2, 3])
 
-    def test_fromIndices(self):
-        """Dict2D.fromIndices should construct from list of indices"""
+    def test_from_indices(self):
+        """Dict2D.from_indices should construct from list of indices"""
         d2d = Dict2D(self.sparse)
         d2d2 = Dict2D()
         self.assertNotEqual(d2d, d2d2)
-        d2d2.fromIndices([('a', 'a', 1), ('a', 'c', 3), ('d', 'b', 2)])
+        d2d2.from_indices([('a', 'a', 1), ('a', 'c', 3), ('d', 'b', 2)])
         self.assertEqual(d2d, d2d2)
-        self.assertRaises(Dict2DInitError, d2d2.fromIndices, [1, 2, 3])
+        self.assertRaises(Dict2DInitError, d2d2.from_indices, [1, 2, 3])
 
     def test_fromLists(self):
         """Dict2D.fromLists should construct from list of lists"""
@@ -115,7 +115,7 @@ class Dict2DTests(TestCase):
         # Will fail if error is raised
         d = Dict2D({})
 
-    def test_guess_input_type_fromIndices(self):
+    def test_guess_input_type_from_indices(self):
         """Dict2D init can correctly guess input type: Indices """
         # Will fail if error is raised
         d = Dict2D([('a', 'b', 1)])

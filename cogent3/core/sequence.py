@@ -1028,7 +1028,7 @@ class ModelSequenceBase(object):
             return self.Alphabet.toString(self._data)
         else:
             return self.Delimiter.join(map(str,
-                                           self.Alphabet.fromIndices(self._data)))
+                                           self.Alphabet.from_indices(self._data)))
 
     def __len__(self):
         """Returns length of data."""
@@ -1082,7 +1082,7 @@ class ModelSequenceBase(object):
         if hasattr(self.Alphabet, 'toString'):
             return iter(self.Alphabet.toString(self._data))
         else:
-            return iter(self.Alpabet.fromIndices(self._data))
+            return iter(self.Alpabet.from_indices(self._data))
 
     def tostring(self):
         """tostring delegates to self._data."""
@@ -1189,9 +1189,9 @@ class ModelSequenceBase(object):
                 if hasattr(other, '_data'):
                     other_seq = other._data
             else:
-                self_seq = self.Alphabet.fromIndices(self._data)
+                self_seq = self.Alphabet.from_indices(self._data)
                 if hasattr(other, '_data'):
-                    other_seq = other.Alphabet.fromIndices(other._data)
+                    other_seq = other.Alphabet.from_indices(other._data)
                 else:
                     other_seq = other
             for first, second in zip(self_seq, other_seq):
@@ -1411,7 +1411,7 @@ class ModelCodonSequence(ModelSequence):
     def __str__(self):
         """Joins triplets together as string."""
         return self.Delimiter.join(map(''.join,
-                                       self.Alphabet.fromIndices(self._data)))
+                                       self.Alphabet.from_indices(self._data)))
 
     def _from_string(self, s):
         """Reads from a raw string, rather than a DnaSequence."""
