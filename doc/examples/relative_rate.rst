@@ -52,7 +52,7 @@ View the resulting maximum-likelihood parameter values.
 
 .. doctest::
 
-    >>> lf.setName("clock")
+    >>> lf.set_name("clock")
     >>> print lf
     clock
     =====
@@ -103,7 +103,7 @@ View the resulting maximum-likelihood parameter values.
 
 .. doctest::
 
-    >>> lf.setName("non clock")
+    >>> lf.set_name("non clock")
     >>> print lf
     non clock
     =====

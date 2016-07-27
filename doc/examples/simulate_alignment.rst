@@ -27,7 +27,7 @@ Define our Felsenstein 1981 substitution model.
     ... 'G': 0.2, 'T': 0.1}, model_gaps=False)
     >>> lf = sm.makeLikelihoodFunction(t)
     >>> lf.setConstantLengths()
-    >>> lf.setName('F81 model')
+    >>> lf.set_name('F81 model')
     >>> print lf
     F81 model
     ==========================

@@ -296,7 +296,7 @@ class LikelihoodFunction(ParameterController):
         return result
 
     # For tests.  Compat with old LF interface
-    def setName(self, name):
+    def set_name(self, name):
         self._name = name
 
     def get_name(self):
