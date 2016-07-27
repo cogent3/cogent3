@@ -242,7 +242,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(a.complement('AbcAA'), 'AcbAA')
         self.assertEqual(a.first_degenerate('AbcdA'), 3)
         self.assertEqual(a.first_gap('a~c'), 1)
-        self.assertEqual(a.firstInvalid('Abcx'), 3)
+        self.assertEqual(a.first_invalid('Abcx'), 3)
 
     def test_strip_degenerate(self):
         """MolType strip_degenerate should remove any degenerate bases"""
@@ -396,9 +396,9 @@ class MolTypeTests(TestCase):
         self.assertEqual(d('CUGguagvAUG'), 7)
         self.assertEqual(d('ACUGCUAacgud'), 11)
 
-    def test_firstInvalid(self):
-        """MolType firstInvalid should return index of first invalid symbol"""
-        i = RnaMolType.firstInvalid
+    def test_first_invalid(self):
+        """MolType first_invalid should return index of first invalid symbol"""
+        i = RnaMolType.first_invalid
         self.assertEqual(i(''), None)
         self.assertEqual(i('A'), None)
         self.assertEqual(i('ACGUNVBuacg-wskmWSMKYRryNnN--'), None)

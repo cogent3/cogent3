@@ -168,9 +168,9 @@ class SequenceI(object):
         """Returns the index of first degenerate symbol in sequence, or None."""
         return self.MolType.first_degenerate(self)
 
-    def firstInvalid(self):
+    def first_invalid(self):
         """Returns the index of first invalid symbol in sequence, or None."""
-        return self.MolType.firstInvalid(self)
+        return self.MolType.first_invalid(self)
 
     def firstNonStrict(self):
         """Returns the index of first non-strict symbol in sequence, or None."""

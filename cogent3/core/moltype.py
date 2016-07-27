@@ -711,7 +711,7 @@ class MolType(object):
     def is_valid(self, sequence):
         """Returns True if sequence contains no items that are not in self."""
         try:
-            return self.firstInvalid(sequence) is None
+            return self.first_invalid(sequence) is None
         except:
             return False
 
@@ -757,7 +757,7 @@ class MolType(object):
                 return i
         return None
 
-    def firstInvalid(self, sequence):
+    def first_invalid(self, sequence):
         """Returns the index of first invalid symbol in sequence, or None."""
         all = self.All
         for i, s in enumerate(sequence):
