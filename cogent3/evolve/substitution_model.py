@@ -883,7 +883,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
             pred = predicate.parse(pred)
         elif isinstance(pred, collections.Callable):
             pred = predicate.UserPredicate(pred)
-        pred_func = pred.makeModelPredicate(self)
+        pred_func = pred.make_model_predicate(self)
         label = label or repr(pred)
         mask = predicate2matrix(
             self.getAlphabet(), pred_func, mask=self._instantaneous_mask)
