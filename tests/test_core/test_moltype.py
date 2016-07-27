@@ -240,7 +240,7 @@ class MolTypeTests(TestCase):
             self.assertContains(a, i)
         self.assertEqual(a.complement('b'), 'c')
         self.assertEqual(a.complement('AbcAA'), 'AcbAA')
-        self.assertEqual(a.firstDegenerate('AbcdA'), 3)
+        self.assertEqual(a.first_degenerate('AbcdA'), 3)
         self.assertEqual(a.first_gap('a~c'), 1)
         self.assertEqual(a.firstInvalid('Abcx'), 3)
 
@@ -386,9 +386,9 @@ class MolTypeTests(TestCase):
         self.assertEqual(g('b-ac'), 1)
         self.assertEqual(g('abcd-'), 4)
 
-    def test_firstDegenerate(self):
-        """MolType firstDegenerate should return index of first degen symbol"""
-        d = RnaMolType.firstDegenerate
+    def test_first_degenerate(self):
+        """MolType first_degenerate should return index of first degen symbol"""
+        d = RnaMolType.first_degenerate
         self.assertEqual(d(''), None)
         self.assertEqual(d('a'), None)
         self.assertEqual(d('UCGACA--CU-gacucaguacgua'), None)
@@ -437,7 +437,7 @@ class MolTypeTests(TestCase):
         self.assertNotEqual(t, u)
         self.assertEqual(d(tuple('UCAG'), 'random'), tuple('UCAG'))
         self.assertEqual(len(s), len(t))
-        self.assertSameObj(RnaMolType.firstDegenerate(t), None)
+        self.assertSameObj(RnaMolType.first_degenerate(t), None)
         # should raise exception on unknown disambiguation method
         self.assertRaises(NotImplementedError, d, s, 'xyz')
 
