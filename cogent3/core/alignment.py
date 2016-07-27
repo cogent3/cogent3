@@ -2716,7 +2716,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             raise ValueError('Annotation does not belong to this alignment')
         return annot.remappedTo(target_aligned.data, target_aligned.map)
 
-    def getProjectedAnnotations(self, seq_name, *args):
+    def get_projected_annotations(self, seq_name, *args):
         aln_annots = self.getAnnotationsMatching(*args)
         return [self.projectAnnotation(seq_name, a) for a in aln_annots]
 

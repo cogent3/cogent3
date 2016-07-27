@@ -181,7 +181,7 @@ Similarly alignment features can be projected onto the aligned sequences, where 
 
 .. doctest::
     
-    >>> exons = aln.getProjectedAnnotations('y', 'exon') 
+    >>> exons = aln.get_projected_annotations('y', 'exon') 
     >>> print(exons)
     [exon "fred" at [-2-, 4:7]/8]
     >>> print(aln.get_seq('y')[exons[0].map.withoutGaps()])
