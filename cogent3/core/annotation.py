@@ -105,7 +105,7 @@ class _Annotatable(object):
         for annot in annots:
             annot.attached = True
 
-    def detachAnnotations(self, annots):
+    def detach_annotations(self, annots):
         for annot in annots:
             if annot.parent is not self:
                 raise ValueError("doesn't live here")
@@ -195,7 +195,7 @@ class _Feature(_Annotatable):
         self.parent.attach_annotations([self])
 
     def detach(self):
-        self.parent.detachAnnotations([self])
+        self.parent.detach_annotations([self])
 
     def _mapped(self, slicemap):
         Name = "%s of %s" % (repr(slicemap), self.Name)
