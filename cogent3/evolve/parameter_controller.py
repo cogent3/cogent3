@@ -400,7 +400,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
                 self.setParamRule('leaf', edge=name,
                                   value=pog, is_constant=True)
             if self.mprobs_from_alignment:
-                counts = numpy.sum([pog.leaf.getMotifCounts()
+                counts = numpy.sum([pog.leaf.get_motif_counts()
                                     for pog in list(leaves.values())], 0)
                 mprobs = counts / (1.0 * sum(counts))
                 self.setMotifProbs(mprobs, locus=locus,

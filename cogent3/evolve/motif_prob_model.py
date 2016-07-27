@@ -57,7 +57,7 @@ class MotifProbModel(object):
             sequence = alignment.get_gapped_seq(seq_name, recode_gaps)
             leaf = make_likelihood_tree_leaf(sequence, self.getCountedAlphabet(),
                                           seq_name)
-            count = leaf.getMotifCounts(include_ambiguity=include_ambiguity)
+            count = leaf.get_motif_counts(include_ambiguity=include_ambiguity)
             if result is None:
                 result = count.copy()
             else:
