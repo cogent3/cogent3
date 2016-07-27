@@ -131,7 +131,7 @@ class LikelihoodFunction(ParameterController):
             for row in probs:
                 by_p = [(p, state) for state, p in list(row.items())]
                 seq.append(max(by_p)[1])
-            seqs += [(edge, self.model.MolType.makeSequence("".join(seq)))]
+            seqs += [(edge, self.model.MolType.make_sequence("".join(seq)))]
         return Alignment(data=seqs, MolType=self.model.MolType)
 
     def getBinProbs(self, locus=None):
@@ -417,7 +417,7 @@ class LikelihoodFunction(ParameterController):
 
         if root_sequence is not None:  # we convert to a vector of motifs
             if isinstance(root_sequence, str):
-                root_sequence = self._model.MolType.makeSequence(root_sequence)
+                root_sequence = self._model.MolType.make_sequence(root_sequence)
             motif_len = self._model.getAlphabet().getMotifLen()
             root_sequence = root_sequence.get_in_motif_size(motif_len)
         else:

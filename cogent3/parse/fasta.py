@@ -263,7 +263,7 @@ def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
     group_ids = []
     current_collection = {}
     for label, seq in parser:
-        seq = moltype.makeSequence(seq, Name=label, Info=label.Info)
+        seq = moltype.make_sequence(seq, Name=label, Info=label.Info)
         if DEBUG:
             print("str(label) ", str(label), "repr(label)", repr(label))
         if not group_ids or label.Info[group_key] in group_ids:

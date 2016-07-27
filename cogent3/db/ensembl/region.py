@@ -93,7 +93,7 @@ class _Region(LazyRecord):
                     alt_loc = assembly_exception_coordinate(self.Location)
                     seq = get_sequence(alt_loc)
                 except NoItemError:
-                    seq = DNA.makeSequence("N" * len(self))
+                    seq = DNA.make_sequence("N" * len(self))
             seq.Name = str(self.Location)
             self._cached['Seq'] = seq
         return self._cached['Seq']
@@ -687,7 +687,7 @@ class Transcript(_StableRegion):
             self._cached["Utr5"] = self.NULL_VALUE
             self._cached["Utr3"] = self.NULL_VALUE
             return
-        Utr5_seq, Utr3_seq = DNA.makeSequence(""), DNA.makeSequence("")
+        Utr5_seq, Utr3_seq = DNA.make_sequence(""), DNA.make_sequence("")
         for exon in self.UntranslatedExons5:
             Utr5_seq += exon.Seq
         for exon in self.UntranslatedExons3:
@@ -720,12 +720,12 @@ class Transcript(_StableRegion):
 
         # check first exon PhaseStart is 0 and last exon PhaseEnd
         if exons[0].PhaseStart > 0:
-            fill = DNA.makeSequence(
+            fill = DNA.make_sequence(
                 'N' * exons[0].PhaseStart, Name=full_seq.Name)
             full_seq = fill + full_seq
 
         if exons[-1].PhaseEnd > 0:
-            fill = DNA.makeSequence(
+            fill = DNA.make_sequence(
                 'N' * exons[-1].PhaseEnd, Name=full_seq.Name)
             full_seq += fill
 
@@ -1108,7 +1108,7 @@ class Variation(_Region):
         seqs = dict(up=up_seq, down=down_seq)
         for name, seq in list(seqs.items()):
             if seq is not None:
-                seq = DNA.makeSequence(seq)
+                seq = DNA.make_sequence(seq)
             else:
                 resized = [(-301, -1), (1, 301)][name == 'down']
                 if self.Location.Strand == -1:

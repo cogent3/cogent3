@@ -955,7 +955,7 @@ class SequenceCollectionBaseTests(object):
         raw_seq = "---??-??TC-GGCG-GCA-G-GC-?-C-TAN-GCGC-CCTC-AGGA?-???-??--"
         raw_ungapped = re.sub("[-?]", "", raw_seq)
         raw_no_ambigs = re.sub("[N?]+", "", raw_seq)
-        dna = DNA.makeSequence(raw_seq)
+        dna = DNA.make_sequence(raw_seq)
 
         aln = self.Class(data=[("a", dna), ("b", dna)])
         expect = self.Class(

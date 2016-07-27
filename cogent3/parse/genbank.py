@@ -641,7 +641,7 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
             moltype = DNA
 
         try:
-            seq = moltype.makeSequence(rec['sequence'].upper(), Info=info,
+            seq = moltype.make_sequence(rec['sequence'].upper(), Info=info,
                                        Name=rec['locus'])
         except KeyError:
             if not skip_contigs:

@@ -58,7 +58,7 @@ Creating directly on a sequence
 
     >>> from cogent import DNA
     >>> from cogent3.core.annotation import Feature
-    >>> s1 = DNA.makeSequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
+    >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      Name="seq1")
     ...
@@ -68,8 +68,8 @@ Creating directly on a sequence
     TTTTTAAAAA
     >>> print s1[45:48] # this will be exon 3
     CCC
-    >>> s2 = DNA.makeSequence("CGAAACGTTT", Name="seq2")
-    >>> s3 = DNA.makeSequence("CGAAACGTTT", Name="seq3")
+    >>> s2 = DNA.make_sequence("CGAAACGTTT", Name="seq2")
+    >>> s3 = DNA.make_sequence("CGAAACGTTT", Name="seq3")
 
 Via
 """
@@ -81,7 +81,7 @@ Via
 
     >>> from cogent import DNA
     >>> from cogent3.core.annotation import Feature
-    >>> s1 = DNA.makeSequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
+    >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      Name="seq1")
     ...
@@ -94,7 +94,7 @@ Via
 .. doctest::
 
     >>> from cogent import DNA
-    >>> s1 = DNA.makeSequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
+    >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      Name="seq1")
     ...
@@ -108,9 +108,9 @@ Adding as a series or item-wise
 .. doctest::
 
     >>> from cogent import DNA
-    >>> s2 = DNA.makeSequence("CGAAACGTTT", Name="seq2")
+    >>> s2 = DNA.make_sequence("CGAAACGTTT", Name="seq2")
     >>> cpgs_series = s2.add_feature('cpgsite', 'cpg', [(0,2), (5,7)])
-    >>> s3 = DNA.makeSequence("CGAAACGTTT", Name="seq3")
+    >>> s3 = DNA.make_sequence("CGAAACGTTT", Name="seq3")
     >>> cpg1 = s3.add_feature('cpgsite', 'cpg', [(0,2)])
     >>> cpg2 = s3.add_feature('cpgsite', 'cpg', [(5,7)])
 
@@ -122,7 +122,7 @@ Construct a pseudo-feature (``cds``) that's a union of other features (``exon1``
 .. doctest::
     
     >>> from cogent import DNA
-    >>> s1 = DNA.makeSequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
+    >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      Name="seq1")
     ...
@@ -191,7 +191,7 @@ By a feature or coordinates returns same sequence span
 .. doctest::
 
     >>> from cogent import DNA
-    >>> s1 = DNA.makeSequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
+    >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      Name="seq1")
     ...
@@ -217,7 +217,7 @@ Slicing by pseudo-feature or feature series
 .. doctest::
 
     >>> from cogent import DNA
-    >>> s1 = DNA.makeSequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
+    >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      Name="seq1")
     ...
@@ -297,7 +297,7 @@ You can copy annotations onto sequences with the same name, even if the length d
 .. doctest::
 
     >>> aln2 = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
-    >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
+    >>> seq = DNA.make_sequence('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> match_exon = seq.add_feature('exon', 'A', [(3,8)])
     >>> aln2.get_seq('x').copy_annotations(seq)
     >>> copied = list(aln2.get_annotations_from_seq('x', 'exon'))
@@ -309,7 +309,7 @@ but if the feature lies outside the sequence being copied to, you get a lost spa
 .. doctest::
 
     >>> aln2 = LoadSeqs(data=[['x', '-AAAA'], ['y', 'TTTTT']])
-    >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
+    >>> seq = DNA.make_sequence('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> match_exon = seq.add_feature('exon', 'A', [(5,8)])
     >>> aln2.get_seq('x').copy_annotations(seq)
     >>> copied = list(aln2.get_annotations_from_seq('x', 'exon'))
@@ -324,7 +324,7 @@ You can copy to a sequence with a different name, in a different alignment if th
 
     >>> # new test
     >>> aln2 = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
-    >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
+    >>> seq = DNA.make_sequence('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> match_exon = seq.add_feature('exon', 'A', [(5,8)])
     >>> aln2.get_seq('y').copy_annotations(seq)
     >>> copied = list(aln2.get_annotations_from_seq('y', 'exon'))
@@ -336,7 +336,7 @@ If the sequence is shorter, again you get a lost span.
 .. doctest::
 
     >>> aln2 = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
-    >>> diff_len_seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCCCCCCCCCC', 'x')
+    >>> diff_len_seq = DNA.make_sequence('CCCCCCCCCCCCCCCCCCCCCCCCCCCC', 'x')
     >>> nonmatch = diff_len_seq.add_feature('repeat', 'A', [(12,14)])
     >>> aln2.get_seq('y').copy_annotations(diff_len_seq)
     >>> copied = list(aln2.get_annotations_from_seq('y', 'repeat'))
@@ -430,7 +430,7 @@ Reverse complementing a sequence **does not** reverse annotations, that is they 
 
 .. doctest::
 
-    >>> plus = DNA.makeSequence("CCCCCAAAAAAAAAATTTTTTTTTTAAAGG")
+    >>> plus = DNA.make_sequence("CCCCCAAAAAAAAAATTTTTTTTTTAAAGG")
     >>> plus_rpt = plus.add_feature('blah', 'a', [(5,15), (25, 28)])
     >>> print plus[plus_rpt]
     AAAAAAAAAAAAA
@@ -499,7 +499,7 @@ You can take mask of the shadow
 .. doctest::
 
     >>> from cogent import DNA
-    >>> s = DNA.makeSequence('CCCCAAAAAGGGAA', 'x')
+    >>> s = DNA.make_sequence('CCCCAAAAAGGGAA', 'x')
     >>> exon = s.add_feature('exon', 'norwegian', [(0,4)])
     >>> rpt = s.add_feature('repeat', 'norwegian', [(9, 12)])
     >>> rc = s.rc()
@@ -518,7 +518,7 @@ What features of a certain type are available?
 .. doctest::
 
     >>> from cogent import DNA
-    >>> s = DNA.makeSequence('ATGACCCTGTAAAAAATGTGTTAACCC',
+    >>> s = DNA.make_sequence('ATGACCCTGTAAAAAATGTGTTAACCC',
     ...    Name='a')
     >>> cds1 = s.add_feature('cds','cds1', [(0,12)])
     >>> cds2 = s.add_feature('cds','cds2', [(15,24)])
@@ -581,7 +581,7 @@ We first make a sequence and add some annotations.
 .. doctest::
 
     >>> from cogent import DNA
-    >>> seq = DNA.makeSequence('aaaccggttt' * 10)
+    >>> seq = DNA.make_sequence('aaaccggttt' * 10)
     >>> v = seq.add_feature('exon', 'exon', [(20,35)])
     >>> v = seq.add_feature('repeat_unit', 'repeat_unit', [(39,49)])
     >>> v = seq.add_feature('repeat_unit', 'rep2', [(49,60)])
@@ -622,7 +622,7 @@ We just show a series of spans.
     >>> from cogent import DNA
     >>> from cogent3.draw.linear import Display
     >>> from cogent3.core.annotation import Variable
-    >>> seq = DNA.makeSequence('aaaccggttt' * 10)
+    >>> seq = DNA.make_sequence('aaaccggttt' * 10)
     >>> annot = seq.addAnnotation(Variable, 'redline', 'align',
     ...     [((0,15),1),((15,30),2),((30,45),3)])
     ...

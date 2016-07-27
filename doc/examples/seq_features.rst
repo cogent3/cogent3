@@ -14,7 +14,7 @@ For illustrative purposes we define a sequence with 2 exons and grab the 1\ :sup
 .. doctest::
 
     >>> from cogent import DNA
-    >>> s = DNA.makeSequence("aagaagaagacccccaaaaaaaaaattttttttttaaaaaaaaaaaaa",
+    >>> s = DNA.make_sequence("aagaagaagacccccaaaaaaaaaattttttttttaaaaaaaaaaaaa",
     ... Name="Orig")
     >>> exon1 = s.add_feature('exon', 'exon1', [(10,15)])
     >>> exon2 = s.add_feature('exon', 'exon2', [(30,40)])
@@ -26,7 +26,7 @@ We could also have created an annotation using the ``addAnnotation`` method:
 .. doctest::
 
     >>> from cogent3.core.annotation import Feature
-    >>> s2=DNA.makeSequence("aagaagaagacccccaaaaaaaaaattttttttttaaaaaaaaaaaaa",
+    >>> s2=DNA.make_sequence("aagaagaagacccccaaaaaaaaaattttttttttaaaaaaaaaaaaa",
     ... Name="Orig2")
     >>> exon3 = s2.addAnnotation(Feature, 'exon', 'exon1', [(35,40)])
 

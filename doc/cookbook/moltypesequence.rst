@@ -69,7 +69,7 @@ Setting up a DNA ``MolType`` object allowing ``.`` as gaps
    ...                        Complements=mt.IUPAC_DNA_ambiguities_complements,
    ...                        Pairs = mt.DnaStandardPairs,
    ...                        Gaps='.')
-   >>> seq = DNAgapped.makeSequence('ACG.')
+   >>> seq = DNAgapped.make_sequence('ACG.')
 
 
 Setting up a ``MolType`` object with a protein sequence
