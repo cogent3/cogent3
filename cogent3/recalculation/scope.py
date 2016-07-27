@@ -664,7 +664,7 @@ class ParameterController(object):
 
         self._changed = set()
         self._update_suspended = False
-        self.updateIntermediateValues(self.defns)
+        self.update_intermediate_values(self.defns)
         self.setupParallelContext()
 
     def get_param_names(self, scalar_only=False):
@@ -742,7 +742,7 @@ class ParameterController(object):
         self._update_suspended = old
         self._updateIntermediateValues()
 
-    def updateIntermediateValues(self, changed=None):
+    def update_intermediate_values(self, changed=None):
         if changed is None:
             changed = self.defns  # all
         self._changed.update(id(defn) for defn in changed)
@@ -768,7 +768,7 @@ class ParameterController(object):
                 par_name, args)
             raise ValueError(msg)
         defn.assign_all(*args, **kw)
-        self.updateIntermediateValues([defn])
+        self.update_intermediate_values([defn])
 
     def measure_evals_per_second(self, *args, **kw):
         return self.make_calculator().measure_evals_per_second(*args, **kw)
@@ -802,7 +802,7 @@ class ParameterController(object):
             if isinstance(defn, _LeafDefn):
                 defn.update_from_calculator(calc)
                 changed.append(defn)
-        self.updateIntermediateValues(changed)
+        self.update_intermediate_values(changed)
 
     def get_num_free_params(self):
         return sum(defn.get_num_free_params() for defn in self.defns if isinstance(defn, _LeafDefn))

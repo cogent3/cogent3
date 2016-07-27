@@ -46,7 +46,7 @@ def load(filename):
     f = open(filename, 'rb')
     (version, info, pc) = pickle.load(f)
     assert version < 2.0, version
-    pc.updateIntermediateValues()
+    pc.update_intermediate_values()
     return pc
 
 
