@@ -218,7 +218,7 @@ class SequenceI(object):
         """
         return self.MolType.possibilities(self)
 
-    def MW(self, method='random', delta=None):
+    def mw(self, method='random', delta=None):
         """Returns the molecular weight of (one strand of) the sequence.
 
         If the sequence is ambiguous, uses method (random or strip) to
@@ -231,11 +231,11 @@ class SequenceI(object):
         well.
 
         Note that this method only calculates the MW of the coding strand. If
-        you want the MW of the reverse strand, add self.rc().MW(). DO NOT
+        you want the MW of the reverse strand, add self.rc().mw(). DO NOT
         just multiply the MW by 2: the results may not be accurate due to
         strand bias, e.g. in mitochondrial genomes.
         """
-        return self.MolType.MW(self, method, delta)
+        return self.MolType.mw(self, method, delta)
 
     def can_match(self, other):
         """Returns True if every pos in self could match same pos in other.
@@ -1321,13 +1321,13 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         """Returns True of sequence contains gaps."""
         return len(self.gapIndices())
 
-    def MW(self, *args, **kwargs):
+    def mw(self, *args, **kwargs):
         """Returns molecular weight.
 
         Works via string intermediate: could optimize using array of MW if
         speed becomes important.
         """
-        return self.MolType.MW(str(self), *args, **kwargs)
+        return self.MolType.mw(str(self), *args, **kwargs)
 
     def fracSimilar(self, other, similar_pairs):
         """Returns fraction of positions where self[i] is similar to other[i].
