@@ -669,7 +669,7 @@ class TreeNode(object):
                 other = other._parent
         return None
 
-    def descendantArray(self, tip_list=None):
+    def descendant_array(self, tip_list=None):
         """Returns numpy array with nodes in rows and descendants in columns.
 
         A value of 1 indicates that the decendant is a descendant of that node/
