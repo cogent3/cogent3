@@ -732,12 +732,12 @@ class DNAAlphabet(_AlphabetTestCase):
         """testing using a subset of motifs."""
         self.assertEqualSets(self.alpha.with_gap_motif(),
                              ['A', 'C', 'G', 'T', '-'])
-        alpha = self.alpha.getSubset(motif_subset=['A'])
+        alpha = self.alpha.get_subset(motif_subset=['A'])
         self.assertEqualSets(alpha, ['A'])
-        #self.assertRaises(AlphabetError, self.alpha.getSubset, ['A','C'])
+        #self.assertRaises(AlphabetError, self.alpha.get_subset, ['A','C'])
         alpha = DNA.Alphabet
         self.assertEqualSets(alpha, ['T', 'C', 'A', 'G'])
-        alpha = alpha.getSubset(motif_subset=['A', 'T', 'G'])
+        alpha = alpha.get_subset(motif_subset=['A', 'T', 'G'])
         self.assertEqualSets(alpha, ['A', 'G', 'T'])
 
 
@@ -755,7 +755,7 @@ class DinucAlphabet(_AlphabetTestCase):
                     'T-', 'TA', 'TC', 'TG', 'TT']
 
         self.assertEqualSets(
-            self.alpha.getSubset(['--'], excluded=True), expected)
+            self.alpha.get_subset(['--'], excluded=True), expected)
 
     def test_include(self):
         """Dinucleotide alphabet testing including gap motif"""
@@ -768,10 +768,10 @@ class DinucAlphabet(_AlphabetTestCase):
 
     def test_usesubset(self):
         """testing using a subset of motifs."""
-        alpha = self.alpha.getSubset(motif_subset=['AA', 'CA', 'GT'])
+        alpha = self.alpha.get_subset(motif_subset=['AA', 'CA', 'GT'])
         self.assertEqualSeqs(alpha, ['AA', 'CA', 'GT'])
 
-        self.assertRaises(AlphabetError, alpha.getSubset,
+        self.assertRaises(AlphabetError, alpha.get_subset,
                           motif_subset=['AA', 'CA', 'GT', 'TT'])
 
     def test_usesubsetbyfreq(self):
@@ -782,7 +782,7 @@ class DinucAlphabet(_AlphabetTestCase):
                        'G-': 0, 'GA': 0, 'GC': 0, 'GG': 0, 'GT': 1,
                        'T-': 0, 'TA': 0, 'TC': 0, 'TG': 0, 'TT': 0}
 
-        alpha = self.alpha.getSubset(motif_freqs)
+        alpha = self.alpha.get_subset(motif_freqs)
         self.assertEqualSets(alpha, ['AA', 'CA', 'GT'])
 
 

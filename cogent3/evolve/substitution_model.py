@@ -169,7 +169,7 @@ class _SubstitutionModel(object):
             alphabet = alphabet.get_word_alphabet(motif_length)
 
         if motifs is not None:
-            alphabet = alphabet.getSubset(motifs)
+            alphabet = alphabet.get_subset(motifs)
         self.alphabet = alphabet
         self.gapmotif = alphabet.get_gap_motif()
         self._word_length = alphabet.get_motif_len()
@@ -930,13 +930,13 @@ class Protein(SubstitutionModel):
     def __init__(self, with_selenocysteine=False, **kw):
         alph = moltype.PROTEIN.Alphabet
         if not with_selenocysteine:
-            alph = alph.getSubset('U', excluded=True)
+            alph = alph.get_subset('U', excluded=True)
         SubstitutionModel.__init__(self, alph, **kw)
 
 
 def EmpiricalProteinMatrix(matrix, motif_probs=None, optimise_motif_probs=False,
                            recode_gaps=True, do_scaling=True, **kw):
-    alph = moltype.PROTEIN.Alphabet.getSubset('U', excluded=True)
+    alph = moltype.PROTEIN.Alphabet.get_subset('U', excluded=True)
     return Empirical(alph, rate_matrix=matrix, motif_probs=motif_probs,
                      model_gaps=False, recode_gaps=recode_gaps, do_scaling=do_scaling,
                      optimise_motif_probs=optimise_motif_probs, **kw)
