@@ -667,7 +667,7 @@ class ParameterController(object):
         self.updateIntermediateValues(self.defns)
         self.setupParallelContext()
 
-    def getParamNames(self, scalar_only=False):
+    def get_param_names(self, scalar_only=False):
         """The names of the numerical inputs to the calculation."""
         return [defn.name for defn in self.defns if defn.user_param and
                 (defn.numeric or not scalar_only)]
@@ -709,7 +709,7 @@ class ParameterController(object):
         of simple values."""
         callback = self._makeValueCallback(dropoff, p, xtol)
         if params is None:
-            params = self.getParamNames(scalar_only=True)
+            params = self.get_param_names(scalar_only=True)
         result = {}
         for param_name in params:
             ev = self.defn_for[param_name]
