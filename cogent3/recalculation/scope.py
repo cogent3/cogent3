@@ -193,7 +193,7 @@ class _Defn(object):
             if scope_t not in self.assignments:
                 self.assignments[scope_t] = self.get_default_setting()
 
-    def outputOrdinalFor(self, scope):
+    def output_ordinal_for(self, scope):
         scope_t = tuple([scope[d] for d in self.valid_dimensions])
         return self.index[scope_t]
 
@@ -423,7 +423,7 @@ class SelectFromDimension(_Defn):
         for scope_t in self.assignments:
             scope = dict(list(zip(self.valid_dimensions, scope_t)))
             scope.update(self.selection)
-            input_num = self.arg.outputOrdinalFor(scope)
+            input_num = self.arg.output_ordinal_for(scope)
             self.assignments[scope_t] = (input_num,)
         self._update_from_assignments()
         self.values = [self.arg.values[i] for (i,) in self.uniq]
@@ -459,7 +459,7 @@ class _NonLeafDefn(_Defn):
     def update(self):
         for scope_t in self.assignments:
             scope = dict(list(zip(self.valid_dimensions, scope_t)))
-            input_nums = [arg.outputOrdinalFor(scope) for arg in self.args]
+            input_nums = [arg.output_ordinal_for(scope) for arg in self.args]
             self.assignments[scope_t] = tuple(input_nums)
         self._update_from_assignments()
         calc = self.make_calc_function()
