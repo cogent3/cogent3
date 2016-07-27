@@ -55,7 +55,7 @@ class MotifProbModel(object):
         result = None
         for seq_name in alignment.get_seq_names():
             sequence = alignment.get_gapped_seq(seq_name, recode_gaps)
-            leaf = make_likelihood_tree_leaf(sequence, self.getCountedAlphabet(),
+            leaf = make_likelihood_tree_leaf(sequence, self.get_counted_alphabet(),
                                           seq_name)
             count = leaf.get_motif_counts(include_ambiguity=include_ambiguity)
             if result is None:
@@ -77,7 +77,7 @@ class MotifProbModel(object):
     def make_sample_motif_probs(self):
         import random
         motif_probs = numpy.array(
-            [random.uniform(0.2, 1.0) for m in self.getCountedAlphabet()])
+            [random.uniform(0.2, 1.0) for m in self.get_counted_alphabet()])
         motif_probs /= sum(motif_probs)
         return motif_probs
 
@@ -90,7 +90,7 @@ class SimpleMotifProbModel(MotifProbModel):
     def get_input_alphabet(self):
         return self.alphabet
 
-    def getCountedAlphabet(self):
+    def get_counted_alphabet(self):
         return self.alphabet
 
     def makeMotifWordProbDefns(self):
@@ -158,7 +158,7 @@ class MonomerProbModel(ComplexMotifProbModel):
     def get_input_alphabet(self):
         return self.monomer_alphabet
 
-    def getCountedAlphabet(self):
+    def get_counted_alphabet(self):
         return self.monomer_alphabet
 
     def calcMonomerProbs(self, word_probs):
@@ -198,7 +198,7 @@ class MonomerProbModel(ComplexMotifProbModel):
 
 class PosnSpecificMonomerProbModel(MonomerProbModel):
 
-    def getCountedAlphabet(self):
+    def get_counted_alphabet(self):
         return self.tuple_alphabet
 
     def calcPosnSpecificMonomerProbs(self, word_probs):
@@ -267,7 +267,7 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
     def get_input_alphabet(self):
         return self.tuple_alphabet
 
-    def getCountedAlphabet(self):
+    def get_counted_alphabet(self):
         return self.tuple_alphabet
 
     def calc_word_weight_matrix(self, motif_probs):
