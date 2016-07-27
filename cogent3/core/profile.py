@@ -39,7 +39,7 @@ class Profile(object):
     """Profile class
     """
 
-    def __init__(self, Data, Alphabet, CharOrder=None):
+    def __init__(self, Data, alphabet, CharOrder=None):
         """Initializes a new Profile object.
 
         Data: numpy 2D array with the Profile data in it.
@@ -47,15 +47,15 @@ class Profile(object):
         Alignment. Each column of the array corresponds to a character in the
         Alphabet.
 
-        Alphabet: an Alphabet object or anything that can act as a list of
+        alphabet: an Alphabet object or anything that can act as a list of
             characters
         CharOrder: optional list of characters to which the columns
             in the Data correspond.
         """
         self.Data = Data
-        self.Alphabet = Alphabet
+        self.alphabet = alphabet
         if CharOrder is None:
-            self.CharOrder = list(self.Alphabet)
+            self.CharOrder = list(self.alphabet)
         else:
             self.CharOrder = CharOrder
         # the translation table is needed for making consensus sequences,
@@ -96,7 +96,7 @@ class Profile(object):
 
     def has_valid_attributes(self):
         """Checks Alphabet, CharOrder, and size of self.Data"""
-        if not reduce(logical_and, [c in self.Alphabet
+        if not reduce(logical_and, [c in self.alphabet
                                     for c in self.CharOrder]):
             return False
         elif self.Data.shape[1] != len(self.CharOrder):
@@ -137,7 +137,7 @@ class Profile(object):
         attributes, but modifying them will change them in both the original
         and the copy.
         """
-        return self.__class__(self.Data, self.Alphabet, self.CharOrder)
+        return self.__class__(self.Data, self.alphabet, self.CharOrder)
 
     def normalize_positions(self):
         """Normalizes the data by position (the rows!) to one
@@ -262,7 +262,7 @@ class Profile(object):
             #     new_data = op(self.Data, other.Data)
         except (OverflowError, ZeroDivisionError, FloatingPointError):
             raise ProfileError("Can't do operation on input profiles")
-        result = Profile(new_data, self.Alphabet, self.CharOrder)
+        result = Profile(new_data, self.alphabet, self.CharOrder)
 
         if normalize_output:
             result.normalize_positions()
@@ -364,7 +364,7 @@ class Profile(object):
 
         # calculate the OddsMatrix
         log_odds = self.Data / symbol_freqs
-        return Profile(log_odds, self.Alphabet, self.CharOrder)
+        return Profile(log_odds, self.alphabet, self.CharOrder)
 
     def to_log_odds_matrix(self, symbol_freqs=None):
         """Returns the LogOddsMatrix of a profile as a new Profile/
@@ -377,7 +377,7 @@ class Profile(object):
         """
         odds = self.to_odds_matrix(symbol_freqs)
         log_odds = safe_log(odds.Data)
-        return Profile(log_odds, self.Alphabet, self.CharOrder)
+        return Profile(log_odds, self.alphabet, self.CharOrder)
 
     def _score_indices(self, seq_indices, offset=0):
         """Returns score of the profile for each slice of the seq_indices
@@ -602,7 +602,7 @@ class Profile(object):
         """
         # set up some local variables
         co = array(self.CharOrder, 'c')
-        alpha = self.Alphabet
+        alpha = self.alphabet
         data = self.Data
 
         # determine the action. Cutoff takes priority over fully_degenerate
@@ -706,7 +706,7 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
     as well be left out alltogether.
 
     Example 1:
-    Alphabet = DnaAlphabet
+    alphabet = DnaAlphabet
     Character order = "TCAG"
     Split degenerates = False
 
@@ -718,7 +718,7 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
     All other rows will be [0,0,0,0].
 
     Example 2:
-    Alphabet = DnaAlphabet
+    alphabet = DnaAlphabet
     Character order = "AGN"
     Split degenerates = True
 
@@ -762,4 +762,4 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
             raise ValueError("Found character in the character order " +
                              "that is not in the specified alphabet: %s" % (c))
         result[ord(c)] = array(c * lc, 'c') == char_order
-    return Profile(Data=result, Alphabet=alphabet, CharOrder=char_order)
+    return Profile(Data=result, alphabet=alphabet, CharOrder=char_order)

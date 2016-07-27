@@ -630,7 +630,7 @@ motif    mprobs
         self.assertFloatEqual(expm(Q.array)(1.0), P.array)
 
         # should fail for a discrete Markov model
-        dm = substitution_model.DiscreteSubstitutionModel(DNA.Alphabet)
+        dm = substitution_model.DiscreteSubstitutionModel(DNA.alphabet)
         lf = dm.makeLikelihoodFunction(self.tree)
         lf.setAlignment(self.data)
         self.assertRaises(Exception, lf.getRateMatrixForEdge, 'NineBande')
@@ -638,7 +638,7 @@ motif    mprobs
     def test_make_discrete_markov(self):
         """lf ignores tree lengths if a discrete Markov model"""
         t = LoadTree(treestring='(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;')
-        dm = substitution_model.DiscreteSubstitutionModel(DNA.Alphabet)
+        dm = substitution_model.DiscreteSubstitutionModel(DNA.alphabet)
         lf = dm.makeLikelihoodFunction(t)
 
 if __name__ == '__main__':

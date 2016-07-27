@@ -709,7 +709,7 @@ class ModelSequenceTests(object):
 class DnaSequenceTests(ModelSequenceTests, TestCase):
 
     class SequenceClass(ModelNucleicAcidSequence):
-        Alphabet = DNA.Alphabets.Base
+        alphabet = DNA.alphabets.Base
 
     def test_init(self):
         """Sequence should do round-trip from string"""
@@ -744,7 +744,7 @@ class DnaSequenceTests(ModelSequenceTests, TestCase):
 class CodonSequenceTests(SequenceTests, TestCase):
 
     class SequenceClass(ModelCodonSequence):
-        Alphabet = DNA.Alphabets.Base.Triples
+        alphabet = DNA.alphabets.Base.Triples
 
     def test_init(self):
         """Sequence should do round-trip from string"""
@@ -776,7 +776,7 @@ class CodonSequenceTests(SequenceTests, TestCase):
 class DnaSequenceGapTests(TestCase):
     """Tests of gapped DNA sequences."""
     class SequenceClass(ModelNucleicAcidSequence):
-        Alphabet = DNA.Alphabets.Gapped
+        alphabet = DNA.alphabets.Gapped
         Gap = '-'
 
     def test_init(self):

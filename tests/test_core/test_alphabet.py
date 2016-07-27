@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Tests of the Enumeration and Alphabet objects.
 
-Note: individual Alphabets are typically in MolType and are tested there.
+Note: individual alphabets are typically in MolType and are tested there.
 """
 from cogent3.core.alphabet import Enumeration, get_array_type, \
     uint8, uint16, uint32, array, JointEnumeration, CharAlphabet, \
@@ -40,11 +40,11 @@ class translation_table_tests(TestCase):
     def test_make_complement_array(self):
         """_make_complement_array should identify complements correctly"""
         complement_array = _make_complement_array(
-            RNA.Alphabet, RNA.Complements)
+            RNA.alphabet, RNA.Complements)
         test = 'UCAG'
-        test_array = [RNA.Alphabet.index(i) for i in test]
+        test_array = [RNA.alphabet.index(i) for i in test]
         complements = complement_array.take(test_array)
-        result = ''.join([RNA.Alphabet[i] for i in complements])
+        result = ''.join([RNA.alphabet[i] for i in complements])
         self.assertEqual(result, 'AGUC')
 
 

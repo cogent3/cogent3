@@ -772,7 +772,7 @@ class ProteinWithStopSequence(Sequence):
 class NucleicAcidSequence(Sequence):
     """Base class for DNA and RNA sequences. Abstract."""
     PROTEIN = None  # will set in moltype
-    CodonAlphabet = None  # will set in moltype
+    codon_alphabet = None  # will set in moltype
 
     def reversecomplement(self):
         """Converts a nucleic acid sequence to its reverse complement.
@@ -836,7 +836,7 @@ class NucleicAcidSequence(Sequence):
 
     def get_translation(self, gc=None):
         gc = self._gc_from_arg(gc)
-        codon_alphabet = self.CodonAlphabet(gc).with_gap_motif()
+        codon_alphabet = self.codon_alphabet(gc).with_gap_motif()
         # translate the codons
         translation = []
         for posn in range(0, len(self._seq) - 2, 3):
@@ -854,10 +854,10 @@ class NucleicAcidSequence(Sequence):
                 trans.append(aa)
             if not trans:
                 raise ValueError(orig_codon)
-            aa = self.PROTEIN.what_ambiguity(trans)
+            aa = self.protein.what_ambiguity(trans)
             translation.append(aa)
 
-        translation = self.PROTEIN.make_sequence(
+        translation = self.protein.make_sequence(
             Seq=''.join(translation), Name=self.Name)
 
         return translation
@@ -957,12 +957,12 @@ class ModelSequenceBase(object):
     because it is often important to store just a subset of the possible
     characters (e.g. the non-degenerate bases) for modeling purposes.
     """
-    Alphabet = None  # REPLACE IN SUBCLASSES
+    alphabet = None  # REPLACE IN SUBCLASSES
     moltype = None  # REPLACE IN SUBCLASSES
     Delimiter = ''  # Used for string conversions
     LineWrap = 80  # Wrap sequences at 80 characters by default.
 
-    def __init__(self, data='', Alphabet=None, Name=None, Info=None,
+    def __init__(self, data='', alphabet=None, Name=None, Info=None,
                  check='ignored'):
         """Initializes sequence from data and alphabet.
 
@@ -980,22 +980,22 @@ class ModelSequenceBase(object):
         # set the label
         self.Name = Name
         # override the class alphabet if supplied
-        if Alphabet is not None:
-            self.Alphabet = Alphabet
+        if alphabet is not None:
+            self.alphabet = alphabet
         # if we haven't already set self._data (e.g. in a subclass __init__),
         # guess the data type and set it here
         if not hasattr(self, '_data'):
             # if data is a sequence, copy its data and alphabet
             if isinstance(data, ModelSequence):
                 self._data = data._data
-                self.Alphabet = data.Alphabet
+                self.alphabet = data.alphabet
             # if it's an array
             elif type(data) == ARRAY_TYPE:
                 self._data = data
             else:  # may be set in subclass init
                 self._from_sequence(data)
 
-        self.moltype = self.Alphabet.moltype
+        self.moltype = self.alphabet.moltype
         self.info = Info
 
     def __getitem__(self, *args):
@@ -1015,20 +1015,20 @@ class ModelSequenceBase(object):
         return str(self) == other
 
     def _from_sequence(self, data):
-        """Fills self using the values in data, via the Alphabet."""
-        if self.Alphabet:
-            indices = self.Alphabet.to_indices(data)
-            self._data = array(indices, self.Alphabet.ArrayType)
+        """Fills self using the values in data, via the alphabet."""
+        if self.alphabet:
+            indices = self.alphabet.to_indices(data)
+            self._data = array(indices, self.alphabet.ArrayType)
         else:
             self._data = array(data)
 
     def __str__(self):
         """Uses alphabet to convert self to string, using delimiter."""
-        if hasattr(self.Alphabet, 'to_string'):
-            return self.Alphabet.to_string(self._data)
+        if hasattr(self.alphabet, 'to_string'):
+            return self.alphabet.to_string(self._data)
         else:
             return self.Delimiter.join(map(str,
-                                           self.Alphabet.from_indices(self._data)))
+                                           self.alphabet.from_indices(self._data)))
 
     def __len__(self):
         """Returns length of data."""
@@ -1052,14 +1052,14 @@ class ModelSequenceBase(object):
         return str(self.Name)[:name_len].ljust(label_len) + str(self)
 
     def is_valid(self):
-        """Checks that no items in self are out of the Alphabet range."""
-        return self._data == self._data.clip(m, 0, len(self.Alphabet) - 1)
+        """Checks that no items in self are out of the alphabet range."""
+        return self._data == self._data.clip(m, 0, len(self.alphabet) - 1)
 
     def to_k_words(self, k, overlapping=True):
         """Turns sequence into sequence of its k-words.
 
         Just returns array, not Sequence object."""
-        alpha_len = len(self.Alphabet)
+        alpha_len = len(self.alphabet)
         seq = self._data
         seq_len = len(seq)
         if overlapping:
@@ -1079,8 +1079,8 @@ class ModelSequenceBase(object):
 
     def __iter__(self):
         """iter returns characters of self, rather than slices."""
-        if hasattr(self.Alphabet, 'to_string'):
-            return iter(self.Alphabet.to_string(self._data))
+        if hasattr(self.alphabet, 'to_string'):
+            return iter(self.alphabet.to_string(self._data))
         else:
             return iter(self.Alpabet.from_indices(self._data))
 
@@ -1094,7 +1094,7 @@ class ModelSequenceBase(object):
         WARNING: Only checks for standard gap character (for speed), and
         does not check for ambiguous gaps, etc.
         """
-        return self._data == self.Alphabet.GapIndex
+        return self._data == self.alphabet.GapIndex
 
     def nongaps(self):
         """Returns array contining 0 where self has gaps, 1 elsewhere.
@@ -1102,7 +1102,7 @@ class ModelSequenceBase(object):
         WARNING: Only checks for standard gap character (for speed), and
         does not check for ambiguous gaps, etc.
         """
-        return self._data != self.Alphabet.GapIndex
+        return self._data != self.alphabet.GapIndex
 
     def regap(self, other, strip_existing_gaps=False):
         """Inserts elements of self into gaps specified by other.
@@ -1115,22 +1115,22 @@ class ModelSequenceBase(object):
         else:
             s = self
         c = self.__class__
-        a = self.Alphabet.Gapped
+        a = self.alphabet.Gapped
         result = zeros(len(other), a.ArrayType) + a.GapIndex
         put(result, nonzero(other.nongaps()), s._data)
         return c(result)
 
     def degap(self):
         """Returns ungapped copy of self, not changing alphabet."""
-        if not hasattr(self.Alphabet, 'Gap') or self.Alphabet.Gap is None:
+        if not hasattr(self.alphabet, 'Gap') or self.alphabet.Gap is None:
             return self.copy()
         d = take(self._data, nonzero(logical_not(self.gap_array()))[0])
-        return self.__class__(d, Alphabet=self.Alphabet, Name=self.Name,
+        return self.__class__(d, alphabet=self.alphabet, Name=self.Name,
                               Info=self.info)
 
     def copy(self):
         """Returns copy of self, always separate object."""
-        return self.__class__(self._data.copy(), Alphabet=self.Alphabet,
+        return self.__class__(self._data.copy(), alphabet=self.alphabet,
                               Name=self.Name, Info=self.info)
 
     def __contains__(self, item):
@@ -1189,9 +1189,9 @@ class ModelSequenceBase(object):
                 if hasattr(other, '_data'):
                     other_seq = other._data
             else:
-                self_seq = self.Alphabet.from_indices(self._data)
+                self_seq = self.alphabet.from_indices(self._data)
                 if hasattr(other, '_data'):
-                    other_seq = other.Alphabet.from_indices(other._data)
+                    other_seq = other.alphabet.from_indices(other._data)
                 else:
                     other_seq = other
             for first, second in zip(self_seq, other_seq):
@@ -1222,7 +1222,7 @@ class ModelSequenceBase(object):
     def gap_array(self):
         """Returns array of 0/1 indicating whether each position is a gap."""
         gap_indices = []
-        a = self.Alphabet
+        a = self.alphabet
         for c in self.moltype.Gaps:
             if c in a:
                 gap_indices.append(a.index(c))
@@ -1267,14 +1267,14 @@ class ModelSequence(ModelSequenceBase, SequenceI):
 
     def strip_bad(self):
         """Returns copy of self with bad chars excised"""
-        valid_indices = self._data < len(self.Alphabet)
+        valid_indices = self._data < len(self.alphabet)
         result = compress(valid_indices, self._data)
         return self.__class__(result, Info=self.info)
 
     def strip_bad_and_gaps(self):
         """Returns copy of self with bad chars and gaps excised."""
-        gap_indices = list(map(self.Alphabet.index, self.moltype.Gaps))
-        valid_indices = self._data < len(self.Alphabet)
+        gap_indices = list(map(self.alphabet.index, self.moltype.Gaps))
+        valid_indices = self._data < len(self.alphabet)
         for i in gap_indices:
             valid_indices[self._data == i] = False
         result = compress(valid_indices, self._data)
@@ -1356,19 +1356,19 @@ class ModelNucleicAcidSequence(ModelSequence):
 
     def to_codons(self):
         """Returns copy of self in codon alphabet. Assumes ungapped."""
-        alpha_len = len(self.Alphabet)
+        alpha_len = len(self.alphabet)
         return ModelCodonSequence(alpha_len * (
             alpha_len * self._data[::3] + self._data[1::3]) + self._data[2::3],
-            Name=self.Name, Alphabet=self.Alphabet.Triples)
+            Name=self.Name, alphabet=self.alphabet.Triples)
 
     def complement(self):
         """Returns complement of sequence"""
-        return self.__class__(self.Alphabet._complement_array.take(self._data),
+        return self.__class__(self.alphabet._complement_array.take(self._data),
                               Info=self.info)
 
     def rc(self):
         """Returns reverse-complement of sequence"""
-        comp = self.Alphabet._complement_array.take(self._data)
+        comp = self.alphabet._complement_array.take(self._data)
         return self.__class__(comp[::-1], Info=self.info)
 
     def to_rna(self):
@@ -1382,7 +1382,7 @@ class ModelNucleicAcidSequence(ModelSequence):
 
 class ModelRnaSequence(ModelNucleicAcidSequence):
     moltype = None  # set to RNA in moltype.py
-    Alphabet = None  # set to RNA.Alphabets.DegenGapped in moltype.py
+    alphabet = None  # set to RNA.alphabets.DegenGapped in moltype.py
 
     def __init__(self, data='', *args, **kwargs):
         """Returns new ModelRnaSequence, converting T -> U"""
@@ -1394,7 +1394,7 @@ class ModelRnaSequence(ModelNucleicAcidSequence):
 
 class ModelDnaSequence(ModelNucleicAcidSequence):
     moltype = None  # set to DNA in moltype.py
-    Alphabet = None  # set to DNA.Alphabets.DegenGapped in moltype.py
+    alphabet = None  # set to DNA.alphabets.DegenGapped in moltype.py
 
     def __init__(self, data='', *args, **kwargs):
         """Returns new ModelRnaSequence, converting U -> T"""
@@ -1411,20 +1411,20 @@ class ModelCodonSequence(ModelSequence):
     def __str__(self):
         """Joins triplets together as string."""
         return self.Delimiter.join(map(''.join,
-                                       self.Alphabet.from_indices(self._data)))
+                                       self.alphabet.from_indices(self._data)))
 
     def _from_string(self, s):
         """Reads from a raw string, rather than a DnaSequence."""
         s = s.upper().replace('U', 'T')  # convert to uppercase DNA
         d = self.SequenceClass(s,
-                               Alphabet=self.Alphabet.SubEnumerations[0])
+                               alphabet=self.alphabet.SubEnumerations[0])
         self._data = d.to_codons()._data
 
-    def __init__(self, data='', Alphabet=None, Name=None, Info=None):
+    def __init__(self, data='', alphabet=None, Name=None, Info=None):
         """Override __init__ to handle init from string."""
         if isinstance(data, str):
             self._from_string(data)
-        ModelSequence.__init__(self, data, Alphabet, Name, Info=Info)
+        ModelSequence.__init__(self, data, alphabet, Name, Info=Info)
 
     def to_codons(self):
         """Converts self to codons -- in practice, just returns self.
@@ -1434,7 +1434,7 @@ class ModelCodonSequence(ModelSequence):
 
     def to_dna(self):
         """Returns a ModelDnaSequence from the data in self"""
-        unpacked = self.Alphabet.unpack_arrays(self._data)
+        unpacked = self.alphabet.unpack_arrays(self._data)
         result = zeros((len(self._data), 3))
         for i, v in enumerate(unpacked):
             result[:, i] = v
@@ -1442,7 +1442,7 @@ class ModelCodonSequence(ModelSequence):
 
     def to_rna(self):
         """Returns a ModelDnaSequence from the data in self."""
-        unpacked = self.Alphabet.unpack_arrays(self._data)
+        unpacked = self.alphabet.unpack_arrays(self._data)
         result = zeros((len(self._data), 3))
         for i, v in enumerate(unpacked):
             result[:, i] = v
@@ -1451,28 +1451,28 @@ class ModelCodonSequence(ModelSequence):
 
 class ModelDnaCodonSequence(ModelCodonSequence):
     """Holds non-degenerate DNA codon sequence."""
-    Alphabet = None  # set to DNA.Alphabets.Base.Triples in moltype.py
+    alphabet = None  # set to DNA.alphabets.Base.Triples in moltype.py
     SequenceClass = ModelDnaSequence
 
 
 class ModelRnaCodonSequence(ModelCodonSequence):
     """Holds non-degenerate DNA codon sequence."""
-    Alphabet = None  # set to RNA.Alphabets.Base.Triples in motype.py
+    alphabet = None  # set to RNA.alphabets.Base.Triples in motype.py
     SequenceClass = ModelRnaSequence
 
     def _from_string(self, s):
         """Reads from a raw string, rather than a DnaSequence."""
         s = s.upper().replace('T', 'U')  # convert to uppercase DNA
         d = self.SequenceClass(s,
-                               Alphabet=self.Alphabet.SubEnumerations[0])
+                               alphabet=self.alphabet.SubEnumerations[0])
         self._data = d.to_codons()._data
 
 
 class ModelProteinSequence(ModelSequence):
     moltype = None  # set to PROTEIN in moltype.py
-    Alphabet = None  # set to PROTEIN.Alphabets.DegenGapped in moltype.py
+    alphabet = None  # set to PROTEIN.alphabets.DegenGapped in moltype.py
 
 
 class ModelProteinWithStopSequence(ModelSequence):
     moltype = None  # set to PROTEIN_WITH_STOP in moltype.py
-    Alphabet = None  # set to PROTEIN_WITH_STOP.Alphabets.DegenGapped in moltype.py
+    alphabet = None  # set to PROTEIN_WITH_STOP.alphabets.DegenGapped in moltype.py

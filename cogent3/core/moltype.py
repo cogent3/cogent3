@@ -488,16 +488,16 @@ class MolType(object):
         self.Complements = Complements or {}
 
         if make_alphabet_group:  # note: must use _original_ ambiguities here
-            self.Alphabets = AlphabetGroup(motifset, Ambiguities,
+            self.alphabets = AlphabetGroup(motifset, Ambiguities,
                                            moltype=self)
-            self.Alphabet = self.Alphabets.Base
+            self.alphabet = self.alphabets.Base
         else:
             if isinstance(motifset, Enumeration):
-                self.Alphabet = motifset
+                self.alphabet = motifset
             elif max(len(motif) for motif in motifset) == 1:
-                self.Alphabet = CharAlphabet(motifset, moltype=self)
+                self.alphabet = CharAlphabet(motifset, moltype=self)
             else:
-                self.Alphabet = Alphabet(motifset, moltype=self)
+                self.alphabet = Alphabet(motifset, moltype=self)
         # set the other properties
         self.Degenerates = Ambiguities and Ambiguities.copy() or {}
         self.Degenerates[self.Missing] = ''.join(motifset) + self.Gap
@@ -518,9 +518,9 @@ class MolType(object):
         self.GapString = ''.join(self.Gaps)
         strict_gap = "".join(set(self.GapString) - set(self.Degenerates))
         self.strip_degenerate = FunctionWrapper(
-            KeepChars(strict_gap + ''.join(self.Alphabet)))
+            KeepChars(strict_gap + ''.join(self.alphabet)))
         self.strip_bad = FunctionWrapper(KeepChars(''.join(self.All)))
-        to_keep = set(self.Alphabet) ^ set(self.Degenerates) - set(self.Gaps)
+        to_keep = set(self.alphabet) ^ set(self.Degenerates) - set(self.Gaps)
         self.strip_bad_and_gaps = FunctionWrapper(KeepChars(''.join(to_keep)))
 
         # make inverse degenerates from degenerates
@@ -530,7 +530,7 @@ class MolType(object):
             inv_degens[frozenset(val)] = key.upper()
             if add_lower:
                 inv_degens[frozenset(''.join(val).lower())] = key.lower()
-        for m in self.Alphabet:
+        for m in self.alphabet:
             inv_degens[frozenset(m)] = m
             if add_lower:
                 inv_degens[frozenset(''.join(m).lower())] = m.lower()
@@ -540,7 +540,7 @@ class MolType(object):
 
         # set array type for modeling alphabets
         try:
-            self.ArrayType = self.Alphabet.ArrayType
+            self.ArrayType = self.alphabet.ArrayType
         except AttributeError:
             self.ArrayType = None
 
@@ -553,7 +553,7 @@ class MolType(object):
         WARNING: This doesn't allow you to reconstruct the object in its present
         incarnation.
         """
-        return 'MolType(%s)' % (self.Alphabet,)
+        return 'MolType(%s)' % (self.alphabet,)
 
     def gettype(self):
         """Returns type, e.g. 'dna', 'rna', 'protein'. Delete?"""
@@ -600,7 +600,7 @@ class MolType(object):
 
         Does this duplicate DegenerateFromSequence directly?
         """
-        most_specific = len(self.Alphabet) + 1
+        most_specific = len(self.alphabet) + 1
         result = self.Missing
         for (code, motifs2) in list(self.Ambiguities.items()):
             for c in motifs:
@@ -626,7 +626,7 @@ class MolType(object):
 
     def _add_lowercase(self):
         """Adds lowercase versions of keys and vals to each internal dict."""
-        for name in ['Alphabet', 'Degenerates', 'Gaps', 'Complements', 'Pairs',
+        for name in ['alphabet', 'Degenerates', 'Gaps', 'Complements', 'Pairs',
                      'Matches']:
             curr = getattr(self, name)
             # temp hack to get around re-ordering
@@ -642,7 +642,7 @@ class MolType(object):
         the possibly degenerate set of symbols that the items expand to.
         """
         all = {}
-        for i in self.Alphabet:
+        for i in self.alphabet:
             curr = str(i)
             all[i] = i
         for key, val in list(self.Degenerates.items()):
@@ -694,7 +694,7 @@ class MolType(object):
 
     def __iter__(self):
         """A MolType iterates only over the characters in its Alphabet.."""
-        return iter(self.Alphabet)
+        return iter(self.alphabet)
 
     def is_gap(self, char):
         """Returns True if char is a gap."""
@@ -716,7 +716,7 @@ class MolType(object):
             return False
 
     def is_strict(self, sequence):
-        """Returns True if sequence contains only items in self.Alphabet."""
+        """Returns True if sequence contains only items in self.alphabet."""
         try:
             return (len(sequence) == 0) or (self.first_non_strict(sequence) is None)
         except:
@@ -725,20 +725,20 @@ class MolType(object):
     def valid_on_alphabet(self, sequence, alphabet=None):
         """Returns True if sequence contains only items in alphabet.
 
-        Alphabet can actually be anything that implements __contains__.
-        Defaults to self.Alphabet if not supplied.
+        alphabet can actually be anything that implements __contains__.
+        Defaults to self.alphabet if not supplied.
         """
         if alphabet is None:
-            alphabet = self.Alphabet
+            alphabet = self.alphabet
         return first_index_in_set(sequence, alphabet) is not None
 
     def first_not_in_alphabet(self, sequence, alphabet=None):
         """Returns index of first item not in alphabet, or None.
 
-        Defaults to self.Alphabet if alphabet not supplied.
+        Defaults to self.alphabet if alphabet not supplied.
         """
         if alphabet is None:
-            alphabet = self.Alphabet
+            alphabet = self.alphabet
         return first_index_in_set(sequence, alphabet)
 
     def first_gap(self, sequence):
@@ -767,7 +767,7 @@ class MolType(object):
 
     def first_non_strict(self, sequence):
         """Returns the index of first non-strict symbol in sequence, or None."""
-        monomers = self.Alphabet
+        monomers = self.alphabet
         for i, s in enumerate(sequence):
             if s not in monomers:
                 return i
@@ -1129,27 +1129,27 @@ def _method_codon_alphabet(ignore, *args, **kwargs):
 STANDARD_CODON = CodonAlphabet()
 
 # Modify NucleicAcidSequence to avoid circular import
-NucleicAcidSequence.CodonAlphabet = _method_codon_alphabet
-NucleicAcidSequence.PROTEIN = PROTEIN
+NucleicAcidSequence.codon_alphabet = _method_codon_alphabet
+NucleicAcidSequence.protein = PROTEIN
 ModelRnaSequence.moltype = RNA
-ModelRnaSequence.Alphabet = RNA.Alphabets.DegenGapped
+ModelRnaSequence.alphabet = RNA.alphabets.DegenGapped
 
 ModelDnaSequence.moltype = DNA
-ModelDnaSequence.Alphabet = DNA.Alphabets.DegenGapped
+ModelDnaSequence.alphabet = DNA.alphabets.DegenGapped
 
 ModelProteinSequence.moltype = PROTEIN
-ModelProteinSequence.Alphabet = PROTEIN.Alphabets.DegenGapped
+ModelProteinSequence.alphabet = PROTEIN.alphabets.DegenGapped
 
 ModelProteinWithStopSequence.moltype = PROTEIN_WITH_STOP
-ModelProteinWithStopSequence.Alphabet = PROTEIN_WITH_STOP.Alphabets.DegenGapped
+ModelProteinWithStopSequence.alphabet = PROTEIN_WITH_STOP.alphabets.DegenGapped
 
-ModelSequence.Alphabet = BYTES.Alphabet
+ModelSequence.alphabet = BYTES.alphabet
 
-DenseAlignment.Alphabet = BYTES.Alphabet
+DenseAlignment.alphabet = BYTES.alphabet
 DenseAlignment.moltype = BYTES
 
-ModelDnaCodonSequence.Alphabet = DNA.Alphabets.Base.Triples
-ModelRnaCodonSequence.Alphabet = RNA.Alphabets.Base.Triples
+ModelDnaCodonSequence.alphabet = DNA.alphabets.Base.Triples
+ModelRnaCodonSequence.alphabet = RNA.alphabets.Base.Triples
 
 # Modify Alignment to avoid circular import
 Alignment.moltype = ASCII

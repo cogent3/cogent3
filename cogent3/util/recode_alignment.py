@@ -215,14 +215,14 @@ def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
     # Construct a dict mapping from UInt8s in alignment to their
     # associated characters. This dict is then used for looking
     # up chars in the new and old alphabets.
-    byte_map = dict(list(zip(aln.Alphabet, list(range(len(aln.Alphabet))))))
+    byte_map = dict(list(zip(aln.alphabet, list(range(len(aln.alphabet))))))
 
     # Construct a dict mapping old characters to new characters.
     alphabet_map = build_alphabet_map(alphabet_id=alphabet_id,
                                       alphabet_def=alphabet_def)
 
-    # Create the recoded version of seqs.Alphabet
-    new_indices = list(range(len(aln.Alphabet)))
+    # Create the recoded version of seqs.alphabet
+    new_indices = list(range(len(aln.alphabet)))
     for old, new in list(alphabet_map.items()):
         new_indices[byte_map[old]] = byte_map[new]
 
