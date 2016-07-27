@@ -339,7 +339,7 @@ class _PairwiseDistance(object):
         return table
 
     @property
-    def Dists(self):
+    def dists(self):
         kwargs = dict(title='Pairwise Distances', digits=4)
         return self._get_stats(2, **kwargs)
 
