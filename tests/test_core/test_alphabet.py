@@ -211,10 +211,10 @@ class CharAlphabetTests(TestCase):
         self.assertEqual(s.translate(i2c), b'UUCUGA')
         self.assertEqual('UUCUGA'.translate(c2i), '\000\000\001\000\003\002')
 
-    def test_fromString(self):
-        """CharAlphabet fromString should return correct array"""
+    def test_from_string(self):
+        """CharAlphabet from_string should return correct array"""
         r = CharAlphabet('UCAG')
-        self.assertEqual(r.fromString('UUCUGA'),
+        self.assertEqual(r.from_string('UUCUGA'),
                          array([0, 0, 1, 0, 3, 2], 'B'))
 
     def test_is_valid(self):
