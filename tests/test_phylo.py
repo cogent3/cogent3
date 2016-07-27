@@ -425,7 +425,7 @@ class DistancesTests(unittest.TestCase):
                   ('b', 'e'): {'kappa': 2.3965871854366592, 'length': 0.43891762729173389},
                   ('b', 'c'): {'kappa': 1.0010380037049357e-06, 'length': 0.087070406623635604},
                   ('c', 'e'): {'kappa': 0.57046787478038707, 'length': 0.43260232210282784}}
-        got = d.getAllParamValues()
+        got = d.get_all_param_values()
         for pair in expect:
             for param in expect[pair]:
                 self.assertAlmostEqual(got[pair][param], expect[
