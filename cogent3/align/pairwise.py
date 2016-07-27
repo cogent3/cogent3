@@ -313,7 +313,7 @@ class Pair(object):
 
     def edge2plh(self, edge, plhs):
         bins = plhs[0].shape[0]
-        plh = [edge.sumInputLikelihoods(*[p[bin][1:-1] for p in plhs])
+        plh = [edge.sum_input_likelihoods(*[p[bin][1:-1] for p in plhs])
                for bin in range(bins)]
         return plh
 

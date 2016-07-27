@@ -9,7 +9,7 @@ cdef extern from "math.h":
     double log (double x)
 
 
-def sumInputLikelihoods(child_indexes, Double2D result, likelihoods):
+def sum_input_likelihoods(child_indexes, Double2D result, likelihoods):
     cdef int M, S, U, C, motif, parent_col, child_col, child
     cdef Double2D plhs
     cdef Long1D index
