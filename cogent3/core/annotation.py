@@ -82,7 +82,7 @@ class _Annotatable(object):
     def _mapped(self, map):
         raise NotImplementedError
 
-    def getAnnotationTracks(self, policy):
+    def get_annotation_tracks(self, policy):
         result = []
         for annot in self.annotations:
             result.extend(annot.get_tracks(policy))

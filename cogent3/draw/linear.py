@@ -872,7 +872,7 @@ class DisplayPolicy(object):
         return sorted_tracks
 
     def tracksForAlignment(self, alignment):
-        annot_tracks = alignment.getAnnotationTracks(self)
+        annot_tracks = alignment.get_annotation_tracks(self)
         if self.recursive:
             if self.show_gaps is None:
                 seqs_policy = self.copy(show_gaps=True)
@@ -922,7 +922,7 @@ class DisplayPolicy(object):
                 label = getattr(self, 'seqname', '')
                 seq_tracks = [Track('seq', [feature], level=2, label=label)]
 
-        annot_tracks = sequence.getAnnotationTracks(self)
+        annot_tracks = sequence.get_annotation_tracks(self)
         return self.mergeTracks(annot_tracks + seq_tracks)
 
     def getStyleDefnForFeature(self, feature):
@@ -947,7 +947,7 @@ class DisplayPolicy(object):
         (track_tag, style, level) = self.getStyleDefnForFeature(feature)
         if style is None:
             return []
-        annot_tracks = feature.getAnnotationTracks(self)
+        annot_tracks = feature.get_annotation_tracks(self)
         return annot_tracks + [Track(track_tag,
                                      [Feature(self.map, style, feature.Name)], level=level)]
 
