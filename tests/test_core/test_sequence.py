@@ -385,18 +385,18 @@ class SequenceTests(TestCase):
         assert not self.RNA('UCAG').canMismatch('UCAG')
         assert not self.RNA('U--').canMismatch('U--')
 
-    def test_mustMatch(self):
-        """Sequence mustMatch should return True when no possible mismatches"""
-        assert self.RNA('').mustMatch('')
-        assert not self.RNA('N').mustMatch('N')
-        assert not self.RNA('R').mustMatch('R')
-        assert not self.RNA('N').mustMatch('r')
-        assert not self.RNA('CGUACGCAN').mustMatch('CGUACGCAN')
-        assert not self.RNA('U').mustMatch('C')
-        assert not self.RNA('UUU').mustMatch('UUC')
-        assert not self.RNA('UUU').mustMatch('UUY')
-        assert self.RNA('UU-').mustMatch('UU-')
-        assert self.RNA('UCAG').mustMatch('UCAG')
+    def test_must_match(self):
+        """Sequence must_match should return True when no possible mismatches"""
+        assert self.RNA('').must_match('')
+        assert not self.RNA('N').must_match('N')
+        assert not self.RNA('R').must_match('R')
+        assert not self.RNA('N').must_match('r')
+        assert not self.RNA('CGUACGCAN').must_match('CGUACGCAN')
+        assert not self.RNA('U').must_match('C')
+        assert not self.RNA('UUU').must_match('UUC')
+        assert not self.RNA('UUU').must_match('UUY')
+        assert self.RNA('UU-').must_match('UU-')
+        assert self.RNA('UCAG').must_match('UCAG')
 
     def test_can_pair(self):
         """Sequence can_pair should return True if all positions can pair"""
