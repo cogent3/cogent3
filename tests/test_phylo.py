@@ -231,11 +231,11 @@ class TreeReconstructionTests(unittest.TestCase):
     def setUp(self):
         self.tree = LoadTree(
             treestring='((a:3,b:4):2,(c:6,d:7):30,(e:5,f:5):5)')
-        self.dists = self.tree.getDistances()
+        self.dists = self.tree.get_distances()
 
     def assertTreeDistancesEqual(self, t1, t2):
-        d1 = t1.getDistances()
-        d2 = t2.getDistances()
+        d1 = t1.get_distances()
+        d2 = t2.get_distances()
         self.assertEqual(len(d1), len(d2))
         for key in d2:
             self.assertAlmostEqual(d1[key], d2[key])
