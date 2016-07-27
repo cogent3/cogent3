@@ -147,7 +147,7 @@ class ConsensusTests(unittest.TestCase):
                     return edge
 
         sct = ScoredTreeCollection(self.unrooted_trees_lengths)
-        ct = sct.getConsensusTree()
+        ct = sct.get_consensus_tree()
         maj_tree = self.unrooted_trees_lengths[0][1]
         # to ensure consistent comparison with majority, we root the ct same way
         # as maj
@@ -159,7 +159,7 @@ class ConsensusTests(unittest.TestCase):
             abs(get_ac(ct).length - get_ac(maj_tree).length) < 1e-9)
 
         sct = ScoredTreeCollection(self.rooted_trees_lengths)
-        ct = sct.getConsensusTree(method='rooted')
+        ct = sct.get_consensus_tree(method='rooted')
         maj_tree = self.rooted_trees_lengths[0][1]
         self.assertTrue(
             abs(get_ac(ct).length - get_ac(maj_tree).length) < 1e-9)
@@ -168,7 +168,7 @@ class ConsensusTests(unittest.TestCase):
         """tree collection should get same consensus as direct approach"""
         tree_list = [(1, t) for t in self.trees]
         sct = LogLikelihoodScoredTreeCollection(tree_list)
-        ct = sct.getConsensusTree()
+        ct = sct.get_consensus_tree()
         self.assertTrue(ct.same_topology(Tree("((c,d),a,b);")))
 
     def test_consensus_from_scored_trees_collection_ii(self):
@@ -190,15 +190,15 @@ class ConsensusTests(unittest.TestCase):
     def test_weighted_consensus_from_scored_trees_collection(self):
         """weighted consensus from a tree collection should be different"""
         sct = LogLikelihoodScoredTreeCollection(self.scored_trees)
-        ct = sct.getConsensusTree()
+        ct = sct.get_consensus_tree()
         self.assertTrue(ct.same_topology(Tree("((a,b),c,d);")))
 
     def test_weighted_consensus_from_scored_trees_collection_ii(self):
         """root positions in input tree collection should not effect result"""
         sct = LogLikelihoodScoredTreeCollection(self.trees_randomly_rooted)
-        ctrr = sct.getConsensusTree()
+        ctrr = sct.get_consensus_tree()
         sct = LogLikelihoodScoredTreeCollection(self.trees_rooted_at_A)
-        ctra = sct.getConsensusTree()
+        ctra = sct.get_consensus_tree()
         self.assertTrue(ctrr.same_topology(ctra))
 
     def test_weighted_trees_satisyfing_cutoff(self):
@@ -208,7 +208,7 @@ class ConsensusTests(unittest.TestCase):
         for weight, tree in cts:
             self.assertTrue(tree.same_topology(Tree('((a,b),c,d);')))
 
-        ct = cts.getConsensusTree()
+        ct = cts.get_consensus_tree()
         self.assertTrue(ct.same_topology(Tree("((a,b),c,d);")))
 
     def test_tree_collection_read_write_file(self):
@@ -257,7 +257,7 @@ class TreeReconstructionTests(unittest.TestCase):
 
         # Results should be a TreeCollection
         len(results)
-        results.getConsensusTree()
+        results.get_consensus_tree()
 
         # From GNJ paper. Pearson, Robins, Zhang 1999.
         tied_dists = {
