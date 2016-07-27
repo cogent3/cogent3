@@ -612,7 +612,7 @@ class Sequence(_Annotatable, SequenceI):
         new.annotations = self.annotations[:]
         return new
 
-    def gapped_by_mapSegmentIter(self, map, allow_gaps=True, recode_gaps=False):
+    def gapped_by_map_segment_iter(self, map, allow_gaps=True, recode_gaps=False):
         for span in map.spans:
             if span.lost:
                 if allow_gaps:
@@ -629,12 +629,12 @@ class Sequence(_Annotatable, SequenceI):
             yield seg
 
     def gapped_by_map_motif_iter(self, map):
-        for segment in self.gapped_by_mapSegmentIter(map):
+        for segment in self.gapped_by_map_segment_iter(map):
             for motif in segment:
                 yield motif
 
     def gapped_by_map(self, map, recode_gaps=False):
-        segments = self.gapped_by_mapSegmentIter(map, True, recode_gaps)
+        segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
         new = self.__class__(''.join(segments),
                              Name=self.Name, check=False, Info=self.Info)
         annots = self._slicedAnnotations(new, map)
@@ -643,7 +643,7 @@ class Sequence(_Annotatable, SequenceI):
 
     def _mapped(self, map):
         # Called by generic __getitem__
-        segments = self.gapped_by_mapSegmentIter(map, allow_gaps=False)
+        segments = self.gapped_by_map_segment_iter(map, allow_gaps=False)
         new = self.__class__(''.join(segments), self.Name, Info=self.Info)
         return new
 
