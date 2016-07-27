@@ -122,7 +122,7 @@ Sequences can be inserted into an alignment at the specified position using eith
 Inserting sequence(s) based on their alignment to a reference sequence
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Already aligned sequences can be added to an existing ``Alignment`` object and aligned at the same time using the ``addFromReferenceAln`` method. The alignment is performed based on their alignment to a reference sequence (which must be present in both alignments). The method assumes the first sequence in ``ref_aln.names[0]`` is the reference.
+Already aligned sequences can be added to an existing ``Alignment`` object and aligned at the same time using the ``add_from_ref_aln`` method. The alignment is performed based on their alignment to a reference sequence (which must be present in both alignments). The method assumes the first sequence in ``ref_aln.names[0]`` is the reference.
 
 .. doctest::
 
@@ -133,7 +133,7 @@ Already aligned sequences can be added to an existing ``Alignment`` object and a
     >>> ref_aln = LoadSeqs(data= [('seq3', 'ATAGGATG'),
     ...                           ('seq0', 'ATG-AGCG'),
     ...                           ('seq4', 'ATGCTGGG')], moltype=DNA)
-    >>> new_aln = aln.addFromReferenceAln(ref_aln)
+    >>> new_aln = aln.add_from_ref_aln(ref_aln)
     >>> print new_aln
     >seq1
     ATGAA------
@@ -147,7 +147,7 @@ Already aligned sequences can be added to an existing ``Alignment`` object and a
     AT--GC-TGGG
     <BLANKLINE>
 
-``addFromReferenceAln`` has the same arguments as ``add_seqs`` so ``before_name`` and ``after_name`` can be used to insert the new sequences at the desired position.
+``add_from_ref_aln`` has the same arguments as ``add_seqs`` so ``before_name`` and ``after_name`` can be used to insert the new sequences at the desired position.
 
 .. note:: This method does not work with the ``DenseAlignment`` class.
 
