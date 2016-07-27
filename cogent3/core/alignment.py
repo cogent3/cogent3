@@ -2789,7 +2789,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
               into, eg. 3 for filtering aligned codons."""
         gv = []
         kept = False
-        seqs = [self.get_gapped_seq(n).getInMotifSize(motif_length,
+        seqs = [self.get_gapped_seq(n).get_in_motif_size(motif_length,
                                                     **kwargs) for n in self.names]
 
         positions = list(zip(*seqs))

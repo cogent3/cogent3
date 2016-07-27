@@ -287,7 +287,7 @@ def makeLikelihoodTreeLeaf(sequence, alphabet=None, seq_name=None):
         seq_name = sequence.get_name()
 
     motif_len = alphabet.getMotifLen()
-    sequence2 = sequence.getInMotifSize(motif_len)
+    sequence2 = sequence.get_in_motif_size(motif_len)
 
     # Convert sequence to indexed list of unique motifs
     (uniq_motifs, counts, index) = _indexed(sequence2)

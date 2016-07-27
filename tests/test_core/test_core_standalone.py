@@ -521,11 +521,11 @@ class SequenceTestMethods(unittest.TestCase):
         """testing getting length"""
         assert len(self.seq) == 24
 
-    def test_getInMotifSize(self):
+    def test_get_in_motif_size(self):
         """test accuracy of chunking various sizes"""
-        self.assertEqual(self.seq.getInMotifSize(2),
+        self.assertEqual(self.seq.get_in_motif_size(2),
                          ['AT', 'GA', 'CG', 'TT', 'GC', 'GT', 'AG', 'CA', 'TA', 'GC', 'TC', 'GA'])
-        self.assertEqual(self.seq.getInMotifSize(3),
+        self.assertEqual(self.seq.get_in_motif_size(3),
                          ['ATG', 'ACG', 'TTG', 'CGT', 'AGC', 'ATA', 'GCT', 'CGA'])
 
     def test_translate(self):

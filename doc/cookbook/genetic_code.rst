@@ -127,13 +127,13 @@ Converting the ``CodonAlphabet`` to codon series
 Obtaining the codons from a ``DnaSequence`` object
 --------------------------------------------------
 
-Use the method ``getInMotifSize``
+Use the method ``get_in_motif_size``
 
 .. doctest::
 
     >>> from cogent import DNA
     >>> my_seq = DNA.makeSequence('ATGCACTGGTAA','my_gene')
-    >>> codons = my_seq.getInMotifSize(3)
+    >>> codons = my_seq.get_in_motif_size(3)
     >>> print codons
     ['ATG', 'CAC', 'TGG', 'TAA']
 

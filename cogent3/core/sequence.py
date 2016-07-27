@@ -721,7 +721,7 @@ class Sequence(_Annotatable, SequenceI):
             for pos in range(start, end, step):
                 yield self[pos:pos + window]
 
-    def getInMotifSize(self, motif_length=1, log_warnings=True):
+    def get_in_motif_size(self, motif_length=1, log_warnings=True):
         """returns sequence as list of non-overlapping motifs
 
         Arguments:
