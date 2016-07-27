@@ -281,7 +281,7 @@ class SiteHmm(object):
         plhs = self.distrib.get_weighted_sum_lhs(lhs)
         plhs = numpy.ascontiguousarray(numpy.transpose(plhs))
         matrix = self.distrib.transition_matrix
-        return self.root.logDotReduce(
+        return self.root.log_dot_reduce(
             matrix.StationaryProbs, matrix.Matrix, plhs)
 
     def get_posterior_probs(self, *lhs):
