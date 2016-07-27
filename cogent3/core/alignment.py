@@ -1602,8 +1602,8 @@ class Aligned(object):
         # print
         return result
 
-    def getAnnotationsMatching(self, alignment, *args):
-        for annot in self.data.getAnnotationsMatching(*args):
+    def get_annotations_matching(self, alignment, *args):
+        for annot in self.data.get_annotations_matching(*args):
             yield annot.remappedTo(alignment, self.map.inverse())
 
     def gap_vector(self):
@@ -2737,12 +2737,12 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         return annot.remappedTo(target_aligned.data, target_aligned.map)
 
     def get_projected_annotations(self, seq_name, *args):
-        aln_annots = self.getAnnotationsMatching(*args)
+        aln_annots = self.get_annotations_matching(*args)
         return [self.project_annotation(seq_name, a) for a in aln_annots]
 
     def get_annotations_from_seq(self, seq_name, *args):
         aligned = self.named_seqs[seq_name]
-        return aligned.getAnnotationsMatching(self, *args)
+        return aligned.get_annotations_matching(self, *args)
 
     def get_annotations_from_any_seq(self, *args):
         result = []

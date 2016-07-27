@@ -100,7 +100,7 @@ class TestGenome(GenomeTestBase):
         new_loc = self.brca2.Location.resized(-100, 100)
         region = self.human.getRegion(region=new_loc)
         annot_seq = region.getAnnotatedSeq(feature_types='gene')
-        gene_annots = annot_seq.getAnnotationsMatching('gene')
+        gene_annots = annot_seq.get_annotations_matching('gene')
         self.assertEqual(gene_annots[0].Name, self.brca2.Symbol)
 
     def test_correct_feature_type_id_cache(self):
@@ -270,7 +270,7 @@ class TestGene(GenomeTestBase):
     def test_gene_annotation(self):
         """should correctly annotated a sequence"""
         annot_seq = self.brca2.getAnnotatedSeq(feature_types='gene')
-        gene_annots = annot_seq.getAnnotationsMatching('gene')
+        gene_annots = annot_seq.get_annotations_matching('gene')
         self.assertEqual(gene_annots[0].Name, self.brca2.Symbol)
 
     def test_get_by_symbol(self):
@@ -430,7 +430,7 @@ class TestGene(GenomeTestBase):
                 ('IL13', 'ENST00000304506', 3, 'gtaaggcatc', 'tgtcctgcag')]:
             gene = asserted_one(self.human.getGenesMatching(Symbol=symbol))
             seq = gene.getAnnotatedSeq(feature_types='gene')
-            intron = asserted_one(seq.getAnnotationsMatching('intron',
+            intron = asserted_one(seq.get_annotations_matching('intron',
                                                              '%s-%d' % (stable_id, rank)))
             intron_seq = str(seq.getRegionCoveringAll(intron).getSlice())
             self.assertEqual(intron_seq[:10], exp_seq5.upper())
@@ -619,7 +619,7 @@ class TestFeatures(GenomeTestBase):
         for region in [mouse, rat]:
             features = region.getFeatures(feature_types=['gene'])
             ann_seq = region.getAnnotatedSeq(feature_types='gene')
-            genes = ann_seq.getAnnotationsMatching('gene')
+            genes = ann_seq.get_annotations_matching('gene')
             self.assertTrue(genes != [])
 
     def test_get_variation_feature(self):
@@ -653,8 +653,8 @@ class TestFeatures(GenomeTestBase):
         # the seqs should be the rc of each other
         self.assertEqual(str(plus_seq), str(minus_seq.rc()))
         # the Cds, however, from the annotated sequences should be identical
-        plus_cds = plus_seq.getAnnotationsMatching('CDS')[0]
-        minus_cds = minus_seq.getAnnotationsMatching('CDS')[0]
+        plus_cds = plus_seq.get_annotations_matching('CDS')[0]
+        minus_cds = minus_seq.get_annotations_matching('CDS')[0]
         self.assertEqual(str(plus_cds.getSlice()), str(minus_cds.getSlice()))
 
     def test_other_feature_data_correct(self):
@@ -669,13 +669,13 @@ class TestFeatures(GenomeTestBase):
         ms_feat = human.getRegion(Strand=-1, **coord)
 
         ps_seq = ps_feat.getAnnotatedSeq(feature_types='CpG')
-        ps_cgi = ps_seq.getAnnotationsMatching('CpGisland')[0]
+        ps_cgi = ps_seq.get_annotations_matching('CpGisland')[0]
 
         self.assertEqual(ps_feat.Seq, ms_feat.Seq.rc())
 
         self.assertEqual(ps_cgi.getSlice().rc(), exp)
         ms_seq = ms_feat.getAnnotatedSeq(feature_types='CpG')
-        ms_cgi = ms_seq.getAnnotationsMatching('CpGisland')[0]
+        ms_cgi = ms_seq.get_annotations_matching('CpGisland')[0]
 
         self.assertEqual(ms_cgi.getSlice(), ps_cgi.getSlice())
 
@@ -694,8 +694,8 @@ class TestFeatures(GenomeTestBase):
 
         ps_annot_seq = ps_repeat.getAnnotatedSeq(feature_types='repeat')
         ms_annot_seq = ms_repeat.getAnnotatedSeq(feature_types='repeat')
-        ps_seq = ps_annot_seq.getAnnotationsMatching('repeat')[0]
-        ms_seq = ms_annot_seq.getAnnotationsMatching('repeat')[0]
+        ps_seq = ps_annot_seq.get_annotations_matching('repeat')[0]
+        ms_seq = ms_annot_seq.get_annotations_matching('repeat')[0]
         self.assertEqual(ms_seq.getSlice(), ps_seq.getSlice())
         self.assertEqual(ps_seq.getSlice(), exp)
 

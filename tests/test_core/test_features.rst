@@ -27,7 +27,7 @@ Usually the only way to get a ``Feature`` object like ``exon1`` is to ask the se
 
 .. doctest::
     
-    >>> exons = s.getAnnotationsMatching('exon')
+    >>> exons = s.get_annotations_matching('exon')
     >>> print(exons)
     [exon "fred" at [10:15]/48, exon "trev" at [30:40]/48]
 
@@ -35,7 +35,7 @@ If the sequence does not have a matching feature you get back an empty list, and
 
 .. doctest::
     
-    >>> dont_exist = s.getAnnotationsMatching('dont_exist')
+    >>> dont_exist = s.get_annotations_matching('dont_exist')
     >>> dont_exist
     []
     >>> s[dont_exist]
@@ -138,7 +138,7 @@ When dealing with sequences that can be reverse complemented (e.g. ``DnaSequence
     >>> print(plus_cds.getSlice())
     GGGGCCCCCTTTTTTTTTT
     >>> minus = plus.rc()
-    >>> minus_cds = minus.getAnnotationsMatching('CDS')[0]
+    >>> minus_cds = minus.get_annotations_matching('CDS')[0]
     >>> print(minus_cds.getSlice())
     GGGGCCCCCTTTTTTTTTT
 

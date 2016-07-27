@@ -41,7 +41,7 @@ You can query annotations by type and optionally by label, receiving a list of f
 
 .. doctest::
 
-    >>> exons = s.getAnnotationsMatching('exon')
+    >>> exons = s.get_annotations_matching('exon')
     >>> print exons
     [exon "exon1" at [10:15]/48, exon "exon2" at [30:40]/48]
 

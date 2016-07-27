@@ -117,9 +117,9 @@ class TestAnnotations(unittest.TestCase):
                          "LTR": {"FAKE01": "CCCTTTTT",
                                   "FAKE02": "CCCTTTTT"}}
         newaln = self.aln[:5] + self.aln[10:]
-        feature_list = newaln.getAnnotationsMatching("LTR")
+        feature_list = newaln.get_annotations_matching("LTR")
         for annot_type in ["LTR", "misc_feature", "CDS", "5'UTR"]:
-            feature_list = newaln.getAnnotationsMatching(annot_type)
+            feature_list = newaln.get_annotations_matching(annot_type)
             new = newaln.getRegionCoveringAll(feature_list).getSlice().todict()
             expected = aln_expecteds[annot_type]
             assert expected == new, (annot_type, expected, new)
@@ -134,7 +134,7 @@ class TestAnnotations(unittest.TestCase):
 
     def test_feature_projection(self):
         expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
-        aln_ltr = self.aln.getAnnotationsMatching('LTR')[0]
+        aln_ltr = self.aln.get_annotations_matching('LTR')[0]
         for seq_name in ['FAKE01', 'FAKE02']:
             expected = expecteds[seq_name]
             seq_ltr = self.aln.project_annotation(seq_name, aln_ltr)

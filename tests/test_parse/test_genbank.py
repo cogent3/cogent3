@@ -351,7 +351,7 @@ ORIGIN
                                    add_annotation=add_annotation)
 
         seq = [s for l, s in parser][0]
-        cds = dict([(f.Name, f) for f in seq.getAnnotationsMatching('CDS')])
+        cds = dict([(f.Name, f) for f in seq.get_annotations_matching('CDS')])
         expects = {
             'CNA00110': 'MAGYDARYGNPLDPMSGGRPSPPETSQQDAYEYSKHGSSSGYLGQLPLGAD'
             'SAQAETASALRTLFGEGADVQALQEPPNQINTLAEGAAVAETGGVLGGDTTRSDNEALAIDPSL'

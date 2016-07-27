@@ -117,7 +117,7 @@ class _Annotatable(object):
     def add_feature(self, type, Name, spans):
         return self.addAnnotation(Feature, type, Name, spans)
 
-    def getAnnotationsMatching(self, annotation_type, Name=None):
+    def get_annotations_matching(self, annotation_type, Name=None):
         result = []
         for annotation in self.annotations:
             if annotation_type == annotation.type and (
@@ -148,7 +148,7 @@ class _Annotatable(object):
         Arguments:
             - ignore_partial: if True, annotations that extend beyond the
             current sequence are ignored."""
-        for annotation in self.getAnnotationsMatching(annotation_type, Name):
+        for annotation in self.get_annotations_matching(annotation_type, Name):
             try:
                 seq = self[annotation.map]
             except ValueError as msg:
