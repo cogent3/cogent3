@@ -43,7 +43,7 @@ class LikelihoodFunction(ParameterController):
     def getLogLikelihood(self):
         return self.getFinalResult()
 
-    def getPsubForEdge(self, name, **kw):
+    def get_psub_for_edge(self, name, **kw):
         """returns the substitution probability matrix for the named edge"""
         try:
             # For PartialyDiscretePsubsDefn
@@ -55,7 +55,7 @@ class LikelihoodFunction(ParameterController):
     def getRateMatrixForEdge(self, name, **kw):
         """returns the rate matrix (Q) for the named edge
 
-        Note: expm(Q) will give the same result as getPsubForEdge(name)"""
+        Note: expm(Q) will give the same result as get_psub_for_edge(name)"""
         try:
             array = self.get_param_value('Q', edge=name, **kw)
         except KeyError as err:
@@ -369,7 +369,7 @@ class LikelihoodFunction(ParameterController):
     def _nodeMotifProbs(self, tree, mprobs, kw):
         result = [(tree.name, mprobs)]
         for child in tree.children:
-            psub = self.getPsubForEdge(child.name, **kw)
+            psub = self.get_psub_for_edge(child.name, **kw)
             child_mprobs = numpy.dot(mprobs, psub)
             result.extend(self._nodeMotifProbs(child, child_mprobs, kw))
         return result
@@ -404,7 +404,7 @@ class LikelihoodFunction(ParameterController):
             parallel.sync_random(random_series)
 
         def psub_for(edge, bin):
-            return self.getPsubForEdge(edge, bin=bin, locus=locus)
+            return self.get_psub_for_edge(edge, bin=bin, locus=locus)
 
         if len(self.bin_names) > 1:
             hmm = self.get_param_value('bdist', locus=locus)
@@ -436,7 +436,7 @@ class LikelihoodFunction(ParameterController):
     def allPsubsDLC(self):
         """Returns True if every Psub matrix is Diagonal Largest in Column"""
         for edge in self.tree.get_edge_vector(include_root=False):
-            P = self.getPsubForEdge(edge.name).asarray()
+            P = self.get_psub_for_edge(edge.name).asarray()
             if (P.diagonal() < P).any():
                 return False
         return True

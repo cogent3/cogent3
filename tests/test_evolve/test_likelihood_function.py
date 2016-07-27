@@ -626,7 +626,7 @@ motif    mprobs
         lf = self.submodel.makeLikelihoodFunction(self.tree)
         lf.setAlignment(self.data)
         Q = lf.getRateMatrixForEdge('NineBande')
-        P = lf.getPsubForEdge('NineBande')
+        P = lf.get_psub_for_edge('NineBande')
         self.assertFloatEqual(expm(Q.array)(1.0), P.array)
 
         # should fail for a discrete Markov model
