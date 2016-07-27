@@ -725,12 +725,12 @@ class DNAAlphabet(_AlphabetTestCase):
 
     def test_include(self):
         """Nucleotide alphabet testing including gap motif"""
-        self.assertEqualSets(self.alpha.withGapMotif(),
+        self.assertEqualSets(self.alpha.with_gap_motif(),
                              ['A', 'C', 'G', 'T', '-'])
 
     def test_usesubset(self):
         """testing using a subset of motifs."""
-        self.assertEqualSets(self.alpha.withGapMotif(),
+        self.assertEqualSets(self.alpha.with_gap_motif(),
                              ['A', 'C', 'G', 'T', '-'])
         alpha = self.alpha.getSubset(motif_subset=['A'])
         self.assertEqualSets(alpha, ['A'])
@@ -744,7 +744,7 @@ class DNAAlphabet(_AlphabetTestCase):
 class DinucAlphabet(_AlphabetTestCase):
 
     def setUp(self):
-        self.alpha = DNA.Alphabet.withGapMotif().get_word_alphabet(2)
+        self.alpha = DNA.Alphabet.with_gap_motif().get_word_alphabet(2)
 
     def test_exclude(self):
         """Dinucleotide alphabet testing excluding gap motif"""
@@ -792,7 +792,7 @@ class CodonAlphabet(_AlphabetTestCase):
         self.alpha = STANDARD_CODON
 
     def test_ambiguous_gaps(self):
-        alpha = self.alpha.withGapMotif()
+        alpha = self.alpha.with_gap_motif()
         self.assertEqual(len(alpha.resolveAmbiguity('AT?')), 4)
         self.assertRaises(Exception, alpha.resolveAmbiguity, 'at-')
         self.assertEqual(len(alpha.resolveAmbiguity('???')), 62)
@@ -824,7 +824,7 @@ class CodonAlphabet(_AlphabetTestCase):
 
     def test_include(self):
         """testing including gap motif"""
-        alpha = self.alpha.withGapMotif()
+        alpha = self.alpha.with_gap_motif()
         expected = ['---', 'AAA', 'AAC', 'AAG', 'AAT', 'ACA',
                     'ACC', 'ACG', 'ACT', 'AGA', 'AGC',
                     'AGG', 'AGT', 'ATA', 'ATC', 'ATG',
