@@ -114,9 +114,9 @@ calculation, so long as it has a unique name.
     3.0
 
 For bulk retrieval of parameter values by parameter name and scope name there is
-the .get_param_valueDict() method:
+the .get_param_value_dict() method:
 
-    >>> vals = pc.get_param_valueDict(['category'])
+    >>> vals = pc.get_param_value_dict(['category'])
     >>> vals['A']['x']
     2.0
 
@@ -156,9 +156,9 @@ We test the ability to omit xtol. Due to precision issues we convert the returne
     True
 
 And finally intervals can be calculated in bulk by passing a dropoff value to
-.get_param_valueDict():
+.get_param_value_dict():
     
-    >>> pc.get_param_valueDict([], dropoff=4, xtol=0.0)['X']
+    >>> pc.get_param_value_dict([], dropoff=4, xtol=0.0)['X']
     (-2.0, 0.0, 2.0)
 
 For likelihood functions it is more convenient to provide 'p' rather than 'dropoff', dropoff = chdtri(1, p) / 2.0.  Also in general you won't need ultra precise answers, so don't use 'xtol=0.0', that's just to make the doctest work.

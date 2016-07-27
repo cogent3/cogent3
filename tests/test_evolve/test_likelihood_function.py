@@ -158,12 +158,12 @@ class LikelihoodCalcs(TestCase):
             ordered_param='rate', distribution='gamma', mprob_model='tuple')
         lf = self._makeLikelihoodFunction(submod, bins=3)
         try:
-            values = list(lf.get_param_valueDict(
+            values = list(lf.get_param_value_dict(
                 ['bin'])['omega_factor'].values())
         except KeyError:
             # there shouldn't be an omega factor
             pass
-        values = list(lf.get_param_valueDict(['bin'])['rate'].values())
+        values = list(lf.get_param_value_dict(['bin'])['rate'].values())
         obs = round(sum(values) / len(values), 6)
         self.assertEqual(obs, 1.0)
         self.assertEqual(len(values), 3)
@@ -176,7 +176,7 @@ class LikelihoodCalcs(TestCase):
             ordered_param='rate', partitioned_params='omega',
             distribution='gamma', mprob_model='tuple')
         lf = self._makeLikelihoodFunction(submod, bins=3)
-        values = list(lf.get_param_valueDict(['bin'])['omega_factor'].values())
+        values = list(lf.get_param_value_dict(['bin'])['omega_factor'].values())
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 3)
         shape = lf.get_param_value('rate_shape')
@@ -187,7 +187,7 @@ class LikelihoodCalcs(TestCase):
             ordered_param='rate', partitioned_params='omega',
             distribution='free', mprob_model='tuple')
         lf = self._makeLikelihoodFunction(submod, bins=3)
-        values = list(lf.get_param_valueDict(['bin'])['omega_factor'].values())
+        values = list(lf.get_param_value_dict(['bin'])['omega_factor'].values())
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 3)
 
@@ -200,7 +200,7 @@ class LikelihoodCalcs(TestCase):
                                           bins=['slow', 'fast'])
         lf.setParamRule('kappa', value=1.0, is_constant=True)
         lf.setParamRule('kappa', edge="Human", init=1.0, is_constant=False)
-        values = list(lf.get_param_valueDict(['bin'])['kappa_factor'].values())
+        values = list(lf.get_param_value_dict(['bin'])['kappa_factor'].values())
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 2)
 
@@ -596,7 +596,7 @@ motif    mprobs
     A    0.2500
     G    0.2500
 ---------------""")
-        self.assertEqual(likelihood_function.get_param_valueDict(['edge']), {
+        self.assertEqual(likelihood_function.get_param_value_dict(['edge']), {
             'beta': {'NineBande': 1.0, 'edge.1': 1.0, 'DogFaced': 1.0, 'Human': 1.0,
                      'edge.0': 1.0, 'Mouse': 1.0, 'HowlerMon': 1.0},
             'length': {'NineBande': 1.0, 'edge.1': 1.0, 'DogFaced': 1.0, 'Human': 1.0,
@@ -609,7 +609,7 @@ motif    mprobs
 
         lf = submod.makeLikelihoodFunction(self.tree)
         lf.setAlignment(aln)
-        stats = lf.get_param_valueDict(['edge'], params=['length'])
+        stats = lf.get_param_value_dict(['edge'], params=['length'])
 
     def test_constant_to_free(self):
         """excercise setting a constant param rule, then freeing it"""
