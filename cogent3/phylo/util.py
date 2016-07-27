@@ -16,7 +16,7 @@ __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
 
-def namesFromDistanceDict(dists):
+def names_from_distance_dict(dists):
     """Unique names from within the tuples which make up the keys of 'dists'"""
     names = []
     for key in dists:
@@ -42,7 +42,7 @@ def lookupSymmetricDict(dists, a, b):
 def distanceDictTo2D(dists):
     """(names, dists).  Distances converted into a straightforward distance
     matrix"""
-    names = namesFromDistanceDict(dists)
+    names = names_from_distance_dict(dists)
     L = len(names)
     d = numpy.zeros([L, L], Float)
     for (i, a) in enumerate(names):
@@ -76,6 +76,6 @@ def distanceDictTo1D(dists):
     """(names, dists).  Distances converted into a triangular matrix
     implemented as a 1D array where j > i and i is the inner dimension:
     d[0,1], d[0, 2], d[1, 2], d[0, 3]..."""
-    names = namesFromDistanceDict(dists)
+    names = names_from_distance_dict(dists)
     d = distanceDictAndNamesTo1D(dists, names)
     return (names, d)
