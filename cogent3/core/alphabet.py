@@ -149,7 +149,7 @@ class Enumeration(tuple):
 
         __getitem__: provides the object at a specified index.
 
-        Shape: shape of the data, typically an n x 1 array.
+        shape: shape of the data, typically an n x 1 array.
 
         _allowed_range: stores the range in which the enumeration elements occur
         (used for summing items that match a particular symbol).
@@ -187,13 +187,13 @@ class Enumeration(tuple):
         if gap and (gap in self):
             gap_index = self.index(gap)
             if gap_index >= 0:
-                self.GapIndex = gap_index
+                self.gap_index = gap_index
         try:
             self._gapmotif = self.gap * self._motiflen
         except TypeError:  # self._motiflen was probably None
             self._gapmotif = self.gap
 
-        self.Shape = (len(self),)
+        self.shape = (len(self),)
         # _allowed_range provides for fast sums of matching items
         self._allowed_range = arange(len(self))[:, newaxis]
         self.array_type = get_array_type(len(self))
@@ -364,8 +364,8 @@ class JointEnumeration(Enumeration):
         Does NOT have an independent concept of a gap -- gets the gaps from the
         constituent subenumerations.
         """
-        self.SubEnumerations = self._coerce_enumerations(data)
-        sub_enum_lengths = list(map(len, self.SubEnumerations))
+        self.sub_enumerations = self._coerce_enumerations(data)
+        sub_enum_lengths = list(map(len, self.sub_enumerations))
         # build factors for combining symbols.
         curr_factor = 1
         sub_enum_factors = [curr_factor]
@@ -376,17 +376,17 @@ class JointEnumeration(Enumeration):
 
         try:
             # figure out the gaps correctly
-            gaps = [i.gap for i in self.SubEnumerations]
+            gaps = [i.gap for i in self.sub_enumerations]
             self.gap = tuple(gaps)
-            gap_indices = array([i.GapIndex for i in self.SubEnumerations])
+            gap_indices = array([i.gap_index for i in self.sub_enumerations])
             gap_indices *= sub_enum_factors
-            self.GapIndex = sum(gap_indices)
+            self.gap_index = sum(gap_indices)
         except (TypeError, AttributeError):  # index not settable
             self.gap = None
 
         super(JointEnumeration, self).__init__(self, self.gap)
         # remember to reset shape after superclass init
-        self.Shape = tuple(sub_enum_lengths)
+        self.shape = tuple(sub_enum_lengths)
 
     def _coerce_enumerations(cls, enums):
         """Coerces putative enumerations into Enumeration objects.
@@ -473,9 +473,9 @@ class JointEnumeration(Enumeration):
         - Output will aill always use the same typecode as the input array.
         """
         a = array(a)
-        num_enums = len(self.SubEnumerations)
+        num_enums = len(self.sub_enumerations)
         result = zeros((num_enums, len(a)))
-        lengths = self.Shape
+        lengths = self.shape
         # count backwards through the enumeration lengths and add to array
         for i in range(num_enums - 1, -1, -1):
             length = lengths[i]

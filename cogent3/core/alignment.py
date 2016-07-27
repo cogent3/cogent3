@@ -2514,7 +2514,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
             elif hasattr(seq, 'count'):
                 num_gaps = seq.count(self.alphabet.gap)
             else:
-                num_gaps = sum(seq == self.alphabet.GapIndex)
+                num_gaps = sum(seq == self.alphabet.gap_index)
             return num_gaps / seq_len <= allowed_gap_frac
 
         return gaps_ok
