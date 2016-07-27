@@ -704,7 +704,7 @@ class TreeNode(object):
     def _default_tree_constructor(self):
         return TreeBuilder(constructor=self.__class__).edgeFromEdge
 
-    def nameUnnamedNodes(self):
+    def name_unnamed_nodes(self):
         """sets the Data property of unnamed nodes to an arbitrary value
 
         Internal nodes are often unnamed and so this function assigns a

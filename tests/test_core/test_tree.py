@@ -983,14 +983,14 @@ class TreeNodeTests(TestCase):
         self.assertEqual(f.separation(c), 1)
         self.assertEqual(c.separation(f), 1)
 
-    def test_nameUnnamedNodes(self):
-        """nameUnnamedNodes assigns an arbitrary value when name == None"""
+    def test_name_unnamed_nodes(self):
+        """name_unnamed_nodes assigns an arbitrary value when name == None"""
         tree, tree_nodes = self.TreeRoot, self.TreeNode
         tree_nodes['b'].name = 'node2'
         tree_nodes['c'].name = None
         tree_nodes['f'].name = None
         tree_nodes['e'].name = 'node3'
-        tree.nameUnnamedNodes()
+        tree.name_unnamed_nodes()
         self.assertEqual(tree_nodes['c'].name, 'node1')
         self.assertEqual(tree_nodes['f'].name, 'node4')
 
