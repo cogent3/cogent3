@@ -814,7 +814,7 @@ class NucleicAcidSequence(Sequence):
 
         return codons and gc.isStop(codons[-3:])
 
-    def withoutTerminalStopCodon(self, gc=None, allow_partial=False):
+    def without_terminal_stop_sodon(self, gc=None, allow_partial=False):
         """Removes a terminal stop codon from the sequence
 
         Arguments:

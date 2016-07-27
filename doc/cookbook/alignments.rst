@@ -458,7 +458,7 @@ For evolutionary analyses that use codon models we need to exclude terminating s
     ...                      'seq2': 'ACGACA---',
     ...                      'seq3': 'ACGCAATGA'}, moltype=DNA)
     ...                     
-    >>> new = aln.withoutTerminalStopCodons()
+    >>> new = aln.without_terminal_stop_sodons()
     >>> print new
     >seq3
     ACGCAA
@@ -476,7 +476,7 @@ If the alignment contains sequences not divisible by 3, use the ``allow_partial`
     ...                      'seq2': 'ACGAC----', # terminal codon incomplete
     ...                      'seq3': 'ACGCAATGA'}, moltype=DNA)
     ...                     
-    >>> new = aln.withoutTerminalStopCodons(allow_partial=True)
+    >>> new = aln.without_terminal_stop_sodons(allow_partial=True)
     >>> print new
     >seq3
     ACGCAA

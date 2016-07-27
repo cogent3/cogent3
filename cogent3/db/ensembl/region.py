@@ -755,7 +755,7 @@ class Transcript(_StableRegion):
         length = len(cds)
         cds = cds[: length - (length % 3)]
         try:
-            cds = cds.withoutTerminalStopCodon()
+            cds = cds.without_terminal_stop_sodon()
         except AssertionError:
             if not DEBUG:
                 raise

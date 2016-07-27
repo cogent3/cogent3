@@ -152,7 +152,7 @@ Remove the stop codon first
 
     >>> from cogent import DNA
     >>> my_seq = DNA.make_sequence('ATGCACTGGTAA','my_gene')
-    >>> seq = my_seq.withoutTerminalStopCodon()
+    >>> seq = my_seq.without_terminal_stop_sodon()
     >>> pep = seq.getTranslation()
     >>> print pep.to_fasta()
     >my_gene
