@@ -1322,7 +1322,7 @@ class TreeNode(object):
         xml.append(pad + "</clade>")
         return xml
 
-    def getXML(self):
+    def get_xml(self):
         """Return XML formatted tree string."""
         header = ['<?xml version="1.0"?>']  # <!DOCTYPE ...
         return '\n'.join(header + self._getXmlLines())
@@ -1342,7 +1342,7 @@ class TreeNode(object):
             xml = filename.lower().endswith('xml')
 
         if xml:
-            data = self.getXML()
+            data = self.get_xml()
         else:
             data = self.get_newick(with_distances=with_distances)
         outf = open(filename, "w")
