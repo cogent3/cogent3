@@ -189,7 +189,7 @@ class LikelihoodFunction(ParameterController):
         return DictArrayTemplate(self._mprob_motifs).wrap(motif_probs_array)
         # return dict(zip(self._motifs, motif_probs_array))
 
-    def getBinPriorProbs(self, locus=None):
+    def get_bin_prior_probs(self, locus=None):
         bin_probs_array = self.get_param_value('bprobs', locus=locus)
         return DictArrayTemplate(self.bin_names).wrap(bin_probs_array)
 
