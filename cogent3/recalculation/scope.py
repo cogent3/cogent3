@@ -152,7 +152,7 @@ class _Defn(object):
             name += extra_label
         return name
 
-    def getDefaultSetting(self):
+    def get_default_setting(self):
         return None
 
     def add_client(self, client):
@@ -191,7 +191,7 @@ class _Defn(object):
             scope_t = [scope.get(d, 'all') for d in self.valid_dimensions]
             scope_t = tuple(scope_t)
             if scope_t not in self.assignments:
-                self.assignments[scope_t] = self.getDefaultSetting()
+                self.assignments[scope_t] = self.get_default_setting()
 
     def outputOrdinalFor(self, scope):
         scope_t = tuple([scope[d] for d in self.valid_dimensions])
@@ -501,7 +501,7 @@ class _LeafDefn(_Defn):
         if extra_label is not None:
             self.name = self.name + extra_label
 
-    def getDefaultSetting(self):
+    def get_default_setting(self):
         if (getattr(self, '_default_setting', None) is None or
                 self.independent_by_default):
             self._default_setting = self.make_default_setting()
@@ -585,7 +585,7 @@ class _LeafDefn(_Defn):
 
         if lowest is None or highest is None:
             # All current settings are consts so use the class defaults
-            (lowest, default, highest) = self.getDefaultSetting().getBounds()
+            (lowest, default, highest) = self.get_default_setting().getBounds()
         return (lowest, highest)
 
     def __repr__(self):
