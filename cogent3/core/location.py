@@ -578,7 +578,7 @@ class Map(object):
             raise ValueError("Those maps belong to different sequences")
         return Map(spans=self.spans + other.spans, parent_length=self.parent_length)
 
-    def withTerminiUnknown(self):
+    def with_termini_unknown(self):
         return Map(self, spans=self.spans[:],
                    parent_length=self.parent_length,
                    termini_unknown=True)

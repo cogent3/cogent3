@@ -643,12 +643,12 @@ class SequenceTests(TestCase):
         test(s1, s3, 5.0 / 8)
         test(s2, s3, 4.0 / 8)
 
-    def test_withTerminiUnknown(self):
-        """withTerminiUnknown should reset termini to unknown char"""
+    def test_with_termini_unknown(self):
+        """with_termini_unknown should reset termini to unknown char"""
         s1 = self.RNA('-?--AC--?-')
         s2 = self.RNA('AC')
-        self.assertEqual(s1.withTerminiUnknown(), '????AC????')
-        self.assertEqual(s2.withTerminiUnknown(), 'AC')
+        self.assertEqual(s1.with_termini_unknown(), '????AC????')
+        self.assertEqual(s2.with_termini_unknown(), 'AC')
 
     def test_consistent_gap_degen_handling(self):
         """gap degen character should be treated consistently"""
