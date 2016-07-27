@@ -727,7 +727,7 @@ class TreeNode(object):
                 names_in_use.append(new_name)
                 name_index += 1
 
-    def makeTreeArray(self, dec_list=None):
+    def make_tree_array(self, dec_list=None):
         """Makes an array with nodes in rows and descendants in columns.
 
         A value of 1 indicates that the decendant is a descendant of that node/
