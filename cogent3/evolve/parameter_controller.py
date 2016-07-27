@@ -277,7 +277,7 @@ class _LikelihoodParameterController(_LF):
         self.set_param_rule("length", tip_names=[tip1name, tip2name],
                           is_clade=1, is_independent=0)
 
-    def setConstantLengths(self, tree=None, exclude_list=[]):
+    def set_constant_lengths(self, tree=None, exclude_list=[]):
         """Constrains edge lengths to those in the tree.
 
         Arguments:

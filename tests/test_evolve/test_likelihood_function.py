@@ -456,7 +456,7 @@ motif  mprobs
             'd': '-a-c-ctat-'})
         sm = Nucleotide(recode_gaps=True)
         lf = sm.makeParamController(t)
-        # pc.setConstantLengths()
+        # pc.set_constant_lengths()
         lf.setAlignment(al)
         # print lf.simulate_alignment(sequence_length=10)
         simulated = lf.simulate_alignment()

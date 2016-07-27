@@ -65,7 +65,7 @@ class test_parameter_controller(unittest.TestCase):
             do_scaling=True, equal_motif_probs=True, model_gaps=True,
             predicates={'kappa': 'transition'})
         lf = model.makeLikelihoodFunction(self.tree)
-        lf.setConstantLengths()
+        lf.set_constant_lengths()
         lf.setAlignment(self.al)
         null = lf.getNumFreeParams()
         lf.set_param_rule(par_name='kappa',
@@ -135,11 +135,11 @@ class test_parameter_controller(unittest.TestCase):
     def test_set_local_clock(self):
         pass
 
-    def test_setConstantLengths(self):
+    def test_set_constant_lengths(self):
         t = LoadTree(treestring='((a:1,b:2):3,(c:4,d:5):6,e:7);')
         lf = self.model.makeLikelihoodFunction(t)  # self.tree)
         lf.set_param_rule('length', is_constant=True)
-        # lf.setConstantLengths(t)
+        # lf.set_constant_lengths(t)
         lf.setAlignment(self.al)
         self.assertEqual(lf.get_param_value('length', 'b'), 2)
         self.assertEqual(lf.get_param_value('length', 'd'), 5)
@@ -181,7 +181,7 @@ class test_parameter_controller(unittest.TestCase):
         lf.set_param_rule(par_name='kappa',
                         is_independent=False,
                         edges=['b', 'd'])
-        lf.setConstantLengths(LoadTree(
+        lf.set_constant_lengths(LoadTree(
             treestring='((a:1,b:1):1,(c:2,d:1):1,e:1);'))
         # print self.pc
         lf.setAlignment(self.al)

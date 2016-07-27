@@ -32,7 +32,7 @@ length_of_align = 10000
 
 sm = substitution_model.Nucleotide()
 lf = sm.makeLikelihoodFunction(t)
-lf.setConstantLengths()
+lf.set_constant_lengths()
 lf.set_name('True JC model')
 print(lf)
 simulated = lf.simulate_alignment(sequence_length=length_of_align)
@@ -55,7 +55,7 @@ print(new_lf)
 # has a ts/tv term, different values for every edge
 sm = substitution_model.Nucleotide(predicates={'kappa': 'transition'})
 lf = sm.makeLikelihoodFunction(t)
-lf.setConstantLengths()
+lf.set_constant_lengths()
 lf.set_param_rule('kappa', is_constant=True, value=4.0, edge_name='a')
 lf.set_param_rule('kappa', is_constant=True, value=0.5, edge_name='b')
 lf.set_param_rule('kappa', is_constant=True, value=0.2, edge_name='c')
