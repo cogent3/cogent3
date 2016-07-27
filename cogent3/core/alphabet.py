@@ -223,7 +223,7 @@ class Enumeration(tuple):
         result = [self._obj_to_index[e] for e in data]
         return result
 
-    def isValid(self, seq):
+    def is_valid(self, seq):
         """Returns True if seq contains only items in self."""
         try:
             self.toIndices(seq)
@@ -726,7 +726,7 @@ class CharAlphabet(Alphabet):
         """
         return fromstring(str.translate(data, self._chars_to_indices), uint8)
 
-    def isValid(self, seq):
+    def is_valid(self, seq):
         """Returns True if seq contains only items in self."""
         try:
             if len(seq) == 0:  # can't be invalid if empty

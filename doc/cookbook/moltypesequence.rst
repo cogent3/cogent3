@@ -98,11 +98,11 @@ Verify sequences
 
    >>> rnastr = 'ACGUACGUACGUACGU'
    >>> dnastr = 'ACGTACGTACGTACGT'
-   >>> RnaMolType.isValid(rnastr)
+   >>> RnaMolType.is_valid(rnastr)
    True
-   >>> RnaMolType.isValid(dnastr)
+   >>> RnaMolType.is_valid(dnastr)
    False
-   >>> RnaMolType.isValid(NucleicAcidSequence(dnastr).to_rna())
+   >>> RnaMolType.is_valid(NucleicAcidSequence(dnastr).to_rna())
    True
 
 ``Sequence``

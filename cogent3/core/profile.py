@@ -103,7 +103,7 @@ class Profile(object):
             return False
         return True
 
-    def isValid(self):
+    def is_valid(self):
         """Check whether everything in the Profile is valid"""
         vd = self.hasValidData()
         va = self.hasValidAttributes()

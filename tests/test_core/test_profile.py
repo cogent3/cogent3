@@ -104,8 +104,8 @@ class ProfileTests(TestCase):
         # should be fine
         self.assertEqual(p.hasValidAttributes(), True)
 
-    def test_isValid(self):
-        """isValid: should work as expected"""
+    def test_is_valid(self):
+        """is_valid: should work as expected"""
         # everything valid
         p1 = Profile(array([[.3, .7], [.8, .2]]),
                      Alphabet="AB", CharOrder="AB")
@@ -115,9 +115,9 @@ class ProfileTests(TestCase):
         p3 = Profile(array([[.3, .7], [.8, .2]]),
                      Alphabet="ABCD", CharOrder="AF")
 
-        self.assertEqual(p1.isValid(), True)
-        self.assertEqual(p2.isValid(), False)
-        self.assertEqual(p3.isValid(), False)
+        self.assertEqual(p1.is_valid(), True)
+        self.assertEqual(p2.is_valid(), False)
+        self.assertEqual(p3.is_valid(), False)
 
     def test_dataAt(self):
         """dataAt: should work on valid position and character"""

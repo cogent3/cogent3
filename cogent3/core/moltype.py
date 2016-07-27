@@ -708,7 +708,7 @@ class MolType(object):
         """Returns True if sequence contains degenerate characters."""
         return self.firstDegenerate(sequence) is not None
 
-    def isValid(self, sequence):
+    def is_valid(self, sequence):
         """Returns True if sequence contains no items that are not in self."""
         try:
             return self.firstInvalid(sequence) is None
@@ -722,7 +722,7 @@ class MolType(object):
         except:
             return False
 
-    def isValidOnAlphabet(self, sequence, alphabet=None):
+    def is_validOnAlphabet(self, sequence, alphabet=None):
         """Returns True if sequence contains only items in alphabet.
 
         Alphabet can actually be anything that implements __contains__.

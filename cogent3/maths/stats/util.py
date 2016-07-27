@@ -308,7 +308,7 @@ class NumbersI(object):
 
     _is_sorted = False
 
-    def isValid(self):
+    def is_valid(self):
         """Checks that all items in self are numbers."""
         for i in self:
             if not (isinstance(i, int) or isinstance(i, float)):
@@ -814,7 +814,7 @@ class FreqsI(object):
         # should never get here because of return values
         raise NotImplementedError("Fell off end of _find_conversion_function")
 
-    def isValid(self):
+    def is_valid(self):
         """Checks presence of required keys, and that all vals are numbers."""
         for k in self.RequiredKeys:
             if k not in self:
@@ -1240,7 +1240,7 @@ class NumberFreqsI(FreqsI):
     counts of 1 and 10 counts of 2, for a mean of (5*1 + 10*2)/15 = 1.66.
     """
 
-    def isValid(self):
+    def is_valid(self):
         """Returns True if all keys and values are numbers."""
         for item in self.items:
             for i in item:
