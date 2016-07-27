@@ -245,13 +245,13 @@ class SequenceI(object):
         """
         return self.MolType.can_match(self, other)
 
-    def canMismatch(self, other):
+    def can_mismatch(self, other):
         """Returns True if any position in self could mismatch with other.
 
         Truncates at length of shorter sequence.
         Gaps are always counted as matches.
         """
-        return self.MolType.canMismatch(self, other)
+        return self.MolType.can_mismatch(self, other)
 
     def must_match(self, other):
         """Returns True if all positions in self must match positions in other."""

@@ -905,7 +905,7 @@ class MolType(object):
                 return False
         return True
 
-    def canMismatch(self, first, second):
+    def can_mismatch(self, first, second):
         """Returns True if any position in 1st could cause a mismatch with 2nd.
 
         Truncates at length of shorter sequence.
@@ -922,7 +922,7 @@ class MolType(object):
 
     def must_match(self, first, second):
         """Returns True if all positions in 1st must match positions in second."""
-        return not self.canMismatch(first, second)
+        return not self.can_mismatch(first, second)
 
     def can_pair(self, first, second):
         """Returns True if first and second could pair.
