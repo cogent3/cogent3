@@ -557,7 +557,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
 
     def makePsubsDefn(self, bprobs, word_probs, mprobs_matrix, rate_params):
         distance = self.makeDistanceDefn(bprobs)
-        P = self.makeContinuousPsubDefn(
+        P = self.make_continuous_psub_defn(
             word_probs, mprobs_matrix, distance, rate_params)
         return P
 
@@ -570,7 +570,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
             distance = length
         return distance
 
-    def makeContinuousPsubDefn(self, word_probs, mprobs_matrix, distance, rate_params):
+    def make_continuous_psub_defn(self, word_probs, mprobs_matrix, distance, rate_params):
         Qd = self.makeQdDefn(word_probs, mprobs_matrix, rate_params)
         P = CallDefn(Qd, distance, name='psubs')
         return P
