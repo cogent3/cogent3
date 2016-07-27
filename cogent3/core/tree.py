@@ -119,7 +119,7 @@ class TreeNode(object):
     def __gt__(self, other):
         return self.name > other.name
 
-    def compareName(self, other):
+    def compare_name(self, other):
         """Compares TreeNode by name"""
         if self is other:
             return True
