@@ -471,7 +471,7 @@ class _LeafDefn(_Defn):
     """An input to the calculator, ie: a Defn with no inputs itself.
 
     This class is incomplete - subclasses provide:
-        makeDefaultSetting()
+        make_default_setting()
         adaptSetting(setting)
         make_cells(input_soup)"""
 
@@ -504,7 +504,7 @@ class _LeafDefn(_Defn):
     def getDefaultSetting(self):
         if (getattr(self, '_default_setting', None) is None or
                 self.independent_by_default):
-            self._default_setting = self.makeDefaultSetting()
+            self._default_setting = self.make_default_setting()
         return self._default_setting
 
     def update(self):
