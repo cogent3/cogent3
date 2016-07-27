@@ -96,14 +96,14 @@ class BootstrapTests(unittest.TestCase):
 
         bstrap = bootstrap.EstimateConfidenceIntervals(
             self.create_null_controller(alignobj), self.calclength, alignobj)
-        bstrap.setNumReplicates(REPLICATES)
-        bstrap.setSeed(1984)
+        bstrap.set_num_replicates(REPLICATES)
+        bstrap.set_seed(1984)
         bstrap.run(local=True)
-        samplelnL = bstrap.getSamplelnL()
+        samplelnL = bstrap.get_sample_lnL()
         for lnL in samplelnL:
             assert lnL < 0.0, lnL
 
-        observed_stat = bstrap.getObservedStats()
+        observed_stat = bstrap.get_observed_stats()
         assert float_ge_zero(observed_stat)
 
         samplestats = bstrap.getSampleStats()
@@ -122,31 +122,31 @@ class BootstrapTests(unittest.TestCase):
             self.create_null_controller(alignobj),
             self.create_alt_controller(alignobj),
             alignobj)
-        prob_bstrap.setNumReplicates(REPLICATES)
-        prob_bstrap.setSeed(1984)
+        prob_bstrap.set_num_replicates(REPLICATES)
+        prob_bstrap.set_seed(1984)
         prob_bstrap.run(local=True)
 
-        self.assertEqual(len(prob_bstrap.getSampleLRList()), REPLICATES)
+        self.assertEqual(len(prob_bstrap.get_sample_LR_list()), REPLICATES)
 
-        assert float_ge_zero(prob_bstrap.getObservedLR())
+        assert float_ge_zero(prob_bstrap.get_observed_LR())
 
         # check the returned sample LR's for being > 0.0
-        for sample_LR in prob_bstrap.getSampleLRList():
+        for sample_LR in prob_bstrap.get_sample_LR_list():
             # print sample_LR
             assert float_ge_zero(sample_LR), sample_LR
 
         # check the returned observed lnL fulfill this assertion too, really
         # testing their order
-        null, alt = prob_bstrap.getObservedlnL()
+        null, alt = prob_bstrap.get_observed_lnL()
         assert float_ge_zero(2 * (alt - null))
 
         # now check the structure of the returned sample
-        for snull, salt in prob_bstrap.getSamplelnL():
+        for snull, salt in prob_bstrap.get_sample_lnL():
             # print salt, snull, 2*(salt-snull)
             assert float_ge_zero(2 * (salt - snull))
 
         # be sure we get something back from getprob if proc rank is 0
-        assert float_ge_zero(prob_bstrap.getEstimatedProb())
+        assert float_ge_zero(prob_bstrap.get_estimated_prob())
 
 
 if __name__ == "__main__":
