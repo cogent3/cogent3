@@ -844,14 +844,14 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
             weighted_scale += bin_prob * scale
         return weighted_scale
 
-    def getPredefinedPredicates(self):
+    def get_predefined_predicates(self):
         # overridden in subclasses
         return {'indel': predicate.parse('-/?')}
 
     def getPredefinedPredicate(self, name):
         # Called by predicate parsing code
         if self._canned_predicates is None:
-            self._canned_predicates = self.getPredefinedPredicates()
+            self._canned_predicates = self.get_predefined_predicates()
         return self._canned_predicates[name].interpret(self)
 
     def _adapt_predicates(self, rules):
@@ -893,7 +893,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
 
 class _Nucleotide(SubstitutionModel):
 
-    def getPredefinedPredicates(self):
+    def get_predefined_predicates(self):
         return {
             'transition': predicate.parse('R/R') | predicate.parse('Y/Y'),
             'transversion': predicate.parse('R/Y'),
@@ -951,7 +951,7 @@ class Codon(_Nucleotide):
             ndiffs = sum([X != Y for (X, Y) in zip(x, y)])
             return ndiffs == 1
 
-    def getPredefinedPredicates(self):
+    def get_predefined_predicates(self):
         gc = self.get_alphabet().get_genetic_code()
 
         def silent(x, y):
@@ -960,7 +960,7 @@ class Codon(_Nucleotide):
         def replacement(x, y):
             return x != '---' and y != '---' and gc[x] != gc[y]
 
-        preds = _Nucleotide.getPredefinedPredicates(self)
+        preds = _Nucleotide.get_predefined_predicates(self)
         preds.update({
             'indel': predicate.parse('???/---'),
             'silent': predicate.UserPredicate(silent),
