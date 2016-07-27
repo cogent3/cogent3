@@ -344,10 +344,10 @@ class _Defn(object):
 
         return result
 
-    def fillParValueDict(self, result, dimensions, cell_value_lookup):
+    def fill_par_value_dict(self, result, dimensions, cell_value_lookup):
         """Low level method for extracting values.  Pushes values of this
         particular parameter/defn into the dict tree 'result',
-        eg: length_defn.fillParValueDict(['edge']) populates 'result' like
+        eg: length_defn.fill_par_value_dict(['edge']) populates 'result' like
         {'length':{'human':1.0, 'mouse':1.0}}"""
 
         assert self.name not in result, self.name
@@ -713,7 +713,7 @@ class ParameterController(object):
         result = {}
         for param_name in params:
             ev = self.defn_for[param_name]
-            ev.fillParValueDict(result, dimensions, callback)
+            ev.fill_par_value_dict(result, dimensions, callback)
         return result
 
     def _makeValueCallback(self, dropoff, p, xtol=None):
