@@ -477,7 +477,7 @@ We test the molecular clock hypothesis for human and chimpanzee lineages. The nu
     >>> lf.setParamRule('length', tip_names=['Human', 'Chimpanzee'],
     ...         outgroup_name='Galago', is_clade=True, is_independent=False)
     ...                 
-    >>> lf.setName('Null Hypothesis')
+    >>> lf.set_name('Null Hypothesis')
     >>> lf.optimise(local=True, show_progress=False)
     >>> null_lnL = lf.getLogLikelihood()
     >>> null_nfp = lf.getNumFreeParams()
@@ -500,7 +500,7 @@ The alternate allows the human and chimpanzee branches to differ by just setting
 .. doctest::
     
     >>> lf.setParamRule('length', is_independent=True)
-    >>> lf.setName('Alt Hypothesis')
+    >>> lf.set_name('Alt Hypothesis')
     >>> lf.optimise(local=True, show_progress=False)
     >>> alt_lnL = lf.getLogLikelihood()
     >>> alt_nfp = lf.getNumFreeParams()
@@ -548,7 +548,7 @@ In general, however, this capability derives from the ability of any defined ``e
     >>> lf.setParamRule('length', tip_names=['Human', 'Chimpanzee'],
     ...         outgroup_name='Galago', is_clade=True, is_independent=False)
     ...                 
-    >>> lf.setName('Null Hypothesis')
+    >>> lf.set_name('Null Hypothesis')
     >>> lf.optimise(local=True, show_progress=False)
     >>> sim_aln = lf.simulateAlignment()
     >>> print repr(sim_aln)

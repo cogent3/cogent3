@@ -574,7 +574,7 @@ motif    mprobs
 
     def test_getparamsasdict(self):
         likelihood_function = self._makeLikelihoodFunction()
-        likelihood_function.setName("TEST")
+        likelihood_function.set_name("TEST")
         self.assertEqual(str(likelihood_function),
                          """TEST
 =======================================
