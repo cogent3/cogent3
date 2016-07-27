@@ -40,7 +40,7 @@ class LeafPartialLikelihoodDefn(_PartialLikelihoodDefn):
     name = "sequence"
 
     def calc(self, lh_tree):
-        lh_leaf = lh_tree.getEdge(self.edge_name)
+        lh_leaf = lh_tree.get_edge(self.edge_name)
         return lh_leaf.input_likelihoods
 
 
@@ -78,7 +78,7 @@ class LhtEdgeLookupDefn(CalculationDefn):
             self.name = 'root'
 
     def calc(self, lht):
-        return lht.getEdge(self.edge_name)
+        return lht.get_edge(self.edge_name)
 
 
 def make_partial_likelihood_defns(edge, lht, psubs, fixed_motifs):
