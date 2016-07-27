@@ -1019,9 +1019,9 @@ class SequenceCollection(object):
                              data=list(zip(self.names, concatenated)))
 
         if aligned:
-            left = [a for a in self._shiftedAnnotations(new, 0)
+            left = [a for a in self._shifted_annotations(new, 0)
                     if a.map.End <= len(self)]
-            right = [a for a in other._shiftedAnnotations(new, len(self))
+            right = [a for a in other._shifted_annotations(new, len(self))
                      if a.map.Start >= len(self)]
             new.annotations = left + right
         return new
