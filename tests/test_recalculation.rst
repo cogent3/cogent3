@@ -8,9 +8,9 @@ A simple calculator
     >>> pc = top.make_likelihood_function()
     >>> f = pc.make_calculator()
 
-f.getValueArray() shows the inputs, ie: the optimisable parameters
+f.get_value_array() shows the inputs, ie: the optimisable parameters
 
-    >>> f.getValueArray()
+    >>> f.get_value_array()
     [1.0, 1.0]
 
 The calculator can be called like a function
@@ -22,7 +22,7 @@ Or just a subset of the inputs can be changed directly
 
     >>> f.change([(1, 4.5)])
     7.5
-    >>> f.getValueArray()
+    >>> f.get_value_array()
     [3.0, 4.5]
 
 Now with scopes.  We will set up the calculation
@@ -49,7 +49,7 @@ a scalar result.  Here this is done with the select_from_dimension method.
     >>>
     >>> pc = top.make_likelihood_function()
     >>> f = pc.make_calculator()
-    >>> f.getValueArray()
+    >>> f.get_value_array()
     [1.0, 1.0]
 
 There are still only 2 inputs because the default scope
@@ -59,7 +59,7 @@ initial values to 2.0:
 
     >>> pc.assignAll('A', value=2.0, independent=True)
     >>> f = pc.make_calculator()
-    >>> f.getValueArray()
+    >>> f.get_value_array()
     [1.0, 2.0, 2.0, 2.0]
 
 Now we have A local and B still global, so the calculation is
@@ -77,7 +77,7 @@ will be one fewer optimisable parameters:
 
     >>> pc.assignAll('A', scope_spec={'category':'z'}, const=True)
     >>> f = pc.make_calculator()
-    >>> f.getValueArray()
+    >>> f.get_value_array()
     [1.0, 2.0, 2.0]
 
 The parameter controller should catch cases where the specified scope
@@ -97,7 +97,7 @@ does not exist:
 
 It is complicated guesswork matching the parameters you expect with positions in
 the value array, let alone remembering whether or not they are presented to the
-optimiser as logs, so .getValueArray(), .change() and .__call__() should only be
+optimiser as logs, so .get_value_array(), .change() and .__call__() should only be
 used by optimisers.  For other purposes there is an alternative, human friendly
 interface:
     

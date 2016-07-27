@@ -88,7 +88,7 @@ class OptPar(object):
 class LogOptPar(OptPar):
     # For ratios, optimiser sees log(param value).  Conversions to/from
     # optimiser representation are only done by Calculator.change(),
-    # .getValueArray() and .getBoundsArrrays().
+    # .get_value_array() and .getBoundsArrrays().
 
     def transform_from_optimiser(self, value):
         return numpy.exp(value)
@@ -239,7 +239,7 @@ class Calculator(object):
         for opt_par in self.opt_pars:
             self.cellsChangedBy([(opt_par.rank, None)])
 
-        self.last_values = self.getValueArray()
+        self.last_values = self.get_value_array()
         self.last_undo = []
         self.elapsed_time = 0.0
         self.evaluations = 0
@@ -319,7 +319,7 @@ class Calculator(object):
             os.remove(fn)
 
     def optimise(self, **kw):
-        x = self.getValueArray()
+        x = self.get_value_array()
         bounds = self.getBoundsVectors()
         maximise(self, x, bounds, **kw)
         self.optimised = True
@@ -360,7 +360,7 @@ class Calculator(object):
                 print('-' * width, '|', end=' ')
             print()
 
-    def getValueArray(self):
+    def get_value_array(self):
         """This being a caching function, you can ask it for its current
         input!  Handy for initialising the optimiser."""
         values = [p.transform_to_optimiser(self._getCurrentCellValue(p))
@@ -388,7 +388,7 @@ class Calculator(object):
             random_series = random.Random()
         if seed is not None:
             random_series.seed(seed)
-        X = self.getValueArray()
+        X = self.get_value_array()
         for (i, (l, u)) in enumerate(zip(*self.getBoundsVectors())):
             sign = random_series.choice([-1, +1])
             step = random_series.uniform(+0.05, +0.025)
@@ -577,7 +577,7 @@ class Calculator(object):
             now = time.time
         else:
             now = time.clock
-        x = self.getValueArray()
+        x = self.get_value_array()
         samples = []
         elapsed = 0.0
         rounds_per_sample = 2
