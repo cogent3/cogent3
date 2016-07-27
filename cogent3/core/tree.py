@@ -1863,7 +1863,7 @@ class PhyloNode(TreeNode):
         tip = self.get_node_matching_name(outgroup_name)
         return tip.Parent.unrooted_deepcopy()
 
-    def rootAtMidpoint(self):
+    def root_at_midpoint(self):
         """ return a new tree rooted at midpoint of the two tips farthest apart
 
         this fn doesn't preserve the internal node naming or structure,
