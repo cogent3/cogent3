@@ -115,9 +115,9 @@ class SequenceI(object):
         """
         return self.__class__(self.MolType.complement(self), Info=self.Info)
 
-    def stripDegenerate(self):
+    def strip_degenerate(self):
         """Removes degenerate bases by stripping them out of the sequence."""
-        return self.__class__(self.MolType.stripDegenerate(self), Info=self.Info)
+        return self.__class__(self.MolType.strip_degenerate(self), Info=self.Info)
 
     def stripBad(self):
         """Removes any symbols not in the alphabet."""
@@ -1280,14 +1280,14 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         result = compress(valid_indices, self._data)
         return self.__class__(result, Info=self.Info)
 
-    def stripDegenerate(self):
+    def strip_degenerate(self):
         """Returns copy of self without degenerate symbols.
 
         NOTE: goes via string intermediate because some of the algorithms
         for resolving degenerates are complex. This could be optimized if
         speed becomes critical.
         """
-        return self.__class__(self.MolType.stripDegenerate(str(self)),
+        return self.__class__(self.MolType.strip_degenerate(str(self)),
                               Info=self.Info)
 
     def count_gaps(self):

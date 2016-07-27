@@ -517,7 +517,7 @@ class MolType(object):
         # of characters as either gap or degenerate
         self.GapString = ''.join(self.Gaps)
         strict_gap = "".join(set(self.GapString) - set(self.Degenerates))
-        self.stripDegenerate = FunctionWrapper(
+        self.strip_degenerate = FunctionWrapper(
             KeepChars(strict_gap + ''.join(self.Alphabet)))
         self.stripBad = FunctionWrapper(KeepChars(''.join(self.All)))
         to_keep = set(self.Alphabet) ^ set(self.Degenerates) - set(self.Gaps)
@@ -782,7 +782,7 @@ class MolType(object):
         """
         if method == 'strip':
             try:
-                return sequence.__class__(self.stripDegenerate(sequence))
+                return sequence.__class__(self.strip_degenerate(sequence))
             except:
                 ambi = self.Degenerates
 
