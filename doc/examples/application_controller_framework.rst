@@ -444,7 +444,7 @@ ValuedParameter, or MixedParameter. (We don't know of any types that wouldn't
 fit into this framework, but if you come across any, please let us know.)
 Examples illustrating how to define the three different parameter types can be
 found in Section :ref:`sec:parameters`. The _parameters dict is a mapping of
-parameter identifiers, or Prefix and Name joined by the empty string, to
+parameter identifiers, or Prefix and name joined by the empty string, to
 parameter objects. All parameters which can be passed to an application should
 be defined in the parameters dict. Usually you can get this list by reviewing
 the application's documentation. See Section :ref:`sec:rnafoldexample` for an
@@ -488,18 +488,18 @@ A subclass of CommandLineApplication might look something like this::
        """
        _command = 'RNAfold'
        _parameters = {
-       '-p':MixedParameter(Prefix='-',Name='p',Delimiter='',Value=False),
-       '-C':FlagParameter(Prefix='-',Name='C'),
-       '-T':ValuedParameter(Prefix='-',Name='T',Value=37,Delimiter=' '),
-       '-4':FlagParameter(Prefix='-',Name=4),
-       '-d':MixedParameter(Prefix='-',Name='d',Delimiter='',Value=1),
-       '-noLP':FlagParameter(Prefix='-',Name='noLP'),
-       '-noGU':FlagParameter(Prefix='-',Name='noGU'),
-       '-noCloseGU':FlagParameter(Prefix='-',Name='noCloseGU'),
-       '-e':ValuedParameter(Prefix='-',Name='e',Delimiter=' '),
-       '-P':ValuedParameter(Prefix='-',Name='P',Delimiter=' '),
-       '-nsp':ValuedParameter(Prefix='-',Name='nsp',Delimiter=' '),
-       '-S':ValuedParameter(Prefix='-',Name='S',Value=1.07,Delimiter=' ')}
+       '-p':MixedParameter(Prefix='-',name='p',Delimiter='',Value=False),
+       '-C':FlagParameter(Prefix='-',name='C'),
+       '-T':ValuedParameter(Prefix='-',name='T',Value=37,Delimiter=' '),
+       '-4':FlagParameter(Prefix='-',name=4),
+       '-d':MixedParameter(Prefix='-',name='d',Delimiter='',Value=1),
+       '-noLP':FlagParameter(Prefix='-',name='noLP'),
+       '-noGU':FlagParameter(Prefix='-',name='noGU'),
+       '-noCloseGU':FlagParameter(Prefix='-',name='noCloseGU'),
+       '-e':ValuedParameter(Prefix='-',name='e',Delimiter=' '),
+       '-P':ValuedParameter(Prefix='-',name='P',Delimiter=' '),
+       '-nsp':ValuedParameter(Prefix='-',name='nsp',Delimiter=' '),
+       '-S':ValuedParameter(Prefix='-',name='S',Value=1.07,Delimiter=' ')}
        _synonyms = {'Temperature':'-T','Temp':'-T','Scale':'-S'}
        _input_handler = '_input_as_lines'
        _suppress_stderr = True 
@@ -921,7 +921,7 @@ Parameter: cogent.app. parameters.py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The class Parameter is an abstract class. Every Parameter object has six
-attributes: Prefix, Name, Value, Delimiter, Quote, and IsPath. All attributes
+attributes: Prefix, name, Value, Delimiter, Quote, and IsPath. All attributes
 may have any value, as long as it can be type casted into a string.
 
 The Prefix of a parameter specifies the character that precedes the name of the
@@ -930,7 +930,7 @@ be the empty string. For example: '-' is the prefix in '-T=37', and '\*' is the
 prefix in '\*d'. Note that some characters may have to be escaped (e.g.
 `\backslash`).
 
-Name is the second mandatory attribute of Parameter. The combination of the
+name is the second mandatory attribute of Parameter. The combination of the
 prefix and name of a parameter should form a unique combination that identifies
 the parameter. This ID is a public property of Parameter and will function later
 on as the key in the dictionary of parameters.
@@ -972,7 +972,7 @@ is not set, the tree is not calculated. Since a flag can never have a value, we
 can easily use the value to specify whether the flag will be printed or not. If
 Value=True, the parameter will print itself; if Value=False, it won't.
 
-A FlagParameter can be initialized with three things. Prefix, Name (mandatory),
+A FlagParameter can be initialized with three things. Prefix, name (mandatory),
 and Value (optional). The default for Value is False to indicate that the
 parameter is off (i.e. not printed) by default. The only thing that counts for a
 flag is whether its value evaluates to True or to False.
@@ -993,7 +993,7 @@ False.
 ::
 
    >>> from cogent3.app.parameters import FlagParameter
-   >>> tree = FlagParameter(Prefix='-',Name='tree')
+   >>> tree = FlagParameter(Prefix='-',name='tree')
    >>> tree.isOn()
    False
    >>> print tree
@@ -1034,7 +1034,7 @@ to None.
 ::
 
    >>> from cogent3.app.parameters import ValuedParameter
-   >>> temp = ValuedParameter(Prefix='-',Name='T',Delimiter="=")
+   >>> temp = ValuedParameter(Prefix='-',name='T',Delimiter="=")
    >>> temp.isOn()
    False
    >>> print temp
@@ -1042,7 +1042,7 @@ to None.
    >>> temp.on(37)
    >>> print temp
    -T=37
-   >>> temp_def = ValuedParameter(Prefix='-',Name='T',Value=100,Delimiter="=")
+   >>> temp_def = ValuedParameter(Prefix='-',name='T',Value=100,Delimiter="=")
    >>> temp_def.Default
    100
    >>> print temp_def
@@ -1083,7 +1083,7 @@ printed.
 ::
 
    >>> from cogent3.app.parameters import MixedParameter
-   >>> d = MixedParameter(Prefix='-',Name='d',Delimiter='')
+   >>> d = MixedParameter(Prefix='-',name='d',Delimiter='')
    >>> d.isOff()
    True
    >>> d.on()

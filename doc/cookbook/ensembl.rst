@@ -459,7 +459,7 @@ We sample all one-to-one orthologs for a group of species, generating a FASTA fo
     ...             # get the CDS without the ending stop
     ...             seq = m.CanonicalTranscript.Cds.without_terminal_stop_sodon()
     ...             # make the sequence name
-    ...             seq.Name = '%s:%s:%s' % \
+    ...             seq.name = '%s:%s:%s' % \
     ...         (latin_to_common[m.genome.Species], m.StableId, m.Location)
     ...             aa = seq.getTranslation()
     ...             seqs += [seq]

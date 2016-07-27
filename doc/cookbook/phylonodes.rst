@@ -59,9 +59,9 @@ Getting the name of a node (or a tree)
     >>> from cogent import LoadTree
     >>> tr = LoadTree('data/test.tree')
     >>> hu = tr.getNodeMatchingName('Human')
-    >>> tr.Name
+    >>> tr.name
     'root'
-    >>> hu.Name
+    >>> hu.name
     'Human'
 
 The object type of a tree and its nodes is the same
@@ -134,7 +134,7 @@ Getting the path between two tips or edges (connecting edges)
     >>> tr = LoadTree('data/test.tree')
     >>> edges = tr.getConnectingEdges('edge.1','Human')
     >>> for edge in edges:
-    ...    print edge.Name
+    ...    print edge.name
     ...
     edge.1
     edge.0
@@ -180,7 +180,7 @@ Getting all the ancestors for a node
     >>> tr = LoadTree('data/test.tree')
     >>> hu = tr.getNodeMatchingName('Human')
     >>> for a in hu.ancestors():
-    ...     print a.Name
+    ...     print a.name
     ...
     edge.0
     edge.1
@@ -196,7 +196,7 @@ Getting all the children for a node
     >>> node = tr.getNodeMatchingName('edge.1')
     >>> children = list(node.iterTips()) + list(node.iterNontips())
     >>> for child in children:
-    ...     print child.Name
+    ...     print child.name
     ...
     Human
     HowlerMon

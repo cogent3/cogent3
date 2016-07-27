@@ -94,7 +94,7 @@ class _Region(LazyRecord):
                     seq = get_sequence(alt_loc)
                 except NoItemError:
                     seq = DNA.make_sequence("N" * len(self))
-            seq.Name = str(self.Location)
+            seq.name = str(self.Location)
             self._cached['Seq'] = seq
         return self._cached['Seq']
 
@@ -721,12 +721,12 @@ class Transcript(_StableRegion):
         # check first exon PhaseStart is 0 and last exon PhaseEnd
         if exons[0].PhaseStart > 0:
             fill = DNA.make_sequence(
-                'N' * exons[0].PhaseStart, Name=full_seq.Name)
+                'N' * exons[0].PhaseStart, name=full_seq.name)
             full_seq = fill + full_seq
 
         if exons[-1].PhaseEnd > 0:
             fill = DNA.make_sequence(
-                'N' * exons[-1].PhaseEnd, Name=full_seq.Name)
+                'N' * exons[-1].PhaseEnd, name=full_seq.name)
             full_seq += fill
 
         self._cached['Cds'] = full_seq

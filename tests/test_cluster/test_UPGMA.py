@@ -144,8 +144,8 @@ class UPGMATests(TestCase):
         matrix_array, PhyloNode_order = inputs_from_dict2D(matrix_d2d)
         self.assertFloatEqual(matrix_array[0][2], 0.92)
         self.assertFloatEqual(matrix_array[1][0], 0.67)
-        self.assertEqual(PhyloNode_order[0].Name, '3')
-        self.assertEqual(PhyloNode_order[2].Name, '1')
+        self.assertEqual(PhyloNode_order[0].name, '3')
+        self.assertEqual(PhyloNode_order[2].name, '1')
 
 # run if called from command line
 if __name__ == '__main__':

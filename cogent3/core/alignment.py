@@ -148,7 +148,7 @@ class SeqLabeler(object):
 
     def __call__(self, s):
         """Returns seq name from seq id"""
-        return self._map[s.Name]
+        return self._map[s.name]
 
 
 def coerce_to_string(s):
@@ -181,10 +181,10 @@ def seqs_from_model_seqs(seqs, alphabet=None):
     """Alignment from ModelSequence objects: seqs -> array, names from seqs.
 
     This is an InputHandler for SequenceCollection. It converts a list of
-    Sequence objects with _data and Name properties into a SequenceCollection
+    Sequence objects with _data and name properties into a SequenceCollection
     that uses those sequences.
     """
-    return seqs, [s.Name for s in seqs]
+    return seqs, [s.name for s in seqs]
 
 
 def seqs_from_generic(seqs, alphabet=None):
@@ -196,8 +196,8 @@ def seqs_from_generic(seqs, alphabet=None):
     """
     names = []
     for s in seqs:
-        if hasattr(s, 'Name'):
-            names.append(s.Name)
+        if hasattr(s, 'name'):
+            names.append(s.name)
         else:
             names.append(None)
     return seqs, names
@@ -289,7 +289,7 @@ class SequenceCollection(object):
     DefaultNameFunction = assign_sequential_names
 
     def __init__(self, data, Names=None, alphabet=None, moltype=None,
-                 Name=None, Info=None, conversion_f=None, is_array=False,
+                 name=None, Info=None, conversion_f=None, is_array=False,
                  force_same_data=False,
                  remove_duplicate_names=False, label_to_name=None,
                  suppress_named_seqs=False):
@@ -340,7 +340,7 @@ class SequenceCollection(object):
 
         moltype:        moltype to be applied to the Alignment and to each seq.
 
-        Name:           Name of the SequenceCollection.
+        name:           name of the SequenceCollection.
 
         Info:           Info object to be attached to the alignment itself.
 
@@ -359,8 +359,8 @@ class SequenceCollection(object):
         # read all the data in if we were passed a generator
         if isinstance(data, GeneratorType):
             data = list(data)
-        # set the Name
-        self.Name = Name
+        # set the name
+        self.name = name
         # figure out alphabet and moltype
         self.alphabet, self.moltype = \
             self._get_alphabet_and_moltype(alphabet, moltype, data)
@@ -412,7 +412,7 @@ class SequenceCollection(object):
         """Returns named_seqs: dict of name:seq."""
         name_seq_tuples = list(zip(names, seqs))
         for n, s in name_seq_tuples:
-            s.Name = n
+            s.name = n
         return dict(name_seq_tuples)
 
     def _set_additional_attributes(self, curr_seqs):
@@ -1428,7 +1428,7 @@ class SequenceCollection(object):
         """Returns the alignment as DNA."""
         seqs = [self.named_seqs[name].to_dna() for name in self.names]
         aln = self.__class__(data=seqs, Names=self.names[
-                             :], Name=self.Name, Info=self.info)
+                             :], name=self.name, Info=self.info)
         if isinstance(self, _Annotatable) and self.annotations:
             aln.annotations = self.annotations[:]
         return aln
@@ -1437,7 +1437,7 @@ class SequenceCollection(object):
         """Returns the alignment as RNA"""
         seqs = [self.named_seqs[name].to_rna() for name in self.names]
         aln = self.__class__(data=seqs, Names=self.names[
-                             :], Name=self.Name, Info=self.info)
+                             :], name=self.name, Info=self.info)
         if isinstance(self, _Annotatable) and self.annotations:
             aln.annotations = self.annotations[:]
         return aln
@@ -1446,7 +1446,7 @@ class SequenceCollection(object):
         """Returns the reverse complement alignment"""
         seqs = [self.named_seqs[name].rc() for name in self.names]
         rc = self.__class__(data=seqs, Names=self.names[
-                            :], Name=self.Name, Info=self.info)
+                            :], name=self.name, Info=self.info)
         if isinstance(self, _Annotatable) and self.annotations:
             self._annotations_nucleic_reversed_on(rc)
         return rc
@@ -1504,8 +1504,8 @@ class Aligned(object):
         self.data = data
         if hasattr(data, 'info'):
             self.info = data.info
-        if hasattr(data, 'Name'):
-            self.Name = data.Name
+        if hasattr(data, 'name'):
+            self.name = data.name
 
     def _get_moltype(self):
         return self.data.moltype
@@ -2123,7 +2123,7 @@ def aln_from_model_seqs(seqs, array_type=None, alphabet=None):
     data, names = [], []
     for s in seqs:
         data.append(s._data)
-        names.append(s.Name)
+        names.append(s.name)
     result = array(data)
     if array_type:
         result = result.astype(array_type)
@@ -2143,8 +2143,8 @@ def aln_from_generic(data, array_type=None, alphabet=None):
     result = array(list(map(alphabet.to_indices, data)))
     names = []
     for d in data:
-        if hasattr(d, 'Name'):
-            names.append(d.Name)
+        if hasattr(d, 'name'):
+            names.append(d.name)
         else:
             names.append(None)
     if array_type:
@@ -2173,7 +2173,7 @@ def aln_from_fasta(seqs, array_type=None, alphabet=None):
     """
     if isinstance(seqs, str):
         seqs = seqs.splitlines()
-    return aln_from_model_seqs([ModelSequence(s, Name=l, alphabet=alphabet)
+    return aln_from_model_seqs([ModelSequence(s, name=l, alphabet=alphabet)
                                 for l, s in cogent3.parse.fasta.MinimalFastaParser(seqs)], array_type)
 
 
@@ -2661,7 +2661,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         aligned_seqs = []
         for s, n in zip(seqs, names):
             if isinstance(s, Aligned):
-                s.Name = n  # ensure consistency
+                s.name = n  # ensure consistency
                 aligned_seqs.append(s)
             else:
                 aligned_seqs.append(self._seq_to_aligned(s, n))
@@ -2749,9 +2749,9 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         result = []
         for feature in self.get_annotations_from_seq(seq_name, *args):
             segment = self[feature.map.Start:feature.map.End]
-            segment.Name = '%s "%s" %s to %s of %s' % (
-                feature.type, feature.Name,
-                feature.map.Start, feature.map.End, self.Name or '')
+            segment.name = '%s "%s" %s to %s of %s' % (
+                feature.type, feature.name,
+                feature.map.Start, feature.map.End, self.name or '')
             result.append(segment)
         return result
 
@@ -2770,7 +2770,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             # we mask each sequence using these spans
             masked_seqs += [seq._masked_annotations(
                 annot_types, mask_char, shadow)]
-        new = self.__class__(data=masked_seqs, Info=self.info, Name=self.Name)
+        new = self.__class__(data=masked_seqs, Info=self.info, name=self.name)
         return new
 
 
@@ -2956,9 +2956,9 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             seq = ref_aln.get_gapped_seq(seq_name)
             new_seq = Aligned(self.named_seqs[ref_seq_name].map, seq)
             if not temp_aln:
-                temp_aln = self.__class__({new_seq.Name: str(new_seq)})
+                temp_aln = self.__class__({new_seq.name: str(new_seq)})
             else:
-                temp_aln = temp_aln.add_seqs(self.__class__({new_seq.Name:
+                temp_aln = temp_aln.add_seqs(self.__class__({new_seq.name:
                                                             str(new_seq)}))
 
         aln = self.add_seqs(temp_aln, before_name, after_name)

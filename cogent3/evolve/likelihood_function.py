@@ -102,7 +102,7 @@ class LikelihoodFunction(ParameterController):
                 r = []
                 for motif in range(len(self._motifs)):
                     self.setParamRule('fixed_motif', value=motif,
-                                      edge=restricted_edge.Name, locus=locus,
+                                      edge=restricted_edge.name, locus=locus,
                                       is_constant=True)
                     likelihoods = self.getFullLengthLikelihoods(locus=locus)
                     r.append(likelihoods)
@@ -111,10 +111,10 @@ class LikelihoodFunction(ParameterController):
                             likelihoods.shape[0], self._motifs)
             finally:
                 self.setParamRule('fixed_motif', value=-1,
-                                  edge=restricted_edge.Name, locus=locus,
+                                  edge=restricted_edge.name, locus=locus,
                                   is_constant=True)
             # dict of site x motif arrays
-            result[restricted_edge.Name] = array_template.wrap(
+            result[restricted_edge.name] = array_template.wrap(
                 numpy.transpose(numpy.asarray(r)))
         return result
 
@@ -144,7 +144,7 @@ class LikelihoodFunction(ParameterController):
     def _valuesForDimension(self, dim):
         # in support of __str__
         if dim == 'edge':
-            result = [e.Name for e in self._tree.getEdgeVector()]
+            result = [e.name for e in self._tree.getEdgeVector()]
         elif dim == 'bin':
             result = self.bin_names[:]
         elif dim == 'locus':
@@ -181,10 +181,10 @@ class LikelihoodFunction(ParameterController):
         d = self.getParamValueDict(['edge'])
         tree = self._tree.deepcopy()
         for edge in tree.getEdgeVector():
-            if edge.Name == 'root':
+            if edge.name == 'root':
                 continue
             for par in d:
-                edge.params[par] = d[par][edge.Name]
+                edge.params[par] = d[par][edge.name]
         return tree
 
     def getMotifProbs(self, edge=None, bin=None, locus=None):
@@ -221,9 +221,9 @@ class LikelihoodFunction(ParameterController):
         for edge in self._tree.getEdgeVector():
             if edge.isroot():
                 continue
-            Qs = [valueOf('Qd', bin=b, edge=edge.Name).Q for b in bin_names]
-            length = valueOf('length', edge=edge.Name)
-            scaled_lengths[edge.Name] = length * self._model.getScaleFromQs(
+            Qs = [valueOf('Qd', bin=b, edge=edge.name).Q for b in bin_names]
+            length = valueOf('length', edge=edge.name)
+            scaled_lengths[edge.name] = length * self._model.getScaleFromQs(
                 Qs, bprobs, mprobs, predicate)
         return scaled_lengths
 
@@ -263,7 +263,7 @@ class LikelihoodFunction(ParameterController):
                 if 'length' in param_names:
                     param_names.remove('length')
                     param_names.insert(0, 'length')
-                raw_table['parent'] = dict([(e.Name, e.Parent.Name)
+                raw_table['parent'] = dict([(e.name, e.Parent.name)
                                             for e in self._tree.getEdgeVector()
                                             if not e.isroot()])
                 param_names.insert(0, 'parent')
@@ -329,15 +329,15 @@ class LikelihoodFunction(ParameterController):
             parents = {}
             for edge in edge_vector:
                 if edge.Parent.isroot():
-                    parents[edge.Name] = "root"
+                    parents[edge.name] = "root"
                 else:
-                    parents[edge.Name] = str(edge.Parent.Name)
+                    parents[edge.name] = str(edge.Parent.name)
             stats_dict["edge.parent"] = parents
 
         if with_edge_names:
             stats_dict['edge.name'] = (
-                [e.Name for e in edge_vector if e.istip()] +
-                [e.Name for e in edge_vector if not e.istip()])
+                [e.name for e in edge_vector if e.istip()] +
+                [e.name for e in edge_vector if not e.istip()])
 
         return stats_dict
 
@@ -367,9 +367,9 @@ class LikelihoodFunction(ParameterController):
         return DictArrayTemplate(edges, self._mprob_motifs).wrap(values)
 
     def _nodeMotifProbs(self, tree, mprobs, kw):
-        result = [(tree.Name, mprobs)]
+        result = [(tree.name, mprobs)]
         for child in tree.Children:
-            psub = self.getPsubForEdge(child.Name, **kw)
+            psub = self.getPsubForEdge(child.name, **kw)
             child_mprobs = numpy.dot(mprobs, psub)
             result.extend(self._nodeMotifProbs(child, child_mprobs, kw))
         return result
@@ -436,7 +436,7 @@ class LikelihoodFunction(ParameterController):
     def allPsubsDLC(self):
         """Returns True if every Psub matrix is Diagonal Largest in Column"""
         for edge in self.tree.getEdgeVector(include_root=False):
-            P = self.getPsubForEdge(edge.Name).asarray()
+            P = self.getPsubForEdge(edge.name).asarray()
             if (P.diagonal() < P).any():
                 return False
         return True
@@ -444,8 +444,8 @@ class LikelihoodFunction(ParameterController):
     def allRateMatricesUnique(self):
         """Returns True if every rate matrix is unique for its Psub matrix"""
         for edge in self.tree.getEdgeVector(include_root=False):
-            Q = self.getRateMatrixForEdge(edge.Name).asarray()
-            t = self.getParamValue('length', edge=edge.Name)
+            Q = self.getRateMatrixForEdge(edge.name).asarray()
+            t = self.getParamValue('length', edge=edge.name)
             if not is_generator_unique(Q * t):
                 return False
         return True

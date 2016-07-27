@@ -21,14 +21,14 @@ class DbRef(object):
 
     Accession:      id in the database: str or int
     Db:             database name: str
-    Name:           short name of the record: str
+    name:           short name of the record: str
     Description:    description of the record, possibly lengthy: str
     Data:           any data associated with the record: arbitrary object
 
     str(DbRef) always returns the accession.
     """
 
-    def __init__(self, Accession, Db='', Name='', Description='',
+    def __init__(self, Accession, Db='', name='', Description='',
                  Data=None):
         """Returns new DbRef.
 
@@ -36,7 +36,7 @@ class DbRef(object):
         """
         self.Accession = Accession
         self.Db = Db
-        self.Name = Name
+        self.name = name
         self.Description = Description
         self.Data = Data
 

@@ -949,7 +949,7 @@ class DisplayPolicy(object):
             return []
         annot_tracks = feature.get_annotation_tracks(self)
         return annot_tracks + [Track(track_tag,
-                                     [Feature(self.map, style, feature.Name)], level=level)]
+                                     [Feature(self.map, style, feature.name)], level=level)]
 
     def tracksForVariable(self, variable):
         (track_tag, style, level) = self.getStyleDefnForFeature(variable)
@@ -959,13 +959,13 @@ class DisplayPolicy(object):
         max_y = 0.0
         for ((x1, x2), y) in variable.xxy_list:
             map = self.map[x1:x2]
-            segments.append(Feature(map, style, variable.Name, value=y))
+            segments.append(Feature(map, style, variable.name, value=y))
             if type(y) is tuple:
                 y = max(y)
             if y > max_y:
                 max_y = y
         return [Track(track_tag, segments, max_y=max_y, needs_border=True,
-                      label=variable.Name, level=level)]
+                      label=variable.name, level=level)]
 
 
 class Display(rlg2mpl.Drawable):

@@ -22,14 +22,14 @@ class AllTests(TestCase):
     def setUp(self):
         """setUp method for all tests"""
         # named sequences
-        self.rna1 = RnaSequence('UCAGGG', Name='rna1')
-        self.rna2 = RnaSequence('YCU-RG', Name='rna2')
-        self.rna3 = RnaSequence('CAA-NR', Name='rna3')
-        self.model1 = ModelSequence('UCAGGG', Name='rna1',
+        self.rna1 = RnaSequence('UCAGGG', name='rna1')
+        self.rna2 = RnaSequence('YCU-RG', name='rna2')
+        self.rna3 = RnaSequence('CAA-NR', name='rna3')
+        self.model1 = ModelSequence('UCAGGG', name='rna1',
                                     alphabet=RNA.alphabets.DegenGapped)
-        self.model2 = ModelSequence('YCU-RG', Name='rna2',
+        self.model2 = ModelSequence('YCU-RG', name='rna2',
                                     alphabet=RNA.alphabets.DegenGapped)
-        self.model3 = ModelSequence('CAA-NR', Name='rna3',
+        self.model3 = ModelSequence('CAA-NR', name='rna3',
                                     alphabet=RNA.alphabets.DegenGapped)
 
         self.aln = Alignment([self.rna1, self.rna2, self.rna3], moltype=RNA)
@@ -74,9 +74,9 @@ class AllTests(TestCase):
         """Expect MolType to be picked up from the sequences."""
 
         m1 = ModelSequence('UCAG', alphabet=RNA.alphabets.DegenGapped,
-                           Name='rna1')
+                           name='rna1')
         m2 = ModelSequence('CCCR', alphabet=RNA.alphabets.DegenGapped,
-                           Name='rna2')
+                           name='rna2')
         da = DenseAlignment([m1, m2])
         exp_lines = ['>rna1', 'UCAG', '>rna2', 'CCCR']
         self.assertEqual(str(da), '\n'.join(exp_lines) + '\n')
@@ -124,11 +124,11 @@ class AllTests(TestCase):
         full_data = array(
             [[0, 1, 2, 3, 3, 3], [Y, 1, 0, G, R, 3], [1, 2, 2, G, N, R]])
 
-        model1 = ModelSequence('UCG', Name='rna1',
+        model1 = ModelSequence('UCG', name='rna1',
                                alphabet=RNA.alphabets.DegenGapped)
-        model2 = ModelSequence('YCG', Name='rna2',
+        model2 = ModelSequence('YCG', name='rna2',
                                alphabet=RNA.alphabets.DegenGapped)
-        model3 = ModelSequence('CAR', Name='rna3',
+        model3 = ModelSequence('CAR', name='rna3',
                                alphabet=RNA.alphabets.DegenGapped)
         sub_da = DenseAlignment([model1, model2, model3],
                                 moltype=RNA, alphabet=RNA.alphabets.DegenGapped)
@@ -159,9 +159,9 @@ class AllTests(TestCase):
         # Shouldn't the __eq__ method check the data at least?
 
     def test_subset_positions_Alignment(self):
-        rna1 = RnaSequence('UCG', Name='rna1')
-        rna2 = RnaSequence('YCG', Name='rna2')
-        rna3 = RnaSequence('CAR', Name='rna3')
+        rna1 = RnaSequence('UCG', name='rna1')
+        rna2 = RnaSequence('YCG', name='rna2')
+        rna3 = RnaSequence('CAR', name='rna3')
 
         sub_aln = Alignment([rna1, rna2, rna3], moltype=RNA)
 
@@ -184,9 +184,9 @@ class AllTests(TestCase):
         self.assertEqual(sub_aln.names, ['rna1', 'rna2', 'rna3'])
 
     def test_subset_seqs_Alignment(self):
-        rna1 = RnaSequence('UCG', Name='rna1')
-        rna2 = RnaSequence('YCG', Name='rna2')
-        rna3 = RnaSequence('CAR', Name='rna3')
+        rna1 = RnaSequence('UCG', name='rna1')
+        rna2 = RnaSequence('YCG', name='rna2')
+        rna3 = RnaSequence('CAR', name='rna3')
 
         sub_aln = Alignment([rna2, rna3], moltype=RNA)
         aln = Alignment([rna1, rna2, rna3], moltype=RNA)
@@ -201,11 +201,11 @@ class AllTests(TestCase):
         self.assertNotEqual(str(obs_sub_aln_1), str(obs_sub_aln_2))
 
     def test_subset_seqs_DenseAlignment(self):
-        model1 = ModelSequence('UCG', Name='rna1',
+        model1 = ModelSequence('UCG', name='rna1',
                                alphabet=RNA.alphabets.DegenGapped)
-        model2 = ModelSequence('YCG', Name='rna2',
+        model2 = ModelSequence('YCG', name='rna2',
                                alphabet=RNA.alphabets.DegenGapped)
-        model3 = ModelSequence('CAR', Name='rna3',
+        model3 = ModelSequence('CAR', name='rna3',
                                alphabet=RNA.alphabets.DegenGapped)
         sub_da = DenseAlignment([model1, model2, model3],
                                 moltype=RNA, alphabet=RNA.alphabets.DegenGapped)
@@ -239,9 +239,9 @@ class AllTests(TestCase):
             list(map(alltrue, self.da.array_seqs == other_da3.array_seqs)))
 
     def test_seq_equality(self):
-        model1 = ModelSequence('UCG', Name='rna1',
+        model1 = ModelSequence('UCG', name='rna1',
                                alphabet=RNA.alphabets.DegenGapped)
-        model2 = ModelSequence('UCG', Name='rna1',
+        model2 = ModelSequence('UCG', name='rna1',
                                alphabet=RNA.alphabets.DegenGapped)
         # Shouldn't the above two sequences be equal?
         self.assertEqual(model1, model2)
@@ -249,8 +249,8 @@ class AllTests(TestCase):
         self.assertEqual(str(model1), str(model2))
 
     def test_seq_ungapping(self):
-        rna1 = RnaSequence('U-C-A-G-', Name='rna1')
-        model1 = ModelSequence('U-C-A-G-', Name='rna1',
+        rna1 = RnaSequence('U-C-A-G-', name='rna1')
+        model1 = ModelSequence('U-C-A-G-', name='rna1',
                                alphabet=RNA.alphabets.DegenGapped)
 
         self.assertEqual(rna1, 'U-C-A-G-')

@@ -101,7 +101,7 @@ class TestGenome(GenomeTestBase):
         region = self.human.getRegion(region=new_loc)
         annot_seq = region.getAnnotatedSeq(feature_types='gene')
         gene_annots = annot_seq.get_annotations_matching('gene')
-        self.assertEqual(gene_annots[0].Name, self.brca2.Symbol)
+        self.assertEqual(gene_annots[0].name, self.brca2.Symbol)
 
     def test_correct_feature_type_id_cache(self):
         """should obtain the feature type identifiers without failure"""
@@ -271,7 +271,7 @@ class TestGene(GenomeTestBase):
         """should correctly annotated a sequence"""
         annot_seq = self.brca2.getAnnotatedSeq(feature_types='gene')
         gene_annots = annot_seq.get_annotations_matching('gene')
-        self.assertEqual(gene_annots[0].Name, self.brca2.Symbol)
+        self.assertEqual(gene_annots[0].name, self.brca2.Symbol)
 
     def test_get_by_symbol(self):
         """selecting a gene by it's HGNC symbol should correctly populate all

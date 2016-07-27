@@ -14,7 +14,7 @@ The vertebrate mt genetic code.
     
     >>> from cogent3.core.genetic_code import GeneticCodes
     >>> mt_gc = GeneticCodes[2]
-    >>> print mt_gc.Name
+    >>> print mt_gc.name
     Vertebrate Mitochondrial
 
 To see the key -> genetic code mapping, use a loop.
@@ -22,7 +22,7 @@ To see the key -> genetic code mapping, use a loop.
 .. doctest::
     
     >>> for key, code in GeneticCodes.items():
-    ...     print key, code.Name
+    ...     print key, code.name
     1 Standard Nuclear
     2 Vertebrate Mitochondrial
     3 Yeast Mitochondrial...

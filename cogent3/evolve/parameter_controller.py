@@ -102,7 +102,7 @@ class _LikelihoodParameterController(_LF):
             edges = self.tree.getEdgeVector()
             for par_name in self.model.getParamList():
                 try:
-                    values = dict([(edge.Name, edge.params[par_name])
+                    values = dict([(edge.name, edge.params[par_name])
                                    for edge in edges if not edge.isroot()])
                     (uniq, index) = _indexed(values)
                 except KeyError:
@@ -114,7 +114,7 @@ class _LikelihoodParameterController(_LF):
             for edge in edges:
                 if edge.Length is not None:
                     try:
-                        self.setParamRule('length', edge=edge.Name,
+                        self.setParamRule('length', edge=edge.name,
                                           init=edge.Length)
                     except KeyError:
                         # hopefully due to being a discrete model
@@ -291,9 +291,9 @@ class _LikelihoodParameterController(_LF):
 
         with self.updatesPostponed():
             for edge in tree.getEdgeVector():
-                if edge.Length is None or edge.Name in exclude_list:
+                if edge.Length is None or edge.name in exclude_list:
                     continue
-                self.setParamRule("length", edge=edge.Name, is_constant=1,
+                self.setParamRule("length", edge=edge.name, is_constant=1,
                                   value=edge.Length)
 
     def getAic(self, second_order=False):

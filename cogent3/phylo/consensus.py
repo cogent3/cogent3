@@ -145,7 +145,7 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
         queue = new_queue
 
     for root in list(nodes.values()):
-        root.Name = 'root'  # Yuk
+        root.name = 'root'  # Yuk
 
     return [root for root in list(nodes.values())]
 
@@ -207,8 +207,8 @@ def getSplits(tree):
 
     def getTipsAndSplits(tree):
         if tree.isTip():
-            return ({frozenset([tree.Name]): {'length': tree.Length}},
-                    [tree.Name])
+            return ({frozenset([tree.name]): {'length': tree.Length}},
+                    [tree.name])
 
         splits = defaultdict(lambda: {'length': 0.})
         tips = []

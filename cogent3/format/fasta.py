@@ -27,7 +27,7 @@ class _fake_seq(str):
 
 def fasta_from_sequences(seqs, make_seqlabel=None, line_wrap=None):
     """Returns a FASTA string given a list of sequences. A sequence.Label
-       attribute takes precedence over sequence.Name.
+       attribute takes precedence over sequence.name.
 
         - seqs can be a list of sequence objects or strings.
         - make_seqlabel: callback function that takes the seq object and returns
@@ -42,8 +42,8 @@ def fasta_from_sequences(seqs, make_seqlabel=None, line_wrap=None):
             label = make_seqlabel(seq)
         elif hasattr(seq, 'Label') and seq.Label:
             label = seq.Label
-        elif hasattr(seq, 'Name') and seq.Name:
-            label = seq.Name
+        elif hasattr(seq, 'name') and seq.name:
+            label = seq.name
 
         # wrap sequence lines
         seq_str = str(seq)

@@ -193,7 +193,7 @@ def parse_string(text, constructor, **kw):
                 raise tokeniser.error(
                     "Already have a name '%s' for this node." % name)
             elif attributes:
-                raise tokeniser.error("Name should come before length.")
+                raise tokeniser.error("name should come before length.")
             name = token
     assert not stack, stack
     assert len(nodes) == 1, len(nodes)

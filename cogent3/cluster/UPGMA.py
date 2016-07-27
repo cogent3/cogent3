@@ -52,9 +52,9 @@ def upgma(pairwise_distances):
     index = 0
     for node in tree.traverse():
         if not node.Parent:
-            node.Name = 'root'
-        elif not node.Name:
-            node.Name = 'edge.' + str(index)
+            node.name = 'root'
+        elif not node.name:
+            node.name = 'edge.' + str(index)
             index += 1
     return tree
 
@@ -179,5 +179,5 @@ def inputs_from_dict2D(dict2d_matrix):
     row_order = dict2d_matrix.RowOrder
     PhyloNode_order = []
     for i in row_order:
-        PhyloNode_order.append(PhyloNode(Name=i))
+        PhyloNode_order.append(PhyloNode(name=i))
     return matrix, PhyloNode_order

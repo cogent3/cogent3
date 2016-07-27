@@ -64,7 +64,7 @@ def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
     elif not hasattr(seq, 'moltype'):
         seq = ASCII.make_sequence(seq)
     if name is not None:
-        seq.Name = name
+        seq.name = name
     return seq
 
 
@@ -111,13 +111,13 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     # the following is a temp hack until we have the load API sorted out.
     if aligned:  # if callable, call it -- expect either f(data) or bool
         if hasattr(aligned, '__call__'):
-            return aligned(data=data, moltype=moltype, Name=name,
+            return aligned(data=data, moltype=moltype, name=name,
                            label_to_name=label_to_name, **constructor_kw)
         else:  # was not callable, but wasn't False
-            return Alignment(data=data, moltype=moltype, Name=name,
+            return Alignment(data=data, moltype=moltype, name=name,
                              label_to_name=label_to_name, **constructor_kw)
     else:  # generic case: return SequenceCollection
-        return SequenceCollection(data, moltype=moltype, Name=name,
+        return SequenceCollection(data, moltype=moltype, name=name,
                                   label_to_name=label_to_name, **constructor_kw)
 
 
@@ -221,7 +221,7 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None,
         else:
             tree = parser(treestring, tree_builder)
         if not tree.NameLoaded:
-            tree.Name = 'root'
+            tree.name = 'root'
     elif tip_names:
         tree_builder = TreeBuilder().createEdge
         tips = [tree_builder([], tip_name, {}) for tip_name in tip_names]

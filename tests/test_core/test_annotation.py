@@ -61,11 +61,11 @@ class TestAnnotations(unittest.TestCase):
 
         seq = DNA.make_sequence('ACGTACGTACGT')
         f = seq.add_annotation(NewFeat, as_map([(1, 3), (5, 7)], len(seq)),
-                              type='gene', Name='abcd')
+                              type='gene', name='abcd')
         self.assertEqual(type(f.as_one_span()), NewFeat)
         self.assertEqual(type(f.get_shadow()), NewFeat)
         f2 = seq.add_annotation(NewFeat, as_map([(3, 5)], len(seq)),
-                               type='gene', Name='def')
+                               type='gene', name='def')
 
         self.assertEqual(type(seq.get_region_covering_all([f, f2],
                                                        feature_class=NewFeat)),

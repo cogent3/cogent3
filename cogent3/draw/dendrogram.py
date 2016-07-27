@@ -231,10 +231,10 @@ class DendrogramLabelStyle(object):
         return self.edgeLabelCallback(edge)
 
     def getNodeLabel(self, edge):
-        if edge.Name is not None:
-            return edge.Name
+        if edge.name is not None:
+            return edge.name
         elif self.showInternalLabels or not edge.Children:
-            return edge.original.Name
+            return edge.original.name
         else:
             return ""
 
@@ -274,7 +274,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
     def __init__(self, edge, use_lengths=True):
         children = [type(self)(child) for child in edge.Children]
         TreeNode.__init__(self, Params=edge.params.copy(), Children=children,
-                          Name=("" if children else edge.Name))
+                          name=("" if children else edge.name))
         self.Length = edge.Length
         self.original = edge  # for edge_color_callback
         self.Collapsed = False
@@ -317,10 +317,10 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         else:
             self.height = self.length
             self.leafcount = self.edgecount = 1
-            self.longest_label = self.Name or ''
+            self.longest_label = self.name or ''
 
-        if track_coordinates is not None and self.Name != "root":
-            self.track_y = track_coordinates[self.Name]
+        if track_coordinates is not None and self.name != "root":
+            self.track_y = track_coordinates[self.name]
         else:
             self.track_y = 0
 
@@ -329,7 +329,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         self.asArtist(height, width)
         result = []
         for node in self.postorder(include_self=True):
-            result.append([node.Name, id(node), node.x2,
+            result.append([node.name, id(node), node.x2,
                            node.y2] + [list(map(id, node.Children))])
         return result
 
@@ -494,7 +494,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         if color is not None:
             self.CladeColor = color
         if label is not None:
-            self.Name = label
+            self.name = label
         self.Collapsed = collapsed
 
 
@@ -592,8 +592,8 @@ class StraightDendrogram(_RootedDendrogram):
             dy = closest_child.y1 - y2
             max_dy = 0.8 * max(5, closest_child.length * scale.x)
             if abs(dy) > max_dy:
-                # 'moved', node.Name, y2, 'to within', max_dy,
-                # 'of', closest_child.Name, closest_child.y1
+                # 'moved', node.name, y2, 'to within', max_dy,
+                # 'of', closest_child.name, closest_child.y1
                 y2 = closest_child.y1 - _sign(dy) * max_dy
         else:
             y2 = y1 - scale.y / 2.0
@@ -665,7 +665,7 @@ class AlignedShelvedDendrogram(ShelvedDendrogram):
         if hasattr(self, 'track_y'):
             return (self.track_y, self.track_y)
         else:
-            raise RuntimeError(self.Name)
+            raise RuntimeError(self.name)
 
 
 class UnrootedDendrogram(_Dendrogram):

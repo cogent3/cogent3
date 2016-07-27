@@ -114,14 +114,14 @@ class _Annotatable(object):
                 self.annotations.remove(annot)
                 annot.attached = False
 
-    def add_feature(self, type, Name, spans):
-        return self.add_annotation(Feature, type, Name, spans)
+    def add_feature(self, type, name, spans):
+        return self.add_annotation(Feature, type, name, spans)
 
-    def get_annotations_matching(self, annotation_type, Name=None):
+    def get_annotations_matching(self, annotation_type, name=None):
         result = []
         for annotation in self.annotations:
             if annotation_type == annotation.type and (
-                    Name is None or Name == annotation.Name):
+                    name is None or name == annotation.name):
                 result.append(annotation)
         return result
 
@@ -134,28 +134,28 @@ class _Annotatable(object):
                 annotation_types.append(annot.type)
         map = Map(spans=spans, parent_length=len(self))
         map = map.covered()  # No overlaps
-        Name = ','.join(annotation_types)
+        name = ','.join(annotation_types)
 
         if feature_class is None:
             feature_class = _Feature
 
-        return feature_class(self, map, type='region', Name=Name)
+        return feature_class(self, map, type='region', name=name)
 
-    def get_by_annotation(self, annotation_type, Name=None, ignore_partial=False):
+    def get_by_annotation(self, annotation_type, name=None, ignore_partial=False):
         """yields the sequence segments corresponding to the specified
-        annotation_type and Name one at a time.
+        annotation_type and name one at a time.
 
         Arguments:
             - ignore_partial: if True, annotations that extend beyond the
             current sequence are ignored."""
-        for annotation in self.get_annotations_matching(annotation_type, Name):
+        for annotation in self.get_annotations_matching(annotation_type, name):
             try:
                 seq = self[annotation.map]
             except ValueError as msg:
                 if ignore_partial:
                     continue
                 raise msg
-            seq.info['Name'] = annotation.Name
+            seq.info['name'] = annotation.name
             yield seq
 
     def _annotations_nucleic_reversed_on(self, new):
@@ -170,7 +170,7 @@ class _Annotatable(object):
 
 
 class _Feature(_Annotatable):
-    qualifier_names = ['type', 'Name']
+    qualifier_names = ['type', 'name']
 
     def __init__(self, parent, map, original=None, **kw):
         assert isinstance(parent, _Annotatable), parent
@@ -198,8 +198,8 @@ class _Feature(_Annotatable):
         self.parent.detach_annotations([self])
 
     def _mapped(self, slicemap):
-        Name = "%s of %s" % (repr(slicemap), self.Name)
-        return self.__class__(self, slicemap, type="slice", Name=Name)
+        name = "%s of %s" % (repr(slicemap), self.name)
+        return self.__class__(self, slicemap, type="slice", name=name)
 
     def get_slice(self, complete=True):
         """The corresponding sequence fragment.  If 'complete' is true
@@ -223,20 +223,20 @@ class _Feature(_Annotatable):
 
     def as_one_span(self):
         new_map = self.map.get_covering_span()
-        return self.__class__(self.parent, new_map, type="span", Name=self.Name)
+        return self.__class__(self.parent, new_map, type="span", name=self.name)
 
     def get_shadow(self):
         return self.__class__(self.parent, self.map.shadow(), type='region',
-                              Name='not ' + self.Name)
+                              name='not ' + self.name)
 
     def __len__(self):
         return len(self.map)
 
     def __repr__(self):
-        Name = getattr(self, 'Name', '')
-        if Name:
-            Name = ' "%s"' % Name
-        return '%s%s at %s' % (self.type, Name, self.map)
+        name = getattr(self, 'name', '')
+        if name:
+            name = ' "%s"' % name
+        return '%s%s at %s' % (self.type, name, self.map)
 
     def remapped_to(self, grandparent, gmap):
         map = gmap[self.map]
@@ -253,7 +253,7 @@ class AnnotatableFeature(_Feature):
 
     def _mapped(self, slicemap):
         new_map = self.map[slicemap]
-        return self.__class__(self.parent, new_map, type='slice', Name='')
+        return self.__class__(self.parent, new_map, type='slice', name='')
 
     def remapped_to(self, grandparent, gmap):
         new = _Feature.remapped_to(self, grandparent, gmap)
@@ -272,7 +272,7 @@ class Source(_Feature):
 
     def __init__(self, seq, map, accession, basemap):
         self.accession = accession
-        self.Name = repr(basemap) + ' of ' + accession
+        self.name = repr(basemap) + ' of ' + accession
         self.parent = seq
         self.attached = False
         self.map = map
@@ -291,13 +291,13 @@ class Source(_Feature):
         return self
 
 
-def Feature(parent, type, Name, spans, value=None):
+def Feature(parent, type, name, spans, value=None):
     if isinstance(spans, Map):
         map = spans
         assert map.parent_length == len(parent), (map, len(parent))
     else:
         map = Map(locations=spans, parent_length=len(parent))
-    return AnnotatableFeature(parent, map, type=type, Name=Name)
+    return AnnotatableFeature(parent, map, type=type, name=name)
 
 
 class _Variable(_Feature):
@@ -312,7 +312,7 @@ class _Variable(_Feature):
         raise NotImplementedError
 
 
-def Variable(parent, type, Name, xxy_list):
+def Variable(parent, type, name, xxy_list):
     """A variable that has 2 x-components (start, end) and a single y component.
     Currently used by Vestige - BMC Bioinformatics, 6:130, 2005."""
     start = min([min(x1, x2) for ((x1, x2), y) in xxy_list])
@@ -323,7 +323,7 @@ def Variable(parent, type, Name, xxy_list):
         end -= start
     # values = [location.Span(x1-start, x2-start, True, True, y) for ((x1, x2), y) in xxy]
     map = Map([(start, end)], parent_length=len(parent))
-    return _Variable(parent, map, type=type, Name=Name, xxy_list=xxy_list)
+    return _Variable(parent, map, type=type, name=name, xxy_list=xxy_list)
 
 
 class _SimpleVariable(_Feature):
@@ -343,9 +343,9 @@ class _SimpleVariable(_Feature):
         return new
 
 
-def SimpleVariable(parent, type, Name, data):
+def SimpleVariable(parent, type, name, data):
     """A simple variable type of annotation, such as a computed property of
     a sequence that varies spatially."""
     assert len(data) == len(parent), (len(data), len(parent))
     map = Map([(0, len(data))], parent_length=len(parent))
-    return _SimpleVariable(parent, map, type=type, Name=Name, data=data)
+    return _SimpleVariable(parent, map, type=type, name=name, data=data)

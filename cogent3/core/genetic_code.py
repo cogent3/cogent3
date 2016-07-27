@@ -63,7 +63,7 @@ class GeneticCode(object):
     _nt = _bases
     _codons = tuple(map("".join, product(_bases, _bases, _bases)))
 
-    def __init__(self, CodeSequence, ID=None, Name=None, StartCodonSequence=None):
+    def __init__(self, CodeSequence, ID=None, name=None, StartCodonSequence=None):
         """Returns new GeneticCode object.
 
         CodeSequence : 64-character string containing NCBI representation
@@ -75,7 +75,7 @@ class GeneticCode(object):
 
         self.CodeSequence = CodeSequence
         self.ID = ID
-        self.Name = Name
+        self.name = name
         self.StartCodonSequence = StartCodonSequence
         start_codons = {}
         if StartCodonSequence:

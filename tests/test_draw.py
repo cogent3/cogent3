@@ -169,8 +169,8 @@ def makeSampleAlignment():
     seq1 = makeSampleSequence()[:-2]
     seq2 = makeSampleSequence()[2:]
     seq2 = seq2[:30] + seq2[50:]
-    seq1.Name = 'FAKE01'
-    seq2.Name = 'FAKE02'
+    seq1.name = 'FAKE01'
+    seq2.name = 'FAKE02'
     names = (seq1.get_name(), seq2.get_name())
     align = global_pairwise(seq1, seq2, DNA, 2, 1)
     align.add_annotation(annotation.Variable, 'redline', 'align', [
@@ -260,7 +260,7 @@ class DrawingTests(unittest.TestCase):
                 show_params=["length"])
 
         def callback(edge):
-            return ["blue", "red"][edge.Name.startswith("A")]
+            return ["blue", "red"][edge.name.startswith("A")]
         do("Highlight edge A", UnrootedDendrogram(
             t), edge_color_callback=callback)
 

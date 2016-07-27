@@ -59,9 +59,9 @@ This is done by adding the following lines::
 
     _command = "formatdb"
     _parameters = {\
-        '-i':ValuedParameter(Prefix='-',Name='i',Delimiter=' ',IsPath=True),
-        '-o':ValuedParameter(Prefix='-',Name='o',Delimiter=' ',Value='T'),
-        '-p':ValuedParameter(Prefix='-',Name='p',Delimiter=' ',Value='F')
+        '-i':ValuedParameter(Prefix='-',name='i',Delimiter=' ',IsPath=True),
+        '-o':ValuedParameter(Prefix='-',name='o',Delimiter=' ',Value='T'),
+        '-p':ValuedParameter(Prefix='-',name='p',Delimiter=' ',Value='F')
     }
     _input_handler = "_input_as_parameter"
 

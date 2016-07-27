@@ -71,7 +71,7 @@ Build alignment,
 
     >>> seqs = {}
     >>> for n in t.tips():
-    ...     seqs[n.Name] = ModelSequence(n.Sequence,Bases)
+    ...     seqs[n.name] = ModelSequence(n.Sequence,Bases)
     >>> aln = DenseAlignment(seqs,Alphabet=Bases)
 
 The result is a Cogent ``Alignment`` object, which can be used the same way as
