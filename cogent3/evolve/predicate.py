@@ -38,7 +38,7 @@ class _CallablePredicate(object):
         return self.name
 
     def asciiArt(self):
-        l = len(self.alphabet.getGapMotif())
+        l = len(self.alphabet.get_gap_motif())
         rows = []
         for i in range(l):
             row = [a[i] for a in list(self.alphabet)]

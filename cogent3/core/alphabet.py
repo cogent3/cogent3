@@ -577,7 +577,7 @@ class Alphabet(Enumeration):
         """Returns the length of the items in self, or None if they differ."""
         return self._motiflen
 
-    def getGapMotif(self):
+    def get_gap_motif(self):
         """Returns the motif that self is using as a gap. Note that this will
         typically be a multiple of self.Gap.
         """
@@ -603,7 +603,7 @@ class Alphabet(Enumeration):
         if self.includesGapMotif():
             return self
         if not hasattr(self, 'Gapped'):
-            self.Gapped = self._with(list(self) + [self.getGapMotif()])
+            self.Gapped = self._with(list(self) + [self.get_gap_motif()])
         return self.Gapped
 
     def getSubset(self, motif_subset, excluded=False):
