@@ -344,7 +344,7 @@ class _PairwiseDistance(object):
         return self._get_stats(2, **kwargs)
 
     @property
-    def StdErr(self):
+    def stderr(self):
         stderr = lambda x: sqrt(x)
         kwargs = dict(title='Standard Error of Pairwise Distances', digits=4)
         return self._get_stats(3, transform=stderr, **kwargs)
