@@ -293,7 +293,7 @@ class NewQ(TestCase):
         d = make_p(.1, (1, 2), 4)
         d = dot(e, d)
 
-        prob_vectors = lf.get_motif_probsByNode()
+        prob_vectors = lf.get_motif_probs_by_node()
         self.assertFloatEqual(prob_vectors['a'].array, a)
         self.assertFloatEqual(prob_vectors['b'].array, b)
         self.assertFloatEqual(prob_vectors['c'].array, c)
