@@ -74,7 +74,7 @@ class MotifProbModel(object):
         p = 1.0 / len(alphabet)
         return dict([(m, p) for m in alphabet])
 
-    def makeSampleMotifProbs(self):
+    def make_sample_motif_probs(self):
         import random
         motif_probs = numpy.array(
             [random.uniform(0.2, 1.0) for m in self.getCountedAlphabet()])
