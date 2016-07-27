@@ -2851,7 +2851,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
     Positions = property(iter_positions)
 
-    def withGapsFrom(self, template):
+    def with_gaps_from(self, template):
         """Same alignment but overwritten with the gaps from 'template'"""
         if len(self) != len(template):
             raise ValueError("Template alignment must be same length")
