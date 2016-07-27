@@ -1569,13 +1569,13 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
     def setUp(self):
         self.default_tree = self._maketree()
 
-    def test_getEdgeNames(self):
+    def test_get_edge_names(self):
         tree = self._maketree()
         for (a, b, outgroup, result) in [
                 ('A', 'B', None, ['A', 'B']),
                 ('E', 'C', None, ['C', 'D', 'cd', 'E']),
                 ('C', 'D', 'E', ['C', 'D'])]:
-            self.assertEqual(tree.getEdgeNames(
+            self.assertEqual(tree.get_edge_names(
                 a, b, True, False, outgroup), result)
 
     def test_parser(self):
@@ -1588,26 +1588,26 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
 
     # Likelihood Function Interface
 
-    def test_getEdgeNames(self):
+    def test_get_edge_names(self):
         tree = self.default_tree
-        clade = tree.getEdgeNames('C', 'E', getstem=0, getclade=1)
+        clade = tree.get_edge_names('C', 'E', getstem=0, getclade=1)
         clade.sort()
         self.assertEqual(clade, ['C', 'D', 'E', 'cd'])
 
-        all = tree.getEdgeNames('C', 'E', getstem=1, getclade=1)
+        all = tree.get_edge_names('C', 'E', getstem=1, getclade=1)
         all.sort()
         self.assertEqual(all, ['C', 'D', 'E', 'cd', 'cde'])
 
-        stem = tree.getEdgeNames('C', 'E', getstem=1, getclade=0)
+        stem = tree.get_edge_names('C', 'E', getstem=1, getclade=0)
         self.assertEqual(stem, ['cde'])
 
-    def test_getEdgeNamesUseOutgroup(self):
+    def test_get_edge_namesUseOutgroup(self):
         t1 = LoadTree(treestring="((A,B)ab,(F,(C,D)cd)cdf,E)root;")
         # a, e, ogroup f
         t2 = LoadTree(treestring="((E,(A,B)ab)abe,F,(C,D)cd)root;")
         expected = ['A', 'B', 'E', 'ab']
         for t in [t1, t2]:
-            edges = t.getEdgeNames('A', 'E', getstem=False, getclade=True,
+            edges = t.get_edge_names('A', 'E', getstem=False, getclade=True,
                                         outgroup_name="F")
             edges.sort()
             self.assertEqual(expected, edges)
@@ -1978,12 +1978,12 @@ class BigTreeSingleTests(TestTree):
         self.newick_reduced = '(((((TombBat,(((Horse,Rhino),(Pangolin,Cat)),(Pig,SpermWhal))),Hedgehog),(Orangutan,Gorilla)),((HairyArma,Sloth),((Manatee,AsianElep),GoldenMol))),bandicoot);'
         self.tree = LoadTree(treestring=self.newick)
 
-    def test_getEdgeNames(self):
+    def test_get_edge_names(self):
         """testing (well, exercising at least), getedgenames"""
         # Fell over on small tree because "stem descended from root
         # joiner was a tip"
         a, b = self.otu_names[:2]
-        clade = self.tree.getEdgeNames(a, b, True, False)
+        clade = self.tree.get_edge_names(a, b, True, False)
 
     def test_getTipNames(self):
         """testing (well, exercising at least), getTipNames"""

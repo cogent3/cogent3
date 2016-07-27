@@ -938,7 +938,7 @@ class TreeNode(object):
             del self[to_delete]
             return True
 
-    def getEdgeNames(self, tip1name, tip2name,
+    def get_edge_names(self, tip1name, tip2name,
                      getclade, getstem, outgroup_name=None):
         """Return the list of stem and/or sub tree (clade) edge name(s).
         This is done by finding the common intersection, and then getting

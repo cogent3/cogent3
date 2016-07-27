@@ -197,7 +197,7 @@ class _LikelihoodParameterController(_LF):
                 is_stem = False
             if is_clade is None:
                 is_clade = not is_stem
-            edges = self.tree.getEdgeNames(species1, species2,
+            edges = self.tree.get_edge_names(species1, species2,
                                            getstem=is_stem, getclade=is_clade, outgroup_name=outgroup_name)
 
         return edges
