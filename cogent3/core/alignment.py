@@ -1613,7 +1613,7 @@ class Aligned(object):
     def _masked_annotations(self, annot_types, mask_char, shadow):
         """returns a new aligned sequence with regions defined by align_spans
         and shadow masked."""
-        new_data = self.data.withMaskedAnnotations(
+        new_data = self.data.with_masked_annotations(
             annot_types, mask_char, shadow)
         # we remove the mask annotations from self and new_data
         return self.__class__(self.map, new_data)
@@ -2740,7 +2740,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             result.append(segment)
         return result
 
-    def withMaskedAnnotations(self, annot_types, mask_char=None, shadow=False):
+    def with_masked_annotations(self, annot_types, mask_char=None, shadow=False):
         """returns an alignment with annot_types regions replaced by mask_char
         if shadow is False, otherwise all other regions are masked.
 

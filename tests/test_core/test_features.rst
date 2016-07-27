@@ -370,22 +370,22 @@ Each sequence should correctly mask either the single feature, it's shadow, or t
 
 .. doctest::
     
-    >>> print(aln.get_seq('x').withMaskedAnnotations('exon', mask_char='?'))
+    >>> print(aln.get_seq('x').with_masked_annotations('exon', mask_char='?'))
     ????AAAAAGGGAA
-    >>> print(aln.get_seq('x').withMaskedAnnotations('exon', mask_char='?',
+    >>> print(aln.get_seq('x').with_masked_annotations('exon', mask_char='?',
     ...                                         shadow=True))
     CCCC??????????
-    >>> print(aln.get_seq('x').withMaskedAnnotations(['exon', 'repeat'],
+    >>> print(aln.get_seq('x').with_masked_annotations(['exon', 'repeat'],
     ...                                           mask_char='?'))
     ????AAAAA???AA
-    >>> print(aln.get_seq('x').withMaskedAnnotations(['exon', 'repeat'],
+    >>> print(aln.get_seq('x').with_masked_annotations(['exon', 'repeat'],
     ...                                           mask_char='?', shadow=True))
     CCCC?????GGG??
-    >>> print(aln.get_seq('y').withMaskedAnnotations('exon', mask_char='?'))
+    >>> print(aln.get_seq('y').with_masked_annotations('exon', mask_char='?'))
     TTTTTGGTT
-    >>> print(aln.get_seq('y').withMaskedAnnotations('repeat', mask_char='?'))
+    >>> print(aln.get_seq('y').with_masked_annotations('repeat', mask_char='?'))
     TTTTT??TT
-    >>> print(aln.get_seq('y').withMaskedAnnotations('repeat', mask_char='?',
+    >>> print(aln.get_seq('y').with_masked_annotations('repeat', mask_char='?',
     ...                                          shadow=True))
     ?????GG??
 
@@ -393,37 +393,37 @@ The same methods can be applied to annotated Alignment's.
 
 .. doctest::
     
-    >>> print(aln.withMaskedAnnotations('exon', mask_char='?'))
+    >>> print(aln.with_masked_annotations('exon', mask_char='?'))
     >x
     ?-???AAAAAGGGAA
     >y
     -T----TTTTG-GTT
     <BLANKLINE>
-    >>> print(aln.withMaskedAnnotations('exon', mask_char='?', shadow=True))
+    >>> print(aln.with_masked_annotations('exon', mask_char='?', shadow=True))
     >x
     C-CCC??????????
     >y
     -?----?????-???
     <BLANKLINE>
-    >>> print(aln.withMaskedAnnotations('repeat', mask_char='?'))
+    >>> print(aln.with_masked_annotations('repeat', mask_char='?'))
     >x
     C-CCCAAAAA???AA
     >y
     -T----TTTT?-?TT
     <BLANKLINE>
-    >>> print(aln.withMaskedAnnotations('repeat', mask_char='?', shadow=True))
+    >>> print(aln.with_masked_annotations('repeat', mask_char='?', shadow=True))
     >x
     ?-????????GGG??
     >y
     -?----????G-G??
     <BLANKLINE>
-    >>> print(aln.withMaskedAnnotations(['repeat', 'exon'], mask_char='?'))
+    >>> print(aln.with_masked_annotations(['repeat', 'exon'], mask_char='?'))
     >x
     ?-???AAAAA???AA
     >y
     -T----TTTT?-?TT
     <BLANKLINE>
-    >>> print(aln.withMaskedAnnotations(['repeat', 'exon'],shadow=True))
+    >>> print(aln.with_masked_annotations(['repeat', 'exon'],shadow=True))
     >x
     C-CCC?????GGG??
     >y
@@ -464,14 +464,14 @@ These different constructions should generate the same output.
 
 .. doctest::
     
-    >>> serial = as_series.withMaskedAnnotations(['cpgsite'])
+    >>> serial = as_series.with_masked_annotations(['cpgsite'])
     >>> print(serial)
     >human
     ??AAA??TTT
     >mouse
     CTAAA??T??
     <BLANKLINE>
-    >>> itemwise = as_items.withMaskedAnnotations(['cpgsite'])
+    >>> itemwise = as_items.with_masked_annotations(['cpgsite'])
     >>> print(itemwise)
     >human
     ??AAA??TTT
@@ -483,9 +483,9 @@ Annotations should be correctly masked, whether the sequence has been reverse co
 
 .. doctest::
     
-    >>> print(plus.withMaskedAnnotations("CDS"))
+    >>> print(plus.with_masked_annotations("CDS"))
     AA????AAAA?????AAAAAAAAAA??????????AAA
-    >>> print(minus.withMaskedAnnotations("CDS"))
+    >>> print(minus.with_masked_annotations("CDS"))
     TTT??????????TTTTTTTTTT?????TTTT????TT
 
 .. todo::

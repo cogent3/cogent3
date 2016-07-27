@@ -451,7 +451,7 @@ We mask the CDS regions.
     >>> from cogent3.parse.genbank import RichGenbankParser
     >>> parser = RichGenbankParser(open('data/ST_genome_part.gb'))
     >>> seq = [seq for accession, seq in parser][0]
-    >>> no_cds = seq.withMaskedAnnotations('CDS')
+    >>> no_cds = seq.with_masked_annotations('CDS')
     >>> print no_cds[150:400]
     CAAGACAGACAAATAAAAATGACAGAGTACACAACATCC?????????...
 
@@ -468,7 +468,7 @@ We mask exon's on an alignment.
     >>> aln = LoadSeqs(data=[['x', 'C-CCCAAAAAGGGAA'],
     ...                       ['y', '-T----TTTTG-GTT']], moltype=DNA)
     >>> exon = aln.get_seq('x').addFeature('exon', 'norwegian', [(0,4)])
-    >>> print aln.withMaskedAnnotations('exon', mask_char='?')
+    >>> print aln.with_masked_annotations('exon', mask_char='?')
     >x
     ?-???AAAAAGGGAA
     >y
@@ -486,7 +486,7 @@ These also persist through reverse complement operations.
     >y
     AAC-CAAAA----A-
     <BLANKLINE>
-    >>> print rc.withMaskedAnnotations('exon', mask_char='?')
+    >>> print rc.with_masked_annotations('exon', mask_char='?')
     >x
     TTCCCTTTTT???-?
     >y
@@ -503,13 +503,13 @@ You can take mask of the shadow
     >>> exon = s.addFeature('exon', 'norwegian', [(0,4)])
     >>> rpt = s.addFeature('repeat', 'norwegian', [(9, 12)])
     >>> rc = s.rc()
-    >>> print s.withMaskedAnnotations('exon', shadow=True)
+    >>> print s.with_masked_annotations('exon', shadow=True)
     CCCC??????????
-    >>> print rc.withMaskedAnnotations('exon', shadow=True)
+    >>> print rc.with_masked_annotations('exon', shadow=True)
     ??????????GGGG
-    >>> print s.withMaskedAnnotations(['exon', 'repeat'], shadow=True)
+    >>> print s.with_masked_annotations(['exon', 'repeat'], shadow=True)
     CCCC?????GGG??
-    >>> print rc.withMaskedAnnotations(['exon', 'repeat'], shadow=True)
+    >>> print rc.with_masked_annotations(['exon', 'repeat'], shadow=True)
     ??CCC?????GGGG
 
 What features of a certain type are available?
