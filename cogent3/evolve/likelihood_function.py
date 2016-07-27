@@ -348,7 +348,7 @@ class LikelihoodFunction(ParameterController):
             leaves = self.get_param_value('leaf_likelihoods', locus=locus)
             orig_ambig = {}  # alignment.getPerSequenceAmbiguousPositions()
             for (seq_name, leaf) in list(leaves.items()):
-                orig_ambig[seq_name] = leaf.getAmbiguousPositions()
+                orig_ambig[seq_name] = leaf.get_ambiguous_positions()
         else:
             orig_ambig = {}
 
