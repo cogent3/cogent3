@@ -297,15 +297,15 @@ class SequenceTests(TestCase):
         self.assertEqual(g('---CGAUgCAU---ACGHc---ACGUCAGU--?'),
                          list(map(bool, list(map(int, '111000000001110000011100000000111')))))
 
-    def test_gapMaps(self):
-        """Sequence gapMaps should return dicts mapping gapped/ungapped pos"""
+    def test_gap_maps(self):
+        """Sequence gap_maps should return dicts mapping gapped/ungapped pos"""
         empty = ''
         no_gaps = 'aaa'
         all_gaps = '---'
         start_gaps = '--abc'
         end_gaps = 'ab---'
         mid_gaps = '--a--b-cd---'
-        gm = lambda x: self.RNA(x).gapMaps()
+        gm = lambda x: self.RNA(x).gap_maps()
         self.assertEqual(gm(empty), ({}, {}))
         self.assertEqual(gm(no_gaps), ({0: 0, 1: 1, 2: 2}, {0: 0, 1: 1, 2: 2}))
         self.assertEqual(gm(all_gaps), ({}, {}))

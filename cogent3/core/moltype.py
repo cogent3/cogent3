@@ -826,7 +826,7 @@ class MolType(object):
         """Returns list of bool indicating gap or non-gap in sequence."""
         return list(map(self.is_gap, sequence))
 
-    def gapMaps(self, sequence):
+    def gap_maps(self, sequence):
         """Returns tuple containing dicts mapping between gapped and ungapped.
 
         First element is a dict such that d[ungapped_coord] = gapped_coord.
