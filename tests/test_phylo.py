@@ -11,7 +11,7 @@ from cogent3 import LoadSeqs, LoadTree
 from cogent3.phylo.tree_collection import LogLikelihoodScoredTreeCollection,\
     WeightedTreeCollection, LoadTrees, ScoredTreeCollection
 from cogent3.evolve.models import JC69, HKY85, F81
-from cogent3.phylo.consensus import majorityRule, weightedMajorityRule, \
+from cogent3.phylo.consensus import majority_rule, weightedMajorityRule, \
     getSplits, getTree
 from cogent3.util.misc import remove_files
 
@@ -127,10 +127,10 @@ class ConsensusTests(unittest.TestCase):
     def test_majorityRule(self):
         """Tests for majority rule consensus trees"""
         trees = self.rooted_trees
-        outtrees = majorityRule(trees, strict=False)
+        outtrees = majority_rule(trees, strict=False)
         self.assertEqual(len(outtrees), 1)
         self.assertTrue(outtrees[0].same_topology(Tree("((c,d),(a,b));")))
-        outtrees = majorityRule(trees, strict=True)
+        outtrees = majority_rule(trees, strict=True)
         self.assertEqual(len(outtrees), 1)
         self.assertTrue(outtrees[0].same_topology(Tree("(c,d,(a,b));")))
 

@@ -18,7 +18,7 @@ __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"
 
 
-def majorityRule(trees, strict=False):
+def majority_rule(trees, strict=False):
     """Determines the consensus tree from a list of rooted trees using the
      majority rules method of Margush and McMorris 1981
     Arguments:
@@ -288,6 +288,6 @@ if __name__ == "__main__":
         for tree in open(filename):
             trees.append(LoadTree(treestring=tree))
     print("Consensus of %s trees from %s" % (len(trees), sys.argv[1:]))
-    outtrees = majorityRule(trees, strict=True)
+    outtrees = majority_rule(trees, strict=True)
     for tree in outtrees:
         print(tree.ascii_art(compact=True, show_internal=False))
