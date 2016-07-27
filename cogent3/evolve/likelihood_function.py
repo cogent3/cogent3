@@ -387,7 +387,7 @@ class LikelihoodFunction(ParameterController):
             data=simulated_sequences,
             moltype=self._model.moltype)
 
-    def allPsubsDLC(self):
+    def all_psubs_DLC(self):
         """Returns True if every Psub matrix is Diagonal Largest in Column"""
         for edge in self.tree.get_edge_vector(include_root=False):
             P = self.get_psub_for_edge(edge.name).asarray()
