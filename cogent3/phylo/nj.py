@@ -67,7 +67,7 @@ class PartialTree(object):
         self.tips = tips
         self.score = score
 
-    def getDistSavedJoinScoreMatrix(self):
+    def get_dist_saved_join_score_matrix(self):
         d = self.d
         L = len(d)
         r = numpy.sum(d, 0)
@@ -151,7 +151,7 @@ def uniq_neighbour_joins(trees, encode_partition):
     L = len(trees[0].nodes)
     scores = numpy.zeros([len(trees), L, L])
     for (k, tree) in enumerate(trees):
-        scores[k] = tree.getDistSavedJoinScoreMatrix()
+        scores[k] = tree.get_dist_saved_join_score_matrix()
     topologies = set()
     order = numpy.argsort(scores.flat)
     for index in order:
