@@ -11,7 +11,7 @@ from cogent3 import LoadSeqs, LoadTree
 from cogent3.phylo.tree_collection import LogLikelihoodScoredTreeCollection,\
     WeightedTreeCollection, LoadTrees, ScoredTreeCollection
 from cogent3.evolve.models import JC69, HKY85, F81
-from cogent3.phylo.consensus import majority_rule, weightedMajorityRule, \
+from cogent3.phylo.consensus import majority_rule, weighted_majority_rule, \
     getSplits, getTree
 from cogent3.util.misc import remove_files
 

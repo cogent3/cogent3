@@ -41,7 +41,7 @@ class ScoredTreeCollection(_UserList):
     def getConsensusTrees(self, strict=True, method='unrooted'):
         if strict is None:
             strict = True
-        return consensus.weightedMajorityRule(self, strict, method=method)
+        return consensus.weighted_majority_rule(self, strict, method=method)
 
 
 class UsefullyScoredTreeCollection(ScoredTreeCollection):
@@ -56,7 +56,7 @@ class WeightedTreeCollection(UsefullyScoredTreeCollection):
     def getConsensusTrees(self, strict=False, method='unrooted'):
         if strict is None:
             strict = False
-        return consensus.weightedMajorityRule(self, strict, method=method)
+        return consensus.weighted_majority_rule(self, strict, method=method)
 
 
 class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):

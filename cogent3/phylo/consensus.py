@@ -33,10 +33,10 @@ def majority_rule(trees, strict=False):
         a list of cogent3.evolve.tree objects
     """
     trees = [(1, tree) for tree in trees]
-    return weightedMajorityRule(trees, strict, "count", method='rooted')
+    return weighted_majority_rule(trees, strict, "count", method='rooted')
 
 
-def weightedMajorityRule(weighted_trees, strict=False, attr='support',
+def weighted_majority_rule(weighted_trees, strict=False, attr='support',
                          method='unrooted'):
     """Calculate a greedy consensus tree in the sense of Bryant (2003), if
     weights are taken as counts. Branch lengths calculated as per Holland
@@ -71,7 +71,7 @@ def weightedMajorityRule(weighted_trees, strict=False, attr='support',
 
 
 def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
-    """See documentation for weightedMajorityRule"""
+    """See documentation for weighted_majority_rule"""
     cladecounts = {}
     edgelengths = {}
     total = 0
@@ -151,7 +151,7 @@ def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
 
 
 def weightedUnrootedMajorityRule(weighted_trees, strict=False, attr='support'):
-    """See documentation for weightedMajorityRule. All trees must have the same
+    """See documentation for weighted_majority_rule. All trees must have the same
     tips"""
     # Calculate raw split lengths and weights
     split_weights = defaultdict(float)
