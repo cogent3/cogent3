@@ -75,23 +75,23 @@ class MapTest(unittest.TestCase):
                                              [('fake2', '[3:5]/10')])])
         )
 
-    def test_getByAnnotation(self):
+    def test_get_by_annotation(self):
         seq = DNA.make_sequence('ATCGATCGAT' * 5, Name='base')
         seq.add_annotation(Feature, 'test_type', 'test_label', [(5, 10)])
         seq.add_annotation(Feature, 'test_type', 'test_label2', [(15, 18)])
 
-        answer = list(seq.getByAnnotation('test_type'))
+        answer = list(seq.get_by_annotation('test_type'))
         self.assertEqual(len(answer), 2)
         self.assertEqual(str(answer[0]), 'TCGAT')
         self.assertEqual(str(answer[1]), 'TCG')
 
-        answer = list(seq.getByAnnotation('test_type', 'test_label'))
+        answer = list(seq.get_by_annotation('test_type', 'test_label'))
         self.assertEqual(len(answer), 1)
         self.assertEqual(str(answer[0]), 'TCGAT')
 
         # test ignoring of a partial annotation
         sliced_seq = seq[:17]
-        answer = list(sliced_seq.getByAnnotation(
+        answer = list(sliced_seq.get_by_annotation(
             'test_type', ignore_partial=True))
         self.assertEqual(len(answer), 1)
         self.assertEqual(str(answer[0]), 'TCGAT')
