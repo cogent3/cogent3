@@ -969,7 +969,7 @@ class TreeNode(object):
                 raise TreeError('Outgroup (%s) must be a tip' % outgroup_name)
             self = outgroup.unrootedDeepcopy()
 
-        join_edge = self.getConnectingNode(tip1name, tip2name)
+        join_edge = self.get_connecting_node(tip1name, tip2name)
 
         edge_names = []
 
@@ -1394,7 +1394,7 @@ class TreeNode(object):
                             (name, self.get_tip_names()))
         return node
 
-    def getConnectingNode(self, name1, name2):
+    def get_connecting_node(self, name1, name2):
         """Finds the last common ancestor of the two named edges."""
         edge1 = self.get_node_matching_name(name1)
         edge2 = self.get_node_matching_name(name2)
@@ -1409,7 +1409,7 @@ class TreeNode(object):
         includes self and other in the list"""
         edge1 = self.get_node_matching_name(name1)
         edge2 = self.get_node_matching_name(name2)
-        LCA = self.getConnectingNode(name1, name2)
+        LCA = self.get_connecting_node(name1, name2)
         node_path = [edge1]
         node_path.extend(edge1.ancestors())
         # remove nodes deeper than the LCA
@@ -1879,7 +1879,7 @@ class PhyloNode(TreeNode):
         # print tip_names
         tip1 = self.get_node_matching_name(tip_names[0])
         tip2 = self.get_node_matching_name(tip_names[1])
-        lca = self.getConnectingNode(tip_names[0], tip_names[
+        lca = self.get_connecting_node(tip_names[0], tip_names[
                                      1])  # last comm ancestor
         if tip1.distance(lca) > half_max_dist:
             climb_node = tip1

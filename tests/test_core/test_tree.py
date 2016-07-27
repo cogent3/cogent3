@@ -1612,10 +1612,10 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
             edges.sort()
             self.assertEqual(expected, edges)
 
-    def test_getConnectingNode(self):
+    def test_get_connecting_node(self):
         tree = self.default_tree
-        self.assertEqual(tree.getConnectingNode('A', 'B').name, 'ab')
-        self.assertEqual(tree.getConnectingNode('A', 'C').name, 'root')
+        self.assertEqual(tree.get_connecting_node('A', 'B').name, 'ab')
+        self.assertEqual(tree.get_connecting_node('A', 'C').name, 'root')
 
     def test_get_node_matching_name(self):
         tree = self.default_tree
