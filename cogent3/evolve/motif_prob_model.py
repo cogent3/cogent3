@@ -201,7 +201,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
     def get_counted_alphabet(self):
         return self.tuple_alphabet
 
-    def calcPosnSpecificMonomerProbs(self, word_probs):
+    def calc_posn_specific_monomer_probs(self, word_probs):
         monomer_probs = numpy.dot(word_probs, self.w2m)
         monomer_probs /= monomer_probs.sum(axis=1)[..., numpy.newaxis]
         return list(monomer_probs)
@@ -256,7 +256,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
             motif_probs = self.monomer_alphabet.adapt_motif_probs(motif_probs)
         except ValueError:
             motif_probs = self.tuple_alphabet.adapt_motif_probs(motif_probs)
-            motif_probs = self.calcPosnSpecificMonomerProbs(motif_probs)
+            motif_probs = self.calc_posn_specific_monomer_probs(motif_probs)
         else:
             motif_probs = [motif_probs] * self.word_length
         return motif_probs
