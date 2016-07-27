@@ -83,7 +83,7 @@ class predicate(object):
         n.__doc__ = self.__doc__ or repr(self)
         return n
 
-    def makeModelPredicate(self, model):
+    def make_model_predicate(self, model):
         return _CallablePredicate(self, model)
 
 
