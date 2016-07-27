@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from cogent3 import LoadTree
 from cogent3.util.unit_test import TestCase, main
 from cogent3.core.tree import PhyloNode
 from numpy import array
@@ -63,8 +64,8 @@ class UPGMATests(TestCase):
         pairwise_dist = self.pairwise_distances
         cluster = upgma(pairwise_dist)
         cluster = cluster.sorted()  # so we can make a stable comparison
-        self.assertEqual(str(
-            cluster), '(((a:0.5,b:0.5)edge.1:1.75,c:2.25)edge.0:5.875,(d:1.0,e:1.0)edge.2:7.125)root;')
+        expect = LoadTree(treestring='(((a:0.5,b:0.5)edge.1:1.75,c:2.25)edge.0:5.875,(d:1.0,e:1.0)edge.2:7.125)root;')
+        self.assertTrue(cluster.sameTopology(expect))
 
     def test_find_smallest_index(self):
         """find_smallest_index returns the index of smallest value in array
