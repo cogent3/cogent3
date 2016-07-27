@@ -121,7 +121,7 @@ class _SubstitutionModel(object):
         # subclasses can extend this incomplete docstring
         """
 
-        Alphabet:
+        alphabet:
          - alphabet - An Alphabet object
          - motif_length: Use a tuple alphabet based on 'alphabet'.
          - motifs: Use a subalphabet that only contains those motifs.
@@ -913,7 +913,7 @@ class Nucleotide(_Nucleotide):
     """A nucleotide substitution model."""
 
     def __init__(self, **kw):
-        SubstitutionModel.__init__(self, moltype.DNA.Alphabet, **kw)
+        SubstitutionModel.__init__(self, moltype.DNA.alphabet, **kw)
 
 
 class Dinucleotide(_Nucleotide):
@@ -921,14 +921,14 @@ class Dinucleotide(_Nucleotide):
 
     def __init__(self, **kw):
         SubstitutionModel.__init__(
-            self, moltype.DNA.Alphabet, motif_length=2, **kw)
+            self, moltype.DNA.alphabet, motif_length=2, **kw)
 
 
 class Protein(SubstitutionModel):
     """Base protein substitution model."""
 
     def __init__(self, with_selenocysteine=False, **kw):
-        alph = moltype.PROTEIN.Alphabet
+        alph = moltype.PROTEIN.alphabet
         if not with_selenocysteine:
             alph = alph.get_subset('U', excluded=True)
         SubstitutionModel.__init__(self, alph, **kw)
@@ -936,7 +936,7 @@ class Protein(SubstitutionModel):
 
 def EmpiricalProteinMatrix(matrix, motif_probs=None, optimise_motif_probs=False,
                            recode_gaps=True, do_scaling=True, **kw):
-    alph = moltype.PROTEIN.Alphabet.get_subset('U', excluded=True)
+    alph = moltype.PROTEIN.alphabet.get_subset('U', excluded=True)
     return Empirical(alph, rate_matrix=matrix, motif_probs=motif_probs,
                      model_gaps=False, recode_gaps=recode_gaps, do_scaling=do_scaling,
                      optimise_motif_probs=optimise_motif_probs, **kw)

@@ -61,8 +61,8 @@ def _align_pairwise(s1, s2, mprobs, psub, TM, local, return_alignment=True, retu
 def classic_align_pairwise(s1, s2, Sd, d, e, local, return_score=False, **kw):
     """Alignment specified by gap costs and a score matrix"""
     TM = indel_model.ClassicGapScores(d, e)
-    a1 = s1.moltype.Alphabet
-    a2 = s2.moltype.Alphabet
+    a1 = s1.moltype.alphabet
+    a2 = s2.moltype.alphabet
     S = numpy.zeros([len(a1), len(a2)], Float)
     for (i, m1) in enumerate(a1):
         for (j, m2) in enumerate(a2):

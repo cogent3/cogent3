@@ -107,7 +107,7 @@ class ComplexMotifProbModel(MotifProbModel):
             - mask: instantaneous change matrix"""
         self.mask = mask
         self.tuple_alphabet = tuple_alphabet
-        self.monomer_alphabet = monomers = tuple_alphabet.moltype.Alphabet
+        self.monomer_alphabet = monomers = tuple_alphabet.moltype.alphabet
         self.word_length = length = tuple_alphabet.get_motif_len()
         size = len(tuple_alphabet)
 

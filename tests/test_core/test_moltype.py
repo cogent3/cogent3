@@ -22,9 +22,9 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 # ind some of the standard alphabets to reduce typing
-RnaBases = RNA.Alphabets.Base
-DnaBases = DNA.Alphabets.Base
-AminoAcids = PROTEIN.Alphabets.Base
+RnaBases = RNA.alphabets.Base
+DnaBases = DNA.alphabets.Base
+AminoAcids = PROTEIN.alphabets.Base
 
 # the following classes are to preserve compatibility for older test code
 # that assumes mixed-case is OK.
@@ -225,11 +225,11 @@ class MolTypeTests(TestCase):
     def test_init_minimal(self):
         """MolType should init OK with just monomers"""
         a = MolType('Abc')
-        self.assertContains(a.Alphabet, 'A')
-        self.assertNotContains(a.Alphabet, 'a')    # case-sensitive
-        self.assertContains(a.Alphabet, 'b')
-        self.assertNotContains(a.Alphabet, 'B')
-        self.assertNotContains(a.Alphabet, 'x')
+        self.assertContains(a.alphabet, 'A')
+        self.assertNotContains(a.alphabet, 'a')    # case-sensitive
+        self.assertContains(a.alphabet, 'b')
+        self.assertNotContains(a.alphabet, 'B')
+        self.assertNotContains(a.alphabet, 'x')
 
     def test_init_everything(self):
         """MolType should init OK with all parameters set"""
@@ -717,7 +717,7 @@ class _AlphabetTestCase(TestCase):
 class DNAAlphabet(_AlphabetTestCase):
 
     def setUp(self):
-        self.alpha = DNA.Alphabet
+        self.alpha = DNA.alphabet
 
     def test_exclude(self):
         """Nucleotide alphabet testing excluding gap motif"""
@@ -735,7 +735,7 @@ class DNAAlphabet(_AlphabetTestCase):
         alpha = self.alpha.get_subset(motif_subset=['A'])
         self.assertEqualSets(alpha, ['A'])
         #self.assertRaises(AlphabetError, self.alpha.get_subset, ['A','C'])
-        alpha = DNA.Alphabet
+        alpha = DNA.alphabet
         self.assertEqualSets(alpha, ['T', 'C', 'A', 'G'])
         alpha = alpha.get_subset(motif_subset=['A', 'T', 'G'])
         self.assertEqualSets(alpha, ['A', 'G', 'T'])
@@ -744,7 +744,7 @@ class DNAAlphabet(_AlphabetTestCase):
 class DinucAlphabet(_AlphabetTestCase):
 
     def setUp(self):
-        self.alpha = DNA.Alphabet.with_gap_motif().get_word_alphabet(2)
+        self.alpha = DNA.alphabet.with_gap_motif().get_word_alphabet(2)
 
     def test_exclude(self):
         """Dinucleotide alphabet testing excluding gap motif"""

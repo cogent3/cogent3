@@ -1099,7 +1099,7 @@ class ConstrainedStringTests(TestCase):
         self.assertEqual(a[0], '7')
         self.assertEqual(a[1], '8')
         self.assertEqual(a[-1], '3')
-        self.assertRaises(AttributeError, getattr, a[1], 'Alphabet')
+        self.assertRaises(AttributeError, getattr, a[1], 'alphabet')
         self.assertEqual(a[1:6:2], '804')
         self.assertEqual(a[1:6:2].Constraint, '1234567890')
 

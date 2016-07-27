@@ -375,10 +375,10 @@ class SCAError(Exception):
     pass
 
 # PROTEIN's alphabet contains U, so redefining the alphabet for now
-# rather than use PROTEIN.Alphabet. May want to revist this decision...
+# rather than use PROTEIN.alphabet. May want to revist this decision...
 AAGapless = CharAlphabet('ACDEFGHIKLMNPQRSTVWY')
 default_sca_alphabet = AAGapless
-# AAGapless = PROTEIN.Alphabet
+# AAGapless = PROTEIN.alphabet
 
 # Dictionary of mean AA-frequencies in all natural proteins
 # Compiled by Rama Ranganathan from 36,498 unique eukaryotic proteins
@@ -472,7 +472,7 @@ def freqs_from_aln(aln, alphabet, scaled_aln_size=100):
          that one to be more generic) since they're doing the same thing now.
 
     """
-    alphabet_as_indices = array([aln.Alphabet.to_indices(alphabet)]).transpose()
+    alphabet_as_indices = array([aln.alphabet.to_indices(alphabet)]).transpose()
     aln_data = ravel(aln.array_positions)
     return (alphabet_as_indices == aln_data).sum(1) * \
         (scaled_aln_size / len(aln_data))
@@ -497,7 +497,7 @@ def get_positional_frequencies(aln, position_number, alphabet,
             ignored. Is this the desired behavior?
 
     """
-    alphabet_as_indices = array([aln.Alphabet.to_indices(alphabet)]).transpose()
+    alphabet_as_indices = array([aln.alphabet.to_indices(alphabet)]).transpose()
     position_data = aln.array_positions[position_number]
     return (alphabet_as_indices == position_data).sum(1) * \
         (scaled_aln_size / len(position_data))
@@ -558,7 +558,7 @@ def get_subalignments(aln, position, selections):
 
     """
     result = []
-    for s in aln.Alphabet.to_indices(selections):
+    for s in aln.alphabet.to_indices(selections):
         seqs_to_keep = nonzero(aln.array_seqs[:, position] == s)[0]
         result.append(aln.get_sub_alignment(seqs=seqs_to_keep))
     return result
@@ -1055,7 +1055,7 @@ def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
 
     Arguments:
         - sm: a SubstitutionModel instance. If not provided, one is
-          constructed from the alignment Alphabet
+          constructed from the alignment alphabet
         - pseudocount: unobserved sequence states must not be zero, this value
           is assigned to sequence states not observed in the alignment.
         - optimise: whether to optimise the likelihood function.
@@ -1065,7 +1065,7 @@ def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
          to be what what described in Tuffery 2000, although they're
          not perfectly clear about it.
     """
-    sm = sm or SubstitutionModel(aln.Alphabet, recode_gaps=True)
+    sm = sm or SubstitutionModel(aln.alphabet, recode_gaps=True)
     lf = sm.makeLikelihoodFunction(tree, sm.motif_probs)
     lf.setAlignment(aln, motif_pseudocount=pseudocount)
     if optimise:
@@ -1219,7 +1219,7 @@ def sca_input_validation(alignment, **kwargs):
         if alignment.moltype == PROTEIN:
             alphabet = AAGapless
         else:
-            alphabet = alignment.moltype.Alphabet
+            alphabet = alignment.moltype.alphabet
     try:
         background_freqs = kwargs['background_freqs']
     except KeyError:

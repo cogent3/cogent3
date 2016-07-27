@@ -147,7 +147,7 @@ class Display2D(Drawable):
         """Drawing of a matrix style dotplot with annotated axes"""
         import numpy
         ax = comparison_display(self.seq1, self.seq2)
-        alphabet = self.seq1.moltype.Alphabet
+        alphabet = self.seq1.moltype.alphabet
         seq1 = alphabet.to_indices(self.seq1)
         seq2 = alphabet.to_indices(self.seq2)
         ax.pcolorfast(numpy.equal.outer(seq2, seq1))

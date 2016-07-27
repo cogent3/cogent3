@@ -334,7 +334,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
     def fit_general(results=results):
         if 'general' in results:
             return
-        gen = General(DNA.Alphabet)
+        gen = General(DNA.alphabet)
         gen_lf = _make_likelihood(gen, tree, results)
         gen_lf.optimise(**opt_args)
         results['general'] = gen_lf
@@ -343,7 +343,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
     def fit_gen_stat(results=results):
         if 'gen_stat' in results:
             return
-        gen_stat = GeneralStationary(DNA.Alphabet)
+        gen_stat = GeneralStationary(DNA.alphabet)
         gen_stat_lf = _make_likelihood(gen_stat, tree, results)
         gen_stat_lf.optimise(**opt_args)
         results['gen_stat'] = gen_stat_lf
@@ -365,7 +365,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
     def fit_discrete(results=results):
         if 'discrete' in results:
             return
-        dis_lf = _make_likelihood(DiscreteSubstitutionModel(DNA.Alphabet),
+        dis_lf = _make_likelihood(DiscreteSubstitutionModel(DNA.alphabet),
                                   discrete_tree, results, is_discrete=True)
         dis_lf.optimise(**opt_args)
         results['discrete'] = dis_lf
@@ -422,7 +422,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 #         """should be stationary"""
 #         gen_stat_lf = self.make_cached('gen_stat')
 #         mprobs = gen_stat_lf.getMotifProbs()
-#         mprobs = array([mprobs[nuc] for nuc in DNA.Alphabet])
+#         mprobs = array([mprobs[nuc] for nuc in DNA.alphabet])
 #         for edge in self.tree:
 #             psub = gen_stat_lf.getPsubForEdge(edge.Name)
 #             pi = dot(mprobs, psub.array)
@@ -432,7 +432,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 #         """should not be stationary"""
 #         gen_lf = self.make_cached('general')
 #         mprobs = gen_lf.getMotifProbs()
-#         mprobs = array([mprobs[nuc] for nuc in DNA.Alphabet])
+#         mprobs = array([mprobs[nuc] for nuc in DNA.alphabet])
 #         for edge in self.tree:
 #             psub = gen_lf.getPsubForEdge(edge.Name)
 #             pi = dot(mprobs, psub.array)

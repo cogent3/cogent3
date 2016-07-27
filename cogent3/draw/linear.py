@@ -237,7 +237,7 @@ class _SeqRepresentation(object):
                  font_properties=None):
         self.font_properties = font_properties
 
-        alphabet = self.alphabet = sequence.moltype.Alphabets.Degen
+        alphabet = self.alphabet = sequence.moltype.alphabets.Degen
 
         alphabet_colours = None
         if cvalues:

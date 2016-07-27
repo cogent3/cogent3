@@ -7,10 +7,10 @@ map between a set of symbols and indices for storing the results in tables.
 The provided alphabets are those encountered in biological sequences, but other
 alphabets are certainly possible.
 
-WARNING: do access the standard Alphabets directly. It is expected that you
+WARNING: do access the standard alphabets directly. It is expected that you
 will access them through the appropriate moltype. Until the moltype module
-has been imported, the Alphabets will not know their MolType, which will
-cause problems. It is often useful to create Alphabets
+has been imported, the alphabets will not know their MolType, which will
+cause problems. It is often useful to create alphabets
 and/or Enumerations on the fly, however.
 
 MolType provides services for resolving ambiguities, or providing the
@@ -64,7 +64,7 @@ def get_array_type(num_elements):
            ^^
            NOTE: element 1 is _not_ 800, but instead 32 -- nasty surprise!
 
-    Getting the size of the necessary array from the Alphabet is a good
+    Getting the size of the necessary array from the alphabet is a good
     solution to this problem.
 
     WARNING: Will not overflow if somehow you manage to feed it an alphabet
@@ -111,7 +111,7 @@ class Enumeration(tuple):
     An Enumeration maps items to indices, and vice versa.
     Immutable. Must initialize with a sequence of (hashable) objects, in order.
 
-    This is the base class for Alphabets. An Alphabet is a special case of
+    This is the base class for alphabets. An Alphabet is a special case of
     Enumeration in which all the objects are strings of the same length.
 
     Stored as a tuple, but remember that if the elements in the tuple are
@@ -634,7 +634,7 @@ class Alphabet(Enumeration):
         # resolve each letter, and build the possible sub motifs
         ambiguities = self.moltype.Ambiguities
         motif_set = ['']
-        ALL = self.moltype.Alphabet.with_gap_motif()
+        ALL = self.moltype.alphabet.with_gap_motif()
         for character in ambig_motif:
             new_motifs = []
             if character == '?':

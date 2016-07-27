@@ -167,7 +167,7 @@ def coerce_to_string(s):
         return ''.join(map(str, s))
 
 
-def seqs_from_array(a, Alphabet=None):
+def seqs_from_array(a, alphabet=None):
     """SequenceCollection from array of pos x seq: names are integers.
 
     This is an InputHandler for SequenceCollection. It converts an arbitrary
@@ -177,7 +177,7 @@ def seqs_from_array(a, Alphabet=None):
     return list(transpose(a)), None
 
 
-def seqs_from_model_seqs(seqs, Alphabet=None):
+def seqs_from_model_seqs(seqs, alphabet=None):
     """Alignment from ModelSequence objects: seqs -> array, names from seqs.
 
     This is an InputHandler for SequenceCollection. It converts a list of
@@ -187,7 +187,7 @@ def seqs_from_model_seqs(seqs, Alphabet=None):
     return seqs, [s.Name for s in seqs]
 
 
-def seqs_from_generic(seqs, Alphabet=None):
+def seqs_from_generic(seqs, alphabet=None):
     """SequenceCollection from generic seq x pos data: seq of seqs of chars.
 
     This is an InputHandler for SequenceCollection. It converts a generic list
@@ -203,7 +203,7 @@ def seqs_from_generic(seqs, Alphabet=None):
     return seqs, names
 
 
-def seqs_from_fasta(seqs, Alphabet=None):
+def seqs_from_fasta(seqs, alphabet=None):
     """SequenceCollection from FASTA-format string or lines.
 
     This is an InputHandler for SequenceCollection. It converts a FASTA-format
@@ -217,7 +217,7 @@ def seqs_from_fasta(seqs, Alphabet=None):
     return list(seqs), list(names)
 
 
-def seqs_from_dict(seqs, Alphabet=None):
+def seqs_from_dict(seqs, alphabet=None):
     """SequenceCollection from dict of {label:seq_as_str}.
 
     This is an InputHandler for SequenceCollection. It converts a dict in
@@ -229,7 +229,7 @@ def seqs_from_dict(seqs, Alphabet=None):
     return seqs, names
 
 
-def seqs_from_kv_pairs(seqs, Alphabet=None):
+def seqs_from_kv_pairs(seqs, alphabet=None):
     """SequenceCollection from list of (key, val) pairs.
 
     This is an InputHandler for SequenceCollection. It converts a dict in
@@ -241,7 +241,7 @@ def seqs_from_kv_pairs(seqs, Alphabet=None):
     return seqs, names
 
 
-def seqs_from_aln(seqs, Alphabet=None):
+def seqs_from_aln(seqs, alphabet=None):
     """SequenceCollection from existing SequenceCollection object: copies data.
 
     This is relatively inefficient: you should really use the copy() method
@@ -288,7 +288,7 @@ class SequenceCollection(object):
 
     DefaultNameFunction = assign_sequential_names
 
-    def __init__(self, data, Names=None, Alphabet=None, moltype=None,
+    def __init__(self, data, Names=None, alphabet=None, moltype=None,
                  Name=None, Info=None, conversion_f=None, is_array=False,
                  force_same_data=False,
                  remove_duplicate_names=False, label_to_name=None,
@@ -335,7 +335,7 @@ class SequenceCollection(object):
                         names of the sequences (after processing by
                         label_to_name if present).
 
-        Alphabet:       Alphabet to use for the alignment (primarily important
+        alphabet:       Alphabet to use for the alignment (primarily important
                         for DenseAlignment)
 
         moltype:        moltype to be applied to the Alignment and to each seq.
@@ -362,8 +362,8 @@ class SequenceCollection(object):
         # set the Name
         self.Name = Name
         # figure out alphabet and moltype
-        self.Alphabet, self.moltype = \
-            self._get_alphabet_and_moltype(Alphabet, moltype, data)
+        self.alphabet, self.moltype = \
+            self._get_alphabet_and_moltype(alphabet, moltype, data)
         if not isinstance(Info, InfoClass):
             if Info:
                 Info = InfoClass(Info)
@@ -379,7 +379,7 @@ class SequenceCollection(object):
             per_seq_names, curr_seqs, name_order = \
                 self._names_seqs_order(conversion_f, data, Names, is_array,
                                        label_to_name, remove_duplicate_names,
-                                       Alphabet=self.Alphabet)
+                                       alphabet=self.alphabet)
             self.names = name_order
 
             # will take only the seqs and names that are in name_order
@@ -434,33 +434,33 @@ class SequenceCollection(object):
         result = self.__class__(self, moltype=self.moltype, Info=self.info)
         return result
 
-    def _get_alphabet_and_moltype(self, Alphabet, moltype, data):
-        """Returns Alphabet and moltype, giving moltype precedence."""
-        if Alphabet is None and moltype is None:
+    def _get_alphabet_and_moltype(self, alphabet, moltype, data):
+        """Returns alphabet and moltype, giving moltype precedence."""
+        if alphabet is None and moltype is None:
             if hasattr(data, 'moltype'):
                 moltype = data.moltype
-            elif hasattr(data, 'Alphabet'):
-                Alphabet = data.Alphabet
+            elif hasattr(data, 'alphabet'):
+                alphabet = data.alphabet
             # check for containers
             else:
                 curr_item = self._get_container_item(data)
                 if hasattr(curr_item, 'moltype'):
                     moltype = curr_item.moltype
-                elif hasattr(curr_item, 'Alphabet'):
-                    Alphabet = curr_item.Alphabet
+                elif hasattr(curr_item, 'alphabet'):
+                    alphabet = curr_item.alphabet
                 else:
                     moltype = self.moltype  # will be BYTES by default
-        if Alphabet is not None and moltype is None:
-            moltype = Alphabet.moltype
-        if moltype is not None and Alphabet is None:
+        if alphabet is not None and moltype is None:
+            moltype = alphabet.moltype
+        if moltype is not None and alphabet is None:
             try:
-                Alphabet = moltype.Alphabets.DegenGapped
+                alphabet = moltype.alphabets.DegenGapped
             except AttributeError:
-                Alphabet = moltype.Alphabet
-        return Alphabet, moltype
+                alphabet = moltype.alphabet
+        return alphabet, moltype
 
     def _get_container_item(self, data):
-        """Checks container for item with Alphabet or moltype"""
+        """Checks container for item with alphabet or moltype"""
         curr_item = None
         if hasattr(data, 'values'):
             curr_item = next(iter(data.values()))
@@ -492,7 +492,7 @@ class SequenceCollection(object):
         return duplicates, fixed_names, fixed_seqs
 
     def _names_seqs_order(self, conversion_f, data, Names, is_array,
-                          label_to_name, remove_duplicate_names, Alphabet=None):
+                          label_to_name, remove_duplicate_names, alphabet=None):
         """Internal function to figure out names, seqs, and name_order."""
         # figure out conversion function and whether it's an array
         if not conversion_f:
@@ -500,8 +500,8 @@ class SequenceCollection(object):
             is_array = input_type in self.IsArray
             conversion_f = self.InputHandlers[input_type]
         # set seqs and names as properties
-        if Alphabet:
-            seqs, names = conversion_f(data, Alphabet=Alphabet)
+        if alphabet:
+            seqs, names = conversion_f(data, alphabet=alphabet)
         else:
             seqs, names = conversion_f(data)
         if names and label_to_name:
@@ -1317,7 +1317,7 @@ class SequenceCollection(object):
             - allow_gap: allow gap motif
         """
         if alphabet is None:
-            alphabet = self.moltype.Alphabet
+            alphabet = self.moltype.alphabet
             if allow_gap:
                 alphabet = alphabet.Gapped
 
@@ -1407,7 +1407,7 @@ class SequenceCollection(object):
         """
         def ok_gap_run(x):
             try:
-                is_gap = x.Alphabet.Gaps.__contains__
+                is_gap = x.alphabet.Gaps.__contains__
             except AttributeError:
                 is_gap = self.moltype.Gaps.__contains__
             curr_run = max_run = 0
@@ -1822,7 +1822,7 @@ class AlignmentI(object):
         on this object. It is important that the DenseAlignment is initialized
         with the same moltype and Alphabet as the original Alignment.
         """
-        da = DenseAlignment(self, moltype=self.moltype, Alphabet=self.Alphabet)
+        da = DenseAlignment(self, moltype=self.moltype, alphabet=self.alphabet)
         return da._get_freqs(index)
 
     def get_seq_freqs(self):
@@ -1831,7 +1831,7 @@ class AlignmentI(object):
         See documentation for _get_freqs: this just wraps it and converts the
         result into a Profile object organized per-sequence (i.e. per row).
         """
-        return Profile(self._get_freqs(0), self.Alphabet)
+        return Profile(self._get_freqs(0), self.alphabet)
 
     def get_pos_freqs(self):
         """Returns Profile of counts: position by character.
@@ -1839,7 +1839,7 @@ class AlignmentI(object):
         See documentation for _get_freqs: this just wraps it and converts the
         result into a Profile object organized per-position (i.e. per column).
         """
-        return Profile(self._get_freqs(1), self.Alphabet)
+        return Profile(self._get_freqs(1), self.alphabet)
 
     def no_degenerates(self, motif_length=1, allow_gap=False):
         """returns new alignment without degenerate characters
@@ -1850,12 +1850,12 @@ class AlignmentI(object):
           character (default, most evolutionary modelling treats gaps as
           N) or not.
         """
-        chars = list(self.moltype.Alphabet.NonDegen)
+        chars = list(self.moltype.alphabet.NonDegen)
         is_array = isinstance(self, DenseAlignment)
-        alpha = self.Alphabet
+        alpha = self.alphabet
         if allow_gap:
             chars.extend(self.moltype.Gap)
-            alpha = self.moltype.Alphabet.Gapped
+            alpha = self.moltype.alphabet.Gapped
         
         if is_array:
             chars = list(map(alpha.index, chars))
@@ -1878,7 +1878,7 @@ class AlignmentI(object):
             seq_constructor = self.moltype.Sequence
         
         is_array = isinstance(self, DenseAlignment)
-        alpha = self.moltype.Alphabet
+        alpha = self.moltype.alphabet
         
         gaps = list(self.moltype.Gaps)
         if is_array:
@@ -1898,7 +1898,7 @@ class AlignmentI(object):
         exclude_just_gap: sequences that are just gaps are excluded
         """
         is_array = isinstance(self, DenseAlignment)
-        alpha = self.Alphabet
+        alpha = self.alphabet
         
         gaps = list(self.moltype.Gaps)
         if is_array:
@@ -2061,7 +2061,7 @@ class AlignmentI(object):
         
         seq_index = self.names.index(seq_name)
         seq = self.array_seqs[seq_index]
-        alpha = self.Alphabet
+        alpha = self.alphabet
         gaps = list(map(alpha.index, self.moltype.Gaps))
         counts = Counter(seq)
         num_gaps = sum(counts[g] for g in gaps)
@@ -2090,7 +2090,7 @@ class AlignmentI(object):
         return result    
 
 
-def aln_from_array(a, array_type=None, Alphabet=None):
+def aln_from_array(a, array_type=None, alphabet=None):
     """Alignment from array of pos x seq: no change, names are integers.
 
     This is an InputHandler for Alignment. It converts an arbitrary array
@@ -2105,7 +2105,7 @@ def aln_from_array(a, array_type=None, Alphabet=None):
     return transpose(result), None
 
 
-def aln_from_model_seqs(seqs, array_type=None, Alphabet=None):
+def aln_from_model_seqs(seqs, array_type=None, alphabet=None):
     """Alignment from ModelSequence objects: seqs -> array, names from seqs.
 
     This is an InputHandler for Alignment. It converts a list of Sequence
@@ -2130,7 +2130,7 @@ def aln_from_model_seqs(seqs, array_type=None, Alphabet=None):
     return result, names
 
 
-def aln_from_generic(data, array_type=None, Alphabet=None):
+def aln_from_generic(data, array_type=None, alphabet=None):
     """Alignment from generic seq x pos data: sequence of sequences of chars.
 
     This is an InputHandler for Alignment. It converts a generic list (each
@@ -2140,7 +2140,7 @@ def aln_from_generic(data, array_type=None, Alphabet=None):
 
     WARNING: Data type of return array is not guaranteed -- check in caller!
     """
-    result = array(list(map(Alphabet.to_indices, data)))
+    result = array(list(map(alphabet.to_indices, data)))
     names = []
     for d in data:
         if hasattr(d, 'Name'):
@@ -2152,17 +2152,17 @@ def aln_from_generic(data, array_type=None, Alphabet=None):
     return result, names
 
 
-def aln_from_collection(seqs, array_type=None, Alphabet=None):
+def aln_from_collection(seqs, array_type=None, alphabet=None):
     """Alignment from SequenceCollection object, or its subclasses."""
     names = seqs.names
     data = [seqs.named_seqs[i] for i in names]
-    result = array(list(map(Alphabet.to_indices, data)))
+    result = array(list(map(alphabet.to_indices, data)))
     if array_type:
         result = result.astype(array_type)
     return result, names
 
 
-def aln_from_fasta(seqs, array_type=None, Alphabet=None):
+def aln_from_fasta(seqs, array_type=None, alphabet=None):
     """Alignment from FASTA-format string or lines.
 
     This is an InputHandler for Alignment. It converts a FASTA-format string
@@ -2173,11 +2173,11 @@ def aln_from_fasta(seqs, array_type=None, Alphabet=None):
     """
     if isinstance(seqs, str):
         seqs = seqs.splitlines()
-    return aln_from_model_seqs([ModelSequence(s, Name=l, Alphabet=Alphabet)
+    return aln_from_model_seqs([ModelSequence(s, Name=l, alphabet=alphabet)
                                 for l, s in cogent3.parse.fasta.MinimalFastaParser(seqs)], array_type)
 
 
-def aln_from_dict(aln, array_type=None, Alphabet=None):
+def aln_from_dict(aln, array_type=None, alphabet=None):
     """Alignment from dict of {label:seq_as_str}.
 
     This is an InputHandler for Alignment. It converts a dict in which the
@@ -2185,11 +2185,11 @@ def aln_from_dict(aln, array_type=None, Alphabet=None):
     whitespace or other formatting) into an alignment. Because the dict
     doesn't preserve order, the result will be in alphabetical order."""
     names, seqs = list(zip(*sorted(aln.items())))
-    result = array(list(map(Alphabet.to_indices, seqs)), array_type)
+    result = array(list(map(alphabet.to_indices, seqs)), array_type)
     return result, list(names)
 
 
-def aln_from_kv_pairs(aln, array_type=None, Alphabet=None):
+def aln_from_kv_pairs(aln, array_type=None, alphabet=None):
     """Alignment from sequence of (key, value) pairs.
 
     This is an InputHandler for Alignment. It converts a list in which the
@@ -2198,11 +2198,11 @@ def aln_from_kv_pairs(aln, array_type=None, Alphabet=None):
     Because the dict doesn't preserve order, the result will be in arbitrary
     order."""
     names, seqs = list(zip(*aln))
-    result = array(list(map(Alphabet.to_indices, seqs)), array_type)
+    result = array(list(map(alphabet.to_indices, seqs)), array_type)
     return result, list(names)
 
 
-def aln_from_dense_aln(aln, array_type=None, Alphabet=None):
+def aln_from_dense_aln(aln, array_type=None, alphabet=None):
     """Alignment from existing DenseAlignment object: copies data.
 
     Retrieves data from Positions field. Uses copy(), so array data type
@@ -2259,7 +2259,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
     data after the alignment is created, all sorts of bad things might happen.
 
     Class properties:
-    Alphabet: should be an Alphabet object. Must provide mapping between items
+    alphabet: should be an Alphabet object. Must provide mapping between items
     (possibly, but not necessarily, characters) in the alignment and indices
     of those characters in the resulting Alignment object.
 
@@ -2282,7 +2282,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
     them, primarily for efficiency.
     """
     moltype = None  # will be set to BYTES on moltype import
-    Alphabet = None  # will be set to BYTES.Alphabet on moltype import
+    alphabet = None  # will be set to BYTES.alphabet on moltype import
 
     InputHandlers = {'array': aln_from_array,
                      'model_seqs': aln_from_model_seqs,
@@ -2302,7 +2302,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         kwargs['suppress_named_seqs'] = True
         super(DenseAlignment, self).__init__(*args, **kwargs)
         self.array_positions = transpose(
-            self.seq_data.astype(self.Alphabet.ArrayType))
+            self.seq_data.astype(self.alphabet.ArrayType))
         self.array_seqs = transpose(self.array_positions)
         self.seq_data = self.array_seqs
         self.seq_len = len(self.array_positions)
@@ -2316,13 +2316,13 @@ class DenseAlignment(AlignmentI, SequenceCollection):
 
     def _get_positions(self):
         """Override superclass Positions to return positions as symbols."""
-        return list(map(self.Alphabet.from_indices, self.array_positions))
+        return list(map(self.alphabet.from_indices, self.array_positions))
 
     Positions = property(_get_positions)
 
     def _get_named_seqs(self):
         if not hasattr(self, '_named_seqs'):
-            seqs = list(map(self.Alphabet.to_string, self.array_seqs))
+            seqs = list(map(self.alphabet.to_string, self.array_seqs))
             if self.moltype:
                 seqs = list(map(self.moltype.Sequence, seqs))
             self._named_seqs = self._make_named_seqs(self.names, seqs)
@@ -2336,7 +2336,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
 
     def values(self):
         """Supports dict-like interface: returns seqs as Sequence objects."""
-        return [self.Alphabet.moltype.ModelSeq(i, Alphabet=self.Alphabet)
+        return [self.alphabet.moltype.ModelSeq(i, alphabet=self.alphabet)
                 for i in self.array_seqs]
 
     def items(self):
@@ -2410,7 +2410,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
             names = [self.names[i] for i in seqs]
         else:
             names = self.names
-        return self.__class__(data, list(map(str, names)), self.Alphabet,
+        return self.__class__(data, list(map(str, names)), self.alphabet,
                               conversion_f=aln_from_array)
 
     def __str__(self):
@@ -2421,7 +2421,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         result = []
         names = list(map(str, self.names))
         max_label_length = max(list(map(len, names))) + 1
-        seq2str = self.Alphabet.from_indices
+        seq2str = self.alphabet.from_indices
         for l, s in zip(self.names, self.array_seqs):
             result.append('>' + str(l) + '\n' + ''.join(seq2str(s)))
         return '\n'.join(result) + '\n'
@@ -2446,7 +2446,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
             a = self.array_positions
         else:
             a = self.array_seqs
-        count_f = self.Alphabet.counts
+        count_f = self.alphabet.counts
         return array(list(map(count_f, a)))
 
     def get_pos_freqs(self):
@@ -2455,7 +2455,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         See documentation for _get_freqs: this just wraps it and converts the
         result into a Profile object organized per-position (i.e. per column).
         """
-        return Profile(self._get_freqs(1), self.Alphabet)
+        return Profile(self._get_freqs(1), self.alphabet)
 
     def get_seq_entropy(self):
         """Returns array containing Shannon entropy for each seq in self.
@@ -2491,7 +2491,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         degen = alphabet.degenerate_from_seq
         for col in self.Positions:
             consensus.append(degen(str(alphabet.ModelSeq(col,
-                                                         Alphabet=alphabet.Alphabets.DegenGapped))))
+                                                         alphabet=alphabet.alphabets.DegenGapped))))
         return coerce_to_string(consensus)
 
     def _make_gaps_ok(self, allowed_gap_frac):
@@ -2512,9 +2512,9 @@ class DenseAlignment(AlignmentI, SequenceCollection):
             if hasattr(seq, 'count_gaps'):
                 num_gaps = seq.count_gaps()
             elif hasattr(seq, 'count'):
-                num_gaps = seq.count(self.Alphabet.Gap)
+                num_gaps = seq.count(self.alphabet.Gap)
             else:
-                num_gaps = sum(seq == self.Alphabet.GapIndex)
+                num_gaps = sum(seq == self.alphabet.GapIndex)
             return num_gaps / seq_len <= allowed_gap_frac
 
         return gaps_ok
@@ -2849,8 +2849,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         """Same alignment but overwritten with the gaps from 'template'"""
         if len(self) != len(template):
             raise ValueError("Template alignment must be same length")
-        gap = self.Alphabet.Gap
-        tgp = template.Alphabet.Gap
+        gap = self.alphabet.Gap
+        tgp = template.alphabet.Gap
         result = {}
         for name in self.names:
             seq = self.get_gapped_seq(name)
@@ -2866,7 +2866,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 else:
                     combo.append(s)
             result[name] = combo
-        return Alignment(result, Alphabet=self.Alphabet.with_gap_motif())
+        return Alignment(result, alphabet=self.alphabet.with_gap_motif())
 
     def get_degapped_relative_to(self, name):
         """Remove all columns with gaps in sequence with given name.
@@ -2881,7 +2881,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             raise ValueError("The alignment doesn't have a sequence named '{0}'"
                              .format(name))
 
-        gap = self.Alphabet.Gap
+        gap = self.alphabet.Gap
         non_gap_cols = [i for i, col in enumerate(self.get_gapped_seq(name))
                         if col != gap]
 
