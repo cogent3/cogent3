@@ -51,7 +51,7 @@ class MotifProbModel(object):
     def set_param_controller_motif_probs(self, pc, motif_probs, **kw):
         pc.setParamRule('mprobs', value=motif_probs, **kw)
 
-    def countMotifs(self, alignment, include_ambiguity=False, recode_gaps=True):
+    def count_motifs(self, alignment, include_ambiguity=False, recode_gaps=True):
         result = None
         for seq_name in alignment.get_seq_names():
             sequence = alignment.get_gapped_seq(seq_name, recode_gaps)
