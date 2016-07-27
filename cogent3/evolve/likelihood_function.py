@@ -5,7 +5,7 @@ import numpy
 
 from cogent3.core.alignment import Alignment
 from cogent3.util.dict_array import DictArrayTemplate
-from cogent3.evolve.simulate import AlignmentEvolver, randomSequence
+from cogent3.evolve.simulate import AlignmentEvolver, random_sequence
 from cogent3.util import parallel, table
 from cogent3.recalculation.definition import ParameterController
 from cogent3.maths.matrix_logarithm import is_generator_unique
@@ -374,7 +374,7 @@ class LikelihoodFunction(ParameterController):
             mprobs = self.get_param_value('mprobs', locus=locus, edge='root')
             mprobs = self._model.calc_word_probs(mprobs)
             mprobs = dict((m, p) for (m, p) in zip(self._motifs, mprobs))
-            root_sequence = randomSequence(
+            root_sequence = random_sequence(
                 random_series, mprobs, sequence_length)
 
         simulated_sequences = evolver(self._tree, root_sequence)
