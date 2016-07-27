@@ -406,9 +406,9 @@ class MolTypeTests(TestCase):
         self.assertEqual(i('rx'), 1)
         self.assertEqual(i('CAGUNacgunRYWSwx'), 15)
 
-    def test_firstNonStrict(self):
-        """MolType firstNonStrict should return index of first non-strict symbol"""
-        s = RnaMolType.firstNonStrict
+    def test_first_non_strict(self):
+        """MolType first_non_strict should return index of first non-strict symbol"""
+        s = RnaMolType.first_non_strict
         self.assertEqual(s(''), None)
         self.assertEqual(s('A'), None)
         self.assertEqual(s('ACGUACGUcgaucagu'), None)

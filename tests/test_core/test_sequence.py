@@ -234,14 +234,14 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('CUGguagvAUG').first_degenerate(), 7)
         self.assertEqual(self.RNA('ACUGCUAacgud').first_degenerate(), 11)
 
-    def test_firstNonStrict(self):
-        """Sequence firstNonStrict should return index of first non-strict symbol"""
-        self.assertEqual(self.RNA('').firstNonStrict(), None)
-        self.assertEqual(self.RNA('A').firstNonStrict(), None)
-        self.assertEqual(self.RNA('ACGUACGUcgaucagu').firstNonStrict(), None)
-        self.assertEqual(self.RNA('N').firstNonStrict(), 0)
-        self.assertEqual(self.RNA('-').firstNonStrict(), 0)
-        self.assertEqual(self.RNA('ACGUcgAUGUGCAUcagu-').firstNonStrict(), 18)
+    def test_first_non_strict(self):
+        """Sequence first_non_strict should return index of first non-strict symbol"""
+        self.assertEqual(self.RNA('').first_non_strict(), None)
+        self.assertEqual(self.RNA('A').first_non_strict(), None)
+        self.assertEqual(self.RNA('ACGUACGUcgaucagu').first_non_strict(), None)
+        self.assertEqual(self.RNA('N').first_non_strict(), 0)
+        self.assertEqual(self.RNA('-').first_non_strict(), 0)
+        self.assertEqual(self.RNA('ACGUcgAUGUGCAUcagu-').first_non_strict(), 18)
 
     def test_disambiguate(self):
         """Sequence disambiguate should remove degenerate bases"""
