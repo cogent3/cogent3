@@ -139,7 +139,7 @@ class POG(object):
     def traceback(self, other, aligned_positions):
         return pog_traceback([self, other], aligned_positions)
 
-    def asListOfPredLists(self):
+    def as_list_of_pred_lists(self):
         """A representation of the POG as a list of predecessor positions,
         a simple way to represent DAGs eg: [], [0], [1] would be a simple
         sequence of length 3.  Extra start and end positions are added, so
@@ -206,7 +206,7 @@ class POG(object):
         return POG(length, jumps, cjumps)
 
     def writeToDot(self, dot):
-        pred_sets = self.asListOfPredLists()
+        pred_sets = self.as_list_of_pred_lists()
         print('digraph POG {', file=dot)
         for (i, preds) in enumerate(pred_sets):
             # print i, preds
@@ -231,7 +231,7 @@ class LeafPOG(POG):
         self.all_jumps = []
         self.jumps = []
 
-    def asListOfPredLists(self):
+    def as_list_of_pred_lists(self):
         pog = [[[i]] for i in range(self.length)]
         return [[]] + pog + [[len(pog)]]
 
