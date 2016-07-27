@@ -122,7 +122,7 @@ class EstimateDistances(object):
         lf = self._sm.makeLikelihoodFunction(
             LoadTree(tip_names=seqs.get_seq_names()),
             aligned=False)
-        lf.setSequences(seqs.named_seqs)
+        lf.set_sequences(seqs.named_seqs)
 
         # allow user to modify the lf config
         if self._modify_lf:
