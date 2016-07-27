@@ -521,7 +521,7 @@ class _LeafDefn(_Defn):
         for scope in self.interpret_scopes(
                 independent=independent, **(scope_spec or {})):
             if value is None:
-                s_value = self.getMeanCurrentValue(scope)
+                s_value = self.get_mean_current_value(scope)
             else:
                 s_value = self.unwrap_value(value)
 
@@ -559,7 +559,7 @@ class _LeafDefn(_Defn):
                 assert scope_t in self.assignments, scope_t
                 self.assignments[scope_t] = setting
 
-    def getMeanCurrentValue(self, scope):
+    def get_mean_current_value(self, scope):
         values = [self.assignments[s].getDefaultValue() for s in scope]
         if len(values) == 1:
             s_value = values[0]
