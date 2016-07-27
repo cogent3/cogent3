@@ -573,7 +573,7 @@ class Alphabet(Enumeration):
                 result[u, obj_to_index[motif]] = 1.0
         return result
 
-    def getMotifLen(self):
+    def get_motif_len(self):
         """Returns the length of the items in self, or None if they differ."""
         return self._motiflen
 

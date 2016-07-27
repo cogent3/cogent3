@@ -124,7 +124,7 @@ def BestLogLikelihood(aln, alphabet=None, exclude_chars=None,
     # need to use the alphabet, so we can enforce character compliance
     if alphabet:
         kwargs = dict(moltype=alphabet.MolType)
-        motif_length = alphabet.getMotifLen()
+        motif_length = alphabet.get_motif_len()
     else:
         kwargs = {}
 

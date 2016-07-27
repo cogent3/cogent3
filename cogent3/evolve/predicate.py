@@ -227,9 +227,9 @@ class DirectedMotifChange(predicate):
         # may be looking for a 2nt pattern in a 3nt alphabet, but not
         # 3nt pattern in dinucleotide alphabet.
         alphabet = model.getAlphabet()
-        if alphabet.getMotifLen() < self.motiflen:
+        if alphabet.get_motif_len() < self.motiflen:
             raise ValueError("Alphabet motifs (%s) too short for %s (%s)" %
-                             (alphabet.getMotifLen(), repr(self), self.motiflen))
+                             (alphabet.get_motif_len(), repr(self), self.motiflen))
 
         resolve = model.MolType.Ambiguities.__getitem__
 
