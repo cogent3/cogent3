@@ -215,7 +215,7 @@ class LikelihoodFunction(ParameterController):
                 continue
             Qs = [valueOf('Qd', bin=b, edge=edge.name).Q for b in bin_names]
             length = valueOf('length', edge=edge.name)
-            scaled_lengths[edge.name] = length * self._model.getScaleFromQs(
+            scaled_lengths[edge.name] = length * self._model.get_scale_from_Qs(
                 Qs, bprobs, mprobs, predicate)
         return scaled_lengths
 
