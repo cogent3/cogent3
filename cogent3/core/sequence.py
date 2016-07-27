@@ -399,7 +399,7 @@ class SequenceI(object):
             return 0.0
         return 1.0 - self.fracSameGaps(other)
 
-    def fracSameNonGaps(self, other):
+    def frac_same_non_gaps(self, other):
         """Returns fraction of non-gap positions where self matches other.
 
         Doesn't count any position where self or other has a gap.
@@ -432,7 +432,7 @@ class SequenceI(object):
         Truncates at the length of the shorter sequence.
 
         Returns 0 if one sequence is empty. Note that this means that
-        frac_diff_non_gaps is _not_ the same as 1 - fracSameNonGaps, since both
+        frac_diff_non_gaps is _not_ the same as 1 - frac_same_non_gaps, since both
         return 0 if one sequence is empty.
         """
         if not self or not other:

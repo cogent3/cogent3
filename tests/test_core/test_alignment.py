@@ -555,7 +555,7 @@ class SequenceCollectionBaseTests(object):
                                             ['GA-GU', 'A-GAC', 'GG-GG']))), MolType=RNA)
         transform = lambda s: RnaSequence(str(s).replace('G', 'A'
                                                          ).replace('U', 'C'))
-        metric = RnaSequence.fracSameNonGaps
+        metric = RnaSequence.frac_same_non_gaps
         null_transform = lambda s: RnaSequence(str(s))
         # first, do it without the transformation
         try:
