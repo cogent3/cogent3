@@ -214,7 +214,7 @@ class DirectedMotifChange(predicate):
                 positions.add(offset)
         return positions
 
-    def testMotifs(self, from_motifs, to_motifs, x, y):
+    def test_motifs(self, from_motifs, to_motifs, x, y):
         """"positions where both motifs patterns are found"""
         pre = self.testMotif(from_motifs, x)
         post = self.testMotif(to_motifs, y)
@@ -239,7 +239,7 @@ class DirectedMotifChange(predicate):
         def call(x, y):
             diffs = [X != Y for (X, Y) in zip(x, y)]
             matches = []
-            for posn in self.testMotifs(from_motifs, to_motifs, x, y):
+            for posn in self.test_motifs(from_motifs, to_motifs, x, y):
                 diff = list(numpy.nonzero(diffs[posn:posn + self.motiflen])[0])
                 if diff and self.diff_at is None or diff == [self.diff_at]:
                     matches.append(posn)
@@ -257,7 +257,7 @@ class UndirectedMotifChange(DirectedMotifChange):
             diff = ''
         return '%s/%s%s' % (self.from_motif, self.to_motif, diff)
 
-    def testMotifs(self, from_motifs, to_motifs, x, y):
+    def test_motifs(self, from_motifs, to_motifs, x, y):
         preF = self.testMotif(from_motifs, x)
         postF = self.testMotif(to_motifs, y)
         preR = self.testMotif(from_motifs, y)
