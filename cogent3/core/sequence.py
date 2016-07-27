@@ -683,7 +683,7 @@ class Sequence(_Annotatable, SequenceI):
     def get_tracks(self, policy):
         return policy.tracksForSequence(self)
 
-    def getName(self):
+    def get_name(self):
         """Return the sequence name -- should just use Name instead."""
 
         return self.Name
@@ -749,7 +749,7 @@ class Sequence(_Annotatable, SequenceI):
         map = Map(segments, parent_length=len(self)).inverse()
         seq = self.__class__(
             ''.join(gapless),
-            Name=self.getName(), Info=self.Info)
+            Name=self.get_name(), Info=self.Info)
         if self.annotations:
             seq.annotations = [a.remappedTo(seq, map)
                                for a in self.annotations]
