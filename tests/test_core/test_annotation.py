@@ -76,8 +76,8 @@ class TestAnnotations(unittest.TestCase):
     def test_slice_seq_with_annotations(self):
         newseq = self.seq[:5] + self.seq[10:]
         for annot_type in ["CDS", "5'UTR"]:
-            orig = str(list(self.seq.getByAnnotation(annot_type))[0])
-            new = str(list(newseq.getByAnnotation(annot_type))[0])
+            orig = str(list(self.seq.get_by_annotation(annot_type))[0])
+            new = str(list(newseq.get_by_annotation(annot_type))[0])
             assert orig == new, (annot_type, orig, new)
 
     def test_aln_annotations(self):
@@ -94,14 +94,14 @@ class TestAnnotations(unittest.TestCase):
                          "5'UTR": {"FAKE01": "TTT",
                                    "FAKE02": "TTT"}}
         for annot_type in ["misc_feature", "CDS", "5'UTR", "LTR"]:
-            observed = list(self.aln.getByAnnotation(annot_type))[0].todict()
+            observed = list(self.aln.get_by_annotation(annot_type))[0].todict()
             expected = aln_expecteds[annot_type]
             assert observed == expected, (annot_type, expected, observed)
             if annot_type in ["misc_feature", "LTR"]:
                 continue  # because seqs haven't been annotated with it
             for name in self.aln.names:
                 observed = list(self.aln.named_seqs[name].data.
-                                getByAnnotation(annot_type))[0]
+                                get_by_annotation(annot_type))[0]
                 observed = str(observed)
                 expected = seq_expecteds[annot_type][name]
                 assert str(observed) == expected, (annot_type, name, expected,
@@ -163,10 +163,10 @@ class TestAnnotations(unittest.TestCase):
         # rc'ing an Alignment or Sequence rc's their annotations too. This means
         # slicing returns the same sequence as the non-rc'd alignment/seq
         for annot_type in ["misc_feature", "CDS", "5'UTR", "LTR"]:
-            observed = list(self.aln.getByAnnotation(annot_type))[0].todict()
+            observed = list(self.aln.get_by_annotation(annot_type))[0].todict()
             expected = aln_expecteds[annot_type]
             assert observed == expected, ("+", annot_type, expected, observed)
-            observed = list(rc.getByAnnotation(annot_type))[0].todict()
+            observed = list(rc.get_by_annotation(annot_type))[0].todict()
             expected = aln_expecteds[annot_type]
             assert observed == expected, ("-", annot_type, expected, observed)
 
@@ -174,13 +174,13 @@ class TestAnnotations(unittest.TestCase):
                 continue  # because seqs haven't been annotated with it
             for name in self.aln.names:
                 observed = list(self.aln.named_seqs[name].data.
-                                getByAnnotation(annot_type))[0]
+                                get_by_annotation(annot_type))[0]
                 observed = str(observed)
                 expected = seq_expecteds[annot_type][name]
                 assert str(observed) == expected, ("+", annot_type, name, expected,
                                                    observed)
                 observed = list(rc.named_seqs[name].data.
-                                getByAnnotation(annot_type))[0]
+                                get_by_annotation(annot_type))[0]
                 observed = str(observed)
                 expected = seq_expecteds[annot_type][name]
                 assert str(observed) == expected, ("-", annot_type, name, expected,

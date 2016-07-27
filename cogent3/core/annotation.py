@@ -141,7 +141,7 @@ class _Annotatable(object):
 
         return feature_class(self, map, type='region', Name=Name)
 
-    def getByAnnotation(self, annotation_type, Name=None, ignore_partial=False):
+    def get_by_annotation(self, annotation_type, Name=None, ignore_partial=False):
         """yields the sequence segments corresponding to the specified
         annotation_type and Name one at a time.
 
