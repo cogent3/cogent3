@@ -770,8 +770,8 @@ class ParameterController(object):
         defn.assignAll(*args, **kw)
         self.updateIntermediateValues([defn])
 
-    def measureEvalsPerSecond(self, *args, **kw):
-        return self.make_calculator().measureEvalsPerSecond(*args, **kw)
+    def measure_evals_per_second(self, *args, **kw):
+        return self.make_calculator().measure_evals_per_second(*args, **kw)
 
     def setupParallelContext(self, parallel_split=None):
         self.overall_parallel_context = parallel.getContext()

@@ -566,7 +566,7 @@ class Calculator(object):
         else:
             print('%-15s | %s' % (repr(data[-1])[:15], par_descs))
 
-    def measureEvalsPerSecond(self, time_limit=1.0, wall=True, sa=False):
+    def measure_evals_per_second(self, time_limit=1.0, wall=True, sa=False):
         # Returns an estimate of the number of evaluations per second
         # an each-optpar-in-turn simulated annealing type optimiser
         # can achive, spending not much more than 'time_limit' doing
