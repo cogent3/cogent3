@@ -58,7 +58,7 @@ or not exons (the exon *shadow*):
 
 .. doctest::
 
-    >>> print s.get_region_covering_all(exons).getShadow().get_slice()
+    >>> print s.get_region_covering_all(exons).get_shadow().get_slice()
     AAGAAGAAGAAAAAAAAAAATTTTTAAAAAAAA
 
 The first of these essentially returns the CDS of the gene.

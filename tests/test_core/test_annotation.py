@@ -63,7 +63,7 @@ class TestAnnotations(unittest.TestCase):
         f = seq.add_annotation(NewFeat, as_map([(1, 3), (5, 7)], len(seq)),
                               type='gene', Name='abcd')
         self.assertEqual(type(f.as_one_span()), NewFeat)
-        self.assertEqual(type(f.getShadow()), NewFeat)
+        self.assertEqual(type(f.get_shadow()), NewFeat)
         f2 = seq.add_annotation(NewFeat, as_map([(3, 5)], len(seq)),
                                type='gene', Name='def')
 

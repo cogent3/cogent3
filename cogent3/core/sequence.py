@@ -597,7 +597,7 @@ class Sequence(_Annotatable, SequenceI):
 
         region = self.get_region_covering_all(annotations)
         if shadow:
-            region = region.getShadow()
+            region = region.get_shadow()
 
         i = 0
         segments = []

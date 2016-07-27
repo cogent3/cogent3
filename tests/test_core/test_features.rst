@@ -47,7 +47,7 @@ To construct a pseudo-feature covering (or excluding) multiple features, use ``g
     
     >>> print(s.get_region_covering_all(exons))
     region "exon" at [10:15, 30:40]/48
-    >>> print(s.get_region_covering_all(exons).getShadow())
+    >>> print(s.get_region_covering_all(exons).get_shadow())
     region "not exon" at [0:10, 15:30, 40:48]/48
 
 eg: all the exon sequence:
