@@ -230,7 +230,7 @@ class _InputDefn(_LeafDefn):
     def make_likelihood_function(self):
         return ParameterController(self)
 
-    def updateFromCalculator(self, calc):
+    def update_from_calculator(self, calc):
         outputs = calc.get_current_cell_values_for_defn(self)
         for (output, setting) in zip(outputs, self.uniq):
             setting.value = output
@@ -324,7 +324,7 @@ class NonScalarDefn(_InputDefn):
     def getNumFreeParams(self):
         return 0
 
-    def updateFromCalculator(self, calc):
+    def update_from_calculator(self, calc):
         pass  # don't reset parallel_context etc.
 
 
