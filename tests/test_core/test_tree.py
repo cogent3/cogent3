@@ -785,9 +785,9 @@ class TreeNodeTests(TestCase):
         self.assertEqual([i.name for i in tree.nontips()], list('bcf'))
 
     def test_iterNonTips(self):
-        """TreeNode iterNontips should iterate over non-terminal descendants"""
+        """TreeNode iter_nontips should iterate over non-terminal descendants"""
         tree = self.TreeRoot
-        self.assertEqual([i.name for i in tree.iterNontips()], list('bcf'))
+        self.assertEqual([i.name for i in tree.iter_nontips()], list('bcf'))
 
     def test_tipChildren(self):
         """TreeNode tipChildren should return all terminal children"""
