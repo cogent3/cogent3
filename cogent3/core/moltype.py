@@ -1099,13 +1099,13 @@ class _CodonAlphabet(Alphabet):
         a._gc = self._gc
         return a
 
-    def isCodingCodon(self, codon):
+    def is_sense_codon(self, codon):
         return not self._gc.isStop(codon)
 
-    def isStopCodon(self, codon):
+    def is_stop_codon(self, codon):
         return self._gc.isStop(codon)
 
-    def getGeneticCode(self):
+    def get_genetic_code(self):
         return self._gc
 
 
