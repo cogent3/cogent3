@@ -366,7 +366,7 @@ class _PairwiseDistance(object):
         return self._get_stats(1, **kwargs)
 
     @property
-    def Lengths(self):
+    def lengths(self):
         kwargs = dict(title='Pairwise Aligned Lengths', digits=0)
         return self._get_stats(0, **kwargs)
 
