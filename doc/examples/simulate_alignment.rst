@@ -52,6 +52,6 @@ We'll now create a simulated alignment of length 1000 nucleotides.
 
 .. doctest::
 
-    >>> simulated = lf.simulateAlignment(sequence_length=1000)
+    >>> simulated = lf.simulate_alignment(sequence_length=1000)
 
 The result is a normal ``Cogent`` alignment object, which can be used in the same way as any other alignment object.

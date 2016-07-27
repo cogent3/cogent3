@@ -328,7 +328,7 @@ class LikelihoodFunction(ParameterController):
             result.extend(self._nodeMotifProbs(child, child_mprobs, kw))
         return result
 
-    def simulateAlignment(self, sequence_length=None, random_series=None,
+    def simulate_alignment(self, sequence_length=None, random_series=None,
                           exclude_internal=True, locus=None, seed=None, root_sequence=None):
         """
         Returns an alignment of simulated sequences with key's corresponding to

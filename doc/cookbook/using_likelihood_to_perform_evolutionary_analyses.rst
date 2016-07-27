@@ -534,7 +534,7 @@ By parametric bootstrapping
 
 If we can't rely on the asymptotic behaviour of the LRT, e.g. due to small alignment length, we can use a parametric bootstrap. Convenience functions for that are described in more detail here :ref:`parametric-bootstrap`.
 
-In general, however, this capability derives from the ability of any defined ``evolve`` likelihood function to simulate an alignment. This property is provided as ``simulateAlignment`` method on likelihood function objects.
+In general, however, this capability derives from the ability of any defined ``evolve`` likelihood function to simulate an alignment. This property is provided as ``simulate_alignment`` method on likelihood function objects.
 
 .. doctest::
     
@@ -550,7 +550,7 @@ In general, however, this capability derives from the ability of any defined ``e
     ...                 
     >>> lf.set_name('Null Hypothesis')
     >>> lf.optimise(local=True, show_progress=False)
-    >>> sim_aln = lf.simulateAlignment()
+    >>> sim_aln = lf.simulate_alignment()
     >>> print repr(sim_aln)
     7 x 2814 dna alignment: Gorilla...
 
