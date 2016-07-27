@@ -828,11 +828,11 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
     def get_scaled_lengthsFromQ(self, Q, motif_probs, length):
         lengths = {}
         for rule in self.scale_masks:
-            lengths[rule] = length * self.getScaleFromQs(
+            lengths[rule] = length * self.get_scale_from_Qs(
                 [Q], [1.0], motif_probs, rule)
         return lengths
 
-    def getScaleFromQs(self, Qs, bin_probs, motif_probss, rule):
+    def get_scale_from_Qs(self, Qs, bin_probs, motif_probss, rule):
         rule = self.getPredicateMask(rule)
         weighted_scale = 0.0
         bin_probs = numpy.asarray(bin_probs)
