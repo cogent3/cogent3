@@ -340,7 +340,7 @@ class _SubstitutionModel(object):
             defns['Qd'] = self.makeQdDefn(
                 word_probs, mprobs_matrix, rate_params)
         else:
-            defns['psubs'] = self.makePsubsDefn(
+            defns['psubs'] = self.make_psubs_defn(
                 bprobs, word_probs, mprobs_matrix, rate_params)
         return defns
 
@@ -357,7 +357,7 @@ class DiscreteSubstitutionModel(_SubstitutionModel):
     def make_rate_params(self, bprobs):
         return []
 
-    def makePsubsDefn(self, bprobs, word_probs, mprobs_matrix, rate_params):
+    def make_psubs_defn(self, bprobs, word_probs, mprobs_matrix, rate_params):
         assert len(rate_params) == 0
         assert word_probs is mprobs_matrix, "Must use simple mprob model"
         motifs = tuple(self.get_alphabet())
@@ -547,7 +547,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         defns['length'] = LengthDefn()
         return defns
 
-    def makePsubsDefn(self, bprobs, word_probs, mprobs_matrix, rate_params):
+    def make_psubs_defn(self, bprobs, word_probs, mprobs_matrix, rate_params):
         distance = self.makeDistanceDefn(bprobs)
         P = self.make_continuous_psub_defn(
             word_probs, mprobs_matrix, distance, rate_params)
