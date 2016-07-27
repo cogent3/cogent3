@@ -65,7 +65,7 @@ def weighted_majority_rule(weighted_trees, strict=False, attr='support',
     if method == 'rooted':
         return weighted_rooted_majority_rule(weighted_trees, strict, attr)
     elif method == 'unrooted':
-        return weightedUnrootedMajorityRule(weighted_trees, strict, attr)
+        return weighted_unrooted_majority_rule(weighted_trees, strict, attr)
     else:
         raise ValueError('method must be "rooted" or "unrooted"')
 
@@ -150,7 +150,7 @@ def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
     return [root for root in list(nodes.values())]
 
 
-def weightedUnrootedMajorityRule(weighted_trees, strict=False, attr='support'):
+def weighted_unrooted_majority_rule(weighted_trees, strict=False, attr='support'):
     """See documentation for weighted_majority_rule. All trees must have the same
     tips"""
     # Calculate raw split lengths and weights
