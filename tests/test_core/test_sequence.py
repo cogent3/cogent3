@@ -906,16 +906,16 @@ class ModelSequenceTests(SequenceTests):
         v = r.gap_array()
         self.assertEqual(v, array([1, 1]))
 
-    def test_gapIndices(self):
-        """Sequence gapIndices should return positions of gaps"""
+    def test_gap_indices(self):
+        """Sequence gap_indices should return positions of gaps"""
         r = self.RNA('-?A-?NRY-')
-        v = r.gapIndices()
+        v = r.gap_indices()
         self.assertEqual(v, array([0, 1, 3, 4, 8]))
         r = self.RNA('AC')
-        v = r.gapIndices()
+        v = r.gap_indices()
         self.assertEqual(v, array([]))  # note: always returns array
         r = self.RNA('-?')
-        v = r.gapIndices()
+        v = r.gap_indices()
         self.assertEqual(v, array([0, 1]))
 
 

@@ -1234,9 +1234,9 @@ class ModelSequenceBase(object):
                 gap_vector = logical_or(gap_vector, self._data == i)
         return gap_vector
 
-    def gapIndices(self):
-        """Returns array of indices of gapped positions in self."""
-        return self.gap_array().nonzero()[0]
+    def gap_indices(self):
+        """Returns list of gap indices."""
+        return list(self.gap_array().nonzero()[0])
 
     def frac_same_gaps(self, other):
         """Returns fraction of positions where gaps match other's gaps.
@@ -1298,10 +1298,6 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         """Returns list of bool containing whether each pos is a gap."""
         return list(map(bool, self.gap_array()))
 
-    def gap_indices(self):
-        """Returns list of gap indices."""
-        return list(self.gapIndices())
-
     def gap_maps(self):
         """Returns dicts mapping gapped/ungapped positions."""
         nongaps = logical_not(self.gap_array())
@@ -1311,7 +1307,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
 
     def first_gap(self):
         """Returns position of first gap, or None."""
-        a = self.gapIndices()
+        a = self.gap_indices()
         try:
             return a[0]
         except IndexError:
@@ -1319,7 +1315,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
 
     def is_gapped(self):
         """Returns True of sequence contains gaps."""
-        return len(self.gapIndices())
+        return len(self.gap_indices())
 
     def mw(self, *args, **kwargs):
         """Returns molecular weight.
