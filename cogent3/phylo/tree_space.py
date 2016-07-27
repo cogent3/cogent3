@@ -132,7 +132,7 @@ class TreeEvaluator(object):
         (err, lengths) = evaluate(ancestry)
         return self.result2output(err, ancestry, lengths, names)
 
-    def evaluateTree(self, tree):
+    def evaluate_tree(self, tree):
         """score for 'tree' with lengths as-is"""
         (ancestry, names, lengths) = tree2ancestry(tree)
         evaluate = self.make_tree_scorer(names)

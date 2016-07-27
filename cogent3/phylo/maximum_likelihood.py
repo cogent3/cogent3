@@ -36,7 +36,7 @@ class ML(TreeEvaluator):
             fake_wls = lambda a: (None, None)
             self.wlsMakeTreeScorer = lambda n: fake_wls
 
-    def evaluateTree(self, tree):
+    def evaluate_tree(self, tree):
         names = tree.get_tip_names()
         subalign = self.alignment.take_seqs(names)
         lf = self.lf_factory(tree)
