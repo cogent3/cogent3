@@ -110,7 +110,7 @@ def extend_docstring_from(cls, pre=False):
 
 class _SubstitutionModel(object):
     # Subclasses must provide
-    #  .makeParamControllerDefns()
+    #  .make_param_controller_defns()
 
     def __init__(self, alphabet,
                  motif_probs=None, optimise_motif_probs=False,
@@ -318,7 +318,7 @@ class _SubstitutionModel(object):
     def calc_word_weight_matrix(self, monomer_probs):
         return self.mprob_model.calc_word_weight_matrix(monomer_probs)
 
-    def makeParamControllerDefns(self, bin_names, endAtQd=False):
+    def make_param_controller_defns(self, bin_names, endAtQd=False):
         (input_probs, word_probs, mprobs_matrix) = \
             self.mprob_model.make_motif_word_prob_defns()
 
@@ -542,7 +542,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
     def makeFundamentalParamControllerDefns(self, bin_names):
         """Everything one step short of the psubs, because cogent3.align code
         needs to handle Q*t itself."""
-        defns = self.makeParamControllerDefns(bin_names, endAtQd=True)
+        defns = self.make_param_controller_defns(bin_names, endAtQd=True)
         assert 'length' not in defns
         defns['length'] = LengthDefn()
         return defns

@@ -331,7 +331,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
             pass
 
     def make_likelihood_defn(self, sites_independent=True, discrete_edges=None):
-        defns = self.model.makeParamControllerDefns(bin_names=self.bin_names)
+        defns = self.model.make_param_controller_defns(bin_names=self.bin_names)
         if discrete_edges is not None:
             from .discrete_markov import PartialyDiscretePsubsDefn
             defns['psubs'] = PartialyDiscretePsubsDefn(
