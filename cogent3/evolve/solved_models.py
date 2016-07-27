@@ -33,7 +33,7 @@ class PredefinedNucleotide(Nucleotide):
         assert set(list(alphabet)[:2]) == set(['T', 'C'])
         assert set(list(alphabet)[2:]) == set(['G', 'A'])
         # Should produce the same P as an ordinary Q based model would:
-        self.checkPsubCalculationsMatch()
+        self.check_psub_calculations_match()
         return CalcDefn(self.calc_psub_matrix, name='psubs')(
             word_probs, distance, *rate_params)
 
@@ -46,7 +46,7 @@ class PredefinedNucleotide(Nucleotide):
             self._do_scaling, pi, time, kappa_y, kappa_r, result)
         return result
 
-    def checkPsubCalculationsMatch(self):
+    def check_psub_calculations_match(self):
         pi = numpy.array([.1, .2, .3, .4])
         params = [4, 6][:len(self.parameter_order)]
         Q = self.calcQ(pi, pi, *params)

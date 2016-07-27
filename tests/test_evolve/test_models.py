@@ -49,7 +49,7 @@ class CannedModelsTest(TestCase):
         for klass in [TN93, HKY85, F81]:
             for scaled in [True, False]:
                 model = klass(rate_matrix_required=False, do_scaling=scaled)
-                model.checkPsubCalculationsMatch()
+                model.check_psub_calculations_match()
 
 
 if __name__ == '__main__':
