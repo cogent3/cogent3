@@ -168,12 +168,12 @@ class _LikelihoodTreeEdge(object):
         else:
             return G
 
-    def getEdge(self, name):
+    def get_edge(self, name):
         if self.edge_name == name:
             return self
         else:
             for (i, c) in self._indexed_children:
-                r = c.getEdge(name)
+                r = c.get_edge(name)
                 if r is not None:
                     return r
         return None
@@ -368,7 +368,7 @@ class LikelihoodTreeLeaf(object):
             uniq, likelihoods, counts, index, self.edge_name,
             self.alphabet, None)
 
-    def getEdge(self, name):
+    def get_edge(self, name):
         if self.edge_name == name:
             return self
         else:
