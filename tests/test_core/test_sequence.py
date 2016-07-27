@@ -572,8 +572,8 @@ class SequenceTests(TestCase):
         self.assertEqual(s4.frac_diff_gaps(s6), 0.5)
         self.assertFloatEqual(s6.frac_diff_gaps(s8), 1 / 3.0)
 
-    def test_fracSameNonGaps(self):
-        """Sequence fracSameNonGaps should return similarities at non-gaps"""
+    def test_frac_same_non_gaps(self):
+        """Sequence frac_same_non_gaps should return similarities at non-gaps"""
         s1 = self.RNA('AAAA')
         s2 = self.RNA('AGGG')
         s3 = self.RNA('GGGG')
@@ -585,7 +585,7 @@ class SequenceTests(TestCase):
         s9 = self.RNA('A-GG-A-C')
         e = self.RNA('')
 
-        test = lambda x, y, z: self.assertFloatEqual(x.fracSameNonGaps(y), z)
+        test = lambda x, y, z: self.assertFloatEqual(x.frac_same_non_gaps(y), z)
         test(s1, s2, 0.25)
         test(s1, s3, 0)
         test(s2, s3, 0.75)
