@@ -101,7 +101,7 @@ class _LikelihoodTreeEdge(object):
         mask[fixed_motif] = 1.0
         input_likelihoods *= mask
 
-    def parallelShare(self, comm):
+    def parallel_share(self, comm):
         """A local version of self for a single CPU in an MPI group"""
         if comm is None or comm.Get_size() == 1:
             return self
