@@ -72,7 +72,7 @@ def distance_dict_and_names_to_1D(dists, names):
     return numpy.array(d)
 
 
-def distanceDictTo1D(dists):
+def distance_dict_to_1D(dists):
     """(names, dists).  Distances converted into a triangular matrix
     implemented as a 1D array where j > i and i is the inner dimension:
     d[0,1], d[0, 2], d[1, 2], d[0, 3]..."""

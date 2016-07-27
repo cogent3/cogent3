@@ -2,7 +2,7 @@
 import numpy
 from numpy.linalg import solve as solve_linear_equations
 from .tree_space import TreeEvaluator, ancestry2tree
-from .util import distance_dict_and_names_to_1D, distanceDictTo1D, triangular_order
+from .util import distance_dict_and_names_to_1D, distance_dict_to_1D, triangular_order
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -47,7 +47,7 @@ class WLS(TreeEvaluator):
         self.dists = dists
         self.weights = weights or \
             dict((key, 1.0 / (dists[key]**2)) for key in dists)
-        (self.names, dists) = distanceDictTo1D(self.dists)
+        (self.names, dists) = distance_dict_to_1D(self.dists)
 
     def make_tree_scorer(self, names):
         dists = distance_dict_and_names_to_1D(self.dists, names)
