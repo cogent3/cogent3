@@ -134,11 +134,11 @@ class SequenceI(object):
         """
         return self.__class__(self.MolType.rc(self), Info=self.Info)
 
-    def isGapped(self):
+    def is_gapped(self):
         """Returns True if sequence contains gaps."""
-        return self.MolType.isGapped(self)
+        return self.MolType.is_gapped(self)
 
-    def isGap(self, char=None):
+    def is_gap(self, char=None):
         """Returns True if char is a gap.
 
         If char is not supplied, tests whether self is gaps only.
@@ -146,7 +146,7 @@ class SequenceI(object):
         if char is None:  # no char - so test if self is all gaps
             return len(self) == self.count_gaps()
         else:
-            return self.MolType.isGap(char)
+            return self.MolType.is_gap(char)
 
     def isDegenerate(self):
         """Returns True if sequence contains degenerate characters."""
@@ -1317,7 +1317,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         except IndexError:
             return None
 
-    def isGapped(self):
+    def is_gapped(self):
         """Returns True of sequence contains gaps."""
         return len(self.gapIndices())
 
