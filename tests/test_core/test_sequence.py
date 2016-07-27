@@ -398,23 +398,23 @@ class SequenceTests(TestCase):
         assert self.RNA('UU-').mustMatch('UU-')
         assert self.RNA('UCAG').mustMatch('UCAG')
 
-    def test_canPair(self):
-        """Sequence canPair should return True if all positions can pair"""
-        assert self.RNA('').canPair('')
-        assert not self.RNA('UCAG').canPair('UCAG')
-        assert self.RNA('UCAG').canPair('CUGA')
-        assert not self.RNA('UCAG').canPair('cuga')
-        assert self.RNA('UCAG').canPair('NNNN')
-        assert self.RNA('NNNN').canPair('UCAG')
-        assert self.RNA('NNNN').canPair('NNNN')
-        assert not self.RNA('N').canPair('x')
-        assert not self.RNA('N').canPair('-')
-        assert self.RNA('-').canPair('-')
-        assert self.RNA('UCAGU').canPair('KYYRR')
-        assert self.RNA('UCAG').canPair('KKRS')
-        assert self.RNA('U').canPair('G')
+    def test_can_pair(self):
+        """Sequence can_pair should return True if all positions can pair"""
+        assert self.RNA('').can_pair('')
+        assert not self.RNA('UCAG').can_pair('UCAG')
+        assert self.RNA('UCAG').can_pair('CUGA')
+        assert not self.RNA('UCAG').can_pair('cuga')
+        assert self.RNA('UCAG').can_pair('NNNN')
+        assert self.RNA('NNNN').can_pair('UCAG')
+        assert self.RNA('NNNN').can_pair('NNNN')
+        assert not self.RNA('N').can_pair('x')
+        assert not self.RNA('N').can_pair('-')
+        assert self.RNA('-').can_pair('-')
+        assert self.RNA('UCAGU').can_pair('KYYRR')
+        assert self.RNA('UCAG').can_pair('KKRS')
+        assert self.RNA('U').can_pair('G')
 
-        assert not self.DNA('T').canPair('G')
+        assert not self.DNA('T').can_pair('G')
 
     def test_can_mispair(self):
         """Sequence can_mispair should return True on any possible mispair"""

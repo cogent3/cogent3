@@ -599,9 +599,9 @@ class MolTypeTests(TestCase):
         self.assertTrue(m('UU-', 'UU-'))
         self.assertTrue(m('UCAG', 'UCAG'))
 
-    def test_canPair(self):
-        """MolType canPair should return True if all positions can pair"""
-        p = RnaMolType.canPair
+    def test_can_pair(self):
+        """MolType can_pair should return True if all positions can pair"""
+        p = RnaMolType.can_pair
         self.assertTrue(p('', ''))
         self.assertFalse(p('UCAG', 'UCAG'))
         self.assertTrue(p('UCAG', 'CUGA'))
@@ -616,7 +616,7 @@ class MolTypeTests(TestCase):
         self.assertTrue(p('UCAG', 'KKRS'))
         self.assertTrue(p('U', 'G'))
 
-        d = DnaMolType.canPair
+        d = DnaMolType.can_pair
         self.assertFalse(d('T', 'G'))
 
     def test_can_mispair(self):
@@ -635,7 +635,7 @@ class MolTypeTests(TestCase):
         self.assertFalse(m('UCAG', 'CUGA'))
         self.assertTrue(m('U--', '--U'))
 
-        d = DnaMolType.canPair
+        d = DnaMolType.can_pair
         self.assertTrue(d('TCCAAAGRYY', 'RRYCTTTGGA'))
 
     def test_mustPair(self):

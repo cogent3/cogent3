@@ -257,7 +257,7 @@ class SequenceI(object):
         """Returns True if all positions in self must match positions in other."""
         return self.MolType.mustMatch(self, other)
 
-    def canPair(self, other):
+    def can_pair(self, other):
         """Returns True if self and other could pair.
 
         Pairing occurs in reverse order, i.e. last position of other with
@@ -269,7 +269,7 @@ class SequenceI(object):
 
         NOTE: second must be able to be reverse
         """
-        return self.MolType.canPair(self, other)
+        return self.MolType.can_pair(self, other)
 
     def can_mispair(self, other):
         """Returns True if any position in self could mispair with other.
