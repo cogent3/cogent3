@@ -309,7 +309,7 @@ class LikelihoodFunction(ParameterController):
         digits = [digits, 4][type(digits) != int]
         self._format = dict(space=space, digits=digits)
 
-    def get_motif_probsByNode(self, edges=None, bin=None, locus=None):
+    def get_motif_probs_by_node(self, edges=None, bin=None, locus=None):
         kw = dict(bin=bin, locus=locus)
         mprobs = self.get_param_value('mprobs', **kw)
         mprobs = self._model.calcWordProbs(mprobs)
