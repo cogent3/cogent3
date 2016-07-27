@@ -23,9 +23,9 @@ class PredefinedNucleotide(Nucleotide):
     _default_expm_setting = None
 
     # Instead of providing calcExchangeabilityMatrix this subclass overrrides
-    # makeContinuousPsubDefn to bypass the Q / Qd step.
+    # make_continuous_psub_defn to bypass the Q / Qd step.
 
-    def makeContinuousPsubDefn(self, word_probs, mprobs_matrix, distance, rate_params):
+    def make_continuous_psub_defn(self, word_probs, mprobs_matrix, distance, rate_params):
         # Only one set of mprobs will be used
         assert word_probs is mprobs_matrix
         # Order of bases is assumed later, so check it really is Y,Y,R,R:
