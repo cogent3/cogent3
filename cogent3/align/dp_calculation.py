@@ -161,7 +161,7 @@ def makeForwardTreeDefn(subst_model, tree, bin_names,
                         with_indel_params=True, kn=True):
     """Pairwise Fwd"""
     indel = makeIndelModelDefn(with_indel_params, kn)
-    subst = subst_model.makeFundamentalParamControllerDefns(bin_names)
+    subst = subst_model.make_fundamental_param_controller_defns(bin_names)
     leaf = NonParamDefn('leaf', dimensions=('edge',))
 
     if len(bin_names) > 1:
