@@ -51,7 +51,7 @@ class SequenceTests(TestCase):
 
     def test_init_other_seq(self):
         """Sequence init with other seq should preserve name and info."""
-        r = self.RNA('UCAGG', name='x', Info={'z': 3})
+        r = self.RNA('UCAGG', name='x', info={'z': 3})
         s = Sequence(r)
         self.assertEqual(s._seq, 'UCAGG')
         self.assertEqual(s.name, 'x')

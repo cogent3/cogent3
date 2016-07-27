@@ -200,8 +200,8 @@ class RdbParserTests(GenericRdbTest):
 
     def test_single_constructor(self):
         """RdbParser should use constructors if supplied"""
-        to_dna = lambda x, Info: DnaSequence(str(x).replace('U', 'T'),
-                                             Info=Info)
+        to_dna = lambda x, info: DnaSequence(str(x).replace('U', 'T'),
+                                             info=info)
         f = list(RdbParser(self.oneseq, to_dna))
         self.assertEqual(len(f), 1)
         a = f[0]
@@ -256,11 +256,11 @@ class RdbParserTests(GenericRdbTest):
         """RdbParser: full data, valid and invalid"""
         # when only good record, should work independent of strict
         r1 = RnaSequence("-??GG-UGAA--CGCU---ACGU-N???---",
-                         Info=Info({'Species': "unidentified Thermus OPB AF027020",
+                         info=Info({'Species': "unidentified Thermus OPB AF027020",
                                     'Refs': {'rRNA': ['AF027020']},
                                     'OriginalSeq': '-o[oGG-U{G}AA--C^GC]U---ACGU-Nooo---'}))
         r2 = RnaSequence("---CGAUCG--UAUACG-N???-",
-                         Info=Info({'Species': 'Thermus silvanus X84211',
+                         info=Info({'Species': 'Thermus silvanus X84211',
                                     'Refs': {'rRNA': ['X84211']},
                                     'OriginalSeq': '---CGAU[C(G){--UA}U]ACG-Nooo-'}))
         obs = list(RdbParser(RDB_LINES_ONLY_GOOD.split('\n'), strict=True))

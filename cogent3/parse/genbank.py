@@ -629,7 +629,7 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
     moltype = moltype or ASCII
     for rec in MinimalGenbankParser(handle):
         info = Info()
-        # populate the Info object, excluding the sequence
+        # populate the info object, excluding the sequence
         for label, value in list(rec.items()):
             if label in info_excludes:
                 continue
@@ -641,7 +641,7 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
             moltype = DNA
 
         try:
-            seq = moltype.make_sequence(rec['sequence'].upper(), Info=info,
+            seq = moltype.make_sequence(rec['sequence'].upper(), info=info,
                                        name=rec['locus'])
         except KeyError:
             if not skip_contigs:

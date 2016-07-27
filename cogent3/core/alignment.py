@@ -268,7 +268,7 @@ class SequenceCollection(object):
     - input handlers for different data types
     - seq_data: behaves like list of lists of chars, holds seq data
     - Seqs: behaves like list of Sequence objects, iterable in name order
-    - Names: behaves like list of names for the sequence objects
+    - names: behaves like list of names for the sequence objects
     - named_seqs: behaves like dict of {name:seq}
     - moltype: specifies what kind of sequences are in the collection
     """
@@ -288,12 +288,12 @@ class SequenceCollection(object):
 
     DefaultNameFunction = assign_sequential_names
 
-    def __init__(self, data, Names=None, alphabet=None, moltype=None,
-                 name=None, Info=None, conversion_f=None, is_array=False,
+    def __init__(self, data, names=None, alphabet=None, moltype=None,
+                 name=None, info=None, conversion_f=None, is_array=False,
                  force_same_data=False,
                  remove_duplicate_names=False, label_to_name=None,
                  suppress_named_seqs=False):
-        """Initialize self with data and optionally Info.
+        """Initialize self with data and optionally info.
 
         We are always going to convert to characters, so Sequence objects
         in the collection will lose additional special attributes they have.
@@ -342,7 +342,7 @@ class SequenceCollection(object):
 
         name:           name of the SequenceCollection.
 
-        Info:           Info object to be attached to the alignment itself.
+        info:           info object to be attached to the alignment itself.
 
         conversion_f:   Function to convert string into sequence.
 
@@ -364,20 +364,20 @@ class SequenceCollection(object):
         # figure out alphabet and moltype
         self.alphabet, self.moltype = \
             self._get_alphabet_and_moltype(alphabet, moltype, data)
-        if not isinstance(Info, InfoClass):
-            if Info:
-                Info = InfoClass(Info)
+        if not isinstance(info, InfoClass):
+            if info:
+                info = InfoClass(info)
             else:
-                Info = InfoClass()
-        self.info = Info
+                info = InfoClass()
+        self.info = info
         # if we're forcing the same data, skip the validation
         if force_same_data:
-            self._force_same_data(data, Names)
+            self._force_same_data(data, names)
             curr_seqs = data
         # otherwise, figure out what we got and coerce it into the right type
         else:
             per_seq_names, curr_seqs, name_order = \
-                self._names_seqs_order(conversion_f, data, Names, is_array,
+                self._names_seqs_order(conversion_f, data, names, is_array,
                                        label_to_name, remove_duplicate_names,
                                        alphabet=self.alphabet)
             self.names = name_order
@@ -424,14 +424,14 @@ class SequenceCollection(object):
         except ValueError:  # got empty sequence, for some reason?
             self.seq_len = 0
 
-    def _force_same_data(self, data, Names):
+    def _force_same_data(self, data, names):
         """Forces dict that was passed in to be used as self.named_seqs"""
         self.named_seqs = data
-        self.names = Names or list(data.keys())
+        self.names = names or list(data.keys())
 
     def copy(self):
         """Returns deep copy of self."""
-        result = self.__class__(self, moltype=self.moltype, Info=self.info)
+        result = self.__class__(self, moltype=self.moltype, info=self.info)
         return result
 
     def _get_alphabet_and_moltype(self, alphabet, moltype, data):
@@ -491,7 +491,7 @@ class SequenceCollection(object):
             fixed_seqs = array(fixed_seqs, seqs.dtype)
         return duplicates, fixed_names, fixed_seqs
 
-    def _names_seqs_order(self, conversion_f, data, Names, is_array,
+    def _names_seqs_order(self, conversion_f, data, name_order, is_array,
                           label_to_name, remove_duplicate_names, alphabet=None):
         """Internal function to figure out names, seqs, and name_order."""
         # figure out conversion function and whether it's an array
@@ -511,7 +511,7 @@ class SequenceCollection(object):
         # if no names were passed in as Names, if we obtained them from
         # the seqs we should use them, but otherwise we should use the
         # default names
-        if Names is None:
+        if name_order is None:
             if (names is None) or (None in names):
                 per_seq_names = name_order = \
                     self.DefaultNameFunction(len(curr_seqs))
@@ -522,10 +522,10 @@ class SequenceCollection(object):
             # if we got names from the sequences, but otherwise assign the
             # names to successive sequences in order
             if (names is None) or (None in names):
-                per_seq_names = name_order = Names
+                per_seq_names = name_order = name_order
             else:  # got names from seqs, so assume name_order is in Names
                 per_seq_names = names
-                name_order = Names
+                name_order = name_order
 
         # check for duplicate names
         duplicates, fixed_names, fixed_seqs = \
@@ -695,14 +695,14 @@ class SequenceCollection(object):
             for r in seqs:
                 result[r] = get(r)
         if result:
-            return self.__class__(result, Names=seqs, **kwargs)
+            return self.__class__(result, names=seqs, **kwargs)
         else:
             return {}  # safe value; can't construct empty alignment
 
     def get_seq_indices(self, f, negate=False):
         """Returns list of keys of seqs where f(row) is True.
 
-        List will be in the same order as self.Names, if present.
+        List will be in the same order as self.names, if present.
         """
         get = self.named_seqs.__getitem__
         # negate function if necessary
@@ -1427,8 +1427,8 @@ class SequenceCollection(object):
     def to_dna(self):
         """Returns the alignment as DNA."""
         seqs = [self.named_seqs[name].to_dna() for name in self.names]
-        aln = self.__class__(data=seqs, Names=self.names[
-                             :], name=self.name, Info=self.info)
+        aln = self.__class__(data=seqs, names=self.names[
+                             :], name=self.name, info=self.info)
         if isinstance(self, _Annotatable) and self.annotations:
             aln.annotations = self.annotations[:]
         return aln
@@ -1436,8 +1436,8 @@ class SequenceCollection(object):
     def to_rna(self):
         """Returns the alignment as RNA"""
         seqs = [self.named_seqs[name].to_rna() for name in self.names]
-        aln = self.__class__(data=seqs, Names=self.names[
-                             :], name=self.name, Info=self.info)
+        aln = self.__class__(data=seqs, names=self.names[
+                             :], name=self.name, info=self.info)
         if isinstance(self, _Annotatable) and self.annotations:
             aln.annotations = self.annotations[:]
         return aln
@@ -1445,8 +1445,8 @@ class SequenceCollection(object):
     def rc(self):
         """Returns the reverse complement alignment"""
         seqs = [self.named_seqs[name].rc() for name in self.names]
-        rc = self.__class__(data=seqs, Names=self.names[
-                            :], name=self.name, Info=self.info)
+        rc = self.__class__(data=seqs, names=self.names[
+                            :], name=self.name, info=self.info)
         if isinstance(self, _Annotatable) and self.annotations:
             self._annotations_nucleic_reversed_on(rc)
         return rc
@@ -1633,7 +1633,7 @@ class AlignmentI(object):
     - seq_data:      Vectors representing data in each sequence in the alignment,
                     not necessarily guaranteed to turn themselves into a string
     - Items:        Iterator over the characters in the alignment
-    - Names:        List of names of sequences in the alignment. Used for
+    - names:        List of names of sequences in the alignment. Used for
                     display order. A cheap way to omit or reorder sequences is
                     to modify the list of names.
     - named_seqs:    Dict of name -> seq object, used for lookup.
@@ -1688,7 +1688,7 @@ class AlignmentI(object):
         else:
             for name, seq in list(self.named_seqs.items()):
                 result[name] = seq_constructor([seq[i] for i in cols])
-        return self.__class__(result, Names=self.names)
+        return self.__class__(result, names=self.names)
 
     def get_position_indices(self, f, native=False, negate=False):
         """Returns list of column indices for which f(col) is True.
@@ -1985,7 +1985,7 @@ class AlignmentI(object):
         positions = [(loc * motif_length, (loc + 1) * motif_length)
                      for loc in locations]
         sample = Map(positions, parent_length=len(self))
-        return self.gapped_by_map(sample, Info=self.info)
+        return self.gapped_by_map(sample, info=self.info)
 
     def sliding_windows(self, window, step, start=None, end=None):
         """Generator yielding new Alignments of given length and interval.
@@ -2272,13 +2272,13 @@ class DenseAlignment(AlignmentI, SequenceCollection):
     Creating a new array will always result in a new object unless you use
     the force_same_object=True parameter.
 
-    WARNING: Rebinding the Names attribute in a DenseAlignment is not
+    WARNING: Rebinding the names attribute in a DenseAlignment is not
     recommended because not all methods will use the updated name order. This
     is because the original sequence and name order are used to produce data
     structures that are cached for efficiency, and are not updated if you
-    change the Names attribute.
+    change the names attribute.
 
-    WARNING: DenseAlignment strips off Info objects from sequences that have
+    WARNING: DenseAlignment strips off info objects from sequences that have
     them, primarily for efficiency.
     """
     moltype = None  # will be set to BYTES on moltype import
@@ -2307,12 +2307,12 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         self.seq_data = self.array_seqs
         self.seq_len = len(self.array_positions)
 
-    def _force_same_data(self, data, Names):
+    def _force_same_data(self, data, names):
         """Forces array that was passed in to be used as selfarray_positions"""
         if isinstance(data, DenseAlignment):
             data = data._positions
         self.array_positions = data
-        self.names = Names or self.DefaultNameFunction(len(data[0]))
+        self.names = names or self.DefaultNameFunction(len(data[0]))
 
     def _get_positions(self):
         """Override superclass Positions to return positions as symbols."""
@@ -2558,7 +2558,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         positions = take(self.array_positions, locations, 0)
         result = self.__class__(positions.T, moltype=self.moltype,
                                 force_same_data=True,
-                                Info=self.info, Names=self.names)
+                                info=self.info, names=self.names)
         return result
     
     def filtered(self, predicate, motif_length=1, **kwargs):
@@ -2591,7 +2591,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         positions = self.array_seqs.take(indices, axis=1)
         result = self.__class__(positions, force_same_data=True,
                                 moltype=self.moltype,
-                                Info=self.info, Names=self.names)        
+                                info=self.info, names=self.names)        
         return result
 
 class CodonDenseAlignment(DenseAlignment):
@@ -2767,7 +2767,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             # we mask each sequence using these spans
             masked_seqs += [seq._masked_annotations(
                 annot_types, mask_char, shadow)]
-        new = self.__class__(data=masked_seqs, Info=self.info, name=self.name)
+        new = self.__class__(data=masked_seqs, info=self.info, name=self.name)
         return new
 
 
@@ -2800,7 +2800,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         locations = [(gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
 
         keep = Map(locations, parent_length=len(self))
-        return self.gapped_by_map(keep, Info=self.info)
+        return self.gapped_by_map(keep, info=self.info)
 
     def get_seq(self, seqname):
         """Return a ungapped Sequence object for the specified seqname.
@@ -2887,7 +2887,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
     def add_from_ref_aln(self, ref_aln, before_name=None, after_name=None):
         """
         Insert sequence(s) to self based on their alignment to a reference
-        sequence. Assumes the first sequence in ref_aln.Names[0] is the
+        sequence. Assumes the first sequence in ref_aln.names[0] is the
         reference.
 
         By default the sequence is appended to the end of the alignment,
@@ -2899,7 +2899,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         Arguments:
             - ref_aln: reference alignment (Alignment object/series) of
               reference sequence and sequences to add.
-              New sequences in ref_aln (ref_aln.Names[1:] are sequences to add.
+              New sequences in ref_aln (ref_aln.names[1:] are sequences to add.
               If series is used as ref_aln, it must have the structure
               [['ref_name', SEQ], ['name', SEQ]]
             - before_name: name of the sequence before which

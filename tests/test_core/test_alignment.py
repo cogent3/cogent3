@@ -169,12 +169,12 @@ class SequenceCollectionBaseTests(object):
                                     'c': RnaSequence('AA-----')})
         self.unordered = self.Class({'a': 'AAAAA', 'b': 'BBBBB'})
         self.ordered1 = self.Class({'a': 'AAAAA', 'b': 'BBBBB'},
-                                   Names=['a', 'b'])
+                                   names=['a', 'b'])
         self.ordered2 = self.Class({'a': 'AAAAA', 'b': 'BBBBB'},
-                                   Names=['b', 'a'])
+                                   names=['b', 'a'])
         self.mixed = self.Class({'a': 'ABCDE', 'b': 'LMNOP'})
         self.end_gaps = self.Class({'a': '--A-BC-', 'b': '-CB-A--',
-                                    'c': '--D-EF-'}, Names=['a', 'b', 'c'])
+                                    'c': '--D-EF-'}, names=['a', 'b', 'c'])
         self.many = self.Class({
             'a': RnaSequence('UCAGUCAGUU'),
             'b': RnaSequence('UCCGUCAAUU'),
@@ -233,7 +233,7 @@ class SequenceCollectionBaseTests(object):
     def test_init_dict(self):
         """SequenceCollection init from dict should work as expected"""
         d = {'a': 'AAAAA', 'b': 'BBBBB'}
-        a = self.Class(d, Names=['a', 'b'])
+        a = self.Class(d, names=['a', 'b'])
         self.assertEqual(a, d)
         self.assertEqual(list(a.named_seqs.items()), list(d.items()))
 
@@ -260,16 +260,16 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(list(a.Seqs), ['AAAAA', 'BBBBB', 'CCCCC'])
 
     def test_init_annotated_seq(self):
-        """SequenceCollection init from seqs w/ Info should preserve data"""
-        a = Sequence('AAA', name='a', Info={'x': 3})
-        b = Sequence('CCC', name='b', Info={'x': 4})
-        c = Sequence('GGG', name='c', Info={'x': 5})
+        """SequenceCollection init from seqs w/ info should preserve data"""
+        a = Sequence('AAA', name='a', info={'x': 3})
+        b = Sequence('CCC', name='b', info={'x': 4})
+        c = Sequence('GGG', name='c', info={'x': 5})
         seqs = [c, b, a]
         a = self.Class(seqs)
         self.assertEqual(list(a.names), ['c', 'b', 'a'])
         self.assertEqual(list(map(str, a.Seqs)), ['GGG', 'CCC', 'AAA'])
         if self.Class is not DenseAlignment:
-            # DenseAlignment is allowed to strip Info objects
+            # DenseAlignment is allowed to strip info objects
             self.assertEqual([i.info.x for i in a.Seqs], [5, 4, 3])
         # check it still works if constructed from same class
         b = self.Class(a)
@@ -372,7 +372,7 @@ class SequenceCollectionBaseTests(object):
     def test_iter_seqs(self):
         """SequenceCollection iter_seqs() method should support reordering of seqs"""
         self.ragged_padded = self.Class(self.ragged_padded.named_seqs,
-                                        Names=['a', 'b', 'c'])
+                                        names=['a', 'b', 'c'])
         seqs = list(self.ragged_padded.iter_seqs())
         self.assertEqual(seqs, ['AAAAAA', 'AAA---', 'AAAA--'])
         seqs = list(self.ragged_padded.iter_seqs(seq_order=['b', 'a', 'a']))
@@ -473,7 +473,7 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection item_indices_if should return coordinates of matching items"""
         is_vowel = lambda x: x in 'AEIOU'
         # reverse name order to test that it's not alphabetical
-        self.mixed = self.Class(self.mixed.named_seqs, Names=['b', 'a'])
+        self.mixed = self.Class(self.mixed.named_seqs, names=['b', 'a'])
         self.assertEqual(self.mixed.item_indices_if(is_vowel),
                          [('b', 3), ('a', 0), ('a', 4)])
         is_lower = lambda x: x.islower()
@@ -486,7 +486,7 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection items_if should return matching items"""
         is_vowel = lambda x: x in 'AEIOU'
         # reverse name order to test that it's not alphabetical
-        self.mixed = self.Class(self.mixed.named_seqs, Names=['b', 'a'])
+        self.mixed = self.Class(self.mixed.named_seqs, names=['b', 'a'])
         self.assertEqual(self.mixed.items_if(is_vowel), ['O', 'A', 'E'])
         self.assertEqual(self.one_seq.items_if(is_vowel), list('AAAAA'))
         # should be able to negate
@@ -1052,7 +1052,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
     """
 
     def test_Positions(self):
-        """SequenceCollection Positions property should iterate over positions, using self.Names"""
+        """SequenceCollection Positions property should iterate over positions, using self.names"""
         r = self.Class({'a': 'AAAAAA', 'b': 'AAA---', 'c': 'AAAA--'})
         r.names = ['a', 'b', 'c']
         self.assertEqual(list(r.Positions), list(map(list,
@@ -1060,11 +1060,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
     def test_iter_positions(self):
         #"""SequenceCollection iter_positions() method should support reordering of #cols"""
-        r = self.Class(self.ragged_padded.named_seqs, Names=['c', 'b'])
+        r = self.Class(self.ragged_padded.named_seqs, names=['c', 'b'])
         self.assertEqual(list(r.iter_positions(pos_order=[5, 1, 3])),
                          list(map(list, ['--', 'AA', 'A-'])))
         # reorder names
-        r = self.Class(self.ragged_padded.named_seqs, Names=['a', 'b', 'c'])
+        r = self.Class(self.ragged_padded.named_seqs, names=['a', 'b', 'c'])
         cols = list(r.iter_positions())
         self.assertEqual(cols, list(
             map(list, ['AAA', 'AAA', 'AAA', 'A-A', 'A--', 'A--'])))
@@ -1088,7 +1088,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         gap_2nd = lambda x: x[1] == '-'
         gap_3rd = lambda x: x[2] == '-'
         is_list = lambda x: isinstance(x, list)
-        self.gaps = self.Class(self.gaps.named_seqs, Names=['a', 'b', 'c'])
+        self.gaps = self.Class(self.gaps.named_seqs, names=['a', 'b', 'c'])
 
         self.assertEqual(self.gaps.get_position_indices(gap_1st), [])
         self.assertEqual(self.gaps.get_position_indices(gap_2nd), [1, 2, 4])
@@ -1410,7 +1410,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(aln.todict(), copied.todict())
         self.assertEqual(id(aln.moltype), id(copied.moltype))
         aln = self.Class(data=[('a', 'AC-GT'), ('b', 'ACCGT')],
-                         Info={'check': True})
+                         info={'check': True})
         copied = aln.copy()
         self.assertEqual(aln.info, copied.info)
 
@@ -1748,7 +1748,7 @@ class DenseAlignmentSpecificTests(TestCase):
         """Define some standard alignments."""
         self.a = DenseAlignment(array([[0, 1, 2], [3, 4, 5]]),
                                 conversion_f=aln_from_array)
-        self.a2 = DenseAlignment(['ABC', 'DEF'], Names=['x', 'y'])
+        self.a2 = DenseAlignment(['ABC', 'DEF'], names=['x', 'y'])
 
         class ABModelSequence(ModelSequence):
             alphabet = AB.alphabet
@@ -1806,7 +1806,7 @@ class DenseAlignmentSpecificTests(TestCase):
     def test_init_dict(self):
         """DenseAlignment init should work from dict."""
         s = {'abc': 'aaaccc', 'xyz': 'gcgcgc'}
-        a = DenseAlignment(s, Names=['abc', 'xyz'])
+        a = DenseAlignment(s, names=['abc', 'xyz'])
         self.assertEqual(a.seq_data, array(['aaaccc', 'gcgcgc'], 'c').view('B'))
         self.assertEqual(tuple(a.names), ('abc', 'xyz'))
 
