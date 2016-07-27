@@ -531,7 +531,7 @@ class Alphabet(Enumeration):
             crossproduct = n
         return Alphabet(crossproduct, MolType=self.MolType)
 
-    def fromSequenceToArray(self, sequence):
+    def from_seq_to_array(self, sequence):
         """Returns an array of indices corresponding to items in sequence.
 
         Unlike to_indices() in superclass, this method returns a numpy array
