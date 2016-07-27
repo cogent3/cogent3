@@ -120,7 +120,7 @@ class LikelihoodCalcs(TestCase):
         alignment = self.alignment
         if translate:
             alignment = alignment.get_translation()
-        calc = submod.makeLikelihoodFunction(self.tree, **kw)
+        calc = submod.make_likelihood_function(self.tree, **kw)
         calc.set_alignment(alignment)
         calc.set_param_rule('length', value=1.0, is_constant=True)
         if not translate:
@@ -136,7 +136,7 @@ class LikelihoodCalcs(TestCase):
         aln = LoadSeqs(data=aln)
         submod = Nucleotide()
         tree = LoadTree(treestring="%s" % str(tuple(aln.names)))
-        lf = submod.makeLikelihoodFunction(tree)
+        lf = submod.make_likelihood_function(tree)
         try:
             lf.set_alignment(aln)
         except AssertionError:
@@ -145,7 +145,7 @@ class LikelihoodCalcs(TestCase):
         collection = aln.degap().named_seqs
         collection.pop("Human")
         tree = LoadTree(treestring="%s" % str(tuple(collection.keys())))
-        lf = submod.makeLikelihoodFunction(tree, aligned=False)
+        lf = submod.make_likelihood_function(tree, aligned=False)
         try:
             lf.set_sequences(collection)
         except AssertionError:
@@ -288,7 +288,7 @@ class LikelihoodFunctionTests(TestCase):
             filename=os.path.join(data_path, 'brca1_5.tree'))
 
     def _makeLikelihoodFunction(self, **kw):
-        lf = self.submodel.makeLikelihoodFunction(self.tree, **kw)
+        lf = self.submodel.make_likelihood_function(self.tree, **kw)
         lf.set_param_rule('beta', is_independent=True)
         lf.set_alignment(self.data)
         return lf
@@ -397,7 +397,7 @@ motif  mprobs
         motif_G = 2
         self.assertAlmostEqual(2.28460181711e-05,
                                result[a_column_with_mostly_Ts][motif_G], places=8)
-        lf = self.submodel.makeLikelihoodFunction(
+        lf = self.submodel.make_likelihood_function(
             self.tree, bins=['low', 'high'])
         lf.set_param_rule('beta', bin='low', value=0.1)
         lf.set_param_rule('beta', bin='high', value=10.0)
@@ -421,7 +421,7 @@ motif  mprobs
 
     def test_simulateHetergeneousAlignment(self):
         "Simulate substitution-heterogeneous DNA alignment"
-        lf = self.submodel.makeLikelihoodFunction(
+        lf = self.submodel.make_likelihood_function(
             self.tree, bins=['low', 'high'])
         lf.set_param_rule('beta', bin='low', value=0.1)
         lf.set_param_rule('beta', bin='high', value=10.0)
@@ -429,7 +429,7 @@ motif  mprobs
 
     def test_simulatePatchyHetergeneousAlignment(self):
         "Simulate patchy substitution-heterogeneous DNA alignment"
-        lf = self.submodel.makeLikelihoodFunction(
+        lf = self.submodel.make_likelihood_function(
             self.tree, bins=['low', 'high'], sites_independent=False)
         lf.set_param_rule('beta', bin='low', value=0.1)
         lf.set_param_rule('beta', bin='high', value=10.0)
@@ -607,14 +607,14 @@ motif    mprobs
         submod = JTT92()
         aln = self.data.get_translation()
 
-        lf = submod.makeLikelihoodFunction(self.tree)
+        lf = submod.make_likelihood_function(self.tree)
         lf.set_alignment(aln)
         stats = lf.get_param_value_dict(['edge'], params=['length'])
 
     def test_constant_to_free(self):
         """excercise setting a constant param rule, then freeing it"""
         # checks by just trying to make the calculator
-        lf = self.submodel.makeLikelihoodFunction(self.tree)
+        lf = self.submodel.make_likelihood_function(self.tree)
         lf.set_alignment(self.data)
         lf.set_param_rule('beta', is_constant=True, value=2.0,
                         edges=['NineBande', 'DogFaced'], is_clade=True)
@@ -623,7 +623,7 @@ motif    mprobs
 
     def test_get_psub_rate_matrix(self):
         """lf should return consistent rate matrix and psub"""
-        lf = self.submodel.makeLikelihoodFunction(self.tree)
+        lf = self.submodel.make_likelihood_function(self.tree)
         lf.set_alignment(self.data)
         Q = lf.get_rate_matrix_for_edge('NineBande')
         P = lf.get_psub_for_edge('NineBande')
@@ -631,7 +631,7 @@ motif    mprobs
 
         # should fail for a discrete Markov model
         dm = substitution_model.DiscreteSubstitutionModel(DNA.alphabet)
-        lf = dm.makeLikelihoodFunction(self.tree)
+        lf = dm.make_likelihood_function(self.tree)
         lf.set_alignment(self.data)
         self.assertRaises(Exception, lf.get_rate_matrix_for_edge, 'NineBande')
 
@@ -639,7 +639,7 @@ motif    mprobs
         """lf ignores tree lengths if a discrete Markov model"""
         t = LoadTree(treestring='(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;')
         dm = substitution_model.DiscreteSubstitutionModel(DNA.alphabet)
-        lf = dm.makeLikelihoodFunction(t)
+        lf = dm.make_likelihood_function(t)
 
 if __name__ == '__main__':
     main()

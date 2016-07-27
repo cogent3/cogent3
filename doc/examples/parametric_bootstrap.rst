@@ -25,7 +25,7 @@ We will use a HKY model.
     >>> def create_alt_function():
     ...     t = LoadTree("data/test.tree")
     ...     sm = HKY85()
-    ...     return sm.makeLikelihoodFunction(t)
+    ...     return sm.make_likelihood_function(t)
 
 Define a function that takes an alignment object and returns an appropriately assembled function for the alternative model. Since the two models are identical bar the constraint on the branch lengths, we'll use the same code to generate the basic likelihood function as for the alt model, and then apply the constraint here
 

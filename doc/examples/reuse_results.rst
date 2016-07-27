@@ -17,7 +17,7 @@ We'll create a simple model, optimise it and save it for later reuse
     >>> aln = LoadSeqs("data/long_testseqs.fasta")
     >>> t = LoadTree("data/test.tree")
     >>> sm = MG94HKY()
-    >>> lf = sm.makeLikelihoodFunction(t, digits=2, space=2)
+    >>> lf = sm.make_likelihood_function(t, digits=2, space=2)
     >>> lf.set_alignment(aln)
     >>> lf.optimise(local=True)
     >>> print lf
@@ -64,7 +64,7 @@ Now create a more parameter rich model, in this case by allowing the ``Human`` e
 
 .. doctest::
 
-    >>> new_lf = sm.makeLikelihoodFunction(nt, digits=2, space=2)
+    >>> new_lf = sm.make_likelihood_function(nt, digits=2, space=2)
     >>> new_lf.set_param_rule('omega', edge='Human',
     ...                     is_independent=True)
     >>> new_lf.set_alignment(aln)

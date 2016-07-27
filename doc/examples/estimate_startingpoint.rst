@@ -34,7 +34,7 @@ Make a likelihood function from a sample of the alignment the ``sample`` method 
 
 .. doctest::
 
-    >>> lf = sm.makeLikelihoodFunction(t)
+    >>> lf = sm.make_likelihood_function(t)
     >>> lf.setMotifProbsFromData(aln)
     >>> lf.set_alignment(aln.sample(20))
 

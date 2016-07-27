@@ -21,7 +21,7 @@ Do a model, see the neutral test example for more details of this
     >>> aln = LoadSeqs("data/long_testseqs.fasta")
     >>> t = LoadTree("data/test.tree")
     >>> sm = MG94HKY()
-    >>> nonneutral_lf = sm.makeLikelihoodFunction(t)
+    >>> nonneutral_lf = sm.make_likelihood_function(t)
     >>> nonneutral_lf.set_param_rule("omega", is_independent = True)
     >>> nonneutral_lf.set_alignment(aln)
     >>> nonneutral_lf.optimise()

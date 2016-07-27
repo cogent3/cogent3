@@ -74,7 +74,7 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
         dists = dcalc.get_pairwise_distances()
         tree = NJ.nj(dists)
 
-    LF = model.makeLikelihoodFunction(
+    LF = model.make_likelihood_function(
         tree.bifurcating(name_unnamed=True), aligned=False)
     if ests_from_pairwise and not param_vals:
         # we use the Median to avoid the influence of outlier pairs

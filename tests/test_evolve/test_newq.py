@@ -90,8 +90,8 @@ class NewQ(TestCase):
         new_di = Nucleotide(motif_length=2, mprob_model='monomer',
                             motif_probs=self.asymm_root_probs)
 
-        nuc_lf = nuc.makeLikelihoodFunction(self.tree)
-        new_di_lf = new_di.makeLikelihoodFunction(self.tree)
+        nuc_lf = nuc.make_likelihood_function(self.tree)
+        new_di_lf = new_di.make_likelihood_function(self.tree)
         # newQ branch length is exactly motif_length*nuc branch length
         nuc_lf.set_param_rule('length', is_independent=False, init=0.2)
         new_di_lf.set_param_rule('length', is_independent=False, init=0.4)
@@ -106,7 +106,7 @@ class NewQ(TestCase):
         for (dummy, model) in self.ordered_by_complexity:
             di = Nucleotide(motif_length=2, mprob_model=model)
             di.adapt_motif_probs(self.cond_root_probs, auto=True)
-            lf = di.makeLikelihoodFunction(self.tree)
+            lf = di.make_likelihood_function(self.tree)
             s = str(lf)
 
     def test_get_statistics(self):
@@ -114,7 +114,7 @@ class NewQ(TestCase):
         for (mprobs, model) in self.ordered_by_complexity:
             di = Nucleotide(motif_length=2, motif_probs=mprobs,
                             mprob_model=model)
-            lf = di.makeLikelihoodFunction(self.tree)
+            lf = di.make_likelihood_function(self.tree)
             for wm, wt in [(True, True), (True, False), (False, True),
                            (False, False)]:
                 stats = lf.get_statistics(with_motif_probs=wm, with_titles=wt)
@@ -124,7 +124,7 @@ class NewQ(TestCase):
         for (mprobs, model) in self.ordered_by_complexity:
             di = Nucleotide(motif_length=2, motif_probs=mprobs,
                             mprob_model=model)
-            lf = di.makeLikelihoodFunction(self.tree)
+            lf = di.make_likelihood_function(self.tree)
             lf.set_param_rule('length', is_independent=False, init=0.4)
             lf.set_alignment(self.aln)
             sim = lf.simulate_alignment()
@@ -135,7 +135,7 @@ class NewQ(TestCase):
         for (mprobs, model) in self.ordered_by_complexity:
             di = Nucleotide(motif_length=2, mprob_model=model)
             di.adapt_motif_probs(mprobs, auto=True)
-            lf = di.makeLikelihoodFunction(self.tree)
+            lf = di.make_likelihood_function(self.tree)
             lf.set_param_rule('length', is_independent=False, init=0.4)
             lf.set_alignment(self.aln)
             ancestor = lf.reconstruct_ancestral_seqs()
@@ -146,7 +146,7 @@ class NewQ(TestCase):
             for (dummy, model) in self.ordered_by_complexity:
                 di = Nucleotide(motif_length=2, motif_probs=mprobs,
                                 mprob_model=model)
-                lf = di.makeLikelihoodFunction(self.tree)
+                lf = di.make_likelihood_function(self.tree)
                 lf.set_param_rule('length', is_independent=False, init=0.4)
                 lf.set_alignment(self.aln)
                 lh = lf.get_log_likelihood()
@@ -175,7 +175,7 @@ class NewQ(TestCase):
         # a newQ dinucleotide model
         sm = Nucleotide(motif_length=2, mprob_model='monomer',
                         do_scaling=False)
-        lf = sm.makeLikelihoodFunction(self.tree)
+        lf = sm.make_likelihood_function(self.tree)
         lf.set_alignment(posn1)
         posn1_lnL = lf.get_log_likelihood()
         lf.set_alignment(posn2)
@@ -193,7 +193,7 @@ class NewQ(TestCase):
         # set the arguments for taking position specific mprobs
         sm = Nucleotide(motif_length=2, mprob_model='monomers',
                         do_scaling=False)
-        lf = sm.makeLikelihoodFunction(self.tree)
+        lf = sm.make_likelihood_function(self.tree)
         lf.set_alignment(self.aln)
         posn12_lnL = lf.get_log_likelihood()
         self.assertFloatEqual(expect_lnL, posn12_lnL)
@@ -208,11 +208,11 @@ class NewQ(TestCase):
             cd = Nucleotide(motif_length=motif_length, motif_probs=motif_probs,
                             mprob_model='conditional')
 
-            ps_lf = ps.makeLikelihoodFunction(self.tree)
+            ps_lf = ps.make_likelihood_function(self.tree)
             ps_lf.set_param_rule('length', is_independent=False, init=0.4)
             ps_lf.set_alignment(self.aln)
 
-            cd_lf = cd.makeLikelihoodFunction(self.tree)
+            cd_lf = cd.make_likelihood_function(self.tree)
             cd_lf.set_param_rule('length', is_independent=False, init=0.4)
             cd_lf.set_alignment(self.aln)
             self.assertFloatEqual(cd_lf.get_log_likelihood(),
@@ -237,14 +237,14 @@ class NewQ(TestCase):
 
         mg = Nucleotide(motif_length=2, motif_probs=dinuc_probs,
                         mprob_model='monomer')
-        mg_lf = mg.makeLikelihoodFunction(self.tree)
+        mg_lf = mg.make_likelihood_function(self.tree)
         mg_lf.set_param_rule('length', is_independent=False, init=0.4)
         mg_lf.set_alignment(self.aln)
 
         cd = Nucleotide(motif_length=2, motif_probs=dinuc_probs,
                         mprob_model='conditional')
 
-        cd_lf = cd.makeLikelihoodFunction(self.tree)
+        cd_lf = cd.make_likelihood_function(self.tree)
         cd_lf.set_param_rule('length', is_independent=False, init=0.4)
         cd_lf.set_alignment(self.aln)
         self.assertNotAlmostEqual(mg_lf.get_log_likelihood(),
@@ -268,7 +268,7 @@ class NewQ(TestCase):
         cX = MotifChange(motifs[2], motifs[1], forward_only=True).aliased('cX')
         sm = Nucleotide(predicates=[aX, bX, edX, cX], equal_motif_probs=True)
 
-        lf = sm.makeLikelihoodFunction(tree)
+        lf = sm.make_likelihood_function(tree)
         lf.set_param_rule('aX', edge='a', value=8.0)
         lf.set_param_rule('bX', edge='b', value=8.0)
         lf.set_param_rule('edX', edge='edge.0', value=2.0)
@@ -310,7 +310,7 @@ def _make_likelihood(model, tree, results, is_discrete=False):
     else:
         kwargs = dict(expm='pade')
 
-    lf = model.makeLikelihoodFunction(tree,
+    lf = model.make_likelihood_function(tree,
                                       optimise_motif_probs=True, **kwargs)
 
     if not is_discrete:
@@ -325,7 +325,7 @@ def _make_likelihood(model, tree, results, is_discrete=False):
 
 def MakeCachedObjects(model, tree, seq_length, opt_args):
     """simulates an alignment under F81, all models should be the same"""
-    lf = model.makeLikelihoodFunction(tree)
+    lf = model.make_likelihood_function(tree)
     lf.set_motif_probs(dict(A=0.1, C=0.2, G=0.3, T=0.4))
     aln = lf.simulate_alignment(seq_length)
     results = dict(aln=aln)

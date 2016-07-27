@@ -59,7 +59,7 @@ We construct a likelihood function and constrain omega parameter (the ratio of n
 
 .. doctest::
 
-    >>> lf = cnf.makeLikelihoodFunction(tree, digits=2, space=3)
+    >>> lf = cnf.make_likelihood_function(tree, digits=2, space=3)
     >>> lf.set_param_rule('omega', is_constant=True, value=1.0)
 
 We then provide an alignment and optimise the model. In the current case we just use the local optimiser (hiding progress to keep this document succinct). We then print the results.
@@ -105,7 +105,7 @@ The above function has been fit using the default counting procedure for estimat
 
 .. code-block:: python
 
-    lf = cnf.makeLikelihoodFunction(tree,optimise_motif_probs=True)
+    lf = cnf.make_likelihood_function(tree,optimise_motif_probs=True)
 
 We can then free up the omega parameter, but before we do that we'll store the log-likelihood and number of free parameters for the current model form for reuse later.
 
@@ -179,7 +179,7 @@ It is also possible to specify rate-heterogeneity variants of these models. In t
 
 .. doctest::
 
-    >>> lf = cnf.makeLikelihoodFunction(tree, digits=2, space=3)
+    >>> lf = cnf.make_likelihood_function(tree, digits=2, space=3)
     >>> lf.set_alignment(aln)
     >>> lf.optimise(**optimiser_args)
     >>> non_neutral_lnL = lf.getLogLikelihood()
@@ -198,7 +198,7 @@ We can then construct a new likelihood function, specifying the rate-class prope
 
 .. doctest::
 
-    >>> rate_lf = cnf.makeLikelihoodFunction(annot_tree,
+    >>> rate_lf = cnf.make_likelihood_function(annot_tree,
     ...                     bins = ['neutral', 'adaptive'], digits=2, space=3)
 
 We define a very small value (``epsilon``) that is used to specify the starting values.
@@ -297,7 +297,7 @@ After Zhang et al, we first define a null model that has 2 rate classes '0' and 
 
 .. doctest::
     
-    >>> rate_lf = cnf.makeLikelihoodFunction(tree, bins = ['0', '1'],
+    >>> rate_lf = cnf.make_likelihood_function(tree, bins = ['0', '1'],
     ...                              digits=2, space=3)
     >>> rate_lf.set_param_rule('omega', bin='0', upper=1.0-epsilon,
     ...                      init=1-epsilon)
@@ -332,7 +332,7 @@ We now create the more complex model,
 
 .. doctest::
     
-     >>> rate_branch_lf = cnf.makeLikelihoodFunction(tree,
+     >>> rate_branch_lf = cnf.make_likelihood_function(tree,
      ...             bins = ['0', '1', '2a', '2b'], digits=2, space=3)
 
 and set from the nested null model the branch lengths,

@@ -33,7 +33,7 @@ class ScaleRuleTests(unittest.TestCase):
             model_gaps=False, predicates=predicates, scales=scale_rules)
 
     def _get_scaled_lengths(self, model, params):
-        LF = model.makeLikelihoodFunction(TREE)
+        LF = model.make_likelihood_function(TREE)
         for param in params:
             LF.set_param_rule(param, value=params[param], is_constant=True)
         result = {}
@@ -54,7 +54,7 @@ class ScaleRuleTests(unittest.TestCase):
         model = self._makeModel(True, {'k': trans}, {
             'ts': trans, 'tv': ~trans})
 
-        LF = model.makeLikelihoodFunction(TREE, bins=2)
+        LF = model.make_likelihood_function(TREE, bins=2)
         LF.set_param_rule('length', value=4.0, is_constant=True)
         LF.set_param_rule('k', value=6.0, bin='bin0', is_constant=True)
         LF.set_param_rule('k', value=1.0, bin='bin1', is_constant=True)

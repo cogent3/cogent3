@@ -42,7 +42,7 @@ We specify a null model with no bins, and optimise it.
 
 .. doctest::
 
-    >>> lf_one = model.makeLikelihoodFunction(tree, digits=2, space=3)
+    >>> lf_one = model.make_likelihood_function(tree, digits=2, space=3)
     >>> lf_one.set_alignment(aln)
     >>> lf_one.optimise()
     >>> lnL_one = lf_one.getLogLikelihood()
@@ -83,7 +83,7 @@ Our next hypothesis is that there are two rate classes, or bins, with rates gamm
 
     >>> bin_submod = Nucleotide(predicates=[kappa], ordered_param='rate',
     ...                      distribution='gamma', **treat_gap)
-    >>> lf_bins = bin_submod.makeLikelihoodFunction(tree, bins=2,
+    >>> lf_bins = bin_submod.make_likelihood_function(tree, bins=2,
     ...                             sites_independent=True, digits=2, space=3)
     >>> lf_bins.set_param_rule('bprobs', is_constant=True)
     >>> lf_bins.set_alignment(aln)
@@ -131,7 +131,7 @@ We then specify a model with switches for changing between site-classes, the HMM
 
 .. doctest::
 
-    >>> lf_patches = bin_submod.makeLikelihoodFunction(tree, bins=2,
+    >>> lf_patches = bin_submod.make_likelihood_function(tree, bins=2,
     ...                         sites_independent=False, digits=2, space=3)
     >>> lf_patches.set_param_rule('bprobs', is_constant=True)
     >>> lf_patches.set_alignment(aln)
@@ -227,7 +227,7 @@ We then construct the substitution model in a different way to that when evaluat
 .. doctest::
     
     >>> kappa_bin_submod = Nucleotide(predicates=[kappa], **treat_gap)
-    >>> lf_kappa = kappa_bin_submod.makeLikelihoodFunction(tree,
+    >>> lf_kappa = kappa_bin_submod.make_likelihood_function(tree,
     ...      bins = ['slow', 'fast'], sites_independent=False, digits=1,
     ...      space=3)
 

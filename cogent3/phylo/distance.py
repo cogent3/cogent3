@@ -119,7 +119,7 @@ class EstimateDistances(object):
         return str(self.getTable())
 
     def _make_pair_alignment(self, seqs, opt_kwargs):
-        lf = self._sm.makeLikelihoodFunction(
+        lf = self._sm.make_likelihood_function(
             LoadTree(tip_names=seqs.get_seq_names()),
             aligned=False)
         lf.set_sequences(seqs.named_seqs)
@@ -151,7 +151,7 @@ class EstimateDistances(object):
         tree = LoadTree(tip_names=sequence_names)
 
         # make the parameter controller
-        lf = self._sm.makeLikelihoodFunction(tree)
+        lf = self._sm.make_likelihood_function(tree)
         if not self._threeway:
             lf.set_param_rule('length', is_independent=False)
 
