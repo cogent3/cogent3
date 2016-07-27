@@ -212,7 +212,7 @@ class _SubstitutionModel(object):
                 motif_probs_from_data = True
         self.motif_probs_from_align = motif_probs_from_data
 
-    def getParamList(self):
+    def get_param_list(self):
         return []
 
     def __str__(self):
@@ -359,7 +359,7 @@ class DiscreteSubstitutionModel(_SubstitutionModel):
     def _isInstantaneous(self, x, y):
         return True
 
-    def getParamList(self):
+    def get_param_list(self):
         return []
 
     def makeRateParams(self, bprobs):
@@ -748,7 +748,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         # Should be implemented with table module instead.
 
         pars = self.getMatrixParams()
-        par_names = self.getParamList()
+        par_names = self.get_param_list()
         longest = max([len(name) for name in (par_names + [' '])])
         if delim:
             all_names_len = _maxWidthIfTruncated(pars, delim, 100)
@@ -816,7 +816,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
             Pars[x, y].sort()
         return Pars
 
-    def getParamList(self):
+    def get_param_list(self):
         """Return a list of parameter names."""
         return list(self.predicate_masks.keys())
 

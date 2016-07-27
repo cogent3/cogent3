@@ -217,13 +217,13 @@ class ModelDataInteractionTestMethods(TestCase):
         """testing return of motifs"""
         model_motifs = substitution_model.Nucleotide().getMotifs()
 
-    def test_getParamList(self):
+    def test_get_param_list(self):
         """testing getting the parameter list"""
         model = substitution_model.Nucleotide()
-        self.assertEqual(model.getParamList(), [])
+        self.assertEqual(model.get_param_list(), [])
 
         model = substitution_model.Nucleotide(predicates=['beta:transition'])
-        self.assertEqual(model.getParamList(), ['beta'])
+        self.assertEqual(model.get_param_list(), ['beta'])
 
     # need to ensure entering motif probs that sum to 1, that motif sets are
     # the same
