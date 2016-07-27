@@ -148,9 +148,9 @@ class SequenceI(object):
         else:
             return self.MolType.is_gap(char)
 
-    def isDegenerate(self):
+    def is_degenerate(self):
         """Returns True if sequence contains degenerate characters."""
-        return self.MolType.isDegenerate(self)
+        return self.MolType.is_degenerate(self)
 
     def isValid(self):
         """Returns True if sequence contains no items absent from alphabet."""

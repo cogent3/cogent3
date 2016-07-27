@@ -197,16 +197,16 @@ class SequenceTests(TestCase):
         assert self.RNA('').is_gap()
         assert self.RNA('----------').is_gap()
 
-    def test_isDegenerate(self):
-        """Sequence isDegenerate should return True if degen symbol in seq"""
-        assert not self.RNA('').isDegenerate()
+    def test_is_degenerate(self):
+        """Sequence is_degenerate should return True if degen symbol in seq"""
+        assert not self.RNA('').is_degenerate()
         assert not self.RNA(
-            'UACGCUACAUGuacgucaguGCUAGCUA---ACGUCAG').isDegenerate()
-        assert self.RNA('N').isDegenerate()
-        assert self.RNA('R').isDegenerate()
-        assert self.RNA('y').isDegenerate()
-        assert self.RNA('GCAUguagcucgUCAGUCAGUACgUgcasCUAG').isDegenerate()
-        assert self.RNA('ACGYAUGCUGYWWNMNuwbycwuybcwbwub').isDegenerate()
+            'UACGCUACAUGuacgucaguGCUAGCUA---ACGUCAG').is_degenerate()
+        assert self.RNA('N').is_degenerate()
+        assert self.RNA('R').is_degenerate()
+        assert self.RNA('y').is_degenerate()
+        assert self.RNA('GCAUguagcucgUCAGUCAGUACgUgcasCUAG').is_degenerate()
+        assert self.RNA('ACGYAUGCUGYWWNMNuwbycwuybcwbwub').is_degenerate()
 
     def test_isStrict(self):
         """Sequence isStrict should return True if all symbols in Monomers"""
