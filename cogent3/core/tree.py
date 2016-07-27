@@ -967,7 +967,7 @@ class TreeNode(object):
             outgroup = self.get_node_matching_name(outgroup_name)
             if outgroup.Children:
                 raise TreeError('Outgroup (%s) must be a tip' % outgroup_name)
-            self = outgroup.unrootedDeepcopy()
+            self = outgroup.unrooted_deepcopy()
 
         join_edge = self.get_connecting_node(tip1name, tip2name)
 
@@ -1759,7 +1759,7 @@ class PhyloNode(TreeNode):
             else:
                 child.Length = child.Length + node.Length
 
-    def unrootedDeepcopy(self, constructor=None, parent=None):
+    def unrooted_deepcopy(self, constructor=None, parent=None):
         # walks the tree unrooted-style, ie: treating self.Parent as just
         # another child 'parent' is where we got here from, ie: the neighbour
         # that we don't need to explore.
@@ -1769,7 +1769,7 @@ class PhyloNode(TreeNode):
         neighbours = self._getNeighboursExcept(parent)
         children = []
         for child in neighbours:
-            children.append(child.unrootedDeepcopy(constructor, parent=self))
+            children.append(child.unrooted_deepcopy(constructor, parent=self))
 
         # we might be walking UP the tree, so:
         if parent is None:
@@ -1817,7 +1817,7 @@ class PhyloNode(TreeNode):
             last_edge = edge
             edge = next_edge
             known_weight += 1
-        return edge.unrootedDeepcopy()
+        return edge.unrooted_deepcopy()
 
     def sameTopology(self, other):
         """Tests whether two trees have the same topology."""
@@ -1856,18 +1856,18 @@ class PhyloNode(TreeNode):
         if not newroot.Children:
             raise TreeError("Can't use a tip (%s) as the root" %
                             repr(edge_name))
-        return newroot.unrootedDeepcopy()
+        return newroot.unrooted_deepcopy()
 
     def rootedWithTip(self, outgroup_name):
         """A new tree with the named tip as one of the root's children"""
         tip = self.get_node_matching_name(outgroup_name)
-        return tip.Parent.unrootedDeepcopy()
+        return tip.Parent.unrooted_deepcopy()
 
     def rootAtMidpoint(self):
         """ return a new tree rooted at midpoint of the two tips farthest apart
 
         this fn doesn't preserve the internal node naming or structure,
-        but does keep tip to tip distances correct.  uses unrootedDeepcopy()
+        but does keep tip to tip distances correct.  uses unrooted_deepcopy()
         """
         # max_dist, tip_names = tree.max_tip_tip_distance()
         # this is slow
@@ -1875,7 +1875,7 @@ class PhyloNode(TreeNode):
         max_dist, tip_names = self.max_tip_tip_distance()
         half_max_dist = max_dist / 2.0
         if max_dist == 0.0:  # only pathological cases with no lengths
-            return self.unrootedDeepcopy()
+            return self.unrooted_deepcopy()
         # print tip_names
         tip1 = self.get_node_matching_name(tip_names[0])
         tip2 = self.get_node_matching_name(tip_names[1])
@@ -1901,7 +1901,7 @@ class PhyloNode(TreeNode):
                 raise RuntimeError('error trying to root tree at tip')
             else:
                 # print climb_node.name, 'clmb node'
-                return climb_node.unrootedDeepcopy()
+                return climb_node.unrooted_deepcopy()
 
         else:
             # make a new node on climb_node's branch to its parent
@@ -1911,7 +1911,7 @@ class PhyloNode(TreeNode):
             climb_node.Parent = new_root
             climb_node.Length = half_max_dist - dist_climbed
             new_root.Length = old_br_len - climb_node.Length
-            return new_root.unrootedDeepcopy()
+            return new_root.unrooted_deepcopy()
 
     def _find_midpoint_nodes(self, max_dist, tip_pair):
         """returns the nodes surrounding the max_tip_tip_distance midpoint
