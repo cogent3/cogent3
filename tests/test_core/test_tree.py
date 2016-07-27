@@ -218,12 +218,12 @@ class TreeNodeTests(TestCase):
         self.assertNotEqual(nodes['b'] == nodes['a'])
         self.assertNotEqual(nodes['a'], nodes['b'])
 
-    def test_compareName(self):
+    def test_compare_name(self):
         """Compare names between TreeNodes"""
         nodes = self.TreeNode
-        self.assertTrue(nodes['a'].compareName(nodes['a']))
-        self.assertFalse(nodes['a'].compareName(nodes['b']))
-        self.assertFalse(nodes['b'].compareName(nodes['a']))
+        self.assertTrue(nodes['a'].compare_name(nodes['a']))
+        self.assertFalse(nodes['a'].compare_name(nodes['b']))
+        self.assertFalse(nodes['b'].compare_name(nodes['a']))
 
     def test_compareByNames(self):
         """Compare names between trees"""
@@ -882,7 +882,7 @@ class TreeNodeTests(TestCase):
         assert children[0].Parent is parent
         assert children[1].Parent is None
         assert children[2].Parent is parent
-        self.assertEqual(children[0].compareName(children[1]), True)
+        self.assertEqual(children[0].compare_name(children[1]), True)
         self.assertEqual(parent.removeNode(children[1]), False)
         self.assertEqual(len(parent), 2)
         self.assertEqual(parent.removeNode(children[0]), True)
