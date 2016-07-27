@@ -119,9 +119,9 @@ class SequenceI(object):
         """Removes degenerate bases by stripping them out of the sequence."""
         return self.__class__(self.MolType.strip_degenerate(self), Info=self.Info)
 
-    def stripBad(self):
+    def strip_bad(self):
         """Removes any symbols not in the alphabet."""
-        return self.__class__(self.MolType.stripBad(self), Info=self.Info)
+        return self.__class__(self.MolType.strip_bad(self), Info=self.Info)
 
     def strip_bad_and_gaps(self):
         """Removes any symbols not in the alphabet, and any gaps."""
@@ -1265,7 +1265,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
     these respective classes.
     """
 
-    def stripBad(self):
+    def strip_bad(self):
         """Returns copy of self with bad chars excised"""
         valid_indices = self._data < len(self.Alphabet)
         result = compress(valid_indices, self._data)

@@ -251,9 +251,9 @@ class MolTypeTests(TestCase):
         self.assertEqual(s('NRYSW'), '')
         self.assertEqual(s('USNG'), 'UG')
 
-    def test_stripBad(self):
-        """MolType stripBad should remove any non-base, non-gap chars"""
-        s = RnaMolType.stripBad
+    def test_strip_bad(self):
+        """MolType strip_bad should remove any non-base, non-gap chars"""
+        s = RnaMolType.strip_bad
         self.assertEqual(s('UCAGwsnyrHBND-D'), 'UCAGwsnyrHBND-D')
         self.assertEqual(s('@#^*($@!#&()!@QZX'), '')
         self.assertEqual(s('aaa ggg ---!ccc'), 'aaaggg---ccc')
