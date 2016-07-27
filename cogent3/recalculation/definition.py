@@ -94,7 +94,7 @@ class CalculationDefn(_NonLeafDefn):
     """Defn for a derived value.  In most cases use CalcDefn instead
 
     The only reason for subclassing this directly would be to override
-    .makeCalcFunction() or setup()."""
+    .make_calc_function() or setup()."""
 
     recycling = False
 
@@ -109,11 +109,11 @@ class CalculationDefn(_NonLeafDefn):
     def setup(self):
         pass
 
-    def makeCalcFunction(self):
+    def make_calc_function(self):
         return self.calc
 
     def makeCell(self, *args):
-        calc = self.makeCalcFunction()
+        calc = self.make_calc_function()
         # can't calc outside correct parallel context, so can't do
         # if [arg for arg in args if not arg.is_constant]:
         cell = EvaluatedCell(self.name, calc, args,

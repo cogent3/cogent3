@@ -462,7 +462,7 @@ class _NonLeafDefn(_Defn):
             input_nums = [arg.outputOrdinalFor(scope) for arg in self.args]
             self.assignments[scope_t] = tuple(input_nums)
         self._update_from_assignments()
-        calc = self.makeCalcFunction()
+        calc = self.make_calc_function()
         self.values = [nullor(self.name, calc, self.recycling)(
             *[a.values[i] for (i, a) in zip(u, self.args)]) for u in self.uniq]
 
