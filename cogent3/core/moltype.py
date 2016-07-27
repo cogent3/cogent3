@@ -718,7 +718,7 @@ class MolType(object):
     def is_strict(self, sequence):
         """Returns True if sequence contains only items in self.Alphabet."""
         try:
-            return (len(sequence) == 0) or (self.firstNonStrict(sequence) is None)
+            return (len(sequence) == 0) or (self.first_non_strict(sequence) is None)
         except:
             return False
 
@@ -765,7 +765,7 @@ class MolType(object):
                 return i
         return None
 
-    def firstNonStrict(self, sequence):
+    def first_non_strict(self, sequence):
         """Returns the index of first non-strict symbol in sequence, or None."""
         monomers = self.Alphabet
         for i, s in enumerate(sequence):
