@@ -354,9 +354,9 @@ class MolTypeTests(TestCase):
         self.assertTrue(d('GCAUguagcucgUCAGUCAGUACgUgcasCUAG'))
         self.assertTrue(d('ACGYAUGCUGYEWEWNFMNfuwbybcwuybcjwbeiwfub'))
 
-    def test_isValid(self):
-        """MolType isValid should return True if any unknown symbol in seq"""
-        v = RnaMolType.isValid
+    def test_is_valid(self):
+        """MolType is_valid should return True if any unknown symbol in seq"""
+        v = RnaMolType.is_valid
         self.assertFalse(v(3))
         self.assertFalse(v(None))
         self.assertTrue(v('ACGUGCAUGUCAYCAYGUACGcaugacyugc----RYNCYRNC'))

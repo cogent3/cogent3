@@ -204,10 +204,10 @@ class NumbersTestsI(object):
         self.assertFloatEqual(list(self.floats.items())[0], (1.5, 1))
         self.assertFloatEqual(list(self.floats.items())[1], (2.7, 1))
 
-    def test_isValid(self):
-        """Numbers isValid should return True if all items numbers"""
+    def test_is_valid(self):
+        """Numbers is_valid should return True if all items numbers"""
         for i in [self.empty, self.integers, self.floats, self.mixed]:
-            assert i.isValid()
+            assert i.is_valid()
 
     def test_toFixedWidth(self):
         """Numbers should be able to convert items to fixed-width string"""
@@ -553,11 +553,11 @@ class UnsafeNumbersTests(TestCase, NumbersTestsI):
         self.empty.append('abc')
         self.assertEqual(self.empty, ['abc'])
 
-    def test_isValid_bad(self):
+    def test_is_valid_bad(self):
         """UnsafeNumbers should return False if invalid"""
-        assert self.mixed.isValid()
+        assert self.mixed.is_valid()
         self.mixed.append('abc')
-        assert not self.mixed.isValid()
+        assert not self.mixed.is_valid()
 
 
 class StaticFreqsTestsI(object):
@@ -681,12 +681,12 @@ class StaticFreqsTestsI(object):
         self.assertEqual(ct.newFromSeqs(
             ['aaa', 'bbbaaa']), ct({'a': 6, 'b': 3}))
 
-    def test_isValid(self):
-        """Freqs isValid should return True if valid"""
+    def test_is_valid(self):
+        """Freqs is_valid should return True if valid"""
         d = self.ClassToTest()
-        assert d.isValid()
+        assert d.is_valid()
         d.fromSeq('aaaaaaaaaaaaabb')
-        assert d.isValid()
+        assert d.is_valid()
 
     def test_find_conversion_function(self):
         """Freqs _find_conversion_function should return correct value."""
@@ -1131,12 +1131,12 @@ class FreqsTestsI(object):
         self.assertEqual(f.fromSeqs('acc', weight=3.5),
                          {'a': 7.5, 'b': 2, 'c': 7})
 
-    def test_isValid(self):
-        """Freqs isValid should return True if valid"""
+    def test_is_valid(self):
+        """Freqs is_valid should return True if valid"""
         d = self.ClassToTest()
-        assert d.isValid()
+        assert d.is_valid()
         d.fromSeq('aaaaaaaaaaaaabb')
-        assert d.isValid()
+        assert d.is_valid()
 
     def test_find_conversion_function(self):
         """Freqs _find_conversion_function should return correct value."""
@@ -1602,8 +1602,8 @@ class FreqsTests(FreqsTestsI, TestCase):
         self.PosNeg = self.ClassToTest([-2, -1, 1, 2])
         self.Constant = self.ClassToTest([1] * 5)
 
-    def test_isValid_bad(self):
-        """Freqs should reject invalid data, so isValid() always True"""
+    def test_is_valid_bad(self):
+        """Freqs should reject invalid data, so is_valid() always True"""
         self.assertRaises(ConstraintError, self.ClassToTest,
                           {'a': 3, 'b': -10})
 
@@ -1696,10 +1696,10 @@ class UnsafeFreqsTests(FreqsTestsI, TestCase):
         self.PosNeg = self.ClassToTest({-2: 1, -1: 1, 1: 1, 2: 1})
         self.Constant = self.ClassToTest({1: 5})
 
-    def test_isValid_bad(self):
-        """UnsafeFreqs should allow invalid data, returning False for isValid"""
+    def test_is_valid_bad(self):
+        """UnsafeFreqs should allow invalid data, returning False for is_valid"""
         d = self.ClassToTest({'a': 3, 'b': 'x'})
-        assert not d.isValid()
+        assert not d.is_valid()
 
     def test_init_empty(self):
         """UnsafeFreqs should initialize OK with empty list"""

@@ -117,16 +117,16 @@ class EnumerationTests(TestCase):
         self.assertEqual(a.toIndices(''), [])
         self.assertEqual(a.toIndices('ccabac'), [1, 1, 2, 0, 2, 1])
 
-    def test_isValid(self):
-        """Enumeration isValid should return True for valid sequence"""
+    def test_is_valid(self):
+        """Enumeration is_valid should return True for valid sequence"""
         a = Enumeration('bca')
-        self.assertEqual(a.isValid(''), True)
-        self.assertEqual(a.isValid('bbb'), True)
-        self.assertEqual(a.isValid('bbbaac'), True)
-        self.assertEqual(a.isValid('bbd'), False)
-        self.assertEqual(a.isValid('d'), False)
-        self.assertEqual(a.isValid(['a', 'b']), True)
-        self.assertEqual(a.isValid(['a', None]), False)
+        self.assertEqual(a.is_valid(''), True)
+        self.assertEqual(a.is_valid('bbb'), True)
+        self.assertEqual(a.is_valid('bbbaac'), True)
+        self.assertEqual(a.is_valid('bbd'), False)
+        self.assertEqual(a.is_valid('d'), False)
+        self.assertEqual(a.is_valid(['a', 'b']), True)
+        self.assertEqual(a.is_valid(['a', None]), False)
 
     def test_fromIndices(self):
         """Enumeration fromIndices should return elements from indices"""
@@ -217,16 +217,16 @@ class CharAlphabetTests(TestCase):
         self.assertEqual(r.fromString('UUCUGA'),
                          array([0, 0, 1, 0, 3, 2], 'B'))
 
-    def test_isValid(self):
-        """CharAlphabet isValid should return True for valid sequence"""
+    def test_is_valid(self):
+        """CharAlphabet is_valid should return True for valid sequence"""
         a = CharAlphabet('bca')
-        self.assertEqual(a.isValid(''), True)
-        self.assertEqual(a.isValid('bbb'), True)
-        self.assertEqual(a.isValid('bbbaac'), True)
-        self.assertEqual(a.isValid('bbd'), False)
-        self.assertEqual(a.isValid('d'), False)
-        self.assertEqual(a.isValid(['a', 'b']), True)
-        self.assertEqual(a.isValid(['a', None]), False)
+        self.assertEqual(a.is_valid(''), True)
+        self.assertEqual(a.is_valid('bbb'), True)
+        self.assertEqual(a.is_valid('bbbaac'), True)
+        self.assertEqual(a.is_valid('bbd'), False)
+        self.assertEqual(a.is_valid('d'), False)
+        self.assertEqual(a.is_valid(['a', 'b']), True)
+        self.assertEqual(a.is_valid(['a', None]), False)
 
     def test_fromArray(self):
         """CharAlphabet fromArray should return correct array"""

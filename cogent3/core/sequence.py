@@ -152,9 +152,9 @@ class SequenceI(object):
         """Returns True if sequence contains degenerate characters."""
         return self.MolType.is_degenerate(self)
 
-    def isValid(self):
+    def is_valid(self):
         """Returns True if sequence contains no items absent from alphabet."""
-        return self.MolType.isValid(self)
+        return self.MolType.is_valid(self)
 
     def isStrict(self):
         """Returns True if sequence contains only monomers."""
@@ -967,7 +967,7 @@ class ModelSequenceBase(object):
         """Initializes sequence from data and alphabet.
 
         WARNING: Does not validate the data or alphabet for compatibility.
-        This is for speed. Use isValid() to check whether the data
+        This is for speed. Use is_valid() to check whether the data
         is consistent with the alphabet.
 
         WARNING: If data has name and/or Info, gets ref to same object rather
@@ -1051,7 +1051,7 @@ class ModelSequenceBase(object):
         """
         return str(self.Name)[:name_len].ljust(label_len) + str(self)
 
-    def isValid(self):
+    def is_valid(self):
         """Checks that no items in self are out of the Alphabet range."""
         return self._data == self._data.clip(m, 0, len(self.Alphabet) - 1)
 

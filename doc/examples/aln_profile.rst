@@ -49,11 +49,11 @@ Normalize the positions to get the relative frequencies at each position
     0.0500   0.9000   0.0000   0.0500   0.0000   0.0000
     0.3500   0.4500   0.0000   0.2000   0.0000   0.0000...
 
-Make sure the data in the profile is valid. The method isValid checks whether all rows add up to one and whether the profile has a valid Alphabet and CharacterOrder.
+Make sure the data in the profile is valid. The method is_valid checks whether all rows add up to one and whether the profile has a valid Alphabet and CharacterOrder.
 
 .. doctest::
 
-    >>> print pf.isValid()
+    >>> print pf.is_valid()
     True
 
 A profile can be used to calculate consensus sequences from the alignment. To illustrate the different options for consensus calculation, let's examine the frequency data at the fifth position of the alignment (index=4)
