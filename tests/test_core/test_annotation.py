@@ -126,9 +126,9 @@ class TestAnnotations(unittest.TestCase):
             if annot_type in ["misc_feature", "LTR"]:
                 continue  # because seqs haven't been annotated with it
             for name in self.aln.names:
-                orig = str(list(self.aln.getAnnotationsFromSequence(name,
+                orig = str(list(self.aln.get_annotations_from_seq(name,
                                                                     annot_type))[0].getSlice())
-                new = str(list(newaln.getAnnotationsFromSequence(name,
+                new = str(list(newaln.get_annotations_from_seq(name,
                                                                  annot_type))[0].getSlice())
                 assert orig == new, (name, annot_type, orig, new)
 
