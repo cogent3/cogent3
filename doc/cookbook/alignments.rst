@@ -432,7 +432,7 @@ We'll do this by specifying the position indices of interest, creating a sequenc
     >>> indices = [(i, i+1) for i in range(len(aln))[2::3]]
     >>> indices
     [(2, 3), (5, 6), (8, 9), (11, 12)]
-    >>> pos3 = aln.addFeature('pos3', 'pos3', indices)
+    >>> pos3 = aln.add_feature('pos3', 'pos3', indices)
     >>> pos3 = pos3.getSlice()
     >>> print pos3
     >seq2

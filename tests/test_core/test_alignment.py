@@ -676,9 +676,9 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection copy_annotations should copy from seq objects"""
         aln = self.Class({'seq1': 'ACGU', 'seq2': 'CGUA', 'seq3': 'CCGU'})
         seq_1 = Sequence('ACGU', Name='seq1')
-        seq_1.addFeature('xyz', 'abc', [(1, 2)])
+        seq_1.add_feature('xyz', 'abc', [(1, 2)])
         seq_5 = Sequence('ACGUAAAAAA', Name='seq5')
-        seq_5.addFeature('xyzzz', 'abc', [(1, 2)])
+        seq_5.add_feature('xyzzz', 'abc', [(1, 2)])
         annot = {'seq1': seq_1, 'seq5': seq_5}
         aln.copy_annotations(annot)
         aln_seq_1 = aln.named_seqs['seq1']

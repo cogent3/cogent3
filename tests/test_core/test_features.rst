@@ -220,7 +220,7 @@ If the feature lies outside the sequence being copied to, you get a lost span
 
     >>> aln = LoadSeqs(data=[['x', '-AAAA'], ['y', 'TTTTT']])
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
-    >>> exon = seq.addFeature('exon', 'A', [(5,8)])
+    >>> exon = seq.add_feature('exon', 'A', [(5,8)])
     >>> aln.get_seq('x').copy_annotations(seq)
     >>> copied = list(aln.get_annotations_from_seq('x', 'exon'))
     >>> copied
@@ -234,7 +234,7 @@ You can copy to a sequence with a different name, in a different alignment if th
 
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
-    >>> match_exon = seq.addFeature('exon', 'A', [(5,8)])
+    >>> match_exon = seq.add_feature('exon', 'A', [(5,8)])
     >>> aln.get_seq('y').copy_annotations(seq)
     >>> copied = list(aln.get_annotations_from_seq('y', 'exon'))
     >>> copied
@@ -246,7 +246,7 @@ If the sequence is shorter, again you get a lost span.
 
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
     >>> diff_len_seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCCCCCCCCCC', 'x')
-    >>> nonmatch = diff_len_seq.addFeature('repeat', 'A', [(12,14)])
+    >>> nonmatch = diff_len_seq.add_feature('repeat', 'A', [(12,14)])
     >>> aln.get_seq('y').copy_annotations(diff_len_seq)
     >>> copied = list(aln.get_annotations_from_seq('y', 'repeat'))
     >>> copied
@@ -257,7 +257,7 @@ We consider cases where there are terminal gaps.
 .. doctest::
     
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', '------TTTT']])
-    >>> exon = aln.get_seq('x').addFeature('exon', 'fred', [(3,8)])
+    >>> exon = aln.get_seq('x').add_feature('exon', 'fred', [(3,8)])
     >>> aln_exons = list(aln.get_annotations_from_seq('x', 'exon'))
     >>> print(aln_exons)
     [exon "fred" at [4:9]/10]
@@ -268,7 +268,7 @@ We consider cases where there are terminal gaps.
     --TTT
     <BLANKLINE>
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--T---']])
-    >>> exon = aln.get_seq('x').addFeature('exon', 'fred', [(3,8)])
+    >>> exon = aln.get_seq('x').add_feature('exon', 'fred', [(3,8)])
     >>> aln_exons = list(aln.get_annotations_from_seq('x', 'exon'))
     >>> print(aln_exons[0].getSlice())
     >x
@@ -289,7 +289,7 @@ In this case, only those residues included within the feature are covered - note
     >y
     -T----TTTT
     <BLANKLINE>
-    >>> exon = aln.get_seq('x').addFeature('exon', 'ex1', [(0,4)])
+    >>> exon = aln.get_seq('x').add_feature('exon', 'ex1', [(0,4)])
     >>> print(exon)
     exon "ex1" at [0:4]/9
     >>> print(exon.getSlice())
@@ -356,13 +356,13 @@ We create an alignment with a sequence that has two different annotation types.
     >y
     -T----TTTTG-GTT
     <BLANKLINE>
-    >>> exon = aln.get_seq('x').addFeature('exon', 'norwegian', [(0,4)])
+    >>> exon = aln.get_seq('x').add_feature('exon', 'norwegian', [(0,4)])
     >>> print(exon.getSlice())
     CCCC
-    >>> repeat = aln.get_seq('x').addFeature('repeat', 'blue', [(9,12)])
+    >>> repeat = aln.get_seq('x').add_feature('repeat', 'blue', [(9,12)])
     >>> print(repeat.getSlice())
     GGG
-    >>> repeat = aln.get_seq('y').addFeature('repeat', 'frog', [(5,7)])
+    >>> repeat = aln.get_seq('y').add_feature('repeat', 'frog', [(5,7)])
     >>> print(repeat.getSlice())
     GG
 
@@ -442,22 +442,22 @@ We add annotations to the sequences as a series.
 
 .. doctest::
     
-    >>> as_series.get_seq('human').addFeature('cpgsite', 'cpg', [(0,2), (5,7)])
+    >>> as_series.get_seq('human').add_feature('cpgsite', 'cpg', [(0,2), (5,7)])
     cpgsite "cpg" at [0:2, 5:7]/10
-    >>> as_series.get_seq('mouse').addFeature('cpgsite', 'cpg', [(5,7), (8,10)])
+    >>> as_series.get_seq('mouse').add_feature('cpgsite', 'cpg', [(5,7), (8,10)])
     cpgsite "cpg" at [5:7, 8:10]/10
 
 We add the annotations to the sequences one segment at a time.
 
 .. doctest::
     
-    >>> as_items.get_seq('human').addFeature('cpgsite', 'cpg', [(0,2)])
+    >>> as_items.get_seq('human').add_feature('cpgsite', 'cpg', [(0,2)])
     cpgsite "cpg" at [0:2]/10
-    >>> as_items.get_seq('human').addFeature('cpgsite', 'cpg', [(5,7)])
+    >>> as_items.get_seq('human').add_feature('cpgsite', 'cpg', [(5,7)])
     cpgsite "cpg" at [5:7]/10
-    >>> as_items.get_seq('mouse').addFeature('cpgsite', 'cpg', [(5,7)])
+    >>> as_items.get_seq('mouse').add_feature('cpgsite', 'cpg', [(5,7)])
     cpgsite "cpg" at [5:7]/10
-    >>> as_items.get_seq('mouse').addFeature('cpgsite', 'cpg', [(8,10)])
+    >>> as_items.get_seq('mouse').add_feature('cpgsite', 'cpg', [(8,10)])
     cpgsite "cpg" at [8:10]/10
 
 These different constructions should generate the same output.

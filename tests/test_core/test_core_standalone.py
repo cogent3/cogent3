@@ -84,7 +84,7 @@ class AlignmentTestMethods(unittest.TestCase):
         import pickle as pickle
         seq1 = DNA.makeSequence("aagaagaagaccccca")
         seq2 = DNA.makeSequence("aagaagaagaccccct")
-        seq2.addFeature('exon', 'fred', [(10, 15)])
+        seq2.add_feature('exon', 'fred', [(10, 15)])
         aln = LoadSeqs(data={'a': seq1, 'b': seq2})
         # TODO the ability to pickle/unpickle depends on the protocol
         # in Py3 for reasons that are not clear. This needs to be looked
