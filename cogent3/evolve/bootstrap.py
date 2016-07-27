@@ -47,10 +47,10 @@ class ParametricBootstrapCore(object):
         self.seed = None
         self.results = []
 
-    def setNumReplicates(self, num):
+    def set_num_replicates(self, num):
         self._numreplicates = num
 
-    def setSeed(self, seed):
+    def set_seed(self, seed):
         self.seed = seed
 
     @UI.display_wrap
@@ -130,30 +130,30 @@ class EstimateProbability(ParametricBootstrapCore):
     def simplify(self, null_result, alt_result):
         return (null_result.getLogLikelihood(), alt_result.getLogLikelihood())
 
-    def getObservedlnL(self):
+    def get_observed_lnL(self):
         return self.observed
 
-    def getSamplelnL(self):
+    def get_sample_lnL(self):
         return self.results
 
-    def getSampleLRList(self):
+    def get_sample_LR_list(self):
         LR = [2 * (alt_lnL - null_lnL) for (null_lnL, alt_lnL) in self.results]
         LR.sort()
         LR.reverse()
         return LR
 
-    def getObservedLR(self):
+    def get_observed_LR(self):
         return 2 * (self.observed[1] - self.observed[0])
 
-    def getEstimatedProb(self):
+    def get_estimated_prob(self):
         """Return the estimated probability.
 
         Calculated as the number of sample LR's >= observed LR
         divided by the number of replicates.
         """
 
-        observed_LR = self.getObservedLR()
-        sample_LRs = self.getSampleLRList()
+        observed_LR = self.get_observed_LR()
+        sample_LRs = self.get_sample_LR_list()
 
         for (count, value) in enumerate(sample_LRs):
             if value <= observed_LR:
@@ -177,14 +177,14 @@ class EstimateConfidenceIntervals(ParametricBootstrapCore):
     def simplify(self, result):
         return (result.getLogLikelihood(), self.func_calcstats(result))
 
-    def getObservedStats(self):
+    def get_observed_stats(self):
         return self.observed[1]
 
     def getSampleStats(self):
         return [s for (lnL, s) in self.results]
 
-    def getSamplelnL(self):
+    def get_sample_lnL(self):
         return [lnL for (lnL, s) in self.results]
 
-    def getObservedlnL(self):
+    def get_observed_lnL(self):
         return self.observed[0]
