@@ -156,9 +156,9 @@ class SequenceI(object):
         """Returns True if sequence contains no items absent from alphabet."""
         return self.MolType.is_valid(self)
 
-    def isStrict(self):
+    def is_strict(self):
         """Returns True if sequence contains only monomers."""
-        return self.MolType.isStrict(self)
+        return self.MolType.is_strict(self)
 
     def first_gap(self):
         """Returns the index of the first gap in the sequence, or None."""

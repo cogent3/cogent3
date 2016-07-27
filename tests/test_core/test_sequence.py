@@ -208,12 +208,12 @@ class SequenceTests(TestCase):
         assert self.RNA('GCAUguagcucgUCAGUCAGUACgUgcasCUAG').is_degenerate()
         assert self.RNA('ACGYAUGCUGYWWNMNuwbycwuybcwbwub').is_degenerate()
 
-    def test_isStrict(self):
-        """Sequence isStrict should return True if all symbols in Monomers"""
-        assert self.RNA('').isStrict()
-        assert self.PROT('A').isStrict()
-        assert self.RNA('UAGCACUgcaugcauGCAUGACuacguACAUG').isStrict()
-        assert not self.RNA('CAGUCGAUCA-cgaucagUCGAUGAC').isStrict()
+    def test_is_strict(self):
+        """Sequence is_strict should return True if all symbols in Monomers"""
+        assert self.RNA('').is_strict()
+        assert self.PROT('A').is_strict()
+        assert self.RNA('UAGCACUgcaugcauGCAUGACuacguACAUG').is_strict()
+        assert not self.RNA('CAGUCGAUCA-cgaucagUCGAUGAC').is_strict()
 
     def test_first_gap(self):
         """Sequence first_gap should return index of first gap symbol, or None"""
