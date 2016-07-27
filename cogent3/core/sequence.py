@@ -383,12 +383,12 @@ class SequenceI(object):
         return sum([is_gap(i) == is_gap(j) for i, j in zip(self, other)]) \
             / min(len(self), len(other))
 
-    def fracDiffGaps(self, other):
+    def frac_diff_gaps(self, other):
         """Returns frac. of positions where self and other's gap states differ.
 
         In other words, if self and other are both all gaps, or both all
-        non-gaps, or both have gaps in the same places, fracDiffGaps will
-        return 0.0. If self is all gaps and other has no gaps, fracDiffGaps
+        non-gaps, or both have gaps in the same places, frac_diff_gaps will
+        return 0.0. If self is all gaps and other has no gaps, frac_diff_gaps
         will return 1.0.
 
         Returns 0 if one sequence is empty.
