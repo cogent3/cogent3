@@ -33,15 +33,15 @@ it may be the case that Ax = Ay = Az, and that may simplify the calculation, but
 we will never even notice if Ax = Bx.
 Each scope dimension (here there is just one, 'category') must be collapsed away
 at some point towards the end of the calculation if the calculation is to produce
-a scalar result.  Here this is done with the selectFromDimension method.
+a scalar result.  Here this is done with the select_from_dimension method.
 
     >>> A = ParamDefn('A', dimensions = ['category'])
     >>> B = ParamDefn('B', dimensions = ['category'])
     >>> mid = CalcDefn(add, name="mid")(A, B)
     >>> top = CalcDefn(add)(
-    ...     mid.selectFromDimension('category', "x"),
-    ...     mid.selectFromDimension('category', "y"),
-    ...     mid.selectFromDimension('category', "z"))
+    ...     mid.select_from_dimension('category', "x"),
+    ...     mid.select_from_dimension('category', "y"),
+    ...     mid.select_from_dimension('category', "z"))
     ...
     >>> # or equivalently:
     >>> # top = CalcDefn(add, *mid.acrossDimension('category',

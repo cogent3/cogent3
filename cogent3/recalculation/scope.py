@@ -161,9 +161,9 @@ class _Defn(object):
         self.clients.append(client)
 
     def acrossDimension(self, dimension, cats):
-        return [self.selectFromDimension(dimension, cat) for cat in cats]
+        return [self.select_from_dimension(dimension, cat) for cat in cats]
 
-    def selectFromDimension(self, dimension, cat):
+    def select_from_dimension(self, dimension, cat):
         return SelectFromDimension(self, **{dimension: cat})
 
     def getRequiredScopes(self, arg_dimensions):

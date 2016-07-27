@@ -139,7 +139,7 @@ def _recursive_defns(edge, subst, leaf, edge_defn_constructor, bin_args):
     args = []
     for child in edge.children:
         if child.istip():
-            args.append(leaf.selectFromDimension('edge', child.name))
+            args.append(leaf.select_from_dimension('edge', child.name))
         else:
             (child_defn, scores2) = _recursive_defns(
                 child, subst, leaf, edge_defn_constructor, bin_args)

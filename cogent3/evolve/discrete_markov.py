@@ -92,7 +92,7 @@ class PartialyDiscretePsubsDefn(object):
         self.choices = [psubs, dpsubs]
         self.discrete_edges = discrete_edges
 
-    def selectFromDimension(self, dimension, category):
+    def select_from_dimension(self, dimension, category):
         assert dimension == 'edge', dimension
         special = category in self.discrete_edges
-        return self.choices[special].selectFromDimension(dimension, category)
+        return self.choices[special].select_from_dimension(dimension, category)

@@ -92,12 +92,12 @@ def makePartialLikelihoodDefns(edge, lht, psubs, fixed_motifs):
         for child in edge.children:
             child_plh = makePartialLikelihoodDefns(child, lht, psubs,
                                                    fixed_motifs)
-            psub = psubs.selectFromDimension('edge', child.name)
+            psub = psubs.select_from_dimension('edge', child.name)
             child_plh = CalcDefn(numpy.inner)(child_plh, psub)
             children.append(child_plh)
 
         if fixed_motifs:
-            fixed_motif = fixed_motifs.selectFromDimension('edge', edge.name)
+            fixed_motif = fixed_motifs.select_from_dimension('edge', edge.name)
             plh = PartialLikelihoodProductDefnFixedMotif(
                 fixed_motif, lht_edge, *children, **kw)
         else:
@@ -155,7 +155,7 @@ def makeTotalLogLikelihoodDefn(tree, leaves, psubs, mprobs, bprobs, bin_names,
     # be interleaved first, otherwise summing over the CPUs is done last to
     # minimise inter-CPU communicaton.
 
-    root_mprobs = mprobs.selectFromDimension('edge', 'root')
+    root_mprobs = mprobs.select_from_dimension('edge', 'root')
     lh = CalcDefn(numpy.inner, name='lh')(plh, root_mprobs)
     if len(bin_names) > 1:
         if sites_independent:
@@ -170,7 +170,7 @@ def makeTotalLogLikelihoodDefn(tree, leaves, psubs, mprobs, bprobs, bin_names,
         tll = CallDefn(blh, *lh.acrossDimension('bin', bin_names),
                        **dict(name='tll'))
     else:
-        lh = lh.selectFromDimension('bin', bin_names[0])
+        lh = lh.select_from_dimension('bin', bin_names[0])
         tll = CalcDefn(log_sum_across_sites, name='logsum')(lht, lh)
 
     if len(locus_names) > 1 or parallel_context is None:
@@ -178,7 +178,7 @@ def makeTotalLogLikelihoodDefn(tree, leaves, psubs, mprobs, bprobs, bin_names,
         # currently has no .makeParamController() method.
         tll = SumDefn(*tll.acrossDimension('locus', locus_names))
     else:
-        tll = tll.selectFromDimension('locus', locus_names[0])
+        tll = tll.select_from_dimension('locus', locus_names[0])
 
     if parallel_context is not None:
         tll = ParallelSumDefn(parallel_context, tll)
