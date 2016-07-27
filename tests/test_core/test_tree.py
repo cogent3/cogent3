@@ -1758,11 +1758,11 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         result.sort()
         assert result == tipnames_with_spaces
 
-    def test_getsetParamValue(self):
+    def test_getset_param_value(self):
         """test getting, setting of param values"""
         t = LoadTree(treestring='((((a:.2,b:.3)ab:.1,c:.3)abc:.4),d:.6)')
         self.assertEqual(t.get_param_value('length', 'ab'), 0.1, 2)
-        t.setParamValue('zz', 'ab', 4.321)
+        t.set_param_value('zz', 'ab', 4.321)
         node = t.get_node_matching_name('ab')
         self.assertEqual(4.321, node.params['zz'], 4)
 
