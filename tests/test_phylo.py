@@ -398,7 +398,7 @@ class DistancesTests(unittest.TestCase):
         self.assertAlmostEqual(kappa.Mean, 0.8939, 4)
         # this will be a dict with pairwise instances, it's called by the above
         # method, so the correctness of it's values is already checked
-        kappa = d.getPairwiseParam('kappa')
+        kappa = d.get_pairwise_param('kappa')
 
     def test_EstimateDistances_modify_lf(self):
         """tests modifying the lf"""

@@ -225,7 +225,7 @@ class EstimateDistances(object):
                                      labels=labels):
             self._param_ests[comp] = value
 
-    def getPairwiseParam(self, param, summary_function="mean"):
+    def get_pairwise_param(self, param, summary_function="mean"):
         """Return the pairwise statistic estimates as a dictionary keyed by
         (seq1, seq2)
 
@@ -249,14 +249,14 @@ class EstimateDistances(object):
 
     def get_pairwise_distances(self, summary_function="mean", **kwargs):
         """Return the pairwise distances as a dictionary keyed by (seq1, seq2).
-        Convenience interface to getPairwiseParam.
+        Convenience interface to get_pairwise_param.
 
         Arguments:
             - summary_function: a string naming the function used for
               estimating param from threeway distances. Valid values are 'mean'
               (default) and 'median'.
         """
-        return self.getPairwiseParam('length', summary_function=summary_function,
+        return self.get_pairwise_param('length', summary_function=summary_function,
                                      **kwargs)
 
     def get_param_values(self, param, **kwargs):
@@ -264,8 +264,8 @@ class EstimateDistances(object):
 
         Arguments:
             - param: name of a parameter in est_params or 'length'
-            - **kwargs: arguments passed to getPairwiseParam"""
-        ests = self.getPairwiseParam(param, **kwargs)
+            - **kwargs: arguments passed to get_pairwise_param"""
+        ests = self.get_pairwise_param(param, **kwargs)
         return Numbers(list(ests.values()))
 
     def getAllParamValues(self):
