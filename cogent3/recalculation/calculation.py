@@ -243,7 +243,7 @@ class Calculator(object):
         self.last_undo = []
         self.elapsed_time = 0.0
         self.evaluations = 0
-        self.setTracing(trace)
+        self.set_tracing(trace)
         self.optimised = False
 
     def _graphviz(self):
@@ -324,7 +324,7 @@ class Calculator(object):
         maximise(self, x, bounds, **kw)
         self.optimised = True
 
-    def setTracing(self, trace=False):
+    def set_tracing(self, trace=False):
         """With 'trace' true every evaluated is printed.  Useful for profiling
         and debugging."""
 
