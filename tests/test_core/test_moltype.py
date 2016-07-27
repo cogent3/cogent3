@@ -546,8 +546,8 @@ class MolTypeTests(TestCase):
 
     def test_MW(self):
         """MolType MW should return correct molecular weight"""
-        r = RnaMolType.MW
-        p = ProteinMolType.MW
+        r = RnaMolType.mw
+        p = ProteinMolType.mw
         self.assertEqual(p(''), 0)
         self.assertEqual(r(''), 0)
         self.assertFloatEqual(p('A'), 89.09)

@@ -878,7 +878,7 @@ class MolType(object):
                 count *= len(degen[s])
         return count
 
-    def MW(self, sequence, method='random', delta=None):
+    def mw(self, sequence, method='random', delta=None):
         """Returns the molecular weight of the sequence.
 
         If the sequence is ambiguous, uses method (random or strip) to

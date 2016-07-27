@@ -350,13 +350,13 @@ class SequenceTests(TestCase):
 
     def test_MW(self):
         """Sequence MW should return correct molecular weight"""
-        self.assertEqual(self.PROT('').MW(), 0)
-        self.assertEqual(self.RNA('').MW(), 0)
-        self.assertFloatEqual(self.PROT('A').MW(), 89.09)
-        self.assertFloatEqual(self.RNA('A').MW(), 375.17)
-        self.assertFloatEqual(self.PROT('AAA').MW(), 231.27)
-        self.assertFloatEqual(self.RNA('AAA').MW(), 1001.59)
-        self.assertFloatEqual(self.RNA('AAACCCA').MW(), 2182.37)
+        self.assertEqual(self.PROT('').mw(), 0)
+        self.assertEqual(self.RNA('').mw(), 0)
+        self.assertFloatEqual(self.PROT('A').mw(), 89.09)
+        self.assertFloatEqual(self.RNA('A').mw(), 375.17)
+        self.assertFloatEqual(self.PROT('AAA').mw(), 231.27)
+        self.assertFloatEqual(self.RNA('AAA').mw(), 1001.59)
+        self.assertFloatEqual(self.RNA('AAACCCA').mw(), 2182.37)
 
     def test_can_match(self):
         """Sequence can_match should return True if all positions can match"""
