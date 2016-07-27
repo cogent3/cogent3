@@ -132,7 +132,7 @@ class _LikelihoodTreeEdge(object):
             children.append(child)
         return self.__class__(children, self.edge_name)
 
-    def parallelReconstructColumns(self, likelihoods):
+    def parallel_reconstruct_columns(self, likelihoods):
         """Recombine full uniq array (eg: likelihoods) from MPI CPUs"""
         if self.comm is None:
             return (self, likelihoods)
@@ -145,12 +145,12 @@ class _LikelihoodTreeEdge(object):
         return (self.full_length_version, result)
 
     def get_full_length_likelihoods(self, likelihoods):
-        (self, likelihoods) = self.parallelReconstructColumns(likelihoods)
+        (self, likelihoods) = self.parallel_reconstruct_columns(likelihoods)
         return likelihoods[self.index]
 
     def calcGStatistic(self, likelihoods, return_table=False):
         # A Goodness-of-fit statistic
-        (self, likelihoods) = self.parallelReconstructColumns(likelihoods)
+        (self, likelihoods) = self.parallel_reconstruct_columns(likelihoods)
 
         unambig = (self.ambig == 1.0).nonzero()[0]
         observed = self.counts[unambig].astype(int)
@@ -187,7 +187,7 @@ class _LikelihoodTreeEdge(object):
         return result
 
     def asLeaf(self, likelihoods):
-        (self, likelihoods) = self.parallelReconstructColumns(likelihoods)
+        (self, likelihoods) = self.parallel_reconstruct_columns(likelihoods)
         assert len(likelihoods) == len(self.counts)
         return LikelihoodTreeLeaf(likelihoods, likelihoods,
                                   self.counts, self.index, self.edge_name, self.alphabet, None)
@@ -212,7 +212,7 @@ class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
     # For root
 
     def logDotReduce(self, patch_probs, switch_probs, plhs):
-        (self, plhs) = self.parallelReconstructColumns(plhs)
+        (self, plhs) = self.parallel_reconstruct_columns(plhs)
         exponent = 0
         state_probs = patch_probs.copy()
         for site in self.index:
@@ -241,7 +241,7 @@ class _PyxLikelihoodTreeEdge(_LikelihoodTreeEdge):
     # For root
 
     def logDotReduce(self, patch_probs, switch_probs, plhs):
-        (self, plhs) = self.parallelReconstructColumns(plhs)
+        (self, plhs) = self.parallel_reconstruct_columns(plhs)
         return pyrex.logDotReduce(self.index, patch_probs, switch_probs, plhs)
 
     def getTotalLogLikelihood(self, input_likelihoods, mprobs):
