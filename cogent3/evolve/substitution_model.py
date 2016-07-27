@@ -960,7 +960,7 @@ class Codon(_Nucleotide):
             return ndiffs == 1
 
     def getPredefinedPredicates(self):
-        gc = self.getAlphabet().getGeneticCode()
+        gc = self.getAlphabet().get_genetic_code()
 
         def silent(x, y):
             return x != '---' and y != '---' and gc[x] == gc[y]
