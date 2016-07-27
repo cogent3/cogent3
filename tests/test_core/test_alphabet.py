@@ -228,10 +228,10 @@ class CharAlphabetTests(TestCase):
         self.assertEqual(a.is_valid(['a', 'b']), True)
         self.assertEqual(a.is_valid(['a', None]), False)
 
-    def test_fromArray(self):
-        """CharAlphabet fromArray should return correct array"""
+    def test_from_array(self):
+        """CharAlphabet from_array should return correct array"""
         r = CharAlphabet('UCAG')
-        got = r.fromArray(array(['UUC', 'UGA'], 'c'))
+        got = r.from_array(array(['UUC', 'UGA'], 'c'))
         self.assertEqual(got, array([[0, 0, 1], [0, 3, 2]], 'B'))
 
     def test_toChars(self):

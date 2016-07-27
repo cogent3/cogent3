@@ -736,7 +736,7 @@ class CharAlphabet(Alphabet):
         except (TypeError, KeyError):
             return False
 
-    def fromArray(self, data):
+    def from_array(self, data):
         """Returns array of indices from array containing elements.
 
         This is useful if, instead of a string, you have an array of
