@@ -428,7 +428,7 @@ class SelectFromDimension(_Defn):
         self._update_from_assignments()
         self.values = [self.arg.values[i] for (i,) in self.uniq]
 
-    def makeCells(self, input_soup, variable=None):
+    def make_cells(self, input_soup, variable=None):
         arg = input_soup[id(self.arg)]
         outputs = [arg[input_num] for (input_num,) in self.uniq]
         return ([], outputs)
@@ -473,7 +473,7 @@ class _LeafDefn(_Defn):
     This class is incomplete - subclasses provide:
         makeDefaultSetting()
         adaptSetting(setting)
-        makeCells(input_soup)"""
+        make_cells(input_soup)"""
 
     args = ()
     name = None
@@ -787,7 +787,7 @@ class ParameterController(object):
         input_soup = {}
         for defn in self.defns:
             defn.update()
-            (newcells, outputs) = defn.makeCells(input_soup, variable)
+            (newcells, outputs) = defn.make_cells(input_soup, variable)
             cells.extend(newcells)
             input_soup[id(defn)] = outputs
         if calculatorClass is None:
