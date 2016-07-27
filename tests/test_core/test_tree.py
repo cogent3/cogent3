@@ -1027,18 +1027,18 @@ class TreeNodeTests(TestCase):
         obs_names = sorted(t.get_node_names())
         self.assertEqual(obs_names, exp_names)
 
-    def test_getNodesDict(self):
-        """getNodesDict returns a dict keyed by name, value is node"""
+    def test_get_nodes_dict(self):
+        """get_nodes_dict returns a dict keyed by name, value is node"""
         t = self.TreeRoot
         nodes = self.TreeNode
-        self.assertEqual(t.getNodesDict(), nodes)
+        self.assertEqual(t.get_nodes_dict(), nodes)
 
-    def test_getNodesDict_nonunique_names(self):
-        """getNodesDict raises if non unique names are in tree"""
+    def test_get_nodes_dict_nonunique_names(self):
+        """get_nodes_dict raises if non unique names are in tree"""
         t = self.TreeRoot
         t.Children[0].name = 'same'
         t.Children[0].Children[0].name = 'same'
-        self.assertRaises(TreeError, t.getNodesDict)
+        self.assertRaises(TreeError, t.get_nodes_dict)
 
     def test_remove_deleted(self):
         """remove_deleted should remove all nodes where is_deleted tests true."""
@@ -1170,7 +1170,7 @@ class PhyloNodeTests(TestCase):
         """tipsWithinDistance returns tips that are within distance from self"""
         t_str = "(A:1,B:2,(C:3,D:3)E:2,(F,((G:1,H:2)I:2)J:3)K:2)L;"
         t = DndParser(t_str, constructor=PhyloNode)
-        nodes = t.getNodesDict()
+        nodes = t.get_nodes_dict()
         e_node = nodes['E']
 
         exp_at_dist_2 = []
@@ -1189,7 +1189,7 @@ class PhyloNodeTests(TestCase):
         """tipsWithinDistance returns tips that are within distance from self"""
         t_str = "(A,B,(C,D)E,(F,((G,H)I)J)K)L;"
         t = DndParser(t_str, constructor=PhyloNode)
-        nodes = t.getNodesDict()
+        nodes = t.get_nodes_dict()
         e_node = nodes['E']
 
         exp = sorted([n.name for n in t.tips()])
