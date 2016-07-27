@@ -93,7 +93,7 @@ class SimpleMotifProbModel(MotifProbModel):
     def get_counted_alphabet(self):
         return self.alphabet
 
-    def makeMotifWordProbDefns(self):
+    def make_motif_word_prob_defns(self):
         monomer_probs = self.make_motif_probs_defn()
         return (monomer_probs, monomer_probs, monomer_probs)
 
@@ -177,7 +177,7 @@ class MonomerProbModel(ComplexMotifProbModel):
         result = monomer_probs.take(self.mutant_motif) * self.mask
         return result
 
-    def makeMotifWordProbDefns(self):
+    def make_motif_word_prob_defns(self):
         monomer_probs = self.make_motif_probs_defn()
         word_probs = substitution_calculation.CalcDefn(
             self.calc_word_probs, name="wprobs")(monomer_probs)
@@ -230,7 +230,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
         result = monomer_probs.take(extended_indices) * self.mask
         return result
 
-    def makeMotifWordProbDefns(self):
+    def make_motif_word_prob_defns(self):
         monomer_probs = substitution_calculation.PartitionDefn(
             name="psmprobs", default=None,
             dimensions=('locus', 'position', 'edge'),
@@ -276,7 +276,7 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
         result = motif_probs / context_probs.take(self.context_indices)
         return result
 
-    def makeMotifWordProbDefns(self):
+    def make_motif_word_prob_defns(self):
         mprobs = self.make_motif_probs_defn()
         mprobs_matrix = substitution_calculation.CalcDefn(
             self.calc_word_weight_matrix, name="mprobs_matrix")(mprobs)
