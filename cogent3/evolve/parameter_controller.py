@@ -70,7 +70,7 @@ class _LikelihoodParameterController(_LF):
         self.posn_names = [str(i) for i in range(model.getWordLength())]
         self.motifs = self._motifs = model.getMotifs()
         self._mprob_motifs = list(model.getMprobAlphabet())
-        defn = self.makeLikelihoodDefn(**kw)
+        defn = self.make_likelihood_defn(**kw)
         super(_LF, self).__init__(defn)
         self.set_default_param_rules()
         self.set_default_tree_parameter_rules()
@@ -330,7 +330,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
         except KeyError:
             pass
 
-    def makeLikelihoodDefn(self, sites_independent=True, discrete_edges=None):
+    def make_likelihood_defn(self, sites_independent=True, discrete_edges=None):
         defns = self.model.makeParamControllerDefns(bin_names=self.bin_names)
         if discrete_edges is not None:
             from .discrete_markov import PartialyDiscretePsubsDefn
@@ -372,7 +372,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
     def set_default_param_rules(self):
         pass
 
-    def makeLikelihoodDefn(self, sites_independent=None,
+    def make_likelihood_defn(self, sites_independent=None,
                            with_indel_params=True, kn=True):
         assert sites_independent is None or not sites_independent
         assert len(self.locus_names) == 1
