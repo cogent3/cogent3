@@ -672,7 +672,7 @@ class ParameterController(object):
         return [defn.name for defn in self.defns if defn.user_param and
                 (defn.numeric or not scalar_only)]
 
-    def getUsedDimensions(self, par_name):
+    def get_used_dimensions(self, par_name):
         return self.defn_for[par_name].used_dimensions()
 
     def get_param_value(self, par_name, *args, **kw):
