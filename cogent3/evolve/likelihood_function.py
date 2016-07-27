@@ -33,7 +33,7 @@ __status__ = "Production"
 class LikelihoodFunction(ParameterController):
 
     def get_log_likelihood(self):
-        return self.getFinalResult()
+        return self.get_final_result()
 
     def get_psub_for_edge(self, name, **kw):
         """returns the substitution probability matrix for the named edge"""
