@@ -2730,7 +2730,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             result.extend(self.get_annotations_from_seq(seq_name, *args))
         return result
 
-    def getBySequenceAnnotation(self, seq_name, *args):
+    def get_by_seq_annotation(self, seq_name, *args):
         result = []
         for feature in self.get_annotations_from_seq(seq_name, *args):
             segment = self[feature.map.Start:feature.map.End]

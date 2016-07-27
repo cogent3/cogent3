@@ -96,14 +96,14 @@ class MapTest(unittest.TestCase):
         self.assertEqual(len(answer), 1)
         self.assertEqual(str(answer[0]), 'TCGAT')
 
-    def test_getBySequenceAnnotation(self):
+    def test_get_by_seq_annotation(self):
         aln = LoadSeqs(data={
             'a': 'ATCGAAATCGAT',
             'b': 'ATCGA--TCGAT'})
         b = aln.get_seq('b')
         b.addAnnotation(Feature, 'test_type', 'test_label', [(4, 6)])
 
-        answer = aln.getBySequenceAnnotation('b', 'test_type')[0].todict()
+        answer = aln.get_by_seq_annotation('b', 'test_type')[0].todict()
         self.assertEqual(answer, {'b': 'A--T', 'a': 'AAAT'})
 
 
