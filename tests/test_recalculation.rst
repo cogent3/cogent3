@@ -5,7 +5,7 @@ A simple calculator
     ...     return sum(args)
     ...
     >>> top = CalcDefn(add)(ParamDefn('A'), ParamDefn('B'))
-    >>> pc = top.makeParamController()
+    >>> pc = top.make_likelihood_function()
     >>> f = pc.make_calculator()
 
 f.getValueArray() shows the inputs, ie: the optimisable parameters
@@ -47,7 +47,7 @@ a scalar result.  Here this is done with the select_from_dimension method.
     >>> # top = CalcDefn(add, *mid.acrossDimension('category',
     >>> #     ['x', 'y', 'z']))
     >>>
-    >>> pc = top.makeParamController()
+    >>> pc = top.make_likelihood_function()
     >>> f = pc.make_calculator()
     >>> f.getValueArray()
     [1.0, 1.0]
@@ -127,7 +127,7 @@ maximum:
     ...     return 0 - (x**2 + y**2)
     ...
     >>> top = CalcDefn(curve)(ParamDefn('X'), ParamDefn('Y'))
-    >>> pc = top.makeParamController()
+    >>> pc = top.make_likelihood_function()
     >>> f = pc.make_calculator()
 
 Now ask it to find the maximum.  It is a simple function with only one local

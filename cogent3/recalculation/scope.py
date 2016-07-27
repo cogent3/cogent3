@@ -131,7 +131,7 @@ def nullor(name, f, recycled=False):
 # A _Defn has two phases in its life: pre activation it just has .args,
 # post activation (once it becomes part of a parameter controller) it
 # holds a dynamic list of scope assignments.
-# This means defn.makeParamController() can only be called once.
+# This means defn.make_likelihood_function() can only be called once.
 
 
 class _Defn(object):
