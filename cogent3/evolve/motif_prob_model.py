@@ -41,7 +41,7 @@ class MotifProbModel(object):
         assert len(monomer_probs) == 1
         return monomer_probs[0]
 
-    def makeMotifProbsDefn(self):
+    def make_motif_probs_defn(self):
         """Makes the first part of a parameter controller definition for this
         model, the calculation of motif probabilities"""
         return substitution_calculation.PartitionDefn(
@@ -94,7 +94,7 @@ class SimpleMotifProbModel(MotifProbModel):
         return self.alphabet
 
     def makeMotifWordProbDefns(self):
-        monomer_probs = self.makeMotifProbsDefn()
+        monomer_probs = self.make_motif_probs_defn()
         return (monomer_probs, monomer_probs, monomer_probs)
 
 
@@ -178,7 +178,7 @@ class MonomerProbModel(ComplexMotifProbModel):
         return result
 
     def makeMotifWordProbDefns(self):
-        monomer_probs = self.makeMotifProbsDefn()
+        monomer_probs = self.make_motif_probs_defn()
         word_probs = substitution_calculation.CalcDefn(
             self.calc_word_probs, name="wprobs")(monomer_probs)
         mprobs_matrix = substitution_calculation.CalcDefn(
@@ -277,7 +277,7 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
         return result
 
     def makeMotifWordProbDefns(self):
-        mprobs = self.makeMotifProbsDefn()
+        mprobs = self.make_motif_probs_defn()
         mprobs_matrix = substitution_calculation.CalcDefn(
             self.calc_word_weight_matrix, name="mprobs_matrix")(mprobs)
         return (mprobs, mprobs, mprobs_matrix)
