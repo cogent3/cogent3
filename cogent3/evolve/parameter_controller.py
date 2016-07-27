@@ -264,7 +264,7 @@ class _LikelihoodParameterController(_LF):
         elif init is not None:
             assert not value
             value = init
-        self.assignAll(par_name, scopes, value, lower, upper, is_constant,
+        self.assign_all(par_name, scopes, value, lower, upper, is_constant,
                        is_independent)
 
     def set_local_clock(self, tip1name, tip2name):
@@ -325,7 +325,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
 
     def set_default_param_rules(self):
         try:
-            self.assignAll(
+            self.assign_all(
                 'fixed_motif', None, value=-1, const=True, independent=True)
         except KeyError:
             pass
@@ -359,7 +359,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
             assert "root" not in aln.get_seq_names(), "'root' is a reserved name."
         with self.updatesPostponed():
             for (locus_name, align) in zip(self.locus_names, aligns):
-                self.assignAll(
+                self.assign_all(
                     'alignment', {'locus': [locus_name]},
                     value=align, const=True)
                 if self.mprobs_from_alignment:

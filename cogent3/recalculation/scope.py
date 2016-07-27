@@ -512,7 +512,7 @@ class _LeafDefn(_Defn):
         gdv = lambda x: x.getDefaultValue()
         self.values = [nullor(self.name, gdv)(u) for u in self.uniq]
 
-    def assignAll(self, scope_spec=None, value=None,
+    def assign_all(self, scope_spec=None, value=None,
                   lower=None, upper=None, const=None, independent=None):
         settings = []
         if const is None:
@@ -760,14 +760,14 @@ class ParameterController(object):
                     self._changed.add(id(c))
         self._changed.clear()
 
-    def assignAll(self, par_name, *args, **kw):
+    def assign_all(self, par_name, *args, **kw):
         defn = self.defn_for[par_name]
         if not isinstance(defn, _LeafDefn):
             args = ' and '.join(['"%s"' % a.name for a in defn.args])
             msg = '"%s" is not settable as it is derived from %s.' % (
                 par_name, args)
             raise ValueError(msg)
-        defn.assignAll(*args, **kw)
+        defn.assign_all(*args, **kw)
         self.updateIntermediateValues([defn])
 
     def measure_evals_per_second(self, *args, **kw):
@@ -779,7 +779,7 @@ class ParameterController(object):
             parallel_context = parallel_context.getCommunicator()
             self.remaining_parallel_context = parallel.getContext()
             if 'parallel_context' in self.defn_for:
-                self.assignAll(
+                self.assign_all(
                     'parallel_context', value=parallel_context, const=True)
 
     def make_calculator(self, calculatorClass=None, variable=None, **kw):
