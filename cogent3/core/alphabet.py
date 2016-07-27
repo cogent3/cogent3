@@ -516,14 +516,14 @@ class Alphabet(Enumeration):
         super(Alphabet, self).__init__(data=motifset, Gap=Gap,
                                        MolType=MolType)
 
-    def getWordAlphabet(self, length):
-        """Returns a new Alphabet object with items as length-n strings.
+    def get_word_alphabet(self, word_length):
+        """Returns a new Alphabet object with items as word_length strings.
 
         Note that the result is not a JointEnumeration object, and cannot
         unpack its indices. However, the items in the result _are_ all strings.
         """
         crossproduct = ['']
-        for a in range(length):
+        for a in range(word_length):
             n = []
             for c in crossproduct:
                 for m in self:

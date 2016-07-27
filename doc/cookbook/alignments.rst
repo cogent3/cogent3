@@ -687,7 +687,7 @@ For dinucleotides or longer, we need to pass in an ``Alphabet`` with the appropr
 .. doctest::
 
     >>> from cogent import LoadSeqs, DNA
-    >>> trinuc_alphabet = DNA.Alphabet.getWordAlphabet(3)
+    >>> trinuc_alphabet = DNA.Alphabet.get_word_alphabet(3)
     >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta', moltype=DNA)
     >>> motif_probs = aln.get_motif_probs(alphabet=trinuc_alphabet)
     >>> for m in sorted(motif_probs, key=lambda x: motif_probs[x],
@@ -718,7 +718,7 @@ We then create a dinucleotide ``Alphabet`` object and use this to get dinucleoti
 
     >>> seqs = [('a', 'AACGTAAG'), ('b', 'AACGTAAG')]
     >>> aln = LoadSeqs(data=seqs, moltype=DNA)
-    >>> dinuc_alphabet = DNA.Alphabet.getWordAlphabet(2)
+    >>> dinuc_alphabet = DNA.Alphabet.get_word_alphabet(2)
     >>> motif_probs = aln.get_motif_probs(alphabet=dinuc_alphabet)
     >>> assert motif_probs['AA'] == 0.25
 

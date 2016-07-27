@@ -744,7 +744,7 @@ class DNAAlphabet(_AlphabetTestCase):
 class DinucAlphabet(_AlphabetTestCase):
 
     def setUp(self):
-        self.alpha = DNA.Alphabet.withGapMotif().getWordAlphabet(2)
+        self.alpha = DNA.Alphabet.withGapMotif().get_word_alphabet(2)
 
     def test_exclude(self):
         """Dinucleotide alphabet testing excluding gap motif"""
