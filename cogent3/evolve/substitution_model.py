@@ -456,7 +456,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         self._exponentiator = None
         # self._ident = numpy.identity(len(self.alphabet), float)
 
-    def checkParamsExist(self):
+    def check_params_exist(self):
         """Raise an error if the parameters specified to be partitioned or
         ordered don't actually exist."""
         for param in self.partitioned_params:
@@ -594,7 +594,7 @@ class General(_ContinuousSubstitutionModel):
         if self._do_scaling:
             const_param = self.parameter_order.pop()
         self.symmetric = False
-        self.checkParamsExist()
+        self.check_params_exist()
 
     def calcExchangeabilityMatrix(self, mprobs, *params):
         return numpy.array((0.0,) + params + (1.0,)).take(self.param_pick)
@@ -631,7 +631,7 @@ class GeneralStationary(_ContinuousSubstitutionModel):
         if self._do_scaling:
             const_param = self.parameter_order.pop()
         self.symmetric = False
-        self.checkParamsExist()
+        self.check_params_exist()
 
     def calcExchangeabilityMatrix(self, mprobs, *params):
         R = numpy.array((0.0,) + params + (1.0,)).take(self.param_pick)
@@ -665,7 +665,7 @@ class Empirical(_ContinuousSubstitutionModel):
         self._instantaneous_mask = (self._instantaneous_mask_f != 0.0)
         self.symmetric = _isSymmetrical(self._instantaneous_mask_f)
         self.parameter_order = []
-        self.checkParamsExist()
+        self.check_params_exist()
 
     def calcExchangeabilityMatrix(self, mprobs):
         return self._instantaneous_mask_f.copy()
@@ -725,7 +725,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         if not self.symmetric:
             warnings.warn('Model not reversible')
         (self.scale_masks, scale_order) = self._adaptPredicates(scales or [])
-        self.checkParamsExist()
+        self.check_params_exist()
 
     def calcExchangeabilityMatrix(self, mprobs, *params):
         assert len(params) == len(self.predicate_indices), self.parameter_order
