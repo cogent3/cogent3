@@ -1345,7 +1345,7 @@ class SequenceCollection(object):
                 probs[motif] = pseudocount
 
         for (motif, count) in list(counts.items()):
-            motif_set = alphabet.resolveAmbiguity(motif)
+            motif_set = alphabet.resolve_ambiguity(motif)
             if len(motif_set) > 1:
                 if include_ambiguity:
                     count = float(count) / len(motif_set)

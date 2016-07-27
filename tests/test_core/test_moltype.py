@@ -793,16 +793,16 @@ class CodonAlphabet(_AlphabetTestCase):
 
     def test_ambiguous_gaps(self):
         alpha = self.alpha.with_gap_motif()
-        self.assertEqual(len(alpha.resolveAmbiguity('AT?')), 4)
-        self.assertRaises(Exception, alpha.resolveAmbiguity, 'at-')
-        self.assertEqual(len(alpha.resolveAmbiguity('???')), 62)
-        self.assertEqual(len(alpha.resolveAmbiguity('---')), 1)
+        self.assertEqual(len(alpha.resolve_ambiguity('AT?')), 4)
+        self.assertRaises(Exception, alpha.resolve_ambiguity, 'at-')
+        self.assertEqual(len(alpha.resolve_ambiguity('???')), 62)
+        self.assertEqual(len(alpha.resolve_ambiguity('---')), 1)
 
         alpha = self.alpha
-        self.assertEqual(len(alpha.resolveAmbiguity('AT?')), 4)
-        self.assertRaises(Exception, alpha.resolveAmbiguity, 'at-')
-        self.assertEqual(len(alpha.resolveAmbiguity('???')), 61)
-        self.assertRaises(Exception, alpha.resolveAmbiguity, '---')
+        self.assertEqual(len(alpha.resolve_ambiguity('AT?')), 4)
+        self.assertRaises(Exception, alpha.resolve_ambiguity, 'at-')
+        self.assertEqual(len(alpha.resolve_ambiguity('???')), 61)
+        self.assertRaises(Exception, alpha.resolve_ambiguity, '---')
 
     def test_exclude(self):
         """testing excluding gap motif"""

@@ -569,7 +569,7 @@ class Alphabet(Enumeration):
         result = zeros([len(motifs), len(self)], dtype)
         obj_to_index = self._obj_to_index
         for (u, ambig_motif) in enumerate(motifs):
-            for motif in self.resolveAmbiguity(ambig_motif):
+            for motif in self.resolve_ambiguity(ambig_motif):
                 result[u, obj_to_index[motif]] = 1.0
         return result
 
@@ -621,7 +621,7 @@ class Alphabet(Enumeration):
             motif_subset = [m for m in self if m not in motif_subset]
         return self._with(motif_subset)
 
-    def resolveAmbiguity(self, ambig_motif):
+    def resolve_ambiguity(self, ambig_motif):
         """Returns set of symbols corresponding to ambig_motif.
 
         Handles multi-character symbols and screens against the set of
