@@ -30,7 +30,7 @@ Make the controller object and limit the display precision (to decrease the chan
 
     >>> lf = sm.makeLikelihoodFunction(t, digits=2, space=3)
 
-Set the local clock for humans & Howler Monkey. This method is just a special interface to the more general ``setParamRules`` method.
+Set the local clock for humans & Howler Monkey. This method is just a special interface to the more general ``set_param_rules`` method.
 
 .. doctest::
 
@@ -91,7 +91,7 @@ Clear the local clock constraint, freeing up the branch lengths.
 
 .. doctest::
 
-    >>> lf.setParamRule('length', is_independent=True)
+    >>> lf.set_param_rule('length', is_independent=True)
 
 Run the optimiser capturing the return optimised lnL, and parameter value vector.
 

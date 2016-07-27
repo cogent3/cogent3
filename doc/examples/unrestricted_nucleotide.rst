@@ -86,6 +86,6 @@ This data set consists of species that are relatively close for a modest length 
 .. doctest::
 
     >>> for pred in preds:
-    ...     lf.setParamRule(pred, is_independent=True)
+    ...     lf.set_param_rule(pred, is_independent=True)
 
 You would then re-optimise the model as above.

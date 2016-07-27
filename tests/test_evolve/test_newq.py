@@ -93,8 +93,8 @@ class NewQ(TestCase):
         nuc_lf = nuc.makeLikelihoodFunction(self.tree)
         new_di_lf = new_di.makeLikelihoodFunction(self.tree)
         # newQ branch length is exactly motif_length*nuc branch length
-        nuc_lf.setParamRule('length', is_independent=False, init=0.2)
-        new_di_lf.setParamRule('length', is_independent=False, init=0.4)
+        nuc_lf.set_param_rule('length', is_independent=False, init=0.2)
+        new_di_lf.set_param_rule('length', is_independent=False, init=0.4)
 
         nuc_lf.setAlignment(self.aln)
         new_di_lf.setAlignment(self.aln)
@@ -125,7 +125,7 @@ class NewQ(TestCase):
             di = Nucleotide(motif_length=2, motif_probs=mprobs,
                             mprob_model=model)
             lf = di.makeLikelihoodFunction(self.tree)
-            lf.setParamRule('length', is_independent=False, init=0.4)
+            lf.set_param_rule('length', is_independent=False, init=0.4)
             lf.setAlignment(self.aln)
             sim = lf.simulate_alignment()
 
@@ -136,7 +136,7 @@ class NewQ(TestCase):
             di = Nucleotide(motif_length=2, mprob_model=model)
             di.adapt_motif_probs(mprobs, auto=True)
             lf = di.makeLikelihoodFunction(self.tree)
-            lf.setParamRule('length', is_independent=False, init=0.4)
+            lf.set_param_rule('length', is_independent=False, init=0.4)
             lf.setAlignment(self.aln)
             ancestor = lf.reconstruct_ancestral_seqs()
 
@@ -147,7 +147,7 @@ class NewQ(TestCase):
                 di = Nucleotide(motif_length=2, motif_probs=mprobs,
                                 mprob_model=model)
                 lf = di.makeLikelihoodFunction(self.tree)
-                lf.setParamRule('length', is_independent=False, init=0.4)
+                lf.set_param_rule('length', is_independent=False, init=0.4)
                 lf.setAlignment(self.aln)
                 lh = lf.get_log_likelihood()
                 for other in results[:i]:
@@ -209,11 +209,11 @@ class NewQ(TestCase):
                             mprob_model='conditional')
 
             ps_lf = ps.makeLikelihoodFunction(self.tree)
-            ps_lf.setParamRule('length', is_independent=False, init=0.4)
+            ps_lf.set_param_rule('length', is_independent=False, init=0.4)
             ps_lf.setAlignment(self.aln)
 
             cd_lf = cd.makeLikelihoodFunction(self.tree)
-            cd_lf.setParamRule('length', is_independent=False, init=0.4)
+            cd_lf.set_param_rule('length', is_independent=False, init=0.4)
             cd_lf.setAlignment(self.aln)
             self.assertFloatEqual(cd_lf.get_log_likelihood(),
                                   ps_lf.get_log_likelihood())
@@ -238,14 +238,14 @@ class NewQ(TestCase):
         mg = Nucleotide(motif_length=2, motif_probs=dinuc_probs,
                         mprob_model='monomer')
         mg_lf = mg.makeLikelihoodFunction(self.tree)
-        mg_lf.setParamRule('length', is_independent=False, init=0.4)
+        mg_lf.set_param_rule('length', is_independent=False, init=0.4)
         mg_lf.setAlignment(self.aln)
 
         cd = Nucleotide(motif_length=2, motif_probs=dinuc_probs,
                         mprob_model='conditional')
 
         cd_lf = cd.makeLikelihoodFunction(self.tree)
-        cd_lf.setParamRule('length', is_independent=False, init=0.4)
+        cd_lf.set_param_rule('length', is_independent=False, init=0.4)
         cd_lf.setAlignment(self.aln)
         self.assertNotAlmostEqual(mg_lf.get_log_likelihood(),
                                   cd_lf.get_log_likelihood())
@@ -269,11 +269,11 @@ class NewQ(TestCase):
         sm = Nucleotide(predicates=[aX, bX, edX, cX], equal_motif_probs=True)
 
         lf = sm.makeLikelihoodFunction(tree)
-        lf.setParamRule('aX', edge='a', value=8.0)
-        lf.setParamRule('bX', edge='b', value=8.0)
-        lf.setParamRule('edX', edge='edge.0', value=2.0)
-        lf.setParamRule('cX', edge='c', value=0.5)
-        lf.setParamRule('edX', edge='d', value=4.0)
+        lf.set_param_rule('aX', edge='a', value=8.0)
+        lf.set_param_rule('bX', edge='b', value=8.0)
+        lf.set_param_rule('edX', edge='edge.0', value=2.0)
+        lf.set_param_rule('cX', edge='c', value=0.5)
+        lf.set_param_rule('edX', edge='d', value=4.0)
         lf.setAlignment(aln)
 
         # we construct the hand calc variants
@@ -317,7 +317,7 @@ def _make_likelihood(model, tree, results, is_discrete=False):
         for param in lf.getParamNames():
             if param in ('length', 'mprobs'):
                 continue
-            lf.setParamRule(param, is_independent=True, upper=5)
+            lf.set_param_rule(param, is_independent=True, upper=5)
 
     lf.setAlignment(results['aln'])
     return lf
@@ -391,7 +391,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 #         dis_lf = self.make_cached('discrete')
 #         for edge in self.tree:
 #             init = gen_lf.get_psub_for_edge(edge.name)
-#             dis_lf.setParamRule('psubs', edge=edge.name, init=init)
+#             dis_lf.set_param_rule('psubs', edge=edge.name, init=init)
 #         dis_lf.set_motif_probs(gen_lf.get_motif_probs())
 #         return dis_lf
 #

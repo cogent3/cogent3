@@ -30,8 +30,8 @@ To make a likelihood function with multiple alignments we provide the list of lo
 .. doctest::
 
     >>> lf = mod.makeLikelihoodFunction(tree,loci=loci_names,digits=2,space=3)
-    >>> lf.setParamRule("length", is_independent=False)
-    >>> lf.setParamRule('kappa', loci = ALL)
+    >>> lf.set_param_rule("length", is_independent=False)
+    >>> lf.set_param_rule('kappa', loci = ALL)
     >>> lf.setAlignment(loci)
     >>> lf.optimise(local=True)
     >>> print lf
@@ -55,7 +55,7 @@ To make a likelihood function with multiple alignments we provide the list of lo
     --------------
     >>> all_lnL = lf.getLogLikelihood()
     >>> all_nfp = lf.getNumFreeParams()
-    >>> lf.setParamRule('kappa', loci = EACH)
+    >>> lf.set_param_rule('kappa', loci = EACH)
     >>> lf.optimise(local=True)
     >>> print lf
     Likelihood Function Table

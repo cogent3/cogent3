@@ -22,7 +22,7 @@ Do a model, see the neutral test example for more details of this
     >>> t = LoadTree("data/test.tree")
     >>> sm = MG94HKY()
     >>> nonneutral_lf = sm.makeLikelihoodFunction(t)
-    >>> nonneutral_lf.setParamRule("omega", is_independent = True)
+    >>> nonneutral_lf.set_param_rule("omega", is_independent = True)
     >>> nonneutral_lf.setAlignment(aln)
     >>> nonneutral_lf.optimise()
 

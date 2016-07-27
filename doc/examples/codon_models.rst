@@ -60,7 +60,7 @@ We construct a likelihood function and constrain omega parameter (the ratio of n
 .. doctest::
 
     >>> lf = cnf.makeLikelihoodFunction(tree, digits=2, space=3)
-    >>> lf.setParamRule('omega', is_constant=True, value=1.0)
+    >>> lf.set_param_rule('omega', is_constant=True, value=1.0)
 
 We then provide an alignment and optimise the model. In the current case we just use the local optimiser (hiding progress to keep this document succinct). We then print the results.
 
@@ -113,7 +113,7 @@ We can then free up the omega parameter, but before we do that we'll store the l
 
     >>> neutral_lnL = lf.getLogLikelihood()
     >>> neutral_nfp = lf.getNumFreeParams()
-    >>> lf.setParamRule('omega', is_constant=False)
+    >>> lf.set_param_rule('omega', is_constant=False)
     >>> lf.optimise(**optimiser_args)
     >>> print lf
     Likelihood Function Table
@@ -142,7 +142,7 @@ Not surprisingly, this is significant. We then ask whether the Human and Chimpan
 
 .. doctest::
 
-    >>> lf.setParamRule('omega', tip_names=['Chimpanzee', 'Human'],
+    >>> lf.set_param_rule('omega', tip_names=['Chimpanzee', 'Human'],
     ...                          outgroup_name='Galago', is_clade=True)
     >>> lf.optimise(**optimiser_args)
     >>> print lf
@@ -185,7 +185,7 @@ It is also possible to specify rate-heterogeneity variants of these models. In t
     >>> non_neutral_lnL = lf.getLogLikelihood()
     >>> non_neutral_nfp = lf.getNumFreeParams()
 
-Now, we have a null model which we know (from having fit it above) has a MLE < 1. We will construct a rate-heterogeneity model with just 2 rate-classes (neutral and adaptive) that are separated by the boundary of omega=1. These rate-classes are specified as discrete bins in PyCogent and the model configuration steps for a bin or bins are done using the ``setParamRule`` method. To ensure the alternate model starts with a likelihood at least as good as the previous we need to make the probability of the neutral site-class bin ~= 1 (these are referenced by the ``bprobs`` parameter type) and assign the null model omega MLE to this class.
+Now, we have a null model which we know (from having fit it above) has a MLE < 1. We will construct a rate-heterogeneity model with just 2 rate-classes (neutral and adaptive) that are separated by the boundary of omega=1. These rate-classes are specified as discrete bins in PyCogent and the model configuration steps for a bin or bins are done using the ``set_param_rule`` method. To ensure the alternate model starts with a likelihood at least as good as the previous we need to make the probability of the neutral site-class bin ~= 1 (these are referenced by the ``bprobs`` parameter type) and assign the null model omega MLE to this class.
 
 To get all the parameter MLEs (branch lengths, GTR terms, etc ..) into the alternate model we get an annotated tree from the null model which will have these values associated with it.
 
@@ -211,15 +211,15 @@ We now provide starting parameter values for ``omega`` for the two bins, setting
 
 .. doctest::
 
-    >>> rate_lf.setParamRule('omega', bin='neutral', upper=1, init=omega_mle)
-    >>> rate_lf.setParamRule('omega', bin='adaptive', lower=1+epsilon,
+    >>> rate_lf.set_param_rule('omega', bin='neutral', upper=1, init=omega_mle)
+    >>> rate_lf.set_param_rule('omega', bin='adaptive', lower=1+epsilon,
     ...         upper=100, init=1+2*epsilon)
 
 and provide the starting values for the bin probabilities (``bprobs``).
 
 .. doctest::
 
-    >>> rate_lf.setParamRule('bprobs', init=[1-epsilon, epsilon])
+    >>> rate_lf.set_param_rule('bprobs', init=[1-epsilon, epsilon])
 
 The above statement essentially assigns a probability of nearly 1 to the 'neutral' bin. We now set the alignment and fit the model.
 
@@ -299,9 +299,9 @@ After Zhang et al, we first define a null model that has 2 rate classes '0' and 
     
     >>> rate_lf = cnf.makeLikelihoodFunction(tree, bins = ['0', '1'],
     ...                              digits=2, space=3)
-    >>> rate_lf.setParamRule('omega', bin='0', upper=1.0-epsilon,
+    >>> rate_lf.set_param_rule('omega', bin='0', upper=1.0-epsilon,
     ...                      init=1-epsilon)
-    >>> rate_lf.setParamRule('omega', bins='1', is_constant=True, value=1.0)
+    >>> rate_lf.set_param_rule('omega', bins='1', is_constant=True, value=1.0)
     >>> rate_lf.setAlignment(aln)
     >>> rate_lf.optimise(**optimiser_args)
     >>> tables = rate_lf.get_statistics(with_titles=True)
@@ -340,24 +340,24 @@ and set from the nested null model the branch lengths,
 .. doctest::
     
     >>> for branch, length in lengths.items():
-    ...     rate_branch_lf.setParamRule('length', edge=branch, init=length)
+    ...     rate_branch_lf.set_param_rule('length', edge=branch, init=length)
 
 GTR term MLES,
 
 .. doctest::
     
     >>> for param, mle in globals.items():
-    ...     rate_branch_lf.setParamRule(param, init=mle)
+    ...     rate_branch_lf.set_param_rule(param, init=mle)
 
 binned parameter values,
 
 .. doctest::
     
-    >>> rate_branch_lf.setParamRule('omega', bins=['0', '2a'], upper=1.0,
+    >>> rate_branch_lf.set_param_rule('omega', bins=['0', '2a'], upper=1.0,
     ...                 init=rate_class_omegas['0'])
-    >>> rate_branch_lf.setParamRule('omega', bins=['1', '2b'], is_constant=True,
+    >>> rate_branch_lf.set_param_rule('omega', bins=['1', '2b'], is_constant=True,
     ...                 value=1.0)
-    >>> rate_branch_lf.setParamRule('omega', bins=['2a', '2b'],
+    >>> rate_branch_lf.set_param_rule('omega', bins=['2a', '2b'],
     ...                    edges=['Chimpanzee', 'Human'], init=99,
     ...                    lower=1.0, upper=100.0, is_constant=False)
 
@@ -365,7 +365,7 @@ and the bin probabilities.
 
 .. doctest::
     
-    >>> rate_branch_lf.setParamRule('bprobs',
+    >>> rate_branch_lf.set_param_rule('bprobs',
     ...         init=[rate_class_probs['0']-epsilon,
     ...               rate_class_probs['1']-epsilon, epsilon, epsilon])
 

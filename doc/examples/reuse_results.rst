@@ -65,7 +65,7 @@ Now create a more parameter rich model, in this case by allowing the ``Human`` e
 .. doctest::
 
     >>> new_lf = sm.makeLikelihoodFunction(nt, digits=2, space=2)
-    >>> new_lf.setParamRule('omega', edge='Human',
+    >>> new_lf.set_param_rule('omega', edge='Human',
     ...                     is_independent=True)
     >>> new_lf.setAlignment(aln)
     >>> new_lf.optimise(local=True)

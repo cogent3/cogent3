@@ -39,7 +39,7 @@ At this point we have a likelihood function with two exchangeability parameters 
              |
               \-DogFaced
 
-In order to scope a parameter on a tree (meaning specifying a subset of edges for which the parameter is to be treated differently to the remainder of the tree) requires uniquely identifying the edges. We do this using the following arguments to the likelihood function ``setParamRule`` method:
+In order to scope a parameter on a tree (meaning specifying a subset of edges for which the parameter is to be treated differently to the remainder of the tree) requires uniquely identifying the edges. We do this using the following arguments to the likelihood function ``set_param_rule`` method:
 
 - ``tip_names``: the name of two tips
 - ``outgroup_name``: the name of a tip that is not part of the clade of interest
@@ -55,7 +55,7 @@ I'm going to cause ``omega`` to attain a different value for all branches aside 
 
 .. doctest::
     
-    >>> lf.setParamRule('omega', tip_names=['DogFaced', 'Mouse'],
+    >>> lf.set_param_rule('omega', tip_names=['DogFaced', 'Mouse'],
     ...              outgroup_name='Human', init=2.0, is_clade=True)
     >>> print lf
     Likelihood Function Table
@@ -95,8 +95,8 @@ This time I'll specify the stem leading to the primates as the edge of interest.
 
 .. doctest::
     
-    >>> lf.setParamRule('omega', init=1.0)
-    >>> lf.setParamRule('omega', tip_names=['Human', 'HowlerMon'],
+    >>> lf.set_param_rule('omega', init=1.0)
+    >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', init=2.0, is_stem=True, is_clade=False)
     >>> print lf
     Likelihood Function Table
@@ -125,11 +125,11 @@ I'll specify that both the primates and their stem are to be considered.
 .. doctest::
     :hide:
     
-    >>> lf.setParamRule('omega', init=1.0)
+    >>> lf.set_param_rule('omega', init=1.0)
 
 .. doctest::
     
-    >>> lf.setParamRule('omega', tip_names=['Human', 'HowlerMon'],
+    >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', init=2.0, is_stem=True, is_clade=True)
     >>> print lf
     Likelihood Function Table
@@ -153,7 +153,7 @@ I'll specify that both the primates and their stem are to be considered.
 Alternate arguments for specifying edges
 ----------------------------------------
 
-The likelihood function ``setParamRule`` method also has the arguments of ``edge`` and ``edges``. These allow specific naming of the tree edge(s) to be affected by a rule. In general, however, the ``tip_names`` + ``outgroup_name`` combo is more robust.
+The likelihood function ``set_param_rule`` method also has the arguments of ``edge`` and ``edges``. These allow specific naming of the tree edge(s) to be affected by a rule. In general, however, the ``tip_names`` + ``outgroup_name`` combo is more robust.
 
 Applications of scoped parameters
 ---------------------------------
@@ -162,22 +162,22 @@ The general use-cases for which a tree scope can be applied are:
 
 1. constraining all edges identified by a rule to have a specific value which is constant and not modifiable
 
-    >>> lf.setParamRule('omega', tip_names=['Human', 'HowlerMon'],
+    >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', is_clade=True, is_constant=True)
 
 2. all edges identified by a rule have the same but different value to the rest of the tree
     
-    >>> lf.setParamRule('omega', tip_names=['Human', 'HowlerMon'],
+    >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', is_clade=True)
 
 3. allowing all edges identified by a rule to have different values of the parameter with the remaining tree edges having the same value
     
-    >>> lf.setParamRule('omega', tip_names=['Human', 'HowlerMon'],
+    >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', is_clade=True, is_independent=True)
 
 4. allowing all edges to have a different value
 
-    >>> lf.setParamRule('omega', is_independent=True)
+    >>> lf.set_param_rule('omega', is_independent=True)
 
 I'll demonstrate these cases sequentially as they involve gradually increasing the degrees of freedom in the model. First we'll constrain ``omega`` to equal 1 on the primate edges. I'll then optimise the model.
 
@@ -186,11 +186,11 @@ I'll demonstrate these cases sequentially as they involve gradually increasing t
 .. doctest::
     :hide:
     
-    >>> lf.setParamRule('omega', init=1.0)
+    >>> lf.set_param_rule('omega', init=1.0)
 
 .. doctest::
     
-    >>> lf.setParamRule('omega', tip_names=['Human', 'HowlerMon'],
+    >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', is_clade=True, value=1.0, is_constant=True)
     >>> lf.optimise(local=True)
     >>> print lf
@@ -228,7 +228,7 @@ I'll now free up ``omega`` on the primate clade, but making it a single value sh
 
 .. doctest::
     
-    >>> lf.setParamRule('omega', tip_names=['Human', 'HowlerMon'],
+    >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', is_clade=True, is_constant=False)
     >>> lf.optimise(local=True)
     >>> print lf
@@ -266,7 +266,7 @@ Finally I'll allow all primate edges to have different values of ``omega``.
 
 .. doctest::
     
-    >>> lf.setParamRule('omega', tip_names=['Human', 'HowlerMon'],
+    >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', is_clade=True, is_independent=True)
     >>> lf.optimise(local=True)
     >>> print lf
@@ -304,7 +304,7 @@ We now allow ``omega`` to be different on all edges.
 
 .. doctest::
     
-    >>> lf.setParamRule('omega', is_independent=True)
+    >>> lf.set_param_rule('omega', is_independent=True)
     >>> lf.optimise(local=True)
     >>> print lf
     Likelihood Function Table

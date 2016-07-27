@@ -153,7 +153,7 @@ class EstimateDistances(object):
         # make the parameter controller
         lf = self._sm.makeLikelihoodFunction(tree)
         if not self._threeway:
-            lf.setParamRule('length', is_independent=False)
+            lf.set_param_rule('length', is_independent=False)
 
         if self._motif_probs:
             lf.set_motif_probs(self._motif_probs)
