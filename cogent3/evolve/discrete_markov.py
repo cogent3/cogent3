@@ -31,7 +31,7 @@ class PsubMatrixDefn(PartitionDefn):
         self.internal_dimensions = (dim_name, dim_name + "2")
         self.array_template = DictArrayTemplate(dim_cats, dim_cats)
 
-    def _makeDefaultValue(self):
+    def _make_default_value(self):
         # Purely flat default doesn't work well so start at approx t=0.5
         flat = numpy.ones([self.size, self.size], float) / self.size
         diag = numpy.identity(self.size, float)
@@ -61,7 +61,7 @@ class PsubMatrixDefn(PartitionDefn):
             else:
                 rows = []
                 for part in value:
-                    (ratios, partition) = self._makePartitionCell(
+                    (ratios, partition) = self._make_partition_cell(
                         self.name + '_part', scope, part)
                     all_cells.extend(ratios)
                     rows.append(partition)

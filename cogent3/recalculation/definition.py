@@ -378,7 +378,7 @@ class PartitionDefn(_InputDefn):
             self.array_template = DictArrayTemplate(dim_cats)
             self.internal_dimensions = (dim_name,)
         if default is None:
-            default = self._makeDefaultValue()
+            default = self._make_default_value()
         elif self.array_template is not None:
             default = self.array_template.unwrap(default)
         else:
@@ -387,7 +387,7 @@ class PartitionDefn(_InputDefn):
                             dimensions=dimensions, **kw)
         self.check_value_is_valid(default, True)
 
-    def _makeDefaultValue(self):
+    def _make_default_value(self):
         return numpy.array([1.0 / self.size] * self.size)
 
     def make_default_setting(self):
@@ -419,7 +419,7 @@ class PartitionDefn(_InputDefn):
             raise ValueError("Elements of %s must sum to 1.0, not %s" %
                              (self.name, sum(value)))
 
-    def _makePartitionCell(self, name, scope, value):
+    def _make_partition_cell(self, name, scope, value):
         # This was originally put in its own function so as to provide a
         # closure containing the value of sum(value), which is no longer
         # required since it is now always 1.0.
@@ -450,7 +450,7 @@ class PartitionDefn(_InputDefn):
             if v.is_constant or (variable is not None and variable is not v):
                 partition = ConstCell(self.name, value)
             else:
-                (ratios, partition) = self._makePartitionCell(
+                (ratios, partition) = self._make_partition_cell(
                     self.name, scope, value)
                 all_cells.extend(ratios)
             all_cells.append(partition)
