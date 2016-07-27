@@ -722,22 +722,22 @@ class DnaSequenceTests(ModelSequenceTests, TestCase):
         self.assertEqual(r._data, array([0, 1, 2, 3, 3, 2]))
         self.assertEqual(str(r), orig)
 
-    def test_toKwords(self):
-        """Sequence toKwords should give expected counts"""
+    def test_to_k_words(self):
+        """Sequence to_k_words should give expected counts"""
         orig = 'ATCCCTAGC'
         r = self.SequenceClass(orig)
         # if we use k = 1, should just get the characters
-        w = r.toKwords(1)
+        w = r.to_k_words(1)
         self.assertEqual(w, r._data)
-        w = r.toKwords(1, overlapping=False)
+        w = r.to_k_words(1, overlapping=False)
         self.assertEqual(w, r._data)
         # if we use k = 2, should get overlapping or nonoverlapping k-words
-        w = r.toKwords(2)
+        w = r.to_k_words(2)
         self.assertEqual(w, array([8, 1, 5, 5, 4, 2, 11, 13]))
-        w = r.toKwords(2, overlapping=False)
+        w = r.to_k_words(2, overlapping=False)
         self.assertEqual(w, array([8, 5, 4, 11]))
         # check a case with k = 3, i.e. codons
-        w = r.toKwords(3, overlapping=False)
+        w = r.to_k_words(3, overlapping=False)
         self.assertEqual(w, array([33, 20, 45]))
 
 
@@ -757,19 +757,19 @@ class CodonSequenceTests(SequenceTests, TestCase):
         self.assertEqual(r._data, array([6, 62]))
         self.assertEqual(str(r), orig)
 
-    def test_toKwords(self):
-        """Sequence toKwords should give expected counts"""
+    def test_to_k_words(self):
+        """Sequence to_k_words should give expected counts"""
         orig = 'ATCCCTAGC'
         r = self.SequenceClass(orig)
         # if we use k = 1, should just get the characters
-        w = r.toKwords(1)
+        w = r.to_k_words(1)
         self.assertEqual(w, r._data)
-        w = r.toKwords(1, overlapping=False)
+        w = r.to_k_words(1, overlapping=False)
         self.assertEqual(w, r._data)
         # if we use k = 2, should get overlapping or nonoverlapping k-words
-        w = r.toKwords(2)
+        w = r.to_k_words(2)
         self.assertEqual(w, array([2132, 1325]))
-        w = r.toKwords(2, overlapping=False)
+        w = r.to_k_words(2, overlapping=False)
         self.assertEqual(w, array([2132]))
 
 

@@ -1055,7 +1055,7 @@ class ModelSequenceBase(object):
         """Checks that no items in self are out of the Alphabet range."""
         return self._data == self._data.clip(m, 0, len(self.Alphabet) - 1)
 
-    def toKwords(self, k, overlapping=True):
+    def to_k_words(self, k, overlapping=True):
         """Turns sequence into sequence of its k-words.
 
         Just returns array, not Sequence object."""
