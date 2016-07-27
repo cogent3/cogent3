@@ -350,11 +350,11 @@ class SequenceI(object):
         """
         return self.distance(other, DistanceFromMatrix(matrix))
 
-    def fracSame(self, other):
+    def frac_same(self, other):
         """Returns fraction of positions where self and other are the same.
 
         Truncates at length of shorter sequence.
-        Note that fracSame and fracDiff are both 0 if one sequence is empty.
+        Note that frac_same and fracDiff are both 0 if one sequence is empty.
         """
         return frac_same(self, other)
 
@@ -362,7 +362,7 @@ class SequenceI(object):
         """Returns fraction of positions where self and other differ.
 
         Truncates at length of shorter sequence.
-        Note that fracSame and fracDiff are both 0 if one sequence is empty.
+        Note that frac_same and fracDiff are both 0 if one sequence is empty.
         """
         return frac_diff(self, other)
 
