@@ -166,7 +166,7 @@ class _Defn(object):
     def select_from_dimension(self, dimension, cat):
         return SelectFromDimension(self, **{dimension: cat})
 
-    def getRequiredScopes(self, arg_dimensions):
+    def get_required_scopes(self, arg_dimensions):
         # A list of scope dictionaries: [{dimension:value},] that this
         # Defn needs from an input Defn with `arg_dimensions`
         if not self.activated:
@@ -642,7 +642,7 @@ class ParameterController(object):
         for pd in topdown:
             pd.assignments = {}
             for client in pd.clients:
-                scopes = client.getRequiredScopes(pd.valid_dimensions)
+                scopes = client.get_required_scopes(pd.valid_dimensions)
                 # print pd.valid_dimensions, pd.name, '<', scopes, '<',
                 # client.name, client.valid_dimensions
                 pd.addScopes(scopes)
