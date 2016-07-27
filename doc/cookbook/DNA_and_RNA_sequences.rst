@@ -69,7 +69,7 @@ Setting or changing the name of a sequence
 
     >>> from cogent import DNA
     >>> my_seq = DNA.make_sequence('AGTACACTGGT')
-    >>> my_seq.Name = 'my_gene'
+    >>> my_seq.name = 'my_gene'
     >>> print my_seq.to_fasta()
     >my_gene
     AGTACACTGGT

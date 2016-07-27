@@ -48,7 +48,7 @@ class _RelatedRegions(LazyRecord):
                 seq = member.Seq
             if seq is None:
                 continue
-            seqs.append((seq.Name, seq))
+            seqs.append((seq.name, seq))
         return SequenceCollection(data=seqs, moltype=DNA)
 
     def getseq_lengths(self):
@@ -328,7 +328,7 @@ class SyntenicRegions(_RelatedRegions):
                 seq = member.AlignedSeq
             if seq is None:
                 continue
-            name = seq.Name
+            name = seq.name
 
             if self._rc:  # names should reflect change to strand
                 loc = member.Location.copy()
@@ -336,7 +336,7 @@ class SyntenicRegions(_RelatedRegions):
                 name = str(loc)
 
             annotations[name] = seq.data.annotations
-            seq.Name = seq.data.Name = name
+            seq.name = seq.data.name = name
             seqs += [(name, seq)]
 
         if seqs is None:

@@ -121,7 +121,7 @@ class PartialTree(object):
         lengths = numpy.sum(self.d, axis=0) - numpy.sum(self.d) / 4
         root = LightweightTreeNode(list(zip(lengths, self.nodes)))
         tree = root.convert()
-        tree.Name = "root"
+        tree.name = "root"
         return (self.score + sum(lengths), tree)
 
 

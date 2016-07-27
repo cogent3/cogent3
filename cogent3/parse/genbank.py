@@ -642,7 +642,7 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
 
         try:
             seq = moltype.make_sequence(rec['sequence'].upper(), Info=info,
-                                       Name=rec['locus'])
+                                       name=rec['locus'])
         except KeyError:
             if not skip_contigs:
                 if 'contig' in rec:

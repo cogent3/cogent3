@@ -46,7 +46,7 @@ Create a new node object.
 
 .. doctest ::
 
-    >>> A_node=PhyloNode(Name='A',Length=0.1)
+    >>> A_node=PhyloNode(name='A',Length=0.1)
 
 Display the children of the root node, one of which is the parent of the tip we wish to alter.  To add or remove a node, we need to use the parent of the target node, which in this case is the internal node 'E.'
 
@@ -110,7 +110,7 @@ First, let's split the ungainly name string for each tip and only preserve the g
 .. doctest ::
 
     >>> for n in complex_tree.iterTips():
-    ...     n.Name=n.Name.split()[2]+" "+n.Name.split()[3]
+    ...     n.name=n.name.split()[2]+" "+n.name.split()[3]
 
 Now we display the tree with ``asciiArt()``.
 

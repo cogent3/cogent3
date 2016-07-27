@@ -60,7 +60,7 @@ Creating directly on a sequence
     >>> from cogent3.core.annotation import Feature
     >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
-    ...                      Name="seq1")
+    ...                      name="seq1")
     ...
     >>> print s1[10:15] # this will be exon 1
     CCCCC
@@ -68,8 +68,8 @@ Creating directly on a sequence
     TTTTTAAAAA
     >>> print s1[45:48] # this will be exon 3
     CCC
-    >>> s2 = DNA.make_sequence("CGAAACGTTT", Name="seq2")
-    >>> s3 = DNA.make_sequence("CGAAACGTTT", Name="seq3")
+    >>> s2 = DNA.make_sequence("CGAAACGTTT", name="seq2")
+    >>> s3 = DNA.make_sequence("CGAAACGTTT", name="seq3")
 
 Via
 """
@@ -83,7 +83,7 @@ Via
     >>> from cogent3.core.annotation import Feature
     >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
-    ...                      Name="seq1")
+    ...                      name="seq1")
     ...
     >>> exon1 = s1.add_annotation(Feature, 'exon', 'A', [(10,15)])
     >>> exon2 = s1.add_annotation(Feature, 'exon', 'B', [(30,40)])
@@ -96,7 +96,7 @@ Via
     >>> from cogent import DNA
     >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
-    ...                      Name="seq1")
+    ...                      name="seq1")
     ...
     >>> exon3 = s1.add_feature('exon', 'C', [(45, 48)])
 
@@ -108,9 +108,9 @@ Adding as a series or item-wise
 .. doctest::
 
     >>> from cogent import DNA
-    >>> s2 = DNA.make_sequence("CGAAACGTTT", Name="seq2")
+    >>> s2 = DNA.make_sequence("CGAAACGTTT", name="seq2")
     >>> cpgs_series = s2.add_feature('cpgsite', 'cpg', [(0,2), (5,7)])
-    >>> s3 = DNA.make_sequence("CGAAACGTTT", Name="seq3")
+    >>> s3 = DNA.make_sequence("CGAAACGTTT", name="seq3")
     >>> cpg1 = s3.add_feature('cpgsite', 'cpg', [(0,2)])
     >>> cpg2 = s3.add_feature('cpgsite', 'cpg', [(5,7)])
 
@@ -124,7 +124,7 @@ Construct a pseudo-feature (``cds``) that's a union of other features (``exon1``
     >>> from cogent import DNA
     >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
-    ...                      Name="seq1")
+    ...                      name="seq1")
     ...
     >>> exon1 = s1.add_feature('exon', 'A', [(10,15)])
     >>> exon2 = s1.add_feature('exon', 'B', [(30,40)])
@@ -193,7 +193,7 @@ By a feature or coordinates returns same sequence span
     >>> from cogent import DNA
     >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
-    ...                      Name="seq1")
+    ...                      name="seq1")
     ...
     >>> exon1 = s1.add_feature('exon', 'A', [(10,15)])
     >>> exon2 = s1.add_feature('exon', 'B', [(30,40)])
@@ -219,7 +219,7 @@ Slicing by pseudo-feature or feature series
     >>> from cogent import DNA
     >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
-    ...                      Name="seq1")
+    ...                      name="seq1")
     ...
     >>> exon1 = s1.add_feature('exon', 'A', [(10,15)])
     >>> exon2 = s1.add_feature('exon', 'B', [(30,40)])
@@ -519,7 +519,7 @@ What features of a certain type are available?
 
     >>> from cogent import DNA
     >>> s = DNA.make_sequence('ATGACCCTGTAAAAAATGTGTTAACCC',
-    ...    Name='a')
+    ...    name='a')
     >>> cds1 = s.add_feature('cds','cds1', [(0,12)])
     >>> cds2 = s.add_feature('cds','cds2', [(15,24)])
     >>> all_cds = s.get_annotations_matching('cds')

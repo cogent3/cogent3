@@ -120,7 +120,7 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
             continue
         if t == ')' and (last_token == ',' or last_token == '('):  # node without name
             new_node = _new_child(curr_node, constructor)
-            new_node.Name = None
+            new_node.name = None
             curr_node = new_node.Parent
             state1 = 'PostClosed'
             last_token = t
@@ -138,7 +138,7 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
         # node without name
         elif t == ',' and (last_token == ',' or last_token == '('):
             new_node = _new_child(curr_node, constructor)
-            new_node.Name = None
+            new_node.name = None
             curr_node = new_node.Parent
         elif t == ',':  # separator: next node adds to this node's parent
             curr_node = curr_node.Parent
@@ -151,13 +151,13 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
                 else:
                     if '_' in t:
                         t = t.replace('_', ' ')
-            new_node.Name = t
+            new_node.name = t
             curr_node = new_node
         elif state == 'PreColon' and state1 == 'PostClosed':
             if unescape_name:
                 while t.startswith("'") and t.endswith("'"):
                     t = t[1:-1]
-            curr_node.Name = t
+            curr_node.name = t
         elif state == 'PostColon':  # length data for the current node
             curr_node.Length = float(t)
         else:  # can't think of a reason to get here

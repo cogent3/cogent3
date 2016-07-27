@@ -185,7 +185,7 @@ Using the ``get_seq`` method allows for extracting an unaligned sequence from a 
     ...                       ('seq2', 'ATG-AGTGATG'),
     ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
     >>> seq = aln.get_seq('seq1')
-    >>> seq.Name
+    >>> seq.name
     'seq1'
     >>> type(seq)
     <class 'cogent.core.sequence.DnaSequence'>

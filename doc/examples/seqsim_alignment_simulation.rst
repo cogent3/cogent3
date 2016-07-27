@@ -69,7 +69,7 @@ Build alignment,
 
     >>> seqs = {}
     >>> for n in t.tips():
-    ...     seqs[n.Name] = DNA.ModelSeq(n.Sequence)
+    ...     seqs[n.name] = DNA.ModelSeq(n.Sequence)
     >>> aln = Alignment(seqs)
 
 The result is a Cogent ``Alignment`` object, which can be used the same way as any other alignment object.
@@ -105,6 +105,6 @@ Now to concatenate the sequences,
     >>> seqs = {}
     >>> for n in t.tips():
     ...     for s in n.Sequences:
-    ...         seqs[n.Name] = DNA.ModelSeq(concatenate(tuple(n.Sequences)))
+    ...         seqs[n.name] = DNA.ModelSeq(concatenate(tuple(n.Sequences)))
     >>> aln = Alignment(seqs)
 

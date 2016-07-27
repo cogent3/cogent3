@@ -16,13 +16,13 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-def SimpleAnnotation(parent, locations, Name):
-    return Feature(parent, '', Name, locations)
+def SimpleAnnotation(parent, locations, name):
+    return Feature(parent, '', name, locations)
 
 
-def annotate(parent, start, end, Name):
+def annotate(parent, start, end, name):
     annot = parent.add_annotation(SimpleAnnotation, locations=[
-                                 (start, end)], Name=Name)
+                                 (start, end)], name=name)
     return annot
 
 
@@ -31,9 +31,9 @@ def structure(a, depth=0):
     if not isinstance(a, _Feature):
         return ('seq', len(a), annots)
     elif annots:
-        return (a.Name, repr(a.map), annots)
+        return (a.name, repr(a.map), annots)
     else:
-        return (a.Name, repr(a.map))
+        return (a.name, repr(a.map))
 
 
 class MapTest(unittest.TestCase):
@@ -59,7 +59,7 @@ class MapTest(unittest.TestCase):
                 self.fail(repr((r, expected)))
 
     def test_maps_on_maps(self):
-        seq = DNA.make_sequence('ATCGATCGAT' * 5, Name='base')
+        seq = DNA.make_sequence('ATCGATCGAT' * 5, name='base')
         feat1 = annotate(seq, 10, 20, 'fake')
         feat2 = annotate(feat1, 3, 5, 'fake2')
         feat3 = annotate(seq, 1, 3, 'left')
@@ -76,7 +76,7 @@ class MapTest(unittest.TestCase):
         )
 
     def test_get_by_annotation(self):
-        seq = DNA.make_sequence('ATCGATCGAT' * 5, Name='base')
+        seq = DNA.make_sequence('ATCGATCGAT' * 5, name='base')
         seq.add_annotation(Feature, 'test_type', 'test_label', [(5, 10)])
         seq.add_annotation(Feature, 'test_type', 'test_label2', [(15, 18)])
 

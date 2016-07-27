@@ -100,7 +100,7 @@ class TestDBconnects(TestCase):
             result = get_db_name(species=name, db_type="core", release='49')
             self.assertEqual(len(result), 1)
             result = result[0]
-            self.assertEqual(result.Name, db_name)
+            self.assertEqual(result.name, db_name)
             self.assertEqual(result.Release, '49')
 
     def test_latest_release_number(self):

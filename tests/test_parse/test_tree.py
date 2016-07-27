@@ -10,7 +10,7 @@ from cogent3.util.unit_test import TestCase, main
 #    if not unescape_name:
 #        raise NotImplementedError
 #    def constructor(children, name, attribs):
-#        return NodeClass(Children = list(children or []), Name=name, Params=attribs)
+#        return NodeClass(Children = list(children or []), name=name, Params=attribs)
 #    return parse_string(data, constructor)
 
 __author__ = "Rob Knight"
@@ -132,9 +132,9 @@ class DndParserTests(TestCase):
         exp = PhyloNode()
         exp.append(PhyloNode())
         exp.append(PhyloNode())
-        exp.Children[0].append(PhyloNode(Name='a'))
-        exp.Children[0].append(PhyloNode(Name='b'))
-        exp.Children[1].append(PhyloNode(Name='c'))
+        exp.Children[0].append(PhyloNode(name='a'))
+        exp.Children[0].append(PhyloNode(name='b'))
+        exp.Children[1].append(PhyloNode(name='c'))
         exp.Children[1].append(PhyloNode())
         self.assertEqual(str(obs), str(exp))
 
@@ -143,7 +143,7 @@ class DndParserTests(TestCase):
         t = DndParser(single)
         self.assertEqual(len(t), 1)
         child = t[0]
-        self.assertEqual(child.Name, 'abc')
+        self.assertEqual(child.name, 'abc')
         self.assertEqual(child.Length, 3)
         self.assertEqual(str(t), '(abc:3.0);')
 
@@ -162,7 +162,7 @@ class DndParserTests(TestCase):
         self.assertEqual(str(t), '(abc:3.0,(def:4.0,ghi:5.0):6.0);')
 
     def test_gnodedata(self):
-        """DndParser should assign Name to internal nodes correctly"""
+        """DndParser should assign name to internal nodes correctly"""
         t = DndParser(nodedata)
         self.assertEqual(len(t), 2)
         self.assertEqual(len(t[0]), 0)  # first child is terminal
@@ -170,7 +170,7 @@ class DndParserTests(TestCase):
         self.assertEqual(str(t), '(abc:3.0,(def:4.0,ghi:5.0)jkl:6.0);')
         info_dict = {}
         for node in t.traverse():
-            info_dict[node.Name] = node.Length
+            info_dict[node.name] = node.Length
         self.assertEqual(info_dict['abc'], 3.0)
         self.assertEqual(info_dict['def'], 4.0)
         self.assertEqual(info_dict['ghi'], 5.0)
@@ -198,20 +198,20 @@ class DndParserTests(TestCase):
         tree_unesc = DndParser(t_str, PhyloNode, unescape_name=True)
         tree_esc = DndParser(t_str, PhyloNode, unescape_name=False)
 
-        self.assertEqual(tree_unesc.Name, 'E')
-        self.assertEqual(tree_unesc.Children[0].Name, 'A a')
-        self.assertEqual(tree_unesc.Children[1].Children[0].Name, 'B')
+        self.assertEqual(tree_unesc.name, 'E')
+        self.assertEqual(tree_unesc.Children[0].name, 'A a')
+        self.assertEqual(tree_unesc.Children[1].Children[0].name, 'B')
         self.assertEqual(tree_unesc.Children[1].Children[0].Length, 1.0)
-        self.assertEqual(tree_unesc.Children[1].Children[1].Name, 'C')
-        self.assertEqual(tree_unesc.Children[2].Name, 'D_e')
+        self.assertEqual(tree_unesc.Children[1].Children[1].name, 'C')
+        self.assertEqual(tree_unesc.Children[2].name, 'D_e')
         self.assertEqual(tree_unesc.Children[2].Length, 0.5)
 
-        self.assertEqual(tree_esc.Name, 'E')
-        self.assertEqual(tree_esc.Children[0].Name, 'A_a')
-        self.assertEqual(tree_esc.Children[1].Children[0].Name, 'B')
+        self.assertEqual(tree_esc.name, 'E')
+        self.assertEqual(tree_esc.Children[0].name, 'A_a')
+        self.assertEqual(tree_esc.Children[1].Children[0].name, 'B')
         self.assertEqual(tree_esc.Children[1].Children[0].Length, 1.0)
-        self.assertEqual(tree_esc.Children[1].Children[1].Name, 'C')
-        self.assertEqual(tree_esc.Children[2].Name, "'D_e'")
+        self.assertEqual(tree_esc.Children[1].Children[1].name, 'C')
+        self.assertEqual(tree_esc.Children[2].name, "'D_e'")
         self.assertEqual(tree_esc.Children[2].Length, 0.5)
 
         reload_test = tree_esc.getNewick(with_distances=True,
@@ -233,7 +233,7 @@ class PhyloNodeTests(TestCase):
         """Basic PhyloNode operations should work as expected"""
         p = PhyloNode()
         self.assertEqual(str(p), ';')
-        p.Name = 'abc'
+        p.name = 'abc'
         self.assertEqual(str(p), 'abc;')
         p.Length = 3
         self.assertEqual(str(p), 'abc:3;')  # don't suppress branch from root
@@ -243,7 +243,7 @@ class PhyloNodeTests(TestCase):
         r = PhyloNode()
         q.append(r)
         self.assertEqual(str(p), '(())abc:3;')
-        r.Name = 'xyz'
+        r.name = 'xyz'
         self.assertEqual(str(p), '((xyz))abc:3;')
         q.Length = 2
         self.assertEqual(str(p), '((xyz):2)abc:3;')

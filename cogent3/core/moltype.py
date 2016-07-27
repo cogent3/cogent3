@@ -559,9 +559,9 @@ class MolType(object):
         """Returns type, e.g. 'dna', 'rna', 'protein'. Delete?"""
         return self.label
 
-    def make_sequence(self, Seq, Name=None, **kwargs):
+    def make_sequence(self, Seq, name=None, **kwargs):
         """Returns sequence of correct type. Replace with just self.Sequence?"""
-        return self.Sequence(Seq, Name, **kwargs)
+        return self.Sequence(Seq, name, **kwargs)
 
     def verify_sequence(self, seq, gaps_allowed=True, wildcards_allowed=True):
         """Checks whether sequence is valid on the default alphabet.

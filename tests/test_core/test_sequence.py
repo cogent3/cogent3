@@ -51,10 +51,10 @@ class SequenceTests(TestCase):
 
     def test_init_other_seq(self):
         """Sequence init with other seq should preserve name and info."""
-        r = self.RNA('UCAGG', Name='x', Info={'z': 3})
+        r = self.RNA('UCAGG', name='x', Info={'z': 3})
         s = Sequence(r)
         self.assertEqual(s._seq, 'UCAGG')
-        self.assertEqual(s.Name, 'x')
+        self.assertEqual(s.name, 'x')
         self.assertEqual(s.info.z, 3)
 
     def test_compare_to_string(self):
@@ -93,8 +93,8 @@ class SequenceTests(TestCase):
         """Sequence to_fasta() should return Fasta-format string"""
         even = 'TCAGAT'
         odd = even + 'AAA'
-        even_dna = self.SEQ(even, Name='even')
-        odd_dna = self.SEQ(odd, Name='odd')
+        even_dna = self.SEQ(even, name='even')
+        odd_dna = self.SEQ(odd, name='odd')
         self.assertEqual(even_dna.to_fasta(), '>even\nTCAGAT')
         # set line wrap to small number so we can test that it works
         even_dna.LineWrap = 2
@@ -688,8 +688,8 @@ class ModelSequenceTests(object):
         """Sequence to_fasta() should return Fasta-format string"""
         even = 'TCAGAT'
         odd = even + 'AAA'
-        even_dna = self.SequenceClass(even, Name='even')
-        odd_dna = self.SequenceClass(odd, Name='odd')
+        even_dna = self.SequenceClass(even, name='even')
+        odd_dna = self.SequenceClass(odd, name='odd')
         self.assertEqual(even_dna.to_fasta(), '>even\nTCAGAT')
         # set line wrap to small number so we can test that it works
         even_dna.LineWrap = 2
@@ -702,7 +702,7 @@ class ModelSequenceTests(object):
 
     def test_to_phylip(self):
         """Sequence to_phylip() should return one-line phylip string"""
-        s = self.SequenceClass('ACG', Name='xyz')
+        s = self.SequenceClass('ACG', name='xyz')
         self.assertEqual(s.to_phylip(), 'xyz' + ' ' * 27 + 'ACG')
 
 
@@ -813,35 +813,35 @@ class SequenceIntegrationTests(TestCase):
 
     def test_regular_to_model(self):
         """Regular sequence should convert to model sequence"""
-        r = RNA.Sequence('AAA', Name='x')
+        r = RNA.Sequence('AAA', name='x')
         s = RNA.ModelSeq(r)
         self.assertEqual(str(s), 'AAA')
         self.assertEqual(s.moltype, RNA)
-        self.assertEqual(s.Name, 'x')
+        self.assertEqual(s.name, 'x')
 
     def test_model_to_regular(self):
         """Model sequence should convert to regular sequence"""
-        r = RNA.ModelSeq('AAA', Name='x')
+        r = RNA.ModelSeq('AAA', name='x')
         s = RNA.Sequence(r)
         self.assertEqual(str(s), 'AAA')
         self.assertEqual(s.moltype, RNA)
-        self.assertEqual(s.Name, 'x')
+        self.assertEqual(s.name, 'x')
 
     def test_regular_to_regular(self):
         """Regular sequence should convert to regular sequence"""
-        r = RNA.Sequence('AAA', Name='x')
+        r = RNA.Sequence('AAA', name='x')
         s = RNA.Sequence(r)
         self.assertEqual(str(s), 'AAA')
         self.assertEqual(s.moltype, RNA)
-        self.assertEqual(s.Name, 'x')
+        self.assertEqual(s.name, 'x')
 
     def test_model_to_model(self):
         """Model sequence should convert to model sequence"""
-        r = RNA.ModelSeq('AAA', Name='x')
+        r = RNA.ModelSeq('AAA', name='x')
         s = RNA.ModelSeq(r)
         self.assertEqual(str(s), 'AAA')
         self.assertEqual(s.moltype, RNA)
-        self.assertEqual(s.Name, 'x')
+        self.assertEqual(s.name, 'x')
 
     def test_ModelDnaCodonSequence(self):
         """ModelDnaCodonSequence should behave as expected"""

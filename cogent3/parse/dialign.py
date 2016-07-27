@@ -75,7 +75,7 @@ def DialignParser(lines, seq_maker=None, get_scores=False):
     # concat sequence blocks
     for name, seq_segs in list(seqs.items()):
         seq = "".join(seq_segs)
-        yield name, seq_maker(seq, Name=name)
+        yield name, seq_maker(seq, name=name)
 
     if get_scores:
         yield "QualityScores", "".join(quality_scores)

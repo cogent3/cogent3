@@ -35,8 +35,8 @@ def matchedColumns(align):
 
     return len(align.filtered(all_same))
 
-seq1 = DNA.make_sequence('aaaccggacattacgtgcgta', Name='FAKE01')
-seq2 = DNA.make_sequence('ccggtcaggttacgtacgtt', Name='FAKE02')
+seq1 = DNA.make_sequence('aaaccggacattacgtgcgta', name='FAKE01')
+seq2 = DNA.make_sequence('ccggtcaggttacgtacgtt', name='FAKE02')
 
 
 class AlignmentTestCase(unittest.TestCase):
@@ -59,15 +59,15 @@ class AlignmentTestCase(unittest.TestCase):
 
     def test_gaps_at_both_ends(self):
         s = 'aaaccggttt'
-        s1 = DNA.make_sequence(s[:-2], Name="A")
-        s2 = DNA.make_sequence(s[2:], Name="B")
+        s1 = DNA.make_sequence(s[:-2], name="A")
+        s2 = DNA.make_sequence(s[2:], name="B")
         for a in self._aligned_both_ways(s1, s2, local=False):
             self.assertEqual(matchedColumns(a), 6)
             self.assertEqual(len(a), 10)
 
     def test_short(self):
-        s1 = DNA.make_sequence('tacagta', Name="A")
-        s2 = DNA.make_sequence('tacgtc', Name="B")
+        s1 = DNA.make_sequence('tacagta', name="A")
+        s2 = DNA.make_sequence('tacgtc', name="B")
         for a in self._aligned_both_ways(s1, s2, local=False):
             self.assertEqual(matchedColumns(a), 5)
             self.assertEqual(len(a), 7)
@@ -81,8 +81,8 @@ class AlignmentTestCase(unittest.TestCase):
         self.assertTrue(score > 100)
 
     def test_codon(self):
-        s1 = DNA.make_sequence('tacgccgta', Name="A")
-        s2 = DNA.make_sequence('tacgta', Name="B")
+        s1 = DNA.make_sequence('tacgccgta', name="A")
+        s2 = DNA.make_sequence('tacgta', name="B")
         codon_model = cogent3.evolve.substitution_model.Codon(
             model_gaps=False, equal_motif_probs=True,
             mprob_model='conditional')
@@ -98,8 +98,8 @@ class AlignmentTestCase(unittest.TestCase):
         # so that the Pyrex and Python versions give the same result.
         score_matrix = make_dna_scoring_dict(match=1, transition=-1,
                                              transversion=-1)
-        pattern = DNA.make_sequence('cwc', Name='pattern')
-        two_hit = DNA.make_sequence('cactc', Name='target')
+        pattern = DNA.make_sequence('cwc', name='pattern')
+        two_hit = DNA.make_sequence('cactc', name='target')
         aln = local_pairwise(pattern, two_hit, score_matrix, 5, 2)
         hit = aln.named_seqs['target']
         self.assertEqual(str(hit).lower(), 'cac')

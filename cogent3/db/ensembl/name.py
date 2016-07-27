@@ -68,8 +68,8 @@ class EnsemblDbName(object):
     def __init__(self, db_name):
         """db_name: and Emsembl database name"""
         if isinstance(db_name, EnsemblDbName):
-            db_name = db_name.Name
-        self.Name = db_name
+            db_name = db_name.name
+        self.name = db_name
         self.Type = get_dbtype_from_name(db_name)
         self.Prefix = get_db_prefix(db_name)
 
@@ -99,22 +99,22 @@ class EnsemblDbName(object):
         return s
 
     def __str__(self):
-        return self.Name
+        return self.name
 
     def __lt__(self, other):
         if isinstance(other, type(self)):
-            other = other.Name
-        return self.Name < other
+            other = other.name
+        return self.name < other
 
     def __eq__(self, other):
         if isinstance(other, type(self)):
-            other = other.Name
-        return self.Name == other
+            other = other.name
+        return self.name == other
 
     def __ne__(self, other):
         if isinstance(other, type(self)):
-            other = other.Name
-        return self.Name != other
+            other = other.name
+        return self.name != other
 
     def __hash__(self):
-        return hash(self.Name)
+        return hash(self.name)

@@ -390,8 +390,8 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 #     def _setup_discrete_from_general(self, gen_lf):
 #         dis_lf = self.make_cached('discrete')
 #         for edge in self.tree:
-#             init = gen_lf.getPsubForEdge(edge.Name)
-#             dis_lf.setParamRule('psubs', edge=edge.Name, init=init)
+#             init = gen_lf.getPsubForEdge(edge.name)
+#             dis_lf.setParamRule('psubs', edge=edge.name, init=init)
 #         dis_lf.setMotifProbs(gen_lf.getMotifProbs())
 #         return dis_lf
 #
@@ -424,7 +424,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 #         mprobs = gen_stat_lf.getMotifProbs()
 #         mprobs = array([mprobs[nuc] for nuc in DNA.alphabet])
 #         for edge in self.tree:
-#             psub = gen_stat_lf.getPsubForEdge(edge.Name)
+#             psub = gen_stat_lf.getPsubForEdge(edge.name)
 #             pi = dot(mprobs, psub.array)
 #             self.assertFloatEqual(mprobs, pi)
 #
@@ -434,7 +434,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 #         mprobs = gen_lf.getMotifProbs()
 #         mprobs = array([mprobs[nuc] for nuc in DNA.alphabet])
 #         for edge in self.tree:
-#             psub = gen_lf.getPsubForEdge(edge.Name)
+#             psub = gen_lf.getPsubForEdge(edge.name)
 #             pi = dot(mprobs, psub.array)
 #             try:
 #                 self.assertFloatEqual(mprobs, pi)

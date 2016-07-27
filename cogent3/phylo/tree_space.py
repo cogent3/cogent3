@@ -54,7 +54,7 @@ def tree2ancestry(tree, order=None):
             if n.Children:
                 return len(order)
             else:
-                return lookup[n.Name]
+                return lookup[n.name]
         nodes.sort(key=_ordered_tips_first)
 
     n = len(nodes)
@@ -65,7 +65,7 @@ def tree2ancestry(tree, order=None):
         seen[id(node)] = i
         for c in node.Children:
             A[:, i] |= A[:, seen[id(c)]]
-    names = [n.Name for n in nodes if not n.Children]
+    names = [n.name for n in nodes if not n.Children]
     lengths = [n.Length for n in nodes]
     return (A, names, lengths)
 

@@ -305,7 +305,7 @@ class LikelihoodFunctionTests(TestCase):
         for (species1, species2, length) in [
                 ("Human", "HowlerMon", 0.7),
                 ("Human", "Mouse", 0.6)]:
-            LCA = self.tree.getConnectingNode(species1, species2).Name
+            LCA = self.tree.getConnectingNode(species1, species2).name
             likelihood_function.setParamRule("length", value=length,
                                              edge=LCA, is_constant=True)
 

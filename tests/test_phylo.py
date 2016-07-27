@@ -143,7 +143,7 @@ class ConsensusTests(unittest.TestCase):
         """consensus trees should average branch lengths properly"""
         def get_ac(tree):
             for edge in tree.getEdgeVector(include_root=False):
-                if set('ac') == set([c.Name for c in edge.Children]):
+                if set('ac') == set([c.name for c in edge.Children]):
                     return edge
 
         sct = ScoredTreeCollection(self.unrooted_trees_lengths)

@@ -429,22 +429,22 @@ class RootParsersKnownValues(TestCase):
         """gn_parser should return expected list of dict"""
 
         lines = [
-            "GN   Name=hns; Synonyms=bglY, cur, topS;",
+            "GN   name=hns; Synonyms=bglY, cur, topS;",
             "GN   OrderedLocusNames=b1237, c1701, ECs1739;"]
         self.assertEqual(gn_parser(lines),
                          [{'Synonyms': ['bglY', 'cur', 'topS'],
                            'OrderedLocusNames': ['b1237', 'c1701', 'ECs1739'],
-                           'Name': 'hns'}])
+                           'name': 'hns'}])
 
         lines = [
-            "GN   Name=Jon99Cii; Synonyms=SER1, Ser99Da; ORFNames=CG7877;",
+            "GN   name=Jon99Cii; Synonyms=SER1, Ser99Da; ORFNames=CG7877;",
             "GN   and",
-            "GN   Name=Jon99Ciii; Synonyms=SER2, Ser99Db; ORFNames=CG15519;"]
+            "GN   name=Jon99Ciii; Synonyms=SER2, Ser99Db; ORFNames=CG15519;"]
         self.assertEqual(gn_parser(lines),
                          [{'ORFNames': 'CG7877', 'Synonyms': ['SER1', 'Ser99Da'],
-                           'Name': 'Jon99Cii'},
+                           'name': 'Jon99Cii'},
                           {'ORFNames': 'CG15519', 'Synonyms': ['SER2', 'Ser99Db'],
-                           'Name': 'Jon99Ciii'}])
+                           'name': 'Jon99Ciii'}])
 
     def test_dr_parser(self):
         """dr_parser should return expected dict"""
@@ -626,9 +626,9 @@ class CC_Tests(TestCase):
              'Event=Alternative splicing; Named isoforms=3;',
              '  Comment=Additional isoforms seem to exist.',
              '  confirmation;',
-             'Name=1; Synonyms=AIRE-1;',
+             'name=1; Synonyms=AIRE-1;',
              '  IsoId=O43918-1; Sequence=Displayed;',
-             'Name=3; Synonyms=AIRE-3,',
+             'name=3; Synonyms=AIRE-3,',
              'ai-2, ai-3;',  # broken the hanging_paragraph_finder
              '  IsoId=O43918-3; Sequence=VSP_004089, VSP_004090;', ]]
         expects = \
@@ -637,11 +637,11 @@ class CC_Tests(TestCase):
                'Event': 'Alternative splicing',
                'Named isoforms': '3',
                'Names': [{'IsoId': 'O43918-1',
-                          'Name': '1',
+                          'name': '1',
                           'Sequence': 'Displayed',
                           'Synonyms': 'AIRE-1'},
                          {'IsoId': 'O43918-3',
-                          'Name': '3',
+                          'name': '3',
                           'Sequence': ['VSP_004089', 'VSP_004090'],
                           'Synonyms': ['AIRE-3', 'ai-2', 'ai-3']}]}]]
 
@@ -854,11 +854,11 @@ CC   -!- ALTERNATIVE PRODUCTS:
 CC       Event=Alternative splicing; Named isoforms=3;
 CC         Comment=Additional isoforms seem to exist.
 CC         confirmation;
-CC       Name=1; Synonyms=AIRE-1;
+CC       name=1; Synonyms=AIRE-1;
 CC         IsoId=O43918-1; Sequence=Displayed;
-CC       Name=2; Synonyms=AIRE-2;
+CC       name=2; Synonyms=AIRE-2;
 CC         IsoId=O43918-2; Sequence=VSP_004089;
-CC       Name=3; Synonyms=AIRE-3;
+CC       name=3; Synonyms=AIRE-3;
 CC         IsoId=O43918-3; Sequence=VSP_004089, VSP_004090;
 CC   -!- BIOPHYSICOCHEMICAL PROPERTIES:
 CC       Kinetic parameters:

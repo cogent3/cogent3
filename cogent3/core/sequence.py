@@ -500,20 +500,20 @@ class Sequence(_Annotatable, SequenceI):
     """Holds the standard Sequence object. Immutable."""
     moltype = None  # connected to ACSII when moltype is imported
 
-    def __init__(self, Seq='', Name=None, Info=None, check=True,
+    def __init__(self, Seq='', name=None, Info=None, check=True,
                  preserve_case=False, gaps_allowed=True, wildcards_allowed=True):
         """Initialize a sequence.
 
         Arguments:
             Seq: the raw sequence string, default is ''
 
-            Name: the sequence name
+            name: the sequence name
 
             check: if True (the default), validates against the MolType
         """
-        if Name is None and hasattr(Seq, 'Name'):
-            Name = Seq.Name
-        self.Name = Name
+        if name is None and hasattr(Seq, 'name'):
+            name = Seq.name
+        self.name = name
         orig_seq = Seq
         if isinstance(Seq, Sequence):
             Seq = Seq._seq
@@ -607,7 +607,7 @@ class Sequence(_Annotatable, SequenceI):
             i = e
         segments.append(self._seq[i:])
 
-        new = self.__class__(''.join(segments), Name=self.Name, check=False,
+        new = self.__class__(''.join(segments), name=self.name, check=False,
                              Info=self.info)
         new.annotations = self.annotations[:]
         return new
@@ -636,7 +636,7 @@ class Sequence(_Annotatable, SequenceI):
     def gapped_by_map(self, map, recode_gaps=False):
         segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
         new = self.__class__(''.join(segments),
-                             Name=self.Name, check=False, Info=self.info)
+                             name=self.name, check=False, Info=self.info)
         annots = self._sliced_annotations(new, map)
         new.annotations = annots
         return new
@@ -644,7 +644,7 @@ class Sequence(_Annotatable, SequenceI):
     def _mapped(self, map):
         # Called by generic __getitem__
         segments = self.gapped_by_map_segment_iter(map, allow_gaps=False)
-        new = self.__class__(''.join(segments), self.Name, Info=self.info)
+        new = self.__class__(''.join(segments), self.name, Info=self.info)
         return new
 
     def __add__(self, other):
@@ -684,9 +684,9 @@ class Sequence(_Annotatable, SequenceI):
         return policy.tracksForSequence(self)
 
     def get_name(self):
-        """Return the sequence name -- should just use Name instead."""
+        """Return the sequence name -- should just use name instead."""
 
-        return self.Name
+        return self.name
 
     def __len__(self):
         return len(self._seq)
@@ -749,7 +749,7 @@ class Sequence(_Annotatable, SequenceI):
         map = Map(segments, parent_length=len(self)).inverse()
         seq = self.__class__(
             ''.join(gapless),
-            Name=self.get_name(), Info=self.info)
+            name=self.get_name(), Info=self.info)
         if self.annotations:
             seq.annotations = [a.remapped_to(seq, map)
                                for a in self.annotations]
@@ -782,7 +782,7 @@ class NucleicAcidSequence(Sequence):
     def rc(self):
         """Converts a nucleic acid sequence to its reverse complement."""
         complement = self.moltype.rc(self)
-        rc = self.__class__(complement, Name=self.Name, Info=self.info)
+        rc = self.__class__(complement, name=self.name, Info=self.info)
         self._annotations_nucleic_reversed_on(rc)
         return rc
 
@@ -832,7 +832,7 @@ class NucleicAcidSequence(Sequence):
         if divisible_by_3 and codons and gc.is_stop(codons[-3:]):
             codons = codons[:-3]
 
-        return self.__class__(codons, Name=self.Name, Info=self.info)
+        return self.__class__(codons, name=self.name, Info=self.info)
 
     def get_translation(self, gc=None):
         gc = self._gc_from_arg(gc)
@@ -858,7 +858,7 @@ class NucleicAcidSequence(Sequence):
             translation.append(aa)
 
         translation = self.protein.make_sequence(
-            Seq=''.join(translation), Name=self.Name)
+            Seq=''.join(translation), name=self.name)
 
         return translation
 
@@ -928,9 +928,9 @@ class ABSequence(Sequence):
 class ByteSequence(Sequence):
     """Used for storing arbitrary bytes."""
 
-    def __init__(self, Seq='', Name=None, Info=None, check=False,
+    def __init__(self, Seq='', name=None, Info=None, check=False,
                  preserve_case=True):
-        return super(ByteSequence, self).__init__(Seq, Name=Name, Info=Info,
+        return super(ByteSequence, self).__init__(Seq, name=name, Info=Info,
                                                   check=check, preserve_case=preserve_case)
 
 
@@ -946,7 +946,7 @@ class ModelSequenceBase(object):
     to/from strings can be fairly time-consuming. Also, any symbol not in the
     Alphabet cannot be represented at all.
 
-    A sequence can have a Name, which will be used for output in formats
+    A sequence can have a name, which will be used for output in formats
     such as FASTA.
 
     A sequence Class has an alphabet (which can be overridden in instances
@@ -962,7 +962,7 @@ class ModelSequenceBase(object):
     Delimiter = ''  # Used for string conversions
     LineWrap = 80  # Wrap sequences at 80 characters by default.
 
-    def __init__(self, data='', alphabet=None, Name=None, Info=None,
+    def __init__(self, data='', alphabet=None, name=None, Info=None,
                  check='ignored'):
         """Initializes sequence from data and alphabet.
 
@@ -973,12 +973,12 @@ class ModelSequenceBase(object):
         WARNING: If data has name and/or Info, gets ref to same object rather
         than copying in each case.
         """
-        if Name is None and hasattr(data, 'Name'):
-            Name = data.Name
+        if name is None and hasattr(data, 'name'):
+            name = data.name
         if Info is None and hasattr(data, 'info'):
             Info = data.info
         # set the label
-        self.Name = Name
+        self.name = name
         # override the class alphabet if supplied
         if alphabet is not None:
             self.alphabet = alphabet
@@ -1049,7 +1049,7 @@ class ModelSequenceBase(object):
 
         Default: max name length is 28, label length is 30.
         """
-        return str(self.Name)[:name_len].ljust(label_len) + str(self)
+        return str(self.name)[:name_len].ljust(label_len) + str(self)
 
     def is_valid(self):
         """Checks that no items in self are out of the alphabet range."""
@@ -1125,13 +1125,13 @@ class ModelSequenceBase(object):
         if not hasattr(self.alphabet, 'Gap') or self.alphabet.Gap is None:
             return self.copy()
         d = take(self._data, nonzero(logical_not(self.gap_array()))[0])
-        return self.__class__(d, alphabet=self.alphabet, Name=self.Name,
+        return self.__class__(d, alphabet=self.alphabet, name=self.name,
                               Info=self.info)
 
     def copy(self):
         """Returns copy of self, always separate object."""
         return self.__class__(self._data.copy(), alphabet=self.alphabet,
-                              Name=self.Name, Info=self.info)
+                              name=self.name, Info=self.info)
 
     def __contains__(self, item):
         """Returns true if item in self (converts to strings)."""
@@ -1359,7 +1359,7 @@ class ModelNucleicAcidSequence(ModelSequence):
         alpha_len = len(self.alphabet)
         return ModelCodonSequence(alpha_len * (
             alpha_len * self._data[::3] + self._data[1::3]) + self._data[2::3],
-            Name=self.Name, alphabet=self.alphabet.Triples)
+            name=self.name, alphabet=self.alphabet.Triples)
 
     def complement(self):
         """Returns complement of sequence"""
@@ -1420,11 +1420,11 @@ class ModelCodonSequence(ModelSequence):
                                alphabet=self.alphabet.SubEnumerations[0])
         self._data = d.to_codons()._data
 
-    def __init__(self, data='', alphabet=None, Name=None, Info=None):
+    def __init__(self, data='', alphabet=None, name=None, Info=None):
         """Override __init__ to handle init from string."""
         if isinstance(data, str):
             self._from_string(data)
-        ModelSequence.__init__(self, data, alphabet, Name, Info=Info)
+        ModelSequence.__init__(self, data, alphabet, name, Info=Info)
 
     def to_codons(self):
         """Converts self to codons -- in practice, just returns self.
@@ -1438,7 +1438,7 @@ class ModelCodonSequence(ModelSequence):
         result = zeros((len(self._data), 3))
         for i, v in enumerate(unpacked):
             result[:, i] = v
-        return ModelDnaSequence(ravel(result), Name=self.Name)
+        return ModelDnaSequence(ravel(result), name=self.name)
 
     def to_rna(self):
         """Returns a ModelDnaSequence from the data in self."""
@@ -1446,7 +1446,7 @@ class ModelCodonSequence(ModelSequence):
         result = zeros((len(self._data), 3))
         for i, v in enumerate(unpacked):
             result[:, i] = v
-        return ModelRnaSequence(ravel(result), Name=self.Name)
+        return ModelRnaSequence(ravel(result), name=self.name)
 
 
 class ModelDnaCodonSequence(ModelCodonSequence):

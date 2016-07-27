@@ -139,13 +139,13 @@ class FastaParserTests(GenericFastaTest):
         self.assertEqual(len(f), 1)
         a = f[0]
         self.assertEqual(a, ('abc', 'UCAG'))
-        self.assertEqual(a[1].Name, 'abc')
+        self.assertEqual(a[1].name, 'abc')
 
         f = list(FastaParser(self.multiline))
         self.assertEqual(len(f), 1)
         a = f[0]
         self.assertEqual(a, ('xyz', 'UUUUCCAAAAAG'))
-        self.assertEqual(a[1].Name, 'xyz')
+        self.assertEqual(a[1].name, 'xyz')
 
     def test_single_constructor(self):
         """FastaParser should use constructors if supplied"""
@@ -153,7 +153,7 @@ class FastaParserTests(GenericFastaTest):
         self.assertEqual(len(f), 1)
         a = f[0]
         self.assertEqual(a, ('abc', 'TCAG'))
-        self.assertEqual(a[1].Name, 'abc')
+        self.assertEqual(a[1].name, 'abc')
 
         def upper_abc(x):
             return None, {'ABC': x.upper()}
@@ -162,7 +162,7 @@ class FastaParserTests(GenericFastaTest):
         self.assertEqual(len(f), 1)
         a = f[0]
         self.assertEqual(a, (None, 'TTTTCCAAAAAG'))
-        self.assertEqual(a[1].Name, None)
+        self.assertEqual(a[1].name, None)
         self.assertEqual(a[1].info.ABC, 'XYZ')
 
     def test_multiple(self):
@@ -172,9 +172,9 @@ class FastaParserTests(GenericFastaTest):
         for i in f:
             assert isinstance(i[1], Sequence)
         a, b, c = f
-        self.assertEqual((a[1].Name, a[1]), ('123', 'a'))
-        self.assertEqual((b[1].Name, b[1]), ('abc', 'caggac'))
-        self.assertEqual((c[1].Name, c[1]), ('456', 'cg'))
+        self.assertEqual((a[1].name, a[1]), ('123', 'a'))
+        self.assertEqual((b[1].name, b[1]), ('abc', 'caggac'))
+        self.assertEqual((c[1].name, c[1]), ('456', 'cg'))
 
     def test_multiple_bad(self):
         """Parser should complain or skip bad records"""
@@ -183,8 +183,8 @@ class FastaParserTests(GenericFastaTest):
         self.assertEqual(len(f), 2)
         a, b = f
         a, b = a[1], b[1]  # field 0 is name
-        self.assertEqual((a.Name, a), ('abc', 'caggac'))
-        self.assertEqual((b.Name, b), ('456', 'cg'))
+        self.assertEqual((a.name, a), ('abc', 'caggac'))
+        self.assertEqual((b.name, b), ('456', 'cg'))
 
     def test_multiple_constructor_bad(self):
         """Parser should complain or skip bad records w/ constructor"""
@@ -200,8 +200,8 @@ class FastaParserTests(GenericFastaTest):
         self.assertEqual(len(f), 2)
         a, b = f
         a, b = a[1], b[1]
-        self.assertEqual((a.Name, a), ('abc', 'caggac'.upper()))
-        self.assertEqual((b.Name, b), ('456', 'cg'.upper()))
+        self.assertEqual((a.name, a), ('abc', 'caggac'.upper()))
+        self.assertEqual((b.name, b), ('456', 'cg'.upper()))
 
 
 class NcbiFastaLabelParserTests(TestCase):

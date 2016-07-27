@@ -31,7 +31,7 @@ class FastaTests(TestCase):
         for l, sl, sn in zip(self.labels, self.sequences_with_labels,
                            self.sequences_with_names):
             sl.Label = l
-            sn.Name = l
+            sn.name = l
         self.fasta_no_label = '>0\nAAAA\n>1\nCCCC\n>2\ngggg\n>3\nuuuu'
         self.fasta_with_label =\
         '>1st\nAAAA\n>2nd\nCCCC\n>3rd\nGGGG\n>4th\nUUUU'
@@ -55,7 +55,7 @@ class FastaTests(TestCase):
                          self.fasta_with_label)
         self.assertEqual(fasta_from_sequences(self.sequences_with_names),
                          self.fasta_with_label)
-        make_seqlabel = lambda seq: "%s:%s" % (seq.Name, seq.info.species)
+        make_seqlabel = lambda seq: "%s:%s" % (seq.name, seq.info.species)
         seqs = [self.alignment_object.named_seqs[label]
             for label in self.labels]
         self.assertEqual(fasta_from_sequences(seqs,

@@ -376,24 +376,24 @@ def dt_parser(lines):
 def gn_parser(lines):
     """return a list of dict from GN lines.
 
-    The GN (Gene Name) line indicates the name(s) of the gene(s) that code for
+    The GN (Gene name) line indicates the name(s) of the gene(s) that code for
     the stored protein sequence. The GN line contains three types of
     information: Gene names, Ordered locus names, ORF names. format:
 
-    GN   Name=<name>; Synonyms=<name1>[, <name2>...];
+    GN   name=<name>; Synonyms=<name1>[, <name2>...];
     OrderedLocusNames=<name1>[, <name2>...];
     GN   ORFNames=<name1>[, <name2>...];
 
     None of the above four tokens are mandatory. But a "Synonyms" token can
-    only be present if there is a "Name" token.
+    only be present if there is a "name" token.
 
     If there is more than one gene, GN line blocks for the different genes are
     separated by the following line:
     GN   and
     Example:
-    GN   Name=Jon99Cii; Synonyms=SER1, SER5, Ser99Da; ORFNames=CG7877;
+    GN   name=Jon99Cii; Synonyms=SER1, SER5, Ser99Da; ORFNames=CG7877;
     GN   and
-    GN   Name=Jon99Ciii; Synonyms=SER2, SER5, Ser99Db; ORFNames=CG15519;"""
+    GN   name=Jon99Ciii; Synonyms=SER2, SER5, Ser99Db; ORFNames=CG15519;"""
     lines = labeloff(lines)
     return list(map(gn_itemparser, gn_itemfinder(lines)))
 
@@ -890,11 +890,11 @@ def cc_parser(lines, strict=False):
     CC       Event=Alternative splicing; Named isoforms=3;
     CC         Comment=Additional isoforms seem to exist. Experimental
     CC         confirmation may be lacking for some isoforms;
-    CC       Name=1; Synonyms=AIRE-1;
+    CC       name=1; Synonyms=AIRE-1;
     CC         IsoId=O43918-1; Sequence=Displayed;
-    CC       Name=2; Synonyms=AIRE-2;
+    CC       name=2; Synonyms=AIRE-2;
     CC         IsoId=O43918-2; Sequence=VSP_004089;
-    CC       Name=3; Synonyms=AIRE-3;
+    CC       name=3; Synonyms=AIRE-3;
     CC         IsoId=O43918-3; Sequence=VSP_004089, VSP_004090;
     CC   --------------------------------------------------------------------------
     CC   This SWISS-PROT entry is copyright. It is produced  a collaboration
@@ -1002,7 +1002,7 @@ def cc_interaction_parser(content_list):
 cc_alternative_products_event_finder = LabeledRecordFinder(
     lambda x: x.startswith('Event='))
 cc_alternative_products_name_finder = LabeledRecordFinder(
-    lambda x: x.startswith('Name='))
+    lambda x: x.startswith('name='))
 
 
 def cc_alternative_products_parser(content_list):
@@ -1017,10 +1017,10 @@ def cc_alternative_products_parser(content_list):
     CC         Comment=Free text;
     CC       Event=Alternative splicing; Named isoforms=n;
     CC         Comment=Optional free text;
-    CC       Name=Isoform_1; Synonyms=Synonym_1[, Synonym_n];
+    CC       name=Isoform_1; Synonyms=Synonym_1[, Synonym_n];
     CC         IsoId=Isoform_identifier_1[, Isoform_identifier_n]; Sequence=Displayed;
     CC         Note=Free text;
-    CC       Name=Isoform_n; Synonyms=Synonym_1[, Synonym_n];
+    CC       name=Isoform_n; Synonyms=Synonym_1[, Synonym_n];
     CC         IsoId=Isoform_identifier_1[, Isoform_identifier_n]; Sequence=VSP_identifier_1 [, VSP_identifier_n];
     CC         Note=Free text;
     CC       Event=Alternative initiation;
@@ -1508,9 +1508,9 @@ DT   13-SEP-2005 (TrEMBLrel. 31, Last annotation update)
 DE   Basic salivary proline-rich protein 4 allele L (Salivary proline-rich
 DE   protein Po) (Parotid o protein) [Contains: Peptide P-D (aa); BB (bb)
 DE   (bbb)] (Fragment).
-GN   Name=nob-1; ORFNames=Y75B8A.2, Y75B8A.2B;
+GN   name=nob-1; ORFNames=Y75B8A.2, Y75B8A.2B;
 GN   and
-GN   Name=Jon99Ciii; Synonyms=SER2, SER5, Ser99Db; ORFNames=CG15519;
+GN   name=Jon99Ciii; Synonyms=SER2, SER5, Ser99Db; ORFNames=CG15519;
 OS   Caenorhabditis elegans (aa) (bb).
 OC   Eukaryota; Metazoa; Nematoda; Chromadorea; Rhabditida; Rhabditoidea;
 OC   Rhabditidae; Peloderinae; Caenorhabditis.
@@ -1544,11 +1544,11 @@ CC   -!- ALTERNATIVE PRODUCTS:
 CC       Event=Alternative splicing; Named isoforms=3;
 CC         Comment=Additional isoforms seem to exist. Experimental
 CC         confirmation may be lacking for some isoforms;
-CC       Name=1; Synonyms=AIRE-1;
+CC       name=1; Synonyms=AIRE-1;
 CC         IsoId=O43918-1; Sequence=Displayed;
-CC       Name=2; Synonyms=AIRE-2;
+CC       name=2; Synonyms=AIRE-2;
 CC         IsoId=O43918-2; Sequence=VSP_004089;
-CC       Name=3; Synonyms=AIRE-3;
+CC       name=3; Synonyms=AIRE-3;
 CC         IsoId=O43918-3; Sequence=VSP_004089, VSP_004090;
 CC   -!- BIOPHYSICOCHEMICAL PROPERTIES:
 CC       Kinetic parameters:

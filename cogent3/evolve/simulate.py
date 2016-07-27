@@ -104,19 +104,19 @@ class AlignmentEvolver(object):
         if self.exclude_internal and parent.Children:
             simulated_sequences = {}
         else:
-            simulated_sequences = {parent.Name: ''.join(parent_seq)}
+            simulated_sequences = {parent.name: ''.join(parent_seq)}
 
         for edge in parent.Children:
             # The result for this edge - a list of motifs
 
             # Keep original ambiguity codes
-            if edge.Name in self.orig_ambig:
-                orig_seq_ambig = self.orig_ambig[edge.Name]
+            if edge.name in self.orig_ambig:
+                orig_seq_ambig = self.orig_ambig[edge.name]
             else:
                 orig_seq_ambig = {}
 
             # Matrix of substitution probabilities
-            psubs = [self.psub_for(edge.Name, bin) for bin in self.bin_names]
+            psubs = [self.psub_for(edge.name, bin) for bin in self.bin_names]
 
             # Make the semi-random sequence for this edge.
             edge_seq = evolveSequence(self.random_series, self.motifs,

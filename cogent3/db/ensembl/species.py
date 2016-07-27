@@ -152,7 +152,7 @@ class SpeciesNameMap(dict):
             species = self._common_species[common]
             ensembl = self._species_ensembl[species]
             rows += [[common, species, ensembl]]
-        return str(Table(['Common Name', 'Species Name', 'Ensembl Db Prefix'],
+        return str(Table(['Common name', 'Species name', 'Ensembl Db Prefix'],
                          rows=rows, space=2).sorted())
 
     def __repr__(self):

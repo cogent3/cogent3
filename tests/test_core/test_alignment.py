@@ -44,8 +44,8 @@ class alignment_tests(TestCase):
 
     def test_seqs_from_model_seqs(self):
         """seqs_from_model_seqs should return model seqs + names."""
-        s1 = ModelSequence('ABC', Name='a')
-        s2 = ModelSequence('DEF', Name='b')
+        s1 = ModelSequence('ABC', name='a')
+        s2 = ModelSequence('DEF', name='b')
         obs_a, obs_labels = seqs_from_model_seqs([s1, s2])
         self.assertEqual(obs_a, [s1, s2])  # seq -> numbers
         self.assertEqual(obs_labels, ['a', 'b'])
@@ -92,8 +92,8 @@ class alignment_tests(TestCase):
 
     def test_aln_from_model_seqs(self):
         """aln_from_model_seqs should initialize aln from sequence objects."""
-        s1 = ModelSequence('ACC', Name='a', alphabet=RNA.alphabet)
-        s2 = ModelSequence('GGU', Name='b', alphabet=RNA.alphabet)
+        s1 = ModelSequence('ACC', name='a', alphabet=RNA.alphabet)
+        s2 = ModelSequence('GGU', name='b', alphabet=RNA.alphabet)
         obs_a, obs_labels = aln_from_model_seqs([s1, s2],
                                                 alphabet=BYTES.alphabet)
         self.assertEqual(obs_a, array([[2, 1, 1], [3, 3, 0]], 'b'))
@@ -261,9 +261,9 @@ class SequenceCollectionBaseTests(object):
 
     def test_init_annotated_seq(self):
         """SequenceCollection init from seqs w/ Info should preserve data"""
-        a = Sequence('AAA', Name='a', Info={'x': 3})
-        b = Sequence('CCC', Name='b', Info={'x': 4})
-        c = Sequence('GGG', Name='c', Info={'x': 5})
+        a = Sequence('AAA', name='a', Info={'x': 3})
+        b = Sequence('CCC', name='b', Info={'x': 4})
+        c = Sequence('GGG', name='c', Info={'x': 5})
         seqs = [c, b, a]
         a = self.Class(seqs)
         self.assertEqual(list(a.names), ['c', 'b', 'a'])
@@ -675,9 +675,9 @@ class SequenceCollectionBaseTests(object):
     def test_copy_annotations(self):
         """SequenceCollection copy_annotations should copy from seq objects"""
         aln = self.Class({'seq1': 'ACGU', 'seq2': 'CGUA', 'seq3': 'CCGU'})
-        seq_1 = Sequence('ACGU', Name='seq1')
+        seq_1 = Sequence('ACGU', name='seq1')
         seq_1.add_feature('xyz', 'abc', [(1, 2)])
-        seq_5 = Sequence('ACGUAAAAAA', Name='seq5')
+        seq_5 = Sequence('ACGUAAAAAA', name='seq5')
         seq_5.add_feature('xyzzz', 'abc', [(1, 2)])
         annot = {'seq1': seq_1, 'seq5': seq_5}
         aln.copy_annotations(annot)
@@ -688,7 +688,7 @@ class SequenceCollectionBaseTests(object):
         if not hasattr(aln_seq_2, 'annotations'):
             aln_seq_2 = aln_seq_2.data
         self.assertEqual(len(aln_seq_1.annotations), 1)
-        self.assertEqual(aln_seq_1.annotations[0].Name, 'abc')
+        self.assertEqual(aln_seq_1.annotations[0].name, 'abc')
         self.assertEqual(len(aln_seq_2.annotations), 0)
 
     def test_annotate_from_gff(self):
@@ -707,7 +707,7 @@ class SequenceCollectionBaseTests(object):
         if not hasattr(aln_seq_2, 'annotations'):
             aln_seq_2 = aln_seq_2.data
         self.assertEqual(len(aln_seq_1.annotations), 1)
-        self.assertEqual(aln_seq_1.annotations[0].Name, 'abc')
+        self.assertEqual(aln_seq_1.annotations[0].name, 'abc')
         self.assertEqual(len(aln_seq_2.annotations), 0)
 
     def test_replace_seqs(self):
@@ -1453,9 +1453,9 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
     def test_get_freqs(self):
         """DenseAlignment get_seq_freqs: should work on positions and sequences 
         """
-        s1 = DNA.Sequence('TCAG', Name='s1')
-        s2 = DNA.Sequence('CCAC', Name='s2')
-        s3 = DNA.Sequence('AGAT', Name='s3')
+        s1 = DNA.Sequence('TCAG', name='s1')
+        s2 = DNA.Sequence('CCAC', name='s2')
+        s3 = DNA.Sequence('AGAT', name='s3')
         da = DenseAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         seq_exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
         pos_exp = array([[1, 1, 1, 0], [0, 2, 0, 1],
@@ -1468,9 +1468,9 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         """
         exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
 
-        s1 = DNA.Sequence('TCAG', Name='s1')
-        s2 = DNA.Sequence('CCAC', Name='s2')
-        s3 = DNA.Sequence('AGAT', Name='s3')
+        s1 = DNA.Sequence('TCAG', name='s1')
+        s2 = DNA.Sequence('CCAC', name='s2')
+        s3 = DNA.Sequence('AGAT', name='s3')
         da = DenseAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = da.get_seq_freqs()
         self.assertEqual(obs.Data, exp)
@@ -1491,9 +1491,9 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         """
         exp = array([[1, 1, 1, 0], [0, 2, 0, 1], [0, 0, 3, 0], [1, 1, 0, 1]])
 
-        s1 = DNA.Sequence('TCAG', Name='s1')
-        s2 = DNA.Sequence('CCAC', Name='s2')
-        s3 = DNA.Sequence('AGAT', Name='s3')
+        s1 = DNA.Sequence('TCAG', name='s1')
+        s2 = DNA.Sequence('CCAC', name='s2')
+        s3 = DNA.Sequence('AGAT', name='s3')
         da = DenseAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = da.get_pos_freqs()
         self.assertEqual(obs.Data, exp)
@@ -1516,9 +1516,9 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
     def test_get_freqs(self):
         """Alignment _get_freqs: should work on positions and sequences 
         """
-        s1 = DNA.Sequence('TCAG', Name='s1')
-        s2 = DNA.Sequence('CCAC', Name='s2')
-        s3 = DNA.Sequence('AGAT', Name='s3')
+        s1 = DNA.Sequence('TCAG', name='s1')
+        s2 = DNA.Sequence('CCAC', name='s2')
+        s3 = DNA.Sequence('AGAT', name='s3')
         aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         seq_exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
         pos_exp = array([[1, 1, 1, 0], [0, 2, 0, 1],
@@ -1531,9 +1531,9 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         """
         exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
 
-        s1 = DNA.Sequence('TCAG', Name='s1')
-        s2 = DNA.Sequence('CCAC', Name='s2')
-        s3 = DNA.Sequence('AGAT', Name='s3')
+        s1 = DNA.Sequence('TCAG', name='s1')
+        s2 = DNA.Sequence('CCAC', name='s2')
+        s3 = DNA.Sequence('AGAT', name='s3')
         aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = aln.get_seq_freqs()
         self.assertEqual(obs.Data, exp)
@@ -1554,9 +1554,9 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         """
         exp = array([[1, 1, 1, 0], [0, 2, 0, 1], [0, 0, 3, 0], [1, 1, 0, 1]])
 
-        s1 = DNA.Sequence('TCAG', Name='s1')
-        s2 = DNA.Sequence('CCAC', Name='s2')
-        s3 = DNA.Sequence('AGAT', Name='s3')
+        s1 = DNA.Sequence('TCAG', name='s1')
+        s2 = DNA.Sequence('CCAC', name='s2')
+        s3 = DNA.Sequence('AGAT', name='s3')
         aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = aln.get_pos_freqs()
         self.assertEqual(obs.Data, exp)
@@ -1921,10 +1921,10 @@ class IntegrationTests(TestCase):
 
     def setUp(self):
         """Intialize some standard sequences"""
-        self.r1 = RNA.Sequence('AAA', Name='x')
-        self.r2 = RNA.Sequence('CCC', Name='y')
-        self.m1 = RNA.ModelSeq('AAA', Name='xx')
-        self.m2 = RNA.ModelSeq('CCC', Name='yy')
+        self.r1 = RNA.Sequence('AAA', name='x')
+        self.r2 = RNA.Sequence('CCC', name='y')
+        self.m1 = RNA.ModelSeq('AAA', name='xx')
+        self.m2 = RNA.ModelSeq('CCC', name='yy')
 
     def test_model_to_model(self):
         """Model seq should work with dense alignment"""
@@ -1932,7 +1932,7 @@ class IntegrationTests(TestCase):
         self.assertEqual(str(a), '>xx\nAAA\n>yy\nCCC\n')
         a = DenseAlignment([self.m1, self.m2], moltype=DNA)
         self.assertEqual(str(a), '>xx\nAAA\n>yy\nCCC\n')
-        self.assertEqual(self.m1.Name, 'xx')
+        self.assertEqual(self.m1.name, 'xx')
 
     def test_regular_to_model(self):
         """Regular seq should work with dense alignment"""
@@ -1940,7 +1940,7 @@ class IntegrationTests(TestCase):
         self.assertEqual(str(a), '>x\nAAA\n>y\nCCC\n')
         a = DenseAlignment([self.r1, self.r2], moltype=DNA)
         self.assertEqual(str(a), '>x\nAAA\n>y\nCCC\n')
-        self.assertEqual(self.r1.Name, 'x')
+        self.assertEqual(self.r1.name, 'x')
 
     def test_model_to_regular(self):
         """Model seq should work with regular alignment"""
@@ -1948,7 +1948,7 @@ class IntegrationTests(TestCase):
         self.assertEqual(str(a), '>xx\nAAA\n>yy\nCCC\n')
         a = Alignment([self.m1, self.m2], moltype=DNA)
         self.assertEqual(str(a), '>xx\nAAA\n>yy\nCCC\n')
-        self.assertEqual(self.m1.Name, 'xx')
+        self.assertEqual(self.m1.name, 'xx')
 
     def test_regular_to_regular(self):
         """Regular seq should work with regular alignment"""
@@ -1956,7 +1956,7 @@ class IntegrationTests(TestCase):
         self.assertEqual(str(a), '>x\nAAA\n>y\nCCC\n')
         a = Alignment([self.r1, self.r2], moltype=DNA)
         self.assertEqual(str(a), '>x\nAAA\n>y\nCCC\n')
-        self.assertEqual(self.r1.Name, 'x')
+        self.assertEqual(self.r1.name, 'x')
 
     def test_model_aln_to_regular_aln(self):
         """Dense aln should convert to regular aln"""
@@ -1965,7 +1965,7 @@ class IntegrationTests(TestCase):
         self.assertEqual(str(d), '>x\nAAA\n>y\nCCC\n')
         d = Alignment(a, moltype=DNA)
         self.assertEqual(str(d), '>x\nAAA\n>y\nCCC\n')
-        self.assertEqual(self.r1.Name, 'x')
+        self.assertEqual(self.r1.name, 'x')
 
     def test_regular_aln_to_model_aln(self):
         """Regular aln should convert to model aln"""
@@ -1974,7 +1974,7 @@ class IntegrationTests(TestCase):
         self.assertEqual(str(d), '>x\nAAA\n>y\nCCC\n')
         d = DenseAlignment(a, moltype=DNA)
         self.assertEqual(str(d), '>x\nAAA\n>y\nCCC\n')
-        self.assertEqual(self.r1.Name, 'x')
+        self.assertEqual(self.r1.name, 'x')
 
     def test_regular_aln_to_regular_aln(self):
         """Regular aln should convert to regular aln"""
@@ -1983,7 +1983,7 @@ class IntegrationTests(TestCase):
         self.assertEqual(str(d), '>x\nAAA\n>y\nCCC\n')
         d = Alignment(a, moltype=DNA)
         self.assertEqual(str(d), '>x\nAAA\n>y\nCCC\n')
-        self.assertEqual(self.r1.Name, 'x')
+        self.assertEqual(self.r1.name, 'x')
 
     def test_model_aln_to_model_aln(self):
         """Model aln should convert to model aln"""
@@ -1992,7 +1992,7 @@ class IntegrationTests(TestCase):
         self.assertEqual(str(d), '>x\nAAA\n>y\nCCC\n')
         d = Alignment(a, moltype=DNA)
         self.assertEqual(str(d), '>x\nAAA\n>y\nCCC\n')
-        self.assertEqual(self.r1.Name, 'x')
+        self.assertEqual(self.r1.name, 'x')
 
 
 # run tests if invoked from command line

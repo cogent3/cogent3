@@ -19,7 +19,7 @@ class DbRefTests(TestCase):
 
     def setUp(self):
         """Define a standard DbRef object"""
-        self.data = dict(Accession='xyz', Db='abc', Name='qwe', Description='blah',
+        self.data = dict(Accession='xyz', Db='abc', name='qwe', Description='blah',
                          Data=list(range(20)))
         self.db = DbRef(**self.data)
 
@@ -28,7 +28,7 @@ class DbRefTests(TestCase):
         d = DbRef('abc')
         self.assertEqual(d.Accession, 'abc')
         self.assertEqual(d.Db, '')
-        self.assertEqual(d.Name, '')
+        self.assertEqual(d.name, '')
         self.assertEqual(d.Description, '')
         self.assertEqual(d.Data, None)
         # empty init not allowed
