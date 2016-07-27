@@ -130,7 +130,7 @@ class LikelihoodFunction(ParameterController):
             seqs += [(edge, self.model.moltype.make_sequence("".join(seq)))]
         return Alignment(data=seqs, moltype=self.model.moltype)
 
-    def getBinProbs(self, locus=None):
+    def get_bin_probs(self, locus=None):
         hmm = self.get_param_value('bindex', locus=locus)
         lhs = [self.get_param_value('lh', locus=locus, bin=bin)
                for bin in self.bin_names]
