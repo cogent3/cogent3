@@ -628,7 +628,7 @@ class Sequence(_Annotatable, SequenceI):
                     seg = ''.join(seg)
             yield seg
 
-    def gapped_by_mapMotifIter(self, map):
+    def gapped_by_map_motif_iter(self, map):
         for segment in self.gapped_by_mapSegmentIter(map):
             for motif in segment:
                 yield motif

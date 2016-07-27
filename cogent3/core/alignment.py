@@ -1557,7 +1557,7 @@ class Aligned(object):
 
     def __iter__(self):
         """Iterates over sequence one motif (e.g. char) at a time, incl. gaps"""
-        return self.data.gapped_by_mapMotifIter(self.map)
+        return self.data.gapped_by_map_motif_iter(self.map)
 
     def get_gapped_seq(self, recode_gaps=False):
         """Returns sequence as an object, including gaps."""
