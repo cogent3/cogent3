@@ -125,7 +125,7 @@ class TreeEvaluator(object):
     def results2output(self, results):
         return ScoredTreeCollection(results)
 
-    def evaluateTopology(self, tree):
+    def evaluate_topology(self, tree):
         """Optimal (score, tree) for the one topology 'tree'"""
         (ancestry, names, lengths) = tree2ancestry(tree)
         evaluate = self.make_tree_scorer(names)
