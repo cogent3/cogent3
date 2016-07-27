@@ -1689,7 +1689,7 @@ class PhyloNode(TreeNode):
         return sum([n.Length for n in self.traverse(include_self=False)
                     if n.Length is not None])
 
-    def tipsWithinDistance(self, distance):
+    def tips_within_distance(self, distance):
         """Returns tips within specified distance from self
 
         Branch lengths of None will be interpreted as 0

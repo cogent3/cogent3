@@ -1166,8 +1166,8 @@ class PhyloNodeTests(TestCase):
         obs = node_c.total_descending_branch_length()
         self.assertEqual(obs, exp)
 
-    def test_tipsWithinDistance(self):
-        """tipsWithinDistance returns tips that are within distance from self"""
+    def test_tips_within_distance(self):
+        """tips_within_distance returns tips that are within distance from self"""
         t_str = "(A:1,B:2,(C:3,D:3)E:2,(F,((G:1,H:2)I:2)J:3)K:2)L;"
         t = DndParser(t_str, constructor=PhyloNode)
         nodes = t.get_nodes_dict()
@@ -1177,23 +1177,23 @@ class PhyloNodeTests(TestCase):
         exp_at_dist_3 = ['A', 'C', 'D']
         exp_at_dist_4 = ['A', 'B', 'C', 'D', 'F']
 
-        obs_at_dist_2 = sorted([n.name for n in e_node.tipsWithinDistance(2)])
-        obs_at_dist_3 = sorted([n.name for n in e_node.tipsWithinDistance(3)])
-        obs_at_dist_4 = sorted([n.name for n in e_node.tipsWithinDistance(4)])
+        obs_at_dist_2 = sorted([n.name for n in e_node.tips_within_distance(2)])
+        obs_at_dist_3 = sorted([n.name for n in e_node.tips_within_distance(3)])
+        obs_at_dist_4 = sorted([n.name for n in e_node.tips_within_distance(4)])
 
         self.assertEqual(obs_at_dist_2, exp_at_dist_2)
         self.assertEqual(obs_at_dist_3, exp_at_dist_3)
         self.assertEqual(obs_at_dist_4, exp_at_dist_4)
 
-    def test_tipsWithinDistance_nodistances(self):
-        """tipsWithinDistance returns tips that are within distance from self"""
+    def test_tips_within_distance_nodistances(self):
+        """tips_within_distance returns tips that are within distance from self"""
         t_str = "(A,B,(C,D)E,(F,((G,H)I)J)K)L;"
         t = DndParser(t_str, constructor=PhyloNode)
         nodes = t.get_nodes_dict()
         e_node = nodes['E']
 
         exp = sorted([n.name for n in t.tips()])
-        obs = sorted([n.name for n in e_node.tipsWithinDistance(0)])
+        obs = sorted([n.name for n in e_node.tips_within_distance(0)])
         self.assertEqual(obs, exp)
 
     def test_distance(self):
