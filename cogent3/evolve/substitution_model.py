@@ -71,7 +71,7 @@ def predicate2matrix(alphabet, pred, mask=None):
     return result
 
 
-def redundancyInPredicateMasks(preds):
+def redundancy_in_predicate_masks(preds):
     # Calculate the nullity of the predicates.  If non-zero
     # there is some redundancy and the model will be overparameterised.
     if len(preds) <= 1:
@@ -706,15 +706,15 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
             for (name, matrix) in list(predicate_masks.items()):
                 if numpy.alltrue((matrix == self._instantaneous_mask).flat):
                     raise ValueError("Predicate %s is always true." % name)
-            if redundancyInPredicateMasks(predicate_masks):
+            if redundancy_in_predicate_masks(predicate_masks):
                 raise ValueError("Redundancy in predicates.")
-            if redundancyInPredicateMasks(predicates_plus_scale):
+            if redundancy_in_predicate_masks(predicates_plus_scale):
                 raise ValueError("Some combination of predicates is"
                                  " equivalent to the overall rate parameter.")
         else:
-            if redundancyInPredicateMasks(predicate_masks):
+            if redundancy_in_predicate_masks(predicate_masks):
                 raise ValueError("Redundancy in predicates.")
-            if redundancyInPredicateMasks(predicates_plus_scale):
+            if redundancy_in_predicate_masks(predicates_plus_scale):
                 warnings.warn("do_scaling=True would be more efficient than"
                               " these overly general predicates")
 
