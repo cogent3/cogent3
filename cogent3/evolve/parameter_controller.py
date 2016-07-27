@@ -149,7 +149,7 @@ class _LikelihoodParameterController(_LF):
             is_constant = kwargs.pop('is_const')
             deprecated('argument', 'is_const', 'is_constant', 1.6)
 
-        motif_probs = self.model.adaptMotifProbs(motif_probs, auto=auto)
+        motif_probs = self.model.adapt_motif_probs(motif_probs, auto=auto)
         if is_constant is None:
             is_constant = not self.optimise_motif_probs
         self.model.setParamControllerMotifProbs(self, motif_probs,

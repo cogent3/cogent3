@@ -661,7 +661,7 @@ class Alphabet(Enumeration):
 
         return tuple(motif_set)
 
-    def adaptMotifProbs(self, motif_probs):
+    def adapt_motif_probs(self, motif_probs):
         """Prepare an array or dictionary of probabilities for use with
         this alphabet by checking size and order"""
         if hasattr(motif_probs, 'keys'):

@@ -202,7 +202,7 @@ class _SubstitutionModel(object):
             assert len(alphabet) == len(motif_probs)
             motif_probs = dict(list(zip(alphabet, motif_probs)))
         if motif_probs:
-            self.adaptMotifProbs(motif_probs)  # to check
+            self.adapt_motif_probs(motif_probs)  # to check
             self.motif_probs = motif_probs
             if motif_probs_from_data is None:
                 motif_probs_from_data = False
@@ -313,8 +313,8 @@ class _SubstitutionModel(object):
         # to retrieve the correct (adapted) alignment.
         return AlignmentAdaptDefn(model, align)
 
-    def adaptMotifProbs(self, motif_probs, auto=False):
-        return self.mprob_model.adaptMotifProbs(motif_probs, auto=auto)
+    def adapt_motif_probs(self, motif_probs, auto=False):
+        return self.mprob_model.adapt_motif_probs(motif_probs, auto=auto)
 
     def calcMonomerProbs(self, word_probs):
         # Not presently used, always go monomer->word instead
