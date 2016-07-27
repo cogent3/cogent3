@@ -1432,7 +1432,7 @@ class TreeNode(object):
         """set's the value for param at named edge"""
         self.get_node_matching_name(edge).params[param] = value
 
-    def reassignNames(self, mapping, nodes=None):
+    def reassign_names(self, mapping, nodes=None):
         """Reassigns node names based on a mapping dict
 
         mapping : dict, old_name -> new_name

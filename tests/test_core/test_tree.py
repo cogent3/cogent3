@@ -1008,22 +1008,22 @@ class TreeNodeTests(TestCase):
         self.assertEqual(result2,
                          array([[1, 0, 1, 1, 1], [1, 0, 1, 1, 0], [1, 0, 1, 1, 0], [0, 0, 0, 1, 0]]))
 
-    def test_reassignNames(self):
-        """reassignNames should rename node names based on dict mapping"""
+    def test_reassign_names(self):
+        """reassign_names should rename node names based on dict mapping"""
         t = self.TreeRoot
         mapping = dict([(x, str(i)) for i, x in enumerate('abfg')])
         exp_names = ['0', '1', '2', '3', 'c', 'd', 'e', 'h']
-        t.reassignNames(mapping)
+        t.reassign_names(mapping)
         obs_names = sorted(t.get_node_names())
         self.assertEqual(obs_names, exp_names)
 
-    def test_reassignNames_specific_nodes(self):
-        """reassignNames should rename nodes based on dict mapping"""
+    def test_reassign_names_specific_nodes(self):
+        """reassign_names should rename nodes based on dict mapping"""
         t = self.TreeRoot
         nodes = [self.TreeNode['a'], self.TreeNode['b']]
         mapping = dict([(x, str(i)) for i, x in enumerate('abfg')])
         exp_names = ['0', '1', 'c', 'd', 'e', 'f', 'g', 'h']
-        t.reassignNames(mapping, nodes)
+        t.reassign_names(mapping, nodes)
         obs_names = sorted(t.get_node_names())
         self.assertEqual(obs_names, exp_names)
 
