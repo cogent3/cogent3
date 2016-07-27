@@ -81,7 +81,7 @@ class LhtEdgeLookupDefn(CalculationDefn):
         return lht.getEdge(self.edge_name)
 
 
-def makePartialLikelihoodDefns(edge, lht, psubs, fixed_motifs):
+def make_partial_likelihood_defns(edge, lht, psubs, fixed_motifs):
     kw = {'edge_name': edge.name}
 
     if edge.istip():
@@ -90,7 +90,7 @@ def makePartialLikelihoodDefns(edge, lht, psubs, fixed_motifs):
         lht_edge = LhtEdgeLookupDefn(lht, **kw)
         children = []
         for child in edge.children:
-            child_plh = makePartialLikelihoodDefns(child, lht, psubs,
+            child_plh = make_partial_likelihood_defns(child, lht, psubs,
                                                    fixed_motifs)
             psub = psubs.select_from_dimension('edge', child.name)
             child_plh = CalcDefn(numpy.inner)(child_plh, psub)
@@ -146,7 +146,7 @@ def makeTotalLogLikelihoodDefn(tree, leaves, psubs, mprobs, bprobs, bin_names,
     parallel_context = NonParamDefn('parallel_context')
     lht = LikelihoodTreeAlignmentSplitterDefn(parallel_context, lht)
 
-    plh = makePartialLikelihoodDefns(tree, lht, psubs, fixed_motifs)
+    plh = make_partial_likelihood_defns(tree, lht, psubs, fixed_motifs)
 
     # After the root partial likelihoods have been calculated it remains to
     # sum over the motifs, local sites, other sites (ie: cpus), bins and loci.
