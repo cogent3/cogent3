@@ -197,7 +197,7 @@ class _SubstitutionModel(object):
         elif motif_probs_alignment is not None:
             assert not motif_probs, \
                 "Motif probs from alignment or provided but not both"
-            motif_probs = self.countMotifs(motif_probs_alignment)
+            motif_probs = self.count_motifs(motif_probs_alignment)
             motif_probs = motif_probs.astype(float) / sum(motif_probs)
             assert len(alphabet) == len(motif_probs)
             motif_probs = dict(list(zip(alphabet, motif_probs)))
@@ -303,8 +303,8 @@ class _SubstitutionModel(object):
         # columns stored once, so likelihoods only calc'd once
         return make_likelihood_tree_leaf(sequence, self.getAlphabet(), name)
 
-    def countMotifs(self, alignment, include_ambiguity=False):
-        return self.mprob_model.countMotifs(alignment,
+    def count_motifs(self, alignment, include_ambiguity=False):
+        return self.mprob_model.count_motifs(alignment,
                                             include_ambiguity, self.recode_gaps)
 
     def makeAlignmentDefn(self, model):

@@ -129,7 +129,7 @@ class _LikelihoodParameterController(_LF):
             is_constant = kwargs.pop('is_const')
             deprecated('argument', 'is_const', 'is_constant', 1.6)
 
-        counts = self.model.countMotifs(align,
+        counts = self.model.count_motifs(align,
                                         include_ambiguity=include_ambiguity)
         if is_constant is None:
             is_constant = not self.optimise_motif_probs
