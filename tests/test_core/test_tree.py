@@ -38,7 +38,7 @@ class TreeTests(TestCase):
         names = [i.name for i in t.tips()]
         self.assertEqual(names, ['a_a', 'b_b', 'c_c'])
         self.assertEqual(str(t), result_str)
-        self.assertEqual(t.getNewick(with_distances=True), result_str)
+        self.assertEqual(t.get_newick(with_distances=True), result_str)
         t_str = '(a_a:10.0,(b_b:2.0,c_c:4.0):5.0);'
         # NOTE: Tree silently converts spaces to underscores (only for output),
         # presumably for Newick compatibility.
@@ -48,7 +48,7 @@ class TreeTests(TestCase):
         names = [i.name for i in t.tips()]
         self.assertEqual(names, ['a a', 'b b', 'c c'])
         self.assertEqual(str(t), result_str)
-        self.assertEqual(t.getNewick(with_distances=True), result_str)
+        self.assertEqual(t.get_newick(with_distances=True), result_str)
 
 
 def _new_child(old_node, constructor):
@@ -146,14 +146,14 @@ class TreeNodeTests(TestCase):
         self.BigParent[-1].extend('abc')
         self.assertEqual(str(self.BigParent), '(0,1,2,3,4,5,6,7,8,(a,b,c)9)x;')
 
-    def test_getNewick(self):
+    def test_get_newick(self):
         """Should return Newick-style representation"""
-        self.assertEqual(self.Empty.getNewick(), ';')
-        self.assertEqual(self.OneChild.getNewick(), '(b)a;')
-        self.assertEqual(self.BigParent.getNewick(),
+        self.assertEqual(self.Empty.get_newick(), ';')
+        self.assertEqual(self.OneChild.get_newick(), '(b)a;')
+        self.assertEqual(self.BigParent.get_newick(),
                          '(0,1,2,3,4,5,6,7,8,9)x;')
         self.BigParent[-1].extend('abc')
-        self.assertEqual(self.BigParent.getNewick(),
+        self.assertEqual(self.BigParent.get_newick(),
                          '(0,1,2,3,4,5,6,7,8,(a,b,c)9)x;')
 
     def test_multifurcating(self):
@@ -164,21 +164,21 @@ class TreeNodeTests(TestCase):
         # can't break up easily... sorry 80char
         exp_str = "((a:1.0,(b:2.0,c:3.0):0.0)d:4.0,((e:5.0,(f:6.0,g:7.0):0.0)h:8.0,(i:9.0,(j:10.0,k:11.0):0.0)l:12.0):0.0)m:14.0;"
         obs = t.multifurcating(2)
-        self.assertEqual(obs.getNewick(with_distances=True), exp_str)
-        self.assertNotEqual(t.getNewick(with_distances=True),
-                            obs.getNewick(with_distances=True))
+        self.assertEqual(obs.get_newick(with_distances=True), exp_str)
+        self.assertNotEqual(t.get_newick(with_distances=True),
+                            obs.get_newick(with_distances=True))
 
         obs = t.multifurcating(2, 0.5)
         exp_str = "((a:1.0,(b:2.0,c:3.0):0.5)d:4.0,((e:5.0,(f:6.0,g:7.0):0.5)h:8.0,(i:9.0,(j:10.0,k:11.0):0.5)l:12.0):0.5)m:14.0;"
-        self.assertEqual(obs.getNewick(with_distances=True), exp_str)
+        self.assertEqual(obs.get_newick(with_distances=True), exp_str)
 
         t_str = "((a,b,c)d,(e,f,g)h,(i,j,k)l)m;"
         exp_str = "((a,(b,c))d,((e,(f,g))h,(i,(j,k))l))m;"
         t = DndParser(t_str, constructor=TreeNode)
         obs = t.multifurcating(2)
-        self.assertEqual(obs.getNewick(with_distances=True), exp_str)
+        self.assertEqual(obs.get_newick(with_distances=True), exp_str)
         obs = t.multifurcating(2, eps=10)  # no effect on TreeNode type
-        self.assertEqual(obs.getNewick(with_distances=True), exp_str)
+        self.assertEqual(obs.get_newick(with_distances=True), exp_str)
 
         self.assertRaises(TreeError, t.multifurcating, 1)
 
@@ -495,7 +495,7 @@ class TreeNodeTests(TestCase):
         self.assertEqual(t.XYZ, t2.XYZ)
         self.assertNotSameObj(t.XYZ, t2.XYZ)
 
-        self.assertEqual(t.getNewick(), t2.getNewick())
+        self.assertEqual(t.get_newick(), t2.get_newick())
 
         t_simple = TreeNode(['t'])
         u_simple = TreeNode(['u'])
@@ -1583,7 +1583,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         nasty = "( (A :1.0,'B (b)': 2) [com\nment]pair:3,'longer name''s':4)dash_ed;"
         nice = "((A:1.0,'B (b)':2.0)pair:3.0,'longer name''s':4.0)dash_ed;"
         tree = self._maketree(nasty)
-        tidied = tree.getNewick(with_distances=1)
+        tidied = tree.get_newick(with_distances=1)
         self.assertEqual(tidied, nice)
 
     # Likelihood Function Interface
@@ -1671,18 +1671,18 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         self.assertEqual(tree.get_newick_recursive(
             escape_name=False), quoted_name)
 
-    def test_getNewick(self):
+    def test_get_newick(self):
         orig = "((A:1.0,B:2.0)ab:3.0,((C:4.0,D:5.0)cd:6.0,E:7.0)cde:8.0)all;"
         unlen = "((A,B)ab,((C,D)cd,E)cde)all;"
         tree = self._maketree(orig)
-        self.assertEqual(tree.getNewick(with_distances=1), orig)
-        self.assertEqual(tree.getNewick(), unlen)
+        self.assertEqual(tree.get_newick(with_distances=1), orig)
+        self.assertEqual(tree.get_newick(), unlen)
 
         tree.name = "a'l"
         ugly_name = "((A,B)ab,((C,D)cd,E)cde)a'l;"
         ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a''l';"
-        self.assertEqual(tree.getNewick(escape_name=True), ugly_name_esc)
-        self.assertEqual(tree.getNewick(escape_name=False), ugly_name)
+        self.assertEqual(tree.get_newick(escape_name=True), ugly_name_esc)
+        self.assertEqual(tree.get_newick(escape_name=False), ugly_name)
 
         tree.name = "a_l"
         ugly_name = "((A,B)ab,((C,D)cd,E)cde)a_l;"
@@ -1701,9 +1701,9 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         tree.name = "'a l'"
         quoted_name = "((A,B)ab,((C,D)cd,E)cde)'a l';"
         quoted_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a l';"
-        self.assertEqual(tree.getNewick(escape_name=True),
+        self.assertEqual(tree.get_newick(escape_name=True),
                          quoted_name_esc)
-        self.assertEqual(tree.getNewick(escape_name=False), quoted_name)
+        self.assertEqual(tree.get_newick(escape_name=False), quoted_name)
 
     def test_XML(self):
         # should add some non-length parameters
@@ -1778,7 +1778,7 @@ class SmallTreeReshapeTestClass(TestCase):
     def test_reroot(self):
         tree = LoadTree(treestring="((a,b),(c,d),e)")
         tree2 = tree.rootedWithTip('b')
-        self.assertEqual(tree2.getNewick(), "(a,b,((c,d),e));")
+        self.assertEqual(tree2.get_newick(), "(a,b,((c,d),e));")
 
     def test_same_shape(self):
         """test topology assessment"""
@@ -1815,7 +1815,7 @@ class TestTree(TestCase):
         if hasattr(self, 'newick_sorted'):
             self.assertEqual(
                 self.newick_sorted,
-                new_tree.getNewick(with_distances=0))
+                new_tree.get_newick(with_distances=0))
 
     def test_getsubtree(self):
         """testing getting a subtree"""

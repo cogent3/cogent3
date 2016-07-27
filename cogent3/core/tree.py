@@ -94,11 +94,11 @@ class TreeNode(object):
 
         WARNING: Does not currently set the class to the right type.
         """
-        return 'Tree("%s")' % self.getNewick()
+        return 'Tree("%s")' % self.get_newick()
 
     def __str__(self):
         """Returns Newick-format string representation of tree."""
-        return self.getNewick()
+        return self.get_newick()
 
     # TODO have methods that need to rely on identity of self and
     # other actually do that
@@ -821,7 +821,7 @@ class TreeNode(object):
         """
         newick = []
 
-        subtrees = [child.getNewick(with_distances, semicolon=False)
+        subtrees = [child.get_newick(with_distances, semicolon=False)
                     for child in self.Children]
         if subtrees:
             newick.append("(%s)" % ",".join(subtrees))
@@ -848,7 +848,7 @@ class TreeNode(object):
 
         return ''.join(newick)
 
-    def getNewick(self, with_distances=False, semicolon=True, escape_name=True):
+    def get_newick(self, with_distances=False, semicolon=True, escape_name=True):
         """Return the newick string for this tree.
 
         Arguments:
@@ -1344,7 +1344,7 @@ class TreeNode(object):
         if xml:
             data = self.getXML()
         else:
-            data = self.getNewick(with_distances=with_distances)
+            data = self.get_newick(with_distances=with_distances)
         outf = open(filename, "w")
         outf.writelines(data)
         outf.close()
@@ -1650,12 +1650,12 @@ class PhyloNode(TreeNode):
 
     Length = property(_get_length, _set_length)
 
-    def getNewick(self, with_distances=False, semicolon=True, escape_name=True):
-        return TreeNode.getNewick(self, with_distances, semicolon, escape_name)
+    def get_newick(self, with_distances=False, semicolon=True, escape_name=True):
+        return TreeNode.get_newick(self, with_distances, semicolon, escape_name)
 
     def __str__(self):
         """Returns string version of self, with names and distances."""
-        return self.getNewick(with_distances=True)
+        return self.get_newick(with_distances=True)
 
     def distance(self, other):
         """Returns branch length between self and other."""

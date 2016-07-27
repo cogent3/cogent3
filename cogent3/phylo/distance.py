@@ -306,7 +306,7 @@ class EstimateDistances(object):
                         missing_data="*")
         return T
 
-    def getNewickTrees(self):
+    def get_newickTrees(self):
         """Returns a list of Newick format trees for supertree methods."""
         trees = []
         for comp_names, param_vals in list(self._param_ests.items()):

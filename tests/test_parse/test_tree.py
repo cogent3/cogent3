@@ -214,16 +214,16 @@ class DndParserTests(TestCase):
         self.assertEqual(tree_esc.Children[2].name, "'D_e'")
         self.assertEqual(tree_esc.Children[2].Length, 0.5)
 
-        reload_test = tree_esc.getNewick(with_distances=True,
+        reload_test = tree_esc.get_newick(with_distances=True,
                                          escape_name=False)
         obs = DndParser(reload_test, unescape_name=False)
-        self.assertEqual(obs.getNewick(with_distances=True),
-                         tree_esc.getNewick(with_distances=True))
-        reload_test = tree_unesc.getNewick(with_distances=True,
+        self.assertEqual(obs.get_newick(with_distances=True),
+                         tree_esc.get_newick(with_distances=True))
+        reload_test = tree_unesc.get_newick(with_distances=True,
                                            escape_name=False)
         obs = DndParser(reload_test, unescape_name=False)
-        self.assertEqual(obs.getNewick(with_distances=True),
-                         tree_unesc.getNewick(with_distances=True))
+        self.assertEqual(obs.get_newick(with_distances=True),
+                         tree_unesc.get_newick(with_distances=True))
 
 
 class PhyloNodeTests(TestCase):
