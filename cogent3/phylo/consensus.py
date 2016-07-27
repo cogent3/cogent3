@@ -63,14 +63,14 @@ def weighted_majority_rule(weighted_trees, strict=False, attr='support',
     doi:10.1093/molbev/msj061
     """
     if method == 'rooted':
-        return weightedRootedMajorityRule(weighted_trees, strict, attr)
+        return weighted_rooted_majority_rule(weighted_trees, strict, attr)
     elif method == 'unrooted':
         return weightedUnrootedMajorityRule(weighted_trees, strict, attr)
     else:
         raise ValueError('method must be "rooted" or "unrooted"')
 
 
-def weightedRootedMajorityRule(weighted_trees, strict=False, attr="support"):
+def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
     """See documentation for weighted_majority_rule"""
     cladecounts = {}
     edgelengths = {}
