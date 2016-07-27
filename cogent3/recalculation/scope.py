@@ -697,7 +697,7 @@ class ParameterController(object):
         posn = defn._getPosnForScope(*args, **kw)
         return callback(defn, posn)
 
-    def getFinalResult(self):
+    def get_final_result(self):
         return self.defns[-1].get_current_value_for_scope()
 
     def get_param_value_dict(self, dimensions, p=None, dropoff=None,
