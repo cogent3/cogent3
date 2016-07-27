@@ -494,17 +494,17 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('UUU').matrix_distance('CAC', m), 7)
         self.assertRaises(KeyError, self.RNA('UUU').matrix_distance, 'CAG', m)
 
-    def test_fracSame(self):
-        """Sequence fracSame should return similarity between sequences"""
+    def test_frac_same(self):
+        """Sequence frac_same should return similarity between sequences"""
         s1 = self.RNA('ACGU')
         s2 = self.RNA('AACG')
         s3 = self.RNA('GG')
         s4 = self.RNA('A')
         e = self.RNA('')
-        self.assertEqual(s1.fracSame(e), 0)
-        self.assertEqual(s1.fracSame(s2), 0.25)
-        self.assertEqual(s1.fracSame(s3), 0)
-        self.assertEqual(s1.fracSame(s4), 1.0)  # note truncation
+        self.assertEqual(s1.frac_same(e), 0)
+        self.assertEqual(s1.frac_same(s2), 0.25)
+        self.assertEqual(s1.frac_same(s3), 0)
+        self.assertEqual(s1.frac_same(s4), 1.0)  # note truncation
 
     def test_fracDiff(self):
         """Sequence fracDiff should return difference between sequences"""
