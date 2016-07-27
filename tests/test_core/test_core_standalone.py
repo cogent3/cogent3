@@ -595,19 +595,19 @@ class SequenceTestMethods(unittest.TestCase):
         # unless explicitly over-ride length issue using allow_partial
         seq2 = seq.withoutTerminalStopCodon(allow_partial=True)
 
-    def test_hasTerminalStop(self):
+    def test_has_terminal_stop(self):
         """test check for terminal stop codons"""
         seq = Sequence(DNA, seq='ACTTAA')
-        assert seq.hasTerminalStop() == True
+        assert seq.has_terminal_stop() == True
         seq = Sequence(DNA, seq='ACTTAT') == False
 
         # for sequence not divisible by 3
         seq = Sequence(DNA, seq='ACTTA')
         # fail
-        self.assertRaises(ValueError, seq.hasTerminalStop)
+        self.assertRaises(ValueError, seq.has_terminal_stop)
         # unless explicitly over-ride length issue using allow_partial
         # in which case, returns False
-        self.assertFalse(seq.hasTerminalStop(allow_partial=True))
+        self.assertFalse(seq.has_terminal_stop(allow_partial=True))
 
 if __name__ == '__main__':
     unittest.main()
