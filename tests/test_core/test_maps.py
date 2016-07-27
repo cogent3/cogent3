@@ -53,7 +53,7 @@ class MapTest(unittest.TestCase):
                 ((0, 10), "[0:5, 5:10]"),
                 ((10, 0), "[10:5, 5:0]"),
         ]:
-            r = repr(Span(start, end, Reverse=start > end).remapWith(map))
+            r = repr(Span(start, end, Reverse=start > end).remap_with(map))
             #print (start, end), r,
             if r != expected:
                 self.fail(repr((r, expected)))

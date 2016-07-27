@@ -195,15 +195,15 @@ class TestMapSpans(unittest.TestCase):
         length = 100
         forward = Span(20, 30)
         reverse = Span(70, 80, Reverse=True)
-        assert forward.reversedRelativeTo(100) == reverse
-        assert reverse.reversedRelativeTo(100) == forward
+        assert forward.reversed_relative_to(100) == reverse
+        assert reverse.reversed_relative_to(100) == forward
 
     def test_map(self):
         """reversing a map with multiple spans should preserve span relative
         order"""
         forward = [Span(20, 30), Span(40, 50)]
         fmap = Map(spans=forward, parent_length=100)
-        fmap_reversed = fmap.nucleicReversed()
+        fmap_reversed = fmap.nucleic_reversed()
         reverse = [Span(70, 80, Reverse=True), Span(50, 60, Reverse=True)]
         rmap = Map(spans=reverse, parent_length=100)
         for i in range(2):

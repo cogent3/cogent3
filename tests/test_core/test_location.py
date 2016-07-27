@@ -139,114 +139,114 @@ class SpanTests(TestCase):
         for i, j in zip(first, expected_order):
             self.assertSameObj(i, j)
 
-    def test_startsBefore(self):
-        """Span startsBefore should match hand-calculated results"""
+    def test_starts_before(self):
+        """Span starts_before should match hand-calculated results"""
         e, f = self.empty, self.full
-        self.assertTrue(e.startsBefore(f))
-        self.assertFalse(f.startsBefore(e))
-        self.assertTrue(e.startsBefore(1))
-        self.assertTrue(e.startsBefore(1000))
-        self.assertFalse(e.startsBefore(0))
-        self.assertFalse(e.startsBefore(-1))
-        self.assertFalse(f.startsBefore(30))
-        self.assertTrue(f.startsBefore(31))
-        self.assertTrue(f.startsBefore(1000))
+        self.assertTrue(e.starts_before(f))
+        self.assertFalse(f.starts_before(e))
+        self.assertTrue(e.starts_before(1))
+        self.assertTrue(e.starts_before(1000))
+        self.assertFalse(e.starts_before(0))
+        self.assertFalse(e.starts_before(-1))
+        self.assertFalse(f.starts_before(30))
+        self.assertTrue(f.starts_before(31))
+        self.assertTrue(f.starts_before(1000))
 
-    def test_startsAfter(self):
-        """Span startsAfter should match hand-calculated results"""
+    def test_starts_after(self):
+        """Span starts_after should match hand-calculated results"""
         e, f = self.empty, self.full
-        self.assertFalse(e.startsAfter(f))
-        self.assertTrue(f.startsAfter(e))
-        self.assertFalse(e.startsAfter(1))
-        self.assertFalse(e.startsAfter(1000))
-        self.assertFalse(e.startsAfter(0))
-        self.assertTrue(e.startsAfter(-1))
-        self.assertTrue(f.startsAfter(29))
-        self.assertFalse(f.startsAfter(30))
-        self.assertFalse(f.startsAfter(31))
-        self.assertFalse(f.startsAfter(1000))
+        self.assertFalse(e.starts_after(f))
+        self.assertTrue(f.starts_after(e))
+        self.assertFalse(e.starts_after(1))
+        self.assertFalse(e.starts_after(1000))
+        self.assertFalse(e.starts_after(0))
+        self.assertTrue(e.starts_after(-1))
+        self.assertTrue(f.starts_after(29))
+        self.assertFalse(f.starts_after(30))
+        self.assertFalse(f.starts_after(31))
+        self.assertFalse(f.starts_after(1000))
 
     def test_startsAt(self):
         """Span startsAt should return True if input matches"""
         e, f = self.empty, self.full
         s = Span(30, 1000)
-        self.assertTrue(e.startsAt(0))
-        self.assertTrue(f.startsAt(30))
-        self.assertTrue(s.startsAt(30))
-        self.assertTrue(f.startsAt(s))
-        self.assertTrue(s.startsAt(f))
-        self.assertFalse(e.startsAt(f))
-        self.assertFalse(e.startsAt(-1))
-        self.assertFalse(e.startsAt(1))
-        self.assertFalse(f.startsAt(29))
+        self.assertTrue(e.starts_at(0))
+        self.assertTrue(f.starts_at(30))
+        self.assertTrue(s.starts_at(30))
+        self.assertTrue(f.starts_at(s))
+        self.assertTrue(s.starts_at(f))
+        self.assertFalse(e.starts_at(f))
+        self.assertFalse(e.starts_at(-1))
+        self.assertFalse(e.starts_at(1))
+        self.assertFalse(f.starts_at(29))
 
     def test_startsInside(self):
         """Span startsInside should return True if input starts inside span"""
         e, f, i, o = self.empty, self.full, self.inside, self.overlapping
-        self.assertFalse(e.startsInside(0))
-        self.assertFalse(f.startsInside(30))
-        self.assertFalse(e.startsInside(f))
-        self.assertTrue(i.startsInside(f))
-        self.assertFalse(f.startsInside(i))
-        self.assertTrue(o.startsInside(f))
-        self.assertFalse(o.endsInside(i))
+        self.assertFalse(e.starts_inside(0))
+        self.assertFalse(f.starts_inside(30))
+        self.assertFalse(e.starts_inside(f))
+        self.assertTrue(i.starts_inside(f))
+        self.assertFalse(f.starts_inside(i))
+        self.assertTrue(o.starts_inside(f))
+        self.assertFalse(o.ends_inside(i))
 
     def test_endsBefore(self):
         """Span endsBefore should match hand-calculated results"""
         e, f = self.empty, self.full
-        self.assertTrue(e.endsBefore(f))
-        self.assertFalse(f.endsBefore(e))
-        self.assertTrue(e.endsBefore(1))
-        self.assertTrue(e.endsBefore(1000))
-        self.assertFalse(e.endsBefore(0))
-        self.assertFalse(e.endsBefore(-1))
-        self.assertFalse(f.endsBefore(30))
-        self.assertFalse(f.endsBefore(31))
-        self.assertTrue(f.endsBefore(1000))
+        self.assertTrue(e.ends_before(f))
+        self.assertFalse(f.ends_before(e))
+        self.assertTrue(e.ends_before(1))
+        self.assertTrue(e.ends_before(1000))
+        self.assertFalse(e.ends_before(0))
+        self.assertFalse(e.ends_before(-1))
+        self.assertFalse(f.ends_before(30))
+        self.assertFalse(f.ends_before(31))
+        self.assertTrue(f.ends_before(1000))
 
     def test_endsAfter(self):
         """Span endsAfter should match hand-calculated results"""
         e, f = self.empty, self.full
-        self.assertFalse(e.endsAfter(f))
-        self.assertTrue(f.endsAfter(e))
-        self.assertFalse(e.endsAfter(1))
-        self.assertFalse(e.endsAfter(1000))
-        self.assertFalse(e.endsAfter(0))
-        self.assertTrue(e.endsAfter(-1))
-        self.assertTrue(f.endsAfter(29))
-        self.assertTrue(f.endsAfter(30))
-        self.assertTrue(f.endsAfter(34))
-        self.assertFalse(f.endsAfter(35))
-        self.assertFalse(f.endsAfter(1000))
+        self.assertFalse(e.ends_after(f))
+        self.assertTrue(f.ends_after(e))
+        self.assertFalse(e.ends_after(1))
+        self.assertFalse(e.ends_after(1000))
+        self.assertFalse(e.ends_after(0))
+        self.assertTrue(e.ends_after(-1))
+        self.assertTrue(f.ends_after(29))
+        self.assertTrue(f.ends_after(30))
+        self.assertTrue(f.ends_after(34))
+        self.assertFalse(f.ends_after(35))
+        self.assertFalse(f.ends_after(1000))
 
     def test_endsAt(self):
         """Span endsAt should return True if input matches"""
         e, f = self.empty, self.full
         s = Span(30, 1000)
         t = Span(-100, 35)
-        self.assertTrue(e.endsAt(0))
-        self.assertTrue(f.endsAt(35))
-        self.assertTrue(s.endsAt(1000))
-        self.assertFalse(f.endsAt(s))
-        self.assertFalse(s.endsAt(f))
-        self.assertTrue(f.endsAt(t))
-        self.assertTrue(t.endsAt(f))
+        self.assertTrue(e.ends_at(0))
+        self.assertTrue(f.ends_at(35))
+        self.assertTrue(s.ends_at(1000))
+        self.assertFalse(f.ends_at(s))
+        self.assertFalse(s.ends_at(f))
+        self.assertTrue(f.ends_at(t))
+        self.assertTrue(t.ends_at(f))
 
-    def test_endsInside(self):
-        """Span endsInside should return True if input ends inside span"""
+    def test_ends_inside(self):
+        """Span ends_inside should return True if input ends inside span"""
         e, f, i, o = self.empty, self.full, self.inside, self.overlapping
-        self.assertFalse(e.endsInside(0))
-        self.assertFalse(f.endsInside(30))
-        self.assertFalse(f.endsInside(34))
-        self.assertFalse(f.endsInside(35))
-        self.assertFalse(e.endsInside(f))
-        self.assertTrue(i.endsInside(f))
-        self.assertFalse(f.endsInside(i))
-        self.assertFalse(o.endsInside(f))
-        self.assertFalse(o.endsInside(i))
-        self.assertTrue(e.endsInside(Span(-1, 1)))
-        self.assertTrue(e.endsInside(Span(0, 1)))
-        self.assertFalse(e.endsInside(Span(-1, 0)))
+        self.assertFalse(e.ends_inside(0))
+        self.assertFalse(f.ends_inside(30))
+        self.assertFalse(f.ends_inside(34))
+        self.assertFalse(f.ends_inside(35))
+        self.assertFalse(e.ends_inside(f))
+        self.assertTrue(i.ends_inside(f))
+        self.assertFalse(f.ends_inside(i))
+        self.assertFalse(o.ends_inside(f))
+        self.assertFalse(o.ends_inside(i))
+        self.assertTrue(e.ends_inside(Span(-1, 1)))
+        self.assertTrue(e.ends_inside(Span(0, 1)))
+        self.assertFalse(e.ends_inside(Span(-1, 0)))
 
 
 class RangeInterfaceTests(object):  # SpanTests):
@@ -407,11 +407,11 @@ class RangeTests(TestCase):
 
     def test_overlapsExtent(self):
         """Range overlapsExtent should return true for interleaved ranges"""
-        self.assertTrue(self.two.overlapsExtent(self.three))
-        self.assertTrue(self.three.overlapsExtent(self.two))
-        self.assertFalse(self.single.overlapsExtent(self.two))
-        self.assertFalse(self.single.overlapsExtent(self.three))
-        self.assertTrue(self.one.overlapsExtent(self.three))
+        self.assertTrue(self.two.overlaps_extent(self.three))
+        self.assertTrue(self.three.overlaps_extent(self.two))
+        self.assertFalse(self.single.overlaps_extent(self.two))
+        self.assertFalse(self.single.overlaps_extent(self.three))
+        self.assertTrue(self.one.overlaps_extent(self.three))
 
     def test_sort(self):
         """Range sort should sort component spans"""

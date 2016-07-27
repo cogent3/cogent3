@@ -164,7 +164,7 @@ class _Annotatable(object):
         assert len(new) == len(self)
         annotations = []
         for annot in self.annotations:
-            new_map = annot.map.nucleicReversed()
+            new_map = annot.map.nucleic_reversed()
             annotations.append(annot.__class__(new, new_map, annot))
         new.attach_annotations(annotations)
 
@@ -207,7 +207,7 @@ class _Feature(_Annotatable):
         then this method will fail."""
         map = self.base_map
         if not (complete or map.complete):
-            map = map.withoutGaps()
+            map = map.without_gaps()
         return self.base[map]
 
     def without_lost_spans(self):
@@ -222,7 +222,7 @@ class _Feature(_Annotatable):
         return new
 
     def as_one_span(self):
-        new_map = self.map.getCoveringSpan()
+        new_map = self.map.get_covering_span()
         return self.__class__(self.parent, new_map, type="span", Name=self.Name)
 
     def get_shadow(self):
