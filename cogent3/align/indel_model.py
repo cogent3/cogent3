@@ -14,7 +14,7 @@ __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
 
-def PairTransitionMatrix(order, a):
+def pair_transition_matrix(order, a):
     """A matrix for Pair HMMs with gap states X and Y, match state M,
     and optionally a silent wait state W"""
     size = len(order)
@@ -33,7 +33,7 @@ def ClassicGapScores(d, e):
         [d, d, 0]])
     T = numpy.exp(-1.0 * C)
     T = T / numpy.sum(T, axis=1)[..., numpy.newaxis]
-    return PairTransitionMatrix('XYM', T)
+    return pair_transition_matrix('XYM', T)
 
 
 class _SimpleIndelParams(object):
@@ -58,7 +58,7 @@ class SimpleIndelModel(_SimpleIndelParams):
             [1 - e, 0, e, 0],
             [1 - g, 0, 0, g],
         ])
-        return PairTransitionMatrix('WXYM', T).withoutSilentStates()
+        return pair_transition_matrix('WXYM', T).withoutSilentStates()
 
 
 class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
@@ -120,4 +120,4 @@ class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
         if(min(tm.flat) < 0):
             raise ValueError
 
-        return PairTransitionMatrix('MXY', tm)
+        return pair_transition_matrix('MXY', tm)
