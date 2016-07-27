@@ -222,7 +222,7 @@ class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
                 exponent -= 1
         return numpy.log(sum(state_probs)) + exponent * self.LOG_BASE
 
-    def getTotalLogLikelihood(self, input_likelihoods, mprobs):
+    def get_total_log_likelihood(self, input_likelihoods, mprobs):
         lhs = numpy.inner(input_likelihoods, mprobs)
         return self.getLogSumAcrossSites(lhs)
 
@@ -244,8 +244,8 @@ class _PyxLikelihoodTreeEdge(_LikelihoodTreeEdge):
         (self, plhs) = self.parallel_reconstruct_columns(plhs)
         return pyrex.log_dot_reduce(self.index, patch_probs, switch_probs, plhs)
 
-    def getTotalLogLikelihood(self, input_likelihoods, mprobs):
-        return pyrex.getTotalLogLikelihood(self.counts, input_likelihoods,
+    def get_total_log_likelihood(self, input_likelihoods, mprobs):
+        return pyrex.get_total_log_likelihood(self.counts, input_likelihoods,
                                            mprobs)
 
     def getLogSumAcrossSites(self, lhs):

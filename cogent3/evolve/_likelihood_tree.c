@@ -1411,13 +1411,13 @@ static const char __pyx_k_most_probable_state[] = "most_probable_state";
 static const char __pyx_k_getLogSumAcrossSites[] = "getLogSumAcrossSites";
 static const char __pyx_k_strided_and_indirect[] = "<strided and indirect>";
 static const char __pyx_k_contiguous_and_direct[] = "<contiguous and direct>";
-static const char __pyx_k_getTotalLogLikelihood[] = "getTotalLogLikelihood";
 static const char __pyx_k_sum_input_likelihoods[] = "sum_input_likelihoods";
 static const char __pyx_k_MemoryView_of_r_object[] = "<MemoryView of %r object>";
 static const char __pyx_k_Array_required_got_None[] = "Array required, got None";
 static const char __pyx_k_MemoryView_of_r_at_0x_x[] = "<MemoryView of %r at 0x%x>";
 static const char __pyx_k_contiguous_and_indirect[] = "<contiguous and indirect>";
 static const char __pyx_k_Cannot_index_with_type_s[] = "Cannot index with type '%s'";
+static const char __pyx_k_get_total_log_likelihood[] = "get_total_log_likelihood";
 static const char __pyx_k_s_dimension_is_s_too_big[] = "%s dimension is %s, too big";
 static const char __pyx_k_Invalid_shape_in_axis_d_d[] = "Invalid shape in axis %d: %d.";
 static const char __pyx_k_itemsize_0_for_cython_array[] = "itemsize <= 0 for cython.array";
@@ -1488,7 +1488,7 @@ static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_fortran;
 static PyObject *__pyx_n_u_fortran;
 static PyObject *__pyx_n_s_getLogSumAcrossSites;
-static PyObject *__pyx_n_s_getTotalLogLikelihood;
+static PyObject *__pyx_n_s_get_total_log_likelihood;
 static PyObject *__pyx_kp_s_got_differing_extents_in_dimensi;
 static PyObject *__pyx_n_s_i;
 static PyObject *__pyx_n_s_id;
@@ -1546,7 +1546,7 @@ static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_version;
 static PyObject *__pyx_n_s_version_info;
 static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_sum_input_likelihoods(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_child_indexes, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_result, PyObject *__pyx_v_likelihoods); /* proto */
-static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_2getTotalLogLikelihood(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_input_likelihoods, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_mprobs); /* proto */
+static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_2get_total_log_likelihood(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_input_likelihoods, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_mprobs); /* proto */
 static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_4getLogSumAcrossSites(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_input_likelihoods); /* proto */
 static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_6log_dot_reduce(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Long1D __pyx_v_index, PyObject *__pyx_v_patch_probs, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_switch_probs, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_plhs); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
@@ -2703,7 +2703,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_sum_input_likeliho
  *                     result[parent_col, motif] *= plhs[child_col, motif]
  *     return result             # <<<<<<<<<<<<<<
  * 
- * def getTotalLogLikelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):
+ * def get_total_log_likelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_result, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 39, __pyx_L1_error)
@@ -2739,21 +2739,21 @@ static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_sum_input_likeliho
 /* "cogent3/evolve/_likelihood_tree.pyx":41
  *     return result
  * 
- * def getTotalLogLikelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):             # <<<<<<<<<<<<<<
+ * def get_total_log_likelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):             # <<<<<<<<<<<<<<
  *     cdef int S, M, col, motif
  *     cdef double posn, total
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_3getTotalLogLikelihood(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_7cogent3_6evolve_16_likelihood_tree_3getTotalLogLikelihood = {"getTotalLogLikelihood", (PyCFunction)__pyx_pw_7cogent3_6evolve_16_likelihood_tree_3getTotalLogLikelihood, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_3getTotalLogLikelihood(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_3get_total_log_likelihood(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_7cogent3_6evolve_16_likelihood_tree_3get_total_log_likelihood = {"get_total_log_likelihood", (PyCFunction)__pyx_pw_7cogent3_6evolve_16_likelihood_tree_3get_total_log_likelihood, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_3get_total_log_likelihood(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts = { 0, 0, { 0 }, { 0 }, { 0 } };
   __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_input_likelihoods = { 0, 0, { 0 }, { 0 }, { 0 } };
   __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_mprobs = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("getTotalLogLikelihood (wrapper)", 0);
+  __Pyx_RefNannySetupContext("get_total_log_likelihood (wrapper)", 0);
   {
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_counts,&__pyx_n_s_input_likelihoods,&__pyx_n_s_mprobs,0};
     PyObject* values[3] = {0,0,0};
@@ -2775,16 +2775,16 @@ static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_3getTotalLogLikeli
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_input_likelihoods)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("getTotalLogLikelihood", 1, 3, 3, 1); __PYX_ERR(1, 41, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_total_log_likelihood", 1, 3, 3, 1); __PYX_ERR(1, 41, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_mprobs)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("getTotalLogLikelihood", 1, 3, 3, 2); __PYX_ERR(1, 41, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_total_log_likelihood", 1, 3, 3, 2); __PYX_ERR(1, 41, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "getTotalLogLikelihood") < 0)) __PYX_ERR(1, 41, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_total_log_likelihood") < 0)) __PYX_ERR(1, 41, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -2799,20 +2799,20 @@ static PyObject *__pyx_pw_7cogent3_6evolve_16_likelihood_tree_3getTotalLogLikeli
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("getTotalLogLikelihood", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 41, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_total_log_likelihood", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 41, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.getTotalLogLikelihood", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.get_total_log_likelihood", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_7cogent3_6evolve_16_likelihood_tree_2getTotalLogLikelihood(__pyx_self, __pyx_v_counts, __pyx_v_input_likelihoods, __pyx_v_mprobs);
+  __pyx_r = __pyx_pf_7cogent3_6evolve_16_likelihood_tree_2get_total_log_likelihood(__pyx_self, __pyx_v_counts, __pyx_v_input_likelihoods, __pyx_v_mprobs);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_2getTotalLogLikelihood(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_input_likelihoods, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_mprobs) {
+static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_2get_total_log_likelihood(CYTHON_UNUSED PyObject *__pyx_self, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_counts, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double2D __pyx_v_input_likelihoods, __pyx_t_7cogent3_6evolve_16_likelihood_tree_Double1D __pyx_v_mprobs) {
   int __pyx_v_S;
   int __pyx_v_M;
   int __pyx_v_col;
@@ -2830,7 +2830,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_2getTotalLogLikeli
   Py_ssize_t __pyx_t_7;
   Py_ssize_t __pyx_t_8;
   PyObject *__pyx_t_9 = NULL;
-  __Pyx_RefNannySetupContext("getTotalLogLikelihood", 0);
+  __Pyx_RefNannySetupContext("get_total_log_likelihood", 0);
 
   /* "cogent3/evolve/_likelihood_tree.pyx":46
  * 
@@ -2950,7 +2950,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_2getTotalLogLikeli
   /* "cogent3/evolve/_likelihood_tree.pyx":41
  *     return result
  * 
- * def getTotalLogLikelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):             # <<<<<<<<<<<<<<
+ * def get_total_log_likelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):             # <<<<<<<<<<<<<<
  *     cdef int S, M, col, motif
  *     cdef double posn, total
  */
@@ -2958,7 +2958,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_16_likelihood_tree_2getTotalLogLikeli
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_9);
-  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.getTotalLogLikelihood", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("cogent3.evolve._likelihood_tree.get_total_log_likelihood", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_counts, 1);
@@ -16067,7 +16067,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 0, 1, 1},
   {&__pyx_n_u_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 1, 0, 1},
   {&__pyx_n_s_getLogSumAcrossSites, __pyx_k_getLogSumAcrossSites, sizeof(__pyx_k_getLogSumAcrossSites), 0, 0, 1, 1},
-  {&__pyx_n_s_getTotalLogLikelihood, __pyx_k_getTotalLogLikelihood, sizeof(__pyx_k_getTotalLogLikelihood), 0, 0, 1, 1},
+  {&__pyx_n_s_get_total_log_likelihood, __pyx_k_get_total_log_likelihood, sizeof(__pyx_k_get_total_log_likelihood), 0, 0, 1, 1},
   {&__pyx_kp_s_got_differing_extents_in_dimensi, __pyx_k_got_differing_extents_in_dimensi, sizeof(__pyx_k_got_differing_extents_in_dimensi), 0, 0, 1, 0},
   {&__pyx_n_s_i, __pyx_k_i, sizeof(__pyx_k_i), 0, 0, 1, 1},
   {&__pyx_n_s_id, __pyx_k_id, sizeof(__pyx_k_id), 0, 0, 1, 1},
@@ -16341,14 +16341,14 @@ static int __Pyx_InitCachedConstants(void) {
   /* "cogent3/evolve/_likelihood_tree.pyx":41
  *     return result
  * 
- * def getTotalLogLikelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):             # <<<<<<<<<<<<<<
+ * def get_total_log_likelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):             # <<<<<<<<<<<<<<
  *     cdef int S, M, col, motif
  *     cdef double posn, total
  */
   __pyx_tuple__20 = PyTuple_Pack(9, __pyx_n_s_counts, __pyx_n_s_input_likelihoods, __pyx_n_s_mprobs, __pyx_n_s_S, __pyx_n_s_M, __pyx_n_s_col, __pyx_n_s_motif, __pyx_n_s_posn, __pyx_n_s_total); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(1, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__20);
   __Pyx_GIVEREF(__pyx_tuple__20);
-  __pyx_codeobj__21 = (PyObject*)__Pyx_PyCode_New(3, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_gavin_DevRepos_PyCogent3, __pyx_n_s_getTotalLogLikelihood, 41, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(1, 41, __pyx_L1_error)
+  __pyx_codeobj__21 = (PyObject*)__Pyx_PyCode_New(3, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_gavin_DevRepos_PyCogent3, __pyx_n_s_get_total_log_likelihood, 41, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(1, 41, __pyx_L1_error)
 
   /* "cogent3/evolve/_likelihood_tree.pyx":59
  *     return total
@@ -16616,13 +16616,13 @@ PyMODINIT_FUNC PyInit__likelihood_tree(void)
   /* "cogent3/evolve/_likelihood_tree.pyx":41
  *     return result
  * 
- * def getTotalLogLikelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):             # <<<<<<<<<<<<<<
+ * def get_total_log_likelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):             # <<<<<<<<<<<<<<
  *     cdef int S, M, col, motif
  *     cdef double posn, total
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_6evolve_16_likelihood_tree_3getTotalLogLikelihood, NULL, __pyx_n_s_cogent3_evolve__likelihood_tree); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 41, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_6evolve_16_likelihood_tree_3get_total_log_likelihood, NULL, __pyx_n_s_cogent3_evolve__likelihood_tree); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getTotalLogLikelihood, __pyx_t_1) < 0) __PYX_ERR(1, 41, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_total_log_likelihood, __pyx_t_1) < 0) __PYX_ERR(1, 41, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "cogent3/evolve/_likelihood_tree.pyx":59
