@@ -206,7 +206,7 @@ def getSplits(tree):
         warnings.warn('tree is rooted - will return splits for unrooted tree')
 
     def getTipsAndSplits(tree):
-        if tree.isTip():
+        if tree.is_tip():
             return ({frozenset([tree.name]): {'length': tree.Length}},
                     [tree.name])
 
