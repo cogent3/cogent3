@@ -1898,11 +1898,11 @@ class DenseAlignmentSpecificTests(TestCase):
         e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
         self.assertFloatEqual(f, array([1, 0, e]))
 
-    def test_getPosEntropy(self):
-        """DenseAlignment getPosEntropy should get entropy of each pos"""
+    def test_get_pos_entropy(self):
+        """DenseAlignment get_pos_entropy should get entropy of each pos"""
         ABModelSequence = self.ABModelSequence
         a = self.a
-        f = a.getPosEntropy()
+        f = a.get_pos_entropy()
         e = array([0, 0, 1, 1])
         self.assertEqual(f, e)
 
