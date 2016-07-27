@@ -39,7 +39,7 @@ We want to know the bin probabilities and the posterior probabilities.
 
 .. doctest::
     
-    >>> bprobs = [t for t in lf.getStatistics() if 'bin' in t.title][0]
+    >>> bprobs = [t for t in lf.get_statistics() if 'bin' in t.title][0]
 
 Print the ``bprobs`` sorted by ``'rate'`` will generate a table like
 
