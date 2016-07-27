@@ -392,9 +392,9 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
             leaf = AlignableSeq(leaf)
             leaves[name] = leaf
             assert name != "root", "'root' is a reserved name."
-        self.setPogs(leaves, locus=locus)
+        self.set_pogs(leaves, locus=locus)
 
-    def setPogs(self, leaves, locus=None):
+    def set_pogs(self, leaves, locus=None):
         with self.updatesPostponed():
             for (name, pog) in list(leaves.items()):
                 self.set_param_rule('leaf', edge=name,
