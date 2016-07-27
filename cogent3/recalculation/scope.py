@@ -236,7 +236,7 @@ class _Defn(object):
             value = self.array_template.unwrap(value)
         return value
 
-    def getCurrentValueForScope(self, *args, **scope):
+    def get_current_value_for_scope(self, *args, **scope):
         posn = self._getPosnForScope(*args, **scope)
         return self.wrap_value(self.values[posn])
 
@@ -698,7 +698,7 @@ class ParameterController(object):
         return callback(defn, posn)
 
     def getFinalResult(self):
-        return self.defns[-1].getCurrentValueForScope()
+        return self.defns[-1].get_current_value_for_scope()
 
     def get_param_value_dict(self, dimensions, p=None, dropoff=None,
                           params=None, xtol=None):
