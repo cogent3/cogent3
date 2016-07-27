@@ -81,7 +81,7 @@ class LikelihoodFunction(ParameterController):
         """Goodness-of-fit statistic derived from the unambiguous columns"""
         root_lh = self._getLikelihoodValuesSummedAcrossAnyBins(locus=locus)
         root_lht = self.get_param_value('root', locus=locus)
-        return root_lht.calcGStatistic(root_lh, return_table)
+        return root_lht.calc_G_statistic(root_lh, return_table)
 
     def reconstruct_ancestral_seqs(self, locus=None):
         """returns a dict of DictArray objects containing probabilities
