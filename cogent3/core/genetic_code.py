@@ -253,7 +253,7 @@ class GeneticCode(object):
         fixed_codon = codon.upper().replace('U', 'T')
         return fixed_codon in self.StartCodons
 
-    def isStop(self, codon):
+    def is_stop(self, codon):
         """Returns True if codon is a stop codon, False otherwise."""
         return self[codon] == '*'
 
