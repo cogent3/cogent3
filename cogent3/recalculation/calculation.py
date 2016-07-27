@@ -143,7 +143,7 @@ class EvaluatedCell(object):
             for data in data_sets:
                 self.update(data)
 
-    def reportError(self, detail, data):
+    def report_error(self, detail, data):
         self.failure_count += 1
         if self.failure_count <= 5:
             print(("%s in calculating %s:",
@@ -520,7 +520,7 @@ class Calculator(object):
             raise CalculationInterupted(cell, detail)
         except ArithmeticError as detail:
             # Non-fatal but unexpected error. Warn and cancel this calculation.
-            cell.reportError(detail, data)
+            cell.report_error(detail, data)
             raise CalculationInterupted(cell, detail)
 
     def tracingUpdate(self, changes, program, data):
@@ -561,7 +561,7 @@ class Calculator(object):
         print(' | '.join(tds + ['']), end=' ')
         if exception:
             print('%15s | %s' % ('', par_descs))
-            error_cell.reportError(exception, data)
+            error_cell.report_error(exception, data)
             raise CalculationInterupted(cell, exception)
         else:
             print('%-15s | %s' % (repr(data[-1])[:15], par_descs))
