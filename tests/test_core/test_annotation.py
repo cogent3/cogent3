@@ -55,14 +55,14 @@ class TestAnnotations(unittest.TestCase):
 
             def newMethod(self):
                 if len(self.map.spans) > 1:
-                    as_one = self.asOneSpan()  # should create new instance of NewFeat
+                    as_one = self.as_one_span()  # should create new instance of NewFeat
                     return as_one.newMethod()
                 return True
 
         seq = DNA.make_sequence('ACGTACGTACGT')
         f = seq.add_annotation(NewFeat, as_map([(1, 3), (5, 7)], len(seq)),
                               type='gene', Name='abcd')
-        self.assertEqual(type(f.asOneSpan()), NewFeat)
+        self.assertEqual(type(f.as_one_span()), NewFeat)
         self.assertEqual(type(f.getShadow()), NewFeat)
         f2 = seq.add_annotation(NewFeat, as_map([(3, 5)], len(seq)),
                                type='gene', Name='def')
