@@ -354,15 +354,15 @@ class SequenceI(object):
         """Returns fraction of positions where self and other are the same.
 
         Truncates at length of shorter sequence.
-        Note that frac_same and fracDiff are both 0 if one sequence is empty.
+        Note that frac_same and frac_diff are both 0 if one sequence is empty.
         """
         return frac_same(self, other)
 
-    def fracDiff(self, other):
+    def frac_diff(self, other):
         """Returns fraction of positions where self and other differ.
 
         Truncates at length of shorter sequence.
-        Note that frac_same and fracDiff are both 0 if one sequence is empty.
+        Note that frac_same and frac_diff are both 0 if one sequence is empty.
         """
         return frac_diff(self, other)
 

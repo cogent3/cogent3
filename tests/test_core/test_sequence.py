@@ -506,17 +506,17 @@ class SequenceTests(TestCase):
         self.assertEqual(s1.frac_same(s3), 0)
         self.assertEqual(s1.frac_same(s4), 1.0)  # note truncation
 
-    def test_fracDiff(self):
-        """Sequence fracDiff should return difference between sequences"""
+    def test_frac_diff(self):
+        """Sequence frac_diff should return difference between sequences"""
         s1 = self.RNA('ACGU')
         s2 = self.RNA('AACG')
         s3 = self.RNA('GG')
         s4 = self.RNA('A')
         e = self.RNA('')
-        self.assertEqual(s1.fracDiff(e), 0)
-        self.assertEqual(s1.fracDiff(s2), 0.75)
-        self.assertEqual(s1.fracDiff(s3), 1)
-        self.assertEqual(s1.fracDiff(s4), 0)  # note truncation
+        self.assertEqual(s1.frac_diff(e), 0)
+        self.assertEqual(s1.frac_diff(s2), 0.75)
+        self.assertEqual(s1.frac_diff(s3), 1)
+        self.assertEqual(s1.frac_diff(s4), 0)  # note truncation
 
     def test_frac_same_gaps(self):
         """Sequence frac_same_gaps should return similarity in gap positions"""
@@ -545,7 +545,7 @@ class SequenceTests(TestCase):
         self.assertEqual(s4.frac_same_gaps(s6), 0.5)
         self.assertFloatEqual(s6.frac_same_gaps(s8), 2 / 3.0)
 
-    def test_fracDiffGaps(self):
+    def test_frac_diffGaps(self):
         """Sequence frac_diff_gaps should return difference in gap positions"""
         s1 = self.RNA('AAAA')
         s2 = self.RNA('GGGG')
@@ -597,7 +597,7 @@ class SequenceTests(TestCase):
         test(s4, s9, 2 / 3.0)
         test(e, s4, 0)
 
-    def test_fracDiffNonGaps(self):
+    def test_frac_diffNonGaps(self):
         """Sequence frac_diff_non_gaps should return differences at non-gaps"""
         s1 = self.RNA('AAAA')
         s2 = self.RNA('AGGG')
