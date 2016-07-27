@@ -224,15 +224,15 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('b-ac').first_gap(), 1)
         self.assertEqual(self.RNA('abcd-').first_gap(), 4)
 
-    def test_firstDegenerate(self):
-        """Sequence firstDegenerate should return index of first degen symbol"""
-        self.assertEqual(self.RNA('').firstDegenerate(), None)
-        self.assertEqual(self.RNA('a').firstDegenerate(), None)
+    def test_first_degenerate(self):
+        """Sequence first_degenerate should return index of first degen symbol"""
+        self.assertEqual(self.RNA('').first_degenerate(), None)
+        self.assertEqual(self.RNA('a').first_degenerate(), None)
         self.assertEqual(self.RNA('UCGACA--CU-gacucaguacgua'
-                                  ).firstDegenerate(), None)
-        self.assertEqual(self.RNA('nCAGU').firstDegenerate(), 0)
-        self.assertEqual(self.RNA('CUGguagvAUG').firstDegenerate(), 7)
-        self.assertEqual(self.RNA('ACUGCUAacgud').firstDegenerate(), 11)
+                                  ).first_degenerate(), None)
+        self.assertEqual(self.RNA('nCAGU').first_degenerate(), 0)
+        self.assertEqual(self.RNA('CUGguagvAUG').first_degenerate(), 7)
+        self.assertEqual(self.RNA('ACUGCUAacgud').first_degenerate(), 11)
 
     def test_firstNonStrict(self):
         """Sequence firstNonStrict should return index of first non-strict symbol"""

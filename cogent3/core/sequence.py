@@ -164,9 +164,9 @@ class SequenceI(object):
         """Returns the index of the first gap in the sequence, or None."""
         return self.MolType.first_gap(self)
 
-    def firstDegenerate(self):
+    def first_degenerate(self):
         """Returns the index of first degenerate symbol in sequence, or None."""
-        return self.MolType.firstDegenerate(self)
+        return self.MolType.first_degenerate(self)
 
     def firstInvalid(self):
         """Returns the index of first invalid symbol in sequence, or None."""

@@ -706,7 +706,7 @@ class MolType(object):
 
     def is_degenerate(self, sequence):
         """Returns True if sequence contains degenerate characters."""
-        return self.firstDegenerate(sequence) is not None
+        return self.first_degenerate(sequence) is not None
 
     def is_valid(self, sequence):
         """Returns True if sequence contains no items that are not in self."""
@@ -749,7 +749,7 @@ class MolType(object):
                 return i
         return None
 
-    def firstDegenerate(self, sequence):
+    def first_degenerate(self, sequence):
         """Returns the index of first degenerate symbol in sequence, or None."""
         degen = self.Degenerates
         for i, s in enumerate(sequence):
