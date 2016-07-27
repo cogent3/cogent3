@@ -1845,7 +1845,7 @@ class PhyloNode(TreeNode):
                 new_children.append(oldnode.deepcopy(constructor))
         return constructor(self, new_children)
 
-    def rootedAt(self, edge_name):
+    def rooted_at(self, edge_name):
         """Return a new tree rooted at the provided node.
 
         Usage:
