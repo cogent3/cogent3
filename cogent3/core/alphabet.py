@@ -606,7 +606,7 @@ class Alphabet(Enumeration):
             self.Gapped = self._with(list(self) + [self.get_gap_motif()])
         return self.Gapped
 
-    def getSubset(self, motif_subset, excluded=False):
+    def get_subset(self, motif_subset, excluded=False):
         """Returns a new Alphabet object containing a subset of motifs in self.
 
         Raises an exception if any of the items in the subset are not already
