@@ -1743,11 +1743,11 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         for (label, length, beta) in [('a', 1, 20), ('b', 3, 2.0), ('ab', 4, 5.0), ]:
             t.getNodeMatchingName(label).params = {
                                   'length': length, 'beta': beta}
-        t = t.getSubTree(['b', 'c', 'd'])
+        t = t.get_sub_tree(['b', 'c', 'd'])
         self.assertEqual(t.getNodeMatchingName('b').params,
                          {'length': 7, 'beta': float(2 * 3 + 4 * 5) / (3 + 4)})
-        self.assertRaises(ValueError, t.getSubTree, ['b', 'c', 'xxx'])
-        self.assertEqual(str(t.getSubTree(['b', 'c', 'xxx'], ignore_missing=True)),
+        self.assertRaises(ValueError, t.get_sub_tree, ['b', 'c', 'xxx'])
+        self.assertEqual(str(t.get_sub_tree(['b', 'c', 'xxx'], ignore_missing=True)),
                          '(b:7,c)root;')
 
     def test_making_from_list(self):
@@ -1819,7 +1819,7 @@ class TestTree(TestCase):
 
     def test_getsubtree(self):
         """testing getting a subtree"""
-        subtree = self.tree.unrooted().getSubTree(self.otu_names)
+        subtree = self.tree.unrooted().get_sub_tree(self.otu_names)
 
         new_tree = LoadTree(treestring=self.newick_reduced).unrooted()
 
@@ -1828,25 +1828,25 @@ class TestTree(TestCase):
         self.assertEqual(str(subtree), str(new_tree))
 
     def test_getsubtree_2(self):
-        """tree.getSubTree() has same pairwise tip dists as tree (len0 node)
+        """tree.get_sub_tree() has same pairwise tip dists as tree (len0 node)
         """
         t1 = DndParser('((a:1,b:2):4,((c:3, j:17.2):0,(d:1,e:1):2):3)',
                        PhyloNode)  # note c,j is len 0 node
         orig_dists = t1.get_distances()
-        subtree = t1.getSubTree(set(['a', 'b', 'd', 'e', 'c']))
+        subtree = t1.get_sub_tree(set(['a', 'b', 'd', 'e', 'c']))
         sub_dists = subtree.get_distances()
         for pair, dist in list(sub_dists.items()):
             self.assertEqual((pair, dist), (pair, orig_dists[pair]))
 
     def test_getsubtree_3(self):
-        """tree.getSubTree() has same pairwise tip dists as tree 
+        """tree.get_sub_tree() has same pairwise tip dists as tree 
 
         (nonzero nodes)
         """
         t1 = DndParser('((a:1,b:2):4,((c:3, j:17):0,(d:1,e:1):2):3)',
                        PhyloNode)  # note c,j is len 0 node
         orig_dists = t1.get_distances()
-        subtree = t1.getSubTree(set(['a', 'b', 'd', 'e', 'c']))
+        subtree = t1.get_sub_tree(set(['a', 'b', 'd', 'e', 'c']))
         sub_dists = subtree.get_distances()
         # for pair, dist in sub_dists.items():
             # self.assertEqual((pair,dist), (pair,orig_dists[pair]))
@@ -1858,13 +1858,13 @@ class TestTree(TestCase):
             if (pair == ('c', 'j')) or (pair == ('j', 'c')):
                 continue
             self.assertEqual((pair, dist), (pair, orig_dists[pair]))
-        sub2 = t2.getSubTree(set(['a', 'b', 'd', 'e', 'c']))
+        sub2 = t2.get_sub_tree(set(['a', 'b', 'd', 'e', 'c']))
         sub2_dists = sub2.get_distances()
         for pair, dist in list(sub2_dists.items()):
             self.assertEqual((pair, dist), (pair, orig_dists[pair]))
 
     def test_getsubtree_4(self):
-        """tree.getSubTree() handles keep_root correctly
+        """tree.get_sub_tree() handles keep_root correctly
         """
         t1 = DndParser(
             '((a:1,b:2):4,(((c:2)cparent:1, j:17):0,(d:1,e:4):2):3)')
@@ -1910,14 +1910,14 @@ class TestTree(TestCase):
         true_root_dists = {'a': 5, 'b': 6, 'c': 6, 'j': 20, 'd': 6, 'e': 9}
 
         t1_dists = t1.get_distances()
-        subtree = t1.getSubTree(set(['d', 'e', 'c']))
+        subtree = t1.get_sub_tree(set(['d', 'e', 'c']))
         sub_dists = subtree.get_distances()
         true_sub_root_dists = {'c': 3, 'd': 3, 'e': 6}
 
-        sub_sameroot = t1.getSubTree(set(['d', 'e', 'c']), keep_root=True)
+        sub_sameroot = t1.get_sub_tree(set(['d', 'e', 'c']), keep_root=True)
         sub_sameroot_dists = sub_sameroot.get_distances()
 
-        sub_sameroot2 = t1.getSubTree(set(['j', 'c']), keep_root=True)
+        sub_sameroot2 = t1.get_sub_tree(set(['j', 'c']), keep_root=True)
         sub_sameroot_dists2 = sub_sameroot2.get_distances()
 
         # tip to tip dists should be the same
