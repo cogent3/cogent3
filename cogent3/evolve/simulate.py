@@ -34,7 +34,7 @@ def _randomMotifGenerator(random_series, motif_probs):
         yield motifs[i]
 
 
-def evolveSequence(random_series, motifs, parent_seq, site_cats,
+def evolve_sequence(random_series, motifs, parent_seq, site_cats,
                    psubs, preserved_sites=()):
     """Evolve a new sequence derived from parent_seq.  Uses psubs[site_cats[i]]
     to pick a new motif derived from parent_seq[i]"""
@@ -119,7 +119,7 @@ class AlignmentEvolver(object):
             psubs = [self.psub_for(edge.name, bin) for bin in self.bin_names]
 
             # Make the semi-random sequence for this edge.
-            edge_seq = evolveSequence(self.random_series, self.motifs,
+            edge_seq = evolve_sequence(self.random_series, self.motifs,
                                       parent_seq, self.site_bins, psubs, orig_seq_ambig)
 
             # Pass this new edge sequence on down the tree
