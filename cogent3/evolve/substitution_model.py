@@ -323,8 +323,8 @@ class _SubstitutionModel(object):
     def calc_word_probs(self, monomer_probs):
         return self.mprob_model.calc_word_probs(monomer_probs)
 
-    def calcWordWeightMatrix(self, monomer_probs):
-        return self.mprob_model.calcWordWeightMatrix(monomer_probs)
+    def calc_word_weight_matrix(self, monomer_probs):
+        return self.mprob_model.calc_word_weight_matrix(monomer_probs)
 
     def makeParamControllerDefns(self, bin_names, endAtQd=False):
         (input_probs, word_probs, mprobs_matrix) = \
