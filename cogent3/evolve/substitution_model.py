@@ -236,7 +236,7 @@ class _SubstitutionModel(object):
     def get_motifs(self):
         return list(self.get_alphabet())
 
-    def getWordLength(self):
+    def get_word_length(self):
         return self._word_length
 
     def get_motif_probs(self):
