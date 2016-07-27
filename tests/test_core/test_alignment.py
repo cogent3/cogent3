@@ -1889,12 +1889,12 @@ class DenseAlignmentSpecificTests(TestCase):
         f = a.get_pos_freqs()
         self.assertEqual(f.Data, array([[2, 0], [0, 2], [1, 1], [1, 1]]))
 
-    def test_getSeqEntropy(self):
-        """DenseAlignment getSeqEntropy should get entropy of each seq"""
+    def test_get_seq_entropy(self):
+        """DenseAlignment get_seq_entropy should get entropy of each seq"""
         ABModelSequence = self.ABModelSequence
         a = DenseAlignment(list(map(ABModelSequence, ['abab', 'bbbb', 'abbb'])),
                            Alphabet=AB.Alphabet)
-        f = a.getSeqEntropy()
+        f = a.get_seq_entropy()
         e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
         self.assertFloatEqual(f, array([1, 0, e]))
 
