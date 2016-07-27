@@ -535,7 +535,7 @@ class SwitchDefn(CalculationDefn):
     def calc(self, condition, *args):
         return args[condition]
 
-    def getShortcutCell(self, condition, *args):
+    def get_shortcut_cell(self, condition, *args):
         if condition.is_constant:
             return self.calc(self, condition.value, *args)
 
@@ -546,7 +546,7 @@ class VectorMatrixInnerDefn(CalculationDefn):
     def calc(self, pi, psub):
         return numpy.inner(pi, psub)
 
-    def getShortcutCell(self, pi, psub):
+    def get_shortcut_cell(self, pi, psub):
         if psub.is_stationary:
             return pi
 
