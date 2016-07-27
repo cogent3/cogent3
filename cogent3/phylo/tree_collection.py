@@ -33,7 +33,7 @@ class ScoredTreeCollection(_UserList):
     def scored_tree_format(self, tree, score):
         return [tree, '\t[', score, ']\n']
 
-    def getConsensusTree(self, strict=None, method='unrooted'):
+    def get_consensus_tree(self, strict=None, method='unrooted'):
         ctrees = self.getConsensusTrees(strict, method=method)
         assert len(ctrees) == 1, len(ctrees)
         return ctrees[0]
@@ -67,7 +67,7 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
         # Quick and very dirty check of order
         assert self[0][0] >= self[-1][0]
 
-    def getConsensusTree(self, cutoff=None, strict=False, alpha=0.05):
+    def get_consensus_tree(self, cutoff=None, strict=False, alpha=0.05):
         """See documentation for getConsensusTrees"""
         return self.getConsensusTrees(cutoff, strict, alpha)[0]
 
