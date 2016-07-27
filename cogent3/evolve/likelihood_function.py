@@ -47,9 +47,9 @@ class LikelihoodFunction(ParameterController):
         """returns the substitution probability matrix for the named edge"""
         try:
             # For PartialyDiscretePsubsDefn
-            array = self.getParamValue('dpsubs', edge=name, **kw)
+            array = self.get_param_value('dpsubs', edge=name, **kw)
         except KeyError:
-            array = self.getParamValue('psubs', edge=name, **kw)
+            array = self.get_param_value('psubs', edge=name, **kw)
         return DictArrayTemplate(self._motifs, self._motifs).wrap(array)
 
     def getRateMatrixForEdge(self, name, **kw):
@@ -57,7 +57,7 @@ class LikelihoodFunction(ParameterController):
 
         Note: expm(Q) will give the same result as getPsubForEdge(name)"""
         try:
-            array = self.getParamValue('Q', edge=name, **kw)
+            array = self.get_param_value('Q', edge=name, **kw)
         except KeyError as err:
             if err[0] == 'Q' and name != 'Q':
                 raise RuntimeError('rate matrix not known by this model')
@@ -67,24 +67,24 @@ class LikelihoodFunction(ParameterController):
 
     def _getLikelihoodValuesSummedAcrossAnyBins(self, locus=None):
         if self.bin_names and len(self.bin_names) > 1:
-            root_lhs = [self.getParamValue('lh', locus=locus, bin=bin) for
+            root_lhs = [self.get_param_value('lh', locus=locus, bin=bin) for
                         bin in self.bin_names]
-            bprobs = self.getParamValue('bprobs')
+            bprobs = self.get_param_value('bprobs')
             root_lh = bprobs.dot(root_lhs)
         else:
-            root_lh = self.getParamValue('lh', locus=locus)
+            root_lh = self.get_param_value('lh', locus=locus)
         return root_lh
 
     def getFullLengthLikelihoods(self, locus=None):
         """Array of [site, motif] likelihoods from the root of the tree"""
         root_lh = self._getLikelihoodValuesSummedAcrossAnyBins(locus=locus)
-        root_lht = self.getParamValue('root', locus=locus)
+        root_lht = self.get_param_value('root', locus=locus)
         return root_lht.getFullLengthLikelihoods(root_lh)
 
     def getGStatistic(self, return_table=False, locus=None):
         """Goodness-of-fit statistic derived from the unambiguous columns"""
         root_lh = self._getLikelihoodValuesSummedAcrossAnyBins(locus=locus)
-        root_lht = self.getParamValue('root', locus=locus)
+        root_lht = self.get_param_value('root', locus=locus)
         return root_lht.calcGStatistic(root_lh, return_table)
 
     def reconstructAncestralSeqs(self, locus=None):
@@ -135,8 +135,8 @@ class LikelihoodFunction(ParameterController):
         return Alignment(data=seqs, moltype=self.model.moltype)
 
     def getBinProbs(self, locus=None):
-        hmm = self.getParamValue('bindex', locus=locus)
-        lhs = [self.getParamValue('lh', locus=locus, bin=bin)
+        hmm = self.get_param_value('bindex', locus=locus)
+        lhs = [self.get_param_value('lh', locus=locus, bin=bin)
                for bin in self.bin_names]
         array = hmm.getPosteriorProbs(*lhs)
         return DictArrayTemplate(self.bin_names, array.shape[1]).wrap(array)
@@ -178,7 +178,7 @@ class LikelihoodFunction(ParameterController):
         return '\n'.join(map(str, result))
 
     def getAnnotatedTree(self):
-        d = self.getParamValueDict(['edge'])
+        d = self.get_param_valueDict(['edge'])
         tree = self._tree.deepcopy()
         for edge in tree.get_edge_vector():
             if edge.name == 'root':
@@ -188,13 +188,13 @@ class LikelihoodFunction(ParameterController):
         return tree
 
     def getMotifProbs(self, edge=None, bin=None, locus=None):
-        motif_probs_array = self.getParamValue(
+        motif_probs_array = self.get_param_value(
             'mprobs', edge=edge, bin=bin, locus=locus)
         return DictArrayTemplate(self._mprob_motifs).wrap(motif_probs_array)
         # return dict(zip(self._motifs, motif_probs_array))
 
     def getBinPriorProbs(self, locus=None):
-        bin_probs_array = self.getParamValue('bprobs', locus=locus)
+        bin_probs_array = self.get_param_value('bprobs', locus=locus)
         return DictArrayTemplate(self.bin_names).wrap(bin_probs_array)
 
     def getScaledLengths(self, predicate, bin=None, locus=None):
@@ -203,7 +203,7 @@ class LikelihoodFunction(ParameterController):
             return {}
 
         def valueOf(param, **kw):
-            return self.getParamValue(param, locus=locus, **kw)
+            return self.get_param_value(param, locus=locus, **kw)
 
         if bin is None:
             bin_names = self.bin_names
@@ -255,7 +255,7 @@ class LikelihoodFunction(ParameterController):
         table_order = list(group.keys())
         table_order.sort()
         for table_dims in table_order:
-            raw_table = self.getParamValueDict(
+            raw_table = self.get_param_valueDict(
                 dimensions=table_dims, params=group[table_dims])
             param_names = group[table_dims]
             param_names.sort()
@@ -313,10 +313,10 @@ class LikelihoodFunction(ParameterController):
         """
 
         discontinued('method', "'getStatisticsAsDict' "
-                     "use 'getParamValueDict(['edge'])' is nearly equivalent",
+                     "use 'get_param_valueDict(['edge'])' is nearly equivalent",
                      '1.6')
 
-        stats_dict = self.getParamValueDict(['edge'])
+        stats_dict = self.get_param_valueDict(['edge'])
 
         if hasattr(self.model, 'scale_masks'):
             for predicate in self.model.scale_masks:
@@ -357,7 +357,7 @@ class LikelihoodFunction(ParameterController):
 
     def getMotifProbsByNode(self, edges=None, bin=None, locus=None):
         kw = dict(bin=bin, locus=locus)
-        mprobs = self.getParamValue('mprobs', **kw)
+        mprobs = self.get_param_value('mprobs', **kw)
         mprobs = self._model.calcWordProbs(mprobs)
         result = self._nodeMotifProbs(self._tree, mprobs, kw)
         if edges is None:
@@ -389,9 +389,9 @@ class LikelihoodFunction(ParameterController):
         """
 
         if sequence_length is None:
-            lht = self.getParamValue('lht', locus=locus)
+            lht = self.get_param_value('lht', locus=locus)
             sequence_length = len(lht.index)
-            leaves = self.getParamValue('leaf_likelihoods', locus=locus)
+            leaves = self.get_param_value('leaf_likelihoods', locus=locus)
             orig_ambig = {}  # alignment.getPerSequenceAmbiguousPositions()
             for (seq_name, leaf) in list(leaves.items()):
                 orig_ambig[seq_name] = leaf.getAmbiguousPositions()
@@ -407,7 +407,7 @@ class LikelihoodFunction(ParameterController):
             return self.getPsubForEdge(edge, bin=bin, locus=locus)
 
         if len(self.bin_names) > 1:
-            hmm = self.getParamValue('bdist', locus=locus)
+            hmm = self.get_param_value('bdist', locus=locus)
             site_bins = hmm.emit(sequence_length, random_series)
         else:
             site_bins = numpy.zeros([sequence_length], int)
@@ -421,7 +421,7 @@ class LikelihoodFunction(ParameterController):
             motif_len = self._model.getAlphabet().get_motif_len()
             root_sequence = root_sequence.get_in_motif_size(motif_len)
         else:
-            mprobs = self.getParamValue('mprobs', locus=locus, edge='root')
+            mprobs = self.get_param_value('mprobs', locus=locus, edge='root')
             mprobs = self._model.calcWordProbs(mprobs)
             mprobs = dict((m, p) for (m, p) in zip(self._motifs, mprobs))
             root_sequence = randomSequence(
@@ -445,7 +445,7 @@ class LikelihoodFunction(ParameterController):
         """Returns True if every rate matrix is unique for its Psub matrix"""
         for edge in self.tree.get_edge_vector(include_root=False):
             Q = self.getRateMatrixForEdge(edge.name).asarray()
-            t = self.getParamValue('length', edge=edge.name)
+            t = self.get_param_value('length', edge=edge.name)
             if not is_generator_unique(Q * t):
                 return False
         return True

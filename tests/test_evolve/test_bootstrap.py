@@ -88,7 +88,7 @@ class BootstrapTests(unittest.TestCase):
     def calclength(self, likelihood_function):
         """This extracts the length of the human branch and returns it."""
 
-        return likelihood_function.getParamValue("length", 'Human')
+        return likelihood_function.get_param_value("length", 'Human')
 
     def test_conf_int(self):
         """testing estimation of confidence intervals."""

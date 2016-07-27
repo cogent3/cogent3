@@ -303,7 +303,7 @@ class _LikelihoodParameterController(_LF):
             - second_order: if true, the second-order AIC is returned,
               adjusted by the alignment length"""
         if second_order:
-            sequence_length = sum(len(self.getParamValue('lht', locus=l).index)
+            sequence_length = sum(len(self.get_param_value('lht', locus=l).index)
                                   for l in self.locus_names)
         else:
             sequence_length = None
@@ -314,7 +314,7 @@ class _LikelihoodParameterController(_LF):
 
     def getBic(self):
         """returns the Bayesian Information Criteria"""
-        sequence_length = sum(len(self.getParamValue('lht', locus=l).index)
+        sequence_length = sum(len(self.get_param_value('lht', locus=l).index)
                               for l in self.locus_names)
         lnL = self.getLogLikelihood()
         nfp = self.getNumFreeParams()

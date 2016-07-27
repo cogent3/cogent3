@@ -1424,7 +1424,7 @@ class TreeNode(object):
         node_path.append(edge2)
         return node_path
 
-    def getParamValue(self, param, edge):
+    def get_param_value(self, param, edge):
         """returns the parameter value for named edge"""
         return self.get_node_matching_name(edge).params[param]
 

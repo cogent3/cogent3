@@ -102,21 +102,21 @@ used by optimisers.  For other purposes there is an alternative, human friendly
 interface:
     
     >>> pc.updateFromCalculator(f)
-    >>> pc.getParamValue('A', category='x')
+    >>> pc.get_param_value('A', category='x')
     2.0
-    >>> pc.getParamValue('B', category=['x', 'y'])
+    >>> pc.get_param_value('B', category=['x', 'y'])
     1.0
 
-Despite the name, .getParamValue can get the value from any step in the
+Despite the name, .get_param_value can get the value from any step in the
 calculation, so long as it has a unique name.
 
-    >>> pc.getParamValue('mid', category='x')
+    >>> pc.get_param_value('mid', category='x')
     3.0
 
 For bulk retrieval of parameter values by parameter name and scope name there is
-the .getParamValueDict() method:
+the .get_param_valueDict() method:
 
-    >>> vals = pc.getParamValueDict(['category'])
+    >>> vals = pc.get_param_valueDict(['category'])
     >>> vals['A']['x']
     2.0
 
@@ -138,9 +138,9 @@ maximum so local optimisation should be enough:
 
 There were two parameters, X and Y, and at the maximum they should both be 0.0:
     
-    >>> pc.getParamValue('Y')
+    >>> pc.get_param_value('Y')
     0.0
-    >>> pc.getParamValue('X')
+    >>> pc.get_param_value('X')
     0.0
 
 Because this function has a maximum it is possible to ask it for a confidence
@@ -156,9 +156,9 @@ We test the ability to omit xtol. Due to precision issues we convert the returne
     True
 
 And finally intervals can be calculated in bulk by passing a dropoff value to
-.getParamValueDict():
+.get_param_valueDict():
     
-    >>> pc.getParamValueDict([], dropoff=4, xtol=0.0)['X']
+    >>> pc.get_param_valueDict([], dropoff=4, xtol=0.0)['X']
     (-2.0, 0.0, 2.0)
 
 For likelihood functions it is more convenient to provide 'p' rather than 'dropoff', dropoff = chdtri(1, p) / 2.0.  Also in general you won't need ultra precise answers, so don't use 'xtol=0.0', that's just to make the doctest work.

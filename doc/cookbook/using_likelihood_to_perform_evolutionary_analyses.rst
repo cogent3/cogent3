@@ -401,10 +401,10 @@ We get the statistics out individually. We get the ``length`` for the Human edge
 .. doctest::
     
     >>> lf.optimise(local=True, show_progress=False)
-    >>> a_g = lf.getParamValue('A/G')
+    >>> a_g = lf.get_param_value('A/G')
     >>> print a_g
     5.25...
-    >>> human = lf.getParamValue('length', 'Human')
+    >>> human = lf.get_param_value('length', 'Human')
     >>> print human
     0.006...
 

@@ -675,7 +675,7 @@ class ParameterController(object):
     def getUsedDimensions(self, par_name):
         return self.defn_for[par_name].usedDimensions()
 
-    def getParamValue(self, par_name, *args, **kw):
+    def get_param_value(self, par_name, *args, **kw):
         """The value for 'par_name'.  Additional arguments specify the scope.
         Despite the name intermediate values can also be retrieved this way."""
         callback = self._makeValueCallback(None, None)
@@ -700,7 +700,7 @@ class ParameterController(object):
     def getFinalResult(self):
         return self.defns[-1].getCurrentValueForScope()
 
-    def getParamValueDict(self, dimensions, p=None, dropoff=None,
+    def get_param_valueDict(self, dimensions, p=None, dropoff=None,
                           params=None, xtol=None):
         """A dict tree of parameter values, with parameter names as the
         top level keys, and the various dimensions ('edge', 'bin', etc.)

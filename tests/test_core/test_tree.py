@@ -1761,7 +1761,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
     def test_getsetParamValue(self):
         """test getting, setting of param values"""
         t = LoadTree(treestring='((((a:.2,b:.3)ab:.1,c:.3)abc:.4),d:.6)')
-        self.assertEqual(t.getParamValue('length', 'ab'), 0.1, 2)
+        self.assertEqual(t.get_param_value('length', 'ab'), 0.1, 2)
         t.setParamValue('zz', 'ab', 4.321)
         node = t.get_node_matching_name('ab')
         self.assertEqual(4.321, node.params['zz'], 4)
