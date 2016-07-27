@@ -26,7 +26,7 @@ class ScoredTreeCollection(_UserList):
         f = open(filename, 'w')
         for (score, tree) in self:
             f.writelines(
-                self.scoredTreeFormat(tree.getNewick(with_distances=True),
+                self.scoredTreeFormat(tree.get_newick(with_distances=True),
                                       str(score)))
         f.close()
 
