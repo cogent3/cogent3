@@ -78,7 +78,7 @@ class OptPar(object):
         upper = self.transformToOptimiser(self.upper)
         return (lower, upper)
 
-    def transformFromOptimiser(self, value):
+    def transform_from_optimiser(self, value):
         return value
 
     def transformToOptimiser(self, value):
@@ -90,7 +90,7 @@ class LogOptPar(OptPar):
     # optimiser representation are only done by Calculator.change(),
     # .getValueArray() and .getBoundsArrrays().
 
-    def transformFromOptimiser(self, value):
+    def transform_from_optimiser(self, value):
         return numpy.exp(value)
 
     def transformToOptimiser(self, value):
@@ -463,7 +463,7 @@ class Calculator(object):
                 assert isinstance(v * 1.0, float), v
                 changed_optpars.append((i, self.last_values[i]))
                 self.last_values[i] = v
-                data[i] = self.opt_pars[i].transformFromOptimiser(v)
+                data[i] = self.opt_pars[i].transform_from_optimiser(v)
             else:
                 data[i] = v
 
@@ -646,6 +646,6 @@ class Calculator(object):
         triple = []
         for x in [lowX, origX, highX]:
             if x is not None:
-                x = opt_par.transformFromOptimiser(x)
+                x = opt_par.transform_from_optimiser(x)
             triple.append(x)
         return tuple(triple)
