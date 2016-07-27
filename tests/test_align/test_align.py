@@ -202,7 +202,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
             })
 
     def test_gaps2(self):
-        """Gaps have real costs, even end gaps"""
+        """gaps have real costs, even end gaps"""
         self._test_aln({
             'A': 'g-',
             'B': 'g-',

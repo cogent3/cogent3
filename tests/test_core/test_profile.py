@@ -478,7 +478,7 @@ class ProfileTests(TestCase):
         """score: should work correctly on Sequence object as input
         """
         # DnaSequence object
-        ds = self.score1.score(DNA.Sequence("ATTCAC"), offset=0)
+        ds = self.score1.score(DNA.make_sequence("ATTCAC"), offset=0)
         self.assertEqual(ds, [6, 2, -3, 0])
         # ModelSequence object
         ms = self.score1.score(ModelSequence("ATTCAC", alphabet=DNA.alphabet),
@@ -493,7 +493,7 @@ class ProfileTests(TestCase):
         # remove translation table
         del p.__dict__['_translation_table']
         # then score the profile
-        s1 = p.score(DNA.Sequence("ATTCAC"), offset=0)
+        s1 = p.score(DNA.make_sequence("ATTCAC"), offset=0)
         self.assertEqual(s1, [6, 2, -3, 0])
 
     def test_score_profile(self):
@@ -627,7 +627,7 @@ class ProfileTests(TestCase):
         self.assertEqual(p.to_consensus(cutoff=0.75, fully_degenerate=True),
                          "YSYA")
 
-        # raises AttributeError when Alphabet doens't have Degenerates
+        # raises AttributeError when Alphabet doens't have degenerates
         p = Profile(array([[.2, .8], [.7, .3]]), "AB")
         self.assertRaises(AttributeError, p.to_consensus, cutoff=.5)
 
@@ -714,7 +714,7 @@ class ModuleLevelFunctionsTest(TestCase):
         self.alt_dna = DNA
         DnaDegenerateSymbols = {'R': 'AG',
             'N': 'TCAG', 'Y': 'TC', '?': 'TCAG-'}
-        self.alt_dna.Degenerates = DnaDegenerateSymbols
+        self.alt_dna.degenerates = DnaDegenerateSymbols
 
     def test_CharMeaningProfile(self):
         """CharMeaningProfile: should work as expected

@@ -254,8 +254,8 @@ class SequenceTests(TestCase):
         t = s.disambiguate('random')
         u = s.disambiguate('random')
         for i, j in zip(str(s), str(t)):
-            if i in s.moltype.Degenerates:
-                assert j in s.moltype.Degenerates[i]
+            if i in s.moltype.degenerates:
+                assert j in s.moltype.degenerates[i]
             else:
                 assert i == j
         self.assertNotEqual(t, u)
@@ -777,7 +777,7 @@ class DnaSequenceGapTests(TestCase):
     """Tests of gapped DNA sequences."""
     class SequenceClass(ModelNucleicAcidSequence):
         alphabet = DNA.alphabets.Gapped
-        Gap = '-'
+        gap = '-'
 
     def test_init(self):
         """Gapped sequence should init ok"""
@@ -813,32 +813,32 @@ class SequenceIntegrationTests(TestCase):
 
     def test_regular_to_model(self):
         """Regular sequence should convert to model sequence"""
-        r = RNA.Sequence('AAA', name='x')
-        s = RNA.ModelSeq(r)
+        r = RNA.make_sequence('AAA', name='x')
+        s = RNA.model_seq_constructor(r)
         self.assertEqual(str(s), 'AAA')
         self.assertEqual(s.moltype, RNA)
         self.assertEqual(s.name, 'x')
 
     def test_model_to_regular(self):
         """Model sequence should convert to regular sequence"""
-        r = RNA.ModelSeq('AAA', name='x')
-        s = RNA.Sequence(r)
+        r = RNA.model_seq_constructor('AAA', name='x')
+        s = RNA.make_sequence(r)
         self.assertEqual(str(s), 'AAA')
         self.assertEqual(s.moltype, RNA)
         self.assertEqual(s.name, 'x')
 
     def test_regular_to_regular(self):
         """Regular sequence should convert to regular sequence"""
-        r = RNA.Sequence('AAA', name='x')
-        s = RNA.Sequence(r)
+        r = RNA.make_sequence('AAA', name='x')
+        s = RNA.make_sequence(r)
         self.assertEqual(str(s), 'AAA')
         self.assertEqual(s.moltype, RNA)
         self.assertEqual(s.name, 'x')
 
     def test_model_to_model(self):
         """Model sequence should convert to model sequence"""
-        r = RNA.ModelSeq('AAA', name='x')
-        s = RNA.ModelSeq(r)
+        r = RNA.model_seq_constructor('AAA', name='x')
+        s = RNA.model_seq_constructor(r)
         self.assertEqual(str(s), 'AAA')
         self.assertEqual(s.moltype, RNA)
         self.assertEqual(s.name, 'x')

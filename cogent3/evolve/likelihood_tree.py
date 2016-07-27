@@ -106,7 +106,7 @@ class _LikelihoodTreeEdge(object):
         if comm is None or comm.Get_size() == 1:
             return self
         assert self.comm is None
-        U = len(self.uniq) - 1  # Gap column
+        U = len(self.uniq) - 1  # gap column
         (size, rank) = (comm.Get_size(), comm.Get_rank())
         (share, remainder) = divmod(U, size)
         if share == 0:

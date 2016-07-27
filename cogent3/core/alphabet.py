@@ -118,21 +118,21 @@ class Enumeration(tuple):
     mutable you can still mutate them in-place. Don't do this if you want
     your enumeration to work in a predictable fashion.
 
-    Optionally takes a Gap parameter that defines the standard gap that will
+    Optionally takes a gap parameter that defines the standard gap that will
     be used for output or for operations that act on gaps. Typically, this
     will be '-' or None, depending on the application.
     """
 
-    def __new__(cls, data=[], Gap=None, moltype=None):
+    def __new__(cls, data=[], gap=None, moltype=None):
         """Returns a new Enumeration object.
 
         data can be any sequence that can be passed to the tuple() constructor.
 
-        Takes Gap as an argument but ignores it (handled in __init__).
+        Takes gap as an argument but ignores it (handled in __init__).
         """
         return tuple.__new__(cls, data)
 
-    def __init__(self, data=[], Gap=None, moltype=None):
+    def __init__(self, data=[], gap=None, moltype=None):
         """Initializes self from data, and optionally a gap.
 
         An Enumeration object mainly provides the mapping between objects and
@@ -154,9 +154,9 @@ class Enumeration(tuple):
         _allowed_range: stores the range in which the enumeration elements occur
         (used for summing items that match a particular symbol).
 
-        Gap: item to be used as a gap -- should typically appear in data too.
+        gap: item to be used as a gap -- should typically appear in data too.
 
-        ArrayType: type of array needed to store all the symbols in the
+        array_type: type of array needed to store all the symbols in the
         enumeration, e.g. if your enumeration has > 256 objects in it you need
         to use uint16, not uint8, because it will wrap around otherwise. Also
         constrains the types to unsigned integer types so you don't
@@ -183,20 +183,20 @@ class Enumeration(tuple):
                             str(self))
         self._obj_to_index = dict(list(zip(self, list(range(len(self))))))
         # handle gaps
-        self.Gap = Gap
-        if Gap and (Gap in self):
-            gap_index = self.index(Gap)
+        self.gap = gap
+        if gap and (gap in self):
+            gap_index = self.index(gap)
             if gap_index >= 0:
                 self.GapIndex = gap_index
         try:
-            self._gapmotif = self.Gap * self._motiflen
+            self._gapmotif = self.gap * self._motiflen
         except TypeError:  # self._motiflen was probably None
-            self._gapmotif = self.Gap
+            self._gapmotif = self.gap
 
         self.Shape = (len(self),)
         # _allowed_range provides for fast sums of matching items
         self._allowed_range = arange(len(self))[:, newaxis]
-        self.ArrayType = get_array_type(len(self))
+        self.array_type = get_array_type(len(self))
         self._complement_array = None  # set in moltypes.py for standard types
 
     def index(self, item):
@@ -327,7 +327,7 @@ class Enumeration(tuple):
             self._pairs = self**2
         return self._pairs
 
-    Pairs = property(_get_pairs)
+    pairs = property(_get_pairs)
 
     def _get_triples(self):
         """Accessor for triples, lazy evaluation."""
@@ -349,13 +349,13 @@ class JointEnumeration(Enumeration):
     often convenient if they are (e.g. pair enumerations that underlie
     substitution matrices).
     """
-    def __new__(cls, data=[], Gap=None, moltype=None):
+    def __new__(cls, data=[], gap=None, moltype=None):
         """Fills in the tuple with tuples from the enumerations in data."""
         sub_enums = cls._coerce_enumerations(data)
         return Enumeration.__new__(cls, cartesian_product(sub_enums),
                                    moltype=moltype)
 
-    def __init__(self, data=[], Gap=None, moltype=None):
+    def __init__(self, data=[], gap=None, moltype=None):
         """Returns a new JointEnumeration object. See class docstring for info.
 
         Expects a list of Enumeration objects, or objects that can be coerced
@@ -376,15 +376,15 @@ class JointEnumeration(Enumeration):
 
         try:
             # figure out the gaps correctly
-            gaps = [i.Gap for i in self.SubEnumerations]
-            self.Gap = tuple(gaps)
+            gaps = [i.gap for i in self.SubEnumerations]
+            self.gap = tuple(gaps)
             gap_indices = array([i.GapIndex for i in self.SubEnumerations])
             gap_indices *= sub_enum_factors
             self.GapIndex = sum(gap_indices)
         except (TypeError, AttributeError):  # index not settable
-            self.Gap = None
+            self.gap = None
 
-        super(JointEnumeration, self).__init__(self, self.Gap)
+        super(JointEnumeration, self).__init__(self, self.gap)
         # remember to reset shape after superclass init
         self.Shape = tuple(sub_enum_lengths)
 
@@ -441,12 +441,12 @@ class JointEnumeration(Enumeration):
 
         - This method is the inverse of unpack_arrays().
 
-        - Uses self.ArrayType to figure out the type of array to return (e.g.
+        - Uses self.array_type to figure out the type of array to return (e.g.
         the amino acids may use a character array, but you need a larger
         data type to store indices on a JointEnumeration of pairs or triples of
         amino acids).
         """
-        return sum(self._sub_enum_factors * array(arrays, self.ArrayType), axis=0)
+        return sum(self._sub_enum_factors * array(arrays, self.array_type), axis=0)
 
     def unpack_arrays(self, a):
         """Unpacks array on joint enum to individual arrays on subenums.
@@ -491,7 +491,7 @@ class JointEnumeration(Enumeration):
 class Alphabet(Enumeration):
     """An ordered set of fixed-length strings, e.g. the 61 sense codons.
 
-    Ambiguities (e.g. N for any base in DNA) are not considered part of the
+    ambiguities (e.g. N for any base in DNA) are not considered part of the
     alphabet itself, although a sequence is valid on the alphabet even if
     it contains ambiguities that are known to the alphabet.
     A gap is considered a separate motif and is not part of the alphabet itself.
@@ -506,14 +506,14 @@ class Alphabet(Enumeration):
     # make this exception avalable to objects calling alphabet methods.
     AlphabetError = AlphabetError
 
-    def __new__(cls, motifset, Gap='-', moltype=None):
+    def __new__(cls, motifset, gap='-', moltype=None):
         """Returns a new Alphabet object."""
-        return Enumeration.__new__(cls, data=motifset, Gap=Gap,
+        return Enumeration.__new__(cls, data=motifset, gap=gap,
                                    moltype=moltype)
 
-    def __init__(self, motifset, Gap='-', moltype=None):
+    def __init__(self, motifset, gap='-', moltype=None):
         """Returns a new Alphabet object."""
-        super(Alphabet, self).__init__(data=motifset, Gap=Gap,
+        super(Alphabet, self).__init__(data=motifset, gap=gap,
                                        moltype=moltype)
 
     def get_word_alphabet(self, word_length):
@@ -579,7 +579,7 @@ class Alphabet(Enumeration):
 
     def get_gap_motif(self):
         """Returns the motif that self is using as a gap. Note that this will
-        typically be a multiple of self.Gap.
+        typically be a multiple of self.gap.
         """
         return self._gapmotif
 
@@ -632,7 +632,7 @@ class Alphabet(Enumeration):
             return (ambig_motif,)
 
         # resolve each letter, and build the possible sub motifs
-        ambiguities = self.moltype.Ambiguities
+        ambiguities = self.moltype.ambiguities
         motif_set = ['']
         ALL = self.moltype.alphabet.with_gap_motif()
         for character in ambig_motif:
@@ -693,15 +693,15 @@ class CharAlphabet(Alphabet):
     searately for remapping.
     """
 
-    def __init__(self, data=[], Gap='-', moltype=None):
+    def __init__(self, data=[], gap='-', moltype=None):
         """Initializes self from items.
 
         data should be a sequence (string, list, etc.) of characters that
         are in the alphabet, e.g. 'UCAG' for RNA.
 
-        Gap should be a single character that represents the gap, e.g. '-'.
+        gap should be a single character that represents the gap, e.g. '-'.
         """
-        super(CharAlphabet, self).__init__(data, Gap, moltype=moltype)
+        super(CharAlphabet, self).__init__(data, gap, moltype=moltype)
         self._indices_to_chars, self._chars_to_indices = \
             _make_translation_tables(data)
         self._char_nums_to_indices = array(range(256), uint8)

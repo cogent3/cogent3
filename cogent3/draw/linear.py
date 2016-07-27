@@ -973,7 +973,7 @@ class Display(rlg2mpl.Drawable):
 
     base: A sequence, alignment, or anything else offering .get_tracks(policy)
     policy: A DisplayPolicy subclass.
-    pad: Gap between tracks in points.
+    pad: gap between tracks in points.
 
     Other keyword arguments are used to modify the DisplayPolicy:
 

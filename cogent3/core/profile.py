@@ -680,7 +680,7 @@ class Profile(object):
 def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
     """Returns a Profile with the meaning of each character in the alphabet
 
-    alphabet: Alphabet object (should have 'Degenerates'if split_degenerates
+    alphabet: Alphabet object (should have 'degenerates'if split_degenerates
     is set to True)
     char_order: string indicating the order of the characters in the profile
     split_degenerates: whether the meaning of degenerate symbols in the
@@ -743,7 +743,7 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
     result = zeros([255, lc], float64)
 
     if split_degenerates:
-        degen = alphabet.Degenerates
+        degen = alphabet.degenerates
         for degen_char in degen:
             # if all characters that the degenerate character maps onto are
             # in the character order, split its value up according to the
