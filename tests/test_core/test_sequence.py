@@ -433,22 +433,22 @@ class SequenceTests(TestCase):
 
         assert self.DNA('TCCAAAGRYY').can_mispair('RRYCTTTGGA')
 
-    def test_mustPair(self):
-        """Sequence mustPair should return True when no possible mispairs"""
-        assert self.RNA('').mustPair('')
-        assert not self.RNA('N').mustPair('N')
-        assert not self.RNA('R').mustPair('Y')
-        assert not self.RNA('A').mustPair('A')
-        assert not self.RNA('CGUACGCAN').mustPair('NUGCGUACG')
-        assert not self.RNA('U').mustPair('C')
-        assert not self.RNA('UUU').mustPair('AAR')
-        assert not self.RNA('UUU').mustPair('RAA')
-        assert not self.RNA('UU-').mustPair('-AA')
-        assert self.RNA('UCAG').mustPair('CUGA')
+    def test_must_pair(self):
+        """Sequence must_pair should return True when no possible mispairs"""
+        assert self.RNA('').must_pair('')
+        assert not self.RNA('N').must_pair('N')
+        assert not self.RNA('R').must_pair('Y')
+        assert not self.RNA('A').must_pair('A')
+        assert not self.RNA('CGUACGCAN').must_pair('NUGCGUACG')
+        assert not self.RNA('U').must_pair('C')
+        assert not self.RNA('UUU').must_pair('AAR')
+        assert not self.RNA('UUU').must_pair('RAA')
+        assert not self.RNA('UU-').must_pair('-AA')
+        assert self.RNA('UCAG').must_pair('CUGA')
 
-        assert self.DNA('TCCAGGG').mustPair('CCCTGGA')
-        assert self.DNA('tccaggg').mustPair(self.DNA('ccctgga'))
-        assert not self.DNA('TCCAGGG').mustPair('NCCTGGA')
+        assert self.DNA('TCCAGGG').must_pair('CCCTGGA')
+        assert self.DNA('tccaggg').must_pair(self.DNA('ccctgga'))
+        assert not self.DNA('TCCAGGG').must_pair('NCCTGGA')
 
     def test_diff(self):
         """Sequence diff should count 1 for each difference between sequences"""
