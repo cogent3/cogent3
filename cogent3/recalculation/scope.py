@@ -214,7 +214,7 @@ class _Defn(object):
     def _getPosnForScope(self, *args, **scope):
         scope = self.interpret_positional_scope_args(*args, **scope)
         posns = set()
-        for scope_t in self.interpretScope(**scope):
+        for scope_t in self.interpret_scope(**scope):
             posns.add(self.index[scope_t])
         if len(posns) == 0:
             raise InvalidScopeError(
@@ -295,7 +295,7 @@ class _Defn(object):
                 independent_dimensions.append(i)
             if selection is not None:
                 kw2[dimension] = selection
-        all = self.interpretScope(**kw2)
+        all = self.interpret_scope(**kw2)
 
         # Group independent scopes
         result = {}
@@ -306,7 +306,7 @@ class _Defn(object):
             result[key].add(scope_t)
         return list(result.values())
 
-    def interpretScope(self, **kw):
+    def interpret_scope(self, **kw):
         """A set of the scope-tuples that match the input dict like
         {dimension:[categories]}"""
         selector = []
