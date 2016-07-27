@@ -287,10 +287,10 @@ class _SubstitutionModel(object):
         result = {}
         for seq_name in alignment.get_seq_names():
             sequence = alignment.get_gapped_seq(seq_name, self.recode_gaps)
-            result[seq_name] = self.convertSequence(sequence, seq_name)
+            result[seq_name] = self.convert_sequence(sequence, seq_name)
         return result
 
-    def convertSequence(self, sequence, name):
+    def convert_sequence(self, sequence, name):
         # make_likelihood_tree_leaf, sort of an indexed profile where duplicate
         # columns stored once, so likelihoods only calc'd once
         return make_likelihood_tree_leaf(sequence, self.get_alphabet(), name)

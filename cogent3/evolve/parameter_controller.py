@@ -388,7 +388,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
                 # XXX more checks - same alphabet as model, name etc ...
                 leaf = seq
             else:
-                leaf = self.model.convertSequence(seq, name)
+                leaf = self.model.convert_sequence(seq, name)
             leaf = AlignableSeq(leaf)
             leaves[name] = leaf
             assert name != "root", "'root' is a reserved name."
