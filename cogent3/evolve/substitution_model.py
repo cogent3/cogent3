@@ -328,7 +328,7 @@ class _SubstitutionModel(object):
 
     def makeParamControllerDefns(self, bin_names, endAtQd=False):
         (input_probs, word_probs, mprobs_matrix) = \
-            self.mprob_model.makeMotifWordProbDefns()
+            self.mprob_model.make_motif_word_prob_defns()
 
         if len(bin_names) > 1:
             bprobs = PartitionDefn(
