@@ -713,7 +713,7 @@ class CharAlphabet(Alphabet):
             chars[i] = c
         self._indices_nums_to_chars = array(list(chars), 'B').view('c')
 
-    def fromString(self, data):
+    def from_string(self, data):
         """Returns array of indices from string containing elements.
 
         data should be a string on the alphabet, e.g. 'ACC' for the RNA
@@ -741,7 +741,7 @@ class CharAlphabet(Alphabet):
 
         This is useful if, instead of a string, you have an array of
         characters that's been converted into a numpy array. See
-        fromString docstring for general behavior.
+        from_string docstring for general behavior.
         """
         return take(self._char_nums_to_indices, data.view('B'))
 
