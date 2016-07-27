@@ -29,19 +29,6 @@ Data manipulation
     query_ensembl
     manipulating_tree_nodes
 
-**********************************
-Controlling 3rd party applications
-**********************************
-
-.. toctree::
-    :maxdepth: 1
-
-    application_controller_framework
-    building_and_using_an_application_controller
-    alignment_app_controllers
-    phylogeny_app_controllers
-    generating_app_commandlines
-
 *********************
 General data analysis
 *********************
@@ -49,11 +36,6 @@ General data analysis
 .. toctree::
     :maxdepth: 1
 
-    goodness_of_fit
-    perform_PCoA_analysis
-    perform_nmds
-    motif_results
-    unifrac
     period_estimation
 
 ******************
