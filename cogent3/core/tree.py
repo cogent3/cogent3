@@ -559,7 +559,7 @@ class TreeNode(object):
         """Returns direct children of self that are tips."""
         return [i for i in self.Children if not i.Children]
 
-    def nonTipChildren(self):
+    def non_tip_children(self):
         """Returns direct children in self that have descendants."""
         return [i for i in self.Children if i.Children]
 

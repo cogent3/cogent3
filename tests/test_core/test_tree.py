@@ -814,11 +814,11 @@ class TreeNodeTests(TestCase):
         self.assertEqual(h.tip_children(), [])
         self.assertEqual(a.tip_children(), [h])
 
-    def test_nonTipChildren(self):
-        """TreeNode nonTipChildren should return all non-terminal children"""
-        self.assertEqual(self.Empty.nonTipChildren(), [])
-        self.assertEqual(self.Child.nonTipChildren(), [])
-        self.assertEqual(self.OneChild.nonTipChildren(), [])
+    def test_non_tip_children(self):
+        """TreeNode non_tip_children should return all non-terminal children"""
+        self.assertEqual(self.Empty.non_tip_children(), [])
+        self.assertEqual(self.Child.non_tip_children(), [])
+        self.assertEqual(self.OneChild.non_tip_children(), [])
 
         nodes, tree = self.TreeNode, self.TreeRoot
         a = nodes['a']
@@ -830,14 +830,14 @@ class TreeNodeTests(TestCase):
         g = nodes['g']
         h = nodes['h']
 
-        self.assertEqual(g.nonTipChildren(), [])
-        self.assertEqual(f.nonTipChildren(), [])
-        self.assertEqual(e.nonTipChildren(), [])
-        self.assertEqual(d.nonTipChildren(), [])
-        self.assertEqual(c.nonTipChildren(), [f])
-        self.assertEqual(b.nonTipChildren(), [c])
-        self.assertEqual(h.nonTipChildren(), [])
-        self.assertEqual(a.nonTipChildren(), [b])
+        self.assertEqual(g.non_tip_children(), [])
+        self.assertEqual(f.non_tip_children(), [])
+        self.assertEqual(e.non_tip_children(), [])
+        self.assertEqual(d.non_tip_children(), [])
+        self.assertEqual(c.non_tip_children(), [f])
+        self.assertEqual(b.non_tip_children(), [c])
+        self.assertEqual(h.non_tip_children(), [])
+        self.assertEqual(a.non_tip_children(), [b])
 
     def test_childGroups(self):
         """TreeNode childGroups should divide children by grandchild presence"""
