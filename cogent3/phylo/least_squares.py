@@ -2,7 +2,7 @@
 import numpy
 from numpy.linalg import solve as solve_linear_equations
 from .tree_space import TreeEvaluator, ancestry2tree
-from .util import distanceDictAndNamesTo1D, distanceDictTo1D, triangular_order
+from .util import distance_dict_and_names_to_1D, distanceDictTo1D, triangular_order
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -24,7 +24,7 @@ __status__ = "Production"
 def _ancestry2paths(A):
     """Convert edge x edge ancestry matrix to tip-to-tip path x edge
     split metric matrix.  The paths will be in the same triangular matrix order
-    as produced by distanceDictAndNamesTo1D, provided that the tips appear in
+    as produced by distance_dict_and_names_to_1D, provided that the tips appear in
     the correct order in A"""
     tips = [i for i in range(A.shape[0]) if sum(A[:, i]) == 1]
     paths = []
@@ -50,8 +50,8 @@ class WLS(TreeEvaluator):
         (self.names, dists) = distanceDictTo1D(self.dists)
 
     def make_tree_scorer(self, names):
-        dists = distanceDictAndNamesTo1D(self.dists, names)
-        weights = distanceDictAndNamesTo1D(self.weights, names)
+        dists = distance_dict_and_names_to_1D(self.dists, names)
+        weights = distance_dict_and_names_to_1D(self.weights, names)
         # dists and weights are 1D forms of triangular tip x tip matrices
         # The order of the tip-to-tip paths is the same for dists, weights and
         # A
