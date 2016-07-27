@@ -112,7 +112,7 @@ class CalculationDefn(_NonLeafDefn):
     def make_calc_function(self):
         return self.calc
 
-    def makeCell(self, *args):
+    def make_cell(self, *args):
         calc = self.make_calc_function()
         # can't calc outside correct parallel context, so can't do
         # if [arg for arg in args if not arg.is_constant]:
@@ -129,7 +129,7 @@ class CalculationDefn(_NonLeafDefn):
             for (arg, u) in zip(self.args, input_nums):
                 arg = input_soup[id(arg)][u]
                 args.append(arg)
-            cell = self.makeCell(*args)
+            cell = self.make_cell(*args)
             cells.append(cell)
         return (cells, cells)
 
