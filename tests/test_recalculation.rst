@@ -57,7 +57,7 @@ is global, ie: Ax == Ay == Az.  If we allow A to be
 different in the x,y and z categories and set their
 initial values to 2.0:
 
-    >>> pc.assignAll('A', value=2.0, independent=True)
+    >>> pc.assign_all('A', value=2.0, independent=True)
     >>> f = pc.make_calculator()
     >>> f.get_value_array()
     [1.0, 2.0, 2.0, 2.0]
@@ -75,7 +75,7 @@ Constants do not appear in the optimisable inputs.
 Set one of the 3 A values to be a constant and there
 will be one fewer optimisable parameters:
 
-    >>> pc.assignAll('A', scope_spec={'category':'z'}, const=True)
+    >>> pc.assign_all('A', scope_spec={'category':'z'}, const=True)
     >>> f = pc.make_calculator()
     >>> f.get_value_array()
     [1.0, 2.0, 2.0]
@@ -85,12 +85,12 @@ does not exist:
 
     >>> from cogent3.recalculation.scope import InvalidScopeError, InvalidDimensionError
     >>> try:
-    ...     pc.assignAll('A', scope_spec={'category':'nosuch'})
+    ...     pc.assign_all('A', scope_spec={'category':'nosuch'})
     ... except InvalidScopeError:
     ...     pass
     ...     
     >>> try:
-    ...     pc.assignAll('A', scope_spec={'nonsuch':'nosuch'})
+    ...     pc.assign_all('A', scope_spec={'nonsuch':'nosuch'})
     ... except InvalidDimensionError:
     ...     pass
     ...     
