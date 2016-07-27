@@ -38,7 +38,7 @@ def sum_input_likelihoods(child_indexes, Double2D result, likelihoods):
                     result[parent_col, motif] *= plhs[child_col, motif]
     return result
     
-def getTotalLogLikelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):
+def get_total_log_likelihood(Double1D counts, Double2D input_likelihoods, Double1D mprobs):
     cdef int S, M, col, motif
     cdef double posn, total
     
