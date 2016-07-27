@@ -166,7 +166,7 @@ class _SubstitutionModel(object):
             alphabet = alphabet.withGapMotif()
 
         if motif_length > 1:
-            alphabet = alphabet.getWordAlphabet(motif_length)
+            alphabet = alphabet.get_word_alphabet(motif_length)
 
         if motifs is not None:
             alphabet = alphabet.getSubset(motifs)

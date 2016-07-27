@@ -116,7 +116,7 @@ class ComplexMotifProbModel(MotifProbModel):
         # w2c[ATC, AT*] = 1
         self.m2w = m2w = numpy.zeros([size, length], int)
         self.w2m = w2m = numpy.zeros([length, size, len(monomers)], int)
-        contexts = monomers.getWordAlphabet(length - 1)
+        contexts = monomers.get_word_alphabet(length - 1)
         self.w2c = w2c = numpy.zeros([size, length * len(contexts)], int)
         for (i, word) in enumerate(tuple_alphabet):
             for j in range(length):
