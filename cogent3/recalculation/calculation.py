@@ -320,7 +320,7 @@ class Calculator(object):
 
     def optimise(self, **kw):
         x = self.get_value_array()
-        bounds = self.getBoundsVectors()
+        bounds = self.get_bounds_vectors()
         maximise(self, x, bounds, **kw)
         self.optimised = True
 
@@ -367,10 +367,10 @@ class Calculator(object):
                   for p in self.opt_pars]
         return values
 
-    # getBoundsVectors and testoptparvector make up the old LikelihoodFunction
+    # get_bounds_vectors and testoptparvector make up the old LikelihoodFunction
     # interface expected by the optimiser.
 
-    def getBoundsVectors(self):
+    def get_bounds_vectors(self):
         """2 arrays: minimums, maximums"""
         lower = numpy.zeros([len(self.opt_pars)], Float)
         upper = numpy.zeros([len(self.opt_pars)], Float)
@@ -389,7 +389,7 @@ class Calculator(object):
         if seed is not None:
             random_series.seed(seed)
         X = self.get_value_array()
-        for (i, (l, u)) in enumerate(zip(*self.getBoundsVectors())):
+        for (i, (l, u)) in enumerate(zip(*self.get_bounds_vectors())):
             sign = random_series.choice([-1, +1])
             step = random_series.uniform(+0.05, +0.025)
             X[i] = max(l, min(u, (1.0 + sign * step * X[i])))
