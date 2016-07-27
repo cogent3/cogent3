@@ -177,10 +177,10 @@ Tables may also be created from 2-dimensional dictionaries. In this case, specia
     >>> d2D['edge.name'] = dict(zip(row_order, row_order))
     >>> t3 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
     ... row_order = row_order, missing_data='*', space=8, max_width = 50,
-    ... row_ids = True, title = 'My Title',
-    ... legend = 'Legend: this is a nonsense example.')
+    ... row_ids = True, title = 'My title',
+    ... legend = 'legend: this is a nonsense example.')
     >>> print(t3)
-    My Title
+    My title
     ==========================================
     edge.name        edge.parent        length
     ------------------------------------------
@@ -193,7 +193,7 @@ Tables may also be created from 2-dimensional dictionaries. In this case, specia
        edge.1               root        4.0000
     ------------------------------------------
     <BLANKLINE>
-    continued: My Title
+    continued: My title
     =====================================
     edge.name             x             y
     -------------------------------------
@@ -206,7 +206,7 @@ Tables may also be created from 2-dimensional dictionaries. In this case, specia
        edge.1        1.0000        3.0000
     -------------------------------------
     <BLANKLINE>
-    continued: My Title
+    continued: My title
     =======================
     edge.name             z
     -----------------------
@@ -219,7 +219,7 @@ Tables may also be created from 2-dimensional dictionaries. In this case, specia
        edge.1        6.0000
     -----------------------
     <BLANKLINE>
-    Legend: this is a nonsense example.
+    legend: this is a nonsense example.
 
 In the above we specify a maximum width of the table, and also specify row identifiers (using ``row_ids``, the integer corresponding to the column at which data begin, preceding columns are taken as the identifiers). This has the effect of forcing the table to wrap when the simple text format is used, but wrapping does not occur for any other format. The ``row_ids`` are keys for slicing the table by row, and as identifiers are presented in each wrapped sub-table.
 
@@ -309,9 +309,9 @@ It is safe to directly modify certain attributes, such as the title, legend and 
 
 .. doctest::
 
-    >>> t46.Title = "A new title"
-    >>> t46.Legend = "A new legend"
-    >>> t46.Space = '  '
+    >>> t46.title = "A new title"
+    >>> t46.legend = "A new legend"
+    >>> t46.space = '  '
     >>> print(t46)
     A new title
     ========================================
@@ -602,12 +602,12 @@ Saving a table object to file for later reloading can be done using the standard
 
     >>> t3 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
     ... row_order = row_order, missing_data='*', space=8, max_width = 50,
-    ... row_ids = True, title = 'My Title',
-    ... legend = 'Legend: this is a nonsense example.')
+    ... row_ids = True, title = 'My title',
+    ... legend = 'legend: this is a nonsense example.')
     >>> t3.write("t3.pickle", mode='wb')
     >>> t3_loaded = LoadTable(filename = "t3.pickle")
     >>> print(t3_loaded)
-    My Title
+    My title
     ==========================================
     edge.name        edge.parent        length
     ------------------------------------------
@@ -620,7 +620,7 @@ Saving a table object to file for later reloading can be done using the standard
        edge.1               root        4.0000
     ------------------------------------------
     <BLANKLINE>
-    continued: My Title
+    continued: My title
     =====================================
     edge.name             x             y
     -------------------------------------
@@ -633,7 +633,7 @@ Saving a table object to file for later reloading can be done using the standard
        edge.1        1.0000        3.0000
     -------------------------------------
     <BLANKLINE>
-    continued: My Title
+    continued: My title
     =======================
     edge.name             z
     -----------------------
@@ -646,7 +646,7 @@ Saving a table object to file for later reloading can be done using the standard
        edge.1        6.0000
     -----------------------
     <BLANKLINE>
-    Legend: this is a nonsense example.
+    legend: this is a nonsense example.
     >>> t2 = Table(['abcd', 'data'], [[str([1, 2, 3, 4, 5]), '0'], ['x', 5.0],
     ... ['y', None]], missing_data='*', title = 'A \ntitle')
     >>> t2.write('t2.csv', sep=',')
@@ -710,12 +710,12 @@ You can also read and write tables in gzip compressed format. This can be done s
     >>> t2.write('t2.csv.gz', sep=',')
     >>> t2_gz = LoadTable('t2.csv.gz', sep=',', with_title=True,
     ...                 with_legend=True)
-    >>> t2_gz.Shape == t2.Shape
+    >>> t2_gz.shape == t2.shape
     True
     >>> t2.write('t2.csv', sep=',', compress=True)
     >>> t2_gz = LoadTable('t2.csv.gz', sep=',', with_title=True,
     ...                 with_legend=True)
-    >>> t2_gz.Shape == t2.Shape
+    >>> t2_gz.shape == t2.shape
     True
 
 
@@ -727,7 +727,7 @@ We convert columns 2-5 to floats by specifying a field convertor. We then create
 .. doctest::
 
     >>> from cogent3.parse.table import ConvertFields, SeparatorFormatParser
-    >>> t3.Title = t3.Legend = None
+    >>> t3.title = t3.legend = None
     >>> comma_sep = t3.tostring(sep=",").splitlines()
     >>> print(comma_sep)
     ['edge.name,edge.parent,length,     x,     y,     z', '    Human,    ...
@@ -798,7 +798,7 @@ Limiting should also work when ``static_column_types`` is invoked
 .. doctest::
 
     >>> t3a = LoadTable("t3.tab", sep='\t', limit=3, static_column_types=True)
-    >>> t3a.Shape[0] == 3
+    >>> t3a.shape[0] == 3
     True
 
 or when
@@ -937,7 +937,7 @@ The Table class is capable of slicing by row, range of rows, column or range of 
 .. doctest::
 
     >>> t4 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
-    ... row_order = row_order, row_ids = True, title = 'My Title')
+    ... row_order = row_order, row_ids = True, title = 'My title')
 
 We subset ``t4`` by column and reorder them.
 
@@ -945,7 +945,7 @@ We subset ``t4`` by column and reorder them.
 
     >>> new = t4.get_columns(['z', 'y'])
     >>> print(new)
-    My Title
+    My title
     =============================
     edge.name         z         y
     -----------------------------
@@ -964,7 +964,7 @@ We use the column position indexes to do get the same table.
 
     >>> new = t4.get_columns([5, 4])
     >>> print(new)
-    My Title
+    My title
     =============================
     edge.name         z         y
     -----------------------------
@@ -983,7 +983,7 @@ We can also using more general slicing, by both rows and columns. The following 
 
     >>> k = t4[4:, :'y']
     >>> print(k)
-    My Title
+    My title
     ============================================
     edge.name    edge.parent    length         x
     --------------------------------------------
@@ -1006,7 +1006,7 @@ We slice a single row,
 
     >>> new = t4[3]
     >>> print(new)
-    My Title
+    My title
     ================================================================
     edge.name    edge.parent    length         x         y         z
     ----------------------------------------------------------------
@@ -1019,7 +1019,7 @@ and range of rows.
 
     >>> new = t4[3:6]
     >>> print(new)
-    My Title
+    My title
     ================================================================
     edge.name    edge.parent    length         x         y         z
     ----------------------------------------------------------------
@@ -1033,7 +1033,7 @@ You can get disjoint rows.
 .. doctest::
 
     >>> print(t4.get_disjoint_rows(['Human', 'Mouse', 'DogFaced']))
-    My Title
+    My title
     ================================================================
     edge.name    edge.parent    length         x         y         z
     ----------------------------------------------------------------
@@ -1264,15 +1264,15 @@ We repeat this without adding a new column.
 Miscellaneous
 -------------
 
-Tables have a ``Shape`` attribute, which specifies *x* (number of columns) and *y* (number of rows). The attribute is a tuple and we illustrate it for the above ``sub_table`` tables. Combined with the ``filtered`` method, this attribute can tell you how many rows satisfy a specific condition.
+Tables have a ``shape`` attribute, which specifies *x* (number of columns) and *y* (number of rows). The attribute is a tuple and we illustrate it for the above ``sub_table`` tables. Combined with the ``filtered`` method, this attribute can tell you how many rows satisfy a specific condition.
 
 .. doctest::
 
-    >>> t5.Shape
+    >>> t5.shape
     (11, 5)
-    >>> sub_table1.Shape
+    >>> sub_table1.shape
     (4, 5)
-    >>> sub_table2.Shape
+    >>> sub_table2.shape
     (3, 5)
 
 For instance, 3 of the 11 rows in ``t`` were significant and belonged to the ``Unco`` type.
@@ -1283,7 +1283,7 @@ For completeness, we generate a table with no rows and assess its shape.
 
     >>> func = lambda ty_pr: ty_pr[0] == 'Unco' and ty_pr[1] > 0.1
     >>> sub_table3 = t5.filtered(columns = ('type', 'Prob'), callback = func)
-    >>> sub_table3.Shape
+    >>> sub_table3.shape
     (0, 5)
 
 The distinct values can be obtained for a single column,
@@ -1420,7 +1420,7 @@ In some cases it is desirable to compute an additional column from existing colu
 
     >>> t7 = t4.with_new_column('Sum', callback="z+x", digits=2)
     >>> print(t7)
-    My Title
+    My title
     ==================================================================
     edge.name    edge.parent    length       x       y       z     Sum
     ------------------------------------------------------------------
@@ -1441,7 +1441,7 @@ We test this with an externally defined function.
     >>> t7 = t4.with_new_column('Sum', callback=func, columns=("y","z"),
     ... digits=2)
     >>> print(t7)
-    My Title
+    My title
     ===================================================================
     edge.name    edge.parent    length       x       y       z      Sum
     -------------------------------------------------------------------
@@ -1456,7 +1456,7 @@ We test this with an externally defined function.
     >>> func = lambda x: x**3
     >>> t7 = t4.with_new_column('Sum', callback=func, columns="y", digits=2)
     >>> print(t7)
-    My Title
+    My title
     ===================================================================
     edge.name    edge.parent    length       x       y       z      Sum
     -------------------------------------------------------------------
@@ -1677,12 +1677,12 @@ For a standard inner join, the joined table should contain all columns from ``a`
 
 .. doctest::
 
-    >>> b.Title = None
+    >>> b.title = None
     >>> try:
     ...     a.joined(b)
     ... except RuntimeError:
     ...     pass
-    >>> b.Title = 'B'
+    >>> b.title = 'B'
     >>> assert a.joined(b, "index").Header == ["index", "col2", "col3",
     ...                                        "B_col2", "B_col3"]
     ...
@@ -1821,7 +1821,7 @@ We then establish that a join with no values does not cause a failure, just retu
     >>> t4_header = ['b', 'c']
     >>> t4_rows = [(5,6),(7,8)]
     >>> t4 = LoadTable(header = t4_header, rows = t4_rows)
-    >>> t4.Title = 't4'
+    >>> t4.title = 't4'
     >>> t5 = t1.joined(t4, columns_self = ["b"], columns_other = ["b"])
     >>> print(t5)
     ==============

@@ -448,7 +448,7 @@ As tables
     
     >>> tables = lf.getStatistics(with_motif_probs=True, with_titles=True)
     >>> for table in tables:
-    ...     if 'global' in table.Title:
+    ...     if 'global' in table.title:
     ...         print table
     global params
     ==============================================

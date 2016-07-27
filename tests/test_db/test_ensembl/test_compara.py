@@ -98,12 +98,12 @@ class TestCompara(ComparaTestBase):
         a group of species"""
         # we should correctly infer the method_species_links, which is a
         # cogent3.util.Table instance
-        self.assertTrue(self.comp.method_species_links.Shape > (0, 0))
+        self.assertTrue(self.comp.method_species_links.shape > (0, 0))
 
     def test_no_method_clade_data(self):
         """generate a Table with no rows if no alignment data"""
         compara = Compara(['S.cerevisiae'], Release=Release, account=account)
-        self.assertEqual(compara.method_species_links.Shape[0], 0)
+        self.assertEqual(compara.method_species_links.shape[0], 0)
 
     def test_get_syntenic_returns_nothing(self):
         """should correctly return None for a SyntenicRegion with golden-path

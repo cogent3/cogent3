@@ -100,7 +100,7 @@ or, for spacing at least, by modifying the attributes
 
 .. doctest::
 
-    >>> table.Space = '    '
+    >>> table.space = '    '
     >>> print table
     =================================
         Locus    Region         Ratio
@@ -178,8 +178,8 @@ or with a new column
 
 .. doctest::
 
-    >>> table1.Title = 'Data1'
-    >>> table2.Title = 'Data2'
+    >>> table1.title = 'Data1'
+    >>> table2.title = 'Data2'
     >>> table = table1.appended('Data#', table2, title='')
     >>> print table
     =============================================
@@ -197,7 +197,7 @@ or with a new column
     Data2    NP_055852    NonCon    10933217.7090
     ---------------------------------------------
 
-.. note:: We assigned an empty string to ``title``, otherwise the resulting table has the same ``Title`` attribute as that of ``table1``.
+.. note:: We assigned an empty string to ``title``, otherwise the resulting table has the same ``title`` attribute as that of ``table1``.
 
 Summing a single column
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -477,7 +477,7 @@ Counting
 Joining tables
 """"""""""""""
 
-SQL-like join operations requires tables have different ``Title`` attributes which are not ``None``. We do a standard inner join here for a restricted subset. We must specify the columns that will be used for the join. Here we just use ``Locus`` but multiple columns can be used, and their names can be different between the tables. Note that the second table's title becomes a part of the column names.
+SQL-like join operations requires tables have different ``title`` attributes which are not ``None``. We do a standard inner join here for a restricted subset. We must specify the columns that will be used for the join. Here we just use ``Locus`` but multiple columns can be used, and their names can be different between the tables. Note that the second table's title becomes a part of the column names.
 
 .. doctest::
 

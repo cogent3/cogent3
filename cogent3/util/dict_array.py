@@ -141,7 +141,7 @@ class DictArray(object):
             create_new = DictArrayTemplate(
                 *args[1:]).wrap(args[0], dtype=dtype)
             self.__dict__ = create_new.__dict__
-        self.Shape = self.array.shape
+        self.shape = self.array.shape
 
     def asarray(self):
         return self.array
