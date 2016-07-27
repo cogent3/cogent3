@@ -344,7 +344,7 @@ ORIGIN
             if feature['type'] != "CDS":
                 return
             name = feature['locus_tag'][0]
-            seq.addAnnotation(Feature, "CDS", name, spans)
+            seq.add_annotation(Feature, "CDS", name, spans)
 
         infile = open('data/annotated_seq.gb')
         parser = RichGenbankParser(infile,

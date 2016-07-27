@@ -23,8 +23,8 @@ def makeSampleSequence(with_gaps=False):
     if with_gaps:
         raw_seq = raw_seq[:5] + '-----' + raw_seq[10:-2] + '--'
     seq = DNA.make_sequence(raw_seq)
-    seq.addAnnotation(Feature, 'CDS', 'CDS', [cds])
-    seq.addAnnotation(Feature, "5'UTR", "5' UTR", [utr])
+    seq.add_annotation(Feature, 'CDS', 'CDS', [cds])
+    seq.add_annotation(Feature, "5'UTR", "5' UTR", [utr])
     return seq
 
 
@@ -33,10 +33,10 @@ def makeSampleAlignment():
     seq2 = makeSampleSequence(with_gaps=True)
     seqs = {'FAKE01': seq1, 'FAKE02': seq2}
     aln = LoadSeqs(data=seqs)
-    aln.addAnnotation(Feature, 'misc_feature', 'misc', [(12, 25)])
-    aln.addAnnotation(Feature, 'CDS', 'blue', [(15, 25)])
-    aln.addAnnotation(Feature, "5'UTR", 'red', [(2, 4)])
-    aln.addAnnotation(Feature, "LTR", "fake", [(2, 15)])
+    aln.add_annotation(Feature, 'misc_feature', 'misc', [(12, 25)])
+    aln.add_annotation(Feature, 'CDS', 'blue', [(15, 25)])
+    aln.add_annotation(Feature, "5'UTR", 'red', [(2, 4)])
+    aln.add_annotation(Feature, "LTR", "fake", [(2, 15)])
     return aln
 
 
@@ -60,11 +60,11 @@ class TestAnnotations(unittest.TestCase):
                 return True
 
         seq = DNA.make_sequence('ACGTACGTACGT')
-        f = seq.addAnnotation(NewFeat, as_map([(1, 3), (5, 7)], len(seq)),
+        f = seq.add_annotation(NewFeat, as_map([(1, 3), (5, 7)], len(seq)),
                               type='gene', Name='abcd')
         self.assertEqual(type(f.asOneSpan()), NewFeat)
         self.assertEqual(type(f.getShadow()), NewFeat)
-        f2 = seq.addAnnotation(NewFeat, as_map([(3, 5)], len(seq)),
+        f2 = seq.add_annotation(NewFeat, as_map([(3, 5)], len(seq)),
                                type='gene', Name='def')
 
         self.assertEqual(type(seq.getRegionCoveringAll([f, f2],

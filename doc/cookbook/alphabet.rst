@@ -30,10 +30,10 @@ You can create a tuple alphabet of, for example, dinucleotides or trinucleotides
 
 .. doctest::
     
-    >>> dinuc_alphabet = DNA.Alphabet.getWordAlphabet(2)
+    >>> dinuc_alphabet = DNA.Alphabet.get_word_alphabet(2)
     >>> print dinuc_alphabet
     ('TT', 'CT', 'AT', 'GT', ...
-    >>> trinuc_alphabet = DNA.Alphabet.getWordAlphabet(3)
+    >>> trinuc_alphabet = DNA.Alphabet.get_word_alphabet(3)
     >>> print trinuc_alphabet
     ('TTT', 'CTT', 'ATT', ...
 
@@ -60,6 +60,6 @@ or
 
 .. doctest::
     
-    >>> seq = DNA.Alphabet.fromOrdinalsToSequence([0,2,3,0])
+    >>> seq = DNA.Alphabet.from_ordinals_to_seq([0,2,3,0])
     >>> seq
     DnaSequence(TAGT)

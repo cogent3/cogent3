@@ -62,12 +62,12 @@ def GbSeqXmlParser(doc):
         seq = alphabet.make_sequence(raw_string, Name=name)
 
         all = annotation.Map([(0, len(seq))], parent_length=len(seq))
-        seq.addAnnotation(annotation.Source, all, name, all)
+        seq.add_annotation(annotation.Source, all, name, all)
 
         organism = str(record.getElementsByTagName(
             'GBSeq_organism')[0].childNodes[0].nodeValue)
 
-        seq.addAnnotation(annotation.Feature, "organism",
+        seq.add_annotation(annotation.Feature, "organism",
                           organism, [(0, len(seq))])
 
         features = record.getElementsByTagName('GBFeature')
@@ -100,7 +100,7 @@ def GbSeqXmlParser(doc):
                 if qname == 'gene':
                     feature_name = qualifier.getElementsByTagName(
                         "GBQualifier_value")[0].childNodes[0].nodeValue
-            seq.addAnnotation(annotation.Feature, key, feature_name, spans)
+            seq.add_annotation(annotation.Feature, key, feature_name, spans)
         yield (name, seq)
 
 

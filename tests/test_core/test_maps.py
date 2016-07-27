@@ -21,7 +21,7 @@ def SimpleAnnotation(parent, locations, Name):
 
 
 def annotate(parent, start, end, Name):
-    annot = parent.addAnnotation(SimpleAnnotation, locations=[
+    annot = parent.add_annotation(SimpleAnnotation, locations=[
                                  (start, end)], Name=Name)
     return annot
 
@@ -77,8 +77,8 @@ class MapTest(unittest.TestCase):
 
     def test_getByAnnotation(self):
         seq = DNA.make_sequence('ATCGATCGAT' * 5, Name='base')
-        seq.addAnnotation(Feature, 'test_type', 'test_label', [(5, 10)])
-        seq.addAnnotation(Feature, 'test_type', 'test_label2', [(15, 18)])
+        seq.add_annotation(Feature, 'test_type', 'test_label', [(5, 10)])
+        seq.add_annotation(Feature, 'test_type', 'test_label2', [(15, 18)])
 
         answer = list(seq.getByAnnotation('test_type'))
         self.assertEqual(len(answer), 2)
@@ -101,7 +101,7 @@ class MapTest(unittest.TestCase):
             'a': 'ATCGAAATCGAT',
             'b': 'ATCGA--TCGAT'})
         b = aln.get_seq('b')
-        b.addAnnotation(Feature, 'test_type', 'test_label', [(4, 6)])
+        b.add_annotation(Feature, 'test_type', 'test_label', [(4, 6)])
 
         answer = aln.get_by_seq_annotation('b', 'test_type')[0].todict()
         self.assertEqual(answer, {'b': 'A--T', 'a': 'AAAT'})

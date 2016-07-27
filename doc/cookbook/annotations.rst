@@ -40,7 +40,7 @@ You can write your own code to construct annotation objects. One reason you migh
     ...     name = feature.get('locus_tag', None)
     ...     if name and not isinstance(name, basestring):
     ...         name = ' '.join(name)
-    ...     seq.addAnnotation(Feature, type_, name, spans)
+    ...     seq.add_annotation(Feature, type_, name, spans)
     ... 
     >>> parser = RichGenbankParser(open('data/ST_genome_part.gb'),
     ...          add_annotation=add_annotation)
@@ -74,7 +74,7 @@ Creating directly on a sequence
 Via
 """
 
-``addAnnotation``
+``add_annotation``
 +++++++++++++++++
 
 .. doctest::
@@ -85,8 +85,8 @@ Via
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      Name="seq1")
     ...
-    >>> exon1 = s1.addAnnotation(Feature, 'exon', 'A', [(10,15)])
-    >>> exon2 = s1.addAnnotation(Feature, 'exon', 'B', [(30,40)])
+    >>> exon1 = s1.add_annotation(Feature, 'exon', 'A', [(10,15)])
+    >>> exon2 = s1.add_annotation(Feature, 'exon', 'B', [(30,40)])
 
 ``add_feature``
 ++++++++++++++
@@ -179,7 +179,7 @@ We add an annotation directly onto an alignment. In this example we add a ``Vari
 .. doctest::
 
     >>> from cogent3.core.annotation import Variable
-    >>> red_data = aln1.addAnnotation(Variable, 'redline', 'align',
+    >>> red_data = aln1.add_annotation(Variable, 'redline', 'align',
     ...              [((0,15),1),((15,30),2),((30,45),3)])
     ...
 
@@ -604,9 +604,9 @@ Annotation display on alignments
     >>> from cogent3.core.annotation import Variable
     >>> from cogent3.draw.linear import Display
     >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta', moltype=DNA)[:150]
-    >>> annot = aln.addAnnotation(Variable, 'redline', 'align',
+    >>> annot = aln.add_annotation(Variable, 'redline', 'align',
     ...                          [((0,15),1),((15,30),2),((30,45),3)])
-    >>> annot = aln.addAnnotation(Variable, 'blueline', 'align',
+    >>> annot = aln.add_annotation(Variable, 'blueline', 'align',
     ...                          [((0,15),1.5),((15,30),2.5),((30,45),3.5)])
     >>> align_display = Display(aln, colour_sequences=True)
     >>> fig = align_display.makeFigure(width=25, left=1, right=1)
@@ -623,7 +623,7 @@ We just show a series of spans.
     >>> from cogent3.draw.linear import Display
     >>> from cogent3.core.annotation import Variable
     >>> seq = DNA.make_sequence('aaaccggttt' * 10)
-    >>> annot = seq.addAnnotation(Variable, 'redline', 'align',
+    >>> annot = seq.add_annotation(Variable, 'redline', 'align',
     ...     [((0,15),1),((15,30),2),((30,45),3)])
     ...
     >>> seq_display = Display(seq, colour_sequences=True)

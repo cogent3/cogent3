@@ -154,10 +154,10 @@ def do(msg, display, **kw):
 def makeSampleSequence():
     seq = 'tgccnwsrygagcgtgttaaacaatggccaactctctaccttcctatgttaaacaagtgagatcgcaggcgcgccaaggc'
     seq = DNA.make_sequence(seq)
-    v = seq.addAnnotation(annotation.Feature, 'exon', 'exon', [(20, 35)])
-    v = seq.addAnnotation(annotation.Feature, 'repeat_unit',
+    v = seq.add_annotation(annotation.Feature, 'exon', 'exon', [(20, 35)])
+    v = seq.add_annotation(annotation.Feature, 'repeat_unit',
                           'repeat_unit', [(39, 49)])
-    v = seq.addAnnotation(annotation.Feature,
+    v = seq.add_annotation(annotation.Feature,
                           'repeat_unit', 'rep2', [(49, 60)])
     return seq
 
@@ -173,18 +173,18 @@ def makeSampleAlignment():
     seq2.Name = 'FAKE02'
     names = (seq1.get_name(), seq2.get_name())
     align = global_pairwise(seq1, seq2, DNA, 2, 1)
-    align.addAnnotation(annotation.Variable, 'redline', 'align', [
+    align.add_annotation(annotation.Variable, 'redline', 'align', [
                         ((0, 15), 1), ((15, 30), 2), ((30, 45), 3)])
-    align.addAnnotation(annotation.Variable, 'blueline', 'align', [
+    align.add_annotation(annotation.Variable, 'blueline', 'align', [
                         ((0, 15), 1.5), ((15, 30), 2.5), ((30, 45), 3.5)])
     return align
 
 seq = makeSampleSequence()
-a = seq.addAnnotation(annotation.Variable, 'blueline', 'seq', [
+a = seq.add_annotation(annotation.Variable, 'blueline', 'seq', [
                       ((0, 15), 1), ((15, 30), 2), ((30, 45), 3)])
-v = seq.addAnnotation(annotation.Feature, 'gene', 'gene',
+v = seq.add_annotation(annotation.Feature, 'gene', 'gene',
                       [(0, 15), (20, 35), (40, 55)])
-b = v.addAnnotation(annotation.Variable, 'redline', 'feat', [
+b = v.add_annotation(annotation.Variable, 'redline', 'feat', [
                     ((0, 15), 1.5), ((15, 30), 2.5), ((30, 45), 3.5)])
 
 align = makeSampleAlignment()
