@@ -848,7 +848,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         # overridden in subclasses
         return {'indel': predicate.parse('-/?')}
 
-    def getPredefinedPredicate(self, name):
+    def get_predefined_predicate(self, name):
         # Called by predicate parsing code
         if self._canned_predicates is None:
             self._canned_predicates = self.get_predefined_predicates()
