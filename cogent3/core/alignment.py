@@ -2669,7 +2669,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         # same as sequence but annotations go below sequence tracks
         return policy.tracksForAlignment(self)
 
-    def getChildTracks(self, policy):
+    def get_child_tracks(self, policy):
         """The only Alignment method required for cogent3.draw"""
         tracks = []
         for label in self.names:
