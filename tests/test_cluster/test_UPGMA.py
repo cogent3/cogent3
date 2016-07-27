@@ -65,7 +65,7 @@ class UPGMATests(TestCase):
         cluster = upgma(pairwise_dist)
         cluster = cluster.sorted()  # so we can make a stable comparison
         expect = LoadTree(treestring='(((a:0.5,b:0.5)edge.1:1.75,c:2.25)edge.0:5.875,(d:1.0,e:1.0)edge.2:7.125)root;')
-        self.assertTrue(cluster.sameTopology(expect))
+        self.assertTrue(cluster.same_topology(expect))
 
     def test_find_smallest_index(self):
         """find_smallest_index returns the index of smallest value in array
