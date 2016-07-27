@@ -74,14 +74,14 @@ class OptPar(object):
         return '%s(%s)' % (self.__class__.__name__, self.label)
 
     def get_optimiser_bounds(self):
-        lower = self.transformToOptimiser(self.lower)
-        upper = self.transformToOptimiser(self.upper)
+        lower = self.transform_to_optimiser(self.lower)
+        upper = self.transform_to_optimiser(self.upper)
         return (lower, upper)
 
     def transform_from_optimiser(self, value):
         return value
 
-    def transformToOptimiser(self, value):
+    def transform_to_optimiser(self, value):
         return value
 
 
@@ -93,7 +93,7 @@ class LogOptPar(OptPar):
     def transform_from_optimiser(self, value):
         return numpy.exp(value)
 
-    def transformToOptimiser(self, value):
+    def transform_to_optimiser(self, value):
         try:
             return numpy.log(value)
         except OverflowError:
@@ -363,7 +363,7 @@ class Calculator(object):
     def getValueArray(self):
         """This being a caching function, you can ask it for its current
         input!  Handy for initialising the optimiser."""
-        values = [p.transformToOptimiser(self._getCurrentCellValue(p))
+        values = [p.transform_to_optimiser(self._getCurrentCellValue(p))
                   for p in self.opt_pars]
         return values
 
@@ -632,7 +632,7 @@ class Calculator(object):
         origY = self.testfunction()
         (lower, upper) = opt_par.get_optimiser_bounds()
         opt_value = self._getCurrentCellValue(opt_par)
-        origX = opt_par.transformToOptimiser(opt_value)
+        origX = opt_par.transform_to_optimiser(opt_value)
 
         def func(x):
             Y = self.change([(opt_par.rank, x)])
