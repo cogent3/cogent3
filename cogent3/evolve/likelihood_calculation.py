@@ -265,7 +265,7 @@ class BinnedLikelihood(object):
         # posterior bin probs, not motif probs
         assert len(lhs) == len(self.distrib.bprobs)
         result = numpy.array(
-            [b * self.root.getFullLengthLikelihoods(p)
+            [b * self.root.get_full_length_likelihoods(p)
              for (b, p) in zip(self.distrib.bprobs, lhs)])
         result /= result.sum(axis=0)
         return result
@@ -287,7 +287,7 @@ class SiteHmm(object):
     def get_posterior_probs(self, *lhs):
         plhs = []
         for lh in self.distrib.get_weighted_sum_lhs(lhs):
-            plh = self.root.getFullLengthLikelihoods(lh)
+            plh = self.root.get_full_length_likelihoods(lh)
             plhs.append(plh)
         plhs = numpy.transpose(plhs)
         pprobs = self.distrib.transition_matrix.get_posterior_probs(plhs)
@@ -296,7 +296,7 @@ class SiteHmm(object):
         lhs = numpy.array(lhs)
         blhs = lhs / numpy.sum(lhs, axis=0)
         blhs = numpy.array(
-            [b * self.root.getFullLengthLikelihoods(p)
+            [b * self.root.get_full_length_likelihoods(p)
              for (b, p) in zip(self.distrib.bprobs, blhs)])
 
         binsum = numpy.zeros(pprobs.shape, Float)

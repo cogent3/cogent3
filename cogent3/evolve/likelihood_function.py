@@ -48,7 +48,7 @@ class LikelihoodFunction(ParameterController):
             array = self.get_param_value('psubs', edge=name, **kw)
         return DictArrayTemplate(self._motifs, self._motifs).wrap(array)
 
-    def getRateMatrixForEdge(self, name, **kw):
+    def get_rate_matrix_for_edge(self, name, **kw):
         """returns the rate matrix (Q) for the named edge
 
         Note: expm(Q) will give the same result as get_psub_for_edge(name)"""
@@ -71,11 +71,11 @@ class LikelihoodFunction(ParameterController):
             root_lh = self.get_param_value('lh', locus=locus)
         return root_lh
 
-    def getFullLengthLikelihoods(self, locus=None):
+    def get_full_length_likelihoods(self, locus=None):
         """Array of [site, motif] likelihoods from the root of the tree"""
         root_lh = self._getLikelihoodValuesSummedAcrossAnyBins(locus=locus)
         root_lht = self.get_param_value('root', locus=locus)
-        return root_lht.getFullLengthLikelihoods(root_lh)
+        return root_lht.get_full_length_likelihoods(root_lh)
 
     def getGStatistic(self, return_table=False, locus=None):
         """Goodness-of-fit statistic derived from the unambiguous columns"""
@@ -100,7 +100,7 @@ class LikelihoodFunction(ParameterController):
                     self.setParamRule('fixed_motif', value=motif,
                                       edge=restricted_edge.name, locus=locus,
                                       is_constant=True)
-                    likelihoods = self.getFullLengthLikelihoods(locus=locus)
+                    likelihoods = self.get_full_length_likelihoods(locus=locus)
                     r.append(likelihoods)
                     if array_template is None:
                         array_template = DictArrayTemplate(
@@ -440,7 +440,7 @@ class LikelihoodFunction(ParameterController):
     def allRateMatricesUnique(self):
         """Returns True if every rate matrix is unique for its Psub matrix"""
         for edge in self.tree.get_edge_vector(include_root=False):
-            Q = self.getRateMatrixForEdge(edge.name).asarray()
+            Q = self.get_rate_matrix_for_edge(edge.name).asarray()
             t = self.get_param_value('length', edge=edge.name)
             if not is_generator_unique(Q * t):
                 return False
