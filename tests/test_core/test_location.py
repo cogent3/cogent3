@@ -292,18 +292,18 @@ class RangeTests(TestCase):
         # single span
         self.assertEqual(self.one, Span(0, 100))
         # list of spans
-        self.assertEqual(self.two.Spans, [Span(3, 5), Span(8, 11)])
+        self.assertEqual(self.two.spans, [Span(3, 5), Span(8, 11)])
         # another range
         self.assertEqual(self.two, self.twocopy)
         # list of ranges
-        self.assertEqual(self.twothree.Spans, [Span(3, 5), Span(8, 11),
+        self.assertEqual(self.twothree.spans, [Span(3, 5), Span(8, 11),
                                                Span(6, 7), Span(15, 17), Span(30, 35)])
         # list of numbers
-        self.assertEqual(self.singles.Spans, [Span(3, 4), Span(11, 12)])
+        self.assertEqual(self.singles.spans, [Span(3, 4), Span(11, 12)])
         # single number
-        self.assertEqual(self.single.Spans, [Span(0, 1)])
+        self.assertEqual(self.single.spans, [Span(0, 1)])
         # nothing
-        self.assertEqual(Range().Spans, [])
+        self.assertEqual(Range().spans, [])
 
     def test_str(self):
         """Range str should print nested with parens"""
@@ -336,16 +336,16 @@ class RangeTests(TestCase):
 
     def test_reverse(self):
         """Range reverse method should reverse each span"""
-        for s in self.overlapping.Spans:
+        for s in self.overlapping.spans:
             self.assertFalse(s.reverse)
         self.overlapping.reverses()
-        for s in self.overlapping.Spans:
+        for s in self.overlapping.spans:
             self.assertTrue(s.reverse)
-        self.overlapping.Spans.append(Span(0, 100))
+        self.overlapping.spans.append(Span(0, 100))
         self.overlapping.reverses()
-        for s in self.overlapping.Spans[0:1]:
+        for s in self.overlapping.spans[0:1]:
             self.assertFalse(s.reverse)
-        self.assertTrue(self.overlapping.Spans[-1].reverse)
+        self.assertTrue(self.overlapping.spans[-1].reverse)
 
     def test_Reverse(self):
         """Range reverse property should return True if any span reversed"""
@@ -353,7 +353,7 @@ class RangeTests(TestCase):
         self.one.reverses()
         self.assertTrue(self.one.reverse)
         self.assertFalse(self.two.reverse)
-        self.two.Spans.append(Span(0, 100, reverse=True))
+        self.two.spans.append(Span(0, 100, reverse=True))
         self.assertTrue(self.two.reverse)
         self.two.reverses()
         self.assertTrue(self.two.reverse)
@@ -375,7 +375,7 @@ class RangeTests(TestCase):
         self.assertNotContains(self.three, 35)
         self.assertNotContains(self.three, 40)
         # should work if a span is added
-        self.three.Spans.append(40)
+        self.three.spans.append(40)
         self.assertContains(self.three, 40)
         # should work for spans
         self.assertContains(self.three, Span(31, 33))
@@ -387,9 +387,9 @@ class RangeTests(TestCase):
         # should work for copy, except when extra piece added
         threecopy = Range(self.three)
         self.assertContains(self.three, threecopy)
-        threecopy.Spans.append(1000)
+        threecopy.spans.append(1000)
         self.assertNotContains(self.three, threecopy)
-        self.three.Spans.append(Span(950, 1050))
+        self.three.spans.append(Span(950, 1050))
         self.assertContains(self.three, threecopy)
         self.assertNotContains(threecopy, self.three)
 
@@ -405,8 +405,8 @@ class RangeTests(TestCase):
         self.assertTrue(self.empty.overlaps(self.one))
         self.assertTrue(self.singles.overlaps(self.two))
 
-    def test_overlapsExtent(self):
-        """Range overlapsExtent should return true for interleaved ranges"""
+    def test_overlaps_extent(self):
+        """Range overlaps_extent should return true for interleaved ranges"""
         self.assertTrue(self.two.overlaps_extent(self.three))
         self.assertTrue(self.three.overlaps_extent(self.two))
         self.assertFalse(self.single.overlaps_extent(self.two))
@@ -417,63 +417,63 @@ class RangeTests(TestCase):
         """Range sort should sort component spans"""
         one = self.one
         one.sort()
-        self.assertEqual(one.Spans, [Span(100, 0)])
-        one.Spans.append(Span(-20, -10))
-        self.assertEqual(one.Spans, [Span(0, 100), Span(-20, -10)])
+        self.assertEqual(one.spans, [Span(100, 0)])
+        one.spans.append(Span(-20, -10))
+        self.assertEqual(one.spans, [Span(0, 100), Span(-20, -10)])
         one.sort()
-        self.assertEqual(one.Spans, [Span(-20, -10), Span(0, 100)])
-        one.Spans.append(Span(-20, -10, reverse=True))
-        self.assertEqual(one.Spans, [Span(-20, -10), Span(0, 100),
+        self.assertEqual(one.spans, [Span(-20, -10), Span(0, 100)])
+        one.spans.append(Span(-20, -10, reverse=True))
+        self.assertEqual(one.spans, [Span(-20, -10), Span(0, 100),
                                      Span(-20, -10, reverse=True)])
         one.sort()
-        self.assertEqual(one.Spans, [Span(-20, -10), Span(-20, -10, reverse=True),
+        self.assertEqual(one.spans, [Span(-20, -10), Span(-20, -10, reverse=True),
                                      Span(0, 100)])
 
     def test_iter(self):
         """Range iter should iterate through each span in turn"""
         self.assertEqual(list(iter(self.two)), [3, 4, 8, 9, 10])
-        self.two.Spans.insert(1, Span(103, 101, reverse=True))
+        self.two.spans.insert(1, Span(103, 101, reverse=True))
         self.assertEqual(list(iter(self.two)), [3, 4, 102, 101, 8, 9, 10])
 
-    def test_Extent(self):
+    def test_extent(self):
         """Range extent should span limits of range"""
-        self.assertEqual(self.one.Extent, Span(0, 100))
-        self.assertEqual(self.three.Extent, Span(6, 35))
-        self.assertEqual(self.singles.Extent, Span(3, 12))
-        self.assertEqual(self.single.Extent, Span(0, 1))
-        self.three.Spans.append(Span(100, 105, reverse=True))
-        self.assertEqual(self.three.Extent, Span(6, 105))
-        self.three.Spans.append(Span(-100, -1000))
-        self.assertEqual(self.three.Extent, Span(-1000, 105))
+        self.assertEqual(self.one.extent, Span(0, 100))
+        self.assertEqual(self.three.extent, Span(6, 35))
+        self.assertEqual(self.singles.extent, Span(3, 12))
+        self.assertEqual(self.single.extent, Span(0, 1))
+        self.three.spans.append(Span(100, 105, reverse=True))
+        self.assertEqual(self.three.extent, Span(6, 105))
+        self.three.spans.append(Span(-100, -1000))
+        self.assertEqual(self.three.extent, Span(-1000, 105))
 
     def test_simplify(self):
         """Range reduce should group overlapping ranges"""
         # consolidate should have no effect when no overlap
         r = self.two
         r.simplify()
-        self.assertEqual(r.Spans, [Span(3, 5), Span(8, 11)])
+        self.assertEqual(r.spans, [Span(3, 5), Span(8, 11)])
         # should consolidate an overlap of the same direction
-        r.Spans.append(Span(-1, 4))
+        r.spans.append(Span(-1, 4))
         r.simplify()
-        self.assertEqual(r.Spans, [Span(-1, 5), Span(8, 11)])
+        self.assertEqual(r.spans, [Span(-1, 5), Span(8, 11)])
         # should also consolidate _adjacent_ spans of the same direction
-        r.Spans.append(Span(11, 14))
+        r.spans.append(Span(11, 14))
         r.simplify()
-        self.assertEqual(r.Spans, [Span(-1, 5), Span(8, 14)])
+        self.assertEqual(r.spans, [Span(-1, 5), Span(8, 14)])
         # bridge should cause consolidations
         s = Range(r)
-        s.Spans.append(Span(5, 8))
+        s.spans.append(Span(5, 8))
         s.simplify()
-        self.assertEqual(s.Spans, [Span(-1, 14)])
+        self.assertEqual(s.spans, [Span(-1, 14)])
         # ditto for bridge that overlaps everything
         s = Range(r)
-        s.Spans.append(Span(-100, 100))
+        s.spans.append(Span(-100, 100))
         s.simplify()
-        self.assertEqual(s.Spans, [Span(-100, 100)])
+        self.assertEqual(s.spans, [Span(-100, 100)])
         # however, can't consolidate span in other orientation
         s = Range(r)
-        s.Spans.append(Span(-100, 100, reverse=True))
-        self.assertEqual(s.Spans, [Span(-1, 5), Span(8, 14),
+        s.spans.append(Span(-100, 100, reverse=True))
+        self.assertEqual(s.spans, [Span(-1, 5), Span(8, 14),
                                    Span(-100, 100, reverse=True)])
 
 
