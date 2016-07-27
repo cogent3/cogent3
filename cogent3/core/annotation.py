@@ -76,7 +76,7 @@ class _Annotatable(object):
         map = self._as_map(index)
         new = self._mapped(map)
         sliced_annots = self._slicedAnnotations(new, map)
-        new.attachAnnotations(sliced_annots)
+        new.attach_annotations(sliced_annots)
         return new
 
     def _mapped(self, map):
@@ -90,10 +90,10 @@ class _Annotatable(object):
 
     def add_annotation(self, klass, *args, **kw):
         annot = klass(self, *args, **kw)
-        self.attachAnnotations([annot])
+        self.attach_annotations([annot])
         return annot
 
-    def attachAnnotations(self, annots):
+    def attach_annotations(self, annots):
         for annot in annots:
             if annot.parent is not self:
                 raise ValueError("doesn't belong here")
@@ -166,7 +166,7 @@ class _Annotatable(object):
         for annot in self.annotations:
             new_map = annot.map.nucleicReversed()
             annotations.append(annot.__class__(new, new_map, annot))
-        new.attachAnnotations(annotations)
+        new.attach_annotations(annotations)
 
 
 class _Feature(_Annotatable):
@@ -192,7 +192,7 @@ class _Feature(_Annotatable):
         assert not kw, kw
 
     def attach(self):
-        self.parent.attachAnnotations([self])
+        self.parent.attach_annotations([self])
 
     def detach(self):
         self.parent.detachAnnotations([self])
@@ -218,7 +218,7 @@ class _Feature(_Annotatable):
         new = self.__class__(self.parent, self.map[keep], original=self)
         if self.annotations:
             sliced_annots = self._slicedAnnotations(new, keep)
-            new.attachAnnotations(sliced_annots)
+            new.attach_annotations(sliced_annots)
         return new
 
     def asOneSpan(self):
