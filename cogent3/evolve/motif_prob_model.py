@@ -235,7 +235,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
             name="psmprobs", default=None,
             dimensions=('locus', 'position', 'edge'),
             dimension=('motif', tuple(self.get_input_alphabet())))
-        monomer_probs3 = monomer_probs.acrossDimension('position', [
+        monomer_probs3 = monomer_probs.across_dimension('position', [
             str(i) for i in range(self.word_length)])
         monomer_probs3 = substitution_calculation.CalcDefn(
             lambda *x: numpy.array(x), name='mprobs')(*monomer_probs3)

@@ -160,7 +160,7 @@ class _Defn(object):
         assert not self.assignments, self.assignments
         self.clients.append(client)
 
-    def acrossDimension(self, dimension, cats):
+    def across_dimension(self, dimension, cats):
         return [self.select_from_dimension(dimension, cat) for cat in cats]
 
     def select_from_dimension(self, dimension, cat):

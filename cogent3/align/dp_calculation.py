@@ -148,7 +148,7 @@ def _recursive_defns(edge, subst, leaf, edge_defn_constructor, bin_args):
             args.append(child_defn)
     child_names = [child.name for child in edge.children]
     assert len(child_names) == 2, child_names
-    child_lengths = subst['length'].acrossDimension('edge', child_names)
+    child_lengths = subst['length'].across_dimension('edge', child_names)
     args.extend(child_lengths)
     args.extend(bin_args)
     edge_defn = edge_defn_constructor(*args)
@@ -177,7 +177,7 @@ def makeForwardTreeDefn(subst_model, tree, bin_names,
 
     mprobs = subst['word_probs']
     bin_data = CalcDefn(BinData)(mprobs, indel, subst['Qd'])
-    bin_data = bin_data.acrossDimension('bin', bin_names)
+    bin_data = bin_data.across_dimension('bin', bin_names)
     edge_args.extend(bin_data)
 
     (top, scores) = _recursive_defns(tree, subst, leaf, edge_defn_constructor,
