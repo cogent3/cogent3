@@ -818,7 +818,7 @@ class PairEmissionProbs(object):
         (plhs, gapscores) = self.makePartialLikelihoods(use_cost_function=False)
         plh = self.pair.edge2plh(edge, plhs)
         assert len(plh) == 1, ('bins!', len(plh))
-        leaf = edge.asLeaf(plh[0])  # like profile
+        leaf = edge.as_leaf(plh[0])  # like profile
         return AlignablePOG(leaf, pog, children)
 
     def makePairHMM(self, transition_matrix, finite=False):
