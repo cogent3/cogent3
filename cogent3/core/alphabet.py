@@ -543,7 +543,7 @@ class Alphabet(Enumeration):
         sequence = sequence.get_in_motif_size(self._motiflen)
         return array(list(map(self.index, sequence)))
 
-    def fromOrdinalsToSequence(self, data):
+    def from_ordinals_to_seq(self, data):
         """Returns a Sequence object corresponding to indices in data.
 
         Unlike from_indices() in superclass, this method uses the MolType to
