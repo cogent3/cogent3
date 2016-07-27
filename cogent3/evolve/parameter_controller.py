@@ -162,9 +162,9 @@ class _LikelihoodParameterController(_LF):
         assert expm in ['pade', 'either', 'eigen', 'checked'], expm
         self.setParamRule('expm', is_constant=True, value=expm)
 
-    def makeCalculator(self, *args, **kw):
+    def make_calculator(self, *args, **kw):
         if args:
-            discontinued('method', "makeCalculator(aligns)", '1.6')
+            discontinued('method', "make_calculator(aligns)", '1.6')
             # and shadowing a quite different superclass method.
             self.setAlignment(*args)
             if getattr(self, 'used_as_calculator', False):
@@ -173,7 +173,7 @@ class _LikelihoodParameterController(_LF):
             self.used_as_calculator = True
             return self
         else:
-            return super(_LF, self).makeCalculator(**kw)
+            return super(_LF, self).make_calculator(**kw)
 
     def _process_scope_info(self, edge=None, tip_names=None, edges=None,
                             is_clade=None, is_stem=None, outgroup_name=None):

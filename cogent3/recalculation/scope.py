@@ -728,7 +728,7 @@ class ParameterController(object):
             assert dropoff > 0, dropoff
 
             def callback(defn, posn):
-                lc = self.makeCalculator(variable=defn.uniq[posn])
+                lc = self.make_calculator(variable=defn.uniq[posn])
                 assert len(lc.opt_pars) == 1, lc.opt_pars
                 opt_par = lc.opt_pars[0]
                 return lc._getCurrentCellInterval(opt_par, dropoff, xtol)
@@ -771,7 +771,7 @@ class ParameterController(object):
         self.updateIntermediateValues([defn])
 
     def measureEvalsPerSecond(self, *args, **kw):
-        return self.makeCalculator().measureEvalsPerSecond(*args, **kw)
+        return self.make_calculator().measureEvalsPerSecond(*args, **kw)
 
     def setupParallelContext(self, parallel_split=None):
         self.overall_parallel_context = parallel.getContext()
@@ -782,7 +782,7 @@ class ParameterController(object):
                 self.assignAll(
                     'parallel_context', value=parallel_context, const=True)
 
-    def makeCalculator(self, calculatorClass=None, variable=None, **kw):
+    def make_calculator(self, calculatorClass=None, variable=None, **kw):
         cells = []
         input_soup = {}
         for defn in self.defns:
@@ -821,7 +821,7 @@ class ParameterController(object):
         for n in ['local', 'filename', 'interval', 'max_evaluations',
                   'tolerance', 'global_tolerance']:
             kw[n] = locals()[n]
-        lc = self.makeCalculator()
+        lc = self.make_calculator()
         try:
             lc.optimise(**kw)
         except MaximumEvaluationsReached as detail:
@@ -839,5 +839,5 @@ class ParameterController(object):
             return lc
 
     def graphviz(self, **kw):
-        lc = self.makeCalculator()
+        lc = self.make_calculator()
         return lc.graphviz(**kw)

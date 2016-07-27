@@ -6,7 +6,7 @@ A simple calculator
     ...
     >>> top = CalcDefn(add)(ParamDefn('A'), ParamDefn('B'))
     >>> pc = top.makeParamController()
-    >>> f = pc.makeCalculator()
+    >>> f = pc.make_calculator()
 
 f.getValueArray() shows the inputs, ie: the optimisable parameters
 
@@ -48,7 +48,7 @@ a scalar result.  Here this is done with the select_from_dimension method.
     >>> #     ['x', 'y', 'z']))
     >>>
     >>> pc = top.makeParamController()
-    >>> f = pc.makeCalculator()
+    >>> f = pc.make_calculator()
     >>> f.getValueArray()
     [1.0, 1.0]
 
@@ -58,7 +58,7 @@ different in the x,y and z categories and set their
 initial values to 2.0:
 
     >>> pc.assignAll('A', value=2.0, independent=True)
-    >>> f = pc.makeCalculator()
+    >>> f = pc.make_calculator()
     >>> f.getValueArray()
     [1.0, 2.0, 2.0, 2.0]
 
@@ -76,7 +76,7 @@ Set one of the 3 A values to be a constant and there
 will be one fewer optimisable parameters:
 
     >>> pc.assignAll('A', scope_spec={'category':'z'}, const=True)
-    >>> f = pc.makeCalculator()
+    >>> f = pc.make_calculator()
     >>> f.getValueArray()
     [1.0, 2.0, 2.0]
 
@@ -128,7 +128,7 @@ maximum:
     ...
     >>> top = CalcDefn(curve)(ParamDefn('X'), ParamDefn('Y'))
     >>> pc = top.makeParamController()
-    >>> f = pc.makeCalculator()
+    >>> f = pc.make_calculator()
 
 Now ask it to find the maximum.  It is a simple function with only one local
 maximum so local optimisation should be enough:
