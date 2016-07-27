@@ -670,9 +670,9 @@ class RnaMolTypeTests(TestCase):
             self.assertContains(RnaMolType, k)
         self.assertNotContains(RnaMolType, 'X')
 
-    def test_degenerateFromSequence(self):
-        """RnaMolType degenerateFromSequence should give correct results"""
-        d = RnaMolType.degenerateFromSequence
+    def test_degenerate_from_seq(self):
+        """RnaMolType degenerate_from_seq should give correct results"""
+        d = RnaMolType.degenerate_from_seq
         # check monomers
         self.assertEqual(d('a'), 'a')
         self.assertEqual(d('C'), 'C')
@@ -693,7 +693,7 @@ class RnaMolTypeTests(TestCase):
         self.assertEqual(d('RS'), 'V')
         self.assertEqual(d('RN-'), '?')
         # check that it works for proteins as well
-        p = ProteinMolType.degenerateFromSequence
+        p = ProteinMolType.degenerate_from_seq
         self.assertEqual(p('A'), 'A')
         self.assertEqual(p('AAA'), 'A')
         self.assertEqual(p('DN'), 'B')

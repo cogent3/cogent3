@@ -972,7 +972,7 @@ class MolType(object):
         """
         return not self.can_mispair(first, second)
 
-    def degenerateFromSequence(self, sequence):
+    def degenerate_from_seq(self, sequence):
         """Returns least degenerate symbol corresponding to chars in sequence.
 
         First tries to look up in self.InverseDegenerates. Then disambiguates
