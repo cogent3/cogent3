@@ -95,9 +95,9 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
         maximum-likelihood analysis. Molecular Biology and Evolution,
         14(12):1296.
         """
-        return self.getWeightedTrees(cutoff, alpha).get_consensus_trees(strict)
+        return self.get_weighted_trees(cutoff, alpha).get_consensus_trees(strict)
 
-    def getWeightedTrees(self, cutoff=None, alpha=0.05):
+    def get_weighted_trees(self, cutoff=None, alpha=0.05):
         if cutoff is None:
             cutoff = 0.99
         assert 0 <= cutoff <= 1.0
