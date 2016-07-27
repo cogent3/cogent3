@@ -95,7 +95,7 @@ class _LikelihoodTreeEdge(object):
         return [''.join(child[u] for child in child_motifs)
                 for u in range(len(cols))]
 
-    def restrictMotif(self, input_likelihoods, fixed_motif):
+    def restrict_motif(self, input_likelihoods, fixed_motif):
         # for reconstruct_ancestral_seqs
         mask = numpy.zeros([input_likelihoods.shape[-1]], self.float_type)
         mask[fixed_motif] = 1.0
