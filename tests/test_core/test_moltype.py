@@ -490,15 +490,15 @@ class MolTypeTests(TestCase):
         self.assertEqual(g('cguua!cgcuagua@cguasguadc#'),
                          list(map(bool, list(map(int, '00000100000000100000000001')))))
 
-    def test_gapMaps(self):
-        """MolType gapMaps should return dicts mapping gapped/ungapped pos"""
+    def test_gap_maps(self):
+        """MolType gap_maps should return dicts mapping gapped/ungapped pos"""
         empty = ''
         no_gaps = 'aaa'
         all_gaps = '---'
         start_gaps = '--abc'
         end_gaps = 'ab---'
         mid_gaps = '--a--b-cd---'
-        gm = RnaMolType.gapMaps
+        gm = RnaMolType.gap_maps
         self.assertEqual(gm(empty), ({}, {}))
         self.assertEqual(gm(no_gaps), ({0: 0, 1: 1, 2: 2}, {0: 0, 1: 1, 2: 2}))
         self.assertEqual(gm(all_gaps), ({}, {}))

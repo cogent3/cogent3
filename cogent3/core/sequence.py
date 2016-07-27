@@ -198,9 +198,9 @@ class SequenceI(object):
         """Returns vector of True or False according to which pos are gaps."""
         return self.MolType.gap_vector(self)
 
-    def gapMaps(self):
+    def gap_maps(self):
         """Returns dicts mapping between gapped and ungapped positions."""
-        return self.MolType.gapMaps(self)
+        return self.MolType.gap_maps(self)
 
     def count_gaps(self):
         """Counts the gaps in the specified sequence."""
@@ -1302,7 +1302,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         """Returns list of gap indices."""
         return list(self.gapIndices())
 
-    def gapMaps(self):
+    def gap_maps(self):
         """Returns dicts mapping gapped/ungapped positions."""
         nongaps = logical_not(self.gapArray())
         indices = arange(len(self)).compress(nongaps)
