@@ -598,7 +598,7 @@ class SequenceTests(TestCase):
         test(e, s4, 0)
 
     def test_fracDiffNonGaps(self):
-        """Sequence fracDiffNonGaps should return differences at non-gaps"""
+        """Sequence frac_diff_non_gaps should return differences at non-gaps"""
         s1 = self.RNA('AAAA')
         s2 = self.RNA('AGGG')
         s3 = self.RNA('GGGG')
@@ -610,7 +610,7 @@ class SequenceTests(TestCase):
         s9 = self.RNA('A-GG-A-C')
         e = self.RNA('')
 
-        test = lambda x, y, z: self.assertFloatEqual(x.fracDiffNonGaps(y), z)
+        test = lambda x, y, z: self.assertFloatEqual(x.frac_diff_non_gaps(y), z)
         test(s1, s2, 0.75)
         test(s1, s3, 1)
         test(s2, s3, 0.25)
