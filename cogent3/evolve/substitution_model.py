@@ -335,7 +335,7 @@ class _SubstitutionModel(object):
             'word_probs': word_probs,
         }
 
-        rate_params = self.makeRateParams(bprobs)
+        rate_params = self.make_rate_params(bprobs)
         if endAtQd:
             defns['Qd'] = self.makeQdDefn(
                 word_probs, mprobs_matrix, rate_params)
@@ -354,7 +354,7 @@ class DiscreteSubstitutionModel(_SubstitutionModel):
     def get_param_list(self):
         return []
 
-    def makeRateParams(self, bprobs):
+    def make_rate_params(self, bprobs):
         return []
 
     def makePsubsDefn(self, bprobs, word_probs, mprobs_matrix, rate_params):
@@ -525,7 +525,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         whole.bin_names = bprob_defn.bin_names
         return SelectForDimension(whole, 'bin', name=bin_par_name)
 
-    def makeRateParams(self, bprobs):
+    def make_rate_params(self, bprobs):
         params = []
         for param_name in self.parameter_order:
             if bprobs is None or param_name not in self.partitioned_params:
