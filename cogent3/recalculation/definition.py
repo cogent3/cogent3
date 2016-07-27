@@ -496,7 +496,7 @@ class SelectForDimension(_Defn):
         if dimension not in self.valid_dimensions:
             self.valid_dimensions = self.valid_dimensions + (dimension,)
         self.dimension = dimension
-        arg.addClient(self)
+        arg.add_client(self)
 
     def update(self):
         for scope_t in self.assignments:
