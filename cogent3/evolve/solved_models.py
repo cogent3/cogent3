@@ -34,10 +34,10 @@ class PredefinedNucleotide(Nucleotide):
         assert set(list(alphabet)[2:]) == set(['G', 'A'])
         # Should produce the same P as an ordinary Q based model would:
         self.checkPsubCalculationsMatch()
-        return CalcDefn(self.calcPsubMatrix, name='psubs')(
+        return CalcDefn(self.calc_psub_matrix, name='psubs')(
             word_probs, distance, *rate_params)
 
-    def calcPsubMatrix(self, pi, time, kappa_y=1.0, kappa_r=None):
+    def calc_psub_matrix(self, pi, time, kappa_y=1.0, kappa_r=None):
         """Is F81, HKY83 or TN93 when passed 0, 1 or 2 parameters"""
         if kappa_r is None:
             kappa_r = kappa_y
@@ -51,7 +51,7 @@ class PredefinedNucleotide(Nucleotide):
         params = [4, 6][:len(self.parameter_order)]
         Q = self.calcQ(pi, pi, *params)
         P1 = FastExponentiator(Q)(.5)
-        P2 = self.calcPsubMatrix(pi, .5, *params)
+        P2 = self.calc_psub_matrix(pi, .5, *params)
         assert numpy.allclose(P1, P2)
 
 
