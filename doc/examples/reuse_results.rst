@@ -51,7 +51,7 @@ The essential object for reuse is an annotated tree these capture the parameter 
 
 .. doctest::
 
-    >>> at=lf.getAnnotatedTree()
+    >>> at=lf.get_annotated_tree()
     >>> at.write('tree.xml')
 
 We load the tree as per usual

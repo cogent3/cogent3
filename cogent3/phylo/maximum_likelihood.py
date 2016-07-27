@@ -59,7 +59,7 @@ class ML(TreeEvaluator):
                 lf.setParamRule('length', is_constant=True)
             lf.optimise(show_progress=False, **self.opt_args)
             err = -1.0 * lf.get_log_likelihood()
-            tree = lf.getAnnotatedTree()
+            tree = lf.get_annotated_tree()
             return (err, tree)
         return evaluate
 

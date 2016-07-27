@@ -428,7 +428,7 @@ If written to file in xml format, then model parameters will be saved. This can 
 
 .. doctest::
     
-    >>> annot_tree = lf.getAnnotatedTree()
+    >>> annot_tree = lf.get_annotated_tree()
     >>> print annot_tree.getXML() #doctest: +SKIP
     <?xml version="1.0"?>
     <clade>
@@ -623,7 +623,7 @@ We need an annotated tree object to do the drawing, we write this out to an XML 
 
 .. doctest::
     
-    >>> annot_tree = lf.getAnnotatedTree()
+    >>> annot_tree = lf.get_annotated_tree()
     >>> annot_tree.write('result_tree.xml')
 
 We first import an unrooted dendrogram and then generate a heat mapped image to file where edges are colored red by the magnitude of ``omega`` with maximal saturation when ``omega=1``.
