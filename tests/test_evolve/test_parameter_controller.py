@@ -132,7 +132,7 @@ class test_parameter_controller(unittest.TestCase):
             self.assertRaises((KeyError, TypeError,
                                AssertionError, ValueError), do_rules, rule_set)
 
-    def test_setLocalClock(self):
+    def test_set_local_clock(self):
         pass
 
     def test_setConstantLengths(self):
@@ -151,7 +151,7 @@ class test_parameter_controller(unittest.TestCase):
             do_scaling=True, equal_motif_probs=True, model_gaps=True,
             mprob_model='tuple')
         lf = model.makeLikelihoodFunction(tree)
-        lf.setLocalClock('a', 'b')
+        lf.set_local_clock('a', 'b')
         lf.setAlignment(al)
         lf.optimise(local=True)
         rd = lf.get_param_value_dict(['edge'], params=['length'])
@@ -160,7 +160,7 @@ class test_parameter_controller(unittest.TestCase):
 
     def test_local_clock(self):
         lf = self.model.makeLikelihoodFunction(self.tree)
-        lf.setLocalClock('c', 'd')
+        lf.set_local_clock('c', 'd')
         lf.setAlignment(self.al)
         lf.optimise(local=True,
                     tolerance=1e-8, max_restarts=2)

@@ -267,7 +267,7 @@ class _LikelihoodParameterController(_LF):
         self.assignAll(par_name, scopes, value, lower, upper, is_constant,
                        is_independent)
 
-    def setLocalClock(self, tip1name, tip2name):
+    def set_local_clock(self, tip1name, tip2name):
         """Constrain branch lengths for tip1name and tip2name to be equal.
         This is a molecular clock condition. Currently only valid for tips
         connected to the same node.
