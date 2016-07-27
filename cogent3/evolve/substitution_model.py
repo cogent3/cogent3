@@ -44,7 +44,7 @@ from cogent3.evolve.substitution_calculation import (
     ConstDefn, GammaDefn, MonotonicDefn, SelectForDimension,
     WeightedPartitionDefn)
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
-from cogent3.evolve.likelihood_tree import makeLikelihoodTreeLeaf
+from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 from cogent3.maths.optimisers import ParameterOutOfBoundsError
 import collections
 
@@ -299,9 +299,9 @@ class _SubstitutionModel(object):
         return result
 
     def convertSequence(self, sequence, name):
-        # makeLikelihoodTreeLeaf, sort of an indexed profile where duplicate
+        # make_likelihood_tree_leaf, sort of an indexed profile where duplicate
         # columns stored once, so likelihoods only calc'd once
-        return makeLikelihoodTreeLeaf(sequence, self.getAlphabet(), name)
+        return make_likelihood_tree_leaf(sequence, self.getAlphabet(), name)
 
     def countMotifs(self, alignment, include_ambiguity=False):
         return self.mprob_model.countMotifs(alignment,

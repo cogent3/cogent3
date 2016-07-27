@@ -4,7 +4,7 @@ import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 
 from cogent3.align import pairwise, indel_model, pycompare
-from cogent3.evolve.likelihood_tree import makeLikelihoodTreeLeaf
+from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -41,7 +41,7 @@ def make_dna_scoring_dict(match, transition, transversion):
 
 def _align_pairwise(s1, s2, mprobs, psub, TM, local, return_alignment=True, return_score=False, **kw):
     """Generic alignment with any substitution model and indel model"""
-    [p1, p2] = [makeLikelihoodTreeLeaf(seq) for seq in [s1, s2]]
+    [p1, p2] = [make_likelihood_tree_leaf(seq) for seq in [s1, s2]]
     [p1, p2] = [pairwise.AlignableSeq(leaf) for leaf in [p1, p2]]
     pair = pairwise.Pair(p1, p2)
     EP = pair.makeSimpleEmissionProbs(mprobs, [psub])
