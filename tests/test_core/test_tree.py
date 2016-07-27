@@ -1387,7 +1387,7 @@ class PhyloNodeTests(TestCase):
         tree1 = deepcopy(tree)
         result = tree1.rootAtMidpoint()
         self.assertEqual(result.distance(result.getNodeMatchingName('e')), 4)
-        self.assertEqual(result.getDistances(), tree1.getDistances())
+        self.assertEqual(result.get_distances(), tree1.get_distances())
         # works when the midpoint falls between two existing edges
         nodes['f'].Length = 1
         nodes['c'].Length = 4
@@ -1396,7 +1396,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(result.distance(result.getNodeMatchingName('g')), 5.0)
         self.assertEqual(result.distance(result.getNodeMatchingName('h')), 5.0)
         self.assertEqual(result.distance(result.getNodeMatchingName('d')), 2.0)
-        self.assertEqual(result.getDistances(), tree.getDistances())
+        self.assertEqual(result.get_distances(), tree.get_distances())
 
     def test_rootAtMidpoint2(self):
         """rootAtMidpoint works when midpoint is on both sides of root"""
@@ -1405,13 +1405,13 @@ class PhyloNodeTests(TestCase):
         nodes['h'].Length = 20
         result = tree.rootAtMidpoint()
         self.assertEqual(result.distance(result.getNodeMatchingName('h')), 14)
-        self.assertEqual(result.getDistances(), tree.getDistances())
+        self.assertEqual(result.get_distances(), tree.get_distances())
 
     def test_rootAtMidpoint3(self):
         """ midpoint between nodes should behave correctly"""
         tree = DndParser('(a:1,((c:1,d:2.5)n3:1,b:1)n2:1)rt;')
         tmid = tree.rootAtMidpoint()
-        self.assertEqual(tmid.getDistances(), tree.getDistances())
+        self.assertEqual(tmid.get_distances(), tree.get_distances())
         tipnames = tree.getTipNames()
         nontipnames = [t.name for t in tree.nontips()]
         self.assertTrue(tmid.is_root())
@@ -1422,7 +1422,7 @@ class PhyloNodeTests(TestCase):
         """
         tree = DndParser('(a:1,((c:1,d:3)n3:1,b:1)n2:1)rt;')
         tmid = tree.rootAtMidpoint()
-        self.assertEqual(tmid.getDistances(), tree.getDistances())
+        self.assertEqual(tmid.get_distances(), tree.get_distances())
         tipnames = tree.getTipNames()
         nontipnames = [t.name for t in tree.nontips()]
         # for tipname in tipnames:
@@ -1444,7 +1444,7 @@ class PhyloNodeTests(TestCase):
         """
         tree = DndParser('''(BLO_1:0.649351,BLO_2:0.649351):0.0;''')
         tmid = tree.rootAtMidpoint()
-        self.assertEqual(tmid.getDistances(), tree.getDistances())
+        self.assertEqual(tmid.get_distances(), tree.get_distances())
         tipnames = tree.getTipNames()
         nontipnames = [t.name for t in tree.nontips()]
 
@@ -1832,9 +1832,9 @@ class TestTree(TestCase):
         """
         t1 = DndParser('((a:1,b:2):4,((c:3, j:17.2):0,(d:1,e:1):2):3)',
                        PhyloNode)  # note c,j is len 0 node
-        orig_dists = t1.getDistances()
+        orig_dists = t1.get_distances()
         subtree = t1.getSubTree(set(['a', 'b', 'd', 'e', 'c']))
-        sub_dists = subtree.getDistances()
+        sub_dists = subtree.get_distances()
         for pair, dist in list(sub_dists.items()):
             self.assertEqual((pair, dist), (pair, orig_dists[pair]))
 
@@ -1845,21 +1845,21 @@ class TestTree(TestCase):
         """
         t1 = DndParser('((a:1,b:2):4,((c:3, j:17):0,(d:1,e:1):2):3)',
                        PhyloNode)  # note c,j is len 0 node
-        orig_dists = t1.getDistances()
+        orig_dists = t1.get_distances()
         subtree = t1.getSubTree(set(['a', 'b', 'd', 'e', 'c']))
-        sub_dists = subtree.getDistances()
+        sub_dists = subtree.get_distances()
         # for pair, dist in sub_dists.items():
             # self.assertEqual((pair,dist), (pair,orig_dists[pair]))
         t2 = DndParser('((a:1,b:2):4,((c:2, j:16):1,(d:1,e:1):2):3)',
                        PhyloNode)  # note c,j similar to above
-        t2_dists = t2.getDistances()
+        t2_dists = t2.get_distances()
         # ensure t2 is same as t1, except j->c or c->j
         for pair, dist in list(t2_dists.items()):
             if (pair == ('c', 'j')) or (pair == ('j', 'c')):
                 continue
             self.assertEqual((pair, dist), (pair, orig_dists[pair]))
         sub2 = t2.getSubTree(set(['a', 'b', 'd', 'e', 'c']))
-        sub2_dists = sub2.getDistances()
+        sub2_dists = sub2.get_distances()
         for pair, dist in list(sub2_dists.items()):
             self.assertEqual((pair, dist), (pair, orig_dists[pair]))
 
@@ -1909,16 +1909,16 @@ class TestTree(TestCase):
 
         true_root_dists = {'a': 5, 'b': 6, 'c': 6, 'j': 20, 'd': 6, 'e': 9}
 
-        t1_dists = t1.getDistances()
+        t1_dists = t1.get_distances()
         subtree = t1.getSubTree(set(['d', 'e', 'c']))
-        sub_dists = subtree.getDistances()
+        sub_dists = subtree.get_distances()
         true_sub_root_dists = {'c': 3, 'd': 3, 'e': 6}
 
         sub_sameroot = t1.getSubTree(set(['d', 'e', 'c']), keep_root=True)
-        sub_sameroot_dists = sub_sameroot.getDistances()
+        sub_sameroot_dists = sub_sameroot.get_distances()
 
         sub_sameroot2 = t1.getSubTree(set(['j', 'c']), keep_root=True)
-        sub_sameroot_dists2 = sub_sameroot2.getDistances()
+        sub_sameroot_dists2 = sub_sameroot2.get_distances()
 
         # tip to tip dists should be the same
         for tip_pair in list(sub_dists.keys()):

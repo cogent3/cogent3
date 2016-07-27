@@ -1105,7 +1105,7 @@ def ancestral_state_pair(aln, tree, pos1, pos2,
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     ancestral_names_to_seqs = \
         dict(list(zip(ancestral_seqs.names, ancestral_seqs.array_seqs)))
-    distances = tree.getDistances()
+    distances = tree.get_distances()
     tips = tree.getNodeNames(tipsonly=True)
     # map names to nodes (there has to be a built-in way to do this
     # -- what is it?)

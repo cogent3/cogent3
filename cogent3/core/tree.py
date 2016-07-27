@@ -993,7 +993,7 @@ class TreeNode(object):
         return [c for c in (tuple(self.Children) + (self.Parent,))
                 if c is not None and c is not parent]
 
-    def _getDistances(self, endpoints=None):
+    def _get_distances(self, endpoints=None):
         """Iteratively calcluates all of the root-to-tip and tip-to-tip
         distances, resulting in a tuple of:
             - A list of (name, path length) pairs.
@@ -1051,7 +1051,7 @@ class TreeNode(object):
             from_root.append((n.name, tipdistances[i]))
         return from_root, result
 
-    def getDistances(self, endpoints=None):
+    def get_distances(self, endpoints=None):
         """The distance matrix as a dictionary.
 
         Usage:
@@ -1059,7 +1059,7 @@ class TreeNode(object):
             a complete matrix (i.e. a,b and b,a).
         """
 
-        (root_dists, endpoint_dists) = self._getDistances(endpoints)
+        (root_dists, endpoint_dists) = self._get_distances(endpoints)
         return endpoint_dists
 
     def setMaxTipTipDistance(self):
@@ -1979,7 +1979,7 @@ class PhyloNode(TreeNode):
             if hasattr(node, 'TipDistance'):
                 del node.TipDistance
 
-    def _getDistances(self, endpoints=None):
+    def _get_distances(self, endpoints=None):
         """Iteratively calcluates all of the root-to-tip and tip-to-tip
         distances, resulting in a tuple of:
             - A list of (name, path length) pairs.
@@ -2037,14 +2037,14 @@ class PhyloNode(TreeNode):
             from_root.append((n.name, tipdistances[i]))
         return from_root, result
 
-    def getDistances(self, endpoints=None):
+    def get_distances(self, endpoints=None):
         """The distance matrix as a dictionary.
 
         Usage:
             Grabs the branch lengths (evolutionary distances) as
             a complete matrix (i.e. a,b and b,a)."""
 
-        (root_dists, endpoint_dists) = self._getDistances(endpoints)
+        (root_dists, endpoint_dists) = self._get_distances(endpoints)
         return endpoint_dists
 
     def tipToTipDistances(self, endpoints=None, default_length=1):
