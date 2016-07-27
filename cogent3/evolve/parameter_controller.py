@@ -380,7 +380,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
             self.model, self.tree, self.bin_names,
             with_indel_params=with_indel_params, kn=kn)
 
-    def setSequences(self, seqs, locus=None):
+    def set_sequences(self, seqs, locus=None):
         leaves = {}
         for (name, seq) in list(seqs.items()):
             # if has uniq, probably already a likelihood tree leaf obj already

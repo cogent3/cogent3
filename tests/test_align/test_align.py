@@ -88,7 +88,7 @@ class AlignmentTestCase(unittest.TestCase):
             mprob_model='conditional')
         tree = cogent3.LoadTree(tip_names=['A', 'B'])
         lf = codon_model.makeLikelihoodFunction(tree, aligned=False)
-        lf.setSequences(dict(A=s1, B=s2))
+        lf.set_sequences(dict(A=s1, B=s2))
         a = lf.get_log_likelihood().edge.getViterbiPath().getAlignment()
         self.assertEqual(matchedColumns(a), 6)
         self.assertEqual(len(a), 9)
@@ -110,7 +110,7 @@ class UnalignedPairTestCase(unittest.TestCase):
     def test_forward(self):
         tree = cogent3.LoadTree(tip_names='AB')
         pc = dna_model.makeLikelihoodFunction(tree, aligned=False)
-        pc.setSequences({'A': seq1, 'B': seq2})
+        pc.set_sequences({'A': seq1, 'B': seq2})
         LnL = pc.get_log_likelihood()
         assert isinstance(LnL, float)
 

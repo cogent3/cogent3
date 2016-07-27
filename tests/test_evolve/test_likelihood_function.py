@@ -147,7 +147,7 @@ class LikelihoodCalcs(TestCase):
         tree = LoadTree(treestring="%s" % str(tuple(collection.keys())))
         lf = submod.makeLikelihoodFunction(tree, aligned=False)
         try:
-            lf.setSequences(collection)
+            lf.set_sequences(collection)
         except AssertionError:
             pass
 
