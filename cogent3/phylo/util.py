@@ -52,7 +52,7 @@ def distance_dict_to_2D(dists):
     return (names, d)
 
 
-def triangularOrder(keys):
+def triangular_order(keys):
     """Indices for extracting a 1D representation of a triangular matrix
     where j > i and i is the inner dimension:
     Yields (0,1), (0,2), (1, 2), (0,3), (1,3), (2,3), (0,4)..."""
@@ -67,7 +67,7 @@ def distanceDictAndNamesTo1D(dists, names):
     where j > i and i is the inner dimension:
     d[0,1], d[0, 2], d[1, 2], d[0, 3]..."""
     d = []
-    for (name_i, name_j) in triangularOrder(names):
+    for (name_i, name_j) in triangular_order(names):
         d.append(lookup_symmetric_dict(dists, name_i, name_j))
     return numpy.array(d)
 

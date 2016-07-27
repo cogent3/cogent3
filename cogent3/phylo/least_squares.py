@@ -2,7 +2,7 @@
 import numpy
 from numpy.linalg import solve as solve_linear_equations
 from .tree_space import TreeEvaluator, ancestry2tree
-from .util import distanceDictAndNamesTo1D, distanceDictTo1D, triangularOrder
+from .util import distanceDictAndNamesTo1D, distanceDictTo1D, triangular_order
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -28,7 +28,7 @@ def _ancestry2paths(A):
     the correct order in A"""
     tips = [i for i in range(A.shape[0]) if sum(A[:, i]) == 1]
     paths = []
-    for (tip1, tip2) in triangularOrder(tips):
+    for (tip1, tip2) in triangular_order(tips):
         path = A[tip1] ^ A[tip2]
         paths.append(path)
     return numpy.array(paths)
