@@ -518,8 +518,8 @@ class SequenceTests(TestCase):
         self.assertEqual(s1.fracDiff(s3), 1)
         self.assertEqual(s1.fracDiff(s4), 0)  # note truncation
 
-    def test_fracSameGaps(self):
-        """Sequence fracSameGaps should return similarity in gap positions"""
+    def test_frac_same_gaps(self):
+        """Sequence frac_same_gaps should return similarity in gap positions"""
         s1 = self.RNA('AAAA')
         s2 = self.RNA('GGGG')
         s3 = self.RNA('----')
@@ -529,21 +529,21 @@ class SequenceTests(TestCase):
         s7 = self.RNA('-')
         s8 = self.RNA('GGG')
         e = self.RNA('')
-        self.assertEqual(s1.fracSameGaps(s1), 1)
-        self.assertEqual(s1.fracSameGaps(s2), 1)
-        self.assertEqual(s1.fracSameGaps(s3), 0)
-        self.assertEqual(s1.fracSameGaps(s4), 0.5)
-        self.assertEqual(s1.fracSameGaps(s5), 0.5)
-        self.assertEqual(s1.fracSameGaps(s6), 0.5)
-        self.assertEqual(s1.fracSameGaps(s7), 0)
-        self.assertEqual(s1.fracSameGaps(e), 0)
-        self.assertEqual(s3.fracSameGaps(s3), 1)
-        self.assertEqual(s3.fracSameGaps(s4), 0.5)
-        self.assertEqual(s3.fracSameGaps(s7), 1.0)
-        self.assertEqual(e.fracSameGaps(e), 0.0)
-        self.assertEqual(s4.fracSameGaps(s5), 0.0)
-        self.assertEqual(s4.fracSameGaps(s6), 0.5)
-        self.assertFloatEqual(s6.fracSameGaps(s8), 2 / 3.0)
+        self.assertEqual(s1.frac_same_gaps(s1), 1)
+        self.assertEqual(s1.frac_same_gaps(s2), 1)
+        self.assertEqual(s1.frac_same_gaps(s3), 0)
+        self.assertEqual(s1.frac_same_gaps(s4), 0.5)
+        self.assertEqual(s1.frac_same_gaps(s5), 0.5)
+        self.assertEqual(s1.frac_same_gaps(s6), 0.5)
+        self.assertEqual(s1.frac_same_gaps(s7), 0)
+        self.assertEqual(s1.frac_same_gaps(e), 0)
+        self.assertEqual(s3.frac_same_gaps(s3), 1)
+        self.assertEqual(s3.frac_same_gaps(s4), 0.5)
+        self.assertEqual(s3.frac_same_gaps(s7), 1.0)
+        self.assertEqual(e.frac_same_gaps(e), 0.0)
+        self.assertEqual(s4.frac_same_gaps(s5), 0.0)
+        self.assertEqual(s4.frac_same_gaps(s6), 0.5)
+        self.assertFloatEqual(s6.frac_same_gaps(s8), 2 / 3.0)
 
     def test_fracDiffGaps(self):
         """Sequence frac_diff_gaps should return difference in gap positions"""

@@ -801,7 +801,7 @@ class SequenceCollection(object):
         The default metric is fraction similarity, ranging from 0.0 (0%
         identical) to 1.0 (100% identical). The Sequence classes have lots
         of methods that can be passed in as unbound methods to act as the
-        metric, e.g. fracSameGaps.
+        metric, e.g. frac_same_gaps.
 
         transform: transformation function to use on the sequences before
         the metric is calculated. If None, uses the whole sequences in each

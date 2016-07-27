@@ -366,12 +366,12 @@ class SequenceI(object):
         """
         return frac_diff(self, other)
 
-    def fracSameGaps(self, other):
+    def frac_same_gaps(self, other):
         """Returns fraction of positions where self and other share gap states.
 
         In other words, if self and other are both all gaps, or both all
-        non-gaps, or both have gaps in the same places, fracSameGaps will
-        return 1.0. If self is all gaps and other has no gaps, fracSameGaps
+        non-gaps, or both have gaps in the same places, frac_same_gaps will
+        return 1.0. If self is all gaps and other has no gaps, frac_same_gaps
         will return 0.0. Returns 0 if one sequence is empty.
 
         Uses self's gap characters for both sequences.
@@ -397,7 +397,7 @@ class SequenceI(object):
         """
         if not self or not other:
             return 0.0
-        return 1.0 - self.fracSameGaps(other)
+        return 1.0 - self.frac_same_gaps(other)
 
     def frac_same_non_gaps(self, other):
         """Returns fraction of non-gap positions where self matches other.
@@ -1238,7 +1238,7 @@ class ModelSequenceBase(object):
         """Returns array of indices of gapped positions in self."""
         return self.gapArray().nonzero()[0]
 
-    def fracSameGaps(self, other):
+    def frac_same_gaps(self, other):
         """Returns fraction of positions where gaps match other's gaps.
         """
         if not other:
