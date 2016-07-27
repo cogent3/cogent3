@@ -30,11 +30,11 @@ class Legend(Drawable):
 
     def _makeSampleSequence(self, feature_type):
         seq = moltype.DNA.make_sequence('aaaccggttt' * 7)
-        v = seq.addAnnotation(annotation.Feature,
+        v = seq.add_annotation(annotation.Feature,
                               feature_type, feature_type, [(2, 3)])
-        v = seq.addAnnotation(annotation.Feature,
+        v = seq.add_annotation(annotation.Feature,
                               feature_type, feature_type, [(7, 18)])
-        v = seq.addAnnotation(annotation.Feature,
+        v = seq.add_annotation(annotation.Feature,
                               feature_type, feature_type, [(20, 70)])
         return seq
 

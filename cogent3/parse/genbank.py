@@ -686,7 +686,7 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
                         break
                 else:
                     name = None
-                seq.addAnnotation(Feature, feature['type'], name, spans)
+                seq.add_annotation(Feature, feature['type'], name, spans)
 
         yield (rec['locus'], seq)
 

@@ -11,8 +11,8 @@ A Sequence with a couple of exons on it.
     >>> from cogent3.core.annotation import Feature
     >>> s = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA",
     ... Name="Orig")
-    >>> exon1 = s.addAnnotation(Feature, 'exon', 'fred', [(10,15)])
-    >>> exon2 = s.addAnnotation(Feature, 'exon', 'trev', [(30,40)])
+    >>> exon1 = s.add_annotation(Feature, 'exon', 'fred', [(10,15)])
+    >>> exon2 = s.add_annotation(Feature, 'exon', 'trev', [(30,40)])
 
 The corresponding sequence can be extracted either with slice notation or by asking the feature to do it, since the feature knows what sequence it belongs to.
 
@@ -133,7 +133,7 @@ When dealing with sequences that can be reverse complemented (e.g. ``DnaSequence
     
     >>> plus = DNA.make_sequence("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA",
     ... Name="plus")
-    >>> plus_cds = plus.addAnnotation(Feature, 'CDS', 'gene',
+    >>> plus_cds = plus.add_annotation(Feature, 'CDS', 'gene',
     ...                           [(2,6),(10,15),(25,35)])
     >>> print(plus_cds.getSlice())
     GGGGCCCCCTTTTTTTTTT
@@ -155,7 +155,7 @@ Sequence features can be accessed via a containing ``Alignment``:
     >y
     TTTT--TTTT
     <BLANKLINE>
-    >>> exon = aln.get_seq('x').addAnnotation(Feature, 'exon', 'fred', [(3,8)])
+    >>> exon = aln.get_seq('x').add_annotation(Feature, 'exon', 'fred', [(3,8)])
     >>> aln_exons = aln.get_annotations_from_seq('x', 'exon')
     >>> aln_exons = aln.get_annotations_from_any_seq('exon')
 
@@ -193,7 +193,7 @@ We copy the annotations from another sequence,
     
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--CCCC']])
     >>> s = DNA.make_sequence("AAAAAAAAA", Name="x")
-    >>> exon = s.addAnnotation(Feature, 'exon', 'fred', [(3,8)])
+    >>> exon = s.add_annotation(Feature, 'exon', 'fred', [(3,8)])
     >>> exon = aln.get_seq('x').copy_annotations(s)
     >>> aln_exons = list(aln.get_annotations_from_seq('x', 'exon'))
     >>> print(aln_exons)

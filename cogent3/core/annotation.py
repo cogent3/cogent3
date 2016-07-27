@@ -88,7 +88,7 @@ class _Annotatable(object):
             result.extend(annot.get_tracks(policy))
         return result
 
-    def addAnnotation(self, klass, *args, **kw):
+    def add_annotation(self, klass, *args, **kw):
         annot = klass(self, *args, **kw)
         self.attachAnnotations([annot])
         return annot
@@ -115,7 +115,7 @@ class _Annotatable(object):
                 annot.attached = False
 
     def add_feature(self, type, Name, spans):
-        return self.addAnnotation(Feature, type, Name, spans)
+        return self.add_annotation(Feature, type, Name, spans)
 
     def get_annotations_matching(self, annotation_type, Name=None):
         result = []

@@ -154,7 +154,7 @@ class _Region(LazyRecord):
             # this will consider the strand information of actual sequence
             feature_map = [data[-1],
                            data[-1].nucleicReversed()][self.Location.Strand == -1]
-            self.Seq.addAnnotation(Feature, data[0], data[1], feature_map)
+            self.Seq.add_annotation(Feature, data[0], data[1], feature_map)
 
             if region.Type == 'gene':  # TODO: SHOULD be much simplified
                 sub_data = region.subFeatureData(seq_map)
@@ -163,7 +163,7 @@ class _Region(LazyRecord):
                         # again, change feature map to -1 strand sequence if
                         # needed.
                         feature_map = feature_map.nucleicReversed()
-                    self.Seq.addAnnotation(Feature, feature_type,
+                    self.Seq.add_annotation(Feature, feature_type,
                                            feature_name, feature_map)
 
         return self.Seq
