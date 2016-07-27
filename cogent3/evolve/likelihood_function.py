@@ -228,7 +228,7 @@ class LikelihoodFunction(ParameterController):
               dimension"""
         result = []
         group = {}
-        param_names = self.getParamNames()
+        param_names = self.get_param_names()
 
         mprob_name = [n for n in param_names if 'mprob' in n]
         if mprob_name:

@@ -314,7 +314,7 @@ def _make_likelihood(model, tree, results, is_discrete=False):
                                       optimise_motif_probs=True, **kwargs)
 
     if not is_discrete:
-        for param in lf.getParamNames():
+        for param in lf.get_param_names():
             if param in ('length', 'mprobs'):
                 continue
             lf.set_param_rule(param, is_independent=True, upper=5)
