@@ -269,7 +269,7 @@ class Calculator(object):
             some_const = False
             enodes = [name.replace('edge', 'QQQ')]
             for cell in nodes[name]:
-                value = self._getCurrentCellValue(cell)
+                value = self._get_current_cell_value(cell)
                 if isinstance(value, float):
                     label = '%5.2e' % value
                 else:
@@ -363,7 +363,7 @@ class Calculator(object):
     def get_value_array(self):
         """This being a caching function, you can ask it for its current
         input!  Handy for initialising the optimiser."""
-        values = [p.transform_to_optimiser(self._getCurrentCellValue(p))
+        values = [p.transform_to_optimiser(self._get_current_cell_value(p))
                   for p in self.opt_pars]
         return values
 
@@ -411,7 +411,7 @@ class Calculator(object):
 
     def testfunction(self):
         """Return the current output value without changing any inputs"""
-        return self._getCurrentCellValue(self._cells[-1])
+        return self._get_current_cell_value(self._cells[-1])
 
     def change(self, changes):
         """Returns the output value after applying 'changes', a list of
@@ -613,33 +613,33 @@ class Calculator(object):
         else:
             return sum(samples) / len(samples)
 
-    def _getCurrentCellValue(self, cell):
+    def _get_current_cell_value(self, cell):
         return self.cell_values[self._switch][cell.rank]
 
     def get_current_cell_values_for_defn(self, defn):
         cells = self.results_by_id[id(defn)]
         return [self.cell_values[self._switch][cell.rank] for cell in cells]
 
-    def __getBoundedRoot(self, func, origX, direction, bound, xtol):
+    def __get_bounded_root(self, func, origX, direction, bound, xtol):
         return find_root(func, origX, direction, bound, xtol=xtol,
                          expected_exception=(
                              ParameterOutOfBoundsError, ArithmeticError))
 
-    def _getCurrentCellInterval(self, opt_par, dropoff, xtol=None):
+    def _get_current_cell_interval(self, opt_par, dropoff, xtol=None):
         # (min, opt, max) tuples for each parameter where f(min) ==
         # f(max) == f(opt)-dropoff.  Uses None when a bound is hit.
         # assert self.optimised, "Call optimise() first"
         origY = self.testfunction()
         (lower, upper) = opt_par.get_optimiser_bounds()
-        opt_value = self._getCurrentCellValue(opt_par)
+        opt_value = self._get_current_cell_value(opt_par)
         origX = opt_par.transform_to_optimiser(opt_value)
 
         def func(x):
             Y = self.change([(opt_par.rank, x)])
             return Y - (origY - dropoff)
         try:
-            lowX = self.__getBoundedRoot(func, origX, -1, lower, xtol)
-            highX = self.__getBoundedRoot(func, origX, +1, upper, xtol)
+            lowX = self.__get_bounded_root(func, origX, -1, lower, xtol)
+            highX = self.__get_bounded_root(func, origX, +1, upper, xtol)
         finally:
             func(origX)
 

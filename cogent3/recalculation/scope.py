@@ -731,7 +731,7 @@ class ParameterController(object):
                 lc = self.make_calculator(variable=defn.uniq[posn])
                 assert len(lc.opt_pars) == 1, lc.opt_pars
                 opt_par = lc.opt_pars[0]
-                return lc._getCurrentCellInterval(opt_par, dropoff, xtol)
+                return lc._get_current_cell_interval(opt_par, dropoff, xtol)
         return callback
 
     @contextmanager
