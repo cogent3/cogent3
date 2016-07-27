@@ -160,7 +160,7 @@ Removing all columns with gaps in a named sequence
     >>> aln = LoadSeqs(data= [('seq1', 'ATGAA---TG-'),
     ...                       ('seq2', 'ATG-AGTGATG'),
     ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
-    >>> new_aln = aln.getDegappedRelativeTo('seq1')
+    >>> new_aln = aln.get_degapped_relative_to('seq1')
     >>> print new_aln
     >seq1
     ATGAATG

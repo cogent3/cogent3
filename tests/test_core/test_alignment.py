@@ -1620,7 +1620,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(r1, {'seq1': 'T-G', 'seq2': 'TCG'})
         self.assertEqual(r2, {'seq1': '--G', 'seq2': 'TCG'})
 
-    def test_getDegappedRelativeTo(self):
+    def test_get_degapped_relative_to(self):
         """should remove all columns with a gap in sequence with given name"""
         aln = self.Class([
             ['name1', '-AC-DEFGHI---'],
@@ -1634,9 +1634,9 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
             ['name3', 'YY-YYYYY'],
             ['name4', 'KL--MNPR'],
             ])
-        self.assertEqual(aln.getDegappedRelativeTo('name1'), out_aln)
+        self.assertEqual(aln.get_degapped_relative_to('name1'), out_aln)
 
-        self.assertRaises(ValueError, aln.getDegappedRelativeTo, 'nameX')
+        self.assertRaises(ValueError, aln.get_degapped_relative_to, 'nameX')
 
     def test_add_from_ref_aln(self):
         """should add or insert seqs based on align to reference"""
