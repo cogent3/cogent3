@@ -240,7 +240,7 @@ class LikelihoodFunction(ParameterController):
             param_names.remove(mprob_name)
 
         for param in param_names:
-            dims = tuple(self.getUsedDimensions(param))
+            dims = tuple(self.get_used_dimensions(param))
             if dims not in group:
                 group[dims] = []
             group[dims].append(param)
