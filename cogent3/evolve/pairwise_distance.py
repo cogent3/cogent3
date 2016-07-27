@@ -302,7 +302,7 @@ class _PairwiseDistance(object):
                 self._dists[(name_1, name_2)] = (total, p, dist, var)
                 self._dists[(name_2, name_1)] = (total, p, dist, var)
 
-    def getPairwiseDistances(self):
+    def get_pairwise_distances(self):
         """returns a 2D dictionary of pairwise distances."""
         if self._dists is None:
             return None

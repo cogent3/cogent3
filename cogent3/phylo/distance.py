@@ -247,7 +247,7 @@ class EstimateDistances(object):
 
         return pairwise_stats
 
-    def getPairwiseDistances(self, summary_function="mean", **kwargs):
+    def get_pairwise_distances(self, summary_function="mean", **kwargs):
         """Return the pairwise distances as a dictionary keyed by (seq1, seq2).
         Convenience interface to getPairwiseParam.
 
@@ -280,7 +280,7 @@ class EstimateDistances(object):
               estimating param from threeway distances. Valid values are 'mean'
               (default) and 'median'."""
         d = \
-            self.getPairwiseDistances(
+            self.get_pairwise_distances(
                 summary_function=summary_function, **kwargs)
         if not d:
             d = {}

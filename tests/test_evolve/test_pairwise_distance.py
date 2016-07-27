@@ -151,7 +151,7 @@ class TestPair(TestCase):
         """get distances dict"""
         calc = TN93Pair(DNA, alignment=self.alignment)
         calc.run(show_progress=False)
-        dists = calc.getPairwiseDistances()
+        dists = calc.get_pairwise_distances()
         dist = 0.2554128119
         expect = {('s1', 's2'): dist, ('s2', 's1'): dist}
         self.assertEqual(list(dists.keys()), list(expect.keys()))
@@ -162,7 +162,7 @@ class TestPair(TestCase):
         aln = LoadSeqs('data/brca1_5.paml', moltype=DNA)
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
-        dists = logdet_calc.getPairwiseDistances()
+        dists = logdet_calc.get_pairwise_distances()
         all_expected = {('Human', 'NineBande'): 0.075336929999999996,
                         ('NineBande', 'DogFaced'): 0.0898575452,
                         ('DogFaced', 'Human'): 0.1061747919,
@@ -193,9 +193,9 @@ class TestPair(TestCase):
         aln = LoadSeqs('data/brca1_5.paml', moltype=DNA)
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
-        tk = logdet_calc.getPairwiseDistances()
+        tk = logdet_calc.get_pairwise_distances()
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
-        not_tk = logdet_calc.getPairwiseDistances()
+        not_tk = logdet_calc.get_pairwise_distances()
         self.assertNotEqual(tk, not_tk)
 
     def test_logdet_pair_aa(self):
@@ -204,7 +204,7 @@ class TestPair(TestCase):
         aln = aln.get_translation()
         logdet_calc = LogDetPair(moltype=PROTEIN, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
-        dists = logdet_calc.getPairwiseDistances()
+        dists = logdet_calc.get_pairwise_distances()
 
     def test_logdet_missing_states(self):
         """should calculate logdet measurement with missing states"""
@@ -214,11 +214,11 @@ class TestPair(TestCase):
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
 
-        dists = logdet_calc.getPairwiseDistances()
+        dists = logdet_calc.get_pairwise_distances()
         self.assertTrue(list(dists.values())[0] is not None)
 
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
-        dists = logdet_calc.getPairwiseDistances()
+        dists = logdet_calc.get_pairwise_distances()
         self.assertTrue(list(dists.values())[0] is not None)
 
     def test_logdet_variance(self):
@@ -246,7 +246,7 @@ class TestPair(TestCase):
         var /= 16 * len(data[0][1])
 
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
-        dists = logdet_calc.getPairwiseDistances()
+        dists = logdet_calc.get_pairwise_distances()
         self.assertFloatEqual(logdet_calc.Variances[1, 1], var, eps=1e-3)
 
     def test_logdet_for_determinant_lte_zero(self):
@@ -257,10 +257,10 @@ class TestPair(TestCase):
 
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
-        dists = logdet_calc.getPairwiseDistances()
+        dists = logdet_calc.get_pairwise_distances()
         self.assertTrue(list(dists.values())[0] is None)
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
-        dists = logdet_calc.getPairwiseDistances()
+        dists = logdet_calc.get_pairwise_distances()
         self.assertTrue(list(dists.values())[0] is None)
 
     def test_paralinear_pair_aa(self):
@@ -269,7 +269,7 @@ class TestPair(TestCase):
         aln = aln.get_translation()
         paralinear_calc = ParalinearPair(moltype=PROTEIN, alignment=aln)
         paralinear_calc.run(show_progress=False)
-        dists = paralinear_calc.getPairwiseDistances()
+        dists = paralinear_calc.get_pairwise_distances()
 
     def test_paralinear_distance(self):
         """calculate paralinear variance consistent with hand calculation"""
@@ -329,10 +329,10 @@ class TestPair(TestCase):
 
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
-        dists = paralinear_calc.getPairwiseDistances()
+        dists = paralinear_calc.get_pairwise_distances()
         self.assertTrue(list(dists.values())[0] is None)
         paralinear_calc.run(show_progress=False)
-        dists = paralinear_calc.getPairwiseDistances()
+        dists = paralinear_calc.get_pairwise_distances()
         self.assertTrue(list(dists.values())[0] is None)
 
     def test_paralinear_pair_dna(self):
