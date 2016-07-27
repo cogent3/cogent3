@@ -2710,7 +2710,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             seqs.append((seq_name, seq))
         return self.__class__(MolType=self.MolType, data=seqs, **kwargs)
 
-    def projectAnnotation(self, seq_name, annot):
+    def project_annotation(self, seq_name, annot):
         target_aligned = self.named_seqs[seq_name]
         if annot.parent is not self:
             raise ValueError('Annotation does not belong to this alignment')
@@ -2718,7 +2718,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
     def get_projected_annotations(self, seq_name, *args):
         aln_annots = self.getAnnotationsMatching(*args)
-        return [self.projectAnnotation(seq_name, a) for a in aln_annots]
+        return [self.project_annotation(seq_name, a) for a in aln_annots]
 
     def get_annotations_from_seq(self, seq_name, *args):
         aligned = self.named_seqs[seq_name]
