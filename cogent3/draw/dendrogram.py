@@ -573,9 +573,9 @@ class SquareDendrogram(_RootedDendrogram):
         return (x1, x2)
 
     def wedgeVertices(self):
-        tip_ys = [(c.y2 + self.y2) / 2 for c in self.iterTips()]
+        tip_ys = [(c.y2 + self.y2) / 2 for c in self.iter_tips()]
         t, b = max(tip_ys), min(tip_ys)
-        cxs = [c.x2 for c in self.iterTips()]
+        cxs = [c.x2 for c in self.iter_tips()]
         l, r = min(cxs), max(cxs)
         return (l, r, t, b), [(self.x2, b), (self.x2, t), (l, t), (r, b)]
 
@@ -609,9 +609,9 @@ class StraightDendrogram(_RootedDendrogram):
         return (x1, x1 + dx)
 
     def wedgeVertices(self):
-        tip_ys = [(c.y2 + self.y2) / 2 for c in self.iterTips()]
+        tip_ys = [(c.y2 + self.y2) / 2 for c in self.iter_tips()]
         t, b = max(tip_ys), min(tip_ys)
-        cxs = [c.x2 for c in self.iterTips()]
+        cxs = [c.x2 for c in self.iter_tips()]
         l, r = min(cxs), max(cxs)
         vertices = [(self.x2, self.y2), (l, t), (r, b)]
         return (l, r, t, b), vertices
@@ -676,7 +676,7 @@ class UnrootedDendrogram(_Dendrogram):
 
     def wedgeVertices(self):
         tip_dists = [(c.depth - self.depth) *
-                     self.scale for c in self.iterTips()]
+                     self.scale for c in self.iter_tips()]
         (near, far) = (min(tip_dists), max(tip_dists))
         a = self.angle - 0.25 * self.wedge
         (x1, y1) = (self.x2 + near * numpy.sin(a), self.y2 + near * numpy.cos(a))
