@@ -122,7 +122,7 @@ class _LikelihoodParameterController(_LF):
                                       stacklevel=4)
                         break
 
-    def setMotifProbsFromData(self, align, locus=None, is_constant=None,
+    def set_motif_probs_from_data(self, align, locus=None, is_constant=None,
                               include_ambiguity=False, is_independent=None, auto=False,
                               pseudocount=None, **kwargs):
         if 'is_const' in kwargs:
@@ -363,7 +363,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
                     'alignment', {'locus': [locus_name]},
                     value=align, const=True)
                 if self.mprobs_from_alignment:
-                    self.setMotifProbsFromData(align, locus=locus_name, auto=True,
+                    self.set_motif_probs_from_data(align, locus=locus_name, auto=True,
                                                pseudocount=motif_pseudocount)
 
 
