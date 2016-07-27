@@ -21,7 +21,7 @@ We load a sample genbank file with plenty of features and grab the CDS features.
     ...     print accession
     ...
     AE006468
-    >>> cds = seq.getAnnotationsMatching('CDS')
+    >>> cds = seq.get_annotations_matching('CDS')
     >>> print cds
     [CDS "thrL" at [189:255]/10020, CDS "thrA" at ...
 
@@ -47,7 +47,7 @@ You can write your own code to construct annotation objects. One reason you migh
     >>> for accession, seq in parser: # just reading one accession,sequence
     ...     break
     ...  
-    >>> genes = seq.getAnnotationsMatching('CDS')
+    >>> genes = seq.get_annotations_matching('CDS')
     >>> print genes
     [CDS "STM0001" at [189:255]/10020, CDS "STM0002" at [336:2799]/10020...
 
@@ -363,10 +363,10 @@ Querying produces objects only valid for their source
 
 .. doctest::
 
-    >>> cpgsite2 = s2.getAnnotationsMatching('cpgsite')
+    >>> cpgsite2 = s2.get_annotations_matching('cpgsite')
     >>> print s2[cpgsite2]
     CGCG
-    >>> cpgsite3 = s3.getAnnotationsMatching('cpgsite')
+    >>> cpgsite3 = s3.get_annotations_matching('cpgsite')
     >>> s2[cpgsite3]
     Traceback (most recent call last):
     ValueError: Can't map cpgsite "cpg" at [0:2]/10 onto DnaSequence(CGAAACGTTT) via []
@@ -379,7 +379,7 @@ You get back an empty list, and slicing with this returns an empty sequence.
 .. doctest::
 
     >>> # this test is new
-    >>> dont_exist = s2.getAnnotationsMatching('dont_exist')
+    >>> dont_exist = s2.get_annotations_matching('dont_exist')
     >>> dont_exist
     []
     >>> s2[dont_exist]
@@ -437,7 +437,7 @@ Reverse complementing a sequence **does not** reverse annotations, that is they 
     >>> minus = plus.rc()
     >>> print minus
     CCTTTAAAAAAAAAATTTTTTTTTTGGGGG
-    >>> minus_rpt = minus.getAnnotationsMatching('blah')
+    >>> minus_rpt = minus.get_annotations_matching('blah')
     >>> print minus[minus_rpt]
     AAAAAAAAAAAAA
 
@@ -522,7 +522,7 @@ What features of a certain type are available?
     ...    Name='a')
     >>> cds1 = s.add_feature('cds','cds1', [(0,12)])
     >>> cds2 = s.add_feature('cds','cds2', [(15,24)])
-    >>> all_cds = s.getAnnotationsMatching('cds')
+    >>> all_cds = s.get_annotations_matching('cds')
     >>> all_cds
     [cds "cds1" at [0:12]/27, cds "cds2" at [15:24]/27]
 
@@ -536,7 +536,7 @@ The annotation methods ``getRegionCoveringAll`` and ``getShadow`` can be used to
     >>> from cogent3.parse.genbank import RichGenbankParser
     >>> parser = RichGenbankParser(open('data/ST_genome_part.gb'))
     >>> seq = [seq for accession, seq in parser][0]
-    >>> all_cds = seq.getAnnotationsMatching('CDS')
+    >>> all_cds = seq.get_annotations_matching('CDS')
     >>> coding_seqs = seq.getRegionCoveringAll(all_cds)
     >>> coding_seqs
     region "CDS" at [189:255, 336:2799, 2800:3730, 3733...

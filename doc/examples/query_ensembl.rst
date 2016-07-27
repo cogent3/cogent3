@@ -198,7 +198,7 @@ All Regions have a ``getFeatures`` method which differs from that on genome only
 .. doctest::
 
     >>> annot_brca2 = brca2.getAnnotatedSeq(feature_types='gene')
-    >>> cds = annot_brca2.getAnnotationsMatching('CDS')[0].getSlice()
+    >>> cds = annot_brca2.get_annotations_matching('CDS')[0].getSlice()
     >>> print cds
     ATGCCTATTGGATCCAAA...
 

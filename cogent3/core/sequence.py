@@ -593,7 +593,7 @@ class Sequence(_Annotatable, SequenceI):
         annot_types = [annot_types, [annot_types]][
             isinstance(annot_types, str)]
         for annot_type in annot_types:
-            annotations += self.getAnnotationsMatching(annot_type)
+            annotations += self.get_annotations_matching(annot_type)
 
         region = self.getRegionCoveringAll(annotations)
         if shadow:
