@@ -158,7 +158,7 @@ class _LikelihoodParameterController(_LF):
         if not auto:
             self.mprobs_from_alignment = False  # should be done per-locus
 
-    def setExpm(self, expm):
+    def set_expm(self, expm):
         assert expm in ['pade', 'either', 'eigen', 'checked'], expm
         self.setParamRule('expm', is_constant=True, value=expm)
 
