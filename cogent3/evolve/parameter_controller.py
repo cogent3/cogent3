@@ -336,7 +336,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
             from .discrete_markov import PartialyDiscretePsubsDefn
             defns['psubs'] = PartialyDiscretePsubsDefn(
                 self.motifs, defns['psubs'], discrete_edges)
-        return likelihood_calculation.makeTotalLogLikelihoodDefn(
+        return likelihood_calculation.make_total_loglikelihood_defn(
             self.tree, defns['align'], defns['psubs'], defns['word_probs'],
             defns['bprobs'], self.bin_names, self.locus_names,
             sites_independent)
