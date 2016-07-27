@@ -300,7 +300,7 @@ You can copy annotations onto sequences with the same name, even if the length d
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> match_exon = seq.addFeature('exon', 'A', [(3,8)])
     >>> aln2.get_seq('x').copy_annotations(seq)
-    >>> copied = list(aln2.getAnnotationsFromSequence('x', 'exon'))
+    >>> copied = list(aln2.get_annotations_from_seq('x', 'exon'))
     >>> copied
     [exon "A" at [4:9]/10]
 
@@ -312,7 +312,7 @@ but if the feature lies outside the sequence being copied to, you get a lost spa
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> match_exon = seq.addFeature('exon', 'A', [(5,8)])
     >>> aln2.get_seq('x').copy_annotations(seq)
-    >>> copied = list(aln2.getAnnotationsFromSequence('x', 'exon'))
+    >>> copied = list(aln2.get_annotations_from_seq('x', 'exon'))
     >>> copied
     [exon "A" at [5:5, -4-]/5]
     >>> copied[0].getSlice()
@@ -327,7 +327,7 @@ You can copy to a sequence with a different name, in a different alignment if th
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> match_exon = seq.addFeature('exon', 'A', [(5,8)])
     >>> aln2.get_seq('y').copy_annotations(seq)
-    >>> copied = list(aln2.getAnnotationsFromSequence('y', 'exon'))
+    >>> copied = list(aln2.get_annotations_from_seq('y', 'exon'))
     >>> copied
     [exon "A" at [7:10]/10]
 
@@ -339,7 +339,7 @@ If the sequence is shorter, again you get a lost span.
     >>> diff_len_seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCCCCCCCCCC', 'x')
     >>> nonmatch = diff_len_seq.addFeature('repeat', 'A', [(12,14)])
     >>> aln2.get_seq('y').copy_annotations(diff_len_seq)
-    >>> copied = list(aln2.getAnnotationsFromSequence('y', 'repeat'))
+    >>> copied = list(aln2.get_annotations_from_seq('y', 'repeat'))
     >>> copied
     [repeat "A" at [10:10, -6-]/10]
 
@@ -396,7 +396,7 @@ If you query for a feature from a sequence, it's alignment coordinates may be di
     >>> exon = aln3.get_seq('x').addFeature('exon', 'ex1', [(0,4)])
     >>> print exon.getSlice()
     CCCC
-    >>> aln_exons = list(aln3.getAnnotationsFromSequence('x', 'exon'))
+    >>> aln_exons = list(aln3.get_annotations_from_seq('x', 'exon'))
     >>> print aln_exons
     [exon "ex1" at [0:1, 2:5]/10]
     >>> print aln3[aln_exons]
@@ -564,7 +564,7 @@ Sequence features can be accessed via a containing ``Alignment``.
     TTTT--TTTT
     <BLANKLINE>
     >>> exon = aln.get_seq('x').addFeature('exon', '1', [(3,8)])
-    >>> aln_exons = aln.getAnnotationsFromSequence('x', 'exon')
+    >>> aln_exons = aln.get_annotations_from_seq('x', 'exon')
     >>> aln_exons = aln.get_annotations_from_any_seq('exon')
     >>> aln_exons
     [exon "1" at [4:9]/10]

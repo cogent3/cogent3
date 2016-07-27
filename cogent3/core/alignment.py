@@ -2720,19 +2720,19 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         aln_annots = self.getAnnotationsMatching(*args)
         return [self.projectAnnotation(seq_name, a) for a in aln_annots]
 
-    def getAnnotationsFromSequence(self, seq_name, *args):
+    def get_annotations_from_seq(self, seq_name, *args):
         aligned = self.named_seqs[seq_name]
         return aligned.getAnnotationsMatching(self, *args)
 
     def get_annotations_from_any_seq(self, *args):
         result = []
         for seq_name in self.names:
-            result.extend(self.getAnnotationsFromSequence(seq_name, *args))
+            result.extend(self.get_annotations_from_seq(seq_name, *args))
         return result
 
     def getBySequenceAnnotation(self, seq_name, *args):
         result = []
-        for feature in self.getAnnotationsFromSequence(seq_name, *args):
+        for feature in self.get_annotations_from_seq(seq_name, *args):
             segment = self[feature.map.Start:feature.map.End]
             segment.Name = '%s "%s" %s to %s of %s' % (
                 feature.type, feature.Name,

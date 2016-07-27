@@ -156,7 +156,7 @@ Sequence features can be accessed via a containing ``Alignment``:
     TTTT--TTTT
     <BLANKLINE>
     >>> exon = aln.get_seq('x').addAnnotation(Feature, 'exon', 'fred', [(3,8)])
-    >>> aln_exons = aln.getAnnotationsFromSequence('x', 'exon')
+    >>> aln_exons = aln.get_annotations_from_seq('x', 'exon')
     >>> aln_exons = aln.get_annotations_from_any_seq('exon')
 
 But these will be returned as **alignment** features with locations in alignment coordinates.
@@ -195,7 +195,7 @@ We copy the annotations from another sequence,
     >>> s = DNA.makeSequence("AAAAAAAAA", Name="x")
     >>> exon = s.addAnnotation(Feature, 'exon', 'fred', [(3,8)])
     >>> exon = aln.get_seq('x').copy_annotations(s)
-    >>> aln_exons = list(aln.getAnnotationsFromSequence('x', 'exon'))
+    >>> aln_exons = list(aln.get_annotations_from_seq('x', 'exon'))
     >>> print(aln_exons)
     [exon "fred" at [4:9]/10]
 
@@ -204,7 +204,7 @@ even if the name is different.
 .. doctest::
     
     >>> exon = aln.get_seq('y').copy_annotations(s)
-    >>> aln_exons = list(aln.getAnnotationsFromSequence('y', 'exon'))
+    >>> aln_exons = list(aln.get_annotations_from_seq('y', 'exon'))
     >>> print(aln_exons)
     [exon "fred" at [3:4, 6:10]/10]
     >>> print(aln[aln_exons])
@@ -222,7 +222,7 @@ If the feature lies outside the sequence being copied to, you get a lost span
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> exon = seq.addFeature('exon', 'A', [(5,8)])
     >>> aln.get_seq('x').copy_annotations(seq)
-    >>> copied = list(aln.getAnnotationsFromSequence('x', 'exon'))
+    >>> copied = list(aln.get_annotations_from_seq('x', 'exon'))
     >>> copied
     [exon "A" at [5:5, -4-]/5]
     >>> copied[0].getSlice()
@@ -236,7 +236,7 @@ You can copy to a sequence with a different name, in a different alignment if th
     >>> seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> match_exon = seq.addFeature('exon', 'A', [(5,8)])
     >>> aln.get_seq('y').copy_annotations(seq)
-    >>> copied = list(aln.getAnnotationsFromSequence('y', 'exon'))
+    >>> copied = list(aln.get_annotations_from_seq('y', 'exon'))
     >>> copied
     [exon "A" at [7:10]/10]
 
@@ -248,7 +248,7 @@ If the sequence is shorter, again you get a lost span.
     >>> diff_len_seq = DNA.makeSequence('CCCCCCCCCCCCCCCCCCCCCCCCCCCC', 'x')
     >>> nonmatch = diff_len_seq.addFeature('repeat', 'A', [(12,14)])
     >>> aln.get_seq('y').copy_annotations(diff_len_seq)
-    >>> copied = list(aln.getAnnotationsFromSequence('y', 'repeat'))
+    >>> copied = list(aln.get_annotations_from_seq('y', 'repeat'))
     >>> copied
     [repeat "A" at [10:10, -6-]/10]
 
@@ -258,7 +258,7 @@ We consider cases where there are terminal gaps.
     
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', '------TTTT']])
     >>> exon = aln.get_seq('x').addFeature('exon', 'fred', [(3,8)])
-    >>> aln_exons = list(aln.getAnnotationsFromSequence('x', 'exon'))
+    >>> aln_exons = list(aln.get_annotations_from_seq('x', 'exon'))
     >>> print(aln_exons)
     [exon "fred" at [4:9]/10]
     >>> print(aln_exons[0].getSlice())
@@ -269,7 +269,7 @@ We consider cases where there are terminal gaps.
     <BLANKLINE>
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--T---']])
     >>> exon = aln.get_seq('x').addFeature('exon', 'fred', [(3,8)])
-    >>> aln_exons = list(aln.getAnnotationsFromSequence('x', 'exon'))
+    >>> aln_exons = list(aln.get_annotations_from_seq('x', 'exon'))
     >>> print(aln_exons[0].getSlice())
     >x
     AAAAA
@@ -294,7 +294,7 @@ In this case, only those residues included within the feature are covered - note
     exon "ex1" at [0:4]/9
     >>> print(exon.getSlice())
     CCCC
-    >>> aln_exons = list(aln.getAnnotationsFromSequence('x', 'exon'))
+    >>> aln_exons = list(aln.get_annotations_from_seq('x', 'exon'))
     >>> print(aln_exons)
     [exon "ex1" at [0:1, 2:5]/10]
     >>> print(aln_exons[0].getSlice())
