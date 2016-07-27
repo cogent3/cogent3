@@ -1403,7 +1403,7 @@ class TreeNode(object):
             raise TreeError("No LCA found for %s and %s" % (name1, name2))
         return lca
 
-    def getConnectingEdges(self, name1, name2):
+    def get_connecting_edges(self, name1, name2):
         """returns a list of edges connecting two nodes
 
         includes self and other in the list"""
@@ -1922,7 +1922,7 @@ class PhyloNode(TreeNode):
         """
         half_max_dist = max_dist / 2.0
         # get a list of the nodes that separate the tip pair
-        node_path = self.getConnectingEdges(tip_pair[0], tip_pair[1])
+        node_path = self.get_connecting_edges(tip_pair[0], tip_pair[1])
         tip1 = self.get_node_matching_name(tip_pair[0])
         for index, node in enumerate(node_path):
             dist = tip1.distance(node)
