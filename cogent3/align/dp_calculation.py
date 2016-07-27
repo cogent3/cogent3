@@ -25,7 +25,7 @@ class IndelParameterDefn(ProbabilityParamDefn):
     lower = 0.0001
 
 
-def makeIndelModelDefn(with_indel_params=True, kn=True):
+def make_indel_model_defn(with_indel_params=True, kn=True):
     if kn:
         klass = indel_model.KnudsenMiyamotoIndelModel
     else:
@@ -160,7 +160,7 @@ def _recursive_defns(edge, subst, leaf, edge_defn_constructor, bin_args):
 def makeForwardTreeDefn(subst_model, tree, bin_names,
                         with_indel_params=True, kn=True):
     """Pairwise Fwd"""
-    indel = makeIndelModelDefn(with_indel_params, kn)
+    indel = make_indel_model_defn(with_indel_params, kn)
     subst = subst_model.make_fundamental_param_controller_defns(bin_names)
     leaf = NonParamDefn('leaf', dimensions=('edge',))
 
