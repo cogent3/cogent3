@@ -17,13 +17,13 @@ def pog_traceback(pogs, aligned_positions):
         assert len(posn) == 2
         for (dim, pos) in enumerate(posn):
             if pos is not None:
-                align_builder.addSkipped(dim, upto[dim], pos)
+                align_builder.add_skipped(dim, upto[dim], pos)
                 upto[dim] = pos + 1
 
         align_builder.addAligned(posn)
 
     for dim in [0, 1]:
-        align_builder.addSkipped(dim, upto[dim], len(pogs[dim]))
+        align_builder.add_skipped(dim, upto[dim], len(pogs[dim]))
 
     result_pog = align_builder.getPOG()
 
@@ -42,7 +42,7 @@ class POGBuilder(object):
         self.aligned_positions = []
         self.states = []
 
-    def addSkipped(self, dim, start, end, old_gap=True):
+    def add_skipped(self, dim, start, end, old_gap=True):
         for p in range(start, end):
             fp = [None, None]
             fp[dim] = p
