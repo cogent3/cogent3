@@ -794,7 +794,7 @@ class NucleicAcidSequence(Sequence):
             gc = GeneticCodes[gc]
         return gc
 
-    def hasTerminalStop(self, gc=None, allow_partial=False):
+    def has_terminal_stop(self, gc=None, allow_partial=False):
         """Return True if the sequence has a terminal stop codon.
 
         Arguments:

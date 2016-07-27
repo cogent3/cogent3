@@ -1210,7 +1210,7 @@ class SequenceCollection(object):
                 seq = self.named_seqs[seq_name].data
             else:
                 seq = self.named_seqs[seq_name]
-            stops.append(seq.hasTerminalStop(
+            stops.append(seq.has_terminal_stop(
                 gc=gc, allow_partial=allow_partial))
         return max(stops)
 
