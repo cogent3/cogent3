@@ -994,17 +994,17 @@ class TreeNodeTests(TestCase):
         self.assertEqual(tree_nodes['c'].name, 'node1')
         self.assertEqual(tree_nodes['f'].name, 'node4')
 
-    def test_makeTreeArray(self):
-        """makeTreeArray maps nodes to the descendants in them"""
+    def test_make_tree_array(self):
+        """make_tree_array maps nodes to the descendants in them"""
         tree = self.TreeRoot
-        result, node_list = tree.makeTreeArray()
+        result, node_list = tree.make_tree_array()
         self.assertEqual(result,
                          array([[1, 1, 1, 1], [1, 1, 1, 0], [1, 1, 1, 0], [0, 0, 1, 0]]))
         nodes = [node.name for node in node_list]
         self.assertEqual(nodes, ['a', 'b', 'c', 'f'])
         # test if works with a dec_list supplied
         dec_list = ['d', 'added', 'e', 'g', 'h']
-        result2, node_list = tree.makeTreeArray(dec_list)
+        result2, node_list = tree.make_tree_array(dec_list)
         self.assertEqual(result2,
                          array([[1, 0, 1, 1, 1], [1, 0, 1, 1, 0], [1, 0, 1, 1, 0], [0, 0, 0, 1, 0]]))
 
