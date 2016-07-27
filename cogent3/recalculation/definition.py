@@ -253,7 +253,7 @@ class ParamDefn(_InputDefn):
     lower = -1e10
     upper = +1e10
 
-    def makeDefaultSetting(self):
+    def make_default_setting(self):
         return Var(bounds=(self.lower, self.default, self.upper))
 
     def checkSettingIsValid(self, setting):
@@ -299,7 +299,7 @@ class NonScalarDefn(_InputDefn):
     independent_by_default = False
     default = None
 
-    def makeDefaultSetting(self):
+    def make_default_setting(self):
         if self.default is None:
             return None
         else:
@@ -390,7 +390,7 @@ class PartitionDefn(_InputDefn):
     def _makeDefaultValue(self):
         return numpy.array([1.0 / self.size] * self.size)
 
-    def makeDefaultSetting(self):
+    def make_default_setting(self):
         # return ConstVal(self.default)
         return Var((None, self.default.copy(), None))
 
