@@ -875,7 +875,7 @@ class NucleicAcidSequence(Sequence):
                 start = None
             else:
                 if start is None:
-                    if (not atg) or gc.isStart(self[posn:posn + 3]):
+                    if (not atg) or gc.is_start(self[posn:posn + 3]):
                         start = posn
         if start is not None:
             orfs.append((start, posn + 3))
