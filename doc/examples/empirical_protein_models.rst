@@ -50,7 +50,7 @@ Make a parameter controller, likelihood function object and optimise.
 .. doctest::
 
     >>> lf = sm.makeLikelihoodFunction(t)
-    >>> lf.setAlignment(al)
+    >>> lf.set_alignment(al)
     >>> lf.optimise()
     >>> print lf.getLogLikelihood()
     -1706...

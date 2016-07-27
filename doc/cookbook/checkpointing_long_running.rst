@@ -15,7 +15,7 @@ A common problem in HPC systems is to make sure a long running process is capabl
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> sub_model = F81()
     >>> lf = sub_model.makeLikelihoodFunction(tree)
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
 
 We then start an optimisation, providing a filename for checkpointing and specifying a time-interval in (which we make very short here to ensure something get's written, for longer running functions the default ``interval`` setting is fine). Calling ``optimise`` then results in the notice that checkpoint's are being written.
 

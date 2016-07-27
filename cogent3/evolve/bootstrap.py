@@ -75,7 +75,7 @@ class ParametricBootstrapCore(object):
         @UI.display_wrap
         def each_model(alignment, ui):
             def one_model(pc):
-                pc.setAlignment(alignment)
+                pc.set_alignment(alignment)
                 return pc.optimise(return_calculator=True, **opt_args)
             # This is not done in parallel because we depend on the side-
             # effect of changing the parameter_controller current values

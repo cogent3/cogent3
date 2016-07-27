@@ -22,7 +22,7 @@ We construct the substitution model and likelihood function and set the alignmen
     
     >>> sm = MG94HKY()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=2, space=3)
-    >>> lf.setAlignment(aln)
+    >>> lf.set_alignment(aln)
 
 At this point we have a likelihood function with two exchangeability parameters from the substitution model (``kappa`` the transition/transversion ratio; ``omega`` the nonsynonymous/synonymous ratio) plus branch lengths for all tree edges. To facilitate subsequent discussion I now display the tree
 

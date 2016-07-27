@@ -166,7 +166,7 @@ class _LikelihoodParameterController(_LF):
         if args:
             discontinued('method', "make_calculator(aligns)", '1.6')
             # and shadowing a quite different superclass method.
-            self.setAlignment(*args)
+            self.set_alignment(*args)
             if getattr(self, 'used_as_calculator', False):
                 warnings.warn(
                     'PC used as two different calculators', stacklevel=2)
@@ -341,7 +341,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
             defns['bprobs'], self.bin_names, self.locus_names,
             sites_independent)
 
-    def setAlignment(self, aligns, motif_pseudocount=None):
+    def set_alignment(self, aligns, motif_pseudocount=None):
         """set the alignment to be used for computing the likelihood."""
         if type(aligns) is not list:
             aligns = [aligns]
