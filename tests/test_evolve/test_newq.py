@@ -326,7 +326,7 @@ def _make_likelihood(model, tree, results, is_discrete=False):
 def MakeCachedObjects(model, tree, seq_length, opt_args):
     """simulates an alignment under F81, all models should be the same"""
     lf = model.makeLikelihoodFunction(tree)
-    lf.setMotifProbs(dict(A=0.1, C=0.2, G=0.3, T=0.4))
+    lf.set_motif_probs(dict(A=0.1, C=0.2, G=0.3, T=0.4))
     aln = lf.simulate_alignment(seq_length)
     results = dict(aln=aln)
     discrete_tree = LoadTree(tip_names=aln.names)
@@ -392,7 +392,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
 #         for edge in self.tree:
 #             init = gen_lf.get_psub_for_edge(edge.name)
 #             dis_lf.setParamRule('psubs', edge=edge.name, init=init)
-#         dis_lf.setMotifProbs(gen_lf.get_motif_probs())
+#         dis_lf.set_motif_probs(gen_lf.get_motif_probs())
 #         return dis_lf
 #
 #     def test_discrete_vs_general1(self):

@@ -73,7 +73,7 @@ class test_parameter_controller(unittest.TestCase):
                         edges=['b', 'd'])
         self.assertEqual(null + 2, lf.getNumFreeParams())
 
-    def test_setMotifProbs(self):
+    def test_set_motif_probs(self):
         """Mprobs supplied to the parameter controller"""
         model = cogent3.evolve.substitution_model.Nucleotide(
             model_gaps=True, motif_probs=None)
@@ -81,7 +81,7 @@ class test_parameter_controller(unittest.TestCase):
                                           motif_probs_from_align=False)
 
         mprobs = {'A': 0.1, 'C': 0.2, 'G': 0.2, 'T': 0.5, '-': 0.0}
-        lf.setMotifProbs(mprobs)
+        lf.set_motif_probs(mprobs)
         self.assertEqual(lf.get_motif_probs(), mprobs)
 
         lf.set_motif_probs_from_data(self.al[:1], is_constant=True)
@@ -110,9 +110,9 @@ class test_parameter_controller(unittest.TestCase):
         mprobs_b = dict(A=.1, T=.2, C=.3, G=.4)
 
         for is_constant in [False, True]:
-            lf.setMotifProbs(mprobs_a, is_constant=is_constant)
+            lf.set_motif_probs(mprobs_a, is_constant=is_constant)
             s = str(lf)
-            lf.setMotifProbs(mprobs_b, locus="b")
+            lf.set_motif_probs(mprobs_b, locus="b")
             self.assertEqual(lf.get_motif_probs(locus="a"), mprobs_a)
             self.assertEqual(lf.get_motif_probs(locus="b"), mprobs_b)
             s = str(lf)
