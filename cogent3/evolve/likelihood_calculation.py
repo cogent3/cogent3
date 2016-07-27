@@ -195,7 +195,7 @@ class BinnedSiteDistribution(object):
     def __init__(self, bprobs):
         self.bprobs = bprobs
 
-    def getWeightedSumLh(self, lhs):
+    def get_weighted_sum_lh(self, lhs):
         result = numpy.zeros(lhs[0].shape, lhs[0].dtype.char)
         temp = numpy.empty(result.shape, result.dtype.char)
         for (bprob, lh) in zip(self.bprobs, lhs):
@@ -228,7 +228,7 @@ class PatchSiteDistribution(object):
                        for (i, p) in enumerate(bprobs)]
         self.transition_matrix = SiteClassTransitionMatrix(switch, pprobs)
 
-    def getWeightedSumLhs(self, lhs):
+    def get_weighted_sum_lhs(self, lhs):
         result = numpy.zeros((2,) + lhs[0].shape, lhs[0].dtype.char)
         temp = numpy.empty(lhs[0].shape, result.dtype.char)
         for (patch, weight, lh) in zip(self.alloc, self.bprobs, lhs):
@@ -258,7 +258,7 @@ class BinnedLikelihood(object):
         self.root = root
 
     def __call__(self, *lhs):
-        result = self.distrib.getWeightedSumLh(lhs)
+        result = self.distrib.get_weighted_sum_lh(lhs)
         return self.root.getLogSumAcrossSites(result)
 
     def get_posterior_probs(self, *lhs):
@@ -278,7 +278,7 @@ class SiteHmm(object):
         self.distrib = distrib
 
     def __call__(self, *lhs):
-        plhs = self.distrib.getWeightedSumLhs(lhs)
+        plhs = self.distrib.get_weighted_sum_lhs(lhs)
         plhs = numpy.ascontiguousarray(numpy.transpose(plhs))
         matrix = self.distrib.transition_matrix
         return self.root.logDotReduce(
@@ -286,7 +286,7 @@ class SiteHmm(object):
 
     def get_posterior_probs(self, *lhs):
         plhs = []
-        for lh in self.distrib.getWeightedSumLhs(lhs):
+        for lh in self.distrib.get_weighted_sum_lhs(lhs):
             plh = self.root.getFullLengthLikelihoods(lh)
             plhs.append(plh)
         plhs = numpy.transpose(plhs)
