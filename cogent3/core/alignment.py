@@ -2140,7 +2140,7 @@ def aln_from_generic(data, array_type=None, Alphabet=None):
 
     WARNING: Data type of return array is not guaranteed -- check in caller!
     """
-    result = array(list(map(Alphabet.toIndices, data)))
+    result = array(list(map(Alphabet.to_indices, data)))
     names = []
     for d in data:
         if hasattr(d, 'Name'):
@@ -2156,7 +2156,7 @@ def aln_from_collection(seqs, array_type=None, Alphabet=None):
     """Alignment from SequenceCollection object, or its subclasses."""
     names = seqs.names
     data = [seqs.named_seqs[i] for i in names]
-    result = array(list(map(Alphabet.toIndices, data)))
+    result = array(list(map(Alphabet.to_indices, data)))
     if array_type:
         result = result.astype(array_type)
     return result, names
@@ -2185,7 +2185,7 @@ def aln_from_dict(aln, array_type=None, Alphabet=None):
     whitespace or other formatting) into an alignment. Because the dict
     doesn't preserve order, the result will be in alphabetical order."""
     names, seqs = list(zip(*sorted(aln.items())))
-    result = array(list(map(Alphabet.toIndices, seqs)), array_type)
+    result = array(list(map(Alphabet.to_indices, seqs)), array_type)
     return result, list(names)
 
 
@@ -2198,7 +2198,7 @@ def aln_from_kv_pairs(aln, array_type=None, Alphabet=None):
     Because the dict doesn't preserve order, the result will be in arbitrary
     order."""
     names, seqs = list(zip(*aln))
-    result = array(list(map(Alphabet.toIndices, seqs)), array_type)
+    result = array(list(map(Alphabet.to_indices, seqs)), array_type)
     return result, list(names)
 
 

@@ -111,11 +111,11 @@ class EnumerationTests(TestCase):
         self.assertEqual(a[1], 'c')
         self.assertEqual(a[2], 'a')
 
-    def test_toIndices(self):
-        """Enumeration toIndices should return indices from elements"""
+    def test_to_indices(self):
+        """Enumeration to_indices should return indices from elements"""
         a = Enumeration('bca')
-        self.assertEqual(a.toIndices(''), [])
-        self.assertEqual(a.toIndices('ccabac'), [1, 1, 2, 0, 2, 1])
+        self.assertEqual(a.to_indices(''), [])
+        self.assertEqual(a.to_indices('ccabac'), [1, 1, 2, 0, 2, 1])
 
     def test_is_valid(self):
         """Enumeration is_valid should return True for valid sequence"""
@@ -300,10 +300,10 @@ class JointEnumerationTests(TestCase):
         self.assertEqual(a._sub_enum_factors,
                          array([[4], [1]]))  # note: _not_ [3,1]
 
-    def test_toIndices(self):
-        """JointEnumeration toIndices should convert tuples correctly"""
+    def test_to_indices(self):
+        """JointEnumeration to_indices should convert tuples correctly"""
         a = JointEnumeration(['TCAG', 'UCAG'])
-        i = a.toIndices([('T', 'U'), ('G', 'G'), ('G', 'G')])
+        i = a.to_indices([('T', 'U'), ('G', 'G'), ('G', 'G')])
         self.assertEqual(i, [0, 15, 15])
 
     def test_from_indices(self):
@@ -312,18 +312,18 @@ class JointEnumerationTests(TestCase):
         i = a.from_indices([0, 15, 15])
         self.assertEqual(i, [('T', 'U'), ('G', 'G'), ('G', 'G')])
 
-    def test_packArrays(self):
-        """JointEnumeration packArrays should return correct array."""
+    def test_pack_arrays(self):
+        """JointEnumeration pack_arrays should return correct array."""
         a = JointEnumeration(['xyz', 'abcd', 'ef'])
         v = [[0, 1, 2, 0], [3, 3, 1, 0], [1, 1, 0, 0]]
-        result = a.packArrays(v)
+        result = a.pack_arrays(v)
         self.assertEqual(result, array([7, 15, 18, 0]))
 
-    def test_unpackArrays(self):
-        """JointEnumeration unpackArrays should return correct arrays."""
+    def test_unpack_arrays(self):
+        """JointEnumeration unpack_arrays should return correct arrays."""
         a = JointEnumeration(['xyz', 'abcd', 'ef'])
         v = [7, 15, 18, 0]
-        result = a.unpackArrays(v)
+        result = a.unpack_arrays(v)
         self.assertEqual(result, array(
             [[0, 1, 2, 0], [3, 3, 1, 0], [1, 1, 0, 0]]))
 

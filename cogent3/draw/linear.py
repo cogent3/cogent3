@@ -251,7 +251,7 @@ class _SeqRepresentation(object):
                 for c in color_specs])
 
         # this could be faster is sequence were known to be a ModelSequence
-        sequence = numpy.asarray(self.alphabet.toIndices(str(sequence)))
+        sequence = numpy.asarray(self.alphabet.to_indices(str(sequence)))
 
         posn = 0
         used_count = 0
