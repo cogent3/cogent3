@@ -302,7 +302,7 @@ class LikelihoodFunction(ParameterController):
     def get_name(self):
         return self._name or 'unnamed'
 
-    def setTablesFormat(self, space=4, digits=4):
+    def set_tables_format(self, space=4, digits=4):
         """sets display properties for statistics tables. This affects results
         of str(lf) too."""
         space = [space, 4][type(space) != int]
