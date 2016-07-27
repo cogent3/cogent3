@@ -1267,7 +1267,7 @@ def validate_ancestral_seqs(alignment, tree, ancestral_seqs):
         raise ValueError("Alignment and ancestral seqs are different lengths.")
     # is there a better way to get all the ancestor names? why doesn't
     # tree.ancestors() do this?
-    edges = set(tree.get_node_names()) - set(tree.getTipNames())
+    edges = set(tree.get_node_names()) - set(tree.get_tip_names())
     seqs = set(ancestral_seqs.get_seq_names())
     if edges != seqs:
         raise ValueError(
@@ -1277,7 +1277,7 @@ def validate_ancestral_seqs(alignment, tree, ancestral_seqs):
 def validate_tree(alignment, tree):
     """AS validation: ValueError if tip and seq names aren't same
     """
-    if set(tree.getTipNames()) != set(alignment.get_seq_names()):
+    if set(tree.get_tip_names()) != set(alignment.get_seq_names()):
         raise ValueError(
             "Tree tips and seqs must have perfectly overlapping names.")
 
@@ -1324,7 +1324,7 @@ def coevolve_alignments_validation(method, alignment1, alignment2,
     if 'tree' in kwargs:
         tip_names = \
             set([n.split('+')[0].strip()
-                 for n in kwargs['tree'].getTipNames()])
+                 for n in kwargs['tree'].get_tip_names()])
         assert alignment1_names == alignment2_names == tip_names,\
             "Alignment and tree sequence names must perfectly overlap"
     else:

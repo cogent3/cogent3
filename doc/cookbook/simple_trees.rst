@@ -457,7 +457,7 @@ One way to do it
     >>> from cogent import LoadTree
     >>> tr = LoadTree('data/test.tree')
     >>> for tip in tr.iterNontips():
-    ...     tip_names = tip.getTipNames()
+    ...     tip_names = tip.get_tip_names()
     ...     print tip_names
     ...     sub_tree = tr.getSubTree(tip_names)
     ...     print sub_tree.ascii_art()

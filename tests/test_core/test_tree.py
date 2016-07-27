@@ -1412,7 +1412,7 @@ class PhyloNodeTests(TestCase):
         tree = DndParser('(a:1,((c:1,d:2.5)n3:1,b:1)n2:1)rt;')
         tmid = tree.rootAtMidpoint()
         self.assertEqual(tmid.get_distances(), tree.get_distances())
-        tipnames = tree.getTipNames()
+        tipnames = tree.get_tip_names()
         nontipnames = [t.name for t in tree.nontips()]
         self.assertTrue(tmid.is_root())
         self.assertEqual(tmid.distance(tmid.getNodeMatchingName('d')), 2.75)
@@ -1423,7 +1423,7 @@ class PhyloNodeTests(TestCase):
         tree = DndParser('(a:1,((c:1,d:3)n3:1,b:1)n2:1)rt;')
         tmid = tree.rootAtMidpoint()
         self.assertEqual(tmid.get_distances(), tree.get_distances())
-        tipnames = tree.getTipNames()
+        tipnames = tree.get_tip_names()
         nontipnames = [t.name for t in tree.nontips()]
         # for tipname in tipnames:
         #     tmid_tip = tmid.getNodeMatchingName(tipname)
@@ -1445,7 +1445,7 @@ class PhyloNodeTests(TestCase):
         tree = DndParser('''(BLO_1:0.649351,BLO_2:0.649351):0.0;''')
         tmid = tree.rootAtMidpoint()
         self.assertEqual(tmid.get_distances(), tree.get_distances())
-        tipnames = tree.getTipNames()
+        tipnames = tree.get_tip_names()
         nontipnames = [t.name for t in tree.nontips()]
 
         self.assertTrue(tmid.is_root())
@@ -1484,8 +1484,8 @@ class PhyloNodeTests(TestCase):
         """unrooted should preserve tips, drop a node"""
         rooted = LoadTree(treestring="(B:0.2,(C:0.2,D:0.2)F:0.2)G;")
         unrooted = rooted.unrooted()
-        self.assertEqual(sorted(rooted.getTipNames()),
-                         sorted(unrooted.getTipNames()))
+        self.assertEqual(sorted(rooted.get_tip_names()),
+                         sorted(unrooted.get_tip_names()))
         self.assertLessThan(len(unrooted.get_node_names()),
                             len(rooted.get_node_names()))
 
@@ -1754,7 +1754,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         tipnames_with_spaces = ['a_b', 'a b', "T'lk"]
         tipnames_with_spaces.sort()
         t = LoadTree(tip_names=tipnames_with_spaces)
-        result = t.getTipNames()
+        result = t.get_tip_names()
         result.sort()
         assert result == tipnames_with_spaces
 
@@ -1985,10 +1985,10 @@ class BigTreeSingleTests(TestTree):
         a, b = self.otu_names[:2]
         clade = self.tree.get_edge_names(a, b, True, False)
 
-    def test_getTipNames(self):
-        """testing (well, exercising at least), getTipNames"""
+    def test_get_tip_names(self):
+        """testing (well, exercising at least), get_tip_names"""
         a, b = self.otu_names[:2]
-        tips = self.tree.getTipNames()
+        tips = self.tree.get_tip_names()
         self.assertEqual(len(tips), 55)
 
 # run if called from command line

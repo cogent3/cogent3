@@ -151,7 +151,7 @@ class ConsensusTests(unittest.TestCase):
         maj_tree = self.unrooted_trees_lengths[0][1]
         # to ensure consistent comparison with majority, we root the ct same way
         # as maj
-        tip_names = maj_tree.getTipNames()
+        tip_names = maj_tree.get_tip_names()
         ct = ct.rootedWithTip('d')
         ct = ct.sorted(tip_names)
 
@@ -279,16 +279,16 @@ class TreeReconstructionTests(unittest.TestCase):
         """testing wls with order option"""
         order = ['e', 'b', 'c', 'd']
         reconstructed = wls(self.dists, order=order)
-        self.assertEqual(set(reconstructed.getTipNames()), set(order))
+        self.assertEqual(set(reconstructed.get_tip_names()), set(order))
 
     def test_limited_wls(self):
         """testing (well, exercising at least), wls with constrained start"""
         init = LoadTree(treestring='((a,c),b,d)')
         reconstructed = wls(self.dists, start=init)
-        self.assertEqual(len(reconstructed.getTipNames()), 6)
+        self.assertEqual(len(reconstructed.get_tip_names()), 6)
         init2 = LoadTree(treestring='((a,d),b,c)')
         reconstructed = wls(self.dists, start=[init, init2])
-        self.assertEqual(len(reconstructed.getTipNames()), 6)
+        self.assertEqual(len(reconstructed.get_tip_names()), 6)
         init3 = LoadTree(treestring='((a,d),b,z)')
         self.assertRaises(Exception, wls, self.dists, start=[init, init3])
         # if start tree has all seq names, should raise an error
