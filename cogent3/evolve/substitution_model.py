@@ -278,7 +278,7 @@ class _SubstitutionModel(object):
             result.setExpm(expm)
 
         if digits or space:
-            result.setTablesFormat(digits=digits, space=space)
+            result.set_tables_format(digits=digits, space=space)
 
         return result
 
