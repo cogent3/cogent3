@@ -349,7 +349,7 @@ class LikelihoodTreeLeaf(object):
             profile = numpy.compress(unambig, profile, axis=0)
         return numpy.sum(profile, axis=0)
 
-    def getAmbiguousPositions(self):
+    def get_ambiguous_positions(self):
         ambig = {}
         for (i, u) in enumerate(self.index):
             if self.ambig[u] != 1.0:
