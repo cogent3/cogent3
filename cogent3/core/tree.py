@@ -300,7 +300,7 @@ class TreeNode(object):
 
     Parent = property(_get_parent, _set_parent)
 
-    def indexInParent(self):
+    def index_in_parent(self):
         """Returns index of self in parent."""
         return self._parent.Children.index(self)
 
