@@ -509,7 +509,7 @@ class _LeafDefn(_Defn):
 
     def update(self):
         self._update_from_assignments()
-        gdv = lambda x: x.getDefaultValue()
+        gdv = lambda x: x.get_default_value()
         self.values = [nullor(self.name, gdv)(u) for u in self.uniq]
 
     def assign_all(self, scope_spec=None, value=None,
@@ -560,7 +560,7 @@ class _LeafDefn(_Defn):
                 self.assignments[scope_t] = setting
 
     def get_mean_current_value(self, scope):
-        values = [self.assignments[s].getDefaultValue() for s in scope]
+        values = [self.assignments[s].get_default_value() for s in scope]
         if len(values) == 1:
             s_value = values[0]
         else:
