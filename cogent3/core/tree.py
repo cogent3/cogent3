@@ -611,7 +611,7 @@ class TreeNode(object):
         number of tips passed in.
         """
         if len(tipnames) == 1:
-            return self.getNodeMatchingName(tipnames[0])
+            return self.get_node_matching_name(tipnames[0])
 
         tipnames = set(tipnames)
         tips = [tip for tip in self.tips() if tip.name in tipnames]
@@ -964,7 +964,7 @@ class TreeNode(object):
         # defined by their distance from it.  This makes a temporary tree with
         # a named edge at it's root, but it's only used here then discarded.
         if outgroup_name is not None:
-            outgroup = self.getNodeMatchingName(outgroup_name)
+            outgroup = self.get_node_matching_name(outgroup_name)
             if outgroup.Children:
                 raise TreeError('Outgroup (%s) must be a tip' % outgroup_name)
             self = outgroup.unrootedDeepcopy()
@@ -1006,7 +1006,7 @@ class TreeNode(object):
         else:
             tip_order = []
             for i, name in enumerate(endpoints):
-                node = self.getNodeMatchingName(name)
+                node = self.get_node_matching_name(name)
                 tip_order.append(node)
         for i, node in enumerate(tip_order):
             node.__start, node.__stop = i, i + 1
@@ -1378,7 +1378,7 @@ class TreeNode(object):
             result = [n for n in self.traverse(False, True) if not n.isroot()]
         return result
 
-    def _getNodeMatchingName(self, name):
+    def _get_node_matching_name(self, name):
         """
         find the edge with the name, or return None
         """
@@ -1387,8 +1387,8 @@ class TreeNode(object):
                 return node
         return None
 
-    def getNodeMatchingName(self, name):
-        node = self._getNodeMatchingName(name)
+    def get_node_matching_name(self, name):
+        node = self._get_node_matching_name(name)
         if node is None:
             raise TreeError("No node named '%s' in %s" %
                             (name, self.get_tip_names()))
@@ -1396,8 +1396,8 @@ class TreeNode(object):
 
     def getConnectingNode(self, name1, name2):
         """Finds the last common ancestor of the two named edges."""
-        edge1 = self.getNodeMatchingName(name1)
-        edge2 = self.getNodeMatchingName(name2)
+        edge1 = self.get_node_matching_name(name1)
+        edge2 = self.get_node_matching_name(name2)
         lca = edge1.last_common_ancestor(edge2)
         if lca is None:
             raise TreeError("No LCA found for %s and %s" % (name1, name2))
@@ -1407,8 +1407,8 @@ class TreeNode(object):
         """returns a list of edges connecting two nodes
 
         includes self and other in the list"""
-        edge1 = self.getNodeMatchingName(name1)
-        edge2 = self.getNodeMatchingName(name2)
+        edge1 = self.get_node_matching_name(name1)
+        edge2 = self.get_node_matching_name(name2)
         LCA = self.getConnectingNode(name1, name2)
         node_path = [edge1]
         node_path.extend(edge1.ancestors())
@@ -1426,11 +1426,11 @@ class TreeNode(object):
 
     def getParamValue(self, param, edge):
         """returns the parameter value for named edge"""
-        return self.getNodeMatchingName(edge).params[param]
+        return self.get_node_matching_name(edge).params[param]
 
     def setParamValue(self, param, edge, value):
         """set's the value for param at named edge"""
-        self.getNodeMatchingName(edge).params[param] = value
+        self.get_node_matching_name(edge).params[param] = value
 
     def reassignNames(self, mapping, nodes=None):
         """Reassigns node names based on a mapping dict
@@ -1852,7 +1852,7 @@ class PhyloNode(TreeNode):
             This can be useful for drawing unrooted trees with an orientation
             that reflects knowledge of the true root location.
         """
-        newroot = self.getNodeMatchingName(edge_name)
+        newroot = self.get_node_matching_name(edge_name)
         if not newroot.Children:
             raise TreeError("Can't use a tip (%s) as the root" %
                             repr(edge_name))
@@ -1860,7 +1860,7 @@ class PhyloNode(TreeNode):
 
     def rootedWithTip(self, outgroup_name):
         """A new tree with the named tip as one of the root's children"""
-        tip = self.getNodeMatchingName(outgroup_name)
+        tip = self.get_node_matching_name(outgroup_name)
         return tip.Parent.unrootedDeepcopy()
 
     def rootAtMidpoint(self):
@@ -1877,8 +1877,8 @@ class PhyloNode(TreeNode):
         if max_dist == 0.0:  # only pathological cases with no lengths
             return self.unrootedDeepcopy()
         # print tip_names
-        tip1 = self.getNodeMatchingName(tip_names[0])
-        tip2 = self.getNodeMatchingName(tip_names[1])
+        tip1 = self.get_node_matching_name(tip_names[0])
+        tip2 = self.get_node_matching_name(tip_names[1])
         lca = self.getConnectingNode(tip_names[0], tip_names[
                                      1])  # last comm ancestor
         if tip1.distance(lca) > half_max_dist:
@@ -1923,7 +1923,7 @@ class PhyloNode(TreeNode):
         half_max_dist = max_dist / 2.0
         # get a list of the nodes that separate the tip pair
         node_path = self.getConnectingEdges(tip_pair[0], tip_pair[1])
-        tip1 = self.getNodeMatchingName(tip_pair[0])
+        tip1 = self.get_node_matching_name(tip_pair[0])
         for index, node in enumerate(node_path):
             dist = tip1.distance(node)
             if dist > half_max_dist:
@@ -1992,7 +1992,7 @@ class PhyloNode(TreeNode):
         else:
             tip_order = []
             for i, name in enumerate(endpoints):
-                node = self.getNodeMatchingName(name)
+                node = self.get_node_matching_name(name)
                 tip_order.append(node)
         for i, node in enumerate(tip_order):
             node.__start, node.__stop = i, i + 1
@@ -2062,7 +2062,7 @@ class PhyloNode(TreeNode):
             if isinstance(endpoints[0], PhyloNode):
                 tip_order = endpoints
             else:
-                tip_order = [self.getNodeMatchingName(n) for n in endpoints]
+                tip_order = [self.get_node_matching_name(n) for n in endpoints]
 
         # linearize all tips in postorder
         # .__start, .__stop compose the slice in tip_order.
