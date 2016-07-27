@@ -295,48 +295,6 @@ class LikelihoodFunction(ParameterController):
                 title=title, **self._format))
         return result
 
-    def getStatisticsAsDict(self, with_parent_names=True,
-                            with_edge_names=False):
-        """Returns a dictionary containing the statistics for each edge of the
-        tree, and any other information provided by the substitution model. The
-        dictionary is keyed at the top-level by parameter name, and then by
-        edge.name.
-
-        Arguments:
-            - with_edge_names: if True, an ordered list of edge names is
-              included under the top-level key 'edge.names'. Default is
-              False.
-        """
-
-        discontinued('method', "'getStatisticsAsDict' "
-                     "use 'get_param_value_dict(['edge'])' is nearly equivalent",
-                     '1.6')
-
-        stats_dict = self.get_param_value_dict(['edge'])
-
-        if hasattr(self.model, 'scale_masks'):
-            for predicate in self.model.scale_masks:
-                stats_dict[predicate] = self.get_scaled_lengths(predicate)
-
-        edge_vector = [e for e in self._tree.get_edge_vector() if not e.isroot()]
-
-        # do the edge names
-        if with_parent_names:
-            parents = {}
-            for edge in edge_vector:
-                if edge.parent.isroot():
-                    parents[edge.name] = "root"
-                else:
-                    parents[edge.name] = str(edge.parent.name)
-            stats_dict["edge.parent"] = parents
-
-        if with_edge_names:
-            stats_dict['edge.name'] = (
-                [e.name for e in edge_vector if e.istip()] +
-                [e.name for e in edge_vector if not e.istip()])
-
-        return stats_dict
-
     # For tests.  Compat with old LF interface
     def setName(self, name):
         self._name = name
