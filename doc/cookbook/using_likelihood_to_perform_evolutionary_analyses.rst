@@ -446,7 +446,7 @@ As tables
 
 .. doctest::
     
-    >>> tables = lf.getStatistics(with_motif_probs=True, with_titles=True)
+    >>> tables = lf.get_statistics(with_motif_probs=True, with_titles=True)
     >>> for table in tables:
     ...     if 'global' in table.title:
     ...         print table

@@ -293,7 +293,7 @@ The following implements a modification of the approach of Zhang, Nielsen and Ya
 
 .. note:: Our implementation is not as parametrically succinct as that of Zhang et al, we have 1 additional bin probability.
 
-After Zhang et al, we first define a null model that has 2 rate classes '0' and '1'. We also get all the MLEs out using ``getStatistics``, just printing out the bin parameters table in the current case.
+After Zhang et al, we first define a null model that has 2 rate classes '0' and '1'. We also get all the MLEs out using ``get_statistics``, just printing out the bin parameters table in the current case.
 
 .. doctest::
     
@@ -304,7 +304,7 @@ After Zhang et al, we first define a null model that has 2 rate classes '0' and 
     >>> rate_lf.setParamRule('omega', bins='1', is_constant=True, value=1.0)
     >>> rate_lf.setAlignment(aln)
     >>> rate_lf.optimise(**optimiser_args)
-    >>> tables = rate_lf.getStatistics(with_titles=True)
+    >>> tables = rate_lf.get_statistics(with_titles=True)
     >>> for table in tables:
     ...     if 'bin' in table.title:
     ...         print table

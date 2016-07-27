@@ -170,7 +170,7 @@ class LikelihoodFunction(ParameterController):
         else:
             title = self._name
         result = [title]
-        result += self.getStatistics(with_motif_probs=True, with_titles=False)
+        result += self.get_statistics(with_motif_probs=True, with_titles=False)
         return '\n'.join(map(str, result))
 
     def get_annotated_tree(self):
@@ -223,7 +223,7 @@ class LikelihoodFunction(ParameterController):
                 Qs, bprobs, mprobs, predicate)
         return scaled_lengths
 
-    def getStatistics(self, with_motif_probs=True, with_titles=True):
+    def get_statistics(self, with_motif_probs=True, with_titles=True):
         """returns the parameter values as tables/dict
 
         Arguments:

@@ -117,7 +117,7 @@ class NewQ(TestCase):
             lf = di.makeLikelihoodFunction(self.tree)
             for wm, wt in [(True, True), (True, False), (False, True),
                            (False, False)]:
-                stats = lf.getStatistics(with_motif_probs=wm, with_titles=wt)
+                stats = lf.get_statistics(with_motif_probs=wm, with_titles=wt)
 
     def test_sim_alignment(self):
         """should be able to simulate an alignment under all models"""
