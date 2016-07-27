@@ -1428,7 +1428,7 @@ class TreeNode(object):
         """returns the parameter value for named edge"""
         return self.get_node_matching_name(edge).params[param]
 
-    def setParamValue(self, param, edge, value):
+    def set_param_value(self, param, edge, value):
         """set's the value for param at named edge"""
         self.get_node_matching_name(edge).params[param] = value
 
