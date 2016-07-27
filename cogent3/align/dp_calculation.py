@@ -57,7 +57,7 @@ def Edge(seq1, seq2, length, bin_data, switch=1.0, bprobs=None):
     pair = pairwise.Pair(seq1, seq2)
     EP = pair.makeReversibleEmissionProbs(
         [(bin.mprobs, bin.Qd) for bin in bin_data], length)
-    tms = [bin.indel.calcTransitionMatrix(length) for bin in bin_data]
+    tms = [bin.indel.calc_transition_matrix(length) for bin in bin_data]
     if bins == 1:
         TM = tms[0]
     else:
