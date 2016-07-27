@@ -696,11 +696,11 @@ class MolType(object):
         """A MolType iterates only over the characters in its Alphabet.."""
         return iter(self.Alphabet)
 
-    def isGap(self, char):
+    def is_gap(self, char):
         """Returns True if char is a gap."""
         return char in self.Gaps
 
-    def isGapped(self, sequence):
+    def is_gapped(self, sequence):
         """Returns True if sequence contains gaps."""
         return self.firstGap(sequence) is not None
 
@@ -824,7 +824,7 @@ class MolType(object):
 
     def gapVector(self, sequence):
         """Returns list of bool indicating gap or non-gap in sequence."""
-        return list(map(self.isGap, sequence))
+        return list(map(self.is_gap, sequence))
 
     def gapMaps(self, sequence):
         """Returns tuple containing dicts mapping between gapped and ungapped.

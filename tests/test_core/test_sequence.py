@@ -172,30 +172,30 @@ class SequenceTests(TestCase):
         p = self.PROT('QWE')
         self.assertEqual(list(p), ['Q', 'W', 'E'])
 
-    def test_isGapped(self):
-        """Sequence isGapped should return True if gaps in seq"""
-        assert not self.RNA('').isGapped()
-        assert not self.RNA('ACGUCAGUACGUCAGNRCGAUcaguaguacYRNRYRN').isGapped()
-        assert self.RNA('-').isGapped()
-        assert self.PROT('--').isGapped()
-        assert self.RNA('CAGUCGUACGUCAGUACGUacucauacgac-caguACUG').isGapped()
-        assert self.RNA('CA--CGUAUGCA-----g').isGapped()
-        assert self.RNA('CAGU-').isGapped()
+    def test_is_gapped(self):
+        """Sequence is_gapped should return True if gaps in seq"""
+        assert not self.RNA('').is_gapped()
+        assert not self.RNA('ACGUCAGUACGUCAGNRCGAUcaguaguacYRNRYRN').is_gapped()
+        assert self.RNA('-').is_gapped()
+        assert self.PROT('--').is_gapped()
+        assert self.RNA('CAGUCGUACGUCAGUACGUacucauacgac-caguACUG').is_gapped()
+        assert self.RNA('CA--CGUAUGCA-----g').is_gapped()
+        assert self.RNA('CAGU-').is_gapped()
 
-    def test_isGap(self):
-        """Sequence isGap should return True if char is a valid gap char"""
+    def test_is_gap(self):
+        """Sequence is_gap should return True if char is a valid gap char"""
         r = self.RNA('ACGUCAGUACGUCAGNRCGAUcaguaguacYRNRYRN')
         for char in 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOASDFGHJKLZXCVBNM':
-            assert not r.isGap(char)
-        assert r.isGap('-')
+            assert not r.is_gap(char)
+        assert r.is_gap('-')
         # only works on a single literal that's a gap, not on a sequence.
         # possibly, this behavior should change?
-        assert not r.isGap('---')
+        assert not r.is_gap('---')
         # check behaviour on self
-        assert not self.RNA('CGAUACGUACGACU').isGap()
-        assert not self.RNA('---CGAUA----CGUACG---ACU---').isGap()
-        assert self.RNA('').isGap()
-        assert self.RNA('----------').isGap()
+        assert not self.RNA('CGAUACGUACGACU').is_gap()
+        assert not self.RNA('---CGAUA----CGUACG---ACU---').is_gap()
+        assert self.RNA('').is_gap()
+        assert self.RNA('----------').is_gap()
 
     def test_isDegenerate(self):
         """Sequence isDegenerate should return True if degen symbol in seq"""

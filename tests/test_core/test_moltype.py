@@ -317,9 +317,9 @@ class MolTypeTests(TestCase):
         a = MolType('ZXCV')
         self.assertEqual(list(a), ['Z', 'X', 'C', 'V'])
 
-    def test_isGapped(self):
-        """MolType isGapped should return True if gaps in seq"""
-        g = RnaMolType.isGapped
+    def test_is_gapped(self):
+        """MolType is_gapped should return True if gaps in seq"""
+        g = RnaMolType.is_gapped
         self.assertFalse(g(''))
         self.assertFalse(g('ACGUCAGUACGUCAGNRCGAUcaguaguacYRNRYRN'))
         self.assertTrue(g('-'))
@@ -328,9 +328,9 @@ class MolTypeTests(TestCase):
         self.assertTrue(g('CA--CGUAUGCA-----g'))
         self.assertTrue(g('CAGU-'))
 
-    def test_isGap(self):
-        """MolType isGap should return True if char is a gap"""
-        g = RnaMolType.isGap
+    def test_is_gap(self):
+        """MolType is_gap should return True if char is a gap"""
+        g = RnaMolType.is_gap
         # True for the empty string
         self.assertFalse(g(''))
         # True for all the standard and degenerate symbols
@@ -340,7 +340,7 @@ class MolTypeTests(TestCase):
             self.assertFalse(g(i))
         # should be true for a single gap
         self.assertTrue(g('-'))
-        # note that it _shouldn't_ be true for a run of gaps: use a.isGapped()
+        # note that it _shouldn't_ be true for a run of gaps: use a.is_gapped()
         self.assertFalse(g('--'))
 
     def test_isDegenerate(self):
