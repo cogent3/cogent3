@@ -116,7 +116,7 @@ class EstimateDistances(object):
         self._on_master_cpu = parallel.getCommunicator().Get_rank() == 0
 
     def __str__(self):
-        return str(self.getTable())
+        return str(self.get_table())
 
     def _make_pair_alignment(self, seqs, opt_kwargs):
         lf = self._sm.make_likelihood_function(
@@ -272,7 +272,7 @@ class EstimateDistances(object):
         """returns raw estimated parameter dictionary"""
         return self._param_ests.copy()
 
-    def getTable(self, summary_function="mean", **kwargs):
+    def get_table(self, summary_function="mean", **kwargs):
         """returns a Table instance of the distance matrix.
 
         Arguments:
@@ -306,7 +306,7 @@ class EstimateDistances(object):
                         missing_data="*")
         return T
 
-    def get_newickTrees(self):
+    def get_newick_trees(self):
         """Returns a list of Newick format trees for supertree methods."""
         trees = []
         for comp_names, param_vals in list(self._param_ests.items()):
@@ -333,5 +333,5 @@ class EstimateDistances(object):
 
         if self._on_master_cpu:
             # only write output from 0th node
-            table = self.getTable(summary_function=summary_function, **kwargs)
+            table = self.get_table(summary_function=summary_function, **kwargs)
             table.write(filename, format=format)
