@@ -183,7 +183,7 @@ class _SubstitutionModel(object):
         if model_gaps and mprob_model != 'tuple':
             raise ValueError("mprob_model must be 'tuple' to model gaps")
 
-        isinst = self._isInstantaneous
+        isinst = self._is_instantaneous
         self._instantaneous_mask = predicate2matrix(self.alphabet, isinst)
         self._instantaneous_mask_f = self._instantaneous_mask * 1.0
         self.mprob_model = motif_prob_model.make_model(mprob_model, alphabet,
@@ -348,7 +348,7 @@ class _SubstitutionModel(object):
 class DiscreteSubstitutionModel(_SubstitutionModel):
     _default_expm_setting = None
 
-    def _isInstantaneous(self, x, y):
+    def _is_instantaneous(self, x, y):
         return True
 
     def get_param_list(self):
@@ -464,12 +464,12 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
                 desc = ['partitioned', 'ordered'][param == self.ordered_param]
                 raise ValueError('%s param "%s" unknown' % (desc, param))
 
-    def _isInstantaneous(self, x, y):
+    def _is_instantaneous(self, x, y):
         diffs = sum([X != Y for (X, Y) in zip(x, y)])
         return diffs == 1 or (diffs > 1 and
-                              self.long_indels_are_instantaneous and self._isAnyIndel(x, y))
+                              self.long_indels_are_instantaneous and self._is_any_indel(x, y))
 
-    def _isAnyIndel(self, x, y):
+    def _is_any_indel(self, x, y):
         """An indel of any length"""
         # Things get complicated when a contigous indel of any length is OK:
         if x == y:
@@ -509,7 +509,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         Qd = CallDefn(exp, Q, name='Qd')
         return Qd
 
-    def _makeBinParamDefn(self, edge_par_name, bin_par_name, bprob_defn):
+    def _make_bin_param_defn(self, edge_par_name, bin_par_name, bprob_defn):
         # if no ordered param defined, behaves as old, everything indexed by
         # and edge
         if edge_par_name not in self.partitioned_params:
@@ -533,7 +533,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
             else:
                 e_defn = ParamDefn(param_name, dimensions=['edge', 'locus'])
                 # should be weighted by bprobs*rates not bprobs
-                b_defn = self._makeBinParamDefn(
+                b_defn = self._make_bin_param_defn(
                     param_name, param_name + '_factor', bprobs)
                 defn = ProductDefn(b_defn, e_defn, name=param_name + '_BE')
             params.append(defn)
@@ -556,7 +556,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
     def makeDistanceDefn(self, bprobs):
         length = LengthDefn()
         if self.with_rate and bprobs is not None:
-            b_rate = self._makeBinParamDefn('rate', 'rate', bprobs)
+            b_rate = self._make_bin_param_defn('rate', 'rate', bprobs)
             distance = ProductDefn(length, b_rate, name="distance")
         else:
             distance = length
@@ -684,7 +684,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         self._canned_predicates = None
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
 
-        (predicate_masks, predicate_order) = self._adaptPredicates(predicates or [])
+        (predicate_masks, predicate_order) = self._adapt_predicates(predicates or [])
 
         # Check for redundancy in predicates, ie: 1 or more than combine
         # to be equivalent to 1 or more others, or the distance params.
@@ -724,7 +724,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
             self.predicate_indices.append(indices)
         if not self.symmetric:
             warnings.warn('Model not reversible')
-        (self.scale_masks, scale_order) = self._adaptPredicates(scales or [])
+        (self.scale_masks, scale_order) = self._adapt_predicates(scales or [])
         self.check_params_exist()
 
     def calcExchangeabilityMatrix(self, mprobs, *params):
@@ -813,10 +813,10 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         return list(self.predicate_masks.keys())
 
     def isInstantaneous(self, x, y):
-        return self._isInstantaneous(x, y)
+        return self._is_instantaneous(x, y)
 
     def getSubstitutionRateValueFromQ(self, Q, motif_probs, pred):
-        pred_mask = list(self._adaptPredicates([pred])[0].values())[0]
+        pred_mask = list(self._adapt_predicates([pred])[0].values())[0]
         pred_row_totals = numpy.sum(pred_mask * Q, axis=1)
         inst_row_totals = numpy.sum(self._instantaneous_mask * Q, axis=1)
         r = sum(pred_row_totals * motif_probs)
@@ -854,7 +854,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
             self._canned_predicates = self.getPredefinedPredicates()
         return self._canned_predicates[name].interpret(self)
 
-    def _adaptPredicates(self, rules):
+    def _adapt_predicates(self, rules):
         # dict or list of callables, predicate objects or predicate strings
         if isinstance(rules, dict):
             rules = list(rules.items())
@@ -944,7 +944,7 @@ class Codon(_Nucleotide):
         alphabet = alphabet or moltype.STANDARD_CODON
         SubstitutionModel.__init__(self, alphabet, **kw)
 
-    def _isInstantaneous(self, x, y):
+    def _is_instantaneous(self, x, y):
         if x == self.gapmotif or y == self.gapmotif:
             return x != y
         else:
