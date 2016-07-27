@@ -524,9 +524,9 @@ class MolTypeTests(TestCase):
         self.assertEqual(c('!@#$!@#$!@#$'), 12)
         self.assertEqual(c('cguua!cgcuagua@cguasguadc#'), 3)
 
-    def test_countDegenerate(self):
-        """MolType countDegenerate should return correct degen base count"""
-        d = RnaMolType.countDegenerate
+    def test_count_degenerate(self):
+        """MolType count_degenerate should return correct degen base count"""
+        d = RnaMolType.count_degenerate
         self.assertEqual(d(''), 0)
         self.assertEqual(d('GACUGCAUGCAUCGUACGUCAGUACCGA'), 0)
         self.assertEqual(d('N'), 1)

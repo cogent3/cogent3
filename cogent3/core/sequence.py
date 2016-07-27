@@ -206,9 +206,9 @@ class SequenceI(object):
         """Counts the gaps in the specified sequence."""
         return self.MolType.countGaps(self)
 
-    def countDegenerate(self):
+    def count_degenerate(self):
         """Counts the degenerate bases in the specified sequence."""
-        return self.MolType.countDegenerate(self)
+        return self.MolType.count_degenerate(self)
 
     def possibilities(self):
         """Counts number of possible sequences matching the sequence.

@@ -856,7 +856,7 @@ class MolType(object):
         gap_count = sum(1 for s in sequence if s in gaps)
         return gap_count
 
-    def countDegenerate(self, sequence):
+    def count_degenerate(self, sequence):
         """Counts the degenerate bases in the specified sequence."""
         degen = self.Degenerates
         degen_count = 0

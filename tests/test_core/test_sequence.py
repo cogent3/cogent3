@@ -326,16 +326,16 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('---CGAUgCAU---ACGHc---ACGUCAGU---'
                                   ).countGaps(), 12)
 
-    def test_countDegenerate(self):
-        """Sequence countDegenerate should return correct degen base count"""
-        self.assertEqual(self.RNA('').countDegenerate(), 0)
+    def test_count_degenerate(self):
+        """Sequence count_degenerate should return correct degen base count"""
+        self.assertEqual(self.RNA('').count_degenerate(), 0)
         self.assertEqual(self.RNA('GACUGCAUGCAUCGUACGUCAGUACCGA'
-                                  ).countDegenerate(), 0)
-        self.assertEqual(self.RNA('N').countDegenerate(), 1)
-        self.assertEqual(self.PROT('N').countDegenerate(), 0)
-        self.assertEqual(self.RNA('NRY').countDegenerate(), 3)
+                                  ).count_degenerate(), 0)
+        self.assertEqual(self.RNA('N').count_degenerate(), 1)
+        self.assertEqual(self.PROT('N').count_degenerate(), 0)
+        self.assertEqual(self.RNA('NRY').count_degenerate(), 3)
         self.assertEqual(self.RNA('ACGUAVCUAGCAUNUCAGUCAGyUACGUCAGS'
-                                  ).countDegenerate(), 4)
+                                  ).count_degenerate(), 4)
 
     def test_possibilites(self):
         """Sequence possibilities should return correct # possible sequences"""
