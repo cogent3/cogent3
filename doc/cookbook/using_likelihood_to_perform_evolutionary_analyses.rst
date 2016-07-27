@@ -665,7 +665,7 @@ Or we can get the posterior probabilities (returned as a ``DictArray``) of seque
 
 .. doctest::
     
-    >>> ancestral_probs = lf.reconstructAncestralSeqs()
+    >>> ancestral_probs = lf.reconstruct_ancestral_seqs()
     >>> print ancestral_probs['root']
     ============================================
                  T         C         A         G

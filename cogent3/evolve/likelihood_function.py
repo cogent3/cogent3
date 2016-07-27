@@ -83,7 +83,7 @@ class LikelihoodFunction(ParameterController):
         root_lht = self.get_param_value('root', locus=locus)
         return root_lht.calcGStatistic(root_lh, return_table)
 
-    def reconstructAncestralSeqs(self, locus=None):
+    def reconstruct_ancestral_seqs(self, locus=None):
         """returns a dict of DictArray objects containing probabilities
         of each alphabet state for each node in the tree.
 
@@ -120,7 +120,7 @@ class LikelihoodFunction(ParameterController):
 
         Arguments:
             - locus: a named locus"""
-        prob_array = self.reconstructAncestralSeqs(locus=locus)
+        prob_array = self.reconstruct_ancestral_seqs(locus=locus)
         seqs = []
         for edge, probs in list(prob_array.items()):
             seq = []

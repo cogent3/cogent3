@@ -138,7 +138,7 @@ class NewQ(TestCase):
             lf = di.makeLikelihoodFunction(self.tree)
             lf.setParamRule('length', is_independent=False, init=0.4)
             lf.setAlignment(self.aln)
-            ancestor = lf.reconstructAncestralSeqs()
+            ancestor = lf.reconstruct_ancestral_seqs()
 
     def test_results_different(self):
         for (i, (mprobs, dummy)) in enumerate(self.ordered_by_complexity):
