@@ -304,7 +304,7 @@ class TreeNode(object):
         """Returns index of self in parent."""
         return self._parent.Children.index(self)
 
-    def isTip(self):
+    def is_tip(self):
         """Returns True if the current node is a tip, i.e. has no children."""
         return not self.Children
 
@@ -1071,7 +1071,7 @@ class TreeNode(object):
         specific tips the distance is between
         """
         for n in self.postorder():
-            if n.isTip():
+            if n.is_tip():
                 n.MaxDistTips = [[0.0, n.name], [0.0, n.name]]
             else:
                 if len(n.Children) == 1:
@@ -1710,7 +1710,7 @@ class PhyloNode(TreeNode):
             curr_node, curr_dist = to_process.pop(0)
 
             # have we've found a tip within distance?
-            if curr_node.isTip() and curr_node != self:
+            if curr_node.is_tip() and curr_node != self:
                 tips_to_save.append(curr_node)
                 continue
 
@@ -1897,7 +1897,7 @@ class PhyloNode(TreeNode):
         if dist_climbed + climb_node.Length == half_max_dist:
             # climb to midpoint spot
             climb_node = climb_node.Parent
-            if climb_node.isTip():
+            if climb_node.is_tip():
                 raise RuntimeError('error trying to root tree at tip')
             else:
                 # print climb_node.name, 'clmb node'

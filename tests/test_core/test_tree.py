@@ -606,14 +606,14 @@ class TreeNodeTests(TestCase):
         self.assertEqual(len(fourth), 2)
         assert first.Parent is None
 
-    def test_isTip(self):
-        """TreeNode isTip should return True if node is a tip"""
+    def test_is_tip(self):
+        """TreeNode is_tip should return True if node is a tip"""
         tips = 'degh'
         for n in list(self.TreeNode.values()):
             if n.name in tips:
-                self.assertEqual(n.isTip(), True)
+                self.assertEqual(n.is_tip(), True)
             else:
-                self.assertEqual(n.isTip(), False)
+                self.assertEqual(n.is_tip(), False)
 
     def test_isRoot(self):
         """TreeNode isRoot should return True if parent is None"""
