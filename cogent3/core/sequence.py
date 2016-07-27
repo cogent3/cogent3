@@ -812,7 +812,7 @@ class NucleicAcidSequence(Sequence):
         if not divisible_by_3:
             return False
 
-        return codons and gc.isStop(codons[-3:])
+        return codons and gc.is_stop(codons[-3:])
 
     def without_terminal_stop_sodon(self, gc=None, allow_partial=False):
         """Removes a terminal stop codon from the sequence
@@ -829,7 +829,7 @@ class NucleicAcidSequence(Sequence):
         if not allow_partial and not divisible_by_3:
             raise ValueError("seq length not divisible by 3")
 
-        if divisible_by_3 and codons and gc.isStop(codons[-3:]):
+        if divisible_by_3 and codons and gc.is_stop(codons[-3:]):
             codons = codons[:-3]
 
         return self.__class__(codons, Name=self.Name, Info=self.Info)

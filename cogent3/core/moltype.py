@@ -1100,10 +1100,10 @@ class _CodonAlphabet(Alphabet):
         return a
 
     def is_sense_codon(self, codon):
-        return not self._gc.isStop(codon)
+        return not self._gc.is_stop(codon)
 
     def is_stop_codon(self, codon):
-        return self._gc.isStop(codon)
+        return self._gc.is_stop(codon)
 
     def get_genetic_code(self):
         return self._gc
