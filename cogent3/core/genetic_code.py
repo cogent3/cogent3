@@ -231,7 +231,7 @@ class GeneticCode(object):
             raise ValueError("Translation starts after end of RNA")
         return ''.join([self[dna[i:i + 3]] for i in range(start, len(dna) - 2, 3)])
 
-    def getStopIndices(self, dna, start=0):
+    def get_stop_indices(self, dna, start=0):
         """returns indexes for stop codons in the specified frame"""
         stops = self['*']
         stop_pattern = '(%s)' % '|'.join(stops)

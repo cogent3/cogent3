@@ -58,7 +58,7 @@ Find out how many stops in a frame
     >>> from cogent import DNA
     >>> from cogent3.core.genetic_code import DEFAULT as standard_code
     >>> seq = DNA.make_sequence('ATGCTAACATAAA')
-    >>> stops_frame1 = standard_code.getStopIndices(seq, start=0)
+    >>> stops_frame1 = standard_code.get_stop_indices(seq, start=0)
     >>> stops_frame1
     [9]
     >>> stop_index = stops_frame1[0]
