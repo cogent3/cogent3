@@ -193,7 +193,7 @@ class _SubstitutionModel(object):
         if equal_motif_probs:
             assert not (motif_probs or motif_probs_alignment), \
                 "Motif probs equal or provided but not both"
-            motif_probs = self.mprob_model.makeEqualMotifProbs()
+            motif_probs = self.mprob_model.make_equal_motif_probs()
         elif motif_probs_alignment is not None:
             assert not motif_probs, \
                 "Motif probs from alignment or provided but not both"
