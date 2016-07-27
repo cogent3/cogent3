@@ -656,7 +656,7 @@ We then get the most likely ancestral sequences.
 
 .. doctest::
     
-    >>> ancestors = lf.likelyAncestralSeqs()
+    >>> ancestors = lf.likely_ancestral_seqs()
     >>> print ancestors
     >root
     TGTGGCACAAATACTCATGCCAGCTCATTACAGCA...

@@ -114,7 +114,7 @@ class LikelihoodFunction(ParameterController):
                 numpy.transpose(numpy.asarray(r)))
         return result
 
-    def likelyAncestralSeqs(self, locus=None):
+    def likely_ancestral_seqs(self, locus=None):
         """Returns the most likely reconstructed ancestral sequences as an
         alignment.
 
