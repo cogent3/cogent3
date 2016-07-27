@@ -39,7 +39,7 @@ def lookup_symmetric_dict(dists, a, b):
         raise ValueError("d[%s,%s] != d[%s,%s]" % (a, b, b, a))
 
 
-def distanceDictTo2D(dists):
+def distance_dict_to_2D(dists):
     """(names, dists).  Distances converted into a straightforward distance
     matrix"""
     names = names_from_distance_dict(dists)

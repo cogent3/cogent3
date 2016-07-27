@@ -13,7 +13,7 @@ Generalised as described by Pearson, Robins & Zhang, 1999.
 import numpy
 from cogent3.core.tree import TreeBuilder
 from cogent3.phylo.tree_collection import ScoredTreeCollection
-from cogent3.phylo.util import distanceDictTo2D
+from cogent3.phylo.util import distance_dict_to_2D
 from cogent3.util import progress_display as UI
 from collections import deque
 
@@ -182,7 +182,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
         - a sorted list of (tree length, tree) tuples
     """
 
-    (names, d) = distanceDictTo2D(dists)
+    (names, d) = distance_dict_to_2D(dists)
 
     if keep is None:
         keep = len(names) * 5
