@@ -37,7 +37,7 @@ class MotifProbModel(object):
         assert len(monomer_probs) == 1
         return monomer_probs[0]
 
-    def calcWordWeightMatrix(self, *monomer_probs):
+    def calc_word_weight_matrix(self, *monomer_probs):
         assert len(monomer_probs) == 1
         return monomer_probs[0]
 
@@ -173,7 +173,7 @@ class MonomerProbModel(ComplexMotifProbModel):
         result /= result.sum()
         return result
 
-    def calcWordWeightMatrix(self, monomer_probs):
+    def calc_word_weight_matrix(self, monomer_probs):
         result = monomer_probs.take(self.mutant_motif) * self.mask
         return result
 
@@ -182,7 +182,7 @@ class MonomerProbModel(ComplexMotifProbModel):
         word_probs = substitution_calculation.CalcDefn(
             self.calc_word_probs, name="wprobs")(monomer_probs)
         mprobs_matrix = substitution_calculation.CalcDefn(
-            self.calcWordWeightMatrix, name="mprobs_matrix")(monomer_probs)
+            self.calc_word_weight_matrix, name="mprobs_matrix")(monomer_probs)
         return (monomer_probs, word_probs, mprobs_matrix)
 
     def adapt_motif_probs(self, motif_probs, auto=False):
@@ -216,7 +216,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
         result /= result.sum()
         return result
 
-    def calcWordWeightMatrix(self, monomer_probs):
+    def calc_word_weight_matrix(self, monomer_probs):
         positions = list(range(self.word_length))
         monomer_probs = numpy.array(monomer_probs)  # so [posn, motif]
         size = monomer_probs.shape[-1]
@@ -242,7 +242,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
         word_probs = substitution_calculation.CalcDefn(
             self.calc_word_probs, name="wprobs")(monomer_probs3)
         mprobs_matrix = substitution_calculation.CalcDefn(
-            self.calcWordWeightMatrix, name="mprobs_matrix")(
+            self.calc_word_weight_matrix, name="mprobs_matrix")(
             monomer_probs3)
         return (monomer_probs, word_probs, mprobs_matrix)
 
@@ -270,7 +270,7 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
     def getCountedAlphabet(self):
         return self.tuple_alphabet
 
-    def calcWordWeightMatrix(self, motif_probs):
+    def calc_word_weight_matrix(self, motif_probs):
         context_probs = numpy.dot(motif_probs, self.w2c)
         context_probs[context_probs == 0.0] = numpy.inf
         result = motif_probs / context_probs.take(self.context_indices)
@@ -279,5 +279,5 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
     def makeMotifWordProbDefns(self):
         mprobs = self.makeMotifProbsDefn()
         mprobs_matrix = substitution_calculation.CalcDefn(
-            self.calcWordWeightMatrix, name="mprobs_matrix")(mprobs)
+            self.calc_word_weight_matrix, name="mprobs_matrix")(mprobs)
         return (mprobs, mprobs, mprobs_matrix)
