@@ -88,9 +88,9 @@ class _LikelihoodTreeEdge(object):
                   for (index, child) in self._indexed_children]
         self.ambig = numpy.product(ambigs, axis=0)
 
-    def getSitePatterns(self, cols):
+    def get_site_patterns(self, cols):
         # Recursive lookup of Site Patterns aka Alignment Columns
-        child_motifs = [child.getSitePatterns(index[cols])
+        child_motifs = [child.get_site_patterns(index[cols])
                         for (index, child) in self._indexed_children]
         return [''.join(child[u] for child in child_motifs)
                 for u in range(len(cols))]
@@ -159,7 +159,7 @@ class _LikelihoodTreeEdge(object):
         G = 2 * observed.dot(numpy.log(observed / expected))
 
         if return_table:
-            motifs = self.getSitePatterns(unambig)
+            motifs = self.get_site_patterns(unambig)
             rows = list(zip(motifs, observed, expected))
             rows.sort(key=lambda row: (-row[1], row[0]))
             table = LoadTable(
@@ -374,5 +374,5 @@ class LikelihoodTreeLeaf(object):
         else:
             return None
 
-    def getSitePatterns(self, cols):
+    def get_site_patterns(self, cols):
         return numpy.asarray(self.uniq)[cols]
