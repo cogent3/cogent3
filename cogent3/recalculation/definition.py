@@ -33,7 +33,7 @@ Interface:
      to get a ParameterController.
   4) PC.assignAll(param, value=value, **scope) to define the parameter
      scopes.  'value' can be a constant float or an instance of Var.
-  5) calculator = PC.makeCalculator() to get a live Calculator.
+  5) calculator = PC.make_calculator() to get a live Calculator.
   6) calculator.optimise() etc.
 
 Caching:

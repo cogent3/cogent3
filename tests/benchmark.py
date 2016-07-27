@@ -37,7 +37,7 @@ def brca_test(subMod, names, tree, length, par_rules, **kw):
     par_controller = subMod.makeParamController(tree, **kw)
     for par_rule in par_rules:
         par_controller.setParamRule(**par_rule)
-    #lf = par_controller.makeCalculator(aln)
+    #lf = par_controller.make_calculator(aln)
     return (par_controller, aln)
 
 
