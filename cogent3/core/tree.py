@@ -1530,7 +1530,7 @@ class TreeNode(object):
                 i.__leaf_set = leaf_set
         return frozenset(sets)
 
-    def compareBySubsets(self, other, exclude_absent_taxa=False):
+    def compare_by_subsets(self, other, exclude_absent_taxa=False):
         """Returns fraction of overlapping subsets where self and other differ.
 
         Other is expected to be a tree object compatible with PhyloNode.

@@ -1086,28 +1086,28 @@ class TreeNodeTests(TestCase):
         self.assertEqual(t.subsets(), frozenset(
             [frozenset('HG'), frozenset('RM')]))
 
-    def test_compareBySubsets(self):
-        """compareBySubsets should return the fraction of shared subsets"""
-        result = self.t.compareBySubsets(self.t)
+    def test_compare_by_subsets(self):
+        """compare_by_subsets should return the fraction of shared subsets"""
+        result = self.t.compare_by_subsets(self.t)
         self.assertEqual(result, 0)
 
-        result = self.t2.compareBySubsets(self.t2)
+        result = self.t2.compare_by_subsets(self.t2)
         self.assertEqual(result, 0)
 
-        result = self.t.compareBySubsets(self.t2)
+        result = self.t.compare_by_subsets(self.t2)
         self.assertEqual(result, 0.5)
 
-        result = self.t.compareBySubsets(self.t4)
+        result = self.t.compare_by_subsets(self.t4)
         self.assertEqual(result, 1 - 2. / 5)
 
-        result = self.t.compareBySubsets(self.t4, exclude_absent_taxa=True)
+        result = self.t.compare_by_subsets(self.t4, exclude_absent_taxa=True)
         self.assertEqual(result, 1 - 2. / 3)
 
-        result = self.t.compareBySubsets(
+        result = self.t.compare_by_subsets(
             self.TreeRoot, exclude_absent_taxa=True)
         self.assertEqual(result, 1)
 
-        result = self.t.compareBySubsets(self.TreeRoot)
+        result = self.t.compare_by_subsets(self.TreeRoot)
         self.assertEqual(result, 1)
 
 
