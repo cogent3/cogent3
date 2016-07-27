@@ -2087,7 +2087,41 @@ class AlignmentI(object):
                         result.append(position)
                         break
 
-        return result    
+        return result
+    
+    def to_type(self, as_dense=False, moltype=None, alphabet=None):
+        """returns alignment of type indicated by as_dense
+        
+        Parameters
+        ----------
+        as_dense: bool
+          if True, returns as DenseAlignment. Otherwise as "standard"
+          Alignment class. Conversion to DenseAlignment loses annotations.
+        
+        moltype : MolType instance
+          overrides self.moltype
+        
+        alphabet : Alphabet instance
+          overrides self.alphabet
+        
+        If as_dense would result in no change (class is same as self),
+        returns self
+        """
+        klass = DenseAlignment if as_dense else Alignment
+        if isinstance(self, klass):
+            return self
+        
+        data = self.todict()
+        if moltype is None:
+            # Alignment and DenseAlignment have different default moltypes
+            moltype_default = isinstance(self.moltype, type(self.__class__.moltype))
+            if moltype_default:
+                moltype = DenseAlignment.moltype if as_dense else Alignment.moltype
+            else:
+                moltype = self.moltype
+        new = klass(data=data, moltype=moltype,
+                    info=self.info, names=self.names)
+        return new
 
 
 def aln_from_array(a, array_type=None, alphabet=None):

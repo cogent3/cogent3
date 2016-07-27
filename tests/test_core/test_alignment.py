@@ -1446,7 +1446,29 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln = self.Class(data=new_seqs, moltype=DNA)
         self.assertEqual(aln.variable_positions(), [2, 3])
     
-
+    def test_to_type(self):
+        """correctly interconvert between alignment types"""
+        new_seqs = {'seq1': 'ACGTACGTA',
+                    'seq2': 'ACCGAA---',
+                    'seq3': 'ACGTACGTT'}
+        as_dense = self.Class == DenseAlignment
+        # when as_dense arg matches instance class, no conversion
+        # and get back self
+        aln = self.Class(data=new_seqs)
+        new = aln.to_type(as_dense=as_dense)
+        self.assertEqual(id(aln), id(new))
+        
+        # when as_dense arg does not match, should get back the opposite type
+        new = aln.to_type(as_dense=not as_dense)
+        self.assertFalse(isinstance(new, self.Class))
+        
+        # we should be able to specify moltype and alignment
+        new = aln.to_type(as_dense=not as_dense, moltype=DNA)
+        self.assertEqual(new.todict(), new_seqs)
+        # and translate
+        self.assertEqual(new.get_translation().todict(),
+                         {'seq1': 'TYV', 'seq3': 'TYV', 'seq2': 'TE-'})
+        
 
 class DenseAlignmentTests(AlignmentBaseTests, TestCase):
     Class = DenseAlignment
