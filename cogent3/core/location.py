@@ -696,7 +696,7 @@ class Map(object):
             new_spans.append(LostSpan(self.parent_length - last_hi))
         return Map(spans=new_spans, parent_length=len(self))
 
-    def getCoordinates(self):
+    def get_coordinates(self):
         """returns span coordinates as [(v1, v2), ...]
 
         v1/v2 are (start, end) unless the map is reversed, in which case it will

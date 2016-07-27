@@ -601,7 +601,7 @@ class Sequence(_Annotatable, SequenceI):
 
         i = 0
         segments = []
-        for b, e in region.getCoordinates():
+        for b, e in region.get_coordinates():
             segments.append(self._seq[i:b])
             segments.append(mask_char * (e - b))
             i = e

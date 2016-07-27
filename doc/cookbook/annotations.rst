@@ -138,7 +138,7 @@ These are useful for doing custom things, e.g. you could construct intron featur
 
 .. doctest::
     
-    >>> cds.getCoordinates()
+    >>> cds.get_coordinates()
     [(10, 15), (30, 40), (45, 48)]
 
 Annotations have shadows
