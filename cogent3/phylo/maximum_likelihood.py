@@ -56,7 +56,7 @@ class ML(TreeEvaluator):
             lf = self.lf_factory(tree)
             lf.setAlignment(subalign)
             if lengths is not None:
-                lf.setParamRule('length', is_constant=True)
+                lf.set_param_rule('length', is_constant=True)
             lf.optimise(show_progress=False, **self.opt_args)
             err = -1.0 * lf.get_log_likelihood()
             tree = lf.get_annotated_tree()

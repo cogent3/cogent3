@@ -68,7 +68,7 @@ class test_parameter_controller(unittest.TestCase):
         lf.setConstantLengths()
         lf.setAlignment(self.al)
         null = lf.getNumFreeParams()
-        lf.setParamRule(par_name='kappa',
+        lf.set_param_rule(par_name='kappa',
                         is_independent=True,
                         edges=['b', 'd'])
         self.assertEqual(null + 2, lf.getNumFreeParams())
@@ -116,14 +116,14 @@ class test_parameter_controller(unittest.TestCase):
             self.assertEqual(lf.get_motif_probs(locus="a"), mprobs_a)
             self.assertEqual(lf.get_motif_probs(locus="b"), mprobs_b)
             s = str(lf)
-            #lf.setParamRule('mprobs', is_independent=False)
+            #lf.set_param_rule('mprobs', is_independent=False)
 
-    def test_setParamRules(self):
+    def test_set_param_rules(self):
         lf = self.model.makeLikelihoodFunction(self.tree)
 
         def do_rules(rule_set):
             for rule in rule_set:
-                lf.setParamRule(**rule)
+                lf.set_param_rule(**rule)
         for rule_set in good_rule_sets:
             lf.setDefaultParamRules()
             do_rules(rule_set)
@@ -138,7 +138,7 @@ class test_parameter_controller(unittest.TestCase):
     def test_setConstantLengths(self):
         t = LoadTree(treestring='((a:1,b:2):3,(c:4,d:5):6,e:7);')
         lf = self.model.makeLikelihoodFunction(t)  # self.tree)
-        lf.setParamRule('length', is_constant=True)
+        lf.set_param_rule('length', is_constant=True)
         # lf.setConstantLengths(t)
         lf.setAlignment(self.al)
         self.assertEqual(lf.get_param_value('length', 'b'), 2)
@@ -176,9 +176,9 @@ class test_parameter_controller(unittest.TestCase):
             do_scaling=True, equal_motif_probs=True, model_gaps=True,
             predicates={'kappa': 'transition'})
         lf = model.makeLikelihoodFunction(self.tree)
-        lf.setParamRule(par_name='kappa',
+        lf.set_param_rule(par_name='kappa',
                         is_independent=True)
-        lf.setParamRule(par_name='kappa',
+        lf.set_param_rule(par_name='kappa',
                         is_independent=False,
                         edges=['b', 'd'])
         lf.setConstantLengths(LoadTree(
@@ -194,16 +194,16 @@ class test_parameter_controller(unittest.TestCase):
     def test_bounds(self):
         """Test setting upper and lower bounds for parameters"""
         lf = self.model.makeLikelihoodFunction(self.tree)
-        lf.setParamRule('length', value=3, lower=0, upper=5)
+        lf.set_param_rule('length', value=3, lower=0, upper=5)
 
         # Out of bounds value should warn and keep bounded
         with warnings.catch_warnings(record=True) as w:
-            lf.setParamRule('length', lower=0, upper=2)
+            lf.set_param_rule('length', lower=0, upper=2)
             self.assertTrue(len(w), 'No warning issued')
         self.assertEqual(lf.get_param_value('length', edge='a'), 2)
 
         # upper < lower bounds should fail
-        self.assertRaises(ValueError, lf.setParamRule,
+        self.assertRaises(ValueError, lf.set_param_rule,
                           'length', lower=2, upper=0)
 
 

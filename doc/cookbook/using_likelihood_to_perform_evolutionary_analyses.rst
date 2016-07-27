@@ -135,7 +135,7 @@ For many evolutionary analyses, it's desirable to allow different branches on a 
                                                       \-Chimpanzee
     >>> sm = CNFGTR()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=2)
-    >>> lf.setParamRule('omega', tip_names=['Human', 'Orangutan'], outgroup_name='Galago', is_clade=True, init=0.5)
+    >>> lf.set_param_rule('omega', tip_names=['Human', 'Orangutan'], outgroup_name='Galago', is_clade=True, init=0.5)
 
 We've set an *initial* value for this clade so that the edges affected by this rule are evident below.
 
@@ -181,7 +181,7 @@ This means the parameter will not be modified during likelihood maximisation. We
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> sm = CNFGTR()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=2)
-    >>> lf.setParamRule('omega', is_constant=True)
+    >>> lf.set_param_rule('omega', is_constant=True)
 
 Providing a starting value for a parameter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -195,7 +195,7 @@ This can be useful to improve performance, the closer you are to the maximum lik
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> sm = CNFGTR()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=2)
-    >>> lf.setParamRule('omega', init=0.1)
+    >>> lf.set_param_rule('omega', init=0.1)
 
 Setting bounds for optimising a function
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -209,7 +209,7 @@ This can be useful for stopping optimisers from getting stuck in a bad part of p
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> sm = CNFGTR()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=2)
-    >>> lf.setParamRule('omega', init=0.1, lower=1e-9, upper=20.0)
+    >>> lf.set_param_rule('omega', init=0.1, lower=1e-9, upper=20.0)
 
 Specifying rate heterogeneity functions
 ---------------------------------------
@@ -223,7 +223,7 @@ We extend the simple gamma distributed rate heterogeneity case for nucleotides f
     >>> sm = GTR(with_rate=True, distribution='gamma')
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.makeLikelihoodFunction(tree, bins=4, digits=2)
-    >>> lf.setParamRule('bprobs', is_constant=True)
+    >>> lf.set_param_rule('bprobs', is_constant=True)
 
 For more detailed discussion of defining and using these models see :ref:`rate-heterogeneity`.
 
@@ -238,7 +238,7 @@ Specifying Phylo-HMMs
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.makeLikelihoodFunction(tree, bins=4, sites_independent=False,
     ...                                 digits=2)
-    >>> lf.setParamRule('bprobs', is_constant=True)
+    >>> lf.set_param_rule('bprobs', is_constant=True)
 
 For more detailed discussion of defining and using these models see :ref:`rate-heterogeneity-hmm`.
 
@@ -474,7 +474,7 @@ We test the molecular clock hypothesis for human and chimpanzee lineages. The nu
     >>> sm = F81()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=3, space=2)
     >>> lf.setAlignment(aln)
-    >>> lf.setParamRule('length', tip_names=['Human', 'Chimpanzee'],
+    >>> lf.set_param_rule('length', tip_names=['Human', 'Chimpanzee'],
     ...         outgroup_name='Galago', is_clade=True, is_independent=False)
     ...                 
     >>> lf.set_name('Null Hypothesis')
@@ -499,7 +499,7 @@ The alternate allows the human and chimpanzee branches to differ by just setting
 
 .. doctest::
     
-    >>> lf.setParamRule('length', is_independent=True)
+    >>> lf.set_param_rule('length', is_independent=True)
     >>> lf.set_name('Alt Hypothesis')
     >>> lf.optimise(local=True, show_progress=False)
     >>> alt_lnL = lf.getLogLikelihood()
@@ -545,7 +545,7 @@ In general, however, this capability derives from the ability of any defined ``e
     >>> sm = F81()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=3, space=2)
     >>> lf.setAlignment(aln)
-    >>> lf.setParamRule('length', tip_names=['Human', 'Chimpanzee'],
+    >>> lf.set_param_rule('length', tip_names=['Human', 'Chimpanzee'],
     ...         outgroup_name='Galago', is_clade=True, is_independent=False)
     ...                 
     >>> lf.set_name('Null Hypothesis')
@@ -594,7 +594,7 @@ We look at the distribution of ``omega`` from the CNF codon model family across 
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = CNFGTR()
     >>> lf = sm.makeLikelihoodFunction(tree, digits=2, space=2)
-    >>> lf.setParamRule('omega', is_independent=True, upper=10.0)
+    >>> lf.set_param_rule('omega', is_independent=True, upper=10.0)
     >>> lf.setAlignment(aln)
     >>> lf.optimise(show_progress=False, local=True)
     >>> print lf
@@ -681,7 +681,7 @@ Tips for improved performance
 Sequentially build the fitting
 ------------------------------
 
-There's nothing that improves performance quite like being close to the maximum likelihood values. So using the ``setParamRule`` method to provide good starting values can be very useful. As this can be difficult to do one easy way is to build simpler models that are nested within the one you're interested in. Fitting those models and then relaxing constraints until you’re at the parameterisation of interest can markedly improve optimisation speed.
+There's nothing that improves performance quite like being close to the maximum likelihood values. So using the ``set_param_rule`` method to provide good starting values can be very useful. As this can be difficult to do one easy way is to build simpler models that are nested within the one you're interested in. Fitting those models and then relaxing constraints until you’re at the parameterisation of interest can markedly improve optimisation speed.
 
 Being able to save results to file allows you to do this between sessions.
 

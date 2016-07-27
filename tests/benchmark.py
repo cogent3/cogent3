@@ -36,7 +36,7 @@ def brca_test(subMod, names, tree, length, par_rules, **kw):
     #the_tree_analysis = LikelihoodFunction(treeobj = tree, submodelobj = subMod, alignobj = aln)
     par_controller = subMod.makeParamController(tree, **kw)
     for par_rule in par_rules:
-        par_controller.setParamRule(**par_rule)
+        par_controller.set_param_rule(**par_rule)
     #lf = par_controller.make_calculator(aln)
     return (par_controller, aln)
 

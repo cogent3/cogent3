@@ -49,7 +49,7 @@ class MotifProbModel(object):
             dimension=('motif', tuple(self.get_input_alphabet())))
 
     def set_param_controller_motif_probs(self, pc, motif_probs, **kw):
-        pc.setParamRule('mprobs', value=motif_probs, **kw)
+        pc.set_param_rule('mprobs', value=motif_probs, **kw)
 
     def count_motifs(self, alignment, include_ambiguity=False, recode_gaps=True):
         result = None
@@ -249,7 +249,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
     def set_param_controller_motif_probs(self, pc, motif_probs, **kw):
         assert len(motif_probs) == self.word_length
         for (i, m) in enumerate(motif_probs):
-            pc.setParamRule('psmprobs', value=m, position=str(i), **kw)
+            pc.set_param_rule('psmprobs', value=m, position=str(i), **kw)
 
     def adapt_motif_probs(self, motif_probs, auto=False):
         try:

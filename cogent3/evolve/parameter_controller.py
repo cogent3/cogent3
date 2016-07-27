@@ -55,7 +55,7 @@ class _LikelihoodParameterController(_LF):
     parameter in the model the edges of the tree are be partitioned into groups
     that share one value.
 
-    For usage see the setParamRule method.
+    For usage see the set_param_rule method.
     """
     # Basically wrapper around the more generic recalulation.ParameterController
     # class, which doesn't know about trees.
@@ -110,11 +110,11 @@ class _LikelihoodParameterController(_LF):
                 for (u, value) in enumerate(uniq):
                     group = [edge for (edge, i) in list(
                         index.items()) if i == u]
-                    self.setParamRule(par_name, edges=group, init=value)
+                    self.set_param_rule(par_name, edges=group, init=value)
             for edge in edges:
                 if edge.length is not None:
                     try:
-                        self.setParamRule('length', edge=edge.name,
+                        self.set_param_rule('length', edge=edge.name,
                                           init=edge.length)
                     except KeyError:
                         # hopefully due to being a discrete model
@@ -160,7 +160,7 @@ class _LikelihoodParameterController(_LF):
 
     def set_expm(self, expm):
         assert expm in ['pade', 'either', 'eigen', 'checked'], expm
-        self.setParamRule('expm', is_constant=True, value=expm)
+        self.set_param_rule('expm', is_constant=True, value=expm)
 
     def make_calculator(self, *args, **kw):
         if args:
@@ -202,7 +202,7 @@ class _LikelihoodParameterController(_LF):
 
         return edges
 
-    def setParamRule(self, par_name, is_independent=None, is_constant=False,
+    def set_param_rule(self, par_name, is_independent=None, is_constant=False,
                      value=None, lower=None, init=None, upper=None, **scope_info):
         """Define a model constraint for par_name. Parameters can be set
         constant or split according to tree/bin scopes.
@@ -274,7 +274,7 @@ class _LikelihoodParameterController(_LF):
 
         Note: This is just a convenient interface to setParameterRule.
         """
-        self.setParamRule("length", tip_names=[tip1name, tip2name],
+        self.set_param_rule("length", tip_names=[tip1name, tip2name],
                           is_clade=1, is_independent=0)
 
     def setConstantLengths(self, tree=None, exclude_list=[]):
@@ -293,7 +293,7 @@ class _LikelihoodParameterController(_LF):
             for edge in tree.get_edge_vector():
                 if edge.length is None or edge.name in exclude_list:
                     continue
-                self.setParamRule("length", edge=edge.name, is_constant=1,
+                self.set_param_rule("length", edge=edge.name, is_constant=1,
                                   value=edge.length)
 
     def getAic(self, second_order=False):
@@ -397,7 +397,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
     def setPogs(self, leaves, locus=None):
         with self.updatesPostponed():
             for (name, pog) in list(leaves.items()):
-                self.setParamRule('leaf', edge=name,
+                self.set_param_rule('leaf', edge=name,
                                   value=pog, is_constant=True)
             if self.mprobs_from_alignment:
                 counts = numpy.sum([pog.leaf.get_motif_counts()

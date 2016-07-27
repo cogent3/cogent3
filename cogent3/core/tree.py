@@ -958,7 +958,7 @@ class TreeNode(object):
             parameterisation. For instance, say you want to allow the primates
             to have a different value of a particular parameter. In this case,
             provide the results of this method to the parameter controller
-            method `setParamRule()` along with the parameter name etc..
+            method `set_param_rule()` along with the parameter name etc..
         """
         # If outgroup specified put it at the top of the tree so that clades are
         # defined by their distance from it.  This makes a temporary tree with

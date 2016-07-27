@@ -122,9 +122,9 @@ class LikelihoodCalcs(TestCase):
             alignment = alignment.get_translation()
         calc = submod.makeLikelihoodFunction(self.tree, **kw)
         calc.setAlignment(alignment)
-        calc.setParamRule('length', value=1.0, is_constant=True)
+        calc.set_param_rule('length', value=1.0, is_constant=True)
         if not translate:
-            calc.setParamRule('kappa', value=3.0, is_constant=True)
+            calc.set_param_rule('kappa', value=3.0, is_constant=True)
         return calc
 
     def test_no_seq_named_root(self):
@@ -198,8 +198,8 @@ class LikelihoodCalcs(TestCase):
             mprob_model='tuple')
         lf = self._makeLikelihoodFunction(submod,
                                           bins=['slow', 'fast'])
-        lf.setParamRule('kappa', value=1.0, is_constant=True)
-        lf.setParamRule('kappa', edge="Human", init=1.0, is_constant=False)
+        lf.set_param_rule('kappa', value=1.0, is_constant=True)
+        lf.set_param_rule('kappa', edge="Human", init=1.0, is_constant=False)
         values = list(lf.get_param_value_dict(['bin'])['kappa_factor'].values())
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 2)
@@ -214,7 +214,7 @@ class LikelihoodCalcs(TestCase):
             mprob_model='tuple')
 
         likelihood_function = self._makeLikelihoodFunction(submod)
-        likelihood_function.setParamRule('omega', value=0.5, is_constant=True)
+        likelihood_function.set_param_rule('omega', value=0.5, is_constant=True)
         evolve_lnL = likelihood_function.get_log_likelihood()
         self.assertFloatEqual(evolve_lnL, -80.67069614541883)
 
@@ -289,7 +289,7 @@ class LikelihoodFunctionTests(TestCase):
 
     def _makeLikelihoodFunction(self, **kw):
         lf = self.submodel.makeLikelihoodFunction(self.tree, **kw)
-        lf.setParamRule('beta', is_independent=True)
+        lf.set_param_rule('beta', is_independent=True)
         lf.setAlignment(self.data)
         return lf
 
@@ -300,16 +300,16 @@ class LikelihoodFunctionTests(TestCase):
                 ("Human", 0.3),
                 ("HowlerMon", 0.4),
                 ("Mouse", 0.5)]:
-            likelihood_function.setParamRule("length", value=length,
+            likelihood_function.set_param_rule("length", value=length,
                                              edge=species, is_constant=True)
         for (species1, species2, length) in [
                 ("Human", "HowlerMon", 0.7),
                 ("Human", "Mouse", 0.6)]:
             LCA = self.tree.get_connecting_node(species1, species2).name
-            likelihood_function.setParamRule("length", value=length,
+            likelihood_function.set_param_rule("length", value=length,
                                              edge=LCA, is_constant=True)
 
-        likelihood_function.setParamRule("beta", value=4.0, is_constant=True)
+        likelihood_function.set_param_rule("beta", value=4.0, is_constant=True)
 
     def test_information_criteria(self):
         """test get information criteria from a model."""
@@ -399,8 +399,8 @@ motif  mprobs
                                result[a_column_with_mostly_Ts][motif_G], places=8)
         lf = self.submodel.makeLikelihoodFunction(
             self.tree, bins=['low', 'high'])
-        lf.setParamRule('beta', bin='low', value=0.1)
-        lf.setParamRule('beta', bin='high', value=10.0)
+        lf.set_param_rule('beta', bin='low', value=0.1)
+        lf.set_param_rule('beta', bin='high', value=10.0)
         lf.setAlignment(self.data)
         result = lf.reconstruct_ancestral_seqs()
 
@@ -423,16 +423,16 @@ motif  mprobs
         "Simulate substitution-heterogeneous DNA alignment"
         lf = self.submodel.makeLikelihoodFunction(
             self.tree, bins=['low', 'high'])
-        lf.setParamRule('beta', bin='low', value=0.1)
-        lf.setParamRule('beta', bin='high', value=10.0)
+        lf.set_param_rule('beta', bin='low', value=0.1)
+        lf.set_param_rule('beta', bin='high', value=10.0)
         simulated_alignment = lf.simulate_alignment(100)
 
     def test_simulatePatchyHetergeneousAlignment(self):
         "Simulate patchy substitution-heterogeneous DNA alignment"
         lf = self.submodel.makeLikelihoodFunction(
             self.tree, bins=['low', 'high'], sites_independent=False)
-        lf.setParamRule('beta', bin='low', value=0.1)
-        lf.setParamRule('beta', bin='high', value=10.0)
+        lf.set_param_rule('beta', bin='low', value=0.1)
+        lf.set_param_rule('beta', bin='high', value=10.0)
         simulated_alignment = lf.simulate_alignment(100)
 
     def test_simulate_alignment2(self):
@@ -495,8 +495,8 @@ motif  mprobs
 
     def test_set_par_all(self):
         likelihood_function = self._makeLikelihoodFunction()
-        likelihood_function.setParamRule("length", value=4.0, is_constant=True)
-        likelihood_function.setParamRule("beta", value=6.0, is_constant=True)
+        likelihood_function.set_param_rule("length", value=4.0, is_constant=True)
+        likelihood_function.set_param_rule("beta", value=6.0, is_constant=True)
         self.assertEqual(str(likelihood_function),
                          """Likelihood Function Table
 ======
@@ -565,7 +565,7 @@ motif    mprobs
 
     def test_get_annotated_tree(self):
         likelihood_function = self._makeLikelihoodFunction()
-        likelihood_function.setParamRule(
+        likelihood_function.set_param_rule(
             "length", value=4.0, edge="Human", is_constant=True)
         result = likelihood_function.get_annotated_tree()
         self.assertEqual(result.get_node_matching_name(
@@ -616,9 +616,9 @@ motif    mprobs
         # checks by just trying to make the calculator
         lf = self.submodel.makeLikelihoodFunction(self.tree)
         lf.setAlignment(self.data)
-        lf.setParamRule('beta', is_constant=True, value=2.0,
+        lf.set_param_rule('beta', is_constant=True, value=2.0,
                         edges=['NineBande', 'DogFaced'], is_clade=True)
-        lf.setParamRule('beta', init=2.0, is_constant=False,
+        lf.set_param_rule('beta', init=2.0, is_constant=False,
                         edges=['NineBande', 'DogFaced'], is_clade=True)
 
     def test_get_psub_rate_matrix(self):

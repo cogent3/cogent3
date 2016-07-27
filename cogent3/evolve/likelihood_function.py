@@ -32,10 +32,6 @@ __status__ = "Production"
 
 class LikelihoodFunction(ParameterController):
 
-    def setpar(self, param_name, value, edge=None, **scope):
-        deprecated('method', 'setpar', 'setParamRule', '1.6')
-        return self.setParamRule(param_name, edge=edge, value=value, is_constant=True, **scope)
-
     def get_log_likelihood(self):
         return self.getFinalResult()
 
@@ -97,7 +93,7 @@ class LikelihoodFunction(ParameterController):
             try:
                 r = []
                 for motif in range(len(self._motifs)):
-                    self.setParamRule('fixed_motif', value=motif,
+                    self.set_param_rule('fixed_motif', value=motif,
                                       edge=restricted_edge.name, locus=locus,
                                       is_constant=True)
                     likelihoods = self.get_full_length_likelihoods(locus=locus)
@@ -106,7 +102,7 @@ class LikelihoodFunction(ParameterController):
                         array_template = DictArrayTemplate(
                             likelihoods.shape[0], self._motifs)
             finally:
-                self.setParamRule('fixed_motif', value=-1,
+                self.set_param_rule('fixed_motif', value=-1,
                                   edge=restricted_edge.name, locus=locus,
                                   is_constant=True)
             # dict of site x motif arrays
