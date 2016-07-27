@@ -408,7 +408,7 @@ class AlignablePOG(_Alignable):
     def __init__(self, leaf, pog, children=None):
         assert len(leaf) == len(pog), (len(leaf), len(pog))
         _Alignable.__init__(self, leaf)
-        self.pred = pog.asListOfPredLists()
+        self.pred = pog.as_list_of_pred_lists()
         self.max_preds = max(len(pre) for pre in self.pred)
         self.pog = pog
         if children is not None:
