@@ -1497,7 +1497,7 @@ class TreeNode(object):
         """Wrap multifurcating with a num of 2"""
         return self.multifurcating(2, eps, constructor, name_unnamed)
 
-    def getNodesDict(self):
+    def get_nodes_dict(self):
         """Returns a dict keyed by node name, value is node
 
         Will raise TreeError if non-unique names are encountered
@@ -1506,7 +1506,7 @@ class TreeNode(object):
 
         for n in self.traverse():
             if n.name in res:
-                raise TreeError("getNodesDict requires unique node names")
+                raise TreeError("get_nodes_dict requires unique node names")
             else:
                 res[n.name] = n
 
