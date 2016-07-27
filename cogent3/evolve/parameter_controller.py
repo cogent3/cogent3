@@ -69,7 +69,7 @@ class _LikelihoodParameterController(_LF):
         self.bin_names = _category_names('bin', bins)
         self.posn_names = [str(i) for i in range(model.getWordLength())]
         self.motifs = self._motifs = model.getMotifs()
-        self._mprob_motifs = list(model.getMprobAlphabet())
+        self._mprob_motifs = list(model.get_mprob_alphabet())
         defn = self.make_likelihood_defn(**kw)
         super(_LF, self).__init__(defn)
         self.set_default_param_rules()

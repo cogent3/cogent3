@@ -230,7 +230,7 @@ class _SubstitutionModel(object):
     def get_alphabet(self):
         return self.alphabet
 
-    def getMprobAlphabet(self):
+    def get_mprob_alphabet(self):
         return self.mprob_model.get_input_alphabet()
 
     def getMotifs(self):
