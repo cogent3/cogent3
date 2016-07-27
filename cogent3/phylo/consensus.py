@@ -216,7 +216,7 @@ def getSplits(tree):
             s, t = getTipsAndSplits(child)
             splits.update(s)
             tips.extend(t)
-        if not tree.isRoot():
+        if not tree.is_root():
             split = frozenset([t for s in splits for t in s])
             if tree.Length is None:
                 splits[split] = {'length': None}

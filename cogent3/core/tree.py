@@ -308,7 +308,7 @@ class TreeNode(object):
         """Returns True if the current node is a tip, i.e. has no children."""
         return not self.Children
 
-    def isRoot(self):
+    def is_root(self):
         """Returns True if the current is a root, i.e. has no parent."""
         return self._parent is None
 
