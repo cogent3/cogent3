@@ -112,10 +112,10 @@ class _LikelihoodParameterController(_LF):
                         index.items()) if i == u]
                     self.setParamRule(par_name, edges=group, init=value)
             for edge in edges:
-                if edge.Length is not None:
+                if edge.length is not None:
                     try:
                         self.setParamRule('length', edge=edge.name,
-                                          init=edge.Length)
+                                          init=edge.length)
                     except KeyError:
                         # hopefully due to being a discrete model
                         warnings.warn('Ignoring tree edge lengths',
@@ -291,10 +291,10 @@ class _LikelihoodParameterController(_LF):
 
         with self.updatesPostponed():
             for edge in tree.get_edge_vector():
-                if edge.Length is None or edge.name in exclude_list:
+                if edge.length is None or edge.name in exclude_list:
                     continue
                 self.setParamRule("length", edge=edge.name, is_constant=1,
-                                  value=edge.Length)
+                                  value=edge.length)
 
     def getAic(self, second_order=False):
         """returns Aikake Information Criteria

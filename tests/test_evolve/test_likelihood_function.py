@@ -570,7 +570,7 @@ motif    mprobs
         result = likelihood_function.getAnnotatedTree()
         self.assertEqual(result.get_node_matching_name(
             'Human').params['length'], 4.0)
-        self.assertEqual(result.get_node_matching_name('Human').Length, 4.0)
+        self.assertEqual(result.get_node_matching_name('Human').length, 4.0)
 
     def test_getparamsasdict(self):
         likelihood_function = self._makeLikelihoodFunction()

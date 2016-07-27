@@ -1113,7 +1113,7 @@ def ancestral_state_pair(aln, tree, pos1, pos2,
     # add tip branch lengths as distance b/w identical tips -- this is
     # necessary for my weighting step, where we want correlated changes
     # occuring on a single branch to be given the most weight
-    distances.update(dict([((n, n), nodes[n].Length) for n in nodes]))
+    distances.update(dict([((n, n), nodes[n].length) for n in nodes]))
     result = 0
     names_to_seqs = dict(list(zip(aln.names, aln.array_seqs)))
     for i in range(len(tips)):

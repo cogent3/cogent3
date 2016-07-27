@@ -233,7 +233,7 @@ class DendrogramLabelStyle(object):
     def getNodeLabel(self, edge):
         if edge.name is not None:
             return edge.name
-        elif self.showInternalLabels or not edge.Children:
+        elif self.showInternalLabels or not edge.children:
             return edge.original.name
         else:
             return ""
@@ -272,10 +272,10 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
     aspect_distorts_lengths = True
 
     def __init__(self, edge, use_lengths=True):
-        children = [type(self)(child) for child in edge.Children]
-        TreeNode.__init__(self, Params=edge.params.copy(), Children=children,
+        children = [type(self)(child) for child in edge.children]
+        TreeNode.__init__(self, params=edge.params.copy(), children=children,
                           name=("" if children else edge.name))
-        self.Length = edge.Length
+        self.length = edge.length
         self.original = edge  # for edge_color_callback
         self.Collapsed = False
         self.use_lengths_default = use_lengths
@@ -288,24 +288,24 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
 
     def __repr__(self):
         return '%s %s %s %s' % (
-            self.depth, self.length, self.height, self.Children)
+            self.depth, self.length, self.height, self.children)
 
     def updateGeometry(self, use_lengths, depth=None, track_coordinates=None):
         """Calculate tree node attributes such as height and depth.
         Despite the name this first pass is ignorant of issues like
         scale and orientation"""
 
-        if self.Length is None or not use_lengths:
+        if self.length is None or not use_lengths:
             if depth is None:
                 self.length = 0
             else:
                 self.length = 1
         else:
-            self.length = self.Length
+            self.length = self.length
 
         self.depth = (depth or 0) + self.length
 
-        children = self.Children
+        children = self.children
         if children:
             for c in children:
                 c.updateGeometry(use_lengths, self.depth, track_coordinates)
@@ -330,7 +330,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         result = []
         for node in self.postorder(include_self=True):
             result.append([node.name, id(node), node.x2,
-                           node.y2] + [list(map(id, node.Children))])
+                           node.y2] + [list(map(id, node.children))])
         return result
 
     def makeFigure(self, width=None, height=None, margin=.25, use_lengths=None, **kw):
@@ -426,7 +426,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
             g += self._draw_collapsed_clade(renderer, label_style)
         else:
             g += self._draw_node(renderer, label_style)
-            for child in self.Children:
+            for child in self.children:
                 g += child._draw(renderer, label_style)
             g += self._draw_node_label(renderer, label_style)
         return g
@@ -434,8 +434,8 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
     def _draw_node(self, renderer, label_style):
         g = []
         # Joining line for square form
-        if self.Children:
-            cys = [c.y1 for c in self.Children] + [self.y2]
+        if self.children:
+            cys = [c.y1 for c in self.children] + [self.y2]
             if max(cys) > min(cys):
                 g.append(renderer.line(self.x2, min(
                     cys), self.x2, max(cys), self))
@@ -475,7 +475,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         color = _first_non_none([self.CladeColor, self.Color, 'black'])
         icolor = 'white' if sum(to_rgb(color)) / 3 < 0.5 else 'black'
         g = []
-        if not self.Children:
+        if not self.children:
             return g
         (l, r, t, b), vertices = self.wedgeVertices()
         g.append(renderer.polygon(vertices, color))
@@ -540,7 +540,7 @@ class _RootedDendrogram(_Dendrogram):
         if y1 is None:
             y1 = self.widthRequired() * scale.y
         child_y = y1
-        for child in self.Children:
+        for child in self.children:
             child.update_y_coordinates(scale, child_y)
             child_y -= child.widthRequired() * scale.y
         (self.y1, self.y2) = self.yCoords(scale, y1)
@@ -549,7 +549,7 @@ class _RootedDendrogram(_Dendrogram):
         """For non 'square' styles the x coordinates will depend
         (a bit) on the y coodinates, so they should be done first"""
         (self.x1, self.x2) = self.xCoords(scale, x1)
-        for child in self.Children:
+        for child in self.children:
             child.update_x_coordinates(scale, self.x2)
 
     def getLabelCoordinates(self, text, renderer):
@@ -560,7 +560,7 @@ class SquareDendrogram(_RootedDendrogram):
     aspect_distorts_lengths = False
 
     def yCoords(self, scale, y1):
-        cys = [c.y1 for c in self.Children]
+        cys = [c.y1 for c in self.children]
         if cys:
             y2 = (cys[0] + cys[-1]) / 2.0
         else:
@@ -584,11 +584,11 @@ class StraightDendrogram(_RootedDendrogram):
 
     def yCoords(self, scale, y1):
         # has a side effect of adjusting the child y1's to meet nodes' y2's
-        cys = [c.y1 for c in self.Children]
+        cys = [c.y1 for c in self.children]
         if cys:
             y2 = (cys[0] + cys[-1]) / 2.0
-            distances = [child.length for child in self.Children]
-            closest_child = self.Children[distances.index(min(distances))]
+            distances = [child.length for child in self.children]
+            closest_child = self.children[distances.index(min(distances))]
             dy = closest_child.y1 - y2
             max_dy = 0.8 * max(5, closest_child.length * scale.x)
             if abs(dy) > max_dy:
@@ -598,7 +598,7 @@ class StraightDendrogram(_RootedDendrogram):
         else:
             y2 = y1 - scale.y / 2.0
         y1 = y2
-        for child in self.Children:
+        for child in self.children:
             child.y1 = y2
         return (y1, y2)
 
@@ -644,7 +644,7 @@ class ShelvedDendrogram(ContemporaneousDendrogram):
         return self.edgecount  # as opposed to tipcount
 
     def yCoords(self, scale, y1):
-        cys = [c.y1 for c in self.Children]
+        cys = [c.y1 for c in self.children]
         if cys:
             y2 = cys[-1] - 1.0 * scale.y
         else:
@@ -657,7 +657,7 @@ class AlignedShelvedDendrogram(ShelvedDendrogram):
     def update_y_coordinates(self, scale, y1=None):
         """The second pass through the tree.  Y coordinates only
         depend on the shape of the tree and yscale"""
-        for child in self.Children:
+        for child in self.children:
             child.update_y_coordinates(scale, None)
         (self.y1, self.y2) = self.yCoords(scale, None)
 
@@ -719,11 +719,11 @@ class UnrootedDendrogram(_Dendrogram):
             return vertices
 
         a -= self.leafcount * da / 2
-        if not self.Children:
+        if not self.children:
             points = [(x2, y2)]
         else:
             points = []
-            for (i, child) in enumerate(self.Children):
+            for (i, child) in enumerate(self.children):
                 ca = child.leafcount * da
                 points += child._update_coordinates(s, x2, y2, a + ca / 2, da)
                 a += ca

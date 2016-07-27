@@ -51,7 +51,7 @@ def tree2ancestry(tree, order=None):
         lookup = dict([(k, i) for (i, k) in enumerate(order)])
 
         def _ordered_tips_first(n):
-            if n.Children:
+            if n.children:
                 return len(order)
             else:
                 return lookup[n.name]
@@ -63,10 +63,10 @@ def tree2ancestry(tree, order=None):
     for (i, node) in enumerate(nodes):
         A[i, i] = 1
         seen[id(node)] = i
-        for c in node.Children:
+        for c in node.children:
             A[:, i] |= A[:, seen[id(c)]]
-    names = [n.name for n in nodes if not n.Children]
-    lengths = [n.Length for n in nodes]
+    names = [n.name for n in nodes if not n.children]
+    lengths = [n.length for n in nodes]
     return (A, names, lengths)
 
 

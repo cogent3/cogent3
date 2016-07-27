@@ -32,7 +32,7 @@ class LightweightTreeTip(str):
 
     def convert(self, constructor, length):
         node = constructor([], str(self), {})
-        node.Length = max(0.0, length)
+        node.length = max(0.0, length)
         return node
 
 
@@ -46,7 +46,7 @@ class LightweightTreeNode(frozenset):
                     for (clength, child) in self]
         node = constructor(children, None, {})
         if length is not None:
-            node.Length = max(0.0, length)
+            node.length = max(0.0, length)
         return node
 
     def __or__(self, other):

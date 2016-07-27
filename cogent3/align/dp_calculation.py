@@ -137,7 +137,7 @@ def _recursive_defns(edge, subst, leaf, edge_defn_constructor, bin_args):
     provided to a similar defn"""
     scores = []
     args = []
-    for child in edge.Children:
+    for child in edge.children:
         if child.istip():
             args.append(leaf.selectFromDimension('edge', child.name))
         else:
@@ -146,7 +146,7 @@ def _recursive_defns(edge, subst, leaf, edge_defn_constructor, bin_args):
             child_defn = ViterbiPogDefn(child_defn)
             scores.extend(scores2)
             args.append(child_defn)
-    child_names = [child.name for child in edge.Children]
+    child_names = [child.name for child in edge.children]
     assert len(child_names) == 2, child_names
     child_lengths = subst['length'].acrossDimension('edge', child_names)
     args.extend(child_lengths)

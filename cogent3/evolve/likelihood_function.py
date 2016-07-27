@@ -263,7 +263,7 @@ class LikelihoodFunction(ParameterController):
                 if 'length' in param_names:
                     param_names.remove('length')
                     param_names.insert(0, 'length')
-                raw_table['parent'] = dict([(e.name, e.Parent.name)
+                raw_table['parent'] = dict([(e.name, e.parent.name)
                                             for e in self._tree.get_edge_vector()
                                             if not e.isroot()])
                 param_names.insert(0, 'parent')
@@ -328,10 +328,10 @@ class LikelihoodFunction(ParameterController):
         if with_parent_names:
             parents = {}
             for edge in edge_vector:
-                if edge.Parent.isroot():
+                if edge.parent.isroot():
                     parents[edge.name] = "root"
                 else:
-                    parents[edge.name] = str(edge.Parent.name)
+                    parents[edge.name] = str(edge.parent.name)
             stats_dict["edge.parent"] = parents
 
         if with_edge_names:
@@ -368,7 +368,7 @@ class LikelihoodFunction(ParameterController):
 
     def _nodeMotifProbs(self, tree, mprobs, kw):
         result = [(tree.name, mprobs)]
-        for child in tree.Children:
+        for child in tree.children:
             psub = self.getPsubForEdge(child.name, **kw)
             child_mprobs = numpy.dot(mprobs, psub)
             result.extend(self._nodeMotifProbs(child, child_mprobs, kw))

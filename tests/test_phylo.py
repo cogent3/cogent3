@@ -143,7 +143,7 @@ class ConsensusTests(unittest.TestCase):
         """consensus trees should average branch lengths properly"""
         def get_ac(tree):
             for edge in tree.get_edge_vector(include_root=False):
-                if set('ac') == set([c.name for c in edge.Children]):
+                if set('ac') == set([c.name for c in edge.children]):
                     return edge
 
         sct = ScoredTreeCollection(self.unrooted_trees_lengths)
@@ -156,13 +156,13 @@ class ConsensusTests(unittest.TestCase):
         ct = ct.sorted(tip_names)
 
         self.assertTrue(
-            abs(get_ac(ct).Length - get_ac(maj_tree).Length) < 1e-9)
+            abs(get_ac(ct).length - get_ac(maj_tree).length) < 1e-9)
 
         sct = ScoredTreeCollection(self.rooted_trees_lengths)
         ct = sct.getConsensusTree(method='rooted')
         maj_tree = self.rooted_trees_lengths[0][1]
         self.assertTrue(
-            abs(get_ac(ct).Length - get_ac(maj_tree).Length) < 1e-9)
+            abs(get_ac(ct).length - get_ac(maj_tree).length) < 1e-9)
 
     def test_consensus_from_scored_trees_collection(self):
         """tree collection should get same consensus as direct approach"""

@@ -668,7 +668,7 @@ class Map(object):
         # can't work if there are overlaps in the map
         # tidy ends don't survive inversion
         if self.parent_length is None:
-            raise ValueError("Uninvertable. Parent length not known")
+            raise ValueError("Uninvertable. parent length not known")
         posn = 0
         temp = []
         for span in self.spans:

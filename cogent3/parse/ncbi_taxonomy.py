@@ -214,7 +214,7 @@ class NcbiTaxonomy(object):
         # build the tree by connecting each node to its parent
         for t_id, t in ids_to_nodes.items():
             if t.ParentId == t.TaxonId:
-                t.Parent = None
+                t.parent = None
             else:
                 try:
                     ids_to_nodes[t.ParentId].append(t)
@@ -246,7 +246,7 @@ class NcbiTaxonNode(TreeNode):
         """Returns a new NcbiTaxonNode object; requires NcbiTaxon to initialize."""
         self.Data = Data
         self._parent = None
-        self.Children = []
+        self.children = []
 
     def getRankedDescendants(self, rank):
         """Returns all descendants of self with specified rank as flat list."""

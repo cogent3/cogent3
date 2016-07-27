@@ -10,7 +10,7 @@ from cogent3.util.unit_test import TestCase, main
 #    if not unescape_name:
 #        raise NotImplementedError
 #    def constructor(children, name, attribs):
-#        return NodeClass(Children = list(children or []), name=name, Params=attribs)
+#        return NodeClass(children = list(children or []), name=name, params=attribs)
 #    return parse_string(data, constructor)
 
 __author__ = "Rob Knight"
@@ -113,10 +113,10 @@ class DndParserTests(TestCase):
         exp = PhyloNode()
         exp.append(PhyloNode())
         exp.append(PhyloNode())
-        exp.Children[0].append(PhyloNode())
-        exp.Children[0].append(PhyloNode())
-        exp.Children[1].append(PhyloNode())
-        exp.Children[1].append(PhyloNode())
+        exp.children[0].append(PhyloNode())
+        exp.children[0].append(PhyloNode())
+        exp.children[1].append(PhyloNode())
+        exp.children[1].append(PhyloNode())
         self.assertEqual(str(obs), str(exp))
 
     def test_minimal(self):
@@ -132,10 +132,10 @@ class DndParserTests(TestCase):
         exp = PhyloNode()
         exp.append(PhyloNode())
         exp.append(PhyloNode())
-        exp.Children[0].append(PhyloNode(name='a'))
-        exp.Children[0].append(PhyloNode(name='b'))
-        exp.Children[1].append(PhyloNode(name='c'))
-        exp.Children[1].append(PhyloNode())
+        exp.children[0].append(PhyloNode(name='a'))
+        exp.children[0].append(PhyloNode(name='b'))
+        exp.children[1].append(PhyloNode(name='c'))
+        exp.children[1].append(PhyloNode())
         self.assertEqual(str(obs), str(exp))
 
     def test_gsingle(self):
@@ -144,7 +144,7 @@ class DndParserTests(TestCase):
         self.assertEqual(len(t), 1)
         child = t[0]
         self.assertEqual(child.name, 'abc')
-        self.assertEqual(child.Length, 3)
+        self.assertEqual(child.length, 3)
         self.assertEqual(str(t), '(abc:3.0);')
 
     def test_gdouble(self):
@@ -170,7 +170,7 @@ class DndParserTests(TestCase):
         self.assertEqual(str(t), '(abc:3.0,(def:4.0,ghi:5.0)jkl:6.0);')
         info_dict = {}
         for node in t.traverse():
-            info_dict[node.name] = node.Length
+            info_dict[node.name] = node.length
         self.assertEqual(info_dict['abc'], 3.0)
         self.assertEqual(info_dict['def'], 4.0)
         self.assertEqual(info_dict['ghi'], 5.0)
@@ -199,20 +199,20 @@ class DndParserTests(TestCase):
         tree_esc = DndParser(t_str, PhyloNode, unescape_name=False)
 
         self.assertEqual(tree_unesc.name, 'E')
-        self.assertEqual(tree_unesc.Children[0].name, 'A a')
-        self.assertEqual(tree_unesc.Children[1].Children[0].name, 'B')
-        self.assertEqual(tree_unesc.Children[1].Children[0].Length, 1.0)
-        self.assertEqual(tree_unesc.Children[1].Children[1].name, 'C')
-        self.assertEqual(tree_unesc.Children[2].name, 'D_e')
-        self.assertEqual(tree_unesc.Children[2].Length, 0.5)
+        self.assertEqual(tree_unesc.children[0].name, 'A a')
+        self.assertEqual(tree_unesc.children[1].children[0].name, 'B')
+        self.assertEqual(tree_unesc.children[1].children[0].length, 1.0)
+        self.assertEqual(tree_unesc.children[1].children[1].name, 'C')
+        self.assertEqual(tree_unesc.children[2].name, 'D_e')
+        self.assertEqual(tree_unesc.children[2].length, 0.5)
 
         self.assertEqual(tree_esc.name, 'E')
-        self.assertEqual(tree_esc.Children[0].name, 'A_a')
-        self.assertEqual(tree_esc.Children[1].Children[0].name, 'B')
-        self.assertEqual(tree_esc.Children[1].Children[0].Length, 1.0)
-        self.assertEqual(tree_esc.Children[1].Children[1].name, 'C')
-        self.assertEqual(tree_esc.Children[2].name, "'D_e'")
-        self.assertEqual(tree_esc.Children[2].Length, 0.5)
+        self.assertEqual(tree_esc.children[0].name, 'A_a')
+        self.assertEqual(tree_esc.children[1].children[0].name, 'B')
+        self.assertEqual(tree_esc.children[1].children[0].length, 1.0)
+        self.assertEqual(tree_esc.children[1].children[1].name, 'C')
+        self.assertEqual(tree_esc.children[2].name, "'D_e'")
+        self.assertEqual(tree_esc.children[2].length, 0.5)
 
         reload_test = tree_esc.get_newick(with_distances=True,
                                          escape_name=False)
@@ -235,7 +235,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(str(p), ';')
         p.name = 'abc'
         self.assertEqual(str(p), 'abc;')
-        p.Length = 3
+        p.length = 3
         self.assertEqual(str(p), 'abc:3;')  # don't suppress branch from root
         q = PhyloNode()
         p.append(q)
@@ -245,7 +245,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(str(p), '(())abc:3;')
         r.name = 'xyz'
         self.assertEqual(str(p), '((xyz))abc:3;')
-        q.Length = 2
+        q.length = 2
         self.assertEqual(str(p), '((xyz):2)abc:3;')
 
 if __name__ == '__main__':
