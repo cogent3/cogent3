@@ -266,7 +266,7 @@ def getTree(splits):
             split = Edge(included, None, params)
             split.Split = half
             for moved in included:
-                edge.removeNode(moved)
+                edge.remove_node(moved)
             edge.append(split)
             return True
 

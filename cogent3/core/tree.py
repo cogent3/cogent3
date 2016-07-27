@@ -180,7 +180,7 @@ class TreeNode(object):
             target = target.name
         for (i, curr_node) in enumerate(self.Children):
             if curr_node.name == target:
-                self.removeNode(curr_node)
+                self.remove_node(curr_node)
                 return True
         return False
 
@@ -293,7 +293,7 @@ class TreeNode(object):
     def _set_parent(self, Parent):
         """Mutator for parent: cleans up refs in old parent."""
         if self._parent is not None:
-            self._parent.removeNode(self)
+            self._parent.remove_node(self)
         self._parent = Parent
         if (Parent is not None) and (self not in Parent.Children):
             Parent.Children.append(self)
@@ -922,7 +922,7 @@ class TreeNode(object):
                 result.pop(-1)
             return ''.join(result)
 
-    def removeNode(self, target):
+    def remove_node(self, target):
         """Removes node by identity instead of value.
 
         Returns True if node was present, False otherwise.
