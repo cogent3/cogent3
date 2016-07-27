@@ -563,7 +563,7 @@ class MolType(object):
         """Returns sequence of correct type. Replace with just self.Sequence?"""
         return self.Sequence(Seq, Name, **kwargs)
 
-    def verifySequence(self, seq, gaps_allowed=True, wildcards_allowed=True):
+    def verify_sequence(self, seq, gaps_allowed=True, wildcards_allowed=True):
         """Checks whether sequence is valid on the default alphabet.
 
         Has special-case handling for gaps and wild-cards. This mechanism is

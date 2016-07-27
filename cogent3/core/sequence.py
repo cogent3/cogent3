@@ -530,7 +530,7 @@ class Sequence(_Annotatable, SequenceI):
         self._seq = Seq
 
         if check:
-            self.MolType.verifySequence(self._seq, gaps_allowed,
+            self.MolType.verify_sequence(self._seq, gaps_allowed,
                                         wildcards_allowed)
 
         if not isinstance(Info, InfoClass):
