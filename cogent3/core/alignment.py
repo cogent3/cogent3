@@ -1593,18 +1593,13 @@ class Aligned(object):
         policy = policy.at(self.map.inverse())
         return self.data.get_tracks(policy)
 
-    def remappedTo(self, map):
-        # assert map is self.parent_map or ... ?
-        # print 'REMAP', self.map, self
-        # print 'ONTO', map, map.inverse()
+    def remapped_to(self, map):
         result = Aligned(map[self.map.inverse()].inverse(), self.data)
-        # print 'GIVES', result.map, result
-        # print
         return result
 
     def get_annotations_matching(self, alignment, *args):
         for annot in self.data.get_annotations_matching(*args):
-            yield annot.remappedTo(alignment, self.map.inverse())
+            yield annot.remapped_to(alignment, self.map.inverse())
 
     def gap_vector(self):
         """Returns gap_vector of GappedSeq, for omit_gap_pos."""
@@ -2734,7 +2729,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         target_aligned = self.named_seqs[seq_name]
         if annot.parent is not self:
             raise ValueError('Annotation does not belong to this alignment')
-        return annot.remappedTo(target_aligned.data, target_aligned.map)
+        return annot.remapped_to(target_aligned.data, target_aligned.map)
 
     def get_projected_annotations(self, seq_name, *args):
         aln_annots = self.get_annotations_matching(*args)

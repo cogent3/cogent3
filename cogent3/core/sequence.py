@@ -751,7 +751,7 @@ class Sequence(_Annotatable, SequenceI):
             ''.join(gapless),
             Name=self.get_name(), Info=self.Info)
         if self.annotations:
-            seq.annotations = [a.remappedTo(seq, map)
+            seq.annotations = [a.remapped_to(seq, map)
                                for a in self.annotations]
         return (map, seq)
 
