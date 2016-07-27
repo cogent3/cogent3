@@ -1823,8 +1823,8 @@ class PhyloNode(TreeNode):
         """Tests whether two trees have the same topology."""
         tip_names = self.get_tip_names()
         root_at = tip_names[0]
-        me = self.rootedWithTip(root_at).sorted(tip_names)
-        them = other.rootedWithTip(root_at).sorted(tip_names)
+        me = self.rooted_with_tip(root_at).sorted(tip_names)
+        them = other.rooted_with_tip(root_at).sorted(tip_names)
         return self is other or me.same_shape(them)
 
     def unrooted(self):
@@ -1858,7 +1858,7 @@ class PhyloNode(TreeNode):
                             repr(edge_name))
         return newroot.unrooted_deepcopy()
 
-    def rootedWithTip(self, outgroup_name):
+    def rooted_with_tip(self, outgroup_name):
         """A new tree with the named tip as one of the root's children"""
         tip = self.get_node_matching_name(outgroup_name)
         return tip.Parent.unrooted_deepcopy()

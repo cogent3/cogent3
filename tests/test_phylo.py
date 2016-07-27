@@ -152,7 +152,7 @@ class ConsensusTests(unittest.TestCase):
         # to ensure consistent comparison with majority, we root the ct same way
         # as maj
         tip_names = maj_tree.get_tip_names()
-        ct = ct.rootedWithTip('d')
+        ct = ct.rooted_with_tip('d')
         ct = ct.sorted(tip_names)
 
         self.assertTrue(
