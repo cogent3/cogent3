@@ -317,8 +317,8 @@ class Pair(object):
                for bin in range(bins)]
         return plh
 
-    def getPOG(self, aligned_positions):
-        (pog1, pog2) = [child.getPOG() for child in self.children]
+    def get_pog(self, aligned_positions):
+        (pog1, pog2) = [child.get_pog() for child in self.children]
         return pog1.traceback(pog2, aligned_positions)
 
     def getPointerEncoding(self, n_states):
@@ -436,7 +436,7 @@ class AlignablePOG(_Alignable):
     def backward(self):
         return self.__class__(self.leaf.backward(), self.pog.backward())
 
-    def getPOG(self):
+    def get_pog(self):
         return self.pog
 
     def __len__(self):
@@ -486,7 +486,7 @@ class AlignableSeq(_Alignable):
     def __repr__(self):
         return 'AlSeq(%s)' % (getattr(self, 'seq', '?'))
 
-    def getPOG(self):
+    def get_pog(self):
         if self._pog is None:
             self._pog = leaf2pog(self.leaf)
         return self._pog
@@ -813,7 +813,7 @@ class PairEmissionProbs(object):
         children = self.pair.children  # alignables
         leaves = [c.leaf for c in children]
         aligned_positions = [posn for (bin, posn) in aligned_positions]
-        pog = self.pair.getPOG(aligned_positions)
+        pog = self.pair.get_pog(aligned_positions)
         edge = LikelihoodTreeEdge(leaves, 'parent', pog.getAlignedPositions())
         (plhs, gapscores) = self.makePartialLikelihoods(use_cost_function=False)
         plh = self.pair.edge2plh(edge, plhs)

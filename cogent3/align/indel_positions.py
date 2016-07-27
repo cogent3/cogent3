@@ -25,7 +25,7 @@ def pog_traceback(pogs, aligned_positions):
     for dim in [0, 1]:
         align_builder.add_skipped(dim, upto[dim], len(pogs[dim]))
 
-    result_pog = align_builder.getPOG()
+    result_pog = align_builder.get_pog()
 
     return result_pog
 
@@ -69,7 +69,7 @@ class POGBuilder(object):
             state = state.upper()
         self.states.append(state)
 
-    def getPOG(self):
+    def get_pog(self):
         jumps = []
         gapmap = {}
         ingap = False
