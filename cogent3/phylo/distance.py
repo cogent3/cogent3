@@ -167,7 +167,7 @@ class EstimateDistances(object):
         lf.optimise(**dist_opt_args)
 
         # get the statistics
-        stats_dict = lf.getParamValueDict(['edge'],
+        stats_dict = lf.get_param_valueDict(['edge'],
                                           params=['length'] + self._est_params)
 
         # if two-way, grab first distance only
@@ -259,7 +259,7 @@ class EstimateDistances(object):
         return self.getPairwiseParam('length', summary_function=summary_function,
                                      **kwargs)
 
-    def getParamValues(self, param, **kwargs):
+    def get_param_values(self, param, **kwargs):
         """Returns a Numbers object with all estimated values of param.
 
         Arguments:

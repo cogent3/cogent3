@@ -192,7 +192,7 @@ To get all the parameter MLEs (branch lengths, GTR terms, etc ..) into the alter
 .. doctest::
 
     >>> annot_tree = lf.getAnnotatedTree()
-    >>> omega_mle = lf.getParamValue('omega')
+    >>> omega_mle = lf.get_param_value('omega')
 
 We can then construct a new likelihood function, specifying the rate-class properties.
 

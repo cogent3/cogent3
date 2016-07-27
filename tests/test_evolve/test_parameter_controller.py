@@ -141,8 +141,8 @@ class test_parameter_controller(unittest.TestCase):
         lf.setParamRule('length', is_constant=True)
         # lf.setConstantLengths(t)
         lf.setAlignment(self.al)
-        self.assertEqual(lf.getParamValue('length', 'b'), 2)
-        self.assertEqual(lf.getParamValue('length', 'd'), 5)
+        self.assertEqual(lf.get_param_value('length', 'b'), 2)
+        self.assertEqual(lf.get_param_value('length', 'd'), 5)
 
     def test_pairwise_clock(self):
         al = LoadSeqs(data={'a': 'agct', 'b': 'ggct'})
@@ -154,7 +154,7 @@ class test_parameter_controller(unittest.TestCase):
         lf.setLocalClock('a', 'b')
         lf.setAlignment(al)
         lf.optimise(local=True)
-        rd = lf.getParamValueDict(['edge'], params=['length'])
+        rd = lf.get_param_valueDict(['edge'], params=['length'])
         self.assertAlmostEqual(lf.getLogLikelihood(), -10.1774488956)
         self.assertEqual(rd['length']['a'], rd['length']['b'])
 
@@ -164,7 +164,7 @@ class test_parameter_controller(unittest.TestCase):
         lf.setAlignment(self.al)
         lf.optimise(local=True,
                     tolerance=1e-8, max_restarts=2)
-        rd = lf.getParamValueDict(['edge'], params=['length'])
+        rd = lf.get_param_valueDict(['edge'], params=['length'])
         self.assertAlmostEqual(lf.getLogLikelihood(), -27.84254174)
         self.assertEqual(rd['length']['c'], rd['length']['d'])
         self.assertNotEqual(rd['length']['a'], rd['length']['e'])
@@ -186,7 +186,7 @@ class test_parameter_controller(unittest.TestCase):
         # print self.pc
         lf.setAlignment(self.al)
         lf.optimise(local=True)
-        rd = lf.getParamValueDict(['edge'], params=['kappa'])
+        rd = lf.get_param_valueDict(['edge'], params=['kappa'])
         self.assertAlmostEqual(lf.getLogLikelihood(), -27.3252, 3)
         self.assertEqual(rd['kappa']['b'], rd['kappa']['d'])
         self.assertNotEqual(rd['kappa']['a'], rd['kappa']['b'])
@@ -200,7 +200,7 @@ class test_parameter_controller(unittest.TestCase):
         with warnings.catch_warnings(record=True) as w:
             lf.setParamRule('length', lower=0, upper=2)
             self.assertTrue(len(w), 'No warning issued')
-        self.assertEqual(lf.getParamValue('length', edge='a'), 2)
+        self.assertEqual(lf.get_param_value('length', edge='a'), 2)
 
         # upper < lower bounds should fail
         self.assertRaises(ValueError, lf.setParamRule,

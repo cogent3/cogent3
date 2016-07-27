@@ -80,7 +80,7 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
         # we use the Median to avoid the influence of outlier pairs
         param_vals = {}
         for param in est_params:
-            numbers = dcalc.getParamValues(param)
+            numbers = dcalc.get_param_values(param)
             print("Param Estimate Summary Stats: %s" % param)
             print(numbers.summarize())
             param_vals[param] = numbers.Median

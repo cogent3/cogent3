@@ -191,7 +191,7 @@ The stationary bin probabilities are labelled as ``bprobs`` and can be obtained 
 
 .. doctest::
 
-    >>> bprobs = lf_patches.getParamValue('bprobs')
+    >>> bprobs = lf_patches.get_param_value('bprobs')
     >>> print "%.1f : %.1f" % tuple(bprobs)
     0.5 : 0.5
 
@@ -220,7 +220,7 @@ In this example we model sequence evolution where there are 2 classes of sites d
 .. doctest::
     
     >>> from numpy import array
-    >>> single_kappa = lf_one.getParamValue('kappa')
+    >>> single_kappa = lf_one.get_param_value('kappa')
 
 We then construct the substitution model in a different way to that when evaluating generic rate heterogeneity (above).
 
