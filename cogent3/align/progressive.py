@@ -86,7 +86,7 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
             param_vals[param] = numbers.Median
 
     ui.display("Doing %s alignment" % ["progressive", "pairwise"][two_seqs])
-    with LF.updatesPostponed():
+    with LF.updates_postponed():
         for param, val in list(param_vals.items()):
             LF.set_param_rule(param, value=val, is_constant=True)
         LF.set_param_rule('indel_rate', value=indel_rate, is_constant=True)

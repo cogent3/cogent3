@@ -735,7 +735,7 @@ class ParameterController(object):
         return callback
 
     @contextmanager
-    def updatesPostponed(self):
+    def updates_postponed(self):
         "Temporarily turn off calculation for faster input setting"
         (old, self._update_suspended) = (self._update_suspended, True)
         yield
