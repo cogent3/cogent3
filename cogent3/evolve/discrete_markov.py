@@ -50,8 +50,8 @@ class PsubMatrixDefn(PartitionDefn):
         for (i, v) in enumerate(self.uniq):
             if v is None:
                 raise ValueError("input %s not set" % self.name)
-            assert hasattr(v, 'getDefaultValue'), v
-            value = v.getDefaultValue()
+            assert hasattr(v, 'get_default_value'), v
+            value = v.get_default_value()
             assert hasattr(value, 'shape'), value
             assert value.shape == (self.size, self.size)
             scope = [key for key in self.assignments

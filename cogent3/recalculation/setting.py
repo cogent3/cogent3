@@ -30,7 +30,7 @@ class Var(Setting):
     def get_bounds(self):
         return (self.lower, self.value, self.upper)
 
-    def getDefaultValue(self):
+    def get_default_value(self):
         return self.value
 
     def __str__(self):
@@ -67,7 +67,7 @@ class ConstVal(Setting):
     # def __eq__(self, other):
     #    return type(self) is type(other) and other.value == self.value
 
-    def getDefaultValue(self):
+    def get_default_value(self):
         return self.value
 
     def get_bounds(self):

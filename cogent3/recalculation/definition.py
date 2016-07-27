@@ -395,7 +395,7 @@ class PartitionDefn(_InputDefn):
         return Var((None, self.default.copy(), None))
 
     def check_setting_is_valid(self, setting):
-        value = setting.getDefaultValue()
+        value = setting.get_default_value()
         return self.check_value_is_valid(value, setting.is_constant)
 
     def check_value_is_valid(self, value, is_constant):
@@ -440,8 +440,8 @@ class PartitionDefn(_InputDefn):
         for (i, v) in enumerate(self.uniq):
             if v is None:
                 raise ValueError("input %s not set" % self.name)
-            assert hasattr(v, 'getDefaultValue'), v
-            value = v.getDefaultValue()
+            assert hasattr(v, 'get_default_value'), v
+            value = v.get_default_value()
             assert hasattr(value, 'shape'), value
             assert value.shape == (self.size,)
             scope = [key for key in self.assignments
