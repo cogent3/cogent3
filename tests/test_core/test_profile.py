@@ -83,26 +83,26 @@ class ProfileTests(TestCase):
         self.assertEqual(translate("ABBA", p._translation_table),
                          "\x00\x01\x01\x00")
 
-    def test_hasValidData(self):
-        """hasValidData: should work on full and empty profiles"""
+    def test_has_valid_data(self):
+        """has_valid_data: should work on full and empty profiles"""
         full = self.full.copy()
-        full.normalizePositions()
-        self.assertEqual(full.hasValidData(), True)
-        self.assertEqual(self.empty_row.hasValidData(), False)
-        self.assertEqual(self.empty.hasValidData(), False)
+        full.normalize_positions()
+        self.assertEqual(full.has_valid_data(), True)
+        self.assertEqual(self.empty_row.has_valid_data(), False)
+        self.assertEqual(self.empty.has_valid_data(), False)
 
-    def test_hasValidAttributes(self):
-        """hasValidAttributes: should work for different alphabets/char orders
+    def test_has_valid_attributes(self):
+        """has_valid_attributes: should work for different alphabets/char orders
         """
         p = Profile(array([[1, 2], [3, 4]]), Alphabet="ABCD", CharOrder="BAC")
         # self.Data doesn't match len(CharOrder)
-        self.assertEqual(p.hasValidAttributes(), False)
+        self.assertEqual(p.has_valid_attributes(), False)
         p = Profile(array([[1, 2], [3, 4]]), Alphabet="ABCD", CharOrder="AX")
         # not all chars in CharOrder in Alphabet
-        self.assertEqual(p.hasValidAttributes(), False)
+        self.assertEqual(p.has_valid_attributes(), False)
         p = Profile(array([[1, 2], [3, 4]]), Alphabet="ABCD", CharOrder="CB")
         # should be fine
-        self.assertEqual(p.hasValidAttributes(), True)
+        self.assertEqual(p.has_valid_attributes(), True)
 
     def test_is_valid(self):
         """is_valid: should work as expected"""
@@ -119,15 +119,15 @@ class ProfileTests(TestCase):
         self.assertEqual(p2.is_valid(), False)
         self.assertEqual(p3.is_valid(), False)
 
-    def test_dataAt(self):
-        """dataAt: should work on valid position and character"""
+    def test_data_at(self):
+        """data_at: should work on valid position and character"""
         p = Profile(array([[.2, .4, .4, 0], [.1, 0, .9, 0], [.1, .2, .3, .4]]),
                     Alphabet="TCAG")
-        self.assertEqual(p.dataAt(0, 'C'), .4)
-        self.assertEqual(p.dataAt(1, 'T'), .1)
-        self.assertRaises(ProfileError, p.dataAt, 1, 'U')
-        self.assertRaises(ProfileError, p.dataAt, -2, 'T')
-        self.assertRaises(ProfileError, p.dataAt, 5, 'T')
+        self.assertEqual(p.data_at(0, 'C'), .4)
+        self.assertEqual(p.data_at(1, 'T'), .1)
+        self.assertRaises(ProfileError, p.data_at, 1, 'U')
+        self.assertRaises(ProfileError, p.data_at, -2, 'T')
+        self.assertRaises(ProfileError, p.data_at, 5, 'T')
 
     def test_copy(self):
         """copy: should act as expected while rebinding/modifying attributes
@@ -144,7 +144,7 @@ class ProfileTests(TestCase):
         assert p.Alphabet is p_copy.Alphabet
 
         # normalizing p.Data rebinds it, so p_copy.Data is unchanged
-        p.normalizePositions()
+        p.normalize_positions()
         assert not p.Data is p_copy.Data
 
         # Adding something to the alphabet changes both p and p_copy
@@ -159,92 +159,92 @@ class ProfileTests(TestCase):
         """normalizePositions: should normalize or raise appropriate error
         """
         p = self.full.copy()
-        p.normalizePositions()
+        p.normalize_positions()
         self.assertEqual(p.Data, array(
             [[2 / 6, 4 / 6], [3 / 8, 5 / 8], [4 / 12, 8 / 12]]))
         self.assertEqual(sum(p.Data, 1), [1, 1, 1])
         p = self.empty_col.copy()
-        p.normalizePositions()
+        p.normalize_positions()
         self.assertEqual(p.Data, array([[0, 1], [0, 1]]))
         p = self.empty_row.copy()
-        self.assertRaises(ProfileError, p.normalizePositions)
+        self.assertRaises(ProfileError, p.normalize_positions)
         p = Profile(array([[0.0, 0.0]]), "AB")
-        self.assertRaises(ProfileError, p.normalizePositions)
+        self.assertRaises(ProfileError, p.normalize_positions)
 
         # negative numbers!!!!!!
         p1 = Profile(array([[3, -2], [4, -3]]), "AB")
-        p1.normalizePositions()
+        p1.normalize_positions()
         self.assertEqual(p1.Data, array([[3, -2], [4, -3]]))
         p2 = Profile(array([[3, -3], [4, -3]]), "AB")
-        self.assertRaises(ProfileError, p2.normalizePositions)
+        self.assertRaises(ProfileError, p2.normalize_positions)
 
-    def test_normalizeSequences(self):
-        """normalizeSequences: should normalize or raise appropriate error
+    def test_normalize_seqs(self):
+        """normalize_seqs: should normalize or raise appropriate error
         """
         p = self.full.copy()
-        p.normalizeSequences()
+        p.normalize_seqs()
         self.assertEqual(p.Data, array(
             [[2 / 9, 4 / 17], [3 / 9, 5 / 17], [4 / 9, 8 / 17]]))
         self.assertEqual(sum(p.Data, axis=0), [1, 1])
         p = self.empty_row.copy()
-        p.normalizeSequences()
+        p.normalize_seqs()
         self.assertEqual(p.Data, array([[1, 1], [0, 0]]))
         p = self.empty_col.copy()
-        self.assertRaises(ProfileError, p.normalizeSequences)
+        self.assertRaises(ProfileError, p.normalize_seqs)
         p = Profile(array([[0.0], [0.0]]), "AB")
-        self.assertRaises(ProfileError, p.normalizeSequences)
+        self.assertRaises(ProfileError, p.normalize_seqs)
 
         # negative numbers!!!!!!
         p1 = Profile(array([[3, 4], [-2, -3]]), "AB")
-        p1.normalizeSequences()
+        p1.normalize_seqs()
         self.assertEqual(p1.Data, array([[3, 4], [-2, -3]]))
         p2 = Profile(array([[3, 4], [-3, -3]]), "AB")
-        self.assertRaises(ProfileError, p2.normalizeSequences)
+        self.assertRaises(ProfileError, p2.normalize_seqs)
 
-    def test_prettyPrint_without_parameters(self):
-        """prettyPrint: should work without parameters passed in"""
+    def test_pretty_print_without_parameters(self):
+        """pretty_print: should work without parameters passed in"""
         p = self.full
-        self.assertEqual(p.prettyPrint(), "2\t4\n3\t5\n4\t8")
-        self.assertEqual(p.prettyPrint(include_header=True),
+        self.assertEqual(p.pretty_print(), "2\t4\n3\t5\n4\t8")
+        self.assertEqual(p.pretty_print(include_header=True),
                          "A\tB\n2\t4\n3\t5\n4\t8")
-        self.assertEqual(p.prettyPrint(transpose_data=True),
+        self.assertEqual(p.pretty_print(transpose_data=True),
                          "2\t3\t4\n4\t5\t8")
-        self.assertEqual(p.prettyPrint(include_header=True,
+        self.assertEqual(p.pretty_print(include_header=True,
                                        transpose_data=True), "A\t2\t3\t4\nB\t4\t5\t8")
         # empty
-        self.assertEqual(self.empty.prettyPrint(), "")
-        self.assertEqual(self.empty.prettyPrint(transpose_data=True), "")
+        self.assertEqual(self.empty.pretty_print(), "")
+        self.assertEqual(self.empty.pretty_print(transpose_data=True), "")
 
         # it will still print with invalid data (e.g if len(CharOrder)
         # doesn't match the data
         p = self.full.copy()
         p.CharOrder = "ABC"
 
-        self.assertEqual(p.prettyPrint(include_header=True),
+        self.assertEqual(p.pretty_print(include_header=True),
                          "A\tB\tC\n2\t4\t \n3\t5\t \n4\t8\t ")
         # it will truncate the CharOrder if data is transposed
         # and CharOrder is longer then the number of rows in the
         # transposed data
-        self.assertEqual(p.prettyPrint(include_header=True,
+        self.assertEqual(p.pretty_print(include_header=True,
                                        transpose_data=True), "A\t2\t3\t4\nB\t4\t5\t8")
 
-    def test_prettyPrint_four_cases(self):
-        """prettyPrint: with/without header/transpose/limit"""
+    def test_pretty_print_four_cases(self):
+        """pretty_print: with/without header/transpose/limit"""
         p = self.full
         p = self.pp
-        self.assertEqual(p.prettyPrint(),
+        self.assertEqual(p.pretty_print(),
                          "1\t 2\t 3\t 4\n5\t 6\t 7\t 8\n9\t10\t11\t12")
-        self.assertEqual(p.prettyPrint(column_limit=3),
+        self.assertEqual(p.pretty_print(column_limit=3),
                          "1\t 2\t 3\n5\t 6\t 7\n9\t10\t11")
-        self.assertEqual(p.prettyPrint(column_limit=3, include_header=True),
+        self.assertEqual(p.pretty_print(column_limit=3, include_header=True),
                          "A\t B\t C\n1\t 2\t 3\n5\t 6\t 7\n9\t10\t11")
-        self.assertEqual(p.prettyPrint(column_limit=3, include_header=False,
+        self.assertEqual(p.pretty_print(column_limit=3, include_header=False,
                                        transpose_data=True),
                          "1\t5\t 9\n2\t6\t10\n3\t7\t11\n4\t8\t12")
-        self.assertEqual(p.prettyPrint(column_limit=2, include_header=False,
+        self.assertEqual(p.pretty_print(column_limit=2, include_header=False,
                                        transpose_data=True),
                          "1\t5\n2\t6\n3\t7\n4\t8")
-        self.assertEqual(p.prettyPrint(column_limit=3, include_header=True,
+        self.assertEqual(p.pretty_print(column_limit=3, include_header=True,
                                        transpose_data=True),
                          "A\t1\t5\nB\t2\t6\nC\t3\t7\nD\t4\t8")
 
@@ -366,37 +366,37 @@ class ProfileTests(TestCase):
         self.assertRaises(ProfileError, p1.distance, p3)
         self.assertRaises(ProfileError, p1.distance, p5)
 
-    def test_toOddsMatrix(self):
-        """toOddsMatrix: should work on valid data or raise an error
+    def test_to_odds_matrix(self):
+        """to_odds_matrix: should work on valid data or raise an error
         """
         p = Profile(array([[.1, .3, .5, .1], [.25, .25, .25, .25],
                            [.05, .8, .05, .1], [.7, .1, .1, .1], [.6, .15, .05, .2]]),
                     Alphabet="ACTG")
         p_exp = Profile(array([[.4, 1.2, 2, .4], [1, 1, 1, 1], [.2, 3.2, .2, .4],
                                [2.8, .4, .4, .4], [2.4, .6, .2, .8]]), Alphabet="ACTG")
-        self.assertEqual(p.toOddsMatrix().Data, p_exp.Data)
-        assert p.Alphabet is p.toOddsMatrix().Alphabet
-        self.assertEqual(p.toOddsMatrix([.25, .25, .25, .25]).Data, p_exp.Data)
+        self.assertEqual(p.to_odds_matrix().Data, p_exp.Data)
+        assert p.Alphabet is p.to_odds_matrix().Alphabet
+        self.assertEqual(p.to_odds_matrix([.25, .25, .25, .25]).Data, p_exp.Data)
 
         # fails if symbol_freqs has wrong size
-        self.assertRaises(ProfileError, p.toOddsMatrix,
+        self.assertRaises(ProfileError, p.to_odds_matrix,
                           [.25, .25, .25, .25, .25, .25])
-        self.assertRaises(ProfileError, self.zero_entry.toOddsMatrix,
+        self.assertRaises(ProfileError, self.zero_entry.to_odds_matrix,
                           [.1, .2, .3])
         # works on empty profile
-        self.assertEqual(self.empty.toOddsMatrix().Data.tolist(), [[]])
+        self.assertEqual(self.empty.to_odds_matrix().Data.tolist(), [[]])
         # works with different input
-        self.assertEqual(self.zero_entry.toOddsMatrix().Data,
+        self.assertEqual(self.zero_entry.to_odds_matrix().Data,
                          array([[1.2, .8, 0, 2], [0, 0, 3.2, .8]]))
-        self.assertFloatEqual(self.zero_entry.toOddsMatrix([.1, .2, .3, .4]).Data,
+        self.assertFloatEqual(self.zero_entry.to_odds_matrix([.1, .2, .3, .4]).Data,
                               array([[3, 1, 0, 1.25], [0, 0, 2.667, .5]]), 1e-3)
         # fails when one of the background frequencies is 0
-        self.assertRaises(ProfileError, self.zero_entry.toOddsMatrix,
+        self.assertRaises(ProfileError, self.zero_entry.to_odds_matrix,
                           [.1, .2, .3, 0])
 
-    def test_toLogOddsMatrix(self):
-        """toLogOddsMatrix: should work as expected"""
-        # This test can be short, because it mainly depends on toOddsMatrix
+    def test_to_log_odds_matrix(self):
+        """to_log_odds_matrix: should work as expected"""
+        # This test can be short, because it mainly depends on to_odds_matrix
         # for which everything has been tested
         p = Profile(array([[.1, .3, .5, .1], [.25, .25, .25, .25],
                            [.05, .8, .05, .1], [.7, .1, .1, .1], [.6, .15, .05, .2]]),
@@ -408,9 +408,9 @@ class ProfileTests(TestCase):
              [ 1.485, -1.322, -1.322, -1.322],
              [ 1.263, -0.737, -2.322, -0.322]]),
             Alphabet="ACTG")
-        self.assertFloatEqual(p.toLogOddsMatrix().Data, p_exp.Data, eps=1e-3)
+        self.assertFloatEqual(p.to_log_odds_matrix().Data, p_exp.Data, eps=1e-3)
         # works on empty matrix
-        self.assertEqual(self.empty.toLogOddsMatrix().Data.tolist(), [[]])
+        self.assertEqual(self.empty.to_log_odds_matrix().Data.tolist(), [[]])
 
     def test__score_indices(self):
         """_score_indices: should work on valid input"""
@@ -530,136 +530,136 @@ class ProfileTests(TestCase):
         # raises error when character order doesn't match
         self.assertRaises(ProfileError, self.score2.score, p5)
 
-    def test_rowUncertainty(self):
-        """rowUncertainty: should handle full and empty profiles
+    def test_row_uncertainty(self):
+        """row_uncertainty: should handle full and empty profiles
         """
         p = Profile(array([[.25, .25, .25, .25], [.5, .5, 0, 0]]), "ABCD")
-        self.assertEqual(p.rowUncertainty(), [2, 1])
+        self.assertEqual(p.row_uncertainty(), [2, 1])
 
         # for empty rows 0 is returned as the uncertainty
-        self.assertEqual(self.empty.rowUncertainty().tolist(), [])
+        self.assertEqual(self.empty.row_uncertainty().tolist(), [])
         p = Profile(array([[], [], []]), "")
-        self.assertEqual(p.rowUncertainty().tolist(), [])
+        self.assertEqual(p.row_uncertainty().tolist(), [])
         # doesn't work on 1D array
-        self.assertRaises(ProfileError, self.oned.rowUncertainty)
+        self.assertRaises(ProfileError, self.oned.row_uncertainty)
 
     def test_columnUncertainty(self):
         """columnUncertainty: should handle full and empty profiles
         """
         p = Profile(array([[.25, .5], [.25, .5], [.25, 0], [.25, 0]]), "AB")
-        self.assertEqual(p.columnUncertainty(), [2, 1])
+        self.assertEqual(p.column_uncertainty(), [2, 1])
         # for empty cols nothing is returned as the uncertainty
-        self.assertEqual(self.empty.columnUncertainty().tolist(), [])
+        self.assertEqual(self.empty.column_uncertainty().tolist(), [])
         p = Profile(array([[], [], []]), "")
-        self.assertEqual(p.columnUncertainty().tolist(), [])
+        self.assertEqual(p.column_uncertainty().tolist(), [])
         # doesn't work on 1D array
-        self.assertRaises(ProfileError, self.oned.columnUncertainty)
+        self.assertRaises(ProfileError, self.oned.column_uncertainty)
 
-    def test_rowDegeneracy(self):
+    def test_row_degeneracy(self):
         """rowDegneracy: should work as expected"""
         p1 = self.consensus
         p2 = self.not_same_value
 
-        self.assertEqual(p1.rowDegeneracy(), [1, 1, 1, 2, 1])
-        self.assertEqual(p1.rowDegeneracy(cutoff=.5), [1, 1, 1, 2, 1])
-        self.assertEqual(p1.rowDegeneracy(cutoff=.75), [1, 2, 1, 3, 2])
+        self.assertEqual(p1.row_degeneracy(), [1, 1, 1, 2, 1])
+        self.assertEqual(p1.row_degeneracy(cutoff=.5), [1, 1, 1, 2, 1])
+        self.assertEqual(p1.row_degeneracy(cutoff=.75), [1, 2, 1, 3, 2])
         # when a row seems to add up to the cutoff value, it's not
         # always found because of floating point error. E.g. second row
         # in this example
-        self.assertEqual(p1.rowDegeneracy(cutoff=1), [2, 4, 1, 4, 2])
+        self.assertEqual(p1.row_degeneracy(cutoff=1), [2, 4, 1, 4, 2])
         # when the cutoff can't be found, the number of columns in the
         # profile is returned (for each row)
-        self.assertEqual(p1.rowDegeneracy(cutoff=1.5), [4, 4, 4, 4, 4])
+        self.assertEqual(p1.row_degeneracy(cutoff=1.5), [4, 4, 4, 4, 4])
 
-        self.assertEqual(p2.rowDegeneracy(cutoff=.95), [4, 2, 4, 1])
-        self.assertEqual(p2.rowDegeneracy(cutoff=1.4), [4, 3, 4, 1])
+        self.assertEqual(p2.row_degeneracy(cutoff=.95), [4, 2, 4, 1])
+        self.assertEqual(p2.row_degeneracy(cutoff=1.4), [4, 3, 4, 1])
 
-        self.assertEqual(self.empty.rowDegeneracy(), [])
+        self.assertEqual(self.empty.row_degeneracy(), [])
 
-    def test_columnDegeneracy(self):
-        """columnDegeneracy: shoudl work as expected"""
+    def test_column_degeneracy(self):
+        """column_degeneracy: shoudl work as expected"""
         p1 = self.consensus
         p1.Data = transpose(p1.Data)
         p2 = self.not_same_value
         p2.Data = transpose(p2.Data)
-        p1d = p1.columnDegeneracy()
+        p1d = p1.column_degeneracy()
         self.assertEqual(p1d, [1, 1, 1, 2, 1])
-        self.assertEqual(p1.columnDegeneracy(cutoff=.5), [1, 1, 1, 2, 1])
-        self.assertEqual(p1.columnDegeneracy(cutoff=.75), [1, 2, 1, 3, 2])
+        self.assertEqual(p1.column_degeneracy(cutoff=.5), [1, 1, 1, 2, 1])
+        self.assertEqual(p1.column_degeneracy(cutoff=.75), [1, 2, 1, 3, 2])
         # when a row seems to add up to the cutoff value, it's not
         # always found because of floating point error. E.g. second row
         # in this example
-        self.assertEqual(p1.columnDegeneracy(cutoff=1), [2, 4, 1, 4, 2])
+        self.assertEqual(p1.column_degeneracy(cutoff=1), [2, 4, 1, 4, 2])
         # when the cutoff can't be found, the number of rows in the
         # profile is returned (for each column)
-        self.assertEqual(p1.columnDegeneracy(cutoff=1.5), [4, 4, 4, 4, 4])
+        self.assertEqual(p1.column_degeneracy(cutoff=1.5), [4, 4, 4, 4, 4])
 
-        self.assertEqual(p2.columnDegeneracy(cutoff=.95), [4, 2, 4, 1])
-        self.assertEqual(p2.columnDegeneracy(cutoff=1.4), [4, 3, 4, 1])
+        self.assertEqual(p2.column_degeneracy(cutoff=.95), [4, 2, 4, 1])
+        self.assertEqual(p2.column_degeneracy(cutoff=1.4), [4, 3, 4, 1])
 
-        self.assertEqual(self.empty.columnDegeneracy(), [])
+        self.assertEqual(self.empty.column_degeneracy(), [])
 
-    def test_rowMax(self):
-        """rowMax should return max value in each row"""
+    def test_row_max(self):
+        """row_max should return max value in each row"""
         p1 = self.consensus
-        obs = p1.rowMax()
+        obs = p1.row_max()
         self.assertEqual(obs, array([.8, .7, 1, .4, .5]))
 
-    def test_toConsensus(self):
-        """toConsensus: should work with all the different options
+    def test_to_consensus(self):
+        """to_consensus: should work with all the different options
         """
         p = self.consensus
-        self.assertEqual(p.toConsensus(fully_degenerate=False), "AGGAT")
-        self.assertEqual(p.toConsensus(fully_degenerate=True), "WVGNY")
-        self.assertEqual(p.toConsensus(cutoff=0.75), "ARGHY")
-        self.assertEqual(p.toConsensus(cutoff=0.95), "WVGNY")
-        self.assertEqual(p.toConsensus(cutoff=2), "WVGNY")
+        self.assertEqual(p.to_consensus(fully_degenerate=False), "AGGAT")
+        self.assertEqual(p.to_consensus(fully_degenerate=True), "WVGNY")
+        self.assertEqual(p.to_consensus(cutoff=0.75), "ARGHY")
+        self.assertEqual(p.to_consensus(cutoff=0.95), "WVGNY")
+        self.assertEqual(p.to_consensus(cutoff=2), "WVGNY")
 
         p = self.not_same_value
-        self.assertEqual(p.toConsensus(fully_degenerate=False), "CGTA")
-        self.assertEqual(p.toConsensus(fully_degenerate=True), "NBYA")
-        self.assertEqual(p.toConsensus(cutoff=0.75), "YSYA")
-        self.assertEqual(p.toConsensus(cutoff=2), "NBYA")
-        self.assertEqual(p.toConsensus(cutoff=5), "NBYA")
+        self.assertEqual(p.to_consensus(fully_degenerate=False), "CGTA")
+        self.assertEqual(p.to_consensus(fully_degenerate=True), "NBYA")
+        self.assertEqual(p.to_consensus(cutoff=0.75), "YSYA")
+        self.assertEqual(p.to_consensus(cutoff=2), "NBYA")
+        self.assertEqual(p.to_consensus(cutoff=5), "NBYA")
 
         # when you specify both fully_generate and a cutoff value
         # the cutoff takes priority and is used in the calculation
-        self.assertEqual(p.toConsensus(cutoff=0.75, fully_degenerate=True),
+        self.assertEqual(p.to_consensus(cutoff=0.75, fully_degenerate=True),
                          "YSYA")
 
         # raises AttributeError when Alphabet doens't have Degenerates
         p = Profile(array([[.2, .8], [.7, .3]]), "AB")
-        self.assertRaises(AttributeError, p.toConsensus, cutoff=.5)
+        self.assertRaises(AttributeError, p.to_consensus, cutoff=.5)
 
-    def test_toConsensus_include_all(self):
-        """toConsensus: Should include all possibilities when include_all=True
+    def test_to_consensus_include_all(self):
+        """to_consensus: Should include all possibilities when include_all=True
         """
         p1 = Profile(array([[.2, 0, .8, 0], [0, .1, .2, .7], [0, 0, 0, 1],
                             [.2, .3, .4, .1], [.5, .5, 0, 0]]),
                      Alphabet=DNA, CharOrder="TCAG")
-        self.assertEqual(p1.toConsensus(cutoff=0.4, include_all=True),
+        self.assertEqual(p1.to_consensus(cutoff=0.4, include_all=True),
                          "AGGAY")
         p2 = Profile(array([[.25, 0.25, .25, 0.25], [0.1, .1, .1, 0],
                             [.4, 0, .4, 0], [0, .2, 0.2, 0.3]]),
                      Alphabet=DNA, CharOrder="TCAG")
-        self.assertEqual(p2.toConsensus(cutoff=0.4,
+        self.assertEqual(p2.to_consensus(cutoff=0.4,
                                         include_all=True), "NHWV")
 
-    def test_randomIndices(self):
-        """randomIndices: 99% of new frequencies should be within 3*SD
+    def test_random_indices(self):
+        """random_indices: 99% of new frequencies should be within 3*SD
         """
         r_num, c_num = 100, 20
         num_elements = r_num * c_num
         r = random([r_num, c_num])
         p = Profile(r, "A" * c_num)
-        p.normalizePositions()
+        p.normalize_positions()
         d = p.Data
         n = 1000
 
         # Test only works on normalized profile, b/c of 1-d below
         means = n * d
         three_stds = sqrt(d * (1 - d) * n) * 3
-        result = [p.randomIndices() for x in range(n)]
+        result = [p.random_indices() for x in range(n)]
         a = Alignment(transpose(result))
 
         def absoluteProfile(alignment, char_order):
@@ -674,14 +674,14 @@ class ProfileTests(TestCase):
         failure = abs(ap - means) > three_stds
         assert sum(sum(failure)) / num_elements <= 0.01
 
-    def test_randomSequence(self):
-        """randomSequence: 99% of new frequencies should be within 3*SD"""
+    def test_random_sequence(self):
+        """random_sequence: 99% of new frequencies should be within 3*SD"""
         r_num, c_num = 100, 20
         num_elements = r_num * c_num
         alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         r = random([r_num, c_num])
         p = Profile(r, alpha[:c_num])
-        p.normalizePositions()
+        p.normalize_positions()
         d = p.Data
         n = 1000
 
@@ -689,7 +689,7 @@ class ProfileTests(TestCase):
         means = n * d
         three_stds = sqrt(d * (1 - d) * n) * 3
 
-        a = Alignment([p.randomSequence() for x in range(n)])
+        a = Alignment([p.random_sequence() for x in range(n)])
 
         def absoluteProfile(alignment, char_order):
             f = a.column_freqs()
