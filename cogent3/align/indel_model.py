@@ -48,7 +48,7 @@ class _SimpleIndelParams(object):
 class SimpleIndelModel(_SimpleIndelParams):
     """P(gap open), P(gap extend) with const P(extend match)"""
 
-    def calcTransitionMatrix(self, distance):
+    def calc_transition_matrix(self, distance):
         d = 1.0 - numpy.exp(-self.indel_rate * distance)
         e = self.indel_length
         g = 0.0
@@ -67,7 +67,7 @@ class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
     Journal of Molecular Biology
     Volume 333, Issue 2 , 17 October 2003, Pages 453-460"""
 
-    def calcTransitionMatrix(self, distance):
+    def calc_transition_matrix(self, distance):
         distance = distance * self.indel_rate
         extend = self.indel_length
         close = 1.0 - extend
