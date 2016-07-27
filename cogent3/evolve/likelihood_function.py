@@ -395,7 +395,7 @@ class LikelihoodFunction(ParameterController):
                 return False
         return True
 
-    def allRateMatricesUnique(self):
+    def all_rate_matrices_unique(self):
         """Returns True if every rate matrix is unique for its Psub matrix"""
         for edge in self.tree.get_edge_vector(include_root=False):
             Q = self.get_rate_matrix_for_edge(edge.name).asarray()
