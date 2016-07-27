@@ -72,7 +72,7 @@ class _LikelihoodParameterController(_LF):
         self._mprob_motifs = list(model.getMprobAlphabet())
         defn = self.makeLikelihoodDefn(**kw)
         super(_LF, self).__init__(defn)
-        self.setDefaultParamRules()
+        self.set_default_param_rules()
         self.set_default_tree_parameter_rules()
         self.mprobs_from_alignment = motif_probs_from_align
         self.optimise_motif_probs = optimise_motif_probs
@@ -323,7 +323,7 @@ class _LikelihoodParameterController(_LF):
 
 class AlignmentLikelihoodFunction(_LikelihoodParameterController):
 
-    def setDefaultParamRules(self):
+    def set_default_param_rules(self):
         try:
             self.assignAll(
                 'fixed_motif', None, value=-1, const=True, independent=True)
@@ -369,7 +369,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
 
 class SequenceLikelihoodFunction(_LikelihoodParameterController):
 
-    def setDefaultParamRules(self):
+    def set_default_param_rules(self):
         pass
 
     def makeLikelihoodDefn(self, sites_independent=None,
