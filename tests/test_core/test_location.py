@@ -492,16 +492,16 @@ class MapTests(TestCase):
     """tests of the Map class"""
 
     def test_get_coords(self):
-        """getCoordinates should return raw coordinates matching input"""
+        """get_coordinates should return raw coordinates matching input"""
         spans = [(0, 9), (20, 32)]
         map = Map(spans, parent_length=100)
-        coords = map.getCoordinates()
+        coords = map.get_coordinates()
         self.assertEqual(coords, spans)
 
         # should work for reversed Maps too
         spans = [(32, 20), (9, 0)]
         map = Map(spans, parent_length=100)
-        coords = map.getCoordinates()
+        coords = map.get_coordinates()
         self.assertEqual(coords, spans)
 
 

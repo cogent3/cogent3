@@ -242,10 +242,10 @@ class _Feature(_Annotatable):
         map = gmap[self.map]
         return self.__class__(grandparent, map, original=self)
 
-    def getCoordinates(self):
+    def get_coordinates(self):
         """returns sequence coordinates of this Feature as
         [(start1, end1), ...]"""
-        return self.map.getCoordinates()
+        return self.map.get_coordinates()
 
 
 class AnnotatableFeature(_Feature):

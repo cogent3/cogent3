@@ -340,7 +340,7 @@ Features can provide their coordinates, useful for custom analyses.
 .. doctest::
     
     >>> all_exons = aln.get_region_covering_all(aln_exons)
-    >>> coords = all_exons.getCoordinates()
+    >>> coords = all_exons.get_coordinates()
     >>> assert coords == [(0,1),(2,5)]
 
 Annotated regions can be masked (observed sequence characters replaced by another), either through the sequence on which they reside or by projection from the alignment. Note that ``mask_char`` must be a valid character for the sequence ``MolType``. Either the features (multiple can be named), or their shadow, can be masked.
