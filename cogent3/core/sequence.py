@@ -1358,7 +1358,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
 class ModelNucleicAcidSequence(ModelSequence):
     """Abstract class defining ops for codons, translation, etc."""
 
-    def toCodons(self):
+    def to_codons(self):
         """Returns copy of self in codon alphabet. Assumes ungapped."""
         alpha_len = len(self.Alphabet)
         return ModelCodonSequence(alpha_len * (
@@ -1422,7 +1422,7 @@ class ModelCodonSequence(ModelSequence):
         s = s.upper().replace('U', 'T')  # convert to uppercase DNA
         d = self.SequenceClass(s,
                                Alphabet=self.Alphabet.SubEnumerations[0])
-        self._data = d.toCodons()._data
+        self._data = d.to_codons()._data
 
     def __init__(self, data='', Alphabet=None, Name=None, Info=None):
         """Override __init__ to handle init from string."""
@@ -1430,7 +1430,7 @@ class ModelCodonSequence(ModelSequence):
             self._from_string(data)
         ModelSequence.__init__(self, data, Alphabet, Name, Info=Info)
 
-    def toCodons(self):
+    def to_codons(self):
         """Converts self to codons -- in practice, just returns self.
 
         Supports interface of other NucleicAcidSequences."""
@@ -1469,7 +1469,7 @@ class ModelRnaCodonSequence(ModelCodonSequence):
         s = s.upper().replace('T', 'U')  # convert to uppercase DNA
         d = self.SequenceClass(s,
                                Alphabet=self.Alphabet.SubEnumerations[0])
-        self._data = d.toCodons()._data
+        self._data = d.to_codons()._data
 
 
 class ModelProteinSequence(ModelSequence):
