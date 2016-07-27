@@ -185,7 +185,7 @@ class _Defn(object):
             result = [self.selection]
         return result
 
-    def addScopes(self, scopes):
+    def add_scopes(self, scopes):
         assert not self.activated
         for scope in scopes:
             scope_t = [scope.get(d, 'all') for d in self.valid_dimensions]
@@ -645,9 +645,9 @@ class ParameterController(object):
                 scopes = client.get_required_scopes(pd.valid_dimensions)
                 # print pd.valid_dimensions, pd.name, '<', scopes, '<',
                 # client.name, client.valid_dimensions
-                pd.addScopes(scopes)
+                pd.add_scopes(scopes)
             if not pd.assignments:
-                pd.addScopes([{}])
+                pd.add_scopes([{}])
             pd.activated = True
 
         self.defns = topdown[::-1]
