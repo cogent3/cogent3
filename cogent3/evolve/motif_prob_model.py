@@ -64,8 +64,8 @@ class MotifProbModel(object):
                 result += count
         return result
 
-    def adaptMotifProbs(self, motif_probs, auto=False):
-        motif_probs = self.getInputAlphabet().adaptMotifProbs(motif_probs)
+    def adapt_motif_probs(self, motif_probs, auto=False):
+        motif_probs = self.getInputAlphabet().adapt_motif_probs(motif_probs)
         assert abs(sum(motif_probs) - 1.0) < 0.0001, motif_probs
         return motif_probs
 
@@ -185,11 +185,11 @@ class MonomerProbModel(ComplexMotifProbModel):
             self.calcWordWeightMatrix, name="mprobs_matrix")(monomer_probs)
         return (monomer_probs, word_probs, mprobs_matrix)
 
-    def adaptMotifProbs(self, motif_probs, auto=False):
+    def adapt_motif_probs(self, motif_probs, auto=False):
         try:
-            motif_probs = self.monomer_alphabet.adaptMotifProbs(motif_probs)
+            motif_probs = self.monomer_alphabet.adapt_motif_probs(motif_probs)
         except ValueError:
-            motif_probs = self.tuple_alphabet.adaptMotifProbs(motif_probs)
+            motif_probs = self.tuple_alphabet.adapt_motif_probs(motif_probs)
             if not auto:
                 warnings.warn('Motif probs overspecified', stacklevel=5)
             motif_probs = self.calcMonomerProbs(motif_probs)
@@ -251,11 +251,11 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
         for (i, m) in enumerate(motif_probs):
             pc.setParamRule('psmprobs', value=m, position=str(i), **kw)
 
-    def adaptMotifProbs(self, motif_probs, auto=False):
+    def adapt_motif_probs(self, motif_probs, auto=False):
         try:
-            motif_probs = self.monomer_alphabet.adaptMotifProbs(motif_probs)
+            motif_probs = self.monomer_alphabet.adapt_motif_probs(motif_probs)
         except ValueError:
-            motif_probs = self.tuple_alphabet.adaptMotifProbs(motif_probs)
+            motif_probs = self.tuple_alphabet.adapt_motif_probs(motif_probs)
             motif_probs = self.calcPosnSpecificMonomerProbs(motif_probs)
         else:
             motif_probs = [motif_probs] * self.word_length

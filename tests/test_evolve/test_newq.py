@@ -105,7 +105,7 @@ class NewQ(TestCase):
         """str of likelihood functions should not fail"""
         for (dummy, model) in self.ordered_by_complexity:
             di = Nucleotide(motif_length=2, mprob_model=model)
-            di.adaptMotifProbs(self.cond_root_probs, auto=True)
+            di.adapt_motif_probs(self.cond_root_probs, auto=True)
             lf = di.makeLikelihoodFunction(self.tree)
             s = str(lf)
 
@@ -134,7 +134,7 @@ class NewQ(TestCase):
         models"""
         for (mprobs, model) in self.ordered_by_complexity:
             di = Nucleotide(motif_length=2, mprob_model=model)
-            di.adaptMotifProbs(mprobs, auto=True)
+            di.adapt_motif_probs(mprobs, auto=True)
             lf = di.makeLikelihoodFunction(self.tree)
             lf.setParamRule('length', is_independent=False, init=0.4)
             lf.setAlignment(self.aln)
