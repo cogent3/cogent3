@@ -105,7 +105,7 @@ class SequenceI(object):
         """returns a randomized copy of the Sequence object"""
         randomized_copy_list = list(self)
         shuffle(randomized_copy_list)
-        return self.__class__(''.join(randomized_copy_list), Info=self.info)
+        return self.__class__(''.join(randomized_copy_list), info=self.info)
 
     def complement(self):
         """Returns complement of self, using data from MolType.
@@ -113,26 +113,26 @@ class SequenceI(object):
         Always tries to return same type as item: if item looks like a dict,
         will return list of keys.
         """
-        return self.__class__(self.moltype.complement(self), Info=self.info)
+        return self.__class__(self.moltype.complement(self), info=self.info)
 
     def strip_degenerate(self):
         """Removes degenerate bases by stripping them out of the sequence."""
-        return self.__class__(self.moltype.strip_degenerate(self), Info=self.info)
+        return self.__class__(self.moltype.strip_degenerate(self), info=self.info)
 
     def strip_bad(self):
         """Removes any symbols not in the alphabet."""
-        return self.__class__(self.moltype.strip_bad(self), Info=self.info)
+        return self.__class__(self.moltype.strip_bad(self), info=self.info)
 
     def strip_bad_and_gaps(self):
         """Removes any symbols not in the alphabet, and any gaps."""
-        return self.__class__(self.moltype.strip_bad_and_gaps(self), Info=self.info)
+        return self.__class__(self.moltype.strip_bad_and_gaps(self), info=self.info)
 
     def rc(self):
         """Returns reverse complement of self w/ data from MolType.
 
         Always returns same type self.
         """
-        return self.__class__(self.moltype.rc(self), Info=self.info)
+        return self.__class__(self.moltype.rc(self), info=self.info)
 
     def is_gapped(self):
         """Returns True if sequence contains gaps."""
@@ -184,11 +184,11 @@ class SequenceI(object):
         frequencies).
         """
         return self.__class__(self.moltype.disambiguate(self, method),
-                              Info=self.info)
+                              info=self.info)
 
     def degap(self):
         """Deletes all gap characters from sequence."""
-        return self.__class__(self.moltype.degap(self), Info=self.info)
+        return self.__class__(self.moltype.degap(self), info=self.info)
 
     def gap_indices(self):
         """Returns list of indices of all gaps in the sequence, or []."""
@@ -486,12 +486,12 @@ class SequenceI(object):
         missing = self.moltype.missing
         if first_nongap is None:  # sequence was all gaps
             result = self.__class__(
-                [missing for i in len(self)], Info=self.info)
+                [missing for i in len(self)], info=self.info)
         else:
             prefix = missing * first_nongap
             mid = str(self[first_nongap:last_nongap + 1])
             suffix = missing * (len(self) - last_nongap - 1)
-            result = self.__class__(prefix + mid + suffix, Info=self.info)
+            result = self.__class__(prefix + mid + suffix, info=self.info)
         return result
 
 
@@ -500,7 +500,7 @@ class Sequence(_Annotatable, SequenceI):
     """Holds the standard Sequence object. Immutable."""
     moltype = None  # connected to ACSII when moltype is imported
 
-    def __init__(self, Seq='', name=None, Info=None, check=True,
+    def __init__(self, Seq='', name=None, info=None, check=True,
                  preserve_case=False, gaps_allowed=True, wildcards_allowed=True):
         """Initialize a sequence.
 
@@ -533,17 +533,17 @@ class Sequence(_Annotatable, SequenceI):
             self.moltype.verify_sequence(self._seq, gaps_allowed,
                                         wildcards_allowed)
 
-        if not isinstance(Info, InfoClass):
+        if not isinstance(info, InfoClass):
             try:
-                Info = InfoClass(Info)
+                info = InfoClass(info)
             except TypeError:
-                Info = InfoClass()
+                info = InfoClass()
         if hasattr(orig_seq, 'info'):
             try:
-                Info.update(orig_seq.info)
+                info.update(orig_seq.info)
             except:
                 pass
-        self.info = Info
+        self.info = info
 
         if isinstance(orig_seq, _Annotatable):
             self.copy_annotations(orig_seq)
@@ -608,7 +608,7 @@ class Sequence(_Annotatable, SequenceI):
         segments.append(self._seq[i:])
 
         new = self.__class__(''.join(segments), name=self.name, check=False,
-                             Info=self.info)
+                             info=self.info)
         new.annotations = self.annotations[:]
         return new
 
@@ -636,7 +636,7 @@ class Sequence(_Annotatable, SequenceI):
     def gapped_by_map(self, map, recode_gaps=False):
         segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
         new = self.__class__(''.join(segments),
-                             name=self.name, check=False, Info=self.info)
+                             name=self.name, check=False, info=self.info)
         annots = self._sliced_annotations(new, map)
         new.annotations = annots
         return new
@@ -644,7 +644,7 @@ class Sequence(_Annotatable, SequenceI):
     def _mapped(self, map):
         # Called by generic __getitem__
         segments = self.gapped_by_map_segment_iter(map, allow_gaps=False)
-        new = self.__class__(''.join(segments), self.name, Info=self.info)
+        new = self.__class__(''.join(segments), self.name, info=self.info)
         return new
 
     def __add__(self, other):
@@ -749,7 +749,7 @@ class Sequence(_Annotatable, SequenceI):
         map = Map(segments, parent_length=len(self)).inverse()
         seq = self.__class__(
             ''.join(gapless),
-            name=self.get_name(), Info=self.info)
+            name=self.get_name(), info=self.info)
         if self.annotations:
             seq.annotations = [a.remapped_to(seq, map)
                                for a in self.annotations]
@@ -782,7 +782,7 @@ class NucleicAcidSequence(Sequence):
     def rc(self):
         """Converts a nucleic acid sequence to its reverse complement."""
         complement = self.moltype.rc(self)
-        rc = self.__class__(complement, name=self.name, Info=self.info)
+        rc = self.__class__(complement, name=self.name, info=self.info)
         self._annotations_nucleic_reversed_on(rc)
         return rc
 
@@ -832,7 +832,7 @@ class NucleicAcidSequence(Sequence):
         if divisible_by_3 and codons and gc.is_stop(codons[-3:]):
             codons = codons[:-3]
 
-        return self.__class__(codons, name=self.name, Info=self.info)
+        return self.__class__(codons, name=self.name, info=self.info)
 
     def get_translation(self, gc=None):
         gc = self._gc_from_arg(gc)
@@ -928,9 +928,9 @@ class ABSequence(Sequence):
 class ByteSequence(Sequence):
     """Used for storing arbitrary bytes."""
 
-    def __init__(self, Seq='', name=None, Info=None, check=False,
+    def __init__(self, Seq='', name=None, info=None, check=False,
                  preserve_case=True):
-        return super(ByteSequence, self).__init__(Seq, name=name, Info=Info,
+        return super(ByteSequence, self).__init__(Seq, name=name, info=info,
                                                   check=check, preserve_case=preserve_case)
 
 
@@ -962,7 +962,7 @@ class ModelSequenceBase(object):
     Delimiter = ''  # Used for string conversions
     LineWrap = 80  # Wrap sequences at 80 characters by default.
 
-    def __init__(self, data='', alphabet=None, name=None, Info=None,
+    def __init__(self, data='', alphabet=None, name=None, info=None,
                  check='ignored'):
         """Initializes sequence from data and alphabet.
 
@@ -970,13 +970,13 @@ class ModelSequenceBase(object):
         This is for speed. Use is_valid() to check whether the data
         is consistent with the alphabet.
 
-        WARNING: If data has name and/or Info, gets ref to same object rather
+        WARNING: If data has name and/or info, gets ref to same object rather
         than copying in each case.
         """
         if name is None and hasattr(data, 'name'):
             name = data.name
-        if Info is None and hasattr(data, 'info'):
-            Info = data.info
+        if info is None and hasattr(data, 'info'):
+            info = data.info
         # set the label
         self.name = name
         # override the class alphabet if supplied
@@ -996,7 +996,7 @@ class ModelSequenceBase(object):
                 self._from_sequence(data)
 
         self.moltype = self.alphabet.moltype
-        self.info = Info
+        self.info = info
 
     def __getitem__(self, *args):
         """__getitem__ returns char or slice, as same class."""
@@ -1126,12 +1126,12 @@ class ModelSequenceBase(object):
             return self.copy()
         d = take(self._data, nonzero(logical_not(self.gap_array()))[0])
         return self.__class__(d, alphabet=self.alphabet, name=self.name,
-                              Info=self.info)
+                              info=self.info)
 
     def copy(self):
         """Returns copy of self, always separate object."""
         return self.__class__(self._data.copy(), alphabet=self.alphabet,
-                              name=self.name, Info=self.info)
+                              name=self.name, info=self.info)
 
     def __contains__(self, item):
         """Returns true if item in self (converts to strings)."""
@@ -1217,7 +1217,7 @@ class ModelSequenceBase(object):
 
     def shuffle(self):
         """Returns shuffled copy of self"""
-        return self.__class__(permutation(self._data), Info=self.info)
+        return self.__class__(permutation(self._data), info=self.info)
 
     def gap_array(self):
         """Returns array of 0/1 indicating whether each position is a gap."""
@@ -1269,7 +1269,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         """Returns copy of self with bad chars excised"""
         valid_indices = self._data < len(self.alphabet)
         result = compress(valid_indices, self._data)
-        return self.__class__(result, Info=self.info)
+        return self.__class__(result, info=self.info)
 
     def strip_bad_and_gaps(self):
         """Returns copy of self with bad chars and gaps excised."""
@@ -1278,7 +1278,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         for i in gap_indices:
             valid_indices[self._data == i] = False
         result = compress(valid_indices, self._data)
-        return self.__class__(result, Info=self.info)
+        return self.__class__(result, info=self.info)
 
     def strip_degenerate(self):
         """Returns copy of self without degenerate symbols.
@@ -1288,7 +1288,7 @@ class ModelSequence(ModelSequenceBase, SequenceI):
         speed becomes critical.
         """
         return self.__class__(self.moltype.strip_degenerate(str(self)),
-                              Info=self.info)
+                              info=self.info)
 
     def count_gaps(self):
         """Returns count of gaps in self."""
@@ -1364,12 +1364,12 @@ class ModelNucleicAcidSequence(ModelSequence):
     def complement(self):
         """Returns complement of sequence"""
         return self.__class__(self.alphabet._complement_array.take(self._data),
-                              Info=self.info)
+                              info=self.info)
 
     def rc(self):
         """Returns reverse-complement of sequence"""
         comp = self.alphabet._complement_array.take(self._data)
-        return self.__class__(comp[::-1], Info=self.info)
+        return self.__class__(comp[::-1], info=self.info)
 
     def to_rna(self):
         """Returns self as RNA"""
@@ -1420,11 +1420,11 @@ class ModelCodonSequence(ModelSequence):
                                alphabet=self.alphabet.sub_enumerations[0])
         self._data = d.to_codons()._data
 
-    def __init__(self, data='', alphabet=None, name=None, Info=None):
+    def __init__(self, data='', alphabet=None, name=None, info=None):
         """Override __init__ to handle init from string."""
         if isinstance(data, str):
             self._from_string(data)
-        ModelSequence.__init__(self, data, alphabet, name, Info=Info)
+        ModelSequence.__init__(self, data, alphabet, name, info=info)
 
     def to_codons(self):
         """Converts self to codons -- in practice, just returns self.
