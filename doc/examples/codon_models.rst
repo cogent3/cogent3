@@ -306,7 +306,7 @@ After Zhang et al, we first define a null model that has 2 rate classes '0' and 
     >>> rate_lf.optimise(**optimiser_args)
     >>> tables = rate_lf.getStatistics(with_titles=True)
     >>> for table in tables:
-    ...     if 'bin' in table.Title:
+    ...     if 'bin' in table.title:
     ...         print table
     bin params
     ====================
@@ -320,12 +320,12 @@ We're also going to use the MLEs from the ``rate_lf`` model, since that nests wi
 
 .. doctest::
     
-    >>> globals = [t for t in tables if 'global' in t.Title][0]
+    >>> globals = [t for t in tables if 'global' in t.title][0]
     >>> globals = dict(zip(globals.Header, globals.tolist()[0]))
-    >>> bin_params = [t for t in tables if 'bin' in t.Title][0]
+    >>> bin_params = [t for t in tables if 'bin' in t.title][0]
     >>> rate_class_omegas = dict(bin_params.tolist(['bin', 'omega']))
     >>> rate_class_probs = dict(bin_params.tolist(['bin', 'bprobs']))
-    >>> lengths = [t for t in tables if 'edge' in t.Title][0]
+    >>> lengths = [t for t in tables if 'edge' in t.title][0]
     >>> lengths = dict(lengths.tolist(['edge', 'length']))
 
 We now create the more complex model,

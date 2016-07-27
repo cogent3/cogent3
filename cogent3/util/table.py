@@ -143,12 +143,12 @@ class Table(DictArray):
         self._header = _Header([str(head) for head in header])
         self._missing_data = missing_data
 
-        self.Title = str(title)
-        self.Legend = str(legend)
+        self.title = str(title)
+        self.legend = str(legend)
         try:
-            self.Space = ' ' * space
+            self.space = ' ' * space
         except TypeError:
-            self.Space = space
+            self.space = space
         self._digits = digits
         self._row_ids = row_ids
         self._max_width = max_width
@@ -173,23 +173,23 @@ class Table(DictArray):
 
         row_trunc = ', '.join(row)
         header_trunc = ', '.join(map(repr, self.Header[:3]))
-        if self.Shape[1] > 3:
+        if self.shape[1] > 3:
             header_trunc = '[%s,..]' % header_trunc
             row_trunc = '[%s,..]' % row_trunc
         else:
             header_trunc = '[%s]' % header_trunc
             row_trunc = '[%s]' % row_trunc
 
-        if self.Shape[0] > 1:
+        if self.shape[0] > 1:
             row_trunc = '[%s,..]' % row_trunc
         else:
             row_trunc = '[[%s]]' % row_trunc
 
-        if self.Shape[0] == 0:
+        if self.shape[0] == 0:
             row_trunc = str([])
 
         result = 'Table(numrows=%s, numcols=%s, header=%s, rows=%s)' % \
-            (self.Shape[0], self.Shape[1], header_trunc, row_trunc)
+            (self.shape[0], self.shape[1], header_trunc, row_trunc)
         return result
 
     def __str__(self):
@@ -266,9 +266,9 @@ class Table(DictArray):
         return Table(header=new_header, rows=self.tolist(), **kw)
 
     def _get_persistent_attrs(self):
-        kws = dict(row_ids=self._row_ids, title=self.Title,
-                   legend=self.Legend, digits=self._digits,
-                   space=self.Space, max_width=self._max_width,
+        kws = dict(row_ids=self._row_ids, title=self.title,
+                   legend=self.legend, digits=self._digits,
+                   space=self.space, max_width=self._max_width,
                    missing_data=self._missing_data,
                    column_templates=self._column_templates or None)
         return kws
@@ -311,15 +311,15 @@ class Table(DictArray):
                                                                   digits=self._digits,
                                                                   column_templates=self._column_templates,
                                                                   missing_data=missing_data)
-            args = (header, formatted_table, self.Title, self.Legend)
+            args = (header, formatted_table, self.title, self.legend)
         if sep and format != 'bedgraph':
             return table_format.separatorFormat(*args + (sep,))
         elif format == 'rest':
             return table_format.gridTableFormat(*args)
         elif format.endswith('tex'):
             caption = None
-            if self.Title or self.Legend:
-                caption = " ".join([self.Title or "", self.Legend or ""])
+            if self.title or self.legend:
+                caption = " ".join([self.title or "", self.legend or ""])
             return table_format.latex(formatted_table, header,
                                       caption=caption, **kwargs)
         elif format == 'html':
@@ -331,14 +331,14 @@ class Table(DictArray):
             header = header[self._row_ids:]
             return table_format.phylipMatrix(formatted_table, header)
         elif format == 'bedgraph':
-            assert self.Shape[1] == 4, 'bedgraph format is for 4 column tables'
+            assert self.shape[1] == 4, 'bedgraph format is for 4 column tables'
             # assuming that header order is chrom, start, end, val
             formatted_table = bedgraph.bedgraph(self.sorted().array.tolist(),
                                                 **kwargs)
             return formatted_table
         else:
             return table_format.simpleFormat(*args + (self._max_width,
-                                                      self._row_ids, borders, self.Space))
+                                                      self._row_ids, borders, self.space))
 
     def to_rich_html(self, row_cell_func=None, header_cell_func=None,
                         element_formatters={}, merge_identical=True, compact=True):
@@ -417,12 +417,12 @@ class Table(DictArray):
             pickle.dump(data, outfile, protocol=1)
         elif sep is not None and format != 'bedgraph':
             writer = csv.writer(outfile, delimiter=sep)
-            if self.Title:
-                writer.writerow([self.Title])
+            if self.title:
+                writer.writerow([self.title])
             writer.writerow(self.Header)
             writer.writerows(self.array)
-            if self.Legend:
-                writer.writerow([self.Legend])
+            if self.legend:
+                writer.writerow([self.legend])
         else:
             table = self.tostring(format=format, sep=sep, **kwargs)
             outfile.writelines(table + '\n')
@@ -457,7 +457,7 @@ class Table(DictArray):
             new_twoD = []
             for row in table:
                 if new_column:
-                    new_twoD.append([table.Title] + row.asarray().tolist())
+                    new_twoD.append([table.title] + row.asarray().tolist())
                 else:
                     new_twoD.append(row.asarray().tolist())
             new_twoD = tuple(new_twoD)
@@ -767,9 +767,9 @@ class Table(DictArray):
               returned.
         """
 
-        if other_table.Title is None:
+        if other_table.title is None:
             raise RuntimeError("Cannot join if a other_table.Title is None")
-        elif self.Title == other_table.Title:
+        elif self.title == other_table.title:
             raise RuntimeError("Cannot join if a table.Title's are equal")
 
         columns_self = [columns_self, [columns_self]][
@@ -845,7 +845,7 @@ class Table(DictArray):
                                  for c in output_mask_other]
                     joined_table.append(list(this_row) + other_row)
 
-        new_header = self.Header + [other_table.Title + "_" + other_table.Header[c]
+        new_header = self.Header + [other_table.title + "_" + other_table.Header[c]
                                     for c in output_mask_other]
         if not joined_table:
             # YUK, this is to stop dimension check in DictArray causing
