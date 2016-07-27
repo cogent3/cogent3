@@ -161,7 +161,7 @@ class MonomerProbModel(ComplexMotifProbModel):
     def get_counted_alphabet(self):
         return self.monomer_alphabet
 
-    def calcMonomerProbs(self, word_probs):
+    def calc_monomer_probs(self, word_probs):
         monomer_probs = numpy.dot(word_probs, self.w2m.sum(axis=0))
         monomer_probs /= monomer_probs.sum()
         return monomer_probs
@@ -192,7 +192,7 @@ class MonomerProbModel(ComplexMotifProbModel):
             motif_probs = self.tuple_alphabet.adapt_motif_probs(motif_probs)
             if not auto:
                 warnings.warn('Motif probs overspecified', stacklevel=5)
-            motif_probs = self.calcMonomerProbs(motif_probs)
+            motif_probs = self.calc_monomer_probs(motif_probs)
         return motif_probs
 
 

@@ -316,9 +316,9 @@ class _SubstitutionModel(object):
     def adapt_motif_probs(self, motif_probs, auto=False):
         return self.mprob_model.adapt_motif_probs(motif_probs, auto=auto)
 
-    def calcMonomerProbs(self, word_probs):
+    def calc_monomer_probs(self, word_probs):
         # Not presently used, always go monomer->word instead
-        return self.mprob_model.calcMonomerProbs(word_probs)
+        return self.mprob_model.calc_monomer_probs(word_probs)
 
     def calc_word_probs(self, monomer_probs):
         return self.mprob_model.calc_word_probs(monomer_probs)
