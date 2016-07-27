@@ -434,7 +434,7 @@ class MolType(object):
 
             Complements: dict of symbol:symbol showing how the non-degenerate
                 single characters complement each other. Used for constructing
-                on the fly the complement table, incl. support for mustPair and
+                on the fly the complement table, incl. support for must_pair and
                 can_pair.
 
             Pairs: dict in which keys are pairs of symbols that can pair
@@ -964,7 +964,7 @@ class MolType(object):
                 return True
         return False
 
-    def mustPair(self, first, second):
+    def must_pair(self, first, second):
         """Returns True if all positions in 1st must pair with second.
 
         Pairing occurs in reverse order, i.e. last position of second with
