@@ -604,7 +604,7 @@ class TreeNode(object):
             curr = curr._parent
         return None
 
-    def lowestCommonAncestor(self, tipnames):
+    def lowest_common_ancestor(self, tipnames):
         """Lowest common ancestor for a list of tipnames
 
         This should be around O(H sqrt(n)), where H is height and n is the

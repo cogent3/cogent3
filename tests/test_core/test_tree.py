@@ -888,8 +888,8 @@ class TreeNodeTests(TestCase):
         self.assertEqual(parent.removeNode(children[0]), True)
         self.assertEqual(len(parent), 1)
 
-    def test_lowestCommonAncestor(self):
-        """TreeNode lowestCommonAncestor should return LCA for set of tips"""
+    def test_lowest_common_ancestor(self):
+        """TreeNode lowest_common_ancestor should return LCA for set of tips"""
         t1 = DndParser("((a,(b,c)d)e,f,(g,h)i)j;")
         t2 = t1.copy()
         t3 = t1.copy()
@@ -902,10 +902,10 @@ class TreeNodeTests(TestCase):
         exp2 = t2.getNodeMatchingName('e')
         exp3 = t3.getNodeMatchingName('d')
         exp4 = t4
-        obs1 = t1.lowestCommonAncestor(input1)
-        obs2 = t2.lowestCommonAncestor(input2)
-        obs3 = t3.lowestCommonAncestor(input3)
-        obs4 = t4.lowestCommonAncestor(input4)
+        obs1 = t1.lowest_common_ancestor(input1)
+        obs2 = t2.lowest_common_ancestor(input2)
+        obs3 = t3.lowest_common_ancestor(input3)
+        obs4 = t4.lowest_common_ancestor(input4)
         self.assertEqual(obs1, exp1)
         self.assertEqual(obs2, exp2)
         self.assertEqual(obs3, exp3)
@@ -915,8 +915,8 @@ class TreeNodeTests(TestCase):
         t_mul = t1.copy()
         exp_1 = t_mul.getNodeMatchingName('d')
         exp_2 = t_mul.getNodeMatchingName('i')
-        obs_1 = t_mul.lowestCommonAncestor(['b', 'c'])
-        obs_2 = t_mul.lowestCommonAncestor(['g', 'h'])
+        obs_1 = t_mul.lowest_common_ancestor(['b', 'c'])
+        obs_2 = t_mul.lowest_common_ancestor(['g', 'h'])
         self.assertEqual(obs_1, exp_1)
         self.assertEqual(obs_2, exp_2)
 
