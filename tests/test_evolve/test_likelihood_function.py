@@ -568,9 +568,9 @@ motif    mprobs
         likelihood_function.setParamRule(
             "length", value=4.0, edge="Human", is_constant=True)
         result = likelihood_function.getAnnotatedTree()
-        self.assertEqual(result.getNodeMatchingName(
+        self.assertEqual(result.get_node_matching_name(
             'Human').params['length'], 4.0)
-        self.assertEqual(result.getNodeMatchingName('Human').Length, 4.0)
+        self.assertEqual(result.get_node_matching_name('Human').Length, 4.0)
 
     def test_getparamsasdict(self):
         likelihood_function = self._makeLikelihoodFunction()

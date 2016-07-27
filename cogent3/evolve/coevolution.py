@@ -1109,7 +1109,7 @@ def ancestral_state_pair(aln, tree, pos1, pos2,
     tips = tree.get_node_names(tipsonly=True)
     # map names to nodes (there has to be a built-in way to do this
     # -- what is it?)
-    nodes = dict([(n, tree.getNodeMatchingName(n)) for n in tips])
+    nodes = dict([(n, tree.get_node_matching_name(n)) for n in tips])
     # add tip branch lengths as distance b/w identical tips -- this is
     # necessary for my weighting step, where we want correlated changes
     # occuring on a single branch to be given the most weight

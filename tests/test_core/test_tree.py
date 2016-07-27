@@ -898,9 +898,9 @@ class TreeNodeTests(TestCase):
         input2 = ['a', 'b']  # return e
         input3 = ['b', 'c']  # return d
         input4 = ['a', 'h', 'g']  # return j
-        exp1 = t1.getNodeMatchingName('a')
-        exp2 = t2.getNodeMatchingName('e')
-        exp3 = t3.getNodeMatchingName('d')
+        exp1 = t1.get_node_matching_name('a')
+        exp2 = t2.get_node_matching_name('e')
+        exp3 = t3.get_node_matching_name('d')
         exp4 = t4
         obs1 = t1.lowest_common_ancestor(input1)
         obs2 = t2.lowest_common_ancestor(input2)
@@ -913,8 +913,8 @@ class TreeNodeTests(TestCase):
 
         # verify multiple calls work
         t_mul = t1.copy()
-        exp_1 = t_mul.getNodeMatchingName('d')
-        exp_2 = t_mul.getNodeMatchingName('i')
+        exp_1 = t_mul.get_node_matching_name('d')
+        exp_2 = t_mul.get_node_matching_name('i')
         obs_1 = t_mul.lowest_common_ancestor(['b', 'c'])
         obs_2 = t_mul.lowest_common_ancestor(['g', 'h'])
         self.assertEqual(obs_1, exp_1)
@@ -1065,11 +1065,11 @@ class TreeNodeTests(TestCase):
         exp_tree_str = '((A,B)SAMENAME,(C,D)SAMENAME);'
         self.assertEqual(str(samename_bug), exp_tree_str)
 
-    def test_getNodeMatchingName(self):
-        """TreeNode getNodeMatchingName should return node that matches name"""
+    def test_get_node_matching_name(self):
+        """TreeNode get_node_matching_name should return node that matches name"""
         nodes = self.TreeNode
         root = self.TreeRoot
-        assert root.getNodeMatchingName('g') is nodes['g']
+        assert root.get_node_matching_name('g') is nodes['g']
 
     def test_subset(self):
         """subset should return set of leaves that descends from node"""
@@ -1305,9 +1305,9 @@ class PhyloNodeTests(TestCase):
 
     def test_tipToTipDistances_endpoints(self):
         """Test getting specifc tip distances  with tipToTipDistances"""
-        nodes = [self.t.getNodeMatchingName('H'),
-                 self.t.getNodeMatchingName('G'),
-                 self.t.getNodeMatchingName('M')]
+        nodes = [self.t.get_node_matching_name('H'),
+                 self.t.get_node_matching_name('G'),
+                 self.t.get_node_matching_name('M')]
         names = ['H', 'G', 'M']
         exp = (array([[0, 2.0, 6.7], [2.0, 0, 6.7], [6.7, 6.7, 0.0]]), nodes)
         obs = self.t.tipToTipDistances(endpoints=names)
@@ -1386,16 +1386,16 @@ class PhyloNodeTests(TestCase):
         # works when the midpoint falls on an existing edge
         tree1 = deepcopy(tree)
         result = tree1.rootAtMidpoint()
-        self.assertEqual(result.distance(result.getNodeMatchingName('e')), 4)
+        self.assertEqual(result.distance(result.get_node_matching_name('e')), 4)
         self.assertEqual(result.get_distances(), tree1.get_distances())
         # works when the midpoint falls between two existing edges
         nodes['f'].Length = 1
         nodes['c'].Length = 4
         result = tree.rootAtMidpoint()
-        self.assertEqual(result.distance(result.getNodeMatchingName('e')), 5.0)
-        self.assertEqual(result.distance(result.getNodeMatchingName('g')), 5.0)
-        self.assertEqual(result.distance(result.getNodeMatchingName('h')), 5.0)
-        self.assertEqual(result.distance(result.getNodeMatchingName('d')), 2.0)
+        self.assertEqual(result.distance(result.get_node_matching_name('e')), 5.0)
+        self.assertEqual(result.distance(result.get_node_matching_name('g')), 5.0)
+        self.assertEqual(result.distance(result.get_node_matching_name('h')), 5.0)
+        self.assertEqual(result.distance(result.get_node_matching_name('d')), 2.0)
         self.assertEqual(result.get_distances(), tree.get_distances())
 
     def test_rootAtMidpoint2(self):
@@ -1404,7 +1404,7 @@ class PhyloNodeTests(TestCase):
         nodes, tree = self.TreeNode, self.TreeRoot
         nodes['h'].Length = 20
         result = tree.rootAtMidpoint()
-        self.assertEqual(result.distance(result.getNodeMatchingName('h')), 14)
+        self.assertEqual(result.distance(result.get_node_matching_name('h')), 14)
         self.assertEqual(result.get_distances(), tree.get_distances())
 
     def test_rootAtMidpoint3(self):
@@ -1415,7 +1415,7 @@ class PhyloNodeTests(TestCase):
         tipnames = tree.get_tip_names()
         nontipnames = [t.name for t in tree.nontips()]
         self.assertTrue(tmid.is_root())
-        self.assertEqual(tmid.distance(tmid.getNodeMatchingName('d')), 2.75)
+        self.assertEqual(tmid.distance(tmid.get_node_matching_name('d')), 2.75)
 
     def test_rootAtMidpoint4(self):
         """midpoint should be selected correctly when it is an internal node
@@ -1426,18 +1426,18 @@ class PhyloNodeTests(TestCase):
         tipnames = tree.get_tip_names()
         nontipnames = [t.name for t in tree.nontips()]
         # for tipname in tipnames:
-        #     tmid_tip = tmid.getNodeMatchingName(tipname)
-        #     orig_tip = tree.getNodeMatchingName(tipname)
+        #     tmid_tip = tmid.get_node_matching_name(tipname)
+        #     orig_tip = tree.get_node_matching_name(tipname)
         #     for nontipname in nontipnames:
         #         tmid_dist=\
-        #           tmid.getNodeMatchingName(nontipname).distance(tmid_tip)
+        #           tmid.get_node_matching_name(nontipname).distance(tmid_tip)
         #         orig_dist=\
-        #           tree.getNodeMatchingName(nontipname).distance(orig_tip)
+        #           tree.get_node_matching_name(nontipname).distance(orig_tip)
         #         print nontipname, tipname, 'assert'
                 # self.assertEqual(tmid_dist, orig_dist)
         self.assertTrue(tmid.is_root())
         self.assertEqual(tmid.distance(
-            tmid.getNodeMatchingName('d')), 3)
+            tmid.get_node_matching_name('d')), 3)
 
     def test_rootAtMidpoint5(self):
         """midpoint should be selected correctly when on an even 2tip tree
@@ -1450,9 +1450,9 @@ class PhyloNodeTests(TestCase):
 
         self.assertTrue(tmid.is_root())
         self.assertFloatEqual(tmid.distance(
-            tmid.getNodeMatchingName('BLO_2')), 0.649351)
+            tmid.get_node_matching_name('BLO_2')), 0.649351)
         self.assertFloatEqual(tmid.distance(
-            tmid.getNodeMatchingName('BLO_1')), 0.649351)
+            tmid.get_node_matching_name('BLO_1')), 0.649351)
         self.assertFloatEqual(tmid[0].distance(tmid[1]), 2.0 * 0.649351)
 
     def test_setTipDistances(self):
@@ -1617,10 +1617,10 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         self.assertEqual(tree.getConnectingNode('A', 'B').name, 'ab')
         self.assertEqual(tree.getConnectingNode('A', 'C').name, 'root')
 
-    def test_getNodeMatchingName(self):
+    def test_get_node_matching_name(self):
         tree = self.default_tree
         for (name, expect_tip) in [('A', True), ('ab', False)]:
-            edge = tree.getNodeMatchingName(name)
+            edge = tree.get_node_matching_name(name)
             self.assertEqual(edge.name, name)
             self.assertEqual(edge.istip(), expect_tip)
 
@@ -1741,10 +1741,10 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
     def test_params_merge(self):
         t = LoadTree(treestring='((((a,b)ab,c)abc),d)')
         for (label, length, beta) in [('a', 1, 20), ('b', 3, 2.0), ('ab', 4, 5.0), ]:
-            t.getNodeMatchingName(label).params = {
+            t.get_node_matching_name(label).params = {
                                   'length': length, 'beta': beta}
         t = t.get_sub_tree(['b', 'c', 'd'])
-        self.assertEqual(t.getNodeMatchingName('b').params,
+        self.assertEqual(t.get_node_matching_name('b').params,
                          {'length': 7, 'beta': float(2 * 3 + 4 * 5) / (3 + 4)})
         self.assertRaises(ValueError, t.get_sub_tree, ['b', 'c', 'xxx'])
         self.assertEqual(str(t.get_sub_tree(['b', 'c', 'xxx'], ignore_missing=True)),
@@ -1763,7 +1763,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         t = LoadTree(treestring='((((a:.2,b:.3)ab:.1,c:.3)abc:.4),d:.6)')
         self.assertEqual(t.getParamValue('length', 'ab'), 0.1, 2)
         t.setParamValue('zz', 'ab', 4.321)
-        node = t.getNodeMatchingName('ab')
+        node = t.get_node_matching_name('ab')
         self.assertEqual(4.321, node.params['zz'], 4)
 
 
