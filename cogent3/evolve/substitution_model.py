@@ -246,7 +246,7 @@ class _SubstitutionModel(object):
     def set_param_controller_motif_probs(self, pc, mprobs, **kw):
         return self.mprob_model.set_param_controller_motif_probs(pc, mprobs, **kw)
 
-    def makeLikelihoodFunction(self, tree, motif_probs_from_align=None,
+    def make_likelihood_function(self, tree, motif_probs_from_align=None,
                                optimise_motif_probs=None, aligned=True, expm=None, digits=None,
                                space=None, **kw):
 
@@ -285,7 +285,7 @@ class _SubstitutionModel(object):
     def makeParamController(self, tree, motif_probs_from_align=None,
                             optimise_motif_probs=None, **kw):
         # deprecate
-        return self.makeLikelihoodFunction(tree,
+        return self.make_likelihood_function(tree,
                                            motif_probs_from_align=motif_probs_from_align,
                                            optimise_motif_probs=optimise_motif_probs,
                                            **kw)

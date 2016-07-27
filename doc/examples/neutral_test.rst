@@ -28,7 +28,7 @@ Make the controller object
 
 .. doctest::
 
-    >>> lf = sm.makeLikelihoodFunction(t, digits=2, space=2)
+    >>> lf = sm.make_likelihood_function(t, digits=2, space=2)
 
 Get the likelihood function object this object performs the actual likelihood calculation.
 

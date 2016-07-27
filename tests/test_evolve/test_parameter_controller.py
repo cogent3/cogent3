@@ -64,7 +64,7 @@ class test_parameter_controller(unittest.TestCase):
         model = cogent3.evolve.substitution_model.Nucleotide(
             do_scaling=True, equal_motif_probs=True, model_gaps=True,
             predicates={'kappa': 'transition'})
-        lf = model.makeLikelihoodFunction(self.tree)
+        lf = model.make_likelihood_function(self.tree)
         lf.set_constant_lengths()
         lf.set_alignment(self.al)
         null = lf.getNumFreeParams()
@@ -77,7 +77,7 @@ class test_parameter_controller(unittest.TestCase):
         """Mprobs supplied to the parameter controller"""
         model = cogent3.evolve.substitution_model.Nucleotide(
             model_gaps=True, motif_probs=None)
-        lf = model.makeLikelihoodFunction(self.tree,
+        lf = model.make_likelihood_function(self.tree,
                                           motif_probs_from_align=False)
 
         mprobs = {'A': 0.1, 'C': 0.2, 'G': 0.2, 'T': 0.5, '-': 0.0}
@@ -103,7 +103,7 @@ class test_parameter_controller(unittest.TestCase):
     def test_setMultiLocus(self):
         """2 loci each with own mprobs"""
         model = cogent3.evolve.substitution_model.Nucleotide(motif_probs=None)
-        lf = model.makeLikelihoodFunction(self.tree,
+        lf = model.make_likelihood_function(self.tree,
                                           motif_probs_from_align=False, loci=["a", "b"])
 
         mprobs_a = dict(A=.2, T=.2, C=.3, G=.3)
@@ -119,7 +119,7 @@ class test_parameter_controller(unittest.TestCase):
             #lf.set_param_rule('mprobs', is_independent=False)
 
     def test_set_param_rules(self):
-        lf = self.model.makeLikelihoodFunction(self.tree)
+        lf = self.model.make_likelihood_function(self.tree)
 
         def do_rules(rule_set):
             for rule in rule_set:
@@ -137,7 +137,7 @@ class test_parameter_controller(unittest.TestCase):
 
     def test_set_constant_lengths(self):
         t = LoadTree(treestring='((a:1,b:2):3,(c:4,d:5):6,e:7);')
-        lf = self.model.makeLikelihoodFunction(t)  # self.tree)
+        lf = self.model.make_likelihood_function(t)  # self.tree)
         lf.set_param_rule('length', is_constant=True)
         # lf.set_constant_lengths(t)
         lf.set_alignment(self.al)
@@ -150,7 +150,7 @@ class test_parameter_controller(unittest.TestCase):
         model = cogent3.evolve.substitution_model.Dinucleotide(
             do_scaling=True, equal_motif_probs=True, model_gaps=True,
             mprob_model='tuple')
-        lf = model.makeLikelihoodFunction(tree)
+        lf = model.make_likelihood_function(tree)
         lf.set_local_clock('a', 'b')
         lf.set_alignment(al)
         lf.optimise(local=True)
@@ -159,7 +159,7 @@ class test_parameter_controller(unittest.TestCase):
         self.assertEqual(rd['length']['a'], rd['length']['b'])
 
     def test_local_clock(self):
-        lf = self.model.makeLikelihoodFunction(self.tree)
+        lf = self.model.make_likelihood_function(self.tree)
         lf.set_local_clock('c', 'd')
         lf.set_alignment(self.al)
         lf.optimise(local=True,
@@ -175,7 +175,7 @@ class test_parameter_controller(unittest.TestCase):
         model = cogent3.evolve.substitution_model.Nucleotide(
             do_scaling=True, equal_motif_probs=True, model_gaps=True,
             predicates={'kappa': 'transition'})
-        lf = model.makeLikelihoodFunction(self.tree)
+        lf = model.make_likelihood_function(self.tree)
         lf.set_param_rule(par_name='kappa',
                         is_independent=True)
         lf.set_param_rule(par_name='kappa',
@@ -193,7 +193,7 @@ class test_parameter_controller(unittest.TestCase):
 
     def test_bounds(self):
         """Test setting upper and lower bounds for parameters"""
-        lf = self.model.makeLikelihoodFunction(self.tree)
+        lf = self.model.make_likelihood_function(self.tree)
         lf.set_param_rule('length', value=3, lower=0, upper=5)
 
         # Out of bounds value should warn and keep bounded

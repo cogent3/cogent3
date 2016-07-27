@@ -1066,7 +1066,7 @@ def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
          not perfectly clear about it.
     """
     sm = sm or SubstitutionModel(aln.alphabet, recode_gaps=True)
-    lf = sm.makeLikelihoodFunction(tree, sm.motif_probs)
+    lf = sm.make_likelihood_function(tree, sm.motif_probs)
     lf.set_alignment(aln, motif_pseudocount=pseudocount)
     if optimise:
         lf.optimise(local=True)

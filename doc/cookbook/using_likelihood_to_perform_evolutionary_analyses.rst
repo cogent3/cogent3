@@ -90,7 +90,7 @@ You start by specifying a substitution model and use that to construct a likelih
     >>> from cogent3.evolve.models import F81
     >>> sub_mod = F81()
     >>> tree = LoadTree(treestring='(a,b,(c,d))')
-    >>> lf = sub_mod.makeLikelihoodFunction(tree)
+    >>> lf = sub_mod.make_likelihood_function(tree)
 
 Providing an alignment to a likelihood function
 -----------------------------------------------
@@ -103,7 +103,7 @@ You need to load an alignment and then provide it a likelihood function. I const
     >>> from cogent3.evolve.models import F81
     >>> sub_mod = F81()
     >>> tree = LoadTree(treestring='(a,b,(c,d))')
-    >>> lf = sub_mod.makeLikelihoodFunction(tree)
+    >>> lf = sub_mod.make_likelihood_function(tree)
     >>> aln = LoadSeqs(data=[('a', 'ACGT'), ('b', 'AC-T'), ('c', 'ACGT'),
     ...                      ('d', 'AC-T')])
     ...                     
@@ -134,7 +134,7 @@ For many evolutionary analyses, it's desirable to allow different branches on a 
                                             \edge.0--|
                                                       \-Chimpanzee
     >>> sm = CNFGTR()
-    >>> lf = sm.makeLikelihoodFunction(tree, digits=2)
+    >>> lf = sm.make_likelihood_function(tree, digits=2)
     >>> lf.set_param_rule('omega', tip_names=['Human', 'Orangutan'], outgroup_name='Galago', is_clade=True, init=0.5)
 
 We've set an *initial* value for this clade so that the edges affected by this rule are evident below.
@@ -180,7 +180,7 @@ This means the parameter will not be modified during likelihood maximisation. We
     >>> from cogent3.evolve.models import CNFGTR
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> sm = CNFGTR()
-    >>> lf = sm.makeLikelihoodFunction(tree, digits=2)
+    >>> lf = sm.make_likelihood_function(tree, digits=2)
     >>> lf.set_param_rule('omega', is_constant=True)
 
 Providing a starting value for a parameter
@@ -194,7 +194,7 @@ This can be useful to improve performance, the closer you are to the maximum lik
     >>> from cogent3.evolve.models import CNFGTR
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> sm = CNFGTR()
-    >>> lf = sm.makeLikelihoodFunction(tree, digits=2)
+    >>> lf = sm.make_likelihood_function(tree, digits=2)
     >>> lf.set_param_rule('omega', init=0.1)
 
 Setting bounds for optimising a function
@@ -208,7 +208,7 @@ This can be useful for stopping optimisers from getting stuck in a bad part of p
     >>> from cogent3.evolve.models import CNFGTR
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> sm = CNFGTR()
-    >>> lf = sm.makeLikelihoodFunction(tree, digits=2)
+    >>> lf = sm.make_likelihood_function(tree, digits=2)
     >>> lf.set_param_rule('omega', init=0.1, lower=1e-9, upper=20.0)
 
 Specifying rate heterogeneity functions
@@ -222,7 +222,7 @@ We extend the simple gamma distributed rate heterogeneity case for nucleotides f
     >>> from cogent3.evolve.models import GTR
     >>> sm = GTR(with_rate=True, distribution='gamma')
     >>> tree = LoadTree('data/primate_brca1.tree')
-    >>> lf = sm.makeLikelihoodFunction(tree, bins=4, digits=2)
+    >>> lf = sm.make_likelihood_function(tree, bins=4, digits=2)
     >>> lf.set_param_rule('bprobs', is_constant=True)
 
 For more detailed discussion of defining and using these models see :ref:`rate-heterogeneity`.
@@ -236,7 +236,7 @@ Specifying Phylo-HMMs
     >>> from cogent3.evolve.models import GTR
     >>> sm = GTR(with_rate=True, distribution='gamma')
     >>> tree = LoadTree('data/primate_brca1.tree')
-    >>> lf = sm.makeLikelihoodFunction(tree, bins=4, sites_independent=False,
+    >>> lf = sm.make_likelihood_function(tree, bins=4, sites_independent=False,
     ...                                 digits=2)
     >>> lf.set_param_rule('bprobs', is_constant=True)
 
@@ -257,7 +257,7 @@ There are 2 types of optimiser: simulated annealing, a *global* optimiser; and P
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = F81()
-    >>> lf = sm.makeLikelihoodFunction(tree, digits=3, space=2)
+    >>> lf = sm.make_likelihood_function(tree, digits=3, space=2)
     >>> lf.set_alignment(aln)
 
 The default is to use the simulated annealing optimiser followed by Powell.
@@ -298,7 +298,7 @@ We can monitor this situation using the ``limit_action`` argument to ``optimise`
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = F81()
-    >>> lf = sm.makeLikelihoodFunction(tree, digits=3, space=2)
+    >>> lf = sm.make_likelihood_function(tree, digits=3, space=2)
     >>> lf.set_alignment(aln)
     >>> max_evals = 10
     >>> lf.optimise(show_progress=False, limit_action='raise',
@@ -324,7 +324,7 @@ Log likelihood and number of free parameters
     >>> from cogent3.evolve.models import GTR
     >>> sm = GTR()
     >>> tree = LoadTree('data/primate_brca1.tree')
-    >>> lf = sm.makeLikelihoodFunction(tree)
+    >>> lf = sm.make_likelihood_function(tree)
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> lf.set_alignment(aln)
 
@@ -355,7 +355,7 @@ Aikake Information Criterion
     >>> from cogent3.evolve.models import GTR
     >>> sm = GTR()
     >>> tree = LoadTree('data/primate_brca1.tree')
-    >>> lf = sm.makeLikelihoodFunction(tree)
+    >>> lf = sm.make_likelihood_function(tree)
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> lf.set_alignment(aln)
     >>> AIC = lf.get_aic()
@@ -381,7 +381,7 @@ Bayesian Information Criterion
     >>> from cogent3.evolve.models import GTR
     >>> sm = GTR()
     >>> tree = LoadTree('data/primate_brca1.tree')
-    >>> lf = sm.makeLikelihoodFunction(tree)
+    >>> lf = sm.make_likelihood_function(tree)
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> lf.set_alignment(aln)
     >>> BIC = lf.get_bic()
@@ -472,7 +472,7 @@ We test the molecular clock hypothesis for human and chimpanzee lineages. The nu
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = F81()
-    >>> lf = sm.makeLikelihoodFunction(tree, digits=3, space=2)
+    >>> lf = sm.make_likelihood_function(tree, digits=3, space=2)
     >>> lf.set_alignment(aln)
     >>> lf.set_param_rule('length', tip_names=['Human', 'Chimpanzee'],
     ...         outgroup_name='Galago', is_clade=True, is_independent=False)
@@ -543,7 +543,7 @@ In general, however, this capability derives from the ability of any defined ``e
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = F81()
-    >>> lf = sm.makeLikelihoodFunction(tree, digits=3, space=2)
+    >>> lf = sm.make_likelihood_function(tree, digits=3, space=2)
     >>> lf.set_alignment(aln)
     >>> lf.set_param_rule('length', tip_names=['Human', 'Chimpanzee'],
     ...         outgroup_name='Galago', is_clade=True, is_independent=False)
@@ -566,7 +566,7 @@ The profile method is used to calculate a confidence interval for a named parame
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = HKY85()
-    >>> lf = sm.makeLikelihoodFunction(tree)
+    >>> lf = sm.make_likelihood_function(tree)
     >>> lf.set_alignment(aln)
     >>> lf.optimise(local=True, show_progress=False)
     >>> kappa_lo, kappa_mle, kappa_hi = lf.getParamInterval('kappa')
@@ -593,7 +593,7 @@ We look at the distribution of ``omega`` from the CNF codon model family across 
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = CNFGTR()
-    >>> lf = sm.makeLikelihoodFunction(tree, digits=2, space=2)
+    >>> lf = sm.make_likelihood_function(tree, digits=2, space=2)
     >>> lf.set_param_rule('omega', is_independent=True, upper=10.0)
     >>> lf.set_alignment(aln)
     >>> lf.optimise(show_progress=False, local=True)
@@ -648,7 +648,7 @@ We first fit a likelihood function.
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> sm = F81()
-    >>> lf = sm.makeLikelihoodFunction(tree, digits=3, space=2)
+    >>> lf = sm.make_likelihood_function(tree, digits=3, space=2)
     >>> lf.set_alignment(aln)
     >>> lf.optimise(show_progress=False, local=True)
 

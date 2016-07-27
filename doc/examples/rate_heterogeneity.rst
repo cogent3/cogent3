@@ -18,7 +18,7 @@ Make an alignment with equal split between rates 0.6 and 0.2, and then concatena
 
     >>> model = Nucleotide(equal_motif_probs=True)
     >>> tree = LoadTree("data/test.tree")
-    >>> lf = model.makeLikelihoodFunction(tree)
+    >>> lf = model.make_likelihood_function(tree)
     >>> lf.set_param_rule('length', value=0.6, is_constant=True)
     >>> aln1 = lf.simulate_alignment(sequence_length=10000)
     >>> lf.set_param_rule('length', value=0.2, is_constant=True)
@@ -31,7 +31,7 @@ Start from scratch, optimising only rates and the rate probability ratio.
 
     >>> model = Nucleotide(equal_motif_probs=True, ordered_param="rate",
     ...                    distribution="free")
-    >>> lf = model.makeLikelihoodFunction(tree, bins=2, digits=2, space=3)
+    >>> lf = model.make_likelihood_function(tree, bins=2, digits=2, space=3)
     >>> lf.set_alignment(aln3)
     >>> lf.optimise(local=True, max_restarts=2)
 
@@ -59,7 +59,7 @@ We'll now use a gamma distribution on the sample alignment, specifying the numbe
 
     >>> model = Nucleotide(equal_motif_probs=True, ordered_param="rate",
     ...                    distribution="gamma")
-    >>> lf = model.makeLikelihoodFunction(tree, bins=4)
+    >>> lf = model.make_likelihood_function(tree, bins=4)
     >>> lf.set_param_rule('bprobs', is_constant=True)
     >>> lf.set_alignment(aln3)
     >>> lf.optimise(local=True, max_restarts=2)
