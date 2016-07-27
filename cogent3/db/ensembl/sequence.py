@@ -36,7 +36,7 @@ def _assemble_seq(frags, start, end, frag_positions):
     diff = end - frag_end
     assert diff >= 0, 'end[%s] < previous frag_end[%s]' % (end, frag_end)
     assembled += ['N' * diff]
-    return DNA.makeSequence(''.join(assembled))
+    return DNA.make_sequence(''.join(assembled))
 
 
 def _make_coord(genome, coord_name, start, end, strand):
@@ -101,7 +101,7 @@ def _get_sequence_from_direct_assembly(coord=None, DEBUG=False):
                            dna.c.seq_region_id == t_loc.seq_region_id)
         record = asserted_one(query.execute().fetchall())
         seq = record['sequence']
-        seq = DNA.makeSequence(seq)
+        seq = DNA.make_sequence(seq)
         if t_loc.Strand == -1:
             seq = seq.rc()
         seqs.append(str(seq))

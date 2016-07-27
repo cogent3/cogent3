@@ -59,7 +59,7 @@ def GbSeqXmlParser(doc):
         else:
             alphabet = moltype.DNA
 
-        seq = alphabet.makeSequence(raw_string, Name=name)
+        seq = alphabet.make_sequence(raw_string, Name=name)
 
         all = annotation.Map([(0, len(seq))], parent_length=len(seq))
         seq.addAnnotation(annotation.Source, all, name, all)

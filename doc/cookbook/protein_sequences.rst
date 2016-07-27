@@ -9,7 +9,7 @@ Creating a ProteinSequence with a name
 .. doctest::
 
     >>> from cogent import PROTEIN
-    >>> p = PROTEIN.makeSequence('THISISAPRQTEIN','myProtein')
+    >>> p = PROTEIN.make_sequence('THISISAPRQTEIN','myProtein')
     >>> type(p)
     <class 'cogent.core.sequence.ProteinSequence'>
     >>> str(p)

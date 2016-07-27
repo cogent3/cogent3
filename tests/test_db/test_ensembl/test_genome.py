@@ -686,7 +686,7 @@ class TestFeatures(GenomeTestBase):
         ps_repeat = self.human.getRegion(Strand=1, **coord)
         ms_repeat = self.human.getRegion(Strand=-1, **coord)
         # note this MER3 repeat is annotated on the -1 strand
-        exp = DNA.makeSequence('AGCTTACTGTGAGGATGGGAACATTTTACAGCTGTGCTGTCCAAA'
+        exp = DNA.make_sequence('AGCTTACTGTGAGGATGGGAACATTTTACAGCTGTGCTGTCCAAA'
                                'CCGGTGCCACTAGCCACATTAAGCACTCGAAACGTGGCTAGTGCGACTAGAGAAGAGGAT'
                                'TTTCATACGATTTAGTTTCAATCACGCTAACCAGTGACGCGTGGCTAGTGG')
 
@@ -710,7 +710,7 @@ class TestAssembly(TestCase):
 
     def test_assemble_seq(self):
         """should correctly fill in a sequence with N's"""
-        expect = DNA.makeSequence("NAAAAANNCCCCCNNGGGNNN")
+        expect = DNA.make_sequence("NAAAAANNCCCCCNNGGGNNN")
         frags = ["AAAAA", "CCCCC", "GGG"]
         positions = [(11, 16), (18, 23), (25, 28)]
         self.assertEqual(_assemble_seq(frags, 10, 31, positions), expect)
@@ -718,19 +718,19 @@ class TestAssembly(TestCase):
         self.assertEqual(_assemble_seq(frags, 0, 21, positions), expect)
         # should work with:
         # start matches first frag start
-        expect = DNA.makeSequence("AAAAANNCCCCCNNGGGNNN")
+        expect = DNA.make_sequence("AAAAANNCCCCCNNGGGNNN")
         positions = [(0, 5), (7, 12), (14, 17)]
         self.assertEqual(_assemble_seq(frags, 0, 20, positions), expect)
         # end matches last frag_end
-        expect = DNA.makeSequence("NAAAAANNCCCCCNNGGG")
+        expect = DNA.make_sequence("NAAAAANNCCCCCNNGGG")
         positions = [(11, 16), (18, 23), (25, 28)]
         self.assertEqual(_assemble_seq(frags, 10, 28, positions), expect)
         # both start and end matched
-        expect = DNA.makeSequence("AAAAANNCCCCCNNGGG")
+        expect = DNA.make_sequence("AAAAANNCCCCCNNGGG")
         positions = [(10, 15), (17, 22), (24, 27)]
         self.assertEqual(_assemble_seq(frags, 10, 27, positions), expect)
         # one frag
-        expect = DNA.makeSequence(''.join(frags))
+        expect = DNA.make_sequence(''.join(frags))
         positions = [(10, 23)]
         self.assertEqual(_assemble_seq([''.join(frags)], 10, 23, positions),
                          expect)

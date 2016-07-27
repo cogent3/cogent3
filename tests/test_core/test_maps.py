@@ -59,7 +59,7 @@ class MapTest(unittest.TestCase):
                 self.fail(repr((r, expected)))
 
     def test_maps_on_maps(self):
-        seq = DNA.makeSequence('ATCGATCGAT' * 5, Name='base')
+        seq = DNA.make_sequence('ATCGATCGAT' * 5, Name='base')
         feat1 = annotate(seq, 10, 20, 'fake')
         feat2 = annotate(feat1, 3, 5, 'fake2')
         feat3 = annotate(seq, 1, 3, 'left')
@@ -76,7 +76,7 @@ class MapTest(unittest.TestCase):
         )
 
     def test_getByAnnotation(self):
-        seq = DNA.makeSequence('ATCGATCGAT' * 5, Name='base')
+        seq = DNA.make_sequence('ATCGATCGAT' * 5, Name='base')
         seq.addAnnotation(Feature, 'test_type', 'test_label', [(5, 10)])
         seq.addAnnotation(Feature, 'test_type', 'test_label2', [(15, 18)])
 

@@ -153,7 +153,7 @@ def do(msg, display, **kw):
 
 def makeSampleSequence():
     seq = 'tgccnwsrygagcgtgttaaacaatggccaactctctaccttcctatgttaaacaagtgagatcgcaggcgcgccaaggc'
-    seq = DNA.makeSequence(seq)
+    seq = DNA.make_sequence(seq)
     v = seq.addAnnotation(annotation.Feature, 'exon', 'exon', [(20, 35)])
     v = seq.addAnnotation(annotation.Feature, 'repeat_unit',
                           'repeat_unit', [(39, 49)])

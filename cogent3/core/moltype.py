@@ -559,7 +559,7 @@ class MolType(object):
         """Returns type, e.g. 'dna', 'rna', 'protein'. Delete?"""
         return self.label
 
-    def makeSequence(self, Seq, Name=None, **kwargs):
+    def make_sequence(self, Seq, Name=None, **kwargs):
         """Returns sequence of correct type. Replace with just self.Sequence?"""
         return self.Sequence(Seq, Name, **kwargs)
 

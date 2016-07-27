@@ -551,7 +551,7 @@ class Alphabet(Enumeration):
         the MolType is not set, this method will raise an AttributeError.
         """
         result = ''
-        return self.MolType.makeSequence(''.join(self[i] for i in data))
+        return self.MolType.make_sequence(''.join(self[i] for i in data))
 
     def fromAmbigToLikelihoods(self, motifs, dtype=Float):
         """Returns an array in which rows are motifs, columns are items in self.

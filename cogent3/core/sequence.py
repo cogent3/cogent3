@@ -857,7 +857,7 @@ class NucleicAcidSequence(Sequence):
             aa = self.PROTEIN.what_ambiguity(trans)
             translation.append(aa)
 
-        translation = self.PROTEIN.makeSequence(
+        translation = self.PROTEIN.make_sequence(
             Seq=''.join(translation), Name=self.Name)
 
         return translation

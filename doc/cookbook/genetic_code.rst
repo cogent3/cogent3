@@ -45,7 +45,7 @@ Translate all six frames
     
     >>> from cogent import DNA
     >>> from cogent3.core.genetic_code import DEFAULT as standard_code
-    >>> seq = DNA.makeSequence('ATGCTAACATAAA')
+    >>> seq = DNA.make_sequence('ATGCTAACATAAA')
     >>> translations = standard_code.sixframes(seq)
     >>> print translations
     ['MLT*', 'C*HK', 'ANI', 'FMLA', 'LC*H', 'YVS']
@@ -57,7 +57,7 @@ Find out how many stops in a frame
     
     >>> from cogent import DNA
     >>> from cogent3.core.genetic_code import DEFAULT as standard_code
-    >>> seq = DNA.makeSequence('ATGCTAACATAAA')
+    >>> seq = DNA.make_sequence('ATGCTAACATAAA')
     >>> stops_frame1 = standard_code.getStopIndices(seq, start=0)
     >>> stops_frame1
     [9]
@@ -118,7 +118,7 @@ Converting the ``CodonAlphabet`` to codon series
 .. doctest::
 
     >>> from cogent import DNA
-    >>> my_seq = DNA.makeSequence("AGTACACTGGTT")
+    >>> my_seq = DNA.make_sequence("AGTACACTGGTT")
     >>> sorted(my_seq.CodonAlphabet())
     ['AAA', 'AAC', 'AAG', 'AAT'...
     >>> len(my_seq.CodonAlphabet())
@@ -132,7 +132,7 @@ Use the method ``get_in_motif_size``
 .. doctest::
 
     >>> from cogent import DNA
-    >>> my_seq = DNA.makeSequence('ATGCACTGGTAA','my_gene')
+    >>> my_seq = DNA.make_sequence('ATGCACTGGTAA','my_gene')
     >>> codons = my_seq.get_in_motif_size(3)
     >>> print codons
     ['ATG', 'CAC', 'TGG', 'TAA']
@@ -151,7 +151,7 @@ Remove the stop codon first
 .. doctest::
 
     >>> from cogent import DNA
-    >>> my_seq = DNA.makeSequence('ATGCACTGGTAA','my_gene')
+    >>> my_seq = DNA.make_sequence('ATGCACTGGTAA','my_gene')
     >>> seq = my_seq.withoutTerminalStopCodon()
     >>> pep = seq.getTranslation()
     >>> print pep.to_fasta()
@@ -166,7 +166,7 @@ Or we can just grab the correct slice from the ``DnaSequence`` object
 .. doctest::
 
     >>> from cogent import DNA
-    >>> my_seq = DNA.makeSequence('CAAATGTATTAA','my_gene')
+    >>> my_seq = DNA.make_sequence('CAAATGTATTAA','my_gene')
     >>> pep = my_seq[:-3].getTranslation().to_fasta()
     >>> print pep
     >my_gene
