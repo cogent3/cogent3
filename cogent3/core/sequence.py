@@ -336,7 +336,7 @@ class SequenceI(object):
             distance += function(first, second)
         return distance
 
-    def matrixDistance(self, other, matrix):
+    def matrix_distance(self, other, matrix):
         """Returns distance between self and other using a score matrix.
 
         WARNING: the matrix must explicitly contain scores for the case where
@@ -1198,7 +1198,7 @@ class ModelSequenceBase(object):
                 distance += function(first, second)
         return distance
 
-    def matrixDistance(self, other, matrix, use_indices=False):
+    def matrix_distance(self, other, matrix, use_indices=False):
         """Returns distance between self and other using a score matrix.
 
         if use_indices is True (default is False), assumes that matrix is
