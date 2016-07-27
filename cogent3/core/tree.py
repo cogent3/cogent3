@@ -266,7 +266,7 @@ class TreeNode(object):
 
     __deepcopy__ = deepcopy = copy
 
-    def copyTopology(self, constructor=None):
+    def copy_topology(self, constructor=None):
         """Copies only the topology and labels of a tree, not any extra data.
 
         Useful when you want another copy of the tree with the same structure
@@ -276,7 +276,7 @@ class TreeNode(object):
         """
         if constructor is None:
             constructor = self.__class__
-        children = [c.copyTopology(constructor) for c in self.Children]
+        children = [c.copy_topology(constructor) for c in self.Children]
         return constructor(name=self.name[:], Children=children)
 
     # support for basic tree operations -- finding objects and moving in the
