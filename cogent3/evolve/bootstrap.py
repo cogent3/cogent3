@@ -128,7 +128,7 @@ class EstimateProbability(ParametricBootstrapCore):
             self.null_parameter_controller, self.alt_parameter_controller]
 
     def simplify(self, null_result, alt_result):
-        return (null_result.getLogLikelihood(), alt_result.getLogLikelihood())
+        return (null_result.get_log_likelihood(), alt_result.get_log_likelihood())
 
     def get_observed_lnL(self):
         return self.observed
@@ -175,7 +175,7 @@ class EstimateConfidenceIntervals(ParametricBootstrapCore):
         self.func_calcstats = func_calcstats
 
     def simplify(self, result):
-        return (result.getLogLikelihood(), self.func_calcstats(result))
+        return (result.get_log_likelihood(), self.func_calcstats(result))
 
     def get_observed_stats(self):
         return self.observed[1]

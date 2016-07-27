@@ -130,7 +130,7 @@ class EstimateDistances(object):
 
         if self._rigorous_align:
             lf.optimise(**opt_kwargs)
-        lnL = lf.getLogLikelihood()
+        lnL = lf.get_log_likelihood()
         return lnL.edge.getViterbiPath().getAlignment()
 
     @UI.display_wrap

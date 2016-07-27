@@ -36,11 +36,7 @@ class LikelihoodFunction(ParameterController):
         deprecated('method', 'setpar', 'setParamRule', '1.6')
         return self.setParamRule(param_name, edge=edge, value=value, is_constant=True, **scope)
 
-    def testfunction(self):
-        deprecated('method', 'testfunction', 'getLogLikelihood', '1.6')
-        return self.getLogLikelihood()
-
-    def getLogLikelihood(self):
+    def get_log_likelihood(self):
         return self.getFinalResult()
 
     def get_psub_for_edge(self, name, **kw):
