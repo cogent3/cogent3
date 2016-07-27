@@ -343,9 +343,9 @@ class MolTypeTests(TestCase):
         # note that it _shouldn't_ be true for a run of gaps: use a.is_gapped()
         self.assertFalse(g('--'))
 
-    def test_isDegenerate(self):
-        """MolType isDegenerate should return True if degen symbol in seq"""
-        d = RnaMolType.isDegenerate
+    def test_is_degenerate(self):
+        """MolType is_degenerate should return True if degen symbol in seq"""
+        d = RnaMolType.is_degenerate
         self.assertFalse(d(''))
         self.assertFalse(d('UACGCUACAUGuacgucaguGCUAGCUA---ACGUCAG'))
         self.assertTrue(d('N'))

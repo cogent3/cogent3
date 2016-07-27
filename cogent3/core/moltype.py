@@ -704,7 +704,7 @@ class MolType(object):
         """Returns True if sequence contains gaps."""
         return self.firstGap(sequence) is not None
 
-    def isDegenerate(self, sequence):
+    def is_degenerate(self, sequence):
         """Returns True if sequence contains degenerate characters."""
         return self.firstDegenerate(sequence) is not None
 
