@@ -551,7 +551,7 @@ class _LeafDefn(_Defn):
                     warnings.warn("Value of %s decreased to keep within bounds"
                                   % self.name, stacklevel=3)
                 setting = Var((s_lower, s_value, s_upper))
-            self.checkSettingIsValid(setting)
+            self.check_setting_is_valid(setting)
             settings.append((scope, setting))
 
         for (scope, setting) in settings:

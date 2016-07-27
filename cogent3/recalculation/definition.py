@@ -256,7 +256,7 @@ class ParamDefn(_InputDefn):
     def make_default_setting(self):
         return Var(bounds=(self.lower, self.default, self.upper))
 
-    def checkSettingIsValid(self, setting):
+    def check_setting_is_valid(self, setting):
         pass
 
     def make_cells(self, input_soup={}, variable=None):
@@ -305,7 +305,7 @@ class NonScalarDefn(_InputDefn):
         else:
             return ConstVal(self.default)
 
-    def checkSettingIsValid(self, setting):
+    def check_setting_is_valid(self, setting):
         if not isinstance(setting, ConstVal):
             raise ValueError("%s can only be constant" % self.name)
 
@@ -394,7 +394,7 @@ class PartitionDefn(_InputDefn):
         # return ConstVal(self.default)
         return Var((None, self.default.copy(), None))
 
-    def checkSettingIsValid(self, setting):
+    def check_setting_is_valid(self, setting):
         value = setting.getDefaultValue()
         return self.check_value_is_valid(value, setting.is_constant)
 
@@ -470,7 +470,7 @@ class ConstDefn(NonScalarDefn):
     def __init__(self, value, name=None, **kw):
         NonScalarDefn.__init__(self, default=value, name=name, **kw)
 
-    def checkSettingIsValid(self, setting):
+    def check_setting_is_valid(self, setting):
         if setting is not None and setting.value is not self.default:
             raise ValueError("%s is constant" % self.name)
 
