@@ -1455,8 +1455,8 @@ class PhyloNodeTests(TestCase):
             tmid.get_node_matching_name('BLO_1')), 0.649351)
         self.assertFloatEqual(tmid[0].distance(tmid[1]), 2.0 * 0.649351)
 
-    def test_setTipDistances(self):
-        """setTipDistances should correctly set tip distances."""
+    def test_set_tip_distances(self):
+        """set_tip_distances should correctly set tip distances."""
         tree = DndParser(
             '(((A1:.1,B1:.1):.1,(A2:.1,B2:.1):.1):.3,((A3:.1,B3:.1):.1,(A4:.1,B4:.1):.1):.3);', constructor=PhyloNode)
 
@@ -1464,7 +1464,7 @@ class PhyloNodeTests(TestCase):
         expected_tip_distances = [0, 0, 0.1, 0, 0,
             0.1, 0.2, 0, 0, 0.1, 0, 0, 0.1, 0.2, 0.5]
         # tips should have distance of 0
-        tree.setTipDistances()
+        tree.set_tip_distances()
         for node in tree.tips():
             self.assertEqual(node.TipDistance, 0)
         idx = 0

@@ -1929,7 +1929,7 @@ class PhyloNode(TreeNode):
             if dist > half_max_dist:
                 return node, node_path[index - 1]
 
-    def setTipDistances(self):
+    def set_tip_distances(self):
         """Sets distance from each node to the most distant tip."""
         for node in self.traverse(self_before=False, self_after=True):
             if node.Children:
@@ -1946,7 +1946,7 @@ class PhyloNode(TreeNode):
         Set ultrametric=True if you want all the root-tip distances to end
         up precisely the same.
         """
-        self.setTipDistances()
+        self.set_tip_distances()
         orig_max = max([n.TipDistance for n in self.traverse()])
         if not ultrametric:  # easy case -- just scale and round
             for node in self.traverse():
