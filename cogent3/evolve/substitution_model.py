@@ -172,7 +172,7 @@ class _SubstitutionModel(object):
             alphabet = alphabet.getSubset(motifs)
         self.alphabet = alphabet
         self.gapmotif = alphabet.getGapMotif()
-        self._word_length = alphabet.getMotifLen()
+        self._word_length = alphabet.get_motif_len()
 
         # MOTIF PROB ALPHABET MAPPING
         if mprob_model is None:
@@ -776,9 +776,9 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
 
         rows = []
         # Only show header if there is enough width for the motifs
-        if self.alphabet.getMotifLen() <= w:
+        if self.alphabet.get_motif_len() <= w:
             header = [str(motif).center(w) for motif in self.alphabet]
-            header = [' ' * self.alphabet.getMotifLen() + ' '] + header + ['']
+            header = [' ' * self.alphabet.get_motif_len() + ' '] + header + ['']
             header = delim2.join(header)
             rows.append(header)
             rows.append(''.join([['-', delim2][c == delim2] for c in header]))

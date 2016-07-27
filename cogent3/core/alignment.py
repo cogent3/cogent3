@@ -1324,7 +1324,7 @@ class SequenceCollection(object):
         counts = {}
         for seq_name in self.names:
             sequence = self.named_seqs[seq_name]
-            motif_len = alphabet.getMotifLen()
+            motif_len = alphabet.get_motif_len()
             if motif_len > 1:
                 posns = list(range(0, len(sequence) +
                                    1 - motif_len, motif_len))
