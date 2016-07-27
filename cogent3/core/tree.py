@@ -809,7 +809,7 @@ class TreeNode(object):
         else:
             return self.name == other.name
 
-    def getNewickRecursive(self, with_distances=False, semicolon=True,
+    def get_newick_recursive(self, with_distances=False, semicolon=True,
                            escape_name=True):
         """Return the newick string for this edge.
 

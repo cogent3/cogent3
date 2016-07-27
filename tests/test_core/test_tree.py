@@ -1635,40 +1635,40 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         self.assertEqual(names,
                          ['A', 'B', 'ab', 'C', 'D', 'cd', 'E', 'cde'])
 
-    def test_getNewickRecursive(self):
+    def test_get_newick_recursive(self):
         orig = "((A:1.0,B:2.0)ab:3.0,((C:4.0,D:5.0)cd:6.0,E:7.0)cde:8.0)all;"
         unlen = "((A,B)ab,((C,D)cd,E)cde)all;"
         tree = self._maketree(orig)
-        self.assertEqual(tree.getNewickRecursive(with_distances=1), orig)
-        self.assertEqual(tree.getNewickRecursive(), unlen)
+        self.assertEqual(tree.get_newick_recursive(with_distances=1), orig)
+        self.assertEqual(tree.get_newick_recursive(), unlen)
 
         tree.name = "a'l"
         ugly_name = "((A,B)ab,((C,D)cd,E)cde)a'l;"
         ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a''l';"
-        self.assertEqual(tree.getNewickRecursive(escape_name=True),
+        self.assertEqual(tree.get_newick_recursive(escape_name=True),
                          ugly_name_esc)
-        self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
+        self.assertEqual(tree.get_newick_recursive(escape_name=False), ugly_name)
 
         tree.name = "a_l"
         ugly_name = "((A,B)ab,((C,D)cd,E)cde)a_l;"
         ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a_l';"
-        self.assertEqual(tree.getNewickRecursive(escape_name=True),
+        self.assertEqual(tree.get_newick_recursive(escape_name=True),
                          ugly_name_esc)
-        self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
+        self.assertEqual(tree.get_newick_recursive(escape_name=False), ugly_name)
 
         tree.name = "a l"
         ugly_name = "((A,B)ab,((C,D)cd,E)cde)a l;"
         ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)a_l;"
-        self.assertEqual(tree.getNewickRecursive(escape_name=True),
+        self.assertEqual(tree.get_newick_recursive(escape_name=True),
                          ugly_name_esc)
-        self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
+        self.assertEqual(tree.get_newick_recursive(escape_name=False), ugly_name)
 
         tree.name = "'a l'"
         quoted_name = "((A,B)ab,((C,D)cd,E)cde)'a l';"
         quoted_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a l';"
-        self.assertEqual(tree.getNewickRecursive(escape_name=True),
+        self.assertEqual(tree.get_newick_recursive(escape_name=True),
                          quoted_name_esc)
-        self.assertEqual(tree.getNewickRecursive(
+        self.assertEqual(tree.get_newick_recursive(
             escape_name=False), quoted_name)
 
     def test_getNewick(self):
@@ -1687,16 +1687,16 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         tree.name = "a_l"
         ugly_name = "((A,B)ab,((C,D)cd,E)cde)a_l;"
         ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a_l';"
-        self.assertEqual(tree.getNewickRecursive(escape_name=True),
+        self.assertEqual(tree.get_newick_recursive(escape_name=True),
                          ugly_name_esc)
-        self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
+        self.assertEqual(tree.get_newick_recursive(escape_name=False), ugly_name)
 
         tree.name = "a l"
         ugly_name = "((A,B)ab,((C,D)cd,E)cde)a l;"
         ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)a_l;"
-        self.assertEqual(tree.getNewickRecursive(escape_name=True),
+        self.assertEqual(tree.get_newick_recursive(escape_name=True),
                          ugly_name_esc)
-        self.assertEqual(tree.getNewickRecursive(escape_name=False), ugly_name)
+        self.assertEqual(tree.get_newick_recursive(escape_name=False), ugly_name)
 
         tree.name = "'a l'"
         quoted_name = "((A,B)ab,((C,D)cd,E)cde)'a l';"
