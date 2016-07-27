@@ -62,7 +62,7 @@ It's typically better to not have the analysis and drawing code in the same scri
 
 .. doctest::
 
-    >>> at = nonneutral_lf.getAnnotatedTree()
+    >>> at = nonneutral_lf.get_annotated_tree()
     >>> at.write('annotated_tree.xml')
 
 .. we clean up after ourselves, deleting the file

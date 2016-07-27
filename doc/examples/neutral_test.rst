@@ -127,7 +127,7 @@ Get out an annotated tree, it looks just like a tree, but has the maximum-likeli
 
 .. doctest::
 
-    >>> at = lf.getAnnotatedTree()
+    >>> at = lf.get_annotated_tree()
 
 The lnL's from the two models are now used to calculate the likelihood ratio statistic (``LR``) it's degrees-of-freedom (``df``) and the probability (``P``) of observing the LR.
 

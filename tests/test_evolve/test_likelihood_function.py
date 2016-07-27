@@ -487,7 +487,7 @@ motif  mprobs
         """Default parameter values from original annotated tree"""
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
-        tree = likelihood_function.getAnnotatedTree()
+        tree = likelihood_function.get_annotated_tree()
         lf = self.submodel.makeParamController(tree)
         lf.setAlignment(self.data)
         self.assertEqual(lf.get_param_value("length", "Human"), 0.3)
@@ -563,11 +563,11 @@ motif    mprobs
         obs.sort()
         self.assertEqual(obs, keys)
 
-    def test_getAnnotatedTree(self):
+    def test_get_annotated_tree(self):
         likelihood_function = self._makeLikelihoodFunction()
         likelihood_function.setParamRule(
             "length", value=4.0, edge="Human", is_constant=True)
-        result = likelihood_function.getAnnotatedTree()
+        result = likelihood_function.get_annotated_tree()
         self.assertEqual(result.get_node_matching_name(
             'Human').params['length'], 4.0)
         self.assertEqual(result.get_node_matching_name('Human').length, 4.0)

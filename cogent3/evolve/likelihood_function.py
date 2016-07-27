@@ -173,7 +173,7 @@ class LikelihoodFunction(ParameterController):
         result += self.getStatistics(with_motif_probs=True, with_titles=False)
         return '\n'.join(map(str, result))
 
-    def getAnnotatedTree(self):
+    def get_annotated_tree(self):
         d = self.get_param_valueDict(['edge'])
         tree = self._tree.deepcopy()
         for edge in tree.get_edge_vector():
