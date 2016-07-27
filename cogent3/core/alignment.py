@@ -1574,7 +1574,7 @@ class Aligned(object):
             (map, seq) = (self.map + other.map, self.data)
         else:
             seq = self.get_gapped_seq() + other.get_gapped_seq()
-            (map, seq) = seq.parseOutGaps()
+            (map, seq) = seq.parse_out_gaps()
         return Aligned(map, seq)
 
     def __getitem__(self, slice):
@@ -2681,7 +2681,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
     def _seq_to_aligned(self, seq, key):
         """Converts seq to Aligned object -- override in subclasses"""
-        (map, seq) = self.MolType.Sequence(seq, key).parseOutGaps()
+        (map, seq) = self.MolType.Sequence(seq, key).parse_out_gaps()
         return Aligned(map, seq)
 
     def get_tracks(self, policy):
