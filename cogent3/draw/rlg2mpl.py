@@ -146,7 +146,7 @@ def figure_layout(width=None, height=None, margin=0.25, aspect=None,
 
 class Drawable(object):
     # Superclass for objects which can generate a matplotlib figure, in order
-    # to supply consistent and convenient show_figure() and drawToFile()
+    # to supply consistent and convenient show_figure() and write()
     # methods.
     # Subclasses must provide .make_figure() which will make use of
     # _makeFigure() matplotlib.pyplot import done at runtime to give the
@@ -173,7 +173,7 @@ class Drawable(object):
         import matplotlib.pyplot as plt
         plt.show()
 
-    def drawToFile(self, fname, **kw):
+    def write(self, fname, **kw):
         """Save in a file named 'fname'
         Extra arguments are forwarded to self.make_figure() unless
         they are valid for savefig()"""
@@ -202,7 +202,7 @@ class Drawable(object):
         kw2['format'] = 'pdf'
         if height:
             kw2['height'] = height / 72
-        return self.drawToFile(filename, **kw2)
+        return self.write(filename, **kw2)
 
 
 # For sequence feature styles:
