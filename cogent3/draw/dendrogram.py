@@ -326,7 +326,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
 
     def coords(self, height, width):
         """Return list of [node_name, node_id, x, y, child_ids]"""
-        self.asArtist(height, width)
+        self.as_artist(height, width)
         result = []
         for node in self.postorder(include_self=True):
             result.append([node.name, id(node), node.x2,
@@ -350,12 +350,12 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
             pass  # deprecate setting use_lengths here?
         if use_lengths and self.aspect_distorts_lengths:
             ax.set_aspect('equal')
-        g = self.asArtist(width, height, use_lengths=use_lengths,
+        g = self.as_artist(width, height, use_lengths=use_lengths,
                           margin=margin * 72, **kw)
         ax.add_artist(g)
         return fig
 
-    def asArtist(self, width, height, margin=20, use_lengths=None,
+    def as_artist(self, width, height, margin=20, use_lengths=None,
                  scale_bar="left", show_params=None, show_internal_labels=False,
                  label_template=None, edge_label_callback=None, shade_param=None,
                  max_value=None, font_size=None, **kw):
