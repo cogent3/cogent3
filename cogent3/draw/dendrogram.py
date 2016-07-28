@@ -514,7 +514,7 @@ class _RootedDendrogram(_Dendrogram):
     def label_margins(self, label_width):
         return (0, label_width)
 
-    def widthRequired(self):
+    def width_required(self):
         return self.leafcount
 
     def xCoords(self, scale, x1):
@@ -525,7 +525,7 @@ class _RootedDendrogram(_Dendrogram):
 
     def updateCoordinates(self, width, height):
         xscale = width / self.height
-        yscale = height / self.widthRequired()
+        yscale = height / self.width_required()
         scale = Dimensions(xscale, yscale, self.height)
 
         # y coords done postorder, x preorder, y first.
@@ -538,11 +538,11 @@ class _RootedDendrogram(_Dendrogram):
         """The second pass through the tree.  Y coordinates only
         depend on the shape of the tree and yscale"""
         if y1 is None:
-            y1 = self.widthRequired() * scale.y
+            y1 = self.width_required() * scale.y
         child_y = y1
         for child in self.children:
             child.update_y_coordinates(scale, child_y)
-            child_y -= child.widthRequired() * scale.y
+            child_y -= child.width_required() * scale.y
         (self.y1, self.y2) = self.yCoords(scale, y1)
 
     def update_x_coordinates(self, scale, x1=0):
@@ -640,7 +640,7 @@ class ContemporaneousStraightDendrogram(_ContemporaneousMixin, StraightDendrogra
 class ShelvedDendrogram(ContemporaneousDendrogram):
     """A dendrogram in which internal nodes also get a row to themselves"""
 
-    def widthRequired(self):
+    def width_required(self):
         return self.edgecount  # as opposed to tipcount
 
     def yCoords(self, scale, y1):
