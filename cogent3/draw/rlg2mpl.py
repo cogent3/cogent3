@@ -225,7 +225,7 @@ class PathBuilder(object):
         self.points.append((x, y))
         self.operators.append(Path.MOVETO)
 
-    def lineTo(self, x, y):
+    def line_to(self, x, y):
         self.points.append((x, y))
         self.operators.append(Path.LINETO)
 
@@ -252,7 +252,7 @@ class _End(object):
         path.move_to(*self.startPoint())
 
     def drawToStart(self, path):
-        path.lineTo(*self.startPoint())
+        path.line_to(*self.startPoint())
 
     def finish(self, path):
         path.closePath()
@@ -282,7 +282,7 @@ class Open(_End):
 class Square(_End):
 
     def drawEnd(self, path):
-        path.lineTo(self.x_near, self.y_second)
+        path.line_to(self.x_near, self.y_second)
 
 
 class Rounded(_End):
@@ -293,7 +293,7 @@ class Rounded(_End):
     def drawEnd(self, path):
         path.curveTo(self.x_near, self.y_first, self.x_near, self.y_first,
                      self.x_near, self.y_first + self.dy)
-        path.lineTo(self.x_near, self.y_second - self.dy)
+        path.line_to(self.x_near, self.y_second - self.dy)
         path.curveTo(self.x_near, self.y_second, self.x_near, self.y_second,
                      self.x_near + self.dx, self.y_second)
 
@@ -316,14 +316,14 @@ class Pointy(_End):
                     (self.x_near, self.y_second),
                     (head_start, self.y_second - self.dy),
                     (head_start, self.y_second)]:
-                path.lineTo(x, y)
+                path.line_to(x, y)
         else:
             for (x, y) in [
                     (head_start, self.y_first + self.dy),
                     (self.x_near, middle),
                     (head_start, self.y_second - self.dy),
                     (head_start, self.y_second)]:
-                path.lineTo(x, y)
+                path.line_to(x, y)
 
 
 def _sign(x):
