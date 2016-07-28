@@ -568,7 +568,7 @@ class PairEmissionProbs(object):
         self.bins = bins
         self.scores = {}
 
-    def makePartialLikelihoods(self, use_cost_function):
+    def make_partial_likelihoods(self, use_cost_function):
         # use_cost_function specifies whether eqn 2 of Loytynoja & Goldman
         # is applied.  Without it insertions may be favored over deletions
         # because the emission probs of the insert aren't counted.
@@ -592,7 +592,7 @@ class PairEmissionProbs(object):
         return (plhs, gap_plhs)
 
     def _makeEmissionProbs(self, use_cost_function):
-        (plhs, gap_scores) = self.makePartialLikelihoods(use_cost_function)
+        (plhs, gap_scores) = self.make_partial_likelihoods(use_cost_function)
         match_scores = numpy.zeros([len(self.bins)] + self.pair.uniq_size,
                                    float)
         for (b, (x, y, bin)) in enumerate(zip(plhs[0], plhs[1], self.bins)):
@@ -815,7 +815,7 @@ class PairEmissionProbs(object):
         aligned_positions = [posn for (bin, posn) in aligned_positions]
         pog = self.pair.get_pog(aligned_positions)
         edge = LikelihoodTreeEdge(leaves, 'parent', pog.get_aligned_positions())
-        (plhs, gapscores) = self.makePartialLikelihoods(use_cost_function=False)
+        (plhs, gapscores) = self.make_partial_likelihoods(use_cost_function=False)
         plh = self.pair.edge2plh(edge, plhs)
         assert len(plh) == 1, ('bins!', len(plh))
         leaf = edge.as_leaf(plh[0])  # like profile
