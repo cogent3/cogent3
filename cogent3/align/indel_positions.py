@@ -205,7 +205,7 @@ class POG(object):
         cjumps = [(length - j, length - i) for (i, j) in self.child_jumps]
         return POG(length, jumps, cjumps)
 
-    def writeToDot(self, dot):
+    def write_to_dot(self, dot):
         pred_sets = self.as_list_of_pred_lists()
         print('digraph POG {', file=dot)
         for (i, preds) in enumerate(pred_sets):
