@@ -467,7 +467,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
     def _draw_node_label(self, renderer, label_style):
         text = label_style.get_node_label(self)
         color = self.NameColor
-        (x, ha, y, va) = self.getLabelCoordinates(text, renderer)
+        (x, ha, y, va) = self.get_label_coordinates(text, renderer)
         return [renderer.string(x, y, text, ha=ha, va=va, color=color)]
 
     def _draw_collapsed_clade(self, renderer, label_style):
@@ -482,7 +482,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         if not b <= self.y2 <= t:
             # ShelvedDendrogram needs this extra line segment
             g.append(renderer.line(self.x2, self.y2, self.x2, b, self))
-        (x, ha, y, va) = self.getLabelCoordinates(text, renderer)
+        (x, ha, y, va) = self.get_label_coordinates(text, renderer)
         g.append(renderer.string(
                 (self.x2 + r) / 2, (t + b) / 2, str(self.leafcount), ha=ha, va=va,
             color=icolor))
@@ -552,7 +552,7 @@ class _RootedDendrogram(_Dendrogram):
         for child in self.children:
             child.update_x_coordinates(scale, self.x2)
 
-    def getLabelCoordinates(self, text, renderer):
+    def get_label_coordinates(self, text, renderer):
         return (self.x2 + renderer.labelPadDistance, 'left', self.y2, 'center')
 
 
@@ -729,7 +729,7 @@ class UnrootedDendrogram(_Dendrogram):
                 a += ca
         return points
 
-    def getLabelCoordinates(self, text, renderer):
+    def get_label_coordinates(self, text, renderer):
         (dx, dy) = (numpy.sin(self.angle), numpy.cos(self.angle))
         pad = renderer.labelPadDistance
         (x, y) = (self.x2 + pad * dx, self.y2 + pad * dy)
