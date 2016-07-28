@@ -376,7 +376,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         label_length = len(self.longest_label)
         label_width = label_length * 0.8 * \
             (font_size or 10)  # not very accurate
-        (left_labels, right_labels) = self.labelMargins(label_width)
+        (left_labels, right_labels) = self.label_margins(label_width)
         total_label_width = left_labels + right_labels
         if width < total_label_width:
             raise ValueError('%spt not wide enough for ""%s"' %
@@ -511,7 +511,7 @@ class _RootedDendrogram(_Dendrogram):
     attributes of a node (its length, coodinates of its children) and return
     a tuple for start/end of the line representing the edge."""
 
-    def labelMargins(self, label_width):
+    def label_margins(self, label_width):
         return (0, label_width)
 
     def widthRequired(self):
@@ -671,7 +671,7 @@ class AlignedShelvedDendrogram(ShelvedDendrogram):
 class UnrootedDendrogram(_Dendrogram):
     aspect_distorts_lengths = True
 
-    def labelMargins(self, label_width):
+    def label_margins(self, label_width):
         return (label_width, label_width)
 
     def wedgeVertices(self):
