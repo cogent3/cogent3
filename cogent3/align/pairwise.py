@@ -951,7 +951,7 @@ class PairHMM(object):
     def get_viterbi_score_and_alignment(self, ratio=None, posterior_probs=False, **kw):
         assert ratio in [None, 0.5], ratio
         vpath = self.get_viterbi_path(**kw)
-        result_tuple = (vpath.getScore(), vpath.get_alignment())
+        result_tuple = (vpath.get_score(), vpath.get_alignment())
         if posterior_probs:
             result_tuple = result_tuple + (vpath.get_posterior_probs(),)
         return result_tuple
@@ -967,7 +967,7 @@ class _ViterbiPath(object):
         self.aligned_positions = self.tb.as_bin_pos_tuples(state_directions)
         self.pair_hmm = pair_hmm
 
-    def getScore(self):
+    def get_score(self):
         """The Viterbi score"""
         return self.vscore
 
