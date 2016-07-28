@@ -834,7 +834,7 @@ class DisplayPolicy(object):
         else:
             return self.copy(map=self.map[map], depth=self.depth + 1)
 
-    def mergeTracks(self, orig_tracks, keep_unexpected=None):
+    def merge_tracks(self, orig_tracks, keep_unexpected=None):
         # merge tracks with same names
         # order features within a track by level  # xxx remerge
         tracks = {}
@@ -881,7 +881,7 @@ class DisplayPolicy(object):
             seq_tracks = alignment.get_child_tracks(seqs_policy)
         else:
             seq_tracks = []
-        annot_tracks = self.mergeTracks(annot_tracks)
+        annot_tracks = self.merge_tracks(annot_tracks)
         return seq_tracks + annot_tracks
 
     def tracksForSequence(self, sequence):
@@ -923,7 +923,7 @@ class DisplayPolicy(object):
                 seq_tracks = [Track('seq', [feature], level=2, label=label)]
 
         annot_tracks = sequence.get_annotation_tracks(self)
-        return self.mergeTracks(annot_tracks + seq_tracks)
+        return self.merge_tracks(annot_tracks + seq_tracks)
 
     def getStyleDefnForFeature(self, feature):
         if feature.type in self._track_map:
