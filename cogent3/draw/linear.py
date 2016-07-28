@@ -1046,7 +1046,7 @@ class Display(rlg2mpl.Drawable):
         c.smap = self.smap.inverse()[slice].inverse()
         return c
 
-    def makeArtist(self, vertical=False):
+    def make_artist(self, vertical=False):
         g = rlg2mpl.Group()
         for (y, ym, p) in self._tracks:
             smap = self.smap.inverse()
@@ -1067,7 +1067,7 @@ class Display(rlg2mpl.Drawable):
     def asAxes(self, fig, posn, labeled=True, vertical=False):
         ax = fig.add_axes(posn)
         self.applyScaleToAxes(ax, labeled=labeled, vertical=vertical)
-        g = self.makeArtist(vertical=vertical)
+        g = self.make_artist(vertical=vertical)
         ax.add_artist(g)
         return ax
 
