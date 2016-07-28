@@ -477,7 +477,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         g = []
         if not self.children:
             return g
-        (l, r, t, b), vertices = self.wedgeVertices()
+        (l, r, t, b), vertices = self.wedge_vertices()
         g.append(renderer.polygon(vertices, color))
         if not b <= self.y2 <= t:
             # ShelvedDendrogram needs this extra line segment
@@ -572,7 +572,7 @@ class SquareDendrogram(_RootedDendrogram):
         x2 = x1 + dx
         return (x1, x2)
 
-    def wedgeVertices(self):
+    def wedge_vertices(self):
         tip_ys = [(c.y2 + self.y2) / 2 for c in self.iter_tips()]
         t, b = max(tip_ys), min(tip_ys)
         cxs = [c.x2 for c in self.iter_tips()]
@@ -608,7 +608,7 @@ class StraightDendrogram(_RootedDendrogram):
         dx = numpy.sqrt(max(dx**2 - dy**2, 1))
         return (x1, x1 + dx)
 
-    def wedgeVertices(self):
+    def wedge_vertices(self):
         tip_ys = [(c.y2 + self.y2) / 2 for c in self.iter_tips()]
         t, b = max(tip_ys), min(tip_ys)
         cxs = [c.x2 for c in self.iter_tips()]
@@ -674,7 +674,7 @@ class UnrootedDendrogram(_Dendrogram):
     def label_margins(self, label_width):
         return (label_width, label_width)
 
-    def wedgeVertices(self):
+    def wedge_vertices(self):
         tip_dists = [(c.depth - self.depth) *
                      self.scale for c in self.iter_tips()]
         (near, far) = (min(tip_dists), max(tip_dists))
@@ -715,7 +715,7 @@ class UnrootedDendrogram(_Dendrogram):
         if self.Collapsed:
             self.wedge = self.leafcount * da
             self.scale = s
-            (l, r, t, b), vertices = self.wedgeVertices()
+            (l, r, t, b), vertices = self.wedge_vertices()
             return vertices
 
         a -= self.leafcount * da / 2
