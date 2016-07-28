@@ -1104,7 +1104,7 @@ class Display(rlg2mpl.Drawable):
             ax.set_xlim(*seq_lim)
             ax.set_ylim(0, self.height or 0.1)
 
-    def figureLayout(self, labeled=True, vertical=False, width=None,
+    def figure_layout(self, labeled=True, vertical=False, width=None,
                      height=None, left=None, **kw):
 
         if left is None:
@@ -1120,7 +1120,7 @@ class Display(rlg2mpl.Drawable):
 
         fkw = dict(leftovers=True, width=width, height=height, left=left,
                    useful_width=useful_width, **kw)
-        (w, h), posn, kw = rlg2mpl.figureLayout(**fkw)
+        (w, h), posn, kw = rlg2mpl.figure_layout(**fkw)
 
         # points_per_base = w * posn[3] / len(self)
         if vertical:
@@ -1136,7 +1136,7 @@ class Display(rlg2mpl.Drawable):
             rows = [self]
             rowlen = len(self)
         kw.update(width=width, height=height)
-        ((width, height), (x, y, w, h), kw) = self.figureLayout(**kw)
+        ((width, height), (x, y, w, h), kw) = self.figure_layout(**kw)
         N = len(rows)
         # since scales go below and titles go above, each row
         # gets the bottom margin, but not the top margin.
