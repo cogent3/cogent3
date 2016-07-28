@@ -507,7 +507,7 @@ class Dimensions(object):
 
 
 class _RootedDendrogram(_Dendrogram):
-    """_RootedDendrogram subclasses provide yCoords and xCoords, which examine
+    """_RootedDendrogram subclasses provide yCoords and x_coords, which examine
     attributes of a node (its length, coodinates of its children) and return
     a tuple for start/end of the line representing the edge."""
 
@@ -517,7 +517,7 @@ class _RootedDendrogram(_Dendrogram):
     def width_required(self):
         return self.leafcount
 
-    def xCoords(self, scale, x1):
+    def x_coords(self, scale, x1):
         raise NotImplementedError
 
     def yCoords(self, scale, y1):
@@ -548,7 +548,7 @@ class _RootedDendrogram(_Dendrogram):
     def update_x_coordinates(self, scale, x1=0):
         """For non 'square' styles the x coordinates will depend
         (a bit) on the y coodinates, so they should be done first"""
-        (self.x1, self.x2) = self.xCoords(scale, x1)
+        (self.x1, self.x2) = self.x_coords(scale, x1)
         for child in self.children:
             child.update_x_coordinates(scale, self.x2)
 
@@ -567,7 +567,7 @@ class SquareDendrogram(_RootedDendrogram):
             y2 = y1 - 0.5 * scale.y
         return (y2, y2)
 
-    def xCoords(self, scale, x1):
+    def x_coords(self, scale, x1):
         dx = scale.x * self.length
         x2 = x1 + dx
         return (x1, x2)
@@ -602,7 +602,7 @@ class StraightDendrogram(_RootedDendrogram):
             child.y1 = y2
         return (y1, y2)
 
-    def xCoords(self, scale, x1):
+    def x_coords(self, scale, x1):
         dx = self.length * scale.x
         dy = self.y2 - self.y1
         dx = numpy.sqrt(max(dx**2 - dy**2, 1))
@@ -625,7 +625,7 @@ class _ContemporaneousMixin(object):
     def __init__(self, edge, use_lengths=False):
         super(_ContemporaneousMixin, self).__init__(edge, use_lengths)
 
-    def xCoords(self, scale, x1):
+    def x_coords(self, scale, x1):
         return (x1, (scale.height - (self.height - self.length)) * scale.x)
 
 
