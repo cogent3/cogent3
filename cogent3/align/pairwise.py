@@ -260,7 +260,7 @@ class Pair(object):
             psubs1, psubs2)]
         return PairEmissionProbs(self, bins)
 
-    def makeEmissionProbs(self, bins):
+    def make_emission_probs(self, bins):
         bins = [PairBinData(*args) for args in bins]
         return PairEmissionProbs(self, bins)
 
