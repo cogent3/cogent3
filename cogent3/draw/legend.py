@@ -6,7 +6,7 @@ from cogent3.core import moltype, annotation
 from matplotlib.collections import PatchCollection
 from matplotlib.text import Text
 from matplotlib.transforms import Affine2D
-from cogent3.draw.rlg2mpl import Group, Drawable, figureLayout
+from cogent3.draw.rlg2mpl import Group, Drawable, figure_layout
 from cogent3.draw.linear import Display, DisplayPolicy
 
 __author__ = "Peter Maxwell and Gavin Huttley"
@@ -79,7 +79,7 @@ class Legend(Drawable):
     def make_figure(self, margin=0, default_aspect=1.3, **kw):
         kw['margin'] = margin
         kw['default_aspect'] = default_aspect
-        (width, height), posn, kw = figureLayout(leftovers=True, **kw)
+        (width, height), posn, kw = figure_layout(leftovers=True, **kw)
         fig = self._makeFigure(width, height)
         ax = fig.add_axes(posn, adjustable="datalim",
                           frame_on=False, xticks=[], yticks=[])

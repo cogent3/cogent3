@@ -6,7 +6,7 @@ from matplotlib.patches import PathPatch
 
 from cogent3.util.warning import discontinued
 from cogent3.draw.linear import Display
-from cogent3.draw.rlg2mpl import Drawable, figureLayout
+from cogent3.draw.rlg2mpl import Drawable, figure_layout
 from cogent3.align.align import dotplot
 
 __author__ = "Peter Maxwell and Gavin Huttley"
@@ -53,9 +53,9 @@ def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
 
     import matplotlib.pyplot as plt
 
-    (x1, y1, w1, h1) = _reinchify(*seq1.figureLayout(
+    (x1, y1, w1, h1) = _reinchify(*seq1.figure_layout(
         labeled=True, bottom=bottom, margin=0))
-    (x2, y2, w2, h2) = _reinchify(*seq2.figureLayout(
+    (x2, y2, w2, h2) = _reinchify(*seq2.figure_layout(
         labeled=False, bottom=left, margin=0))
 
     # equalize points-per-base scales to get aspect ratio 1.0
@@ -64,7 +64,7 @@ def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
 
     # Figure with correct aspect
     # Indent enough for labels and/or vertical display
-    (w, h), posn = figureLayout(width=w1, height=w2,
+    (w, h), posn = figure_layout(width=w1, height=w2,
                                 left=max(x1, y2 + h2), bottom=y1 + h1, **kw)
     fig = plt.figure(figsize=(w, h), facecolor='white')
 

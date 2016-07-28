@@ -116,7 +116,7 @@ class Group(matplotlib.artist.Artist):
             c.draw(renderer, *args, **kw)
 
 
-def figureLayout(width=None, height=None, margin=0.25, aspect=None,
+def figure_layout(width=None, height=None, margin=0.25, aspect=None,
                  default_aspect=0.75, useful_width=None, leftovers=False, **margins):
     """Width and height of a figure, plus a bounding box that nearly fills it, derived
     from defaults or provided margins.  All input figures are in inches."""
