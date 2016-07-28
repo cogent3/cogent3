@@ -821,7 +821,7 @@ class PairEmissionProbs(object):
         leaf = edge.as_leaf(plh[0])  # like profile
         return AlignablePOG(leaf, pog, children)
 
-    def makePairHMM(self, transition_matrix, finite=False):
+    def make_pair_HMM(self, transition_matrix, finite=False):
         # whether TM includes Begin and End states
         return PairHMM(self, transition_matrix, finite=finite)
 
@@ -875,7 +875,7 @@ class ReversiblePairEmissionProbs(object):
             ep = self._makePairEmissionProbs(ratio=ratio)
         return ep.get_alignable(a_p)
 
-    def makePairHMM(self, transition_matrix):
+    def make_pair_HMM(self, transition_matrix):
         return PairHMM(self, transition_matrix)
 
 

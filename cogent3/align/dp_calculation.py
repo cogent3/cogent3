@@ -65,7 +65,7 @@ def Edge(seq1, seq2, length, bin_data, switch=1.0, bprobs=None):
         R = SiteClassTransitionMatrix(switch, bprobs)
         TM = R.nestTransitionMatricies(tms)
     assert min(TM.Matrix.flat) >= 0, bin_data
-    return EP.makePairHMM(TM)
+    return EP.make_pair_HMM(TM)
 
 
 class BinData(object):
