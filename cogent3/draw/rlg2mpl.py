@@ -148,7 +148,7 @@ class Drawable(object):
     # Superclass for objects which can generate a matplotlib figure, in order
     # to supply consistent and convenient showFigure() and drawToFile()
     # methods.
-    # Subclasses must provide .makeFigure() which will make use of
+    # Subclasses must provide .make_figure() which will make use of
     # _makeFigure() matplotlib.pyplot import done at runtime to give the
     # user every chance to change the matplotlib backend first
 
@@ -159,23 +159,23 @@ class Drawable(object):
 
     def drawFigure(self, title=None, **kw):
         """Draw the figure.
-        Extra arguments are forwarded to self.makeFigure()"""
+        Extra arguments are forwarded to self.make_figure()"""
         import matplotlib.pyplot as plt
-        fig = self.makeFigure(**kw)
+        fig = self.make_figure(**kw)
         if title is not None:
             fig.suptitle(title)
         plt.draw_if_interactive()
 
     def showFigure(self, title=None, **kw):
         """Make the figure and immediately pyplot.show() it.
-        Extra arguments are forwarded to self.makeFigure()"""
+        Extra arguments are forwarded to self.make_figure()"""
         self.drawFigure(title, **kw)
         import matplotlib.pyplot as plt
         plt.show()
 
     def drawToFile(self, fname, **kw):
         """Save in a file named 'fname'
-        Extra arguments are forwarded to self.makeFigure() unless
+        Extra arguments are forwarded to self.make_figure() unless
         they are valid for savefig()"""
         makefig_kw = {}
         savefig_kw = {}
@@ -185,7 +185,7 @@ class Drawable(object):
                 savefig_kw[k] = v
             else:
                 makefig_kw[k] = v
-        fig = self.makeFigure(**makefig_kw)
+        fig = self.make_figure(**makefig_kw)
         fig.savefig(fname, **savefig_kw)
 
     def drawToPDF(self, filename, total_width=None, height=None, **kw):

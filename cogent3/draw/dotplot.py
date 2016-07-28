@@ -124,7 +124,7 @@ class Display2D(Drawable):
 
         return self._cache[key]
 
-    def makeFigure(self, window=20, join_gaps=None, min_gap=0, **kw):
+    def make_figure(self, window=20, join_gaps=None, min_gap=0, **kw):
         """Drawing of a line segment based dotplot with annotated axes"""
         # hard to pick min_gap without knowing pixels per base, and
         # matplotlib is reasonably fast anyway, so:
