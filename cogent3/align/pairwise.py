@@ -90,7 +90,7 @@ class PointerEncoding(object):
     def decode(self, coded):
         return (coded >> self.positions) % self.limits
 
-    def getEmptyArray(self, shape):
+    def get_empty_array(self, shape):
         return numpy.zeros(shape, self.dtype)
 
 DEBUG = False
@@ -752,7 +752,7 @@ class PairEmissionProbs(object):
                 msg = 'dp'
             if memory > 500:
                 warnings.warn('%s will use > %sMb.' % (msg, memory))
-            track = encoder.getEmptyArray(problem_dimensions)
+            track = encoder.get_empty_array(problem_dimensions)
         else:
             track = encoder = None
 
