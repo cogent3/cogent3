@@ -76,7 +76,7 @@ class Legend(Drawable):
                 y -= 1
             ax.axhline((y + .7) * 30)
 
-    def makeFigure(self, margin=0, default_aspect=1.3, **kw):
+    def make_figure(self, margin=0, default_aspect=1.3, **kw):
         kw['margin'] = margin
         kw['default_aspect'] = default_aspect
         (width, height), posn, kw = figureLayout(leftovers=True, **kw)

@@ -1129,7 +1129,7 @@ class Display(rlg2mpl.Drawable):
             posn[2:4] = reversed(posn[2:4])
         return (w, h), posn, kw
 
-    def makeFigure(self, width=None, height=None, rowlen=None, **kw):
+    def make_figure(self, width=None, height=None, rowlen=None, **kw):
         if rowlen:
             rows = [self[i:i + rowlen] for i in range(0, len(self), rowlen)]
         else:

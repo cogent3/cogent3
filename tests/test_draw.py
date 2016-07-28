@@ -147,7 +147,7 @@ class CheckOutput(object):
 
 
 def do(msg, display, **kw):
-    fig = display.makeFigure(**kw)
+    fig = display.make_figure(**kw)
     test_figure(msg, fig)
 
 

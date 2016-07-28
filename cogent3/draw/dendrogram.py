@@ -333,7 +333,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
                            node.y2] + [list(map(id, node.children))])
         return result
 
-    def makeFigure(self, width=None, height=None, margin=.25, use_lengths=None, **kw):
+    def make_figure(self, width=None, height=None, margin=.25, use_lengths=None, **kw):
         (width, height), posn, kw = rlg2mpl.figureLayout(width, height, margin=0,
                                                          default_aspect=0.5, leftovers=True, **kw)
         fig = self._makeFigure(width, height)
