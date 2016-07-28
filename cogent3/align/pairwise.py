@@ -254,7 +254,7 @@ class Pair(object):
     def get_seq_name_pairs(self):
         return [(a.leaf.edge_name, a.leaf.sequence) for a in self.children]
 
-    def makeSimpleEmissionProbs(self, mprobs, psubs1):
+    def make_simple_emission_probs(self, mprobs, psubs1):
         psubs2 = [numpy.identity(len(psub)) for psub in psubs1]
         bins = [PairBinData(mprobs, *ppsubs) for ppsubs in zip(
             psubs1, psubs2)]
