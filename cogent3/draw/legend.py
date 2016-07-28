@@ -38,7 +38,7 @@ class Legend(Drawable):
                               feature_type, feature_type, [(20, 70)])
         return seq
 
-    def populateAxes(self, ax, columns=3):
+    def populate_axes(self, ax, columns=3):
         """ Returns the legend as a matplotlib artist
         Arguments:
             - columns: the number of columns of feature / representation
@@ -83,7 +83,7 @@ class Legend(Drawable):
         fig = self._makeFigure(width, height)
         ax = fig.add_axes(posn, adjustable="datalim",
                           frame_on=False, xticks=[], yticks=[])
-        g = self.populateAxes(ax, **kw)
+        g = self.populate_axes(ax, **kw)
         return fig
 
 if __name__ == '__main__':
