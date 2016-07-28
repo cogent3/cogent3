@@ -105,13 +105,13 @@ def calc_rows(Long1D plan, Long1D seq1_index, Long1D seq2_index,
     assert j_low >= 0 and j_high > j_low and j_high <= row_length
     
     (pog1, pog2) = preds
-    (j_sources, j_sources_offsets) = pog2.asCombinedArray()
+    (j_sources, j_sources_offsets) = pog2.as_combined_array()
     j_link_count = 0
     checkArray1D(j_sources, &j_link_count)
     row_length1 = row_length + 1
     checkArray1D(j_sources_offsets, &row_length1)
     
-    (i_sources, i_sources_offsets) = pog1.asCombinedArray()
+    (i_sources, i_sources_offsets) = pog1.as_combined_array()
     i_link_count = 0
     checkArray1D(i_sources, &i_link_count)
     row_count1 = row_count + 1

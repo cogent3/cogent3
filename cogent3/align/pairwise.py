@@ -367,7 +367,7 @@ class _Alignable(object):
         self.index[0] = 0
         self.index[full + 1] = uniq + 1
 
-    def _asCombinedArray(self):
+    def _as_combined_array(self):
         # POG in a format suitable for Pyrex code, two arrays
         # preds here means predecessor
         pred = []
@@ -380,9 +380,9 @@ class _Alignable(object):
         # records index positions fdor each point (graph node)
         return (numpy.array(pred), numpy.array(offsets))
 
-    def asCombinedArray(self):
+    def as_combined_array(self):
         if not hasattr(self, '_combined'):
-            self._combined = self._asCombinedArray()
+            self._combined = self._as_combined_array()
         return self._combined
 
     def getRowAssignmentPlan(self):

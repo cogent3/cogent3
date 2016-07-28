@@ -1489,7 +1489,6 @@ static const char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
 static const char __pyx_k_min_prev_state[] = "min_prev_state";
 static const char __pyx_k_ArithmeticError[] = "ArithmeticError";
 static const char __pyx_k_allocate_buffer[] = "allocate_buffer";
-static const char __pyx_k_asCombinedArray[] = "asCombinedArray";
 static const char __pyx_k_dtype_is_object[] = "dtype_is_object";
 static const char __pyx_k_i_sources_start[] = "i_sources_start";
 static const char __pyx_k_j_sources_start[] = "j_sources_start";
@@ -1497,6 +1496,7 @@ static const char __pyx_k_sub_partial_sum[] = "sub_partial_sum";
 static const char __pyx_k_s_SCALE_STEP_s_s[] = "%s * SCALE_STEP ** %s %s";
 static const char __pyx_k_source_row_index[] = "source_row_index";
 static const char __pyx_k_state_directions[] = "state_directions";
+static const char __pyx_k_as_combined_array[] = "as_combined_array";
 static const char __pyx_k_current_row_index[] = "current_row_index";
 static const char __pyx_k_i_sources_offsets[] = "i_sources_offsets";
 static const char __pyx_k_j_sources_offsets[] = "j_sources_offsets";
@@ -1564,7 +1564,7 @@ static PyObject *__pyx_n_s_a_count;
 static PyObject *__pyx_n_s_a_high;
 static PyObject *__pyx_n_s_a_low;
 static PyObject *__pyx_n_s_allocate_buffer;
-static PyObject *__pyx_n_s_asCombinedArray;
+static PyObject *__pyx_n_s_as_combined_array;
 static PyObject *__pyx_n_s_b;
 static PyObject *__pyx_n_s_b_count;
 static PyObject *__pyx_n_s_b_high;
@@ -3666,7 +3666,7 @@ static PyObject *__pyx_pf_7cogent3_5align_14_pairwise_pogs_2calc_rows(CYTHON_UNU
  *     assert j_low >= 0 and j_high > j_low and j_high <= row_length
  * 
  *     (pog1, pog2) = preds             # <<<<<<<<<<<<<<
- *     (j_sources, j_sources_offsets) = pog2.asCombinedArray()
+ *     (j_sources, j_sources_offsets) = pog2.as_combined_array()
  *     j_link_count = 0
  */
   if ((likely(PyTuple_CheckExact(__pyx_v_preds))) || (PyList_CheckExact(__pyx_v_preds))) {
@@ -3725,11 +3725,11 @@ static PyObject *__pyx_pf_7cogent3_5align_14_pairwise_pogs_2calc_rows(CYTHON_UNU
   /* "cogent3/align/_pairwise_pogs.pyx":108
  * 
  *     (pog1, pog2) = preds
- *     (j_sources, j_sources_offsets) = pog2.asCombinedArray()             # <<<<<<<<<<<<<<
+ *     (j_sources, j_sources_offsets) = pog2.as_combined_array()             # <<<<<<<<<<<<<<
  *     j_link_count = 0
  *     checkArray1D(j_sources, &j_link_count)
  */
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_pog2, __pyx_n_s_asCombinedArray); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 108, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_pog2, __pyx_n_s_as_combined_array); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 108, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __pyx_t_9 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_7))) {
@@ -3814,7 +3814,7 @@ static PyObject *__pyx_pf_7cogent3_5align_14_pairwise_pogs_2calc_rows(CYTHON_UNU
 
   /* "cogent3/align/_pairwise_pogs.pyx":109
  *     (pog1, pog2) = preds
- *     (j_sources, j_sources_offsets) = pog2.asCombinedArray()
+ *     (j_sources, j_sources_offsets) = pog2.as_combined_array()
  *     j_link_count = 0             # <<<<<<<<<<<<<<
  *     checkArray1D(j_sources, &j_link_count)
  *     row_length1 = row_length + 1
@@ -3822,7 +3822,7 @@ static PyObject *__pyx_pf_7cogent3_5align_14_pairwise_pogs_2calc_rows(CYTHON_UNU
   __pyx_v_j_link_count = 0;
 
   /* "cogent3/align/_pairwise_pogs.pyx":110
- *     (j_sources, j_sources_offsets) = pog2.asCombinedArray()
+ *     (j_sources, j_sources_offsets) = pog2.as_combined_array()
  *     j_link_count = 0
  *     checkArray1D(j_sources, &j_link_count)             # <<<<<<<<<<<<<<
  *     row_length1 = row_length + 1
@@ -3844,18 +3844,18 @@ static PyObject *__pyx_pf_7cogent3_5align_14_pairwise_pogs_2calc_rows(CYTHON_UNU
  *     row_length1 = row_length + 1
  *     checkArray1D(j_sources_offsets, &row_length1)             # <<<<<<<<<<<<<<
  * 
- *     (i_sources, i_sources_offsets) = pog1.asCombinedArray()
+ *     (i_sources, i_sources_offsets) = pog1.as_combined_array()
  */
   __pyx_t_3 = __pyx_fuse_1_2__pyx_f_7cogent3_5align_14_pairwise_pogs_checkArray1D(__pyx_v_j_sources_offsets, (&__pyx_v_row_length1)); if (unlikely(__pyx_t_3 == 1)) __PYX_ERR(1, 112, __pyx_L1_error)
 
   /* "cogent3/align/_pairwise_pogs.pyx":114
  *     checkArray1D(j_sources_offsets, &row_length1)
  * 
- *     (i_sources, i_sources_offsets) = pog1.asCombinedArray()             # <<<<<<<<<<<<<<
+ *     (i_sources, i_sources_offsets) = pog1.as_combined_array()             # <<<<<<<<<<<<<<
  *     i_link_count = 0
  *     checkArray1D(i_sources, &i_link_count)
  */
-  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_pog1, __pyx_n_s_asCombinedArray); if (unlikely(!__pyx_t_9)) __PYX_ERR(1, 114, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_pog1, __pyx_n_s_as_combined_array); if (unlikely(!__pyx_t_9)) __PYX_ERR(1, 114, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __pyx_t_7 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_9))) {
@@ -3940,7 +3940,7 @@ static PyObject *__pyx_pf_7cogent3_5align_14_pairwise_pogs_2calc_rows(CYTHON_UNU
 
   /* "cogent3/align/_pairwise_pogs.pyx":115
  * 
- *     (i_sources, i_sources_offsets) = pog1.asCombinedArray()
+ *     (i_sources, i_sources_offsets) = pog1.as_combined_array()
  *     i_link_count = 0             # <<<<<<<<<<<<<<
  *     checkArray1D(i_sources, &i_link_count)
  *     row_count1 = row_count + 1
@@ -3948,7 +3948,7 @@ static PyObject *__pyx_pf_7cogent3_5align_14_pairwise_pogs_2calc_rows(CYTHON_UNU
   __pyx_v_i_link_count = 0;
 
   /* "cogent3/align/_pairwise_pogs.pyx":116
- *     (i_sources, i_sources_offsets) = pog1.asCombinedArray()
+ *     (i_sources, i_sources_offsets) = pog1.as_combined_array()
  *     i_link_count = 0
  *     checkArray1D(i_sources, &i_link_count)             # <<<<<<<<<<<<<<
  *     row_count1 = row_count + 1
@@ -18803,7 +18803,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_a_high, __pyx_k_a_high, sizeof(__pyx_k_a_high), 0, 0, 1, 1},
   {&__pyx_n_s_a_low, __pyx_k_a_low, sizeof(__pyx_k_a_low), 0, 0, 1, 1},
   {&__pyx_n_s_allocate_buffer, __pyx_k_allocate_buffer, sizeof(__pyx_k_allocate_buffer), 0, 0, 1, 1},
-  {&__pyx_n_s_asCombinedArray, __pyx_k_asCombinedArray, sizeof(__pyx_k_asCombinedArray), 0, 0, 1, 1},
+  {&__pyx_n_s_as_combined_array, __pyx_k_as_combined_array, sizeof(__pyx_k_as_combined_array), 0, 0, 1, 1},
   {&__pyx_n_s_b, __pyx_k_b, sizeof(__pyx_k_b), 0, 0, 1, 1},
   {&__pyx_n_s_b_count, __pyx_k_b_count, sizeof(__pyx_k_b_count), 0, 0, 1, 1},
   {&__pyx_n_s_b_high, __pyx_k_b_high, sizeof(__pyx_k_b_high), 0, 0, 1, 1},
