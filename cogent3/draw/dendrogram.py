@@ -230,7 +230,7 @@ class DendrogramLabelStyle(object):
     def get_edge_label(self, edge):
         return self.edgeLabelCallback(edge)
 
-    def getNodeLabel(self, edge):
+    def get_node_label(self, edge):
         if edge.name is not None:
             return edge.name
         elif self.showInternalLabels or not edge.children:
@@ -465,13 +465,13 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         return g
 
     def _draw_node_label(self, renderer, label_style):
-        text = label_style.getNodeLabel(self)
+        text = label_style.get_node_label(self)
         color = self.NameColor
         (x, ha, y, va) = self.getLabelCoordinates(text, renderer)
         return [renderer.string(x, y, text, ha=ha, va=va, color=color)]
 
     def _draw_collapsed_clade(self, renderer, label_style):
-        text = label_style.getNodeLabel(self)
+        text = label_style.get_node_label(self)
         color = _first_non_none([self.CladeColor, self.Color, 'black'])
         icolor = 'white' if sum(to_rgb(color)) / 3 < 0.5 else 'black'
         g = []
