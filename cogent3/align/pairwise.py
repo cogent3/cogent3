@@ -386,7 +386,7 @@ class _Alignable(object):
         return self._combined
 
     def get_row_assignment_plan(self):
-        d = self.getOuterLoopDiscardPoints()
+        d = self.get_outer_loop_discard_points()
         free = set()
         top = 0
         assignments = []
@@ -457,7 +457,7 @@ class AlignablePOG(_Alignable):
     def midlinks(self):
         return self.pog.midlinks()
 
-    def getOuterLoopDiscardPoints(self):
+    def get_outer_loop_discard_points(self):
         # for score row caching
         last_successor = {}
         discard_list = {}
@@ -521,7 +521,7 @@ class AlignableSeq(_Alignable):
         half = len(self.leaf) // 2
         return [(half, half)]
 
-    def getOuterLoopDiscardPoints(self):
+    def get_outer_loop_discard_points(self):
         return [[]] + [[i] for i in range(len(self) - 1)]
 
 
