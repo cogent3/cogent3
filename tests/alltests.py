@@ -139,46 +139,6 @@ def suite():
     else:
         modules_to_test.append('test_draw')
 
-    # we now toggle the db tests, based on an environment flag
-    if int(os.environ.get('TEST_DB', 0)):
-        db_tests = ['test_db.test_ncbi', 'test_db.test_util']
-
-        # we check for an environment flag for ENSEMBL
-        # we expect this to have the username and account for a localhost
-        # installation of the Ensembl MySQL databases
-        if 'ENSEMBL_ACCOUNT' in os.environ:
-            # check for cogent3.db.ensembl dependencies
-            test_ensembl = True
-            mysqls = ['MySQLdb', 'mysql', 'pymysql']
-            if not any(map(module_present, mysqls)):
-                test_ensembl = False
-                print("None of %s modules present: skipping test" %
-                      ", ".join(mysqls), file=sys.stderr)
-
-            if not module_present('sqlalchemy'):
-                test_ensembl = False
-                print("Module 'sqlalchemy' not present: skipping test",
-                      file=sys.stderr)
-
-            if test_ensembl:
-                db_tests += ['test_db.test_ensembl.test_assembly',
-                             'test_db.test_ensembl.test_database',
-                             'test_db.test_ensembl.test_compara',
-                             'test_db.test_ensembl.test_genome',
-                             'test_db.test_ensembl.test_host',
-                             'test_db.test_ensembl.test_metazoa',
-                             'test_db.test_ensembl.test_species',
-                             'test_db.test_ensembl.test_feature_level']
-        else:
-            print("Environment variable ENSEMBL_ACCOUNT not "
-                  "set: skipping db.ensembl tests", file=sys.stderr)
-
-        for db_test in db_tests:
-            modules_to_test.append(db_test)
-    else:
-        print("Environment variable TEST_DB=1 not set: skipping db tests",
-              file=sys.stderr)
-
     assert sys.version_info >= (2, 6)
 
     alltests = unittest.TestSuite()

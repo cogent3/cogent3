@@ -14,9 +14,9 @@ __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
 # Check Python version, no point installing if unsupported version inplace
-if sys.version_info < (2, 6):
+if sys.version_info < (3, 5):
     py_version = ".".join([str(n) for n in sys.version_info])
-    raise RuntimeError("Python-2.6 or greater is required, Python-%s used." % py_version)
+    raise RuntimeError("Python-3.5 or greater is required, Python-%s used." % py_version)
 
 
 # Check Numpy version, no point installing if unsupported version inplace
@@ -115,13 +115,13 @@ Version %s.
 setup(
     name="cogent3",
     version=__version__,
-    url="http://github.com/pycogent/pycogent",
-    author="Gavin Huttley, Rob Knight",
-    author_email="gavin.huttley@anu.edu.au, rob@spot.colorado.edu",
+    url="https://bitbucket.org/pycogent3/pycogent3",
+    author="Gavin Huttley",
+    author_email="gavin.huttley@anu.edu.au",
     description=short_description,
     long_description=long_description,
     platforms=["any"],
-    license=["GPL"],
+    license=["BSD"],
     keywords=["biology", "genomics", "statistics", "phylogeny", "evolution",
                 "bioinformatics"],
     classifiers=[
@@ -133,7 +133,7 @@ setup(
             "Operating System :: OS Independent",
             ],
     packages=['cogent3', 'cogent3.align',
-                'cogent3.cluster', 'cogent3.core', 'cogent3.data', 'cogent3.db',
+                'cogent3.cluster', 'cogent3.core', 'cogent3.data',
                 'cogent3.db.ensembl', 'cogent3.draw',
                 'cogent3.evolve', 'cogent3.format', 'cogent3.maths',
                 'cogent3.maths.matrix', 'cogent3.maths.stats', 'cogent3.parse',
@@ -149,7 +149,6 @@ setup(
     ]),
     include_dirs = [numpy_include_dir],
     cmdclass = extra_commands,
-    extras_require={"mysql": ["PyMySQL", "sqlalchemy"],
-                    "mpi": ["mpi4py"],
-                    "all": ["PyMySQL", "sqlalchemy", "matplotlib", "mpi4py"]},
+    extras_require={"mpi": ["mpi4py"],
+                    "all": ["matplotlib", "mpi4py"]},
 )
