@@ -145,7 +145,7 @@ class Track(object):
         self.level = level
         self.needs_border = needs_border
 
-    def getShapes(self, span, rotated, height,
+    def get_shapes(self, span, rotated, height,
                   yrange=None, done_border=False):
         shape_list = [feature.shape(height,
                                     yrange or self.range, rotated) for feature in self.features]
@@ -181,7 +181,7 @@ class CompositeTrack(Track):
         self.level = max([track.level for track in tracks])
         self.range = max([track.range for track in tracks])
 
-    def getShapes(self, span, rotated, height,
+    def get_shapes(self, span, rotated, height,
                   yrange=None, done_border=False):
         if yrange is None:
             yrange = self.range
@@ -196,7 +196,7 @@ class CompositeTrack(Track):
                 )
                 shape_list.append(border)
                 done_border = True
-            shape_list.extend(track.getShapes(span, rotated, height,
+            shape_list.extend(track.get_shapes(span, rotated, height,
                                               yrange=yrange, done_border=True))
         return shape_list
 
@@ -1050,7 +1050,7 @@ class Display(rlg2mpl.Drawable):
         g = rlg2mpl.Group()
         for (y, ym, p) in self._tracks:
             smap = self.smap.inverse()
-            for s in p.getShapes(
+            for s in p.get_shapes(
                     span=(smap.start, smap.end),
                     rotated=vertical,
                     height=float(p.height),
