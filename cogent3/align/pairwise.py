@@ -321,7 +321,7 @@ class Pair(object):
         (pog1, pog2) = [child.get_pog() for child in self.children]
         return pog1.traceback(pog2, aligned_positions)
 
-    def getPointerEncoding(self, n_states):
+    def get_pointer_encoding(self, n_states):
         assert n_states <= self.pointer_encoding.max_states, (
             n_states, self.pointer_encoding.max_states)
         return self.pointer_encoding
@@ -736,7 +736,7 @@ class PairEmissionProbs(object):
         """
         (state_directions, T) = TM
         if dp_options.viterbi and cells is None:
-            encoder = self.pair.getPointerEncoding(len(T))
+            encoder = self.pair.get_pointer_encoding(len(T))
             problem_dimensions = self.pair.size + [len(T)]
             problem_size = numpy.product(problem_dimensions)
             memory = problem_size * encoder.bytes / 10**6
