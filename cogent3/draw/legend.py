@@ -60,7 +60,7 @@ class Legend(Drawable):
                                   min_feature_height=10,
                                   show_code=False,
                                   pad=0,)
-                sample = display.makeArtist()
+                sample = display.make_artist()
                 # trans = sample.get_transform()
                 # offset = Affine2D()
                 # offset.translate(x*600+20 / columns, y*30)
