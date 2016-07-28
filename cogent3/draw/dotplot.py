@@ -143,7 +143,7 @@ class Display2D(Drawable):
                 ax.add_patch(patch)
         return ax.get_figure()
 
-    def simplerMakeFigure(self):
+    def simpler_make_figure(self):
         """Drawing of a matrix style dotplot with annotated axes"""
         import numpy
         ax = comparison_display(self.seq1, self.seq2)
