@@ -49,7 +49,7 @@ def _align_pairwise(s1, s2, mprobs, psub, TM, local, return_alignment=True, retu
     vpath = hmm.getViterbiPath(local=local, **kw)
     score = vpath.getScore()
     if return_alignment:
-        alignment = vpath.getAlignment()
+        alignment = vpath.get_alignment()
         if return_score:
             return (alignment, score)
         else:

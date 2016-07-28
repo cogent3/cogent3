@@ -76,7 +76,7 @@ class TestCompara(ComparaTestBase):
         brca2 = self.comp.Mouse.getGeneByStableId(StableId=mid)
         result = list(self.comp.getSyntenicRegions(region=brca2,
                                                    align_method='PECAN', align_clade='vertebrates'))[0]
-        aln = result.getAlignment(feature_types='gene')
+        aln = result.get_alignment(feature_types='gene')
         # to improve test robustness across Ensembl releases, where alignment
         # coordinates change due to inclusion of new species, we search for
         # the mouse subseq and use the resulting coords to ensure we get the
@@ -191,7 +191,7 @@ class TestSyntenicRegions(TestCase):
             # check the slope computed from the expected and returned
             # coordinates is ~ 1
             got_names = dict([(n.split(':')[0], n.split(':'))
-                             for n in syntenic.getAlignment().names])
+                             for n in syntenic.get_alignment().names])
             exp_names = dict([(n.split(':')[0], n.split(':'))
                              for n in list(expect.keys())])
             for species in exp_names:
