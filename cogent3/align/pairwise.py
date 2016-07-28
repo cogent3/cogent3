@@ -948,21 +948,13 @@ class PairHMM(object):
         VP = LocalViterbiPath if local else GlobalViterbiPath
         return VP(self, result)
 
-    def getViterbiScoreAndAlignment(self, ratio=None, posterior_probs=False, **kw):
-        # deprecated('method', 'getViterbiScoreAndAlignment',
-        #        'get_viterbi_path().get_alignment()', '1.8', stack_level=3)
+    def get_viterbi_score_and_alignment(self, ratio=None, posterior_probs=False, **kw):
         assert ratio in [None, 0.5], ratio
         vpath = self.get_viterbi_path(**kw)
         result_tuple = (vpath.getScore(), vpath.get_alignment())
         if posterior_probs:
             result_tuple = result_tuple + (vpath.get_posterior_probs(),)
         return result_tuple
-
-    def getLocalViterbiScoreAndAlignment(self, posterior_probs=False, **kw):
-        deprecated('method', 'getLocalViterbiScoreAndAlignment',
-                   'getViterbiScoreAndAlignment(local=True)', '1.7', stack_level=3)
-        kw['posterior_probs'] = posterior_probs
-        return self.getViterbiScoreAndAlignment(local=True, **kw)
 
 
 class _ViterbiPath(object):
