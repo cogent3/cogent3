@@ -1066,12 +1066,12 @@ class Display(rlg2mpl.Drawable):
 
     def as_axes(self, fig, posn, labeled=True, vertical=False):
         ax = fig.add_axes(posn)
-        self.applyScaleToAxes(ax, labeled=labeled, vertical=vertical)
+        self.apply_scale_to_axes(ax, labeled=labeled, vertical=vertical)
         g = self.make_artist(vertical=vertical)
         ax.add_artist(g)
         return ax
 
-    def applyScaleToAxes(self, ax, labeled=True, vertical=False):
+    def apply_scale_to_axes(self, ax, labeled=True, vertical=False):
         (seqaxis, trackaxis) = [ax.xaxis, ax.yaxis]
         if vertical:
             (seqaxis, trackaxis) = (trackaxis, seqaxis)
