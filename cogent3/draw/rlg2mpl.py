@@ -188,7 +188,7 @@ class Drawable(object):
         fig = self.make_figure(**makefig_kw)
         fig.savefig(fname, **savefig_kw)
 
-    def drawToPDF(self, filename, total_width=None, height=None, **kw):
+    def write_pdf(self, filename, total_width=None, height=None, **kw):
         # Matches, as far as possible, old ReportLab version
 
         if total_width is not None:
