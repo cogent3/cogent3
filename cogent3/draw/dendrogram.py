@@ -75,7 +75,7 @@ class ScalarColormapShading(object):
 
     Note: this is just a convenience wrapper for coloring. You can color
     the tree using any arbitrary function of the individual nodes by passing
-    edge_color_callback to makeColorCallback (or to other objects
+    edge_color_callback to MakeColorCallback (or to other objects
     that delegate to it).
     """
 
@@ -100,7 +100,7 @@ class ScalarColormapShading(object):
             return color
 
 
-def makeColorCallback(shade_param=None, min_value=0.0, max_value=None,
+def MakeColorCallback(shade_param=None, min_value=0.0, max_value=None,
                       edge_color="black", highlight_color="red", edge_color_callback=None,
                       callback_returns_name=None, cmap=None):
     """Makes a callback f(node)->color using several strategies.
@@ -148,13 +148,13 @@ def makeColorCallback(shade_param=None, min_value=0.0, max_value=None,
 class MatplotlibRenderer(object):
     """Returns a matplitlib render including font size, stroke width, etc.
 
-    Note: see documentation for makeColorCallback above to figure
+    Note: see documentation for MakeColorCallback above to figure
     out how to make it color things the way you want. Dynamically varying the
     stroke width is not yet implemented by should be.
     """
 
     def __init__(self, font_size=None, stroke_width=3, label_pad=None, **kw):
-        self.calculated_edge_color = makeColorCallback(**kw)
+        self.calculated_edge_color = MakeColorCallback(**kw)
         self.text_opts = {}
         if font_size is not None:
             self.text_opts['fontsize'] = font_size
