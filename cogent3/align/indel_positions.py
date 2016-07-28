@@ -163,7 +163,7 @@ class POG(object):
     def get_aligned_positions(self):
         return self.aligned_positions
 
-    def getFullAlignedPositions(self):
+    def get_full_aligned_positions(self):
         return self.aligned_positions
 
     def __len__(self):
