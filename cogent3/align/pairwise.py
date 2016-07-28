@@ -247,7 +247,7 @@ class Pair(object):
 
         self.size = [len(alignable1), len(alignable2)]
         self.uniq_size = [len(alignable1.plh), len(alignable2.plh)]
-        self.plan = numpy.array(alignable1.getRowAssignmentPlan())
+        self.plan = numpy.array(alignable1.get_row_assignment_plan())
         self.x_index = alignable1.index
         self.y_index = alignable2.index
 
@@ -385,7 +385,7 @@ class _Alignable(object):
             self._combined = self._as_combined_array()
         return self._combined
 
-    def getRowAssignmentPlan(self):
+    def get_row_assignment_plan(self):
         d = self.getOuterLoopDiscardPoints()
         free = set()
         top = 0
