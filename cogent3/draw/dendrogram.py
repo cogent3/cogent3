@@ -382,7 +382,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
             raise ValueError('%spt not wide enough for ""%s"' %
                              (width, self.longest_label))
 
-        scale = self.updateCoordinates(width - total_label_width, height)
+        scale = self.update_coordinates(width - total_label_width, height)
 
         if shade_param is not None and max_value is None:
             max_value = 0
@@ -523,7 +523,7 @@ class _RootedDendrogram(_Dendrogram):
     def y_coords(self, scale, y1):
         raise NotImplementedError
 
-    def updateCoordinates(self, width, height):
+    def update_coordinates(self, width, height):
         xscale = width / self.height
         yscale = height / self.width_required()
         scale = Dimensions(xscale, yscale, self.height)
@@ -685,7 +685,7 @@ class UnrootedDendrogram(_Dendrogram):
         vertices = [(self.x2, self.y2), (x1, y1), (x2, y2)]
         return (self.x2, (x1 + x2) / 2, self.y2, (y1 + y2) / 2), vertices
 
-    def updateCoordinates(self, width, height):
+    def update_coordinates(self, width, height):
         angle = 2 * numpy.pi / self.leafcount
         # this loop is a horrible brute force hack
         # there are better (but complex) ways to find
