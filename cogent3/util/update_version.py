@@ -15,10 +15,10 @@ from os import path
 import os
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Daniel McDonald"
 __email__ = "mcdonadt@colorado.edu"
 __status__ = "Development"
@@ -50,20 +50,20 @@ class VersionUpdater(object):
         self.Verbose = Verbose
         self.MockRun = MockRun
 
-        self.CodesDirectory = path.join(self.PyCogentDirectory, 'cogent')
+        self.CodesDirectory = path.join(self.PyCogentDirectory, 'cogent3')
         self.TestsDirectory = path.join(self.PyCogentDirectory, 'tests')
         self.DocDirectory = path.join(self.PyCogentDirectory, 'doc')
         self.IncludesDirectory = path.join(self.PyCogentDirectory, 'include')
 
         if not os.access(path.join(self.CodesDirectory, '__init__.py'), os.R_OK):
-            raise IOError("Could not locate cogent/__init__.py")
+            raise IOError("Could not locate cogent3/__init__.py")
         if not os.access(path.join(self.TestsDirectory, '__init__.py'), os.R_OK):
             raise IOError("Could not locate tests/__init__.py")
         if not os.access(path.join(self.DocDirectory, 'conf.py'), os.R_OK):
             raise IOError("Could not locate doc/conf.py")
         if not os.access(path.join(self.IncludesDirectory,
-                                   'array_interface.h'), os.R_OK):
-            raise IOError("Cound not locate include/array_interface.h")
+                                   'numerical_pyrex.pyx'), os.R_OK):
+            raise IOError("Cound not locate include/numerical_pyrex.pyx")
 
     def _get_base_files(self):
         """Support method, provides relative locations for files in base dir"""
@@ -137,9 +137,9 @@ class VersionUpdater(object):
         Expects the properties file to be in "key=value" lines
         """
         found_version_line = False
-        if filename.endswith('cogent-requirements.txt'):
+        if filename.endswith('cogent3-requirements.txt'):
             for lineno, line in enumerate(lines):
-                if 'packages/source/c/cogent' in line:
+                if 'packages/source/c/cogent3' in line:
                     found_version_line = True
                     break
         if found_version_line:

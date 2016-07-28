@@ -46,12 +46,12 @@ from copy import copy, deepcopy
 from cogent3.core.profile import Profile
 
 __author__ = "Peter Maxwell and Rob Knight"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley",
                "Jeremy Widmann", "Catherine Lozupone", "Matthew Wakefield",
                "Micah Hamady", "Daniel McDonald", "Jan Kosinski"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"

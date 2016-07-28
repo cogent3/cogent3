@@ -19,10 +19,10 @@ from cogent3.util.recode_alignment import alphabets, recode_dense_alignment,\
     recode_counts_and_freqs, recode_count_matrix
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Greg Caporaso"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"

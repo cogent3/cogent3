@@ -5,10 +5,10 @@ from cogent3.parse.cigar import map_to_cigar, cigar_to_map, aligned_from_cigar, 
     slice_cigar, CigarParser
 
 __author__ = "Hua Ying"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Hua Ying", "Gavin Huttley"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Hua Ying"
 __email__ = "hua.ying@anu.edu.au"
 __status__ = "Production"

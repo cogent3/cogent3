@@ -16,10 +16,10 @@ from cogent3.evolve._pairwise_distance import \
     _fill_diversity_matrix as pyx_fill_diversity_matrix
 
 __author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Yicheng Zhu", "Ben Kaehler"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"

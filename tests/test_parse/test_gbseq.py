@@ -5,10 +5,10 @@ from cogent3.util.unit_test import TestCase, main
 from cogent3.parse.gbseq import GbSeqXmlParser
 
 __author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Matthew Wakefield"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"

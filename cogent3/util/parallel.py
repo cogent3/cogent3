@@ -9,11 +9,11 @@ import multiprocessing
 import multiprocessing.pool
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley",
                "Matthew Wakefield", "Edward Lang"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin Huttley"
 __status__ = "Production"

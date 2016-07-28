@@ -62,7 +62,7 @@ abs = absolute
 import builtins
 pymin = builtins.min
 pymax = builtins.max
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 
 
 _epsilon = sqrt(numpy.finfo(float).eps)

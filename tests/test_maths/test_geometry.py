@@ -7,10 +7,10 @@ from cogent3.maths.geometry import center_of_mass_one_array, \
     center_of_mass_two_array, center_of_mass, distance, sphere_points
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Sandra Smit", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"

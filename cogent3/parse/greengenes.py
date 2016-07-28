@@ -10,10 +10,10 @@ from cogent3.parse.record_finder import DelimitedRecordFinder
 from cogent3.parse.record import DelimitedSplitter, GenericRecord
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 __status__ = "Prototype"

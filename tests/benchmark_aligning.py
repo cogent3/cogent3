@@ -6,10 +6,10 @@ from cogent3 import DNA
 from cogent3.align.align import classic_align_pairwise, make_dna_scoring_dict
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"

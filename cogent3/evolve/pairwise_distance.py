@@ -6,10 +6,10 @@ from cogent3 import DNA, RNA, LoadTable
 from cogent3.util.progress_display import display_wrap
 
 __author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Yicheng Zhu", "Ben Kaehler"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"  # pending addition of protein distance metrics

@@ -7,10 +7,10 @@ from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.fit_function import fit_function
 
 __author__ = "Antonio Gonzalez Pena"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Antonio Gonzalez Pena"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Antonio Gonzalez Pena"
 __email__ = "antgonza@gmail.com"
 __status__ = "Prototype"

@@ -5,11 +5,11 @@ from cogent3.parse.greengenes import MinimalGreengenesParser, make_ignore_f,\
     DefaultDelimitedSplitter, SpecificGreengenesParser
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"  # consider project name
+__copyright__ = "Copyright 2007-2016, The Cogent Project"  # consider project name
 # remember to add yourself if you make changes
 __credits__ = ["Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 __status__ = "Prototype"
