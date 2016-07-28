@@ -112,7 +112,7 @@ class EdgeSumAndAlignDefn(CalculationDefn):
                 ratio = length1 / (length1 + length2)
             except (ZeroDivisionError, FloatingPointError):
                 ratio = 1.
-            return edge.getViterbiPath().getAlignable(ratio)
+            return edge.getViterbiPath().get_alignable(ratio)
         edge.getaln = _getaln
         return edge
 
