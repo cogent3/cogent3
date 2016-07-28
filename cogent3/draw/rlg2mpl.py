@@ -249,15 +249,15 @@ class _End(object):
             setattr(self, n, v)
 
     def move_to_start(self, path):
-        path.move_to(*self.startPoint())
+        path.move_to(*self.start_point())
 
     def draw_to_start(self, path):
-        path.line_to(*self.startPoint())
+        path.line_to(*self.start_point())
 
     def finish(self, path):
         path.close_path()
 
-    def startPoint(self):
+    def start_point(self):
         return (self.x_near, self.y_first)
 
     def __add__(self, oppo):
@@ -287,7 +287,7 @@ class Square(_End):
 
 class Rounded(_End):
 
-    def startPoint(self):
+    def start_point(self):
         return (self.x_near + self.dx, self.y_first)
 
     def drawEnd(self, path):
@@ -303,7 +303,7 @@ class Pointy(_End):
     def _effective_dx(self):
         return max(abs(self.dx), abs(self.dy)) * self.dx / abs(self.dx)
 
-    def startPoint(self):
+    def start_point(self):
         return (self.x_near + self._effective_dx(), self.y_first)
 
     def drawEnd(self, path):
