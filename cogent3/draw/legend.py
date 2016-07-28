@@ -87,4 +87,4 @@ class Legend(Drawable):
         return fig
 
 if __name__ == '__main__':
-    Legend().showFigure()
+    Legend().show_figure()
