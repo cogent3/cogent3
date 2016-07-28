@@ -157,7 +157,7 @@ class Drawable(object):
         fig = plt.figure(figsize=(width, height), facecolor='white')
         return fig
 
-    def drawFigure(self, title=None, **kw):
+    def draw_figure(self, title=None, **kw):
         """Draw the figure.
         Extra arguments are forwarded to self.make_figure()"""
         import matplotlib.pyplot as plt
@@ -169,7 +169,7 @@ class Drawable(object):
     def showFigure(self, title=None, **kw):
         """Make the figure and immediately pyplot.show() it.
         Extra arguments are forwarded to self.make_figure()"""
-        self.drawFigure(title, **kw)
+        self.draw_figure(title, **kw)
         import matplotlib.pyplot as plt
         plt.show()
 
