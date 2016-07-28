@@ -248,7 +248,7 @@ class _End(object):
         for (n, v) in list(kw.items()):
             setattr(self, n, v)
 
-    def moveToStart(self, path):
+    def move_to_start(self, path):
         path.move_to(*self.startPoint())
 
     def drawToStart(self, path):
@@ -262,7 +262,7 @@ class _End(object):
 
     def __add__(self, oppo):
         p = PathBuilder()
-        self.moveToStart(p)
+        self.move_to_start(p)
         self.drawEnd(p)
         oppo.drawToStart(p)
         oppo.drawEnd(p)
