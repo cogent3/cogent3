@@ -46,7 +46,7 @@ def _align_pairwise(s1, s2, mprobs, psub, TM, local, return_alignment=True, retu
     pair = pairwise.Pair(p1, p2)
     EP = pair.make_simple_emission_probs(mprobs, [psub])
     hmm = EP.make_pair_HMM(TM)
-    vpath = hmm.getViterbiPath(local=local, **kw)
+    vpath = hmm.get_viterbi_path(local=local, **kw)
     score = vpath.getScore()
     if return_alignment:
         alignment = vpath.get_alignment()

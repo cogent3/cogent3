@@ -89,7 +89,7 @@ class AlignmentTestCase(unittest.TestCase):
         tree = cogent3.LoadTree(tip_names=['A', 'B'])
         lf = codon_model.make_likelihood_function(tree, aligned=False)
         lf.set_sequences(dict(A=s1, B=s2))
-        a = lf.get_log_likelihood().edge.getViterbiPath().get_alignment()
+        a = lf.get_log_likelihood().edge.get_viterbi_path().get_alignment()
         self.assertEqual(matchedColumns(a), 6)
         self.assertEqual(len(a), 9)
 
