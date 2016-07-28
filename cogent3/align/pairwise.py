@@ -342,7 +342,7 @@ class Pair(object):
             exponents = None
         return (mantissas, exponents)
 
-    def calcRows(self, i_low, i_high, j_low, j_high, state_directions,
+    def calc_rows(self, i_low, i_high, j_low, j_high, state_directions,
                  T, scores, rows, track, track_encoding, viterbi, **kw):
         (match_scores, (xscores, yscores)) = scores
         track_enc = track_encoding and track_encoding.positions
@@ -627,7 +627,7 @@ class PairEmissionProbs(object):
         to_end = numpy.array([(len(T) - 1, 0, 0, 0)])
         for (state, (i, j)) in cells:
             if i > last_i:
-                rr = pair.calcRows(last_i + 1, i + 1, 0, N - 1,
+                rr = pair.calc_rows(last_i + 1, i + 1, 0, N - 1,
                                    state_directions, T, scores, rows, None, None, **kw)
             else:
                 assert i == last_i, (i, last_i)
@@ -641,7 +641,7 @@ class PairEmissionProbs(object):
             global DEBUG
             _d = DEBUG
             DEBUG = False
-            (maxpos, state, score) = pair.calcRows(
+            (maxpos, state, score) = pair.calc_rows(
                 i, i + 1, j, j + 1, to_end, T2, scores, rows, None, None, **kw)
             DEBUG = _d
             probs.append(score)
@@ -791,13 +791,13 @@ class PairEmissionProbs(object):
         else:
             (M, N) = pair.size
             if dp_options.local:
-                (maxpos, state, score) = pair.calcRows(1, M - 1, 1, N - 1,
+                (maxpos, state, score) = pair.calc_rows(1, M - 1, 1, N - 1,
                                                        state_directions, T, scores, rows, track, encoder, **kw)
             else:
-                pair.calcRows(0, M - 1, 0, N - 1,
+                pair.calc_rows(0, M - 1, 0, N - 1,
                               state_directions, T, scores, rows, track, encoder, **kw)
                 end_state_only = numpy.array([(len(T) - 1, 0, 1, 1)])
-                (maxpos, state, score) = pair.calcRows(M - 1, M, N - 1, N,
+                (maxpos, state, score) = pair.calc_rows(M - 1, M, N - 1, N,
                                                        end_state_only, T, scores, rows, track, encoder, **kw)
 
             if track is None:
