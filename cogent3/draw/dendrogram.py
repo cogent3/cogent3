@@ -227,7 +227,7 @@ class DendrogramLabelStyle(object):
         self.edgeLabelCallback = edge_label_callback
         self.showInternalLabels = show_internal_labels
 
-    def getEdgeLabel(self, edge):
+    def get_edge_label(self, edge):
         return self.edgeLabelCallback(edge)
 
     def getNodeLabel(self, edge):
@@ -451,7 +451,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         g.append(renderer.line(self.x1, self.y1, self.x2, self.y2, self))
 
         # Edge Label
-        text = label_style.getEdgeLabel(self)
+        text = label_style.get_edge_label(self)
         if text:
             midx, midy = (self.x1 + self.x2) / 2, (self.y1 + self.y2) / 2
             if self.x1 == self.x2:
