@@ -98,7 +98,7 @@ class FwdDefn(CalculationDefn):
     name = 'fwd'
 
     def calc(self, edge):
-        return edge.getForwardScore(use_cost_function=False)
+        return edge.get_forward_score(use_cost_function=False)
 
 
 class EdgeSumAndAlignDefn(CalculationDefn):

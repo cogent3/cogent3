@@ -927,12 +927,12 @@ class PairHMM(object):
                 self.emission_probs.dp(self._transition_matrix, dp_options)
         return self.results[dp_options]
 
-    def getForwardScore(self, **kw):
+    def get_forward_score(self, **kw):
         return self._getDPResult(viterbi=False, **kw)
 
     def _get_posterior_probs(self, tb, **kw):
         cells = tb.asStatePosTuples()
-        score = self.getForwardScore(**kw)
+        score = self.get_forward_score(**kw)
         dp_options = DPFlags(viterbi=False, **kw)
         fwd = self.emission_probs.dp(
             self._transition_matrix, dp_options, cells)
