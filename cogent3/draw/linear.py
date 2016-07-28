@@ -925,7 +925,7 @@ class DisplayPolicy(object):
         annot_tracks = sequence.get_annotation_tracks(self)
         return self.merge_tracks(annot_tracks + seq_tracks)
 
-    def getStyleDefnForFeature(self, feature):
+    def get_style_defn_for_feature(self, feature):
         if feature.type in self._track_map:
             (track_defn, level, style) = self._track_map[feature.type]
         elif self.keep_unexpected_tracks:
@@ -944,7 +944,7 @@ class DisplayPolicy(object):
         return (track_tag, style, level)
 
     def tracksForFeature(self, feature):
-        (track_tag, style, level) = self.getStyleDefnForFeature(feature)
+        (track_tag, style, level) = self.get_style_defn_for_feature(feature)
         if style is None:
             return []
         annot_tracks = feature.get_annotation_tracks(self)
@@ -952,7 +952,7 @@ class DisplayPolicy(object):
                                      [Feature(self.map, style, feature.name)], level=level)]
 
     def tracksForVariable(self, variable):
-        (track_tag, style, level) = self.getStyleDefnForFeature(variable)
+        (track_tag, style, level) = self.get_style_defn_for_feature(variable)
         if style is None:
             return []
         segments = []
