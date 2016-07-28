@@ -871,7 +871,7 @@ class DisplayPolicy(object):
                 sorted_tracks.extend(annots)
         return sorted_tracks
 
-    def tracksForAlignment(self, alignment):
+    def tracks_for_alignment(self, alignment):
         annot_tracks = alignment.get_annotation_tracks(self)
         if self.recursive:
             if self.show_gaps is None:
