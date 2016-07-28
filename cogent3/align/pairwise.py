@@ -833,7 +833,7 @@ class BinData(object):
         self.mprobs = mprobs
         self.rate = rate
 
-    def forLengths(self, length1, length2):
+    def for_lengths(self, length1, length2):
         psub1 = self.Qd(length1 * self.rate)
         psub2 = self.Qd(length2 * self.rate)
         return PairBinData(self.mprobs, psub1, psub2)
@@ -864,7 +864,7 @@ class ReversiblePairEmissionProbs(object):
     def _makePairEmissionProbs(self, ratio):
         assert 0.0 <= ratio <= 1.0
         lengths = [self.length * ratio, self.length * (1.0 - ratio)]
-        pbins = [bin.forLengths(*lengths) for bin in self.bins]
+        pbins = [bin.for_lengths(*lengths) for bin in self.bins]
         return PairEmissionProbs(self.pair, pbins)
 
     def get_alignable(self, a_p, ratio=None):
