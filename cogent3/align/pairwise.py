@@ -251,7 +251,7 @@ class Pair(object):
         self.x_index = alignable1.index
         self.y_index = alignable2.index
 
-    def getSeqNamePairs(self):
+    def get_seq_name_pairs(self):
         return [(a.leaf.edge_name, a.leaf.sequence) for a in self.children]
 
     def makeSimpleEmissionProbs(self, mprobs, psubs1):
@@ -1006,7 +1006,7 @@ class LocalViterbiPath(_ViterbiPath):
 
     def getAlignment(self):
         """The alignment as a standard PyCogent Alignment object"""
-        seqs = self.pair_hmm.emission_probs.pair.getSeqNamePairs()
+        seqs = self.pair_hmm.emission_probs.pair.get_seq_name_pairs()
         word_length = self.pair_hmm.emission_probs.pair.alphabet.get_motif_len()
         aligned_positions = [posn for (bin, posn) in self.aligned_positions]
         return alignment_traceback(seqs, aligned_positions, word_length)
