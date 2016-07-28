@@ -221,7 +221,7 @@ class PathBuilder(object):
     def as_path(self):
         return Path(self.points, self.operators)
 
-    def moveTo(self, x, y):
+    def move_to(self, x, y):
         self.points.append((x, y))
         self.operators.append(Path.MOVETO)
 
@@ -249,7 +249,7 @@ class _End(object):
             setattr(self, n, v)
 
     def moveToStart(self, path):
-        path.moveTo(*self.startPoint())
+        path.move_to(*self.startPoint())
 
     def drawToStart(self, path):
         path.lineTo(*self.startPoint())
@@ -276,7 +276,7 @@ class Open(_End):
         self.drawToStart(path)
 
     def drawEnd(self, path):
-        path.moveTo(self.x_near, self.y_second)
+        path.move_to(self.x_near, self.y_second)
 
 
 class Square(_End):
