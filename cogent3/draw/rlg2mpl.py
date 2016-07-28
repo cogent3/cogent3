@@ -146,7 +146,7 @@ def figure_layout(width=None, height=None, margin=0.25, aspect=None,
 
 class Drawable(object):
     # Superclass for objects which can generate a matplotlib figure, in order
-    # to supply consistent and convenient showFigure() and drawToFile()
+    # to supply consistent and convenient show_figure() and drawToFile()
     # methods.
     # Subclasses must provide .make_figure() which will make use of
     # _makeFigure() matplotlib.pyplot import done at runtime to give the
@@ -166,7 +166,7 @@ class Drawable(object):
             fig.suptitle(title)
         plt.draw_if_interactive()
 
-    def showFigure(self, title=None, **kw):
+    def show_figure(self, title=None, **kw):
         """Make the figure and immediately pyplot.show() it.
         Extra arguments are forwarded to self.make_figure()"""
         self.draw_figure(title, **kw)
