@@ -884,7 +884,7 @@ class DisplayPolicy(object):
         annot_tracks = self.merge_tracks(annot_tracks)
         return seq_tracks + annot_tracks
 
-    def tracksForSequence(self, sequence):
+    def tracks_for_sequence(self, sequence):
         seq_tracks = []
 
         if self.show_code:
