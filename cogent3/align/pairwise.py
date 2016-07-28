@@ -326,13 +326,13 @@ class Pair(object):
             n_states, self.pointer_encoding.max_states)
         return self.pointer_encoding
 
-    def getScoreArraysShape(self):
+    def get_score_arrays_shape(self):
         needed = max(self.plan) + 1
         N = self.size[1]
         return (needed, N)
 
     def getEmptyScoreArrays(self, n_states, dp_options):
-        shape = self.getScoreArraysShape() + (n_states,)
+        shape = self.get_score_arrays_shape() + (n_states,)
         mantissas = numpy.zeros(shape, float)
         if dp_options.use_logs:
             mantissas[:] = numpy.log(0.0)
