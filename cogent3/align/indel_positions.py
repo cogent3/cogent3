@@ -160,7 +160,7 @@ class POG(object):
             result[j + 1].extend(result[i + 1])
         return result
 
-    def getAlignedPositions(self):
+    def get_aligned_positions(self):
         return self.aligned_positions
 
     def getFullAlignedPositions(self):

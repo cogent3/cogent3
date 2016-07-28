@@ -814,7 +814,7 @@ class PairEmissionProbs(object):
         leaves = [c.leaf for c in children]
         aligned_positions = [posn for (bin, posn) in aligned_positions]
         pog = self.pair.get_pog(aligned_positions)
-        edge = LikelihoodTreeEdge(leaves, 'parent', pog.getAlignedPositions())
+        edge = LikelihoodTreeEdge(leaves, 'parent', pog.get_aligned_positions())
         (plhs, gapscores) = self.makePartialLikelihoods(use_cost_function=False)
         plh = self.pair.edge2plh(edge, plhs)
         assert len(plh) == 1, ('bins!', len(plh))
