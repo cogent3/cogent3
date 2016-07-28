@@ -618,11 +618,11 @@ class Profile(object):
                         [item for item in nonzero(data[row_idx] ==
                                                   data[row_idx, row[-num_to_keep]])[0] if item in
                          nonzero(data[row_idx])[0]]
-                    result.append(alpha.degenerate_from_seq(
+                    result.append(alpha.moltype.degenerate_from_seq(
                         list(map(lambda x: x.decode('utf8'), take(co, to_take, axis=0)))))
             else:
                 for row_idx, (num_to_keep, row) in enumerate(zip(degen, sorted)):
-                    result.append(alpha.degenerate_from_seq(
+                    result.append(alpha.moltype.degenerate_from_seq(
                         list(map(lambda x: x.decode('utf8'),
                                  take(co, [item for item in row[-num_to_keep:]
                                            if item in nonzero(data[row_idx])[0]])))))
@@ -634,7 +634,7 @@ class Profile(object):
             for row in self.Data:
                 val = list(map(lambda x: x.decode('utf8'),
                                take(co, nonzero(row)[0], axis=0)))
-                val = alpha.degenerate_from_seq(val)
+                val = alpha.moltype.degenerate_from_seq(val)
                 result.append(val)
 
         try:
