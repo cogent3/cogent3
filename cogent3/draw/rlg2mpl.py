@@ -251,7 +251,7 @@ class _End(object):
     def move_to_start(self, path):
         path.move_to(*self.startPoint())
 
-    def drawToStart(self, path):
+    def draw_to_start(self, path):
         path.line_to(*self.startPoint())
 
     def finish(self, path):
@@ -264,7 +264,7 @@ class _End(object):
         p = PathBuilder()
         self.move_to_start(p)
         self.drawEnd(p)
-        oppo.drawToStart(p)
+        oppo.draw_to_start(p)
         oppo.drawEnd(p)
         self.finish(p)
         return p.as_path()
@@ -273,7 +273,7 @@ class _End(object):
 class Open(_End):
 
     def finish(self, path):
-        self.drawToStart(path)
+        self.draw_to_start(path)
 
     def drawEnd(self, path):
         path.move_to(self.x_near, self.y_second)
