@@ -507,7 +507,7 @@ class Dimensions(object):
 
 
 class _RootedDendrogram(_Dendrogram):
-    """_RootedDendrogram subclasses provide yCoords and x_coords, which examine
+    """_RootedDendrogram subclasses provide y_coords and x_coords, which examine
     attributes of a node (its length, coodinates of its children) and return
     a tuple for start/end of the line representing the edge."""
 
@@ -520,7 +520,7 @@ class _RootedDendrogram(_Dendrogram):
     def x_coords(self, scale, x1):
         raise NotImplementedError
 
-    def yCoords(self, scale, y1):
+    def y_coords(self, scale, y1):
         raise NotImplementedError
 
     def updateCoordinates(self, width, height):
@@ -543,7 +543,7 @@ class _RootedDendrogram(_Dendrogram):
         for child in self.children:
             child.update_y_coordinates(scale, child_y)
             child_y -= child.width_required() * scale.y
-        (self.y1, self.y2) = self.yCoords(scale, y1)
+        (self.y1, self.y2) = self.y_coords(scale, y1)
 
     def update_x_coordinates(self, scale, x1=0):
         """For non 'square' styles the x coordinates will depend
@@ -559,7 +559,7 @@ class _RootedDendrogram(_Dendrogram):
 class SquareDendrogram(_RootedDendrogram):
     aspect_distorts_lengths = False
 
-    def yCoords(self, scale, y1):
+    def y_coords(self, scale, y1):
         cys = [c.y1 for c in self.children]
         if cys:
             y2 = (cys[0] + cys[-1]) / 2.0
@@ -582,7 +582,7 @@ class SquareDendrogram(_RootedDendrogram):
 
 class StraightDendrogram(_RootedDendrogram):
 
-    def yCoords(self, scale, y1):
+    def y_coords(self, scale, y1):
         # has a side effect of adjusting the child y1's to meet nodes' y2's
         cys = [c.y1 for c in self.children]
         if cys:
@@ -643,7 +643,7 @@ class ShelvedDendrogram(ContemporaneousDendrogram):
     def width_required(self):
         return self.edgecount  # as opposed to tipcount
 
-    def yCoords(self, scale, y1):
+    def y_coords(self, scale, y1):
         cys = [c.y1 for c in self.children]
         if cys:
             y2 = cys[-1] - 1.0 * scale.y
@@ -659,9 +659,9 @@ class AlignedShelvedDendrogram(ShelvedDendrogram):
         depend on the shape of the tree and yscale"""
         for child in self.children:
             child.update_y_coordinates(scale, None)
-        (self.y1, self.y2) = self.yCoords(scale, None)
+        (self.y1, self.y2) = self.y_coords(scale, None)
 
-    def yCoords(self, scale, y1):
+    def y_coords(self, scale, y1):
         if hasattr(self, 'track_y'):
             return (self.track_y, self.track_y)
         else:
