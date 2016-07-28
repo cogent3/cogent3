@@ -331,7 +331,7 @@ class Pair(object):
         N = self.size[1]
         return (needed, N)
 
-    def getEmptyScoreArrays(self, n_states, dp_options):
+    def get_empty_score_arrays(self, n_states, dp_options):
         shape = self.get_score_arrays_shape() + (n_states,)
         mantissas = numpy.zeros(shape, float)
         if dp_options.use_logs:
@@ -781,7 +781,7 @@ class PairEmissionProbs(object):
         scores = self._getEmissionProbs(
             dp_options.use_logs, dp_options.use_cost_function)
 
-        rows = pair.getEmptyScoreArrays(len(T), dp_options)
+        rows = pair.get_empty_score_arrays(len(T), dp_options)
 
         if cells is not None:
             assert not dp_options.local
