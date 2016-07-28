@@ -424,7 +424,7 @@ class AlignablePOG(_Alignable):
     def _calcAligneds(self, children):
         word_length = self.alphabet.get_motif_len()
         (starts, ends, maps) = map_traceback(
-            self.pog.getFullAlignedPositions())
+            self.pog.get_full_aligned_positions())
         aligneds = []
         for (dim, child) in enumerate(children):
             for (seq_name, aligned) in child.aligneds:
