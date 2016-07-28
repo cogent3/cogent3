@@ -263,9 +263,9 @@ class _End(object):
     def __add__(self, oppo):
         p = PathBuilder()
         self.move_to_start(p)
-        self.drawEnd(p)
+        self.draw_end(p)
         oppo.draw_to_start(p)
-        oppo.drawEnd(p)
+        oppo.draw_end(p)
         self.finish(p)
         return p.as_path()
 
@@ -275,13 +275,13 @@ class Open(_End):
     def finish(self, path):
         self.draw_to_start(path)
 
-    def drawEnd(self, path):
+    def draw_end(self, path):
         path.move_to(self.x_near, self.y_second)
 
 
 class Square(_End):
 
-    def drawEnd(self, path):
+    def draw_end(self, path):
         path.line_to(self.x_near, self.y_second)
 
 
@@ -290,7 +290,7 @@ class Rounded(_End):
     def start_point(self):
         return (self.x_near + self.dx, self.y_first)
 
-    def drawEnd(self, path):
+    def draw_end(self, path):
         path.curve_to(self.x_near, self.y_first, self.x_near, self.y_first,
                      self.x_near, self.y_first + self.dy)
         path.line_to(self.x_near, self.y_second - self.dy)
@@ -306,7 +306,7 @@ class Pointy(_End):
     def start_point(self):
         return (self.x_near + self._effective_dx(), self.y_first)
 
-    def drawEnd(self, path):
+    def draw_end(self, path):
         head_start = self.x_near + self._effective_dx()
         middle = (self.y_first + self.y_second) / 2
         if self.blunt:
