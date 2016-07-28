@@ -229,7 +229,7 @@ class PathBuilder(object):
         self.points.append((x, y))
         self.operators.append(Path.LINETO)
 
-    def curveTo(self, x1, y1, x2, y2, x3, y3):
+    def curve_to(self, x1, y1, x2, y2, x3, y3):
         self.points.extend([(x1, y1), (x2, y2), (x3, y3)])
         self.operators.extend([Path.CURVE4] * 3)
 
@@ -291,10 +291,10 @@ class Rounded(_End):
         return (self.x_near + self.dx, self.y_first)
 
     def drawEnd(self, path):
-        path.curveTo(self.x_near, self.y_first, self.x_near, self.y_first,
+        path.curve_to(self.x_near, self.y_first, self.x_near, self.y_first,
                      self.x_near, self.y_first + self.dy)
         path.line_to(self.x_near, self.y_second - self.dy)
-        path.curveTo(self.x_near, self.y_second, self.x_near, self.y_second,
+        path.curve_to(self.x_near, self.y_second, self.x_near, self.y_second,
                      self.x_near + self.dx, self.y_second)
 
 
