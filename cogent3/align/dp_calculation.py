@@ -55,7 +55,7 @@ def Edge(seq1, seq2, length, bin_data, switch=1.0, bprobs=None):
     # one sequence pair in, potentialy, a tree
     bins = len(bin_data)
     pair = pairwise.Pair(seq1, seq2)
-    EP = pair.makeReversibleEmissionProbs(
+    EP = pair.make_reversible_emission_probs(
         [(bin.mprobs, bin.Qd) for bin in bin_data], length)
     tms = [bin.indel.calc_transition_matrix(length) for bin in bin_data]
     if bins == 1:

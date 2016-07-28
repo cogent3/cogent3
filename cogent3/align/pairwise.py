@@ -264,7 +264,7 @@ class Pair(object):
         bins = [PairBinData(*args) for args in bins]
         return PairEmissionProbs(self, bins)
 
-    def makeReversibleEmissionProbs(self, bins, length):
+    def make_reversible_emission_probs(self, bins, length):
         bins = [BinData(*bin) for bin in bins]
         return ReversiblePairEmissionProbs(self, bins, length)
 
