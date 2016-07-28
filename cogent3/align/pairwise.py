@@ -808,7 +808,7 @@ class PairEmissionProbs(object):
                 result = (score, tb)
         return result
 
-    def getAlignable(self, aligned_positions, ratio=None):
+    def get_alignable(self, aligned_positions, ratio=None):
         assert ratio is None, "already 2-branched"
         children = self.pair.children  # alignables
         leaves = [c.leaf for c in children]
@@ -867,13 +867,13 @@ class ReversiblePairEmissionProbs(object):
         pbins = [bin.forLengths(*lengths) for bin in self.bins]
         return PairEmissionProbs(self.pair, pbins)
 
-    def getAlignable(self, a_p, ratio=None):
+    def get_alignable(self, a_p, ratio=None):
         # a_p alignment positions
         if ratio in [None, 0.5]:
             ep = self.midpoint
         else:
             ep = self._makePairEmissionProbs(ratio=ratio)
-        return ep.getAlignable(a_p)
+        return ep.get_alignable(a_p)
 
     def makePairHMM(self, transition_matrix):
         return PairHMM(self, transition_matrix)
@@ -982,19 +982,19 @@ class _ViterbiPath(object):
 
 class GlobalViterbiPath(_ViterbiPath):
 
-    def getAlignable(self, ratio=None):
+    def get_alignable(self, ratio=None):
         # Used during progressive sequence alignment.
         # Because the alignment depends on the total length (so long as the
         # model is reversable!) the same cached viterbi result can be re-used
         # to calculate the partial likelihoods even if the root of the 2-seq
         # tree is moved around.
-        alignable = self.pair_hmm.emission_probs.getAlignable(
+        alignable = self.pair_hmm.emission_probs.get_alignable(
             self.aligned_positions, ratio=ratio)
         return alignable
 
     def get_alignment(self):
         """The alignment as a standard PyCogent Alignment object"""
-        return self.getAlignable().get_alignment()
+        return self.get_alignable().get_alignment()
 
     def get_posterior_probs(self):
         pp = self.pair_hmm._get_posterior_probs(self.tb, use_cost_function=True)
