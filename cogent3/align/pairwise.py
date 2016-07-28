@@ -202,7 +202,7 @@ class TrackBack(object):
     def as_state_posn_tuples(self):
         return [(s, p) for (s, p, d) in self.tlist]
 
-    def asBinPosTuples(self, state_directions):
+    def as_bin_pos_tuples(self, state_directions):
         bin_map = dict((state, bin) for (state, bin, dx, dy) in
                        state_directions)
         result = []
@@ -972,7 +972,7 @@ class _ViterbiPath(object):
     def __init__(self, pair_hmm, result):
         (self.vscore, self.tb) = result
         (state_directions, T) = pair_hmm._transition_matrix
-        self.aligned_positions = self.tb.asBinPosTuples(state_directions)
+        self.aligned_positions = self.tb.as_bin_pos_tuples(state_directions)
         self.pair_hmm = pair_hmm
 
     def getScore(self):
