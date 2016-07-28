@@ -71,8 +71,8 @@ def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
     fw = fig.get_figwidth()
     fh = fig.get_figheight()
     # 2 sequence display axes
-    x = seq1.asAxes(fig, [posn[0], posn[1] - h1 / fh, posn[2], h1 / fh])
-    y = seq2.asAxes(fig, [posn[0] - h2 / fw, posn[1], h2 / fw, posn[3]],
+    x = seq1.as_axes(fig, [posn[0], posn[1] - h1 / fh, posn[2], h1 / fh])
+    y = seq2.as_axes(fig, [posn[0] - h2 / fw, posn[1], h2 / fw, posn[3]],
                     vertical=True, labeled=False)
 
     # and 1 dotplot axes

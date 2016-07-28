@@ -359,7 +359,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         axZ = fig.add_axes([vert + p_width, y_margin, link_width, c_height],
                            frameon=False)
 
-        axA = genemap.asAxes(
+        axA = genemap.as_axes(
             fig, [vert + p_width + link_width,
                   y_margin, annot_width, c_height],
             vertical=True, labeled=True)

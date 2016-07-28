@@ -1064,7 +1064,7 @@ class Display(rlg2mpl.Drawable):
             g.scale(-1.0, 1.0)
         return g
 
-    def asAxes(self, fig, posn, labeled=True, vertical=False):
+    def as_axes(self, fig, posn, labeled=True, vertical=False):
         ax = fig.add_axes(posn)
         self.applyScaleToAxes(ax, labeled=labeled, vertical=vertical)
         g = self.make_artist(vertical=vertical)
@@ -1146,5 +1146,5 @@ class Display(rlg2mpl.Drawable):
             i = len(rows) - i - 1
             posn = [x, (y + i * (y + h)) / vzoom, w *
                     len(row) / rowlen, h / vzoom]
-            row.asAxes(fig, posn, **kw)
+            row.as_axes(fig, posn, **kw)
         return fig
