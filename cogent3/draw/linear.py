@@ -951,7 +951,7 @@ class DisplayPolicy(object):
         return annot_tracks + [Track(track_tag,
                                      [Feature(self.map, style, feature.name)], level=level)]
 
-    def tracksForVariable(self, variable):
+    def tracks_for_variable(self, variable):
         (track_tag, style, level) = self.get_style_defn_for_feature(variable)
         if style is None:
             return []
