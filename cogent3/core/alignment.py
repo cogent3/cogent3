@@ -51,7 +51,7 @@ __credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley",
                "Jeremy Widmann", "Catherine Lozupone", "Matthew Wakefield",
                "Micah Hamady", "Daniel McDonald", "Jan Kosinski"]
 __license__ = "GPL"
-__version__ = "3.0.alpha"
+__version__ = "3.0.prealpha"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"

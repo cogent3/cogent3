@@ -54,7 +54,7 @@ __contributors__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell",
                     "Matthew Wakefield", "Brett Easton", "Rob Knight",
                     "Von Bing Yap"]
 __license__ = "GPL"
-__version__ = "3.0.alpha"
+__version__ = "3.0.prealpha"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"

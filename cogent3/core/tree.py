@@ -42,7 +42,7 @@ __credits__ = ["Gavin Huttley", "Peter Maxwell", "Rob Knight",
                "Jeremy Widmann", "Zongzhi Liu", "Daniel McDonald",
                "Justin Kuczynski"]
 __license__ = "GPL"
-__version__ = "3.0.alpha"
+__version__ = "3.0.prealpha"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
