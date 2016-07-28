@@ -304,7 +304,7 @@ class _Variable(_Feature):
     qualifier_names = _Feature.qualifier_names + ['xxy_list']
 
     def get_tracks(self, policy):
-        return policy.tracksForVariable(self)
+        return policy.tracks_for_variable(self)
 
     def without_lost_spans(self):
         if self.map.complete:
