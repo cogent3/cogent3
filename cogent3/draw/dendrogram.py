@@ -290,7 +290,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         return '%s %s %s %s' % (
             self.depth, self.length, self.height, self.children)
 
-    def updateGeometry(self, use_lengths, depth=None, track_coordinates=None):
+    def update_geometry(self, use_lengths, depth=None, track_coordinates=None):
         """Calculate tree node attributes such as height and depth.
         Despite the name this first pass is ignorant of issues like
         scale and orientation"""
@@ -308,7 +308,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         children = self.children
         if children:
             for c in children:
-                c.updateGeometry(use_lengths, self.depth, track_coordinates)
+                c.update_geometry(use_lengths, self.depth, track_coordinates)
             self.height = max([c.height for c in children]) + self.length
             self.leafcount = sum([c.leafcount for c in children])
             self.edgecount = sum([c.edgecount for c in children]) + 1
@@ -362,7 +362,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
 
         if use_lengths is None:
             use_lengths = self.use_lengths_default
-        self.updateGeometry(use_lengths=use_lengths)
+        self.update_geometry(use_lengths=use_lengths)
 
         if width <= 2 * margin:
             raise ValueError('%spt not wide enough for %spt margins' %
