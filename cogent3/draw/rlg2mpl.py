@@ -233,7 +233,7 @@ class PathBuilder(object):
         self.points.extend([(x1, y1), (x2, y2), (x3, y3)])
         self.operators.extend([Path.CURVE4] * 3)
 
-    def closePath(self):
+    def close_path(self):
         self.points.append((0.0, 0.0))  # ignored
         self.operators.append(Path.CLOSEPOLY)
 
@@ -255,7 +255,7 @@ class _End(object):
         path.line_to(*self.startPoint())
 
     def finish(self, path):
-        path.closePath()
+        path.close_path()
 
     def startPoint(self):
         return (self.x_near, self.y_first)
