@@ -312,7 +312,7 @@ class SyntenicRegions(_RelatedRegions):
 
     CigarEnd = property(_get_ref_end)
 
-    def getAlignment(self, feature_types=None, where_feature=None,
+    def get_alignment(self, feature_types=None, where_feature=None,
                      omit_redundant=True):
         """Arguments:
             - feature_types: annotations to be applied to the returned

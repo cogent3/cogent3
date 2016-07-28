@@ -418,7 +418,7 @@ class AlignablePOG(_Alignable):
     def __repr__(self):
         return 'AlPOG(%s,%s)' % (self.pog.all_jumps, repr(self.leaf))
 
-    def getAlignment(self):
+    def get_alignment(self):
         return LoadSeqs(data=self.aligneds)
 
     def _calcAligneds(self, children):
@@ -950,10 +950,10 @@ class PairHMM(object):
 
     def getViterbiScoreAndAlignment(self, ratio=None, posterior_probs=False, **kw):
         # deprecated('method', 'getViterbiScoreAndAlignment',
-        #        'getViterbiPath().getAlignment()', '1.8', stack_level=3)
+        #        'getViterbiPath().get_alignment()', '1.8', stack_level=3)
         assert ratio in [None, 0.5], ratio
         vpath = self.getViterbiPath(**kw)
-        result_tuple = (vpath.getScore(), vpath.getAlignment())
+        result_tuple = (vpath.getScore(), vpath.get_alignment())
         if posterior_probs:
             result_tuple = result_tuple + (vpath.get_posterior_probs(),)
         return result_tuple
@@ -992,9 +992,9 @@ class GlobalViterbiPath(_ViterbiPath):
             self.aligned_positions, ratio=ratio)
         return alignable
 
-    def getAlignment(self):
+    def get_alignment(self):
         """The alignment as a standard PyCogent Alignment object"""
-        return self.getAlignable().getAlignment()
+        return self.getAlignable().get_alignment()
 
     def get_posterior_probs(self):
         pp = self.pair_hmm._get_posterior_probs(self.tb, use_cost_function=True)
@@ -1004,7 +1004,7 @@ class GlobalViterbiPath(_ViterbiPath):
 class LocalViterbiPath(_ViterbiPath):
     # Only for pairwise alignments.  Local and POGs don't mix well.
 
-    def getAlignment(self):
+    def get_alignment(self):
         """The alignment as a standard PyCogent Alignment object"""
         seqs = self.pair_hmm.emission_probs.pair.get_seq_name_pairs()
         word_length = self.pair_hmm.emission_probs.pair.alphabet.get_motif_len()
