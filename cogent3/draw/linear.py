@@ -943,7 +943,7 @@ class DisplayPolicy(object):
             track_tag = track_defn.tag or feature.type
         return (track_tag, style, level)
 
-    def tracksForFeature(self, feature):
+    def tracks_for_feature(self, feature):
         (track_tag, style, level) = self.get_style_defn_for_feature(feature)
         if style is None:
             return []

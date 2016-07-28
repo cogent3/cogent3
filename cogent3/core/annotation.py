@@ -262,7 +262,7 @@ class AnnotatableFeature(_Feature):
         return new
 
     def get_tracks(self, policy):
-        return policy.at(self.map).tracksForFeature(self)
+        return policy.at(self.map).tracks_for_feature(self)
 
 
 class Source(_Feature):
