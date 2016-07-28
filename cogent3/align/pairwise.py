@@ -525,7 +525,7 @@ class AlignableSeq(_Alignable):
         return [[]] + [[i] for i in range(len(self) - 1)]
 
 
-def adaptPairTM(pairTM, finite=False):
+def adapt_pair_tm(pairTM, finite=False):
     # constructs state_directions
     if finite:
         # BEGIN and END already specified
@@ -916,7 +916,7 @@ class PairHMM(object):
     def __init__(self, emission_probs, transition_matrix, finite=False):
         self.emission_probs = emission_probs
         self.transition_matrix = transition_matrix
-        self._transition_matrix = adaptPairTM(transition_matrix,
+        self._transition_matrix = adapt_pair_tm(transition_matrix,
                                               finite=finite)
         self.results = {}
 
