@@ -199,7 +199,7 @@ class TrackBack(object):
     def __add__(self, other):
         return TrackBack(self.tlist + other.tlist)
 
-    def asStatePosnTuples(self):
+    def as_state_posn_tuples(self):
         return [(s, p) for (s, p, d) in self.tlist]
 
     def asBinPosTuples(self, state_directions):
