@@ -131,7 +131,7 @@ class EstimateDistances(object):
         if self._rigorous_align:
             lf.optimise(**opt_kwargs)
         lnL = lf.get_log_likelihood()
-        return lnL.edge.getViterbiPath().get_alignment()
+        return lnL.edge.get_viterbi_path().get_alignment()
 
     @UI.display_wrap
     def _doset(self, sequence_names, dist_opt_args, aln_opt_args, ui):
