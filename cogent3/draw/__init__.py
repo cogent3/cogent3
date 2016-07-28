@@ -5,11 +5,11 @@ __all__ = ['dendrogram', 'dotplot', 'linear', 'colors', 'TrackDefn',
            'Box', 'Diamond'] + [
     'arrow_rates', 'dinuc', 'fancy_arrow', 'codon_usage', 'util']
 
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __contributors__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                     "Zongzhi Liu", "Matthew Wakefield", "Stephanie Wilson"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __status__ = "Production"
 
 from cogent3.draw.linear import (colors, TrackDefn, Display, DisplayPolicy,

@@ -12,10 +12,10 @@ from cogent3.maths.stats.distribution import z_low, z_high, zprob, chi_low, \
     pdtri, bdtri, fdtri, gdtri
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"

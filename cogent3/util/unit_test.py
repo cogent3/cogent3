@@ -37,11 +37,11 @@ from cogent3.util.misc import recursive_flatten
 from cogent3.maths.stats.test import t_two_sample, G_ind
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Sandra Smit",
                "Zongzhi Liu", "Micah Hamady", "Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"

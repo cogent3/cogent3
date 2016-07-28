@@ -6,10 +6,10 @@ from cogent3.parse.record import MappedRecord, ByPairs, semi_splitter, \
 from cogent3.parse.record_finder import GbFinder
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Rob Knight"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Development"

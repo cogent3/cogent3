@@ -13,10 +13,10 @@ from cogent3.util.unit_test import TestCase, main
 from cogent3.data.molecular_weight import DnaMW, RnaMW, ProteinMW
 
 __author__ = "Gavin Huttley, Peter Maxwell, and Rob Knight"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Peter Maxwell"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"

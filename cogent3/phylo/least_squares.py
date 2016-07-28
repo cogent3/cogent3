@@ -5,10 +5,10 @@ from .tree_space import TreeEvaluator, ancestry2tree
 from .util import distance_dict_and_names_to_1D, distance_dict_to_1D, triangular_order
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"

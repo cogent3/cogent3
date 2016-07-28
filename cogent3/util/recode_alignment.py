@@ -45,10 +45,10 @@ from cogent3.evolve.models import DSO78_matrix, DSO78_freqs
 from cogent3 import PROTEIN
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Greg Caporaso"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"

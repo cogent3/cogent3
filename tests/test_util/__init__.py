@@ -3,12 +3,12 @@ __all__ = ['test_unit_test', 'test_misc', 'test_array', 'test_dict2d',
            'test_organizer', 'test_transform', 'test_recode_alignment']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Sandra Smit", "Gavin Huttley",
                "Rob Knight", "Zongzhi Liu", "Amanda Birmingham",
                "Greg Caporaso"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"

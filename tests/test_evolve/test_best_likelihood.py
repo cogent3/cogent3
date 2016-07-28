@@ -7,10 +7,10 @@ from cogent3.evolve.best_likelihood import aligned_columns_to_rows, count_column
 import math
 
 __author__ = "Helen Lindsay"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Helen Lindsay"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Helen Lindsay"
 __email__ = "helen.lindsay@anu.edu.au"
 __status__ = "Production"

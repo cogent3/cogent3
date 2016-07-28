@@ -7,10 +7,10 @@ except ImportError:
     curses = None
 
 __author__ = "Nadia Alramli"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Nadia Alramli"]
 __license__ = "BSD"
-__version__ = "1.5.3-dev"
+__version__ = "3.0.alpha"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
