@@ -218,7 +218,7 @@ class PathBuilder(object):
         self.points = []
         self.operators = []
 
-    def asPath(self):
+    def as_path(self):
         return Path(self.points, self.operators)
 
     def moveTo(self, x, y):
@@ -267,7 +267,7 @@ class _End(object):
         oppo.drawToStart(p)
         oppo.drawEnd(p)
         self.finish(p)
-        return p.asPath()
+        return p.as_path()
 
 
 class Open(_End):
