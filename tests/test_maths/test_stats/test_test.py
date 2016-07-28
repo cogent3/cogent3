@@ -27,7 +27,7 @@ __credits__ = ["Rob Knight", "Catherine Lozupone", "Gavin Huttley",
                "Sandra Smit", "Daniel McDonald", "Jai Ram Rideout",
                "Michael Dwan"]
 __license__ = "GPL"
-__version__ = "3.0.alpha"
+__version__ = "3.0.prealpha"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"

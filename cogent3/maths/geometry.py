@@ -9,7 +9,7 @@ __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Sandra Smit", "Gavin Huttley", "Rob Knight", "Daniel McDonald",
                "Marcin Cieslik"]
 __license__ = "GPL"
-__version__ = "3.0.alpha"
+__version__ = "3.0.prealpha"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"

@@ -7,7 +7,7 @@ __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Micah Hamady", "Peter Maxwell", "Gavin Huttley",
                "Rob Knight"]
 __license__ = "GPL"
-__version__ = "3.0.alpha"
+__version__ = "3.0.prealpha"
 __maintainer__ = "Micah Hamady"
 __email__ = "hamady@colorado.edu"
 __status__ = "Prototype"

@@ -12,7 +12,7 @@ __copyright__ = "Copyright 2007-2015, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley",
                "Ben Kaehler"]
 __license__ = "GPL"
-__version__ = "3.0.alpha"
+__version__ = "3.0.prealpha"
 __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"
