@@ -254,7 +254,7 @@ class DrawingTests(unittest.TestCase):
             #        ContemporaneousStraightDendrogram
         ]:
             dendro = klass(t)
-            dendro.get_connecting_node('Ccccccccccc', 'Eeeeeeeeeee').setCollapsed(
+            dendro.get_connecting_node('Ccccccccccc', 'Eeeeeeeeeee').set_collapsed(
                 color="green", label="C, D and E")
             do(klass.__name__, dendro, shade_param="length",
                 show_params=["length"])

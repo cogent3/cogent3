@@ -490,7 +490,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
             x - self.x2 + r, y, text, ha=ha, va=va, color=self.NameColor))
         return g
 
-    def setCollapsed(self, collapsed=True, label=None, color=None):
+    def set_collapsed(self, collapsed=True, label=None, color=None):
         if color is not None:
             self.CladeColor = color
         if label is not None:
