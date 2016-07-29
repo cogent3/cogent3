@@ -257,7 +257,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(a.named_seqs['seq_1'], 'BBBBB')
         self.assertEqual(a.named_seqs['seq_2'], 'CCCCC')
         self.assertEqual(a.names, ['seq_0', 'seq_1', 'seq_2'])
-        self.assertEqual(list(a.Seqs), ['AAAAA', 'BBBBB', 'CCCCC'])
+        self.assertEqual(list(a.seqs), ['AAAAA', 'BBBBB', 'CCCCC'])
 
     def test_init_annotated_seq(self):
         """SequenceCollection init from seqs w/ info should preserve data"""
@@ -267,17 +267,17 @@ class SequenceCollectionBaseTests(object):
         seqs = [c, b, a]
         a = self.Class(seqs)
         self.assertEqual(list(a.names), ['c', 'b', 'a'])
-        self.assertEqual(list(map(str, a.Seqs)), ['GGG', 'CCC', 'AAA'])
+        self.assertEqual(list(map(str, a.seqs)), ['GGG', 'CCC', 'AAA'])
         if self.Class is not ArrayAlignment:
             # ArrayAlignment is allowed to strip info objects
-            self.assertEqual([i.info.x for i in a.Seqs], [5, 4, 3])
+            self.assertEqual([i.info.x for i in a.seqs], [5, 4, 3])
         # check it still works if constructed from same class
         b = self.Class(a)
         self.assertEqual(list(b.names), ['c', 'b', 'a'])
-        self.assertEqual(list(map(str, b.Seqs)), ['GGG', 'CCC', 'AAA'])
+        self.assertEqual(list(map(str, b.seqs)), ['GGG', 'CCC', 'AAA'])
         if self.Class is not ArrayAlignment:
             # ArrayAlignment is allowed to strip Info objects
-            self.assertEqual([i.info.x for i in b.Seqs], [5, 4, 3])
+            self.assertEqual([i.info.x for i in b.seqs], [5, 4, 3])
 
     def test_init_pairs(self):
         """SequenceCollection init from list of (key,val) pairs should work correctly"""
@@ -288,7 +288,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(a.named_seqs['b'], 'BBB')
         self.assertEqual(a.named_seqs['c'], 'CCC')
         self.assertEqual(a.names, ['x', 'b', 'c'])
-        self.assertEqual(list(a.Seqs), ['XXX', 'BBB', 'CCC'])
+        self.assertEqual(list(a.seqs), ['XXX', 'BBB', 'CCC'])
 
     def test_init_duplicate_keys(self):
         """SequenceCollection init from (key, val) pairs should fail on dup. keys"""
@@ -309,9 +309,9 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(sec.names, ['b', 'a'])
         self.assertEqual(set(un.names), set(un.named_seqs.keys()))
 
-        first_list = list(first.Seqs)
-        sec_list = list(sec.Seqs)
-        un_list = list(un.Seqs)
+        first_list = list(first.seqs)
+        sec_list = list(sec.seqs)
+        un_list = list(un.seqs)
 
         self.assertEqual(first_list, ['AAAAA', 'BBBBB'])
         self.assertEqual(sec_list, ['BBBBB', 'AAAAA'])
@@ -358,9 +358,9 @@ class SequenceCollectionBaseTests(object):
         sec = self.ordered2
         un = self.unordered
 
-        first_list = list(first.Seqs)
-        sec_list = list(sec.Seqs)
-        un_list = list(un.Seqs)
+        first_list = list(first.seqs)
+        sec_list = list(sec.seqs)
+        un_list = list(un.seqs)
 
         self.assertEqual(first_list, ['AAAAA', 'BBBBB'])
         self.assertEqual(sec_list, ['BBBBB', 'AAAAA'])
@@ -798,7 +798,7 @@ class SequenceCollectionBaseTests(object):
             exp = set([seq for name, seq in data])
             exp.update([seq + seq for name, seq in data3])
             got = set()
-            for seq in aln.add_seqs(aln3 + aln3).Seqs:
+            for seq in aln.add_seqs(aln3 + aln3).seqs:
                 got.update([str(seq).strip()])
             self.assertEqual(got, exp)
 
@@ -1004,7 +1004,7 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
     def test_Seqs_ragged(self):
         """SequenceCollection Seqs should work on ragged alignment"""
         self.ragged.names = 'bac'
-        self.assertEqual(list(self.ragged.Seqs), ['AAA', 'AAAAAA', 'AAAA'])
+        self.assertEqual(list(self.ragged.seqs), ['AAA', 'AAAAAA', 'AAAA'])
 
     def test_iter_seqs_ragged(self):
         """SequenceCollection iter_seqs() method should support reordering of seqs"""
@@ -1894,25 +1894,25 @@ class ArrayAlignmentSpecificTests(TestCase):
         a_1 = a.get_sub_alignment(pos=[1, 2])
         self.assertEqual(a_1.names, b.names)
 
-        self.assertEqual(a_1.Seqs, b.Seqs)
+        self.assertEqual(a_1.seqs, b.seqs)
         #...and with invert_pos, should keep all except the positions passed in
         a_2 = a.get_sub_alignment(pos=[0, 3], invert_pos=True)
-        self.assertEqual(a_2.Seqs, b.Seqs)
+        self.assertEqual(a_2.seqs, b.seqs)
         self.assertEqual(a_2.names, b.names)
         # passing in seqs should keep all positions, but just selected seqs
         c = ArrayAlignment('>x ABCE >z JKLM'.split())
         a_3 = a.get_sub_alignment(seqs=[0, 2])
-        self.assertEqual(a_3.Seqs, c.Seqs)
+        self.assertEqual(a_3.seqs, c.seqs)
         # check that labels were updates as well...
         self.assertEqual(a_3.names, c.names)
         #...and should work with invert_seqs to exclude just selected seqs
         a_4 = a.get_sub_alignment(seqs=[1], invert_seqs=True)
-        self.assertEqual(a_4.Seqs, c.Seqs)
+        self.assertEqual(a_4.seqs, c.seqs)
         self.assertEqual(a_4.names, c.names)
         # should be able to do both seqs and positions simultaneously
         d = ArrayAlignment('>x BC >z KL'.split())
         a_5 = a.get_sub_alignment(seqs=[0, 2], pos=[1, 2])
-        self.assertEqual(a_5.Seqs, d.Seqs)
+        self.assertEqual(a_5.seqs, d.seqs)
         self.assertEqual(a_5.names, d.names)
 
     def test_str(self):

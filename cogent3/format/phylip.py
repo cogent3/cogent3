@@ -26,7 +26,7 @@ def phylip_from_alignment(aln, generic_label=True, make_seqlabel=None):
     if aln.is_ragged():
         raise ValueError("Sequences in alignment are not all the same " +
                          "length. Cannot generate PHYLIP format.")
-    num_seqs = len(aln.Seqs)
+    num_seqs = len(aln.seqs)
     if not aln or not num_seqs:
         return ""
 
@@ -34,7 +34,7 @@ def phylip_from_alignment(aln, generic_label=True, make_seqlabel=None):
     id_map = {}
     cur_seq_id = 1
 
-    for seq_name, seq in zip(aln.names, aln.Seqs):
+    for seq_name, seq in zip(aln.names, aln.seqs):
         if make_seqlabel is not None:
             label = make_seqlabel(seq)
         elif generic_label:
