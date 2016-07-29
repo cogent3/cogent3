@@ -37,3 +37,7 @@ Using conda
 Support not yet in place, but it will be...
 
 .. TODO Write conda instructions
+
+.. todo::
+
+    complete this after writing conda package

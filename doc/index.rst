@@ -1,7 +1,7 @@
 .. _contents:
 
 ####################################
-Welcome to PyCogent's documentation!
+Welcome to PyCogent3's documentation!
 ####################################
 
 **Contents**
@@ -26,15 +26,20 @@ Welcome to PyCogent's documentation!
 Overview
 ********
 
-PyCogent is a software library for genomic biology. It is a fully integrated and thoroughly tested framework for: controlling third-party applications; devising workflows; querying databases; conducting novel probabilistic analyses of biological sequence evolution; and generating publication quality graphics. It is distinguished by many unique built-in capabilities (such as true codon alignment) and the frequent addition of entirely new methods for the analysis of genomic data.
+PyCogent3 is a software library for genomic biology. It is a fully integrated and thoroughly tested framework for: controlling third-party applications; devising workflows; querying databases; conducting novel probabilistic analyses of biological sequence evolution; and generating publication quality graphics. It is distinguished by many unique built-in capabilities (such as true codon alignment) and the frequent addition of entirely new methods for the analysis of genomic data.
 
 Our primary goal is to provide a collection of rigourously validated tools for the manipulation and analysis of genome biology data sets. The project is routinely employed in numerous labs across the world and has provided essential capabilities for many high profile publications, e.g. `Nature 2009 457:480-4`_, `PNAS 2008 105:17994-9`_, `Science 2008 320:1647-51`_, `Nature 2008 453: 175-83`_ and `Nat Genet 2007 39: 1261-5`_.
+
+.. todo::
+
+    update the literature cited
+
 
 *************************
 Contacts and contributing
 *************************
 
-If you find a bug or have feature/documentation requests, please create a new issue on our GitHub `issue tracker <https://github.com/pycogent/pycogent/issues>`_. If you have any questions, please create a new issue on the `issue tracker <https://github.com/pycogent/pycogent/issues>`_ and tag it with the *question* tag. We appreciate your input!
+If you find a bug or have feature/documentation requests, please create a new issue on our GitHub `issue tracker <https://bitbucket.org/pycogent3/pycogent3/issues>`_. If you have any questions, please create a new issue and tag it with the *question* tag. We appreciate your input!
 
 ********
 Citation
