@@ -39,7 +39,7 @@ class Profile(object):
     """Profile class
     """
 
-    def __init__(self, Data, alphabet, CharOrder=None):
+    def __init__(self, Data, alphabet, char_order=None):
         """Initializes a new Profile object.
 
         Data: numpy 2D array with the Profile data in it.
@@ -49,15 +49,15 @@ class Profile(object):
 
         alphabet: an Alphabet object or anything that can act as a list of
             characters
-        CharOrder: optional list of characters to which the columns
+        char_order: optional list of characters to which the columns
             in the Data correspond.
         """
         self.Data = Data
         self.alphabet = alphabet
-        if CharOrder is None:
-            self.CharOrder = list(self.alphabet)
+        if char_order is None:
+            self.char_order = list(self.alphabet)
         else:
-            self.CharOrder = CharOrder
+            self.char_order = char_order
         # the translation table is needed for making consensus sequences,
         # but will fail if the alphabet isn't made of chars (in which case,
         # we'll just skip the translation table, and certain downstream
@@ -72,10 +72,10 @@ class Profile(object):
         return str(self.Data)
 
     def _make_translation_table(self):
-        """Makes a translation tables between the CharOrder and indices
+        """Makes a translation tables between the char_order and indices
         """
-        indices = ''.join(map(chr, list(range(len(self.CharOrder)))))
-        chars = ''.join(map(str, self.CharOrder))
+        indices = ''.join(map(chr, list(range(len(self.char_order)))))
+        chars = ''.join(map(str, self.char_order))
         return maketrans(chars, indices)
 
     def has_valid_data(self, err=1e-16):
@@ -95,11 +95,11 @@ class Profile(object):
         return False
 
     def has_valid_attributes(self):
-        """Checks Alphabet, CharOrder, and size of self.Data"""
+        """Checks Alphabet, char_order, and size of self.Data"""
         if not reduce(logical_and, [c in self.alphabet
-                                    for c in self.CharOrder]):
+                                    for c in self.char_order]):
             return False
-        elif self.Data.shape[1] != len(self.CharOrder):
+        elif self.Data.shape[1] != len(self.char_order):
             return False
         return True
 
@@ -123,11 +123,11 @@ class Profile(object):
         if character is None:
             return self.Data[pos, :]
         else:
-            if character not in self.CharOrder:
+            if character not in self.char_order:
                 raise ProfileError(
                     "Character %s is not present in the profile's CharacterOrder"
                     % (character))
-            return self.Data[pos, self.CharOrder.index(character)]
+            return self.Data[pos, self.char_order.index(character)]
 
     def copy(self):
         """Returns a copy of the Profile object
@@ -137,7 +137,7 @@ class Profile(object):
         attributes, but modifying them will change them in both the original
         and the copy.
         """
-        return self.__class__(self.Data, self.alphabet, self.CharOrder)
+        return self.__class__(self.Data, self.alphabet, self.char_order)
 
     def normalize_positions(self):
         """Normalizes the data by position (the rows!) to one
@@ -197,7 +197,7 @@ class Profile(object):
         column_limit = int, maximum number of columns displayed
         col_sep = string, column separator
         """
-        h = self.CharOrder
+        h = self.char_order
         d = self.Data
         if column_limit is None:
             max_col_idx = d.shape[1]
@@ -239,7 +239,7 @@ class Profile(object):
 
         It does check whether self.Data and other.Data have the same shape
         It does not check whether self and other have the same
-        CharOrder. The resulting Profile gets the alphabet and
+        char_order. The resulting Profile gets the alphabet and
         char order from self.
 
         """
@@ -262,7 +262,7 @@ class Profile(object):
             #     new_data = op(self.Data, other.Data)
         except (OverflowError, ZeroDivisionError, FloatingPointError):
             raise ProfileError("Can't do operation on input profiles")
-        result = Profile(new_data, self.alphabet, self.CharOrder)
+        result = Profile(new_data, self.alphabet, self.char_order)
 
         if normalize_output:
             result.normalize_positions()
@@ -364,7 +364,7 @@ class Profile(object):
 
         # calculate the OddsMatrix
         log_odds = self.Data / symbol_freqs
-        return Profile(log_odds, self.alphabet, self.CharOrder)
+        return Profile(log_odds, self.alphabet, self.char_order)
 
     def to_log_odds_matrix(self, symbol_freqs=None):
         """Returns the LogOddsMatrix of a profile as a new Profile/
@@ -377,13 +377,13 @@ class Profile(object):
         """
         odds = self.to_odds_matrix(symbol_freqs)
         log_odds = safe_log(odds.Data)
-        return Profile(log_odds, self.alphabet, self.CharOrder)
+        return Profile(log_odds, self.alphabet, self.char_order)
 
     def _score_indices(self, seq_indices, offset=0):
         """Returns score of the profile for each slice of the seq_indices
 
         seq_indices: translation of sequence into indices that match the
-        characters in the CharOrder of the profile
+        characters in the char_order of the profile
         offset: where to start the matching procedure
 
         This function doesn't do any input validation. That is done in 'score'
@@ -480,7 +480,7 @@ class Profile(object):
             is_profile = True
             to_score_length = len(input_data.Data)
             # raise error if CharOrders don't match
-            if self.CharOrder != input_data.CharOrder:
+            if self.char_order != input_data.char_order:
                 raise ProfileError("Profiles must have same character order")
         else:  # assumes it get a sequence
             to_score_length = len(input_data)
@@ -503,12 +503,12 @@ class Profile(object):
                 seq_indices = array(list(map(ord, translate(str(input_data),
                                                             self._translation_table))))
             else:  # need to figure out where each item is in the charorder
-                idx = self.CharOrder.index
+                idx = self.char_order.index
                 seq_indices = array(list(map(idx, input_data)))
-            # raise error if some sequence characters are not in the CharOrder
-            if (seq_indices > len(self.CharOrder)).any():
+            # raise error if some sequence characters are not in the char_order
+            if (seq_indices > len(self.char_order)).any():
                 raise ProfileError("Sequence contains characters that are not in the " +
-                                   "CharOrder")
+                                   "char_order")
             # now the profile is scored against the list of indices
             return self._score_indices(seq_indices, offset)
 
@@ -580,7 +580,7 @@ class Profile(object):
 
         cutoff: cutoff value, determines how much should be covered in a
         position (row) of the profile. Example: pos 0 [.2,.1,.3,.4]
-        (CharOrder: TCAG). To cover .65 (=cutoff) we need two characters:
+        (char_order: TCAG). To cover .65 (=cutoff) we need two characters:
         A and G, which results in the degenerate character R.
 
         fully_degenerate: determines whether the fully degenerate character
@@ -601,7 +601,7 @@ class Profile(object):
         above G will be returned.
         """
         # set up some local variables
-        co = array(self.CharOrder, 'c')
+        co = array(self.char_order, 'c')
         alpha = self.alphabet
         data = self.Data
 
@@ -652,7 +652,7 @@ class Profile(object):
         the matrix in place (which you shouldn't do anyway).
 
         The returned indices correspond to the characters in the
-        CharOrder of the Profile.
+        char_order of the Profile.
         """
         if force_accumulate or not hasattr(self, '_accumulated'):
             self._accumulated = cumsum(self.Data, 1)
@@ -667,7 +667,7 @@ class Profile(object):
         self._accumulated; Use force_accumulate to reset if you change
         the matrix in place (which you shouldn't do anyway).
         """
-        co = self.CharOrder
+        co = self.char_order
         random_indices = self.random_indices(force_accumulate, random_f)
         try:
             val = ''.join(map(lambda x: x.decode(
@@ -762,4 +762,4 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
             raise ValueError("Found character in the character order " +
                              "that is not in the specified alphabet: %s" % (c))
         result[ord(c)] = array(c * lc, 'c') == char_order
-    return Profile(Data=result, alphabet=alphabet, CharOrder=char_order)
+    return Profile(Data=result, alphabet=alphabet, char_order=char_order)

@@ -35,13 +35,13 @@ class ProfileTests(TestCase):
         self.empty_col = Profile(array([[0, 1], [0, 1]]), "AB")
         self.consensus = Profile(array([[.2, 0, .8, 0], [0, .1, .2, .7], [0, 0, 0, 1],
                                         [.2, .3, .4, .1], [.5, .5, 0, 0]]),
-                                 alphabet=DNA, CharOrder="TCAG")
+                                 alphabet=DNA, char_order="TCAG")
         self.not_same_value = Profile(array([[.3, .5, .1, .1], [.4, .6, 0, .7],
-                                             [.3, .2, 0, 0], [0, 0, 4, 0]]), alphabet=DNA, CharOrder="TCAG")
+                                             [.3, .2, 0, 0], [0, 0, 4, 0]]), alphabet=DNA, char_order="TCAG")
         self.zero_entry = Profile(array([[.3, .2, 0, .5], [0, 0, .8, .2]]),
                                   alphabet="UCAG")
         self.score1 = Profile(Data=array([[-1, 0, 1, 2], [-2, 2, 0, 0], [-3, 5, 1, 0]]),
-                              alphabet=DNA, CharOrder="ATGC")
+                              alphabet=DNA, char_order="ATGC")
         self.score2 = Profile(array([[.2, .4, .4, 0], [.1, 0, .9, 0], [.1, .2, .3, .4]]),
                               alphabet="TCAG")
         self.oned = Profile(array([.25, .25, .25, .25]), "ABCD")
@@ -56,18 +56,18 @@ class ProfileTests(TestCase):
         p = Profile(array([[.2, .8], [.7, .3]]), "AB")
         self.assertEqual(p.Data, [[.2, .8], [.7, .3]])
         self.assertEqual(p.alphabet, "AB")
-        self.assertEqual(p.CharOrder, list("AB"))
+        self.assertEqual(p.char_order, list("AB"))
         self.assertEqual(translate("ABBA", p._translation_table),
                          "\x00\x01\x01\x00")
         # alphabet and char order
         p = Profile(array([[.1, .2], [.4, .3]]), alphabet=DNA,
-                    CharOrder="AG")
-        self.assertEqual(p.CharOrder, "AG")
+                    char_order="AG")
+        self.assertEqual(p.char_order, "AG")
         assert p.alphabet is DNA
         # non-character alphabet
         p = Profile(array([[.1, .2], [.4, .3]]), alphabet=[7, 3],
-                    CharOrder=[3, 7])
-        self.assertEqual(p.CharOrder, [3, 7])
+                    char_order=[3, 7])
+        self.assertEqual(p.char_order, [3, 7])
         self.assertEqual(p.alphabet, [7, 3])
         self.assertEqual(p.Data, [[.1, .2], [.4, .3]])
 
@@ -94,13 +94,13 @@ class ProfileTests(TestCase):
     def test_has_valid_attributes(self):
         """has_valid_attributes: should work for different alphabets/char orders
         """
-        p = Profile(array([[1, 2], [3, 4]]), alphabet="ABCD", CharOrder="BAC")
-        # self.Data doesn't match len(CharOrder)
+        p = Profile(array([[1, 2], [3, 4]]), alphabet="ABCD", char_order="BAC")
+        # self.Data doesn't match len(char_order)
         self.assertEqual(p.has_valid_attributes(), False)
-        p = Profile(array([[1, 2], [3, 4]]), alphabet="ABCD", CharOrder="AX")
-        # not all chars in CharOrder in Alphabet
+        p = Profile(array([[1, 2], [3, 4]]), alphabet="ABCD", char_order="AX")
+        # not all chars in char_order in Alphabet
         self.assertEqual(p.has_valid_attributes(), False)
-        p = Profile(array([[1, 2], [3, 4]]), alphabet="ABCD", CharOrder="CB")
+        p = Profile(array([[1, 2], [3, 4]]), alphabet="ABCD", char_order="CB")
         # should be fine
         self.assertEqual(p.has_valid_attributes(), True)
 
@@ -108,12 +108,12 @@ class ProfileTests(TestCase):
         """is_valid: should work as expected"""
         # everything valid
         p1 = Profile(array([[.3, .7], [.8, .2]]),
-                     alphabet="AB", CharOrder="AB")
+                     alphabet="AB", char_order="AB")
         # invalid data, valid attributes
-        p2 = Profile(array([[1, 2], [3, 4]]), alphabet="ABCD", CharOrder="BA")
+        p2 = Profile(array([[1, 2], [3, 4]]), alphabet="ABCD", char_order="BA")
         # invalid attributes, valid data
         p3 = Profile(array([[.3, .7], [.8, .2]]),
-                     alphabet="ABCD", CharOrder="AF")
+                     alphabet="ABCD", char_order="AF")
 
         self.assertEqual(p1.is_valid(), True)
         self.assertEqual(p2.is_valid(), False)
@@ -137,7 +137,7 @@ class ProfileTests(TestCase):
         p_copy = p.copy()
         assert p.Data is p_copy.Data
         assert p.alphabet is p_copy.alphabet
-        assert p.CharOrder is p_copy.CharOrder
+        assert p.char_order is p_copy.char_order
 
         # modifying p.Data modifies p_copy.Data
         p.Data[1, 1] = 100
@@ -151,9 +151,9 @@ class ProfileTests(TestCase):
         p.alphabet['Y'] = 'TC'
         assert p.alphabet is p_copy.alphabet
 
-        # Rebinding the CharOrder does only change the original
-        p.CharOrder = 'XX'
-        assert not p.CharOrder is p_copy.CharOrder
+        # Rebinding the char_order does only change the original
+        p.char_order = 'XX'
+        assert not p.char_order is p_copy.char_order
 
     def test_normalizePositions(self):
         """normalizePositions: should normalize or raise appropriate error
@@ -215,15 +215,15 @@ class ProfileTests(TestCase):
         self.assertEqual(self.empty.pretty_print(), "")
         self.assertEqual(self.empty.pretty_print(transpose_data=True), "")
 
-        # it will still print with invalid data (e.g if len(CharOrder)
+        # it will still print with invalid data (e.g if len(char_order)
         # doesn't match the data
         p = self.full.copy()
-        p.CharOrder = "ABC"
+        p.char_order = "ABC"
 
         self.assertEqual(p.pretty_print(include_header=True),
                          "A\tB\tC\n2\t4\t \n3\t5\t \n4\t8\t ")
-        # it will truncate the CharOrder if data is transposed
-        # and CharOrder is longer then the number of rows in the
+        # it will truncate the char_order if data is transposed
+        # and char_order is longer then the number of rows in the
         # transposed data
         self.assertEqual(p.pretty_print(include_header=True,
                                        transpose_data=True), "A\t2\t3\t4\nB\t4\t5\t8")
@@ -489,7 +489,7 @@ class ProfileTests(TestCase):
         """score: should work when no translation table is present
         """
         p = Profile(Data=array([[-1, 0, 1, 2], [-2, 2, 0, 0], [-3, 5, 1, 0]]),
-                    alphabet=DNA, CharOrder="ATGC")
+                    alphabet=DNA, char_order="ATGC")
         # remove translation table
         del p.__dict__['_translation_table']
         # then score the profile
@@ -636,12 +636,12 @@ class ProfileTests(TestCase):
         """
         p1 = Profile(array([[.2, 0, .8, 0], [0, .1, .2, .7], [0, 0, 0, 1],
                             [.2, .3, .4, .1], [.5, .5, 0, 0]]),
-                     alphabet=DNA, CharOrder="TCAG")
+                     alphabet=DNA, char_order="TCAG")
         self.assertEqual(p1.to_consensus(cutoff=0.4, include_all=True),
                          "AGGAY")
         p2 = Profile(array([[.25, 0.25, .25, 0.25], [0.1, .1, .1, 0],
                             [.4, 0, .4, 0], [0, .2, 0.2, 0.3]]),
-                     alphabet=DNA, CharOrder="TCAG")
+                     alphabet=DNA, char_order="TCAG")
         self.assertEqual(p2.to_consensus(cutoff=0.4,
                                         include_all=True), "NHWV")
 
@@ -670,7 +670,7 @@ class ProfileTests(TestCase):
                     res[row, ord(i)] = freq[i]
             return res
 
-        ap = absoluteProfile(a, p.CharOrder)
+        ap = absoluteProfile(a, p.char_order)
         failure = abs(ap - means) > three_stds
         assert sum(sum(failure)) / num_elements <= 0.01
 
@@ -700,7 +700,7 @@ class ProfileTests(TestCase):
                     res[row, col] = freq[i]
             return res
 
-        ap = absoluteProfile(a, p.CharOrder)
+        ap = absoluteProfile(a, p.char_order)
         failure = abs(ap - means) > three_stds
         assert sum(sum(failure)) / num_elements <= 0.01
 

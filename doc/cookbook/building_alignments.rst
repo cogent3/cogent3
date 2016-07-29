@@ -86,7 +86,7 @@ We load some unaligned DNA sequences and show their translation.
     >>> seqs = [('hum', 'AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT'),
     ...         ('mus', 'AAGCAGATCCAGGAGAGCGGCGAGAGCGGCAGCCTGGCCGCGCGGCAGGAGAGGCAGGCCCAAGTCAACCTCACG'),
     ...         ('rat', 'CTGAACAAGCAGCCACTTTCAAACAAGAAA')]
-    >>> unaligned_DNA = LoadSeqs(data=seqs, moltype = DNA, aligned = False)
+    >>> unaligned_DNA = LoadSeqs(data=seqs, moltype=DNA, aligned=False)
     >>> print(unaligned_DNA.to_fasta())
     >hum
     AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
@@ -110,7 +110,7 @@ We load an alignment of these protein sequences.
     >>> aligned_aa_seqs = [('hum', 'KQIQESSENGSLAARQERQAQVNLT'),
     ...                    ('mus', 'KQIQESGESGSLAARQERQAQVNLT'),
     ...                    ('rat', 'LNKQ------PLS---------NKK')]
-    >>> aligned_aa = LoadSeqs(data = aligned_aa_seqs, moltype = PROTEIN)
+    >>> aligned_aa = LoadSeqs(data=aligned_aa_seqs, moltype=PROTEIN)
 
 We then obtain an alignment of the DNA sequences from the alignment of their translation.
 

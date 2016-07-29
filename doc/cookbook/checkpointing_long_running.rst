@@ -56,7 +56,7 @@ We start searching for trees, providing the name of the file to checkpoint to.
 .. doctest::
 
     >>> checkpoint_phylo_fn = 'checkpoint_phylo.txt'
-    >>> score, tree = ls.trex(a = 5, k = 1, filename=checkpoint_phylo_fn, interval=100)
+    >>> score, tree = ls.trex(a=5, k=1, filename=checkpoint_phylo_fn, interval=100)
 
 .. following cleans up files
 
