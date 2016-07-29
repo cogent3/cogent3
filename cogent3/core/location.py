@@ -50,7 +50,7 @@ __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield",
                "Gavin Huttley"]
 __license__ = "GPL"
-__version__ = "3.0.prealpha"
+__version__ = "3.0a1"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Prototype"

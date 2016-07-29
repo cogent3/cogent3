@@ -9,7 +9,7 @@ __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __contributors__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                     "Zongzhi Liu", "Matthew Wakefield", "Stephanie Wilson"]
 __license__ = "GPL"
-__version__ = "3.0.prealpha"
+__version__ = "3.0a1"
 __status__ = "Production"
 
 from cogent3.draw.linear import (colors, TrackDefn, Display, DisplayPolicy,
