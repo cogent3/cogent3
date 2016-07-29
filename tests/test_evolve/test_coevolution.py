@@ -984,7 +984,7 @@ class CoevolutionTests(TestCase):
         """ non-parsimony informative sites in intramolecular matrix -> null
         """
         aln = LoadSeqs(data={'1': 'ACDE', '2': 'ACDE', '3': 'ACDE', '4': 'ACDE'},
-                       moltype=PROTEIN, aligned=DenseAlignment)
+                       moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 33.]])
         expected = array([[gDefaultNullValue] * 4] * 4)
@@ -992,7 +992,7 @@ class CoevolutionTests(TestCase):
         self.assertFloatEqual(m, expected)
 
         aln = LoadSeqs(data={'1': 'ACDE', '2': 'FCDE', '3': 'ACDE', '4': 'FCDE'},
-                       moltype=PROTEIN, aligned=DenseAlignment)
+                       moltype=PROTEIN, as_dense=True)
         m = array([[42., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 33.]])
         expected = array([[gDefaultNullValue] * 4] * 4)
@@ -1005,14 +1005,14 @@ class CoevolutionTests(TestCase):
         """
         # all non-parsimony informative
         aln = LoadSeqs(data={'1': 'ACDEWQ', '2': 'ACDEWQ', '3': 'ACDEWQ', '4': 'ACDEWQ'},
-                       moltype=PROTEIN, aligned=DenseAlignment)
+                       moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[gDefaultNullValue] * 4] * 2)
         filter_non_parsimony_informative(aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
         # one non-parsimony informative pair of positions
         aln = LoadSeqs(data={'1': 'FCDEWD', '2': 'ACDEWQ', '3': 'ACDEWD', '4': 'FCDEWQ'},
-                       moltype=PROTEIN, aligned=DenseAlignment)
+                       moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[gDefaultNullValue] * 4] * 2)
         expected[1, 0] = 9.
@@ -1020,7 +1020,7 @@ class CoevolutionTests(TestCase):
         self.assertFloatEqual(m, expected)
         # all parsimony informative
         aln = LoadSeqs(data={'1': 'FFFFFF', '2': 'FFFFFF', '3': 'GGGGGG', '4': 'GGGGGG'},
-                       moltype=PROTEIN, aligned=DenseAlignment)
+                       moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         filter_non_parsimony_informative(aln, m, intermolecular_data_only=True)
@@ -1031,7 +1031,7 @@ class CoevolutionTests(TestCase):
         """
         # filter zero positions (no excludes)
         aln = LoadSeqs(data={'1': 'WCDE', '2': 'ACDE', '3': 'ACDE', '4': 'ACDE'},
-                       moltype=PROTEIN, aligned=DenseAlignment)
+                       moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 33.]])
         expected = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
@@ -1040,7 +1040,7 @@ class CoevolutionTests(TestCase):
         self.assertFloatEqual(m, expected)
         # filter zero positions (max_exclude_percentage = percent exclude)
         aln = LoadSeqs(data={'1': '-CDE', '2': 'A-DE', '3': 'AC-E', '4': 'ACD-'},
-                       moltype=PROTEIN, aligned=DenseAlignment)
+                       moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 33.]])
         expected = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
@@ -1049,7 +1049,7 @@ class CoevolutionTests(TestCase):
         self.assertFloatEqual(m, expected)
         # filter zero positions (max_exclude_percentage too high)
         aln = LoadSeqs(data={'1': '-CDE', '2': 'A-DE', '3': 'AC-E', '4': 'ACD-'},
-                       moltype=PROTEIN, aligned=DenseAlignment)
+                       moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 33.]])
         expected = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
@@ -1058,7 +1058,7 @@ class CoevolutionTests(TestCase):
         self.assertFloatEqual(m, expected)
         # filter one position (defualt max_exclude_percentage)
         aln = LoadSeqs(data={'1': '-CDE', '2': 'ACDE', '3': 'ACDE', '4': 'ACDE'},
-                       moltype=PROTEIN, aligned=DenseAlignment)
+                       moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 33.]])
         expected = array([[gDefaultNullValue] * 4, [gDefaultNullValue, 18., 5., 6.],
@@ -1067,7 +1067,7 @@ class CoevolutionTests(TestCase):
         self.assertFloatEqual(m, expected)
         # filter one position (non-defualt max_exclude_percentage)
         aln = LoadSeqs(data={'1': '-CDE', '2': 'ACDE', '3': 'ACDE', '4': '-CDE'},
-                       moltype=PROTEIN, aligned=DenseAlignment)
+                       moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 33.]])
         expected = array([[gDefaultNullValue] * 4, [gDefaultNullValue, 18., 5., 6.],
@@ -1076,7 +1076,7 @@ class CoevolutionTests(TestCase):
         self.assertFloatEqual(m, expected)
         # filter all positions (defualt max_exclude_percentage)
         aln = LoadSeqs(data={'1': '----', '2': 'ACDE', '3': 'ACDE', '4': 'ACDE'},
-                       moltype=PROTEIN, aligned=DenseAlignment)
+                       moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 33.]])
         expected = array([[gDefaultNullValue] * 4] * 4)
@@ -1084,7 +1084,7 @@ class CoevolutionTests(TestCase):
         self.assertFloatEqual(m, expected)
         # filter all positions (non-defualt max_exclude_percentage)
         aln = LoadSeqs(data={'1': '----', '2': 'A-DE', '3': 'AC--', '4': '-CDE'},
-                       moltype=PROTEIN, aligned=DenseAlignment)
+                       moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 3.]])
         expected = array([[gDefaultNullValue] * 4] * 4)
@@ -1094,7 +1094,7 @@ class CoevolutionTests(TestCase):
         # filter one position (defualt max_exclude_percentage,
         # non-defualt excludes)
         aln = LoadSeqs(data={'1': 'WCDE', '2': 'ACDE', '3': 'ACDE', '4': 'ACDE'},
-                       moltype=PROTEIN, aligned=DenseAlignment)
+                       moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 33.]])
         expected = array([[gDefaultNullValue] * 4, [gDefaultNullValue, 18., 5., 6.],
@@ -1105,7 +1105,7 @@ class CoevolutionTests(TestCase):
         # filter one position (defualt max_exclude_percentage,
         # non-defualt null_value)
         aln = LoadSeqs(data={'1': '-CDE', '2': 'ACDE', '3': 'ACDE', '4': 'ACDE'},
-                       moltype=PROTEIN, aligned=DenseAlignment)
+                       moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 33.]])
         expected = array([[999.] * 4, [999., 18., 5., 6.],
@@ -1121,7 +1121,7 @@ class CoevolutionTests(TestCase):
 
         # filter zero positions (no excludes)
         merged_aln = LoadSeqs(data={'1': 'WCDEDE', '2': 'ACDEDE',
-                                    '3': 'ACDEDE', '4': 'ACDEDE'}, moltype=PROTEIN, aligned=DenseAlignment)
+                                    '3': 'ACDEDE', '4': 'ACDEDE'}, moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         filter_exclude_positions(merged_aln, m, intermolecular_data_only=True)
@@ -1129,7 +1129,7 @@ class CoevolutionTests(TestCase):
 
         # filter one position (aln1)
         merged_aln = LoadSeqs(data={'1': 'WC-EDE', '2': 'ACDEDE',
-                                    '3': 'ACDEDE', '4': 'ACDEDE'}, moltype=PROTEIN, aligned=DenseAlignment)
+                                    '3': 'ACDEDE', '4': 'ACDEDE'}, moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[1., 10., gDefaultNullValue, 3.],
                           [9., 18., gDefaultNullValue, 6.]])
@@ -1137,7 +1137,7 @@ class CoevolutionTests(TestCase):
         self.assertFloatEqual(m, expected)
         # filter one position (aln2)
         merged_aln = LoadSeqs(data={'1': 'WCEEDE', '2': 'ACDEDE',
-                                    '3': 'ACDEDE', '4': 'ACDED-'}, moltype=PROTEIN, aligned=DenseAlignment)
+                                    '3': 'ACDEDE', '4': 'ACDED-'}, moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[1., 10., 4., 3.],
                           [gDefaultNullValue] * 4])
@@ -1146,7 +1146,7 @@ class CoevolutionTests(TestCase):
 
         # filter two positions (aln1 & aln2)
         merged_aln = LoadSeqs(data={'1': '-CEEDE', '2': 'ACDEDE',
-                                    '3': 'ACDEDE', '4': 'ACDED-'}, moltype=PROTEIN, aligned=DenseAlignment)
+                                    '3': 'ACDEDE', '4': 'ACDED-'}, moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[gDefaultNullValue, 10., 4., 3.],
                           [gDefaultNullValue] * 4])
@@ -1155,7 +1155,7 @@ class CoevolutionTests(TestCase):
 
         # filter two positions (aln1 & aln2, alt excludes)
         merged_aln = LoadSeqs(data={'1': 'WCEEDE', '2': 'ACDEDE',
-                                    '3': 'ACDEDE', '4': 'ACDEDW'}, moltype=PROTEIN, aligned=DenseAlignment)
+                                    '3': 'ACDEDE', '4': 'ACDEDW'}, moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[gDefaultNullValue, 10., 4., 3.],
                           [gDefaultNullValue] * 4])
@@ -1165,7 +1165,7 @@ class CoevolutionTests(TestCase):
 
         # filter two positions (aln1 & aln2, alt null_value)
         merged_aln = LoadSeqs(data={'1': '-CEEDE', '2': 'ACDEDE',
-                                    '3': 'ACDEDE', '4': 'ACDED-'}, moltype=PROTEIN, aligned=DenseAlignment)
+                                    '3': 'ACDEDE', '4': 'ACDED-'}, moltype=PROTEIN, as_dense=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[999., 10., 4., 3.],
                           [999.] * 4])
@@ -1891,7 +1891,7 @@ class CoevolutionTests(TestCase):
     def test_n_random_seqs(self):
         """n_random_seqs: functions as expected"""
         aln1 = LoadSeqs(data=list(zip(list('abcd'), ['AA', 'AC', 'DD', 'GG'])),
-                        moltype=PROTEIN, aligned=DenseAlignment)
+                        moltype=PROTEIN, as_dense=True)
         # Number of returned sequences correct
         self.assertEqual(n_random_seqs(aln1, 1).num_seqs, 1)
         self.assertEqual(n_random_seqs(aln1, 2).num_seqs, 2)
