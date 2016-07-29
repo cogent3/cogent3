@@ -247,7 +247,7 @@ def seqs_from_aln(seqs, alphabet=None):
     This is relatively inefficient: you should really use the copy() method
     instead, which duplicates the internal data structures.
     """
-    return seqs.Seqs, seqs.names
+    return seqs.seqs, seqs.names
 
 
 def seqs_from_empty(obj, *args, **kwargs):
@@ -667,7 +667,7 @@ class SequenceCollection(object):
     def _take_seqs(self):
         return list(self.iter_seqs())
 
-    Seqs = property(_take_seqs)  # access as attribute if using default order.
+    seqs = property(_take_seqs)  # access as attribute if using default order.
 
     def take_seqs(self, seqs, negate=False, **kwargs):
         """Returns new Alignment containing only specified seqs.
@@ -852,7 +852,7 @@ class SequenceCollection(object):
 
     def is_ragged(self):
         """Returns True if alignment has sequences of different lengths."""
-        seqs = self.Seqs  # Get all sequences in alignment
+        seqs = self.seqs  # Get all sequences in alignment
         length = len(seqs[0])  # Get length of first sequence
         for seq in seqs:
             # If lengths differ
@@ -1044,11 +1044,11 @@ class SequenceCollection(object):
         """
         assert not isinstance(other, str), "Must provide a series of seqs " +\
             "or an alignment"
-        self_seq_class = self.Seqs[0].__class__
+        self_seq_class = self.seqs[0].__class__
         try:
-            combined = self.Seqs + other.Seqs
+            combined = self.seqs + other.seqs
         except AttributeError:
-            combined = self.Seqs + list(other)
+            combined = self.seqs + list(other)
 
         for seq in combined:
             assert seq.__class__ == self_seq_class,\
@@ -1463,7 +1463,7 @@ class SequenceCollection(object):
                 length.
         """
         # get max length
-        max_len = max([len(s) for s in self.Seqs])
+        max_len = max([len(s) for s in self.seqs])
         # If a pad_length was passed in, make sure it is valid
         if pad_length is not None:
             pad_length = int(pad_length)
@@ -2800,7 +2800,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             - shadow: whether to mask the annotated regions, or everything but
               the annotated regions"""
         masked_seqs = []
-        for seq in self.Seqs:
+        for seq in self.seqs:
             # we mask each sequence using these spans
             masked_seqs += [seq._masked_annotations(
                 annot_types, mask_char, shadow)]

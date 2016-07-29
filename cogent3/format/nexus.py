@@ -19,7 +19,7 @@ def nexus_from_alignment(aln, seq_type, interleave_len=50):
     if aln.is_ragged():
         raise ValueError("Sequences in alignment are not all the same " +
                          "length. Cannot generate NEXUS format.")
-    num_seq = len(aln.Seqs)
+    num_seq = len(aln.seqs)
     if not aln or not num_seq:
         return ""
     aln_len = aln.seq_len
