@@ -77,7 +77,7 @@ The keyword argument ``axis`` controls whether a function operates by rows (``ax
 
     >>> import cogent3.maths.stats.test as stats
     >>> import numpy as np
-    >>> nums = range(1,6) + [50] + range(10,60,10) + [500]
+    >>> nums = list(range(1,6)) + [50] + list(range(10,60,10)) + [500]
     >>> arr = np.array(nums)
     >>> arr.shape = (2,6)
     >>> arr
@@ -570,7 +570,7 @@ In this example, we generate the error as above, but separately from the x-value
     >>> import numpy as np
     >>> import cogent3.maths.stats.test as stats
     >>> random.seed(13)
-    >>> x_nums = range(1,11)
+    >>> x_nums = list(range(1,11))
     >>> error = [1.5 * random.random() for i in range(len(x_nums))]
     >>> error = [e * random.choice((-1,1)) for e in error]
     >>> arr = np.array(x_nums + error)

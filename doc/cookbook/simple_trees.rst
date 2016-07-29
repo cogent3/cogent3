@@ -459,7 +459,7 @@ One way to do it
     >>> for tip in tr.iter_nontips():
     ...     tip_names = tip.get_tip_names()
     ...     print(tip_names)
-    ...     sub_tree = tr.getSubTree(tip_names)
+    ...     sub_tree = tr.get_sub_tree(tip_names)
     ...     print(sub_tree.ascii_art())
     ...     print
     ...
