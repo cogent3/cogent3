@@ -825,7 +825,7 @@ class ParameterController(object):
         try:
             lc.optimise(**kw)
         except MaximumEvaluationsReached as detail:
-            evals = detail[0]
+            evals = detail.args[0]
             err_msg = 'FORCED EXIT from optimiser after %s evaluations' % evals
             if limit_action == 'ignore':
                 pass
