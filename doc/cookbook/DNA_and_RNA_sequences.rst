@@ -142,9 +142,9 @@ Testing complementarity
 
     >>> from cogent3 import DNA
     >>> a = DNA.make_sequence("AGTACACTGGT")
-    >>> a.canPair(a.complement())
+    >>> a.can_pair(a.complement())
     False
-    >>> a.canPair(a.reversecomplement())
+    >>> a.can_pair(a.reversecomplement())
     True
 
 Joining two DNA sequences

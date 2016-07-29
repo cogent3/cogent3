@@ -237,7 +237,7 @@ Getting the two nodes that are farthest apart
 
     >>> from cogent3 import LoadTree
     >>> tr = LoadTree('data/test.tree')
-    >>> tr.maxTipTipDistance()
+    >>> tr.max_tip_tip_distance()
     (0.4102925130849, ('Mouse', 'DogFaced'))
 
 
@@ -328,7 +328,7 @@ XML format
 
     >>> from cogent3 import LoadTree
     >>> tr = LoadTree('data/test.tree')
-    >>> xml = tr.getXML()
+    >>> xml = tr.get_xml()
     >>> for line in xml.splitlines():
     ...    print(line)
     ...

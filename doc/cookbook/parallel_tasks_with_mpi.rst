@@ -9,8 +9,8 @@ All I'm doing here is illustrating the use of ``parallel.map`` with the simplest
     
     >>> from cogent3.util import parallel
     >>> passed_indices = []
-    >>> series = range(20)
+    >>> series = list(range(20))
     >>> result = parallel.map(passed_indices.append, series)
-    >>> assert passed_indices == range(0,20,2) or passed_indices == range(1,20,2)
+    >>> assert passed_indices == list(range(0,20,2)) or passed_indices == list(range(1,20,2))
 
 The result is either the list of even numbers up to (but not including) 20 or the list of odd numbers.

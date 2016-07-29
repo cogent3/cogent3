@@ -135,7 +135,7 @@ This can be used to take a single, or multiple columns and generate a new column
 
     >>> table = LoadTable('stats.txt', sep=',')
     >>> table = table.with_new_column('LargeCon',
-    ...                     lambda (r,v): r == 'Con' and v>10.0,
+    ...                     lambda r_v: r_v[0] == 'Con' and r_v[1]>10.0,
     ...                     columns=['Region', 'Ratio'])
     >>> print(table)
     ================================================
@@ -567,8 +567,8 @@ This format allows display of annotation tracks on genome browsers.
     >>> bgraph = LoadTable(header=['chrom', 'start', 'end', 'value'],
     ...                   rows=rows)
     ...
-    >>> print(bgraph.tostring(format='bedgraph', name='test track',)
-    ...     description='test of bedgraph', color=(255,0,0)) # doctest: +NORMALIZE_WHITESPACE
+    >>> print(bgraph.tostring(format='bedgraph', name='test track',
+    ...     description='test of bedgraph', color=(255,0,0))) # doctest: +NORMALIZE_WHITESPACE
     track type=bedGraph name="test track" description="test of bedgraph" color=255,0,0
     1	100	108	1.12
     1	108	118	1.0
