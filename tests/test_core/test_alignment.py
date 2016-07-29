@@ -1051,11 +1051,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
     as a constructor.
     """
 
-    def test_Positions(self):
-        """SequenceCollection Positions property should iterate over positions, using self.names"""
+    def test_positions(self):
+        """SequenceCollection positions property should iterate over positions, using self.names"""
         r = self.Class({'a': 'AAAAAA', 'b': 'AAA---', 'c': 'AAAA--'})
         r.names = ['a', 'b', 'c']
-        self.assertEqual(list(r.Positions), list(map(list,
+        self.assertEqual(list(r.positions), list(map(list,
                                                      ['AAA', 'AAA', 'AAA', 'A-A', 'A--', 'A--'])))
 
     def test_iter_positions(self):
