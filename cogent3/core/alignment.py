@@ -1550,7 +1550,7 @@ class Aligned(object):
     def __eq__(self, other):
         """Compares based on string representations."""
         return str(self) == str(other)
-
+    
     def __ne__(self, other):
         """Compares based on string representations."""
         return str(self) != str(other)

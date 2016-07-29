@@ -6,16 +6,16 @@ Anyone can contribute to the development of PyCogent3, not just registered devel
 Grabbing from GitHub
 --------------------
 
-To grab PyCogent3 from GitHub, do the following::
+To grab PyCogent3 from Bitbucket, do the following::
 
-    $ git clone git://github.com/pycogent/pycogent.git PyCogent3
+    $ hg clone ssh://hg@bitbucket.org/pycogent3/pycogent3 PyCogent3
 
 Building/testing the documentation
 ----------------------------------
 
-To build the documentation or ``doctest`` the contents, you'll need to install Sphinx. Assuming you have ``easy_install`` configured on your machine (and if not, download ``setuptools`` from http://pypi.python.org/pypi/setuptools and follow the instructions). Then grab Sphinx::
+To build the documentation or ``doctest`` the contents, you'll need to install Sphinx::
 
-    $ sudo easy_install -U sphinx
+    $ pip install sphinx
 
 Generating the html form of the documentation requires changing into the ``doc`` directory and executing a ``make`` command::
 
@@ -24,9 +24,9 @@ Generating the html form of the documentation requires changing into the ``doc``
     ... # bunch of output
     Build finished. The HTML pages are in _build/html.
 
-This prints a bunch of output to screen and creates a directory ``PyCogent3/doc/_build`` and within that ``html``. The index file ``PyCogent3/doc/_build/html/index.html`` is the root of the documentation.
+The index file czan be found in ``PyCogent3/doc/_build/html/index.html`` is the root of the documentation.
 
-One can also generate a pdf file, using the Sphinx latex generation capacity. This is slightly more involved. (It also requires that you have an installation of TeTex_.)
+You can also generate a pdf file, using the Sphinx latex generation capacity. This is slightly more involved. (It also requires that you have an installation of TeTex_.)
 
 .. _TeTex: http://www.tug.org/texlive/
 
@@ -85,7 +85,6 @@ Things you should check before committing your new document:
 
    $ cd path/to/PyCogent3/doc
    $ python doctest_rsts.py examples/reverse_complement.rst
-
 
 Adding TODOs
 ^^^^^^^^^^^^

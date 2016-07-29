@@ -42,7 +42,7 @@ from cogent3.core.tree import TreeBuilder, TreeError
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.core.alignment import SequenceCollection
-from cogent3.core.alignment import Alignment
+from cogent3.core.alignment import Alignment, DenseAlignment
 from cogent3.parse.sequence import FromFilenameParser
 # note that moltype has to be imported last, because it sets the moltype in
 # the objects created by the other modules.
@@ -70,7 +70,7 @@ def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
 
 def LoadSeqs(filename=None, format=None, data=None, moltype=None,
              name=None, aligned=True, label_to_name=None, parser_kw=None,
-             constructor_kw=None, **kw):
+             constructor_kw=None, as_dense=False, **kw):
     """Initialize an alignment or collection of sequences.
 
     Arguments:
@@ -79,9 +79,8 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     - data: optional explicit provision of sequences
     - moltype: the moltype, eg DNA, PROTEIN
     - aligned: set True if sequences are already aligned and have the same
-      length, results in an Alignment object. If False, a SequenceCollection
-      instance is returned instead. If callable, will use as a constructor
-      (e.g. can pass in DenseAlignment or CodonAlignment).
+      length. If False, a SequenceCollection instance is returned instead.
+    - as_dense: returns alignment as DenseAlignment
     - label_to_name: function for converting original name into another
       name. Default behavior is to preserve the original FASTA label and
       comment.
@@ -108,16 +107,12 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
         assert data is None, (filename, data)
         data = list(FromFilenameParser(filename, format, **parser_kw))
 
-    # the following is a temp hack until we have the load API sorted out.
-    if aligned:  # if callable, call it -- expect either f(data) or bool
-        if hasattr(aligned, '__call__'):
-            return aligned(data=data, moltype=moltype, name=name,
-                           label_to_name=label_to_name, **constructor_kw)
-        else:  # was not callable, but wasn't False
-            return Alignment(data=data, moltype=moltype, name=name,
-                             label_to_name=label_to_name, **constructor_kw)
+    if aligned:
+        klass = DenseAlignment if as_dense else Alignment
     else:  # generic case: return SequenceCollection
-        return SequenceCollection(data, moltype=moltype, name=name,
+        klass = SequenceCollection
+    
+    return klass(data=data, moltype=moltype, name=name,
                                   label_to_name=label_to_name, **constructor_kw)
 
 

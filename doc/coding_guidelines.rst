@@ -110,117 +110,15 @@ The following list of abbreviations can be considered well-known and used with i
 What are the naming conventions?
 --------------------------------
 
-.. tabularcolumns:: |p{3.4cm}|p{6cm}|p{5cm}|
-
-.. csv-table::
-    :header: Type                    , Convention                    , Example
-
-    function                         , ``verb_with_underscores``       , ``find_all``
-    variable                         , ``noun_with_underscores``         , ``curr_index``
-    constant                         , ``NOUN_ALL_CAPS``                 , ``ALLOWED_RNA_PAIRS``
-    class                            , ``MixedCaseNoun``                 , ``RnaSequence``
-    public property                  , ``MixedCaseNoun``                 , ``IsPaired``
-    private property                 , ``_noun_with_leading_underscore`` , ``_is_updated``
-    public method                    , ``mixedCaseExceptFirstWordVerb``  , ``stripDegenerate``
-    private method                   , ``_verb_with_leading_underscore`` , ``_check_if_paired``
-    really private data              , ``__two_leading_underscores``     , ``__delegator_object_ref``
-    parameters that match properties , ``SameAsProperty``                , "``def __init__(data, Alphabet=None)``"
-    factory function                 , ``MixedCase``                     , ``InverseDict``
-    module                           , ``lowercase_with_underscores``    , ``unit_test``
-    global variables                 , ``gMixedCaseWithLeadingG``        , no examples - should be rare!
-
-- *It is important to follow the naming conventions because they make it much easier to guess what a name refers to*. In particular, it should be easy to guess what scope a name is defined in, what it refers to, whether it's OK to change its value, and whether its referent is callable. The following rules provide these distinctions.
-
-- ``lowercase_with_underscores`` *for modules and internal variables (including function/method parameters).*
-
-- ``MixedCase`` for *classes* and *public properties*, and for *factory functions* that act like additional constructors for a class.
-
-- ``mixedCaseExceptFirstWord`` for *public methods and functions*.
-
-- ``_lowercase_with_leading_underscore`` for *private* functions, methods, and properties.
-
-- ``__lowercase_with_two_leading_underscores`` for *private* properties and functions that *must not be overwritten* by a subclass.
-
-- ``CAPS_WITH_UNDERSCORES`` for named *constants*.
-
-- ``gMixedCase`` (i.e. mixed case prefixed with 'g') for *globals*. Globals should be used extremely rarely and with caution, even if you sneak them in using the Singleton pattern or some similar system.
-
-- *Underscores can be left out if the words read OK run together.* ``infile`` and ``outfile`` rather than ``in_file`` and ``out_file``; ``infile_name`` and ``outfile_name`` rather than ``in_file_name`` and ``out_file_name`` or ``infilename`` and ``outfilename`` (getting too long to read effortlessly).
-
-How do I organize my modules (source files)?
---------------------------------------------
-
-- *Have a docstring with a description of the module's functions*. If the description is long, the first line should be a short summary that makes sense on its own, separated from the rest by a newline.
-
-- *All code, including import statements, should follow the docstring.* Otherwise, the docstring will not be recognized by the interpreter, and you will not have access to it in interactive sessions (i.e. through ``obj.__doc__``) or when generating documentation with automated tools.
-
-- *Import built-in modules first, followed by third-party modules, followed by any changes to the path and your own modules.* Especially, additions to the path and names of your modules are likely to change rapidly: keeping them in one place makes them easier to find.
-
-- *Don't use* ``from module import *``, *instead use* ``from module import Name, Name2, Name3...`` *or possibly* ``import module``. This makes it *much* easier to see name collisions and to replace implementations.
-
-Example of module structure
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-::
-
-    #!/usr/bin/env python
-
-    """Provides NumberList and FrequencyDistribution, classes for statistics.
-
-    NumberList holds a sequence of numbers, and defines several statistical
-    operations (mean, stdev, etc.) FrequencyDistribution holds a mapping from
-    items (not necessarily numbers) to counts, and defines operations such as
-    Shannon entropy and frequency normalization.
-    """
-
-    from math import sqrt, log, e
-    from random import choice, random
-    from Utils import indices
-
-    class NumberList(list):
-        pass    # much code deleted
-    class FrequencyDistribution(dict):
-        pass    # much code deleted
-
-    # use the following when the module can meaningfully be called as a script.
-    if __name__ == '__main__':    # code to execute if called from command-line
-        pass    # do nothing - code deleted
+We aim to adhere, to a large extent, to `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_!
 
 How should I write comments?
 ----------------------------
 
-- *Always update the comments when the code changes.* Incorrect comments are far worse than no comments, since they are actively misleading.
+.. todo::
 
-- *Comments should say more than the code itself.* Examine your comments carefully: they may indicate that you'd be better off rewriting your code (especially, *renaming your variables* and getting rid of the comment.) In particular, don't scatter magic numbers and other constants that have to be explained through your code. It's far better to use variables whose names are self-documenting, especially if you use the same constant more than once. Also, think about making constants into class or instance data, since it's all too common for 'constants' to need to change or to be needed in several methods.
-
-    +-------+------------------------------------------------------------+
-    | Wrong |       ``win_size -= 20        # decrement win_size by 20`` |
-    +-------+------------------------------------------------------------+
-    |    OK | ``win_size -= 20        # leave space for the scroll bar`` |
-    +-------+------------------------------------------------------------+
-    | Right |                             ``self._scroll_bar_size = 20`` |
-    +-------+------------------------------------------------------------+
-    |       |                      ``win_size -= self._scroll_bar_size`` |
-    +-------+------------------------------------------------------------+
-
-
-- *Use comments starting with #, not strings, inside blocks of code.* Python ignores real comments, but must allocate storage for strings (which can be a performance disaster inside an inner loop).
-
-- *Start each method, class and function with a docstring using triple double quotes (""").* The docstring should start with a 1-line description that makes sense by itself (many automated formatting tools, and the IDE, use this). This should be followed by a blank line, followed by descriptions of the parameters (if any). Finally, add any more detailed information, such as a longer description, notes about the algorithm, detailed notes about the parameters, etc. If there is a usage example, it should appear at the end. Make sure any descriptions of parameters have the correct spelling, case, etc. For example: ::
-
-    def __init__(self, data, name='', alphabet=None):
-        """Returns new Sequence object with specified data, name, alphabet.
-
-        Arguments:
-
-            - data: The sequence data. Should be a sequence of characters.
-            - name: Arbitrary label for the sequence. Should be string-like.
-            - alphabet: Set of allowed characters. Should support 'for x in y'
-              syntax. None by default.
-
-        Note: if alphabet is None, performs no validation.
-        """
-
+    refer to the numpy way of documenting
+    
 - *Always update the docstring when the code changes.* Like outdated comments, outdated docstrings can waste a lot of time. "Correct examples are priceless, but incorrect examples are worse than worthless." `Jim Fulton`_.
 
 How should I format my code?
@@ -232,37 +130,10 @@ How should I format my code?
 
 - *Blank lines should be used to highlight class and method definitions.* Separate class definitions by two blank lines. Separate methods by one blank line.
 
-- *Be consistent with the use of whitespace around operators.* Inconsistent whitespace makes it harder to see at a glance what is grouped together.
-
-    +------+--------------------------+
-    | Good |        ``((a+b)*(c+d))`` |
-    +------+--------------------------+
-    |   OK |  ``((a + b) * (c + d))`` |
-    +------+--------------------------+
-    |  Bad | ``( (a+ b)  *(c +d  ))`` |
-    +------+--------------------------+
-
-- *Don't put whitespace after delimiters or inside slicing delimiters.* Whitespace here makes it harder to see what's associated.
-
-    +------+-------------+------------------+
-    | Good |   ``(a+b)`` |         ``d[k]`` |
-    +------+-------------+------------------+
-    |  Bad | ``( a+b )`` | ``d [k], d[ k]`` |
-    +------+-------------+------------------+
-
 How should I test my code ?
 ---------------------------
 
-There are two basic approaches for testing code in python: unit testing and doc testing. Their purpose is the same, to check that execution of code given some input produces a specified output. The cases to which the two approaches lend themselves are different.
-
-An excellent discourse on testing code and the pros and cons of these alternatives is provided in a presentation by `Jim Fulton`_, which is recommended reading. A significant change since that presentation is that ``doctest`` can now read content that is not contained within docstrings. A another comparison of these two approaches, along with a third (``py.test``) is also available_. To see examples of both styles of testing look in ``PyCogent3/tests``: files ending in .rst are using ``doctest``, those ending in .py are using ``unittest``.
-
-.. _`Jim Fulton`: http://www.python.org/pycon/dc2004/papers/4/PyCon2004DocTestUnit.pdf
-.. _available: http://agiletesting.blogspot.com/2005/11/articles-and-tutorials-page-updated.html
-
-In general, it's easier to start writing ``doctest``'s, as you don't need to learn the ``unittest`` API but the latter give's much greater control.
-
-Whatever approach is employed, the general principle is every line of code should be tested. It is critical that your code be fully tested before you draw conclusions from results it produces. For scientific work, bugs don't just mean unhappy users who you'll never actually meet: they may mean retracted publications.
+.. TODO update to refer to more recent discussions on testing in python
 
 Tests are an opportunity to invent the interface(s) you want. Write the test for a method before you write the method: often, this helps you figure out what you would want to call it and what parameters it should take. It's OK to write the tests a few methods at a time, and to change them as your ideas about the interface change. However, you shouldn't change them once you've told other people what the interface is.
 
@@ -311,53 +182,3 @@ Some ``unittest`` pointers
 - *To test permutations, check that the original and shuffled version are different, but that the sorted original and sorted shuffled version are the same.* Make sure that you get *different* permutations on repeated runs and when starting from different points.
 
 - *To test random choices, figure out how many of each choice you expect in a large sample (say, 1000 or a million) using the binomial distribution or its normal approximation.* Run the test several times and check that you're within, say, 3 standard deviations of the mean.
-
-Example of a ``unittest`` test module structure
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-::
-
-    #!/usr/bin/env python
-
-    """Tests NumberList and FrequencyDistribution, classes for statistics."""
-
-    from cogent3.util.unit_test import TestCase, main # for floating point test use unittestfp
-    from statistics import NumberList, FrequencyDistribution
-
-    class NumberListTests(TestCase): # remember to subclass TestCase
-        """Tests of the NumberList class."""
-        def setUp(self):
-            """Define a few standard NumberLists."""
-            self.Null = NumberList()            # test empty init
-            self.Empty = NumberList([])         # test init with empty sequence
-            self.Single = NumberList([5])       # single item
-            self.Zero = NumberList([0])         # single, False item
-            self.Three = NumberList([1,2,3])    # multiple items
-            self.ZeroMean = NumberList([1,-1])  # items nonzero, mean zero
-            self.ZeroVar = NumberList([1,1,1])  # items nonzero, mean nonzero, variance zero
-            # etc. These objects shared by all tests, and created new each time a method
-            # starting with the string 'test' is called (i.e. the same object does not
-            # persist between tests: rather, you get separate copies).
-
-            def test_mean_empty(self):
-                """NumberList.mean() should raise ValueError on empty object"""
-                for empty in (self.Null, self.Empty):
-                    self.assertRaises(ValueError, empty.mean)
-            def test_mean_single(self):
-                """NumberList.mean() should return item if only 1 item in list"""
-                for single in (self.Single, self.Zero):
-                    self.assertEqual(single.mean(), single[0])
-            # other tests of mean
-            def test_var_failures(self):
-                """NumberList.var() should raise ZeroDivisionError if <2 items"""
-                for small in (self.Null, self.Empty, self.Single, self.Zero):
-                    self.assertRaises(ZeroDivisionError, small.var)
-            # other tests of var
-            # tests of other methods
-
-    class FrequencyDistributionTests(TestCase):
-        pass    # much code deleted
-    # tests of other classes
-
-    if __name__ == '__main__':    # run tests if called from command-line
-        main()

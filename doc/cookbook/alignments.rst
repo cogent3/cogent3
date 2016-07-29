@@ -23,6 +23,25 @@ Constructing a ``SequenceCollection`` or ``Alignment`` object from strings
     >>> print(type(seqs))
     <class 'cogent3.core.alignment.SequenceCollection'>
 
+Constructing a ``DenseAlignment`` using ``LoadSeqs``
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+.. doctest::
+
+    >>> from cogent3 import LoadSeqs, DNA
+    >>> dna  = {'seq1': 'ATGACC',
+    ...         'seq2': 'ATCGCC'}
+    >>> seqs = LoadSeqs(data=dna, moltype=DNA, aligned=True, as_dense=True)
+    >>> print(type(seqs))
+    <class 'cogent3.core.alignment.DenseAlignment'>
+    >>> print(seqs)
+    >seq1
+    ATGACC
+    >seq2
+    ATCGCC
+    <BLANKLINE>
+
+
 Converting a ``SequenceCollection`` to FASTA format
 """""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -46,7 +65,7 @@ Converting a ``SequenceCollection`` to FASTA format
 Adding new sequences to an existing collection or alignment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-New sequences can be either appended or inserted using the ``add_seqs`` method. More than one sequence can be added at the same time. Note that ``add_seqs`` does not modify the existing collection/alignment, it creates new one.
+New sequences can be either appended or inserted using the ``add_seqs`` method. More than one sequence can be added at the same time. Note that ``add_seqs`` does not modify the existing collection/alignment, it creates a new one.
 
 Appending the sequences
 """""""""""""""""""""""
@@ -417,8 +436,8 @@ Iterating over alignment positions
     >>> list(col)
     [['A', 'A', 'A'], ['T', '-', '-']]
 
-Getting codon 3rd positions from an alignment
-"""""""""""""""""""""""""""""""""""""""""""""
+Getting codon 3rd positions from ``Alignment``
+""""""""""""""""""""""""""""""""""""""""""""""
 
 We'll do this by specifying the position indices of interest, creating a sequence ``Feature`` and using that to extract the positions.
 
@@ -427,7 +446,7 @@ We'll do this by specifying the position indices of interest, creating a sequenc
     >>> from cogent3 import LoadSeqs
     >>> aln = LoadSeqs(data={'seq1': 'ATGATGATG---',
     ...                      'seq2': 'ATGATGATGATG'})
-    >>> range(len(aln))[2::3]
+    >>> list(range(len(aln))[2::3])
     [2, 5, 8, 11]
     >>> indices = [(i, i+1) for i in range(len(aln))[2::3]]
     >>> indices
@@ -439,6 +458,24 @@ We'll do this by specifying the position indices of interest, creating a sequenc
     GGGG
     >seq1
     GGG-
+    <BLANKLINE>
+
+Getting codon 3rd positions from ``DenseAlignment``
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+
+We can use more conventional slice notation in this instance. Note, because Python counts from 0, the 3rd position starts at index 2.
+
+.. doctest::
+
+    >>> from cogent3 import LoadSeqs
+    >>> aln = LoadSeqs(data={'seq1': 'ATGATGATG---',
+    ...                      'seq2': 'ATGATGATGATG'}, as_dense=True)
+    >>> pos3 = aln[2::3]
+    >>> print(pos3)
+    >seq1
+    GGG-
+    >seq2
+    GGGG
     <BLANKLINE>
 
 .. _filter-positions:
