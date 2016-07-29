@@ -42,7 +42,7 @@ from cogent3.core.tree import TreeBuilder, TreeError
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.core.alignment import SequenceCollection
-from cogent3.core.alignment import Alignment, DenseAlignment
+from cogent3.core.alignment import Alignment, ArrayAlignment
 from cogent3.parse.sequence import FromFilenameParser
 # note that moltype has to be imported last, because it sets the moltype in
 # the objects created by the other modules.
@@ -70,7 +70,7 @@ def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
 
 def LoadSeqs(filename=None, format=None, data=None, moltype=None,
              name=None, aligned=True, label_to_name=None, parser_kw=None,
-             constructor_kw=None, as_dense=False, **kw):
+             constructor_kw=None, as_array=False, **kw):
     """Initialize an alignment or collection of sequences.
 
     Arguments:
@@ -80,7 +80,7 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     - moltype: the moltype, eg DNA, PROTEIN
     - aligned: set True if sequences are already aligned and have the same
       length. If False, a SequenceCollection instance is returned instead.
-    - as_dense: returns alignment as DenseAlignment
+    - as_array: returns alignment as ArrayAlignment
     - label_to_name: function for converting original name into another
       name. Default behavior is to preserve the original FASTA label and
       comment.
@@ -108,7 +108,7 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
         data = list(FromFilenameParser(filename, format, **parser_kw))
 
     if aligned:
-        klass = DenseAlignment if as_dense else Alignment
+        klass = ArrayAlignment if as_array else Alignment
     else:  # generic case: return SequenceCollection
         klass = SequenceCollection
     

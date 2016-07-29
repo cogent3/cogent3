@@ -172,7 +172,7 @@ Slicing DNA sequences
 Getting 3rd positions from codons
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The easiest approach is to work off the ``cogent3`` ``DenseAlignment`` object.
+The easiest approach is to work off the ``cogent3`` ``ArrayAlignment`` object.
 
 We'll do this by specifying the position indices of interest, creating a sequence ``Feature`` and using that to extract the positions.
 

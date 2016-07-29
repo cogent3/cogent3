@@ -23,7 +23,7 @@ Constructing a ``SequenceCollection`` or ``Alignment`` object from strings
     >>> print(type(seqs))
     <class 'cogent3.core.alignment.SequenceCollection'>
 
-Constructing a ``DenseAlignment`` using ``LoadSeqs``
+Constructing a ``ArrayAlignment`` using ``LoadSeqs``
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. doctest::
@@ -31,9 +31,9 @@ Constructing a ``DenseAlignment`` using ``LoadSeqs``
     >>> from cogent3 import LoadSeqs, DNA
     >>> dna  = {'seq1': 'ATGACC',
     ...         'seq2': 'ATCGCC'}
-    >>> seqs = LoadSeqs(data=dna, moltype=DNA, aligned=True, as_dense=True)
+    >>> seqs = LoadSeqs(data=dna, moltype=DNA, aligned=True, as_array=True)
     >>> print(type(seqs))
-    <class 'cogent3.core.alignment.DenseAlignment'>
+    <class 'cogent3.core.alignment.ArrayAlignment'>
     >>> print(seqs)
     >seq1
     ATGACC
@@ -168,7 +168,7 @@ Already aligned sequences can be added to an existing ``Alignment`` object and a
 
 ``add_from_ref_aln`` has the same arguments as ``add_seqs`` so ``before_name`` and ``after_name`` can be used to insert the new sequences at the desired position.
 
-.. note:: This method does not work with the ``DenseAlignment`` class.
+.. note:: This method does not work with the ``ArrayAlignment`` class.
 
 Removing all columns with gaps in a named sequence
 ++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -460,7 +460,7 @@ We'll do this by specifying the position indices of interest, creating a sequenc
     GGG-
     <BLANKLINE>
 
-Getting codon 3rd positions from ``DenseAlignment``
+Getting codon 3rd positions from ``ArrayAlignment``
 """""""""""""""""""""""""""""""""""""""""""""""""""
 
 We can use more conventional slice notation in this instance. Note, because Python counts from 0, the 3rd position starts at index 2.
@@ -469,7 +469,7 @@ We can use more conventional slice notation in this instance. Note, because Pyth
 
     >>> from cogent3 import LoadSeqs
     >>> aln = LoadSeqs(data={'seq1': 'ATGATGATG---',
-    ...                      'seq2': 'ATGATGATGATG'}, as_dense=True)
+    ...                      'seq2': 'ATGATGATGATG'}, as_array=True)
     >>> pos3 = aln[2::3]
     >>> print(pos3)
     >seq1

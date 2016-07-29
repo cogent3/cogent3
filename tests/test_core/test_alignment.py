@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 
 from cogent3.util.unit_test import TestCase, main
-from cogent3.core.sequence import RnaSequence, frac_same, ModelSequence, Sequence
+from cogent3.core.sequence import RnaSequence, frac_same, ArraySequence, Sequence
 from cogent3.maths.stats.util import Freqs, Numbers
 from cogent3.core.moltype import RNA, DNA, PROTEIN, BYTES
 
 from cogent3.core.alignment import SequenceCollection, \
     make_gap_filter, coerce_to_string, \
-    seqs_from_array, seqs_from_model_seqs, seqs_from_generic, seqs_from_fasta, \
+    seqs_from_array, seqs_from_array_seqs, seqs_from_generic, seqs_from_fasta, \
     seqs_from_dict, seqs_from_aln, seqs_from_kv_pairs, seqs_from_empty, \
-    aln_from_array, aln_from_model_seqs, aln_from_collection,\
-    aln_from_generic, aln_from_fasta, aln_from_dense_aln, aln_from_empty, \
-    DenseAlignment, Alignment, DataError
+    aln_from_array, aln_from_array_seqs, aln_from_collection,\
+    aln_from_generic, aln_from_fasta, aln_from_array_aln, aln_from_empty, \
+    ArrayAlignment, Alignment, DataError
 
 from cogent3.core.moltype import AB, DNA
 from cogent3.parse.fasta import MinimalFastaParser
@@ -42,11 +42,11 @@ class alignment_tests(TestCase):
         self.assertEqual(obs_a, [array([0, 2]), array([1, 1]), array([2, 0])])
         self.assertEqual(obs_labels, None)
 
-    def test_seqs_from_model_seqs(self):
-        """seqs_from_model_seqs should return model seqs + names."""
-        s1 = ModelSequence('ABC', name='a')
-        s2 = ModelSequence('DEF', name='b')
-        obs_a, obs_labels = seqs_from_model_seqs([s1, s2])
+    def test_seqs_from_array_seqs(self):
+        """seqs_from_array_seqs should return model seqs + names."""
+        s1 = ArraySequence('ABC', name='a')
+        s2 = ArraySequence('DEF', name='b')
+        obs_a, obs_labels = seqs_from_array_seqs([s1, s2])
         self.assertEqual(obs_a, [s1, s2])  # seq -> numbers
         self.assertEqual(obs_labels, ['a', 'b'])
 
@@ -90,11 +90,11 @@ class alignment_tests(TestCase):
         self.assertEqual(obs_a, transpose(a))
         self.assertEqual(obs_labels, None)
 
-    def test_aln_from_model_seqs(self):
-        """aln_from_model_seqs should initialize aln from sequence objects."""
-        s1 = ModelSequence('ACC', name='a', alphabet=RNA.alphabet)
-        s2 = ModelSequence('GGU', name='b', alphabet=RNA.alphabet)
-        obs_a, obs_labels = aln_from_model_seqs([s1, s2],
+    def test_aln_from_array_seqs(self):
+        """aln_from_array_seqs should initialize aln from sequence objects."""
+        s1 = ArraySequence('ACC', name='a', alphabet=RNA.alphabet)
+        s2 = ArraySequence('GGU', name='b', alphabet=RNA.alphabet)
+        obs_a, obs_labels = aln_from_array_seqs([s1, s2],
                                                 alphabet=BYTES.alphabet)
         self.assertEqual(obs_a, array([[2, 1, 1], [3, 3, 0]], 'b'))
         # seq -> numbers
@@ -118,11 +118,11 @@ class alignment_tests(TestCase):
             ['ABC', 'DEF'], 'c').view('B'))  # seq -> numbers
         self.assertEqual(obs_labels, ['aa', 'bb'])
 
-    def test_aln_from_dense_aln(self):
-        """aln_from_dense_aln should initialize from existing alignment"""
-        a = DenseAlignment(array([[0, 1, 2], [3, 4, 5]]),
+    def test_aln_from_array_aln(self):
+        """aln_from_array_aln should initialize from existing alignment"""
+        a = ArrayAlignment(array([[0, 1, 2], [3, 4, 5]]),
                            conversion_f=aln_from_array)
-        obs_a, obs_labels = aln_from_dense_aln(a)
+        obs_a, obs_labels = aln_from_array_aln(a)
         self.assertEqual(obs_a, a.seq_data)
         self.assertEqual(obs_labels, a.names)
 
@@ -155,7 +155,7 @@ class SequenceCollectionBaseTests(object):
 
     def setUp(self):
         """Define some standard SequenceCollection objects."""
-        if type(self.Class) == DenseAlignment:
+        if type(self.Class) == ArrayAlignment:
             pass
 
         self.one_seq = self.Class({'a': 'AAAAA'})
@@ -198,14 +198,14 @@ class SequenceCollectionBaseTests(object):
             's5': RnaSequence('-------------')
         })
 
-        self.a = DenseAlignment(['AAA', 'AAA'])
+        self.a = ArrayAlignment(['AAA', 'AAA'])
         self.b = Alignment(['AAA', 'AAA'])
         self.c = SequenceCollection(['AAA', 'AAA'])
 
     def test_guess_input_type(self):
         """SequenceCollection  _guess_input_type should figure out data type correctly"""
         git = self.a._guess_input_type
-        self.assertEqual(git(self.a), 'dense_aln')
+        self.assertEqual(git(self.a), 'array_aln')
         self.assertEqual(git(self.b), 'aln')
         self.assertEqual(git(self.c), 'collection')
         self.assertEqual(git('>ab\nabc'), 'fasta')
@@ -214,7 +214,7 @@ class SequenceCollectionBaseTests(object):
         # precedence over generic
         self.assertEqual(git([[1, 2], [4, 5]]), 'kv_pairs')
         self.assertEqual(git([[1, 2, 3], [4, 5, 6]]), 'generic')
-        self.assertEqual(git([ModelSequence('abc')]), 'model_seqs')
+        self.assertEqual(git([ArraySequence('abc')]), 'array_seqs')
         self.assertEqual(git(array([[1, 2, 3], [4, 5, 6]])), 'array')
         self.assertEqual(git({'a': 'aca'}), 'dict')
         self.assertEqual(git([]), 'empty')
@@ -268,15 +268,15 @@ class SequenceCollectionBaseTests(object):
         a = self.Class(seqs)
         self.assertEqual(list(a.names), ['c', 'b', 'a'])
         self.assertEqual(list(map(str, a.Seqs)), ['GGG', 'CCC', 'AAA'])
-        if self.Class is not DenseAlignment:
-            # DenseAlignment is allowed to strip info objects
+        if self.Class is not ArrayAlignment:
+            # ArrayAlignment is allowed to strip info objects
             self.assertEqual([i.info.x for i in a.Seqs], [5, 4, 3])
         # check it still works if constructed from same class
         b = self.Class(a)
         self.assertEqual(list(b.names), ['c', 'b', 'a'])
         self.assertEqual(list(map(str, b.Seqs)), ['GGG', 'CCC', 'AAA'])
-        if self.Class is not DenseAlignment:
-            # DenseAlignment is allowed to strip Info objects
+        if self.Class is not ArrayAlignment:
+            # ArrayAlignment is allowed to strip Info objects
             self.assertEqual([i.info.x for i in b.Seqs], [5, 4, 3])
 
     def test_init_pairs(self):
@@ -336,7 +336,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(aln.to_fasta(), '>aa\nAC\n>bb\nAA\n>c\nGG')
         s2_ORIG = '>x\nCA\n>b\nAA\n>>xx\nGG'
         s2 = '>aa\nAC\n>bb\nAA\n>c\nGG\n'
-        d = DenseAlignment(MinimalFastaParser(s2.splitlines()))
+        d = ArrayAlignment(MinimalFastaParser(s2.splitlines()))
         da = d.to_fasta()
         self.assertEqual(d.to_fasta(), aln.to_fasta())
 
@@ -791,7 +791,7 @@ class SequenceCollectionBaseTests(object):
         self.assertRaises(ValueError, aln.add_seqs, aln3,
                           after_name='name5')  # wrong after/before name
 
-        if isinstance(aln, Alignment) or isinstance(aln, DenseAlignment):
+        if isinstance(aln, Alignment) or isinstance(aln, ArrayAlignment):
             self.assertRaises((DataError, ValueError),
                               aln.add_seqs, aln3 + aln3)
         else:
@@ -1451,27 +1451,27 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         new_seqs = {'seq1': 'ACGTACGTA',
                     'seq2': 'ACCGAA---',
                     'seq3': 'ACGTACGTT'}
-        as_dense = self.Class == DenseAlignment
-        # when as_dense arg matches instance class, no conversion
+        as_array = self.Class == ArrayAlignment
+        # when as_array arg matches instance class, no conversion
         # and get back self
         aln = self.Class(data=new_seqs)
-        new = aln.to_type(as_dense=as_dense)
+        new = aln.to_type(as_array=as_array)
         self.assertEqual(id(aln), id(new))
         
-        # when as_dense arg does not match, should get back the opposite type
-        new = aln.to_type(as_dense=not as_dense)
+        # when as_array arg does not match, should get back the opposite type
+        new = aln.to_type(as_array=not as_array)
         self.assertFalse(isinstance(new, self.Class))
         
         # we should be able to specify moltype and alignment
-        new = aln.to_type(as_dense=not as_dense, moltype=DNA)
+        new = aln.to_type(as_array=not as_array, moltype=DNA)
         self.assertEqual(new.todict(), new_seqs)
         # and translate
         self.assertEqual(new.get_translation().todict(),
                          {'seq1': 'TYV', 'seq3': 'TYV', 'seq2': 'TE-'})
         
 
-class DenseAlignmentTests(AlignmentBaseTests, TestCase):
-    Class = DenseAlignment
+class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
+    Class = ArrayAlignment
 
     def test_slice_align(self):
         """slicing alignment should work correctly"""
@@ -1493,12 +1493,12 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(sub_align.todict(), expect)
     
     def test_get_freqs(self):
-        """DenseAlignment get_seq_freqs: should work on positions and sequences 
+        """ArrayAlignment get_seq_freqs: should work on positions and sequences 
         """
         s1 = DNA.make_sequence('TCAG', name='s1')
         s2 = DNA.make_sequence('CCAC', name='s2')
         s3 = DNA.make_sequence('AGAT', name='s3')
-        da = DenseAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
+        da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         seq_exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
         pos_exp = array([[1, 1, 1, 0], [0, 2, 0, 1],
                         [0, 0, 3, 0], [1, 1, 0, 1]])
@@ -1506,14 +1506,14 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(da._get_freqs(index=0), seq_exp)
 
     def test_get_seq_freqs(self):
-        """DenseAlignment get_seq_freqs: should work with DnaSequences and strings
+        """ArrayAlignment get_seq_freqs: should work with DnaSequences and strings
         """
         exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
 
         s1 = DNA.make_sequence('TCAG', name='s1')
         s2 = DNA.make_sequence('CCAC', name='s2')
         s3 = DNA.make_sequence('AGAT', name='s3')
-        da = DenseAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
+        da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = da.get_seq_freqs()
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
@@ -1522,21 +1522,21 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         s1 = 'TCAG'
         s2 = 'CCAC'
         s3 = 'AGAT'
-        da = DenseAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
+        da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = da.get_seq_freqs()
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
         self.assertEqual(obs.char_order, list("TCAG"))
 
     def test_get_pos_freqs_sequence(self):
-        """DenseAlignment get_pos_freqs: should work with DnaSequences and strings
+        """ArrayAlignment get_pos_freqs: should work with DnaSequences and strings
         """
         exp = array([[1, 1, 1, 0], [0, 2, 0, 1], [0, 0, 3, 0], [1, 1, 0, 1]])
 
         s1 = DNA.make_sequence('TCAG', name='s1')
         s2 = DNA.make_sequence('CCAC', name='s2')
         s3 = DNA.make_sequence('AGAT', name='s3')
-        da = DenseAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
+        da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = da.get_pos_freqs()
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
@@ -1545,7 +1545,7 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         s1 = 'TCAG'
         s2 = 'CCAC'
         s3 = 'AGAT'
-        da = DenseAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
+        da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = da.get_pos_freqs()
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
@@ -1723,7 +1723,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
             ['name4', 'KL--MNPR'],
             ])
 
-        aln2_different_aln_class = DenseAlignment([
+        aln2_different_aln_class = ArrayAlignment([
             ['name1', 'ACDEFGHI'],
             ['name4', 'KL--MNPR'],
             ])
@@ -1763,35 +1763,35 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
                           aln2_wrong_refseq)  # test wrong_refseq
 
 
-class DenseAlignmentSpecificTests(TestCase):
-    """Tests of the DenseAlignment object and its methods"""
+class ArrayAlignmentSpecificTests(TestCase):
+    """Tests of the ArrayAlignment object and its methods"""
 
     def setUp(self):
         """Define some standard alignments."""
-        self.a = DenseAlignment(array([[0, 1, 2], [3, 4, 5]]),
+        self.a = ArrayAlignment(array([[0, 1, 2], [3, 4, 5]]),
                                 conversion_f=aln_from_array)
-        self.a2 = DenseAlignment(['ABC', 'DEF'], names=['x', 'y'])
+        self.a2 = ArrayAlignment(['ABC', 'DEF'], names=['x', 'y'])
 
-        class ABModelSequence(ModelSequence):
+        class ABModelSequence(ArraySequence):
             alphabet = AB.alphabet
         self.ABModelSequence = ABModelSequence
-        self.a = DenseAlignment(list(map(ABModelSequence, ['abaa', 'abbb'])),
+        self.a = ArrayAlignment(list(map(ABModelSequence, ['abaa', 'abbb'])),
                                 alphabet=AB.alphabet)
         self.b = Alignment(['ABC', 'DEF'])
         self.c = SequenceCollection(['ABC', 'DEF'])
 
     def test_init(self):
-        """DenseAlignment init should work from a sequence"""
-        a = DenseAlignment(array([[0, 1, 2], [3, 4, 5]]),
+        """ArrayAlignment init should work from a sequence"""
+        a = ArrayAlignment(array([[0, 1, 2], [3, 4, 5]]),
                            conversion_f=aln_from_array)
         self.assertEqual(a.seq_data, array([[0, 3], [1, 4], [2, 5]], 'B'))
         self.assertEqual(a.array_positions, array([[0, 1, 2], [3, 4, 5]], 'B'))
         self.assertEqual(a.names, ['seq_0', 'seq_1', 'seq_2'])
 
     def test_guess_input_type(self):
-        """DenseAlignment _guess_input_type should figure out data type correctly"""
+        """ArrayAlignment _guess_input_type should figure out data type correctly"""
         git = self.a._guess_input_type
-        self.assertEqual(git(self.a), 'dense_aln')
+        self.assertEqual(git(self.a), 'array_aln')
         self.assertEqual(git(self.b), 'aln')
         self.assertEqual(git(self.c), 'collection')
         self.assertEqual(git('>ab\nabc'), 'fasta')
@@ -1800,83 +1800,83 @@ class DenseAlignmentSpecificTests(TestCase):
         # precedence over generic
         self.assertEqual(git([[1, 2], [4, 5]]), 'kv_pairs')
         self.assertEqual(git([[1, 2, 3], [4, 5, 6]]), 'generic')
-        self.assertEqual(git([ModelSequence('abc')]), 'model_seqs')
+        self.assertEqual(git([ArraySequence('abc')]), 'array_seqs')
         self.assertEqual(git(array([[1, 2, 3], [4, 5, 6]])), 'array')
         self.assertEqual(git({'a': 'aca'}), 'dict')
         self.assertEqual(git([]), 'empty')
 
     def test_init_seqs(self):
-        """DenseAlignment init should work from ModelSequence objects."""
-        s = list(map(ModelSequence, ['abc', 'def']))
-        a = DenseAlignment(s)
+        """ArrayAlignment init should work from ArraySequence objects."""
+        s = list(map(ArraySequence, ['abc', 'def']))
+        a = ArrayAlignment(s)
         self.assertEqual(a.seq_data, array(['abc', 'def'], 'c').view('B'))
 
     def test_init_generic(self):
-        """DenseAlignment init should work from generic objects."""
+        """ArrayAlignment init should work from generic objects."""
         s = ['abc', 'def']
-        a = DenseAlignment(s)
+        a = ArrayAlignment(s)
         self.assertEqual(a.seq_data, array(['abc', 'def'], 'c').view('B'))
 
     def test_init_aln(self):
-        """DenseAlignment init should work from another alignment."""
+        """ArrayAlignment init should work from another alignment."""
         s = ['abc', 'def']
-        a = DenseAlignment(s)
-        b = DenseAlignment(a)
+        a = ArrayAlignment(s)
+        b = ArrayAlignment(a)
         self.assertNotSameObj(a.seq_data, b.seq_data)
         self.assertEqual(b.seq_data, array(['abc', 'def'], 'c').view('B'))
 
     def test_init_dict(self):
-        """DenseAlignment init should work from dict."""
+        """ArrayAlignment init should work from dict."""
         s = {'abc': 'aaaccc', 'xyz': 'gcgcgc'}
-        a = DenseAlignment(s, names=['abc', 'xyz'])
+        a = ArrayAlignment(s, names=['abc', 'xyz'])
         self.assertEqual(a.seq_data, array(['aaaccc', 'gcgcgc'], 'c').view('B'))
         self.assertEqual(tuple(a.names), ('abc', 'xyz'))
 
     def test_init_empty(self):
-        """DenseAlignment init should fail if empty."""
-        self.assertRaises(TypeError, DenseAlignment)
-        self.assertRaises(ValueError, DenseAlignment, 3)
+        """ArrayAlignment init should fail if empty."""
+        self.assertRaises(TypeError, ArrayAlignment)
+        self.assertRaises(ValueError, ArrayAlignment, 3)
 
     def test_get_alphabet_and_moltype(self):
-        """DenseAlignment should figure out correct alphabet and moltype"""
+        """ArrayAlignment should figure out correct alphabet and moltype"""
         s1 = 'A'
         s2 = RNA.make_sequence('AA')
 
-        d = DenseAlignment(s1)
+        d = ArrayAlignment(s1)
         self.assertSameObj(d.moltype, BYTES)
         self.assertSameObj(d.alphabet, BYTES.alphabet)
 
-        d = DenseAlignment(s1, moltype=RNA)
+        d = ArrayAlignment(s1, moltype=RNA)
         self.assertSameObj(d.moltype, RNA)
         self.assertSameObj(d.alphabet, RNA.alphabets.DegenGapped)
 
-        d = DenseAlignment(s1, alphabet=RNA.alphabet)
+        d = ArrayAlignment(s1, alphabet=RNA.alphabet)
         self.assertSameObj(d.moltype, RNA)
         self.assertSameObj(d.alphabet, RNA.alphabet)
 
-        d = DenseAlignment(s2)
+        d = ArrayAlignment(s2)
         self.assertSameObj(d.moltype, RNA)
         self.assertSameObj(d.alphabet, RNA.alphabets.DegenGapped)
 
-        d = DenseAlignment(s2, moltype=DNA)
+        d = ArrayAlignment(s2, moltype=DNA)
         self.assertSameObj(d.moltype, DNA)
         self.assertSameObj(d.alphabet, DNA.alphabets.DegenGapped)
         # checks for containers
-        d = DenseAlignment([s2])
+        d = ArrayAlignment([s2])
         self.assertSameObj(d.moltype, RNA)
-        d = DenseAlignment({'x': s2})
+        d = ArrayAlignment({'x': s2})
         self.assertSameObj(d.moltype, RNA)
-        d = DenseAlignment(set([s2]))
+        d = ArrayAlignment(set([s2]))
         self.assertSameObj(d.moltype, RNA)
 
     def test_iter(self):
-        """DenseAlignment iter should iterate over positions"""
+        """ArrayAlignment iter should iterate over positions"""
         result = list(iter(self.a2))
         for i, j in zip(result, [list(i) for i in ['AD', 'BE', 'CF']]):
             self.assertEqual(i, j)
 
     def test_getitem(self):
-        """DenseAlignment getitem act like standard alignment slice"""
+        """ArrayAlignment getitem act like standard alignment slice"""
         a2 = self.a2
         expect = {'x': 'B', 'y': 'E'}
         got = a2[1]
@@ -1886,11 +1886,11 @@ class DenseAlignmentSpecificTests(TestCase):
         self.assertEqual(got.todict(), expect)
 
     def test_get_sub_alignment(self):
-        """DenseAlignment get_sub_alignment should get requested part of alignment."""
-        a = DenseAlignment('>x ABCE >y FGHI >z JKLM'.split())
+        """ArrayAlignment get_sub_alignment should get requested part of alignment."""
+        a = ArrayAlignment('>x ABCE >y FGHI >z JKLM'.split())
         # passing in positions should keep all seqs, but just selected
         # positions
-        b = DenseAlignment('>x BC >y GH >z KL'.split())
+        b = ArrayAlignment('>x BC >y GH >z KL'.split())
         a_1 = a.get_sub_alignment(pos=[1, 2])
         self.assertEqual(a_1.names, b.names)
 
@@ -1900,7 +1900,7 @@ class DenseAlignmentSpecificTests(TestCase):
         self.assertEqual(a_2.Seqs, b.Seqs)
         self.assertEqual(a_2.names, b.names)
         # passing in seqs should keep all positions, but just selected seqs
-        c = DenseAlignment('>x ABCE >z JKLM'.split())
+        c = ArrayAlignment('>x ABCE >z JKLM'.split())
         a_3 = a.get_sub_alignment(seqs=[0, 2])
         self.assertEqual(a_3.Seqs, c.Seqs)
         # check that labels were updates as well...
@@ -1910,20 +1910,20 @@ class DenseAlignmentSpecificTests(TestCase):
         self.assertEqual(a_4.Seqs, c.Seqs)
         self.assertEqual(a_4.names, c.names)
         # should be able to do both seqs and positions simultaneously
-        d = DenseAlignment('>x BC >z KL'.split())
+        d = ArrayAlignment('>x BC >z KL'.split())
         a_5 = a.get_sub_alignment(seqs=[0, 2], pos=[1, 2])
         self.assertEqual(a_5.Seqs, d.Seqs)
         self.assertEqual(a_5.names, d.names)
 
     def test_str(self):
-        """DenseAlignment str should return FASTA representation of aln"""
+        """ArrayAlignment str should return FASTA representation of aln"""
         self.assertEqual(str(self.a2), '>x\nABC\n>y\nDEF\n')
         # should work if labels diff length
         self.a2.names[-1] = 'yyy'
         self.assertEqual(str(self.a2), '>x\nABC\n>yyy\nDEF\n')
 
     def test_get_freqs(self):
-        """DenseAlignment _get_freqs should get row or col freqs"""
+        """ArrayAlignment _get_freqs should get row or col freqs"""
         ABModelSequence = self.ABModelSequence
         a = self.a
         self.assertEqual(a._get_freqs(0), array([[3, 1], [1, 3]]))
@@ -1931,30 +1931,30 @@ class DenseAlignmentSpecificTests(TestCase):
             [[2, 0], [0, 2], [1, 1], [1, 1]]))
 
     def test_get_seq_freqs(self):
-        """DenseAlignment get_seq_freqs should get profile of freqs in each seq"""
+        """ArrayAlignment get_seq_freqs should get profile of freqs in each seq"""
         ABModelSequence = self.ABModelSequence
         a = self.a
         f = a.get_seq_freqs()
         self.assertEqual(f.Data, array([[3, 1], [1, 3]]))
 
     def test_get_pos_freqs(self):
-        """DenseAlignment get_pos_freqs should get profile of freqs at each pos"""
+        """ArrayAlignment get_pos_freqs should get profile of freqs at each pos"""
         ABModelSequence = self.ABModelSequence
         a = self.a
         f = a.get_pos_freqs()
         self.assertEqual(f.Data, array([[2, 0], [0, 2], [1, 1], [1, 1]]))
 
     def test_get_seq_entropy(self):
-        """DenseAlignment get_seq_entropy should get entropy of each seq"""
+        """ArrayAlignment get_seq_entropy should get entropy of each seq"""
         ABModelSequence = self.ABModelSequence
-        a = DenseAlignment(list(map(ABModelSequence, ['abab', 'bbbb', 'abbb'])),
+        a = ArrayAlignment(list(map(ABModelSequence, ['abab', 'bbbb', 'abbb'])),
                            alphabet=AB.alphabet)
         f = a.get_seq_entropy()
         e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
         self.assertFloatEqual(f, array([1, 0, e]))
 
     def test_get_pos_entropy(self):
-        """DenseAlignment get_pos_entropy should get entropy of each pos"""
+        """ArrayAlignment get_pos_entropy should get entropy of each pos"""
         ABModelSequence = self.ABModelSequence
         a = self.a
         f = a.get_pos_entropy()
@@ -1969,22 +1969,22 @@ class IntegrationTests(TestCase):
         """Intialize some standard sequences"""
         self.r1 = RNA.make_sequence('AAA', name='x')
         self.r2 = RNA.make_sequence('CCC', name='y')
-        self.m1 = RNA.model_seq_constructor('AAA', name='xx')
-        self.m2 = RNA.model_seq_constructor('CCC', name='yy')
+        self.m1 = RNA.make_array_seq('AAA', name='xx')
+        self.m2 = RNA.make_array_seq('CCC', name='yy')
 
     def test_model_to_model(self):
         """Model seq should work with dense alignment"""
-        a = DenseAlignment([self.m1, self.m2])
+        a = ArrayAlignment([self.m1, self.m2])
         self.assertEqual(str(a), '>xx\nAAA\n>yy\nCCC\n')
-        a = DenseAlignment([self.m1, self.m2], moltype=DNA)
+        a = ArrayAlignment([self.m1, self.m2], moltype=DNA)
         self.assertEqual(str(a), '>xx\nAAA\n>yy\nCCC\n')
         self.assertEqual(self.m1.name, 'xx')
 
     def test_regular_to_model(self):
         """Regular seq should work with dense alignment"""
-        a = DenseAlignment([self.r1, self.r2])
+        a = ArrayAlignment([self.r1, self.r2])
         self.assertEqual(str(a), '>x\nAAA\n>y\nCCC\n')
-        a = DenseAlignment([self.r1, self.r2], moltype=DNA)
+        a = ArrayAlignment([self.r1, self.r2], moltype=DNA)
         self.assertEqual(str(a), '>x\nAAA\n>y\nCCC\n')
         self.assertEqual(self.r1.name, 'x')
 
@@ -2006,7 +2006,7 @@ class IntegrationTests(TestCase):
 
     def test_model_aln_to_regular_aln(self):
         """Dense aln should convert to regular aln"""
-        a = DenseAlignment([self.r1, self.r2])
+        a = ArrayAlignment([self.r1, self.r2])
         d = Alignment(a)
         self.assertEqual(str(d), '>x\nAAA\n>y\nCCC\n')
         d = Alignment(a, moltype=DNA)
@@ -2016,9 +2016,9 @@ class IntegrationTests(TestCase):
     def test_regular_aln_to_model_aln(self):
         """Regular aln should convert to model aln"""
         a = Alignment([self.r1, self.r2])
-        d = DenseAlignment(a)
+        d = ArrayAlignment(a)
         self.assertEqual(str(d), '>x\nAAA\n>y\nCCC\n')
-        d = DenseAlignment(a, moltype=DNA)
+        d = ArrayAlignment(a, moltype=DNA)
         self.assertEqual(str(d), '>x\nAAA\n>y\nCCC\n')
         self.assertEqual(self.r1.name, 'x')
 

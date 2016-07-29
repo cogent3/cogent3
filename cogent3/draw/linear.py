@@ -250,7 +250,7 @@ class _SeqRepresentation(object):
                 matplotlib.colors.colorConverter.to_rgba(c, alpha=.5)
                 for c in color_specs])
 
-        # this could be faster is sequence were known to be a ModelSequence
+        # this could be faster is sequence were known to be a ArraySequence
         sequence = numpy.asarray(self.alphabet.to_indices(str(sequence)))
 
         posn = 0

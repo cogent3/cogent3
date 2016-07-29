@@ -3,10 +3,10 @@
 """
 
 from cogent3.core.sequence import Sequence, RnaSequence, DnaSequence, \
-    ProteinSequence, ModelSequenceBase, \
-    ModelSequence, ModelNucleicAcidSequence, ModelRnaSequence, \
-    ModelDnaSequence, ModelProteinSequence, ModelCodonSequence, \
-    ModelDnaCodonSequence, ModelRnaCodonSequence
+    ProteinSequence, ArraySequenceBase, \
+    ArraySequence, ArrayNucleicAcidSequence, ArrayRnaSequence, \
+    ArrayDnaSequence, ArrayProteinSequence, ArrayCodonSequence, \
+    ArrayDnaCodonSequence, ArrayRnaCodonSequence
 from cogent3.core.moltype import RNA, DNA, PROTEIN, ASCII, BYTES, AlphabetError
 from cogent3.util.unit_test import TestCase, main
 
@@ -681,7 +681,7 @@ class SequenceSubclassTests(TestCase):
 
 
 class ModelSequenceTests(object):
-    """Base class for tests of specific ModelSequence objects."""
+    """Base class for tests of specific ArraySequence objects."""
     SequenceClass = None  # override in derived classes
 
     def test_to_fasta(self):
@@ -708,7 +708,7 @@ class ModelSequenceTests(object):
 
 class DnaSequenceTests(ModelSequenceTests, TestCase):
 
-    class SequenceClass(ModelNucleicAcidSequence):
+    class SequenceClass(ArrayNucleicAcidSequence):
         alphabet = DNA.alphabets.Base
 
     def test_init(self):
@@ -743,7 +743,7 @@ class DnaSequenceTests(ModelSequenceTests, TestCase):
 
 class CodonSequenceTests(SequenceTests, TestCase):
 
-    class SequenceClass(ModelCodonSequence):
+    class SequenceClass(ArrayCodonSequence):
         alphabet = DNA.alphabets.Base.Triples
 
     def test_init(self):
@@ -775,7 +775,7 @@ class CodonSequenceTests(SequenceTests, TestCase):
 
 class DnaSequenceGapTests(TestCase):
     """Tests of gapped DNA sequences."""
-    class SequenceClass(ModelNucleicAcidSequence):
+    class SequenceClass(ArrayNucleicAcidSequence):
         alphabet = DNA.alphabets.Gapped
         gap = '-'
 
@@ -814,14 +814,14 @@ class SequenceIntegrationTests(TestCase):
     def test_regular_to_model(self):
         """Regular sequence should convert to model sequence"""
         r = RNA.make_sequence('AAA', name='x')
-        s = RNA.model_seq_constructor(r)
+        s = RNA.make_array_seq(r)
         self.assertEqual(str(s), 'AAA')
         self.assertEqual(s.moltype, RNA)
         self.assertEqual(s.name, 'x')
 
     def test_model_to_regular(self):
         """Model sequence should convert to regular sequence"""
-        r = RNA.model_seq_constructor('AAA', name='x')
+        r = RNA.make_array_seq('AAA', name='x')
         s = RNA.make_sequence(r)
         self.assertEqual(str(s), 'AAA')
         self.assertEqual(s.moltype, RNA)
@@ -837,23 +837,23 @@ class SequenceIntegrationTests(TestCase):
 
     def test_model_to_model(self):
         """Model sequence should convert to model sequence"""
-        r = RNA.model_seq_constructor('AAA', name='x')
-        s = RNA.model_seq_constructor(r)
+        r = RNA.make_array_seq('AAA', name='x')
+        s = RNA.make_array_seq(r)
         self.assertEqual(str(s), 'AAA')
         self.assertEqual(s.moltype, RNA)
         self.assertEqual(s.name, 'x')
 
     def test_ModelDnaCodonSequence(self):
-        """ModelDnaCodonSequence should behave as expected"""
-        d = ModelDnaCodonSequence('UUUCGU')
+        """ArrayDnaCodonSequence should behave as expected"""
+        d = ArrayDnaCodonSequence('UUUCGU')
         self.assertEqual(str(d), 'TTTCGT')
         self.assertEqual(d._data, array([0, 28]))
         self.assertEqual(str(d.to_rna()), 'UUUCGU')
         self.assertEqual(str(d.to_dna()), 'TTTCGT')
 
     def test_ModelRnaCodonSequence(self):
-        """ModelRnaCodonSequence should behave as expected"""
-        r = ModelRnaCodonSequence('UUUCGU')
+        """ArrayRnaCodonSequence should behave as expected"""
+        r = ArrayRnaCodonSequence('UUUCGU')
         self.assertEqual(str(r), 'UUUCGU')
         self.assertEqual(r._data, array([0, 28]))
         self.assertEqual(str(r.to_rna()), 'UUUCGU')
@@ -861,14 +861,14 @@ class SequenceIntegrationTests(TestCase):
 
 
 class ModelSequenceTests(SequenceTests):
-    """Tests of the ModelSequence class's inheritance of SequenceI."""
-    SEQ = ModelSequence
-    RNA = ModelRnaSequence
-    DNA = ModelDnaSequence
-    PROT = ModelProteinSequence
+    """Tests of the ArraySequence class's inheritance of SequenceI."""
+    SEQ = ArraySequence
+    RNA = ArrayRnaSequence
+    DNA = ArrayDnaSequence
+    PROT = ArrayProteinSequence
 
     def test_distance_indices(self):
-        """ModelSequence distance should work with function of indices"""
+        """ArraySequence distance should work with function of indices"""
         s1 = self.RNA('AUGC')
         s2 = self.RNA('AAGC')
 

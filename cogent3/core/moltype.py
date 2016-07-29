@@ -29,13 +29,13 @@ from cogent3.util.transform import KeepChars, first_index_in_set
 from cogent3.data.molecular_weight import DnaMW, RnaMW, ProteinMW
 from cogent3.core.sequence import Sequence as DefaultSequence, RnaSequence, \
     DnaSequence, ProteinSequence, ABSequence, NucleicAcidSequence, \
-    ByteSequence, ModelSequence, ModelNucleicAcidSequence, \
-    ModelDnaSequence, ModelRnaSequence, ModelDnaCodonSequence, \
-    ModelRnaCodonSequence, ModelProteinSequence, ProteinWithStopSequence,\
-    ModelProteinWithStopSequence
+    ByteSequence, ArraySequence, ArrayNucleicAcidSequence, \
+    ArrayDnaSequence, ArrayRnaSequence, ArrayDnaCodonSequence, \
+    ArrayRnaCodonSequence, ArrayProteinSequence, ProteinWithStopSequence,\
+    ArrayProteinWithStopSequence
 from cogent3.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE, \
     GeneticCodes
-from cogent3.core.alignment import Alignment, DenseAlignment, \
+from cogent3.core.alignment import Alignment, ArrayAlignment, \
     SequenceCollection
 from random import choice
 
@@ -411,7 +411,7 @@ class MolType(object):
                  seq_constructor=None, ambiguities=None,
                  label=None, complements=None, pairs=None, mw_calculator=None,
                  add_lower=False, preserve_existing_moltypes=False,
-                 make_alphabet_group=False, model_seq_constructor=None):
+                 make_alphabet_group=False, array_seq_constructor=None):
         """Returns a new MolType object. Note that the parameters are in flux.
 
         Currently:
@@ -455,7 +455,7 @@ class MolType(object):
             make_alphabet_group: if True, makes an AlphabetGroup relating
             the various alphabets to one another.
 
-            model_seq_constructor: sequence type for modeling
+            array_seq_constructor: sequence type for array sequence
 
         Note on "degenerates" versus "ambiguities": self.degenerates contains
         _only_ mappings for degenerate symbols, whereas self.ambiguities
@@ -545,7 +545,7 @@ class MolType(object):
             self.array_type = None
 
         # set modeling sequence
-        self.model_seq_constructor = model_seq_constructor
+        self.make_array_seq = array_seq_constructor
 
     def __repr__(self):
         """String representation of MolType.
@@ -1027,7 +1027,7 @@ ASCII = MolType(
     motifset=letters,
     ambiguities={},
     label='text',
-    model_seq_constructor=ModelSequence,
+    array_seq_constructor=ArraySequence,
 )
 
 DNA = MolType(
@@ -1039,7 +1039,7 @@ DNA = MolType(
     complements=IUPAC_DNA_ambiguities_complements,
     pairs=DnaStandardPairs,
     make_alphabet_group=True,
-    model_seq_constructor=ModelDnaSequence,
+    array_seq_constructor=ArrayDnaSequence,
 )
 
 RNA = MolType(
@@ -1051,7 +1051,7 @@ RNA = MolType(
     complements=IUPAC_RNA_ambiguities_complements,
     pairs=RnaStandardPairs,
     make_alphabet_group=True,
-    model_seq_constructor=ModelRnaSequence,
+    array_seq_constructor=ArrayRnaSequence,
 )
 
 PROTEIN = MolType(
@@ -1060,7 +1060,7 @@ PROTEIN = MolType(
     ambiguities=IUPAC_PROTEIN_ambiguities,
     mw_calculator=ProteinMW,
     make_alphabet_group=True,
-    model_seq_constructor=ModelProteinSequence,
+    array_seq_constructor=ArrayProteinSequence,
     label="protein")
 
 PROTEIN_WITH_STOP = MolType(
@@ -1069,7 +1069,7 @@ PROTEIN_WITH_STOP = MolType(
     ambiguities=PROTEIN_WITH_STOP_ambiguities,
     mw_calculator=ProteinMW,
     make_alphabet_group=True,
-    model_seq_constructor=ModelProteinWithStopSequence,
+    array_seq_constructor=ArrayProteinWithStopSequence,
     label="protein_with_stop")
 
 BYTES = MolType(
@@ -1078,7 +1078,7 @@ BYTES = MolType(
     seq_constructor=ByteSequence,
     motifset=list(map(chr, list(range(256)))),
     ambiguities={},
-    model_seq_constructor=ModelSequence,
+    array_seq_constructor=ArraySequence,
     label='bytes')
 
 # following is a two-state MolType useful for testing
@@ -1086,7 +1086,7 @@ AB = MolType(
     seq_constructor=ABSequence,
     motifset='ab',
     ambiguities={},
-    model_seq_constructor=ModelSequence,
+    array_seq_constructor=ArraySequence,
     label='ab')
 
 
@@ -1131,25 +1131,25 @@ STANDARD_CODON = CodonAlphabet()
 # Modify NucleicAcidSequence to avoid circular import
 NucleicAcidSequence.codon_alphabet = _method_codon_alphabet
 NucleicAcidSequence.protein = PROTEIN
-ModelRnaSequence.moltype = RNA
-ModelRnaSequence.alphabet = RNA.alphabets.DegenGapped
+ArrayRnaSequence.moltype = RNA
+ArrayRnaSequence.alphabet = RNA.alphabets.DegenGapped
 
-ModelDnaSequence.moltype = DNA
-ModelDnaSequence.alphabet = DNA.alphabets.DegenGapped
+ArrayDnaSequence.moltype = DNA
+ArrayDnaSequence.alphabet = DNA.alphabets.DegenGapped
 
-ModelProteinSequence.moltype = PROTEIN
-ModelProteinSequence.alphabet = PROTEIN.alphabets.DegenGapped
+ArrayProteinSequence.moltype = PROTEIN
+ArrayProteinSequence.alphabet = PROTEIN.alphabets.DegenGapped
 
-ModelProteinWithStopSequence.moltype = PROTEIN_WITH_STOP
-ModelProteinWithStopSequence.alphabet = PROTEIN_WITH_STOP.alphabets.DegenGapped
+ArrayProteinWithStopSequence.moltype = PROTEIN_WITH_STOP
+ArrayProteinWithStopSequence.alphabet = PROTEIN_WITH_STOP.alphabets.DegenGapped
 
-ModelSequence.alphabet = BYTES.alphabet
+ArraySequence.alphabet = BYTES.alphabet
 
-DenseAlignment.alphabet = BYTES.alphabet
-DenseAlignment.moltype = BYTES
+ArrayAlignment.alphabet = BYTES.alphabet
+ArrayAlignment.moltype = BYTES
 
-ModelDnaCodonSequence.alphabet = DNA.alphabets.Base.Triples
-ModelRnaCodonSequence.alphabet = RNA.alphabets.Base.Triples
+ArrayDnaCodonSequence.alphabet = DNA.alphabets.Base.Triples
+ArrayRnaCodonSequence.alphabet = RNA.alphabets.Base.Triples
 
 # Modify Alignment to avoid circular import
 Alignment.moltype = ASCII
