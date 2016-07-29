@@ -1630,7 +1630,7 @@ class AlignmentI(object):
     - Seqs:         Sequence objects in the alignment, can turn themselves into
                     strings. These are usually thought of as "rows" in an
                     alignment.
-    - Positions:    Vectors representing data in each position in the alignment
+    - positions:    Vectors representing data in each position in the alignment
                     These are usually thought of as "columns" in an alignment.
     - seq_data:      Vectors representing data in each sequence in the alignment,
                     not necessarily guaranteed to turn themselves into a string
@@ -1665,7 +1665,7 @@ class AlignmentI(object):
         for pos in pos_order:
             yield [get(seq)[pos] for seq in seq_order]
 
-    Positions = property(iter_positions)
+    positions = property(iter_positions)
 
     def take_positions(self, cols, negate=False, seq_constructor=None):
         """Returns new Alignment containing only specified positions.
@@ -1711,7 +1711,7 @@ class AlignmentI(object):
         if native and isinstance(self, ArrayAlignment):
             result = [i for i in range(self.seq_len) if new_f(self.array_seqs[:,i])]
         else:
-            result = [i for i, col in enumerate(self.Positions) if new_f(col)]
+            result = [i for i, col in enumerate(self.positions) if new_f(col)]
         
         return result
 
@@ -1733,14 +1733,14 @@ class AlignmentI(object):
             alphabet = self.moltype
         consensus = []
         degen = alphabet.degenerate_from_seq
-        for col in self.Positions:
+        for col in self.positions:
             consensus.append(degen(coerce_to_string(col)))
         return coerce_to_string(consensus)
 
     def column_freqs(self, constructor=Freqs):
         """Returns list of Freqs with item counts for each column.
         """
-        return list(map(constructor, self.Positions))
+        return list(map(constructor, self.positions))
 
     def column_probs(self, constructor=Freqs):
         """Returns FrequencyDistribuutions w/ prob. of each item per column.
@@ -1801,7 +1801,7 @@ class AlignmentI(object):
 
     def get_pssm(self):
         """Returns a position specific score matrix for the alignment."""
-        return Dict2D(dict([(i, Freqs(col)) for i, col in enumerate(self.Positions)]))
+        return Dict2D(dict([(i, Freqs(col)) for i, col in enumerate(self.positions)]))
 
     def _get_freqs(self, index=None):
         """Gets array of freqs along index 0 (= positions) or 1 (= seqs).
@@ -2240,7 +2240,7 @@ def aln_from_kv_pairs(aln, array_type=None, alphabet=None):
 def aln_from_array_aln(aln, array_type=None, alphabet=None):
     """Alignment from existing ArrayAlignment object: copies data.
 
-    Retrieves data from Positions field. Uses copy(), so array data type
+    Retrieves data from positions field. Uses copy(), so array data type
     should be unchanged.
     """
     if array_type is None:
@@ -2273,7 +2273,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
 
     Implementation: aln[i] returns position i in the alignment.
 
-    aln.Positions[i] returns the same as aln[i] -- usually, users think of this
+    aln.positions[i] returns the same as aln[i] -- usually, users think of this
     as a 'column', because alignment editors such as Clustal typically display
     each sequence as a row so a position that cuts across sequences is a
     column.
@@ -2281,13 +2281,13 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
     aln.Seqs[i] returns a sequence, or 'row' of the alignment in standard
     terminology.
 
-    WARNING: aln.Seqs and aln.Positions are different views of the same array,
+    WARNING: aln.seqs and aln.positions are different views of the same array,
     so if you change one you will change the other. This will no longer be
-    true if you assign to Seqs or Positions directly, so don't do it. If you
+    true if you assign to seqs or positions directly, so don't do it. If you
     want to change the data in the whole array, always assign to a slice so
-    that both views update: aln.Seqs[:] = x instead of aln.Seqs = x. If you
+    that both views update: aln.seqs[:] = x instead of aln.Seqs = x. If you
     get the two views out of sync, you will get all sorts of exceptions. No
-    validation is performed on aln.Seqs and aln.Positions for performance
+    validation is performed on aln.Seqs and aln.positions for performance
     reasons, so this can really get you into trouble.
 
     Alignments are immutable, though this is not enforced. If you change the
@@ -2350,10 +2350,10 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         self.names = names or self.DefaultNameFunction(len(data[0]))
 
     def _get_positions(self):
-        """Override superclass Positions to return positions as symbols."""
+        """Override superclass positions to return positions as symbols."""
         return list(map(self.alphabet.from_indices, self.array_positions))
 
-    Positions = property(_get_positions)
+    positions = property(_get_positions)
 
     def _get_named_seqs(self):
         if not hasattr(self, '_named_seqs'):
@@ -2388,7 +2388,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         The result shares data with the original array, so if you change
         the result you change the Alignment.
         """
-        return iter(self.Positions)
+        return iter(self.positions)
 
     def __getitem__(self, item):
         if not isinstance(item, slice):
@@ -2521,7 +2521,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
             alphabet = self.moltype
         consensus = []
         degen = alphabet.degenerate_from_seq
-        for col in self.Positions:
+        for col in self.positions:
             consensus.append(degen(str(alphabet.make_array_seq(col,
                                                          alphabet=alphabet.alphabets.DegenGapped))))
         return coerce_to_string(consensus)
@@ -2554,7 +2554,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
     def column_freqs(self, constructor=Freqs):
         """Returns list of Freqs with item counts for each column.
         """
-        return list(map(constructor, self.Positions))
+        return list(map(constructor, self.positions))
 
     def sample(self, n=None, with_replacement=False, motif_length=1,
                randint=randint, permutation=permutation):
@@ -2875,7 +2875,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         for pos in pos_order:
             yield [seq[pos] for seq in seqs]
 
-    Positions = property(iter_positions)
+    positions = property(iter_positions)
 
     def with_gaps_from(self, template):
         """Same alignment but overwritten with the gaps from 'template'"""

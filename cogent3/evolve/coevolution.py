@@ -169,7 +169,7 @@ def mi_pair(alignment, pos1, pos2, h1=None, h2=None, mi_calculator=mi,
          f(position_data,excludes=gDefaultExcludes) -> position_data
 
     """
-    positions = alignment.Positions
+    positions = alignment.positions
     col1 = positions[pos1]
     col2 = positions[pos2]
     # Detect and process exclude characters.
@@ -237,7 +237,7 @@ def mi_position(alignment, position,
     # compile positional entropies if not passed in
     if positional_entropies is None:
         positional_entropies = \
-            [Freqs(p).Uncertainty for p in alignment.Positions]
+            [Freqs(p).Uncertainty for p in alignment.positions]
 
     # Will want to make a change here so that we don't need to recalculate
     # all values when calling from mi_alignment
@@ -274,7 +274,7 @@ def mi_alignment(alignment, mi_calculator=mi, null_value=gDefaultNullValue,
     # I believe I started using this rather than alignment.uncertainties
     # b/c the latter relies on converting a ArrayAlignment to an Alignment --
     # need to check into this.
-    positional_entropies = [Freqs(p).Uncertainty for p in alignment.Positions]
+    positional_entropies = [Freqs(p).Uncertainty for p in alignment.positions]
 
     # Calculate pairwise MI between position_number and all alignment
     # positions, and return the results in a vector.
@@ -983,7 +983,7 @@ def resampled_mi_pair(alignment, pos1, pos2, weights=None,
         - weights: Freq objects of weights for pos1, pos2
         - excludes: states to be excluded.
     """
-    positions = list(alignment.Positions)
+    positions = list(alignment.positions)
     col1 = positions[pos1]
     col2 = positions[pos2]
     seqs = [''.join(p) for p in zip(col1, col2)]
@@ -1556,7 +1556,7 @@ def coevolve_alignments(method, alignment1, alignment2,
     # compact (e.g., can I be making better use of kwargs?).
     if method == mi_pair or method == nmi_pair or method == normalized_mi_pair:
         positional_entropies = \
-            [Freqs(p).Uncertainty for p in merged_alignment.Positions]
+            [Freqs(p).Uncertainty for p in merged_alignment.positions]
         for i in range(len_alignment1):
             for j in range(len_alignment2):
                 result[j, i] = \

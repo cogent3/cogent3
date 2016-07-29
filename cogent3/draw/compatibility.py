@@ -128,7 +128,7 @@ def binary_partitions(alignment):
     columns = []
     partitions = []
     partition_index = {}
-    for (site, column) in enumerate(alignment.Positions):
+    for (site, column) in enumerate(alignment.positions):
         column = numpy.array(column)
         (A, T, C, G, R, Y, W, S, U) = [
             bit_encode(column == N) for N in "ATCGRYWSU"]
