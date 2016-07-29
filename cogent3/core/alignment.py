@@ -744,7 +744,6 @@ class SequenceCollection(object):
                 for i in row:
                     yield i
 
-    Items = property(iter_selected)
 
     def get_items(self, items, negate=False):
         """Returns list containing only specified items.
@@ -1635,7 +1634,6 @@ class AlignmentI(object):
                     These are usually thought of as "columns" in an alignment.
     - seq_data:      Vectors representing data in each sequence in the alignment,
                     not necessarily guaranteed to turn themselves into a string
-    - Items:        Iterator over the characters in the alignment
     - names:        List of names of sequences in the alignment. Used for
                     display order. A cheap way to omit or reorder sequences is
                     to modify the list of names.
