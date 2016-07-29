@@ -5,7 +5,7 @@ Useful Utilities
 .. authors, Daniel McDonald, Gavin Huttley, Antonio Gonzalez Pena, Rob Knight
 
 Using PyCogent3's optimisers for your own functions
-==================================================
+===================================================
 
 You have a function that you want to maximise/minimise. The parameters in your function may be bounded (must lie in a specific interval) or not. The cogent optimisers can be applied to these cases. The ``Powell`` (a local optimiser) and ``SimulatedAnnealing`` (a global optimiser) classes in particular have had their interfaces standardised for such use cases. We demonstrate for a very simple function below.
 

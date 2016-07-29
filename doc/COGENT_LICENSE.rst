@@ -1,7 +1,7 @@
 .. _cogent_license:
 
 PyCogent3 License
-================
+=================
 
 ::
 
