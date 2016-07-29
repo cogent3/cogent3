@@ -729,11 +729,11 @@ For dinucleotides or longer, we need to pass in an ``Alphabet`` with the appropr
     >>> motif_probs = aln.get_motif_probs(alphabet=trinuc_alphabet)
     >>> for m in sorted(motif_probs, key=lambda x: motif_probs[x],
     ...                 reverse=True):
-    ...     print(m, motif_probs[m])
+    ...     print("%s  %.3f" % (m, motif_probs[m]))
     ...
-    CAG 0.0374581939799
-    CCT 0.0341137123746
-    CGC 0.0301003344482...
+    CAG  0.037
+    CCT  0.034
+    CGC  0.030...
 
 The same holds for other arbitrary alphabets, as long as they match the alignment ``MolType``.
 
@@ -799,9 +799,9 @@ Filtering extracted columns for the gap character
     >>> c1, c2 = list(col)
     >>> c1, c2
     (['A', 'A', 'A'], ['T', '-', '-'])
-    >>> filter(lambda x: x == '-', c1)
+    >>> list(filter(lambda x: x == '-', c1))
     []
-    >>> filter(lambda x: x == '-', c2)
+    >>> list(filter(lambda x: x == '-', c2))
     ['-', '-']
 
 Calculating the gap fraction
@@ -816,9 +816,7 @@ Calculating the gap fraction
     ...     gap_fraction = len(ungapped) * 1.0 / len(column)
     ...     print(gap_fraction)
     0.0
-    0.666666666667
-    0.0
-    0.0...
+    0.66666...
 
 Extracting maps of aligned to unaligned positions (i.e., gap maps)
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -869,27 +867,27 @@ Filtering alignments based on gaps
 
 .. note:: An alternate, computationally faster, approach to removing gaps is to use the ``filtered`` method as discussed in :ref:`filter-positions`.
 
-The ``omitGapRuns`` method can be applied to remove long stretches of gaps in an alignment. In the following example, we remove sequences that have more than two adjacent gaps anywhere in the aligned sequence.
+The ``omit_gap_runs`` method can be applied to remove long stretches of gaps in an alignment. In the following example, we remove sequences that have more than two adjacent gaps anywhere in the aligned sequence.
 
 .. doctest::
 
     >>> aln = LoadSeqs(data= [('seq1', 'ATGAA---TG-'),
     ...                       ('seq2', 'ATG-AGTGATG'),
     ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
-    >>> print(aln.omitGapRuns(2).to_fasta())
+    >>> print(aln.omit_gap_runs(2).to_fasta())
     >seq2
     ATG-AGTGATG
     >seq3
     AT--AG-GATG
 
-If instead, we just wanted to remove positions from the alignment which are gaps in more than a certain percentage of the sequences, we could use the ``omit_gap_positions`` function. For example:
+If instead, we just wanted to remove positions from the alignment which are gaps in more than a certain percentage of the sequences, we could use the ``omit_gap_pos`` function. For example:
 
 .. doctest::
 
     >>> aln = LoadSeqs(data= [('seq1', 'ATGAA---TG-'),
     ...                       ('seq2', 'ATG-AGTGATG'),
     ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
-    >>> print(aln.omit_gap_positions(0.40).to_fasta())
+    >>> print(aln.omit_gap_pos(0.40).to_fasta())
     >seq1
     ATGA--TG-
     >seq2
@@ -911,9 +909,9 @@ If you wanted to remove sequences which contain more than a certain percent gap 
     >seq3
     AT--AG-GATG
 
-Note that following this call to ``omit_gap_seqs``, the 4th column of ``filtered_aln`` is 100% gaps. This is generally not desirable, so a call to ``omit_gap_seqs`` is frequently followed with a call to ``omit_gap_positions`` with no parameters -- this defaults to removing positions which are all gaps:
+Note that following this call to ``omit_gap_seqs``, the 4th column of ``filtered_aln`` is 100% gaps. This is generally not desirable, so a call to ``omit_gap_seqs`` is frequently followed with a call to ``omit_gap_pos`` with no parameters -- this defaults to removing positions which are all gaps:
 
-    >>> print(filtered_aln.omit_gap_positions().to_fasta())
+    >>> print(filtered_aln.omit_gap_pos().to_fasta())
     >seq2
     ATGAGTGATG
     >seq3

@@ -632,7 +632,7 @@ We first import an unrooted dendrogram and then generate a heat mapped image to 
 
     >>> from cogent3.draw.dendrogram import ContemporaneousDendrogram
     >>> dend = ContemporaneousDendrogram(annot_tree)
-    >>> fig = dend.makeFigure(height=6, width=6, shade_param='omega',
+    >>> fig = dend.make_figure(height=6, width=6, shade_param='omega',
     ...                      max_value=1.0, stroke_width=2)
     >>> fig.savefig('omega_heat_map.png')
 
