@@ -10,7 +10,7 @@ See the other examples for how to define other substitution models.
 .. doctest::
 
     >>> import sys
-    >>> from cogent import LoadTree
+    >>> from cogent3 import LoadTree
     >>> from cogent3.evolve import substitution_model
 
 Specify the 4 taxon tree,
@@ -28,7 +28,7 @@ Define our Felsenstein 1981 substitution model.
     >>> lf = sm.make_likelihood_function(t)
     >>> lf.set_constant_lengths()
     >>> lf.set_name('F81 model')
-    >>> print lf
+    >>> print(lf)
     F81 model
     ==========================
       edge    parent    length

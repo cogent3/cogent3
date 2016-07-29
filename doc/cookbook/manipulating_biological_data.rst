@@ -34,7 +34,6 @@ Trees
 
     simple_trees
     phylonodes
-    managing_trees
 
 Tables
 ======
@@ -43,13 +42,3 @@ Tables
     :maxdepth: 1
 
     tables
-
-Structures
-==========
-
-.. toctree::
-    :maxdepth: 1
-    
-    structural_data
-    structural_data_2
-    structural_contacts

@@ -11,7 +11,7 @@ From cogent import all the components we need.
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, LoadTree
+    >>> from cogent3 import LoadSeqs, LoadTree
     >>> from cogent3.evolve import bootstrap
     >>> from cogent3.evolve.models import HKY85
     >>> from cogent3.maths import stats
@@ -55,7 +55,7 @@ Specify how many random samples we want it to generate. Here we use a very small
 
 .. doctest::
 
-    >>> estimateP.setNumReplicates(5)
+    >>> estimateP.set_num_replicates(5)
 
 Run it.
 
@@ -67,11 +67,11 @@ Get the estimated probability.
 
 .. doctest::
 
-    >>> p = estimateP.getEstimatedProb()
+    >>> p = estimateP.get_estimated_prob()
 
 ``p`` is a floating point value, as you'd expect. Grab the estimated likelihoods (null and alternate) for the observed data.
 
 .. doctest::
 
-    >>> print '%.2f, %.2f' % estimateP.getObservedlnL()
+    >>> print('%.2f, %.2f' % estimateP.get_observed_lnL())
     -8751.94, -8750.59

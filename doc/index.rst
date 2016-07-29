@@ -16,7 +16,6 @@ Welcome to PyCogent's documentation!
     examples/index
     cookbook/index
     developer_notes
-    scripting_guidelines
     licenses
     ChangeLog
 

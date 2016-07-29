@@ -7,7 +7,7 @@ This file contains an example for performing a likelihood ratio test of neutrali
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, LoadTree
+    >>> from cogent3 import LoadSeqs, LoadTree
     >>> from cogent3.evolve.models import MG94GTR
     >>> from cogent3.maths import stats
 
@@ -40,13 +40,13 @@ By default, parameters other than branch lengths are treated as global in scope,
 
 .. doctest::
 
-    >>> lf.optimise(global_tolerance = 1.0)
+    >>> lf.optimise(global_tolerance=1.0)
 
 View the resulting maximum-likelihood parameter values
 
 .. doctest::
 
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     ===================================
      A/C   A/G   A/T   C/G   C/T  omega
@@ -77,7 +77,7 @@ We'll get the lnL and number of free parameters for later use.
 
 .. doctest::
 
-    >>> null_lnL = lf.getLogLikelihood()
+    >>> null_lnL = lf.get_log_likelihood()
     >>> null_nfp = lf.get_num_free_params()
 
 Specify each edge has it's own omega by just modifying the existing ``lf``. This means the new function will start with the above values.
@@ -90,13 +90,13 @@ Optimise the likelihood function, this time just using the local optimiser.
 
 .. doctest::
 
-    >>> lf.optimise(local = True)
+    >>> lf.optimise(local=True)
 
 View the resulting maximum-likelihood parameter values.
 
 .. doctest::
 
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     ============================
      A/C   A/G   A/T   C/G   C/T
@@ -133,7 +133,7 @@ The lnL's from the two models are now used to calculate the likelihood ratio sta
 
 .. doctest::
 
-    >>> LR = 2 * (lf.getLogLikelihood() - null_lnL)
+    >>> LR = 2 * (lf.get_log_likelihood() - null_lnL)
     >>> df = lf.get_num_free_params() - null_nfp
     >>> P = stats.chisqprob(LR, df)
 
@@ -141,10 +141,9 @@ Print this and look up a chi-sq with number of edges - 1 degrees of freedom.
 
 .. doctest::
 
-    >>> print "Likelihood ratio statistic = ", LR
+    >>> print("Likelihood ratio statistic = ", LR)
     Likelihood ratio statistic =  8...
-    >>> print "degrees-of-freedom = ", df
+    >>> print("degrees-of-freedom = ", df)
     degrees-of-freedom =  6
-    >>> print "probability = ", P
+    >>> print("probability = ", P)
     probability =  0.2...
-

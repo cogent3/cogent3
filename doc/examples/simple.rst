@@ -8,14 +8,14 @@ This is just about the simplest possible Cogent script for evolutionary modellin
 .. doctest::
 
     >>> from cogent3.evolve.models import HKY85
-    >>> from cogent import LoadSeqs, LoadTree
+    >>> from cogent3 import LoadSeqs, LoadTree
     >>> model = HKY85()
     >>> aln = LoadSeqs("data/primate_cdx2_promoter.fasta")
     >>> tree = LoadTree(tip_names=aln.names)
     >>> lf = model.make_likelihood_function(tree)
     >>> lf.set_alignment(aln)
     >>> lf.optimise()
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     ======
      kappa

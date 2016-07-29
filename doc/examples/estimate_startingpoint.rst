@@ -9,7 +9,7 @@ From cogent import all the components we need.
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, LoadTree
+    >>> from cogent3 import LoadSeqs, LoadTree
     >>> from cogent3.evolve import  substitution_model
 
 Load your alignment, note that if your file ends with a suffix that is the same as it's format (assuming it's a supported format) then you can just give the filename. Otherwise you can specify the format using the format argument.
@@ -35,7 +35,7 @@ Make a likelihood function from a sample of the alignment the ``sample`` method 
 .. doctest::
 
     >>> lf = sm.make_likelihood_function(t)
-    >>> lf.setMotifProbsFromData(aln)
+    >>> lf.set_motif_probs_from_data(aln)
     >>> lf.set_alignment(aln.sample(20))
 
 Optimise with the local optimiser
@@ -53,12 +53,12 @@ Next use the whole alignment
 and the faster Powell optimiser that will only find the best result near the provided starting point
 
 .. doctest::
-    
+
     >>> lf.optimise(local=True)
 
 .. doctest::
-    
-    >>> print lf
+
+    >>> print(lf)
     Likelihood Function Table
     =============================
          edge    parent    length

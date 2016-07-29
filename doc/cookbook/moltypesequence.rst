@@ -22,13 +22,13 @@ Setting up a ``MolType`` object with an RNA sequence
    >>> from cogent3.core.sequence import NucleicAcidSequence
    >>> testrnaseq = 'ACGUACGUACGUACGU'
    >>> RnaMolType = MolType(
-   ...     Sequence = NucleicAcidSequence(testrnaseq),
-   ...     motifset = IUPAC_RNA_chars,
-   ...     Ambiguities = IUPAC_RNA_ambiguities,
-   ...     label = "rna_with_lowercase",
-   ...     MWCalculator = RnaMW,
-   ...     Complements = IUPAC_RNA_ambiguities_complements,
-   ...     Pairs = RnaStandardPairs,
+   ...     seq_constructor=NucleicAcidSequence(testrnaseq),
+   ...     motifset=IUPAC_RNA_chars,
+   ...     ambiguities=IUPAC_RNA_ambiguities,
+   ...     label="rna_with_lowercase",
+   ...     mw_calculator=RnaMW,
+   ...     complements=IUPAC_RNA_ambiguities_complements,
+   ...     pairs= RnaStandardPairs,
    ...     add_lower=True,
    ...     preserve_existing_moltypes=True,
    ...     make_alphabet_group=True,
@@ -44,13 +44,13 @@ Setting up a ``MolType`` object with a DNA sequence
     ...   DnaStandardPairs
     >>> testdnaseq = 'ACGTACGTACGUACGT'
     >>> DnaMolType = MolType(
-    ...     Sequence = NucleicAcidSequence(testdnaseq),
-    ...     motifset = IUPAC_DNA_chars,
-    ...     Ambiguities = IUPAC_DNA_ambiguities,
+    ...     seq_constructor=NucleicAcidSequence(testdnaseq),
+    ...     motifset=IUPAC_DNA_chars,
+    ...     ambiguities=IUPAC_DNA_ambiguities,
     ...     label = "dna_with_lowercase",
-    ...     MWCalculator = DnaMW,
-    ...     Complements = IUPAC_DNA_ambiguities_complements,
-    ...     Pairs = DnaStandardPairs,
+    ...     mw_calculator=DnaMW,
+    ...     complements=IUPAC_DNA_ambiguities_complements,
+    ...     pairs=DnaStandardPairs,
     ...     add_lower=True,
     ...     preserve_existing_moltypes=True,
     ...     make_alphabet_group=True,
@@ -63,12 +63,12 @@ Setting up a DNA ``MolType`` object allowing ``.`` as gaps
 .. doctest::
 
    >>> from cogent3.core import moltype as mt
-   >>> DNAgapped = mt.moltype(Sequence=mt.DnaSequence,
+   >>> DNAgapped = mt.MolType(seq_constructor=mt.DnaSequence,
    ...                        motifset=mt.IUPAC_DNA_chars,
-   ...                        Ambiguities=mt.IUPAC_DNA_ambiguities,
-   ...                        Complements=mt.IUPAC_DNA_ambiguities_complements,
-   ...                        Pairs = mt.DnaStandardPairs,
-   ...                        Gaps='.')
+   ...                        ambiguities=mt.IUPAC_DNA_ambiguities,
+   ...                        complements=mt.IUPAC_DNA_ambiguities_complements,
+   ...                        pairs=mt.DnaStandardPairs,
+   ...                        gaps='.')
    >>> seq = DNAgapped.make_sequence('ACG.')
 
 
@@ -82,14 +82,14 @@ Setting up a ``MolType`` object with a protein sequence
     >>> from cogent3.core.sequence import ProteinSequence, ModelProteinSequence
     >>> protstr = 'TEST'
     >>> ProteinMolType = MolType(
-    ...     Sequence = ProteinSequence(protstr),
-    ...     motifset = IUPAC_PROTEIN_chars,
-    ...     Ambiguities = IUPAC_PROTEIN_ambiguities,
-    ...     MWCalculator = ProteinMW,
+    ...     seq_constructor=ProteinSequence(protstr),
+    ...     motifset=IUPAC_PROTEIN_chars,
+    ...     ambiguities=IUPAC_PROTEIN_ambiguities,
+    ...     mw_calculator=ProteinMW,
     ...     make_alphabet_group=True,
-    ...     ModelSeq = ModelProteinSequence,
-    ...     label = "protein")
-    >>> protseq = ProteinMolType.Sequence
+    ...     model_seq_constructor=ModelProteinSequence,
+    ...     label="protein")
+    >>> protseq = ProteinMolType.make_sequence
 
 Verify sequences
 ----------------
@@ -110,6 +110,6 @@ Verify sequences
 
 The ``Sequence`` object contains classes that represent biological sequence data. These provide generic biological sequence manipulation functions, plus functions that are critical for the ``evolve`` module calculations.
 
-.. warning:: Do not import sequence classes directly! It is expected that you will access them through ``MolType`` objects. The most common molecular types ``DNA``, ``RNA``, ``PROTEIN`` are provided as top level imports in cogent (e.g. ``cogent.DNA``). Sequence classes depend on information from the ``MolType`` that is **only** available after ``MolType`` has been imported. Sequences are intended to be immutable. This is not enforced by the code for performance reasons, but don't alter the ``MolType`` or the sequence data after creation.
+.. warning:: Do not import sequence classes directly! It is expected that you will access them through ``MolType`` objects. The most common molecular types ``DNA``, ``RNA``, ``PROTEIN`` are provided as top level imports in cogent (e.g. ``cogent3.DNA``). Sequence classes depend on information from the ``MolType`` that is **only** available after ``MolType`` has been imported. Sequences are intended to be immutable. This is not enforced by the code for performance reasons, but don't alter the ``MolType`` or the sequence data after creation.
 
 More detailed usage of sequence objects can be found in :ref:`dna-rna-seqs`.

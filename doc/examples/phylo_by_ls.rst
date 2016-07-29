@@ -9,29 +9,29 @@ We will load some pre-computed pairwise distance data. To see how that data was 
 
 .. doctest::
     :hide:
-    
-    >>> from cogent import LoadSeqs
+
+    >>> from cogent3 import LoadSeqs
     >>> from cogent3.phylo import distance
     >>> from cogent3.evolve.models import HKY85
     >>> al = LoadSeqs("data/long_testseqs.fasta")
     >>> d = distance.EstimateDistances(al, submodel= HKY85())
     >>> d.run()
-    >>> import cPickle
-    >>> f = open('dists_for_phylo.pickle', "w")
-    >>> cPickle.dump(d.getPairwiseDistances(), f)
+    >>> import pickle
+    >>> f = open('dists_for_phylo.pickle', "wb")
+    >>> pickle.dump(d.get_pairwise_distances(), f)
     >>> f.close()
 
 .. doctest::
 
-    >>> import cPickle
+    >>> import pickle
     >>> from cogent3.phylo import distance, least_squares
 
 Now load the distance data.
 
 .. doctest::
 
-    >>> f = file('dists_for_phylo.pickle', 'r')
-    >>> dists = cPickle.load(f)
+    >>> f = open('dists_for_phylo.pickle', 'rb')
+    >>> dists = pickle.load(f)
     >>> f.close()
 
 If there are extremely small distances, they can cause an error in the least squares calculation. Since such estimates are between extremely closely related sequences we could simply drop all distances for one of the sequences. We won't do that here, we'll leave that as exercise.
@@ -50,7 +50,7 @@ Look for the single best tree
 In this use case we are after just 1 tree. We specify up to what taxa size all possible trees for the sample will be computed. Here we are specifying ``a=5``. This means 5 sequences will be picked randomly and all possible trees relating them will be evaluated. ``k=1`` means only the best tree will be kept at the end of each such round of evaluation. For every remaining sequence it is grafted onto every possible branch of this tree. The best ``k`` results are then taken to the next round, when another sequence is randomly selected for addition. This proceeds until all sequences have been added. The result with following arguments is a single wls score and a single ``Tree`` which can be saved etc ..
 
 .. doctest::
-    
+
     >>> score, tree = ls.trex(a = 5, k = 1)
     >>> assert score < 1e-4
 
@@ -63,13 +63,13 @@ We change the asaa settings, so we keep more trees and then look at the distribu
 
 .. doctest::
 
-    >>> trees = ls.trex(a = 5, k = 5, return_all = True)
+    >>> trees = ls.trex(a=5, k=5, return_all=True)
 
 Remember the sum-of-squares statistic will be smaller for 'good' trees. The order of the trees returned is from good to bad. The number of returned ``trees`` is the same as the number requested to be retained at each step.
 
 .. doctest::
 
-    >>> print len(trees)
+    >>> print(len(trees))
     5
 
 Lets inspect the resulting statistics. First, the object ``trees`` is a list of ``(wls, Tree)`` tuples. We will therefore loop over the list to generate a separate list of just the wls statistics. The following syntax is called a list comprehension - basically just a very succinct ``for`` loop.
@@ -81,16 +81,16 @@ Lets inspect the resulting statistics. First, the object ``trees`` is a list of 
 The ``wls_stats`` is a list which, if printed, looks like
 
 .. code-block:: python
-    
+
     [1.3308768548934439e-05, 0.0015588630350439783, ...
 
-From this you'll see that the first 5 results are very similar to each other and would probably reasonably be considered equivalently supported topologies. I'll just print the first two of the these trees after balancing them (in order to make their representations as equal as possible).
+From this you'll see that the first 5 results are very similar to each other and would probably reasonably be considered equivalently supported topologies. I'll just print(the first two of the these trees after balancing them (in order to make their representations as equal as possible).)
 
 .. doctest::
 
     >>> t1 = trees[0][1].balanced()
     >>> t2 = trees[1][1].balanced()
-    >>> print t1.ascii_art()
+    >>> print(t1.ascii_art())
                         /-Human
               /edge.0--|
              |          \-HowlerMon
@@ -100,7 +100,7 @@ From this you'll see that the first 5 results are very similar to each other and
              |          /-NineBande
               \edge.1--|
                         \-DogFaced
-    >>> print t2.ascii_art()
+    >>> print(t2.ascii_art())
               /-DogFaced
              |
              |          /-Human
@@ -120,7 +120,7 @@ In some instances we may have a tree from the literature or elsewhere whose fit 
 
 .. doctest::
 
-    >>> from cogent import LoadTree
+    >>> from cogent3 import LoadTree
     >>> query_tree = LoadTree(
     ... treestring="((Human:.2,DogFaced:.2):.3,(NineBande:.1, Mouse:.5):.2,HowlerMon:.1)")
 
@@ -128,15 +128,15 @@ We now just use the ``ls`` object created above. The following evaluates the que
 
 .. doctest::
     :options: +NORMALIZE_WHITESPACE
-    
-    >>> ls.evaluateTree(query_tree)
+
+    >>> ls.evaluate_tree(query_tree)
     2.8...
 
 We can also evaluate just the tree's topology, returning both the wls statistic and the tree with best fit branch lengths.
 
 .. doctest::
 
-    >>> wls, t = ls.evaluateTopology(query_tree)
+    >>> wls, t = ls.evaluate_topology(query_tree)
     >>> assert "%.4f" % wls == '0.0084'
 
 Using maximum likelihood for measuring tree fit
@@ -148,6 +148,6 @@ This is a much slower algorithm and the interface largely mirrors that for the a
 
 .. doctest::
     :hide:
-    
+
     >>> import os
     >>> os.remove('dists_for_phylo.pickle')

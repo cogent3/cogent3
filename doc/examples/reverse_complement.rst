@@ -7,14 +7,14 @@ This is a property of DNA, and hence alignments need to be created with the appr
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, DNA
+    >>> from cogent3 import LoadSeqs, DNA
     >>> aln = LoadSeqs("data/long_testseqs.fasta", moltype=DNA)[:50]
 
 The original alignment looks like this.
 
 .. doctest::
 
-    >>> print aln
+    >>> print(aln)
     >Human
     TGTGGCACAAATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT
     >HowlerMon
@@ -37,7 +37,7 @@ The reverse complemented alignment looks like this.
 
 .. doctest::
 
-    >>> print naln
+    >>> print(naln)
     >Human
     AAACTGCTGTTCTCATGCTGTAATGAGCTGGCATGAGTATTTGTGCCACA
     >HowlerMon

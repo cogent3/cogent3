@@ -7,7 +7,7 @@ An example of how to calculate the pairwise distances for a set of sequences.
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs
+    >>> from cogent3 import LoadSeqs
     >>> from cogent3.phylo import distance, nj
 
 Import a substitution model (or create your own)
@@ -33,7 +33,7 @@ Now use this matrix to build a neighbour joining tree.
 
 .. doctest::
 
-    >>> mytree = nj.nj(d.getPairwiseDistances())
+    >>> mytree = nj.nj(d.get_pairwise_distances())
 
 We can visualise this tree by ``print mytree.ascii_art()``, which generates the equivalent of:
 

@@ -49,7 +49,7 @@ Summary statistics
 Population mean and median
 --------------------------
 
-PyCogent's functions for statistical analysis operate on ``numpy`` arrays
+PyCogent3's functions for statistical analysis operate on ``numpy`` arrays
 
 .. doctest::
 
@@ -101,19 +101,19 @@ Population variance and standard deviation
 
 .. doctest::
 
-    >>> print stats.var(arr, axis=0)
+    >>> print(stats.var(arr, axis=0))
     [  4.05000000e+01   1.62000000e+02   3.64500000e+02   6.48000000e+02
        1.01250000e+03   1.01250000e+05]
-    >>> print stats.std(arr, axis=0)
+    >>> print(stats.std(arr, axis=0))
     [   6.36396103   12.72792206   19.09188309   25.45584412   31.81980515
       318.19805153]
-    >>> print stats.var(arr, axis=1)
+    >>> print(stats.var(arr, axis=1))
     [   370.16666667  37016.66666667]
-    >>> print stats.std(arr, axis=1)
+    >>> print(stats.std(arr, axis=1))
     [  19.23971587  192.39715868]
-    >>> print stats.var(arr, axis=None)
+    >>> print(stats.var(arr, axis=None))
     19586.6287879
-    >>> print stats.std(arr, axis=None)
+    >>> print(stats.std(arr, axis=None))
     139.952237524
 
 The variance (and standard deviation) are unbiased
@@ -188,7 +188,7 @@ The function ``zprob()`` takes a z-score or standard deviation and computes the 
 
     >>> import cogent3.maths.stats.distribution as distr
     >>> for z in range(5):
-    ...     print '%s %.4f' % (z, distr.zprob(z))
+    ...     print('%s %.4f' % (z, distr.zprob(z)))
     ...
     0 1.0000
     1 0.3173
@@ -233,7 +233,7 @@ In this example, we grab a sample from a population with ``mean=50`` and ``std=3
     >>> round(stats.std(arr), 1)
     3.1...
     >>> z, prob = stats.z_test(arr, popmean=50.0)
-    >>> print z
+    >>> print(z)
     -3.08...
 
 .. todo
@@ -253,7 +253,7 @@ The ``Jackknife`` class relies on our ability to handle a set of indexes for sub
 We demo using the jackknife the estimate of mean GC% for an alignment. We first write a factory function to compute the confidence in the mean GC% for an alignment by sampling specific columns.
 
 .. doctest::
-    
+
     >>> def CalcGc(aln):
     ...     def calc_gc(indices):
     ...         new = aln.take_positions(indices)
@@ -266,20 +266,20 @@ We demo using the jackknife the estimate of mean GC% for an alignment. We first 
 We then create an instance of this factory function with a specific alignment.
 
 .. doctest::
-    
-    >>> from cogent import LoadSeqs, DNA
+
+    >>> from cogent3 import LoadSeqs, DNA
     >>> aln = LoadSeqs('data/test.paml', moltype=DNA)
     >>> calc_gc = CalcGc(aln)
 
 We now create a ``Jackknife`` instance, passing it the ``calc_gc`` instance we have just made and obtain the sampling statistics. We specify how many elements we're interested in (in this case, the positions in the alignment).
 
 .. doctest::
-    
+
     >>> from cogent3.maths.stats.jackknife import JackknifeStats
     >>> jk = JackknifeStats(len(aln), calc_gc)
-    >>> print jk.SampleStat
+    >>> print(jk.SampleStat)
     0.4766...
-    >>> print jk.SummaryStats
+    >>> print(jk.SummaryStats)
     Summary Statistics
     ===============================================
     Sample Stat    Jackknife Stat    Standard Error
@@ -290,8 +290,8 @@ We now create a ``Jackknife`` instance, passing it the ``calc_gc`` instance we h
 We also display the sub-sample statistics.
 
 .. doctest::
-    
-    >>> print jk.SubSampleStats
+
+    >>> print(jk.SubSampleStats)
     Subsample Stats
     ============
      i    Stat-i
@@ -318,7 +318,7 @@ Random
     >>> np.random.seed(153)
     >>> arr = np.array(range(5))
     >>> for i in range(3):
-    ...     print perm(arr)
+    ...     print(perm(arr))
     ...
     [2 1 3 0 4]
     [0 3 2 4 1]
@@ -454,9 +454,9 @@ We then compute Kendall's tau and associated probability, which tests the null h
 
     >>> from cogent3.maths.stats.test import kendall_correlation
     >>> tau, prob = kendall_correlation(x_array, y_array)
-    >>> print tau
+    >>> print(tau)
     0.688...
-    >>> print prob
+    >>> print(prob)
     0.00468...
 
 Correlation
@@ -671,7 +671,7 @@ add a "best fit" line
 Heat Maps
 =========
 
-Representing numbers as colors is a powerful data visualization technique.  This example does not actually use any functionality from PyCogent, it simply highlights a convenient matplotlib_ method for constructing a heat map.
+Representing numbers as colors is a powerful data visualization technique.  This example does not actually use any functionality from PyCogent3, it simply highlights a convenient matplotlib_ method for constructing a heat map.
 
 .. doctest::
 

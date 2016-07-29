@@ -255,7 +255,7 @@ How should I test my code ?
 
 There are two basic approaches for testing code in python: unit testing and doc testing. Their purpose is the same, to check that execution of code given some input produces a specified output. The cases to which the two approaches lend themselves are different.
 
-An excellent discourse on testing code and the pros and cons of these alternatives is provided in a presentation by `Jim Fulton`_, which is recommended reading. A significant change since that presentation is that ``doctest`` can now read content that is not contained within docstrings. A another comparison of these two approaches, along with a third (``py.test``) is also available_. To see examples of both styles of testing look in ``PyCogent/tests``: files ending in .rst are using ``doctest``, those ending in .py are using ``unittest``.
+An excellent discourse on testing code and the pros and cons of these alternatives is provided in a presentation by `Jim Fulton`_, which is recommended reading. A significant change since that presentation is that ``doctest`` can now read content that is not contained within docstrings. A another comparison of these two approaches, along with a third (``py.test``) is also available_. To see examples of both styles of testing look in ``PyCogent3/tests``: files ending in .rst are using ``doctest``, those ending in .py are using ``unittest``.
 
 .. _`Jim Fulton`: http://www.python.org/pycon/dc2004/papers/4/PyCon2004DocTestUnit.pdf
 .. _available: http://agiletesting.blogspot.com/2005/11/articles-and-tutorials-page-updated.html

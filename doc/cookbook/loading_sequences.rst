@@ -15,10 +15,10 @@ The function ``LoadSeqs()`` creates either a sequence collection or an alignment
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, DNA
+    >>> from cogent3 import LoadSeqs, DNA
     >>> aln = LoadSeqs('data/long_testseqs.fasta', moltype=DNA)
     >>> type(aln)
-    <class 'cogent.core.alignment.Alignment'>
+    <class 'cogent3.core.alignment.Alignment'>
 
 This example and some of the following use the :download:`long_testseqs.fasta <../data/long_testseqs.fasta>` file.
 
@@ -29,10 +29,10 @@ Setting the ``LoadSeqs()`` function keyword argument ``aligned=False`` returns a
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, DNA
+    >>> from cogent3 import LoadSeqs, DNA
     >>> seqs = LoadSeqs('data/long_testseqs.fasta', moltype=DNA, aligned=False)
-    >>> print type(seqs)
-    <class 'cogent.core.alignment.SequenceCollection'>
+    >>> print(type(seqs))
+    <class 'cogent3.core.alignment.SequenceCollection'>
 
 .. note:: An alignment can be sliced, but a ``SequenceCollection`` can not.
 
@@ -43,7 +43,7 @@ Specifying the file format
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, DNA
+    >>> from cogent3 import LoadSeqs, DNA
     >>> aln = LoadSeqs('data/long_testseqs.fasta', moltype=DNA,
     ...                  format='fasta')
     ...
@@ -56,10 +56,10 @@ Specifying the file format
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs
+    >>> from cogent3 import LoadSeqs
     >>> seqs = ['>seq1','AATCG-A','>seq2','AATCGGA']
     >>> seqs_loaded = LoadSeqs(data=seqs)
-    >>> print seqs_loaded
+    >>> print(seqs_loaded)
     >seq1
     AATCG-A
     >seq2
@@ -71,7 +71,7 @@ Specifying the file format
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs
+    >>> from cogent3 import LoadSeqs
     >>> seqs = {'seq1': 'AATCG-A','seq2': 'AATCGGA'}
     >>> seqs_loaded = LoadSeqs(data=seqs)
 
@@ -82,20 +82,20 @@ Simple case of loading a ``list`` of aligned amino acid sequences in FASTA forma
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs
-    >>> from cogent import DNA, PROTEIN
+    >>> from cogent3 import LoadSeqs
+    >>> from cogent3 import DNA, PROTEIN
     >>> protein_seqs = ['>seq1','DEKQL-RG','>seq2','DDK--SRG']
     >>> proteins_loaded = LoadSeqs(data=protein_seqs)
     >>> proteins_loaded.moltype
     MolType(('a', 'b', 'c', 'd', 'e', ...
-    >>> print proteins_loaded
+    >>> print(proteins_loaded)
     >seq1
     DEKQL-RG
     >seq2
     DDK--SRG
     <BLANKLINE>
     >>> proteins_loaded = LoadSeqs(data=protein_seqs, moltype=PROTEIN)
-    >>> print proteins_loaded
+    >>> print(proteins_loaded)
     >seq1
     DEKQL-RG
     >seq2
@@ -109,10 +109,10 @@ Load a list of aligned nucleotide sequences, while specifying the DNA molecule t
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, DNA
+    >>> from cogent3 import LoadSeqs, DNA
     >>> DNA_seqs = ['>sample1 Mus musculus','AACCTGC--C','>sample2 Gallus gallus','AAC-TGCAAC']
     >>> loaded_seqs = LoadSeqs(data=DNA_seqs, moltype=DNA, label_to_name=lambda x: x.split()[0])
-    >>> print loaded_seqs
+    >>> print(loaded_seqs)
     >sample1
     AACCTGC--C
     >sample2
@@ -126,11 +126,11 @@ An example of using an alternative constructor is given below. A constructor is 
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs
+    >>> from cogent3 import LoadSeqs
     >>> from cogent3.core.alignment import DenseAlignment
     >>> seqs = ['>seq1','AATCG-A','>seq2','AATCGGA']
     >>> seqs_loaded = LoadSeqs(data=seqs,aligned=DenseAlignment)
-    >>> print seqs_loaded
+    >>> print(seqs_loaded)
     >seq1
     AATCG-A
     >seq2
@@ -154,7 +154,7 @@ To load FASTA formatted sequences directly, you can use the ``MinimalFastaParser
     >>> from cogent3.parse.fasta import MinimalFastaParser
     >>> f=open('data/long_testseqs.fasta')
     >>> seqs = [(name, seq) for name, seq in MinimalFastaParser(f)]
-    >>> print seqs
+    >>> print(seqs)
     [('Human', 'TGTGGCACAAATAC...
 
 Handling overloaded FASTA sequence labels
@@ -172,9 +172,9 @@ The FASTA label field is frequently overloaded, with different information field
     ...             [[1, "species", latin_to_common]], split_with=':')
     >>> for label in ">abcd:Homo sapiens:misc", ">abcd:Pan troglodtyes:misc":
     ...     label = label_parser(label)
-    ...     print label, type(label)
-    human <class 'cogent.parse.fasta.RichLabel'>
-    chimp <class 'cogent.parse.fasta.RichLabel'>
+    ...     print(label, type(label))
+    human <class 'cogent3.parse.fasta.RichLabel'>
+    chimp <class 'cogent3.parse.fasta.RichLabel'>
 
 The ``RichLabel`` objects have an ``Info`` object as an attribute, allowing specific reference to all the specified label fields.
 
@@ -195,9 +195,9 @@ The ``RichLabel`` objects have an ``Info`` object as an attribute, allowing spec
     ...                               split_with="|")
     ...
     >>> for name, seq in MinimalFastaParser(fasta_data, label_to_name=label_to_name):
-    ...     print name
-    ...     print name.info.gi
-    ...     print name.info.description
+    ...     print(name)
+    ...     print(name.info.gi)
+    ...     print(name.info.description)
     NP_055147.1
     10047090
      small muscle protein, X-linked [Homo sapiens]
@@ -205,9 +205,3 @@ The ``RichLabel`` objects have an ``Info`` object as an attribute, allowing spec
     10047092
      neuronal protein [Homo sapiens]
 
-Loading DNA sequences from a GenBank file
-"""""""""""""""""""""""""""""""""""""""""
-
-.. todo:: get sample data for this
-
-*To be written.*

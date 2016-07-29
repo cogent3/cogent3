@@ -9,7 +9,7 @@ An example of how to calculate the pairwise distances for a set of sequences.
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs
+    >>> from cogent3 import LoadSeqs
     >>> from cogent3.phylo import distance
 
 Import a substitution model (or create your own)
@@ -34,7 +34,7 @@ Printing ``d`` before execution shows its status.
 
 .. doctest::
 
-    >>> print d
+    >>> print(d)
     =========================================================================
     Seq1 \ Seq2       Human    HowlerMon       Mouse    NineBande    DogFaced
     -------------------------------------------------------------------------
@@ -50,7 +50,7 @@ Which in this case is to simply indicate nothing has been done.
 .. doctest::
 
     >>> d.run()
-    >>> print d
+    >>> print(d)
     =====================================================================
     Seq1 \ Seq2     Human    HowlerMon     Mouse    NineBande    DogFaced
     ---------------------------------------------------------------------
@@ -73,16 +73,16 @@ We'll also save the distances to file in Python's pickle format.
 
 .. doctest::
 
-    >>> import cPickle
-    >>> f = open('dists_for_phylo.pickle', "w")
-    >>> cPickle.dump(d.getPairwiseDistances(), f)
+    >>> import pickle
+    >>> f = open('dists_for_phylo.pickle', "wb")
+    >>> pickle.dump(d.get_pairwise_distances(), f)
     >>> f.close()
 
 .. clean up
 
 .. doctest::
     :hide:
-    
+
     >>> import os
     >>> for file_name in 'dists_for_phylo.phylip', 'dists_for_phylo.pickle':
     ...     os.remove(file_name)

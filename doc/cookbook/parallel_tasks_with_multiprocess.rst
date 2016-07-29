@@ -8,7 +8,7 @@ In the ``multiprocess`` case,  ``foo()`` is called in a *temporary* subprocesses
 I illustrate the use of ``parallel.map`` here with an example that collects both the process id and the integer.
 
 .. doctest::
-    
+
     >>> from cogent3.util import parallel
     >>> import os, time
     >>> parallel.use_multiprocessing(2)
@@ -23,7 +23,7 @@ I illustrate the use of ``parallel.map`` here with an example that collects both
 For the purpose of testing the code is executing correctly, I'll check that there are 2 pid's returned.
 
 .. doctest::
-    
+
     >>> pids, nums = zip(*result)
     >>> len(set(pids)) == 2
     True
@@ -33,7 +33,6 @@ The ``result`` list is a series of tuples of process id's and the integer, the l
 .. we don't test the following output since the pid will vary between runs
 
 .. doctest::
-    
-    >>> print result # doctest: +SKIP
-    [(7332, 0), (7333, 1), (7332, 2), (7333, 3), (7332, 4), (7333, 5), (7332, 6), (7333, 7), (7332, 8), (7333, 9), (7332, 10), (7333, 11), (7332, 12), (7333, 13), (7332, 14), (7333, 15), (7332, 16), (7333, 17), (7332, 18), (7333, 19)]
 
+    >>> print(result) # doctest: +SKIP
+    [(7332, 0), (7333, 1), (7332, 2), (7333, 3), (7332, 4), (7333, 5), (7332, 6), (7333, 7), (7332, 8), (7333, 9), (7332, 10), (7333, 11), (7332, 12), (7333, 13), (7332, 14), (7333, 15), (7332, 16), (7333, 17), (7332, 18), (7333, 19)]

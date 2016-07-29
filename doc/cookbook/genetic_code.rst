@@ -4,25 +4,25 @@ Getting a genetic code
 The standard genetic code.
 
 .. doctest::
-    
+
     >>> from cogent3.core.genetic_code import GeneticCodes
     >>> standard_code = GeneticCodes[1]
 
 The vertebrate mt genetic code.
 
 .. doctest::
-    
+
     >>> from cogent3.core.genetic_code import GeneticCodes
     >>> mt_gc = GeneticCodes[2]
-    >>> print mt_gc.name
+    >>> print(mt_gc.name)
     Vertebrate Mitochondrial
 
 To see the key -> genetic code mapping, use a loop.
 
 .. doctest::
-    
+
     >>> for key, code in GeneticCodes.items():
-    ...     print key, code.name
+    ...     print(key, code.name)
     1 Standard Nuclear
     2 Vertebrate Mitochondrial
     3 Yeast Mitochondrial...
@@ -42,20 +42,20 @@ Translate all six frames
 ------------------------
 
 .. doctest::
-    
-    >>> from cogent import DNA
+
+    >>> from cogent3 import DNA
     >>> from cogent3.core.genetic_code import DEFAULT as standard_code
     >>> seq = DNA.make_sequence('ATGCTAACATAAA')
     >>> translations = standard_code.sixframes(seq)
-    >>> print translations
+    >>> print(translations)
     ['MLT*', 'C*HK', 'ANI', 'FMLA', 'LC*H', 'YVS']
 
 Find out how many stops in a frame
 ----------------------------------
 
 .. doctest::
-    
-    >>> from cogent import DNA
+
+    >>> from cogent3 import DNA
     >>> from cogent3.core.genetic_code import DEFAULT as standard_code
     >>> seq = DNA.make_sequence('ATGCTAACATAAA')
     >>> stops_frame1 = standard_code.get_stop_indices(seq, start=0)
@@ -117,11 +117,11 @@ Converting the ``CodonAlphabet`` to codon series
 
 .. doctest::
 
-    >>> from cogent import DNA
+    >>> from cogent3 import DNA
     >>> my_seq = DNA.make_sequence("AGTACACTGGTT")
-    >>> sorted(my_seq.CodonAlphabet())
+    >>> sorted(my_seq.codon_alphabet())
     ['AAA', 'AAC', 'AAG', 'AAT'...
-    >>> len(my_seq.CodonAlphabet())
+    >>> len(my_seq.codon_alphabet())
     61
 
 Obtaining the codons from a ``DnaSequence`` object
@@ -131,17 +131,17 @@ Use the method ``get_in_motif_size``
 
 .. doctest::
 
-    >>> from cogent import DNA
+    >>> from cogent3 import DNA
     >>> my_seq = DNA.make_sequence('ATGCACTGGTAA','my_gene')
     >>> codons = my_seq.get_in_motif_size(3)
-    >>> print codons
+    >>> print(codons)
     ['ATG', 'CAC', 'TGG', 'TAA']
 
 You can't translate a sequence that contains a stop codon.
 
 .. doctest::
-    
-    >>> pep = my_seq.getTranslation()
+
+    >>> pep = my_seq.get_translation()
     Traceback (most recent call last):
     AlphabetError: TAA
 
@@ -150,25 +150,24 @@ Remove the stop codon first
 
 .. doctest::
 
-    >>> from cogent import DNA
+    >>> from cogent3 import DNA
     >>> my_seq = DNA.make_sequence('ATGCACTGGTAA','my_gene')
     >>> seq = my_seq.without_terminal_stop_sodon()
-    >>> pep = seq.getTranslation()
-    >>> print pep.to_fasta()
+    >>> pep = seq.get_translation()
+    >>> print(pep.to_fasta())
     >my_gene
     MHW
-    >>> print type(pep)
-    <class 'cogent.core.sequence.ProteinSequence'>
+    >>> print(type(pep))
+    <class 'cogent3.core.sequence.ProteinSequence'>
 
 Or we can just grab the correct slice from the ``DnaSequence`` object
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
-    >>> from cogent import DNA
+    >>> from cogent3 import DNA
     >>> my_seq = DNA.make_sequence('CAAATGTATTAA','my_gene')
-    >>> pep = my_seq[:-3].getTranslation().to_fasta()
-    >>> print pep
+    >>> pep = my_seq[:-3].get_translation().to_fasta()
+    >>> print(pep)
     >my_gene
     QMY
-

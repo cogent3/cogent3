@@ -24,7 +24,7 @@ We'll make some synonyms for the objects for simplicity, and then look at the di
     >>> ngc = standard_nuclear_genetic_code
     >>> mgc = vertebrate_mitochondrial_genetic_code
 
-    >>> differences = ngc.changes(mgc).items()
+    >>> differences = list(ngc.changes(mgc).items())
     >>> differences.sort()
     >>> differences
     [('AGA', 'R*'), ('AGG', 'R*'), ('ATA', 'IM'), ('TGA', '*W')]

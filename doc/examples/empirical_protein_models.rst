@@ -7,7 +7,7 @@ This file contains an example of importing an empirically determined protein sub
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, LoadTree, PROTEIN
+    >>> from cogent3 import LoadSeqs, LoadTree, PROTEIN
     >>> from cogent3.evolve.substitution_model import EmpiricalProteinMatrix
     >>> from cogent3.parse.paml_matrix import PamlMatrixParser
 
@@ -52,9 +52,9 @@ Make a parameter controller, likelihood function object and optimise.
     >>> lf = sm.make_likelihood_function(t)
     >>> lf.set_alignment(al)
     >>> lf.optimise()
-    >>> print lf.getLogLikelihood()
+    >>> print(lf.get_log_likelihood())
     -1706...
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     =============================
          edge    parent    length

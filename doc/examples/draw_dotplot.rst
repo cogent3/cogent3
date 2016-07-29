@@ -5,7 +5,7 @@ Drawing a dotplot
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, DNA
+    >>> from cogent3 import LoadSeqs, DNA
     >>> from cogent3.core import annotation
     >>> from cogent3.draw import dotplot
 
@@ -25,7 +25,7 @@ Write out the dotplot as a pdf file in the current directory note that seq1 will
 
     >>> dp = dotplot.Display2D(seq1,seq2)
     >>> filename = 'dotplot_example.pdf'
-    >>> dp.drawToPDF(filename)
+    >>> dp.write_pdf(filename)
 
 .. clean up
 

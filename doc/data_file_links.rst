@@ -5,17 +5,11 @@ All data files referred to in the documentation can be download by clicking on t
 
 .. note:: not all browsers handle the file suffixes well, so you may need to rename the downloaded files in order to use them.
 
-:download:`4TSV.pdb <data/4TSV.pdb>`
-
 :download:`abglobin_aa.phylip <data/abglobin_aa.phylip>`
 
 :download:`dists_for_phylo.pickle <data/dists_for_phylo.pickle>`
 
 :download:`long_testseqs.fasta <data/long_testseqs.fasta>`
-
-:download:`motif_example.fasta <data/motif_example.fasta>`
-
-:download:`motif_example_meme_results.txt <data/motif_example_meme_results.txt>`
 
 :download:`primate_brca1.fasta <data/primate_brca1.fasta>`
 
