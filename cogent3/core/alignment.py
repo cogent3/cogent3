@@ -1551,6 +1551,9 @@ class Aligned(object):
         """Compares based on string representations."""
         return str(self) == str(other)
     
+    def __hash__(self):
+        return hash(self.data)
+    
     def __ne__(self, other):
         """Compares based on string representations."""
         return str(self) != str(other)
