@@ -179,26 +179,14 @@ We'll do this by specifying the position indices of interest, creating a sequenc
 .. doctest::
 
     >>> from cogent3 import DNA
-    >>> seq = DNA.make_sequence('ATGATGATGATG')
-
-Creating the position indices, note that we start at the 2nd index (the 'first' codon's 3rd position) indicate each position as a *span* (``i -- i+1``).
-
-.. doctest::
-
-    >>> indices = [(i, i+1) for i in range(len(seq))[2::3]]
-
-Create the sequence feature and use it to slice the sequence.
-
-.. doctest::
-
-    >>> pos3 = seq.add_feature('pos3', 'pos3', indices)
-    >>> pos3 = pos3.get_slice()
+    >>> seq = DNA.make_array_seq('ATGATGATGATG')
+    >>> pos3 = seq[2::3]
     >>> assert str(pos3) == 'GGGG'
 
 Getting 1st and 2nd positions from codons
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The only difference here to above is that our spans cover 2 positions.
+In this instance we can use the annotatable sequence classes.
 
 .. doctest::
 
