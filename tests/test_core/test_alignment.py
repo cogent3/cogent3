@@ -1517,7 +1517,7 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         obs = da.get_seq_freqs()
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
-        self.assertEqual(obs.CharOrder, list("TCAG"))
+        self.assertEqual(obs.char_order, list("TCAG"))
 
         s1 = 'TCAG'
         s2 = 'CCAC'
@@ -1526,7 +1526,7 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         obs = da.get_seq_freqs()
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
-        self.assertEqual(obs.CharOrder, list("TCAG"))
+        self.assertEqual(obs.char_order, list("TCAG"))
 
     def test_get_pos_freqs_sequence(self):
         """DenseAlignment get_pos_freqs: should work with DnaSequences and strings
@@ -1540,7 +1540,7 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         obs = da.get_pos_freqs()
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
-        self.assertEqual(obs.CharOrder, list("TCAG"))
+        self.assertEqual(obs.char_order, list("TCAG"))
 
         s1 = 'TCAG'
         s2 = 'CCAC'
@@ -1549,7 +1549,7 @@ class DenseAlignmentTests(AlignmentBaseTests, TestCase):
         obs = da.get_pos_freqs()
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
-        self.assertEqual(obs.CharOrder, list("TCAG"))
+        self.assertEqual(obs.char_order, list("TCAG"))
 
 
 class AlignmentTests(AlignmentBaseTests, TestCase):
@@ -1580,7 +1580,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         obs = aln.get_seq_freqs()
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
-        self.assertEqual(obs.CharOrder, list("TCAG"))
+        self.assertEqual(obs.char_order, list("TCAG"))
 
         s1 = 'TCAG'
         s2 = 'CCAC'
@@ -1589,7 +1589,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         obs = aln.get_seq_freqs()
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
-        self.assertEqual(obs.CharOrder, list("TCAG"))
+        self.assertEqual(obs.char_order, list("TCAG"))
 
     def test_get_pos_freqs(self):
         """Alignment get_pos_freqs: should work with DnaSequences and strings
@@ -1603,7 +1603,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         obs = aln.get_pos_freqs()
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
-        self.assertEqual(obs.CharOrder, list("TCAG"))
+        self.assertEqual(obs.char_order, list("TCAG"))
 
         s1 = 'TCAG'
         s2 = 'CCAC'
@@ -1612,7 +1612,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         obs = aln.get_pos_freqs()
         self.assertEqual(obs.Data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
-        self.assertEqual(obs.CharOrder, list("TCAG"))
+        self.assertEqual(obs.char_order, list("TCAG"))
 
     def make_and_filter(self, raw, expected, motif_length):
         # a simple filter func

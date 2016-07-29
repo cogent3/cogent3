@@ -61,7 +61,7 @@ A profile can be used to calculate consensus sequences from the alignment. To il
 .. doctest::
 
     >>> print('\n'.join(['%s: %.3f'%(c,f) for (c,f) in\
-    ...     zip(pf.CharOrder, pf.data_at(4)) if f!=0]))
+    ...     zip(pf.char_order, pf.data_at(4)) if f!=0]))
     U: 0.050
     C: 0.400
     A: 0.250
@@ -90,7 +90,7 @@ A profile could also function as the description of a certain motif. As an examp
 
 .. doctest::
 
-    >>> loop_profile = Profile(pf.Data[54:60,:], alphabet=RNA, CharOrder=pf.CharOrder)
+    >>> loop_profile = Profile(pf.Data[54:60,:], alphabet=RNA, char_order=pf.char_order)
     >>> print(loop_profile.pretty_print(include_header=True, column_limit=6, col_sep='   '))
          U        C        A        G        -        B
     0.9500   0.0000   0.0500   0.0000   0.0000   0.0000

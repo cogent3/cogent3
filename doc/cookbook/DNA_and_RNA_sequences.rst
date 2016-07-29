@@ -1,4 +1,4 @@
-.. _dna-rna-seqs:
+... _dna-rna-seqs:
 
 DNA and RNA sequences
 ---------------------
@@ -171,6 +171,8 @@ Slicing DNA sequences
 
 Getting 3rd positions from codons
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The easiest approach is to work off the ``cogent3`` ``DenseAlignment`` object.
 
 We'll do this by specifying the position indices of interest, creating a sequence ``Feature`` and using that to extract the positions.
 
