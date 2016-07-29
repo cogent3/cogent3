@@ -18,11 +18,11 @@ We load a sample genbank file with plenty of features and grab the CDS features.
     >>> from cogent3.parse.genbank import RichGenbankParser
     >>> parser = RichGenbankParser(open('data/ST_genome_part.gb'))
     >>> for accession, seq in parser:
-    ...     print accession
+    ...     print(accession)
     ...
     AE006468
     >>> cds = seq.get_annotations_matching('CDS')
-    >>> print cds
+    >>> print(cds)
     [CDS "thrL" at [189:255]/10020, CDS "thrA" at ...
 
 Customising annotation construction from reading a genbank file
@@ -31,24 +31,24 @@ Customising annotation construction from reading a genbank file
 You can write your own code to construct annotation objects. One reason you might do this is some genbank files do not have a ``/gene`` tag on gene related features, instead only possessing a ``/locus_tag``. For illustrating the approach we only create annotations for ``CDS`` features. We write a custom callback function that uses the ``locus_tag`` as the ``Feature`` name.
 
 .. doctest::
-    
+
     >>> from cogent3.core.annotation import Feature
     >>> def add_annotation(seq, feature, spans):
     ...     type_ = feature['type']
     ...     if type_ != 'CDS':
     ...         return
     ...     name = feature.get('locus_tag', None)
-    ...     if name and not isinstance(name, basestring):
+    ...     if name and not isinstance(name, str):
     ...         name = ' '.join(name)
     ...     seq.add_annotation(Feature, type_, name, spans)
-    ... 
+    ...
     >>> parser = RichGenbankParser(open('data/ST_genome_part.gb'),
     ...          add_annotation=add_annotation)
     >>> for accession, seq in parser: # just reading one accession,sequence
     ...     break
-    ...  
+    ...
     >>> genes = seq.get_annotations_matching('CDS')
-    >>> print genes
+    >>> print(genes)
     [CDS "STM0001" at [189:255]/10020, CDS "STM0002" at [336:2799]/10020...
 
 Creating directly on a sequence
@@ -56,17 +56,17 @@ Creating directly on a sequence
 
 .. doctest::
 
-    >>> from cogent import DNA
+    >>> from cogent3 import DNA
     >>> from cogent3.core.annotation import Feature
     >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      name="seq1")
     ...
-    >>> print s1[10:15] # this will be exon 1
+    >>> print(s1[10:15]) # this will be exon 1
     CCCCC
-    >>> print s1[30:40] # this will be exon 2
+    >>> print(s1[30:40]) # this will be exon 2
     TTTTTAAAAA
-    >>> print s1[45:48] # this will be exon 3
+    >>> print(s1[45:48]) # this will be exon 3
     CCC
     >>> s2 = DNA.make_sequence("CGAAACGTTT", name="seq2")
     >>> s3 = DNA.make_sequence("CGAAACGTTT", name="seq3")
@@ -75,11 +75,11 @@ Via
 """
 
 ``add_annotation``
-+++++++++++++++++
+++++++++++++++++++
 
 .. doctest::
 
-    >>> from cogent import DNA
+    >>> from cogent3 import DNA
     >>> from cogent3.core.annotation import Feature
     >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
@@ -89,11 +89,11 @@ Via
     >>> exon2 = s1.add_annotation(Feature, 'exon', 'B', [(30,40)])
 
 ``add_feature``
-++++++++++++++
++++++++++++++++
 
 .. doctest::
 
-    >>> from cogent import DNA
+    >>> from cogent3 import DNA
     >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      name="seq1")
@@ -107,7 +107,7 @@ Adding as a series or item-wise
 
 .. doctest::
 
-    >>> from cogent import DNA
+    >>> from cogent3 import DNA
     >>> s2 = DNA.make_sequence("CGAAACGTTT", name="seq2")
     >>> cpgs_series = s2.add_feature('cpgsite', 'cpg', [(0,2), (5,7)])
     >>> s3 = DNA.make_sequence("CGAAACGTTT", name="seq3")
@@ -120,8 +120,8 @@ Taking the union of annotations
 Construct a pseudo-feature (``cds``) that's a union of other features (``exon1``, ``exon2``, ``exon3``).
 
 .. doctest::
-    
-    >>> from cogent import DNA
+
+    >>> from cogent3 import DNA
     >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      name="seq1")
@@ -137,7 +137,7 @@ Getting annotation coordinates
 These are useful for doing custom things, e.g. you could construct intron features using the below.
 
 .. doctest::
-    
+
     >>> cds.get_coordinates()
     [(10, 15), (30, 40), (45, 48)]
 
@@ -166,7 +166,7 @@ The following annotation is directly applied onto the sequence and so is in unga
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs
+    >>> from cogent3 import LoadSeqs
     >>> aln1 = LoadSeqs(data=[['x','-AAACCCCCA'],
     ...                       ['y','TTTT--TTTT']])
     >>> seq_exon = aln1.get_seq('x').add_feature('exon', 'A', [(3,8)])
@@ -190,7 +190,7 @@ By a feature or coordinates returns same sequence span
 
 .. doctest::
 
-    >>> from cogent import DNA
+    >>> from cogent3 import DNA
     >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      name="seq1")
@@ -216,7 +216,7 @@ Slicing by pseudo-feature or feature series
 
 .. doctest::
 
-    >>> from cogent import DNA
+    >>> from cogent3 import DNA
     >>> s1 = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAA"\
     ...                      "TTTTTTTTTTAAAAAGGGAACCCT",
     ...                      name="seq1")
@@ -225,24 +225,24 @@ Slicing by pseudo-feature or feature series
     >>> exon2 = s1.add_feature('exon', 'B', [(30,40)])
     >>> exon3 = s1.add_feature('exon', 'C', [(45, 48)])
     >>> cds = s1.get_region_covering_all([exon1, exon2, exon3])
-    >>> print s1[cds]
+    >>> print(s1[cds])
     CCCCCTTTTTAAAAACCC
-    >>> print s1[exon1, exon2, exon3]
+    >>> print(s1[exon1, exon2, exon3])
     CCCCCTTTTTAAAAACCC
 
 .. warning:: Slices are applied in order!
 
 .. doctest::
 
-    >>> print s1
+    >>> print(s1)
     AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAGGGAACCCT
-    >>> print s1[exon1, exon2, exon3]
+    >>> print(s1[exon1, exon2, exon3])
     CCCCCTTTTTAAAAACCC
-    >>> print s1[exon2]
+    >>> print(s1[exon2])
     TTTTTAAAAA
-    >>> print s1[exon3]
+    >>> print(s1[exon3])
     CCC
-    >>> print s1[exon1, exon3, exon2]
+    >>> print(s1[exon1, exon3, exon2])
     CCCCCCCCTTTTTAAAAA
 
 Slice series must not be overlapping
@@ -261,7 +261,7 @@ But ``get_region_covering_all`` resolves this, ensuring no overlaps.
 
 .. doctest::
 
-    >>> print s1.get_region_covering_all([exon3, exon3]).get_slice()
+    >>> print(s1.get_region_covering_all([exon3, exon3]).get_slice())
     CCC
 
 You can slice an annotation itself
@@ -269,13 +269,13 @@ You can slice an annotation itself
 
 .. doctest::
 
-    >>> print s1[exon2]
+    >>> print(s1[exon2])
     TTTTTAAAAA
     >>> ex2_start = exon2[0:3]
-    >>> print s1[ex2_start]
+    >>> print(s1[ex2_start])
     TTT
     >>> ex2_end = exon2[-3:]
-    >>> print s1[ex2_end]
+    >>> print(s1[ex2_end])
     AAA
 
 Sequence vs Alignment slicing
@@ -351,7 +351,7 @@ You need to get a corresponding annotation projected into alignment coordinates 
 .. doctest::
 
     >>> aln_exon = aln1.get_annotations_from_any_seq('exon')
-    >>> print aln1[aln_exon]
+    >>> print(aln1[aln_exon])
     >x
     CCCCC
     >y
@@ -364,7 +364,7 @@ Querying produces objects only valid for their source
 .. doctest::
 
     >>> cpgsite2 = s2.get_annotations_matching('cpgsite')
-    >>> print s2[cpgsite2]
+    >>> print(s2[cpgsite2])
     CGCG
     >>> cpgsite3 = s3.get_annotations_matching('cpgsite')
     >>> s2[cpgsite3]
@@ -394,12 +394,12 @@ If you query for a feature from a sequence, it's alignment coordinates may be di
 
     >>> aln3 = LoadSeqs(data=[['x', 'C-CCCAAAAA'], ['y', '-T----TTTT']])
     >>> exon = aln3.get_seq('x').add_feature('exon', 'ex1', [(0,4)])
-    >>> print exon.get_slice()
+    >>> print(exon.get_slice())
     CCCC
     >>> aln_exons = list(aln3.get_annotations_from_seq('x', 'exon'))
-    >>> print aln_exons
+    >>> print(aln_exons)
     [exon "ex1" at [0:1, 2:5]/10]
-    >>> print aln3[aln_exons]
+    >>> print(aln3[aln_exons])
     >x
     CCCC
     >y
@@ -409,14 +409,14 @@ If you query for a feature from a sequence, it's alignment coordinates may be di
 .. note:: The ``T`` opposite the gap is missing since this approach only returns positions directly corresponding to the feature.
 
 ``as_one_span`` unifies features with discontinuous alignment coordinates
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 To get positions spanned by a feature, including gaps, use ``as_one_span``.
 
 .. doctest::
 
     >>> unified = aln_exons[0].as_one_span()
-    >>> print aln3[unified]
+    >>> print(aln3[unified])
     >x
     C-CCC
     >y
@@ -432,13 +432,13 @@ Reverse complementing a sequence **does not** reverse annotations, that is they 
 
     >>> plus = DNA.make_sequence("CCCCCAAAAAAAAAATTTTTTTTTTAAAGG")
     >>> plus_rpt = plus.add_feature('blah', 'a', [(5,15), (25, 28)])
-    >>> print plus[plus_rpt]
+    >>> print(plus[plus_rpt])
     AAAAAAAAAAAAA
     >>> minus = plus.rc()
-    >>> print minus
+    >>> print(minus)
     CCTTTAAAAAAAAAATTTTTTTTTTGGGGG
     >>> minus_rpt = minus.get_annotations_matching('blah')
-    >>> print minus[minus_rpt]
+    >>> print(minus[minus_rpt])
     AAAAAAAAAAAAA
 
 Masking annotated regions
@@ -452,7 +452,7 @@ We mask the CDS regions.
     >>> parser = RichGenbankParser(open('data/ST_genome_part.gb'))
     >>> seq = [seq for accession, seq in parser][0]
     >>> no_cds = seq.with_masked_annotations('CDS')
-    >>> print no_cds[150:400]
+    >>> print(no_cds[150:400])
     CAAGACAGACAAATAAAAATGACAGAGTACACAACATCC?????????...
 
 The above sequence could then have positions filtered so no position with the ambiguous character '?' was present.
@@ -463,12 +463,12 @@ Masking annotated regions on alignments
 We mask exon's on an alignment.
 
 .. doctest::
-    
-    >>> from cogent import LoadSeqs, DNA
+
+    >>> from cogent3 import LoadSeqs, DNA
     >>> aln = LoadSeqs(data=[['x', 'C-CCCAAAAAGGGAA'],
     ...                       ['y', '-T----TTTTG-GTT']], moltype=DNA)
     >>> exon = aln.get_seq('x').add_feature('exon', 'norwegian', [(0,4)])
-    >>> print aln.with_masked_annotations('exon', mask_char='?')
+    >>> print(aln.with_masked_annotations('exon', mask_char='?'))
     >x
     ?-???AAAAAGGGAA
     >y
@@ -478,15 +478,15 @@ We mask exon's on an alignment.
 These also persist through reverse complement operations.
 
 .. doctest::
-    
+
     >>> rc = aln.rc()
-    >>> print rc
+    >>> print(rc)
     >x
     TTCCCTTTTTGGG-G
     >y
     AAC-CAAAA----A-
     <BLANKLINE>
-    >>> print rc.with_masked_annotations('exon', mask_char='?')
+    >>> print(rc.with_masked_annotations('exon', mask_char='?'))
     >x
     TTCCCTTTTT???-?
     >y
@@ -498,18 +498,18 @@ You can take mask of the shadow
 
 .. doctest::
 
-    >>> from cogent import DNA
+    >>> from cogent3 import DNA
     >>> s = DNA.make_sequence('CCCCAAAAAGGGAA', 'x')
     >>> exon = s.add_feature('exon', 'norwegian', [(0,4)])
     >>> rpt = s.add_feature('repeat', 'norwegian', [(9, 12)])
     >>> rc = s.rc()
-    >>> print s.with_masked_annotations('exon', shadow=True)
+    >>> print(s.with_masked_annotations('exon', shadow=True))
     CCCC??????????
-    >>> print rc.with_masked_annotations('exon', shadow=True)
+    >>> print(rc.with_masked_annotations('exon', shadow=True))
     ??????????GGGG
-    >>> print s.with_masked_annotations(['exon', 'repeat'], shadow=True)
+    >>> print(s.with_masked_annotations(['exon', 'repeat'], shadow=True))
     CCCC?????GGG??
-    >>> print rc.with_masked_annotations(['exon', 'repeat'], shadow=True)
+    >>> print(rc.with_masked_annotations(['exon', 'repeat'], shadow=True))
     ??CCC?????GGGG
 
 What features of a certain type are available?
@@ -517,7 +517,7 @@ What features of a certain type are available?
 
 .. doctest::
 
-    >>> from cogent import DNA
+    >>> from cogent3 import DNA
     >>> s = DNA.make_sequence('ATGACCCTGTAAAAAATGTGTTAACCC',
     ...    name='a')
     >>> cds1 = s.add_feature('cds','cds1', [(0,12)])
@@ -555,9 +555,9 @@ Sequence features can be accessed via a containing ``Alignment``.
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs
+    >>> from cogent3 import LoadSeqs
     >>> aln = LoadSeqs(data=[['x','-AAAAAAAAA'], ['y','TTTT--TTTT']])
-    >>> print aln
+    >>> print(aln)
     >x
     -AAAAAAAAA
     >y
@@ -580,7 +580,7 @@ We first make a sequence and add some annotations.
 
 .. doctest::
 
-    >>> from cogent import DNA
+    >>> from cogent3 import DNA
     >>> seq = DNA.make_sequence('aaaccggttt' * 10)
     >>> v = seq.add_feature('exon', 'exon', [(20,35)])
     >>> v = seq.add_feature('repeat_unit', 'repeat_unit', [(39,49)])
@@ -592,7 +592,7 @@ We then make a ``Display`` instance and write to file. This will use standard fe
 
     >>> from cogent3.draw.linear import Display
     >>> seq_display = Display(seq, colour_sequences=True)
-    >>> fig = seq_display.makeFigure()
+    >>> fig = seq_display.make_figure()
     >>> fig.savefig('annotated_1.png')
 
 Annotation display on alignments
@@ -600,7 +600,7 @@ Annotation display on alignments
 
 .. doctest::
 
-    >>> from cogent import DNA, LoadSeqs
+    >>> from cogent3 import DNA, LoadSeqs
     >>> from cogent3.core.annotation import Variable
     >>> from cogent3.draw.linear import Display
     >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta', moltype=DNA)[:150]
@@ -609,7 +609,7 @@ Annotation display on alignments
     >>> annot = aln.add_annotation(Variable, 'blueline', 'align',
     ...                          [((0,15),1.5),((15,30),2.5),((30,45),3.5)])
     >>> align_display = Display(aln, colour_sequences=True)
-    >>> fig = align_display.makeFigure(width=25, left=1, right=1)
+    >>> fig = align_display.make_figure(width=25, left=1, right=1)
     >>> fig.savefig('annotated_2.png')
 
 Annotation display of a custom variable
@@ -619,7 +619,7 @@ We just show a series of spans.
 
 .. doctest::
 
-    >>> from cogent import DNA
+    >>> from cogent3 import DNA
     >>> from cogent3.draw.linear import Display
     >>> from cogent3.core.annotation import Variable
     >>> seq = DNA.make_sequence('aaaccggttt' * 10)
@@ -627,7 +627,7 @@ We just show a series of spans.
     ...     [((0,15),1),((15,30),2),((30,45),3)])
     ...
     >>> seq_display = Display(seq, colour_sequences=True)
-    >>> fig = seq_display.makeFigure()
+    >>> fig = seq_display.make_figure()
     >>> fig.savefig('annotated_3.png')
 
 Generic metadata
@@ -648,4 +648,3 @@ Info object
     >>> from cogent3.util.misc import remove_files
     >>> remove_files(['annotated_%d.png' % i for i in range(1,4)],
     ...               error_on_missing=False)
-

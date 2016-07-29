@@ -4,7 +4,7 @@ Useful Utilities
 
 .. authors, Daniel McDonald, Gavin Huttley, Antonio Gonzalez Pena, Rob Knight
 
-Using PyCogent's optimisers for your own functions
+Using PyCogent3's optimisers for your own functions
 ==================================================
 
 You have a function that you want to maximise/minimise. The parameters in your function may be bounded (must lie in a specific interval) or not. The cogent optimisers can be applied to these cases. The ``Powell`` (a local optimiser) and ``SimulatedAnnealing`` (a global optimiser) classes in particular have had their interfaces standardised for such use cases. We demonstrate for a very simple function below.
@@ -12,7 +12,7 @@ You have a function that you want to maximise/minimise. The parameters in your f
 We write a simple factory function that uses a provided value for omega to compute the squared deviation from an estimate, then use it to create our optimisable function.
 
 .. doctest::
-    
+
     >>> import numpy
     >>> def DiffOmega(omega):
     ...     def omega_from_S(S):
@@ -25,14 +25,14 @@ We write a simple factory function that uses a provided value for omega to compu
 We then import the minimise function and use it to minimise the function, obtaining the fit statistic and the associated estimate of S. Note that we provide lower and upper bounds (which are optional) and an initial guess for our parameter of interest (``S``).
 
 .. doctest::
-    
+
     >>> from cogent3.maths.optimisers import minimise, maximise
     >>> S = minimise(f,  # the function
     ...     xinit=1.0, # the initial value
     ...     bounds=(-100, 100), # [lower,upper] bounds for the parameter
     ...     local=True) # just local optimisation, not Simulated Annealing
     >>> assert 0.0 <= f(S) < 1e-6
-    >>> print 'S=%.4f' % S
+    >>> print('S=%.4f' % S)
     S=-3.6150
 
 The minimise and maximise functions can also handle multidimensional optimisations, just make xinit (and the bounds) lists rather than scalar values.
@@ -44,7 +44,7 @@ Giving a set of values for ``x`` and ``y`` fit a function ``func`` that has ``n_
 
 .. doctest::
     :hide:
-    
+
     >>> from numpy.random import seed
     >>> seed(42) # so the results are not volatile
 
@@ -99,10 +99,10 @@ Basic ``identity`` function to avoid having to test explicitly for None
     >>> from cogent3.util.misc import identity
     >>> my_var = None
     >>> if identity(my_var):
-    ...   print "foo"
+    ...   print("foo")
     ... else:
-    ...   print "bar"
-    ... 
+    ...   print("bar")
+    ...
     bar
 
 One-line if/else statement
@@ -123,10 +123,10 @@ However, the value returned is evaluated, but not called. For instance:
 
     >>> from cogent3.util.misc import if_
     >>> def foo():
-    ...   print "in foo"
-    ... 
+    ...   print("in foo")
+    ...
     >>> def bar():
-    ...   print "in bar"
+    ...   print("in bar")
     ...
     >>> if_(4 > 5, foo, bar)
     <function bar at...
@@ -141,13 +141,13 @@ This support method will force a variable to be an iterable, allowing you to gua
     >>> from cogent3.util.misc import iterable
     >>> my_var = 10
     >>> for i in my_var:
-    ...   print "will not work"
-    ... 
+    ...   print("will not work")
+    ...
     Traceback (most recent call last):
     TypeError: 'int' object is not iterable
     >>> for i in iterable(my_var):
-    ...   print i
-    ... 
+    ...   print(i)
+    ...
     10
 
 Obtain the index of the largest item
@@ -261,21 +261,21 @@ Return combinations of items
 Save and load gzip'd files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-These handy methods will ``cPickle`` an object and automagically gzip the file. You can also then reload the object at a later date.
+These handy methods will ``pickle`` an object and automagically gzip the file. You can also then reload the object at a later date.
 
 .. doctest::
 
     >>> from cogent3.util.misc import gzip_dump, gzip_load
     >>> class foo(object):
     ...   some_var = 5
-    ... 
+    ...
     >>> bar = foo()
     >>> bar.some_var = 10
     >>> # gzip_dump(bar, 'test_file')
     >>> # new_bar = gzip_load('test_file')
     >>> # isinstance(new_bar, foo)
 
-.. note:: The above code does work, but cPickle won't write out within doctest
+.. note:: The above code does work, but pickle won't write out within doctest
 
 Curry a function
 ^^^^^^^^^^^^^^^^
@@ -288,9 +288,9 @@ curry(f,x)(y) = f(x,y) or = lambda y: f(x,y). This was modified from the Python 
     >>> def foo(x,y):
     ...   """Some function"""
     ...   return x + y
-    ... 
+    ...
     >>> bar = curry(foo, 5)
-    >>> print bar.__doc__
+    >>> print(bar.__doc__)
      curry(foo,5)
     == curried from foo ==
      Some function
@@ -320,9 +320,9 @@ Perform a simple test to see if an object is a single character
 .. doctest::
 
     >>> from cogent3.util.misc import is_char
-    >>> class foo: 
+    >>> class foo:
     ...   pass
-    ... 
+    ...
     >>> is_char('a')
     True
     >>> is_char('ab')
@@ -399,19 +399,6 @@ Select items in a specified order
     [6, 1]
     >>> select([0,4,8], 'abcdefghijklm')
     ['a', 'e', 'i']
-
-Obtain the index sort order
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Obtain the indices for items in sort order. This is similar to numpy.argsort, but will work on any iterable that implements the necessary ``cmp`` methods
-
-.. doctest::
-
-    >>> from cogent3.util.misc import sort_order
-    >>> sort_order([4,2,3,5,7,8])
-    [1, 2, 0, 3, 4, 5]
-    >>> sort_order('dcba')
-    [3, 2, 1, 0]
 
 Find overlapping pattern occurrences
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -505,7 +492,7 @@ Get a dictionary with the values set as keys and the keys set as values. Can han
     >>> d = {'some_key':1,'some_key_2':1}
     >>> InverseDictMulti(d)
     {1: ['some_key_2', 'some_key']}
-    >>> 
+    >>>
 
 Get mapping from sequence item to all positions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -525,7 +512,7 @@ Get the first index of occurrence for each item in a sequence
 ``DictFromFirst`` will return the first location of each item in a sequence
 
 .. doctest::
-    
+
     >>> from cogent3.util.misc import DictFromFirst
     >>> seq = 'aattggttggaaggccgccgttagacg'
     >>> DictFromFirst(seq)
@@ -581,15 +568,15 @@ Check an object against base classes or derived classes to see if it is acceptab
     >>> from cogent3.util.misc import ClassChecker
     >>> class not_okay(object):
     ...   pass
-    ... 
+    ...
     >>> no = not_okay()
     >>> class okay(object):
     ...   pass
-    ... 
+    ...
     >>> o = okay()
     >>> class my_dict(dict):
     ...   pass
-    ... 
+    ...
     >>> md = my_dict()
     >>> cc = ClassChecker(str, okay, dict)
     >>> o in cc
@@ -618,7 +605,7 @@ Delegate object method calls, properties and variables to the appropriate object
     ...     Delegator.__init__(self, string)
     ...     for i in items:
     ...       self.append(i)
-    ... 
+    ...
     >>> ls = ListAndString([1,2,3], 'ab_cd')
     >>> len(ls)
     3
@@ -632,7 +619,7 @@ Delegate object method calls, properties and variables to the appropriate object
 Wrap a function to hide from a class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Wrap a function to hide it from a class so that it isn't a method. 
+Wrap a function to hide it from a class so that it isn't a method.
 
 .. doctest::
 
@@ -646,29 +633,29 @@ Wrap a function to hide it from a class so that it isn't a method.
 Construct a constrained container
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Wrap a container with a constraint. This is useful for enforcing that the data contained is valid within a defined context. PyCogent provides a base ``ConstrainedContainer`` which can be used to construct user-defined constrained objects. PyCogent also provides ``ConstrainedString``, ``ConstrainedList``, and ``ConstrainedDict``. These provided types fully cover the builtin types while staying integrated with the ``ConstrainedContainer``.
+Wrap a container with a constraint. This is useful for enforcing that the data contained is valid within a defined context. PyCogent3 provides a base ``ConstrainedContainer`` which can be used to construct user-defined constrained objects. PyCogent3 also provides ``ConstrainedString``, ``ConstrainedList``, and ``ConstrainedDict``. These provided types fully cover the builtin types while staying integrated with the ``ConstrainedContainer``.
 
 Here is a light example of the ``ConstrainedDict``
 
 .. doctest::
 
     >>> from cogent3.util.misc import ConstrainedDict
-    >>> d = ConstrainedDict({'a':1,'b':2,'c':3}, Constraint='abc')
+    >>> d = ConstrainedDict({'a':1,'b':2,'c':3}, constraint='abc')
     >>> d
     {'a': 1, 'c': 3, 'b': 2}
     >>> d['d'] = 5
     Traceback (most recent call last):
     ConstraintError: Item 'd' not in constraint 'abc'
 
-PyCogent also provides mapped constrained containers for each of the default types provided, ``MappedString``, ``MappedList``, and ``MappedDict``. These behave the same, except that they map a mask onto ``__contains__`` and ``__getitem__``
+PyCogent3 also provides mapped constrained containers for each of the default types provided, ``MappedString``, ``MappedList``, and ``MappedDict``. These behave the same, except that they map a mask onto ``__contains__`` and ``__getitem__``
 
 .. doctest::
 
     >>> def mask(x):
     ...   return str(int(x) + 3)
-    ... 
+    ...
     >>> from cogent3.util.misc import MappedString
-    >>> s = MappedString('12345', Constraint='45678', Mask=mask)
+    >>> s = MappedString('12345', constraint='45678', mask=mask)
     >>> s
     '45678'
     >>> s + '123'

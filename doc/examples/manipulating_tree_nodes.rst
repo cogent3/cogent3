@@ -8,7 +8,7 @@ Examples of how to initialize and manipulate various tree node objects.
 .. doctest ::
 
     >>> from cogent3.core.tree import PhyloNode
-    >>> from cogent import LoadTree
+    >>> from cogent3 import LoadTree
     >>> from cogent3.parse.tree import DndParser
 
 The general method to initialize a tree is ``LoadTree``, however, for exceptionally large trees or if one needs to specify the node objects (``TreeNode``, ``PhyloNode``, or ``RangeNode``), ``DndParser`` should be used.  ``LoadTree`` uses ``PhyloNode`` objects by default.
@@ -35,7 +35,7 @@ Display the original tree.
 
 .. doctest ::
 
-    >>> print simple_tree.ascii_art()
+    >>> print(simple_tree.ascii_art())
               /-B
     -F-------|
              |          /-C
@@ -52,27 +52,27 @@ Display the children of the root node, one of which is the parent of the tip we 
 
 .. doctest ::
 
-    >>> print simple_tree.Children
+    >>> print(simple_tree.children)
     [Tree("B;"), Tree("(C,D)E;")]
 
 Remove the 'C' tip.  **Note:** ``remove()`` and ``removeNode()`` return 'True' if a node is removed, 'False' if they cannot remove a node.
 
 .. doctest ::
 
-    >>> simple_tree.Children[1].remove('C')
+    >>> simple_tree.children[1].remove('C')
     True
 
 Insert the new 'A' tip where 'C' was previously.
 
 .. doctest ::
 
-    >>> simple_tree.Children[1].insert(0,A_node)
+    >>> simple_tree.children[1].insert(0,A_node)
 
 Finally, display the modified tree.
 
 .. doctest ::
 
-    >>> print simple_tree.ascii_art()
+    >>> print(simple_tree.ascii_art())
               /-B
     -F-------|
              |          /-A
@@ -83,9 +83,9 @@ When deleting tree nodes, it is often desirable to clean up any unbranched inter
 
 .. doctest ::
 
-    >>> simple_tree.Children[1].remove('A')
+    >>> simple_tree.children[1].remove('A')
     True
-    >>> print simple_tree.ascii_art()
+    >>> print(simple_tree.ascii_art())
               /-B
     -F-------|
               \E------- /-D
@@ -95,7 +95,7 @@ With the ``prune()`` method, internal nodes with only a single branch are remove
 .. doctest ::
 
     >>> simple_tree.prune()
-    >>> print simple_tree.ascii_art()
+    >>> print(simple_tree.ascii_art())
               /-B
     -F-------|
               \-D
@@ -103,20 +103,20 @@ With the ``prune()`` method, internal nodes with only a single branch are remove
 An Example of Conditional Tree Node Modifications
 =================================================
 
-Now to look at the more complex and realistic tree.  In complex_tree, there are no internal nodes or a defined root.  In order to display this tree in a more succinct manner, we can rename these tips to only contain the genus and species names.  To step through the tips only, we can use the ``iterTips()`` iterator, and rename each node.  The ``ascii_art()`` function, by default, will attempt to display internal nodes; this can be suppressed by the parameter ``show_internal=False``.
+Now to look at the more complex and realistic tree.  In complex_tree, there are no internal nodes or a defined root.  In order to display this tree in a more succinct manner, we can rename these tips to only contain the genus and species names.  To step through the tips only, we can use the ``iter_tips()`` iterator, and rename each node.  The ``ascii_art()`` function, by default, will attempt to display internal nodes; this can be suppressed by the parameter ``show_internal=False``.
 
 First, let's split the ungainly name string for each tip and only preserve the genus and species component, separated by a space.
 
 .. doctest ::
 
-    >>> for n in complex_tree.iterTips():
+    >>> for n in complex_tree.iter_tips():
     ...     n.name=n.name.split()[2]+" "+n.name.split()[3]
 
 Now we display the tree with ``ascii_art()``.
 
 .. doctest ::
 
-    >>> print complex_tree.ascii_art(show_internal=False)
+    >>> print(complex_tree.ascii_art(show_internal=False))
                                   /-Alkalibacterium putridalgicola
                         /--------|
                        |          \-Marinilactibacillus psychrotolerans
@@ -156,22 +156,22 @@ Next, iterate through this list, compare the distances to *Aerococcus*, and appe
     ...     if tips[AEROCOCCUS_INDEX].distance(n)>1.8:
     ...         tips_to_delete.append(n)
 
-Now for the actual deletion process.  We can simply use the parent of each node in the deletion list to remove itself.  Pruning is necessary to prevent internal nodes from being left as tips.  **Note:** ``remove()`` and ``removeNode()`` return 'True' if a node is successfully removed, 'False' otherwise.
+Now for the actual deletion process.  We can simply use the parent of each node in the deletion list to remove itself.  Pruning is necessary to prevent internal nodes from being left as tips.  **Note:** ``remove()`` and ``remove_node()`` return 'True' if a node is successfully removed, 'False' otherwise.
 
 .. doctest ::
 
     >>> for n in tips_to_delete:
-    ...     n.Parent.remove(n)
+    ...     n.parent.remove(n)
     ...     complex_tree.prune()
     True
     True
     True
 
-Finally, print the modified complex_tree.
+Finally, print the modified ``complex_tree``.
 
 .. doctest ::
 
-    >>> print complex_tree.ascii_art(show_internal=False)
+    >>> print(complex_tree.ascii_art(show_internal=False))
                                   /-Alkalibacterium putridalgicola
                         /--------|
                        |          \-Marinilactibacillus psychrotolerans
@@ -185,8 +185,4 @@ Finally, print the modified complex_tree.
                                             \--------|          \-Bacillus schlegelii
                                                      |
                                                       \-Fibrobacter succinogenes
-
-
-
-
 

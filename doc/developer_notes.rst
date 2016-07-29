@@ -1,14 +1,14 @@
 For Developers
 ==============
 
-Anyone can contribute to the development of PyCogent, not just registered developers. If you figure out a solution to something using PyCogent that you'd like to share, or if you have ideas for improving the current documentation, please consider submitting a `pull request <https://help.github.com/articles/using-pull-requests>`_ to the `PyCogent git repository on GitHub <https://github.com/pycogent/pycogent>`_ and we'll look into including it in PyCogent!
+Anyone can contribute to the development of PyCogent3, not just registered developers. If you figure out a solution to something using PyCogent3 that you'd like to share, or if you have ideas for improving the current documentation, please consider submitting a `pull request <https://help.github.com/articles/using-pull-requests>`_ to the `PyCogent3 git repository on GitHub <https://github.com/pycogent/pycogent>`_ and we'll look into including it in PyCogent3!
 
 Grabbing from GitHub
 --------------------
 
-To grab PyCogent from GitHub, do the following::
+To grab PyCogent3 from GitHub, do the following::
 
-    $ git clone git://github.com/pycogent/pycogent.git PyCogent
+    $ git clone git://github.com/pycogent/pycogent.git PyCogent3
 
 Building/testing the documentation
 ----------------------------------
@@ -19,12 +19,12 @@ To build the documentation or ``doctest`` the contents, you'll need to install S
 
 Generating the html form of the documentation requires changing into the ``doc`` directory and executing a ``make`` command::
 
-    $ cd path/to/PyCogent/doc
+    $ cd path/to/PyCogent3/doc
     $ make html
     ... # bunch of output
     Build finished. The HTML pages are in _build/html.
 
-This prints a bunch of output to screen and creates a directory ``PyCogent/doc/_build`` and within that ``html``. The index file ``PyCogent/doc/_build/html/index.html`` is the root of the documentation.
+This prints a bunch of output to screen and creates a directory ``PyCogent3/doc/_build`` and within that ``html``. The index file ``PyCogent3/doc/_build/html/index.html`` is the root of the documentation.
 
 One can also generate a pdf file, using the Sphinx latex generation capacity. This is slightly more involved. (It also requires that you have an installation of TeTex_.)
 
@@ -42,23 +42,23 @@ then change into the ``latex`` dir and build the pdf ::
     $ cd _build/latex
     $ make all-pdf
 
-You can now open ``PyCogent.pdf``.
+You can now open ``PyCogent3.pdf``.
 
 To actually test the documentation, you need to be in the ``doc`` directory and then execute another ``make`` command::
 
-    $ cd path/to/PyCogent/doc
+    $ cd path/to/PyCogent3/doc
     $ make doctest
 
 The results are in ``_build/doctest/output.txt``.
 
-.. note:: The documentation does not test for presence of 3rd party dependencies (such as applications or python modules) like the PyCogent ``unittest`` test suite. If you don't have all the 3rd party applications installed you will see failures. At this point **no effort** is being expended to hide such failures.
+.. note:: The documentation does not test for presence of 3rd party dependencies (such as applications or python modules) like the PyCogent3 ``unittest`` test suite. If you don't have all the 3rd party applications installed you will see failures. At this point **no effort** is being expended to hide such failures.
 
 Adding to the documentation
 ---------------------------
 
 You can maximise the cogent user experience for yourself and others by contributing to the documentation. If you solve a problem that you think might prove useful to others then add it into the documentation. If you can think of ways to improve the existing documents let us know.
 
-For guidance on adding documentation, look at any of the existing examples. The restructured text format is pretty easy to write (for overview see the Sphinx `rest overview`_). The conventions adopted by PyCogent are to use heading levels to be consistent with the Python.org standard (taken from `Sphinx headings`_). They are
+For guidance on adding documentation, look at any of the existing examples. The restructured text format is pretty easy to write (for overview see the Sphinx `rest overview`_). The conventions adopted by PyCogent3 are to use heading levels to be consistent with the Python.org standard (taken from `Sphinx headings`_). They are
 
 - # with overline, for parts
 - \* with overline, for chapters
@@ -76,14 +76,14 @@ The new documentation checklist
 Things you should check before committing your new document:
 
 - Add a line at the beginning with yourself as author (``.. sectionauthor:: My Name``) so people can contact you with feedback.
-- Add any data files used in your documentation under ``PyCogent/doc/data/``
-- Add a download link to those files to ``PyCogent/doc/data_file_links.rst`` following the style employed in that file.
+- Add any data files used in your documentation under ``PyCogent3/doc/data/``
+- Add a download link to those files to ``PyCogent3/doc/data_file_links.rst`` following the style employed in that file.
 - Spellcheck!!
 - Check what you wrote is valid restructured text by building the documents for both html and latex. If your document isn't connected into the table of contents, Sphinx will print a warning to screen.
 - Check you have correctly marked up the content and that it looks OK. Make sure that python code and shell commands are correctly highlighted and that literals are marked up as literals. In particular, check the latex build since it is common for text to span beyond the page margins. If the latter happens, revise your document!
 - Check that it works (rather than testing the entire suite, you can use the convenience script within doc). For instance, the following is a single test of one file::
 
-   $ cd path/to/PyCogent/doc
+   $ cd path/to/PyCogent3/doc
    $ python doctest_rsts.py examples/reverse_complement.rst
 
 
@@ -105,7 +105,7 @@ To see the list of todo's in the project, uncomment the line that sets ``todo_in
 Developing C-extensions
 -----------------------
 
-Extensions for PyCogent should be written in `Cython <http://www.cython.org/>`_.
+Extensions for PyCogent3 should be written in `Cython <http://www.cython.org/>`_.
 
 If you have any questions, contact Gavin_.
 

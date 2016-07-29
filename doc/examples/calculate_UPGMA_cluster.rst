@@ -9,7 +9,7 @@ An example of how to calculate the pairwise distances for a set of sequences.
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs
+    >>> from cogent3 import LoadSeqs
     >>> from cogent3.phylo import distance
     >>> from cogent3.cluster.UPGMA import upgma
 
@@ -36,8 +36,8 @@ Now use this matrix to build a UPGMA cluster.
 
 .. doctest::
 
-    >>> mycluster = upgma(d.getPairwiseDistances())
-    >>> print mycluster.ascii_art()
+    >>> mycluster = upgma(d.get_pairwise_distances())
+    >>> print(mycluster.ascii_art())
                                   /-NineBande
                         /edge.1--|
                        |         |          /-HowlerMon
@@ -59,6 +59,6 @@ We demonstrate saving this UPGMA cluster to a file.
 
 .. doctest::
     :hide:
-    
+
     >>> import os
     >>> os.remove('test_upgma.tree')

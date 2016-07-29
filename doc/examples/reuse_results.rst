@@ -7,7 +7,7 @@ An example of how to use the maximum-likelihood parameter estimates from one mod
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, LoadTree
+    >>> from cogent3 import LoadSeqs, LoadTree
     >>> from cogent3.evolve.models import MG94HKY
 
 We'll create a simple model, optimise it and save it for later reuse
@@ -20,7 +20,7 @@ We'll create a simple model, optimise it and save it for later reuse
     >>> lf = sm.make_likelihood_function(t, digits=2, space=2)
     >>> lf.set_alignment(aln)
     >>> lf.optimise(local=True)
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     ============
     kappa  omega
@@ -69,7 +69,7 @@ Now create a more parameter rich model, in this case by allowing the ``Human`` e
     ...                     is_independent=True)
     >>> new_lf.set_alignment(aln)
     >>> new_lf.optimise(local=True)
-    >>> print new_lf
+    >>> print(new_lf)
     Likelihood Function Table
     =====
     kappa
@@ -100,6 +100,6 @@ Now create a more parameter rich model, in this case by allowing the ``Human`` e
 
 .. doctest::
     :hide:
-    
+
     >>> import os
     >>> os.remove('tree.xml')

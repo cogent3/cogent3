@@ -8,24 +8,24 @@ Specifying substitution models
 Canned models
 -------------
 
-Many standard evolutionary models come pre-defined in the ``cogent.evolve.models`` module.
+Many standard evolutionary models come pre-defined in the ``cogent3.evolve.models`` module.
 
 The available nucleotide, codon and protein models are
 
 .. doctest::
-    
+
     >>> from cogent3.evolve import models
-    >>> print models.nucleotide_models
+    >>> print(models.nucleotide_models)
     ['JC69', 'K80', 'F81', 'HKY85', 'TN93', 'GTR']
-    >>> print models.codon_models
+    >>> print(models.codon_models)
     ['CNFGTR', 'CNFHKY', 'MG94HKY', 'MG94GTR', 'GY94', 'H04G', 'H04GK', 'H04GGK']
-    >>> print models.protein_models
+    >>> print(models.protein_models)
     ['DSO78', 'AH96', 'AH96_mtmammals', 'JTT92', 'WG01']
 
 While those values are strings, a function of the same name exists within the module so creating the substitution models requires only calling that function. I demonstrate that for a nucleotide model here.
 
 .. doctest::
-    
+
     >>> from cogent3.evolve.models import F81
     >>> sub_mod = F81()
 
@@ -42,10 +42,10 @@ For nucleotide
 We specify a general time reversible nucleotide model with gamma distributed rate heterogeneity.
 
 .. doctest::
-    
+
     >>> from cogent3.evolve.models import GTR
     >>> sub_mod = GTR(with_rate=True, distribution='gamma')
-    >>> print sub_mod
+    >>> print(sub_mod)
     <BLANKLINE>
     Nucleotide ( name = 'GTR'; type = 'None'; params = ['A/G', 'A/T', 'A/C', 'C/T', 'C/G']; number of motifs = 4; motifs = ['T', 'C', 'A', 'G'])
     <BLANKLINE>
@@ -56,10 +56,10 @@ For codon
 We specify a conditional nucleotide frequency codon model with nucleotide general time reversible parameters and a parameter for the ratio of nonsynonymous to synonymous substitutions (omega) with gamma distributed rate heterogeneity.
 
 .. doctest::
-    
+
     >>> from cogent3.evolve.models import CNFGTR
     >>> sub_mod = CNFGTR(with_rate=True, distribution='gamma')
-    >>> print sub_mod
+    >>> print(sub_mod)
     <BLANKLINE>
     Codon ( name = 'CNFGTR'; type = 'None'; params = ['A/G', 'A/C', 'C/T', 'A/T', 'C/G', 'omega']; ...
 
@@ -69,10 +69,10 @@ For protein
 We specify a Jones, Taylor and Thornton 1992 empirical protein substitution model with gamma distributed rate heterogeneity.
 
 .. doctest::
-    
+
     >>> from cogent3.evolve.models import JTT92
     >>> sub_mod = JTT92(with_rate=True, distribution='gamma')
-    >>> print sub_mod
+    >>> print(sub_mod)
     <BLANKLINE>
     Empirical ( name = 'JTT92'; type = 'None'; number of motifs = 20; motifs = ['A', 'C'...
 
@@ -85,8 +85,8 @@ Making a likelihood function
 You start by specifying a substitution model and use that to construct a likelihood function for a specific tree.
 
 .. doctest::
-    
-    >>> from cogent import LoadTree
+
+    >>> from cogent3 import LoadTree
     >>> from cogent3.evolve.models import F81
     >>> sub_mod = F81()
     >>> tree = LoadTree(treestring='(a,b,(c,d))')
@@ -98,15 +98,15 @@ Providing an alignment to a likelihood function
 You need to load an alignment and then provide it a likelihood function. I construct very simple trees and alignments for this example.
 
 .. doctest::
-    
-    >>> from cogent import LoadTree, LoadSeqs
+
+    >>> from cogent3 import LoadTree, LoadSeqs
     >>> from cogent3.evolve.models import F81
     >>> sub_mod = F81()
     >>> tree = LoadTree(treestring='(a,b,(c,d))')
     >>> lf = sub_mod.make_likelihood_function(tree)
     >>> aln = LoadSeqs(data=[('a', 'ACGT'), ('b', 'AC-T'), ('c', 'ACGT'),
     ...                      ('d', 'AC-T')])
-    ...                     
+    ...
     >>> lf.set_alignment(aln)
 
 Scoping parameters on trees
@@ -115,11 +115,11 @@ Scoping parameters on trees
 For many evolutionary analyses, it's desirable to allow different branches on a tree to have different values of a parameter. We show this for a simple codon model case here where we want the great apes (the clade that includes human and orangutan) to have a different value of the ratio of nonsynonymous to synonymous substitutions. This parameter is identified in the precanned ``CNFGTR`` model as ``omega``.
 
 .. doctest::
-    
-    >>> from cogent import LoadTree
+
+    >>> from cogent3 import LoadTree
     >>> from cogent3.evolve.models import CNFGTR
     >>> tree = LoadTree('data/primate_brca1.tree')
-    >>> print tree.ascii_art()
+    >>> print(tree.ascii_art())
               /-Galago
              |
     -root----|--HowlerMon
@@ -140,8 +140,8 @@ For many evolutionary analyses, it's desirable to allow different branches on a 
 We've set an *initial* value for this clade so that the edges affected by this rule are evident below.
 
 .. doctest::
-    
-    >>> print lf
+
+    >>> print(lf)
     Likelihood Function Table
     ====================================
      A/C     A/G     A/T     C/G     C/T
@@ -175,8 +175,8 @@ Specifying a parameter as constant
 This means the parameter will not be modified during likelihood maximisation. We show this here by making the ``omega`` parameter constant at the value 1 -- essentially the condition of selective neutrality.
 
 .. doctest::
-    
-    >>> from cogent import LoadTree
+
+    >>> from cogent3 import LoadTree
     >>> from cogent3.evolve.models import CNFGTR
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> sm = CNFGTR()
@@ -189,8 +189,8 @@ Providing a starting value for a parameter
 This can be useful to improve performance, the closer you are to the maximum likelihood estimator the quicker optimisation will be.
 
 .. doctest::
-    
-    >>> from cogent import LoadTree
+
+    >>> from cogent3 import LoadTree
     >>> from cogent3.evolve.models import CNFGTR
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> sm = CNFGTR()
@@ -203,8 +203,8 @@ Setting bounds for optimising a function
 This can be useful for stopping optimisers from getting stuck in a bad part of parameter space.
 
 .. doctest::
-    
-    >>> from cogent import LoadTree
+
+    >>> from cogent3 import LoadTree
     >>> from cogent3.evolve.models import CNFGTR
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> sm = CNFGTR()
@@ -217,8 +217,8 @@ Specifying rate heterogeneity functions
 We extend the simple gamma distributed rate heterogeneity case for nucleotides from above to construction of the actual likelihood function. We do this for 4 bins and constraint the bin probabilities to be equal.
 
 .. doctest::
-    
-    >>> from cogent import LoadTree, LoadSeqs
+
+    >>> from cogent3 import LoadTree, LoadSeqs
     >>> from cogent3.evolve.models import GTR
     >>> sm = GTR(with_rate=True, distribution='gamma')
     >>> tree = LoadTree('data/primate_brca1.tree')
@@ -231,8 +231,8 @@ Specifying Phylo-HMMs
 ---------------------
 
 .. doctest::
-    
-    >>> from cogent import LoadTree, LoadSeqs
+
+    >>> from cogent3 import LoadTree, LoadSeqs
     >>> from cogent3.evolve.models import GTR
     >>> sm = GTR(with_rate=True, distribution='gamma')
     >>> tree = LoadTree('data/primate_brca1.tree')
@@ -251,8 +251,8 @@ Choice of optimisers
 There are 2 types of optimiser: simulated annealing, a *global* optimiser; and Powell, a *local* optimiser. The simulated annealing method is slow compared to Powell and in general Powell is an adequate choice. I setup  a simple nucleotide model to illustrate these.
 
 .. doctest::
-    
-    >>> from cogent import LoadTree, LoadSeqs
+
+    >>> from cogent3 import LoadTree, LoadSeqs
     >>> from cogent3.evolve.models import F81
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
@@ -263,19 +263,19 @@ There are 2 types of optimiser: simulated annealing, a *global* optimiser; and P
 The default is to use the simulated annealing optimiser followed by Powell.
 
 .. doctest::
-    
+
     >>> lf.optimise(show_progress=False)
 
 We can specify just using the local optimiser. To do so, it's recommended to set the ``max_restarts`` argument since this provides a mechanism for Powell to attempt restarting the optimisation from slightly different sport which can help in overcoming local maxima.
 
 .. doctest::
-    
+
     >>> lf.optimise(local=True, max_restarts=5, show_progress=False)
 
 We might want to do crude simulated annealing following by more rigorous Powell.
 
 .. doctest::
-    
+
     >>> lf.optimise(show_progress=False, global_tolerance=1.0, tolerance=1e-8,
     ...              max_restarts=5)
 
@@ -292,8 +292,8 @@ There is no guarantee that an optimised function has achieved a global maximum. 
 We can monitor this situation using the ``limit_action`` argument to ``optimise``. Providing the value ``raise`` causes an exception to be raised if this condition occurs, as shown below. Providing ``warn`` (default) instead will cause a warning message to be printed to screen but execution will continue. The value ``ignore`` hides any such message.
 
 .. doctest::
-    
-    >>> from cogent import LoadTree, LoadSeqs
+
+    >>> from cogent3 import LoadTree, LoadSeqs
     >>> from cogent3.evolve.models import F81
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
@@ -303,7 +303,7 @@ We can monitor this situation using the ``limit_action`` argument to ``optimise`
     >>> max_evals = 10
     >>> lf.optimise(show_progress=False, limit_action='raise',
     ...              max_evaluations=max_evals, return_calculator=True)
-    ... 
+    ...
     Traceback (most recent call last):
     ArithmeticError: FORCED EXIT from optimiser after 10 evaluations
 
@@ -319,8 +319,8 @@ Log likelihood and number of free parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
-    
-    >>> from cogent import LoadTree, LoadSeqs
+
+    >>> from cogent3 import LoadTree, LoadSeqs
     >>> from cogent3.evolve.models import GTR
     >>> sm = GTR()
     >>> tree = LoadTree('data/primate_brca1.tree')
@@ -331,12 +331,12 @@ Log likelihood and number of free parameters
 We get the log-likelihood and the number of free parameters.
 
 .. doctest::
-    
-    >>> lnL = lf.getLogLikelihood()
-    >>> print lnL
+
+    >>> lnL = lf.get_log_likelihood()
+    >>> print(lnL)
     -24601.9...
     >>> nfp = lf.get_num_free_params()
-    >>> print nfp
+    >>> print(nfp)
     16
 
 .. warning:: The number of free parameters (nfp) refers only to the number of parameters that were modifiable by the optimiser. Typically, the degrees-of-freedom of a likelihood ratio test statistic is computed as the difference in nfp between models. This will not be correct for models in which boundary conditions exist (rate heterogeneity models where a parameter value boundary is set between bins).
@@ -350,8 +350,8 @@ Aikake Information Criterion
 .. note:: this measure only makes sense when the model has been optimised, a step I'm skipping here in the interests of speed.
 
 .. doctest::
-    
-    >>> from cogent import LoadTree, LoadSeqs
+
+    >>> from cogent3 import LoadTree, LoadSeqs
     >>> from cogent3.evolve.models import GTR
     >>> sm = GTR()
     >>> tree = LoadTree('data/primate_brca1.tree')
@@ -365,7 +365,7 @@ Aikake Information Criterion
 We can also get the second-order AIC.
 
 .. doctest::
-    
+
     >>> AICc = lf.get_aic(second_order=True)
     >>> AICc
     49236.064...
@@ -376,8 +376,8 @@ Bayesian Information Criterion
 .. note:: this measure only makes sense when the model has been optimised, a step I'm skipping here in the interests of speed.
 
 .. doctest::
-    
-    >>> from cogent import LoadTree, LoadSeqs
+
+    >>> from cogent3 import LoadTree, LoadSeqs
     >>> from cogent3.evolve.models import GTR
     >>> sm = GTR()
     >>> tree = LoadTree('data/primate_brca1.tree')
@@ -399,22 +399,22 @@ One at a time
 We get the statistics out individually. We get the ``length`` for the Human edge and the exchangeability parameter ``A/G``.
 
 .. doctest::
-    
+
     >>> lf.optimise(local=True, show_progress=False)
     >>> a_g = lf.get_param_value('A/G')
-    >>> print a_g
+    >>> print(a_g)
     5.25...
     >>> human = lf.get_param_value('length', 'Human')
-    >>> print human
+    >>> print(human)
     0.006...
 
 Just the motif probabilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
-    
+
     >>> mprobs = lf.get_motif_probs()
-    >>> print mprobs
+    >>> print(mprobs)
     ====================================
          T         C         A         G
     ------------------------------------
@@ -427,9 +427,9 @@ On the tree object
 If written to file in xml format, then model parameters will be saved. This can be useful for later plotting or recreating likelihood functions.
 
 .. doctest::
-    
+
     >>> annot_tree = lf.get_annotated_tree()
-    >>> print annot_tree.getXML() #doctest: +SKIP
+    >>> print(annot_tree.get_xml()) # doctest: +SKIP
     <?xml version="1.0"?>
     <clade>
       <clade>
@@ -445,11 +445,11 @@ As tables
 ^^^^^^^^^
 
 .. doctest::
-    
+
     >>> tables = lf.get_statistics(with_motif_probs=True, with_titles=True)
     >>> for table in tables:
     ...     if 'global' in table.title:
-    ...         print table
+    ...         print(table)
     global params
     ==============================================
        A/C       A/G       A/T       C/G       C/T
@@ -466,8 +466,8 @@ Using likelihood ratio tests
 We test the molecular clock hypothesis for human and chimpanzee lineages. The null has these two branches constrained to be equal.
 
 .. doctest::
-    
-    >>> from cogent import LoadTree, LoadSeqs
+
+    >>> from cogent3 import LoadTree, LoadSeqs
     >>> from cogent3.evolve.models import F81
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
@@ -476,12 +476,12 @@ We test the molecular clock hypothesis for human and chimpanzee lineages. The nu
     >>> lf.set_alignment(aln)
     >>> lf.set_param_rule('length', tip_names=['Human', 'Chimpanzee'],
     ...         outgroup_name='Galago', is_clade=True, is_independent=False)
-    ...                 
+    ...
     >>> lf.set_name('Null Hypothesis')
     >>> lf.optimise(local=True, show_progress=False)
-    >>> null_lnL = lf.getLogLikelihood()
+    >>> null_lnL = lf.get_log_likelihood()
     >>> null_nfp = lf.get_num_free_params()
-    >>> print lf
+    >>> print(lf)
     Null Hypothesis
     ==========================
           edge  parent  length
@@ -498,13 +498,13 @@ We test the molecular clock hypothesis for human and chimpanzee lineages. The nu
 The alternate allows the human and chimpanzee branches to differ by just setting all lengths to be independent.
 
 .. doctest::
-    
+
     >>> lf.set_param_rule('length', is_independent=True)
     >>> lf.set_name('Alt Hypothesis')
     >>> lf.optimise(local=True, show_progress=False)
-    >>> alt_lnL = lf.getLogLikelihood()
+    >>> alt_lnL = lf.get_log_likelihood()
     >>> alt_nfp = lf.get_num_free_params()
-    >>> print lf
+    >>> print(lf)
     Alt Hypothesis
     ==========================
           edge  parent  length
@@ -521,12 +521,12 @@ The alternate allows the human and chimpanzee branches to differ by just setting
 We import the function for computing the probability of a chi-square test statistic, compute the likelihood ratio test statistic, degrees of freedom and the corresponding probability.
 
 .. doctest::
-    
+
     >>> from cogent3.maths.stats import chisqprob
     >>> LR = 2 * (alt_lnL - null_lnL) # the likelihood ratio statistic
     >>> df = (alt_nfp - null_nfp) # the test degrees of freedom
     >>> p = chisqprob(LR, df)
-    >>> print 'LR=%.4f ; df = %d ; p=%.4f' % (LR, df, p)
+    >>> print('LR=%.4f ; df = %d ; p=%.4f' % (LR, df, p))
     LR=3.3294 ; df = 1 ; p=0.0681
 
 By parametric bootstrapping
@@ -537,8 +537,8 @@ If we can't rely on the asymptotic behaviour of the LRT, e.g. due to small align
 In general, however, this capability derives from the ability of any defined ``evolve`` likelihood function to simulate an alignment. This property is provided as ``simulate_alignment`` method on likelihood function objects.
 
 .. doctest::
-    
-    >>> from cogent import LoadTree, LoadSeqs
+
+    >>> from cogent3 import LoadTree, LoadSeqs
     >>> from cogent3.evolve.models import F81
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
@@ -547,11 +547,11 @@ In general, however, this capability derives from the ability of any defined ``e
     >>> lf.set_alignment(aln)
     >>> lf.set_param_rule('length', tip_names=['Human', 'Chimpanzee'],
     ...         outgroup_name='Galago', is_clade=True, is_independent=False)
-    ...                 
+    ...
     >>> lf.set_name('Null Hypothesis')
     >>> lf.optimise(local=True, show_progress=False)
     >>> sim_aln = lf.simulate_alignment()
-    >>> print repr(sim_aln)
+    >>> print(repr(sim_aln))
     7 x 2814 dna alignment: Gorilla...
 
 Determining confidence intervals on MLEs
@@ -560,8 +560,8 @@ Determining confidence intervals on MLEs
 The profile method is used to calculate a confidence interval for a named parameter. We show it here for a global substitution model exchangeability parameter (*kappa*, the ratio of transition to transversion rates) and for an edge specific parameter (just the human branch length).
 
 .. doctest::
-    
-    >>> from cogent import LoadTree, LoadSeqs
+
+    >>> from cogent3 import LoadTree, LoadSeqs
     >>> from cogent3.evolve.models import HKY85
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
@@ -570,10 +570,10 @@ The profile method is used to calculate a confidence interval for a named parame
     >>> lf.set_alignment(aln)
     >>> lf.optimise(local=True, show_progress=False)
     >>> kappa_lo, kappa_mle, kappa_hi = lf.get_param_interval('kappa')
-    >>> print "lo=%.2f ; mle=%.2f ; hi = %.2f" % (kappa_lo, kappa_mle, kappa_hi)
+    >>> print("lo=%.2f ; mle=%.2f ; hi = %.2f" % (kappa_lo, kappa_mle, kappa_hi))
     lo=3.78 ; mle=4.44 ; hi = 5.22
     >>> human_lo, human_mle, human_hi = lf.get_param_interval('length', 'Human')
-    >>> print "lo=%.2f ; mle=%.2f ; hi = %.2f" % (human_lo, human_mle, human_hi)
+    >>> print("lo=%.2f ; mle=%.2f ; hi = %.2f" % (human_lo, human_mle, human_hi))
     lo=0.00 ; mle=0.01 ; hi = 0.01
 
 Saving results
@@ -587,8 +587,8 @@ Visualising statistics on trees
 We look at the distribution of ``omega`` from the CNF codon model family across different primate lineages. We allow each edge to have an independent value for ``omega``.
 
 .. doctest::
-    
-    >>> from cogent import LoadTree, LoadSeqs
+
+    >>> from cogent3 import LoadTree, LoadSeqs
     >>> from cogent3.evolve.models import CNFGTR
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
@@ -597,7 +597,7 @@ We look at the distribution of ``omega`` from the CNF codon model family across 
     >>> lf.set_param_rule('omega', is_independent=True, upper=10.0)
     >>> lf.set_alignment(aln)
     >>> lf.optimise(show_progress=False, local=True)
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     ============================
      A/C   A/G   A/T   C/G   C/T
@@ -622,14 +622,14 @@ We look at the distribution of ``omega`` from the CNF codon model family across 
 We need an annotated tree object to do the drawing, we write this out to an XML formatted file so it can be reloaded for later reuse.
 
 .. doctest::
-    
+
     >>> annot_tree = lf.get_annotated_tree()
     >>> annot_tree.write('result_tree.xml')
 
 We first import an unrooted dendrogram and then generate a heat mapped image to file where edges are colored red by the magnitude of ``omega`` with maximal saturation when ``omega=1``.
 
 .. doctest::
-    
+
     >>> from cogent3.draw.dendrogram import ContemporaneousDendrogram
     >>> dend = ContemporaneousDendrogram(annot_tree)
     >>> fig = dend.makeFigure(height=6, width=6, shade_param='omega',
@@ -642,8 +642,8 @@ Reconstructing ancestral sequences
 We first fit a likelihood function.
 
 .. doctest::
-    
-    >>> from cogent import LoadTree, LoadSeqs
+
+    >>> from cogent3 import LoadTree, LoadSeqs
     >>> from cogent3.evolve.models import F81
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
@@ -655,18 +655,18 @@ We first fit a likelihood function.
 We then get the most likely ancestral sequences.
 
 .. doctest::
-    
+
     >>> ancestors = lf.likely_ancestral_seqs()
-    >>> print ancestors
+    >>> print(ancestors)
     >root
     TGTGGCACAAATACTCATGCCAGCTCATTACAGCA...
 
 Or we can get the posterior probabilities (returned as a ``DictArray``) of sequence states at each node.
 
 .. doctest::
-    
+
     >>> ancestral_probs = lf.reconstruct_ancestral_seqs()
-    >>> print ancestral_probs['root']
+    >>> print(ancestral_probs['root'])
     ============================================
                  T         C         A         G
     --------------------------------------------
@@ -691,8 +691,8 @@ Sampling
 If you're dealing with a very large alignment, another approach is to use a subset of the alignment to fit the model then try fitting the entire alignment. The alignment method does have an method to facilitate this approach. The following samples 99 codons without replacement.
 
 .. doctest::
-    
-    >>> from cogent import LoadSeqs
+
+    >>> from cogent3 import LoadSeqs
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> smpl = aln.sample(n=99, with_replacement=False, motif_length=3)
     >>> len(smpl)
@@ -701,7 +701,7 @@ If you're dealing with a very large alignment, another approach is to use a subs
 While this samples 99 nucleotides without replacement.
 
 .. doctest::
-    
+
     >>> smpl = aln.sample(n=99, with_replacement=False)
     >>> len(smpl)
     99

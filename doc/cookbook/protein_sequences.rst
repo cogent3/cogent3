@@ -8,10 +8,10 @@ Creating a ProteinSequence with a name
 
 .. doctest::
 
-    >>> from cogent import PROTEIN
+    >>> from cogent3 import PROTEIN
     >>> p = PROTEIN.make_sequence('THISISAPRQTEIN','myProtein')
     >>> type(p)
-    <class 'cogent.core.sequence.ProteinSequence'>
+    <class .'cogent3.core.sequence.ProteinSequence'>
     >>> str(p)
     'THISISAPRQTEIN'
 
@@ -31,7 +31,7 @@ Loading protein sequences from a Phylip file
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, PROTEIN
+    >>> from cogent3 import LoadSeqs, PROTEIN
     >>> seq = LoadSeqs('data/abglobin_aa.phylip', moltype=PROTEIN,
     ...              aligned=True)
 

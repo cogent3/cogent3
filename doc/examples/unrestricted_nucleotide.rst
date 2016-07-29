@@ -3,11 +3,11 @@ Specifying and using an unrestricted nucleotide substitution model
 
 .. sectionauthor:: Gavin Huttley
 
-Do standard ``cogent`` imports.
+Do standard ``cogent3`` imports.
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, LoadTree, DNA
+    >>> from cogent3 import LoadSeqs, LoadTree, DNA
     >>> from cogent3.evolve.predicate import MotifChange
     >>> from cogent3.evolve.substitution_model import Nucleotide
 
@@ -15,7 +15,7 @@ Do standard ``cogent`` imports.
 
 .. doctest::
     :hide:
-    
+
     >>> import warnings
     >>> warnings.filterwarnings("ignore", "Model not reversible")
 
@@ -30,7 +30,7 @@ To specify substitution models we use the ``MotifChange`` class from predicates.
     [A>C, A>T, A>G, C>A, C>T, C>G, T>A, T>C, T>G, G>A, G>C]
     >>> sm = Nucleotide(predicates=preds, recode_gaps=True,
     ...                 optimise_motif_probs=True)
-    >>> print sm
+    >>> print(sm)
     <BLANKLINE>
     Nucleotide ( name = ''; type = 'None'; params = ['A>T', 'C>G', 'T>G',...
 
@@ -42,7 +42,7 @@ We'll illustrate this with a sample alignment and tree in ``data/primate_cdx2_pr
     >>> al
     3 x 1525 dna alignment: human[AGCGCCCGCGG...], macaque[AGC...
     >>> tr = LoadTree(tip_names=al.names)
-    >>> print tr
+    >>> print(tr)
     (human,macaque,chimp)root;
 
 We now construct the parameter controller with each predicate constant across the tree, get the likelihood function calculator and optimise the function.
@@ -58,7 +58,7 @@ We just used the Powell optimiser, as this works quite well.
 
 .. doctest::
 
-    >>> print lf
+    >>> print(lf)
     Unrestricted model
     ==========================================================================
      A>C    A>G    A>T    C>A    C>G    C>T    G>A    G>C    T>A    T>C    T>G

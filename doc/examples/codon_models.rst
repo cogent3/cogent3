@@ -17,7 +17,7 @@ The basic paradigm for evolutionary modelling is:
 Constructing the codon substitution model
 -----------------------------------------
 
-PyCogent implements 4 basic rate matrices, described in a recently accepted manuscript: i) NF models, these are nucleotide frequency weighted rate matrices and were initially described by Muse and Gaut (1994); ii) a variant of (i) where position specific nucleotide frequencies are used; iii) TF models, these are tuple (codon in this case) frequency weighted rate matrices and were initially described by Goldman and Yang (1994); iv) CNF, these use the conditional nucleotide frequency and have developed by Yap, Lindsay, Easteal and Huttley. These different models can be created using provided convenience functions which will be the case here, or specified by directly calling the ``Codon`` substitution model class and setting the argument ``mprob_model`` equal to:
+PyCogent3 implements 4 basic rate matrices, described in a recently accepted manuscript: i) NF models, these are nucleotide frequency weighted rate matrices and were initially described by Muse and Gaut (1994); ii) a variant of (i) where position specific nucleotide frequencies are used; iii) TF models, these are tuple (codon in this case) frequency weighted rate matrices and were initially described by Goldman and Yang (1994); iv) CNF, these use the conditional nucleotide frequency and have developed by Yap, Lindsay, Easteal and Huttley. These different models can be created using provided convenience functions which will be the case here, or specified by directly calling the ``Codon`` substitution model class and setting the argument ``mprob_model`` equal to:
 
 - NF, ``mprob_model='monomer'``
 - NF with position specific nucleotide frequencies, ``mprob_model='monomers'``
@@ -28,7 +28,7 @@ PyCogent implements 4 basic rate matrices, described in a recently accepted manu
 
 In the following I will construct GTR variants of i and iv and a HKY variant of iii.
 
-We import these explicitly from the ``cogent.evolve.models`` module.
+We import these explicitly from the ``cogent3.evolve.models`` module.
 
 .. doctest::
 
@@ -48,7 +48,7 @@ For our example we load a sample alignment and tree as per usual. To reduce the 
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, LoadTree, DNA
+    >>> from cogent3 import LoadSeqs, LoadTree, DNA
     >>> aln = LoadSeqs('data/primate_brca1.fasta', moltype=DNA)
     >>> tree = LoadTree('data/primate_brca1.tree')
 
@@ -62,16 +62,16 @@ We construct a likelihood function and constrain omega parameter (the ratio of n
     >>> lf = cnf.make_likelihood_function(tree, digits=2, space=3)
     >>> lf.set_param_rule('omega', is_constant=True, value=1.0)
 
-We then provide an alignment and optimise the model. In the current case we just use the local optimiser (hiding progress to keep this document succinct). We then print the results.
+We then provide an alignment and optimise the model. In the current case we just use the local optimiser (hiding progress to keep this document succinct). We then print(the results.)
 
 .. note:: I'm going to specify a set of conditions that will be used for all optimiser steps. For those new to python, one can construct a dictionary with the following form ``{'argument_name': argument_value}``, or alternatively ``dict(argument_name=argument_value)``. I'm doing the latter. This dictionary is then passed to functions/methods by prefacing it with ``**``.
 
 .. doctest::
-    
+
     >>> optimiser_args = dict(local=True, max_restarts=5, tolerance=1e-8)
     >>> lf.set_alignment(aln)
     >>> lf.optimise(**optimiser_args)
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     ========================================
      A/C    A/G    A/T    C/G    C/T   omega
@@ -105,17 +105,17 @@ The above function has been fit using the default counting procedure for estimat
 
 .. code-block:: python
 
-    lf = cnf.make_likelihood_function(tree,optimise_motif_probs=True)
+    lf = cnf.make_likelihood_function(tree, optimise_motif_probs=True)
 
 We can then free up the omega parameter, but before we do that we'll store the log-likelihood and number of free parameters for the current model form for reuse later.
 
 .. doctest::
 
-    >>> neutral_lnL = lf.getLogLikelihood()
+    >>> neutral_lnL = lf.get_log_likelihood()
     >>> neutral_nfp = lf.get_num_free_params()
     >>> lf.set_param_rule('omega', is_constant=False)
     >>> lf.optimise(**optimiser_args)
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     ========================================
      A/C    A/G    A/T    C/G    C/T   omega
@@ -127,7 +127,7 @@ We can then free up the omega parameter, but before we do that we'll store the l
     ----------------------------
         Galago     root     0.53
      HowlerMon     root     0.14...
-    >>> non_neutral_lnL = lf.getLogLikelihood()
+    >>> non_neutral_lnL = lf.get_log_likelihood()
     >>> non_neutral_nfp = lf.get_num_free_params()
 
 We then conduct a likelihood ratio test whether the MLE of omega significantly improves the fit over the constraint it equals 1. We import the convenience function from the cogent stats module.
@@ -135,7 +135,7 @@ We then conduct a likelihood ratio test whether the MLE of omega significantly i
     >>> from cogent3.maths.stats import chisqprob
     >>> LR = 2*(non_neutral_lnL-neutral_lnL)
     >>> df = non_neutral_nfp - neutral_nfp
-    >>> print chisqprob(LR, df)
+    >>> print(chisqprob(LR, df))
     0.0026...
 
 Not surprisingly, this is significant. We then ask whether the Human and Chimpanzee edges have a value of omega that is significantly different from the rest of the tree.
@@ -145,7 +145,7 @@ Not surprisingly, this is significant. We then ask whether the Human and Chimpan
     >>> lf.set_param_rule('omega', tip_names=['Chimpanzee', 'Human'],
     ...                          outgroup_name='Galago', is_clade=True)
     >>> lf.optimise(**optimiser_args)
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     ================================
      A/C    A/G    A/T    C/G    C/T
@@ -163,11 +163,11 @@ Not surprisingly, this is significant. We then ask whether the Human and Chimpan
          Human   edge.0     0.02    2.39
     Chimpanzee   edge.0     0.01    2.39
         edge.0   edge.1     0.00    0.73...
-    >>> chimp_human_clade_lnL = lf.getLogLikelihood()
+    >>> chimp_human_clade_lnL = lf.get_log_likelihood()
     >>> chimp_human_clade_nfp = lf.get_num_free_params()
     >>> LR = 2*(chimp_human_clade_lnL-non_neutral_lnL)
     >>> df = chimp_human_clade_nfp-non_neutral_nfp
-    >>> print chisqprob(LR, df)
+    >>> print(chisqprob(LR, df))
     0.028...
 
 This is basically a replication of the original Huttley et al (2000) result for *BRCA1*.
@@ -182,10 +182,10 @@ It is also possible to specify rate-heterogeneity variants of these models. In t
     >>> lf = cnf.make_likelihood_function(tree, digits=2, space=3)
     >>> lf.set_alignment(aln)
     >>> lf.optimise(**optimiser_args)
-    >>> non_neutral_lnL = lf.getLogLikelihood()
+    >>> non_neutral_lnL = lf.get_log_likelihood()
     >>> non_neutral_nfp = lf.get_num_free_params()
 
-Now, we have a null model which we know (from having fit it above) has a MLE < 1. We will construct a rate-heterogeneity model with just 2 rate-classes (neutral and adaptive) that are separated by the boundary of omega=1. These rate-classes are specified as discrete bins in PyCogent and the model configuration steps for a bin or bins are done using the ``set_param_rule`` method. To ensure the alternate model starts with a likelihood at least as good as the previous we need to make the probability of the neutral site-class bin ~= 1 (these are referenced by the ``bprobs`` parameter type) and assign the null model omega MLE to this class.
+Now, we have a null model which we know (from having fit it above) has a MLE < 1. We will construct a rate-heterogeneity model with just 2 rate-classes (neutral and adaptive) that are separated by the boundary of omega=1. These rate-classes are specified as discrete bins in PyCogent3 and the model configuration steps for a bin or bins are done using the ``set_param_rule`` method. To ensure the alternate model starts with a likelihood at least as good as the previous we need to make the probability of the neutral site-class bin ~= 1 (these are referenced by the ``bprobs`` parameter type) and assign the null model omega MLE to this class.
 
 To get all the parameter MLEs (branch lengths, GTR terms, etc ..) into the alternate model we get an annotated tree from the null model which will have these values associated with it.
 
@@ -227,11 +227,11 @@ The above statement essentially assigns a probability of nearly 1 to the 'neutra
 
     >>> rate_lf.set_alignment(aln)
     >>> rate_lf.optimise(**optimiser_args)
-    >>> rate_lnL = rate_lf.getLogLikelihood()
+    >>> rate_lnL = rate_lf.get_log_likelihood()
     >>> rate_nfp = rate_lf.get_num_free_params()
     >>> LR = 2*(rate_lnL-non_neutral_lnL)
     >>> df = rate_nfp-non_neutral_nfp
-    >>> print rate_lf
+    >>> print(rate_lf)
     Likelihood Function Table
     ============================
           edge   parent   length
@@ -263,14 +263,14 @@ The above statement essentially assigns a probability of nearly 1 to the 'neutra
     motif   mprobs
     --------------
       CTT     0.01...
-    >>> print chisqprob(LR, df)
+    >>> print(chisqprob(LR, df))
     0.000...
 
 We can get the posterior probabilities of site-classifications out of this model as
 
 .. doctest::
 
-    >>> pp = rate_lf.getBinProbs()
+    >>> pp = rate_lf.get_bin_probs()
 
 This is a ``DictArray`` class which stores the probabilities as a ``numpy.array``.
 
@@ -296,7 +296,7 @@ The following implements a modification of the approach of Zhang, Nielsen and Ya
 After Zhang et al, we first define a null model that has 2 rate classes '0' and '1'. We also get all the MLEs out using ``get_statistics``, just printing out the bin parameters table in the current case.
 
 .. doctest::
-    
+
     >>> rate_lf = cnf.make_likelihood_function(tree, bins = ['0', '1'],
     ...                              digits=2, space=3)
     >>> rate_lf.set_param_rule('omega', bin='0', upper=1.0-epsilon,
@@ -307,7 +307,7 @@ After Zhang et al, we first define a null model that has 2 rate classes '0' and 
     >>> tables = rate_lf.get_statistics(with_titles=True)
     >>> for table in tables:
     ...     if 'bin' in table.title:
-    ...         print table
+    ...         print(table)
     bin params
     ====================
     bin   bprobs   omega
@@ -319,7 +319,7 @@ After Zhang et al, we first define a null model that has 2 rate classes '0' and 
 We're also going to use the MLEs from the ``rate_lf`` model, since that nests within the more complex branch by rate-class model. This is unfortunately quite ugly compared with just using the annotated tree approach described above. It is currently necessary, however, due to a bug in constructing annotated trees for models with binned parameters.
 
 .. doctest::
-    
+
     >>> globals = [t for t in tables if 'global' in t.title][0]
     >>> globals = dict(zip(globals.Header, globals.tolist()[0]))
     >>> bin_params = [t for t in tables if 'bin' in t.title][0]
@@ -331,28 +331,28 @@ We're also going to use the MLEs from the ``rate_lf`` model, since that nests wi
 We now create the more complex model,
 
 .. doctest::
-    
+
      >>> rate_branch_lf = cnf.make_likelihood_function(tree,
      ...             bins = ['0', '1', '2a', '2b'], digits=2, space=3)
 
 and set from the nested null model the branch lengths,
 
 .. doctest::
-    
+
     >>> for branch, length in lengths.items():
     ...     rate_branch_lf.set_param_rule('length', edge=branch, init=length)
 
 GTR term MLES,
 
 .. doctest::
-    
+
     >>> for param, mle in globals.items():
     ...     rate_branch_lf.set_param_rule(param, init=mle)
 
 binned parameter values,
 
 .. doctest::
-    
+
     >>> rate_branch_lf.set_param_rule('omega', bins=['0', '2a'], upper=1.0,
     ...                 init=rate_class_omegas['0'])
     >>> rate_branch_lf.set_param_rule('omega', bins=['1', '2b'], is_constant=True,
@@ -364,7 +364,7 @@ binned parameter values,
 and the bin probabilities.
 
 .. doctest::
-    
+
     >>> rate_branch_lf.set_param_rule('bprobs',
     ...         init=[rate_class_probs['0']-epsilon,
     ...               rate_class_probs['1']-epsilon, epsilon, epsilon])
@@ -372,15 +372,15 @@ and the bin probabilities.
 The result of these steps is to create a rate/branch model with initial parameter values that result in likelihood the same as the null.
 
 .. doctest::
-    
+
     >>> rate_branch_lf.set_alignment(aln)
 
 This function can then be optimised as before. The results of one such optimisation are shown below. As you can see, the ``omega`` value for the '2a' and '2b' bins is at the upper bounds, indicating the model is not maximised in this case.
 
 .. code-block:: python
-    
+
     rate_branch_lf.optimise(**optimiser_args)
-    print rate_branch_lf
+    print(rate_branch_lf)
     Likelihood Function Table
     =========================
           edge   bin    omega

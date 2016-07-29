@@ -10,8 +10,8 @@ A common task concerns assessing how substitution model exchangeability paramete
 We start with the standard imports, plus using a canned codon substitution model and then load the sample data set.
 
 .. doctest::
-    
-    >>> from cogent import LoadSeqs, LoadTree
+
+    >>> from cogent3 import LoadSeqs, LoadTree
     >>> from cogent3.evolve.models import MG94HKY
     >>> aln = LoadSeqs("data/long_testseqs.fasta")
     >>> tree = LoadTree("data/test.tree")
@@ -19,7 +19,7 @@ We start with the standard imports, plus using a canned codon substitution model
 We construct the substitution model and likelihood function and set the alignment.
 
 .. doctest::
-    
+
     >>> sm = MG94HKY()
     >>> lf = sm.make_likelihood_function(tree, digits=2, space=3)
     >>> lf.set_alignment(aln)
@@ -27,8 +27,8 @@ We construct the substitution model and likelihood function and set the alignmen
 At this point we have a likelihood function with two exchangeability parameters from the substitution model (``kappa`` the transition/transversion ratio; ``omega`` the nonsynonymous/synonymous ratio) plus branch lengths for all tree edges. To facilitate subsequent discussion I now display the tree
 
 .. doctest::
-    
-    >>> print tree.ascii_art()
+
+    >>> print(tree.ascii_art())
                                   /-Human
                         /edge.0--|
               /edge.1--|          \-HowlerMon
@@ -54,10 +54,10 @@ Specifying a clade
 I'm going to cause ``omega`` to attain a different value for all branches aside from the primate clade and stem (``HowlerMon``, ``Human``, ``edge.0``).
 
 .. doctest::
-    
+
     >>> lf.set_param_rule('omega', tip_names=['DogFaced', 'Mouse'],
     ...              outgroup_name='Human', init=2.0, is_clade=True)
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     =====
     kappa
@@ -94,11 +94,11 @@ This time I'll specify the stem leading to the primates as the edge of interest.
 .. note:: I need to reset the ``lf`` so all edges have the default value again. I'll show this only for this example, but rest assured I'm doing it for all others too.
 
 .. doctest::
-    
+
     >>> lf.set_param_rule('omega', init=1.0)
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', init=2.0, is_stem=True, is_clade=False)
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     =====
     kappa
@@ -124,14 +124,14 @@ I'll specify that both the primates and their stem are to be considered.
 
 .. doctest::
     :hide:
-    
+
     >>> lf.set_param_rule('omega', init=1.0)
 
 .. doctest::
-    
+
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', init=2.0, is_stem=True, is_clade=True)
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     =====
     kappa
@@ -166,12 +166,12 @@ The general use-cases for which a tree scope can be applied are:
     ...      outgroup_name='Mouse', is_clade=True, is_constant=True)
 
 2. all edges identified by a rule have the same but different value to the rest of the tree
-    
+
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', is_clade=True)
 
 3. allowing all edges identified by a rule to have different values of the parameter with the remaining tree edges having the same value
-    
+
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', is_clade=True, is_independent=True)
 
@@ -185,15 +185,15 @@ I'll demonstrate these cases sequentially as they involve gradually increasing t
 
 .. doctest::
     :hide:
-    
+
     >>> lf.set_param_rule('omega', init=1.0)
 
 .. doctest::
-    
+
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', is_clade=True, value=1.0, is_constant=True)
     >>> lf.optimise(local=True)
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     =====
     kappa
@@ -219,19 +219,19 @@ I'll demonstrate these cases sequentially as they involve gradually increasing t
         A     0.37
         G     0.21
     --------------
-    >>> print lf.getLogLikelihood()
+    >>> print(lf.get_log_likelihood())
     -8640.9...
-    >>> print lf.get_num_free_params()
+    >>> print(lf.get_num_free_params())
     9
 
 I'll now free up ``omega`` on the primate clade, but making it a single value shared by all primate lineages.
 
 .. doctest::
-    
+
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', is_clade=True, is_constant=False)
     >>> lf.optimise(local=True)
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     =====
     kappa
@@ -257,19 +257,19 @@ I'll now free up ``omega`` on the primate clade, but making it a single value sh
         A     0.37
         G     0.21
     --------------
-    >>> print lf.getLogLikelihood()
+    >>> print(lf.get_log_likelihood())
     -8639.7...
-    >>> print lf.get_num_free_params()
+    >>> print(lf.get_num_free_params())
     10
 
 Finally I'll allow all primate edges to have different values of ``omega``.
 
 .. doctest::
-    
+
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', is_clade=True, is_independent=True)
     >>> lf.optimise(local=True)
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     =====
     kappa
@@ -295,18 +295,18 @@ Finally I'll allow all primate edges to have different values of ``omega``.
         A     0.37
         G     0.21
     --------------
-    >>> print lf.getLogLikelihood()
+    >>> print(lf.get_log_likelihood())
     -8638.9...
-    >>> print lf.get_num_free_params()
+    >>> print(lf.get_num_free_params())
     11
 
 We now allow ``omega`` to be different on all edges.
 
 .. doctest::
-    
+
     >>> lf.set_param_rule('omega', is_independent=True)
     >>> lf.optimise(local=True)
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     =====
     kappa
@@ -332,7 +332,7 @@ We now allow ``omega`` to be different on all edges.
         A     0.37
         G     0.21
     --------------
-    >>> print lf.getLogLikelihood()
+    >>> print(lf.get_log_likelihood())
     -8636.1...
-    >>> print lf.get_num_free_params()
+    >>> print(lf.get_num_free_params())
     15

@@ -7,7 +7,7 @@ Tabular data
     :hide:
 
     >>> # just saving some tabular data for subsequent data
-    >>> from cogent import LoadTable
+    >>> from cogent3 import LoadTable
     >>> rows = (('NP_003077', 'Con', 2.5386013224378985),
     ... ('NP_004893', 'Con', 0.12135142635634111e+06),
     ... ('NP_005079', 'Con', 0.95165949788861326e+07),
@@ -23,9 +23,9 @@ We load a comma separated data file using the generic ``LoadTable`` function.
 
 .. doctest::
 
-    >>> from cogent import LoadTable
+    >>> from cogent3 import LoadTable
     >>> table = LoadTable('stats.txt', sep=',')
-    >>> print table
+    >>> print(table)
     ====================================
         Locus    Region            Ratio
     ------------------------------------
@@ -44,7 +44,7 @@ For really large files the automated conversion used by the standard read mechan
 .. doctest::
 
     >>> table = LoadTable('stats.txt', static_column_types=True)
-    >>> print table
+    >>> print(table)
     ====================================
         Locus    Region            Ratio
     ------------------------------------
@@ -66,7 +66,7 @@ We change the ``Ratio`` column to using scientific notation.
 .. doctest::
 
     >>> table.format_column('Ratio', '%.1e')
-    >>> print table
+    >>> print(table)
     ==============================
         Locus    Region      Ratio
     ------------------------------
@@ -85,7 +85,7 @@ This can be done on table loading,
 .. doctest::
 
     >>> table = LoadTable('stats.txt', sep=',', digits=1, space=2)
-    >>> print table
+    >>> print(table)
     =============================
         Locus  Region       Ratio
     -----------------------------
@@ -101,7 +101,7 @@ or, for spacing at least, by modifying the attributes
 .. doctest::
 
     >>> table.space = '    '
-    >>> print table
+    >>> print(table)
     =================================
         Locus    Region         Ratio
     ---------------------------------
@@ -120,10 +120,10 @@ The table ``Header`` is immutable. Changing column headings is done as follows.
 .. doctest::
 
     >>> table = LoadTable('stats.txt', sep=',')
-    >>> print table.Header
+    >>> print(table.Header)
     ['Locus', 'Region', 'Ratio']
     >>> table = table.with_new_header('Ratio', 'Stat')
-    >>> print table.Header
+    >>> print(table.Header)
     ['Locus', 'Region', 'Stat']
 
 Creating new columns from existing ones
@@ -137,7 +137,7 @@ This can be used to take a single, or multiple columns and generate a new column
     >>> table = table.with_new_column('LargeCon',
     ...                     lambda (r,v): r == 'Con' and v>10.0,
     ...                     columns=['Region', 'Ratio'])
-    >>> print table
+    >>> print(table)
     ================================================
         Locus    Region            Ratio    LargeCon
     ------------------------------------------------
@@ -158,7 +158,7 @@ Can be done without specifying a new column. Here we simply use the same table d
     >>> table1 = LoadTable('stats.txt', sep=',')
     >>> table2 = LoadTable('stats.txt', sep=',')
     >>> table = table1.appended(None, table2)
-    >>> print table
+    >>> print(table)
     ====================================
         Locus    Region            Ratio
     ------------------------------------
@@ -181,7 +181,7 @@ or with a new column
     >>> table1.title = 'Data1'
     >>> table2.title = 'Data2'
     >>> table = table1.appended('Data#', table2, title='')
-    >>> print table
+    >>> print(table)
     =============================================
     Data#        Locus    Region            Ratio
     ---------------------------------------------
@@ -217,7 +217,7 @@ We define a strictly numerical table,
 
     >>> all_numeric = LoadTable(header=['A', 'B', 'C'], rows=[range(3),
     ...                                 range(3,6), range(6,9), range(9,12)])
-    >>> print all_numeric
+    >>> print(all_numeric)
     =============
     A     B     C
     -------------
@@ -250,7 +250,7 @@ We define a table with mixed data, like a distance matrix.
 
     >>> mixed = LoadTable(header=['A', 'B', 'C'], rows=[['*',1,2], [3,'*', 5],
     ...                                                 [6,7,'*']])
-    >>> print mixed
+    >>> print(mixed)
     ===========
     A    B    C
     -----------
@@ -283,7 +283,7 @@ We can do this by providing a reference to an external function
 
     >>> table = LoadTable('stats.txt', sep=',')
     >>> sub_table = table.filtered(lambda x: x < 10.0, columns='Ratio')
-    >>> print sub_table
+    >>> print(sub_table)
     =============================
         Locus    Region     Ratio
     -----------------------------
@@ -296,7 +296,7 @@ or using valid python syntax within a string, which is executed
 .. doctest::
 
     >>> sub_table = table.filtered("Ratio < 10.0")
-    >>> print sub_table
+    >>> print(sub_table)
     =============================
         Locus    Region     Ratio
     -----------------------------
@@ -309,7 +309,7 @@ You can also filter for values in multiple columns
 .. doctest::
 
     >>> sub_table = table.filtered("Ratio < 10.0 and Region == 'NonCon'")
-    >>> print sub_table
+    >>> print(sub_table)
     =============================
         Locus    Region     Ratio
     -----------------------------
@@ -324,7 +324,7 @@ We select only columns that have a sum > 20 from the ``all_numeric`` table const
 .. doctest::
 
     >>> big_numeric = all_numeric.filtered_by_column(lambda x: sum(x)>20)
-    >>> print big_numeric
+    >>> print(big_numeric)
     ========
      B     C
     --------
@@ -343,7 +343,7 @@ Standard sorting
 .. doctest::
 
     >>> table = LoadTable('stats.txt', sep=',')
-    >>> print table.sorted(columns='Ratio')
+    >>> print(table.sorted(columns='Ratio'))
     ====================================
         Locus    Region            Ratio
     ------------------------------------
@@ -359,7 +359,7 @@ Reverse sorting
 
 .. doctest::
 
-    >>> print table.sorted(columns='Ratio', reverse='Ratio')
+    >>> print(table.sorted(columns='Ratio', reverse='Ratio'))
     ====================================
         Locus    Region            Ratio
     ------------------------------------
@@ -375,7 +375,7 @@ Sorting involving multiple columns, one reversed
 
 .. doctest::
 
-    >>> print table.sorted(columns=['Region', 'Ratio'], reverse='Ratio')
+    >>> print(table.sorted(columns=['Region', 'Ratio'], reverse='Ratio'))
     ====================================
         Locus    Region            Ratio
     ------------------------------------
@@ -396,7 +396,7 @@ For a single column
 
     >>> table = LoadTable('stats.txt', sep=',')
     >>> raw = table.tolist('Region')
-    >>> print raw
+    >>> print(raw)
     ['Con', 'Con', 'Con', 'NonCon', 'NonCon']
 
 For multiple columns
@@ -406,7 +406,7 @@ For multiple columns
 
     >>> table = LoadTable('stats.txt', sep=',')
     >>> raw = table.tolist(['Locus', 'Region'])
-    >>> print raw
+    >>> print(raw)
     [['NP_003077', 'Con'], ['NP_004893', 'Con'], ...
 
 Iterating over table rows
@@ -416,7 +416,7 @@ Iterating over table rows
 
     >>> table = LoadTable('stats.txt', sep=',')
     >>> for row in table:
-    ...     print row['Locus']
+    ...     print(row['Locus'])
     ...
     NP_003077
     NP_004893
@@ -433,7 +433,7 @@ Using column names
 .. doctest::
 
     >>> table = LoadTable('stats.txt', sep=',')
-    >>> print table[:2, :'Region']
+    >>> print(table[:2, :'Region'])
     =========
         Locus
     ---------
@@ -447,7 +447,7 @@ Using column indices
 .. doctest::
 
     >>> table = LoadTable('stats.txt', sep=',')
-    >>> print table[:2,: 1]
+    >>> print(table[:2,: 1])
     =========
         Locus
     ---------
@@ -487,7 +487,7 @@ SQL-like join operations requires tables have different ``title`` attributes whi
     ...                 title='RegionClass')
     >>> stats_table = LoadTable('stats.txt', sep=',', title='Stats')
     >>> new = stats_table.joined(region_type, columns_self='Locus')
-    >>> print new
+    >>> print(new)
     ============================================================
         Locus    Region            Ratio    RegionClass_LargeCon
     ------------------------------------------------------------
@@ -516,7 +516,7 @@ It is also possible to specify column alignment, table caption and other argumen
 .. doctest::
 
     >>> table = LoadTable('stats.txt', sep=',')
-    >>> print table.tostring(format='latex')
+    >>> print(table.tostring(format='latex'))
     \begin{longtable}[htp!]{ r r r }
     \hline
     \bf{Locus} & \bf{Region} & \bf{Ratio} \\
@@ -546,7 +546,7 @@ This format allows display of annotation tracks on genome browsers.
 
 .. doctest::
     :options: +NORMALIZE_WHITESPACE
-    
+
     >>> rows = [['1', 100, 101, 1.123], ['1', 101, 102, 1.123],
     ...         ['1', 102, 103, 1.123], ['1', 103, 104, 1.123],
     ...         ['1', 104, 105, 1.123], ['1', 105, 106, 1.123],
@@ -563,11 +563,11 @@ This format allows display of annotation tracks on genome browsers.
     ...         ['1', 155, 156, 2], ['1', 156, 157, 2],
     ...         ['1', 157, 158, 2], ['1', 158, 159, 2],
     ...         ['1', 159, 160, 2], ['1', 160, 161, 2]]
-    ... 
+    ...
     >>> bgraph = LoadTable(header=['chrom', 'start', 'end', 'value'],
     ...                   rows=rows)
-    ...                     
-    >>> print bgraph.tostring(format='bedgraph', name='test track',
+    ...
+    >>> print(bgraph.tostring(format='bedgraph', name='test track',)
     ...     description='test of bedgraph', color=(255,0,0)) # doctest: +NORMALIZE_WHITESPACE
     track type=bedGraph name="test track" description="test of bedgraph" color=255,0,0
     1	100	108	1.12
@@ -578,9 +578,9 @@ This format allows display of annotation tracks on genome browsers.
 
 .. doctest::
     :options: +NORMALIZE_WHITESPACE
-    
-    >>> print bgraph.tostring(format='bedgraph', name='test track',  
-    ...   description='test of bedgraph', color=(255,0,0), digits=0) # doctest: +NORMALIZE_WHITESPACE
+
+    >>> print(bgraph.tostring(format='bedgraph', name='test track',
+    ...   description='test of bedgraph', color=(255,0,0), digits=0)) # doctest: +NORMALIZE_WHITESPACE
     track type=bedGraph name="test track" description="test of bedgraph" color=255,0,0
     1	100	118	1.0
     1	118	161	2.0

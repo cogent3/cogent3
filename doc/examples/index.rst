@@ -23,10 +23,6 @@ Data manipulation
     aln_profile
     genetic_code_aa_index
     handling_tabular_data
-    handling_3dstructures
-    entity_selection
-    query_ncbi
-    query_ensembl
     manipulating_tree_nodes
 
 *********************
@@ -70,9 +66,6 @@ Modelling Evolution
     coevolution
     rate_heterogeneity
     hmm_par_heterogeneity
-    seqsim_alignment_simulation
-    seqsim_aln_sim_user_alphabet
-    seqsim_tree_sim
 
 ***************************
 Phylogenetic Reconstruction

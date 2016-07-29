@@ -13,7 +13,7 @@ For illustrative purposes we define a sequence with 2 exons and grab the 1\ :sup
 
 .. doctest::
 
-    >>> from cogent import DNA
+    >>> from cogent3 import DNA
     >>> s = DNA.make_sequence("aagaagaagacccccaaaaaaaaaattttttttttaaaaaaaaaaaaa",
     ... name="Orig")
     >>> exon1 = s.add_feature('exon', 'exon1', [(10,15)])
@@ -42,14 +42,14 @@ You can query annotations by type and optionally by label, receiving a list of f
 .. doctest::
 
     >>> exons = s.get_annotations_matching('exon')
-    >>> print exons
+    >>> print(exons)
     [exon "exon1" at [10:15]/48, exon "exon2" at [30:40]/48]
 
 We can use this list to construct a pseudo-feature covering (or excluding) multiple features using ``get_region_covering_all``. For instance, getting all exons,
 
 .. doctest::
 
-    >>> print s.get_region_covering_all(exons)
+    >>> print(s.get_region_covering_all(exons))
     region "exon" at [10:15, 30:40]/48
     >>> s.get_region_covering_all(exons).get_slice()
     DnaSequence(CCCCCTT... 15)
@@ -58,7 +58,7 @@ or not exons (the exon *shadow*):
 
 .. doctest::
 
-    >>> print s.get_region_covering_all(exons).get_shadow().get_slice()
+    >>> print(s.get_region_covering_all(exons).get_shadow().get_slice())
     AAGAAGAAGAAAAAAAAAAATTTTTAAAAAAAA
 
 The first of these essentially returns the CDS of the gene.

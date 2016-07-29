@@ -8,8 +8,8 @@ Checkpointing optimisation runs
 A common problem in HPC systems is to make sure a long running process is capable of restarting after interruptions by restoring to the last check pointed state. The optimiser class code has this capability, for example and we'll illustrate that here. We first construct a likelihood function object.
 
 .. doctest::
-    
-    >>> from cogent import LoadSeqs, LoadTree
+
+    >>> from cogent3 import LoadSeqs, LoadTree
     >>> from cogent3.evolve.models import F81
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> tree = LoadTree('data/primate_brca1.tree')
@@ -20,7 +20,7 @@ A common problem in HPC systems is to make sure a long running process is capabl
 We then start an optimisation, providing a filename for checkpointing and specifying a time-interval in (which we make very short here to ensure something get's written, for longer running functions the default ``interval`` setting is fine). Calling ``optimise`` then results in the notice that checkpoint's are being written.
 
 .. doctest::
-    
+
     >>> checkpoint_fn = 'checkpoint_this.txt'
     >>> lf.optimise(filename=checkpoint_fn, interval=100, show_progress = False)
     CHECKPOINTING to file 'checkpoint_this.txt'...
@@ -28,11 +28,11 @@ We then start an optimisation, providing a filename for checkpointing and specif
 Recovering from a real run that was interrupted generates an additional notification: ``RESUMING from file ..``. For the purpose of this snippet we just show that the checkpoint file exists.
 
 .. doctest::
-    
-    >>> import cPickle
-    >>> data = cPickle.load(open(checkpoint_fn))
-    >>> print data
-    <cogent.maths.simannealingoptimiser.AnnealingRun object...
+
+    >>> import pickle
+    >>> data = pickle.load(open(checkpoint_fn, 'rb'))
+    >>> print(data)
+    <cogent3.maths.simannealingoptimiser.AnnealingRun object...
 
 Checkpointing phylogenetic optimisation runs
 ============================================
@@ -41,8 +41,8 @@ The built-in phylogeny code is also capable of checkpointing it's internal state
 
 .. doctest::
 
-    >>> import cPickle
-    >>> dists = cPickle.load(open('data/dists_for_phylo.pickle'))
+    >>> import pickle
+    >>> dists = pickle.load(open('data/dists_for_phylo.pickle', 'rb'))
 
 We make the weighted least-squares calculator.
 
@@ -54,7 +54,7 @@ We make the weighted least-squares calculator.
 We start searching for trees, providing the name of the file to checkpoint to.
 
 .. doctest::
-    
+
     >>> checkpoint_phylo_fn = 'checkpoint_phylo.txt'
     >>> score, tree = ls.trex(a = 5, k = 1, filename=checkpoint_phylo_fn, interval=100)
 
@@ -62,6 +62,6 @@ We start searching for trees, providing the name of the file to checkpoint to.
 
 .. doctest::
     :hide:
-    
+
     >>> from cogent3.util.misc import remove_files
     >>> remove_files([checkpoint_fn, checkpoint_phylo_fn], error_on_missing=False)

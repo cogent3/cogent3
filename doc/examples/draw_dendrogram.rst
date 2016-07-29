@@ -9,7 +9,7 @@ From cogent import all the components we need.
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, LoadTree
+    >>> from cogent3 import LoadSeqs, LoadTree
     >>> from cogent3.evolve.models import MG94HKY
     >>> from cogent3.draw import dendrogram
 
@@ -40,7 +40,7 @@ Dendrogram with branch lengths not proportional
 .. doctest::
 
     >>> np = dendrogram.ContemporaneousDendrogram(nonneutral_lf.tree)
-    >>> np.drawToPDF('tree-unscaled.pdf' , width, height, stroke_width=2.0,
+    >>> np.write_pdf('tree-unscaled.pdf' , width, height, stroke_width=2.0,
     ... show_params = ['r'], label_template = "%(r).2g", shade_param = 'r',
     ... max_value = 1.0, show_internal_labels=False, font_size = 10,
     ... scale_bar = None, use_lengths=False)
@@ -51,7 +51,7 @@ Dendrogram with branch lengths proportional
 .. doctest::
 
     >>> p = dendrogram.SquareDendrogram(nonneutral_lf.tree)
-    >>> p.drawToPDF('tree-scaled.pdf', width, height, stroke_width=2.0,
+    >>> p.write_pdf('tree-scaled.pdf', width, height, stroke_width=2.0,
     ... shade_param = 'r', max_value = 1.0, show_internal_labels=False,
     ... font_size = 10)
 

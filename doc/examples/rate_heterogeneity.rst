@@ -10,7 +10,7 @@ A simple example for analyses involving rate heterogeneity among sites. In this 
 .. doctest::
 
     >>> from cogent3.evolve.substitution_model import Nucleotide
-    >>> from cogent import LoadTree
+    >>> from cogent3 import LoadTree
 
 Make an alignment with equal split between rates 0.6 and 0.2, and then concatenate them to create a new alignment.
 

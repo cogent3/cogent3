@@ -7,7 +7,7 @@ In this example we pull together the distance calculation and tree building with
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, PROTEIN
+    >>> from cogent3 import LoadSeqs, PROTEIN
 
 We will use an empirical protein substitution matrix.
 
@@ -45,7 +45,7 @@ The resulting distances are passed to the nj function.
 
 .. doctest::
 
-    >>> mytree = nj.nj(d.getPairwiseDistances())
+    >>> mytree = nj.nj(d.get_pairwise_distances())
 
 The shape of the resulting tree can be readily view by printing ``mytree.ascii_art()``. The result will be equivalent to.
 

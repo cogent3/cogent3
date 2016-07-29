@@ -16,7 +16,7 @@ First import standard components necessary for all of the following calculations
 .. doctest::
 
     >>> from cogent3.evolve.substitution_model import Nucleotide, predicate
-    >>> from cogent import LoadSeqs, LoadTree
+    >>> from cogent3 import LoadSeqs, LoadTree
     >>> from cogent3.maths.stats import chisqprob
 
 Load the alignment and tree.
@@ -45,9 +45,9 @@ We specify a null model with no bins, and optimise it.
     >>> lf_one = model.make_likelihood_function(tree, digits=2, space=3)
     >>> lf_one.set_alignment(aln)
     >>> lf_one.optimise()
-    >>> lnL_one = lf_one.getLogLikelihood()
+    >>> lnL_one = lf_one.get_log_likelihood()
     >>> df_one = lf_one.get_num_free_params()
-    >>> print lf_one
+    >>> print(lf_one)
     Likelihood Function Table
     =====
     kappa
@@ -88,10 +88,10 @@ Our next hypothesis is that there are two rate classes, or bins, with rates gamm
     >>> lf_bins.set_param_rule('bprobs', is_constant=True)
     >>> lf_bins.set_alignment(aln)
     >>> lf_bins.optimise(local=True)
-    >>> lnL_bins = lf_bins.getLogLikelihood()
+    >>> lnL_bins = lf_bins.get_log_likelihood()
     >>> df_bins = lf_bins.get_num_free_params()
     >>> assert df_bins == 9
-    >>> print lf_bins
+    >>> print(lf_bins)
     Likelihood Function Table
     ==================
     kappa   rate_shape
@@ -136,9 +136,9 @@ We then specify a model with switches for changing between site-classes, the HMM
     >>> lf_patches.set_param_rule('bprobs', is_constant=True)
     >>> lf_patches.set_alignment(aln)
     >>> lf_patches.optimise(local=True)
-    >>> lnL_patches = lf_patches.getLogLikelihood()
+    >>> lnL_patches = lf_patches.get_log_likelihood()
     >>> df_patches = lf_patches.get_num_free_params()
-    >>> print lf_patches
+    >>> print(lf_patches)
     Likelihood Function Table
     ===============================
     bin_switch   kappa   rate_shape
@@ -182,9 +182,9 @@ We conduct the test between the sequentially nested models.
 .. doctest::
 
     >>> lr = LR(lnL_bins, lnL_one)
-    >>> print lr
+    >>> print(lr)
     22...
-    >>> print "%.4f" % chisqprob(lr, df_patches-df_bins)
+    >>> print("%.4f" % chisqprob(lr, df_patches-df_bins))
     0.0000
 
 The stationary bin probabilities are labelled as ``bprobs`` and can be obtained as follows.
@@ -192,20 +192,20 @@ The stationary bin probabilities are labelled as ``bprobs`` and can be obtained 
 .. doctest::
 
     >>> bprobs = lf_patches.get_param_value('bprobs')
-    >>> print "%.1f : %.1f" % tuple(bprobs)
+    >>> print("%.1f : %.1f" % tuple(bprobs))
     0.5 : 0.5
 
 Of greater interest here (given the model was set up so the bin probabilities were equal, i.e. ``is_constant=True``) are the posterior probabilities as those allow classification of sites. The result is a ``DictArray`` class instance, which behaves like a dictionary.
 
 .. doctest::
 
-    >>> pp = lf_patches.getBinProbs()
+    >>> pp = lf_patches.get_bin_probs()
 
 If we want to know the posterior probability the 21st position belongs to ``bin0``, we can determine it as:
 
 .. doctest::
 
-    >>> print pp['bin0'][20]
+    >>> print(pp['bin0'][20])
     0.8...
 
 A model with patches of ``kappa``
@@ -214,18 +214,18 @@ A model with patches of ``kappa``
 In this example we model sequence evolution where there are 2 classes of sites distinguished by their ``kappa`` parameters. We need to know what value of ``kappa`` to specify the delineation of the bin boundaries. We can determine this from the null model (``lf_one``). For this use case, we also need to use a ``numpy.array``, so we'll import that.
 
 .. todo::
-    
+
     **FOR RELEASE** did we fix this silliness of requiring a nump.array?
 
 .. doctest::
-    
+
     >>> from numpy import array
     >>> single_kappa = lf_one.get_param_value('kappa')
 
 We then construct the substitution model in a different way to that when evaluating generic rate heterogeneity (above).
 
 .. doctest::
-    
+
     >>> kappa_bin_submod = Nucleotide(predicates=[kappa], **treat_gap)
     >>> lf_kappa = kappa_bin_submod.make_likelihood_function(tree,
     ...      bins = ['slow', 'fast'], sites_independent=False, digits=1,
@@ -234,7 +234,7 @@ We then construct the substitution model in a different way to that when evaluat
 To improve the likelihood fitting it is desirable to set starting values in the model that result in it's initial likelihood being that of the null model (or as close as possible). To do this, we're going to define an arbitrarily small value (``epsilon``) which we use to provide the starting value to the two bins as slightly smaller/greater than ``single_kappa`` for the slow/fast bins respectively. At the same time we set the upper/lower bin boundaries.
 
 .. doctest::
-    
+
     >>> epsilon = 1e-6
     >>> lf_kappa.set_param_rule(kappa, init=single_kappa-epsilon,
     ...                      upper=single_kappa, bin='slow')
@@ -244,12 +244,12 @@ To improve the likelihood fitting it is desirable to set starting values in the 
 We then illustrate how to adjust the bin probabilities, here doing it so that one of them is nearly 1, the other nearly 0. This ensures the likelihood will be near identical to that of ``lf_one`` and as a result the optimisation step will actually improve fit over the simpler model.
 
 .. doctest::
-    
+
     >>> lf_kappa.set_param_rule('bprobs',
     ...             init=array([1.0-epsilon, 0.0+epsilon]))
     >>> lf_kappa.set_alignment(aln)
     >>> lf_kappa.optimise(local=True)
-    >>> print lf_kappa
+    >>> print(lf_kappa)
     Likelihood Function Table
     ==========
     bin_switch
@@ -281,5 +281,5 @@ We then illustrate how to adjust the bin probabilities, here doing it so that on
         A      0.4
         G      0.2
     --------------
-    >>> print lf_kappa.getLogLikelihood()
+    >>> print(lf_kappa.get_log_likelihood())
     -8749.3...

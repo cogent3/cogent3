@@ -7,12 +7,12 @@ We want to know whether an exchangeability parameter is different between alignm
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, LoadTree, LoadTable
+    >>> from cogent3 import LoadSeqs, LoadTree, LoadTable
     >>> from cogent3.evolve.models import HKY85
     >>> from cogent3.recalculation.scope import EACH, ALL
     >>> from cogent3.maths.stats import chisqprob
     >>> aln = LoadSeqs("data/long_testseqs.fasta")
-    >>> half = len(aln)/2
+    >>> half = len(aln)//2
     >>> aln1 = aln[:half]
     >>> aln2 = aln[half:]
 
@@ -34,7 +34,7 @@ To make a likelihood function with multiple alignments we provide the list of lo
     >>> lf.set_param_rule('kappa', loci = ALL)
     >>> lf.set_alignment(loci)
     >>> lf.optimise(local=True)
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     =========================
        locus   motif   mprobs
@@ -53,11 +53,11 @@ To make a likelihood function with multiple alignments we provide the list of lo
     --------------
      3.98     0.13
     --------------
-    >>> all_lnL = lf.getLogLikelihood()
+    >>> all_lnL = lf.get_log_likelihood()
     >>> all_nfp = lf.get_num_free_params()
     >>> lf.set_param_rule('kappa', loci = EACH)
     >>> lf.optimise(local=True)
-    >>> print lf
+    >>> print(lf)
     Likelihood Function Table
     ================
        locus   kappa
@@ -82,15 +82,15 @@ To make a likelihood function with multiple alignments we provide the list of lo
     ------
       0.13
     ------
-    >>> each_lnL = lf.getLogLikelihood()
+    >>> each_lnL = lf.get_log_likelihood()
     >>> each_nfp = lf.get_num_free_params()
     >>> LR = 2 * (each_lnL - all_lnL)
     >>> df = each_nfp - all_nfp
 
-Just to pretty up the result display, I'll print a table consisting of the test statistics created on the fly.
+Just to pretty up the result display, I'll print(a table consisting of the test statistics created on the fly.)
 
-    >>> print LoadTable(header=['LR', 'df', 'p'],
-    ...             rows=[[LR, df, chisqprob(LR, df)]], digits=2, space=3)
+    >>> print(LoadTable(header=['LR', 'df', 'p'],
+    ...             rows=[[LR, df, chisqprob(LR, df)]], digits=2, space=3))
     ================
       LR   df      p
     ----------------

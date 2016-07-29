@@ -12,7 +12,7 @@ Data Manipulation using ``Table``
     Email, gavin.huttley@anu.edu.au
     Status, Production
 
-The toolkit has a ``Table`` object that can be used for manipulating tabular data. It's properties can be considered like an ordered 2 dimensional dictionary or tuple with flexible output format capabilities of use for exporting data for import into external applications. Importantly, via the restructured text format one can generate html or latex formatted tables. The ``table`` module is located within ``cogent.util``. The ``LoadTable`` convenience function is provided as a top-level ``cogent`` import.
+The toolkit has a ``Table`` object that can be used for manipulating tabular data. It's properties can be considered like an ordered 2 dimensional dictionary or tuple with flexible output format capabilities of use for exporting data for import into external applications. Importantly, via the restructured text format one can generate html or latex formatted tables. The ``table`` module is located within ``cogent3.util``. The ``LoadTable`` convenience function is provided as a top-level ``cogent`` import.
 
 Table creation
 --------------
@@ -60,7 +60,7 @@ We create the simplest of tables.
 
 .. doctest::
 
-    >>> t = Table(header = column_headings, rows = rows)
+    >>> t = Table(header=column_headings, rows=rows)
     >>> print(t)
     =============================
                 Journal    Impact

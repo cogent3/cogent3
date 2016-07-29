@@ -7,7 +7,7 @@ From cogent import all the components we need
 
 .. doctest::
 
-    >>> from cogent import LoadSeqs, LoadTree
+    >>> from cogent3 import LoadSeqs, LoadTree
     >>> from cogent3.evolve.models import HKY85
     >>> from cogent3.maths import stats
 
@@ -53,7 +53,7 @@ View the resulting maximum-likelihood parameter values.
 .. doctest::
 
     >>> lf.set_name("clock")
-    >>> print lf
+    >>> print(lf)
     clock
     =====
     kappa
@@ -84,7 +84,7 @@ We extract the log-likelihood and number of free parameters for later use.
 
 .. doctest::
 
-    >>> null_lnL = lf.getLogLikelihood()
+    >>> null_lnL = lf.get_log_likelihood()
     >>> null_nfp = lf.get_num_free_params()
 
 Clear the local clock constraint, freeing up the branch lengths.
@@ -104,7 +104,7 @@ View the resulting maximum-likelihood parameter values.
 .. doctest::
 
     >>> lf.set_name("non clock")
-    >>> print lf
+    >>> print(lf)
     non clock
     =====
     kappa
@@ -135,7 +135,7 @@ These two lnL's are now used to calculate the likelihood ratio statistic it's de
 
 .. doctest::
 
-    >>> LR = 2 * (lf.getLogLikelihood() - null_lnL)
+    >>> LR = 2 * (lf.get_log_likelihood() - null_lnL)
     >>> df = lf.get_num_free_params() - null_nfp
     >>> P = stats.chisqprob(LR, df)
 
@@ -143,9 +143,9 @@ Print this and look up a :math:`\chi^2` with number of edges - 1 degrees of free
 
 .. doctest::
 
-    >>> print "Likelihood ratio statistic = ", LR
+    >>> print("Likelihood ratio statistic = ", LR)
     Likelihood ratio statistic =  2.7...
-    >>> print "degrees-of-freedom = ", df
+    >>> print("degrees-of-freedom = ", df)
     degrees-of-freedom =  1
-    >>> print "probability = ", P
+    >>> print("probability = ", P)
     probability =  0.09...

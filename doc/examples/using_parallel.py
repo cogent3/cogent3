@@ -24,8 +24,7 @@ try:
     for job in JOBS:
         if not job % comm.size == comm.rank:
             continue
-        print "My ID=%d, my message=%s" % (comm.rank, JOBS[job])
+        print("My ID=%d, my message=%s" % (comm.rank, JOBS[job]))
 finally:
     # always restore the original parallel context
     parallel.pop(leftover)
-    
