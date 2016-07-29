@@ -67,7 +67,7 @@ from cogent3.parse.record import FileFormatError
 from cogent3.evolve.substitution_model import SubstitutionModel
 from cogent3 import LoadSeqs, LoadTree, PROTEIN, RNA
 from cogent3.core.tree import TreeError
-from cogent3.core.alignment import seqs_from_fasta, DenseAlignment
+from cogent3.core.alignment import seqs_from_fasta, ArrayAlignment
 from cogent3.parse.newick import TreeParseError
 from cogent3.parse.record import RecordError
 from cogent3.util.recode_alignment import recode_dense_alignment, \
@@ -272,7 +272,7 @@ def mi_alignment(alignment, mi_calculator=mi, null_value=gDefaultNullValue,
 
     # Compile postional entropies for each position in the alignment
     # I believe I started using this rather than alignment.uncertainties
-    # b/c the latter relies on converting a DenseAlignment to an Alignment --
+    # b/c the latter relies on converting a ArrayAlignment to an Alignment --
     # need to check into this.
     positional_entropies = [Freqs(p).Uncertainty for p in alignment.Positions]
 
@@ -1070,7 +1070,7 @@ def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
     lf.set_alignment(aln, motif_pseudocount=pseudocount)
     if optimise:
         lf.optimise(local=True)
-    return DenseAlignment(lf.likely_ancestral_seqs(), moltype=aln.moltype)
+    return ArrayAlignment(lf.likely_ancestral_seqs(), moltype=aln.moltype)
 
 
 def ancestral_state_alignment(aln, tree, ancestral_seqs=None,
@@ -1411,7 +1411,7 @@ def merge_alignments(alignment1, alignment2):
         raise KeyError('A sequence identifier is in alignment2 ' +
                        'but not alignment1 -- did you filter out sequences identifiers' +
                        ' not common to both alignments?')
-    return LoadSeqs(data=result, as_dense=True)
+    return LoadSeqs(data=result, as_array=True)
 
 
 def n_random_seqs(alignment, n):
@@ -1431,8 +1431,8 @@ def coevolve_alignments(method, alignment1, alignment2,
     """ Apply method to a pair of alignments (for intermolecular coevolution)
 
         method: the *_alignment function to be applied
-        alignment1: alignment of first molecule (DenseAlignment)
-        alignment2: alignment of second molecule (DenseAlignment)
+        alignment1: alignment of first molecule (ArrayAlignment)
+        alignment2: alignment of second molecule (ArrayAlignment)
         return_full: if True, returns intra- and inter-molecular
          coevolution data in a square matrix (default: False)
         merged_aln_filepath: if provided, will write the merged
@@ -1603,7 +1603,7 @@ def coevolve_position(method, alignment, position, **kwargs):
 
         method: f(alignment,position,**kwargs) -> array of coevolution scores
         alignment: alignment object for which coevolve scores should be
-            calculated (DenseAlignment)
+            calculated (ArrayAlignment)
         position: position of interest for coevolution analysis (int)
         **kwargs: parameters to be passed to method()
     """
@@ -1633,7 +1633,7 @@ def coevolve_pair(method, alignment, pos1, pos2, **kwargs):
 
         method: f(alignment,pos1,pos2,**kwargs) -> coevolution score
         alignment: alignment object for which coevolve score should be
-            calculated (DenseAlignment)
+            calculated (ArrayAlignment)
         pos1, pos2: positions to evaluate coevolution between (int)
         **kwargs: parameters to be passed to method()
 
@@ -1858,7 +1858,7 @@ def filter_exclude_positions(aln, coevolution_matrix,
                              excludes=gDefaultExcludes, intermolecular_data_only=False):
     """ Assign null_value to positions with > max_exclude_percent excludes
 
-        aln: the DenseAlignment object
+        aln: the ArrayAlignment object
         coevolution_matrix: the 2D numpy array -- this will be modified
         max_exclude_percent: the maximimu percent of characters that
          may be exclude characters in any alignment position (column).

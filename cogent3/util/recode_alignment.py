@@ -40,7 +40,7 @@ Rob Knight. BMC Evolutionary Biology, 2008.
 
 from optparse import OptionParser
 from numpy import take, array, zeros
-from cogent3.core.alignment import DenseAlignment, Alignment
+from cogent3.core.alignment import ArrayAlignment, Alignment
 from cogent3.evolve.models import DSO78_matrix, DSO78_freqs
 from cogent3 import PROTEIN
 
@@ -191,9 +191,9 @@ def build_alphabet_map(alphabet_id=None, alphabet_def=None):
 
 
 def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
-    """Return new DenseAlignment recoded in the provided reduced-state alphabet
+    """Return new ArrayAlignment recoded in the provided reduced-state alphabet
 
-        aln: the DenseAlignment object to be recoded
+        aln: the ArrayAlignment object to be recoded
         alphabet_id: string identifying an alphabet in
             cogent3.util.recode_alignment.alphabets.
             (See cogent3.util.recode_alignment.alphabets.keys()
@@ -227,8 +227,8 @@ def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
         new_indices[byte_map[old]] = byte_map[new]
 
     # Map the old alphabet onto the new alphabet. Note: characters that
-    # that are not mapped are ignored. Returns a new DenseAlignment.
-    return DenseAlignment(take(new_indices, aln.array_seqs).transpose(),
+    # that are not mapped are ignored. Returns a new ArrayAlignment.
+    return ArrayAlignment(take(new_indices, aln.array_seqs).transpose(),
                           aln.names[:], moltype=aln.moltype)
 
 

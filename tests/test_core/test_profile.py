@@ -7,9 +7,9 @@ from numpy.random import random
 
 from cogent3.util.unit_test import TestCase, main  # , numpy_err
 from cogent3.core.moltype import DNA
-from cogent3.core.sequence import ModelSequence
+from cogent3.core.sequence import ArraySequence
 from cogent3.core.profile import Profile, ProfileError, CharMeaningProfile
-from cogent3.core.alignment import DenseAlignment as Alignment
+from cogent3.core.alignment import ArrayAlignment as Alignment
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -480,8 +480,8 @@ class ProfileTests(TestCase):
         # DnaSequence object
         ds = self.score1.score(DNA.make_sequence("ATTCAC"), offset=0)
         self.assertEqual(ds, [6, 2, -3, 0])
-        # ModelSequence object
-        ms = self.score1.score(ModelSequence("ATTCAC", alphabet=DNA.alphabet),
+        # ArraySequence object
+        ms = self.score1.score(ArraySequence("ATTCAC", alphabet=DNA.alphabet),
                                offset=0)
         self.assertEqual(ms, [6, 2, -3, 0])
 

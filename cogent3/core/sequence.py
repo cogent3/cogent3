@@ -517,7 +517,7 @@ class Sequence(_Annotatable, SequenceI):
         orig_seq = Seq
         if isinstance(Seq, Sequence):
             Seq = Seq._seq
-        elif isinstance(Seq, ModelSequence):
+        elif isinstance(Seq, ArraySequence):
             Seq = str(Seq)
         elif type(Seq) is not str:
             try:
@@ -935,10 +935,10 @@ class ByteSequence(Sequence):
 
 
 @total_ordering
-class ModelSequenceBase(object):
+class ArraySequenceBase(object):
     """Holds the information for a non-degenerate sequence. Mutable.
 
-    A ModelSequence is an array of indices of symbols, where those symbols are
+    A ArraySequence is an array of indices of symbols, where those symbols are
     defined by an Alphabet. This representation of Sequence is convenient for
     counting symbol frequencies or tuple frequencies, remapping data (e.g. for
     reverse-complement), looking up model parameters, etc. Its main drawback is
@@ -953,7 +953,7 @@ class ModelSequenceBase(object):
     where necessary), a delimiter used for string conversions, a LineWrap
     for wrapping characters into lines for e.g. FASTA output.
 
-    Note that a ModelSequence _must_ have an Alphabet, not a MolType,
+    Note that a ArraySequence _must_ have an Alphabet, not a MolType,
     because it is often important to store just a subset of the possible
     characters (e.g. the non-degenerate bases) for modeling purposes.
     """
@@ -986,7 +986,7 @@ class ModelSequenceBase(object):
         # guess the data type and set it here
         if not hasattr(self, '_data'):
             # if data is a sequence, copy its data and alphabet
-            if isinstance(data, ModelSequence):
+            if isinstance(data, ArraySequence):
                 self._data = data._data
                 self.alphabet = data.alphabet
             # if it's an array
@@ -1255,13 +1255,13 @@ class ModelSequenceBase(object):
         return (self_gaps == other_gaps).sum() / float(min_len)
 
 
-class ModelSequence(ModelSequenceBase, SequenceI):
-    """ModelSequence provides an array-based implementation of Sequence.
+class ArraySequence(ArraySequenceBase, SequenceI):
+    """ArraySequence provides an array-based implementation of Sequence.
 
-    Use ModelSequenceBase if you need a stripped-down, fast implementation.
-    ModelSequence implements everything that SequenceI implements.
+    Use ArraySequenceBase if you need a stripped-down, fast implementation.
+    ArraySequence implements everything that SequenceI implements.
 
-    See docstrings for ModelSequenceBase and SequenceI for information about
+    See docstrings for ArraySequenceBase and SequenceI for information about
     these respective classes.
     """
 
@@ -1351,13 +1351,13 @@ class ModelSequence(ModelSequenceBase, SequenceI):
                        normalizer=per_shortest)(str(self), str(other))
 
 
-class ModelNucleicAcidSequence(ModelSequence):
+class ArrayNucleicAcidSequence(ArraySequence):
     """Abstract class defining ops for codons, translation, etc."""
 
     def to_codons(self):
         """Returns copy of self in codon alphabet. Assumes ungapped."""
         alpha_len = len(self.alphabet)
-        return ModelCodonSequence(alpha_len * (
+        return ArrayCodonSequence(alpha_len * (
             alpha_len * self._data[::3] + self._data[1::3]) + self._data[2::3],
             name=self.name, alphabet=self.alphabet.Triples)
 
@@ -1373,40 +1373,40 @@ class ModelNucleicAcidSequence(ModelSequence):
 
     def to_rna(self):
         """Returns self as RNA"""
-        return ModelRnaSequence(self._data)
+        return ArrayRnaSequence(self._data)
 
     def to_dna(self):
         """Returns self as DNA"""
-        return ModelDnaSequence(self._data)
+        return ArrayDnaSequence(self._data)
 
 
-class ModelRnaSequence(ModelNucleicAcidSequence):
+class ArrayRnaSequence(ArrayNucleicAcidSequence):
     moltype = None  # set to RNA in moltype.py
     alphabet = None  # set to RNA.alphabets.DegenGapped in moltype.py
 
     def __init__(self, data='', *args, **kwargs):
-        """Returns new ModelRnaSequence, converting T -> U"""
+        """Returns new ArrayRnaSequence, converting T -> U"""
         if hasattr(data, 'upper'):
             data = data.upper().replace('T', 'U')
-        return super(ModelNucleicAcidSequence, self).__init__(data,
+        return super(ArrayNucleicAcidSequence, self).__init__(data,
                                                               *args, **kwargs)
 
 
-class ModelDnaSequence(ModelNucleicAcidSequence):
+class ArrayDnaSequence(ArrayNucleicAcidSequence):
     moltype = None  # set to DNA in moltype.py
     alphabet = None  # set to DNA.alphabets.DegenGapped in moltype.py
 
     def __init__(self, data='', *args, **kwargs):
-        """Returns new ModelRnaSequence, converting U -> T"""
+        """Returns new ArrayRnaSequence, converting U -> T"""
         if hasattr(data, 'upper'):
             data = data.upper().replace('U', 'T')
-        return super(ModelNucleicAcidSequence, self).__init__(data,
+        return super(ArrayNucleicAcidSequence, self).__init__(data,
                                                               *args, **kwargs)
 
 
-class ModelCodonSequence(ModelSequence):
+class ArrayCodonSequence(ArraySequence):
     """Abstract base class for codon sequences, incl. string conversion."""
-    SequenceClass = ModelNucleicAcidSequence
+    SequenceClass = ArrayNucleicAcidSequence
 
     def __str__(self):
         """Joins triplets together as string."""
@@ -1424,7 +1424,7 @@ class ModelCodonSequence(ModelSequence):
         """Override __init__ to handle init from string."""
         if isinstance(data, str):
             self._from_string(data)
-        ModelSequence.__init__(self, data, alphabet, name, info=info)
+        ArraySequence.__init__(self, data, alphabet, name, info=info)
 
     def to_codons(self):
         """Converts self to codons -- in practice, just returns self.
@@ -1433,32 +1433,32 @@ class ModelCodonSequence(ModelSequence):
         return self
 
     def to_dna(self):
-        """Returns a ModelDnaSequence from the data in self"""
+        """Returns a ArrayDnaSequence from the data in self"""
         unpacked = self.alphabet.unpack_arrays(self._data)
         result = zeros((len(self._data), 3))
         for i, v in enumerate(unpacked):
             result[:, i] = v
-        return ModelDnaSequence(ravel(result), name=self.name)
+        return ArrayDnaSequence(ravel(result), name=self.name)
 
     def to_rna(self):
-        """Returns a ModelDnaSequence from the data in self."""
+        """Returns a ArrayDnaSequence from the data in self."""
         unpacked = self.alphabet.unpack_arrays(self._data)
         result = zeros((len(self._data), 3))
         for i, v in enumerate(unpacked):
             result[:, i] = v
-        return ModelRnaSequence(ravel(result), name=self.name)
+        return ArrayRnaSequence(ravel(result), name=self.name)
 
 
-class ModelDnaCodonSequence(ModelCodonSequence):
+class ArrayDnaCodonSequence(ArrayCodonSequence):
     """Holds non-degenerate DNA codon sequence."""
     alphabet = None  # set to DNA.alphabets.Base.Triples in moltype.py
-    SequenceClass = ModelDnaSequence
+    SequenceClass = ArrayDnaSequence
 
 
-class ModelRnaCodonSequence(ModelCodonSequence):
+class ArrayRnaCodonSequence(ArrayCodonSequence):
     """Holds non-degenerate DNA codon sequence."""
     alphabet = None  # set to RNA.alphabets.Base.Triples in motype.py
-    SequenceClass = ModelRnaSequence
+    SequenceClass = ArrayRnaSequence
 
     def _from_string(self, s):
         """Reads from a raw string, rather than a DnaSequence."""
@@ -1468,11 +1468,11 @@ class ModelRnaCodonSequence(ModelCodonSequence):
         self._data = d.to_codons()._data
 
 
-class ModelProteinSequence(ModelSequence):
+class ArrayProteinSequence(ArraySequence):
     moltype = None  # set to PROTEIN in moltype.py
     alphabet = None  # set to PROTEIN.alphabets.DegenGapped in moltype.py
 
 
-class ModelProteinWithStopSequence(ModelSequence):
+class ArrayProteinWithStopSequence(ArraySequence):
     moltype = None  # set to PROTEIN_WITH_STOP in moltype.py
     alphabet = None  # set to PROTEIN_WITH_STOP.alphabets.DegenGapped in moltype.py

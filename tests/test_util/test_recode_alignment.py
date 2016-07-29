@@ -10,7 +10,7 @@ File created on 19 Jun 2007.
 from numpy import array
 from cogent3 import LoadSeqs
 from cogent3.util.unit_test import TestCase, main
-from cogent3.core.alignment import DenseAlignment
+from cogent3.core.alignment import ArrayAlignment
 from cogent3.evolve.models import DSO78_matrix, DSO78_freqs
 from cogent3.evolve.substitution_model import SubstitutionModel
 from cogent3.core.alphabet import Alphabet
@@ -45,7 +45,7 @@ class RecodeAlignmentTests(TestCase):
         self.charge_2 = alphabets['charge_2']
         self.hydropathy_3 = alphabets['hydropathy_3']
         self.orig = alphabets['orig']
-        self.aln = DenseAlignment(
+        self.aln = ArrayAlignment(
             data={'1': 'CDDFBXZ', '2': 'CDD-BXZ', '3': 'AAAASS-'})
         self.aln2 = LoadSeqs(
             data={'1': 'CDDFBXZ', '2': 'CDD-BXZ', '3': 'AAAASS-'})
@@ -118,11 +118,11 @@ class RecodeAlignmentTests(TestCase):
     def test_recode_dense_alignment(self):
         """recode_dense_alignment: recode alignment to charge_2 alpha works
         """
-        expected_c2 = DenseAlignment(
+        expected_c2 = ArrayAlignment(
             data={'1': 'AKKAKAK', '2': 'AKK-KAK', '3': 'AAAAAA-'})
-        expected_h3 = DenseAlignment(
+        expected_h3 = ArrayAlignment(
             data={'1': 'PRRPRPR', '2': 'PRR-RPR', '3': 'PPPPYY-'})
-        expected_aa = DenseAlignment(
+        expected_aa = ArrayAlignment(
             data={'1': 'AAAAAAA', '2': 'AAA-AAA', '3': 'AAAAAA-'})
 
         # provided with alphabet_id
@@ -149,7 +149,7 @@ class RecodeAlignmentTests(TestCase):
 
         # non-alphabetic character mapped same as alphabetic characters
         actual = recode_dense_alignment(self.aln, alphabet_def=[('.', '-')])
-        expected = DenseAlignment(
+        expected = ArrayAlignment(
             data={'1': 'CDDFBXZ', '2': 'CDD.BXZ', '3': 'AAAASS.'})
         self.assertEqual(actual, expected)
 

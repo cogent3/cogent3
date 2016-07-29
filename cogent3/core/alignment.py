@@ -5,7 +5,7 @@
     - Alignment and its subclasses handle multiple sequence alignments, storing
       the raw sequences and a gap map. Useful for very long alignments, e.g.
       genomics data.
-    - DenseAlignment and its subclasses handle multiple sequence alignments as
+    - ArrayAlignment and its subclasses handle multiple sequence alignments as
       arrays of characters. Especially useful for short alignments that contain
       many sequences.
 
@@ -29,7 +29,7 @@ import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.core.info import Info as InfoClass
-from cogent3.core.sequence import frac_same, ModelSequence
+from cogent3.core.sequence import frac_same, ArraySequence
 from cogent3.core.location import LostSpan, Span
 from cogent3.maths.stats.util import Freqs
 from cogent3.format.fasta import fasta_from_alignment
@@ -177,8 +177,8 @@ def seqs_from_array(a, alphabet=None):
     return list(transpose(a)), None
 
 
-def seqs_from_model_seqs(seqs, alphabet=None):
-    """Alignment from ModelSequence objects: seqs -> array, names from seqs.
+def seqs_from_array_seqs(seqs, alphabet=None):
+    """Alignment from ArraySequence objects: seqs -> array, names from seqs.
 
     This is an InputHandler for SequenceCollection. It converts a list of
     Sequence objects with _data and name properties into a SequenceCollection
@@ -273,18 +273,18 @@ class SequenceCollection(object):
     - moltype: specifies what kind of sequences are in the collection
     """
     InputHandlers = {'array': seqs_from_array,
-                     'model_seqs': seqs_from_model_seqs,
+                     'array_seqs': seqs_from_array_seqs,
                      'generic': seqs_from_generic,
                      'fasta': seqs_from_fasta,
                      'collection': seqs_from_aln,
                      'aln': seqs_from_aln,
-                     'dense_aln': seqs_from_aln,
+                     'array_aln': seqs_from_aln,
                      'dict': seqs_from_dict,
                      'empty': seqs_from_empty,
                      'kv_pairs': seqs_from_kv_pairs,
                      }
 
-    IsArray = set(['array', 'model_seqs'])
+    IsArray = set(['array', 'array_seqs'])
 
     DefaultNameFunction = assign_sequential_names
 
@@ -336,7 +336,7 @@ class SequenceCollection(object):
                         label_to_name if present).
 
         alphabet:       Alphabet to use for the alignment (primarily important
-                        for DenseAlignment)
+                        for ArrayAlignment)
 
         moltype:        moltype to be applied to the Alignment and to each seq.
 
@@ -550,7 +550,7 @@ class SequenceCollection(object):
         Override in subclasses where this behavior should differ.
         """
         if is_array:
-            seqs = list(map(str, list(map(self.moltype.model_seq_constructor, seqs))))
+            seqs = list(map(str, list(map(self.moltype.make_array_seq, seqs))))
         return list(map(self.moltype.make_sequence, seqs))
 
     def _guess_input_type(self, data):
@@ -563,8 +563,8 @@ class SequenceCollection(object):
         as a specific type. Note that bad sequences are not guaranteed to
         return 'empty', and may be recognized as another type incorrectly.
         """
-        if isinstance(data, DenseAlignment):
-            return 'dense_aln'
+        if isinstance(data, ArrayAlignment):
+            return 'array_aln'
         if isinstance(data, Alignment):
             return 'aln'
         if isinstance(data, SequenceCollection):
@@ -588,8 +588,8 @@ class SequenceCollection(object):
         if first is None:
             return 'empty'
         try:
-            if isinstance(first, ModelSequence):  # model sequence base type
-                return 'model_seqs'
+            if isinstance(first, ArraySequence):  # model sequence base type
+                return 'array_seqs'
             elif hasattr(first, 'dtype'):  # array object
                 return 'array'
             elif isinstance(first, str) and first.startswith('>'):
@@ -1699,7 +1699,7 @@ class AlignmentI(object):
         f : callable
           function that returns true/false given an alignment position
         native : boolean
-          if True, and DenseAlignment, f is provided with slice of array
+          if True, and ArrayAlignment, f is provided with slice of array
           otherwise the string is used
         negate : boolean
           if True, not f() is used
@@ -1710,7 +1710,7 @@ class AlignmentI(object):
         else:
             new_f = f
         
-        if native and isinstance(self, DenseAlignment):
+        if native and isinstance(self, ArrayAlignment):
             result = [i for i in range(self.seq_len) if new_f(self.array_seqs[:,i])]
         else:
             result = [i for i, col in enumerate(self.Positions) if new_f(col)]
@@ -1822,10 +1822,10 @@ class AlignmentI(object):
         sequence at index 3 (i.e. the 4th sequence).
 
         First an DenseAligment object is created, next the calculation is done
-        on this object. It is important that the DenseAlignment is initialized
+        on this object. It is important that the ArrayAlignment is initialized
         with the same moltype and Alphabet as the original Alignment.
         """
-        da = DenseAlignment(self, moltype=self.moltype, alphabet=self.alphabet)
+        da = ArrayAlignment(self, moltype=self.moltype, alphabet=self.alphabet)
         return da._get_freqs(index)
 
     def get_seq_freqs(self):
@@ -1854,7 +1854,7 @@ class AlignmentI(object):
           N) or not.
         """
         chars = list(self.moltype.alphabet.NonDegen)
-        is_array = isinstance(self, DenseAlignment)
+        is_array = isinstance(self, ArrayAlignment)
         alpha = self.alphabet
         if allow_gap:
             chars.extend(self.moltype.gap)
@@ -1880,7 +1880,7 @@ class AlignmentI(object):
         if seq_constructor is None:
             seq_constructor = self.moltype.make_sequence
         
-        is_array = isinstance(self, DenseAlignment)
+        is_array = isinstance(self, ArrayAlignment)
         alpha = self.moltype.alphabet
         
         gaps = list(self.moltype.gaps)
@@ -1900,7 +1900,7 @@ class AlignmentI(object):
         allowed_frac_bad_cols: the fraction of gaps induced by the sequence
         exclude_just_gap: sequences that are just gaps are excluded
         """
-        is_array = isinstance(self, DenseAlignment)
+        is_array = isinstance(self, ArrayAlignment)
         alpha = self.alphabet
         
         gaps = list(self.moltype.gaps)
@@ -2057,7 +2057,7 @@ class AlignmentI(object):
     
     def count_gaps(self, seq_name):
         """returns number of gaps for seq_name"""
-        is_array = isinstance(self, DenseAlignment)
+        is_array = isinstance(self, ArrayAlignment)
         if not is_array:
             seq = self.named_seqs[seq_name]
             return len(seq.map.gaps())
@@ -2092,14 +2092,14 @@ class AlignmentI(object):
 
         return result
     
-    def to_type(self, as_dense=False, moltype=None, alphabet=None):
-        """returns alignment of type indicated by as_dense
+    def to_type(self, as_array=False, moltype=None, alphabet=None):
+        """returns alignment of type indicated by as_array
         
         Parameters
         ----------
-        as_dense: bool
-          if True, returns as DenseAlignment. Otherwise as "standard"
-          Alignment class. Conversion to DenseAlignment loses annotations.
+        as_array: bool
+          if True, returns as ArrayAlignment. Otherwise as "standard"
+          Alignment class. Conversion to ArrayAlignment loses annotations.
         
         moltype : MolType instance
           overrides self.moltype
@@ -2107,19 +2107,19 @@ class AlignmentI(object):
         alphabet : Alphabet instance
           overrides self.alphabet
         
-        If as_dense would result in no change (class is same as self),
+        If as_array would result in no change (class is same as self),
         returns self
         """
-        klass = DenseAlignment if as_dense else Alignment
+        klass = ArrayAlignment if as_array else Alignment
         if isinstance(self, klass):
             return self
         
         data = self.todict()
         if moltype is None:
-            # Alignment and DenseAlignment have different default moltypes
+            # Alignment and ArrayAlignment have different default moltypes
             moltype_default = isinstance(self.moltype, type(self.__class__.moltype))
             if moltype_default:
-                moltype = DenseAlignment.moltype if as_dense else Alignment.moltype
+                moltype = ArrayAlignment.moltype if as_array else Alignment.moltype
             else:
                 moltype = self.moltype
         new = klass(data=data, moltype=moltype,
@@ -2142,8 +2142,8 @@ def aln_from_array(a, array_type=None, alphabet=None):
     return transpose(result), None
 
 
-def aln_from_model_seqs(seqs, array_type=None, alphabet=None):
-    """Alignment from ModelSequence objects: seqs -> array, names from seqs.
+def aln_from_array_seqs(seqs, array_type=None, alphabet=None):
+    """Alignment from ArraySequence objects: seqs -> array, names from seqs.
 
     This is an InputHandler for Alignment. It converts a list of Sequence
     objects with _data and Label properties into the character array Alignment
@@ -2210,7 +2210,7 @@ def aln_from_fasta(seqs, array_type=None, alphabet=None):
     """
     if isinstance(seqs, str):
         seqs = seqs.splitlines()
-    return aln_from_model_seqs([ModelSequence(s, name=l, alphabet=alphabet)
+    return aln_from_array_seqs([ArraySequence(s, name=l, alphabet=alphabet)
                                 for l, s in cogent3.parse.fasta.MinimalFastaParser(seqs)], array_type)
 
 
@@ -2239,8 +2239,8 @@ def aln_from_kv_pairs(aln, array_type=None, alphabet=None):
     return result, list(names)
 
 
-def aln_from_dense_aln(aln, array_type=None, alphabet=None):
-    """Alignment from existing DenseAlignment object: copies data.
+def aln_from_array_aln(aln, array_type=None, alphabet=None):
+    """Alignment from existing ArrayAlignment object: copies data.
 
     Retrieves data from Positions field. Uses copy(), so array data type
     should be unchanged.
@@ -2259,7 +2259,7 @@ def aln_from_empty(obj, *args, **kwargs):
 # Implementation of Alignment base class
 
 
-class DenseAlignment(AlignmentI, SequenceCollection):
+class ArrayAlignment(AlignmentI, SequenceCollection):
     """Holds a dense array representing a multiple sequence alignment.
 
     An Alignment is _often_, but not necessarily, an array of chars. You might
@@ -2309,23 +2309,23 @@ class DenseAlignment(AlignmentI, SequenceCollection):
     Creating a new array will always result in a new object unless you use
     the force_same_object=True parameter.
 
-    WARNING: Rebinding the names attribute in a DenseAlignment is not
+    WARNING: Rebinding the names attribute in a ArrayAlignment is not
     recommended because not all methods will use the updated name order. This
     is because the original sequence and name order are used to produce data
     structures that are cached for efficiency, and are not updated if you
     change the names attribute.
 
-    WARNING: DenseAlignment strips off info objects from sequences that have
+    WARNING: ArrayAlignment strips off info objects from sequences that have
     them, primarily for efficiency.
     """
     moltype = None  # will be set to BYTES on moltype import
     alphabet = None  # will be set to BYTES.alphabet on moltype import
 
     InputHandlers = {'array': aln_from_array,
-                     'model_seqs': aln_from_model_seqs,
+                     'array_seqs': aln_from_array_seqs,
                      'generic': aln_from_generic,
                      'fasta': aln_from_fasta,
-                     'dense_aln': aln_from_dense_aln,
+                     'array_aln': aln_from_array_aln,
                      'aln': aln_from_collection,
                      'collection': aln_from_collection,
                      'dict': aln_from_dict,
@@ -2334,10 +2334,10 @@ class DenseAlignment(AlignmentI, SequenceCollection):
                      }
 
     def __init__(self, *args, **kwargs):
-        """Returns new DenseAlignment object. Inherits from SequenceCollection.
+        """Returns new ArrayAlignment object. Inherits from SequenceCollection.
         """
         kwargs['suppress_named_seqs'] = True
-        super(DenseAlignment, self).__init__(*args, **kwargs)
+        super(ArrayAlignment, self).__init__(*args, **kwargs)
         self.array_positions = transpose(
             self.seq_data.astype(self.alphabet.array_type))
         self.array_seqs = transpose(self.array_positions)
@@ -2346,7 +2346,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
 
     def _force_same_data(self, data, names):
         """Forces array that was passed in to be used as selfarray_positions"""
-        if isinstance(data, DenseAlignment):
+        if isinstance(data, ArrayAlignment):
             data = data._positions
         self.array_positions = data
         self.names = names or self.DefaultNameFunction(len(data[0]))
@@ -2373,7 +2373,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
 
     def values(self):
         """Supports dict-like interface: returns seqs as Sequence objects."""
-        return [self.alphabet.moltype.model_seq_constructor(i, alphabet=self.alphabet)
+        return [self.alphabet.moltype.make_array_seq(i, alphabet=self.alphabet)
                 for i in self.array_seqs]
 
     def items(self):
@@ -2524,7 +2524,7 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         consensus = []
         degen = alphabet.degenerate_from_seq
         for col in self.Positions:
-            consensus.append(degen(str(alphabet.model_seq_constructor(col,
+            consensus.append(degen(str(alphabet.make_array_seq(col,
                                                          alphabet=alphabet.alphabets.DegenGapped))))
         return coerce_to_string(consensus)
 
@@ -2631,12 +2631,12 @@ class DenseAlignment(AlignmentI, SequenceCollection):
                                 info=self.info, names=self.names)        
         return result
 
-class CodonDenseAlignment(DenseAlignment):
+class CodonArrayAlignment(ArrayAlignment):
     """Stores alignment of gapped codons, no degenerate symbols."""
     InputHandlers = {'array': aln_from_array,
-                     'seqs': aln_from_model_seqs,
+                     'seqs': aln_from_array_seqs,
                      'generic': aln_from_generic,
-                     'dense_aln': aln_from_dense_aln,
+                     'array_aln': aln_from_array_aln,
                      'aln': aln_from_collection,
                      'collection': aln_from_collection,
                      'dict': aln_from_dict,
@@ -2651,7 +2651,7 @@ def make_gap_filter(template, gap_fraction, gap_run):
     gap_run = number of consecutive gaps allowed in either the template or seq
     gap_fraction = fraction of positions that either have a gap in the template
         but not in the seq or in the seq but not in the template
-    NOTE: template and seq must both be ModelSequence objects.
+    NOTE: template and seq must both be ArraySequence objects.
     """
     template_gaps = array(template.gap_vector())
 
@@ -2842,14 +2842,14 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
     def get_seq(self, seqname):
         """Return a ungapped Sequence object for the specified seqname.
 
-        Note: always returns Sequence object, not ModelSequence.
+        Note: always returns Sequence object, not ArraySequence.
         """
         return self.named_seqs[seqname].data
 
     def get_gapped_seq(self, seq_name, recode_gaps=False):
         """Return a gapped Sequence object for the specified seqname.
 
-        Note: always returns Sequence object, not ModelSequence.
+        Note: always returns Sequence object, not ArraySequence.
         """
         return self.named_seqs[seq_name].get_gapped_seq(recode_gaps)
 

@@ -79,7 +79,7 @@ Setting up a ``MolType`` object with a protein sequence
 
     >>> from cogent3.core.moltype import MolType, IUPAC_PROTEIN_chars,\
     ...   IUPAC_PROTEIN_ambiguities, ProteinMW
-    >>> from cogent3.core.sequence import ProteinSequence, ModelProteinSequence
+    >>> from cogent3.core.sequence import ProteinSequence, ArrayProteinSequence
     >>> protstr = 'TEST'
     >>> ProteinMolType = MolType(
     ...     seq_constructor=ProteinSequence(protstr),
@@ -87,7 +87,7 @@ Setting up a ``MolType`` object with a protein sequence
     ...     ambiguities=IUPAC_PROTEIN_ambiguities,
     ...     mw_calculator=ProteinMW,
     ...     make_alphabet_group=True,
-    ...     model_seq_constructor=ModelProteinSequence,
+    ...     array_seq_constructor=ArrayProteinSequence,
     ...     label="protein")
     >>> protseq = ProteinMolType.make_sequence
 

@@ -127,9 +127,9 @@ An example of using an alternative constructor is given below. A constructor is 
 .. doctest::
 
     >>> from cogent3 import LoadSeqs
-    >>> from cogent3.core.alignment import DenseAlignment
+    >>> from cogent3.core.alignment import ArrayAlignment
     >>> seqs = ['>seq1','AATCG-A','>seq2','AATCGGA']
-    >>> seqs_loaded = LoadSeqs(data=seqs,as_dense=True)
+    >>> seqs_loaded = LoadSeqs(data=seqs,as_array=True)
     >>> print(seqs_loaded)
     >seq1
     AATCG-A

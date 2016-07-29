@@ -3,25 +3,25 @@ Perform a coevolutionary analysis on biological sequence alignments
 
 .. sectionauthor:: Greg Caporaso
 
-This document describes how to perform a coevolutionary analysis on a ``DenseAlignment`` object. Coevolutionary analyses identify correlated substitution patterns between ``DenseAlignment`` positions (columns). Several coevolution detection methods are currently provided via the PyCogent3 coevolution module. ``DenseAlignment`` objects must always be used as input to these functions.
+This document describes how to perform a coevolutionary analysis on a ``ArrayAlignment`` object. Coevolutionary analyses identify correlated substitution patterns between ``ArrayAlignment`` positions (columns). Several coevolution detection methods are currently provided via the PyCogent3 coevolution module. ``ArrayAlignment`` objects must always be used as input to these functions.
 
 Before using an alignment in a coevolutionary analysis, you should be confident in the alignment. Poorly aligned sequences can yield very misleading results. There can be no ambiguous residue/base codes (e.g., B/Z/X in protein alignments) -- while some of the algorithms could tolerate them (e.g. Mutual Information), others which rely on information such as background residue frequencies (e.g. Statistical Coupling Analysis) cannot handle them. Some recoded amino acid alphabets will also not handle ambiguous residues. The best strategy is just to exclude ambiguous codes all together. To test for invalid characters before starting an analysis you can do the following:
 
 .. doctest::
 
    >>> from cogent3 import LoadSeqs, PROTEIN, DNA, RNA
-   >>> from cogent3.core.alignment import DenseAlignment
+   >>> from cogent3.core.alignment import ArrayAlignment
    >>> from cogent3.evolve.coevolution import validate_alignment
-   >>> aln = LoadSeqs(data={'1':'GAA','2':'CTA', '3':'CTC','4':'-TC'},moltype=PROTEIN,as_dense=True)
+   >>> aln = LoadSeqs(data={'1':'GAA','2':'CTA', '3':'CTC','4':'-TC'},moltype=PROTEIN,as_array=True)
    >>> validate_alignment(aln)
 
-To run a coevolutionary analysis, first create a ``DenseAlignment``:
+To run a coevolutionary analysis, first create a ``ArrayAlignment``:
 
 .. doctest::
 
    >>> from cogent3 import LoadSeqs, PROTEIN, DNA, RNA
-   >>> from cogent3.core.alignment import DenseAlignment
-   >>> aln = LoadSeqs(data={'1':'AAA','2':'CTA', '3':'CTC','4':'-TC'},moltype=PROTEIN,as_dense=True)
+   >>> from cogent3.core.alignment import ArrayAlignment
+   >>> aln = LoadSeqs(data={'1':'AAA','2':'CTA', '3':'CTC','4':'-TC'},moltype=PROTEIN,as_array=True)
 
 Perform a coevolutionary analysis on a pair of positions in the alignment using mutual information (``mi``):
 
@@ -73,10 +73,10 @@ Perform an intermolecular coevolutionary analysis using mutual information (``mi
     ...   coevolve_alignments
     >>> aln1 = LoadSeqs(data={'human+protein1':'AAA','pig+protein1':'CTA',
     ...  'chicken+protein1':'CTC','echidna+weird_db_identifier':'-TC'},
-    ...   moltype=PROTEIN,as_dense=True)
+    ...   moltype=PROTEIN,as_array=True)
     >>> aln2 = LoadSeqs(data={'pig+protein2':'AAAY','chicken+protein2':'CTAY',
     ...  'echidna+protein2':'CTCF','human+protein2':'-TCF'},
-    ...   moltype=PROTEIN,as_dense=True)
+    ...   moltype=PROTEIN,as_array=True)
     >>> coevolve_alignments(coevolve_alignment_functions['mi'],aln1,aln2)
     array([[        nan,         nan,         nan],
            [        nan,  0.12255625,  0.31127812],
