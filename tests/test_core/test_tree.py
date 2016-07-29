@@ -17,7 +17,7 @@ __credits__ = ["Rob Knight", "Catherine Lozupone", "Daniel McDonald",
                "Matthew Wakefield", "Justin Kuczynski", "Jens Reeder",
                "Jose Carlos Clemente Litran"]
 __license__ = "GPL"
-__version__ = "3.0.prealpha"
+__version__ = "3.0a1"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"

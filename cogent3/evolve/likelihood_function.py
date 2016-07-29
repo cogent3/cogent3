@@ -18,7 +18,7 @@ __credits__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell",
                "Matthew Wakefield", "Rob Knight", "Brett Easton",
                "Ben Kaehler"]
 __license__ = "GPL"
-__version__ = "3.0.prealpha"
+__version__ = "3.0a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
