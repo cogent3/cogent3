@@ -53,8 +53,14 @@ class MotifProbModel(object):
 
     def count_motifs(self, alignment, include_ambiguity=False, recode_gaps=True):
         result = None
+        try:
+            mtype = self.alphabet.moltype
+        except AttributeError:
+            mtype = self.monomer_alphabet
+        
         for seq_name in alignment.get_seq_names():
-            sequence = alignment.get_gapped_seq(seq_name, recode_gaps)
+            sequence = alignment.get_gapped_seq(seq_name, recode_gaps,
+                                                moltype=mtype)
             leaf = make_likelihood_tree_leaf(sequence, self.get_counted_alphabet(),
                                           seq_name)
             count = leaf.get_motif_counts(include_ambiguity=include_ambiguity)
