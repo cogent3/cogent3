@@ -2341,6 +2341,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         self.array_seqs = transpose(self.array_positions)
         self.seq_data = self.array_seqs
         self.seq_len = len(self.array_positions)
+        self._type = self.moltype.gettype()
 
     def _force_same_data(self, data, names):
         """Forces array that was passed in to be used as selfarray_positions"""
@@ -2458,6 +2459,22 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
             result.append('>' + str(l) + '\n' + ''.join(seq2str(s)))
         return '\n'.join(result) + '\n'
 
+    def __repr__(self):
+        seqs = []
+        limit = 10
+        delimiter = ''
+        for (count, name) in enumerate(self.names):
+            if count == 3:
+                seqs.append('...')
+                break
+            elts = list(str(self.named_seqs[name])[:limit + 1])
+            if len(elts) > limit:
+                elts.append('...')
+            seqs.append("%s[%s]" % (name, delimiter.join(elts)))
+        seqs = ', '.join(seqs)
+
+        return "%s x %s %s alignment: %s" % (len(self.names),
+                                             self.seq_len, self._type, seqs)
     def _get_freqs(self, index=None):
         """Gets array of freqs along index 0 (= positions) or 1 (= seqs).
 
