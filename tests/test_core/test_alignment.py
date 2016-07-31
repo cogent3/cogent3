@@ -139,7 +139,7 @@ class alignment_tests(TestCase):
 
 
 class SequenceCollectionBaseTests(object):
-    """Base class for testing the SequenceCollection object.
+    """base class for testing the SequenceCollection object.
 
     Unlike Alignments, SequenceCollections can have sequences that are not equal
     length. This module contains all the code that _doesn't_ depend on being

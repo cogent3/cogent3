@@ -258,7 +258,7 @@ def seqs_from_empty(obj, *args, **kwargs):
 
 @total_ordering
 class SequenceCollection(object):
-    """Base class for Alignment, but also just stores unaligned seqs.
+    """base class for Alignment, but also just stores unaligned seqs.
 
     Handles shared functionality: detecting the input type, writing out the
     sequences as different formats, translating the sequences, chopping off

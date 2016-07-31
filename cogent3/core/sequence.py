@@ -778,7 +778,7 @@ class ProteinWithStopSequence(Sequence):
 
 
 class NucleicAcidSequence(Sequence):
-    """Base class for DNA and RNA sequences. Abstract."""
+    """base class for DNA and RNA sequences. Abstract."""
     PROTEIN = None  # will set in moltype
     codon_alphabet = None  # will set in moltype
 
@@ -1468,13 +1468,13 @@ class ArrayCodonSequence(ArraySequence):
 
 class ArrayDnaCodonSequence(ArrayCodonSequence):
     """Holds non-degenerate DNA codon sequence."""
-    alphabet = None  # set to DNA.alphabets.Base.Triples in moltype.py
+    alphabet = None  # set to DNA.alphabets.base.Triples in moltype.py
     SequenceClass = ArrayDnaSequence
 
 
 class ArrayRnaCodonSequence(ArrayCodonSequence):
     """Holds non-degenerate DNA codon sequence."""
-    alphabet = None  # set to RNA.alphabets.Base.Triples in motype.py
+    alphabet = None  # set to RNA.alphabets.base.Triples in motype.py
     SequenceClass = ArrayRnaSequence
 
     def _from_string(self, s):

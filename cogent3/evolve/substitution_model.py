@@ -917,7 +917,7 @@ class Dinucleotide(_Nucleotide):
 
 
 class Protein(SubstitutionModel):
-    """Base protein substitution model."""
+    """base protein substitution model."""
 
     def __init__(self, with_selenocysteine=False, **kw):
         alph = moltype.PROTEIN.alphabet

@@ -22,9 +22,9 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 # ind some of the standard alphabets to reduce typing
-RnaBases = RNA.alphabets.Base
-DnaBases = DNA.alphabets.Base
-AminoAcids = PROTEIN.alphabets.Base
+RnaBases = RNA.alphabets.base
+DnaBases = DNA.alphabets.base
+AminoAcids = PROTEIN.alphabets.base
 
 # the following classes are to preserve compatibility for older test code
 # that assumes mixed-case is OK.
@@ -193,15 +193,15 @@ class CoreObjectGroupTests(TestCase):
                 self.s = s
         base = o('base')
         c = CoreObjectGroup(base)
-        self.assertSameObj(c.Base, base)
+        self.assertSameObj(c.base, base)
         self.assertSameObj(c.degen, None)
-        self.assertSameObj(c.Base.degen, None)
+        self.assertSameObj(c.base.degen, None)
 
         base, degen, gap, degengap = list(
             map(o, ['base', 'degen', 'gap', 'degengap']))
         c = CoreObjectGroup(base, degen, gap, degengap)
-        self.assertSameObj(c.Base, base)
-        self.assertSameObj(c.Base.degen, degen)
+        self.assertSameObj(c.base, base)
+        self.assertSameObj(c.base.degen, degen)
         self.assertSameObj(c.degen.gapped, degengap)
 
 
@@ -213,7 +213,7 @@ class AlphabetGroupTests(TestCase):
         chars = 'AB'
         degens = {'C': 'AB'}
         g = AlphabetGroup(chars, degens)
-        self.assertEqual(''.join(g.Base), 'AB')
+        self.assertEqual(''.join(g.base), 'AB')
         self.assertEqual(''.join(g.degen), 'ABC')
         self.assertEqual(''.join(g.gapped), 'AB-')
         self.assertEqual(''.join(g.degen_gapped), 'AB-C?')
