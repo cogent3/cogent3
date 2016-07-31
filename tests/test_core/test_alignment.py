@@ -1827,9 +1827,9 @@ class ArrayAlignmentSpecificTests(TestCase):
 
     def test_init_dict(self):
         """ArrayAlignment init should work from dict."""
-        s = {'abc': 'aaaccc', 'xyz': 'gcgcgc'}
+        s = {'abc': 'AAACCC', 'xyz': 'GCGCGC'}
         a = ArrayAlignment(s, names=['abc', 'xyz'])
-        self.assertEqual(a.seq_data, array(['aaaccc', 'gcgcgc'], 'c').view('B'))
+        self.assertEqual(a.seq_data, array(['AAACCC', 'GCGCGC'], 'c').view('B'))
         self.assertEqual(tuple(a.names), ('abc', 'xyz'))
 
     def test_init_empty(self):
