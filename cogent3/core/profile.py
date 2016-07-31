@@ -420,7 +420,7 @@ class Profile(object):
         return array(result)
 
     def score(self, input_data, offset=0):
-        """Returns a score of the profile against input_data (Profile or Seq).
+        """Returns a score of the profile against input_data (Profile or seq).
 
         seq: Profile or Sequence object (or string)
         offset: starting index for searching in seq/profile

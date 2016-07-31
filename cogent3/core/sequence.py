@@ -504,34 +504,34 @@ class Sequence(_Annotatable, SequenceI):
     """Holds the standard Sequence object. Immutable."""
     moltype = None  # connected to ACSII when moltype is imported
 
-    def __init__(self, Seq='', name=None, info=None, check=True,
+    def __init__(self, seq='', name=None, info=None, check=True,
                  preserve_case=False, gaps_allowed=True, wildcards_allowed=True):
         """Initialize a sequence.
 
         Arguments:
-            Seq: the raw sequence string, default is ''
+            seq: the raw sequence string, default is ''
 
             name: the sequence name
 
             check: if True (the default), validates against the MolType
         """
-        if name is None and hasattr(Seq, 'name'):
-            name = Seq.name
+        if name is None and hasattr(seq, 'name'):
+            name = seq.name
         self.name = name
-        orig_seq = Seq
-        if isinstance(Seq, Sequence):
-            Seq = Seq._seq
-        elif isinstance(Seq, ArraySequence):
-            Seq = str(Seq)
-        elif type(Seq) is not str:
+        orig_seq = seq
+        if isinstance(seq, Sequence):
+            seq = seq._seq
+        elif isinstance(seq, ArraySequence):
+            seq = str(seq)
+        elif type(seq) is not str:
             try:
-                Seq = ''.join(Seq)
+                seq = ''.join(seq)
             except TypeError:
-                Seq = ''.join(map(str, Seq))
-        Seq = self._seq_filter(Seq)
-        if not preserve_case and not Seq.isupper():
-            Seq = Seq.upper()
-        self._seq = Seq
+                seq = ''.join(map(str, seq))
+        seq = self._seq_filter(seq)
+        if not preserve_case and not seq.isupper():
+            seq = seq.upper()
+        self._seq = seq
 
         if check:
             self.moltype.verify_sequence(self._seq, gaps_allowed,
@@ -866,7 +866,7 @@ class NucleicAcidSequence(Sequence):
             translation.append(aa)
 
         translation = self.protein.make_seq(
-            Seq=''.join(translation), name=self.name)
+            seq=''.join(translation), name=self.name)
 
         return translation
 
@@ -936,9 +936,9 @@ class ABSequence(Sequence):
 class ByteSequence(Sequence):
     """Used for storing arbitrary bytes."""
 
-    def __init__(self, Seq='', name=None, info=None, check=False,
+    def __init__(self, seq='', name=None, info=None, check=False,
                  preserve_case=True):
-        return super(ByteSequence, self).__init__(Seq, name=name, info=info,
+        return super(ByteSequence, self).__init__(seq, name=name, info=info,
                                                   check=check, preserve_case=preserve_case)
 
 
