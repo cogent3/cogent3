@@ -1124,7 +1124,7 @@ class ArraySequenceBase(object):
         else:
             s = self
         c = self.__class__
-        a = self.alphabet.Gapped
+        a = self.alphabet.gapped
         result = zeros(len(other), a.array_type) + a.gap_index
         put(result, nonzero(other.nongaps()), s._data)
         return c(result)

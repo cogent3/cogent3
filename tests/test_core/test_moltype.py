@@ -202,7 +202,7 @@ class CoreObjectGroupTests(TestCase):
         c = CoreObjectGroup(base, degen, gap, degengap)
         self.assertSameObj(c.Base, base)
         self.assertSameObj(c.Base.degen, degen)
-        self.assertSameObj(c.degen.Gapped, degengap)
+        self.assertSameObj(c.degen.gapped, degengap)
 
 
 class AlphabetGroupTests(TestCase):
@@ -215,7 +215,7 @@ class AlphabetGroupTests(TestCase):
         g = AlphabetGroup(chars, degens)
         self.assertEqual(''.join(g.Base), 'AB')
         self.assertEqual(''.join(g.degen), 'ABC')
-        self.assertEqual(''.join(g.Gapped), 'AB-')
+        self.assertEqual(''.join(g.gapped), 'AB-')
         self.assertEqual(''.join(g.degen_gapped), 'AB-C?')
 
 

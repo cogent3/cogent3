@@ -1323,7 +1323,7 @@ class SequenceCollection(object):
         if alphabet is None:
             alphabet = self.moltype.alphabet
             if allow_gap:
-                alphabet = alphabet.Gapped
+                alphabet = alphabet.gapped
 
         counts = {}
         for seq_name in self.names:
@@ -1861,7 +1861,7 @@ class AlignmentI(object):
         alpha = self.alphabet
         if allow_gap:
             chars.extend(self.moltype.gap)
-            alpha = self.moltype.alphabet.Gapped
+            alpha = self.moltype.alphabet.gapped
         
         if is_array:
             chars = list(map(alpha.index, chars))

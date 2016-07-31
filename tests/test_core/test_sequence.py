@@ -783,34 +783,34 @@ class CodonSequenceTests(SequenceTests, TestCase):
 class DnaSequenceGapTests(TestCase):
     """Tests of gapped DNA sequences."""
     class SequenceClass(ArrayNucleicAcidSequence):
-        alphabet = DNA.alphabets.Gapped
+        alphabet = DNA.alphabets.gapped
         gap = '-'
 
     def test_init(self):
-        """Gapped sequence should init ok"""
+        """gapped sequence should init ok"""
         orig = 'TC---'
         seq = self.SequenceClass(orig)
         self.assertEqual(str(seq), orig)
 
     def test_gaps(self):
-        """Gapped sequence gaps() should return correct array"""
+        """gapped sequence gaps() should return correct array"""
         sc = self.SequenceClass
         self.assertEqual(sc('TC').gaps(), array([0, 0]))
         self.assertEqual(sc('T-').gaps(), array([0, 1]))
 
     def test_degap(self):
-        """Gapped sequence degap() should return correct array"""
+        """gapped sequence degap() should return correct array"""
         sc = self.SequenceClass
         self.assertEqual(sc('T-').degap(), sc('T'))
 
     def test_nongaps(self):
-        """Gapped sequence nongaps() should return correct array"""
+        """gapped sequence nongaps() should return correct array"""
         sc = self.SequenceClass
         self.assertEqual(sc('TC').nongaps(), array([1, 1]))
         self.assertEqual(sc('T-').nongaps(), array([1, 0]))
 
     def test_regap(self):
-        """Gapped sequence regap() should return correct sequence"""
+        """gapped sequence regap() should return correct sequence"""
         sc = self.SequenceClass
         self.assertEqual(str(sc('TC').regap(sc('A---A-'))), 'T---C-')
 

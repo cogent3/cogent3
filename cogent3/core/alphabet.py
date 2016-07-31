@@ -602,9 +602,9 @@ class Alphabet(Enumeration):
         """
         if self.includes_gap_motif():
             return self
-        if not hasattr(self, 'Gapped'):
-            self.Gapped = self._with(list(self) + [self.get_gap_motif()])
-        return self.Gapped
+        if not hasattr(self, 'gapped'):
+            self.gapped = self._with(list(self) + [self.get_gap_motif()])
+        return self.gapped
 
     def get_subset(self, motif_subset, excluded=False):
         """Returns a new Alphabet object containing a subset of motifs in self.
