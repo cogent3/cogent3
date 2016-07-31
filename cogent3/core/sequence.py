@@ -1399,7 +1399,7 @@ class ArrayNucleicAcidSequence(ArraySequence):
 
 class ArrayRnaSequence(ArrayNucleicAcidSequence):
     moltype = None  # set to RNA in moltype.py
-    alphabet = None  # set to RNA.alphabets.DegenGapped in moltype.py
+    alphabet = None  # set to RNA.alphabets.degen_gapped in moltype.py
 
     def __init__(self, data='', *args, **kwargs):
         """Returns new ArrayRnaSequence, converting T -> U"""
@@ -1411,7 +1411,7 @@ class ArrayRnaSequence(ArrayNucleicAcidSequence):
 
 class ArrayDnaSequence(ArrayNucleicAcidSequence):
     moltype = None  # set to DNA in moltype.py
-    alphabet = None  # set to DNA.alphabets.DegenGapped in moltype.py
+    alphabet = None  # set to DNA.alphabets.degen_gapped in moltype.py
 
     def __init__(self, data='', *args, **kwargs):
         """Returns new ArrayRnaSequence, converting U -> T"""
@@ -1487,9 +1487,9 @@ class ArrayRnaCodonSequence(ArrayCodonSequence):
 
 class ArrayProteinSequence(ArraySequence):
     moltype = None  # set to PROTEIN in moltype.py
-    alphabet = None  # set to PROTEIN.alphabets.DegenGapped in moltype.py
+    alphabet = None  # set to PROTEIN.alphabets.degen_gapped in moltype.py
 
 
 class ArrayProteinWithStopSequence(ArraySequence):
     moltype = None  # set to PROTEIN_WITH_STOP in moltype.py
-    alphabet = None  # set to PROTEIN_WITH_STOP.alphabets.DegenGapped in moltype.py
+    alphabet = None  # set to PROTEIN_WITH_STOP.alphabets.degen_gapped in moltype.py

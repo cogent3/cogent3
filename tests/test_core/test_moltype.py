@@ -216,7 +216,7 @@ class AlphabetGroupTests(TestCase):
         self.assertEqual(''.join(g.Base), 'AB')
         self.assertEqual(''.join(g.degen), 'ABC')
         self.assertEqual(''.join(g.Gapped), 'AB-')
-        self.assertEqual(''.join(g.DegenGapped), 'AB-C?')
+        self.assertEqual(''.join(g.degen_gapped), 'AB-C?')
 
 
 class MolTypeTests(TestCase):

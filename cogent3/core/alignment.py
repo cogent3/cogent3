@@ -455,7 +455,7 @@ class SequenceCollection(object):
             moltype = alphabet.moltype
         if moltype is not None and alphabet is None:
             try:
-                alphabet = moltype.alphabets.DegenGapped
+                alphabet = moltype.alphabets.degen_gapped
             except AttributeError:
                 alphabet = moltype.alphabet
         return alphabet, moltype
@@ -2551,7 +2551,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         degen = alphabet.degenerate_from_seq
         for col in self.positions:
             consensus.append(degen(str(alphabet.make_array_seq(col,
-                                                         alphabet=alphabet.alphabets.DegenGapped))))
+                                                         alphabet=alphabet.alphabets.degen_gapped))))
         return coerce_to_string(consensus)
 
     def _make_gaps_ok(self, allowed_gap_frac):
