@@ -688,7 +688,7 @@ class SequenceSubclassTests(TestCase):
 
 
 class ModelSequenceTests(object):
-    """Base class for tests of specific ArraySequence objects."""
+    """base class for tests of specific ArraySequence objects."""
     SequenceClass = None  # override in derived classes
 
     def test_to_fasta(self):
@@ -716,7 +716,7 @@ class ModelSequenceTests(object):
 class DnaSequenceTests(ModelSequenceTests, TestCase):
 
     class SequenceClass(ArrayNucleicAcidSequence):
-        alphabet = DNA.alphabets.Base
+        alphabet = DNA.alphabets.base
 
     def test_init(self):
         """Sequence should do round-trip from string"""
@@ -751,7 +751,7 @@ class DnaSequenceTests(ModelSequenceTests, TestCase):
 class CodonSequenceTests(SequenceTests, TestCase):
 
     class SequenceClass(ArrayCodonSequence):
-        alphabet = DNA.alphabets.Base.Triples
+        alphabet = DNA.alphabets.base.Triples
 
     def test_init(self):
         """Sequence should do round-trip from string"""

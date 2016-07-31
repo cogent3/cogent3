@@ -55,7 +55,7 @@ def get_pairwise_distance_from_triad(data, summary_function="mean"):
 
 
 class EstimateDistances(object):
-    """Base class used for estimating pairwise distances between sequences.
+    """base class used for estimating pairwise distances between sequences.
     Can also estimate other parameters from pairs."""
 
     def __init__(self, seqs, submodel, threeway=False, motif_probs=None,

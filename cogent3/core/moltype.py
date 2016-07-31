@@ -316,32 +316,32 @@ for k, v in list(RnaPairingRules.items()):
 
 class CoreObjectGroup(object):
     """Container relating gapped, ungapped, degen, and non-degen objects."""
-    _types = ['Base', 'degen', 'gap', 'degen_gap']
+    _types = ['base', 'degen', 'gap', 'degen_gap']
 
-    def __init__(self, Base, degen=None, gapped=None, degen_gapped=None):
-        """Returns new CoreObjectGroup. Only Base is required"""
-        self.Base = Base
+    def __init__(self, base, degen=None, gapped=None, degen_gapped=None):
+        """Returns new CoreObjectGroup. Only base is required"""
+        self.base = base
         self.degen = degen
         self.gapped = gapped
         self.degen_gapped = degen_gapped
-        self._items = [Base, degen, gapped, degen_gapped]
+        self._items = [base, degen, gapped, degen_gapped]
         self._set_relationships()
 
     def _set_relationships(self):
         """Sets relationships between the different "flavors"."""
-        self.Base.gapped = self.gapped
-        self.Base.Ungapped = self.Base
-        self.Base.degen = self.degen
-        self.Base.NonDegen = self.Base
+        self.base.gapped = self.gapped
+        self.base.Ungapped = self.base
+        self.base.degen = self.degen
+        self.base.NonDegen = self.base
 
         statements = [
             "self.degen.gapped = self.degen_gapped",
             "self.degen.Ungapped = self.degen",
             "self.degen.degen = self.degen",
-            "self.degen.NonDegen = self.Base",
+            "self.degen.NonDegen = self.base",
 
             "self.gapped.gapped = self.gapped",
-            "self.gapped.Ungapped = self.Base",
+            "self.gapped.Ungapped = self.base",
             "self.gapped.degen = self.degen_gapped",
             "self.gapped.NonDegen = self.gapped",
 
@@ -378,12 +378,12 @@ class AlphabetGroup(CoreObjectGroup):
                 degens = ''.join(degens)
             else:
                 constructor = Alphabet  # assume multi-char
-        self.Base = constructor(chars, moltype=moltype)
+        self.base = constructor(chars, moltype=moltype)
         self.degen = constructor(chars + degens, moltype=moltype)
         self.gapped = constructor(chars + gap, gap, moltype=moltype)
         self.degen_gapped = constructor(chars + gap + degens + missing, gap,
                                        moltype=moltype)
-        self._items = [self.Base, self.degen, self.gapped, self.degen_gapped]
+        self._items = [self.base, self.degen, self.gapped, self.degen_gapped]
         self._set_relationships()
         # set complements if MolType was specified
         if moltype is not None:
@@ -490,7 +490,7 @@ class MolType(object):
         if make_alphabet_group:  # note: must use _original_ ambiguities here
             self.alphabets = AlphabetGroup(motifset, ambiguities,
                                            moltype=self)
-            self.alphabet = self.alphabets.Base
+            self.alphabet = self.alphabets.base
         else:
             if isinstance(motifset, Enumeration):
                 self.alphabet = motifset
@@ -1148,8 +1148,8 @@ ArraySequence.alphabet = BYTES.alphabet
 ArrayAlignment.alphabet = BYTES.alphabet
 ArrayAlignment.moltype = BYTES
 
-ArrayDnaCodonSequence.alphabet = DNA.alphabets.Base.Triples
-ArrayRnaCodonSequence.alphabet = RNA.alphabets.Base.Triples
+ArrayDnaCodonSequence.alphabet = DNA.alphabets.base.Triples
+ArrayRnaCodonSequence.alphabet = RNA.alphabets.base.Triples
 
 # Modify Alignment to avoid circular import
 Alignment.moltype = ASCII
