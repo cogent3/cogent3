@@ -151,7 +151,7 @@ Remove the stop codon first
 .. doctest::
 
     >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_sequence('ATGCACTGGTAA','my_gene')
+    >>> my_seq = DNA.make_seq('ATGCACTGGTAA','my_gene')
     >>> seq = my_seq.without_terminal_stop_codon()
     >>> pep = seq.get_translation()
     >>> print(pep.to_fasta())
