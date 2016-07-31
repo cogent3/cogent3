@@ -316,38 +316,38 @@ for k, v in list(RnaPairingRules.items()):
 
 class CoreObjectGroup(object):
     """Container relating gapped, ungapped, degen, and non-degen objects."""
-    _types = ['Base', 'Degen', 'gap', 'DegenGap']
+    _types = ['Base', 'degen', 'gap', 'DegenGap']
 
-    def __init__(self, Base, Degen=None, Gapped=None, DegenGapped=None):
+    def __init__(self, Base, degen=None, Gapped=None, DegenGapped=None):
         """Returns new CoreObjectGroup. Only Base is required"""
         self.Base = Base
-        self.Degen = Degen
+        self.degen = degen
         self.Gapped = Gapped
         self.DegenGapped = DegenGapped
-        self._items = [Base, Degen, Gapped, DegenGapped]
+        self._items = [Base, degen, Gapped, DegenGapped]
         self._set_relationships()
 
     def _set_relationships(self):
         """Sets relationships between the different "flavors"."""
         self.Base.Gapped = self.Gapped
         self.Base.Ungapped = self.Base
-        self.Base.Degen = self.Degen
+        self.Base.degen = self.degen
         self.Base.NonDegen = self.Base
 
         statements = [
-            "self.Degen.Gapped = self.DegenGapped",
-            "self.Degen.Ungapped = self.Degen",
-            "self.Degen.Degen = self.Degen",
-            "self.Degen.NonDegen = self.Base",
+            "self.degen.Gapped = self.DegenGapped",
+            "self.degen.Ungapped = self.degen",
+            "self.degen.degen = self.degen",
+            "self.degen.NonDegen = self.Base",
 
             "self.Gapped.Gapped = self.Gapped",
             "self.Gapped.Ungapped = self.Base",
-            "self.Gapped.Degen = self.DegenGapped",
+            "self.Gapped.degen = self.DegenGapped",
             "self.Gapped.NonDegen = self.Gapped",
 
             "self.DegenGapped.Gapped = self.DegenGapped",
-            "self.DegenGapped.Ungapped = self.Degen",
-            "self.DegenGapped.Degen = self.DegenGapped",
+            "self.DegenGapped.Ungapped = self.degen",
+            "self.DegenGapped.degen = self.DegenGapped",
             "self.DegenGapped.NonDegen = self.Gapped",
         ]
         for s in statements:
@@ -379,11 +379,11 @@ class AlphabetGroup(CoreObjectGroup):
             else:
                 constructor = Alphabet  # assume multi-char
         self.Base = constructor(chars, moltype=moltype)
-        self.Degen = constructor(chars + degens, moltype=moltype)
+        self.degen = constructor(chars + degens, moltype=moltype)
         self.Gapped = constructor(chars + gap, gap, moltype=moltype)
         self.DegenGapped = constructor(chars + gap + degens + missing, gap,
                                        moltype=moltype)
-        self._items = [self.Base, self.Degen, self.Gapped, self.DegenGapped]
+        self._items = [self.Base, self.degen, self.Gapped, self.DegenGapped]
         self._set_relationships()
         # set complements if MolType was specified
         if moltype is not None:
