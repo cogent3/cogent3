@@ -967,7 +967,11 @@ class SequenceCollection(object):
 
         If seqs is an alignment, any gaps in it will be ignored.
         """
-
+        if isinstance(self, ArrayAlignment):
+            new = self.to_type(as_array=False)
+            result = new.replace_seqs(seqs, aa_to_codon=aa_to_codon)
+            return result.to_type(as_array=True)
+        
         if aa_to_codon:
             scale = 3
         else:
