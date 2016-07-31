@@ -813,8 +813,9 @@ class NucleicAcidSequence(Sequence):
         gc = self._gc_from_arg(gc)
         codons = self._seq
         divisible_by_3 = len(codons) % 3 == 0
-
-        if not allow_partial and not divisible_by_3:
+        end3 = self.__class__(self._seq[-3:]).degap()
+        if not allow_partial and (not divisible_by_3 or\
+                                  len(end3) != 3):
             raise ValueError("seq length not divisible by 3")
 
         if not divisible_by_3:

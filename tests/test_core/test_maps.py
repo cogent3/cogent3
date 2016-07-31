@@ -99,7 +99,7 @@ class MapTest(unittest.TestCase):
     def test_get_by_seq_annotation(self):
         aln = LoadSeqs(data={
             'a': 'ATCGAAATCGAT',
-            'b': 'ATCGA--TCGAT'})
+            'b': 'ATCGA--TCGAT'},as_array=False)
         b = aln.get_seq('b')
         b.add_annotation(Feature, 'test_type', 'test_label', [(4, 6)])
 
