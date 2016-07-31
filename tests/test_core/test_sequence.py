@@ -813,7 +813,7 @@ class SequenceIntegrationTests(TestCase):
 
     def test_regular_to_model(self):
         """Regular sequence should convert to model sequence"""
-        r = RNA.make_sequence('AAA', name='x')
+        r = RNA.make_seq('AAA', name='x')
         s = RNA.make_array_seq(r)
         self.assertEqual(str(s), 'AAA')
         self.assertEqual(s.moltype, RNA)
@@ -822,15 +822,15 @@ class SequenceIntegrationTests(TestCase):
     def test_model_to_regular(self):
         """Model sequence should convert to regular sequence"""
         r = RNA.make_array_seq('AAA', name='x')
-        s = RNA.make_sequence(r)
+        s = RNA.make_seq(r)
         self.assertEqual(str(s), 'AAA')
         self.assertEqual(s.moltype, RNA)
         self.assertEqual(s.name, 'x')
 
     def test_regular_to_regular(self):
         """Regular sequence should convert to regular sequence"""
-        r = RNA.make_sequence('AAA', name='x')
-        s = RNA.make_sequence(r)
+        r = RNA.make_seq('AAA', name='x')
+        s = RNA.make_seq(r)
         self.assertEqual(str(s), 'AAA')
         self.assertEqual(s.moltype, RNA)
         self.assertEqual(s.name, 'x')

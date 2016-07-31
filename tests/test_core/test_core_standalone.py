@@ -82,8 +82,8 @@ class AlignmentTestMethods(unittest.TestCase):
         # be done for maps/spans, but seqs/alignments are just simple
         # python classes without __getstate__ etc.
         import pickle as pickle
-        seq1 = DNA.make_sequence("aagaagaagaccccca")
-        seq2 = DNA.make_sequence("aagaagaagaccccct")
+        seq1 = DNA.make_seq("aagaagaagaccccca")
+        seq2 = DNA.make_seq("aagaagaagaccccct")
         seq2.add_feature('exon', 'fred', [(10, 15)])
         aln = LoadSeqs(data={'a': seq1, 'b': seq2})
         # TODO the ability to pickle/unpickle depends on the protocol

@@ -478,7 +478,7 @@ class ProfileTests(TestCase):
         """score: should work correctly on Sequence object as input
         """
         # DnaSequence object
-        ds = self.score1.score(DNA.make_sequence("ATTCAC"), offset=0)
+        ds = self.score1.score(DNA.make_seq("ATTCAC"), offset=0)
         self.assertEqual(ds, [6, 2, -3, 0])
         # ArraySequence object
         ms = self.score1.score(ArraySequence("ATTCAC", alphabet=DNA.alphabet),
@@ -493,7 +493,7 @@ class ProfileTests(TestCase):
         # remove translation table
         del p.__dict__['_translation_table']
         # then score the profile
-        s1 = p.score(DNA.make_sequence("ATTCAC"), offset=0)
+        s1 = p.score(DNA.make_seq("ATTCAC"), offset=0)
         self.assertEqual(s1, [6, 2, -3, 0])
 
     def test_score_profile(self):

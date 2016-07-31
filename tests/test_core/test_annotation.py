@@ -22,7 +22,7 @@ def makeSampleSequence(with_gaps=False):
     utr = (12, 15)
     if with_gaps:
         raw_seq = raw_seq[:5] + '-----' + raw_seq[10:-2] + '--'
-    seq = DNA.make_sequence(raw_seq)
+    seq = DNA.make_seq(raw_seq)
     seq.add_annotation(Feature, 'CDS', 'CDS', [cds])
     seq.add_annotation(Feature, "5'UTR", "5' UTR", [utr])
     return seq
@@ -59,7 +59,7 @@ class TestAnnotations(unittest.TestCase):
                     return as_one.newMethod()
                 return True
 
-        seq = DNA.make_sequence('ACGTACGTACGT')
+        seq = DNA.make_seq('ACGTACGTACGT')
         f = seq.add_annotation(NewFeat, as_map([(1, 3), (5, 7)], len(seq)),
                               type='gene', name='abcd')
         self.assertEqual(type(f.as_one_span()), NewFeat)

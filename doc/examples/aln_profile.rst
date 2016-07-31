@@ -104,7 +104,7 @@ We can calculate how well this profile matches in a certain sequence (or profile
 
 .. doctest::
 
-    >>> yeast = RNA.make_sequence(\
+    >>> yeast = RNA.make_seq(\
     ...     'GCGGAUUUAGCUCAGUU-GGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA')
     >>> scores = loop_profile.score(yeast)
     >>> print(scores)

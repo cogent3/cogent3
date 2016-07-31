@@ -22,7 +22,7 @@ __status__ = "Development"
 
 strip = str.strip
 
-Sequence = BYTES.make_sequence
+Sequence = BYTES.make_seq
 
 
 def is_fasta_label(x):
@@ -263,7 +263,7 @@ def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
     group_ids = []
     current_collection = {}
     for label, seq in parser:
-        seq = moltype.make_sequence(seq, name=label, info=label.info)
+        seq = moltype.make_seq(seq, name=label, info=label.info)
         if DEBUG:
             print("str(label) ", str(label), "repr(label)", repr(label))
         if not group_ids or label.info[group_key] in group_ids:

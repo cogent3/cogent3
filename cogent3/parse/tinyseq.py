@@ -59,7 +59,7 @@ def TinyseqParser(doc):
         else:
             alphabet = moltype.DNA
 
-        seq = alphabet.make_sequence(raw_string, name=name)
+        seq = alphabet.make_seq(raw_string, name=name)
 
         seq.add_annotation(annotation.Feature, "genbank_id",
                           name, [(0, len(seq))])

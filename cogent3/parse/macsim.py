@@ -36,6 +36,6 @@ def MacsimParser(doc):
         else:
             alphabet = moltype.DNA
 
-        seq = alphabet.make_sequence(raw_string, name=name)
+        seq = alphabet.make_seq(raw_string, name=name)
 
         yield (name, seq)

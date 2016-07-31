@@ -551,7 +551,7 @@ class SequenceCollection(object):
         """
         if is_array:
             seqs = list(map(str, list(map(self.moltype.make_array_seq, seqs))))
-        return list(map(self.moltype.make_sequence, seqs))
+        return list(map(self.moltype.make_seq, seqs))
 
     def _guess_input_type(self, data):
         """Guesses input type of data; returns result as key of InputHandlers.
@@ -1676,7 +1676,7 @@ class AlignmentI(object):
         Note that take_positions will fail on ragged positions.
         """
         if seq_constructor is None:
-            seq_constructor = self.moltype.make_sequence
+            seq_constructor = self.moltype.make_seq
         result = {}
         # if we're negating, pick out all the positions except specified
         # indices
@@ -1722,7 +1722,7 @@ class AlignmentI(object):
         constructor is list(), but an alternative can be passed in.
         """
         if seq_constructor is None:
-            seq_constructor = self.moltype.make_sequence
+            seq_constructor = self.moltype.make_seq
         return self.take_positions(self.get_position_indices(f, negate=negate),
                                   seq_constructor=seq_constructor)
 
@@ -1876,7 +1876,7 @@ class AlignmentI(object):
         Uses seq_constructor(seq) to make each new sequence object.
         """
         if seq_constructor is None:
-            seq_constructor = self.moltype.make_sequence
+            seq_constructor = self.moltype.make_seq
         
         is_array = isinstance(self, ArrayAlignment)
         alpha = self.moltype.alphabet
@@ -2359,7 +2359,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         if not hasattr(self, '_named_seqs'):
             seqs = list(map(self.alphabet.to_string, self.array_seqs))
             if self.moltype:
-                seqs = list(map(self.moltype.make_sequence, seqs))
+                seqs = list(map(self.moltype.make_seq, seqs))
             self._named_seqs = self._make_named_seqs(self.names, seqs)
         return self._named_seqs
 
@@ -2703,12 +2703,12 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
     def _coerce_seqs(self, seqs, is_array):
         if not min([isinstance(seq, _Annotatable) or isinstance(seq, Aligned) for seq in seqs]):
-            seqs = list(map(self.moltype.make_sequence, seqs))
+            seqs = list(map(self.moltype.make_seq, seqs))
         return seqs
 
     def _seq_to_aligned(self, seq, key):
         """Converts seq to Aligned object -- override in subclasses"""
-        (map, seq) = self.moltype.make_sequence(seq, key).parse_out_gaps()
+        (map, seq) = self.moltype.make_seq(seq, key).parse_out_gaps()
         return Aligned(map, seq)
 
     def get_tracks(self, policy):

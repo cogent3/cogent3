@@ -60,9 +60,9 @@ def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
             else:
                 raise ValueError("Multiple sequences in '%s'" % filename)
     if moltype is not None:
-        seq = moltype.make_sequence(seq)
+        seq = moltype.make_seq(seq)
     elif not hasattr(seq, 'moltype'):
-        seq = ASCII.make_sequence(seq)
+        seq = ASCII.make_seq(seq)
     if name is not None:
         seq.name = name
     return seq
