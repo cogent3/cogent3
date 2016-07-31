@@ -202,7 +202,8 @@ Using the ``get_seq`` method allows for extracting an unaligned sequence from a 
     >>> from cogent3 import LoadSeqs, DNA
     >>> aln = LoadSeqs(data= [('seq1', 'ATGAA------'),
     ...                       ('seq2', 'ATG-AGTGATG'),
-    ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
+    ...                       ('seq3', 'AT--AG-GATG')],
+    ...                 moltype=DNA, as_array=False)
     >>> seq = aln.get_seq('seq1')
     >>> seq.name
     'seq1'
@@ -445,7 +446,7 @@ We'll do this by specifying the position indices of interest, creating a sequenc
 
     >>> from cogent3 import LoadSeqs
     >>> aln = LoadSeqs(data={'seq1': 'ATGATGATG---',
-    ...                      'seq2': 'ATGATGATGATG'})
+    ...                      'seq2': 'ATGATGATGATG'}, as_array=False)
     >>> list(range(len(aln))[2::3])
     [2, 5, 8, 11]
     >>> indices = [(i, i+1) for i in range(len(aln))[2::3]]
