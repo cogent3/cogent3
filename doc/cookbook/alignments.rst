@@ -528,7 +528,7 @@ If the alignment contains sequences not divisible by 3, use the ``allow_partial`
 Eliminating columns with non-nucleotide characters
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 
-We sometimes want to eliminate ambiguous or gap data from our alignments. We show how to exclude alignment columns by the characters they contain. In the first instance we do this just for single nucleotide columns, then for trinucleotides (equivalent for handling codons).
+We sometimes want to eliminate ambiguous or gap data from our alignments. We show how to exclude alignment columns by the characters they contain. In the first instance we do this just for single nucleotide columns, then for trinucleotides (equivalent for handling codons). Both are done using the ``no_degenerates`` method.
 
 .. doctest::
 
@@ -537,39 +537,11 @@ We sometimes want to eliminate ambiguous or gap data from our alignments. We sho
     ...                       ('seq2', 'ATGAAGGTGATG'),
     ...                       ('seq3', 'ATGAAGGNGATG')], moltype=DNA)
 
-We now just define a one-line function that returns ``True`` if the passed data contains only nucleotide characters, ``False`` otherwise. The function works by converting the aligned column into a ``set`` and checking it is equal to, or a subset of, all nucleotides. This function, which works for nucleotides or codons, has the effect of eliminating the (nucleotide/trinucleotide) columns with the 'N' and '-' characters.
-
-.. doctest::
-
-    >>> just_nucs = lambda x: set(''.join(x)) <= set('ACGT')
-
 We apply to nucleotides,
 
 .. doctest::
 
-    >>> nucs = aln.filtered(just_nucs)
-    >>> print(nucs)
-    >seq1
-    ATGAAGGG
-    >seq2
-    ATGAAGGG
-    >seq3
-    ATGAAGGG
-    <BLANKLINE>
-
-We can also do this in a more longwinded but clearer fashion with a named multi-line function:
-
-.. doctest::
-
-    >>> def just_nucs(x, allowed = 'ACGT'):
-    ...     for char in ''.join(x): # ensure char is a str with length 1
-    ...         if not char in allowed:
-    ...             return False
-    ...     return True
-    ...
-    >>> nucs = aln.filtered(just_nucs)
-    >>> nucs
-    3 x 8 dna alignment: seq1[ATGAAGGG], seq2[ATGAAGGG], seq3[ATGAAGGG]
+    >>> nucs = aln.no_degenerates()
     >>> print(nucs)
     >seq1
     ATGAAGGG
@@ -583,7 +555,7 @@ Applying the same filter to trinucleotides (specified by setting ``motif_length=
 
 .. doctest::
 
-    >>> trinucs = aln.filtered(just_nucs, motif_length=3)
+    >>> trinucs = aln.no_degenerates(motif_length=3)
     >>> print(trinucs)
     >seq1
     ATGAAG
@@ -600,7 +572,8 @@ Getting all variable positions from an alignment
 
     >>> from cogent3 import LoadSeqs
     >>> aln = LoadSeqs('data/long_testseqs.fasta')
-    >>> just_variable_aln = aln.filtered(lambda x: len(set(x)) > 1)
+    >>> pos = aln.variable_positions()
+    >>> just_variable_aln = aln.take_positions(pos)
     >>> print(just_variable_aln[:10])
     >Human
     AAGCAAAACT
@@ -621,7 +594,8 @@ Getting all constant positions from an alignment
 
     >>> from cogent3 import LoadSeqs
     >>> aln = LoadSeqs('data/long_testseqs.fasta')
-    >>> just_constant_aln = aln.filtered(lambda x: len(set(x)) == 1)
+    >>> pos = aln.variable_positions()
+    >>> just_constant_aln = aln.take_positions(pos, negate=True)
     >>> print(just_constant_aln[:10])
     >Human
     TGTGGCACAA

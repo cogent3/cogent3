@@ -1884,7 +1884,10 @@ class AlignmentI(object):
             seq_constructor = self.moltype.make_seq
         
         is_array = isinstance(self, ArrayAlignment)
-        alpha = self.moltype.alphabet
+        try:
+            alpha = self.moltype.alphabets.degen_gapped
+        except:
+            alpha = self.moltype.alphabet
         
         gaps = list(self.moltype.gaps)
         if is_array:
