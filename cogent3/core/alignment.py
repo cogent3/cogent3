@@ -1856,7 +1856,7 @@ class AlignmentI(object):
           character (default, most evolutionary modelling treats gaps as
           N) or not.
         """
-        chars = list(self.moltype.alphabet.NonDegen)
+        chars = list(self.moltype.alphabet.non_degen)
         is_array = isinstance(self, ArrayAlignment)
         alpha = self.alphabet
         if allow_gap:
