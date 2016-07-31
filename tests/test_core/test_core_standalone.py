@@ -444,7 +444,9 @@ class AlignmentTestMethods(unittest.TestCase):
                              'seq3': 'ACGCAATGA'}, moltype=DNA)
         aln = aln.trim_stop_codons(allow_partial=True)
         self.assertEqual(aln.todict(),
-                         {'seq1': 'ACG---', 'seq2': 'ACGAC-', 'seq3': 'ACGCAA'})
+                         {'seq1': 'ACG---',
+                          'seq2': 'ACGAC-',
+                          'seq3': 'ACGCAA'})
         # longest seq not divisible by 3
         aln = LoadSeqs(data={'seq1': 'ACGTAA--', 'seq2': 'ACGAC---',
                              'seq3': 'ACGC-ATG'}, moltype=DNA)

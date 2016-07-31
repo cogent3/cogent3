@@ -28,6 +28,7 @@ from cogent3.core.annotation import Map, _Annotatable
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
+from cogent3.core.genetic_code import DEFAULT
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.sequence import frac_same, ArraySequence
 from cogent3.core.location import LostSpan, Span
@@ -2666,6 +2667,65 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
             for gapchar in moltype.gaps:
                 s = s.replace(gapchar, ambig)
         return s
+    
+    def trim_stop_codons(self, gc=DEFAULT, allow_partial=False, **kwargs):
+        """Removes any terminal stop codons from the sequences
+
+        Arguments:
+            - gc: genetic code object
+            - allow_partial: if True and the sequence length is not divisible
+              by 3, ignores the 3' terminal incomplete codon
+        """
+        if len(self) % 3 != 0 and not allow_partial:
+            raise ValueError("alignment length not divisible by 3")
+        
+        stops = gc['*']
+        get_index = self.alphabet.Degen.index
+        stop_indices = set(tuple(map(get_index, stop)) for stop in stops)
+        new_data = self.array_seqs.copy()
+        
+        gap_indices = set(get_index(gap) for gap in self.moltype.gaps)
+        gap_index = get_index(self.moltype.gap)
+        
+        trim_length = len(self)
+        seqs_with_stops = 0
+        for seq_num, seq in enumerate(new_data):
+            # reverse find first non-gap character
+            nondegen_index = None
+            for i in range(len(self)-1, -1, -1):
+                e = seq[i]
+                if e not in gap_indices:
+                    nondegen_index = i + 1
+                    if nondegen_index % 3 !=0 and not allow_partial:
+                        raise ValueError(
+                            "'%s' length not divisible by 3" % self.names[seq_num])
+                    break
+            
+            if nondegen_index is None or nondegen_index-3 < 0:
+                continue
+            
+            # slice last three valid positions and see if stop
+            end_codon = tuple(seq[nondegen_index-3: nondegen_index])
+            if end_codon in stop_indices:
+                seqs_with_stops += 1
+                seq[nondegen_index-3: nondegen_index] = gap_index
+                trim_length = min([trim_length, nondegen_index-3])
+        
+        result = self.__class__(new_data.T,
+                                moltype=self.moltype,
+                                names=self.names)
+        # this is an ugly hack for rather odd standard behaviour
+        # we find the last alignment column to have not just gap chars
+        # and trim up to that
+        for i in range(len(result)-1,-1,-1):
+            col = set(result.array_seqs[:,i])
+            if not col <= gap_indices:
+                break
+        if i != len(result):
+            result = result[:i+1]
+        
+        return result
+    
     
 
 class CodonArrayAlignment(ArrayAlignment):
