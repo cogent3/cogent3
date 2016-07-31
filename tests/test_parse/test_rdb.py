@@ -34,7 +34,7 @@ class RdbTests(TestCase):
     def test_create_acceptable_sequence(self):
         """create_acceptable_sequence: should handle 'o' and sec. struct"""
         f = create_acceptable_sequence
-        # should keep any char accepted by RNA.alphabet.DegenGapped
+        # should keep any char accepted by RNA.alphabet.degen_gapped
         s = "UCAG---NRYBDHKMNSRWVY?"
         self.assertEqual(f(s), s)
         # should replace 'o' by '?'

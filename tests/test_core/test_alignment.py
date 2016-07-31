@@ -1848,7 +1848,7 @@ class ArrayAlignmentSpecificTests(TestCase):
 
         d = ArrayAlignment(s1, moltype=RNA)
         self.assertSameObj(d.moltype, RNA)
-        self.assertSameObj(d.alphabet, RNA.alphabets.DegenGapped)
+        self.assertSameObj(d.alphabet, RNA.alphabets.degen_gapped)
 
         d = ArrayAlignment(s1, alphabet=RNA.alphabet)
         self.assertSameObj(d.moltype, RNA)
@@ -1856,11 +1856,11 @@ class ArrayAlignmentSpecificTests(TestCase):
 
         d = ArrayAlignment(s2)
         self.assertSameObj(d.moltype, RNA)
-        self.assertSameObj(d.alphabet, RNA.alphabets.DegenGapped)
+        self.assertSameObj(d.alphabet, RNA.alphabets.degen_gapped)
 
         d = ArrayAlignment(s2, moltype=DNA)
         self.assertSameObj(d.moltype, DNA)
-        self.assertSameObj(d.alphabet, DNA.alphabets.DegenGapped)
+        self.assertSameObj(d.alphabet, DNA.alphabets.degen_gapped)
         # checks for containers
         d = ArrayAlignment([s2])
         self.assertSameObj(d.moltype, RNA)

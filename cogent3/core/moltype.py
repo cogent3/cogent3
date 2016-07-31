@@ -318,13 +318,13 @@ class CoreObjectGroup(object):
     """Container relating gapped, ungapped, degen, and non-degen objects."""
     _types = ['Base', 'degen', 'gap', 'DegenGap']
 
-    def __init__(self, Base, degen=None, Gapped=None, DegenGapped=None):
+    def __init__(self, Base, degen=None, Gapped=None, degen_gapped=None):
         """Returns new CoreObjectGroup. Only Base is required"""
         self.Base = Base
         self.degen = degen
         self.Gapped = Gapped
-        self.DegenGapped = DegenGapped
-        self._items = [Base, degen, Gapped, DegenGapped]
+        self.degen_gapped = degen_gapped
+        self._items = [Base, degen, Gapped, degen_gapped]
         self._set_relationships()
 
     def _set_relationships(self):
@@ -335,20 +335,20 @@ class CoreObjectGroup(object):
         self.Base.NonDegen = self.Base
 
         statements = [
-            "self.degen.Gapped = self.DegenGapped",
+            "self.degen.Gapped = self.degen_gapped",
             "self.degen.Ungapped = self.degen",
             "self.degen.degen = self.degen",
             "self.degen.NonDegen = self.Base",
 
             "self.Gapped.Gapped = self.Gapped",
             "self.Gapped.Ungapped = self.Base",
-            "self.Gapped.degen = self.DegenGapped",
+            "self.Gapped.degen = self.degen_gapped",
             "self.Gapped.NonDegen = self.Gapped",
 
-            "self.DegenGapped.Gapped = self.DegenGapped",
-            "self.DegenGapped.Ungapped = self.degen",
-            "self.DegenGapped.degen = self.DegenGapped",
-            "self.DegenGapped.NonDegen = self.Gapped",
+            "self.degen_gapped.Gapped = self.degen_gapped",
+            "self.degen_gapped.Ungapped = self.degen",
+            "self.degen_gapped.degen = self.degen_gapped",
+            "self.degen_gapped.NonDegen = self.Gapped",
         ]
         for s in statements:
             try:
@@ -381,9 +381,9 @@ class AlphabetGroup(CoreObjectGroup):
         self.Base = constructor(chars, moltype=moltype)
         self.degen = constructor(chars + degens, moltype=moltype)
         self.Gapped = constructor(chars + gap, gap, moltype=moltype)
-        self.DegenGapped = constructor(chars + gap + degens + missing, gap,
+        self.degen_gapped = constructor(chars + gap + degens + missing, gap,
                                        moltype=moltype)
-        self._items = [self.Base, self.degen, self.Gapped, self.DegenGapped]
+        self._items = [self.Base, self.degen, self.Gapped, self.degen_gapped]
         self._set_relationships()
         # set complements if MolType was specified
         if moltype is not None:
@@ -1132,16 +1132,16 @@ STANDARD_CODON = CodonAlphabet()
 NucleicAcidSequence.codon_alphabet = _method_codon_alphabet
 NucleicAcidSequence.protein = PROTEIN
 ArrayRnaSequence.moltype = RNA
-ArrayRnaSequence.alphabet = RNA.alphabets.DegenGapped
+ArrayRnaSequence.alphabet = RNA.alphabets.degen_gapped
 
 ArrayDnaSequence.moltype = DNA
-ArrayDnaSequence.alphabet = DNA.alphabets.DegenGapped
+ArrayDnaSequence.alphabet = DNA.alphabets.degen_gapped
 
 ArrayProteinSequence.moltype = PROTEIN
-ArrayProteinSequence.alphabet = PROTEIN.alphabets.DegenGapped
+ArrayProteinSequence.alphabet = PROTEIN.alphabets.degen_gapped
 
 ArrayProteinWithStopSequence.moltype = PROTEIN_WITH_STOP
-ArrayProteinWithStopSequence.alphabet = PROTEIN_WITH_STOP.alphabets.DegenGapped
+ArrayProteinWithStopSequence.alphabet = PROTEIN_WITH_STOP.alphabets.degen_gapped
 
 ArraySequence.alphabet = BYTES.alphabet
 
