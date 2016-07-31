@@ -240,7 +240,7 @@ The usual approach is to access a ``SequenceCollection`` or ``Alignment`` object
     >>> from cogent3 import LoadSeqs, DNA
     >>> fn = 'data/long_testseqs.fasta'
     >>> seqs = LoadSeqs(fn, moltype=DNA, aligned=False)
-    >>> my_seq = seqs.Seqs[0]
+    >>> my_seq = seqs.seqs[0]
     >>> my_seq[:24]
     DnaSequence(TGTGGCA... 24)
     >>> str(my_seq[:24])
@@ -248,9 +248,9 @@ The usual approach is to access a ``SequenceCollection`` or ``Alignment`` object
     >>> type(my_seq)
     <class 'cogent3.core.sequence.DnaSequence'>
     >>> aln = LoadSeqs(fn, moltype=DNA, aligned=True)
-    >>> aln.Seqs[0][:24]
+    >>> aln.seqs[0][:24]
     [0:24]/2532 of DnaSequence(TGTGGCA... 2532)
-    >>> print(aln.Seqs[0][:24])
+    >>> print(aln.seqs[0][:24])
     TGTGGCACAAATACTCATGCCAGC
 
 Getting a subset of sequences from the alignment

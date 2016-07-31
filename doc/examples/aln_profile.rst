@@ -20,7 +20,7 @@ Examine the number of sequences in the alignment and the alignment length
 
 .. doctest::
 
-    >>> print(len(aln.Seqs))
+    >>> print(len(aln.seqs))
     20
     >>> print(len(aln))
     77
