@@ -2730,6 +2730,26 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         
         return result
     
+    def get_degapped_relative_to(self, name):
+        """Remove all columns with gaps in sequence with given name.
+
+        Returns Alignment object of the same class.
+        Note that the seqs in the new Alignment are always new objects.
+
+        Arguments:
+            - name: sequence name
+        """
+        if name not in self.names:
+            raise ValueError("The alignment doesn't have a sequence named '{0}'"
+                             .format(name))
+
+        gapindex = self.alphabet.index(self.alphabet.gap)
+        seqindex = self.names.index(name)
+        indices = self.array_seqs[seqindex] != gapindex
+        new = self.array_seqs[:, indices]
+
+        return self.__class__(new.T, names=self.names,
+                              moltype=self.moltype, info=self.info)
     
 
 class CodonArrayAlignment(ArrayAlignment):
