@@ -267,7 +267,7 @@ class SequenceCollection(object):
 
     - input handlers for different data types
     - seq_data: behaves like list of lists of chars, holds seq data
-    - Seqs: behaves like list of Sequence objects, iterable in name order
+    - seqs: behaves like list of Sequence objects, iterable in name order
     - names: behaves like list of names for the sequence objects
     - named_seqs: behaves like dict of {name:seq}
     - moltype: specifies what kind of sequences are in the collection
@@ -398,7 +398,7 @@ class SequenceCollection(object):
             if not suppress_named_seqs:
                 self.named_seqs = self._make_named_seqs(self.names, curr_seqs)
         # Sequence objects behave like sequences of chars, so no difference
-        # between Seqs and seq_data. Note that this differs for Alignments,
+        # between seqs and seq_data. Note that this differs for Alignments,
         # so be careful which you use if writing methods that should work for
         # both SequenceCollections and Alignments.
         self._set_additional_attributes(curr_seqs)
@@ -1627,7 +1627,7 @@ class AlignmentI(object):
     are modified.
 
     An Alignment is expected to be able to generate the following:
-    - Seqs:         Sequence objects in the alignment, can turn themselves into
+    - seqs:         Sequence objects in the alignment, can turn themselves into
                     strings. These are usually thought of as "rows" in an
                     alignment.
     - positions:    Vectors representing data in each position in the alignment
@@ -2278,16 +2278,16 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
     each sequence as a row so a position that cuts across sequences is a
     column.
 
-    aln.Seqs[i] returns a sequence, or 'row' of the alignment in standard
+    aln.seqs[i] returns a sequence, or 'row' of the alignment in standard
     terminology.
 
     WARNING: aln.seqs and aln.positions are different views of the same array,
     so if you change one you will change the other. This will no longer be
     true if you assign to seqs or positions directly, so don't do it. If you
     want to change the data in the whole array, always assign to a slice so
-    that both views update: aln.seqs[:] = x instead of aln.Seqs = x. If you
+    that both views update: aln.seqs[:] = x instead of aln.seqs = x. If you
     get the two views out of sync, you will get all sorts of exceptions. No
-    validation is performed on aln.Seqs and aln.positions for performance
+    validation is performed on aln.seqs and aln.positions for performance
     reasons, so this can really get you into trouble.
 
     Alignments are immutable, though this is not enforced. If you change the
@@ -2732,7 +2732,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             if count == 3:
                 seqs.append('...')
                 break
-            elts = list(self.get_gapped_seq(name)[:limit + 1])
+            elts = list(str(self.named_seqs[name])[:limit + 1])
             if len(elts) > limit:
                 elts.append('...')
             seqs.append("%s[%s]" % (name, delimiter.join(elts)))

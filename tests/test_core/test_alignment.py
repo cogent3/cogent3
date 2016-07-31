@@ -353,7 +353,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(self.gaps.seq_len, 7)
 
     def test_Seqs(self):
-        """SequenceCollection Seqs property should return seqs in correct order."""
+        """SequenceCollection seqs property should return seqs in correct order."""
         first = self.ordered1
         sec = self.ordered2
         un = self.unordered
@@ -1002,7 +1002,7 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         self.assertTrue(self.ragged.is_ragged())
 
     def test_Seqs_ragged(self):
-        """SequenceCollection Seqs should work on ragged alignment"""
+        """SequenceCollection seqs should work on ragged alignment"""
         self.ragged.names = 'bac'
         self.assertEqual(list(self.ragged.seqs), ['AAA', 'AAAAAA', 'AAAA'])
 
