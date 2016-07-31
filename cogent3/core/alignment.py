@@ -2628,6 +2628,16 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
                                 moltype=self.moltype,
                                 info=self.info, names=self.names)        
         return result
+    
+    def get_gapped_seq(self, seq_name, recode_gaps=False):
+        """Return a gapped Sequence object for the specified seqname.
+
+        Note: return type may depend on what data was loaded into the
+        SequenceCollection or Alignment.
+        """
+        s = self.named_seqs[seq_name]
+        return s
+    
 
 class CodonArrayAlignment(ArrayAlignment):
     """Stores alignment of gapped codons, no degenerate symbols."""

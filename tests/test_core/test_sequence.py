@@ -661,6 +661,13 @@ class SequenceTests(TestCase):
         self.assertEqual(dna.degap(), raw_ungapped)
         self.assertEqual(dna.strip_degenerate(), raw_no_ambigs)
         self.assertEqual(dna.strip_bad_and_gaps(), raw_ungapped)
+    
+    def test_replace(self):
+        """replace should convert oldchars to new returning same class"""
+        seq = self.SEQ("ACC--GT")
+        got = seq.replace('-', 'N')
+        self.assertEqual(str(got), "ACCNNGT")
+        self.assertTrue(isinstance(got, self.SEQ))
 
 
 class SequenceSubclassTests(TestCase):
