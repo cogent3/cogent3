@@ -30,7 +30,7 @@ class FastaTests(TestCase):
         self.sequences_with_names = list(map(Sequence, self.strings))
         for l, sl, sn in zip(self.labels, self.sequences_with_labels,
                            self.sequences_with_names):
-            sl.Label = l
+            sl.label = l
             sn.name = l
         self.fasta_no_label = '>0\nAAAA\n>1\nCCCC\n>2\ngggg\n>3\nuuuu'
         self.fasta_with_label =\

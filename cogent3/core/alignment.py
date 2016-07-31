@@ -2144,7 +2144,7 @@ def aln_from_array_seqs(seqs, array_type=None, alphabet=None):
     """Alignment from ArraySequence objects: seqs -> array, names from seqs.
 
     This is an InputHandler for Alignment. It converts a list of Sequence
-    objects with _data and Label properties into the character array Alignment
+    objects with _data and label properties into the character array Alignment
     needs. All sequences must be the same length.
 
     WARNING: Assumes that the ModelSeqs are already in the right alphabet. If
