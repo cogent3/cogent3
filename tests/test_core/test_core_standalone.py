@@ -585,15 +585,15 @@ class SequenceTestMethods(unittest.TestCase):
         """testing deleting terminal stop"""
         # for standard code
         seq = Sequence(DNA, seq='ACTTAA')
-        seq2 = seq.without_terminal_stop_sodon()
+        seq2 = seq.without_terminal_stop_codon()
         self.assertEqual(str(seq2), "ACT")
 
         # for sequence not divisible by 3
         seq = Sequence(DNA, seq='ACTTA')
         # fail
-        self.assertRaises(ValueError, seq.without_terminal_stop_sodon)
+        self.assertRaises(ValueError, seq.without_terminal_stop_codon)
         # unless explicitly over-ride length issue using allow_partial
-        seq2 = seq.without_terminal_stop_sodon(allow_partial=True)
+        seq2 = seq.without_terminal_stop_codon(allow_partial=True)
 
     def test_has_terminal_stop(self):
         """test check for terminal stop codons"""
