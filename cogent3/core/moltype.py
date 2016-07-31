@@ -330,23 +330,23 @@ class CoreObjectGroup(object):
     def _set_relationships(self):
         """Sets relationships between the different "flavors"."""
         self.base.gapped = self.gapped
-        self.base.Ungapped = self.base
+        self.base.ungapped = self.base
         self.base.degen = self.degen
         self.base.NonDegen = self.base
 
         statements = [
             "self.degen.gapped = self.degen_gapped",
-            "self.degen.Ungapped = self.degen",
+            "self.degen.ungapped = self.degen",
             "self.degen.degen = self.degen",
             "self.degen.NonDegen = self.base",
 
             "self.gapped.gapped = self.gapped",
-            "self.gapped.Ungapped = self.base",
+            "self.gapped.ungapped = self.base",
             "self.gapped.degen = self.degen_gapped",
             "self.gapped.NonDegen = self.gapped",
 
             "self.degen_gapped.gapped = self.degen_gapped",
-            "self.degen_gapped.Ungapped = self.degen",
+            "self.degen_gapped.ungapped = self.degen",
             "self.degen_gapped.degen = self.degen_gapped",
             "self.degen_gapped.NonDegen = self.gapped",
         ]
