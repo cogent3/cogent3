@@ -11,7 +11,7 @@ Creating a ProteinSequence with a name
     >>> from cogent3 import PROTEIN
     >>> p = PROTEIN.make_seq('THISISAPRQTEIN','myProtein')
     >>> type(p)
-    <class .'cogent3.core.sequence.ProteinSequence'>
+    <class 'cogent3.core.sequence.ProteinSequence'>
     >>> str(p)
     'THISISAPRQTEIN'
 

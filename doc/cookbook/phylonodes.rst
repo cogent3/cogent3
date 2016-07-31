@@ -74,9 +74,9 @@ The object type of a tree and its nodes is the same
     >>> nodes = tr.get_nodes_dict()
     >>> hu = nodes['Human']
     >>> type(hu)
-    <class .'cogent3.core.tree.PhyloNode'>
+    <class 'cogent3.core.tree.PhyloNode'>
     >>> type(tr)
-    <class .'cogent3.core.tree.PhyloNode'>
+    <class 'cogent3.core.tree.PhyloNode'>
 
 Working with the nodes of a tree
 """"""""""""""""""""""""""""""""
@@ -169,7 +169,7 @@ Getting the last common ancestor (LCA) for two nodes
     >>> lca
     Tree("((Human,HowlerMon),Mouse);")
     >>> type(lca)
-    <class .'cogent3.core.tree.PhyloNode'>
+    <class 'cogent3.core.tree.PhyloNode'>
 
 Getting all the ancestors for a node
 """"""""""""""""""""""""""""""""""""
