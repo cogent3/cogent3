@@ -9,7 +9,7 @@ A Sequence with a couple of exons on it.
     
     >>> from cogent3 import DNA
     >>> from cogent3.core.annotation import Feature
-    >>> s = DNA.make_sequence("AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA",
+    >>> s = DNA.make_seq("AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA",
     ... name="Orig")
     >>> exon1 = s.add_annotation(Feature, 'exon', 'fred', [(10,15)])
     >>> exon2 = s.add_annotation(Feature, 'exon', 'trev', [(30,40)])
@@ -131,7 +131,7 @@ When dealing with sequences that can be reverse complemented (e.g. ``DnaSequence
 
 .. doctest::
     
-    >>> plus = DNA.make_sequence("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA",
+    >>> plus = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA",
     ... name="plus")
     >>> plus_cds = plus.add_annotation(Feature, 'CDS', 'gene',
     ...                           [(2,6),(10,15),(25,35)])
@@ -192,7 +192,7 @@ We copy the annotations from another sequence,
 .. doctest::
     
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--CCCC']])
-    >>> s = DNA.make_sequence("AAAAAAAAA", name="x")
+    >>> s = DNA.make_seq("AAAAAAAAA", name="x")
     >>> exon = s.add_annotation(Feature, 'exon', 'fred', [(3,8)])
     >>> exon = aln.get_seq('x').copy_annotations(s)
     >>> aln_exons = list(aln.get_annotations_from_seq('x', 'exon'))
@@ -219,7 +219,7 @@ If the feature lies outside the sequence being copied to, you get a lost span
 .. doctest::
 
     >>> aln = LoadSeqs(data=[['x', '-AAAA'], ['y', 'TTTTT']])
-    >>> seq = DNA.make_sequence('CCCCCCCCCCCCCCCCCCCC', 'x')
+    >>> seq = DNA.make_seq('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> exon = seq.add_feature('exon', 'A', [(5,8)])
     >>> aln.get_seq('x').copy_annotations(seq)
     >>> copied = list(aln.get_annotations_from_seq('x', 'exon'))
@@ -233,7 +233,7 @@ You can copy to a sequence with a different name, in a different alignment if th
 .. doctest::
 
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
-    >>> seq = DNA.make_sequence('CCCCCCCCCCCCCCCCCCCC', 'x')
+    >>> seq = DNA.make_seq('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> match_exon = seq.add_feature('exon', 'A', [(5,8)])
     >>> aln.get_seq('y').copy_annotations(seq)
     >>> copied = list(aln.get_annotations_from_seq('y', 'exon'))
@@ -245,7 +245,7 @@ If the sequence is shorter, again you get a lost span.
 .. doctest::
 
     >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']])
-    >>> diff_len_seq = DNA.make_sequence('CCCCCCCCCCCCCCCCCCCCCCCCCCCC', 'x')
+    >>> diff_len_seq = DNA.make_seq('CCCCCCCCCCCCCCCCCCCCCCCCCCCC', 'x')
     >>> nonmatch = diff_len_seq.add_feature('repeat', 'A', [(12,14)])
     >>> aln.get_seq('y').copy_annotations(diff_len_seq)
     >>> copied = list(aln.get_annotations_from_seq('y', 'repeat'))

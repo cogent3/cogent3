@@ -45,7 +45,7 @@ Translate all six frames
 
     >>> from cogent3 import DNA
     >>> from cogent3.core.genetic_code import DEFAULT as standard_code
-    >>> seq = DNA.make_sequence('ATGCTAACATAAA')
+    >>> seq = DNA.make_seq('ATGCTAACATAAA')
     >>> translations = standard_code.sixframes(seq)
     >>> print(translations)
     ['MLT*', 'C*HK', 'ANI', 'FMLA', 'LC*H', 'YVS']
@@ -57,7 +57,7 @@ Find out how many stops in a frame
 
     >>> from cogent3 import DNA
     >>> from cogent3.core.genetic_code import DEFAULT as standard_code
-    >>> seq = DNA.make_sequence('ATGCTAACATAAA')
+    >>> seq = DNA.make_seq('ATGCTAACATAAA')
     >>> stops_frame1 = standard_code.get_stop_indices(seq, start=0)
     >>> stops_frame1
     [9]
@@ -118,7 +118,7 @@ Converting the ``CodonAlphabet`` to codon series
 .. doctest::
 
     >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_sequence("AGTACACTGGTT")
+    >>> my_seq = DNA.make_seq("AGTACACTGGTT")
     >>> sorted(my_seq.codon_alphabet())
     ['AAA', 'AAC', 'AAG', 'AAT'...
     >>> len(my_seq.codon_alphabet())
@@ -132,7 +132,7 @@ Use the method ``get_in_motif_size``
 .. doctest::
 
     >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_sequence('ATGCACTGGTAA','my_gene')
+    >>> my_seq = DNA.make_seq('ATGCACTGGTAA','my_gene')
     >>> codons = my_seq.get_in_motif_size(3)
     >>> print(codons)
     ['ATG', 'CAC', 'TGG', 'TAA']
@@ -166,7 +166,7 @@ Or we can just grab the correct slice from the ``DnaSequence`` object
 .. doctest::
 
     >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_sequence('CAAATGTATTAA','my_gene')
+    >>> my_seq = DNA.make_seq('CAAATGTATTAA','my_gene')
     >>> pep = my_seq[:-3].get_translation().to_fasta()
     >>> print(pep)
     >my_gene

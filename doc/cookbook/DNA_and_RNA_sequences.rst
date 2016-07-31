@@ -13,7 +13,7 @@ All sequence and alignment objects have a molecular type, or ``MolType`` which p
 .. doctest::
 
     >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_sequence("AGTACACTGGT")
+    >>> my_seq = DNA.make_seq("AGTACACTGGT")
     >>> my_seq
     DnaSequence(AGTACAC... 11)
     >>> print(my_seq)
@@ -27,7 +27,7 @@ Creating a RNA sequence from a string
 .. doctest::
 
     >>> from cogent3 import RNA
-    >>> rnaseq = RNA.make_sequence('ACGUACGUACGUACGU')
+    >>> rnaseq = RNA.make_seq('ACGUACGUACGUACGU')
 
 Converting to FASTA format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -35,7 +35,7 @@ Converting to FASTA format
 .. doctest::
 
     >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_sequence('AGTACACTGGT')
+    >>> my_seq = DNA.make_seq('AGTACACTGGT')
     >>> print(my_seq.to_fasta())
     >0
     AGTACACTGGT
@@ -46,7 +46,7 @@ Convert a RNA sequence to FASTA format
 .. doctest::
 
     >>> from cogent3 import RNA
-    >>> rnaseq = RNA.make_sequence('ACGUACGUACGUACGU')
+    >>> rnaseq = RNA.make_seq('ACGUACGUACGUACGU')
     >>> rnaseq.to_fasta()
     '>0\nACGUACGUACGUACGU'
 
@@ -56,7 +56,7 @@ Creating a named sequence
 .. doctest::
 
     >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_sequence('AGTACACTGGT','my_gene')
+    >>> my_seq = DNA.make_seq('AGTACACTGGT','my_gene')
     >>> my_seq
     DnaSequence(AGTACAC... 11)
     >>> type(my_seq)
@@ -68,7 +68,7 @@ Setting or changing the name of a sequence
 .. doctest::
 
     >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_sequence('AGTACACTGGT')
+    >>> my_seq = DNA.make_seq('AGTACACTGGT')
     >>> my_seq.name = 'my_gene'
     >>> print(my_seq.to_fasta())
     >my_gene
@@ -80,7 +80,7 @@ Complementing a DNA sequence
 .. doctest::
 
     >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_sequence("AGTACACTGGT")
+    >>> my_seq = DNA.make_seq("AGTACACTGGT")
     >>> print(my_seq.complement())
     TCATGTGACCA
 
@@ -107,7 +107,7 @@ Translate a ``DnaSequence`` to protein
 .. doctest::
 
     >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_sequence('GCTTGGGAAAGTCAAATGGAA','protein-X')
+    >>> my_seq = DNA.make_seq('GCTTGGGAAAGTCAAATGGAA','protein-X')
     >>> pep = my_seq.get_translation()
     >>> type(pep)
     <class 'cogent3.core.sequence.ProteinSequence'>
@@ -121,7 +121,7 @@ Converting a DNA sequence to RNA
 .. doctest::
 
     >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_sequence('ACGTACGTACGTACGT')
+    >>> my_seq = DNA.make_seq('ACGTACGTACGTACGT')
     >>> print(my_seq.to_rna())
     ACGUACGUACGUACGU
 
@@ -131,7 +131,7 @@ Convert an RNA sequence to DNA
 .. doctest::
 
     >>> from cogent3 import RNA
-   >>> rnaseq = RNA.make_sequence('ACGUACGUACGUACGU')
+   >>> rnaseq = RNA.make_seq('ACGUACGUACGUACGU')
    >>> print(rnaseq.to_dna())
    ACGTACGTACGTACGT
 
@@ -141,7 +141,7 @@ Testing complementarity
 .. doctest::
 
     >>> from cogent3 import DNA
-    >>> a = DNA.make_sequence("AGTACACTGGT")
+    >>> a = DNA.make_seq("AGTACACTGGT")
     >>> a.can_pair(a.complement())
     False
     >>> a.can_pair(a.reversecomplement())
@@ -153,8 +153,8 @@ Joining two DNA sequences
 .. doctest::
 
     >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_sequence("AGTACACTGGT")
-    >>> extra_seq = DNA.make_sequence("CTGAC")
+    >>> my_seq = DNA.make_seq("AGTACACTGGT")
+    >>> extra_seq = DNA.make_seq("CTGAC")
     >>> long_seq = my_seq + extra_seq
     >>> long_seq
     DnaSequence(AGTACAC... 16)
@@ -191,7 +191,7 @@ In this instance we can use the annotatable sequence classes.
 .. doctest::
 
     >>> from cogent3 import DNA
-    >>> seq = DNA.make_sequence('ATGATGATGATG')
+    >>> seq = DNA.make_seq('ATGATGATGATG')
     >>> indices = [(i, i+2) for i in range(len(seq))[::3]]
     >>> pos12 = seq.add_feature('pos12', 'pos12', indices)
     >>> pos12 = pos12.get_slice()
@@ -211,7 +211,7 @@ Remove gaps from a sequence
 .. doctest::
 
     >>> from cogent3 import RNA
-   >>> s = RNA.make_sequence('--AUUAUGCUAU-UAu--')
+   >>> s = RNA.make_seq('--AUUAUGCUAU-UAu--')
    >>> print(s.degap())
    AUUAUGCUAUUAU
   

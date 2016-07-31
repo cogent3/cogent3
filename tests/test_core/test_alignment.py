@@ -955,7 +955,7 @@ class SequenceCollectionBaseTests(object):
         raw_seq = "---??-??TC-GGCG-GCA-G-GC-?-C-TAN-GCGC-CCTC-AGGA?-???-??--"
         raw_ungapped = re.sub("[-?]", "", raw_seq)
         raw_no_ambigs = re.sub("[N?]+", "", raw_seq)
-        dna = DNA.make_sequence(raw_seq)
+        dna = DNA.make_seq(raw_seq)
 
         aln = self.Class(data=[("a", dna), ("b", dna)])
         expect = self.Class(
@@ -1495,9 +1495,9 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
     def test_get_freqs(self):
         """ArrayAlignment get_seq_freqs: should work on positions and sequences 
         """
-        s1 = DNA.make_sequence('TCAG', name='s1')
-        s2 = DNA.make_sequence('CCAC', name='s2')
-        s3 = DNA.make_sequence('AGAT', name='s3')
+        s1 = DNA.make_seq('TCAG', name='s1')
+        s2 = DNA.make_seq('CCAC', name='s2')
+        s3 = DNA.make_seq('AGAT', name='s3')
         da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         seq_exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
         pos_exp = array([[1, 1, 1, 0], [0, 2, 0, 1],
@@ -1510,9 +1510,9 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
         """
         exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
 
-        s1 = DNA.make_sequence('TCAG', name='s1')
-        s2 = DNA.make_sequence('CCAC', name='s2')
-        s3 = DNA.make_sequence('AGAT', name='s3')
+        s1 = DNA.make_seq('TCAG', name='s1')
+        s2 = DNA.make_seq('CCAC', name='s2')
+        s3 = DNA.make_seq('AGAT', name='s3')
         da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = da.get_seq_freqs()
         self.assertEqual(obs.Data, exp)
@@ -1533,9 +1533,9 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
         """
         exp = array([[1, 1, 1, 0], [0, 2, 0, 1], [0, 0, 3, 0], [1, 1, 0, 1]])
 
-        s1 = DNA.make_sequence('TCAG', name='s1')
-        s2 = DNA.make_sequence('CCAC', name='s2')
-        s3 = DNA.make_sequence('AGAT', name='s3')
+        s1 = DNA.make_seq('TCAG', name='s1')
+        s2 = DNA.make_seq('CCAC', name='s2')
+        s3 = DNA.make_seq('AGAT', name='s3')
         da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = da.get_pos_freqs()
         self.assertEqual(obs.Data, exp)
@@ -1558,9 +1558,9 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
     def test_get_freqs(self):
         """Alignment _get_freqs: should work on positions and sequences 
         """
-        s1 = DNA.make_sequence('TCAG', name='s1')
-        s2 = DNA.make_sequence('CCAC', name='s2')
-        s3 = DNA.make_sequence('AGAT', name='s3')
+        s1 = DNA.make_seq('TCAG', name='s1')
+        s2 = DNA.make_seq('CCAC', name='s2')
+        s3 = DNA.make_seq('AGAT', name='s3')
         aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         seq_exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
         pos_exp = array([[1, 1, 1, 0], [0, 2, 0, 1],
@@ -1573,9 +1573,9 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         """
         exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
 
-        s1 = DNA.make_sequence('TCAG', name='s1')
-        s2 = DNA.make_sequence('CCAC', name='s2')
-        s3 = DNA.make_sequence('AGAT', name='s3')
+        s1 = DNA.make_seq('TCAG', name='s1')
+        s2 = DNA.make_seq('CCAC', name='s2')
+        s3 = DNA.make_seq('AGAT', name='s3')
         aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = aln.get_seq_freqs()
         self.assertEqual(obs.Data, exp)
@@ -1596,9 +1596,9 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         """
         exp = array([[1, 1, 1, 0], [0, 2, 0, 1], [0, 0, 3, 0], [1, 1, 0, 1]])
 
-        s1 = DNA.make_sequence('TCAG', name='s1')
-        s2 = DNA.make_sequence('CCAC', name='s2')
-        s3 = DNA.make_sequence('AGAT', name='s3')
+        s1 = DNA.make_seq('TCAG', name='s1')
+        s2 = DNA.make_seq('CCAC', name='s2')
+        s3 = DNA.make_seq('AGAT', name='s3')
         aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = aln.get_pos_freqs()
         self.assertEqual(obs.Data, exp)
@@ -1840,7 +1840,7 @@ class ArrayAlignmentSpecificTests(TestCase):
     def test_get_alphabet_and_moltype(self):
         """ArrayAlignment should figure out correct alphabet and moltype"""
         s1 = 'A'
-        s2 = RNA.make_sequence('AA')
+        s2 = RNA.make_seq('AA')
 
         d = ArrayAlignment(s1)
         self.assertSameObj(d.moltype, BYTES)
@@ -1967,8 +1967,8 @@ class IntegrationTests(TestCase):
 
     def setUp(self):
         """Intialize some standard sequences"""
-        self.r1 = RNA.make_sequence('AAA', name='x')
-        self.r2 = RNA.make_sequence('CCC', name='y')
+        self.r1 = RNA.make_seq('AAA', name='x')
+        self.r2 = RNA.make_seq('CCC', name='y')
         self.m1 = RNA.make_array_seq('AAA', name='xx')
         self.m2 = RNA.make_array_seq('CCC', name='yy')
 

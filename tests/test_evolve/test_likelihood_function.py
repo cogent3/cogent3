@@ -479,7 +479,7 @@ motif  mprobs
             root = simalign.named_seqs['root']
             self.assertEqual(str(root), str(root_sequence))
 
-        root_sequence = DNA.make_sequence('GTAATT')
+        root_sequence = DNA.make_seq('GTAATT')
         use_root_seq(root_sequence)  # as a sequence instance
         use_root_seq('GTAATC')  # as a string
 

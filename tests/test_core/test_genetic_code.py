@@ -295,14 +295,14 @@ class GeneticCodeTests(TestCase):
             'MLT*', 'C*HK', 'ANI', 'FMLA', 'LC*H', 'YVS'])
 
         # should also actually work with an RNA or DNA sequence!!!
-        test_rna = RNA.make_sequence('AUGCUAACAUAAA')
+        test_rna = RNA.make_seq('AUGCUAACAUAAA')
         self.assertEqual(sgc.sixframes(test_rna), [
             'MLT*', 'C*HK', 'ANI', 'FMLA', 'LC*H', 'YVS'])
 
     def test_stop_indexes(self):
         """should return stop codon indexes for a specified frame"""
         sgc = GeneticCode(self.SGC)
-        seq = DNA.make_sequence('ATGCTAACATAAA')
+        seq = DNA.make_seq('ATGCTAACATAAA')
         expected = [[9], [4], []]
         for frame, expect in enumerate(expected):
             got = sgc.get_stop_indices(seq, start=frame)

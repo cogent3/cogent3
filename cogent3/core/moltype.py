@@ -473,7 +473,7 @@ class MolType(object):
             seq_constructor = ''.join  # safe default string constructor
         elif not preserve_existing_moltypes:
             seq_constructor.moltype = self
-        self.make_sequence = seq_constructor
+        self.make_seq = seq_constructor
 
         # set the ambiguities
         ambigs = {self.missing: tuple(
@@ -559,9 +559,9 @@ class MolType(object):
         """Returns type, e.g. 'dna', 'rna', 'protein'. Delete?"""
         return self.label
 
-    def make_sequence(self, Seq, name=None, **kwargs):
+    def make_seq(self, Seq, name=None, **kwargs):
         """Returns sequence of correct type. Replace with just self.Sequence?"""
-        return self.make_sequence(Seq, name, **kwargs)
+        return self.make_seq(Seq, name, **kwargs)
 
     def verify_sequence(self, seq, gaps_allowed=True, wildcards_allowed=True):
         """Checks whether sequence is valid on the default alphabet.
