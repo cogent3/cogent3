@@ -316,7 +316,7 @@ for k, v in list(RnaPairingRules.items()):
 
 class CoreObjectGroup(object):
     """Container relating gapped, ungapped, degen, and non-degen objects."""
-    _types = ['Base', 'degen', 'gap', 'DegenGap']
+    _types = ['Base', 'degen', 'gap', 'degen_gap']
 
     def __init__(self, Base, degen=None, gapped=None, degen_gapped=None):
         """Returns new CoreObjectGroup. Only Base is required"""
