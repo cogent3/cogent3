@@ -16,7 +16,7 @@ __status__ = "Production"
 
 
 def seq_traceback(s1, s2, aligned_positions, gap_value):
-    """Gapped sequences from state matrix and ending point
+    """gapped sequences from state matrix and ending point
     gaps are signified by 'gap_value' inserted in the sequences.
     """
     seqs = [s1, s2]
