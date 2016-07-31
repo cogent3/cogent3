@@ -117,8 +117,8 @@ def MinimalInfo(label):
 
 
 def NameLabelInfo(label):
-    """Returns name as label split on whitespace, and Label in Info."""
-    return label.split()[0], {'Label': label}
+    """Returns name as label split on whitespace, and label in Info."""
+    return label.split()[0], {'label': label}
 
 
 def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):

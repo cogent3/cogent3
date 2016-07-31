@@ -197,7 +197,7 @@ class MatplotlibRenderer(object):
 
 
 class DendrogramLabelStyle(object):
-    """Label options"""
+    """label options"""
 
     def __init__(self, show_params=None, show_internal_labels=False,
                  label_template=None, edge_label_callback=None):
@@ -450,7 +450,7 @@ class _Dendrogram(rlg2mpl.Drawable, TreeNode):
         # Main line
         g.append(renderer.line(self.x1, self.y1, self.x2, self.y2, self))
 
-        # Edge Label
+        # Edge label
         text = label_style.get_edge_label(self)
         if text:
             midx, midy = (self.x1 + self.x2) / 2, (self.y1 + self.y2) / 2

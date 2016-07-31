@@ -13,20 +13,20 @@ __status__ = "Production"
 
 
 class _fake_seq(str):
-    """a holder for string sequences that allows provision of a seq.Label
+    """a holder for string sequences that allows provision of a seq.label
     attribute, required by fasta formatting funcs."""
-    def __new__(cls, Label, seq):
+    def __new__(cls, label, seq):
         new = str.__new__(cls, seq)
-        new.Label = Label
+        new.label = label
         return new
 
     def __getitem__(self, *args, **kwargs):
         new_seq = str.__getitem__(self, *args, **kwargs)
-        return self.__new__(self.__class__, self.Label, new_seq)
+        return self.__new__(self.__class__, self.label, new_seq)
 
 
 def fasta_from_sequences(seqs, make_seqlabel=None, line_wrap=None):
-    """Returns a FASTA string given a list of sequences. A sequence.Label
+    """Returns a FASTA string given a list of sequences. A sequence.label
        attribute takes precedence over sequence.name.
 
         - seqs can be a list of sequence objects or strings.
@@ -40,8 +40,8 @@ def fasta_from_sequences(seqs, make_seqlabel=None, line_wrap=None):
         label = str(i)
         if make_seqlabel is not None:
             label = make_seqlabel(seq)
-        elif hasattr(seq, 'Label') and seq.Label:
-            label = seq.Label
+        elif hasattr(seq, 'label') and seq.label:
+            label = seq.label
         elif hasattr(seq, 'name') and seq.name:
             label = seq.name
 
