@@ -494,6 +494,10 @@ class SequenceI(object):
             result = self.__class__(prefix + mid + suffix, info=self.info)
         return result
 
+    def replace(self, oldchar, newchar):
+        """return new instance with oldchar replaced by newchar"""
+        NotImplemented
+
 
 @total_ordering
 class Sequence(_Annotatable, SequenceI):
@@ -611,7 +615,7 @@ class Sequence(_Annotatable, SequenceI):
                              info=self.info)
         new.annotations = self.annotations[:]
         return new
-
+    
     def gapped_by_map_segment_iter(self, map, allow_gaps=True, recode_gaps=False):
         for span in map.spans:
             if span.lost:
@@ -755,6 +759,10 @@ class Sequence(_Annotatable, SequenceI):
                                for a in self.annotations]
         return (map, seq)
 
+    def replace(self, oldchar, newchar):
+        """return new instance with oldchar replaced by newchar"""
+        new = self._seq.replace(oldchar, newchar)
+        return self.__class__(new, name=self.name, info=self.info)
 
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence. MolType set in moltype module."""
@@ -1349,6 +1357,14 @@ class ArraySequence(ArraySequenceBase, SequenceI):
 
         return for_seq(f=lambda x, y: (x, y) in similar_pairs,
                        normalizer=per_shortest)(str(self), str(other))
+    
+    def replace(self, oldchar, newchar):
+        """return new instance with oldchar replaced by newchar"""
+        oldindex = self.alphabet.index(oldchar)
+        newindex = self.alphabet.index(newchar)
+        new = self._data.copy()
+        new[new==oldindex] = newindex
+        return self.__class__(new, name=self.name, info=self.info)
 
 
 class ArrayNucleicAcidSequence(ArraySequence):
