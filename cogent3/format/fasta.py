@@ -15,8 +15,8 @@ __status__ = "Production"
 class _fake_seq(str):
     """a holder for string sequences that allows provision of a seq.Label
     attribute, required by fasta formatting funcs."""
-    def __new__(cls, Label, Seq):
-        new = str.__new__(cls, Seq)
+    def __new__(cls, Label, seq):
+        new = str.__new__(cls, seq)
         new.Label = Label
         return new
 

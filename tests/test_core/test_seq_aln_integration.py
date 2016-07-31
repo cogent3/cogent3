@@ -259,7 +259,7 @@ class AllTests(TestCase):
         # check is produces the right string from the beginning
         self.assertEqual(str(model1), 'U-C-A-G-')
         self.assertEqual(model1._data, [0, 4, 1, 4, 2, 4, 3, 4])
-        # ArraySequence should maybe have the same degap method as normal Seq
+        # ArraySequence should maybe have the same degap method as normal seq
         self.assertEqual(str(model1.degap()), 'UCAG')
 
     def test_the_rest_of_ModelSequence(self):
