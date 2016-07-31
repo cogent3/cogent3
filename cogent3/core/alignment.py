@@ -2219,6 +2219,12 @@ def aln_from_dict(aln, array_type=None, alphabet=None):
     keys are the names and the values are the sequences (sequence only, no
     whitespace or other formatting) into an alignment. Because the dict
     doesn't preserve order, the result will be in alphabetical order."""
+    for n in aln:
+        try:
+            aln[n] = aln[n].upper()
+        except AttributeError:
+            pass
+    
     names, seqs = list(zip(*sorted(aln.items())))
     result = array(list(map(alphabet.to_indices, seqs)), array_type)
     return result, list(names)

@@ -70,7 +70,7 @@ def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
 
 def LoadSeqs(filename=None, format=None, data=None, moltype=None,
              name=None, aligned=True, label_to_name=None, parser_kw=None,
-             constructor_kw=None, as_array=False, **kw):
+             constructor_kw=None, as_array=True, **kw):
     """Initialize an alignment or collection of sequences.
 
     Arguments:

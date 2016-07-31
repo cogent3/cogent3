@@ -165,14 +165,15 @@ def makeSampleSequence():
 def makeSampleAlignment():
     # must be an esier way to make an alignment of annotated sequences!
     from cogent3.align.align import global_pairwise, make_dna_scoring_dict
-    DNA = make_dna_scoring_dict(10, -8, -8)
+    dna = make_dna_scoring_dict(10, -8, -8)
     seq1 = makeSampleSequence()[:-2]
     seq2 = makeSampleSequence()[2:]
     seq2 = seq2[:30] + seq2[50:]
     seq1.name = 'FAKE01'
     seq2.name = 'FAKE02'
     names = (seq1.get_name(), seq2.get_name())
-    align = global_pairwise(seq1, seq2, DNA, 2, 1)
+    align = global_pairwise(seq1, seq2, dna, 2, 1)
+    align = align.to_type(as_array=False, moltype=DNA)
     align.add_annotation(annotation.Variable, 'redline', 'align', [
                         ((0, 15), 1), ((15, 30), 2), ((30, 45), 3)])
     align.add_annotation(annotation.Variable, 'blueline', 'align', [
@@ -265,7 +266,8 @@ class DrawingTests(unittest.TestCase):
             t), edge_color_callback=callback)
 
     def test_partimatrix(self):
-        aln = LoadSeqs(filename='data/brca1.fasta', moltype=DNA)
+        aln = LoadSeqs(filename='data/brca1.fasta', moltype=DNA,
+                       as_array=False)
         species5 = ['Human', 'HowlerMon', 'Mouse', 'NineBande', 'DogFaced']
         aln = aln.take_seqs(species5)
         aln = aln[:500]
