@@ -265,16 +265,17 @@ class AlignmentTestMethods(unittest.TestCase):
                'seq3': '--ACGTA-GT---'}
         rna = {'seq1': '--ACGU--GU---', 'seq2': '--ACGUA-GU---',
                'seq3': '--ACGUA-GU---'}
-        aln_Dna = LoadSeqs(data=dna, moltype=DNA)
-        aln_Rna = LoadSeqs(data=dna, moltype=RNA)
         collect_Dna = LoadSeqs(data=dna, aligned=False, moltype=DNA)
         collect_Rna = LoadSeqs(data=rna, aligned=False, moltype=RNA)
-        assert aln_Rna.to_dna().todict() == dna, (aln_Rna.to_dna().todict(), dna)
-        assert aln_Dna.to_rna().todict() == rna, (aln_Dna.to_rna().todict(), rna)
-        assert collect_Rna.to_dna().todict() == dna, \
-        (collect_Rna.to_dna().todict(), dna)
-        assert collect_Dna.to_rna().todict() == rna, \
-        (collect_Dna.to_rna().todict(), rna)
+        self.assertEqual(collect_Rna.to_dna().todict(), dna)
+        self.assertEqual(collect_Dna.to_rna().todict(), rna)
+        
+        aln_Dna = LoadSeqs(data=dna, moltype=DNA)
+        aln_Rna = LoadSeqs(data=rna, moltype=RNA)
+        rna_from_dna = aln_Dna.to_rna()
+        dna_from_rna = aln_Rna.to_dna()
+        self.assertEqual(rna_from_dna.todict(), rna)
+        self.assertEqual(dna_from_rna.todict(), dna)
 
     def test_reversecomplement(self):
         """test reverse complementing of Alignments and SequenceCollection."""
