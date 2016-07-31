@@ -2684,7 +2684,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
             raise ValueError("alignment length not divisible by 3")
         
         stops = gc['*']
-        get_index = self.alphabet.Degen.index
+        get_index = self.alphabet.degen.index
         stop_indices = set(tuple(map(get_index, stop)) for stop in stops)
         new_data = self.array_seqs.copy()
         

@@ -194,15 +194,15 @@ class CoreObjectGroupTests(TestCase):
         base = o('base')
         c = CoreObjectGroup(base)
         self.assertSameObj(c.Base, base)
-        self.assertSameObj(c.Degen, None)
-        self.assertSameObj(c.Base.Degen, None)
+        self.assertSameObj(c.degen, None)
+        self.assertSameObj(c.Base.degen, None)
 
         base, degen, gap, degengap = list(
             map(o, ['base', 'degen', 'gap', 'degengap']))
         c = CoreObjectGroup(base, degen, gap, degengap)
         self.assertSameObj(c.Base, base)
-        self.assertSameObj(c.Base.Degen, degen)
-        self.assertSameObj(c.Degen.Gapped, degengap)
+        self.assertSameObj(c.Base.degen, degen)
+        self.assertSameObj(c.degen.Gapped, degengap)
 
 
 class AlphabetGroupTests(TestCase):
@@ -214,7 +214,7 @@ class AlphabetGroupTests(TestCase):
         degens = {'C': 'AB'}
         g = AlphabetGroup(chars, degens)
         self.assertEqual(''.join(g.Base), 'AB')
-        self.assertEqual(''.join(g.Degen), 'ABC')
+        self.assertEqual(''.join(g.degen), 'ABC')
         self.assertEqual(''.join(g.Gapped), 'AB-')
         self.assertEqual(''.join(g.DegenGapped), 'AB-C?')
 
