@@ -313,7 +313,7 @@ def gridTableFormat(header, formatted_table, title=None, legend=None):
     return '\n'.join(table)
 
 
-def separatorFormat(header, formatted_table, title=None, legend=None, sep=None):
+def separator_format(header, formatted_table, title=None, legend=None, sep=None):
     """Returns a table with column entries separated by a delimiter. If an entry
     contains the sep character, that entry is put in quotes. Also, title and
     legends (if provided) are forced to a single line and all words forced to

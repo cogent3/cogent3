@@ -290,7 +290,7 @@ class Table(DictArray):
         """Return the table as a formatted string.
 
         Arguments:
-            - format: possible formats are 'rest', 'latex', 'html', 'phylip',
+            - format: possible formats are 'rest'/'rst', 'latex', 'html', 'phylip',
               'bedgraph', or simple text (default).
             - sep: A string separator for delineating columns, e.g. ',' or '\t'.
               Overrides format.
@@ -313,8 +313,8 @@ class Table(DictArray):
                                                                   missing_data=missing_data)
             args = (header, formatted_table, self.title, self.legend)
         if sep and format != 'bedgraph':
-            return table_format.separatorFormat(*args + (sep,))
-        elif format == 'rest':
+            return table_format.separator_format(*args + (sep,))
+        elif format in ('rest', 'rst'):
             return table_format.gridTableFormat(*args)
         elif format.endswith('tex'):
             caption = None
