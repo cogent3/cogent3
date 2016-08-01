@@ -61,7 +61,7 @@ Run it.
 
 .. doctest::
 
-    >>> estimateP.run()
+    >>> estimateP.run(show_progress=False)
 
 Get the estimated probability.
 

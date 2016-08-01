@@ -63,7 +63,7 @@ View the available algorithms for computing coevolution values:
 .. doctest::
 
     >>> print(coevolve_pair_functions.keys())
-    ['mi', 'sca', 'an', 'gctmpca', 'rmi', 'nmi']
+    dict_keys(['an', 'rmi', 'sca', 'mi', 'nmi'])
 
 Perform an intermolecular coevolutionary analysis using mutual information (``mi``). Note that there are strict requirements on the sequence identifiers for intermolecular analyses, and some important considerations involved in preparing alignments for these analyses. See the coevolve_alignments docstring (i.e., ``help(coevolve_alignments)`` from the python interpreter) for information. Briefly, sequence identifiers are split on ``+`` symbols. The ids before the + must match perfectly between the two alignments as these are used to match the sequences between alignments. In the following example, these are common species names: human, chicken, echidna, and pig. The text after the ``+`` can be anything, and should probably be the original database identifiers of the sequences.
 

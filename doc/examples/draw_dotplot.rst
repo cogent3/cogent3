@@ -13,7 +13,7 @@ Load the alignment for illustrative purposes, I'll make one sequence a different
 
 .. doctest::
 
-    >>> aln = LoadSeqs("data/test.paml", moltype=DNA)
+    >>> aln = LoadSeqs("data/test.paml", moltype=DNA, as_array=False)
     >>> feature = aln.add_annotation(annotation.Feature, "misc_feature",
     ...                             "pprobs", [(38, 55)])
     >>> seq1 = aln.get_seq('NineBande')[10:-3]

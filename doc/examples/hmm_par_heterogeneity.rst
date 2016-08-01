@@ -44,7 +44,7 @@ We specify a null model with no bins, and optimise it.
 
     >>> lf_one = model.make_likelihood_function(tree, digits=2, space=3)
     >>> lf_one.set_alignment(aln)
-    >>> lf_one.optimise()
+    >>> lf_one.optimise(show_progress=False)
     >>> lnL_one = lf_one.get_log_likelihood()
     >>> df_one = lf_one.get_num_free_params()
     >>> print(lf_one)
@@ -61,18 +61,7 @@ We specify a null model with no bins, and optimise it.
     HowlerMon   edge.0     0.04
        edge.0   edge.1     0.04
         Mouse   edge.1     0.28
-       edge.1     root     0.02
-    NineBande     root     0.09
-     DogFaced     root     0.11
-    ---------------------------
-    ==============
-    motif   mprobs
-    --------------
-        T     0.23
-        C     0.19
-        A     0.37
-        G     0.21
-    --------------
+       edge.1     root     0.02...
 
 Model Ha(1): two classes of gamma distributed but independent sites
 -------------------------------------------------------------------
@@ -87,7 +76,7 @@ Our next hypothesis is that there are two rate classes, or bins, with rates gamm
     ...                             sites_independent=True, digits=2, space=3)
     >>> lf_bins.set_param_rule('bprobs', is_constant=True)
     >>> lf_bins.set_alignment(aln)
-    >>> lf_bins.optimise(local=True)
+    >>> lf_bins.optimise(local=True, show_progress=False)
     >>> lnL_bins = lf_bins.get_log_likelihood()
     >>> df_bins = lf_bins.get_num_free_params()
     >>> assert df_bins == 9
@@ -98,31 +87,19 @@ Our next hypothesis is that there are two rate classes, or bins, with rates gamm
     ------------------
      4.38         1.26
     ------------------
-    ===========================
-         edge   parent   length
-    ---------------------------
-        Human   edge.0     0.03
-    HowlerMon   edge.0     0.04
-       edge.0   edge.1     0.04
-        Mouse   edge.1     0.31
-       edge.1     root     0.02
-    NineBande     root     0.10
-     DogFaced     root     0.12
-    ---------------------------
     ====================
      bin   bprobs   rate
     --------------------
     bin0     0.50   0.41
     bin1     0.50   1.59
     --------------------
-    ==============
-    motif   mprobs
-    --------------
-        T     0.23
-        C     0.19
-        A     0.37
-        G     0.21
-    --------------
+    ===========================
+         edge   parent   length
+    ---------------------------
+        Human   edge.0     0.03
+    HowlerMon   edge.0     0.04
+       edge.0   edge.1     0.04
+        Mouse   edge.1     0.31...
 
 Model Ha(2): fast and slowly evolving sites are auto-correlated
 ---------------------------------------------------------------
@@ -135,7 +112,7 @@ We then specify a model with switches for changing between site-classes, the HMM
     ...                         sites_independent=False, digits=2, space=3)
     >>> lf_patches.set_param_rule('bprobs', is_constant=True)
     >>> lf_patches.set_alignment(aln)
-    >>> lf_patches.optimise(local=True)
+    >>> lf_patches.optimise(local=True, show_progress=False)
     >>> lnL_patches = lf_patches.get_log_likelihood()
     >>> df_patches = lf_patches.get_num_free_params()
     >>> print(lf_patches)
@@ -145,6 +122,12 @@ We then specify a model with switches for changing between site-classes, the HMM
     -------------------------------
           0.56    4.42         1.16
     -------------------------------
+    ====================
+     bin   bprobs   rate
+    --------------------
+    bin0     0.50   0.39
+    bin1     0.50   1.61
+    --------------------
     ===========================
          edge   parent   length
     ---------------------------
@@ -155,21 +138,7 @@ We then specify a model with switches for changing between site-classes, the HMM
        edge.1     root     0.02
     NineBande     root     0.10
      DogFaced     root     0.12
-    ---------------------------
-    ====================
-     bin   bprobs   rate
-    --------------------
-    bin0     0.50   0.39
-    bin1     0.50   1.61
-    --------------------
-    ==============
-    motif   mprobs
-    --------------
-        T     0.23
-        C     0.19
-        A     0.37
-        G     0.21
-    --------------
+    ---------------------------...
 
 We use the following short function to compute the LR test statistic.
 
@@ -248,7 +217,7 @@ We then illustrate how to adjust the bin probabilities, here doing it so that on
     >>> lf_kappa.set_param_rule('bprobs',
     ...             init=array([1.0-epsilon, 0.0+epsilon]))
     >>> lf_kappa.set_alignment(aln)
-    >>> lf_kappa.optimise(local=True)
+    >>> lf_kappa.optimise(local=True, show_progress=False)
     >>> print(lf_kappa)
     Likelihood Function Table
     ==========

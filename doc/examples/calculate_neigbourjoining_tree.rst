@@ -27,7 +27,7 @@ Create a pairwise distances object calculator for the alignment, providing a sub
 .. doctest::
 
     >>> d = distance.EstimateDistances(al, submodel= HKY85())
-    >>> d.run()
+    >>> d.run(show_progress=False)
 
 Now use this matrix to build a neighbour joining tree.
 

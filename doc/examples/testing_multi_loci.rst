@@ -36,6 +36,11 @@ To make a likelihood function with multiple alignments we provide the list of lo
     >>> lf.optimise(local=True)
     >>> print(lf)
     Likelihood Function Table
+    ==============
+    kappa   length
+    --------------
+     3.98     0.13
+    --------------
     =========================
        locus   motif   mprobs
     -------------------------
@@ -48,17 +53,17 @@ To make a likelihood function with multiple alignments we provide the list of lo
     2nd-half       A     0.35
     2nd-half       G     0.22
     -------------------------
-    ==============
-    kappa   length
-    --------------
-     3.98     0.13
-    --------------
     >>> all_lnL = lf.get_log_likelihood()
     >>> all_nfp = lf.get_num_free_params()
     >>> lf.set_param_rule('kappa', loci = EACH)
-    >>> lf.optimise(local=True)
+    >>> lf.optimise(local=True, show_progress=False)
     >>> print(lf)
     Likelihood Function Table
+    ======
+    length
+    ------
+      0.13
+    ------
     ================
        locus   kappa
     ----------------
@@ -77,11 +82,6 @@ To make a likelihood function with multiple alignments we provide the list of lo
     2nd-half       A     0.35
     2nd-half       G     0.22
     -------------------------
-    ======
-    length
-    ------
-      0.13
-    ------
     >>> each_lnL = lf.get_log_likelihood()
     >>> each_nfp = lf.get_num_free_params()
     >>> LR = 2 * (each_lnL - all_lnL)

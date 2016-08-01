@@ -39,7 +39,7 @@ We now use this and the alignment to construct a distance calculator.
 .. doctest::
 
     >>> d = distance.EstimateDistances(aln, submodel = sm)
-    >>> d.run()
+    >>> d.run(show_progress=False)
 
 The resulting distances are passed to the nj function.
 

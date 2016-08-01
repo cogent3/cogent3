@@ -15,7 +15,7 @@ We will load some pre-computed pairwise distance data. To see how that data was 
     >>> from cogent3.evolve.models import HKY85
     >>> al = LoadSeqs("data/long_testseqs.fasta")
     >>> d = distance.EstimateDistances(al, submodel= HKY85())
-    >>> d.run()
+    >>> d.run(show_progress=False)
     >>> import pickle
     >>> f = open('dists_for_phylo.pickle', "wb")
     >>> pickle.dump(d.get_pairwise_distances(), f)

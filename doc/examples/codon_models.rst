@@ -68,7 +68,8 @@ We then provide an alignment and optimise the model. In the current case we just
 
 .. doctest::
 
-    >>> optimiser_args = dict(local=True, max_restarts=5, tolerance=1e-8)
+    >>> optimiser_args = dict(local=True, max_restarts=5, tolerance=1e-8,
+    ...                       show_progress=False)
     >>> lf.set_alignment(aln)
     >>> lf.optimise(**optimiser_args)
     >>> print(lf)
@@ -96,8 +97,8 @@ We then provide an alignment and optimise the model. In the current case we just
     ==============
     motif   mprobs
     --------------
-      CTT     0.01
-      ACC     0.00...
+      AAA     0.06
+      AAC     0.02...
 
 In the above output, the first table shows the maximum likelihood estimates (MLEs) for the substitution model parameters that are 'global' in scope. For instance, the ``C/T=4.58`` MLE indicates that the relative rate of substitutions between C and T is nearly 5 times the background substitution rate.
 
@@ -233,6 +234,17 @@ The above statement essentially assigns a probability of nearly 1 to the 'neutra
     >>> df = rate_nfp-non_neutral_nfp
     >>> print(rate_lf)
     Likelihood Function Table
+    ================================
+     A/C    A/G    A/T    C/G    C/T
+    --------------------------------
+    1.07   3.96   0.78   1.96   4.20
+    --------------------------------
+    =========================
+         bin   bprobs   omega
+    -------------------------
+     neutral     0.14    0.01
+    adaptive     0.86    1.17
+    -------------------------
     ============================
           edge   parent   length
     ----------------------------
@@ -248,21 +260,11 @@ The above statement essentially assigns a probability of nearly 1 to the 'neutra
         edge.2   edge.3     0.03
         edge.3     root     0.02
     ----------------------------
-    =========================
-         bin   bprobs   omega
-    -------------------------
-     neutral     0.14    0.01
-    adaptive     0.86    1.17
-    -------------------------
-    ================================
-     A/C    A/G    A/T    C/G    C/T
-    --------------------------------
-    1.07   3.96   0.78   1.96   4.20
-    --------------------------------
     ==============
     motif   mprobs
     --------------
-      CTT     0.01...
+      AAA     0.06
+      AAC     0.02...
     >>> print(chisqprob(LR, df))
     0.000...
 

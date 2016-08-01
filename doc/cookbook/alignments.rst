@@ -612,13 +612,13 @@ Getting all constant positions from an alignment
 Getting all variable codons from an alignment
 +++++++++++++++++++++++++++++++++++++++++++++
 
-This is exactly the same as before, with a new keyword argument
+This is done using the ``filtered`` method using the ``motif_length`` argument. We demonstrate this first for the ``ArrayAlignment``.
 
 .. doctest::
 
     >>> from cogent3 import LoadSeqs
     >>> aln = LoadSeqs('data/long_testseqs.fasta')
-    >>> variable_codons = aln.filtered(lambda x: len(set(x)) > 1,
+    >>> variable_codons = aln.filtered(lambda x: len(set(map(tuple, x))) > 1,
     ...                                motif_length=3)
     >>> print(just_variable_aln[:9])
     >Human
@@ -632,6 +632,17 @@ This is exactly the same as before, with a new keyword argument
     >DogFaced
     AAACAAAAT
     <BLANKLINE>
+
+Then for the standard ``Alignment`` by first converting the ``ArrayAlignment``.
+
+.. doctest::
+    
+    >>> aln = aln.to_type(as_array=False)
+    >>> variable_codons = aln.filtered(lambda x: len(set(''.join(x))) > 1,
+    ...                                motif_length=3)
+    >>> print(just_variable_aln[:9])
+    >Human
+    AAGCAAAAC...
 
 Filtering sequences
 """""""""""""""""""

@@ -22,9 +22,9 @@ Do a model, see the neutral test example for more details of this
     >>> t = LoadTree("data/test.tree")
     >>> sm = MG94HKY()
     >>> nonneutral_lf = sm.make_likelihood_function(t)
-    >>> nonneutral_lf.set_param_rule("omega", is_independent = True)
+    >>> nonneutral_lf.set_param_rule("omega", is_independent=True)
     >>> nonneutral_lf.set_alignment(aln)
-    >>> nonneutral_lf.optimise()
+    >>> nonneutral_lf.optimise(show_progress=False)
 
 We will draw two different dendrograms -- one with branch lengths contemporaneous, the other where length is scaled.
 
