@@ -1937,7 +1937,7 @@ Before using ``Table``, we exercise some formatting code:
 
 .. doctest::
 
-    >>> from cogent3.format.table import formatted_cells, phylipMatrix, latex
+    >>> from cogent3.format.table import formatted_cells, phylip_matrix, latex
 
 We check we can format an arbitrary 2D list, without a header, using the ``formatted_cells`` function directly.
 
