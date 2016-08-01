@@ -2753,7 +2753,56 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
 
         return self.__class__(new.T, names=self.names,
                               moltype=self.moltype, info=self.info)
-    
+    def add_from_ref_aln(self, ref_aln, before_name=None, after_name=None):
+        """
+        Insert sequence(s) to self based on their alignment to a reference
+        sequence. Assumes the first sequence in ref_aln.names[0] is the
+        reference.
+
+        By default the sequence is appended to the end of the alignment,
+        this can be changed by using either before_name or after_name
+        arguments.
+
+        Returns Alignment object of the same class.
+
+        Arguments:
+            - ref_aln: reference alignment (Alignment object/series) of
+              reference sequence and sequences to add.
+              New sequences in ref_aln (ref_aln.names[1:] are sequences to add.
+              If series is used as ref_aln, it must have the structure
+              [['ref_name', SEQ], ['name', SEQ]]
+            - before_name: name of the sequence before which
+              sequence is added
+            - after_name: name of the sequence after which sequence is added
+              If both before_name and after_name are specified seqs will be
+              inserted using before_name.
+
+        Example:
+        Aln1:
+        -AC-DEFGHI (name: seq1)
+        XXXXXX--XX (name: seq2)
+        YYYY-YYYYY (name: seq3)
+
+        Aln2:
+        ACDEFGHI   (name: seq1)
+        KL--MNPR   (name: seqX)
+        KLACMNPR   (name: seqY)
+        KL--MNPR   (name: seqZ)
+
+        Out:
+        -AC-DEFGHI (name: seq1)
+        XXXXXX--XX (name: seq2)
+        YYYY-YYYYY (name: seq3)
+        -KL---MNPR (name: seqX)
+        -KL-ACMNPR (name: seqY)
+        -KL---MNPR (name: seqZ)
+        """
+        # delegates to Alignment
+        new = self.to_type(as_array=False)
+        new = new.add_from_ref_aln(ref_aln, before_name=before_name,
+                                   after_name=after_name)
+        result = new.to_type(as_array=True, moltype=self.moltype)
+        return result
 
 class CodonArrayAlignment(ArrayAlignment):
     """Stores alignment of gapped codons, no degenerate symbols."""
