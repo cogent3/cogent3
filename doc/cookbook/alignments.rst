@@ -31,7 +31,7 @@ Constructing a ``ArrayAlignment`` using ``LoadSeqs``
     >>> from cogent3 import LoadSeqs, DNA
     >>> dna  = {'seq1': 'ATGACC',
     ...         'seq2': 'ATCGCC'}
-    >>> seqs = LoadSeqs(data=dna, moltype=DNA, aligned=True, as_array=True)
+    >>> seqs = LoadSeqs(data=dna, moltype=DNA, aligned=True, array_align=True)
     >>> print(type(seqs))
     <class 'cogent3.core.alignment.ArrayAlignment'>
     >>> print(seqs)
@@ -203,7 +203,7 @@ Using the ``get_seq`` method allows for extracting an unaligned sequence from a 
     >>> aln = LoadSeqs(data= [('seq1', 'ATGAA------'),
     ...                       ('seq2', 'ATG-AGTGATG'),
     ...                       ('seq3', 'AT--AG-GATG')],
-    ...                 moltype=DNA, as_array=False)
+    ...                 moltype=DNA, array_align=False)
     >>> seq = aln.get_seq('seq1')
     >>> seq.name
     'seq1'
@@ -446,7 +446,7 @@ We'll do this by specifying the position indices of interest, creating a sequenc
 
     >>> from cogent3 import LoadSeqs
     >>> aln = LoadSeqs(data={'seq1': 'ATGATGATG---',
-    ...                      'seq2': 'ATGATGATGATG'}, as_array=False)
+    ...                      'seq2': 'ATGATGATGATG'}, array_align=False)
     >>> list(range(len(aln))[2::3])
     [2, 5, 8, 11]
     >>> indices = [(i, i+1) for i in range(len(aln))[2::3]]
@@ -470,7 +470,7 @@ We can use more conventional slice notation in this instance. Note, because Pyth
 
     >>> from cogent3 import LoadSeqs
     >>> aln = LoadSeqs(data={'seq1': 'ATGATGATG---',
-    ...                      'seq2': 'ATGATGATGATG'}, as_array=True)
+    ...                      'seq2': 'ATGATGATGATG'}, array_align=True)
     >>> pos3 = aln[2::3]
     >>> print(pos3)
     >seq1
@@ -637,7 +637,7 @@ Then for the standard ``Alignment`` by first converting the ``ArrayAlignment``.
 
 .. doctest::
     
-    >>> aln = aln.to_type(as_array=False)
+    >>> aln = aln.to_type(array_align=False)
     >>> variable_codons = aln.filtered(lambda x: len(set(''.join(x))) > 1,
     ...                                motif_length=3)
     >>> print(just_variable_aln[:9])

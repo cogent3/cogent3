@@ -32,7 +32,7 @@ def makeSampleAlignment():
     seq1 = makeSampleSequence()
     seq2 = makeSampleSequence(with_gaps=True)
     seqs = {'FAKE01': seq1, 'FAKE02': seq2}
-    aln = LoadSeqs(data=seqs, as_array=False)
+    aln = LoadSeqs(data=seqs, array_align=False)
     aln.add_annotation(Feature, 'misc_feature', 'misc', [(12, 25)])
     aln.add_annotation(Feature, 'CDS', 'blue', [(15, 25)])
     aln.add_annotation(Feature, "5'UTR", 'red', [(2, 4)])

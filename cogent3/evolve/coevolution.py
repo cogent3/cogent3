@@ -1411,7 +1411,7 @@ def merge_alignments(alignment1, alignment2):
         raise KeyError('A sequence identifier is in alignment2 ' +
                        'but not alignment1 -- did you filter out sequences identifiers' +
                        ' not common to both alignments?')
-    return LoadSeqs(data=result, as_array=True)
+    return LoadSeqs(data=result, array_align=True)
 
 
 def n_random_seqs(alignment, n):

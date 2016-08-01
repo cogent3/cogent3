@@ -70,7 +70,7 @@ def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
 
 def LoadSeqs(filename=None, format=None, data=None, moltype=None,
              name=None, aligned=True, label_to_name=None, parser_kw=None,
-             constructor_kw=None, as_array=True, **kw):
+             constructor_kw=None, array_align=True, **kw):
     """Initialize an alignment or collection of sequences.
 
     Arguments:
@@ -80,7 +80,7 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     - moltype: the moltype, eg DNA, PROTEIN
     - aligned: set True if sequences are already aligned and have the same
       length. If False, a SequenceCollection instance is returned instead.
-    - as_array: returns alignment as ArrayAlignment
+    - array_align: returns alignment as ArrayAlignment
     - label_to_name: function for converting original name into another
       name. Default behavior is to preserve the original FASTA label and
       comment.
@@ -108,7 +108,7 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
         data = list(FromFilenameParser(filename, format, **parser_kw))
 
     if aligned:
-        klass = ArrayAlignment if as_array else Alignment
+        klass = ArrayAlignment if array_align else Alignment
     else:  # generic case: return SequenceCollection
         klass = SequenceCollection
     
