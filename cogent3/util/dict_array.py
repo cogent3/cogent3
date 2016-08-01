@@ -118,7 +118,7 @@ class DictArrayTemplate(object):
                 len(self.names), type(self).__name__)
 
         formatted = table.formatted_cells(rows=a, header=heading)
-        return str(table.simpleFormat(formatted[0], formatted[1], space=4))
+        return str(table.simple_format(formatted[0], formatted[1], space=4))
 
 
 class DictArray(object):

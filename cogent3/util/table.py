@@ -337,7 +337,7 @@ class Table(DictArray):
                                                 **kwargs)
             return formatted_table
         else:
-            return table_format.simpleFormat(*args + (self._max_width,
+            return table_format.simple_format(*args + (self._max_width,
                                                       self._row_ids, borders, self.space))
 
     def to_rich_html(self, row_cell_func=None, header_cell_func=None,

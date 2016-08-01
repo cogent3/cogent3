@@ -150,7 +150,7 @@ def latex(rows, header=None, caption=None, justify=None, label=None, position=No
     return "\n".join(table_format)
 
 
-def simpleFormat(header, formatted_table, title=None, legend=None, max_width=1e100, identifiers=None, borders=True, space=2):
+def simple_format(header, formatted_table, title=None, legend=None, max_width=1e100, identifiers=None, borders=True, space=2):
     """Returns a table in a simple text format.
 
     Arguments:
