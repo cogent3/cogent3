@@ -315,7 +315,7 @@ class Table(DictArray):
         if sep and format != 'bedgraph':
             return table_format.separator_format(*args + (sep,))
         elif format in ('rest', 'rst'):
-            return table_format.gridTableFormat(*args)
+            return table_format.grid_table_format(*args)
         elif format.endswith('tex'):
             caption = None
             if self.title or self.legend:
@@ -323,7 +323,7 @@ class Table(DictArray):
             return table_format.latex(formatted_table, header,
                                       caption=caption, **kwargs)
         elif format == 'html':
-            rest = table_format.gridTableFormat(*args)
+            rest = table_format.grid_table_format(*args)
             return table_format.html(rest)
         elif format == 'phylip':
             # need to eliminate row identifiers
