@@ -56,7 +56,7 @@ class MotifProbModel(object):
         try:
             mtype = self.alphabet.moltype
         except AttributeError:
-            mtype = self.monomer_alphabet
+            mtype = self.monomer_alphabet.moltype
         
         for seq_name in alignment.get_seq_names():
             sequence = alignment.get_gapped_seq(seq_name, recode_gaps,

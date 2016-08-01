@@ -24,7 +24,7 @@ from cogent3 import DNA, LoadSeqs, LoadTree
 from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
 from cogent3.maths.stats.information_criteria import aic, bic
-from cogent3.evolve.models import JTT92
+from cogent3.evolve.models import JTT92, CNFGTR, Y98, MG94HKY
 
 Nucleotide = substitution_model.Nucleotide
 MotifChange = predicate.MotifChange
@@ -640,6 +640,16 @@ motif    mprobs
         t = LoadTree(treestring='(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;')
         dm = substitution_model.DiscreteSubstitutionModel(DNA.alphabet)
         lf = dm.make_likelihood_function(t)
+    
+    def test_exercise_set_align(self):
+        "lf.set_align should work for different models"
+        al = LoadSeqs(data={'a': 'ggaatt', 'c': 'cctaat'})
+        t = LoadTree(treestring="(a,c);")
+        for klass in [CNFGTR, Y98, MG94HKY]:
+            sm = klass()
+            lf = sm.make_likelihood_function(t)
+            lf.set_alignment(al)
+
 
 if __name__ == '__main__':
     main()
