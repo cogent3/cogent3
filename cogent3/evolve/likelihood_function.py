@@ -165,8 +165,15 @@ class LikelihoodFunction(ParameterController):
             title = 'Likelihood Function Table'
         else:
             title = self._name
-        result = [title]
-        result += self.get_statistics(with_motif_probs=True, with_titles=False)
+        result = []
+        result += self.get_statistics(with_motif_probs=True, with_titles=True)
+        for i, table in enumerate(result):
+            if 'motif' in table.title and table.shape[1] == 2 and\
+               table.shape[0] >= 60: # just sort codon motif probs
+                table = table.sorted(columns="motif")
+                result[i] = table
+            table.title = ""
+        result.insert(0, title)
         return '\n'.join(map(str, result))
 
     def get_annotated_tree(self):
