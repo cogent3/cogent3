@@ -245,7 +245,7 @@ def simpleFormat(header, formatted_table, title=None, legend=None, max_width=1e1
     return '\n'.join(table)
 
 
-def gridTableFormat(header, formatted_table, title=None, legend=None):
+def grid_table_format(header, formatted_table, title=None, legend=None):
     """Returns a table in restructured text grid format.
 
     Arguments:
