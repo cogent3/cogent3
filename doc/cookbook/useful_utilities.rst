@@ -30,7 +30,8 @@ We then import the minimise function and use it to minimise the function, obtain
     >>> S = minimise(f,  # the function
     ...     xinit=1.0, # the initial value
     ...     bounds=(-100, 100), # [lower,upper] bounds for the parameter
-    ...     local=True) # just local optimisation, not Simulated Annealing
+    ...     local=True, # just local optimisation, not Simulated Annealing
+    ...     show_progress=False)
     >>> assert 0.0 <= f(S) < 1e-6
     >>> print('S=%.4f' % S)
     S=-3.6150

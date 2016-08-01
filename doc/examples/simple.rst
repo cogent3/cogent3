@@ -14,7 +14,7 @@ This is just about the simplest possible Cogent script for evolutionary modellin
     >>> tree = LoadTree(tip_names=aln.names)
     >>> lf = model.make_likelihood_function(tree)
     >>> lf.set_alignment(aln)
-    >>> lf.optimise()
+    >>> lf.optimise(show_progress=False)
     >>> print(lf)
     Likelihood Function Table
     ======

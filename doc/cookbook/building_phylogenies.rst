@@ -23,7 +23,7 @@ For a limited number of evolutionary models a fast implementation is available. 
     >>> from cogent3.evolve.pairwise_distance import TN93Pair
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> dist_calc = TN93Pair(DNA, alignment=aln)
-    >>> dist_calc.run()
+    >>> dist_calc.run(show_progress=False)
 
 We can obtain the distances as a ``dict`` for direct usage in phylogenetic reconstruction
 
@@ -74,13 +74,14 @@ The standard cogent likelihood function can also be used to estimate distances. 
     >>> from cogent3.evolve.models import F81
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> d = distance.EstimateDistances(aln, submodel=F81())
-    >>> d.run()
+    >>> d.run(show_progress=False)
 
 The example above will use the F81 nucleotide substitution model and run the ``distance.EstimateDistances()`` method with the default options for the optimiser. To configure the optimiser a dictionary of optimisation options can be passed onto the ``run`` command. The example below configures the ``Powell`` optimiser to run a maximum of 10000 evaluations, with a maximum of 5 restarts (a total of 5 x 10000 = 50000 evaluations).
 
 .. doctest::
 
-    >>> dist_opt_args = dict(max_restarts=5, max_evaluations=10000)
+    >>> dist_opt_args = dict(max_restarts=5, max_evaluations=10000,
+    ...                      show_progress=False)
     >>> d.run(dist_opt_args=dist_opt_args)
     >>> print(d)
     ============================================================================================

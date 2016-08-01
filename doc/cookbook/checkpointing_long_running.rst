@@ -22,7 +22,7 @@ We then start an optimisation, providing a filename for checkpointing and specif
 .. doctest::
 
     >>> checkpoint_fn = 'checkpoint_this.txt'
-    >>> lf.optimise(filename=checkpoint_fn, interval=100, show_progress = False)
+    >>> lf.optimise(filename=checkpoint_fn, interval=100, show_progress=False)
     CHECKPOINTING to file 'checkpoint_this.txt'...
 
 Recovering from a real run that was interrupted generates an additional notification: ``RESUMING from file ..``. For the purpose of this snippet we just show that the checkpoint file exists.
