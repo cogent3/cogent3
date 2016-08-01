@@ -112,7 +112,7 @@ class VersionUpdater(object):
                 if f.endswith('.pyx'):
                     yield (rel_name, 'PyRex')
                 elif f.endswith('.h'):
-                    yield (rel_name, 'Header')
+                    yield (rel_name, 'header')
                 else:
                     pass
 
@@ -277,7 +277,7 @@ class VersionUpdater(object):
 
             if filetype is 'PyRex':
                 lines, write_out = self._update_pyrex_file(lines, filename)
-            elif filetype is 'Header':
+            elif filetype is 'header':
                 lines, write_out = self._update_header_file(lines, filename)
             else:
                 raise TypeError("Unknown include file type %s" % filetype)

@@ -126,26 +126,26 @@ The Table class cannot handle arbitrary python objects, unless they are passed i
                   y         *
     -------------------------
 
-Table column headings can be assessed from the ``table.Header`` property
+Table column headings can be assessed from the ``table.header`` property
 
 .. doctest::
 
-    >>> assert t2.Header == ['abcd', 'data']
+    >>> assert t2.header == ['abcd', 'data']
 
 and this is immutable (cannot be changed).
 
 .. doctest::
 
-    >>> t2.Header[1] = 'Data'
+    >>> t2.header[1] = 'Data'
     Traceback (most recent call last):
-    RuntimeError: Table Header is immutable, use with_new_header
+    RuntimeError: Table header is immutable, use with_new_header
 
-If you want to change the Header, use the ``with_new_header`` method. This can be done one column at a time, or as a batch. The returned Table is identical aside from the modified column labels.
+If you want to change the header, use the ``with_new_header`` method. This can be done one column at a time, or as a batch. The returned Table is identical aside from the modified column labels.
 
 .. doctest::
 
     >>> mod_header = t2.with_new_header('abcd', 'ABCD')
-    >>> assert mod_header.Header == ['ABCD', 'data']
+    >>> assert mod_header.header == ['ABCD', 'data']
     >>> mod_header = t2.with_new_header(['abcd', 'data'], ['ABCD', 'DATA'])
     >>> print(mod_header)
     =========================
@@ -1670,8 +1670,8 @@ For a natural inner join, only 1 copy of columns with the same name are retained
 
 .. doctest::
 
-    >>> assert a.joined(b).Header == b.Header
-    >>> assert b.joined(a).Header == a.Header
+    >>> assert a.joined(b).header == b.header
+    >>> assert b.joined(a).header == a.header
 
 For a standard inner join, the joined table should contain all columns from ``a`` and ``b`` excepting the index column(s). Simply providing a column name (or index) selects this behaviour. Note that in this case, column names from the second table are made unique by prefixing them with that tables title. If the provided tables do not have a title, a ``RuntimeError`` is raised.
 
@@ -1683,7 +1683,7 @@ For a standard inner join, the joined table should contain all columns from ``a`
     ... except RuntimeError:
     ...     pass
     >>> b.title = 'B'
-    >>> assert a.joined(b, "index").Header == ["index", "col2", "col3",
+    >>> assert a.joined(b, "index").header == ["index", "col2", "col3",
     ...                                        "B_col2", "B_col3"]
     ...
 
@@ -1691,7 +1691,7 @@ Note that the table title's were used to prefix the column headings from the sec
 
 .. doctest::
 
-    >>> assert a.joined(c,"index").Header == ["index","col2","col3",
+    >>> assert a.joined(c,"index").header == ["index","col2","col3",
     ...                                       "C_col_c2"]
 
 It's also possible to specify index columns using numerical values, the results of which should be the same.
