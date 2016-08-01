@@ -399,7 +399,7 @@ def SeparatorFormatWriter(formatter=None, ignore=None, sep=","):
     return callable
 
 
-def formattedCells(rows, header=None, digits=4, column_templates=None, missing_data=''):
+def formatted_cells(rows, header=None, digits=4, column_templates=None, missing_data=''):
     """Return rows with each columns cells formatted as an equal length
     string.
 

@@ -11,7 +11,7 @@ from numpy import array, sum, transpose, reshape, ones, zeros,\
 from numpy.random import random
 from cogent3.util.array import euclidean_distance, row_degeneracy,\
     column_degeneracy, row_uncertainty, column_uncertainty, safe_log
-from cogent3.format.table import formattedCells
+from cogent3.format.table import formatted_cells
 # SUPPORT2425
 import numpy
 from functools import reduce
@@ -217,7 +217,7 @@ class Profile(object):
         # nicely format the table content, discard the header (already
         # included)
         if r:
-            new_header, formatted_res = formattedCells(r)
+            new_header, formatted_res = formatted_cells(r)
         else:
             formatted_res = r
         return '\n'.join([col_sep.join(map(str, i)) for i in formatted_res])

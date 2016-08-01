@@ -306,7 +306,7 @@ class Table(DictArray):
         # convert self to a 2D list
         formatted_table = self.array.tolist()
         if format != 'bedgraph':
-            header, formatted_table = table_format.formattedCells(formatted_table,
+            header, formatted_table = table_format.formatted_cells(formatted_table,
                                                                   self.header,
                                                                   digits=self._digits,
                                                                   column_templates=self._column_templates,
@@ -354,7 +354,7 @@ class Table(DictArray):
             - merge_identical: cells within a row are merged to one span.
         """
         formatted_table = self.array.tolist()
-        header, formatted_table = table_format.formattedCells(formatted_table,
+        header, formatted_table = table_format.formatted_cells(formatted_table,
                                                               self.header,
                                                               digits=self._digits,
                                                               column_templates=self._column_templates,

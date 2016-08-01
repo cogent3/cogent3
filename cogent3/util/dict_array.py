@@ -117,7 +117,7 @@ class DictArrayTemplate(object):
             return '%s dimensional %s' % (
                 len(self.names), type(self).__name__)
 
-        formatted = table.formattedCells(rows=a, header=heading)
+        formatted = table.formatted_cells(rows=a, header=heading)
         return str(table.simpleFormat(formatted[0], formatted[1], space=4))
 
 
