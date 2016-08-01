@@ -462,7 +462,7 @@ def formatted_cells(rows, header=None, digits=4, column_templates=None, missing_
     return new_header, matrix
 
 
-def phylipMatrix(rows, names):
+def phylip_matrix(rows, names):
     """Return as a distance matrix in phylip's matrix format."""
     # phylip compatible format is num taxa starting at col 4
     # rows start with taxa names, length 8

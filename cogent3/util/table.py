@@ -329,7 +329,7 @@ class Table(DictArray):
             # need to eliminate row identifiers
             formatted_table = [row[self._row_ids:] for row in formatted_table]
             header = header[self._row_ids:]
-            return table_format.phylipMatrix(formatted_table, header)
+            return table_format.phylip_matrix(formatted_table, header)
         elif format == 'bedgraph':
             assert self.shape[1] == 4, 'bedgraph format is for 4 column tables'
             # assuming that header order is chrom, start, end, val
