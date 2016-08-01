@@ -1937,15 +1937,15 @@ Before using ``Table``, we exercise some formatting code:
 
 .. doctest::
 
-    >>> from cogent3.format.table import formattedCells, phylipMatrix, latex
+    >>> from cogent3.format.table import formatted_cells, phylipMatrix, latex
 
-We check we can format an arbitrary 2D list, without a header, using the ``formattedCells`` function directly.
+We check we can format an arbitrary 2D list, without a header, using the ``formatted_cells`` function directly.
 
 .. doctest::
 
     >>> data = [[230, 'acdef', 1.3], [6, 'cc', 1.9876]]
     >>> head = ['one', 'two', 'three']
-    >>> header, formatted = formattedCells(data, header = head)
+    >>> header, formatted = formatted_cells(data, header = head)
     >>> print(formatted)
     [['230', 'acdef', '1.3000'], ['  6', '   cc', '1.9876']]
     >>> print(header)
