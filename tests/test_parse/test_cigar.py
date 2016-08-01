@@ -25,7 +25,7 @@ class TestCigar(unittest.TestCase):
         self.slices = [(1, 4), (0, 8), (7, 12), (0, 1), (3, 5)]
         self.aln = LoadSeqs(
             data={"FAKE01": self.aln_seq, "FAKE02": self.aln_seq1},
-            as_array=False)
+            array_align=False)
         self.cigars = {"FAKE01": self.cigar_text,
             "FAKE02": map_to_cigar(self.map1)}
         self.seqs = {"FAKE01": str(self.seq), "FAKE02": str(self.seq1)}
@@ -66,7 +66,7 @@ class TestCigar(unittest.TestCase):
     def test_CigarParser(self):
         """test without slice"""
         aln = CigarParser(self.seqs, self.cigars)
-        aln = aln.to_type(as_array=False)
+        aln = aln.to_type(array_align=False)
         assert aln == self.aln
         # test slice
         i = 1

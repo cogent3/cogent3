@@ -968,9 +968,9 @@ class SequenceCollection(object):
         If seqs is an alignment, any gaps in it will be ignored.
         """
         if isinstance(self, ArrayAlignment):
-            new = self.to_type(as_array=False)
+            new = self.to_type(array_align=False)
             result = new.replace_seqs(seqs, aa_to_codon=aa_to_codon)
-            return result.to_type(as_array=True)
+            return result.to_type(array_align=True)
         
         if aa_to_codon:
             scale = 3
@@ -2098,12 +2098,12 @@ class AlignmentI(object):
 
         return result
     
-    def to_type(self, as_array=False, moltype=None, alphabet=None):
-        """returns alignment of type indicated by as_array
+    def to_type(self, array_align=False, moltype=None, alphabet=None):
+        """returns alignment of type indicated by array_align
         
         Parameters
         ----------
-        as_array: bool
+        array_align: bool
           if True, returns as ArrayAlignment. Otherwise as "standard"
           Alignment class. Conversion to ArrayAlignment loses annotations.
         
@@ -2113,10 +2113,10 @@ class AlignmentI(object):
         alphabet : Alphabet instance
           overrides self.alphabet
         
-        If as_array would result in no change (class is same as self),
+        If array_align would result in no change (class is same as self),
         returns self
         """
-        klass = ArrayAlignment if as_array else Alignment
+        klass = ArrayAlignment if array_align else Alignment
         if isinstance(self, klass):
             return self
         
@@ -2125,7 +2125,7 @@ class AlignmentI(object):
             # Alignment and ArrayAlignment have different default moltypes
             moltype_default = isinstance(self.moltype, type(self.__class__.moltype))
             if moltype_default:
-                moltype = ArrayAlignment.moltype if as_array else Alignment.moltype
+                moltype = ArrayAlignment.moltype if array_align else Alignment.moltype
             else:
                 moltype = self.moltype
         new = klass(data=data, moltype=moltype,
@@ -2798,10 +2798,10 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         -KL---MNPR (name: seqZ)
         """
         # delegates to Alignment
-        new = self.to_type(as_array=False)
+        new = self.to_type(array_align=False)
         new = new.add_from_ref_aln(ref_aln, before_name=before_name,
                                    after_name=after_name)
-        result = new.to_type(as_array=True, moltype=self.moltype)
+        result = new.to_type(array_align=True, moltype=self.moltype)
         return result
 
 class CodonArrayAlignment(ArrayAlignment):

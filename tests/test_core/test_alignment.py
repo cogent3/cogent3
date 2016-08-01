@@ -1451,19 +1451,19 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         new_seqs = {'seq1': 'ACGTACGTA',
                     'seq2': 'ACCGAA---',
                     'seq3': 'ACGTACGTT'}
-        as_array = self.Class == ArrayAlignment
-        # when as_array arg matches instance class, no conversion
+        array_align = self.Class == ArrayAlignment
+        # when array_align arg matches instance class, no conversion
         # and get back self
         aln = self.Class(data=new_seqs)
-        new = aln.to_type(as_array=as_array)
+        new = aln.to_type(array_align=array_align)
         self.assertEqual(id(aln), id(new))
         
-        # when as_array arg does not match, should get back the opposite type
-        new = aln.to_type(as_array=not as_array)
+        # when array_align arg does not match, should get back the opposite type
+        new = aln.to_type(array_align=not array_align)
         self.assertFalse(isinstance(new, self.Class))
         
         # we should be able to specify moltype and alignment
-        new = aln.to_type(as_array=not as_array, moltype=DNA)
+        new = aln.to_type(array_align=not array_align, moltype=DNA)
         self.assertEqual(new.todict(), new_seqs)
         # and translate
         self.assertEqual(new.get_translation().todict(),

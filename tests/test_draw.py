@@ -173,7 +173,7 @@ def makeSampleAlignment():
     seq2.name = 'FAKE02'
     names = (seq1.get_name(), seq2.get_name())
     align = global_pairwise(seq1, seq2, dna, 2, 1)
-    align = align.to_type(as_array=False, moltype=DNA)
+    align = align.to_type(array_align=False, moltype=DNA)
     align.add_annotation(annotation.Variable, 'redline', 'align', [
                         ((0, 15), 1), ((15, 30), 2), ((30, 45), 3)])
     align.add_annotation(annotation.Variable, 'blueline', 'align', [
@@ -267,7 +267,7 @@ class DrawingTests(unittest.TestCase):
 
     def test_partimatrix(self):
         aln = LoadSeqs(filename='data/brca1.fasta', moltype=DNA,
-                       as_array=False)
+                       array_align=False)
         species5 = ['Human', 'HowlerMon', 'Mouse', 'NineBande', 'DogFaced']
         aln = aln.take_seqs(species5)
         aln = aln[:500]
