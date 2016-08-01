@@ -115,15 +115,15 @@ or, for spacing at least, by modifying the attributes
 Changing column headings
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The table ``Header`` is immutable. Changing column headings is done as follows.
+The table ``header`` is immutable. Changing column headings is done as follows.
 
 .. doctest::
 
     >>> table = LoadTable('stats.txt', sep=',')
-    >>> print(table.Header)
+    >>> print(table.header)
     ['Locus', 'Region', 'Ratio']
     >>> table = table.with_new_header('Ratio', 'Stat')
-    >>> print(table.Header)
+    >>> print(table.header)
     ['Locus', 'Region', 'Stat']
 
 Creating new columns from existing ones
