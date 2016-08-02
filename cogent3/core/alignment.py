@@ -1233,12 +1233,12 @@ class SequenceCollection(object):
         for seq_name in self.names:
             old_seq = self.named_seqs[seq_name]
             if not aligned:
-                new_seq = old_seq.without_terminal_stop_codon(gc=gc,
+                new_seq = old_seq.trim_stop_codon(gc=gc,
                                                            allow_partial=allow_partial)
                 new_seqs.append((seq_name, new_seq))
                 continue
 
-            new_seq = old_seq.data.without_terminal_stop_codon(gc=gc,
+            new_seq = old_seq.data.trim_stop_codon(gc=gc,
                                                             allow_partial=allow_partial)
 
             diff = len(old_seq.data._seq) - len(new_seq._seq)
