@@ -2083,6 +2083,13 @@ class AlignmentI(object):
         return new
 
 
+def _one_length(seqs):
+    """raises ValueError if seqs not all same length"""
+    seq_lengths = set(len(s) for s in seqs)
+    if len(seq_lengths) != 1:
+        raise ValueError("not all sequences have same length")
+    
+
 def aln_from_array(a, array_type=None, alphabet=None):
     """Alignment from array of pos x seq: no change, names are integers.
 
@@ -2105,7 +2112,7 @@ def aln_from_array_seqs(seqs, array_type=None, alphabet=None):
     objects with _data and label properties into the character array Alignment
     needs. All sequences must be the same length.
 
-    WARNING: Assumes that the ModelSeqs are already in the right alphabet. If
+    WARNING: Assumes that the ArraySeqs are already in the right alphabet. If
     this is not the case, e.g. if you are putting sequences on a degenerate
     alphabet into a non-degenerate alignment or you are putting protein
     sequences into a DNA alignment, there will be problems with the alphabet
@@ -2117,6 +2124,9 @@ def aln_from_array_seqs(seqs, array_type=None, alphabet=None):
     for s in seqs:
         data.append(s._data)
         names.append(s.name)
+    
+    _one_length(data)
+
     result = array(data)
     if array_type:
         result = result.astype(array_type)
@@ -2184,6 +2194,7 @@ def aln_from_dict(aln, array_type=None, alphabet=None):
             pass
     
     names, seqs = list(zip(*sorted(aln.items())))
+    _one_length(seqs)
     result = array(list(map(alphabet.to_indices, seqs)), array_type)
     return result, list(names)
 
@@ -2197,6 +2208,7 @@ def aln_from_kv_pairs(aln, array_type=None, alphabet=None):
     Because the dict doesn't preserve order, the result will be in arbitrary
     order."""
     names, seqs = list(zip(*aln))
+    _one_length(seqs)    
     result = array(list(map(alphabet.to_indices, seqs)), array_type)
     return result, list(names)
 
