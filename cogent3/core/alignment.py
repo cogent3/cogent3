@@ -947,56 +947,6 @@ class SequenceCollection(object):
                                                     attributes),
                                                 [(start, end)])
 
-            '''
-            self.named_seqs[seqname].data.add_feature(
-                                feature,
-                                parse_attributes(attributes),
-                                [(start, end)])
-   '''
-
-    def replace_seqs(self, seqs, aa_to_codon=True):
-        """Returns new alignment with same shape but with data taken from seqs.
-
-        Arguments:
-            - aa_to_codon: If True (default) aligns codons from protein
-              alignment, or, more generally, substituting in codons from a set
-              of protein sequences (not necessarily aligned). For this reason,
-              it takes characters from seqs three at a time rather than one at
-              a time (i.e. 3 characters in seqs are put in place of 1 character
-              in self). If False, seqs must be the same lengths.
-
-        If seqs is an alignment, any gaps in it will be ignored.
-        """
-        if isinstance(self, ArrayAlignment):
-            new = self.to_type(array_align=False)
-            result = new.replace_seqs(seqs, aa_to_codon=aa_to_codon)
-            return result.to_type(array_align=True)
-        
-        if aa_to_codon:
-            scale = 3
-        else:
-            scale = 1
-
-        if hasattr(seqs, 'named_seqs'):
-            seqs = seqs.named_seqs
-        else:
-            seqs = SequenceCollection(seqs).named_seqs
-
-        new_seqs = []
-        for label in self.names:
-            aligned = self.named_seqs[label]
-            seq = seqs[label]
-
-            if isinstance(seq, Aligned):
-                seq = seq.data
-
-            if not aa_to_codon and len(seq) != len(aligned.data):
-                raise ValueError("seqs have different lengths")
-
-            new_seqs.append((label, Aligned(aligned.map * scale, seq)))
-
-        return self.__class__(new_seqs)
-
     def get_gapped_seq(self, seq_name, recode_gaps=False, moltype=None):
         """Return a gapped Sequence object for the specified seqname.
 
@@ -2753,6 +2703,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
 
         return self.__class__(new.T, names=self.names,
                               moltype=self.moltype, info=self.info)
+    
     def add_from_ref_aln(self, ref_aln, before_name=None, after_name=None):
         """
         Insert sequence(s) to self based on their alignment to a reference
@@ -2803,6 +2754,67 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
                                    after_name=after_name)
         result = new.to_type(array_align=True, moltype=self.moltype)
         return result
+    
+    def replace_seqs(self, seqs, aa_to_codon=True):
+        """Returns new alignment with same shape but with data taken from seqs.
+
+        Arguments:
+            - aa_to_codon: If True (default) aligns codons from protein
+              alignment, or, more generally, substituting in codons from a set
+              of protein sequences (not necessarily aligned). For this reason,
+              it takes characters from seqs three at a time rather than one at
+              a time (i.e. 3 characters in seqs are put in place of 1 character
+              in self). If False, seqs must be the same lengths.
+
+        If seqs is an alignment, any gaps in it will be ignored.
+        """
+        if not hasattr(seqs, 'named_seqs'):
+            seqs = SequenceCollection(seqs)
+            
+        seqs = seqs.degap()
+        
+        self_gapindex = self.alphabet.index(self.alphabet.gap)
+        chars_indices = seqs.alphabet.to_indices
+        seq_gapindex = chars_indices(seqs.moltype.gap)
+        if aa_to_codon:
+            scale = 3
+        else:
+            scale = 1
+        
+        new_dim = (len(self), scale)
+        aln_length = len(self) * scale
+        new_seqarr = zeros((self.num_seqs, aln_length), self.array_seqs.dtype)
+        assert set(self.names) == set(seqs.names), "names don't match"
+        for seqindex, name in enumerate(self.names):
+            # convert seq to indices and make an array
+            indices = [chars_indices(c) for c in seqs.named_seqs[name]]
+            orig = array(indices, self.array_seqs.dtype)
+            new = array([seq_gapindex] * aln_length, self.array_seqs.dtype)
+            if scale != 1:
+                if len(orig) % scale != 0:
+                    raise ValueError("%s length not divisible by %s" % \
+                                     (name, len(orig)))
+                
+                orig.resize((len(orig)//scale, scale))
+                new.resize(new_dim)
+            
+            nongap = self.array_seqs[seqindex] != self_gapindex
+            try:
+                new[nongap] = orig
+            except ValueError:
+                if nongap.sum() != orig.shape[0]:
+                    raise ValueError("%s has incorrect length" % name)
+                raise
+            
+            new.resize((len(self)*scale,))
+            new_seqarr[seqindex] = new
+        
+            
+        return self.__class__(new_seqarr.T, names=self.names,
+                                          moltype=self.moltype, info=self.info)
+
+        
+        
 
 class CodonArrayAlignment(ArrayAlignment):
     """Stores alignment of gapped codons, no degenerate symbols."""
@@ -3172,3 +3184,47 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         aln = self.add_seqs(temp_aln, before_name, after_name)
 
         return aln
+
+    def replace_seqs(self, seqs, aa_to_codon=True):
+        """Returns new alignment with same shape but with data taken from seqs.
+
+        Arguments:
+            - aa_to_codon: If True (default) aligns codons from protein
+              alignment, or, more generally, substituting in codons from a set
+              of protein sequences (not necessarily aligned). For this reason,
+              it takes characters from seqs three at a time rather than one at
+              a time (i.e. 3 characters in seqs are put in place of 1 character
+              in self). If False, seqs must be the same lengths.
+
+        If seqs is an alignment, any gaps in it will be ignored.
+        """
+        if isinstance(self, ArrayAlignment):
+            new = self.to_type(array_align=False)
+            result = new.replace_seqs(seqs, aa_to_codon=aa_to_codon)
+            return result.to_type(array_align=True)
+        
+        if aa_to_codon:
+            scale = 3
+        else:
+            scale = 1
+
+        if hasattr(seqs, 'named_seqs'):
+            seqs = seqs.named_seqs
+        else:
+            seqs = SequenceCollection(seqs).named_seqs
+
+        new_seqs = []
+        for label in self.names:
+            aligned = self.named_seqs[label]
+            seq = seqs[label]
+
+            if isinstance(seq, Aligned):
+                seq = seq.data
+
+            if len(seq) != len(aligned.data) * scale:
+                raise ValueError("%s has incorrect length" % label)
+
+            new_seqs.append((label, Aligned(aligned.map * scale, seq)))
+
+        return self.__class__(new_seqs)
+
