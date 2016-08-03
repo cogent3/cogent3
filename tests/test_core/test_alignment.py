@@ -710,38 +710,6 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(aln_seq_1.annotations[0].name, 'abc')
         self.assertEqual(len(aln_seq_2.annotations), 0)
 
-    def test_replace_seqs(self):
-        """replace_seqs should replace 1-letter w/ 3-letter seqs"""
-        a = Alignment({'seq1': 'ACGU', 'seq2': 'C-UA', 'seq3': 'C---'})
-        seqs = {'seq1': 'AAACCCGGGUUU', 'seq2': 'CCCUUUAAA', 'seq3': 'CCC'}
-        result = a.replace_seqs(seqs)  # default behaviour
-        self.assertEqual(result.to_fasta(),
-                         ">seq1\nAAACCCGGGUUU\n>seq2\nCCC---UUUAAA\n>seq3\nCCC---------")
-
-        result = a.replace_seqs(seqs, aa_to_codon=True)  # default behaviour
-        self.assertEqual(result.to_fasta(),
-                         ">seq1\nAAACCCGGGUUU\n>seq2\nCCC---UUUAAA\n>seq3\nCCC---------")
-
-        # should correctly gap the same sequences with same length
-        result = a.replace_seqs(
-            a[:3].degap(), aa_to_codon=False)  # default behaviour
-        self.assertEqual(result.todict(),
-                         {'seq1': 'ACGU', 'seq2': 'C-UA', 'seq3': 'C---'})
-
-        # should fail when not same length if aa_to_codon is False
-        new = SequenceCollection([(n, s.replace('-', ''))
-                                  for n, s in list(a[:3].todict().items())])
-        self.assertRaises(ValueError,
-                          a.replace_seqs, new, aa_to_codon=False)
-
-        # check the gaps are changed
-        aln1 = Alignment(data={'a': 'AC-CT', 'b': 'ACGCT'})
-        aln2 = Alignment(data={'a': 'ACC-T', 'b': 'ACGCT'})
-
-        result = aln1.replace_seqs(aln2, aa_to_codon=False)
-        self.assertTrue(id(aln1) != id(aln2))
-        self.assertEqual(aln1.todict(), result.todict())
-
     def test_get_gapped_seq(self):
         """SequenceCollection.get_gapped_seq should return seq, with gaps"""
         aln = self.Class({'seq1': '--TTT?', 'seq2': 'GATC??'})
@@ -1468,6 +1436,38 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # and translate
         self.assertEqual(new.get_translation().todict(),
                          {'seq1': 'TYV', 'seq3': 'TYV', 'seq2': 'TE-'})
+    
+    def test_replace_seqs(self):
+        """replace_seqs should replace 1-letter w/ 3-letter seqs"""
+        a = self.Class({'seq1': 'ACGU', 'seq2': 'C-UA', 'seq3': 'C---'})
+        seqs = {'seq1': 'AAACCCGGGUUU', 'seq2': 'CCCUUUAAA', 'seq3': 'CCC'}
+        result = a.replace_seqs(seqs)  # default behaviour
+        self.assertEqual(result.to_fasta(),
+                         ">seq1\nAAACCCGGGUUU\n>seq2\nCCC---UUUAAA\n>seq3\nCCC---------")
+
+        result = a.replace_seqs(seqs, aa_to_codon=True)  # default behaviour
+        self.assertEqual(result.to_fasta(),
+                         ">seq1\nAAACCCGGGUUU\n>seq2\nCCC---UUUAAA\n>seq3\nCCC---------")
+
+        # should correctly gap the same sequences with same length
+        result = a.replace_seqs(
+            a.degap(), aa_to_codon=False)  # default behaviour
+        self.assertEqual(result.todict(),
+                         {'seq1': 'ACGU', 'seq2': 'C-UA', 'seq3': 'C---'})
+
+        # should fail when not same length if aa_to_codon is False
+        new = SequenceCollection([(n, s.replace('-', ''))
+                                  for n, s in list(a[:3].todict().items())])
+        self.assertRaises(ValueError,
+                          a.replace_seqs, new, aa_to_codon=False)
+
+        # check the gaps are changed
+        aln1 = self.Class(data={'a': 'AC-CT', 'b': 'ACGCT'})
+        aln2 = self.Class(data={'a': 'ACC-T', 'b': 'ACGCT'})
+
+        result = aln1.replace_seqs(aln2, aa_to_codon=False)
+        self.assertTrue(id(aln1) != id(aln2))
+        self.assertEqual(aln1.todict(), result.todict())
         
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
