@@ -2775,7 +2775,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         
         self_gapindex = self.alphabet.index(self.alphabet.gap)
         chars_indices = seqs.alphabet.to_indices
-        seq_gapindex = chars_indices(seqs.moltype.gap)
+        seq_gapindex = chars_indices(seqs.moltype.gap)[0]
         if aa_to_codon:
             scale = 3
         else:
@@ -2785,11 +2785,12 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         aln_length = len(self) * scale
         new_seqarr = zeros((self.num_seqs, aln_length), self.array_seqs.dtype)
         assert set(self.names) == set(seqs.names), "names don't match"
+        new = array([seq_gapindex] * aln_length, self.array_seqs.dtype).flatten()
         for seqindex, name in enumerate(self.names):
             # convert seq to indices and make an array
-            indices = [chars_indices(c) for c in seqs.named_seqs[name]]
-            orig = array(indices, self.array_seqs.dtype)
-            new = array([seq_gapindex] * aln_length, self.array_seqs.dtype)
+            indices = chars_indices(seqs.named_seqs[name])
+            orig = array(indices, self.array_seqs.dtype).flatten()
+            new[:] = seq_gapindex # reset each time through
             if scale != 1:
                 if len(orig) % scale != 0:
                     raise ValueError("%s length not divisible by %s" % \
@@ -2811,7 +2812,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         
             
         return self.__class__(new_seqarr.T, names=self.names,
-                                          moltype=self.moltype, info=self.info)
+                                          moltype=seqs.moltype)
 
         
         
