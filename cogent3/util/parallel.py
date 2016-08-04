@@ -90,7 +90,7 @@ class NonParallelContext(ParallelContext):
     """
     size = 1
 
-    def getCommunicator(self):
+    def get_communicator(self):
         return FAKE_MPI_COMM
 
     def split(self, jobs):
@@ -120,7 +120,7 @@ class MPIParallelContext(ParallelContext):
         self.comm = comm
         self.size = comm.Get_size()
 
-    def getCommunicator(self):
+    def get_communicator(self):
         return self.comm
 
     def split(self, jobs):
@@ -192,7 +192,7 @@ class MultiprocessingParallelContext(ParallelContext):
             size = multiprocessing.cpu_count()
         self.size = size
 
-    def getCommunicator(self):
+    def get_communicator(self):
         return FAKE_MPI_COMM
 
     def _subContext(self, size):
@@ -272,10 +272,10 @@ class ContextStack(threading.local):
     def map(self, f, s):
         return list(self.imap(f, s))
 
-    def getCommunicator(self):
+    def get_communicator(self):
         """For code needing an MPI communicator interface.  If not
         using MPI this will be a dummy communicator of 1 CPU."""
-        return self.top.getCommunicator()
+        return self.top.get_communicator()
 
     def getContext(self):
         return self.top
@@ -300,7 +300,7 @@ elif cpus > 1:
 
 
 getContext = CONTEXT.getContext
-getCommunicator = CONTEXT.getCommunicator
+get_communicator = CONTEXT.get_communicator
 parallel_context = CONTEXT.pushed
 split = CONTEXT.split
 imap = CONTEXT.imap
@@ -313,6 +313,6 @@ def use_multiprocessing(cpus=None):
 
 def sync_random(r):
     # Only matters with MPI
-    comm = getCommunicator()
+    comm = get_communicator()
     state = comm.bcast(r.getstate(), 0)
     r.setstate(state)

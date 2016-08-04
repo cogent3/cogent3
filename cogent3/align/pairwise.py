@@ -746,7 +746,7 @@ class PairEmissionProbs(object):
                 msg = 'Posterior probs'
             elif self.pair.size[0] - 2 >= 3 and not backward and (
                     problem_size > HIRSCHBERG_LIMIT or
-                    parallel.getCommunicator().Get_size() > 1):
+                    parallel.get_communicator().Get_size() > 1):
                 return self.hirschberg(TM, dp_options)
             else:
                 msg = 'dp'
