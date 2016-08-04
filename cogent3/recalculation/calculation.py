@@ -419,8 +419,8 @@ class Calculator(object):
 
         t0 = time.time()
         self.evaluations += 1
-        assert parallel.getContext() is self.overall_parallel_context, (
-            parallel.getContext(), self.overall_parallel_context)
+        assert parallel.get_context() is self.overall_parallel_context, (
+            parallel.get_context(), self.overall_parallel_context)
 
         # If ALL of the changes made in the last step are reversed in this step
         # then it is safe to undo them first, taking advantage of the 1-deep
