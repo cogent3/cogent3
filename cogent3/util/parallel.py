@@ -235,7 +235,7 @@ class ContextStack(threading.local):
         self.stack = []
         self.top = NONE
 
-    def setInitial(self, context):
+    def set_initial(self, context):
         """The real initialiser.  Should be called once from the main thread."""
         assert self.stack == [] and self.top is NONE
         self.top = context
@@ -294,9 +294,9 @@ else:
     cpus = 1
 
 if USING_MPI:
-    CONTEXT.setInitial(MPIParallelContext())
+    CONTEXT.set_initial(MPIParallelContext())
 elif cpus > 1:
-    CONTEXT.setInitial(MultiprocessingParallelContext(cpus))
+    CONTEXT.set_initial(MultiprocessingParallelContext(cpus))
 
 
 getContext = CONTEXT.getContext
@@ -308,7 +308,7 @@ map = CONTEXT.map
 
 
 def use_multiprocessing(cpus=None):
-    CONTEXT.setInitial(MultiprocessingParallelContext(cpus))
+    CONTEXT.set_initial(MultiprocessingParallelContext(cpus))
 
 
 def sync_random(r):
