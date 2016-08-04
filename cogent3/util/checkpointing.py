@@ -23,7 +23,7 @@ class Checkpointer(object):
         self.interval = interval
         self.last_time = time.time()
         self.noisy = noisy
-        self._redundant = parallel.getCommunicator().Get_rank() > 0
+        self._redundant = parallel.get_communicator().Get_rank() > 0
 
     def available(self):
         return self.filename is not None and os.path.exists(self.filename)

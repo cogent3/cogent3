@@ -335,7 +335,7 @@ class RootProgressContext(object):
 
 def setupRootUiContext(progressBarConstructor=None, rate=None):
     """Select a UI Context type depending on system environment"""
-    if parallel.getCommunicator().Get_rank() != 0:
+    if parallel.get_communicator().Get_rank() != 0:
         klass = None
     elif progressBarConstructor is not None:
         klass = progressBarConstructor

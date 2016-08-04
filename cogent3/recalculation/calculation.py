@@ -581,7 +581,7 @@ class Calculator(object):
         samples = []
         elapsed = 0.0
         rounds_per_sample = 2
-        comm = parallel.getCommunicator()
+        comm = parallel.get_communicator()
         while elapsed < time_limit and len(samples) < 5:
             time.sleep(0.01)
             t0 = now()

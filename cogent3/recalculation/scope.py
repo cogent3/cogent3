@@ -776,7 +776,7 @@ class ParameterController(object):
     def setup_parallel_context(self, parallel_split=None):
         self.overall_parallel_context = parallel.getContext()
         with parallel.split(parallel_split) as parallel_context:
-            parallel_context = parallel_context.getCommunicator()
+            parallel_context = parallel_context.get_communicator()
             self.remaining_parallel_context = parallel.getContext()
             if 'parallel_context' in self.defn_for:
                 self.assign_all(
