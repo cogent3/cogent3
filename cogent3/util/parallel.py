@@ -277,7 +277,7 @@ class ContextStack(threading.local):
         using MPI this will be a dummy communicator of 1 CPU."""
         return self.top.get_communicator()
 
-    def getContext(self):
+    def get_context(self):
         return self.top
 
 CONTEXT = ContextStack()
@@ -299,7 +299,7 @@ elif cpus > 1:
     CONTEXT.set_initial(MultiprocessingParallelContext(cpus))
 
 
-getContext = CONTEXT.getContext
+get_context = CONTEXT.get_context
 get_communicator = CONTEXT.get_communicator
 parallel_context = CONTEXT.pushed
 split = CONTEXT.split

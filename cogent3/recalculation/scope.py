@@ -774,10 +774,10 @@ class ParameterController(object):
         return self.make_calculator().measure_evals_per_second(*args, **kw)
 
     def setup_parallel_context(self, parallel_split=None):
-        self.overall_parallel_context = parallel.getContext()
+        self.overall_parallel_context = parallel.get_context()
         with parallel.split(parallel_split) as parallel_context:
             parallel_context = parallel_context.get_communicator()
-            self.remaining_parallel_context = parallel.getContext()
+            self.remaining_parallel_context = parallel.get_context()
             if 'parallel_context' in self.defn_for:
                 self.assign_all(
                     'parallel_context', value=parallel_context, const=True)
