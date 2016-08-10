@@ -7,7 +7,9 @@ from warnings import filterwarnings, resetwarnings
 
 resetwarnings()
 filterwarnings("ignore", category=ResourceWarning, append=True)
-
+filterwarnings("ignore",
+               message="using slow exponentiator.+",
+               category=UserWarning, append=True)
 import doctest, cogent3.util.unit_test as unittest, sys, os
 from cogent3.util.misc import app_path
 
