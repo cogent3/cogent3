@@ -166,7 +166,7 @@ class ConsensusTests(unittest.TestCase):
 
     def test_consensus_from_scored_trees_collection(self):
         """tree collection should get same consensus as direct approach"""
-        tree_list = [(1, t) for t in self.trees]
+        tree_list = [(i * -1, t) for i, t in enumerate(self.trees)]
         sct = LogLikelihoodScoredTreeCollection(tree_list)
         ct = sct.get_consensus_tree()
         self.assertTrue(ct.same_topology(Tree("((c,d),a,b);")))
