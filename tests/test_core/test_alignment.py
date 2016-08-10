@@ -1134,6 +1134,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                   's2': 'T-T AAA'.replace(' ', ''),
                   's3': 'AAA CCC'.replace(' ', '')}
         self.assertEqual(result, expect)
+        
+        # raises ValueError if a default moltype -- with no
+        # degen characters -- is used
+        aln = self.Class(data=data)
+        self.assertRaises(ValueError, aln.no_degenerates)
     
     
     def test_omit_gap_pos(self):

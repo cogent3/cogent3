@@ -1806,7 +1806,13 @@ class AlignmentI(object):
           character (default, most evolutionary modelling treats gaps as
           N) or not.
         """
-        chars = list(self.moltype.alphabet.non_degen)
+        try:
+            chars = list(self.moltype.alphabet.non_degen)
+        except AttributeError:
+            msg = "Invalid MolType (no degenerate characters), "\
+                "create the alignment using DNA, RNA or PROTEIN"
+            raise ValueError(msg)
+        
         is_array = isinstance(self, ArrayAlignment)
         alpha = self.alphabet
         if allow_gap:
