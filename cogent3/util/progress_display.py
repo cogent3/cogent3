@@ -341,7 +341,7 @@ def setupRootUiContext(progressBarConstructor=None, rate=None):
         klass = progressBarConstructor
     elif curses_terminal and sys.stdout.isatty():
         klass = CursesTerminalProgressBar
-    elif isinstance(sys.stdout, io.IOBase):
+    elif isinstance(sys.stdout, io.FileIO):
         klass = LogFileOutput
         if rate is None:
             rate = 5.0
