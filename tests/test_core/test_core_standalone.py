@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-import unittest, os, tempfile
+import unittest, os, tempfile, re
 
 from cogent3 import DNA, RNA, STANDARD_CODON as CODON, PROTEIN, Sequence, \
     LoadSeqs
@@ -16,6 +16,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+_compression = re.compile(r"\.(gz|bz2)$")
 base_path = os.getcwd()
 data_path = os.path.join(base_path, 'data')
 
@@ -30,8 +31,14 @@ class ReadingWritingFileFormats(unittest.TestCase):
         filename = os.path.join(data_path, filename)
         aln = LoadSeqs(filename=filename, **kw)
         if test_write:
-            suffix = filename.split('.')[-1]
-            fn = tempfile.mktemp(suffix='.' + suffix)
+            r = _compression.search(filename)
+            if r:
+                cmpr = filename[r.start():]
+                suffix = filename[:r.start()].split('.')[-1]
+            else:
+                suffix = filename.split('.')[-1]
+                cmpr = ""
+            fn = tempfile.mktemp(suffix='.' + suffix +cmpr)
             aln.write(filename=fn)
             os.remove(fn)
 
@@ -47,6 +54,14 @@ class ReadingWritingFileFormats(unittest.TestCase):
 
     def test_fasta(self):
         self._loadfromfile("formattest.fasta")
+
+    def test_fasta_gzipped(self):
+        """correctly load from gzipped"""
+        self._loadfromfile("formattest.fasta.gz")
+    
+    def test_fasta_bzipped(self):
+        """correctly load from bzipped"""
+        self._loadfromfile("formattest.fasta.bz2")
 
     def test_phylipsequential(self):
         self._loadfromfile('formattest.phylip')

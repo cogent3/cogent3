@@ -2,10 +2,12 @@
 """Classes for reading multiple sequence alignment files in different formats."""
 
 import xml.dom.minidom
+import re
 
 from cogent3.parse import fasta, phylip, paml, clustal, genbank
 from cogent3.parse import gbseq, tinyseq, macsim, gcg
 from cogent3.parse.record import FileFormatError
+from cogent3.util.misc import open_
 
 __author__ = "Cath Lawrence"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -18,6 +20,8 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 _lc_to_wc = ''.join([[chr(x), '?']['A' <= chr(x) <= 'Z'] for x in range(256)])
+_compression = re.compile(r"\.(gz|bz2)$")
+
 
 
 def FromFilenameParser(filename, format=None, **kw):
@@ -26,7 +30,7 @@ def FromFilenameParser(filename, format=None, **kw):
             - format: the multiple sequence file format
     """
     format = format_from_filename(filename, format)
-    f = open(filename, newline=None)
+    f = open_(filename, newline=None, mode="rt")
     return FromFileParser(f, format, **kw)
 
 
@@ -65,6 +69,10 @@ def format_from_filename(filename, format=None):
     if format:
         return format
     else:
+        r = _compression.search(filename)
+        if r:
+            filename = filename[:r.start()]
+            
         return filename[filename.rfind('.') + 1:]
 
 PARSERS = {

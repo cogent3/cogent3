@@ -2,7 +2,9 @@
 import os
 from io import TextIOBase
 import warnings
+import re
 from cogent3.parse.record import FileFormatError
+from cogent3.util.misc import open_
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -13,6 +15,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+_compression = re.compile(r"\.(gz|bz2)$")
 
 def save_to_filename(alignment, filename, format, **kw):
     """Arguments:
@@ -23,7 +26,7 @@ def save_to_filename(alignment, filename, format, **kw):
     if format is None:
         raise FileFormatError("format not known")
 
-    f = open(filename, 'w')
+    f = open_(filename, 'wt')
     try:
         write_alignment_to_file(f, alignment, format, **kw)
     except Exception:
