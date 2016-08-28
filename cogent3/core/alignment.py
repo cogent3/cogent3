@@ -19,7 +19,7 @@
     passed in a stream of two-item label, sequence pairs. However, this can
     cause confusion when testing.
 """
-
+import re
 from types import GeneratorType
 from collections import defaultdict, Counter
 from functools import total_ordering
@@ -57,6 +57,7 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+_compression = re.compile(r"\.(gz|bz2)$")
 
 class DataError(Exception):
     pass
@@ -1065,7 +1066,11 @@ class SequenceCollection(object):
 
         if format is None and '.' in filename:
             # allow extension to work if provided
-            format = filename[filename.rfind(".") + 1:]
+            r = _compression.search(filename)
+            if r:
+                format = filename[:r.start()].split('.')[-1]
+            else:
+                format = filename.split('.')[-1]
 
         if 'order' not in kwargs:
             kwargs['order'] = self.names

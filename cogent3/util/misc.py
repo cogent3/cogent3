@@ -13,7 +13,8 @@ from os.path import join, abspath, exists, isdir
 from tempfile import gettempdir
 from numpy import logical_not, sum
 from pickle import dumps, loads
-from gzip import GzipFile
+from gzip import GzipFile, open as gzip_open
+from bz2 import open as bzip_open
 import hashlib
 
 __author__ = "Rob Knight"
@@ -27,6 +28,12 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
+def open_(filename, mode='rt', **kwargs):
+    """open that handles different compression"""
+    op = {'gz': gzip_open, 'bz2': bzip_open}.get(
+        filename.split('.')[-1], open)
+    return op(filename, mode, **kwargs)
 
 class FilePath(str):
     """ Hold paths for proper handling
