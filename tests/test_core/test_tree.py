@@ -1166,6 +1166,15 @@ class PhyloNodeTests(TestCase):
         obs = node_c.total_descending_branch_length()
         self.assertEqual(obs, exp)
 
+    def test_total_length(self):
+        """total_length returns total branchlength, irrespective of edge"""
+        t_str = "(A:1,B:2,(C:3,D:3)E:2,(F,((G:1,H:2)I:2)J:3)K:2);"
+        t = DndParser(t_str, constructor=PhyloNode)
+        self.assertEqual(t.total_length(), 21)
+        node = t.get_node_matching_name('F')
+        length = node.total_length()
+        self.assertEqual(length, 21)
+
     def test_tips_within_distance(self):
         """tips_within_distance returns tips that are within distance from self"""
         t_str = "(A:1,B:2,(C:3,D:3)E:2,(F,((G:1,H:2)I:2)J:3)K:2)L;"
