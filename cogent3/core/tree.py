@@ -1688,6 +1688,14 @@ class PhyloNode(TreeNode):
         """Returns total descending branch length from self"""
         return sum([n.length for n in self.traverse(include_self=False)
                     if n.length is not None])
+    
+    def total_length(self):
+        """returns the sum of all branch lengths in tree"""
+        root = self.root()
+        if root is None:
+            raise ValueError("no root to this tree!")
+        
+        return root.total_descending_branch_length()
 
     def tips_within_distance(self, distance):
         """Returns tips within specified distance from self
