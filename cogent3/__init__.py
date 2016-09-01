@@ -22,10 +22,10 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 # SUPPORT2425
-if sys.version_info < (3, 5):
+if sys.version_info < (3, 4):
     PY_VERSION = ".".join([str(n) for n in sys.version_info])
     raise RuntimeError(
-        "Python-3.5 or greater is required, Python-%s used." % PY_VERSION)
+        "Python-3.4 or greater is required, Python-%s used." % PY_VERSION)
 
 NUMPY_VERSION = re.split(r"[^\d]", numpy.__version__)
 numpy_version_info = tuple([int(i) for i in NUMPY_VERSION if i.isdigit()])
