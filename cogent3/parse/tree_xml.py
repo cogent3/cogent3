@@ -93,7 +93,7 @@ class TreeHandler(xml.sax.ContentHandler):
 
 def parse_string(text, tree_builder):
     handler = TreeHandler(tree_builder)
-    xml.sax.parseString(text, handler)
+    xml.sax.parseString(text.encode('utf8'), handler)
     trees = handler.data['clades']
     assert len(trees) == 1, trees
     return trees[0]
