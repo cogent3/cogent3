@@ -76,7 +76,7 @@ extra_commands = {
 
 # Compiling Pyrex modules to .c and .so, if possible and necessary
 try:
-    if 'DONT_USE_PYREX' in os.environ:
+    if 'DONT_USE_CYTHON' in os.environ:
         raise ImportError
     from Cython.Compiler.Version import version
     version = tuple([int(v) \
