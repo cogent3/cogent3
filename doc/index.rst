@@ -39,6 +39,8 @@ Posting Bugs
 
 If you discover a bug, especially something that worked in PyCogent but not in PyCogent3_, please `post a ticket <https://bitbucket.org/pycogent3/cogent3/issues>`_!
 
+When posting a ticket, please provide a minimum working example to reproduce the issue. Also include the versions of the library and other tools (e.g. attach the result of ``$ pip freeze > libs.txt``).
+
 Getting Involved
 ================
 
