@@ -1,10 +1,10 @@
 For Developers
 ==============
 
-Anyone can contribute to the development of PyCogent3, not just registered developers. If you figure out a solution to something using PyCogent3 that you'd like to share, or if you have ideas for improving the current documentation, please consider submitting a `pull request <https://help.github.com/articles/using-pull-requests>`_ to the `PyCogent3 git repository on GitHub <https://github.com/pycogent/pycogent>`_ and we'll look into including it in PyCogent3!
+Anyone can contribute to the development of PyCogent3_, not just registered developers. If you figure out a solution to something using PyCogent3_ that you'd like to share, or if you have ideas for improving the current documentation, please consider forking and submitting a pull request and we'll look into including it in PyCogent3!
 
-Grabbing from GitHub
---------------------
+Grabbing from Bitbucket
+-----------------------
 
 To grab PyCogent3 from Bitbucket, do the following::
 
@@ -56,7 +56,7 @@ The results are in ``_build/doctest/output.txt``.
 Adding to the documentation
 ---------------------------
 
-You can maximise the cogent user experience for yourself and others by contributing to the documentation. If you solve a problem that you think might prove useful to others then add it into the documentation. If you can think of ways to improve the existing documents let us know.
+You can maximise the cogent3 user experience for yourself and others by contributing to the documentation. If you solve a problem that you think might prove useful to others then fork, add it into the documentation and do a pull request. If you can think of ways to improve the existing documents let us know via a `ticket <https://bitbucket.org/pycogent3/cogent3/issues>`_.
 
 For guidance on adding documentation, look at any of the existing examples. The restructured text format is pretty easy to write (for overview see the Sphinx `rest overview`_). The conventions adopted by PyCogent3 are to use heading levels to be consistent with the Python.org standard (taken from `Sphinx headings`_). They are
 
@@ -111,3 +111,4 @@ If you have any questions, contact Gavin_.
 .. _`rest overview`: http://sphinx.pocoo.org/rest.html
 .. _`Sphinx headings`: http://sphinx.pocoo.org/rest.html#sections
 .. _Gavin: Gavin.Huttley@anu.edu.au
+.. _PyCogent3: https://bitbucket.org/pycogent3/cogent3

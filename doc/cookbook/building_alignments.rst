@@ -49,7 +49,7 @@ We first align without providing a guide tree. The ``TreeAlign`` algorithm build
              Variance        1e+11
     ------------------------------
     >>> aln
-    5 x 60 text alignment: NineBande[-C-----GCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
+    5 x 60 bytes alignment: NineBande[-C-----GCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
 
 We then align using a guide tree (pre-estimated) and specifying the ratio of transitions to transversions (kappa).
 
@@ -59,7 +59,7 @@ We then align using a guide tree (pre-estimated) and specifying the ratio of tra
     >>> params={'kappa': 4.0}
     >>> aln, tree = TreeAlign(HKY85(), seqs, tree=tree, param_vals=params)
     >>> aln
-    5 x 60 text alignment: NineBande[-C-----GCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
+    5 x 60 bytes alignment: NineBande[-C-----GCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
 
 For codons
 ^^^^^^^^^^
@@ -73,7 +73,7 @@ We load a canned codon substitution model and use a pre-defined tree and paramet
     >>> params={'kappa': 4.0, 'omega': 1.3}
     >>> aln, tree = TreeAlign(MG94HKY(), seqs, tree=tree, param_vals=params)
     >>> aln
-    5 x 60 text alignment: NineBande[------CGCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
+    5 x 60 bytes alignment: NineBande[------CGCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
 
 Converting gaps from aa-seq alignment to nuc seq alignment
 ==========================================================

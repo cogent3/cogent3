@@ -176,9 +176,9 @@ Tables may also be created from 2-dimensional dictionaries. In this case, specia
     >>> row_order = d2D['edge.name']
     >>> d2D['edge.name'] = dict(zip(row_order, row_order))
     >>> t3 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
-    ... row_order = row_order, missing_data='*', space=8, max_width = 50,
-    ... row_ids = True, title = 'My title',
-    ... legend = 'legend: this is a nonsense example.')
+    ...            row_order=row_order, missing_data='*', space=8,
+    ...            max_width=50, row_ids=True, title='My title',
+    ...            legend='legend: this is a nonsense example.')
     >>> print(t3)
     My title
     ==========================================
@@ -330,7 +330,7 @@ We can provide settings for multiple columns.
 .. doctest::
 
     >>> t3 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
-    ... row_order = row_order)
+    ...            row_order=row_order)
     >>> t3.format_column('x', "%.1e")
     >>> t3.format_column('y', "%.2f")
     >>> print(t3)
@@ -362,7 +362,7 @@ We apply this to a table with mixed string, integer and floating point data.
 .. doctest::
 
     >>> t6 = Table(['ColHead'], [['a'], [1], [0.3], ['cc']],
-    ... column_templates = dict(ColHead=formatcol))
+    ...            column_templates=dict(ColHead=formatcol))
     >>> print(t6)
     =======
     ColHead
@@ -502,9 +502,8 @@ Test the writing of phylip distance matrix format.
     ...  0.088337278874079342, '', 0.44084000179090932], ['e',
     ...  0.44084000179091454, 0.44083999937417828, 0.44084000179090932, '']]
     >>> header = ['seq1/2', 'a', 'c', 'b', 'e']
-    >>> dist = Table(rows = rows, header = header,
-    ...  row_ids = True)
-    >>> print(dist.tostring(format = 'phylip'))
+    >>> dist = Table(header=header, rows=rows, row_ids=True)
+    >>> print(dist.tostring(format='phylip'))
        4
     a           0.0000  0.0883  0.1885  0.4408
     c           0.0883  0.0000  0.0883  0.4408
@@ -601,11 +600,11 @@ Saving a table object to file for later reloading can be done using the standard
     :options: +NORMALIZE_WHITESPACE
 
     >>> t3 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
-    ... row_order = row_order, missing_data='*', space=8, max_width = 50,
-    ... row_ids = True, title = 'My title',
-    ... legend = 'legend: this is a nonsense example.')
+    ...            row_order=row_order, missing_data='*', space=8,
+    ...            max_width=50, row_ids=True, title='My title',
+    ...            legend='legend: this is a nonsense example.')
     >>> t3.write("t3.pickle", mode='wb')
-    >>> t3_loaded = LoadTable(filename = "t3.pickle")
+    >>> t3_loaded = LoadTable(filename="t3.pickle")
     >>> print(t3_loaded)
     My title
     ==========================================
@@ -648,10 +647,10 @@ Saving a table object to file for later reloading can be done using the standard
     <BLANKLINE>
     legend: this is a nonsense example.
     >>> t2 = Table(['abcd', 'data'], [[str([1, 2, 3, 4, 5]), '0'], ['x', 5.0],
-    ... ['y', None]], missing_data='*', title = 'A \ntitle')
+    ... ['y', None]], missing_data='*', title='A \ntitle')
     >>> t2.write('t2.csv', sep=',')
     >>> t2_loaded = LoadTable(filename='t2.csv', header=True, with_title=True,
-    ...  sep = ',')
+    ...  sep=',')
     >>> print(t2_loaded)
     A 
     title
@@ -668,11 +667,11 @@ Note the ``missing_data`` attribute is not saved in the delimited format, but is
 .. doctest::
     
     >>> t2 = Table(['abcd', 'data'], [[str([1, 2, 3, 4, 5]), '0'], ['x', 5.0],
-    ... ['y', None]], missing_data='*', title = 'A \ntitle',
-    ... legend = "And\na legend too")
+    ...            ['y', None]], missing_data='*', title='A \ntitle',
+    ...            legend="And\na legend too")
     >>> t2.write('t2.csv', sep=',')
-    >>> t2_loaded = LoadTable(filename = 't2.csv', header = True,
-    ... with_title = True, with_legend = True, sep = ',', digits = 2)
+    >>> t2_loaded = LoadTable(filename='t2.csv', header=True, with_title=True,
+    ...                       with_legend=True, sep=',', digits = 2)
     >>> print(t2_loaded) # doctest: +NORMALIZE_WHITESPACE
     A
     title
@@ -835,7 +834,7 @@ If you invoke the ``static_column_types`` argument and the column data are not s
     a    2
     ------
     >>> t3b.write('test3b.txt', sep='\t')
-    >>> t3b = LoadTable('test3b.txt', sep = '\t', static_column_types=True)
+    >>> t3b = LoadTable('test3b.txt', sep='\t', static_column_types=True)
     Traceback (most recent call last):
     ValueError: invalid literal for int() with base 10: 'a'
 
@@ -937,7 +936,7 @@ The Table class is capable of slicing by row, range of rows, column or range of 
 .. doctest::
 
     >>> t4 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
-    ... row_order = row_order, row_ids = True, title = 'My title')
+    ...            row_order=row_order, row_ids=True, title='My title')
 
 We subset ``t4`` by column and reorder them.
 
@@ -1119,7 +1118,7 @@ We then seek to obtain only those rows that contain probabilities < 0.05. We use
 
 .. doctest::
 
-    >>> sub_table1 = t5.filtered(callback = "Prob < 0.05")
+    >>> sub_table1 = t5.filtered(callback="Prob < 0.05")
     >>> print(sub_table1)
     =========================================================
                       Gene    type         LR    df      Prob
@@ -1142,7 +1141,7 @@ and from multiple columns.
 
 .. doctest::
 
-    >>> raw = sub_table1.tolist(columns = ['df', 'Prob'])
+    >>> raw = sub_table1.tolist(columns=['df', 'Prob'])
     >>> raw
     [[1, 0.0], [1, 0.0],...
 
@@ -1150,8 +1149,10 @@ We can also do filtering using an external function, in this case we use a ``lam
 
 .. doctest::
 
-    >>> func = lambda ty_pr: ty_pr[0] == 'Unco' and ty_pr[1] < 0.05
-    >>> sub_table2 = t5.filtered(columns = ('type', 'Prob'), callback = func)
+    >>> sub_table2 = t5.filtered(
+    ...                 lambda ty_pr: ty_pr[0] == 'Unco' and ty_pr[1] < 0.05,
+    ...                 columns=('type', 'Prob')
+    ...                 )
     >>> print(sub_table2)
     =========================================================
                       Gene    type         LR    df      Prob
@@ -1165,7 +1166,7 @@ This can also be done using the string approach.
 
 .. doctest::
 
-    >>> sub_table2 = t5.filtered(callback = "type == 'Unco' and Prob < 0.05")
+    >>> sub_table2 = t5.filtered("type == 'Unco' and Prob < 0.05")
     >>> print(sub_table2)
     =========================================================
                       Gene    type         LR    df      Prob
@@ -1281,8 +1282,9 @@ For completeness, we generate a table with no rows and assess its shape.
 
 .. doctest::
 
-    >>> func = lambda ty_pr: ty_pr[0] == 'Unco' and ty_pr[1] > 0.1
-    >>> sub_table3 = t5.filtered(columns = ('type', 'Prob'), callback = func)
+    >>> sub_table3 = t5.filtered(
+    ...                lambda ty_pr: ty_pr[0] == 'Unco' and ty_pr[1] > 0.1,
+    ...                columns=('type', 'Prob'))
     >>> sub_table3.shape
     (0, 5)
 
@@ -1476,7 +1478,7 @@ We want a table sorted according to values in a column.
 
 .. doctest::
 
-    >>> sorted = t5.sorted(columns = 'LR')
+    >>> sorted = t5.sorted(columns='LR')
     >>> print(sorted)
     =========================================================
                       Gene    type         LR    df      Prob
@@ -1542,7 +1544,7 @@ Reverse sort a single column
 
 .. doctest::
 
-    >>> sorted = t5.sorted('LR', reverse = 'LR')
+    >>> sorted = t5.sorted('LR', reverse='LR')
     >>> print(sorted)
     =========================================================
                       Gene    type         LR    df      Prob
@@ -1586,7 +1588,7 @@ Reverse sort one column but not another
 
 .. doctest::
 
-    >>> sorted = t5.sorted(columns=('type', 'LR'), reverse = 'LR')
+    >>> sorted = t5.sorted(columns=('type', 'LR'), reverse='LR')
     >>> print(sorted)
     =========================================================
                       Gene    type         LR    df      Prob
@@ -1608,7 +1610,7 @@ Reverse sort both columns.
 
 .. doctest::
 
-    >>> sorted = t5.sorted(columns=('type', 'LR'), reverse = ('type', 'LR'))
+    >>> sorted = t5.sorted(columns=('type', 'LR'), reverse=('type', 'LR'))
     >>> print(sorted)
     =========================================================
                       Gene    type         LR    df      Prob
@@ -1804,9 +1806,9 @@ We test that the ``joined`` method works when the column index orders differ.
     >>> t1_rows = [(1,2),(3,4)]
     >>> t2_header = ['b', 'c']
     >>> t2_rows = [(3,6),(4,8)]
-    >>> t1 = Table(header = t1_header, rows = t1_rows, title='t1')
-    >>> t2 = Table(header = t2_header, rows = t2_rows, title='t2')
-    >>> t3 = t1.joined(t2, columns_self = ["b"], columns_other = ["b"])
+    >>> t1 = Table(t1_header, rows=t1_rows, title='t1')
+    >>> t2 = Table(t2_header, rows=t2_rows, title='t2')
+    >>> t3 = t1.joined(t2, columns_self=["b"], columns_other=["b"])
     >>> print(t3)
     ==============
     a    b    t2_c
@@ -1820,9 +1822,9 @@ We then establish that a join with no values does not cause a failure, just retu
 
     >>> t4_header = ['b', 'c']
     >>> t4_rows = [(5,6),(7,8)]
-    >>> t4 = LoadTable(header = t4_header, rows = t4_rows)
+    >>> t4 = LoadTable(header=t4_header, rows=t4_rows)
     >>> t4.title = 't4'
-    >>> t5 = t1.joined(t4, columns_self = ["b"], columns_other = ["b"])
+    >>> t5 = t1.joined(t4, columns_self=["b"], columns_other=["b"])
     >>> print(t5)
     ==============
     a    b    t4_c
@@ -1945,7 +1947,7 @@ We check we can format an arbitrary 2D list, without a header, using the ``forma
 
     >>> data = [[230, 'acdef', 1.3], [6, 'cc', 1.9876]]
     >>> head = ['one', 'two', 'three']
-    >>> header, formatted = formatted_cells(data, header = head)
+    >>> header, formatted = formatted_cells(data, header=head)
     >>> print(formatted)
     [['230', 'acdef', '1.3000'], ['  6', '   cc', '1.9876']]
     >>> print(header)

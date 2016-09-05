@@ -51,7 +51,7 @@ In this use case we are after just 1 tree. We specify up to what taxa size all p
 
 .. doctest::
 
-    >>> score, tree = ls.trex(a = 5, k = 1)
+    >>> score, tree = ls.trex(a=5, k=1)
     >>> assert score < 1e-4
 
 We won't display this tree, because we are doing more below.
@@ -59,7 +59,7 @@ We won't display this tree, because we are doing more below.
 A more rigourous tree space search
 ----------------------------------
 
-We change the asaa settings, so we keep more trees and then look at the distribution of the statistics for the last collection of trees. We could also change ``a`` to be larger, but in the current case we just adjust ``k``. We also set the argument ``return_all = True``, the effect of which is to return the complete set of saved trees. These, and their support statistic, can then be inspected.
+We change the asaa settings, so we keep more trees and then look at the distribution of the statistics for the last collection of trees. We could also change ``a`` to be larger, but in the current case we just adjust ``k``. We also set the argument ``return_all=True``, the effect of which is to return the complete set of saved trees. These, and their support statistic, can then be inspected.
 
 .. doctest::
 

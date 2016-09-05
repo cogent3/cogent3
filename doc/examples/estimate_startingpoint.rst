@@ -16,13 +16,13 @@ Load your alignment, note that if your file ends with a suffix that is the same 
 
 .. doctest::
 
-    >>> aln = LoadSeqs(filename = "data/long_testseqs.fasta")
+    >>> aln = LoadSeqs("data/long_testseqs.fasta")
 
 Get your tree
 
 .. doctest::
 
-    >>> t = LoadTree(filename = "data/test.tree")
+    >>> t = LoadTree("data/test.tree")
 
 Get the substitution model (defaults to Felsensteins 1981 model)
 

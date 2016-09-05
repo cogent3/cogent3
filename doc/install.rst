@@ -3,33 +3,36 @@
 Quick installation
 ==================
 
+Until the library is officially released, these installation instructions explicitly reference the `bitbucket repository <https://bitbucket.org/pycogent3/cogent3>`_.
+
 Using ``pip``
 -------------
 
-The key steps for the minimal install are:
+Assuming you have `pip <https://pypi.python.org/pypi/pip/>`_ installed on your system, the key steps for the minimal install are:
 
-1. Install pip ::
+1. Install numpy ::
 
-    $ sudo easy_install -U pip
+    $ pip install numpy
 
-2. Use pip to download, build and install PyCogent plus the numpy dependency. ::
+2. The install PyCogent:
+    
+    a) If you have `mercurial <https://pypi.python.org/pypi/Mercurial/3.9.1>`_ installed::
 
-    $ DONT_USE_PYREX=1 sudo pip install -r path/to/cogent-requirements.txt
+        $ DONT_USE_CYTHON=1 pip install hg+https://bitbucket.org/pycogent3/cogent3
 
-.. note:: The ``DONT_USE_PYREX=1`` statement is required if you have Pyrex installed due to a conflict between setuptools and later versions of Pyrex. If you don't have Pyrex, this will still work.
+    b) If you don't have mercurial installed, `download a zip file <https://bitbucket.org/pycogent3/cogent3/downloads>`_ to your hard drive and pip install as::
+    
+        $ DONT_USE_CYTHON=1 pip install /path/to/downloaded/archive.zip
 
-If the above fails to download PyCogent you can `download the tarball <https://bitbucket.org/pycogent3/pycogent3>`_ to your hard drive and pip install as.
+.. note:: Use the ``DONT_USE_CYTHON=1`` if you want to be sure and use the ``*.c`` files we generated. If you don't have Cython installed, it has no effect.
 
-::
-
-    $ pip installs /path/to/downloaded/archive.zip
 
 Optional installs
 ^^^^^^^^^^^^^^^^^
 
-To use the drawing and parallel computing capabilities do::
+To use the drawing and parallel computing capabilities, you will need to download a zip archive as indicated above. Then do::
 
-    $ pip install cogent3[all]
+    $ pip install /path/to/downloaded/archive.zip[all]
 
 Using conda
 -----------

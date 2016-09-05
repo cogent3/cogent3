@@ -26,7 +26,7 @@ First I'm going to construct an artificial example, using the seqs dict as a mea
     >rat
     CTGAACAAGCAGCCACTTTCAAACAAGAAA
 
-In order to ensure the alignment algorithm preserves the coding frame, we align the translation of the sequences. We need to translate them first, but note that because the seqs are unaligned they we have to set ``aligned = False``, or we'll get an error.
+In order to ensure the alignment algorithm preserves the coding frame, we align the translation of the sequences. We need to translate them first, but note that because the seqs are unaligned they we have to set ``aligned=False``, or we'll get an error.
 
 .. doctest::
 
@@ -46,7 +46,7 @@ The translated seqs can then be written to file, using the method ``write``. Tha
     >>> aligned_aa_seqs = {'hum': 'KQIQESSENGSLAARQERQAQVNLT',
     ... 'mus': 'KQIQESGESGSLAARQERQAQVNLT',
     ... 'rat': 'LNKQ------PLS---------NKK'}
-    >>> aligned_aa = LoadSeqs(data = aligned_aa_seqs, moltype = PROTEIN)
+    >>> aligned_aa = LoadSeqs(data=aligned_aa_seqs, moltype=PROTEIN)
     >>> aligned_DNA = aligned_aa.replace_seqs(unaligned_DNA)
 
 Just to be sure, we'll check that the DNA sequence has gaps in the right place.

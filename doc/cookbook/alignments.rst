@@ -18,7 +18,7 @@ Constructing a ``SequenceCollection`` or ``Alignment`` object from strings
     ...         'seq2': 'ATCGCC'}
     >>> seqs = LoadSeqs(data=dna, moltype=DNA)
     >>> print(type(seqs))
-    <class 'cogent3.core.alignment.Alignment'>
+    <class 'cogent3.core.alignment.ArrayAlignment'>
     >>> seqs = LoadSeqs(data=dna, moltype=DNA, aligned=False)
     >>> print(type(seqs))
     <class 'cogent3.core.alignment.SequenceCollection'>
@@ -86,8 +86,8 @@ Appending the sequences
     >seq3
     AT--AG-GATG
     <BLANKLINE>
-    >>> new_seqs = LoadSeqs(data= [('seq0', 'ATG-AGT-AGG'),
-    ...                            ('seq4', 'ATGCC------')], moltype=DNA)
+    >>> new_seqs = LoadSeqs(data=[('seq0', 'ATG-AGT-AGG'),
+    ...                           ('seq4', 'ATGCC------')], moltype=DNA)
     >>> new_aln = aln.add_seqs(new_seqs)
     >>> print(new_aln)
     >seq1
@@ -146,12 +146,12 @@ Already aligned sequences can be added to an existing ``Alignment`` object and a
 .. doctest::
 
     >>> from cogent3 import LoadSeqs, DNA
-    >>> aln = LoadSeqs(data= [('seq1', 'ATGAA------'),
-    ...                       ('seq2', 'ATG-AGTGATG'),
-    ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
-    >>> ref_aln = LoadSeqs(data= [('seq3', 'ATAGGATG'),
-    ...                           ('seq0', 'ATG-AGCG'),
-    ...                           ('seq4', 'ATGCTGGG')], moltype=DNA)
+    >>> aln = LoadSeqs(data=[('seq1', 'ATGAA------'),
+    ...                      ('seq2', 'ATG-AGTGATG'),
+    ...                      ('seq3', 'AT--AG-GATG')], moltype=DNA)
+    >>> ref_aln = LoadSeqs(data=[('seq3', 'ATAGGATG'),
+    ...                          ('seq0', 'ATG-AGCG'),
+    ...                          ('seq4', 'ATGCTGGG')], moltype=DNA)
     >>> new_aln = aln.add_from_ref_aln(ref_aln)
     >>> print(new_aln)
     >seq1
@@ -176,9 +176,9 @@ Removing all columns with gaps in a named sequence
 .. doctest::
 
     >>> from cogent3 import LoadSeqs, DNA
-    >>> aln = LoadSeqs(data= [('seq1', 'ATGAA---TG-'),
-    ...                       ('seq2', 'ATG-AGTGATG'),
-    ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
+    >>> aln = LoadSeqs(data=[('seq1', 'ATGAA---TG-'),
+    ...                      ('seq2', 'ATG-AGTGATG'),
+    ...                      ('seq3', 'AT--AG-GATG')], moltype=DNA)
     >>> new_aln = aln.get_degapped_relative_to('seq1')
     >>> print(new_aln)
     >seq1
@@ -200,9 +200,9 @@ Using the ``get_seq`` method allows for extracting an unaligned sequence from a 
 .. doctest::
 
     >>> from cogent3 import LoadSeqs, DNA
-    >>> aln = LoadSeqs(data= [('seq1', 'ATGAA------'),
-    ...                       ('seq2', 'ATG-AGTGATG'),
-    ...                       ('seq3', 'AT--AG-GATG')],
+    >>> aln = LoadSeqs(data=[('seq1', 'ATGAA------'),
+    ...                      ('seq2', 'ATG-AGTGATG'),
+    ...                      ('seq3', 'AT--AG-GATG')],
     ...                 moltype=DNA, array_align=False)
     >>> seq = aln.get_seq('seq1')
     >>> seq.name
@@ -250,7 +250,7 @@ The usual approach is to access a ``SequenceCollection`` or ``Alignment`` object
     <class 'cogent3.core.sequence.DnaSequence'>
     >>> aln = LoadSeqs(fn, moltype=DNA, aligned=True)
     >>> aln.seqs[0][:24]
-    [0:24]/2532 of DnaSequence(TGTGGCA... 2532)
+    DnaSequence(TGTGGCA... 24)
     >>> print(aln.seqs[0][:24])
     TGTGGCACAAATACTCATGCCAGC
 
@@ -267,12 +267,12 @@ Getting a subset of sequences from the alignment
     >>> new.names
     ['Human', 'HowlerMon']
 
-Note the subset contain references to the original sequences, not copies.
+Note, if you set ``array_align=False``, then the subset contain references to the original sequences, not copies.
 
 .. doctest::
 
     >>> from cogent3 import LoadSeqs, DNA
-    >>> aln = LoadSeqs('data/test.paml', moltype=DNA)
+    >>> aln = LoadSeqs('data/test.paml', array_align=False, moltype=DNA)
     >>> seq = aln.get_seq('Human')
     >>> new = aln.take_seqs(['Human', 'HowlerMon'])
     >>> id(new.get_seq('Human')) == id(aln.get_seq('Human'))
@@ -435,7 +435,7 @@ Iterating over alignment positions
     >>> type(col)
     <class 'generator'>
     >>> list(col)
-    [['A', 'A', 'A'], ['T', '-', '-']]
+    [[ByteSequence(A), ByteSequence(A), ByteSequence(A)], [ByteSequence(T)...
 
 Getting codon 3rd positions from ``Alignment``
 """"""""""""""""""""""""""""""""""""""""""""""
@@ -657,14 +657,14 @@ You can use ``take_seqs`` to extract some sequences by sequence identifier from 
     >>> from cogent3 import LoadSeqs
     >>> aln = LoadSeqs('data/long_testseqs.fasta')
     >>> aln.take_seqs(['Human','Mouse'])
-    2 x 2532 text alignment: Human[TGTGGCACAAA...], Mouse[TGTGGCACAGA...]
+    2 x 2532 bytes alignment: Human[TGTGGCACAAA...], Mouse[TGTGGCACAGA...]
 
 Alternatively, you can extract only the sequences which are not specified by passing ``negate=True``:
 
 .. doctest::
 
     >>> aln.take_seqs(['Human','Mouse'],negate=True)
-    3 x 2532 text alignment: NineBande[TGTGGCACAAA...], HowlerMon[TGTGGCACAAA...], DogFaced[TGTGGCACAAA...]
+    3 x 2532 bytes alignment: NineBande[TGTGGCACAAA...], HowlerMon[TGTGGCACAAA...], DogFaced[TGTGGCACAAA...]
 
 Extracting sequences using an arbitrary function into a new alignment object
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -784,11 +784,11 @@ Filtering extracted columns for the gap character
     >>> col = aln[113:115].iter_positions()
     >>> c1, c2 = list(col)
     >>> c1, c2
-    (['A', 'A', 'A'], ['T', '-', '-'])
+    ([ByteSequence(A), ByteSequence(A), ByteSequence(A)], [ByteSequence(T),...
     >>> list(filter(lambda x: x == '-', c1))
     []
     >>> list(filter(lambda x: x == '-', c2))
-    ['-', '-']
+    [ByteSequence(-), ByteSequence(-)]
 
 Calculating the gap fraction
 ++++++++++++++++++++++++++++
@@ -812,9 +812,9 @@ It's often important to know how an alignment position relates to a position in 
 .. doctest::
 
     >>> from cogent3 import LoadSeqs
-    >>> aln = LoadSeqs(data= [('seq1', 'ATGAAGG-TG--'),
-    ...                       ('seq2', 'ATG-AGGTGATG'),
-    ...                       ('seq3', 'ATGAAG--GATG')], moltype=DNA)
+    >>> aln = LoadSeqs(data=[('seq1', 'ATGAAGG-TG--'),
+    ...                      ('seq2', 'ATG-AGGTGATG'),
+    ...                      ('seq3', 'ATGAAG--GATG')], moltype=DNA)
     >>> seq_to_aln_map = aln.get_gapped_seq('seq1').gap_maps()[0]
 
 It's now possible to look up positions in the ``seq1``, and find out what they map to in the alignment:
@@ -857,9 +857,9 @@ The ``omit_gap_runs`` method can be applied to remove long stretches of gaps in 
 
 .. doctest::
 
-    >>> aln = LoadSeqs(data= [('seq1', 'ATGAA---TG-'),
-    ...                       ('seq2', 'ATG-AGTGATG'),
-    ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
+    >>> aln = LoadSeqs(data=[('seq1', 'ATGAA---TG-'),
+    ...                      ('seq2', 'ATG-AGTGATG'),
+    ...                      ('seq3', 'AT--AG-GATG')], moltype=DNA)
     >>> print(aln.omit_gap_runs(2).to_fasta())
     >seq2
     ATG-AGTGATG
@@ -870,9 +870,9 @@ If instead, we just wanted to remove positions from the alignment which are gaps
 
 .. doctest::
 
-    >>> aln = LoadSeqs(data= [('seq1', 'ATGAA---TG-'),
-    ...                       ('seq2', 'ATG-AGTGATG'),
-    ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
+    >>> aln = LoadSeqs(data=[('seq1', 'ATGAA---TG-'),
+    ...                      ('seq2', 'ATG-AGTGATG'),
+    ...                      ('seq3', 'AT--AG-GATG')], moltype=DNA)
     >>> print(aln.omit_gap_pos(0.40).to_fasta())
     >seq1
     ATGA--TG-
@@ -885,9 +885,9 @@ You'll notice that the 4th and 7th columns of the alignment have been removed be
 
 If you wanted to remove sequences which contain more than a certain percent gap characters, you could use the ``omit_gap_seqs`` method. This is commonly applied to filter partial sequences from an alignment.
 
-    >>> aln = LoadSeqs(data= [('seq1', 'ATGAA------'),
-    ...                       ('seq2', 'ATG-AGTGATG'),
-    ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
+    >>> aln = LoadSeqs(data=[('seq1', 'ATGAA------'),
+    ...                      ('seq2', 'ATG-AGTGATG'),
+    ...                      ('seq3', 'AT--AG-GATG')], moltype=DNA)
     >>> filtered_aln = aln.omit_gap_seqs(0.50)
     >>> print(filtered_aln.to_fasta())
     >seq2

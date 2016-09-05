@@ -22,24 +22,42 @@ Welcome to PyCogent3's documentation!
 
 .. todolist::
 
+********************
+WARNING & DISCLAIMER
+********************
+
+Be warned that PyCogent3_ is a significantly changed library from the original `PyCogent <http://www.pycogent.org>`_. Most of these changes involve elimination of modules, conversion to `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_ compliance and other refactors. These changes are still underway!
+
+Please see the `wiki pages <https://bitbucket.org/pycogent3/cogent3/wiki/Home>`_ for a detailed changelog on the API changes.
+
+*************
+YOU CAN HELP!
+*************
+
+Posting Bugs
+============
+
+If you discover a bug, especially something that worked in PyCogent but not in PyCogent3_, please `post a ticket <https://bitbucket.org/pycogent3/cogent3/issues>`_!
+
+Getting Involved
+================
+
+We would greatly appreciate assistance in updating the project to PEP8, or anything else you think needs doing.
+
+Please post a ticket, or comment on an existing one, indicating your intention so we can assist. Then it's the usual "fork", "pull request" dance.
+
 ********
 Overview
 ********
 
-PyCogent3 is a software library for genomic biology. It is a fully integrated and thoroughly tested framework for: controlling third-party applications; devising workflows; querying databases; conducting novel probabilistic analyses of biological sequence evolution; and generating publication quality graphics. It is distinguished by many unique built-in capabilities (such as true codon alignment) and the frequent addition of entirely new methods for the analysis of genomic data.
+PyCogent3 is a software library for genomic biology. It is a fully integrated and thoroughly tested framework for: conducting novel probabilistic analyses of biological sequence evolution; and generating publication quality graphics. It is distinguished by many unique built-in capabilities (such as true codon alignment) and the frequent addition of entirely new methods for the analysis of genomic data.
 
-Our primary goal is to provide a collection of rigourously validated tools for the manipulation and analysis of genome biology data sets. The project is routinely employed in numerous labs across the world and has provided essential capabilities for many high profile publications, e.g. `Nature 2009 457:480-4`_, `PNAS 2008 105:17994-9`_, `Science 2008 320:1647-51`_, `Nature 2008 453: 175-83`_ and `Nat Genet 2007 39: 1261-5`_.
+Our primary goal is to provide a collection of rigourously validated tools for the manipulation and analysis of genome biology data sets.
 
 .. todo::
 
     update the literature cited
 
-
-*************************
-Contacts and contributing
-*************************
-
-If you find a bug or have feature/documentation requests, please create a new issue on our GitHub `issue tracker <https://bitbucket.org/pycogent3/pycogent3/issues>`_. If you have any questions, please create a new issue and tag it with the *question* tag. We appreciate your input!
 
 ********
 Citation
@@ -53,16 +71,13 @@ Search
 
 * :ref:`search`
 
-.. _`Nature 2009 457:480-4`: http://www.ncbi.nlm.nih.gov/pubmed/19043404?ordinalpos=6&itool=EntrezSystem2.PEntrez.Pubmed.Pubmed_ResultsPanel.Pubmed_DefaultReportPanel.Pubmed_RVDocSum
-.. _`PNAS 2008 105:17994-9`: http://www.ncbi.nlm.nih.gov/pubmed/19004758?ordinalpos=7&itool=EntrezSystem2.PEntrez.Pubmed.Pubmed_ResultsPanel.Pubmed_DefaultReportPanel.Pubmed_RVDocSum
-.. _`Science 2008 320:1647-51`: http://www.ncbi.nlm.nih.gov/pubmed/18497261?ordinalpos=12&itool=EntrezSystem2.PEntrez.Pubmed.Pubmed_ResultsPanel.Pubmed_DefaultReportPanel.Pubmed_RVDocSum
-.. _`Nature 2008 453: 175-83`: http://www.ncbi.nlm.nih.gov/pubmed/18464734?dopt=Citation
-.. _`Nat Genet 2007 39: 1261-5`: http://www.ncbi.nlm.nih.gov/pubmed/17828264?dopt=Citation
+.. _PyCogent3: https://bitbucket.org/pycogent3/cogent3
+
 
 **********************
 News and Announcements
 **********************
 
-PyCogent News and Announcements are available via the News and Announcements Blog at http://pycogent.wordpress.com.
+PyCogent3 News and Announcements are available via the News and Announcements Blog at http://pycogent.wordpress.com.
 
 `Subscribe to the News and Annoucements RSS Feed <http://pycogent.wordpress.com/feed>`_

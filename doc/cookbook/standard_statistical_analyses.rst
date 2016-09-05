@@ -227,7 +227,7 @@ In this example, we grab a sample from a population with ``mean=50`` and ``std=3
     >>> import numpy as np
     >>> import cogent3.maths.stats.test as stats
     >>> np.random.seed(157)
-    >>> arr = np.random.normal(loc=50,scale=3,size=1000)
+    >>> arr = np.random.normal(loc=50, scale=3, size=1000)
     >>> round(stats.mean(arr), 1)
     49.9...
     >>> round(stats.std(arr), 1)
@@ -700,4 +700,4 @@ The plot code
     >>> from cogent3.util.misc import remove_files
     >>> remove_files(filenames_to_delete, error_on_missing=False)
 
-.. _matplotlib: http://matplotlib.sourceforge.net/
+.. _matplotlib: http://matplotlib.org/

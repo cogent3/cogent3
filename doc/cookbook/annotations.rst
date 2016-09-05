@@ -580,7 +580,7 @@ Annotation display on sequences
 
 We can display annotations on sequences, writing to file.
 
-.. note:: This requires `matplotlib <http://matplotlib.sourceforge.net>`_ be installed.
+.. note:: This requires `matplotlib <http://matplotlib.org/>`_ be installed.
 
 We first make a sequence and add some annotations.
 

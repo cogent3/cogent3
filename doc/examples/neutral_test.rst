@@ -84,7 +84,7 @@ Specify each edge has it's own omega by just modifying the existing ``lf``. This
 
 .. doctest::
 
-    >>> lf.set_param_rule("omega", is_independent = True)
+    >>> lf.set_param_rule("omega", is_independent=True)
 
 Optimise the likelihood function, this time just using the local optimiser.
 

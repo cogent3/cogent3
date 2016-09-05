@@ -8,7 +8,7 @@ To translate a DNA alignment, read it in assigning the DNA alphabet. Note settin
 .. doctest::
 
     >>> from cogent3 import LoadSeqs, DNA
-    >>> al = LoadSeqs('data/test2.fasta', moltype=DNA, aligned = False)
+    >>> al = LoadSeqs('data/test2.fasta', moltype=DNA, aligned=False)
     >>> pal = al.get_translation()
     >>> print(pal.to_fasta())
     >DogFaced

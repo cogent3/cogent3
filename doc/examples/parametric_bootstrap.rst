@@ -41,7 +41,7 @@ Get our observed data alignment
 
 .. doctest::
 
-    >>> aln = LoadSeqs(filename = "data/long_testseqs.fasta")
+    >>> aln = LoadSeqs(filename="data/long_testseqs.fasta")
 
 Create a ``EstimateProbability`` bootstrap instance
 

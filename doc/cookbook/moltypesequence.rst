@@ -47,7 +47,7 @@ Setting up a ``MolType`` object with a DNA sequence
     ...     seq_constructor=NucleicAcidSequence(testdnaseq),
     ...     motifset=IUPAC_DNA_chars,
     ...     ambiguities=IUPAC_DNA_ambiguities,
-    ...     label = "dna_with_lowercase",
+    ...     label="dna_with_lowercase",
     ...     mw_calculator=DnaMW,
     ...     complements=IUPAC_DNA_ambiguities_complements,
     ...     pairs=DnaStandardPairs,
