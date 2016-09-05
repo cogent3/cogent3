@@ -14,7 +14,7 @@ Assuming you have `pip <https://pypi.python.org/pypi/pip/>`_ installed on your s
 
     $ pip install numpy
 
-2. The install PyCogent:
+2. Install PyCogent:
     
     a) If you have `mercurial <https://pypi.python.org/pypi/Mercurial/3.9.1>`_ installed::
 
