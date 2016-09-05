@@ -41,9 +41,9 @@ Dendrogram with branch lengths not proportional
 
     >>> np = dendrogram.ContemporaneousDendrogram(nonneutral_lf.tree)
     >>> np.write_pdf('tree-unscaled.pdf' , width, height, stroke_width=2.0,
-    ... show_params = ['r'], label_template = "%(r).2g", shade_param = 'r',
-    ... max_value = 1.0, show_internal_labels=False, font_size = 10,
-    ... scale_bar = None, use_lengths=False)
+    ...              show_params=['r'], label_template="%(r).2g",
+    ... shade_param='r', max_value=1.0, show_internal_labels=False,
+    ... font_size=10, scale_bar=None, use_lengths=False)
 
 Dendrogram with branch lengths proportional
 -------------------------------------------
@@ -52,8 +52,8 @@ Dendrogram with branch lengths proportional
 
     >>> p = dendrogram.SquareDendrogram(nonneutral_lf.tree)
     >>> p.write_pdf('tree-scaled.pdf', width, height, stroke_width=2.0,
-    ... shade_param = 'r', max_value = 1.0, show_internal_labels=False,
-    ... font_size = 10)
+    ...             shade_param='r', max_value=1.0,
+    ...             show_internal_labels=False, font_size=10)
 
 Separating the analysis and visualisation steps
 -----------------------------------------------

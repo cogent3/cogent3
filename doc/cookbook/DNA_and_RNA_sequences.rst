@@ -1,4 +1,4 @@
-... _dna-rna-seqs:
+.. _dna-rna-seqs:
 
 DNA and RNA sequences
 ---------------------

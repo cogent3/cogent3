@@ -15,8 +15,8 @@ Get your alignment and tree.
 
 .. doctest::
 
-    >>> aln = LoadSeqs(filename = "data/long_testseqs.fasta")
-    >>> t = LoadTree(filename = "data/test.tree")
+    >>> aln = LoadSeqs(filename="data/long_testseqs.fasta")
+    >>> t = LoadTree(filename="data/test.tree")
 
 Create a HKY85 model.
 

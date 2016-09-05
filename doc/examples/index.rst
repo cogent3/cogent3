@@ -1,6 +1,6 @@
-#####################
-Cogent Usage Examples
-#####################
+########################
+PyCogent3 Usage Examples
+########################
 
 **************************************
 A Note on the Computable Documentation

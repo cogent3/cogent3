@@ -22,7 +22,7 @@ We provide names for those alignments, then construct the tree, model instances.
 
     >>> loci_names = ["1st-half", "2nd-half"]
     >>> loci = [aln1, aln2]
-    >>> tree = LoadTree(tip_names=aln.get_seq_names())
+    >>> tree = LoadTree(tip_names=aln.names)
     >>> mod = HKY85()
 
 To make a likelihood function with multiple alignments we provide the list of loci names. We can then specify a parameter (other than length) to be the same across the loci (using the imported ``ALL``) or different for each locus (using ``EACH``). We conduct a LR test as before.
@@ -31,7 +31,7 @@ To make a likelihood function with multiple alignments we provide the list of lo
 
     >>> lf = mod.make_likelihood_function(tree,loci=loci_names,digits=2,space=3)
     >>> lf.set_param_rule("length", is_independent=False)
-    >>> lf.set_param_rule('kappa', loci = ALL)
+    >>> lf.set_param_rule("kappa", loci=ALL)
     >>> lf.set_alignment(loci)
     >>> lf.optimise(local=True)
     >>> print(lf)
@@ -55,7 +55,7 @@ To make a likelihood function with multiple alignments we provide the list of lo
     -------------------------
     >>> all_lnL = lf.get_log_likelihood()
     >>> all_nfp = lf.get_num_free_params()
-    >>> lf.set_param_rule('kappa', loci = EACH)
+    >>> lf.set_param_rule('kappa', loci=EACH)
     >>> lf.optimise(local=True, show_progress=False)
     >>> print(lf)
     Likelihood Function Table

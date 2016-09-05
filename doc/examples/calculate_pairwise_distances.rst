@@ -28,7 +28,7 @@ Create a pairwise distances object with your alignment and substitution model
 
 .. doctest::
 
-    >>> d = distance.EstimateDistances(al, submodel= HKY85())
+    >>> d = distance.EstimateDistances(al, submodel=HKY85())
 
 Printing ``d`` before execution shows its status.
 

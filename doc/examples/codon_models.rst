@@ -134,7 +134,7 @@ We can then free up the omega parameter, but before we do that we'll store the l
 We then conduct a likelihood ratio test whether the MLE of omega significantly improves the fit over the constraint it equals 1. We import the convenience function from the cogent stats module.
 
     >>> from cogent3.maths.stats import chisqprob
-    >>> LR = 2*(non_neutral_lnL-neutral_lnL)
+    >>> LR = 2 * (non_neutral_lnL - neutral_lnL)
     >>> df = non_neutral_nfp - neutral_nfp
     >>> print(chisqprob(LR, df))
     0.0026...
@@ -166,8 +166,8 @@ Not surprisingly, this is significant. We then ask whether the Human and Chimpan
         edge.0   edge.1     0.00    0.73...
     >>> chimp_human_clade_lnL = lf.get_log_likelihood()
     >>> chimp_human_clade_nfp = lf.get_num_free_params()
-    >>> LR = 2*(chimp_human_clade_lnL-non_neutral_lnL)
-    >>> df = chimp_human_clade_nfp-non_neutral_nfp
+    >>> LR = 2 * (chimp_human_clade_lnL - non_neutral_lnL)
+    >>> df = chimp_human_clade_nfp - non_neutral_nfp
     >>> print(chisqprob(LR, df))
     0.028...
 
@@ -200,7 +200,7 @@ We can then construct a new likelihood function, specifying the rate-class prope
 .. doctest::
 
     >>> rate_lf = cnf.make_likelihood_function(annot_tree,
-    ...                     bins = ['neutral', 'adaptive'], digits=2, space=3)
+    ...                     bins=['neutral', 'adaptive'], digits=2, space=3)
 
 We define a very small value (``epsilon``) that is used to specify the starting values.
 
@@ -230,8 +230,8 @@ The above statement essentially assigns a probability of nearly 1 to the 'neutra
     >>> rate_lf.optimise(**optimiser_args)
     >>> rate_lnL = rate_lf.get_log_likelihood()
     >>> rate_nfp = rate_lf.get_num_free_params()
-    >>> LR = 2*(rate_lnL-non_neutral_lnL)
-    >>> df = rate_nfp-non_neutral_nfp
+    >>> LR = 2 * (rate_lnL - non_neutral_lnL)
+    >>> df = rate_nfp - non_neutral_nfp
     >>> print(rate_lf)
     Likelihood Function Table
     ================================
@@ -299,7 +299,7 @@ After Zhang et al, we first define a null model that has 2 rate classes '0' and 
 
 .. doctest::
 
-    >>> rate_lf = cnf.make_likelihood_function(tree, bins = ['0', '1'],
+    >>> rate_lf = cnf.make_likelihood_function(tree, bins=['0', '1'],
     ...                              digits=2, space=3)
     >>> rate_lf.set_param_rule('omega', bin='0', upper=1.0-epsilon,
     ...                      init=1-epsilon)
@@ -335,7 +335,7 @@ We now create the more complex model,
 .. doctest::
 
      >>> rate_branch_lf = cnf.make_likelihood_function(tree,
-     ...             bins = ['0', '1', '2a', '2b'], digits=2, space=3)
+     ...             bins=['0', '1', '2a', '2b'], digits=2, space=3)
 
 and set from the nested null model the branch lengths,
 

@@ -18,7 +18,7 @@ The function ``LoadSeqs()`` creates either a sequence collection or an alignment
     >>> from cogent3 import LoadSeqs, DNA
     >>> aln = LoadSeqs('data/long_testseqs.fasta', moltype=DNA)
     >>> type(aln)
-    <class 'cogent3.core.alignment.Alignment'>
+    <class 'cogent3.core.alignment.ArrayAlignment'>
 
 This example and some of the following use the :download:`long_testseqs.fasta <../data/long_testseqs.fasta>` file.
 
@@ -78,7 +78,7 @@ Specifying the file format
 Specifying the sequence molecular type
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Simple case of loading a ``list`` of aligned amino acid sequences in FASTA format, with and without molecule type specification. When the ``MolType`` is not specified it defaults to ASCII.
+Simple case of loading a ``list`` of aligned amino acid sequences in FASTA format, with and without molecule type specification. When the ``MolType`` is not specified it defaults to BYTES.
 
 .. doctest::
 
@@ -87,7 +87,7 @@ Simple case of loading a ``list`` of aligned amino acid sequences in FASTA forma
     >>> protein_seqs = ['>seq1','DEKQL-RG','>seq2','DDK--SRG']
     >>> proteins_loaded = LoadSeqs(data=protein_seqs)
     >>> proteins_loaded.moltype
-    MolType(('a', 'b', 'c', 'd', 'e', ...
+    MolType(('\x00', '\x01', '\x02', '\x03'...
     >>> print(proteins_loaded)
     >seq1
     DEKQL-RG

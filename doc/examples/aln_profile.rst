@@ -90,8 +90,10 @@ A profile could also function as the description of a certain motif. As an examp
 
 .. doctest::
 
-    >>> loop_profile = Profile(pf.Data[54:60,:], alphabet=RNA, char_order=pf.char_order)
-    >>> print(loop_profile.pretty_print(include_header=True, column_limit=6, col_sep='   '))
+    >>> loop_profile = Profile(pf.Data[54:60,:], alphabet=RNA,
+    ...                        char_order=pf.char_order)
+    >>> print(loop_profile.pretty_print(include_header=True, column_limit=6,
+    ...                                 col_sep='   '))
          U        C        A        G        -        B
     0.9500   0.0000   0.0500   0.0000   0.0000   0.0000
     1.0000   0.0000   0.0000   0.0000   0.0000   0.0000
@@ -104,7 +106,7 @@ We can calculate how well this profile matches in a certain sequence (or profile
 
 .. doctest::
 
-    >>> yeast = RNA.make_seq(\
+    >>> yeast = RNA.make_seq(
     ...     'GCGGAUUUAGCUCAGUU-GGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA')
     >>> scores = loop_profile.score(yeast)
     >>> print(scores)
