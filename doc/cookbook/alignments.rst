@@ -692,6 +692,31 @@ You can additionally get the sequences where the provided function evaluates to 
 Computing alignment statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Getting motif counts
+""""""""""""""""""""
+
+This is related to computing motif probabilities. In this instance, we simply state the motif length we want and whether to allow gap or ambiguous characters. Note that the latter only has meaning for IPUAC character sets (the DNA, RNA or PROTEIN moltypes). We do this for DNA for motif length of 1 and 3.
+
+.. doctest::
+
+    >>> from cogent3 import LoadSeqs
+    >>> aln = LoadSeqs(data= [('seq1', 'ATGAAGGTG---'),
+    ...                       ('seq2', 'ATGAAGGTGATG'),
+    ...                       ('seq3', 'ATGAAGGNGATG')], moltype=DNA)
+    >>> counts = aln.counts()
+    >>> print(counts) # doctest: +SKIP
+    Counter({'G': 14, 'A': 11, 'T': 7})
+    >>> counts = aln.counts(motif_length=3)
+    >>> print(counts) # doctest: +SKIP
+    Counter({'ATG': 5, 'AAG': 3, 'GTG': 2})
+    >>> counts = aln.counts(include_ambiguity=True)
+    >>> print(counts) # doctest: +SKIP
+    Counter({'G': 14, 'A': 11, 'T': 7, 'N': 1})
+
+.. note::
+    
+    Only the observed motifs are returned, rather than all defined by the alphabet.
+
 Computing motif probabilities from an alignment
 """""""""""""""""""""""""""""""""""""""""""""""
 
@@ -702,7 +727,7 @@ The method ``get_motif_probs`` of ``Alignment`` objects returns the probabilitie
     >>> from cogent3 import LoadSeqs, DNA
     >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta', moltype=DNA)
     >>> motif_probs = aln.get_motif_probs()
-    >>> print(motif_probs)
+    >>> print(motif_probs) # doctest: +SKIP
     {'A': 0.24...
 
 For dinucleotides or longer, we need to pass in an ``Alphabet`` with the appropriate word length. Here is an example with trinucleotides:
