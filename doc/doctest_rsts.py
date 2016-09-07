@@ -55,7 +55,7 @@ def main(file_paths, just, exclude, verbose):
         print()
         print("#" * 40)
         print(test)
-        doctest.testfile(test, optionflags=doctest.ELLIPSIS, verbose=True, encoding='utf-8')
+        doctest.testfile(test, optionflags=doctest.ELLIPSIS or doctest.SKIP, verbose=True, encoding='utf-8')
 
 
 if __name__ == "__main__":
