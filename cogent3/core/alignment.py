@@ -1261,7 +1261,28 @@ class SequenceCollection(object):
     def get_seq_names(self):
         """Return a list of sequence names."""
         return self.names[:]
-
+    
+    def counts(self, motif_length=1, include_ambiguity=False, allow_gap=False):
+        """returns dict of counts of motifs
+    
+            only non-overlapping motifs are counted.
+    
+            Arguments:
+            - motif_length: number of elements per character.
+            - include_ambiguity: if True, motifs containing ambiguous characters
+              from the seq moltype are included. No expansion of those is attempted.
+            - allow_gaps: if True, motifs containing a gap character are included.
+            """
+        # this is overridden for Alignments, so just rely on the sequence counts
+        # method
+        counts = Counter()
+        for seq in self.seqs:
+            c = seq.counts(motif_length=motif_length,
+                           include_ambiguity=include_ambiguity,
+                           allow_gap=allow_gap)
+            counts.update(c)
+        return counts
+    
     def get_motif_probs(self, alphabet=None, include_ambiguity=False,
                       exclude_unobserved=False, allow_gap=False, pseudocount=0):
         """Return a dictionary of motif probs, calculated as the averaged
@@ -2021,6 +2042,30 @@ class AlignmentI(object):
             del(result[-1])
 
         return '\n'.join(result)
+    
+    def counts(self, motif_length=1, include_ambiguity=False, allow_gap=False):
+        """returns dict of counts of motifs
+    
+            only non-overlapping motifs are counted.
+    
+            Arguments:
+            - motif_length: number of elements per character.
+            - include_ambiguity: if True, motifs containing ambiguous characters
+              from the seq moltype are included. No expansion of those is attempted.
+            - allow_gaps: if True, motifs containing a gap character are included.
+            """
+        is_array = isinstance(self, ArrayAlignment)
+        counts = Counter()
+        for name in self.names:
+            if is_array:
+                seq = self.named_seqs[name]
+            else:
+                seq = self.get_gapped_seq(name)
+            c = seq.counts(motif_length=motif_length,
+                           include_ambiguity=include_ambiguity,
+                           allow_gap=allow_gap)
+            counts.update(c)
+        return counts
     
     def count_gaps(self, seq_name):
         """returns number of gaps for seq_name"""

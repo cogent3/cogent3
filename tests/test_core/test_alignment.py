@@ -1009,7 +1009,7 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
 
         # assertRaises error when pad_length is less than max seq length
         self.assertRaises(ValueError, self.ragged.pad_seqs, 5)
-
+        
 
 class AlignmentBaseTests(SequenceCollectionBaseTests):
     """Tests of basic Alignment functionality. All Alignments should pass these.
@@ -1473,6 +1473,28 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         result = aln1.replace_seqs(aln2, aa_to_codon=False)
         self.assertTrue(id(aln1) != id(aln2))
         self.assertEqual(aln1.todict(), result.todict())
+    
+    def test_counts(self):
+        """SequenceCollection.counts handles motif length, allow_gaps etc.."""
+        data = {'a': 'AAAA??????', 'b': 'CCCGGG--NN'}
+        coll = self.Class(data=data, moltype=DNA)
+        got = dict(coll.counts())
+        expect = dict(A=4, C=3, G=3)
+        self.assertEqual(got, expect)
+
+        got = dict(coll.counts(motif_length=2))
+        expect = dict(AA=2, CC=1, CG=1, GG=1)
+        self.assertEqual(got, expect)
+        
+        got = dict(coll.counts(motif_length=2, allow_gap=True))
+        expect.update({'--': 1})
+        self.assertEqual(got, expect)
+        
+        got = dict(coll.counts(motif_length=2, include_ambiguity=True,
+                               allow_gap=True))
+        expect = dict(AA=2, CC=1, CG=1, GG=1, NN=1)
+        expect.update({'??': 3, '--': 1})
+        self.assertEqual(got, expect)
         
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):

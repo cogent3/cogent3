@@ -717,6 +717,16 @@ class SequenceTests(TestCase):
         got = seq.counts()
         expect = dict(A=3, C=2, G=2, T=3, N=1)
         self.assertEqual(dict(got), expect)
+        
+        # handle '?'
+        orig = "AACCGGTTAN-T?"
+        seq = self.DNA(orig)
+        got = seq.counts()
+        expect = dict(A=3, C=2, G=2, T=3)
+        self.assertEqual(dict(got), expect)
+        got = seq.counts(allow_gap=True, include_ambiguity=True)
+        expect.update({'-': 1, 'N': 1, '?': 1})
+        self.assertEqual(dict(got), expect)
 
 
 class SequenceSubclassTests(TestCase):
