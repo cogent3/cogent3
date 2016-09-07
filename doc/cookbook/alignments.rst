@@ -695,7 +695,7 @@ Computing alignment statistics
 Getting motif counts
 """"""""""""""""""""
 
-This is related to computing motif probabilities. In this instance, we simply state the motif length we want and whether to allow gap or ambiguous characters. Note that the latter only has meaning for IPUAC character sets (the DNA, RNA or PROTEIN moltypes). We do this for DNA for motif length of 1 and 3.
+We state the motif length we want and whether to allow gap or ambiguous characters. The latter only has meaning for IPUAC character sets (the DNA, RNA or PROTEIN moltypes). We illustrate this for the DNA moltype with motif lengths of 1 and 3.
 
 .. doctest::
 
