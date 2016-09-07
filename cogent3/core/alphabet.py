@@ -751,6 +751,7 @@ class CharAlphabet(Alphabet):
         For example, on the 'UCAG' RNA alphabet, an array with the data
         [0,1,1] would return the characters [U,C,C] in a byte array.
         """
+        data = array(data)
         return take(self._indices_nums_to_chars, data.astype('B'))
 
     def to_string(self, data, delimiter='\n'):

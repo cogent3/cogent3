@@ -13,6 +13,16 @@ creation.
 """
 
 from functools import total_ordering
+from collections import Counter
+from operator import eq, ne
+from random import shuffle
+import re
+import warnings
+
+from numpy import array, zeros, put, nonzero, take, ravel, compress, \
+    logical_or, logical_not, arange
+from numpy.random import permutation
+
 from .annotation import Map, Feature, _Annotatable
 from cogent3.util.transform import KeepChars, for_seq, per_shortest, \
     per_longest
@@ -22,13 +32,6 @@ from cogent3.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE, \
 from cogent3.parse import gff
 from cogent3.format.fasta import fasta_from_sequences
 from cogent3.core.info import Info as InfoClass
-from numpy import array, zeros, put, nonzero, take, ravel, compress, \
-    logical_or, logical_not, arange
-from numpy.random import permutation
-from operator import eq, ne
-from random import shuffle
-import re
-import warnings
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -80,7 +83,53 @@ class SequenceI(object):
     def count(self, item):
         """count() delegates to self._seq."""
         return self._seq.count(item)
-
+    
+    def counts(self, motif_length=1, include_ambiguity=False, allow_gap=False):
+        """returns dict of counts of motifs"""
+        try:
+            data = self._seq
+        except AttributeError:
+            data = self._data
+        
+        not_array = isinstance(data, str)
+        
+        if motif_length == 1:
+            counts = Counter(data)
+        else:
+            if len(data) % motif_length != 0:
+                warnings.warn(
+                    "%s length not divisible by %s, truncating" % \
+                    (self.name, motif_length))
+            limit = (len(data) // motif_length) * motif_length
+            data = data[:limit]
+            if not_array:
+                counts = Counter(data[i:i+motif_length] 
+                                 for i in range(0, limit, motif_length))
+            else:
+                counts = Counter(tuple(v) for v in data.reshape(limit//motif_length,
+                                                            motif_length))
+        if not not_array:
+            for key in list(counts):
+                indices = [key] if motif_length == 1 else key
+                motif = self.alphabet.to_chars(indices).astype(str)
+                motif = "".join(motif)
+                counts[motif] = counts.pop(key)
+        
+        exclude = []
+        if not include_ambiguity or not allow_gap:
+            is_degen = self.moltype.is_degenerate
+            is_gap = self.moltype.is_gapped
+            for motif in counts:
+                if not include_ambiguity and is_degen(motif):
+                    exclude.append(motif)
+                elif not allow_gap and is_gap(motif):
+                    exclude.append(motif)
+        
+        for motif in exclude:
+            del(counts[motif])
+        
+        return counts
+    
     def __lt__(self, other):
         """compares based on the sequence string."""
         return self._seq < str(other)

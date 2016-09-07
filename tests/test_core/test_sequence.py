@@ -668,6 +668,55 @@ class SequenceTests(TestCase):
         got = seq.replace('-', 'N')
         self.assertEqual(str(got), "ACCNNGT")
         self.assertTrue(isinstance(got, self.SEQ))
+    
+    def test_counts(self):
+        """count motifs of different sizes, +/- ambiguities"""
+        # test DNA seq
+        orig = "AACCGGTTAN-T"
+        seq = self.DNA(orig)
+        ## no gaps, no ambiguities
+        got = seq.counts()
+        expect = dict(A=3, C=2, G=2, T=3)
+        self.assertEqual(dict(got), expect)
+        ## gaps allowed
+        got = seq.counts(allow_gap=True)
+        expect = dict(A=3, C=2, G=2, T=3)
+        expect.update({'-': 1})
+        self.assertEqual(dict(got), expect)
+        ## ambig allowed
+        got = seq.counts(include_ambiguity=True)
+        expect = dict(A=3, C=2, G=2, T=3, N=1)
+        self.assertEqual(dict(got), expect)
+        ## ambig and gap allowed
+        got = seq.counts(include_ambiguity=True, allow_gap=True)
+        expect = dict(A=3, C=2, G=2, T=3, N=1)
+        expect.update({'-': 1})
+        self.assertEqual(dict(got), expect)
+        
+        # test DNA seq motif length of 2
+        got = seq.counts(motif_length=2)
+        expect = dict(AA=1, CC=1, GG=1, TT=1)
+        self.assertEqual(dict(got), expect)
+        ## gap allowed
+        got = seq.counts(motif_length=2, allow_gap=True)
+        expect = dict(AA=1, CC=1, GG=1, TT=1)
+        expect.update({'-T': 1})
+        ## ambig allowed
+        got = seq.counts(motif_length=2, include_ambiguity=True)
+        expect = dict(AA=1, CC=1, GG=1, TT=1, AN=1)
+        self.assertEqual(dict(got), expect)
+        ## ambig and gap allowed
+        got = seq.counts(motif_length=2, include_ambiguity=True, allow_gap=True)
+        expect = dict(AA=1, CC=1, GG=1, TT=1, AN=1)
+        expect.update({'-T': 1})
+        self.assertEqual(dict(got), expect)
+        
+        # test base -- no concept of ambiguity, but understands gap
+        orig = "AACCGGTTAN-T"
+        seq = self.SEQ(orig)
+        got = seq.counts()
+        expect = dict(A=3, C=2, G=2, T=3, N=1)
+        self.assertEqual(dict(got), expect)
 
 
 class SequenceSubclassTests(TestCase):
@@ -728,7 +777,7 @@ class DnaSequenceTests(ModelSequenceTests, TestCase):
         r = self.SequenceClass(orig)
         self.assertEqual(r._data, array([0, 1, 2, 3, 3, 2]))
         self.assertEqual(str(r), orig)
-
+    
     def test_to_k_words(self):
         """Sequence to_k_words should give expected counts"""
         orig = 'ATCCCTAGC'
