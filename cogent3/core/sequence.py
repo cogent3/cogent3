@@ -85,7 +85,16 @@ class SequenceI(object):
         return self._seq.count(item)
     
     def counts(self, motif_length=1, include_ambiguity=False, allow_gap=False):
-        """returns dict of counts of motifs"""
+        """returns dict of counts of motifs
+        
+        only non-overlapping motifs are counted.
+        
+        Arguments:
+        - motif_length: number of elements per character.
+        - include_ambiguity: if True, motifs containing ambiguous characters
+          from the seq moltype are included. No expansion of those is attempted.
+        - allow_gaps: if True, motifs containing a gap character are included.
+        """
         try:
             data = self._seq
         except AttributeError:
