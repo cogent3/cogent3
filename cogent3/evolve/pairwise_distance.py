@@ -301,6 +301,8 @@ class _PairwiseDistance(object):
                 total, p, dist, var = self.func(matrix, *self._func_args)
                 self._dists[(name_1, name_2)] = (total, p, dist, var)
                 self._dists[(name_2, name_1)] = (total, p, dist, var)
+    
+    __call__ = run
 
     def get_pairwise_distances(self):
         """returns a 2D dictionary of pairwise distances."""
