@@ -197,10 +197,10 @@ This can be useful to improve performance, the closer you are to the maximum lik
     >>> lf = sm.make_likelihood_function(tree, digits=2)
     >>> lf.set_param_rule('omega', init=0.1)
 
-Setting bounds for optimising a function
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Setting parameter bounds for optimisation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This can be useful for stopping optimisers from getting stuck in a bad part of parameter space.
+This can be useful for stopping optimisers from getting stuck in a bad part of parameter space. The following is for ``omega`` in a codon model. I'm also providing an initial guess for the parameter (``init=0.1``) as well as a lower bound. An initial guess that is close to the maximum likelihood estimate will speed up optimisation.
 
 .. doctest::
 
@@ -210,6 +210,22 @@ This can be useful for stopping optimisers from getting stuck in a bad part of p
     >>> sm = CNFGTR()
     >>> lf = sm.make_likelihood_function(tree, digits=2)
     >>> lf.set_param_rule('omega', init=0.1, lower=1e-9, upper=20.0)
+
+Setting an upper bound for branch length
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the branch length estimates seem too large, setting just an upper bound can be sensible. This will apply to all edges on the tree.
+
+.. doctest::
+
+    >>> from cogent3 import LoadTree
+    >>> from cogent3.evolve.models import F81
+    >>> tree = LoadTree('data/primate_brca1.tree')
+    >>> sm = F81()
+    >>> lf = sm.make_likelihood_function(tree)
+    >>> lf.set_param_rule('length', upper=1.0)
+
+.. note:: If, after optimising, the branch lengths equal to the upper value you set then the function has not been fully maximised and you should consider adjusting the boundary again.
 
 Specifying rate heterogeneity functions
 ---------------------------------------
