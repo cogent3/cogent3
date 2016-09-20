@@ -1268,7 +1268,7 @@ class SequenceCollection(object):
             only non-overlapping motifs are counted.
     
             Arguments:
-            - motif_length: number of elements per character.
+            - motif_length: number of characters per tuple.
             - include_ambiguity: if True, motifs containing ambiguous characters
               from the seq moltype are included. No expansion of those is attempted.
             - allow_gaps: if True, motifs containing a gap character are included.
@@ -1855,12 +1855,17 @@ class AlignmentI(object):
     
     def omit_gap_pos(self, allowed_gap_frac=1-eps, motif_length=1, seq_constructor=None):
         """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
-
-        allowed_gap_frac says what proportion of gaps is allowed in each
-        column (default is 0, i.e. only cols without any gap character are
-        preserved). Set to 1 - e-6 to exclude strictly gapped columns.
-
-        Uses seq_constructor(seq) to make each new sequence object.
+        
+        Argments:
+        - allowed_gap_frac: specifies proportion of gaps is allowed in each
+          column (default is just < 1, i.e. only cols with at least one gap
+          character are preserved). Set to 1 - e-6 to exclude strictly gapped
+          columns.
+        - motif_length: set's the "column" width, e.g. setting to 3
+          corresponds to codons. A motif that includes a gap at any position
+          is included in the counting. Default is 1.
+        - seq_constructor: used to make each new sequence object, defaults to
+          that of self.moltype
         """
         if seq_constructor is None:
             seq_constructor = self.moltype.make_seq
