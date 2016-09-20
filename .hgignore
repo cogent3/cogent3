@@ -20,3 +20,4 @@ draw_results
 *.wpu
 .cache*
 *taskpaper
+*.ipynb_checkpoints*
