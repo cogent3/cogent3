@@ -35,6 +35,7 @@ from numpy.linalg import svd
 import warnings
 import inspect
 
+from cogent3 import LoadTable
 from cogent3.core import moltype
 from cogent3.evolve import parameter_controller, predicate, motif_prob_model
 from cogent3.evolve.substitution_calculation import (
@@ -737,61 +738,18 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
     def ascii_art(self, delim='', delim2='|', max_width=70):
         """An ASCII-art table representing the model.  'delim' delimits
         parameter names, 'delim2' delimits motifs"""
-        # Should be implemented with table module instead.
-
+        labels = [m for m in self.alphabet]
         pars = self.get_matrix_params()
-        par_names = self.get_param_list()
-        longest = max([len(name) for name in (par_names + [' '])])
-        if delim:
-            all_names_len = _maxWidthIfTruncated(pars, delim, 100)
-            min_names_len = _maxWidthIfTruncated(pars, delim, 1)
-        else:
-            all_names_len = sum([len(name) for name in par_names])
-            min_names_len = len(par_names)
-
-        # Find a width-per-motif that is as big as can be without being too big
-        w = min_names_len
-        while (w + 1) * len(self.alphabet) < max_width and w < all_names_len:
-            w += 1
-
-        # If not enough width truncate parameter names
-        if w < all_names_len:
-            each = w / len(par_names)
-            if delim:
-                while _maxWidthIfTruncated(pars, delim, each + 1) <= w:
-                    each += 1
-                w = _maxWidthIfTruncated(pars, delim, each)
-            else:
-                w = each * len(par_names)
-        else:
-            each = longest
-
         rows = []
-        # Only show header if there is enough width for the motifs
-        if self.alphabet.get_motif_len() <= w:
-            header = [str(motif).center(w) for motif in self.alphabet]
-            header = [' ' * self.alphabet.get_motif_len() + ' '] + header + ['']
-            header = delim2.join(header)
-            rows.append(header)
-            rows.append(''.join([['-', delim2][c == delim2] for c in header]))
-
-        # pars in sub-cols, should also offer pars in sub-rows?
-        for (motif, row2) in zip(self.alphabet, pars):
-            row = []
-            for par_list in row2:
-                elt = []
-                for par in par_names:
-                    if par not in par_list:
-                        par = ''
-                    par = par[:each]
-                    if not delim:
-                        par = par.ljust(each)
-                    if par:
-                        elt.append(par)
-                elt = delim.join(elt).ljust(w)
-                row.append(elt)
-            rows.append(delim2.join(([motif + ' '] + row + [''])))
-        return '\n'.join(rows)
+        for i, row in enumerate(pars):
+            r = [labels[i]]+[delim.join(cell) for cell in row]
+            r[i+1] = '*' # identity
+            rows.append(r)
+        
+        labels.insert(0, '')
+        
+        t = LoadTable(header=labels, rows=rows, max_width=max_width, title=self.name, row_ids=True)
+        return str(t)
 
     def get_matrix_params(self):
         """Return the parameter assignment matrix."""
