@@ -807,7 +807,7 @@ class ParameterController(object):
     def get_num_free_params(self):
         return sum(defn.get_num_free_params() for defn in self.defns if isinstance(defn, _LeafDefn))
 
-    def optimise(self, local=None,
+    def optimise(self, local=True,
                  filename=None, interval=None,
                  limit_action='warn', max_evaluations=None,
                  tolerance=1e-6, global_tolerance=1e-1, **kw):
