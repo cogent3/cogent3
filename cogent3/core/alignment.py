@@ -173,8 +173,7 @@ def seqs_from_array(a, alphabet=None):
     """SequenceCollection from array of pos x seq: names are integers.
 
     This is an InputHandler for SequenceCollection. It converts an arbitrary
-    array of numbers into Sequence objects using seq_constructor, and
-    leaves the sequences unlabeled.
+    array of numbers into Sequence objects, and leaves the sequences unlabeled.
     """
     return list(transpose(a)), None
 
@@ -190,11 +189,7 @@ def seqs_from_array_seqs(seqs, alphabet=None):
 
 
 def seqs_from_generic(seqs, alphabet=None):
-    """SequenceCollection from generic seq x pos data: seq of seqs of chars.
-
-    This is an InputHandler for SequenceCollection. It converts a generic list
-    (each item in the list will be mapped onto an object using
-    seq_constructor and assigns sequential integers (0-based) as names.
+    """returns seqs, names
     """
     names = []
     for s in seqs:
@@ -1648,7 +1643,7 @@ class AlignmentI(object):
 
     positions = property(iter_positions)
 
-    def take_positions(self, cols, negate=False, seq_constructor=None):
+    def take_positions(self, cols, negate=False):
         """Returns new Alignment containing only specified positions.
 
         By default, the seqs will be lists, but an alternative constructor
@@ -1656,20 +1651,19 @@ class AlignmentI(object):
 
         Note that take_positions will fail on ragged positions.
         """
-        if seq_constructor is None:
-            seq_constructor = self.moltype.make_seq
+        make_seq = self.moltype.make_seq
         result = {}
         # if we're negating, pick out all the positions except specified
         # indices
         if negate:
             col_lookup = dict.fromkeys(cols)
             for name, seq in list(self.named_seqs.items()):
-                result[name] = seq_constructor([seq[i] for i in range(len(seq))
+                result[name] = make_seq([seq[i] for i in range(len(seq))
                                                if i not in col_lookup])
         # otherwise, just get the requested indices
         else:
             for name, seq in list(self.named_seqs.items()):
-                result[name] = seq_constructor([seq[i] for i in cols])
+                result[name] = make_seq([seq[i] for i in cols])
         return self.__class__(result, names=self.names)
 
     def get_position_indices(self, f, native=False, negate=False):
@@ -1696,16 +1690,10 @@ class AlignmentI(object):
         
         return result
 
-    def take_positions_if(self, f, negate=False, seq_constructor=None):
+    def take_positions_if(self, f, negate=False):
         """Returns new Alignment containing cols where f(col) is True.
-
-        Note that the seqs in the new Alignment are always new objects. Default
-        constructor is list(), but an alternative can be passed in.
         """
-        if seq_constructor is None:
-            seq_constructor = self.moltype.make_seq
-        return self.take_positions(self.get_position_indices(f, negate=negate),
-                                  seq_constructor=seq_constructor)
+        return self.take_positions(self.get_position_indices(f, negate=negate))
 
     def iupac_consensus(self, alphabet=None):
         """Returns string containing IUPAC consensus sequence of the alignment.
@@ -1853,7 +1841,7 @@ class AlignmentI(object):
         return new
             
     
-    def omit_gap_pos(self, allowed_gap_frac=1-eps, motif_length=1, seq_constructor=None):
+    def omit_gap_pos(self, allowed_gap_frac=1-eps, motif_length=1):
         """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
         
         Argments:
@@ -1864,12 +1852,7 @@ class AlignmentI(object):
         - motif_length: set's the "column" width, e.g. setting to 3
           corresponds to codons. A motif that includes a gap at any position
           is included in the counting. Default is 1.
-        - seq_constructor: used to make each new sequence object, defaults to
-          that of self.moltype
         """
-        if seq_constructor is None:
-            seq_constructor = self.moltype.make_seq
-        
         is_array = isinstance(self, ArrayAlignment)
         try:
             alpha = self.moltype.alphabets.degen_gapped

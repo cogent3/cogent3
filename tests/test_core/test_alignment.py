@@ -1040,14 +1040,12 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
     
     def test_take_positions(self):
         """SequenceCollection take_positions should return new alignment w/ specified pos"""
-        self.assertEqual(self.gaps.take_positions([5, 4, 0],
-                                                 seq_constructor=coerce_to_string),
+        self.assertEqual(self.gaps.take_positions([5, 4, 0]),
                          {'a': 'AAA', 'b': 'A-A', 'c': '--A'})
         self.assertTrue(isinstance(self.gaps.take_positions([0]),
                                    SequenceCollection))
         # should be able to negate
-        self.assertEqual(self.gaps.take_positions([5, 4, 0], negate=True,
-                                                 seq_constructor=coerce_to_string),
+        self.assertEqual(self.gaps.take_positions([5, 4, 0], negate=True),
                          {'a': 'AAAA', 'b': '--AA', 'c': 'A---'})
 
     def test_get_position_indices(self):
@@ -1080,23 +1078,23 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         is_list = lambda x: isinstance(x, list)
         self.gaps.names = 'abc'
 
-        self.assertEqual(self.gaps.take_positions_if(gap_1st, seq_constructor=coerce_to_string),
+        self.assertEqual(self.gaps.take_positions_if(gap_1st),
                          {'a': '', 'b': '', 'c': ''})
-        self.assertEqual(self.gaps.take_positions_if(gap_2nd, seq_constructor=coerce_to_string),
+        self.assertEqual(self.gaps.take_positions_if(gap_2nd),
                          {'a': 'AAA', 'b': '---', 'c': 'A--'})
-        self.assertEqual(self.gaps.take_positions_if(gap_3rd, seq_constructor=coerce_to_string),
+        self.assertEqual(self.gaps.take_positions_if(gap_3rd),
                          {'a': 'AAAAA', 'b': '-A-AA', 'c': '-----'})
-        self.assertEqual(self.gaps.take_positions_if(is_list, seq_constructor=coerce_to_string),
+        self.assertEqual(self.gaps.take_positions_if(is_list),
                          self.gaps)
 
         self.assertTrue(isinstance(self.gaps.take_positions_if(gap_1st),
                                    SequenceCollection))
         # should be able to negate
-        self.assertEqual(self.gaps.take_positions_if(gap_1st, seq_constructor=coerce_to_string,
+        self.assertEqual(self.gaps.take_positions_if(gap_1st,
                                                    negate=True), self.gaps)
-        self.assertEqual(self.gaps.take_positions_if(gap_2nd, seq_constructor=coerce_to_string,
+        self.assertEqual(self.gaps.take_positions_if(gap_2nd,
                                                    negate=True), {'a': 'AAAA', 'b': 'AAAA', 'c': 'A---'})
-        self.assertEqual(self.gaps.take_positions_if(gap_3rd, seq_constructor=coerce_to_string,
+        self.assertEqual(self.gaps.take_positions_if(gap_3rd,
                                                    negate=True), {'a': 'AA', 'b': 'A-', 'c': 'AA'})
 
     
@@ -1148,19 +1146,19 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # trying to delete the naughty seqs).
 
         # default should strip out cols that are 100% gaps
-        result = aln.omit_gap_pos(seq_constructor=coerce_to_string)
+        result = aln.omit_gap_pos()
         self.assertEqual(result.todict(),
                          {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF'})
         # if allowed_gap_frac is 1, shouldn't delete anything
-        self.assertEqual(aln.omit_gap_pos(1, seq_constructor=coerce_to_string).todict(),
+        self.assertEqual(aln.omit_gap_pos(1).todict(),
                          {'a': '--A-BC-', 'b': '-CB-A--', 'c': '--D-EF-'})
         # if allowed_gap_frac is 0, should strip out any cols containing gaps
-        self.assertEqual(aln.omit_gap_pos(0, seq_constructor=coerce_to_string).todict(),
+        self.assertEqual(aln.omit_gap_pos(0).todict(),
                          {'a': 'AB', 'b': 'BA', 'c': 'DE'})
         # intermediate numbers should work as expected
-        self.assertEqual(aln.omit_gap_pos(0.4, seq_constructor=coerce_to_string).todict(),
+        self.assertEqual(aln.omit_gap_pos(0.4).todict(),
                          {'a': 'ABC', 'b': 'BA-', 'c': 'DEF'})
-        self.assertEqual(aln.omit_gap_pos(0.7, seq_constructor=coerce_to_string).todict(),
+        self.assertEqual(aln.omit_gap_pos(0.7).todict(),
                          {'a': '-ABC', 'b': 'CBA-', 'c': '-DEF'})
 
         # when we increase the number of sequences to 6, more differences
