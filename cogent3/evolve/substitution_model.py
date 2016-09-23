@@ -746,10 +746,15 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
             r[i+1] = '*' # identity
             rows.append(r)
         
-        labels.insert(0, '')
+        labels.insert(0, 'From\To')
+        if self.name:
+            title = "%s rate matrix" % self.name
+        else:
+            title = "rate matrix"
         
-        t = LoadTable(header=labels, rows=rows, max_width=max_width, title=self.name, row_ids=True)
-        return str(t)
+        t = LoadTable(header=labels, rows=rows, max_width=max_width,
+                      title=title, row_ids=True)
+        return t.tostring(center=True)
 
     def get_matrix_params(self):
         """Return the parameter assignment matrix."""

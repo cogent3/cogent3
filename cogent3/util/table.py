@@ -286,14 +286,16 @@ class Table(DictArray):
 
         self._column_templates[column_head] = format_template
 
-    def tostring(self, borders=True, sep=None, format='', **kwargs):
+    def tostring(self, borders=True, sep=None, format='', center=False, **kwargs):
         """Return the table as a formatted string.
 
         Arguments:
-            - format: possible formats are 'rest'/'rst', 'latex', 'html', 'phylip',
-              'bedgraph', or simple text (default).
+            - format: possible formats are 'rest'/'rst', 'latex', 'html',
+              'phylip', 'bedgraph', or simple text (default).
             - sep: A string separator for delineating columns, e.g. ',' or '\t'.
               Overrides format.
+            - center: content is centered in the column, default is right
+              justified
 
         NOTE: If format is bedgraph, assumes that column headers are chrom,
         start, end, value. In that order!
@@ -310,7 +312,8 @@ class Table(DictArray):
                                                                   self.header,
                                                                   digits=self._digits,
                                                                   column_templates=self._column_templates,
-                                                                  missing_data=missing_data)
+                                                                  missing_data=missing_data,
+                                                                  center=center)
             args = (header, formatted_table, self.title, self.legend)
         if sep and format != 'bedgraph':
             return table_format.separator_format(*args + (sep,))
