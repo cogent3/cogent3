@@ -35,6 +35,26 @@ def open_(filename, mode='rt', **kwargs):
         filename.split('.')[-1], open)
     return op(filename, mode, **kwargs)
 
+def get_format_suffixes(filename):
+    """returns compression and/or file suffixes"""
+    if '.' not in filename:
+        return None, None
+    
+    compression_suffixes = ("bz2", "gz")
+    filename = filename.split(".")
+    suffixes = filename[1:] if len(filename) == 2 else filename[-2:]
+    if suffixes[-1] in compression_suffixes:
+        cmp_suffix = suffixes.pop(-1)
+    else:
+        cmp_suffix = None
+    
+    if suffixes:
+        suffix = suffixes[-1]
+    else:
+        suffix = None
+    return  suffix, cmp_suffix
+    
+
 class FilePath(str):
     """ Hold paths for proper handling
 

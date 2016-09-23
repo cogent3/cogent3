@@ -10,13 +10,13 @@ Table can read pickled and delimited formats.
 
 import pickle
 import csv
-from gzip import open as open_
+import collections
 
 import numpy
-from cogent3.format import table as table_format, bedgraph
 
+from cogent3.format import table as table_format, bedgraph
 from cogent3.util.dict_array import DictArray
-import collections
+from cogent3.util.misc import open_, get_format_suffixes
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -368,7 +368,7 @@ class Table(DictArray):
                                       element_formatters=element_formatters,
                                       compact=compact)
 
-    def write(self, filename, mode='w', writer=None, format=None,
+    def write(self, filename, mode=None, writer=None, format=None,
                     sep=None, compress=None, **kwargs):
         """Write table to filename in the specified format. If a format is not
         specified, it attempts to use a filename suffix. Note if a sep argument
@@ -378,22 +378,25 @@ class Table(DictArray):
         Arguments:
             - mode: file opening mode
             - format: Valid formats are those of the tostring method plus
-              pickle.
+              pickle. Will try and guess from filename if not specified.
             - writer: a function for formatting the data for output.
             - sep: a character delimiter for fields.
             - compress: if True, gzips the file and appends .gz to the
               filename (if not already added).
         """
-        compress = compress or filename.endswith('.gz')
-
+        file_suffix, compress_suffix = get_format_suffixes(filename)
+        format = format or file_suffix
+        compress = compress or compress_suffix is not None
+        
+        mode = mode or {'pickle': 'wb'}.get(format, 'w')
+        
         if compress:
             if not filename.endswith('.gz'):
                 filename = '%s.gz' % filename
             mode = 'wt'
-            outfile = open_(filename, mode)
-        else:
-            outfile = open(filename, mode)
-
+        
+        outfile = open_(filename, mode)
+        
         if format is None:
             # try guessing from filename suffix
             if compress:
@@ -406,7 +409,9 @@ class Table(DictArray):
 
         if format == 'csv':
             sep = sep or ','
-
+        elif format == 'tsv':
+            sep = sep or '\t'
+        
         if writer:
             rows = self.tolist()
             rows.insert(0, self.header[:])
