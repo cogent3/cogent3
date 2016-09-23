@@ -437,7 +437,8 @@ class Table(DictArray):
             - new_column: provide a heading for the new column, each tables
             title will be placed in it. If value is false, the result is no
             additional column."""
-
+        # default title is no title
+        kwargs["title"] = kwargs.get("title", "")
         # convert series of tables
         if isinstance(tables[0], tuple) or isinstance(tables[0], list):
             tables = tuple(tables[0])
