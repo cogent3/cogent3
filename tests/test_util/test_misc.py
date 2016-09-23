@@ -25,7 +25,8 @@ from cogent3.util.misc import (iterable, max_index, min_index,
                                create_dir, handle_error_codes, identity, if_, deep_list, deep_tuple,
                                combinate, gzip_dump, gzip_load, recursive_flatten_old, getNewId, to_string,
                                timeLimitReached, get_independent_coords, get_merged_by_value_coords,
-                               get_merged_overlapping_coords, get_run_start_indices, get_tmp_filename)
+                               get_merged_overlapping_coords, get_run_start_indices, get_tmp_filename,
+                               get_format_suffixes)
 from numpy import array
 from time import clock, sleep
 
@@ -744,6 +745,17 @@ class UtilsTests(TestCase):
         data = [[20, 21, 0.11], [21, 22, 0.12], [22, 23, 0.13], [23, 24, 0.14]]
         self.assertEqual(get_merged_by_value_coords(data, digits=1),
                          [[20, 24, 0.1]])
+    
+    def test_get_format_suffixes(self):
+        """correctly return suffixes for compressed etc.. formats"""
+        a, b = get_format_suffixes("no_suffixes")
+        self.assertTrue(a==b==None)
+        a, b = get_format_suffixes("suffixes.gz")
+        self.assertTrue(a==None and b=="gz")
+        a, b = get_format_suffixes("suffixes.abcd")
+        self.assertTrue(a=="abcd" and b==None)
+        a, b = get_format_suffixes("suffixes.abcd.bz2")
+        self.assertTrue(a=="abcd" and b=="bz2")
 
 
 class _my_dict(dict):

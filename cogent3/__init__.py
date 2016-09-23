@@ -37,6 +37,7 @@ version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])
 
 
 from cogent3.util.table import Table as _Table
+from cogent3.util.misc import get_format_suffixes, open_
 from cogent3.parse.table import load_delimited, autogen_reader
 from cogent3.core.tree import TreeBuilder, TreeError
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
@@ -116,7 +117,7 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
                                   label_to_name=label_to_name, **constructor_kw)
 
 
-def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
+def LoadTable(filename=None, sep=None, reader=None, header=None, rows=None,
               row_order=None, digits=4, space=4, title='', missing_data='',
               max_width=1e100, row_ids=False, legend='', column_templates=None,
               dtype=None, static_column_types=False, limit=None, **kwargs):
@@ -149,15 +150,19 @@ def LoadTable(filename=None, sep=',', reader=None, header=None, rows=None,
     - limit: exits after this many lines. Only applied for non pickled data
       file types.
     """
-    #
+    sep = sep or kwargs.pop('delimiter', None)
     if filename is not None and not (reader or static_column_types):
-        if filename[filename.rfind(".") + 1:] == 'pickle':
-            f = open(filename, mode='rb')
+        file_format, compress_format = get_format_suffixes(filename)
+        if file_format == 'pickle':
+            f = open_(filename, mode='rb')
             loaded_table = pickle.load(f)
             f.close()
             return _Table(**loaded_table)
-
-        sep = sep or kwargs.pop('delimiter', None)
+        elif file_format == 'csv':
+            sep = sep or ','
+        elif file_format == 'tsv':
+            sep = sep or '\t'
+        
         header, rows, loaded_title, legend = load_delimited(filename,
                                                             delimiter=sep, limit=limit, **kwargs)
         title = title or loaded_title

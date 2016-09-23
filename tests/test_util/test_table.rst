@@ -594,7 +594,7 @@ The bedgraph formatter defaults to rounding values to 2 decimal places. You can 
 Saving a table for reloading
 ----------------------------
 
-Saving a table object to file for later reloading can be done using the standard ``write`` method and ``filename`` argument to the ``Table`` constructor, specifying any of the formats supported by ``tostring``. The table loading will recreate a table from raw data located at ``filename``. To illustrate this, we first write out the table ``t3`` in ``pickle`` format and then the table ``t2`` in a csv (comma separated values format).
+Saving a table object to file for later reloading can be done using the standard ``write`` method and ``filename`` argument to the ``Table`` constructor, specifying any of the formats supported by ``tostring``. The table loading will recreate a table from raw data located at ``filename``. To illustrate this, we first write out the table ``t3`` in ``pickle`` format, then the table ``t2`` in a csv (comma separated values format). We then remove it's header and write/reload as a tsv (tab separated values format).
 
 .. doctest::
     :options: +NORMALIZE_WHITESPACE
@@ -603,7 +603,7 @@ Saving a table object to file for later reloading can be done using the standard
     ...            row_order=row_order, missing_data='*', space=8,
     ...            max_width=50, row_ids=True, title='My title',
     ...            legend='legend: this is a nonsense example.')
-    >>> t3.write("t3.pickle", mode='wb')
+    >>> t3.write("t3.pickle")
     >>> t3_loaded = LoadTable(filename="t3.pickle")
     >>> print(t3_loaded)
     My title
@@ -648,12 +648,22 @@ Saving a table object to file for later reloading can be done using the standard
     legend: this is a nonsense example.
     >>> t2 = Table(['abcd', 'data'], [[str([1, 2, 3, 4, 5]), '0'], ['x', 5.0],
     ... ['y', None]], missing_data='*', title='A \ntitle')
-    >>> t2.write('t2.csv', sep=',')
-    >>> t2_loaded = LoadTable(filename='t2.csv', header=True, with_title=True,
-    ...  sep=',')
+    >>> t2.write('t2.csv')
+    >>> t2_loaded = LoadTable(filename='t2.csv', header=True, with_title=True)
     >>> print(t2_loaded)
     A 
     title
+    =========================
+               abcd      data
+    -------------------------
+    [1, 2, 3, 4, 5]         0
+                  x    5.0000
+                  y          
+    -------------------------
+    >>> t2.title = ""
+    >>> t2.write("t2.tsv")
+    >>> t2_loaded = LoadTable(filename='t2.tsv')
+    >>> print(t2_loaded)
     =========================
                abcd      data
     -------------------------
@@ -1978,7 +1988,7 @@ We directly test the latex formatting.
     :hide:
 
     >>> import os
-    >>> to_delete = ['t3.pickle', 't2.csv', 't2.csv.gz', 't3.tab',
+    >>> to_delete = ['t3.pickle', 't2.csv', 't2.tsv', 't2.csv.gz', 't3.tab',
     ...              'test3b.txt']
     >>> for f in to_delete:
     ...     try:
