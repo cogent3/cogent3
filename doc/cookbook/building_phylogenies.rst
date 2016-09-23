@@ -65,7 +65,7 @@ Other statistics are also available, such the as the standard errors of the esti
 More general estimation of pairwise distances
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The standard cogent likelihood function can also be used to estimate distances. Because these require numerical optimisation they can be significantly slower than the fast estimation approach above.
+The standard ``cogent3`` likelihood function can also be used to estimate distances. Because these require numerical optimisation they can be significantly slower than the fast estimation approach above.
 
 .. doctest::
 

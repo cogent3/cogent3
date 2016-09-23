@@ -748,7 +748,7 @@ For dinucleotides or longer, we need to pass in an ``Alphabet`` with the appropr
 
 The same holds for other arbitrary alphabets, as long as they match the alignment ``MolType``.
 
-Some calculations in cogent require all non-zero values in the motif probabilities, in which case we use a pseudo-count. We illustrate that here with a simple example where T is missing. Without the pseudo-count, the frequency of T is 0.0, with the pseudo-count defined as 1e-6 then the frequency of T will be slightly less than 1e-6.
+Some calculations in ``cogent3`` require all non-zero values in the motif probabilities, in which case we use a pseudo-count. We illustrate that here with a simple example where T is missing. Without the pseudo-count, the frequency of T is 0.0, with the pseudo-count defined as 1e-6 then the frequency of T will be slightly less than 1e-6.
 
 .. doctest::
 
