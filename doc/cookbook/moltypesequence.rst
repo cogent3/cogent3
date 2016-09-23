@@ -110,6 +110,6 @@ Verify sequences
 
 The ``Sequence`` object contains classes that represent biological sequence data. These provide generic biological sequence manipulation functions, plus functions that are critical for the ``evolve`` module calculations.
 
-.. warning:: Do not import sequence classes directly! It is expected that you will access them through ``MolType`` objects. The most common molecular types ``DNA``, ``RNA``, ``PROTEIN`` are provided as top level imports in cogent (e.g. ``cogent3.DNA``). Sequence classes depend on information from the ``MolType`` that is **only** available after ``MolType`` has been imported. Sequences are intended to be immutable. This is not enforced by the code for performance reasons, but don't alter the ``MolType`` or the sequence data after creation.
+.. warning:: Do not import sequence classes directly! It is expected that you will access them through ``MolType`` objects. The most common molecular types ``DNA``, ``RNA``, ``PROTEIN`` are provided as top level imports in ``cogent3`` (e.g. ``cogent3.DNA``). Sequence classes depend on information from the ``MolType`` that is **only** available after ``MolType`` has been imported. Sequences are intended to be immutable. This is not enforced by the code for performance reasons, but don't alter the ``MolType`` or the sequence data after creation.
 
 More detailed usage of sequence objects can be found in :ref:`dna-rna-seqs`.

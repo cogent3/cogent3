@@ -4,13 +4,13 @@ Building alignments
 
 .. authors, Gavin Huttley, Kristian Rother, Patrick Yannul
 
-Using the cogent aligners
-=========================
+Using the cogent3 aligners
+==========================
 
 Running a pairwise Needleman-Wunsch-Alignment
 ---------------------------------------------
 
-.. TODO look at the singapore workshop usage of cogent.align.align
+.. TODO look at the singapore workshop usage of cogent3.align.align
 
 Running a progressive aligner
 -----------------------------

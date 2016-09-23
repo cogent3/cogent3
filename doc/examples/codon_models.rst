@@ -131,7 +131,7 @@ We can then free up the omega parameter, but before we do that we'll store the l
     >>> non_neutral_lnL = lf.get_log_likelihood()
     >>> non_neutral_nfp = lf.get_num_free_params()
 
-We then conduct a likelihood ratio test whether the MLE of omega significantly improves the fit over the constraint it equals 1. We import the convenience function from the cogent stats module.
+We then conduct a likelihood ratio test whether the MLE of omega significantly improves the fit over the constraint it equals 1. We import the convenience function from the ``cogent3`` stats module.
 
     >>> from cogent3.maths.stats import chisqprob
     >>> LR = 2 * (non_neutral_lnL - neutral_lnL)

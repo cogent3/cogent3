@@ -5,7 +5,7 @@ Drawing dendrograms and saving to PDF
 
 .. sectionauthor:: Gavin Huttley
 
-From cogent import all the components we need.
+From ``cogent3`` import all the components we need.
 
 .. doctest::
 

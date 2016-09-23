@@ -7,7 +7,7 @@ Useful Utilities
 Using PyCogent3's optimisers for your own functions
 ===================================================
 
-You have a function that you want to maximise/minimise. The parameters in your function may be bounded (must lie in a specific interval) or not. The cogent optimisers can be applied to these cases. The ``Powell`` (a local optimiser) and ``SimulatedAnnealing`` (a global optimiser) classes in particular have had their interfaces standardised for such use cases. We demonstrate for a very simple function below.
+You have a function that you want to maximise/minimise. The parameters in your function may be bounded (must lie in a specific interval) or not. The ``cogent3`` optimisers can be applied to these cases. The ``Powell`` (a local optimiser) and ``SimulatedAnnealing`` (a global optimiser) classes in particular have had their interfaces standardised for such use cases. We demonstrate for a very simple function below.
 
 We write a simple factory function that uses a provided value for omega to compute the squared deviation from an estimate, then use it to create our optimisable function.
 
@@ -78,17 +78,10 @@ Giving a set of values for ``x`` and ``y`` fit a function ``func`` that has ``n_
     >>> params
     array([ 2.0399641 ,  4.96112469])
 
-Cartesian products
-==================
-
-*To be written.*
-
-.. cogent.util.transform
-
 Miscellaneous functions
 =======================
 
-.. index:: cogent.util.misc
+.. index:: cogent3.util.misc
 
 Identity testing
 ^^^^^^^^^^^^^^^^
@@ -627,7 +620,7 @@ Wrap a function to hide it from a class so that it isn't a method.
     >>> from cogent3.util.misc import FunctionWrapper
     >>> f = FunctionWrapper(str)
     >>> f
-    <cogent.util.misc.FunctionWrapper object at ...
+    <cogent3.util.misc.FunctionWrapper object at ...
     >>> f(123)
     '123'
 
