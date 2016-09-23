@@ -399,7 +399,7 @@ def SeparatorFormatWriter(formatter=None, ignore=None, sep=","):
     return callable
 
 
-def formatted_cells(rows, header=None, digits=4, column_templates=None, missing_data=''):
+def formatted_cells(rows, header=None, digits=4, column_templates=None, missing_data='', center=False):
     """Return rows with each columns cells formatted as an equal length
     string.
 
@@ -454,10 +454,11 @@ def formatted_cells(rows, header=None, digits=4, column_templates=None, missing_
         matrix.append(formatted)
 
     # now normalise all cell entries to max column widths
-    new_header = [header[i].rjust(col_widths[i]) for i in range(num_col)]
+    func = {True: lambda x,y: x.center(y)}.get(center, lambda x,y: x.rjust(y))
+    new_header = [func(header[i], col_widths[i]) for i in range(num_col)]
     for row in matrix:
         for cdex in range(num_col):
-            row[cdex] = row[cdex].rjust(col_widths[cdex])
+            row[cdex] = func(row[cdex], col_widths[cdex])
 
     return new_header, matrix
 
