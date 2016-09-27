@@ -1399,23 +1399,36 @@ class SequenceCollection(object):
 
         return self.take_seqs_if(ok_gap_run)
 
-    def to_dna(self):
-        """Returns the alignment as DNA."""
-        seqs = [self.named_seqs[name].to_dna() for name in self.names]
-        aln = self.__class__(data=seqs, names=self.names[
-                             :], name=self.name, info=self.info)
-        if isinstance(self, _Annotatable) and self.annotations:
-            aln.annotations = self.annotations[:]
-        return aln
 
-    def to_rna(self):
-        """Returns the alignment as RNA"""
-        seqs = [self.named_seqs[name].to_rna() for name in self.names]
-        aln = self.__class__(data=seqs, names=self.names[
-                             :], name=self.name, info=self.info)
+    def to_dna(self):
+        """returns copy of self as an alignment of DNA moltype seqs"""
+        make_seq = cogent3.DNA.make_seq
+        data = [make_seq(s, s.name) for s in self.seqs]
+        new = self.__class__(data=data, moltype=cogent3.DNA, name=self.name,
+                             info=self.info)
         if isinstance(self, _Annotatable) and self.annotations:
-            aln.annotations = self.annotations[:]
-        return aln
+            new.annotations = self.annotations[:]
+        return new
+    
+    def to_rna(self):
+        """returns copy of self as an alignment of RNA moltype seqs"""
+        make_seq = cogent3.RNA.make_seq
+        data = [make_seq(s, s.name) for s in self.seqs]
+        new = self.__class__(data=data, moltype=cogent3.RNA, name=self.name,
+                             info=self.info)
+        if isinstance(self, _Annotatable) and self.annotations:
+            new.annotations = self.annotations[:]
+        return new
+    
+    def to_protein(self):
+        """returns copy of self as an alignment of PROTEIN moltype seqs"""
+        make_seq = cogent3.PROTEIN.make_seq
+        data = [make_seq(s, s.name) for s in self.seqs]
+        new = self.__class__(data=data, moltype=cogent3.PROTEIN, name=self.name,
+                             info=self.info)
+        if isinstance(self, _Annotatable) and self.annotations:
+            new.annotations = self.annotations[:]
+        return new
 
     def rc(self):
         """Returns the reverse complement alignment"""
@@ -2124,8 +2137,7 @@ class AlignmentI(object):
                 moltype = self.moltype
         new = klass(data=data, moltype=moltype,
                     info=self.info, names=self.names)
-        return new
-
+        return new    
 
 def _one_length(seqs):
     """raises ValueError if seqs not all same length"""
