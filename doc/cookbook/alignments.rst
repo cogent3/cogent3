@@ -293,6 +293,42 @@ Creating an ``Alignment`` object from a ``SequenceCollection``
     >>> fasta_2 = aln.to_fasta()
     >>> assert fasta_1 == fasta_2
 
+Convert alignment to DNA, RNA or PROTEIN moltypes
+"""""""""""""""""""""""""""""""""""""""""""""""""
+
+This is useful if you've loaded a sequence alignment without specifying the moltype and later need to convert it.
+
+.. doctest::
+
+    >>> from cogent3 import LoadSeqs
+    >>> data = [('a', 'ACG---'), ('b', 'CCTGGG')]
+    >>> aln = LoadSeqs(data=data)
+    >>> dna = aln.to_dna()
+    >>> dna
+    2 x 6 dna alignment: a[ACG---], b[CCTGGG]
+
+To RNA
+
+.. doctest::
+
+    >>> from cogent3 import LoadSeqs
+    >>> data = [('a', 'ACG---'), ('b', 'CCUGGG')]
+    >>> aln = LoadSeqs(data=data)
+    >>> rna = aln.to_rna()
+    >>> rna
+    2 x 6 rna alignment: a[ACG---], b[CCUGGG]
+
+To PROTEIN
+
+.. doctest::
+
+    >>> from cogent3 import LoadSeqs
+    >>> data = [('x', 'TYV'), ('y', 'TE-')]
+    >>> aln = LoadSeqs(data=data)
+    >>> prot = aln.to_protein()
+    >>> prot
+    2 x 3 protein alignment: x[TYV], y[TE-]
+
 Handling gaps
 """""""""""""
 

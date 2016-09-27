@@ -4,6 +4,7 @@ from cogent3.util.unit_test import TestCase, main
 from cogent3.core.sequence import RnaSequence, frac_same, ArraySequence, Sequence
 from cogent3.maths.stats.util import Freqs, Numbers
 from cogent3.core.moltype import RNA, DNA, PROTEIN, BYTES
+from cogent3.core.alphabet import AlphabetError
 
 from cogent3.core.alignment import SequenceCollection, \
     make_gap_filter, coerce_to_string, \
@@ -1439,6 +1440,39 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # and translate
         self.assertEqual(new.get_translation().todict(),
                          {'seq1': 'TYV', 'seq3': 'TYV', 'seq2': 'TE-'})
+    
+    def test_to_dna(self):
+        """alignment cast to DNA works"""
+        data = {'seq1': 'ACGTACGTA',
+                'seq2': 'ACCGAA---',
+                'seq3': 'ACGTACGTT'}
+        aln = self.Class(data=data)
+        dna = aln.to_dna()
+        self.assertEqual(set(dna.names), set(aln.names))
+        self.assertTrue(dna.moltype==DNA)
+        # should fail if invalid character set
+        paln = dna.get_translation()
+        self.assertRaises(AlphabetError, paln.to_dna)
+    
+    def test_to_rna(self):
+        """alignment cast to DNA works"""
+        data = {'seq1': 'ACGUACGUA',
+                'seq2': 'ACCGAA---',
+                'seq3': 'ACGUACGUU'}
+        aln = self.Class(data=data)
+        rna = aln.to_rna()
+        self.assertEqual(set(rna.names), set(aln.names))
+        self.assertTrue(rna.moltype==RNA)
+    
+    def test_to_protein(self):
+        """alignment cast to DNA works"""
+        data = {'seq1': 'TYV', 'seq3': 'TYV', 'seq2': 'TE-'}
+        aln = self.Class(data=data)
+        paln = aln.to_protein()
+        self.assertEqual(set(paln.names), set(aln.names))
+        self.assertTrue(paln.moltype==PROTEIN)
+        # should fail if invalid character set
+        self.assertRaises(AlphabetError, paln.to_dna)
     
     def test_replace_seqs(self):
         """replace_seqs should replace 1-letter w/ 3-letter seqs"""
