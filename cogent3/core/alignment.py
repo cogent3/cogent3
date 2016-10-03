@@ -42,6 +42,7 @@ from numpy import nonzero, array, logical_or, logical_and, logical_not, \
 from numpy.random import randint, permutation
 
 from cogent3.util.dict2d import Dict2D
+from cogent3.util.misc import bytes_to_string
 
 from copy import copy, deepcopy
 from cogent3.core.profile import Profile
@@ -223,6 +224,7 @@ def seqs_from_dict(seqs, alphabet=None):
     SequenceCollection. Because the dict doesn't preserve order, the result
     will not necessarily be in alphabetical order."""
     names, seqs = list(map(list, list(zip(*list(seqs.items())))))
+    seqs = [bytes_to_string(s) for s in seqs]
     return seqs, names
 
 
@@ -235,6 +237,7 @@ def seqs_from_kv_pairs(seqs, alphabet=None):
     SequenceCollection. Because the dict doesn't preserve order, the result
     will be in arbitrary order."""
     names, seqs = list(map(list, list(zip(*seqs))))
+    seqs = [bytes_to_string(s) for s in seqs]
     return seqs, names
 
 
@@ -2230,6 +2233,8 @@ def aln_from_fasta(seqs, array_type=None, alphabet=None):
 
     WARNING: Data type of return array is not guaranteed -- check in caller!
     """
+    if isinstance(seqs, bytes):
+        seqs = seqs.decode("utf-8")
     if isinstance(seqs, str):
         seqs = seqs.splitlines()
     return aln_from_array_seqs([ArraySequence(s, name=l, alphabet=alphabet)
@@ -2250,6 +2255,7 @@ def aln_from_dict(aln, array_type=None, alphabet=None):
             pass
     
     names, seqs = list(zip(*sorted(aln.items())))
+    seqs = [bytes_to_string(s) for s in seqs]
     _one_length(seqs)
     result = array(list(map(alphabet.to_indices, seqs)), array_type)
     return result, list(names)
@@ -2264,6 +2270,7 @@ def aln_from_kv_pairs(aln, array_type=None, alphabet=None):
     Because the dict doesn't preserve order, the result will be in arbitrary
     order."""
     names, seqs = list(zip(*aln))
+    seqs = [bytes_to_string(s) for s in seqs]
     _one_length(seqs)    
     result = array(list(map(alphabet.to_indices, seqs)), array_type)
     return result, list(names)

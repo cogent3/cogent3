@@ -26,7 +26,7 @@ from numpy.random import permutation
 from .annotation import Map, Feature, _Annotatable
 from cogent3.util.transform import KeepChars, for_seq, per_shortest, \
     per_longest
-from cogent3.util.misc import DistanceFromMatrix
+from cogent3.util.misc import DistanceFromMatrix, bytes_to_string
 from cogent3.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE, \
     GeneticCodes
 from cogent3.parse import gff
@@ -581,11 +581,14 @@ class Sequence(_Annotatable, SequenceI):
             seq = seq._seq
         elif isinstance(seq, ArraySequence):
             seq = str(seq)
-        elif type(seq) is not str:
+        elif isinstance(seq, bytes):
+            seq = seq.decode("utf-8")
+        elif not isinstance(seq, str):
             try:
                 seq = ''.join(seq)
             except TypeError:
                 seq = ''.join(map(str, seq))
+        
         seq = self._seq_filter(seq)
         if not preserve_case and not seq.isupper():
             seq = seq.upper()
@@ -1060,6 +1063,7 @@ class ArraySequenceBase(object):
             elif type(data) == ARRAY_TYPE:
                 self._data = data
             else:  # may be set in subclass init
+                data = bytes_to_string(data)
                 self._from_sequence(data)
 
         self.moltype = self.alphabet.moltype
