@@ -237,6 +237,12 @@ class SequenceCollectionBaseTests(object):
         a = self.Class(d, names=['a', 'b'])
         self.assertEqual(a, d)
         self.assertEqual(list(a.named_seqs.items()), list(d.items()))
+        
+        # from bytes strings
+        a = self.Class({'a': b'AAAAA', 'b': b'BBBBB'}, names=['a', 'b'])
+        self.assertEqual(a, d)
+        self.assertEqual(list(a.named_seqs.items()), list(d.items()))
+        
 
     def test_init_name_mapped(self):
         """SequenceCollection init should allow name mapping function"""

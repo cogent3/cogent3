@@ -48,6 +48,11 @@ class SequenceTests(TestCase):
         r = self.RNA('ucagg')
         # no longer preserves case
         self.assertEqual(r, 'UCAGG')
+    
+    def test_init_from_bytes(self):
+        """correctly convert bytes to str"""
+        s = self.SEQ(b"ACGT")
+        self.assertEqual(s, "ACGT")
 
     def test_init_other_seq(self):
         """Sequence init with other seq should preserve name and info."""

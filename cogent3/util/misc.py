@@ -29,6 +29,12 @@ __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
 
+def bytes_to_string(data):
+    """returns a string if data is bytes, otherwise returns original"""
+    if isinstance(data, bytes):
+        data = data.decode('utf_8')
+    return data
+
 def open_(filename, mode='rt', **kwargs):
     """open that handles different compression"""
     op = {'gz': gzip_open, 'bz2': bzip_open}.get(
