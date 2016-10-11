@@ -80,7 +80,7 @@ class DictArrayTemplate(object):
                 dim], "cats=%s; dim=%s" % (categories, dim)
         return DictArray(array, self)
 
-    def interpretIndex(self, names):
+    def interpret_index(self, names):
         if not isinstance(names, tuple):
             names = (names,)
         index = []
@@ -156,14 +156,14 @@ class DictArray(object):
         return dict(list(self.items()))
 
     def __getitem__(self, names):
-        (index, remaining) = self.template.interpretIndex(names)
+        (index, remaining) = self.template.interpret_index(names)
         result = self.array[index]
         if remaining is not None:
             result = self.__class__(result, remaining)
         return result
 
     def __iter__(self):
-        (index, remaining) = self.template.interpretIndex(0)
+        (index, remaining) = self.template.interpret_index(0)
         for elt in self.array:
             if remaining is None:
                 yield elt

@@ -196,7 +196,7 @@ class Table(DictArray):
         return self.tostring()
 
     def __getitem__(self, names):
-        (index, remaining) = self.template.interpretIndex(names)
+        (index, remaining) = self.template.interpret_index(names)
         # if we have two integers, return a single value
         ints = [isinstance(idx, int) for idx in index]
         if len(ints) == 2 and min(ints):
@@ -696,7 +696,7 @@ class Table(DictArray):
 
         indexes = []
         for row in rows:
-            idx, drop = self.template.interpretIndex(row)
+            idx, drop = self.template.interpret_index(row)
             indexes.append(idx[0])
 
         new = self.array.take(indexes, axis=0)
