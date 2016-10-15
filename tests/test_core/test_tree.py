@@ -1955,6 +1955,28 @@ class TestTree(TestCase):
             self.assertFloatEqual(sub_sameroot2.distance(tip),
                                   true_root_dists[tip.name])
 
+    def test_getsubtree_5(self):
+        """get sub tree correctly uses tips only if specified"""
+        names = ['Canis familiaris', 'Mus musculus', 'Homo sapiens',
+                 'Ornithorhynchus anatinus']
+        treestring="((Homo sapiens:2,(Mus_musculus_129S1SvImJ:1,"\
+            "(Mus_musculus:0.1,Mus_musculus_LPJ:0.2):0.3)Mus_musculus:0.3)"\
+            ",Canis_familiaris,Ornithorhynchus_anatinus)"
+        tree = LoadTree(treestring=treestring, underscore_unmunge=True)
+        # change internal node names to eliminate ending digits
+        for edge in tree.postorder():
+            if edge.istip(): continue
+            if 'Mus' in edge.name:
+                edge.name = 'Mus musculus'
+        
+        sub1 = tree.get_sub_tree(names, tipsonly=False)
+        self.assertTrue(tree.same_topology(sub1))
+        expect = LoadTree(treestring="(Homo_sapiens,Mus_musculus,"\
+                          "(Canis_familiaris,Ornithorhynchus_anatinus))",
+                          underscore_unmunge=True)
+        sub2 = tree.get_sub_tree(names, tipsonly=True)
+        self.assertTrue(expect.same_topology(sub2))
+        
     def test_ascii(self):
         self.tree.ascii_art()
         # unlabeled internal node
