@@ -1118,19 +1118,21 @@ class TreeNode(object):
         max_pair = (tip_order[idx_max[0]].name, tip_order[idx_max[1]].name)
         return distmtx[idx_max], max_pair
 
-    def _get_sub_tree(self, included_names, constructor=None, keep_root=False):
+    def _get_sub_tree(self, included_names, constructor=None, keep_root=False, tipsonly=False):
         """An equivalent node with possibly fewer children, or None"""
 
         # Renumber autonamed edges
         if constructor is None:
             constructor = self._default_tree_constructor()
 
-        if self.name in included_names:
+        if self.name in included_names and not tipsonly:
+            return self.deepcopy(constructor=constructor)
+        elif self.name in included_names and self.istip():
             return self.deepcopy(constructor=constructor)
         else:
             # don't need to pass keep_root to children, though
             # internal nodes will be elminated this way
-            children = [child._get_sub_tree(included_names, constructor)
+            children = [child._get_sub_tree(included_names, constructor, tipsonly=tipsonly)
                         for child in self.children]
             children = [child for child in children if child is not None]
             if len(children) == 0:
@@ -1160,27 +1162,27 @@ class TreeNode(object):
                 result = constructor(self, tuple(children))
         return result
 
-    def get_sub_tree(self, name_list, ignore_missing=False, keep_root=False):
+    def get_sub_tree(self, name_list, ignore_missing=False, keep_root=False, tipsonly=False):
         """A new instance of a sub tree that contains all the otus that are
         listed in name_list.
-
-        ignore_missing: if False, get_sub_tree will raise a ValueError if
-        name_list contains names that aren't nodes in the tree
-
-        keep_root: if False, the root of the subtree will be the last common
-        ancestor of all nodes kept in the subtree. Root to tip distance is
-        then (possibly) different from the original tree
-        If True, the root to tip distance remains constant, but root may only
-        have one child node.
+        
+        Arguments:
+        - ignore_missing: if False, get_sub_tree will raise a ValueError if
+          name_list contains names that aren't nodes in the tree
+        - keep_root: if False, the root of the subtree will be the last common
+          ancestor of all nodes kept in the subtree. Root to tip distance is
+          then (possibly) different from the original tree. If True, the root to
+          tip distance remains constant, but root may only have one child node.
+        - tipsonly: only tip names matching name_list are allowed
         """
-        edge_names = set(self.get_node_names(includeself=1, tipsonly=False))
+        edge_names = set(self.get_node_names(includeself=1, tipsonly=tipsonly))
         if not ignore_missing:
             # this may take a long time
             for name in name_list:
                 if name not in edge_names:
                     raise ValueError("edge %s not found in tree" % name)
 
-        new_tree = self._get_sub_tree(name_list, keep_root=keep_root)
+        new_tree = self._get_sub_tree(name_list, keep_root=keep_root, tipsonly=tipsonly)
         if new_tree is None:
             raise TreeError("no tree created in make sub tree")
         elif new_tree.istip():
