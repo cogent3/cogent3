@@ -26,12 +26,18 @@ from cogent3.format import table
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
+__credits__ = ["Peter Maxwell", "Gavin Huttley", "Ben Kaehler"]
 __license__ = "GPL"
 __version__ = "3.0a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
+
+def _asdict(data):
+    if isinstance(data, DictArray):
+        out = {k : _asdict(data[k]) for k in list(data.keys())}
+        return out
+    return data
 
 
 class DictArrayTemplate(object):
@@ -153,7 +159,7 @@ class DictArray(object):
         return array
 
     def asdict(self):
-        return dict(list(self.items()))
+        return _asdict(self)
 
     def __getitem__(self, names):
         (index, remaining) = self.template.interpret_index(names)

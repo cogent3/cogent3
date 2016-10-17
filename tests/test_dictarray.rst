@@ -1,6 +1,6 @@
 >>> import numpy
 >>> from cogent3 import DNA
->>> from cogent3.util.dict_array import DictArrayTemplate
+>>> from cogent3.util.dict_array import DictArrayTemplate, DictArray
 >>> a = numpy.identity(3, int)
 >>> b = DictArrayTemplate('abc', 'ABC').wrap(a)
 >>> b[0]
@@ -50,3 +50,21 @@ A    B    C
 [ 0.25  0.25  0.25  0.25]
 >>> print(numpy.dot(mprobs, darr))
 [ 0.25  0.25  0.25  0.25]
+
+``DictArray.asdict()`` should convert nested ``DictArray`` instances to dict's too.
+
+>>> darr = DictArrayTemplate('A', 'C')
+>>> a = numpy.identity(3, int)
+>>> b = DictArrayTemplate('abc', 'ABC').wrap(a)
+>>> print(b)
+================
+     A    B    C
+----------------
+a    1    0    0
+b    0    1    0
+c    0    0    1
+----------------
+>>> c = DictArrayTemplate('de', 'DE').wrap([[b,b], [b,b]])
+>>> result = c.asdict()
+>>> isinstance(result['d'], dict)
+True
