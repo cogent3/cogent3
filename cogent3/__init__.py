@@ -119,7 +119,7 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
 
 def LoadTable(filename=None, sep=None, reader=None, header=None, rows=None,
               row_order=None, digits=4, space=4, title='', missing_data='',
-              max_width=1e100, row_ids=False, legend='', column_templates=None,
+              max_width=1e100, row_ids=None, legend='', column_templates=None,
               dtype=None, static_column_types=False, limit=None, **kwargs):
     """
     Arguments:
