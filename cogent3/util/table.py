@@ -91,7 +91,7 @@ class Table(DictArray):
 
     def __init__(self, header=None, rows=None, row_order=None, digits=4,
                  space=4, title='', missing_data='', max_width=1e100,
-                 row_ids=False, legend='', column_templates=None,
+                 row_ids=None, legend='', column_templates=None,
                  dtype=None):
         """
         Arguments:
@@ -130,7 +130,7 @@ class Table(DictArray):
                                  row_order=row_order)
 
         # if row_ids, we select that column as the row identifiers
-        if row_ids:
+        if row_ids is not None:
             identifiers = [row[0] for row in rows]
         else:
             identifiers = len(rows)
