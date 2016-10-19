@@ -35,26 +35,28 @@ First, if you try and create a ``Table`` without any data, it raises a ``Runtime
     Traceback (most recent call last):
     RuntimeError: header and rows must be provided to Table
 
-Let's create a very simple, rather nonsensical, table first. To create a table requires a header series, and a 2D series (either of type ``tuple``, ``list``, ``dict``).
+Let's create a very simple, rather nonsensical, table first. To create a table requires a header series, and a 2D series (either of type ``tuple``, ``list``, ``dict``) or a `pandas DataFrame <http://pandas.pydata.org/>`_..
 
 .. doctest::
 
-    >>> column_headings = ['Journal', 'Impact']
+    >>> column_headings = ['chrom', 'stableid', 'length']
 
-The string "Journal" will become the first column heading, "Impact" the second column heading. The data are,
+The string "chrom" will become the first column heading, "stableid" the second column heading, etc. The data are,
 
 .. doctest::
 
-    >>> rows = [['INT J PARASITOL', 2.9],
-    ... ['J MED ENTOMOL', 1.4],
-    ... ['Med Vet Entomol', 1.0],
-    ... ['INSECT MOL BIOL', 2.85],
-    ... ['J AM MOSQUITO CONTR', 0.811],
-    ... ['MOL PHYLOGENET EVOL', 2.8],
-    ... ['HEREDITY', 1.99e+0],
-    ... ['AM J TROP MED HYG', 2.105],
-    ... ['MIL MED', 0.605],
-    ... ['MED J AUSTRALIA', 1.736]]
+    >>> rows = [['X', 'ENSG00000005893', 1353],
+    ...         ['A', 'ENSG00000019485', 1827],
+    ...         ['A', 'ENSG00000019102', 999],
+    ...         ['X', 'ENSG00000012174', 1599],
+    ...         ['X', 'ENSG00000010671', 1977],
+    ...         ['A', 'ENSG00000019186', 1554],
+    ...         ['A', 'ENSG00000019144', 4185],
+    ...         ['X', 'ENSG00000008056', 2307],
+    ...         ['A', 'ENSG00000018408', 1383],
+    ...         ['A', 'ENSG00000019169', 1698]]
+    ...         
+    >>> 
 
 We create the simplest of tables.
 
@@ -62,20 +64,20 @@ We create the simplest of tables.
 
     >>> t = Table(header=column_headings, rows=rows)
     >>> print(t)
-    =============================
-                Journal    Impact
-    -----------------------------
-        INT J PARASITOL    2.9000
-          J MED ENTOMOL    1.4000
-        Med Vet Entomol    1.0000
-        INSECT MOL BIOL    2.8500
-    J AM MOSQUITO CONTR    0.8110
-    MOL PHYLOGENET EVOL    2.8000
-               HEREDITY    1.9900
-      AM J TROP MED HYG    2.1050
-                MIL MED    0.6050
-        MED J AUSTRALIA    1.7360
-    -----------------------------
+    ==================================
+    chrom           stableid    length
+    ----------------------------------
+        X    ENSG00000005893      1353
+        A    ENSG00000019485      1827
+        A    ENSG00000019102       999
+        X    ENSG00000012174      1599
+        X    ENSG00000010671      1977
+        A    ENSG00000019186      1554
+        A    ENSG00000019144      4185
+        X    ENSG00000008056      2307
+        A    ENSG00000018408      1383
+        A    ENSG00000019169      1698
+    ----------------------------------
 
 The format above is referred to as 'simple' format in the documentation. Notice that the numbers in this table have 4 decimal places, despite the fact the original data were largely strings and had ``max`` of 3 decimal places precision. ``Table`` converts string representations of numbers to their appropriate form when you do ``str(table)`` or print the table.
 
@@ -83,32 +85,33 @@ We have several things we might want to specify when creating a table: the preci
 
 .. doctest::
 
-    >>> t = Table(column_headings, rows, title='Journal impact factors', legend='From ISI',
-    ...     digits=2, space='        ')
+    >>> t = Table(column_headings, rows, title='Alignment lengths',
+    ...           legend='Some analysis',
+    ...           digits=2, space='        ')
     >>> print(t)
-    Journal impact factors
-    =================================
-                Journal        Impact
-    ---------------------------------
-        INT J PARASITOL          2.90
-          J MED ENTOMOL          1.40
-        Med Vet Entomol          1.00
-        INSECT MOL BIOL          2.85
-    J AM MOSQUITO CONTR          0.81
-    MOL PHYLOGENET EVOL          2.80
-               HEREDITY          1.99
-      AM J TROP MED HYG          2.10
-                MIL MED          0.60
-        MED J AUSTRALIA          1.74
-    ---------------------------------
-    From ISI
+    Alignment lengths
+    ==========================================
+    chrom               stableid        length
+    ------------------------------------------
+        X        ENSG00000005893          1353
+        A        ENSG00000019485          1827
+        A        ENSG00000019102           999
+        X        ENSG00000012174          1599
+        X        ENSG00000010671          1977
+        A        ENSG00000019186          1554
+        A        ENSG00000019144          4185
+        X        ENSG00000008056          2307
+        A        ENSG00000018408          1383
+        A        ENSG00000019169          1698
+    ------------------------------------------
+    Some analysis
 
-.. note:: You can also a representation on a table for a quick summary.
+.. note:: The ``repr()`` of a table gives a quick summary.
 
 .. doctest::
 
     >>> t
-    Table(numrows=10, numcols=2, header=['Journal', 'Impact'], rows=[['INT J PARASITOL', 2.9000],..])
+    Table(numrows=10, numcols=3, header=['chrom', 'stableid', 'length'], rows=[['X', 'ENSG00000005893', 1353],..])
 
 The Table class cannot handle arbitrary python objects, unless they are passed in as strings. Note in this case we now directly pass in the column headings list and the handling of missing data can be explicitly specified..
 
@@ -373,6 +376,28 @@ We apply this to a table with mixed string, integer and floating point data.
          cc
     -------
 
+Creating a Table from a pandas DataFrame
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Assign the ``DataFrame`` instance to the ``data_frame`` argument.
+
+.. doctest::
+    
+    >>> from pandas import DataFrame
+    >>> df = DataFrame(data=[[0, 1], [3,7]], columns=['a', 'b'])
+    >>> print(df)
+       a  b
+    0  0  1
+    1  3  7
+    >>> df_as_table = LoadTable(data_frame=df)
+    >>> print(df_as_table)
+    ======
+    a    b
+    ------
+    0    1
+    3    7
+    ------
+
 Representation of tables
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -400,33 +425,33 @@ Table can output in multiple formats, including restructured text or 'rest' and 
 .. doctest::
 
     >>> print(t.tostring(format='rest'))
-    +------------------------------+
-    |    Journal impact factors    |
-    +---------------------+--------+
-    |             Journal | Impact |
-    +=====================+========+
-    |     INT J PARASITOL |   2.90 |
-    +---------------------+--------+
-    |       J MED ENTOMOL |   1.40 |
-    +---------------------+--------+
-    |     Med Vet Entomol |   1.00 |
-    +---------------------+--------+
-    |     INSECT MOL BIOL |   2.85 |
-    +---------------------+--------+
-    | J AM MOSQUITO CONTR |   0.81 |
-    +---------------------+--------+
-    | MOL PHYLOGENET EVOL |   2.80 |
-    +---------------------+--------+
-    |            HEREDITY |   1.99 |
-    +---------------------+--------+
-    |   AM J TROP MED HYG |   2.10 |
-    +---------------------+--------+
-    |             MIL MED |   0.60 |
-    +---------------------+--------+
-    |     MED J AUSTRALIA |   1.74 |
-    +---------------------+--------+
-    | From ISI                     |
-    +------------------------------+
+    +----------------------------------+
+    |        Alignment lengths         |
+    +-------+-----------------+--------+
+    | chrom |        stableid | length |
+    +=======+=================+========+
+    |     X | ENSG00000005893 |   1353 |
+    +-------+-----------------+--------+
+    |     A | ENSG00000019485 |   1827 |
+    +-------+-----------------+--------+
+    |     A | ENSG00000019102 |    999 |
+    +-------+-----------------+--------+
+    |     X | ENSG00000012174 |   1599 |
+    +-------+-----------------+--------+
+    |     X | ENSG00000010671 |   1977 |
+    +-------+-----------------+--------+
+    |     A | ENSG00000019186 |   1554 |
+    +-------+-----------------+--------+
+    |     A | ENSG00000019144 |   4185 |
+    +-------+-----------------+--------+
+    |     X | ENSG00000008056 |   2307 |
+    +-------+-----------------+--------+
+    |     A | ENSG00000018408 |   1383 |
+    +-------+-----------------+--------+
+    |     A | ENSG00000019169 |   1698 |
+    +-------+-----------------+--------+
+    | Some analysis                    |
+    +----------------------------------+
 
 Arguments such as ``space`` have no effect in this case. The table may also be written to file in any of the available formats (latex, simple text, html, pickle) or using a custom separator (such as a comma or tab). This makes it convenient to get data into other applications (such as R or a spreadsheet program).
 
@@ -540,6 +565,23 @@ We then call the method, without this argument, then with it.
     <td>a</td>
     <td bgcolor="#0055ff"></td>
     <td>0.0883</td>...
+
+Convert Table to pandas DataFrame
+---------------------------------
+
+If you have ``pandas`` installed, you can convert a ``Table`` instance to a ``DataFrame``.
+
+.. doctest::
+    
+    >>> tbl = Table(header=['a', 'b'], rows=[[0, 1], [3,7]])
+    >>> df = tbl.to_pandas_df()
+    >>> type(df)
+    <class 'pandas.core.frame.DataFrame'>
+    >>> print(df)
+       a  b
+    0  0  1
+    1  3  7
+
 
 Exporting bedGraph format
 -------------------------
@@ -1056,34 +1098,20 @@ You can iterate over the table one row at a time and slice the rows. We illustra
 .. doctest::
 
     >>> for row in t:
-    ...     print(row['Journal'])
-    INT J PARASITOL
-    J MED ENTOMOL
-    Med Vet Entomol
-    INSECT MOL BIOL
-    J AM MOSQUITO CONTR
-    MOL PHYLOGENET EVOL
-    HEREDITY
-    AM J TROP MED HYG
-    MIL MED
-    MED J AUSTRALIA
+    ...     print(row['stableid'])
+    ENSG00000005893
+    ENSG00000019485
+    ENSG00000019102...
 
 and for multiple columns.
 
 .. doctest::
 
     >>> for row in t:
-    ...     print(row['Journal'], row['Impact'])
-    INT J PARASITOL 2.9
-    J MED ENTOMOL 1.4
-    Med Vet Entomol 1.0
-    INSECT MOL BIOL 2.85
-    J AM MOSQUITO CONTR 0.811
-    MOL PHYLOGENET EVOL 2.8
-    HEREDITY 1.99
-    AM J TROP MED HYG 2.105
-    MIL MED 0.605
-    MED J AUSTRALIA 1.736
+    ...     print(row['stableid'], row['length'])
+    ENSG00000005893 1353
+    ENSG00000019485 1827
+    ENSG00000019102 999...
 
 The numerical slice equivalent to the first case above would be ``row[0]``, to the second case either ``row[:]``, ``row[:2]``.
 

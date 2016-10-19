@@ -149,5 +149,5 @@ setup(
     include_dirs = [numpy_include_dir],
     cmdclass = extra_commands,
     extras_require={"mpi": ["mpi4py"],
-                    "all": ["matplotlib", "mpi4py"]},
+                    "all": ["matplotlib", "mpi4py", "pandas"]},
 )

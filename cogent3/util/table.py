@@ -11,8 +11,15 @@ Table can read pickled and delimited formats.
 import pickle
 import csv
 import collections
+import warnings
 
 import numpy
+try:
+    from pandas import DataFrame
+    _pandas_available = True
+except ImportError:
+    _pandas_available = False
+
 
 from cogent3.format import table as table_format, bedgraph
 from cogent3.util.dict_array import DictArray
@@ -92,7 +99,7 @@ class Table(DictArray):
     def __init__(self, header=None, rows=None, row_order=None, digits=4,
                  space=4, title='', missing_data='', max_width=1e100,
                  row_ids=None, legend='', column_templates=None,
-                 dtype=None):
+                 dtype=None, data_frame=None):
         """
         Arguments:
         - header: column headings
@@ -111,7 +118,18 @@ class Table(DictArray):
         - column_templates: dict of column headings: string format templates
           or a function that will handle the formatting.
         - dtype: optional numpy array typecode.
+        - data_frame: pandas DataFrame, Table will be created from this
         """
+        if data_frame is not None and not _pandas_available:
+            raise ValueError("data_frame provided when pandas not installed")
+        elif data_frame is not None:
+            if rows or header:
+                warnings.warn("provided rows/header will be over ridden by "\
+                              "DataFrame")
+            
+            rows = data_frame.to_records(index=False).tolist()
+            header = data_frame.columns.tolist()
+            
         try:
             num_cols = len(header)
             assert num_cols > 0
@@ -497,6 +515,15 @@ class Table(DictArray):
 
         return result.tolist()
 
+    def to_pandas_df(self):
+        """returns pandas DataFrame instance if pandas installed"""
+        if not _pandas_available:
+            raise ImportError("pandas not installed")
+        
+        index = None if self._row_ids is None else self.template.names[0]
+        df = DataFrame(data=self.asarray(), columns=self.header, index=index)
+        return df
+        
     def _callback(self, callback, row, columns=None, num_columns=None):
         if isinstance(callback, collections.Callable):
             row_segment = row.take(columns)
