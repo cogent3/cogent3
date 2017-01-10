@@ -60,6 +60,11 @@ Our primary goal is to provide a collection of rigourously validated tools for t
 
     update the literature cited
 
+*******
+Support
+*******
+
+We acknowledge the provision by `Wingware <http://wingware.com>`_ of free licenses for their professional IDE. Their committment, over more than a decade, to supporting our development of Open Source software for science is greatly appreciated. (The port of PyCogent to Python 3 was made much easier by using Wing's refactor tools!)
 
 ********
 Citation
@@ -75,6 +80,11 @@ Search
 
 .. _PyCogent3: https://bitbucket.org/pycogent3/cogent3
 
+*******
+Support
+*******
+
+We acknowledge the provision by `Wingware <http://wingware.com>`_ of free licenses for their professional IDE. Their committment, over more than a decade, to supporting our development of Open Source software for science is greatly appreciated. (The port of PyCogent to Python 3 was made much easier by using Wing's refactor tools!)
 
 **********************
 News and Announcements
