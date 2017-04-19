@@ -21,3 +21,4 @@ draw_results
 .cache*
 *taskpaper
 *.ipynb_checkpoints*
+*.sublime*
