@@ -302,7 +302,7 @@ class EstimateDistances(object):
                 except KeyError:
                     row.append(d[(s2, s1)])
             twoD.append(row)
-        T = table.Table(['Seq1 \ Seq2'] + self._seqnames, twoD, row_ids=True,
+        T = table.Table([r'Seq1 \ Seq2'] + self._seqnames, twoD, row_ids=True,
                         missing_data="*")
         return T
 
