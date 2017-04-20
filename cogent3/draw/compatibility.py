@@ -348,7 +348,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         vert = (x_margin + xpad + c_width)
         top = (y_margin + c_height + ypad)
         fig = plt.figure(figsize=(figwidth, figheight))
-        kw = dict(axisbg=fig.get_facecolor())
+        kw = dict(facecolor=fig.get_facecolor())
         axC = fig.add_axes([x_margin, y_margin, c_width, c_height], **kw)
         axP = fig.add_axes([vert, y_margin, p_width, c_height],
                            sharey=axC, **kw)
