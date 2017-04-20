@@ -1030,7 +1030,7 @@ def regress(x, y):
     Adapted from the following URL:
     http://www.python.org/topics/scicomp/recipes_in_python.html
     """
-    x, y = array(x, 'Float64'), array(y, 'Float64')
+    x, y = array(x, 'float64'), array(y, 'float64')
     N = len(x)
     Sx = sum(x)
     Sy = sum(y)
@@ -1049,7 +1049,7 @@ def regress_origin(x, y):
 
     returns slope, intercept as a tuple.
     """
-    x, y = array(x, 'Float64'), array(y, 'Float64')
+    x, y = array(x, 'float64'), array(y, 'float64')
     return sum(x * y) / sum(x * x), 0
 
 
