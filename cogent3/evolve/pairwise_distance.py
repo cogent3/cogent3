@@ -253,7 +253,7 @@ class _PairwiseDistance(object):
         self._dim = len(list(moltype))
         self._dists = None
 
-        self.Names = None
+        self.names = None
         self.IndexedSeqs = None
 
         if alignment is not None:
@@ -266,9 +266,9 @@ class _PairwiseDistance(object):
             'Alignment does not have correct MolType'
 
         self._dists = {}
-        self.Names = alignment.names[:]
+        self.names = alignment.names[:]
         indexed_seqs = []
-        for name in self.Names:
+        for name in self.names:
             seq = alignment.get_gapped_seq(name)
             indexed = seq_to_indices(str(seq), self.char_to_indices)
             indexed_seqs.append(indexed)
@@ -287,12 +287,12 @@ class _PairwiseDistance(object):
 
         matrix = zeros((self._dim, self._dim), float64)
         done = 0.0
-        to_do = (len(self.Names) * len(self.Names) - 1) / 2
-        for i in range(len(self.Names) - 1):
-            name_1 = self.Names[i]
+        to_do = (len(self.names) * len(self.names) - 1) / 2
+        for i in range(len(self.names) - 1):
+            name_1 = self.names[i]
             s1 = self.IndexedSeqs[i]
-            for j in range(i + 1, len(self.Names)):
-                name_2 = self.Names[j]
+            for j in range(i + 1, len(self.names)):
+                name_2 = self.names[j]
                 ui.display('%s vs %s' % (name_1, name_2), done / to_do)
                 done += 1
                 matrix.fill(0)
@@ -309,8 +309,8 @@ class _PairwiseDistance(object):
         if self._dists is None:
             return None
         dists = {}
-        for name_1 in self.Names:
-            for name_2 in self.Names:
+        for name_1 in self.names:
+            for name_2 in self.names:
                 if name_1 == name_2:
                     continue
                 val = self._dists[(name_1, name_2)][2]
@@ -324,9 +324,9 @@ class _PairwiseDistance(object):
         if self._dists is None:
             return None
         rows = []
-        for row_name in self.Names:
+        for row_name in self.names:
             row = [row_name]
-            for col_name in self.Names:
+            for col_name in self.names:
                 if row_name == col_name:
                     row.append('')
                     continue
@@ -335,7 +335,7 @@ class _PairwiseDistance(object):
                     val = transform(val)
                 row.append(val)
             rows.append(row)
-        header = [r'Seq1 \ Seq2'] + self.Names
+        header = [r'Seq1 \ Seq2'] + self.names
         table = LoadTable(header=header, rows=rows, row_ids=True,
                           missing_data='*', **kwargs)
         return table
@@ -357,7 +357,7 @@ class _PairwiseDistance(object):
         table = self._get_stats(3, **kwargs)
         var_formatter = _number_formatter("%.2e")
         if table is not None:
-            for name in self.Names:
+            for name in self.names:
                 table.format_column(name, var_formatter)
 
         return table
