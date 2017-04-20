@@ -254,7 +254,7 @@ class _PairwiseDistance(object):
         self._dists = None
 
         self.names = None
-        self.IndexedSeqs = None
+        self.indexed_seqs = None
 
         if alignment is not None:
             self._convert_seqs_to_indices(alignment)
@@ -273,7 +273,7 @@ class _PairwiseDistance(object):
             indexed = seq_to_indices(str(seq), self.char_to_indices)
             indexed_seqs.append(indexed)
 
-        self.IndexedSeqs = array(indexed_seqs)
+        self.indexed_seqs = array(indexed_seqs)
 
     @staticmethod
     def func():
@@ -290,13 +290,13 @@ class _PairwiseDistance(object):
         to_do = (len(self.names) * len(self.names) - 1) / 2
         for i in range(len(self.names) - 1):
             name_1 = self.names[i]
-            s1 = self.IndexedSeqs[i]
+            s1 = self.indexed_seqs[i]
             for j in range(i + 1, len(self.names)):
                 name_2 = self.names[j]
                 ui.display('%s vs %s' % (name_1, name_2), done / to_do)
                 done += 1
                 matrix.fill(0)
-                s2 = self.IndexedSeqs[j]
+                s2 = self.indexed_seqs[j]
                 fill_diversity_matrix(matrix, s1, s2)
                 total, p, dist, var = self.func(matrix, *self._func_args)
                 self._dists[(name_1, name_2)] = (total, p, dist, var)
