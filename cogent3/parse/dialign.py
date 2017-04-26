@@ -13,8 +13,8 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-_header = re.compile("^\s+[=]+")
-_quality_scores = re.compile("^ +\d+[\s\d]*$")
+_header = re.compile(r"^\s+[=]+")
+_quality_scores = re.compile(r"^ +\d+[\s\d]*$")
 
 
 def align_block_lines(lines):

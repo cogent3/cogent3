@@ -1982,13 +1982,13 @@ class TestTree(TestCase):
         # unlabeled internal node
         tr = DndParser("(B:0.2,(C:0.3,D:0.4):0.6)F;")
         obs = tr.ascii_art(show_internal=True, compact=False)
-        exp = """          /-B\n-F-------|\n         |          /-C\n          \\--------|\n                    \\-D"""
+        exp = "          /-B\n-F-------|\n         |          /-C\n          \\--------|\n                    \\-D"
         self.assertEqual(obs, exp)
         obs = tr.ascii_art(show_internal=True, compact=True)
-        exp = """-F------- /-B\n          \-------- /-C\n                    \-D"""
+        exp = "-F------- /-B\n          \\-------- /-C\n                    \\-D"
         self.assertEqual(obs, exp)
         obs = tr.ascii_art(show_internal=False, compact=False)
-        exp = """          /-B\n---------|\n         |          /-C\n          \\--------|\n                    \\-D"""
+        exp = "          /-B\n---------|\n         |          /-C\n          \\--------|\n                    \\-D"
         self.assertEqual(obs, exp)
 
 # the following class repeats the above tests but using a big tree and big

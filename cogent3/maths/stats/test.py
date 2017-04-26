@@ -1006,7 +1006,7 @@ def correlation_matrix(series, as_rows=True):
 
 
 def regress(x, y):
-    """Returns coefficients to the regression line "y=ax+b" from x[] and y[].
+    r"""Returns coefficients to the regression line "y=ax+b" from x[] and y[].
 
     Specifically, returns (slope, intercept) as a tuple from the regression of
     y on x, minimizing the error in y assuming that x is precisely known.
