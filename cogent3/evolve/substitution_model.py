@@ -746,7 +746,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
             r[i+1] = '*' # identity
             rows.append(r)
         
-        labels.insert(0, 'From\To')
+        labels.insert(0, r'From\To')
         if self.name:
             title = "%s rate matrix" % self.name
         else:

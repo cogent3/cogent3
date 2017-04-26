@@ -127,7 +127,7 @@ def get_BL_table(branch_lengths):
 
     in_table = 0
     result = []
-    beg_tag = re.compile('\s+Node\s+to node\s+length')
+    beg_tag = re.compile(r'\s+Node\s+to node\s+length')
     end_tag = re.compile('Sum')
     for line in branch_lengths:
         if end_tag.match(line):
