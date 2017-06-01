@@ -236,8 +236,10 @@ class _SeqRepresentation(object):
     def __init__(self, map, sequence, cvalues=None, colour_sequences=True,
                  font_properties=None):
         self.font_properties = font_properties
-
-        alphabet = self.alphabet = sequence.moltype.alphabets.degen
+        try:
+            alphabet = self.alphabet = sequence.moltype.alphabets.degen
+        except AttributeError:
+            alphabet = self.alphabet = sequence.moltype.alphabet
 
         alphabet_colours = None
         if cvalues:
