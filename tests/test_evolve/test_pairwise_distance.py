@@ -349,6 +349,39 @@ class TestPair(TestCase):
                               paralinear_calc.dists[1, 1], eps=1e-3)
         self.assertFloatEqual(paralinear_calc.variances[1, 1],
                               logdet_calc.variances[1, 1], eps=1e-3)
+        
+    def test_duplicated(self):
+        """correctly identifies duplicates"""
+        def get_calc(data):
+            aln = LoadSeqs(data=data, moltype=DNA)
+            calc = ParalinearPair(moltype=DNA, alignment=aln)
+            calc(show_progress=False)            
+            return calc
+        # no duplicates
+        data = [('seq1', "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
+                ('seq2', "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")]
+        calc = get_calc(data)
+        self.assertEqual(calc.duplicated, None)
+        data = [('seq1', "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
+                ('seq2', "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC"),
+                ('seq3', "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")]
+        calc = get_calc(data)
+        self.assertTrue({"seq2": ["seq3"]} == calc.duplicated or
+                        {"seq3": ["seq2"]} == calc.duplicated)
+        # default to get all pairwise distances
+        pwds = calc.get_pairwise_distances()
+        self.assertEqual(pwds[('seq2', 'seq3')], 0.0)
+        self.assertEqual(pwds[('seq2', 'seq1')], pwds[('seq3', 'seq1')])
+        
+        # only unique seqs when using include_duplicates=False
+
+        pwds = calc.get_pairwise_distances(include_duplicates=False)
+        present = list(calc.duplicated.keys())[0]
+        missing = calc.duplicated[present][0]
+        self.assertEqual(set([(present, missing)]), set([('seq2', 'seq3')]))
+        self.assertTrue((present, 'seq1') in pwds)
+        self.assertFalse((missing, 'seq1') in pwds)
+        
 
 if __name__ == '__main__':
     main()

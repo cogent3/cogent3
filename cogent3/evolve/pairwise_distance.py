@@ -1,4 +1,4 @@
-
+from collections import defaultdict, namedtuple
 from numpy import log, zeros, float64, int32, array, sqrt, dot, diag, eye
 from numpy.linalg import det, norm, inv, LinAlgError
 
@@ -243,6 +243,25 @@ def _number_formatter(template):
     return call
 
 
+def _make_stat_table(stats, names, **kwargs):
+    header = [r'Seq1 \ Seq2'] + names
+    rows = zeros((len(names), len(names)), dtype="O")
+    for i in range(len(names) - 1):
+        n1 = names[i]
+        for j in range(i + 1, len(names)):
+            n2 = names[j]
+            val = stats[(n1, n2)]
+            rows[i, j] = val
+            rows[j, i] = val
+    rows = rows.tolist()
+    for i in range(len(names)):
+        rows[i].insert(0, names[i])
+
+    table = LoadTable(header=header, rows=rows, row_ids=True,
+                          missing_data='*', **kwargs)
+    return table
+
+
 class _PairwiseDistance(object):
     """base class for computing pairwise distances"""
 
@@ -252,6 +271,8 @@ class _PairwiseDistance(object):
         self.char_to_indices = get_moltype_index_array(moltype)
         self._dim = len(list(moltype))
         self._dists = None
+        self._dupes = None
+        self._duped = None
 
         self.names = None
         self.indexed_seqs = None
@@ -275,6 +296,12 @@ class _PairwiseDistance(object):
 
         self.indexed_seqs = array(indexed_seqs)
 
+    @property
+    def duplicated(self):
+        """returns mapping of IDs to duplicates as {id:[dupe1, ..], },
+        or None"""
+        return self._duped
+
     @staticmethod
     def func():
         pass  # over ride in subclasses
@@ -282,95 +309,163 @@ class _PairwiseDistance(object):
     @display_wrap
     def run(self, alignment=None, ui=None):
         """computes the pairwise distances"""
+        dupes = set()
+        duped = defaultdict(list)
+        Stats = namedtuple("Stats", ["length", "fraction_variable", "dist", "variance"])
+
         if alignment is not None:
             self._convert_seqs_to_indices(alignment)
 
+        names = self.names[:]
         matrix = zeros((self._dim, self._dim), float64)
+        off_diag = [(i, j) for i in range(self._dim)
+                        for j in range(self._dim) if i != j]
+        off_diag = [array(a) for a in zip(*off_diag)]
+        
         done = 0.0
-        to_do = (len(self.names) * len(self.names) - 1) / 2
-        for i in range(len(self.names) - 1):
-            name_1 = self.names[i]
+        to_do = (len(names) * len(names) - 1) / 2
+        for i in range(len(names) - 1):
+            if i in dupes:
+                continue
+
+            name_1 = names[i]
             s1 = self.indexed_seqs[i]
-            for j in range(i + 1, len(self.names)):
-                name_2 = self.names[j]
+            for j in range(i + 1, len(names)):
+                if j in dupes:
+                    continue
+
+                name_2 = names[j]
                 ui.display('%s vs %s' % (name_1, name_2), done / to_do)
                 done += 1
                 matrix.fill(0)
                 s2 = self.indexed_seqs[j]
                 fill_diversity_matrix(matrix, s1, s2)
+                if not (matrix[off_diag] > 0).any():
+                    # j is a duplicate of i
+                    dupes.update([j])
+                    duped[i].append(j)
+                    continue
+
                 total, p, dist, var = self.func(matrix, *self._func_args)
-                self._dists[(name_1, name_2)] = (total, p, dist, var)
-                self._dists[(name_2, name_1)] = (total, p, dist, var)
-    
+                result = Stats(total, p, dist, var)
+                self._dists[(name_1, name_2)] = result
+                self._dists[(name_2, name_1)] = result
+
+        self._dupes = [names[i] for i in dupes] or None
+        if duped:
+            self._duped = {}
+            for k, v in duped.items():
+                key = names[k]
+                vals = [names[i] for i in v]
+                self._duped[key] = vals
+        
+            # clean the distances so only unique seqs included
+            remove = set(self._dupes)
+            keys = list(self._dists.keys())
+            for key in keys:
+                if set(key) & remove:
+                    del(self._dists[key])
+
+
     __call__ = run
 
-    def get_pairwise_distances(self):
-        """returns a 2D dictionary of pairwise distances."""
+    def get_pairwise_distances(self, include_duplicates=True):
+        """returns a 2D dictionary of pairwise distances.
+        
+        Arguments:
+        - include_duplicates: all seqs included in the distances,
+          otherwise only unique sequences are included.
+        """
         if self._dists is None:
             return None
-        dists = {}
-        for name_1 in self.names:
-            for name_2 in self.names:
-                if name_1 == name_2:
-                    continue
-                val = self._dists[(name_1, name_2)][2]
-                dists[(name_1, name_2)] = val
-                dists[(name_2, name_1)] = val
 
+        dists = {k: self._dists[k].dist for k in self._dists}
+        if include_duplicates:
+            dists = self._expand(dists)
+        
         return dists
 
-    def _get_stats(self, stat, transform=None, **kwargs):
-        """returns a table for the indicated statistics"""
-        if self._dists is None:
-            return None
-        rows = []
-        for row_name in self.names:
-            row = [row_name]
-            for col_name in self.names:
-                if row_name == col_name:
-                    row.append('')
+    def _expand(self, pwise):
+        """returns a pwise statistic dict that includes duplicates"""
+        if not self.duplicated:
+            # no duplicates, nothing to do
+            return pwise
+        
+        redundants = {}
+        for k in self.duplicated:
+            for r in self.duplicated[k]:
+                redundants[r] = k
+        
+        names = self.names[:]
+        for add, alias in redundants.items():
+            for name in names:
+                if name == add:
                     continue
-                val = self._dists[(row_name, col_name)][stat]
-                if transform is not None:
-                    val = transform(val)
-                row.append(val)
-            rows.append(row)
-        header = [r'Seq1 \ Seq2'] + self.names
-        table = LoadTable(header=header, rows=rows, row_ids=True,
-                          missing_data='*', **kwargs)
-        return table
+                if name == alias:
+                    val = 0
+                else:
+                    val = pwise[(alias, name)]
+                pwise[(add, name)] = pwise[(name, add)] = val
+
+        return pwise
 
     @property
     def dists(self):
+        if self._dists is None:
+            return None
+
+        stats = {k: self._dists[k].dist for k in self._dists}
+        stats = self._expand(stats)
         kwargs = dict(title='Pairwise Distances', digits=4)
-        return self._get_stats(2, **kwargs)
+        t = _make_stat_table(stats, self.names, **kwargs)
+        return t
 
     @property
     def stderr(self):
-        stderr = lambda x: sqrt(x)
+        if self._dists is None:
+            return None
+
+        stats = {k: sqrt(self._dists[k].variance) for k in self._dists}
+        stats = self._expand(stats)
         kwargs = dict(title='Standard Error of Pairwise Distances', digits=4)
-        return self._get_stats(3, transform=stderr, **kwargs)
+        t = _make_stat_table(stats, self.names, **kwargs)
+        return t
 
     @property
     def variances(self):
-        kwargs = dict(title='variances of Pairwise Distances', digits=4)
-        table = self._get_stats(3, **kwargs)
-        var_formatter = _number_formatter("%.2e")
-        if table is not None:
-            for name in self.names:
-                table.format_column(name, var_formatter)
+        if self._dists is None:
+            return None
 
-        return table
+        stats = {k: self._dists[k].variance for k in self._dists}
+        stats = self._expand(stats)
+        kwargs = dict(title='Variances of Pairwise Distances', digits=4)
+        t = _make_stat_table(stats, self.names, **kwargs)
+        var_formatter = _number_formatter("%.2e")
+        for name in self.names:
+            t.format_column(name, var_formatter)
+        return t
 
     @property
     def proportions(self):
+        if self._dists is None:
+            return None
+
+        stats = {k: self._dists[k].fraction_variable for k in self._dists}
+        stats = self._expand(stats)
         kwargs = dict(title='Proportion variable sites', digits=4)
-        return self._get_stats(1, **kwargs)
+        t = _make_stat_table(stats, self.names, **kwargs)
+        return t
 
     @property
     def lengths(self):
+        if self._dists is None:
+            return None
+
+        stats = {k: self._dists[k].length for k in self._dists}
+        stats = self._expand(stats)
         kwargs = dict(title='Pairwise Aligned Lengths', digits=0)
-        return self._get_stats(0, **kwargs)
+        t = _make_stat_table(stats, self.names, **kwargs)
+        return t
 
 
 class _NucleicSeqPair(_PairwiseDistance):
