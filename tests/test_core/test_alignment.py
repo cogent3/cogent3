@@ -3,7 +3,7 @@
 from cogent3.util.unit_test import TestCase, main
 from cogent3.core.sequence import RnaSequence, frac_same, ArraySequence, Sequence
 from cogent3.maths.stats.util import Freqs, Numbers
-from cogent3.core.moltype import RNA, DNA, PROTEIN, BYTES
+from cogent3.core.moltype import RNA, DNA, PROTEIN, BYTES, ASCII
 from cogent3.core.alphabet import AlphabetError
 
 from cogent3.core.alignment import SequenceCollection, \
@@ -476,6 +476,64 @@ class SequenceCollectionBaseTests(object):
         self.assertEqualItems(self.mixed.get_items([('a', 3), ('b', 4), ('a', 0)],
                                                   negate=True), ['B', 'C', 'E', 'L', 'M', 'N', 'O'])
 
+    def test_get_identical_sets(self):
+        """correctly identify sets of identical sequences"""
+        # for DNA
+        data = {"a": "ACGT", "b": "ACGT", # strict identical
+                "c": "ACGN", # non-strict matches above
+                "d": "TTTT", "e": "TTTT", "k": "TTTT", # strict identical
+                "f": "RAAA", "g": "YAAA"} # non-strict identical
+        
+        seqs = self.Class(data=data, moltype=DNA)
+        got = seqs.get_identical_sets(mask_degen=False)  # a strict comparison
+        # convert to frozenset, so we can do a comparison robust to set order
+        got = frozenset(frozenset(s) for s in got)
+        expect = [{"a", "b"}, {"d", "e", "k"}]
+        expect = frozenset(frozenset(s) for s in expect )
+        self.assertEqual(got, expect)
+
+        got = seqs.get_identical_sets(mask_degen=True)
+        got = frozenset(frozenset(s) for s in got)
+        expect = [{"a", "b", "c"}, {"d", "e", "k"}, {"f", "g"}]
+        expect = frozenset(frozenset(s) for s in expect )
+        self.assertEqual(got, expect)
+        
+        # for PROTEIN
+        data = {"a": "ACGT", "b": "ACGT", # strict identical
+                    "c": "ACGX", # non-strict matches above
+                    "d": "TTTT", "e": "TTTT", "k": "TTTT", # strict identical
+                    "f": "BAAA", "g": "ZAAA"} # non-strict identical
+    
+        seqs = self.Class(data=data, moltype=PROTEIN)
+        got = seqs.get_identical_sets(mask_degen=False)  # a strict comparison
+        # convert to frozenset, so we can do a comparison robust to set order
+        got = frozenset(frozenset(s) for s in got)
+        expect = [{"a", "b"}, {"d", "e", "k"}]
+        expect = frozenset(frozenset(s) for s in expect )
+        self.assertEqual(got, expect)
+    
+        got = seqs.get_identical_sets(mask_degen=True)
+        got = frozenset(frozenset(s) for s in got)
+        expect = [{"a", "b", "c"}, {"d", "e", "k"}, {"f", "g"}]
+        expect = frozenset(frozenset(s) for s in expect )
+        self.assertEqual(got, expect)
+    
+        
+        
+        # if the moltype has no degen characters, just return for mask_degen
+        seqs = self.Class(data=data, moltype=ASCII)
+        got = seqs.get_identical_sets(mask_degen=False)
+        # convert to frozenset, so we can do a comparison robust to set order
+        got = frozenset(frozenset(s) for s in got)
+        expect = [{"a", "b"}, {"d", "e", "k"}]
+        expect = frozenset(frozenset(s) for s in expect )
+        self.assertEqual(got, expect)
+    
+        got = seqs.get_identical_sets(mask_degen=True)
+        got = frozenset(frozenset(s) for s in got)
+        self.assertEqual(got, expect)
+       
+    
     def test_item_indices_if(self):
         """SequenceCollection item_indices_if should return coordinates of matching items"""
         is_vowel = lambda x: x in 'AEIOU'

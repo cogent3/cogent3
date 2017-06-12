@@ -785,6 +785,87 @@ class SequenceCollection(object):
         """Returns list of items where f(self.named_seqs[row][col]) is True."""
         return self.get_items(self.item_indices_if(f, negate))
 
+    def get_identical_sets(self, mask_degen=False):
+        """returns sets of names for sequences that are identical
+        
+        Arguments:
+         - mask_degen: if True, degenerate characters are ignored"""
+        # TODO handle case of not strict by building mask of degen positions
+        # per seq
+        if mask_degen and not hasattr(self.moltype, "alphabets"):
+            UserWarning("in get_identical_sets, strict has no effect as moltype "
+                        "has no degenerate characters")
+            mask_degen = False
+        elif mask_degen:
+            degens = list(self.moltype.degenerates) + [self.moltype.gap]
+        
+        def reduced(seq, indices):
+            s = "".join(seq[i] for i in range(len(seq)) if i not in indices)
+            return s
+        
+        identical_sets = []
+        mask_posns = {}
+        seen = []
+        # if strict, we do a sort and one pass through the list
+        seqs = self.todict()
+        if not mask_degen:
+            seqs_names = [(s, n) for n, s in seqs.items()]
+            seqs_names.sort()
+            matched = None
+            dupes = defaultdict(set)
+            for i in range(len(seqs_names) - 1):
+                if seqs_names[i][0] == seqs_names[i + 1][0]:
+                    matched = seqs_names[i][1] if matched is None else matched
+                    dupes[matched].update([seqs_names[i + 1][1], matched])
+                else:
+                    matched = None
+            identical_sets = list(dupes.values())
+            return identical_sets
+        
+        
+        for i in range(len(self.names) - 1):
+            n1 = self.names[i]
+            if n1 in seen:
+                continue
+            
+            seq1 = seqs[n1]
+            if n1 not in mask_posns:
+                pos = self.moltype.get_degenerate_positions(seq1,
+                                                            include_gap=True)
+                mask_posns[n1] = pos
+                # TODO separately implement for ArrayAlignment
+            
+            group = set()
+            for j in range(i + 1, len(self.names)):
+                n2 = self.names[j]
+                if n2 in seen:
+                    continue
+                
+                seq2 = seqs[n2]
+                if n2 not in mask_posns:
+                    pos = self.moltype.get_degenerate_positions(seq2,
+                                                                include_gap=True)  
+                    mask_posns[n2] = pos
+                
+                seq2 = seqs[n2]
+                
+                s1, s2 = seq1, seq2
+                
+                pos = mask_posns[n1] + mask_posns[n2]
+                if pos:
+                    s1 = reduced(seq1, pos)
+                    s2 = reduced(seq2, pos)
+                
+                if s1 == s2:
+                    seen.append(n2)
+                    group.update([n1, n2])
+            
+            if group:
+                identical_sets.append(group)
+        
+        return identical_sets
+
+    
     def get_similar(self, target, min_similarity=0.0, max_similarity=1.0,
                    metric=frac_same, transform=None):
         """Returns new Alignment containing sequences similar to target.
@@ -2889,8 +2970,68 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         return self.__class__(new_seqarr.T, names=self.names,
                                           moltype=seqs.moltype)
 
+    def get_identical_sets(self, mask_degen=False):
+        """returns sets of names for sequences that are identical
         
-        
+        Arguments:
+         - mask_degen: if True, degenerate characters are ignored"""
+        if mask_degen and not hasattr(self.moltype, "alphabets"):
+            UserWarning("in get_identical_sets, strict has no effect as moltype "
+                        "has no degenerate characters")
+            mask_degen = False
+
+        if not mask_degen:
+            seqs_names = list(zip(self.array_seqs.tolist(), self.names))
+            seqs_names.sort()
+            matched = None
+            dupes = defaultdict(set)
+            for i in range(self.num_seqs - 1):
+                if seqs_names[i][0] == seqs_names[i + 1][0]:
+                    matched = seqs_names[i][1] if matched is None else matched
+                    dupes[matched].update([seqs_names[i + 1][1], matched])
+                else:
+                    matched = None
+            identical_sets = list(dupes.values())
+            return identical_sets
+
+        # we get the indexes range for non-degenerate characters
+        indices = [self.alphabet.index(c) for c in self.moltype]
+        # make sure they're all consecutive
+        diffs = set([indices[i-1] - indices[i] for i in range(1, len(indices))])
+        assert diffs == set([-1]), diffs
+        start, end = min(indices), max(indices)
+        # identify the masking positions
+        degen_masks = {}
+        for i in range(self.num_seqs):
+            s1 = self.array_seqs[i]
+            degen_masks[i] = logical_or(s1 <= start, s1 < end)
+
+        identical_sets = []
+        seen = set()
+        for i in range(self.num_seqs - 1):
+            if i in seen:
+                continue
+            
+            s1 = self.array_seqs[i]
+            m1 = degen_masks[i]
+            group = set()
+            for j in range(i + 1, self.num_seqs):
+                if j in seen:
+                    continue
+
+                s2 = self.array_seqs[j]
+                m2 = degen_masks[j]
+                valid_pos = logical_and(m1, m2)  # non-degen positions
+                if (s1[valid_pos] == s2[valid_pos]).all():
+                    seen.update([i, j])
+                    group.update([i, j])
+
+            if group:
+                identical_sets.append(set(self.names[i] for i in group))
+
+        return identical_sets
+
+
 
 class CodonArrayAlignment(ArrayAlignment):
     """Stores alignment of gapped codons, no degenerate symbols."""
