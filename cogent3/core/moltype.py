@@ -855,7 +855,17 @@ class MolType(object):
         gaps = self.gaps
         gap_count = sum(1 for s in sequence if s in gaps)
         return gap_count
-
+    
+    def get_degenerate_positions(self, sequence, include_gap=True):
+        """returns indices matching degenerate characters"""
+        degen = list(self.degenerates)
+        if include_gap:
+            degen.append(self.gap)
+        
+        pos = [i for i, c in enumerate(sequence) if c in degen]
+        return pos
+        
+    
     def count_degenerate(self, sequence):
         """Counts the degenerate bases in the specified sequence."""
         degen = self.degenerates
