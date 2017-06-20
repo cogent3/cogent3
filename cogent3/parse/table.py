@@ -30,20 +30,20 @@ class ConvertFields(object):
         self.conversion = conversion
         self.by_column = by_column
 
-        self._func = self.convertByColumns
+        self._func = self.convert_by_columns
 
         if not self.by_column:
             assert isinstance(conversion, collections.Callable), \
                 "conversion must be callable to convert by line"
-            self._func = self.convertByLine
+            self._func = self.convert_by_line
 
-    def convertByColumns(self, line):
+    def convert_by_columns(self, line):
         """converts each column in a line"""
         for index, cast in self.conversion:
             line[index] = cast(line[index])
         return line
 
-    def convertByLine(self, line):
+    def convert_by_line(self, line):
         """converts each column in a line"""
         return self.conversion(line)
 
