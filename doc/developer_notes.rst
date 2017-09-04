@@ -8,7 +8,7 @@ Grabbing from Bitbucket
 
 To grab PyCogent3 from Bitbucket, do the following::
 
-    $ hg clone ssh://hg@bitbucket.org/pycogent3/pycogent3 PyCogent3
+    $ hg clone ssh://hg@bitbucket.org/pycogent3/cogent3 PyCogent3
 
 Building/testing the documentation
 ----------------------------------
