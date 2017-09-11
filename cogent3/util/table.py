@@ -304,12 +304,12 @@ class Table(DictArray):
 
         self._column_templates[column_head] = format_template
 
-    def tostring(self, borders=True, sep=None, format='', center=False, **kwargs):
+    def tostring(self, format='', borders=True, sep=None, center=False, **kwargs):
         """Return the table as a formatted string.
 
         Arguments:
-            - format: possible formats are 'rest'/'rst', 'latex', 'html',
-              'phylip', 'bedgraph', or simple text (default).
+            - format: possible formats are 'rest'/'rst', 'markdown'/'md',
+              'latex', 'html', 'phylip', 'bedgraph', or simple text (default).
             - sep: A string separator for delineating columns, e.g. ',' or '\t'.
               Overrides format.
             - center: content is centered in the column, default is right
@@ -337,6 +337,9 @@ class Table(DictArray):
             return table_format.separator_format(*args + (sep,))
         elif format in ('rest', 'rst'):
             return table_format.grid_table_format(*args)
+        elif format in ('markdown', 'md'):
+            return table_format.markdown(header, formatted_table,
+                                         **kwargs)
         elif format.endswith('tex'):
             caption = None
             if self.title or self.legend:

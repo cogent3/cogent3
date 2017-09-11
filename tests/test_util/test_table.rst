@@ -453,6 +453,48 @@ Table can output in multiple formats, including restructured text or 'rest' and 
     | Some analysis                    |
     +----------------------------------+
 
+
+or markdown format
+
+.. doctest::
+
+    >>> print(t.tostring(format='md'))
+    | chrom |        stableid | length |
+    |-------|-----------------|--------|
+    |     X | ENSG00000005893 |   1353 |
+    |     A | ENSG00000019485 |   1827 |
+    |     A | ENSG00000019102 |    999 |
+    |     X | ENSG00000012174 |   1599 |...
+
+
+which can also take an optional `justify` argument. The latter must be a series with a value for each column.
+
+.. doctest::
+
+    >>> print(t.tostring(format='md', justify='lcr'))
+    | chrom |        stableid | length |
+    |:------|:---------------:|-------:|
+    |     X | ENSG00000005893 |   1353 |
+    |     A | ENSG00000019485 |   1827 |
+    |     A | ENSG00000019102 |    999 |
+    |     X | ENSG00000012174 |   1599 |...
+
+
+where the values `lcr` correspond to left, centre and right justification.
+
+In the case of markdown, the `|` is special and so cells containing it must be escaped.
+
+.. doctest::
+
+    >>> md_table = LoadTable(header=["a", "b"],
+    ...                      rows=[["val1", "val2"],
+    ...                            ["has | symbol", "val4"]])
+    >>> print(md_table.tostring(format='md'))
+    |             a |    b |
+    |---------------|------|
+    |          val1 | val2 |
+    | has \| symbol | val4 |
+
 Arguments such as ``space`` have no effect in this case. The table may also be written to file in any of the available formats (latex, simple text, html, pickle) or using a custom separator (such as a comma or tab). This makes it convenient to get data into other applications (such as R or a spreadsheet program).
 
 Here is the latex format, note how the title and legend are joined into the latex table caption. We also provide optional arguments for the column alignment (fist column left aligned, second column right aligned and remaining columns centred) and a label for table referencing.
