@@ -6,6 +6,7 @@ import into other packages. These classes still under development.
 Current formats include restructured text (keyed by 'rest'), latex, html,
 columns separated by a provided string, and a simple text format.
 """
+import re
 import textwrap
 from cogent3.util.warning import discontinued
 
@@ -244,6 +245,71 @@ def simple_format(header, formatted_table, title=None, legend=None, max_width=1e
 
     return '\n'.join(table)
 
+
+_pipe = re.compile(r"\|")
+
+def _escape_pipes(formatted_table, header):
+    """returns text with | replaced by \\|, adjusting column widths"""
+    resized = False
+    widths = list(map(len, formatted_table[0]))
+    num_rows = len(formatted_table)
+    num_cols = len(formatted_table[0])
+    for i in range(num_rows):
+        for j in range(num_cols):
+            cell = formatted_table[i][j]
+            if "|" in cell:
+                cell = _pipe.sub(r"\|", cell)
+                formatted_table[i][j] = cell
+                widths[j] = max(len(cell), widths[j])
+                resized = True
+
+    if resized:
+        for j in range(num_cols):
+            header[j] = header[j].center(widths[j])
+            for i in range(num_rows):
+                cell = formatted_table[i][j]
+                formatted_table[i][j] = cell.center(widths[j])
+
+    return formatted_table, header
+
+def markdown(header, formatted_table, space=1, justify=None):
+    """Returns a table in Markdown format
+    
+    Arguments:
+        - header: series with column headings
+        - formatted_table: a two dimensional structure (list/tuple) of strings
+          previously formatted to the same width within a column.
+        - space: number of spaces surrounding the cell contents, must be >= 1"""
+    assert space >= 1, "space must be >= 1"
+    if justify is not None:
+        assert len(justify) == len(header), \
+               "column number and justify entries must match"
+        justify = [c.lower() for c in justify]
+
+    formatted_table, header = _escape_pipes(formatted_table, header)
+
+    row_template="| %s |"
+    sep = "".join([" " * space, "|", " " * space])
+    divider = ["-" * (len(c) + 2 * space) for c in header]
+    if justify is not None:
+        for i in range(len(divider)):
+            d = divider[i]
+            if justify[i] == 'c':
+                d = ":%s:" % d[:-2]
+            elif justify[i] == 'r':
+                d = "%s:" % d[:-1]
+            elif justify[i] == 'l':
+                d = ":%s" % d[:-1]
+            else:
+                raise ValueError("invalid justfication character '%s'" %
+                                 justify[i])
+            divider[i] = d
+            
+    divider = "|%s|" % "|".join(divider)
+    rows = [row_template % sep.join(header),
+            divider] + [row_template % sep.join(r) for r in formatted_table]
+    return "\n".join(rows)
+    
 
 def grid_table_format(header, formatted_table, title=None, legend=None):
     """Returns a table in restructured text grid format.
