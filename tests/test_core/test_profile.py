@@ -54,7 +54,7 @@ class ProfileTests(TestCase):
         self.assertRaises(TypeError, Profile, array([[2, 3]]))
         # only alphabet
         p = Profile(array([[.2, .8], [.7, .3]]), "AB")
-        self.assertEqual(p.Data, [[.2, .8], [.7, .3]])
+        self.assertEqual(p.data, [[.2, .8], [.7, .3]])
         self.assertEqual(p.alphabet, "AB")
         self.assertEqual(p.char_order, list("AB"))
         self.assertEqual(translate("ABBA", p._translation_table),
@@ -69,7 +69,7 @@ class ProfileTests(TestCase):
                     char_order=[3, 7])
         self.assertEqual(p.char_order, [3, 7])
         self.assertEqual(p.alphabet, [7, 3])
-        self.assertEqual(p.Data, [[.1, .2], [.4, .3]])
+        self.assertEqual(p.data, [[.1, .2], [.4, .3]])
 
     def test_str(self):
         """__str__: should return string representation of data in profile
@@ -135,17 +135,17 @@ class ProfileTests(TestCase):
         p = Profile(array([[1, 1], [.7, .3]]), {
                     'A': 'A', 'G': 'G', 'R': 'AG'}, "AG")
         p_copy = p.copy()
-        assert p.Data is p_copy.Data
+        assert p.data is p_copy.data
         assert p.alphabet is p_copy.alphabet
         assert p.char_order is p_copy.char_order
 
         # modifying p.Data modifies p_copy.Data
-        p.Data[1, 1] = 100
+        p.data[1, 1] = 100
         assert p.alphabet is p_copy.alphabet
 
         # normalizing p.Data rebinds it, so p_copy.Data is unchanged
         p.normalize_positions()
-        assert not p.Data is p_copy.Data
+        assert not p.data is p_copy.data
 
         # Adding something to the alphabet changes both p and p_copy
         p.alphabet['Y'] = 'TC'
@@ -160,12 +160,12 @@ class ProfileTests(TestCase):
         """
         p = self.full.copy()
         p.normalize_positions()
-        self.assertEqual(p.Data, array(
+        self.assertEqual(p.data, array(
             [[2 / 6, 4 / 6], [3 / 8, 5 / 8], [4 / 12, 8 / 12]]))
-        self.assertEqual(sum(p.Data, 1), [1, 1, 1])
+        self.assertEqual(sum(p.data, 1), [1, 1, 1])
         p = self.empty_col.copy()
         p.normalize_positions()
-        self.assertEqual(p.Data, array([[0, 1], [0, 1]]))
+        self.assertEqual(p.data, array([[0, 1], [0, 1]]))
         p = self.empty_row.copy()
         self.assertRaises(ProfileError, p.normalize_positions)
         p = Profile(array([[0.0, 0.0]]), "AB")
@@ -174,7 +174,7 @@ class ProfileTests(TestCase):
         # negative numbers!!!!!!
         p1 = Profile(array([[3, -2], [4, -3]]), "AB")
         p1.normalize_positions()
-        self.assertEqual(p1.Data, array([[3, -2], [4, -3]]))
+        self.assertEqual(p1.data, array([[3, -2], [4, -3]]))
         p2 = Profile(array([[3, -3], [4, -3]]), "AB")
         self.assertRaises(ProfileError, p2.normalize_positions)
 
@@ -183,12 +183,12 @@ class ProfileTests(TestCase):
         """
         p = self.full.copy()
         p.normalize_seqs()
-        self.assertEqual(p.Data, array(
+        self.assertEqual(p.data, array(
             [[2 / 9, 4 / 17], [3 / 9, 5 / 17], [4 / 9, 8 / 17]]))
-        self.assertEqual(sum(p.Data, axis=0), [1, 1])
+        self.assertEqual(sum(p.data, axis=0), [1, 1])
         p = self.empty_row.copy()
         p.normalize_seqs()
-        self.assertEqual(p.Data, array([[1, 1], [0, 0]]))
+        self.assertEqual(p.data, array([[1, 1], [0, 0]]))
         p = self.empty_col.copy()
         self.assertRaises(ProfileError, p.normalize_seqs)
         p = Profile(array([[0.0], [0.0]]), "AB")
@@ -197,7 +197,7 @@ class ProfileTests(TestCase):
         # negative numbers!!!!!!
         p1 = Profile(array([[3, 4], [-2, -3]]), "AB")
         p1.normalize_seqs()
-        self.assertEqual(p1.Data, array([[3, 4], [-2, -3]]))
+        self.assertEqual(p1.data, array([[3, 4], [-2, -3]]))
         p2 = Profile(array([[3, 4], [-3, -3]]), "AB")
         self.assertRaises(ProfileError, p2.normalize_seqs)
 
@@ -273,13 +273,13 @@ class ProfileTests(TestCase):
         p1 = Profile(array([[1, 0, 0], [0, 1, 0]]), alphabet="ABC")
         p2 = Profile(array([[1, 0, 0], [0, 0, 1]]), alphabet="ABC")
 
-        self.assertEqual(p1.reduce(p2).Data, array([[1, 0, 0], [0, .5, .5]]))
+        self.assertEqual(p1.reduce(p2).data, array([[1, 0, 0], [0, .5, .5]]))
         self.assertEqual(p1.reduce(p2, add, normalize_input=True,
-                                   normalize_output=False).Data, array([[2, 0, 0], [0, 1, 1]]))
+                                   normalize_output=False).data, array([[2, 0, 0], [0, 1, 1]]))
         self.assertEqual(p1.reduce(p2, subtract, normalize_input=True,
-                                   normalize_output=False).Data, array([[0, 0, 0], [0, 1, -1]]))
+                                   normalize_output=False).data, array([[0, 0, 0], [0, 1, -1]]))
         self.assertEqual(p1.reduce(p2, multiply, normalize_input=True,
-                                   normalize_output=False).Data, array([[1, 0, 0], [0, 0, 0]]))
+                                   normalize_output=False).data, array([[1, 0, 0], [0, 0, 0]]))
 
         self.assertRaises(ProfileError, p1.reduce, p2, divide,
                           normalize_input=True, normalize_output=False)
@@ -289,21 +289,21 @@ class ProfileTests(TestCase):
         p4 = Profile(array([[4, 3], [2, 1]]), alphabet="AB")
 
         self.assertEqual(p3.reduce(p4, add, normalize_input=False,
-                                   normalize_output=False).Data, array([[5, 5], [5, 5]]))
+                                   normalize_output=False).data, array([[5, 5], [5, 5]]))
         self.assertFloatEqual(p3.reduce(p4, add, normalize_input=True,
-                                        normalize_output=False).Data, array([[19 / 21, 23 / 21], [23 / 21, 19 / 21]]))
+                                        normalize_output=False).data, array([[19 / 21, 23 / 21], [23 / 21, 19 / 21]]))
 
         # normalize input and output
         p5 = Profile(array([[1, 1, 0, 0], [1, 1, 1, 1]]), alphabet="ABCD")
         p6 = Profile(array([[1, 0, 0, 0], [1, 0, 0, 1]]), alphabet="ABCD")
 
         self.assertEqual(p5.reduce(p6, add, normalize_input=True,
-                                   normalize_output=True).Data, array([[.75, .25, 0, 0],
+                                   normalize_output=True).data, array([[.75, .25, 0, 0],
                                                                       [.375, .125, .125, .375]]))
 
         # it can collapse empty profiles when normalizing is turned off
         self.assertEqual(self.empty.reduce(self.empty,
-                                           normalize_input=False, normalize_output=False).Data.tolist(), [[]])
+                                           normalize_input=False, normalize_output=False).data.tolist(), [[]])
 
         # more specific tests of the operators will be in the
         # separate functions
@@ -314,23 +314,23 @@ class ProfileTests(TestCase):
             array([[.3, .4, .1, 0], [.1, .1, .1, .7]]), alphabet="ABCD")
         p2 = Profile(array([[1, 0, 0, 0], [1, 0, 0, 1]]), alphabet="ABCD")
         self.assertEqual(
-            (p1 + p2).Data, array([[1.3, .4, .1, 0], [1.1, .1, .1, 1.7]]))
+            (p1 + p2).data, array([[1.3, .4, .1, 0], [1.1, .1, .1, 1.7]]))
         self.assertRaises(ProfileError, self.empty.__add__, p1)
-        self.assertEqual((self.empty + self.empty).Data.tolist(), [[]])
+        self.assertEqual((self.empty + self.empty).data.tolist(), [[]])
 
     def test__sub_(self):
         """__sub__: should subtract two profiles, no normalization"""
         p1 = Profile(
             array([[.3, .4, .1, 0], [.1, .1, .1, .7]]), alphabet="ABCD")
         p2 = Profile(array([[1, 0, 0, 0], [1, 0, 0, 1]]), alphabet="ABCD")
-        self.assertFloatEqual((p1 - p2).Data, array([[-.7, .4, .1, 0],
+        self.assertFloatEqual((p1 - p2).data, array([[-.7, .4, .1, 0],
                                                    [-.9, .1, .1, -.3]]))
 
     def test__mul_(self):
         """__mul__: should multiply two profiles, no normalization"""
         p1 = Profile(array([[1, -2, 3, 0], [1, 1, 1, .5]]), alphabet="ABCD")
         p2 = Profile(array([[1, 0, 0, 0], [1, 0, 3, 2]]), alphabet="ABCD")
-        self.assertEqual((p1 * p2).Data, array([[1, 0, 0, 0],
+        self.assertEqual((p1 * p2).data, array([[1, 0, 0, 0],
                                               [1, 0, 3, 1]]))
 
     def test__div_(self):
@@ -344,7 +344,7 @@ class ProfileTests(TestCase):
         self.assertRaises(ProfileError, p1.__truediv__, p2)
         # infinity in result data
         self.assertRaises(ProfileError, p1.__div__, p3)
-        self.assertFloatEqual((p1.__div__(p4)).Data,
+        self.assertFloatEqual((p1.__div__(p4)).data,
                               array([[2, 1.5], [0.5, 1]]))
 
     def test_distance(self):
@@ -374,9 +374,9 @@ class ProfileTests(TestCase):
                     alphabet="ACTG")
         p_exp = Profile(array([[.4, 1.2, 2, .4], [1, 1, 1, 1], [.2, 3.2, .2, .4],
                                [2.8, .4, .4, .4], [2.4, .6, .2, .8]]), alphabet="ACTG")
-        self.assertEqual(p.to_odds_matrix().Data, p_exp.Data)
+        self.assertEqual(p.to_odds_matrix().data, p_exp.data)
         assert p.alphabet is p.to_odds_matrix().alphabet
-        self.assertEqual(p.to_odds_matrix([.25, .25, .25, .25]).Data, p_exp.Data)
+        self.assertEqual(p.to_odds_matrix([.25, .25, .25, .25]).data, p_exp.data)
 
         # fails if symbol_freqs has wrong size
         self.assertRaises(ProfileError, p.to_odds_matrix,
@@ -384,11 +384,11 @@ class ProfileTests(TestCase):
         self.assertRaises(ProfileError, self.zero_entry.to_odds_matrix,
                           [.1, .2, .3])
         # works on empty profile
-        self.assertEqual(self.empty.to_odds_matrix().Data.tolist(), [[]])
+        self.assertEqual(self.empty.to_odds_matrix().data.tolist(), [[]])
         # works with different input
-        self.assertEqual(self.zero_entry.to_odds_matrix().Data,
+        self.assertEqual(self.zero_entry.to_odds_matrix().data,
                          array([[1.2, .8, 0, 2], [0, 0, 3.2, .8]]))
-        self.assertFloatEqual(self.zero_entry.to_odds_matrix([.1, .2, .3, .4]).Data,
+        self.assertFloatEqual(self.zero_entry.to_odds_matrix([.1, .2, .3, .4]).data,
                               array([[3, 1, 0, 1.25], [0, 0, 2.667, .5]]), 1e-3)
         # fails when one of the background frequencies is 0
         self.assertRaises(ProfileError, self.zero_entry.to_odds_matrix,
@@ -408,9 +408,9 @@ class ProfileTests(TestCase):
              [ 1.485, -1.322, -1.322, -1.322],
              [ 1.263, -0.737, -2.322, -0.322]]),
             alphabet="ACTG")
-        self.assertFloatEqual(p.to_log_odds_matrix().Data, p_exp.Data, eps=1e-3)
+        self.assertFloatEqual(p.to_log_odds_matrix().data, p_exp.data, eps=1e-3)
         # works on empty matrix
-        self.assertEqual(self.empty.to_log_odds_matrix().Data.tolist(), [[]])
+        self.assertEqual(self.empty.to_log_odds_matrix().data.tolist(), [[]])
 
     def test__score_indices(self):
         """_score_indices: should work on valid input"""
@@ -579,9 +579,9 @@ class ProfileTests(TestCase):
     def test_column_degeneracy(self):
         """column_degeneracy: shoudl work as expected"""
         p1 = self.consensus
-        p1.Data = transpose(p1.Data)
+        p1.data = transpose(p1.data)
         p2 = self.not_same_value
-        p2.Data = transpose(p2.Data)
+        p2.data = transpose(p2.data)
         p1d = p1.column_degeneracy()
         self.assertEqual(p1d, [1, 1, 1, 2, 1])
         self.assertEqual(p1.column_degeneracy(cutoff=.5), [1, 1, 1, 2, 1])
@@ -653,7 +653,7 @@ class ProfileTests(TestCase):
         r = random([r_num, c_num])
         p = Profile(r, "A" * c_num)
         p.normalize_positions()
-        d = p.Data
+        d = p.data
         n = 1000
 
         # Test only works on normalized profile, b/c of 1-d below
@@ -682,7 +682,7 @@ class ProfileTests(TestCase):
         r = random([r_num, c_num])
         p = Profile(r, alpha[:c_num])
         p.normalize_positions()
-        d = p.Data
+        d = p.data
         n = 1000
 
         # Test only works on normalized profile, b/c of 1-d below
@@ -755,7 +755,7 @@ class ModuleLevelFunctionsTest(TestCase):
         for obs, exp in [(p1, p1_exp), (p2, p2_exp), (p3, p3_exp), (p4, p4_exp),
                         (p5, p5_exp), (p6, p6_exp), (p7, p7_exp)]:
             nz = [(chr(i), r.tolist())
-                   for i, r in enumerate(obs.Data) if r.any()]
+                   for i, r in enumerate(obs.data) if r.any()]
             self.assertEqualItems(nz, exp)
 
         self.assertRaises(ValueError, CharMeaningProfile, self.alt_dna,
