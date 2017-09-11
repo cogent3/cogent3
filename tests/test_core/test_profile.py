@@ -40,7 +40,7 @@ class ProfileTests(TestCase):
                                              [.3, .2, 0, 0], [0, 0, 4, 0]]), alphabet=DNA, char_order="TCAG")
         self.zero_entry = Profile(array([[.3, .2, 0, .5], [0, 0, .8, .2]]),
                                   alphabet="UCAG")
-        self.score1 = Profile(Data=array([[-1, 0, 1, 2], [-2, 2, 0, 0], [-3, 5, 1, 0]]),
+        self.score1 = Profile(data=array([[-1, 0, 1, 2], [-2, 2, 0, 0], [-3, 5, 1, 0]]),
                               alphabet=DNA, char_order="ATGC")
         self.score2 = Profile(array([[.2, .4, .4, 0], [.1, 0, .9, 0], [.1, .2, .3, .4]]),
                               alphabet="TCAG")
@@ -488,7 +488,7 @@ class ProfileTests(TestCase):
     def test_score_no_trans_table(self):
         """score: should work when no translation table is present
         """
-        p = Profile(Data=array([[-1, 0, 1, 2], [-2, 2, 0, 0], [-3, 5, 1, 0]]),
+        p = Profile(data=array([[-1, 0, 1, 2], [-2, 2, 0, 0], [-3, 5, 1, 0]]),
                     alphabet=DNA, char_order="ATGC")
         # remove translation table
         del p.__dict__['_translation_table']

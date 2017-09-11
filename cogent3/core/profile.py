@@ -39,7 +39,7 @@ class Profile(object):
     """Profile class
     """
 
-    def __init__(self, Data, alphabet, char_order=None):
+    def __init__(self, data, alphabet, char_order=None):
         """Initializes a new Profile object.
 
         Data: numpy 2D array with the Profile data in it.
@@ -52,7 +52,7 @@ class Profile(object):
         char_order: optional list of characters to which the columns
             in the Data correspond.
         """
-        self.Data = Data
+        self.Data = data
         self.alphabet = alphabet
         if char_order is None:
             self.char_order = list(self.alphabet)
@@ -762,4 +762,4 @@ def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
             raise ValueError("Found character in the character order " +
                              "that is not in the specified alphabet: %s" % (c))
         result[ord(c)] = array(c * lc, 'c') == char_order
-    return Profile(Data=result, alphabet=alphabet, char_order=char_order)
+    return Profile(data=result, alphabet=alphabet, char_order=char_order)
