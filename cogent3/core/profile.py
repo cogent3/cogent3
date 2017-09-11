@@ -363,8 +363,8 @@ class Profile(object):
                                % (symbol_freqs))
 
         # calculate the OddsMatrix
-        log_odds = self.data / symbol_freqs
-        return Profile(log_odds, self.alphabet, self.char_order)
+        odds_ratio = self.data / symbol_freqs
+        return Profile(odds_ratio, self.alphabet, self.char_order)
 
     def to_log_odds_matrix(self, symbol_freqs=None):
         """Returns the LogOddsMatrix of a profile as a new Profile/

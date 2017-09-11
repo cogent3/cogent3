@@ -369,11 +369,18 @@ class ProfileTests(TestCase):
     def test_to_odds_matrix(self):
         """to_odds_matrix: should work on valid data or raise an error
         """
-        p = Profile(array([[.1, .3, .5, .1], [.25, .25, .25, .25],
-                           [.05, .8, .05, .1], [.7, .1, .1, .1], [.6, .15, .05, .2]]),
+        p = Profile(array([[.1, .3, .5, .1],
+                           [.25, .25, .25, .25],
+                           [.05, .8, .05, .1],
+                           [.7, .1, .1, .1],
+                           [.6, .15, .05, .2]]),
                     alphabet="ACTG")
-        p_exp = Profile(array([[.4, 1.2, 2, .4], [1, 1, 1, 1], [.2, 3.2, .2, .4],
-                               [2.8, .4, .4, .4], [2.4, .6, .2, .8]]), alphabet="ACTG")
+        p_exp = Profile(array([[.4, 1.2, 2, .4],
+                               [1, 1, 1, 1],
+                               [.2, 3.2, .2, .4],
+                               [2.8, .4, .4, .4],
+                               [2.4, .6, .2, .8]]),
+                        alphabet="ACTG")
         self.assertEqual(p.to_odds_matrix().data, p_exp.data)
         assert p.alphabet is p.to_odds_matrix().alphabet
         self.assertEqual(p.to_odds_matrix([.25, .25, .25, .25]).data, p_exp.data)
