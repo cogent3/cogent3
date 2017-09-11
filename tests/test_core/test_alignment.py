@@ -1638,7 +1638,7 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
         s3 = DNA.make_seq('AGAT', name='s3')
         da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = da.get_seq_freqs()
-        self.assertEqual(obs.Data, exp)
+        self.assertEqual(obs.data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
         self.assertEqual(obs.char_order, list("TCAG"))
 
@@ -1647,7 +1647,7 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
         s3 = 'AGAT'
         da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = da.get_seq_freqs()
-        self.assertEqual(obs.Data, exp)
+        self.assertEqual(obs.data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
         self.assertEqual(obs.char_order, list("TCAG"))
 
@@ -1661,7 +1661,7 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
         s3 = DNA.make_seq('AGAT', name='s3')
         da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = da.get_pos_freqs()
-        self.assertEqual(obs.Data, exp)
+        self.assertEqual(obs.data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
         self.assertEqual(obs.char_order, list("TCAG"))
 
@@ -1670,7 +1670,7 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
         s3 = 'AGAT'
         da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = da.get_pos_freqs()
-        self.assertEqual(obs.Data, exp)
+        self.assertEqual(obs.data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
         self.assertEqual(obs.char_order, list("TCAG"))
 
@@ -1701,7 +1701,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         s3 = DNA.make_seq('AGAT', name='s3')
         aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = aln.get_seq_freqs()
-        self.assertEqual(obs.Data, exp)
+        self.assertEqual(obs.data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
         self.assertEqual(obs.char_order, list("TCAG"))
 
@@ -1710,7 +1710,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         s3 = 'AGAT'
         aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = aln.get_seq_freqs()
-        self.assertEqual(obs.Data, exp)
+        self.assertEqual(obs.data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
         self.assertEqual(obs.char_order, list("TCAG"))
 
@@ -1724,7 +1724,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         s3 = DNA.make_seq('AGAT', name='s3')
         aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = aln.get_pos_freqs()
-        self.assertEqual(obs.Data, exp)
+        self.assertEqual(obs.data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
         self.assertEqual(obs.char_order, list("TCAG"))
 
@@ -1733,7 +1733,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         s3 = 'AGAT'
         aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
         obs = aln.get_pos_freqs()
-        self.assertEqual(obs.Data, exp)
+        self.assertEqual(obs.data, exp)
         self.assertEqual(obs.alphabet, DNA.alphabet)
         self.assertEqual(obs.char_order, list("TCAG"))
 
@@ -2058,14 +2058,14 @@ class ArrayAlignmentSpecificTests(TestCase):
         ABModelSequence = self.ABModelSequence
         a = self.a
         f = a.get_seq_freqs()
-        self.assertEqual(f.Data, array([[3, 1], [1, 3]]))
+        self.assertEqual(f.data, array([[3, 1], [1, 3]]))
 
     def test_get_pos_freqs(self):
         """ArrayAlignment get_pos_freqs should get profile of freqs at each pos"""
         ABModelSequence = self.ABModelSequence
         a = self.a
         f = a.get_pos_freqs()
-        self.assertEqual(f.Data, array([[2, 0], [0, 2], [1, 1], [1, 1]]))
+        self.assertEqual(f.data, array([[2, 0], [0, 2], [1, 1], [1, 1]]))
 
     def test_get_seq_entropy(self):
         """ArrayAlignment get_seq_entropy should get entropy of each seq"""

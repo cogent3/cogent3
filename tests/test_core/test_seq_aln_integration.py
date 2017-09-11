@@ -105,9 +105,9 @@ class AllTests(TestCase):
                 exp[seq_index][get_index(char)] = expected_counts[
                                          seq_index][char]
         exp = array(exp)
-        self.assertEqual(self.da.get_seq_freqs().Data, exp)
+        self.assertEqual(self.da.get_seq_freqs().data, exp)
         # This used to raise an error, but now works
-        self.assertEqual(self.aln.get_seq_freqs().Data, exp)
+        self.assertEqual(self.aln.get_seq_freqs().data, exp)
 
     def test_subset_positions_ArrayAlignment(self):
         # because dict order volatile, need to grab the

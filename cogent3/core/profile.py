@@ -52,7 +52,7 @@ class Profile(object):
         char_order: optional list of characters to which the columns
             in the Data correspond.
         """
-        self.Data = data
+        self.data = data
         self.alphabet = alphabet
         if char_order is None:
             self.char_order = list(self.alphabet)
@@ -69,7 +69,7 @@ class Profile(object):
 
     def __str__(self):
         """Returns string representation of self.Data"""
-        return str(self.Data)
+        return str(self.data)
 
     def _make_translation_table(self):
         """Makes a translation tables between the char_order and indices
@@ -86,10 +86,10 @@ class Profile(object):
         Rounding errors might occur, so a small deviation from 1 is allowed.
             The default tolerance is 1e-16.
         """
-        obs_sums = sums = sum(self.Data, 1)
-        lower_bound = ones(len(self.Data)) - err
-        upper_bound = ones(len(self.Data)) + err
-        tfs = sum(self.Data, 1) == ones(len(self.Data))
+        obs_sums = sums = sum(self.data, 1)
+        lower_bound = ones(len(self.data)) - err
+        upper_bound = ones(len(self.data)) + err
+        tfs = sum(self.data, 1) == ones(len(self.data))
         if (lower_bound <= obs_sums).all() and (obs_sums <= upper_bound).all():
             return True
         return False
@@ -99,7 +99,7 @@ class Profile(object):
         if not reduce(logical_and, [c in self.alphabet
                                     for c in self.char_order]):
             return False
-        elif self.Data.shape[1] != len(self.char_order):
+        elif self.data.shape[1] != len(self.char_order):
             return False
         return True
 
@@ -117,17 +117,17 @@ class Profile(object):
 
         If character is None, all data for the position is returned.
         """
-        if not 0 <= pos < len(self.Data):
+        if not 0 <= pos < len(self.data):
             raise ProfileError(
                 "Position %s is not present in the profile" % (pos))
         if character is None:
-            return self.Data[pos, :]
+            return self.data[pos, :]
         else:
             if character not in self.char_order:
                 raise ProfileError(
                     "Character %s is not present in the profile's CharacterOrder"
                     % (character))
-            return self.Data[pos, self.char_order.index(character)]
+            return self.data[pos, self.char_order.index(character)]
 
     def copy(self):
         """Returns a copy of the Profile object
@@ -137,7 +137,7 @@ class Profile(object):
         attributes, but modifying them will change them in both the original
         and the copy.
         """
-        return self.__class__(self.Data, self.alphabet, self.char_order)
+        return self.__class__(self.data, self.alphabet, self.char_order)
 
     def normalize_positions(self):
         """Normalizes the data by position (the rows!) to one
@@ -155,13 +155,13 @@ class Profile(object):
         object, not with respect to the Data attribute. Normalization
         rebinds self.Data to a new array.
         """
-        row_sums = sum(self.Data, 1)
+        row_sums = sum(self.data, 1)
         if (row_sums == 0).any():
             zero_indices = nonzero(row_sums == 0)[0].tolist()
             raise ProfileError("Can't normalize profile, rows at indices %s add up to zero"
                                % (zero_indices))
         else:
-            self.Data = self.Data / row_sums[:, newaxis]
+            self.data = self.data / row_sums[:, newaxis]
 
     def normalize_seqs(self):
         """Normalized the data by sequences (the columns) to one
@@ -179,13 +179,13 @@ class Profile(object):
         object, not with respect to the Data attribute. Normalization
         rebinds self.Data to a new array.
         """
-        col_sums = sum(self.Data, axis=0)
+        col_sums = sum(self.data, axis=0)
         if (col_sums == 0).any():
             zero_indices = nonzero(col_sums == 0)[0].tolist()
             raise ProfileError("Can't normalize profile, columns at indices %s add up to zero"
                                % (zero_indices))
         else:
-            self.Data = self.Data / col_sums
+            self.data = self.data / col_sums
 
     def pretty_print(self, include_header=False, transpose_data=False,
                     column_limit=None, col_sep='\t'):
@@ -198,7 +198,7 @@ class Profile(object):
         col_sep = string, column separator
         """
         h = self.char_order
-        d = self.Data
+        d = self.data
         if column_limit is None:
             max_col_idx = d.shape[1]
         else:
@@ -243,9 +243,9 @@ class Profile(object):
         char order from self.
 
         """
-        if self.Data.shape != other.Data.shape:
+        if self.data.shape != other.data.shape:
             raise ProfileError("Cannot collapse profiles of different size: %s, %s"
-                               % (self.Data.shape, other.Data.shape))
+                               % (self.data.shape, other.data.shape))
         if normalize_input:
             self.normalize_positions()
             other.normalize_positions()
@@ -255,7 +255,7 @@ class Profile(object):
             ori_err = numpy.geterr()
             numpy.seterr(divide='raise')
             try:
-                new_data = op(self.Data, other.Data)
+                new_data = op(self.data, other.data)
             finally:
                 numpy.seterr(**ori_err)
             # with numpy_err(divide='raise'):
@@ -325,10 +325,10 @@ class Profile(object):
         is still calculated and may give unexpected results.
         """
         try:
-            return method(self.Data, other.Data)
+            return method(self.data, other.data)
         except ValueError:  # frames not aligned
             raise ProfileError("Profiles have different size (and are not aligned): %s %s"
-                               % (self.Data.shape, other.Data.shape))
+                               % (self.data.shape, other.data.shape))
 
     def to_odds_matrix(self, symbol_freqs=None):
         """Returns the OddsMatrix of a profile as a new Profile.
@@ -344,7 +344,7 @@ class Profile(object):
         ZeroDivisionError (raised when zero is an int) or 'inf' in the
         resulting matrix (which happens when zero is a float).
         """
-        pl = self.Data.shape[1]  # profile length
+        pl = self.data.shape[1]  # profile length
         # if symbol_freqs is None, create an array with equal frequencies
         if symbol_freqs is None:
             symbol_freqs = ones(pl) / pl
@@ -363,7 +363,7 @@ class Profile(object):
                                % (symbol_freqs))
 
         # calculate the OddsMatrix
-        log_odds = self.Data / symbol_freqs
+        log_odds = self.data / symbol_freqs
         return Profile(log_odds, self.alphabet, self.char_order)
 
     def to_log_odds_matrix(self, symbol_freqs=None):
@@ -376,7 +376,7 @@ class Profile(object):
         See to_odds_matrix for more information.
         """
         odds = self.to_odds_matrix(symbol_freqs)
-        log_odds = safe_log(odds.Data)
+        log_odds = safe_log(odds.data)
         return Profile(log_odds, self.alphabet, self.char_order)
 
     def _score_indices(self, seq_indices, offset=0):
@@ -389,7 +389,7 @@ class Profile(object):
         This function doesn't do any input validation. That is done in 'score'
         See method 'score' for more information.
         """
-        data = self.Data
+        data = self.data
         pl = len(data)  # profile length (number of positions)
         sl = len(seq_indices)
 
@@ -409,14 +409,14 @@ class Profile(object):
         This function doesn't do any input validation. That is done in 'score'
         See method 'score' for more information.
         """
-        data = self.Data
+        data = self.data
         self_l = len(data)  # profile length
-        other_l = len(profile.Data)  # other profile length
+        other_l = len(profile.data)  # other profile length
         result = []
         for start in range(offset, other_l - self_l + 1):
             stop = start + self_l
-            slice = profile.Data[start:stop, :]
-            result.append(sum(self.Data * slice))
+            slice = profile.data[start:stop, :]
+            result.append(sum(self.data * slice))
         return array(result)
 
     def score(self, input_data, offset=0):
@@ -467,7 +467,7 @@ class Profile(object):
         """
 
         # set up some local variables
-        data = self.Data
+        data = self.data
         pl = len(data)  # profile length
         is_profile = False
 
@@ -478,7 +478,7 @@ class Profile(object):
         # figure out what the input_data type is
         if isinstance(input_data, Profile):
             is_profile = True
-            to_score_length = len(input_data.Data)
+            to_score_length = len(input_data.data)
             # raise error if CharOrders don't match
             if self.char_order != input_data.char_order:
                 raise ProfileError("Profiles must have same character order")
@@ -517,10 +517,10 @@ class Profile(object):
 
         Entropy is returned in BITS (not in NATS).
         """
-        if not self.Data.any():
+        if not self.data.any():
             return array([])
         try:
-            return row_uncertainty(self.Data)
+            return row_uncertainty(self.data)
         except ValueError:
             raise ProfileError(
                 "Profile has to be two dimensional to calculate row_uncertainty")
@@ -530,10 +530,10 @@ class Profile(object):
 
         Uncertainty is returned in BITS (not in NATS).
         """
-        if not self.Data.any():
+        if not self.data.any():
             return array([])
         try:
-            return column_uncertainty(self.Data)
+            return column_uncertainty(self.data)
         except ValueError:
             raise ProfileError(
                 "Profile has to be two dimensional to calculate columnUncertainty")
@@ -554,7 +554,7 @@ class Profile(object):
         of columns in the Profile).
         """
         try:
-            return row_degeneracy(self.Data, cutoff)
+            return row_degeneracy(self.data, cutoff)
         except ValueError:
             raise ProfileError(
                 "Profile has to be two dimensional to calculate row_degeneracy")
@@ -565,14 +565,14 @@ class Profile(object):
         See row_degeneracy for more information.
         """
         try:
-            return column_degeneracy(self.Data, cutoff)
+            return column_degeneracy(self.data, cutoff)
         except ValueError:
             raise ProfileError(
                 "Profile has to be two dimensional to calculate column_degeneracy")
 
     def row_max(self):
         """Returns ara containing most frequent element in each row of the profile."""
-        return max(self.Data, 1)
+        return max(self.data, 1)
 
     def to_consensus(self, cutoff=None, fully_degenerate=False,
                     include_all=False):
@@ -603,7 +603,7 @@ class Profile(object):
         # set up some local variables
         co = array(self.char_order, 'c')
         alpha = self.alphabet
-        data = self.Data
+        data = self.data
 
         # determine the action. Cutoff takes priority over fully_degenerate
         if cutoff:
@@ -628,10 +628,10 @@ class Profile(object):
                                            if item in nonzero(data[row_idx])[0]])))))
 
         elif not fully_degenerate:
-            result = take(co, argmax(self.Data, axis=-1), axis=0)
+            result = take(co, argmax(self.data, axis=-1), axis=0)
         else:
             result = []
-            for row in self.Data:
+            for row in self.data:
                 val = list(map(lambda x: x.decode('utf8'),
                                take(co, nonzero(row)[0], axis=0)))
                 val = alpha.degenerate_from_seq(val)
@@ -655,8 +655,8 @@ class Profile(object):
         char_order of the Profile.
         """
         if force_accumulate or not hasattr(self, '_accumulated'):
-            self._accumulated = cumsum(self.Data, 1)
-        choices = random_f(len(self.Data))
+            self._accumulated = cumsum(self.data, 1)
+        choices = random_f(len(self.data))
         return array([searchsorted(v, c) for v, c in
                       zip(self._accumulated, choices)])
 
