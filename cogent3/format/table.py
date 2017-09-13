@@ -20,6 +20,10 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+known_formats = ("bedgraph", "phylip", "rest", "rst",
+                 "markdown", "md", "tex", "html",
+                 "simple")
+
 
 def _merged_cell_text_wrap(text, max_line_length, space):
     """ left justify wraps text into multiple rows"""
@@ -38,7 +42,12 @@ def html(text, **kwargs):
     """Returns the text as html."""
     from docutils.core import publish_string
     # assuming run from the correct directory
-    return publish_string(source=text, writer_name='html', **kwargs)
+    r = publish_string(source=text, writer_name='html', **kwargs)
+    try:
+        r = r.decode('utf-8')
+    except AttributeError:
+        pass
+    return r
 
 
 def _merge_cells(row):

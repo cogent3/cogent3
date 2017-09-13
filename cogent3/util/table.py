@@ -99,7 +99,7 @@ class Table(DictArray):
     def __init__(self, header=None, rows=None, row_order=None, digits=4,
                  space=4, title='', missing_data='', max_width=1e100,
                  row_ids=None, legend='', column_templates=None,
-                 dtype=None, data_frame=None):
+                 dtype=None, data_frame=None, format="simple"):
         """
         Arguments:
         - header: column headings
@@ -119,6 +119,7 @@ class Table(DictArray):
           or a function that will handle the formatting.
         - dtype: optional numpy array typecode.
         - data_frame: pandas DataFrame, Table will be created from this
+        - format: output format when using str(Table)
         """
         if data_frame is not None and not _pandas_available:
             raise ValueError("data_frame provided when pandas not installed")
@@ -174,6 +175,8 @@ class Table(DictArray):
         # some attributes are not preserved in any file format, so always based
         # on args
         self._column_templates = column_templates or {}
+        
+        self.format = format
 
     def __repr__(self):
         row = []
@@ -211,7 +214,7 @@ class Table(DictArray):
         return result
 
     def __str__(self):
-        return self.tostring()
+        return self.tostring(self.format)
 
     def __getitem__(self, names):
         (index, remaining) = self.template.interpret_index(names)
@@ -258,6 +261,22 @@ class Table(DictArray):
         """disallowed"""
         raise RuntimeError("not allowed to set the header")
 
+    @property
+    def format(self):
+        """the display format"""
+        return self._format
+    
+    @format.setter
+    def format(self, new):
+        """the display format"""
+        # setting the default format for str(self)
+        if new.lower() in table_format.known_formats:
+            new = new.lower()
+        else:
+            new = "simple"        
+        self._format = new
+    
+
     header = property(_get_header, _set_header)
 
     def with_new_header(self, old, new, **kwargs):
@@ -288,7 +307,8 @@ class Table(DictArray):
                    legend=self.legend, digits=self._digits,
                    space=self.space, max_width=self._max_width,
                    missing_data=self._missing_data,
-                   column_templates=self._column_templates or None)
+                   column_templates=self._column_templates or None,
+                   format=self._format)
         return kws
 
     def format_column(self, column_head, format_template):
