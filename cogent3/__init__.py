@@ -121,7 +121,7 @@ def LoadTable(filename=None, sep=None, reader=None, header=None, rows=None,
               row_order=None, digits=4, space=4, title='', missing_data='',
               max_width=1e100, row_ids=None, legend='', column_templates=None,
               dtype=None, static_column_types=False, limit=None,
-              data_frame=None, **kwargs):
+              data_frame=None, format="simple", **kwargs):
     """
     Arguments:
     - filename: path to file containing a pickled table
@@ -151,6 +151,7 @@ def LoadTable(filename=None, sep=None, reader=None, header=None, rows=None,
     - limit: exits after this many lines. Only applied for non pickled data
       file types.
     - data_frame: a pandas DataFrame, supersedes header/rows
+    - format: output format when using str(Table)
     """
     sep = sep or kwargs.pop('delimiter', None)
     if filename is not None and not (reader or static_column_types):
@@ -183,7 +184,7 @@ def LoadTable(filename=None, sep=None, reader=None, header=None, rows=None,
                    dtype=dtype, column_templates=column_templates, space=space,
                    missing_data=missing_data, max_width=max_width, row_ids=row_ids,
                    legend=legend,
-                   data_frame=data_frame)
+                   data_frame=data_frame, format=format)
 
     return table
 
