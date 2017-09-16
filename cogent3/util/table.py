@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 """
-A light-weight Table class for manipulating 2D data and representing it as text, or writing to file for import into other packages.
+A light-weight Table class for manipulating 2D data and representing it as
+text, or writing to file for import into other packages.
 
-Current output formats include pickle (pythons serialisation format), restructured text (keyed by 'rest'), latex, html, delimited columns, and a simple text format.
+Current output formats include pickle (pythons serialisation format),
+restructured text (keyed by 'rest'), latex, html, delimited columns, and a
+simple text format.
 
 Table can read pickled and delimited formats.
-
 """
 
 import pickle
@@ -125,12 +127,12 @@ class Table(DictArray):
             raise ValueError("data_frame provided when pandas not installed")
         elif data_frame is not None:
             if rows or header:
-                warnings.warn("provided rows/header will be over ridden by "\
+                warnings.warn("provided rows/header will be over ridden by "
                               "DataFrame")
-            
+
             rows = data_frame.to_records(index=False).tolist()
             header = data_frame.columns.tolist()
-            
+
         try:
             num_cols = len(header)
             assert num_cols > 0
@@ -175,7 +177,7 @@ class Table(DictArray):
         # some attributes are not preserved in any file format, so always based
         # on args
         self._column_templates = column_templates or {}
-        
+
         self.format = format
 
     def __repr__(self):
@@ -212,6 +214,10 @@ class Table(DictArray):
         result = 'Table(numrows=%s, numcols=%s, header=%s, rows=%s)' % \
             (self.shape[0], self.shape[1], header_trunc, row_trunc)
         return result
+
+    def _repr_html_(self):
+        """returns html, used by Jupyter"""
+        return self.to_rich_html()
 
     def __str__(self):
         return self.tostring(self.format)
@@ -253,11 +259,13 @@ class Table(DictArray):
         self.__dict__.update(new.__dict__)
         return self
 
-    def _get_header(self):
+    @property
+    def header(self):
         """returns header value"""
         return self._header
 
-    def _set_header(self, data):
+    @header.setter
+    def header(self, data):
         """disallowed"""
         raise RuntimeError("not allowed to set the header")
 
@@ -265,7 +273,7 @@ class Table(DictArray):
     def format(self):
         """the display format"""
         return self._format
-    
+
     @format.setter
     def format(self, new):
         """the display format"""
@@ -273,11 +281,8 @@ class Table(DictArray):
         if new.lower() in table_format.known_formats:
             new = new.lower()
         else:
-            new = "simple"        
+            new = "simple"
         self._format = new
-    
-
-    header = property(_get_header, _set_header)
 
     def with_new_header(self, old, new, **kwargs):
         """returns a new Table with old header labels replaced by new
@@ -324,14 +329,16 @@ class Table(DictArray):
 
         self._column_templates[column_head] = format_template
 
-    def tostring(self, format='', borders=True, sep=None, center=False, **kwargs):
+    def tostring(self, format='', borders=True, sep=None, center=False,
+                 **kwargs):
         """Return the table as a formatted string.
 
         Arguments:
             - format: possible formats are 'rest'/'rst', 'markdown'/'md',
-              'latex', 'html', 'phylip', 'bedgraph', or simple text (default).
-            - sep: A string separator for delineating columns, e.g. ',' or '\t'.
-              Overrides format.
+              'latex', 'html', 'phylip', 'bedgraph', 'csv', 'tsv', or 'simple'
+              (default).
+            - sep: A string separator for delineating columns, e.g. ',' or
+              '\t'. Overrides format.
             - center: content is centered in the column, default is right
               justified
 
@@ -343,15 +350,19 @@ class Table(DictArray):
         else:
             missing_data = self._missing_data
 
+        if format.lower() in ("tsv", "csv"):
+            sep = sep or {"tsv": "\t", "csv": ","}[format.lower()]
+            format = ''
+
         # convert self to a 2D list
         formatted_table = self.array.tolist()
         if format != 'bedgraph':
             header, formatted_table = table_format.formatted_cells(formatted_table,
-                                                                  self.header,
-                                                                  digits=self._digits,
-                                                                  column_templates=self._column_templates,
-                                                                  missing_data=missing_data,
-                                                                  center=center)
+                                                                   self.header,
+                                                                   digits=self._digits,
+                                                                   column_templates=self._column_templates,
+                                                                   missing_data=missing_data,
+                                                                   center=center)
             args = (header, formatted_table, self.title, self.legend)
         if sep and format != 'bedgraph':
             return table_format.separator_format(*args + (sep,))
@@ -367,8 +378,7 @@ class Table(DictArray):
             return table_format.latex(formatted_table, header,
                                       caption=caption, **kwargs)
         elif format == 'html':
-            rest = table_format.grid_table_format(*args)
-            return table_format.html(rest)
+            return self.to_rich_html()
         elif format == 'phylip':
             # need to eliminate row identifiers
             formatted_table = [row[self._row_ids:] for row in formatted_table]
@@ -382,10 +392,10 @@ class Table(DictArray):
             return formatted_table
         else:
             return table_format.simple_format(*args + (self._max_width,
-                                                      self._row_ids, borders, self.space))
+                                                       self._row_ids, borders, self.space))
 
     def to_rich_html(self, row_cell_func=None, header_cell_func=None,
-                        element_formatters={}, merge_identical=True, compact=True):
+                     element_formatters={}, merge_identical=True, compact=True):
         """returns just the table html code.
         Arguments:
             - row_cell_func: callback function that formats the row values. Must
@@ -399,25 +409,35 @@ class Table(DictArray):
         """
         formatted_table = self.array.tolist()
         header, formatted_table = table_format.formatted_cells(formatted_table,
-                                                              self.header,
-                                                              digits=self._digits,
-                                                              column_templates=self._column_templates,
-                                                              missing_data=self._missing_data)
+                                                               self.header,
+                                                               digits=self._digits,
+                                                               column_templates=self._column_templates,
+                                                               missing_data=self._missing_data)
         # but we strip the cell spacing
         header = [v.strip() for v in header]
         rows = [[c.strip() for c in r] for r in formatted_table]
+        title = self.title if self.title else ""
+        if title:
+            title = '<span style="font-weight:bold">%s</span>' % title
+
+        legend = self.legend if self.legend else ""
+        if legend:
+            title = "%s %s" % (title, legend) if title else legend
+
+        caption = title if title else None
+
         return table_format.rich_html(rows, row_cell_func=row_cell_func,
                                       header=header,
                                       header_cell_func=header_cell_func,
                                       element_formatters=element_formatters,
-                                      compact=compact)
+                                      compact=compact, caption=caption)
 
     def write(self, filename, mode=None, writer=None, format=None,
-                    sep=None, compress=None, **kwargs):
+              sep=None, compress=None, **kwargs):
         """Write table to filename in the specified format. If a format is not
         specified, it attempts to use a filename suffix. Note if a sep argument
-        is provided, unformatted values are written to file in order to preserve
-        numerical accuracy.
+        is provided, unformatted values are written to file in order to
+        preserve numerical accuracy.
 
         Arguments:
             - mode: file opening mode
@@ -431,16 +451,16 @@ class Table(DictArray):
         file_suffix, compress_suffix = get_format_suffixes(filename)
         format = format or file_suffix
         compress = compress or compress_suffix is not None
-        
+
         mode = mode or {'pickle': 'wb'}.get(format, 'w')
-        
+
         if compress:
             if not filename.endswith('.gz'):
                 filename = '%s.gz' % filename
             mode = 'wt'
-        
+
         outfile = open_(filename, mode)
-        
+
         if format is None:
             # try guessing from filename suffix
             if compress:
@@ -455,7 +475,7 @@ class Table(DictArray):
             sep = sep or ','
         elif format == 'tsv':
             sep = sep or '\t'
-        
+
         if writer:
             rows = self.tolist()
             rows.insert(0, self.header[:])
@@ -491,8 +511,8 @@ class Table(DictArray):
         # convert series of tables
         if isinstance(tables[0], tuple) or isinstance(tables[0], list):
             tables = tuple(tables[0])
-        # for each table, determine it's number of rows and create an equivalent
-        # length vector of its title
+        # for each table, determine it's number of rows and create an
+        # equivalent length vector of its title
         if new_column:
             header = [new_column] + self.header
         else:
@@ -542,11 +562,11 @@ class Table(DictArray):
         """returns pandas DataFrame instance if pandas installed"""
         if not _pandas_available:
             raise ImportError("pandas not installed")
-        
+
         index = None if self._row_ids is None else self.template.names[0]
         df = DataFrame(data=self.asarray(), columns=self.header, index=index)
         return df
-        
+
     def _callback(self, callback, row, columns=None, num_columns=None):
         if isinstance(callback, collections.Callable):
             row_segment = row.take(columns)
@@ -667,7 +687,6 @@ class Table(DictArray):
         indices = [self.header.index(col) for col in columns]
 
         if not reverse:
-            is_reversed = [False] * len(columns)
             reverse_indices = []
         else:
             if type(reverse) == str:
@@ -678,8 +697,6 @@ class Table(DictArray):
                 if col in reverse:
                     reverse_indices += [index]
 
-            is_reversed = [col in reverse for col in columns]
-
         reverse_indices = numpy.array(reverse_indices)
 
         dtypes = [(self.header[i], self.array.dtype) for i in indices]
@@ -688,7 +705,6 @@ class Table(DictArray):
         aux_list = self.array.take(indices, axis=1)
 
         # we figure out the casting funcs for any reversed elements
-        cast = []
         for index in reverse_indices:
             val = aux_list[0, index]
             try:
