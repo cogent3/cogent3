@@ -8,6 +8,7 @@ columns separated by a provided string, and a simple text format.
 """
 import re
 import textwrap
+from xml.sax.saxutils import escape
 from cogent3.util.warning import discontinued
 
 __author__ = "Gavin Huttley"
@@ -22,7 +23,7 @@ __status__ = "Production"
 
 known_formats = ("bedgraph", "phylip", "rest", "rst",
                  "markdown", "md", "tex", "html",
-                 "simple")
+                 "simple", "csv", "tsv")
 
 
 def _merged_cell_text_wrap(text, max_line_length, space):
@@ -36,18 +37,6 @@ def _merged_cell_text_wrap(text, max_line_length, space):
     wrapped = ["%s" % line.ljust(max_line_width + 2 * space)
                for line in wrapped]
     return wrapped
-
-
-def html(text, **kwargs):
-    """Returns the text as html."""
-    from docutils.core import publish_string
-    # assuming run from the correct directory
-    r = publish_string(source=text, writer_name='html', **kwargs)
-    try:
-        r = r.decode('utf-8')
-    except AttributeError:
-        pass
-    return r
 
 
 def _merge_cells(row):
@@ -70,7 +59,8 @@ def _merge_cells(row):
 
 
 def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
-              element_formatters={}, merge_identical=True, compact=True):
+              element_formatters=None, merge_identical=True, compact=True,
+              caption=None):
     """returns just the html Table string
 
     Arguments:
@@ -84,11 +74,16 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
           formatting individual html table elements.
           e.g. {'table': lambda x: '<table border="1" class="docutils">'}
         - merge_identical: cells within a row are merged to one span.
+        - caption: Table title / legend
 
     Note: header_cell_func and row_cell_func override element_formatters.
     """
+    element_formatters = element_formatters or {}
     formatted = element_formatters.get
     data = [formatted('table', '<table>')]
+    if caption:
+        data.append('<caption align="top">%s</caption>' % caption)
+
     # TODO use the docutils writer html convertor instead of str, for correct
     # escaping of characters
     if row_cell_func is None:
@@ -104,7 +99,8 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
 
     if header:
         th = formatted('th', '<th>')
-        row = [header_cell_func(label, i) for i, label in enumerate(header)]
+        row = [header_cell_func(escape(label), i)
+               for i, label in enumerate(header)]
         data += [formatted('tr', '<tr>')] + row + ['</tr>']
 
     formatted_rows = []
@@ -112,7 +108,7 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
     for ridx, row in enumerate(rows):
         new = [formatted('tr', '<tr>')]
         for cidx, cell in row_iterator(row):
-            new += [row_cell_func(cell, ridx, cidx)]
+            new += [row_cell_func(escape(cell), ridx, cidx)]
         new += ['</tr>']
         formatted_rows += new
     data += formatted_rows
