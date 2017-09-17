@@ -14,6 +14,7 @@ import pickle
 import csv
 import collections
 import warnings
+from xml.sax.saxutils import escape
 
 import numpy
 try:
@@ -418,10 +419,12 @@ class Table(DictArray):
         rows = [[c.strip() for c in r] for r in formatted_table]
         title = self.title if self.title else ""
         if title:
+            title = escape(title)
             title = '<span style="font-weight:bold">%s</span>' % title
 
         legend = self.legend if self.legend else ""
         if legend:
+            legend = escape(legend)
             title = "%s %s" % (title, legend) if title else legend
 
         caption = title if title else None
