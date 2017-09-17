@@ -84,8 +84,6 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
     if caption:
         data.append('<caption align="top">%s</caption>' % caption)
 
-    # TODO use the docutils writer html convertor instead of str, for correct
-    # escaping of characters
     if row_cell_func is None:
         row_cell_func = lambda v, r, c: '<td>%s</td>' % v
 
