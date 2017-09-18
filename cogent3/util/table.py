@@ -379,7 +379,7 @@ class Table(DictArray):
             return table_format.latex(formatted_table, header,
                                       caption=caption, **kwargs)
         elif format == 'html':
-            return self.to_rich_html()
+            return self.to_rich_html(**kwargs)
         elif format == 'phylip':
             # need to eliminate row identifiers
             formatted_table = [row[self._row_ids:] for row in formatted_table]
@@ -396,7 +396,7 @@ class Table(DictArray):
                                                        self._row_ids, borders, self.space))
 
     def to_rich_html(self, row_cell_func=None, header_cell_func=None,
-                     element_formatters={}, merge_identical=True, compact=True):
+                     element_formatters={}, merge_identical=False, compact=False):
         """returns just the table html code.
         Arguments:
             - row_cell_func: callback function that formats the row values. Must
@@ -433,6 +433,7 @@ class Table(DictArray):
                                       header=header,
                                       header_cell_func=header_cell_func,
                                       element_formatters=element_formatters,
+                                      merge_identical=merge_identical,
                                       compact=compact, caption=caption)
 
     def write(self, filename, mode=None, writer=None, format=None,

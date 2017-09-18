@@ -617,7 +617,7 @@ We then call the method, without this argument, then with it.
 
 .. doctest::
 
-    >>> straight_html = dist.to_rich_html()
+    >>> straight_html = dist.to_rich_html(compact=True)
     >>> print(straight_html)
     <table><tr><th>seq1/2</th><th>a...
     >>> rich_html = dist.to_rich_html(row_cell_func=format_cell,
