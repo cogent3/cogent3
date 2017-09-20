@@ -73,7 +73,9 @@ We then provide an alignment and optimise the model. In the current case we just
     >>> lf.set_alignment(aln)
     >>> lf.optimise(**optimiser_args)
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -6767.0980
+    number of free parameters = 16
     ========================================
      A/C    A/G    A/T    C/G    C/T   omega
     ----------------------------------------
@@ -94,11 +96,21 @@ We then provide an alignment and optimise the model. In the current case we just
         edge.2   edge.3     0.04
         edge.3     root     0.02
     ----------------------------
-    ==============
-    motif   mprobs
-    --------------
-      AAA     0.06
-      AAC     0.02...
+    ===============
+    motif    mprobs
+    ---------------
+      AAA      0.06
+      AAC      0.02
+      AAG      0.03
+      AAT      0.06
+      ACA      0.02
+      ...       ...
+      TGT      0.02
+      TTA      0.02
+      TTC      0.01
+      TTG      0.01
+      TTT      0.02
+    ---------------
 
 In the above output, the first table shows the maximum likelihood estimates (MLEs) for the substitution model parameters that are 'global' in scope. For instance, the ``C/T=4.58`` MLE indicates that the relative rate of substitutions between C and T is nearly 5 times the background substitution rate.
 
@@ -117,7 +129,9 @@ We can then free up the omega parameter, but before we do that we'll store the l
     >>> lf.set_param_rule('omega', is_constant=False)
     >>> lf.optimise(**optimiser_args)
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -6762.5761
+    number of free parameters = 17
     ========================================
      A/C    A/G    A/T    C/G    C/T   omega
     ----------------------------------------
@@ -127,7 +141,32 @@ We can then free up the omega parameter, but before we do that we'll store the l
           edge   parent   length
     ----------------------------
         Galago     root     0.53
-     HowlerMon     root     0.14...
+     HowlerMon     root     0.14
+        Rhesus   edge.3     0.07
+     Orangutan   edge.2     0.02
+       Gorilla   edge.1     0.01
+         Human   edge.0     0.02
+    Chimpanzee   edge.0     0.01
+        edge.0   edge.1     0.00
+        edge.1   edge.2     0.01
+        edge.2   edge.3     0.03
+        edge.3     root     0.02
+    ----------------------------
+    ===============
+    motif    mprobs
+    ---------------
+      AAA      0.06
+      AAC      0.02
+      AAG      0.03
+      AAT      0.06
+      ACA      0.02
+      ...       ...
+      TGT      0.02
+      TTA      0.02
+      TTC      0.01
+      TTG      0.01
+      TTT      0.02
+    ---------------
     >>> non_neutral_lnL = lf.get_log_likelihood()
     >>> non_neutral_nfp = lf.get_num_free_params()
 
@@ -147,7 +186,9 @@ Not surprisingly, this is significant. We then ask whether the Human and Chimpan
     ...                          outgroup_name='Galago', is_clade=True)
     >>> lf.optimise(**optimiser_args)
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -6760.1751
+    number of free parameters = 18
     ================================
      A/C    A/G    A/T    C/G    C/T
     --------------------------------
@@ -163,7 +204,26 @@ Not surprisingly, this is significant. We then ask whether the Human and Chimpan
        Gorilla   edge.1     0.01    0.73
          Human   edge.0     0.02    2.39
     Chimpanzee   edge.0     0.01    2.39
-        edge.0   edge.1     0.00    0.73...
+        edge.0   edge.1     0.00    0.73
+        edge.1   edge.2     0.01    0.73
+        edge.2   edge.3     0.03    0.73
+        edge.3     root     0.02    0.73
+    ------------------------------------
+    ===============
+    motif    mprobs
+    ---------------
+      AAA      0.06
+      AAC      0.02
+      AAG      0.03
+      AAT      0.06
+      ACA      0.02
+      ...       ...
+      TGT      0.02
+      TTA      0.02
+      TTC      0.01
+      TTG      0.01
+      TTT      0.02
+    ---------------
     >>> chimp_human_clade_lnL = lf.get_log_likelihood()
     >>> chimp_human_clade_nfp = lf.get_num_free_params()
     >>> LR = 2 * (chimp_human_clade_lnL - non_neutral_lnL)
@@ -233,7 +293,9 @@ The above statement essentially assigns a probability of nearly 1 to the 'neutra
     >>> LR = 2 * (rate_lnL - non_neutral_lnL)
     >>> df = rate_nfp - non_neutral_nfp
     >>> print(rate_lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -6755.4520
+    number of free parameters = 19
     ================================
      A/C    A/G    A/T    C/G    C/T
     --------------------------------
@@ -260,11 +322,21 @@ The above statement essentially assigns a probability of nearly 1 to the 'neutra
         edge.2   edge.3     0.03
         edge.3     root     0.02
     ----------------------------
-    ==============
-    motif   mprobs
-    --------------
-      AAA     0.06
-      AAC     0.02...
+    ===============
+    motif    mprobs
+    ---------------
+      AAA      0.06
+      AAC      0.02
+      AAG      0.03
+      AAT      0.06
+      ACA      0.02
+      ...       ...
+      TGT      0.02
+      TTA      0.02
+      TTC      0.01
+      TTG      0.01
+      TTT      0.02
+    ---------------
     >>> print(chisqprob(LR, df))
     0.000...
 
@@ -383,7 +455,9 @@ This function can then be optimised as before. The results of one such optimisat
 
     rate_branch_lf.optimise(**optimiser_args)
     print(rate_branch_lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -6753.4561
+    number of free parameters = 21
     =========================
           edge   bin    omega
     -------------------------

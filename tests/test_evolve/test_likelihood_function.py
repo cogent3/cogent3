@@ -328,7 +328,9 @@ class LikelihoodFunctionTests(TestCase):
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
         self.assertEqual(str(likelihood_function),
-                         """Likelihood Function Table\n\
+"""Likelihood function statistics
+log-likelihood = -250.6867
+number of free parameters = 0\n\
 ======
   beta
 ------
@@ -356,7 +358,9 @@ motif    mprobs
 
         likelihood_function = self._makeLikelihoodFunction(digits=2, space=2)
         self.assertEqual(str(likelihood_function),
-                         """Likelihood Function Table\n\
+"""Likelihood function statistics
+log-likelihood = -382.5399
+number of free parameters = 14
 ===============================
      edge  parent  length  beta
 -------------------------------
@@ -498,7 +502,9 @@ motif  mprobs
         likelihood_function.set_param_rule("length", value=4.0, is_constant=True)
         likelihood_function.set_param_rule("beta", value=6.0, is_constant=True)
         self.assertEqual(str(likelihood_function),
-                         """Likelihood Function Table
+"""Likelihood function statistics
+log-likelihood = -413.1886
+number of free parameters = 0
 ======
   beta
 ------
@@ -527,7 +533,9 @@ motif    mprobs
         # self.submodel.setScaleRule("ts",['beta'])
         #self.submodel.setScaleRule("tv",['beta'], exclude_pars = True)
         self.assertEqual(str(likelihood_function),
-                         """Likelihood Function Table
+"""Likelihood function statistics
+log-likelihood = -413.1886
+number of free parameters = 0
 ======
   beta
 ------
@@ -577,6 +585,8 @@ motif    mprobs
         likelihood_function.set_name("TEST")
         self.assertEqual(str(likelihood_function),
                          """TEST
+log-likelihood = -382.5399
+number of free parameters = 14
 =======================================
      edge    parent    length      beta
 ---------------------------------------

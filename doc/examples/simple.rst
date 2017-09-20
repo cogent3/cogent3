@@ -16,7 +16,9 @@ This is just about the simplest possible ``cogent3`` script for evolutionary mod
     >>> lf.set_alignment(aln)
     >>> lf.optimise(show_progress=False)
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -2494.9537
+    number of free parameters = 4
     ======
      kappa
     ------

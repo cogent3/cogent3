@@ -58,7 +58,9 @@ I'm going to cause ``omega`` to attain a different value for all branches aside 
     >>> lf.set_param_rule('omega', tip_names=['DogFaced', 'Mouse'],
     ...              outgroup_name='Human', init=2.0, is_clade=True)
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -9489.9506
+    number of free parameters = 10
     =====
     kappa
     -----
@@ -99,7 +101,9 @@ This time I'll specify the stem leading to the primates as the edge of interest.
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', init=2.0, is_stem=True, is_clade=False)
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -9424.8896
+    number of free parameters = 10
     =====
     kappa
     -----
@@ -132,7 +136,9 @@ I'll specify that both the primates and their stem are to be considered.
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
     ...      outgroup_name='Mouse', init=2.0, is_stem=True, is_clade=True)
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -9442.4271
+    number of free parameters = 10
     =====
     kappa
     -----
@@ -194,7 +200,9 @@ I'll demonstrate these cases sequentially as they involve gradually increasing t
     ...      outgroup_name='Mouse', is_clade=True, value=1.0, is_constant=True)
     >>> lf.optimise(local=True, show_progress=False)
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -8640.9290
+    number of free parameters = 9
     =====
     kappa
     -----
@@ -232,7 +240,9 @@ I'll now free up ``omega`` on the primate clade, but making it a single value sh
     ...      outgroup_name='Mouse', is_clade=True, is_constant=False)
     >>> lf.optimise(local=True, show_progress=False)
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -8639.7171
+    number of free parameters = 10
     =====
     kappa
     -----
@@ -270,7 +280,9 @@ Finally I'll allow all primate edges to have different values of ``omega``.
     ...      outgroup_name='Mouse', is_clade=True, is_independent=True)
     >>> lf.optimise(local=True, show_progress=False)
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -8638.9572
+    number of free parameters = 11
     =====
     kappa
     -----
@@ -307,7 +319,9 @@ We now allow ``omega`` to be different on all edges.
     >>> lf.set_param_rule('omega', is_independent=True)
     >>> lf.optimise(local=True, show_progress=False)
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -8636.1383
+    number of free parameters = 15
     =====
     kappa
     -----

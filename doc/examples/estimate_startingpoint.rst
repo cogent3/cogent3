@@ -59,7 +59,9 @@ and the faster Powell optimiser that will only find the best result near the pro
 .. doctest::
 
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -9022.5387
+    number of free parameters = 7
     =============================
          edge    parent    length
     -----------------------------

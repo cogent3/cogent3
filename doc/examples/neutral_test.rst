@@ -47,7 +47,9 @@ View the resulting maximum-likelihood parameter values
 .. doctest::
 
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -8636.1801
+    number of free parameters = 13
     ===================================
      A/C   A/G   A/T   C/G   C/T  omega
     -----------------------------------
@@ -97,7 +99,9 @@ View the resulting maximum-likelihood parameter values.
 .. doctest::
 
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -8632.1355
+    number of free parameters = 19
     ============================
      A/C   A/G   A/T   C/G   C/T
     ----------------------------

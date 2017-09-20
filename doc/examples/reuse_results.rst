@@ -21,7 +21,9 @@ We'll create a simple model, optimise it and save it for later reuse
     >>> lf.set_alignment(aln)
     >>> lf.optimise(local=True, show_progress=False)
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -8640.2127
+    number of free parameters = 9
     ============
     kappa  omega
     ------------
@@ -70,7 +72,9 @@ Now create a more parameter rich model, in this case by allowing the ``Human`` e
     >>> new_lf.set_alignment(aln)
     >>> new_lf.optimise(local=True, show_progress=False)
     >>> print(new_lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -8638.9625
+    number of free parameters = 10
     =====
     kappa
     -----
