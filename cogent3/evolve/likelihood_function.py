@@ -160,21 +160,62 @@ class LikelihoodFunction(ParameterController):
             result = new_result
         return result
 
-    def __str__(self):
-        if not self._name:
-            title = 'Likelihood Function Table'
-        else:
-            title = self._name
+    def _for_display(self):
+        """processes statistics tables for display"""
+        title = self._name if self._name else 'Likelihood function statistics'
         result = []
         result += self.get_statistics(with_motif_probs=True, with_titles=True)
         for i, table in enumerate(result):
             if 'motif' in table.title and table.shape[1] == 2 and\
-               table.shape[0] >= 60: # just sort codon motif probs
+               table.shape[0] >= 60: # just sort codon motif probs, then truncate
                 table = table.sorted(columns="motif")
+                data = table.tolist()
+                data = data[:5] + [["...", "..."]] + data[-5:]
+                table = table.__class__(header=table.header, rows=data,
+                                        digits=table._digits, title=table.title)
                 result[i] = table
+        return title, result
+
+    def _repr_html_(self):
+        """for jupyter notebook display"""
+        def row_cell_func(val, col, row):
+            val = '<td style="font-family: monospace, monospace">%s</td>' % val
+            return val
+
+        try:
+            lnL = "<p>log-likelihood = %.4f</p>" % self.get_log_likelihood()
+        except ValueError:
+            # alignment probably not yet set
+            lnL = ""
+
+        nfp = "<p>number of free parameters = %d</p>" % \
+            self.get_num_free_params()
+        title, results = self._for_display()
+        for i, table in enumerate(results):
+            table.title = table.title.capitalize()
+            results[i] = table.to_rich_html(row_cell_func=row_cell_func)
+        results = ["<h4>%s</h4>" % title, lnL, nfp] + results
+        return "\n".join(results)
+
+    def __str__(self):
+        title, results = self._for_display()
+
+        try:
+            lnL = "log-likelihood = %.4f" % self.get_log_likelihood()
+        except ValueError:
+            # alignment probably not yet set
+            lnL = None
+
+        nfp = "number of free parameters = %d" % self.get_num_free_params()
+        for table in results:
             table.title = ""
-        result.insert(0, title)
-        return '\n'.join(map(str, result))
+        
+        if lnL:
+            results = [title, lnL, nfp] + results
+        else:
+            results = [title, nfp] + results
+
+        return '\n'.join(map(str, results))
 
     def get_annotated_tree(self):
         d = self.get_param_value_dict(['edge'])

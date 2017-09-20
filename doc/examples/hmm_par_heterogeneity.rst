@@ -48,7 +48,9 @@ We specify a null model with no bins, and optimise it.
     >>> lnL_one = lf_one.get_log_likelihood()
     >>> df_one = lf_one.get_num_free_params()
     >>> print(lf_one)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -8750.5889
+    number of free parameters = 8
     =====
     kappa
     -----
@@ -81,7 +83,9 @@ Our next hypothesis is that there are two rate classes, or bins, with rates gamm
     >>> df_bins = lf_bins.get_num_free_params()
     >>> assert df_bins == 9
     >>> print(lf_bins)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -8739.0900
+    number of free parameters = 9
     ==================
     kappa   rate_shape
     ------------------
@@ -116,7 +120,9 @@ We then specify a model with switches for changing between site-classes, the HMM
     >>> lnL_patches = lf_patches.get_log_likelihood()
     >>> df_patches = lf_patches.get_num_free_params()
     >>> print(lf_patches)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -8728.1367
+    number of free parameters = 10
     ===============================
     bin_switch   kappa   rate_shape
     -------------------------------
@@ -219,7 +225,9 @@ We then illustrate how to adjust the bin probabilities, here doing it so that on
     >>> lf_kappa.set_alignment(aln)
     >>> lf_kappa.optimise(local=True, show_progress=False)
     >>> print(lf_kappa)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -8749.3117
+    number of free parameters = 11
     ==========
     bin_switch
     ----------

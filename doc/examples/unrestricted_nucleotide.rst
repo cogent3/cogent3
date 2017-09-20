@@ -32,7 +32,7 @@ To specify substitution models we use the ``MotifChange`` class from predicates.
     ...                 optimise_motif_probs=True)
     >>> print(sm)
     <BLANKLINE>
-    Nucleotide ( name = ''; type = 'None'; params = ['A>T', 'C>G', 'T>G',...
+    Nucleotide ( name = ''; type = 'None'; params = ['A>C', 'A>T', 'A>G',...
 
 We'll illustrate this with a sample alignment and tree in ``data/primate_cdx2_promoter.fasta``.
 
@@ -60,6 +60,8 @@ We just used the Powell optimiser, as this works quite well.
 
     >>> print(lf)
     Unrestricted model
+    log-likelihood = -2491.7870
+    number of free parameters = 17
     ==========================================================================
      A>C    A>G    A>T    C>A    C>G    C>T    G>A    G>C    T>A    T>C    T>G
     --------------------------------------------------------------------------

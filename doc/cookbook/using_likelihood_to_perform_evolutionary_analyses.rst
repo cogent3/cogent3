@@ -47,7 +47,7 @@ We specify a general time reversible nucleotide model with gamma distributed rat
     >>> sub_mod = GTR(with_rate=True, distribution='gamma')
     >>> print(sub_mod)
     <BLANKLINE>
-    Nucleotide ( name = 'GTR'; type = 'None'; params = ['A/G', 'A/T', 'A/C', 'C/T', 'C/G']; number of motifs = 4; motifs = ['T', 'C', 'A', 'G'])
+    Nucleotide ( name = 'GTR'; type = 'None'; params = ['A/C', 'A/G', 'A/T', 'C/G', 'C/T']; number of motifs = 4; motifs = ['T', 'C', 'A', 'G'])
     <BLANKLINE>
 
 For codon
@@ -61,7 +61,7 @@ We specify a conditional nucleotide frequency codon model with nucleotide genera
     >>> sub_mod = CNFGTR(with_rate=True, distribution='gamma')
     >>> print(sub_mod)
     <BLANKLINE>
-    Codon ( name = 'CNFGTR'; type = 'None'; params = ['A/G', 'A/C', 'C/T', 'A/T', 'C/G', 'omega']; ...
+    Codon ( name = 'CNFGTR'; type = 'None'; params = ['A/C', 'A/G', 'A/T', 'C/G', 'C/T', 'omega']; ...
 
 For protein
 ^^^^^^^^^^^
@@ -142,7 +142,8 @@ We've set an *initial* value for this clade so that the edges affected by this r
 .. doctest::
 
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    number of free parameters = 78
     ====================================
      A/C     A/G     A/T     C/G     C/T
     ------------------------------------
@@ -499,6 +500,8 @@ We test the molecular clock hypothesis for human and chimpanzee lineages. The nu
     >>> null_nfp = lf.get_num_free_params()
     >>> print(lf)
     Null Hypothesis
+    log-likelihood = -7177.4403
+    number of free parameters = 10
     ==========================
           edge  parent  length
     --------------------------
@@ -522,6 +525,8 @@ The alternate allows the human and chimpanzee branches to differ by just setting
     >>> alt_nfp = lf.get_num_free_params()
     >>> print(lf)
     Alt Hypothesis
+    log-likelihood = -7175.7756
+    number of free parameters = 11
     ==========================
           edge  parent  length
     --------------------------
@@ -532,7 +537,19 @@ The alternate allows the human and chimpanzee branches to differ by just setting
        Gorilla  edge.1   0.002
          Human  edge.0   0.006
     Chimpanzee  edge.0   0.003
-        edge.0  edge.1   0.000...
+        edge.0  edge.1   0.000
+        edge.1  edge.2   0.003
+        edge.2  edge.3   0.012
+        edge.3    root   0.009
+    --------------------------
+    =============
+    motif  mprobs
+    -------------
+        T   0.241
+        C   0.174
+        A   0.376
+        G   0.209
+    -------------
 
 We import the function for computing the probability of a chi-square test statistic, compute the likelihood ratio test statistic, degrees of freedom and the corresponding probability.
 
@@ -568,7 +585,7 @@ In general, however, this capability derives from the ability of any defined ``e
     >>> lf.optimise(local=True, show_progress=False)
     >>> sim_aln = lf.simulate_alignment()
     >>> print(repr(sim_aln))
-    7 x 2814 dna alignment: Gorilla...
+    7 x 2814 dna alignment: Galago...
 
 Determining confidence intervals on MLEs
 ========================================
@@ -614,7 +631,9 @@ We look at the distribution of ``omega`` from the CNF codon model family across 
     >>> lf.set_alignment(aln)
     >>> lf.optimise(show_progress=False, local=True)
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -6755.9726
+    number of free parameters = 27
     ============================
      A/C   A/G   A/T   C/G   C/T
     ----------------------------
@@ -630,10 +649,26 @@ We look at the distribution of ``omega`` from the CNF codon model family across 
        Gorilla  edge.1    0.01   0.43
          Human  edge.0    0.02   2.44
     Chimpanzee  edge.0    0.01   2.28
-        edge.0  edge.1    0.00   0.01
+        edge.0  edge.1    0.00   0.00
         edge.1  edge.2    0.01   0.55
         edge.2  edge.3    0.04   0.33
-        edge.3    root    0.02   1.10...
+        edge.3    root    0.02   1.10
+    ---------------------------------
+    ===============
+    motif    mprobs
+    ---------------
+      AAA      0.06
+      AAC      0.02
+      AAG      0.03
+      AAT      0.06
+      ACA      0.02
+      ...       ...
+      TGT      0.02
+      TTA      0.02
+      TTC      0.01
+      TTG      0.01
+      TTT      0.02
+    ---------------
 
 We need an annotated tree object to do the drawing, we write this out to an XML formatted file so it can be reloaded for later reuse.
 

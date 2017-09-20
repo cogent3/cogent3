@@ -55,7 +55,9 @@ Make a parameter controller, likelihood function object and optimise.
     >>> print(lf.get_log_likelihood())
     -1706...
     >>> print(lf)
-    Likelihood Function Table
+    Likelihood function statistics
+    log-likelihood = -1706.2489
+    number of free parameters = 7
     =============================
          edge    parent    length
     -----------------------------
