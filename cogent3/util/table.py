@@ -568,7 +568,8 @@ class Table(DictArray):
             raise ImportError("pandas not installed")
 
         index = None if self._row_ids is None else self.template.names[0]
-        df = DataFrame(data=self.asarray(), columns=self.header, index=index)
+        data = dict(zip(self.header, self.asarray().T.tolist()))
+        df = DataFrame(data=data, index=index)
         return df
 
     def _callback(self, callback, row, columns=None, num_columns=None):
