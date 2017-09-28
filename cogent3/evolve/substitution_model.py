@@ -735,7 +735,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
             R[indices] *= par
         return R
 
-    def ascii_art(self, delim='', delim2='|', max_width=70):
+    def ascii_art(self, delim='', delim2='|', max_width=70, return_table=False):
         """An ASCII-art table representing the model.  'delim' delimits
         parameter names, 'delim2' delimits motifs"""
         labels = [m for m in self.alphabet]
@@ -754,7 +754,8 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
         
         t = LoadTable(header=labels, rows=rows, max_width=max_width,
                       title=title, row_ids=True)
-        return t.tostring(center=True)
+        result = t if return_table else t.tostring(center=True)
+        return result
 
     def get_matrix_params(self):
         """Return the parameter assignment matrix."""
