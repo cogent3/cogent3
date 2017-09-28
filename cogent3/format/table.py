@@ -96,10 +96,10 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
         row_iterator = enumerate
 
     if header:
-        th = formatted('th', '<th>')
+        thead = formatted('thead', '<thead>')
         row = [header_cell_func(escape(label), i)
                for i, label in enumerate(header)]
-        data += [formatted('tr', '<tr>')] + row + ['</tr>']
+        data += [thead] + row + ['</thead>']
 
     formatted_rows = []
     td = formatted('td', '<td>')
@@ -109,7 +109,9 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
             new += [row_cell_func(escape(cell), ridx, cidx)]
         new += ['</tr>']
         formatted_rows += new
-    data += formatted_rows
+
+    tbody = formatted('tbody', '<tbody>')
+    data += [tbody] + formatted_rows + ['</tbody>']
     data += ['</table>']
     if compact:
         data = ''.join(data)
