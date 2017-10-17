@@ -1406,11 +1406,13 @@ class TreeNode(object):
         return lca
 
     def get_connecting_edges(self, name1, name2):
-        """returns a list of edges connecting two nodes
-
-        includes self and other in the list"""
+        """returns a list of edges connecting two nodes.
+        
+        If both are tips, the LCA is excluded from the result."""
         edge1 = self.get_node_matching_name(name1)
         edge2 = self.get_node_matching_name(name2)
+        include_parent = False if edge1.istip() and edge2.istip() else True
+
         LCA = self.get_connecting_node(name1, name2)
         node_path = [edge1]
         node_path.extend(edge1.ancestors())
@@ -1424,6 +1426,8 @@ class TreeNode(object):
         anc2.reverse()
         node_path.extend(anc2)
         node_path.append(edge2)
+        if not include_parent:
+            node_path.remove(LCA)
         return node_path
 
     def get_param_value(self, param, edge):
