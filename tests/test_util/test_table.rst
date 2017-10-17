@@ -619,18 +619,19 @@ We then call the method, without this argument, then with it.
 
     >>> straight_html = dist.to_rich_html(compact=True)
     >>> print(straight_html)
-    <table><tr><th>seq1/2</th><th>a...
+    <table><thead><th>seq1/2</th><th>a...
     >>> rich_html = dist.to_rich_html(row_cell_func=format_cell,
     ...                                  compact=False)
     >>> print(rich_html)
     <table>
-    <tr>
+    <thead>
     <th>seq1/2</th>
     <th>a</th>
     <th>c</th>
     <th>b</th>
     <th>e</th>
-    </tr>
+    </thead>
+    <tbody>
     <tr>
     <td>a</td>
     <td bgcolor="#0055ff"></td>
