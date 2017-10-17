@@ -1626,6 +1626,17 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         self.assertEqual(tree.get_connecting_node('A', 'B').name, 'ab')
         self.assertEqual(tree.get_connecting_node('A', 'C').name, 'root')
 
+    def test_get_connecting_edges(self):
+        """correctly identify connecting edges"""
+        tree = LoadTree(treestring='(((Human,HowlerMon)a,Mouse)b,NineBande,DogFaced);')
+        edges = [e.name
+                     for e in tree.get_connecting_edges('Human', 'Mouse')]
+        self.assertEqual(set(edges), set(['Human', 'Mouse', 'a']))
+        
+        edges = [e.name for e in tree.get_connecting_edges('b', 'Human')]
+        self.assertEqual(set(edges), set(['Human', 'a', 'b']))
+        
+
     def test_get_node_matching_name(self):
         tree = self.default_tree
         for (name, expect_tip) in [('A', True), ('ab', False)]:
