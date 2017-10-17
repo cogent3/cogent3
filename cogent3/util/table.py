@@ -787,6 +787,8 @@ class Table(DictArray):
             - callback: Can be a function, which takes the sub-row delimited
             by columns and returns True/False, or a string representing valid
             python code to be evaluated."""
+        if new_column in self.header:
+            raise AssertionError("column '%s' already exists" % new_column)
 
         if isinstance(columns, str):
             columns = (columns,)
