@@ -218,7 +218,10 @@ class Table(DictArray):
 
     def _repr_html_(self):
         """returns html, used by Jupyter"""
-        return self.to_rich_html()
+        html = self.to_rich_html()
+        shape = "<p>%s rows x %s columns</p>" % self.shape
+        html += shape
+        return html
 
     def __str__(self):
         return self.tostring(self.format)
