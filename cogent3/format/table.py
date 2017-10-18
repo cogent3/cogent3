@@ -22,7 +22,7 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 known_formats = ("bedgraph", "phylip", "rest", "rst",
-                 "markdown", "md", "tex", "html",
+                 "markdown", "md", "latex", "tex", "html",
                  "simple", "csv", "tsv")
 
 
