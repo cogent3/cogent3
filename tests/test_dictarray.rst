@@ -47,9 +47,9 @@ A    B    C
 ...                                                      [.1,.1,.1,.7]])
 >>> mprobs = numpy.array([0.25, 0.25, 0.25, 0.25])
 >>> print(mprobs.dot(darr))
-[ 0.25  0.25  0.25  0.25]
+[0.25 0.25 0.25 0.25]
 >>> print(numpy.dot(mprobs, darr))
-[ 0.25  0.25  0.25  0.25]
+[0.25 0.25 0.25 0.25]
 
 ``DictArray.asdict()`` should convert nested ``DictArray`` instances to dict's too.
 
