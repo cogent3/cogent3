@@ -44,7 +44,7 @@ from string import ascii_letters as letters
 
 import numpy
 from numpy import array, sum, transpose, remainder, zeros, arange, newaxis, \
-    ravel, asarray, fromstring, take, uint8, uint16, uint32
+    ravel, asarray, take, uint8, uint16, uint32
 
 Float = numpy.core.numerictypes.sctype2char(float)
 Int = numpy.core.numerictypes.sctype2char(int)
