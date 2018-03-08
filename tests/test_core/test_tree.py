@@ -1320,10 +1320,12 @@ class PhyloNodeTests(TestCase):
         names = ['H', 'G', 'M']
         exp = (array([[0, 2.0, 6.7], [2.0, 0, 6.7], [6.7, 6.7, 0.0]]), nodes)
         obs = self.t.tip_to_tip_distances(endpoints=names)
-        self.assertEqual(obs, exp)
+        self.assertEqual(obs[0], exp[0])
+        self.assertEqual(obs[1], exp[1])
 
         obs = self.t.tip_to_tip_distances(endpoints=nodes)
-        self.assertEqual(obs, exp)
+        self.assertEqual(obs[0], exp[0])
+        self.assertEqual(obs[1], exp[1])
 
     def test_prune(self):
         """prune should reconstruct correct topology and Lengths of tree."""

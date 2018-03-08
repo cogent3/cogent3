@@ -2103,7 +2103,6 @@ class PhyloNode(TreeNode):
                             continue
                         result[res_tip1, result_map[tip2]] = \
                             tipdistances[tip1] + tipdistances[tip2]
-
         for node in self.traverse(self_before=False, self_after=True):
             if not node.children:
                 continue
