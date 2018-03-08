@@ -22,7 +22,7 @@ from cogent3.util.array import cartesian_product
 import re
 import string
 from numpy import array, sum, transpose, remainder, zeros, arange, newaxis, \
-    ravel, asarray, fromstring, take, uint8, uint16, uint32, take
+    ravel, asarray, frombuffer, take, uint8, uint16, uint32, take
 
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
@@ -724,7 +724,9 @@ class CharAlphabet(Alphabet):
         This is on the Alphabet, not the Sequence, because lots of objects
         (e.g. Profile, Alignment) also need to use it.
         """
-        return fromstring(str.translate(data, self._chars_to_indices), uint8)
+        vals = str.translate(data, self._chars_to_indices)
+        vals = frombuffer(memoryview(vals.encode('utf8')), dtype=uint8)
+        return vals
 
     def is_valid(self, seq):
         """Returns True if seq contains only items in self."""
