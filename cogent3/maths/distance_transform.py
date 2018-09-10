@@ -56,7 +56,7 @@ EXAMPLE USAGE:
 import numpy
 from numpy import (array, zeros, logical_and, logical_or, logical_xor, where,
                    mean, std, argsort, take, ravel, logical_not, shape, sqrt, abs,
-                   sum, square, asmatrix, asarray, multiply, min, any, all, isfinite,
+                   sum, square, asarray, multiply, min, any, all, isfinite,
                    nonzero, nan_to_num, geterr, seterr, isnan)
 
 try:
@@ -115,8 +115,8 @@ def trans_chord(m):
     Legendre, P. and E. Gallagher. 2001.  Ecologically meaningful
     transformations for ordination of species data.  Oecologia: 129: 271-280.
     """
-    m = asmatrix(m)
-    row_norms = sqrt(sum(square(m), axis=1))
+    m = array(m)
+    row_norms = sqrt(sum(square(m), axis=1, keepdims=True))
     result = m / row_norms
     return result
 
@@ -130,8 +130,10 @@ def trans_chisq(m):
     Legendre, P. and E. Gallagher. 2001.  Ecologically meaningful
     transformations for ordination of species data.  Oecologia: 129: 271-280.
     """
-    m = asmatrix(m)
-    grand_sum, row_sums, col_sums = m.sum(), m.sum(1), m.sum(0)
+    m = array(m)
+    grand_sum = m.sum()
+    row_sums = m.sum(axis=1, keepdims=True)
+    col_sums = m.sum(axis=0)
     result = m * sqrt(grand_sum)
     result /= row_sums
     result /= sqrt(col_sums)
@@ -147,8 +149,8 @@ def trans_specprof(m):
     Legendre, P. and E. Gallagher. 2001.  Ecologically meaningful
     transformations for ordination of species data.  Oecologia: 129: 271-280.
     """
-    m = asmatrix(m)
-    row_sums = sum(m, axis=1)
+    m = array(m)
+    row_sums = sum(m, axis=1, keepdims=True)
     result = m / row_sums
     return result
 
@@ -162,8 +164,8 @@ def trans_hellinger(m):
     Legendre, P. and E. Gallagher. 2001.  Ecologically meaningful
     transformations for ordination of species data.  Oecologia: 129: 271-280.
     """
-    m = asmatrix(m)
-    row_sums = sum(m, axis=1)
+    m = array(m)
+    row_sums = sum(m, axis=1, keepdims=True)
     result = sqrt(m / row_sums)
     return result
 
