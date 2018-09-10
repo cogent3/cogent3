@@ -23,7 +23,7 @@ class functionTests(TestCase):
     """Tests of top-level functions."""
 
     def setUp(self):
-        self.mat_test = asmatrix([[10, 10, 20],
+        self.mat_test = array([[10, 10, 20],
                                   [10, 15, 10],
                                   [15, 5, 5]], 'float')
 

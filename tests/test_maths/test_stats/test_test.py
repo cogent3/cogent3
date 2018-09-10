@@ -15,7 +15,7 @@ from cogent3.maths.stats.test import tail, G_2_by_2, G_fit, likelihoods,\
     get_values_from_matrix, get_ltm_cells, distance_matrix_permutation_test, \
     ANOVA_one_way, mw_test, mw_boot, is_symmetric_and_hollow
 
-from numpy import array, concatenate, fill_diagonal, reshape, arange, matrix, \
+from numpy import array, concatenate, fill_diagonal, reshape, arange, \
     ones, testing, tril, cov, sqrt
 from cogent3.util.dict2d import Dict2D
 import math
@@ -1038,8 +1038,8 @@ class CorrelationTests(TestsHelper):
     def test_is_symmetric_and_hollow(self):
         """Should correctly test for symmetry and hollowness of dist mats."""
         self.assertTrue(is_symmetric_and_hollow(array([[0, 1], [1, 0]])))
-        self.assertTrue(is_symmetric_and_hollow(matrix([[0, 1], [1, 0]])))
-        self.assertTrue(is_symmetric_and_hollow(matrix([[0.0, 0], [0.0, 0]])))
+        self.assertTrue(is_symmetric_and_hollow(array([[0, 1], [1, 0]])))
+        self.assertTrue(is_symmetric_and_hollow(array([[0.0, 0], [0.0, 0]])))
         self.assertTrue(not is_symmetric_and_hollow(
             array([[0.001, 1], [1, 0]])))
         self.assertTrue(not is_symmetric_and_hollow(
