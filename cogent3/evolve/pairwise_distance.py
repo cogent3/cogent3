@@ -320,7 +320,7 @@ class _PairwiseDistance(object):
         matrix = zeros((self._dim, self._dim), float64)
         off_diag = [(i, j) for i in range(self._dim)
                         for j in range(self._dim) if i != j]
-        off_diag = [array(a) for a in zip(*off_diag)]
+        off_diag = tuple([tuple(a) for a in zip(*off_diag)])
         
         done = 0.0
         to_do = (len(names) * len(names) - 1) / 2

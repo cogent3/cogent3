@@ -489,6 +489,7 @@ def only_nonzero(a):
     """
     first_element_selector = [0] * len(a.shape)
     first_element_selector[0] = slice(None, None)
+    first_element_selector = tuple(first_element_selector)
     return take(a, numpy.ravel(nonzero(a[first_element_selector])), axis=0)
 
 
