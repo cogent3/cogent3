@@ -13,7 +13,7 @@ from cogent3.maths.stats.kendall import pkendall, kendalls_tau
 from cogent3.maths.stats.special import Gamma
 
 from numpy import absolute, arctanh, array, asarray, concatenate, transpose, \
-    ravel, take, nonzero, log, sum, mean, cov, corrcoef, fabs, any, \
+    ravel, take, nonzero, log, sum as npsum, mean, cov, corrcoef, fabs, any, \
     reshape, tanh, clip, nan, isnan, isinf, sqrt, trace, exp, \
     median as _median, zeros, ones
 
@@ -49,20 +49,20 @@ def std_(x, axis=None):
 
     if axis is None:
         d = x - mean(x)
-        return sqrt(sum(d**2) / (len(x) - 1))
+        return sqrt(npsum(d**2) / (len(x) - 1))
     elif axis == 0:
         result = []
         for col in range(x.shape[1]):
             vals = x[:, col]
             d = vals - mean(vals)
-            result.append(sqrt(sum(d**2) / (len(x) - 1)))
+            result.append(sqrt(npsum(d**2) / (len(x) - 1)))
         return result
     elif axis == 1:
         result = []
         for row in range(x.shape[0]):
             vals = x[row, :]
             d = vals - mean(vals)
-            result.append(sqrt(sum(d**2) / (len(x) - 1)))
+            result.append(sqrt(npsum(d**2) / (len(x) - 1)))
         return result
     else:
         raise ValueError("axis out of bounds")
@@ -91,7 +91,7 @@ def var(x, axis=None):
     else:
         n = x.shape[axis]
     # compute the sum of squares from the mean(s)
-    sample_SS = sum(x**2, axis) - sum(x, axis)**2 / n
+    sample_SS = npsum(x**2, axis) - npsum(x, axis)**2 / n
     return sample_SS / (n - 1)
 
 
@@ -173,7 +173,7 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
     See Sokal & Rohlf (1995), ch. 17. Specifically, see box 17.6 (p731).
     """
     cells = [a, b, c, d]
-    n = sum(cells)
+    n = npsum(cells)
     # return 0 if table was empty
     if not n:
         return (0, 1)
@@ -228,7 +228,7 @@ def safe_sum_p_log_p(a, base=None):
     logs = log(nz)
     if base:
         logs /= log(base)
-    return sum(nz * logs, 0)
+    return npsum(nz * logs, 0)
 
 
 def G_ind(m, williams=False):
@@ -237,15 +237,15 @@ def G_ind(m, williams=False):
     Requires input data as a numpy array. From Sokal and Rohlf p 738.
     """
     f_ln_f_elements = safe_sum_p_log_p(m)
-    f_ln_f_rows = safe_sum_p_log_p(sum(m, 0))
-    f_ln_f_cols = safe_sum_p_log_p(sum(m, 1))
-    tot = sum(ravel(m))
+    f_ln_f_rows = safe_sum_p_log_p(npsum(m, 0))
+    f_ln_f_cols = safe_sum_p_log_p(npsum(m, 1))
+    tot = npsum(ravel(m))
     f_ln_f_table = tot * log(tot)
 
     df = (len(m) - 1) * (len(m[0]) - 1)
     G = 2 * (f_ln_f_elements - f_ln_f_rows - f_ln_f_cols + f_ln_f_table)
     if williams:
-        q = 1 + ((tot * sum(1.0 / sum(m, 1)) - 1) * (tot * sum(1.0 / sum(m, 0)) - 1) /
+        q = 1 + ((tot * npsum(1.0 / npsum(m, 1)) - 1) * (tot * npsum(1.0 / npsum(m, 0)) - 1) /
                  (6 * tot * df))
         G = G / q
     return G, chi_high(max(G, 0), df)
@@ -268,15 +268,15 @@ def calc_contingency_expected(matrix):
     t_matrix = matrix.copy()
     t_matrix.transpose()
 
-    overall_total = sum(list(matrix.Items))
+    overall_total = npsum(list(matrix.Items))
     # make new matrix for storing results
     result = matrix.copy()
 
     # populate result with expected values
     for row in matrix:
-        row_sum = sum(list(matrix[row].values()))
+        row_sum = npsum(list(matrix[row].values()))
         for item in matrix[row]:
-            column_sum = sum(list(t_matrix[item].values()))
+            column_sum = npsum(list(t_matrix[item].values()))
             # calculate expected frequency
             Expected = (row_sum * column_sum) / overall_total
             result[row][item] = [result[row][item]]
@@ -351,7 +351,7 @@ def chi_square_from_Dict2D(data):
     (whichever is greater than 1)
 
     """
-    test = sum([((item[0] - item[1]) * (item[0] - item[1])) / item[1]
+    test = npsum([((item[0] - item[1]) * (item[0] - item[1])) / item[1]
          for item in data.Items])
     num_rows = len(data)
     num_cols = len([col for col in data.Cols])
@@ -529,7 +529,7 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
         # groups
         n1 = len(a)
         if n1 < 2:
-            return t_one_observation(sum(a), b, tails, exp_diff,
+            return t_one_observation(npsum(a), b, tails, exp_diff,
                                      none_on_zero_variance=none_on_zero_variance)
 
         b = array(b)
@@ -539,7 +539,7 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
             n2 = 1
 
         if n2 < 2:
-            t, prob = t_one_observation(sum(b), a, reverse_tails(tails),
+            t, prob = t_one_observation(npsum(b), a, reverse_tails(tails),
                                         exp_diff, none_on_zero_variance=none_on_zero_variance)
 
             # Negate the t-statistic because we swapped the order of the inputs
@@ -757,11 +757,11 @@ def pearson(x_items, y_items):
         raise ValueError("The two vectors must both contain at least 2 "
                          "elements. The vectors are of length %d." % len(x_items))
 
-    sum_x = sum(x_items)
-    sum_y = sum(y_items)
-    sum_x_sq = sum(x_items * x_items)
-    sum_y_sq = sum(y_items * y_items)
-    sum_xy = sum(x_items * y_items)
+    sum_x = npsum(x_items)
+    sum_y = npsum(y_items)
+    sum_x_sq = npsum(x_items * x_items)
+    sum_y_sq = npsum(y_items * y_items)
+    sum_xy = npsum(x_items * y_items)
     n = len(x_items)
 
     try:
@@ -805,18 +805,18 @@ def spearman(x_items, y_items):
 
     if ties1 == 0 and ties2 == 0:
         n = len(rank1)
-        sum_sqr = sum([(x - y)**2 for x, y in zip(rank1, rank2)])
+        sum_sqr = npsum([(x - y)**2 for x, y in zip(rank1, rank2)])
         rho = 1 - (6 * sum_sqr / (n * (n**2 - 1)))
     else:
-        avg = lambda x: sum(x) / len(x)
+        avg = lambda x: npsum(x) / len(x)
 
         x_bar = avg(rank1)
         y_bar = avg(rank2)
 
-        numerator = sum([(x - x_bar) * (y - y_bar)
+        numerator = npsum([(x - x_bar) * (y - y_bar)
                          for x, y in zip(rank1, rank2)])
-        denominator = sqrt(sum([(x - x_bar)**2 for x in rank1]) *
-                           sum([(y - y_bar)**2 for y in rank2]))
+        denominator = sqrt(npsum([(x - x_bar)**2 for x in rank1]) *
+                           npsum([(y - y_bar)**2 for y in rank2]))
 
         # Calculate rho. Handle the case when there is no variation in one or
         # both of the input vectors.
@@ -1032,11 +1032,11 @@ def regress(x, y):
     """
     x, y = array(x, 'float64'), array(y, 'float64')
     N = len(x)
-    Sx = sum(x)
-    Sy = sum(y)
-    Sxx = sum(x * x)
-    Syy = sum(y * y)
-    Sxy = sum(x * y)
+    Sx = npsum(x)
+    Sy = npsum(y)
+    Sxx = npsum(x * x)
+    Syy = npsum(y * y)
+    Sxy = npsum(x * y)
     det = Sxx * N - Sx * Sx
     return (Sxy * N - Sy * Sx) / det, (Sxx * Sy - Sx * Sxy) / det
 
@@ -1050,7 +1050,7 @@ def regress_origin(x, y):
     returns slope, intercept as a tuple.
     """
     x, y = array(x, 'float64'), array(y, 'float64')
-    return sum(x * y) / sum(x * x), 0
+    return npsum(x * y) / npsum(x * x), 0
 
 
 def regress_R2(x, y):
@@ -1098,11 +1098,11 @@ def regress_major(x, y):
     """
     x, y = array(x), array(y)
     N = len(x)
-    Sx = sum(x)
-    Sy = sum(y)
-    Sxx = sum(x * x)
-    Syy = sum(y * y)
-    Sxy = sum(x * y)
+    Sx = npsum(x)
+    Sy = npsum(y)
+    Sxx = npsum(x * x)
+    Syy = npsum(y * y)
+    Sxy = npsum(x * y)
     var_y = (Syy - ((Sy * Sy) / N)) / (N - 1)
     var_x = (Sxx - ((Sx * Sx) / N)) / (N - 1)
     cov = (Sxy - ((Sy * Sx) / N)) / (N - 1)
@@ -1220,7 +1220,7 @@ def fisher(probs):
     -2 * SUM(ln(P)) gives chi-squared distribution with 2n degrees of freedom.
     """
     try:
-        return chi_high(-2 * sum(list(map(log, probs))), 2 * len(probs))
+        return chi_high(-2 * npsum(list(map(log, probs))), 2 * len(probs))
     except OverflowError as e:
         return 0.0
 
@@ -1291,7 +1291,7 @@ def ANOVA_one_way(a):
     # get within group variances (denominator)
     group_variances = Numbers(group_variances)
     dfd = num_cases - len(group_means)
-    within_MS = sum(group_variances) / dfd
+    within_MS = npsum(group_variances) / dfd
     # get between group variances (numerator)
     grand_mean = Numbers(all_vals).Mean
     between_MS = 0
@@ -1472,7 +1472,7 @@ def ks_boot(x, y, alt="two sided", num_reps=1000):
 
 
 def _average_rank(start_rank, end_rank):
-    ave_rank = sum(range(start_rank, end_rank + 1)) / \
+    ave_rank = npsum(range(start_rank, end_rank + 1)) / \
         (1 + end_rank - start_rank)
     return ave_rank
 
