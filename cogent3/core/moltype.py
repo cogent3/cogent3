@@ -43,7 +43,7 @@ import re
 from string import ascii_letters as letters
 
 import numpy
-from numpy import array, sum, transpose, remainder, zeros, arange, newaxis, \
+from numpy import array, transpose, remainder, zeros, arange, newaxis, \
     ravel, asarray, take, uint8, uint16, uint32
 
 Float = numpy.core.numerictypes.sctype2char(float)
