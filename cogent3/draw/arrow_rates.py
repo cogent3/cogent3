@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from matplotlib import use, rc
 use('Agg')  # suppress graphical rendering
-from pylab import rc, gcf, xlim, ylim, xticks, yticks, sqrt, text, clip, gca, \
-    array, dot, ravel, draw, show, savefig
+from pylab import gcf, xlim, ylim, xticks, yticks, sqrt, text, clip, gca, \
+    array, dot, ravel, savefig, axis, tight_layout, figure
 from .fancy_arrow import arrow
 """Draws arrow plots representing rate matrices.
 
@@ -14,11 +14,11 @@ Based on graphical displays by Noboru Sueoka.
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Rob Knight"]
+__credits__ = ["Rob Knight", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "3.0a1"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 rc('text', usetex=True)
@@ -58,10 +58,10 @@ def make_arrow_plot(data, size=4, display='length', shape='right',
     **kwargs can be anything allowed by a Arrow object, e.g.
     linewidth and edgecolor.
     """
-
+    fig = figure(frameon=False)
     xlim(-0.5, 1.5)
     ylim(-0.5, 1.5)
-    gcf().set_size_inches(size, size)
+    fig.set_size_inches(size, size)
     xticks([])
     yticks([])
     max_text_size = size * 12
@@ -120,10 +120,10 @@ def make_arrow_plot(data, size=4, display='length', shape='right',
         return float(clip(max_text_size * sqrt(data[k]),
                           min_text_size, max_text_size))
 
-    A = text(0, 1, '$A_3$', color='r', size=do_fontsize('A'), **text_params)
-    T = text(1, 1, '$T_3$', color='k', size=do_fontsize('T'), **text_params)
-    G = text(0, 0, '$G_3$', color='g', size=do_fontsize('G'), **text_params)
-    C = text(1, 0, '$C_3$', color='b', size=do_fontsize('C'), **text_params)
+    A = text(0, 1, '$A$', color='r', size=do_fontsize('A'), **text_params)
+    T = text(1, 1, '$T$', color='k', size=do_fontsize('T'), **text_params)
+    G = text(0, 0, '$G$', color='g', size=do_fontsize('G'), **text_params)
+    C = text(1, 0, '$C$', color='b', size=do_fontsize('C'), **text_params)
 
     arrow_h_offset = 0.25  # data coordinates, empirically determined
     max_arrow_length = 1 - 2 * arrow_h_offset
@@ -230,8 +230,10 @@ def make_arrow_plot(data, size=4, display='length', shape='right',
     for p in list(positions.keys()):
         draw_arrow(p)
 
+    axis('off')
+    tight_layout()
     if graph_name is not None:
-        savefig(graph_name)
+        savefig(graph_name, bbox_inches='tight', pad_inches=0)
 
     # test data
 all_on_max = dict([(i, 1) for i in 'TCAG'] +
