@@ -4,14 +4,23 @@
 # run suite by executing this file
 #
 from warnings import filterwarnings, resetwarnings
+import importlib
+import doctest
+import sys
+import os
 
 resetwarnings()
 filterwarnings("ignore", category=ResourceWarning, append=True)
 filterwarnings("ignore",
                message="using slow exponentiator.+",
                category=UserWarning, append=True)
-import doctest, cogent3.util.unit_test as unittest, sys, os
-from cogent3.util.misc import app_path
+filterwarnings("ignore",
+               message="can't resolve package from.+",
+               category=ImportWarning, append=True)
+
+
+import cogent3.util.unit_test as unittest
+
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -24,33 +33,6 @@ __version__ = "3.0a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
-
-
-def my_import(name):
-    """Imports a module, possibly qualified with periods. Returns the module.
-
-    __import__ only imports the top-level module.
-
-    Recipe from python documentation at:
-    http://www.python.org/doc/2.4/lib/built-in-funcs.html
-    """
-    mod = __import__(name)
-    components = name.split('.')
-    for comp in components[1:]:
-        mod = getattr(mod, comp)
-    return mod
-
-
-def module_present(modules):
-    """returns True if dependencies present"""
-    if type(modules) == str:
-        modules = [modules]
-    try:
-        for module in modules:
-            mod = __import__(module)
-    except ImportError:
-        return False
-    return True
 
 
 def suite():
@@ -151,7 +133,7 @@ def suite():
             test = doctest.DocFileSuite(module, optionflags=doctest.REPORT_ONLY_FIRST_FAILURE |
                                         doctest.ELLIPSIS)
         else:
-            test = unittest.findTestCases(my_import(module))
+            test = unittest.findTestCases(importlib.import_module(module))
         alltests.addTest(test)
     return alltests
 
