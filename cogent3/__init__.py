@@ -1,5 +1,7 @@
 """The most commonly used constructors are available from this toplevel module.
-The rest are in the subpackages: phylo, evolve, maths, draw, parse and format."""
+The rest are in the subpackages: core, draw, evolve, format, maths, parse
+and phylo.
+"""
 
 import sys
 import re
@@ -21,7 +23,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-# SUPPORT2425
+
 if sys.version_info < (3, 4):
     PY_VERSION = ".".join([str(n) for n in sys.version_info])
     raise RuntimeError(
