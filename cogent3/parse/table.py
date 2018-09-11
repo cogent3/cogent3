@@ -4,7 +4,7 @@ import pickle
 import csv
 from .record_finder import is_empty
 from gzip import open as open_
-import collections
+from collections.abc import Callable
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -33,7 +33,7 @@ class ConvertFields(object):
         self._func = self.convert_by_columns
 
         if not self.by_column:
-            assert isinstance(conversion, collections.Callable), \
+            assert isinstance(conversion, Callable), \
                 "conversion must be callable to convert by line"
             self._func = self.convert_by_line
 

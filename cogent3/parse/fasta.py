@@ -1,14 +1,13 @@
-#/usr/bin/env python
 """Parsers for FASTA and related formats.
 """
 from cogent3.parse.record_finder import LabeledRecordFinder
 from cogent3.parse.record import RecordError
-from cogent3.core.info import Info, DbRef
+from cogent3.core.info import Info
 from cogent3.core.moltype import BYTES, ASCII
 
 import cogent3
 import re
-import collections
+from collections.abc import Callable
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -232,7 +231,7 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
             print(label)
         info = Info()
         for index, name, converter in field_formatters:
-            if isinstance(converter, collections.Callable):
+            if isinstance(converter, Callable):
                 try:
                     info[name] = converter(label[index])
                 except IndexError:

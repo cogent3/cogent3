@@ -47,7 +47,7 @@ from cogent3.evolve.substitution_calculation import (
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 from cogent3.maths.optimisers import ParameterOutOfBoundsError
-import collections
+from collections.abc import Callable
 
 __author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -837,7 +837,7 @@ class SubstitutionModel(_ContinuousSubstitutionModel):
     def adapt_predicate(self, pred, label=None):
         if isinstance(pred, str):
             pred = predicate.parse(pred)
-        elif isinstance(pred, collections.Callable):
+        elif isinstance(pred, Callable):
             pred = predicate.UserPredicate(pred)
         pred_func = pred.make_model_predicate(self)
         label = label or repr(pred)
