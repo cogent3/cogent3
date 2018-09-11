@@ -27,7 +27,7 @@ __docformat__ = "restructuredtext en"
 import numpy
 from numpy import atleast_1d, eye, mgrid, argmin, zeros, shape, empty, \
     squeeze, vectorize, asarray, absolute, sqrt, Inf, asfarray, isinf
-import collections
+from collections.abc import Callable
 
 try:
     import linesearch  # from SciPy
@@ -2006,7 +2006,7 @@ def brute(func, ranges, args=(), Ns=20, full_output=0, finish=fmin):
     if (N == 1):
         grid = grid[0]
         xmin = xmin[0]
-    if isinstance(finish, collections.Callable):
+    if isinstance(finish, Callable):
         vals = finish(func, xmin, args=args, full_output=1, disp=0)
         xmin = vals[0]
         Jmin = vals[1]

@@ -12,7 +12,7 @@ Table can read pickled and delimited formats.
 
 import pickle
 import csv
-import collections
+from collections.abc import Callable
 import warnings
 from xml.sax.saxutils import escape
 
@@ -576,7 +576,7 @@ class Table(DictArray):
         return df
 
     def _callback(self, callback, row, columns=None, num_columns=None):
-        if isinstance(callback, collections.Callable):
+        if isinstance(callback, Callable):
             row_segment = row.take(columns)
             if num_columns == 1:
                 row_segment = row_segment[0]
@@ -605,7 +605,7 @@ class Table(DictArray):
             num_columns = None
 
         row_indexes = []
-        if not isinstance(callback, collections.Callable):
+        if not isinstance(callback, Callable):
             data = self
             cols = columns
         else:
@@ -659,7 +659,7 @@ class Table(DictArray):
             num_columns = None
 
         count = 0
-        if not isinstance(callback, collections.Callable):
+        if not isinstance(callback, Callable):
             data = self
             cols = columns
         else:
@@ -801,7 +801,7 @@ class Table(DictArray):
         else:
             num_columns = None
 
-        if not isinstance(callback, collections.Callable):
+        if not isinstance(callback, Callable):
             data = self
             cols = columns
         else:
