@@ -6,7 +6,7 @@ from copy import copy, deepcopy
 from os import remove, rmdir
 from os.path import exists
 from cogent3.util.unit_test import TestCase, main
-from cogent3.util.misc import (iterable, min_index,
+from cogent3.util.misc import (iterable,
                                flatten, is_iterable, is_char, is_char_or_noniterable,
                                is_str_or_noniterable, not_list_tuple, list_flatten,
                                recursive_flatten, unflatten, unzip, select, find_all,
@@ -138,14 +138,6 @@ class UtilsTests(TestCase):
         self.assertEqual(iterable(None), [None])
         self.assertEqual(iterable({'a': 1}), {'a': 1})
         self.assertEqual(iterable(['a', 'b', 'c']), ['a', 'b', 'c'])
-
-    def test_min_index(self):
-        """min_index should return index of smallest item, first if tie"""
-        self.assertEqual(min_index('abcde'), 0)
-        self.assertEqual(min_index('ebcda'), 4)
-        self.assertRaises(ValueError, min_index, '')
-        self.assertEqual(min_index('ebcde'), 1)
-        self.assertEqual(min_index([0, 0, 1, 0]), 0)
 
     def test_flatten_no_change(self):
         """flatten should not change non-nested sequences (except to list)"""
