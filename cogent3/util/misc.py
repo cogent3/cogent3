@@ -154,13 +154,6 @@ class DepthExceededError(Exception):
     pass
 
 
-def deep_list(x):
-    """Convert tuple recursively to list."""
-    if isinstance(x, tuple):
-        return list(map(deep_list, x))
-    return x
-
-
 def deep_tuple(x):
     """Convert list recursively to tuple."""
     if isinstance(x, list):
