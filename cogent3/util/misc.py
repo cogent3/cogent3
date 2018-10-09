@@ -309,22 +309,6 @@ def select(order, items):
     return list(map(items.__getitem__, order))
 
 
-def find_all(text, pat):
-    """Returns list of all overlapping occurrences of a pattern in a text.
-
-    Each item in the (sorted) list is the index of one of the matches.
-    """
-    result = []
-    last = 0
-    try:
-        while 1:
-            curr = text.index(pat, last)
-            result.append(curr)
-            last = curr + 1
-    except ValueError:  # raised when no more matches
-        return result
-
-
 def unreserve(item):
     """Removes trailing underscore from item if it has one.
 
