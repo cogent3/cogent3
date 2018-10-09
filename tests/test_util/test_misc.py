@@ -10,7 +10,7 @@ from cogent3.util.misc import (iterable,
                                flatten, is_iterable, is_char, is_char_or_noniterable,
                                is_str_or_noniterable, not_list_tuple, list_flatten,
                                recursive_flatten, unflatten, select,
-                               extract_delimited, caps_from_underscores,
+                               caps_from_underscores,
                                add_lowercase, InverseDict, InverseDictMulti, DictFromPos, DictFromFirst,
                                DictFromLast, DistanceFromMatrix, PairsFromGroups,
                                ClassChecker, Delegator, FunctionWrapper,
@@ -274,29 +274,6 @@ class UtilsTests(TestCase):
         self.assertEqual(select(('e', 'b', 'a'), values), [7, 2, 5])
         # check that it raises KeyError on anything out of range
         self.assertRaises(KeyError, select, 'abx', values)
-
-    def test_extract_delimited_bad_delimiters(self):
-        """extract_delimited should raise error if delimiters identical"""
-        self.assertRaises(TypeError, extract_delimited, '|acb|acx', '|', '|')
-
-    def test_extract_delimited_missing_right(self):
-        """extract_delimited should raise error if right delimiter missing"""
-        self.assertRaises(ValueError, extract_delimited, 'ac[acgsd', '[', ']')
-
-    def test_extract_delimited_normal(self):
-        """extract_delimited should return correct field if present, or None"""
-        self.assertEqual(extract_delimited('[]', '[', ']'), '')
-        self.assertEqual(extract_delimited('asdsad', '[', ']'), None)
-        self.assertEqual(extract_delimited('ac[abc]ac', '[', ']'), 'abc')
-        self.assertEqual(extract_delimited('[xyz]asd', '[', ']'), 'xyz')
-        self.assertEqual(extract_delimited('acg[xyz]', '[', ']'), 'xyz')
-        self.assertEqual(extract_delimited('abcdef', 'a', 'e'), 'bcd')
-
-    def test_extract_delimited_indexed(self):
-        """extract_delimited should return correct field with starting index"""
-        self.assertEqual(extract_delimited('[abc][def]', '[', ']', 0), 'abc')
-        self.assertEqual(extract_delimited('[abc][def]', '[', ']', 1), 'def')
-        self.assertEqual(extract_delimited('[abc][def]', '[', ']', 5), 'def')
 
     def test_caps_from_underscores(self):
         """caps_from_underscores should become CapsFromUnderscores"""
