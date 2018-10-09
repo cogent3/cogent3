@@ -982,15 +982,6 @@ class MappedDict(ConstrainedDict):
         """Ensure that has_key applies the mask."""
         return self.mask(item) in super(MappedDict, self)
 
-
-def getNewId(rand_f=randrange):
-    """Creates a random 12-digit integer to be used as an id."""
-
-    NUM_DIGITS = 12
-    return ''.join(map(str, [rand_f(10) for i in range(NUM_DIGITS)]))
-# end function getNewId
-
-
 def to_string(obj):
     """Public function to write a string of object's properties & their vals.
 
