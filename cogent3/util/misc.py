@@ -154,12 +154,6 @@ class DepthExceededError(Exception):
     pass
 
 
-def between(xxx_todo_changeme, number):
-    """Same as: min_ <= number <= max_."""
-    (min_, max_) = xxx_todo_changeme
-    return min_ <= number <= max_
-
-
 def combinate(items, n):
     """Returns combinations of items."""
     if n == 0:
