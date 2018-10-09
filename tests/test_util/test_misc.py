@@ -17,7 +17,7 @@ from cogent3.util.misc import (iterable,
                                ConstrainedString, ConstrainedList, ConstrainedDict,
                                MappedString, MappedList, MappedDict,
                                NonnegIntError, reverse_complement, not_none,
-                               NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
+                               NestedSplitter, curry, remove_files, get_random_directory_name,
                                create_dir, handle_error_codes, identity, if_,
                                to_string,
                                timeLimitReached, get_independent_coords, get_merged_by_value_coords,
@@ -1376,11 +1376,6 @@ class reverse_complementTests(TestCase):
                   (5, True))
         for arg2, result in knowns:
             self.assertEqual(curry_test(arg2), result)
-
-    def test_app_path(self):
-        """app_path should return correct paths"""
-        self.assertEqual(app_path('ls'), '/bin/ls')
-        self.assertEqual(app_path('lsxxyyx'), False)
 
 if __name__ == '__main__':
     main()

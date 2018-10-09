@@ -1133,25 +1133,6 @@ def NestedSplitter(delimiters=[None], same_level=False,
 # end NestedSplitter
 
 
-def app_path(app, env_variable='PATH'):
-    """Returns path to an app, or False if app does not exist in env_variable
-
-     This functions in the same way as which in that it returns
-     the first path that contains the app.
-
-    """
-    # strip off " characters, in case we got a FilePath object
-    app = app.strip('"')
-    paths = getenv(env_variable).split(':')
-    for path in paths:
-        p = join(path, app)
-        if exists(p):
-            return p
-    return False
-
-# some error codes for creating a dir
-
-
 def get_create_dir_error_codes():
     return {'NO_ERROR': 0,
             'DIR_EXISTS': 1,
