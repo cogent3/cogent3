@@ -16,7 +16,7 @@ from cogent3.util.misc import (iterable,
                                ConstraintError, ConstrainedContainer,
                                ConstrainedString, ConstrainedList, ConstrainedDict,
                                MappedString, MappedList, MappedDict,
-                               NonnegIntError, reverse_complement, not_none, get_items_except,
+                               NonnegIntError, reverse_complement, not_none,
                                NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
                                create_dir, handle_error_codes, identity, if_,
                                to_string,
@@ -1334,17 +1334,6 @@ class reverse_complementTests(TestCase):
         assert not not_none([1, 2, 3, None])
         self.assertEqual(list(filter(not_none, [(1, 2), (3, None)])), [(1, 2)])
     # end test_not_none
-
-    def test_get_items_except(self):
-        """get_items_except should return all items of seq not in indices"""
-        self.assertEqual(get_items_except('a-b-c-d', [1, 3, 5]), 'abcd')
-        self.assertEqual(get_items_except(
-            [0, 1, 2, 3, 4, 5, 6], [1, 3, 5]), [0, 2, 4, 6])
-        self.assertEqual(get_items_except(
-            (0, 1, 2, 3, 4, 5, 6), [1, 3, 5]), (0, 2, 4, 6))
-        self.assertEqual(get_items_except('a-b-c-d', [1, 3, 5], tuple),
-                         ('a', 'b', 'c', 'd'))
-    # end test_get_items_except
 
     def test_NestedSplitter(self):
         """NestedSplitter should make a function which return expected list"""

@@ -1081,25 +1081,6 @@ def not_none(seq):
     return True
 # end not_none
 
-
-def get_items_except(seq, indices, seq_constructor=None):
-    """Returns all items in seq that are not in indices
-
-    Returns the same type as parsed in except when a seq_constructor is set.
-    """
-    sequence = list(seq)
-    index_lookup = dict.fromkeys(indices)
-    result = [sequence[i] for i in range(len(seq))
-              if i not in index_lookup]
-    if not seq_constructor:
-        if isinstance(seq, str):
-            return ''.join(result)
-        else:
-            seq_constructor = seq.__class__
-    return seq_constructor(result)
-# end get_items_except
-
-
 def NestedSplitter(delimiters=[None], same_level=False,
                    constructor=str.strip, filter_=False):
     """return a splitter which return a list (maybe nested) from a str using
