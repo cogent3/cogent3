@@ -10,7 +10,7 @@ from cogent3.util.misc import (iterable,
                                flatten, is_iterable, is_char, is_char_or_noniterable,
                                is_str_or_noniterable, not_list_tuple, list_flatten,
                                recursive_flatten, unflatten, select, find_all,
-                               find_many, unreserve,
+                               unreserve,
                                extract_delimited, caps_from_underscores,
                                add_lowercase, InverseDict, InverseDictMulti, DictFromPos, DictFromFirst,
                                DictFromLast, DistanceFromMatrix, PairsFromGroups,
@@ -292,20 +292,6 @@ class UtilsTests(TestCase):
         self.assertEqual(find_all('abcabca', '3'), [])
         self.assertEqual(find_all('abcabca', 'bc'), [1, 4])
         self.assertRaises(TypeError, find_all, 'abcabca', 3)
-
-    def test_find_many(self):
-        """find_many should return list of all occurrences of all items"""
-        # should be same as find_all for single chars
-        self.assertEqual(find_many('abc', 'd'), [])
-        self.assertEqual(find_many('abc', 'a'), [0])
-        self.assertEqual(find_many('abcabca', 'a'), [0, 3, 6])
-        self.assertEqual(find_many('abcabca', 'c'), [2, 5])
-        self.assertEqual(find_many('abcabca', '3'), [])
-        # should sort together the items from the two lists
-        self.assertEqual(find_many('abcabca', 'bc'), [1, 2, 4, 5])
-        # note difference between 2-char string and 1-string list
-        self.assertEqual(find_many('abcabca', ['bc']), [1, 4])
-        self.assertRaises(TypeError, find_many, 'abcabca', [3])
 
     def test_unreserve(self):
         """unreserve should trim trailing underscore if present."""
