@@ -18,7 +18,6 @@ from cogent3.util.misc import (iterable,
                                MappedString, MappedList, MappedDict,
                                NonnegIntError, reverse_complement, not_none, get_items_except,
                                NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
-                               revComp,
                                create_dir, handle_error_codes, identity, if_,
                                to_string,
                                timeLimitReached, get_independent_coords, get_merged_by_value_coords,
@@ -1282,11 +1281,7 @@ class reverse_complementTests(TestCase):
         correct_output = "GTCCTGAATCATGTTTCCCCTGCAT"
         real_output = reverse_complement(user_input)
         self.assertEqual(real_output, correct_output)
-
-        # revComp is a pointer to reverse_complement (for backward
-        # compatibility)
-        real_output = revComp(user_input)
-        self.assertEqual(real_output, correct_output)
+        
     # end test_reverse_complement_DNA
 
     def test_reverse_complement_RNA(self):
