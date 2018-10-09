@@ -154,16 +154,6 @@ class DepthExceededError(Exception):
     pass
 
 
-def gzip_dump(object, filename, bin=2):
-    """Saves a compressed object to file."""
-    file = GzipFile(filename, 'wb')
-    file.write(dumps(object, bin))
-    try:  # do not leave unlinked structures
-        object.link()
-    except AttributeError:
-        pass
-    file.close()
-
 
 def gzip_load(filename):
     """Loads a compressed object from file."""
