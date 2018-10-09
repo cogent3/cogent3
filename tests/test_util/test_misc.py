@@ -10,7 +10,6 @@ from cogent3.util.misc import (iterable,
                                flatten, is_iterable, is_char, is_char_or_noniterable,
                                is_str_or_noniterable, not_list_tuple, list_flatten,
                                recursive_flatten, unflatten, select,
-                               caps_from_underscores,
                                add_lowercase, InverseDict, InverseDictMulti, DictFromPos, DictFromFirst,
                                DictFromLast, DistanceFromMatrix, PairsFromGroups,
                                ClassChecker, Delegator, FunctionWrapper,
@@ -274,16 +273,6 @@ class UtilsTests(TestCase):
         self.assertEqual(select(('e', 'b', 'a'), values), [7, 2, 5])
         # check that it raises KeyError on anything out of range
         self.assertRaises(KeyError, select, 'abx', values)
-
-    def test_caps_from_underscores(self):
-        """caps_from_underscores should become CapsFromUnderscores"""
-        cfu = caps_from_underscores
-        # should still convert strings without underscores
-        self.assertEqual(cfu('ABCDE  abcde!$'), 'Abcde  Abcde!$')
-        self.assertEqual(cfu('abc_def'), 'AbcDef')
-        # should read through multiple underscores
-        self.assertEqual(cfu('_caps__from_underscores___'),
-                         'CapsFromUnderscores')
 
     def test_add_lowercase(self):
         """add_lowercase should add lowercase version of each key w/ same val"""

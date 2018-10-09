@@ -323,12 +323,6 @@ def add_lowercase(d):
     return d
 
 
-def caps_from_underscores(string):
-    """Converts words_with_underscores to CapWords."""
-    words = string.split('_')
-    return ''.join([w.title() for w in words])
-
-
 def InverseDict(d):
     """Returns inverse of d, setting keys to values and vice versa.
 
