@@ -154,22 +154,6 @@ class DepthExceededError(Exception):
     pass
 
 
-
-def gzip_load(filename):
-    """Loads a compressed object from file."""
-    file = GzipFile(filename, 'rb')
-    buffer = []
-    while True:
-        data = file.read()
-        if data == "":
-            break
-        buffer.append(data)
-    buffer = "".join(buffer)
-    object = loads(buffer)
-    file.close()
-    return object
-
-
 def recursive_flatten_old(items, max_depth=None, curr_depth=0):
     """Removes all nesting from items, recursively.
 
