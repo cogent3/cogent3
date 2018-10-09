@@ -23,7 +23,7 @@ from cogent3.util.misc import (iterable,
                                NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
                                revComp,
                                create_dir, handle_error_codes, identity, if_,
-                               combinate, gzip_dump, gzip_load, recursive_flatten_old, getNewId, to_string,
+                               gzip_dump, gzip_load, recursive_flatten_old, getNewId, to_string,
                                timeLimitReached, get_independent_coords, get_merged_by_value_coords,
                                get_merged_overlapping_coords, get_run_start_indices,
                                get_format_suffixes)
@@ -67,14 +67,6 @@ class UtilsTests(TestCase):
         self.assertEqual(obs, exp)
         exp = 'nay'
         obs = if_(False, 'yay', 'nay')
-        self.assertEqual(obs, exp)
-
-    def test_combinate(self):
-        """Should return combinations"""
-        input = [1, 2, 3, 4]
-        n = 2
-        exp = [[1, 2], [1, 3], [1, 4], [2, 3], [2, 4], [3, 4]]
-        obs = list(combinate(input, n))
         self.assertEqual(obs, exp)
 
     def test_recursive_flatten_old(self):
