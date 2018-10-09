@@ -292,29 +292,6 @@ def unflatten(data, row_width, keep_extras=False):
     return result
 
 
-def unzip(items):
-    """Performs the reverse of zip, i.e. produces separate lists from tuples.
-
-    items should be list of k-element tuples. Will raise exception if any tuples
-    contain more items than the first one.
-
-    Conceptually equivalent to transposing the matrix of tuples.
-
-    Returns list of lists in which the ith list contains the ith element of each
-    tuple.
-
-    Note: zip expects *items rather than items, such that unzip(zip(*items))
-    returns something that compares equal to items.
-
-    Always returns lists: does not check original data type, but will accept
-    any sequence.
-    """
-    if items:
-        return list(map(list, list(zip(*items))))
-    else:
-        return []
-
-
 def select(order, items):
     """Returns the elements from items specified in order, a list of indices.
 
