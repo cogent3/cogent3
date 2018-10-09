@@ -309,17 +309,6 @@ def select(order, items):
     return list(map(items.__getitem__, order))
 
 
-def unreserve(item):
-    """Removes trailing underscore from item if it has one.
-
-    Useful for fixing mutations of Python reserved words, e.g. class.
-    """
-    if hasattr(item, 'endswith') and item.endswith('_'):
-        return item[:-1]
-    else:
-        return item
-
-
 def add_lowercase(d):
     """Adds lowercase version of keys in d to itself. Converts vals as well.
 

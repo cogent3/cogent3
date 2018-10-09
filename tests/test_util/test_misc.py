@@ -10,7 +10,6 @@ from cogent3.util.misc import (iterable,
                                flatten, is_iterable, is_char, is_char_or_noniterable,
                                is_str_or_noniterable, not_list_tuple, list_flatten,
                                recursive_flatten, unflatten, select,
-                               unreserve,
                                extract_delimited, caps_from_underscores,
                                add_lowercase, InverseDict, InverseDictMulti, DictFromPos, DictFromFirst,
                                DictFromLast, DistanceFromMatrix, PairsFromGroups,
@@ -282,13 +281,6 @@ class UtilsTests(TestCase):
         self.assertEqual(select(('e', 'b', 'a'), values), [7, 2, 5])
         # check that it raises KeyError on anything out of range
         self.assertRaises(KeyError, select, 'abx', values)
-
-    def test_unreserve(self):
-        """unreserve should trim trailing underscore if present."""
-        for i in (None, [], ['x'], 'xyz', '', 'a', '__abc'):
-            self.assertEqual(unreserve(i), i)
-        self.assertEqual(unreserve('_'), '')
-        self.assertEqual(unreserve('class_'), 'class')
 
     def test_extract_delimited_bad_delimiters(self):
         """extract_delimited should raise error if delimiters identical"""
