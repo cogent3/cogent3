@@ -136,13 +136,6 @@ def iterable(item):
         return [item]
 
 
-def min_index(items):
-    """Returns index of the smallest item.
-
-    items can be any sequence. If there is a tie, returns earliest item"""
-    return min([(item, index) for index, item in enumerate(items)])[1]
-
-
 def flatten(items):
     """Removes one level of nesting from items.
 
