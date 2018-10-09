@@ -16,7 +16,6 @@ from cogent3.util.misc import (iterable,
                                ConstraintError, ConstrainedContainer,
                                ConstrainedString, ConstrainedList, ConstrainedDict,
                                MappedString, MappedList, MappedDict,
-                               makeNonnegInt,
                                NonnegIntError, reverse_complement, not_none, get_items_except,
                                NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
                                revComp,
@@ -1268,29 +1267,6 @@ class MappedDictTests(TestCase):
         assert '1' in d
         assert 1 in d
         assert '5' not in d
-
-
-class makeNonnegIntTests(TestCase):
-    """Tests of the public makeNonnegInt function"""
-
-    def test_makeNonnegInt_unchanged(self):
-        """Should return an input nonneg int unchanged"""
-
-        self.assertEqual(makeNonnegInt(3), 3)
-    # end test_makeNonnegInt_unchanged
-
-    def test_makeNonnegInt_castable(self):
-        """Should return nonneg int version of a castable input"""
-
-        self.assertEqual(makeNonnegInt(-4.2), 4)
-    # end test_makeNonnegInt_castable
-
-    def test_makeNonnegInt_noncastable(self):
-        """Should raise a special NonnegIntError if input isn't castable"""
-
-        self.assertRaises(NonnegIntError, makeNonnegInt, "blue")
-    # end test_makeNonnegInt_noncastable
-# end makeNonnegIntTests
 
 
 class reverse_complementTests(TestCase):

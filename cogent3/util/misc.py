@@ -1030,19 +1030,6 @@ class NonnegIntError(ValueError):
 # end NonnegIntError
 
 
-def makeNonnegInt(n):
-    """Public function to cast input to nonneg int and return, or raise err"""
-
-    try:
-        n = abs(int(n))
-    except:
-        raise NonnegIntError(n + " must be castable to a nonnegative int")
-    # end try/except
-
-    return n
-# end makeNonnegInt
-
-
 def reverse_complement(seq, use_DNA=True):
     """Public function to reverse complement DNA or RNA sequence string
 
