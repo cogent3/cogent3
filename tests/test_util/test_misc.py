@@ -9,7 +9,7 @@ from cogent3.util.unit_test import TestCase, main
 from cogent3.util.misc import (iterable,
                                flatten, is_iterable, is_char, is_char_or_noniterable,
                                is_str_or_noniterable, not_list_tuple, list_flatten,
-                               recursive_flatten, unflatten, unzip, select, find_all,
+                               recursive_flatten, unflatten, select, find_all,
                                find_many, unreserve,
                                extract_delimited, caps_from_underscores,
                                add_lowercase, InverseDict, InverseDictMulti, DictFromPos, DictFromFirst,
@@ -253,20 +253,6 @@ class UtilsTests(TestCase):
         "unflatten should raise ValueError with row_width < 1"""
         self.assertRaises(ValueError, unflatten, "abcd", 0)
         self.assertRaises(ValueError, unflatten, "abcd", -1)
-
-    def test_unzip(self):
-        """unzip(items) should be the inverse of zip(*items)"""
-        chars = [list('abcde'), list('ghijk')]
-        numbers = [[1, 2, 3, 4, 5], [0, 0, 0, 0, 0]]
-        strings = [["abcde", "fghij", "klmno"], ['xxxxx'] * 3]
-        empty = [[]]
-
-        lists = [chars, numbers, strings]
-        zipped = [list(zip(*i)) for i in lists]
-        unzipped = [unzip(i) for i in zipped]
-
-        for u, l in zip(unzipped, lists):
-            self.assertEqual(u, l)
 
     def test_select_sequence(self):
         """select should work on a sequence with a list of indices"""
