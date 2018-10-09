@@ -136,14 +136,6 @@ def iterable(item):
         return [item]
 
 
-def max_index(items):
-    """Returns index of the largest item.
-
-    items can be any sequence. If there is a tie, returns latest item.
-    """
-    return max([(item, index) for index, item in enumerate(items)])[1]
-
-
 def min_index(items):
     """Returns index of the smallest item.
 
