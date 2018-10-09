@@ -154,29 +154,6 @@ class DepthExceededError(Exception):
     pass
 
 
-def recursive_flatten_old(items, max_depth=None, curr_depth=0):
-    """Removes all nesting from items, recursively.
-
-    Note: Default max_depth is None, which removes all nesting (including
-    unpacking strings). Setting max_depth unpacks a maximum of max_depth levels
-    of nesting, but will not raise exception if the structure is not really
-    that deep (instead, will just remove the nesting that exists). If max_depth
-    is 0, will not remove any nesting (note difference from setting max_depth
-    to None).
-    """
-    # bail out if greater than max_depth
-    if max_depth is not None:
-        if curr_depth > max_depth:
-            raise DepthExceededError
-    result = []
-    for i in items:
-        try:
-            result.extend(recursive_flatten(i, max_depth, curr_depth + 1))
-        except:
-            result.append(i)
-    return result
-
-
 def curry(f, *a, **kw):
     """curry(f,x)(y) = f(x,y) or = lambda y: f(x,y)
 

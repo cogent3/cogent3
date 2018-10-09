@@ -22,7 +22,7 @@ from cogent3.util.misc import (iterable,
                                NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
                                revComp,
                                create_dir, handle_error_codes, identity, if_,
-                               recursive_flatten_old, getNewId, to_string,
+                               getNewId, to_string,
                                timeLimitReached, get_independent_coords, get_merged_by_value_coords,
                                get_merged_overlapping_coords, get_run_start_indices,
                                get_format_suffixes)
@@ -66,13 +66,6 @@ class UtilsTests(TestCase):
         self.assertEqual(obs, exp)
         exp = 'nay'
         obs = if_(False, 'yay', 'nay')
-        self.assertEqual(obs, exp)
-
-    def test_recursive_flatten_old(self):
-        """Should flatten nested lists"""
-        input = [[[1, 2], [3, [4, 5]], [6, 7]], 8]
-        exp = [1, 2, 3, 4, 5, 6, 7, 8]
-        obs = recursive_flatten_old(input)
         self.assertEqual(obs, exp)
 
     def test_getNewId(self):
