@@ -9,7 +9,7 @@ from cogent3.util.unit_test import TestCase, main
 from cogent3.util.misc import (iterable,
                                flatten, is_iterable, is_char, is_char_or_noniterable,
                                is_str_or_noniterable, not_list_tuple, list_flatten,
-                               recursive_flatten, unflatten, select, find_all,
+                               recursive_flatten, unflatten, select,
                                unreserve,
                                extract_delimited, caps_from_underscores,
                                add_lowercase, InverseDict, InverseDictMulti, DictFromPos, DictFromFirst,
@@ -282,16 +282,6 @@ class UtilsTests(TestCase):
         self.assertEqual(select(('e', 'b', 'a'), values), [7, 2, 5])
         # check that it raises KeyError on anything out of range
         self.assertRaises(KeyError, select, 'abx', values)
-
-    def test_find_all(self):
-        """find_all should return list of all occurrences"""
-        self.assertEqual(find_all('abc', 'd'), [])
-        self.assertEqual(find_all('abc', 'a'), [0])
-        self.assertEqual(find_all('abcabca', 'a'), [0, 3, 6])
-        self.assertEqual(find_all('abcabca', 'c'), [2, 5])
-        self.assertEqual(find_all('abcabca', '3'), [])
-        self.assertEqual(find_all('abcabca', 'bc'), [1, 4])
-        self.assertRaises(TypeError, find_all, 'abcabca', 3)
 
     def test_unreserve(self):
         """unreserve should trim trailing underscore if present."""
