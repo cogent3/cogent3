@@ -22,7 +22,7 @@ from cogent3.util.misc import (iterable,
                                NonnegIntError, reverse_complement, not_none, get_items_except,
                                NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
                                revComp,
-                               create_dir, handle_error_codes, identity, if_, deep_tuple,
+                               create_dir, handle_error_codes, identity, if_,
                                combinate, gzip_dump, gzip_load, recursive_flatten_old, getNewId, to_string,
                                timeLimitReached, get_independent_coords, get_merged_by_value_coords,
                                get_merged_overlapping_coords, get_run_start_indices,
@@ -67,13 +67,6 @@ class UtilsTests(TestCase):
         self.assertEqual(obs, exp)
         exp = 'nay'
         obs = if_(False, 'yay', 'nay')
-        self.assertEqual(obs, exp)
-
-    def test_deep_tuple(self):
-        """Should convert a nested list to a nested tuple"""
-        exp = ((1, (2, 3)), (4, 5), (6, 7))
-        input = [[1, [2, 3]], [4, 5], [6, 7]]
-        obs = deep_tuple(input)
         self.assertEqual(obs, exp)
 
     def test_combinate(self):
