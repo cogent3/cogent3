@@ -25,7 +25,7 @@ from cogent3.util.misc import (iterable, max_index, min_index,
                                create_dir, handle_error_codes, identity, if_, deep_list, deep_tuple,
                                combinate, gzip_dump, gzip_load, recursive_flatten_old, getNewId, to_string,
                                timeLimitReached, get_independent_coords, get_merged_by_value_coords,
-                               get_merged_overlapping_coords, get_run_start_indices,
+                               get_merged_overlapping_coords, get_run_start_indices, get_tmp_filename,
                                get_format_suffixes)
 from numpy import array
 from time import clock, sleep
@@ -129,6 +129,19 @@ class UtilsTests(TestCase):
     #    exp = True
     #    obs = timeLimitReached(start, timelimit)
     #    self.assertEqual(obs, exp)
+
+    def test_safe_md5(self):
+        """Make sure we have the expected md5"""
+        exp = 'd3b07384d113edec49eaa6238ad5ff00'
+
+        tmp_fp = get_tmp_filename(prefix='test_safe_md5', suffix='txt')
+        self.files_to_remove.append(tmp_fp)
+        with open(tmp_fp, 'w') as tmp_f:
+            tmp_f.write('foo\n')
+
+        with open(tmp_fp, newline=None) as infile:
+            obs = safe_md5(infile)
+        self.assertEqual(obs.hexdigest(), exp)
 
     def test_iterable(self):
         """iterable(x) should return x or [x], always an iterable result"""
@@ -547,6 +560,32 @@ class UtilsTests(TestCase):
             ('x', 'x'), ('x', 'a'), ('a', 'x'),
         ]))
 
+    def test_remove_files(self):
+        """Remove files functions as expected """
+        # create list of temp file paths
+        test_filepaths = \
+        [get_tmp_filename(prefix='remove_files_test') for i in range(5)]
+
+        # try to remove them with remove_files and verify that an IOError is
+        # raises
+        self.assertRaises(OSError, remove_files, test_filepaths)
+        # now get no error when error_on_missing=False
+        remove_files(test_filepaths, error_on_missing=False)
+
+        # touch one of the filepaths so it exists
+        open(test_filepaths[2], 'w').close()
+        # check that an error is raised on trying to remove the files...
+        self.assertRaises(OSError, remove_files, test_filepaths)
+        # ... but that the existing file was still removed
+        self.assertFalse(exists(test_filepaths[2]))
+
+        # touch one of the filepaths so it exists
+        open(test_filepaths[2], 'w').close()
+        # no error is raised on trying to remove the files
+        # (although 4 don't exist)...
+        remove_files(test_filepaths, error_on_missing=False)
+        # ... and the existing file was removed
+        self.assertFalse(exists(test_filepaths[2]))
 
     def test_get_random_directory_name(self):
         """get_random_directory_name functions as expected """
