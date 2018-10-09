@@ -154,13 +154,6 @@ class DepthExceededError(Exception):
     pass
 
 
-def deep_tuple(x):
-    """Convert list recursively to tuple."""
-    if isinstance(x, list):
-        return tuple(map(deep_tuple, x))
-    return x
-
-
 def between(xxx_todo_changeme, number):
     """Same as: min_ <= number <= max_."""
     (min_, max_) = xxx_todo_changeme
