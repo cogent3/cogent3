@@ -323,31 +323,6 @@ def add_lowercase(d):
     return d
 
 
-def extract_delimited(line, left, right, start_index=0):
-    """Returns the part of line from first left to first right delimiter.
-
-    Optionally begins searching at start_index.
-
-    Note: finds the next complete field (i.e. if we start in an incomplete
-    field, skip it and move to the next).
-    """
-    if left == right:
-        raise TypeError(
-            "extract_delimited is for fields w/ different left and right delimiters")
-    try:
-        field_start = line.index(left, start_index)
-    except ValueError:  # no such field
-        return None
-    else:
-        try:
-            field_end = line.index(right, field_start)
-        except ValueError:  # left but no right delimiter: raise error
-            raise ValueError("Found '%s' but not '%s' in line %s, starting at %s."
-                             % (left, right, line, start_index))
-    # if we got here, we found the start and end of the field
-    return line[field_start + 1:field_end]
-
-
 def caps_from_underscores(string):
     """Converts words_with_underscores to CapWords."""
     words = string.split('_')
