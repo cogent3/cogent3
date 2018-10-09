@@ -23,7 +23,7 @@ from cogent3.util.misc import (iterable,
                                NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
                                revComp,
                                create_dir, handle_error_codes, identity, if_,
-                               gzip_dump, gzip_load, recursive_flatten_old, getNewId, to_string,
+                               gzip_load, recursive_flatten_old, getNewId, to_string,
                                timeLimitReached, get_independent_coords, get_merged_by_value_coords,
                                get_merged_overlapping_coords, get_run_start_indices,
                                get_format_suffixes)
