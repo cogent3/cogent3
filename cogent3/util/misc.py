@@ -103,21 +103,6 @@ class FilePath(str):
         return FilePath(''.join([self, other]))
 
 
-def safe_md5(open_file, block_size=2**20):
-    """Computes an md5 sum without loading the file into memory
-
-    This method is based on the answers given in:
-    http://stackoverflow.com/questions/1131220/get-md5-hash-of-a-files-without-open-it-in-python
-    """
-    md5 = hashlib.md5()
-    data = True
-    while data:
-        data = open_file.read(block_size)
-        if data:
-            md5.update(data.encode('utf8'))
-
-    return md5
-
 
 def identity(x):
     """Identity function: useful for avoiding special handling for None."""
