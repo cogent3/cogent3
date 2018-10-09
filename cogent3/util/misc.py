@@ -325,25 +325,6 @@ def find_all(text, pat):
         return result
 
 
-def find_many(text, pats):
-    """Returns sorted list of all occurrences of all patterns in text.
-
-    Matches to all patterns are sorted together. Each item in the list is
-    the index of one of the matches.
-
-    WARNING: if pat is a single string, will search for the chars in the string
-    individually. If this is not what you want (i.e. you want to search for the
-    whole string), you should be using find_all instead; if you want to use
-    find_many anyway, put the string in a 1-item list.
-    """
-
-    result = []
-    for pat in pats:
-        result.extend(find_all(text, pat))
-    result.sort()
-    return result
-
-
 def unreserve(item):
     """Removes trailing underscore from item if it has one.
 
