@@ -6,7 +6,7 @@ from copy import copy, deepcopy
 from os import remove, rmdir
 from os.path import exists
 from cogent3.util.unit_test import TestCase, main
-from cogent3.util.misc import (iterable, max_index, min_index,
+from cogent3.util.misc import (iterable, min_index,
                                flatten, is_iterable, is_char, is_char_or_noniterable,
                                is_str_or_noniterable, not_list_tuple, list_flatten,
                                recursive_flatten, unflatten, unzip, select, find_all,
@@ -138,14 +138,6 @@ class UtilsTests(TestCase):
         self.assertEqual(iterable(None), [None])
         self.assertEqual(iterable({'a': 1}), {'a': 1})
         self.assertEqual(iterable(['a', 'b', 'c']), ['a', 'b', 'c'])
-
-    def test_max_index(self):
-        """max_index should return index of largest item, last if tie"""
-        self.assertEqual(max_index('abcde'), 4)
-        self.assertEqual(max_index('ebcda'), 0)
-        self.assertRaises(ValueError, max_index, '')
-        self.assertEqual(max_index('ebcde'), 4)
-        self.assertEqual(max_index([0, 0, 1, 0]), 2)
 
     def test_min_index(self):
         """min_index should return index of smallest item, first if tie"""
