@@ -21,7 +21,7 @@ from cogent3.util.misc import (iterable,
                                NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
                                revComp,
                                create_dir, handle_error_codes, identity, if_,
-                               getNewId, to_string,
+                               to_string,
                                timeLimitReached, get_independent_coords, get_merged_by_value_coords,
                                get_merged_overlapping_coords, get_run_start_indices,
                                get_format_suffixes)
@@ -65,13 +65,6 @@ class UtilsTests(TestCase):
         self.assertEqual(obs, exp)
         exp = 'nay'
         obs = if_(False, 'yay', 'nay')
-        self.assertEqual(obs, exp)
-
-    def test_getNewId(self):
-        """should return a random 12 digit id"""
-        rand_f = lambda x: 1
-        obs = getNewId(rand_f=rand_f)
-        exp = '111111111111'
         self.assertEqual(obs, exp)
 
     def test_to_string(self):
