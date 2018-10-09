@@ -1058,10 +1058,6 @@ def reverse_complement(seq, use_DNA=True):
 
     # join the reverse-complemented list and return
     return "".join(comp_list)
-# The reverse_complement function was previously called revComp, but that
-# naming doesn't adhere to the PyCogent coding guidelines. Renamed, but
-# keeping the old name around to not break existing code.
-revComp = reverse_complement
 # end revComp
 
 
