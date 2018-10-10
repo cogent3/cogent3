@@ -22,7 +22,6 @@ from cogent3.core.alignment import ArrayAlignment
 from cogent3.util.misc import get_tmp_filename
 from cogent3.evolve.models import DSO78_matrix, DSO78_freqs
 from cogent3.evolve.substitution_model import SubstitutionModel, Empirical
-from cogent3.util.misc import app_path
 from cogent3.evolve.coevolution import mi_alignment, nmi_alignment,\
     resampled_mi_alignment, sca_alignment, make_weights,\
     gDefaultNullValue,\

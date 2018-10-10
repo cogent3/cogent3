@@ -320,29 +320,6 @@ def find_no(words, case_sens=False):
     return apply_to
 
 
-def find_all(words, case_sens=False):
-    """Returns True if all given words appear in s.
-
-    This filter is case INsensitive by default.
-    """
-    if not case_sens:
-        used_words = [w.lower() for w in words]
-    else:
-        used_words = words
-
-    def apply_to(s):
-        if not case_sens:
-            used_s = s.lower()
-        else:
-            used_s = s
-        for w in used_words:
-            # if w doesn't appear in lc_s
-            if not used_s.find(w) > -1:
-                return False
-        return True
-    return apply_to
-
-
 def keep_if_more(items, x, case_sens=False):
     """Returns True if #items in s > x. False otherwise.
 
