@@ -134,22 +134,6 @@ def get_tmp_filename(tmp_dir=gettempdir(), prefix="tmp", suffix=".txt",
                            (''.join([choice(picks) for i in range(20)]), suffix))
 
 
-def safe_md5(open_file, block_size=2**20):
-    """Computes an md5 sum without loading the file into memory
-
-    This method is based on the answers given in:
-    http://stackoverflow.com/questions/1131220/get-md5-hash-of-a-files-without-open-it-in-python
-    """
-    md5 = hashlib.md5()
-    data = True
-    while data:
-        data = open_file.read(block_size)
-        if data:
-            md5.update(data.encode('utf8'))
-
-    return md5
-
-
 def identity(x):
     """Identity function: useful for avoiding special handling for None."""
     return x
@@ -182,21 +166,6 @@ def iterable(item):
         return [item]
 
 
-def max_index(items):
-    """Returns index of the largest item.
-
-    items can be any sequence. If there is a tie, returns latest item.
-    """
-    return max([(item, index) for index, item in enumerate(items)])[1]
-
-
-def min_index(items):
-    """Returns index of the smallest item.
-
-    items can be any sequence. If there is a tie, returns earliest item"""
-    return min([(item, index) for index, item in enumerate(items)])[1]
-
-
 def flatten(items):
     """Removes one level of nesting from items.
 
@@ -213,85 +182,6 @@ def flatten(items):
 
 class DepthExceededError(Exception):
     pass
-
-
-def deep_list(x):
-    """Convert tuple recursively to list."""
-    if isinstance(x, tuple):
-        return list(map(deep_list, x))
-    return x
-
-
-def deep_tuple(x):
-    """Convert list recursively to tuple."""
-    if isinstance(x, list):
-        return tuple(map(deep_tuple, x))
-    return x
-
-
-def between(xxx_todo_changeme, number):
-    """Same as: min_ <= number <= max_."""
-    (min_, max_) = xxx_todo_changeme
-    return min_ <= number <= max_
-
-
-def combinate(items, n):
-    """Returns combinations of items."""
-    if n == 0:
-        yield []
-    else:
-        for i in range(len(items) - n + 1):
-            for cc in combinate(items[i + 1:], n - 1):
-                yield [items[i]] + cc
-
-
-def gzip_dump(object, filename, bin=2):
-    """Saves a compressed object to file."""
-    file = GzipFile(filename, 'wb')
-    file.write(dumps(object, bin))
-    try:  # do not leave unlinked structures
-        object.link()
-    except AttributeError:
-        pass
-    file.close()
-
-
-def gzip_load(filename):
-    """Loads a compressed object from file."""
-    file = GzipFile(filename, 'rb')
-    buffer = []
-    while True:
-        data = file.read()
-        if data == "":
-            break
-        buffer.append(data)
-    buffer = "".join(buffer)
-    object = loads(buffer)
-    file.close()
-    return object
-
-
-def recursive_flatten_old(items, max_depth=None, curr_depth=0):
-    """Removes all nesting from items, recursively.
-
-    Note: Default max_depth is None, which removes all nesting (including
-    unpacking strings). Setting max_depth unpacks a maximum of max_depth levels
-    of nesting, but will not raise exception if the structure is not really
-    that deep (instead, will just remove the nesting that exists). If max_depth
-    is 0, will not remove any nesting (note difference from setting max_depth
-    to None).
-    """
-    # bail out if greater than max_depth
-    if max_depth is not None:
-        if curr_depth > max_depth:
-            raise DepthExceededError
-    result = []
-    for i in items:
-        try:
-            result.extend(recursive_flatten(i, max_depth, curr_depth + 1))
-        except:
-            result.append(i)
-    return result
 
 
 def curry(f, *a, **kw):
@@ -409,29 +299,6 @@ def unflatten(data, row_width, keep_extras=False):
     return result
 
 
-def unzip(items):
-    """Performs the reverse of zip, i.e. produces separate lists from tuples.
-
-    items should be list of k-element tuples. Will raise exception if any tuples
-    contain more items than the first one.
-
-    Conceptually equivalent to transposing the matrix of tuples.
-
-    Returns list of lists in which the ith list contains the ith element of each
-    tuple.
-
-    Note: zip expects *items rather than items, such that unzip(zip(*items))
-    returns something that compares equal to items.
-
-    Always returns lists: does not check original data type, but will accept
-    any sequence.
-    """
-    if items:
-        return list(map(list, list(zip(*items))))
-    else:
-        return []
-
-
 def select(order, items):
     """Returns the elements from items specified in order, a list of indices.
 
@@ -447,52 +314,6 @@ def select(order, items):
     Return type is a list of whatever type the elements in items are.
     """
     return list(map(items.__getitem__, order))
-
-
-def find_all(text, pat):
-    """Returns list of all overlapping occurrences of a pattern in a text.
-
-    Each item in the (sorted) list is the index of one of the matches.
-    """
-    result = []
-    last = 0
-    try:
-        while 1:
-            curr = text.index(pat, last)
-            result.append(curr)
-            last = curr + 1
-    except ValueError:  # raised when no more matches
-        return result
-
-
-def find_many(text, pats):
-    """Returns sorted list of all occurrences of all patterns in text.
-
-    Matches to all patterns are sorted together. Each item in the list is
-    the index of one of the matches.
-
-    WARNING: if pat is a single string, will search for the chars in the string
-    individually. If this is not what you want (i.e. you want to search for the
-    whole string), you should be using find_all instead; if you want to use
-    find_many anyway, put the string in a 1-item list.
-    """
-
-    result = []
-    for pat in pats:
-        result.extend(find_all(text, pat))
-    result.sort()
-    return result
-
-
-def unreserve(item):
-    """Removes trailing underscore from item if it has one.
-
-    Useful for fixing mutations of Python reserved words, e.g. class.
-    """
-    if hasattr(item, 'endswith') and item.endswith('_'):
-        return item[:-1]
-    else:
-        return item
 
 
 def add_lowercase(d):
@@ -530,37 +351,6 @@ def add_lowercase(d):
         if new_key not in d:  # don't overwrite existing lcase keys
             d[new_key] = new_val
     return d
-
-
-def extract_delimited(line, left, right, start_index=0):
-    """Returns the part of line from first left to first right delimiter.
-
-    Optionally begins searching at start_index.
-
-    Note: finds the next complete field (i.e. if we start in an incomplete
-    field, skip it and move to the next).
-    """
-    if left == right:
-        raise TypeError(
-            "extract_delimited is for fields w/ different left and right delimiters")
-    try:
-        field_start = line.index(left, start_index)
-    except ValueError:  # no such field
-        return None
-    else:
-        try:
-            field_end = line.index(right, field_start)
-        except ValueError:  # left but no right delimiter: raise error
-            raise ValueError("Found '%s' but not '%s' in line %s, starting at %s."
-                             % (left, right, line, start_index))
-    # if we got here, we found the start and end of the field
-    return line[field_start + 1:field_end]
-
-
-def caps_from_underscores(string):
-    """Converts words_with_underscores to CapWords."""
-    words = string.split('_')
-    return ''.join([w.title() for w in words])
 
 
 def InverseDict(d):
@@ -1222,15 +1012,6 @@ class MappedDict(ConstrainedDict):
         """Ensure that has_key applies the mask."""
         return self.mask(item) in super(MappedDict, self)
 
-
-def getNewId(rand_f=randrange):
-    """Creates a random 12-digit integer to be used as an id."""
-
-    NUM_DIGITS = 12
-    return ''.join(map(str, [rand_f(10) for i in range(NUM_DIGITS)]))
-# end function getNewId
-
-
 def to_string(obj):
     """Public function to write a string of object's properties & their vals.
 
@@ -1279,19 +1060,6 @@ class NonnegIntError(ValueError):
 # end NonnegIntError
 
 
-def makeNonnegInt(n):
-    """Public function to cast input to nonneg int and return, or raise err"""
-
-    try:
-        n = abs(int(n))
-    except:
-        raise NonnegIntError(n + " must be castable to a nonnegative int")
-    # end try/except
-
-    return n
-# end makeNonnegInt
-
-
 def reverse_complement(seq, use_DNA=True):
     """Public function to reverse complement DNA or RNA sequence string
 
@@ -1320,10 +1088,6 @@ def reverse_complement(seq, use_DNA=True):
 
     # join the reverse-complemented list and return
     return "".join(comp_list)
-# The reverse_complement function was previously called revComp, but that
-# naming doesn't adhere to the PyCogent coding guidelines. Renamed, but
-# keeping the old name around to not break existing code.
-revComp = reverse_complement
 # end revComp
 
 
@@ -1346,25 +1110,6 @@ def not_none(seq):
             return False
     return True
 # end not_none
-
-
-def get_items_except(seq, indices, seq_constructor=None):
-    """Returns all items in seq that are not in indices
-
-    Returns the same type as parsed in except when a seq_constructor is set.
-    """
-    sequence = list(seq)
-    index_lookup = dict.fromkeys(indices)
-    result = [sequence[i] for i in range(len(seq))
-              if i not in index_lookup]
-    if not seq_constructor:
-        if isinstance(seq, str):
-            return ''.join(result)
-        else:
-            seq_constructor = seq.__class__
-    return seq_constructor(result)
-# end get_items_except
-
 
 def NestedSplitter(delimiters=[None], same_level=False,
                    constructor=str.strip, filter_=False):
@@ -1416,25 +1161,6 @@ def NestedSplitter(delimiters=[None], same_level=False,
     # parser.__doc__ = make_innerdoc(NestedSplitter, parser, locals())
     return parser
 # end NestedSplitter
-
-
-def app_path(app, env_variable='PATH'):
-    """Returns path to an app, or False if app does not exist in env_variable
-
-     This functions in the same way as which in that it returns
-     the first path that contains the app.
-
-    """
-    # strip off " characters, in case we got a FilePath object
-    app = app.strip('"')
-    paths = getenv(env_variable).split(':')
-    for path in paths:
-        p = join(path, app)
-        if exists(p):
-            return p
-    return False
-
-# some error codes for creating a dir
 
 
 def get_create_dir_error_codes():

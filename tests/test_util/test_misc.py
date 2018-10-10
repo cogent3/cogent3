@@ -6,24 +6,20 @@ from copy import copy, deepcopy
 from os import remove, rmdir
 from os.path import exists
 from cogent3.util.unit_test import TestCase, main
-from cogent3.util.misc import (iterable, max_index, min_index,
+from cogent3.util.misc import (iterable,
                                flatten, is_iterable, is_char, is_char_or_noniterable,
                                is_str_or_noniterable, not_list_tuple, list_flatten,
-                               recursive_flatten, unflatten, unzip, select, find_all,
-                               find_many, unreserve,
-                               extract_delimited, caps_from_underscores,
+                               recursive_flatten, unflatten, select,
                                add_lowercase, InverseDict, InverseDictMulti, DictFromPos, DictFromFirst,
                                DictFromLast, DistanceFromMatrix, PairsFromGroups,
                                ClassChecker, Delegator, FunctionWrapper,
                                ConstraintError, ConstrainedContainer,
                                ConstrainedString, ConstrainedList, ConstrainedDict,
                                MappedString, MappedList, MappedDict,
-                               makeNonnegInt,
-                               NonnegIntError, reverse_complement, not_none, get_items_except,
-                               NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
-                               revComp, safe_md5,
-                               create_dir, handle_error_codes, identity, if_, deep_list, deep_tuple,
-                               combinate, gzip_dump, gzip_load, recursive_flatten_old, getNewId, to_string,
+                               NonnegIntError, reverse_complement, not_none,
+                               NestedSplitter, curry, remove_files, get_random_directory_name,
+                               create_dir, handle_error_codes, identity, if_,
+                               to_string,
                                timeLimitReached, get_independent_coords, get_merged_by_value_coords,
                                get_merged_overlapping_coords, get_run_start_indices, get_tmp_filename,
                                get_format_suffixes)
@@ -69,42 +65,6 @@ class UtilsTests(TestCase):
         obs = if_(False, 'yay', 'nay')
         self.assertEqual(obs, exp)
 
-    def test_deep_list(self):
-        """should convert nested tuple to nested list"""
-        input = ((1, (2, 3)), (4, 5), (6, 7))
-        exp = [[1, [2, 3]], [4, 5], [6, 7]]
-        obs = deep_list(input)
-        self.assertEqual(obs, exp)
-
-    def test_deep_tuple(self):
-        """Should convert a nested list to a nested tuple"""
-        exp = ((1, (2, 3)), (4, 5), (6, 7))
-        input = [[1, [2, 3]], [4, 5], [6, 7]]
-        obs = deep_tuple(input)
-        self.assertEqual(obs, exp)
-
-    def test_combinate(self):
-        """Should return combinations"""
-        input = [1, 2, 3, 4]
-        n = 2
-        exp = [[1, 2], [1, 3], [1, 4], [2, 3], [2, 4], [3, 4]]
-        obs = list(combinate(input, n))
-        self.assertEqual(obs, exp)
-
-    def test_recursive_flatten_old(self):
-        """Should flatten nested lists"""
-        input = [[[1, 2], [3, [4, 5]], [6, 7]], 8]
-        exp = [1, 2, 3, 4, 5, 6, 7, 8]
-        obs = recursive_flatten_old(input)
-        self.assertEqual(obs, exp)
-
-    def test_getNewId(self):
-        """should return a random 12 digit id"""
-        rand_f = lambda x: 1
-        obs = getNewId(rand_f=rand_f)
-        exp = '111111111111'
-        self.assertEqual(obs, exp)
-
     def test_to_string(self):
         """should stringify an object"""
         class foo(object):
@@ -130,19 +90,6 @@ class UtilsTests(TestCase):
     #    obs = timeLimitReached(start, timelimit)
     #    self.assertEqual(obs, exp)
 
-    def test_safe_md5(self):
-        """Make sure we have the expected md5"""
-        exp = 'd3b07384d113edec49eaa6238ad5ff00'
-
-        tmp_fp = get_tmp_filename(prefix='test_safe_md5', suffix='txt')
-        self.files_to_remove.append(tmp_fp)
-        with open(tmp_fp, 'w') as tmp_f:
-            tmp_f.write('foo\n')
-
-        with open(tmp_fp, newline=None) as infile:
-            obs = safe_md5(infile)
-        self.assertEqual(obs.hexdigest(), exp)
-
     def test_iterable(self):
         """iterable(x) should return x or [x], always an iterable result"""
         self.assertEqual(iterable('x'), 'x')
@@ -151,22 +98,6 @@ class UtilsTests(TestCase):
         self.assertEqual(iterable(None), [None])
         self.assertEqual(iterable({'a': 1}), {'a': 1})
         self.assertEqual(iterable(['a', 'b', 'c']), ['a', 'b', 'c'])
-
-    def test_max_index(self):
-        """max_index should return index of largest item, last if tie"""
-        self.assertEqual(max_index('abcde'), 4)
-        self.assertEqual(max_index('ebcda'), 0)
-        self.assertRaises(ValueError, max_index, '')
-        self.assertEqual(max_index('ebcde'), 4)
-        self.assertEqual(max_index([0, 0, 1, 0]), 2)
-
-    def test_min_index(self):
-        """min_index should return index of smallest item, first if tie"""
-        self.assertEqual(min_index('abcde'), 0)
-        self.assertEqual(min_index('ebcda'), 4)
-        self.assertRaises(ValueError, min_index, '')
-        self.assertEqual(min_index('ebcde'), 1)
-        self.assertEqual(min_index([0, 0, 1, 0]), 0)
 
     def test_flatten_no_change(self):
         """flatten should not change non-nested sequences (except to list)"""
@@ -305,20 +236,6 @@ class UtilsTests(TestCase):
         self.assertRaises(ValueError, unflatten, "abcd", 0)
         self.assertRaises(ValueError, unflatten, "abcd", -1)
 
-    def test_unzip(self):
-        """unzip(items) should be the inverse of zip(*items)"""
-        chars = [list('abcde'), list('ghijk')]
-        numbers = [[1, 2, 3, 4, 5], [0, 0, 0, 0, 0]]
-        strings = [["abcde", "fghij", "klmno"], ['xxxxx'] * 3]
-        empty = [[]]
-
-        lists = [chars, numbers, strings]
-        zipped = [list(zip(*i)) for i in lists]
-        unzipped = [unzip(i) for i in zipped]
-
-        for u, l in zip(unzipped, lists):
-            self.assertEqual(u, l)
-
     def test_select_sequence(self):
         """select should work on a sequence with a list of indices"""
         chars = 'abcdefghij'
@@ -347,70 +264,6 @@ class UtilsTests(TestCase):
         self.assertEqual(select(('e', 'b', 'a'), values), [7, 2, 5])
         # check that it raises KeyError on anything out of range
         self.assertRaises(KeyError, select, 'abx', values)
-
-    def test_find_all(self):
-        """find_all should return list of all occurrences"""
-        self.assertEqual(find_all('abc', 'd'), [])
-        self.assertEqual(find_all('abc', 'a'), [0])
-        self.assertEqual(find_all('abcabca', 'a'), [0, 3, 6])
-        self.assertEqual(find_all('abcabca', 'c'), [2, 5])
-        self.assertEqual(find_all('abcabca', '3'), [])
-        self.assertEqual(find_all('abcabca', 'bc'), [1, 4])
-        self.assertRaises(TypeError, find_all, 'abcabca', 3)
-
-    def test_find_many(self):
-        """find_many should return list of all occurrences of all items"""
-        # should be same as find_all for single chars
-        self.assertEqual(find_many('abc', 'd'), [])
-        self.assertEqual(find_many('abc', 'a'), [0])
-        self.assertEqual(find_many('abcabca', 'a'), [0, 3, 6])
-        self.assertEqual(find_many('abcabca', 'c'), [2, 5])
-        self.assertEqual(find_many('abcabca', '3'), [])
-        # should sort together the items from the two lists
-        self.assertEqual(find_many('abcabca', 'bc'), [1, 2, 4, 5])
-        # note difference between 2-char string and 1-string list
-        self.assertEqual(find_many('abcabca', ['bc']), [1, 4])
-        self.assertRaises(TypeError, find_many, 'abcabca', [3])
-
-    def test_unreserve(self):
-        """unreserve should trim trailing underscore if present."""
-        for i in (None, [], ['x'], 'xyz', '', 'a', '__abc'):
-            self.assertEqual(unreserve(i), i)
-        self.assertEqual(unreserve('_'), '')
-        self.assertEqual(unreserve('class_'), 'class')
-
-    def test_extract_delimited_bad_delimiters(self):
-        """extract_delimited should raise error if delimiters identical"""
-        self.assertRaises(TypeError, extract_delimited, '|acb|acx', '|', '|')
-
-    def test_extract_delimited_missing_right(self):
-        """extract_delimited should raise error if right delimiter missing"""
-        self.assertRaises(ValueError, extract_delimited, 'ac[acgsd', '[', ']')
-
-    def test_extract_delimited_normal(self):
-        """extract_delimited should return correct field if present, or None"""
-        self.assertEqual(extract_delimited('[]', '[', ']'), '')
-        self.assertEqual(extract_delimited('asdsad', '[', ']'), None)
-        self.assertEqual(extract_delimited('ac[abc]ac', '[', ']'), 'abc')
-        self.assertEqual(extract_delimited('[xyz]asd', '[', ']'), 'xyz')
-        self.assertEqual(extract_delimited('acg[xyz]', '[', ']'), 'xyz')
-        self.assertEqual(extract_delimited('abcdef', 'a', 'e'), 'bcd')
-
-    def test_extract_delimited_indexed(self):
-        """extract_delimited should return correct field with starting index"""
-        self.assertEqual(extract_delimited('[abc][def]', '[', ']', 0), 'abc')
-        self.assertEqual(extract_delimited('[abc][def]', '[', ']', 1), 'def')
-        self.assertEqual(extract_delimited('[abc][def]', '[', ']', 5), 'def')
-
-    def test_caps_from_underscores(self):
-        """caps_from_underscores should become CapsFromUnderscores"""
-        cfu = caps_from_underscores
-        # should still convert strings without underscores
-        self.assertEqual(cfu('ABCDE  abcde!$'), 'Abcde  Abcde!$')
-        self.assertEqual(cfu('abc_def'), 'AbcDef')
-        # should read through multiple underscores
-        self.assertEqual(cfu('_caps__from_underscores___'),
-                         'CapsFromUnderscores')
 
     def test_add_lowercase(self):
         """add_lowercase should add lowercase version of each key w/ same val"""
@@ -1441,29 +1294,6 @@ class MappedDictTests(TestCase):
         assert '5' not in d
 
 
-class makeNonnegIntTests(TestCase):
-    """Tests of the public makeNonnegInt function"""
-
-    def test_makeNonnegInt_unchanged(self):
-        """Should return an input nonneg int unchanged"""
-
-        self.assertEqual(makeNonnegInt(3), 3)
-    # end test_makeNonnegInt_unchanged
-
-    def test_makeNonnegInt_castable(self):
-        """Should return nonneg int version of a castable input"""
-
-        self.assertEqual(makeNonnegInt(-4.2), 4)
-    # end test_makeNonnegInt_castable
-
-    def test_makeNonnegInt_noncastable(self):
-        """Should raise a special NonnegIntError if input isn't castable"""
-
-        self.assertRaises(NonnegIntError, makeNonnegInt, "blue")
-    # end test_makeNonnegInt_noncastable
-# end makeNonnegIntTests
-
-
 class reverse_complementTests(TestCase):
     """Tests of the public reverse_complement function"""
 
@@ -1477,11 +1307,7 @@ class reverse_complementTests(TestCase):
         correct_output = "GTCCTGAATCATGTTTCCCCTGCAT"
         real_output = reverse_complement(user_input)
         self.assertEqual(real_output, correct_output)
-
-        # revComp is a pointer to reverse_complement (for backward
-        # compatibility)
-        real_output = revComp(user_input)
-        self.assertEqual(real_output, correct_output)
+        
     # end test_reverse_complement_DNA
 
     def test_reverse_complement_RNA(self):
@@ -1535,17 +1361,6 @@ class reverse_complementTests(TestCase):
         self.assertEqual(list(filter(not_none, [(1, 2), (3, None)])), [(1, 2)])
     # end test_not_none
 
-    def test_get_items_except(self):
-        """get_items_except should return all items of seq not in indices"""
-        self.assertEqual(get_items_except('a-b-c-d', [1, 3, 5]), 'abcd')
-        self.assertEqual(get_items_except(
-            [0, 1, 2, 3, 4, 5, 6], [1, 3, 5]), [0, 2, 4, 6])
-        self.assertEqual(get_items_except(
-            (0, 1, 2, 3, 4, 5, 6), [1, 3, 5]), (0, 2, 4, 6))
-        self.assertEqual(get_items_except('a-b-c-d', [1, 3, 5], tuple),
-                         ('a', 'b', 'c', 'd'))
-    # end test_get_items_except
-
     def test_NestedSplitter(self):
         """NestedSplitter should make a function which return expected list"""
         # test delimiters, constructor, filter_
@@ -1587,11 +1402,6 @@ class reverse_complementTests(TestCase):
                   (5, True))
         for arg2, result in knowns:
             self.assertEqual(curry_test(arg2), result)
-
-    def test_app_path(self):
-        """app_path should return correct paths"""
-        self.assertEqual(app_path('ls'), '/bin/ls')
-        self.assertEqual(app_path('lsxxyyx'), False)
 
 if __name__ == '__main__':
     main()
