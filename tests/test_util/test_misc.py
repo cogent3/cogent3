@@ -10,22 +10,18 @@ from cogent3.util.misc import (iterable,
                                flatten, is_iterable, is_char, is_char_or_noniterable,
                                is_str_or_noniterable, not_list_tuple, list_flatten,
                                recursive_flatten, unflatten, select,
-                               unreserve,
-                               extract_delimited, caps_from_underscores,
                                add_lowercase, InverseDict, InverseDictMulti, DictFromPos, DictFromFirst,
                                DictFromLast, DistanceFromMatrix, PairsFromGroups,
                                ClassChecker, Delegator, FunctionWrapper,
                                ConstraintError, ConstrainedContainer,
                                ConstrainedString, ConstrainedList, ConstrainedDict,
                                MappedString, MappedList, MappedDict,
-                               makeNonnegInt,
-                               NonnegIntError, reverse_complement, not_none, get_items_except,
-                               NestedSplitter, curry, app_path, remove_files, get_random_directory_name,
-                               revComp,
+                               NonnegIntError, reverse_complement, not_none,
+                               NestedSplitter, curry, remove_files, get_random_directory_name,
                                create_dir, handle_error_codes, identity, if_,
-                               recursive_flatten_old, getNewId, to_string,
+                               to_string,
                                timeLimitReached, get_independent_coords, get_merged_by_value_coords,
-                               get_merged_overlapping_coords, get_run_start_indices,
+                               get_merged_overlapping_coords, get_run_start_indices, get_tmp_filename,
                                get_format_suffixes)
 from numpy import array
 from time import clock, sleep
@@ -67,20 +63,6 @@ class UtilsTests(TestCase):
         self.assertEqual(obs, exp)
         exp = 'nay'
         obs = if_(False, 'yay', 'nay')
-        self.assertEqual(obs, exp)
-
-    def test_recursive_flatten_old(self):
-        """Should flatten nested lists"""
-        input = [[[1, 2], [3, [4, 5]], [6, 7]], 8]
-        exp = [1, 2, 3, 4, 5, 6, 7, 8]
-        obs = recursive_flatten_old(input)
-        self.assertEqual(obs, exp)
-
-    def test_getNewId(self):
-        """should return a random 12 digit id"""
-        rand_f = lambda x: 1
-        obs = getNewId(rand_f=rand_f)
-        exp = '111111111111'
         self.assertEqual(obs, exp)
 
     def test_to_string(self):
@@ -283,46 +265,6 @@ class UtilsTests(TestCase):
         # check that it raises KeyError on anything out of range
         self.assertRaises(KeyError, select, 'abx', values)
 
-    def test_unreserve(self):
-        """unreserve should trim trailing underscore if present."""
-        for i in (None, [], ['x'], 'xyz', '', 'a', '__abc'):
-            self.assertEqual(unreserve(i), i)
-        self.assertEqual(unreserve('_'), '')
-        self.assertEqual(unreserve('class_'), 'class')
-
-    def test_extract_delimited_bad_delimiters(self):
-        """extract_delimited should raise error if delimiters identical"""
-        self.assertRaises(TypeError, extract_delimited, '|acb|acx', '|', '|')
-
-    def test_extract_delimited_missing_right(self):
-        """extract_delimited should raise error if right delimiter missing"""
-        self.assertRaises(ValueError, extract_delimited, 'ac[acgsd', '[', ']')
-
-    def test_extract_delimited_normal(self):
-        """extract_delimited should return correct field if present, or None"""
-        self.assertEqual(extract_delimited('[]', '[', ']'), '')
-        self.assertEqual(extract_delimited('asdsad', '[', ']'), None)
-        self.assertEqual(extract_delimited('ac[abc]ac', '[', ']'), 'abc')
-        self.assertEqual(extract_delimited('[xyz]asd', '[', ']'), 'xyz')
-        self.assertEqual(extract_delimited('acg[xyz]', '[', ']'), 'xyz')
-        self.assertEqual(extract_delimited('abcdef', 'a', 'e'), 'bcd')
-
-    def test_extract_delimited_indexed(self):
-        """extract_delimited should return correct field with starting index"""
-        self.assertEqual(extract_delimited('[abc][def]', '[', ']', 0), 'abc')
-        self.assertEqual(extract_delimited('[abc][def]', '[', ']', 1), 'def')
-        self.assertEqual(extract_delimited('[abc][def]', '[', ']', 5), 'def')
-
-    def test_caps_from_underscores(self):
-        """caps_from_underscores should become CapsFromUnderscores"""
-        cfu = caps_from_underscores
-        # should still convert strings without underscores
-        self.assertEqual(cfu('ABCDE  abcde!$'), 'Abcde  Abcde!$')
-        self.assertEqual(cfu('abc_def'), 'AbcDef')
-        # should read through multiple underscores
-        self.assertEqual(cfu('_caps__from_underscores___'),
-                         'CapsFromUnderscores')
-
     def test_add_lowercase(self):
         """add_lowercase should add lowercase version of each key w/ same val"""
         d = {'a': 1, 'b': 'test', 'A': 5, 'C': 123, 'D': [], 'AbC': 'XyZ',
@@ -471,6 +413,32 @@ class UtilsTests(TestCase):
             ('x', 'x'), ('x', 'a'), ('a', 'x'),
         ]))
 
+    def test_remove_files(self):
+        """Remove files functions as expected """
+        # create list of temp file paths
+        test_filepaths = \
+        [get_tmp_filename(prefix='remove_files_test') for i in range(5)]
+
+        # try to remove them with remove_files and verify that an IOError is
+        # raises
+        self.assertRaises(OSError, remove_files, test_filepaths)
+        # now get no error when error_on_missing=False
+        remove_files(test_filepaths, error_on_missing=False)
+
+        # touch one of the filepaths so it exists
+        open(test_filepaths[2], 'w').close()
+        # check that an error is raised on trying to remove the files...
+        self.assertRaises(OSError, remove_files, test_filepaths)
+        # ... but that the existing file was still removed
+        self.assertFalse(exists(test_filepaths[2]))
+
+        # touch one of the filepaths so it exists
+        open(test_filepaths[2], 'w').close()
+        # no error is raised on trying to remove the files
+        # (although 4 don't exist)...
+        remove_files(test_filepaths, error_on_missing=False)
+        # ... and the existing file was removed
+        self.assertFalse(exists(test_filepaths[2]))
 
     def test_get_random_directory_name(self):
         """get_random_directory_name functions as expected """
@@ -1326,29 +1294,6 @@ class MappedDictTests(TestCase):
         assert '5' not in d
 
 
-class makeNonnegIntTests(TestCase):
-    """Tests of the public makeNonnegInt function"""
-
-    def test_makeNonnegInt_unchanged(self):
-        """Should return an input nonneg int unchanged"""
-
-        self.assertEqual(makeNonnegInt(3), 3)
-    # end test_makeNonnegInt_unchanged
-
-    def test_makeNonnegInt_castable(self):
-        """Should return nonneg int version of a castable input"""
-
-        self.assertEqual(makeNonnegInt(-4.2), 4)
-    # end test_makeNonnegInt_castable
-
-    def test_makeNonnegInt_noncastable(self):
-        """Should raise a special NonnegIntError if input isn't castable"""
-
-        self.assertRaises(NonnegIntError, makeNonnegInt, "blue")
-    # end test_makeNonnegInt_noncastable
-# end makeNonnegIntTests
-
-
 class reverse_complementTests(TestCase):
     """Tests of the public reverse_complement function"""
 
@@ -1362,11 +1307,7 @@ class reverse_complementTests(TestCase):
         correct_output = "GTCCTGAATCATGTTTCCCCTGCAT"
         real_output = reverse_complement(user_input)
         self.assertEqual(real_output, correct_output)
-
-        # revComp is a pointer to reverse_complement (for backward
-        # compatibility)
-        real_output = revComp(user_input)
-        self.assertEqual(real_output, correct_output)
+        
     # end test_reverse_complement_DNA
 
     def test_reverse_complement_RNA(self):
@@ -1420,17 +1361,6 @@ class reverse_complementTests(TestCase):
         self.assertEqual(list(filter(not_none, [(1, 2), (3, None)])), [(1, 2)])
     # end test_not_none
 
-    def test_get_items_except(self):
-        """get_items_except should return all items of seq not in indices"""
-        self.assertEqual(get_items_except('a-b-c-d', [1, 3, 5]), 'abcd')
-        self.assertEqual(get_items_except(
-            [0, 1, 2, 3, 4, 5, 6], [1, 3, 5]), [0, 2, 4, 6])
-        self.assertEqual(get_items_except(
-            (0, 1, 2, 3, 4, 5, 6), [1, 3, 5]), (0, 2, 4, 6))
-        self.assertEqual(get_items_except('a-b-c-d', [1, 3, 5], tuple),
-                         ('a', 'b', 'c', 'd'))
-    # end test_get_items_except
-
     def test_NestedSplitter(self):
         """NestedSplitter should make a function which return expected list"""
         # test delimiters, constructor, filter_
@@ -1472,11 +1402,6 @@ class reverse_complementTests(TestCase):
                   (5, True))
         for arg2, result in knowns:
             self.assertEqual(curry_test(arg2), result)
-
-    def test_app_path(self):
-        """app_path should return correct paths"""
-        self.assertEqual(app_path('ls'), '/bin/ls')
-        self.assertEqual(app_path('lsxxyyx'), False)
 
 if __name__ == '__main__':
     main()
