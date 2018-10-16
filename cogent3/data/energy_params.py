@@ -11,7 +11,7 @@ contain ONLY AT base pairs. (quoted from SantaLucia, Allawi, and Seneviratne,
 Biochemistry, 1996, 3555-3562.)
 
 The SYM term is added into the entropy or enthalpy calculation IFF the
-sequence is self-complementary (seq = Reverse Comp of seq)
+sequence is self-complementary (seq = revComp of seq)
 """
 
 __author__ = "Amanda Birmingham"
