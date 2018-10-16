@@ -19,9 +19,9 @@ from cogent3.core.profile import Profile
 from cogent3.core.alphabet import CharAlphabet, Alphabet
 from cogent3.maths.stats.distribution import binomial_exact
 from cogent3.core.alignment import ArrayAlignment
+from cogent3.util.misc import get_tmp_filename
 from cogent3.evolve.models import DSO78_matrix, DSO78_freqs
 from cogent3.evolve.substitution_model import SubstitutionModel, Empirical
-from cogent3.util.misc import app_path
 from cogent3.evolve.coevolution import mi_alignment, nmi_alignment,\
     resampled_mi_alignment, sca_alignment, make_weights,\
     gDefaultNullValue,\
@@ -382,6 +382,32 @@ class CoevolutionTests(TestCase):
         self.assertRaises(ValueError,
                           coevolve_alignments, mi_alignment, aln1, aln2, min_num_seqs=50)
 
+    def test_coevolve_alignments_watches_max_num_seqs(self):
+        """ coevolve_alignments: filtering or error on too many sequences """
+        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AD', '3': 'YP'},
+                              moltype=PROTEIN)
+        aln2 = ArrayAlignment(data={'1': 'ACP', '2': 'EAD', '3': 'PYP'},
+                              moltype=PROTEIN)
+
+        # keep all seqs
+        tmp_filepath = get_tmp_filename(
+            prefix='tmp_test_coevolution', suffix='.fasta')
+        coevolve_alignments(mi_alignment, aln1, aln2, max_num_seqs=3,
+                            merged_aln_filepath=tmp_filepath)
+        self.assertEqual(LoadSeqs(tmp_filepath).num_seqs, 3)
+
+        # keep 2 seqs
+        coevolve_alignments(mi_alignment, aln1, aln2, max_num_seqs=2,
+                            merged_aln_filepath=tmp_filepath)
+        self.assertEqual(LoadSeqs(tmp_filepath).num_seqs, 2)
+
+        # error if no sequence filter
+        self.assertRaises(ValueError,
+                          coevolve_alignments, mi_alignment, aln1, aln2, max_num_seqs=2,
+                          merged_aln_filepath=tmp_filepath, sequence_filter=None)
+
+        # clean up the temporary file
+        remove(tmp_filepath)
 
     def test_coevolve_alignments_different_MolType(self):
         """ coevolve_alignments: different MolTypes supported """

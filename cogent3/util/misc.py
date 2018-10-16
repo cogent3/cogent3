@@ -103,6 +103,36 @@ class FilePath(str):
         return FilePath(''.join([self, other]))
 
 
+def get_tmp_filename(tmp_dir=gettempdir(), prefix="tmp", suffix=".txt",
+                     result_constructor=FilePath):
+    """ Generate a temporary filename and return as a FilePath object
+
+        tmp_dir: the directory to house the tmp_filename (default: '/tmp')
+        prefix: string to append to beginning of filename (default: 'tmp')
+            Note: It is very useful to have prefix be descriptive of the
+            process which is creating the temporary file. For example, if
+            your temp file will be used to build a temporary blast database,
+            you might pass prefix=TempBlastDB
+        suffix: the suffix to be appended to the temp filename (default '.txt')
+        result_constructor: the constructor used to build the result filename
+            (default: cogent3.app.parameters.FilePath). Note that joining
+            FilePath objects with one another or with strings, you must use
+            the + operator. If this causes trouble, you can pass str as the
+            the result_constructor.
+    """
+    # check not none
+    if not tmp_dir:
+        tmp_dir = ""
+    # if not current directory, append "/" if not already on path
+    elif not tmp_dir.endswith("/"):
+        tmp_dir += "/"
+
+    chars = "abcdefghigklmnopqrstuvwxyz"
+    picks = chars + chars.upper() + "0123456790"
+    return result_constructor(tmp_dir) + result_constructor(prefix) +\
+        result_constructor("%s%s" %
+                           (''.join([choice(picks) for i in range(20)]), suffix))
+
 
 def identity(x):
     """Identity function: useful for avoiding special handling for None."""
@@ -152,29 +182,6 @@ def flatten(items):
 
 class DepthExceededError(Exception):
     pass
-
-
-def recursive_flatten_old(items, max_depth=None, curr_depth=0):
-    """Removes all nesting from items, recursively.
-
-    Note: Default max_depth is None, which removes all nesting (including
-    unpacking strings). Setting max_depth unpacks a maximum of max_depth levels
-    of nesting, but will not raise exception if the structure is not really
-    that deep (instead, will just remove the nesting that exists). If max_depth
-    is 0, will not remove any nesting (note difference from setting max_depth
-    to None).
-    """
-    # bail out if greater than max_depth
-    if max_depth is not None:
-        if curr_depth > max_depth:
-            raise DepthExceededError
-    result = []
-    for i in items:
-        try:
-            result.extend(recursive_flatten(i, max_depth, curr_depth + 1))
-        except:
-            result.append(i)
-    return result
 
 
 def curry(f, *a, **kw):
@@ -309,17 +316,6 @@ def select(order, items):
     return list(map(items.__getitem__, order))
 
 
-def unreserve(item):
-    """Removes trailing underscore from item if it has one.
-
-    Useful for fixing mutations of Python reserved words, e.g. class.
-    """
-    if hasattr(item, 'endswith') and item.endswith('_'):
-        return item[:-1]
-    else:
-        return item
-
-
 def add_lowercase(d):
     """Adds lowercase version of keys in d to itself. Converts vals as well.
 
@@ -355,37 +351,6 @@ def add_lowercase(d):
         if new_key not in d:  # don't overwrite existing lcase keys
             d[new_key] = new_val
     return d
-
-
-def extract_delimited(line, left, right, start_index=0):
-    """Returns the part of line from first left to first right delimiter.
-
-    Optionally begins searching at start_index.
-
-    Note: finds the next complete field (i.e. if we start in an incomplete
-    field, skip it and move to the next).
-    """
-    if left == right:
-        raise TypeError(
-            "extract_delimited is for fields w/ different left and right delimiters")
-    try:
-        field_start = line.index(left, start_index)
-    except ValueError:  # no such field
-        return None
-    else:
-        try:
-            field_end = line.index(right, field_start)
-        except ValueError:  # left but no right delimiter: raise error
-            raise ValueError("Found '%s' but not '%s' in line %s, starting at %s."
-                             % (left, right, line, start_index))
-    # if we got here, we found the start and end of the field
-    return line[field_start + 1:field_end]
-
-
-def caps_from_underscores(string):
-    """Converts words_with_underscores to CapWords."""
-    words = string.split('_')
-    return ''.join([w.title() for w in words])
 
 
 def InverseDict(d):
@@ -1047,15 +1012,6 @@ class MappedDict(ConstrainedDict):
         """Ensure that has_key applies the mask."""
         return self.mask(item) in super(MappedDict, self)
 
-
-def getNewId(rand_f=randrange):
-    """Creates a random 12-digit integer to be used as an id."""
-
-    NUM_DIGITS = 12
-    return ''.join(map(str, [rand_f(10) for i in range(NUM_DIGITS)]))
-# end function getNewId
-
-
 def to_string(obj):
     """Public function to write a string of object's properties & their vals.
 
@@ -1104,19 +1060,6 @@ class NonnegIntError(ValueError):
 # end NonnegIntError
 
 
-def makeNonnegInt(n):
-    """Public function to cast input to nonneg int and return, or raise err"""
-
-    try:
-        n = abs(int(n))
-    except:
-        raise NonnegIntError(n + " must be castable to a nonnegative int")
-    # end try/except
-
-    return n
-# end makeNonnegInt
-
-
 def reverse_complement(seq, use_DNA=True):
     """Public function to reverse complement DNA or RNA sequence string
 
@@ -1145,10 +1088,6 @@ def reverse_complement(seq, use_DNA=True):
 
     # join the reverse-complemented list and return
     return "".join(comp_list)
-# The reverse_complement function was previously called revComp, but that
-# naming doesn't adhere to the PyCogent coding guidelines. Renamed, but
-# keeping the old name around to not break existing code.
-revComp = reverse_complement
 # end revComp
 
 
@@ -1171,25 +1110,6 @@ def not_none(seq):
             return False
     return True
 # end not_none
-
-
-def get_items_except(seq, indices, seq_constructor=None):
-    """Returns all items in seq that are not in indices
-
-    Returns the same type as parsed in except when a seq_constructor is set.
-    """
-    sequence = list(seq)
-    index_lookup = dict.fromkeys(indices)
-    result = [sequence[i] for i in range(len(seq))
-              if i not in index_lookup]
-    if not seq_constructor:
-        if isinstance(seq, str):
-            return ''.join(result)
-        else:
-            seq_constructor = seq.__class__
-    return seq_constructor(result)
-# end get_items_except
-
 
 def NestedSplitter(delimiters=[None], same_level=False,
                    constructor=str.strip, filter_=False):
@@ -1241,25 +1161,6 @@ def NestedSplitter(delimiters=[None], same_level=False,
     # parser.__doc__ = make_innerdoc(NestedSplitter, parser, locals())
     return parser
 # end NestedSplitter
-
-
-def app_path(app, env_variable='PATH'):
-    """Returns path to an app, or False if app does not exist in env_variable
-
-     This functions in the same way as which in that it returns
-     the first path that contains the app.
-
-    """
-    # strip off " characters, in case we got a FilePath object
-    app = app.strip('"')
-    paths = getenv(env_variable).split(':')
-    for path in paths:
-        p = join(path, app)
-        if exists(p):
-            return p
-    return False
-
-# some error codes for creating a dir
 
 
 def get_create_dir_error_codes():
