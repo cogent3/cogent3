@@ -8,7 +8,7 @@ from cogent3.util.transform import apply_each, bools, bool_each, \
     disjoin, any, either, negate, none, neither, compose, compose_many, \
     per_shortest, per_longest, for_seq, \
     has_field, extract_field, test_field, index, test_container, \
-    trans_except, trans_all, find_any, find_no,\
+    trans_except, trans_all, find_any, find_no, find_all,\
     keep_if_more, exclude_if_more, keep_if_more_other, exclude_if_more_other,\
     KeepChars, exclude_chars, reorder, reorder_inplace, float_from_string,\
     first, last, first_in_set, last_in_set, first_not_in_set, last_not_in_set,\
@@ -551,6 +551,28 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(f("bar and foo"), 0)
 
         # does NOT work on numbers
+
+
+    def test_find_all(self):
+        """find_all should be True if all words appear in the string"""
+
+        f = find_all('ab')
+        self.assertEqual(f(''), 0)  # empty
+        self.assertRaises(AttributeError, f, None)  # none
+        self.assertEqual(f('cde'), 0)  # none of the elements
+        self.assertEqual(f('axxx'), 0)  # one of the elements
+        self.assertEqual(f('bxxx'), 0)  # one of the elements
+        self.assertEqual(f('axxxb'), 1)  # all elements
+        self.assertEqual(f('aaaa'), 0)  # repeated element
+
+        # works on any sequence
+        f = find_all(['foo', 'bar'])
+        self.assertEqual(f("joe"), 0)
+        self.assertEqual(f("only foo"), 0)
+        self.assertEqual(f("bar and foo"), 1)
+
+        # does NOT work on numbers
+
 
     def test_keep_if_more(self):
         """keep_if_more should be True if #items in s > x"""
