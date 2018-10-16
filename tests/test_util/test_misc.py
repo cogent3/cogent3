@@ -242,12 +242,12 @@ class UtilsTests(TestCase):
         strings = list(chars)
 
         tests = {(0,): ['a'],
-                    (-1,): ['j'],
-                    (0, 2, 4): ['a', 'c', 'e'],
-                    (9, 8, 7, 6, 5, 4, 3, 2, 1, 0): list('jihgfedcba'),
-                    (-8, 8): ['c', 'i'],
-                    (): [],
-                    }
+                 (-1,): ['j'],
+                 (0, 2, 4): ['a', 'c', 'e'],
+                 (9, 8, 7, 6, 5, 4, 3, 2, 1, 0): list('jihgfedcba'),
+                 (-8, 8): ['c', 'i'],
+                 (): [],
+                 }
         for test, result in list(tests.items()):
             self.assertEqual(select(test, chars), result)
             self.assertEqual(select(test, strings), result)
@@ -264,7 +264,7 @@ class UtilsTests(TestCase):
         self.assertEqual(select(('e', 'b', 'a'), values), [7, 2, 5])
         # check that it raises KeyError on anything out of range
         self.assertRaises(KeyError, select, 'abx', values)
-        
+
     def test_find_all(self):
         """find_all should return list of all occurrences"""
         self.assertEqual(find_all('abc', 'd'), [])
@@ -273,7 +273,7 @@ class UtilsTests(TestCase):
         self.assertEqual(find_all('abcabca', 'c'), [2, 5])
         self.assertEqual(find_all('abcabca', '3'), [])
         self.assertEqual(find_all('abcabca', 'bc'), [1, 4])
-        self.assertRaises(TypeError, find_all, 'abcabca', 3)        
+        self.assertRaises(TypeError, find_all, 'abcabca', 3)
 
     def test_add_lowercase(self):
         """add_lowercase should add lowercase version of each key w/ same val"""
@@ -301,7 +301,7 @@ class UtilsTests(TestCase):
         # should work with sets
         d = set('ABC')
         self.assertEqual(add_lowercase(d), set('ABCabc'))
-        #...even frozensets
+        # ...even frozensets
         d = frozenset('ABC')
         self.assertEqual(add_lowercase(d), frozenset('ABCabc'))
 
@@ -359,7 +359,7 @@ class UtilsTests(TestCase):
         self.assertEqual(d('abacdeeee'), {'a': [0, 2], 'b': [1], 'c': [3], 'd': [4],
                                           'e': [5, 6, 7, 8]})
         self.assertEqual(d(('abc', None, 'xyz', None, 3)), {'abc': [0], None: [1, 3],
-                                                           'xyz': [2], 3: [4]})
+                                                            'xyz': [2], 3: [4]})
 
     def test_DictFromFirst(self):
         """DictFromFirst should return correct first positions"""
@@ -370,7 +370,7 @@ class UtilsTests(TestCase):
         self.assertEqual(d('abacdeeee'), {
                          'a': 0, 'b': 1, 'c': 3, 'd': 4, 'e': 5})
         self.assertEqual(d(('abc', None, 'xyz', None, 3)), {'abc': 0, None: 1,
-                                                           'xyz': 2, 3: 4})
+                                                            'xyz': 2, 3: 4})
 
     def test_DictFromLast(self):
         """DictFromLast should return correct last positions"""
@@ -381,7 +381,7 @@ class UtilsTests(TestCase):
         self.assertEqual(d('abacdeeee'), {
                          'a': 2, 'b': 1, 'c': 3, 'd': 4, 'e': 8})
         self.assertEqual(d(('abc', None, 'xyz', None, 3)), {'abc': 0, None: 3,
-                                                           'xyz': 2, 3: 4})
+                                                            'xyz': 2, 3: 4})
 
     def test_DistanceFromMatrix(self):
         """DistanceFromMatrix should return correct elements"""
@@ -413,7 +413,7 @@ class UtilsTests(TestCase):
             ('x', 'x'), ('x', 'y'), ('y', 'x'), ('y', 'y'),
         ]))
         # if there's overlap, note that the groups should _not_ be expanded
-        #(e.g. in the following case, 'x' is _not_ similar to 'c', even though
+        # (e.g. in the following case, 'x' is _not_ similar to 'c', even though
         # both 'x' and 'c' are similar to 'a'.
         overlap = ['ax', 'abc']
         self.assertEqual(PairsFromGroups(overlap), dict.fromkeys([
@@ -427,7 +427,7 @@ class UtilsTests(TestCase):
         """Remove files functions as expected """
         # create list of temp file paths
         test_filepaths = \
-        [get_tmp_filename(prefix='remove_files_test') for i in range(5)]
+            [get_tmp_filename(prefix='remove_files_test') for i in range(5)]
 
         # try to remove them with remove_files and verify that an IOError is
         # raises
@@ -608,17 +608,17 @@ class UtilsTests(TestCase):
         data = [[20, 21, 0.11], [21, 22, 0.12], [22, 23, 0.13], [23, 24, 0.14]]
         self.assertEqual(get_merged_by_value_coords(data, digits=1),
                          [[20, 24, 0.1]])
-    
+
     def test_get_format_suffixes(self):
         """correctly return suffixes for compressed etc.. formats"""
         a, b = get_format_suffixes("no_suffixes")
-        self.assertTrue(a==b==None)
+        self.assertTrue(a == b == None)
         a, b = get_format_suffixes("suffixes.gz")
-        self.assertTrue(a==None and b=="gz")
+        self.assertTrue(a == None and b == "gz")
         a, b = get_format_suffixes("suffixes.abcd")
-        self.assertTrue(a=="abcd" and b==None)
+        self.assertTrue(a == "abcd" and b == None)
         a, b = get_format_suffixes("suffixes.abcd.bz2")
-        self.assertTrue(a=="abcd" and b=="bz2")
+        self.assertTrue(a == "abcd" and b == "bz2")
 
 
 class _my_dict(dict):
@@ -1241,7 +1241,8 @@ class ConstrainedDictTests(TestCase):
     def test_setitem_masks(self):
         """ConstrainedDict setitem should work only if key in constraint"""
         key_mask = str
-        val_mask = lambda x: int(x) + 3
+
+        def val_mask(x): return int(x) + 3
         d = ConstrainedDict({1: 4, 2: 6}, '123', key_mask, val_mask)
         d[1] = '456'
         self.assertEqual(d, {'1': 459, '2': 9, })
@@ -1260,7 +1261,8 @@ class MappedDictTests(TestCase):
     def test_setitem_masks(self):
         """MappedDict setitem should work only if key in constraint"""
         key_mask = str
-        val_mask = lambda x: int(x) + 3
+
+        def val_mask(x): return int(x) + 3
         d = MappedDict({1: 4, 2: 6}, '123', key_mask, val_mask)
         d[1] = '456'
         self.assertEqual(d, {'1': 459, '2': 9, })
@@ -1317,7 +1319,7 @@ class reverse_complementTests(TestCase):
         correct_output = "GTCCTGAATCATGTTTCCCCTGCAT"
         real_output = reverse_complement(user_input)
         self.assertEqual(real_output, correct_output)
-        
+
     # end test_reverse_complement_DNA
 
     def test_reverse_complement_RNA(self):
@@ -1412,6 +1414,7 @@ class reverse_complementTests(TestCase):
                   (5, True))
         for arg2, result in knowns:
             self.assertEqual(curry_test(arg2), result)
+
 
 if __name__ == '__main__':
     main()
