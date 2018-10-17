@@ -35,17 +35,19 @@ def bytes_to_string(data):
         data = data.decode('utf_8')
     return data
 
+
 def open_(filename, mode='rt', **kwargs):
     """open that handles different compression"""
     op = {'gz': gzip_open, 'bz2': bzip_open}.get(
         filename.split('.')[-1], open)
     return op(filename, mode, **kwargs)
 
+
 def get_format_suffixes(filename):
     """returns compression and/or file suffixes"""
     if '.' not in filename:
         return None, None
-    
+
     compression_suffixes = ("bz2", "gz")
     filename = filename.split(".")
     suffixes = filename[1:] if len(filename) == 2 else filename[-2:]
@@ -53,13 +55,13 @@ def get_format_suffixes(filename):
         cmp_suffix = suffixes.pop(-1)
     else:
         cmp_suffix = None
-    
+
     if suffixes:
         suffix = suffixes[-1]
     else:
         suffix = None
-    return  suffix, cmp_suffix
-    
+    return suffix, cmp_suffix
+
 
 class FilePath(str):
     """ Hold paths for proper handling
@@ -227,10 +229,12 @@ def is_char(obj):
     """return True if obj is a char (str with lenth<=1)"""
     return isinstance(obj, str) and len(obj) <= 1
 
-is_char_or_noniterable = lambda x: is_char(x) or\
+
+def is_char_or_noniterable(x): return is_char(x) or\
     not is_iterable(x)
 
-is_str_or_noniterable = lambda x: isinstance(x, str) or\
+
+def is_str_or_noniterable(x): return isinstance(x, str) or\
     not is_iterable(x)
 
 
@@ -265,6 +269,7 @@ def recursive_flatten(items, max_depth=None, curr_depth=1,
 def not_list_tuple(obj):
     """return False if obj is a list or a tuple"""
     return not isinstance(obj, (list, tuple))
+
 
 list_flatten = curry(recursive_flatten, is_leaf=not_list_tuple)
 
@@ -1028,6 +1033,7 @@ class MappedDict(ConstrainedDict):
         """Ensure that has_key applies the mask."""
         return self.mask(item) in super(MappedDict, self)
 
+
 def to_string(obj):
     """Public function to write a string of object's properties & their vals.
 
@@ -1126,6 +1132,7 @@ def not_none(seq):
             return False
     return True
 # end not_none
+
 
 def NestedSplitter(delimiters=[None], same_level=False,
                    constructor=str.strip, filter_=False):
@@ -1384,9 +1391,9 @@ def get_run_start_indices(values, digits=None, converter_func=None):
         'Cannot set both digits and converter_func'
 
     if digits is not None:
-        converter_func = lambda x: round(x, digits)
+        def converter_func(x): return round(x, digits)
     elif converter_func is None:
-        converter_func = lambda x: x
+        def converter_func(x): return x
 
     last_val = None
     for index, val in enumerate(values):
