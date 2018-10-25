@@ -17,7 +17,7 @@ MolType provides services for resolving ambiguities, or providing the
 correct ambiguity for recoding -- will move to its own module.
 """
 
-from cogent3.util.array import cartesian_product
+from itertools import product
 
 import re
 import string
@@ -352,7 +352,7 @@ class JointEnumeration(Enumeration):
     def __new__(cls, data=[], gap=None, moltype=None):
         """Fills in the tuple with tuples from the enumerations in data."""
         sub_enums = cls._coerce_enumerations(data)
-        return Enumeration.__new__(cls, cartesian_product(sub_enums),
+        return Enumeration.__new__(cls, product(*sub_enums),
                                    moltype=moltype)
 
     def __init__(self, data=[], gap=None, moltype=None):

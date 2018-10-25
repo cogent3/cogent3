@@ -11,16 +11,6 @@ import numpy
 from cogent3.util.transform import cross_comb
 
 
-def cartesian_product(lists):
-    """Returns cartesian product of lists as list of tuples.
-
-    WARNING: Explicitly constructs list in memory. Should use generator
-    version in cogent3.util.transform instead for most uses.
-
-    Provided for compatibility.
-    """
-    return list(map(tuple, cross_comb(lists)))
-
 numerictypes = numpy.core.numerictypes.sctype2char
 Float = numerictypes(float)
 Int = numerictypes(int)
