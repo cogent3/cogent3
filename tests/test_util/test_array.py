@@ -20,7 +20,7 @@ from cogent3.util.array import gapped_to_ungapped, unmasked_to_masked, \
     sum_neg_off_diags, sum_neg_off_diags_naive, \
     scale_row_sum, scale_row_sum_naive, scale_trace, \
     abs_diff, sq_diff, norm_diff, \
-    cartesian_product, with_diag, without_diag, \
+    with_diag, without_diag, \
     only_nonzero, combine_dimensions, split_dimension, \
     non_diag, perturb_one_off_diag, perturb_off_diag, \
     merge_samples, sort_merged_samples_by_value, classifiers, \
@@ -524,25 +524,6 @@ class ArrayMathTests(TestCase):
         # difference should be same either direction
         self.assertEqual(norm_diff(m, m2), sqrt(257.0) / 9)
         self.assertEqual(norm_diff(m2, m), sqrt(257.0) / 9)
-
-    def test_carteisan_product(self):
-        """cartesian_product should return expected results."""
-        a = 'abc'
-        b = [1, 2, 3]
-        c = [1.0]
-        d = [0, 1]
-        # cartesian_product of list of single list should be same list
-        self.assertEqual(cartesian_product([c]), [(1.0,)])
-        self.assertEqual(cartesian_product([a]), [('a',), ('b',), ('c',)])
-        # should combine two lists correctly
-        self.assertEqual(cartesian_product([a, b]),
-                         [('a', 1), ('a', 2), ('a', 3), ('b', 1), ('b', 2),
-                          ('b', 3), ('c', 1), ('c', 2), ('c', 3)])
-        # should combine three lists correctly
-        self.assertEqual(cartesian_product([d, d, d]),
-                         [(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1), (1, 0, 0), (1, 0, 1), (1, 1, 0), (1, 1, 1)])
-        self.assertEqual(cartesian_product([c, d, d]),
-                         [(1.0, 0, 0), (1.0, 0, 1), (1.0, 1, 0), (1.0, 1, 1)])
 
     def test_without_diag(self):
         """without_diag should omit diagonal from matrix"""

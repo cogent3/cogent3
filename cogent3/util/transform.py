@@ -740,5 +740,3 @@ def cross_comb(vectors):
     for vector in vectors:
         result = _increment_comb(result, vector)
     return result
-
-cartesian_product = cross_comb  # standard, but obscure, name for this function
