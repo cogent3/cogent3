@@ -5,11 +5,14 @@ parses Nexus formatted tree files and Branchlength info in log files
 """
 
 import re
+from collections import defaultdict
+from cogent3.util.misc import open_
 from cogent3.parse.record import RecordError
 
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Catherine Lozuopone", "Rob Knight", "Micah Hamady"]
+__credits__ = ["Catherine Lozuopone", "Rob Knight", "Micah Hamady",
+               "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "3.0a1"
 __maintainer__ = "Catherine Lozupone"
@@ -191,3 +194,52 @@ def parse_PAUP_log(branch_lengths):
         BL_dict[taxa] = (parent, bl)
 
     return BL_dict
+
+
+def MinimalNexusAlignParser(align_path):
+    """returns {label: seq, ...}"""
+    if type(align_path) == str:
+        infile = open_(align_path)
+    else:
+        infile = align_path
+
+    isblock = re.compile(r"begin\s+(data|characters)").search
+    inblock = False
+    line = infile.readline().lower()
+    if not line.startswith('#nexus'):
+        raise ValueError("not a nexus file")
+
+    block = []
+    index = None
+    for line in infile:
+        if isblock(line.lower()):
+            inblock = True
+        elif inblock and line.lower().startswith("end;"):
+            break
+        elif inblock:
+            line = line.strip()
+            if line.lower().startswith("matrix"):
+                index = len(block)
+            elif not line.startswith(";"):
+                block.append(line)
+
+    infile.close()
+
+    if not block:
+        raise ValueError("not found DATA or CHARACTER block")
+    elif index is None:
+        raise RecordError("malformed block, no 'matrix' line")
+
+    block = block[index:]
+    seqs = defaultdict(list)
+    for line in block:
+        if not line or (line.startswith('[') and
+                        line.endswith(']')):
+            # blank or comment line
+            continue
+
+        line = line.split()
+        seqs[line[0]].append("".join(line[1:]))
+
+    for n, s in seqs.items():
+        yield n, "".join(s)
