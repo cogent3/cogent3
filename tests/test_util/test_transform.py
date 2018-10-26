@@ -13,7 +13,7 @@ from cogent3.util.transform import apply_each, bools, bool_each, \
     KeepChars, exclude_chars, reorder, reorder_inplace, float_from_string,\
     first, last, first_in_set, last_in_set, first_not_in_set, last_not_in_set,\
     first_index, last_index, first_index_in_set, last_index_in_set, \
-    first_index_not_in_set, last_index_not_in_set, comb
+    first_index_not_in_set, last_index_not_in_set
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -940,25 +940,6 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(last_not_in_set(s2, vowels), 'f')
         self.assertEqual(last_not_in_set(s3, vowels), None)
         self.assertEqual(last_not_in_set(s4, vowels), 'd')
-
-
-    def test_comb(self):
-        """comb should return correct combinations"""
-        self.assertEqual(list(comb(list(range(5)), 0)),
-                         [])
-        self.assertEqual(list(comb(list(range(5)), 1)),
-                         [[0], [1], [2], [3], [4]])
-        self.assertEqual(list(comb(list(range(5)), 2)),
-                         [[0, 1], [0, 2], [0, 3], [0, 4], [1, 2], [1, 3], [1, 4], [2, 3],
-                          [2, 4], [3, 4]])
-        self.assertEqual(list(comb(list(range(5)), 3)),
-                         [[0, 1, 2], [0, 1, 3], [0, 1, 4], [0, 2, 3], [0, 2, 4], [0, 3, 4],
-                          [1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]])
-        self.assertEqual(list(comb(list(range(5)), 4)),
-                         [[0, 1, 2, 3], [0, 1, 2, 4], [0, 1, 3, 4], [0, 2, 3, 4], [1, 2, 3, 4]])
-        self.assertEqual(list(comb(list(range(5)), 5)),
-                         [[0, 1, 2, 3, 4]])
-
 
  # run tests if invoked from the commandline
 if __name__ == '__main__':
