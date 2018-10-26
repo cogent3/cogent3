@@ -13,7 +13,7 @@ from cogent3.util.transform import apply_each, bools, bool_each, \
     KeepChars, exclude_chars, reorder, reorder_inplace, float_from_string,\
     first, last, first_in_set, last_in_set, first_not_in_set, last_not_in_set,\
     first_index, last_index, first_index_in_set, last_index_in_set, \
-    first_index_not_in_set, last_index_not_in_set, perm, comb
+    first_index_not_in_set, last_index_not_in_set, comb
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -941,10 +941,6 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(last_not_in_set(s3, vowels), None)
         self.assertEqual(last_not_in_set(s4, vowels), 'd')
 
-    def test_perm(self):
-        """perm should return correct permutations"""
-        self.assertEqual(list(perm('abc')), [
-                         'abc', 'acb', 'bac', 'bca', 'cab', 'cba'])
 
     def test_comb(self):
         """comb should return correct combinations"""

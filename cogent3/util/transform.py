@@ -678,22 +678,6 @@ def last_not_in_set(seq, items):
     return found
 
 
-def perm(items, n=None):
-    """Yields each successive permutation of items.
-
-    This version from Raymond Hettinger, 2006/03/23
-    """
-    if n is None:
-        n = len(items)
-    for i in range(len(items)):
-        v = items[i:i + 1]
-        if n == 1:
-            yield v
-        else:
-            rest = items[:i] + items[i + 1:]
-            for p in perm(rest, n - 1):
-                yield v + p
-
 
 def comb(items, n=None):
     """Yields each successive combination of n items.
