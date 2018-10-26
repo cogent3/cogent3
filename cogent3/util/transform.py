@@ -714,29 +714,3 @@ def comb(items, n=None):
                 yield v + c
 
 
-def _increment_comb(outcomes, vector):
-    """Yields each new outcome as an expansion of existing outcomes.
-    """
-    for outcome in outcomes:
-        for e in vector:
-            yield outcome + [e]
-
-
-def cross_comb(vectors):
-    """Yields each cross combination of a sequence of sequences (e.g. lists).
-
-    i.e. returns the Cartesian product of the sequences.
-
-    vectors: must be a seq of sequences.
-
-    Recipe from the Python cookbook.
-
-    Profiling shows that this is slightly slower than the previous
-    implementation of cartesian_product for long lists, but faster for short
-    lists. The speed penalty for long lists is outweighed by not having to
-    keep the lists in memory.
-    """
-    result = ([],)
-    for vector in vectors:
-        result = _increment_comb(result, vector)
-    return result

@@ -13,7 +13,7 @@ from cogent3.util.transform import apply_each, bools, bool_each, \
     KeepChars, exclude_chars, reorder, reorder_inplace, float_from_string,\
     first, last, first_in_set, last_in_set, first_not_in_set, last_not_in_set,\
     first_index, last_index, first_index_in_set, last_index_in_set, \
-    first_index_not_in_set, last_index_not_in_set, perm, comb, cross_comb, _increment_comb
+    first_index_not_in_set, last_index_not_in_set, perm, comb
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -963,21 +963,6 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(list(comb(list(range(5)), 5)),
                          [[0, 1, 2, 3, 4]])
 
-    def test_cross_comb(self):
-        """cross_comb should produce correct combinations"""
-        v1 = list(range(2))
-        v2 = list(range(3))
-        v3 = list('abc')
-        vv1 = ([e] for e in v1)
-        v1_x_v2 = [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]]
-        v1v2v3 = [[0, 0, 'a'], [0, 0, 'b'], [0, 0, 'c'], [0, 1, 'a'],
-                  [0, 1, 'b'], [0, 1, 'c'], [0, 2, 'a'], [0, 2, 'b'],
-                  [0, 2, 'c'], [1, 0, 'a'], [1, 0, 'b'], [1, 0, 'c'],
-                  [1, 1, 'a'], [1, 1, 'b'], [1, 1, 'c'], [1, 2, 'a'],
-                  [1, 2, 'b'], [1, 2, 'c']]
-        self.assertEqual(list(_increment_comb(vv1, v2)), v1_x_v2)
-        self.assertEqual(list(cross_comb([v1, v2])), v1_x_v2)
-        self.assertEqual(list(cross_comb([v1, v2, v3])), v1v2v3)
 
  # run tests if invoked from the commandline
 if __name__ == '__main__':
