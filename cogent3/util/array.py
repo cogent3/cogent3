@@ -8,7 +8,6 @@ from numpy import array, arange, logical_not, cumsum, where, compress, ravel,\
     concatenate, less, trace, newaxis, min, pi
 from numpy.random import randint, normal
 import numpy
-from cogent3.util.transform import cross_comb
 
 
 numerictypes = numpy.core.numerictypes.sctype2char
