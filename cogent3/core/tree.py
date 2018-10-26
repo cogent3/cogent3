@@ -28,7 +28,7 @@ Definition of relevant terms or abbreviations:
 from numpy import zeros, argsort, ceil, log
 from copy import deepcopy
 import re
-from cogent3.util.transform import comb
+from itertools import combinations
 from cogent3.maths.stats.test import correlation
 from operator import or_
 from cogent3.util.misc import InverseDict
@@ -1018,7 +1018,7 @@ class TreeNode(object):
 
         def update_result():
             # set tip_tip distance between tips of different child
-            for child1, child2 in comb(node.children, 2):
+            for child1, child2 in combinations(node.children, 2):
                 for tip1 in range(child1.__start, child1.__stop):
                     for tip2 in range(child2.__start, child2.__stop):
                         name1 = tip_order[tip1].name
@@ -1579,7 +1579,7 @@ class TreeNode(object):
 
         def update_result():
             # set tip_tip distance between tips of different child
-            for child1, child2 in comb(node.children, 2):
+            for child1, child2 in combinations(node.children, 2):
                 for tip1 in range(child1.__start, child1.__stop):
                     for tip2 in range(child2.__start, child2.__stop):
                         result[tip1, tip2] = \
@@ -2018,7 +2018,7 @@ class PhyloNode(TreeNode):
 
         def update_result():
             # set tip_tip distance between tips of different child
-            for child1, child2 in comb(node.children, 2):
+            for child1, child2 in combinations(node.children, 2):
                 for tip1 in range(child1.__start, child1.__stop):
                     for tip2 in range(child2.__start, child2.__stop):
                         name1 = tip_order[tip1].name
@@ -2093,7 +2093,7 @@ class PhyloNode(TreeNode):
 
         def update_result():
             # set tip_tip distance between tips of different child
-            for child1, child2 in comb(node.children, 2):
+            for child1, child2 in combinations(node.children, 2):
                 for tip1 in range(child1.__start, child1.__stop):
                     if tip1 not in result_map:
                         continue
