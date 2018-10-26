@@ -115,19 +115,21 @@ def autogen_reader(infile, sep, with_title, limit=None):
 
     infile.seek(0)  # reset to start of file
 
-    numeric_fields = []
+    typed_fields = []
+    bool_map = {'True': True, 'False': False}
     for index, value in enumerate(first_data_row.strip().split(sep)):
         try:
-            v = float(value)
-        except ValueError:
-            try:
-                v = int(value)
-            except ValueError:
-                continue
+            v = eval(value)
+            if type(v) in (float, int, complex):
+                typed_fields.append((index, v.__class__))
+            elif type(v) == bool:
+                typed_fields.append((index,
+                                     lambda x: bool_map.get(x)))
+        except:
+            pass
 
-        numeric_fields += [(index, eval(value).__class__)]
 
-    return SeparatorFormatParser(converter=ConvertFields(numeric_fields),
+    return SeparatorFormatParser(converter=ConvertFields(typed_fields),
                                  sep=sep, limit=limit)
 
 

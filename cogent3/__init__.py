@@ -131,7 +131,7 @@ def LoadTable(filename=None, sep=None, reader=None, header=None, rows=None,
     - reader: a parser for reading filename. This approach assumes the first
       row returned by the reader will be the header row.
     - static_column_types: if True, and reader is None, identifies columns
-      with a numeric data type (int, float) from the first non-header row.
+      with a numeric/bool data types from the first non-header row.
       This assumes all subsequent entries in that column are of the same type.
       Default is False.
     - header: column headings
@@ -156,8 +156,10 @@ def LoadTable(filename=None, sep=None, reader=None, header=None, rows=None,
     - format: output format when using str(Table)
     """
     sep = sep or kwargs.pop('delimiter', None)
-    if filename is not None and not (reader or static_column_types):
+    if filename is not None:
         file_format, compress_format = get_format_suffixes(filename)
+
+    if filename is not None and not (reader or static_column_types):
         if file_format == 'pickle':
             f = open_(filename, mode='rb')
             loaded_table = pickle.load(f)
@@ -172,8 +174,16 @@ def LoadTable(filename=None, sep=None, reader=None, header=None, rows=None,
                                                             delimiter=sep, limit=limit, **kwargs)
         title = title or loaded_title
     elif filename and (reader or static_column_types):
-        f = open(filename, newline=None)
+        f = open_(filename, newline=None)
         if not reader:
+            if file_format == 'csv':
+                sep = sep or ','
+            elif file_format == 'tsv':
+                sep = sep or '\t'
+            elif not sep:
+                raise ValueError("static_column_types option requires a value "
+                                 "for sep")
+            
             reader = autogen_reader(f, sep, limit=limit,
                                     with_title=kwargs.get('with_title', False))
 
@@ -207,7 +217,7 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None,
 
     if filename:
         assert not (treestring or tip_names)
-        with open(filename) as tfile:
+        with open_(filename) as tfile:
             treestring = tfile.read()
         if format is None and filename.endswith('.xml'):
             format = "xml"
