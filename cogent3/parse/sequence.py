@@ -4,7 +4,7 @@
 import xml.dom.minidom
 import re
 
-from cogent3.parse import fasta, phylip, paml, clustal, genbank
+from cogent3.parse import fasta, phylip, paml, clustal, genbank, nexus
 from cogent3.parse import gbseq, tinyseq, macsim, gcg
 from cogent3.parse.record import FileFormatError
 from cogent3.util.misc import open_
@@ -91,6 +91,8 @@ PARSERS = {
     'gbk': genbank.RichGenbankParser,
     'genbank': genbank.RichGenbankParser,
     'msf': gcg.MsfParser,
+    'nex': nexus.MinimalNexusAlignParser,
+    'nxs': nexus.MinimalNexusAlignParser
 }
 
 XML_PARSERS = {

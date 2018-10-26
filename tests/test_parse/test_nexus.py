@@ -1,11 +1,11 @@
-#!/usr/bin/env python
 """Unit tests for the Nexus Parser
 """
 
+from cogent3 import LoadSeqs
 from cogent3.util.unit_test import TestCase, main
 from cogent3.parse.nexus import get_tree_info, parse_nexus_tree, parse_PAUP_log, \
     split_tree_info, parse_trans_table, parse_dnd, get_BL_table, parse_taxa, \
-    find_fields
+    find_fields, MinimalNexusAlignParser
 
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -338,7 +338,53 @@ class NexusParserTests(TestCase):
         self.assertEqual(BL_dict['26'], ('34', 5))
         self.assertEqual(BL_dict['21'], ('40', 45))
 
+    def test_align_with_comments(self):
+        """correctly handle an alignment block containing comments"""
+        parser = MinimalNexusAlignParser("data/nexus_comments.nex")
+        got = {n: s for n, s in parser}
+        expect = {"Ephedra": "TTAAGCCATGCATGTCTAAGTATGAACTAATTCCAAACGGTGA",
+                  "Gnetum": "TTAAGCCATGCATGTCTATGTACGAACTAATC-AGAACGGTGA",
+                  "Welwitschia": "TTAAGCCATGCACGTGTAAGTATGAACTAGTC-GAAACGGTGA",
+                  "Ginkgo": "TTAAGCCATGCATGTGTAAGTATGAACTCTTTACAGACTGTGA",
+                  "Pinus": "TTAAGCCATGCATGTCTAAGTATGAACTAATTGCAGACTGTGA"}
+        self.assertEqual(got, expect)
 
-# run if called from command line
+    def test_align_with_spaced_seqs(self):
+        """correctly handle an alignment block with spaces in seqs"""
+        parser = MinimalNexusAlignParser("data/nexus_dna.nex")
+        seqs = {n: s for n, s in parser}
+        self.assertEqual(len(seqs), 10)  # 10 taxa
+        lengths = set(len(seqs[n]) for n in seqs)
+        self.assertEqual(lengths, {705})  # all same length and equal 705
+
+    def test_align_from_mixed(self):
+        """correctly handle a file with tree and alignment block"""
+        parser = MinimalNexusAlignParser("data/nexus_mixed.nex")
+        got = {n: s for n, s in parser}
+        expect = {"fish": "ACATAGAGGGTACCTCTAAG",
+                  "frog": "ACATAGAGGGTACCTCTAAG",
+                  "snake": "ACATAGAGGGTACCTCTAAG",
+                  "mouse": "ACATAGAGGGTACCTCTAAG"}
+        self.assertEqual(got, expect)
+
+    def test_align_no_blank_columns(self):
+        """correctly handle a file with no white space at line starts"""
+        parser = MinimalNexusAlignParser("data/nexus_aa.nxs")
+        seqs = {n: s for n, s in parser}
+        self.assertEqual(len(seqs), 10)  # 10 taxa
+        lengths = set(len(seqs[n]) for n in seqs)
+        self.assertEqual(lengths, {234})  # all same length and equal 234
+
+    def test_load_seqs_interface(self):
+        """LoadSeqs correctly loads nexus alignments"""
+        aln = LoadSeqs("data/nexus_mixed.nex")
+        self.assertEqual(aln.num_seqs, 4)
+        self.assertEqual(len(aln), 20)
+
+        aln = LoadSeqs("data/nexus_aa.nxs")
+        self.assertEqual(aln.num_seqs, 10)
+        self.assertEqual(len(aln), 234)
+
+
 if __name__ == '__main__':
     main()
