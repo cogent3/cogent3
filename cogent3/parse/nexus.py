@@ -135,7 +135,8 @@ def get_BL_table(branch_lengths):
         if beg_tag.match(line):
             in_table = 1
         if in_table == 1:
-            if line.startswith("---") or beg_tag.match(line) or line.strip() == '':
+            if (line.startswith("---") or beg_tag.match(line) or
+                    line.strip() == ''):
                 pass
             else:
                 result.append(line)
