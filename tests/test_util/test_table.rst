@@ -24,16 +24,24 @@ Tables can be created directly using the Table object itself, or a convenience f
     >>> from cogent3 import LoadTable
     >>> from cogent3.util.table import Table
 
-First, if you try and create a ``Table`` without any data, it raises a ``RuntimeError``.
+First, if you try and create a ``Table`` without any data, it raises a ``ValueError``.
 
 .. doctest::
 
     >>> t = Table()
     Traceback (most recent call last):
-    RuntimeError: header and rows must be provided to Table
+    ValueError: header must be provided to Table
     >>> t = Table(header=[], rows=[])
     Traceback (most recent call last):
-    RuntimeError: header and rows must be provided to Table
+    ValueError: header must be provided to Table
+
+You can create a ``Table`` with no data, however.
+
+.. doctest::
+
+    >>> t = Table(header=["col 1", "col 2"], rows=[])
+    >>> t.shape == (0, 2)
+    True
 
 Let's create a very simple, rather nonsensical, table first. To create a table requires a header series, and a 2D series (either of type ``tuple``, ``list``, ``dict``) or a `pandas DataFrame <http://pandas.pydata.org/>`_..
 
