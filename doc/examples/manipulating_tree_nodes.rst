@@ -55,7 +55,7 @@ Display the children of the root node, one of which is the parent of the tip we 
     >>> print(simple_tree.children)
     [Tree("B;"), Tree("(C,D)E;")]
 
-Remove the 'C' tip.  **Note:** ``remove()`` and ``removeNode()`` return 'True' if a node is removed, 'False' if they cannot remove a node.
+Remove the 'C' tip.  **Note:** ``remove()`` and ``remove_node()`` return 'True' if a node is removed, 'False' if they cannot remove a node.
 
 .. doctest ::
 
