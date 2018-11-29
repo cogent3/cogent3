@@ -133,6 +133,17 @@ class Table(DictArray):
 
             rows = data_frame.to_records(index=False).tolist()
             header = data_frame.columns.tolist()
+        
+        if type(header) == numpy.ndarray:
+            header = header.tolist()
+
+        if not header:
+            raise ValueError("header must be provided to Table")
+        elif rows is None:
+            raise ValueError("rows cannot be None")
+        
+        if len(rows) == 0:
+            rows = numpy.empty((0, len(header)))
 
         try:
             num_cols = len(header)
@@ -932,10 +943,6 @@ class Table(DictArray):
 
         new_header = self.header + [other_table.title + "_" + other_table.header[c]
                                     for c in output_mask_other]
-        if not joined_table:
-            # YUK, this is to stop dimension check in DictArray causing
-            # failures
-            joined_table = numpy.empty((0, len(new_header)))
 
         return Table(header=new_header, rows=joined_table, **kwargs)
 
