@@ -19,7 +19,7 @@ warnings.filterwarnings("ignore", "Ignoring tree edge lengths")
 import os
 from numpy import ones, dot
 
-from cogent3.evolve import substitution_model, predicate
+from cogent3.evolve import substitution_model, predicate, ns_substitution_model
 from cogent3 import DNA, LoadSeqs, LoadTree
 from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
@@ -640,7 +640,7 @@ motif    mprobs
         self.assertFloatEqual(expm(Q.array)(1.0), P.array)
 
         # should fail for a discrete Markov model
-        dm = substitution_model.DiscreteSubstitutionModel(DNA.alphabet)
+        dm = ns_substitution_model.DiscreteSubstitutionModel(DNA.alphabet)
         lf = dm.make_likelihood_function(self.tree)
         lf.set_alignment(self.data)
         self.assertRaises(Exception, lf.get_rate_matrix_for_edge, 'NineBande')
@@ -648,7 +648,7 @@ motif    mprobs
     def test_make_discrete_markov(self):
         """lf ignores tree lengths if a discrete Markov model"""
         t = LoadTree(treestring='(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;')
-        dm = substitution_model.DiscreteSubstitutionModel(DNA.alphabet)
+        dm = ns_substitution_model.DiscreteSubstitutionModel(DNA.alphabet)
         lf = dm.make_likelihood_function(t)
     
     def test_exercise_set_align(self):

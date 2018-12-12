@@ -8,8 +8,9 @@ warnings.filterwarnings("ignore", "Model not reversible")
 from numpy import ones, dot, array
 
 from cogent3 import LoadSeqs, DNA, LoadTree, LoadTable
-from cogent3.evolve.substitution_model import Nucleotide, General, \
+from cogent3.evolve.ns_substitution_model import General, \
     GeneralStationary
+from cogent3.evolve.substitution_model import Nucleotide 
 from cogent3.evolve.discrete_markov import DiscreteSubstitutionModel
 from cogent3.evolve.predicate import MotifChange
 from cogent3.util.unit_test import TestCase, main
