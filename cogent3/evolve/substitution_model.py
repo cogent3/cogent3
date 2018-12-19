@@ -473,7 +473,6 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
 
     def calcQ(self, word_probs, mprobs_matrix, *params):
         Q = self.calc_exchangeability_matrix(word_probs, *params)
-        Q *= mprobs_matrix
         row_totals = Q.sum(axis=1)
         Q -= numpy.diag(row_totals)
         if self._do_scaling:
@@ -546,9 +545,21 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         Qd = self.make_Qd_defn(word_probs, mprobs_matrix, rate_params)
         P = CallDefn(Qd, distance, name='psubs')
         return P
+    
+class StationaryQ:
+    "Contains the Original Definition of calcQ"
+    
+    def calcQ(self, word_probs, mprobs_matrix, *params):
+        Q = self.calc_exchangeability_matrix(word_probs, *params)
+        Q *= mprobs_matrix
+        row_totals = Q.sum(axis=1)
+        Q -= numpy.diag(row_totals)
+        if self._do_scaling:
+            Q *= 1.0 / (word_probs * row_totals).sum()
+        return Q    
 
 
-class Empirical(_ContinuousSubstitutionModel):
+class Empirical(StationaryQ,_ContinuousSubstitutionModel):
     """A continuous substitution model with a predefined instantaneous rate
     matrix."""
 
@@ -573,7 +584,7 @@ class Empirical(_ContinuousSubstitutionModel):
         return self._instantaneous_mask_f.copy()
 
 
-class SubstitutionModel(_ContinuousSubstitutionModel):
+class SubstitutionModel(StationaryQ,_ContinuousSubstitutionModel):
     """A continuous substitution model with only user-specified substitution
     parameters."""
 
@@ -832,3 +843,4 @@ class Codon(_Nucleotide):
             'replacement': predicate.UserPredicate(replacement),
         })
         return preds
+    
