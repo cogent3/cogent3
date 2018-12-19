@@ -9,14 +9,14 @@ A simple example for analyses involving rate heterogeneity among sites. In this 
 
 .. doctest::
 
-    >>> from cogent3.evolve.substitution_model import Nucleotide
+    >>> from cogent3.evolve.substitution_model import TimeReversibleNucleotide
     >>> from cogent3 import LoadTree
 
 Make an alignment with equal split between rates 0.6 and 0.2, and then concatenate them to create a new alignment.
 
 .. doctest::
 
-    >>> model = Nucleotide(equal_motif_probs=True)
+    >>> model = TimeReversibleNucleotide(equal_motif_probs=True)
     >>> tree = LoadTree("data/test.tree")
     >>> lf = model.make_likelihood_function(tree)
     >>> lf.set_param_rule('length', value=0.6, is_constant=True)
@@ -29,7 +29,7 @@ Start from scratch, optimising only rates and the rate probability ratio.
 
 .. doctest::
 
-    >>> model = Nucleotide(equal_motif_probs=True, ordered_param="rate",
+    >>> model = TimeReversibleNucleotide(equal_motif_probs=True, ordered_param="rate",
     ...                    distribution="free")
     >>> lf = model.make_likelihood_function(tree, bins=2, digits=2, space=3)
     >>> lf.set_alignment(aln3)
@@ -57,7 +57,7 @@ We'll now use a gamma distribution on the sample alignment, specifying the numbe
 
 .. doctest::
 
-    >>> model = Nucleotide(equal_motif_probs=True, ordered_param="rate",
+    >>> model = TimeReversibleNucleotide(equal_motif_probs=True, ordered_param="rate",
     ...                    distribution="gamma")
     >>> lf = model.make_likelihood_function(tree, bins=4)
     >>> lf.set_param_rule('bprobs', is_constant=True)

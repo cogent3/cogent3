@@ -26,7 +26,7 @@ from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
 from cogent3.maths.stats.information_criteria import aic, bic
 from cogent3.evolve.models import JTT92, CNFGTR, Y98, MG94HKY
 
-Nucleotide = substitution_model.Nucleotide
+TimeReversibleNucleotide = substitution_model.TimeReversibleNucleotide
 MotifChange = predicate.MotifChange
 
 __author__ = "Peter Maxwell and Gavin Huttley"
@@ -134,7 +134,7 @@ class LikelihoodCalcs(TestCase):
         one = aln.pop("Mouse")
         aln["root"] = one
         aln = LoadSeqs(data=aln)
-        submod = Nucleotide()
+        submod = TimeReversibleNucleotide()
         tree = LoadTree(treestring="%s" % str(tuple(aln.names)))
         lf = submod.make_likelihood_function(tree)
         try:
@@ -153,7 +153,7 @@ class LikelihoodCalcs(TestCase):
 
     def test_binned_gamma(self):
         """just rate is gamma distributed"""
-        submod = substitution_model.Codon(
+        submod = substitution_model.TimeReversibleCodon(
             predicates={'kappa': 'transition', 'omega': 'replacement'},
             ordered_param='rate', distribution='gamma', mprob_model='tuple')
         lf = self._makeLikelihoodFunction(submod, bins=3)
@@ -171,7 +171,7 @@ class LikelihoodCalcs(TestCase):
 
     def test_binned_gamma_ordered_param(self):
         """rate is gamma distributed omega follows"""
-        submod = substitution_model.Codon(
+        submod = substitution_model.TimeReversibleCodon(
             predicates={'kappa': 'transition', 'omega': 'replacement'},
             ordered_param='rate', partitioned_params='omega',
             distribution='gamma', mprob_model='tuple')
@@ -182,7 +182,7 @@ class LikelihoodCalcs(TestCase):
         shape = lf.get_param_value('rate_shape')
 
     def test_binned_partition(self):
-        submod = substitution_model.Codon(
+        submod = substitution_model.TimeReversibleCodon(
             predicates={'kappa': 'transition', 'omega': 'replacement'},
             ordered_param='rate', partitioned_params='omega',
             distribution='free', mprob_model='tuple')
@@ -192,7 +192,7 @@ class LikelihoodCalcs(TestCase):
         self.assertEqual(len(values), 3)
 
     def test_complex_binned_partition(self):
-        submod = substitution_model.Codon(
+        submod = substitution_model.TimeReversibleCodon(
             predicates={'kappa': 'transition', 'omega': 'replacement'},
             ordered_param='kappa', partitioned_params=['omega'],
             mprob_model='tuple')
@@ -206,7 +206,7 @@ class LikelihoodCalcs(TestCase):
 
     def test_codon(self):
         """test a three taxa codon model."""
-        submod = substitution_model.Codon(
+        submod = substitution_model.TimeReversibleCodon(
             equal_motif_probs=True,
             do_scaling=False,
             motif_probs=None,
@@ -220,7 +220,7 @@ class LikelihoodCalcs(TestCase):
 
     def test_nucleotide(self):
         """test a nucleotide model."""
-        submod = Nucleotide(
+        submod = TimeReversibleNucleotide(
             equal_motif_probs=True,
             do_scaling=False,
             motif_probs=None,
@@ -235,7 +235,7 @@ class LikelihoodCalcs(TestCase):
     def test_discrete_nucleotide(self):
         """test that partially discrete nucleotide model can be constructed, 
         differs from continuous, and has the expected number of free params"""
-        submod = Nucleotide(
+        submod = TimeReversibleNucleotide(
             equal_motif_probs=True,
             do_scaling=False,
             motif_probs=None,
@@ -248,7 +248,7 @@ class LikelihoodCalcs(TestCase):
 
     def test_dinucleotide(self):
         """test a dinucleotide model."""
-        submod = substitution_model.Dinucleotide(
+        submod = substitution_model.TimeReversibleDinucleotide(
             equal_motif_probs=True,
             do_scaling=False,
             motif_probs=None,
@@ -260,7 +260,7 @@ class LikelihoodCalcs(TestCase):
 
     def test_protein(self):
         """test a protein model."""
-        submod = substitution_model.Protein(
+        submod = substitution_model.TimeReversibleProtein(
             do_scaling=False, equal_motif_probs=True)
 
         likelihood_function = self._makeLikelihoodFunction(submod,
@@ -276,7 +276,7 @@ class LikelihoodFunctionTests(TestCase):
     """
 
     def setUp(self):
-        self.submodel = Nucleotide(
+        self.submodel = TimeReversibleNucleotide(
             do_scaling=True, model_gaps=False, equal_motif_probs=True,
             predicates={'beta': 'transition'})
 
@@ -443,7 +443,7 @@ motif  mprobs
         "Simulate alignment with dinucleotide model"
         al = LoadSeqs(data={'a': 'ggaatt', 'c': 'cctaat'})
         t = LoadTree(treestring="(a,c);")
-        sm = substitution_model.Dinucleotide(mprob_model='tuple')
+        sm = substitution_model.TimeReversibleDinucleotide(mprob_model='tuple')
         lf = sm.make_likelihood_function(t)
         lf.set_alignment(al)
         simalign = lf.simulate_alignment()
@@ -458,7 +458,7 @@ motif  mprobs
             'b': '---c-ctcct',
             'c': '-a-c-ctat-',
             'd': '-a-c-ctat-'})
-        sm = Nucleotide(recode_gaps=True)
+        sm = TimeReversibleNucleotide(recode_gaps=True)
         lf = sm.make_likelihood_function(t)
         # pc.set_constant_lengths()
         lf.set_alignment(al)
@@ -475,7 +475,7 @@ motif  mprobs
         def use_root_seq(root_sequence):
             al = LoadSeqs(data={'a': 'ggaatt', 'c': 'cctaat'})
             t = LoadTree(treestring="(a,c);")
-            sm = substitution_model.Dinucleotide(mprob_model='tuple')
+            sm = substitution_model.TimeReversibleDinucleotide(mprob_model='tuple')
             lf = sm.make_likelihood_function(t)
             lf.set_alignment(al)
             simalign = lf.simulate_alignment(exclude_internal=False,

@@ -49,9 +49,9 @@ class BootstrapTests(unittest.TestCase):
 
     def getsubmod(self, choice='F81'):
         if choice == 'F81':
-            return substitution_model.Nucleotide(model_gaps=True)
+            return substitution_model.TimeReversibleNucleotide(model_gaps=True)
         else:
-            return substitution_model.Nucleotide(
+            return substitution_model.TimeReversibleNucleotide(
                 model_gaps=True,
                 predicates={'kappa': 'transition'})
 

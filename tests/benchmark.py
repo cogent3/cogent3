@@ -2,7 +2,7 @@
 
 import sys  # ,hotshot
 
-from cogent3.evolve.substitution_model import Nucleotide, Dinucleotide, Codon
+from cogent3.evolve.substitution_model import TimeReversibleNucleotide, TimeReversibleDinucleotide, TimeReversibleCodon
 from cogent3 import LoadSeqs, LoadTree
 from cogent3.maths import optimisers
 from cogent3.util import parallel

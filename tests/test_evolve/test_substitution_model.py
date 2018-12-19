@@ -4,7 +4,7 @@ import os
 
 from cogent3 import LoadSeqs, CodonAlphabet, DNA, LoadTable
 from cogent3.core import genetic_code
-from cogent3.evolve import substitution_model, substitution_calculation
+from cogent3.evolve import substitution_model, substitution_calculation, predicate
 from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Gavin Huttley"
@@ -23,7 +23,7 @@ data_path = os.path.join(base_path, 'data')
 class NucleotideModelTestMethods(TestCase):
 
     def setUp(self):
-        self.submodel = substitution_model.Nucleotide(
+        self.submodel = substitution_model.TimeReversibleNucleotide(
             do_scaling=True, model_gaps=False)
 
     def test_isTransition(self):
@@ -44,7 +44,7 @@ class NucleotideModelTestMethods(TestCase):
 
     def test_isIndel(self):
         """testing indel comparison nucleotide model"""
-        model = substitution_model.Nucleotide(
+        model = substitution_model.TimeReversibleNucleotide(
             do_scaling=True, model_gaps=True)
         isIndel = model.get_predefined_predicate('indel')
         assert isIndel('A', '-')
@@ -54,21 +54,27 @@ class NucleotideModelTestMethods(TestCase):
 
     def test_PredicateChecks(self):
         # overparameterisation
-        self.assertRaises(ValueError, substitution_model.Nucleotide,
+        self.assertRaises(ValueError, substitution_model.TimeReversibleNucleotide,
                           model_gaps=False, predicates=['transition', 'transversion'])
-
+    
+    def test_nonrev_exception(self):
+        """constructing a Nucleotide model with non-reversible preds raises exception"""
+        preds = predicate.MotifChange('A', 'G', forward_only=True)
+        with self.assertRaises(ValueError):
+            sm = substitution_model.TimeReversibleNucleotide(predicates=[preds])
+    
 
 class MultiLetterMotifSubstModelTests(TestCase):
 
     def setUp(self):
-        self.submodel = substitution_model.Dinucleotide(do_scaling=True,
+        self.submodel = substitution_model.TimeReversibleDinucleotide(do_scaling=True,
                                                         model_gaps=True, mprob_model='tuple')
 
     def test_ascii_art(self):
-        model = substitution_model.Dinucleotide(mprob_model='tuple',
+        model = substitution_model.TimeReversibleDinucleotide(mprob_model='tuple',
                                                 predicates=['k:transition'])
         model.ascii_art()
-        model = substitution_model.Dinucleotide(mprob_model='tuple')
+        model = substitution_model.TimeReversibleDinucleotide(mprob_model='tuple')
         model.ascii_art()
 
     def test_isIndel(self):
@@ -121,7 +127,7 @@ class TupleModelMotifProbFuncs(TestCase):
 class ThreeLetterMotifSubstModelTests(TestCase):
 
     def setUp(self):
-        self.submodel = substitution_model.Nucleotide(motif_length=3,
+        self.submodel = substitution_model.TimeReversibleNucleotide(motif_length=3,
                                                       mprob_model='tuple')
 
     def test_isIndel(self):
@@ -141,9 +147,9 @@ class ThreeLetterMotifSubstModelTests(TestCase):
 class CodonSubstModelTests(TestCase):
 
     def setUp(self):
-        self.standardcode = substitution_model.Codon(model_gaps=True, gc=1,
+        self.standardcode = substitution_model.TimeReversibleCodon(model_gaps=True, gc=1,
                                                      mprob_model='tuple')
-        self.mitocode = substitution_model.Codon(model_gaps=False, gc=2,
+        self.mitocode = substitution_model.TimeReversibleCodon(model_gaps=False, gc=2,
                                                  mprob_model='tuple')
 
     def test_isTransition(self):
@@ -205,24 +211,24 @@ class ModelDataInteractionTestMethods(TestCase):
 
     def test_excludeinggaps(self):
         """testing excluding gaps from model"""
-        model = substitution_model.Nucleotide(model_gaps=False)
+        model = substitution_model.TimeReversibleNucleotide(model_gaps=False)
         assert len(model.get_alphabet()) == 4
 
     def test_includinggaps(self):
         """testing excluding gaps from model"""
-        model = substitution_model.Nucleotide(model_gaps=True)
+        model = substitution_model.TimeReversibleNucleotide(model_gaps=True)
         assert len(model.get_alphabet()) == 5
 
     def test_getMotifs(self):
         """testing return of motifs"""
-        model_motifs = substitution_model.Nucleotide().get_motifs()
+        model_motifs = substitution_model.TimeReversibleNucleotide().get_motifs()
 
     def test_get_param_list(self):
         """testing getting the parameter list"""
-        model = substitution_model.Nucleotide()
+        model = substitution_model.TimeReversibleNucleotide()
         self.assertEqual(model.get_param_list(), [])
 
-        model = substitution_model.Nucleotide(predicates=['beta:transition'])
+        model = substitution_model.TimeReversibleNucleotide(predicates=['beta:transition'])
         self.assertEqual(model.get_param_list(), ['beta'])
 
     # need to ensure entering motif probs that sum to 1, that motif sets are

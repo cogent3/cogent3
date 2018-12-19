@@ -47,7 +47,7 @@ We specify a general time reversible nucleotide model with gamma distributed rat
     >>> sub_mod = GTR(with_rate=True, distribution='gamma')
     >>> print(sub_mod)
     <BLANKLINE>
-    Nucleotide ( name = 'GTR'; type = 'None'; params = ['A/C', 'A/G', 'A/T', 'C/G', 'C/T']; number of motifs = 4; motifs = ['T', 'C', 'A', 'G'])
+    TimeReversibleNucleotide ( name = 'GTR'; type = 'None'; params = ['A/C', 'A/G', 'A/T', 'C/G', 'C/T']; number of motifs = 4; motifs = ['T', 'C', 'A', 'G'])
     <BLANKLINE>
 
 For codon
@@ -61,7 +61,7 @@ We specify a conditional nucleotide frequency codon model with nucleotide genera
     >>> sub_mod = CNFGTR(with_rate=True, distribution='gamma')
     >>> print(sub_mod)
     <BLANKLINE>
-    Codon ( name = 'CNFGTR'; type = 'None'; params = ['A/C', 'A/G', 'A/T', 'C/G', 'C/T', 'omega']; ...
+    TimeReversibleCodon ( name = 'CNFGTR'; type = 'None'; params = ['A/C', 'A/G', 'A/T', 'C/G', 'C/T', 'omega']; ...
 
 For protein
 ^^^^^^^^^^^

@@ -9,7 +9,7 @@ Do standard ``cogent3`` imports.
 
     >>> from cogent3 import LoadSeqs, LoadTree, DNA
     >>> from cogent3.evolve.predicate import MotifChange
-    >>> from cogent3.evolve.substitution_model import Nucleotide
+    >>> from cogent3.evolve.substitution_model import TimeReversibleNucleotide
 
 .. don't pollute screen during execution with uninteresting warning
 
@@ -28,11 +28,11 @@ To specify substitution models we use the ``MotifChange`` class from predicates.
     >>> del(preds[-1])
     >>> preds
     [A>C, A>T, A>G, C>A, C>T, C>G, T>A, T>C, T>G, G>A, G>C]
-    >>> sm = Nucleotide(predicates=preds, recode_gaps=True,
+    >>> sm = TimeReversibleNucleotide(predicates=preds, recode_gaps=True,
     ...                 optimise_motif_probs=True)
     >>> print(sm)
     <BLANKLINE>
-    Nucleotide ( name = ''; type = 'None'; params = ['A>C', 'A>T', 'A>G',...
+    TimeReversibleNucleotide ( name = ''; type = 'None'; params = ['A>C', 'A>T', 'A>G',...
 
 We'll illustrate this with a sample alignment and tree in ``data/primate_cdx2_promoter.fasta``.
 

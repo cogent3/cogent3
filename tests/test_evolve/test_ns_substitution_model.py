@@ -11,7 +11,7 @@ from cogent3.evolve.ns_substitution_model import (General,
                                                   GeneralStationary,
                                                   DiscreteSubstitutionModel,
                                                   StrandSymmetric)
-from cogent3.evolve.substitution_model import Nucleotide
+from cogent3.evolve.substitution_model import TimeReversibleNucleotide, Parametric
 from cogent3.evolve.predicate import MotifChange
 from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
@@ -92,7 +92,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
             ['C', 'T'], ['G', 'C'], [
             'G', 'T'], ['T', 'A'],
             ['T', 'C'], ['T', 'G']]]
-        nuc = Nucleotide(predicates=preds)
+        nuc = TimeReversibleNucleotide(predicates=preds)
         nuc_lf = _make_likelihood(nuc, tree, results)
         nuc_lf.optimise(**opt_args)
         results['constructed_gen'] = nuc_lf
@@ -120,7 +120,7 @@ class NonStatMarkov(TestCase):
     """test discrete and general markov"""
     tree = LoadTree(treestring='(a:0.4,b:0.4,c:0.6)')
     opt_args = dict(max_restarts=1, local=True, show_progress=False)
-    make_cached = MakeCachedObjects(Nucleotide(), tree, 100000, opt_args)
+    make_cached = MakeCachedObjects(TimeReversibleNucleotide(), tree, 100000, opt_args)
 #
 
     def _setup_discrete_from_general(self, gen_lf):
