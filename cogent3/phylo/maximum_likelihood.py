@@ -19,7 +19,7 @@ class ML(TreeEvaluator):
     """(err, best_tree) = ML(model, alignment, [dists]).trex()
 
     'model' can be a substitution model or a likelihood function factory
-    equivalent to SubstitutionModel.make_likelihood_function(tree).
+    equivalent to Parametric.make_likelihood_function(tree).
     If 'dists' is provided uses WLS to get initial values for lengths"""
 
     def __init__(self, model, alignment, dists=None, opt_args={}):

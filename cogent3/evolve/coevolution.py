@@ -64,7 +64,7 @@ from cogent3.core.alphabet import CharAlphabet, Alphabet
 from cogent3.maths.stats.distribution import binomial_exact
 from cogent3.maths.stats.special import ROUND_ERROR
 from cogent3.parse.record import FileFormatError
-from cogent3.evolve.substitution_model import SubstitutionModel
+from cogent3.evolve.substitution_model import Parametric
 from cogent3 import LoadSeqs, LoadTree, PROTEIN, RNA
 from cogent3.core.tree import TreeError
 from cogent3.core.alignment import seqs_from_fasta, ArrayAlignment
@@ -1054,7 +1054,7 @@ def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
     """ Calculates ancestral sequences by maximum likelihood
 
     Arguments:
-        - sm: a SubstitutionModel instance. If not provided, one is
+        - sm: a Parametric instance. If not provided, one is
           constructed from the alignment alphabet
         - pseudocount: unobserved sequence states must not be zero, this value
           is assigned to sequence states not observed in the alignment.
@@ -1065,7 +1065,7 @@ def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
          to be what what described in Tuffery 2000, although they're
          not perfectly clear about it.
     """
-    sm = sm or SubstitutionModel(aln.alphabet, recode_gaps=True)
+    sm = sm or Parametric(aln.alphabet, recode_gaps=True)
     lf = sm.make_likelihood_function(tree, sm.motif_probs)
     lf.set_alignment(aln, motif_pseudocount=pseudocount)
     if optimise:

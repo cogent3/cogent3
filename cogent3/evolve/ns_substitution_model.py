@@ -1,4 +1,4 @@
-from .substitution_model import _SubstitutionModel, _ContinuousSubstitutionModel, SubstitutionModel, Nucleotide
+from .substitution_model import _SubstitutionModel, _ContinuousSubstitutionModel, Parametric, Nucleotide
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
 from cogent3.evolve.predicate import MotifChange
 import numpy
@@ -17,6 +17,7 @@ __status__ = "Production"
 
 class General(_ContinuousSubstitutionModel):
 class General(SubstitutionModel):
+class General(Parametric):
     """A continuous substitution model with one free parameter for each and
     every possible instantaneous substitution."""
 
@@ -27,7 +28,7 @@ class General(SubstitutionModel):
 
     # @extend_docstring_from(_ContinuousSubstitutionModel)
     def __init__(self, alphabet, **kw):
-        SubstitutionModel.__init__(self, alphabet, **kw)
+        Parametric.__init__(self, alphabet, **kw)
 
         alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
         mask = self._instantaneous_mask
@@ -48,14 +49,14 @@ class General(SubstitutionModel):
         return numpy.array((0.0,) + params + (1.0,)).take(self.param_pick)
 
 
-class GeneralStationary(SubstitutionModel):
+class GeneralStationary(Parametric):
     """A continuous substitution model with one free parameter for each and
     every possible instantaneous substitution, except the last in each column.
     As general as can be while still having stationary motif probabilities"""
 
     # @extend_docstring_from(_ContinuousSubstitutionModel)
     def __init__(self, alphabet, **kw):
-        SubstitutionModel.__init__(self, alphabet, **kw)
+        Parametric.__init__(self, alphabet, **kw)
 
         alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
         mask = self._instantaneous_mask
