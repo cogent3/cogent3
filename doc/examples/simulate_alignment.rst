@@ -23,7 +23,7 @@ Define our Felsenstein 1981 substitution model.
 
 .. doctest::
 
-    >>> sm = substitution_model.Nucleotide(motif_probs = {'A': 0.5, 'C': 0.2,
+    >>> sm = substitution_model.TimeReversibleNucleotide(motif_probs = {'A': 0.5, 'C': 0.2,
     ... 'G': 0.2, 'T': 0.1}, model_gaps=False)
     >>> lf = sm.make_likelihood_function(t)
     >>> lf.set_constant_lengths()

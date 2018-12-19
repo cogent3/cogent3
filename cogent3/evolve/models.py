@@ -51,7 +51,7 @@ def JC69(**kw):
 
 def GTR(**kw):
     """General Time Reversible nucleotide substitution model."""
-    return substitution_model.Nucleotide(
+    return substitution_model.TimeReversibleNucleotide(
         motif_probs=None,
         do_scaling=True,
         model_gaps=False,
@@ -67,7 +67,7 @@ def CNFGTR(**kw):
     (with params analagous to the nucleotide GTR model).
 
     See Yap, Lindsay, Easteal and Huttley, Mol Biol Evol, In press."""
-    return substitution_model.Codon(
+    return substitution_model.TimeReversibleCodon(
         motif_probs=None,
         do_scaling=True,
         model_gaps=False,
@@ -83,7 +83,7 @@ def CNFHKY(**kw):
     (with kappa, the ratio of transitions to transversions)
 
     See Yap, Lindsay, Easteal and Huttley, Mol Biol Evol, In press."""
-    return substitution_model.Codon(
+    return substitution_model.TimeReversibleCodon(
         motif_probs=None,
         do_scaling=True,
         model_gaps=False,
@@ -99,7 +99,7 @@ def MG94HKY(**kw):
     the ratio of transitions to transversions)
 
     see, Muse and Gaut, 1994, Mol Biol Evol, 11, 715-24"""
-    return substitution_model.Codon(
+    return substitution_model.TimeReversibleCodon(
         motif_probs=None,
         do_scaling=True,
         model_gaps=False,
@@ -115,7 +115,7 @@ def MG94GTR(**kw):
     analagous to the nucleotide GTR model)
 
     see, Muse and Gaut, 1994, Mol Biol Evol, 11, 715-24"""
-    return substitution_model.Codon(
+    return substitution_model.TimeReversibleCodon(
         motif_probs=None,
         do_scaling=True,
         model_gaps=False,
@@ -136,7 +136,7 @@ def GY94(**kw):
 def Y98(**kw):
     """Yang's 1998 substitution model, a derivative of the GY94.
     see Z Yang. Mol. Biol. Evol., 15(5):568-73, 1998"""
-    return substitution_model.Codon(
+    return substitution_model.TimeReversibleCodon(
         motif_probs=None,
         do_scaling=True,
         model_gaps=False,
@@ -155,7 +155,7 @@ def H04G(**kw):
     to or from CpG's.
 
     see, GA Huttley. Mol Biol Evol, 21(9):1760-8"""
-    return substitution_model.Codon(
+    return substitution_model.TimeReversibleCodon(
         motif_probs=None,
         do_scaling=True,
         model_gaps=False,
@@ -171,7 +171,7 @@ def H04GK(**kw):
     substitutions to or from CpG's.
 
     see, GA Huttley. Mol Biol Evol, 21(9):1760-8"""
-    return substitution_model.Codon(
+    return substitution_model.TimeReversibleCodon(
         motif_probs=None,
         do_scaling=True,
         model_gaps=False,
@@ -187,7 +187,7 @@ def H04GGK(**kw):
     substitutions to or from CpG's and an adjustment for CpG transitions.
 
     see, GA Huttley. Mol Biol Evol, 21(9):1760-8"""
-    return substitution_model.Codon(
+    return substitution_model.TimeReversibleCodon(
         motif_probs=None,
         do_scaling=True,
         model_gaps=False,

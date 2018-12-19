@@ -5,7 +5,7 @@ from cogent3.align.align import classic_align_pairwise, make_dna_scoring_dict,\
     local_pairwise, global_pairwise
 from cogent3.evolve.models import HKY85
 import cogent3.evolve.substitution_model
-dna_model = cogent3.evolve.substitution_model.Nucleotide(
+dna_model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
     model_gaps=False, equal_motif_probs=True)
 
 import cogent3.align.progressive
@@ -83,7 +83,7 @@ class AlignmentTestCase(unittest.TestCase):
     def test_codon(self):
         s1 = DNA.make_seq('tacgccgta', name="A")
         s2 = DNA.make_seq('tacgta', name="B")
-        codon_model = cogent3.evolve.substitution_model.Codon(
+        codon_model = cogent3.evolve.substitution_model.TimeReversibleCodon(
             model_gaps=False, equal_motif_probs=True,
             mprob_model='conditional')
         tree = cogent3.LoadTree(tip_names=['A', 'B'])

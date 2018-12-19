@@ -57,11 +57,11 @@ class test_parameter_controller(unittest.TestCase):
         self.al = LoadSeqs(
             data={'a': 'tata', 'b': 'tgtc', 'c': 'gcga', 'd': 'gaac', 'e': 'gagc', })
         self.tree = LoadTree(treestring='((a,b),(c,d),e);')
-        self.model = cogent3.evolve.substitution_model.Nucleotide(
+        self.model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
             do_scaling=True, equal_motif_probs=True, model_gaps=True)
 
     def test_scoped_local(self):
-        model = cogent3.evolve.substitution_model.Nucleotide(
+        model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
             do_scaling=True, equal_motif_probs=True, model_gaps=True,
             predicates={'kappa': 'transition'})
         lf = model.make_likelihood_function(self.tree)
@@ -75,7 +75,7 @@ class test_parameter_controller(unittest.TestCase):
 
     def test_set_motif_probs(self):
         """Mprobs supplied to the parameter controller"""
-        model = cogent3.evolve.substitution_model.Nucleotide(
+        model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
             model_gaps=True, motif_probs=None)
         lf = model.make_likelihood_function(self.tree,
                                           motif_probs_from_align=False)
@@ -102,7 +102,7 @@ class test_parameter_controller(unittest.TestCase):
 
     def test_setMultiLocus(self):
         """2 loci each with own mprobs"""
-        model = cogent3.evolve.substitution_model.Nucleotide(motif_probs=None)
+        model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(motif_probs=None)
         lf = model.make_likelihood_function(self.tree,
                                           motif_probs_from_align=False, loci=["a", "b"])
 
@@ -147,7 +147,7 @@ class test_parameter_controller(unittest.TestCase):
     def test_pairwise_clock(self):
         al = LoadSeqs(data={'a': 'agct', 'b': 'ggct'})
         tree = LoadTree(treestring='(a,b);')
-        model = cogent3.evolve.substitution_model.Dinucleotide(
+        model = cogent3.evolve.substitution_model.TimeReversibleDinucleotide(
             do_scaling=True, equal_motif_probs=True, model_gaps=True,
             mprob_model='tuple')
         lf = model.make_likelihood_function(tree)
@@ -172,7 +172,7 @@ class test_parameter_controller(unittest.TestCase):
     def test_complex_parameter_rules(self):
             # This test has many local minima and so does not cope
             # with changes to optimiser details.
-        model = cogent3.evolve.substitution_model.Nucleotide(
+        model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
             do_scaling=True, equal_motif_probs=True, model_gaps=True,
             predicates={'kappa': 'transition'})
         lf = model.make_likelihood_function(self.tree)

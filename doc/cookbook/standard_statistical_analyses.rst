@@ -522,7 +522,7 @@ Differences in variances
 Chi-Squared test
 ================
 
-.. TODO pick a biological example, perhaps sequence nucleotide composition?  Codon usage for a particular amino acid?
+.. TODO pick a biological example, perhaps sequence nucleotide composition?  TimeReversibleCodon usage for a particular amino acid?
 
 Calculus class data (from Grinstead and Snell, Introduction to Probability).  There seems to be a disparity in the number of 'A' grades awarded when broken down by student gender.  As input to the function ``chi_square_from_Dict2D()`` we need a ``Dict2D`` object containing the observed counts that has been processed by ``calc_contingency_expected()`` to add the expected counts for each element of the table
 

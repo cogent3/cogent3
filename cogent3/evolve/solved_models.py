@@ -5,7 +5,7 @@ Equivalent pure python code is NOT provided because it is typically slower
 than the rate-matrix based alternative and provides no extra functionality.
 """
 
-from cogent3.evolve.substitution_model import Nucleotide, CalcDefn
+from cogent3.evolve.substitution_model import TimeReversibleNucleotide, CalcDefn
 from cogent3.evolve.predicate import MotifChange
 from cogent3.maths.matrix_exponentiation import FastExponentiator
 import numpy
@@ -19,7 +19,7 @@ except ImportError:
     _solved_models = None
 
 
-class PredefinedNucleotide(Nucleotide):
+class PredefinedNucleotide(TimeReversibleNucleotide):
     _default_expm_setting = None
 
     # Instead of providing calc_exchangeability_matrix this subclass overrrides
@@ -59,7 +59,7 @@ def _solvedNucleotide(name, predicates, rate_matrix_required=True, **kw):
     if _solved_models is not None and not rate_matrix_required:
         klass = PredefinedNucleotide
     else:
-        klass = Nucleotide
+        klass = TimeReversibleNucleotide
     return klass(name=name, predicates=predicates, model_gaps=False, **kw)
 
 kappa_y = MotifChange('T', 'C').aliased('kappa_y')

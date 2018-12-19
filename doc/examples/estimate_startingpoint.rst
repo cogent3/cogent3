@@ -28,7 +28,7 @@ Get the substitution model (defaults to Felsensteins 1981 model)
 
 .. doctest::
 
-    >>> sm = substitution_model.Nucleotide()
+    >>> sm = substitution_model.TimeReversibleNucleotide()
 
 Make a likelihood function from a sample of the alignment the ``sample`` method selects the chosen number of bases at random.
 

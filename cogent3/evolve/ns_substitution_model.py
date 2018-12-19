@@ -1,4 +1,4 @@
-from .substitution_model import _SubstitutionModel, _ContinuousSubstitutionModel, Parametric, Nucleotide
+from .substitution_model import _SubstitutionModel, _ContinuousSubstitutionModel, Parametric, TimeReversibleNucleotide, Stationary
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
 from cogent3.evolve.predicate import MotifChange
 import numpy
@@ -26,7 +26,6 @@ class General(Parametric):
     # k<=N:   apply Kth exchangeability parameter
     # k==N+1: no parameter, should be 1.0 in unscaled Q
 
-    # @extend_docstring_from(_ContinuousSubstitutionModel)
     def __init__(self, alphabet, **kw):
         Parametric.__init__(self, alphabet, **kw)
 
@@ -49,14 +48,14 @@ class General(Parametric):
         return numpy.array((0.0,) + params + (1.0,)).take(self.param_pick)
 
 
-class GeneralStationary(Parametric):
+class GeneralStationary(Stationary):
     """A continuous substitution model with one free parameter for each and
     every possible instantaneous substitution, except the last in each column.
     As general as can be while still having stationary motif probabilities"""
 
     # @extend_docstring_from(_ContinuousSubstitutionModel)
     def __init__(self, alphabet, **kw):
-        Parametric.__init__(self, alphabet, **kw)
+        Stationary.__init__(self, alphabet, **kw)
 
         alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
         mask = self._instantaneous_mask
@@ -114,4 +113,27 @@ class DiscreteSubstitutionModel(_SubstitutionModel):
         return PsubMatrixDefn(
             name="psubs", dimension=('motif', motifs), default=None,
             dimensions=('locus', 'edge'))
+    
+class StrandSymmetric(TimeReversibleNucleotide):
+    def __init__(self, **kw):
+        super(StrandSymmetric, self).__init__(
+                predicates=_sym_preds,
+                recode_gaps=True,
+                model_gaps=False,
+                do_scaling=True,
+                name='StrandSymmetric',
+                **kw)
+
+    def params_from_Q(self, Q, **kw):
+        params = []
+        ref_cell = Q['T', 'G'] + Q['A', 'C']
+        for param in self.get_param_list():
+            value = (Q[param[1], param[3]] + Q[param[7], param[9]]) / ref_cell
+            params.append((param, value))
+        return params
+    
+    
+    
+    
+
 

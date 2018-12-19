@@ -30,7 +30,7 @@ length_of_align = 10000
 #
 #########################
 
-sm = substitution_model.Nucleotide()
+sm = substitution_model.TimeReversibleNucleotide()
 lf = sm.make_likelihood_function(t)
 lf.set_constant_lengths()
 lf.set_name('True JC model')
@@ -53,7 +53,7 @@ print(new_lf)
 
 
 # has a ts/tv term, different values for every edge
-sm = substitution_model.Nucleotide(predicates={'kappa': 'transition'})
+sm = substitution_model.TimeReversibleNucleotide(predicates={'kappa': 'transition'})
 lf = sm.make_likelihood_function(t)
 lf.set_constant_lengths()
 lf.set_param_rule('kappa', is_constant=True, value=4.0, edge_name='a')

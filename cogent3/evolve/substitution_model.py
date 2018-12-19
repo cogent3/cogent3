@@ -584,9 +584,10 @@ class Empirical(StationaryQ,_ContinuousSubstitutionModel):
         return self._instantaneous_mask_f.copy()
 
 
-class Parametric(StationaryQ,_ContinuousSubstitutionModel):
+class Parametric(_ContinuousSubstitutionModel):
     """A continuous substitution model with only user-specified substitution
-    parameters."""
+    parameters. This is a general process -- non-stationary and, if specified
+    via predicates, non-reversible"""
 
     @extend_docstring_from(_ContinuousSubstitutionModel)
     def __init__(self, alphabet, predicates=None, scales=None, **kw):
@@ -635,8 +636,6 @@ class Parametric(StationaryQ,_ContinuousSubstitutionModel):
             assert numpy.alltrue(mask[indices] == 1)
             self.parameter_order.append(pred)
             self.predicate_indices.append(indices)
-        if not self.symmetric:
-            warnings.warn('Model not reversible')
         (self.scale_masks, scale_order) = self._adapt_predicates(scales or [])
         self.check_params_exist()
 
@@ -767,7 +766,20 @@ class Parametric(StationaryQ,_ContinuousSubstitutionModel):
         return mask
 
 
-class _Nucleotide(Parametric):
+class Stationary(StationaryQ,Parametric):
+    def __init__(self, *args, **kw):
+        Parametric.__init__(self, *args, **kw)
+
+
+class TimeReversible(Stationary):
+    def __init__(self, *args, **kw):
+        """"""
+        Stationary.__init__(self, *args, **kw)
+        if not self.symmetric:
+            raise ValueError("TimeReversible exchangeability terms must be fully balanced")
+        
+
+class _TimeReversibleNucleotide(TimeReversible):
 
     def get_predefined_predicates(self):
         return {
@@ -777,29 +789,29 @@ class _Nucleotide(Parametric):
         }
 
 
-class Nucleotide(_Nucleotide):
+class TimeReversibleNucleotide(_TimeReversibleNucleotide):
     """A nucleotide substitution model."""
 
-    def __init__(self, **kw):
-        Parametric.__init__(self, moltype.DNA.alphabet, **kw)
+    def __init__(self, *args, **kw):
+        _TimeReversibleNucleotide.__init__(self, moltype.DNA.alphabet, *args, **kw)
 
 
-class Dinucleotide(_Nucleotide):
+class TimeReversibleDinucleotide(_TimeReversibleNucleotide):
     """A nucleotide substitution model."""
 
-    def __init__(self, **kw):
-        Parametric.__init__(
-            self, moltype.DNA.alphabet, motif_length=2, **kw)
+    def __init__(self, *args, **kw):
+        _TimeReversibleNucleotide.__init__(
+            self, moltype.DNA.alphabet, motif_length=2, *args, **kw)
 
 
-class Protein(Parametric):
+class TimeReversibleProtein(TimeReversible):
     """base protein substitution model."""
 
-    def __init__(self, with_selenocysteine=False, **kw):
+    def __init__(self, with_selenocysteine=False, *args, **kw):
         alph = moltype.PROTEIN.alphabet
         if not with_selenocysteine:
             alph = alph.get_subset('U', excluded=True)
-        Parametric.__init__(self, alph, **kw)
+        TimeReversible.__init__(self, alph, *args, **kw)
 
 
 def EmpiricalProteinMatrix(matrix, motif_probs=None, optimise_motif_probs=False,
@@ -810,7 +822,7 @@ def EmpiricalProteinMatrix(matrix, motif_probs=None, optimise_motif_probs=False,
                      optimise_motif_probs=optimise_motif_probs, **kw)
 
 
-class Codon(_Nucleotide):
+class TimeReversibleCodon(_TimeReversibleNucleotide):
     """Core substitution model for codons"""
     long_indels_are_instantaneous = True
 
@@ -836,7 +848,7 @@ class Codon(_Nucleotide):
         def replacement(x, y):
             return x != '---' and y != '---' and gc[x] != gc[y]
 
-        preds = _Nucleotide.get_predefined_predicates(self)
+        preds = _TimeReversibleNucleotide.get_predefined_predicates(self)
         preds.update({
             'indel': predicate.parse('???/---'),
             'silent': predicate.UserPredicate(silent),

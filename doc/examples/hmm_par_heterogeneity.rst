@@ -15,7 +15,7 @@ First import standard components necessary for all of the following calculations
 
 .. doctest::
 
-    >>> from cogent3.evolve.substitution_model import Nucleotide, predicate
+    >>> from cogent3.evolve.substitution_model import TimeReversibleNucleotide, predicate
     >>> from cogent3 import LoadSeqs, LoadTree
     >>> from cogent3.maths.stats import chisqprob
 
@@ -36,7 +36,7 @@ We define a HKY model of nucleotide substitution, which has a transition paramet
     >>> MotifChange = predicate.MotifChange
     >>> treat_gap = dict(recode_gaps=True, model_gaps=False)
     >>> kappa = (~MotifChange('R', 'Y')).aliased('kappa')
-    >>> model = Nucleotide(predicates=[kappa], **treat_gap)
+    >>> model = TimeReversibleNucleotide(predicates=[kappa], **treat_gap)
 
 We specify a null model with no bins, and optimise it.
 
@@ -72,7 +72,7 @@ Our next hypothesis is that there are two rate classes, or bins, with rates gamm
 
 .. doctest::
 
-    >>> bin_submod = Nucleotide(predicates=[kappa], ordered_param='rate',
+    >>> bin_submod = TimeReversibleNucleotide(predicates=[kappa], ordered_param='rate',
     ...                      distribution='gamma', **treat_gap)
     >>> lf_bins = bin_submod.make_likelihood_function(tree, bins=2,
     ...                             sites_independent=True, digits=2, space=3)
@@ -201,7 +201,7 @@ We then construct the substitution model in a different way to that when evaluat
 
 .. doctest::
 
-    >>> kappa_bin_submod = Nucleotide(predicates=[kappa], **treat_gap)
+    >>> kappa_bin_submod = TimeReversibleNucleotide(predicates=[kappa], **treat_gap)
     >>> lf_kappa = kappa_bin_submod.make_likelihood_function(tree,
     ...      bins = ['slow', 'fast'], sites_independent=False, digits=1,
     ...      space=3)

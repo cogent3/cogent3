@@ -28,7 +28,7 @@ TREE = LoadTree(tip_names='ab')
 class ScaleRuleTests(unittest.TestCase):
 
     def _makeModel(self, do_scaling, predicates, scale_rules=[]):
-        return substitution_model.Nucleotide(
+        return substitution_model.TimeReversibleNucleotide(
             do_scaling=do_scaling, equal_motif_probs=True,
             model_gaps=False, predicates=predicates, scales=scale_rules)
 
@@ -84,7 +84,7 @@ class ScaleRuleTests(unittest.TestCase):
 
     def test_scaling(self):
         """Testing scaling calculations using Dn and Ds as an example."""
-        model = substitution_model.Codon(
+        model = substitution_model.TimeReversibleCodon(
             do_scaling=True, model_gaps=False, recode_gaps=True,
             predicates={
                 'k': trans,
