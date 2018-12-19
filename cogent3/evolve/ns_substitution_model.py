@@ -1,5 +1,8 @@
-from .substitution_model import _ContinuousSubstitutionModel, _SubstitutionModel
+from .substitution_model import _SubstitutionModel, _ContinuousSubstitutionModel, SubstitutionModel, Nucleotide
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
+from cogent3.evolve.predicate import MotifChange
+import numpy
+from cogent3.maths.optimisers import ParameterOutOfBoundsError
 
 __author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -13,6 +16,7 @@ __status__ = "Production"
 
 
 class General(_ContinuousSubstitutionModel):
+class General(SubstitutionModel):
     """A continuous substitution model with one free parameter for each and
     every possible instantaneous substitution."""
 
@@ -23,7 +27,7 @@ class General(_ContinuousSubstitutionModel):
 
     # @extend_docstring_from(_ContinuousSubstitutionModel)
     def __init__(self, alphabet, **kw):
-        _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
+        SubstitutionModel.__init__(self, alphabet, **kw)
 
         alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
         mask = self._instantaneous_mask
@@ -44,14 +48,14 @@ class General(_ContinuousSubstitutionModel):
         return numpy.array((0.0,) + params + (1.0,)).take(self.param_pick)
 
 
-class GeneralStationary(_ContinuousSubstitutionModel):
+class GeneralStationary(SubstitutionModel):
     """A continuous substitution model with one free parameter for each and
     every possible instantaneous substitution, except the last in each column.
     As general as can be while still having stationary motif probabilities"""
 
     # @extend_docstring_from(_ContinuousSubstitutionModel)
     def __init__(self, alphabet, **kw):
-        _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
+        SubstitutionModel.__init__(self, alphabet, **kw)
 
         alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
         mask = self._instantaneous_mask
