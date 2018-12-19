@@ -12,7 +12,7 @@ from cogent3 import LoadSeqs
 from cogent3.util.unit_test import TestCase, main
 from cogent3.core.alignment import ArrayAlignment
 from cogent3.evolve.models import DSO78_matrix, DSO78_freqs
-from cogent3.evolve.substitution_model import SubstitutionModel
+from cogent3.evolve.substitution_model import Parametric
 from cogent3.core.alphabet import Alphabet
 from cogent3.util.recode_alignment import alphabets, recode_dense_alignment,\
     build_alphabet_map, recode_freq_vector, recode_alignment,\

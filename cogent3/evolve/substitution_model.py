@@ -584,7 +584,7 @@ class Empirical(StationaryQ,_ContinuousSubstitutionModel):
         return self._instantaneous_mask_f.copy()
 
 
-class SubstitutionModel(StationaryQ,_ContinuousSubstitutionModel):
+class Parametric(StationaryQ,_ContinuousSubstitutionModel):
     """A continuous substitution model with only user-specified substitution
     parameters."""
 
@@ -767,7 +767,7 @@ class SubstitutionModel(StationaryQ,_ContinuousSubstitutionModel):
         return mask
 
 
-class _Nucleotide(SubstitutionModel):
+class _Nucleotide(Parametric):
 
     def get_predefined_predicates(self):
         return {
@@ -781,25 +781,25 @@ class Nucleotide(_Nucleotide):
     """A nucleotide substitution model."""
 
     def __init__(self, **kw):
-        SubstitutionModel.__init__(self, moltype.DNA.alphabet, **kw)
+        Parametric.__init__(self, moltype.DNA.alphabet, **kw)
 
 
 class Dinucleotide(_Nucleotide):
     """A nucleotide substitution model."""
 
     def __init__(self, **kw):
-        SubstitutionModel.__init__(
+        Parametric.__init__(
             self, moltype.DNA.alphabet, motif_length=2, **kw)
 
 
-class Protein(SubstitutionModel):
+class Protein(Parametric):
     """base protein substitution model."""
 
     def __init__(self, with_selenocysteine=False, **kw):
         alph = moltype.PROTEIN.alphabet
         if not with_selenocysteine:
             alph = alph.get_subset('U', excluded=True)
-        SubstitutionModel.__init__(self, alph, **kw)
+        Parametric.__init__(self, alph, **kw)
 
 
 def EmpiricalProteinMatrix(matrix, motif_probs=None, optimise_motif_probs=False,
@@ -818,7 +818,7 @@ class Codon(_Nucleotide):
         if gc is not None:
             alphabet = moltype.CodonAlphabet(gc=gc)
         alphabet = alphabet or moltype.STANDARD_CODON
-        SubstitutionModel.__init__(self, alphabet, **kw)
+        Parametric.__init__(self, alphabet, **kw)
 
     def _is_instantaneous(self, x, y):
         if x == self.gapmotif or y == self.gapmotif:
