@@ -17,11 +17,17 @@ import warnings
 from xml.sax.saxutils import escape
 
 import numpy
+
 try:
     from pandas import DataFrame
     _pandas_available = True
 except ImportError:
     _pandas_available = False
+
+try:
+    from IPython.display import display
+except ImportError:
+    display = print
 
 
 from cogent3.format import table as table_format, bedgraph
@@ -204,42 +210,12 @@ class Table(DictArray):
 
 
     def __repr__(self):
-        row = []
-        try:
-            for val in self.array[0][:3]:
-                if isinstance(val, float):
-                    row.append('%.4f' % val)
-                elif isinstance(val, int):
-                    row.append('%d' % val)
-                else:
-                    row.append('%r' % val)
-        except IndexError:
-            # an empty table
-            pass
+        table = self._get_repr_()
+        return str(table)
 
-        row_trunc = ', '.join(row)
-        header_trunc = ', '.join(map(repr, self.header[:3]))
-        if self.shape[1] > 3:
-            header_trunc = '[%s,..]' % header_trunc
-            row_trunc = '[%s,..]' % row_trunc
-        else:
-            header_trunc = '[%s]' % header_trunc
-            row_trunc = '[%s]' % row_trunc
 
-        if self.shape[0] > 1:
-            row_trunc = '[%s,..]' % row_trunc
-        else:
-            row_trunc = '[[%s]]' % row_trunc
-
-        if self.shape[0] == 0:
-            row_trunc = str([])
-
-        result = 'Table(numrows=%s, numcols=%s, header=%s, rows=%s)' % \
-            (self.shape[0], self.shape[1], header_trunc, row_trunc)
-        return result
-
-    def _repr_html_(self):
-        """returns html, used by Jupyter"""
+    def _get_repr_(self):
+        """returns a table for __repr__"""
         rn = self._repr_policy['random']
         head = self._repr_policy['head']
         tail = self._repr_policy['tail']
@@ -250,27 +226,34 @@ class Table(DictArray):
                                           size=rn, replace=False)
             indices = list(sorted(indices))
             rows = self.get_disjoint_rows(indices).tolist()
-            legend = "<p><i>Random selection of %d rows</i></p>" % rn
+            legend = "Random selection of %d rows" % rn
         elif all([head, tail]):
             top = self[:head].tolist()
             bottom = self[-tail:].tolist()
             rows = top + ellipsis + bottom
-            legend = "<p><i>Top %d and bottom %d rows</i></p>" % (head, tail)
         elif head:
-            rows = self[:head].tolist() + ellipsis
-            legend = "<p><i>Top %d rows</i></p>" % head
+            rows = self[:head].tolist()
         elif tail:
-            rows = ellipsis + self[-tail:].tolist()
-            legend = "<p><i>Bottom %d rows</i></p>" % tail
+            rows = self[-tail:].tolist()
         else:
             rows = self.tolist()
         
-        table = self.__class__(header=self.header, rows=rows,
-                               digits=self._digits, title=self.title)
+        legend += "\n%s rows x %s columns" % (format(self.shape[0], ','),
+                                           format(self.shape[1], ','))
+        kwargs = self._get_persistent_attrs()
+        kwargs['legend'] = legend
+        table = self.__class__(header=self.header, rows=rows, **kwargs)
+        return table
+        
+
+    def _repr_html_(self):
+        """returns html, used by Jupyter"""
+        table = self._get_repr_()
+        legend, shape = table.legend.splitlines()
+        shape = "<p>%s</p>" % shape
+        table.legend = ""
         html = table.to_rich_html()
-        shape = "<p>%s rows x %s columns</p>" % (format(self.shape[0], ','),
-                                                 format(self.shape[1], ','))
-        html = '\n'.join([html, legend, shape])
+        html = '\n'.join([html, shape])
         return html
 
     def __str__(self):
