@@ -191,6 +191,17 @@ class Table(DictArray):
         self._column_templates = column_templates or {}
 
         self.format = format
+        
+        # define the repr() display policy 
+        random = 0
+        if self.shape[0] < 50:
+            head = self.shape[0]
+            tail = None
+        else:
+            head, tail = 5, 5
+            
+        self._repr_policy = dict(head=tail, tail=tail, random=random)
+
 
     def __repr__(self):
         row = []
@@ -229,9 +240,37 @@ class Table(DictArray):
 
     def _repr_html_(self):
         """returns html, used by Jupyter"""
-        html = self.to_rich_html()
-        shape = "<p>%s rows x %s columns</p>" % self.shape
-        html += shape
+        rn = self._repr_policy['random']
+        head = self._repr_policy['head']
+        tail = self._repr_policy['tail']
+        legend = ""
+        ellipsis = [["..."] * len(self.header)]
+        if rn:
+            indices = numpy.random.choice(self.shape[0],
+                                          size=rn, replace=False)
+            indices = list(sorted(indices))
+            rows = self.get_disjoint_rows(indices).tolist()
+            legend = "<p><i>Random selection of %d rows</i></p>" % rn
+        elif all([head, tail]):
+            top = self[:head].tolist()
+            bottom = self[-tail:].tolist()
+            rows = top + ellipsis + bottom
+            legend = "<p><i>Top %d and bottom %d rows</i></p>" % (head, tail)
+        elif head:
+            rows = self[:head].tolist() + ellipsis
+            legend = "<p><i>Top %d rows</i></p>" % head
+        elif tail:
+            rows = ellipsis + self[-tail:].tolist()
+            legend = "<p><i>Bottom %d rows</i></p>" % tail
+        else:
+            rows = self.tolist()
+        
+        table = self.__class__(header=self.header, rows=rows,
+                               digits=self._digits, title=self.title)
+        html = table.to_rich_html()
+        shape = "<p>%s rows x %s columns</p>" % (format(self.shape[0], ','),
+                                                 format(self.shape[1], ','))
+        html = '\n'.join([html, legend, shape])
         return html
 
     def __str__(self):
@@ -273,6 +312,23 @@ class Table(DictArray):
         new = Table(**data)
         self.__dict__.update(new.__dict__)
         return self
+
+    def set_repr_policy(self, head=None, tail=None, random=0):
+        """specify policy for repr(self)
+        
+        Arguments:
+        
+        - head: number of top rows to included in represented display
+        - tail: number of bottom rows to included in represented display
+        - random: number of rows to sample randomly (supercedes head/tail)
+        """
+        if not any([head, tail, random]):
+            return
+        if random:
+            assert type(random) == int and random > 0, "random must be a positive integer"
+            head = tail = None
+        self._repr_policy = dict(head=head, tail=tail, random=random)
+        
 
     @property
     def header(self):
