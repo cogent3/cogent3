@@ -576,14 +576,23 @@ class Table(DictArray):
 
         return result.tolist()
 
-    def to_pandas_df(self):
-        """returns pandas DataFrame instance if pandas installed"""
+    def to_pandas_df(self, categories=None):
+        """returns pandas DataFrame instance
+        
+        Arguments:
+            - categories: converts these columns to category dtype in the data
+              frame. Note, categories are not ordered.
+        """
         if not _pandas_available:
             raise ImportError("pandas not installed")
 
         index = None if self._row_ids is None else self.template.names[0]
         data = dict(zip(self.header, self.asarray().T.tolist()))
         df = DataFrame(data=data, index=index)
+        if categories is not None:
+            categories = [categories] if type(categories) == str else categories
+            df = df.astype({n: 'category' for n in categories})
+
         return df
 
     def _callback(self, callback, row, columns=None, num_columns=None):
