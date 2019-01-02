@@ -629,7 +629,7 @@ class Table(DictArray):
 
         return result.tolist()
 
-    def to_pandas_df(self, categories=None):
+    def to_dataframe(self, categories=None):
         """returns pandas DataFrame instance
         
         Arguments:

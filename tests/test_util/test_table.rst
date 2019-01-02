@@ -119,7 +119,23 @@ We have several things we might want to specify when creating a table: the preci
 .. doctest::
 
     >>> t
-    Table(numrows=10, numcols=3, header=['chrom', 'stableid', 'length'], rows=[['X', 'ENSG00000005893', 1353],..])
+    Alignment lengths
+    ==========================================
+    chrom               stableid        length
+    ------------------------------------------
+        X        ENSG00000005893          1353
+        A        ENSG00000019485          1827
+        A        ENSG00000019102           999
+        X        ENSG00000012174          1599
+        X        ENSG00000010671          1977
+        A        ENSG00000019186          1554
+        A        ENSG00000019144          4185
+        X        ENSG00000008056          2307
+        A        ENSG00000018408          1383
+        A        ENSG00000019169          1698
+    ------------------------------------------
+    <BLANKLINE>
+    10 rows x 3 columns
 
 The Table class cannot handle arbitrary python objects, unless they are passed in as strings. Note in this case we now directly pass in the column headings list and the handling of missing data can be explicitly specified..
 
@@ -414,14 +430,37 @@ The representation formatting provides a quick overview of a table's dimensions 
 .. doctest::
 
     >>> t46
-    Table(numrows=5, numcols=3, header=['Gene', 'Type', 'LR'], rows=[['NP_003077_hs_mm_rn_dna', 'Con', 2.5386],..])
+    A new title
+    ========================================
+                      Gene  Type          LR
+    ----------------------------------------
+    NP_003077_hs_mm_rn_dna   Con  2.5386e+00
+    NP_004893_hs_mm_rn_dna   Con  1.2135e+05
+    NP_005079_hs_mm_rn_dna   Con  9.5166e+06
+    NP_005500_hs_mm_rn_dna   Con  7.3827e-08
+    NP_055852_hs_mm_rn_dna   Con  1.0933e+07
+    ----------------------------------------
+    <BLANKLINE>
+    5 rows x 3 columns
 
 and larger
 
 .. doctest::
 
     >>> t3
-    Table(numrows=7, numcols=6, header=['edge.name', 'edge.parent', 'length',..], rows=[['Human', 'edge.0', 4.0000,..],..])
+    ===============================================================
+    edge.name    edge.parent    length          x       y         z
+    ---------------------------------------------------------------
+        Human         edge.0    4.0000    1.0e+00    3.00    6.0000
+    HowlerMon         edge.0    4.0000    1.0e+00    3.00    6.0000
+        Mouse         edge.1    4.0000    1.0e+00    3.00    6.0000
+    NineBande           root    4.0000    1.0e+00    3.00    6.0000
+     DogFaced           root    4.0000    1.0e+00    3.00    6.0000
+       edge.0         edge.1    4.0000    1.0e+00    3.00    6.0000
+       edge.1           root    4.0000    1.0e+00    3.00    6.0000
+    ---------------------------------------------------------------
+    <BLANKLINE>
+    7 rows x 6 columns
 
 .. note:: within a script use ``print(repr(t3))`` to get the same representation.
 
@@ -653,7 +692,7 @@ If you have ``pandas`` installed, you can convert a ``Table`` instance to a ``Da
 .. doctest::
     
     >>> tbl = Table(header=['a', 'b'], rows=[[0, 1], [3,7]])
-    >>> df = tbl.to_pandas_df()
+    >>> df = tbl.to_dataframe()
     >>> type(df)
     <class 'pandas.core.frame.DataFrame'>
     >>> print(df)
@@ -1953,7 +1992,12 @@ Whose representation looks like
 .. doctest::
 
     >>> t5
-    Table(numrows=0, numcols=3, header=['a', 'b', 't4_c'], rows=[])
+    ==============
+    a    b    t4_c
+    --------------
+    --------------
+    <BLANKLINE>
+    0 rows x 3 columns
 
 Transposing a table
 -------------------
