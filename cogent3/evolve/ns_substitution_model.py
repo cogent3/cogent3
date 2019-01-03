@@ -1,8 +1,11 @@
-from .substitution_model import _SubstitutionModel, _ContinuousSubstitutionModel, Parametric, TimeReversibleNucleotide, Stationary
+from .substitution_model import (_SubstitutionModel, _ContinuousSubstitutionModel,
+                                 Parametric, TimeReversibleNucleotide, Stationary,
+                                 _Codon)
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
 from cogent3.evolve.predicate import MotifChange
 import numpy
 from cogent3.maths.optimisers import ParameterOutOfBoundsError
+from cogent3.core import moltype
 
 __author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -15,8 +18,18 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-class General(_ContinuousSubstitutionModel):
-class General(SubstitutionModel):
+def _gen_sym_preds():
+    pair = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G'}
+    sym_preds = []
+    for f, t in 'AG', 'AT', 'CG', 'CT', 'GT':
+        sym_preds.append(MotifChange(f, t, forward_only=True) |
+                         MotifChange(pair[f], pair[t], forward_only=True))
+    return sym_preds
+
+
+_sym_preds = _gen_sym_preds()
+
+
 class General(Parametric):
     """A continuous substitution model with one free parameter for each and
     every possible instantaneous substitution."""
@@ -113,16 +126,40 @@ class DiscreteSubstitutionModel(_SubstitutionModel):
         return PsubMatrixDefn(
             name="psubs", dimension=('motif', motifs), default=None,
             dimensions=('locus', 'edge'))
-    
-class StrandSymmetric(TimeReversibleNucleotide):
+
+
+class NonReversibleNucleotide(Parametric):
+    """A nucleotide substitution model."""
+
+    def __init__(self, *args, **kw):
+        Parametric.__init__(self, moltype.DNA.alphabet, *args, **kw)
+
+
+class NonReversibleDinucleotide(Parametric):
+    """A nucleotide substitution model."""
+
+    def __init__(self, *args, **kw):
+        Parametric.__init__(
+            self, moltype.DNA.alphabet, motif_length=2, *args, **kw)
+
+
+class NonReversibleCodon(_Codon, Parametric):
+    def __init__(self, alphabet=None, gc=None, **kw):
+        if gc is not None:
+            alphabet = moltype.CodonAlphabet(gc=gc)
+        alphabet = alphabet or moltype.STANDARD_CODON
+        Parametric.__init__(self, alphabet, **kw)
+
+
+class StrandSymmetric(NonReversibleNucleotide):
     def __init__(self, **kw):
         super(StrandSymmetric, self).__init__(
-                predicates=_sym_preds,
-                recode_gaps=True,
-                model_gaps=False,
-                do_scaling=True,
-                name='StrandSymmetric',
-                **kw)
+            predicates=_sym_preds,
+            recode_gaps=True,
+            model_gaps=False,
+            do_scaling=True,
+            name='StrandSymmetric',
+            **kw)
 
     def params_from_Q(self, Q, **kw):
         params = []
@@ -131,9 +168,13 @@ class StrandSymmetric(TimeReversibleNucleotide):
             value = (Q[param[1], param[3]] + Q[param[7], param[9]]) / ref_cell
             params.append((param, value))
         return params
-    
-    
-    
-    
 
 
+class NonReversibleProtein(Parametric):
+    """base protein substitution model."""
+
+    def __init__(self, with_selenocysteine=False, *args, **kw):
+        alph = moltype.PROTEIN.alphabet
+        if not with_selenocysteine:
+            alph = alph.get_subset('U', excluded=True)
+        Parametric.__init__(self, alph, *args, **kw)

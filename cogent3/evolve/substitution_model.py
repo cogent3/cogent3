@@ -821,16 +821,8 @@ def EmpiricalProteinMatrix(matrix, motif_probs=None, optimise_motif_probs=False,
                      model_gaps=False, recode_gaps=recode_gaps, do_scaling=do_scaling,
                      optimise_motif_probs=optimise_motif_probs, **kw)
 
-
-class TimeReversibleCodon(_TimeReversibleNucleotide):
-    """Core substitution model for codons"""
+class _Codon:
     long_indels_are_instantaneous = True
-
-    def __init__(self, alphabet=None, gc=None, **kw):
-        if gc is not None:
-            alphabet = moltype.CodonAlphabet(gc=gc)
-        alphabet = alphabet or moltype.STANDARD_CODON
-        Parametric.__init__(self, alphabet, **kw)
 
     def _is_instantaneous(self, x, y):
         if x == self.gapmotif or y == self.gapmotif:
@@ -854,5 +846,18 @@ class TimeReversibleCodon(_TimeReversibleNucleotide):
             'silent': predicate.UserPredicate(silent),
             'replacement': predicate.UserPredicate(replacement),
         })
-        return preds
+        return preds    
+
+
+class TimeReversibleCodon(_Codon, _TimeReversibleNucleotide):
+    """Core substitution model for codons"""
+
+    def __init__(self, alphabet=None, gc=None, **kw):
+        if gc is not None:
+            alphabet = moltype.CodonAlphabet(gc=gc)
+        alphabet = alphabet or moltype.STANDARD_CODON
+        _TimeReversibleNucleotide.__init__(self, alphabet, **kw)
+        
+
+    
     
