@@ -5,12 +5,13 @@ import warnings
 warnings.filterwarnings("ignore", "Motif probs overspecified")
 warnings.filterwarnings("ignore", "Model not reversible")
 
-from numpy import ones, dot, array
+from numpy import ones, dot
 
-from cogent3 import LoadSeqs, DNA, LoadTree, LoadTable
+from cogent3 import LoadSeqs, DNA, LoadTree
 from cogent3.evolve.ns_substitution_model import General, \
     GeneralStationary
 from cogent3.evolve.substitution_model import TimeReversibleNucleotide 
+from cogent3.evolve.ns_substitution_model import NonReversibleNucleotide 
 from cogent3.evolve.discrete_markov import DiscreteSubstitutionModel
 from cogent3.evolve.predicate import MotifChange
 from cogent3.util.unit_test import TestCase, main
@@ -267,7 +268,7 @@ class NewQ(TestCase):
         edX = MotifChange(motifs[1], motifs[2],
                           forward_only=True).aliased('edX')
         cX = MotifChange(motifs[2], motifs[1], forward_only=True).aliased('cX')
-        sm = TimeReversibleNucleotide(predicates=[aX, bX, edX, cX], equal_motif_probs=True)
+        sm = NonReversibleNucleotide(predicates=[aX, bX, edX, cX], equal_motif_probs=True)
 
         lf = sm.make_likelihood_function(tree)
         lf.set_param_rule('aX', edge='a', value=8.0)

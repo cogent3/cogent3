@@ -3,14 +3,18 @@ import warnings
 warnings.filterwarnings("ignore", "Motif probs overspecified")
 warnings.filterwarnings("ignore", "Model not reversible")
 
-import numpy 
+import numpy
 from numpy import ones, dot, array, empty
 
 from cogent3 import LoadSeqs, DNA, LoadTree, LoadTable
 from cogent3.evolve.ns_substitution_model import (General,
                                                   GeneralStationary,
                                                   DiscreteSubstitutionModel,
-                                                  StrandSymmetric)
+                                                  StrandSymmetric,
+                                                  NonReversibleNucleotide,
+                                                  NonReversibleDinucleotide,
+                                                  NonReversibleProtein,
+                                                  NonReversibleCodon)
 from cogent3.evolve.substitution_model import TimeReversibleNucleotide, Parametric
 from cogent3.evolve.predicate import MotifChange
 from cogent3.util.unit_test import TestCase, main
@@ -92,7 +96,7 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
             ['C', 'T'], ['G', 'C'], [
             'G', 'T'], ['T', 'A'],
             ['T', 'C'], ['T', 'G']]]
-        nuc = TimeReversibleNucleotide(predicates=preds)
+        nuc = NonReversibleNucleotide(predicates=preds)
         nuc_lf = _make_likelihood(nuc, tree, results)
         nuc_lf.optimise(**opt_args)
         results['constructed_gen'] = nuc_lf
@@ -198,7 +202,7 @@ class NonStatMarkov(TestCase):
                            ('(C>T | G>A)', 6.7026),
                            ('(G>T | C>A)', 0.9219)]:
             lf.set_param_rule(param, init=val)
-        
+
         order = 'ACGT'
         S = array([[0, 0, 0, 1],
                    [0, 0, 1, 0],
@@ -211,6 +215,36 @@ class NonStatMarkov(TestCase):
                 for j in range(4):
                     P[i, j] = Psub[order[i]][order[j]]
             numpy.testing.assert_almost_equal(P, S.dot(P).dot(S))
+
+    def test_nr_nucleotide(self):
+        '''This is exercising a NonReversibleNucleotide'''
+        preds = [MotifChange('A', 'C', forward_only=True), MotifChange('G', 'A', forward_only=True)]
+        sm = NonReversibleNucleotide(predicates=preds)
+        got = sm.get_param_list()
+        self.assertEqual(got, ['A>C', 'G>A'])
+
+    def test_nr_dinucleotide(self):
+        '''This is exercising a NonReversibleDinucleotide'''
+        preds = [MotifChange('A', 'C', forward_only=True), MotifChange('G', 'A', forward_only=True),
+                 MotifChange('CG', 'TG', forward_only=True)]
+        sm = NonReversibleDinucleotide(predicates=preds)
+        got = sm.get_param_list()
+        self.assertEqual(got, ['A>C', 'G>A', 'CG>TG'])
+
+    def test_nr_codon(self):
+        '''This is exercising a NonReversibleCodon'''
+        preds = [MotifChange('A', 'C', forward_only=True), MotifChange('G', 'A', forward_only=True),
+                 MotifChange('CG', 'TG', forward_only=True), 'replacement']
+        sm = NonReversibleCodon(predicates=preds)
+        got = sm.get_param_list()
+        self.assertEqual(got, ['A>C', 'G>A', 'CG>TG', 'replacement'])
+
+    def test_nr_protein(self):
+        '''This is exercising a NonReversibleProtein'''
+        preds = [MotifChange('D', 'K', forward_only=True), MotifChange('R', 'V', forward_only=True)]
+        sm = NonReversibleProtein(predicates=preds)
+        got = sm.get_param_list()
+        self.assertEqual(got, ['D>K', 'R>V'])
 
 
 if __name__ == "__main__":
