@@ -702,6 +702,25 @@ class RnaMolTypeTests(TestCase):
         self.assertEqual(p('ABD'), 'X')
         self.assertEqual(p('ACX'), 'X')
         self.assertEqual(p('AC-'), '?')
+    
+    
+    def test_get_css_styles(self):
+        """generates css style mapping and css"""
+        css, styles = DNA.get_css_style()
+        # styles should consist of core characters appended by DNA.label
+        states = list(DNA) + ['ambig', 'terminal_ambig']
+        got = {styles[b] for b in states}
+        expect = {b + '_dna' for b in states}
+        self.assertEqual(got, expect)
+        for state in expect:
+            self.assertTrue(state in css)
+        
+        # check subset of protein
+        css, styles = PROTEIN.get_css_style()
+        states = list(PROTEIN) + ['ambig', 'terminal_ambig']
+        got = {styles[b] for b in states}
+        expect = {b + '_protein' for b in states}
+        self.assertEqual(got, expect)
 
 
 class _AlphabetTestCase(TestCase):

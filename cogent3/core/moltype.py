@@ -22,6 +22,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
 from cogent3.core.alphabet import CharAlphabet, Enumeration, Alphabet, \
     AlphabetError, _make_complement_array
 from cogent3.util.misc import FunctionWrapper, add_lowercase, iterable, if_
@@ -41,6 +42,7 @@ from random import choice
 
 import re
 from string import ascii_letters as letters
+from collections import defaultdict
 
 import numpy
 from numpy import array, transpose, remainder, zeros, arange, newaxis, \
@@ -392,6 +394,41 @@ class AlphabetGroup(CoreObjectGroup):
                 i._complement_array = _make_complement_array(i, comps)
 
 
+# colours for HTML representation
+
+def _expand_colors(base, colors):
+    base = base.copy()
+    base.update({ch: clr for chars, clr in colors.items() for ch in chars})
+    return base
+
+
+class _DefaultValue:
+    def __init__(self, value):
+        self.value = value
+
+    def __call__(self):
+        return self.value
+
+
+_gray = _DefaultValue('gray')
+_base_colors = defaultdict(_gray)
+
+NT_COLORS = _expand_colors(_base_colors, {'A': '#FF0102',
+                   'C': 'black',
+                   'G': 'green',
+                   'T': 'blue',
+                   'U': 'blue'})
+
+AA_COLORS = _expand_colors(_base_colors, {'GAVLI': '#009999',
+             'FYW': '#ff6600',
+             'CM': 'orange',
+             'ST': '#009900',
+             'KRH': '#FF0102',
+             'DE': 'blue',
+             'NQ': '#993300',
+             'P': '#cc0099'})
+
+
 class MolType(object):
     """MolType: Handles operations that depend on the sequence type (e.g. DNA).
 
@@ -411,7 +448,8 @@ class MolType(object):
                  seq_constructor=None, ambiguities=None,
                  label=None, complements=None, pairs=None, mw_calculator=None,
                  add_lower=False, preserve_existing_moltypes=False,
-                 make_alphabet_group=False, array_seq_constructor=None):
+                 make_alphabet_group=False, array_seq_constructor=None,
+                 colors=None):
         """Returns a new MolType object. Note that the parameters are in flux.
 
         Currently:
@@ -456,6 +494,8 @@ class MolType(object):
             the various alphabets to one another.
 
             array_seq_constructor: sequence type for array sequence
+            
+            colors: dict mapping moltype characters to colors for display
 
         Note on "degenerates" versus "ambiguities": self.degenerates contains
         _only_ mappings for degenerate symbols, whereas self.ambiguities
@@ -546,6 +586,9 @@ class MolType(object):
 
         # set modeling sequence
         self.make_array_seq = array_seq_constructor
+        
+        self._colors = colors or defaultdict(_DefaultValue('black'))
+
 
     def __repr__(self):
         """String representation of MolType.
@@ -1029,6 +1072,29 @@ class MolType(object):
         # if we got here, nothing worked
         raise TypeError("Cannot find degenerate char for symbols: %s"
                         % symbols)
+    
+    def get_css_style(self, colors=None, font_size=12, font_family='Lucida Console'):
+        """returns string of CSS classes and {character: <CSS class name>, ...}
+        
+        Arguments:
+          - colors: {char: <color>, ..}, defaults to colors for specific moltype
+          - font_size: in points
+          - font_family: name of a monospace font"""
+        colors = colors or self._colors
+        # !important required to stop some browsers over-riding the style sheet ...!!
+        template = ('.%s_%s{font-family: "%s" !important; '
+                    'font-size: %dpt !important; color: %s; }')
+        styles = _style_defaults[self.label].copy()
+        styles.update({c: '_'.join([c, self.label]) for c in list(self.alphabet) + ['terminal_ambig']})
+
+        css = []
+        for char in list(styles) + ['ambig']:
+            css.append(template % (char, self.label, font_family, font_size,
+                                         colors[char]))
+        
+        css = '\n'.join(css)
+        return css, styles
+        
 
 ASCII = MolType(
     # A default type for text read from a file etc. when we don't
@@ -1050,6 +1116,7 @@ DNA = MolType(
     pairs=DnaStandardPairs,
     make_alphabet_group=True,
     array_seq_constructor=ArrayDnaSequence,
+    colors=NT_COLORS
 )
 
 RNA = MolType(
@@ -1062,6 +1129,7 @@ RNA = MolType(
     pairs=RnaStandardPairs,
     make_alphabet_group=True,
     array_seq_constructor=ArrayRnaSequence,
+    colors=NT_COLORS
 )
 
 PROTEIN = MolType(
@@ -1071,7 +1139,8 @@ PROTEIN = MolType(
     mw_calculator=ProteinMW,
     make_alphabet_group=True,
     array_seq_constructor=ArrayProteinSequence,
-    label="protein")
+    label="protein",
+    colors=AA_COLORS)
 
 PROTEIN_WITH_STOP = MolType(
     seq_constructor=ProteinWithStopSequence,
@@ -1080,7 +1149,8 @@ PROTEIN_WITH_STOP = MolType(
     mw_calculator=ProteinMW,
     make_alphabet_group=True,
     array_seq_constructor=ArrayProteinWithStopSequence,
-    label="protein_with_stop")
+    label="protein_with_stop",
+    colors=AA_COLORS)
 
 BYTES = MolType(
     # A default type for arbitrary chars read from a file etc. when we don't
@@ -1090,6 +1160,11 @@ BYTES = MolType(
     ambiguities={},
     array_seq_constructor=ArraySequence,
     label='bytes')
+
+_style_defaults = {mt.label: defaultdict(_DefaultValue('ambig_%s' % mt.label))
+                   for mt in (ASCII, BYTES, DNA, RNA, PROTEIN,
+                              PROTEIN_WITH_STOP)}
+
 
 # following is a two-state MolType useful for testing
 AB = MolType(

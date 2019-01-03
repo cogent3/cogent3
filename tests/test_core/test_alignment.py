@@ -1476,6 +1476,30 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                   "seq3    .C.."]
         self.assertEqual(got, '\n'.join(expect))
     
+    def test_to_html(self):
+        """produce correct html formatted text"""
+        seqs = {'seq1': 'ACG',
+                'seq2': '-CT'}
+
+        aln = self.Class(data=seqs, moltype=DNA)
+        got = aln.to_html(longest_ref=True)#name_order=['seq1', 'seq2'])
+        # ensure balanced tags are in the txt
+        for tag in ['<style>', '</style>', '<body>', '</body>', '<table>', '</table>']:
+            self.assertTrue(tag in got)
+        
+        ref_row = ('<tr><td class="label">seq1</td>'
+                   '<td><span class="A_dna">A</span>'
+                   '<span class="C_dna">C</span>'
+                   '<span class="G_dna">G</span></td></tr>')
+        other_row = ('<tr><td class="label">seq2</td>'
+                     '<td><span class="ambig_dna">-</span>'
+                     '<span class="C_dna">.</span>'
+                     '<span class="T_dna">T</span></td></tr>')
+
+        self.assertTrue(ref_row in got)
+        self.assertTrue(other_row in got)
+        self.assertTrue(got.find(ref_row) < got.find(other_row))
+
     def test_variable_positions(self):
         """correctly identify variable positions"""
         new_seqs = {'seq1': 'ACGTACGT',
