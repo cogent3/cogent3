@@ -2081,12 +2081,13 @@ class AlignmentI(object):
             for pos in range(start, end, step):
                 yield self[pos:pos + window]
 
-    def to_pretty(self, name_order=None, interleave_len=None):
-        """returns a string representation of the alignment in pretty print format
 
-        Arguments:
-            - name_order: order of names for display.
-            - interleave_len: maximum number of printed bases, defaults to alignment length"""
+    def _get_raw_pretty(self, name_order):
+        """returns dict {name: seq, ...} for pretty print"""
+        if name_order is not None:
+            assert set(name_order) == set(self.names), "names don't match"
+
+        names = name_order or self.names
         output = defaultdict(list)
         names = name_order or self.names
         num_seqs = len(names)
@@ -2105,6 +2106,142 @@ class AlignmentI(object):
                 val = '.' if position[seq_num] == ref else position[seq_num]
                 output[names[seq_num]].append(val)
 
+        return names, output
+
+    def _repr_html_(self):
+        # we put the longest sequence first
+        html = self.to_html(longest_ref=True, limit=2000)
+        return html
+
+
+    def to_html(self, name_order=None, interleave_len=60, limit=None,
+                longest_ref=True, colors=None,
+                font_size=12, font_family='Lucida Console'):
+        '''returns html with embedded styles for sequence colouring
+        
+        Arguments:
+            - name_order: order of names for display.
+            - interleave_len: maximum number of printed bases, defaults to
+              alignment length
+            - limit: truncate alignment to this length
+            - longest_ref: If True, the longest sequence (excluding gaps and
+              ambiguities) is selected as the reference.
+            - colors: {character: color, ...}. Defaults to those defined by
+              moltype.
+            - font_size: in points. Affects labels and sequence and line spacing
+              (proportional to value)
+            - font_family: string denoting font family
+            
+        To display in jupyter notebook:
+            
+            >>> from IPython.core.display import HTML
+            >>> HTML(aln.to_html())
+        '''
+        css, styles = self.moltype.get_css_style(colors=colors,
+                                                  font_size=font_size,
+                                                  font_family=font_family)
+        
+        if longest_ref and name_order is None:
+            length_names = []
+            for s in self.seqs:
+                try:
+                    l = len(s) - s.count_degenerate() - s.count_gaps()
+                except AttributeError:
+                    # We have the Aligned class, and Aligned.data is ungapped
+                    nd = s.data.count_degenerate()
+                    l = len(s.data) - nd
+                length_names.append((l, s.name))
+            length_names.sort(reverse=True)
+            ref = length_names[0][1]
+            name_order = self.names[:]
+            name_order.remove(ref)
+            name_order.insert(0, ref)
+            
+        if limit is None:
+            names, output = self._get_raw_pretty(name_order)
+        else:
+            names, output = self[:limit]._get_raw_pretty(name_order)
+
+        gaps = ''.join(self.moltype.gaps)
+        refname = names[0]
+        refseq = output[refname]
+        seqlen = len(refseq)
+        start_gap = re.search('^[%s]+' % gaps, ''.join(refseq))
+        end_gap = re.search('[%s]+$' % gaps, ''.join(refseq))
+        ref_colours = []
+        start = 0 if start_gap is None else start_gap.end()
+        end = len(refseq) if end_gap is None else end_gap.start()
+        seq_style = []
+        template = '<span class="%s">%%s</span>'
+        styled_seqs = defaultdict(list)
+        for i in range(seqlen):
+            char = refseq[i]
+            if i < start or i >= end:
+                style = 'terminal_ambig'
+            else:
+                style = styles[char]
+
+            seq_style.append(template % style)
+            styled_seqs[refname].append(seq_style[-1] % char)
+        
+        for name in names:
+            if name == refname:
+                continue
+            
+            seq = []
+            for i, c in enumerate(output[name]):
+                if c == '.':
+                    s = seq_style[i] % c
+                else:
+                    s = template % (styles[c])
+                    s = s % c
+                seq.append(s)
+                
+            styled_seqs[name] = seq
+        
+        # make a html table
+        seqs = array([styled_seqs[n] for n in names], dtype='O')
+        table = ['<table>']
+        seq_ = '<td>%s</td>'
+        label_ = '<td class="label">%s</td>'
+        for i in range(0, seqlen, interleave_len):
+            seqblock = seqs[:, i: i + interleave_len].tolist()
+            for n, s in zip(names, seqblock):
+                s = ''.join(s)
+                row = ''.join([label_ % n, seq_ % s])
+                table.append('<tr>%s</tr>' % row)
+            table.append('<tr class="blank_row""></tr>')
+        table.append('</table>')
+        if limit and limit < len(self):
+            summary = ('%s x %s (truncated to %s) %s '
+                       'alignment') % (len(self.names), len(self), limit,
+                                       self.moltype.label)
+        else:
+            summary = ('%s x %s %s '
+                       'alignment') % (len(self.names), len(self),
+                                       self.moltype.label)
+        
+        text = ['<style>',
+                'tr { line-height: %dpt ; }' % int(font_size/4),
+                '.blank_row{ height: 10pt !important; }',
+                'td { border: none !important; text-align: left !important; }',
+                '.label { font-size: %dpt ; text-align: right !important; }' % font_size,
+                css,
+                '</style>',
+                '<body>',
+                '\n'.join(table),
+                '<p><i>%s</i></p>' % summary,
+                '</body>']
+        return '\n'.join(text)
+        
+
+    def to_pretty(self, name_order=None, interleave_len=None):
+        """returns a string representation of the alignment in pretty print format
+
+        Arguments:
+            - name_order: order of names for display.
+            - interleave_len: maximum number of printed bases, defaults to alignment length"""
+        names, output = self._get_raw_pretty(name_order=name_order)
         label_width = max(list(map(len, names)))
         name_template = '{:>%d}' % label_width
         display_names = dict([(n, name_template.format(n)) for n in names])
