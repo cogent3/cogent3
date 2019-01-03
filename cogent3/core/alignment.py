@@ -1165,6 +1165,7 @@ class SequenceCollection(object):
         """
         translated = []
         aligned = isinstance(self, Alignment)
+        kwargs['moltype'] = cogent3.PROTEIN
         # do the translation
         try:
             for seqname in self.names:

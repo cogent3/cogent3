@@ -856,7 +856,9 @@ class SequenceCollectionBaseTests(object):
                 {'seq1': 'GATTTT', 'seq2': 'GATC??'},
                 {'seq1': 'GAT---', 'seq2': '?GATCT'}]:
             alignment = self.Class(data=seqs, moltype=DNA)
-            self.assertEqual(len(alignment.get_translation()), 2)
+            got = alignment.get_translation()
+            self.assertEqual(len(got), 2)
+            self.assertEqual(got.moltype, PROTEIN)
             # check for a failure when no moltype specified
             alignment = self.Class(data=seqs)
             try:
@@ -1529,7 +1531,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertTrue(rna.moltype==RNA)
     
     def test_to_protein(self):
-        """alignment cast to DNA works"""
+        """alignment cast to protein works"""
         data = {'seq1': 'TYV', 'seq3': 'TYV', 'seq2': 'TE-'}
         aln = self.Class(data=data)
         paln = aln.to_protein()
