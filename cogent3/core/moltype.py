@@ -1082,7 +1082,7 @@ class MolType(object):
           - font_family: name of a monospace font"""
         colors = colors or self._colors
         # !important required to stop some browsers over-riding the style sheet ...!!
-        template = ('.%s_%s{font-family: "%s" !important; '
+        template = ('.%s_%s{font-family: "%s",monospace !important; '
                     'font-size: %dpt !important; color: %s; }')
         styles = _style_defaults[self.label].copy()
         styles.update({c: '_'.join([c, self.label]) for c in list(self.alphabet) + ['terminal_ambig']})
