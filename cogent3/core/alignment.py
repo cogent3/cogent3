@@ -2225,7 +2225,8 @@ class AlignmentI(object):
                 'tr { line-height: %dpt ; }' % int(font_size/4),
                 '.blank_row{ height: 10pt !important; }',
                 'td { border: none !important; text-align: left !important; }',
-                '.label { font-size: %dpt ; text-align: right !important; }' % font_size,
+                '.label { font-size: %dpt ; text-align: right !important; '
+                'color: black !important; }' % font_size,
                 css,
                 '</style>',
                 '<body>',
