@@ -1530,6 +1530,14 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # and translate
         self.assertEqual(new.get_translation().todict(),
                          {'seq1': 'TYV', 'seq3': 'TYV', 'seq2': 'TE-'})
+        
+        # should work on ArrayAlign when just moltype changes
+        new_seqs = {'seq1': 'ACGTACGTA',
+                    'seq2': 'ACCGAA---'}
+        aln = self.Class(data=new_seqs)
+        new = aln.to_type(array_align=array_align, moltype=DNA)
+        new = new.no_degenerates()  # this should not fail!
+        self.assertEqual(len(new), len(aln) - 3)
     
     def test_to_dna(self):
         """alignment cast to DNA works"""
