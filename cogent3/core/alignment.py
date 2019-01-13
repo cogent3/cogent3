@@ -2347,7 +2347,8 @@ class AlignmentI(object):
         returns self
         """
         klass = ArrayAlignment if array_align else Alignment
-        if isinstance(self, klass):
+        if isinstance(self, klass) and (moltype is None or
+                                        moltype == self.moltype):
             return self
         
         data = self.todict()
