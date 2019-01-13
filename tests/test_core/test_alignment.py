@@ -1015,6 +1015,19 @@ class SequenceCollectionBaseTests(object):
         # assertRaises error when pad_length is less than max seq length
         self.assertRaises(ValueError, self.ragged_padded.pad_seqs, 5)
 
+    def test_to_moltype(self):
+        """correctly convert to specified moltype"""
+        data = {'seq1': 'ACGTACGTA',
+                'seq2': 'ACCGAA---',
+                'seq3': 'ACGTACGTT'}
+        seqs = self.Class(data=data)
+        dna = seqs.to_moltype(DNA)
+        rc = dna.rc().todict()
+        expect = {'seq1': 'TACGTACGT',
+                  'seq2': '---TTCGGT',
+                  'seq3': 'AACGTACGT'}
+        self.assertEqual(rc, expect)
+
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
     """Tests of the SequenceCollection object. Includes ragged collection tests.
@@ -1076,7 +1089,7 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
 
         # assertRaises error when pad_length is less than max seq length
         self.assertRaises(ValueError, self.ragged.pad_seqs, 5)
-        
+    
 
 class AlignmentBaseTests(SequenceCollectionBaseTests):
     """Tests of basic Alignment functionality. All Alignments should pass these.
