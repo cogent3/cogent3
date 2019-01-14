@@ -3150,11 +3150,11 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         diffs = set([indices[i-1] - indices[i] for i in range(1, len(indices))])
         assert diffs == set([-1]), diffs
         start, end = min(indices), max(indices)
-        # identify the masking positions
+        # identify non-masked positions
         degen_masks = {}
         for i in range(self.num_seqs):
             s1 = self.array_seqs[i]
-            degen_masks[i] = logical_or(s1 <= start, s1 < end)
+            degen_masks[i] = logical_or(s1 <= start, s1 <= end)
 
         identical_sets = []
         seen = set()
