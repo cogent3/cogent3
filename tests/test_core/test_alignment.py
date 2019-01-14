@@ -479,11 +479,11 @@ class SequenceCollectionBaseTests(object):
     def test_get_identical_sets(self):
         """correctly identify sets of identical sequences"""
         # for DNA
-        data = {"a": "ACGT", "b": "ACGT", # strict identical
+        data = {"a": "ACGG", "b": "ACGG", # strict identical
                 "c": "ACGN", # non-strict matches above
-                "d": "TTTT", "e": "TTTT", "k": "TTTT", # strict identical
+                "d": "ACGT", "e": "ACGT", "k": "ACGT", # strict identical
                 "f": "RAAA", "g": "YAAA"} # non-strict identical
-        
+
         seqs = self.Class(data=data, moltype=DNA)
         got = seqs.get_identical_sets(mask_degen=False)  # a strict comparison
         # convert to frozenset, so we can do a comparison robust to set order
