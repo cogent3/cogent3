@@ -659,6 +659,24 @@ motif    mprobs
             sm = klass()
             lf = sm.make_likelihood_function(t)
             lf.set_alignment(al)
+            
+    def test_get_param_rules(self):
+        """correctly return rules that can be used to reconstruct a lf"""
+        lf = self.submodel.make_likelihood_function(self.tree)
+        lf.set_alignment(self.data)
+        lf.set_param_rule('beta', init=2.0)
+        lf.set_param_rule('beta', init=2.0, edges=['Human', 'HowlerMon'])
+        lnL = lf.get_log_likelihood()
+        rules = lf.get_param_rules()
+        self.assertEqual(len(rules), 2)
+        lf = self.submodel.make_likelihood_function(self.tree)
+        lf.set_alignment(self.data)
+        with lf.updates_postponed():
+            for rule in rules:
+                lf.set_param_rule(**rule)
+        new_lnL = lf.get_log_likelihood()
+        self.assertFloatEqual(new_lnL, lnL)
+        
 
 
 if __name__ == '__main__':
