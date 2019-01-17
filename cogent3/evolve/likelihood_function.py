@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import random
+from collections import defaultdict
 import numpy
 
 from cogent3.core.alignment import Alignment
@@ -266,6 +267,31 @@ class LikelihoodFunction(ParameterController):
             scaled_lengths[edge.name] = length * self._model.get_scale_from_Qs(
                 Qs, bprobs, mprobs, predicate)
         return scaled_lengths
+
+    def get_param_rules(self):
+        """returns the [{rule}, ..] that would allow reconstruction"""
+        rules = []
+        
+        # markov model rate terms
+        rate_names = self.model.get_param_list()
+        for rate_name in rate_names:
+            defn = self.defn_for[rate_name]
+            scoped = defaultdict(list)
+            for key, index in defn.index.items():
+                edge_name = key[0]
+                scoped[index].append(edge_name)
+                
+            if len(scoped) == 1:  # we have a global
+                val = defn.values[0]
+                rules.append(dict(par_name=rate_name, init=val, edges=None))
+                continue
+            
+            for index in scoped:
+                val = defn.values[index]
+                edges = scoped[index]
+                rules.append(dict(par_name=rate_name, init=val, edges=edges))
+
+        return rules
 
     def get_statistics(self, with_motif_probs=True, with_titles=True):
         """returns the parameter values as tables/dict
