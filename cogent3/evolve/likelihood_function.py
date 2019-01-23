@@ -165,12 +165,17 @@ class LikelihoodFunction(ParameterController):
             array = self.get_param_value('psubs', edge=name, **kw)
         return DictArrayTemplate(self._motifs, self._motifs).wrap(array)
 
-    def get_rate_matrix_for_edge(self, name, **kw):
+    def get_rate_matrix_for_edge(self, name, calibrated=True, **kw):
         """returns the rate matrix (Q) for the named edge
 
-        Note: expm(Q) will give the same result as get_psub_for_edge(name)"""
+        If calibrated=False, expm(Q) will give the same result as
+        get_psub_for_edge(name)"""
         try:
             array = self.get_param_value('Q', edge=name, **kw)
+            array = array.copy()
+            if not calibrated:
+                length = self.get_param_value('length', edge=name, **kw)
+                array *= length
         except KeyError as err:
             if err[0] == 'Q' and name != 'Q':
                 raise RuntimeError('rate matrix not known by this model')
