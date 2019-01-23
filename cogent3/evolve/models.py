@@ -8,9 +8,9 @@ gap recoding that will convert gaps to Ns, and model gaps set to False."""
 # The models are constructed in a strait forward manner with no attempt to condense
 # this file using functions etc. to allow each model to serve as an example for users
 # wishing to construct their own models
-
+from itertools import permutations
 import numpy
-from cogent3.evolve import substitution_model
+from cogent3.evolve import substitution_model, ns_substitution_model
 from cogent3.evolve.predicate import MotifChange, replacement
 from cogent3.evolve.solved_models import F81, HKY85, TN93
 
@@ -37,6 +37,34 @@ _kappa = (~MotifChange('R', 'Y')).aliased('kappa')
 _omega = replacement.aliased('omega')
 _cg = MotifChange('CG').aliased('G')
 _cg_k = (_cg & _kappa).aliased('G.K')
+
+def _make_gn_preds():
+    _general_preds = []
+    for f, t in permutations('ACTG', 2):
+        if f != 'T' or t != 'G':  # Match GTR's reference cell
+            _general_preds.append(MotifChange(f, t, forward_only=True))
+    return _general_preds
+
+_general_preds = _make_gn_preds()
+
+def _make_symn_preds():
+    pair = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G'}
+    sym_preds = []
+    for f, t in 'AG', 'AT', 'CG', 'CT', 'GT':
+        sym_preds.append(MotifChange(f, t, forward_only=True) |
+                         MotifChange(pair[f], pair[t], forward_only=True))
+    return sym_preds
+
+
+_sym_preds = _make_symn_preds()
+
+def GN(**kw):
+    """general Markov nucleotide (non-stationary, non-reversible)"""
+    return ns_substitution_model.NonReversibleNucleotide(predicates=_general_preds, **kw)
+
+def ssGN(**kw):
+    """strand-symmetric general Markov nucleotide (non-stationary, non-reversible)"""
+    return ns_substitution_model.StrandSymmetric(**kw)
 
 
 def K80(**kw):
