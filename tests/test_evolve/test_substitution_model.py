@@ -4,6 +4,7 @@ import os
 
 from cogent3 import LoadSeqs, CodonAlphabet, DNA, LoadTable
 from cogent3.core import genetic_code
+from cogent3.evolve.models import F81, HKY85, GN
 from cogent3.evolve import substitution_model, substitution_calculation, predicate
 from cogent3.util.unit_test import TestCase, main
 
@@ -63,6 +64,21 @@ class NucleotideModelTestMethods(TestCase):
         with self.assertRaises(ValueError):
             sm = substitution_model.TimeReversibleNucleotide(predicates=[preds])
     
+    def test_get_param_matrix_coords(self):
+        """return correct coords for continuous-time models"""
+        f81 = F81()
+        self.assertEqual(f81.get_param_matrix_coords(), {})
+        self.assertTrue(len(f81.get_param_matrix_coords(include_ref_cell=True)['ref_cell']) == 12)
+        hky85 = HKY85()
+        coords = hky85.get_param_matrix_coords()
+        self.assertEqual(set(coords), set(['kappa']))
+        coords = hky85.get_param_matrix_coords(include_ref_cell=True)
+        self.assertEqual(set(coords), set(['kappa', 'ref_cell']))
+        gn = GN()
+        coords = gn.get_param_matrix_coords(include_ref_cell=True)
+        self.assertTrue(len(coords) == 12)
+        self.assertTrue(len(coords['ref_cell']) == 1)
+
 
 class MultiLetterMotifSubstModelTests(TestCase):
 
