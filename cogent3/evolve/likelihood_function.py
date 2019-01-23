@@ -17,7 +17,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell",
                "Matthew Wakefield", "Rob Knight", "Brett Easton",
-               "Ben Kaehler"]
+               "Ben Kaehler", "Alex Iliadis"]
 __license__ = "GPL"
 __version__ = "3.0a1"
 __maintainer__ = "Gavin Huttley"
@@ -29,6 +29,126 @@ __status__ = "Production"
 # recalculation Calculator.  It adds methods which are useful for examining
 # the parameter, psub, mprob and likelihood values after the optimisation is
 # complete.
+
+
+def _get_param_mapping(rich, simple):
+    """returns {simple_param_name: rich_param_name, ...}, the mapping of simple
+    to rich parameters based on matrix coordinates
+    """
+    assert len(rich) >= len(simple)
+    simple_to_rich = defaultdict(set)
+    rich_to_simple = defaultdict(set)
+    for simple_param in simple:
+        simple_coords = simple[simple_param]
+        for rich_param in rich:
+            rich_coords = rich[rich_param]
+            if rich_coords <= simple_coords:
+                simple_to_rich[simple_param].add(rich_param)
+                rich_to_simple[rich_param].add(simple_param)
+
+    for rich_param in rich_to_simple:
+        simple_counterparts = rich_to_simple[rich_param]
+        if len(simple_counterparts) == 1:
+            continue
+
+        sized_simple = [(len(simple[param]), param) for param in simple_counterparts]
+        sized_simple.sort()
+        if sized_simple[0][0] == sized_simple[1][0]:
+            msg = "%s and %s tied for matrix space" % (sized_simple[0][1],
+                                                       sized_simple[1][1])
+            raise ValueError(msg)
+
+        _, chosen = sized_simple.pop(0)
+        rich_to_simple[rich_param] = [chosen]
+        for _, simple_param in sized_simple:
+            simple_to_rich[simple_param].pop(rich_param)
+
+    return simple_to_rich
+
+
+class _ParamProjection:
+    """projects parameter names, values between nested models"""
+
+    def __init__(self, simple_model, rich_model, motif_probs, same=True):
+        # construct following by calling the functions we wrote
+        self._rich_coords = rich_model.get_param_matrix_coords(include_ref_cell=True)
+        self._simple_coords = simple_model.get_param_matrix_coords(include_ref_cell=True)
+        self._param_map = _get_param_mapping(self._rich_coords, self._simple_coords)
+        self._same = same
+        # end of constructing attributes
+        self._motif_probs = motif_probs
+        self._ref_val = self._set_ref_val(same)
+        self.projected_rate = {False: self._rate_not_same}.get(same,
+                                                               self._rate_same)
+
+    def _set_ref_val(self, same):
+        """returns the motif prob corresponding to the model reference cell"""
+        if same:
+            return 1
+        else:
+            i, j = list(self._rich_coords['ref_cell'])[0]
+            return self._motif_probs[j]
+
+    def _rate_not_same(self, simple_param, mle):
+        """returns {rich_param: val, ...} from simple_param: val"""
+        ref_val = self._ref_val
+        new_terms = {}
+        for rich_param in self._param_map[simple_param]:
+            if rich_param == 'ref_cell':
+                continue
+            for i, j in self._rich_coords[rich_param]:
+                new_terms[rich_param] = self._motif_probs[j] * mle / ref_val
+
+        return new_terms
+
+    def _rate_same(self, simple_param, mle):
+        new_terms = {}
+        for rich_param in self._param_map[simple_param]:
+            if rich_param == 'ref_cell':
+                continue
+            for i, j in self._rich_coords[rich_param]:
+                new_terms[rich_param] = mle
+        return new_terms
+
+    def update_param_rules(self, rules):
+        new_rules = []
+        if not self._same:
+            rules = rules[:] + [dict(par_name='ref_cell', init=1.0, edges=None)]
+
+        for rule in rules:
+            # get the param name, mle, call self.projected_rate
+            name = rule['par_name']
+            mle = rule['init']
+            proj_rate = self.projected_rate(name, mle)
+            for new_name, new_mle in proj_rate.items():
+                rule_dict = rule.copy()
+                rule_dict['par_name'] = new_name
+                # update it with the new parname and mle and append to new rules
+                rule_dict['init'] = new_mle
+                new_rules.append(rule_dict)
+
+        return new_rules
+
+
+def compatible_likelihood_functions(lf1, lf2):
+    """returns True if all attributes of the two likelihood functions are compatible
+    for mapping parameters, else raises ValueError or an AssertionError"""
+    # tree's must have the same topology AND be oriented the same way
+    # plus have the same edge names
+    if len(lf1.bin_names) != 1 or len(lf1.bin_names) != len(lf2.bin_names):
+        raise NotImplementedError("Too many bins")
+    if len(lf1.locus_names) != 1 or len(lf1.locus_names) != len(lf2.locus_names):
+        raise NotImplementedError("Too many loci")
+    if lf1.model.get_motifs() != lf2.model.get_motifs():
+        raise AssertionError("Motifs don't match")
+    if lf1.tree.get_newick() != lf2.tree.get_newick():
+        # TODO handle case for internal node names, eliminates need for subsequent assertion
+        raise AssertionError("Topology or Orientation don't match")
+    if set(lf1.tree.get_node_names()) != set(lf2.tree.get_node_names()):
+        raise AssertionError("Tree internal names are not the same:\n"
+                             "lf1 - %s\n"
+                             "lf2 - %s\n")
+    return True
 
 
 class LikelihoodFunction(ParameterController):
@@ -232,7 +352,6 @@ class LikelihoodFunction(ParameterController):
         motif_probs_array = self.get_param_value(
             'mprobs', edge=edge, bin=bin, locus=locus)
         return DictArrayTemplate(self._mprob_motifs).wrap(motif_probs_array)
-        # return dict(zip(self._motifs, motif_probs_array))
 
     def get_bin_prior_probs(self, locus=None):
         bin_probs_array = self.get_param_value('bprobs', locus=locus)
@@ -416,7 +535,7 @@ class LikelihoodFunction(ParameterController):
             lht = self.get_param_value('lht', locus=locus)
             sequence_length = len(lht.index)
             leaves = self.get_param_value('leaf_likelihoods', locus=locus)
-            orig_ambig = {}  # alignment.getPerSequenceAmbiguousPositions()
+            orig_ambig = {}
             for (seq_name, leaf) in list(leaves.items()):
                 orig_ambig[seq_name] = leaf.get_ambiguous_positions()
         else:
@@ -473,3 +592,35 @@ class LikelihoodFunction(ParameterController):
             if not is_generator_unique(Q * t):
                 return False
         return True
+
+    def initialise_from_nested(self, nested_lf, length_kwargs=None, param_kwargs=None):
+        from cogent3.evolve.substitution_model import TimeReversible
+        assert self.get_num_free_params() > nested_lf.get_num_free_params(), "wrong order for likelihood functions"
+        compatible_likelihood_functions(self, nested_lf)
+
+        same = (isinstance(self.model, TimeReversible) and isinstance(nested_lf.model, TimeReversible))\
+            or (not isinstance(self.model, TimeReversible) and not isinstance(nested_lf.model, TimeReversible))
+
+        if length_kwargs is None:
+            length_kwargs = {}
+        if param_kwargs is None:
+            param_kwargs = {}
+
+        mprobs = nested_lf.get_motif_probs()
+        edge_names = self.tree.get_node_names()
+        edge_names.remove('root')
+        lengths = {name: nested_lf.get_param_value('length', edge=name) for name in edge_names}
+        param_proj = _ParamProjection(nested_lf.model, self.model, mprobs, same=same)
+        param_rules = nested_lf.get_param_rules()
+        param_rules = param_proj.update_param_rules(param_rules)
+
+        with self.updates_postponed():
+            self.set_motif_probs(mprobs)
+            for rule in param_rules:
+                rule.update(param_kwargs)
+                self.set_param_rule(**rule)
+            for edge, length in lengths.items():
+                self.set_param_rule('length', edge=edge, init=length,
+                                    **length_kwargs)
+
+        return self

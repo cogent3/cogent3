@@ -13,18 +13,19 @@ tests to do:
 import warnings
 
 warnings.filterwarnings("ignore", "Motif probs overspecified")
-warnings.filterwarnings("ignore", "Model not reversible")
 warnings.filterwarnings("ignore", "Ignoring tree edge lengths")
 
 import os
-from numpy import ones, dot
+from numpy import ones
 
 from cogent3.evolve import substitution_model, predicate, ns_substitution_model
 from cogent3 import DNA, LoadSeqs, LoadTree
 from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
 from cogent3.maths.stats.information_criteria import aic, bic
-from cogent3.evolve.models import JTT92, CNFGTR, Y98, MG94HKY
+from cogent3.evolve.models import JTT92, CNFGTR, Y98, MG94HKY, GN, ssGN, GTR, HKY85
+from cogent3.evolve.substitution_model import TimeReversible
+
 
 TimeReversibleNucleotide = substitution_model.TimeReversibleNucleotide
 MotifChange = predicate.MotifChange
@@ -47,6 +48,11 @@ ALIGNMENT = LoadSeqs(
     filename=os.path.join(data_path, 'brca1.fasta'))
 
 OTU_NAMES = ["Human", "Mouse", "HowlerMon"]
+
+_data = {'Human': 'ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG',
+         'Mouse': 'ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG',
+         'Opossum': 'ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG'}
+_aln = LoadSeqs(data=_data, moltype=DNA)
 
 ########################################################
 # some funcs for assembling Q-matrices for 'manual' calc
@@ -676,7 +682,186 @@ motif    mprobs
                 lf.set_param_rule(**rule)
         new_lnL = lf.get_log_likelihood()
         self.assertFloatEqual(new_lnL, lnL)
-        
+
+    def test_initialise_from_nested_diff_scoped(self):
+        """non-reversible likelihood initialised from nested, scoped, time-reversible"""
+        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
+        rate_params = {'A/C': 2.,
+                       'A/G': 3.,
+                       'A/T': 4.,
+                       'C/G': 5.,
+                       'C/T': 6.}
+
+        rate_params1 = {'A/C': 4.,
+                        'A/G': 6.,
+                        'C/T': 3.}
+
+        simple = GTR()
+        tree = LoadTree(tip_names=['Human', 'Mouse', 'Opossum'])
+        slf = simple.make_likelihood_function(tree, digits=2)
+        slf.set_alignment(_aln)
+        slf.set_name('GTR')
+        slf.set_motif_probs(mprobs)
+        for param, val in rate_params.items():
+            slf.set_param_rule(param, init=val)
+
+        for param, val in rate_params1.items():
+            slf.set_param_rule(param, init=val, edges=['Human'])
+
+        lengths = {e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1))}
+        for e, val in lengths.items():
+            slf.set_param_rule('length', edge=e, init=val)
+
+        rich = GN(optimise_motif_probs=True)
+        glf = rich.make_likelihood_function(tree, digits=2)
+        glf.set_alignment(_aln)
+        glf.set_name('GN')
+        glf.initialise_from_nested(slf)
+        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+
+    def test_initialise_from_nested_diff(self):
+        """non-reversible likelihood initialised from nested, non-scoped, time-reversible"""
+        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
+        rate_params = {'A/C': 2.,
+                       'A/G': 3.,
+                       'A/T': 4.,
+                       'C/G': 5.,
+                       'C/T': 6.}
+
+        simple = GTR()
+        tree = LoadTree(tip_names=['Human', 'Mouse', 'Opossum'])
+        slf = simple.make_likelihood_function(tree, digits=2)
+        slf.set_alignment(_aln)
+        slf.set_name('GTR')
+        slf.set_motif_probs(mprobs)
+        for param, val in rate_params.items():
+            slf.set_param_rule(param, init=val)
+        lengths = {e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1))}
+        for e, val in lengths.items():
+            slf.set_param_rule('length', edge=e, init=val)
+
+        # set mprobs and then set the rate terms
+        rich = GN(optimise_motif_probs=True)
+        glf = rich.make_likelihood_function(tree, digits=2)
+        glf.set_alignment(_aln)
+        glf.set_name('GN')
+        glf.initialise_from_nested(slf)
+        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+
+    def test_initialise_from_nested_same_type_tr(self):
+        """time-reversible likelihood initialised from nested, non-scoped, time-reversible"""
+        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
+        rate_params = {'kappa': 6}
+        simple = HKY85()
+        tree = LoadTree(tip_names=['Human', 'Mouse', 'Opossum'])
+        slf = simple.make_likelihood_function(tree, digits=2)
+        slf.set_alignment(_aln)
+        slf.set_name('HKY85')
+        slf.set_motif_probs(mprobs)
+        for param, val in rate_params.items():
+            slf.set_param_rule(param, init=val)
+
+        lengths = {e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1))}
+        for e, val in lengths.items():
+            slf.set_param_rule('length', edge=e, init=val)
+
+        rich = GTR()
+        glf = rich.make_likelihood_function(tree, digits=2)
+        glf.set_alignment(_aln)
+        glf.set_name('GTR')
+        glf.initialise_from_nested(slf)
+        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+
+    def test_initialise_from_nested_same_type_tr_scoped(self):
+        """time-reversible likelihood initialised from nested, scoped, time-reversible"""
+        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
+        rate_params = {'kappa': 6}
+        rate_params1 = {'kappa': 3}
+        simple = HKY85()
+        tree = LoadTree(tip_names=['Human', 'Mouse', 'Opossum'])
+        slf = simple.make_likelihood_function(tree, digits=2)
+        slf.set_alignment(_aln)
+        slf.set_name('HKY85')
+        slf.set_motif_probs(mprobs)
+        for param, val in rate_params.items():
+            slf.set_param_rule(param, init=val)
+        for param, val in rate_params1.items():
+            slf.set_param_rule(param, init=val, edges=['Human'])
+
+        lengths = {e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1))}
+        for e, val in lengths.items():
+            slf.set_param_rule('length', edge=e, init=val)
+
+        rich = GTR()
+        glf = rich.make_likelihood_function(tree, digits=2)
+        glf.set_alignment(_aln)
+        glf.set_name('GTR')
+        glf.initialise_from_nested(slf)
+        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+
+    def test_initialise_from_nested_same_type_nr(self):
+        """non-reversible likelihood initialised from nested, non-scoped, non-reversible"""
+        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
+        rate_params = {'(A>G | T>C)': 5,
+                       '(A>T | T>A)': 4,
+                       '(C>G | G>C)': 3,
+                       '(C>T | G>A)': 2,
+                       '(G>T | C>A)': 1}
+
+        simple = ssGN(optimise_motif_probs=True)
+        tree = LoadTree(tip_names=['Human', 'Mouse', 'Opossum'])
+        slf = simple.make_likelihood_function(tree, digits=2)
+        slf.set_alignment(_aln)
+        slf.set_name('ssGN')
+        slf.set_motif_probs(mprobs)
+        for param, val in rate_params.items():
+            slf.set_param_rule(param, init=val)
+
+        lengths = {e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1))}
+        for e, val in lengths.items():
+            slf.set_param_rule('length', edge=e, init=val)
+
+        rich = GN(optimise_motif_probs=True)
+        glf = rich.make_likelihood_function(tree, digits=2)
+        glf.set_alignment(_aln)
+        glf.set_name('GN')
+        glf.initialise_from_nested(slf)
+        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+
+    def test_initialise_from_nested_same_type_nr_scoped(self):
+        """non-reversible likelihood initialised from nested, scoped, non-reversible"""
+        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
+        rate_params = {'(A>G | T>C)': 5,
+                       '(A>T | T>A)': 4,
+                       '(C>G | G>C)': 3,
+                       '(C>T | G>A)': 2,
+                       '(G>T | C>A)': 1}
+        rate_params1 = {'(A>G | T>C)': 2,
+                        '(A>T | T>A)': 6,
+                        '(C>G | G>C)': 1}
+
+        simple = ssGN(optimise_motif_probs=True)
+        tree = LoadTree(tip_names=['Human', 'Mouse', 'Opossum'])
+        slf = simple.make_likelihood_function(tree, digits=2)
+        slf.set_alignment(_aln)
+        slf.set_name('ssGN')
+        slf.set_motif_probs(mprobs)
+        for param, val in rate_params.items():
+            slf.set_param_rule(param, init=val)
+
+        for param, val in rate_params1.items():
+            slf.set_param_rule(param, init=val, edges=['Human'])
+
+        lengths = {e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1))}
+        for e, val in lengths.items():
+            slf.set_param_rule('length', edge=e, init=val)
+
+        rich = GN(optimise_motif_probs=True)
+        glf = rich.make_likelihood_function(tree, digits=2)
+        glf.set_alignment(_aln)
+        glf.set_name('GN')
+        glf.initialise_from_nested(slf)
+        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
 
 
 if __name__ == '__main__':
