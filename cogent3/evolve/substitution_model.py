@@ -346,6 +346,12 @@ class _SubstitutionModel(object):
         return defns
 
 
+def non_zero_coords(matrix):
+    dim = matrix.shape[0]
+    coords = [(i, j) for i in range(dim) for j in range(dim) if matrix[i, j] != 0]
+    return coords    
+
+
 class _ContinuousSubstitutionModel(_SubstitutionModel):
     # subclass must provide:
     #
@@ -478,6 +484,30 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         if self._do_scaling:
             Q *= 1.0 / (word_probs * row_totals).sum()
         return Q
+    
+    def get_reference_cell(self):
+        """returns the reference cell of a given model"""
+        dim = len(self.alphabet)
+        mats = numpy.zeros((dim, dim), dtype=int)
+        for m in self.predicate_masks.values():
+            mats += m
+        ref_mask = self._instantaneous_mask - mats
+        ref_cells = set(non_zero_coords(ref_mask))
+        return ref_cells
+
+    def get_param_matrix_coords(self, include_ref_cell=False):
+        """returncoordinates for every predicate"""
+        dim = len(self.alphabet)
+        mats = numpy.zeros((dim, dim), dtype=int)
+        param_coords = {}
+        for key, m in self.predicate_masks.items():
+            coords = [(i, j) for i in range(dim) for j in range(dim) if m[i, j] != 0]
+            coords = set(coords)
+            param_coords[key] = coords
+    
+        if include_ref_cell:
+            param_coords['ref_cell'] = self.get_reference_cell()
+        return param_coords
 
     def make_Qd_defn(self, word_probs, mprobs_matrix, rate_params):
         """Diagonalized Q, ie: rate matrix prepared for exponentiation"""
