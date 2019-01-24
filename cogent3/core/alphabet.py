@@ -123,16 +123,17 @@ class Enumeration(tuple):
     will be '-' or None, depending on the application.
     """
 
-    def __new__(cls, data=[], gap=None, moltype=None):
+    def __new__(cls, data=None, gap=None, moltype=None):
         """Returns a new Enumeration object.
 
         data can be any sequence that can be passed to the tuple() constructor.
 
         Takes gap as an argument but ignores it (handled in __init__).
         """
+        data = data or []
         return tuple.__new__(cls, data)
 
-    def __init__(self, data=[], gap=None, moltype=None):
+    def __init__(self, data=None, gap=None, moltype=None):
         """Initializes self from data, and optionally a gap.
 
         An Enumeration object mainly provides the mapping between objects and
@@ -163,6 +164,7 @@ class Enumeration(tuple):
         accidentally use negative numbers as indices (this is very bad when
         doing indexed lookups).
         """
+        data = data or []
         self.moltype = moltype
 
         # check if motif lengths are homogeneous -- if so, set length
@@ -349,13 +351,14 @@ class JointEnumeration(Enumeration):
     often convenient if they are (e.g. pair enumerations that underlie
     substitution matrices).
     """
-    def __new__(cls, data=[], gap=None, moltype=None):
+    def __new__(cls, data=None, gap=None, moltype=None):
         """Fills in the tuple with tuples from the enumerations in data."""
+        data = data or []
         sub_enums = cls._coerce_enumerations(data)
         return Enumeration.__new__(cls, product(*sub_enums),
                                    moltype=moltype)
 
-    def __init__(self, data=[], gap=None, moltype=None):
+    def __init__(self, data=None, gap=None, moltype=None):
         """Returns a new JointEnumeration object. See class docstring for info.
 
         Expects a list of Enumeration objects, or objects that can be coerced
@@ -364,6 +367,7 @@ class JointEnumeration(Enumeration):
         Does NOT have an independent concept of a gap -- gets the gaps from the
         constituent subenumerations.
         """
+        data = data or []
         self.sub_enumerations = self._coerce_enumerations(data)
         sub_enum_lengths = list(map(len, self.sub_enumerations))
         # build factors for combining symbols.
@@ -387,6 +391,12 @@ class JointEnumeration(Enumeration):
         super(JointEnumeration, self).__init__(self, self.gap)
         # remember to reset shape after superclass init
         self.shape = tuple(sub_enum_lengths)
+
+    def __getnewargs_ex__(self, *args, **kw):
+        r = ([''.join(e) for e in self.sub_enumerations],
+             self.gap, self.moltype)
+        return r, {}
+
 
     def _coerce_enumerations(cls, enums):
         """Coerces putative enumerations into Enumeration objects.
@@ -693,7 +703,7 @@ class CharAlphabet(Alphabet):
     searately for remapping.
     """
 
-    def __init__(self, data=[], gap='-', moltype=None):
+    def __init__(self, data=None, gap='-', moltype=None):
         """Initializes self from items.
 
         data should be a sequence (string, list, etc.) of characters that
@@ -701,6 +711,7 @@ class CharAlphabet(Alphabet):
 
         gap should be a single character that represents the gap, e.g. '-'.
         """
+        data = data or []
         super(CharAlphabet, self).__init__(data, gap, moltype=moltype)
         self._indices_to_chars, self._chars_to_indices = \
             _make_translation_tables(data)
