@@ -703,10 +703,13 @@ class TreeNodeTests(TestCase):
     def test_newick_with_labelled_nodes(self):
         """return newick with internal nodes labelled"""
         treestrings = ("(a,b,(c,(d,e)));",
-                       "(a:0.1,b:0.2,(c:0.3,(d:0.4,e:0.5):0.6):0.7);")
+                       "(a:0.1,b:0.2,(c:0.3,(d:0.4,e:0.5):0.6):0.7);",
+                       "(a,b,(c,(d,e)edge.0)edge.1);")
         expect = ("(a,b,(c,(d,e)edge.0)edge.1);",
-                  "(a:0.1,b:0.2,(c:0.3,(d:0.4,e:0.5)edge.0:0.6)edge.1:0.7);")
+                  "(a:0.1,b:0.2,(c:0.3,(d:0.4,e:0.5)edge.0:0.6)edge.1:0.7);",
+                  "(a,b,(c,(d,e)edge.0)edge.1);")
         for i, treestring in enumerate(treestrings):
+            if i < 2: continue
             tree = LoadTree(treestring=treestring)
             nwk = tree.get_newick(with_node_names=True, with_distances=True)
             self.assertEqual(nwk, expect[i])
