@@ -23,7 +23,7 @@ __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"
 
-nucleotide_models = ['JC69', 'K80', 'F81', 'HKY85', 'TN93', 'GTR']
+nucleotide_models = ['JC69', 'K80', 'F81', 'HKY85', 'TN93', 'GTR', 'ssGN', 'GN']
 
 codon_models = ['CNFGTR', 'CNFHKY', 'MG94HKY',
                 'MG94GTR', 'GY94', 'H04G', 'H04GK', 'H04GGK']
