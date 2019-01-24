@@ -32,7 +32,7 @@ __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Andrew Butterfield", "Matthew Wakefield",
                "Edward Lang", "Peter Maxwell"]
 __license__ = "GPL"
-__version__ = "3.0a1"
+__version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
