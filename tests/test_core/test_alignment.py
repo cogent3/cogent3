@@ -1034,6 +1034,22 @@ class SequenceCollectionBaseTests(object):
                   'seq2': '---TTCGGT',
                   'seq3': 'AACGTACGT'}
         self.assertEqual(rc, expect)
+    
+    def test_get_lengths(self):
+        """returns correct seq lengths"""
+        """SequenceCollection.counts_per_seq handles motif length, allow_gaps etc.."""
+        data = {'a': 'AAAA??????', 'b': 'CCCGGG--NN'}
+        coll = self.Class(data=data, moltype=DNA)
+        got = dict(coll.get_lengths())
+        expect = {'a': 4, 'b': 6}
+        self.assertEqual(got, expect)
+        got = dict(coll.get_lengths(include_ambiguity=True))
+        expect = {'a': 4, 'b': 8}  # note ? is excluded as it could be a gap
+        self.assertEqual(got, expect)
+
+        got = dict(coll.get_lengths(include_ambiguity=True, allow_gap=True))
+        expect = {'a': 10, 'b': 10}  # note ? is excluded as it could be a gap
+        self.assertEqual(got, expect)
 
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
@@ -1647,6 +1663,15 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(got, expect)
         
 
+    def test_counts_per_seq(self):
+        """SequenceCollection.counts_per_seq handles motif length, allow_gaps etc.."""
+        data = {'a': 'AAAA??????', 'b': 'CCCGGG--NN'}
+        coll = self.Class(data=data, moltype=DNA)
+        got = dict(coll.counts_per_seq())
+        expect = {'a': dict(A=4), 'b': dict(C=3, G=3)}
+        self.assertEqual(got, expect)
+
+        
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
     Class = ArrayAlignment
 
