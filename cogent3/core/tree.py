@@ -830,8 +830,8 @@ class TreeNode(object):
         if subtrees:
             newick.append("(%s)" % ",".join(subtrees))
 
-        if self.name_loaded:
-            if self.name is None:
+        if self.name_loaded or with_node_names:
+            if self.name is None or with_node_names and self.is_root():
                 name = ''
             else:
                 name = str(self.name)
@@ -841,10 +841,6 @@ class TreeNode(object):
                         name = "'%s'" % name.replace("'", "''")
                     else:
                         name = name.replace(' ', '_')
-            newick.append(name)
-
-        if with_node_names and not self.istip() and self.name != 'root':
-            name = self.name if self.name is not None else ''
             newick.append(name)
 
         if isinstance(self, PhyloNode):
@@ -879,10 +875,6 @@ class TreeNode(object):
             # check the top node, any children left unvisited?
             top = nodes_stack[-1]
             top_node, num_unvisited_children = top
-            node_name = ''
-            if with_node_names and top_node.name != 'root':
-                node_name = top_node.name or ''
-
             if num_unvisited_children:  # has any child unvisited
                 top[1] -= 1  # decrease the # of children unvisited
                 # - for order
@@ -895,10 +887,10 @@ class TreeNode(object):
                 nodes_stack.pop()
                 # post-visit
                 if top_node.children:
-                    result[-1] = ')' + node_name
+                    result[-1] = ')'
 
-                if top_node.name_loaded:
-                    if top_node.name is None:
+                if top_node.name_loaded or with_node_names:
+                    if top_node.name is None or with_node_names and top_node.is_root():
                         name = ''
                     else:
                         name = str(top_node.name)
