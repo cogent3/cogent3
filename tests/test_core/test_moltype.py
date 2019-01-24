@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import pickle
 from cogent3.core import moltype, sequence
 from cogent3.core.moltype import AlphabetError, \
     CoreObjectGroup, AlphabetGroup, make_matches, make_pairs, \
@@ -221,6 +221,12 @@ class AlphabetGroupTests(TestCase):
 
 class MolTypeTests(TestCase):
     """Tests of the MolType class. Should support same API as old Alphabet."""
+
+    def test_pickling(self):
+        pkl = pickle.dumps(DNA)
+        got = pickle.loads(pkl)
+        self.assertIsInstance(got, type(DNA))
+        self.assertEqual(DNA.ambiguities, got.ambiguities)
 
     def test_init_minimal(self):
         """MolType should init OK with just monomers"""
