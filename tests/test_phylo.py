@@ -20,7 +20,7 @@ __copyright__ = "Copyright 2007-2015, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield",
                "Daniel McDonald", "Ben Kaehler"]
 __license__ = "GPL"
-__version__ = "3.0a1"
+__version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"

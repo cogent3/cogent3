@@ -39,7 +39,7 @@ __credits__ = ["Gavin Huttley", "Peter Maxwell", "Rob Knight",
                "Micah Hamady", "Jason Carnes", "Raymond Sammut",
                "Hua Ying", "Andrew Butterfield", "Marcin Cieslik"]
 __license__ = "GPL"
-__version__ = "3.0a1"
+__version__ = "3.0a2"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"

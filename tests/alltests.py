@@ -29,7 +29,7 @@ __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                "Sandra Smit", "Greg Caporaso", "Matthew Wakefield",
                "Ben Kaehler"]
 __license__ = "GPL"
-__version__ = "3.0a1"
+__version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
