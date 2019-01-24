@@ -695,7 +695,7 @@ class SequenceCollection(object):
             for r in seqs:
                 result[r] = get(r)
         if result:
-            return self.__class__(result, names=seqs, **kwargs)
+            return self.__class__(result, names=seqs, info=self.info, **kwargs)
         else:
             return {}  # safe value; can't construct empty alignment
 
@@ -1220,7 +1220,9 @@ class SequenceCollection(object):
             else:
                 seq = self.named_seqs[seq_name]
             new_seqs.append((seq_name, seq.degap()))
-        return SequenceCollection(moltype=self.moltype, data=new_seqs, **kwargs)
+        result = SequenceCollection(moltype=self.moltype, data=new_seqs,
+                                    info=self.info, **kwargs)
+        return result
 
     def with_modified_termini(self):
         """Changes the termini to include termini char instead of gapmotif.
