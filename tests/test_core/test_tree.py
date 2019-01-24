@@ -700,6 +700,20 @@ class TreeNodeTests(TestCase):
         self.assertEqual(nodes['g'].ancestors(),
                          [nodes['f'], nodes['c'], nodes['b'], nodes['a']])
 
+    def test_newick_with_labelled_nodes(self):
+        """return newick with internal nodes labelled"""
+        treestrings = ("(a,b,(c,(d,e)));",
+                       "(a:0.1,b:0.2,(c:0.3,(d:0.4,e:0.5):0.6):0.7);")
+        expect = ("(a,b,(c,(d,e)edge.0)edge.1);",
+                  "(a:0.1,b:0.2,(c:0.3,(d:0.4,e:0.5)edge.0:0.6)edge.1:0.7);")
+        for i, treestring in enumerate(treestrings):
+            tree = LoadTree(treestring=treestring)
+            nwk = tree.get_newick(with_node_names=True, with_distances=True)
+            self.assertEqual(nwk, expect[i])
+            nwk = tree.get_newick_recursive(with_node_names=True, with_distances=True)
+            self.assertEqual(nwk, expect[i])
+        
+
     def test_root(self):
         """TreeNode root() should find root of tree"""
         nodes, root = self.TreeNode, self.TreeRoot
