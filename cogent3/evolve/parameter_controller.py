@@ -80,17 +80,17 @@ class _LikelihoodParameterController(_LF):
         self._format = {}
 
     def save(self, filename):
-        f = open(filename, 'w')
-        temp = {}
-        try:
-            for d in self.defns:
-                temp[id(d)] = d.values
-                del d.values
-            pickle.dump((1.0, None, self), f)
-        finally:
-            for d in self.defns:
-                if id(d) in temp:
-                    d.values = temp[id(d)]
+        with open(filename, 'w') as f:
+            temp = {}
+            try:
+                for d in self.defns:
+                    temp[id(d)] = d.values
+                    del d.values
+                pickle.dump((1.0, None, self), f)
+            finally:
+                for d in self.defns:
+                    if id(d) in temp:
+                        d.values = temp[id(d)]
 
     def set_default_tree_parameter_rules(self):
         """Lengths are set to the values found in the tree (if any), and
