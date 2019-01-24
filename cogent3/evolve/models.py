@@ -58,13 +58,18 @@ def _make_symn_preds():
 
 _sym_preds = _make_symn_preds()
 
-def GN(**kw):
+def GN(optimise_motif_probs=True, **kw):
     """general Markov nucleotide (non-stationary, non-reversible)"""
-    return ns_substitution_model.NonReversibleNucleotide(predicates=_general_preds, **kw)
+    sm = ns_substitution_model.NonReversibleNucleotide(optimise_motif_probs=optimise_motif_probs,
+                                                       predicates=_general_preds,
+                                                       name='GN', **kw)
+    return sm
 
-def ssGN(**kw):
+def ssGN(optimise_motif_probs=True, **kw):
     """strand-symmetric general Markov nucleotide (non-stationary, non-reversible)"""
-    return ns_substitution_model.StrandSymmetric(**kw)
+    # note the StrandSymmetric class predefines the predicates and name
+    sm = ns_substitution_model.StrandSymmetric(optimise_motif_probs=optimise_motif_probs, **kw)
+    return sm
 
 
 def K80(**kw):
