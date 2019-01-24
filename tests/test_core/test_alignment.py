@@ -890,6 +890,13 @@ class SequenceCollectionBaseTests(object):
         aln = self.Class({'s1': 'ATGRY?', 's2': 'T-AG??'}, moltype=DNA)
         self.assertEqual(aln.degap(), {'s1': 'ATGRY', 's2': 'TAG'})
 
+    def test_degap(self):
+        """.degap should preserve info attributes"""
+        aln = self.Class({'s1': 'ATGRY?', 's2': 'T-AG??'}, moltype=DNA)
+        aln.info.path = 'blah'
+        got = aln.degap()
+        self.assertEqual(got.info.path, 'blah')
+
     def test_with_modified_termini(self):
         """SequenceCollection.with_modified_termini should code trailing gaps as ?"""
         aln = self.Class({'s1': 'AATGR--', 's2': '-T-AG?-'}, moltype=DNA)
