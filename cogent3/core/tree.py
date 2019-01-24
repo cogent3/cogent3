@@ -810,7 +810,7 @@ class TreeNode(object):
             return self.name == other.name
 
     def get_newick_recursive(self, with_distances=False, semicolon=True,
-                           escape_name=True):
+                             escape_name=True, with_node_names=False):
         """Return the newick string for this edge.
 
         Arguments:
@@ -818,11 +818,15 @@ class TreeNode(object):
             - semicolon: end tree string with a semicolon
             - escape_name: if any of these characters []'"(),:;_ exist in a
                 nodes name, wrap the name in single quotes
+            - with_node_names: includes internal node names (except 'root')
         """
         newick = []
+        subtrees = []
+        for child in self.children:
+            nwk = child.get_newick_recursive(with_distances, semicolon=False,
+                                             with_node_names=with_node_names)
+            subtrees.append(nwk)
 
-        subtrees = [child.get_newick(with_distances, semicolon=False)
-                    for child in self.children]
         if subtrees:
             newick.append("(%s)" % ",".join(subtrees))
 
@@ -839,6 +843,10 @@ class TreeNode(object):
                         name = name.replace(' ', '_')
             newick.append(name)
 
+        if with_node_names and not self.istip() and self.name != 'root':
+            name = self.name if self.name is not None else ''
+            newick.append(name)
+
         if isinstance(self, PhyloNode):
             if with_distances and self.length is not None:
                 newick.append(":%s" % self.length)
@@ -848,7 +856,8 @@ class TreeNode(object):
 
         return ''.join(newick)
 
-    def get_newick(self, with_distances=False, semicolon=True, escape_name=True):
+    def get_newick(self, with_distances=False, semicolon=True,
+                   escape_name=True, with_node_names=False):
         """Return the newick string for this tree.
 
         Arguments:
@@ -856,10 +865,10 @@ class TreeNode(object):
             - semicolon: end tree string with a semicolon
             - escape_name: if any of these characters []'"(),:;_ exist in a
                 nodes name, wrap the name in single quotes
+            - with_node_names: includes internal node names (except 'root')
 
         NOTE: This method returns the Newick representation of this node
-        and its descendents. This method is a modification of an implementation
-        by Zongzhi Liu
+        and its descendents.
         """
         result = ['(']
         nodes_stack = [[self, len(self.children)]]
@@ -870,6 +879,10 @@ class TreeNode(object):
             # check the top node, any children left unvisited?
             top = nodes_stack[-1]
             top_node, num_unvisited_children = top
+            node_name = ''
+            if with_node_names and top_node.name != 'root':
+                node_name = top_node.name or ''
+
             if num_unvisited_children:  # has any child unvisited
                 top[1] -= 1  # decrease the # of children unvisited
                 # - for order
@@ -882,7 +895,7 @@ class TreeNode(object):
                 nodes_stack.pop()
                 # post-visit
                 if top_node.children:
-                    result[-1] = ')'
+                    result[-1] = ')' + node_name
 
                 if top_node.name_loaded:
                     if top_node.name is None:
@@ -1655,9 +1668,6 @@ class PhyloNode(TreeNode):
         return self.params.get("length", None)
 
     length = property(_get_length, _set_length)
-
-    def get_newick(self, with_distances=False, semicolon=True, escape_name=True):
-        return TreeNode.get_newick(self, with_distances, semicolon, escape_name)
 
     def __str__(self):
         """Returns string version of self, with names and distances."""
