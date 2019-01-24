@@ -1239,3 +1239,29 @@ ArrayRnaCodonSequence.alphabet = RNA.alphabets.base.Triples
 # Modify Alignment to avoid circular import
 Alignment.moltype = ASCII
 SequenceCollection.moltype = BYTES
+
+
+def _make_moltype_dict():
+    env = globals()
+    moltypes = {}
+    for key in env:
+        obj = env[key]
+        if not isinstance(obj, MolType):
+            continue
+        if obj.label is not None:
+            moltypes[obj.label] = obj
+
+    return moltypes
+
+
+moltypes = _make_moltype_dict()
+
+
+def get_moltype(name):
+    """returns the moltype with the matching name attribute"""
+    if isinstance(name, MolType):
+        return name
+    name = name.lower()
+    if name not in moltypes:
+        raise ValueError('unknown moltype "%s"' % name)
+    return moltypes[name]

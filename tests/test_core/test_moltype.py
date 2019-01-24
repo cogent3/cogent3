@@ -7,7 +7,7 @@ from cogent3.core.moltype import AlphabetError, \
     IUPAC_RNA_chars, \
     IUPAC_RNA_ambiguities, IUPAC_RNA_ambiguities_complements, \
     IUPAC_DNA_chars, IUPAC_DNA_ambiguities, IUPAC_DNA_ambiguities_complements, \
-    RnaStandardPairs, DnaStandardPairs
+    RnaStandardPairs, DnaStandardPairs, get_moltype
 
 from cogent3.util.unit_test import TestCase, main
 from cogent3.data.molecular_weight import DnaMW, RnaMW, ProteinMW
@@ -227,6 +227,20 @@ class MolTypeTests(TestCase):
         got = pickle.loads(pkl)
         self.assertIsInstance(got, type(DNA))
         self.assertEqual(DNA.ambiguities, got.ambiguities)
+
+    def test_get_moltype(self):
+        """correctly return a moltype by name"""
+        for label in ('dna', 'rna', 'protein', 'protein_with_stop'):
+            mt = get_moltype(label)
+            self.assertEqual(mt.label, label)
+            mt = get_moltype(label.upper())
+            self.assertEqual(mt.label, label)
+        
+        mt = get_moltype(DNA)
+        self.assertEqual(mt.label, 'dna')
+        with self.assertRaises(ValueError):
+            _ = get_moltype('blah')
+
 
     def test_init_minimal(self):
         """MolType should init OK with just monomers"""
