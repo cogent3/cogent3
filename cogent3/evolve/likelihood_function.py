@@ -141,13 +141,8 @@ def compatible_likelihood_functions(lf1, lf2):
         raise NotImplementedError("Too many loci")
     if lf1.model.get_motifs() != lf2.model.get_motifs():
         raise AssertionError("Motifs don't match")
-    if lf1.tree.get_newick() != lf2.tree.get_newick():
-        # TODO handle case for internal node names, eliminates need for subsequent assertion
-        raise AssertionError("Topology or Orientation don't match")
-    if set(lf1.tree.get_node_names()) != set(lf2.tree.get_node_names()):
-        raise AssertionError("Tree internal names are not the same:\n"
-                             "lf1 - %s\n"
-                             "lf2 - %s\n")
+    if lf1.tree.get_newick(with_node_names=True) != lf2.tree.get_newick(with_node_names=True):
+        raise AssertionError("Topology, Orientation or node names don't match")
     return True
 
 
