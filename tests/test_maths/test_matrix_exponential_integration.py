@@ -1,14 +1,14 @@
 from cogent3.util.unit_test import TestCase, main
 
 from numpy import array, dot, diag, exp
+import numpy as np
 
 import cogent3.maths.matrix_exponentiation as cmme
-
 from cogent3.maths import matrix_exponential_integration as expm
 
 __author__ = 'Ben Kaehler'
 __copyright__ = "Copyright 2007-2014, The Cogent Project"
-__credits__ = ['Ben Kaehler']
+__credits__ = ['Ben Kaehler', 'Ananias Iliadis', 'Gavin Huttley']
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = 'Ben Kaehler'
@@ -84,6 +84,37 @@ class TestIntegratingExponentiator(TestCase):
         self.assertFloatEqual(expm.VonBingIntegratingExponentiator(p)(2.),
                               expm.VanLoanIntegratingExponentiator(p,
                                                                    exponentiator=cmme.FastExponentiator)(2.))
+    def test_calc_number_subs(self):
+        '''correctly compute ENS'''
+        mprobs = diag([0.1, 0.2, 0.3, 0.4])
+        moprobs = array([0.1, 0.2, 0.3, 0.4])
+        def get_calibrated_Q(R):
+            Q = dot(R, mprobs)
+            diag_add = diag(np.sum(Q, axis=1))
+            to_divide = np.dot(moprobs,np.sum(Q, axis=1))
+            Q -= diag_add
+            Q /= to_divide
+            return Q
+            
+        R = array([[0, 2, 1, 1],
+                   [2, 0, 1, 1],
+                   [1, 1, 0, 2],
+                   [1, 1, 2, 0]], dtype=float)
+        
+        Q = get_calibrated_Q(R)
+        length = 0.1
+        got = expm.expected_number_subs(moprobs, Q, length)
+        self.assertFloatEqual(got,  length)
+        # case 2, length != ENS
+        
+        A = array([[0, 1, 1, 1],
+                   [2, 0, 1, 1],
+                   [1, 1, 0, 40],
+                   [1, 1, 1, 0]], dtype=float)
+        Q = get_calibrated_Q(A)
+        length = 0.2
+        got = expm.expected_number_subs(moprobs, Q, length)
+        self.assertNotAlmostEqual(got,  length)    
 
 
 if __name__ == '__main__':

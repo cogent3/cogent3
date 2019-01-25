@@ -10,6 +10,8 @@ from cogent3.evolve.simulate import AlignmentEvolver, random_sequence
 from cogent3.util import parallel, table
 from cogent3.recalculation.definition import ParameterController
 from cogent3.maths.matrix_logarithm import is_generator_unique
+from cogent3.maths.matrix_exponential_integration import expected_number_subs
+from cogent3.evolve import substitution_model
 
 from cogent3.util.warning import discontinued, deprecated
 
@@ -17,7 +19,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell",
                "Matthew Wakefield", "Rob Knight", "Brett Easton",
-               "Ben Kaehler", "Alex Iliadis"]
+               "Ben Kaehler", "Ananias Iliadis"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
@@ -338,14 +340,27 @@ class LikelihoodFunction(ParameterController):
 
         return '\n'.join(map(str, results))
 
-    def get_annotated_tree(self):
+    def get_annotated_tree(self, length_as_ens=False):
+        """returns tree with model attributes on node.params
+        
+        length_as_ens : bool
+            replaces 'length' param with expected number of substition,
+            which will be different to standard length if the substition
+            model is non-stationary
+        """
         d = self.get_param_value_dict(['edge'])
+        if length_as_ens:
+            lengths = self.get_lengths_as_ens()
         tree = self._tree.deepcopy()
         for edge in tree.get_edge_vector():
             if edge.name == 'root':
                 continue
             for par in d:
-                edge.params[par] = d[par][edge.name]
+                val = d[par][edge.name]
+                if length_as_ens:
+                    val = lengths[edge.name]
+                edge.params[par] = val
+
         return tree
 
     def get_motif_probs(self, edge=None, bin=None, locus=None):
@@ -386,6 +401,25 @@ class LikelihoodFunction(ParameterController):
             scaled_lengths[edge.name] = length * self._model.get_scale_from_Qs(
                 Qs, bprobs, mprobs, predicate)
         return scaled_lengths
+
+    def get_lengths_as_ens(self):
+        """returns {edge: ens, ...} where ens is the expected number of substitutions
+        
+        for a stationary Markov process, this is just branch length"""
+        node_names = self.tree.get_node_names()
+        node_names.remove('root')
+        lengths = {e: self.get_param_value('length', edge=e) for e in node_names}
+        if not isinstance(self.model, substitution_model.Stationary):
+            ens = {}
+            for e in node_names:
+                mprobs = self.get_motif_probs(edge=e)
+                Q = self.get_rate_matrix_for_edge(e)
+                length = expected_number_subs(mprobs, Q, lengths[e])
+                ens[e] = length
+
+            lengths = ens
+
+        return lengths
 
     def get_param_rules(self):
         """returns the [{rule}, ..] that would allow reconstruction"""

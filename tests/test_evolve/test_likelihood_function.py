@@ -16,6 +16,7 @@ warnings.filterwarnings("ignore", "Motif probs overspecified")
 warnings.filterwarnings("ignore", "Ignoring tree edge lengths")
 
 import os
+import numpy
 from numpy import ones
 
 from cogent3.evolve import substitution_model, predicate, ns_substitution_model
@@ -33,7 +34,7 @@ MotifChange = predicate.MotifChange
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
-               "Matthew Wakefield", "Brett Easton"]
+               "Matthew Wakefield", "Brett Easton", "Ananias Iliadis"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
@@ -867,6 +868,33 @@ motif    mprobs
         glf.set_name('GN')
         glf.initialise_from_nested(slf)
         self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+        
+    def test_get_lengths_as_ens_equal(self):
+        """lengths equals ENS for a time-reversible model"""
+        moprobs = numpy.array([0.1,0.2,0.3,0.4])
+        length = 0.1
+        lf = HKY85().make_likelihood_function(LoadTree(tip_names=['a', 'b', 'c']))
+        lf.set_motif_probs(moprobs)
+        lf.set_param_rule('kappa', init=1)
+        lf.set_param_rule('length', edge='a', init=length)      
+        len_dict = lf.get_lengths_as_ens()
+        self.assertFloatEqual(len_dict['a'], length)
+        
+    def test_get_lengths_as_ens_not_equal(self):
+        """lengths do not equal ENS for a non-reversible model"""
+        moprobs = numpy.array([0.1,0.2,0.3,0.4])
+        length = 0.1
+        lf = GN().make_likelihood_function(LoadTree(tip_names=['a', 'b', 'c']))     
+        lf.set_motif_probs(moprobs)
+        lf.set_param_rule('length', init=length)
+        # setting arbitrary values for GN rate terms
+        init = 0.1
+        for par_name in lf.model.get_param_list():
+            lf.set_param_rule(par_name, init=init)
+            init += 0.1
+
+        len_dict = lf.get_lengths_as_ens()
+        self.assertNotAlmostEqual(len_dict['a'], length)    
 
 
 if __name__ == '__main__':

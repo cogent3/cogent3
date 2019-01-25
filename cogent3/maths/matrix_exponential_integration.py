@@ -1,11 +1,12 @@
-from numpy import identity, zeros, inner, allclose, array, asarray, maximum, exp
-from numpy.linalg import inv, eig
+from numpy import identity, zeros, inner, allclose, array, asarray, maximum, exp, dot, diag
+from numpy.linalg import inv, eig, LinAlgError
 
 import cogent3.maths.matrix_exponentiation as cme
 
 __author__ = "Ben Kaehler"
 __copyright__ = "Copyright 2007-2014, The Cogent Project"
-__credits__ = ['Ben Kaehler', 'Von Bing Yap']
+__credits__ = ['Ben Kaehler', 'Von Bing Yap', 'Gavin Huttley',
+               'Ananias Iliadis']
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Ben Kaehler"
@@ -81,3 +82,22 @@ class VonBingIntegratingExponentiator(_Exponentiator):
             result = asarray(result.real)
         result = maximum(result, 0.0)
         return result
+
+def expected_number_subs(p0, Q, t):
+    """returns the expected number of substitutions
+    
+    p0
+        initial state frequencies
+    Q
+        continuous time rate matrix, calibrated such that, if it were a stationary process,
+        ENS is 1
+    t
+        ens is returned for Q * t
+    """
+    try:
+        iexpm = VonBingIntegratingExponentiator(Q)
+        result = -dot(dot(p0, iexpm(t)), diag(Q))
+    except (ArithmeticError, LinAlgError):
+        iexpm = VanLoanIntegratingExponentiator(Q, R=diag(Q))
+        result = -dot(p0, iexpm(t))[0]
+    return result
