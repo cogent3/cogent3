@@ -161,14 +161,6 @@ class StrandSymmetric(NonReversibleNucleotide):
             name='StrandSymmetric',
             **kw)
 
-    def params_from_Q(self, Q, **kw):
-        params = []
-        ref_cell = Q['T', 'G'] + Q['A', 'C']
-        for param in self.get_param_list():
-            value = (Q[param[1], param[3]] + Q[param[7], param[9]]) / ref_cell
-            params.append((param, value))
-        return params
-
 
 class NonReversibleProtein(Parametric):
     """base protein substitution model."""
