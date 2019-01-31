@@ -26,7 +26,7 @@ __status__ = "Production"
 nucleotide_models = ['JC69', 'K80', 'F81', 'HKY85', 'TN93', 'GTR', 'ssGN', 'GN']
 
 codon_models = ['CNFGTR', 'CNFHKY', 'MG94HKY',
-                'MG94GTR', 'GY94', 'H04G', 'H04GK', 'H04GGK']
+                'MG94GTR', 'GY94', 'H04G', 'H04GK', 'H04GGK', 'GNC']
 
 protein_models = ['DSO78', 'AH96', 'AH96_mtmammals', 'JTT92', 'WG01']
 
@@ -230,6 +230,16 @@ def H04GGK(**kw):
         mprob_model='tuple',
         **kw)
 
+def GNC(**kw):
+    """General Nucleotide Codon, a non-reversible codon model.
+
+    see Genome Biology and Evolution 9 (1): 134–49"""
+    return ns_substitution_model.NonReversibleCodon(
+        model_gaps=False,
+        recode_gaps=True,
+        name='GNC',
+        predicates=_general_preds + [_omega],
+        **kw)
 
 # Protein Models
 
