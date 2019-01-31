@@ -1,8 +1,8 @@
 from cogent3.util.unit_test import TestCase, main
-from cogent3.evolve.models import JC69, F81, HKY85, TN93, GTR, \
-    MG94HKY, MG94GTR, GY94, H04G, H04GK, H04GGK, \
-    DSO78, AH96, AH96_mtmammals, JTT92, WG01, CNFGTR, CNFHKY, \
-    WG01_matrix, WG01_freqs
+from cogent3.evolve.models import (JC69, F81, HKY85, TN93, GTR, GN, ssGN,
+                                   MG94HKY, MG94GTR, GY94, H04G, H04GK, H04GGK,
+                                   DSO78, AH96, AH96_mtmammals, JTT92, WG01,
+                                   CNFGTR, CNFHKY, GNC, WG01_matrix, WG01_freqs)
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -23,12 +23,12 @@ class CannedModelsTest(TestCase):
 
     def test_nuc_models(self):
         """excercising nucleotide model construction"""
-        self._instantiate_models([JC69, F81, HKY85, GTR])
+        self._instantiate_models([JC69, F81, HKY85, GTR, GN, ssGN])
 
     def test_codon_models(self):
         """excercising codon model construction"""
         self._instantiate_models([CNFGTR, CNFHKY, MG94HKY, MG94GTR, GY94,
-                                  H04G, H04GK, H04GGK])
+                                  H04G, H04GK, H04GGK, GNC])
 
     def test_aa_models(self):
         """excercising aa model construction"""
