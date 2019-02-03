@@ -1694,6 +1694,16 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
                   'seq3': 'GGG'}
         self.assertEqual(sub_align.todict(), expect)
     
+    def test_slice_align_info(self):
+        """slicing alignment preserves info attribute"""
+        data = {'seq1': 'ACGACGACG',
+                'seq2': 'ACGACGACG',
+                'seq3': 'ACGACGACG'}
+        alignment = self.Class(data=data, info={'key': 'value'})
+        sub_align = alignment[2:5]
+        self.assertTrue(len(sub_align) == 3)
+        self.assertEqual(sub_align.info['key'], 'value')
+    
     def test_get_freqs(self):
         """ArrayAlignment get_seq_freqs: should work on positions and sequences 
         """

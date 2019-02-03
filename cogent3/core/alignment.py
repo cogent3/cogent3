@@ -2705,7 +2705,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         else:
             data = self.array_seqs[:, item]
         return self.__class__(data.T, list(map(str, self.names)), self.alphabet,
-                                      conversion_f=aln_from_array)
+                              conversion_f=aln_from_array, info=self.info)
 
     def _coerce_seqs(self, seqs, is_array):
         """Controls how seqs are coerced in _names_seqs_order.
