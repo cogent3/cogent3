@@ -158,7 +158,6 @@ class StrandSymmetric(NonReversibleNucleotide):
             recode_gaps=True,
             model_gaps=False,
             do_scaling=True,
-            name='StrandSymmetric',
             **kw)
 
 

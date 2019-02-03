@@ -68,7 +68,9 @@ def GN(optimise_motif_probs=True, **kw):
 def ssGN(optimise_motif_probs=True, **kw):
     """strand-symmetric general Markov nucleotide (non-stationary, non-reversible)"""
     # note the StrandSymmetric class predefines the predicates and name
-    sm = ns_substitution_model.StrandSymmetric(optimise_motif_probs=optimise_motif_probs, **kw)
+    sm = ns_substitution_model.StrandSymmetric(
+        optimise_motif_probs=optimise_motif_probs,
+        name='ssGN', **kw)
     return sm
 
 
