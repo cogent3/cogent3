@@ -421,7 +421,7 @@ class LikelihoodFunction(ParameterController):
 
         return lengths
 
-    def get_param_rules(self):
+    def get_param_rules(self, include_length=True):
         """returns the [{rule}, ..] that would allow reconstruction"""
         rules = []
         
@@ -443,7 +443,13 @@ class LikelihoodFunction(ParameterController):
                 val = defn.values[index]
                 edges = scoped[index]
                 rules.append(dict(par_name=rate_name, init=val, edges=edges))
-
+        if include_length:
+            names = self.tree.get_node_names()
+            names.remove('root')
+            for name in names:
+                val = self.get_param_value('length', edge=name)
+                rules.append(dict(par_name='length', init=val, edges=name))
+        
         return rules
 
     def get_statistics(self, with_motif_probs=True, with_titles=True):

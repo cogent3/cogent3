@@ -678,13 +678,28 @@ motif    mprobs
         lf.set_alignment(self.data)
         lf.set_param_rule('beta', init=2.0)
         lf.set_param_rule('beta', init=2.0, edges=['Human', 'HowlerMon'])
+        lf.set_param_rule('length', init=0.5, edges='Human')
         lnL = lf.get_log_likelihood()
-        rules = lf.get_param_rules()
-        self.assertEqual(len(rules), 2)
+        # do not include length
+        rules_no_length = lf.get_param_rules(include_length=False)
+        # include length
+        rules_wi_length = lf.get_param_rules(include_length=True)
+        
+        self.assertEqual(len(rules_no_length), 2)
         lf = self.submodel.make_likelihood_function(self.tree)
         lf.set_alignment(self.data)
         with lf.updates_postponed():
-            for rule in rules:
+            for rule in rules_no_length:
+                lf.set_param_rule(**rule)
+        new_lnL = lf.get_log_likelihood()
+        self.assertNotAlmostEqual(new_lnL, lnL)
+        
+        # include length
+        self.assertEqual(len(rules_wi_length), 9)
+        lf = self.submodel.make_likelihood_function(self.tree)
+        lf.set_alignment(self.data)
+        with lf.updates_postponed():
+            for rule in rules_wi_length:
                 lf.set_param_rule(**rule)
         new_lnL = lf.get_log_likelihood()
         self.assertFloatEqual(new_lnL, lnL)
