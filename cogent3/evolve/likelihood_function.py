@@ -120,7 +120,13 @@ class _ParamProjection:
         for rule in rules:
             # get the param name, mle, call self.projected_rate
             name = rule['par_name']
-            mle = rule['init']
+            if rule.get('is_constant', False):
+                par_val_key = 'value'
+            else:
+                par_val_key = 'init'
+
+            mle = rule[par_val_key]
+
             proj_rate = self.projected_rate(name, mle)
             for new_name, new_mle in proj_rate.items():
                 rule_dict = rule.copy()
@@ -421,36 +427,62 @@ class LikelihoodFunction(ParameterController):
 
         return lengths
 
-    def get_param_rules(self, include_length=True):
+    def get_param_rules(self):
         """returns the [{rule}, ..] that would allow reconstruction"""
+        def mprob_rule(defn, index, edges):
+            uniq = defn.uniq[index]
+            val = dict(zip(defn.bin_names, uniq.value))
+            rule = dict(par_name=defn.name, edges=edges)
+            if uniq.is_constant:
+                rule.update(dict(is_constant=True, value=val))
+            else:
+                rule.update(dict(init=val))
+            return rule
+
         rules = []
         
         # markov model rate terms
+        param_names = self.get_param_names()
         rate_names = self.model.get_param_list()
-        for rate_name in rate_names:
-            defn = self.defn_for[rate_name]
+        for param_name in param_names:
+            defn = self.defn_for[param_name]
             scoped = defaultdict(list)
             for key, index in defn.index.items():
                 edge_name = key[0]
                 scoped[index].append(edge_name)
                 
             if len(scoped) == 1:  # we have a global
-                val = defn.values[0]
-                rules.append(dict(par_name=rate_name, init=val, edges=None))
+                if param_name == 'mprobs':
+                    rule = mprob_rule(defn, 0, None)
+                else:
+                    val = defn.values[0]
+                    rule = dict(par_name=param_name, edges=None)
+                    if defn.uniq[0].is_constant:
+                        rule.update(dict(is_constant=True, value=val))
+                    else:
+                        rule.update(dict(init=val, upper=defn.upper,
+                                         lower=defn.lower))
+
+                rules.append(rule)
+
                 continue
             
             for index in scoped:
-                val = defn.values[index]
                 edges = scoped[index]
-                rules.append(dict(par_name=rate_name, init=val, edges=edges))
-        if include_length:
-            names = self.tree.get_node_names()
-            names.remove('root')
-            for name in names:
-                val = self.get_param_value('length', edge=name)
-                rules.append(dict(par_name='length', init=val, edges=name))
-        
+                if param_name == 'mprobs':
+                    rule = mprob_rule(defn, index, edges)
+                else:
+                    uniq = defn.uniq[index]
+                    rule = dict(par_name=param_name, edges=edges)
+                    if defn.uniq[index].is_constant:
+                        rule.update(dict(is_constant=True, value=uniq.value))
+                    else:
+                        rule.update(dict(init=uniq.value, lower=uniq.lower,
+                                         upper=uniq.upper))
+                rules.append(rule)
+
         return rules
+
 
     def get_statistics(self, with_motif_probs=True, with_titles=True):
         """returns the parameter values as tables/dict
