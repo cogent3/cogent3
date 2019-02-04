@@ -215,6 +215,15 @@ class NonStatMarkov(TestCase):
                 for j in range(4):
                     P[i, j] = Psub[order[i]][order[j]]
             numpy.testing.assert_almost_equal(P, S.dot(P).dot(S))
+    
+    def test_nsGN(self):
+        """ssGN correctly ignores provided args"""
+        kw = {'do_scaling': True,
+              'model_gaps': False,
+              'name': 'StrandSymmetric',
+              'optimise_motif_probs': True,
+              'recode_gaps': True}
+        sm = StrandSymmetric(**kw)
 
     def test_nr_nucleotide(self):
         '''This is exercising a NonReversibleNucleotide'''

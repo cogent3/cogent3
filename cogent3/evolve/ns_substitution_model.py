@@ -153,6 +153,9 @@ class NonReversibleCodon(_Codon, Parametric):
 
 class StrandSymmetric(NonReversibleNucleotide):
     def __init__(self, **kw):
+        for argname in ('predicates', 'recode_gaps', 'model_gaps',
+                        'do_scaling'):
+            kw.pop(argname, None)
         super(StrandSymmetric, self).__init__(
             predicates=_sym_preds,
             recode_gaps=True,
