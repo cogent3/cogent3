@@ -1360,13 +1360,21 @@ class TreeNode(object):
         """Return a list of edges from this edge - may or may not include self.
         This node (or first connection) will be the first, and then they will
         be listed in the natural traverse order.
+        
+        Parameters
+        ----------
+        includeself : bool
+            excludes self.name from the result
+        
+        tipsonly : bool
+            only tips returned
         """
         if tipsonly:
             nodes = self.traverse(self_before=False, self_after=False)
         else:
             nodes = list(self.traverse())
             if not includeself:
-                nodes = nodes[:-1]
+                nodes.remove(self)
         return [node.name for node in nodes]
 
     def get_tip_names(self, includeself=False):
