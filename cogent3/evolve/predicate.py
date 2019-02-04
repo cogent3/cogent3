@@ -8,6 +8,7 @@ also:
   UserPredicate(f)
 """
 
+import re
 import warnings
 import numpy
 
@@ -297,6 +298,14 @@ replacement = ModelSays('replacement')
 
 
 def parse(rule):
+    if '|' in rule:
+        rules = re.sub('[()]', '', rule)
+        preds = [parse(r.strip()) for r in rules.split('|')]
+        pred = preds.pop(0)
+        for p in preds:
+            pred = pred | p
+        return pred
+
     if ':' in rule:
         (label, rule) = rule.split(':')
     else:
