@@ -1025,6 +1025,15 @@ class TreeNodeTests(TestCase):
         self.assertEqual(result2,
                          array([[1, 0, 1, 1, 1], [1, 0, 1, 1, 0], [1, 0, 1, 1, 0], [0, 0, 0, 1, 0]]))
 
+    def test_get_node_names(self):
+        """get_node_names works correctly"""
+        tree = LoadTree(treestring='((a:3,(b:2,(c:1,d:1):1):1):2,(e:3,f:3):2);')
+        names = tree.get_node_names(includeself=False, tipsonly=False)
+        self.assertTrue(tree.name not in names)
+        names = tree.get_node_names(includeself=True, tipsonly=False)
+        self.assertTrue(tree.name in names)
+        a = tree.get_node_matching_name('a')
+
     def test_reassign_names(self):
         """reassign_names should rename node names based on dict mapping"""
         t = self.TreeRoot
