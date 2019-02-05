@@ -22,7 +22,8 @@ from cogent3.util.misc import (iterable,
                                to_string,
                                timeLimitReached, get_independent_coords, get_merged_by_value_coords,
                                get_merged_overlapping_coords, get_run_start_indices, get_tmp_filename,
-                               get_format_suffixes)
+                               get_format_suffixes,
+                               adjusted_gt_minprob)
 from numpy import array
 from time import clock, sleep
 
@@ -50,6 +51,19 @@ class UtilsTests(TestCase):
         list(map(remove, self.files_to_remove))
         list(map(rmdir, self.dirs_to_remove))
 
+    def test_adjusted_gt_minprob(self):
+        """correctly adjust a prob vector so all values > minval"""
+        vector = [0.8, 0.2, 0., 0.]
+        minprob=1e-3
+        got = adjusted_gt_minprob(vector, minprob=minprob)
+        self.assertTrue(got.min() > minprob)
+        minprob=1e-6
+        got = adjusted_gt_minprob(vector, minprob=minprob)
+        self.assertTrue(got.min() > minprob)
+        minprob=0
+        got = adjusted_gt_minprob(vector, minprob=minprob)
+        self.assertTrue(got.min() > minprob)
+
     def test_identity(self):
         """should return same object"""
         foo = [1, 'a', lambda x: x]
@@ -74,21 +88,6 @@ class UtilsTests(TestCase):
         exp = 'bar: 5'
         obs = to_string(foo())
         self.assertEqual(obs, exp)
-
-    # this test and the code it tests is architecture dependent. that is not
-    # good.
-    # def test_timeLimitReached(self):
-    #    """should return true if timelimit has been reached, else return false"""
-    #    start = clock()
-    #    timelimit = .0002
-    #    exp = False
-    #    sleep(1)
-    #    obs = timeLimitReached(start, timelimit)
-    #    self.assertEqual(obs, exp)
-    #    sleep(1)
-    #    exp = True
-    #    obs = timeLimitReached(start, timelimit)
-    #    self.assertEqual(obs, exp)
 
     def test_iterable(self):
         """iterable(x) should return x or [x], always an iterable result"""

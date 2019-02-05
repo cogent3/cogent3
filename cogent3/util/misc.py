@@ -11,7 +11,7 @@ from sys import maxsize
 from os import popen, remove, makedirs, getenv
 from os.path import join, abspath, exists, isdir
 from tempfile import gettempdir
-from numpy import logical_not, sum
+from numpy import logical_not, sum, array, float64, finfo
 from pickle import dumps, loads
 from gzip import GzipFile, open as gzip_open
 from bz2 import open as bzip_open
@@ -28,6 +28,27 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+
+def adjusted_gt_minprob(probs, minprob=1e-6):
+    """returns numpy array of probs scaled such that minimum is > minval
+    
+    result sums to 1 within machine precision"""
+    assert 0 <= minprob < 1, "invalid minval %s" % minprob
+    probs = array(probs, dtype=float64)
+    if all(probs > minprob):
+        return probs
+    
+    total = probs.sum()
+    smallest = probs.min()
+    dim = probs.shape[0]
+    # we need an adjustment that (smalvall+adj)/(adj + total) > minval
+    # the following solves for this, then adds machine precision
+    adj = -(smallest +  minprob * total) / (minprob * dim - 1)
+    adj += finfo(float64).eps
+    
+    probs += adj
+    probs /= probs.sum()
+    return probs
 
 def bytes_to_string(data):
     """returns a string if data is bytes, otherwise returns original"""
