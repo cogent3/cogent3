@@ -4,7 +4,7 @@ import random
 from collections import defaultdict
 import numpy
 
-from cogent3.core.alignment import Alignment
+from cogent3.core.alignment import ArrayAlignment
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.evolve.simulate import AlignmentEvolver, random_sequence
 from cogent3.util import parallel, table
@@ -253,7 +253,7 @@ class LikelihoodFunction(ParameterController):
                 by_p = [(p, state) for state, p in list(row.items())]
                 seq.append(max(by_p)[1])
             seqs += [(edge, self.model.moltype.make_seq("".join(seq)))]
-        return Alignment(data=seqs, moltype=self.model.moltype)
+        return ArrayAlignment(data=seqs, moltype=self.model.moltype)
 
     def get_bin_probs(self, locus=None):
         hmm = self.get_param_value('bindex', locus=locus)
@@ -644,7 +644,7 @@ class LikelihoodFunction(ParameterController):
 
         simulated_sequences = evolver(self._tree, root_sequence)
 
-        return Alignment(
+        return ArrayAlignment(
             data=simulated_sequences,
             moltype=self._model.moltype)
 
