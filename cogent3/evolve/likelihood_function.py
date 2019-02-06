@@ -121,6 +121,10 @@ class _ParamProjection:
         for rule in rules:
             # get the param name, mle, call self.projected_rate
             name = rule['par_name']
+            if name in ('mprobs', 'length'):
+                new_rules.append(rule)
+                continue
+
             if rule.get('is_constant', False):
                 par_val_key = 'value'
             else:
@@ -697,12 +701,8 @@ class LikelihoodFunction(ParameterController):
         param_rules = param_proj.update_param_rules(param_rules)
 
         with self.updates_postponed():
-            self.set_motif_probs(mprobs)
             for rule in param_rules:
                 rule.update(param_kwargs)
                 self.set_param_rule(**rule)
-            for edge, length in lengths.items():
-                self.set_param_rule('length', edge=edge, init=length,
-                                    **length_kwargs)
 
         return self
