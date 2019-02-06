@@ -24,7 +24,7 @@ from cogent3.evolve.models import DSO78_matrix, DSO78_freqs
 from cogent3.evolve.substitution_model import Parametric, Empirical
 from cogent3.evolve.coevolution import mi_alignment, nmi_alignment,\
     resampled_mi_alignment, sca_alignment, make_weights,\
-    gDefaultNullValue,\
+    DEFAULT_NULL_VALUE,\
     build_rate_matrix, coevolve_pair, validate_position, validate_alphabet,\
     validate_alignment, unpickle_coevolution_result, mi,\
     sca_pair, csv_to_coevolution_matrix, sca_position,\
@@ -435,19 +435,19 @@ class CoevolutionTests(TestCase):
     def test_mi_pair_cols_default_exclude_handling(self):
         """ mi_pair returns null_value on excluded by default """
         aln = ArrayAlignment(data={'1': 'AB', '2': '-B'}, moltype=PROTEIN)
-        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), gDefaultNullValue)
+        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
         aln = ArrayAlignment(data={'1': '-B', '2': '-B'}, moltype=PROTEIN)
-        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), gDefaultNullValue)
+        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
         aln = ArrayAlignment(data={'1': 'AA', '2': '-B'}, moltype=PROTEIN)
-        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), gDefaultNullValue)
+        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
         aln = ArrayAlignment(data={'1': 'AA', '2': 'PB'}, moltype=PROTEIN)
         self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1, excludes='P'),
-                              gDefaultNullValue)
+                              DEFAULT_NULL_VALUE)
 
     def test_mi_pair_cols_non_default_exclude_handling(self):
         """ mi_pair uses non-default exclude_handler when provided"""
         aln = ArrayAlignment(data={'1': 'A-', '2': 'A-'}, moltype=PROTEIN)
-        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), gDefaultNullValue)
+        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
         self.assertFloatEqual(
             mi_pair(aln, pos1=0, pos2=1, exclude_handler=ignore_excludes), 0.0)
 
@@ -472,7 +472,7 @@ class CoevolutionTests(TestCase):
         aln = ArrayAlignment(data={'1': 'AB', '2': 'AB'}, moltype=PROTEIN)
         self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), 0.0)
         self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1,
-                                      mi_calculator=normalized_mi), gDefaultNullValue)
+                                      mi_calculator=normalized_mi), DEFAULT_NULL_VALUE)
 
     def test_mi_position_valid_input(self):
         """ mi_position functions with varied valid input """
@@ -489,16 +489,16 @@ class CoevolutionTests(TestCase):
         self.assertFloatEqual(mi_position(aln, 0), array([0.0, 0.0, 0.0]))
         aln = ArrayAlignment(data={'1': 'ACG', '2': 'ACG'}, moltype=PROTEIN)
         self.assertFloatEqual(mi_position(aln, 0, mi_calculator=normalized_mi),
-                              array([gDefaultNullValue, gDefaultNullValue, gDefaultNullValue]))
+                              array([DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE]))
 
     def test_mi_position_from_alignment_default_exclude_handling(self):
         """ mi_position handles excludes by setting to null_value"""
         aln = ArrayAlignment(data={'1': 'ACG', '2': 'G-C'}, moltype=PROTEIN)
         self.assertFloatEqual(mi_position(aln, 0),
-                              array([1.0, gDefaultNullValue, 1.0]))
+                              array([1.0, DEFAULT_NULL_VALUE, 1.0]))
         aln = ArrayAlignment(data={'1': 'ACG', '2': 'GPC'}, moltype=PROTEIN)
         self.assertFloatEqual(mi_position(aln, 0, excludes='P'),
-                              array([1.0, gDefaultNullValue, 1.0]))
+                              array([1.0, DEFAULT_NULL_VALUE, 1.0]))
 
     def test_mi_position_from_alignment_non_default_exclude_handling(self):
         """ mi_position handles excludes w/ non-default method"""
@@ -509,9 +509,9 @@ class CoevolutionTests(TestCase):
 
     def test_mi_alignment_excludes(self):
         """ mi_alignment handles excludes properly """
-        expected = array([[0.0, gDefaultNullValue, 0.0],
-                          [gDefaultNullValue, gDefaultNullValue, gDefaultNullValue],
-                          [0.0, gDefaultNullValue, 0.0]])
+        expected = array([[0.0, DEFAULT_NULL_VALUE, 0.0],
+                          [DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+                          [0.0, DEFAULT_NULL_VALUE, 0.0]])
         # gap in second column
         aln = ArrayAlignment(data={'1': 'ACG', '2': 'A-G'}, moltype=PROTEIN)
         self.assertFloatEqual(mi_alignment(aln), expected)
@@ -523,8 +523,8 @@ class CoevolutionTests(TestCase):
 
         # gap in first column
         expected = array([
-            [gDefaultNullValue, gDefaultNullValue, gDefaultNullValue],
-            [gDefaultNullValue, 0.0, 0.0], [gDefaultNullValue, 0.0, 0.0]])
+            [DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+            [DEFAULT_NULL_VALUE, 0.0, 0.0], [DEFAULT_NULL_VALUE, 0.0, 0.0]])
         aln = ArrayAlignment(data={'1': '-CG', '2': 'ACG'}, moltype=PROTEIN)
         self.assertFloatEqual(mi_alignment(aln), expected)
 
@@ -631,7 +631,7 @@ class CoevolutionTests(TestCase):
     def test_csv_and_uncsv(self):
         """converting to/from csv matrix results in correct coevolution matrix
         """
-        expected = array([[1.4, 2.2], [gDefaultNullValue, 0.4]])
+        expected = array([[1.4, 2.2], [DEFAULT_NULL_VALUE, 0.4]])
         filepath = mktemp()
         coevolution_matrix_to_csv(expected, filepath)
         actual = csv_to_coevolution_matrix(filepath)
@@ -669,10 +669,10 @@ class CoevolutionTests(TestCase):
     def test_identify_aln_positions_above_threshold(self):
         """Extracting scores above threshold works as expected """
         m = array([
-            [gDefaultNullValue, gDefaultNullValue,
-             gDefaultNullValue, gDefaultNullValue],
-            [0.3, 1.0, gDefaultNullValue, gDefaultNullValue],
-            [0.25, 0.75, 1.0, gDefaultNullValue],
+            [DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE,
+             DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+            [0.3, 1.0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+            [0.25, 0.75, 1.0, DEFAULT_NULL_VALUE],
             [0.9, 0.751, 0.8, 1.0]])
         self.assertEqual(
             identify_aln_positions_above_threshold(m, 0.75, 0), [])
@@ -702,10 +702,10 @@ class CoevolutionTests(TestCase):
 
     def test_count_ge_threshold(self):
         """count_ge_threshold works as expected """
-        m = array([[gDefaultNullValue] * 3] * 3)
+        m = array([[DEFAULT_NULL_VALUE] * 3] * 3)
         self.assertEqual(count_ge_threshold(m, 1.0), (0, 0))
         self.assertEqual(count_ge_threshold(m,
-                                            gDefaultNullValue, gDefaultNullValue), (0, 0))
+                                            DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE), (0, 0))
         self.assertEqual(count_ge_threshold(m, 1.0, 42), (0, 9))
 
         m = array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
@@ -713,18 +713,18 @@ class CoevolutionTests(TestCase):
         self.assertEqual(count_ge_threshold(m, 8), (1, 9))
         self.assertEqual(count_ge_threshold(m, 9), (0, 9))
 
-        m = array([[0, gDefaultNullValue, gDefaultNullValue],
-                   [gDefaultNullValue, 4, 5], [6, 7, 8]])
+        m = array([[0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+                   [DEFAULT_NULL_VALUE, 4, 5], [6, 7, 8]])
         self.assertEqual(count_ge_threshold(m, 4), (5, 6))
         self.assertEqual(count_ge_threshold(m, 8), (1, 6))
         self.assertEqual(count_ge_threshold(m, 9), (0, 6))
 
     def test_count_le_threshold(self):
         """count_le_threshold works as expected """
-        m = array([[gDefaultNullValue] * 3] * 3)
+        m = array([[DEFAULT_NULL_VALUE] * 3] * 3)
         self.assertEqual(count_le_threshold(m, 1.0), (0, 0))
         self.assertEqual(count_le_threshold(m,
-                                            gDefaultNullValue, gDefaultNullValue), (0, 0))
+                                            DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE), (0, 0))
         self.assertEqual(count_le_threshold(m, 1.0, 42), (0, 9))
 
         m = array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
@@ -732,8 +732,8 @@ class CoevolutionTests(TestCase):
         self.assertEqual(count_le_threshold(m, 8), (9, 9))
         self.assertEqual(count_le_threshold(m, 9), (9, 9))
 
-        m = array([[0, gDefaultNullValue, gDefaultNullValue],
-                   [gDefaultNullValue, 4, 5], [6, 7, 8]])
+        m = array([[0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+                   [DEFAULT_NULL_VALUE, 4, 5], [6, 7, 8]])
         self.assertEqual(count_le_threshold(m, 4), (2, 6))
         self.assertEqual(count_le_threshold(m, 8), (6, 6))
         self.assertEqual(count_le_threshold(m, 9), (6, 6))
@@ -742,7 +742,7 @@ class CoevolutionTests(TestCase):
         """count_ge_threshold works with symmetric and/or ignoring diag = True
         """
         # no good scores, varied null value
-        m = array([[gDefaultNullValue] * 3] * 3)
+        m = array([[DEFAULT_NULL_VALUE] * 3] * 3)
         self.assertEqual(count_ge_threshold(m, 1.0, symmetric=True), (0, 0))
         self.assertEqual(count_ge_threshold(m, 1.0, symmetric=True), (0, 0))
         self.assertEqual(count_ge_threshold(
@@ -771,9 +771,9 @@ class CoevolutionTests(TestCase):
 
         # null and mixed values
         m = array([
-            [0, gDefaultNullValue, gDefaultNullValue],
-            [3, 4, gDefaultNullValue],
-            [gDefaultNullValue, 7, 8]])
+            [0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+            [3, 4, DEFAULT_NULL_VALUE],
+            [DEFAULT_NULL_VALUE, 7, 8]])
         self.assertEqual(count_ge_threshold(m, 4), (3, 5))
         self.assertEqual(count_ge_threshold(m, 4, symmetric=True), (3, 5))
         self.assertEqual(count_ge_threshold(
@@ -785,7 +785,7 @@ class CoevolutionTests(TestCase):
         """count_le_threshold works with symmetric and/or ignoring diag = True
         """
         # varied null value
-        m = array([[gDefaultNullValue] * 3] * 3)
+        m = array([[DEFAULT_NULL_VALUE] * 3] * 3)
         self.assertEqual(count_le_threshold(m, 1.0, symmetric=True), (0, 0))
         self.assertEqual(count_le_threshold(m, 1.0, symmetric=True), (0, 0))
         self.assertEqual(count_le_threshold(
@@ -814,9 +814,9 @@ class CoevolutionTests(TestCase):
 
         # null and mixed values
         m = array([
-            [0, gDefaultNullValue, gDefaultNullValue],
-            [3, 4, gDefaultNullValue],
-            [gDefaultNullValue, 7, 8]])
+            [0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+            [3, 4, DEFAULT_NULL_VALUE],
+            [DEFAULT_NULL_VALUE, 7, 8]])
         self.assertEqual(count_le_threshold(m, 4), (3, 5))
         self.assertEqual(count_le_threshold(m, 4, symmetric=True), (3, 5))
         self.assertEqual(count_le_threshold(
@@ -828,9 +828,9 @@ class CoevolutionTests(TestCase):
         """aln_position_pairs_ge_threshold: intramolecular matrix
         """
         m = array([
-            [0, gDefaultNullValue, gDefaultNullValue],
-            [3, 4, gDefaultNullValue],
-            [gDefaultNullValue, 7, 8]])
+            [0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+            [3, 4, DEFAULT_NULL_VALUE],
+            [DEFAULT_NULL_VALUE, 7, 8]])
         # cmp_function = ge
         self.assertEqual(aln_position_pairs_cmp_threshold(m, 3.5, greater_equal),
                          [(1, 1), (2, 1), (2, 2)])
@@ -986,7 +986,7 @@ class CoevolutionTests(TestCase):
                        moltype=PROTEIN, array_align=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 33.]])
-        expected = array([[gDefaultNullValue] * 4] * 4)
+        expected = array([[DEFAULT_NULL_VALUE] * 4] * 4)
         filter_non_parsimony_informative(aln, m)
         self.assertFloatEqual(m, expected)
 
@@ -994,7 +994,7 @@ class CoevolutionTests(TestCase):
                        moltype=PROTEIN, array_align=True)
         m = array([[42., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 33.]])
-        expected = array([[gDefaultNullValue] * 4] * 4)
+        expected = array([[DEFAULT_NULL_VALUE] * 4] * 4)
         expected[0, 0] = 42.
         filter_non_parsimony_informative(aln, m)
         self.assertFloatEqual(m, expected)
@@ -1006,14 +1006,14 @@ class CoevolutionTests(TestCase):
         aln = LoadSeqs(data={'1': 'ACDEWQ', '2': 'ACDEWQ', '3': 'ACDEWQ', '4': 'ACDEWQ'},
                        moltype=PROTEIN, array_align=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
-        expected = array([[gDefaultNullValue] * 4] * 2)
+        expected = array([[DEFAULT_NULL_VALUE] * 4] * 2)
         filter_non_parsimony_informative(aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
         # one non-parsimony informative pair of positions
         aln = LoadSeqs(data={'1': 'FCDEWD', '2': 'ACDEWQ', '3': 'ACDEWD', '4': 'FCDEWQ'},
                        moltype=PROTEIN, array_align=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
-        expected = array([[gDefaultNullValue] * 4] * 2)
+        expected = array([[DEFAULT_NULL_VALUE] * 4] * 2)
         expected[1, 0] = 9.
         filter_non_parsimony_informative(aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
@@ -1060,8 +1060,8 @@ class CoevolutionTests(TestCase):
                        moltype=PROTEIN, array_align=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 33.]])
-        expected = array([[gDefaultNullValue] * 4, [gDefaultNullValue, 18., 5., 6.],
-                          [gDefaultNullValue, 1., 3., 2.], [gDefaultNullValue, 0., 1., 33.]])
+        expected = array([[DEFAULT_NULL_VALUE] * 4, [DEFAULT_NULL_VALUE, 18., 5., 6.],
+                          [DEFAULT_NULL_VALUE, 1., 3., 2.], [DEFAULT_NULL_VALUE, 0., 1., 33.]])
         filter_exclude_positions(aln, m)
         self.assertFloatEqual(m, expected)
         # filter one position (non-defualt max_exclude_percentage)
@@ -1069,8 +1069,8 @@ class CoevolutionTests(TestCase):
                        moltype=PROTEIN, array_align=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 33.]])
-        expected = array([[gDefaultNullValue] * 4, [gDefaultNullValue, 18., 5., 6.],
-                          [gDefaultNullValue, 1., 3., 2.], [gDefaultNullValue, 0., 1., 33.]])
+        expected = array([[DEFAULT_NULL_VALUE] * 4, [DEFAULT_NULL_VALUE, 18., 5., 6.],
+                          [DEFAULT_NULL_VALUE, 1., 3., 2.], [DEFAULT_NULL_VALUE, 0., 1., 33.]])
         filter_exclude_positions(aln, m, max_exclude_percent=0.49)
         self.assertFloatEqual(m, expected)
         # filter all positions (defualt max_exclude_percentage)
@@ -1078,7 +1078,7 @@ class CoevolutionTests(TestCase):
                        moltype=PROTEIN, array_align=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 33.]])
-        expected = array([[gDefaultNullValue] * 4] * 4)
+        expected = array([[DEFAULT_NULL_VALUE] * 4] * 4)
         filter_exclude_positions(aln, m)
         self.assertFloatEqual(m, expected)
         # filter all positions (non-defualt max_exclude_percentage)
@@ -1086,7 +1086,7 @@ class CoevolutionTests(TestCase):
                        moltype=PROTEIN, array_align=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 3.]])
-        expected = array([[gDefaultNullValue] * 4] * 4)
+        expected = array([[DEFAULT_NULL_VALUE] * 4] * 4)
         filter_exclude_positions(aln, m, max_exclude_percent=0.49)
         self.assertFloatEqual(m, expected)
 
@@ -1096,8 +1096,8 @@ class CoevolutionTests(TestCase):
                        moltype=PROTEIN, array_align=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
                    [4., 1., 3., 2.], [21., 0., 1., 33.]])
-        expected = array([[gDefaultNullValue] * 4, [gDefaultNullValue, 18., 5., 6.],
-                          [gDefaultNullValue, 1., 3., 2.], [gDefaultNullValue, 0., 1., 33.]])
+        expected = array([[DEFAULT_NULL_VALUE] * 4, [DEFAULT_NULL_VALUE, 18., 5., 6.],
+                          [DEFAULT_NULL_VALUE, 1., 3., 2.], [DEFAULT_NULL_VALUE, 0., 1., 33.]])
         filter_exclude_positions(aln, m, excludes='W')
         self.assertFloatEqual(m, expected)
 
@@ -1130,8 +1130,8 @@ class CoevolutionTests(TestCase):
         merged_aln = LoadSeqs(data={'1': 'WC-EDE', '2': 'ACDEDE',
                                     '3': 'ACDEDE', '4': 'ACDEDE'}, moltype=PROTEIN, array_align=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
-        expected = array([[1., 10., gDefaultNullValue, 3.],
-                          [9., 18., gDefaultNullValue, 6.]])
+        expected = array([[1., 10., DEFAULT_NULL_VALUE, 3.],
+                          [9., 18., DEFAULT_NULL_VALUE, 6.]])
         filter_exclude_positions(merged_aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
         # filter one position (aln2)
@@ -1139,7 +1139,7 @@ class CoevolutionTests(TestCase):
                                     '3': 'ACDEDE', '4': 'ACDED-'}, moltype=PROTEIN, array_align=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[1., 10., 4., 3.],
-                          [gDefaultNullValue] * 4])
+                          [DEFAULT_NULL_VALUE] * 4])
         filter_exclude_positions(merged_aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
 
@@ -1147,8 +1147,8 @@ class CoevolutionTests(TestCase):
         merged_aln = LoadSeqs(data={'1': '-CEEDE', '2': 'ACDEDE',
                                     '3': 'ACDEDE', '4': 'ACDED-'}, moltype=PROTEIN, array_align=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
-        expected = array([[gDefaultNullValue, 10., 4., 3.],
-                          [gDefaultNullValue] * 4])
+        expected = array([[DEFAULT_NULL_VALUE, 10., 4., 3.],
+                          [DEFAULT_NULL_VALUE] * 4])
         filter_exclude_positions(merged_aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
 
@@ -1156,8 +1156,8 @@ class CoevolutionTests(TestCase):
         merged_aln = LoadSeqs(data={'1': 'WCEEDE', '2': 'ACDEDE',
                                     '3': 'ACDEDE', '4': 'ACDEDW'}, moltype=PROTEIN, array_align=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
-        expected = array([[gDefaultNullValue, 10., 4., 3.],
-                          [gDefaultNullValue] * 4])
+        expected = array([[DEFAULT_NULL_VALUE, 10., 4., 3.],
+                          [DEFAULT_NULL_VALUE] * 4])
         filter_exclude_positions(merged_aln, m, intermolecular_data_only=True,
                                  excludes='W')
         self.assertFloatEqual(m, expected)
@@ -1176,7 +1176,7 @@ class CoevolutionTests(TestCase):
         "multiple interdependency filter functions with intermolecular data "
         ## cmp_function = ge
         # lower boundary
-        null = gDefaultNullValue
+        null = DEFAULT_NULL_VALUE
         m = array([[0.63, 0.00, null],
                    [0.75, 0.10, 0.45],
                    [0.95, 0.32, 0.33],
@@ -1201,7 +1201,7 @@ class CoevolutionTests(TestCase):
             None, m, 0.95, 1, greater_equal, True)
         self.assertFloatEqual(actual, expected)
         # upper boundary, nothing filtered
-        null = gDefaultNullValue
+        null = DEFAULT_NULL_VALUE
         m = array([[0.63, 0.00, null],
                    [0.75, 0.10, 0.45],
                    [0.95, 0.32, 0.33],
@@ -1226,7 +1226,7 @@ class CoevolutionTests(TestCase):
 
     def test_filter_threshold_based_multiple_interdependency_intramolecular(self):
         "multiple interdependency filter functions with intramolecular data "
-        null = gDefaultNullValue
+        null = DEFAULT_NULL_VALUE
         ## cmp_function = ge
         # lower bound, everything filtered
         m = array([[0.63, 0.75, 0.95, 1.00],
@@ -1654,7 +1654,7 @@ class CoevolutionTests(TestCase):
         actual = sca_pair(aln, 0, 1, 1.0, return_all=True, alphabet=a,
                           background_freqs=self.dna_base_freqs)
         #expected = [('A',-1),('C',-1)]
-        expected = gDefaultNullValue
+        expected = DEFAULT_NULL_VALUE
         self.assertFloatEqual(actual, expected)
 
         # pos1 == pos2
