@@ -85,8 +85,8 @@ __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"
 
-gDefaultExcludes = ''.join([IUPAC_gap, IUPAC_missing])
-gDefaultNullValue = nan
+DEFAULT_EXCLUDES = ''.join([IUPAC_gap, IUPAC_missing])
+DEFAULT_NULL_VALUE = nan
 
 
 def build_rate_matrix(count_matrix, freqs, aa_order='ACDEFGHIKLMNPQRSTVWY'):
@@ -137,7 +137,7 @@ def joint_entropy(pos1, pos2):
 # characters)
 
 
-def ignore_excludes(pos, excludes=gDefaultExcludes):
+def ignore_excludes(pos, excludes=DEFAULT_EXCLUDES):
     """ Return position data as-is (results in excludes treated as other chars)
     """
     return pos
@@ -146,7 +146,7 @@ def ignore_excludes(pos, excludes=gDefaultExcludes):
 
 
 def mi_pair(alignment, pos1, pos2, h1=None, h2=None, mi_calculator=mi,
-            null_value=gDefaultNullValue, excludes=gDefaultExcludes, exclude_handler=None):
+            null_value=DEFAULT_NULL_VALUE, excludes=DEFAULT_EXCLUDES, exclude_handler=None):
     """ Calculate mutual information of a pair of alignment positions
 
         alignment: the full alignment object
@@ -207,8 +207,8 @@ def mi_pair(alignment, pos1, pos2, h1=None, h2=None, mi_calculator=mi,
 
 
 def mi_position(alignment, position,
-                positional_entropies=None, mi_calculator=mi, null_value=gDefaultNullValue,
-                excludes=gDefaultExcludes, exclude_handler=None):
+                positional_entropies=None, mi_calculator=mi, null_value=DEFAULT_NULL_VALUE,
+                excludes=DEFAULT_EXCLUDES, exclude_handler=None):
     """ Calc mi b/w position and all other positions in an alignment
 
         alignment: the full alignment object
@@ -250,8 +250,8 @@ def mi_position(alignment, position,
     return result
 
 
-def mi_alignment(alignment, mi_calculator=mi, null_value=gDefaultNullValue,
-                 excludes=gDefaultExcludes, exclude_handler=None):
+def mi_alignment(alignment, mi_calculator=mi, null_value=DEFAULT_NULL_VALUE,
+                 excludes=DEFAULT_EXCLUDES, exclude_handler=None):
     """ Calc mi over all position pairs in an alignment
 
         alignment: the full alignment object
@@ -295,7 +295,7 @@ def mi_alignment(alignment, mi_calculator=mi, null_value=gDefaultNullValue,
 
 
 def normalized_mi_pair(alignment, pos1, pos2, h1=None, h2=None,
-                       null_value=gDefaultNullValue, excludes=gDefaultExcludes,
+                       null_value=DEFAULT_NULL_VALUE, excludes=DEFAULT_EXCLUDES,
                        exclude_handler=None):
     """Calc normalized mutual information of a pair of alignment positions
 
@@ -322,7 +322,7 @@ nmi_pair = normalized_mi_pair
 
 
 def normalized_mi_position(alignment, position, positional_entropies=None,
-                           null_value=gDefaultNullValue, excludes=gDefaultExcludes,
+                           null_value=DEFAULT_NULL_VALUE, excludes=DEFAULT_EXCLUDES,
                            exclude_handler=None):
     """ Calc normalized mi b/w position and all other positions in an alignment
 
@@ -350,8 +350,8 @@ def normalized_mi_position(alignment, position, positional_entropies=None,
 nmi_position = normalized_mi_position
 
 
-def normalized_mi_alignment(alignment, null_value=gDefaultNullValue,
-                            excludes=gDefaultExcludes, exclude_handler=None):
+def normalized_mi_alignment(alignment, null_value=DEFAULT_NULL_VALUE,
+                            excludes=DEFAULT_EXCLUDES, exclude_handler=None):
     """ Calc normalized mi over all position pairs in an alignment
 
         alignment: the full alignment object
@@ -614,7 +614,7 @@ def get_dgg(all_dgs, subaln_dgs, scaled_aln_size=100):
 
 def sca_pair(alignment, pos1, pos2, cutoff,
              position_freqs=None, position_probs=None, dgs=None, perturbations=None,
-             scaled_aln_size=100, null_value=gDefaultNullValue, return_all=False,
+             scaled_aln_size=100, null_value=DEFAULT_NULL_VALUE, return_all=False,
              alphabet=default_sca_alphabet, background_freqs=default_sca_freqs):
     """ Calculate statistical coupling b/w a pair of alignment columns
 
@@ -743,7 +743,7 @@ def sca_pair(alignment, pos1, pos2, cutoff,
 def sca_position(alignment, position, cutoff,
                  position_freqs=None, position_probs=None, dgs=None,
                  perturbations=None, scaled_aln_size=100,
-                 null_value=gDefaultNullValue, return_all=False,
+                 null_value=DEFAULT_NULL_VALUE, return_all=False,
                  alphabet=default_sca_alphabet, background_freqs=default_sca_freqs):
     """ Calculate statistical coupling b/w a column and all other columns
 
@@ -828,7 +828,7 @@ def sca_position(alignment, position, cutoff,
     return array(result)
 
 
-def sca_alignment(alignment, cutoff, null_value=gDefaultNullValue,
+def sca_alignment(alignment, cutoff, null_value=DEFAULT_NULL_VALUE,
                   scaled_aln_size=100, return_all=False, alphabet=default_sca_alphabet,
                   background_freqs=default_sca_freqs):
     """ Calculate statistical coupling b/w all columns in alignment
@@ -973,8 +973,8 @@ def calc_pair_scale(seqs, obs1, obs2, weights1, weights2):
 
 
 def resampled_mi_pair(alignment, pos1, pos2, weights=None,
-                      excludes=gDefaultExcludes, exclude_handler=None,
-                      null_value=gDefaultNullValue):
+                      excludes=DEFAULT_EXCLUDES, exclude_handler=None,
+                      null_value=DEFAULT_NULL_VALUE):
     """returns scaled mutual information for a pair.
 
     Arguments:
@@ -1018,8 +1018,8 @@ def resampled_mi_pair(alignment, pos1, pos2, weights=None,
 
 
 def resampled_mi_position(alignment, position, positional_entropies=None,
-                          excludes=gDefaultExcludes, exclude_handler=None,
-                          null_value=gDefaultNullValue):
+                          excludes=DEFAULT_EXCLUDES, exclude_handler=None,
+                          null_value=DEFAULT_NULL_VALUE):
     aln_length = len(alignment)
     result = zeros(aln_length, float)
     positional_entropies = positional_entropies or alignment.uncertainties()
@@ -1032,8 +1032,8 @@ def resampled_mi_position(alignment, position, positional_entropies=None,
     return result
 
 
-def resampled_mi_alignment(alignment, excludes=gDefaultExcludes,
-                           exclude_handler=None, null_value=gDefaultNullValue):
+def resampled_mi_alignment(alignment, excludes=DEFAULT_EXCLUDES,
+                           exclude_handler=None, null_value=DEFAULT_NULL_VALUE):
     """returns scaled mutual information for all possible pairs."""
     aln_length = len(alignment)
     result = zeros((aln_length, aln_length), float)
@@ -1074,7 +1074,7 @@ def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
 
 
 def ancestral_state_alignment(aln, tree, ancestral_seqs=None,
-                              null_value=gDefaultNullValue):
+                              null_value=DEFAULT_NULL_VALUE):
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     result = []
     for i in range(len(aln)):
@@ -1087,7 +1087,7 @@ def ancestral_state_alignment(aln, tree, ancestral_seqs=None,
 
 
 def ancestral_state_position(aln, tree, position,
-                             ancestral_seqs=None, null_value=gDefaultNullValue):
+                             ancestral_seqs=None, null_value=DEFAULT_NULL_VALUE):
 
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     result = []
@@ -1098,7 +1098,7 @@ def ancestral_state_position(aln, tree, position,
 
 
 def ancestral_state_pair(aln, tree, pos1, pos2,
-                         ancestral_seqs=None, null_value=gDefaultNullValue):
+                         ancestral_seqs=None, null_value=DEFAULT_NULL_VALUE):
     """
 
     """
@@ -1548,7 +1548,7 @@ def coevolve_alignments(method, alignment1, alignment2,
     # the result object to be filled in.
     len_alignment1 = len(alignment1)
     len_alignment2 = len(alignment2)
-    result = array([[gDefaultNullValue] * len_alignment1] * len_alignment2)
+    result = array([[DEFAULT_NULL_VALUE] * len_alignment1] * len_alignment2)
 
     # Some of the methods run much faster if relevant data is computed once,
     # and passed in -- that is done here, but there is a lot of repeated code.
@@ -1707,7 +1707,7 @@ def filter_threshold_based_multiple_interdependency(aln, coevolution_matrix,
     for row_n in range(coevolution_matrix.shape[0]):
         count_cmp_threshold = 0
         for v in coevolution_matrix[row_n, :]:
-            if v != gDefaultNullValue and cmp_function(v, threshold):
+            if v != DEFAULT_NULL_VALUE and cmp_function(v, threshold):
                 count_cmp_threshold += 1
                 if count_cmp_threshold > max_cmp_threshold:
                     filtered_rows.append(row_n)
@@ -1719,28 +1719,28 @@ def filter_threshold_based_multiple_interdependency(aln, coevolution_matrix,
         for col_n in range(coevolution_matrix.shape[1]):
             count_cmp_threshold = 0
             for v in coevolution_matrix[:, col_n]:
-                if v != gDefaultNullValue and cmp_function(v, threshold):
+                if v != DEFAULT_NULL_VALUE and cmp_function(v, threshold):
                     count_cmp_threshold += 1
                     if count_cmp_threshold > max_cmp_threshold:
                         filtered_cols.append(col_n)
                         break
         # filter the rows and cols in a non-symmetric matrix
         for row_n in filtered_rows:
-            coevolution_matrix[row_n, :] = gDefaultNullValue
+            coevolution_matrix[row_n, :] = DEFAULT_NULL_VALUE
         for col_n in filtered_cols:
-            coevolution_matrix[:, col_n] = gDefaultNullValue
+            coevolution_matrix[:, col_n] = DEFAULT_NULL_VALUE
     else:
         # filter the rows and cols in a symmetric matrix
         for row_n in filtered_rows:
             coevolution_matrix[row_n, :] =\
-                coevolution_matrix[:, row_n] = gDefaultNullValue
+                coevolution_matrix[:, row_n] = DEFAULT_NULL_VALUE
 
     # return the result
     return coevolution_matrix
 
 
 def is_parsimony_informative(column_freqs, minimum_count=2,
-                             minimum_differences=2, ignored=gDefaultExcludes, strict=False):
+                             minimum_differences=2, ignored=DEFAULT_EXCLUDES, strict=False):
     """Return True is aln_position is parsimony informative
 
         column_freqs: dict of characters at alignmnet position mapped
@@ -1809,8 +1809,8 @@ def is_parsimony_informative(column_freqs, minimum_count=2,
 
 
 def filter_non_parsimony_informative(aln, coevolution_matrix,
-                                     null_value=gDefaultNullValue, minimum_count=2, minimum_differences=2,
-                                     ignored=gDefaultExcludes, intermolecular_data_only=False, strict=False):
+                                     null_value=DEFAULT_NULL_VALUE, minimum_count=2, minimum_differences=2,
+                                     ignored=DEFAULT_EXCLUDES, intermolecular_data_only=False, strict=False):
     """ Replaces scores in coevolution_matrix with null_value for positions
          which are not parsimony informative.
 
@@ -1854,8 +1854,8 @@ def make_positional_exclude_percentage_function(excludes, max_exclude_percent):
 
 
 def filter_exclude_positions(aln, coevolution_matrix,
-                             max_exclude_percent=0.1, null_value=gDefaultNullValue,
-                             excludes=gDefaultExcludes, intermolecular_data_only=False):
+                             max_exclude_percent=0.1, null_value=DEFAULT_NULL_VALUE,
+                             excludes=DEFAULT_EXCLUDES, intermolecular_data_only=False):
     """ Assign null_value to positions with > max_exclude_percent excludes
 
         aln: the ArrayAlignment object
@@ -1979,7 +1979,7 @@ def csv_to_coevolution_matrix(in_filepath):
 # Start functions for analyzing the results of a coevolution run.
 
 def identify_aln_positions_above_threshold(coevolution_matrix, threshold,
-                                           aln_position, null_value=gDefaultNullValue):
+                                           aln_position, null_value=DEFAULT_NULL_VALUE):
     """ Returns the list of alignment positions which achieve a
         score >= threshold with aln_position.
         Coevolution matrix should be symmetrical or you
@@ -1996,7 +1996,7 @@ def identify_aln_positions_above_threshold(coevolution_matrix, threshold,
 
 
 def aln_position_pairs_cmp_threshold(coevolution_matrix,
-                                     threshold, cmp_function, null_value=gDefaultNullValue,
+                                     threshold, cmp_function, null_value=DEFAULT_NULL_VALUE,
                                      intermolecular_data_only=False):
     """ Returns list of position pairs with score >= threshold
 
@@ -2029,7 +2029,7 @@ def aln_position_pairs_cmp_threshold(coevolution_matrix,
 
 
 def aln_position_pairs_ge_threshold(coevolution_matrix,
-                                    threshold, null_value=gDefaultNullValue,
+                                    threshold, null_value=DEFAULT_NULL_VALUE,
                                     intermolecular_data_only=False):
     """wrapper function for aln_position_pairs_cmp_threshold """
     return aln_position_pairs_cmp_threshold(
@@ -2037,7 +2037,7 @@ def aln_position_pairs_ge_threshold(coevolution_matrix,
 
 
 def aln_position_pairs_le_threshold(coevolution_matrix,
-                                    threshold, null_value=gDefaultNullValue,
+                                    threshold, null_value=DEFAULT_NULL_VALUE,
                                     intermolecular_data_only=False):
     """wrapper function for aln_position_pairs_cmp_threshold """
     return aln_position_pairs_cmp_threshold(
@@ -2045,7 +2045,7 @@ def aln_position_pairs_le_threshold(coevolution_matrix,
         null_value, intermolecular_data_only)
 
 
-def count_cmp_threshold(m, threshold, cmp_function, null_value=gDefaultNullValue,
+def count_cmp_threshold(m, threshold, cmp_function, null_value=DEFAULT_NULL_VALUE,
                         symmetric=False, ignore_diagonal=False):
     """ Returns a count of the values in m >= threshold, ignoring nulls.
 
@@ -2091,14 +2091,14 @@ def count_cmp_threshold(m, threshold, cmp_function, null_value=gDefaultNullValue
     return total_hits, total_non_null
 
 
-def count_ge_threshold(m, threshold, null_value=gDefaultNullValue,
+def count_ge_threshold(m, threshold, null_value=DEFAULT_NULL_VALUE,
                        symmetric=False, ignore_diagonal=False):
     """wrapper function for count_cmp_threshold """
     return count_cmp_threshold(m, threshold, greater_equal, null_value,
                                symmetric, ignore_diagonal)
 
 
-def count_le_threshold(m, threshold, null_value=gDefaultNullValue,
+def count_le_threshold(m, threshold, null_value=DEFAULT_NULL_VALUE,
                        symmetric=False, ignore_diagonal=False):
     """wrapper function for count_cmp_threshold """
     return count_cmp_threshold(m, threshold, less_equal, null_value,
