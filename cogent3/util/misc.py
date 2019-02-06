@@ -35,7 +35,7 @@ def adjusted_gt_minprob(probs, minprob=1e-6):
     result sums to 1 within machine precision"""
     assert 0 <= minprob < 1, "invalid minval %s" % minprob
     probs = array(probs, dtype=float64)
-    if all(probs > minprob):
+    if (probs > minprob).all():
         return probs
     
     total = probs.sum()
