@@ -8,6 +8,7 @@ from cogent3.core.alignment import ArrayAlignment
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.evolve.simulate import AlignmentEvolver, random_sequence
 from cogent3.util import parallel, table
+from cogent3.util.misc import adjusted_gt_minprob
 from cogent3.recalculation.definition import ParameterController
 from cogent3.maths.matrix_logarithm import is_generator_unique
 from cogent3.maths.matrix_exponential_integration import expected_number_subs
@@ -372,6 +373,10 @@ class LikelihoodFunction(ParameterController):
     def get_motif_probs(self, edge=None, bin=None, locus=None):
         motif_probs_array = self.get_param_value(
             'mprobs', edge=edge, bin=bin, locus=locus)
+        # these can fall below the minimum allowed value due to
+        # rounding errors, so I adjust these
+        motif_probs_array = adjusted_gt_minprob(motif_probs_array,
+                                                minprob=1e-6)
         return DictArrayTemplate(self._mprob_motifs).wrap(motif_probs_array)
 
     def get_bin_prior_probs(self, locus=None):
@@ -431,6 +436,11 @@ class LikelihoodFunction(ParameterController):
         """returns the [{rule}, ..] that would allow reconstruction"""
         def mprob_rule(defn, index, edges):
             uniq = defn.uniq[index]
+            value = uniq.value
+            # default min prob is 1e-6,
+            # values can drop below due to precision
+            # so we adjust
+            value = adjusted_gt_minprob(value, minprob=1e-6)
             val = dict(zip(defn.bin_names, uniq.value))
             rule = dict(par_name=defn.name, edges=edges)
             if uniq.is_constant:

@@ -1,11 +1,6 @@
-#! /usr/bin/env python
-# Matthew Wakefield Feb 2004
-
-
-import unittest
 import os
 import warnings
-
+from cogent3.util.unit_test import TestCase, main
 from cogent3 import LoadSeqs, LoadTree
 import cogent3.evolve.parameter_controller, cogent3.evolve.substitution_model
 from cogent3.maths import optimisers
@@ -48,7 +43,7 @@ bad_rule_sets = [
 ]
 
 
-class test_parameter_controller(unittest.TestCase):
+class test_parameter_controller(TestCase):
     """Tesing Parameter Controller"""
 
     def setUp(self):
@@ -75,6 +70,11 @@ class test_parameter_controller(unittest.TestCase):
 
     def test_set_motif_probs(self):
         """Mprobs supplied to the parameter controller"""
+        def compare_mprobs(got, exp):
+            # handle min val
+            for e in got:
+                self.assertFloatEqual(got[e], exp[e], eps=3e-6)
+
         model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
             model_gaps=True, motif_probs=None)
         lf = model.make_likelihood_function(self.tree,
@@ -82,10 +82,12 @@ class test_parameter_controller(unittest.TestCase):
 
         mprobs = {'A': 0.1, 'C': 0.2, 'G': 0.2, 'T': 0.5, '-': 0.0}
         lf.set_motif_probs(mprobs)
-        self.assertEqual(lf.get_motif_probs(), mprobs)
+        # node the LF adjust motif probs so they are all >= 1e-6
+        got = lf.get_motif_probs().asdict()
+        compare_mprobs(got, mprobs)
 
         lf.set_motif_probs_from_data(self.al[:1], is_constant=True)
-        self.assertEqual(lf.get_motif_probs()['G'], 0.6)
+        self.assertFloatEqual(lf.get_motif_probs()['G'], 0.6, eps=3e-6)
 
         lf.set_motif_probs_from_data(self.al[:1], pseudocount=1)
         self.assertNotEqual(lf.get_motif_probs()['G'], 0.6)
@@ -97,8 +99,8 @@ class test_parameter_controller(unittest.TestCase):
         motif_probs = dict(lf.get_motif_probs())
         correct_probs = {'A': 8.5 / 27, 'C': 5.5 / 27, '-': 0.0, 'T': 5.5 / 27,
                          'G': 7.5 / 27}
-        self.assertEqual(motif_probs, correct_probs)
-        self.assertEqual(sum(motif_probs.values()), 1.0)
+        compare_mprobs(motif_probs, correct_probs)
+        self.assertFloatEqual(sum(motif_probs.values()), 1.0)
 
     def test_setMultiLocus(self):
         """2 loci each with own mprobs"""
@@ -208,4 +210,4 @@ class test_parameter_controller(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    main()
