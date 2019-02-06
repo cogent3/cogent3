@@ -445,7 +445,7 @@ class LikelihoodFunction(ParameterController):
             # values can drop below due to precision
             # so we adjust
             value = adjusted_gt_minprob(value, minprob=1e-6)
-            val = dict(zip(defn.bin_names, uniq.value))
+            val = dict(zip(defn.bin_names, value))
             rule = dict(par_name=defn.name, edges=edges)
             if uniq.is_constant:
                 rule.update(dict(is_constant=True, value=val))
