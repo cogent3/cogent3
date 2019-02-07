@@ -295,6 +295,7 @@ class UserPredicate(predicate):
 
 silent = ModelSays('silent')
 replacement = ModelSays('replacement')
+omega = ModelSays('omega')
 
 
 def parse(rule):
