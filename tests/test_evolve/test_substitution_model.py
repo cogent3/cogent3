@@ -35,6 +35,12 @@ class NucleotideModelTestMethods(TestCase):
         assert not isTransition('A', 'T')
         assert not isTransition('C', 'G')
 
+        isTransition = self.submodel.get_predefined_predicate('kappa')
+        assert isTransition('A', 'G')
+        assert isTransition('C', 'T')
+        assert not isTransition('A', 'T')
+        assert not isTransition('C', 'G')
+
     def test_isTransversion(self):
         """testing isTransversion"""
         isTransversion = self.submodel.get_predefined_predicate('transversion')
@@ -197,6 +203,15 @@ class CodonSubstModelTests(TestCase):
         assert not isReplacement('---', 'CTA')
         # for the vert mitocho code, instantaneous replacement
         isReplacement = self.mitocode.get_predefined_predicate('replacement')
+        assert isReplacement('AAA', 'AAC')
+        
+        # check using 'omega'
+        isReplacement = self.standardcode.get_predefined_predicate('omega')
+        assert isReplacement('CTG', 'ATG')
+        assert not isReplacement('AGT', 'TCC')
+        assert not isReplacement('CTG', '---')
+        assert not isReplacement('---', 'CTA')
+        isReplacement = self.mitocode.get_predefined_predicate('omega')
         assert isReplacement('AAA', 'AAC')
 
     def test_isSilent(self):

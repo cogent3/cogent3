@@ -816,6 +816,8 @@ class _TimeReversibleNucleotide(TimeReversible):
             'transition': predicate.parse('R/R') | predicate.parse('Y/Y'),
             'transversion': predicate.parse('R/Y'),
             'indel': predicate.parse('-/?'),
+            'kappa': (predicate.parse('R/R') |
+                      predicate.parse('Y/Y')).aliased('kappa')
         }
 
 
@@ -875,6 +877,7 @@ class _Codon:
             'indel': predicate.parse('???/---'),
             'silent': predicate.UserPredicate(silent),
             'replacement': predicate.UserPredicate(replacement),
+            'omega': predicate.UserPredicate(replacement)
         })
         return preds    
 

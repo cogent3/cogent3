@@ -11,7 +11,7 @@ gap recoding that will convert gaps to Ns, and model gaps set to False."""
 from itertools import permutations
 import numpy
 from cogent3.evolve import substitution_model, ns_substitution_model
-from cogent3.evolve.predicate import MotifChange, replacement
+from cogent3.evolve.predicate import MotifChange, replacement, omega
 from cogent3.evolve.solved_models import F81, HKY85, TN93
 
 __author__ = "Matthew Wakefield"
@@ -34,7 +34,7 @@ protein_models = ['DSO78', 'AH96', 'AH96_mtmammals', 'JTT92', 'WG01']
 # Substitution model rate matrix predicates
 _gtr_preds = [MotifChange(x, y) for x, y in ['AC', 'AG', 'AT', 'CG', 'CT']]
 _kappa = (~MotifChange('R', 'Y')).aliased('kappa')
-_omega = replacement.aliased('omega')
+_omega = omega
 _cg = MotifChange('CG').aliased('G')
 _cg_k = (_cg & _kappa).aliased('G.K')
 
