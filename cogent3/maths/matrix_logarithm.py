@@ -37,7 +37,8 @@ def _is_Q_ok(Q):
 def is_generator_unique(Q):
     """Conservatively tests whether a transition rate matrix uniquely yields
     its transition probability matrix"""
-    assert Q.shape[0] in (3, 4), 'Q must be 3x3 or 4x4'
+    if not Q.shape[0] in (3, 4):
+        raise NotImplementedError('Only Q of 3x3 or 4x4 supported')
     assert _is_Q_ok(Q), 'Q must be a valid transition rate matrix'
 
     e, V = eigenvectors(Q)
