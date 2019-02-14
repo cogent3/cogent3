@@ -68,5 +68,14 @@ class logarithm_tests(TestCase):
             [6.81594144e-11, 1.38727059e-10, 1.00808021e-04, -1.00808228e-04]])
         self.assertRaises(NotImplementedError, is_generator_unique, q_raise)
 
+    # currently only support 3x3 or 4x4 matrices
+    q_raise = array([[1, 2, 3, 4, 5],
+                     [1, 2, 3, 4, 5],
+                     [1, 2, 3, 4, 5],
+                     [1, 2, 3, 4, 5],
+                     [1, 2, 3, 4, 5]])
+    self.assertRaises(NotImplementedError, is_generator_unique, q_raise)
+
+
 if __name__ == '__main__':
     main()
