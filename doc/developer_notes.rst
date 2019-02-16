@@ -50,7 +50,7 @@ or, you can also run these tests directly within the `tests/` directory.::
     $ cd <to local repo>/tests
     $ python alltests.py
 
-In both cases, allowed options are `--output-ok` and `--verbose`.
+In both cases, allowed options are ``--output-ok`` and ``--verbose``.
 
 Building/testing the documentation
 ----------------------------------
