@@ -93,8 +93,6 @@ To actually test the documentation, you need to be in the ``doc`` directory and 
 
 The results are in ``_build/doctest/output.txt``.
 
-.. note:: The documentation does not test for presence of 3rd party dependencies (such as applications or python modules) like the PyCogent3 ``unittest`` test suite. If you don't have all the 3rd party applications installed you will see failures. At this point **no effort** is being expended to hide such failures.
-
 Adding to the documentation
 ---------------------------
 
