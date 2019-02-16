@@ -10,7 +10,6 @@ Welcome to PyCogent3's documentation!
     :maxdepth: 1
     
     install
-    README
     coding_guidelines
     data_file_links
     examples/index

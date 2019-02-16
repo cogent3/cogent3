@@ -112,7 +112,7 @@ For a group of amino acids
     >>> flat_list
     ['GCT', 'GCC', 'GCA', 'GCG', 'TGT', 'TGC']
 
-Converting the ``TimeReversibleCodonAlphabet`` to codon series
+Converting the ``CodonAlphabet`` to codon series
 ------------------------------------------------
 
 .. doctest::

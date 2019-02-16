@@ -1,14 +1,56 @@
+How to make a contribution
+==========================
+
+Look at the `PyCogent3 issues <https://bitbucket.org/pycogent3/cogent3/issues>`_. Pick something you think you can tackle which is not already assigned and have a go! (Following the process outlined below.)
+
 For Developers
 ==============
 
-Anyone can contribute to the development of PyCogent3_, not just registered developers. If you figure out a solution to something using PyCogent3_ that you'd like to share, or if you have ideas for improving the current documentation, please consider forking and submitting a pull request and we'll look into including it in PyCogent3!
+You first need to `install and configure Mercurial <https://confluence.atlassian.com/get-started-with-bitbucket/install-and-set-up-mercurial-860009660.html>`_ on your machine.
 
-Grabbing from Bitbucket
------------------------
+After that, the process is:
 
-To grab PyCogent3 from Bitbucket, do the following::
+#. `fork the PyCogent3 repository <https://confluence.atlassian.com/bitbucketserver/using-forks-in-bitbucket-server-776639958.html>`_
+#. clone this fork to your local machine
+#. follow the :ref:`dev-install` instructions to install
+#. :ref:`run-tests` to make sure the install was correct
+#. `create a new branch <https://confluence.atlassian.com/bitbucket/branching-a-repository-223217999.html#BranchingaRepository-CreateaMercurialbranch>`_
+#. make your changes, and add tests to the test-suite
+#. Keep your repository in sync with the upstream PyCogent3 repository
+#. run the test suite
+#. commit your changes and push to your Bitbucket repo
+#. make a pull request
 
-    $ hg clone ssh://hg@bitbucket.org/pycogent3/cogent3 PyCogent3
+.. _dev-install:
+
+Installing in developer mode
+----------------------------
+
+Assuming you are in either a `virtualenv` or a conda environment, do the following::
+
+    $ cd <to local repo>
+    $ pip install -e .
+
+That will also build the library.
+
+.. _run-tests:
+
+Run the test suite
+------------------
+
+We use the `unittest` framework for testing. The `tests/` directory largely mirrors the structure of `cogent3`, so finding the place to put tests should be pretty straighforward.
+
+To run the tests, either::
+
+    $ cd <to local repo>
+    $ ./run_tests
+
+or, you can also run these tests directly within the `tests/` directory.::
+
+    $ cd <to local repo>/tests
+    $ python alltests.py
+
+In both cases, allowed options are `--output-ok` and `--verbose`.
 
 Building/testing the documentation
 ----------------------------------
