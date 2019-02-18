@@ -353,6 +353,10 @@ def _unpack_proportions(values):
         _unpack_proportions(values[half:])
 
 
+def _ratio_to_proportion(*ratios):
+    return numpy.asarray(_proportions(1.0, ratios))
+
+
 class PartitionDefn(_InputDefn):
     """A partition such as mprobs can be const or optimised.  Optimised is
     a bit tricky since it isn't just a scalar."""
@@ -429,9 +433,7 @@ class PartitionDefn(_InputDefn):
         ratios = [LogOptPar(name + '_ratio', scope, (1e-6, r, 1e+6))
                   for r in ratios]
 
-        def r2p(*ratios):
-            return numpy.asarray(_proportions(1.0, ratios))
-        partition = EvaluatedCell(name, r2p, tuple(ratios))
+        partition = EvaluatedCell(name, _ratio_to_proportion, tuple(ratios))
         return (ratios, partition)
 
     def make_cells(self, input_soup={}, variable=None):
