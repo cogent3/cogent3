@@ -8,10 +8,11 @@ from time import clock
 from datetime import datetime
 from random import randrange, choice, randint
 from sys import maxsize
+from warnings import warn
 from os import popen, remove, makedirs, getenv
 from os.path import join, abspath, exists, isdir
 from tempfile import gettempdir
-from numpy import logical_not, sum, array, float64, finfo
+from numpy import logical_not, sum, array, float64, finfo, log10, ceil, floor
 from pickle import dumps, loads
 from gzip import GzipFile, open as gzip_open
 from bz2 import open as bzip_open
@@ -49,6 +50,48 @@ def adjusted_gt_minprob(probs, minprob=1e-6):
     probs += adj
     probs /= probs.sum()
     return probs
+
+def adjusted_within_bounds(value, lower, upper, eps=1e-7, action='warn'):
+    """returns value such that lower <= value <= upper
+    
+    Parameters
+    ----------
+    value
+        number, converted to float64
+    lower
+        lower bound
+    upper
+        upper bound
+    eps : float
+        if value lies within eps of either lower/upper, it's returned inside
+        this interval by machine precision
+    action : str
+        'warn', 'raise' (ValueError), 'ignore'. What happens if value lies further than eps
+        from either bound
+    """
+    if lower <= value <= upper:
+        return value
+    
+    assert action in ('warn', 'raise', 'ignore'), "Unknown action %s" % repr(action)
+
+    value = float64(value)
+    eps = float64(eps) + finfo(float64).eps
+    err_msg = 'value[%s] not within lower[%s]/upper[%s] bounds' %\
+                (value, lower, upper)
+    wrn_msg = 'value[%s] forced within lower[%s]/upper[%s] bounds' %\
+                (value, lower, upper)
+
+    if value < lower and (lower - value) <= eps:
+        value = lower
+    elif value > upper and (value - upper) <= eps:
+        value = upper
+    elif (lower > value or value > upper) and action == 'raise':
+        raise ValueError(err_msg)
+    else:
+        warn(wrn_msg, category=UserWarning)
+        value = upper if value > upper else lower
+        
+    return value
 
 def bytes_to_string(data):
     """returns a string if data is bytes, otherwise returns original"""

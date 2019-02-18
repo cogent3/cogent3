@@ -13,6 +13,7 @@ from cogent3.recalculation.definition import ParameterController
 from cogent3.maths.matrix_logarithm import is_generator_unique
 from cogent3.maths.matrix_exponential_integration import expected_number_subs
 from cogent3.evolve import substitution_model
+from cogent3.util.misc import adjusted_within_bounds
 
 from cogent3.util.warning import discontinued, deprecated
 
@@ -488,10 +489,12 @@ class LikelihoodFunction(ParameterController):
                 else:
                     uniq = defn.uniq[index]
                     rule = dict(par_name=param_name, edges=edges)
-                    if defn.uniq[index].is_constant:
+                    if uniq.is_constant:
                         rule.update(dict(is_constant=True, value=uniq.value))
                     else:
-                        rule.update(dict(init=uniq.value, lower=uniq.lower,
+                        value = adjusted_within_bounds(uniq.value,
+                                                       uniq.lower, uniq.upper)
+                        rule.update(dict(init=value, lower=uniq.lower,
                                          upper=uniq.upper))
                 rules.append(rule)
 
