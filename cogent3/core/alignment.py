@@ -436,6 +436,10 @@ class SequenceCollection(object):
 
     def _get_alphabet_and_moltype(self, alphabet, moltype, data):
         """Returns alphabet and moltype, giving moltype precedence."""
+        if type(moltype) == str:
+            from cogent3.core.moltype import get_moltype
+            moltype = get_moltype(moltype)
+
         if alphabet is None and moltype is None:
             if hasattr(data, 'moltype'):
                 moltype = data.moltype
