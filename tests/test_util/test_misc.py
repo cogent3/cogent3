@@ -618,6 +618,8 @@ class UtilsTests(TestCase):
         self.assertTrue(a == "abcd" and b == None)
         a, b = get_format_suffixes("suffixes.abcd.bz2")
         self.assertTrue(a == "abcd" and b == "bz2")
+        a, b = get_format_suffixes("suffixes.zip")
+        self.assertTrue(a == None and b == "zip")
 
 
 class _my_dict(dict):
