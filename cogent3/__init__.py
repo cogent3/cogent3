@@ -49,8 +49,8 @@ from cogent3.core.alignment import Alignment, ArrayAlignment
 from cogent3.parse.sequence import FromFilenameParser
 # note that moltype has to be imported last, because it sets the moltype in
 # the objects created by the other modules.
-from cogent3.core.moltype import ASCII, DNA, RNA, PROTEIN, STANDARD_CODON, \
-    CodonAlphabet
+from cogent3.core.moltype import (ASCII, DNA, RNA, PROTEIN, STANDARD_CODON,
+    CodonAlphabet, get_moltype)
 
 
 def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
@@ -63,6 +63,7 @@ def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
             else:
                 raise ValueError("Multiple sequences in '%s'" % filename)
     if moltype is not None:
+        moltype = get_moltype(moltype)
         seq = moltype.make_seq(seq)
     elif not hasattr(seq, 'moltype'):
         seq = ASCII.make_seq(seq)
@@ -80,7 +81,7 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     - filename: name of the sequence file
     - format: format of the sequence file
     - data: optional explicit provision of sequences
-    - moltype: the moltype, eg DNA, PROTEIN
+    - moltype: the moltype, eg DNA, PROTEIN, 'dna', 'protein'
     - aligned: set True if sequences are already aligned and have the same
       length. If False, a SequenceCollection instance is returned instead.
     - array_align: returns alignment as ArrayAlignment
