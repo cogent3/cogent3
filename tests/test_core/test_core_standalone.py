@@ -533,7 +533,7 @@ class SequenceTestMethods(unittest.TestCase):
     """Testing Sequence methods"""
 
     def setUp(self):
-        self.seq = Sequence(DNA, 'ATGACGTTGCGTAGCATAGCTCGA')
+        self.seq = Sequence('dna', 'ATGACGTTGCGTAGCATAGCTCGA')
 
     def test_getlength(self):
         """testing getting length"""

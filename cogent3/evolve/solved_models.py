@@ -60,7 +60,8 @@ def _solvedNucleotide(name, predicates, rate_matrix_required=True, **kw):
         klass = PredefinedNucleotide
     else:
         klass = TimeReversibleNucleotide
-    return klass(name=name, predicates=predicates, model_gaps=False, **kw)
+    kw['model_gaps'] = False
+    return klass(name=name, predicates=predicates, **kw)
 
 kappa_y = MotifChange('T', 'C').aliased('kappa_y')
 kappa_r = MotifChange('A', 'G').aliased('kappa_r')
@@ -69,14 +70,17 @@ kappa = (kappa_y | kappa_r).aliased('kappa')
 
 def TN93(**kw):
     """Tamura and Nei 1993 model"""
-    return _solvedNucleotide('TN93', [kappa_y, kappa_r], recode_gaps=True, **kw)
+    kw['recode_gaps'] = True
+    return _solvedNucleotide('TN93', [kappa_y, kappa_r], **kw)
 
 
 def HKY85(**kw):
     """Hasegawa, Kishino and Yanamo 1985 model"""
-    return _solvedNucleotide('HKY85', [kappa], recode_gaps=True, **kw)
+    kw['recode_gaps'] = True
+    return _solvedNucleotide('HKY85', [kappa], **kw)
 
 
 def F81(**kw):
     """Felsenstein's 1981 model"""
-    return _solvedNucleotide('F81', [], recode_gaps=True, **kw)
+    kw['recode_gaps'] = True
+    return _solvedNucleotide('F81', [], **kw)
