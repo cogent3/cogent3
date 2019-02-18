@@ -2,8 +2,9 @@
 """ Unit tests for Genetic Code classes.
 """
 from cogent3 import RNA, DNA
-from cogent3.core.genetic_code import GeneticCode, GeneticCodeInitError,\
-    InvalidCodonError, GeneticCodes
+from cogent3.core.genetic_code import (GeneticCode, GeneticCodeInitError,
+                                       InvalidCodonError, GeneticCodes,
+                                       get_code, DEFAULT)
 from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Greg Caporaso"
@@ -337,6 +338,15 @@ class GeneticCodeTests(TestCase):
         # note that the lists will be arbitrary-order
         for i in expected_synonyms:
             self.assertEqualItems(obs_synonyms[i], expected_synonyms[i])
+
+    def test_get_code(self):
+        """correctly return the genetic code"""
+        for code_id in [1, '1', 'Standard Nuclear', DEFAULT]:
+            got = get_code(code_id)
+            self.assertEqual(got, DEFAULT)
+        got = get_code(2)
+        self.assertEqual(got.name.lower(), 'vertebrate mitochondrial')
+
 
 # Run tests if called from command line
 if __name__ == '__main__':
