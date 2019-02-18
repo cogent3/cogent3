@@ -19,7 +19,7 @@ from cogent3.util.misc import (iterable,
                                NonnegIntError, reverse_complement, not_none,
                                NestedSplitter, curry, remove_files, get_random_directory_name,
                                create_dir, handle_error_codes, identity, if_,
-                               to_string,
+                               to_string, adjusted_within_bounds,
                                timeLimitReached, get_independent_coords, get_merged_by_value_coords,
                                get_merged_overlapping_coords, get_run_start_indices, get_tmp_filename,
                                get_format_suffixes,
@@ -63,6 +63,20 @@ class UtilsTests(TestCase):
         minprob=0
         got = adjusted_gt_minprob(vector, minprob=minprob)
         self.assertTrue(got.min() > minprob)
+    
+    def test_adjusted_within_bounds(self):
+        """values correctly adjusted within specified bounds"""
+        l, u = 1e-5, 2
+        eps = 1e-6
+        got = adjusted_within_bounds(l-eps, l, u, eps=eps)
+        self.assertFloatEqual(got, l)
+        got = adjusted_within_bounds(u+eps, l, u, eps=eps)
+        self.assertFloatEqual(got, u)
+        with self.assertRaises(ValueError):
+            got = adjusted_within_bounds(u+4, l, u, eps=eps, action='raise')
+
+        with self.assertRaises(ValueError):
+            got = adjusted_within_bounds(u-4, l, u, eps=eps, action='raise')
 
     def test_identity(self):
         """should return same object"""
