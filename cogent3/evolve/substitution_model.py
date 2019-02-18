@@ -853,6 +853,27 @@ def EmpiricalProteinMatrix(matrix, motif_probs=None, optimise_motif_probs=False,
                      model_gaps=False, recode_gaps=recode_gaps, do_scaling=do_scaling,
                      optimise_motif_probs=optimise_motif_probs, **kw)
 
+
+
+class _CodonPredicates:
+    """predicates for silent and replacement substitutions"""
+    def __init__(self, gc):
+        """
+        Parameters
+        ----------
+        
+        gc
+            a genetic code instance
+        """
+        self.gc = gc
+    
+    def silent(self, x, y):
+        return x != '---' and y != '---' and self.gc[x] == self.gc[y]
+
+    def replacement(self, x, y):
+        return x != '---' and y != '---' and self.gc[x] != self.gc[y]
+
+
 class _Codon:
     long_indels_are_instantaneous = True
 
@@ -864,22 +885,16 @@ class _Codon:
             return ndiffs == 1
 
     def get_predefined_predicates(self):
-        gc = self.get_alphabet().get_genetic_code()
-
-        def silent(x, y):
-            return x != '---' and y != '---' and gc[x] == gc[y]
-
-        def replacement(x, y):
-            return x != '---' and y != '---' and gc[x] != gc[y]
+        codon_preds = _CodonPredicates(self.get_alphabet().get_genetic_code())
 
         preds = _TimeReversibleNucleotide.get_predefined_predicates(self)
         preds.update({
             'indel': predicate.parse('???/---'),
-            'silent': predicate.UserPredicate(silent),
-            'replacement': predicate.UserPredicate(replacement),
-            'omega': predicate.UserPredicate(replacement)
+            'silent': predicate.UserPredicate(codon_preds.silent),
+            'replacement': predicate.UserPredicate(codon_preds.replacement),
+            'omega': predicate.UserPredicate(codon_preds.replacement)
         })
-        return preds    
+        return preds
 
 
 class TimeReversibleCodon(_Codon, _TimeReversibleNucleotide):
