@@ -69,7 +69,7 @@ def get_format_suffixes(filename):
     if '.' not in filename:
         return None, None
 
-    compression_suffixes = ("bz2", "gz")
+    compression_suffixes = ("bz2", "gz", "zip")
     filename = filename.split(".")
     suffixes = filename[1:] if len(filename) == 2 else filename[-2:]
     if suffixes[-1] in compression_suffixes:
