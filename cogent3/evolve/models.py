@@ -30,6 +30,7 @@ codon_models = ['CNFGTR', 'CNFHKY', 'MG94HKY',
 
 protein_models = ['DSO78', 'AH96', 'AH96_mtmammals', 'JTT92', 'WG01']
 
+models = nucleotide_models + codon_models + protein_models
 
 # Substitution model rate matrix predicates
 _gtr_preds = [MotifChange(x, y) for x, y in ['AC', 'AG', 'AT', 'CG', 'CT']]
@@ -717,6 +718,18 @@ def AH96(**kw):
         **kw)
 
     return sm
+
+
+def get_model(name, **kw):
+    '''returns an instance of the named model
+
+    name is case sensitive and must be in the models attribute'''
+    if name not in models:
+        msg = 'Unknown model "%s". Model names are case sensitive!' % name
+        raise ValueError(msg)
+
+    g = globals()
+    return g[name](**kw)
 
 
 def mtREV(**kw):

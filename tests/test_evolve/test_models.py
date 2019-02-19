@@ -2,7 +2,8 @@ from cogent3.util.unit_test import TestCase, main
 from cogent3.evolve.models import (JC69, F81, HKY85, TN93, GTR, GN, ssGN,
                                    MG94HKY, MG94GTR, GY94, H04G, H04GK, H04GGK,
                                    DSO78, AH96, AH96_mtmammals, JTT92, WG01,
-                                   CNFGTR, CNFHKY, GNC, WG01_matrix, WG01_freqs)
+                                   CNFGTR, CNFHKY, GNC, WG01_matrix, WG01_freqs,
+                                   get_model)
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -50,6 +51,14 @@ class CannedModelsTest(TestCase):
             for scaled in [True, False]:
                 model = klass(rate_matrix_required=False, do_scaling=scaled)
                 model.check_psub_calculations_match()
+
+    def test_get_model(self):
+        """get_models successfully creates model instances"""
+        for name in ('GTR', 'CNFGTR', 'WG01'):
+            model = get_model(name)
+
+        with self.assertRaises(ValueError):
+            _ = get_model('blah')
 
 
 if __name__ == '__main__':
