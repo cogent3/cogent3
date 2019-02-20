@@ -106,6 +106,7 @@ def suite():
         'test_parse.test_unigene',
         'test_util.test_unit_test',
         'test_util.test_array',
+        'test_util.test_deserialise',
         'test_util.test_dict2d',
         'test_util.test_misc',
         'test_util.test_recode_alignment',
