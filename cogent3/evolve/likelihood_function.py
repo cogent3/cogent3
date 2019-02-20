@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import json
 import random
 from collections import defaultdict
 import numpy
@@ -8,7 +9,7 @@ from cogent3.core.alignment import ArrayAlignment
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.evolve.simulate import AlignmentEvolver, random_sequence
 from cogent3.util import parallel, table
-from cogent3.util.misc import adjusted_gt_minprob
+from cogent3.util.misc import adjusted_gt_minprob, get_object_provenance
 from cogent3.recalculation.definition import ParameterController
 from cogent3.maths.matrix_logarithm import is_generator_unique
 from cogent3.maths.matrix_exponential_integration import expected_number_subs
@@ -500,7 +501,6 @@ class LikelihoodFunction(ParameterController):
 
         return rules
 
-
     def get_statistics(self, with_motif_probs=True, with_titles=True):
         """returns the parameter values as tables/dict
 
@@ -572,6 +572,47 @@ class LikelihoodFunction(ParameterController):
                 max_width=80, row_ids=row_ids,
                 title=title, **self._format))
         return result
+
+    def to_rich_dict(self):
+        """returns detailed info on object, used by to_json"""
+        data = self._serialisable.copy()
+        for key in ('model', 'tree'):
+            del(data[key])
+
+        tree = self.tree.to_rich_dict()
+        edge_attr = tree['edge_attributes']
+        for edge in edge_attr:
+            if edge == 'root':
+                continue
+            edge_attr[edge]['length'] = self.get_param_value('length',
+                                                             edge=edge)
+        model = self._model.to_rich_dict(for_pickle=False)
+        alignment = self.get_param_value('alignment').to_rich_dict()
+        mprobs = self.get_motif_probs().asdict()
+        DLC = self.all_psubs_DLC()
+        try:
+            unique_Q = self.all_rate_matrices_unique()
+        except Exception:
+            # there's a mix of assertions
+            # for "storage", make this indeterminate in those cases
+            unique_Q = None
+
+        data = dict(model=model,
+                    tree=tree,
+                    alignment=alignment,
+                    likelihood_construction=data,
+                    param_rules=self.get_param_rules(),
+                    lnL=self.get_log_likelihood(),
+                    nfp=self.get_num_free_params(),
+                    motif_probs=mprobs,
+                    DLC=DLC, unique_Q=unique_Q,
+                    type=get_object_provenance(self))
+        return data
+    
+    def to_json(self):
+        data = self.to_rich_dict()
+        data = json.dumps(data)
+        return data
 
     # For tests.  Compat with old LF interface
     def set_name(self, name):
