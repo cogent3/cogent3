@@ -566,7 +566,7 @@ class _LeafDefn(_Defn):
         else:
             s_value = sum(values) / len(values)
             for value in values:
-                if not numpy.all(value == s_value):
+                if not numpy.isclose(value, s_value).all():
                     warnings.warn("Used mean of %s %s values" %
                                   (len(values), self.name), stacklevel=4)
                     break
