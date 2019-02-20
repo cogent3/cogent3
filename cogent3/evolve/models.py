@@ -59,12 +59,17 @@ def _make_symn_preds():
 
 _sym_preds = _make_symn_preds()
 
+
 def GN(optimise_motif_probs=True, **kw):
     """general Markov nucleotide (non-stationary, non-reversible)"""
-    sm = ns_substitution_model.NonReversibleNucleotide(optimise_motif_probs=optimise_motif_probs,
-                                                       predicates=_general_preds,
-                                                       name='GN', **kw)
+    required = dict(optimise_motif_probs=optimise_motif_probs, name='GN',
+                    predicates=_general_preds)
+    kwargs = dict(do_scaling=True, recode_gaps=True, model_gaps=False)
+    kwargs.update(kw)
+    kwargs.update(required)
+    sm = ns_substitution_model.NonReversibleNucleotide(**kwargs)
     return sm
+
 
 def ssGN(optimise_motif_probs=True, **kw):
     """strand-symmetric general Markov nucleotide (non-stationary, non-reversible)"""
@@ -77,24 +82,30 @@ def ssGN(optimise_motif_probs=True, **kw):
 
 def K80(**kw):
     """Kimura 1980"""
-    return HKY85(equal_motif_probs=True, optimise_motif_probs=False, **kw)
+    required = dict(equal_motif_probs=True, optimise_motif_probs=False)
+    kwargs = {}
+    kwargs.update(kw)
+    kwargs.update(required)
+    return HKY85(**kwargs)
 
 
 def JC69(**kw):
     """Jukes and Cantor's 1969 model"""
-    return F81(equal_motif_probs=True, optimise_motif_probs=False, **kw)
+    required = dict(equal_motif_probs=True, optimise_motif_probs=False)
+    kwargs = {}
+    kwargs.update(kw)
+    kwargs.update(required)
+    return F81(**kwargs)
 
 
 def GTR(**kw):
     """General Time Reversible nucleotide substitution model."""
-    return substitution_model.TimeReversibleNucleotide(
-        motif_probs=None,
-        do_scaling=True,
-        model_gaps=False,
-        recode_gaps=True,
-        name='GTR',
-        predicates=_gtr_preds,
-        **kw)
+    required = dict(name='GTR', predicates=_gtr_preds,
+                    mprob_model='conditional', model_gaps=False)
+    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs.update(kw)
+    kwargs.update(required)
+    return substitution_model.TimeReversibleNucleotide(**kwargs)
 
 
 # Codon Models
@@ -103,15 +114,12 @@ def CNFGTR(**kw):
     (with params analagous to the nucleotide GTR model).
 
     See Yap, Lindsay, Easteal and Huttley, Mol Biol Evol, In press."""
-    return substitution_model.TimeReversibleCodon(
-        motif_probs=None,
-        do_scaling=True,
-        model_gaps=False,
-        recode_gaps=True,
-        name='CNFGTR',
-        predicates=_gtr_preds + [_omega],
-        mprob_model='conditional',
-        **kw)
+    required = dict(name='CNFGTR', predicates=_gtr_preds + [_omega],
+                    mprob_model='conditional', model_gaps=False)
+    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs.update(kw)
+    kwargs.update(required)
+    return substitution_model.TimeReversibleCodon(**kwargs)
 
 
 def CNFHKY(**kw):
@@ -119,15 +127,12 @@ def CNFHKY(**kw):
     (with kappa, the ratio of transitions to transversions)
 
     See Yap, Lindsay, Easteal and Huttley, Mol Biol Evol, In press."""
-    return substitution_model.TimeReversibleCodon(
-        motif_probs=None,
-        do_scaling=True,
-        model_gaps=False,
-        recode_gaps=True,
-        name='CNFHKY',
-        predicates=[_kappa, _omega],
-        mprob_model='conditional',
-        **kw)
+    required = dict(name='CNFHKY', predicates=[_kappa, _omega],
+                    mprob_model='conditional', model_gaps=False)
+    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs.update(kw)
+    kwargs.update(required)
+    return substitution_model.TimeReversibleCodon(**kwargs)
 
 
 def MG94HKY(**kw):
@@ -135,15 +140,12 @@ def MG94HKY(**kw):
     the ratio of transitions to transversions)
 
     see, Muse and Gaut, 1994, Mol Biol Evol, 11, 715-24"""
-    return substitution_model.TimeReversibleCodon(
-        motif_probs=None,
-        do_scaling=True,
-        model_gaps=False,
-        recode_gaps=True,
-        name='MG94',
-        predicates=[_kappa, _omega],
-        mprob_model='monomer',
-        **kw)
+    required = dict(name='MG94HKY', predicates=[_kappa, _omega],
+                    mprob_model='monomer', model_gaps=False)
+    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs.update(kw)
+    kwargs.update(required)
+    return substitution_model.TimeReversibleCodon(**kwargs)
 
 
 def MG94GTR(**kw):
@@ -151,15 +153,12 @@ def MG94GTR(**kw):
     analagous to the nucleotide GTR model)
 
     see, Muse and Gaut, 1994, Mol Biol Evol, 11, 715-24"""
-    return substitution_model.TimeReversibleCodon(
-        motif_probs=None,
-        do_scaling=True,
-        model_gaps=False,
-        recode_gaps=True,
-        name='MG94',
-        predicates=_gtr_preds + [_omega],
-        mprob_model='monomer',
-        **kw)
+    required = dict(name='MG94GTR', predicates=_gtr_preds + [_omega],
+                    mprob_model='monomer', model_gaps=False)
+    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs.update(kw)
+    kwargs.update(required)
+    return substitution_model.TimeReversibleCodon(**kwargs)
 
 
 def GY94(**kw):
@@ -172,18 +171,12 @@ def GY94(**kw):
 def Y98(**kw):
     """Yang's 1998 substitution model, a derivative of the GY94.
     see Z Yang. Mol. Biol. Evol., 15(5):568-73, 1998"""
-    return substitution_model.TimeReversibleCodon(
-        motif_probs=None,
-        do_scaling=True,
-        model_gaps=False,
-        recode_gaps=True,
-        name='Y98',
-        predicates={
-            'kappa': 'transition',
-            'omega': 'replacement',
-        },
-        mprob_model='tuple',
-        **kw)
+    required = dict(name='Y98', predicates=[_kappa, _omega],
+                    mprob_model='tuple', model_gaps=False)
+    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs.update(kw)
+    kwargs.update(required)
+    return substitution_model.TimeReversibleCodon(**kwargs)
 
 
 def H04G(**kw):
@@ -191,15 +184,12 @@ def H04G(**kw):
     to or from CpG's.
 
     see, GA Huttley. Mol Biol Evol, 21(9):1760-8"""
-    return substitution_model.TimeReversibleCodon(
-        motif_probs=None,
-        do_scaling=True,
-        model_gaps=False,
-        recode_gaps=True,
-        name='H04G',
-        predicates=[_cg, _kappa, _omega],
-        mprob_model='tuple',
-        **kw)
+    required = dict(name='H04G', predicates=[_cg, _kappa, _omega],
+                    mprob_model='tuple', model_gaps=False)
+    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs.update(kw)
+    kwargs.update(required)
+    return substitution_model.TimeReversibleCodon(**kwargs)
 
 
 def H04GK(**kw):
@@ -207,15 +197,12 @@ def H04GK(**kw):
     substitutions to or from CpG's.
 
     see, GA Huttley. Mol Biol Evol, 21(9):1760-8"""
-    return substitution_model.TimeReversibleCodon(
-        motif_probs=None,
-        do_scaling=True,
-        model_gaps=False,
-        recode_gaps=True,
-        name='H04GK',
-        predicates=[_cg_k, _kappa, _omega],
-        mprob_model='tuple',
-        **kw)
+    required = dict(name='H04GK', predicates=[_cg_k, _kappa, _omega],
+                    mprob_model='tuple', model_gaps=False)
+    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs.update(kw)
+    kwargs.update(required)
+    return substitution_model.TimeReversibleCodon(**kwargs)
 
 
 def H04GGK(**kw):
@@ -223,26 +210,24 @@ def H04GGK(**kw):
     substitutions to or from CpG's and an adjustment for CpG transitions.
 
     see, GA Huttley. Mol Biol Evol, 21(9):1760-8"""
-    return substitution_model.TimeReversibleCodon(
-        motif_probs=None,
-        do_scaling=True,
-        model_gaps=False,
-        recode_gaps=True,
-        name='H04GGK',
-        predicates=[_cg, _cg_k, _kappa, _omega],
-        mprob_model='tuple',
-        **kw)
+    required = dict(name='H04GGK', predicates=[_cg, _cg_k, _kappa, _omega],
+                    mprob_model='tuple', model_gaps=False)
+    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs.update(kw)
+    kwargs.update(required)
+    return substitution_model.TimeReversibleCodon(**kwargs)
+
 
 def GNC(**kw):
     """General Nucleotide Codon, a non-reversible codon model.
 
     see Genome Biology and Evolution 9 (1): 134–49"""
-    return ns_substitution_model.NonReversibleCodon(
-        model_gaps=False,
-        recode_gaps=True,
-        name='GNC',
-        predicates=_general_preds + [_omega],
-        **kw)
+    required = dict(name='GNC', predicates=_general_preds + [_omega],
+                    mprob_model='tuple', model_gaps=False)
+    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs.update(kw)
+    kwargs.update(required)
+    return ns_substitution_model.NonReversibleCodon(**kwargs)
 
 # Protein Models
 

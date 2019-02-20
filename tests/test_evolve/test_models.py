@@ -3,7 +3,7 @@ from cogent3.evolve.models import (JC69, F81, HKY85, TN93, GTR, GN, ssGN,
                                    MG94HKY, MG94GTR, GY94, H04G, H04GK, H04GGK,
                                    DSO78, AH96, AH96_mtmammals, JTT92, WG01,
                                    CNFGTR, CNFHKY, GNC, WG01_matrix, WG01_freqs,
-                                   get_model)
+                                   get_model, models)
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -54,10 +54,11 @@ class CannedModelsTest(TestCase):
 
     def test_get_model(self):
         """get_models successfully creates model instances"""
-        for name in ('GTR', 'CNFGTR', 'WG01'):
+        for name in models:
             model = get_model(name)
 
         with self.assertRaises(ValueError):
+            # unknown model raises exception
             _ = get_model('blah')
 
 
