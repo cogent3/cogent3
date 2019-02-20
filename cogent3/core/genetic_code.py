@@ -410,3 +410,27 @@ def get_code(code_id):
         raise ValueError('No genetic code matching "%s"' % code_id)
 
     return code
+
+def get_code(code_id):
+    """returns the genetic code
+    
+    Parameters
+    ----------
+    code_id
+        genetic code identifier, name, number or string(number)
+    """
+    if isinstance(code_id, GeneticCode):
+        return code_id
+
+    code = None
+    if str(code_id).isdigit():
+        code = GeneticCodes[code_id]
+    else:
+        for gc in GeneticCodes.values():
+            if gc.name == code_id:
+                code = gc
+
+    if code is None:
+        raise ValueError('No genetic code matching "%s"' % code_id)
+
+    return code
