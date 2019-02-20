@@ -1500,3 +1500,18 @@ def get_merged_by_value_coords(spans_value, digits=None):
         data[-1][1] = ends[-1]
 
     return data
+
+
+def get_object_provenance(obj):
+    """returns string of complete object provenance"""
+    # algorithm inspired by Greg Baacon's answer to
+    # https://stackoverflow.com/questions/2020014/get-fully-qualified-class
+    # -name-of-an-object-in-python
+    mod = obj.__class__.__module__
+    name = obj.__class__.__name__
+    result = None
+    if mod is None or mod == 'builtins':
+        result = name
+    else:
+        result = '.'.join([mod, name])
+    return result

@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 """Tests of classes for dealing with trees and phylogeny.
 """
-
+import json
 from copy import copy, deepcopy
 from cogent3 import LoadTree
 from cogent3.core.tree import TreeNode, PhyloNode, TreeError
 from cogent3.parse.tree import DndParser
 from cogent3.maths.stats.test import correlation
 from cogent3.util.unit_test import TestCase, main
+from cogent3.util.misc import get_object_provenance
 from numpy import array, arange
 
 __author__ = "Rob Knight"
@@ -155,6 +156,40 @@ class TreeNodeTests(TestCase):
         self.BigParent[-1].extend('abc')
         self.assertEqual(self.BigParent.get_newick(),
                          '(0,1,2,3,4,5,6,7,8,(a,b,c)9)x;')
+
+    def test_to_dict(self):
+        """tree produces dict"""
+        tr = LoadTree(treestring='(a,b,(c,d)e1)')
+        got = tr.to_rich_dict()
+        attrs = {'length': None}
+        expect = {'newick': '(a,b,(c,d)e1)',
+                  'edge_attributes': {'a': attrs, 'b': attrs, 'c': attrs,
+                           'd': attrs, 'e1': attrs, 'root': attrs},
+                  'type': get_object_provenance(tr)}
+        self.assertEqual(got, expect)
+
+        tr = LoadTree(treestring='(a:1,b:1,(c:1,d:1)e1:1)')
+        got = tr.to_rich_dict()
+        attrs = {'length': 1.0}
+        expect = {'newick': '(a,b,(c,d)e1)',
+                  'edge_attributes': {'a': attrs, 'b': attrs, 'c': attrs,
+                           'd': attrs, 'e1': attrs, 'root': {'length': None}},
+                  'type': get_object_provenance(tr)}
+        self.assertEqual(got, expect)
+
+    def test_to_json(self):
+        """tree produces json string that round trips correctly"""
+        tr = LoadTree(treestring='(a,b,(c,d)e1)')
+        got = json.loads(tr.to_json())
+        attrs = {'length': None}
+        expect = tr.to_rich_dict()
+        self.assertEqual(got, expect)
+
+        tr = LoadTree(treestring='(a:1,b:1,(c:1,d:1)e1:1)')
+        got = json.loads(tr.to_json())
+        attrs = {'length': 1.0}
+        expect = tr.to_rich_dict()
+        self.assertEqual(got, expect)
 
     def test_multifurcating(self):
         """Coerces nodes to have <= n children"""

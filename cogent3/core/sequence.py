@@ -17,6 +17,7 @@ from collections import Counter
 from operator import eq, ne
 from random import shuffle
 import re
+import json
 import warnings
 
 from numpy import array, zeros, put, nonzero, take, ravel, compress, \
@@ -26,7 +27,8 @@ from numpy.random import permutation
 from .annotation import Map, Feature, _Annotatable
 from cogent3.util.transform import KeepChars, for_seq, per_shortest, \
     per_longest
-from cogent3.util.misc import DistanceFromMatrix, bytes_to_string
+from cogent3.util.misc import (DistanceFromMatrix, bytes_to_string,
+                               get_object_provenance)
 from cogent3.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE, \
     GeneticCodes
 from cogent3.parse import gff
@@ -75,6 +77,22 @@ class SequenceI(object):
         """
         return fasta_from_sequences([self], make_seqlabel=make_seqlabel,
                                     line_wrap=self.LineWrap)
+    
+    def to_rich_dict(self):
+        """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
+        info = {} if self.info is None else self.info
+        if not info.get('Refs', None) is None and 'Refs' in info:
+            info.pop('Refs')
+        
+        info = info or None
+        data = dict(name=self.name, seq=str(self), moltype=self.moltype.label,
+                    info=info,
+                    type=get_object_provenance(self))
+        return data
+
+    def to_json(self):
+        """returns a json formatted string"""
+        return json.dumps(self.to_rich_dict())
 
     def translate(self, *args, **kwargs):
         """translate() delegates to self._seq."""
