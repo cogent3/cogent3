@@ -2440,7 +2440,7 @@ class AlignmentI(object):
         data = self.todict()
         if moltype is None:
             # Alignment and ArrayAlignment have different default moltypes
-            moltype_default = isinstance(self.moltype, type(self.__class__.moltype))
+            moltype_default = self.moltype == self.__class__.moltype
             if moltype_default:
                 moltype = ArrayAlignment.moltype if array_align else Alignment.moltype
             else:
