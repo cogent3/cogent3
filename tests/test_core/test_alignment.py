@@ -1594,6 +1594,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         new = aln.to_type(array_align=array_align, moltype=DNA)
         new = new.no_degenerates()  # this should not fail!
         self.assertEqual(len(new), len(aln) - 3)
+
+        # should correctly apply to existing moltype
+        aln = self.Class(data=new_seqs, moltype=DNA)
+        new = aln.to_type(array_align=not array_align)
+        self.assertEqual(aln.moltype, new.moltype)
     
     def test_to_dna(self):
         """alignment cast to DNA works"""
