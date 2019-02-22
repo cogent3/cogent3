@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Classes for storing and manipulating a phylogenetic tree.
 
 These trees can be either strictly binary, or have polytomies
@@ -25,13 +24,14 @@ Definition of relevant terms or abbreviations:
        from a node
     -  stem: the edge immediately preceeding a clade
 """
+import json
 from numpy import zeros, argsort, ceil, log
 from copy import deepcopy
 import re
 from itertools import combinations
 from cogent3.maths.stats.test import correlation
 from operator import or_
-from cogent3.util.misc import InverseDict
+from cogent3.util.misc import InverseDict, get_object_provenance
 from random import shuffle, choice
 from functools import reduce
 
@@ -808,6 +808,20 @@ class TreeNode(object):
             return True
         else:
             return self.name == other.name
+    
+    def to_rich_dict(self):
+        """returns {'newick': with node names,
+        'edge_attributes': {'tip1': {'length': ...}, ...}}"""
+        newick = self.get_newick(with_node_names=True, semicolon=False)
+        attr = {}
+        for edge in self.get_edge_vector(include_root=True):
+            attr[edge.name] = edge.params.copy()
+        result = dict(newick=newick, edge_attributes=attr, type=get_object_provenance(self))
+        return result
+
+    def to_json(self):
+        """returns json formatted string {'newick': with edges and distances, 'edge_attributes': }"""
+        return json.dumps(self.to_rich_dict())
 
     def get_newick_recursive(self, with_distances=False, semicolon=True,
                              escape_name=True, with_node_names=False):
