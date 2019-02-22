@@ -2191,7 +2191,7 @@ class AlignmentI(object):
         css, styles = self.moltype.get_css_style(colors=colors,
                                                   font_size=font_size,
                                                   font_family=font_family)
-        
+
         if longest_ref and name_order is None:
             length_names = []
             for s in self.seqs:
@@ -2228,7 +2228,7 @@ class AlignmentI(object):
         for i in range(seqlen):
             char = refseq[i]
             if i < start or i >= end:
-                style = 'terminal_ambig'
+                style = 'terminal_ambig_%s' % self.moltype.label
             else:
                 style = styles[char]
 
