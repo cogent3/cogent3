@@ -1085,7 +1085,8 @@ class MolType(object):
         template = ('.%s_%s{font-family: "%s",monospace !important; '
                     'font-size: %dpt !important; color: %s; }')
         styles = _style_defaults[self.label].copy()
-        styles.update({c: '_'.join([c, self.label]) for c in list(self.alphabet) + ['terminal_ambig']})
+        styles.update({c: '_'.join([c, self.label])
+                       for c in list(self.alphabet) + ['terminal_ambig']})
 
         css = []
         for char in list(styles) + ['ambig']:
