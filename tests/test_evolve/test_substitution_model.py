@@ -84,6 +84,14 @@ class NucleotideModelTestMethods(TestCase):
         coords = gn.get_param_matrix_coords(include_ref_cell=True)
         self.assertTrue(len(coords) == 12)
         self.assertTrue(len(coords['ref_cell']) == 1)
+    
+    def test_to_rich_dict(self):
+        """returns complete dict of attributes"""
+        f81 = F81().to_rich_dict()
+        hky85 = HKY85().to_rich_dict()
+        gn = GN().to_rich_dict()
+        # TODO need to assess ability to reconstruct from this
+        
 
 
 class MultiLetterMotifSubstModelTests(TestCase):
@@ -115,6 +123,11 @@ class MultiLetterMotifSubstModelTests(TestCase):
 
         # isIndel can now assume it won't get any non-instantaneous pairs
         # assert self.submodel.isIndel('-a', 'a-') == 0
+
+    def test_to_rich_dict(self):
+        """returns complete dict of attributes"""
+        got = self.submodel.to_rich_dict()
+        self.assertEqual(got['motif_length'], 2)
 
 nuc_probs = [('T', 0.1), ('C', 0.2), ('A', 0.3), ('G', 0.4)]
 
@@ -164,6 +177,11 @@ class ThreeLetterMotifSubstModelTests(TestCase):
         assert not isIndel('---', 'CTT')
         assert not isIndel('AAA', '--A')
         assert not isIndel('C--', 'CTT')
+
+    def test_to_rich_dict(self):
+        """returns complete dict of attributes"""
+        got = self.submodel.to_rich_dict()
+        self.assertEqual(got['motif_length'], 3)
 
 
 class CodonSubstModelTests(TestCase):

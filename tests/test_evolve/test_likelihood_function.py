@@ -845,7 +845,7 @@ motif    mprobs
         glf.set_name('GN')
         glf.initialise_from_nested(slf)
         self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
-
+    
     def test_initialise_from_nested_same_type_nr_scoped(self):
         """non-reversible likelihood initialised from nested, scoped, non-reversible"""
         mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
