@@ -34,6 +34,7 @@ import numpy
 from numpy.linalg import svd
 import warnings
 import inspect
+import json
 
 from cogent3 import LoadTable
 from cogent3.core import moltype
@@ -47,6 +48,7 @@ from cogent3.evolve.substitution_calculation import (
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 from cogent3.maths.optimisers import ParameterOutOfBoundsError
+from cogent3.util.misc import get_object_provenance
 from collections.abc import Callable
 
 __author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
@@ -145,7 +147,8 @@ class _SubstitutionModel(object):
            tuple-alphabet (including codon) motif probs are used.
 
         """
-
+        self._serialisable = locals()
+        self._serialisable.pop('self')
         # MISC
         assert len(alphabet) < 65, "Alphabet too big. Try explicitly "\
             "setting alphabet to PROTEIN or DNA"
@@ -187,6 +190,7 @@ class _SubstitutionModel(object):
         isinst = self._is_instantaneous
         self._instantaneous_mask = predicate2matrix(self.alphabet, isinst)
         self._instantaneous_mask_f = self._instantaneous_mask * 1.0
+        self._mprob_model = mprob_model
         self.mprob_model = motif_prob_model.make_model(mprob_model, alphabet,
                                                        self._instantaneous_mask_f)
 
@@ -212,6 +216,32 @@ class _SubstitutionModel(object):
             if motif_probs_from_data is None:
                 motif_probs_from_data = True
         self.motif_probs_from_align = motif_probs_from_data
+
+    def __getnewargs_ex__(self, *args, **kw):
+        data = self.to_rich_dict(for_pickle=True)
+        return (), data
+
+    def to_rich_dict(self, for_pickle=False):
+        data = self._serialisable.copy()
+        if not for_pickle:
+            for key, value in data.items():
+                type_ = get_object_provenance(value)
+                if type_.startswith('cogent3'):
+                    try:
+                        value = value.to_rich_dict(for_pickle=False)
+                    except AttributeError:
+                        pass
+                    finally:
+                        data[key] = value
+            if 'predicates' in data and data['predicates']:
+                data['predicates'] = [str(p) for p in data['predicates']]
+            data['type'] = get_object_provenance(self)
+        return data
+
+    def to_json(self):
+        """returns result of json formatted string"""
+        data = self.to_rich_dict(for_pickle=False)
+        return json.dumps(data)        
 
     def get_param_list(self):
         return []
@@ -388,6 +418,8 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         """
 
         _SubstitutionModel.__init__(self, alphabet, **kw)
+        self._serialisable.update(locals())
+        self._serialisable.pop('self')
         alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
 
         if do_scaling is None:
@@ -599,6 +631,8 @@ class Empirical(StationaryQ,_ContinuousSubstitutionModel):
          - rate_matrix: The instantaneous rate matrix
         """
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
+        self._serialisable.update(locals())
+        self._serialisable.pop('self')
 
         alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
         N = len(alphabet)
@@ -627,6 +661,9 @@ class Parametric(_ContinuousSubstitutionModel):
         """
         self._canned_predicates = None
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
+
+        self._serialisable.update(locals())
+        self._serialisable.pop('self')
 
         (predicate_masks, predicate_order) = self._adapt_predicates(predicates or [])
 

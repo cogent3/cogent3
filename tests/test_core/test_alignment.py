@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from cogent3.util.unit_test import TestCase, main
+from cogent3.util.misc import get_object_provenance
 from cogent3.core.sequence import RnaSequence, frac_same, ArraySequence, Sequence
 from cogent3.maths.stats.util import Freqs, Numbers
 from cogent3.core.moltype import RNA, DNA, PROTEIN, BYTES, ASCII
@@ -20,6 +21,7 @@ from numpy import array, arange, transpose
 from tempfile import mktemp
 from os import remove
 import re
+import json
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -714,6 +716,24 @@ class SequenceCollectionBaseTests(object):
             '    seq_2    ACDEFGHIKLMNPERSKUVWC-\n'\
             '    seq_3    ACNEFGHIKLMNPQRS-UVWP-\n\n    ;\nend;'
         got = align_norm.to_nexus('protein')
+        self.assertEqual(got, expect)
+
+    def test_to_rich_dict(self):
+        """to_rich_dict produces correct dict"""
+        aln = self.Class({'seq1': 'ACGG', 'seq2': 'CGCA', 'seq3': 'CCG-'})
+        got = aln.to_rich_dict()
+        expect = {'seqs': {'seq1': {'name': 'seq1', 'seq': 'ACGG', 'info': None},
+                           'seq2': {'name': 'seq2', 'seq': 'CGCA', 'info': None},
+                           'seq3': {'name': 'seq3', 'seq': 'CCG-', 'info': None}},
+                  'moltype': aln.moltype.label, 'info': None,
+                  'type': get_object_provenance(aln)}
+        self.assertEqual(got, expect)
+
+    def test_to_json(self):
+        """roundtrip of to_json produces correct dict"""
+        aln = self.Class({'seq1': 'ACGG', 'seq2': 'CGCA', 'seq3': 'CCG-'})
+        got = json.loads(aln.to_json())
+        expect = aln.to_rich_dict()
         self.assertEqual(got, expect)
 
     def test_get_int_map(self):
