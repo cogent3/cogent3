@@ -404,7 +404,7 @@ class _PairwiseDistance(object):
                 if name == alias:
                     val = 0
                 else:
-                    val = pwise[(alias, name)]
+                    val = pwise.get((alias, name), None)
                 pwise[(add, name)] = pwise[(name, add)] = val
 
         return pwise
