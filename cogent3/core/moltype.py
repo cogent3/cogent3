@@ -25,7 +25,8 @@ __status__ = "Production"
 
 from cogent3.core.alphabet import CharAlphabet, Enumeration, Alphabet, \
     AlphabetError, _make_complement_array
-from cogent3.util.misc import FunctionWrapper, add_lowercase, iterable, if_
+from cogent3.util.misc import (FunctionWrapper, add_lowercase, iterable,
+                               if_, get_object_provenance)
 from cogent3.util.transform import KeepChars, first_index_in_set
 from cogent3.data.molecular_weight import DnaMW, RnaMW, ProteinMW
 from cogent3.core.sequence import Sequence as DefaultSequence, RnaSequence, \
@@ -41,6 +42,7 @@ from cogent3.core.alignment import Alignment, ArrayAlignment, \
 from random import choice
 
 import re
+import json
 from string import ascii_letters as letters
 from collections import defaultdict
 
@@ -502,6 +504,8 @@ class MolType(object):
         contains mappings for both degenerate and non-degenerate symbols.
         Sometimes you want one, sometimes the other, so both are provided.
         """
+        self._serialisable = locals()
+        self._serialisable.pop('self')
         self.gap = gap
         self.missing = missing
         self.gaps = frozenset([gap, missing])
@@ -597,6 +601,21 @@ class MolType(object):
         incarnation.
         """
         return 'MolType(%s)' % (self.alphabet,)
+
+    def __getnewargs_ex__(self, *args, **kw):
+        data = self.to_rich_dict(for_pickle=True)
+        return (), data
+
+    def to_rich_dict(self, for_pickle=False):
+        data = self._serialisable.copy()
+        if not for_pickle:  # we rely on reconstruction from label
+            data = dict(type=get_object_provenance(self), moltype=self.label)
+        return data
+
+    def to_json(self):
+        """returns result of json formatted string"""
+        data = self.to_rich_dict(for_pickle=False)
+        return json.dumps(data)
 
     def gettype(self):
         """Returns type, e.g. 'dna', 'rna', 'protein'. Delete?"""

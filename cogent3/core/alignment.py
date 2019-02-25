@@ -20,6 +20,7 @@
     cause confusion when testing.
 """
 import re
+import json
 from types import GeneratorType
 from collections import defaultdict, Counter
 from functools import total_ordering
@@ -42,10 +43,11 @@ from numpy import nonzero, array, logical_or, logical_and, logical_not, \
 from numpy.random import randint, permutation
 
 from cogent3.util.dict2d import Dict2D
-from cogent3.util.misc import bytes_to_string
+from cogent3.util.misc import bytes_to_string, get_object_provenance
 
 from copy import copy, deepcopy
 from cogent3.core.profile import Profile
+
 
 __author__ = "Peter Maxwell and Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -958,6 +960,30 @@ class SequenceCollection(object):
         return phylip_from_alignment(self, generic_label=generic_label,
                                      make_seqlabel=make_seqlabel)
 
+    def to_rich_dict(self):
+        """returns detailed content including info and moltype attributes"""
+        data = {}
+        moltype = self.moltype.label
+        info = {} if self.info is None else self.info
+        if not info.get('Refs', None) is None and 'Refs' in info:
+            info.pop('Refs')
+        
+        info = info or None
+        
+        for seq in self.seqs:
+            d = seq.to_rich_dict()
+            for attr in ['moltype', 'type']:
+                del(d[attr])
+            data[seq.name] = d
+        
+        data = dict(seqs=data, moltype=moltype, info=info,
+                    type=get_object_provenance(self))
+        return data
+
+    def to_json(self):
+        """returns json formatted string"""
+        return json.dumps(self.to_rich_dict())
+
     def to_fasta(self, make_seqlabel=None):
         """Return alignment in Fasta format
 
@@ -1715,6 +1741,15 @@ class Aligned(object):
 
     def to_dna(self):
         return Aligned(self.map, self.data.to_dna())
+
+    def to_rich_dict(self):
+        data = self.data.to_rich_dict()
+        data['seq'] = str(self)
+        return data
+
+    def to_json(self):
+        """returns a json formatted string"""
+        return json.dumps(self.to_rich_dict())
 
     def get_tracks(self, policy):
         policy = policy.at(self.map.inverse())

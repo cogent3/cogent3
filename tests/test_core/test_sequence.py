@@ -8,8 +8,10 @@ from cogent3.core.sequence import Sequence, RnaSequence, DnaSequence, \
     ArrayDnaSequence, ArrayProteinSequence, ArrayCodonSequence, \
     ArrayDnaCodonSequence, ArrayRnaCodonSequence
 from cogent3.core.moltype import RNA, DNA, PROTEIN, ASCII, BYTES, AlphabetError
+from cogent3.util.misc import get_object_provenance
 from cogent3.util.unit_test import TestCase, main
 
+import json
 import re
 from pickle import dumps
 from numpy import array
@@ -114,6 +116,22 @@ class SequenceTests(TestCase):
         """Sequence should be serializable"""
         r = self.RNA('ugagg')
         assert dumps(r)
+
+    def test_to_rich_dict(self):
+        """Sequence to_dict works"""
+        r = self.SEQ('AAGGCC', name='seq1')
+        got = r.to_rich_dict()
+        expect = {'name': 'seq1', 'seq': 'AAGGCC', 'moltype': r.moltype.label,
+                  'info': None, 'type': get_object_provenance(r)}
+        self.assertEqual(got, expect)
+
+    def test_to_json(self):
+        """to_json roundtrip recreates to_dict"""
+        r = self.SEQ('AAGGCC', name='seq1')
+        got = json.loads(r.to_json())
+        expect = {'name': 'seq1', 'seq': 'AAGGCC', 'moltype': r.moltype.label,
+                  'info': None, 'type': get_object_provenance(r)}
+        self.assertEqual(got, expect)
 
     def test_strip_degenerate(self):
         """Sequence strip_degenerate should remove any degenerate bases"""

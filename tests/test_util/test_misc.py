@@ -23,7 +23,8 @@ from cogent3.util.misc import (iterable,
                                timeLimitReached, get_independent_coords, get_merged_by_value_coords,
                                get_merged_overlapping_coords, get_run_start_indices, get_tmp_filename,
                                get_format_suffixes,
-                               adjusted_gt_minprob)
+                               adjusted_gt_minprob,
+                               get_object_provenance)
 from numpy import array
 from time import clock, sleep
 
@@ -635,6 +636,19 @@ class UtilsTests(TestCase):
         a, b = get_format_suffixes("suffixes.zip")
         self.assertTrue(a == None and b == "zip")
 
+    def test_get_object_provenance(self):
+        """correctly deduce object provenance"""
+        result = get_object_provenance('abncd')
+        self.assertEqual(result, 'str')
+        from cogent3 import DNA
+        got = get_object_provenance(DNA)
+        self.assertEqual(got, 'cogent3.core.moltype.MolType')
+        from cogent3.evolve.models import HKY85
+        sm = HKY85()
+        got = get_object_provenance(sm)
+        self.assertEqual(got, 'cogent3.evolve.substitution_model.'
+                         'TimeReversibleNucleotide')
+        
 
 class _my_dict(dict):
     """Used for testing subclass behavior of ClassChecker"""
