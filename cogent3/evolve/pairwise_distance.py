@@ -309,6 +309,9 @@ class _PairwiseDistance(object):
     @display_wrap
     def run(self, alignment=None, ui=None):
         """computes the pairwise distances"""
+        self._dupes = None
+        self._duped = None
+
         dupes = set()
         duped = defaultdict(list)
         Stats = namedtuple("Stats", ["length", "fraction_variable", "dist", "variance"])
