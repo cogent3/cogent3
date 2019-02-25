@@ -62,6 +62,12 @@ class _LikelihoodParameterController(_LF):
 
     def __init__(self, model, tree, bins=1, loci=1,
                  optimise_motif_probs=False, motif_probs_from_align=False, **kw):
+        # cache of arguments used to construct
+        self._serialisable = locals()
+        for key in ('self', '__class__', 'kw'):
+            self._serialisable.pop(key)
+        self._serialisable.update(kw)
+
         self.model = self._model = model
         self.tree = self._tree = tree
         self.seq_names = tree.get_tip_names()

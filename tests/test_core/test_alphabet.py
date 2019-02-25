@@ -3,6 +3,7 @@
 
 Note: individual alphabets are typically in MolType and are tested there.
 """
+import pickle
 from cogent3.core.alphabet import Enumeration, get_array_type, \
     uint8, uint16, uint32, array, JointEnumeration, CharAlphabet, \
     _make_translation_tables, _make_complement_array
@@ -210,6 +211,15 @@ class CharAlphabetTests(TestCase):
         s = array([0, 0, 1, 0, 3, 2], 'b').tostring()
         self.assertEqual(s.translate(i2c), b'UUCUGA')
         self.assertEqual('UUCUGA'.translate(c2i), '\000\000\001\000\003\002')
+
+
+    def test_pickling(self):
+        r = CharAlphabet('UCAG')
+        wa = r.get_word_alphabet(2)
+        pkl = pickle.dumps(r)
+        got = pickle.loads(pkl)
+        self.assertIsInstance(got, type(r))
+        self.assertEqual(got.get_word_alphabet(2), wa)
 
     def test_from_string(self):
         """CharAlphabet from_string should return correct array"""

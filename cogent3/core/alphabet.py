@@ -18,6 +18,7 @@ correct ambiguity for recoding -- will move to its own module.
 """
 
 from itertools import product
+import json
 
 import re
 import string
@@ -25,6 +26,9 @@ from numpy import array, sum, transpose, remainder, zeros, arange, newaxis, \
     ravel, asarray, frombuffer, take, uint8, uint16, uint32, take
 
 import numpy
+
+from cogent3.util.misc import bytes_to_string, get_object_provenance
+
 Float = numpy.core.numerictypes.sctype2char(float)
 Int = numpy.core.numerictypes.sctype2char(int)
 
@@ -393,10 +397,22 @@ class JointEnumeration(Enumeration):
         self.shape = tuple(sub_enum_lengths)
 
     def __getnewargs_ex__(self, *args, **kw):
-        r = ([''.join(e) for e in self.sub_enumerations],
-             self.gap, self.moltype)
+        data = self.to_rich_dict(for_pickle=True)
+        r = tuple([data[k] for k in ('data', 'gap', 'moltype')])
         return r, {}
 
+    def to_rich_dict(self, for_pickle=False):
+        data = {'data': [''.join(e) for e in self.sub_enumerations],
+                'gap': self.gap, 'moltype': self.moltype}
+        if not for_pickle:
+            data['type'] = get_object_provenance(self)
+            data['moltype'] = self.moltype.label
+        return data
+
+    def to_json(self):
+        """returns result of json formatted string"""
+        data = self.to_rich_dict(for_pickle=False)
+        return json.dumps(data)
 
     def _coerce_enumerations(cls, enums):
         """Coerces putative enumerations into Enumeration objects.
@@ -525,6 +541,26 @@ class Alphabet(Enumeration):
         """Returns a new Alphabet object."""
         super(Alphabet, self).__init__(data=motifset, gap=gap,
                                        moltype=moltype)
+
+    def __getnewargs_ex__(self, *args, **kw):
+        data = self.to_rich_dict(for_pickle=True)
+        r = tuple([data[k] for k in ('motifset', 'gap', 'moltype')])
+        return r, {}
+
+    def to_rich_dict(self, for_pickle=False):
+        data = {'motifset': tuple(self),
+                'gap': self.gap, 'moltype': self.moltype}
+        if not for_pickle:
+            data['type'] = get_object_provenance(self)
+            data['moltype'] = self.moltype.label
+            if hasattr(self, '_gc'):
+                data['genetic_code'] = self._gc.name
+        return data
+
+    def to_json(self):
+        """returns result of json formatted string"""
+        data = self.to_rich_dict(for_pickle=False)
+        return json.dumps(data)
 
     def get_word_alphabet(self, word_length):
         """Returns a new Alphabet object with items as word_length strings.

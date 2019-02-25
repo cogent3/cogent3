@@ -2,15 +2,16 @@
 import os
 import time
 import pickle
+
 from cogent3.util import parallel
 
-__author__ = "Peter Maxwell"
+__author__ = ["Peter Maxwell", "Gavin Huttley"]
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Peter Maxwell"]
+__credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "3.0a2"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 
