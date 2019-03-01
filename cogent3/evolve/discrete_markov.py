@@ -1,9 +1,7 @@
 import numpy
 
-from cogent3.util.warning import deprecated
-from cogent3.recalculation.definition import (NonParamDefn, CalcDefn,
-                                              EvaluatedCell, PartitionDefn, ConstCell, ConstDefn,
-                                              DictArrayTemplate)
+from cogent3.recalculation.definition import (EvaluatedCell, PartitionDefn,
+                                              ConstCell, DictArrayTemplate)
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -72,15 +70,6 @@ class PsubMatrixDefn(PartitionDefn):
             all_cells.append(matrix)
             uniq_cells.append(matrix)
         return (all_cells, uniq_cells)
-
-
-def DiscreteSubstitutionModel(*args, **kw):
-    deprecated("class",
-               "cogent3.evolve.discrete_markov.DiscreteSubstitutionModel",
-               "cogent3.evolve.substitution_model.DiscreteSubstitutionModel",
-               '1.6')
-    from cogent3.evolve.substitution_model import DiscreteSubstitutionModel
-    return DiscreteSubstitutionModel(*args, **kw)
 
 
 class PartialyDiscretePsubsDefn(object):
