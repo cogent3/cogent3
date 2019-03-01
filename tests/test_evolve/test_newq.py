@@ -12,7 +12,7 @@ from cogent3.evolve.ns_substitution_model import General, \
     GeneralStationary
 from cogent3.evolve.substitution_model import TimeReversibleNucleotide 
 from cogent3.evolve.ns_substitution_model import NonReversibleNucleotide 
-from cogent3.evolve.discrete_markov import DiscreteSubstitutionModel
+from cogent3.evolve.ns_substitution_model import DiscreteSubstitutionModel
 from cogent3.evolve.predicate import MotifChange
 from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
