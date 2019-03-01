@@ -44,7 +44,8 @@ class PsubMatrixDefn(PartitionDefn):
         for part in value:
             PartitionDefn.check_value_is_valid(self, part, is_constant)
 
-    def make_cells(self, input_soup={}, variable=None):
+    def make_cells(self, input_soup=None, variable=None):
+        input_soup = input_soup or {}
         uniq_cells = []
         all_cells = []
         for (i, v) in enumerate(self.uniq):
