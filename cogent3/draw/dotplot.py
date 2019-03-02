@@ -124,12 +124,10 @@ class Display2D(Drawable):
 
         return self._cache[key]
 
-    def make_figure(self, window=20, join_gaps=None, min_gap=0, **kw):
+    def make_figure(self, window=20, min_gap=0, **kw):
         """Drawing of a line segment based dotplot with annotated axes"""
         # hard to pick min_gap without knowing pixels per base, and
         # matplotlib is reasonably fast anyway, so:
-        if join_gaps is not None:
-            discontinued('argument', 'join_gaps', '1.6')
         ax = comparison_display(self.seq1d, self.seq2d, **kw)
         (fwd, rev) = self._calc_lines(window, None, min_gap)
         for (lines, colour) in [(fwd, 'blue'), (rev, 'red')]:

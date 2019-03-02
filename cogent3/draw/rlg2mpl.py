@@ -195,10 +195,7 @@ class Drawable(object):
             kw['width'] = total_width / 72
         kw2 = {}
         for (k, v) in list(kw.items()):
-            if k in ['wraps', 'border', 'withTrackLabelColumn']:
-                discontinued('argument', "%s" % k, '1.6')
-            else:
-                kw2[k] = v
+            kw2[k] = v
         kw2['format'] = 'pdf'
         if height:
             kw2['height'] = height / 72
