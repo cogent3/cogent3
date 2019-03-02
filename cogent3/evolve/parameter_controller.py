@@ -131,9 +131,6 @@ class _LikelihoodParameterController(_LF):
     def set_motif_probs_from_data(self, align, locus=None, is_constant=None,
                               include_ambiguity=False, is_independent=None, auto=False,
                               pseudocount=None, **kwargs):
-        if 'is_const' in kwargs:
-            is_constant = kwargs.pop('is_const')
-            deprecated('argument', 'is_const', 'is_constant', 1.6)
 
         counts = self.model.count_motifs(align,
                                         include_ambiguity=include_ambiguity)
@@ -151,9 +148,6 @@ class _LikelihoodParameterController(_LF):
 
     def set_motif_probs(self, motif_probs, locus=None, bin=None, is_constant=None,
                       is_independent=None, auto=False, **kwargs):
-        if 'is_const' in kwargs:
-            is_constant = kwargs.pop('is_const')
-            deprecated('argument', 'is_const', 'is_constant', 1.6)
 
         motif_probs = self.model.adapt_motif_probs(motif_probs, auto=auto)
         if is_constant is None:
@@ -168,18 +162,8 @@ class _LikelihoodParameterController(_LF):
         assert expm in ['pade', 'either', 'eigen', 'checked'], expm
         self.set_param_rule('expm', is_constant=True, value=expm)
 
-    def make_calculator(self, *args, **kw):
-        if args:
-            discontinued('method', "make_calculator(aligns)", '1.6')
-            # and shadowing a quite different superclass method.
-            self.set_alignment(*args)
-            if getattr(self, 'used_as_calculator', False):
-                warnings.warn(
-                    'PC used as two different calculators', stacklevel=2)
-            self.used_as_calculator = True
-            return self
-        else:
-            return super(_LF, self).make_calculator(**kw)
+    def make_calculator(self, **kw):
+        return super(_LF, self).make_calculator(**kw)
 
     def _process_scope_info(self, edge=None, tip_names=None, edges=None,
                             is_clade=None, is_stem=None, outgroup_name=None):
@@ -237,9 +221,6 @@ class _LikelihoodParameterController(_LF):
                 common ancestor defined by the tip_names+outgroup_name
                 arguments.
         """
-        if 'is_const' in scope_info:
-            is_constant = scope_info.pop('is_const')
-            deprecated('argument', 'is_const', 'is_constant', 1.6)
 
         par_name = str(par_name)
 
