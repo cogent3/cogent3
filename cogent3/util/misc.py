@@ -1189,15 +1189,6 @@ def timeLimitReached(start_time, time_limit):
 # end _time_limit_reached
 
 
-def not_none(seq):
-    """Returns True if no item in seq is None."""
-    for i in seq:
-        if i is None:
-            return False
-    return True
-# end not_none
-
-
 def NestedSplitter(delimiters=[None], same_level=False,
                    constructor=str.strip, filter_=False):
     """return a splitter which return a list (maybe nested) from a str using

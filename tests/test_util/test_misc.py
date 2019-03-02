@@ -16,7 +16,7 @@ from cogent3.util.misc import (iterable,
                                ConstraintError, ConstrainedContainer,
                                ConstrainedString, ConstrainedList, ConstrainedDict,
                                MappedString, MappedList, MappedDict,
-                               NonnegIntError, reverse_complement, not_none,
+                               NonnegIntError, reverse_complement,
                                NestedSplitter, curry, remove_files, get_random_directory_name,
                                create_dir, handle_error_codes, identity, if_,
                                to_string, adjusted_within_bounds,
@@ -1395,12 +1395,6 @@ class reverse_complementTests(TestCase):
     # end test_reverse_complement_noSeq
 # end reverse_complementTests
 
-    def test_not_none(self):
-        """not_none should return True if none of the items is None"""
-        assert not_none([1, 2, 3, 4])
-        assert not not_none([1, 2, 3, None])
-        self.assertEqual(list(filter(not_none, [(1, 2), (3, None)])), [(1, 2)])
-    # end test_not_none
 
     def test_NestedSplitter(self):
         """NestedSplitter should make a function which return expected list"""
