@@ -192,6 +192,12 @@ class _LikelihoodParameterController(_LF):
 
         return edges
 
+    def apply_param_rules(self, rules):
+        """batch applies a collection of param rules"""
+        with self.updates_postponed():
+            for rule in rules:
+                self.set_param_rule(**rule)
+
     def set_param_rule(self, par_name, is_independent=None, is_constant=False,
                      value=None, lower=None, init=None, upper=None, **scope_info):
         """Define a model constraint for par_name. Parameters can be set

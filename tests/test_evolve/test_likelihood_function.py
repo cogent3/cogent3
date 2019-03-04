@@ -701,6 +701,27 @@ motif    mprobs
         new_lnL = lf.get_log_likelihood()
         self.assertFloatEqual(new_lnL, lnL)
 
+    def test_apply_param_rules(self):
+        """successfully apply a set of parameter rules"""
+        lf = self.submodel.make_likelihood_function(self.tree)
+        nfp = lf.get_num_free_params()
+        rules = [dict(par_name='beta', edges=['Human', 'HowlerMon'], init=2),
+                 dict(par_name='beta', edges=['NineBande', 'DogFaced'], init=4)]
+        lf.apply_param_rules(rules)
+        self.assertEqual(lf.get_num_free_params(), nfp + 2)
+
+        lf = self.submodel.make_likelihood_function(self.tree)
+        rules = [dict(par_name='beta', edges=['Human', 'HowlerMon'], init=2),
+                 dict(par_name='beta', edges=['NineBande', 'DogFaced'], init=4, is_independent=True)]
+        lf.apply_param_rules(rules)
+        self.assertEqual(lf.get_num_free_params(), nfp + 3)
+
+        lf = self.submodel.make_likelihood_function(self.tree)
+        rules = [dict(par_name='beta', edges=['Human', 'HowlerMon'], init=2),
+                 dict(par_name='beta', edges=['NineBande', 'DogFaced'], value=4, is_constant=True)]
+        lf.apply_param_rules(rules)
+        self.assertEqual(lf.get_num_free_params(), nfp + 1)
+
     def test_initialise_from_nested_diff_scoped(self):
         """non-reversible likelihood initialised from nested, scoped, time-reversible"""
         mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
