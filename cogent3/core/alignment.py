@@ -2296,7 +2296,8 @@ class AlignmentI(object):
                 s = ''.join(s)
                 row = ''.join([label_ % n, seq_ % s])
                 table.append('<tr>%s</tr>' % row)
-            table.append('<tr class="blank_row""></tr>')
+            table.append('<tr style="background-color:gray" '
+                         'class="blank_row"><td></td><td></td></tr>')
         table.append('</table>')
         if limit and limit < len(self):
             summary = ('%s x %s (truncated to %s) %s '
@@ -2309,7 +2310,8 @@ class AlignmentI(object):
         
         text = ['<style>',
                 'tr { line-height: %dpt ; }' % int(font_size/4),
-                '.blank_row{ height: 10pt !important; }',
+                '.blank_row{ line-height: %dpt !important; '
+                'opacity: 0.10; }' % font_size,
                 'td { border: none !important; text-align: left !important; }',
                 '.label { font-size: %dpt ; text-align: right !important; '
                 'color: black !important; }' % font_size,
