@@ -283,7 +283,7 @@ class _LikelihoodParameterController(_LF):
             - locus, loci: the name of the locus/loci to apply rule.
             - **scope_info: tree scope arguments
 
-              - edge, edges: The name of the tree edge(s) affected by rule. ??
+              - edge, edges: The name of the tree edge(s) affected by rule.
               - tip_names: a tuple of two tip names, specifying a tree scope
                 to apply rule.
               - outgroup_name: A tip name that, provided along with tip_names,
