@@ -722,6 +722,54 @@ motif    mprobs
         lf.apply_param_rules(rules)
         self.assertEqual(lf.get_num_free_params(), nfp + 1)
 
+    def test_set_time_heterogeneity(self):
+        """correctly apply time heterogeneity of rate terms"""
+        lf = self.submodel.make_likelihood_function(self.tree)
+        nfp = lf.get_num_free_params()
+        # cannot exclude a param that isn't part of the model
+        with self.assertRaises(ValueError):
+            lf.set_time_heterogeneity(is_independent=True, exclude_params='omega')
+
+        # cannot specify is_constant and init
+        with self.assertRaises(ValueError):
+            lf.set_time_heterogeneity(is_constant=True, init=2)
+
+        # we should be able to just make the entire lf time-heterogeneous
+        lf = self.submodel.make_likelihood_function(self.tree)
+        lf.set_time_heterogeneity(is_independent=True)
+        got = lf.get_num_free_params()
+        self.assertEqual(got, nfp + len(lf.tree.get_node_names(includeself=False)) - 1)
+
+        # we should be able to specify a set of edges that get treated as a block
+        # if not specified, the edges are considered to be not-independent
+        lf = self.submodel.make_likelihood_function(self.tree)
+        lf.set_time_heterogeneity(edge_sets=dict(edges=['Human', 'HowlerMon']), is_independent=False)
+        got = lf.get_num_free_params()
+        self.assertEqual(got, nfp + 1)
+        
+        # making them independent
+        lf = self.submodel.make_likelihood_function(self.tree)
+        lf.set_time_heterogeneity(edge_sets=dict(edges=['Human', 'HowlerMon']), is_independent=True)
+        got = lf.get_num_free_params()
+        self.assertEqual(got, nfp + 2)
+        
+        # making them constant
+        lf = self.submodel.make_likelihood_function(self.tree)
+        lf.set_time_heterogeneity(edge_sets=dict(edges=['Human', 'HowlerMon']), is_constant=True)
+        got = lf.get_num_free_params()
+        self.assertEqual(got, nfp)
+
+        # providing other settings within the edge_set
+        lf = self.submodel.make_likelihood_function(self.tree)
+        lf.set_time_heterogeneity(edge_sets=[dict(edges=['Human', 'HowlerMon'], init=3),
+                                             dict(edges=['NineBande', 'DogFaced'], value=5, is_constant=True)])
+        got = lf.get_num_free_params()
+        self.assertEqual(got, nfp + 1)
+        for edge, exp in [('Human', 3), ('NineBande', 5)]:
+            got = lf.get_param_value('beta', edge=edge)
+            self.assertEqual(got, exp)
+
+
     def test_initialise_from_nested_diff_scoped(self):
         """non-reversible likelihood initialised from nested, scoped, time-reversible"""
         mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
