@@ -198,6 +198,74 @@ class _LikelihoodParameterController(_LF):
             for rule in rules:
                 self.set_param_rule(**rule)
 
+    def set_time_heterogeneity(self, exclude_params=None, edge_sets=None, is_independent=None,
+                               is_constant=False, value=None, lower=None,
+                               init=None, upper=None):
+        """modifes the scope of all submodel rate, aside from excluded params,
+        by constructing a list of parameter rules and using the
+        apply_param_rules method
+        
+        Parameters
+        ----------
+        exclude_params
+            name(s) of substitution model predicate(s) to be excluded
+        edge_sets
+            series of dicts with an 'edges' key. Can also specify
+            is_independent, is_contstant etc.. If those are not provided, the
+            method argument values are applied
+        is_independent : bool
+            whether edges in all edge sets are to be considered independent.
+            default is False
+            Overridden by edge_sets values.
+        is_constant : bool
+            makes constant all rate term parameters for all edge sets.
+            Overridden by edge_sets values.
+        value
+            value for constant parameters, only valid when is_constant.
+            Overridden by edge_sets values.
+        lower, init, upper
+            lower bound, starting value, upper bound for all parameters for
+            all edge sets. Only valid if not is_constant.
+            Overridden by edge_sets values.
+        """
+        if is_constant and any([lower, init, upper]):
+            raise ValueError('cannot specify bounds or init for a constant param')
+        
+        if is_constant:
+            kwargs = dict(is_constant=True, value=value)
+        else:
+            kwargs = dict(is_independent=is_independent, init=init,
+                          lower=lower, upper=upper)
+
+        rate_terms = self._model.get_param_list()
+        exclude_params = exclude_params or []
+        if exclude_params and type(exclude_params) == str:
+            exclude_params = [exclude_params]
+            
+        for param in exclude_params:
+            if param not in rate_terms:
+                raise ValueError(f"'{param}' not a valid rate param")
+            
+            rate_terms.remove(param)
+        
+        if edge_sets is None:
+            # this just makes the following algorithm consistent
+            edge_sets = [dict(edges=[n]) for n in self.tree.get_node_names(includeself=False)]
+        elif type(edge_sets) == dict:
+            edge_sets = [edge_sets]
+        
+        # we make param rules
+        param_rules = []
+        for edge_set in edge_sets:
+            rule_base = kwargs.copy()
+            rule_base.update(edge_set)
+            for param in rate_terms:
+                rule = rule_base.copy()
+                rule.update(dict(par_name=param))
+                param_rules.append(rule)
+
+        self.apply_param_rules(param_rules)        
+
     def set_param_rule(self, par_name, is_independent=None, is_constant=False,
                      value=None, lower=None, init=None, upper=None, **scope_info):
         """Define a model constraint for par_name. Parameters can be set
