@@ -232,20 +232,6 @@ def iterable(item):
         return [item]
 
 
-def flatten(items):
-    """Removes one level of nesting from items.
-
-    items can be any sequence, but flatten always returns a list.
-    """
-    result = []
-    for i in items:
-        try:
-            result.extend(i)
-        except:
-            result.append(i)
-    return result
-
-
 class DepthExceededError(Exception):
     pass
 

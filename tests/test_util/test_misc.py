@@ -6,8 +6,7 @@ from copy import copy, deepcopy
 from os import remove, rmdir
 from os.path import exists
 from cogent3.util.unit_test import TestCase, main
-from cogent3.util.misc import (iterable,
-                               flatten, is_iterable, is_char, is_char_or_noniterable,
+from cogent3.util.misc import (iterable, is_iterable, is_char, is_char_or_noniterable,
                                is_str_or_noniterable, not_list_tuple, list_flatten,
                                recursive_flatten, unflatten, select, find_all,
                                add_lowercase, InverseDict, InverseDictMulti, DictFromPos, DictFromFirst,
@@ -112,17 +111,6 @@ class UtilsTests(TestCase):
         self.assertEqual(iterable(None), [None])
         self.assertEqual(iterable({'a': 1}), {'a': 1})
         self.assertEqual(iterable(['a', 'b', 'c']), ['a', 'b', 'c'])
-
-    def test_flatten_no_change(self):
-        """flatten should not change non-nested sequences (except to list)"""
-        self.assertEqual(flatten('abcdef'), list('abcdef'))  # test identities
-        self.assertEqual(flatten([]), [])  # test empty sequence
-        self.assertEqual(flatten(''), [])  # test empty string
-
-    def test_flatten(self):
-        """flatten should remove one level of nesting from nested sequences"""
-        self.assertEqual(flatten(['aa', 'bb', 'cc']), list('aabbcc'))
-        self.assertEqual(flatten([1, [2, 3], [[4, [5]]]]), [1, 2, 3, [4, [5]]])
 
     def test_is_iterable(self):
         """is_iterable should return True for iterables"""
