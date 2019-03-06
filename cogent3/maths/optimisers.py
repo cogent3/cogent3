@@ -71,7 +71,7 @@ def limited_use(f, max_evaluations=None):
     return get_best, wrapped_f
 
 
-def bounded_function(f, lower_bounds, upper_bounds):
+def bounded_function(f, lower_bounds, upper_bounds, report_error=False):
     """Returns a function that raises an exception on out-of-bounds input
     rather than bothering the real function with invalid input.
     This is enough to get some unbounded optimisers working on bounded problems"""
@@ -80,7 +80,10 @@ def bounded_function(f, lower_bounds, upper_bounds):
         if numpy.alltrue(numpy.logical_and(lower_bounds <= x, x <= upper_bounds)):
             return f(x, **kw)
         else:
-            raise ParameterOutOfBoundsError((lower_bounds, x, upper_bounds))
+            pos = numpy.logical_or(x <= lower_bounds, x >= upper_bounds)
+            lower = numpy.array(lower_bounds)
+            upper = numpy.array(upper_bounds)
+            raise ParameterOutOfBoundsError((lower[pos], x[pos], upper[pos]))
 
     return _wrapper
 
