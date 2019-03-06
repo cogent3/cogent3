@@ -172,18 +172,6 @@ To determine the index of the smallest item in any iterable container, use ``min
 
 .. note:: Will return the lowest index of duplicate min values
 
-Remove a nesting level
-^^^^^^^^^^^^^^^^^^^^^^
-
-To flatten a 2-dimensional list, you can use ``flatten``:
-
-.. doctest::
-
-    >>> from cogent3.util.misc import flatten
-    >>> l = ['abcd','efgh','ijkl']
-    >>> flatten(l)
-    ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']
-
 Convert a nested tuple into a list
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
