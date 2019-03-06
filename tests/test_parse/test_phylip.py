@@ -4,7 +4,7 @@
 """
 from cogent3.parse.phylip import MinimalPhylipParser, get_align_for_phylip
 from cogent3.parse.record import RecordError
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
 from io import StringIO
 
 __author__ = "Micah Hamady"

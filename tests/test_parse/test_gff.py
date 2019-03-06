@@ -2,7 +2,7 @@
 """Unit tests for GFF and related parsers.
 """
 from cogent3.parse.gff import *
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
 from io import StringIO
 
 __author__ = "Matthew Wakefield"

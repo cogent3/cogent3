@@ -6,7 +6,7 @@ from cogent3.parse.genbank import parse_locus, parse_single_line, \
     parse_feature, location_line_tokenizer, parse_simple_location_segment, \
     parse_location_line, parse_reference, parse_source, \
     Location, LocationList, RichGenbankParser
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
