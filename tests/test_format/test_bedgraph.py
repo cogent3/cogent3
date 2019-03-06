@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
 from cogent3.util.table import Table
 from cogent3.format.bedgraph import get_header
 
@@ -12,8 +12,6 @@ __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
-
-from cogent3.util.unit_test import TestCase, main
 
 
 class FormatBedgraph(TestCase):

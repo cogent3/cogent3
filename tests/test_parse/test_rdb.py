@@ -2,7 +2,7 @@
 # test_rdb.py
 """Unit test for RDB Parser
 """
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
 from cogent3.parse.rdb import RdbParser, MinimalRdbParser, is_seq_label,\
     InfoMaker, create_acceptable_sequence
 from cogent3.core.sequence import Sequence, DnaSequence, RnaSequence
