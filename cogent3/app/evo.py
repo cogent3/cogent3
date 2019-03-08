@@ -1,12 +1,8 @@
-import os
-import json
-from tqdm import trange, tqdm
 from cogent3 import LoadTree
 from cogent3.evolve.models import get_model
 from .composable import ComposableHypothesis, ComposableModel, ErrorResult
 from .result import hypothesis_result, model_result, bootstrap_result
 from cogent3.util import parallel
-from cogent3.util import progress_display as UI
 
 
 class model(ComposableModel):
