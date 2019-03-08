@@ -15,7 +15,7 @@ from cogent3.align import dp_calculation
 from cogent3.evolve.likelihood_function import LikelihoodFunction as _LF
 from cogent3.recalculation.scope import _indexed
 from cogent3.maths.stats.information_criteria import aic, bic
-
+from cogent3.util.misc import adjusted_gt_minprob
 
 from cogent3.align.pairwise import AlignableSeq
 from cogent3.util.warning import discontinued, deprecated
@@ -150,6 +150,7 @@ class _LikelihoodParameterController(_LF):
                       is_independent=None, auto=False, **kwargs):
 
         motif_probs = self.model.adapt_motif_probs(motif_probs, auto=auto)
+        motif_probs = adjusted_gt_minprob(motif_probs, minprob=1e-6)
         if is_constant is None:
             is_constant = not self.optimise_motif_probs
         self.model.set_param_controller_motif_probs(self, motif_probs,

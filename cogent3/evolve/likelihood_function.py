@@ -163,6 +163,11 @@ def compatible_likelihood_functions(lf1, lf2):
 
 class LikelihoodFunction(ParameterController):
 
+    @property
+    def lnL(self):
+        """log-likelihood"""
+        return self.get_log_likelihood()
+
     def get_log_likelihood(self):
         return self.get_final_result()
 
