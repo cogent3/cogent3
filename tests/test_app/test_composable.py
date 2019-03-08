@@ -1,6 +1,7 @@
 from unittest import TestCase, main
 from cogent3.app.composable import ComposableSeq, ErrorResult
 from cogent3.app.translate import select_translatable
+from cogent3.app.sample import omit_degenerates, min_length
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -56,6 +57,16 @@ class TestErrorResult(TestCase):
                               "moltype='dna', gc='Standard Nuclear', "
                               "allow_rc=True, trim_terminal_stop=True)")
 
+
+        nodegen = omit_degenerates()
+        got = str(nodegen)
+        self.assertEqual(got, "omit_degenerates(type='aligned', moltype=None, "
+                              "gap_is_degen=True, motif_length=1)")
+        ml = min_length(100)
+        got = str(ml)
+        self.assertEqual(got, "min_length(type='sequences', length=100, "
+                              "motif_length=1, subtract_degen=True, "
+                              "moltype=None)")
 
 if __name__ == "__main__":
     main()
