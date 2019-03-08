@@ -149,12 +149,12 @@ class load_unaligned(ComposableSeq, _seq_loader):
 
 
 class write_seqs(ComposableSeq):
-    def __init__(self, data_store, format='fasta', name_callback=None,
+    def __init__(self, data_path, format='fasta', name_callback=None,
                  create=False, if_exists='skip'):
         """
         Parameters
         ----------
-        data_store
+        data_path
             path to write output, if ends with .zip will be a compressed zip
             archive
         format : str
@@ -179,9 +179,9 @@ class write_seqs(ComposableSeq):
                              RAISE, OVERWRITE), 'invalid value for if_exists'
         self._if_exists = if_exists
 
-        zipped = data_store.endswith('.zip')
+        zipped = data_path.endswith('.zip')
         klass = WritableZippedDataStore if zipped else WritableDirectoryDataStore
-        self.data_store = klass(data_store, suffix=format, create=create,
+        self.data_store = klass(data_path, suffix=format, create=create,
                                 if_exists=if_exists)
         if format != 'fasta':
             # todo refactor alignment formatters
