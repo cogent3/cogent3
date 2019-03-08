@@ -1,6 +1,6 @@
 #/usr/bin/env python
 from cogent3.draw.arrow_rates import make_arrow_plot, sample_data
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
 from os import remove
 
 __author__ = "Rob Knight"

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import xml.dom.minidom
 
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
 from cogent3.parse.gbseq import GbSeqXmlParser
 
 __author__ = "Matthew Wakefield"

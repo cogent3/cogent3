@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
 from cogent3.parse.greengenes import MinimalGreengenesParser, make_ignore_f,\
     DefaultDelimitedSplitter, SpecificGreengenesParser
 

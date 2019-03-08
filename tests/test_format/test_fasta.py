@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Tests for FASTA sequence format writer.
 """
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
 from cogent3.format.fasta import fasta_from_sequences, fasta_from_alignment
 from cogent3.core.alignment import Alignment
 from cogent3.core.sequence import Sequence

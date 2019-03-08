@@ -2,7 +2,7 @@
 """
 
 from cogent3 import LoadSeqs
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
 from cogent3.parse.nexus import get_tree_info, parse_nexus_tree, parse_PAUP_log, \
     split_tree_info, parse_trans_table, parse_dnd, get_BL_table, parse_taxa, \
     find_fields, MinimalNexusAlignParser
