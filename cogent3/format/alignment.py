@@ -15,6 +15,10 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+# todo convert formatters so str(formatter) returns correctly formatted
+# string, and rename method names, rename base class name (sequences, not
+# alignment)
+
 _compression = re.compile(r"\.(gz|bz2)$")
 
 def save_to_filename(alignment, filename, format, **kw):

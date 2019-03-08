@@ -11,4 +11,4 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
-__all__ = ['composable', 'translate', 'sample', 'tree', 'dist', 'align']
+__all__ = ['composable', 'translate', 'sample', 'tree', 'dist', 'align', 'io']
