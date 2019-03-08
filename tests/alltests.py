@@ -39,6 +39,7 @@ def suite():
     modules_to_test = [
         'test_phylo',
         'test_align.test_align',
+        'test_app.test_align',
         'test_app.test_composable',
         'test_app.test_translate',
         'test_app.test_tree',
