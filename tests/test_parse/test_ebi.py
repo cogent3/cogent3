@@ -15,7 +15,7 @@ from cogent3.parse.ebi import cc_alternative_products_parser, \
     dt_parser, id_parser, oc_parser, og_parser, os_parser, ox_parser, \
     sq_parser, de_parser, RecordError, FieldError, curry, required_labels, \
     EbiParser, pr_parser
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
 from cogent3.core.sequence import Sequence
 from cogent3.core.info import Info
 

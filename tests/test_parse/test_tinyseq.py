@@ -2,7 +2,7 @@
 from io import StringIO
 import xml.dom.minidom
 
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
 from cogent3.parse.tinyseq import TinyseqParser
 
 __author__ = "Matthew Wakefield"

@@ -4,7 +4,7 @@
 from cogent3.parse.unigene import _read_sts, _read_expression, UniGeneSeqRecord,\
     UniGeneProtSimRecord, _read_seq, LinesToUniGene
 from cogent3.parse.record_finder import GbFinder
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"

@@ -14,7 +14,7 @@ __email__ = "krother@rubor.de"
 __status__ = "Prototype"
 
 
-from cogent3.util.unit_test import main, TestCase
+from unittest import main, TestCase
 from cogent3.parse.blast_xml import BlastXMLResult, MinimalBlastParser7,\
     get_tag, parse_hsp, parse_hit, parse_header, parse_parameters,\
     HSP_XML_FIELDNAMES, HIT_XML_FIELDNAMES

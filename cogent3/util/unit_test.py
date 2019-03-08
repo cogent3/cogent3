@@ -9,25 +9,18 @@ for equality.
 
 assertContains and assertNotContains give more helpful error
 messages when testing whether an observed item is present or absent in a set
-of possiblities. Ditto assertGreaterThan, assertLessThan, assertBetween, and
-assertIsProb (which is a special case of assertBetween requiring the result
-to between 0 and 1).
+of possiblities. Ditto assertGreaterThan, assertLessThan, and assertIsProb.
 
 assertSameItems and assertEqualItems test the items in a list
 for pairwise identity and equality respectively (i.e. the observed and
 expected values must have the same number of each item, though the order can
-differ); assertNotEqualItems verifies that two lists do not contain equal sets
-of items.
+differ).
 
 assertSimilarMeans and assertSimilarFreqs allow you to test stochastic results
 by setting an explicit P-value and checking that the result is not improbable
 given the expected P-value. Please use these instead of guessing confidence
 intervals! The major advantage is that you can reset the P-value gloabally over
 the whole test suite, so that rare failures don't occur every time.
-
-assertIsPermutation checks that you get a permutation of an expected result that
-differs from the original result, repeating the test a specified number of times
-before giving up and assuming that the result is always the same.
 
 """
 import numpy
@@ -356,16 +349,6 @@ class TestCase(orig_TestCase):
                                             'Observed %s <%s> and expected %s <%s> at sorted index %s'
                                             % (o, o_id, e, e_id, index))
 
-    def assertNotEqualItems(self, observed, expected, msg=None):
-        """Fail if the two items contain only equal elements when sorted"""
-        try:
-            self.assertEqualItems(observed, expected, msg)
-        except:
-            pass
-        else:
-            raise self.failureException(
-                msg or 'Observed %s has same items as %s' % (repr(observed), repr(expected)))
-
     def assertContains(self, observed, item, msg=None):
         """Fail if item not in observed"""
         try:
@@ -409,40 +392,6 @@ class TestCase(orig_TestCase):
             pass
         raise self.failureException(
             msg or 'Observed %s has elements >= %s' % (repr(observed), repr(value)))
-
-    def assertIsBetween(self, observed, min_value, max_value, msg=None):
-        """Fail if observed is not between min_value and max_value"""
-        try:
-            if min_value is None or max_value is None or observed is None:
-                raise ValueError
-
-            if min_value >= max_value:
-                raise ValueError
-
-            if logical_and(asarray(observed) < max_value,
-                           asarray(observed) > min_value).all():
-                return
-        except:
-            pass
-        raise self.failureException(msg or 'Observed %s has elements not between %s, %s' %
-                                    (repr(observed), repr(min_value), repr(max_value)))
-
-    def assertIsNotBetween(self, observed, min_value, max_value, msg=None):
-        """Fail if observed is between min_value and max_value"""
-        try:
-            if min_value is None or max_value is None or observed is None:
-                raise ValueError
-
-            if min_value >= max_value:
-                raise ValueError
-
-            if logical_or(asarray(observed) >= max_value,
-                          asarray(observed) <= min_value).all():
-                return
-        except:
-            pass
-        raise self.failureException(msg or 'Observed %s has elements between %s, %s' %
-                                    (repr(observed), repr(min_value), repr(max_value)))
 
     def assertIsProb(self, observed, msg=None):
         """Fail is observed is not between 0.0 and 1.0"""
@@ -508,17 +457,6 @@ class TestCase(orig_TestCase):
         else:
             raise self.failureException(
                 msg or 'p-value %s, G-test p %s' % (repr(pvalue), repr(p)))
-
-    def assertIsPermutation(self, observed, items, msg=None):
-        """Fail if observed is not a permutation of items"""
-        try:
-            self.assertEqualItems(observed, items)
-            self.assertNotEqual(observed, items)
-            return
-        except:
-            pass
-        raise self.failureException(msg or 'Observed %s is not a different permutation of items %s' %
-                                    (repr(observed), repr(items)))
 
     def assertSameObj(self, observed, expected, msg=None):
         """Fail if 'observed is not expected'"""

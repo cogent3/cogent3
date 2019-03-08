@@ -4,7 +4,7 @@
 from cogent3.parse.clustal import LabelLineParser, is_clustal_seq_line, \
     last_space, delete_trailing_number, MinimalClustalParser
 from cogent3.parse.record import RecordError
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
 from cogent3.core.alignment import Alignment
 
 __author__ = "Rob Knight"

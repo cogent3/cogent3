@@ -4,7 +4,7 @@
 """
 
 from cogent3.parse.psl import make_header, MinimalPslParser, PslToTable
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
 from cogent3 import LoadTable
 
 __author__ = "Gavin Huttley, Anuj Pahwa"
