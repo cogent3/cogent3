@@ -804,6 +804,11 @@ class ParameterController(object):
                 changed.append(defn)
         self.update_intermediate_values(changed)
 
+    @property
+    def nfp(self):
+        """the number of free parameters"""
+        return self.get_num_free_params()
+
     def get_num_free_params(self):
         return sum(defn.get_num_free_params() for defn in self.defns if isinstance(defn, _LeafDefn))
 
