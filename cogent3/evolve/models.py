@@ -56,6 +56,7 @@ def _make_symn_preds():
                          MotifChange(pair[f], pair[t], forward_only=True))
     return sym_preds
 
+models = nucleotide_models + codon_models + protein_models
 
 _sym_preds = _make_symn_preds()
 
@@ -713,6 +714,17 @@ def get_model(name, **kw):
         msg = 'Unknown model "%s". Model names are case sensitive!' % name
         raise ValueError(msg)
 
+    g = globals()
+    return g[name](**kw)
+
+
+def get_model(name, **kw):
+    '''returns an instance of the named model
+    
+    name must be in the models attribute'''
+    if name not in models:
+        raise ValueError('Unknown model "%s"' % name)
+    
     g = globals()
     return g[name](**kw)
 
