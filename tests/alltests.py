@@ -40,6 +40,7 @@ def suite():
         'test_phylo',
         'test_align.test_align',
         'test_app.test_composable',
+        'test_app.test_translate',
         'test_cluster.test_UPGMA',
         'test_core.test_alphabet',
         'test_core.test_alignment',
