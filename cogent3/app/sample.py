@@ -371,8 +371,8 @@ class fixed_length(ComposableAligned):
         else:
             number = self._length // self._motif_length
 
-        pos = np_random.choice(indices.shape[0] // self._motif_length, number,
-                               replace=False)
+        pos = np_random.choice(indices.shape[0] // self._motif_length,
+                               number, replace=False)
         if self._motif_length == 1:
             result = indices[pos]
         else:
