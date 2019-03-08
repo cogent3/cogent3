@@ -41,6 +41,7 @@ def suite():
         'test_align.test_align',
         'test_app.test_align',
         'test_app.test_composable',
+        'test_app.test_io',
         'test_app.test_translate',
         'test_app.test_tree',
         'test_app.test_sample',

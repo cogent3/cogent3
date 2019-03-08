@@ -1,8 +1,11 @@
 from unittest import TestCase, main
+from tempfile import TemporaryDirectory
 from cogent3.app.composable import ComposableSeq, ErrorResult
 from cogent3.app.translate import select_translatable
 from cogent3.app.sample import omit_degenerates, min_length
 from cogent3.app.tree import quick_tree
+from cogent3.app import io as io_app, sample as sample_app
+from cogent3.core.alignment import ArrayAlignment
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -12,6 +15,25 @@ __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
+
+
+def test_checkpointable(self):
+    """chained funcs should be be able to apply a checkpoint"""
+    path = 'data/brca1.fasta'
+    reader = io_app.load_aligned(moltype='dna')
+    omit_degens = sample_app.omit_degenerates(moltype='dna')
+    with TemporaryDirectory(dir='.') as dirname:
+        writer = io_app.write_seqs(dirname)
+        aln = reader(path)
+        outpath = writer(aln)
+
+        read_write = reader + writer
+        got = read_write(path)  # should skip reading and return path
+        self.assertEqual(got, outpath)
+        read_write_degen = reader + writer + omit_degens
+        got = read_write_degen(path)  # should return an alignment instance
+        self.assertIsInstance(got, ArrayAlignment)
+        self.assertTrue(len(got) > 1000)
 
 
 class TestComposableBase(TestCase):
@@ -72,6 +94,7 @@ class TestErrorResult(TestCase):
         qt = quick_tree()
         self.assertEqual(str(qt), "quick_tree(type='tree', distance='TN93',"
                                   " moltype='dna')")
+
 
 if __name__ == "__main__":
     main()
