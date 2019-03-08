@@ -27,6 +27,20 @@ def _get_class(provenance):
     return klass
 
 
+def deserialise_result(data):
+    """returns a result object"""
+    klass = _get_class(data.pop('type'))
+    kwargs = data.pop('result_construction')
+    result = klass(**kwargs)
+    for key, value in data.items():
+        # only deserialise the result object, other attributes loaded as
+        # required
+        if type(value) == dict and 'app.result' in str(value.get('type')):
+            value = deserialise_object(value)
+        result[key] = value
+    return result
+
+
 def deserialise_moltype(data):
     """returns a cogent3 MolType instance, or a CodonAlphabet"""
     label = data['moltype']
@@ -148,6 +162,8 @@ def deserialise_object(data):
         func = deserialise_moltype
     elif 'core.alphabet' in type_:
         func = deserialise_alphabet
+    elif 'app.result' in type_:
+        func = deserialise_result
     else:
         msg = "deserialising '%s' from json" % type_
         raise NotImplementedError(msg)
