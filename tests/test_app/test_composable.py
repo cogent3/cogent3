@@ -2,6 +2,7 @@ from unittest import TestCase, main
 from cogent3.app.composable import ComposableSeq, ErrorResult
 from cogent3.app.translate import select_translatable
 from cogent3.app.sample import omit_degenerates, min_length
+from cogent3.app.tree import quick_tree
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -67,6 +68,10 @@ class TestErrorResult(TestCase):
         self.assertEqual(got, "min_length(type='sequences', length=100, "
                               "motif_length=1, subtract_degen=True, "
                               "moltype=None)")
+
+        qt = quick_tree()
+        self.assertEqual(str(qt), "quick_tree(type='tree', distance='TN93',"
+                                  " moltype='dna')")
 
 if __name__ == "__main__":
     main()

@@ -543,3 +543,19 @@ class ParalinearPair(_PairwiseDistance):
     def __init__(self, *args, **kwargs):
         super(ParalinearPair, self).__init__(*args, **kwargs)
         self.func = _paralinear
+
+
+def get_calculator(name, *args, **kwargs):
+    """returns a pairwise distance claculator
+    
+    name is converted to lower case"""
+    calcs = {'paralinear': ParalinearPair,
+             'logdet': LogDetPair,
+             'jc69': JC69Pair,
+             'tn93': TN93Pair}
+    name = name.lower()
+    if name not in calcs:
+        raise ValueError('Unknown pairwise distance calculator "%s"' % name)
+    
+    calc = calcs[name]
+    return calc(*args, **kwargs)
