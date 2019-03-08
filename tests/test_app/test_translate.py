@@ -4,7 +4,7 @@ from cogent3 import LoadSeqs, DNA
 from cogent3.app.translate import (best_frame, select_translatable,
                                    translate_frames,
                                    get_code,
-                                   get_fourfold_degenerate_sets)
+                                   get_fourfold_degenerate_sets, )
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"

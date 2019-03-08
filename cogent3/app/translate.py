@@ -136,7 +136,7 @@ def get_fourfold_degenerate_sets(gc, alphabet=None, as_indices=True):
                 four_fold.update([frozenset(groups)])
 
     if as_indices:
-        assert alphabet is not None,\
+        assert alphabet is not None, \
             'Must provide alphabet to convert to indices'
         ffold = set()
         to_indices = alphabet.to_indices
