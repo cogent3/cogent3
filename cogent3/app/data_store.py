@@ -96,7 +96,7 @@ class SingleReadDataStore(ReadOnlyDirectoryDataStore):
 class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
     @property
     def members(self):
-        if not self._members:
+        if os.path.exists(self.source) and not self._members:
             pattern = '*.%s' % self.suffix
             members = []
             with zipfile.ZipFile(self.source) as archive:
