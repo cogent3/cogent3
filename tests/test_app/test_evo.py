@@ -30,19 +30,12 @@ class TestModel(TestCase):
         model2 = evo_app.model('HKY85', time_heterogeneity='max')
         hyp = evo_app.hypothesis(model1, model2)
         got = str(hyp)
-        self.assertEqual(got, ("hypothesis(type='hypothesis', "
-                               "null=model(type='model', sm='HKY85', "
-                               "tree=None, name=None, sm_args=None, "
-                               "lf_args=None, time_heterogeneity=None, "
-                               "param_rules=None, opt_args=None, "
-                               "split_codons=False, "
-                               "show_progress=False), "
-                               "alternates=(model(type='model', sm='HKY85', "
-                               "tree=None, name=None, sm_args=None, "
-                               "lf_args=None, time_heterogeneity='max',"
-                               " param_rules=None, opt_args=None, "
-                               "split_codons=False, "
-                               "show_progress=False),))"))
+        expect = ("hypothesis(type='hypothesis', null='HKY85', "
+                  "alternates=(model(type='model', sm='HKY85', tree=None, "
+                  "name=None, sm_args=None, lf_args=None, "
+                  "time_heterogeneity='max', param_rules=None, opt_args=None,"
+                  " split_codons=False, show_progress=False),))")
+        self.assertEqual(got, expect)
 
 
 if __name__ == '__main__':
