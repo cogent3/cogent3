@@ -93,7 +93,7 @@ class OptimiserTestCase(TestCase):
         f, last, evals = MakeF()
         x, e = quiet(maximise, f, xinit=[1.0], bounds=([-10, 10]),
                      return_eval_count=True)
-        self.assertTrue(e > 500)
+        self.assertGreaterEqual(e, 500)
 
     def test_checkpointing(self):
         filename = 'checkpoint.tmp.pickle'
