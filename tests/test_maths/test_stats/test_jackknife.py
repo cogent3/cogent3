@@ -1,5 +1,5 @@
 import numpy as np
-from unittest import TestCase, main
+from cogent3.util.unit_test import TestCase, main
 
 from cogent3.maths.stats.jackknife import JackknifeStats
 
@@ -76,8 +76,8 @@ class JackknifeTests(TestCase):
         # Scalar
         pmcc_stat = stat_maker(pmcc, data, 1)
         test_knife = JackknifeStats(data.shape[1], pmcc_stat)
-        self.assertFloatEqualtest_knife.JackknifedStat, 1.2905845)
-        self.assertFloatEqualtest_knife.Exception, 0.2884490)
+        self.assertFloatEqual(test_knife.JackknifedStat, 1.2905845)
+        self.assertFloatEqual(test_knife.Exception, 0.2884490)
         self.assertTrue(test_knife._jackknifed_stat is not None)
 
         # Vector
@@ -89,8 +89,8 @@ class JackknifeTests(TestCase):
         got_standard_err = test_knife.Exception
 
         for index in [0, 1]:
-            self.assertFloatEqualgot_jk_stat[index], expected_jk_stat[index])
-            self.assertFloatEqualgot_standard_err[index],
+            self.assertFloatEqual(got_jk_stat[index], expected_jk_stat[index])
+            self.assertFloatEqual(got_standard_err[index],
                                    expected_standard_err[index])
 
     def test_tables(self):
@@ -108,10 +108,10 @@ class JackknifeTests(TestCase):
         got_subsample_stats = test_knife._subset_statistics
         got_pseudovalues = test_knife._pseudovalues
         for index in range(data.shape[1]):
-            self.assertFloatEqualgot_subsample_stats[index],
-                                   expected_subsample_stats[index], places=4)
-            self.assertFloatEqualgot_pseudovalues[index],
-                                   expected_pseudovalues[index], places=4)
+            np.testing.assert_almost_equal(got_subsample_stats[index],
+                                   expected_subsample_stats[index], 4)
+            np.testing.assert_approx_equal(got_pseudovalues[index],
+                                   expected_pseudovalues[index], 4)
 
         # Vector
         mean_stat = stat_maker(mean, data, 1)
@@ -136,13 +136,13 @@ class JackknifeTests(TestCase):
 
         for index1 in range(data.shape[1]):
             for index2 in range(data.shape[0]):
-                self.assertFloatEqualgot_subsample_stats[index1][index2],
+                np.testing.assert_almost_equal(got_subsample_stats[index1][index2],
                                        expected_subsample_stats[
                                            index1][index2],
-                                       places=4)
-                self.assertFloatEqualgot_pseudovalues[index1][index2],
+                                       4)
+                np.testing.assert_almost_equal(got_pseudovalues[index1][index2],
                                        expected_pseudovalues[index1][index2],
-                                       places=4)
+                                       4)
 
 
 if __name__ == "__main__":

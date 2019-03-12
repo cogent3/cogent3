@@ -3,7 +3,7 @@
 """
 # SUPPORT2425
 #from __future__ import with_statement
-from cogent3.util.unit_test import TestCase, main, FakeRandom  # ,numpy_err
+from cogent3.util.unit_test import TestCase, main, FakeRandom
 import numpy
 from numpy import array, zeros, log, inf
 from sys import exc_info
@@ -16,26 +16,6 @@ __version__ = "3.0a2"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
-# SUPPORT2425
-# class NumpyErrTests(TestCase):
-    #"""Tests numpy_err function."""
-    # def test_usage(self):
-        # with numpy_err(divide='raise'):
-            #self.assertRaises(FloatingPointError, log, 0)
-        # with numpy_err(divide='ignore'):
-            #self.assertEqual(log(0), -inf)
-        # with numpy_err(divide='raise'):
-            #self.assertRaises(FloatingPointError, log, 0)
-
-    # def test_err_status(self):
-        #ori_status = numpy.geterr()
-        # numpy.seterr(divide='warn')
-        # with numpy_err(all='ignore'):
-            # for v in numpy.geterr().values():
-                #self.assertEqual(v, 'ignore')
-        #self.assertEqual(numpy.geterr()['divide'], 'warn')
-        # numpy.seterr(**ori_status)
-
 
 class FakeRandomTests(TestCase):
     """Tests FakeRandom class."""
