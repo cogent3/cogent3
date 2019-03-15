@@ -356,6 +356,48 @@ class UtilsTests(TestCase):
         got = get_object_provenance(sm)
         self.assertEqual(got, 'cogent3.evolve.substitution_model.'
                          'TimeReversibleNucleotide')
+
+    def test_NestedSplitter(self):
+        """NestedSplitter should make a function which return expected list"""
+        # test delimiters, constructor, filter_
+        line = 'ii=0; oo= 9, 6 5;  ; xx=  8;  '
+        cmds = [
+            "NestedSplitter(';=,')(line)",
+            "NestedSplitter([';', '=', ','])(line)",
+            "NestedSplitter([(';'), '=', ','], constructor=None)(line)",
+            "NestedSplitter([(';'), '=', ','], filter_=None)(line)",
+            "NestedSplitter([(';',1), '=', ','])(line)",
+            "NestedSplitter([(';',-1), '=', ','])(line)"
+        ]
+        results = [
+            [['ii', '0'], ['oo', ['9', '6 5']], '', ['xx', '8'], ''],
+            [['ii', '0'], ['oo', ['9', '6 5']], '', ['xx', '8'], ''],
+            [['ii', '0'], [' oo', [' 9', ' 6 5']], '  ', [' xx', '  8'], '  '],
+            [['ii', '0'], ['oo', ['9', '6 5']], ['xx', '8']],
+            [['ii', '0'], ['oo', ['9', '6 5;  ; xx'], '8;']],
+            [['ii', '0; oo', ['9', '6 5;  ; xx'], '8'], '']
+        ]
+        for cmd, result in zip(cmds, results):
+            self.assertEqual(eval(cmd), result)
+
+        # test uncontinous level of delimiters
+        test = 'a; b,c; d,e:f; g:h;'  # g:h should get [[g,h]] instead of [g,h]
+        self.assertEqual(NestedSplitter(';,:')(test),
+                         ['a', ['b', 'c'], ['d', ['e', 'f']], [['g', 'h']], ''])
+
+        # test empty
+        self.assertEqual(NestedSplitter(';,:')(''), [''])
+        self.assertEqual(NestedSplitter(';,:')('  '), [''])
+        self.assertEqual(NestedSplitter(';,:', filter_=None)(' ;, :'), [[[]]])
+
+    def test_curry(self):
+        """curry should generate the function with parameters setted"""
+        curry_test = curry(lambda x, y: x == y, 5)
+        knowns = ((3, False),
+                  (9, False),
+                  (5, True))
+        for arg2, result in knowns:
+            self.assertEqual(curry_test(arg2), result)
         
 
 class _my_dict(dict):
@@ -946,50 +988,6 @@ class MappedDictTests(TestCase):
         assert '1' in d
         assert 1 in d
         assert '5' not in d
-
-
-def test_NestedSplitter(self):
-    """NestedSplitter should make a function which return expected list"""
-    # test delimiters, constructor, filter_
-    line = 'ii=0; oo= 9, 6 5;  ; xx=  8;  '
-    cmds = [
-        "NestedSplitter(';=,')(line)",
-        "NestedSplitter([';', '=', ','])(line)",
-        "NestedSplitter([(';'), '=', ','], constructor=None)(line)",
-        "NestedSplitter([(';'), '=', ','], filter_=None)(line)",
-        "NestedSplitter([(';',1), '=', ','])(line)",
-        "NestedSplitter([(';',-1), '=', ','])(line)"
-    ]
-    results = [
-        [['ii', '0'], ['oo', ['9', '6 5']], '', ['xx', '8'], ''],
-        [['ii', '0'], ['oo', ['9', '6 5']], '', ['xx', '8'], ''],
-        [['ii', '0'], [' oo', [' 9', ' 6 5']], '  ', [' xx', '  8'], '  '],
-        [['ii', '0'], ['oo', ['9', '6 5']], ['xx', '8']],
-        [['ii', '0'], ['oo', ['9', '6 5;  ; xx'], '8;']],
-        [['ii', '0; oo', ['9', '6 5;  ; xx'], '8'], '']
-    ]
-    for cmd, result in zip(cmds, results):
-        self.assertEqual(eval(cmd), result)
-
-    # test uncontinous level of delimiters
-    test = 'a; b,c; d,e:f; g:h;'  # g:h should get [[g,h]] instead of [g,h]
-    self.assertEqual(NestedSplitter(';,:')(test),
-                     ['a', ['b', 'c'], ['d', ['e', 'f']], [['g', 'h']], ''])
-
-    # test empty
-    self.assertEqual(NestedSplitter(';,:')(''), [''])
-    self.assertEqual(NestedSplitter(';,:')('  '), [''])
-    self.assertEqual(NestedSplitter(';,:', filter_=None)(' ;, :'), [[[]]])
-
-
-def test_curry(self):
-    """curry should generate the function with parameters setted"""
-    curry_test = curry(lambda x, y: x == y, 5)
-    knowns = ((3, False),
-              (9, False),
-              (5, True))
-    for arg2, result in knowns:
-        self.assertEqual(curry_test(arg2), result)
 
 
 if __name__ == '__main__':
