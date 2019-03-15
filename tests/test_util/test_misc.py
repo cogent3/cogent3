@@ -7,25 +7,14 @@ from os import remove, rmdir
 from os.path import exists
 from cogent3.util.unit_test import TestCase, main
 from cogent3.util.misc import (iterable, is_iterable, is_char, is_char_or_noniterable,
-                               is_str_or_noniterable, not_list_tuple, list_flatten,
-                               recursive_flatten, unflatten, select, find_all,
-                               add_lowercase, InverseDict, InverseDictMulti, DictFromPos, DictFromFirst,
-                               DictFromLast, DistanceFromMatrix, PairsFromGroups,
-                               ClassChecker, Delegator, FunctionWrapper,
-                               ConstraintError, ConstrainedContainer,
-                               ConstrainedString, ConstrainedList, ConstrainedDict,
-                               MappedString, MappedList, MappedDict,
-                               NonnegIntError, reverse_complement,
-                               NestedSplitter, curry, remove_files, get_random_directory_name,
-                               create_dir, handle_error_codes, identity, if_,
-                               to_string, adjusted_within_bounds,
-                               timeLimitReached, get_independent_coords, get_merged_by_value_coords,
+                               not_list_tuple, list_flatten, recursive_flatten,
+                               add_lowercase, DistanceFromMatrix, ClassChecker,
+                               Delegator, FunctionWrapper, ConstraintError, ConstrainedContainer,
+                               ConstrainedList, ConstrainedDict, MappedList, MappedDict,
+                               NestedSplitter, curry, remove_files, identity, adjusted_within_bounds,
+                               get_independent_coords, get_merged_by_value_coords,
                                get_merged_overlapping_coords, get_run_start_indices, get_tmp_filename,
-                               get_format_suffixes,
-                               adjusted_gt_minprob,
-                               get_object_provenance)
-from numpy import array
-from time import clock, sleep
+                               get_format_suffixes, adjusted_gt_minprob, get_object_provenance)
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -84,25 +73,6 @@ class UtilsTests(TestCase):
         exp = id(foo)
         self.assertEqual(id(identity(foo)), exp)
 
-    def test_if_(self):
-        """implementation of c-like tertiary operator"""
-        exp = 'yay'
-        obs = if_(True, 'yay', 'nay')
-        self.assertEqual(obs, exp)
-        exp = 'nay'
-        obs = if_(False, 'yay', 'nay')
-        self.assertEqual(obs, exp)
-
-    def test_to_string(self):
-        """should stringify an object"""
-        class foo(object):
-
-            def __init__(self):
-                self.bar = 5
-        exp = 'bar: 5'
-        obs = to_string(foo())
-        self.assertEqual(obs, exp)
-
     def test_iterable(self):
         """iterable(x) should return x or [x], always an iterable result"""
         self.assertEqual(iterable('x'), 'x')
@@ -136,13 +106,6 @@ class UtilsTests(TestCase):
         self.assertEqual(is_char_or_noniterable(3), True)
         self.assertEqual(is_char_or_noniterable([3]), False)
 
-    def test_is_str_or_noniterable(self):
-        """is_str_or_noniterable should return True or False"""
-        self.assertEqual(is_str_or_noniterable('a'), True)
-        self.assertEqual(is_str_or_noniterable('ab'), True)
-        self.assertEqual(is_str_or_noniterable(3), True)
-        self.assertEqual(is_str_or_noniterable([3]), False)
-
     def test_recursive_flatten(self):
         """recursive_flatten should remove all nesting from nested sequences"""
         self.assertEqual(recursive_flatten(
@@ -152,45 +115,6 @@ class UtilsTests(TestCase):
         self.assertEqual(recursive_flatten(
             ['aa', [8, 'cc', 'dd'], ['ee', ['ff', 'gg']]]),
             ['a', 'a', 8, 'c', 'c', 'd', 'd', 'e', 'e', 'f', 'f', 'g', 'g'])
-
-        # test str untouched flattening using is_leaf=is_str_or_noniterable
-        self.assertEqual(recursive_flatten(
-            ['aa', [8, 'cc', 'dd'], ['ee', ['ff', 'gg']]],
-            is_leaf=is_str_or_noniterable),
-            ['aa', 8, 'cc', 'dd', 'ee', 'ff', 'gg'])
-
-    def test_create_dir(self):
-        """create_dir creates dir and fails meaningful."""
-
-        tmp_dir_path = get_random_directory_name()
-        tmp_dir_path2 = get_random_directory_name(suppress_mkdir=True)
-        tmp_dir_path3 = get_random_directory_name(suppress_mkdir=True)
-
-        self.dirs_to_remove.append(tmp_dir_path)
-        self.dirs_to_remove.append(tmp_dir_path2)
-        self.dirs_to_remove.append(tmp_dir_path3)
-
-        # create on existing dir raises OSError if fail_on_exist=True
-        self.assertRaises(OSError, create_dir, tmp_dir_path,
-                          fail_on_exist=True)
-        self.assertEqual(create_dir(tmp_dir_path,
-                                    fail_on_exist=True,
-                                    handle_errors_externally=True), 1)
-
-        # return should be 1 if dir exist and fail_on_exist=False
-        self.assertEqual(create_dir(tmp_dir_path, fail_on_exist=False), 1)
-
-        # if dir not there make it and return always 0
-        self.assertEqual(create_dir(tmp_dir_path2), 0)
-        self.assertEqual(create_dir(tmp_dir_path3, fail_on_exist=True), 0)
-
-    def test_handle_error_codes(self):
-        """handle_error_codes raises the right error."""
-
-        self.assertRaises(OSError, handle_error_codes, "test", False, 1)
-        self.assertEqual(handle_error_codes("test", True, 1), 1)
-        self.assertEqual(handle_error_codes("test", False, 0), 0)
-        self.assertEqual(handle_error_codes("test"), 0)
 
     def test_not_list_tuple(self):
         """not_list_tuple(obj) should return False when obj is list or tuple"""
@@ -218,64 +142,6 @@ class UtilsTests(TestCase):
                          [1, 2, 3, 4, 5])
         self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]], 5000),
                          [1, 2, 3, 4, 5])
-
-    def test_unflatten(self):
-        """unflatten should turn a 1D sequence into a 2D list"""
-        self.assertEqual(unflatten("abcdef", 1), list("abcdef"))
-        self.assertEqual(unflatten("abcdef", 1, True), list("abcdef"))
-        self.assertEqual(unflatten("abcdef", 2), ['ab', 'cd', 'ef'])
-        self.assertEqual(unflatten("abcdef", 3), ['abc', 'def'])
-        self.assertEqual(unflatten("abcdef", 4), ['abcd'])
-        # should be able to preserve extra items
-        self.assertEqual(unflatten("abcdef", 4, True), ['abcd', 'ef'])
-        self.assertEqual(unflatten("abcdef", 10), [])
-        self.assertEqual(unflatten("abcdef", 10, True), ['abcdef'])
-        # should succeed on empty sequnce
-        self.assertEqual(unflatten('', 10), [])
-
-    def test_unflatten_bad_row_width(self):
-        "unflatten should raise ValueError with row_width < 1"""
-        self.assertRaises(ValueError, unflatten, "abcd", 0)
-        self.assertRaises(ValueError, unflatten, "abcd", -1)
-
-    def test_select_sequence(self):
-        """select should work on a sequence with a list of indices"""
-        chars = 'abcdefghij'
-        strings = list(chars)
-
-        tests = {(0,): ['a'],
-                 (-1,): ['j'],
-                 (0, 2, 4): ['a', 'c', 'e'],
-                 (9, 8, 7, 6, 5, 4, 3, 2, 1, 0): list('jihgfedcba'),
-                 (-8, 8): ['c', 'i'],
-                 (): [],
-                 }
-        for test, result in list(tests.items()):
-            self.assertEqual(select(test, chars), result)
-            self.assertEqual(select(test, strings), result)
-
-    def test_select_empty(self):
-        """select should raise error if indexing into empty sequence"""
-        self.assertRaises(IndexError, select, [1], [])
-
-    def test_select_mapping(self):
-        """select should return the values corresponding to a list of keys"""
-        values = {'a': 5, 'b': 2, 'c': 4, 'd': 6, 'e': 7}
-        self.assertEqual(select('abc', values), [5, 2, 4])
-        self.assertEqual(select(['e', 'e', 'e'], values), [7, 7, 7])
-        self.assertEqual(select(('e', 'b', 'a'), values), [7, 2, 5])
-        # check that it raises KeyError on anything out of range
-        self.assertRaises(KeyError, select, 'abx', values)
-
-    def test_find_all(self):
-        """find_all should return list of all occurrences"""
-        self.assertEqual(find_all('abc', 'd'), [])
-        self.assertEqual(find_all('abc', 'a'), [0])
-        self.assertEqual(find_all('abcabca', 'a'), [0, 3, 6])
-        self.assertEqual(find_all('abcabca', 'c'), [2, 5])
-        self.assertEqual(find_all('abcabca', '3'), [])
-        self.assertEqual(find_all('abcabca', 'bc'), [1, 4])
-        self.assertRaises(TypeError, find_all, 'abcabca', 3)
 
     def test_add_lowercase(self):
         """add_lowercase should add lowercase version of each key w/ same val"""
@@ -319,72 +185,6 @@ class UtilsTests(TestCase):
             ('b', 'c'): 'H',
         })
 
-    def test_InverseDict(self):
-        """InverseDict should invert dict's keys and values"""
-        self.assertEqual(InverseDict({}), {})
-        self.assertEqual(InverseDict({'3': 4}), {4: '3'})
-        self.assertEqual(InverseDict({'a': 'x', 'b': 1, 'c': None, 'd': ('a', 'b')}),
-                         {'x': 'a', 1: 'b', None: 'c', ('a', 'b'): 'd'})
-        self.assertRaises(TypeError, InverseDict, {'a': ['a', 'b', 'c']})
-        d = InverseDict({'a': 3, 'b': 3, 'c': 3})
-        self.assertEqual(len(d), 1)
-        assert 3 in d
-        assert d[3] in 'abc'
-
-    def test_InverseDictMulti(self):
-        """InverseDictMulti should invert keys and values, keeping all keys"""
-        self.assertEqual(InverseDictMulti({}), {})
-        self.assertEqual(InverseDictMulti({'3': 4}), {4: ['3']})
-        self.assertEqual(InverseDictMulti(
-            {'a': 'x', 'b': 1, 'c': None, 'd': ('a', 'b')}),
-            {'x': ['a'], 1: ['b'], None: ['c'], ('a', 'b'): ['d']})
-        self.assertRaises(TypeError, InverseDictMulti, {'a': ['a', 'b', 'c']})
-        d = InverseDictMulti({'a': 3, 'b': 3, 'c': 3, 'd': '3', 'e': '3'})
-        self.assertEqual(len(d), 2)
-        assert 3 in d
-        d3_items = d[3][:]
-        self.assertEqual(len(d3_items), 3)
-        d3_items.sort()
-        self.assertEqual(''.join(d3_items), 'abc')
-        assert '3' in d
-        d3_items = d['3'][:]
-        self.assertEqual(len(d3_items), 2)
-        d3_items.sort()
-        self.assertEqual(''.join(d3_items), 'de')
-
-    def test_DictFromPos(self):
-        """DictFromPos should return correct lists of positions"""
-        d = DictFromPos
-        self.assertEqual(d(''), {})
-        self.assertEqual(d('a'), {'a': [0]})
-        self.assertEqual(d(['a', 'a', 'a']), {'a': [0, 1, 2]})
-        self.assertEqual(d('abacdeeee'), {'a': [0, 2], 'b': [1], 'c': [3], 'd': [4],
-                                          'e': [5, 6, 7, 8]})
-        self.assertEqual(d(('abc', None, 'xyz', None, 3)), {'abc': [0], None: [1, 3],
-                                                            'xyz': [2], 3: [4]})
-
-    def test_DictFromFirst(self):
-        """DictFromFirst should return correct first positions"""
-        d = DictFromFirst
-        self.assertEqual(d(''), {})
-        self.assertEqual(d('a'), {'a': 0})
-        self.assertEqual(d(['a', 'a', 'a']), {'a': 0})
-        self.assertEqual(d('abacdeeee'), {
-                         'a': 0, 'b': 1, 'c': 3, 'd': 4, 'e': 5})
-        self.assertEqual(d(('abc', None, 'xyz', None, 3)), {'abc': 0, None: 1,
-                                                            'xyz': 2, 3: 4})
-
-    def test_DictFromLast(self):
-        """DictFromLast should return correct last positions"""
-        d = DictFromLast
-        self.assertEqual(d(''), {})
-        self.assertEqual(d('a'), {'a': 0})
-        self.assertEqual(d(['a', 'a', 'a']), {'a': 2})
-        self.assertEqual(d('abacdeeee'), {
-                         'a': 2, 'b': 1, 'c': 3, 'd': 4, 'e': 8})
-        self.assertEqual(d(('abc', None, 'xyz', None, 3)), {'abc': 0, None: 3,
-                                                            'xyz': 2, 3: 4})
-
     def test_DistanceFromMatrix(self):
         """DistanceFromMatrix should return correct elements"""
         m = {'a': {'3': 4, 6: 1}, 'b': {'3': 5, '6': 2}}
@@ -395,35 +195,6 @@ class UtilsTests(TestCase):
         self.assertEqual(d('b', '6'), 2)
         self.assertRaises(KeyError, d, 'c', 1)
         self.assertRaises(KeyError, d, 'b', 3)
-
-    def test_PairsFromGroups(self):
-        """PairsFromGroups should return dict with correct pairs"""
-        empty = []
-        self.assertEqual(PairsFromGroups(empty), {})
-        one = ['abc']
-        self.assertEqual(PairsFromGroups(one), dict.fromkeys([
-            ('a', 'a'), ('a', 'b'), ('a', 'c'),
-            ('b', 'a'), ('b', 'b'), ('b', 'c'),
-            ('c', 'a'), ('c', 'b'), ('c', 'c'),
-        ]))
-
-        two = ['xy', 'abc']
-        self.assertEqual(PairsFromGroups(two), dict.fromkeys([
-            ('a', 'a'), ('a', 'b'), ('a', 'c'),
-            ('b', 'a'), ('b', 'b'), ('b', 'c'),
-            ('c', 'a'), ('c', 'b'), ('c', 'c'),
-            ('x', 'x'), ('x', 'y'), ('y', 'x'), ('y', 'y'),
-        ]))
-        # if there's overlap, note that the groups should _not_ be expanded
-        # (e.g. in the following case, 'x' is _not_ similar to 'c', even though
-        # both 'x' and 'c' are similar to 'a'.
-        overlap = ['ax', 'abc']
-        self.assertEqual(PairsFromGroups(overlap), dict.fromkeys([
-            ('a', 'a'), ('a', 'b'), ('a', 'c'),
-            ('b', 'a'), ('b', 'b'), ('b', 'c'),
-            ('c', 'a'), ('c', 'b'), ('c', 'c'),
-            ('x', 'x'), ('x', 'a'), ('a', 'x'),
-        ]))
 
     def test_remove_files(self):
         """Remove files functions as expected """
@@ -451,57 +222,6 @@ class UtilsTests(TestCase):
         remove_files(test_filepaths, error_on_missing=False)
         # ... and the existing file was removed
         self.assertFalse(exists(test_filepaths[2]))
-
-    def test_get_random_directory_name(self):
-        """get_random_directory_name functions as expected """
-        # repeated calls yield different directory names
-        dirs = []
-        for i in range(100):
-            d = get_random_directory_name(suppress_mkdir=True)
-            self.assertTrue(d not in dirs)
-            dirs.append(d)
-
-        actual = get_random_directory_name(suppress_mkdir=True)
-        self.assertFalse(exists(actual), 'Random dir exists: %s' % actual)
-        self.assertTrue(actual.startswith('/'),
-                        'Random dir is not a full path: %s' % actual)
-
-        # prefix, suffix and output_dir are used as expected
-        actual = get_random_directory_name(suppress_mkdir=True, prefix='blah',
-                                           output_dir='/tmp/', suffix='stuff')
-        self.assertTrue(actual.startswith('/tmp/blah2'),
-                        'Random dir does not begin with output_dir + prefix ' +
-                        '+ 2 (where 2 indicates the millenium in the timestamp): %s' % actual)
-        self.assertTrue(actual.endswith('stuff'),
-                        'Random dir does not end with suffix: %s' % actual)
-
-        # changing rand_length functions as expected
-        actual1 = get_random_directory_name(suppress_mkdir=True)
-        actual2 = get_random_directory_name(suppress_mkdir=True,
-                                            rand_length=10)
-        actual3 = get_random_directory_name(suppress_mkdir=True,
-                                            rand_length=0)
-        self.assertTrue(len(actual1) > len(actual2) > len(actual3),
-                        "rand_length does not affect directory name lengths " +
-                        "as expected:\n%s\n%s\n%s" % (actual1, actual2, actual3))
-
-        # changing the timestamp pattern functions as expected
-        actual1 = get_random_directory_name(suppress_mkdir=True)
-        actual2 = get_random_directory_name(suppress_mkdir=True,
-                                            timestamp_pattern='%Y')
-        self.assertNotEqual(actual1, actual2)
-        self.assertTrue(len(actual1) > len(actual2),
-                        'Changing timestamp_pattern does not affect directory name')
-        # empty string as timestamp works
-        actual3 = get_random_directory_name(suppress_mkdir=True,
-                                            timestamp_pattern='')
-        self.assertTrue(len(actual2) > len(actual3))
-
-        # creating the directory works as expected
-        actual = get_random_directory_name(output_dir='/tmp/',
-                                           prefix='get_random_directory_test')
-        self.assertTrue(exists(actual))
-        rmdir(actual)
 
     def test_independent_spans(self):
         """get_independent_coords returns truly non-overlapping (decorated) spans"""
@@ -923,101 +643,6 @@ class ConstrainedContainerTests(TestCase):
                           'constraint', '1')
 
 
-class ConstrainedStringTests(TestCase):
-    """Tests that ConstrainedString can only contain allowed items."""
-
-    def test_init_good_data(self):
-        """ConstrainedString should init OK if string matches constraint"""
-        self.assertEqual(ConstrainedString('abc', 'abcd'), 'abc')
-        self.assertEqual(ConstrainedString('', 'abcd'), '')
-        items = [1, 2, 3.2234, (['a'], ['b'],), 'xyz']
-        # should accept anything str() does if no constraint is passed
-        self.assertEqual(ConstrainedString(items), str(items))
-        self.assertEqual(ConstrainedString(items, None), str(items))
-        self.assertEqual(ConstrainedString('12345'), str(12345))
-        self.assertEqual(ConstrainedString(12345, '1234567890'), str(12345))
-        # check that list is formatted correctly and chars are all there
-        test_list = [1, 2, 3, 4, 5]
-        self.assertEqual(ConstrainedString(
-            test_list, '][, 12345'), str(test_list))
-
-    def test_init_bad_data(self):
-        """ConstrainedString should fail init if unknown chars in string"""
-        self.assertRaises(ConstraintError, ConstrainedString, 1234, '123')
-        self.assertRaises(ConstraintError, ConstrainedString, '1234', '123')
-        self.assertRaises(ConstraintError, ConstrainedString, [1, 2, 3], '123')
-
-    def test_add_prevents_bad_data(self):
-        """ConstrainedString should allow addition only of compliant string"""
-        a = ConstrainedString('123', '12345')
-        b = ConstrainedString('444', '4')
-        c = ConstrainedString('45', '12345')
-        d = ConstrainedString('x')
-        self.assertEqual(a + b, '123444')
-        self.assertEqual(a + c, '12345')
-        self.assertRaises(ConstraintError, b.__add__, c)
-        self.assertRaises(ConstraintError, c.__add__, d)
-        # should be OK if constraint removed
-        b.constraint = None
-        self.assertEqual(b + c, '44445')
-        self.assertEqual(b + d, '444x')
-        # should fail if we add the constraint back
-        b.constraint = '4x'
-        self.assertEqual(b + d, '444x')
-        self.assertRaises(ConstraintError, b.__add__, c)
-        # check that added strings retain constraint
-        self.assertRaises(ConstraintError, (a + b).__add__, d)
-
-    def test_mul(self):
-        """ConstrainedString mul amd rmul should retain constraint"""
-        a = ConstrainedString('123', '12345')
-        b = 3 * a
-        c = b * 2
-        self.assertEqual(b, '123123123')
-        self.assertEqual(c, '123123123123123123')
-        self.assertRaises(ConstraintError, b.__add__, 'x')
-        self.assertRaises(ConstraintError, c.__add__, 'x')
-
-    def test_getslice(self):
-        """ConstrainedString getslice should remember constraint"""
-        a = ConstrainedString('123333', '12345')
-        b = a[2:4]
-        self.assertEqual(b, '33')
-        self.assertEqual(b.constraint, '12345')
-
-    def test_getitem(self):
-        """ConstrainedString getitem should handle slice objects"""
-        a = ConstrainedString('7890543', '1234567890')
-        self.assertEqual(a[0], '7')
-        self.assertEqual(a[1], '8')
-        self.assertEqual(a[-1], '3')
-        self.assertRaises(AttributeError, getattr, a[1], 'alphabet')
-        self.assertEqual(a[1:6:2], '804')
-        self.assertEqual(a[1:6:2].constraint, '1234567890')
-
-    def test_init_masks(self):
-        """ConstrainedString should init OK with masks"""
-        def mask(x):
-            return str(int(x) + 3)
-        a = ConstrainedString('12333', '45678', mask)
-        self.assertEqual(a, '45666')
-        assert 'x' not in a
-        self.assertRaises(TypeError, a.__contains__, 1)
-
-
-class MappedStringTests(TestCase):
-    """MappedString should behave like ConstrainedString, but should map items."""
-
-    def test_init_masks(self):
-        """MappedString should init OK with masks"""
-        def mask(x):
-            return str(int(x) + 3)
-        a = MappedString('12333', '45678', mask)
-        self.assertEqual(a, '45666')
-        assert 1 in a
-        assert 'x' not in a
-
-
 class ConstrainedListTests(TestCase):
     """Tests that bad data can't sneak into ConstrainedLists."""
 
@@ -1323,108 +948,48 @@ class MappedDictTests(TestCase):
         assert '5' not in d
 
 
-class reverse_complementTests(TestCase):
-    """Tests of the public reverse_complement function"""
+def test_NestedSplitter(self):
+    """NestedSplitter should make a function which return expected list"""
+    # test delimiters, constructor, filter_
+    line = 'ii=0; oo= 9, 6 5;  ; xx=  8;  '
+    cmds = [
+        "NestedSplitter(';=,')(line)",
+        "NestedSplitter([';', '=', ','])(line)",
+        "NestedSplitter([(';'), '=', ','], constructor=None)(line)",
+        "NestedSplitter([(';'), '=', ','], filter_=None)(line)",
+        "NestedSplitter([(';',1), '=', ','])(line)",
+        "NestedSplitter([(';',-1), '=', ','])(line)"
+    ]
+    results = [
+        [['ii', '0'], ['oo', ['9', '6 5']], '', ['xx', '8'], ''],
+        [['ii', '0'], ['oo', ['9', '6 5']], '', ['xx', '8'], ''],
+        [['ii', '0'], [' oo', [' 9', ' 6 5']], '  ', [' xx', '  8'], '  '],
+        [['ii', '0'], ['oo', ['9', '6 5']], ['xx', '8']],
+        [['ii', '0'], ['oo', ['9', '6 5;  ; xx'], '8;']],
+        [['ii', '0; oo', ['9', '6 5;  ; xx'], '8'], '']
+    ]
+    for cmd, result in zip(cmds, results):
+        self.assertEqual(eval(cmd), result)
 
-    def test_reverse_complement_DNA(self):
-        """reverse_complement should correctly return reverse complement of DNA"""
+    # test uncontinous level of delimiters
+    test = 'a; b,c; d,e:f; g:h;'  # g:h should get [[g,h]] instead of [g,h]
+    self.assertEqual(NestedSplitter(';,:')(test),
+                     ['a', ['b', 'c'], ['d', ['e', 'f']], [['g', 'h']], ''])
 
-        # input and correct output taken from example at
-        # http://bioweb.uwlax.edu/GenWeb/Molecular/Seq_Anal/
-        # Reverse_Comp/reverse_comp.html
-        user_input = "ATGCAGGGGAAACATGATTCAGGAC"
-        correct_output = "GTCCTGAATCATGTTTCCCCTGCAT"
-        real_output = reverse_complement(user_input)
-        self.assertEqual(real_output, correct_output)
-
-    # end test_reverse_complement_DNA
-
-    def test_reverse_complement_RNA(self):
-        """reverse_complement should correctly return reverse complement of RNA"""
-
-        # input and correct output taken from test_reverse_complement_DNA test,
-        # with all Ts changed to Us
-        user_input = "AUGCAGGGGAAACAUGAUUCAGGAC"
-        correct_output = "GUCCUGAAUCAUGUUUCCCCUGCAU"
-
-        # remember to use False toggle to get RNA instead of DNA
-        real_output = reverse_complement(user_input, False)
-        self.assertEqual(real_output, correct_output)
-    # end test_reverse_complement_RNA
-
-    def test_reverse_complement_caseSensitive(self):
-        """reverse_complement should convert bases without changing case"""
-
-        user_input = "aCGtAcgT"
-        correct_output = "AcgTaCGt"
-        real_output = reverse_complement(user_input)
-        self.assertEqual(real_output, correct_output)
-    # end test_reverse_complement_caseSensitive
-
-    def test_reverse_complement_nonNucleicSeq(self):
-        """reverse_complement should just reverse any chars but ACGT/U"""
-
-        user_input = "BDeF"
-        self.assertRaises(ValueError, reverse_complement, user_input)
-    # end test_reverse_complement_nonNucleicSeq
-
-    def test_reverse_complement_emptySeq(self):
-        """reverse_complement should return empty string if given empty sequence"""
-
-        # shouldn't matter whether in DNA or RNA mode
-        real_output = reverse_complement("")
-        self.assertEqual(real_output, "")
-    # end test_reverse_complement_emptySeq
-
-    def test_reverse_complement_noSeq(self):
-        """reverse_complement should return error if given no sequence argument"""
-
-        self.assertRaises(TypeError, reverse_complement)
-    # end test_reverse_complement_noSeq
-# end reverse_complementTests
+    # test empty
+    self.assertEqual(NestedSplitter(';,:')(''), [''])
+    self.assertEqual(NestedSplitter(';,:')('  '), [''])
+    self.assertEqual(NestedSplitter(';,:', filter_=None)(' ;, :'), [[[]]])
 
 
-    def test_NestedSplitter(self):
-        """NestedSplitter should make a function which return expected list"""
-        # test delimiters, constructor, filter_
-        line = 'ii=0; oo= 9, 6 5;  ; xx=  8;  '
-        cmds = [
-            "NestedSplitter(';=,')(line)",
-            "NestedSplitter([';', '=', ','])(line)",
-            "NestedSplitter([(';'), '=', ','], constructor=None)(line)",
-            "NestedSplitter([(';'), '=', ','], filter_=None)(line)",
-            "NestedSplitter([(';',1), '=', ','])(line)",
-            "NestedSplitter([(';',-1), '=', ','])(line)"
-        ]
-        results = [
-            [['ii', '0'], ['oo', ['9', '6 5']], '', ['xx', '8'], ''],
-            [['ii', '0'], ['oo', ['9', '6 5']], '', ['xx', '8'], ''],
-            [['ii', '0'], [' oo', [' 9', ' 6 5']], '  ', [' xx', '  8'], '  '],
-            [['ii', '0'], ['oo', ['9', '6 5']], ['xx', '8']],
-            [['ii', '0'], ['oo', ['9', '6 5;  ; xx'], '8;']],
-            [['ii', '0; oo', ['9', '6 5;  ; xx'], '8'], '']
-        ]
-        for cmd, result in zip(cmds, results):
-            self.assertEqual(eval(cmd), result)
-
-        # test uncontinous level of delimiters
-        test = 'a; b,c; d,e:f; g:h;'  # g:h should get [[g,h]] instead of [g,h]
-        self.assertEqual(NestedSplitter(';,:')(test),
-                         ['a', ['b', 'c'], ['d', ['e', 'f']], [['g', 'h']], ''])
-
-        # test empty
-        self.assertEqual(NestedSplitter(';,:')(''), [''])
-        self.assertEqual(NestedSplitter(';,:')('  '), [''])
-        self.assertEqual(NestedSplitter(';,:', filter_=None)(' ;, :'), [[[]]])
-
-    def test_curry(self):
-        """curry should generate the function with parameters setted"""
-        curry_test = curry(lambda x, y: x == y, 5)
-        knowns = ((3, False),
-                  (9, False),
-                  (5, True))
-        for arg2, result in knowns:
-            self.assertEqual(curry_test(arg2), result)
+def test_curry(self):
+    """curry should generate the function with parameters setted"""
+    curry_test = curry(lambda x, y: x == y, 5)
+    knowns = ((3, False),
+              (9, False),
+              (5, True))
+    for arg2, result in knowns:
+        self.assertEqual(curry_test(arg2), result)
 
 
 if __name__ == '__main__':

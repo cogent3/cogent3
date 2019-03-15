@@ -2,21 +2,13 @@
 """Generally useful utility classes and methods.
 """
 
-import types
-import sys
-from time import clock
-from datetime import datetime
-from random import randrange, choice, randint
-from sys import maxsize
+from random import choice, randint
 from warnings import warn
-from os import popen, remove, makedirs, getenv
-from os.path import join, abspath, exists, isdir
+from os import remove
 from tempfile import gettempdir
 from numpy import logical_not, sum, array, float64, finfo, log10, ceil, floor
-from pickle import dumps, loads
-from gzip import GzipFile, open as gzip_open
+from gzip import open as gzip_open
 from bz2 import open as bzip_open
-import hashlib
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -50,6 +42,7 @@ def adjusted_gt_minprob(probs, minprob=1e-6):
     probs += adj
     probs /= probs.sum()
     return probs
+
 
 def adjusted_within_bounds(value, lower, upper, eps=1e-7, action='warn'):
     """returns value such that lower <= value <= upper
@@ -92,6 +85,7 @@ def adjusted_within_bounds(value, lower, upper, eps=1e-7, action='warn'):
         value = upper if value > upper else lower
         
     return value
+
 
 def bytes_to_string(data):
     """returns a string if data is bytes, otherwise returns original"""
@@ -200,26 +194,6 @@ def get_tmp_filename(tmp_dir=gettempdir(), prefix="tmp", suffix=".txt",
                            (''.join([choice(picks) for i in range(20)]), suffix))
 
 
-def identity(x):
-    """Identity function: useful for avoiding special handling for None."""
-    return x
-
-
-def if_(test, true_result, false_result):
-    """Convenience function for one-line if/then/else with known return values.
-
-    Note that both true_result and false_result are evaluated, which is not the
-    case for the normal if/then/else, so don't use if one branch might fail.
-
-    Additionally, true_result and false_result must be expressions, not
-    statements (so print and raise will not work, for example).
-    """
-    if test:
-        return true_result
-    else:
-        return false_result
-
-
 def iterable(item):
     """If item is iterable, returns item. Otherwise, returns [item].
 
@@ -230,10 +204,6 @@ def iterable(item):
         return item
     except TypeError:
         return [item]
-
-
-class DepthExceededError(Exception):
-    pass
 
 
 def curry(f, *a, **kw):
@@ -284,10 +254,6 @@ def is_char_or_noniterable(x): return is_char(x) or\
     not is_iterable(x)
 
 
-def is_str_or_noniterable(x): return isinstance(x, str) or\
-    not is_iterable(x)
-
-
 def recursive_flatten(items, max_depth=None, curr_depth=1,
                       is_leaf=is_char_or_noniterable):
     """Removes all nesting from items, recursively.
@@ -313,7 +279,6 @@ def recursive_flatten(items, max_depth=None, curr_depth=1,
             result.extend(recursive_flatten(i,
                                             max_depth, curr_depth + 1, is_leaf))
     return result
-# end recursive_flatten
 
 
 def not_list_tuple(obj):
@@ -322,69 +287,6 @@ def not_list_tuple(obj):
 
 
 list_flatten = curry(recursive_flatten, is_leaf=not_list_tuple)
-
-
-def unflatten(data, row_width, keep_extras=False):
-    """Converts items in data into a list of row_width-length lists.
-
-    row_width must be an integer. Will raise error if zero.
-
-    data can be any sequence type, but results will always be lists at the
-    first level (including the common case of a list containing one sequence).
-
-    Any items left over after the last complete row will be discarded. This
-    means that the number of items in data need not be divisible by row_width.
-
-    This function does _not_ reverse the effect of zip, since the lists it
-    produces are not interleaved. If the list of lists were treated as a 2-d
-    array, its transpose would be the reverse of the effect of zip (i.e. the
-    original lists would be columns, not rows).
-    """
-    if row_width < 1:
-        raise ValueError("unflatten: row_width must be at least 1.")
-    result = []
-    num_items = len(data)
-    slices = num_items // row_width
-    for s in range(slices):
-        result.append(data[s * row_width:(s + 1) * row_width])
-    if keep_extras:
-        last_slice = data[slices * row_width:]
-        if last_slice:
-            result.append(last_slice)
-    return result
-
-
-def select(order, items):
-    """Returns the elements from items specified in order, a list of indices.
-
-    Builds up a list containing the ith element in items for each item in order,
-    which must be a list of valid keys into items.
-
-    Example: vowels = select([0, 4, 8], 'abcdefghijklm')
-
-    Can also be used to emulate Perl's hash slices.
-
-    Example: reverse_vowel_freqs = select('ea', {'a':1,'b':5,'c':2,'d':4,'e':6})
-
-    Return type is a list of whatever type the elements in items are.
-    """
-    return list(map(items.__getitem__, order))
-
-
-def find_all(text, pat):
-    """Returns list of all overlapping occurrences of a pattern in a text.
-    
-    Each item in the (sorted) list is the index of one of the matches.
-    """
-    result = []
-    last = 0
-    try:
-        while 1:
-            curr = text.index(pat, last)
-            result.append(curr)
-            last = curr + 1
-    except ValueError:  # raised when no more matches
-        return result
 
 
 def add_lowercase(d):
@@ -424,88 +326,6 @@ def add_lowercase(d):
     return d
 
 
-def InverseDict(d):
-    """Returns inverse of d, setting keys to values and vice versa.
-
-    Note: if more than one key has the same value, returns an arbitrary key
-    for that value (overwrites with the last one encountered in the iteration).
-
-    Can be invoked with anything that can be an argument for dict(), including
-    an existing dict or a list of tuples. However, keys are always inserted in
-    arbitrary order rather than input order.
-
-    WARNING: will fail if any values are unhashable, e.g. if they are dicts or
-    lists.
-    """
-    if isinstance(d, dict):
-        temp = d
-    else:
-        temp = dict(d)
-    return dict([(val, key) for key, val in temp.items()])
-
-
-def InverseDictMulti(d):
-    """Returns inverse of d, setting keys to values and values to list of keys.
-
-    Note that each value will _always_ be a list, even if one item.
-
-    Can be invoked with anything that can be an argument for dict(), including
-    an existing dict or a list of tuples. However, keys are always appended in
-    arbitrary order, not the input order.
-
-    WARNING: will fail if any values are unhashable, e.g. if they are dicts or
-    lists.
-    """
-    if isinstance(d, dict):
-        temp = d
-    else:
-        temp = dict(d)
-    result = {}
-    for key, val in temp.items():
-        if val not in result:
-            result[val] = []
-        result[val].append(key)
-    return result
-
-
-def DictFromPos(seq):
-    """Returns dict mapping items to list of positions of those items in seq.
-
-    Always assigns values as lists, even if the item appeared only once.
-
-    WARNING: will fail if items in seq are unhashable, e.g. if seq is a list of
-    lists.
-    """
-    result = {}
-    for i, s in enumerate(seq):
-        if s not in result:
-            result[s] = []
-        result[s].append(i)
-    return result
-
-
-def DictFromFirst(seq):
-    """Returns dict mapping each item to index of its first occurrence in seq.
-
-    WARNING: will fail if items in seq are unhashable, e.g. if seq is a list of
-    lists.
-    """
-    result = {}
-    for i, s in enumerate(seq):
-        if s not in result:
-            result[s] = i
-    return result
-
-
-def DictFromLast(seq):
-    """Returns dict mapping each item to index of its last occurrence in seq.
-
-    WARNING: will fail if items in seq are unhashable, e.g. if seq is a list of
-    lists.
-    """
-    return dict([(item, index) for index, item in enumerate(seq)])
-
-
 def DistanceFromMatrix(matrix):
     """Returns function(i,j) that looks up matrix[i][j].
 
@@ -516,19 +336,6 @@ def DistanceFromMatrix(matrix):
     """
     def result(i, j):
         return matrix[i][j]
-    return result
-
-
-def PairsFromGroups(groups):
-    """Returns dict such that d[(i,j)] exists iff i and j share a group.
-
-    groups must be a sequence of sequences, e.g a list of strings.
-    """
-    result = {}
-    for group in groups:
-        for i in group:
-            for j in group:
-                result[(i, j)] = None
     return result
 
 
@@ -639,6 +446,11 @@ class FunctionWrapper(object):
 class ConstraintError(Exception):
     """Raised when constraint on a container is violated."""
     pass
+
+
+def identity(x):
+    """Identity function: useful for avoiding special handling for None."""
+    return x
 
 
 class ConstrainedContainer(object):
@@ -767,100 +579,6 @@ class ConstrainedContainer(object):
                 "Sequence '%s' incompatible with constraint '%s'" % (self, constraint))
 
     constraint = property(_get_constraint, _set_constraint)
-
-
-class ConstrainedString(str, ConstrainedContainer):
-    """String that is always valid on a specified constraint."""
-    def __new__(cls, data, constraint=None, mask=None):
-        """Constructor class method for validated ConstrainedString."""
-        mask = mask or cls.mask
-        if data == '':
-            pass  # map can't handle an empty sequence, sadly...
-        elif isinstance(data, str):
-            data = ''.join(map(mask, data))
-        else:
-            try:
-                data = str(list(map(mask, data)))
-            except (TypeError, ValueError):
-                data = str(mask(data))
-        new_string = str.__new__(cls, data)
-        curr_constraint = constraint or new_string.constraint
-        if curr_constraint and new_string:
-            for c in new_string:
-                try:
-                    is_valid = c in curr_constraint
-                except TypeError:
-                    is_valid = False
-                if not is_valid:
-                    raise ConstraintError(
-                        "Character '%s' not in constraint '%s'" % (c, curr_constraint))
-        return new_string
-
-    def __init__(self, data, constraint=None, mask=None):
-        """Constructor for validated ConstrainedString."""
-        ConstrainedContainer.__init__(self, constraint, mask)
-
-    def __add__(self, other):
-        """Returns copy of self added to copy of other if constraint correct."""
-        if not self.other_is_valid(other):
-            raise ConstraintError(
-                "Sequence '%s' doesn't meet constraint" % other)
-        result = self.__class__(str(self) + ''.join(map(self.mask, other)),
-                                constraint=self.constraint)
-        mask = self._mask_for_new()
-        if mask:
-            result.mask = mask
-        return result
-
-    def __mul__(self, multiplier):
-        """Returns copy of self multiplied by multiplier."""
-        result = self.__class__(str.__mul__(self, multiplier),
-                                constraint=self.constraint)
-        mask = self._mask_for_new()
-        if mask:
-            result.mask = mask
-        return result
-
-    def __rmul__(self, multiplier):
-        """Returns copy of self multiplied by multiplier."""
-        result = self.__class__(str.__rmul__(self, multiplier),
-                                constraint=self.constraint)
-        mask = self._mask_for_new()
-        if mask:
-            result.mask = mask
-        return result
-
-    def __getslice__(self, *args, **kwargs):
-        """Make sure slice remembers the constraint."""
-        result = self.__class__(str.__getslice__(self, *args, **kwargs),
-                                constraint=self.constraint)
-        mask = self._mask_for_new()
-        if mask:
-            result.mask = mask
-        return result
-
-    def __getitem__(self, index):
-        """Make sure extended slice remembers the constraint."""
-        items = str.__getitem__(self, index)
-        if isinstance(index, slice):
-            mask = self._mask_for_new()
-            result = self.__class__(items, constraint=self.constraint)
-            if mask:
-                result.mask = mask
-            return result
-        else:
-            return items
-
-
-class MappedString(ConstrainedString):
-    """As for ConstrainedString, but maps __contained__ and __getitem__."""
-
-    def __contains__(self, item):
-        """Ensure that contains applies the mask."""
-        try:
-            return super(MappedString, self).__contains__(self.mask(item))
-        except (TypeError, ValueError):
-            return False
 
 
 class ConstrainedList(ConstrainedContainer, list):
@@ -1084,97 +802,6 @@ class MappedDict(ConstrainedDict):
         return self.mask(item) in super(MappedDict, self)
 
 
-def to_string(obj):
-    """Public function to write a string of object's properties & their vals.
-
-    This function looks only at the local properties/methods/etc of the
-    object it is sent, and only examines public and first-level private
-    (starts with _ but not __) entries.  It ignores anything that is a
-    method, function, or class.  Any attribute whose value looks like a
-    printout of a memory address (starts with < and ends with >) has its
-    value replaced with the word "object".
-    """
-
-    ignored_types = [types.BuiltinFunctionType, types.BuiltinMethodType,
-                     type, types.FunctionType, types.MethodType]
-    result = []
-    for slot in obj.__dict__:
-        if not slot.startswith("__"):
-            ignore_attr = False
-            attr = getattr(obj, slot)
-            for ignored_type in ignored_types:
-                if isinstance(attr, ignored_type):
-                    ignore_attr = True
-            # next ignored type
-
-            if not ignore_attr:
-                attr_value = str(attr)
-                if attr_value.startswith("<") and attr_value.endswith(">"):
-                    attr_value = "object"
-                # end if
-                result.append(slot + ": " + attr_value)
-            # end if
-        # end if
-    # next property
-
-    return "; ".join(result)
-# end to_string
-
-# A class for exceptions caused when param cannot be cast to nonneg int
-
-
-class NonnegIntError(ValueError):
-    """for exceptions caused when param cannot be cast to nonneg int"""
-
-    def __init__(self, args=None):
-        self.args = args
-    # end __init__
-# end NonnegIntError
-
-
-def reverse_complement(seq, use_DNA=True):
-    """Public function to reverse complement DNA or RNA sequence string
-
-    seq: a string
-    use_DNA: a boolean indicating (if true) that A should translate to T.
-        If false, RNA is assumed (A translates to U).  Default is True.
-
-    Returns a reverse complemented string.
-    """
-    bad_chars = set(seq) - set("ACGTUacgtu")
-    if len(bad_chars) > 0:
-        raise ValueError("Only ACGTU characters may be passed to reverse_complement. Other "
-                         "characters were identified: %s. Use cogent3.DNA.rc if you need to "
-                         "reverse complement ambiguous bases." % ''.join(bad_chars))
-    # decide which translation to use for complementation
-    if use_DNA:
-        trans_table = str.maketrans("ACGTacgt", "TGCAtgca")
-    else:
-        trans_table = str.maketrans("ACGUacgu", "UGCAugca")
-    # end if
-
-    # complement the input sequence, then reverse
-    complemented = seq.translate(trans_table)
-    comp_list = list(complemented)
-    comp_list.reverse()
-
-    # join the reverse-complemented list and return
-    return "".join(comp_list)
-# end revComp
-
-
-def timeLimitReached(start_time, time_limit):
-    """Return true if more that time_limit has elapsed since start_time"""
-
-    result = False
-    curr_time = clock()
-    elapsed = curr_time - start_time
-    if elapsed > time_limit:
-        result = True
-    return result
-# end _time_limit_reached
-
-
 def NestedSplitter(delimiters=[None], same_level=False,
                    constructor=str.strip, filter_=False):
     """return a splitter which return a list (maybe nested) from a str using
@@ -1224,93 +851,6 @@ def NestedSplitter(delimiters=[None], same_level=False,
         return result
     # parser.__doc__ = make_innerdoc(NestedSplitter, parser, locals())
     return parser
-# end NestedSplitter
-
-
-def get_create_dir_error_codes():
-    return {'NO_ERROR': 0,
-            'DIR_EXISTS': 1,
-            'FILE_EXISTS': 2,
-            'OTHER_OS_ERROR': 3}
-
-
-def create_dir(dir_name, fail_on_exist=False, handle_errors_externally=False):
-    """Create a dir safely and fail meaningful.
-
-    dir_name: name of directory to create
-
-    fail_on_exist: if true raise an error if dir already exists
-
-    handle_errors_externally: if True do not raise Errors, but return
-                   failure codes. This allows to handle errors locally and
-                   e.g. hint the user at a --force_overwrite options.
-
-    returns values (if no Error raised):
-
-         0:  dir could be safely made
-         1:  directory already existed
-         2:  a file with the same name exists
-         3:  any other unspecified OSError
-
-
-    See qiime/denoiser.py for an example of how to use this mechanism.
-
-    Note: Depending  of how thorough we want to be we could add tests,
-          e.g. for testing actual write permission in an existing dir.
-    """
-    error_code_lookup = get_create_dir_error_codes()
-    # pre-instanciate function with
-    ror = curry(handle_error_codes, dir_name, handle_errors_externally)
-
-    if exists(dir_name):
-        if isdir(dir_name):
-            # dir is there
-            if fail_on_exist:
-                return ror(error_code_lookup['DIR_EXISTS'])
-            else:
-                return error_code_lookup['DIR_EXISTS']
-        else:
-            # must be file with same name
-            return ror(error_code_lookup['FILE_EXISTS'])
-    else:
-        # no dir there, try making it
-        try:
-            makedirs(dir_name)
-        except OSError:
-            return ror(error_code_lookup['OTHER_OS_ERROR'])
-
-    return error_code_lookup['NO_ERROR']
-
-
-def handle_error_codes(dir_name, supress_errors=False,
-                       error_code=None):
-    """Wrapper function for error_handling.
-
-    dir_name: name of directory that raised the error
-    suppress_errors: if True raise Errors, otherwise return error_code
-    error_code: the code for the error
-    """
-    error_code_lookup = get_create_dir_error_codes()
-
-    if error_code is None:
-        error_code = error_code_lookup['NO_ERROR']
-
-    error_strings = \
-        {error_code_lookup['DIR_EXISTS']:
-         "Directory already exists: %s" % dir_name,
-         error_code_lookup['FILE_EXISTS']:
-         "File with same name exists: %s" % dir_name,
-         error_code_lookup['OTHER_OS_ERROR']:
-         "Could not create output directory: %s. " % dir_name +
-         "Check the permissions."}
-
-    if error_code == error_code_lookup['NO_ERROR']:
-        return error_code_lookup['NO_ERROR']
-    if supress_errors:
-        return error_code
-    else:
-        raise OSError(error_strings[error_code])
-
 
 def remove_files(list_of_filepaths, error_on_missing=True):
     """Remove list of filepaths, optionally raising an error if any are missing
@@ -1325,57 +865,6 @@ def remove_files(list_of_filepaths, error_on_missing=True):
     if error_on_missing and missing:
         raise OSError("Some filepaths were not accessible: %s" %
                       '\t'.join(missing))
-
-
-def get_random_directory_name(suppress_mkdir=False,
-                              timestamp_pattern='%Y%m%d%H%M%S',
-                              rand_length=20,
-                              output_dir=None,
-                              prefix='',
-                              suffix='',
-                              return_absolute_path=True):
-    """Build a random directory name and create the directory
-
-        suppress_mkdir: only build the directory name, don't
-         create the directory (default: False)
-        timestamp_pattern: string passed to strftime() to generate
-         the timestamp (pass '' to suppress the timestamp)
-        rand_length: length of random string of characters
-        output_dir: the directory which should contain the
-         random directory
-        prefix: prefix for directory name
-        suffix: suffix for directory name
-        return_absolute_path: If False, returns the local (relative) path to the new directory
-    """
-    output_dir = output_dir or './'
-    # Define a set of characters to be used in the random directory name
-    chars = "abcdefghigklmnopqrstuvwxyz"
-    picks = chars + chars.upper() + "0123456790"
-
-    # Get a time stamp
-    timestamp = datetime.now().strftime(timestamp_pattern)
-
-    # Construct the directory name
-    dirname = '%s%s%s%s' % (prefix, timestamp,
-                            ''.join([choice(picks)
-                                     for i in range(rand_length)]),
-                            suffix)
-    dirpath = join(output_dir, dirname)
-    abs_dirpath = abspath(dirpath)
-
-    # Make the directory
-    if not suppress_mkdir:
-        try:
-            makedirs(abs_dirpath)
-        except OSError:
-            raise OSError(
-                "Cannot make directory %s. Do you have write access?" % dirpath)
-
-    # Return the path to the directory
-    if return_absolute_path:
-        return abs_dirpath
-    return dirpath
-
 
 def get_independent_coords(spans, random_tie_breaker=False):
     """returns non-overlapping spans. spans must have structure

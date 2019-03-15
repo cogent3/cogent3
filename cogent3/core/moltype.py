@@ -26,7 +26,7 @@ __status__ = "Production"
 from cogent3.core.alphabet import CharAlphabet, Enumeration, Alphabet, \
     AlphabetError, _make_complement_array
 from cogent3.util.misc import (FunctionWrapper, add_lowercase, iterable,
-                               if_, get_object_provenance)
+                               get_object_provenance)
 from cogent3.util.transform import KeepChars, first_index_in_set
 from cogent3.data.molecular_weight import DnaMW, RnaMW, ProteinMW
 from cogent3.core.sequence import Sequence as DefaultSequence, RnaSequence, \
