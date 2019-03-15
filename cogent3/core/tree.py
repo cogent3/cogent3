@@ -31,7 +31,7 @@ import re
 from itertools import combinations
 from cogent3.maths.stats.test import correlation
 from operator import or_
-from cogent3.util.misc import InverseDict, get_object_provenance
+from cogent3.util.misc import get_object_provenance
 from random import shuffle, choice
 from functools import reduce
 

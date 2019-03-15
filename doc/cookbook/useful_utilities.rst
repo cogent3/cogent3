@@ -99,32 +99,6 @@ Basic ``identity`` function to avoid having to test explicitly for None
     ...
     bar
 
-One-line if/else statement
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Convenience function for performing one-line if/else statements. This is similar to the C-style ternary operator:
-
-.. doctest::
-
-    >>> from cogent3.util.misc import if_
-    >>> result = if_(4 > 5, "Expression is True", "Expression is False")
-    >>> result
-    'Expression is False'
-
-However, the value returned is evaluated, but not called. For instance:
-
-.. doctest::
-
-    >>> from cogent3.util.misc import if_
-    >>> def foo():
-    ...   print("in foo")
-    ...
-    >>> def bar():
-    ...   print("in bar")
-    ...
-    >>> if_(4 > 5, foo, bar)
-    <function bar at...
-
 Force a variable to be iterable
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -339,24 +313,6 @@ Perform a simple check to see if an object is not a list or a tuple
     >>> not_list_tuple('ab')
     True
 
-Unflatten items to row-width
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Unflatten an iterable of items to a specified row-width. This does reverse the effect of ``zip`` as the lists produced are not interleaved.
-
-.. doctest::
-
-    >>> from cogent3.util.misc import unflatten
-    >>> l = [1,2,3,4,5,6,7,8]
-    >>> unflatten(l,1)
-    [[1], [2], [3], [4], [5], [6], [7], [8]]
-    >>> unflatten(l,2)
-    [[1, 2], [3, 4], [5, 6], [7, 8]]
-    >>> unflatten(l,3)
-    [[1, 2, 3], [4, 5, 6]]
-    >>> unflatten(l,4)
-    [[1, 2, 3, 4], [5, 6, 7, 8]]
-
 Unzip items
 ^^^^^^^^^^^
 
@@ -368,36 +324,6 @@ Reverse the effects of a ``zip`` method, i.e. produces separate lists from tuple
     >>> l = ((1,2),(3,4),(5,6))
     >>> unzip(l)
     [[1, 3, 5], [2, 4, 6]]
-
-Select items in order
-^^^^^^^^^^^^^^^^^^^^^
-
-Select items in a specified order
-
-.. doctest::
-
-    >>> from cogent3.util.misc import select
-    >>> select('ea', {'a':1,'b':5,'c':2,'d':4,'e':6})
-    [6, 1]
-    >>> select([0,4,8], 'abcdefghijklm')
-    ['a', 'e', 'i']
-
-Find overlapping pattern occurrences
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Find all of the overlapping occurrences of a pattern within a text
-
-.. doctest::
-
-    >>> from cogent3.util.misc import find_all
-    >>> text = 'aaaaaaa'
-    >>> pattern = 'aa'
-    >>> find_all(text, pattern)
-    [0, 1, 2, 3, 4, 5]
-    >>> text = 'abababab'
-    >>> pattern = 'aba'
-    >>> find_all(text, pattern)
-    [0, 2, 4]
 
 Find multiple pattern occurrences
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -449,69 +375,6 @@ Extract data from a line that is surrounded by different right/left delimiters
     >>> extract_delimited(line,'[',']')
     'def'
 
-Invert a dictionary
-^^^^^^^^^^^^^^^^^^^
-
-Get a dictionary with the values set as keys and the keys set as values
-
-.. doctest::
-
-    >>> from cogent3.util.misc import InverseDict
-    >>> d = {'some_key':1,'some_key_2':2}
-    >>> InverseDict(d)
-    {1: 'some_key', 2: 'some_key_2'}
-
-.. note:: An arbitrary key will be set if there are multiple keys with the same value
-
-Invert a dictionary with multiple keys having the same value
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Get a dictionary with the values set as keys and the keys set as values. Can handle the case where multiple keys point to the same values
-
-.. doctest::
-
-    >>> from cogent3.util.misc import InverseDictMulti
-    >>> d = {'some_key':1,'some_key_2':1}
-    >>> InverseDictMulti(d)
-    {1: ['some_key_2', 'some_key']}
-    >>>
-
-Get mapping from sequence item to all positions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-``DictFromPos`` returns the positions of all items seen within a sequence. This is useful for obtaining, for instance, nucleotide counts and positions
-
-.. doctest::
-
-    >>> from cogent3.util.misc import DictFromPos
-    >>> seq = 'aattggttggaaggccgccgttagacg'
-    >>> DictFromPos(seq)
-    {'a': [0, 1, 10, 11, 22, 24], 'c': [14, 15, 17, 18, 25], 't': [2, 3, 6, 7, 20, 21], 'g': [4, 5, 8, 9, 12, 13, 16, 19, 23, 26]}
-
-Get the first index of occurrence for each item in a sequence
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-``DictFromFirst`` will return the first location of each item in a sequence
-
-.. doctest::
-
-    >>> from cogent3.util.misc import DictFromFirst
-    >>> seq = 'aattggttggaaggccgccgttagacg'
-    >>> DictFromFirst(seq)
-    {'a': 0, 'c': 14, 't': 2, 'g': 4}
-
-Get the last index of occurrence for each item in a sequence
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-``DictFromLast`` will return the last location of each item in a sequence
-
-.. doctest::
-
-    >>> from cogent3.util.misc import DictFromLast
-    >>> seq = 'aattggttggaaggccgccgttagacg'
-    >>> DictFromLast(seq)
-    {'a': 24, 'c': 25, 't': 21, 'g': 26}
-
 Construct a distance matrix lookup function
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -527,18 +390,6 @@ Automatically construct a distance matrix lookup function. This is useful for ma
     1
     >>> f(1,2)
     6
-
-Get all pairs from groups
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Get all of the pairs of items present in a list of groups. A key will be created (i,j) iff i and j share a group
-
-.. doctest::
-
-    >>> from cogent3.util.misc import PairsFromGroups
-    >>> groups = ['ab','xyz']
-    >>> PairsFromGroups(groups)
-    {('a', 'a'): None, ('b', 'b'): None, ('b', 'a'): None, ('x', 'y'): None, ('z', 'x'): None, ('y', 'y'): None, ('x', 'x'): None, ('y', 'x'): None, ('z', 'y'): None, ('x', 'z'): None, ('a', 'b'): None, ('y', 'z'): None, ('z', 'z'): None}
 
 Check class types
 ^^^^^^^^^^^^^^^^^
@@ -628,23 +479,6 @@ Here is a light example of the ``ConstrainedDict``
     >>> d['d'] = 5
     Traceback (most recent call last):
     ConstraintError: Item 'd' not in constraint 'abc'
-
-PyCogent3 also provides mapped constrained containers for each of the default types provided, ``MappedString``, ``MappedList``, and ``MappedDict``. These behave the same, except that they map a mask onto ``__contains__`` and ``__getitem__``
-
-.. doctest::
-
-    >>> def mask(x):
-    ...   return str(int(x) + 3)
-    ...
-    >>> from cogent3.util.misc import MappedString
-    >>> s = MappedString('12345', constraint='45678', mask=mask)
-    >>> s
-    '45678'
-    >>> s + '123'
-    '45678456'
-    >>> s + '9'
-    Traceback (most recent call last):
-    ConstraintError: Sequence '9' doesn't meet constraint
 
 Check the location of an application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
