@@ -62,7 +62,9 @@ _sym_preds = _make_symn_preds()
 
 
 def GN(optimise_motif_probs=True, **kw):
-    """general Markov nucleotide (non-stationary, non-reversible)"""
+    """general Markov nucleotide (non-stationary, non-reversible)
+
+    Kaehler, Yap, Zhang, Huttley, 2015, Sys Biol 64 (2): 281–93"""
     required = dict(optimise_motif_probs=optimise_motif_probs, name='GN',
                     predicates=_general_preds)
     kwargs = dict(do_scaling=True, recode_gaps=True, model_gaps=False)
@@ -73,7 +75,9 @@ def GN(optimise_motif_probs=True, **kw):
 
 
 def ssGN(optimise_motif_probs=True, **kw):
-    """strand-symmetric general Markov nucleotide (non-stationary, non-reversible)"""
+    """strand-symmetric general Markov nucleotide (non-stationary, non-reversible)
+
+    Kaehler, 2017 ,Journal of Theoretical Biology 420: 144–51"""
     # note the StrandSymmetric class predefines the predicates and name
     sm = ns_substitution_model.StrandSymmetric(
         optimise_motif_probs=optimise_motif_probs,
@@ -114,7 +118,7 @@ def CNFGTR(**kw):
     """Conditional nucleotide frequency codon substitution model, GTR variant
     (with params analagous to the nucleotide GTR model).
 
-    See Yap, Lindsay, Easteal and Huttley, Mol Biol Evol, In press."""
+    Yap, Lindsay, Easteal and Huttley, 2010, Mol Biol Evol 27: 726-734"""
     required = dict(name='CNFGTR', predicates=_gtr_preds + [_omega],
                     mprob_model='conditional', model_gaps=False)
     kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
@@ -127,7 +131,7 @@ def CNFHKY(**kw):
     """Conditional nucleotide frequency codon substitution model, HKY variant
     (with kappa, the ratio of transitions to transversions)
 
-    See Yap, Lindsay, Easteal and Huttley, Mol Biol Evol, In press."""
+    Yap, Lindsay, Easteal and Huttley, 2010, Mol Biol Evol 27: 726-734"""
     required = dict(name='CNFHKY', predicates=[_kappa, _omega],
                     mprob_model='conditional', model_gaps=False)
     kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
@@ -140,7 +144,7 @@ def MG94HKY(**kw):
     """Muse and Gaut 1994 codon substitution model, HKY variant (with kappa,
     the ratio of transitions to transversions)
 
-    see, Muse and Gaut, 1994, Mol Biol Evol, 11, 715-24"""
+    Muse and Gaut, 1994, Mol Biol Evol, 11, 715-24"""
     required = dict(name='MG94HKY', predicates=[_kappa, _omega],
                     mprob_model='monomer', model_gaps=False)
     kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
@@ -153,7 +157,7 @@ def MG94GTR(**kw):
     """Muse and Gaut 1994 codon substitution model, GTR variant (with params
     analagous to the nucleotide GTR model)
 
-    see, Muse and Gaut, 1994, Mol Biol Evol, 11, 715-24"""
+    Muse and Gaut, 1994, Mol Biol Evol, 11, 715-24"""
     required = dict(name='MG94GTR', predicates=_gtr_preds + [_omega],
                     mprob_model='monomer', model_gaps=False)
     kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
@@ -165,13 +169,14 @@ def MG94GTR(**kw):
 def GY94(**kw):
     """Goldman and Yang 1994 codon substitution model.
 
-    see, N Goldman and Z Yang, Mol. Biol. Evol., 11(5):725-36, 1994."""
+    N Goldman and Z Yang, 1994, Mol Biol Evol, 11(5):725-36."""
     return Y98(**kw)
 
 
 def Y98(**kw):
     """Yang's 1998 substitution model, a derivative of the GY94.
-    see Z Yang. Mol. Biol. Evol., 15(5):568-73, 1998"""
+
+    Z Yang, 1998, Mol Biol Evol, 15(5):568-73"""
     required = dict(name='Y98', predicates=[_kappa, _omega],
                     mprob_model='tuple', model_gaps=False)
     kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
@@ -184,7 +189,7 @@ def H04G(**kw):
     """Huttley 2004 CpG substitution model. Includes a term for substitutions
     to or from CpG's.
 
-    see, GA Huttley. Mol Biol Evol, 21(9):1760-8"""
+    GA Huttley, 2004, Mol Biol Evol, 21(9):1760-8"""
     required = dict(name='H04G', predicates=[_cg, _kappa, _omega],
                     mprob_model='tuple', model_gaps=False)
     kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
@@ -197,7 +202,7 @@ def H04GK(**kw):
     """Huttley 2004 CpG substitution model. Includes a term for transition
     substitutions to or from CpG's.
 
-    see, GA Huttley. Mol Biol Evol, 21(9):1760-8"""
+    GA Huttley, 2004, Mol Biol Evol, 21(9):1760-8"""
     required = dict(name='H04GK', predicates=[_cg_k, _kappa, _omega],
                     mprob_model='tuple', model_gaps=False)
     kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
@@ -210,7 +215,7 @@ def H04GGK(**kw):
     """Huttley 2004 CpG substitution model. Includes a general term for
     substitutions to or from CpG's and an adjustment for CpG transitions.
 
-    see, GA Huttley. Mol Biol Evol, 21(9):1760-8"""
+    GA Huttley, 2004, Mol Biol Evol, 21(9):1760-8"""
     required = dict(name='H04GGK', predicates=[_cg, _cg_k, _kappa, _omega],
                     mprob_model='tuple', model_gaps=False)
     kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
@@ -222,7 +227,7 @@ def H04GGK(**kw):
 def GNC(**kw):
     """General Nucleotide Codon, a non-reversible codon model.
 
-    see Genome Biology and Evolution 9 (1): 134–49"""
+    Kaehler, Yap, Huttley, 2017, Gen Biol Evol 9(1): 134–49"""
     required = dict(name='GNC', predicates=_general_preds + [_omega],
                     mprob_model='tuple', model_gaps=False)
     kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
