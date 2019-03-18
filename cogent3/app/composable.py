@@ -67,7 +67,6 @@ class Composable(ComposableType):
         # rules operating on result but not part of a chain
         self._checkpointable = False
         self._load_checkpoint = None
-        self._terminus = None
         self._formatted = ["type='%s'" % self._type]
 
     def __str__(self):
@@ -124,18 +123,6 @@ class Composable(ComposableType):
         # over-ride in subclasses that are checkpointable
         pass
 
-    def __and__(self, other):
-        if not other.compatible_input(self):
-            msg = '%s() requires input type "%s", %s() produces "%s"'
-            my_name = self.__class__.__name__
-            my_output = self._output_type
-            their_name = other.__class__.__name__
-            their_input = other._input_type
-            msg = msg % (their_name, their_input, my_name, my_output)
-            raise TypeError(msg)
-        self._terminus = other
-        return self
-
     @property
     def checkpointable(self):
         """whether this function is checkpointable"""
@@ -172,11 +159,6 @@ class Composable(ComposableType):
             return val
 
         result = self.func(val, *args, **kwargs)
-
-        if self._terminus:
-            terminal = self._terminus(result)
-            if not terminal:
-                result = False
 
         return result
 
