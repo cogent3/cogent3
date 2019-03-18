@@ -3,6 +3,7 @@
 """
 from cogent3.util.unit_test import TestCase, main
 from cogent3.core.info import DbRef, DbRefs, Info, _make_list
+import warnings
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -139,6 +140,14 @@ class InfoTests(TestCase):
         j = Info()
         self.assertNotSameObj(i, j)
         self.assertNotSameObj(i.Refs, j.Refs)
+
+    def test_update(self):
+        """update should warn the user of overlapping keys"""
+        with warnings.catch_warnings(record=True) as w:
+            d1 = Info({'key1': 'value1', 'key2': 'value2', 'key3': 'value3'})
+            d2 = Info({'key2': 'value2', 'key3': 'value3', 'key4': 'value4'})
+            d3 = d1.update(d2)
+            self.assertEqual(len(w), 1)
 
 # run the following if invoked from command-line
 if __name__ == "__main__":

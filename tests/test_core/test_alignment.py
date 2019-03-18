@@ -152,7 +152,7 @@ class SequenceCollectionBaseTests(object):
     will additionally contain code to deal with SequenceCollections of unequal
     length.
 
-    set self.Class in subclasses to generate the rught constructor.
+    set self.Class in subclasses to generate the right constructor.
     """
     Class = SequenceCollection
 
@@ -424,6 +424,13 @@ class SequenceCollectionBaseTests(object):
         # should be able to negate
         a = self.ragged_padded.take_seqs('bc', negate=True)
         self.assertEqual(a, {'a': 'AAAAAA'})
+
+    def test_take_seqs_info(self):
+        """take_seqs should preserve info attribute"""
+        orig = self.Class(
+            data={'a': 'CCCCCC', 'b': 'AAA---', 'c': 'AAAA--'}, info={'key': 'value'})
+        subset = orig.take_seqs('ab')
+        self.assertEqual(set(subset.info), set(orig.info))
 
     def test_take_seqs_moltype(self):
         """take_seqs should preserve the MolType"""
@@ -808,6 +815,13 @@ class SequenceCollectionBaseTests(object):
         concatdict = align.todict()
         self.assertEqual(
             concatdict, {'a': 'AAAAGGGG', 'b': 'TTTT----', 'c': 'CCCCNNNN'})
+    
+    def test_add_info(self):
+        """__add__ should preserve info attribute"""
+        align1 = self.Class({'a': 'AAAA', 'b': 'TTTT', 'c': 'CCCC'}, info={'key': 'foo'})
+        align2 = self.Class({'a': 'GGGG', 'b': '----', 'c': 'NNNN'}, info={'key': 'bar'})
+        align = align1 + align2
+        self.assertEqual(align.info['key'], 'foo')
 
     def test_add_seqs(self):
         """add_seqs should return an alignment with the new sequences appended or inserted"""
@@ -855,6 +869,17 @@ class SequenceCollectionBaseTests(object):
                 got.update([str(seq).strip()])
             self.assertEqual(got, exp)
 
+    def test_add_seqs_info(self):
+        """add_seqs should preserve info attribute"""
+        data = [('name1', 'AAA'), ('name2', 'AAA'),
+                 ('name3', 'AAA'), ('name4', 'AAA')]
+        data2 = [('name5', 'BBB'), ('name6', 'CCC')]
+        aln = self.Class(data, info={'key': 'foo'})
+        aln2 = self.Class(data2, info={'key': 'bar'})
+        out_aln = aln.add_seqs(aln2)
+        self.assertEqual(out_aln.info['key'], 'foo')
+
+
     def test_write(self):
         """SequenceCollection.write should write in correct format"""
         aln = self.Class([('a', 'AAAA'), ('b', 'TTTT'), ('c', 'CCCC')])
@@ -886,6 +911,15 @@ class SequenceCollectionBaseTests(object):
             except AttributeError:
                 pass
 
+    def test_get_translation_info(self):
+        """SequenceCollection.get_translation preserves info attribute"""
+        for seqs in [
+                {'seq1': 'GATTTT', 'seq2': 'GATC??'},
+                {'seq1': 'GAT---', 'seq2': '?GATCT'}]:
+            alignment = self.Class(data=seqs, moltype=DNA, info={'key': 'value'})
+            got = alignment.get_translation()
+            self.assertEqual(got.info['key'], 'value')
+
     def test_get_seq(self):
         """SequenceCollection.get_seq should return specified seq"""
         aln = self.Class({'seq1': 'GATTTT', 'seq2': 'GATC??'})
@@ -910,7 +944,7 @@ class SequenceCollectionBaseTests(object):
         aln = self.Class({'s1': 'ATGRY?', 's2': 'T-AG??'}, moltype=DNA)
         self.assertEqual(aln.degap(), {'s1': 'ATGRY', 's2': 'TAG'})
 
-    def test_degap(self):
+    def test_degap_info(self):
         """.degap should preserve info attributes"""
         aln = self.Class({'s1': 'ATGRY?', 's2': 'T-AG??'}, moltype=DNA)
         aln.info.path = 'blah'
@@ -1055,6 +1089,15 @@ class SequenceCollectionBaseTests(object):
                   'seq3': 'AACGTACGT'}
         self.assertEqual(rc, expect)
     
+    def test_to_moltype_info(self):
+        """correctly convert to specified moltype"""
+        data = {'seq1': 'ACGTACGTA',
+                'seq2': 'ACCGAA---',
+                'seq3': 'ACGTACGTT'}
+        seqs = self.Class(data=data, info={'key': 'value'})
+        dna = seqs.to_moltype(DNA)
+        self.assertEqual(dna.info['key'], 'value')
+
     def test_get_lengths(self):
         """returns correct seq lengths"""
         """SequenceCollection.counts_per_seq handles motif length, allow_gaps etc.."""
@@ -1170,6 +1213,12 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # should be able to negate
         self.assertEqual(self.gaps.take_positions([5, 4, 0], negate=True),
                          {'a': 'AAAA', 'b': '--AA', 'c': 'A---'})
+
+    def test_take_positions_info(self):
+        aln = self.Class({'a': 'AAAAAAA', 'b': 'A--A-AA',
+                                'c': 'AA-----'}, info={'key': 'value'})
+        tps = aln.take_positions([5, 4, 0])
+        self.assertEqual(tps.info['key'], 'value')
 
     def test_get_position_indices(self):
         """SequenceCollection get_position_indices should return names of cols where f(col)"""
@@ -1460,6 +1509,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                                 'seq2': 'ABCDEFGHIJKLMNOP'})
         # effectively permute columns, preserving length
         shuffled = alignment.sample()
+        self.assertEqual(len(shuffled), len(alignment))
         # ensure length correct
         sample = alignment.sample(10)
         self.assertEqual(len(sample), 10)
@@ -1469,6 +1519,17 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # ensure each char occurs once as sampling without replacement
         for char in seqs[0]:
             self.assertEqual(seqs[0].count(char), 1)
+    
+    def test_sample_info(self):
+        """Alignment.sample should preserver info attribute"""
+        alignment = self.Class({'seq1': 'ABCDEFGHIJKLMNOP',
+                                'seq2': 'ABCDEFGHIJKLMNOP'}, info={'key': 'value'})
+        # effectively permute columns, preserving length
+        shuffled = alignment.sample()
+        self.assertEqual(shuffled.info['key'], 'value')
+        # ensure length correct
+        sample = alignment.sample(10)
+        self.assertEqual(sample.info['key'], 'value')
 
     def test_sample_with_replacement(self):
         # test with replacement -- just verify that it rnus
@@ -1600,6 +1661,19 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         new = aln.to_type(array_align=not array_align)
         self.assertEqual(aln.moltype, new.moltype)
     
+    def test_to_type_info(self):
+        """interconverting between alignment types preserves info attribute"""
+        new_seqs = {'seq1': 'ACGTACGTA',
+                    'seq2': 'ACCGAA---',
+                    'seq3': 'ACGTACGTT'}
+        array_align = self.Class == ArrayAlignment
+        # when array_align arg matches instance class, no conversion
+        # and get back self
+        aln = self.Class(data=new_seqs, info={'key': 'value'})
+        new = aln.to_type(array_align=array_align)
+        self.assertEqual(id(aln), id(new))
+        self.assertEqual(new.info['key'], 'value')
+    
     def test_to_dna(self):
         """alignment cast to DNA works"""
         data = {'seq1': 'ACGTACGTA',
@@ -1612,9 +1686,18 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # should fail if invalid character set
         paln = dna.get_translation()
         self.assertRaises(AlphabetError, paln.to_dna)
+
+    def test_to_dna_info(self):
+        """alignment cast to DNA preserves info attribute"""
+        data = {'seq1': 'ACGTACGTA',
+                'seq2': 'ACCGAA---',
+                'seq3': 'ACGTACGTT'}
+        aln = self.Class(data=data, info={'key': 'value'})
+        dna = aln.to_dna()
+        self.assertEqual(dna.info['key'], 'value')
     
     def test_to_rna(self):
-        """alignment cast to DNA works"""
+        """alignment cast to RNA works"""
         data = {'seq1': 'ACGUACGUA',
                 'seq2': 'ACCGAA---',
                 'seq3': 'ACGUACGUU'}
@@ -1622,6 +1705,15 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         rna = aln.to_rna()
         self.assertEqual(set(rna.names), set(aln.names))
         self.assertTrue(rna.moltype==RNA)
+
+    def test_to_rna_info(self):
+        """alignment cast to RNA preserves info attribute"""
+        data = {'seq1': 'ACGTACGTA',
+                'seq2': 'ACCGAA---',
+                'seq3': 'ACGTACGTT'}
+        aln = self.Class(data=data, info={'key': 'value'})
+        rna = aln.to_rna()
+        self.assertEqual(rna.info['key'], 'value')
     
     def test_to_protein(self):
         """alignment cast to protein works"""
@@ -1632,6 +1724,15 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertTrue(paln.moltype==PROTEIN)
         # should fail if invalid character set
         self.assertRaises(AlphabetError, paln.to_dna)
+
+    def test_to_protein_info(self):
+        """alignment cast to protein preserves info attribute"""
+        data = {'seq1': 'ACGTACGTA',
+                'seq2': 'ACCGAA---',
+                'seq3': 'ACGTACGTT'}
+        aln = self.Class(data=data, info={'key': 'value'})
+        dna = aln.to_dna()
+        self.assertEqual(dna.info['key'], 'value')
     
     def test_replace_seqs(self):
         """replace_seqs should replace 1-letter w/ 3-letter seqs"""
@@ -1664,6 +1765,14 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         result = aln1.replace_seqs(aln2, aa_to_codon=False)
         self.assertTrue(id(aln1) != id(aln2))
         self.assertEqual(aln1.todict(), result.todict())
+
+    def test_replace_seqs_info(self):
+        """replace_seqs should preserve info attribute"""
+        a = self.Class({'seq1': 'ACGU', 'seq2': 'C-UA', 'seq3': 'C---'}, 
+                                                    info={'key': 'value'})
+        seqs = {'seq1': 'AAACCCGGGUUU', 'seq2': 'CCCUUUAAA', 'seq3': 'CCC'}
+        result = a.replace_seqs(seqs)  # default behaviour
+        self.assertEqual(result.info['key'], 'value')
     
     def test_counts(self):
         """SequenceCollection.counts handles motif length, allow_gaps etc.."""
@@ -1854,10 +1963,11 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
     def make_and_filter(self, raw, expected, motif_length):
         # a simple filter func
         func = lambda x: re.findall("[-N?]", " ".join(x)) == []
-        aln = self.Class(raw)
+        aln = self.Class(raw, info={'key': 'value'})
         result = aln.filtered(
             func, motif_length=motif_length, log_warnings=False)
         self.assertEqual(result.todict(), expected)
+        self.assertEqual(result.info['key'], 'value')
 
     def test_filtered(self):
         """filtered should return new alignment with positions consistent with
@@ -1925,6 +2035,24 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(aln.get_degapped_relative_to('name1'), out_aln)
 
         self.assertRaises(ValueError, aln.get_degapped_relative_to, 'nameX')
+
+    def test_get_degapped_relative_to_info(self):
+        """should remove all columns with a gap in sequence with given name
+        while preserving info attribute"""
+        aln = self.Class([
+            ['name1', '-AC-DEFGHI---'],
+            ['name2', 'XXXXXX--XXXXX'],
+            ['name3', 'YYYY-YYYYYYYY'],
+            ['name4', '-KL---MNPR---'],
+            ], info={'key': 'foo'})
+        out_aln = self.Class([
+            ['name1', 'ACDEFGHI'],
+            ['name2', 'XXXX--XX'],
+            ['name3', 'YY-YYYYY'],
+            ['name4', 'KL--MNPR'],
+            ], info={'key': 'bar'})
+        gdrt = aln.get_degapped_relative_to('name1')
+        self.assertEqual(gdrt.info['key'], 'foo')
 
     def test_add_from_ref_aln(self):
         """should add or insert seqs based on align to reference"""
@@ -2123,7 +2251,7 @@ class ArrayAlignmentSpecificTests(TestCase):
         self.assertEqual(got.todict(), expect)
 
     def test_get_sub_alignment(self):
-        """ArrayAlignment get_sub_alignment should get requested part of alignment."""
+        """ArrayAlignment get_sub_alignment should get requested part of alignment"""
         a = ArrayAlignment('>x ABCE >y FGHI >z JKLM'.split())
         # passing in positions should keep all seqs, but just selected
         # positions
@@ -2151,6 +2279,16 @@ class ArrayAlignmentSpecificTests(TestCase):
         a_5 = a.get_sub_alignment(seqs=[0, 2], pos=[1, 2])
         self.assertEqual(a_5.seqs, d.seqs)
         self.assertEqual(a_5.names, d.names)
+
+    def test_get_sub_alignment_info(self):
+        """ArrayAlignment get_sub_alignment should preserve info attribute"""
+        a = ArrayAlignment('>x ABCE >y FGHI >z JKLM'.split(), info={'key': 'foo'})
+        # passing in positions should keep all seqs, but just selected
+        # positions
+        b = ArrayAlignment('>x BC >y GH >z KL'.split(), info={'key': 'bar'})
+        a_1 = a.get_sub_alignment(pos=[1, 2])
+        self.assertEqual(a_1.names, b.names)
+        self.assertEqual(a.info['key'], 'foo')
 
     def test_str(self):
         """ArrayAlignment str should return FASTA representation of aln"""

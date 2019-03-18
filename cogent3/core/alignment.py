@@ -1080,7 +1080,7 @@ class SequenceCollection(object):
             concatenated.append(new_seq)
 
         new = self.__class__(moltype=self.moltype,
-                             data=list(zip(self.names, concatenated)))
+                             data=list(zip(self.names, concatenated)), info=self.info)
 
         if aligned:
             left = [a for a in self._shifted_annotations(new, 0)
@@ -1119,7 +1119,7 @@ class SequenceCollection(object):
                 "Seq classes different: Expected %s, Got %s" % \
                 (seq.__class__, self_seq_class)
 
-        combined_aln = self.__class__(data=combined)
+        combined_aln = self.__class__(data=combined, info=self.info)
 
         if before_name is None and after_name is None:
             return combined_aln
@@ -1205,7 +1205,7 @@ class SequenceCollection(object):
                     seq = self.named_seqs[seqname]
                 pep = seq.get_translation(gc)
                 translated.append((seqname, pep))
-            return self.__class__(translated, **kwargs)
+            return self.__class__(translated, info=self.info, **kwargs)
         except AttributeError as msg:
             raise AttributeError("%s -- %s" %
                                  (msg, "Did you set a DNA moltype?"))
@@ -1264,7 +1264,7 @@ class SequenceCollection(object):
         for name in self.names:
             seq = self.named_seqs[name].with_termini_unknown()
             seqs.append((name, seq))
-        return self.__class__(moltype=self.moltype, data=seqs)
+        return self.__class__(moltype=self.moltype, data=seqs, info=self.info)
 
     def has_terminal_stops(self, gc=None, allow_partial=False):
         """Returns True if any sequence has a terminal stop codon.
@@ -1368,7 +1368,7 @@ class SequenceCollection(object):
                 seq = Aligned(new_map, new_seq)
                 new_seqs[i] = (seq_name, seq)
 
-        return self.__class__(moltype=self.moltype, data=new_seqs, **kwargs)
+        return self.__class__(moltype=self.moltype, data=new_seqs, info=self.info, **kwargs)
 
     def get_seq_names(self):
         """Return a list of sequence names."""
@@ -1848,7 +1848,7 @@ class AlignmentI(object):
         else:
             for name, seq in list(self.named_seqs.items()):
                 result[name] = make_seq([seq[i] for i in cols])
-        return self.__class__(result, names=self.names)
+        return self.__class__(result, names=self.names, info=self.info)
 
     def get_position_indices(self, f, native=False, negate=False):
         """Returns list of column indices for which f(col) is True.
@@ -2792,7 +2792,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         else:
             names = self.names
         return self.__class__(data, list(map(str, names)), self.alphabet,
-                              conversion_f=aln_from_array)
+                              conversion_f=aln_from_array, info=self.info)
 
     def __str__(self):
         """Returns FASTA-format string.
@@ -3054,7 +3054,8 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         
         result = self.__class__(new_data.T,
                                 moltype=self.moltype,
-                                names=self.names)
+                                names=self.names,
+                                info=self.info)
         # this is an ugly hack for rather odd standard behaviour
         # we find the last alignment column to have not just gap chars
         # and trim up to that
@@ -3196,7 +3197,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         
             
         return self.__class__(new_seqarr.T, names=self.names,
-                                          moltype=seqs.moltype)
+                                          moltype=seqs.moltype, info=self.info)
 
     def get_identical_sets(self, mask_degen=False):
         """returns sets of names for sequences that are identical
@@ -3377,7 +3378,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         align = []
         for name in self.names:
             align.append((name, self.named_seqs[name][slicemap]))
-        return self.__class__(moltype=self.moltype, data=align)
+        return self.__class__(moltype=self.moltype, data=align, info=self.info)
 
     def gapped_by_map(self, keep, **kwargs):
         # keep is a Map
@@ -3671,5 +3672,5 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
             new_seqs.append((label, Aligned(aligned.map * scale, seq)))
 
-        return self.__class__(new_seqs)
+        return self.__class__(new_seqs, info=self.info)
 

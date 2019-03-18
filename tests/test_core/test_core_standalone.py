@@ -6,6 +6,7 @@ import unittest, os, tempfile, re
 from cogent3 import DNA, RNA, STANDARD_CODON as CODON, PROTEIN, Sequence, \
     LoadSeqs
 from cogent3.parse.record import FileFormatError
+from cogent3.core.alignment import SequenceCollection, ArrayAlignment
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -316,6 +317,19 @@ class AlignmentTestMethods(unittest.TestCase):
         coll_rc = coll.rc()
         self.assertEqual(coll_rc.todict(), dna_rc)
 
+    def test_reversecomplement_info(self):
+        """reversecomplement should preserve info attribute"""
+        dna = {'seq1': '--ACGT--GT---', 'seq2': 'TTACGTA-GT---',
+               'seq3': '--ACGTA-GCC--'}
+        # alignment with gaps
+        aln = ArrayAlignment(data=dna, moltype=DNA, info={'key': 'value'})
+        aln_rc = aln.rc()
+        self.assertEqual(aln_rc.info['key'], 'value')
+        # check collection, with gaps
+        coll = SequenceCollection(data=dna, moltype=DNA, info={'key': 'value'})
+        coll_rc = coll.rc()
+        self.assertEqual(coll_rc.info['key'], 'value')
+
     def test_reversecomplement_with_ambig(self):
         """correctly reverse complement with ambiguous bases"""
         n = LoadSeqs(data=[['x', '?-???AA'], ['y', '-T----T']], moltype=DNA)
@@ -469,6 +483,21 @@ class AlignmentTestMethods(unittest.TestCase):
         aln = aln.trim_stop_codons(allow_partial=True)
         self.assertEqual(aln.todict(),
                          {'seq1': 'ACG-----', 'seq2': 'ACGAC---', 'seq3': 'ACGC-ATG'})
+
+    def test_trim_stop_codons_info(self):
+        """trim_stop_codons should preserve info attribute"""
+        seq_coll = SequenceCollection(data={'seq1': 'ACGTAA', 'seq2': 'ACGACG',
+                                    'seq3': 'ACGCGT'}, moltype=DNA,
+                                    info={'key': 'value'})
+        seq_coll = seq_coll.trim_stop_codons()
+        self.assertEqual(seq_coll.info['key'], 'value')
+
+        # aligned
+        aln = ArrayAlignment(data={'seq1': 'ACGTAA', 'seq2': 'ACGTGA',
+                               'seq3': 'ACGTAA'}, moltype=DNA,
+                               info={'key': 'value'})
+        aln = aln.trim_stop_codons()
+        self.assertEqual(aln.info['key'], 'value')
 
     def test_has_terminal_stops(self):
         """test truth values for terminal stops"""
