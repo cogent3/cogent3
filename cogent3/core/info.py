@@ -5,6 +5,7 @@ Info is a dictionary and is the annotation object of a Sequence object.
 """
 from cogent3.parse.record import MappedRecord
 from cogent3.util.misc import Delegator, FunctionWrapper, ConstrainedDict
+from warnings import warn
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -165,3 +166,11 @@ class Info(MappedRecord, Delegator):
             return item in self.Refs
         else:
             return super(Info, self).__contains__(item)
+
+    def update(self, item):
+        """updates with another info object and warns when overwriting keys"""
+        overwrites = (set(self) ^ set(['Refs'])) & ((set(item)) ^ set(['Refs']))
+        if overwrites:
+            warn("Keys overwritten by other sequence: " + "".join(overwrites))
+        return super(Info, self).update(item)
+    
