@@ -77,6 +77,14 @@ class functionTests(TestCase):
         sparse1exp[0, 1] = sparse1exp[1, 0] = ((5.33 - .4) / (5.33 + .4))
         self.assertFloatEqual(dist_canberra(self.sparse1), sparse1exp)
 
+    def test_dist_canberra_bug(self):
+        i = array([[0, 0, 1], [0, 1, 1]])
+        d = (1. / 2.) * sum([abs(0. - 1.) / (0. + 1.),
+                             abs(1. - 1.) / (1. + 1.)])
+        expected = array([[0.0, d], [d, 0.0]])
+        actual = dist_canberra(i)
+        self.assertFloatEqual(expected, actual)
+
     def test_dist_euclidean(self):
         """tests dist_euclidean
 
