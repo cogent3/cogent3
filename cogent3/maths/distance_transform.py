@@ -327,9 +327,11 @@ def dist_canberra(datamtx, strict=True):
             r2 = datamtx[j]
             dist = 0.0
             net = abs(r1 - r2) / (r1 + r2)
-
+            num_nonzeros = 0
+            for k in range(r1.size):
+                num_nonzeros = num_nonzeros + (1 if (r1[k] > 0.0 or r2[k] > 0.0) else 0)
             net = nan_to_num(net)
-            num_nonzeros = nonzero(net)[0].size
+
             dists[i, j] = dists[j, i] = nan_to_num(net.sum() / num_nonzeros)
 
     seterr(**oldstate)
