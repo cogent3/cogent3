@@ -546,7 +546,7 @@ class ParalinearPair(_PairwiseDistance):
 
 
 def get_calculator(name, *args, **kwargs):
-    """returns a pairwise distance claculator
+    """returns a pairwise distance calculator
     
     name is converted to lower case"""
     calcs = {'paralinear': ParalinearPair,
