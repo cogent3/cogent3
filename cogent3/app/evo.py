@@ -20,6 +20,10 @@ class model(ComposableModel):
         self._sm = sm
         if len(sm.get_motifs()[0]) > 1:
             split_codons = False
+
+        if type(tree) == str:
+            tree = LoadTree(treestring=tree)
+
         self._tree = tree
         self._lf_args = lf_args or {}
         if not name:
