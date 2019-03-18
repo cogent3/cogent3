@@ -1,4 +1,5 @@
 from unittest import TestCase, main
+from cogent3 import LoadTree
 from cogent3.app import evo as evo_app
 
 __author__ = "Gavin Huttley"
@@ -23,6 +24,14 @@ class TestModel(TestCase):
                                "time_heterogeneity='max', param_rules=None, "
                                "opt_args=None, split_codons=False, "
                                "show_progress=False)"))
+
+    def test_model_tree(self):
+        """allows tree to be string, None or tree"""
+        treestring = '(a,b,c)'
+        for tree in (treestring, LoadTree(treestring=treestring), None):
+            mod = evo_app.model('HKY85', tree=tree)
+            expect = None if tree is None else LoadTree(treestring=treestring)
+            self.assertIsInstance(mod._tree, expect.__class__)
 
     def test_hypothesis_str(self):
         """correct str representation"""
