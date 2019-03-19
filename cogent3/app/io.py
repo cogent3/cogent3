@@ -66,12 +66,19 @@ class _seq_loader:
 
     def load(self, path):
         """returns alignment"""
-        if self.data_store:
-            data_store = self.data_store
-        else:
-            data_store = SingleReadDataStore(path)
-        abs_path = data_store.get_absolute_identifier(path)
+        # if we get a seq object, we try getting abs_path from that now
+        try:
+            abs_path = path.info.source
+        except AttributeError:
+            abs_path = ''
+
         if type(path) == str:
+            if self.data_store:
+                data_store = self.data_store
+            else:
+                data_store = SingleReadDataStore(path)
+
+            abs_path = data_store.get_absolute_identifier(path)
             data = data_store.read(path).splitlines()
             data = dict(record for record in self._parser(data))
             seqs = self.klass(data=data, moltype=self.moltype)

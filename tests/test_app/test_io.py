@@ -90,14 +90,19 @@ class TestIo(TestCase):
 
     def test_load_unaligned(self):
         """load_unaligned returns degapped sequence collections"""
-        fasta_paths = list(io_app.findall(
-            self.basedir, suffix='.fasta', limit=2))
+        fasta_paths = list(io_app.findall(self.basedir, suffix='.fasta',
+                                          limit=2))
         fasta_loader = io_app.load_unaligned(self.basedir, format='fasta')
         for i, seqs in enumerate(map(fasta_loader, fasta_paths)):
             self.assertIsInstance(seqs, SequenceCollection)
             self.assertTrue('-' not in ''.join(seqs.todict().values()))
             expect_source = join(self.basedir, fasta_paths[i])
             self.assertEqual(seqs.info.source, expect_source)
+
+        # should also handle case where it's given an alignment/sequence
+        # collection
+        got = fasta_loader(seqs)
+        self.assertEqual(got, seqs)
 
     def test_write_seqs(self):
         """correctly writes sequences out"""
