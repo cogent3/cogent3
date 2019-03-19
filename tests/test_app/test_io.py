@@ -1,8 +1,9 @@
+import zipfile
 from os.path import join, basename
-from pathlib import Path
 from tempfile import TemporaryDirectory
 import shutil
 from unittest import TestCase, main
+from unittest.mock import Mock
 from cogent3.app import io as io_app
 from cogent3 import DNA
 from cogent3.core.alignment import SequenceCollection, ArrayAlignment
@@ -111,6 +112,59 @@ class TestIo(TestCase):
             written = list(io_app.findall(dirname, suffix='fasta'))
             for i, wrote in enumerate(written):
                 self.assertEqual(alns[i].info.stored, join(dirname, wrote))
+
+    def test_load_json(self):
+        """correctly loads an object from json"""
+        data = DNA.to_json()
+        # straight directory
+        with TemporaryDirectory(dir='.') as dirname:
+            outpath = join(dirname, 'delme.json')
+            with open(outpath, 'w') as outfile:
+                outfile.write(data)
+            reader = io_app.load_json(dirname)
+            got = reader(outpath)
+            self.assertIsInstance(got, DNA.__class__)
+            self.assertEqual(got, DNA)
+
+        # zipped directory
+        with TemporaryDirectory(dir='.') as dirname:
+            zip_path = join(dirname, 'delme.zip')
+            outpath = 'delme.json'
+            with zipfile.ZipFile(zip_path, 'a') as out:
+                out.writestr(outpath, data)
+
+            reader = io_app.load_json(zip_path)
+            got = reader(outpath)
+            self.assertIsInstance(got, DNA.__class__)
+            self.assertEqual(got, DNA)
+
+    def test_write_json(self):
+        """correctly writes an object from json"""
+        # create a mock object that pretends like it's been derived from
+        # something
+        with TemporaryDirectory(dir='.') as dirname:
+            outdir = join(dirname, 'delme')
+            mock = Mock()
+            mock.to_json = DNA.to_json
+            mock.info.source = join('blah', 'delme.json')
+            writer = io_app.write_json(outdir, create=True)
+            _ = writer(mock)
+            reader = io_app.load_json(outdir)
+            got = reader(join(outdir, 'delme.json'))
+            self.assertEqual(got, DNA)
+
+        # now with a zipped archive
+        with TemporaryDirectory(dir='.') as dirname:
+            outdir = join(dirname, 'delme.zip')
+            mock = Mock()
+            mock.to_json = DNA.to_json
+            mock.info.source = join('blah', 'delme.json')
+            writer = io_app.write_json(outdir, create=True)
+            identifier = writer(mock)
+            reader = io_app.load_json(outdir)
+            got = reader(join(outdir, 'delme.json'))
+            self.assertEqual(got, DNA)
+            self.assertEqual(identifier, join(outdir, 'delme.json'))
 
 
 if __name__ == '__main__':
