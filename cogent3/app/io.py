@@ -26,7 +26,7 @@ __status__ = "Alpha"
 
 
 def findall(base_path, suffix='fa', limit=None):
-    """returns glob match to suffix
+    """returns glob match to suffix, path is relative to base_path
 
     Parameters
     ----------
