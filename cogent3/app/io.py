@@ -8,7 +8,6 @@ from cogent3.parse.sequence import PARSERS
 from cogent3.format.alignment import WRITERS
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.util.deserialise import deserialise_object
-from cogent3.util.misc import open_
 from .data_store import (SingleReadDataStore, SKIP, RAISE,
                          OVERWRITE, IGNORE, ReadOnlyZippedDataStore,
                          ReadOnlyDirectoryDataStore,
@@ -24,12 +23,6 @@ __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
-
-
-def abspath(path):
-    """returns absolute path, expanding for user"""
-    path = os.path.abspath(os.path.expanduser(path))
-    return path
 
 
 def findall(base_path, suffix='fa', limit=None):
