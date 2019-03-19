@@ -198,3 +198,63 @@ class write_seqs(_checkpointable):
         data.info.stored = self.data_store.write(identifier, data.to_fasta())
         return identifier
 
+
+class load_json(Composable):
+    _type = 'output'
+
+    def __init__(self, data_path=None, suffix='json'):
+        super(load_json, self).__init__(input_type=None,
+                                        output_type=('result', 'serialisable'))
+        """
+        Parameters
+        ----------
+        data_path : str
+            path to a directory or zip archive
+        """
+        if data_path:
+            zipped = zipfile.is_zipfile(data_path)
+            klass = (ReadOnlyZippedDataStore
+                     if zipped else ReadOnlyDirectoryDataStore)
+            self.data_store = klass(data_path, suffix=suffix)
+        else:
+            self.data_store = None
+
+        self.func = self.read
+
+    def read(self, path):
+        """returns alignment"""
+        if self.data_store:
+            data_store = self.data_store
+        else:
+            data_store = SingleReadDataStore(path)
+        if type(path) == str:
+            data = data_store.read(path)
+        else:
+            raise NotImplementedError
+
+        return deserialise_object(data)
+
+
+class write_json(_checkpointable):
+    _type = 'output'
+
+    def __init__(self, data_path, name_callback=None, create=False,
+                 if_exists=SKIP, suffix='json'):
+        super(write_json, self).__init__(input_type='serialisable',
+                                         output_type=('identifier',
+                                                      'serialisable'),
+                                         data_path=data_path,
+                                         name_callback=name_callback,
+                                         create=create, if_exists=if_exists,
+                                         suffix=suffix)
+        self.func = self.write
+
+    def _set_checkpoint_loader(self):
+        self._load_checkpoint = load_json(self.data_store.source,
+                                          suffix=self.data_store.suffix)
+
+    def write(self, data):
+        identifier = self._make_output_identifier(data)
+        json = data.to_json()
+        data.info.stored = self.data_store.write(identifier, json)
+        return identifier
