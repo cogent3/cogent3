@@ -63,8 +63,8 @@ class _seq_loader:
         """
         if data_path:
             zipped = zipfile.is_zipfile(data_path)
-            klass = (
-                ReadOnlyZippedDataStore if zipped else ReadOnlyDirectoryDataStore)
+            klass = (ReadOnlyZippedDataStore
+                     if zipped else ReadOnlyDirectoryDataStore)
             self.data_store = klass(data_path, suffix=suffix)
         else:
             self.data_store = None
@@ -148,9 +148,9 @@ class load_unaligned(ComposableSeq, _seq_loader):
         self._parser = PARSERS[format.lower()]
 
 
-class write_seqs(ComposableSeq):
-    def __init__(self, data_path, format='fasta', name_callback=None,
-                 create=False, if_exists='skip'):
+class write_seqs(_checkpointable):
+    def __init__(self, data_path, format='fasta', suffix='fa',
+                 name_callback=None, create=False, if_exists=SKIP):
         """
         Parameters
         ----------
@@ -159,6 +159,8 @@ class write_seqs(ComposableSeq):
             archive
         format : str
             sequence file format
+        suffix : str
+            filename suffix for output
         name_callback
             function that takes the data object and returns a base
             file name
@@ -171,52 +173,25 @@ class write_seqs(ComposableSeq):
         super(write_seqs, self).__init__(input_type=('sequences',
                                                      'aligned'),
                                          output_type=('sequences',
-                                                      'aligned'))
+                                                      'aligned',
+                                                      'identifier'),
+                                         data_path=data_path,
+                                         name_callback=name_callback,
+                                         create=create, if_exists=if_exists,
+                                         suffix=suffix)
         self._formatted_params()
-
-        if_exists = if_exists.lower()
-        assert if_exists in (SKIP, IGNORE,
-                             RAISE, OVERWRITE), 'invalid value for if_exists'
-        self._if_exists = if_exists
-
-        zipped = data_path.endswith('.zip')
-        klass = WritableZippedDataStore if zipped else WritableDirectoryDataStore
-        self.data_store = klass(data_path, suffix=format, create=create,
-                                if_exists=if_exists)
         if format != 'fasta':
             # todo refactor alignment formatters
             raise NotImplementedError('must use fasta for now')
 
         self._format = format
-        self._callback = name_callback
-        self.func = self.write
         self._formatter = WRITERS[format]
-        self._format = format
-        self._checkpointable = True
 
     def _set_checkpoint_loader(self):
         loader = {'sequences': load_unaligned}.get(self._out._type,
                                                    load_aligned)
         loader = loader(format=self._format)
         self._load_checkpoint = loader
-
-    def _make_output_identifier(self, data):
-        if self._callback:
-            data = self._callback(data)
-
-        identifier = self.data_store.make_absolute_identifier(data)
-        return identifier
-
-    def job_done(self, data):
-        identifier = self._make_output_identifier(data)
-        exists = identifier in self.data_store
-        if exists and self._if_exists == 'raise':
-            msg = "'%s' already exists" % identifier
-            raise RuntimeError(msg)
-
-        if self._if_exists == OVERWRITE:
-            exists = False
-        return exists
 
     def write(self, data):
         identifier = self._make_output_identifier(data)

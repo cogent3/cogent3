@@ -1,9 +1,11 @@
 import inspect
 
-from cogent3.core.genetic_code import GeneticCode
 from cogent3 import LoadSeqs
 from cogent3.core.alignment import SequenceCollection
 from cogent3.util.misc import open_
+from .data_store import (SKIP, RAISE, OVERWRITE, IGNORE,
+                         WritableZippedDataStore,
+                         WritableDirectoryDataStore, )
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -225,58 +227,66 @@ class _seq_loader:
 
 
 class _checkpointable(Composable):
-    def __init__(self, writeto, name_callback=None, create=False,
-                 if_exists='skip'):
+    def __init__(self, input_type, output_type, data_path, name_callback=None,
+                 create=False, if_exists=SKIP, suffix=None):
         """
         Parameters
         ----------
-        writeto
+        input_type
+            compatible input types
+        output_type
+            output types
+        data_path
             path to write output
         name_callback
             function that takes the data object and returns a base
             file name
         create : bool
-            whether to create the writeto reference
+            whether to create the data_path reference
         if_exists : str
             behaviour if output exists. Either 'skip', 'raise' (raises an
-            exception), 'overwrite'
+            exception), 'overwrite', 'ignore'
         """
-        super(_checkpointable, self).__init__(
-            input_type=('result', 'serialisable'),
-            output_type=('identifier', 'serialisable'))
-        self._checkpointable = True
-        exist_opts = ('skip', 'raise', 'overwrite')
-        assert if_exists.lower() in exist_opts, 'invalid value for if_exists'
-        self._if_exists = if_exists
-        self._writeto = writeto
-        self._create = create  # override in subclasses with a callable
+        super(_checkpointable, self).__init__(input_type=input_type,
+                                              output_type=output_type)
+        self._formatted_params()
 
+        self._checkpointable = True
+        if_exists = if_exists.lower()
+        assert if_exists in (SKIP, IGNORE,
+                             RAISE, OVERWRITE), 'invalid value for if_exists'
+        self._if_exists = if_exists
+
+        klass = (WritableZippedDataStore
+                 if data_path.endswith('.zip') else WritableDirectoryDataStore)
+        self.data_store = klass(data_path, suffix=suffix, create=create,
+                                if_exists=if_exists)
         self._callback = name_callback
         self.func = self.write
-        # define in subclasses
+
+        # override the following in subclasses
+        self._format = None
+        self._formatter = None
         self._load_checkpoint = None
-        self._check_exists = None
-        self._writer = None
 
     def _make_output_identifier(self, data):
-        # over-ride in subclass
-        return
+        if self._callback:
+            data = self._callback(data)
+
+        identifier = self.data_store.make_absolute_identifier(data)
+        return identifier
 
     def job_done(self, data):
-        if not self._check_exists(self._writeto):
-            raise RuntimeError('writeto location "%s" does not exist' %
-                               self._writeto)
-
         identifier = self._make_output_identifier(data)
-        exists = self._check_exists(identifier)
-        if exists and self._if_exists == 'raise':
+        exists = identifier in self.data_store
+        if exists and self._if_exists == RAISE:
             msg = "'%s' already exists" % identifier
             raise RuntimeError(msg)
 
-        if self._if_exists == 'overwrite':
+        if self._if_exists == OVERWRITE:
             exists = False
         return exists
 
     def write(self, data):
         # over-ride in subclass
-        return
+        raise NotImplementedError

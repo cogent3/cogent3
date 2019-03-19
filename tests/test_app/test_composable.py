@@ -16,24 +16,24 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
+class TestCheckpoint(TestCase):
+    def test_checkpointable(self):
+        """chained funcs should be be able to apply a checkpoint"""
+        path = 'data/brca1.fasta'
+        reader = io_app.load_aligned(moltype='dna')
+        omit_degens = sample_app.omit_degenerates(moltype='dna')
+        with TemporaryDirectory(dir='.') as dirname:
+            writer = io_app.write_seqs(dirname)
+            aln = reader(path)
+            outpath = writer(aln)
 
-def test_checkpointable(self):
-    """chained funcs should be be able to apply a checkpoint"""
-    path = 'data/brca1.fasta'
-    reader = io_app.load_aligned(moltype='dna')
-    omit_degens = sample_app.omit_degenerates(moltype='dna')
-    with TemporaryDirectory(dir='.') as dirname:
-        writer = io_app.write_seqs(dirname)
-        aln = reader(path)
-        outpath = writer(aln)
-
-        read_write = reader + writer
-        got = read_write(path)  # should skip reading and return path
-        self.assertEqual(got, outpath)
-        read_write_degen = reader + writer + omit_degens
-        got = read_write_degen(path)  # should return an alignment instance
-        self.assertIsInstance(got, ArrayAlignment)
-        self.assertTrue(len(got) > 1000)
+            read_write = reader + writer
+            got = read_write(path)  # should skip reading and return path
+            self.assertEqual(got, outpath)
+            read_write_degen = reader + writer + omit_degens
+            got = read_write_degen(path)  # should return an alignment instance
+            self.assertIsInstance(got, ArrayAlignment)
+            self.assertTrue(len(got) > 1000)
 
 
 class TestComposableBase(TestCase):
