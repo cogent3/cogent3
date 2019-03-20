@@ -17,11 +17,11 @@ class TestModel(TestCase):
 
     def test_model_str(self):
         """correct str representation"""
-        model = evo_app.model('HKY85', time_heterogeneity='max')
+        model = evo_app.model('HKY85', time_het='max')
         got = str(model)
         self.assertEqual(got, ("model(type='model', sm='HKY85', tree=None, "
                                "name=None, sm_args=None, lf_args=None, "
-                               "time_heterogeneity='max', param_rules=None, "
+                               "time_het='max', param_rules=None, "
                                "opt_args=None, split_codons=False, "
                                "show_progress=False)"))
 
@@ -36,13 +36,13 @@ class TestModel(TestCase):
     def test_hypothesis_str(self):
         """correct str representation"""
         model1 = evo_app.model('HKY85')
-        model2 = evo_app.model('HKY85', time_heterogeneity='max')
+        model2 = evo_app.model('HKY85', time_het='max')
         hyp = evo_app.hypothesis(model1, model2)
         got = str(hyp)
         expect = ("hypothesis(type='hypothesis', null='HKY85', "
                   "alternates=(model(type='model', sm='HKY85', tree=None, "
                   "name=None, sm_args=None, lf_args=None, "
-                  "time_heterogeneity='max', param_rules=None, opt_args=None,"
+                  "time_het='max', param_rules=None, opt_args=None,"
                   " split_codons=False, show_progress=False),))")
         self.assertEqual(got, expect)
 
