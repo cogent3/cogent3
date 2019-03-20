@@ -13,6 +13,9 @@ import numpy
 from cogent3.evolve import substitution_model, ns_substitution_model
 from cogent3.evolve.predicate import MotifChange, replacement, omega
 from cogent3.evolve.solved_models import F81, HKY85, TN93
+from cogent3 import LoadTable
+from cogent3.util.table import Table
+
 
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -772,3 +775,27 @@ def WG01(**kw):
         **kw)
 
     return sm
+
+
+
+# this is not tested yet:
+def available_models(model_types=None):
+    """This function returns a cogent3 Table instance with header
+    ['Type', 'abbreviation', 'description']."""
+    column_headings = ['Model Type', 'Abbreviation', 'Description']
+    _model_types = {"nucleotide_model": nucleotide_models, "codon_model": codon_models, "protein_model": protein_models}
+    if model_types is not None:
+        model_types = model_types if not isinstance((model_types, str)) else [model_types]
+    else:
+        model_types = _model_types.keys()
+    rows = []
+    for mod_type in model_types:
+        for abbreviation in _model_types[mod_type]:
+            if eval(abbreviation).__doc__:
+                description = ' '.join(eval(abbreviation).__doc__.split())
+            else:
+                description = ''
+            rows.append([mod_type, abbreviation, description])
+    t = Table(header=column_headings, rows=rows,
+              title='To get a model instance, use get_model(<abbreviation>)')
+    return t
