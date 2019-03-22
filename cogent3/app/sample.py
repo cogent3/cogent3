@@ -203,7 +203,7 @@ class take_codon_positions(ComposableAligned):
 
 
 class take_named_seqs(ComposableSeq):
-    def __init__(self, *names):
+    def __init__(self, *names, negate=False):
         """selects named sequences from a collection
         
         Returns
@@ -218,11 +218,12 @@ class take_named_seqs(ComposableSeq):
                                                            'serialisable'))
         self._formatted_params()
         self._names = names
+        self._negate = negate
         self.func = self.take_seqs
 
     def take_seqs(self, data):
         try:
-            data = data.take_seqs(self._names)
+            data = data.take_seqs(self._names, negate=self._negate)
         except KeyError:
             data = False
         return data
