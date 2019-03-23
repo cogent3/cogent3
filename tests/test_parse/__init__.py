@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-__all__ = ['test_aaindex',
-           'test_blast',
-           'test_cigar',
+__all__ = ['test_cigar',
            'test_clustal',
            'test_dialign',
            'test_ebi',

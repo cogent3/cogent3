@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-__all__ = ['aaindex',
-           'blast',
+__all__ = ['blast',
            'cigar',
            'clustal',
            'dialign',
