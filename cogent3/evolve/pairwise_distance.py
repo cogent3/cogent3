@@ -101,7 +101,8 @@ def _jc69_from_matrix(matrix):
     return total, p, dist, var
 
 
-def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_coords, tv_coords):
+def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords,
+                      pyr_coords, tv_coords):
     invalid = None, None, None, None
 
     total = matrix.sum()
@@ -148,8 +149,8 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_c
     v4 = (coeff1 * v1 / (2 * freq_purs)) + \
          (coeff2 * v2 / (2 * freq_pyrs)) + \
          (coeff3 * v3 / (2 * freq_purs * freq_pyrs))
-    var = v1**2 * pur_ts_diffs + v2**2 * pyr_ts_diffs + v4**2 * tv_diffs - \
-        (v1 * pur_ts_diffs + v2 * pyr_ts_diffs + v4 * tv_diffs)**2
+    var = v1 ** 2 * pur_ts_diffs + v2 ** 2 * pyr_ts_diffs + v4 ** 2 * tv_diffs - \
+          (v1 * pur_ts_diffs + v2 * pyr_ts_diffs + v4 * tv_diffs) ** 2
     var /= total
 
     return total, p, dist, var
@@ -178,7 +179,7 @@ def _logdetcommon(matrix):
         return invalid
 
     # the inverse matrix of frequency, every element is squared
-    M_matrix = inv(frequency)**2
+    M_matrix = inv(frequency) ** 2
     freqs = [frequency.sum(axis=axis) for axis in (0, 1)]
     var_term = dot(M_matrix, frequency).diagonal().sum()
 
@@ -196,7 +197,7 @@ def _paralinear(matrix):
 
     r = matrix.shape[0]
     d_xy = - log(det(frequency) / sqrt((freqs[0] * freqs[1]).prod())) / r
-    var = (var_term - (1 / sqrt(freqs[0] * freqs[1])).sum()) / (r**2 * total)
+    var = (var_term - (1 / sqrt(freqs[0] * freqs[1])).sum()) / (r ** 2 * total)
 
     return total, p, d_xy, var
 
@@ -215,14 +216,15 @@ def _logdet(matrix, use_tk_adjustment=True):
 
     r = matrix.shape[0]
     if use_tk_adjustment:
-        coeff = (sum(sum(freqs)**2) / 4 - 1) / (r - 1)
+        coeff = (sum(sum(freqs) ** 2) / 4 - 1) / (r - 1)
         d_xy = coeff * log(det(frequency) / sqrt((freqs[0] * freqs[1]).prod()))
         var = None
     else:
         d_xy = - log(det(frequency)) / r - log(r)
-        var = (var_term / r**2 - 1) / total
+        var = (var_term / r ** 2 - 1) / total
 
     return total, p, d_xy, var
+
 
 try:
     from ._pairwise_distance import \
@@ -234,12 +236,14 @@ except ImportError:
 
 def _number_formatter(template):
     """flexible number formatter"""
+
     def call(val):
         try:
             result = template % val
         except TypeError:
             result = val
         return result
+
     return call
 
 
@@ -258,7 +262,7 @@ def _make_stat_table(stats, names, **kwargs):
         rows[i].insert(0, names[i])
 
     table = LoadTable(header=header, rows=rows, row_ids=True,
-                          missing_data='*', **kwargs)
+                      missing_data='*', **kwargs)
     return table
 
 
@@ -314,7 +318,8 @@ class _PairwiseDistance(object):
 
         dupes = set()
         duped = defaultdict(list)
-        Stats = namedtuple("Stats", ["length", "fraction_variable", "dist", "variance"])
+        Stats = namedtuple("Stats",
+                           ["length", "fraction_variable", "dist", "variance"])
 
         if alignment is not None:
             self._convert_seqs_to_indices(alignment)
@@ -322,9 +327,9 @@ class _PairwiseDistance(object):
         names = self.names[:]
         matrix = zeros((self._dim, self._dim), float64)
         off_diag = [(i, j) for i in range(self._dim)
-                        for j in range(self._dim) if i != j]
+                    for j in range(self._dim) if i != j]
         off_diag = tuple([tuple(a) for a in zip(*off_diag)])
-        
+
         done = 0.0
         to_do = (len(names) * len(names) - 1) / 2
         for i in range(len(names) - 1):
@@ -361,14 +366,13 @@ class _PairwiseDistance(object):
                 key = names[k]
                 vals = [names[i] for i in v]
                 self._duped[key] = vals
-        
+
             # clean the distances so only unique seqs included
             remove = set(self._dupes)
             keys = list(self._dists.keys())
             for key in keys:
                 if set(key) & remove:
-                    del(self._dists[key])
-
+                    del (self._dists[key])
 
     __call__ = run
 
@@ -385,7 +389,7 @@ class _PairwiseDistance(object):
         dists = {k: self._dists[k].dist for k in self._dists}
         if include_duplicates:
             dists = self._expand(dists)
-        
+
         return dists
 
     def _expand(self, pwise):
@@ -393,12 +397,12 @@ class _PairwiseDistance(object):
         if not self.duplicated:
             # no duplicates, nothing to do
             return pwise
-        
+
         redundants = {}
         for k in self.duplicated:
             for r in self.duplicated[k]:
                 redundants[r] = k
-        
+
         names = self.names[:]
         for add, alias in redundants.items():
             for name in names:
@@ -556,6 +560,6 @@ def get_calculator(name, *args, **kwargs):
     name = name.lower()
     if name not in calcs:
         raise ValueError('Unknown pairwise distance calculator "%s"' % name)
-    
+
     calc = calcs[name]
     return calc(*args, **kwargs)
