@@ -176,12 +176,9 @@ class Calculator(object):
     """A complete hierarchical function with N evaluation steps to call
     for each change of inputs.  Made by a ParameterController."""
 
-    def __init__(self, cells, defns, remaining_parallel_context=None,
-                 overall_parallel_context=None, trace=None, with_undo=True):
+    def __init__(self, cells, defns, trace=None, with_undo=True):
         if trace is None:
             trace = TRACE_DEFAULT
-        self.overall_parallel_context = overall_parallel_context
-        self.remaining_parallel_context = remaining_parallel_context
         self.with_undo = with_undo
         self.results_by_id = defns
         self.opt_pars = []
@@ -212,15 +209,14 @@ class Calculator(object):
                     self.arg_ranks[i].append(arg.rank)
                     cell.arg_ranks.append(arg.rank)
 
-                with parallel.parallel_context(self.remaining_parallel_context):
-                    try:
-                        cell.prime(self.cell_values)
-                    except KeyboardInterrupt:
-                        raise
-                    except Exception as detail:
-                        print(("Failed initial calculation of %s"
-                               % cell.name))
-                        raise
+                try:
+                    cell.prime(self.cell_values)
+                except KeyboardInterrupt:
+                    raise
+                except Exception as detail:
+                    print(("Failed initial calculation of %s"
+                            % cell.name))
+                    raise
             else:
                 raise RuntimeError('Unexpected Cell type %s' % type(cell))
 
@@ -419,8 +415,6 @@ class Calculator(object):
 
         t0 = time.time()
         self.evaluations += 1
-        assert parallel.get_context() is self.overall_parallel_context, (
-            parallel.get_context(), self.overall_parallel_context)
 
         # If ALL of the changes made in the last step are reversed in this step
         # then it is safe to undo them first, taking advantage of the 1-deep
@@ -467,31 +461,30 @@ class Calculator(object):
             else:
                 data[i] = v
 
-        with parallel.parallel_context(self.remaining_parallel_context):
-            try:
-                if self.trace:
-                    self.tracing_update(changes, program, data)
-                else:
-                    self.plain_update(program, data)
+        try:
+            if self.trace:
+                self.tracing_update(changes, program, data)
+            else:
+                self.plain_update(program, data)
 
-                # if non-optimiser parameter was set then undo is invalid
-                if (self.last_undo and
-                        max(self.last_undo)[0] >= len(self.opt_pars)):
-                    self.last_undo = []
-                else:
-                    self.last_undo = changed_optpars
-
-            except CalculationInterupted as detail:
-                if self.with_undo:
-                    self._switch = not self._switch
-                for (i, v) in changed_optpars:
-                    self.last_values[i] = v
+            # if non-optimiser parameter was set then undo is invalid
+            if (self.last_undo and
+                    max(self.last_undo)[0] >= len(self.opt_pars)):
                 self.last_undo = []
-                (cell, exception) = detail.args
-                raise exception
+            else:
+                self.last_undo = changed_optpars
 
-            finally:
-                self.elapsed_time += time.time() - t0
+        except CalculationInterupted as detail:
+            if self.with_undo:
+                self._switch = not self._switch
+            for (i, v) in changed_optpars:
+                self.last_values[i] = v
+            self.last_undo = []
+            (cell, exception) = detail.args
+            raise exception
+
+        finally:
+            self.elapsed_time += time.time() - t0
 
         return self.cell_values[self._switch][-1]
 
