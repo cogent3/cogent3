@@ -665,7 +665,6 @@ class ParameterController(object):
         self._changed = set()
         self._update_suspended = False
         self.update_intermediate_values(self.defns)
-        self.setup_parallel_context()
 
     def get_param_names(self, scalar_only=False):
         """The names of the numerical inputs to the calculation."""
@@ -773,15 +772,6 @@ class ParameterController(object):
     def measure_evals_per_second(self, *args, **kw):
         return self.make_calculator().measure_evals_per_second(*args, **kw)
 
-    def setup_parallel_context(self, parallel_split=None):
-        self.overall_parallel_context = parallel.get_context()
-        with parallel.split(parallel_split) as parallel_context:
-            parallel_context = parallel_context.get_communicator()
-            self.remaining_parallel_context = parallel.get_context()
-            if 'parallel_context' in self.defn_for:
-                self.assign_all(
-                    'parallel_context', value=parallel_context, const=True)
-
     def make_calculator(self, calculatorClass=None, variable=None, **kw):
         cells = []
         input_soup = {}
@@ -792,8 +782,6 @@ class ParameterController(object):
             input_soup[id(defn)] = outputs
         if calculatorClass is None:
             calculatorClass = Calculator
-        kw['overall_parallel_context'] = self.overall_parallel_context
-        kw['remaining_parallel_context'] = self.remaining_parallel_context
         return calculatorClass(cells, input_soup, **kw)
 
     def update_from_calculator(self, calc):
