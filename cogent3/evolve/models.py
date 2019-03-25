@@ -19,7 +19,7 @@ from cogent3.util.table import Table
 
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley"]
+__credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley, James Kondilios"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Matthew Wakefield"
@@ -59,7 +59,6 @@ def _make_symn_preds():
                          MotifChange(pair[f], pair[t], forward_only=True))
     return sym_preds
 
-models = nucleotide_models + codon_models + protein_models
 
 _sym_preds = _make_symn_preds()
 
@@ -777,17 +776,19 @@ def WG01(**kw):
     return sm
 
 
-
 # this is not tested yet:
 def available_models(model_types=None):
     """This function returns a cogent3 Table instance with header
-    ['Type', 'abbreviation', 'description']."""
+    ['Model Type', 'Abbreviation', 'Description']."""
     column_headings = ['Model Type', 'Abbreviation', 'Description']
-    _model_types = {"nucleotide_model": nucleotide_models, "codon_model": codon_models, "protein_model": protein_models}
+    _model_types = {"nucleotide_model": nucleotide_models,
+                    "codon_model": codon_models,
+                    "protein_model": protein_models}
     if model_types is not None:
-        model_types = model_types if not isinstance((model_types, str)) else [model_types]
+        model_types = model_types if not isinstance(model_types, str) else [model_types]
     else:
         model_types = _model_types.keys()
+
     rows = []
     for mod_type in model_types:
         for abbreviation in _model_types[mod_type]:
@@ -799,3 +800,4 @@ def available_models(model_types=None):
     t = Table(header=column_headings, rows=rows,
               title='To get a model instance, use get_model(<abbreviation>)')
     return t
+
