@@ -19,7 +19,7 @@ from cogent3.util.table import Table
 
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley, James Kondilios"]
+__credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley", "James Kondilios"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Matthew Wakefield"

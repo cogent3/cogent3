@@ -68,28 +68,12 @@ class CannedModelsTest(TestCase):
 
 
 def get_sample_model_types(mod_type=None):
-    if mod_type == "nucleotide_models":
-        available_mods = nucleotide_models
-
-    if mod_type == "codon_models":
-        available_mods = codon_models
-
-    if mod_type == "protein_models":
-        available_mods = protein_models
-
-    else:
-        available_mods = models
-
-    return available_mods
+    opts = dict(codon_models=codon_models, nucleotide_models=nucleotide_models,
+                protein_models=protein_models)
+    return opts.get(mod_type, models)
 
 
 class AvailableModelsTest(TestCase):
-
-    def setUp(self):
-        self.nucleotide_models = get_sample_model_types("nucleotide_model")
-        self.codon_models = get_sample_model_types("codon_model")
-        self.protein_models = get_sample_model_types("protein_model")
-        self.all_models = get_sample_model_types()
 
     def test_model_abbreviation(self):
         """make sure getting model abbreviations that exist"""
