@@ -40,11 +40,11 @@ class TranslateTests(TestCase):
         got = two_three(aln)
         self.assertEqual(got.todict(), {'a': 'CGCGCG', 'b': 'ATATAT'})
 
-    def take_codon_positions_array_align(self):
+    def test_take_codon_positions_array_align(self):
         """correctly return codon positions from ArrayAlignment"""
         self._codon_positions(array_align=True)
 
-    def take_codon_positions_alignment(self):
+    def test_take_codon_positions_alignment(self):
         """correctly return codon positions from Alignment"""
         self._codon_positions(array_align=False)
 
@@ -107,203 +107,203 @@ class TranslateTests(TestCase):
                                      ('b', 'GCTTTTGTCAAT')]]]
         self.assertEqual(got, expect)
 
-        def test_minlength(self):
-            '''correctly identifies data with minimal length'''
-            aln = LoadSeqs(data=[('a', 'GCAAGCGTTTAT'),
-                                 ('b', 'GCTTTTGTCAAT')])
+    def test_minlength(self):
+        '''correctly identifies data with minimal length'''
+        aln = LoadSeqs(data=[('a', 'GCAAGCGTTTAT'),
+                             ('b', 'GCTTTTGTCAAT')])
 
-            # if using subtract_degen, fails if incorect moltype
-            ml = sample.min_length(9, subtract_degen=True)
-            with self.assertRaises(ValueError):
-                ml(aln)
+        # if using subtract_degen, fails if incorect moltype
+        ml = sample.min_length(9, subtract_degen=True)
+        with self.assertRaises(ValueError):
+            ml(aln)
 
-            # but works if subtract_degen is False
-            ml = sample.min_length(9, subtract_degen=False)
-            aln = ml(aln)
-            self.assertEqual(len(aln), 12)
-            # or if moltype provided
-            ml = sample.min_length(9, subtract_degen=True, moltype='dna')
-            aln = ml(aln)
-            self.assertEqual(len(aln), 12)
+        # but works if subtract_degen is False
+        ml = sample.min_length(9, subtract_degen=False)
+        aln = ml(aln)
+        self.assertEqual(len(aln), 12)
+        # or if moltype provided
+        ml = sample.min_length(9, subtract_degen=True, moltype='dna')
+        aln = ml(aln)
+        self.assertEqual(len(aln), 12)
 
-            alns = [LoadSeqs(data=[('a', 'GCAAGCGTTTAT'),
-                                   ('b', 'GCTTTTGTCAAT')], moltype=DNA),
-                    LoadSeqs(data=[('a', 'GGAAGCGT'),
-                                   ('b', 'GCTTT-GT')], moltype=DNA)]
-            ml = sample.min_length(9)
-            got = [aln.todict() for aln in map(ml, alns) if aln]
-            expected = [dict((('a', 'GCAAGCGTTTAT'),
-                              ('b', 'GCTTTTGTCAAT')))]
-            self.assertEqual(got, expected)
+        alns = [LoadSeqs(data=[('a', 'GCAAGCGTTTAT'),
+                               ('b', 'GCTTTTGTCAAT')], moltype=DNA),
+                LoadSeqs(data=[('a', 'GGAAGCGT'),
+                               ('b', 'GCTTT-GT')], moltype=DNA)]
+        ml = sample.min_length(9)
+        got = [aln.todict() for aln in map(ml, alns) if aln]
+        expected = [dict((('a', 'GCAAGCGTTTAT'),
+                          ('b', 'GCTTTTGTCAAT')))]
+        self.assertEqual(got, expected)
 
-            alns = [LoadSeqs(data=[('a', 'GGAAGCGT'),
-                                   ('b', 'GCTTNGT')],
-                             aligned=False, moltype=DNA)]
-            ml = sample.min_length(6)
-            got = [aln.todict() for aln in map(ml, alns) if aln]
-            expected = [dict((('a', 'GGAAGCGT'),
-                              ('b', 'GCTTNGT')))]
-            self.assertEqual(got, expected)
+        alns = [LoadSeqs(data=[('a', 'GGAAGCGT'),
+                               ('b', 'GCTTNGT')],
+                         aligned=False, moltype=DNA)]
+        ml = sample.min_length(6)
+        got = [aln.todict() for aln in map(ml, alns) if aln]
+        expected = [dict((('a', 'GGAAGCGT'),
+                          ('b', 'GCTTNGT')))]
+        self.assertEqual(got, expected)
 
-            ml = sample.min_length(7)
-            got = [aln.todict() for aln in map(ml, alns) if aln]
-            expected = []
-            self.assertEqual(got, expected)
+        ml = sample.min_length(7)
+        got = [aln.todict() for aln in map(ml, alns) if aln]
+        expected = []
+        self.assertEqual(got, expected)
 
-        def test_fixedlength(self):
-            '''correctly returns data with specified length'''
-            aln = LoadSeqs(data=[('a', 'GCAAGCGTTTAT'),
-                                 ('b', 'GCTTTTGTCAAT')])
+    def test_fixedlength(self):
+        '''correctly returns data with specified length'''
+        aln = LoadSeqs(data=[('a', 'GCAAGCGTTTAT'),
+                             ('b', 'GCTTTTGTCAAT')])
 
-            fl = sample.fixed_length(4)
-            got = fl(aln)
-            self.assertEqual(len(got), 4)
-            fl = sample.fixed_length(9, moltype='dna')
-            got = fl(aln)
-            self.assertEqual(len(got), 9)
-            self.assertEqual(list(got.moltype), list(DNA))
+        fl = sample.fixed_length(4)
+        got = fl(aln)
+        self.assertEqual(len(got), 4)
+        fl = sample.fixed_length(9, moltype='dna')
+        got = fl(aln)
+        self.assertEqual(len(got), 9)
+        self.assertEqual(list(got.moltype), list(DNA))
 
-            alns = [LoadSeqs(data=[('a', 'GCAAGCGTTTAT'),
-                                   ('b', 'GCTTTTGTCAAT')], moltype=DNA),
-                    LoadSeqs(data=[('a', 'GGAAGCGT'),
-                                   ('b', 'GCTTT-GT')], moltype=DNA)]
-            fl = sample.fixed_length(9)
-            got = [a for a in map(fl, alns) if a]
-            self.assertEqual(len(got[0]), 9)
-            expected = dict((('a', 'GCAAGCGTT'),
-                             ('b', 'GCTTTTGTC')))
-            self.assertEqual(got[0].todict(), expected)
+        alns = [LoadSeqs(data=[('a', 'GCAAGCGTTTAT'),
+                               ('b', 'GCTTTTGTCAAT')], moltype=DNA),
+                LoadSeqs(data=[('a', 'GGAAGCGT'),
+                               ('b', 'GCTTT-GT')], moltype=DNA)]
+        fl = sample.fixed_length(9)
+        got = [a for a in map(fl, alns) if a]
+        self.assertEqual(len(got[0]), 9)
+        expected = dict((('a', 'GCAAGCGTT'),
+                         ('b', 'GCTTTTGTC')))
+        self.assertEqual(got[0].todict(), expected)
 
-            fl = sample.fixed_length(600)
-            got = [a for a in map(fl, alns) if a]
-            expected = []
-            self.assertEqual(got, expected)
+        fl = sample.fixed_length(600)
+        got = [a for a in map(fl, alns) if a]
+        expected = []
+        self.assertEqual(got, expected)
 
-            fl = sample.fixed_length(9, random=True)
-            got = fl(aln)
-            self.assertEqual(len(got), 9)
-            self.assertEqual(set(aln.names), set('ab'))
+        fl = sample.fixed_length(9, random=True)
+        got = fl(aln)
+        self.assertEqual(len(got), 9)
+        self.assertEqual(set(aln.names), set('ab'))
 
-            # these will be just a subset as sampling one triplet
-            fl = sample.fixed_length(3, random=True, motif_length=3)
-            d = LoadSeqs(data=[('a', 'GCAAGCGTGTAT'),
-                               ('b', 'GCTACTGTCAAT')])
-            expect = d.todict()
-            got = fl(d)
-            self.assertEqual(len(got), 3)
-            for name, seq in got.todict().items():
-                self.assertIn(seq, expect[name])
+        # these will be just a subset as sampling one triplet
+        fl = sample.fixed_length(3, random=True, motif_length=3)
+        d = LoadSeqs(data=[('a', 'GCAAGCGTGTAT'),
+                           ('b', 'GCTACTGTCAAT')])
+        expect = d.todict()
+        got = fl(d)
+        self.assertEqual(len(got), 3)
+        for name, seq in got.todict().items():
+            self.assertIn(seq, expect[name])
 
-            fl = sample.fixed_length(9, start=2)
-            got = fl(aln)
-            self.assertEqual(len(got), 9)
-            self.assertEqual(got.todict(), aln[2:11].todict())
+        fl = sample.fixed_length(9, start=2)
+        got = fl(aln)
+        self.assertEqual(len(got), 9)
+        self.assertEqual(got.todict(), aln[2:11].todict())
 
-            fl = sample.fixed_length(4, start='random')
-            expect = aln.todict()
-            got = fl(aln)
-            self.assertEqual(len(got), 4)
-            for name, seq in got.todict().items():
-                self.assertIn(seq, expect[name])
+        fl = sample.fixed_length(4, start='random')
+        expect = aln.todict()
+        got = fl(aln)
+        self.assertEqual(len(got), 4)
+        for name, seq in got.todict().items():
+            self.assertIn(seq, expect[name])
 
-        def test_omit_bad_seqs(self):
-            """correctly omit bad sequences from an alignment"""
-            data = {'s1': '-ACC--TT',
-                    's2': '-ACC--TT',
-                    's3': '-ACC--TT',
-                    's4': 'AACCGGTT',
-                    's5': 'AACCGGTT',
-                    's6': '--------'}
-            aln = LoadSeqs(data=data, moltype=DNA)
-            # unless exclude_just_gap=False, which should just return self
-            dropbad = sample.omit_bad_seqs(exclude_just_gap=False)
-            got = dropbad(aln)
-            self.assertEqual(got.todict(), data)
+    def test_omit_bad_seqs(self):
+        """correctly omit bad sequences from an alignment"""
+        data = {'s1': '-ACC--TT',
+                's2': '-ACC--TT',
+                's3': '-ACC--TT',
+                's4': 'AACCGGTT',
+                's5': 'AACCGGTT',
+                's6': '--------'}
+        aln = LoadSeqs(data=data, moltype=DNA)
+        # unless exclude_just_gap=False, which should just return self
+        dropbad = sample.omit_bad_seqs(exclude_just_gap=False)
+        got = dropbad(aln)
+        self.assertEqual(got.todict(), data)
 
-            # with disallowed_frac=0.6, we should drop s4&5 too
-            dropbad = sample.omit_bad_seqs(disallowed_frac=0.5)
-            got = dropbad(aln)
-            self.assertEqual(got.todict(),
-                             {'s1': '-ACC--TT',
-                              's2': '-ACC--TT',
-                              's3': '-ACC--TT'})
+        # with disallowed_frac=0.6, we should drop s4&5 too
+        dropbad = sample.omit_bad_seqs(disallowed_frac=0.5)
+        got = dropbad(aln)
+        self.assertEqual(got.todict(),
+                         {'s1': '-ACC--TT',
+                          's2': '-ACC--TT',
+                          's3': '-ACC--TT'})
 
-            # with disallowed_frac=0.9, we should drop s6
-            dropbad = sample.omit_bad_seqs(disallowed_frac=0.9)
-            got = dropbad(aln)
-            self.assertEqual(got.todict(),
-                             {'s1': '-ACC--TT',
-                              's2': '-ACC--TT',
-                              's3': '-ACC--TT',
-                              's4': 'AACCGGTT',
-                              's5': 'AACCGGTT'})
+        # with disallowed_frac=0.9, we should drop s6
+        dropbad = sample.omit_bad_seqs(disallowed_frac=0.9)
+        got = dropbad(aln)
+        self.assertEqual(got.todict(),
+                         {'s1': '-ACC--TT',
+                          's2': '-ACC--TT',
+                          's3': '-ACC--TT',
+                          's4': 'AACCGGTT',
+                          's5': 'AACCGGTT'})
 
-        def test_omit_duplicated(self):
-            """correctly drop duplicated sequences"""
-            # strict omit_duplicated
-            data = {"a": "ACGT", "b": "ACG-",  # identical excepting -
-                    "c": "ACGN",  # non-strict matches above
-                    "d": "ACGG", "e": "ACGG", "k": "ACGG",  # strict identical
-                    "f": "RAAA", "g": "YAAA",  # non-strict identical
-                    "h": "GGGG"}  # unique!
-            seqs = LoadSeqs(data=data, aligned=False, moltype=DNA)
+    def test_omit_duplicated(self):
+        """correctly drop duplicated sequences"""
+        # strict omit_duplicated
+        data = {"a": "ACGT", "b": "ACG-",  # identical excepting -
+                "c": "ACGN",  # non-strict matches above
+                "d": "ACGG", "e": "ACGG", "k": "ACGG",  # strict identical
+                "f": "RAAA", "g": "YAAA",  # non-strict identical
+                "h": "GGGG"}  # unique!
+        seqs = LoadSeqs(data=data, aligned=False, moltype=DNA)
 
-            # mask_degen = True : [{'a', 'c', 'b'}, {'k', 'd', 'e'},
-            # {'g', 'f'}] are dupe sets. Only 'h' unique
-            drop = sample.omit_duplicated(
-                mask_degen=True, choose=None, moltype='dna')
-            got = drop(seqs)
-            self.assertEqual(got.todict(), {"h": "GGGG"})
-            # mask_degen = False : [{'a', 'b'}, {'k', 'd', 'e'}]
-            # c, f, g, h
-            drop = sample.omit_duplicated(mask_degen=False,
-                                          choose=None, moltype='dna')
-            got = drop(seqs)
-            expect = {"a": "ACGT", "b": "ACG-", "c": "ACGN", "f": "RAAA",
-                      "g": "YAAA", "h": "GGGG"}
-            self.assertEqual(got.todict(), expect)
+        # mask_degen = True : [{'a', 'c', 'b'}, {'k', 'd', 'e'},
+        # {'g', 'f'}] are dupe sets. Only 'h' unique
+        drop = sample.omit_duplicated(
+            mask_degen=True, choose=None, moltype='dna')
+        got = drop(seqs)
+        self.assertEqual(got.todict(), {"h": "GGGG"})
+        # mask_degen = False : [{'a', 'b'}, {'k', 'd', 'e'}]
+        # c, f, g, h
+        drop = sample.omit_duplicated(mask_degen=False,
+                                      choose=None, moltype='dna')
+        got = drop(seqs)
+        expect = {"a": "ACGT", "b": "ACG-", "c": "ACGN", "f": "RAAA",
+                  "g": "YAAA", "h": "GGGG"}
+        self.assertEqual(got.todict(), expect)
 
-            # choose longest
-            seqs = LoadSeqs(data=data, aligned=True, moltype=DNA)
-            drop = sample.omit_duplicated(
-                mask_degen=True, choose='longest', moltype='dna')
-            got = drop(seqs)
-            expect = {"a": "ACGT",
-                      "k": "ACGG",
-                      "g": "YAAA",
-                      "h": "GGGG"}
-            self.assertEqual(got.todict(), expect)
+        # choose longest
+        seqs = LoadSeqs(data=data, aligned=True, moltype=DNA)
+        drop = sample.omit_duplicated(
+            mask_degen=True, choose='longest', moltype='dna')
+        got = drop(seqs)
+        expect = {"a": "ACGT",
+                  "k": "ACGG",
+                  "g": "YAAA",
+                  "h": "GGGG"}
+        self.assertEqual(got.todict(), expect)
 
-            # choose random
-            drop = sample.omit_duplicated(mask_degen=True,
-                                          choose='random',
-                                          moltype='dna')
-            got1 = drop(seqs)
-            seqnames = set(got1.names)
-            duplicates = [{'a', 'c', 'b'}, {'k', 'd', 'e'}, {'g', 'f'}]
-            # should only be one of each group
-            for dupes in duplicates:
-                self.assertTrue(len(dupes & seqnames) == 1)
+        # choose random
+        drop = sample.omit_duplicated(mask_degen=True,
+                                      choose='random',
+                                      moltype='dna')
+        got1 = drop(seqs)
+        seqnames = set(got1.names)
+        duplicates = [{'a', 'c', 'b'}, {'k', 'd', 'e'}, {'g', 'f'}]
+        # should only be one of each group
+        for dupes in duplicates:
+            self.assertTrue(len(dupes & seqnames) == 1)
 
-        def test_concat(self):
-            """returns concatenated alignment"""
-            alns = [LoadSeqs(data=d, moltype=DNA)
-                    for d in [{'seq1': 'AAA', 'seq2': 'AAA', 'seq3': 'AAA'},
-                              {'seq1': 'TTT', 'seq2': 'TTT',
-                               'seq3': 'TTT', 'seq4': 'TTT'},
-                              {'seq1': 'CC', 'seq2': 'CC', 'seq3': 'CC'}]]
-            ccat = sample.concat(intersect=True)
-            got = ccat(alns)
-            self.assertEqual(got.todict(), {'seq1': 'AAATTTCC',
-                                            'seq2': 'AAATTTCC',
-                                            'seq3': 'AAATTTCC'})
+    def test_concat(self):
+        """returns concatenated alignment"""
+        alns = [LoadSeqs(data=d, moltype=DNA)
+                for d in [{'seq1': 'AAA', 'seq2': 'AAA', 'seq3': 'AAA'},
+                          {'seq1': 'TTT', 'seq2': 'TTT',
+                           'seq3': 'TTT', 'seq4': 'TTT'},
+                          {'seq1': 'CC', 'seq2': 'CC', 'seq3': 'CC'}]]
+        ccat = sample.concat(intersect=True)
+        got = ccat(alns)
+        self.assertEqual(got.todict(), {'seq1': 'AAATTTCC',
+                                        'seq2': 'AAATTTCC',
+                                        'seq3': 'AAATTTCC'})
 
-            ccat = sample.concat(intersect=False)
-            got = ccat(alns)
-            self.assertEqual(got.todict(), {'seq1': 'AAATTTCC',
-                                            'seq2': 'AAATTTCC',
-                                            'seq3': 'AAATTTCC',
-                                            'seq4': '???TTT??'})
+        ccat = sample.concat(intersect=False)
+        got = ccat(alns)
+        self.assertEqual(got.todict(), {'seq1': 'AAATTTCC',
+                                        'seq2': 'AAATTTCC',
+                                        'seq3': 'AAATTTCC',
+                                        'seq4': '???TTT??'})
 
 if __name__ == '__main__':
     main()
