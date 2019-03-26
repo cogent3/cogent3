@@ -134,6 +134,7 @@ We have several things we might want to specify when creating a table: the preci
         A        ENSG00000018408          1383
         A        ENSG00000019169          1698
     ------------------------------------------
+    Some analysis
     <BLANKLINE>
     10 rows x 3 columns
 
@@ -440,6 +441,7 @@ The representation formatting provides a quick overview of a table's dimensions 
     NP_005500_hs_mm_rn_dna   Con  7.3827e-08
     NP_055852_hs_mm_rn_dna   Con  1.0933e+07
     ----------------------------------------
+    A new legend
     <BLANKLINE>
     5 rows x 3 columns
 
