@@ -14,10 +14,11 @@ __status__ = "Alpha"
 
 
 class TranslateTests(TestCase):
-    def test_codon_positions(self):
+    def _codon_positions(self, array_align):
         """correctly return codon positions"""
         aln = LoadSeqs(data=[('a', 'ACGACGACG'),
-                             ('b', 'GATGATGAT')])
+                             ('b', 'GATGATGAT')],
+                       array_align=array_align)
         one = sample.take_codon_positions(1)
         got = one(aln)
         self.assertEqual(got.todict(), {'a': 'AAA', 'b': 'GGG'})
@@ -38,6 +39,14 @@ class TranslateTests(TestCase):
         two_three = sample.take_codon_positions(2, 3)
         got = two_three(aln)
         self.assertEqual(got.todict(), {'a': 'CGCGCG', 'b': 'ATATAT'})
+
+    def take_codon_positions_array_align(self):
+        """correctly return codon positions from ArrayAlignment"""
+        self._codon_positions(array_align=True)
+
+    def take_codon_positions_alignment(self):
+        """correctly return codon positions from Alignment"""
+        self._codon_positions(array_align=False)
 
     def test_filter_degen(self):
         """just_nucs correctly identifies data with only nucleotides"""
