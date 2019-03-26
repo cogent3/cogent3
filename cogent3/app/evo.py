@@ -7,7 +7,7 @@ from cogent3.util import parallel
 
 class model(ComposableModel):
     def __init__(self, sm, tree=None, name=None, sm_args=None,
-                 lf_args=None, time_heterogeneity=None, param_rules=None,
+                 lf_args=None, time_het=None, param_rules=None,
                  opt_args=None, split_codons=False, show_progress=False):
         """represents a substitution model + tree"""
         super(model, self).__init__(input_type='aligned',
@@ -38,7 +38,7 @@ class model(ComposableModel):
             for rule in param_rules:
                 rule['upper'] = rule.get('upper', 50)  # default upper bound
         self._param_rules = param_rules
-        self._time_heterogeneity = time_heterogeneity
+        self._time_het = time_het
         self._split_codons = split_codons
         self.func = self.fit
 
@@ -50,7 +50,7 @@ class model(ComposableModel):
         verbose = self._opt_args.get('show_progress', False)
         if self._param_rules:
             lf.apply_param_rules(self._param_rules)
-        elif self._time_heterogeneity == 'max':
+        elif self._time_het == 'max':
             if not initialise:
                 if verbose:
                     print("Time homogeneous fit..")
