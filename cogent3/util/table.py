@@ -210,23 +210,23 @@ class Table(DictArray):
 
 
     def __repr__(self):
-        table = self._get_repr_()
-        return str(table)
-
+        table, shape_info = self._get_repr_()
+        result = '\n'.join([str(table), shape_info])
+        return result
 
     def _get_repr_(self):
         """returns a table for __repr__"""
         rn = self._repr_policy['random']
         head = self._repr_policy['head']
         tail = self._repr_policy['tail']
-        legend = ""
+        shape_info = ""
         ellipsis = [["..."] * len(self.header)]
         if rn:
             indices = numpy.random.choice(self.shape[0],
                                           size=rn, replace=False)
             indices = list(sorted(indices))
             rows = self.get_disjoint_rows(indices).tolist()
-            legend = "Random selection of %d rows" % rn
+            shape_info = f"Random selection of {rn} rows"
         elif all([head, tail]):
             top = self[:head].tolist()
             bottom = self[-tail:].tolist()
@@ -238,22 +238,18 @@ class Table(DictArray):
         else:
             rows = self.tolist()
         
-        legend += "\n%s rows x %s columns" % (format(self.shape[0], ','),
-                                           format(self.shape[1], ','))
+        shape_info += f"\n{self.shape[0]:,} rows x {self.shape[1]:,} columns"
         kwargs = self._get_persistent_attrs()
-        kwargs['legend'] = legend
         table = self.__class__(header=self.header, rows=rows, **kwargs)
-        return table
+        return table, shape_info
         
 
     def _repr_html_(self):
         """returns html, used by Jupyter"""
-        table = self._get_repr_()
-        legend, shape = table.legend.splitlines()
-        shape = "<p>%s</p>" % shape
-        table.legend = ""
+        table, shape_info = self._get_repr_()
+        shape_info = f"<p>{shape_info}</p>"
         html = table.to_rich_html()
-        html = '\n'.join([html, shape])
+        html = '\n'.join([html, shape_info])
         return html
 
     def __str__(self):
