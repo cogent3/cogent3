@@ -122,8 +122,8 @@ def suite():
         'test_util.test_misc',
         'test_util.test_recode_alignment',
         'test_util.test_transform',
-        'test_recalculation.rst',
-        'test_dictarray.rst',
+        'test_recalculation',
+        'test_dictarray',
         'test_core.test_features.rst',
         'test_util.test_table.rst',
     ]
