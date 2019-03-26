@@ -193,7 +193,12 @@ class take_codon_positions(ComposableAligned):
         return new[2::3]
 
     def take_codon_position(self, aln):
-        return aln[self._positions::3]
+        if isinstance(aln, Alignment):
+            indices = list(range(self._positions, len(aln), 3))
+            result = aln.take_positions(indices)
+        elif isinstance(aln, ArrayAlignment):
+            result = aln[self._positions::3]
+        return result
 
     def take_codon_positions(self, aln):
         '''takes multiple positions'''
