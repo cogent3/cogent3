@@ -776,7 +776,6 @@ def WG01(**kw):
     return sm
 
 
-# this is not tested yet:
 def available_models(model_types=None):
     """This function returns a cogent3 Table instance with header
     ['Model Type', 'Abbreviation', 'Description']."""
