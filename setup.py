@@ -14,9 +14,12 @@ __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
 # Check Python version, no point installing if unsupported version inplace
-if sys.version_info < (3, 4):
+min_version = (3, 6)
+if sys.version_info < min_version:
     py_version = ".".join([str(n) for n in sys.version_info])
-    raise RuntimeError("Python-3.4 or greater is required, Python-%s used." % py_version)
+    msg = (f"Python-{'.'.join(min_version)} or greater is required, "
+           f"Python-{py_version} used.")
+    raise RuntimeError(msg)
 
 
 # Check Numpy version, no point installing if unsupported version inplace
