@@ -81,12 +81,33 @@ def _fill_diversity_matrix(matrix, seq1, seq2):
     for i in range(len(paired)):
         matrix[paired[i][0], paired[i][1]] += 1
 
+def _hamming(matrix):
+    """computes the edit distance
+    Parameters
+    ----------
+    matrix : array
+        2D numpy array of counts
+    Returns
+    -------
+    total of the matrix, the proportion of changes, hamming distance, variance
+    (the variance calculation is not yet implemented)
+    """
+    # todo implement the estimate of the variance
+    invalid = None, None, None, None
+    total = matrix.sum()
+    dist = total - diag(matrix).sum()
+    if total == 0:
+        return invalid
+
+    p = dist / total
+
+    return total, p, dist, None
 
 def _jc69_from_matrix(matrix):
     """computes JC69 stats from a diversity matrix"""
     invalid = None, None, None, None
     total = matrix.sum()
-    diffs = total - sum(matrix[i, i] for i in range(matrix.shape[0]))
+    diffs = total - diag(matrix).sum()
     if total == 0:
         return invalid
 
@@ -112,7 +133,6 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords,
     if total == 0:
         return invalid
 
-    #
     p = matrix.take(pur_coords + pyr_coords + tv_coords).sum() / total
 
     freq_purs = freqs.take(pur_indices).sum()
@@ -474,9 +494,16 @@ class _PairwiseDistance(object):
         t = _make_stat_table(stats, self.names, **kwargs)
         return t
 
+class HammingPair(_PairwiseDistance):
+    """Hamming distance calculator for pairwise alignments"""
+
+    def __init__(self, *args, **kwargs):
+        """states: the valid sequence states"""
+        super(HammingPair, self).__init__(*args, **kwargs)
+        self.func = _hamming
 
 class _NucleicSeqPair(_PairwiseDistance):
-    """docstring for _NucleicSeqPair"""
+    """base class pairwise distance calculator for nucleic acid seqs"""
 
     def __init__(self, *args, **kwargs):
         super(_NucleicSeqPair, self).__init__(*args, **kwargs)
@@ -486,7 +513,7 @@ class _NucleicSeqPair(_PairwiseDistance):
 
 
 class JC69Pair(_NucleicSeqPair):
-    """calculator for pairwise alignments"""
+    """JC69 distance calculator for pairwise alignments"""
 
     def __init__(self, *args, **kwargs):
         """states: the valid sequence states"""
@@ -495,7 +522,7 @@ class JC69Pair(_NucleicSeqPair):
 
 
 class TN93Pair(_NucleicSeqPair):
-    """calculator for pairwise alignments"""
+    """TN93 calculator for pairwise alignments"""
 
     def __init__(self, *args, **kwargs):
         """states: the valid sequence states"""
@@ -556,7 +583,8 @@ def get_calculator(name, *args, **kwargs):
     calcs = {'paralinear': ParalinearPair,
              'logdet': LogDetPair,
              'jc69': JC69Pair,
-             'tn93': TN93Pair}
+             'tn93': TN93Pair,
+             'hamming': HammingPair}
     name = name.lower()
     if name not in calcs:
         raise ValueError('Unknown pairwise distance calculator "%s"' % name)
