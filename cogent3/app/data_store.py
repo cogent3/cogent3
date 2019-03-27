@@ -19,6 +19,7 @@ IGNORE = 'ignore'
 class ReadOnlyDataStoreBase:
     """a read only data store"""
 
+    def __init__(self, source, suffix=None, limit=None, verbose=False):
         """
         Parameters
         ----------
@@ -28,6 +29,9 @@ class ReadOnlyDataStoreBase:
             only members whose name matches the suffix are considered included
         limit
             the maximum number of members to consider
+        verbose
+            displays files that don't match search (applies only to the Zipped
+            variant)
         """
         # assuming delimiter is /
         suffix = suffix or ''
@@ -39,6 +43,7 @@ class ReadOnlyDataStoreBase:
         self.mode = 'r'
         self._members = []
         self.limit = limit
+        self._verbose = verbose
 
     def __contains__(self, identifier):
         """whether relative identifier has been stored"""
@@ -124,6 +129,8 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
                     if fnmatch(name, pattern):
                         num_matches += 1
                         members.append(name)
+                    elif self._verbose:
+                        print(f"Did not match {name}")
 
                     if self.limit and num_matches >= self.limit:
                         break

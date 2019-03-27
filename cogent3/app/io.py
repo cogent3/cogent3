@@ -25,7 +25,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-def findall(base_path, suffix='fa', limit=None):
+def findall(base_path, suffix='fa', limit=None, verbose=False):
     """returns glob match to suffix, path is relative to base_path
 
     Parameters
@@ -42,7 +42,7 @@ def findall(base_path, suffix='fa', limit=None):
 
     zipped = zipfile.is_zipfile(base_path)
     klass = ReadOnlyZippedDataStore if zipped else ReadOnlyDirectoryDataStore
-    data_store = klass(base_path, suffix=suffix, limit=limit)
+    data_store = klass(base_path, suffix=suffix, limit=limit, verbose=verbose)
     return data_store.members
 
 
