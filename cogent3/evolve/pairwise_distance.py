@@ -272,7 +272,7 @@ class _PairwiseDistance(object):
     def __init__(self, moltype, invalid=-9, alignment=None):
         super(_PairwiseDistance, self).__init__()
         self.moltype = moltype
-        self.char_to_indices = get_moltype_index_array(moltype)
+        self.char_to_indices = get_moltype_index_array(moltype, invalid=invalid)
         self._dim = len(list(moltype))
         self._dists = None
         self._dupes = None
