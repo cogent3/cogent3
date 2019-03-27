@@ -19,7 +19,16 @@ IGNORE = 'ignore'
 class ReadOnlyDataStoreBase:
     """a read only data store"""
 
-    def __init__(self, source, suffix=None, limit=None):
+        """
+        Parameters
+        ----------
+        source
+            path to directory / zip file
+        suffix
+            only members whose name matches the suffix are considered included
+        limit
+            the maximum number of members to consider
+        """
         # assuming delimiter is /
         suffix = suffix or ''
         suffix = re.sub(r'^[\s.*]+', '', suffix)  # tidy the suffix
@@ -86,6 +95,15 @@ class SingleReadDataStore(ReadOnlyDirectoryDataStore):
     """simplified for a single file"""
 
     def __init__(self, source, *args, **kwargs):
+        """
+        Parameters
+        source
+            path to one file
+        args
+            ignored
+        kwargs
+            ignored
+        """
         path = Path(source)
         assert path.exists()
         super(SingleReadDataStore, self).__init__(str(path.parent),
@@ -124,6 +142,16 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
 
 class WritableDataStoreBase:
     def __init__(self, if_exists=RAISE, create=False):
+        """
+        Parameters
+        ----------
+        if_exists : str
+             behaviour when the destination already exists. Valid constants are
+             defined in this file as OVERWRITE, SKIP, RAISE, IGNORE (they
+             correspond to lower case version of the same word)
+        create : bool
+            if True, the destination is created
+        """
         self._members = []
         if_exists = if_exists.lower()
         assert if_exists in (OVERWRITE, SKIP, RAISE, IGNORE)
@@ -161,8 +189,23 @@ class WritableDataStoreBase:
 
 class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
                                  WritableDataStoreBase):
-    def __init__(self, source, suffix, mode='w', if_exists=RAISE,
-                 create=False):
+    def __init__(self, source, suffix, mode='w', if_exists=RAISE, create=False):
+        """
+        Parameters
+        ----------
+        source
+            path to directory / zip file
+        suffix
+            only members whose name matches the suffix are considered included
+        mode : str
+            file opening mode, defaults to write
+        if_exists : str
+             behaviour when the destination already exists. Valid constants are
+             defined in this file as OVERWRITE, SKIP, RAISE, IGNORE (they
+             correspond to lower case version of the same word)
+        create : bool
+            if True, the destination is created
+        """
         assert 'w' in mode or 'a' in mode
         ReadOnlyDirectoryDataStore.__init__(self, source=source, suffix=suffix)
         WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
@@ -194,8 +237,23 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
 
 
 class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
-    def __init__(self, source, suffix, mode='a', if_exists=RAISE,
-                 create=False):
+    def __init__(self, source, suffix, mode='a', if_exists=RAISE, create=False):
+        """
+        Parameters
+        ----------
+        source
+            path to directory / zip file
+        suffix
+            only members whose name matches the suffix are considered included
+        mode : str
+            file opening mode, defaults to append
+        if_exists : str
+             behaviour when the destination already exists. Valid constants are
+             defined in this file as OVERWRITE, SKIP, RAISE, IGNORE (they
+             correspond to lower case version of the same word)
+        create : bool
+            if True, the destination is created
+        """
         ReadOnlyZippedDataStore.__init__(self, source=source, suffix=suffix)
         WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
         self.mode = 'a' or mode  # todo does mode 'w' nuke an entire zip?
