@@ -8,10 +8,14 @@ numpy.seterr(invalid='ignore')
 
 from cogent3.util.unit_test import TestCase, main
 from cogent3 import LoadSeqs, DNA, RNA, PROTEIN
-from cogent3.evolve.pairwise_distance import get_moltype_index_array, \
-    seq_to_indices, _fill_diversity_matrix, \
-    _jc69_from_matrix, JC69Pair, _tn93_from_matrix, TN93Pair, LogDetPair, \
-    ParalinearPair
+from cogent3.evolve.pairwise_distance import (get_moltype_index_array,
+                                              seq_to_indices,
+                                              _fill_diversity_matrix,
+                                              _jc69_from_matrix, JC69Pair,
+                                              _tn93_from_matrix, TN93Pair,
+                                              LogDetPair,
+                                              ParalinearPair, HammingPair,
+                                              _hamming)
 from cogent3.evolve._pairwise_distance import \
     _fill_diversity_matrix as pyx_fill_diversity_matrix
 
@@ -93,6 +97,17 @@ class TestPair(TestCase):
         matrix2 = numpy.zeros((4, 4), float)
         pyx_fill_diversity_matrix(matrix2, s1, s2)
         self.assertFloatEqual(matrix1, matrix2)
+
+    def test_hamming_from_matrix(self):
+        """compute hamming from diversity matrix"""
+        s1 = seq_to_indices('ACGTACGTAC', self.dna_char_indices)
+        s2 = seq_to_indices('GTGTACGTAC', self.dna_char_indices)
+        matrix = numpy.zeros((4, 4), float)
+        _fill_diversity_matrix(matrix, s1, s2)
+        total, p, dist, var = _hamming(matrix)
+        self.assertEqual(total, 10.0)
+        self.assertEqual(dist, 2)
+        self.assertEqual(p, 0.2)
 
     def test_jc69_from_matrix(self):
         """compute JC69 from diversity matrix"""
