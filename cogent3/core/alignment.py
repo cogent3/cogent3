@@ -914,26 +914,17 @@ class SequenceCollection(object):
 
         return self.take_seqs_if(f)
 
-    def distance_matrix(self, f):
-        """Returns Matrix containing pairwise distances between sequences.
-        f is the distance function f(x,y) -> distance between x and y.
-
-        It's often useful to pass an unbound method in as f.
-
-        Does not assume that f(x,y) == f(y,x) or that f(x,x) == 0.
+    def distance_matrix(self, calc='hamming'):
+        """Returns pairwise distances between sequences.
+        Parameters
+        ----------
+        name
+            a pairwise distance calculator or name of one from pairwise_distance
         """
-        get = self.named_seqs.__getitem__
-        seqs = list(self.named_seqs.keys())
-        result = Dict2D()
-        for i in seqs:
-            for j in seqs:
-                d = f(get(i), get(j))
-                if i not in result:
-                    result[i] = {}
-                if j not in result:
-                    result[j] = {}
-                result[i][j] = d
-                result[j][i] = d
+        from cogent3.evolve.pairwise_distance import get_calculator
+        calculator = get_calculator(calc, moltype=self.moltype, alignment=self)
+        calculator.run()
+        result = calculator.get_pairwise_distances()
         return result
 
     def is_ragged(self):
