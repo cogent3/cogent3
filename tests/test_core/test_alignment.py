@@ -670,13 +670,14 @@ class SequenceCollectionBaseTests(object):
 
     def test_distance_matrix(self):
         """SequenceCollection distance_matrix should produce correct scores"""
-        self.assertEqual(self.one_seq.distance_matrix(
-            frac_same), {'a': {'a': 1}})
-        self.assertEqual(self.gaps.distance_matrix(frac_same),
-                         {'a': {'a': 7 / 7.0, 'b': 4 / 7.0, 'c': 2 / 7.0},
-                             'b': {'a': 4 / 7.0, 'b': 7 / 7.0, 'c': 3 / 7.0},
-                             'c': {'a': 2 / 7.0, 'b': 3 / 7.0, 'c': 7 / 7.0},
-            })
+        data = dict([('s1', 'ACGTACGTA'), ('s2', 'GTGTACGTA')])
+        aln = self.Class(data=data, moltype='dna')
+        dists = aln.distance_matrix()
+        self.assertEqual(dists, {('s1', 's2'): 2.0, ('s2', 's1'): 2.0})
+        # and for protein
+        aa = aln.get_translation()
+        dists = aa.distance_matrix()
+        self.assertEqual(dists, {('s1', 's2'): 1.0, ('s2', 's1'): 1.0})
 
     def test_is_ragged(self):
         """SequenceCollection is_ragged should return true if ragged alignment"""
