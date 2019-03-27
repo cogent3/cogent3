@@ -44,7 +44,6 @@ class model(ComposableModel):
 
     def _configure_lf(self, aln, identifier, initialise=None):
         lf = self._sm.make_likelihood_function(self._tree, **self._lf_args)
-        # lf.setup_parallel_context()
 
         lf.set_alignment(aln)
         verbose = self._opt_args.get('show_progress', False)

@@ -127,25 +127,12 @@ class LikelihoodTreeDefn(CalculationDefn):
     def calc(self, leaves):
         return recursive_lht_build(self.tree, leaves)
 
-
-class LikelihoodTreeAlignmentSplitterDefn(CalculationDefn):
-    name = 'local_lht'
-
-    def calc(self, parallel_context, lht):
-        return lht.parallel_share(parallel_context)
-
-
 def make_total_loglikelihood_defn(tree, leaves, psubs, mprobs, bprobs, bin_names,
                                locus_names, sites_independent):
 
     fixed_motifs = NonParamDefn('fixed_motif', ['edge'])
 
     lht = LikelihoodTreeDefn(leaves, tree=tree)
-
-    # Split up the alignment columns between the available CPUs.
-    parallel_context = NonParamDefn('parallel_context')
-    lht = LikelihoodTreeAlignmentSplitterDefn(parallel_context, lht)
-
     plh = make_partial_likelihood_defns(tree, lht, psubs, fixed_motifs)
 
     # After the root partial likelihoods have been calculated it remains to
@@ -162,7 +149,6 @@ def make_total_loglikelihood_defn(tree, leaves, psubs, mprobs, bprobs, bin_names
             site_pattern = CalcDefn(BinnedSiteDistribution, name='bdist')(
                 bprobs)
         else:
-            parallel_context = None   # hmm does the gathering over CPUs
             switch = ProbabilityParamDefn('bin_switch', dimensions=['locus'])
             site_pattern = CalcDefn(PatchSiteDistribution, name='bdist')(
                 switch, bprobs)
@@ -173,15 +159,11 @@ def make_total_loglikelihood_defn(tree, leaves, psubs, mprobs, bprobs, bin_names
         lh = lh.select_from_dimension('bin', bin_names[0])
         tll = CalcDefn(log_sum_across_sites, name='logsum')(lht, lh)
 
-    if len(locus_names) > 1 or parallel_context is None:
-        # "or parallel_context is None" only because SelectFromDimension
+    if len(locus_names) > 1:
         # currently has no .make_likelihood_function() method.
         tll = SumDefn(*tll.across_dimension('locus', locus_names))
     else:
         tll = tll.select_from_dimension('locus', locus_names[0])
-
-    if parallel_context is not None:
-        tll = ParallelSumDefn(parallel_context, tll)
 
     return tll
 
