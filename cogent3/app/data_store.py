@@ -105,7 +105,7 @@ class SingleReadDataStore(ReadOnlyDirectoryDataStore):
             ignored
         """
         path = Path(source)
-        assert path.exists()
+        assert path.exists() and path.is_file()
         super(SingleReadDataStore, self).__init__(str(path.parent),
                                                   suffix=str(path.suffix))
         self._members = [str(path.name)]
