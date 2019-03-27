@@ -121,62 +121,6 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
         return data
 
 
-class DataStore:
-    def __init__(self, source, mode, suffix=None, if_exists=None,
-                 create=False, limit=None):
-        # assuming delimiter is /
-        suffix = re.sub(r'^[\s.*]+', '', suffix)  # tidy the suffix
-        source = re.sub(r'/+$', '', source)  # tidy the source
-        if if_exists is None:
-            if_exists = IGNORE if 'r' in mode else RAISE
-
-        if mode == 'r' and not os.path.exists(source):
-            raise ValueError(f"'{source}' does not exist")
-
-        self.suffix = suffix
-        self.source = source
-        self.mode = mode  # for writing, appending
-        self._members = []
-        self.limit = limit
-        if_exists = if_exists.lower()
-        assert if_exists in (OVERWRITE, SKIP, RAISE, IGNORE)
-        if 'r' in mode and if_exists == OVERWRITE:
-            warn(f"'{OVERWRITE}' changed to '{IGNORE}' "
-                 f"for mode='{mode}'",
-                 UserWarning, stacklevel=2)
-            if_exists = IGNORE
-        self._source_create_delete(if_exists, create)
-
-    def _source_create_delete(self, overwrite, create):
-        raise NotImplementedError  # override in subclasses
-
-    def __contains__(self, identifier):
-        """whether relative identifier has been stored"""
-        identifier = self.get_relative_identifier(identifier)
-        return identifier in self.members
-
-    def get_relative_identifier(self, identifier):
-        """returns the relative identifier"""
-        identifier = re.sub(f'{self.source}/', '', identifier)
-        return identifier
-
-    def get_absolute_identifier(self, identifier, from_relative=False):
-        if not from_relative:
-            identifier = self.get_relative_identifier(identifier)
-
-        identifier = f"{self.source}/{identifier}"
-        return identifier
-
-    def read(self, identifier):
-        raise NotImplementedError  # override in subclasses
-
-    def write(self, identifier, data):
-        raise NotImplementedError  # override in subclasses
-
-    @property
-    def members(self):
-        raise NotImplementedError  # override in subclasses
-
 
 class WritableDataStoreBase:
     def __init__(self, if_exists=RAISE, create=False):
