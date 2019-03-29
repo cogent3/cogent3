@@ -780,9 +780,9 @@ def available_models(model_types=None):
     """This function returns a cogent3 Table instance with header
     ['Model Type', 'Abbreviation', 'Description']."""
     column_headings = ['Model Type', 'Abbreviation', 'Description']
-    _model_types = {"nucleotide_model": nucleotide_models,
-                    "codon_model": codon_models,
-                    "protein_model": protein_models}
+    _model_types = {"nucleotide": nucleotide_models,
+                    "codon": codon_models,
+                    "protein": protein_models}
     if model_types is not None:
         model_types = model_types if not isinstance(model_types, str) else [model_types]
     else:
@@ -797,6 +797,7 @@ def available_models(model_types=None):
                 description = ''
             rows.append([mod_type, abbreviation, description])
     t = Table(header=column_headings, rows=rows,
-              title='To get a model instance, use get_model(<abbreviation>)')
+              title="To get a model instance, use get_model('abbreviation')")
+
     return t
 
