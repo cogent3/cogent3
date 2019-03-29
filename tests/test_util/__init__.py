@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-__all__ = ['test_unit_test', 'test_misc', 'test_array', 'test_dict2d',
+__all__ = ['test_unit_test', 'test_misc', 'test_array',
            'test_dictarray', 'test_transform', 'test_recode_alignment']
 
 __author__ = ""
