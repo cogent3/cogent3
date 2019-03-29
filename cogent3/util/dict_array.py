@@ -35,9 +35,9 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
-def _asdict(data):
+def _todict(data):
     if isinstance(data, DictArray):
-        out = {k : _asdict(data[k]) for k in list(data.keys())}
+        out = {k : _todict(data[k]) for k in list(data.keys())}
         return out
     return data
 
@@ -363,7 +363,7 @@ class DictArray(object):
             self.__dict__ = create_new.__dict__
         self.shape = self.array.shape
 
-    def asarray(self):
+    def toarray(self):
         return self.array
 
     def __array__(self, dtype=None):
@@ -372,8 +372,8 @@ class DictArray(object):
             array = array.astype(dtype)
         return array
 
-    def asdict(self):
-        return _asdict(self)
+    def todict(self):
+        return _todict(self)
 
     def __getitem__(self, names):
         (index, remaining) = self.template.interpret_index(names)
@@ -414,6 +414,6 @@ class DictArray(object):
         elif isinstance(other, type(self.array)):
             return self.array == other
         elif isinstance(other, dict):
-            return self.asdict() == other
+            return self.todict() == other
         else:
             return False

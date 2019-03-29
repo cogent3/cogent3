@@ -83,7 +83,7 @@ class test_parameter_controller(TestCase):
         mprobs = {'A': 0.1, 'C': 0.2, 'G': 0.2, 'T': 0.5, '-': 0.0}
         lf.set_motif_probs(mprobs)
         # node the LF adjust motif probs so they are all >= 1e-6
-        got = lf.get_motif_probs().asdict()
+        got = lf.get_motif_probs().todict()
         compare_mprobs(got, mprobs)
 
         lf.set_motif_probs_from_data(self.al[:1], is_constant=True)

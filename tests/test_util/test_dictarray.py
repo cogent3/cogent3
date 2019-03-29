@@ -48,7 +48,7 @@ class DictArrayTest(TestCase):
                 'e': {'a': 0, 'b': 4, 'e': 0}}
         vals, row_keys, col_keys = convert2DDict(data)
         b = DictArrayTemplate(row_keys, col_keys).wrap(vals)
-        got = b.asdict()
+        got = b.todict()
         self.assertEqual(got, data)
         self.assertEqual(b.template.names,
                          [['a', 'b', 'e'], ['a', 'b', 'e']])
@@ -111,14 +111,14 @@ class DictArrayTest(TestCase):
         assert_allclose(numpy.dot(mprobs, darr), [0.25, 0.25, 0.25, 0.25])
 
     def test_asdict(self):
-        """DictArray.asdict() should convert nested DictArray instances to
+        """DictArray.todict() should convert nested DictArray instances to
         dict's too."""
         a = numpy.identity(3, int)
         b = DictArrayTemplate('abc', 'ABC')
         b = b.wrap(a)
         self.assertEqual(b.array.tolist(), [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
         c = DictArrayTemplate('de', 'DE').wrap([[b, b], [b, b]])
-        self.assertTrue(isinstance(c.asdict()['d'], dict))
+        self.assertTrue(isinstance(c.todict()['d'], dict))
 
     def test_convert_for_dictarray(self):
         """successfully delegates when constructed from a DictArray"""

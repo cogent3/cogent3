@@ -1502,7 +1502,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             8: {'A': 1.0, 'C': 1.0, 'G': 1.0, 'U': 4.0},
             9: {'A': 1.0, 'C': 2.0, 'G': 0.0, 'U': 4.0},
         }
-        self.assertEqual(self.many.get_pwm().asdict(), expect)
+        self.assertEqual(self.many.get_pwm().todict(), expect)
 
     def test_sample(self):
         """Alignment.sample should permute alignment by default"""
