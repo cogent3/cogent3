@@ -82,6 +82,7 @@ def suite():
         'test_maths.test_matrix_logarithm',
         'test_maths.test_matrix_exponential_integration',
         'test_maths.test_period',
+        'test_maths.test_stats.test_contingency',
         'test_maths.test_stats.test_distribution',
         'test_maths.test_stats.test_information_criteria',
         'test_maths.test_stats.test_period',

@@ -4,7 +4,7 @@
 Also provides NumberList and FrequencyDistribution, two classes for
 working with statistical data.
 """
-__all__ = ['distribution',
+__all__ = ['contingency', 'distribution',
            'information_criteria', 'kendall', 'ks', 'special', 'test',
            'util']
 
