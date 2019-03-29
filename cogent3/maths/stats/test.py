@@ -223,6 +223,7 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
 
 def safe_sum_p_log_p(a, base=None):
     """Calculates p * log(p) safely for an array that may contain zeros."""
+    # todo rewrite using numpy funcs to be more succinct
     flat = ravel(a)
     nz = take(flat, nonzero(flat)[0])
     logs = log(nz)
@@ -236,6 +237,7 @@ def G_ind(m, williams=False):
 
     Requires input data as a numpy array. From Sokal and Rohlf p 738.
     """
+    # todo rewrite using numpy funcs to be more succinct
     f_ln_f_elements = safe_sum_p_log_p(m)
     f_ln_f_rows = safe_sum_p_log_p(npsum(m, 0))
     f_ln_f_cols = safe_sum_p_log_p(npsum(m, 1))
@@ -249,7 +251,6 @@ def G_ind(m, williams=False):
                  (6 * tot * df))
         G = G / q
     return G, chi_high(max(G, 0), df)
-
 
 def calc_contingency_expected(matrix):
     """Calculates expected frequencies from a table of observed frequencies
@@ -1177,7 +1178,7 @@ def tail(prob, test):
     else:
         return 1 - prob
 
-
+# todo delete, now from itertools.combinations
 def combinations(n, k):
     """Returns the number of ways of choosing k items from n.
     """
