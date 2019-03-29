@@ -1943,9 +1943,9 @@ class AlignmentI(object):
             uncertainties.append(prob.Uncertainty)
         return uncertainties
 
-    def get_pssm(self):
-        """Returns a position specific score matrix for the alignment."""
         return Dict2D(dict([(i, Freqs(col)) for i, col in enumerate(self.positions)]))
+    def get_pwm(self):
+        """Returns a position specific weight matrix for the alignment."""
 
     def _get_freqs(self, index=None):
         """Gets array of freqs along index 0 (= positions) or 1 (= seqs).
