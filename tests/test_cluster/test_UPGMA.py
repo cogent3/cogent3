@@ -1,14 +1,16 @@
 #!/usr/bin/env python
+from collections import defaultdict
 
 from cogent3 import LoadTree
+from cogent3.util.dict_array import DictArray, convert2DDict, DictArrayTemplate
 from cogent3.util.unit_test import TestCase, main
 from cogent3.core.tree import PhyloNode
 from numpy import array
 import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 from cogent3.cluster.UPGMA import find_smallest_index, condense_matrix, \
-    condense_node_order, UPGMA_cluster, inputs_from_dict2D, upgma
-from cogent3.util.dict2d import Dict2D
+    condense_node_order, UPGMA_cluster, inputs_from_dict_array, upgma
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -134,19 +136,18 @@ class UPGMATests(TestCase):
         self.assertEqual(str(tree),
                          '(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);')
 
-    def test_inputs_from_dict2D(self):
-        """inputs_from_dict2D makes an array object and PhyloNode list"""
-        matrix = [('1', '2', 0.86), ('2', '1', 0.86),
-                  ('1', '3', 0.92), ('3', '1', 0.92), ('2', '3', 0.67),
-                  ('3', '2', 0.67)]
-        row_order = ['3', '2', '1']
-        matrix_d2d = Dict2D(matrix, RowOrder=row_order,
-                            ColOrder=row_order, Pad=True, Default=999999999999999)
-        matrix_array, PhyloNode_order = inputs_from_dict2D(matrix_d2d)
+    def test_inputs_from_dict_array(self):
+        """inputs_from_dict_array makes an array object and PhyloNode list"""
+        twod = {'1': {'1': 0, '2': 0.86, '3': 0.92},
+                '2': {'1': 0.86, '2': 0, '3': 0.67},
+                '3': {'1': 0.92, '2': 0.67, '3': 0}}
+        matrix_d2d = DictArray(twod)
+        
+        matrix_array, PhyloNode_order = inputs_from_dict_array(matrix_d2d)
+        self.assertEqual(PhyloNode_order[0].name, '1')
+        self.assertEqual(PhyloNode_order[2].name, '3')
         self.assertFloatEqual(matrix_array[0][2], 0.92)
-        self.assertFloatEqual(matrix_array[1][0], 0.67)
-        self.assertEqual(PhyloNode_order[0].name, '3')
-        self.assertEqual(PhyloNode_order[2].name, '1')
+        self.assertFloatEqual(matrix_array[1][0], 0.86)
 
 # run if called from command line
 if __name__ == '__main__':

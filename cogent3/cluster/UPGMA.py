@@ -5,14 +5,14 @@ upgma takes an dictionary of pair tuples mapped to distances as input.
 
 UPGMA_cluster takes an array and a list of PhyloNode objects corresponding
 to the array as input. Can also generate this type of input from a Dict2D using
-inputs_from_dict2D function.
+inputs_from_dict_array function.
 
 Both return a PhyloNode object of the UPGMA cluster
 """
 
 from numpy import array, ravel, argmin, take, sum, average, ma, diag
 from cogent3.core.tree import PhyloNode
-from cogent3.util.dict2d import Dict2D
+from cogent3.util.dict_array import DictArray
 
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -35,19 +35,8 @@ def upgma(pairwise_distances):
     pairwise_distances: a dictionary with pair tuples mapped to a distance
     returns a PhyloNode object of the UPGMA cluster
     """
-    items_in_matrix = []
-    for i in pairwise_distances:
-        if i[0] not in items_in_matrix:
-            items_in_matrix.append(i[0])
-        if i[1] not in items_in_matrix:
-            items_in_matrix.append(i[1])
-    dict2d_input = [(i[0], i[1], pairwise_distances[i]) for i in
-                    pairwise_distances]
-    dict2d_input.extend([(i[1], i[0], pairwise_distances[i]) for i in
-                         pairwise_distances])
-    dict2d_input = Dict2D(dict2d_input, RowOrder=items_in_matrix,
-                          ColOrder=items_in_matrix, Pad=True, Default=BIG_NUM)
-    matrix_a, node_order = inputs_from_dict2D(dict2d_input)
+    darr = DictArray(pairwise_distances)
+    matrix_a, node_order = inputs_from_dict_array(darr)
     tree = UPGMA_cluster(matrix_a, node_order, BIG_NUM)
     index = 0
     for node in tree.traverse():
@@ -164,20 +153,9 @@ def UPGMA_cluster(matrix, node_order, large_number):
     return tree
 
 
-def inputs_from_dict2D(dict2d_matrix):
-    """makes inputs for UPGMA_cluster from a Dict2D object
-
-    Dict2D object is a distance matrix with labeled Rows. The diagonal
-    elements should have a very large positive number assigned (e.g.1e305).
-
-    The returned array is a numpy array with the distances.
-    PhyloNode_order is a list of PhyloNode objects with the Data property
-    assigned from the Dict2D Row order.
+def inputs_from_dict_array(darr):
+    """makes inputs for UPGMA_cluster from a DictArray object
     """
-    matrix_lists = list(dict2d_matrix.Rows)
-    matrix = array(matrix_lists, Float)
-    row_order = dict2d_matrix.RowOrder
-    PhyloNode_order = []
-    for i in row_order:
-        PhyloNode_order.append(PhyloNode(name=i))
-    return matrix, PhyloNode_order
+    darr.array += (numpy.eye(darr.shape[0]) * BIG_NUM)
+    nodes = list(map(PhyloNode, darr.keys()))
+    return darr.array, nodes
