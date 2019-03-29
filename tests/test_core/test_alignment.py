@@ -1488,8 +1488,8 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             freqs = obj.column_freqs()
             self.assertEqual(str(freqs[-1]), str(result))
 
-    def test_get_pssm(self):
-        """Alignment get_pssm should produce position specific score matrix."""
+    def test_get_pwm(self):
+        """Alignment get_pwm should produce position specific score matrix."""
         get_pssm = {
             0: {'A': 1.0, 'C': 1.0, 'U': 5.0},
             1: {'C': 6.0, 'U': 1.0},
@@ -1502,7 +1502,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             8: {'A': 1.0, 'C': 1.0, 'G': 1.0, 'U': 4.0},
             9: {'A': 1.0, 'C': 2.0, 'U': 4.0},
         }
-        self.assertEqual(self.many.get_pssm(), get_pssm)
+        self.assertEqual(self.many.get_pwm(), get_pssm)
 
     def test_sample(self):
         """Alignment.sample should permute alignment by default"""
