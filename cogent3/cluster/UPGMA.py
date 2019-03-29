@@ -4,7 +4,7 @@
 upgma takes an dictionary of pair tuples mapped to distances as input.
 
 UPGMA_cluster takes an array and a list of PhyloNode objects corresponding
-to the array as input. Can also generate this type of input from a Dict2D using
+to the array as input. Can also generate this type of input from a DictArray using
 inputs_from_dict_array function.
 
 Both return a PhyloNode object of the UPGMA cluster

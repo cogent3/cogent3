@@ -519,46 +519,6 @@ Differences in variances
 
 *To be written.*
 
-Chi-Squared test
-================
-
-.. TODO pick a biological example, perhaps sequence nucleotide composition?  TimeReversibleCodon usage for a particular amino acid?
-
-Calculus class data (from Grinstead and Snell, Introduction to Probability).  There seems to be a disparity in the number of 'A' grades awarded when broken down by student gender.  As input to the function ``chi_square_from_Dict2D()`` we need a ``Dict2D`` object containing the observed counts that has been processed by ``calc_contingency_expected()`` to add the expected counts for each element of the table
-
-``Expected = row_total x column_total / overall_total``
-
-.. doctest::
-
-    >>> from cogent3.util.dict2d import Dict2D
-    >>> import cogent3.maths.stats.test as stats
-    >>> F_grades = {'A':37,'B':63,'C':47,'F':5}
-    >>> M_grades = {'A':56,'B':60,'C':43,'F':8}
-    >>> grades = {'F':F_grades,'M':M_grades}
-    >>> data = Dict2D(grades)
-    >>> data
-    {'M': {'A': 56...
-    >>> OE_data = stats.calc_contingency_expected(data)
-    >>> OE_data
-    {'M': {'A': [56, 48.686...
-    >>> test, chi_high = stats.chi_square_from_Dict2D(OE_data)
-    >>> test
-    4.12877...
-    >>> chi_high
-    0.24789...
-
-Nearly 25% of the time we would expect a Chi-squared statistic as extreme as this one or more (with df = 3), so the result is not significant.
-
-Goodness-of-fit calculation with the same data
-
-.. doctest::
-
-    >>> g_val, prob = stats.G_fit_from_Dict2D(OE_data)
-    >>> g_val
-    4.1337592429166437
-    >>> prob
-    0.76424854978813872
-
 Scatterplots
 ============
 
