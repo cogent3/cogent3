@@ -20,6 +20,8 @@
     >>> b['a'].keys()
     ['A', 'B', 'C']
 """
+from collections import defaultdict
+from itertools import combinations
 
 import numpy
 from cogent3.format import table
@@ -39,6 +41,204 @@ def _asdict(data):
         return out
     return data
 
+def convert_1D_dict(data, row_order=None):
+    """returns a 1D list and header as dict keys
+
+    Parameters
+    ----------
+    data : dict
+        a 1D dict
+    row_order
+        series with column headings. If not provided, the sorted top level dict
+        keys are used.
+    """
+    if row_order is None:
+        row_order = list(sorted(data))
+
+    rows = [data[c] for c in row_order]
+    return rows, row_order
+
+def convert2Ddistance(dists, header=None, row_order=None):
+    """returns a 2 dimensional list, header and row order
+
+    Parameters
+    ----------
+    dists : dict
+        a 1Ddict with {(a, b): dist, ..}
+    header
+        series with column headings. If not provided, the sorted top level dict
+        keys are used.
+    row_order
+        a specified order to generate the rows
+
+    Returns
+    -------
+    2D list, header and row_order. If a dist not present, it's set to 0, or
+    the symmetric value e.g. (a, b) -> (b, a).
+    """
+    if header is None:
+        names = set()
+        for pair in dists:
+            names.update(set(pair))
+        header = list(sorted(names))
+
+    rows = []
+    for i in range(len(header)):
+        n1 = header[i]
+        row = []
+        for j in range(len(header)):
+            n2 = header[j]
+            dist = dists.get((n1, n2), dists.get((n2, n1), 0))
+            row.append(dist)
+        rows.append(row)
+
+    row_order = header[:]
+    return rows, row_order, header
+
+
+def convert2DDict(twoDdict, header=None, row_order=None, make_symmetric=False):
+    """returns a 2 dimensional list, header and row order
+
+    Parameters
+    ----------
+    twoDdict : dict
+        a 2 dimensional dict with top level keys corresponding to column
+        headings, lower level keys correspond to row headings
+    header
+        series with column headings. If not provided, the sorted top level dict
+        keys are used.
+    row_order
+        a specified order to generate the rows
+    make_symmetric : bool
+        if True, twoDdict[a][b] == twoDdict[b][a]
+    """
+    if not header:
+        header = list(twoDdict.keys())
+        header.sort()
+
+    if not row_order:  # we assume rows consistent across dict
+        row_order = list(twoDdict[header[0]].keys())
+        row_order.sort()
+
+    if make_symmetric:
+        combined = list(sorted(set(header) | set(row_order)))
+        header = row_order = combined
+        data = defaultdict(dict)
+
+        for k1, k2 in combinations(combined, 2):
+            if k1 in twoDdict:
+                val = twoDdict[k1].get(k2, 0)
+            elif k2 in twoDdict:
+                val = twoDdict[k2].get(k1, 0)
+            else:
+                val = 0
+            data[k1][k2] = data[k2][k1] = val
+        for k in data:
+            data[k][k] = 0
+        twoDdict = data
+
+
+    # make list of lists
+    rows = []
+    for row in row_order:
+        elements = []
+        for column in header:
+            elements.append(twoDdict[column][row])
+        rows.append(elements)
+
+    return rows, row_order, header
+
+def convert_dict(data, header=None, row_order=None):
+    """returns a list, DictArrayTemplate args
+
+    Parameters
+    ----------
+    data : dict
+        a 1D or 2D dict
+    header
+        series with column headings. If not provided, the sorted top level dict
+        keys are used.
+    row_order
+        a specified order to generate the rows
+    """
+    first_key = list(data)[0]
+    if type(first_key) == tuple and len(first_key) == 2:
+        rows, row_order, header = convert2Ddistance(data, header, row_order)
+    elif hasattr(data[first_key], 'keys'):
+        rows, row_order, header = convert2DDict(data, header, row_order)
+    else:
+        rows, row_order = convert_1D_dict(data, header)
+    return rows, row_order, header
+
+def convert_series(data, row_order=None, header=None):
+    """returns a list, header and row order
+
+    Parameters
+    ----------
+    data : dict
+        a 1D or 2D dict
+    header
+        series with column headings. If not provided, the sorted top level dict
+        keys are used.
+    row_order
+        a specified order to generate the rows
+    """
+    first_element = data[0]
+    nrows = len(data)
+    try:
+        ncols = len(first_element)
+    except TypeError:
+        ncols = 1
+
+    if header is not None:
+        dim_h = header if isinstance(header, int) else len(header)
+    else:
+        dim_h = None
+
+    if row_order is not None:
+        dim_r = row_order if isinstance(row_order, int) else len(row_order)
+    else:
+        dim_r = None
+
+    if nrows == 1 and ncols > 1:
+        if dim_h is not None and dim_h != ncols:
+            raise ValueError(f'mismatch between number columns={dim_h} '
+                             f'and number of elements in data={ncols}')
+        elif dim_r is not None and dim_r != 1:
+            raise ValueError(f'mismatch between number rows={dim_r} '
+                             f'and number of rows in data={ncols}')
+
+    if not header:
+        header = None if ncols == 1 else ncols
+    row_order = row_order if row_order else nrows
+
+    return data, row_order, header
+
+def convert_for_dictarray(data, header=None, row_order=None):
+    """returns a list, header and row order from data
+
+    Parameters
+    ----------
+    data : iterable
+        data series, dictarray, dict, etc..
+    header
+        series with column headings. If not provided, the sorted top level dict
+        keys are used.
+    row_order
+        a specified order to generate the rows
+    """
+    if isinstance(data, DictArray):
+        header = data.template.names[0]
+        row_order = data.template.names[1]
+        data = data.array.copy()
+    elif hasattr(data, 'keys'):  # dictlike, it could be defaultdict
+        data, row_order, header = convert_dict(data, header, row_order)
+    else:
+        data, row_order, header = convert_series(data, header, row_order)
+
+    return data, row_order, header
+
+
 
 class DictArrayTemplate(object):
 
@@ -46,7 +246,9 @@ class DictArrayTemplate(object):
         self.names = []
         self.ordinals = []
         for names in dimensions:
-            if isinstance(names, int):
+            if names is None:
+                continue
+            elif isinstance(names, int):
                 names = list(range(names))
             else:
                 names = list(names)[:]
@@ -79,7 +281,12 @@ class DictArrayTemplate(object):
         return value
 
     def wrap(self, array, dtype=None):
-        # dtype is numpy
+        if hasattr(array, 'keys'):
+            if len(self._shape) == 2:
+                r, h = self.names[:2]
+            else:
+                r, h = self.names[0], None
+            array, _, _ = convert_for_dictarray(array, h, r)
         array = numpy.asarray(array, dtype=dtype)
         for (dim, categories) in enumerate(self.names):
             assert len(categories) == numpy.shape(array)[
@@ -134,7 +341,14 @@ class DictArray(object):
 
     def __init__(self, *args, **kwargs):
         """allow alternate ways of creating for time being"""
-        if len(args) <= 2:
+        if len(args) == 1:
+            vals, row_keys, col_keys = convert_for_dictarray(args[0])
+            dtype = kwargs.get('dtype', None)
+            self.array = numpy.asarray(vals, dtype=dtype)
+            self.template = DictArrayTemplate(row_keys, col_keys)
+        elif len(args) == 2:
+            if not isinstance(args[1], DictArrayTemplate):
+                raise  NotImplementedError
             self.array = args[0]
             self.template = args[1]
         else:
