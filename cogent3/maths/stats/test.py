@@ -322,52 +322,6 @@ def G_fit(obs, exp, williams=1):
     return G, chi_high(G, k - 1)
 
 
-def G_fit_from_Dict2D(data):
-    """G test for fit on a Dict2D
-
-    data is a dict2D. Values are a list containing the observed
-    and expected frequencies (can be created with calc_contingency_expected)
-    """
-    obs_counts = []
-    exp_counts = []
-    for item in data.Items:
-        if len(item) == 2:
-            obs_counts.append(item[0])
-            exp_counts.append(item[1])
-    g_val, prob = G_fit(obs_counts, exp_counts)
-    return g_val, prob
-
-
-def chi_square_from_Dict2D(data):
-    """Chi Square test on a Dict2D
-
-    data is a Dict2D. The values are a list of the observed (O)
-    and expected (E) frequencies,(can be created with calc_contingency_expected)
-
-    The chi-square value (test) is the sum of (O-E)^2/E over the items in data
-
-    degrees of freedom are calculated from data as:
-    (r-1)*(c-1) if cols and rows are both > 1
-    otherwise is just 1 - the # of rows or columns
-    (whichever is greater than 1)
-
-    """
-    test = npsum([((item[0] - item[1]) * (item[0] - item[1])) / item[1]
-         for item in data.Items])
-    num_rows = len(data)
-    num_cols = len([col for col in data.Cols])
-    if num_rows == 1:
-        df = num_cols - 1
-    elif num_cols == 1:
-        df = num_rows - 1
-    elif num_rows == 0 or num_cols == 0:
-        raise ValueError("data matrix must have data")
-    else:
-        df = (len(data) - 1) * (len([col for col in data.Cols]) - 1)
-
-    return test, chi_high(test, df)
-
-
 def likelihoods(d_given_h, priors):
     """Calculate likelihoods through marginalization, given Pr(D|H) and priors.
 

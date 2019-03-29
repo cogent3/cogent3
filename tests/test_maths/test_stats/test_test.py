@@ -8,7 +8,7 @@ from cogent3.maths.stats.test import tail, G_2_by_2, G_fit, likelihoods,\
     t_tailed_prob, sign_test, reverse_tails, ZeroExpectedError, combinations, \
     multiple_comparisons, multiple_inverse, multiple_n, fisher, regress, \
     regress_major, f_value, f_two_sample, calc_contingency_expected, \
-    G_fit_from_Dict2D, chi_square_from_Dict2D, MonteCarloP, \
+    MonteCarloP, \
     regress_residuals, safe_sum_p_log_p, G_ind, regress_origin, stdev_from_mean, \
     regress_R2, permute_2d, mantel, mantel_test, _flatten_lower_triangle, \
     pearson, spearman, _get_rank, kendall_correlation, std, median, \
@@ -17,7 +17,6 @@ from cogent3.maths.stats.test import tail, G_2_by_2, G_fit, likelihoods,\
 
 from numpy import array, concatenate, fill_diagonal, reshape, arange, \
     ones, testing, tril, cov, sqrt
-from cogent3.util.dict2d import Dict2D
 import math
 from cogent3.maths.stats.util import Numbers
 
@@ -328,18 +327,6 @@ class GTests(TestCase):
         self.assertFloatEqualAbs(G_2_by_2(5, 47, 36, 108), (-6.065167, 0.993106),
                                  0.00001)
 
-    def test_calc_contingency_expected(self):
-        """calcContingencyExpected returns new matrix with expected freqs"""
-        matrix = Dict2D({'rest_of_tree': {'env1': 2, 'env3': 1, 'env2': 0},
-                         'b': {'env1': 1, 'env3': 1, 'env2': 3}})
-        result = calc_contingency_expected(matrix)
-        self.assertFloatEqual(result['rest_of_tree']['env1'], [2, 1.125])
-        self.assertFloatEqual(result['rest_of_tree']['env3'], [1, 0.75])
-        self.assertFloatEqual(result['rest_of_tree']['env2'], [0, 1.125])
-        self.assertFloatEqual(result['b']['env1'], [1, 1.875])
-        self.assertFloatEqual(result['b']['env3'], [1, 1.25])
-        self.assertFloatEqual(result['b']['env2'], [3, 1.875])
-
     def test_Gfit_unequal_lists(self):
         """Gfit should raise errors if lists unequal"""
         # lists must be equal
@@ -387,46 +374,6 @@ class GTests(TestCase):
         a = array([[29, 11], [273, 191], [8, 31], [64, 64]])
         self.assertFloatEqual(G_ind(a)[0], 28.59642)
         self.assertFloatEqual(G_ind(a, True)[0], 28.31244)
-
-    def test_G_fit_from_Dict2D(self):
-        """G_fit_from_Dict2D runs G-fit on data in a Dict2D
-        """
-        matrix = Dict2D({'Marl': {'val': [2, 5.2]},
-                         'Chalk': {'val': [10, 5.2]},
-                         'Sandstone': {'val': [8, 5.2]},
-                         'Clay': {'val': [2, 5.2]},
-                         'Limestone': {'val': [4, 5.2]}
-                         })
-        g_val, prob = G_fit_from_Dict2D(matrix)
-        self.assertFloatEqual(g_val, 9.84923)
-        self.assertFloatEqual(prob, 0.04304536)
-
-    def test_chi_square_from_Dict2D(self):
-        """chi_square_from_Dict2D calcs a Chi-Square and p value from Dict2D"""
-        # test1
-        obs_matrix = Dict2D({'rest_of_tree': {'env1': 2, 'env3': 1, 'env2': 0},
-                             'b': {'env1': 1, 'env3': 1, 'env2': 3}})
-        input_matrix = calc_contingency_expected(obs_matrix)
-        test, csp = chi_square_from_Dict2D(input_matrix)
-        self.assertFloatEqual(test, 3.0222222222222221)
-        # test2
-        test_matrix_2 = Dict2D({'Marl': {'val': [2, 5.2]},
-                                'Chalk': {'val': [10, 5.2]},
-                                'Sandstone': {'val': [8, 5.2]},
-                                'Clay': {'val': [2, 5.2]},
-                                'Limestone': {'val': [4, 5.2]}
-                                })
-        test2, csp2 = chi_square_from_Dict2D(test_matrix_2)
-        self.assertFloatEqual(test2, 10.1538461538)
-        self.assertFloatEqual(csp2, 0.0379143890013)
-        # test3
-        matrix3_obs = Dict2D({'AIDS': {'Males': 4, 'Females': 2, 'Both': 3},
-                              'No_AIDS': {'Males': 3, 'Females': 16, 'Both': 2}
-                              })
-        matrix3 = calc_contingency_expected(matrix3_obs)
-        test3, csp3 = chi_square_from_Dict2D(matrix3)
-        self.assertFloatEqual(test3, 7.6568405139833722)
-        self.assertFloatEqual(csp3, 0.0217439383468)
 
 
 class LikelihoodTests(TestCase):
