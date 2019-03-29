@@ -273,9 +273,9 @@ class CategoryCounts:
         return G, self.df, pval
 
     def todict(self):
-        result = dict(observed=self.observed.asdict(),
-                      expected=self.expected.asdict(),
-                      residuals=self.residuals.asdict())
+        result = dict(observed=self.observed.todict(),
+                      expected=self.expected.todict(),
+                      residuals=self.residuals.todict())
         return result
 
 # we want an object that contains the numerical arrays for observed, expecteds

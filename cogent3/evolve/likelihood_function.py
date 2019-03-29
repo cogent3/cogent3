@@ -593,7 +593,7 @@ class LikelihoodFunction(ParameterController):
                                                              edge=edge)
         model = self._model.to_rich_dict(for_pickle=False)
         alignment = self.get_param_value('alignment').to_rich_dict()
-        mprobs = self.get_motif_probs().asdict()
+        mprobs = self.get_motif_probs().todict()
         DLC = self.all_psubs_DLC()
         try:
             unique_Q = self.all_rate_matrices_unique()
@@ -714,7 +714,7 @@ class LikelihoodFunction(ParameterController):
     def all_psubs_DLC(self):
         """Returns True if every Psub matrix is Diagonal Largest in Column"""
         for edge in self.tree.get_edge_vector(include_root=False):
-            P = self.get_psub_for_edge(edge.name).asarray()
+            P = self.get_psub_for_edge(edge.name).toarray()
             if (P.diagonal() < P).any():
                 return False
         return True
@@ -722,7 +722,7 @@ class LikelihoodFunction(ParameterController):
     def all_rate_matrices_unique(self):
         """Returns True if every rate matrix is unique for its Psub matrix"""
         for edge in self.tree.get_edge_vector(include_root=False):
-            Q = self.get_rate_matrix_for_edge(edge.name).asarray()
+            Q = self.get_rate_matrix_for_edge(edge.name).toarray()
             t = self.get_param_value('length', edge=edge.name)
             if not is_generator_unique(Q * t):
                 return False

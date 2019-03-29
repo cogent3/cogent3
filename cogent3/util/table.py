@@ -594,9 +594,9 @@ class Table(DictArray):
             new_twoD = []
             for row in table:
                 if new_column:
-                    new_twoD.append([table.title] + row.asarray().tolist())
+                    new_twoD.append([table.title] + row.toarray().tolist())
                 else:
-                    new_twoD.append(row.asarray().tolist())
+                    new_twoD.append(row.toarray().tolist())
             new_twoD = tuple(new_twoD)
             big_twoD += new_twoD
         kw = self._get_persistent_attrs()
@@ -636,7 +636,7 @@ class Table(DictArray):
             raise ImportError("pandas not installed")
 
         index = None if self._row_ids is None else self.template.names[0]
-        data = dict(zip(self.header, self.asarray().T.tolist()))
+        data = dict(zip(self.header, self.toarray().T.tolist()))
         df = DataFrame(data=data, index=index)
         if categories is not None:
             categories = [categories] if type(categories) == str else categories
