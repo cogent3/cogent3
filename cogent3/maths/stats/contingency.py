@@ -272,7 +272,7 @@ class CategoryCounts:
         G, pval = G_fit(obs, self.expected.array, williams=williams)
         return G, self.df, pval
 
-    def to_dict(self):
+    def todict(self):
         result = dict(observed=self.observed.asdict(),
                       expected=self.expected.asdict(),
                       residuals=self.residuals.asdict())

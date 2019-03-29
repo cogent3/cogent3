@@ -82,7 +82,7 @@ class ContingencyTests(TestCase):
     def test_to_dict(self):
         """returns a dict of contents"""
         table = CategoryCounts([[762, 327], [750, 340]])
-        got = table.to_dict()
+        got = table.todict()
         assert_allclose(got['residuals'][0][0], 0.23088925877536437)
         assert_allclose(got['observed'][1][1], 340)
 
@@ -91,7 +91,7 @@ class ContingencyTests(TestCase):
         keys = ['Marl', 'Chalk', 'Sandstone', 'Clay', 'Limestone']
         table = CategoryCounts(dict(zip(keys, obs)),
                                expected=dict(zip(keys, exp)))
-        got = table.to_dict()
+        got = table.todict()
         assert_allclose(got['expected']['Marl'], 5.2)
         assert_allclose(got['observed']['Sandstone'], 8)
 
