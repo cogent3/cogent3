@@ -68,8 +68,8 @@ class CannedModelsTest(TestCase):
 
 
 def get_sample_model_types(mod_type=None):
-    opts = dict(codon_models=codon_models, nucleotide_models=nucleotide_models,
-                protein_models=protein_models)
+    opts = dict(codon=codon_models, nucleotide=nucleotide_models,
+                protein=protein_models)
     return opts.get(mod_type, models)
 
 
@@ -83,7 +83,7 @@ class AvailableModelsTest(TestCase):
 
     def test_model_by_type(self):
         """correctly obtain models by type"""
-        for model_type in "codon_model nucleotide_model protein_model".split():
+        for model_type in ['codon', 'nucleotide', 'protein']:
             table = available_models(model_type)
             got = table.distinct_values('Model Type')
             self.assertEqual(got, {model_type})
