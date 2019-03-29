@@ -42,7 +42,7 @@ from numpy import nonzero, array, logical_or, logical_and, logical_not, \
     transpose, arange, zeros, ones, take, put, uint8, ndarray, vstack
 from numpy.random import randint, permutation
 
-from cogent3.util.dict2d import Dict2D
+from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import bytes_to_string, get_object_provenance
 
 from copy import copy, deepcopy
@@ -1943,9 +1943,15 @@ class AlignmentI(object):
             uncertainties.append(prob.Uncertainty)
         return uncertainties
 
-        return Dict2D(dict([(i, Freqs(col)) for i, col in enumerate(self.positions)]))
     def get_pwm(self):
         """Returns a position specific weight matrix for the alignment."""
+        result = []
+        for col in self.positions:
+            f = Freqs(col)
+            result.append([f.get(c, 0) for c in self.moltype])
+        darr = DictArrayTemplate(len(self), list(self.moltype))
+        result = darr.wrap(result)
+        return result
 
     def _get_freqs(self, index=None):
         """Gets array of freqs along index 0 (= positions) or 1 (= seqs).
