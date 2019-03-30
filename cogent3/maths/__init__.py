@@ -1,19 +1,17 @@
 #!/usr/bin/env python
 
-__all__ = ['fit_function'
-           'function_optimisation',
+__all__ = ['function_optimisation',
            'geometry',
            'markov',
            'matrix_exponential_integration',
            'matrix_exponentiation',
            'matrix_logarithm',
-           'optimiser',
            'optimisers',
+           'period',
            'scipy_optimisers',
            'scipy_optimize',
            'simannealingoptimiser',
            'solve',
-           'spatial',
            'svd']
 
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 __all__ = ['test_fit_function',
            'test_geometry',
-           'test_matrix',
            'test_matrix_logarithm',
            'test_optimisers',
            'test_stats']
