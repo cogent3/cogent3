@@ -8,8 +8,6 @@ __all__ = ['contingency', 'distribution',
            'information_criteria', 'kendall', 'ks', 'special', 'test',
            'util']
 
-# GAH: this is a temporary introduction, so users get notice of structure change and
-# renaming of this function
 from .distribution import chi_high as chisqprob
 
 __author__ = ""
