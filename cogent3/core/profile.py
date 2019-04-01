@@ -9,7 +9,8 @@ from numpy import array, sum, transpose, reshape, ones, zeros,\
     sort, argsort, searchsorted, logical_and, asarray, uint8, add, subtract,\
     multiply, divide, newaxis, alltrue, max, all, isfinite
 from numpy.random import random
-from cogent3.util.array import euclidean_distance, row_degeneracy,\
+from numpy.linalg import norm
+from cogent3.maths.util import row_degeneracy,\
     column_degeneracy, row_uncertainty, column_uncertainty, safe_log
 from cogent3.format.table import formatted_cells
 # SUPPORT2425
@@ -312,7 +313,7 @@ class Profile(object):
         return self.reduce(other, op=divide, normalize_input=False,
                            normalize_output=False)
 
-    def distance(self, other, method=euclidean_distance):
+    def distance(self, other, method=lambda a, b: norm(a-b)):
         """Returns the distance between two profiles
 
         other: Profile object
