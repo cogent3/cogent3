@@ -54,9 +54,9 @@ from sys import exit
 from numpy import zeros, ones, float, put, transpose, array, float64, nonzero,\
     abs, sqrt, exp, ravel, take, reshape, mean, tril, nan, isnan, log, e,\
     greater_equal, less_equal
+from numpy.linalg import norm
 from random import shuffle
 from cogent3.maths.stats.util import Freqs
-from cogent3.util.array import norm
 from cogent3.core.sequence import Sequence
 from cogent3.core.moltype import IUPAC_gap, IUPAC_missing
 from cogent3.core.profile import Profile
