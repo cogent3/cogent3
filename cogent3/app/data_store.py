@@ -146,7 +146,6 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
         return data
 
 
-
 class WritableDataStoreBase:
     def __init__(self, if_exists=RAISE, create=False):
         """
@@ -171,7 +170,14 @@ class WritableDataStoreBase:
     def make_relative_identifier(self, data):
         """returns identifier for a new member relative to source"""
         if type(data) != str:
-            data = data.info.source
+            try:
+                data = data.info.source
+            except AttributeError:
+                try:
+                    data = data.source
+                except AttributeError:
+                    raise ValueError('objects for storage require either a '
+                                     'source or info.source string attribute')
         basename = os.path.basename(data)
         suffix, comp = get_format_suffixes(basename)
         if suffix and comp:
@@ -190,7 +196,8 @@ class WritableDataStoreBase:
     def make_absolute_identifier(self, data):
         """returns a absolute identifier for a new member, includes source"""
         basename = self.make_relative_identifier(data)
-        identifier = self.get_absolute_identifier(basename, from_relative=True)
+        identifier = self.get_absolute_identifier(
+            basename, from_relative=True)
         return identifier
 
 
@@ -214,8 +221,10 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
             if True, the destination is created
         """
         assert 'w' in mode or 'a' in mode
-        ReadOnlyDirectoryDataStore.__init__(self, source=source, suffix=suffix)
-        WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
+        ReadOnlyDirectoryDataStore.__init__(
+            self, source=source, suffix=suffix)
+        WritableDataStoreBase.__init__(
+            self, if_exists=if_exists, create=create)
         self.mode = mode
 
     def _source_create_delete(self, if_exists, create):
@@ -262,7 +271,8 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
             if True, the destination is created
         """
         ReadOnlyZippedDataStore.__init__(self, source=source, suffix=suffix)
-        WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
+        WritableDataStoreBase.__init__(
+            self, if_exists=if_exists, create=create)
         self.mode = 'a' or mode  # todo does mode 'w' nuke an entire zip?
 
     def _source_create_delete(self, if_exists, create):
