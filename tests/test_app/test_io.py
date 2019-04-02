@@ -5,6 +5,7 @@ import shutil
 from unittest import TestCase, main
 from unittest.mock import Mock, patch
 from cogent3 import DNA
+from cogent3.app import io as io_app
 from cogent3.core.alignment import SequenceCollection, ArrayAlignment
 
 __author__ = "Gavin Huttley"
