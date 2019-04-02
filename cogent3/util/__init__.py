@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-__all__ = ['array', 'checkpointing', 'datatypes', 'deserialise',
+__all__ = ['array', 'checkpointing', 'deserialise',
            'misc', 'modules', 'parallel', 'table', 'transform',
            'unit_test', 'warning', 'recode_alignment']
 

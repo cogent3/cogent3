@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-__all__ = ['test_mage', 'test_fasta', 'test_xyzrn']
+__all__ = ['test_bedgraph', 'test_clustal', 'test_fasta']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2016, The Cogent Project"

@@ -1,5 +1,5 @@
 #!/usr/bin/envthon
-__all__ = ['array', 'calculation', 'definition', 'scope', 'setting']
+__all__ = ['calculation', 'definition', 'scope', 'setting']
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
