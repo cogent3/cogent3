@@ -3,8 +3,7 @@ from os.path import join, basename
 from tempfile import TemporaryDirectory
 import shutil
 from unittest import TestCase, main
-from unittest.mock import Mock
-from cogent3.app import io as io_app
+from unittest.mock import Mock, patch
 from cogent3 import DNA
 from cogent3.core.alignment import SequenceCollection, ArrayAlignment
 
@@ -143,8 +142,8 @@ class TestIo(TestCase):
             self.assertIsInstance(got, DNA.__class__)
             self.assertEqual(got, DNA)
 
-    def test_write_json(self):
-        """correctly writes an object from json"""
+    def test_write_json_with_info(self):
+        """correctly writes an object with info attribute from json"""
         # create a mock object that pretends like it's been derived from
         # something
         with TemporaryDirectory(dir='.') as dirname:
@@ -171,6 +170,33 @@ class TestIo(TestCase):
             self.assertEqual(got, DNA)
             self.assertEqual(identifier, join(outdir, 'delme.json'))
 
+    def test_write_json_no_info(self):
+        """correctly writes an object with out an info attribute from json"""
+        # create a mock object that pretends like it's been derived from
+        # something
+        with TemporaryDirectory(dir='.') as dirname:
+            outdir = join(dirname, 'delme')
+            mock = patch('data.source', autospec=True)
+            mock.to_json = DNA.to_json
+            mock.source = join('blah', 'delme.json')
+            writer = io_app.write_json(outdir, create=True)
+            _ = writer(mock)
+            reader = io_app.load_json(outdir)
+            got = reader(join(outdir, 'delme.json'))
+            self.assertEqual(got, DNA)
+
+        # now with a zipped archive
+        with TemporaryDirectory(dir='.') as dirname:
+            outdir = join(dirname, 'delme.zip')
+            mock = patch('data.source', autospec=True)
+            mock.to_json = DNA.to_json
+            mock.source = join('blah', 'delme.json')
+            writer = io_app.write_json(outdir, create=True)
+            identifier = writer(mock)
+            reader = io_app.load_json(outdir)
+            got = reader(join(outdir, 'delme.json'))
+            self.assertEqual(got, DNA)
+            self.assertEqual(identifier, join(outdir, 'delme.json'))
 
 if __name__ == '__main__':
     main()

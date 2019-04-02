@@ -255,6 +255,10 @@ class write_json(_checkpointable):
 
     def write(self, data):
         identifier = self._make_output_identifier(data)
-        json = data.to_json()
-        data.info.stored = self.data_store.write(identifier, json)
+        out = data.to_json()
+        stored = self.data_store.write(identifier, out)
+        try:
+            data.info.stored = stored
+        except AttributeError:
+            data.stored = stored
         return identifier
