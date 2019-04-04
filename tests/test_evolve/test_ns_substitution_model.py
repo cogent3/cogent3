@@ -14,7 +14,8 @@ from cogent3.evolve.ns_substitution_model import (General,
                                                   NonReversibleNucleotide,
                                                   NonReversibleDinucleotide,
                                                   NonReversibleProtein,
-                                                  NonReversibleCodon)
+                                                  NonReversibleCodon,
+                                                  NonReversibleTrinucleotide, )
 from cogent3.evolve.substitution_model import TimeReversibleNucleotide, Parametric
 from cogent3.evolve.predicate import MotifChange
 from cogent3.util.unit_test import TestCase, main
@@ -125,7 +126,6 @@ class NonStatMarkov(TestCase):
     tree = LoadTree(treestring='(a:0.4,b:0.4,c:0.6)')
     opt_args = dict(max_restarts=1, local=True, show_progress=False)
     make_cached = MakeCachedObjects(TimeReversibleNucleotide(), tree, 100000, opt_args)
-#
 
     def _setup_discrete_from_general(self, gen_lf):
         dis_lf = self.make_cached('discrete')
@@ -134,7 +134,6 @@ class NonStatMarkov(TestCase):
             dis_lf.set_param_rule('psubs', edge=edge.name, init=init)
         dis_lf.set_motif_probs(gen_lf.get_motif_probs())
         return dis_lf
-#
 
     def test_discrete_vs_general1(self):
         """compares fully general models"""
@@ -142,7 +141,6 @@ class NonStatMarkov(TestCase):
         gen_lnL = gen_lf.get_log_likelihood()
         dis_lf = self._setup_discrete_from_general(gen_lf)
         self.assertFloatEqual(gen_lnL, dis_lf.get_log_likelihood())
-#
 
     def test_general_vs_constructed_general(self):
         """a constructed general lnL should be identical to General"""
@@ -151,7 +149,6 @@ class NonStatMarkov(TestCase):
         gen_lf = self.make_cached('general')
         gen_lnL = gen_lf.get_log_likelihood()
         self.assertFloatEqualAbs(sm_lnL, gen_lnL, eps=0.1)
-#
 
     def test_general_stationary(self):
         """General stationary should be close to General"""
@@ -160,7 +157,6 @@ class NonStatMarkov(TestCase):
         gen_stat_lnL = gen_stat_lf.get_log_likelihood()
         gen_lnL = gen_lf.get_log_likelihood()
         self.assertLessThan(gen_stat_lnL, gen_lnL)
-#
 
     def test_general_stationary_is_stationary(self):
         """should be stationary"""
@@ -171,7 +167,6 @@ class NonStatMarkov(TestCase):
             psub = gen_stat_lf.get_psub_for_edge(edge.name)
             pi = dot(mprobs, psub.array)
             self.assertFloatEqual(mprobs, pi)
-#
 
     def test_general_is_not_stationary(self):
         """should not be stationary"""
@@ -239,6 +234,15 @@ class NonStatMarkov(TestCase):
         sm = NonReversibleDinucleotide(predicates=preds)
         got = sm.get_param_list()
         self.assertEqual(got, ['A>C', 'G>A', 'CG>TG'])
+
+    def test_nr_trinucleotide(self):
+        '''This is exercising a NonReversibleTrinucleotide'''
+        preds = [MotifChange('A', 'C', forward_only=True), MotifChange('G', 'A', forward_only=True),
+                 MotifChange('CGA', 'TGA', forward_only=True)]
+        sm = NonReversibleTrinucleotide(predicates=preds)
+        got = sm.get_param_list()
+        self.assertEqual(got, ['A>C', 'G>A', 'CGA>TGA'])
+        self.assertEqual(len(sm.get_motifs()), 64)
 
     def test_nr_codon(self):
         '''This is exercising a NonReversibleCodon'''

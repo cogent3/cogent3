@@ -136,11 +136,19 @@ class NonReversibleNucleotide(Parametric):
 
 
 class NonReversibleDinucleotide(Parametric):
-    """A nucleotide substitution model."""
+    """A dinucleotide substitution model."""
 
     def __init__(self, *args, **kw):
         Parametric.__init__(
             self, moltype.DNA.alphabet, motif_length=2, *args, **kw)
+
+
+class NonReversibleTrinucleotide(Parametric):
+    """A trinucleotide substitution model."""
+
+    def __init__(self, *args, **kw):
+        Parametric.__init__(
+            self, moltype.DNA.alphabet, motif_length=3, *args, **kw)
 
 
 class NonReversibleCodon(_Codon, Parametric):
