@@ -32,16 +32,17 @@ class DictArrayTest(TestCase):
         twoDdict = dict(a=dict(b=4, c=5))
         vals, row_keys, col_keys = convert_dict(twoDdict)
         b = DictArrayTemplate(row_keys, col_keys).wrap(vals)
-        self.assertEqual(b.array.tolist(), [[4], [5]])
+        self.assertEqual(b.array.tolist(), [[4, 5]])
 
     def test_convert2DDict(self):
         """convert2DDict produces valid template input"""
         data = dict(a=dict(b=4, c=5))
         vals, row_keys, col_keys = convert2DDict(data)
+        self.assertEqual(set(row_keys), set(['a']))
         b = DictArrayTemplate(row_keys, col_keys).wrap(vals)
-        self.assertEqual(b.array.tolist(), [[4], [5]])
+        self.assertEqual(b.array.tolist(), [[4, 5]])
         # row keys, then column
-        self.assertEqual(b.template.names, [['b', 'c'], ['a']])
+        self.assertEqual(b.template.names, [['a'], ['b', 'c']])
 
         data = {'a': {'a': 0, 'b': 1, 'e': 0},
                 'b': {'a': 1, 'b': 0, 'e': 4},
@@ -110,7 +111,7 @@ class DictArrayTest(TestCase):
         assert_allclose(mprobs.dot(darr), [0.25, 0.25, 0.25, 0.25])
         assert_allclose(numpy.dot(mprobs, darr), [0.25, 0.25, 0.25, 0.25])
 
-    def test_asdict(self):
+    def test_todict(self):
         """DictArray.todict() should convert nested DictArray instances to
         dict's too."""
         a = numpy.identity(3, int)
@@ -119,6 +120,16 @@ class DictArrayTest(TestCase):
         self.assertEqual(b.array.tolist(), [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
         c = DictArrayTemplate('de', 'DE').wrap([[b, b], [b, b]])
         self.assertTrue(isinstance(c.todict()['d'], dict))
+
+    def test_todict_roundtrip(self):
+        """roundtrip of DictArray.todict() should produce same order."""
+        d1 = dict(a=dict(k=1, l=2, m=3), b=dict(k=4, l=5, m=6))
+        darr1 = DictArray(d1)
+        d2 = darr1.todict()
+        darr2 = DictArray(d2)
+        self.assertEqual(d1, d2)
+        d3 = DictArray(d2)
+        self.assertEqual(d1, d3)
 
     def test_convert_for_dictarray(self):
         """successfully delegates when constructed from a DictArray"""
