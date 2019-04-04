@@ -112,13 +112,13 @@ def convert2DDict(twoDdict, header=None, row_order=None, make_symmetric=False):
     make_symmetric : bool
         if True, twoDdict[a][b] == twoDdict[b][a]
     """
-    if not header:
-        header = list(twoDdict.keys())
-        header.sort()
-
-    if not row_order:  # we assume rows consistent across dict
-        row_order = list(twoDdict[header[0]].keys())
+    if not row_order:
+        row_order = list(twoDdict.keys())
         row_order.sort()
+
+    if not header: # we assume columns consistent across dict
+        header = list(twoDdict[row_order[0]].keys())
+        header.sort()
 
     if make_symmetric:
         combined = list(sorted(set(header) | set(row_order)))
@@ -143,7 +143,7 @@ def convert2DDict(twoDdict, header=None, row_order=None, make_symmetric=False):
     for row in row_order:
         elements = []
         for column in header:
-            elements.append(twoDdict[column][row])
+            elements.append(twoDdict[row][column])
         rows.append(elements)
 
     return rows, row_order, header
