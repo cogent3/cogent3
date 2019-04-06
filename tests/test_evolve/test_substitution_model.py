@@ -8,6 +8,8 @@ from cogent3.evolve.models import F81, HKY85, GN
 from cogent3.evolve import substitution_model, substitution_calculation, predicate
 from unittest import TestCase, main
 
+from cogent3.evolve.predicate import MotifChange
+
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
@@ -182,6 +184,15 @@ class ThreeLetterMotifSubstModelTests(TestCase):
         """returns complete dict of attributes"""
         got = self.submodel.to_rich_dict()
         self.assertEqual(got['motif_length'], 3)
+
+    def test_nr_trinuc(self):
+        '''This is exercising a TimeReversibleTriucleotide'''
+        preds = [MotifChange('A', 'C'), MotifChange('G', 'A'),
+                 MotifChange('CGA', 'TGA')]
+        sm = substitution_model.TimeReversibleTrinucleotide(predicates=preds)
+        got = sm.get_param_list()
+        self.assertEqual(got, ['A/C', 'G/A', 'CGA/TGA'])
+        self.assertEqual(len(sm.get_motifs()), 64)
 
 
 class CodonSubstModelTests(TestCase):

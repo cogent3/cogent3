@@ -866,11 +866,19 @@ class TimeReversibleNucleotide(_TimeReversibleNucleotide):
 
 
 class TimeReversibleDinucleotide(_TimeReversibleNucleotide):
-    """A nucleotide substitution model."""
+    """A dinucleotide substitution model."""
 
     def __init__(self, *args, **kw):
         _TimeReversibleNucleotide.__init__(
             self, moltype.DNA.alphabet, motif_length=2, *args, **kw)
+
+
+class TimeReversibleTrinucleotide(_TimeReversibleNucleotide):
+    """A trinucleotide substitution model."""
+
+    def __init__(self, *args, **kw):
+        _TimeReversibleNucleotide.__init__(
+            self, moltype.DNA.alphabet, motif_length=3, *args, **kw)
 
 
 class TimeReversibleProtein(TimeReversible):

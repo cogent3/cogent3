@@ -113,7 +113,7 @@ class ContingencyTests(TestCase):
         table = CategoryCounts(
             {'rest_of_tree': {'env1': 2, 'env3': 1, 'env2': 0},
              'b': {'env1': 1, 'env3': 1, 'env2': 3}})
-        got = table.observed['env1']['rest_of_tree']
+        got = table.observed['rest_of_tree']['env1']
         self.assertEqual(got, 2)
         obs = [2, 10, 8, 2, 4]
         keys = ['Marl', 'Chalk', 'Sandstone', 'Clay', 'Limestone']
@@ -123,13 +123,13 @@ class ContingencyTests(TestCase):
 
     def test_calc_expected(self):
         """expected returns new matrix with expected freqs"""
-        matrix = CategoryCounts({'rest_of_tree': {'env1': 2, 'env3': 1,
-                                                  'env2': 0},
-                                 'b': {'env1': 1, 'env3': 1, 'env2': 3}})
-        assert_allclose(matrix.expected['env1']['rest_of_tree'], 1.125)
-        assert_allclose(matrix.expected['env1']['b'], 1.875)
+        matrix = CategoryCounts(dict(rest_of_tree=dict(env1=2, env3=1, env2=0),
+                                     b=dict(env1=1, env3=1, env2=3)))
+        assert_allclose(matrix.expected['rest_of_tree']['env1'], 1.125)
+        assert_allclose(matrix.expected['b']['env1'], 1.875)
         assert_allclose(matrix.expected.array.tolist(),
-                        [[1.875, 1.125], [1.875, 1.125], [1.25, 0.75]])
+                        [[1.875, 1.875, 1.25],
+                         [1.125, 1.125, 0.75]])
 
 
 if __name__ == '__main__':

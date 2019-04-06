@@ -382,7 +382,7 @@ class SequenceCollection(object):
                 self._names_seqs_order(conversion_f, data, names, is_array,
                                        label_to_name, remove_duplicate_names,
                                        alphabet=self.alphabet)
-            self.names = name_order
+            self.names = list(name_order)
 
             # will take only the seqs and names that are in name_order
             if per_seq_names != name_order:
@@ -2236,7 +2236,7 @@ class AlignmentI(object):
                 length_names.append((l, s.name))
             length_names.sort(reverse=True)
             ref = length_names[0][1]
-            name_order = self.names[:]
+            name_order = list(self.names)
             name_order.remove(ref)
             name_order.insert(0, ref)
             

@@ -12,7 +12,8 @@ __all__ = ['function_optimisation',
            'scipy_optimize',
            'simannealingoptimiser',
            'solve',
-           'svd']
+           'svd',
+           'util']
 
 
 __author__ = ""
