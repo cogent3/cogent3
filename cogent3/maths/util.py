@@ -17,7 +17,7 @@ err = numpy.seterr(divide='raise')
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Rob Knight", "Sandra Smit"]
+__credits__ = ["Rob Knight", "Sandra Smit", "Thomas La"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Rob Knight"

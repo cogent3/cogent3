@@ -5,7 +5,7 @@ Currently provides:
     xml:  xml base class
     file: general functions to read and write files
 """
-__all__ = ['alignment', 'clustal', 'fasta', 'motif', 'nexus',
+__all__ = ['alignment', 'clustal', 'fasta', 'nexus',
            'phylip', 'table']
 
 __author__ = ""

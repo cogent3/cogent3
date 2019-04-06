@@ -3,7 +3,8 @@ __all__ = ['test_fit_function',
            'test_geometry',
            'test_matrix_logarithm',
            'test_optimisers',
-           'test_stats']
+           'test_stats'
+           'test_util']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2016, The Cogent Project"

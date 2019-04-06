@@ -245,6 +245,10 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(a, d)
         self.assertEqual(list(a.named_seqs.items()), list(d.items()))
         
+    def test_names_attribute(self):
+        """expected to be a list"""
+        seqs = self.Class({'a': b'AAAAA', 'b': b'BBBBB'}, names=('a', 'b'))
+        self.assertIsInstance(seqs.names, list)
 
     def test_init_name_mapped(self):
         """SequenceCollection init should allow name mapping function"""

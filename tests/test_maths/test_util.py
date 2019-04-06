@@ -31,7 +31,7 @@ __status__ = "Production"
 class ArrayMathTests(TestCase):
 
     def test_safe_p_log_p(self):
-        """safe_p_log_p: should handle pos/neg/zero/empty arrays as expected
+        """safe_p_log_p: should handle pos/neg/zero/empty arrays
         """
         # normal valid array
         a = array([[4, 0, 8], [2, 16, 4]])
@@ -48,7 +48,7 @@ class ArrayMathTests(TestCase):
         self.assertEqual(safe_p_log_p(array([])), array([]))
 
     def test_safe_log(self):
-        """safe_log: should handle pos/neg/zero/empty arrays as expected
+        """safe_log: should handle pos/neg/zero/empty arrays
         """
         # normal valid array
         a = array([[4, 0, 8], [2, 16, 4]])
@@ -70,7 +70,7 @@ class ArrayMathTests(TestCase):
         self.assertEqual(safe_log(array([[]])), array([[]]))
 
     def test_row_uncertainty(self):
-        """row_uncertainty: should handle pos/neg/zero/empty arrays as expected
+        """row_uncertainty: should handle pos/neg/zero/empty arrays
         """
         # normal valid array
         b = transpose(array([[.25, .2, .45, .25, 1], [.25, .2, .45, 0, 0],

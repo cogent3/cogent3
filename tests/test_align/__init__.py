@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-__all__ = ['test_algorithm', 'test_align', 'test_weights']
+__all__ = ['test_align']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
