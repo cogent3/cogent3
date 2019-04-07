@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 
 sub_modules = ['alltests',
-               'benchmark',
-               'benchmark_aligning',
                'test_draw',
-               'test_phylo',
-               'timetrial']
+               'test_phylo']
 
 for sub_module in sub_modules:
     exec("from %s import %s" % (__name__, sub_module))
