@@ -4,7 +4,6 @@
 from warnings import warn
 from itertools import combinations
 
-from cogent3.util import parallel, table, warning, progress_display as UI
 from cogent3.maths.stats.util import Numbers
 from cogent3 import LoadSeqs, LoadTree
 

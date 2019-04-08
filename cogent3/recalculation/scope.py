@@ -5,7 +5,6 @@ import numpy
 from contextlib import contextmanager
 from .setting import Var, ConstVal
 from .calculation import Calculator
-from cogent3.util import parallel
 from cogent3.maths.stats.distribution import chdtri
 from cogent3.maths.optimisers import MaximumEvaluationsReached
 

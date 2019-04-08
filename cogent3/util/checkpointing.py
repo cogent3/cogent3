@@ -3,7 +3,6 @@ import os
 import time
 import pickle
 
-from cogent3.util import parallel
 
 __author__ = ["Peter Maxwell", "Gavin Huttley"]
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
