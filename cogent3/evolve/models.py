@@ -724,18 +724,6 @@ def get_model(name, **kw):
     g = globals()
     return g[name](**kw)
 
-
-def get_model(name, **kw):
-    '''returns an instance of the named model
-    
-    name must be in the models attribute'''
-    if name not in models:
-        raise ValueError('Unknown model "%s"' % name)
-    
-    g = globals()
-    return g[name](**kw)
-
-
 def mtREV(**kw):
     return AH96(**kw)
 
