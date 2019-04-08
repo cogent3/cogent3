@@ -319,8 +319,7 @@ class EstimateDistances(object):
     def write(self, filename, summary_function="mean", format='phylip',
                     **kwargs):
         """Save the pairwise distances to a file using phylip format. Other
-        formats can be obtained by getting to a Table.  If running in parallel,
-        the master CPU writes out.
+        formats can be obtained by getting to a Table.
 
         Arguments:
             - filename: where distances will be written, required.
