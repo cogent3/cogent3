@@ -15,6 +15,9 @@ from cogent3.evolve.pairwise_distance import (get_moltype_index_array,
                                               _tn93_from_matrix, TN93Pair,
                                               LogDetPair,
                                               ParalinearPair, HammingPair,
+                                              _hamming, get_calculator,
+                                              _calculators,
+                                              available_distances)
 from cogent3.evolve._pairwise_distance import \
     _fill_diversity_matrix as pyx_fill_diversity_matrix
 
@@ -401,6 +404,21 @@ class TestPair(TestCase):
         self.assertTrue((present, 'seq1') in pwds)
         self.assertFalse((missing, 'seq1') in pwds)
         
+class TestGetDisplayCalculators(TestCase):
+    def test_get_calculator(self):
+        """exercising getting specified calculator"""
+        for key in _calculators:
+            get_calculator(key)
+            get_calculator(key.upper())
+
+        with self.assertRaises(ValueError):
+            get_calculator('blahblah')
+
+    def test_available_distances(self):
+        """available_distances has correct content"""
+        content = available_distances()
+        self.assertEqual(content.shape, (5, 2))
+        self.assertEqual(content['tn93', 1], 'dna, rna')
 
 if __name__ == '__main__':
     main()

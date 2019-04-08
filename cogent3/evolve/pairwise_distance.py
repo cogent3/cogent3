@@ -582,18 +582,36 @@ class ParalinearPair(_PairwiseDistance):
         self.func = _paralinear
 
 
+_calculators = {'paralinear': ParalinearPair,
+         'logdet': LogDetPair,
+         'jc69': JC69Pair,
+         'tn93': TN93Pair,
+         'hamming': HammingPair}
+
 def get_calculator(name, *args, **kwargs):
     """returns a pairwise distance calculator
     
     name is converted to lower case"""
-    calcs = {'paralinear': ParalinearPair,
-             'logdet': LogDetPair,
-             'jc69': JC69Pair,
-             'tn93': TN93Pair,
-             'hamming': HammingPair}
     name = name.lower()
-    if name not in calcs:
+    if name not in _calculators:
         raise ValueError('Unknown pairwise distance calculator "%s"' % name)
 
-    calc = calcs[name]
+    calc = _calculators[name]
     return calc(*args, **kwargs)
+
+def available_distances():
+    """returns Table listing available pairwise genetic distance calculator
+    Notes
+    -----
+    For more complicated genetic distance methods, see the evolve.models module.
+    """
+    from cogent3 import LoadTable
+    rows = []
+    for n, c in _calculators.items():
+        rows.append([n, ', '.join(c.valid_moltypes)])
+
+    table = LoadTable(header=['Abbreviation', 'Suitable for moltype'], rows=rows,
+                      title=("Specify a pairwise genetic distance calculator "
+                             "using 'Abbreviation' (case insensitive)."),
+                      row_ids=True)
+    return table
