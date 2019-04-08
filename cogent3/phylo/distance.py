@@ -329,6 +329,5 @@ class EstimateDistances(object):
             - format: output format of distance matrix
         """
 
-        # only write output from 0th node
         table = self.get_table(summary_function=summary_function, **kwargs)
         table.write(filename, format=format)
