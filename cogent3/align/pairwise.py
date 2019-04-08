@@ -16,7 +16,6 @@ from .indel_positions import leaf2pog
 from cogent3 import LoadSeqs
 from cogent3.core.alignment import Aligned
 from cogent3.align.traceback import map_traceback
-from cogent3.util import parallel
 from cogent3.util.warning import discontinued, deprecated
 from cogent3.util.modules import importVersionedModule, ExpectedImportError
 
