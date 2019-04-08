@@ -3,11 +3,9 @@ from cogent3.evolve.models import (JC69, F81, HKY85, TN93, GTR, GN, ssGN,
                                    MG94HKY, MG94GTR, GY94, H04G, H04GK, H04GGK,
                                    DSO78, AH96, AH96_mtmammals, JTT92, WG01,
                                    CNFGTR, CNFHKY, GNC, WG01_matrix, WG01_freqs,
-                                   get_model, models)
-from cogent3.evolve.models import nucleotide_models, codon_models, protein_models, models
-from cogent3.evolve.models import available_models
+                                   get_model, nucleotide_models, codon_models,
+                                   protein_models, models, available_models)
 from cogent3.evolve import models as models_module
-from itertools import chain
 
 
 __author__ = "Gavin Huttley"
