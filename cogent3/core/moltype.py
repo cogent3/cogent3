@@ -1285,3 +1285,20 @@ def get_moltype(name):
     if name not in moltypes:
         raise ValueError('unknown moltype "%s"' % name)
     return moltypes[name]
+
+
+def available_moltypes():
+    """returns Table listing available moltypes"""
+    from cogent3 import LoadTable
+    rows = []
+    for n, m in moltypes.items():
+        v = str(m)
+        num = len(list(m))
+        if num > 10:
+            v = f"{v[:39]}..."
+        rows.append([n, num, v])
+    header = ['Abbreviation', 'Number of states', 'Moltype']
+    title = ("Specify a moltype by the string 'Abbreviation' (case insensitive).")
+    result = LoadTable(header=header, rows=rows, title=title, row_ids=True)
+    result = result.sorted(columns=['Number of states', 'Abbreviation'])
+    return result

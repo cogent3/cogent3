@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 import pickle
 from cogent3.core import moltype, sequence
-from cogent3.core.moltype import AlphabetError, \
-    CoreObjectGroup, AlphabetGroup, make_matches, make_pairs, \
-    array, MolType, RNA, DNA, PROTEIN, STANDARD_CODON,\
-    IUPAC_RNA_chars, \
-    IUPAC_RNA_ambiguities, IUPAC_RNA_ambiguities_complements, \
-    IUPAC_DNA_chars, IUPAC_DNA_ambiguities, IUPAC_DNA_ambiguities_complements, \
-    RnaStandardPairs, DnaStandardPairs, get_moltype
+from cogent3.core.moltype import (AlphabetError,
+                                  CoreObjectGroup, AlphabetGroup, make_matches,
+                                  make_pairs,
+                                  array, MolType, RNA, DNA, PROTEIN,
+                                  STANDARD_CODON,
+                                  IUPAC_RNA_chars,
+                                  IUPAC_RNA_ambiguities,
+                                  IUPAC_RNA_ambiguities_complements,
+                                  IUPAC_DNA_chars, IUPAC_DNA_ambiguities,
+                                  IUPAC_DNA_ambiguities_complements,
+                                  RnaStandardPairs, DnaStandardPairs,
+                                  get_moltype, available_moltypes)
 
 from cogent3.util.unit_test import TestCase, main
 from cogent3.data.molecular_weight import DnaMW, RnaMW, ProteinMW
@@ -241,6 +246,12 @@ class MolTypeTests(TestCase):
         with self.assertRaises(ValueError):
             _ = get_moltype('blah')
 
+    def test_available_moltypes(self):
+        """available_moltypes returns table with correct columns and rows"""
+        available = available_moltypes()
+        self.assertEqual(available.shape, (7, 3))
+        self.assertEqual(available[1, 'Number of states'], 4)
+        self.assertEqual(available['dna', 'Number of states'], 4)
 
     def test_init_minimal(self):
         """MolType should init OK with just monomers"""
