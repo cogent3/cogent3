@@ -112,8 +112,7 @@ class EstimateDistances(object):
         self._est_params = list(est_params or [])
 
         self._run = False  # a flag indicating whether estimation completed
-        # whether we're on the master CPU or not
-        self._on_master_cpu = parallel.get_communicator().Get_rank() == 0
+
 
     def __str__(self):
         return str(self.get_table())
