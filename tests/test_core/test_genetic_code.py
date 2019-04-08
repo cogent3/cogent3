@@ -4,7 +4,7 @@
 from cogent3 import RNA, DNA
 from cogent3.core.genetic_code import (GeneticCode, GeneticCodeInitError,
                                        InvalidCodonError, GeneticCodes,
-                                       get_code, DEFAULT)
+                                       get_code, DEFAULT, available_codes)
 from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Greg Caporaso"
@@ -347,6 +347,11 @@ class GeneticCodeTests(TestCase):
         got = get_code(2)
         self.assertEqual(got.name.lower(), 'vertebrate mitochondrial')
 
+    def test_available_codes(self):
+        """avaialable_codes returns Table with correct shape"""
+        codes = available_codes()
+        self.assertEqual(codes.shape, (17, 2))
+        self.assertEqual(codes[0, 'Name'], 'Standard Nuclear')
 
 # Run tests if called from command line
 if __name__ == '__main__':

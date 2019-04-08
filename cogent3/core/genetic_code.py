@@ -434,3 +434,15 @@ def get_code(code_id):
         raise ValueError('No genetic code matching "%s"' % code_id)
 
     return code
+
+
+def available_codes():
+    """returns Table listing the available genetic codes"""
+    from cogent3 import LoadTable
+    all_keys = sorted({int(k) for k in GeneticCodes if str(k).isdigit()})
+    rows = [(k, GeneticCodes[k].name) for k in all_keys]
+    header = ['Code ID', 'Name']
+    table = LoadTable(header=header, rows=rows, row_ids=True,
+                      title="Specify a genetic code using either 'Name' or "
+                      "Code ID (as an integer or string)")
+    return table
