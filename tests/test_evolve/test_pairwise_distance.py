@@ -15,7 +15,6 @@ from cogent3.evolve.pairwise_distance import (get_moltype_index_array,
                                               _tn93_from_matrix, TN93Pair,
                                               LogDetPair,
                                               ParalinearPair, HammingPair,
-                                              _hamming)
 from cogent3.evolve._pairwise_distance import \
     _fill_diversity_matrix as pyx_fill_diversity_matrix
 
@@ -118,6 +117,11 @@ class TestPair(TestCase):
         total, p, dist, var = _jc69_from_matrix(matrix)
         self.assertEqual(total, 10.0)
         self.assertEqual(p, 0.2)
+
+    def test_wrong_moltype(self):
+        """specifying wrong moltype raises ValueError"""
+        with self.assertRaises(ValueError):
+            _ = JC69Pair(PROTEIN, alignment=self.alignment)
 
     def test_jc69_from_alignment(self):
         """compute JC69 dists from an alignment"""

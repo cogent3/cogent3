@@ -2,7 +2,7 @@ from collections import defaultdict, namedtuple
 from numpy import log, zeros, float64, int32, array, sqrt, dot, diag, eye
 from numpy.linalg import det, norm, inv, LinAlgError
 
-from cogent3 import DNA, RNA, LoadTable
+from cogent3 import DNA, RNA, LoadTable, get_moltype
 from cogent3.util.progress_display import display_wrap
 
 __author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
@@ -288,9 +288,16 @@ def _make_stat_table(stats, names, **kwargs):
 
 class _PairwiseDistance(object):
     """base class for computing pairwise distances"""
-
+    valid_moltypes = ()
     def __init__(self, moltype, invalid=-9, alignment=None):
         super(_PairwiseDistance, self).__init__()
+        moltype = get_moltype(moltype)
+        if moltype.label not in self.valid_moltypes:
+            name = self.__class__.__name__
+            msg = (f"Invalid moltype for {name}: '{moltype.label}' not "
+                    f"in {self.valid_moltypes}")
+            raise ValueError(msg)
+
         self.moltype = moltype
         self.char_to_indices = get_moltype_index_array(moltype, invalid=invalid)
         self._dim = len(list(moltype))
@@ -496,17 +503,17 @@ class _PairwiseDistance(object):
 
 class HammingPair(_PairwiseDistance):
     """Hamming distance calculator for pairwise alignments"""
-
-    def __init__(self, *args, **kwargs):
+    valid_moltypes = ('dna', 'rna', 'protein', 'text')
+    def __init__(self, moltype='text', *args, **kwargs):
         """states: the valid sequence states"""
-        super(HammingPair, self).__init__(*args, **kwargs)
+        super(HammingPair, self).__init__(moltype, *args, **kwargs)
         self.func = _hamming
 
 class _NucleicSeqPair(_PairwiseDistance):
     """base class pairwise distance calculator for nucleic acid seqs"""
-
-    def __init__(self, *args, **kwargs):
-        super(_NucleicSeqPair, self).__init__(*args, **kwargs)
+    valid_moltypes = ('dna', 'rna')
+    def __init__(self, moltype='dna', *args, **kwargs):
+        super(_NucleicSeqPair, self).__init__(moltype, *args, **kwargs)
         if not _same_moltype(DNA, self.moltype) and \
                 not _same_moltype(RNA, self.moltype):
             raise RuntimeError('Invalid MolType for this metric')
@@ -514,19 +521,17 @@ class _NucleicSeqPair(_PairwiseDistance):
 
 class JC69Pair(_NucleicSeqPair):
     """JC69 distance calculator for pairwise alignments"""
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, moltype='dna', *args, **kwargs):
         """states: the valid sequence states"""
-        super(JC69Pair, self).__init__(*args, **kwargs)
+        super(JC69Pair, self).__init__(moltype, *args, **kwargs)
         self.func = _jc69_from_matrix
 
 
 class TN93Pair(_NucleicSeqPair):
     """TN93 calculator for pairwise alignments"""
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, moltype='dna', *args, **kwargs):
         """states: the valid sequence states"""
-        super(TN93Pair, self).__init__(*args, **kwargs)
+        super(TN93Pair, self).__init__(moltype, *args, **kwargs)
         self._freqs = zeros(self._dim, float64)
         self.pur_indices = get_purine_indices(self.moltype)
         self.pyr_indices = get_pyrimidine_indices(self.moltype)
@@ -552,12 +557,13 @@ class TN93Pair(_NucleicSeqPair):
 
 class LogDetPair(_PairwiseDistance):
     """computes logdet distance between sequence pairs"""
-
-    def __init__(self, use_tk_adjustment=True, *args, **kwargs):
+    valid_moltypes = ('dna', 'rna', 'protein')
+    def __init__(self, moltype='dna', use_tk_adjustment=True, *args, **kwargs):
         """Arguments:
+            - moltype: string or moltype instance (must be dna or rna)
             - use_tk_adjustment: use the correction of Tamura and Kumar 2002
         """
-        super(LogDetPair, self).__init__(*args, **kwargs)
+        super(LogDetPair, self).__init__(moltype, *args, **kwargs)
         self.func = _logdet
         self._func_args = [use_tk_adjustment]
 
@@ -570,9 +576,9 @@ class LogDetPair(_PairwiseDistance):
 
 class ParalinearPair(_PairwiseDistance):
     """computes the paralinear distance (Lake 1994) between sequence pairs"""
-
-    def __init__(self, *args, **kwargs):
-        super(ParalinearPair, self).__init__(*args, **kwargs)
+    valid_moltypes = ('dna', 'rna', 'protein')
+    def __init__(self, moltype='dna', *args, **kwargs):
+        super(ParalinearPair, self).__init__(moltype, *args, **kwargs)
         self.func = _paralinear
 
 
