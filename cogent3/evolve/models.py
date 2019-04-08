@@ -796,8 +796,8 @@ def available_models(model_types=None):
             else:
                 description = ''
             rows.append([mod_type, abbreviation, description])
-    t = Table(header=column_headings, rows=rows,
-              title="To get a model instance, use get_model('abbreviation')")
 
+    t = Table(header=column_headings, rows=rows,
+              title="Specify a model using 'abbreviation' (case sensitive).")
     return t
 
