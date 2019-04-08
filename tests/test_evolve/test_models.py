@@ -60,6 +60,11 @@ class CannedModelsTest(TestCase):
         for name in models:
             model = get_model(name)
 
+        # just returns query if it's already a substitution model
+        for mod in (CNFGTR(), WG01(), GN()):
+            got = get_model(mod)
+            self.assertEqual(id(got), id(mod))
+
         with self.assertRaises(ValueError):
             # unknown model raises exception
             _ = get_model('blah')

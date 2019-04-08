@@ -14,6 +14,7 @@ from cogent3.evolve import substitution_model, ns_substitution_model
 from cogent3.evolve.predicate import MotifChange, replacement, omega
 from cogent3.evolve.solved_models import F81, HKY85, TN93
 from cogent3 import LoadTable
+from cogent3.evolve.substitution_model import _SubstitutionModel
 from cogent3.util.table import Table
 
 
@@ -717,6 +718,9 @@ def get_model(name, **kw):
     '''returns an instance of the named model
 
     name is case sensitive and must be in the models attribute'''
+    if isinstance(name, _SubstitutionModel):
+        # already a substitution model
+        return name
     if name not in models:
         msg = 'Unknown model "%s". Model names are case sensitive!' % name
         raise ValueError(msg)
