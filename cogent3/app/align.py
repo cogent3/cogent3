@@ -113,7 +113,7 @@ class align_to_ref(ComposableSeq):
 class progressive_align(ComposableSeq):
     """returns a multiple sequence alignment."""
 
-    def __init__(self, model, param_vals=None, guide_tree=None,
+    def __init__(self, model, gc=None, param_vals=None, guide_tree=None,
                  unique_guides=False,
                  indel_length=1e-1, indel_rate=1e-10):
         """
@@ -124,6 +124,9 @@ class progressive_align(ComposableSeq):
             (uses MG94HKY), 'nucleotide' (uses HKY85), 'protein'
             (uses WG01). These choices provide also provide default
             settings for param_vals.
+        gc : int or string
+            the genetic code for a codon alignment, defaults to the standard
+            genetic code
         param_vals : dict
             param name, values for parameters in model. Overrides
             default choices.
@@ -150,10 +153,12 @@ class progressive_align(ComposableSeq):
                             'nucleotide': dict(kappa=3)}.get(model, param_vals)
         sm = {'codon': 'MG94HKY', 'nucleotide': 'HKY85',
               'protein': 'JTT92'}.get(model, model)
-        sm = get_model(sm)
+
+        kwargs = {} if gc is None else dict(gc=gc)
+        sm = get_model(sm, **kwargs)
         moltype = sm.alphabet.moltype
         self._model = sm
-        self._scalar = sm._word_length
+        self._scalar = sm.get_word_length()
         self._indel_length = indel_length
         self._indel_rate = indel_rate
         self._moltype = moltype
