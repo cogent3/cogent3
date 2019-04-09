@@ -78,6 +78,18 @@ class RefalignmentTests(TestCase):
         aln = aligner(self.seqs)
         self.assertEqual(len(aln), 42)
 
+    def test_with_genetic_code(self):
+        """handles genetic code argument"""
+        aligner = align_app.progressive_align(model='GY94', gc='2')
+        # the 'TGA' codon is a sense codon in vertebrate mitochondrial
+        self.assertTrue('TGA' in aligner._model.get_motifs())
+        aligner = align_app.progressive_align(model='codon')
+        # but a stop codon in the standard nuclear
+        self.assertTrue('TGA' not in aligner._model.get_motifs())
+        # try using a nuclear
+        with self.assertRaises(TypeError):
+            aligner = align_app.progressive_align(model='nucleotide', gc='2')
+
     def test_progressive_align_protein(self):
         """progressive alignment with protein models"""
         seqs = self.seqs.get_translation()
