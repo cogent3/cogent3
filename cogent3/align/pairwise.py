@@ -677,7 +677,7 @@ class PairEmissionProbs(object):
                 last_row=[link[backward] for link in links],
                 backward=not not backward)
 
-        (last_row1, last_row2) = parallel.map(_half_row_scores, [0, 1])
+        (last_row1, last_row2) = map(_half_row_scores, [0, 1])
         middle_row = (last_row1 + last_row2)
         (link, anchor, anchor_state) = numpy.unravel_index(
             numpy.argmax(middle_row.flat), middle_row.shape)
@@ -696,7 +696,7 @@ class PairEmissionProbs(object):
                 part = self[join2:, anchor:]
             return part.dp((states, T2), dp_options)
 
-        [(s1, tb_a), (s2, tb_b)] = parallel.map(_half_solution, [0, 1])
+        [(s1, tb_a), (s2, tb_b)] = map(_half_solution, [0, 1])
         tb = tb_a + tb_b.offset(join2, anchor)
         # Same return as for self.dp(..., tb=...)
         return score, tb
@@ -743,9 +743,7 @@ class PairEmissionProbs(object):
                 msg = 'Local alignment'
             elif cells is not None:
                 msg = 'Posterior probs'
-            elif self.pair.size[0] - 2 >= 3 and not backward and (
-                    problem_size > HIRSCHBERG_LIMIT or
-                    parallel.get_communicator().Get_size() > 1):
+            elif self.pair.size[0] - 2 >= 3 and not backward and problem_size > HIRSCHBERG_LIMIT:
                 return self.hirschberg(TM, dp_options)
             else:
                 msg = 'dp'

@@ -750,7 +750,6 @@ class ParameterController(object):
         if self._update_suspended:
             return
         # use topological sort order
-        # xxx parallel context check?
         for defn in self.defns:
             if id(defn) in self._changed:
                 defn.update()

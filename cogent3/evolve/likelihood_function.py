@@ -8,7 +8,7 @@ import numpy
 from cogent3.core.alignment import ArrayAlignment
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.evolve.simulate import AlignmentEvolver, random_sequence
-from cogent3.util import parallel, table
+from cogent3.util import table
 from cogent3.util.misc import adjusted_gt_minprob, get_object_provenance
 from cogent3.recalculation.definition import ParameterController
 from cogent3.maths.matrix_logarithm import is_generator_unique
@@ -679,7 +679,6 @@ class LikelihoodFunction(ParameterController):
         if random_series is None:
             random_series = random.Random()
             random_series.seed(seed)
-            parallel.sync_random(random_series)
 
         def psub_for(edge, bin):
             return self.get_psub_for_edge(edge, bin=bin, locus=locus)

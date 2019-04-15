@@ -573,7 +573,6 @@ class Calculator(object):
         samples = []
         elapsed = 0.0
         rounds_per_sample = 2
-        comm = parallel.get_communicator()
         while elapsed < time_limit and len(samples) < 5:
             time.sleep(0.01)
             t0 = now()
@@ -588,7 +587,7 @@ class Calculator(object):
                         last = []
             # Use one agreed on delta otherwise different cpus will finish the
             # loop at different times causing chaos.
-            delta = comm.allreduce(now() - t0, parallel.MPI.MAX)
+            delta = now() - t0
             if delta < 0.1:
                 # time.clock is low res, so need to ensure each sample
                 # is long enough to take SOME time.
