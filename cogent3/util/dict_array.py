@@ -239,6 +239,11 @@ def convert_for_dictarray(data, header=None, row_order=None):
     return data, row_order, header
 
 
+class NumericKey(int):
+    """a distinct numerical type for use as a DictArray key"""
+    def __new__(cls, val):
+        result = int.__new__(cls, val)
+        return result
 
 class DictArrayTemplate(object):
 
@@ -251,7 +256,8 @@ class DictArrayTemplate(object):
             elif isinstance(names, int):
                 names = list(range(names))
             else:
-                names = list(names)[:]
+                names = [NumericKey(v) if type(v) == int else v for v in names]
+
             self.names.append(names)
             self.ordinals.append(dict((c, i) for (i, c) in enumerate(names)))
         self._shape = tuple(len(keys) for keys in self.names)
@@ -299,15 +305,21 @@ class DictArrayTemplate(object):
         index = []
         remaining = []
         for (ordinals, allnames, name) in zip(self.ordinals, self.names, names):
-            if not isinstance(name, (int, slice)):
+            if type(name) not in (int, slice):
                 name = ordinals[name]
             elif isinstance(name, slice):
                 start = name.start
                 stop = name.stop
-                if isinstance(name.start, str):
-                    start = allnames.index(name.start)
-                if isinstance(name.stop, str):
-                    stop = allnames.index(name.stop)
+                try:
+                    start = allnames.index(start)
+                except ValueError:
+                    # either None, or it's an int index
+                    pass
+                try:
+                    stop = allnames.index(stop)
+                except ValueError:
+                    # as above
+                    pass
                 name = slice(start, stop, name.step)
                 remaining.append(allnames.__getitem__(name))
             index.append(name)
