@@ -4,7 +4,6 @@ Each leaf holds a sequence.  Used by a likelihood function."""
 
 
 from cogent3.util.modules import importVersionedModule, ExpectedImportError
-from cogent3.util.parallel import MPI
 from cogent3 import LoadTable
 
 import numpy
@@ -35,7 +34,6 @@ class _LikelihoodTreeEdge(object):
     def __init__(self, children, edge_name, alignment=None):
         self.edge_name = edge_name
         self.alphabet = children[0].alphabet
-        self.comm = None  # for MPI
 
         M = children[0].shape[-1]
         for child in children:
@@ -46,7 +44,7 @@ class _LikelihoodTreeEdge(object):
             # The children are pre-aligned gapped sequences
             assignments = [c.index for c in children]
         else:
-            self.alignment = alignment  # XXX preserve through MPI split?
+            self.alignment = alignment
             # The children are ungapped sequences, 'alignment'
             # indicates where gaps need to go.
             assignments = []
@@ -101,30 +99,6 @@ class _LikelihoodTreeEdge(object):
         mask[fixed_motif] = 1.0
         input_likelihoods *= mask
 
-    def parallel_share(self, comm):
-        """A local version of self for a single CPU in an MPI group"""
-        if comm is None or comm.Get_size() == 1:
-            return self
-        assert self.comm is None
-        U = len(self.uniq) - 1  # gap column
-        (size, rank) = (comm.Get_size(), comm.Get_rank())
-        (share, remainder) = divmod(U, size)
-        if share == 0:
-            return self  # not enough to share
-        share_sizes = [share + 1] * remainder + [share] * (size - remainder)
-        assert sum(share_sizes) == U
-        (lo, hi) = [sum(share_sizes[:i]) for i in (rank, rank + 1)]
-        local_cols = [i for (i, u) in enumerate(self.index)
-                      if lo <= u < hi]
-        local = self.select_columns(local_cols)
-
-        # Attributes for reconstructing/refinding the global arrays.
-        # should maybe make a wrapping class instead.
-        local.share_sizes = share_sizes
-        local.comm = comm
-        local.full_length_version = self
-        return local
-
     def select_columns(self, cols):
         children = []
         for (index, child) in self._indexed_children:
@@ -132,25 +106,11 @@ class _LikelihoodTreeEdge(object):
             children.append(child)
         return self.__class__(children, self.edge_name)
 
-    def parallel_reconstruct_columns(self, likelihoods):
-        """Recombine full uniq array (eg: likelihoods) from MPI CPUs"""
-        if self.comm is None:
-            return (self, likelihoods)
-        result = numpy.empty([sum(self.share_sizes) + 1], likelihoods.dtype)
-        mpi_type = None  # infer it from the likelihoods/result array dtype
-        send = (likelihoods[:-1], mpi_type)  # drop gap column
-        recv = (result, self.share_sizes, None, mpi_type)
-        self.comm.Allgatherv(send, recv)
-        result[-1] = likelihoods[-1]  # restore gap column
-        return (self.full_length_version, result)
-
     def get_full_length_likelihoods(self, likelihoods):
-        (self, likelihoods) = self.parallel_reconstruct_columns(likelihoods)
         return likelihoods[self.index]
 
     def calc_G_statistic(self, likelihoods, return_table=False):
         # A Goodness-of-fit statistic
-        (self, likelihoods) = self.parallel_reconstruct_columns(likelihoods)
 
         unambig = (self.ambig == 1.0).nonzero()[0]
         observed = self.counts[unambig].astype(int)
@@ -187,7 +147,6 @@ class _LikelihoodTreeEdge(object):
         return result
 
     def as_leaf(self, likelihoods):
-        (self, likelihoods) = self.parallel_reconstruct_columns(likelihoods)
         assert len(likelihoods) == len(self.counts)
         return LikelihoodTreeLeaf(likelihoods, likelihoods,
                                   self.counts, self.index, self.edge_name, self.alphabet, None)
@@ -212,7 +171,6 @@ class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
     # For root
 
     def log_dot_reduce(self, patch_probs, switch_probs, plhs):
-        (self, plhs) = self.parallel_reconstruct_columns(plhs)
         exponent = 0
         state_probs = patch_probs.copy()
         for site in self.index:
@@ -241,7 +199,6 @@ class _PyxLikelihoodTreeEdge(_LikelihoodTreeEdge):
     # For root
 
     def log_dot_reduce(self, patch_probs, switch_probs, plhs):
-        (self, plhs) = self.parallel_reconstruct_columns(plhs)
         return pyrex.log_dot_reduce(self.index, patch_probs, switch_probs, plhs)
 
     def get_total_log_likelihood(self, input_likelihoods, mprobs):

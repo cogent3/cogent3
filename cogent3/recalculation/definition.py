@@ -78,7 +78,6 @@ from .setting import Var, ConstVal
 
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.maths.stats.distribution import chdtri
-from cogent3.util import parallel
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -114,8 +113,6 @@ class CalculationDefn(_NonLeafDefn):
 
     def make_cell(self, *args):
         calc = self.make_calc_function()
-        # can't calc outside correct parallel context, so can't do
-        # if [arg for arg in args if not arg.is_constant]:
         cell = EvaluatedCell(self.name, calc, args,
                              recycling=self.recycling, default=self.default)
         return cell
@@ -325,7 +322,7 @@ class NonScalarDefn(_InputDefn):
         return 0
 
     def update_from_calculator(self, calc):
-        pass  # don't reset parallel_context etc.
+        pass
 
 
 def _proportions(total, params):
@@ -529,7 +526,6 @@ class SelectForDimension(_Defn):
 # SumDefn = CalcDefn(lambda *args:sum(args), 'sum')
 # ProductDefn = CalcDefn(lambda *args:numpy.product(args), 'product')
 # CallDefn = CalcDefn(lambda func,*args:func(*args), 'call')
-# ParallelSumDefn = CalcDefn(lambda comm,local:comm.sum(local), 'parallel_sum')
 
 class SwitchDefn(CalculationDefn):
     name = 'switch'
@@ -574,15 +570,8 @@ class CallDefn(CalculationDefn):
         return func(*args)
 
 
-class ParallelSumDefn(CalculationDefn):
-    name = 'parallel_sum'
-
-    def calc(self, comm, local):
-        return comm.allreduce(local)  # default MPI op is SUM
-
-
 __all__ = ['ConstDefn', 'NonParamDefn', 'CalcDefn', 'SumDefn', 'ProductDefn',
-           'CallDefn', 'ParallelSumDefn'] + [
+           'CallDefn'] + [
     n for (n, c) in list(vars().items())
     if (isinstance(c, type) and issubclass(c, _Defn) and n[0] != '_')
     or isinstance(c, CalcDefn)]

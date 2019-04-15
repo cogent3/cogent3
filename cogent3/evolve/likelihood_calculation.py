@@ -13,8 +13,7 @@ import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 
 from cogent3.recalculation.definition import CalculationDefn, _FuncDefn, \
-    CalcDefn, ProbabilityParamDefn, NonParamDefn, SumDefn, CallDefn, \
-    ParallelSumDefn
+    CalcDefn, ProbabilityParamDefn, NonParamDefn, SumDefn, CallDefn
 
 from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge
 from cogent3.evolve.simulate import argpick
@@ -247,8 +246,7 @@ class BinnedLikelihood(object):
         # posterior bin probs, not motif probs
         assert len(lhs) == len(self.distrib.bprobs)
         result = numpy.array(
-            [b * self.root.get_full_length_likelihoods(p)
-             for (b, p) in zip(self.distrib.bprobs, lhs)])
+            [b * p for (b, p) in zip(self.distrib.bprobs, lhs)])
         result /= result.sum(axis=0)
         return result
 
@@ -267,10 +265,7 @@ class SiteHmm(object):
             matrix.StationaryProbs, matrix.Matrix, plhs)
 
     def get_posterior_probs(self, *lhs):
-        plhs = []
-        for lh in self.distrib.get_weighted_sum_lhs(lhs):
-            plh = self.root.get_full_length_likelihoods(lh)
-            plhs.append(plh)
+        plhs = [plh for lh in self.distrib.get_weighted_sum_lhs(lhs)]
         plhs = numpy.transpose(plhs)
         pprobs = self.distrib.transition_matrix.get_posterior_probs(plhs)
         pprobs = numpy.array(numpy.transpose(pprobs))
@@ -278,8 +273,7 @@ class SiteHmm(object):
         lhs = numpy.array(lhs)
         blhs = lhs / numpy.sum(lhs, axis=0)
         blhs = numpy.array(
-            [b * self.root.get_full_length_likelihoods(p)
-             for (b, p) in zip(self.distrib.bprobs, blhs)])
+            [b * p for (b, p) in zip(self.distrib.bprobs, blhs)])
 
         binsum = numpy.zeros(pprobs.shape, Float)
         for (patch, data) in zip(self.distrib.alloc, blhs):

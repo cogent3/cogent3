@@ -3,7 +3,6 @@ import os
 import time
 import pickle
 
-
 __author__ = ["Peter Maxwell", "Gavin Huttley"]
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
@@ -23,7 +22,6 @@ class Checkpointer(object):
         self.interval = interval
         self.last_time = time.time()
         self.noisy = noisy
-        self._redundant = parallel.get_communicator().Get_rank() > 0
 
     def available(self):
         return self.filename is not None and os.path.exists(self.filename)
@@ -37,7 +35,7 @@ class Checkpointer(object):
         return obj
 
     def record(self, obj, msg=None, always=False):
-        if self.filename is None or self._redundant:
+        if self.filename is None:
             return
         now = time.time()
         elapsed = now - self.last_time
