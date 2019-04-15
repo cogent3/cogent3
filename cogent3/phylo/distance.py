@@ -6,6 +6,7 @@ from itertools import combinations
 
 from cogent3.maths.stats.util import Numbers
 from cogent3 import LoadSeqs, LoadTree
+from cogent3.util import table, progress_display as UI
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
