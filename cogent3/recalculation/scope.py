@@ -5,7 +5,6 @@ import numpy
 from contextlib import contextmanager
 from .setting import Var, ConstVal
 from .calculation import Calculator
-from cogent3.util import parallel
 from cogent3.maths.stats.distribution import chdtri
 from cogent3.maths.optimisers import MaximumEvaluationsReached
 
@@ -751,7 +750,6 @@ class ParameterController(object):
         if self._update_suspended:
             return
         # use topological sort order
-        # xxx parallel context check?
         for defn in self.defns:
             if id(defn) in self._changed:
                 defn.update()
