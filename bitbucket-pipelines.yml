@@ -8,6 +8,7 @@ pipelines:
         script: # Modify the commands below to build your repository.
           - pip install numpy
           - pip install pandas
+          - pip install tqdm
           - bash run_tests
           
 
