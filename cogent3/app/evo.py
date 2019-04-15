@@ -1,3 +1,4 @@
+from tqdm import tqdm
 from cogent3 import LoadTree
 from cogent3.evolve.models import get_model
 from .composable import ComposableHypothesis, ComposableModel, ErrorResult
@@ -129,25 +130,38 @@ class model(ComposableModel):
 
 
 class hypothesis(ComposableHypothesis):
-    def __init__(self, null, *alternates):
+    def __init__(self, null, *alternates, init_alt=None):
+        # todo document! init_alt needs to be able to take null, alt and *args
         super(hypothesis, self).__init__(input_type='aligned',
                                          output_type=('result', 'serialisable'))
         self._formatted_params()
         self.null = null
+        names = {a.name for a in alternates}
+        names.add(null.name)
+        if len(names) != len(alternates) + 1:
+            msg = f"{names} model names not unique"
+            raise ValueError(msg)
+
         self._alts = alternates
         self.func = self.test_hypothesis
+        self._init_alt = init_alt
 
     def _initialised_alt_from_null(self, null, aln):
-        def init(alt):
+        def init(alt, *args, **kwargs):
             try:
-                alt.initialise_from_nested(null)
+                alt.initialise_from_nested(null.lf)
             except:
                 pass
             return alt
 
+        if callable(self._init_alt):
+            init_func = self._init_alt(null)
+        else:
+            init_func = init
+
         results = []
         for alt in self._alts:
-            result = alt(aln, initialise=init)
+            result = alt(aln, initialise=init_func)
             results.append(result)
         return results
 
@@ -155,13 +169,13 @@ class hypothesis(ComposableHypothesis):
         try:
             null = self.null(aln)
         except ValueError as err:
-            msg = "Hypothesis null had bounds error %s" % aln.info.source
-            raise ValueError(msg)
+            msg = f"Hypothesis null had bounds error {aln.info.source}"
+            return ErrorResult('ERROR', self.__class__.__name__, msg)
         try:
             alts = [alt for alt in self._initialised_alt_from_null(null, aln)]
         except ValueError as err:
-            msg = "Hypothesis alt had bounds error %s" % aln.info.source
-            raise ValueError(msg)
+            msg = f"Hypothesis alt had bounds error {aln.info.source}"
+            return ErrorResult('ERROR', self.__class__.__name__, msg)
         results = {alt.name: alt for alt in alts}
         results.update({null.name: null})
 
@@ -204,7 +218,7 @@ class bootstrap(ComposableHypothesis):
 
         sym_results = [r for r in
                        parallel.imap(self._fit_sim, range(self._num_reps)) if r]
-        for sym_result in sym_results:
+        for sym_result in tqdm(sym_results):
             if not sym_result:
                 continue
 
