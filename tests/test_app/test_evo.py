@@ -33,17 +33,24 @@ class TestModel(TestCase):
             expect = None if tree is None else LoadTree(treestring=treestring)
             self.assertIsInstance(mod._tree, expect.__class__)
 
+    def test_unique_models(self):
+        """hypothesis raises ValueError if models not unique"""
+        model1 = evo_app.model('HKY85')
+        model2 = evo_app.model('HKY85', time_het='max')
+        with self.assertRaises(ValueError):
+            hyp = evo_app.hypothesis(model1, model2)
+
     def test_hypothesis_str(self):
         """correct str representation"""
         model1 = evo_app.model('HKY85')
-        model2 = evo_app.model('HKY85', time_het='max')
+        model2 = evo_app.model('HKY85', name='hky85-max-het', time_het='max')
         hyp = evo_app.hypothesis(model1, model2)
         got = str(hyp)
         expect = ("hypothesis(type='hypothesis', null='HKY85', "
                   "alternates=(model(type='model', sm='HKY85', tree=None, "
-                  "name=None, sm_args=None, lf_args=None, "
+                  "name='hky85-max-het', sm_args=None, lf_args=None, "
                   "time_het='max', param_rules=None, opt_args=None,"
-                  " split_codons=False, show_progress=False),))")
+                  " split_codons=False, show_progress=False),), init_alt=None)")
         self.assertEqual(got, expect)
 
 
