@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 __all__ = ['checkpointing', 'deserialise',
-           'misc', 'modules', 'parallel', 'table', 'transform',
+           'misc', 'modules', 'parallel',  'parallel2', 'table', 'transform',
            'unit_test', 'warning', 'recode_alignment']
 
 __author__ = ""

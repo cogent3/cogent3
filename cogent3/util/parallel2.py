@@ -9,10 +9,10 @@ import multiprocessing
 import concurrent.futures as concurrentfutures
 
 __author__ = "Sheng Han Moses Koh"
-__copyright__ = ""
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Sheng Han Moses Koh"]
 __license__ = "GPL"
-__version__ = ""
+__version__ = "3.0a2"
 
 class _FakeCommunicator(object):
     """Looks like a 1-cpu MPI communicator, but isn't"""
