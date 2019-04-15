@@ -112,6 +112,24 @@ class DictArrayTest(TestCase):
         assert_allclose(numpy.dot(mprobs, darr), [0.25, 0.25, 0.25, 0.25])
 
     def test_todict(self):
+        """DictArray should convert 1D / 2D arrays with/without named row"""
+        # 1D data, only 1D keys provided
+        data = [0, 35, 45]
+        keys = 'a', 'b', 'c'
+        darr = DictArrayTemplate(keys).wrap(data)
+        self.assertEqual(darr.todict(), dict(zip(keys, data)))
+        # 2D data, 2D keys, both string, provided
+        data = [[0, 35, 45]]
+        darr = DictArrayTemplate(['0'], keys).wrap(data)
+        darr.todict()
+        self.assertEqual(darr.todict(), {'0': {'a': 0, 'b': 35, 'c': 45}})
+        # 2D data, 2D keys, one int, one string, provided
+        darr = DictArrayTemplate([1], keys).wrap(data)
+        self.assertEqual(darr.todict(), {1: {'a': 0, 'b': 35, 'c': 45}})
+        darr = DictArrayTemplate([0], keys).wrap(data)
+        self.assertEqual(darr.todict(), {0: {'a': 0, 'b': 35, 'c': 45}})
+
+    def test_todict_nested(self):
         """DictArray.todict() should convert nested DictArray instances to
         dict's too."""
         a = numpy.identity(3, int)
@@ -163,6 +181,17 @@ class DictArrayTest(TestCase):
                       b)
         for data in data_types:
             g = DictArray(data)
+
+    def test_getitem(self):
+        """correctly slices"""
+        darr = DictArrayTemplate(list(DNA), list(DNA)).wrap([[.7, .1, .1, .1],
+                                                             [.1, .7, .1, .1],
+                                                             [.1, .1, .7, .1],
+                                                             [.1, .1, .1, .7]])
+        r = darr[:, 'A':'G']
+        assert_allclose(r.toarray(), [[0.1], [0.1], [0.7], [0.1]])
+        r = darr[2:, 'A':'G']
+        assert_allclose(r.toarray(), [[0.7], [0.1]])
 
 
 if __name__ == '__main__':
