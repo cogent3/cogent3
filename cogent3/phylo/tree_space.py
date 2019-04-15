@@ -4,7 +4,6 @@ import numpy
 import itertools
 from cogent3.core.tree import TreeBuilder
 from cogent3.phylo.tree_collection import ScoredTreeCollection
-from cogent3.util import parallel, checkpointing, progress_display as UI
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
