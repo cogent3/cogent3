@@ -140,7 +140,8 @@ def _get_param_mapping(rich, simple):
         if len(simple_counterparts) == 1:
             continue
 
-        sized_simple = [(len(simple[param]), param) for param in simple_counterparts]
+        sized_simple = [(len(simple[param]), param)
+                        for param in simple_counterparts]
         sized_simple.sort()
         if sized_simple[0][0] == sized_simple[1][0]:
             msg = "%s and %s tied for matrix space" % (sized_simple[0][1],
@@ -160,9 +161,12 @@ class _ParamProjection:
 
     def __init__(self, simple_model, rich_model, motif_probs, same=True):
         # construct following by calling the functions we wrote
-        self._rich_coords = rich_model.get_param_matrix_coords(include_ref_cell=True)
-        self._simple_coords = simple_model.get_param_matrix_coords(include_ref_cell=True)
-        self._param_map = _get_param_mapping(self._rich_coords, self._simple_coords)
+        self._rich_coords = rich_model.get_param_matrix_coords(
+            include_ref_cell=True)
+        self._simple_coords = simple_model.get_param_matrix_coords(
+            include_ref_cell=True)
+        self._param_map = _get_param_mapping(
+            self._rich_coords, self._simple_coords)
         self._same = same
         # end of constructing attributes
         self._motif_probs = motif_probs
@@ -202,7 +206,8 @@ class _ParamProjection:
     def update_param_rules(self, rules):
         new_rules = []
         if not self._same:
-            rules = rules[:] + [dict(par_name='ref_cell', init=1.0, edges=None)]
+            rules = rules[:] + \
+                [dict(par_name='ref_cell', init=1.0, edges=None)]
 
         for rule in rules:
             # get the param name, mle, call self.projected_rate
@@ -241,7 +246,8 @@ def compatible_likelihood_functions(lf1, lf2):
     if lf1.model.get_motifs() != lf2.model.get_motifs():
         raise AssertionError("Motifs don't match")
     if lf1.tree.get_newick(with_node_names=True) != lf2.tree.get_newick(with_node_names=True):
-        raise AssertionError("Topology, Orientation or node names don't match")
+        raise AssertionError(
+            "Topology, Orientation or node names don't match")
     return True
 
 
@@ -319,17 +325,18 @@ class LikelihoodFunction(ParameterController):
                 r = []
                 for motif in range(len(self._motifs)):
                     self.set_param_rule('fixed_motif', value=motif,
-                                      edge=restricted_edge.name, locus=locus,
-                                      is_constant=True)
-                    likelihoods = self.get_full_length_likelihoods(locus=locus)
+                                        edge=restricted_edge.name, locus=locus,
+                                        is_constant=True)
+                    likelihoods = self.get_full_length_likelihoods(
+                        locus=locus)
                     r.append(likelihoods)
                     if array_template is None:
                         array_template = DictArrayTemplate(
                             likelihoods.shape[0], self._motifs)
             finally:
                 self.set_param_rule('fixed_motif', value=-1,
-                                  edge=restricted_edge.name, locus=locus,
-                                  is_constant=True)
+                                    edge=restricted_edge.name, locus=locus,
+                                    is_constant=True)
             # dict of site x motif arrays
             result[restricted_edge.name] = array_template.wrap(
                 numpy.transpose(numpy.asarray(r)))
@@ -389,10 +396,11 @@ class LikelihoodFunction(ParameterController):
         """processes statistics tables for display"""
         title = self._name if self._name else 'Likelihood function statistics'
         result = []
-        result += self.get_statistics(with_motif_probs=True, with_titles=True)
+        result += self.get_statistics(with_motif_probs=True,
+                                      with_titles=True)
         for i, table in enumerate(result):
             if 'motif' in table.title and table.shape[1] == 2 and\
-               table.shape[0] >= 60: # just sort codon motif probs, then truncate
+               table.shape[0] >= 60:  # just sort codon motif probs, then truncate
                 table = table.sorted(columns="motif")
                 data = table.tolist()
                 data = data[:5] + [["...", "..."]] + data[-5:]
@@ -434,7 +442,7 @@ class LikelihoodFunction(ParameterController):
         nfp = "number of free parameters = %d" % self.get_num_free_params()
         for table in results:
             table.title = ""
-        
+
         if lnL:
             results = [title, lnL, nfp] + results
         else:
@@ -444,7 +452,7 @@ class LikelihoodFunction(ParameterController):
 
     def get_annotated_tree(self, length_as_ens=False):
         """returns tree with model attributes on node.params
-        
+
         length_as_ens : bool
             replaces 'length' param with expected number of substition,
             which will be different to standard length if the substition
@@ -510,11 +518,12 @@ class LikelihoodFunction(ParameterController):
 
     def get_lengths_as_ens(self):
         """returns {edge: ens, ...} where ens is the expected number of substitutions
-        
+
         for a stationary Markov process, this is just branch length"""
         node_names = self.tree.get_node_names()
         node_names.remove('root')
-        lengths = {e: self.get_param_value('length', edge=e) for e in node_names}
+        lengths = {e: self.get_param_value(
+            'length', edge=e) for e in node_names}
         if not isinstance(self.model, substitution_model.Stationary):
             ens = {}
             for e in node_names:
@@ -545,7 +554,7 @@ class LikelihoodFunction(ParameterController):
             return rule
 
         rules = []
-        
+
         # markov model rate terms
         param_names = self.get_param_names()
         rate_names = self.model.get_param_list()
@@ -555,7 +564,7 @@ class LikelihoodFunction(ParameterController):
             for key, index in defn.index.items():
                 edge_name = key[0]
                 scoped[index].append(edge_name)
-                
+
             if len(scoped) == 1:  # we have a global
                 if param_name == 'mprobs':
                     rule = mprob_rule(defn, 0, None)
@@ -571,7 +580,7 @@ class LikelihoodFunction(ParameterController):
                 rules.append(rule)
 
                 continue
-            
+
             for index in scoped:
                 edges = scoped[index]
                 if param_name == 'mprobs':
@@ -697,7 +706,7 @@ class LikelihoodFunction(ParameterController):
                     DLC=DLC, unique_Q=unique_Q,
                     type=get_object_provenance(self))
         return data
-    
+
     def to_json(self):
         data = self.to_rich_dict()
         data = json.dumps(data)
@@ -737,7 +746,7 @@ class LikelihoodFunction(ParameterController):
         return result
 
     def simulate_alignment(self, sequence_length=None, random_series=None,
-                          exclude_internal=True, locus=None, seed=None, root_sequence=None):
+                           exclude_internal=True, locus=None, seed=None, root_sequence=None):
         """
         Returns an alignment of simulated sequences with key's corresponding to
         names from the current attached alignment.
