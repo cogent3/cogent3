@@ -12,6 +12,8 @@ tests to do:
 """
 import warnings
 
+from numpy.testing import assert_allclose
+
 warnings.filterwarnings("ignore", "Motif probs overspecified")
 warnings.filterwarnings("ignore", "Ignoring tree edge lengths")
 
@@ -722,6 +724,37 @@ motif    mprobs
         lf.apply_param_rules(rules)
         self.assertEqual(lf.get_num_free_params(), nfp + 1)
 
+    def test_set_time_heterogeneity_partial(self):
+        """correctly apply partial time heterogeneity of rate terms"""
+        lf = self.submodel.make_likelihood_function(self.tree)
+        nfp0 = lf.nfp
+        edge_sets = [dict(edges=['Human', 'HowlerMon'])]
+        lf.set_time_heterogeneity(edge_sets=edge_sets, is_independent=False)
+        nfp1 = lf.nfp
+        self.assertEqual(nfp1-nfp0, 1)
+        lf.set_time_heterogeneity(edge_sets=edge_sets, is_independent=True)
+        nfp2 = lf.nfp
+        self.assertEqual(nfp2-nfp1, 1)
+
+    def test_time_het_init_from_nested(self):
+        """initialise from nested should honour alt model setting"""
+        # setting time-het for entire Q
+        tree = LoadTree(tip_names=['Human', 'Mouse', 'Opossum'])
+        gn = GN(optimise_motif_probs=True)
+        null = gn.make_likelihood_function(tree)
+        null.set_alignment(_aln)
+        edge_sets = [dict(edges=['Human', 'Mouse'])]
+        null.set_time_heterogeneity(edge_sets=edge_sets, is_independent=False)
+        nfp_null = null.nfp
+        alt = gn.make_likelihood_function(tree)
+        alt.set_alignment(_aln)
+        alt.set_time_heterogeneity(is_independent=True)
+        nfp_alt_0 = alt.nfp
+        self.assertEqual(nfp_alt_0 - nfp_null, 11)
+        alt.initialise_from_nested(null)
+        nfp_alt_1 = alt.nfp
+        self.assertEqual(nfp_alt_1 - nfp_null, 11)
+
     def test_set_time_heterogeneity(self):
         """correctly apply time heterogeneity of rate terms"""
         lf = self.submodel.make_likelihood_function(self.tree)
@@ -761,8 +794,10 @@ motif    mprobs
 
         # providing other settings within the edge_set
         lf = self.submodel.make_likelihood_function(self.tree)
-        lf.set_time_heterogeneity(edge_sets=[dict(edges=['Human', 'HowlerMon'], init=3),
-                                             dict(edges=['NineBande', 'DogFaced'], value=5, is_constant=True)])
+        lf.set_time_heterogeneity(edge_sets=[dict(edges=['Human', 'HowlerMon'],
+                                                  init=3),
+                                             dict(edges=['NineBande', 'DogFaced'],
+                                                  value=5, is_constant=True)])
         got = lf.get_num_free_params()
         self.assertEqual(got, nfp + 1)
         for edge, exp in [('Human', 3), ('NineBande', 5)]:
@@ -948,8 +983,8 @@ motif    mprobs
         glf.set_alignment(_aln)
         glf.set_name('GN')
         glf.initialise_from_nested(slf)
-        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
-        
+        assert_allclose(glf.get_log_likelihood(), slf.get_log_likelihood())
+
     def test_get_lengths_as_ens_equal(self):
         """lengths equals ENS for a time-reversible model"""
         moprobs = numpy.array([0.1,0.2,0.3,0.4])
