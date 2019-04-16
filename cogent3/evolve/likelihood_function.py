@@ -3,6 +3,8 @@
 import json
 import random
 from collections import defaultdict
+from copy import deepcopy
+
 import numpy
 
 from cogent3.core.alignment import ArrayAlignment
@@ -34,6 +36,88 @@ __status__ = "Production"
 # recalculation Calculator.  It adds methods which are useful for examining
 # the parameter, psub, mprob and likelihood values after the optimisation is
 # complete.
+
+
+def _get_keyed_rule_indices(rules):
+    """returns {frozesent((par_name, edge1, edge2, ..)): index}"""
+    new = {}
+    for i, rule in enumerate(rules):
+        edges = rule.get('edges') or []
+        par_name = rule['par_name']
+        key = frozenset([par_name] + edges)
+        new[key] = i
+    return new
+
+
+def update_rule_value(rich, null):
+    """applies value from null rule to rich rule"""
+    val_key = 'init' if 'init' in rich else 'value'
+    rich[val_key] = null.get('init', null.get('value'))
+    return rich
+
+
+def extend_rule_value(rich, nulls):
+    """creates new rich rules from edges in null rules"""
+    val_key = 'init' if 'init' in rich else 'value'
+    rules = []
+    for null in nulls:
+        for edge in null['edges']:
+            rule = deepcopy(rich)
+            rule['edges'] = [edge]
+            rule[val_key] = null.get('init', null.get('value'))
+            rules.append(rule)
+    return rules
+
+
+def update_scoped_rules(rich, null):
+    """returns rich rules with values derived from those in null rules"""
+    new_rules = []
+    rich = deepcopy(rich)
+    # we build a dict keyed by frozen set consisting of the param name
+    # and affected edges. The dict value is the list index in original.
+    richd = _get_keyed_rule_indices(rich)
+    nulld = _get_keyed_rule_indices(null)
+    common = set(richd) & set(nulld)
+    # 1-to-1 mapping, just extract the param value
+    for key in common:
+        rule = update_rule_value(rich[richd[key]], null[nulld[key]])
+        new_rules.append(rule)
+
+    # following rules differing in scope
+    rich_remainder = set(richd) - set(nulld)
+    null_remainder = set(nulld) - set(richd)
+    for rich_key in rich_remainder:
+        matches = []
+        rich_rule = rich[richd[rich_key]]
+        pname = rich_rule['par_name']
+        enames = rich_rule.get('edges', None)
+        enames = None if enames is None else set(enames)
+        for null_key in null_remainder:
+            null_rule = null[nulld[null_key]]
+            if pname != null_rule['par_name']:
+                continue
+            # parameter now fully general
+            if enames is None:
+                matches.append(null_rule)
+                continue
+
+            null_enames = null_rule.get('edges', None)
+            null_enames = None if null_enames is None else set(null_enames)
+            if None in (enames, null_enames) or null_enames & enames:
+                matches.append(null_rule)
+
+        if enames is None:  # rich rule is "free"
+            new_rules.extend(extend_rule_value(
+                rich_rule, matches))
+            continue
+
+        if len(matches) > 1 and enames is not None:
+            raise ValueError(f'{rich_key} has too many mappings {matches}')
+
+        match = matches[0]
+        new_rules.append(update_rule_value(rich_rule,
+                                           match))
+    return new_rules
 
 
 def _get_param_mapping(rich, simple):
@@ -727,30 +811,23 @@ class LikelihoodFunction(ParameterController):
                 return False
         return True
 
-    def initialise_from_nested(self, nested_lf, length_kwargs=None, param_kwargs=None):
+    def initialise_from_nested(self, nested_lf):
         from cogent3.evolve.substitution_model import TimeReversible
-        assert self.get_num_free_params() > nested_lf.get_num_free_params(), "wrong order for likelihood functions"
+        assert self.get_num_free_params() > nested_lf.get_num_free_params(
+        ), "wrong order for likelihood functions"
         compatible_likelihood_functions(self, nested_lf)
 
         same = (isinstance(self.model, TimeReversible) and isinstance(nested_lf.model, TimeReversible))\
             or (not isinstance(self.model, TimeReversible) and not isinstance(nested_lf.model, TimeReversible))
 
-        if length_kwargs is None:
-            length_kwargs = {}
-        if param_kwargs is None:
-            param_kwargs = {}
-
         mprobs = nested_lf.get_motif_probs()
         edge_names = self.tree.get_node_names()
         edge_names.remove('root')
-        lengths = {name: nested_lf.get_param_value('length', edge=name) for name in edge_names}
-        param_proj = _ParamProjection(nested_lf.model, self.model, mprobs, same=same)
+        param_proj = _ParamProjection(
+            nested_lf.model, self.model, mprobs, same=same)
         param_rules = nested_lf.get_param_rules()
         param_rules = param_proj.update_param_rules(param_rules)
-
-        with self.updates_postponed():
-            for rule in param_rules:
-                rule.update(param_kwargs)
-                self.set_param_rule(**rule)
-
-        return self
+        my_rules = self.get_param_rules()
+        my_rules = update_scoped_rules(my_rules, param_rules)
+        self.apply_param_rules(my_rules)
+        return
