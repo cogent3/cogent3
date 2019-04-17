@@ -9,9 +9,10 @@ from cogent3.maths.stats import chisqprob
 class keyed_result(MutableMapping):
     type_ = None  # over-ride in subclass
 
-    def __init__(self):
+    def __init__(self, source):
         self._store = dict()
-        self._construction_kwargs = dict()
+        self._construction_kwargs = dict(source=source)
+        self.source = source
 
     def __setitem__(self, key, val):
         key = str(key)
@@ -55,7 +56,7 @@ class model_result(keyed_result):
     def __init__(self, name=None, stat=sum, source=None, elapsed_time=None,
                  num_evaluations=None, evaluation_limit=None,
                  lnL=None, nfp=None, DLC=None, unique_Q=None):
-        super(model_result, self).__init__()
+        super(model_result, self).__init__(source)
         if type(stat) == str:
             stat = eval(stat)
 
@@ -67,7 +68,6 @@ class model_result(keyed_result):
         self._name = name
         assert stat is sum or stat is max
         self._stat = stat
-        self.source = source
         self._elapsed_time = elapsed_time
         self._num_evaluations = num_evaluations
         self._evaluation_limit = evaluation_limit
@@ -214,12 +214,11 @@ class hypothesis_result(keyed_result):
         alt
             either a likelihood function instance
         """
-        super(hypothesis_result, self).__init__()
+        super(hypothesis_result, self).__init__(source)
         self._construction_kwargs = dict(name_of_null=name_of_null,
                                          source=source)
 
         self._name_of_null = name_of_null
-        self.source = source
 
     @property
     def null(self):
@@ -262,9 +261,8 @@ class bootstrap_result(keyed_result):
     type_ = 'bootstrap_result'
 
     def __init__(self, source=None):
-        super(bootstrap_result, self).__init__()
+        super(bootstrap_result, self).__init__(source)
         self._construction_kwargs = dict(source=source)
-        self.source = source
 
     @property
     def observed(self):
