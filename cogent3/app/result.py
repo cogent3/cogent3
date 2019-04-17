@@ -7,7 +7,7 @@ from cogent3.maths.stats import chisqprob
 
 
 class generic_result(MutableMapping):
-    type_ = None  # over-ride in subclass
+    type_ = 'generic_result'
 
     def __init__(self, source):
         self._store = dict()
