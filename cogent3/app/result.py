@@ -6,7 +6,7 @@ from cogent3.util.misc import get_object_provenance
 from cogent3.maths.stats import chisqprob
 
 
-class keyed_result(MutableMapping):
+class generic_result(MutableMapping):
     type_ = None  # over-ride in subclass
 
     def __init__(self, source):
@@ -49,7 +49,7 @@ class keyed_result(MutableMapping):
 
 
 @total_ordering
-class model_result(keyed_result):
+class model_result(generic_result):
     type_ = 'model_result'
     _stat_attrs = ('lnL', 'nfp', 'DLC', 'unique_Q')
 
@@ -206,7 +206,7 @@ class model_result(keyed_result):
         self._unique_Q = value
 
 
-class hypothesis_result(keyed_result):
+class hypothesis_result(generic_result):
     type_ = 'hypothesis_result'
 
     def __init__(self, name_of_null, source=None):
@@ -257,7 +257,7 @@ class hypothesis_result(keyed_result):
         return pvalue
 
 
-class bootstrap_result(keyed_result):
+class bootstrap_result(generic_result):
     type_ = 'bootstrap_result'
 
     def __init__(self, source=None):
