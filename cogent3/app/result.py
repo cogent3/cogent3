@@ -3,6 +3,7 @@ from collections.abc import MutableMapping
 from functools import total_ordering
 
 from cogent3.util.misc import get_object_provenance
+from cogent3.maths.stats import chisqprob
 
 
 class keyed_result(MutableMapping):
@@ -242,6 +243,19 @@ class hypothesis_result(keyed_result):
         """returns the degrees-of-freedom (alt.nfp - null.nfp)"""
         df = self.alt.nfp - self.null.nfp
         return df
+
+    @property
+    def pvalue(self):
+        """returns p-value from chisqprob(LR, df)
+
+        None if LR < 0"""
+        if self.LR == 0:
+            pvalue = 1
+        elif self.LR > 0:
+            pvalue = chisqprob(self.LR, self.df)
+        else:
+            pvalue = None
+        return pvalue
 
 
 class bootstrap_result(keyed_result):
