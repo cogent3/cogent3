@@ -102,15 +102,12 @@ class SequenceTests(TestCase):
         odd = even + 'AAA'
         even_dna = self.SEQ(even, name='even')
         odd_dna = self.SEQ(odd, name='odd')
-        self.assertEqual(even_dna.to_fasta(), '>even\nTCAGAT')
+        self.assertEqual(even_dna.to_fasta(), '>even\nTCAGAT\n')
         # set line wrap to small number so we can test that it works
-        even_dna.LineWrap = 2
-        self.assertEqual(even_dna.to_fasta(), '>even\nTC\nAG\nAT')
-        odd_dna.LineWrap = 2
-        self.assertEqual(odd_dna.to_fasta(), '>odd\nTC\nAG\nAT\nAA\nA')
+        self.assertEqual(even_dna.to_fasta(block_size=2), '>even\nTC\nAG\nAT\n')
+        self.assertEqual(odd_dna.to_fasta(block_size=2), '>odd\nTC\nAG\nAT\nAA\nA\n')
         # check that changing the linewrap again works
-        even_dna.LineWrap = 4
-        self.assertEqual(even_dna.to_fasta(), '>even\nTCAG\nAT')
+        self.assertEqual(even_dna.to_fasta(block_size=4), '>even\nTCAG\nAT\n')
 
     def test_serialize(self):
         """Sequence should be serializable"""
@@ -779,15 +776,12 @@ class ModelSequenceTests(object):
         odd = even + 'AAA'
         even_dna = self.SequenceClass(even, name='even')
         odd_dna = self.SequenceClass(odd, name='odd')
-        self.assertEqual(even_dna.to_fasta(), '>even\nTCAGAT')
+        self.assertEqual(even_dna.to_fasta(), '>even\nTCAGAT\n')
         # set line wrap to small number so we can test that it works
-        even_dna.LineWrap = 2
-        self.assertEqual(even_dna.to_fasta(), '>even\nTC\nAG\nAT')
-        odd_dna.LineWrap = 2
-        self.assertEqual(odd_dna.to_fasta(), '>odd\nTC\nAG\nAT\nAA\nA')
+        self.assertEqual(even_dna.to_fasta(block_size=2), '>even\nTC\nAG\nAT\n')
+        self.assertEqual(odd_dna.to_fasta(block_size=2), '>odd\nTC\nAG\nAT\nAA\nA\n')
         # check that changing the linewrap again works
-        even_dna.LineWrap = 4
-        self.assertEqual(even_dna.to_fasta(), '>even\nTCAG\nAT')
+        self.assertEqual(even_dna.to_fasta(block_size=4), '>even\nTCAG\nAT\n')
 
     def test_to_phylip(self):
         """Sequence to_phylip() should return one-line phylip string"""

@@ -34,8 +34,8 @@ from cogent3.core.info import Info as InfoClass
 from cogent3.core.sequence import frac_same, ArraySequence
 from cogent3.core.location import LostSpan, Span
 from cogent3.maths.stats.util import Freqs
-from cogent3.format.fasta import fasta_from_alignment
-from cogent3.format.phylip import phylip_from_alignment
+from cogent3.format.fasta import alignment_to_fasta
+from cogent3.format.phylip import alignment_to_phylip
 from cogent3.format.nexus import nexus_from_alignment
 from cogent3.parse.gff import GffParser, parse_attributes
 from numpy import nonzero, array, logical_or, logical_and, logical_not, \
@@ -948,8 +948,7 @@ class SequenceCollection(object):
             - make_seqlabel: callback function that takes the seq object and
               returns a label str
         """
-        return phylip_from_alignment(self, generic_label=generic_label,
-                                     make_seqlabel=make_seqlabel)
+        return alignment_to_phylip(self.todict())
 
     def to_rich_dict(self):
         """returns detailed content including info and moltype attributes"""
@@ -975,14 +974,14 @@ class SequenceCollection(object):
         """returns json formatted string"""
         return json.dumps(self.to_rich_dict())
 
-    def to_fasta(self, make_seqlabel=None):
+    def to_fasta(self):
         """Return alignment in Fasta format
 
         Arguments:
             - make_seqlabel: callback function that takes the seq object and
               returns a label str
         """
-        return fasta_from_alignment(self, make_seqlabel=make_seqlabel)
+        return alignment_to_fasta(self.todict())
 
     def to_nexus(self, seq_type, interleave_len=50):
         """

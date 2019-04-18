@@ -31,7 +31,7 @@ data = """<?xml version="1.0"?>
 </TSeqSet>
 """
 
-sample_seq = ">AY286018.1\nGGCAGGGAAAGGGAAGAAAGTAAAGGGGCCATGACACAGGCATGGGACCCTGCAGGGTTCTTGGCTTGGCGGCGGGACGAGAACGAGGAGACGACTCGG"
+sample_seq = ">AY286018.1\nGGCAGGGAAAGGGAAGAAAGTAAAGGGGCCATGACACAGGCATGGGACCCTGCAGGGTTCTTGGCTTGGCGGCGGGACGAGAACGAGGAGACGACTCGG\n"
 sample_annotations = '[genbank_id "AY286018.1" at [0:99]/99, organism "Macropus eugenii" at [0:99]/99]'
 
 
@@ -40,7 +40,7 @@ class ParseTinyseq(TestCase):
     def test_parse(self):
         for name, seq in [next(TinyseqParser(data)), next(TinyseqParser(xml.dom.minidom.parseString(data)))]:
             self.assertEqual(name, 'AY286018.1')
-            self.assertEqual(sample_seq, seq.to_fasta())
+            self.assertEqual(sample_seq, seq.to_fasta(block_size=len(sample_seq)))
             self.assertEqual(str(seq.annotations), sample_annotations)
     pass
 
