@@ -7,6 +7,8 @@ import sys
 import re
 import pickle
 import numpy
+import os
+import warnings
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -36,6 +38,12 @@ if numpy_version_info < (1, 3):
 
 version = __version__
 version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])
+
+
+warn_env = 'COGENT_WARNINGS'
+
+if warn_env in os.environ:
+    warnings.simplefilter(os.environ[warn_env])
 
 
 from cogent3.util.table import Table as _Table
