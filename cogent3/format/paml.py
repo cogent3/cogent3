@@ -5,27 +5,27 @@
 from cogent3.format.formatter import _AlignmentFormatter
 
 __author__ = "Thomas La"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Rob Knight", "Gavin Huttley", "Thomas La"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Thomas La"
 
 
-def alignment_to_paml(alignmentdict, block_size=60, order=[]):
+def alignment_to_paml(alignment_dict, block_size=60, order=None):
     """Returns a Paml string given an alignment.
     """
-    return PamlFormatter().format(alignmentdict, block_size, order)
+    return PamlFormatter().format(alignment_dict, block_size, [] if order is None else order)
 
 
 class PamlFormatter(_AlignmentFormatter):
 
-    def format(self, alignmentdict, block_size, order):
+    def format(self, alignment_dict, block_size, order):
         """Format the alignment to Paml.
 
         Arguments:
-            - alignmentdict: dict of seqname -> seqstring.
-            - blocksize: the sequence length to write to each line,
+            - alignment_dict: dict of seq_name -> seq_string.
+            - block_size: the sequence length to write to each line,
               default is 60
             - order: optional list of sequence names, which order to
               print in.
@@ -34,10 +34,10 @@ class PamlFormatter(_AlignmentFormatter):
 
         # setup
         if not order:
-            order = list(alignmentdict.keys())
-        self.setaligninfo(alignmentdict, order)
-        self.setblocksize(block_size)
+            order = list(alignment_dict.keys())
+        self.set_align_info(alignment_dict, order)
+        self.set_block_size(block_size)
 
         header = '%d  %d\n' % (self.number_sequences, self.align_length)
-        return header + ''.join(['%s\n%s' % (seq, self.wrapstringtoblocksize(
-                alignmentdict[seq], altblocksize=block_size)) for seq in self.align_order])
+        return header + ''.join(['%s\n%s' % (seq, self.wrap_string_to_block_size(
+                alignment_dict[seq], alt_block_size=block_size)) for seq in self.align_order])

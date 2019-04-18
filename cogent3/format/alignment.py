@@ -9,7 +9,7 @@ from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.gde import alignment_to_gde
 
 __author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Thomas La"]
 __license__ = "GPL"
 __version__ = "3.0a2"

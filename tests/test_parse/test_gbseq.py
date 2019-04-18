@@ -171,7 +171,7 @@ data = """<?xml version="1.0"?>
 </GBSet>
 """
 
-sample_seq = ">AY286018.1\nGGCAGGGAAAGGGAAGAAAGTAAAGGGGCCATGACACAGGCATGGGACCCTGCAGGGTTCTTGGCTTGGCGGCGGGACGAGAACGAGGAGACGACTCGG"
+sample_seq = ">AY286018.1\nGGCAGGGAAAGGGAAGAAAGTAAAGGGGCCATGACACAGGCATGGGACCCTGCAGGGTTCTTGGCTTGGCGGCGGGACGAGAACGAGGAGACGACTCGG\n"
 sample_annotations = '[source "[0:99]/99 of AY286018.1" at [0:99]/99, organism "Macropus eugenii" at [0:99]/99, gene "OPN1MW" at [0:99]/99, CDS "OPN1MW" at [30:99]/99]'
 
 
@@ -180,7 +180,7 @@ class ParseGBseq(TestCase):
     def test_parse(self):
         for name, seq in [next(GbSeqXmlParser(data)), next(GbSeqXmlParser(xml.dom.minidom.parseString(data)))]:
             self.assertEqual(name, 'AY286018.1')
-            self.assertEqual(sample_seq, seq.to_fasta())
+            self.assertEqual(sample_seq, seq.to_fasta(block_size=len(sample_seq)))
             self.assertEqual(str(seq.annotations), sample_annotations)
     pass
 

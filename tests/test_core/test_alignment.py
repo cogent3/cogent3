@@ -133,7 +133,7 @@ class alignment_tests(TestCase):
         """aln_from_collection should initialize from existing alignment"""
         a = SequenceCollection(['AAA', 'GGG'])
         obs_a, obs_labels = aln_from_collection(a, alphabet=RNA.alphabet)
-        self.assertEqual(a.to_fasta(), '>seq_0\nAAA\n>seq_1\nGGG')
+        self.assertEqual(a.to_fasta(), '>seq_0\nAAA\n>seq_1\nGGG\n')
         self.assertEqual(obs_a, array([[2, 2, 2], [3, 3, 3]]))
 
     def test_aln_from_empty(self):
@@ -346,7 +346,7 @@ class SequenceCollectionBaseTests(object):
         p = MinimalFastaParser(s)
         aln = self.Class(p, moltype=DNA)
         self.assertEqual(aln.named_seqs['aa'], 'AC')
-        self.assertEqual(aln.to_fasta(), '>aa\nAC\n>bb\nAA\n>c\nGG')
+        self.assertEqual(aln.to_fasta(), '>aa\nAC\n>bb\nAA\n>c\nGG\n')
         s2_ORIG = '>x\nCA\n>b\nAA\n>>xx\nGG'
         s2 = '>aa\nAC\n>bb\nAA\n>c\nGG\n'
         d = ArrayAlignment(MinimalFastaParser(s2.splitlines()))
@@ -357,7 +357,7 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection should init from fasta-format string"""
         s = '>aa\nAC\n>bb\nAA\n>c\nGG\n'
         aln = self.Class(s)
-        self.assertEqual(aln.to_fasta(), s.strip())
+        self.assertEqual(aln.to_fasta(), s)
 
     def test_seq_len_get(self):
         """SequenceCollection seq_len should return length of longest seq"""
@@ -696,22 +696,18 @@ class SequenceCollectionBaseTests(object):
                                   'ACNEFGHIKLMNPQRS-UVWP-',
                                   ])
 
-        phylip_str, id_map = align_norm.to_phylip()
-
         self.assertEqual(
-            phylip_str, """4 22\nseq0000001 ACDEFGHIKLMNPQRSTUVWY-\nseq0000002 ACDEFGHIKLMNPQRSUUVWF-\nseq0000003 ACDEFGHIKLMNPERSKUVWC-\nseq0000004 ACNEFGHIKLMNPQRS-UVWP-""")
-        self.assertEqual(id_map, {'seq0000004': 'seq_3', 'seq0000001': 'seq_0',
-                                  'seq0000003': 'seq_2', 'seq0000002': 'seq_1'})
+            align_norm.to_phylip(), """4  22\nseq_0     ACDEFGHIKLMNPQRSTUVWY-\nseq_1     ACDEFGHIKLMNPQRSUUVWF-\nseq_2     ACDEFGHIKLMNPERSKUVWC-\nseq_3     ACNEFGHIKLMNPQRS-UVWP-\n""")
 
     def test_to_fasta(self):
         """SequenceCollection should return correct FASTA string"""
         aln = self.Class(['AAA', 'CCC'])
-        self.assertEqual(aln.to_fasta(), '>seq_0\nAAA\n>seq_1\nCCC')
+        self.assertEqual(aln.to_fasta(), '>seq_0\nAAA\n>seq_1\nCCC\n')
 
         # NOTE THE FOLLOWING SURPRISING BEHAVIOR BECAUSE OF THE TWO-ITEM
         # SEQUENCE RULE:
         aln = self.Class(['AA', 'CC'])
-        self.assertEqual(aln.to_fasta(), '>A\nA\n>C\nC')
+        self.assertEqual(aln.to_fasta(), '>A\nA\n>C\nC\n')
 
     def test_to_nexus(self):
         """SequenceCollection should return correct Nexus string format"""
@@ -1163,7 +1159,8 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
                                  'ACNEFGHIKLMNUVWP-',
                                  ])
 
-        self.assertRaises(ValueError, align_rag.to_phylip)
+        # no longer applicable in new implementation
+        # self.assertRaises(ValueError, align_rag.to_phylip)
 
     def test_pad_seqs_ragged(self):
         """SequenceCollection pad_seqs should work on ragged alignment."""
@@ -1745,11 +1742,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         seqs = {'seq1': 'AAACCCGGGUUU', 'seq2': 'CCCUUUAAA', 'seq3': 'CCC'}
         result = a.replace_seqs(seqs)  # default behaviour
         self.assertEqual(result.to_fasta(),
-                         ">seq1\nAAACCCGGGUUU\n>seq2\nCCC---UUUAAA\n>seq3\nCCC---------")
+                         ">seq1\nAAACCCGGGUUU\n>seq2\nCCC---UUUAAA\n>seq3\nCCC---------\n")
 
         result = a.replace_seqs(seqs, aa_to_codon=True)  # default behaviour
         self.assertEqual(result.to_fasta(),
-                         ">seq1\nAAACCCGGGUUU\n>seq2\nCCC---UUUAAA\n>seq3\nCCC---------")
+                         ">seq1\nAAACCCGGGUUU\n>seq2\nCCC---UUUAAA\n>seq3\nCCC---------\n")
 
         # should correctly gap the same sequences with same length
         result = a.replace_seqs(

@@ -32,7 +32,7 @@ from cogent3.util.misc import (DistanceFromMatrix, bytes_to_string,
 from cogent3.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE, \
     GeneticCodes
 from cogent3.parse import gff
-from cogent3.format.fasta import fasta_from_sequences
+from cogent3.format.fasta import alignment_to_fasta
 from cogent3.core.info import Info as InfoClass
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
@@ -68,15 +68,23 @@ class SequenceI(object):
         """__str__ returns self._seq unmodified."""
         return self._seq
 
-    def to_fasta(self, make_seqlabel=None):
+    def to_fasta(self, make_seqlabel=None, block_size=60):
         """Return string of self in FASTA format, no trailing newline
 
         Arguments:
             - make_seqlabel: callback function that takes the seq object and
               returns a label str
         """
-        return fasta_from_sequences([self], make_seqlabel=make_seqlabel,
-                                    line_wrap=self.LineWrap)
+
+        label = '0'
+
+        if make_seqlabel is not None:
+            label = make_seqlabel(self)
+        elif hasattr(self, 'label') and self.label:
+            label = self.label
+        elif hasattr(self, 'name') and self.name:
+            label = self.name
+        return alignment_to_fasta({label: str(self)}, block_size=block_size)
     
     def to_rich_dict(self):
         """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
@@ -1123,15 +1131,24 @@ class ArraySequenceBase(object):
         """Returns length of data."""
         return len(self._data)
 
-    def to_fasta(self, make_seqlabel=None):
+    def to_fasta(self, make_seqlabel=None, block_size=60):
         """Return string of self in FASTA format, no trailing newline
 
         Arguments:
             - make_seqlabel: callback function that takes the seq object and
               returns a label str
         """
-        return fasta_from_sequences([self], make_seqlabel=make_seqlabel,
-                                    line_wrap=self.LineWrap)
+
+        label = '0'
+
+        if make_seqlabel is not None:
+            label = make_seqlabel(self)
+        elif hasattr(self, 'label') and self.label:
+            label = self.label
+        elif hasattr(self, 'name') and self.name:
+            label = self.name
+
+        return alignment_to_fasta({label: str(self)}, block_size=block_size)
 
     def to_phylip(self, name_len=28, label_len=30):
         """Return string of self in one line for PHYLIP, no newline.
