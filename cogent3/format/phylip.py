@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
+from cogent3.format.formatter import _AlignmentFormatter
+
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__credits__ = ["Gavin Huttley", "Thomas La"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
@@ -44,3 +46,57 @@ def phylip_from_alignment(aln, generic_label=True, make_seqlabel=None):
         cur_seq_id += 1
 
     return '\n'.join(phylip_out), id_map
+
+
+def alignment_to_phylip(alignmentdict, block_size=60, order=[]):
+    """Returns a Phylip string given an alignment.
+    """
+    return PhylipFormatter().format(alignmentdict, block_size, order)
+
+
+class PhylipFormatter(_AlignmentFormatter):
+
+    def format(self, alignmentdict, block_size, order):
+        """Format the alignment to Phylip.
+
+        Arguments:
+            - alignmentdict: dict of seqname -> seqstring.
+            - blocksize: the sequence length to write to each line,
+              default is 60
+            - order: optional list of sequence names, which order to
+              print in.
+        (Assumes complete and correct list of names)
+        """
+        # setup
+        if not order:
+            order = list(alignmentdict.keys())
+        self.setaligninfo(alignmentdict, order)
+        self.setblocksize(block_size)
+
+        # header
+        header = '%d  %d\n' % (self.number_sequences, self.align_length)
+
+        seqs = []
+
+        # sequences (pretty much as writ by Gavin)
+
+        for seqname in self.align_order:
+            seq = alignmentdict[seqname]
+            for block in range(0, self.align_length, self.block_size):
+                if not block:
+                    # write the otu name
+                    if len(seqname) > 9:
+                        prefix = '%-10s' % seqname[:9]
+                    else:
+                        prefix = '%-10s' % seqname
+                else:
+                    prefix = ' ' * 10
+
+                if block + self.block_size > self.align_length:
+                    to = self.align_length
+                else:
+                    to = block + self.block_size
+
+                seqs.append('%s%s\n' % (prefix, seq[block:to]))
+
+        return header + ''.join(seqs)

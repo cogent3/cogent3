@@ -5,7 +5,7 @@ import json
 from cogent3 import LoadSeqs
 from cogent3.core.moltype import get_moltype
 from cogent3.parse.sequence import PARSERS
-from cogent3.format.alignment import WRITERS
+from cogent3.format.alignment import FORMATTERS
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.util.deserialise import deserialise_object
 from .data_store import (SingleReadDataStore, SKIP, RAISE,
@@ -185,7 +185,7 @@ class write_seqs(_checkpointable):
             raise NotImplementedError('must use fasta for now')
 
         self._format = format
-        self._formatter = WRITERS[format]
+        self._formatter = FORMATTERS[format]
 
     def _set_checkpoint_loader(self):
         loader = {'sequences': load_unaligned}.get(self._out._type,
