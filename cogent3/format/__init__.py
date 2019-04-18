@@ -5,8 +5,8 @@ Currently provides:
     xml:  xml base class
     file: general functions to read and write files
 """
-__all__ = ['alignment', 'clustal', 'fasta', 'nexus',
-           'phylip', 'table']
+__all__ = ['alignment', 'bedgraph', 'clustal', 'fasta',
+           'gde', 'nexus', 'paml', 'phylip', 'table']
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
