@@ -75,7 +75,12 @@ def calc_G(observed, expected, pseudo_count=0, williams=True):
     if num_dim == 2:
         df *= (observed.shape[1] - 1)
 
-    G = 2 * (observed * (log(observed) - log(expected))).sum()
+    non_zero = observed != 0
+    if not non_zero.all():
+        G = 2 * (observed[non_zero] * (log(observed[non_zero]) -
+                                       log(expected[non_zero]))).sum()
+    else:
+        G = 2 * (observed * (log(observed) - log(expected))).sum()
     if williams and num_dim > 1:
         total = observed.sum()
         denom = 6 * total * df
