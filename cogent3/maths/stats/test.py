@@ -297,26 +297,20 @@ def G_fit(obs, exp, williams=1):
 
     See Sokal and Rohlf chapter 17.
     """
+    obs = array(obs)
+    exp = array(exp)
+    if obs.shape != exp.shape:
+        raise ValueError("requires data with equal dimensions.")
+    elif (obs < 0).any():
+        raise ValueError("requires all observed values to be positive.")
+    elif (exp == 0).any() or (exp < 0).any():
+        raise ZeroExpectedError("requires all expected values to be positive")
+    non_zero = obs != 0
+    G = 2 * (obs[non_zero] * (log(obs[non_zero]) -
+                                   log(exp[non_zero]))).sum()
     k = len(obs)
-    if k != len(exp):
-        raise ValueError("G_fit requires two lists of equal length.")
-    G = 0
-    n = 0
-
-    for o, e in zip(obs, exp):
-        if o < 0:
-            raise ValueError(
-                "G_fit requires all observed values to be positive.")
-        if e <= 0:
-            raise ZeroExpectedError(
-                "G_fit requires all expected values to be positive.")
-        if o:  # if o is zero, o * log(o/e) must be zero as well.
-            G += o * log(o / e)
-            n += o
-
-    G *= 2
     if williams:
-        q = 1 + (k + 1) / (6 * n)
+        q = 1 + (k + 1) / (6 * obs.sum())
         G /= q
 
     return G, chi_high(G, k - 1)
