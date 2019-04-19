@@ -16,6 +16,18 @@ RAISE = 'raise'
 IGNORE = 'ignore'
 
 
+class DataStoreMember(str):
+    def __new__(klass, name, parent):
+        result = str.__new__(klass, name)
+        result.name = os.path.basename(name)
+        result.parent = parent
+        return result
+
+    def read(self):
+        """returns contents"""
+        return self.parent.read(self.name)
+
+
 class ReadOnlyDataStoreBase:
     """a read only data store"""
 
@@ -45,21 +57,49 @@ class ReadOnlyDataStoreBase:
         self.limit = limit
         self._verbose = verbose
 
+    def __iter__(self):
+        for member in self.members:
+            yield DataStoreMember(self.get_absolute_identifier(member), self)
+
+    def __getitem__(self, index):
+        return self.members[index]
+
+    def __len__(self):
+        return len(self.members)
+
     def __contains__(self, identifier):
         """whether relative identifier has been stored"""
-        identifier = self.get_relative_identifier(identifier)
-        return identifier in self.members
+        result = False
+        for member in self.members:
+            if identifier in member:
+                result = True
+                break
+        return result
 
     def get_relative_identifier(self, identifier):
-        """returns the relative identifier"""
-        identifier = re.sub(f'{self.source}/', '', identifier)
+        """returns the identifier relative to store root path
+        """
+        source = self.source
+        identifier = os.path.basename(identifier)
+        if source.endswith('.zip'):
+            source = source.replace('.zip', '')
+            source = os.path.basename(source)
+            identifier = f"{source}/{identifier}"
+        else:
+            if not isinstance(identifier, DataStoreMember):
+                identifier = Path(identifier)
+            identifier = identifier.name
+
         return identifier
 
     def get_absolute_identifier(self, identifier, from_relative=False):
         if not from_relative:
             identifier = self.get_relative_identifier(identifier)
-
-        identifier = f"{self.source}/{identifier}"
+        source = self.source.replace('.zip', '')
+        if isinstance(identifier, DataStoreMember):
+            identifier = identifier.name
+        elif not identifier.startswith(source):
+            identifier = f"{source}/{identifier}"
         return identifier
 
     def read(self, identifier):
@@ -80,7 +120,9 @@ class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):
             for i, path in enumerate(paths):
                 if self.limit and i >= self.limit:
                     break
-                members.append(self.get_relative_identifier(path))
+                member = DataStoreMember(self.get_absolute_identifier(path),
+                                         self)
+                members.append(member)
             self._members = members
         return self._members
 
@@ -113,22 +155,26 @@ class SingleReadDataStore(ReadOnlyDirectoryDataStore):
         assert path.exists() and path.is_file()
         super(SingleReadDataStore, self).__init__(str(path.parent),
                                                   suffix=str(path.suffix))
-        self._members = [str(path.name)]
+        self._members = [DataStoreMember(path, self)]
 
 
 class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
     @property
     def members(self):
         if os.path.exists(self.source) and not self._members:
+            source_path = self.source.replace(Path(self.source).suffix, '')
             pattern = '*.%s' % self.suffix
             members = []
             with zipfile.ZipFile(self.source) as archive:
                 names = archive.namelist()
                 num_matches = 0
                 for name in names:
+                    name = os.path.basename(name)
                     if fnmatch(name, pattern):
                         num_matches += 1
-                        members.append(name)
+                        member = DataStoreMember(
+                            os.path.join(source_path, name), self)
+                        members.append(member)
                     elif self._verbose:
                         print(f"Did not match {name}")
 
@@ -169,7 +215,9 @@ class WritableDataStoreBase:
 
     def make_relative_identifier(self, data):
         """returns identifier for a new member relative to source"""
-        if type(data) != str:
+        if isinstance(data, DataStoreMember):
+            data = data.name
+        elif type(data) != str:
             try:
                 data = data.info.source
             except AttributeError:
@@ -247,7 +295,7 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
             outfile.write(data)
 
         if relative_id not in self:
-            self._members.append(relative_id)
+            self._members.append(DataStoreMember(relative_id, self))
 
         return absolute_id
 
@@ -297,6 +345,6 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
                          compresslevel=9)
 
         if relative_id not in self:
-            self._members.append(relative_id)
+            self._members.append(DataStoreMember(relative_id, self))
 
         return absolute_id

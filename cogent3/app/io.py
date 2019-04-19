@@ -42,26 +42,38 @@ def findall(base_path, suffix='fa', limit=None, verbose=False):
 
     zipped = zipfile.is_zipfile(base_path)
     klass = ReadOnlyZippedDataStore if zipped else ReadOnlyDirectoryDataStore
-    data_store = klass(base_path, suffix=suffix, limit=limit, verbose=verbose)
+    data_store = klass(base_path, suffix=suffix,
+                       limit=limit, verbose=verbose)
     return data_store.members
 
 
-class _seq_loader:
-    def __init__(self, data_path, suffix='fasta'):
-        """
-        Parameters
-        ----------
-        data_path : str
-            path to a directory or zip archive
-        """
-        if data_path:
-            zipped = zipfile.is_zipfile(data_path)
-            klass = (ReadOnlyZippedDataStore
-                     if zipped else ReadOnlyDirectoryDataStore)
-            self.data_store = klass(data_path, suffix=suffix)
-        else:
-            self.data_store = None
+def get_data_store(base_path, suffix='fa', limit=None, verbose=False):
+    """returns DataStore containing glob matches to suffix in base_path
 
+    Parameters
+    ----------
+    base_path : str
+        path to directory or zipped archive
+    suffix : str
+        suffix of filenames
+    limit : int or None
+        the number of matches to return
+    Returns
+    -------
+    ReadOnlyDirectoryDataStore or ReadOnlyZippedDataStore
+    """
+    if not os.path.exists(base_path):
+        raise ValueError(f"'{base_path}' does not exist")
+
+    zipped = zipfile.is_zipfile(base_path)
+    klass = ReadOnlyZippedDataStore if zipped else ReadOnlyDirectoryDataStore
+    data_store = klass(base_path, suffix=suffix,
+                       limit=limit, verbose=verbose)
+    return data_store
+
+
+class _seq_loader:
+    def __init__(self):
         self.func = self.load
 
     def load(self, path):
@@ -70,16 +82,14 @@ class _seq_loader:
         try:
             abs_path = path.info.source
         except AttributeError:
-            abs_path = ''
+            abs_path = str(path)
 
         if type(path) == str:
-            if self.data_store:
-                data_store = self.data_store
-            else:
-                data_store = SingleReadDataStore(path)
+            # we use a data store as it's read() handles compression
+            path = SingleReadDataStore(path)[0]
 
-            abs_path = data_store.get_absolute_identifier(path)
-            data = data_store.read(path).splitlines()
+        if isinstance(path, str):
+            data = path.read().splitlines()
             data = dict(record for record in self._parser(data))
             seqs = self.klass(data=data, moltype=self.moltype)
             seqs.info.source = abs_path
@@ -100,8 +110,7 @@ class load_aligned(_seq_loader, ComposableAligned):
     """loads sequences"""
     klass = ArrayAlignment
 
-    def __init__(self, data_path=None, moltype=None, format='fasta',
-                 suffix='fa'):
+    def __init__(self, moltype=None, format='fasta', suffix='fa'):
         """
         Parameters
         ----------
@@ -109,12 +118,10 @@ class load_aligned(_seq_loader, ComposableAligned):
             molecular type, string or instance
         format : str
             sequence file format
-        data_path : str
-            path to a directory or zip archive
         """
         super(ComposableAligned, self).__init__(input_type=None,
                                                 output_type='aligned')
-        _seq_loader.__init__(self, data_path, suffix=suffix)
+        _seq_loader.__init__(self)
         self._formatted_params()
         if moltype:
             moltype = get_moltype(moltype)
@@ -126,13 +133,10 @@ class load_unaligned(ComposableSeq, _seq_loader):
     """loads sequences"""
     klass = SequenceCollection
 
-    def __init__(self, data_path=None, moltype=None, format='fasta',
-                 suffix='fa'):
+    def __init__(self, moltype=None, format='fasta', suffix='fa'):
         """
         Parameters
         ----------
-        data_path : str
-            path to a directory or zip archive
         moltype
             molecular type, string or instance
         format : str
@@ -140,7 +144,7 @@ class load_unaligned(ComposableSeq, _seq_loader):
         """
         super(ComposableSeq, self).__init__(input_type=None,
                                             output_type='sequences')
-        _seq_loader.__init__(self, data_path, suffix=suffix)
+        _seq_loader.__init__(self)
         self._formatted_params()
         if moltype:
             moltype = get_moltype(moltype)
