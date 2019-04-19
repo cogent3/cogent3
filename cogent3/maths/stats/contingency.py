@@ -278,9 +278,3 @@ class CategoryCounts:
                       residuals=self.residuals.todict())
         return result
 
-# we want an object that contains the numerical arrays for observed, expecteds
-# residuals as attributes. It should have methods for standard tests,
-# with/without continuity corrections
-# it should have a simulation approach for generating random tables with the
-# same marginals
-# It should also display nicely in Jupyter
