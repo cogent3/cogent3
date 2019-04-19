@@ -101,6 +101,19 @@ def estimate_pval(observed, stat_func, num_reps=1000):
     return num_gt / num_reps
 
 
+class _format_row_cell:
+    """class for handling html formatting of rows"""
+    def __init__(self, row_labels):
+        self.row_labels = row_labels
+
+    def __call__(self, val, row, col):
+        if val in self.row_labels:
+            result = f'<td><b>{val}<b></td>'
+        else:
+            result = f'<td style="text-align:right">{val}</td>'
+        return result
+
+
 class CategoryCounts:
     """CategoryCounts for performing contingency tests
 
@@ -133,12 +146,6 @@ class CategoryCounts:
         self.shape = observed.shape
 
     def _get_repr_(self, html=False):
-        def row_cell_func(val, row, col):
-            if val in row_labels:
-                result = f'<td><b>{val}<b></td>'
-            else:
-                result = f'<td style="text-align:right">{val}</td>'
-            return result
 
         obs = self.observed.array.tolist()
         exp = self.expected.array.tolist()
@@ -147,6 +154,7 @@ class CategoryCounts:
         ndim = len(self.observed.shape)
         if ndim == 1:
             row_labels = 'Observed', 'Expected', 'Residuals'
+            row_cell_func = _format_row_cell(row_labels)
             col_labels = [str(c) for c in self.observed.template.names[0]]
             rows = []
             # format floats for expecteds and resid
@@ -169,6 +177,7 @@ class CategoryCounts:
         else:
             row_labels = self.observed.template.names[0]
             col_labels = self.observed.template.names[1]
+            row_cell_func = _format_row_cell(row_labels)
             result = []
             for caption, table in zip(('Observed', 'Expected', 'Residuals'),
                                       (obs, exp, res)):
