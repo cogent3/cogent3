@@ -47,6 +47,19 @@ class TestIo(TestCase):
             found = list(io_app.findall(zip_path, suffix='.fasta*'))
             self.assertTrue(len(found) > 2)
 
+    def test_define_data_store(self):
+        """returns an iterable data store"""
+        found = io_app.get_data_store(self.basedir, suffix='.fasta')
+        self.assertTrue(len(found) > 1)
+        found = io_app.get_data_store(
+            self.basedir, suffix='.fasta', limit=2)
+        self.assertTrue(len(found) == 2)
+
+        # and with a suffix
+        found = list(io_app.get_data_store(
+            self.basedir, suffix='.fasta*'))
+        self.assertTrue(len(found) > 2)
+
     def test_load_aligned(self):
         """correctly loads aligned seqs"""
 
@@ -55,12 +68,11 @@ class TestIo(TestCase):
             for i, aln in enumerate(loaded):
                 self.assertTrue(len(aln) > 10)
                 self.assertIsInstance(aln, ArrayAlignment)
-                expect_source = join(loader.data_store.source, paths[i])
-                self.assertEqual(aln.info.source, expect_source)
+                self.assertEqual(aln.info.source, paths[i])
 
-        fasta_paths = list(io_app.findall(self.basedir, suffix='.fasta',
-                                          limit=2))
-        fasta_loader = io_app.load_aligned(self.basedir, format='fasta')
+        fasta_paths = io_app.get_data_store(self.basedir, suffix='.fasta',
+                                            limit=2)
+        fasta_loader = io_app.load_aligned(format='fasta')
         validate(fasta_paths, fasta_loader)
 
     def test_load_aligned_from_zip(self):
@@ -73,31 +85,30 @@ class TestIo(TestCase):
                 self.assertIsInstance(aln, ArrayAlignment)
                 # paths is only the basename when workjing with zip archives
                 # whereas the inpath will have full path of zip archive
-                expect_source = join(loader.data_store.source, paths[i])
-                self.assertEqual(basename(aln.info.source), paths[i])
-                self.assertEqual(aln.info.source,
-                                 expect_source)
+                self.assertEqual(aln.info.source, paths[i])
+                self.assertEqual(aln.info.source, paths[i])
 
         with TemporaryDirectory(dir='.') as dirname:
-            zip_path = join(dirname, 'new')
-            shutil.make_archive(zip_path, 'zip', self.basedir)
+            zip_path = join(dirname, self.basedir.replace('.zip', ''))
+            shutil.make_archive(base_name=zip_path,
+                                root_dir='.',
+                                format='zip',
+                                base_dir=self.basedir)
             zip_path = zip_path + '.zip'  # because shutil adds the suffix
             fasta_paths = list(io_app.findall(zip_path, suffix='.fasta',
                                               limit=2))
-            fasta_loader = io_app.load_aligned(format='fasta',
-                                               data_path=zip_path)
+            fasta_loader = io_app.load_aligned(format='fasta')
             validate(fasta_paths, fasta_loader)
 
     def test_load_unaligned(self):
         """load_unaligned returns degapped sequence collections"""
-        fasta_paths = list(io_app.findall(self.basedir, suffix='.fasta',
-                                          limit=2))
-        fasta_loader = io_app.load_unaligned(self.basedir, format='fasta')
+        fasta_paths = io_app.get_data_store(self.basedir, suffix='.fasta',
+                                            limit=2)
+        fasta_loader = io_app.load_unaligned(format='fasta')
         for i, seqs in enumerate(map(fasta_loader, fasta_paths)):
             self.assertIsInstance(seqs, SequenceCollection)
             self.assertTrue('-' not in ''.join(seqs.todict().values()))
-            expect_source = join(self.basedir, fasta_paths[i])
-            self.assertEqual(seqs.info.source, expect_source)
+            self.assertEqual(seqs.info.source, fasta_paths[i])
 
         # should also handle case where it's given an alignment/sequence
         # collection
@@ -108,8 +119,7 @@ class TestIo(TestCase):
         """correctly writes sequences out"""
         fasta_paths = list(io_app.findall(self.basedir, suffix='.fasta',
                                           limit=2))
-        fasta_loader = io_app.load_aligned(self.basedir, format='fasta',
-                                           suffix='fasta')
+        fasta_loader = io_app.load_aligned(format='fasta', suffix='fasta')
         alns = list(map(fasta_loader, fasta_paths))
         with TemporaryDirectory(dir='.') as dirname:
             writer = io_app.write_seqs(dirname, if_exists='ignore')
@@ -134,7 +144,7 @@ class TestIo(TestCase):
         # zipped directory
         with TemporaryDirectory(dir='.') as dirname:
             zip_path = join(dirname, 'delme.zip')
-            outpath = 'delme.json'
+            outpath = 'delme/delme.json'
             with zipfile.ZipFile(zip_path, 'a') as out:
                 out.writestr(outpath, data)
 
@@ -167,9 +177,10 @@ class TestIo(TestCase):
             writer = io_app.write_json(outdir, create=True)
             identifier = writer(mock)
             reader = io_app.load_json(outdir)
-            got = reader(join(outdir, 'delme.json'))
+            got = reader(join(outdir.replace('.zip', ''), 'delme.json'))
             self.assertEqual(got, DNA)
-            self.assertEqual(identifier, join(outdir, 'delme.json'))
+            self.assertEqual(identifier, join(outdir.replace('.zip', ''),
+                                              'delme.json'))
 
     def test_write_json_no_info(self):
         """correctly writes an object with out an info attribute from json"""
@@ -195,9 +206,11 @@ class TestIo(TestCase):
             writer = io_app.write_json(outdir, create=True)
             identifier = writer(mock)
             reader = io_app.load_json(outdir)
-            got = reader(join(outdir, 'delme.json'))
+            got = reader(join(outdir.replace('.zip', ''), 'delme.json'))
             self.assertEqual(got, DNA)
-            self.assertEqual(identifier, join(outdir, 'delme.json'))
+            self.assertEqual(identifier, join(outdir.replace('.zip', ''),
+                                              'delme.json'))
+
 
 if __name__ == '__main__':
     main()
