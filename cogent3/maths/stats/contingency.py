@@ -102,13 +102,20 @@ def estimate_pval(observed, stat_func, num_reps=1000):
 
 
 class CategoryCounts:
+    """CategoryCounts for performing contingency tests
+
+    Has attributes for observed, expected and residuals.
+    The latter is calculated using the G-test, for goodness-of-fit if expecteds
+    are provided, G-test of independence if not provided.
+    """
     def __init__(self, observed, expected=None):
         """Parameters
         -------------
         observed
             a DictArray instance, or something that can be converted to one
         expected
-            provide in the case where you know the prior proportions.
+            provide in the case where you know the prior proportions, otherwise
+            calculated from marginal frequencies
         """
         if not isinstance(observed, DictArray):
             observed = DictArray(observed)
