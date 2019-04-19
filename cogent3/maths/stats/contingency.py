@@ -260,9 +260,12 @@ class CategoryCounts:
         else:
             pval = estimate_pval(self.observed.array, calc_chisq,
                                  num_reps=shuffled)
-        return stat, self.df, pval
+        title = 'Chisq-test for independence'
+        result = TestResult(self.observed, self.expected, self.residuals,
+                            'chisq', stat, self.df, pval, test_name=title)
+        return result
 
-    def G_independence(self, pseudo_count=0, williams=False, shuffled=0):
+    def G_independence(self, pseudo_count=0, williams=True, shuffled=0):
         """performs the independence G test
         Parameters
         ----------
@@ -281,7 +284,12 @@ class CategoryCounts:
         else:
             pval = estimate_pval(self.observed.array, calc_G,
                                  num_reps=shuffled)
-        return G, self.df, pval
+        title = 'G-test for independence'
+        if williams:
+            title = f'{title} (with Williams correction)'
+        result = TestResult(self.observed, self.expected, self.residuals,
+                            'G', G, self.df, pval, test_name=title)
+        return result
 
     def G_fit(self, pseudo_count=0, williams=True):
         """performs the goodness-of-fit G test"""
@@ -290,12 +298,79 @@ class CategoryCounts:
         if pseudo_count:
             obs += pseudo_count
 
-        G, pval = G_fit(obs, self.expected.array, williams=williams)
-        return G, self.df, pval
+        G, pval = G_fit(obs.flatten(), self.expected.array.flatten(),
+                        williams=williams)
+        title = 'G-test goodness-of-fit'
+        if williams:
+            title = f'{title} (with Williams correction)'
+
+        result = TestResult(self.observed, self.expected, self.residuals,
+                            'G', G, self.df, pval, test_name=title)
+        return result
 
     def todict(self):
         result = dict(observed=self.observed.todict(),
                       expected=self.expected.todict(),
                       residuals=self.residuals.todict())
         return result
+
+class TestResult:
+    """result of a contingency test"""
+    def __init__(self, observed, expected, residuals, stat_name, stat, df,
+                 pvalue, test_name=""):
+        """
+        Parameters
+        ----------
+        observed
+            observed counts as a DictArray
+        expected
+            expected counts as a DictArray
+        residuals
+            Pearson residuals between observed and expected as a DictArray
+        stat_name
+            Name of the statistic, e.g. G, chisq.
+        stat : float
+            value of the statistic
+        df : int
+            degrees of freedom for the hypothesis test
+        pvalue
+            pvalue from the hypothesis test
+        test_name
+            name of the statistical test
+        """
+        self.pvalue = pvalue
+        self.df = df
+        self.stat = stat
+        self.test_name = test_name
+        self.stat_name = stat_name
+        self.residuals = residuals
+        self.expected = expected
+        self.observed = observed
+        setattr(self, stat_name, stat)
+
+    def _get_repr_(self):
+        header = [str(self.stat_name), 'df', 'pvalue']
+        if self.pvalue > 1e-3:
+            pval = f'{self.pvalue:.4f}'
+        else:
+            pval = f'{self.pvalue:.4e}'
+        rows = [[f'{self.stat:.3f}', f'{self.df}', pval]]
+        return header, rows
+
+    def __repr__(self):
+        h, r = self._get_repr_()
+        h, r = formatted_cells(r, header=h)
+        result = simple_format(h, r, title=self.test_name)
+        return result
+
+    def __str__(self):
+        return repr(self)
+
+    def _repr_html_(self):
+        h, r = self._get_repr_()
+        result = rich_html(r, header=h, caption=f'<b>{self.test_name}</b>',
+                  merge_identical=False)
+        return result
+
+
 
