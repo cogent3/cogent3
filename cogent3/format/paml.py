@@ -2,7 +2,7 @@
 """Writer for PAML sequence format
 """
 
-from cogent3.format.formatter import _AlignmentFormatter
+from cogent3.format.util import _AlignmentFormatter
 
 __author__ = "Thomas La"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
