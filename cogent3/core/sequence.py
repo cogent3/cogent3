@@ -1159,7 +1159,7 @@ class ArraySequenceBase(object):
 
     def is_valid(self):
         """Checks that no items in self are out of the alphabet range."""
-        return self._data == self._data.clip(m, 0, len(self.alphabet) - 1)
+        return self._data == self._data.clip(0, len(self.alphabet) - 1)
 
     def to_k_words(self, k, overlapping=True):
         """Turns sequence into sequence of its k-words.
