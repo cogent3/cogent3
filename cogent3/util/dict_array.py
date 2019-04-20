@@ -35,11 +35,13 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+
 def _todict(data):
     if isinstance(data, DictArray):
-        out = {k : _todict(data[k]) for k in list(data.keys())}
+        out = {k: _todict(data[k]) for k in list(data.keys())}
         return out
     return data
+
 
 def convert_1D_dict(data, row_order=None):
     """returns a 1D list and header as dict keys
@@ -57,6 +59,7 @@ def convert_1D_dict(data, row_order=None):
 
     rows = [data[c] for c in row_order]
     return rows, row_order
+
 
 def convert2Ddistance(dists, header=None, row_order=None):
     """returns a 2 dimensional list, header and row order
@@ -137,7 +140,6 @@ def convert2DDict(twoDdict, header=None, row_order=None, make_symmetric=False):
             data[k][k] = 0
         twoDdict = data
 
-
     # make list of lists
     rows = []
     for row in row_order:
@@ -147,6 +149,7 @@ def convert2DDict(twoDdict, header=None, row_order=None, make_symmetric=False):
         rows.append(elements)
 
     return rows, row_order, header
+
 
 def convert_dict(data, header=None, row_order=None):
     """returns a list, DictArrayTemplate args
@@ -169,6 +172,7 @@ def convert_dict(data, header=None, row_order=None):
     else:
         rows, row_order = convert_1D_dict(data, header)
     return rows, row_order, header
+
 
 def convert_series(data, row_order=None, header=None):
     """returns a list, header and row order
@@ -213,6 +217,7 @@ def convert_series(data, row_order=None, header=None):
     row_order = row_order if row_order else nrows
 
     return data, row_order, header
+
 
 def convert_for_dictarray(data, header=None, row_order=None):
     """returns a list, header and row order from data
@@ -264,12 +269,14 @@ class DictArrayTemplate(object):
 
     def __eq__(self, other):
         return self is other or (
-            isinstance(other, DictArrayTemplate) and self.names == other.names)
+                isinstance(other,
+                           DictArrayTemplate) and self.names == other.names)
 
     def _dict2list(self, value, depth=0):
         # Unpack (possibly nested) dictionary into correct order of elements
         if depth < len(self._shape):
-            return [self._dict2list(value[key], depth + 1) for key in self.names[depth]]
+            return [self._dict2list(value[key], depth + 1) for key in
+                    self.names[depth]]
         else:
             return value
 
@@ -360,7 +367,7 @@ class DictArray(object):
             self.template = DictArrayTemplate(row_keys, col_keys)
         elif len(args) == 2:
             if not isinstance(args[1], DictArrayTemplate):
-                raise  NotImplementedError
+                raise NotImplementedError
             self.array = args[0]
             self.template = args[1]
         else:
@@ -429,3 +436,38 @@ class DictArray(object):
             return self.todict() == other
         else:
             return False
+
+    def to_normalized(self, by_row=False, by_column=False):
+        """returns a DictArray as frequencies
+
+        Parameters
+        ----------
+        by_row
+            rows sum to 1
+        by_col
+            columns sum to 1
+        """
+        assert not (by_row and by_column)
+        # todo need to check there are two dimension!
+        if by_row:
+            axis = 1
+        elif by_column:
+            axis = 0
+        else:
+            axis = None
+
+        result = self.array / self.array.sum(axis=axis, keepdims=True)
+        return self.template.wrap(result)
+
+    def row_sum(self):
+        """returns DictArray summed across rows"""
+        axis = 1 if len(self.shape) == 2 else 0
+        result = self.array.sum(axis=1)
+        template = DictArrayTemplate(self.template.names[0])
+        return template.wrap(result)
+
+    def col_sum(self):
+        """returns DictArray summed across columns"""
+        result = self.array.sum(axis=0)
+        template = DictArrayTemplate(self.template.names[1])
+        return template.wrap(result)

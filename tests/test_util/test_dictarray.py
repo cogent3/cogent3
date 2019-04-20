@@ -193,6 +193,42 @@ class DictArrayTest(TestCase):
         r = darr[2:, 'A':'G']
         assert_allclose(r.toarray(), [[0.7], [0.1]])
 
+    def test_to_normalized(self):
+        """computes frequencies across correct dimension"""
+        data = [[3, 7],
+                [2, 8],
+                [5, 5]]
+        darr = DictArrayTemplate(list('ABC'), list('ab')).wrap(data)
+        row_normal = darr.to_normalized(by_row=True)
+        assert_allclose(row_normal.array, [[0.3, 0.7],
+                                           [0.2, 0.8],
+                                           [0.5, 0.5]])
+        col_normal = darr.to_normalized(by_column=True)
+        assert_allclose(col_normal.array, [[0.3, 7/20],
+                                           [0.2, 8/20],
+                                           [0.5, 5/20]])
+        # trying to do both raises AssertionError
+        with self.assertRaises(AssertionError):
+            darr.to_normalized(by_row=True, by_column=True)
+
+    def test_col_sum(self):
+        """correctly computes column sum"""
+        data = [[3, 7],
+                [2, 8],
+                [5, 5]]
+        darr = DictArrayTemplate(list('ABC'), list('ab')).wrap(data)
+        col_sum = darr.col_sum()
+        assert_allclose(col_sum.array, [10, 20])
+
+    def test_row_sum(self):
+        """correctly computes row sum"""
+        data = [[3, 7],
+                [2, 8],
+                [5, 5]]
+        darr = DictArrayTemplate(list('ABC'), list('ab')).wrap(data)
+        row_sum = darr.row_sum()
+        assert_allclose(row_sum.array, [10, 10, 10])
+
 
 if __name__ == '__main__':
     main()
