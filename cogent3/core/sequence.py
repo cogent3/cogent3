@@ -13,7 +13,6 @@ creation.
 """
 
 from functools import total_ordering
-from collections import Counter
 from operator import eq, ne
 from random import shuffle
 import re
@@ -24,6 +23,7 @@ from numpy import array, zeros, put, nonzero, take, ravel, compress, \
     logical_or, logical_not, arange
 from numpy.random import permutation
 
+from cogent3.maths.stats.number import CategoryCounter
 from .annotation import Map, Feature, _Annotatable
 from cogent3.util.transform import KeepChars, for_seq, per_shortest, \
     per_longest
@@ -129,7 +129,7 @@ class SequenceI(object):
         not_array = isinstance(data, str)
         
         if motif_length == 1:
-            counts = Counter(data)
+            counts = CategoryCounter(data)
         else:
             if len(data) % motif_length != 0:
                 warnings.warn(
@@ -138,10 +138,10 @@ class SequenceI(object):
             limit = (len(data) // motif_length) * motif_length
             data = data[:limit]
             if not_array:
-                counts = Counter(data[i:i+motif_length] 
+                counts = CategoryCounter(data[i:i+motif_length]
                                  for i in range(0, limit, motif_length))
             else:
-                counts = Counter(tuple(v) for v in data.reshape(limit//motif_length,
+                counts = CategoryCounter(tuple(v) for v in data.reshape(limit//motif_length,
                                                             motif_length))
         if not not_array:
             for key in list(counts):
@@ -162,7 +162,7 @@ class SequenceI(object):
         
         for motif in exclude:
             del(counts[motif])
-        
+
         return counts
     
     def __lt__(self, other):
@@ -840,7 +840,7 @@ class Sequence(_Annotatable, SequenceI):
         map = Map(segments, parent_length=len(self)).inverse()
         seq = self.__class__(
             ''.join(gapless),
-            name=self.get_name(), info=self.info)
+            name=self.get_name(), info=self.info, preserve_case=True)
         if self.annotations:
             seq.annotations = [a.remapped_to(seq, map)
                                for a in self.annotations]
