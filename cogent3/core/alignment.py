@@ -21,6 +21,7 @@
 """
 import re
 import json
+import warnings
 from types import GeneratorType
 from collections import defaultdict, Counter
 from functools import total_ordering
@@ -33,6 +34,7 @@ from cogent3.core.genetic_code import DEFAULT
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.sequence import frac_same, ArraySequence
 from cogent3.core.location import LostSpan, Span
+from cogent3.maths.stats.number import CategoryCounter
 from cogent3.maths.stats.util import Freqs
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.phylip import alignment_to_phylip
@@ -1908,22 +1910,13 @@ class AlignmentI(object):
         return freqs
 
     def majority_consensus(self, transform=None, constructor=Freqs):
+    def majority_consensus(self):
         """Returns list containing most frequent item at each position.
 
         Optional parameter transform gives constructor for type to which result
         will be converted (useful when consensus should be same type as
         originals).
         """
-        col_freqs = self.column_freqs(constructor)
-
-        consensus = [freq.Mode for freq in col_freqs]
-        if transform == str:
-            return coerce_to_string(consensus)
-        elif transform:
-            return transform(consensus)
-        else:
-            return consensus
-
     def uncertainties(self, good_items=None):
         """Returns Shannon uncertainty at each position.
 
@@ -1952,6 +1945,13 @@ class AlignmentI(object):
                 prob.normalize()
             uncertainties.append(prob.Uncertainty)
         return uncertainties
+        states = []
+        data = zip(*map(str, self.seqs))
+        for pos in data:
+            pos = CategoryCounter(pos)
+            states.append(pos.mode)
+
+        return self.moltype.make_seq(''.join(states))
 
     def get_pwm(self):
         """Returns a position specific weight matrix for the alignment."""
@@ -2358,12 +2358,38 @@ class AlignmentI(object):
             del(result[-1])
 
         return '\n'.join(result)
-    
-    def counts_per_seq(self, motif_length=1, include_ambiguity=False, allow_gap=False):
-        """returns dict of counts of motifs per sequence
-    
-            only non-overlapping motifs are counted.
-    
+
+    def counts_per_pos(self, motif_length=1, include_ambiguity=False,
+                       allow_gap=False, alert=False):
+        """return DictArray of counts per position
+
+        alert
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
+        """
+        length = (len(self) // motif_length) * motif_length
+        if alert and len(self) != length:
+            warnings.warn(f"trimmed {len(self)-length}", UserWarning)
+
+        data = list(self.todict().values())
+        alpha = self.moltype.alphabet.get_word_alphabet(motif_length)
+        all_motifs = set() if allow_gap or include_ambiguity else None
+        result = []
+        for i in range(0, len(self) - motif_length + 1, motif_length):
+            counts = CategoryCounter([s[i: i + motif_length] for s in data])
+            if all_motifs is not None:
+                allow_gap.update(list(counts))
+            result.append(counts)
+
+        if all_motifs:
+            alpha.extend(list(sorted(set(alpha) ^ all_motifs)))
+
+        for i, counts in enumerate(result):
+            result[i] = counts.tolist(alpha)
+
+        result = MotifCountsArray(result, alpha)
+        return result
+
             Arguments:
             - motif_length: number of elements per character.
             - include_ambiguity: if True, motifs containing ambiguous characters

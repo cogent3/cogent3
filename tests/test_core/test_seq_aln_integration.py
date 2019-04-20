@@ -99,15 +99,12 @@ class AllTests(TestCase):
         expected_counts = {0: {'U': 1, 'C': 1, 'A': 1, 'G': 3},
                            1: {'Y': 1, 'C': 1, 'U': 1, '-': 1, 'R': 1, 'G': 1},
                            2: {'C': 1, 'A': 2, '-': 1, 'N': 1, 'R': 1}}
-        exp = [[0] * 17, [0] * 17, [0] * 17]
-        for seq_index in expected_counts:
-            for char in expected_counts[seq_index]:
-                exp[seq_index][get_index(char)] = expected_counts[
-                                         seq_index][char]
-        exp = array(exp)
-        self.assertEqual(self.da.get_seq_freqs().data, exp)
-        # This used to raise an error, but now works
-        self.assertEqual(self.aln.get_seq_freqs().data, exp)
+        got1 = self.da.counts_per_seq(allow_gap=True, include_ambiguity=True)
+        got2 = self.aln.counts_per_seq(allow_gap=True, include_ambiguity=True)
+        for pos, counts in expected_counts.items():
+            for char in counts:
+                self.assertEqual(got1[pos, char], expected_counts[pos][char])
+                self.assertEqual(got2[pos, char], expected_counts[pos][char])
 
     def test_subset_positions_ArrayAlignment(self):
         # because dict order volatile, need to grab the

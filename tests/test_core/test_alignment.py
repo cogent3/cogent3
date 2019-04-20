@@ -1474,7 +1474,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
     def test_majority_consensus(self):
         """SequenceCollection.majority_consensus should return commonest symbol per column"""
         # Check the exact strings expected from string transform
-        self.assertEqual(self.sequences.majority_consensus(str), 'UCAG')
+        self.assertEqual(self.sequences.majority_consensus(), 'UCAG')
 
     def test_uncertainties(self):
         """SequenceCollection.uncertainties should match hand-calculated values"""
@@ -1830,7 +1830,28 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         expect = {'a': dict(A=4), 'b': dict(C=3, G=3)}
         self.assertEqual(got, expect)
 
-        
+        s1 = DNA.make_seq('TCAGAG', name='s1')
+        s2 = DNA.make_seq('CCACAC', name='s2')
+        s3 = DNA.make_seq('AGATAT', name='s3')
+        aln = self.Class([s1, s2, s3], moltype=DNA)
+        obs = aln.counts_per_pos()
+        self.assertEqual(obs.array, exp)
+        self.assertEqual(obs.motifs, tuple(DNA.alphabet))
+        obs = aln.counts_per_pos(motif_length=2)
+        self.assertEqual(obs[0, 'TC'], 1)
+        self.assertEqual(obs[1, 'AC'], 1)
+        self.assertEqual(obs[2, 'AC'], 1)
+
+    def test_get_seq_entropy(self):
+        """ArrayAlignment get_seq_entropy should get entropy of each seq"""
+        seqs = [AB.make_seq(s, preserve_case=True)
+                for s in ['abab', 'bbbb', 'abbb']]
+        a = self.Class(seqs, alphabet=AB.alphabet)
+        entropy = a.entropy_per_seq()
+        e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
+        self.assertFloatEqual(entropy, array([1, 0, e]))
+
+
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
     Class = ArrayAlignment
 
