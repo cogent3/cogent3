@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from numpy.testing import assert_allclose
 
 from cogent3.util.unit_test import TestCase, main
 from cogent3.util.misc import get_object_provenance
@@ -1459,17 +1460,19 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         assert(not self.identical.is_ragged())
         assert(not self.gaps.is_ragged())
 
-    def test_column_probs(self):
-        """SequenceCollection.column_probs should find Pr(symbol) in each column"""
+    def test_probs_per_pos(self):
+        """SequenceCollection.probs_per_pos should find Pr(symbol) in each
+        column"""
         # make an alignment with 4 seqs (easy to calculate probabilities)
         align = self.Class(["AAA", "ACA", "GGG", "GUC"])
-        cp = align.column_probs()
+        got = align.probs_per_pos()
         # check that the column probs match the counts we expect
-        self.assertEqual(cp, list(map(Freqs, [
-            {'A': 0.5, 'G': 0.5},
-            {'A': 0.25, 'C': 0.25, 'G': 0.25, 'U': 0.25},
-            {'A': 0.5, 'G': 0.25, 'C': 0.25},
-        ])))
+        expect = [{'A': 0.5, 'G': 0.5},
+                  {'A': 0.25, 'C': 0.25, 'G': 0.25, 'U': 0.25},
+                  {'A': 0.5, 'G': 0.25, 'C': 0.25}]
+        for pos, probs in enumerate(expect):
+            for char, prob in probs.items():
+                assert_allclose(got[pos, char], prob)
 
     def test_majority_consensus(self):
         """SequenceCollection.majority_consensus should return commonest symbol per column"""
@@ -1479,36 +1482,12 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
     def test_uncertainties(self):
         """SequenceCollection.uncertainties should match hand-calculated values"""
         aln = self.Class(['ABC', 'AXC'])
-        obs = aln.uncertainties()
+        obs = aln.entropy_per_pos()
         self.assertFloatEqual(obs, [0, 1, 0])
         # check what happens with only one input sequence
         aln = self.Class(['ABC'])
-        obs = aln.uncertainties()
+        obs = aln.entropy_per_pos()
         self.assertFloatEqual(obs, [0, 0, 0])
-        # check that we can screen out bad items OK
-        aln = self.Class(['ABC', 'DEF', 'GHI', 'JKL', '333'], moltype=BYTES)
-        obs = aln.uncertainties('ABCDEFGHIJKLMNOP')
-        self.assertFloatEqual(obs, [2.0] * 3)
-
-    def test_column_freqs(self):
-        """Alignment.column_freqs should count symbols in each column"""
-        # calculate by hand what the first and last positions should look like in
-        # each case
-        firstvalues = [
-            [self.sequences, Freqs('UUU')],
-            ]
-
-        lastvalues = [
-            [self.sequences, Freqs('GGG')]
-            ]
-        # check that the first positions are what we expected
-        for obj, result in firstvalues:
-            freqs = obj.column_freqs()
-            self.assertEqual(str(freqs[0]), str(result))
-        # check that the last positions are what we expected
-        for obj, result in lastvalues:
-            freqs = obj.column_freqs()
-            self.assertEqual(str(freqs[-1]), str(result))
 
     def test_get_pwm(self):
         """Alignment get_pwm should produce position specific score matrix."""
@@ -1813,22 +1792,31 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
         got = coll.counts(motif_length=2, allow_gap=True)
         expect.update({'--': 1})
-        self.assertEqual(got, expect)
-        
-        got = dict(coll.counts(motif_length=2, include_ambiguity=True,
-                               allow_gap=True))
+        for k, v in expect.items():
+            self.assertEqual(got[k], v)
+
+        got = coll.counts(motif_length=2, include_ambiguity=True,
+                          allow_gap=True)
         expect = dict(AA=2, CC=1, CG=1, GG=1, NN=1)
         expect.update({'??': 3, '--': 1})
-        self.assertEqual(got, expect)
-        
+        for k, v in expect.items():
+            self.assertEqual(got[k], v)
 
     def test_counts_per_seq(self):
         """SequenceCollection.counts_per_seq handles motif length, allow_gaps etc.."""
         data = {'a': 'AAAA??????', 'b': 'CCCGGG--NN'}
         coll = self.Class(data=data, moltype=DNA)
-        got = dict(coll.counts_per_seq())
-        expect = {'a': dict(A=4), 'b': dict(C=3, G=3)}
-        self.assertEqual(got, expect)
+        got = coll.counts_per_seq()
+        self.assertEqual(got['a', 'A'], 4)
+
+    def test_counts_per_pos(self):
+        """correctly count motifs"""
+        exp = array([[1, 1, 1, 0],
+                     [0, 2, 0, 1],
+                     [0, 0, 3, 0],
+                     [1, 1, 0, 1],
+                     [0, 0, 3, 0],
+                     [1, 1, 0, 1]])
 
         s1 = DNA.make_seq('TCAGAG', name='s1')
         s2 = DNA.make_seq('CCACAC', name='s2')
@@ -1883,128 +1871,9 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
         sub_align = alignment[2:5]
         self.assertTrue(len(sub_align) == 3)
         self.assertEqual(sub_align.info['key'], 'value')
-    
-    def test_get_freqs(self):
-        """ArrayAlignment get_seq_freqs: should work on positions and sequences 
-        """
-        s1 = DNA.make_seq('TCAG', name='s1')
-        s2 = DNA.make_seq('CCAC', name='s2')
-        s3 = DNA.make_seq('AGAT', name='s3')
-        da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
-        seq_exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
-        pos_exp = array([[1, 1, 1, 0], [0, 2, 0, 1],
-                        [0, 0, 3, 0], [1, 1, 0, 1]])
-        self.assertEqual(da._get_freqs(index=1), pos_exp)
-        self.assertEqual(da._get_freqs(index=0), seq_exp)
-
-    def test_get_seq_freqs(self):
-        """ArrayAlignment get_seq_freqs: should work with DnaSequences and strings
-        """
-        exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
-
-        s1 = DNA.make_seq('TCAG', name='s1')
-        s2 = DNA.make_seq('CCAC', name='s2')
-        s3 = DNA.make_seq('AGAT', name='s3')
-        da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
-        obs = da.get_seq_freqs()
-        self.assertEqual(obs.data, exp)
-        self.assertEqual(obs.alphabet, DNA.alphabet)
-        self.assertEqual(obs.char_order, list("TCAG"))
-
-        s1 = 'TCAG'
-        s2 = 'CCAC'
-        s3 = 'AGAT'
-        da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
-        obs = da.get_seq_freqs()
-        self.assertEqual(obs.data, exp)
-        self.assertEqual(obs.alphabet, DNA.alphabet)
-        self.assertEqual(obs.char_order, list("TCAG"))
-
-    def test_get_pos_freqs_sequence(self):
-        """ArrayAlignment get_pos_freqs: should work with DnaSequences and strings
-        """
-        exp = array([[1, 1, 1, 0], [0, 2, 0, 1], [0, 0, 3, 0], [1, 1, 0, 1]])
-
-        s1 = DNA.make_seq('TCAG', name='s1')
-        s2 = DNA.make_seq('CCAC', name='s2')
-        s3 = DNA.make_seq('AGAT', name='s3')
-        da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
-        obs = da.get_pos_freqs()
-        self.assertEqual(obs.data, exp)
-        self.assertEqual(obs.alphabet, DNA.alphabet)
-        self.assertEqual(obs.char_order, list("TCAG"))
-
-        s1 = 'TCAG'
-        s2 = 'CCAC'
-        s3 = 'AGAT'
-        da = ArrayAlignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
-        obs = da.get_pos_freqs()
-        self.assertEqual(obs.data, exp)
-        self.assertEqual(obs.alphabet, DNA.alphabet)
-        self.assertEqual(obs.char_order, list("TCAG"))
-
 
 class AlignmentTests(AlignmentBaseTests, TestCase):
     Class = Alignment
-
-    def test_get_freqs(self):
-        """Alignment _get_freqs: should work on positions and sequences 
-        """
-        s1 = DNA.make_seq('TCAG', name='s1')
-        s2 = DNA.make_seq('CCAC', name='s2')
-        s3 = DNA.make_seq('AGAT', name='s3')
-        aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
-        seq_exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
-        pos_exp = array([[1, 1, 1, 0], [0, 2, 0, 1],
-                        [0, 0, 3, 0], [1, 1, 0, 1]])
-        self.assertEqual(aln._get_freqs(index=1), pos_exp)
-        self.assertEqual(aln._get_freqs(index=0), seq_exp)
-
-    def test_get_seq_freqs(self):
-        """Alignment get_seq_freqs: should work with DnaSequences and strings
-        """
-        exp = array([[1, 1, 1, 1], [0, 3, 1, 0], [1, 0, 2, 1]])
-
-        s1 = DNA.make_seq('TCAG', name='s1')
-        s2 = DNA.make_seq('CCAC', name='s2')
-        s3 = DNA.make_seq('AGAT', name='s3')
-        aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
-        obs = aln.get_seq_freqs()
-        self.assertEqual(obs.data, exp)
-        self.assertEqual(obs.alphabet, DNA.alphabet)
-        self.assertEqual(obs.char_order, list("TCAG"))
-
-        s1 = 'TCAG'
-        s2 = 'CCAC'
-        s3 = 'AGAT'
-        aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
-        obs = aln.get_seq_freqs()
-        self.assertEqual(obs.data, exp)
-        self.assertEqual(obs.alphabet, DNA.alphabet)
-        self.assertEqual(obs.char_order, list("TCAG"))
-
-    def test_get_pos_freqs(self):
-        """Alignment get_pos_freqs: should work with DnaSequences and strings
-        """
-        exp = array([[1, 1, 1, 0], [0, 2, 0, 1], [0, 0, 3, 0], [1, 1, 0, 1]])
-
-        s1 = DNA.make_seq('TCAG', name='s1')
-        s2 = DNA.make_seq('CCAC', name='s2')
-        s3 = DNA.make_seq('AGAT', name='s3')
-        aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
-        obs = aln.get_pos_freqs()
-        self.assertEqual(obs.data, exp)
-        self.assertEqual(obs.alphabet, DNA.alphabet)
-        self.assertEqual(obs.char_order, list("TCAG"))
-
-        s1 = 'TCAG'
-        s2 = 'CCAC'
-        s3 = 'AGAT'
-        aln = Alignment([s1, s2, s3], moltype=DNA, alphabet=DNA.alphabet)
-        obs = aln.get_pos_freqs()
-        self.assertEqual(obs.data, exp)
-        self.assertEqual(obs.alphabet, DNA.alphabet)
-        self.assertEqual(obs.char_order, list("TCAG"))
 
     def make_and_filter(self, raw, expected, motif_length):
         # a simple filter func
@@ -2182,12 +2051,10 @@ class ArrayAlignmentSpecificTests(TestCase):
         self.a = ArrayAlignment(array([[0, 1, 2], [3, 4, 5]]),
                                 conversion_f=aln_from_array)
         self.a2 = ArrayAlignment(['ABC', 'DEF'], names=['x', 'y'])
-
-        class ABModelSequence(ArraySequence):
-            alphabet = AB.alphabet
-        self.ABModelSequence = ABModelSequence
-        self.a = ArrayAlignment(list(map(ABModelSequence, ['abaa', 'abbb'])),
-                                alphabet=AB.alphabet)
+        seqs = []
+        for s in ['abaa', 'abbb']:
+            seqs.append(AB.make_seq(s, preserve_case=True))
+        self.a = ArrayAlignment(seqs, alphabet=AB.alphabet)
         self.b = Alignment(['ABC', 'DEF'])
         self.c = SequenceCollection(['ABC', 'DEF'])
 
@@ -2196,7 +2063,8 @@ class ArrayAlignmentSpecificTests(TestCase):
         a = ArrayAlignment(array([[0, 1, 2], [3, 4, 5]]),
                            conversion_f=aln_from_array)
         self.assertEqual(a.seq_data, array([[0, 3], [1, 4], [2, 5]], 'B'))
-        self.assertEqual(a.array_positions, array([[0, 1, 2], [3, 4, 5]], 'B'))
+        self.assertEqual(a.array_positions, array(
+            [[0, 1, 2], [3, 4, 5]], 'B'))
         self.assertEqual(a.names, ['seq_0', 'seq_1', 'seq_2'])
 
     def test_guess_input_type(self):
@@ -2240,7 +2108,8 @@ class ArrayAlignmentSpecificTests(TestCase):
         """ArrayAlignment init should work from dict."""
         s = {'abc': 'AAACCC', 'xyz': 'GCGCGC'}
         a = ArrayAlignment(s, names=['abc', 'xyz'])
-        self.assertEqual(a.seq_data, array(['AAACCC', 'GCGCGC'], 'c').view('B'))
+        self.assertEqual(a.seq_data, array(
+            ['AAACCC', 'GCGCGC'], 'c').view('B'))
         self.assertEqual(tuple(a.names), ('abc', 'xyz'))
 
     def test_init_empty(self):
@@ -2344,42 +2213,16 @@ class ArrayAlignmentSpecificTests(TestCase):
         self.a2.names[-1] = 'yyy'
         self.assertEqual(str(self.a2), '>x\nABC\n>yyy\nDEF\n')
 
-    def test_get_freqs(self):
-        """ArrayAlignment _get_freqs should get row or col freqs"""
-        ABModelSequence = self.ABModelSequence
+    def test_counts_per_seq(self):
+        """ArrayAlignment counts_per_seq should return motif counts each seq"""
         a = self.a
-        self.assertEqual(a._get_freqs(0), array([[3, 1], [1, 3]]))
-        self.assertEqual(a._get_freqs(1), array(
-            [[2, 0], [0, 2], [1, 1], [1, 1]]))
+        f = a.counts_per_seq()
+        self.assertEqual(f.array, array([[3, 1], [1, 3]]))
 
-    def test_get_seq_freqs(self):
-        """ArrayAlignment get_seq_freqs should get profile of freqs in each seq"""
-        ABModelSequence = self.ABModelSequence
+    def test_entropy_per_pos(self):
+        """entropy_per_pos should get entropy of each pos"""
         a = self.a
-        f = a.get_seq_freqs()
-        self.assertEqual(f.data, array([[3, 1], [1, 3]]))
-
-    def test_get_pos_freqs(self):
-        """ArrayAlignment get_pos_freqs should get profile of freqs at each pos"""
-        ABModelSequence = self.ABModelSequence
-        a = self.a
-        f = a.get_pos_freqs()
-        self.assertEqual(f.data, array([[2, 0], [0, 2], [1, 1], [1, 1]]))
-
-    def test_get_seq_entropy(self):
-        """ArrayAlignment get_seq_entropy should get entropy of each seq"""
-        ABModelSequence = self.ABModelSequence
-        a = ArrayAlignment(list(map(ABModelSequence, ['abab', 'bbbb', 'abbb'])),
-                           alphabet=AB.alphabet)
-        f = a.get_seq_entropy()
-        e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
-        self.assertFloatEqual(f, array([1, 0, e]))
-
-    def test_get_pos_entropy(self):
-        """ArrayAlignment get_pos_entropy should get entropy of each pos"""
-        ABModelSequence = self.ABModelSequence
-        a = self.a
-        f = a.get_pos_entropy()
+        f = a.entropy_per_pos()
         e = array([0, 0, 1, 1])
         self.assertEqual(f, e)
 

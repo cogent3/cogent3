@@ -1,766 +1,257 @@
-#!/usr/bin/env python
-"""Provides Profile and ProfileError object and CharMeaningProfile
-
-Owner: Sandra Smit (Sandra Smit)
-"""
-
-from numpy import array, sum, transpose, reshape, ones, zeros,\
-    take, float64, ravel, nonzero, log, put, concatenate, argmax, cumsum,\
-    sort, argsort, searchsorted, logical_and, asarray, uint8, add, subtract,\
-    multiply, divide, newaxis, alltrue, max, all, isfinite
-from numpy.random import random
-from numpy.linalg import norm
-from cogent3.maths.util import row_degeneracy,\
-    column_degeneracy, row_uncertainty, column_uncertainty, safe_log
-from cogent3.format.table import formatted_cells
-# SUPPORT2425
+from cogent3.util.dict_array import DictArray, DictArrayTemplate
+from cogent3.maths.util import safe_p_log_p, safe_log
 import numpy
-from functools import reduce
+from numpy.random import random
+from numpy import digitize
 
-__author__ = "Sandra Smit"
+__author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Sandra Smit", "Gavin Huttley", "Rob Knight"
-               "Peter Maxwell"]
+__credits__ = ["Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "3.0a2"
-__maintainer__ = "Sandra Smit"
-__email__ = "sandra.smit@colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
-maketrans = str.maketrans
-translate = str.translate
+
+def validate_freqs_array(data, axis=None):
+    if (data < 0).any():
+        raise ValueError('negative frequency not allowed')
+
+    if not numpy.allclose(data.sum(axis=axis), 1):
+        raise ValueError(
+            'invalid frequencies, sum(axis=1) is not equal to 1')
 
 
-class ProfileError(Exception):
-    """Error raised for exceptions occuring in the Profile object"""
-    pass
-
-
-class Profile(object):
-    """Profile class
-    """
-
-    def __init__(self, data, alphabet, char_order=None):
-        """Initializes a new Profile object.
-
-        Data: numpy 2D array with the Profile data in it.
-        Specifically, each row of the array corresponds to a position in the
-        Alignment. Each column of the array corresponds to a character in the
-        Alphabet.
-
-        alphabet: an Alphabet object or anything that can act as a list of
-            characters
-        char_order: optional list of characters to which the columns
-            in the Data correspond.
+class _MotifNumberArray(DictArray):
+    def __init__(self, data, motifs, row_indices=None, dtype=None):
         """
-        self.data = data
-        self.alphabet = alphabet
-        if char_order is None:
-            self.char_order = list(self.alphabet)
+        data
+            series of numbers, can be numpy array, CategoryCounter, dict instances
+        row_indices
+            row_indices correspond to original indexes, defaults to length of
+            motif
+        """
+        # todo validate that motifs are strings and row_indices are ints or
+        # strings
+        # todo change row_indices argument name to row_keys
+        if isinstance(data, numpy.ndarray):
+            some_data = data.any()
         else:
-            self.char_order = char_order
-        # the translation table is needed for making consensus sequences,
-        # but will fail if the alphabet isn't made of chars (in which case,
-        # we'll just skip the translation table, and certain downstream
-        # operations may fail).
-        try:
-            self._translation_table = self._make_translation_table()
-        except:
-            pass
+            some_data = any(data)
 
-    def __str__(self):
-        """Returns string representation of self.Data"""
-        return str(self.data)
-
-    def _make_translation_table(self):
-        """Makes a translation tables between the char_order and indices
-        """
-        indices = ''.join(map(chr, list(range(len(self.char_order)))))
-        chars = ''.join(map(str, self.char_order))
-        return maketrans(chars, indices)
-
-    def has_valid_data(self, err=1e-16):
-        """Returns True if all rows in self.Data add up to one
-
-        err -- float, maximum deviation from 1 allowed, default is 1e-16
-
-        Rounding errors might occur, so a small deviation from 1 is allowed.
-            The default tolerance is 1e-16.
-        """
-        obs_sums = sums = sum(self.data, 1)
-        lower_bound = ones(len(self.data)) - err
-        upper_bound = ones(len(self.data)) + err
-        tfs = sum(self.data, 1) == ones(len(self.data))
-        if (lower_bound <= obs_sums).all() and (obs_sums <= upper_bound).all():
-            return True
-        return False
-
-    def has_valid_attributes(self):
-        """Checks Alphabet, char_order, and size of self.Data"""
-        if not reduce(logical_and, [c in self.alphabet
-                                    for c in self.char_order]):
-            return False
-        elif self.data.shape[1] != len(self.char_order):
-            return False
-        return True
-
-    def is_valid(self):
-        """Check whether everything in the Profile is valid"""
-        vd = self.has_valid_data()
-        va = self.has_valid_attributes()
-        return vd and va
-
-    def data_at(self, pos, character=None):
-        """Return data for a certain position (row!) and character (column)
-
-        pos -- int, position (row) in the profile
-        character -- str, character from the CharacterOrder
-
-        If character is None, all data for the position is returned.
-        """
-        if not 0 <= pos < len(self.data):
-            raise ProfileError(
-                "Position %s is not present in the profile" % (pos))
-        if character is None:
-            return self.data[pos, :]
-        else:
-            if character not in self.char_order:
-                raise ProfileError(
-                    "Character %s is not present in the profile's CharacterOrder"
-                    % (character))
-            return self.data[pos, self.char_order.index(character)]
-
-    def copy(self):
-        """Returns a copy of the Profile object
-
-        WARNING: the data, alphabet and the character order are the same
-        object in the original and the copy. This means you can rebind the
-        attributes, but modifying them will change them in both the original
-        and the copy.
-        """
-        return self.__class__(self.data, self.alphabet, self.char_order)
-
-    def normalize_positions(self):
-        """Normalizes the data by position (the rows!) to one
-
-        It does not make sense to normalize anything with negative
-        numbers in there. However, the method does NOT check for that,
-        because it would slow down the calculations too much. It will work,
-        but you might get very unexpected results.
-
-        The method will raise an error when one or more rows add up to
-        one. It checks explicitly for that to avoid OverflowErrors,
-        ZeroDivisionErrors, and infinities in the results.
-
-        WARNING: this method works in place with respect to the Profile
-        object, not with respect to the Data attribute. Normalization
-        rebinds self.Data to a new array.
-        """
-        row_sums = sum(self.data, 1)
-        if (row_sums == 0).any():
-            zero_indices = nonzero(row_sums == 0)[0].tolist()
-            raise ProfileError("Can't normalize profile, rows at indices %s add up to zero"
-                               % (zero_indices))
-        else:
-            self.data = self.data / row_sums[:, newaxis]
-
-    def normalize_seqs(self):
-        """Normalized the data by sequences (the columns) to one
-
-        It does not make sense to normalize anything with negative
-        numbers in there. However, the method does NOT check for that,
-        because it would slow down the calculations too much. It will work,
-        but you might get very unexpected results.
-
-        The method will raise an error when one or more columns add up to
-        one. It checks explicitly for that to avoid OverflowErrors,
-        ZeroDivisionErrors, and infinities in the results.
-
-        WARNING: this method works in place with respect to the Profile
-        object, not with respect to the Data attribute. Normalization
-        rebinds self.Data to a new array.
-        """
-        col_sums = sum(self.data, axis=0)
-        if (col_sums == 0).any():
-            zero_indices = nonzero(col_sums == 0)[0].tolist()
-            raise ProfileError("Can't normalize profile, columns at indices %s add up to zero"
-                               % (zero_indices))
-        else:
-            self.data = self.data / col_sums
-
-    def pretty_print(self, include_header=False, transpose_data=False,
-                    column_limit=None, col_sep='\t'):
-        """Returns a string method of the data and character order.
-
-        include_header: include charcter order or not
-        transpose_data: data as is (rows are positions) or transposed
-            (rows are characters) to line it up with an alignment
-        column_limit = int, maximum number of columns displayed
-        col_sep = string, column separator
-        """
-        h = self.char_order
-        d = self.data
-        if column_limit is None:
-            max_col_idx = d.shape[1]
-        else:
-            max_col_idx = column_limit
-        if include_header and not transpose_data:
-            r = [h] + d.tolist()
-        elif include_header and transpose_data:
-            r = [[x] + y for x, y in zip(h, transpose(d).tolist())]
-        elif transpose_data:
-            r = transpose(d).tolist()
-        else:
-            r = d.tolist()
-        # resize the result based on the column limit
-        if column_limit is not None:
-            r = [row[:column_limit] for row in r]
-        # nicely format the table content, discard the header (already
-        # included)
-        if r:
-            new_header, formatted_res = formatted_cells(r)
-        else:
-            formatted_res = r
-        return '\n'.join([col_sep.join(map(str, i)) for i in formatted_res])
-
-    def reduce(self, other, op=add, normalize_input=True, normalize_output=True):
-        """Reduces two profiles with some operator and returns a new Profile
-
-        other: Profile object
-        op: operator (e.g. add, subtract, multiply, divide)
-        normalize_input: whether the input profiles will be normalized
-            before collapsing. The default is True.
-        normalize_output: whether the output profile will be normalized.
-            The default is True
-
-        This function is intented for use on normalized profiles. For
-        safety it'll try to normalize the data before collapsing them.
-        If you do not normalize your data and set normalize_input to
-        False, you might get unexpected results.
-
-        It does check whether self.Data and other.Data have the same shape
-        It does not check whether self and other have the same
-        char_order. The resulting Profile gets the alphabet and
-        char order from self.
-
-        """
-        if self.data.shape != other.data.shape:
-            raise ProfileError("Cannot collapse profiles of different size: %s, %s"
-                               % (self.data.shape, other.data.shape))
-        if normalize_input:
-            self.normalize_positions()
-            other.normalize_positions()
+        if not some_data or len(data) == 0:
+            raise ValueError("Must provide data")
 
         try:
-            # SUPPORT2425
-            ori_err = numpy.geterr()
-            numpy.seterr(divide='raise')
-            try:
-                new_data = op(self.data, other.data)
-            finally:
-                numpy.seterr(**ori_err)
-            # with numpy_err(divide='raise'):
-            #     new_data = op(self.Data, other.Data)
-        except (OverflowError, ZeroDivisionError, FloatingPointError):
-            raise ProfileError("Can't do operation on input profiles")
-        result = Profile(new_data, self.alphabet, self.char_order)
+            len(data[0])
+        except TypeError:
+            ndim = 1
+        else:
+            ndim = 2
+        num_elements = len(data) if ndim == 1 else len(data[0])
+        if num_elements != len(motifs):
+            raise ValueError(f"number of data elements {len(data[0])} != {len(motifs)}")
+        motifs = tuple(motifs)
 
-        if normalize_output:
-            result.normalize_positions()
+        # create template
+        if row_indices is None and ndim == 2:
+            row_indices = len(data)
+
+        template = DictArrayTemplate(row_indices, motifs)
+        darr = template.wrap(data)
+        try:
+            darr.array.astype(dtype, casting='safe')
+        except TypeError as err:
+            raise ValueError(err)
+        self.__dict__.update(darr.__dict__)
+        self.motifs = motifs
+        self.motif_length = len(motifs[0])
+
+    def __getitem__(self, names):
+        (index, remaining) = self.template.interpret_index(names)
+        result = self.array[index]
+        row_indices = None
+        motifs = self.motifs
+        if remaining is not None:
+            if type(names) != tuple:
+                # we're indexing a row, motifs unchanged
+                row_indices = None
+            elif type(names[0]) == type(names[1]) == slice:
+                # slicing rows and, motifs
+                row_indices, motifs = remaining.names
+            elif type(names[0]) == slice:
+                # slicing rows, indexing a motif
+                row_indices = remaining.names[0]
+                motifs = [names[1]]
+                result = result.reshape(result.shape[0], 1)
+            elif type(names[1]) == slice:
+                # slicing motifs, indexing rows
+                row_indices = None
+            else:
+                raise RuntimeError(result)
+            result = self.__class__(result, motifs, row_indices=row_indices)
         return result
 
-    def __add__(self, other):
-        """Binary + operator: adds two profiles element-wise.
+    def take(self, indices, negate=False, axis=1):
+        """returns new array
 
-        Input and output are NOT normalized.
+        Parameters
+        ----------
+        indices
+            ints or keys corresponding to row (axis=0) col (axis=1)
+        negate
+            excludes the indicated indices from the result
+        axis
+            indicates row/column
         """
-        return self.reduce(other, op=add, normalize_input=False,
-                           normalize_output=False)
-
-    def __sub__(self, other):
-        """Binary - operator: subtracts two profiles element-wise
-
-        Input and output are NOT normalized.
-        """
-        return self.reduce(other, op=subtract, normalize_input=False,
-                           normalize_output=False)
-
-    def __mul__(self, other):
-        """* operator: multiplies two profiles element-wise
-
-        Input and output are NOT normalized.
-        """
-        return self.reduce(other, op=multiply, normalize_input=False,
-                           normalize_output=False)
-
-    def __div__(self, other):
-        """/ operator for old-style division: divides 2 profiles element-wise.
-
-        Used when __future__.divsion not imported
-
-        Input and output are NOT normalized.
-        """
-        return self.reduce(other, op=divide, normalize_input=False,
-                           normalize_output=False)
-
-    def __truediv__(self, other):
-        """/ operator for new-style division: divides 2 profiles element-wise.
-
-        Used when __future__.division is in action.
-
-        Input and output are NOT normalized.
-        """
-        return self.reduce(other, op=divide, normalize_input=False,
-                           normalize_output=False)
-
-    def distance(self, other, method=lambda a, b: norm(a-b)):
-        """Returns the distance between two profiles
-
-        other: Profile object
-        method: function used to calculated the distance between two
-        arrays.
-
-        WARNING: In principle works only on profiles of the same size.
-        However, when one of the two profiles is 1D (which shouldn't
-        happen) and can be aligned with the other profile the distance
-        is still calculated and may give unexpected results.
-        """
+        assert 0 <= axis <= 1, 'invalid axis'
         try:
-            return method(self.data, other.data)
-        except ValueError:  # frames not aligned
-            raise ProfileError("Profiles have different size (and are not aligned): %s %s"
-                               % (self.data.shape, other.data.shape))
+            indices[0]
+        except TypeError:
+            raise ValueError('must provide indexable series to take')
 
-    def to_odds_matrix(self, symbol_freqs=None):
-        """Returns the OddsMatrix of a profile as a new Profile.
-
-        symbol_freqs: per character array of background frequencies
-        e.g. [.25,.25,.25,.25] for equal frequencies for each of the
-        four bases.
-
-        If no symbol frequencies are provided, all symbols will get equal
-        freqs. The length of symbol freqs should match the number of
-        columns in the profile! If symbol freqs contains a zero entry,
-        a ProfileError is raised. This is done to prevent either a
-        ZeroDivisionError (raised when zero is an int) or 'inf' in the
-        resulting matrix (which happens when zero is a float).
-        """
-        pl = self.data.shape[1]  # profile length
-        # if symbol_freqs is None, create an array with equal frequencies
-        if symbol_freqs is None:
-            symbol_freqs = ones(pl) / pl
+        one_dim = self.array.ndim == 1
+        if one_dim:
+            current = self.template.names[0]
+            axis = None
         else:
-            symbol_freqs = array(symbol_freqs)
+            current = self.template.names[1] if axis else self.template.names[0]
 
-        # raise error when symbol_freqs has wrong length
-        if len(symbol_freqs) != pl:
-            raise ProfileError("Length of symbol freqs should be %s, but is %s"
-                               % (pl, len(symbol_freqs)))
-
-        # raise error when symbol freqs contains zero (to prevent
-        # ZeroDivisionError or 'inf' in the resulting matrix)
-        if sum(symbol_freqs != 0, 0) != len(symbol_freqs):
-            raise ProfileError("Symbol frequency is not allowed to be zero: %s"
-                               % (symbol_freqs))
-
-        # calculate the OddsMatrix
-        odds_ratio = self.data / symbol_freqs
-        return Profile(odds_ratio, self.alphabet, self.char_order)
-
-    def to_log_odds_matrix(self, symbol_freqs=None):
-        """Returns the LogOddsMatrix of a profile as a new Profile/
-
-        symbol_freqs: per character array of background frequencies
-        e.g. [.25,.25,.25,.25] for equal frequencies for each of the
-        four bases.
-
-        See to_odds_matrix for more information.
-        """
-        odds = self.to_odds_matrix(symbol_freqs)
-        log_odds = safe_log(odds.data)
-        return Profile(log_odds, self.alphabet, self.char_order)
-
-    def _score_indices(self, seq_indices, offset=0):
-        """Returns score of the profile for each slice of the seq_indices
-
-        seq_indices: translation of sequence into indices that match the
-        characters in the char_order of the profile
-        offset: where to start the matching procedure
-
-        This function doesn't do any input validation. That is done in 'score'
-        See method 'score' for more information.
-        """
-        data = self.data
-        pl = len(data)  # profile length (number of positions)
-        sl = len(seq_indices)
-
-        r = list(range(pl))  # fixed range
-        result = []
-        for starting_pos in range(offset, len(seq_indices) - pl + 1):
-            slice = seq_indices[starting_pos:starting_pos + pl]
-            result.append(sum(array([data[i] for i in zip(r, slice)]), axis=0))
-        return array(result)
-
-    def _score_profile(self, profile, offset=0):
-        """Returns score of the profile against the input_profile.
-
-        profile: Profile of a sequence or alignment that has to be scored
-        offset: where to start the matching procedure
-
-        This function doesn't do any input validation. That is done in 'score'
-        See method 'score' for more information.
-        """
-        data = self.data
-        self_l = len(data)  # profile length
-        other_l = len(profile.data)  # other profile length
-        result = []
-        for start in range(offset, other_l - self_l + 1):
-            stop = start + self_l
-            slice = profile.data[start:stop, :]
-            result.append(sum(self.data * slice))
-        return array(result)
-
-    def score(self, input_data, offset=0):
-        """Returns a score of the profile against input_data (Profile or seq).
-
-        seq: Profile or Sequence object (or string)
-        offset: starting index for searching in seq/profile
-
-        Returns the score of the profile against all possible subsequences/
-        subprofiles of the input_data.
-
-        This method determines how well a profile fits at different places
-        in the sequence. This is very useful when the profile is a motif and
-        you want to find the position in the sequence that best matches the
-        profile/motif.
-
-        Sequence Example:
-        =================
-            T   C   A   G
-        0   .2  .4  .4  0
-        1   .1  0   .9  0
-        2   .1  .2  .3  .4
-
-        Sequence: TCAAGT
-
-        pos 0: TCA -> 0.5
-        pos 1: CAA -> 1.6
-        pos 2: AAG -> 1.7
-        pos 3: AGT -> 0.5
-
-        So the subsequence starting at index 2 in the sequence has the
-        best match with the motif
-
-        Profile Example:
-        ================
-        Profile: same as above
-        Profile to score:
-            T   C   A   G
-        0   1   0   0   0
-        1   0   1   0   0
-        2   0   0   .5  .5
-        3   0   0   0   1
-        4   .25 .25 .25 .25
-
-        pos 0: rows 0,1,2 -> 0.55
-        pos 1: rows 1,2,3 -> 1.25
-        pos 2: rows 2,3,4 -> 0.45
-        """
-
-        # set up some local variables
-        data = self.data
-        pl = len(data)  # profile length
-        is_profile = False
-
-        # raise error if profile is empty
-        if not data.any():
-            raise ProfileError("Can't score an empty profile")
-
-        # figure out what the input_data type is
-        if isinstance(input_data, Profile):
-            is_profile = True
-            to_score_length = len(input_data.data)
-            # raise error if CharOrders don't match
-            if self.char_order != input_data.char_order:
-                raise ProfileError("Profiles must have same character order")
-        else:  # assumes it get a sequence
-            to_score_length = len(input_data)
-
-        # Profile should fit at least once in the sequence/profile_to_score
-        if to_score_length < pl:
-            raise ProfileError("Sequence or Profile to score should be at least %s " % (pl) +
-                               "characters long, but is %s." % (to_score_length))
-        # offset should be valid
-        if not offset <= (to_score_length - pl):
-            raise ProfileError("Offset must be <= %s, but is %s"
-                               % ((to_score_length - pl), offset))
-
-        # call the apropriate scoring function
-        if is_profile:
-            return self._score_profile(input_data, offset)
-        else:
-            # translate seq to indices
-            if hasattr(self, '_translation_table'):
-                seq_indices = array(list(map(ord, translate(str(input_data),
-                                                            self._translation_table))))
-            else:  # need to figure out where each item is in the charorder
-                idx = self.char_order.index
-                seq_indices = array(list(map(idx, input_data)))
-            # raise error if some sequence characters are not in the char_order
-            if (seq_indices > len(self.char_order)).any():
-                raise ProfileError("Sequence contains characters that are not in the " +
-                                   "char_order")
-            # now the profile is scored against the list of indices
-            return self._score_indices(seq_indices, offset)
-
-    def row_uncertainty(self):
-        """Returns the uncertainty (Shannon's entropy) for each row in profile
-
-        Entropy is returned in BITS (not in NATS).
-        """
-        if not self.data.any():
-            return array([])
-        try:
-            return row_uncertainty(self.data)
-        except ValueError:
-            raise ProfileError(
-                "Profile has to be two dimensional to calculate row_uncertainty")
-
-    def column_uncertainty(self):
-        """Returns uncertainty (Shannon's entropy) for each column in profile
-
-        Uncertainty is returned in BITS (not in NATS).
-        """
-        if not self.data.any():
-            return array([])
-        try:
-            return column_uncertainty(self.data)
-        except ValueError:
-            raise ProfileError(
-                "Profile has to be two dimensional to calculate columnUncertainty")
-
-    def row_degeneracy(self, cutoff=0.5):
-        """Returns how many chars are needed to cover the cutoff value.
-
-        cutoff: value that should be covered in each row
-
-        For example:
-        pos 0: [.1,.2,.3,.4] char order=TCAG.
-        If cutoff=0.75 -> degeneracy = 3 (degenearate char for CAG)
-        If cutoff=0.25 -> degeneracy = 1 (G alone covers this cutoff)
-        If cutoff=0.5  -> degeneracy = 2 (degenerate char for AG)
-
-        If the cutoff value is not reached in the row, the returned value
-        will be clipped to the length of the character order (=the number
-        of columns in the Profile).
-        """
-        try:
-            return row_degeneracy(self.data, cutoff)
-        except ValueError:
-            raise ProfileError(
-                "Profile has to be two dimensional to calculate row_degeneracy")
-
-    def column_degeneracy(self, cutoff=0.5):
-        """Returns how many chars are neede to cover the cutoff value
-
-        See row_degeneracy for more information.
-        """
-        try:
-            return column_degeneracy(self.data, cutoff)
-        except ValueError:
-            raise ProfileError(
-                "Profile has to be two dimensional to calculate column_degeneracy")
-
-    def row_max(self):
-        """Returns ara containing most frequent element in each row of the profile."""
-        return max(self.data, 1)
-
-    def to_consensus(self, cutoff=None, fully_degenerate=False,
-                    include_all=False):
-        """Returns the consensus sequence from a profile.
-
-        cutoff: cutoff value, determines how much should be covered in a
-        position (row) of the profile. Example: pos 0 [.2,.1,.3,.4]
-        (char_order: TCAG). To cover .65 (=cutoff) we need two characters:
-        A and G, which results in the degenerate character R.
-
-        fully_degenerate: determines whether the fully degenerate character
-        is returned at a position. For the example above an 'N' would
-        be returned.
-
-        inlcude_all: all possibilities are included in the degenerate
-        character. Example: row = UCAG = [.1,.3,.3,.3] cutoff = .4,
-        consensus = 'V' (even though only 2 chars would be enough to
-        reach the cutoff value).
-
-        The Alphabet of the Profile should implement degenerate_from_seq.
-
-        Note that cutoff has priority over fully_degenerate. In other words,
-        if you specify a cutoff value and set fully_degenerate to true,
-        the calculation will be done with the cutoff value. If nothing
-        gets passed in, the maximum argument is chosen. In the first example
-        above G will be returned.
-        """
-        # set up some local variables
-        co = array(self.char_order, 'c')
-        alpha = self.alphabet
-        data = self.data
-
-        # determine the action. Cutoff takes priority over fully_degenerate
-        if cutoff:
-            result = []
-            degen = self.row_degeneracy(cutoff)
-            sorted = argsort(data)
-            if include_all:
-                # if include_all include all possiblilities in the degen char
-                for row_idx, (num_to_keep, row) in enumerate(zip(degen, sorted)):
-                    to_take = [item for item in row[-num_to_keep:]
-                               if item in nonzero(data[row_idx])[0]] +\
-                        [item for item in nonzero(data[row_idx] ==
-                                                  data[row_idx, row[-num_to_keep]])[0] if item in
-                         nonzero(data[row_idx])[0]]
-                    result.append(alpha.degenerate_from_seq(
-                        list(map(lambda x: x.decode('utf8'), take(co, to_take, axis=0)))))
+        # are indices a subset of of indicated axis
+        if not set(indices) <= set(current):
+            if (isinstance(indices[0], int) and 0 <= min(indices) and
+                    max(indices) < len (current)):
+                current = list(range(len(current)))
+            elif isinstance(indices[0], int):
+                raise IndexError(f'{indices} out of bounds')
             else:
-                for row_idx, (num_to_keep, row) in enumerate(zip(degen, sorted)):
-                    result.append(alpha.degenerate_from_seq(
-                        list(map(lambda x: x.decode('utf8'),
-                                 take(co, [item for item in row[-num_to_keep:]
-                                           if item in nonzero(data[row_idx])[0]])))))
+                raise ValueError('unexpected indices')
 
-        elif not fully_degenerate:
-            result = take(co, argmax(self.data, axis=-1), axis=0)
+        if negate:
+            indices = tuple(v for v in current if v not in indices)
+
+        indices = [current.index(v) for v in indices]
+
+        result = self.array.take(indices, axis=axis)
+        if one_dim:
+            motifs = numpy.take(self.template.names[0], indices)
+            row_order = None
         else:
-            result = []
-            for row in self.data:
-                val = list(map(lambda x: x.decode('utf8'),
-                               take(co, nonzero(row)[0], axis=0)))
-                val = alpha.degenerate_from_seq(val)
-                result.append(val)
+            motifs = self.template.names[1]
+            row_order = self.template.names[0]
+            if axis:
+                motifs = numpy.take(motifs, indices)
+            else:
+                row_order = numpy.take(row_order, indices)
 
-        try:
-            val = ''.join(map(lambda x: x.decode('utf8'), result))
-        except AttributeError:
-            val = ''.join(result)
+        return self.__class__(result, motifs=motifs, row_indices=row_order)
 
-        return val
+class MotifCountsArray(_MotifNumberArray):
+    def __init__(self, counts, motifs, row_indices=None):
+        super(MotifCountsArray, self).__init__(counts, motifs, row_indices,
+                                               dtype=int)
 
-    def random_indices(self, force_accumulate=False, random_f=random):
-        """Returns random indices matching current probability matrix.
+    def _to_freqs(self):
+        row_sum = self.array.sum(axis=1)
+        freqs = self.array / numpy.vstack(row_sum)
+        return freqs
 
-        Stores cumulative sum (sort of) of probability matrix in
-        self._accumulated; Use force_accumulate to reset if you change
-        the matrix in place (which you shouldn't do anyway).
+    def to_freq_array(self):
+        """returns a MotifFreqsArray"""
+        freqs = self._to_freqs()
+        return MotifFreqsArray(freqs, self.template.names[1],
+                               row_indices=self.template.names[0])
 
-        The returned indices correspond to the characters in the
-        char_order of the Profile.
+    def to_pssm(self, background=None):
+        """returns a PSSM array
+
+        Parameters
+        ----------
+        background
+            array of numbers representing the background frequency distribution
         """
-        if force_accumulate or not hasattr(self, '_accumulated'):
-            self._accumulated = cumsum(self.data, 1)
-        choices = random_f(len(self.data))
-        return array([searchsorted(v, c) for v, c in
-                      zip(self._accumulated, choices)])
+        # make freqs, then pssm
+        freqs = self._to_freqs()
 
-    def random_sequence(self, force_accumulate=False, random_f=random):
-        """Returns random sequence matching current probability matrix.
+        return PSSM(freqs, self.motifs, row_indices=self.template.names[0],
+                    background=background)
 
-        Stores cumulative sum (sort of) of probability matrix in
-        self._accumulated; Use force_accumulate to reset if you change
-        the matrix in place (which you shouldn't do anyway).
-        """
-        co = self.char_order
-        random_indices = self.random_indices(force_accumulate, random_f)
-        try:
-            val = ''.join(map(lambda x: x.decode(
-                'utf8'), take(co, random_indices)))
-        except AttributeError:
-            val = ''.join(take(co, random_indices))
-        return val
+    def motif_totals(self):
+        """returns totalled motifs"""
+        col_sums = self.array.sum(axis=0)
+        return MotifCountsArray(col_sums, self.motifs)
+
+    def row_totals(self):
+        """returns totalled row values"""
+        row_sums = self.array.sum(axis=1)
+        template = DictArray(1, row_sums.shape[0])
+        return template.wrap(row_sums)
 
 
-def CharMeaningProfile(alphabet, char_order=None, split_degenerates=False):
-    """Returns a Profile with the meaning of each character in the alphabet
+class MotifFreqsArray(_MotifNumberArray):
+    def __init__(self, data, motifs, row_indices=None):
+        super(MotifFreqsArray, self).__init__(data, motifs, row_indices,
+                                              dtype=float)
+        validate_freqs_array(self.array, axis=1)
 
-    alphabet: Alphabet object (should have 'degenerates'if split_degenerates
-    is set to True)
-    char_order: string indicating the order of the characters in the profile
-    split_degenerates: whether the meaning of degenerate symbols in the
-    alphabet should be split up among the characters in the char order,
-    or ignored.
+    def entropy(self):
+        """Shannon entropy per position using log2"""
+        entropies = safe_p_log_p(self.array)
+        return entropies.sum(axis=1)
 
-    The returned profile has 255 rows (one for each ascii character) and
-    one column for each character in the character order. The profile
-    specifies the meaning of each character in the alphabet. Chars in the
-    character order will count as a full character by themselves, degenerate
-    characters might split their 'value' over several other charcters in the
-    character order.
+    def information(self):
+        """returns information as -max_entropy - entropy"""
+        n = self.shape[1]
+        max_val = -numpy.log2(1 / n)
+        return max_val - self.entropy()
 
-    Splitting up degenerates: only degenerate characters of which the full
-    set of symbols it maps onto are in the character order are split up,
-    others are ignored. E.g. in the DnaAlphabet, if the char order is
-    TACG, ? (which maps to TCAG-) wouldn't be split up, 'R' (which maps
-    to 'AG') would.
+    def simulate_seq(self):
+        """returns a simulated sequence as a string"""
+        cumsum = self.array.cumsum(axis=1)
+        series = [digitize(random(), cumsum[i], right=False)
+                  for i in range(self.shape[0])]
+        seq = ''.join([self.motifs[i] for i in series])
+        return seq
 
-    Any degenerate characters IN the character order will NOT be split up.
-    It doesn't make sense to split up a character that is in the char order
-    because it would create an empty column in the profile, so it might
-    as well be left out alltogether.
 
-    Example 1:
-    alphabet = DnaAlphabet
-    Character order = "TCAG"
-    Split degenerates = False
+class PSSM(_MotifNumberArray):
+    """position specific scoring matrix
 
-    All the nonzero rows in the resulting profile are:
-    65: [0,0,1,0] (A)
-    67: [0,1,0,0] (C)
-    71: [0,0,0,1] (G)
-    84: [1,0,0,0] (T)
-    All other rows will be [0,0,0,0].
+    A log-odds matrix"""
 
-    Example 2:
-    alphabet = DnaAlphabet
-    Character order = "AGN"
-    Split degenerates = True
+    def __init__(self, data, motifs, row_indices=None, background=None):
+        freqs = MotifFreqsArray(data, motifs, row_indices=row_indices)
+        if background is None:
+            background = numpy.ones(len(motifs), dtype=float) / len(motifs)
+        self._background = numpy.array(background)
+        assert len(background) == len(motifs), \
+            "Mismatch between number of motifs and the background"
+        validate_freqs_array(self._background)
+        pssm = safe_log(freqs.array) - safe_log(self._background)
+        super(PSSM, self).__init__(pssm, motifs, row_indices,
+                                   dtype=float)
+        self._indices = numpy.arange(self.shape[0])  # used for scoring
 
-    All the nonzero rows in the resulting profile are:
-    65: [1,0,0] (A)
-    71: [0,1,0] (G)
-    78: [0,0,1] (N)
-    82: [.5,.5,0] (R)
-    All other rows will be [0,0,0].
+    def score_seq(self, seq):
+        """return score for a sequence"""
+        get_index = self.motifs.index
+        if self.motif_length == 1:
+            indexed = list(map(get_index, seq))
+        else:
+            indexed = []
+            for i in range(0, self.shape[0] - self.motif_length, self.motif_length):
+                indexed.append(get_index(seq[i: i + self.motif_length]))
+        indexed = numpy.array(indexed)
+        return self.score_indexed_seq(indexed)
 
-    Errors are raised when the character order is empty or when there's a
-    character in the character order that is not in the alphabet.
-    """
-    if not char_order:  # both testing for None and for empty string
-        char_order = list(alphabet)
+    def score_indexed_seq(self, indexed):
+        """return score for a sequence already converted to integer indices"""
+        indexed = numpy.array(indexed)
+        scores = []
+        for i in range(0, indexed.shape[0] - self.shape[0] + 1):
+            segment = indexed[i: i + self.shape[0]]
+            score = self.array[self._indices, segment].sum()
+            scores.append(score)
+        return scores
 
-    char_order = array(char_order, 'c')
-    lc = len(char_order)  # length char_order
-
-    # initialize the profile. 255 rows (one for each ascii char), one column
-    # for each character in the character order
-    result = zeros([255, lc], float64)
-
-    if split_degenerates:
-        degen = alphabet.degenerates
-        for degen_char in degen:
-            # if all characters that the degenerate character maps onto are
-            # in the character order, split its value up according to the
-            # alphabet
-            curr_degens = list(
-                map(lambda x: x.encode('utf8'), degen[degen_char]))
-            if all(list(map(char_order.__contains__, curr_degens))):
-                contains = list(map(curr_degens.__contains__, char_order))
-                result[ord(degen_char)] = \
-                    array(contains, float) / len(curr_degens)
-    # for each character in the character order, make an entry of ones and
-    # zeros, matching the character order
-    for c in char_order:
-        c = c.decode('utf8')
-        if c not in alphabet:
-            raise ValueError("Found character in the character order " +
-                             "that is not in the specified alphabet: %s" % (c))
-        result[ord(c)] = array(c * lc, 'c') == char_order
-    return Profile(data=result, alphabet=alphabet, char_order=char_order)

@@ -15,7 +15,6 @@ from cogent3.util.unit_test import TestCase, main
 from cogent3 import DNA, RNA, PROTEIN, LoadTree, LoadSeqs
 from cogent3.core.alphabet import CharAlphabet
 from cogent3.maths.stats.util import Freqs
-from cogent3.core.profile import Profile
 from cogent3.core.alphabet import CharAlphabet, Alphabet
 from cogent3.maths.stats.distribution import binomial_exact
 from cogent3.core.alignment import ArrayAlignment
@@ -181,7 +180,8 @@ class CoevolutionTests(TestCase):
         # missing cutoff
         aln = ArrayAlignment(data={'1': 'AC', '2': 'AC'}, moltype=PROTEIN)
         self.assertRaises(ValueError, coevolve_pair, sca_pair, aln, 0, 1)
-        self.assertRaises(ValueError, coevolve_position, sca_position, aln, 0)
+        self.assertRaises(ValueError, coevolve_position,
+                          sca_position, aln, 0)
         self.assertRaises(ValueError, coevolve_alignment, sca_alignment, aln)
         self.assertRaises(ValueError, coevolve_alignments,
                           sca_alignment, aln, aln)
@@ -250,7 +250,8 @@ class CoevolutionTests(TestCase):
         coevolve_alignments_validation(method, aln1, aln2, 2, None, tree=t)
         # If there is a plus present in identifiers, we only care about the
         # text before the colon
-        aln1 = ArrayAlignment(data={'1+a': 'AC', '2+b': 'AD'}, moltype=PROTEIN)
+        aln1 = ArrayAlignment(
+            data={'1+a': 'AC', '2+b': 'AD'}, moltype=PROTEIN)
         aln2 = ArrayAlignment(
             data={'1 + c': 'EFW', '2 + d': 'EGY'}, moltype=PROTEIN)
         t = LoadTree(treestring='(1+e:0.5,2 + f:0.5);')
@@ -336,7 +337,8 @@ class CoevolutionTests(TestCase):
         aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AD'}, moltype=PROTEIN)
         aln2 = ArrayAlignment(data={'1': 'EFW', '2': 'EGY'}, moltype=PROTEIN)
         combined_aln =\
-        ArrayAlignment(data={'1': 'ACEFW', '2': 'ADEGY'}, moltype=PROTEIN)
+            ArrayAlignment(
+                data={'1': 'ACEFW', '2': 'ADEGY'}, moltype=PROTEIN)
         t = LoadTree(treestring='(1:0.5,2:0.5);')
         cutoff = 0.50
         # MI
@@ -435,11 +437,14 @@ class CoevolutionTests(TestCase):
     def test_mi_pair_cols_default_exclude_handling(self):
         """ mi_pair returns null_value on excluded by default """
         aln = ArrayAlignment(data={'1': 'AB', '2': '-B'}, moltype=PROTEIN)
-        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
+        self.assertFloatEqual(
+            mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
         aln = ArrayAlignment(data={'1': '-B', '2': '-B'}, moltype=PROTEIN)
-        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
+        self.assertFloatEqual(
+            mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
         aln = ArrayAlignment(data={'1': 'AA', '2': '-B'}, moltype=PROTEIN)
-        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
+        self.assertFloatEqual(
+            mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
         aln = ArrayAlignment(data={'1': 'AA', '2': 'PB'}, moltype=PROTEIN)
         self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1, excludes='P'),
                               DEFAULT_NULL_VALUE)
@@ -447,7 +452,8 @@ class CoevolutionTests(TestCase):
     def test_mi_pair_cols_non_default_exclude_handling(self):
         """ mi_pair uses non-default exclude_handler when provided"""
         aln = ArrayAlignment(data={'1': 'A-', '2': 'A-'}, moltype=PROTEIN)
-        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
+        self.assertFloatEqual(
+            mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
         self.assertFloatEqual(
             mi_pair(aln, pos1=0, pos2=1, exclude_handler=ignore_excludes), 0.0)
 
@@ -510,7 +516,8 @@ class CoevolutionTests(TestCase):
     def test_mi_alignment_excludes(self):
         """ mi_alignment handles excludes properly """
         expected = array([[0.0, DEFAULT_NULL_VALUE, 0.0],
-                          [DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+                          [DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE,
+                              DEFAULT_NULL_VALUE],
                           [0.0, DEFAULT_NULL_VALUE, 0.0]])
         # gap in second column
         aln = ArrayAlignment(data={'1': 'ACG', '2': 'A-G'}, moltype=PROTEIN)
@@ -571,7 +578,8 @@ class CoevolutionTests(TestCase):
         self.assertEqual(build_coevolution_matrix_filepath(
             'blah.fasta'), './blah')
         self.assertEqual(build_coevolution_matrix_filepath('blah'), './blah')
-        self.assertEqual(build_coevolution_matrix_filepath('./blah'), './blah')
+        self.assertEqual(
+            build_coevolution_matrix_filepath('./blah'), './blah')
 
         self.assertEqual(build_coevolution_matrix_filepath('./blah.fasta',
                                                            output_dir='./duh/', method='xx', alphabet='yyy'),
@@ -642,10 +650,12 @@ class CoevolutionTests(TestCase):
         """Parsing matrix filepaths works as expected. """
         expected = ('myosin_995', 'a1_4', 'nmi')
         self.assertEqual(
-            parse_coevolution_matrix_filepath('pkls/myosin_995.a1_4.nmi.pkl'),
+            parse_coevolution_matrix_filepath(
+                'pkls/myosin_995.a1_4.nmi.pkl'),
             expected)
         self.assertEqual(
-            parse_coevolution_matrix_filepath('pkls/myosin_995.a1_4.nmi.csv'),
+            parse_coevolution_matrix_filepath(
+                'pkls/myosin_995.a1_4.nmi.csv'),
             expected)
         expected = ('p53', 'orig', 'mi')
         self.assertEqual(
@@ -1007,7 +1017,8 @@ class CoevolutionTests(TestCase):
                        moltype=PROTEIN, array_align=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[DEFAULT_NULL_VALUE] * 4] * 2)
-        filter_non_parsimony_informative(aln, m, intermolecular_data_only=True)
+        filter_non_parsimony_informative(
+            aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
         # one non-parsimony informative pair of positions
         aln = LoadSeqs(data={'1': 'FCDEWD', '2': 'ACDEWQ', '3': 'ACDEWD', '4': 'FCDEWQ'},
@@ -1015,14 +1026,16 @@ class CoevolutionTests(TestCase):
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[DEFAULT_NULL_VALUE] * 4] * 2)
         expected[1, 0] = 9.
-        filter_non_parsimony_informative(aln, m, intermolecular_data_only=True)
+        filter_non_parsimony_informative(
+            aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
         # all parsimony informative
         aln = LoadSeqs(data={'1': 'FFFFFF', '2': 'FFFFFF', '3': 'GGGGGG', '4': 'GGGGGG'},
                        moltype=PROTEIN, array_align=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
-        filter_non_parsimony_informative(aln, m, intermolecular_data_only=True)
+        filter_non_parsimony_informative(
+            aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
 
     def test_filter_exclude_positions_intramolecular(self):
@@ -1123,7 +1136,8 @@ class CoevolutionTests(TestCase):
                                     '3': 'ACDEDE', '4': 'ACDEDE'}, moltype=PROTEIN, array_align=True)
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
-        filter_exclude_positions(merged_aln, m, intermolecular_data_only=True)
+        filter_exclude_positions(
+            merged_aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
 
         # filter one position (aln1)
@@ -1132,7 +1146,8 @@ class CoevolutionTests(TestCase):
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[1., 10., DEFAULT_NULL_VALUE, 3.],
                           [9., 18., DEFAULT_NULL_VALUE, 6.]])
-        filter_exclude_positions(merged_aln, m, intermolecular_data_only=True)
+        filter_exclude_positions(
+            merged_aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
         # filter one position (aln2)
         merged_aln = LoadSeqs(data={'1': 'WCEEDE', '2': 'ACDEDE',
@@ -1140,7 +1155,8 @@ class CoevolutionTests(TestCase):
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[1., 10., 4., 3.],
                           [DEFAULT_NULL_VALUE] * 4])
-        filter_exclude_positions(merged_aln, m, intermolecular_data_only=True)
+        filter_exclude_positions(
+            merged_aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
 
         # filter two positions (aln1 & aln2)
@@ -1149,7 +1165,8 @@ class CoevolutionTests(TestCase):
         m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
         expected = array([[DEFAULT_NULL_VALUE, 10., 4., 3.],
                           [DEFAULT_NULL_VALUE] * 4])
-        filter_exclude_positions(merged_aln, m, intermolecular_data_only=True)
+        filter_exclude_positions(
+            merged_aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
 
         # filter two positions (aln1 & aln2, alt excludes)
@@ -1859,7 +1876,8 @@ class CoevolutionTests(TestCase):
 
     def test_merge_alignments_ignores_id_following_plus(self):
         """ merge_alignments ignores all seq id characters after '+' """
-        aln1 = ArrayAlignment(data={'1+a': 'AC', '2+b': 'AD'}, moltype=PROTEIN)
+        aln1 = ArrayAlignment(
+            data={'1+a': 'AC', '2+b': 'AD'}, moltype=PROTEIN)
         aln2 = ArrayAlignment(
             data={'1 + c': 'EFW', '2 + d': 'EGY'}, moltype=PROTEIN)
         combined_aln = ArrayAlignment(
@@ -1867,7 +1885,8 @@ class CoevolutionTests(TestCase):
         self.assertEqual(merge_alignments(aln1, aln2), combined_aln)
         # not all ids have a +
         aln1 = ArrayAlignment(data={'1': 'AC', '2+b': 'AD'}, moltype=PROTEIN)
-        aln2 = ArrayAlignment(data={'1+c': 'EFW', '2': 'EGY'}, moltype=PROTEIN)
+        aln2 = ArrayAlignment(
+            data={'1+c': 'EFW', '2': 'EGY'}, moltype=PROTEIN)
         combined_aln = ArrayAlignment(
             data={'1': 'ACEFW', '2': 'ADEGY'}, moltype=PROTEIN)
         self.assertEqual(merge_alignments(aln1, aln2), combined_aln)
@@ -2015,7 +2034,7 @@ class AncestorCoevolve(TestCase):
                           tree=LoadTree(
                               treestring='((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);'),
                           ancestral_seqs=ArrayAlignment(
-             data={'root': 'AA', 'e': 'AA', 'edge.1': 'AA'}, moltype=PROTEIN))
+                              data={'root': 'AA', 'e': 'AA', 'edge.1': 'AA'}, moltype=PROTEIN))
 
     def test_validate_ancestral_seqs_valid(self):
         """validate_ancestral_seqs: does nothing on compatible anc. seqs & tree
@@ -2090,12 +2109,14 @@ class AncestorCoevolve(TestCase):
             data={'A': 'AA', 'B': 'AA', 'C': 'AC'}, moltype=PROTEIN)
         expected = ArrayAlignment(data={'root': 'AA', 'edge.0': 'AA'},
                                   moltype=PROTEIN)
-        self.assertEqual(get_ancestral_seqs(aln, t, optimise=False), expected)
+        self.assertEqual(get_ancestral_seqs(
+            aln, t, optimise=False), expected)
         t = LoadTree(treestring='(A:0.5,B:0.5,C:0.5);')
         aln = ArrayAlignment(data={'A': 'AA', 'B': 'AA', 'C': 'AC'},
                              moltype=PROTEIN)
         expected = ArrayAlignment(data={'root': 'AA'}, moltype=PROTEIN)
-        self.assertEqual(get_ancestral_seqs(aln, t, optimise=False), expected)
+        self.assertEqual(get_ancestral_seqs(
+            aln, t, optimise=False), expected)
 
         t = LoadTree(treestring='(((A1:0.5,A2:0.5):0.5,B:0.5):0.5,\
             (C:0.5,D:0.5):0.5);')
@@ -2103,7 +2124,8 @@ class AncestorCoevolve(TestCase):
                                    'C': 'AC', 'D': 'AC'}, moltype=PROTEIN)
         expected = ArrayAlignment(data={'root': 'AC', 'edge.0': 'AD',
                                         'edge.1': 'AC', 'edge.2': 'AC'}, moltype=PROTEIN)
-        self.assertEqual(get_ancestral_seqs(aln, t, optimise=False), expected)
+        self.assertEqual(get_ancestral_seqs(
+            aln, t, optimise=False), expected)
 
     def test_get_ancestral_seqs_handles_gaps(self):
         """get_ancestral_seqs: handles gaps """
@@ -2112,7 +2134,8 @@ class AncestorCoevolve(TestCase):
         aln = ArrayAlignment(
             data={'A': 'A-', 'B': 'AA', 'C': 'AA'}, moltype=PROTEIN)
         expected = ArrayAlignment(data={'root': 'AA'}, moltype=PROTEIN)
-        self.assertEqual(get_ancestral_seqs(aln, t, optimise=False), expected)
+        self.assertEqual(get_ancestral_seqs(
+            aln, t, optimise=False), expected)
 
     def test_get_ancestral_seqs_handles_ambiguous_residues(self):
         """get_ancestral_seqs: handles ambiguous residues """
@@ -2436,7 +2459,7 @@ def _calc_mi():
     i = 37 / 42 * -log(37 / 42, 2) - (5 / 42 * log(5 / 42, 2))
     j = 39 / 42 * -log(39 / 42, 2) - (3 / 42 * log(3 / 42, 2))
     k = 34 / 42 * -log(34 / 42, 2) - (3 / 42 * log(3 / 42, 2)
-                       ) - (5 / 42 * log(5 / 42, 2))
+                                      ) - (5 / 42 * log(5 / 42, 2))
     return i + j - k
 
 
@@ -2479,9 +2502,10 @@ class ResampledMiTests(TestCase):
             entropy = mi(col_i.Uncertainty, col_j.Uncertainty,
                          pair_freqs.Uncertainty)
             self.assertFloatEqual(entropy, _calc_mi())
-            scales = calc_pair_scale(data, col_i, col_j, weights_i, weights_j)
+            scales = calc_pair_scale(
+                data, col_i, col_j, weights_i, weights_j)
             scaled_mi = 1 - sum([w * pair_freqs[pr] for pr, e, w in scales
-                               if entropy <= e])
+                                 if entropy <= e])
             self.assertFloatEqual(scaled_mi, expected_smi)
 
         data = ['BN', 'BN', 'BP', 'BN', 'PN', 'BN', 'BN', 'BN', 'BN', 'BN',
