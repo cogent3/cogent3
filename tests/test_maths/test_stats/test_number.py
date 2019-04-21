@@ -60,6 +60,21 @@ class TestNumber(TestCase):
         self.assertEqual(nums.quantile(q=.75), numpy.quantile(values, q=.75))
         self.assertEqual(nums.mode, ('A', 'C'))
 
+    def test_usage(self):
+        """Alignment.counts_per_seq method correctly applies CategoryCounter"""
+        data = {'DogFaced': 'TCATTA', 'FalseVamp': 'TCATTA',
+                'FlyingFox': 'TCTTTA', 'FreeTaile': 'TCATTA',
+                'Horse': 'TCATTG', 'LeafNose': 'TCTTTA',
+                'LittleBro': 'TCATTA', 'Rhino': 'TCATTG',
+                'RoundEare': 'TCATTA', 'TombBat': 'TCAGTA'}
+        aln = LoadSeqs(data=data, moltype='dna')
+        got = aln.counts_per_pos(motif_length=3)
+        self.assertEqual(got[0, 'TCA'], 8)
+        self.assertEqual(got[0, 'TCT'], 2)
+        self.assertEqual(got[1, 'TTA'], 7)
+        self.assertEqual(got[1, 'GTA'], 1)
+        self.assertEqual(got[1, 'TTG'], 2)
+
 
 if __name__ == '__main__':
     main()

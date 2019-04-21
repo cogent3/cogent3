@@ -59,7 +59,6 @@ from random import shuffle
 from cogent3.maths.stats.util import Freqs
 from cogent3.core.sequence import Sequence
 from cogent3.core.moltype import IUPAC_gap, IUPAC_missing
-from cogent3.core.profile import Profile
 from cogent3.core.alphabet import CharAlphabet, Alphabet
 from cogent3.maths.stats.distribution import binomial_exact
 from cogent3.maths.stats.special import ROUND_ERROR
@@ -111,6 +110,8 @@ def mi(h1, h2, joint_h):
 def normalized_mi(h1, h2, joint_h):
     """ MI normalized by joint entropy, as described in Martin 2005 """
     return mi(h1, h2, joint_h) / joint_h
+
+
 nmi = normalized_mi
 
 # Other functions used in MI calculations
@@ -274,7 +275,7 @@ def mi_alignment(alignment, mi_calculator=mi, null_value=DEFAULT_NULL_VALUE,
     # I believe I started using this rather than alignment.uncertainties
     # b/c the latter relies on converting a ArrayAlignment to an Alignment --
     # need to check into this.
-    positional_entropies = [Freqs(p).Uncertainty for p in alignment.positions]
+    positional_entropies = alignment.entropy_per_pos()
 
     # Calculate pairwise MI between position_number and all alignment
     # positions, and return the results in a vector.
@@ -318,6 +319,8 @@ def normalized_mi_pair(alignment, pos1, pos2, h1=None, h2=None,
     return mi_pair(alignment, pos1, pos2, h1=h1, h2=h2, mi_calculator=nmi,
                    null_value=null_value, excludes=excludes,
                    exclude_handler=exclude_handler)
+
+
 nmi_pair = normalized_mi_pair
 
 
@@ -347,6 +350,8 @@ def normalized_mi_position(alignment, position, positional_entropies=None,
                        positional_entropies=positional_entropies,
                        mi_calculator=nmi, null_value=null_value, excludes=excludes,
                        exclude_handler=exclude_handler)
+
+
 nmi_position = normalized_mi_position
 
 
@@ -366,6 +371,8 @@ def normalized_mi_alignment(alignment, null_value=DEFAULT_NULL_VALUE,
     return mi_alignment(alignment=alignment, mi_calculator=normalized_mi,
                         null_value=null_value, excludes=excludes,
                         exclude_handler=exclude_handler)
+
+
 nmi_alignment = normalized_mi_alignment
 # End Normalized Mutual Information Analysis
 
@@ -373,6 +380,7 @@ nmi_alignment = normalized_mi_alignment
 # Start Statistical coupling analysis (SCA) (Suel 2003)
 class SCAError(Exception):
     pass
+
 
 # PROTEIN's alphabet contains U, so redefining the alphabet for now
 # rather than use PROTEIN.alphabet. May want to revist this decision...
@@ -472,7 +480,8 @@ def freqs_from_aln(aln, alphabet, scaled_aln_size=100):
          that one to be more generic) since they're doing the same thing now.
 
     """
-    alphabet_as_indices = array([aln.alphabet.to_indices(alphabet)]).transpose()
+    alphabet_as_indices = array(
+        [aln.alphabet.to_indices(alphabet)]).transpose()
     aln_data = ravel(aln.array_positions)
     return (alphabet_as_indices == aln_data).sum(1) * \
         (scaled_aln_size / len(aln_data))
@@ -497,7 +506,8 @@ def get_positional_frequencies(aln, position_number, alphabet,
             ignored. Is this the desired behavior?
 
     """
-    alphabet_as_indices = array([aln.alphabet.to_indices(alphabet)]).transpose()
+    alphabet_as_indices = array(
+        [aln.alphabet.to_indices(alphabet)]).transpose()
     position_data = aln.array_positions[position_number]
     return (alphabet_as_indices == position_data).sum(1) * \
         (scaled_aln_size / len(position_data))
@@ -724,7 +734,8 @@ def sca_pair(alignment, pos1, pos2, cutoff,
     ddg_values = []
     for subalignment in subalignments:
         # Calculate dg for the subalignment
-        subaln_freqs = freqs_from_aln(subalignment, alphabet, scaled_aln_size)
+        subaln_freqs = freqs_from_aln(
+            subalignment, alphabet, scaled_aln_size)
         subaln_probs = get_positional_probabilities(
             subaln_freqs, natural_probs, scaled_aln_size)
         subaln_pos2_freqs = get_positional_frequencies(
@@ -1022,7 +1033,9 @@ def resampled_mi_position(alignment, position, positional_entropies=None,
                           null_value=DEFAULT_NULL_VALUE):
     aln_length = len(alignment)
     result = zeros(aln_length, float)
-    positional_entropies = positional_entropies or alignment.uncertainties()
+
+    if positional_entropies is None:
+        positional_entropies = alignment.entropy_per_pos()
 
     for i in range(aln_length):
         result[i] = resampled_mi_pair(alignment, pos1=position, pos2=i,
@@ -1037,7 +1050,7 @@ def resampled_mi_alignment(alignment, excludes=DEFAULT_EXCLUDES,
     """returns scaled mutual information for all possible pairs."""
     aln_length = len(alignment)
     result = zeros((aln_length, aln_length), float)
-    positional_entropies = alignment.uncertainties()
+    positional_entropies = alignment.entropy_per_pos()
 
     for i in range(aln_length):
         result[i] = resampled_mi_position(alignment=alignment, position=i,
@@ -1170,6 +1183,7 @@ def ancestral_state_pair(aln, tree, pos1, pos2,
     return result
 # End ancestral_states analysis
 
+
 # Methods for running coevolutionary analyses on sequence data.
 method_abbrevs_to_names = {'mi': 'Mutual Information',
                            'nmi': 'Normalized Mutual Information',
@@ -1264,7 +1278,8 @@ def validate_ancestral_seqs(alignment, tree, ancestral_seqs):
             ancestors in the tree and the ancestral sequence names.
     """
     if len(alignment) != len(ancestral_seqs):
-        raise ValueError("Alignment and ancestral seqs are different lengths.")
+        raise ValueError(
+            "Alignment and ancestral seqs are different lengths.")
     # is there a better way to get all the ancestor names? why doesn't
     # tree.ancestors() do this?
     edges = set(tree.get_node_names()) - set(tree.get_tip_names())
@@ -1346,6 +1361,7 @@ def coevolve_alignments_validation(method, alignment1, alignment2,
 
 # Start alignment-wide intramolecular coevolution analysis
 
+
 # coevolve alignment functions: f(alignment,**kwargs) -> 2D array
 coevolve_alignment_functions = \
     {'mi': mi_alignment, 'nmi': normalized_mi_alignment,
@@ -1372,6 +1388,7 @@ def coevolve_alignment(method, alignment, **kwargs):
 # End alignment-wide intramolecular coevolution analysis
 
 # Start intermolecular coevolution analysis
+
 
 # Mapping between coevolve_alignment functions and coevolve_pair functions.
 # These are used in coevolve_alignments, b/c under some circumstance the
@@ -1406,7 +1423,8 @@ def merge_alignments(alignment1, alignment2):
         for merged_name, orig_name in list(aln1_name_map.items()):
             result[merged_name] =\
                 Sequence(alignment1.get_gapped_seq(orig_name)) +\
-                Sequence(alignment2.get_gapped_seq(aln2_name_map[merged_name]))
+                Sequence(alignment2.get_gapped_seq(
+                    aln2_name_map[merged_name]))
     except KeyError as e:
         raise KeyError('A sequence identifier is in alignment2 ' +
                        'but not alignment1 -- did you filter out sequences identifiers' +
@@ -1511,7 +1529,8 @@ def coevolve_alignments(method, alignment1, alignment2,
 
     if max_num_seqs and merged_alignment.num_seqs > max_num_seqs:
         try:
-            merged_alignment = sequence_filter(merged_alignment, max_num_seqs)
+            merged_alignment = sequence_filter(
+                merged_alignment, max_num_seqs)
         except TypeError:
             raise ValueError("Too many sequences for covariation analysis.")
 
@@ -1619,6 +1638,7 @@ def coevolve_position(method, alignment, position, **kwargs):
     return method(alignment, position=position, **kwargs)
 
 # End positional coevolution analysis
+
 
 # Start pairwise coevolution analysis
 # coevolve pair functions: f(alignment,pos1,pos2,**kwargs) -> float
@@ -1783,6 +1803,12 @@ def is_parsimony_informative(column_freqs, minimum_count=2,
          By default, the default exclude characters (- and ?) don't count.
 
     """
+    try:
+        column_freqs = column_freqs.todict()
+    except AttributeError:
+        pass
+    ignored = None if not ignored else list(set(ignored) &
+                                            set(column_freqs.keys()))
     if ignored:
         for e in ignored:
             try:
@@ -1825,7 +1851,7 @@ def filter_non_parsimony_informative(aln, coevolution_matrix,
     """
     if intermolecular_data_only:
         len_aln1 = coevolution_matrix.shape[1]
-    column_frequencies = aln.column_freqs()
+    column_frequencies = aln.counts_per_pos()
     for i in range(len(column_frequencies)):
         if not is_parsimony_informative(column_frequencies[i], minimum_count,
                                         minimum_differences, ignored, strict):
@@ -2153,7 +2179,8 @@ def build_coevolution_matrix_filepath(input_filepath,
             method = '_'.join(
                 [method, cutoff_str[point_index + 1:point_index + 4]])
         except ValueError:
-            raise ValueError('Cutoff must be provided when method == \'sca\'')
+            raise ValueError(
+                'Cutoff must be provided when method == \'sca\'')
 
     suffixes = [_f for _f in [alphabet, method] if _f]
 

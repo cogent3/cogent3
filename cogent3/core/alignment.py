@@ -48,7 +48,7 @@ from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import bytes_to_string, get_object_provenance
 
 from copy import copy, deepcopy
-from cogent3.core.profile import Profile
+from cogent3.core.profile import MotifCountsArray
 
 
 __author__ = "Peter Maxwell and Rob Knight"
@@ -1403,16 +1403,22 @@ class SequenceCollection(object):
             """
         # this is overridden for Alignments, so just rely on the sequence counts
         # method
-        counts = {}
-        for seq in self.seqs:
+        counts = []
+        motifs = set()
+        for name in self.names:
+            seq = self.named_seqs[name]
             c = seq.counts(motif_length=motif_length,
                            include_ambiguity=include_ambiguity,
                            allow_gap=allow_gap)
-            counts[seq.name] = c
-        return counts
+            motifs.update(c.keys())
+            counts.append(c)
+        motifs = list(sorted(motifs))
+        for i, c in enumerate(counts):
+            counts[i] = c.tolist(motifs)
+        return MotifCountsArray(counts, motifs, row_indices=self.names)
 
-    
-    def counts(self, motif_length=1, include_ambiguity=False, allow_gap=False):
+    def counts(self, motif_length=1, include_ambiguity=False, allow_gap=False,
+               exclude_unobserved=False):
         """returns dict of counts of motifs
 
             only non-overlapping motifs are counted.
@@ -1424,14 +1430,11 @@ class SequenceCollection(object):
             - allow_gaps: if True, motifs containing a gap character are included.
             """
         per_seq = self.counts_per_seq(motif_length=motif_length,
-                                            include_ambiguity=include_ambiguity,
-                                            allow_gap=allow_gap)
-        counts = Counter()
-        for vals in per_seq.values():
-            counts.update(vals)
-        return counts
-    
-    
+                                      include_ambiguity=include_ambiguity,
+                                      allow_gap=allow_gap,
+                                      exclude_unobserved=exclude_unobserved)
+        return per_seq.motif_totals()
+
     def get_motif_probs(self, alphabet=None, include_ambiguity=False,
                         exclude_unobserved=False, allow_gap=False, pseudocount=0):
         """Return a dictionary of motif probs, calculated as the averaged
@@ -1893,23 +1896,6 @@ class AlignmentI(object):
             consensus.append(degen(coerce_to_string(col)))
         return coerce_to_string(consensus)
 
-    def column_freqs(self, constructor=Freqs):
-        """Returns list of Freqs with item counts for each column.
-        """
-        return list(map(constructor, self.positions))
-
-    def column_probs(self, constructor=Freqs):
-        """Returns FrequencyDistribuutions w/ prob. of each item per column.
-
-        Implemented as a list of normalized Freqs objects.
-        """
-        freqs = self.column_freqs(constructor)
-
-        for fd in freqs:
-            fd.normalize()
-        return freqs
-
-    def majority_consensus(self, transform=None, constructor=Freqs):
     def majority_consensus(self):
         """Returns list containing most frequent item at each position.
 
@@ -1917,34 +1903,6 @@ class AlignmentI(object):
         will be converted (useful when consensus should be same type as
         originals).
         """
-    def uncertainties(self, good_items=None):
-        """Returns Shannon uncertainty at each position.
-
-        Usage: information_list = alignment.information(good_items=None)
-
-        If good_items is supplied, deletes any symbols that are not in
-        good_items.
-        """
-        uncertainties = []
-        # calculate column probabilities if necessary
-        if hasattr(self, 'PositionumnProbs'):
-            probs = self.PositionumnProbs
-        else:
-            probs = self.column_probs()
-        # calculate uncertainty for each column
-        for prob in probs:
-            # if there's a list of valid symbols, need to delete everything
-            # else
-            if good_items:
-                prob = prob.copy()  # do not change original
-                # get rid of any symbols not in good_items
-                for symbol in list(prob.keys()):
-                    if symbol not in good_items:
-                        del prob[symbol]
-                # normalize the probabilities and add to the list
-                prob.normalize()
-            uncertainties.append(prob.Uncertainty)
-        return uncertainties
         states = []
         data = zip(*map(str, self.seqs))
         for pos in data:
@@ -1963,44 +1921,31 @@ class AlignmentI(object):
         result = darr.wrap(result)
         return result
 
-    def _get_freqs(self, index=None):
-        """Gets array of freqs along index 0 (= positions) or 1 (= seqs).
+    def probs_per_pos(self, motif_length=1, include_ambiguity=False,
+                      allow_gap=False, alert=False):
+        """returns MotifFreqsArray per position"""
+        counts = self.counts_per_pos(motif_length=motif_length,
+                                     include_ambiguity=include_ambiguity,
+                                     allow_gap=allow_gap, alert=alert)
+        return counts.to_freq_array()
 
-        index: if 0, will calculate the frequency of each symbol in each
-        position (=column) in the alignment. Will return 2D array where the
-        first index is the position, and the second index is the index of the
-        symbol in the alphabet. For example, for the TCAG DNA Alphabet,
-        result[3][0] would store the count of T at position 3 (i.e. the 4th
-        position in the alignment.
+    def entropy_per_pos(self, motif_length=1):
+        """returns shannon entropy per position"""
+        probs = self.probs_per_pos(motif_length=motif_length)
+        return probs.entropy()
 
-        if 1, does the same thing except that the calculation is performed for
-        each sequence, so the 2D array has the sequence index as the first
-        index, and the symbol index as the second index. For example, for the
-        TCAG DNA Alphabet, result[3][0] would store the count of T in the
-        sequence at index 3 (i.e. the 4th sequence).
+    def probs_per_seq(self, motif_length=1, include_ambiguity=False,
+                      allow_gap=False):
+        """return MotifFreqsArray per sequence"""
+        counts = self.counts_per_seq(motif_length=motif_length,
+                                     include_ambiguity=include_ambiguity,
+                                     allow_gap=allow_gap)
+        return counts.to_freq_array()
 
-        First an DenseAligment object is created, next the calculation is done
-        on this object. It is important that the ArrayAlignment is initialized
-        with the same moltype and Alphabet as the original Alignment.
-        """
-        da = ArrayAlignment(self, moltype=self.moltype, alphabet=self.alphabet)
-        return da._get_freqs(index)
-
-    def get_seq_freqs(self):
-        """Returns Profile of counts: seq by character.
-
-        See documentation for _get_freqs: this just wraps it and converts the
-        result into a Profile object organized per-sequence (i.e. per row).
-        """
-        return Profile(self._get_freqs(0), self.alphabet)
-
-    def get_pos_freqs(self):
-        """Returns Profile of counts: position by character.
-
-        See documentation for _get_freqs: this just wraps it and converts the
-        result into a Profile object organized per-position (i.e. per column).
-        """
-        return Profile(self._get_freqs(1), self.alphabet)
+    def entropy_per_seq(self, motif_length=1):
+        """returns shannon entropy per sequence"""
+        probs = self.probs_per_seq(motif_length=motif_length)
+        return probs.entropy()
 
     def no_degenerates(self, motif_length=1, allow_gap=False):
         """returns new alignment without degenerate characters
@@ -2390,14 +2335,26 @@ class AlignmentI(object):
         result = MotifCountsArray(result, alpha)
         return result
 
+    def counts_per_seq(self, motif_length=1, include_ambiguity=False,
+                       allow_gap=False, exclude_unobserved=False, alert=False):
+        """returns dict of counts of non-overlapping motifs per sequence
+
             Arguments:
             - motif_length: number of elements per character.
             - include_ambiguity: if True, motifs containing ambiguous characters
               from the seq moltype are included. No expansion of those is attempted.
             - allow_gaps: if True, motifs containing a gap character are included.
+            - exclude_unobserved: if False, all canonical states included
+            - alert: warns if motif_length > 1 and alignment trimmed to produce
+              motif columns
             """
+        length = (len(self) // motif_length) * motif_length
+        if alert and len(self) != length:
+            warnings.warn(f"trimmed {len(self)-length}", UserWarning)
+
         is_array = isinstance(self, ArrayAlignment)
-        counts = {}
+        counts = []
+        motifs = set()
         for name in self.names:
             if is_array:
                 seq = self.named_seqs[name]
@@ -2406,8 +2363,16 @@ class AlignmentI(object):
             c = seq.counts(motif_length=motif_length,
                            include_ambiguity=include_ambiguity,
                            allow_gap=allow_gap)
-            counts[name] = c
-        return counts
+            motifs.update(c.keys())
+            counts.append(c)
+
+        if not exclude_unobserved:
+            motifs.update(self.alphabet.get_word_alphabet(motif_length))
+
+        motifs = list(sorted(motifs))
+        for i, c in enumerate(counts):
+            counts[i] = c.tolist(motifs)
+        return MotifCountsArray(counts, motifs, row_indices=self.names)
 
     def count_gaps(self, seq_name):
         """returns number of gaps for seq_name"""
@@ -2855,61 +2820,6 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
 
         return "%s x %s %s alignment: %s" % (len(self.names),
                                              self.seq_len, self._type, seqs)
-    def _get_freqs(self, index=None):
-        """Gets array of freqs along index 0 (= positions) or 1 (= seqs).
-
-        index: if 0, will calculate the frequency of each symbol in each
-        position (=column) in the alignment. Will return 2D array where the
-        first index is the position, and the second index is the index of the
-        symbol in the alphabet. For example, for the TCAG DNA Alphabet,
-        result[3][0] would store the count of T at position 3 (i.e. the 4th
-        position in the alignment.
-
-        if 1, does the same thing except that the calculation is performed for
-        each sequence, so the 2D array has the sequence index as the first
-        index, and the symbol index as the second index. For example, for the
-        TCAG DNA Alphabet, result[3][0] would store the count of T in the
-        sequence at index 3 (i.e. the 4th sequence).
-        """
-        if index:
-            a = self.array_positions
-        else:
-            a = self.array_seqs
-        count_f = self.alphabet.counts
-        return array(list(map(count_f, a)))
-
-    def get_pos_freqs(self):
-        """Returns Profile of counts: position by character.
-
-        See documentation for _get_freqs: this just wraps it and converts the
-        result into a Profile object organized per-position (i.e. per column).
-        """
-        return Profile(self._get_freqs(1), self.alphabet)
-
-    def get_seq_entropy(self):
-        """Returns array containing Shannon entropy for each seq in self.
-
-        Uses the profile object from get_seq_freqs (see docstring) to calculate
-        the per-symbol entropy in each sequence in the alignment, i.e. the
-        uncertainty about each symbol in each sequence (or row). This can be
-        used to, for instance, filter low-complexity sequences.
-        """
-        p = self.get_seq_freqs()
-        p.normalize_positions()
-        return p.row_uncertainty()
-
-    def get_pos_entropy(self):
-        """Returns array containing Shannon entropy for each pos in self.
-
-        Uses the profile object from get_pos_freqs (see docstring) to calculate
-        the per-symbol entropy in each position in the alignment, i.e. the
-        uncertainty about each symbol at each position (or column). This can
-        be used to, for instance, detect the level of conservation at each
-        position in an alignment.
-        """
-        p = self.get_pos_freqs()
-        p.normalize_positions()
-        return p.row_uncertainty()
 
     def iupac_consensus(self, alphabet=None):
         """Returns string containing IUPAC consensus sequence of the alignment.
@@ -2948,11 +2858,6 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
             return num_gaps / seq_len <= allowed_gap_frac
 
         return gaps_ok
-
-    def column_freqs(self, constructor=Freqs):
-        """Returns list of Freqs with item counts for each column.
-        """
-        return list(map(constructor, self.positions))
 
     def sample(self, n=None, with_replacement=False, motif_length=1,
                randint=randint, permutation=permutation):
@@ -3376,7 +3281,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
     def _seq_to_aligned(self, seq, key):
         """Converts seq to Aligned object -- override in subclasses"""
-        (map, seq) = self.moltype.make_seq(seq, key).parse_out_gaps()
+        (map, seq) = self.moltype.make_seq(seq, key,
+                                           preserve_case=True).parse_out_gaps()
         return Aligned(map, seq)
 
     def get_tracks(self, policy):
