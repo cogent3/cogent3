@@ -517,7 +517,7 @@ class MolType(object):
             seq_constructor = ''.join  # safe default string constructor
         elif not preserve_existing_moltypes:
             seq_constructor.moltype = self
-        self.make_seq = seq_constructor
+        self._make_seq = seq_constructor
 
         # set the ambiguities
         ambigs = {self.missing: tuple(
@@ -550,6 +550,7 @@ class MolType(object):
         self.pairs.update(make_pairs(pairs, motifset, self.gaps,
                                      self.degenerates))
         self.mw_calculator = mw_calculator
+
         # add lowercase characters, if we're doing that
         if add_lower:
             self._add_lowercase()
@@ -623,7 +624,7 @@ class MolType(object):
 
     def make_seq(self, seq, name=None, **kwargs):
         """Returns sequence of correct type."""
-        return self.make_seq(seq, name, **kwargs)
+        return self._make_seq(seq, name, **kwargs)
 
     def verify_sequence(self, seq, gaps_allowed=True, wildcards_allowed=True):
         """Checks whether sequence is valid on the default alphabet.
