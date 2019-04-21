@@ -1489,22 +1489,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         obs = aln.entropy_per_pos()
         self.assertFloatEqual(obs, [0, 0, 0])
 
-    def test_get_pwm(self):
-        """Alignment get_pwm should produce position specific score matrix."""
-        expect = {
-            0: {'A': 1.0, 'C': 1.0, 'G': 0.0, 'U': 5.0},
-            1: {'A': 0.0, 'C': 6.0, 'G': 0.0, 'U': 1.0},
-            2: {'A': 3.0, 'C': 2.0, 'G': 2.0, 'U': 0.0},
-            3: {'A': 3.0, 'C': 0.0, 'G': 4.0, 'U': 0.0},
-            4: {'A': 0.0, 'C': 1.0, 'G': 1.0, 'U': 5.0},
-            5: {'A': 0.0, 'C': 6.0, 'G': 0.0, 'U': 1.0},
-            6: {'A': 3.0, 'C': 0.0, 'G': 4.0, 'U': 0.0},
-            7: {'A': 1.0, 'C': 0.0, 'G': 6.0, 'U': 0.0},
-            8: {'A': 1.0, 'C': 1.0, 'G': 1.0, 'U': 4.0},
-            9: {'A': 1.0, 'C': 2.0, 'G': 0.0, 'U': 4.0},
-        }
-        self.assertEqual(self.many.get_pwm().todict(), expect)
-
     def test_sample(self):
         """Alignment.sample should permute alignment by default"""
         alignment = self.Class({'seq1': 'ABCDEFGHIJKLMNOP',

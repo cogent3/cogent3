@@ -35,7 +35,6 @@ from cogent3.core.info import Info as InfoClass
 from cogent3.core.sequence import frac_same, ArraySequence
 from cogent3.core.location import LostSpan, Span
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.maths.stats.util import Freqs
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.format.nexus import nexus_from_alignment
@@ -1910,16 +1909,6 @@ class AlignmentI(object):
             states.append(pos.mode)
 
         return self.moltype.make_seq(''.join(states))
-
-    def get_pwm(self):
-        """Returns a position specific weight matrix for the alignment."""
-        result = []
-        for col in self.positions:
-            f = Freqs(col)
-            result.append([f.get(c, 0) for c in self.moltype])
-        darr = DictArrayTemplate(len(self), list(self.moltype))
-        result = darr.wrap(result)
-        return result
 
     def probs_per_pos(self, motif_length=1, include_ambiguity=False,
                       allow_gap=False, alert=False):
