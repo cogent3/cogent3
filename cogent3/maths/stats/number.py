@@ -62,7 +62,20 @@ class SummaryStatBase:
 class CategoryCounter(MutableMapping, SummaryStatBase):
     """counting class with summary statistic attributes"""
 
-    def __init__(self, data):
+    def __init__(self, data=None):
+        if data is not None:
+            if isinstance(data, dict):
+                self.update_from_counts(data)
+            else:
+                self.update_from_series(data)
+
+    def update_from_counts(self, data):
+        """updates values of self using counts dict"""
+        for k, v in data.items():
+            self[k] += v
+
+    def update_from_series(self, data):
+        """updates values of self from raw series"""
         for element in data:
             self[element] += 1
 
@@ -140,8 +153,8 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
 
 
 class NumberCounter(CategoryCounter):
-    def __init__(self, data):
-        super(NumberCounter, self).__init__(data)
+    def __init__(self, data=None):
+        super(NumberCounter, self).__init__(data=data)
 
     @property
     def valid(self):
@@ -187,4 +200,11 @@ class NumberCounter(CategoryCounter):
         var = self.var
         return numpy.sqrt(var)
 
+    def update_from_counts(self, data):
+        """updates values of self using counts dict"""
+        for k, v in data.items():
+            try:
+                k**2
+            except TypeError:
+                raise TypeError(f'key {k} is not numeric')
             self[k] += v
