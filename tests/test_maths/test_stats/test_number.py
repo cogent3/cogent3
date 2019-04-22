@@ -122,6 +122,12 @@ class TestNumber(TestCase):
         self.assertEqual(got[1, 'GTA'], 1)
         self.assertEqual(got[1, 'TTG'], 2)
 
+    def test_expand(self):
+        """correctly reconstitutes original series content"""
+        nums = number.CategoryCounter('AAAACCCGGGGT')
+        expanded = nums.expand()
+        self.assertEqual(expanded, list('AAAACCCGGGGT'))
+
     def test_numbers_update(self):
         """correctly update number counts"""
         data = [0, 0, 2, 4, 4, 4]
