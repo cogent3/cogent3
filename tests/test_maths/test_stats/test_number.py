@@ -131,11 +131,37 @@ class TestNumber(TestCase):
         nums = number.CategoryCounter('AAAA')
         assert_allclose(nums.entropy, 0)
 
+    def test_to_freqs(self):
+        """CategoryCounter.tofreqs produces CategoryFreqs"""
+        nums = number.CategoryCounter('AAAACCCGGGGT')
+        freqs = nums.tofreqs()
+        assert_allclose(freqs.toarray(list(freqs)),
+                        nums.toarray(list(freqs)) / 12)
+
     def test_expand(self):
         """correctly reconstitutes original series content"""
         nums = number.CategoryCounter('AAAACCCGGGGT')
         expanded = nums.expand()
         self.assertEqual(expanded, list('AAAACCCGGGGT'))
+
+    def test_categoryfreqs_entropy(self):
+        """correctly returns frequencies"""
+        vals = numpy.array([4 / 12, 3 / 12, 4 / 12, 1 / 12])
+        expect = -(vals * numpy.log2(vals)).sum()
+        freqs = number.CategoryFreqs({'A': 4, 'C': 3, 'G': 4, 'T': 1}, total=12)
+        assert_allclose(freqs.entropy, expect)
+
+    def test_to_normalized(self):
+        """correctly recalibrate CategoryFreqs"""
+        freqs = number.CategoryFreqs({'A': 4, 'C': 2, 'G': 4}, total=12)
+        self.assertEqual(freqs['A'], 4 / 12)
+        freqs = freqs.to_normalized()
+        self.assertEqual(freqs['A'], 4 / 10)
+
+        # from an empty dict
+        freqs = number.CategoryFreqs()
+        d = freqs.to_normalized()
+        self.assertEqual(d.todict(), {})
 
     def test_numbers_update(self):
         """correctly update number counts"""
