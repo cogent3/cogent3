@@ -119,7 +119,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_numberseqs(self):
         """testing the number of sequences"""
-        assert len(self.alignment.get_seq_names()) == 5
+        assert len(self.alignment.names) == 5
 
     def test_alignlsength(self):
         """testing the alignment length"""
@@ -136,7 +136,7 @@ class AlignmentTestMethods(unittest.TestCase):
         subset = ['DogFaced', 'Human', 'HowlerMon', 'Mouse']
         subset.sort()
         sub_align = self.alignment.take_seqs(subset)
-        new = sub_align.get_seq_names()
+        new = sub_align.names
         new.sort()
         assert new == subset, "included subset didn't work %s, %s" % (
             new, subset)
@@ -144,7 +144,7 @@ class AlignmentTestMethods(unittest.TestCase):
         # testing exclusion of one
         to_exclude = ['NineBande']
         sub_align = self.alignment.take_seqs(to_exclude, negate=True)
-        new = sub_align.get_seq_names()
+        new = sub_align.names
         new.sort()
         assert new == subset, "excluded subset didn't work %s, %s" % (
             new, subset)
@@ -154,7 +154,7 @@ class AlignmentTestMethods(unittest.TestCase):
         subset.sort()
         to_exclude = ['Human', 'Mouse']
         sub_align = self.alignment.take_seqs(to_exclude, negate=True)
-        new = sub_align.get_seq_names()
+        new = sub_align.names
         new.sort()
         assert new == subset, "excluded subset didn't work %s, %s" % (
             new, subset)
@@ -165,13 +165,13 @@ class AlignmentTestMethods(unittest.TestCase):
             data={'seq1': 'ACGTACGT', 'seq2': 'ACGTACGT', 'seq3': 'ACGTACGT'})
         sub_align = alignment[2: 5]
         self.assertEqual(len(sub_align), 3)
-        self.assertEqual(len(sub_align.get_seq_names()), 3)
+        self.assertEqual(len(sub_align.names), 3)
         self.assertEqual(sub_align.todict(), {
                          'seq1': 'GTA', 'seq2': 'GTA', 'seq3': 'GTA'})
 
         sub_align = alignment[5: 20]
         self.assertEqual(len(sub_align), 3)
-        self.assertEqual(len(sub_align.get_seq_names()), 3)
+        self.assertEqual(len(sub_align.names), 3)
         self.assertEqual(sub_align.todict(), {
                          'seq1': 'CGT', 'seq2': 'CGT', 'seq3': 'CGT'})
 

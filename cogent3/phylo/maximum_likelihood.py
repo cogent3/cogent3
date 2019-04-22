@@ -24,7 +24,7 @@ class ML(TreeEvaluator):
 
     def __init__(self, model, alignment, dists=None, opt_args={}):
         self.opt_args = opt_args
-        self.names = alignment.get_seq_names()
+        self.names = alignment.names
         self.alignment = alignment
         if hasattr(model, 'make_likelihood_function'):
             self.lf_factory = lambda tree: model.make_likelihood_function(tree)

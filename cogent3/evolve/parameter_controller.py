@@ -414,11 +414,11 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
                 locus_name = "for locus '%s'" % self.locus_names[index]
             else:
                 locus_name = ""
-            assert not set(aln.get_seq_names()).symmetric_difference(tip_names),\
+            assert not set(aln.names).symmetric_difference(tip_names),\
                 "Tree tip names %s and aln seq names %s don't match %s" % \
-                (self.tree.get_tip_names(), aln.get_seq_names(),
+                (self.tree.get_tip_names(), aln.names,
                  locus_name)
-            assert "root" not in aln.get_seq_names(), "'root' is a reserved name."
+            assert "root" not in aln.names, "'root' is a reserved name."
         with self.updates_postponed():
             for (locus_name, align) in zip(self.locus_names, aligns):
                 self.assign_all(

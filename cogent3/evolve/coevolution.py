@@ -1283,7 +1283,7 @@ def validate_ancestral_seqs(alignment, tree, ancestral_seqs):
     # is there a better way to get all the ancestor names? why doesn't
     # tree.ancestors() do this?
     edges = set(tree.get_node_names()) - set(tree.get_tip_names())
-    seqs = set(ancestral_seqs.get_seq_names())
+    seqs = set(ancestral_seqs.names)
     if edges != seqs:
         raise ValueError(
             "Must be ancestral seqs for all edges and root in tree, and no more.")
@@ -1292,7 +1292,7 @@ def validate_ancestral_seqs(alignment, tree, ancestral_seqs):
 def validate_tree(alignment, tree):
     """AS validation: ValueError if tip and seq names aren't same
     """
-    if set(tree.get_tip_names()) != set(alignment.get_seq_names()):
+    if set(tree.get_tip_names()) != set(alignment.names):
         raise ValueError(
             "Tree tips and seqs must have perfectly overlapping names.")
 
