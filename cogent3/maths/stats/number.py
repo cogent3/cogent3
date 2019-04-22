@@ -69,6 +69,16 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
     def __len__(self):
         return sum(self.values())
 
+    def __add__(self, other):
+        self[other] += 1
+        return self
+
+    def __sub__(self, other):
+        self[other] -= 1
+        if self[other] == 0:
+            del self[other]
+        return self
+
     def tolist(self, keys=None):
         """return values for these keys as a list"""
         if keys is None:

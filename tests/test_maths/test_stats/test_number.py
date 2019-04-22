@@ -14,6 +14,18 @@ class TestNumber(TestCase):
         self.assertEqual(nums.sum, 12)
         nums['A'] += 1
 
+    def test_add(self):
+        """allow adding elements, or series"""
+        nums = number.CategoryCounter('AAAACCCGGGGT')
+        nums += 'A'
+        self.assertEqual(nums['A'], 5)
+
+    def test_sub(self):
+        """allow removing elements"""
+        nums = number.CategoryCounter('AAAACCCGGGGT')
+        nums -= 'A'
+        self.assertEqual(nums['A'], 3)
+
     def test_to_methods(self):
         """successfully convert to dict, list, array"""
         nums = number.CategoryCounter('AAAACCCGGGGT')
