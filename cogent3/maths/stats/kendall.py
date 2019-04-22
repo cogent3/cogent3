@@ -7,8 +7,9 @@ Translated from R 2.5 by Gavin Huttley
 
 
 from numpy import floor, sqrt, array
-from cogent3.maths.stats.util import Freqs
+
 from cogent3.maths.stats.distribution import zprob
+from cogent3.maths.stats.number import CategoryCounter
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -109,8 +110,8 @@ def kendalls_tau(x, y, return_p=True):
     stat = tau
 
     if x_tied or y_tied:
-        x_tied = array([v for v in Freqs(x).values() if v > 1])
-        y_tied = array([v for v in Freqs(y).values() if v > 1])
+        x_tied = array([v for v in CategoryCounter(x).values() if v > 1])
+        y_tied = array([v for v in CategoryCounter(y).values() if v > 1])
         t0 = n * (n - 1) / 2
         t1 = sum(x_tied * (x_tied - 1)) / 2
         t2 = sum(y_tied * (y_tied - 1)) / 2
