@@ -744,46 +744,6 @@ class SequenceCollection(object):
                 for i in row:
                     yield i
 
-    def get_items(self, items, negate=False):
-        """Returns list containing only specified items.
-
-        items should be a list of (row_key, col_key) tuples.
-        """
-        get = self.named_seqs.__getitem__
-        if negate:
-            # have to cycle through every item and check that it's not in
-            # the list of items to returntest_progressive_est_tree
-            item_lookup = dict.fromkeys(list(map(tuple, items)))
-            result = []
-            for r in self.names:
-                curr_row = get(r)
-                for c in range(len(curr_row)):
-                    if (r, c) not in items:
-                        result.append(curr_row[c])
-            return result
-        # otherwise, just pick the selected items out of the list
-        else:
-            return [get(row)[col] for row, col in items]
-
-    def item_indices_if(self, f, negate=False):
-        """Returns list of (key,val) tuples where f(self.named_seqs[key][val]) is True"""
-        get = self.named_seqs.__getitem__
-        if negate:
-            def new_f(x): return not f(x)
-        else:
-            new_f = f
-        result = []
-        for row_label in self.names:
-            curr_row = get(row_label)
-            for col_idx, item in enumerate(curr_row):
-                if new_f(item):
-                    result.append((row_label, col_idx))
-        return result
-
-    def items_if(self, f, negate=False):
-        """Returns list of items where f(self.named_seqs[row][col]) is True."""
-        return self.get_items(self.item_indices_if(f, negate))
-
     def get_identical_sets(self, mask_degen=False):
         """returns sets of names for sequences that are identical
 

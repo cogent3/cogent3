@@ -489,17 +489,6 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(srp.take_seqs_if(is_med, negate=True),
                          {'b': 'AAA---'})
 
-    def test_get_items(self):
-        """SequenceCollection get_items should return list of items from k,v pairs"""
-        self.assertEqual(self.mixed.get_items([('a', 3), ('b', 4), ('a', 0)]),
-                         ['D', 'P', 'A'])
-        self.assertRaises(KeyError, self.mixed.get_items, [('x', 'y')])
-        self.assertRaises(IndexError, self.mixed.get_items, [('a', 1000)])
-        # should be able to negate -- note that results will have seqs in
-        # arbitrary order
-        self.assertEqualItems(self.mixed.get_items([('a', 3), ('b', 4), ('a', 0)],
-                                                   negate=True), ['B', 'C', 'E', 'L', 'M', 'N', 'O'])
-
     def test_get_identical_sets(self):
         """correctly identify sets of identical sequences"""
         # for DNA
@@ -556,31 +545,6 @@ class SequenceCollectionBaseTests(object):
         got = seqs.get_identical_sets(mask_degen=True)
         got = frozenset(frozenset(s) for s in got)
         self.assertEqual(got, expect)
-
-    def test_item_indices_if(self):
-        """SequenceCollection item_indices_if should return coordinates of matching items"""
-        def is_vowel(x): return x in 'AEIOU'
-        # reverse name order to test that it's not alphabetical
-        self.mixed = self.Class(self.mixed.named_seqs, names=['b', 'a'])
-        self.assertEqual(self.mixed.item_indices_if(is_vowel),
-                         [('b', 3), ('a', 0), ('a', 4)])
-
-        def is_lower(x): return x.islower()
-        self.assertEqual(self.ragged_padded.item_indices_if(is_lower), [])
-        # should be able to negate
-        self.assertEqualItems(self.mixed.item_indices_if(is_vowel, negate=True),
-                              [('a', 1), ('a', 2), ('a', 3), ('b', 0), ('b', 1), ('b', 2), ('b', 4)])
-
-    def test_items_if(self):
-        """SequenceCollection items_if should return matching items"""
-        def is_vowel(x): return x in 'AEIOU'
-        # reverse name order to test that it's not alphabetical
-        self.mixed = self.Class(self.mixed.named_seqs, names=['b', 'a'])
-        self.assertEqual(self.mixed.items_if(is_vowel), ['O', 'A', 'E'])
-        self.assertEqual(self.one_seq.items_if(is_vowel), list('AAAAA'))
-        # should be able to negate
-        self.assertEqualItems(self.mixed.items_if(is_vowel, negate=True),
-                              list('BCDLMNP'))
 
     def test_get_similar(self):
         """SequenceCollection get_similar should get all sequences close to target seq"""
