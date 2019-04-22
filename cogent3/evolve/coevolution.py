@@ -56,7 +56,8 @@ from numpy import zeros, ones, float, put, transpose, array, float64, nonzero,\
     greater_equal, less_equal
 from numpy.linalg import norm
 from random import shuffle
-from cogent3.maths.stats.util import Freqs
+
+from cogent3.maths.stats.number import CategoryCounter, CategoryFreqs
 from cogent3.core.sequence import Sequence
 from cogent3.core.moltype import IUPAC_gap, IUPAC_missing
 from cogent3.core.alphabet import CharAlphabet, Alphabet
@@ -132,7 +133,7 @@ def join_positions(pos1, pos2):
 
 def joint_entropy(pos1, pos2):
     """ Calculate the joint entroy of a pair of positions """
-    return Freqs(join_positions(pos1, pos2)).Uncertainty
+    return CategoryCounter(join_positions(pos1, pos2)).entropy
 
 # Exclude handlers (functions for processing position strings with exclude
 # characters)
@@ -190,9 +191,9 @@ def mi_pair(alignment, pos1, pos2, h1=None, h2=None, mi_calculator=mi,
 
     # Calculate entropy of pos1 & pos2, if they weren't passed in.
     if not h1:
-        h1 = Freqs(col1).Uncertainty
+        h1 = CategoryCounter(col1).entropy
     if not h2:
-        h2 = Freqs(col2).Uncertainty
+        h2 = CategoryCounter(col2).entropy
     # Calculate the joint entropy of pos1 & pos2
     joint_h = joint_entropy(col1, col2)
     # Calculate MI using the specified method -- return null_value when
@@ -238,7 +239,7 @@ def mi_position(alignment, position,
     # compile positional entropies if not passed in
     if positional_entropies is None:
         positional_entropies = \
-            [Freqs(p).Uncertainty for p in alignment.positions]
+            [CategoryCounter(p).entropy for p in alignment.positions]
 
     # Will want to make a change here so that we don't need to recalculate
     # all values when calling from mi_alignment
@@ -419,7 +420,7 @@ default_sca_freqs = protein_dict
 def freqs_to_array(f, alphabet):
     """Takes data in freqs object and turns it into array.
 
-    f = dict or Freqs object
+    f = dict or CategoryCounter object
     alphabet = Alphabet object or just a list that specifies the order
         of things to appear in the resulting array
     """
@@ -911,17 +912,16 @@ def sca_alignment(alignment, cutoff, null_value=DEFAULT_NULL_VALUE,
 # Caporaso et al., 2008)
 
 
-def make_weights(freqs, n):
+def make_weights(counts, n):
     """Return the weights for replacement states for each possible character.
     We compute the weight as the normalized frequency of the replacement state
     divided by 2*n."""
-    freqs.normalize()
-    char_prob = list(freqs.items())
+    char_prob = list(counts.tofreqs().items())
     weights = []
     for C, P in char_prob:
-        alts = Freqs([(c, p) for c, p in char_prob if c != C])
-        alts.normalize()
-        alts = Freqs([(c, w / (2 * n)) for c, w in list(alts.items())])
+        alts = CategoryFreqs({c: p for c, p in char_prob if c != C})
+        alts = alts.to_normalized()
+        alts = CategoryCounter({c: w / (2 * n) for c, w in list(alts.items())})
         weights += [(C, alts)]
     return weights
 
@@ -937,7 +937,7 @@ def calc_pair_scale(seqs, obs1, obs2, weights1, weights2):
     # characters. This means the number of states is changed by swapping
     # between the original and selected alternate, calculating the new mi
 
-    pair_freqs = Freqs(seqs)
+    pair_freqs = CategoryCounter(seqs)
     weights1 = dict(weights1)
     weights2 = dict(weights2)
     scales = []
@@ -945,20 +945,20 @@ def calc_pair_scale(seqs, obs1, obs2, weights1, weights2):
         weights = weights1[a]
 
         pr = a + b
-        pair_freqs -= [pr]
+        pair_freqs -= pr
         obs1 -= a
 
         # make comparable alignments by mods to col 1
         for c, w in list(weights.items()):
             new_pr = c + b
-            pair_freqs += [new_pr]
+            pair_freqs += new_pr
             obs1 += c
 
-            entropy = mi(obs1.Uncertainty, obs2.Uncertainty,
-                         pair_freqs.Uncertainty)
+            entropy = mi(obs1.entropy, obs2.entropy,
+                         pair_freqs.entropy)
             scales += [(pr, entropy, w)]
 
-            pair_freqs -= [new_pr]
+            pair_freqs -= new_pr
             obs1 -= c
 
         obs1 += a
@@ -967,19 +967,19 @@ def calc_pair_scale(seqs, obs1, obs2, weights1, weights2):
         obs2 -= b
         for c, w in list(weights.items()):
             new_pr = a + c
-            pair_freqs += [new_pr]
+            pair_freqs += new_pr
             obs2 += c
 
-            entropy = mi(obs1.Uncertainty, obs2.Uncertainty,
-                         pair_freqs.Uncertainty)
+            entropy = mi(obs1.entropy, obs2.entropy,
+                         pair_freqs.entropy)
             scales += [(pr, entropy, w)]
 
             obs2 -= c
-            pair_freqs -= [new_pr]
+            pair_freqs -= new_pr
 
         obs2 += b
 
-        pair_freqs += [pr]
+        pair_freqs += pr
     return scales
 
 
@@ -1010,17 +1010,17 @@ def resampled_mi_pair(alignment, pos1, pos2, weights=None,
 
     excludes = excludes or []
     num = len(seqs)
-    col1 = Freqs(col1)
-    col2 = Freqs(col2)
-    seq_freqs = Freqs(seqs)
+    col1 = CategoryCounter(col1)
+    col2 = CategoryCounter(col2)
+    seq_freqs = CategoryCounter(seqs)
     if weights:
         weights1, weights2 = weights
     else:
-        weights1 = make_weights(col1.copy(), num)
-        weights2 = make_weights(col2.copy(), num)
+        weights1 = make_weights(col1, num)
+        weights2 = make_weights(col2, num)
 
-    entropy = mi(col1.Uncertainty, col2.Uncertainty,
-                 seq_freqs.Uncertainty)
+    entropy = mi(col1.entropy, col2.entropy,
+                 seq_freqs.entropy)
     scales = calc_pair_scale(seqs, col1, col2, weights1, weights2)
     scaled_mi = 1 - sum([w * seq_freqs[pr] for pr, e, w in scales
                          if entropy <= e])
@@ -1575,7 +1575,7 @@ def coevolve_alignments(method, alignment1, alignment2,
     # compact (e.g., can I be making better use of kwargs?).
     if method == mi_pair or method == nmi_pair or method == normalized_mi_pair:
         positional_entropies = \
-            [Freqs(p).Uncertainty for p in merged_alignment.positions]
+            [CategoryCounter(p).entropy for p in merged_alignment.positions]
         for i in range(len_alignment1):
             for j in range(len_alignment2):
                 result[j, i] = \

@@ -11,10 +11,11 @@ from os import remove, environ
 from os.path import exists
 from numpy import zeros, ones, array, transpose, arange, nan, log, e, sqrt,\
     greater_equal, less_equal
+
+from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util.unit_test import TestCase, main
 from cogent3 import DNA, RNA, PROTEIN, LoadTree, LoadSeqs
 from cogent3.core.alphabet import CharAlphabet
-from cogent3.maths.stats.util import Freqs
 from cogent3.core.alphabet import CharAlphabet, Alphabet
 from cogent3.maths.stats.distribution import binomial_exact
 from cogent3.core.alignment import ArrayAlignment
@@ -1342,17 +1343,17 @@ class CoevolutionTests(TestCase):
         self.assertEqual(freqs_from_aln(aln, alphabet), expected)
 
     def test_freqs_to_array(self):
-        """freqs_to_array: should convert Freqs object to array"""
+        """freqs_to_array: should convert CategoryCounter object to array"""
         # should work with empty object
-        f = Freqs()
+        f = CategoryCounter()
         f2a = freqs_to_array
         self.assertFloatEqual(f2a(f, AAGapless), zeros(20))
         # should work with full object, omitting unwanted keys
-        f = Freqs({'A': 20, 'Q': 30, 'X': 20})
+        f = CategoryCounter({'A': 20, 'Q': 30, 'X': 20})
         expected = zeros(20)
         expected[AAGapless.index('A')] = 20
         expected[AAGapless.index('Q')] = 30
-        self.assertFloatEqual(expected, f2a(f, AAGapless))
+        self.assertFloatEqual(f2a(f, AAGapless), expected)
 
         # should work for normal dict and any alphabet
         d = {'A': 3, 'D': 1, 'C': 5, 'E': 2}
@@ -2439,10 +2440,10 @@ class AncestorCoevolve(TestCase):
 
 
 def make_freqs(c12):
-    c1, c2 = Freqs(), Freqs()
+    c1, c2 = CategoryCounter(), CategoryCounter()
     for a, b in c12.expand():
-        c1 += a
-        c2 += b
+        c1[a] += 1
+        c2[b] += 1
     return c1, c2
 
 
@@ -2466,10 +2467,7 @@ def _calc_mi():
 class ResampledMiTests(TestCase):
 
     def setUp(self):
-        self.c12 = Freqs()
-        self.c12 += ['AA'] * 2
-        self.c12 += ['BB'] * 2
-        self.c12 += ['BC']
+        self.c12 = CategoryCounter(['AA', 'AA', 'BB', 'BB', 'BC'])
         self.c1, self.c2 = make_freqs(self.c12)
         self.aln = make_sample(self.c12)
 
@@ -2492,15 +2490,15 @@ class ResampledMiTests(TestCase):
     def test_scaled_mi(self):
         """resampled mi should match hand calc"""
         def calc_scaled(data, expected_smi):
-            col_i, col_j = Freqs(), Freqs()
+            col_i, col_j = CategoryCounter(), CategoryCounter()
             for i, j in data:
-                col_i += i
-                col_j += j
-            pair_freqs = Freqs(data)
-            weights_i = make_weights(col_i.copy(), col_i.Sum)
-            weights_j = make_weights(col_j.copy(), col_j.Sum)
-            entropy = mi(col_i.Uncertainty, col_j.Uncertainty,
-                         pair_freqs.Uncertainty)
+                col_i[i] += 1
+                col_j[j] += 1
+            pair_freqs = CategoryCounter(data)
+            weights_i = make_weights(col_i, col_i.sum)
+            weights_j = make_weights(col_j, col_j.sum)
+            entropy = mi(col_i.entropy, col_j.entropy,
+                         pair_freqs.entropy)
             self.assertFloatEqual(entropy, _calc_mi())
             scales = calc_pair_scale(
                 data, col_i, col_j, weights_i, weights_j)
