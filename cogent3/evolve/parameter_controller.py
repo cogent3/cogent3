@@ -443,7 +443,12 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
             with_indel_params=with_indel_params, kn=kn)
 
     def set_sequences(self, seqs, locus=None):
+        from cogent3.core.alignment import SequenceCollection
         leaves = {}
+
+        if isinstance(seqs, SequenceCollection):
+            seqs = seqs.named_seqs
+
         for (name, seq) in list(seqs.items()):
             # if has uniq, probably already a likelihood tree leaf obj already
             if hasattr(seq, 'uniq'):
