@@ -1,5 +1,6 @@
 """Unit tests for statistical tests and utility functions.
 """
+from cogent3.maths.stats.number import NumberCounter
 from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.stats.test import tail, G_2_by_2, G_fit, likelihoods,\
     posteriors, bayes_updates, t_paired, t_one_sample, t_two_sample, \
@@ -18,7 +19,6 @@ from cogent3.maths.stats.test import tail, G_2_by_2, G_fit, likelihoods,\
 from numpy import array, concatenate, fill_diagonal, reshape, arange, \
     ones, testing, tril, cov, sqrt
 import math
-from cogent3.maths.stats.util import Numbers
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
@@ -1608,9 +1608,9 @@ class TestDistMatrixPermutationTest(TestCase):
     def test_ANOVA_one_way(self):
         """ANOVA one way returns same values as ANOVA on a stats package
         """
-        g1 = Numbers([10.0, 11.0, 10.0, 5.0, 6.0])
-        g2 = Numbers([1.0, 2.0, 3.0, 4.0, 1.0, 2.0])
-        g3 = Numbers([6.0, 7.0, 5.0, 6.0, 7.0])
+        g1 = NumberCounter([10.0, 11.0, 10.0, 5.0, 6.0])
+        g2 = NumberCounter([1.0, 2.0, 3.0, 4.0, 1.0, 2.0])
+        g3 = NumberCounter([6.0, 7.0, 5.0, 6.0, 7.0])
         i = [g1, g2, g3]
         dfn, dfd, F, between_MS, within_MS, group_means, prob = ANOVA_one_way(
             i)
