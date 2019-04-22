@@ -66,6 +66,19 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         for element in data:
             self[element] += 1
 
+    def tolist(self, keys=None):
+        """return values for these keys as a list"""
+        if keys is None:
+            keys = list(self)
+        result = [self[key] for key in keys]
+        return result
+
+    def toarray(self, keys=None):
+        """return values for these keys as an array"""
+        data = self.tolist(keys=keys)
+        data = numpy.array(data, dtype=int)
+        return data
+
     def expanded_values(self):
         values = list(self.values())
         return values
@@ -92,15 +105,19 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
     def todict(self):
         return dict(self)
 
-    def tolist(self, keys):
-        """return just these keys as an array"""
+    def tolist(self, keys=None):
+        """return values for these keys as a list"""
+        if keys is None:
+            keys = list(self)
         result = [self[key] for key in keys]
         return result
 
-    def toarray(self, keys):
+    def toarray(self, keys=None):
         """return just these keys as an array"""
+        if keys is None:
+            keys = list(self)
         data = self.tolist(keys)
-        data = numpy.array(data, dtype=int)
+        data = numpy.array(data, dtype=float)
         return data
 
 
