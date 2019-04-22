@@ -5,8 +5,7 @@ Also provides NumberList and FrequencyDistribution, two classes for
 working with statistical data.
 """
 __all__ = ['contingency', 'distribution',
-           'information_criteria', 'kendall', 'ks', 'special', 'test',
-           'util']
+           'information_criteria', 'kendall', 'ks', 'special', 'test']
 
 from .distribution import chi_high as chisqprob
 
