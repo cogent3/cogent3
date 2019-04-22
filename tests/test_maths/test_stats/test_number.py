@@ -26,6 +26,13 @@ class TestNumber(TestCase):
         self.assertNotEqual(id(new), id(nums))
         self.assertEqual(new.todict(), nums.todict())
 
+    def test_construct_from_dict(self):
+        """construction from dict of counts"""
+        data = {'A': 20, 'Q': 30, 'X': 20}
+        got = number.CategoryCounter(data)
+        self.assertEqual(got['A'], 20)
+        self.assertEqual(got.todict(), data)
+
     def test_add(self):
         """allow adding elements, or series"""
         nums = number.CategoryCounter('AAAACCCGGGGT')
@@ -114,6 +121,29 @@ class TestNumber(TestCase):
         self.assertEqual(got[1, 'TTA'], 7)
         self.assertEqual(got[1, 'GTA'], 1)
         self.assertEqual(got[1, 'TTG'], 2)
+
+    def test_numbers_update(self):
+        """correctly update number counts"""
+        data = [0, 0, 2, 4, 4, 4]
+        nums = number.NumberCounter(data)
+        data = [2, 4, 4, 4, 6, 5]
+        nums2 = number.NumberCounter(data)
+        nums.update_from_counts(nums2)
+        self.assertEqual(nums[2], 2)
+        self.assertEqual(nums[4], 6)
+        self.assertEqual(nums[1], 0)
+
+        data = [0, 0, 2, 4, 4, 4]
+        nums = number.NumberCounter(data)
+        nums.update_from_series([2, 4, 4, 4, 6, 5])
+        self.assertEqual(nums[2], 2)
+        self.assertEqual(nums[4], 6)
+        self.assertEqual(nums[1], 0)
+
+        with self.assertRaises(TypeError):
+            counts = number.CategoryCounter('AAAACCCGGGGT')
+            nums.update_from_counts(counts)
+
 
 
 if __name__ == '__main__':
