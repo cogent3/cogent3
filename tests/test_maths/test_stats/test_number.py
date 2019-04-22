@@ -122,6 +122,15 @@ class TestNumber(TestCase):
         self.assertEqual(got[1, 'GTA'], 1)
         self.assertEqual(got[1, 'TTG'], 2)
 
+    def test_entropy(self):
+        """CategoryCounter correctly calculates entropy"""
+        freqs = numpy.array([4 / 12, 3 / 12, 4 / 12, 1 / 12])
+        expect = -(freqs * numpy.log2(freqs)).sum()
+        nums = number.CategoryCounter('AAAACCCGGGGT')
+        assert_allclose(nums.entropy, expect)
+        nums = number.CategoryCounter('AAAA')
+        assert_allclose(nums.entropy, 0)
+
     def test_expand(self):
         """correctly reconstitutes original series content"""
         nums = number.CategoryCounter('AAAACCCGGGGT')
