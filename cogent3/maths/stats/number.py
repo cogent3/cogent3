@@ -165,4 +165,21 @@ class NumberCounter(CategoryCounter):
     def __len__(self):
         return sum(self.values())
 
+    @property
+    def mean(self):
+        mean = sum(k * self[k] for k in self)
+        return mean / len(self)
+
+    @property
+    def var(self):
+        # we scale the variance contribution of a number by its occurrence
+        mean = self.mean
+        var = sum(self[k] * (k - mean) ** 2 for k in self)
+        return var / (len(self) - 1)
+
+    @property
+    def std(self):
+        var = self.var
+        return numpy.sqrt(var)
+
             self[k] += v
