@@ -90,7 +90,6 @@ def suite():
         'test_maths.test_stats.test_special',
         'test_maths.test_stats.test_test',
         'test_maths.test_stats.test_ks',
-        'test_maths.test_stats.test_util',
         'test_maths.test_stats.test_jackknife',
         'test_maths.test_optimisers',
         'test_maths.test_distance_transform',
