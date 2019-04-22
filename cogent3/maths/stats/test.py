@@ -6,6 +6,7 @@ import warnings
 from cogent3.maths.stats.distribution import chi_high, z_low, z_high, zprob, \
     t_high, t_low, tprob, f_high, f_low, fprob, binomial_high, binomial_low, \
     ndtri
+from cogent3.maths.stats.number import NumberCounter
 from cogent3.maths.stats.special import lgam, log_one_minus, one_minus_exp,\
     MACHEP
 from cogent3.maths.stats.ks import psmirnov2x, pkstwo
@@ -18,7 +19,6 @@ from numpy import absolute, arctanh, array, asarray, concatenate, transpose, \
     median as _median, zeros, ones
 
 from numpy.random import permutation, randint
-from cogent3.maths.stats.util import Numbers
 from operator import add
 from random import choice
 
@@ -1230,22 +1230,22 @@ def ANOVA_one_way(a):
     group_means = []
     group_variances = []
     num_cases = 0
-    all_vals = []
+    all_vals = NumberCounter()
     for i in a:
         num_cases += len(i)
-        group_means.append(i.Mean)
-        group_variances.append(i.Variance * (len(i) - 1))
-        all_vals.extend(i)
-    group_means = Numbers(group_means)
+        group_means.append(i.mean)
+        group_variances.append(i.var * (len(i) - 1))
+        all_vals.update_from_counts(i)
+    group_means = NumberCounter(group_means)
     # get within group variances (denominator)
-    group_variances = Numbers(group_variances)
+    group_variances = NumberCounter(group_variances)
     dfd = num_cases - len(group_means)
-    within_MS = npsum(group_variances) / dfd
+    within_MS = group_variances.sum / dfd
     # get between group variances (numerator)
-    grand_mean = Numbers(all_vals).Mean
+    grand_mean = all_vals.mean
     between_MS = 0
     for i in a:
-        diff = i.Mean - grand_mean
+        diff = i.mean - grand_mean
         diff_sq = diff * diff
         x = diff_sq * len(i)
         between_MS += x
