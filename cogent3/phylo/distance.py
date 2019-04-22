@@ -4,7 +4,7 @@
 from warnings import warn
 from itertools import combinations
 
-from cogent3.maths.stats.util import Numbers
+from cogent3.maths.stats.number import NumberCounter
 from cogent3 import LoadSeqs, LoadTree
 from cogent3.util import table, progress_display as UI
 
@@ -34,7 +34,7 @@ def get_pairwise_distance_from_triad(data, summary_function="mean"):
           estimating param from threeway distances. Valid values are 'mean'
           (default) and 'median'.
     """
-    summary_func = summary_function.capitalize()
+    summary_func = summary_function.lower()
     pairwise_stats = {}
     lengths = {}
     for key in data:
@@ -48,7 +48,7 @@ def get_pairwise_distance_from_triad(data, summary_function="mean"):
 
     # get all the distances involving this pair
     for pair in lengths:
-        values = Numbers(lengths[pair])
+        values = NumberCounter(lengths[pair])
         pairwise_stats[pair] = getattr(values, summary_func)
 
     return pairwise_stats
@@ -265,7 +265,7 @@ class EstimateDistances(object):
             - param: name of a parameter in est_params or 'length'
             - **kwargs: arguments passed to get_pairwise_param"""
         ests = self.get_pairwise_param(param, **kwargs)
-        return Numbers(list(ests.values()))
+        return NumberCounter(list(ests.values()))
 
     def get_all_param_values(self):
         """returns raw estimated parameter dictionary"""
