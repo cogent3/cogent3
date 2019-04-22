@@ -1,4 +1,7 @@
 from unittest import TestCase, main
+
+from numpy.testing import assert_allclose
+
 from cogent3.maths.stats import number
 from cogent3 import LoadSeqs
 import numpy
@@ -10,6 +13,17 @@ class TestNumber(TestCase):
         self.assertEqual(nums.todict(), dict(A=4, C=3, G=4, T=1))
         self.assertEqual(nums.sum, 12)
         nums['A'] += 1
+
+    def test_to_methods(self):
+        """successfully convert to dict, list, array"""
+        nums = number.CategoryCounter('AAAACCCGGGGT')
+        got = nums.tolist()
+        self.assertEqual(got, [4, 3, 4, 1])
+        got = nums.tolist(keys='TCAG')
+        self.assertEqual(got, [1, 3, 4, 4])
+        got = nums.toarray(keys='TCAG')
+        assert_allclose(got, numpy.array([1, 3, 4, 4], dtype=int))
+        self.assertEqual(nums.todict(), dict(A=4, C=3, G=4, T=1))
 
     def test_valid(self):
         """correctly identify when numbers contains numbers"""
