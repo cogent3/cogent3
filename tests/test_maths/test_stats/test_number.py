@@ -51,12 +51,14 @@ class TestNumber(TestCase):
         self.assertEqual(nums.median, numpy.median(data))
         self.assertEqual(nums.quantile(q=.75), numpy.quantile(data, q=.75))
         self.assertEqual(nums.mode, 4)
+        self.assertEqual(len(nums), 6)
 
     def test_category_counter_stats(self):
         """stats from CategoryCounter correct"""
         data = 'TCTTTAGAGAACAGTTTATTATACACTAAA'
         values = [data.count(b) for b in 'ACGT']
         nums = number.CategoryCounter(data)
+        self.assertEqual(len(nums), len(data))
         self.assertEqual(nums.mean, numpy.mean(values))
         self.assertEqual(nums.std, numpy.std(values, ddof=1))
         self.assertEqual(nums.median, numpy.median(values))
