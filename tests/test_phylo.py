@@ -395,7 +395,7 @@ class DistancesTests(unittest.TestCase):
         d.run()
         # this will be a Number object with Mean, Median etc ..
         kappa = d.get_param_values('kappa')
-        self.assertAlmostEqual(kappa.Mean, 0.8939, 4)
+        self.assertAlmostEqual(kappa.mean, 0.8939, 4)
         # this will be a dict with pairwise instances, it's called by the above
         # method, so the correctness of it's values is already checked
         kappa = d.get_pairwise_param('kappa')
