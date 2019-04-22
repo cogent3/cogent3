@@ -642,21 +642,6 @@ class SequenceCollection(object):
         else:
             return str(self) < str(other)
 
-    def keys(self):
-        """keys uses self.Names, which defaults to known keys if None.
-
-        Note: returns copy, not original.
-        """
-        return self.names[:]
-
-    def values(self):
-        """values returns values corresponding to self.Names."""
-        return [self.named_seqs[n] for n in self.names]
-
-    def items(self):
-        """items returns (name, value) pairs."""
-        return [(n, self.named_seqs[n]) for n in self.names]
-
     def iter_seqs(self, seq_order=None):
         """Iterates over values (sequences) in the alignment, in order.
 
@@ -767,7 +752,7 @@ class SequenceCollection(object):
         get = self.named_seqs.__getitem__
         if negate:
             # have to cycle through every item and check that it's not in
-            # the list of items to return
+            # the list of items to returntest_progressive_est_tree
             item_lookup = dict.fromkeys(list(map(tuple, items)))
             result = []
             for r in self.names:
@@ -2699,19 +2684,6 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         return self._named_seqs
 
     named_seqs = property(_get_named_seqs)
-
-    def keys(self):
-        """Supports dict-like interface: returns names as keys."""
-        return self.names
-
-    def values(self):
-        """Supports dict-like interface: returns seqs as Sequence objects."""
-        return [self.alphabet.moltype.make_array_seq(i, alphabet=self.alphabet)
-                for i in self.array_seqs]
-
-    def items(self):
-        """Supports dict-like interface; returns (name, seq) pairs."""
-        return list(zip(list(self.keys()), list(self.values())))
 
     def __iter__(self):
         """iter(aln) iterates over positions, returning array slices.
