@@ -95,8 +95,21 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         new = self.__class__(data)
         return new
 
+    def __setitem__(self, key, val):
+        self.__dict__[key] = val
+
+    def __getitem__(self, key):
+        val = 0 if key not in self.__dict__ else self.__dict__[key]
+        return val
+
+    def __delitem__(self, key):
+        del (self.__dict__[key])
+
     def __len__(self):
         return sum(self.values())
+
+    def __iter__(self):
+        return iter(self.__dict__)
 
     def __add__(self, other):
         self[other] += 1
@@ -107,6 +120,12 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         if self[other] == 0:
             del self[other]
         return self
+
+    def __repr__(self):
+        return repr(self.__dict__)
+
+    def todict(self):
+        return dict(self)
 
     def tolist(self, keys=None):
         """return values for these keys as a list"""
@@ -120,6 +139,12 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         data = self.tolist(keys=keys)
         data = numpy.array(data, dtype=int)
         return data
+
+    @property
+    def entropy(self):
+        data = self.toarray()
+        data = data / self.sum
+        return -(data * numpy.log2(data)).sum()
 
     def expanded_values(self):
         values = list(self.values())
