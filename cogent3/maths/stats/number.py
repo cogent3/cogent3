@@ -66,6 +66,11 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         for element in data:
             self[element] += 1
 
+    def copy(self):
+        data = self.todict().copy()
+        new = self.__class__(data)
+        return new
+
     def __len__(self):
         return sum(self.values())
 

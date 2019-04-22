@@ -14,6 +14,18 @@ class TestNumber(TestCase):
         self.assertEqual(nums.sum, 12)
         nums['A'] += 1
 
+    def test_copy(self):
+        """copy works"""
+        nums = number.CategoryCounter('AAAACCCGGGGT')
+        new = nums.copy()
+        self.assertNotEqual(id(new), id(nums))
+        self.assertEqual(new.todict(), nums.todict())
+
+        nums = number.NumberCounter(data = [0, 0, 2, 4, 4, 4])
+        new = nums.copy()
+        self.assertNotEqual(id(new), id(nums))
+        self.assertEqual(new.todict(), nums.todict())
+
     def test_add(self):
         """allow adding elements, or series"""
         nums = number.CategoryCounter('AAAACCCGGGGT')
