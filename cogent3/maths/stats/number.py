@@ -79,6 +79,17 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         for element in data:
             self[element] += 1
 
+    def expand(self):
+        """returns list of [[k] * val, ..]"""
+        result = []
+        for k in self:
+            result.extend([k] * self[k])
+        return result
+
+    def expanded_values(self):
+        values = list(self.values())
+        return values
+
     def copy(self):
         data = self.todict().copy()
         new = self.__class__(data)
