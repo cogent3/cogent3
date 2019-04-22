@@ -4,7 +4,6 @@ from numpy.testing import assert_allclose
 from cogent3.util.unit_test import TestCase, main
 from cogent3.util.misc import get_object_provenance
 from cogent3.core.sequence import RnaSequence, frac_same, ArraySequence, Sequence
-from cogent3.maths.stats.util import Freqs, Numbers
 from cogent3.core.moltype import RNA, DNA, PROTEIN, BYTES, ASCII
 from cogent3.core.alphabet import AlphabetError
 
