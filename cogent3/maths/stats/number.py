@@ -1,5 +1,6 @@
 from collections.abc import MutableMapping, Mapping
 import numpy
+from numpy.testing import assert_allclose
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -146,9 +147,46 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         data = data / self.sum
         return -(data * numpy.log2(data)).sum()
 
+    def tofreqs(self):
+        """returns dict of {key: val/total, ..}"""
+        result = CategoryFreqs(self, total=self.sum)
+        return result
+
+
+class CategoryFreqs(MutableMapping, SummaryStatBase):
+    """category frequencies with summary statistic attributes"""
+
+    def __init__(self, data=None, total=None, assert_unity=False):
+        """
+        Parameters
+        ----------
+        data
+            data series or dict
+        total
+            if provided, and data is not None, elements divided by this
+        assert_unity : bool
+            checks sum of values (post construction) equals 1
+        """
+        data = data or None
+        if total:
+            assert data is not None
+            for k, v in data.items():
+                self[k] = v / total
+        elif data is not None:
+            for k, v in data.items():
+                self[k] = v
+
+        if assert_unity and data is not None:
+            assert_allclose(self.sum, 1)
+
     def expanded_values(self):
         values = list(self.values())
         return values
+
+    def copy(self):
+        data = self.todict().copy()
+        new = self.__class__(data=data)
+        return new
 
     def __setitem__(self, key, val):
         self.__dict__[key] = val
@@ -181,11 +219,19 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
 
     def toarray(self, keys=None):
         """return just these keys as an array"""
-        if keys is None:
-            keys = list(self)
-        data = self.tolist(keys)
+        data = self.tolist(keys=keys)
         data = numpy.array(data, dtype=float)
         return data
+
+    @property
+    def entropy(self):
+        data = self.toarray()
+        return -(data * numpy.log2(data)).sum()
+
+    def to_normalized(self):
+        """returns rescaled self so sum is 1"""
+        result = CategoryFreqs(self, total=self.sum, assert_unity=True)
+        return result
 
 
 class NumberCounter(CategoryCounter):
