@@ -1316,10 +1316,6 @@ class SequenceCollection(object):
 
         return self.__class__(moltype=self.moltype, data=new_seqs, info=self.info, **kwargs)
 
-    def get_seq_names(self):
-        """Return a list of sequence names."""
-        return self.names[:]
-
     def get_lengths(self, include_ambiguity=False, allow_gap=False):
         """returns {name: seq length, ...}
 

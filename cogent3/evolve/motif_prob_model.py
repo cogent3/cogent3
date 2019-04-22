@@ -58,7 +58,7 @@ class MotifProbModel(object):
         except AttributeError:
             mtype = self.monomer_alphabet.moltype
         
-        for seq_name in alignment.get_seq_names():
+        for seq_name in alignment.names:
             sequence = alignment.get_gapped_seq(seq_name, recode_gaps,
                                                 moltype=mtype)
             leaf = make_likelihood_tree_leaf(sequence, self.get_counted_alphabet(),

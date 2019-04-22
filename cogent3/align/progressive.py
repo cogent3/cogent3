@@ -46,7 +46,7 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
     if isinstance(seqs, dict):
         seq_names = list(seqs.keys())
     else:
-        seq_names = seqs.get_seq_names()
+        seq_names = seqs.names
 
     two_seqs = len(seq_names) == 2
 
@@ -59,7 +59,7 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
             (tip_names, seq_names)
         ests_from_pairwise = False
     elif two_seqs:
-        tree = LoadTree(tip_names=seqs.get_seq_names())
+        tree = LoadTree(tip_names=seqs.names)
         ests_from_pairwise = False
     else:
         if ests_from_pairwise:

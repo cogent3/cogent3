@@ -404,7 +404,7 @@ def partimatrix(alignment, display=False, samples=0, s_limit=0, title="",
         # Species dimension
         if s_size:
             seq_names = [name.split('  ')[0]
-                         for name in alignment.get_seq_names()]
+                         for name in alignment.names]
             axS.yaxis.set_minor_locator(matplotlib.ticker.IndexLocator(1, 0))
             axS.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
             axS.yaxis.set_major_locator(matplotlib.ticker.IndexLocator(1, 0.5))
