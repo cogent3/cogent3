@@ -769,11 +769,6 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(aln_seq_1.annotations[0].name, 'abc')
         self.assertEqual(len(aln_seq_2.annotations), 0)
 
-    def test_get_gapped_seq(self):
-        """SequenceCollection.get_gapped_seq should return seq, with gaps"""
-        aln = self.Class({'seq1': '--TTT?', 'seq2': 'GATC??'})
-        self.assertEqual(str(aln.get_gapped_seq('seq1')), '--TTT?')
-
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""
         align1 = self.Class({'a': 'AAAA', 'b': 'TTTT', 'c': 'CCCC'})
@@ -1785,6 +1780,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aa = aln.get_translation()
         dists = aa.distance_matrix()
         self.assertEqual(dists, {('s1', 's2'): 1.0, ('s2', 's1'): 1.0})
+
+    def test_get_gapped_seq(self):
+        """Alignment.get_gapped_seq should return seq, with gaps"""
+        aln = self.Class({'seq1': '--TTT?', 'seq2': 'GATC??'})
+        self.assertEqual(str(aln.get_gapped_seq('seq1')), '--TTT?')
 
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
