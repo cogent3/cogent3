@@ -231,7 +231,7 @@ class load_json(Composable):
             data_store = self.data_store
         else:
             data_store = SingleReadDataStore(path)
-        if type(path) == str:
+        if isinstance(path, str):
             data = data_store.read(path)
         else:
             raise NotImplementedError

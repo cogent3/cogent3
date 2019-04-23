@@ -141,6 +141,12 @@ class TestIo(TestCase):
             self.assertIsInstance(got, DNA.__class__)
             self.assertEqual(got, DNA)
 
+            # and a datastore member
+            dstore = io_app.get_data_store(dirname, suffix='json')
+            member = list(dstore)[0]
+            got = reader(member)
+            self.assertEqual(got, DNA)
+
         # zipped directory
         with TemporaryDirectory(dir='.') as dirname:
             zip_path = join(dirname, 'delme.zip')
