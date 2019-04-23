@@ -988,14 +988,6 @@ class SequenceCollection(object):
                                                       attributes),
                                                   [(start, end)])
 
-    def get_gapped_seq(self, seq_name, recode_gaps=False, moltype=None):
-        """Return a gapped Sequence object for the specified seqname.
-
-        Note: return type may depend on what data was loaded into the
-        SequenceCollection or Alignment.
-        """
-        return self.named_seqs[seq_name]
-
     def __add__(self, other):
         """Concatenates sequence data for same names"""
         aligned = isinstance(self, Alignment)
@@ -1168,7 +1160,7 @@ class SequenceCollection(object):
         result = {}
         for name in self.names:
             result[name] = ambig = {}
-            for (i, motif) in enumerate(self.get_gapped_seq(name)):
+            for (i, motif) in enumerate(self.named_seqs[name]):
                 if self.moltype.is_ambiguity(motif):
                     ambig[i] = motif
         return result
