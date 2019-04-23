@@ -414,8 +414,9 @@ class SequenceCollection(object):
 
     def __str__(self):
         """Returns self in FASTA-format, respecting name order."""
-        return ''.join(['>%s\n%s\n' % (name, self.get_gapped_seq(name))
-                        for name in self.names])
+        from cogent3.format.alignment import FORMATTERS
+        fasta = FORMATTERS['fasta'](self.todict())
+        return fasta
 
     def _make_named_seqs(self, names, seqs):
         """Returns named_seqs: dict of name:seq."""
