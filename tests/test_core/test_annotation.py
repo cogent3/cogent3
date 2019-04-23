@@ -144,7 +144,7 @@ class TestAnnotations(unittest.TestCase):
                 expected = expected.replace('-', '')
             self.assertEqual(seq_ltr.get_slice(), expected)
 
-    def test_reversecomplement(self):
+    def test_reverse_complement(self):
         """test correct translation of annotations on reverse complement."""
         aln_expecteds = {"misc_feature": {'FAKE01': 'TTTGGGGGGGGGG',
                                          'FAKE02': 'TTTGGGGGGGGGG'},

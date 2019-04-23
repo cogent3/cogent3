@@ -113,8 +113,8 @@ class Display2D(Drawable):
         if key not in self._cache:
             fwd = dotplot(str(self.seq1), str(self.seq2),
                           window, threshold, min_gap, None)
-            if hasattr(self.seq1, "reversecomplement"):
-                rev = dotplot(str(self.seq1.reversecomplement()),
+            if hasattr(self.seq1, "reverse_complement"):
+                rev = dotplot(str(self.seq1.reverse_complement()),
                               str(self.seq2), window, threshold, min_gap, None)
                 rev = [((len1 - x1, y1), (len1 - x2, y2))
                        for ((x1, y1), (x2, y2)) in rev]

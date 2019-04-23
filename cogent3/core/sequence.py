@@ -869,7 +869,7 @@ class NucleicAcidSequence(Sequence):
     PROTEIN = None  # will set in moltype
     codon_alphabet = None  # will set in moltype
 
-    def reversecomplement(self):
+    def reverse_complement(self):
         """Converts a nucleic acid sequence to its reverse complement.
         Synonymn for rc."""
         return self.rc()
