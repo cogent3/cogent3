@@ -710,22 +710,6 @@ class SequenceCollectionBaseTests(object):
         expect = aln.to_rich_dict()
         self.assertEqual(got, expect)
 
-    def test_get_int_map(self):
-        """SequenceCollection.get_int_map should return correct mapping."""
-        aln = self.Class({'seq1': 'ACGU', 'seq2': 'CGUA', 'seq3': 'CCGU'})
-        int_keys = {'seq_0': 'seq1', 'seq_1': 'seq2', 'seq_2': 'seq3'}
-        int_map = {'seq_0': 'ACGU', 'seq_1': 'CGUA', 'seq_2': 'CCGU'}
-        im, ik = aln.get_int_map()
-        self.assertEqual(ik, int_keys)
-        self.assertEqual(im, int_map)
-        # test change prefix from default 'seq_'
-        prefix = 'seqn_'
-        int_keys = {'seqn_0': 'seq1', 'seqn_1': 'seq2', 'seqn_2': 'seq3'}
-        int_map = {'seqn_0': 'ACGU', 'seqn_1': 'CGUA', 'seqn_2': 'CCGU'}
-        im, ik = aln.get_int_map(prefix=prefix)
-        self.assertEqual(ik, int_keys)
-        self.assertEqual(im, int_map)
-
     def test_num_seqs(self):
         """SequenceCollection.num_seqs should count seqs."""
         aln = self.Class({'seq1': 'ACGU', 'seq2': 'CGUA', 'seq3': 'CCGU'})
