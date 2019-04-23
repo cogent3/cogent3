@@ -293,7 +293,7 @@ class AlignmentTestMethods(unittest.TestCase):
         self.assertEqual(rna_from_dna.todict(), rna)
         self.assertEqual(dna_from_rna.todict(), dna)
 
-    def test_reversecomplement(self):
+    def test_reverse_complement(self):
         """test reverse complementing of Alignments and SequenceCollection."""
         dna = {'seq1': '--ACGT--GT---', 'seq2': 'TTACGTA-GT---',
                'seq3': '--ACGTA-GCC--'}
@@ -307,7 +307,7 @@ class AlignmentTestMethods(unittest.TestCase):
         coll = LoadSeqs(data=dna, moltype=DNA, aligned=False)
         coll_rc = coll.rc()
         self.assertEqual(coll_rc.todict(), dna_rc)
-        self.assertEqual(coll_rc.todict(), coll.reversecomplement().todict())
+        self.assertEqual(coll_rc.todict(), coll.reverse_complement().todict())
         # collection with no gaps
         dna = {'seq1': 'ACGTGT', 'seq2': 'TTACGTAGT',
                'seq3': 'ACGTAGCC'}
@@ -317,8 +317,8 @@ class AlignmentTestMethods(unittest.TestCase):
         coll_rc = coll.rc()
         self.assertEqual(coll_rc.todict(), dna_rc)
 
-    def test_reversecomplement_info(self):
-        """reversecomplement should preserve info attribute"""
+    def test_reverse_complement_info(self):
+        """reverse_complement should preserve info attribute"""
         dna = {'seq1': '--ACGT--GT---', 'seq2': 'TTACGTA-GT---',
                'seq3': '--ACGTA-GCC--'}
         # alignment with gaps
@@ -330,7 +330,7 @@ class AlignmentTestMethods(unittest.TestCase):
         coll_rc = coll.rc()
         self.assertEqual(coll_rc.info['key'], 'value')
 
-    def test_reversecomplement_with_ambig(self):
+    def test_reverse_complement_with_ambig(self):
         """correctly reverse complement with ambiguous bases"""
         n = LoadSeqs(data=[['x', '?-???AA'], ['y', '-T----T']], moltype=DNA)
         rc = n.rc()
@@ -615,17 +615,17 @@ class SequenceTestMethods(unittest.TestCase):
             result += [bit]
         self.assertEqual(result, [])
 
-    def test_reversecomplement(self):
+    def test_reverse_complement(self):
         """testing reversal and complementing of a sequence"""
         seq = Sequence(DNA, seq='ACTGTAA')
-        rev = seq.reversecomplement()
+        rev = seq.reverse_complement()
         self.assertEqual(str(rev), 'TTACAGT')
         seq = Sequence(DNA, seq='ACTG-TAA')
-        rev = seq.reversecomplement()
+        rev = seq.reverse_complement()
         self.assertEqual(str(rev), 'TTA-CAGT')
         # try amigbuities
         seq = Sequence(DNA, seq='ACHNRTAA')
-        rev = seq.reversecomplement()
+        rev = seq.reverse_complement()
         self.assertEqual(str(rev), 'TTAYNDGT')
 
     def test_without_terminal_stop_sodon(self):

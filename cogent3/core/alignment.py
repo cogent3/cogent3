@@ -1511,7 +1511,7 @@ class SequenceCollection(object):
             self._annotations_nucleic_reversed_on(rc)
         return rc
 
-    def reversecomplement(self):
+    def reverse_complement(self):
         """Returns the reverse complement alignment. A synonymn for rc."""
         return self.rc()
 
