@@ -867,20 +867,6 @@ class SequenceCollection(object):
 
         return self.take_seqs_if(f)
 
-    def distance_matrix(self, calc='hamming'):
-        """Returns pairwise distances between sequences.
-        Parameters
-        ----------
-        name
-            a pairwise distance calculator or name of one from pairwise_distance
-        """
-        from cogent3.evolve.pairwise_distance import get_calculator
-        calculator = get_calculator(
-            calc, moltype=self.moltype, alignment=self)
-        calculator.run()
-        result = calculator.get_pairwise_distances()
-        return result
-
     def is_ragged(self):
         """Returns True if alignment has sequences of different lengths."""
         seqs = self.seqs  # Get all sequences in alignment
@@ -2377,6 +2363,19 @@ class AlignmentI(object):
                     info=self.info, names=self.names)
         return new
 
+    def distance_matrix(self, calc='hamming'):
+        """Returns pairwise distances between sequences.
+        Parameters
+        ----------
+        name
+            a pairwise distance calculator or name of one from pairwise_distance
+        """
+        from cogent3.evolve.pairwise_distance import get_calculator
+        calculator = get_calculator(
+            calc, moltype=self.moltype, alignment=self)
+        calculator.run()
+        result = calculator.get_pairwise_distances()
+        return result
 
 def _one_length(seqs):
     """raises ValueError if seqs not all same length"""
