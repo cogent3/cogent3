@@ -649,17 +649,6 @@ class SequenceCollectionBaseTests(object):
             self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
         self.assertEqual(len(result.named_seqs), 2)
 
-    def test_distance_matrix(self):
-        """SequenceCollection distance_matrix should produce correct scores"""
-        data = dict([('s1', 'ACGTACGTA'), ('s2', 'GTGTACGTA')])
-        aln = self.Class(data=data, moltype='dna')
-        dists = aln.distance_matrix()
-        self.assertEqual(dists, {('s1', 's2'): 2.0, ('s2', 's1'): 2.0})
-        # and for protein
-        aa = aln.get_translation()
-        dists = aa.distance_matrix()
-        self.assertEqual(dists, {('s1', 's2'): 1.0, ('s2', 's1'): 1.0})
-
     def test_is_ragged(self):
         """SequenceCollection is_ragged should return true if ragged alignment"""
         assert(not self.identical.is_ragged())
@@ -1785,6 +1774,17 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         entropy = a.entropy_per_seq()
         e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
         self.assertFloatEqual(entropy, array([1, 0, e]))
+
+    def test_distance_matrix(self):
+        """Alignment distance_matrix should produce correct scores"""
+        data = dict([('s1', 'ACGTACGTA'), ('s2', 'GTGTACGTA')])
+        aln = self.Class(data=data, moltype='dna')
+        dists = aln.distance_matrix()
+        self.assertEqual(dists, {('s1', 's2'): 2.0, ('s2', 's1'): 2.0})
+        # and for protein
+        aa = aln.get_translation()
+        dists = aa.distance_matrix()
+        self.assertEqual(dists, {('s1', 's2'): 1.0, ('s2', 's1'): 1.0})
 
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
