@@ -2730,31 +2730,6 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
             consensus.append(degen(str(col)))
         return coerce_to_string(consensus)
 
-    def _make_gaps_ok(self, allowed_gap_frac):
-        """Makes the gaps_ok function used by omit_gap_pos and omit_gap_seqs.
-
-        Need to make the function because if it's a method of Alignment, it
-        has unwanted 'self' and 'allowed_gap_frac' parameters that impede the
-        use of map() in take_seqs_if.
-
-        WARNING: may not work correctly if component sequences have gaps that
-        are not the Alignment gap character. This is because the gaps are
-        checked at the column level (and the positions are lists), rather than
-        at the row level. Working around this issue would probably cause a
-        significant speed penalty.
-        """
-        def gaps_ok(seq):
-            seq_len = len(seq)
-            if hasattr(seq, 'count_gaps'):
-                num_gaps = seq.count_gaps()
-            elif hasattr(seq, 'count'):
-                num_gaps = seq.count(self.alphabet.gap)
-            else:
-                num_gaps = sum(seq == self.alphabet.gap_index)
-            return num_gaps / seq_len <= allowed_gap_frac
-
-        return gaps_ok
-
     def sample(self, n=None, with_replacement=False, motif_length=1,
                randint=randint, permutation=permutation):
         """Returns random sample of positions from self, e.g. to bootstrap.
