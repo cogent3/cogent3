@@ -1921,10 +1921,9 @@ class AlignmentI(object):
         seqs_to_delete = {}
         if exclude_just_gap:
             # any seqs that are all gaps?
-            length = len(self)
+            lengths = self.get_lengths()
             for name in self.names:
-                num_gaps = self.count_gaps(name)
-                if num_gaps == length:
+                if lengths[name] == 0:
                     seqs_to_delete[name] = True
 
         # we treat array and string data the same, likely inefficient
@@ -2269,21 +2268,6 @@ class AlignmentI(object):
         for i, c in enumerate(counts):
             counts[i] = c.tolist(motifs)
         return MotifCountsArray(counts, motifs, row_indices=self.names)
-
-    def count_gaps(self, seq_name):
-        """returns number of gaps for seq_name"""
-        is_array = isinstance(self, ArrayAlignment)
-        if not is_array:
-            seq = self.named_seqs[seq_name]
-            return len(seq.map.gaps())
-
-        seq_index = self.names.index(seq_name)
-        seq = self.array_seqs[seq_index]
-        alpha = self.alphabet
-        gaps = list(map(alpha.index, self.moltype.gaps))
-        counts = Counter(seq)
-        num_gaps = sum(counts[g] for g in gaps)
-        return num_gaps
 
     def variable_positions(self, include_gap_motif=True):
         """Return a list of variable position indexes.
