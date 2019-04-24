@@ -1,0 +1,14 @@
+image: python:3.7.1
+
+pipelines:
+  default:
+    - step:
+        caches:
+          - pip
+        script: # Modify the commands below to build your repository.
+          - pip install numpy
+          - pip install pandas
+          - pip install tqdm
+          - bash run_tests
+          
+
