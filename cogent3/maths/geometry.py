@@ -7,7 +7,7 @@ from numpy import array, take, sum, newaxis, sqrt, sqrt, sin, cos, pi, c_, \
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Sandra Smit", "Gavin Huttley", "Rob Knight", "Daniel McDonald",
-               "Marcin Cieslik"]
+               "Marcin Cieslik, Helmut Simon"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Sandra Smit"
@@ -156,8 +156,12 @@ def coords_to_crystal(coords, fmx, omx, n=1):
 
 class SimplexTransform:
     def __init__(self):
-        """regular tetrahedron with one vertex at origin, one edge on x axis and one face (base) in x-y plane."""
-        q = array([[0, 0, 0], [sqrt(2),0,0], [1/sqrt(2), sqrt(3/2), 0], [1/sqrt(2), 1/sqrt(6), 2 * sqrt(1/3)]])
+        """regular tetrahedron with one vertex at origin, one edge on x axis and 
+        one face (base) in x-y plane."""
+        q = array([[0, 0, 0], 
+                   [sqrt(2),0,0], 
+                   [1/sqrt(2), sqrt(3/2), 0], 
+                   [1/sqrt(2), 1/sqrt(6), 2 * sqrt(1/3)]])
         self.q = q
 
     def __array__(self, dtype=None):
