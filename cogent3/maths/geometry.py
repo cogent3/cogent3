@@ -152,3 +152,16 @@ def coords_to_crystal(coords, fmx, omx, n=1):
                                              coords.shape[0], coords.shape[1], 3))
     all_coords = dot(all_coords, omx.transpose())  # orthogonalize
     return all_coords
+
+
+class SimplexTransform:
+    def __init__(self):
+        """regular tetrahedron with one vertex at origin, one edge on x axis and one face (base) in x-y plane."""
+        q = array([[0, 0, 0], [sqrt(2),0,0], [1/sqrt(2), sqrt(3/2), 0], [1/sqrt(2), 1/sqrt(6), 2 * sqrt(1/3)]])
+        self.q = q
+
+    def __array__(self, dtype=None):
+        q = self.q
+        if dtype is not None:
+            q = q.astype(dtype)
+        return q
