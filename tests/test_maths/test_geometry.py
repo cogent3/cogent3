@@ -12,7 +12,7 @@ from cogent3.maths.geometry import center_of_mass_one_array, \
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Sandra Smit", "Rob Knight"]
+__credits__ = ["Sandra Smit", "Rob Knight", "Helmut Simon"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Sandra Smit"
