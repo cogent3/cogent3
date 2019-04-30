@@ -1,5 +1,8 @@
 import time
 import functools
+import threading
+import sys
+import io
 from tqdm import tqdm
 from cogent3.util import parallel2
 
@@ -12,40 +15,40 @@ __version__ = ""
 
 class ProgressContext(object):
 
-    def __init__(self, show_progress=True, prefix=None, base=0.0, segment=1.0,
+    def __init__(self, prefix=None, base=0.0, segment=1.0,
                  rate=1.0):
-        if show_progress:
-            progress_bar = tqdm(total=1, leave=False,
-                                bar_format='{desc} {percentage:3.0f}%|{bar}| '
-                                           '{n_fmt:.10}/{total_fmt} '
-                                           '[{rate_fmt}{postfix}]')
-        else:
-            progress_bar = None
-        self.progress_bar = progress_bar
+        self.progress_bar = None
         self.progress = 0
         self.msg = ''
         self.prefix = prefix or []
         self.message = self.prefix + [self.msg]
-        self._max_text_len = 0
-        self.max_depth = 2
         self.rate = rate
 
-    def display(self, msg=None, progress=None):
-        if self.progress_bar:
-            updated = False
-            if progress is not None:
-                self.progress = min(progress, 1.0)
-                self.progress_bar.n = self.progress
-                updated = True
-            else:
-                self.progress_bar.n = 1
-            if msg is not None and msg != self.msg:
-                self.msg = self.message[-1] = msg
-                self.progress_bar.set_description(self.message[0],
-                                                  refresh=False)
-                updated = True
-            if updated:
-                self.render(progress)
+    def set_new_progress_bar(self):
+        self.progress_bar = tqdm(total=1, leave=False,
+                                bar_format='{desc} {percentage:3.0f}%|{bar}| '
+                                           '{n_fmt:.10}/{total_fmt} '
+                                           '[{rate_fmt}{postfix}]')
+    def subcontext(self, *args, **kw):
+        return self
+
+    def display(self, msg=None, progress=None, current=0.0):
+        if not self.progress_bar:
+            self.set_new_progress_bar()
+        updated = False
+        if progress is not None:
+            self.progress = min(progress, 1.0)
+            self.progress_bar.n = self.progress
+            updated = True
+        else:
+            self.progress_bar.n = 1
+        if msg is not None and msg != self.msg:
+            self.msg = self.message[-1] = msg
+            self.progress_bar.set_description(self.message[0],
+                                                refresh=False)
+            updated = True
+        if updated:
+            self.render(progress)
 
     def render(self, progress=True):
         if self.progress_bar:
@@ -54,7 +57,6 @@ class ProgressContext(object):
     def done(self):
         if self.progress_bar:
             self.progress_bar.close()
-            self.progress_bar = None
 
     def series(self, items, noun='', labels=None, start=None, end=1.0,
                count=None):
@@ -92,6 +94,21 @@ class ProgressContext(object):
     def map(self, f, s, **kw):
         return list(self.imap(f, s, **kw))
 
+class NullContext(ProgressContext):
+    """A UI context which discards all output.  Useful on secondary MPI cpus,
+    and other situations where all output is suppressed"""
+    def subcontext(self, *args, **kw):
+        return self
+    
+    def display(self, *args, **kw):
+        pass
+
+    def done(self):
+        pass
+
+NULL_CONTEXT = NullContext()
+CURRENT = threading.local()
+CURRENT.context = None
 
 def display_wrap(slow_function):
     """Decorator which give the function its own UI context.
@@ -100,13 +117,33 @@ def display_wrap(slow_function):
 
     @functools.wraps(slow_function)
     def f(*args, **kw):
+        if getattr(CURRENT, 'context', None) is None:
+            if sys.stdout.isatty():
+                klass = "tqdm"
+            elif isinstance(sys.stdout, io.FileIO):
+                #klass = LogFileOutput
+                if rate is None:
+                    rate = 5.0
+            else:
+                klass = None
+
+            if klass is None:
+                CURRENT.context = NULL_CONTEXT
+            else:
+                CURRENT.context = ProgressContext(rate=0.1)
+        parent = CURRENT.context
         show_progress = kw.pop('show_progress', None)
-        prog_display = ProgressContext(show_progress=show_progress, rate=0.1)
-        kw['ui'] = prog_display
+        if show_progress is False:
+            # PendingDeprecationWarning?
+            subcontext = NULL_CONTEXT
+        else:
+            subcontext = parent.subcontext()
+        kw['ui'] = CURRENT.context = subcontext
         try:
             result = slow_function(*args, **kw)
         finally:
-            prog_display.done()
+            CURRENT.context = parent
+            subcontext.done()
         return result
 
     return f
