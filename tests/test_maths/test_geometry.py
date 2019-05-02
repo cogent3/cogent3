@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 """Tests of the geometry package."""
-from numpy import array, take, newaxis
+from numpy import array, take, newaxis, ones
+from numpy.linalg import norm
+from numpy.random import dirichlet
+from numpy.testing import assert_allclose
 from math import sqrt
 from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.geometry import center_of_mass_one_array, \
-    center_of_mass_two_array, center_of_mass, distance, sphere_points
+    center_of_mass_two_array, center_of_mass, distance, sphere_points, SimplexTransform
+
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Sandra Smit", "Rob Knight"]
+__credits__ = ["Sandra Smit", "Rob Knight", "Helmut Simon"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Sandra Smit"
@@ -114,6 +118,33 @@ class CenterOfMassTests(TestCase):
 #    def test_coords_to_crystal(self):
 #        """tests crystal expansion (TODO)"""
 #        pass
+
+class TestSimplexTransform(TestCase):
+    transform = SimplexTransform()
+
+    def test_get_simplex_transform(self):
+        """distance between points on standard simplex
+        is  conserved under transform."""
+        alpha = ones(4)
+        y = dirichlet(alpha)
+        z = dirichlet(alpha)
+
+        y1 = y @ self.transform
+        z1 = z @ self.transform
+        assert_allclose(norm(y - z), norm(y1 - z1))
+
+    def test_vertices(self):
+        """length of any edge under transform is conserved as sqrt(2)."""
+        x = array([1, 0, 0, 0], dtype=float)
+        a = x @ self.transform
+        x = array([0, 1, 0, 0], dtype=float)
+        b = x @ self.transform
+        x = array([0, 0, 1, 0], dtype=float)
+        c = x @ self.transform
+        x = array([0, 0, 0, 1], dtype=float)
+        d = x @ self.transform
+        assert_allclose(array([norm(a-b), norm(a-c), norm(a-d),
+            norm(b-c), norm(b-d), norm(c-d)]), sqrt(2) * ones(6))
 
 
 if __name__ == '__main__':
