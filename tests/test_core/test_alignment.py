@@ -1723,6 +1723,12 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         coll = self.Class(data=data, moltype=DNA)
         got = coll.counts_per_seq()
         self.assertEqual(got['a', 'A'], 4)
+        self.assertEqual(len(got.motifs), 4)
+        got = coll.counts_per_seq(include_ambiguity=True, allow_gap=True)
+        # N, -, ? are the additional states
+        self.assertEqual(len(got.motifs), 7)
+        self.assertEqual(got['b'].todict(), {
+                         '-': 2, '?': 0, 'A': 0, 'C': 3, 'G': 3, 'N': 2, 'T': 0})
 
     def test_counts_per_pos(self):
         """correctly count motifs"""

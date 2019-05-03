@@ -2344,7 +2344,8 @@ class AlignmentI(object):
             counts.append(c)
 
         if not exclude_unobserved:
-            motifs.update(self.alphabet.get_word_alphabet(motif_length))
+            motifs.update(
+                self.moltype.alphabet.get_word_alphabet(motif_length))
 
         motifs = list(sorted(motifs))
         for i, c in enumerate(counts):
