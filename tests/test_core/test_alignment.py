@@ -1729,6 +1729,10 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(len(got.motifs), 7)
         self.assertEqual(got['b'].todict(), {
                          '-': 2, '?': 0, 'A': 0, 'C': 3, 'G': 3, 'N': 2, 'T': 0})
+        got = coll.counts_per_seq(motif_length=2)
+        self.assertEqual(len(got.motifs), 16)
+        self.assertEqual(got['a', 'AA'], 2)
+        self.assertEqual(got['b', 'GG'], 1)
 
     def test_counts_per_pos(self):
         """correctly count motifs"""
@@ -1800,10 +1804,10 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(got['b'], 3)
         # per seq, unique
         got = aln.count_gaps_per_seq(include_ambiguity=False,
-                              unique=True)
+                                     unique=True)
         self.assertEqual(got.array, [1, 2])
         got = aln.count_gaps_per_seq(include_ambiguity=True,
-                              unique=True)
+                                     unique=True)
         self.assertEqual(got.array, [2, 2])
 
         data = {'a': 'AAAGGG',
@@ -1811,7 +1815,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                 'c': '------'}
         aln = self.Class(data=data, moltype=DNA)
         got = aln.count_gaps_per_seq(include_ambiguity=False,
-                              unique=True)
+                                     unique=True)
         self.assertEqual(got.array, [6, 0, 0])
         self.assertEqual(got['a'], 6)
         self.assertEqual(got['b'], 0)
@@ -1857,6 +1861,7 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
         sub_align = alignment[2:5]
         self.assertTrue(len(sub_align) == 3)
         self.assertEqual(sub_align.info['key'], 'value')
+
 
 class AlignmentTests(AlignmentBaseTests, TestCase):
     Class = Alignment
