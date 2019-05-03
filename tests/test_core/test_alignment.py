@@ -1770,6 +1770,55 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln = self.Class({'seq1': '--TTT?', 'seq2': 'GATC??'})
         self.assertEqual(str(aln.get_gapped_seq('seq1')), '--TTT?')
 
+    def test_count_gaps_per_pos(self):
+        """correctly compute the number of gaps"""
+        data = {'a': 'AAAA---GGT',
+                'b': 'CCC--GG?GT'}
+        aln = self.Class(data=data, moltype=DNA)
+        # per position
+        got = aln.count_gaps_per_pos(include_ambiguity=False)
+        self.assertEqual(got.array, [0, 0, 0, 1, 2, 1, 1, 0, 0, 0])
+        got = aln.count_gaps_per_pos(include_ambiguity=True)
+        self.assertEqual(got.array, [0, 0, 0, 1, 2, 1, 1, 1, 0, 0])
+
+    def test_count_gaps_per_seq(self):
+        """correctly compute the number of gaps"""
+        data = {'a': 'AAAA---GGT',
+                'b': 'CCC--GG?GT'}
+        aln = self.Class(data=data, moltype=DNA)
+        got = aln.count_gaps_per_seq(include_ambiguity=False)
+        self.assertEqual(got.array, [3, 2])
+        self.assertEqual(got['b'], 2)
+        got = aln.count_gaps_per_seq(include_ambiguity=True)
+        self.assertEqual(got.array, [3, 3])
+        self.assertEqual(got['b'], 3)
+        # per seq, unique
+        got = aln.count_gaps_per_seq(include_ambiguity=False,
+                              unique=True)
+        self.assertEqual(got.array, [1, 2])
+        got = aln.count_gaps_per_seq(include_ambiguity=True,
+                              unique=True)
+        self.assertEqual(got.array, [2, 2])
+
+        data = {'a': 'AAAGGG',
+                'b': '------',
+                'c': '------'}
+        aln = self.Class(data=data, moltype=DNA)
+        got = aln.count_gaps_per_seq(include_ambiguity=False,
+                              unique=True)
+        self.assertEqual(got.array, [6, 0, 0])
+        self.assertEqual(got['a'], 6)
+        self.assertEqual(got['b'], 0)
+
+        # per_seq, induced_by
+        data = {'a': '--ACGT---GTAC',
+                'b': '--ACGTA--GT--',
+                'c': '--ACGTA-AGT--'}
+        aln = self.Class(data=data, moltype=DNA)
+        got = aln.count_gaps_per_seq(unique=False, induced_by=True)
+        self.assertEqual(got.array, [2, 1, 2])
+        self.assertEqual(got['b'], 1)
+
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
     Class = ArrayAlignment
