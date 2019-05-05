@@ -1,4 +1,3 @@
-import numpy
 from plotly.offline import iplot as _iplot
 
 __author__ = "Rahul Ghangasand Gavin Huttley"
@@ -20,7 +19,7 @@ class Drawable:
     # user every chance to change the matplotlib backend first
 
     def _set_initial_layout(self, width=None, height=None, visible_axes=False,
-                    showlegend=False, **kw):
+                            showlegend=False, **kw):
         data = dict()
         layout = dict(title='',
                       font=dict(family='Balto', size=14),

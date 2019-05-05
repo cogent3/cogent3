@@ -154,12 +154,12 @@ class Display2D(Drawable):
         return self._cache[key]
 
     def get_trace(self, window=20, threshold=None, min_gap=0, width=500,
-              title=None):
+                  title=None):
         # calculate the width based on ratio of seq lengths
         if self._trace is None:
             self._set_initial_layout(window=window, threshold=threshold,
-                             min_gap=min_gap, width=width,
-                             title=title)
+                                     min_gap=min_gap, width=width,
+                                     title=title)
 
         return list(self._trace['data'])
 
@@ -170,7 +170,7 @@ class Display2D(Drawable):
         self._trace['layout'].update(layout_updates)
 
     def _set_initial_layout(self, width=500, title=None, window=20,
-                    min_gap=0, threshold=None, **kw):
+                            min_gap=0, threshold=None, **kw):
         import plotly.graph_objs as go
 
         height = width * len(self.seq2) / len(self.seq1)

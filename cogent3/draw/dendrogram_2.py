@@ -94,7 +94,8 @@ class _Dendrogram(TreeNode, Drawable):
     def update_layout(self, layout_updates):
         self._trace['layout'].update(layout_updates)
 
-    def _set_initial_layout(self, width=None, height=None, title=None, use_lengths=None, **kw):
+    def _set_initial_layout(self, width=None, height=None, title=None,
+                            use_lengths=None, **kw):
         super(_Dendrogram, self)._set_initial_layout(width, height)
         if use_lengths is None:
             use_lengths = self.use_lengths_default
@@ -262,7 +263,8 @@ class SquareDendrogram(_RootedDendrogram):
             ycoords = _calc_row(self.root(), ycoords)
         self.ycoords = ycoords
 
-    def _set_initial_layout(self, width=800, height=800, title=None, use_lengths=None, **kw):
+    def _set_initial_layout(self, width=800, height=800, title=None,
+                            use_lengths=None, **kw):
         super(SquareDendrogram, self)._set_initial_layout(width=width,
                                                           title=title,
                                                           height=height,
@@ -295,21 +297,21 @@ class SquareDendrogram(_RootedDendrogram):
                          line_color='rgb(25,25,25)', line_width=1)
 
         self._trace['data'][0].update(type='scatter',
-                                    x=X,
-                                    y=Y,
-                                    mode='markers',
-                                    marker=dict(color=color, size=5),
-                                    opacity=1.0,
-                                    text=text,
-                                    hoverinfo='text')
+                                      x=X,
+                                      y=Y,
+                                      mode='markers',
+                                      marker=dict(color=color, size=5),
+                                      opacity=1.0,
+                                      text=text,
+                                      hoverinfo='text')
 
         self._trace['layout'].update(xaxis=dict(showline=True,
-                                              zeroline=False,
-                                              showgrid=False,
-                                              ticklen=4,
-                                              showticklabels=True,
-                                              title='branch length'),
-                                   shapes=line_shapes)
+                                                zeroline=False,
+                                                showgrid=False,
+                                                ticklen=4,
+                                                showticklabels=True,
+                                                title='branch length'),
+                                     shapes=line_shapes)
 
 
 def _assign_ycoord(clade, node_ycoord):
@@ -435,7 +437,8 @@ class CircularDendrogram(_RootedDendrogram):
 
         return xnodes, ynodes, xlines, ylines, xarc, yarc
 
-    def _set_initial_layout(self, width=800, height=800, title=None, use_lengths=None, **kw):
+    def _set_initial_layout(self, width=800, height=800, title=None,
+                            use_lengths=None, **kw):
         super(CircularDendrogram, self)._set_initial_layout(width=width,
                                                             height=height,
                                                             title=title,
