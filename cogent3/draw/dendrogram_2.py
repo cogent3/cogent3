@@ -2,6 +2,15 @@ from cogent3.core.tree import TreeNode
 import numpy as np
 from cogent3.draw.drawable import Drawable
 
+__author__ = "Rahul Ghangasand Gavin Huttley"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__credits__ = ["Rahul Ghangas", "Gavin Huttley"]
+__license__ = "GPL"
+__version__ = "3.0a2"
+__maintainer__ = "Gavin Huttley"
+__email__ = "gavin.huttley@anu.edu.au"
+__status__ = "Alpha"
+
 
 class _Dendrogram(TreeNode, Drawable):
     aspect_distorts_lengths = True
