@@ -103,40 +103,84 @@ def AllowedCharacters(chars, is_array=False, negate=False):
     return just_chars
 
 
-def GapsOk(gap_chars, allowed_frac, motif_length=1, is_array=False, negate=False):
-    """factory function for determining whether sequence contains a
-    fraction of gaps <= allowed_frac"""
-    try:
-        gap_chars = set(gap_chars)
-    except TypeError:
-        gap_chars = set([gap_chars])
+class GapsOk:
+    """determine whether number of gaps satisfies allowed_frac"""
 
-    def gap_frac_ok(data):
-        length = len(data) / motif_length
-        if is_array:
+    def __init__(self, gap_chars, allowed_frac=0, motif_length=1, is_array=False,
+                 negate=False, gap_run=False, allowed_run=1):
+        """
+        Parameters
+        ----------
+        gap_chars
+            characters corresponding to gaps
+        allowed_frac : float
+            the threshold gap fraction, ignored if gap_run
+        motif_length : int
+            used to adjust for the denominator in the gap fraction
+        is_array : bool
+            whether input will be a numpy array
+        negate : bool
+            if False (default) evaluates fraction of gap
+            characters <= allowed_frac, if True, >= allowed_frac
+        gap_run : bool
+            check for runs of gaps
+        allowed_run : int
+            length of the allowed gap run
+        """
+        self.motif_length = motif_length
+        self.is_array = is_array
+        self.allowed_frac = allowed_frac
+        self.allowed_run = allowed_run
+        if gap_run:
+            self._func = self.gap_run_ok
+        elif negate:
+            self._func = self.gap_frac_not_ok
+        else:
+            self._func = self.gap_frac_ok
+
+        try:
+            self.gap_chars = set(gap_chars)
+        except TypeError:
+            self.gap_chars = set([gap_chars])
+
+    def _get_gap_frac(self, data):
+        length = len(data) / self.motif_length
+        if self.is_array:
             data = Counter(data.flatten())
         else:
             data = Counter(list(data))
 
-        num_gap = sum(data[g] for g in gap_chars)
-        return num_gap / length <= allowed_frac
+        num_gap = sum(data[g] for g in self.gap_chars)
+        gap_frac = num_gap / length
+        return gap_frac
 
-    def gap_frac_not_ok(data):
-        """returns True when the frac of gaps is > allowed_frac"""
-        data = array(data)
-        length = len(data) / motif_length
-        if is_array:
-            data = Counter(data.flatten())
-        else:
-            data = Counter(list(data))
+    def gap_frac_ok(self, data):
+        """fraction of gap characters <= allowed_frac"""
+        gap_frac = self._get_gap_frac(data)
+        return gap_frac <= self.allowed_frac
 
-        num_gap = sum(data[g] for g in gap_chars)
-        return (num_gap / length) >= allowed_frac
+    def gap_frac_not_ok(self, data):
+        """fraction of gap characters >= allowed_frac"""
+        gap_frac = self._get_gap_frac(data)
+        return gap_frac >= self.allowed_frac
 
-    if negate:
-        return gap_frac_not_ok
-    else:
-        return gap_frac_ok
+    def gap_run_ok(self, seq):
+        """runs of gaps <= allowed_run"""
+        curr_run = max_run = 0
+        is_gap = self.gap_chars.__contains__
+        result = True
+        for i in seq:
+            if is_gap(i):
+                curr_run += 1
+                if curr_run > self.allowed_run:
+                    result = False
+                    break
+            else:
+                curr_run = 0
+        return result
+
+    def __call__(self, data):
+        return self._func(data)
 
 
 def assign_sequential_names(ignored, num_seqs, base_name='seq', start_at=0):
@@ -154,8 +198,8 @@ class SeqLabeler(object):
         """Initializes a new seq labeler."""
         self._aln = aln
         self._label_f = label_f
-        self._map = dict(
-            list(zip(aln.names, label_f(len(aln.names, **kwargs)))))
+        self._map = {orig: new for orig, new in zip(
+            aln.names, label_f(len(aln.names, **kwargs)))}
 
     def __call__(self, s):
         """Returns seq name from seq id"""
@@ -1398,37 +1442,14 @@ class SequenceCollection(object):
 
         return probs
 
-    def _make_gaps_ok(self, allowed_gap_frac):
-        """Makes the gaps_ok function used by omit_gap_pos and omit_gap_seqs.
-
-        Need to make the function because if it's a method of Alignment, it
-        has unwanted 'self' and 'allowed_gap_frac' parameters that impede the
-        use of map() in take_seqs_if.
-
-        WARNING: may not work correctly if component sequences have gaps that
-        are not the Alignment gap character. This is because the gaps are
-        checked at the position level (and the positions are lists), rather than
-        at the sequence level. Working around this issue would probably cause a
-        significant speed penalty.
-        """
-        def gaps_ok(seq):
-            seq_len = len(seq)
-            try:
-                num_gaps = seq.count_gaps()
-            except AttributeError:
-                num_gaps = len(
-                    list(filter(self.moltype.gaps.__contains__, seq)))
-            return num_gaps / seq_len <= allowed_gap_frac
-
-        return gaps_ok
-
     def omit_gap_seqs(self, allowed_gap_frac=0):
         """Returns new alignment with seqs that have <= allowed_gap_frac.
 
         allowed_gap_frac should be a fraction between 0 and 1 inclusive.
         Default is 0.
         """
-        gaps_ok = self._make_gaps_ok(allowed_gap_frac)
+        gaps_ok = GapsOk(list(self.moltype.gaps),
+                         allowed_frac=allowed_gap_frac)
 
         return self.take_seqs_if(gaps_ok)
 
@@ -1443,22 +1464,8 @@ class SequenceCollection(object):
         negative values for allowed_run will still let sequences with no gaps
         through.
         """
-        def ok_gap_run(x):
-            try:
-                is_gap = x.alphabet.gaps.__contains__
-            except AttributeError:
-                is_gap = self.moltype.gaps.__contains__
-            curr_run = max_run = 0
-            for i in x:
-                if is_gap(i):
-                    curr_run += 1
-                    if curr_run > allowed_run:
-                        return False
-                else:
-                    curr_run = 0
-            # can only get here if max_run was never exceeded (although this
-            # does include the case where the sequence is empty)
-            return True
+        ok_gap_run = GapsOk(self.moltype.gaps, gap_run=True,
+                            allowed_run=allowed_run)
 
         return self.take_seqs_if(ok_gap_run)
 
@@ -1900,6 +1907,80 @@ class AlignmentI(object):
         result = self.filtered(gaps_ok, motif_length=motif_length)
         return result
 
+    def get_gap_array(self, include_ambiguity=True):
+        """returns bool array with gap state True, False otherwise
+
+        Parameters
+        ----------
+        include_ambiguity : bool
+            if True, ambiguity characters that include the gap state are
+            included
+        """
+        if isinstance(self, ArrayAlignment):
+            data = self.array_seqs
+        else:
+            data = self.to_type(array_align=True).array_seqs
+
+        gap = self.alphabet.index(self.moltype.gap)
+        gapped = data == gap
+        if include_ambiguity:
+            gaps = list(map(self.alphabet.index, self.moltype.gaps))
+            gaps.remove(gap)
+            for gap in gaps:
+                gapped = logical_or(gapped, data == gap)
+
+        return gapped
+
+    def count_gaps_per_pos(self, include_ambiguity=True):
+        """return counts of gaps per position as a DictArray
+
+        Parameters
+        ----------
+        include_ambiguity : bool
+            if True, ambiguity characters that include the gap state are
+            included
+        """
+        gap_array = self.get_gap_array(include_ambiguity=include_ambiguity)
+        darr = DictArrayTemplate(range(len(self)))
+
+        result = gap_array.sum(axis=0)
+        result = darr.wrap(result)
+        return result
+
+    def count_gaps_per_seq(self, induced_by=False, unique=False,
+                           include_ambiguity=True):
+        """return counts of gaps per sequence as a DictArray
+
+        Parameters
+        ----------
+        induced_by : bool
+            a gapped column is considered to be induced by a seq if the seq
+            has a non-gap character in that column.
+        unique : bool
+            count is limited to gaps uniquely induced by each sequence
+        include_ambiguity : bool
+            if True, ambiguity characters that include the gap state are
+            included
+        """
+        gap_array = self.get_gap_array(include_ambiguity=include_ambiguity)
+        darr = DictArrayTemplate(self.names)
+
+        if unique:
+            # we identify cols with a single non-gap character
+            gap_cols = gap_array.sum(axis=0) == self.num_seqs - 1
+            gap_array = gap_array[:, gap_cols] == False
+        elif induced_by:
+            # identify all columns with gap opposite
+            gap_cols = gap_array.sum(axis=0) > 0
+            gap_array = gap_array[:, gap_cols] == False
+        else:
+            gap_cols = gap_array.sum(axis=0) > 0
+            gap_array = gap_array[:, gap_cols]
+
+        result = gap_array.sum(axis=1)
+        result = darr.wrap(result)
+        return result
+
     def omit_bad_seqs(self, disallowed_frac=0.9, allowed_frac_bad_cols=0, exclude_just_gap=True):
         """Returns new alignment without the sequences responsible for exceeding disallowed_frac.
 
@@ -1921,10 +2002,10 @@ class AlignmentI(object):
         seqs_to_delete = {}
         if exclude_just_gap:
             # any seqs that are all gaps?
+            num_gaps = self.count_gaps_per_seq(induced_by=False)
             length = len(self)
             for name in self.names:
-                num_gaps = self.count_gaps(name)
-                if num_gaps == length:
+                if num_gaps[name] == length:
                     seqs_to_delete[name] = True
 
         # we treat array and string data the same, likely inefficient
@@ -2263,27 +2344,13 @@ class AlignmentI(object):
             counts.append(c)
 
         if not exclude_unobserved:
-            motifs.update(self.alphabet.get_word_alphabet(motif_length))
+            motifs.update(
+                self.moltype.alphabet.get_word_alphabet(motif_length))
 
         motifs = list(sorted(motifs))
         for i, c in enumerate(counts):
             counts[i] = c.tolist(motifs)
         return MotifCountsArray(counts, motifs, row_indices=self.names)
-
-    def count_gaps(self, seq_name):
-        """returns number of gaps for seq_name"""
-        is_array = isinstance(self, ArrayAlignment)
-        if not is_array:
-            seq = self.named_seqs[seq_name]
-            return len(seq.map.gaps())
-
-        seq_index = self.names.index(seq_name)
-        seq = self.array_seqs[seq_index]
-        alpha = self.alphabet
-        gaps = list(map(alpha.index, self.moltype.gaps))
-        counts = Counter(seq)
-        num_gaps = sum(counts[g] for g in gaps)
-        return num_gaps
 
     def variable_positions(self, include_gap_motif=True):
         """Return a list of variable position indexes.
@@ -2355,6 +2422,7 @@ class AlignmentI(object):
         calculator.run()
         result = calculator.get_pairwise_distances()
         return result
+
 
 def _one_length(seqs):
     """raises ValueError if seqs not all same length"""
@@ -2726,34 +2794,9 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         degen = alphabet.degenerate_from_seq
         for col in self.positions:
             col = alphabet.make_array_seq(col,
-                                              alphabet=alphabet.alphabets.degen_gapped)
+                                          alphabet=alphabet.alphabets.degen_gapped)
             consensus.append(degen(str(col)))
         return coerce_to_string(consensus)
-
-    def _make_gaps_ok(self, allowed_gap_frac):
-        """Makes the gaps_ok function used by omit_gap_pos and omit_gap_seqs.
-
-        Need to make the function because if it's a method of Alignment, it
-        has unwanted 'self' and 'allowed_gap_frac' parameters that impede the
-        use of map() in take_seqs_if.
-
-        WARNING: may not work correctly if component sequences have gaps that
-        are not the Alignment gap character. This is because the gaps are
-        checked at the column level (and the positions are lists), rather than
-        at the row level. Working around this issue would probably cause a
-        significant speed penalty.
-        """
-        def gaps_ok(seq):
-            seq_len = len(seq)
-            if hasattr(seq, 'count_gaps'):
-                num_gaps = seq.count_gaps()
-            elif hasattr(seq, 'count'):
-                num_gaps = seq.count(self.alphabet.gap)
-            else:
-                num_gaps = sum(seq == self.alphabet.gap_index)
-            return num_gaps / seq_len <= allowed_gap_frac
-
-        return gaps_ok
 
     def sample(self, n=None, with_replacement=False, motif_length=1,
                randint=randint, permutation=permutation):

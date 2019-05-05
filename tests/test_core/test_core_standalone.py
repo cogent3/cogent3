@@ -239,24 +239,32 @@ class AlignmentTestMethods(unittest.TestCase):
         self.assertEqual(result[3].todict(), {
                          'seq3': 'TACGT', 'seq2': 'TACGT', 'seq1': 'TACGT'})
 
-    def test_omit_gap_pos(self):
+    def test_omit_gap_pos1(self):
         """test removal of redundant gaps (all entries in alignment column are gaps)"""
         alignment = LoadSeqs(
-            data={'seq1': '--ACGT--GT---', 'seq2': '--ACGTA-GT---', 'seq3': '--ACGTA-GT---'})
+            data={'seq1': '--ACGT--GT---',
+                  'seq2': '--ACGTA-GT---',
+                  'seq3': '--ACGTA-GT---'})
         align_dict = alignment.omit_gap_pos().todict()
         self.assertEqual(
-            align_dict, {'seq1': 'ACGT-GT', 'seq2': 'ACGTAGT', 'seq3': 'ACGTAGT'})
+            align_dict, {'seq1': 'ACGT-GT',
+                         'seq2': 'ACGTAGT',
+                         'seq3': 'ACGTAGT'})
 
-    def test_omit_gap_pos(self):
+    def test_omit_gap_pos2(self):
         """test removal of all gaps (any entries in alignment column are gaps)"""
         alignment = LoadSeqs(
-            data={'seq1': '--ACGT--GT---', 'seq2': '--ACGTA-GT---', 'seq3': '--ACGTA-GT---'})
+            data={'seq1': '--ACGT--GT---',
+                  'seq2': '--ACGTA-GT---',
+                  'seq3': '--ACGTA-GT---'})
         align_dict = alignment.omit_gap_pos(allowed_gap_frac=0).todict()
         self.assertEqual(
             align_dict, {'seq1': 'ACGTGT', 'seq2': 'ACGTGT', 'seq3': 'ACGTGT'})
 
         alignment = LoadSeqs(
-            data={'seq1': 'ACGT', 'seq2': '----', 'seq3': '----'})
+            data={'seq1': 'ACGT',
+                  'seq2': '----',
+                  'seq3': '----'})
         result = alignment.omit_gap_pos(allowed_gap_frac=0)
         self.assertEqual(result, None)
 
