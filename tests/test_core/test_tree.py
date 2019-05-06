@@ -2,6 +2,8 @@
 """Tests of classes for dealing with trees and phylogeny.
 """
 import json
+import sys
+import unittest
 from copy import copy, deepcopy
 from cogent3 import LoadTree
 from cogent3.core.tree import TreeNode, PhyloNode, TreeError
@@ -1575,6 +1577,18 @@ class PhyloNodeTests(TestCase):
                          sorted(unrooted.get_tip_names()))
         self.assertLessThan(len(unrooted.get_node_names()),
                             len(rooted.get_node_names()))
+
+    @unittest.skipIf(sys.platform.lower() != 'darwin', 'broken on linux')
+    def test_iplot(self):
+        """exercising iplot"""
+        import sys
+        stdout = sys.stdout
+        sys.stdout = None
+        t_str = "(A:1,B:2,(C:3,D:3)E:2,(F,((G:1,H:2)I:2)J:3)K:2)L;"
+        t = DndParser(t_str, constructor=PhyloNode)
+        t.iplot(kind='square')
+        t.iplot(kind='circular')
+        sys.stdout = stdout
 
 
 class Test_tip_tip_distances_I(object):
