@@ -155,7 +155,29 @@ class Display2D(Drawable):
 
     def get_trace(self, window=20, threshold=None, min_gap=0, width=500,
                   title=None):
-        # calculate the width based on ratio of seq lengths
+        """
+
+        Parameters
+        ----------
+        window : int
+            k-mer size for comparison between sequences
+        threshold : int
+            windows where the sequences are identical >= threshold are a match
+        min_gap : int
+            permitted gap for joining adjacent line segments, default is no gap
+            joining
+        width : int
+            figure width. Figure height is computed based on the ratio of
+            len(seq1) / len(seq2)
+        title
+            title for the plot
+
+        Returns
+        -------
+        Plotly compatible traces for forward (+ strand), reverse (- strand only
+        for DNA or RNA) and Aligned (only if the input sequences were actually
+        aligned).
+        """
         if self._trace is None:
             self._set_initial_layout(window=window, threshold=threshold,
                                      min_gap=min_gap, width=width,
@@ -172,7 +194,7 @@ class Display2D(Drawable):
     def _set_initial_layout(self, width=500, title=None, window=20,
                             min_gap=0, threshold=None, **kw):
         import plotly.graph_objs as go
-
+        # calculate the width based on ratio of seq lengths
         height = width * len(self.seq2) / len(self.seq1)
         super(Display2D, self)._set_initial_layout(
             width, height, visible_axes=True, showlegend=True)
