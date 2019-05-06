@@ -61,6 +61,7 @@ def suite():
         'test_core.test_seq_aln_integration',
         'test_core.test_sequence',
         'test_core.test_tree',
+        'test_draw.test_dotplot',
         'test_data.test_molecular_weight',
         'test_evolve.test_best_likelihood',
         'test_evolve.test_bootstrap',
