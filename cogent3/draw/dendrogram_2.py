@@ -2,9 +2,9 @@ from cogent3.core.tree import TreeNode
 import numpy as np
 from cogent3.draw.drawable import Drawable
 
-__author__ = "Rahul Ghangasand Gavin Huttley"
+__author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Rahul Ghangas", "Gavin Huttley"]
+__credits__ = ["Peter Maxwell","Gavin Huttley","Rahul Ghangas"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
