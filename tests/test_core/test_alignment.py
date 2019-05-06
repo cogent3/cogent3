@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from numpy.testing import assert_allclose
 
+from cogent3 import LoadSeqs
 from cogent3.util.unit_test import TestCase, main
 from cogent3.util.misc import get_object_provenance
 from cogent3.core.sequence import (RnaSequence, frac_same, ArraySequence,
@@ -161,6 +162,7 @@ class SequenceCollectionBaseTests(object):
     set self.Class in subclasses to generate the right constructor.
     """
     Class = SequenceCollection
+    brca1_data = LoadSeqs('data/brca1.fasta').todict()
 
     def setUp(self):
         """Define some standard SequenceCollection objects."""
@@ -1101,6 +1103,16 @@ class SequenceCollectionBaseTests(object):
         result = seqs.strand_symmetry()
         assert_allclose(result['seq1'].observed.array, [[3, 2], [2, 2]])
         assert_allclose(result['seq2'].observed.array, [[3, 0], [2, 1]])
+
+    def test_dotplot(self):
+        """excercising dotplot method"""
+        # need to trap stdout so plotly doesn't dump content when it's headless
+        import sys
+        stdout = sys.stdout
+        sys.stdout = None
+        seqs = self.Class(data=self.brca1_data, moltype=DNA)
+        seqs.dotplot()
+        sys.stdout = stdout
 
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
