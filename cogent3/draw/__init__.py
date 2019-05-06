@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-__all__ = ['dendrogram', 'dendrogram_2', 'dotplot', 'linear', 'colors', 'TrackDefn',
+__all__ = ['dendrogram', 'dendrogram_2', 'dotplot', 'dotplot_2', 'simplex', 'linear', 'colors', 'TrackDefn',
            'Display', 'DisplayPolicy', 'Area', 'Arrow', 'BluntArrow',
            'Box', 'Diamond'] + [
     'arrow_rates', 'dinuc', 'fancy_arrow', 'codon_usage', 'util']
