@@ -24,7 +24,9 @@ from numpy import array, zeros, put, nonzero, take, ravel, compress, \
 from numpy.random import permutation
 
 from cogent3.maths.stats.number import CategoryCounter
+from cogent3.maths.stats.contingency import CategoryCounts, TestResult
 from .annotation import Map, Feature, _Annotatable
+from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.transform import KeepChars, for_seq, per_shortest, \
     per_longest
 from cogent3.util.misc import (DistanceFromMatrix, bytes_to_string,
@@ -582,6 +584,9 @@ class SequenceI(object):
         """return new instance with oldchar replaced by newchar"""
         NotImplemented
 
+    def strand_symmetry(self, *args, **kwargs):
+        raise TypeError("must be DNA or RNA moltype")
+
 
 @total_ordering
 class Sequence(_Annotatable, SequenceI):
@@ -984,6 +989,28 @@ class NucleicAcidSequence(Sequence):
     def to_dna(self):
         """Returns copy of self as DNA."""
         return DnaSequence(self)
+
+    def strand_symmetry(self, motif_length=1):
+        """returns G-test for strand symmetry"""
+        counts = self.counts(motif_length=motif_length)
+        ssym_pairs = self.moltype.strand_symmetric_motifs(
+            motif_length=motif_length)
+
+        motifs = []
+        obs = []
+        for plus, minus in sorted(ssym_pairs):
+            row = array([counts[plus], counts[minus]], dtype=int)
+            if row.max() == 0:  # we ignore motifs missing on both strands
+                continue
+
+            obs.append(row)
+            motifs.append(plus)
+
+        template = DictArrayTemplate(motifs, ['+', '-'])
+        obs = template.wrap(obs)
+        cat = CategoryCounts(obs)
+        result = cat.G_fit()
+        return result
 
 
 class DnaSequence(NucleicAcidSequence):

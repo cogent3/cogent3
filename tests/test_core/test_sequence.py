@@ -15,6 +15,7 @@ import json
 import re
 from pickle import dumps
 from numpy import array
+from numpy.testing import assert_allclose
 
 __author__ = "Rob Knight, Gavin Huttley and Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -747,6 +748,42 @@ class SequenceTests(TestCase):
         got = seq.counts(allow_gap=True, include_ambiguity=True)
         expect.update({'-': 1, 'N': 1, '?': 1})
         self.assertEqual(dict(got), expect)
+
+    def test_strand_symmetry(self):
+        """correctly compute test of strand symmetry"""
+        from cogent3 import get_moltype
+        from cogent3.core.alignment import Aligned
+
+        seq = DnaSequence('ACGGCTGAAGCGCTCCGGGTTTAAAACG')
+        ssym = seq.strand_symmetry(motif_length=1)
+        assert_allclose(ssym.observed.array, [[7, 5], [7, 9]])
+        assert_allclose(ssym.expected.array, [[6, 6], [8, 8]])
+
+        # RNA too
+        seq = seq.to_rna()
+        ssym = seq.strand_symmetry(motif_length=1)
+        assert_allclose(ssym.observed.array, [[7, 5], [7, 9]])
+
+        # Aligned
+        seq = DnaSequence('ACGGCTGAAGCGCTCCGGGTTTAAAACG')
+        m, s = seq.parse_out_gaps()
+        seq = Aligned(m, s)
+        ssym = seq.strand_symmetry(motif_length=1)
+        assert_allclose(ssym.observed.array, [[7, 5], [7, 9]])
+
+        with self.assertRaises(TypeError):
+            text = get_moltype('text')
+            m, s = text.make_seq(
+                'ACGGCTGAAGCGCTCCGGGTTTAAAACG').parse_out_gaps()
+            s.strand_symmetry(motif_length=1)
+
+        # with motif_length=2
+        seq = DnaSequence(
+            'AC GG CT GA AG CG CT CC GG GT TT AA AA CG'.replace(' ', ''))
+        ssym = seq.strand_symmetry(motif_length=2)
+        self.assertLessEqual(len(ssym.observed.keys()), 8)
+        assert_allclose(ssym.observed['AA'].toarray(), [2, 1])
+        assert_allclose(ssym.observed['CC'].toarray(), [1, 2])
 
 
 class SequenceSubclassTests(TestCase):

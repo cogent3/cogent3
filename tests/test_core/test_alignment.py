@@ -1066,6 +1066,16 @@ class SequenceCollectionBaseTests(object):
         expect = {'a': 10, 'b': 10}
         self.assertEqual(got, expect)
 
+    def test_strand_symmetry(self):
+        """exercising strand symmetry test"""
+        data = {'seq1': 'ACGTACGTA',
+                'seq2': 'ACCGAA---',
+                'seq3': 'ACGTACGTT'}
+        seqs = self.Class(data, moltype=DNA)
+        result = seqs.strand_symmetry()
+        assert_allclose(result['seq1'].observed.array, [[3, 2], [2, 2]])
+        assert_allclose(result['seq2'].observed.array, [[3, 0], [2, 1]])
+
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
     """Tests of the SequenceCollection object. Includes ragged collection tests.
@@ -1861,6 +1871,7 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
         sub_align = alignment[2:5]
         self.assertTrue(len(sub_align) == 3)
         self.assertEqual(sub_align.info['key'], 'value')
+
 
 
 class AlignmentTests(AlignmentBaseTests, TestCase):

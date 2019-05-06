@@ -1556,6 +1556,13 @@ class SequenceCollection(object):
         # return new SequenceCollection object
         return SequenceCollection(moltype=self.moltype, data=new_seqs, **kwargs)
 
+    def strand_symmetry(self, motif_length=1):
+        """returns dict of strand symmetry test results per seq"""
+        result = {s.name: s.strand_symmetry(motif_length=motif_length)
+                  for s in self.seqs}
+
+        return result
+
 
 @total_ordering
 class Aligned(object):
@@ -1691,6 +1698,10 @@ class Aligned(object):
             annot_types, mask_char, shadow)
         # we remove the mask annotations from self and new_data
         return self.__class__(self.map, new_data)
+
+    def strand_symmetry(self, motif_length=1):
+        """returns G-test for strand symmetry"""
+        return self.data.strand_symmetry(motif_length=motif_length)
 
 
 class AlignmentI(object):
@@ -2422,6 +2433,7 @@ class AlignmentI(object):
         calculator.run()
         result = calculator.get_pairwise_distances()
         return result
+
 
 
 def _one_length(seqs):
