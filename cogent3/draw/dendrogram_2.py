@@ -80,7 +80,10 @@ class _Dendrogram(TreeNode, Drawable):
         return self._trace['data']
 
     def get_layout(self):
-        return
+        if self._trace is None:
+            self._set_initial_layout()
+
+        return self._trace['layout']
 
     def set_layout(self, layout_updates):
         self._trace['layout'] = layout_updates
