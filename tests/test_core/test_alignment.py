@@ -3,17 +3,22 @@ from numpy.testing import assert_allclose
 
 from cogent3.util.unit_test import TestCase, main
 from cogent3.util.misc import get_object_provenance
-from cogent3.core.sequence import RnaSequence, frac_same, ArraySequence, Sequence
+from cogent3.core.sequence import (RnaSequence, frac_same, ArraySequence,
+                                   Sequence, )
 from cogent3.core.moltype import RNA, DNA, PROTEIN, BYTES, ASCII
 from cogent3.core.alphabet import AlphabetError
 
-from cogent3.core.alignment import SequenceCollection, \
-    make_gap_filter, coerce_to_string, \
-    seqs_from_array, seqs_from_array_seqs, seqs_from_generic, seqs_from_fasta, \
-    seqs_from_dict, seqs_from_aln, seqs_from_kv_pairs, seqs_from_empty, \
-    aln_from_array, aln_from_array_seqs, aln_from_collection,\
-    aln_from_generic, aln_from_fasta, aln_from_array_aln, aln_from_empty, \
-    ArrayAlignment, Alignment, DataError
+from cogent3.core.alignment import (SequenceCollection,
+                                    make_gap_filter, coerce_to_string,
+                                    seqs_from_array, seqs_from_array_seqs,
+                                    seqs_from_generic, seqs_from_fasta,
+                                    seqs_from_dict, seqs_from_aln,
+                                    seqs_from_kv_pairs, seqs_from_empty,
+                                    aln_from_array, aln_from_array_seqs,
+                                    aln_from_collection,
+                                    aln_from_generic, aln_from_fasta,
+                                    aln_from_array_aln, aln_from_empty,
+                                    ArrayAlignment, Alignment, DataError, )
 
 from cogent3.core.moltype import AB, DNA
 from cogent3.parse.fasta import MinimalFastaParser
@@ -232,6 +237,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(x, exp)
         self.assertEqual(z, exp)
         self.assertEqual(y, exp)
+
     test_init_aln.__doc__ = Class.__name__ + test_init_aln.__doc__
 
     def test_init_dict(self):
@@ -256,6 +262,7 @@ class SequenceCollectionBaseTests(object):
         d = {'a': 'AAAAA', 'b': 'BBBBB'}
 
         def f(x): return x.upper()
+
         a = self.Class(d, label_to_name=f)
         self.assertNotEqual(a, d)
         self.assertNotEqual(sorted(a.named_seqs.items()), sorted(d.items()))
@@ -402,9 +409,9 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(list(self.one_seq.iter_selected()), ['A'] * 5)
         # should take order into account
         self.assertEqual(list(self.ordered1.iter_selected()), [
-                         'A'] * 5 + ['B'] * 5)
+            'A'] * 5 + ['B'] * 5)
         self.assertEqual(list(self.ordered2.iter_selected()), [
-                         'B'] * 5 + ['A'] * 5)
+            'B'] * 5 + ['A'] * 5)
 
     def test_iter_selected(self):
         """SequenceCollection iter_selected() should iterate over items in correct order"""
@@ -418,7 +425,8 @@ class SequenceCollectionBaseTests(object):
         # should allow row and/or col specification
         r = self.ragged_padded
         self.assertEqual(list(r.iter_selected(seq_order=['c', 'b'],
-                                              pos_order=[5, 1, 3])), list('-AA-A-'))
+                                              pos_order=[5, 1, 3])),
+                         list('-AA-A-'))
         # should not interfere with superclass iteritems()
         i = list(r.named_seqs.items())
         i.sort()
@@ -437,7 +445,8 @@ class SequenceCollectionBaseTests(object):
     def test_take_seqs_info(self):
         """take_seqs should preserve info attribute"""
         orig = self.Class(
-            data={'a': 'CCCCCC', 'b': 'AAA---', 'c': 'AAAA--'}, info={'key': 'value'})
+            data={'a': 'CCCCCC', 'b': 'AAA---', 'c': 'AAAA--'},
+            info={'key': 'value'})
         subset = orig.take_seqs('ab')
         self.assertEqual(set(subset.info), set(orig.info))
 
@@ -457,6 +466,7 @@ class SequenceCollectionBaseTests(object):
         def is_med(x): return len(str(x).replace('-', '')) > 3  # strips gaps
 
         def is_any(x): return len(x) > 0
+
         self.assertEqual(srp.get_seq_indices(is_long), [])
         srp.names = 'cba'
         self.assertEqual(srp.get_seq_indices(is_med), ['c', 'a'])
@@ -469,11 +479,13 @@ class SequenceCollectionBaseTests(object):
 
     def test_take_seqs_if(self):
         """SequenceCollection take_seqs_if should return seqs where f(row) is True"""
+
         def is_long(x): return len(x) > 10
 
         def is_med(x): return len(str(x).replace('-', '')) > 3
 
         def is_any(x): return len(x) > 0
+
         srp = self.ragged_padded
         self.assertEqual(srp.take_seqs_if(is_long), {})
         srp.names = 'cba'
@@ -578,7 +590,9 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(result, {})
 
         # test some sequence transformations
-        def transform(s): return s[1:4]
+        def transform(s):
+            return s[1:4]
+
         result = aln.get_similar(aln.named_seqs['a'], min_similarity=0.5,
                                  transform=transform)
         for seq in 'abdfg':
@@ -586,7 +600,9 @@ class SequenceCollectionBaseTests(object):
             self.assertEqual(result.named_seqs[seq], aln.named_seqs[seq])
         self.assertEqual(len(result.named_seqs), 5)
 
-        def transform(s): return s[-3:]
+        def transform(s):
+            return s[-3:]
+
         result = aln.get_similar(aln.named_seqs['a'], min_similarity=0.5,
                                  transform=transform)
         for seq in 'abcde':
@@ -595,7 +611,9 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(len(result.named_seqs), 5)
 
         # test a different distance metric
-        def metric(x, y): return str(x).count('G') + str(y).count('G')
+        def metric(x, y):
+            return str(x).count('G') + str(y).count('G')
+
         result = aln.get_similar(aln.named_seqs['a'], min_similarity=5,
                                  max_similarity=10, metric=metric)
         for seq in 'ef':
@@ -605,13 +623,18 @@ class SequenceCollectionBaseTests(object):
 
         # test the combination of a transform and a distance metric
         aln = self.Class(dict(enumerate(map(RnaSequence,
-                                            ['GA-GU', 'A-GAC', 'GG-GG']))), moltype=RNA)
+                                            ['GA-GU', 'A-GAC', 'GG-GG']))),
+                         moltype=RNA)
 
-        def transform(s): return RnaSequence(str(s).replace('G', 'A'
-                                                            ).replace('U', 'C'))
+        def transform(s):
+            return RnaSequence(str(s).replace('G', 'A'
+                                              ).replace('U', 'C'))
+
         metric = RnaSequence.frac_same_non_gaps
 
-        def null_transform(s): return RnaSequence(str(s))
+        def null_transform(s):
+            return RnaSequence(str(s))
+
         # first, do it without the transformation
         try:
             result = aln.get_similar(aln.named_seqs[0], min_similarity=0.5,
@@ -651,8 +674,8 @@ class SequenceCollectionBaseTests(object):
 
     def test_is_ragged(self):
         """SequenceCollection is_ragged should return true if ragged alignment"""
-        assert(not self.identical.is_ragged())
-        assert(not self.gaps.is_ragged())
+        assert (not self.identical.is_ragged())
+        assert (not self.gaps.is_ragged())
 
     def test_to_phylip(self):
         """SequenceCollection should return PHYLIP string format correctly"""
@@ -663,7 +686,8 @@ class SequenceCollectionBaseTests(object):
                                  ])
 
         self.assertEqual(
-            align_norm.to_phylip(), """4  22\nseq_0     ACDEFGHIKLMNPQRSTUVWY-\nseq_1     ACDEFGHIKLMNPQRSUUVWF-\nseq_2     ACDEFGHIKLMNPERSKUVWC-\nseq_3     ACNEFGHIKLMNPQRS-UVWP-\n""")
+            align_norm.to_phylip(),
+            """4  22\nseq_0     ACDEFGHIKLMNPQRSTUVWY-\nseq_1     ACDEFGHIKLMNPQRSUUVWF-\nseq_2     ACDEFGHIKLMNPERSKUVWC-\nseq_3     ACNEFGHIKLMNPQRS-UVWP-\n""")
 
     def test_to_fasta(self):
         """SequenceCollection should return correct FASTA string"""
@@ -681,14 +705,14 @@ class SequenceCollectionBaseTests(object):
                                  'ACDEFGHIKLMNPQRSUUVWF-',
                                  'ACDEFGHIKLMNPERSKUVWC-',
                                  'ACNEFGHIKLMNPQRS-UVWP-'])
-        expect = '#NEXUS\n\nbegin data;\n'\
-            '    dimensions ntax=4 nchar=22;\n'\
-            '    format datatype=protein interleave=yes missing=? gap=-;\n'\
-            '    matrix\n'\
-            '    seq_0    ACDEFGHIKLMNPQRSTUVWY-\n'\
-            '    seq_1    ACDEFGHIKLMNPQRSUUVWF-\n'\
-            '    seq_2    ACDEFGHIKLMNPERSKUVWC-\n'\
-            '    seq_3    ACNEFGHIKLMNPQRS-UVWP-\n\n    ;\nend;'
+        expect = '#NEXUS\n\nbegin data;\n' \
+                 '    dimensions ntax=4 nchar=22;\n' \
+                 '    format datatype=protein interleave=yes missing=? gap=-;\n' \
+                 '    matrix\n' \
+                 '    seq_0    ACDEFGHIKLMNPQRSTUVWY-\n' \
+                 '    seq_1    ACDEFGHIKLMNPQRSUUVWF-\n' \
+                 '    seq_2    ACDEFGHIKLMNPERSKUVWC-\n' \
+                 '    seq_3    ACNEFGHIKLMNPQRS-UVWP-\n\n    ;\nend;'
         got = align_norm.to_nexus('protein')
         self.assertEqual(got, expect)
 
@@ -696,11 +720,12 @@ class SequenceCollectionBaseTests(object):
         """to_rich_dict produces correct dict"""
         aln = self.Class({'seq1': 'ACGG', 'seq2': 'CGCA', 'seq3': 'CCG-'})
         got = aln.to_rich_dict()
-        expect = {'seqs': {'seq1': {'name': 'seq1', 'seq': 'ACGG', 'info': None},
-                           'seq2': {'name': 'seq2', 'seq': 'CGCA', 'info': None},
-                           'seq3': {'name': 'seq3', 'seq': 'CCG-', 'info': None}},
-                  'moltype': aln.moltype.label, 'info': None,
-                  'type': get_object_provenance(aln)}
+        expect = {
+            'seqs': {'seq1': {'name': 'seq1', 'seq': 'ACGG', 'info': None},
+                     'seq2': {'name': 'seq2', 'seq': 'CGCA', 'info': None},
+                     'seq3': {'name': 'seq3', 'seq': 'CCG-', 'info': None}},
+            'moltype': aln.moltype.label, 'info': None,
+            'type': get_object_provenance(aln)}
         self.assertEqual(got, expect)
 
     def test_to_json(self):
@@ -845,8 +870,8 @@ class SequenceCollectionBaseTests(object):
     def test_get_translation(self):
         """SequenceCollection.get_translation translates each seq"""
         for seqs in [
-                {'seq1': 'GATTTT', 'seq2': 'GATC??'},
-                {'seq1': 'GAT---', 'seq2': '?GATCT'}]:
+            {'seq1': 'GATTTT', 'seq2': 'GATC??'},
+            {'seq1': 'GAT---', 'seq2': '?GATCT'}]:
             alignment = self.Class(data=seqs, moltype=DNA)
             got = alignment.get_translation()
             self.assertEqual(len(got), 2)
@@ -861,8 +886,8 @@ class SequenceCollectionBaseTests(object):
     def test_get_translation_info(self):
         """SequenceCollection.get_translation preserves info attribute"""
         for seqs in [
-                {'seq1': 'GATTTT', 'seq2': 'GATC??'},
-                {'seq1': 'GAT---', 'seq2': '?GATCT'}]:
+            {'seq1': 'GATTTT', 'seq2': 'GATC??'},
+            {'seq1': 'GAT---', 'seq2': '?GATCT'}]:
             alignment = self.Class(
                 data=seqs, moltype=DNA, info={'key': 'value'})
             got = alignment.get_translation()
@@ -885,7 +910,8 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection.get_ambiguous_positions should return pos"""
         aln = self.Class({'s1': 'ATGRY?', 's2': 'T-AG??'}, moltype=DNA)
         self.assertEqual(aln.get_ambiguous_positions(),
-                         {'s2': {4: '?', 5: '?'}, 's1': {3: 'R', 4: 'Y', 5: '?'}})
+                         {'s2': {4: '?', 5: '?'},
+                          's1': {3: 'R', 4: 'Y', 5: '?'}})
 
     def test_degap(self):
         """SequenceCollection.degap should strip gaps from each seq"""
@@ -1016,7 +1042,7 @@ class SequenceCollectionBaseTests(object):
         padded1 = self.ragged_padded.pad_seqs()
         seqs1 = list(padded1.iter_seqs(seq_order=['a', 'b', 'c']))
         self.assertEqual(list(map(str, seqs1)), [
-                         'AAAAAA', 'AAA---', 'AAAA--'])
+            'AAAAAA', 'AAA---', 'AAAA--'])
 
         # pad to alternate length
         padded1 = self.ragged_padded.pad_seqs(pad_length=10)
@@ -1129,7 +1155,7 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         padded1 = self.ragged.pad_seqs()
         seqs1 = list(padded1.iter_seqs(seq_order=['a', 'b', 'c']))
         self.assertEqual(list(map(str, seqs1)), [
-                         'AAAAAA', 'AAA---', 'AAAA--'])
+            'AAAAAA', 'AAA---', 'AAAA--'])
 
         # pad to alternate length
         padded1 = self.ragged.pad_seqs(pad_length=10)
@@ -1154,7 +1180,8 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         r = self.Class({'a': 'AAAAAA', 'b': 'AAA---', 'c': 'AAAA--'})
         r.names = ['a', 'b', 'c']
         self.assertEqual(list(r.positions), list(map(list,
-                                                     ['AAA', 'AAA', 'AAA', 'A-A', 'A--', 'A--'])))
+                                                     ['AAA', 'AAA', 'AAA',
+                                                      'A-A', 'A--', 'A--'])))
 
     def test_iter_positions(self):
         # """SequenceCollection iter_positions() method should support reordering of #cols"""
@@ -1185,6 +1212,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
     def test_get_position_indices(self):
         """SequenceCollection get_position_indices should return names of cols where f(col)"""
+
         def gap_1st(x): return x[0] == '-'
 
         def gap_2nd(x): return x[1] == '-'
@@ -1192,6 +1220,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         def gap_3rd(x): return x[2] == '-'
 
         def is_list(x): return isinstance(x, list)
+
         self.gaps = self.Class(self.gaps.named_seqs, names=['a', 'b', 'c'])
 
         self.assertEqual(self.gaps.get_position_indices(gap_1st), [])
@@ -1210,6 +1239,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
     def test_take_positions_if(self):
         """SequenceCollection take_positions_if should return cols where f(col) is True"""
+
         def gap_1st(x): return x[0] == '-'
 
         def gap_2nd(x): return x[1] == '-'
@@ -1217,6 +1247,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         def gap_3rd(x): return x[2] == '-'
 
         def is_list(x): return isinstance(x, list)
+
         self.gaps.names = 'abc'
 
         self.assertEqual(self.gaps.take_positions_if(gap_1st),
@@ -1234,9 +1265,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(self.gaps.take_positions_if(gap_1st,
                                                      negate=True), self.gaps)
         self.assertEqual(self.gaps.take_positions_if(gap_2nd,
-                                                     negate=True), {'a': 'AAAA', 'b': 'AAAA', 'c': 'A---'})
+                                                     negate=True),
+                         {'a': 'AAAA', 'b': 'AAAA', 'c': 'A---'})
         self.assertEqual(self.gaps.take_positions_if(gap_3rd,
-                                                     negate=True), {'a': 'AA', 'b': 'A-', 'c': 'AA'})
+                                                     negate=True),
+                         {'a': 'AA', 'b': 'A-', 'c': 'AA'})
 
     def test_no_degenerates(self):
         """no_degenerates correctly excludes columns containing IUPAC ambiguity codes"""
@@ -1352,7 +1385,8 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                                    's4': 'UU-UUUU-UUUUC'})
         result3 = aln.matching_ref('s1', 0.9, 4)
         self.assertEqual(result3, {'s2': 'UC------U---C',
-                                   's1': 'UC-----CU---C', 's5': '-------------'})
+                                   's1': 'UC-----CU---C',
+                                   's5': '-------------'})
         result4 = aln.matching_ref('s3', 0.5, 13)
         self.assertEqual(result4, {'s3': 'UUCCUUCUU-UUC',
                                    's4': 'UU-UUUU-UUUUC'})
@@ -1398,8 +1432,8 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
     def test_is_ragged(self):
         """SequenceCollection is_ragged should return true if ragged alignment"""
-        assert(not self.identical.is_ragged())
-        assert(not self.gaps.is_ragged())
+        assert (not self.identical.is_ragged())
+        assert (not self.gaps.is_ragged())
 
     def test_probs_per_pos(self):
         """SequenceCollection.probs_per_pos should find Pr(symbol) in each
@@ -1450,7 +1484,8 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
     def test_sample_info(self):
         """Alignment.sample should preserver info attribute"""
         alignment = self.Class({'seq1': 'ABCDEFGHIJKLMNOP',
-                                'seq2': 'ABCDEFGHIJKLMNOP'}, info={'key': 'value'})
+                                'seq2': 'ABCDEFGHIJKLMNOP'},
+                               info={'key': 'value'})
         # effectively permute columns, preserving length
         shuffled = alignment.sample()
         self.assertEqual(shuffled.info['key'], 'value')
@@ -1528,7 +1563,8 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln = self.Class(data=seqs, moltype=DNA)
         got = aln.to_html(longest_ref=True)  # name_order=['seq1', 'seq2'])
         # ensure balanced tags are in the txt
-        for tag in ['<style>', '</style>', '<body>', '</body>', '<table>', '</table>']:
+        for tag in ['<style>', '</style>', '<body>', '</body>', '<table>',
+                    '</table>']:
             self.assertTrue(tag in got)
 
         ref_row = ('<tr><td class="label">seq1</td>'
@@ -1738,7 +1774,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # N, -, ? are the additional states
         self.assertEqual(len(got.motifs), 7)
         self.assertEqual(got['b'].todict(), {
-                         '-': 2, '?': 0, 'A': 0, 'C': 3, 'G': 3, 'N': 2, 'T': 0})
+            '-': 2, '?': 0, 'A': 0, 'C': 3, 'G': 3, 'N': 2, 'T': 0})
         got = coll.counts_per_seq(motif_length=2)
         self.assertEqual(len(got.motifs), 16)
         self.assertEqual(got['a', 'AA'], 2)
@@ -1873,13 +1909,13 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(sub_align.info['key'], 'value')
 
 
-
 class AlignmentTests(AlignmentBaseTests, TestCase):
     Class = Alignment
 
     def make_and_filter(self, raw, expected, motif_length):
         # a simple filter func
         def func(x): return re.findall("[-N?]", " ".join(x)) == []
+
         aln = self.Class(raw, info={'key': 'value'})
         result = aln.filtered(
             func, motif_length=motif_length, log_warnings=False)
@@ -1909,21 +1945,21 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         for bit in alignment.sliding_windows(5, 2):
             result += [bit]
         self.assertEqual(result[0].todict(), {
-                         'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
+            'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
         self.assertEqual(result[1].todict(), {
-                         'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
+            'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
 
         result = []
         for bit in alignment.sliding_windows(5, 1):
             result += [bit]
         self.assertEqual(result[0].todict(), {
-                         'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
+            'seq3': 'ACGTA', 'seq2': 'ACGTA', 'seq1': 'ACGTA'})
         self.assertEqual(result[1].todict(), {
-                         'seq3': 'CGTAC', 'seq2': 'CGTAC', 'seq1': 'CGTAC'})
+            'seq3': 'CGTAC', 'seq2': 'CGTAC', 'seq1': 'CGTAC'})
         self.assertEqual(result[2].todict(), {
-                         'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
+            'seq3': 'GTACG', 'seq2': 'GTACG', 'seq1': 'GTACG'})
         self.assertEqual(result[3].todict(), {
-                         'seq3': 'TACGT', 'seq2': 'TACGT', 'seq1': 'TACGT'})
+            'seq3': 'TACGT', 'seq2': 'TACGT', 'seq1': 'TACGT'})
 
     def test_with_gaps_from(self):
         """with_gaps_from should overwrite with gaps."""
