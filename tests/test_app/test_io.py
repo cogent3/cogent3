@@ -60,6 +60,14 @@ class TestIo(TestCase):
             self.basedir, suffix='.fasta*'))
         self.assertTrue(len(found) > 2)
 
+        # raises ValueError if suffix not provided or invalid
+        with self.assertRaises(TypeError):
+            _ = io_app.get_data_store(self.basedir)
+
+        with self.assertRaises(ValueError):
+            _ = io_app.get_data_store(self.basedir, 1)
+
+
     def test_load_aligned(self):
         """correctly loads aligned seqs"""
 
