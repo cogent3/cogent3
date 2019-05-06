@@ -1,6 +1,15 @@
 import numpy
 from plotly.offline import iplot as _iplot
 
+__author__ = "Rahul Ghangas and Gavin Huttley"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__credits__ = ["Gavin Huttley","Rahul Ghangas"]
+__license__ = "GPL"
+__version__ = "3.0a2"
+__maintainer__ = "Gavin Huttley"
+__email__ = "gavin.huttley@anu.edu.au"
+__status__ = "Alpha"
+
 
 class Drawable:
     # Superclass for objects which can generate a figure, in order
