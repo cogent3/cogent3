@@ -28,8 +28,6 @@ class _Dendrogram(TreeNode, Drawable):
     def __repr__(self):
         return f'{self.length} {self.height} {self.children}'
 
-    # make semi-private, def _update_geometry()..
-    # (method used internally by object, but not for users)
     def _update_geometry(self, use_lengths, depth=None, track_coordinates=None):
         """Calculate tree node attributes such as height and depth.
         Despite the name this first pass is ignorant of issues like
@@ -64,8 +62,7 @@ class _Dendrogram(TreeNode, Drawable):
         else:
             self.track_y = 0
 
-    # semi-private
-    def depth_dict(self):
+    def _depth_dict(self):
         self._update_geometry(use_lengths=self.use_lengths_default)
         depth_dict = dict()
 
@@ -75,13 +72,8 @@ class _Dendrogram(TreeNode, Drawable):
         return depth_dict
 
     def get_trace(self):
-        try:
-            self._trace
-        except NameError:
-            print("No existing figure detected: Creating new")
+        if self._trace is None:
             self._set_initial_layout()
-        else:
-            pass
 
         return self._trace['data']
 
@@ -121,49 +113,43 @@ class _RootedDendrogram(_Dendrogram):
     attributes of a node (its length, coordinates of its children) and return
     a tuple for start/end of the line representing the edge."""
 
-    # semi-private
-    def width_required(self):
+    def _width_required(self):
         return self.leafcount
 
-    # semi-private
     def x_coords(self, scale, x1):
         raise NotImplementedError
 
-    # semi-private
     def y_coords(self, scale, y1):
         raise NotImplementedError
 
-    # semi-private
-    def update_coordinates(self, width, height):
+    def _update_coordinates(self, width, height):
         xscale = width / self.height
-        yscale = height / self.width_required()
+        yscale = height / self._width_required()
         scale = Dimensions(xscale, yscale, self.height)
 
         # y coords done postorder, x preorder, y first.
         # so it has to be done in 2 passes.
-        self.update_y_coordinates(scale)
-        self.update_x_coordinates(scale)
+        self._update_y_coordinates(scale)
+        self._update_x_coordinates(scale)
         return xscale
 
-    # semi-private
-    def update_y_coordinates(self, scale, y1=None):
+    def _update_y_coordinates(self, scale, y1=None):
         """The second pass through the tree.  Y coordinates only
         depend on the shape of the tree and yscale"""
         if y1 is None:
-            y1 = self.width_required() * scale.y
+            y1 = self._width_required() * scale.y
         child_y = y1
         for child in self.children:
-            child.update_y_coordinates(scale, child_y)
-            child_y -= child.width_required() * scale.y
+            child._update_y_coordinates(scale, child_y)
+            child_y -= child._width_required() * scale.y
         (self.y1, self.y2) = self.y_coords(scale, y1)
 
-    # semi-private
-    def update_x_coordinates(self, scale, x1=0):
+    def _update_x_coordinates(self, scale, x1=0):
         """For non 'square' styles the x coordinates will depend
-        (a bit) on the y coodinates, so they should be done first"""
+        (a bit) on the y coordinates, so they should be done first"""
         (self.x1, self.x2) = self.x_coords(scale, x1)
         for child in self.children:
-            child.update_x_coordinates(scale, self.x2)
+            child._update_x_coordinates(scale, self.x2)
 
 
 def _calc_row(clade, ycoords):
@@ -178,7 +164,6 @@ def _calc_row(clade, ycoords):
 class SquareDendrogram(_RootedDendrogram):
     aspect_distorts_lengths = False
 
-    # semi-private
     def y_coords(self, scale, y1):
         cys = [c.y1 for c in self.children]
         if cys:
@@ -187,13 +172,11 @@ class SquareDendrogram(_RootedDendrogram):
             y2 = y1 - 0.5 * scale.y
         return (y2, y2)
 
-    # semi-private
     def x_coords(self, scale, x1):
         dx = scale.x * self.length
         x2 = x1 + dx
         return (x1, x2)
 
-    # semi-private
     def _get_clade_lines(self, orientation='horizontal', y_curr=0, x_start=0,
                          x_curr=0, y_bot=0, y_top=0,
                          line_color='rgb(25,25,25)', line_width=0.5):
@@ -219,7 +202,6 @@ class SquareDendrogram(_RootedDendrogram):
 
         return branch_line
 
-    # semi-private
     def _draw_clade(self, clade, x_start, line_shapes,
                     line_color='rgb(15,15,15)', line_width=1):
 
@@ -248,12 +230,12 @@ class SquareDendrogram(_RootedDendrogram):
                 self._draw_clade(child, x_curr, line_shapes)
 
     # semi-private
-    def get_all_x_coordinates(self):
-        xcoords = self.depth_dict()
+    def _get_all_x_coordinates(self):
+        xcoords = self._depth_dict()
         self.xcoords = xcoords
 
     # semi-private
-    def get_all_y_coordinates(self, scale=1.3):
+    def _get_all_y_coordinates(self, scale=1.3):
         maxheight = len(self.tips())
 
         ycoords = dict((leaf, maxheight - i * scale)
@@ -271,8 +253,8 @@ class SquareDendrogram(_RootedDendrogram):
                                                           use_length=use_lengths,
                                                           **kw)
 
-        self.get_all_x_coordinates()
-        self.get_all_y_coordinates()
+        self._get_all_x_coordinates()
+        self._get_all_y_coordinates()
 
         my_tree_clades = list(self.xcoords.keys())
         X = []
@@ -414,7 +396,7 @@ class CircularDendrogram(_RootedDendrogram):
         start_angle *= np.pi / 180
         end_angle *= np.pi / 180
 
-        node_radius = self.depth_dict()
+        node_radius = self._depth_dict()
         node_ycoord = self._get_vertical_position(start_leaf)
         y_vals = node_ycoord.values()
         ymin, ymax = min(y_vals), max(y_vals)
@@ -476,7 +458,6 @@ class CircularDendrogram(_RootedDendrogram):
                            mode='markers',
                            marker=dict(color=color,
                                        size=size,
-                                       # colorscale=pl_colorscale
                                        ),
                            text=text,
                            hoverinfo='text',
