@@ -1670,6 +1670,28 @@ class TreeNode(object):
                        :, other_order]
         return dist_f(self_matrix, other_matrix)
 
+    def iplot(self, kind='square'):
+        """
+        plots the phylogeny
+
+        Parameters
+        ----------
+        kind : string
+            either 'square' or 'circular'
+
+        """
+        from plotly.offline import iplot
+        from cogent3.draw.dendrogram_2 import (SquareDendrogram,
+                                               CircularDendrogram, )
+        kind = kind.lower()
+        if kind not in ('square', 'circular'):
+            raise ValueError(f'kind must be square or circular, not {kind}')
+
+        klass = SquareDendrogram if kind == 'square' else CircularDendrogram
+        dnd = klass(self)
+        dnd._set_initial_layout()
+        iplot(dnd._trace)
+
 
 class PhyloNode(TreeNode):
 
