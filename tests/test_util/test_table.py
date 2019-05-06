@@ -1,16 +1,13 @@
-Data Manipulation using ``Table``
-=================================
+# Data Manipulation using Table
 
-.. sectionauthor:: Gavin Huttley
-
-..
-    Copyright 2007-2009, The Cogent Project
-    Credits Gavin Huttley, Felix Schill
-    License, GPL
-    version, 1.3.0.dev
-    Maintainer, Gavin Huttley
-    Email, gavin.huttley@anu.edu.au
-    Status, Production
+__author__ = 'Gavin Huttley'
+__copyright__ = '2007-2009, The Cogent Project'
+__credits__ = ['Gavin Huttley', 'Felix Schill']
+__license__ = 'GPL'
+__version__ = '1.3.0.dev'
+__maintainer = 'Gavin Huttley'
+__email__ = 'gavin.huttley@anu.edu.au'
+__status__ = 'Production'
 
 The toolkit has a ``Table`` object that can be used for manipulating tabular data. It's properties can be considered like an ordered 2 dimensional dictionary or tuple with flexible output format capabilities of use for exporting data for import into external applications. Importantly, via the restructured text format one can generate html or latex formatted tables. The ``table`` module is located within ``cogent3.util``. The ``LoadTable`` convenience function is provided as a top-level ``cogent3`` import.
 
@@ -21,8 +18,8 @@ Tables can be created directly using the Table object itself, or a convenience f
 
 .. doctest::
 
-    >>> from cogent3 import LoadTable
-    >>> from cogent3.util.table import Table
+from cogent3 import LoadTable
+from cogent3.util.table import Table
 
 First, if you try and create a ``Table`` without any data, it raises a ``ValueError``.
 
