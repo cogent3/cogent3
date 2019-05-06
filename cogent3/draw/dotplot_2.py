@@ -41,7 +41,7 @@ def not_gap(span):
 
 
 def _convert_input(seq, moltype):
-    """converts to Annotatable map instyance and a Sequence object"""
+    """converts to Annotatable map instance and a Sequence object"""
     if hasattr(seq, 'map'):
         # already an Aligned instance
         gap_map = seq.map
