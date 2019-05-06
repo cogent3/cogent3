@@ -42,7 +42,7 @@ from cogent3.parse.gff import GffParser, parse_attributes
 from numpy import (nonzero, array, logical_or, logical_and, logical_not,
                    transpose, arange, zeros, ones, take, put, uint8, ndarray,
                    vstack, )
-from numpy.random import randint, permutation
+from numpy.random import randint, permutation, choice
 
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import bytes_to_string, get_object_provenance
@@ -1574,6 +1574,44 @@ class SequenceCollection(object):
                   for s in self.seqs}
 
         return result
+
+    def dotplot(self, name1=None, name2=None, window=20, threshold=None,
+                min_gap=0, width=500, title=None):
+        """display a dotplot between specified sequences. Random sequences
+        chosen if names not provided.
+
+        Parameters
+        ----------
+        name1, name2 : str or None
+            names of sequences. If one is not provided, a random choice is made
+        window : int
+            k-mer size for comparison between sequences
+        threshold : int
+            windows where the sequences are identical >= threshold are a match
+        min_gap : int
+            permitted gap for joining adjacent line segments, default is no gap
+            joining
+        width : int
+            figure width. Figure height is computed based on the ratio of
+            len(seq1) / len(seq2)
+        title
+            title for the plot
+        """
+        from cogent3.draw.dotplot_2 import Display2D
+
+        names = choice(self.names, size=2, replace=False)
+        name1 = names[0] if name1 is None else name1
+        name2 = names[1] if name2 is None else name2
+
+        if not set([name1, name2]) <= set(self.names):
+            msg = f'{name1}, {name2} missing'
+            raise ValueError(msg)
+
+        dotplot = Display2D(self.named_seqs[name1], self.named_seqs[name2],
+                            moltype=self.moltype)
+
+        dotplot.iplot(window=window, threshold=threshold,
+                      min_gap=min_gap, width=width, title=title)
 
 
 @total_ordering
@@ -3237,7 +3275,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         if lengths and (max(lengths) != min(lengths)):
             raise DataError("Not all sequences are the same length:\n" +
                             "max is %s, min is %s" % (
-                            max(lengths), min(lengths)))
+                                max(lengths), min(lengths)))
         aligned_seqs = []
         for s, n in zip(seqs, names):
             if isinstance(s, Aligned):
