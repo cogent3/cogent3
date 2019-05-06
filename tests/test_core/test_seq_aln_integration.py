@@ -34,7 +34,8 @@ class AllTests(TestCase):
 
         self.aln = Alignment([self.rna1, self.rna2, self.rna3], moltype=RNA)
         self.da = ArrayAlignment([self.model1, self.model2, self.model3],
-                                 moltype=RNA, alphabet=RNA.alphabets.degen_gapped)
+                                 moltype=RNA,
+                                 alphabet=RNA.alphabets.degen_gapped)
 
         # seqs no name
         self.nn_rna1 = RnaSequence('UCAGGG')
@@ -51,14 +52,15 @@ class AllTests(TestCase):
         self.nn_aln = Alignment([self.nn_rna1, self.nn_rna2, self.nn_rna3],
                                 moltype=RNA)
         self.nn_da = ArrayAlignment([self.nn_model1, self.nn_model2,
-                                     self.nn_model3], moltype=RNA, alphabet=RNA.alphabets.degen_gapped)
+                                     self.nn_model3], moltype=RNA,
+                                    alphabet=RNA.alphabets.degen_gapped)
 
     def test_printing_named_seqs(self):
         """Printing named seqs should work the same on Aln and DenseAln"""
         # Note: the newline trailing each sequence is intentional, because
         # we want each FASTA-format record to be separated.
         exp_lines_general = ['>rna1', 'UCAGGG',
-            '>rna2', 'YCU-RG', '>rna3', 'CAA-NR']
+                             '>rna2', 'YCU-RG', '>rna3', 'CAA-NR']
         self.assertEqual(str(self.aln), '\n'.join(exp_lines_general) + '\n')
         self.assertEqual(str(self.da), '\n'.join(exp_lines_general) + '\n')
 
@@ -66,7 +68,7 @@ class AllTests(TestCase):
         """Printing unnamed sequences should work the same on Aln and DenseAln
         """
         exp_lines_gen = ['>seq_0', 'UCAGGG',
-            '>seq_1', 'YCU-RG', '>seq_2', 'CAA-NR\n']
+                         '>seq_1', 'YCU-RG', '>seq_2', 'CAA-NR\n']
         self.assertEqual(str(self.nn_aln), '\n'.join(exp_lines_gen))
         self.assertEqual(str(self.nn_da), '\n'.join(exp_lines_gen))
 
@@ -92,9 +94,9 @@ class AllTests(TestCase):
     def test_seqFreqs(self):
         """seqFreqs should work the same on Alignment and ArrayAlignment"""
         get_index = RNA.alphabets.degen_gapped.index
-        #'UCAGGG'
-        #'YCU-RG'
-        #'CAA-NR'
+        # 'UCAGGG'
+        # 'YCU-RG'
+        # 'CAA-NR'
 
         expected_counts = {0: {'U': 1, 'C': 1, 'A': 1, 'G': 3},
                            1: {'Y': 1, 'C': 1, 'U': 1, '-': 1, 'R': 1, 'G': 1},
@@ -110,9 +112,9 @@ class AllTests(TestCase):
         # because dict order volatile, need to grab the
         # the index for ambig characters from the object
         # The full data comes from these seqs
-        #'UCAGGG'
-        #'YCU-RG'
-        #'CAA-NR'
+        # 'UCAGGG'
+        # 'YCU-RG'
+        # 'CAA-NR'
         get_index = RNA.alphabets.degen_gapped.index
         G = get_index('-')
         N = get_index('N')
@@ -128,7 +130,8 @@ class AllTests(TestCase):
         model3 = ArraySequence('CAR', name='rna3',
                                alphabet=RNA.alphabets.degen_gapped)
         sub_da = ArrayAlignment([model1, model2, model3],
-                                moltype=RNA, alphabet=RNA.alphabets.degen_gapped)
+                                moltype=RNA,
+                                alphabet=RNA.alphabets.degen_gapped)
 
         sub_data = array([[0, 1, 3], [Y, 1, 3], [1, 2, R]])
 
@@ -205,7 +208,8 @@ class AllTests(TestCase):
         model3 = ArraySequence('CAR', name='rna3',
                                alphabet=RNA.alphabets.degen_gapped)
         sub_da = ArrayAlignment([model1, model2, model3],
-                                moltype=RNA, alphabet=RNA.alphabets.degen_gapped)
+                                moltype=RNA,
+                                alphabet=RNA.alphabets.degen_gapped)
 
         # take_seqs by name should have the same effect as
         # get_sub_alignment by seq idx?
@@ -221,11 +225,13 @@ class AllTests(TestCase):
         self.assertEqual(self.da == self.da, True)
         # one sequence less
         other_da1 = ArrayAlignment([self.model1, self.model2],
-                                   moltype=RNA, alphabet=RNA.alphabets.degen_gapped)
+                                   moltype=RNA,
+                                   alphabet=RNA.alphabets.degen_gapped)
         self.assertEqual(self.da == other_da1, False)
         # seqs in different order -- doesn't matter
         other_da2 = ArrayAlignment([self.model1, self.model3, self.model2],
-                                   moltype=RNA, alphabet=RNA.alphabets.degen_gapped)
+                                   moltype=RNA,
+                                   alphabet=RNA.alphabets.degen_gapped)
         self.assertEqual(self.da == other_da2, True)
         # seqs in different encoding -- doesn't matter, only looks at data
         other_da3 = ArrayAlignment([self.model1, self.model2, self.model3])
@@ -264,6 +270,7 @@ class AllTests(TestCase):
         You might want to add some tests there..."""
         # note: mostly these are tested in derived classes, for convenience.
         pass
+
 
 if __name__ == "__main__":
     main()
