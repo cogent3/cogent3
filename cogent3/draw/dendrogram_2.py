@@ -20,12 +20,14 @@ class _Dendrogram(TreeNode, Drawable):
         TreeNode.__init__(self, params=tree.params.copy(), children=children,
                           name=("" if children else tree.name))
         self.length = tree.length
+        self.height = None
         self.original = tree  # for edge_color_callback
         self.collapsed = False
         self.use_lengths_default = use_lengths
         self._trace = None
 
     def __repr__(self):
+        # todo this needs to be refactored to be more informative
         return f'{self.length} {self.height} {self.children}'
 
     def _update_geometry(self, use_lengths, depth=None, track_coordinates=None):
