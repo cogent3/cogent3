@@ -225,7 +225,7 @@ class Display2D(Drawable):
             n, y = self._aligned_coords
             x = []
             for e in n:
-                if e:
+                if e is not None:
                     e += nudge
                 x.append(e)
 
