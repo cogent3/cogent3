@@ -16,8 +16,7 @@ class Simplex(Drawable):
         self.probabilities = probabilties
         self._trace = None
 
-    def get_trace(self, window=20, threshold=None, min_gap=0, width=500,
-                  title=None):
+    def get_trace(self, title=None):
         # calculate the width based on ratio of seq lengths
         if self._trace is None:
             self._set_initial_layout(title=title, probabilities=[])
