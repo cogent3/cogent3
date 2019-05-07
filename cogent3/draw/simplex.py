@@ -29,15 +29,15 @@ class Simplex(Drawable):
     def update_layout(self, layout_updates):
         self._trace['layout'].update(layout_updates)
 
-    def _set_initial_layout(self, width=800, height = 800, title=None,  **kw):
+    def _set_initial_layout(self, width=800, height=800, title=None, **kw):
         import plotly.graph_objs as go
-        from numpy import array, sqrt
+        from numpy import array
         from itertools import combinations
 
         probs = array(self.probabilities)
         simplex = array(SimplexTransform())
 
-        coords_3d = list(map(lambda x : x @ simplex, probs))
+        coords_3d = list(map(lambda x: x @ simplex, probs))
         coords_3d = array(sorted(coords_3d, key=lambda x: x[0]))
 
         combinations = array(list(combinations(simplex, 2)))
@@ -52,7 +52,6 @@ class Simplex(Drawable):
                     size=4,
                     color='#1f77b4',
                     colorscale='Viridis',
-
                 ),
                 line=dict(
                     color='#1f77b4',
@@ -70,7 +69,6 @@ class Simplex(Drawable):
                     size=4,
                     color='#1f77b4',
                     colorscale='Viridis',
-
                 ),
                 text=['A', 'B', 'C', 'D'],
                 mode='markers+text',
@@ -96,17 +94,20 @@ class Simplex(Drawable):
             xaxis=dict(
                 title='x',
                 visible=False,
-                range=[min([x[0] for x in simplex]), max([x[0] for x in simplex])],
+                range=[min([x[0] for x in simplex]),
+                       max([x[0] for x in simplex])],
             ),
             yaxis=dict(
                 title='y',
                 visible=False,
-                range=[min([x[0] for x in simplex]), max([x[0] for x in simplex])],
+                range=[min([x[0] for x in simplex]),
+                       max([x[0] for x in simplex])],
             ),
             zaxis=dict(
                 title='z',
                 visible=False,
-                range=[min([x[0] for x in simplex]), max([x[0] for x in simplex])]), ),
+                range=[min([x[0] for x in simplex]),
+                       max([x[0] for x in simplex])]), ),
             autosize=True,
 
         )
