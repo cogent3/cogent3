@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 from tempfile import TemporaryDirectory
-from cogent3.app.composable import ComposableSeq, ErrorResult
+from cogent3.app.composable import ComposableSeq, NotCompletedResult
 from cogent3.app.translate import select_translatable
 from cogent3.app.sample import omit_degenerates, min_length
 from cogent3.app.tree import quick_tree
@@ -15,6 +15,7 @@ __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
+
 
 class TestCheckpoint(TestCase):
     def test_checkpointable(self):
@@ -85,11 +86,10 @@ class TestComposableBase(TestCase):
         comb2 = aseqfunc1 + aseqfunc3
 
 
-
-class TestErrorResult(TestCase):
+class TestNotCompletedResult(TestCase):
     def test_err_result(self):
-        """excercise creation of ErrorResult"""
-        result = ErrorResult('SKIP', 'this', 'some obj')
+        """excercise creation of NotCompletedResult"""
+        result = NotCompletedResult('SKIP', 'this', 'some obj')
         self.assertFalse(result)
         self.assertEqual(result.origin, 'this')
         self.assertEqual(result.message, 'some obj')
@@ -98,7 +98,7 @@ class TestErrorResult(TestCase):
             _ = 0
             raise ValueError("error message")
         except ValueError as err:
-            result = ErrorResult('SKIP', 'this', err.args[0])
+            result = NotCompletedResult('SKIP', 'this', err.args[0])
 
         self.assertEqual(result.message, 'error message')
 
@@ -115,7 +115,6 @@ class TestErrorResult(TestCase):
         self.assertEqual(got, "select_translatable(type='sequences', "
                               "moltype='dna', gc='Standard Nuclear', "
                               "allow_rc=True, trim_terminal_stop=True)")
-
 
         nodegen = omit_degenerates()
         got = str(nodegen)

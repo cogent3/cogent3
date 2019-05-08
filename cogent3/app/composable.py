@@ -17,7 +17,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-class ErrorResult(int):
+class NotCompletedResult(int):
     def __new__(cls, type, origin, message):
         result = int.__new__(cls, False)
         result.type = type
@@ -75,7 +75,8 @@ class Composable(ComposableType):
         txt = '' if not self.input else str(self.input)
         if txt:
             txt += ' + '
-        txt += '%s(%s)' % (self.__class__.__name__, ', '.join(self._formatted))
+        txt += '%s(%s)' % (self.__class__.__name__,
+                           ', '.join(self._formatted))
         return txt
 
     def __repr__(self):
@@ -167,7 +168,8 @@ class Composable(ComposableType):
             try:
                 val = self._in(val, *args, **kwargs)
             except Exception as err:
-                val = ErrorResult('ERROR', str(self.input), err.args[0])
+                val = NotCompletedResult(
+                    'ERROR', str(self.input), err.args[0])
                 return val
 
         if not val:
@@ -230,7 +232,7 @@ class ComposableHypothesis(Composable):
 class _seq_loader:
     def load(self, data):
         """returns sequences
-        
+
         Parameters
         ----------
         data
