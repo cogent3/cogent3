@@ -92,7 +92,7 @@ class TranslateTests(TestCase):
                              ('d', 'GCAAGCNNTTAT')])
         got = select(aln)
         self.assertFalse(got)
-        self.assertTrue(type(got) == composable.ErrorResult)
+        self.assertTrue(type(got) == composable.NotCompletedResult)
 
         # using negate
         select = sample.take_named_seqs('c', negate=True)
@@ -137,9 +137,9 @@ class TranslateTests(TestCase):
                           ('b', 'GCTTTTGTCAAT')))]
         self.assertEqual(got, expected)
 
-        # returns ErrorResult if nothing satisifies
+        # returns NotCompletedResult if nothing satisifies
         got = ml(alns[1])
-        self.assertTrue(type(got) == sample.ErrorResult)
+        self.assertTrue(type(got) == sample.NotCompletedResult)
 
         alns = [LoadSeqs(data=[('a', 'GGAAGCGT'),
                                ('b', 'GCTTNGT')],
@@ -183,9 +183,9 @@ class TranslateTests(TestCase):
         got = [a for a in map(fl, alns) if a]
         expected = []
         self.assertEqual(got, expected)
-        # returns ErrorResult if nothing satisifies
+        # returns NotCompletedResult if nothing satisifies
         got = fl(alns[0])
-        self.assertTrue(type(got) == sample.ErrorResult)
+        self.assertTrue(type(got) == sample.NotCompletedResult)
 
         fl = sample.fixed_length(9, random=True)
         got = fl(aln)

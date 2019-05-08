@@ -1,7 +1,7 @@
 from tqdm import tqdm
 from cogent3 import LoadTree
 from cogent3.evolve.models import get_model
-from .composable import ComposableHypothesis, ComposableModel, ErrorResult
+from .composable import ComposableHypothesis, ComposableModel, NotCompletedResult
 from .result import hypothesis_result, model_result, bootstrap_result
 from cogent3.util import parallel
 
@@ -170,12 +170,13 @@ class hypothesis(ComposableHypothesis):
             null = self.null(aln)
         except ValueError as err:
             msg = f"Hypothesis null had bounds error {aln.info.source}"
-            return ErrorResult('ERROR', self.__class__.__name__, msg)
+            return NotCompletedResult('ERROR', self.__class__.__name__, msg)
         try:
-            alts = [alt for alt in self._initialised_alt_from_null(null, aln)]
+            alts = [
+                alt for alt in self._initialised_alt_from_null(null, aln)]
         except ValueError as err:
             msg = f"Hypothesis alt had bounds error {aln.info.source}"
-            return ErrorResult('ERROR', self.__class__.__name__, msg)
+            return NotCompletedResult('ERROR', self.__class__.__name__, msg)
         results = {alt.name: alt for alt in alts}
         results.update({null.name: null})
 
@@ -210,7 +211,7 @@ class bootstrap(ComposableHypothesis):
         try:
             obs = self._hyp(aln)
         except ValueError as err:
-            result = ErrorResult('ERROR', str(self._hyp), err.args[0])
+            result = NotCompletedResult('ERROR', str(self._hyp), err.args[0])
             return result
         result.observed = obs
         self._null = obs.null

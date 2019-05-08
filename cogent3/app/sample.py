@@ -6,7 +6,7 @@ from cogent3.core.moltype import get_moltype
 from cogent3.core.genetic_code import get_code
 from cogent3.core.alignment import ArrayAlignment, Alignment
 from .translate import get_fourfold_degenerate_sets
-from .composable import ComposableSeq, ComposableAligned, ErrorResult
+from .composable import ComposableSeq, ComposableAligned, NotCompletedResult
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -56,7 +56,7 @@ class concat:
 
     def concat(self, data):
         """returns an alignment
-        
+
         Parameters
         ----------
         data
@@ -210,7 +210,7 @@ class take_codon_positions(ComposableAligned):
 class take_named_seqs(ComposableSeq):
     def __init__(self, *names, negate=False):
         """selects named sequences from a collection
-        
+
         Returns
         -------
         A new sequence collection, or False if not all the named sequences are 
@@ -242,7 +242,7 @@ class take_named_seqs(ComposableSeq):
             msg = f'named seq(s) missing'
             if source:
                 msg = f'{msg} from {source}'
-            data = ErrorResult('FALSE', self.__class__.__name__, msg)
+            data = NotCompletedResult('FALSE', self.__class__.__name__, msg)
         return data
 
 
@@ -307,7 +307,7 @@ class min_length(ComposableSeq):
             msg = f'{length} < min_length {self._min_length}'
             if source:
                 msg = f'{msg} for {source}'
-            data = ErrorResult('FALSE', self.__class__.__name__, msg)
+            data = NotCompletedResult('FALSE', self.__class__.__name__, msg)
 
         return data
 
@@ -377,7 +377,8 @@ class fixed_length(ComposableAligned):
         if seed:
             np_random.seed(seed)
 
-        self.func = {False: self.truncated}.get(random, self.sample_positions)
+        self.func = {False: self.truncated}.get(
+            random, self.sample_positions)
 
     def truncated(self, aln):
         if self._moltype:
@@ -396,7 +397,8 @@ class fixed_length(ComposableAligned):
             msg = f'{len(aln)} < min_length {self._length}'
             if source:
                 msg = f'{msg} for {source}'
-            result = ErrorResult('FALSE', self.__class__.__name__, msg)
+            result = NotCompletedResult(
+                'FALSE', self.__class__.__name__, msg)
         else:
             start = self._start(len(aln) - self._length)
             result = aln[start:start + self._length]
