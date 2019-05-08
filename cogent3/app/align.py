@@ -210,6 +210,7 @@ class progressive_align(ComposableSeq):
 
         try:
             result, tree = TreeAlign(self._model, seqs, **kwargs)
+            result = result.to_moltype(self._moltype)
             result.info.update(seqs.info)
         except ValueError:
             # probably an internal stop

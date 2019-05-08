@@ -48,6 +48,7 @@ class RefalignmentTests(TestCase):
         aligner = align_app.progressive_align(model='nucleotide')
         aln = aligner(self.seqs)
         self.assertEqual(len(aln), 42)
+        self.assertEqual(aln.moltype, aligner._moltype)
         # todo the following is not robust across operating systems
         # so commenting out for now, but needs to be checked
         # expect = {'Human': 'GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT',
