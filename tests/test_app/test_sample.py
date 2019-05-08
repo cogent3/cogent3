@@ -1,7 +1,7 @@
 from cogent3 import LoadSeqs, DNA
 from unittest import TestCase, main
 
-from cogent3.app import sample
+from cogent3.app import sample, composable
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -92,6 +92,7 @@ class TranslateTests(TestCase):
                              ('d', 'GCAAGCNNTTAT')])
         got = select(aln)
         self.assertFalse(got)
+        self.assertTrue(type(got) == composable.ErrorResult)
 
         # using negate
         select = sample.take_named_seqs('c', negate=True)
@@ -136,6 +137,10 @@ class TranslateTests(TestCase):
                           ('b', 'GCTTTTGTCAAT')))]
         self.assertEqual(got, expected)
 
+        # returns ErrorResult if nothing satisifies
+        got = ml(alns[1])
+        self.assertTrue(type(got) == sample.ErrorResult)
+
         alns = [LoadSeqs(data=[('a', 'GGAAGCGT'),
                                ('b', 'GCTTNGT')],
                          aligned=False, moltype=DNA)]
@@ -178,6 +183,9 @@ class TranslateTests(TestCase):
         got = [a for a in map(fl, alns) if a]
         expected = []
         self.assertEqual(got, expected)
+        # returns ErrorResult if nothing satisifies
+        got = fl(alns[0])
+        self.assertTrue(type(got) == sample.ErrorResult)
 
         fl = sample.fixed_length(9, random=True)
         got = fl(aln)
@@ -304,6 +312,7 @@ class TranslateTests(TestCase):
                                         'seq2': 'AAATTTCC',
                                         'seq3': 'AAATTTCC',
                                         'seq4': '???TTT??'})
+
 
 if __name__ == '__main__':
     main()

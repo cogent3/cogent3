@@ -6,7 +6,7 @@ from cogent3.core.moltype import get_moltype
 from cogent3.core.genetic_code import get_code
 from cogent3.core.alignment import ArrayAlignment, Alignment
 from .translate import get_fourfold_degenerate_sets
-from .composable import ComposableSeq, ComposableAligned
+from .composable import ComposableSeq, ComposableAligned, ErrorResult
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -230,7 +230,19 @@ class take_named_seqs(ComposableSeq):
         try:
             data = data.take_seqs(self._names, negate=self._negate)
         except KeyError:
-            data = False
+            source = ''
+            try:
+                source = data.source
+            except AttributeError:
+                try:
+                    source = data.info.source
+                except AttributeError:
+                    pass
+
+            msg = f'named seq(s) missing'
+            if source:
+                msg = f'{msg} from {source}'
+            data = ErrorResult('FALSE', self.__class__.__name__, msg)
         return data
 
 
@@ -283,7 +295,19 @@ class min_length(ComposableSeq):
         length, _ = min([(l, n) for n, l in lengths.items()])
 
         if length < self._min_length:
-            data = False
+            source = ''
+            try:
+                source = data.source
+            except AttributeError:
+                try:
+                    source = data.info.source
+                except AttributeError:
+                    pass
+
+            msg = f'{length} < min_length {self._min_length}'
+            if source:
+                msg = f'{msg} for {source}'
+            data = ErrorResult('FALSE', self.__class__.__name__, msg)
 
         return data
 
@@ -360,7 +384,19 @@ class fixed_length(ComposableAligned):
             aln = aln.to_moltype(self._moltype)
 
         if len(aln) < self._length:
-            result = False
+            source = ''
+            try:
+                source = aln.source
+            except AttributeError:
+                try:
+                    source = aln.info.source
+                except AttributeError:
+                    pass
+
+            msg = f'{len(aln)} < min_length {self._length}'
+            if source:
+                msg = f'{msg} for {source}'
+            result = ErrorResult('FALSE', self.__class__.__name__, msg)
         else:
             start = self._start(len(aln) - self._length)
             result = aln[start:start + self._length]
