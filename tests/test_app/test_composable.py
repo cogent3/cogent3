@@ -30,6 +30,7 @@ class TestCheckpoint(TestCase):
             read_write = reader + writer
             got = read_write(path)  # should skip reading and return path
             self.assertEqual(got, outpath)
+            read_write.disconnect()  # allows us to reuse bits
             read_write_degen = reader + writer + omit_degens
             got = read_write_degen(path)  # should return an alignment instance
             self.assertIsInstance(got, ArrayAlignment)
@@ -48,6 +49,24 @@ class TestComposableBase(TestCase):
                   "ComposableSeq(type='sequences')")
         got = str(comb)
         self.assertEqual(got, expect)
+
+    def test_disconnect(self):
+        """disconnect breaks all connections and allows parts to be reused"""
+        aseqfunc1 = ComposableSeq(
+            input_type='sequences', output_type='sequences')
+        aseqfunc2 = ComposableSeq(
+            input_type='sequences', output_type='sequences')
+        aseqfunc3 = ComposableSeq(
+            input_type='sequences', output_type='sequences')
+        comb = aseqfunc1 + aseqfunc2 + aseqfunc3
+        comb.disconnect()
+        self.assertEqual(aseqfunc1.input, None)
+        self.assertEqual(aseqfunc1.output, None)
+        self.assertEqual(aseqfunc3.input, None)
+        self.assertEqual(aseqfunc3.output, None)
+        # should be able to compose a new one now
+        comb2 = aseqfunc1 + aseqfunc3
+
 
 
 class TestErrorResult(TestCase):
