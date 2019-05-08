@@ -50,6 +50,23 @@ class TestComposableBase(TestCase):
         got = str(comb)
         self.assertEqual(got, expect)
 
+    def test_composables_once(self):
+        """composables can only be used in a single composition"""
+        aseqfunc1 = ComposableSeq(
+            input_type='sequences', output_type='sequences')
+        aseqfunc2 = ComposableSeq(
+            input_type='sequences', output_type='sequences')
+        comb = aseqfunc1 + aseqfunc2
+        with self.assertRaises(AssertionError):
+            aseqfunc3 = ComposableSeq(
+                input_type='sequences', output_type='sequences')
+            comb2 = aseqfunc1 + aseqfunc3
+        # the other order
+        with self.assertRaises(AssertionError):
+            aseqfunc3 = ComposableSeq(
+                input_type='sequences', output_type='sequences')
+            comb2 = aseqfunc3 + aseqfunc2
+
     def test_disconnect(self):
         """disconnect breaks all connections and allows parts to be reused"""
         aseqfunc1 = ComposableSeq(

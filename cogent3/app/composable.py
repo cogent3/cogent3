@@ -105,6 +105,19 @@ class Composable(ComposableType):
         self._formatted += formatted
 
     def __add__(self, other):
+        if self.output or other.input:
+            # can only be part of a single composable function
+            self_name = self.__class__.__name__
+            other_name = other.__class__.__name__
+            if self.output and other.input:
+                msg = f'{self_name} and {other_name} are already part of a' \
+                    ' composed function'
+            elif self.output:
+                msg = f'{self_name} already part of composed function'
+            else:
+                msg = f'{other_name} already part of composed function'
+            raise AssertionError(f'{msg}, use disconnect() to free them up')
+
         if not other.compatible_input(self):
             msg = '%s() requires input type "%s", %s() produces "%s"'
             my_name = self.__class__.__name__
