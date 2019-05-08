@@ -181,6 +181,18 @@ class Composable(ComposableType):
         self._out = other
         self._set_checkpoint_loader()
 
+    def disconnect(self):
+        """resets input and output to None
+
+        Breaks all connections among members of a composed function."""
+        input = self.input
+        if input:
+            input.disconnect()
+
+        self._in = None
+        self._out = None
+        self._load_checkpoint = None
+
 
 class ComposableSeq(Composable):
     _type = 'sequences'
