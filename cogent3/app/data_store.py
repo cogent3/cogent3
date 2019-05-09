@@ -291,14 +291,8 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
         relative_id = self.get_relative_identifier(identifier)
         absolute_id = self.get_absolute_identifier(relative_id,
                                                    from_relative=True)
-
-        tmp_file = absolute_id + ".tmp"
-        with open_(tmp_file, self.mode) as outfile:
+        with open_(absolute_id, self.mode) as outfile:
             outfile.write(data)
-            outfile.flush()
-            os.fsync(outfile.fileno())
-            outfile.close()
-        os.rename(tmp_file, absolute_id)
 
         if relative_id not in self:
             self._members.append(DataStoreMember(relative_id, self))
@@ -346,11 +340,9 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         relative_id = self.get_relative_identifier(identifier)
         absolute_id = self.get_absolute_identifier(relative_id,
                                                    from_relative=True)
-        with zipfile.ZipFile(self.source + ".tmp", 'a') as out:
+        with zipfile.ZipFile(self.source, 'a') as out:
             out.writestr(relative_id, data, compress_type=zipfile.ZIP_DEFLATED,
                          compresslevel=9)
-            out.close()
-        os.rename(self.source + ".tmp", self.source)
 
         if relative_id not in self:
             self._members.append(DataStoreMember(relative_id, self))
