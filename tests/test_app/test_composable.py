@@ -1,5 +1,7 @@
 from unittest import TestCase, main
 from tempfile import TemporaryDirectory
+from unittest.mock import Mock
+
 from cogent3.app.composable import ComposableSeq, NotCompletedResult
 from cogent3.app.translate import select_translatable
 from cogent3.app.sample import omit_degenerates, min_length
@@ -93,6 +95,20 @@ class TestNotCompletedResult(TestCase):
         self.assertFalse(result)
         self.assertEqual(result.origin, 'this')
         self.assertEqual(result.message, 'some obj')
+        self.assertIs(result.source, None)
+
+        # check source correctly deduced from provided object
+        fake_source = Mock()
+        fake_source.source = 'blah'
+        del(fake_source.info)
+        result = NotCompletedResult('SKIP', 'this', 'err', source=fake_source)
+        self.assertIs(result.source, 'blah')
+
+        fake_source = Mock()
+        del(fake_source.source)
+        fake_source.info.source = 'blah'
+        result = NotCompletedResult('SKIP', 'this', 'err', source=fake_source)
+        self.assertIs(result.source, 'blah')
 
         try:
             _ = 0

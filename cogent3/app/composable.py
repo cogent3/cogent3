@@ -17,18 +17,56 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
+def _get_source(source):
+    if isinstance(source, str):
+        result = str(source)
+    else:
+        try:
+            result = source.source
+        except AttributeError:
+            try:
+                result = source.info.source
+            except AttributeError:
+                result = None
+    return result
+
+
+def _get_origin(origin):
+    if type(origin) == str:
+        result = origin
+    else:
+        result = origin.__class__.__name__
+    return result
+
+
 class NotCompletedResult(int):
-    def __new__(cls, type, origin, message):
+    """for tracking app results that failed to complete"""
+
+    def __new__(cls, type, origin, message, source=None):
+        """
+        Parameters
+        ----------
+        type : str
+            examples are 'ERROR', 'FAIL'
+        origin
+            where the instance was created, can be an instance
+        message : str
+            descriptive message, succinct traceback
+        source : str or instance with .info.source or .source attributes
+            the data operated on that led to this result. Can
+        """
         result = int.__new__(cls, False)
         result.type = type
-        result.origin = origin
+        result.origin = _get_origin(origin)
         result.message = message
+        result.source = _get_source(source)
         return result
 
     def __str__(self):
-        val = "%s(type=%s, origin=%s, message=%s)" % (self.__class__.__name__,
-                                                      self.type, self.origin,
-                                                      self.message)
+        name = self.__class__.__name__
+        source = self.source or 'Unknown'
+        val = (f'{name}(type={self.type}, origin={self.origin}, '
+               f'source="{source}", message="{self.message}")')
         return val
 
 
@@ -168,8 +206,7 @@ class Composable(ComposableType):
             try:
                 val = self._in(val, *args, **kwargs)
             except Exception as err:
-                val = NotCompletedResult(
-                    'ERROR', str(self.input), err.args[0])
+                val = NotCompletedResult('ERROR', self, err.args[0], source=val)
                 return val
 
         if not val:
