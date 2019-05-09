@@ -4,7 +4,7 @@ from cogent3.core.moltype import get_moltype
 from cogent3.core.genetic_code import get_code, DEFAULT
 from cogent3.core.alignment import SequenceCollection
 
-from .composable import ComposableSeq
+from .composable import ComposableSeq, NotCompletedResult
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -220,6 +220,8 @@ class select_translatable(ComposableSeq):
                                               info=seqs.info)
             translatable.info['translation_errors'] = error_log
         else:
-            translatable = None
+            translatable = NotCompletedResult('FALSE', self,
+                                              ' '.join(error_log),
+                                              source=seqs)
 
         return translatable

@@ -1,6 +1,7 @@
 from unittest import TestCase, main
 
 from cogent3 import LoadSeqs, DNA
+from cogent3.app.composable import NotCompletedResult
 from cogent3.app.translate import (best_frame, select_translatable,
                                    translate_frames,
                                    get_code,
@@ -65,6 +66,13 @@ class TestTranslate(TestCase):
         ex = data.copy()
         ex['rc'] = data['a']
         self.assertEqual(tr.todict(), ex)
+
+        # if seqs not translatable returns NotCompletedResult
+        data = dict(a='TAATTGATTAA',
+                    b='GCAGTTTATTA')
+        seqs = LoadSeqs(data=data, moltype=DNA, aligned=False)
+        got = select_translatable(allow_rc=False)
+        self.assertTrue(type(got), NotCompletedResult)
 
     def test_translate_frames(self):
         """returns translated sequences"""

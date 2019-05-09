@@ -17,18 +17,56 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-class ErrorResult(int):
-    def __new__(cls, type, origin, message):
+def _get_source(source):
+    if isinstance(source, str):
+        result = str(source)
+    else:
+        try:
+            result = source.source
+        except AttributeError:
+            try:
+                result = source.info.source
+            except AttributeError:
+                result = None
+    return result
+
+
+def _get_origin(origin):
+    if type(origin) == str:
+        result = origin
+    else:
+        result = origin.__class__.__name__
+    return result
+
+
+class NotCompletedResult(int):
+    """for tracking app results that failed to complete"""
+
+    def __new__(cls, type, origin, message, source=None):
+        """
+        Parameters
+        ----------
+        type : str
+            examples are 'ERROR', 'FAIL'
+        origin
+            where the instance was created, can be an instance
+        message : str
+            descriptive message, succinct traceback
+        source : str or instance with .info.source or .source attributes
+            the data operated on that led to this result. Can
+        """
         result = int.__new__(cls, False)
         result.type = type
-        result.origin = origin
+        result.origin = _get_origin(origin)
         result.message = message
+        result.source = _get_source(source)
         return result
 
     def __str__(self):
-        val = "%s(type=%s, origin=%s, message=%s)" % (self.__class__.__name__,
-                                                      self.type, self.origin,
-                                                      self.message)
+        name = self.__class__.__name__
+        source = self.source or 'Unknown'
+        val = (f'{name}(type={self.type}, origin={self.origin}, '
+               f'source="{source}", message="{self.message}")')
         return val
 
 
@@ -75,7 +113,8 @@ class Composable(ComposableType):
         txt = '' if not self.input else str(self.input)
         if txt:
             txt += ' + '
-        txt += '%s(%s)' % (self.__class__.__name__, ', '.join(self._formatted))
+        txt += '%s(%s)' % (self.__class__.__name__,
+                           ', '.join(self._formatted))
         return txt
 
     def __repr__(self):
@@ -105,6 +144,19 @@ class Composable(ComposableType):
         self._formatted += formatted
 
     def __add__(self, other):
+        if self.output or other.input:
+            # can only be part of a single composable function
+            self_name = self.__class__.__name__
+            other_name = other.__class__.__name__
+            if self.output and other.input:
+                msg = f'{self_name} and {other_name} are already part of a' \
+                    ' composed function'
+            elif self.output:
+                msg = f'{self_name} already part of composed function'
+            else:
+                msg = f'{other_name} already part of composed function'
+            raise AssertionError(f'{msg}, use disconnect() to free them up')
+
         if not other.compatible_input(self):
             msg = '%s() requires input type "%s", %s() produces "%s"'
             my_name = self.__class__.__name__
@@ -154,7 +206,7 @@ class Composable(ComposableType):
             try:
                 val = self._in(val, *args, **kwargs)
             except Exception as err:
-                val = ErrorResult('ERROR', str(self.input), err.args[0])
+                val = NotCompletedResult('ERROR', self, err.args[0], source=val)
                 return val
 
         if not val:
@@ -181,6 +233,18 @@ class Composable(ComposableType):
         self._out = other
         self._set_checkpoint_loader()
 
+    def disconnect(self):
+        """resets input and output to None
+
+        Breaks all connections among members of a composed function."""
+        input = self.input
+        if input:
+            input.disconnect()
+
+        self._in = None
+        self._out = None
+        self._load_checkpoint = None
+
 
 class ComposableSeq(Composable):
     _type = 'sequences'
@@ -205,7 +269,7 @@ class ComposableHypothesis(Composable):
 class _seq_loader:
     def load(self, data):
         """returns sequences
-        
+
         Parameters
         ----------
         data

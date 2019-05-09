@@ -4,7 +4,7 @@ from cogent3.draw.drawable import Drawable
 
 __author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Peter Maxwell","Gavin Huttley","Rahul Ghangas"]
+__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rahul Ghangas"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
@@ -20,12 +20,14 @@ class _Dendrogram(TreeNode, Drawable):
         TreeNode.__init__(self, params=tree.params.copy(), children=children,
                           name=("" if children else tree.name))
         self.length = tree.length
+        self.height = None
         self.original = tree  # for edge_color_callback
         self.collapsed = False
         self.use_lengths_default = use_lengths
         self._trace = None
 
     def __repr__(self):
+        # todo this needs to be refactored to be more informative
         return f'{self.length} {self.height} {self.children}'
 
     def _update_geometry(self, use_lengths, depth=None, track_coordinates=None):
@@ -78,7 +80,10 @@ class _Dendrogram(TreeNode, Drawable):
         return self._trace['data']
 
     def get_layout(self):
-        return
+        if self._trace is None:
+            self._set_initial_layout()
+
+        return self._trace['layout']
 
     def set_layout(self, layout_updates):
         self._trace['layout'] = layout_updates
