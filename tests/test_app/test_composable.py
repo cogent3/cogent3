@@ -35,7 +35,8 @@ class TestCheckpoint(TestCase):
             self.assertEqual(got, outpath)
             read_write.disconnect()  # allows us to reuse bits
             read_write_degen = reader + writer + omit_degens
-            got = read_write_degen(path)  # should return an alignment instance
+            # should return an alignment instance
+            got = read_write_degen(path)
             self.assertIsInstance(got, ArrayAlignment)
             self.assertTrue(len(got) > 1000)
 
