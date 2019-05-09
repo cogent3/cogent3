@@ -91,6 +91,9 @@ class model(ComposableModel):
         calc = lf.optimise(return_calculator=True, **kwargs)
         lf.calculator = calc
 
+        if identifier:
+            lf.set_name(f'LF id: {identifier}')
+
         if verbose:
             print(lf)
 
