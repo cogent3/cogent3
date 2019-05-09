@@ -230,19 +230,8 @@ class take_named_seqs(ComposableSeq):
         try:
             data = data.take_seqs(self._names, negate=self._negate)
         except KeyError:
-            source = ''
-            try:
-                source = data.source
-            except AttributeError:
-                try:
-                    source = data.info.source
-                except AttributeError:
-                    pass
-
             msg = f'named seq(s) missing'
-            if source:
-                msg = f'{msg} from {source}'
-            data = NotCompletedResult('FALSE', self.__class__.__name__, msg)
+            data = NotCompletedResult('FALSE', self, msg, source=data)
         return data
 
 
@@ -295,19 +284,8 @@ class min_length(ComposableSeq):
         length, _ = min([(l, n) for n, l in lengths.items()])
 
         if length < self._min_length:
-            source = ''
-            try:
-                source = data.source
-            except AttributeError:
-                try:
-                    source = data.info.source
-                except AttributeError:
-                    pass
-
             msg = f'{length} < min_length {self._min_length}'
-            if source:
-                msg = f'{msg} for {source}'
-            data = NotCompletedResult('FALSE', self.__class__.__name__, msg)
+            data = NotCompletedResult('FALSE', self, msg, source=data)
 
         return data
 
@@ -385,20 +363,9 @@ class fixed_length(ComposableAligned):
             aln = aln.to_moltype(self._moltype)
 
         if len(aln) < self._length:
-            source = ''
-            try:
-                source = aln.source
-            except AttributeError:
-                try:
-                    source = aln.info.source
-                except AttributeError:
-                    pass
-
             msg = f'{len(aln)} < min_length {self._length}'
-            if source:
-                msg = f'{msg} for {source}'
-            result = NotCompletedResult(
-                'FALSE', self.__class__.__name__, msg)
+            result = NotCompletedResult('FALSE', self.__class__.__name__, msg,
+                                        source=aln)
         else:
             start = self._start(len(aln) - self._length)
             result = aln[start:start + self._length]

@@ -170,13 +170,13 @@ class hypothesis(ComposableHypothesis):
             null = self.null(aln)
         except ValueError as err:
             msg = f"Hypothesis null had bounds error {aln.info.source}"
-            return NotCompletedResult('ERROR', self.__class__.__name__, msg)
+            return NotCompletedResult('ERROR', self, msg, source=aln)
         try:
             alts = [
                 alt for alt in self._initialised_alt_from_null(null, aln)]
         except ValueError as err:
             msg = f"Hypothesis alt had bounds error {aln.info.source}"
-            return NotCompletedResult('ERROR', self.__class__.__name__, msg)
+            return NotCompletedResult('ERROR', self, msg, source=aln)
         results = {alt.name: alt for alt in alts}
         results.update({null.name: null})
 
