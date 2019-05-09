@@ -704,7 +704,8 @@ class LikelihoodFunction(ParameterController):
                     nfp=self.get_num_free_params(),
                     motif_probs=mprobs,
                     DLC=DLC, unique_Q=unique_Q,
-                    type=get_object_provenance(self))
+                    type=get_object_provenance(self),
+                    name=self.get_name())
         return data
 
     def to_json(self):

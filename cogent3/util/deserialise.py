@@ -131,7 +131,9 @@ def deserialise_likelihood_function(data):
     constructor_args = data.pop('likelihood_construction')
     motif_probs = data.pop('motif_probs')
     param_rules = data.pop('param_rules')
+    name = data.pop('name', None)
     lf = model.make_likelihood_function(tree, **constructor_args)
+    lf.set_name(name)
     lf.set_alignment(aln)
     with lf.updates_postponed():
         lf.set_motif_probs(motif_probs)
