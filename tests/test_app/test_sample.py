@@ -313,6 +313,31 @@ class TranslateTests(TestCase):
                                         'seq3': 'AAATTTCC',
                                         'seq4': '???TTT??'})
 
+    def test_trim_stop_codons(self):
+        """trims stop codons using the specified genetic code"""
+        trimmer = sample.trim_stop_codons(gc=1)  # standard code
+        seqs = LoadSeqs(data={'seq1': 'AAATTTCCC',
+                              'seq2': 'AAATTTTAA'}, aligned=False,
+                        moltype='dna')
+        got = trimmer(seqs)
+        expect = {'seq1': 'AAATTTCCC', 'seq2': 'AAATTT'}
+        self.assertEqual(got.todict(), expect)
+        trimmer = sample.trim_stop_codons(gc=1)  # standard code
+        aln = LoadSeqs(data={'seq1': 'AAATTTCCC',
+                             'seq2': 'AAATTTTAA'}, aligned=True, moltype='dna')
+        got = trimmer(aln)
+        expect = {'seq1': 'AAATTTCCC', 'seq2': 'AAATTT---'}
+        self.assertEqual(got.todict(), expect)
+
+        # different genetic code
+        trimmer = sample.trim_stop_codons(gc=2)  # mt code
+        seqs = LoadSeqs(data={'seq1': 'AAATTTCCC',
+                              'seq2': 'AAATTTAGA'}, aligned=False,
+                        moltype='dna')
+        got = trimmer(seqs)
+        expect = {'seq1': 'AAATTTCCC', 'seq2': 'AAATTT'}
+        self.assertEqual(got.todict(), expect)
+
 
 if __name__ == '__main__':
     main()

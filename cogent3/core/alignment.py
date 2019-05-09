@@ -30,7 +30,7 @@ from cogent3.core.annotation import Map, _Annotatable
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
-from cogent3.core.genetic_code import DEFAULT
+from cogent3.core.genetic_code import DEFAULT, get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.sequence import frac_same, ArraySequence
 from cogent3.core.location import LostSpan, Span
@@ -1257,6 +1257,7 @@ class SequenceCollection(object):
             - allow_partial: if True and the sequence length is not divisible
               by 3, ignores the 3' terminal incomplete codon
         """
+        gc = get_code(gc)
         new_seqs = []
         aligned = isinstance(self, Alignment)
 
@@ -2964,6 +2965,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
             - allow_partial: if True and the sequence length is not divisible
               by 3, ignores the 3' terminal incomplete codon
         """
+        gc = get_code(gc)
         if len(self) % 3 != 0 and not allow_partial:
             raise ValueError("alignment length not divisible by 3")
 

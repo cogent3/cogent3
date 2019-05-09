@@ -510,3 +510,26 @@ class omit_duplicated(ComposableSeq):
             names.update(dupes)
         seqs = seqs.take_seqs(names, negate=True)
         return seqs
+
+
+class trim_stop_codons(ComposableSeq):
+    def __init__(self, gc):
+        """selects named sequences from a collection
+
+        Returns
+        -------
+        A new sequence collection, or False if not all the named sequences are
+        in the collection.
+        """
+        super(trim_stop_codons, self).__init__(input_type=('sequences',
+                                                           'aligned'),
+                                               output_type=('sequences',
+                                                            'aligned',
+                                                            'serialisable'))
+        self._formatted_params()
+        self._gc = gc
+        self.func = self.trim_stops
+
+    def trim_stops(self, data):
+        data = data.trim_stop_codons(gc=self._gc)
+        return data
