@@ -1,5 +1,5 @@
 from unittest import TestCase, main
-from cogent3 import LoadTree
+from cogent3 import LoadTree, LoadSeqs
 from cogent3.app import evo as evo_app
 
 __author__ = "Gavin Huttley"
@@ -52,6 +52,20 @@ class TestModel(TestCase):
                   "time_het='max', param_rules=None, opt_args=None,"
                   " split_codons=False, show_progress=False),), init_alt=None)")
         self.assertEqual(got, expect)
+
+    def test_split_pos_model(self):
+        """model with split codons, access .lf using codon position int"""
+        _data = {'Human': 'ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG',
+                 'Mouse': 'ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG',
+                 'Opossum': 'ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG'}
+        aln = LoadSeqs(data=_data, moltype='dna')
+        tree = LoadTree(tip_names=aln.names)
+        mod = evo_app.model('F81', tree=tree, split_codons=True,
+                            opt_args=dict(max_evaluations=5,
+                                          limit_action='ignore'))
+        result = mod(aln)
+        aln1 = result.lf[1].get_param_value('alignment').todict()
+        self.assertEqual(aln1, aln[::3].todict())
 
 
 if __name__ == '__main__':
