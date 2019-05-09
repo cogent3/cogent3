@@ -1,7 +1,7 @@
 from cogent3 import LoadSeqs, DNA
 from unittest import TestCase, main
 
-from cogent3.app import sample
+from cogent3.app import sample, composable
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -92,6 +92,7 @@ class TranslateTests(TestCase):
                              ('d', 'GCAAGCNNTTAT')])
         got = select(aln)
         self.assertFalse(got)
+        self.assertTrue(type(got) == composable.NotCompletedResult)
 
         # using negate
         select = sample.take_named_seqs('c', negate=True)
@@ -136,6 +137,10 @@ class TranslateTests(TestCase):
                           ('b', 'GCTTTTGTCAAT')))]
         self.assertEqual(got, expected)
 
+        # returns NotCompletedResult if nothing satisifies
+        got = ml(alns[1])
+        self.assertTrue(type(got) == sample.NotCompletedResult)
+
         alns = [LoadSeqs(data=[('a', 'GGAAGCGT'),
                                ('b', 'GCTTNGT')],
                          aligned=False, moltype=DNA)]
@@ -178,6 +183,9 @@ class TranslateTests(TestCase):
         got = [a for a in map(fl, alns) if a]
         expected = []
         self.assertEqual(got, expected)
+        # returns NotCompletedResult if nothing satisifies
+        got = fl(alns[0])
+        self.assertTrue(type(got) == sample.NotCompletedResult)
 
         fl = sample.fixed_length(9, random=True)
         got = fl(aln)
@@ -304,6 +312,32 @@ class TranslateTests(TestCase):
                                         'seq2': 'AAATTTCC',
                                         'seq3': 'AAATTTCC',
                                         'seq4': '???TTT??'})
+
+    def test_trim_stop_codons(self):
+        """trims stop codons using the specified genetic code"""
+        trimmer = sample.trim_stop_codons(gc=1)  # standard code
+        seqs = LoadSeqs(data={'seq1': 'AAATTTCCC',
+                              'seq2': 'AAATTTTAA'}, aligned=False,
+                        moltype='dna')
+        got = trimmer(seqs)
+        expect = {'seq1': 'AAATTTCCC', 'seq2': 'AAATTT'}
+        self.assertEqual(got.todict(), expect)
+        trimmer = sample.trim_stop_codons(gc=1)  # standard code
+        aln = LoadSeqs(data={'seq1': 'AAATTTCCC',
+                             'seq2': 'AAATTTTAA'}, aligned=True, moltype='dna')
+        got = trimmer(aln)
+        expect = {'seq1': 'AAATTTCCC', 'seq2': 'AAATTT---'}
+        self.assertEqual(got.todict(), expect)
+
+        # different genetic code
+        trimmer = sample.trim_stop_codons(gc=2)  # mt code
+        seqs = LoadSeqs(data={'seq1': 'AAATTTCCC',
+                              'seq2': 'AAATTTAGA'}, aligned=False,
+                        moltype='dna')
+        got = trimmer(seqs)
+        expect = {'seq1': 'AAATTTCCC', 'seq2': 'AAATTT'}
+        self.assertEqual(got.todict(), expect)
+
 
 if __name__ == '__main__':
     main()

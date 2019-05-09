@@ -2,6 +2,7 @@ from unittest import TestCase, main
 from cogent3 import LoadTree, LoadSeqs, DNA
 
 from cogent3.app import align as align_app
+from cogent3.app.composable import NotCompletedResult
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -48,6 +49,7 @@ class RefalignmentTests(TestCase):
         aligner = align_app.progressive_align(model='nucleotide')
         aln = aligner(self.seqs)
         self.assertEqual(len(aln), 42)
+        self.assertEqual(aln.moltype, aligner._moltype)
         # todo the following is not robust across operating systems
         # so commenting out for now, but needs to be checked
         # expect = {'Human': 'GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT',
@@ -56,6 +58,16 @@ class RefalignmentTests(TestCase):
         #           'FlyingFox': 'GCCAGCTCTTTACAGCATGAGAA---CAGTTTATTATACACT'}
         # got = aln.todict()
         # self.assertEqual(got, expect)
+
+    def test_progressive_fails(self):
+        """should return NotCompletedResult along with message"""
+        # Bandicoot has an inf-frame stop codon
+        seqs = LoadSeqs(data={'Human': 'GCCTCA', 'Rhesus': 'GCCAGCTCA',
+                              'Bandicoot': 'TGATCATTA'}, aligned=False,
+                        moltype='dna')
+        aligner = align_app.progressive_align(model='codon')
+        got = aligner(seqs)
+        self.assertTrue(type(got), NotCompletedResult)
 
     def test_progress_with_guide_tree(self):
         """progressive align works with provided guide tree"""

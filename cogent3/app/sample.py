@@ -6,7 +6,7 @@ from cogent3.core.moltype import get_moltype
 from cogent3.core.genetic_code import get_code
 from cogent3.core.alignment import ArrayAlignment, Alignment
 from .translate import get_fourfold_degenerate_sets
-from .composable import ComposableSeq, ComposableAligned
+from .composable import ComposableSeq, ComposableAligned, NotCompletedResult
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -56,7 +56,7 @@ class concat:
 
     def concat(self, data):
         """returns an alignment
-        
+
         Parameters
         ----------
         data
@@ -210,7 +210,7 @@ class take_codon_positions(ComposableAligned):
 class take_named_seqs(ComposableSeq):
     def __init__(self, *names, negate=False):
         """selects named sequences from a collection
-        
+
         Returns
         -------
         A new sequence collection, or False if not all the named sequences are 
@@ -230,7 +230,8 @@ class take_named_seqs(ComposableSeq):
         try:
             data = data.take_seqs(self._names, negate=self._negate)
         except KeyError:
-            data = False
+            msg = f'named seq(s) missing'
+            data = NotCompletedResult('FALSE', self, msg, source=data)
         return data
 
 
@@ -283,7 +284,8 @@ class min_length(ComposableSeq):
         length, _ = min([(l, n) for n, l in lengths.items()])
 
         if length < self._min_length:
-            data = False
+            msg = f'{length} < min_length {self._min_length}'
+            data = NotCompletedResult('FALSE', self, msg, source=data)
 
         return data
 
@@ -353,14 +355,17 @@ class fixed_length(ComposableAligned):
         if seed:
             np_random.seed(seed)
 
-        self.func = {False: self.truncated}.get(random, self.sample_positions)
+        self.func = {False: self.truncated}.get(
+            random, self.sample_positions)
 
     def truncated(self, aln):
         if self._moltype:
             aln = aln.to_moltype(self._moltype)
 
         if len(aln) < self._length:
-            result = False
+            msg = f'{len(aln)} < min_length {self._length}'
+            result = NotCompletedResult('FALSE', self.__class__.__name__, msg,
+                                        source=aln)
         else:
             start = self._start(len(aln) - self._length)
             result = aln[start:start + self._length]
@@ -505,3 +510,26 @@ class omit_duplicated(ComposableSeq):
             names.update(dupes)
         seqs = seqs.take_seqs(names, negate=True)
         return seqs
+
+
+class trim_stop_codons(ComposableSeq):
+    def __init__(self, gc):
+        """selects named sequences from a collection
+
+        Returns
+        -------
+        A new sequence collection, or False if not all the named sequences are
+        in the collection.
+        """
+        super(trim_stop_codons, self).__init__(input_type=('sequences',
+                                                           'aligned'),
+                                               output_type=('sequences',
+                                                            'aligned',
+                                                            'serialisable'))
+        self._formatted_params()
+        self._gc = gc
+        self.func = self.trim_stops
+
+    def trim_stops(self, data):
+        data = data.trim_stop_codons(gc=self._gc)
+        return data
