@@ -140,6 +140,13 @@ class Composable(ComposableType):
                 v = v.name
             except AttributeError:
                 pass
+            try:
+                get_ipython()
+                if p == 'kwargs' and v == {'store_history': True,
+                                           'silent': False}:
+                    continue
+            except NameError:
+                pass
             formatted.append('%s=%r' % (p, v))
         self._formatted += formatted
 
