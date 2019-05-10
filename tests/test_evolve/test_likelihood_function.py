@@ -754,6 +754,8 @@ motif    mprobs
         alt.initialise_from_nested(null)
         nfp_alt_1 = alt.nfp
         self.assertEqual(nfp_alt_1 - nfp_null, 11)
+        edge_sets = [dict(edges=('Human', 'Mouse'))]
+        null.set_time_heterogeneity(edge_sets=edge_sets, is_independent=False)
 
     def test_set_time_heterogeneity(self):
         """correctly apply time heterogeneity of rate terms"""
