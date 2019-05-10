@@ -213,7 +213,8 @@ class Composable(ComposableType):
             try:
                 val = self._in(val, *args, **kwargs)
             except Exception as err:
-                val = NotCompletedResult('ERROR', self, err.args[0], source=val)
+                val = NotCompletedResult(
+                    'ERROR', self, err.args[0], source=val)
                 return val
 
         if not val:
