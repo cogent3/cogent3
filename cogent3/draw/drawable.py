@@ -12,7 +12,7 @@ __status__ = "Alpha"
 
 class Drawable:
     # Superclass for objects which can generate a figure, in order
-    # to supply consistent and convenient iplot() and write()
+    # to supply consistent and convenient get_figure() and write()
     # methods.
     # Subclasses must provide .make_figure() which will make use of
     # _makeFigure() matplotlib.pyplot import done at runtime to give the
@@ -38,6 +38,9 @@ class Drawable:
             layout.update(kw['layout'])
 
         self._trace = dict(data=[data], layout=layout)
+
+    def _repr_html_(self):
+        self.iplot()
 
     def iplot(self, *args, **kwargs):
         if not self._trace:
