@@ -1610,9 +1610,9 @@ class SequenceCollection(object):
 
         dotplot = Display2D(self.named_seqs[name1], self.named_seqs[name2],
                             moltype=self.moltype)
-
-        dotplot.iplot(window=window, threshold=threshold,
-                      min_gap=min_gap, width=width, title=title)
+        dotplot._set_initial_layout(window=window, threshold=threshold,
+                       min_gap=min_gap, width=width, title=title)
+        return dotplot
 
 
 @total_ordering

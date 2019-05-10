@@ -1107,15 +1107,12 @@ class SequenceCollectionBaseTests(object):
         assert_allclose(result['seq2'].observed.array, [[3, 0], [2, 1]])
 
     @unittest.skipIf(sys.platform.lower() != 'darwin', 'broken on linux')
-    def test_dotplot(self):  # todo figure out why this passes on mac but not pipelines
+    def test_dotplot(
+            self):  # todo figure out why this passes on mac but not pipelines
         """excercising dotplot method"""
         # need to trap stdout so plotly doesn't dump content when it's headless
-        import sys
-        stdout = sys.stdout
-        sys.stdout = None
         seqs = self.Class(data=self.brca1_data, moltype=DNA)
-        seqs.dotplot()
-        sys.stdout = stdout
+        _ = seqs.dotplot()
 
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
