@@ -81,6 +81,7 @@ def _fill_diversity_matrix(matrix, seq1, seq2):
     for i in range(len(paired)):
         matrix[paired[i][0], paired[i][1]] += 1
 
+
 def _hamming(matrix):
     """computes the edit distance
     Parameters
@@ -102,6 +103,7 @@ def _hamming(matrix):
     p = dist / total
 
     return total, p, dist, None
+
 
 def _jc69_from_matrix(matrix):
     """computes JC69 stats from a diversity matrix"""
@@ -289,13 +291,14 @@ def _make_stat_table(stats, names, **kwargs):
 class _PairwiseDistance(object):
     """base class for computing pairwise distances"""
     valid_moltypes = ()
+
     def __init__(self, moltype, invalid=-9, alignment=None):
         super(_PairwiseDistance, self).__init__()
         moltype = get_moltype(moltype)
         if moltype.label not in self.valid_moltypes:
             name = self.__class__.__name__
             msg = (f"Invalid moltype for {name}: '{moltype.label}' not "
-                    f"in {self.valid_moltypes}")
+                   f"in {self.valid_moltypes}")
             raise ValueError(msg)
 
         self.moltype = moltype
@@ -501,17 +504,21 @@ class _PairwiseDistance(object):
         t = _make_stat_table(stats, self.names, **kwargs)
         return t
 
+
 class HammingPair(_PairwiseDistance):
     """Hamming distance calculator for pairwise alignments"""
     valid_moltypes = ('dna', 'rna', 'protein', 'text')
+
     def __init__(self, moltype='text', *args, **kwargs):
         """states: the valid sequence states"""
         super(HammingPair, self).__init__(moltype, *args, **kwargs)
         self.func = _hamming
 
+
 class _NucleicSeqPair(_PairwiseDistance):
     """base class pairwise distance calculator for nucleic acid seqs"""
     valid_moltypes = ('dna', 'rna')
+
     def __init__(self, moltype='dna', *args, **kwargs):
         super(_NucleicSeqPair, self).__init__(moltype, *args, **kwargs)
         if not _same_moltype(DNA, self.moltype) and \
@@ -521,6 +528,7 @@ class _NucleicSeqPair(_PairwiseDistance):
 
 class JC69Pair(_NucleicSeqPair):
     """JC69 distance calculator for pairwise alignments"""
+
     def __init__(self, moltype='dna', *args, **kwargs):
         """states: the valid sequence states"""
         super(JC69Pair, self).__init__(moltype, *args, **kwargs)
@@ -529,6 +537,7 @@ class JC69Pair(_NucleicSeqPair):
 
 class TN93Pair(_NucleicSeqPair):
     """TN93 calculator for pairwise alignments"""
+
     def __init__(self, moltype='dna', *args, **kwargs):
         """states: the valid sequence states"""
         super(TN93Pair, self).__init__(moltype, *args, **kwargs)
@@ -558,6 +567,7 @@ class TN93Pair(_NucleicSeqPair):
 class LogDetPair(_PairwiseDistance):
     """computes logdet distance between sequence pairs"""
     valid_moltypes = ('dna', 'rna', 'protein')
+
     def __init__(self, moltype='dna', use_tk_adjustment=True, *args, **kwargs):
         """Arguments:
             - moltype: string or moltype instance (must be dna or rna)
@@ -577,16 +587,18 @@ class LogDetPair(_PairwiseDistance):
 class ParalinearPair(_PairwiseDistance):
     """computes the paralinear distance (Lake 1994) between sequence pairs"""
     valid_moltypes = ('dna', 'rna', 'protein')
+
     def __init__(self, moltype='dna', *args, **kwargs):
         super(ParalinearPair, self).__init__(moltype, *args, **kwargs)
         self.func = _paralinear
 
 
 _calculators = {'paralinear': ParalinearPair,
-         'logdet': LogDetPair,
-         'jc69': JC69Pair,
-         'tn93': TN93Pair,
-         'hamming': HammingPair}
+                'logdet': LogDetPair,
+                'jc69': JC69Pair,
+                'tn93': TN93Pair,
+                'hamming': HammingPair}
+
 
 def get_calculator(name, *args, **kwargs):
     """returns a pairwise distance calculator
@@ -599,6 +611,7 @@ def get_calculator(name, *args, **kwargs):
     calc = _calculators[name]
     return calc(*args, **kwargs)
 
+
 def available_distances():
     """returns Table listing available pairwise genetic distance calculator
     Notes
@@ -610,7 +623,8 @@ def available_distances():
     for n, c in _calculators.items():
         rows.append([n, ', '.join(c.valid_moltypes)])
 
-    table = LoadTable(header=['Abbreviation', 'Suitable for moltype'], rows=rows,
+    table = LoadTable(header=['Abbreviation', 'Suitable for moltype'],
+                      rows=rows,
                       title=("Specify a pairwise genetic distance calculator "
                              "using 'Abbreviation' (case insensitive)."),
                       row_ids=True)
