@@ -1833,15 +1833,21 @@ For a natural inner join, only 1 copy of columns with the same name are retained
     >>> assert a.joined(b).header == b.header
     >>> assert b.joined(a).header == a.header
 
-For a standard inner join, the joined table should contain all columns from ``a`` and ``b`` excepting the index column(s). Simply providing a column name (or index) selects this behaviour. Note that in this case, column names from the second table are made unique by prefixing them with that tables title. If the provided tables do not have a title, a ``RuntimeError`` is raised.
+For a standard inner join, the joined table should contain all columns from ``a`` and ``b`` excepting the index column(s). Simply providing a column name (or index) selects this behaviour. Note that in this case, column names from the second table are made unique by prefixing them with that tables title. If the right table does not have a title, a default value `right` is used.
 
 .. doctest::
 
     >>> b.title = None
-    >>> try:
-    ...     a.joined(b)
-    ... except RuntimeError:
-    ...     pass
+    >>> c.joined(b)
+    ===========================================
+    index    col_c2    right_col2    right_col3
+    -------------------------------------------
+        1         2             2             3
+        3         2             6             3
+        3         5             6             3
+    -------------------------------------------
+    <BLANKLINE>
+    3 rows x 4 columns
     >>> b.title = 'B'
     >>> assert a.joined(b, "index").header == ["index", "col2", "col3",
     ...                                        "B_col2", "B_col3"]
