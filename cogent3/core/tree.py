@@ -1670,9 +1670,9 @@ class TreeNode(object):
                        :, other_order]
         return dist_f(self_matrix, other_matrix)
 
-    def iplot(self, kind='square'):
+    def get_figure(self, kind='square'):
         """
-        plots the phylogeny
+        gets Dendrogram for plotting the phylogeny
 
         Parameters
         ----------
@@ -1690,7 +1690,7 @@ class TreeNode(object):
         klass = SquareDendrogram if kind == 'square' else CircularDendrogram
         dnd = klass(self)
         dnd._set_initial_layout()
-        iplot(dnd._trace)
+        return dnd
 
 
 class PhyloNode(TreeNode):
