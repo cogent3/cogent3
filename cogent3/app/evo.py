@@ -7,10 +7,53 @@ from cogent3.util import parallel
 
 
 class model(ComposableModel):
+    """represents a substitution model + tree"""
+
     def __init__(self, sm, tree=None, name=None, sm_args=None,
                  lf_args=None, time_het=None, param_rules=None,
                  opt_args=None, split_codons=False, show_progress=False,
                  verbose=False):
+        """
+
+        Parameters
+        ----------
+        sm : str or instance
+            substitution model if string must be available via get_model()
+        tree : str, Tree instance, or None
+            if None, assumes a star phylogeny (only valid for 3 taxa)
+        name
+            name of the model
+        sm_args
+            arguments to be passed to the substitution model constructor, e.g.
+            dict(optimise_motif_probs=True)
+        lf_args
+            arguments to be passed to the likelihood function constructor
+        time_het
+            'max' or a list of dicts corresponding to edge_sets, e.g.
+            [dict(edges=['Human', 'Chimp'], is_independent=False, upper=10)].
+            Passed to the likelihood function .set_time_heterogeneity()
+            method.
+        param_rules
+            other parameter rules, passed to the likelihood function
+            set_param_rule() method
+        opt_args
+            arguments for the numerical optimiser, e.g.
+            dict(max_restarts=5, tolerance=1e-6, max_evaluations=1000,
+            limit_action='ignore')
+        split_codons : bool
+            if True, incoming alignments are split into the 3 frames and each
+            frame is fit separately
+        show_progress : bool
+            show progress bars during numerical optimisation
+        verbose : bool
+            prints intermediate states to screen during fitting
+
+        Returns
+        -------
+        Calling an instance with an alignment returns a model_result instance
+        with the optimised likelihood function. In the case of split_codons,
+        the result object has a separate entry for each.
+        """
         super(model, self).__init__(input_type='aligned',
                                     output_type=(
                                         'model_result', 'serialisable'))
@@ -50,7 +93,7 @@ class model(ComposableModel):
         lf.set_alignment(aln)
         if self._param_rules:
             lf.apply_param_rules(self._param_rules)
-        elif self._time_het == 'max':
+        elif self._time_het:
             if not initialise:
                 if self._verbose:
                     print("Time homogeneous fit..")
@@ -61,7 +104,10 @@ class model(ComposableModel):
                 lf.optimise(**self._opt_args)
                 if self._verbose:
                     print(lf)
-            lf.set_time_heterogeneity(is_independent=True, upper=50)
+            if self._time_het == 'max':
+                lf.set_time_heterogeneity(is_independent=True, upper=50)
+            else:
+                lf.set_time_heterogeneity(edge_sets=self._time_het)
         else:
             rules = lf.get_param_rules()
             for rule in rules:
