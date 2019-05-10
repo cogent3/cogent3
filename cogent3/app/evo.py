@@ -9,11 +9,12 @@ from cogent3.util import parallel
 class model(ComposableModel):
     def __init__(self, sm, tree=None, name=None, sm_args=None,
                  lf_args=None, time_het=None, param_rules=None,
-                 opt_args=None, split_codons=False, show_progress=False):
-        """represents a substitution model + tree"""
+                 opt_args=None, split_codons=False, show_progress=False,
+                 verbose=False):
         super(model, self).__init__(input_type='aligned',
                                     output_type=(
                                         'model_result', 'serialisable'))
+        self._verbose = verbose
         self._formatted_params()
         sm_args = sm_args or {}
         if type(sm) == str:
@@ -47,19 +48,18 @@ class model(ComposableModel):
         lf = self._sm.make_likelihood_function(self._tree, **self._lf_args)
 
         lf.set_alignment(aln)
-        verbose = self._opt_args.get('show_progress', False)
         if self._param_rules:
             lf.apply_param_rules(self._param_rules)
         elif self._time_het == 'max':
             if not initialise:
-                if verbose:
+                if self._verbose:
                     print("Time homogeneous fit..")
 
                 # we opt with a time-homogeneous process first
                 opt_args = self._opt_args.copy()
                 opt_args.update(dict(max_restart=1, tolerance=1e-3))
                 lf.optimise(**self._opt_args)
-                if verbose:
+                if self._verbose:
                     print(lf)
             lf.set_time_heterogeneity(is_independent=True, upper=50)
         else:
@@ -84,8 +84,7 @@ class model(ComposableModel):
         kwargs = self._opt_args.copy()
         kwargs.update(opt_args)
 
-        verbose = kwargs.get('show_progress', False)
-        if verbose:
+        if self._verbose:
             print("Fit...")
 
         calc = lf.optimise(return_calculator=True, **kwargs)
@@ -94,7 +93,7 @@ class model(ComposableModel):
         if identifier:
             lf.set_name(f'LF id: {identifier}')
 
-        if verbose:
+        if self._verbose:
             print(lf)
 
         return lf

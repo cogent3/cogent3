@@ -23,7 +23,7 @@ class TestModel(TestCase):
                                "name=None, sm_args=None, lf_args=None, "
                                "time_het='max', param_rules=None, "
                                "opt_args=None, split_codons=False, "
-                               "show_progress=False)"))
+                               "show_progress=False, verbose=False)"))
 
     def test_model_tree(self):
         """allows tree to be string, None or tree"""
@@ -50,7 +50,8 @@ class TestModel(TestCase):
                   "alternates=(model(type='model', sm='HKY85', tree=None, "
                   "name='hky85-max-het', sm_args=None, lf_args=None, "
                   "time_het='max', param_rules=None, opt_args=None,"
-                  " split_codons=False, show_progress=False),), init_alt=None)")
+                  " split_codons=False, show_progress=False, verbose=False),),"
+                  " init_alt=None)")
         self.assertEqual(got, expect)
 
     def test_split_pos_model(self):
