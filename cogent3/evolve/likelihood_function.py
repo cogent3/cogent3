@@ -665,10 +665,35 @@ class LikelihoodFunction(ParameterController):
             else:
                 row_ids = False
                 title = ['', 'global params'][with_titles]
-            result.append(table.Table(
-                heading_names, list_table,
-                max_width=80, row_ids=row_ids,
-                title=title, **self._format))
+
+            stat_table = table.Table(heading_names, list_table, max_width=80,
+                                     row_ids=row_ids, title=title,
+                                     **self._format)
+            if group[table_dims] == [mprob_name]:
+                # if stat_table.shape
+                # if mprobs, we use the motifs as header
+                motifs = list(sorted(set(stat_table.tolist('motif'))))
+                if stat_table.shape[1] == 2:
+                    motif_prob = dict(stat_table.tolist())
+                    heading_names = motifs
+                    list_table = [motif_prob[m] for m in motifs]
+                    list_table = [list_table]
+                elif stat_table.shape[1] == 3:
+                    rows = []
+                    other_col = [c for c in stat_table.header
+                                 if 'motif' not in c and 'mprobs' not in c][0]
+                    for val in stat_table.distinct_values(other_col):
+                        subtable = stat_table.filtered(
+                            lambda x: x == val, columns=other_col)
+                        motif_prob = dict(subtable.tolist(
+                            [c for c in stat_table.header if c != other_col]))
+                        rows.append([val] + [motif_prob[m] for m in motifs])
+                    heading_names = [other_col] + motifs
+                    list_table = rows
+                stat_table = table.Table(heading_names, list_table, max_width=80,
+                                         title=title, **self._format)
+
+            result.append(stat_table)
         return result
 
     def to_rich_dict(self):

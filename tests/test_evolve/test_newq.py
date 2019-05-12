@@ -121,6 +121,14 @@ class NewQ(TestCase):
                            (False, False)]:
                 stats = lf.get_statistics(with_motif_probs=wm, with_titles=wt)
 
+    def test_get_statistics_mprobs(self):
+        """get_statistics motif probs table has motifs as title"""
+        sm = NonReversibleCodon()
+        lf = sm.make_likelihood_function(self.tree)
+        stats = lf.get_statistics(with_motif_probs=True, with_titles=True)
+        mprobs = stats[-1]
+        self.assertEqual(set(mprobs.header), set(sm.get_motifs()))
+
     def test_sim_alignment(self):
         """should be able to simulate an alignment under all models"""
         for (mprobs, model) in self.ordered_by_complexity:

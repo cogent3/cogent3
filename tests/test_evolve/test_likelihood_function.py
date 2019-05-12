@@ -356,14 +356,11 @@ HowlerMon    edge.0    0.4000
 NineBande      root    0.2000
  DogFaced      root    0.1000
 -----------------------------
-===============
-motif    mprobs
----------------
-    T    0.2500
-    C    0.2500
-    A    0.2500
-    G    0.2500
----------------""")
+====================================
+     A         C         G         T
+------------------------------------
+0.2500    0.2500    0.2500    0.2500
+------------------------------------""")
 
         likelihood_function = self._makeLikelihoodFunction(digits=2, space=2)
         self.assertEqual(str(likelihood_function),
@@ -381,14 +378,11 @@ HowlerMon  edge.0    1.00  1.00
 NineBande    root    1.00  1.00
  DogFaced    root    1.00  1.00
 -------------------------------
-=============
-motif  mprobs
--------------
-    T    0.25
-    C    0.25
-    A    0.25
-    G    0.25
--------------""")
+======================
+   A     C     G     T
+----------------------
+0.25  0.25  0.25  0.25
+----------------------""")
 
     def test_calclikelihood(self):
         likelihood_function = self._makeLikelihoodFunction()
@@ -530,14 +524,11 @@ HowlerMon    edge.0    4.0000
 NineBande      root    4.0000
  DogFaced      root    4.0000
 -----------------------------
-===============
-motif    mprobs
----------------
-    T    0.2500
-    C    0.2500
-    A    0.2500
-    G    0.2500
----------------""")
+====================================
+     A         C         G         T
+------------------------------------
+0.2500    0.2500    0.2500    0.2500
+------------------------------------""")
 
         # self.submodel.setScaleRule("ts",['beta'])
         #self.submodel.setScaleRule("tv",['beta'], exclude_pars = True)
@@ -561,14 +552,11 @@ HowlerMon    edge.0    4.0000
 NineBande      root    4.0000
  DogFaced      root    4.0000
 -----------------------------
-===============
-motif    mprobs
----------------
-    T    0.2500
-    C    0.2500
-    A    0.2500
-    G    0.2500
----------------""")
+====================================
+     A         C         G         T
+------------------------------------
+0.2500    0.2500    0.2500    0.2500
+------------------------------------""")
 
     def test_get_motif_probs(self):
         likelihood_function = self._makeLikelihoodFunction()
@@ -607,14 +595,11 @@ HowlerMon    edge.0    1.0000    1.0000
 NineBande      root    1.0000    1.0000
  DogFaced      root    1.0000    1.0000
 ---------------------------------------
-===============
-motif    mprobs
----------------
-    T    0.2500
-    C    0.2500
-    A    0.2500
-    G    0.2500
----------------""")
+====================================
+     A         C         G         T
+------------------------------------
+0.2500    0.2500    0.2500    0.2500
+------------------------------------""")
         self.assertEqual(likelihood_function.get_param_value_dict(['edge']), {
             'beta': {'NineBande': 1.0, 'edge.1': 1.0, 'DogFaced': 1.0, 'Human': 1.0,
                      'edge.0': 1.0, 'Mouse': 1.0, 'HowlerMon': 1.0},
