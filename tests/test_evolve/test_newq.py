@@ -10,7 +10,7 @@ from numpy import ones, dot
 from cogent3 import LoadSeqs, DNA, LoadTree
 from cogent3.evolve.ns_substitution_model import (General,
                                                   GeneralStationary,
-                                                  NonReversibleCodon)
+                                                  NonReversibleCodon, )
 from cogent3.evolve.substitution_model import TimeReversibleNucleotide
 from cogent3.evolve.ns_substitution_model import NonReversibleNucleotide
 from cogent3.evolve.ns_substitution_model import DiscreteSubstitutionModel
@@ -69,7 +69,8 @@ class NewQ(TestCase):
     asymm_root_probs = _dinuc_root_probs(asymm_nuc_probs)
     posn_root_probs = _dinuc_root_probs(symm_nuc_probs, asymm_nuc_probs)
     cond_root_probs = dict([(n1 + n2, p1 * [.1, .7][n1 == n2])
-                            for n1, p1 in list(asymm_nuc_probs.items()) for n2 in 'ATCG'])
+                            for n1, p1 in list(asymm_nuc_probs.items()) for n2
+                            in 'ATCG'])
 
     # Each of these (data, model) pairs should give a result different
     # from any of the simpler models applied to the same data.
@@ -85,13 +86,13 @@ class NewQ(TestCase):
 
         # P(AG) != P(A?)*P(?G)
         [cond_root_probs, 'conditional'],
-        ]
+    ]
 
     def test_newQ_is_nuc_process(self):
         """newQ is an extension of an independent nucleotide process"""
         nuc = TimeReversibleNucleotide(motif_probs=self.asymm_nuc_probs)
         new_di = TimeReversibleNucleotide(motif_length=2, mprob_model='monomer',
-                            motif_probs=self.asymm_root_probs)
+                                          motif_probs=self.asymm_root_probs)
 
         nuc_lf = nuc.make_likelihood_function(self.tree)
         new_di_lf = new_di.make_likelihood_function(self.tree)
@@ -116,11 +117,12 @@ class NewQ(TestCase):
         """get statistics should correctly apply arguments"""
         for (mprobs, model) in self.ordered_by_complexity:
             di = TimeReversibleNucleotide(motif_length=2, motif_probs=mprobs,
-                            mprob_model=model)
+                                          mprob_model=model)
             lf = di.make_likelihood_function(self.tree)
             for wm, wt in [(True, True), (True, False), (False, True),
                            (False, False)]:
-                stats = lf.get_statistics(with_motif_probs=wm, with_titles=wt)
+                stats = lf.get_statistics(
+                    with_motif_probs=wm, with_titles=wt)
 
     def test_get_statistics_mprobs(self):
         """get_statistics motif probs table has motifs as title"""
@@ -134,7 +136,7 @@ class NewQ(TestCase):
         """should be able to simulate an alignment under all models"""
         for (mprobs, model) in self.ordered_by_complexity:
             di = TimeReversibleNucleotide(motif_length=2, motif_probs=mprobs,
-                            mprob_model=model)
+                                          mprob_model=model)
             lf = di.make_likelihood_function(self.tree)
             lf.set_param_rule('length', is_independent=False, init=0.4)
             lf.set_alignment(self.aln)
@@ -155,8 +157,9 @@ class NewQ(TestCase):
         for (i, (mprobs, dummy)) in enumerate(self.ordered_by_complexity):
             results = []
             for (dummy, model) in self.ordered_by_complexity:
-                di = TimeReversibleNucleotide(motif_length=2, motif_probs=mprobs,
-                                mprob_model=model)
+                di = TimeReversibleNucleotide(motif_length=2,
+                                              motif_probs=mprobs,
+                                              mprob_model=model)
                 lf = di.make_likelihood_function(self.tree)
                 lf.set_param_rule('length', is_independent=False, init=0.4)
                 lf.set_alignment(self.aln)
@@ -185,7 +188,7 @@ class NewQ(TestCase):
 
         # a newQ dinucleotide model
         sm = TimeReversibleNucleotide(motif_length=2, mprob_model='monomer',
-                        do_scaling=False)
+                                      do_scaling=False)
         lf = sm.make_likelihood_function(self.tree)
         lf.set_alignment(posn1)
         posn1_lnL = lf.get_log_likelihood()
@@ -203,7 +206,7 @@ class NewQ(TestCase):
 
         # set the arguments for taking position specific mprobs
         sm = TimeReversibleNucleotide(motif_length=2, mprob_model='monomers',
-                        do_scaling=False)
+                                      do_scaling=False)
         lf = sm.make_likelihood_function(self.tree)
         lf.set_alignment(self.aln)
         posn12_lnL = lf.get_log_likelihood()
@@ -211,13 +214,16 @@ class NewQ(TestCase):
 
     def test_compute_conditional_mprobs(self):
         """equal likelihood from position specific and conditional mprobs"""
+
         def compare_models(motif_probs, motif_length):
             # if the 1st and 2nd position motifs are independent of each other
             # then conditional is the same as positional
-            ps = TimeReversibleNucleotide(motif_length=motif_length, motif_probs=motif_probs,
-                            mprob_model='monomers')
-            cd = TimeReversibleNucleotide(motif_length=motif_length, motif_probs=motif_probs,
-                            mprob_model='conditional')
+            ps = TimeReversibleNucleotide(motif_length=motif_length,
+                                          motif_probs=motif_probs,
+                                          mprob_model='monomers')
+            cd = TimeReversibleNucleotide(motif_length=motif_length,
+                                          motif_probs=motif_probs,
+                                          mprob_model='conditional')
 
             ps_lf = ps.make_likelihood_function(self.tree)
             ps_lf.set_param_rule('length', is_independent=False, init=0.4)
@@ -232,7 +238,8 @@ class NewQ(TestCase):
         compare_models(self.posn_root_probs, 2)
         # trinucleotide
         trinuc_mprobs = _trinuc_root_probs(self.asymm_nuc_probs,
-                                           self.asymm_nuc_probs, self.asymm_nuc_probs)
+                                           self.asymm_nuc_probs,
+                                           self.asymm_nuc_probs)
         compare_models(trinuc_mprobs, 3)
 
     def test_cond_pos_differ(self):
@@ -247,13 +254,13 @@ class NewQ(TestCase):
                        'TC': 0.060866666666666666, 'CT': 0.069746666666666665}
 
         mg = TimeReversibleNucleotide(motif_length=2, motif_probs=dinuc_probs,
-                        mprob_model='monomer')
+                                      mprob_model='monomer')
         mg_lf = mg.make_likelihood_function(self.tree)
         mg_lf.set_param_rule('length', is_independent=False, init=0.4)
         mg_lf.set_alignment(self.aln)
 
         cd = TimeReversibleNucleotide(motif_length=2, motif_probs=dinuc_probs,
-                        mprob_model='conditional')
+                                      mprob_model='conditional')
 
         cd_lf = cd.make_likelihood_function(self.tree)
         cd_lf.set_param_rule('length', is_independent=False, init=0.4)
@@ -272,12 +279,16 @@ class NewQ(TestCase):
         })
 
         motifs = ['T', 'C', 'A', 'G']
-        aX = MotifChange(motifs[0], motifs[3], forward_only=True).aliased('aX')
-        bX = MotifChange(motifs[3], motifs[0], forward_only=True).aliased('bX')
+        aX = MotifChange(motifs[0], motifs[3],
+                         forward_only=True).aliased('aX')
+        bX = MotifChange(motifs[3], motifs[0],
+                         forward_only=True).aliased('bX')
         edX = MotifChange(motifs[1], motifs[2],
                           forward_only=True).aliased('edX')
-        cX = MotifChange(motifs[2], motifs[1], forward_only=True).aliased('cX')
-        sm = NonReversibleNucleotide(predicates=[aX, bX, edX, cX], equal_motif_probs=True)
+        cX = MotifChange(motifs[2], motifs[1],
+                         forward_only=True).aliased('cX')
+        sm = NonReversibleNucleotide(
+            predicates=[aX, bX, edX, cX], equal_motif_probs=True)
 
         lf = sm.make_likelihood_function(tree)
         lf.set_param_rule('aX', edge='a', value=8.0)
@@ -322,7 +333,7 @@ def _make_likelihood(model, tree, results, is_discrete=False):
         kwargs = dict(expm='pade')
 
     lf = model.make_likelihood_function(tree,
-                                      optimise_motif_probs=True, **kwargs)
+                                        optimise_motif_probs=True, **kwargs)
 
     if not is_discrete:
         for param in lf.get_param_names():
@@ -363,11 +374,18 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
         if 'constructed_gen' in results:
             return
         preds = [MotifChange(a, b, forward_only=True) for a, b in [['A', 'C'],
-                                                                 ['A', 'G'], ['A', 'T'], [
-                                                                     'C', 'A'], ['C', 'G'],
-                                                                 ['C', 'T'], ['G', 'C'], [
-                                                                     'G', 'T'], ['T', 'A'],
-                                                                 ['T', 'C'], ['T', 'G']]]
+                                                                   ['A', 'G'],
+                                                                   ['A', 'T'], [
+                                                                       'C',
+                                                                       'A'],
+                                                                   ['C', 'G'],
+                                                                   ['C', 'T'],
+                                                                   ['G', 'C'], [
+                                                                       'G',
+                                                                       'T'],
+                                                                   ['T', 'A'],
+                                                                   ['T', 'C'],
+                                                                   ['T', 'G']]]
         nuc = TimeReversibleNucleotide(predicates=preds)
         nuc_lf = _make_likelihood(nuc, tree, results)
         nuc_lf.optimise(**opt_args)
