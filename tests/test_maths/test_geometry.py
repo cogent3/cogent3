@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 """Tests of the geometry package."""
-from numpy import array, take, newaxis, ones
+from numpy import array, take, ones, allclose, isclose, sum, arange, insert
 from numpy.linalg import norm
-from numpy.random import dirichlet
+from numpy.random import dirichlet, choice
 from numpy.testing import assert_allclose
 from math import sqrt
 from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.geometry import center_of_mass_one_array, \
-    center_of_mass_two_array, center_of_mass, distance, sphere_points, SimplexTransform
+    center_of_mass_two_array, center_of_mass, distance, sphere_points, \
+    SimplexTransform, alr, clr, alr_inv, clr_inv, aitchison_distance, \
+    multiplicative_replacement
 
 
 __author__ = "Sandra Smit"
@@ -145,6 +147,46 @@ class TestSimplexTransform(TestCase):
         d = x @ self.transform
         assert_allclose(array([norm(a-b), norm(a-c), norm(a-d),
             norm(b-c), norm(b-d), norm(c-d)]), sqrt(2) * ones(6))
+
+
+class TestAitchison(TestCase):
+    def __init__(self):
+        x = choice(20, size=10) + 0.1
+        self.x = x
+        a = arange(1, 7)
+        self.a = a
+        d = dirichlet(a, size=2)
+        self.d = d
+
+    def test_Aitchison_transforms(self):
+        """Test that alr_inv of alr is in fact the inverse
+        of alr. Ditto for clr_inv and clr. Then test that clr
+        transforms into hyperplane x1 + ... + xn=0."""
+        length = len(self.x)
+        for col in range(-1, length):
+            y = alr_inv(self.x, col)
+            assert allclose(self.x, alr(y, col)), \
+                'Failed alr inverse test for col = ' + str(col) + '.'
+
+        z = dirichlet(self.x)
+        y = clr(z)
+        assert allclose(z, clr_inv(y)), 'Failed clr inverse test.'
+        assert allclose(sum(y), 0), 'Failed clr hyperplane test.'
+
+    def test_Aitchison_distance(self):
+        x = self.d[0]
+        y = self.d[1]
+        assert allclose(aitchison_distance(x, y), \
+                           norm(clr(x) - clr(y))), 'Failed distance test.'
+
+    def test_multiplicative_replacement(self):
+        x1 = dirichlet(self.a)
+        y1 = insert(x1, 3, 0)
+        u = multiplicative_replacement(y1)
+        assert allclose(y1, u, atol=1e-2), \
+            'Multiplicative replacement peturbation is too large.'
+        assert isclose(sum(u), 1), \
+            'Multiplicative replacement does not yield a composition.'
 
 
 if __name__ == '__main__':
