@@ -128,6 +128,11 @@ class ReadOnlyDataStoreBase:
     def open(self, identifier):
         raise NotImplementedError
 
+    def filtered(self, callback):
+        """returns list of members for which callback returns True"""
+        result = [m for m in self if callback(m)]
+        return result
+
 
 class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):
     @property
@@ -371,7 +376,8 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
 
     def write(self, identifier, data):
         relative_id = self.get_relative_identifier(identifier)
-        absolute_id = self.get_absolute_identifier(relative_id, from_relative=True)
+        absolute_id = self.get_absolute_identifier(relative_id,
+                                                   from_relative=True)
 
         t = NamedTemporaryFile(mode='w', delete=False)
         t.write(data)
