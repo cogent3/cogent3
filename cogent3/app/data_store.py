@@ -343,11 +343,14 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
 
     def write(self, identifier, data):
         relative_id = self.get_relative_identifier(identifier)
-        absolute_id = self.get_absolute_identifier(relative_id,
-                                                   from_relative=True)
+        absolute_id = self.get_absolute_identifier(relative_id, from_relative=True)
 
         t = NamedTemporaryFile(delete=False)
-        with zipfile.ZipFile(t.name, 'w') as out:
+        if os.path.isfile(self.source):
+            with open_(self.source, 'rb') as f:
+                t.write(f.read())
+
+        with zipfile.ZipFile(t, 'a') as out:
             out.writestr(relative_id, data, compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
         t.close()
         p = Path(t.name)

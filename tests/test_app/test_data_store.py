@@ -108,12 +108,29 @@ class DataStoreBaseTests:
             got = dstore.read(abs_id)
             self.assertEqual(got, expect)
 
+    def test_multi_write(self):
+        """correctly write multiple files to data store"""
+        with open('data/brca1.fasta') as infile:
+            expect1 = infile.read()
 
-class WriteableDirectoryDataStore(object):
-    pass
+        with open('data/primates_brca1.fasta') as infile:
+            expect2 = infile.read()
+
+        with TemporaryDirectory(dir='.') as dirname:
+            path = os.path.join(dirname, self.basedir)
+            dstore = self.WriteClass(path, suffix='.fa', create=True)
+            identifier1 = dstore.make_absolute_identifier('brca1.fasta')
+            identifier2 = dstore.make_absolute_identifier('primates_brca1.fasta')
+            abs_id1 = dstore.write(identifier1, expect1)
+            abs_id2 = dstore.write(identifier2, expect2)
+            got1 = dstore.read(abs_id1)
+            got2 = dstore.read(abs_id2)
+            self.assertEqual(got1, expect1)
+            self.assertEqual(got2, expect2)
 
 
 class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
+    basedir = 'data'
     ReadClass = ReadOnlyDirectoryDataStore
     WriteClass = WritableDirectoryDataStore
 
