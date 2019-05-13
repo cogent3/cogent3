@@ -125,6 +125,7 @@ class DataStoreBaseTests:
             abs_id2 = dstore.write(identifier2, expect2)
             got1 = dstore.read(abs_id1)
             got2 = dstore.read(abs_id2)
+            # check that both bits of data match
             self.assertEqual(got1, expect1)
             self.assertEqual(got2, expect2)
 
