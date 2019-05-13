@@ -1,3 +1,4 @@
+import os
 import zipfile
 from os.path import join, basename
 from tempfile import TemporaryDirectory
@@ -63,6 +64,10 @@ class TestIo(TestCase):
         found = list(io_app.get_data_store(
             self.basedir, suffix='.fasta*'))
         self.assertTrue(len(found) > 2)
+
+        # with a wild-card suffix
+        found = list(io_app.get_data_store(self.basedir, suffix='*'))
+        self.assertEqual(len(os.listdir(self.basedir)), len(found))
 
         # raises ValueError if suffix not provided or invalid
         with self.assertRaises(TypeError):

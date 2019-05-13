@@ -63,7 +63,8 @@ class ReadOnlyDataStoreBase:
         """
         # assuming delimiter is /
         suffix = suffix or ''
-        suffix = re.sub(r'^[\s.*]+', '', suffix)  # tidy the suffix
+        if suffix != '*':  # wild card search for all
+            suffix = re.sub(r'^[\s.*]+', '', suffix)  # tidy the suffix
         source = re.sub(r'/+$', '', source)  # tidy the source
 
         self.suffix = suffix
