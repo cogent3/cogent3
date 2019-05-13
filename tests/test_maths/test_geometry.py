@@ -150,7 +150,7 @@ class TestSimplexTransform(TestCase):
 
 
 class TestAitchison(TestCase):
-    def __init__(self):
+    def setUp(self):
         x = choice(20, size=10) + 0.1
         self.x = x
         a = arange(1, 7)
