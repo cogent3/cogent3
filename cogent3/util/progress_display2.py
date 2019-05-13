@@ -13,6 +13,7 @@ __credits__ = ["Peter Maxwell", "Sheng Han Moses Koh"]
 __license__ = "GPL"
 __version__ = ""
 
+
 class LogFileOutput:
     """A fake progress bar for when progress bars are impossible"""
 
@@ -39,7 +40,8 @@ class LogFileOutput:
 
 
 class ProgressContext:
-    def __init__(self, progress_bar_type=None, depth=-1, message=None, rate=1.0):
+    def __init__(self, progress_bar_type=None, depth=-1,
+                                    message=None, rate=1.0):
         self.progress_bar_type = progress_bar_type
         self.progress_bar = None
         self.progress = 0
@@ -49,11 +51,14 @@ class ProgressContext:
 
     def set_new_progress_bar(self):
         if self.progress_bar_type:
-            self.progress_bar = self.progress_bar_type(total=1, position=self.depth, leave=True,
-                                    bar_format='{desc} {percentage:3.0f}%|{bar}| ')
+            self.progress_bar = self.progress_bar_type(total=1,
+                            position=self.depth,
+                            leave=True,
+                            bar_format='{desc} {percentage:3.0f}%|{bar}| ')
+
     def subcontext(self, *args, **kw):
         return ProgressContext(
-            progress_bar_type = self.progress_bar_type,
+            progress_bar_type=self.progress_bar_type,
             depth=self.depth+1,
             message=self.message,
             rate=self.rate)
@@ -75,7 +80,7 @@ class ProgressContext:
             updated = True
         if updated:
             self.progress_bar.refresh()
-            
+
     def done(self):
         if self.progress_bar:
             self.progress_bar.close()
@@ -123,6 +128,7 @@ class ProgressContext:
     def map(self, f, s, **kw):
         return list(self.imap(f, s, **kw))
 
+
 class NullContext(ProgressContext):
     """A UI context which discards all output.  Useful on secondary MPI cpus,
     and other situations where all output is suppressed"""
@@ -139,6 +145,7 @@ NULL_CONTEXT = NullContext()
 CURRENT = threading.local()
 CURRENT.context = None
 
+
 def using_notebook():
     try:
         get_ipython()
@@ -146,11 +153,13 @@ def using_notebook():
     except NameError:
         return False
 
+
 def display_wrap(slow_function):
     """Decorator which give the function its own UI context.
     The function will receive an extra argument, 'ui',
     which is used to report progress etc."""
     depth = 0
+
     @functools.wraps(slow_function)
     def f(*args, **kw):
         nonlocal depth
