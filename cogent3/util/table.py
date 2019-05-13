@@ -20,6 +20,7 @@ import numpy
 
 try:
     from pandas import DataFrame
+
     _pandas_available = True
 except ImportError:
     _pandas_available = False
@@ -28,7 +29,6 @@ try:
     from IPython.display import display
 except ImportError:
     display = print
-
 
 from cogent3.format import table as table_format, bedgraph
 from cogent3.util.dict_array import DictArray
@@ -90,6 +90,7 @@ def convert2DDict(twoDdict, header=None, row_order=None):
 
 class _Header(list):
     """a convenience class for storing the header"""
+
     def __new__(cls, arg):
         n = list.__new__(cls, list(arg))
         return n
@@ -139,7 +140,7 @@ class Table(DictArray):
 
             rows = data_frame.to_records(index=False).tolist()
             header = data_frame.columns.tolist()
-        
+
         if type(header) == numpy.ndarray:
             header = header.tolist()
 
@@ -147,7 +148,7 @@ class Table(DictArray):
             raise ValueError("header must be provided to Table")
         elif rows is None:
             raise ValueError("rows cannot be None")
-        
+
         if len(rows) == 0:
             rows = numpy.empty((0, len(header)))
 
@@ -198,17 +199,16 @@ class Table(DictArray):
         self._column_templates = column_templates or {}
 
         self.format = format
-        
-        # define the repr() display policy 
+
+        # define the repr() display policy
         random = 0
         if self.shape[0] < 50:
             head = self.shape[0]
             tail = None
         else:
             head, tail = 5, 5
-            
-        self._repr_policy = dict(head=tail, tail=tail, random=random)
 
+        self._repr_policy = dict(head=tail, tail=tail, random=random)
 
     def __repr__(self):
         table, shape_info = self._get_repr_()
@@ -238,12 +238,11 @@ class Table(DictArray):
             rows = self[-tail:].tolist()
         else:
             rows = self.tolist()
-        
+
         shape_info += f"\n{self.shape[0]:,} rows x {self.shape[1]:,} columns"
         kwargs = self._get_persistent_attrs()
         table = self.__class__(header=self.header, rows=rows, **kwargs)
         return table, shape_info
-        
 
     def _repr_html_(self):
         """returns html, used by Jupyter"""
@@ -281,7 +280,7 @@ class Table(DictArray):
 
     def __getstate__(self):
         data = self._get_persistent_attrs()
-        del(data['column_templates'])
+        del (data['column_templates'])
         data.update(dict(header=self.header, rows=self.tolist()))
         return data
 
@@ -295,9 +294,9 @@ class Table(DictArray):
 
     def set_repr_policy(self, head=None, tail=None, random=0):
         """specify policy for repr(self)
-        
+
         Arguments:
-        
+
         - head: number of top rows to included in represented display
         - tail: number of bottom rows to included in represented display
         - random: number of rows to sample randomly (supercedes head/tail)
@@ -305,10 +304,10 @@ class Table(DictArray):
         if not any([head, tail, random]):
             return
         if random:
-            assert type(random) == int and random > 0, "random must be a positive integer"
+            assert type(
+                random) == int and random > 0, "random must be a positive integer"
             head = tail = None
         self._repr_policy = dict(head=head, tail=tail, random=random)
-        
 
     def head(self, nrows=5):
         """displays top nrows"""
@@ -422,12 +421,13 @@ class Table(DictArray):
         # convert self to a 2D list
         formatted_table = self.array.tolist()
         if format != 'bedgraph':
-            header, formatted_table = table_format.formatted_cells(formatted_table,
-                                                                   self.header,
-                                                                   digits=self._digits,
-                                                                   column_templates=self._column_templates,
-                                                                   missing_data=missing_data,
-                                                                   center=center)
+            header, formatted_table = table_format.formatted_cells(
+                formatted_table,
+                self.header,
+                digits=self._digits,
+                column_templates=self._column_templates,
+                missing_data=missing_data,
+                center=center)
             args = (header, formatted_table, self.title, self.legend)
         if sep and format != 'bedgraph':
             return table_format.separator_format(*args + (sep,))
@@ -446,7 +446,8 @@ class Table(DictArray):
             return self.to_rich_html(**kwargs)
         elif format == 'phylip':
             # need to eliminate row identifiers
-            formatted_table = [row[self._row_ids:] for row in formatted_table]
+            formatted_table = [row[self._row_ids:]
+                               for row in formatted_table]
             header = header[self._row_ids:]
             return table_format.phylip_matrix(formatted_table, header)
         elif format == 'bedgraph':
@@ -457,10 +458,12 @@ class Table(DictArray):
             return formatted_table
         else:
             return table_format.simple_format(*args + (self._max_width,
-                                                       self._row_ids, borders, self.space))
+                                                       self._row_ids, borders,
+                                                       self.space))
 
     def to_rich_html(self, row_cell_func=None, header_cell_func=None,
-                     element_formatters={}, merge_identical=False, compact=False):
+                     element_formatters={}, merge_identical=False,
+                     compact=False):
         """returns just the table html code.
         Arguments:
             - row_cell_func: callback function that formats the row values. Must
@@ -628,7 +631,7 @@ class Table(DictArray):
 
     def to_dataframe(self, categories=None):
         """returns pandas DataFrame instance
-        
+
         Arguments:
             - categories: converts these columns to category dtype in the data
               frame. Note, categories are not ordered.
@@ -640,7 +643,8 @@ class Table(DictArray):
         data = dict(zip(self.header, self.toarray().T.tolist()))
         df = DataFrame(data=data, index=index)
         if categories is not None:
-            categories = [categories] if type(categories) == str else categories
+            categories = [categories] if type(
+                categories) == str else categories
             df = df.astype({n: 'category' for n in categories})
 
         return df
@@ -930,8 +934,8 @@ class Table(DictArray):
         columns_other = [columns_other,
                          [columns_other]][type(columns_other) == str]
         if not inner_join:
-            assert columns_self is None and columns_other is None, "Cannot "\
-                "specify column indices for an outer join"
+            assert columns_self is None and columns_other is None, "Cannot " \
+                                                                   "specify column indices for an outer join"
             columns_self = []
             columns_other = []
 
@@ -1102,10 +1106,12 @@ class Table(DictArray):
         # indices for the header and non header rows
         header_index = self.header.index(select_as_header)
 
-        data_indices = list(range(0, header_index)) + list(range(header_index + 1,
-                                                                 len(transposed)))
+        data_indices = list(range(0, header_index)) + list(
+            range(header_index + 1,
+                  len(transposed)))
 
         header = list(numpy.take(transposed, [header_index], axis=0)[0])
-        header = [new_column_name] + header[1:]  # [1:] slice excludes old name
+        # [1:] slice excludes old name
+        header = [new_column_name] + header[1:]
         rows = numpy.take(transposed, data_indices, axis=0)
         return Table(header=header, rows=rows, **kwargs)
