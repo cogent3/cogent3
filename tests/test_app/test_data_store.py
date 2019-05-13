@@ -7,7 +7,7 @@ from cogent3.app.data_store import (SingleReadDataStore,
                                     ReadOnlyDirectoryDataStore,
                                     WritableDirectoryDataStore,
                                     WritableZippedDataStore,
-                                    ReadOnlyZippedDataStore, DataStoreMember)
+                                    ReadOnlyZippedDataStore, DataStoreMember, )
 from cogent3.parse.fasta import MinimalFastaParser
 
 
@@ -77,7 +77,8 @@ class DataStoreBaseTests:
             self.assertEqual(got, expect)
 
             # now using a DataStoreMember
-            member = DataStoreMember(os.path.join('blah/blah', f'2-{name}'), None)
+            member = DataStoreMember(os.path.join('blah/blah', f'2-{name}'),
+                                     None)
             got = dstore.make_absolute_identifier(member)
             expect = os.path.join(
                 base_path, member.name.replace('fasta', 'json'))
@@ -120,7 +121,8 @@ class DataStoreBaseTests:
             path = os.path.join(dirname, self.basedir)
             dstore = self.WriteClass(path, suffix='.fa', create=True)
             identifier_a = dstore.make_absolute_identifier('brca1.fasta')
-            identifier_b = dstore.make_absolute_identifier('primates_brca1.fasta')
+            identifier_b = dstore.make_absolute_identifier(
+                'primates_brca1.fasta')
             abs_id_a = dstore.write(identifier_a, expect_a)
             abs_id_b = dstore.write(identifier_b, expect_b)
             got_a = dstore.read(abs_id_a)
@@ -128,6 +130,12 @@ class DataStoreBaseTests:
             # check that both bits of data match
             self.assertEqual(got_a, expect_a)
             self.assertEqual(got_b, expect_b)
+
+    def test_filter(self):
+        """filter method should return correctly matching members"""
+        dstore = self.ReadClass(self.basedir, suffix='fa*')
+        got = [m.name for m in dstore.filtered(lambda x: 'brca1' in str(x))]
+        self.assertTrue(len(set(got)), 2)
 
 
 class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
