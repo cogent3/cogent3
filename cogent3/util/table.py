@@ -182,8 +182,9 @@ class Table(DictArray):
         self._header = _Header([str(head) for head in header])
         self._missing_data = missing_data
 
-        self.title = str(title)
-        self.legend = str(legend)
+        # default title / legend to be empty strings
+        self.title = str(title) if title else ''
+        self.legend = str(legend) if legend else ''
         try:
             self.space = ' ' * space
         except TypeError:
