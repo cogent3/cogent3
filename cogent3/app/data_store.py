@@ -4,6 +4,7 @@ import re
 import shutil
 import zipfile
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from warnings import warn
 from fnmatch import fnmatch
 
@@ -291,8 +292,12 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
         relative_id = self.get_relative_identifier(identifier)
         absolute_id = self.get_absolute_identifier(relative_id,
                                                    from_relative=True)
-        with open_(absolute_id, self.mode) as outfile:
-            outfile.write(data)
+
+        t = NamedTemporaryFile(mode='w', delete=False)
+        t.write(data)
+        t.close()
+        p = Path(t.name)
+        p.rename(absolute_id)
 
         if relative_id not in self:
             self._members.append(DataStoreMember(relative_id, self))
@@ -340,10 +345,13 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         relative_id = self.get_relative_identifier(identifier)
         absolute_id = self.get_absolute_identifier(relative_id,
                                                    from_relative=True)
-        with zipfile.ZipFile(self.source, 'a') as out:
-            out.writestr(relative_id, data, compress_type=zipfile.ZIP_DEFLATED,
-                         compresslevel=9)
 
+        t = NamedTemporaryFile(delete=False)
+        with zipfile.ZipFile(t.name, 'w') as out:
+            out.writestr(relative_id, data, compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
+        t.close()
+        p = Path(t.name)
+        p.rename(self.source)
         if relative_id not in self:
             self._members.append(DataStoreMember(relative_id, self))
 
