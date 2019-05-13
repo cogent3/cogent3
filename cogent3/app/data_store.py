@@ -3,10 +3,10 @@ import os
 import re
 import shutil
 import zipfile
+from fnmatch import fnmatch
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from warnings import warn
-from fnmatch import fnmatch
 
 from cogent3.util.misc import open_, get_format_suffixes
 
@@ -345,16 +345,13 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         relative_id = self.get_relative_identifier(identifier)
         absolute_id = self.get_absolute_identifier(relative_id, from_relative=True)
 
-        t = NamedTemporaryFile(delete=False)
-        if os.path.isfile(self.source):
-            with open_(self.source, 'rb') as f:
-                t.write(f.read())
-
-        with zipfile.ZipFile(t, 'a') as out:
-            out.writestr(relative_id, data, compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
+        t = NamedTemporaryFile(mode='w', delete=False)
+        t.write(data)
         t.close()
-        p = Path(t.name)
-        p.rename(self.source)
+
+        with zipfile.ZipFile(self.source, 'a') as out:
+            out.write(t.name, arcname=relative_id)
+
         if relative_id not in self:
             self._members.append(DataStoreMember(relative_id, self))
 
