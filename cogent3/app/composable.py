@@ -254,6 +254,10 @@ class Composable(ComposableType):
         self._load_checkpoint = None
 
 
+class ComposableTabular(Composable):
+    _type = 'tabular'
+
+
 class ComposableSeq(Composable):
     _type = 'sequences'
 
