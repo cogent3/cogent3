@@ -5,7 +5,7 @@ from cogent3.align import global_pairwise, make_dna_scoring_dict
 from cogent3.align.progressive import TreeAlign
 from cogent3.evolve.models import get_model, protein_models
 
-from .composable import ComposableSeq
+from .composable import ComposableSeq, NotCompletedResult
 
 from .tree import quick_tree, scale_branches
 
@@ -202,7 +202,7 @@ class progressive_align(ComposableSeq):
             if diff:
                 numtips = len(set(self._guide_tree.get_tip_names()))
                 print(f"numseqs={len(seqs.names)} not equal "
-                      "to numtips={numtips}")
+                      f"to numtips={numtips}")
                 print(f"These were different: {diff}")
                 seqs = seqs.take_seqs(self._guide_tree.get_tip_names())
 
@@ -210,9 +210,10 @@ class progressive_align(ComposableSeq):
 
         try:
             result, tree = TreeAlign(self._model, seqs, **kwargs)
+            result = result.to_moltype(self._moltype)
             result.info.update(seqs.info)
-        except ValueError:
+        except ValueError as err:
             # probably an internal stop
-            ## TODO need to log this as cause of failure
-            result = False
+            result = NotCompletedResult('ERROR', self, err.args[0], source=seqs)
+            return result
         return result

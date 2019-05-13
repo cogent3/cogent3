@@ -920,10 +920,8 @@ class Table(DictArray):
             - inner_join: if False, the outer join of the two tables is
               returned.
         """
-
-        if other_table.title is None:
-            raise RuntimeError("Cannot join if a other_table.Title is None")
-        elif self.title == other_table.title:
+        other_title = other_table.title if other_table.title else 'right'
+        if self.title == other_title:
             raise RuntimeError("Cannot join if a table.Title's are equal")
 
         columns_self = [columns_self, [columns_self]][
@@ -999,9 +997,8 @@ class Table(DictArray):
                                  for c in output_mask_other]
                     joined_table.append(list(this_row) + other_row)
 
-        new_header = self.header + [other_table.title + "_" + other_table.header[c]
+        new_header = self.header + [other_title + "_" + other_table.header[c]
                                     for c in output_mask_other]
-
         return Table(header=new_header, rows=joined_table, **kwargs)
 
     def summed(self, indices=None, col_sum=True, strict=True, **kwargs):

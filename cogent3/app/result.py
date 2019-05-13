@@ -1,4 +1,5 @@
 import json
+from collections import OrderedDict
 from collections.abc import MutableMapping
 from functools import total_ordering
 
@@ -166,10 +167,16 @@ class model_result(generic_result):
             for k, v in self.items():
                 v = deserialise.deserialise_likelihood_function(v)
                 self[k] = v
-            result = list(self.values())
 
         if len(self) == 1:
-            result = result[0]
+            result = list(self.values())[0]
+        else:
+            result = OrderedDict()
+            for k in sorted(self):
+                v = self[k]
+                if k.isdigit():
+                    k = int(k)
+                result[k] = v
 
         return result
 

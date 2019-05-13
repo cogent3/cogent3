@@ -835,6 +835,24 @@ class DinucAlphabet(_AlphabetTestCase):
         alpha = self.alpha.get_subset(motif_freqs)
         self.assertEqualSets(alpha, ['AA', 'CA', 'GT'])
 
+    def test_strand_symmetric_motifs(self):
+        """construction of strand symmetric motif sets"""
+        # fails for a moltype with no strand complement
+        with self.assertRaises(TypeError):
+            PROTEIN.strand_symmetric_motifs()
+
+        got = DNA.strand_symmetric_motifs(motif_length=1)
+        expect = set([('A', 'T'), ('C', 'G')])
+        self.assertEqual(got, expect)
+        got = RNA.strand_symmetric_motifs(motif_length=1)
+        expect = set([('A', 'U'), ('C', 'G')])
+        self.assertEqual(got, expect)
+        got = DNA.strand_symmetric_motifs(motif_length=2)
+        self.assertEqual(len(got), 8)
+        got = DNA.strand_symmetric_motifs(motif_length=3)
+        self.assertEqual(len(got), 32)
+
+
 
 class CodonAlphabet(_AlphabetTestCase):
 
