@@ -5,6 +5,7 @@ import shutil
 import zipfile
 from fnmatch import fnmatch
 from pathlib import Path
+from pprint import pprint
 from tempfile import NamedTemporaryFile
 from warnings import warn
 from io import TextIOWrapper
@@ -73,6 +74,29 @@ class ReadOnlyDataStoreBase:
         self._members = []
         self.limit = limit
         self._verbose = verbose
+
+    def __repr__(self):
+        if len(self) > 3:
+            sample = str(list(self[:3]))
+            sample = f'{sample[:-1]}...'
+        else:
+            sample = list(self)
+
+        num = len(self)
+        name = self.__class__.__name__
+        txt = f'{num}x member {name}({sample})'
+        return txt
+
+    def __str__(self):
+        return str(list(self))
+
+    def head(self, n=5):
+        """displays top n members"""
+        pprint(self[:n])
+
+    def tail(self, n=5):
+        """displays last n members"""
+        pprint(self[-n:])
 
     def __iter__(self):
         for member in self.members:
