@@ -30,7 +30,7 @@ from cogent3.core.annotation import Map, _Annotatable
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
-from cogent3.core.genetic_code import DEFAULT
+from cogent3.core.genetic_code import DEFAULT, get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.sequence import frac_same, ArraySequence
 from cogent3.core.location import LostSpan, Span
@@ -39,16 +39,16 @@ from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.format.nexus import nexus_from_alignment
 from cogent3.parse.gff import GffParser, parse_attributes
-from numpy import nonzero, array, logical_or, logical_and, logical_not, \
-    transpose, arange, zeros, ones, take, put, uint8, ndarray, vstack
-from numpy.random import randint, permutation
+from numpy import (nonzero, array, logical_or, logical_and, logical_not,
+                   transpose, arange, zeros, ones, take, put, uint8, ndarray,
+                   vstack, )
+from numpy.random import randint, permutation, choice
 
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import bytes_to_string, get_object_provenance
 
 from copy import copy, deepcopy
 from cogent3.core.profile import MotifCountsArray
-
 
 __author__ = "Peter Maxwell and Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -71,6 +71,7 @@ class DataError(Exception):
 # small number: 1-eps is almost 1, and is used for things like the
 # default number of gaps to allow in a column.
 eps = 1e-6
+
 
 # factory functions for identifying whether character set conditions are satsified
 
@@ -103,40 +104,85 @@ def AllowedCharacters(chars, is_array=False, negate=False):
     return just_chars
 
 
-def GapsOk(gap_chars, allowed_frac, motif_length=1, is_array=False, negate=False):
-    """factory function for determining whether sequence contains a
-    fraction of gaps <= allowed_frac"""
-    try:
-        gap_chars = set(gap_chars)
-    except TypeError:
-        gap_chars = set([gap_chars])
+class GapsOk:
+    """determine whether number of gaps satisfies allowed_frac"""
 
-    def gap_frac_ok(data):
-        length = len(data) / motif_length
-        if is_array:
+    def __init__(self, gap_chars, allowed_frac=0, motif_length=1,
+                 is_array=False,
+                 negate=False, gap_run=False, allowed_run=1):
+        """
+        Parameters
+        ----------
+        gap_chars
+            characters corresponding to gaps
+        allowed_frac : float
+            the threshold gap fraction, ignored if gap_run
+        motif_length : int
+            used to adjust for the denominator in the gap fraction
+        is_array : bool
+            whether input will be a numpy array
+        negate : bool
+            if False (default) evaluates fraction of gap
+            characters <= allowed_frac, if True, >= allowed_frac
+        gap_run : bool
+            check for runs of gaps
+        allowed_run : int
+            length of the allowed gap run
+        """
+        self.motif_length = motif_length
+        self.is_array = is_array
+        self.allowed_frac = allowed_frac
+        self.allowed_run = allowed_run
+        if gap_run:
+            self._func = self.gap_run_ok
+        elif negate:
+            self._func = self.gap_frac_not_ok
+        else:
+            self._func = self.gap_frac_ok
+
+        try:
+            self.gap_chars = set(gap_chars)
+        except TypeError:
+            self.gap_chars = set([gap_chars])
+
+    def _get_gap_frac(self, data):
+        length = len(data) / self.motif_length
+        if self.is_array:
             data = Counter(data.flatten())
         else:
             data = Counter(list(data))
 
-        num_gap = sum(data[g] for g in gap_chars)
-        return num_gap / length <= allowed_frac
+        num_gap = sum(data[g] for g in self.gap_chars)
+        gap_frac = num_gap / length
+        return gap_frac
 
-    def gap_frac_not_ok(data):
-        """returns True when the frac of gaps is > allowed_frac"""
-        data = array(data)
-        length = len(data) / motif_length
-        if is_array:
-            data = Counter(data.flatten())
-        else:
-            data = Counter(list(data))
+    def gap_frac_ok(self, data):
+        """fraction of gap characters <= allowed_frac"""
+        gap_frac = self._get_gap_frac(data)
+        return gap_frac <= self.allowed_frac
 
-        num_gap = sum(data[g] for g in gap_chars)
-        return (num_gap / length) >= allowed_frac
+    def gap_frac_not_ok(self, data):
+        """fraction of gap characters >= allowed_frac"""
+        gap_frac = self._get_gap_frac(data)
+        return gap_frac >= self.allowed_frac
 
-    if negate:
-        return gap_frac_not_ok
-    else:
-        return gap_frac_ok
+    def gap_run_ok(self, seq):
+        """runs of gaps <= allowed_run"""
+        curr_run = max_run = 0
+        is_gap = self.gap_chars.__contains__
+        result = True
+        for i in seq:
+            if is_gap(i):
+                curr_run += 1
+                if curr_run > self.allowed_run:
+                    result = False
+                    break
+            else:
+                curr_run = 0
+        return result
+
+    def __call__(self, data):
+        return self._func(data)
 
 
 def assign_sequential_names(ignored, num_seqs, base_name='seq', start_at=0):
@@ -144,7 +190,8 @@ def assign_sequential_names(ignored, num_seqs, base_name='seq', start_at=0):
 
     First argument is ignored; expect this to be set as a class attribute.
     """
-    return ['%s_%s' % (base_name, i) for i in range(start_at, start_at + num_seqs)]
+    return ['%s_%s' % (base_name, i) for i in
+            range(start_at, start_at + num_seqs)]
 
 
 class SeqLabeler(object):
@@ -154,8 +201,8 @@ class SeqLabeler(object):
         """Initializes a new seq labeler."""
         self._aln = aln
         self._label_f = label_f
-        self._map = dict(
-            list(zip(aln.names, label_f(len(aln.names, **kwargs)))))
+        self._map = {orig: new for orig, new in zip(
+            aln.names, label_f(len(aln.names, **kwargs)))}
 
     def __call__(self, s):
         """Returns seq name from seq id"""
@@ -549,12 +596,13 @@ class SequenceCollection(object):
                 per_seq_names, curr_seqs = fixed_names, fixed_seqs
                 # if name_order doesn't have the same names as per_seq_names,
                 # replace it with per_seq_names
-                if (set(name_order) != set(per_seq_names)) or\
+                if (set(name_order) != set(per_seq_names)) or \
                         (len(name_order) != len(per_seq_names)):
                     name_order = per_seq_names
             else:
-                raise ValueError("Some names were not unique. Duplicates are:\n" +
-                                 str(sorted(duplicates.keys())))
+                raise ValueError(
+                    "Some names were not unique. Duplicates are:\n" +
+                    str(sorted(duplicates.keys())))
 
         return per_seq_names, curr_seqs, name_order
 
@@ -708,7 +756,8 @@ class SequenceCollection(object):
         get = self.named_seqs.__getitem__
         # negate function if necessary
         if negate:
-            def new_f(x): return not f(x)
+            def new_f(x):
+                return not f(x)
         else:
             new_f = f
         # get all the seqs where the function is True
@@ -753,8 +802,9 @@ class SequenceCollection(object):
         # TODO handle case of not strict by building mask of degen positions
         # per seq
         if mask_degen and not hasattr(self.moltype, "alphabets"):
-            UserWarning("in get_identical_sets, strict has no effect as moltype "
-                        "has no degenerate characters")
+            UserWarning(
+                "in get_identical_sets, strict has no effect as moltype "
+                "has no degenerate characters")
             mask_degen = False
         elif mask_degen:
             degens = list(self.moltype.degenerates) + [self.moltype.gap]
@@ -854,7 +904,8 @@ class SequenceCollection(object):
         if transform:
             target = transform(target)
 
-        def m(x): return metric(target, x)
+        def m(x):
+            return metric(target, x)
 
         if transform:
             def f(x):
@@ -903,7 +954,7 @@ class SequenceCollection(object):
         for seq in self.seqs:
             d = seq.to_rich_dict()
             for attr in ['moltype', 'type']:
-                del(d[attr])
+                del (d[attr])
             data[seq.name] = d
 
         data = dict(seqs=data, moltype=moltype, info=info,
@@ -968,7 +1019,7 @@ class SequenceCollection(object):
         Skips sequences in the file that are not in self.
         """
         for (name, source, feature, start, end, score,
-                strand, frame, attributes, comments) in GffParser(f):
+             strand, frame, attributes, comments) in GffParser(f):
             if name in self.named_seqs:
                 self.named_seqs[name].add_feature(feature,
                                                   parse_attributes(
@@ -992,7 +1043,8 @@ class SequenceCollection(object):
             concatenated.append(new_seq)
 
         new = self.__class__(moltype=self.moltype,
-                             data=list(zip(self.names, concatenated)), info=self.info)
+                             data=list(zip(self.names, concatenated)),
+                             info=self.info)
 
         if aligned:
             left = [a for a in self._shifted_annotations(new, 0)
@@ -1018,8 +1070,8 @@ class SequenceCollection(object):
         If both before_name and after_name are specified, the seqs will be
         inserted using before_name.
         """
-        assert not isinstance(other, str), "Must provide a series of seqs " +\
-            "or an alignment"
+        assert not isinstance(other, str), "Must provide a series of seqs " + \
+                                           "or an alignment"
         self_seq_class = self.seqs[0].__class__
         try:
             combined = self.seqs + other.seqs
@@ -1027,7 +1079,7 @@ class SequenceCollection(object):
             combined = self.seqs + list(other)
 
         for seq in combined:
-            assert seq.__class__ == self_seq_class,\
+            assert seq.__class__ == self_seq_class, \
                 "Seq classes different: Expected %s, Got %s" % \
                 (seq.__class__, self_seq_class)
 
@@ -1205,6 +1257,7 @@ class SequenceCollection(object):
             - allow_partial: if True and the sequence length is not divisible
               by 3, ignores the 3' terminal incomplete codon
         """
+        gc = get_code(gc)
         new_seqs = []
         aligned = isinstance(self, Alignment)
 
@@ -1256,7 +1309,7 @@ class SequenceCollection(object):
                         spans[-1].length -= aln_diff
                         assert spans[-1].length >= 0
                         if spans[-1].length == 0:
-                            del(spans[-1])
+                            del (spans[-1])
                         new_map = Map(spans=spans, parent_length=new_length)
                     seq = Aligned(new_map, new_seq)
                     new_seqs[i] = (seq_name, seq)
@@ -1280,7 +1333,8 @@ class SequenceCollection(object):
                 seq = Aligned(new_map, new_seq)
                 new_seqs[i] = (seq_name, seq)
 
-        return self.__class__(moltype=self.moltype, data=new_seqs, info=self.info, **kwargs)
+        return self.__class__(moltype=self.moltype, data=new_seqs,
+                              info=self.info, **kwargs)
 
     def get_lengths(self, include_ambiguity=False, allow_gap=False):
         """returns {name: seq length, ...}
@@ -1296,7 +1350,8 @@ class SequenceCollection(object):
         lengths = counts.row_sum()
         return lengths
 
-    def counts_per_seq(self, motif_length=1, include_ambiguity=False, allow_gap=False):
+    def counts_per_seq(self, motif_length=1, include_ambiguity=False,
+                       allow_gap=False):
         """returns dict of counts of motifs per sequence
 
             only non-overlapping motifs are counted.
@@ -1342,7 +1397,8 @@ class SequenceCollection(object):
         return per_seq.motif_totals()
 
     def get_motif_probs(self, alphabet=None, include_ambiguity=False,
-                        exclude_unobserved=False, allow_gap=False, pseudocount=0):
+                        exclude_unobserved=False, allow_gap=False,
+                        pseudocount=0):
         """Return a dictionary of motif probs, calculated as the averaged
         frequency across sequences.
 
@@ -1398,37 +1454,14 @@ class SequenceCollection(object):
 
         return probs
 
-    def _make_gaps_ok(self, allowed_gap_frac):
-        """Makes the gaps_ok function used by omit_gap_pos and omit_gap_seqs.
-
-        Need to make the function because if it's a method of Alignment, it
-        has unwanted 'self' and 'allowed_gap_frac' parameters that impede the
-        use of map() in take_seqs_if.
-
-        WARNING: may not work correctly if component sequences have gaps that
-        are not the Alignment gap character. This is because the gaps are
-        checked at the position level (and the positions are lists), rather than
-        at the sequence level. Working around this issue would probably cause a
-        significant speed penalty.
-        """
-        def gaps_ok(seq):
-            seq_len = len(seq)
-            try:
-                num_gaps = seq.count_gaps()
-            except AttributeError:
-                num_gaps = len(
-                    list(filter(self.moltype.gaps.__contains__, seq)))
-            return num_gaps / seq_len <= allowed_gap_frac
-
-        return gaps_ok
-
     def omit_gap_seqs(self, allowed_gap_frac=0):
         """Returns new alignment with seqs that have <= allowed_gap_frac.
 
         allowed_gap_frac should be a fraction between 0 and 1 inclusive.
         Default is 0.
         """
-        gaps_ok = self._make_gaps_ok(allowed_gap_frac)
+        gaps_ok = GapsOk(list(self.moltype.gaps),
+                         allowed_frac=allowed_gap_frac)
 
         return self.take_seqs_if(gaps_ok)
 
@@ -1443,22 +1476,8 @@ class SequenceCollection(object):
         negative values for allowed_run will still let sequences with no gaps
         through.
         """
-        def ok_gap_run(x):
-            try:
-                is_gap = x.alphabet.gaps.__contains__
-            except AttributeError:
-                is_gap = self.moltype.gaps.__contains__
-            curr_run = max_run = 0
-            for i in x:
-                if is_gap(i):
-                    curr_run += 1
-                    if curr_run > allowed_run:
-                        return False
-                else:
-                    curr_run = 0
-            # can only get here if max_run was never exceeded (although this
-            # does include the case where the sequence is empty)
-            return True
+        ok_gap_run = GapsOk(self.moltype.gaps, gap_run=True,
+                            allowed_run=allowed_run)
 
         return self.take_seqs_if(ok_gap_run)
 
@@ -1506,7 +1525,7 @@ class SequenceCollection(object):
         """Returns the reverse complement alignment"""
         seqs = [self.named_seqs[name].rc() for name in self.names]
         rc = self.__class__(data=seqs, names=self.names[
-                            :], name=self.name, info=self.info)
+                                             :], name=self.name, info=self.info)
         if isinstance(self, _Annotatable) and self.annotations:
             self._annotations_nucleic_reversed_on(rc)
         return rc
@@ -1528,8 +1547,9 @@ class SequenceCollection(object):
         if pad_length is not None:
             pad_length = int(pad_length)
             if pad_length < max_len:
-                raise ValueError("pad_length must be at greater or equal to maximum sequence length: %s"
-                                 % (str(max_len)))
+                raise ValueError(
+                    "pad_length must be at greater or equal to maximum sequence length: %s"
+                    % (str(max_len)))
         # pad_length is max sequence length.
         else:
             pad_length = max_len
@@ -1548,6 +1568,51 @@ class SequenceCollection(object):
 
         # return new SequenceCollection object
         return SequenceCollection(moltype=self.moltype, data=new_seqs, **kwargs)
+
+    def strand_symmetry(self, motif_length=1):
+        """returns dict of strand symmetry test results per seq"""
+        result = {s.name: s.strand_symmetry(motif_length=motif_length)
+                  for s in self.seqs}
+
+        return result
+
+    def dotplot(self, name1=None, name2=None, window=20, threshold=None,
+                min_gap=0, width=500, title=None):
+        """display a dotplot between specified sequences. Random sequences
+        chosen if names not provided.
+
+        Parameters
+        ----------
+        name1, name2 : str or None
+            names of sequences. If one is not provided, a random choice is made
+        window : int
+            k-mer size for comparison between sequences
+        threshold : int
+            windows where the sequences are identical >= threshold are a match
+        min_gap : int
+            permitted gap for joining adjacent line segments, default is no gap
+            joining
+        width : int
+            figure width. Figure height is computed based on the ratio of
+            len(seq1) / len(seq2)
+        title
+            title for the plot
+        """
+        from cogent3.draw.dotplot_2 import Display2D
+
+        names = choice(self.names, size=2, replace=False)
+        name1 = names[0] if name1 is None else name1
+        name2 = names[1] if name2 is None else name2
+
+        if not set([name1, name2]) <= set(self.names):
+            msg = f'{name1}, {name2} missing'
+            raise ValueError(msg)
+
+        dotplot = Display2D(self.named_seqs[name1], self.named_seqs[name2],
+                            moltype=self.moltype)
+        dotplot._set_initial_layout(window=window, threshold=threshold,
+                       min_gap=min_gap, width=width, title=title)
+        return dotplot
 
 
 @total_ordering
@@ -1569,6 +1634,7 @@ class Aligned(object):
 
     def _get_moltype(self):
         return self.data.moltype
+
     moltype = property(_get_moltype)
 
     def copy(self, memo=None, _nil=[], constructor='ignored'):
@@ -1685,6 +1751,10 @@ class Aligned(object):
         # we remove the mask annotations from self and new_data
         return self.__class__(self.map, new_data)
 
+    def strand_symmetry(self, motif_length=1):
+        """returns G-test for strand symmetry"""
+        return self.data.strand_symmetry(motif_length=motif_length)
+
 
 class AlignmentI(object):
     """Alignment interface object. Contains methods shared by implementations.
@@ -1773,7 +1843,8 @@ class AlignmentI(object):
         """
         # negate f if necessary
         if negate:
-            def new_f(x): return not f(x)
+            def new_f(x):
+                return not f(x)
         else:
             new_f = f
 
@@ -1855,8 +1926,8 @@ class AlignmentI(object):
         try:
             chars = list(self.moltype.alphabet.non_degen)
         except AttributeError:
-            msg = "Invalid MolType (no degenerate characters), "\
-                "create the alignment using DNA, RNA or PROTEIN"
+            msg = "Invalid MolType (no degenerate characters), " \
+                  "create the alignment using DNA, RNA or PROTEIN"
             raise ValueError(msg)
 
         is_array = isinstance(self, ArrayAlignment)
@@ -1900,7 +1971,82 @@ class AlignmentI(object):
         result = self.filtered(gaps_ok, motif_length=motif_length)
         return result
 
-    def omit_bad_seqs(self, disallowed_frac=0.9, allowed_frac_bad_cols=0, exclude_just_gap=True):
+    def get_gap_array(self, include_ambiguity=True):
+        """returns bool array with gap state True, False otherwise
+
+        Parameters
+        ----------
+        include_ambiguity : bool
+            if True, ambiguity characters that include the gap state are
+            included
+        """
+        if isinstance(self, ArrayAlignment):
+            data = self.array_seqs
+        else:
+            data = self.to_type(array_align=True).array_seqs
+
+        gap = self.alphabet.index(self.moltype.gap)
+        gapped = data == gap
+        if include_ambiguity:
+            gaps = list(map(self.alphabet.index, self.moltype.gaps))
+            gaps.remove(gap)
+            for gap in gaps:
+                gapped = logical_or(gapped, data == gap)
+
+        return gapped
+
+    def count_gaps_per_pos(self, include_ambiguity=True):
+        """return counts of gaps per position as a DictArray
+
+        Parameters
+        ----------
+        include_ambiguity : bool
+            if True, ambiguity characters that include the gap state are
+            included
+        """
+        gap_array = self.get_gap_array(include_ambiguity=include_ambiguity)
+        darr = DictArrayTemplate(range(len(self)))
+
+        result = gap_array.sum(axis=0)
+        result = darr.wrap(result)
+        return result
+
+    def count_gaps_per_seq(self, induced_by=False, unique=False,
+                           include_ambiguity=True):
+        """return counts of gaps per sequence as a DictArray
+
+        Parameters
+        ----------
+        induced_by : bool
+            a gapped column is considered to be induced by a seq if the seq
+            has a non-gap character in that column.
+        unique : bool
+            count is limited to gaps uniquely induced by each sequence
+        include_ambiguity : bool
+            if True, ambiguity characters that include the gap state are
+            included
+        """
+        gap_array = self.get_gap_array(include_ambiguity=include_ambiguity)
+        darr = DictArrayTemplate(self.names)
+
+        if unique:
+            # we identify cols with a single non-gap character
+            gap_cols = gap_array.sum(axis=0) == self.num_seqs - 1
+            gap_array = gap_array[:, gap_cols] == False
+        elif induced_by:
+            # identify all columns with gap opposite
+            gap_cols = gap_array.sum(axis=0) > 0
+            gap_array = gap_array[:, gap_cols] == False
+        else:
+            gap_cols = gap_array.sum(axis=0) > 0
+            gap_array = gap_array[:, gap_cols]
+
+        result = gap_array.sum(axis=1)
+        result = darr.wrap(result)
+        return result
+
+    def omit_bad_seqs(self, disallowed_frac=0.9, allowed_frac_bad_cols=0,
+                      exclude_just_gap=True):
         """Returns new alignment without the sequences responsible for exceeding disallowed_frac.
 
         disallowed_frac: used to identify columns with excessive gaps
@@ -1921,10 +2067,10 @@ class AlignmentI(object):
         seqs_to_delete = {}
         if exclude_just_gap:
             # any seqs that are all gaps?
+            num_gaps = self.count_gaps_per_seq(induced_by=False)
             length = len(self)
             for name in self.names:
-                num_gaps = self.count_gaps(name)
-                if num_gaps == length:
+                if num_gaps[name] == length:
                     seqs_to_delete[name] = True
 
         # we treat array and string data the same, likely inefficient
@@ -2180,7 +2326,9 @@ class AlignmentI(object):
         name_template = '{:>%d}' % label_width
         display_names = dict([(n, name_template.format(n)) for n in names])
 
-        def make_line(label, seq): return "%s    %s" % (label, seq)
+        def make_line(label, seq):
+            return "%s    %s" % (label, seq)
+
         if interleave_len is None:
             result = [make_line(display_names[n], ''.join(output[n]))
                       for n in names]
@@ -2196,7 +2344,7 @@ class AlignmentI(object):
             result.append('')
 
         if not result[-1]:
-            del(result[-1])
+            del (result[-1])
 
         return '\n'.join(result)
 
@@ -2210,7 +2358,7 @@ class AlignmentI(object):
         """
         length = (len(self) // motif_length) * motif_length
         if alert and len(self) != length:
-            warnings.warn(f"trimmed {len(self)-length}", UserWarning)
+            warnings.warn(f"trimmed {len(self) - length}", UserWarning)
 
         data = list(self.todict().values())
         alpha = self.moltype.alphabet.get_word_alphabet(motif_length)
@@ -2246,7 +2394,7 @@ class AlignmentI(object):
             """
         length = (len(self) // motif_length) * motif_length
         if alert and len(self) != length:
-            warnings.warn(f"trimmed {len(self)-length}", UserWarning)
+            warnings.warn(f"trimmed {len(self) - length}", UserWarning)
 
         is_array = isinstance(self, ArrayAlignment)
         counts = []
@@ -2263,27 +2411,13 @@ class AlignmentI(object):
             counts.append(c)
 
         if not exclude_unobserved:
-            motifs.update(self.alphabet.get_word_alphabet(motif_length))
+            motifs.update(
+                self.moltype.alphabet.get_word_alphabet(motif_length))
 
         motifs = list(sorted(motifs))
         for i, c in enumerate(counts):
             counts[i] = c.tolist(motifs)
         return MotifCountsArray(counts, motifs, row_indices=self.names)
-
-    def count_gaps(self, seq_name):
-        """returns number of gaps for seq_name"""
-        is_array = isinstance(self, ArrayAlignment)
-        if not is_array:
-            seq = self.named_seqs[seq_name]
-            return len(seq.map.gaps())
-
-        seq_index = self.names.index(seq_name)
-        seq = self.array_seqs[seq_index]
-        alpha = self.alphabet
-        gaps = list(map(alpha.index, self.moltype.gaps))
-        counts = Counter(seq)
-        num_gaps = sum(counts[g] for g in gaps)
-        return num_gaps
 
     def variable_positions(self, include_gap_motif=True):
         """Return a list of variable position indexes.
@@ -2355,6 +2489,7 @@ class AlignmentI(object):
         calculator.run()
         result = calculator.get_pairwise_distances()
         return result
+
 
 def _one_length(seqs):
     """raises ValueError if seqs not all same length"""
@@ -2452,7 +2587,9 @@ def aln_from_fasta(seqs, array_type=None, alphabet=None):
     if isinstance(seqs, str):
         seqs = seqs.splitlines()
     return aln_from_array_seqs([ArraySequence(s, name=l, alphabet=alphabet)
-                                for l, s in cogent3.parse.fasta.MinimalFastaParser(seqs)], array_type)
+                                for l, s in
+                                cogent3.parse.fasta.MinimalFastaParser(seqs)],
+                               array_type)
 
 
 def aln_from_dict(aln, array_type=None, alphabet=None):
@@ -2506,6 +2643,7 @@ def aln_from_array_aln(aln, array_type=None, alphabet=None):
 def aln_from_empty(obj, *args, **kwargs):
     """Alignment from empty data: raise exception."""
     raise ValueError("Cannot create empty alignment.")
+
 
 # Implementation of Alignment base class
 
@@ -2726,34 +2864,9 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         degen = alphabet.degenerate_from_seq
         for col in self.positions:
             col = alphabet.make_array_seq(col,
-                                              alphabet=alphabet.alphabets.degen_gapped)
+                                          alphabet=alphabet.alphabets.degen_gapped)
             consensus.append(degen(str(col)))
         return coerce_to_string(consensus)
-
-    def _make_gaps_ok(self, allowed_gap_frac):
-        """Makes the gaps_ok function used by omit_gap_pos and omit_gap_seqs.
-
-        Need to make the function because if it's a method of Alignment, it
-        has unwanted 'self' and 'allowed_gap_frac' parameters that impede the
-        use of map() in take_seqs_if.
-
-        WARNING: may not work correctly if component sequences have gaps that
-        are not the Alignment gap character. This is because the gaps are
-        checked at the column level (and the positions are lists), rather than
-        at the row level. Working around this issue would probably cause a
-        significant speed penalty.
-        """
-        def gaps_ok(seq):
-            seq_len = len(seq)
-            if hasattr(seq, 'count_gaps'):
-                num_gaps = seq.count_gaps()
-            elif hasattr(seq, 'count'):
-                num_gaps = seq.count(self.alphabet.gap)
-            else:
-                num_gaps = sum(seq == self.alphabet.gap_index)
-            return num_gaps / seq_len <= allowed_gap_frac
-
-        return gaps_ok
 
     def sample(self, n=None, with_replacement=False, motif_length=1,
                randint=randint, permutation=permutation):
@@ -2852,6 +2965,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
             - allow_partial: if True and the sequence length is not divisible
               by 3, ignores the 3' terminal incomplete codon
         """
+        gc = get_code(gc)
         if len(self) % 3 != 0 and not allow_partial:
             raise ValueError("alignment length not divisible by 3")
 
@@ -2874,7 +2988,8 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
                     nondegen_index = i + 1
                     if nondegen_index % 3 != 0 and not allow_partial:
                         raise ValueError(
-                            "'%s' length not divisible by 3" % self.names[seq_num])
+                            "'%s' length not divisible by 3" % self.names[
+                                seq_num])
                     break
 
             if nondegen_index is None or nondegen_index - 3 < 0:
@@ -3041,8 +3156,9 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         Arguments:
          - mask_degen: if True, degenerate characters are ignored"""
         if mask_degen and not hasattr(self.moltype, "alphabets"):
-            UserWarning("in get_identical_sets, strict has no effect as moltype "
-                        "has no degenerate characters")
+            UserWarning(
+                "in get_identical_sets, strict has no effect as moltype "
+                "has no degenerate characters")
             mask_degen = False
 
         if not mask_degen:
@@ -3130,11 +3246,13 @@ def make_gap_filter(template, gap_fraction, gap_run):
             return False
         # check if gap runs bad
         if b'\x01' * gap_run in logical_and(seq_gaps,
-                                            logical_not(template_gaps)).astype(uint8).tostring():
+                                            logical_not(template_gaps)).astype(
+            uint8).tostring():
             return False
         # check if insertion runs bad
         elif b'\x01' * gap_run in logical_and(template_gaps,
-                                              logical_not(seq_gaps)).astype(uint8).tostring():
+                                              logical_not(seq_gaps)).astype(
+            uint8).tostring():
             return False
         return True
 
@@ -3158,7 +3276,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         lengths = list(map(len, self.seq_data))
         if lengths and (max(lengths) != min(lengths)):
             raise DataError("Not all sequences are the same length:\n" +
-                            "max is %s, min is %s" % (max(lengths), min(lengths)))
+                            "max is %s, min is %s" % (
+                                max(lengths), min(lengths)))
         aligned_seqs = []
         for s, n in zip(seqs, names):
             if isinstance(s, Aligned):
@@ -3171,7 +3290,9 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         self.seq_data = self._seqs = aligned_seqs
 
     def _coerce_seqs(self, seqs, is_array):
-        if not min([isinstance(seq, _Annotatable) or isinstance(seq, Aligned) for seq in seqs]):
+        if not min(
+                [isinstance(seq, _Annotatable) or isinstance(seq, Aligned) for
+                 seq in seqs]):
             seqs = list(map(self.moltype.make_seq, seqs))
         return seqs
 
@@ -3257,7 +3378,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             result.append(segment)
         return result
 
-    def with_masked_annotations(self, annot_types, mask_char=None, shadow=False):
+    def with_masked_annotations(self, annot_types, mask_char=None,
+                                shadow=False):
         """returns an alignment with annot_types regions replaced by mask_char
         if shadow is False, otherwise all other regions are masked.
 
@@ -3287,7 +3409,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         gv = []
         kept = False
         seqs = [self.get_gapped_seq(n).get_in_motif_size(motif_length,
-                                                         **kwargs) for n in self.names]
+                                                         **kwargs) for n in
+                self.names]
 
         positions = list(zip(*seqs))
         for (position, column) in enumerate(positions):
@@ -3462,7 +3585,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 temp_aln = self.__class__({new_seq.name: str(new_seq)})
             else:
                 temp_aln = temp_aln.add_seqs(self.__class__({new_seq.name:
-                                                             str(new_seq)}))
+                                                                 str(new_seq)}))
 
         aln = self.add_seqs(temp_aln, before_name, after_name)
 
@@ -3510,4 +3633,3 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             new_seqs.append((label, Aligned(aligned.map * scale, seq)))
 
         return self.__class__(new_seqs, info=self.info)
-

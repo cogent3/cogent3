@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import warnings
+
 warnings.filterwarnings('ignore', 'Not using MPI as mpi4py not found')
 
 import numpy
+
 # hides the warning from taking log of -ve determinant
 numpy.seterr(invalid='ignore')
 
@@ -17,7 +19,7 @@ from cogent3.evolve.pairwise_distance import (get_moltype_index_array,
                                               ParalinearPair, HammingPair,
                                               _hamming, get_calculator,
                                               _calculators,
-                                              available_distances)
+                                              available_distances, )
 from cogent3.evolve._pairwise_distance import \
     _fill_diversity_matrix as pyx_fill_diversity_matrix
 
@@ -230,8 +232,10 @@ class TestPair(TestCase):
 
     def test_logdet_missing_states(self):
         """should calculate logdet measurement with missing states"""
-        data = [('seq1', "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
-                ('seq2', "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTNTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")]
+        data = [('seq1',
+                 "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
+                ('seq2',
+                 "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTNTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")]
         aln = LoadSeqs(data=data, moltype=DNA)
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
@@ -245,8 +249,10 @@ class TestPair(TestCase):
 
     def test_logdet_variance(self):
         """calculate logdet variance consistent with hand calculation"""
-        data = [('seq1', "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
-                ('seq2', "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")]
+        data = [('seq1',
+                 "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
+                ('seq2',
+                 "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")]
         aln = LoadSeqs(data=data, moltype=DNA)
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
@@ -264,7 +270,7 @@ class TestPair(TestCase):
         var = 0.
         for i in range(4):
             for j in range(4):
-                var += M[j, i]**2 * J[i, j] - 1
+                var += M[j, i] ** 2 * J[i, j] - 1
         var /= 16 * len(data[0][1])
 
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
@@ -273,8 +279,9 @@ class TestPair(TestCase):
 
     def test_logdet_for_determinant_lte_zero(self):
         """returns distance of None if the determinant is <= 0"""
-        data = dict(seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
-                    seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")
+        data = dict(
+            seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
+            seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")
         aln = LoadSeqs(data=data, moltype=DNA)
 
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
@@ -295,8 +302,10 @@ class TestPair(TestCase):
 
     def test_paralinear_distance(self):
         """calculate paralinear variance consistent with hand calculation"""
-        data = [('seq1', "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
-                ('seq2', "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")]
+        data = [('seq1',
+                 "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
+                ('seq2',
+                 "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")]
         aln = LoadSeqs(data=data, moltype=DNA)
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
@@ -311,15 +320,17 @@ class TestPair(TestCase):
         J /= J.sum()
         M = numpy.linalg.inv(J)
         f = J.sum(1), J.sum(0)
-        dist = -0.25 * numpy.log( numpy.linalg.det(J) /
-                                  numpy.sqrt(f[0].prod() * f[1].prod()))
+        dist = -0.25 * numpy.log(numpy.linalg.det(J) /
+                                 numpy.sqrt(f[0].prod() * f[1].prod()))
 
         self.assertFloatEqual(paralinear_calc.dists[1, 1], dist, eps=1e-3)
 
     def test_paralinear_variance(self):
         """calculate paralinear variance consistent with hand calculation"""
-        data = [('seq1', "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
-                ('seq2', "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")]
+        data = [('seq1',
+                 "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
+                ('seq2',
+                 "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")]
         aln = LoadSeqs(data=data, moltype=DNA)
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
@@ -337,7 +348,7 @@ class TestPair(TestCase):
         var = 0.
         for i in range(4):
             for j in range(4):
-                var += M[j, i]**2 * J[i, j]
+                var += M[j, i] ** 2 * J[i, j]
             var -= 1 / numpy.sqrt(f[0][i] * f[1][i])
         var /= 16 * len(data[0][1])
 
@@ -345,8 +356,9 @@ class TestPair(TestCase):
 
     def test_paralinear_for_determinant_lte_zero(self):
         """returns distance of None if the determinant is <= 0"""
-        data = dict(seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
-                    seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")
+        data = dict(
+            seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
+            seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")
         aln = LoadSeqs(data=data, moltype=DNA)
 
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
@@ -359,8 +371,10 @@ class TestPair(TestCase):
 
     def test_paralinear_pair_dna(self):
         """calculate paralinear distance consistent with logdet distance"""
-        data = [('seq1', 'TAATTCATTGGGACGTCGAATCCGGCAGTCCTGCCGCAAAAGCTTCCGGAATCGAATTTTGGCA'),
-                ('seq2', 'AAAAAAAAAAAAAAAACCCCCCCCCCCCCCCCTTTTTTTTTTTTTTTTGGGGGGGGGGGGGGGG')]
+        data = [('seq1',
+                 'TAATTCATTGGGACGTCGAATCCGGCAGTCCTGCCGCAAAAGCTTCCGGAATCGAATTTTGGCA'),
+                ('seq2',
+                 'AAAAAAAAAAAAAAAACCCCCCCCCCCCCCCCTTTTTTTTTTTTTTTTGGGGGGGGGGGGGGGG')]
         aln = LoadSeqs(data=data, moltype=DNA)
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
@@ -371,22 +385,29 @@ class TestPair(TestCase):
                               paralinear_calc.dists[1, 1], eps=1e-3)
         self.assertFloatEqual(paralinear_calc.variances[1, 1],
                               logdet_calc.variances[1, 1], eps=1e-3)
-        
+
     def test_duplicated(self):
         """correctly identifies duplicates"""
+
         def get_calc(data):
             aln = LoadSeqs(data=data, moltype=DNA)
             calc = ParalinearPair(moltype=DNA, alignment=aln)
-            calc(show_progress=False)            
+            calc(show_progress=False)
             return calc
+
         # no duplicates
-        data = [('seq1', "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
-                ('seq2', "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")]
+        data = [('seq1',
+                 "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
+                ('seq2',
+                 "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")]
         calc = get_calc(data)
         self.assertEqual(calc.duplicated, None)
-        data = [('seq1', "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
-                ('seq2', "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC"),
-                ('seq3', "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")]
+        data = [('seq1',
+                 "GGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT"),
+                ('seq2',
+                 "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC"),
+                ('seq3',
+                 "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC")]
         calc = get_calc(data)
         self.assertTrue({"seq2": ["seq3"]} == calc.duplicated or
                         {"seq3": ["seq2"]} == calc.duplicated)
@@ -394,7 +415,7 @@ class TestPair(TestCase):
         pwds = calc.get_pairwise_distances()
         self.assertEqual(pwds[('seq2', 'seq3')], 0.0)
         self.assertEqual(pwds[('seq2', 'seq1')], pwds[('seq3', 'seq1')])
-        
+
         # only unique seqs when using include_duplicates=False
 
         pwds = calc.get_pairwise_distances(include_duplicates=False)
@@ -403,7 +424,8 @@ class TestPair(TestCase):
         self.assertEqual(set([(present, missing)]), set([('seq2', 'seq3')]))
         self.assertTrue((present, 'seq1') in pwds)
         self.assertFalse((missing, 'seq1') in pwds)
-        
+
+
 class TestGetDisplayCalculators(TestCase):
     def test_get_calculator(self):
         """exercising getting specified calculator"""
@@ -419,6 +441,7 @@ class TestGetDisplayCalculators(TestCase):
         content = available_distances()
         self.assertEqual(content.shape, (5, 2))
         self.assertEqual(content['tn93', 1], 'dna, rna')
+
 
 if __name__ == '__main__':
     main()

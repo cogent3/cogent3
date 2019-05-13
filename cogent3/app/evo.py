@@ -1,19 +1,63 @@
 from tqdm import tqdm
 from cogent3 import LoadTree
 from cogent3.evolve.models import get_model
-from .composable import ComposableHypothesis, ComposableModel, ErrorResult
+from .composable import ComposableHypothesis, ComposableModel, NotCompletedResult
 from .result import hypothesis_result, model_result, bootstrap_result
 from cogent3.util import parallel
 
 
 class model(ComposableModel):
+    """represents a substitution model + tree"""
+
     def __init__(self, sm, tree=None, name=None, sm_args=None,
                  lf_args=None, time_het=None, param_rules=None,
-                 opt_args=None, split_codons=False, show_progress=False):
-        """represents a substitution model + tree"""
+                 opt_args=None, split_codons=False, show_progress=False,
+                 verbose=False):
+        """
+
+        Parameters
+        ----------
+        sm : str or instance
+            substitution model if string must be available via get_model()
+        tree : str, Tree instance, or None
+            if None, assumes a star phylogeny (only valid for 3 taxa)
+        name
+            name of the model
+        sm_args
+            arguments to be passed to the substitution model constructor, e.g.
+            dict(optimise_motif_probs=True)
+        lf_args
+            arguments to be passed to the likelihood function constructor
+        time_het
+            'max' or a list of dicts corresponding to edge_sets, e.g.
+            [dict(edges=['Human', 'Chimp'], is_independent=False, upper=10)].
+            Passed to the likelihood function .set_time_heterogeneity()
+            method.
+        param_rules
+            other parameter rules, passed to the likelihood function
+            set_param_rule() method
+        opt_args
+            arguments for the numerical optimiser, e.g.
+            dict(max_restarts=5, tolerance=1e-6, max_evaluations=1000,
+            limit_action='ignore')
+        split_codons : bool
+            if True, incoming alignments are split into the 3 frames and each
+            frame is fit separately
+        show_progress : bool
+            show progress bars during numerical optimisation
+        verbose : bool
+            prints intermediate states to screen during fitting
+
+        Returns
+        -------
+        Calling an instance with an alignment returns a model_result instance
+        with the optimised likelihood function. In the case of split_codons,
+        the result object has a separate entry for each.
+        """
         super(model, self).__init__(input_type='aligned',
                                     output_type=(
                                         'model_result', 'serialisable'))
+        self._verbose = verbose
         self._formatted_params()
         sm_args = sm_args or {}
         if type(sm) == str:
@@ -47,21 +91,23 @@ class model(ComposableModel):
         lf = self._sm.make_likelihood_function(self._tree, **self._lf_args)
 
         lf.set_alignment(aln)
-        verbose = self._opt_args.get('show_progress', False)
         if self._param_rules:
             lf.apply_param_rules(self._param_rules)
-        elif self._time_het == 'max':
+        elif self._time_het:
             if not initialise:
-                if verbose:
+                if self._verbose:
                     print("Time homogeneous fit..")
 
                 # we opt with a time-homogeneous process first
                 opt_args = self._opt_args.copy()
                 opt_args.update(dict(max_restart=1, tolerance=1e-3))
                 lf.optimise(**self._opt_args)
-                if verbose:
+                if self._verbose:
                     print(lf)
-            lf.set_time_heterogeneity(is_independent=True, upper=50)
+            if self._time_het == 'max':
+                lf.set_time_heterogeneity(is_independent=True, upper=50)
+            else:
+                lf.set_time_heterogeneity(edge_sets=self._time_het)
         else:
             rules = lf.get_param_rules()
             for rule in rules:
@@ -84,14 +130,16 @@ class model(ComposableModel):
         kwargs = self._opt_args.copy()
         kwargs.update(opt_args)
 
-        verbose = kwargs.get('show_progress', False)
-        if verbose:
+        if self._verbose:
             print("Fit...")
 
         calc = lf.optimise(return_calculator=True, **kwargs)
         lf.calculator = calc
 
-        if verbose:
+        if identifier:
+            lf.set_name(f'LF id: {identifier}')
+
+        if self._verbose:
             print(lf)
 
         return lf
@@ -170,12 +218,13 @@ class hypothesis(ComposableHypothesis):
             null = self.null(aln)
         except ValueError as err:
             msg = f"Hypothesis null had bounds error {aln.info.source}"
-            return ErrorResult('ERROR', self.__class__.__name__, msg)
+            return NotCompletedResult('ERROR', self, msg, source=aln)
         try:
-            alts = [alt for alt in self._initialised_alt_from_null(null, aln)]
+            alts = [
+                alt for alt in self._initialised_alt_from_null(null, aln)]
         except ValueError as err:
             msg = f"Hypothesis alt had bounds error {aln.info.source}"
-            return ErrorResult('ERROR', self.__class__.__name__, msg)
+            return NotCompletedResult('ERROR', self, msg, source=aln)
         results = {alt.name: alt for alt in alts}
         results.update({null.name: null})
 
@@ -210,7 +259,7 @@ class bootstrap(ComposableHypothesis):
         try:
             obs = self._hyp(aln)
         except ValueError as err:
-            result = ErrorResult('ERROR', str(self._hyp), err.args[0])
+            result = NotCompletedResult('ERROR', str(self._hyp), err.args[0])
             return result
         result.observed = obs
         self._null = obs.null

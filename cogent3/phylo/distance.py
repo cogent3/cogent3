@@ -6,7 +6,7 @@ from itertools import combinations
 
 from cogent3.maths.stats.number import NumberCounter
 from cogent3 import LoadSeqs, LoadTree
-from cogent3.util import table, progress_display as UI
+from cogent3.util import table, progress_display2 as UI
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -137,13 +137,13 @@ class EstimateDistances(object):
         # slice the alignment
         seqs = self._seq_collection.take_seqs(sequence_names)
         if self._do_pair_align:
-            ui.display('Aligning', progress=0.0, current=.5)
+            ui.display('Aligning', progress=0.0)
             align = self._make_pair_alignment(seqs, aln_opt_args)
-            ui.display('', progress=.5, current=.5)
+            ui.display('', progress=.5)
 
         else:
             align = seqs
-            ui.display('', progress=0.0, current=1.0)
+            ui.display('', progress=0.0)
         # note that we may want to consider removing the redundant gaps
 
         # create the tree object

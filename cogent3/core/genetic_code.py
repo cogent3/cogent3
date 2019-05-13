@@ -411,14 +411,16 @@ def get_code(code_id):
 
     return code
 
-def get_code(code_id):
+def get_code(code_id=1):
     """returns the genetic code
     
     Parameters
     ----------
     code_id
-        genetic code identifier, name, number or string(number)
+        genetic code identifier, name, number or string(number), defaults to
+        standard genetic code
     """
+    code_id = code_id or 1
     if isinstance(code_id, GeneticCode):
         return code_id
 
