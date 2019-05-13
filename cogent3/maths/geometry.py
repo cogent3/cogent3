@@ -2,7 +2,7 @@
 """Code for geometric operations, e.g. distances and center of mass."""
 
 from numpy import array, take, sum, newaxis, sqrt, sqrt, sin, cos, pi, c_, \
-    vstack, dot, ones
+    vstack, dot, ones, exp, sum, log, linalg, delete, insert, append, min, mean, nonzero
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -169,3 +169,142 @@ class SimplexTransform:
         if dtype is not None:
             q = q.astype(dtype)
         return q
+
+
+def alr(x, col=-1):
+    r"""
+    Additive log ratio (alr) Aitchison transformation.
+    Parameters
+    ----------
+    x: numpy.ndarray
+       A composition (sum = 1)
+    col: int
+       The index of the position (vector) of x used in the
+       denominator for alr transformations. Defaults to -1,
+       i.e. last component of composition as is conventional.
+    Returns
+    -------
+    numpy.ndarray
+         alr-transformed data projected into R^(n-1)."""
+    x = x.squeeze()
+    if x.ndim != 1:
+        raise ValueError("Input array must be 1D")
+    if any(x <= 0):
+        raise ValueError("Cannot have negative or zero proportions")
+    logx = log(x)
+    logx_short = delete(logx, col)
+    return (logx_short - logx[col]).squeeze()
+
+
+def clr(x):
+    r"""
+    Perform centre log ratio (clr) Aitchison transformation.
+    Parameters
+    ----------
+    x: numpy.ndarray
+       A composition (sum = 1)
+    Returns
+    -------
+    numpy.ndarray
+         clr-transformed data projected to hyperplane x1 + ... + xn=0."""
+
+    x = x.squeeze()
+    if x.ndim != 1:
+        raise ValueError("Input array must be 1D")
+    if any(x <= 0):
+        raise ValueError("Cannot have negative or zero proportions")
+    logx = log(x)
+    gx = mean(logx)
+    return (logx - gx).squeeze()
+
+
+def clr_inv(x):
+    r"""
+    Inverse of clr. Also known as softmax
+    Parameters
+    ----------
+    x: numpy.ndarray
+       A real vector which is a transformed compositions.
+    Returns
+    -------
+    numpy.ndarray
+       A composition (sum = 1)."""
+
+    x = x.squeeze()
+    if x.ndim != 1:
+        raise ValueError("Input array must be 1D")
+    ex = exp(x)
+    sumexp = sum(ex)
+    return ex / sumexp
+
+
+def alr_inv(x, col=-1):
+    r"""
+    Inverse of alr.
+    Parameters
+    ----------
+    x: numpy.ndarray
+       A real vector which is a transformed compositions.
+    col: int
+       The index of the position (vector) of x used in the
+       denominator for alr transformations. Defaults to -1,
+       i.e. last component of composition as is conventional.
+    Returns
+    -------
+    numpy.ndarray
+         A composition (sum = 1)."""
+    x = x.squeeze()
+    if x.ndim != 1:
+        raise ValueError("Input array must be 1D")
+    if col == -1:
+        x = append(x, 0)
+    else:
+        x = insert(x, col, 0)
+    ex = exp(x)
+    sumexp = sum(ex)
+    return ex / sumexp
+
+
+def aitchison_distance(x, y):
+    r"""
+    Aitchison distance between two compositions.
+    Parameters
+    ----------
+    x, y: numpy.ndarrays
+       Compositions
+    Returns
+    -------
+    numpy.float64
+         A real value of this distance metric >= 0."""
+    if any(x <= 0):
+        raise ValueError("Cannot have negative \
+                or zero proportions - parameter 0.")
+    if any(y <= 0):
+        raise ValueError("Cannot have negative \
+                or zero proportions - parameter 1.")
+    return linalg.norm(clr(x / y))
+
+
+def multiplicative_replacement(x, eps=.01):
+    r"""
+    Perturbs a composition with zero proportions
+    to one with no zero proportions.
+    Parameters
+    ----------
+    x: numpy.ndarray
+       Composition
+    eps: float
+        zeros will be altered to lowest non-zero
+        value of array times eps before normalising.
+    Returns
+    -------
+    numpy.ndarray
+         Composition with no zero proportions."""
+    if sum(x) == 0:
+        raise ValueError("Input vector cannot total zero.")
+    delta = min(x[nonzero(x)]) * eps
+    if delta < 0:
+        raise ValueError("Cannot have negative proportions.")
+    shape_zeros = x < delta
+    y = x + shape_zeros * delta
+    return y / sum(y)
