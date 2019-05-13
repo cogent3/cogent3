@@ -7,6 +7,7 @@ from fnmatch import fnmatch
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from warnings import warn
+from io import TextIOWrapper
 
 from cogent3.util.misc import open_, get_format_suffixes
 
@@ -22,11 +23,25 @@ class DataStoreMember(str):
         result = str.__new__(klass, name)
         result.name = os.path.basename(name)
         result.parent = parent
+        result._file = None
         return result
 
     def read(self):
         """returns contents"""
         return self.parent.read(self.name)
+
+    def open(self):
+        """returns file-like object"""
+        if self._file is None:
+            self._file = self.parent.open(self.name)
+        return self._file
+
+    def close(self):
+        """closes file"""
+        if self._file is None:
+            return
+        self._file.close()
+        self._file = None
 
 
 class ReadOnlyDataStoreBase:
@@ -110,6 +125,9 @@ class ReadOnlyDataStoreBase:
     def members(self):
         raise NotImplementedError  # override in subclasses
 
+    def open(self, identifier):
+        raise NotImplementedError
+
 
 class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):
     @property
@@ -128,15 +146,19 @@ class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):
         return self._members
 
     def read(self, identifier):
+        infile = self.open(identifier)
+        data = infile.read()
+        infile.close()
+        return data
+
+    def open(self, identifier):
         identifier = self.get_absolute_identifier(identifier,
                                                   from_relative=False)
         if not os.path.exists(identifier):
             raise ValueError(f"path '{identifier}' does not exist")
 
-        with open_(identifier) as infile:
-            data = infile.read()
-
-        return data
+        infile = open_(identifier)
+        return infile
 
 
 class SingleReadDataStore(ReadOnlyDirectoryDataStore):
@@ -186,11 +208,17 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
         return self._members
 
     def read(self, identifier):
-        identifier = self.get_relative_identifier(identifier)
-        with zipfile.ZipFile(self.source) as archive:
-            data = archive.read(identifier)
-        data = data.decode('utf8')
+        record = self.open(identifier)
+        data = record.read()
+        record.close()
         return data
+
+    def open(self, identifier):
+        identifier = self.get_relative_identifier(identifier)
+        archive = zipfile.ZipFile(self.source)
+        record = archive.open(identifier)
+        record = TextIOWrapper(record)
+        return record
 
 
 class WritableDataStoreBase:

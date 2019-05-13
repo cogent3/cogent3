@@ -4,8 +4,12 @@ from tempfile import TemporaryDirectory
 import shutil
 from unittest import TestCase, main
 from unittest.mock import Mock, patch
+
 from cogent3 import DNA
+from cogent3.util.table import Table
 from cogent3.app import io as io_app
+from cogent3.app.composable import NotCompletedResult
+from cogent3.app.data_store import WritableZippedDataStore
 from cogent3.core.alignment import SequenceCollection, ArrayAlignment
 
 __author__ = "Gavin Huttley"
@@ -66,7 +70,6 @@ class TestIo(TestCase):
 
         with self.assertRaises(ValueError):
             _ = io_app.get_data_store(self.basedir, 1)
-
 
     def test_load_aligned(self):
         """correctly loads aligned seqs"""
@@ -166,6 +169,34 @@ class TestIo(TestCase):
             got = reader(outpath)
             self.assertIsInstance(got, DNA.__class__)
             self.assertEqual(got, DNA)
+
+    def test_load_tabular(self):
+        """correctly loads tabular data"""
+        rows = [['1', '2'], ['3', '4'], ['5', '6.5']]
+        table = Table(['A', 'B'], rows=rows)
+        load_table = io_app.load_tabular(sep='\t', with_header=True)
+        with TemporaryDirectory(dir='.') as dirname:
+            outpath = join(dirname, 'delme.tsv')
+            table.write(outpath)
+            new = load_table(outpath)
+            self.assertEqual(type(new[0, 'B']), float)
+            self.assertEqual(type(new[0, 'A']), int)
+            outpath = join(dirname, 'delme2.tsv')
+            with open(outpath, 'w') as out:
+                out.write('\t'.join(table.header[:1]) + '\n')
+                for row in table.tolist():
+                    row = '\t'.join(map(str, row))
+                    out.write(row + '\n')
+            result = load_table(outpath)
+            self.assertIsInstance(result, NotCompletedResult)
+
+        with TemporaryDirectory(dir='.') as dirname:
+            outpath = join(dirname, 'delme.zip')
+            dstore = WritableZippedDataStore(outpath, suffix='tsv', create=True)
+            dstore.write('sample1.tsv', table.tostring('tsv'))
+            new = load_table(dstore[0])
+            self.assertEqual(type(new[0, 'B']), float)
+            self.assertEqual(type(new[0, 'A']), int)
 
     def test_write_json_with_info(self):
         """correctly writes an object with info attribute from json"""

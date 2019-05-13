@@ -1,6 +1,7 @@
 import os
 import zipfile
 import json
+import numpy
 
 from cogent3 import LoadSeqs
 from cogent3.core.moltype import get_moltype
@@ -8,12 +9,14 @@ from cogent3.parse.sequence import PARSERS
 from cogent3.format.alignment import FORMATTERS
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.util.deserialise import deserialise_object
+from cogent3.util.table import Table
 from .data_store import (SingleReadDataStore, SKIP, RAISE,
                          OVERWRITE, IGNORE, ReadOnlyZippedDataStore,
                          ReadOnlyDirectoryDataStore,
                          WritableDirectoryDataStore, WritableZippedDataStore, )
 from .composable import (ComposableSeq, ComposableAligned, Composable,
-                         _checkpointable, )
+                         _checkpointable, ComposableTabular,
+                         NotCompletedResult, )
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -152,6 +155,94 @@ class load_unaligned(ComposableSeq, _seq_loader):
             moltype = get_moltype(moltype)
         self.moltype = moltype
         self._parser = PARSERS[format.lower()]
+
+
+class load_tabular(ComposableTabular):
+    def __init__(self, with_title=False, with_header=True, limit=None,
+                 sep='\t', strict=True):
+        """
+
+        Parameters
+        ----------
+        with_title
+            files have a title
+        with_header
+            files have a header
+        limit
+            number of records to read
+        sep
+            field delimiter
+        strict
+            all rows MUST have the same number of records
+        """
+        super(ComposableTabular, self).__init__(input_type=None,
+                                                output_type='tabular')
+        self._formatted_params()
+        self._sep = sep
+        self._with_title = with_title
+        self._with_header = with_header
+        self._limit = limit
+        self.func = self.load
+        self.strict = strict
+
+    def _parse(self, data):
+        title = header = None
+        sep = self._sep
+        strict = self.strict
+        read = data.open()
+        if self._with_title or self._with_header:
+            for line in read:
+                line = line.strip()
+                if not line:
+                    continue
+                if self._with_title and title is None:
+                    title = line
+                elif self._with_header and header is None:
+                    line = [e.strip() for e in line.split(sep)]
+                    header = line
+                    break
+        num_records = None if header is None else len(header)
+        rows = []
+        for i, line in enumerate(read):
+            if i == self._limit:
+                break
+            line = line.strip()
+            line = [e.strip() for e in line.split(sep)]
+            if num_records is None:
+                num_records = len(line)
+            if strict and len(line) != num_records:
+                msg = (f'Inconsistent number of fields: {len(line)} '
+                       '!= {num_records}')
+                raise AssertionError(msg)
+            rows.append(line)
+        data.close()
+        records = []
+        for record in zip(*rows):
+            record = numpy.array(record, dtype='O')
+            try:
+                record = record.astype(int)
+            except ValueError:
+                try:
+                    record = record.astype(float)
+                except ValueError:
+                    pass
+            records.append(record)
+        records = numpy.array(records, dtype='O').T
+        table = Table(header, rows=records, title=title)
+        return table
+
+    def load(self, path):
+        if type(path) == str:
+            # we use a data store as it's read() handles compression
+            path = SingleReadDataStore(path)[0]
+
+        try:
+            result = self._parse(path)
+        except Exception as err:
+            result = NotCompletedResult('ERROR', self, err.args[0],
+                                        source=str(path))
+
+        return result
 
 
 class write_seqs(_checkpointable):
