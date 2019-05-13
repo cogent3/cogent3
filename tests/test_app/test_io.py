@@ -179,6 +179,7 @@ class TestIo(TestCase):
             outpath = join(dirname, 'delme.tsv')
             table.write(outpath)
             new = load_table(outpath)
+            self.assertEqual(new.title, '')
             self.assertEqual(type(new[0, 'B']), float)
             self.assertEqual(type(new[0, 'A']), int)
             outpath = join(dirname, 'delme2.tsv')
