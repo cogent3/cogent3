@@ -159,7 +159,7 @@ class SimplexTransform:
         """regular tetrahedron with one vertex at origin, one edge on x axis and 
         one face (base) in x-y plane."""
         q = array([[0, 0, 0], 
-                   [sqrt(2),0,0], 
+                   [sqrt(2), 0, 0],
                    [1/sqrt(2), sqrt(3/2), 0], 
                    [1/sqrt(2), 1/sqrt(6), 2 * sqrt(1/3)]])
         self.q = q
