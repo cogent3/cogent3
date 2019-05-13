@@ -129,9 +129,13 @@ class ReadOnlyDataStoreBase:
     def open(self, identifier):
         raise NotImplementedError
 
-    def filtered(self, callback):
+    def filtered(self, pattern=None, callback=None):
         """returns list of members for which callback returns True"""
-        result = [m for m in self if callback(m)]
+        assert any([callback, pattern]), 'Must provide a pattern or a callback'
+        if pattern:
+            result = [m for m in self if fnmatch(m, pattern)]
+        else:
+            result = [m for m in self if callback(m)]
         return result
 
 

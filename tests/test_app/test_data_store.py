@@ -133,9 +133,14 @@ class DataStoreBaseTests:
 
     def test_filter(self):
         """filter method should return correctly matching members"""
-        dstore = self.ReadClass(self.basedir, suffix='fa*')
-        got = [m.name for m in dstore.filtered(lambda x: 'brca1' in str(x))]
+        dstore = self.ReadClass(self.basedir, suffix='*')
+        got = [m.name for m in
+               dstore.filtered(callback=lambda x: 'brca1' in str(x))]
         self.assertTrue(len(set(got)), 2)
+        got = dstore.filtered(pattern='*brca1*')
+        expect = [path for path in os.listdir(self.basedir.replace('.zip', ''))
+                  if 'brca1' in path]
+        self.assertEqual(len(got), len(expect))
 
 
 class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
