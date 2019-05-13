@@ -3,6 +3,7 @@ import functools
 import threading
 import sys
 import io
+import os
 from tqdm import tqdm, tqdm_notebook
 from cogent3.util import parallel2
 
@@ -12,10 +13,10 @@ __credits__ = ["Peter Maxwell", "Sheng Han Moses Koh"]
 __license__ = "GPL"
 __version__ = ""
 
-class LogFileOutput(object):
+class LogFileOutput:
     """A fake progress bar for when progress bars are impossible"""
 
-    def __init__(self, total=1, leave=False, bar_format=None):
+    def __init__(self, total=1, depth=0, leave=False, bar_format=None):
         self.n = 0
         self.message = ''
         self.t0 = time.time()
@@ -36,26 +37,26 @@ class LogFileOutput(object):
                 self.lpad, delta, progress,
                 str(self.message)), file=self.output)
 
-class ProgressContext(object):
 
-    def __init__(self, progress_bar_type=None, prefix=None, base=0.0, segment=1.0,
-                 rate=1.0):
+class ProgressContext:
+    def __init__(self, progress_bar_type=None, depth=-1, message=None, rate=1.0):
         self.progress_bar_type = progress_bar_type
         self.progress_bar = None
         self.progress = 0
-        self.msg = ''
-        self.prefix = prefix or []
-        self.message = self.prefix + [self.msg]
+        self.depth = depth
+        self.message = message
         self.rate = rate
 
     def set_new_progress_bar(self):
         if self.progress_bar_type:
-            self.progress_bar = self.progress_bar_type(total=1, leave=False,
-                                    bar_format='{desc} {percentage:3.0f}%|{bar}| '
-                                            '{n_fmt:.10}/{total_fmt} '
-                                            '[{rate_fmt}{postfix}]')
+            self.progress_bar = self.progress_bar_type(total=1, position=self.depth, leave=True,
+                                    bar_format='{desc} {percentage:3.0f}%|{bar}| ')
     def subcontext(self, *args, **kw):
-        return self
+        return ProgressContext(
+            progress_bar_type = self.progress_bar_type,
+            depth=self.depth+1,
+            message=self.message,
+            rate=self.rate)
 
     def display(self, msg=None, progress=None, current=0.0):
         if not self.progress_bar:
@@ -67,18 +68,14 @@ class ProgressContext(object):
             updated = True
         else:
             self.progress_bar.n = 1
-        if msg is not None and msg != self.msg:
-            self.msg = self.message[-1] = msg
-            self.progress_bar.set_description(self.message[0],
+        if msg is not None and msg != self.message:
+            self.message = msg
+            self.progress_bar.set_description(self.message,
                                                 refresh=False)
             updated = True
         if updated:
-            self.render(progress)
-
-    def render(self, progress=True):
-        if self.progress_bar:
             self.progress_bar.refresh()
-
+            
     def done(self):
         if self.progress_bar:
             self.progress_bar.close()
@@ -109,6 +106,12 @@ class ProgressContext(object):
             yield item
         self.display(progress=end)
 
+    def write(self, *args, **kw):
+        if self.progress_bar_type and len(kw) < 3 and not using_notebook():
+            self.progress_bar_type.write(*args, **kw)
+        else:
+            print(*args, **kw)
+
     def imap(self, f, s, workers=None, pure=True, **kw):
         if pure:
             results = parallel2.map(f, s, workers)
@@ -125,7 +128,7 @@ class NullContext(ProgressContext):
     and other situations where all output is suppressed"""
     def subcontext(self, *args, **kw):
         return self
-    
+
     def display(self, *args, **kw):
         pass
 
@@ -147,10 +150,12 @@ def display_wrap(slow_function):
     """Decorator which give the function its own UI context.
     The function will receive an extra argument, 'ui',
     which is used to report progress etc."""
-
+    depth = 0
     @functools.wraps(slow_function)
     def f(*args, **kw):
+        nonlocal depth
         if getattr(CURRENT, 'context', None) is None:
+            rate = None
             if sys.stdout.isatty():
                 klass = tqdm
             elif using_notebook():
@@ -165,7 +170,9 @@ def display_wrap(slow_function):
             if klass is None:
                 CURRENT.context = NULL_CONTEXT
             else:
-                CURRENT.context = ProgressContext(klass, rate=0.1)
+                if rate is None:
+                    rate = 0.1
+                CURRENT.context = ProgressContext(klass, rate=rate)
         parent = CURRENT.context
         show_progress = kw.pop('show_progress', None)
         if show_progress is False:
@@ -193,15 +200,15 @@ def subdemo(ui):
 
 @display_wrap
 def demo(ui):
-    print("non-linebuffered output, tricky but look:", end=' ')
+    ui.write("non-linebuffered output, tricky but look:")
     for i in ui.series(list(range(10))):
         time.sleep(.6)
         if i == 5:
-            print('\nhalfway through, a new line: ', end=' ')
+            ui.write('halfway through, a new line: ')
         if i % 2:
             subdemo()
-        print(i, ".", end=' ')
-    print("done")
+        ui.write(str(i)+".")
+    ui.write("done")
 
 if __name__ == '__main__':
     demo()
