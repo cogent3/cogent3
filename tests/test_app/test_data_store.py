@@ -164,6 +164,10 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
     def tearDown(self):
         os.remove(self.basedir)
 
+    def test_write_no_parent(self):
+        """zipped data store handles archive with no parent dir"""
+        self.WriteClass('delme.zip', create=True, suffix='fa')
+
 
 class SingleReadStoreTests(TestCase):
     basedir = 'data/brca1.fasta'
