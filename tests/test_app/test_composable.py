@@ -101,12 +101,12 @@ class TestNotCompletedResult(TestCase):
         # check source correctly deduced from provided object
         fake_source = Mock()
         fake_source.source = 'blah'
-        del(fake_source.info)
+        del (fake_source.info)
         result = NotCompletedResult('SKIP', 'this', 'err', source=fake_source)
         self.assertIs(result.source, 'blah')
 
         fake_source = Mock()
-        del(fake_source.source)
+        del (fake_source.source)
         fake_source.info.source = 'blah'
         result = NotCompletedResult('SKIP', 'this', 'err', source=fake_source)
         self.assertIs(result.source, 'blah')
@@ -146,6 +146,29 @@ class TestNotCompletedResult(TestCase):
         qt = quick_tree()
         self.assertEqual(str(qt), "quick_tree(type='tree', distance='TN93',"
                                   " moltype='dna')")
+
+
+class TestPicklable(TestCase):
+    def test_composite_pickleable(self):
+        """composable functions should be pickleable"""
+        from pickle import dumps
+        from cogent3.app import io, sample, evo, tree, translate, align
+        read = io.load_aligned(moltype='dna')
+        dumps(read)
+        trans = translate.select_translatable()
+        dumps(trans)
+        aln = align.progressive_align('nucleotide')
+        dumps(aln)
+        just_nucs = sample.omit_degenerates(moltype='dna')
+        dumps(just_nucs)
+        limit = sample.fixed_length(1000, random=True)
+        dumps(limit)
+        mod = evo.model('HKY85')
+        dumps(mod)
+        qt = tree.quick_tree()
+        dumps(qt)
+        proc = read + trans + aln + just_nucs + limit + mod
+        dumps(proc)
 
 
 if __name__ == "__main__":
