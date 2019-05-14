@@ -668,12 +668,12 @@ We then call the method, without this argument, then with it.
 
     >>> straight_html = dist.to_rich_html(compact=True)
     >>> print(straight_html)
-    <table><thead><th>seq1/2</th><th>a...
+    <table><thead style="font-weight: bold;"...
     >>> rich_html = dist.to_rich_html(row_cell_func=format_cell,
     ...                                  compact=False)
     >>> print(rich_html)
     <table>
-    <thead>
+    <thead style="font-weight: bold;">
     <th>seq1/2</th>
     <th>a</th>
     <th>c</th>

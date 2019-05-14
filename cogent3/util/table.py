@@ -244,12 +244,55 @@ class Table(DictArray):
         table = self.__class__(header=self.header, rows=rows, **kwargs)
         return table, shape_info
 
-    def _repr_html_(self):
+    def _repr_html_(self, include_shape=True):
         """returns html, used by Jupyter"""
+        base_colour = 'rgba(161, 195, 209, {alpha})'
+        def row_cell_func(val, row, col):
+            colour = base_colour.format(alpha=0.25)
+            try:
+                float(val)
+            except ValueError:
+                is_numeric = False
+            else:
+                is_numeric = True
+
+            if self._row_ids and col == 0:
+                style = f' style="background: {colour}; font-weight: 600;"'
+            elif is_numeric:
+                style = f' style="font-family: monospace !important;"'
+            else:
+                style = ''
+            val = f'<td{style}>{val}</td>'
+            return val
         table, shape_info = self._get_repr_()
         shape_info = f"<p>{shape_info}</p>"
-        html = table.to_rich_html()
-        html = '\n'.join([html, shape_info])
+        if not include_shape:
+            shape_info = ''
+
+        title, legend = table.title, table.legend
+        # current rich_html does not provide a good mechanism for custom
+        # formatting of titles, legends
+        table.title, table.legend = None, None
+        head_colour = base_colour.format(alpha=0.75)
+        element_format = dict(thead=f'<thead style="background: {head_colour}; '
+                                    'font-weight: bold; text-align: center;">')
+        html = table.to_rich_html(row_cell_func=row_cell_func,
+                                  element_formatters=element_format)
+        if title or legend:
+            title = title or ''
+            legend = legend or ''
+            caption = ('<caption style="color: rgb(250, 250, 250); '
+                       'background: rgba(30, 140, 200, 1); align=top;">'
+                       f'<span style="font-weight: bold;">{title}</span>'
+                       f'<span>{legend}</span></caption>')
+            html = html.splitlines()
+            html.insert(1, caption)
+            html = '\n'.join(html)
+        html = html.splitlines()
+        html.insert(1, '\n'.join(['<style>',
+                                  'tr:last-child {border-bottom: 1px solid #000}'
+                                  '</style>']))
+        html = '\n'.join(['\n'.join(html), shape_info])
         return html
 
     def __str__(self):
@@ -487,7 +530,8 @@ class Table(DictArray):
         title = self.title if self.title else ""
         if title:
             title = escape(title)
-            title = '<span style="font-weight:bold">%s</span>' % title
+            title = element_formatters.get('caption',
+                f'<span style="font-weight:bold">{title}</span>')
 
         legend = self.legend if self.legend else ""
         if legend:
