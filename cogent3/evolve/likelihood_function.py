@@ -411,10 +411,6 @@ class LikelihoodFunction(ParameterController):
 
     def _repr_html_(self):
         """for jupyter notebook display"""
-        def row_cell_func(val, col, row):
-            val = '<td style="font-family: monospace, monospace">%s</td>' % val
-            return val
-
         try:
             lnL = "<p>log-likelihood = %.4f</p>" % self.get_log_likelihood()
         except ValueError:
@@ -426,7 +422,7 @@ class LikelihoodFunction(ParameterController):
         title, results = self._for_display()
         for i, table in enumerate(results):
             table.title = table.title.capitalize()
-            results[i] = table.to_rich_html(row_cell_func=row_cell_func)
+            results[i] = table._repr_html_(include_shape=False)
         results = ["<h4>%s</h4>" % title, lnL, nfp] + results
         return "\n".join(results)
 
