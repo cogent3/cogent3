@@ -82,7 +82,9 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
     formatted = element_formatters.get
     data = [formatted('table', '<table>')]
     if caption:
-        data.append('<caption align="top">%s</caption>' % caption)
+        data.append('<caption style="font-weight: bold;"'
+                    'background:rgba(30, 140, 200, 1)"; '
+                    f'align="top">{caption}</caption>')
 
     if row_cell_func is None:
         def row_cell_func(v, r, c):
@@ -98,7 +100,8 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
         row_iterator = enumerate
 
     if header:
-        thead = formatted('thead', '<thead>')
+        thead = formatted('thead',
+                          '<thead style="font-weight: bold;">')
         row = [header_cell_func(escape(label), i)
                for i, label in enumerate(header)]
         data += [thead] + row + ['</thead>']
