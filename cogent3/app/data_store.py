@@ -400,7 +400,7 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         elif dirname and not os.path.exists(dirname) and not create:
             raise RuntimeError(f"'{dirname}' does not exist")
 
-        if create:
+        if create and dirname:
             os.makedirs(dirname, exist_ok=True)
 
     def write(self, identifier, data):
