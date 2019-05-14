@@ -505,7 +505,7 @@ class Table(DictArray):
                                                        self.space))
 
     def to_rich_html(self, row_cell_func=None, header_cell_func=None,
-                     element_formatters={}, merge_identical=False,
+                     element_formatters=None, merge_identical=False,
                      compact=False):
         """returns just the table html code.
         Arguments:
@@ -518,6 +518,7 @@ class Table(DictArray):
               e.g. {'table': lambda x: '<table border="1" class="docutils">'}
             - merge_identical: cells within a row are merged to one span.
         """
+        element_formatters = element_formatters or {}
         formatted_table = self.array.tolist()
         header, formatted_table = table_format.formatted_cells(formatted_table,
                                                                self.header,
