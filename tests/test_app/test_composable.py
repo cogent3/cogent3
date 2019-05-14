@@ -181,5 +181,16 @@ class TestPicklable(TestCase):
         self.assertEqual(err.source, new.source)
         self.assertEqual(err.origin, new.origin)
 
+    def test_triggers_bugcatcher(self):
+        """a composable that does not trap failures returns NotCompletedResult
+        requesting bug report"""
+        from cogent3.app import io, sample, evo, tree, translate, align
+        read = io.load_aligned(moltype='dna')
+        read.func = lambda x: None
+        got = read('somepath.fasta')
+        self.assertIsInstance(got, NotCompletedResult)
+        self.assertEqual(got.type, 'BUG')
+
+
 if __name__ == "__main__":
     main()
