@@ -55,12 +55,22 @@ class NotCompletedResult(int):
         source : str or instance with .info.source or .source attributes
             the data operated on that led to this result. Can
         """
+        # todo this approach to caching persistent arguments for reconstruction
+        # is fragile. Need an inspect module based approach
+        d = locals()
+        d.pop('cls')
         result = int.__new__(cls, False)
+        args = tuple(d.pop(v) for v in ('type', 'origin', 'message'))
+        result._persistent = args, d
+
         result.type = type
         result.origin = _get_origin(origin)
         result.message = message
         result.source = _get_source(source)
         return result
+
+    def __getnewargs_ex__(self, *args, **kw):
+        return self._persistent[0], self._persistent[1]
 
     def __str__(self):
         name = self.__class__.__name__

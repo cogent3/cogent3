@@ -170,6 +170,16 @@ class TestPicklable(TestCase):
         proc = read + trans + aln + just_nucs + limit + mod
         dumps(proc)
 
+    def test_not_completed_result(self):
+        """should survive roundtripping pickle"""
+        from pickle import dumps, loads
+        err = NotCompletedResult('FAIL', 'mytest', 'can we roundtrip')
+        p = dumps(err)
+        new = loads(p)
+        self.assertEqual(err.type, new.type)
+        self.assertEqual(err.message, new.message)
+        self.assertEqual(err.source, new.source)
+        self.assertEqual(err.origin, new.origin)
 
 if __name__ == "__main__":
     main()
