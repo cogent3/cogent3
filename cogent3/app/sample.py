@@ -290,17 +290,20 @@ class min_length(ComposableSeq):
         return data
 
 
-def _GetStart(start):
+class _GetStart:
     choose = np_random.choice
+    def __init__(self, start):
+        self._start = start
+        self.func = {True: self._int}.get(type(start) == int, self._rand)
 
-    def _int(length):
-        return start
+    def _int(self, length):
+        return self._start
 
-    def _rand(length):
-        return choose(length)
+    def _rand(self, length):
+        return self.choose(length)
 
-    func = {True: _int}.get(type(start) == int, _rand)
-    return func
+    def __call__(self, length):
+        return self.func(length)
 
 
 class fixed_length(ComposableAligned):

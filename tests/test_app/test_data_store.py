@@ -142,6 +142,13 @@ class DataStoreBaseTests:
                   if 'brca1' in path]
         self.assertEqual(len(got), len(expect))
 
+    def test_pickleable(self):
+        """data store members should be pickleable"""
+        from pickle import dumps
+        dstore = self.ReadClass(self.basedir, suffix='*')
+        r = dumps(dstore[0])
+        dumps(dstore)
+
 
 class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
     basedir = 'data'
