@@ -56,6 +56,11 @@ class TranslateTests(TestCase):
         got = degen(aln)
         self.assertEqual(got.todict(), {'a': 'ACGAGAG',
                                         'b': 'GATGTGT'})
+        aln = LoadSeqs(data=[('a', '-C-A-G-C-'),
+                             ('b', 'G-T-A-G-T')])
+        got = degen(aln)
+        self.assertIsInstance(got, composable.NotCompletedResult)
+
 
     def test_codon_positions_4fold_degen(self):
         '''codon_positions correctly return fourfold degenerate bases'''
