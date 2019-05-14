@@ -234,6 +234,12 @@ class Composable(ComposableType):
             return val
 
         result = self.func(val, *args, **kwargs)
+        if not result and type(result) != NotCompletedResult:
+            msg = ('This is unexpected! Please post this error message along'
+                   ' with the code and data indicated as an Issue on the'
+                   ' bitbucket project page.')
+            origin = str(self)
+            result = NotCompletedResult('BUG', origin, msg, source=val)
 
         return result
 
