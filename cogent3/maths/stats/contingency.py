@@ -367,10 +367,10 @@ class TestResult:
         return repr(self)
 
     def _repr_html_(self):
+        from cogent3.util.table import Table
         h, r = self._get_repr_()
-        result = rich_html(r, header=h, caption=f'<b>{self.test_name}</b>',
-                  merge_identical=False)
-        return result
+        table = Table(h, r, title=self.test_name)
+        return table._repr_html_(include_shape=False)
 
 
 
