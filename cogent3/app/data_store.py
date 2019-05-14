@@ -20,7 +20,7 @@ IGNORE = 'ignore'
 
 
 class DataStoreMember(str):
-    def __new__(klass, name, parent):
+    def __new__(klass, name, parent=None):
         result = str.__new__(klass, name)
         result.name = os.path.basename(name)
         result.parent = parent
@@ -63,6 +63,13 @@ class ReadOnlyDataStoreBase:
             variant)
         """
         # assuming delimiter is /
+
+        # todo this approach to caching persistent arguments for reconstruction
+        # is fragile. Need an inspect module based approach
+        d = locals()
+        d.pop('self')
+        self._persistent = d
+
         suffix = suffix or ''
         if suffix != '*':  # wild card search for all
             suffix = re.sub(r'^[\s.*]+', '', suffix)  # tidy the suffix
@@ -74,6 +81,15 @@ class ReadOnlyDataStoreBase:
         self._members = []
         self.limit = limit
         self._verbose = verbose
+
+    def __getstate__(self):
+        data = self._persistent.copy()
+        return data
+
+    def __setstate__(self, data):
+        new = self.__class__(**data)
+        self.__dict__.update(new.__dict__)
+        return self
 
     def __repr__(self):
         if len(self) > 3:
@@ -155,7 +171,8 @@ class ReadOnlyDataStoreBase:
 
     def filtered(self, pattern=None, callback=None):
         """returns list of members for which callback returns True"""
-        assert any([callback, pattern]), 'Must provide a pattern or a callback'
+        assert any([callback, pattern]
+                   ), 'Must provide a pattern or a callback'
         if pattern:
             result = [m for m in self if fnmatch(m, pattern)]
         else:

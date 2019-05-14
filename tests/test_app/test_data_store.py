@@ -142,12 +142,22 @@ class DataStoreBaseTests:
                   if 'brca1' in path]
         self.assertEqual(len(got), len(expect))
 
-    def test_pickleable(self):
-        """data store members should be pickleable"""
-        from pickle import dumps
+    def test_pickleable_roundtrip(self):
+        """pickling of data stores should be reversible"""
+        from pickle import dumps, loads
         dstore = self.ReadClass(self.basedir, suffix='*')
-        r = dumps(dstore[0])
-        dumps(dstore)
+        re_dstore = loads(dumps(dstore))
+        got = re_dstore[0].read()
+        self.assertEqual(str(dstore), str(re_dstore))
+        self.assertEqual(dstore[0].read(), re_dstore[0].read())
+
+    def test_pickleable_member_roundtrip(self):
+        """pickling of data store members should be reversible"""
+        from pickle import dumps, loads
+        dstore = self.ReadClass(self.basedir, suffix='*')
+        re_member = loads(dumps(dstore[0]))
+        data = re_member.read()
+        self.assertTrue(len(data) > 0)
 
 
 class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
