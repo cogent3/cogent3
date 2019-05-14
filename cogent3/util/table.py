@@ -1160,3 +1160,48 @@ class Table(DictArray):
         header = [new_column_name] + header[1:]
         rows = numpy.take(transposed, data_indices, axis=0)
         return Table(header=header, rows=rows, **kwargs)
+
+    def to_plotly(self, width=500, font_size=12, layout=None, **kwargs):
+        """returns a Plotly Table"""
+        import plotly.graph_objs as go
+        from cogent3.draw.drawable import Drawable
+
+        rows = self.array.tolist()
+        header, rows = table_format.formatted_cells(rows,
+                                                    self.header,
+                                                    digits=self._digits,
+                                                    column_templates=self._column_templates,
+                                                    missing_data=self._missing_data,
+                                                    center=False)
+        # we strip white space padding from header and cells
+        header = [e.strip() for e in header]
+        rows = [[e.strip() for e in row] for row in rows]
+        rows = list(zip(*rows))
+        if self._row_ids:
+            body_colour = ['white'] * self.shape[0]
+            index_colour = ['rgba(161, 195, 209, 0.5)'] * self.shape[0]
+            colours = [index_colour] + [body_colour[:]
+                                        for i in range(self.shape[1])]
+            rows[0] = [f'<b>{e}</b>' for e in rows[0]]
+        else:
+            colours = 'white'
+
+        tab = go.Table(header=dict(values=[f'<b>{c}</b>' for c in header],
+                                   fill=dict(color='rgba(161, 195, 209, 1)'),
+                                   font=dict(size=font_size),
+                                   align='center'),
+                       cells=dict(values=rows,
+                                  fill=dict(color=colours)))
+        draw = Drawable()
+        aspect_ratio = self.shape[0] / self.shape[1]
+        layout = layout or {}
+        default_layout = dict(width=width,
+                              height=aspect_ratio * width,
+                              autosize=False,
+                              title=self.title,
+                              margin=dict(l=10, r=10,
+                                          t=30, b=10,
+                                          pad=10))
+        default_layout.update(layout)
+        draw._trace = dict(data=[tab], layout=default_layout)
+        return draw
