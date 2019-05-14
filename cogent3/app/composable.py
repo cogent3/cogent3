@@ -72,6 +72,9 @@ class NotCompletedResult(int):
     def __getnewargs_ex__(self, *args, **kw):
         return self._persistent[0], self._persistent[1]
 
+    def __repr__(self):
+        return str(self)
+
     def __str__(self):
         name = self.__class__.__name__
         source = self.source or 'Unknown'
