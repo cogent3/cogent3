@@ -119,9 +119,14 @@ class omit_degenerates(ComposableAligned):
             # try converting
             aln = aln.to_type(moltype=self.moltype,
                               array_align=True)
-        aln = aln.no_degenerates(motif_length=self._motif_length,
-                                 allow_gap=self._allow_gap)
-        return aln
+        result = aln.no_degenerates(motif_length=self._motif_length,
+                                    allow_gap=self._allow_gap)
+        if not result:
+            result = NotCompletedResult('FAIL', self,
+                                        'all columns contained degenerates',
+                                        source=aln)
+
+        return result
 
 
 class take_codon_positions(ComposableAligned):
@@ -292,6 +297,7 @@ class min_length(ComposableSeq):
 
 class _GetStart:
     choose = np_random.choice
+
     def __init__(self, start):
         self._start = start
         self.func = {True: self._int}.get(type(start) == int, self._rand)
