@@ -2492,6 +2492,69 @@ class AlignmentI(object):
         result = calculator.get_pairwise_distances()
         return result
 
+    def information_plot(self, width=None, height=None, window=None,
+                         stat='median', include_gap=True):
+        """plot information per position
+
+        Parameters
+        ----------
+        width : int
+            figure width in pixels
+        height : int
+            figure height in pixels
+        window : int or None
+            used for smoothing line, defaults to sqrt(length)
+        stat : str
+            'mean' or 'median, used as the summary statistic for each window
+        include_gap
+            whether to include gap counts, shown on right y-axis
+        """
+        from plotly import graph_objs as go
+        from cogent3.draw.drawable import Drawable
+
+        window = window if window else numpy.sqrt(len(self))
+        window = int(window)
+        y = self.entropy_per_pos()
+        y = y.max() - y  # convert to information
+        stats = {'mean': numpy.mean, 'median': numpy.median}
+        if stat not in stats:
+            raise ValueError('stat must be either "mean" or "median"')
+        calc_stat = stats[stat]
+        num = len(y) - window
+        v = [calc_stat(y[i: i + window]) for i in range(0, num)]
+        x = numpy.arange(num)
+        x += window // 2  # shift x-coordinates to middle of window
+        trace_line = go.Scatter(x=x, y=v, mode='lines',
+                                name='smoothed',
+                                line=dict(shape='spline', smoothing=1.3))
+        trace_marks = go.Scatter(x=numpy.arange(y.shape[0]),
+                                 y=y,
+                                 mode='markers',
+                                 opacity=0.5,
+                                 name='per position')
+        layout = dict(title='Information per position',
+                      xaxis=dict(title='Position'),
+                      width=width,
+                      height=height,
+                      yaxis=dict(title=f'{stat} Information (window={window})'),
+                      showlegend=True,
+                      yaxis2=dict(title='Count', side='right',
+                                  overlaying='y'))
+        if include_gap:
+            gap_counts = self.count_gaps_per_pos()
+            y = [calc_stat(gap_counts[i: i + window]) for i in range(0, num)]
+            trace_g = go.Scatter(x=x, y=y, yaxis='y2', name='Gaps', mode='lines',
+                             line=dict(shape='spline', smoothing=1.3))
+            traces = [trace_marks, trace_line, trace_g]
+        else:
+            layout.pop('yaxis2')
+            traces = [trace_marks, trace_line]
+
+        draw = Drawable(title='Information per position')
+        draw.traces.extend(traces)
+        draw.layout.update(layout)
+        return draw
+
 
 def _one_length(seqs):
     """raises ValueError if seqs not all same length"""
