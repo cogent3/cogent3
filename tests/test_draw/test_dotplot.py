@@ -69,7 +69,8 @@ class TestUtilFunctions(TestCase):
         expect = [0, 2, None, 6, 8, None, 12, 14], [1, 3, None, 4, 6, None, 7,
                                                     9]
         self.assertEqual(dp._aligned_coords, expect)
-        traces = dp.get_trace(window=5)
+        dp._build_fig(window=5)
+        traces = dp.traces
         self.assertEqual(len(traces), 2)  # no rev complement
         # we nudge alignment coordinates by 0.2 on x-axis
         expect = (0.2, 2.2, None, 6.2, 8.2, None, 12.2, 14.2)

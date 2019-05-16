@@ -1689,7 +1689,6 @@ class TreeNode(object):
 
         klass = SquareDendrogram if kind == 'square' else CircularDendrogram
         dnd = klass(self)
-        dnd._set_initial_layout()
         return dnd
 
 

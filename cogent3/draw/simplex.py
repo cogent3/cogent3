@@ -12,39 +12,31 @@ __status__ = "Alpha"
 
 
 class Simplex(Drawable):
-    def __init__(self, probabilties):
+    def __init__(self, probabilties, vertex_labels=None, connect_points=False):
+        super(Simplex, self).__init__()
+        self.vertex_labels = vertex_labels
+        self.connect_points = connect_points
         self.probabilities = probabilties
-        self._trace = None
 
-    def get_trace(self, title=None):
-        # calculate the width based on ratio of seq lengths
-        if self._trace is None:
-            self._set_initial_layout(title=title, probabilities=[])
-
-        return list(self._trace['data'])
-
-    def set_layout(self, layout_updates):
-        self._trace['layout'] = layout_updates
-
-    def update_layout(self, layout_updates):
-        self._trace['layout'].update(layout_updates)
-
-    def _set_initial_layout(self, width=800, height=800, title=None, **kw):
+    def _build_fig(self, width=800, height=800, title=None, **kw):
         import plotly.graph_objs as go
         from numpy import array
         from itertools import combinations
+        layout = {k:v for k, v in locals().items() if k != 'self' and v}
+        self.layout.update(layout)
 
         probs = array(self.probabilities)
-        simplex = array(SimplexTransform())
-
+        simplex = SimplexTransform().q
         coords_3d = list(map(lambda x: x @ simplex, probs))
         coords_3d = array(sorted(coords_3d, key=lambda x: x[0]))
 
         combinations = array(list(combinations(simplex, 2)))
+        vertex_labels = self.vertex_labels if self.vertex_labels else list('ACGT')
 
         data = [
             go.Scatter3d(
                 # Draw the edges of the Tetrahedron
+                name='Tetrahedron Outline',
                 x=combinations[:, :, 0].ravel(),
                 y=combinations[:, :, 1].ravel(),
                 z=combinations[:, :, 2].ravel(),
@@ -70,7 +62,7 @@ class Simplex(Drawable):
                     color='#1f77b4',
                     colorscale='Viridis',
                 ),
-                text=['A', 'B', 'C', 'D'],
+                text=vertex_labels,
                 mode='markers+text',
                 hoverinfo='skip'
             ),
@@ -111,4 +103,5 @@ class Simplex(Drawable):
             autosize=True,
 
         )
-        self._trace = go.Figure(data=data, layout=layout)
+        self.traces.extend(data)
+        self._layout = layout

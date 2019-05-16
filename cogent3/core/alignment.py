@@ -19,12 +19,15 @@
     passed in a stream of two-item label, sequence pairs. However, this can
     cause confusion when testing.
 """
+import os
 import re
 import json
 import warnings
 from types import GeneratorType
 from collections import defaultdict, Counter
 from functools import total_ordering
+
+import numpy
 
 from cogent3.core.annotation import Map, _Annotatable
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
@@ -1610,8 +1613,7 @@ class SequenceCollection(object):
 
         dotplot = Display2D(self.named_seqs[name1], self.named_seqs[name2],
                             moltype=self.moltype)
-        dotplot._set_initial_layout(window=window, threshold=threshold,
-                       min_gap=min_gap, width=width, title=title)
+        dotplot.calc_lines(window=window, threshold=threshold, min_gap=min_gap)
         return dotplot
 
 
