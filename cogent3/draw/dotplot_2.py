@@ -1,5 +1,5 @@
 from cogent3.core.moltype import get_moltype
-from cogent3.draw.drawable import Drawable, _iplot
+from cogent3.draw.drawable import Drawable
 from cogent3.align.align import dotplot
 
 __author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
@@ -117,14 +117,28 @@ class Display2D(Drawable):
 
         map1, seq1 = _convert_input(seq1, moltype)
         map2, seq2 = _convert_input(seq2, moltype)
+        height = 500 * len(seq2) / len(seq1)
+
+        super(Display2D, self).__init__(visible_axes=True, showlegend=True,
+                                        width=500, height=height)
 
         self.seq1 = seq1
         self.seq2 = seq2
         self._aligned_coords = get_align_coords(map1, map2)
         self._cache = {}
-        self._trace = None
 
-    def _calc_lines(self, window, threshold, min_gap):
+    def calc_lines(self, window=20, threshold=None, min_gap=0):
+        """
+        Parameters
+        ----------
+        window : int
+            k-mer size for comparison between sequences
+        threshold : int
+            windows where the sequences are identical >= threshold are a match
+        min_gap : int
+            permitted gap for joining adjacent line segments, default is no gap
+            joining
+        """
         # Cache dotplot line segment coordinates as they can sometimes
         # be re-used at different resolutions, colours etc.
         (len1, len2) = len(self.seq1), len(self.seq2)
@@ -134,7 +148,7 @@ class Display2D(Drawable):
             threshold = suitable_threshold(
                 window, acceptable_noise / universe)
 
-        key = (min_gap, window, threshold)
+        key = (window, threshold, min_gap)
         if key not in self._cache:
             fwd = dotplot(str(self.seq1), str(self.seq2),
                           window, threshold, min_gap, None)
@@ -153,72 +167,30 @@ class Display2D(Drawable):
 
         return self._cache[key]
 
-    def get_trace(self, window=20, threshold=None, min_gap=0, width=500,
-                  title=None):
-        """
-
-        Parameters
-        ----------
-        window : int
-            k-mer size for comparison between sequences
-        threshold : int
-            windows where the sequences are identical >= threshold are a match
-        min_gap : int
-            permitted gap for joining adjacent line segments, default is no gap
-            joining
-        width : int
-            figure width. Figure height is computed based on the ratio of
-            len(seq1) / len(seq2)
-        title
-            title for the plot
-
-        Returns
-        -------
-        Plotly compatible traces for forward (+ strand), reverse (- strand only
-        for DNA or RNA) and Aligned (only if the input sequences were actually
-        aligned).
-        """
-        if self._trace is None:
-            self._set_initial_layout(window=window, threshold=threshold,
-                                     min_gap=min_gap, width=width,
-                                     title=title)
-
-        return list(self._trace['data'])
-
-    def set_layout(self, layout_updates):
-        self._trace['layout'] = layout_updates
-
-    def update_layout(self, layout_updates):
-        self._trace['layout'].update(layout_updates)
-
-    def _set_initial_layout(self, width=500, title=None, window=20,
-                            min_gap=0, threshold=None, **kw):
+    def _build_fig(self, window=20, min_gap=0, threshold=None, **kw):
         import plotly.graph_objs as go
         # calculate the width based on ratio of seq lengths
-        height = width * len(self.seq2) / len(self.seq1)
-        super(Display2D, self)._set_initial_layout(
-            width, height, visible_axes=True, showlegend=True)
-
-        if title is not None:
-            self._trace['layout']['title'] = title
-
-        if self.seq1.name:
-            self._trace['layout']['xaxis']['title'] = self.seq1.name
+        layout = {}
+        if self.seq2.name:
+            layout.update(dict(xaxis=dict(title=self.seq1.name)))
 
         if self.seq2.name:
-            self._trace['layout']['yaxis']['title'] = self.seq2.name
+            layout.update(dict(yaxis=dict(title=self.seq2.name)))
 
-        fwd, rev = self._calc_lines(window, threshold, min_gap)
+        self.layout.update(layout)
+        self.layout.update(dict(yaxis=dict(range=[0, len(self.seq2)]),
+                                xaxis=dict(range=[0, len(self.seq1)]),))
+
+        fwd, rev = self.calc_lines(window, threshold, min_gap)
         trace = go.Scatter(x=fwd[0], y=fwd[1], name='+ strand',
-                           mode='lines',
-                           line=dict(color='blue'))
-        self._trace['data'] = [trace]
+                           mode='lines', line=dict(color='blue'))
+        self.add_trace(trace)
 
         if rev:
             trace = go.Scatter(x=rev[0], y=rev[1], name='- strand',
                                mode='lines',
                                line=dict(color='red'))
-            self._trace['data'].append(trace)
+            self.add_trace(trace)
 
         if self._aligned_coords:
             nudge = 0.2
@@ -229,7 +201,6 @@ class Display2D(Drawable):
                     e += nudge
                 x.append(e)
 
-            trace = go.Scatter(x=x, y=y, name='Alignment',
-                               mode='lines',
+            trace = go.Scatter(x=x, y=y, name='Alignment', mode='lines',
                                line=dict(color='black', dash='dot'))
-            self._trace['data'].append(trace)
+            self.add_trace(trace)

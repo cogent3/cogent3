@@ -19,16 +19,12 @@ class _Dendrogram(TreeNode, Drawable):
         children = [type(self)(child) for child in tree.children]
         TreeNode.__init__(self, params=tree.params.copy(), children=children,
                           name=("" if children else tree.name))
+        Drawable.__init__(self, showlegend=False, visible_axes=False)
         self.length = tree.length
         self.height = None
         self.original = tree  # for edge_color_callback
         self.collapsed = False
         self.use_lengths_default = use_lengths
-        self._trace = None
-
-    def __repr__(self):
-        # todo this needs to be refactored to be more informative
-        return f'{self.length} {self.height} {self.children}'
 
     def _update_geometry(self, use_lengths, depth=None, track_coordinates=None):
         """Calculate tree node attributes such as height and depth.
@@ -73,51 +69,8 @@ class _Dendrogram(TreeNode, Drawable):
 
         return depth_dict
 
-    def get_trace(self):
-        if self._trace is None:
-            self._set_initial_layout()
-
-        return self._trace['data']
-
-    def get_layout(self):
-        if self._trace is None:
-            self._set_initial_layout()
-
-        return self._trace['layout']
-
-    def set_layout(self, layout_updates):
-        self._trace['layout'] = layout_updates
-
-    def update_layout(self, layout_updates):
-        self._trace['layout'].update(layout_updates)
-
-    def _set_initial_layout(self, width=None, height=None, title=None,
-                            use_lengths=None, **kw):
-        super(_Dendrogram, self)._set_initial_layout(width, height)
-        if use_lengths is None:
-            use_lengths = self.use_lengths_default
-        else:
-            pass  # deprecate setting use_lengths here?
-        if use_lengths and self.aspect_distorts_lengths:
-            self._trace['layout'].update(scene=dict(aspectmode="data"))
-
-        if title is not None:
-            self._trace['layout']['title'] = title
-
-
-class Dimensions(object):
-
-    def __init__(self, xscale, yscale, total_tree_height):
-        self.x = xscale
-        self.y = yscale
-        self.height = total_tree_height
-
 
 class _RootedDendrogram(_Dendrogram):
-    """_RootedDendrogram subclasses provide y_coords and x_coords, which examine
-    attributes of a node (its length, coordinates of its children) and return
-    a tuple for start/end of the line representing the edge."""
-
     def _width_required(self):
         return self.leafcount
 
@@ -157,15 +110,6 @@ class _RootedDendrogram(_Dendrogram):
             child._update_x_coordinates(scale, self.x2)
 
 
-def _calc_row(clade, ycoords):
-    for subclade in clade.children:
-        if subclade not in ycoords:
-            ycoords = _calc_row(subclade, ycoords)
-    ycoords[clade] = (ycoords[clade.children[0]] +
-                      ycoords[clade.children[-1]]) / 2
-    return ycoords
-
-
 class SquareDendrogram(_RootedDendrogram):
     aspect_distorts_lengths = False
 
@@ -190,8 +134,7 @@ class SquareDendrogram(_RootedDendrogram):
         branch_line = dict(type='line',
                            layer='below',
                            line=dict(color=line_color,
-                                     width=line_width)
-                           )
+                                     width=line_width))
         if orientation == 'horizontal':
             branch_line.update(x0=x_start,
                                y0=y_curr,
@@ -208,7 +151,7 @@ class SquareDendrogram(_RootedDendrogram):
         return branch_line
 
     def _draw_clade(self, clade, x_start, line_shapes,
-                    line_color='rgb(15,15,15)', line_width=1):
+                    line_color='rgb(15,15,15)', line_width=2):
 
         x_curr = self.xcoords[clade]
         y_curr = self.ycoords[clade]
@@ -234,12 +177,12 @@ class SquareDendrogram(_RootedDendrogram):
             for child in clade:
                 self._draw_clade(child, x_curr, line_shapes)
 
-    # semi-private
+    # todo this is not a 'get' method, it's a set method
     def _get_all_x_coordinates(self):
         xcoords = self._depth_dict()
         self.xcoords = xcoords
 
-    # semi-private
+    # todo this is not a 'get' method, it's a set method
     def _get_all_y_coordinates(self, scale=1.3):
         maxheight = len(self.tips())
 
@@ -250,14 +193,10 @@ class SquareDendrogram(_RootedDendrogram):
             ycoords = _calc_row(self.root(), ycoords)
         self.ycoords = ycoords
 
-    def _set_initial_layout(self, width=800, height=800, title=None,
-                            use_lengths=None, **kw):
-        super(SquareDendrogram, self)._set_initial_layout(width=width,
-                                                          title=title,
-                                                          height=height,
-                                                          use_length=use_lengths,
-                                                          **kw)
-
+    def _build_fig(self, width=800, height=800, title=None, use_lengths=None,
+                   **kw):
+        layout = {k:v for k, v in locals().items() if k != 'self' and v}
+        self.layout.update(layout)
         self._get_all_x_coordinates()
         self._get_all_y_coordinates()
 
@@ -277,28 +216,167 @@ class SquareDendrogram(_RootedDendrogram):
                 color[index] = 'rgb(255, 0, 0)'
                 text.append(cl.name)
             else:
-                text.append(None)
+                text.append('')
 
+        # todo refactor so modification of line_shapes is not hidden
         line_shapes = []
         self._draw_clade(self.root(), 0, line_shapes,
-                         line_color='rgb(25,25,25)', line_width=1)
+                         line_color='rgb(25,25,25)', line_width=2)
 
-        self._trace['data'][0].update(type='scatter',
-                                      x=X,
-                                      y=Y,
-                                      mode='markers',
-                                      marker=dict(color=color, size=5),
-                                      opacity=1.0,
-                                      text=text,
-                                      hoverinfo='text')
+        trace = dict(type='scatter', x=X, y=Y, mode='markers',
+                     marker=dict(color=color, size=5), opacity=1.0,
+                     text=text, hoverinfo='skip')
+        if not self.traces:
+            self.traces.append(trace)
+        else:
+            self.traces[0].update(trace)
 
-        self._trace['layout'].update(xaxis=dict(showline=True,
-                                                zeroline=False,
-                                                showgrid=False,
-                                                ticklen=4,
-                                                showticklabels=True,
-                                                title='branch length'),
-                                     shapes=line_shapes)
+        annotations = []
+        for i in range(len(X)):
+            point = dict(x=X[i]+0.02,
+                         y=Y[i],
+                         xref='x',
+                         yref='y',
+                         showarrow=False,
+                         text=text[i],
+                         textangle=0
+            )
+            annotations += [point]
+
+        layout = dict(font=dict(family='Courier New, monospace', size=10,
+                                color='#000000'),
+                      xaxis=dict(showline=True,
+                                 zeroline=False,
+                                 showgrid=False,
+                                 ticklen=4,
+                                 showticklabels=True,
+                                 title='branch length'),
+                      annotations=annotations,
+                      shapes=line_shapes)
+        self.layout.update(layout)
+
+class CircularDendrogram(_RootedDendrogram):
+    aspect_distorts_lengths = False
+
+    def _get_vertical_position(self, start_leaf):
+        """
+        returns a dict {clade: ycoord}, where y-coord is the cartesian y-coordinate
+        of a  clade root in a rectangular phylogram
+
+        """
+        # n_leafs = self.tips()
+
+        if start_leaf:
+            node_ycoord = {leaf: k for k, leaf in enumerate(self.tips())}
+        else:
+            node_ycoord = {leaf: k for k, leaf in enumerate(reversed(self.tips()))}
+
+        if self.root().children:
+            node_ycoord = _assign_ycoord(self.root(), node_ycoord)
+        return node_ycoord
+
+    def _get_circular_tree_data(self, dist=1, start_angle=0,
+                                end_angle=360, start_leaf=True):
+
+        start_angle *= np.pi / 180
+        end_angle *= np.pi / 180
+
+        node_radius = self._depth_dict()
+        node_ycoord = self._get_vertical_position(start_leaf)
+        y_vals = node_ycoord.values()
+        ymin, ymax = min(y_vals), max(y_vals)
+        ymin -= dist
+
+        xlines = []
+        ylines = []
+        xarc = []
+        yarc = []
+        _get_line_lists(self.root(), 0, xlines, ylines, xarc, yarc, node_radius,
+                        start_angle, end_angle, ymin, ymax, node_ycoord)
+        xnodes = []
+        ynodes = []
+
+        for clade in self.postorder():
+            theta = _ycoord2theta(node_ycoord[clade], start_angle, end_angle,
+                                  ymin, ymax)
+            xnodes.append(node_radius[clade] * np.cos(theta))
+            ynodes.append(node_radius[clade] * np.sin(theta))
+
+        return xnodes, ynodes, xlines, ylines, xarc, yarc
+
+    def _build_fig(self, width=800, height=800, title=None,
+                            use_lengths=None, **kw):
+        layout = {k:v for k, v in locals().items() if k != 'self' and v}
+        self.layout.update(layout)
+
+        all_clades = list(self.postorder())
+        for k in range(len(all_clades)):
+            all_clades[k].id = k
+
+        xnodes, ynodes, xlines, ylines, xarc, yarc = self._get_circular_tree_data(
+            start_leaf=False)
+
+        my_tree_clades = list(self.postorder())
+        text = []  # list of text to be displayed on hover over nodes
+        intermediate_node_color = 'rgb(100,100,100)'
+        color = [intermediate_node_color] * len(my_tree_clades)
+
+        for index in range(len(my_tree_clades)):
+            cl = my_tree_clades[index]
+
+            if cl.is_tip():
+                color[index] = 'rgb(255, 0, 0)'
+                text.append(cl.name)
+            else:
+                text.append(None)
+
+        size = [9 if c != -1 else 7 for c in color]
+
+        trace_nodes = dict(type='scatter',
+                           x=xnodes,
+                           y=ynodes,
+                           mode='markers',
+                           marker=dict(color=color,
+                                       size=size,
+                                       ),
+                           text=text,
+                           hoverinfo='text',
+                           opacity=1)
+
+        trace_radial_lines = dict(type='scatter',
+                                  x=xlines,
+                                  y=ylines,
+                                  mode='lines',
+                                  line=dict(color='rgb(20,20,20)', width=1),
+                                  hoverinfo='none')
+
+        trace_arcs = dict(type='scatter',
+                          x=xarc,
+                          y=yarc,
+                          mode='lines',
+                          line=dict(color='rgb(20,20,20)', width=1,
+                                    shape='spline'),
+                          hoverinfo='none')
+
+        self.traces.extend([trace_radial_lines, trace_arcs, trace_nodes])
+
+
+
+class Dimensions(object):
+
+    def __init__(self, xscale, yscale, total_tree_height):
+        self.x = xscale
+        self.y = yscale
+        self.height = total_tree_height
+
+
+def _calc_row(clade, ycoords):
+    for subclade in clade.children:
+        if subclade not in ycoords:
+            ycoords = _calc_row(subclade, ycoords)
+    ycoords[clade] = (ycoords[clade.children[0]] +
+                      ycoords[clade.children[-1]]) / 2
+    return ycoords
 
 
 def _assign_ycoord(clade, node_ycoord):
@@ -371,116 +449,3 @@ def _get_line_lists(clade, x_left, xlines, ylines, xarc, yarc, node_radius,
                             node_ycoord)
 
 
-class CircularDendrogram(_RootedDendrogram):
-    aspect_distorts_lengths = False
-
-    def _get_vertical_position(self, start_leaf):
-        """
-        returns a dict {clade: ycoord}, where y-coord is the cartesian y-coordinate
-        of a  clade root in a rectangular phylogram
-
-        """
-        # n_leafs = self.tips()
-
-        if start_leaf == 'first':
-            node_ycoord = dict(
-                (leaf, k) for k, leaf in enumerate(self.tips()))
-        elif start_leaf == 'last':
-            node_ycoord = dict(
-                (leaf, k) for k, leaf in enumerate(reversed(self.tips())))
-        else:
-            raise ValueError("start leaf can be only 'first' or 'last'")
-
-        if self.root().children:
-            node_ycoord = _assign_ycoord(self.root(), node_ycoord)
-        return node_ycoord
-
-    def _get_circular_tree_data(self, order='level', dist=1, start_angle=0,
-                                end_angle=360, start_leaf='first'):
-
-        start_angle *= np.pi / 180
-        end_angle *= np.pi / 180
-
-        node_radius = self._depth_dict()
-        node_ycoord = self._get_vertical_position(start_leaf)
-        y_vals = node_ycoord.values()
-        ymin, ymax = min(y_vals), max(y_vals)
-        ymin -= dist
-
-        xlines = []
-        ylines = []
-        xarc = []
-        yarc = []
-        _get_line_lists(self.root(), 0, xlines, ylines, xarc, yarc, node_radius,
-                        start_angle, end_angle, ymin, ymax, node_ycoord)
-        xnodes = []
-        ynodes = []
-
-        for clade in self.postorder():
-            theta = _ycoord2theta(node_ycoord[clade], start_angle, end_angle,
-                                  ymin, ymax)
-            xnodes.append(node_radius[clade] * np.cos(theta))
-            ynodes.append(node_radius[clade] * np.sin(theta))
-
-        return xnodes, ynodes, xlines, ylines, xarc, yarc
-
-    def _set_initial_layout(self, width=800, height=800, title=None,
-                            use_lengths=None, **kw):
-        super(CircularDendrogram, self)._set_initial_layout(width=width,
-                                                            height=height,
-                                                            title=title,
-                                                            use_length=use_lengths,
-                                                            **kw)
-
-        all_clades = list(self.postorder())
-        for k in range(len(all_clades)):
-            all_clades[k].id = k
-
-        traverse_order = 'postorder'
-        xnodes, ynodes, xlines, ylines, xarc, yarc = self._get_circular_tree_data(
-            order=traverse_order,
-            start_leaf='last')
-
-        my_tree_clades = list(self.postorder())
-        text = []  # list of text to be displayed on hover over nodes
-        intermediate_node_color = 'rgb(100,100,100)'
-        color = [intermediate_node_color] * len(my_tree_clades)
-
-        for index in range(len(my_tree_clades)):
-            cl = my_tree_clades[index]
-
-            if cl.is_tip():
-                color[index] = 'rgb(255, 0, 0)'
-                text.append(cl.name)
-            else:
-                text.append(None)
-
-        size = [9 if c != -1 else 7 for c in color]
-
-        trace_nodes = dict(type='scatter',
-                           x=xnodes,
-                           y=ynodes,
-                           mode='markers',
-                           marker=dict(color=color,
-                                       size=size,
-                                       ),
-                           text=text,
-                           hoverinfo='text',
-                           opacity=1)
-
-        trace_radial_lines = dict(type='scatter',
-                                  x=xlines,
-                                  y=ylines,
-                                  mode='lines',
-                                  line=dict(color='rgb(20,20,20)', width=1),
-                                  hoverinfo='none')
-
-        trace_arcs = dict(type='scatter',
-                          x=xarc,
-                          y=yarc,
-                          mode='lines',
-                          line=dict(color='rgb(20,20,20)', width=1,
-                                    shape='spline'),
-                          hoverinfo='none')
-
-        self._trace['data'] = [trace_radial_lines, trace_arcs, trace_nodes]
