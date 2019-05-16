@@ -6,11 +6,10 @@ import zipfile
 from fnmatch import fnmatch
 from pathlib import Path
 from pprint import pprint
-from tempfile import NamedTemporaryFile
 from warnings import warn
 from io import TextIOWrapper
 
-from cogent3.util.misc import open_, get_format_suffixes
+from cogent3.util.misc import open_, get_format_suffixes, atomic_write
 
 # handling archive, member existence
 SKIP = 'skip'
@@ -372,11 +371,8 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
         absolute_id = self.get_absolute_identifier(relative_id,
                                                    from_relative=True)
 
-        t = NamedTemporaryFile(mode='w', delete=False)
-        t.write(data)
-        t.close()
-        p = Path(t.name)
-        p.rename(absolute_id)
+        with atomic_write(str(absolute_id), in_zip=False) as out:
+            out.write(data)
 
         if relative_id not in self:
             self._members.append(DataStoreMember(relative_id, self))
@@ -425,12 +421,8 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         absolute_id = self.get_absolute_identifier(relative_id,
                                                    from_relative=True)
 
-        t = NamedTemporaryFile(mode='w', delete=False)
-        t.write(data)
-        t.close()
-
-        with zipfile.ZipFile(self.source, 'a') as out:
-            out.write(t.name, arcname=relative_id)
+        with atomic_write(str(relative_id), in_zip=self.source) as out:
+            out.write(data)
 
         if relative_id not in self:
             self._members.append(DataStoreMember(relative_id, self))
