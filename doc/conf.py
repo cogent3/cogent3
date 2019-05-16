@@ -22,7 +22,11 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.todo', 'sphinx.ext.doctest', 'sphinx.ext.imgmath']
+extensions = ['sphinx.ext.todo',
+              'sphinx.ext.doctest',
+              'sphinx.ext.imgmath',
+              'nbsphinx',
+              'sphinx.ext.mathjax']
 
 # todo_include_todos=True # to expose the TODOs, uncomment this line
 
@@ -33,7 +37,7 @@ templates_path = ['templates']
 source_suffix = '.rst'
 
 # ignore the cookbook/ensembl.rst file as it's specifically imported
-exclude_patterns = ['cookbook/ensembl.rst']
+exclude_patterns = ['cookbook/ensembl.rst', '_build', '**.ipynb_checkpoints']
 
 # The encoding of source files.
 # source_encoding = 'utf-8'
