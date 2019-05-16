@@ -2014,7 +2014,7 @@ class AlignmentI(object):
         return result
 
     def count_gaps_per_seq(self, induced_by=False, unique=False,
-                           include_ambiguity=True):
+                           include_ambiguity=True, drawable=False):
         """return counts of gaps per sequence as a DictArray
 
         Parameters
@@ -2027,6 +2027,9 @@ class AlignmentI(object):
         include_ambiguity : bool
             if True, ambiguity characters that include the gap state are
             included
+        drawable : bool or str
+            if True, resulting object is capable of plotting data via specified
+            plot type 'bar' or 'box'
         """
         gap_array = self.get_gap_array(include_ambiguity=include_ambiguity)
         darr = DictArrayTemplate(self.names)
@@ -2045,6 +2048,24 @@ class AlignmentI(object):
 
         result = gap_array.sum(axis=1)
         result = darr.wrap(result)
+        if drawable:
+            from plotly import graph_objs as go
+            from cogent3.draw.drawable import Drawable
+            if self.info.source:
+                trace_name = os.path.basename(self.info.source)
+            draw = Drawable('Gaps Per Sequence',
+                            showlegend=False)
+            draw.layout.update(dict(yaxis=dict(title='Gap counts')))
+            if drawable.lower().startswith('box'):
+                trace = go.Box(y=result.array,
+                               text=self.names,
+                               name=trace_name)
+            else:
+                trace = go.Bar(y=result.array,
+                               x=self.names)
+            draw.add_trace(trace)
+            result = draw.bound_to(result)
+
         return result
 
     def omit_bad_seqs(self, disallowed_frac=0.9, allowed_frac_bad_cols=0,
