@@ -223,25 +223,13 @@ class SquareDendrogram(_RootedDendrogram):
         self._draw_clade(self.root(), 0, line_shapes,
                          line_color='rgb(25,25,25)', line_width=2)
 
-        trace = dict(type='scatter', x=X, y=Y, mode='markers',
+        trace = dict(type='scatter', x=X, y=Y, mode='markers+text',
                      marker=dict(color=color, size=5), opacity=1.0,
-                     text=text, hoverinfo='skip')
+                     text=text, textposition='middle right', hoverinfo='skip')
         if not self.traces:
             self.traces.append(trace)
         else:
             self.traces[0].update(trace)
-
-        annotations = []
-        for i in range(len(X)):
-            point = dict(x=X[i]+0.02,
-                         y=Y[i],
-                         xref='x',
-                         yref='y',
-                         showarrow=False,
-                         text=text[i],
-                         textangle=0
-            )
-            annotations += [point]
 
         layout = dict(font=dict(family='Courier New, monospace', size=10,
                                 color='#000000'),
@@ -251,7 +239,6 @@ class SquareDendrogram(_RootedDendrogram):
                                  ticklen=4,
                                  showticklabels=True,
                                  title='branch length'),
-                      annotations=annotations,
                       shapes=line_shapes)
         self.layout.update(layout)
 
@@ -295,14 +282,16 @@ class CircularDendrogram(_RootedDendrogram):
                         start_angle, end_angle, ymin, ymax, node_ycoord)
         xnodes = []
         ynodes = []
+        angles = []
 
         for clade in self.postorder():
             theta = _ycoord2theta(node_ycoord[clade], start_angle, end_angle,
                                   ymin, ymax)
+            angles.append(theta)
             xnodes.append(node_radius[clade] * np.cos(theta))
             ynodes.append(node_radius[clade] * np.sin(theta))
 
-        return xnodes, ynodes, xlines, ylines, xarc, yarc
+        return xnodes, ynodes, xlines, ylines, xarc, yarc, angles
 
     def _build_fig(self, width=800, height=800, title=None,
                             use_lengths=None, **kw):
@@ -313,7 +302,7 @@ class CircularDendrogram(_RootedDendrogram):
         for k in range(len(all_clades)):
             all_clades[k].id = k
 
-        xnodes, ynodes, xlines, ylines, xarc, yarc = self._get_circular_tree_data(
+        xnodes, ynodes, xlines, ylines, xarc, yarc, angles = self._get_circular_tree_data(
             start_leaf=False)
 
         my_tree_clades = list(self.postorder())
@@ -328,7 +317,7 @@ class CircularDendrogram(_RootedDendrogram):
                 color[index] = 'rgb(255, 0, 0)'
                 text.append(cl.name)
             else:
-                text.append(None)
+                text.append('')
 
         size = [9 if c != -1 else 7 for c in color]
 
@@ -339,8 +328,7 @@ class CircularDendrogram(_RootedDendrogram):
                            marker=dict(color=color,
                                        size=size,
                                        ),
-                           text=text,
-                           hoverinfo='text',
+                           hoverinfo='none',
                            opacity=1)
 
         trace_radial_lines = dict(type='scatter',
@@ -357,6 +345,25 @@ class CircularDendrogram(_RootedDendrogram):
                           line=dict(color='rgb(20,20,20)', width=1,
                                     shape='spline'),
                           hoverinfo='none')
+
+
+        annotations = []
+        for i in range(len(xnodes)):
+
+            point = dict(x=xnodes[i] + 0.05 * np.cos(angles[i]),
+                         y=ynodes[i] - 0.02 * np.sin(- angles[i]),
+                         xref='x',
+                         yref='y',
+                         showarrow=False,
+                         text=text[i],
+                         textangle=90 - angles[i] * 180 / np.pi
+                         )
+            annotations += [point]
+
+        layout = dict(font=dict(family='Courier New, monospace', size=10,
+                                color='#000000'),
+                      annotations=annotations)
+        self.layout.update(layout)
 
         self.traces.extend([trace_radial_lines, trace_arcs, trace_nodes])
 

@@ -1,7 +1,7 @@
 from plotly.offline import iplot as _iplot
 from plotly.io import write_image, to_image
 
-__author__ = "Rahul Ghangasand Gavin Huttley"
+__author__ = "Rahul Ghangas and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Rahul Ghangas", "Gavin Huttley"]
 __license__ = "GPL"
