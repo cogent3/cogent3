@@ -26,7 +26,8 @@ extensions = ['sphinx.ext.todo',
               'sphinx.ext.doctest',
               'sphinx.ext.imgmath',
               'nbsphinx',
-              'sphinx.ext.mathjax']
+              'sphinx.ext.mathjax',
+              'sphinxcontrib.bibtex']
 
 # todo_include_todos=True # to expose the TODOs, uncomment this line
 
