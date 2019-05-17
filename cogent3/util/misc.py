@@ -128,6 +128,8 @@ class atomic_write:
         with zipfile.ZipFile(self._in_zip, 'a') as out:
             out.write(str(p), arcname=self._path)
 
+        p.unlink()
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._file.close()
         p = Path(self._file.name)
