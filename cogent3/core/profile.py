@@ -194,7 +194,8 @@ class MotifFreqsArray(_MotifNumberArray):
     def __init__(self, data, motifs, row_indices=None):
         super(MotifFreqsArray, self).__init__(data, motifs, row_indices,
                                               dtype=float)
-        validate_freqs_array(self.array, axis=1)
+        axis = 0 if self.array.ndim == 1 else 1
+        validate_freqs_array(self.array, axis=axis)
 
     def entropy(self):
         """Shannon entropy per position using log2"""

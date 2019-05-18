@@ -231,6 +231,15 @@ class MotifFreqsArrayTests(TestCase):
         assert_allclose(pos2['C'] + pos2['A'], num)
         self.assertTrue(0 < pos2['C'] / num < 1)
 
+    def test_slicing(self):
+        """slice by keys should work"""
+        counts = MotifCountsArray([[3, 2, 3, 2], [3, 2, 3, 2]],
+                                  ['A', 'C', 'G', 'T'],
+                                  row_indices=['DogFaced', 'FlyingFox'])
+        freqs = counts.to_freq_array()
+        got = freqs['FlyingFox'].toarray()
+        assert_allclose(got, [0.3, 0.2, 0.3, 0.2])
+
 
 class PSSMTests(TestCase):
     def test_construct_succeeds(self):
