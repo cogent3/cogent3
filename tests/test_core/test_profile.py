@@ -1,17 +1,12 @@
 #!/usr/bin/env python
 """Provides tests for classes and functions in profile.py
 """
+from cogent3.util.unit_test import TestCase, main
 from collections import Counter
-from numpy import array, sum, sqrt, transpose, add, subtract, multiply,\
-    divide, zeros, vstack
+from numpy import array, vstack
 from numpy.testing import assert_allclose
-from numpy.random import random
 
-from cogent3.util.unit_test import TestCase, main  # , numpy_err
-from cogent3.core.moltype import DNA
-from cogent3.core.sequence import ArraySequence
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
-from cogent3.core.alignment import ArrayAlignment as Alignment
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -94,7 +89,7 @@ class MotifCountsArrayTests(TestCase):
     def test_todict(self):
         """correctly converts to a dict"""
         motifs = ['A', 'C', 'D']
-        counts =  [[4, 0, 0]]
+        counts = [[4, 0, 0]]
         marr = MotifCountsArray(counts, motifs)
         self.assertEqual(marr.todict(), {0: {'A': 4, 'C': 0, 'D': 0}})
 

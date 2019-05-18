@@ -121,7 +121,7 @@ class _MotifNumberArray(DictArray):
         # are indices a subset of of indicated axis
         if not set(indices) <= set(current):
             if (isinstance(indices[0], int) and 0 <= min(indices) and
-                    max(indices) < len (current)):
+                    max(indices) < len(current)):
                 current = list(range(len(current)))
             elif isinstance(indices[0], int):
                 raise IndexError(f'{indices} out of bounds')
@@ -146,6 +146,7 @@ class _MotifNumberArray(DictArray):
                 row_order = numpy.take(row_order, indices)
 
         return self.__class__(result, motifs=motifs, row_indices=row_order)
+
 
 class MotifCountsArray(_MotifNumberArray):
     def __init__(self, counts, motifs, row_indices=None):
