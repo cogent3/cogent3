@@ -59,6 +59,20 @@ class Drawable:
 
         return self.traces.pop(index)
 
+    def remove_traces(self, names):
+        """removes traces by name
+
+        Parameters
+        ----------
+        names : str or iterable of str
+            trace names
+
+        """
+        names = names if type(names) != str else [names]
+        for name in names:
+            _ = self.pop_trace(name)
+
+
     def add_trace(self, trace):
         self.traces.append(trace)
 
