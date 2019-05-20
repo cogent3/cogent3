@@ -352,6 +352,23 @@ class DictArrayTemplate(object):
         formatted = table.formatted_cells(rows=a, header=heading)
         return str(table.simple_format(formatted[0], formatted[1], space=4))
 
+    def _get_repr_html(self, a):
+        """returns Table._repr_html_()"""
+        from cogent3.util.table import Table
+        if len(a.shape) == 1:
+            heading = [str(n) for n in self.names[0]]
+            a = a[numpy.newaxis, :]
+        elif len(a.shape) == 2:
+            heading = [''] + [str(n) for n in self.names[1]]
+            a = [[str(name)] + list(row)
+                 for (name, row) in zip(self.names[0], a)]
+        else:
+            return '%s dimensional %s' % (
+                len(self.names), type(self).__name__)
+        row_ids = len(self.names) == 2
+        t = Table(heading, rows=a, digits=3, row_ids=row_ids)
+        return t._repr_html_(include_shape=False)
+
 
 class DictArray(object):
     """Wraps a numpy array so that it can be indexed with strings like nested
@@ -471,3 +488,6 @@ class DictArray(object):
         result = self.array.sum(axis=0)
         template = DictArrayTemplate(self.template.names[1])
         return template.wrap(result)
+
+    def _repr_html_(self):
+        return self.template._get_repr_html(self.array)
