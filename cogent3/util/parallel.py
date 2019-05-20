@@ -30,16 +30,17 @@ else:
         if size == 1:
             MPI = None
 
-COMM = MPI.COMM_WORLD
 
 
 def generateRandomSeed(use_mpi):
     global ran_seed
-    if use_mpi:
-        rank = COMM.Get_rank()
-    else:
+    if use_mpi and MPI:
+        rank = MPI.COMM_WORLD.Get_rank()
+    elif not use_mpi:
         processName = multiprocessing.current_process().name
         rank = int(processName[-1])
+    else:
+        raise RuntimeError('cannot use mpi4py')
     ran_seed = int(time.time()) + rank
 
 
@@ -87,7 +88,7 @@ def imap(f, s, max_workers=None, use_mpi=False):
         _FUNCTIONS[key] = f
         f = PicklableAndCallable(id(f))
         with concurrentfutures.ProcessPoolExecutor(max_workers,
-                                                   initializer=generateRandomSeed,
+                                                   initializer=generate_random_seed,
                                                    initargs=([False])) as executor:
             for result in executor.map(f, s):
                 yield result
