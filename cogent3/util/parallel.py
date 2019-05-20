@@ -31,8 +31,7 @@ else:
             MPI = None
 
 
-
-def generateRandomSeed(use_mpi):
+def generate_random_seed(use_mpi):
     global ran_seed
     if use_mpi and MPI:
         rank = MPI.COMM_WORLD.Get_rank()
@@ -45,7 +44,7 @@ def generateRandomSeed(use_mpi):
 
 
 if MPI is not None:
-    generateRandomSeed(True)
+    generate_random_seed(True)
     USING_MPI = True
 else:
     USING_MPI = False
