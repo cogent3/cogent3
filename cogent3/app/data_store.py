@@ -3,11 +3,13 @@ import os
 import re
 import shutil
 import zipfile
-from pathlib import Path
-from warnings import warn
 from fnmatch import fnmatch
+from pathlib import Path
+from pprint import pprint
+from warnings import warn
+from io import TextIOWrapper
 
-from cogent3.util.misc import open_, get_format_suffixes
+from cogent3.util.misc import open_, get_format_suffixes, atomic_write
 
 # handling archive, member existence
 SKIP = 'skip'
@@ -17,15 +19,29 @@ IGNORE = 'ignore'
 
 
 class DataStoreMember(str):
-    def __new__(klass, name, parent):
+    def __new__(klass, name, parent=None):
         result = str.__new__(klass, name)
         result.name = os.path.basename(name)
         result.parent = parent
+        result._file = None
         return result
 
     def read(self):
         """returns contents"""
         return self.parent.read(self.name)
+
+    def open(self):
+        """returns file-like object"""
+        if self._file is None:
+            self._file = self.parent.open(self.name)
+        return self._file
+
+    def close(self):
+        """closes file"""
+        if self._file is None:
+            return
+        self._file.close()
+        self._file = None
 
 
 class ReadOnlyDataStoreBase:
@@ -46,8 +62,16 @@ class ReadOnlyDataStoreBase:
             variant)
         """
         # assuming delimiter is /
+
+        # todo this approach to caching persistent arguments for reconstruction
+        # is fragile. Need an inspect module based approach
+        d = locals()
+        d.pop('self')
+        self._persistent = d
+
         suffix = suffix or ''
-        suffix = re.sub(r'^[\s.*]+', '', suffix)  # tidy the suffix
+        if suffix != '*':  # wild card search for all
+            suffix = re.sub(r'^[\s.*]+', '', suffix)  # tidy the suffix
         source = re.sub(r'/+$', '', source)  # tidy the source
 
         self.suffix = suffix
@@ -56,6 +80,38 @@ class ReadOnlyDataStoreBase:
         self._members = []
         self.limit = limit
         self._verbose = verbose
+
+    def __getstate__(self):
+        data = self._persistent.copy()
+        return data
+
+    def __setstate__(self, data):
+        new = self.__class__(**data)
+        self.__dict__.update(new.__dict__)
+        return self
+
+    def __repr__(self):
+        if len(self) > 3:
+            sample = str(list(self[:3]))
+            sample = f'{sample[:-1]}...'
+        else:
+            sample = list(self)
+
+        num = len(self)
+        name = self.__class__.__name__
+        txt = f'{num}x member {name}({sample})'
+        return txt
+
+    def __str__(self):
+        return str(list(self))
+
+    def head(self, n=5):
+        """displays top n members"""
+        pprint(self[:n])
+
+    def tail(self, n=5):
+        """displays last n members"""
+        pprint(self[-n:])
 
     def __iter__(self):
         for member in self.members:
@@ -109,6 +165,19 @@ class ReadOnlyDataStoreBase:
     def members(self):
         raise NotImplementedError  # override in subclasses
 
+    def open(self, identifier):
+        raise NotImplementedError
+
+    def filtered(self, pattern=None, callback=None):
+        """returns list of members for which callback returns True"""
+        assert any([callback, pattern]
+                   ), 'Must provide a pattern or a callback'
+        if pattern:
+            result = [m for m in self if fnmatch(m, pattern)]
+        else:
+            result = [m for m in self if callback(m)]
+        return result
+
 
 class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):
     @property
@@ -127,15 +196,19 @@ class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):
         return self._members
 
     def read(self, identifier):
+        infile = self.open(identifier)
+        data = infile.read()
+        infile.close()
+        return data
+
+    def open(self, identifier):
         identifier = self.get_absolute_identifier(identifier,
                                                   from_relative=False)
         if not os.path.exists(identifier):
             raise ValueError(f"path '{identifier}' does not exist")
 
-        with open_(identifier) as infile:
-            data = infile.read()
-
-        return data
+        infile = open_(identifier)
+        return infile
 
 
 class SingleReadDataStore(ReadOnlyDirectoryDataStore):
@@ -185,11 +258,17 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
         return self._members
 
     def read(self, identifier):
-        identifier = self.get_relative_identifier(identifier)
-        with zipfile.ZipFile(self.source) as archive:
-            data = archive.read(identifier)
-        data = data.decode('utf8')
+        record = self.open(identifier)
+        data = record.read()
+        record.close()
         return data
+
+    def open(self, identifier):
+        identifier = self.get_relative_identifier(identifier)
+        archive = zipfile.ZipFile(self.source)
+        record = archive.open(identifier)
+        record = TextIOWrapper(record)
+        return record
 
 
 class WritableDataStoreBase:
@@ -291,8 +370,9 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
         relative_id = self.get_relative_identifier(identifier)
         absolute_id = self.get_absolute_identifier(relative_id,
                                                    from_relative=True)
-        with open_(absolute_id, self.mode) as outfile:
-            outfile.write(data)
+
+        with atomic_write(str(absolute_id), in_zip=False) as out:
+            out.write(data)
 
         if relative_id not in self:
             self._members.append(DataStoreMember(relative_id, self))
@@ -333,16 +413,16 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         elif dirname and not os.path.exists(dirname) and not create:
             raise RuntimeError(f"'{dirname}' does not exist")
 
-        if create:
+        if create and dirname:
             os.makedirs(dirname, exist_ok=True)
 
     def write(self, identifier, data):
         relative_id = self.get_relative_identifier(identifier)
         absolute_id = self.get_absolute_identifier(relative_id,
                                                    from_relative=True)
-        with zipfile.ZipFile(self.source, 'a') as out:
-            out.writestr(relative_id, data, compress_type=zipfile.ZIP_DEFLATED,
-                         compresslevel=9)
+
+        with atomic_write(str(relative_id), in_zip=self.source) as out:
+            out.write(data)
 
         if relative_id not in self:
             self._members.append(DataStoreMember(relative_id, self))

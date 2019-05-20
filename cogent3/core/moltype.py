@@ -31,7 +31,7 @@ from cogent3.util.transform import KeepChars, first_index_in_set
 from cogent3.data.molecular_weight import DnaMW, RnaMW, ProteinMW
 from cogent3.core.sequence import Sequence as DefaultSequence, RnaSequence, \
     DnaSequence, ProteinSequence, ABSequence, NucleicAcidSequence, \
-    ByteSequence, ArraySequence, ArrayNucleicAcidSequence, \
+    ByteSequence, ArraySequence, \
     ArrayDnaSequence, ArrayRnaSequence, ArrayDnaCodonSequence, \
     ArrayRnaCodonSequence, ArrayProteinSequence, ProteinWithStopSequence,\
     ArrayProteinWithStopSequence
@@ -303,6 +303,7 @@ def make_pairs(pairs=None, monomers=None, gaps=None, degenerates=None):
     # don't forget the return value!
     return result
 
+
 # RnaPairingRules is a dict of {name:(base_pairs,degen_pairs)} where base_pairs
 # is a dict with the non-degenerate pairing rules and degen_pairs is a dict with
 # both the degenerate and non-degenerate pairing rules.
@@ -386,7 +387,7 @@ class AlphabetGroup(CoreObjectGroup):
         self.degen = constructor(chars + degens, moltype=moltype)
         self.gapped = constructor(chars + gap, gap, moltype=moltype)
         self.degen_gapped = constructor(chars + gap + degens + missing, gap,
-                                       moltype=moltype)
+                                        moltype=moltype)
         self._items = [self.base, self.degen, self.gapped, self.degen_gapped]
         self._set_relationships()
         # set complements if MolType was specified
@@ -750,6 +751,20 @@ class MolType(object):
             return item.__class__(''.join(comp))
         else:
             return item.__class__(comp)
+
+    def strand_symmetric_motifs(self, motif_length=1):
+        """returns ordered pairs of strand complementary motifs"""
+        if not self.pairs:
+            raise TypeError('moltype must be DNA or RNA')
+
+        motif_set = self.alphabet.get_word_alphabet(word_length=motif_length)
+        motif_pairs = []
+        for m in motif_set:
+            pair = tuple(sorted([m, self.complement(m)]))
+            motif_pairs.append(pair)
+
+        motif_pairs = set(motif_pairs)
+        return motif_pairs
 
     def __contains__(self, item):
         """A MolType contains every character it knows about."""

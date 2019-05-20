@@ -1,17 +1,12 @@
 #!/usr/bin/env python
 """Provides tests for classes and functions in profile.py
 """
+from cogent3.util.unit_test import TestCase, main
 from collections import Counter
-from numpy import array, sum, sqrt, transpose, add, subtract, multiply,\
-    divide, zeros, vstack
+from numpy import array, vstack
 from numpy.testing import assert_allclose
-from numpy.random import random
 
-from cogent3.util.unit_test import TestCase, main  # , numpy_err
-from cogent3.core.moltype import DNA
-from cogent3.core.sequence import ArraySequence
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
-from cogent3.core.alignment import ArrayAlignment as Alignment
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -83,7 +78,8 @@ class MotifCountsArrayTests(TestCase):
         self.assertEqual(marr[:, 'A'].array.tolist(), [[2], [3], [4]])
         self.assertEqual(marr[:, 'A':'B'].array.tolist(), [[2], [3], [4]])
         self.assertEqual(marr[1, 'A'], 3)
-        marr = MotifCountsArray(array(data), "AB", row_indices=['a', 'b', 'c'])
+        marr = MotifCountsArray(
+            array(data), "AB", row_indices=['a', 'b', 'c'])
         self.assertEqual(marr['a'].array.tolist(), [2, 4])
         self.assertEqual(marr['a', 'B'], 4)
         self.assertEqual(marr['a', :].array.tolist(), [2, 4])
@@ -91,10 +87,22 @@ class MotifCountsArrayTests(TestCase):
         self.assertEqual(marr[:, 'A':'B'].array.tolist(), [[2], [3], [4]])
         self.assertEqual(marr['b', 'A'], 3)
 
+    def test_sliced_range(self):
+        """a sliced range should preserve row indices"""
+        motifs = ('A', 'C', 'G', 'T')
+        names = ['FlyingFox', 'DogFaced', 'FreeTaile']
+        data = [[316, 134, 133, 317],
+                [321, 136, 123, 314],
+                [331, 143, 127, 315]]
+        counts = MotifCountsArray(data, motifs, row_indices=names)
+        self.assertEqual(counts.keys(), names)
+        subset = counts[:2]
+        self.assertEqual(subset.keys(), names[:2])
+
     def test_todict(self):
         """correctly converts to a dict"""
         motifs = ['A', 'C', 'D']
-        counts =  [[4, 0, 0]]
+        counts = [[4, 0, 0]]
         marr = MotifCountsArray(counts, motifs)
         self.assertEqual(marr.todict(), {0: {'A': 4, 'C': 0, 'D': 0}})
 
@@ -235,6 +243,15 @@ class MotifFreqsArrayTests(TestCase):
         self.assertTrue(min(pos1.values()) > 0)
         assert_allclose(pos2['C'] + pos2['A'], num)
         self.assertTrue(0 < pos2['C'] / num < 1)
+
+    def test_slicing(self):
+        """slice by keys should work"""
+        counts = MotifCountsArray([[3, 2, 3, 2], [3, 2, 3, 2]],
+                                  ['A', 'C', 'G', 'T'],
+                                  row_indices=['DogFaced', 'FlyingFox'])
+        freqs = counts.to_freq_array()
+        got = freqs['FlyingFox'].toarray()
+        assert_allclose(got, [0.3, 0.2, 0.3, 0.2])
 
 
 class PSSMTests(TestCase):

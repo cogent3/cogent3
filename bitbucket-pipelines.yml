@@ -9,6 +9,8 @@ pipelines:
           - pip install numpy
           - pip install pandas
           - pip install tqdm
+          - pip install matplotlib
+          - pip install plotly
           - bash run_tests
           
 

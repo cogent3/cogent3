@@ -137,13 +137,13 @@ class EstimateDistances(object):
         # slice the alignment
         seqs = self._seq_collection.take_seqs(sequence_names)
         if self._do_pair_align:
-            ui.display('Aligning', progress=0.0, current=.5)
+            ui.display('Aligning', progress=0.0)
             align = self._make_pair_alignment(seqs, aln_opt_args)
-            ui.display('', progress=.5, current=.5)
+            ui.display('', progress=.5)
 
         else:
             align = seqs
-            ui.display('', progress=0.0, current=1.0)
+            ui.display('', progress=0.0)
         # note that we may want to consider removing the redundant gaps
 
         # create the tree object

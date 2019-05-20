@@ -4,6 +4,7 @@ import json
 from importlib import import_module
 
 import cogent3
+from cogent3.core.alignment import Aligned
 from cogent3.core.moltype import get_moltype, _CodonAlphabet
 from cogent3.core.genetic_code import get_code
 from cogent3.util.misc import open_
@@ -26,6 +27,27 @@ def _get_class(provenance):
     klass = getattr(mod, klass)
     return klass
 
+def deserialise_map_spans(map_element):
+    map_klass = _get_class(map_element.pop('type'))
+    spans = []
+    for element in map_element['spans']:
+        klass = _get_class(element.pop('type'))
+        instance = klass(**element)
+        spans.append(instance)
+
+    map_element['spans'] = spans
+    map_instance = map_klass(**map_element)
+    return map_instance
+
+def deserialise_annotation(data, parent):
+    annots = []
+    for element in data:
+        klass = _get_class(element.pop('type'))
+        kwargs = element.pop('annotation_construction')
+        kwargs['map'] = deserialise_map_spans(kwargs['map'])
+        instance = klass(parent, **kwargs)
+        annots.append(instance)
+    parent.annotations += tuple(annots)
 
 def deserialise_result(data):
     """returns a result object"""
@@ -71,22 +93,62 @@ def deserialise_alphabet(data):
     return result
 
 
-def deserialise_seq(data):
+def deserialise_seq(data, aligned=False):
+    """deserialises sequence and any annotations
+
+    Parameters
+    ----------
+    data : dict
+        a result of json.loads of a to_rich_dict()
+    aligned
+        whether sequence type is for an Alignment, in which case an Aligned
+        instance will be returned
+    Returns
+    -------
+
+    """
+    from cogent3.core.moltype import get_moltype
+
+    data['moltype'] = get_moltype(data.pop('moltype'))
+    annotations = data.pop('annotations', None)
+    make_seq = data['moltype'].make_seq
+    type_ = data.pop('type')
+    klass = _get_class(type_)
+
+    data.pop('moltype')
+    result = make_seq(**data)
+    if aligned:
+        map_, result = result.parse_out_gaps()
+
+    if annotations:
+        deserialise_annotation(annotations, result)
+
+    if aligned:
+        result = Aligned(map_, result)
+
+    return result
+
+
+def deserialise_alignment(data):
     """returns a cogent3 sequence/collection/alignment instance"""
     # We first try to load moltype/alphabet using get_moltype
     from cogent3.core.moltype import get_moltype
 
     data['moltype'] = get_moltype(data.pop('moltype'))
-    make_seq = data['moltype'].make_seq
+    annotations = data.pop('annotations', None)
     type_ = data.pop('type')
     klass = _get_class(type_)
+    assert 'alignment' in type_.lower(), 'not alignment type'
+    seqs = []
+    for v in data.pop('seqs').values():
+        v['moltype'] = data['moltype']
+        seq = deserialise_seq(v, aligned=True)
+        seqs.append(seq)
 
-    if 'alignment' not in type_.lower():
-        data.pop('moltype')
-        result = make_seq(**data)
-    else:
-        seqs = [make_seq(**v) for v in data.pop('seqs').values()]
-        result = klass(seqs, **data)
+    result = klass(seqs, **data)
+
+    if annotations:
+        deserialise_annotation(annotations, result)
 
     return result
 
@@ -126,12 +188,14 @@ def deserialise_substitution_model(data):
 def deserialise_likelihood_function(data):
     """returns a cogent3 likelihood function instance"""
     model = deserialise_substitution_model(data.pop('model'))
-    aln = deserialise_seq(data.pop('alignment'))
+    aln = deserialise_alignment(data.pop('alignment'))
     tree = deserialise_tree(data.pop('tree'))
     constructor_args = data.pop('likelihood_construction')
     motif_probs = data.pop('motif_probs')
     param_rules = data.pop('param_rules')
+    name = data.pop('name', None)
     lf = model.make_likelihood_function(tree, **constructor_args)
+    lf.set_name(name)
     lf.set_alignment(aln)
     with lf.updates_postponed():
         lf.set_motif_probs(motif_probs)
@@ -149,8 +213,10 @@ def deserialise_object(data):
         data = json.loads(data)
 
     type_ = data['type']
-    if 'core.sequence' in type_ or 'core.alignment' in type_:
+    if 'core.sequence' in type_:
         func = deserialise_seq
+    elif 'core.alignment' in type_:
+        func = deserialise_alignment
     elif 'core.tree' in type_:
         func = deserialise_tree
     elif ('evolve.substitution_model' in type_ or

@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 """Generally useful utility classes and methods.
 """
-
+import zipfile
+from pathlib import Path
 from random import choice, randint
 from warnings import warn
 from os import remove
-from tempfile import gettempdir
+from tempfile import gettempdir, NamedTemporaryFile
 from numpy import logical_not, sum, array, float64, finfo, log10, ceil, floor
 from gzip import open as gzip_open
 from bz2 import open as bzip_open
@@ -30,15 +31,15 @@ def adjusted_gt_minprob(probs, minprob=1e-6):
     probs = array(probs, dtype=float64)
     if (probs > minprob).all():
         return probs
-    
+
     total = probs.sum()
     smallest = probs.min()
     dim = probs.shape[0]
     # we need an adjustment that (smalvall+adj)/(adj + total) > minval
     # the following solves for this, then adds machine precision
-    adj = -(smallest +  minprob * total) / (minprob * dim - 1)
+    adj = -(smallest + minprob * total) / (minprob * dim - 1)
     adj += finfo(float64).eps
-    
+
     probs += adj
     probs /= probs.sum()
     return probs
@@ -64,15 +65,16 @@ def adjusted_within_bounds(value, lower, upper, eps=1e-7, action='warn'):
     """
     if lower <= value <= upper:
         return value
-    
-    assert action in ('warn', 'raise', 'ignore'), "Unknown action %s" % repr(action)
+
+    assert action in ('warn', 'raise', 'ignore'), "Unknown action %s" % repr(
+        action)
 
     value = float64(value)
     eps = float64(eps) + finfo(float64).eps
-    err_msg = 'value[%s] not within lower[%s]/upper[%s] bounds' %\
-                (value, lower, upper)
-    wrn_msg = 'value[%s] forced within lower[%s]/upper[%s] bounds' %\
-                (value, lower, upper)
+    err_msg = 'value[%s] not within lower[%s]/upper[%s] bounds' % \
+              (value, lower, upper)
+    wrn_msg = 'value[%s] forced within lower[%s]/upper[%s] bounds' % \
+              (value, lower, upper)
 
     if value < lower and (lower - value) <= eps:
         value = lower
@@ -83,7 +85,7 @@ def adjusted_within_bounds(value, lower, upper, eps=1e-7, action='warn'):
     else:
         warn(wrn_msg, category=UserWarning)
         value = upper if value > upper else lower
-        
+
     return value
 
 
@@ -99,6 +101,44 @@ def open_(filename, mode='rt', **kwargs):
     op = {'gz': gzip_open, 'bz2': bzip_open}.get(
         filename.split('.')[-1], open)
     return op(filename, mode, **kwargs)
+
+
+class atomic_write:
+    """performs atomic write operations, cleans up if fails"""
+
+    def __init__(self, path, tmpdir='.', in_zip=None, mode='w'):
+        self._path = path
+        self._mode = mode
+        self._file = None
+        self._in_zip = in_zip
+        self._tmpdir = tmpdir
+        self.succeeded = None
+        self._close_func = (self._close_rename_zip if in_zip else
+                            self._close_rename_standard)
+
+    def __enter__(self):
+        self._file = NamedTemporaryFile(self._mode, delete=False,
+                                        dir=self._tmpdir)
+        return self._file
+
+    def _close_rename_standard(self, p):
+        p.rename(self._path)
+
+    def _close_rename_zip(self, p):
+        with zipfile.ZipFile(self._in_zip, 'a') as out:
+            out.write(str(p), arcname=self._path)
+
+        p.unlink()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._file.close()
+        p = Path(self._file.name)
+        if exc_type is None:
+            self._close_func(p)
+            self.succeeded = True
+        else:
+            self.succeeded = False
+            p.unlink()
 
 
 def get_format_suffixes(filename):
@@ -147,6 +187,7 @@ class FilePath(str):
             replace should take care of making the switch.
 
     """
+
     def __new__(cls, path):
         try:
             return str.__new__(cls, path.strip('"'))
@@ -189,9 +230,10 @@ def get_tmp_filename(tmp_dir=gettempdir(), prefix="tmp", suffix=".txt",
 
     chars = "abcdefghigklmnopqrstuvwxyz"
     picks = chars + chars.upper() + "0123456790"
-    return result_constructor(tmp_dir) + result_constructor(prefix) +\
-        result_constructor("%s%s" %
-                           (''.join([choice(picks) for i in range(20)]), suffix))
+    return result_constructor(tmp_dir) + result_constructor(prefix) + \
+           result_constructor("%s%s" %
+                              (''.join([choice(picks) for i in range(20)]),
+                               suffix))
 
 
 def iterable(item):
@@ -210,6 +252,7 @@ def curry(f, *a, **kw):
     """curry(f,x)(y) = f(x,y) or = lambda y: f(x,y)
 
     modified from python cookbook"""
+
     def curried(*more_a, **more_kw):
         return f(*(a + more_a), **dict(kw, **more_kw))
 
@@ -227,11 +270,13 @@ def curry(f, *a, **kw):
     except:  # e.g.  itertools.groupby failed .func_name
         f_name = '?'
 
-    curried.__doc__ = ' curry(%s,%s)\n'\
-        '== curried from %s ==\n %s'\
-        % (f_name, ', '.join(curry_params), f_name, f.__doc__)
+    curried.__doc__ = ' curry(%s,%s)\n' \
+                      '== curried from %s ==\n %s' \
+                      % (f_name, ', '.join(curry_params), f_name, f.__doc__)
 
     return curried
+
+
 # end curry
 
 
@@ -250,8 +295,8 @@ def is_char(obj):
     return isinstance(obj, str) and len(obj) <= 1
 
 
-def is_char_or_noniterable(x): return is_char(x) or\
-    not is_iterable(x)
+def is_char_or_noniterable(x): return is_char(x) or \
+                                      not is_iterable(x)
 
 
 def recursive_flatten(items, max_depth=None, curr_depth=1,
@@ -334,8 +379,10 @@ def DistanceFromMatrix(matrix):
 
     Matrix can be a 2D dict (arbitrary keys) or list (integer keys).
     """
+
     def result(i, j):
         return matrix[i][j]
+
     return result
 
 
@@ -576,7 +623,8 @@ class ConstrainedContainer(object):
             self._constraint = constraint
         else:
             raise ConstraintError(
-                "Sequence '%s' incompatible with constraint '%s'" % (self, constraint))
+                "Sequence '%s' incompatible with constraint '%s'" % (
+                self, constraint))
 
     constraint = property(_get_constraint, _set_constraint)
 
@@ -605,8 +653,9 @@ class ConstrainedList(ConstrainedContainer, list):
         if self.other_is_valid(other):
             return list.__iadd__(self, other)
         else:
-            raise ConstraintError("Sequence '%s' has items not in constraint '%s'"
-                                  % (other, self.constraint))
+            raise ConstraintError(
+                "Sequence '%s' has items not in constraint '%s'"
+                % (other, self.constraint))
 
     def __mul__(self, multiplier):
         """Returns copy of self multiplied by multiplier."""
@@ -630,8 +679,9 @@ class ConstrainedList(ConstrainedContainer, list):
         """Sets self[index] to item if item in constraint. Handles slices"""
         if isinstance(index, slice):
             if not self.other_is_valid(item):
-                raise ConstraintError("Sequence '%s' contains items not in constraint '%s'." %
-                                      (item, self.constraint))
+                raise ConstraintError(
+                    "Sequence '%s' contains items not in constraint '%s'." %
+                    (item, self.constraint))
             item = list(map(self.mask, item))
         else:
             if not self.item_is_valid(item):
@@ -645,8 +695,9 @@ class ConstrainedList(ConstrainedContainer, list):
         if self.other_is_valid(sequence):
             list.__setslice__(self, start, end, list(map(self.mask, sequence)))
         else:
-            raise ConstraintError("Sequence '%s' has items not in constraint '%s'"
-                                  % (sequence, self.constraint))
+            raise ConstraintError(
+                "Sequence '%s' has items not in constraint '%s'"
+                % (sequence, self.constraint))
 
     def append(self, item):
         """Appends item to self."""
@@ -758,7 +809,8 @@ class ConstrainedDict(ConstrainedContainer, dict):
         """Returns new dictionary with same constraint as self."""
         mask, valmask = self._get_mask_and_valmask()
         return self.__class__(dict.fromkeys(keys, value),
-                              constraint=self.constraint, mask=mask, value_mask=valmask)
+                              constraint=self.constraint, mask=mask,
+                              value_mask=valmask)
 
     def setdefault(self, key, default=None):
         """Returns self[key], setting self[key]=default if absent."""
@@ -815,6 +867,7 @@ def NestedSplitter(delimiters=[None], same_level=False,
 
     Note: the line input in parser is expected to be a str, but without check
     """
+
     def parser(line, index=0):
         # split line with curr delimiter
         curr = delimiters[index]
@@ -849,8 +902,10 @@ def NestedSplitter(delimiters=[None], same_level=False,
             result = result[0]
 
         return result
+
     # parser.__doc__ = make_innerdoc(NestedSplitter, parser, locals())
     return parser
+
 
 def remove_files(list_of_filepaths, error_on_missing=True):
     """Remove list of filepaths, optionally raising an error if any are missing
@@ -865,6 +920,7 @@ def remove_files(list_of_filepaths, error_on_missing=True):
     if error_on_missing and missing:
         raise OSError("Some filepaths were not accessible: %s" %
                       '\t'.join(missing))
+
 
 def get_independent_coords(spans, random_tie_breaker=False):
     """returns non-overlapping spans. spans must have structure
@@ -921,9 +977,11 @@ def get_run_start_indices(values, digits=None, converter_func=None):
         'Cannot set both digits and converter_func'
 
     if digits is not None:
-        def converter_func(x): return round(x, digits)
+        def converter_func(x):
+            return round(x, digits)
     elif converter_func is None:
-        def converter_func(x): return x
+        def converter_func(x):
+            return x
 
     last_val = None
     for index, val in enumerate(values):

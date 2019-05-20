@@ -258,6 +258,14 @@ class _LikelihoodParameterController(_LF):
         # we make param rules
         param_rules = []
         for edge_set in edge_sets:
+            edges = edge_set.get('edges', None)
+            if type(edges) == str:
+                edges = [edges]
+
+            if edges:
+                edges = list(edges)
+                edge_set['edges'] = edges
+
             rule_base = kwargs.copy()
             rule_base.update(edge_set)
             for param in rate_terms:

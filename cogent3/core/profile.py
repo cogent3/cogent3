@@ -51,7 +51,8 @@ class _MotifNumberArray(DictArray):
             ndim = 2
         num_elements = len(data) if ndim == 1 else len(data[0])
         if num_elements != len(motifs):
-            raise ValueError(f"number of data elements {len(data[0])} != {len(motifs)}")
+            raise ValueError(
+                f"number of data elements {len(data[0])} != {len(motifs)}")
         motifs = tuple(motifs)
 
         # create template
@@ -77,6 +78,8 @@ class _MotifNumberArray(DictArray):
             if type(names) != tuple:
                 # we're indexing a row, motifs unchanged
                 row_indices = None
+                if result.ndim == 2:
+                    row_indices = remaining.names[0]
             elif type(names[0]) == type(names[1]) == slice:
                 # slicing rows and, motifs
                 row_indices, motifs = remaining.names
@@ -121,7 +124,7 @@ class _MotifNumberArray(DictArray):
         # are indices a subset of of indicated axis
         if not set(indices) <= set(current):
             if (isinstance(indices[0], int) and 0 <= min(indices) and
-                    max(indices) < len (current)):
+                    max(indices) < len(current)):
                 current = list(range(len(current)))
             elif isinstance(indices[0], int):
                 raise IndexError(f'{indices} out of bounds')
@@ -146,6 +149,7 @@ class _MotifNumberArray(DictArray):
                 row_order = numpy.take(row_order, indices)
 
         return self.__class__(result, motifs=motifs, row_indices=row_order)
+
 
 class MotifCountsArray(_MotifNumberArray):
     def __init__(self, counts, motifs, row_indices=None):
@@ -193,7 +197,8 @@ class MotifFreqsArray(_MotifNumberArray):
     def __init__(self, data, motifs, row_indices=None):
         super(MotifFreqsArray, self).__init__(data, motifs, row_indices,
                                               dtype=float)
-        validate_freqs_array(self.array, axis=1)
+        axis = 0 if self.array.ndim == 1 else 1
+        validate_freqs_array(self.array, axis=axis)
 
     def entropy(self):
         """Shannon entropy per position using log2"""
@@ -240,7 +245,8 @@ class PSSM(_MotifNumberArray):
             indexed = list(map(get_index, seq))
         else:
             indexed = []
-            for i in range(0, self.shape[0] - self.motif_length, self.motif_length):
+            for i in range(0, self.shape[0] - self.motif_length,
+                           self.motif_length):
                 indexed.append(get_index(seq[i: i + self.motif_length]))
         indexed = numpy.array(indexed)
         return self.score_indexed_seq(indexed)
@@ -254,4 +260,3 @@ class PSSM(_MotifNumberArray):
             score = self.array[self._indices, segment].sum()
             scores.append(score)
         return scores
-

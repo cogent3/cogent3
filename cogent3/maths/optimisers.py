@@ -33,7 +33,7 @@ def unsteadyProgressIndicator(display_progress, label='', start=0.0, end=1.0):
             goal[0] = remaining
         progress = (goal[0] - remaining) / goal[0] * (end - start) + start
         msg = template % args + label
-        return display_progress(msg, progress=progress, current=0)
+        return display_progress(msg, progress=progress)
     return _display_progress
 
 

@@ -1,6 +1,8 @@
 from unittest import TestCase, main
 from tempfile import TemporaryDirectory
-from cogent3.app.composable import ComposableSeq, ErrorResult
+from unittest.mock import Mock
+
+from cogent3.app.composable import ComposableSeq, NotCompletedResult
 from cogent3.app.translate import select_translatable
 from cogent3.app.sample import omit_degenerates, min_length
 from cogent3.app.tree import quick_tree
@@ -16,6 +18,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
+
 class TestCheckpoint(TestCase):
     def test_checkpointable(self):
         """chained funcs should be be able to apply a checkpoint"""
@@ -30,8 +33,10 @@ class TestCheckpoint(TestCase):
             read_write = reader + writer
             got = read_write(path)  # should skip reading and return path
             self.assertEqual(got, outpath)
+            read_write.disconnect()  # allows us to reuse bits
             read_write_degen = reader + writer + omit_degens
-            got = read_write_degen(path)  # should return an alignment instance
+            # should return an alignment instance
+            got = read_write_degen(path)
             self.assertIsInstance(got, ArrayAlignment)
             self.assertTrue(len(got) > 1000)
 
@@ -49,20 +54,68 @@ class TestComposableBase(TestCase):
         got = str(comb)
         self.assertEqual(got, expect)
 
+    def test_composables_once(self):
+        """composables can only be used in a single composition"""
+        aseqfunc1 = ComposableSeq(
+            input_type='sequences', output_type='sequences')
+        aseqfunc2 = ComposableSeq(
+            input_type='sequences', output_type='sequences')
+        comb = aseqfunc1 + aseqfunc2
+        with self.assertRaises(AssertionError):
+            aseqfunc3 = ComposableSeq(
+                input_type='sequences', output_type='sequences')
+            comb2 = aseqfunc1 + aseqfunc3
+        # the other order
+        with self.assertRaises(AssertionError):
+            aseqfunc3 = ComposableSeq(
+                input_type='sequences', output_type='sequences')
+            comb2 = aseqfunc3 + aseqfunc2
 
-class TestErrorResult(TestCase):
+    def test_disconnect(self):
+        """disconnect breaks all connections and allows parts to be reused"""
+        aseqfunc1 = ComposableSeq(
+            input_type='sequences', output_type='sequences')
+        aseqfunc2 = ComposableSeq(
+            input_type='sequences', output_type='sequences')
+        aseqfunc3 = ComposableSeq(
+            input_type='sequences', output_type='sequences')
+        comb = aseqfunc1 + aseqfunc2 + aseqfunc3
+        comb.disconnect()
+        self.assertEqual(aseqfunc1.input, None)
+        self.assertEqual(aseqfunc1.output, None)
+        self.assertEqual(aseqfunc3.input, None)
+        self.assertEqual(aseqfunc3.output, None)
+        # should be able to compose a new one now
+        comb2 = aseqfunc1 + aseqfunc3
+
+
+class TestNotCompletedResult(TestCase):
     def test_err_result(self):
-        """excercise creation of ErrorResult"""
-        result = ErrorResult('SKIP', 'this', 'some obj')
+        """excercise creation of NotCompletedResult"""
+        result = NotCompletedResult('SKIP', 'this', 'some obj')
         self.assertFalse(result)
         self.assertEqual(result.origin, 'this')
         self.assertEqual(result.message, 'some obj')
+        self.assertIs(result.source, None)
+
+        # check source correctly deduced from provided object
+        fake_source = Mock()
+        fake_source.source = 'blah'
+        del (fake_source.info)
+        result = NotCompletedResult('SKIP', 'this', 'err', source=fake_source)
+        self.assertIs(result.source, 'blah')
+
+        fake_source = Mock()
+        del (fake_source.source)
+        fake_source.info.source = 'blah'
+        result = NotCompletedResult('SKIP', 'this', 'err', source=fake_source)
+        self.assertIs(result.source, 'blah')
 
         try:
             _ = 0
             raise ValueError("error message")
         except ValueError as err:
-            result = ErrorResult('SKIP', 'this', err.args[0])
+            result = NotCompletedResult('SKIP', 'this', err.args[0])
 
         self.assertEqual(result.message, 'error message')
 
@@ -80,7 +133,6 @@ class TestErrorResult(TestCase):
                               "moltype='dna', gc='Standard Nuclear', "
                               "allow_rc=True, trim_terminal_stop=True)")
 
-
         nodegen = omit_degenerates()
         got = str(nodegen)
         self.assertEqual(got, "omit_degenerates(type='aligned', moltype=None, "
@@ -94,6 +146,50 @@ class TestErrorResult(TestCase):
         qt = quick_tree()
         self.assertEqual(str(qt), "quick_tree(type='tree', distance='TN93',"
                                   " moltype='dna')")
+
+
+class TestPicklable(TestCase):
+    def test_composite_pickleable(self):
+        """composable functions should be pickleable"""
+        from pickle import dumps
+        from cogent3.app import io, sample, evo, tree, translate, align
+        read = io.load_aligned(moltype='dna')
+        dumps(read)
+        trans = translate.select_translatable()
+        dumps(trans)
+        aln = align.progressive_align('nucleotide')
+        dumps(aln)
+        just_nucs = sample.omit_degenerates(moltype='dna')
+        dumps(just_nucs)
+        limit = sample.fixed_length(1000, random=True)
+        dumps(limit)
+        mod = evo.model('HKY85')
+        dumps(mod)
+        qt = tree.quick_tree()
+        dumps(qt)
+        proc = read + trans + aln + just_nucs + limit + mod
+        dumps(proc)
+
+    def test_not_completed_result(self):
+        """should survive roundtripping pickle"""
+        from pickle import dumps, loads
+        err = NotCompletedResult('FAIL', 'mytest', 'can we roundtrip')
+        p = dumps(err)
+        new = loads(p)
+        self.assertEqual(err.type, new.type)
+        self.assertEqual(err.message, new.message)
+        self.assertEqual(err.source, new.source)
+        self.assertEqual(err.origin, new.origin)
+
+    def test_triggers_bugcatcher(self):
+        """a composable that does not trap failures returns NotCompletedResult
+        requesting bug report"""
+        from cogent3.app import io, sample, evo, tree, translate, align
+        read = io.load_aligned(moltype='dna')
+        read.func = lambda x: None
+        got = read('somepath.fasta')
+        self.assertIsInstance(got, NotCompletedResult)
+        self.assertEqual(got.type, 'BUG')
 
 
 if __name__ == "__main__":

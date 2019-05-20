@@ -37,8 +37,8 @@ the point 3 contains exactly one element, 3, rather than no elements, and a
 range from 2:4 contains 2, 3 and 4, _not_ just 2 and 3.
 
 """
-from cogent3.util.misc import FunctionWrapper, ClassChecker, ConstrainedList, \
-    iterable
+from cogent3.util.misc import (FunctionWrapper, ClassChecker, ConstrainedList,
+                               iterable, get_object_provenance, )
 from itertools import chain
 from functools import total_ordering
 
@@ -210,10 +210,14 @@ class Span(SpanI):
     lost = False
 
     __slots__ = ('tidy_start', 'tidy_end', 'length', 'value',
-                 'start', 'end', 'reverse')
+                 'start', 'end', 'reverse', '_serialisable')
 
     def __init__(self, start, end=None, tidy_start=False, tidy_end=False,
                  value=None, reverse=False):
+        self._serialisable = locals()
+        for key in ('self', '__class__', '__slots__'):
+            self._serialisable.pop(key, None)
+
         self._new_init(start, end, reverse)
         self.tidy_start = tidy_start
         self.tidy_end = tidy_end
@@ -246,6 +250,11 @@ class Span(SpanI):
             self.start = start
             self.end = end
             self.reverse = reverse
+
+    def to_rich_dict(self):
+        attribs = self._serialisable.copy()
+        attribs['type'] = get_object_provenance(self)
+        return attribs
 
     def __setstate__(self, args):
         self.__init__(*args)
@@ -417,13 +426,22 @@ class Span(SpanI):
 class _LostSpan(object):
     """A placeholder span which doesn't exist in the underlying sequence"""
 
-    __slots__ = ['length', 'value']
+    __slots__ = ['length', 'value', '_serialisable']
     lost = True
     terminal = False
 
     def __init__(self, length, value=None):
+        self._serialisable = locals()
+        for key in ('self', '__class__', '__slots__'):
+            self._serialisable.pop(key, None)
+
         self.length = length
         self.value = value
+
+    def to_rich_dict(self):
+        attribs = self._serialisable.copy()
+        attribs['type'] = get_object_provenance(self)
+        return attribs
 
     def __len__(self):
         return self.length
@@ -489,6 +507,10 @@ class Map(object):
     def __init__(self, locations=None, spans=None, tidy=False,
                  parent_length=None, termini_unknown=False):
         assert parent_length is not None
+        self._serialisable = locals()
+        for key in ('self', '__class__', '__slots__'):
+            self._serialisable.pop(key, None)
+
         if spans is None:
             spans = []
             for (start, end) in locations:
@@ -708,10 +730,18 @@ class Map(object):
             order_func = lambda x: x
 
         coords = list(map(order_func,
-                          [(s.start, s.end) for s in self.spans if not s.lost]))
+                      [(s.start, s.end) for s in self.spans if not s.lost]))
 
         return coords
 
+    def to_rich_dict(self):
+        """returns dicts for contained spans [dict(), ..]"""
+        spans = [s.to_rich_dict() for s in self.spans]
+        data = self._serialisable.copy()
+        data.pop('locations')
+        data['spans'] = spans
+        data['type'] = get_object_provenance(self)
+        return data
 
 class SpansOnly(ConstrainedList):
     """List that converts elements to Spans on addition."""

@@ -52,6 +52,7 @@ def suite():
         'test_core.test_alignment',
         'test_core.test_annotation',
         'test_core.test_core_standalone',
+        'test_core.test_features',
         'test_core.test_genetic_code',
         'test_core.test_info',
         'test_core.test_location',
@@ -61,6 +62,7 @@ def suite():
         'test_core.test_seq_aln_integration',
         'test_core.test_sequence',
         'test_core.test_tree',
+        'test_draw.test_dotplot',
         'test_data.test_molecular_weight',
         'test_evolve.test_best_likelihood',
         'test_evolve.test_bootstrap',
@@ -124,7 +126,6 @@ def suite():
         'test_util.test_recode_alignment',
         'test_util.test_transform',
         'test_recalculation',
-        'test_core.test_features.rst',
         'test_util.test_table.rst',
     ]
 
