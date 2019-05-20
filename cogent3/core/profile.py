@@ -51,7 +51,8 @@ class _MotifNumberArray(DictArray):
             ndim = 2
         num_elements = len(data) if ndim == 1 else len(data[0])
         if num_elements != len(motifs):
-            raise ValueError(f"number of data elements {len(data[0])} != {len(motifs)}")
+            raise ValueError(
+                f"number of data elements {len(data[0])} != {len(motifs)}")
         motifs = tuple(motifs)
 
         # create template
@@ -244,7 +245,8 @@ class PSSM(_MotifNumberArray):
             indexed = list(map(get_index, seq))
         else:
             indexed = []
-            for i in range(0, self.shape[0] - self.motif_length, self.motif_length):
+            for i in range(0, self.shape[0] - self.motif_length,
+                           self.motif_length):
                 indexed.append(get_index(seq[i: i + self.motif_length]))
         indexed = numpy.array(indexed)
         return self.score_indexed_seq(indexed)
@@ -258,4 +260,3 @@ class PSSM(_MotifNumberArray):
             score = self.array[self._indices, segment].sum()
             scores.append(score)
         return scores
-
