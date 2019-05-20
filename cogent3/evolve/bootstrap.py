@@ -79,7 +79,7 @@ class ParametricBootstrapCore(object):
                 return pc.optimise(return_calculator=True, **opt_args)
             # This is not done in parallel because we depend on the side-
             # effect of changing the parameter_controller current values
-            memos = ui.eager_map(one_model, self.parameter_controllers,
+            memos = ui.map(one_model, self.parameter_controllers,
                                  labels=model_label, pure=False)
             concise_result = self.simplify(*self.parameter_controllers)
             return (memos, concise_result)
@@ -110,7 +110,7 @@ class ParametricBootstrapCore(object):
             return result
 
         ui.display('Bootstrap', init_work)
-        self.results = ui.eager_map(
+        self.results = ui.map(
             one_replicate, list(range(self._numreplicates)), noun='replicate',
             start=init_work)
 
