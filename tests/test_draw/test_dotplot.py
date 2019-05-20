@@ -97,6 +97,13 @@ class TestUtilFunctions(TestCase):
         self.assertEqual(len(traces), 1)
         self.assertEqual(traces[0].name, '+ strand')
 
+        dp = Display2D('-TGATGTAAGGTAGTT',
+                       'CTGG---AAG---GGT')
+        dp._build_fig(window=5)
+        dp.remove_traces('Alignment')
+        self.assertEqual(len(dp.traces), 1)
+        self.assertEqual(dp.traces[0].name, '+ strand')
+
 
 if __name__ == '__main__':
     main()
