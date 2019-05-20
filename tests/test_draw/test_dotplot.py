@@ -83,6 +83,20 @@ class TestUtilFunctions(TestCase):
         self.assertEqual(traces[0].x, expect_x)
         self.assertEqual(traces[0].y, expect_y)
 
+    def test_remove_trace(self):
+        """correctly removes a trace"""
+        dp = Display2D('-TGATGTAAGGTAGTT',
+                       'CTGG---AAG---GGT')
+        expect = [0, 2, None, 6, 8, None, 12, 14], [1, 3, None, 4, 6, None, 7,
+                                                    9]
+        self.assertEqual(dp._aligned_coords, expect)
+        dp._build_fig(window=5)
+        traces = dp.traces
+        self.assertEqual(len(traces), 2)
+        _ = dp.pop_trace('Alignment')
+        self.assertEqual(len(traces), 1)
+        self.assertEqual(traces[0].name, '+ strand')
+
 
 if __name__ == '__main__':
     main()
