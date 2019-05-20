@@ -46,7 +46,7 @@ class Drawable:
         return self._traces
 
     def get_trace_titles(self):
-        titles = [tr.title for tr in self.traces]
+        titles = [tr.name for tr in self.traces]
         return titles
 
     def pop_trace(self, title):
