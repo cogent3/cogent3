@@ -135,7 +135,7 @@ setup(
             "Topic :: Software Development :: Libraries :: Python Modules",
             "Operating System :: OS Independent",
             ],
-    packages=['cogent3', 'cogent3.align', 'cogent3.cluster',
+    packages=['cogent3', 'cogent3.align', 'cogent3.app', 'cogent3.cluster',
               'cogent3.core', 'cogent3.data', 'cogent3.draw',
               'cogent3.evolve', 'cogent3.format', 'cogent3.maths',
               'cogent3.maths.stats', 'cogent3.parse',
