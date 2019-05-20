@@ -51,7 +51,12 @@ class Drawable:
 
     def pop_trace(self, title):
         """removes the trace with a matching title attribute"""
-        index = self.get_trace_titles().index(title)
+        try:
+            index = self.get_trace_titles().index(title)
+        except ValueError:
+            UserWarning(f"no trace with name {title}")
+            return
+
         return self.traces.pop(index)
 
     def add_trace(self, trace):
