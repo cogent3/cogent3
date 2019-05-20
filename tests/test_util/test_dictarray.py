@@ -5,7 +5,7 @@ from cogent3 import DNA
 from cogent3.util.dict_array import (DictArrayTemplate, DictArray,
                                      convert_1D_dict, convert2Ddistance,
                                      convert2DDict, convert_dict,
-                                     convert_series, convert_for_dictarray)
+                                     convert_series, convert_for_dictarray, )
 
 
 class DictArrayTest(TestCase):
@@ -204,9 +204,9 @@ class DictArrayTest(TestCase):
                                            [0.2, 0.8],
                                            [0.5, 0.5]])
         col_normal = darr.to_normalized(by_column=True)
-        assert_allclose(col_normal.array, [[0.3, 7/20],
-                                           [0.2, 8/20],
-                                           [0.5, 5/20]])
+        assert_allclose(col_normal.array, [[0.3, 7 / 20],
+                                           [0.2, 8 / 20],
+                                           [0.5, 5 / 20]])
         # trying to do both raises AssertionError
         with self.assertRaises(AssertionError):
             darr.to_normalized(by_row=True, by_column=True)
@@ -228,6 +228,16 @@ class DictArrayTest(TestCase):
         darr = DictArrayTemplate(list('ABC'), list('ab')).wrap(data)
         row_sum = darr.row_sum()
         assert_allclose(row_sum.array, [10, 10, 10])
+
+    def test_get_repr_html(self):
+        """exercising method used by parent classes for nice Jupyter display"""
+        data = [[3, 7],
+                [2, 8],
+                [5, 5]]
+        darr = DictArrayTemplate(list('ABC'), list('ab')).wrap(data)
+        got = darr._repr_html_()
+        self.assertIsInstance(got, str)
+        self.assertTrue(len(got), 100)
 
 
 if __name__ == '__main__':
