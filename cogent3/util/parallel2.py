@@ -2,8 +2,8 @@
 
 import os
 import sys
-from contextlib import contextmanager
-import warnings
+import time
+import math
 import threading
 import multiprocessing
 import concurrent.futures as concurrentfutures
@@ -14,7 +14,7 @@ __credits__ = ["Peter Maxwell", "Sheng Han Moses Koh"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 
-class _FakeCommunicator(object):
+class _FakeCommunicator():
     """Looks like a 1-cpu MPI communicator, but isn't"""
 
     def Get_rank(self):
@@ -68,17 +68,22 @@ else:
         if size == 1:
             MPI = None
 
+COMM = MPI.COMM_WORLD
+def generateRandomSeed(use_mpi):
+    global ran_seed
+    if use_mpi:
+        rank = COMM.Get_rank()
+    else:
+        processName = multiprocessing.current_process().name
+        rank = int(processName[-1])
+    ran_seed = int(time.time()) + rank
+if MPI is not None:
+    generateRandomSeed(True)
 MPI = _FakeMPI()
-if MPI is None:
-    USING_MPI = False
-else:
-    USING_MPI = True
 
 # Helping ProcessPoolExecutor map unpicklable functions
 _FUNCTIONS = {}
-
-
-class PicklableAndCallable(object):
+class PicklableAndCallable():
 
     def __init__(self, key):
         self.key = key
@@ -93,6 +98,7 @@ class PicklableAndCallable(object):
         return self.func(*args, **kw)
 
 def imap(f, s, max_workers=None, use_mpi=False):
+    #init = GenerateRandomSeed(use_mpi)
     if use_mpi:
         if not max_workers:
             raise ValueError
@@ -110,7 +116,7 @@ def imap(f, s, max_workers=None, use_mpi=False):
         key = id(f)
         _FUNCTIONS[key] = f
         f = PicklableAndCallable(id(f))
-        with concurrentfutures.ProcessPoolExecutor(max_workers) as executor:
+        with concurrentfutures.ProcessPoolExecutor(max_workers, initializer=generateRandomSeed, initargs=([use_mpi])) as executor:
             for result in executor.map(f, s):
                 yield result
 
