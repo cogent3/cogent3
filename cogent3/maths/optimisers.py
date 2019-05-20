@@ -4,7 +4,7 @@
 """Local or Global-then-local optimisation with progress display
 """
 
-from cogent3.util import progress_display2 as UI
+from cogent3.util import progress_display as UI
 from .simannealingoptimiser import SimulatedAnnealing
 from .scipy_optimisers import DownhillSimplex, Powell
 import warnings
