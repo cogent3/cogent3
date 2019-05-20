@@ -1,8 +1,9 @@
 from unittest import TestCase, main
 from cogent3 import DNA, LoadSeqs
-from cogent3.core.annotation import Feature
+from cogent3.core.annotation import Feature, Variable
 
 # Complete version of manipulating sequence annotations
+from cogent3.util.deserialise import deserialise_object
 
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 
@@ -148,9 +149,9 @@ class FeaturesTest(TestCase):
         # exactly the same result from getting the CDS annotation.
 
         plus = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA",
-                                 name="plus")
+                            name="plus")
         plus_cds = plus.add_annotation(Feature, 'CDS', 'gene',
-                                            [(2, 6), (10, 15), (25, 35)])
+                                       [(2, 6), (10, 15), (25, 35)])
         self.assertEqual(str(plus_cds.get_slice()), "GGGGCCCCCTTTTTTTTTT")
         minus = plus.rc()
         minus_cds = minus.get_annotations_matching('CDS')[0]
@@ -388,30 +389,30 @@ class FeaturesTest(TestCase):
 
         self.assertEqual(str(
             as_series.get_seq('human').add_feature('cpgsite', 'cpg',
-                                                        [(0, 2), (5, 7)])),
+                                                   [(0, 2), (5, 7)])),
             'cpgsite "cpg" at [0:2, 5:7]/10')
         self.assertEqual(str(
             as_series.get_seq('mouse').add_feature('cpgsite', 'cpg',
-                                                        [(5, 7), (8, 10)])),
+                                                   [(5, 7), (8, 10)])),
             'cpgsite "cpg" at [5:7, 8:10]/10')
 
         # We add the annotations to the sequences one segment at a time.
 
         self.assertEqual(str(
             as_items.get_seq('human').add_feature('cpgsite', 'cpg',
-                                                       [(0, 2)])),
+                                                  [(0, 2)])),
             'cpgsite "cpg" at [0:2]/10')
         self.assertEqual(str(
             as_items.get_seq('human').add_feature('cpgsite', 'cpg',
-                                                       [(5, 7)])),
+                                                  [(5, 7)])),
             'cpgsite "cpg" at [5:7]/10')
         self.assertEqual(str(
             as_items.get_seq('mouse').add_feature('cpgsite', 'cpg',
-                                                       [(5, 7)])),
+                                                  [(5, 7)])),
             'cpgsite "cpg" at [5:7]/10')
         self.assertEqual(str(
             as_items.get_seq('mouse').add_feature('cpgsite', 'cpg',
-                                                       [(8, 10)])),
+                                                  [(8, 10)])),
             'cpgsite "cpg" at [8:10]/10')
 
     def test_constructor_equivalence(self):
@@ -430,14 +431,93 @@ class FeaturesTest(TestCase):
         # whether the sequence has been reverse complemented or not.
         # We use the plus/minus strand CDS containing sequences created above.
         plus = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA",
-                                 name="plus")
+                            name="plus")
         _ = plus.add_annotation(Feature, 'CDS', 'gene',
-                                       [(2, 6), (10, 15), (25, 35)])
+                                [(2, 6), (10, 15), (25, 35)])
         minus = plus.rc()
         self.assertEqual(str(plus.with_masked_annotations("CDS")),
                          'AA????AAAA?????AAAAAAAAAA??????????AAA')
         self.assertEqual(str(minus.with_masked_annotations("CDS")),
                          'TTT??????????TTTTTTTTTT?????TTTT????TT')
+
+    def test_roundtrip_json(self):
+        """features can roundtrip from json"""
+        from cogent3.util.deserialise import deserialise_seq
+        seq = DNA.make_seq('AAAAATATTATTGGGT')
+        seq.add_annotation(Feature, 'exon', 'myname', [(0, 5)])
+        got = seq.to_json()
+        new = deserialise_object(got)
+        feat = new.get_annotations_matching('exon')[0]
+        self.assertEqual(str(feat.get_slice()), 'AAAAA')
+
+        # now with a list span
+        seq = seq[3:]
+        feat = seq.get_annotations_matching('exon')[0]
+        got = seq.to_json()
+        new = deserialise_object(got)
+        feat = new.get_annotations_matching('exon')[0]
+        self.assertEqual(str(feat.get_slice(complete=False)), 'AA')
+
+    def test_roundtripped_alignment(self):
+        """Alignment with annotations roundtrips correctly"""
+        # annotations just on member sequences
+        aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']],
+                       array_align=False)
+        _ = aln.get_seq('x').add_annotation(Feature, 'exon', 'fred',
+                                            [(3, 8)])
+        seq_exon = list(aln.get_annotations_from_seq('x', 'exon'))[0]
+        expect = seq_exon.get_slice()
+
+        json = aln.to_json()
+        new = deserialise_object(json)
+        got_exons = list(new.get_annotations_from_seq('x', 'exon'))[0]
+        self.assertEqual(got_exons.get_slice().todict(), expect.todict())
+
+        # annotations just on alignment
+        aln = LoadSeqs(data=[['x', '-AAAAAGGGG'],
+                             ['y', 'TTTT--CCCC']],
+                       array_align=False)
+        f = aln.add_annotation(Feature, 'generic', 'no name', [(1, 4), (6, 10)])
+        expect = f.get_slice().todict()
+        json = aln.to_json()
+        new = deserialise_object(json)
+        got = list(new.get_annotations_matching('generic'))[0]
+        self.assertEqual(got.get_slice().todict(), expect)
+
+        # annotations on both alignment and sequence
+        aln = LoadSeqs(data=[['x', '-AAAAAGGGG'],
+                             ['y', 'TTTT--CCCC']],
+                       array_align=False)
+        f = aln.add_annotation(Feature, 'generic', 'no name', [(1, 4), (6, 10)])
+        _ = aln.get_seq('x').add_annotation(Feature, 'exon', '1', [(3, 8)])
+        json = aln.to_json()
+        new = deserialise_object(json)
+        ## get back the exon
+        seq_exon = list(aln.get_annotations_from_seq('x', 'exon'))[0]
+        expect = seq_exon.get_slice().todict()
+        got_exons = list(new.get_annotations_from_seq('x', 'exon'))[0]
+        self.assertEqual(got_exons.get_slice().todict(), expect)
+        ## get back the generic
+        expect = f.get_slice().todict()
+        got = list(new.get_annotations_matching('generic'))[0]
+        self.assertEqual(got.get_slice().todict(), expect)
+
+        # check masking of seq features still works
+        new = new.with_masked_annotations('exon', mask_char='?')
+        self.assertEqual(new[4:9].todict(), dict(x='?????', y='--CCC'))
+
+    def test_roundtrip_variable(self):
+        """should recover the Variable feature type"""
+        seq = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA",
+                           name="plus")
+        xx_y = [[[2, 6], 2.4], [[10, 15], 5.1], [[25, 35], 1.3]]
+        y_valued = seq.add_annotation(Variable, 'SNP', 'freq', xx_y)
+        json = seq.to_json()
+        new = deserialise_object(json)
+        got = list(new.get_annotations_matching('SNP'))[0]
+        # annoyingly, comes back as list of lists
+        self.assertEqual(got.xxy_list, [[list(xx), y]
+                                        for xx, y in y_valued.xxy_list])
 
 
 if __name__ == "__main__":

@@ -956,12 +956,19 @@ class SequenceCollection(object):
 
         for seq in self.seqs:
             d = seq.to_rich_dict()
-            for attr in ['moltype', 'type']:
-                del (d[attr])
             data[seq.name] = d
 
         data = dict(seqs=data, moltype=moltype, info=info,
                     type=get_object_provenance(self))
+
+        try:
+            annotations = [a.to_rich_dict() for a in self.annotations]
+        except AttributeError:
+            annotations = []
+
+        if annotations:
+            data['annotations'] = annotations
+
         return data
 
     def to_json(self):

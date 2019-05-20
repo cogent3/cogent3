@@ -723,11 +723,22 @@ class SequenceCollectionBaseTests(object):
     def test_to_rich_dict(self):
         """to_rich_dict produces correct dict"""
         aln = self.Class({'seq1': 'ACGG', 'seq2': 'CGCA', 'seq3': 'CCG-'})
+        try:
+            seq_type = get_object_provenance(aln.seqs[0].data)
+        except AttributeError:
+            seq_type = get_object_provenance(aln.seqs[0])
+
         got = aln.to_rich_dict()
         expect = {
-            'seqs': {'seq1': {'name': 'seq1', 'seq': 'ACGG', 'info': None},
-                     'seq2': {'name': 'seq2', 'seq': 'CGCA', 'info': None},
-                     'seq3': {'name': 'seq3', 'seq': 'CCG-', 'info': None}},
+            'seqs': {'seq1': {'name': 'seq1', 'seq': 'ACGG', 'info': None,
+                              'type': seq_type,
+                              'moltype': aln.moltype.label},
+                     'seq2': {'name': 'seq2', 'seq': 'CGCA', 'info': None,
+                              'type': seq_type,
+                              'moltype': aln.moltype.label},
+                     'seq3': {'name': 'seq3', 'seq': 'CCG-', 'info': None,
+                              'type': seq_type,
+                              'moltype': aln.moltype.label}},
             'moltype': aln.moltype.label, 'info': None,
             'type': get_object_provenance(aln)}
         self.assertEqual(got, expect)

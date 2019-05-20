@@ -1,3 +1,6 @@
+import json
+
+from cogent3.util.misc import get_object_provenance
 from .location import as_map, Map
 import numpy
 
@@ -11,7 +14,7 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-class _Annotatable(object):
+class _Annotatable:
     # default
     annotations = ()
 
@@ -169,13 +172,43 @@ class _Annotatable(object):
         new.attach_annotations(annotations)
 
 
-class _Feature(_Annotatable):
+class _Serialisable:
+    def to_rich_dict(self):
+        """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
+        data = self._serialisable.copy()
+        # the first constructor argument will be the instance recreating
+        # so we pop out the two possible keys
+        data.pop('parent', None)
+        data.pop('seq', None)
+        if 'original' in data:
+            data.pop('original')
+        # convert the map to coordinates
+        data['map'] = data.pop('map').to_rich_dict()
+        data = dict(annotation_construction=data)
+        data['type'] = get_object_provenance(self)
+        return data
+
+    def to_json(self):
+        return json.dumps(self.to_rich_dict())
+
+
+class _Feature(_Annotatable, _Serialisable):
     qualifier_names = ['type', 'name']
 
     def __init__(self, parent, map, original=None, **kw):
+        self._serialisable = locals()
+        for key in ('self', '__class__', 'kw'):
+            self._serialisable.pop(key, None)
+        self._serialisable.update(kw)
+
         assert isinstance(parent, _Annotatable), parent
         self.parent = parent
         self.attached = False
+        if isinstance(map, Map):
+            assert map.parent_length == len(parent), (map, len(parent))
+        else:
+            map = Map(locations=map, parent_length=len(parent))
+
         self.map = map
         if hasattr(parent, 'base'):
             self.base = parent.base
@@ -188,7 +221,9 @@ class _Feature(_Annotatable):
             if n in kw:
                 setattr(self, n, kw.pop(n))
             else:
-                setattr(self, n, getattr(original, n))
+                val = getattr(original, n)
+                setattr(self, n, val)
+                self._serialisable[n] = val
         assert not kw, kw
 
     def attach(self):
@@ -271,6 +306,11 @@ class Source(_Feature):
     type = 'source'
 
     def __init__(self, seq, map, accession, basemap):
+        self._serialisable = locals()
+        for key in ('self', '__class__', 'kw'):
+            self._serialisable.pop(key, None)
+        self._serialisable
+
         self.accession = accession
         self.name = repr(basemap) + ' of ' + accession
         self.parent = seq
@@ -336,8 +376,8 @@ class _SimpleVariable(_Feature):
         if self.map.complete:
             return self
         keep = self.map.nongap()
-        indicies = numpy.concatenate([list(span) for span in keep.spans])
-        data = numpy.asarray(data)[indicies]
+        indices = numpy.concatenate([list(span) for span in keep.spans])
+        data = numpy.asarray(self.data)[indices]
         new = self.__class__(self.parent, self.map[
                              keep], data=data, original=self)
         return new

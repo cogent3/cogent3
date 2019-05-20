@@ -98,6 +98,15 @@ class SequenceI(object):
         data = dict(name=self.name, seq=str(self), moltype=self.moltype.label,
                     info=info,
                     type=get_object_provenance(self))
+
+        try:
+            annotations = [a.to_rich_dict() for a in self.annotations]
+        except AttributeError:
+            annotations = []
+
+        if annotations:
+            data['annotations'] = annotations
+
         return data
 
     def to_json(self):
