@@ -78,13 +78,26 @@ class MotifCountsArrayTests(TestCase):
         self.assertEqual(marr[:, 'A'].array.tolist(), [[2], [3], [4]])
         self.assertEqual(marr[:, 'A':'B'].array.tolist(), [[2], [3], [4]])
         self.assertEqual(marr[1, 'A'], 3)
-        marr = MotifCountsArray(array(data), "AB", row_indices=['a', 'b', 'c'])
+        marr = MotifCountsArray(
+            array(data), "AB", row_indices=['a', 'b', 'c'])
         self.assertEqual(marr['a'].array.tolist(), [2, 4])
         self.assertEqual(marr['a', 'B'], 4)
         self.assertEqual(marr['a', :].array.tolist(), [2, 4])
         self.assertEqual(marr[:, 'A'].array.tolist(), [[2], [3], [4]])
         self.assertEqual(marr[:, 'A':'B'].array.tolist(), [[2], [3], [4]])
         self.assertEqual(marr['b', 'A'], 3)
+
+    def test_sliced_range(self):
+        """a sliced range should preserve row indices"""
+        motifs = ('A', 'C', 'G', 'T')
+        names = ['FlyingFox', 'DogFaced', 'FreeTaile']
+        data = [[316, 134, 133, 317],
+                [321, 136, 123, 314],
+                [331, 143, 127, 315]]
+        counts = MotifCountsArray(data, motifs, row_indices=names)
+        self.assertEqual(counts.keys(), names)
+        subset = counts[:2]
+        self.assertEqual(subset.keys(), names[:2])
 
     def test_todict(self):
         """correctly converts to a dict"""

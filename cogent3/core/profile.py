@@ -77,6 +77,8 @@ class _MotifNumberArray(DictArray):
             if type(names) != tuple:
                 # we're indexing a row, motifs unchanged
                 row_indices = None
+                if result.ndim == 2:
+                    row_indices = remaining.names[0]
             elif type(names[0]) == type(names[1]) == slice:
                 # slicing rows and, motifs
                 row_indices, motifs = remaining.names
