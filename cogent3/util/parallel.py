@@ -7,6 +7,7 @@ import math
 import threading
 import multiprocessing
 import concurrent.futures as concurrentfutures
+import warnings
 
 __author__ = "Sheng Han Moses Koh"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -40,6 +41,8 @@ def generateRandomSeed(use_mpi):
         processName = multiprocessing.current_process().name
         rank = int(processName[-1])
     ran_seed = int(time.time()) + rank
+
+
 if MPI is not None:
     generateRandomSeed(True)
     USING_MPI = True
@@ -84,8 +87,8 @@ def imap(f, s, max_workers=None, use_mpi=False):
         _FUNCTIONS[key] = f
         f = PicklableAndCallable(id(f))
         with concurrentfutures.ProcessPoolExecutor(max_workers,
-                                    initializer=generateRandomSeed,
-                                    initargs=([False])) as executor:
+                                                   initializer=generateRandomSeed,
+                                                   initargs=([False])) as executor:
             for result in executor.map(f, s):
                 yield result
 
