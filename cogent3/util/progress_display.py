@@ -3,15 +3,17 @@ import functools
 import threading
 import sys
 import io
-import os
 from tqdm import tqdm, tqdm_notebook
 from cogent3.util import parallel
 
 __author__ = "Sheng Han Moses Koh"
-__copyright__ = ""
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Sheng Han Moses Koh"]
 __license__ = "GPL"
-__version__ = ""
+__version__ = "3.0a2"
+__maintainer__ = "Gavin Huttley"
+__email__ = "gavin.huttley@anu.edu.au"
+__status__ = "Alpha"
 
 
 class LogFileOutput:
@@ -41,7 +43,7 @@ class LogFileOutput:
 
 class ProgressContext:
     def __init__(self, progress_bar_type=None, depth=-1,
-                                    message=None, rate=1.0):
+                 message=None, rate=1.0):
         self.progress_bar_type = progress_bar_type
         self.progress_bar = None
         self.progress = 0
@@ -52,14 +54,14 @@ class ProgressContext:
     def set_new_progress_bar(self):
         if self.progress_bar_type:
             self.progress_bar = self.progress_bar_type(total=1,
-                            position=self.depth,
-                            leave=True,
-                            bar_format='{desc} {percentage:3.0f}%|{bar}| ')
+                                                       position=self.depth,
+                                                       leave=True,
+                                                       bar_format='{desc} {percentage:3.0f}%|{bar}| ')
 
     def subcontext(self, *args, **kw):
         return ProgressContext(
             progress_bar_type=self.progress_bar_type,
-            depth=self.depth+1,
+            depth=self.depth + 1,
             message=self.message,
             rate=self.rate)
 
@@ -76,7 +78,7 @@ class ProgressContext:
         if msg is not None and msg != self.message:
             self.message = msg
             self.progress_bar.set_description(self.message,
-                                                refresh=False)
+                                              refresh=False)
             updated = True
         if updated:
             self.progress_bar.refresh()
@@ -132,6 +134,7 @@ class ProgressContext:
 class NullContext(ProgressContext):
     """A UI context which discards all output.  Useful on secondary MPI cpus,
     and other situations where all output is suppressed"""
+
     def subcontext(self, *args, **kw):
         return self
 
@@ -140,6 +143,7 @@ class NullContext(ProgressContext):
 
     def done(self):
         pass
+
 
 NULL_CONTEXT = NullContext()
 CURRENT = threading.local()
@@ -216,8 +220,9 @@ def demo(ui):
             ui.write('halfway through, a new line: ')
         if i % 2:
             subdemo()
-        ui.write(str(i)+".")
+        ui.write(str(i) + ".")
     ui.write("done")
+
 
 if __name__ == '__main__':
     demo()
