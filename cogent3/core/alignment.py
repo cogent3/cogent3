@@ -2508,7 +2508,7 @@ class AlignmentI(object):
                     info=self.info, names=self.names)
         return new
 
-    def distance_matrix(self, calc='hamming'):
+    def distance_matrix(self, calc='hamming', show_progress=False):
         """Returns pairwise distances between sequences.
         Parameters
         ----------
@@ -2518,7 +2518,7 @@ class AlignmentI(object):
         from cogent3.evolve.pairwise_distance import get_calculator
         calculator = get_calculator(
             calc, moltype=self.moltype, alignment=self)
-        calculator.run()
+        calculator.run(show_progress=show_progress)
         result = calculator.get_pairwise_distances()
         return result
 

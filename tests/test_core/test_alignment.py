@@ -1837,7 +1837,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         """Alignment distance_matrix should produce correct scores"""
         data = dict([('s1', 'ACGTACGTA'), ('s2', 'GTGTACGTA')])
         aln = self.Class(data=data, moltype='dna')
-        dists = aln.distance_matrix()
+        dists = aln.distance_matrix(show_progress=False)
         self.assertEqual(dists, {('s1', 's2'): 2.0, ('s2', 's1'): 2.0})
         # and for protein
         aa = aln.get_translation()
