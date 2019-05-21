@@ -2060,6 +2060,8 @@ class AlignmentI(object):
             from cogent3.draw.drawable import Drawable
             if self.info.source:
                 trace_name = os.path.basename(self.info.source)
+            else:
+                trace_name=None
             draw = Drawable('Gaps Per Sequence',
                             showlegend=False)
             draw.layout.update(dict(yaxis=dict(title='Gap counts')))
