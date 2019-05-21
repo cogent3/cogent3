@@ -109,7 +109,7 @@ def get_align_coords(map1, map2):
 
 class Display2D(Drawable):
 
-    def __init__(self, seq1, seq2, moltype='text'):
+    def __init__(self, seq1, seq2, moltype='text', show_progress=False):
         if hasattr(seq1, 'moltype'):
             moltype = seq1.moltype
         else:
@@ -126,6 +126,7 @@ class Display2D(Drawable):
         self.seq2 = seq2
         self._aligned_coords = get_align_coords(map1, map2)
         self._cache = {}
+        self._show_progress = show_progress
 
     def calc_lines(self, window=20, threshold=None, min_gap=0):
         """
@@ -151,10 +152,12 @@ class Display2D(Drawable):
         key = (window, threshold, min_gap)
         if key not in self._cache:
             fwd = dotplot(str(self.seq1), str(self.seq2),
-                          window, threshold, min_gap, None)
+                          window, threshold, min_gap, None,
+                          show_progress=self._show_progress)
             if hasattr(self.seq1, "reverse_complement"):
                 rev = dotplot(str(self.seq1.reverse_complement()),
-                              str(self.seq2), window, threshold, min_gap, None)
+                              str(self.seq2), window, threshold, min_gap, None,
+                              show_progress=self._show_progress)
                 rev = [((len1 - x1, y1), (len1 - x2, y2))
                        for ((x1, y1), (x2, y2)) in rev]
                 rev = _convert_coords_for_scatter(rev)
