@@ -168,7 +168,7 @@ class Display2D(Drawable):
             fwd = _convert_coords_for_scatter(fwd)
             self._cache[key] = (fwd, rev)
 
-        return self._cache[key]
+        return key
 
     def _build_fig(self, window=20, min_gap=0, threshold=None, **kw):
         import plotly.graph_objs as go
@@ -184,7 +184,8 @@ class Display2D(Drawable):
         self.layout.update(dict(yaxis=dict(range=[0, len(self.seq2)]),
                                 xaxis=dict(range=[0, len(self.seq1)]),))
 
-        fwd, rev = self.calc_lines(window, threshold, min_gap)
+        key = self.calc_lines(window, threshold, min_gap)
+        fwd, rev = self._cache[key]
         trace = go.Scatter(x=fwd[0], y=fwd[1], name='+ strand',
                            mode='lines', line=dict(color='blue'))
         self.add_trace(trace)
