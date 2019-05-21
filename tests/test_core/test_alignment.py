@@ -1125,6 +1125,17 @@ class SequenceCollectionBaseTests(object):
         seqs = self.Class(data=self.brca1_data, moltype=DNA)
         _ = seqs.dotplot()
 
+    def test_rename_seqs(self):
+        """successfully rename sequences"""
+        data = {'seq1': 'ACGTACGTA',
+                'seq2': 'ACCGAA---',
+                'seq3': 'ACGTACGTT'}
+        seqs = self.Class(data, moltype=DNA)
+        new = seqs.rename_seqs(lambda x: x.upper())
+        expect = {n.upper() for n in data}
+        self.assertEqual(set(new.names), expect)
+        # renamed contains the name map as info attribute
+        self.assertEqual(new.info.name_map, {k.upper(): k for k in data})
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
     """Tests of the SequenceCollection object. Includes ragged collection tests.
@@ -2102,6 +2113,20 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
 
         self.assertRaises(ValueError, aln1.add_from_ref_aln,
                           aln2_wrong_refseq)  # test wrong_refseq
+
+    def test_rename_handles_annotations(self):
+        """rename seqs on Alignment preserves annotations"""
+        from cogent3.core.annotation import Feature
+        data = {'seq1': 'ACGTACGTA',
+                'seq2': 'ACCGAA---',
+                'seq3': 'ACGTACGTT'}
+        seqs = self.Class(data, moltype=DNA)
+        x = seqs.get_seq('seq1').add_annotation(Feature, 'exon', 'fred',
+                                            [(3, 8)])
+        expect = str(x.get_slice())
+        new = seqs.rename_seqs(lambda x: x.upper())
+        got = list(new.get_annotations_from_any_seq('exon'))[0]
+        self.assertEqual(got.get_slice().todict()['SEQ1'], expect)
 
 
 class ArrayAlignmentSpecificTests(TestCase):

@@ -1623,6 +1623,34 @@ class SequenceCollection(object):
         dotplot.calc_lines(window=window, threshold=threshold, min_gap=min_gap)
         return dotplot
 
+    def rename_seqs(self, renamer):
+        """returns new instance with sequences renamed
+        Parameters
+        ----------
+        renamer : callable
+            function that will take current sequences and return the new one
+        """
+        new = {}
+        name_map = {}
+        for name, seq in self.named_seqs.items():
+            new_name = renamer(name)
+            name_map[new_name] = name
+            new_seq = self.moltype.make_seq(seq, new_name)
+            try:
+                new_seq = Aligned(seq.map, new_seq)
+            except AttributeError:
+                pass
+            new[new_name] = new_seq
+        result = self.__class__(data=new, info=self.info, moltype=self.moltype)
+        result.info.name_map = name_map
+        # now try copying annotations
+        if isinstance(self, Alignment):
+            for new, old in name_map.items():
+                new_seq = result.named_seqs[new]
+                old_seq = self.named_seqs[old]
+                new_seq.copy_annotations(old_seq.data)
+        return result
+
 
 @total_ordering
 class Aligned(object):
