@@ -175,17 +175,19 @@ class Display2D(Drawable):
         # calculate the width based on ratio of seq lengths
         layout = {}
         if self.seq2.name:
-            layout.update(dict(xaxis=dict(title=self.seq1.name)))
+            layout.update(xaxis=dict(title=self.seq1.name))
 
         if self.seq2.name:
-            layout.update(dict(yaxis=dict(title=self.seq2.name)))
+            layout.update(yaxis=dict(title=self.seq2.name))
 
         self.layout.update(layout)
-        self.layout.update(dict(yaxis=dict(range=[0, len(self.seq2)]),
-                                xaxis=dict(range=[0, len(self.seq1)]),))
+        self.layout.update(yaxis=dict(range=[0, len(self.seq2)]),
+                                xaxis=dict(range=[0, len(self.seq1)]))
 
         key = self.calc_lines(window, threshold, min_gap)
         fwd, rev = self._cache[key]
+        title = f"Window={key[0]}, Matched ≥ {key[1]}/{key[0]} & Gap ≤ {key[2]}"
+        self.layout.update(title=title)
         trace = go.Scatter(x=fwd[0], y=fwd[1], name='+ strand',
                            mode='lines', line=dict(color='blue'))
         self.add_trace(trace)
