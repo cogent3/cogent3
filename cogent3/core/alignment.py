@@ -1587,7 +1587,7 @@ class SequenceCollection(object):
         return result
 
     def dotplot(self, name1=None, name2=None, window=20, threshold=None,
-                min_gap=0, width=500, title=None):
+                min_gap=0, width=500, title=None, show_progress=False):
         """display a dotplot between specified sequences. Random sequences
         chosen if names not provided.
 
@@ -1619,7 +1619,7 @@ class SequenceCollection(object):
             raise ValueError(msg)
 
         dotplot = Display2D(self.named_seqs[name1], self.named_seqs[name2],
-                            moltype=self.moltype)
+                            moltype=self.moltype, show_progress=show_progress)
         dotplot.calc_lines(window=window, threshold=threshold, min_gap=min_gap)
         return dotplot
 
