@@ -2064,7 +2064,7 @@ class AlignmentI(object):
                 trace_name=None
             draw = Drawable('Gaps Per Sequence',
                             showlegend=False)
-            draw.layout.update(dict(yaxis=dict(title='Gap counts')))
+            draw.layout.update(yaxis=dict(title='Gap counts'))
             if drawable.lower().startswith('box'):
                 trace = go.Box(y=result.array,
                                text=self.names,

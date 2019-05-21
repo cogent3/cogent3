@@ -1,4 +1,5 @@
 from plotly.offline import iplot as _iplot
+from plotly.graph_objs import Layout
 from plotly.io import write_image, to_image
 
 __author__ = "Rahul Ghangas and Gavin Huttley"
@@ -17,7 +18,7 @@ class Drawable:
     def __init__(self, title=None, traces=None, width=None, height=None,
                  showlegend=True, visible_axes=True):
         self._traces = traces or []
-        self._layout = dict(title=title,
+        self._layout = Layout(title=title,
                             font=dict(family='Balto', size=14),
                             width=width,
                             height=height,
@@ -68,6 +69,9 @@ class Drawable:
             trace names
 
         """
+        if not self.traces:
+            self._build_fig()
+
         names = names if type(names) != str else [names]
         for name in names:
             _ = self.pop_trace(name)
