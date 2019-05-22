@@ -260,18 +260,18 @@ Wrapping generate neat looking tables whether or not you index the table rows. W
     >>> rows = [[0.0425, 0.1424, 0.0226, 0.0391]]
     >>> wrap_table = LoadTable(header=h, rows=rows, max_width=30)
     >>> print(wrap_table)
-    ==============================
-           A/C       A/G       A/T
-    ------------------------------
-        0.0425    0.1424    0.0226
-    ------------------------------
+    ==========================
+       A/C       A/G       A/T
+    --------------------------
+    0.0425    0.1424    0.0226
+    --------------------------
     <BLANKLINE>
     continued: 
-    ==========
-           C/A
-    ----------
-        0.0391
-    ----------
+    ======
+       C/A
+    ------
+    0.0391
+    ------
     <BLANKLINE>
     >>> wrap_table = LoadTable(header=h, rows=rows, max_width=30,
     ...  row_ids=True)
