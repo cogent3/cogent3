@@ -215,7 +215,10 @@ class TestTightSimplex(TestCase):
         vertices = self.vertices
         coords = x @ inv(vertices)
         assert_allclose(sum(coords, axis=1), ones(5), err_msg='Barycentric coords do not total one.')
-        assert all(coords > 0.), 'Not all barycentric coordinates are positive.'
+        if not all(coords > 0.):
+            msg = (f'Not all barycentric coordinates are positive: {coords}'
+                   f'\n original were {x}')
+            raise AssertionError(msg)
 
 
 if __name__ == '__main__':
