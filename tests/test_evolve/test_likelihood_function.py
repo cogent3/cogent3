@@ -654,6 +654,18 @@ NineBande      root    1.0000    1.0000
         lf.set_alignment(self.data)
         self.assertRaises(Exception, lf.get_rate_matrix_for_edge, 'NineBande')
 
+    def test_get_all_rate_matrices(self):
+        """return matrices when just a pair"""
+        aln = LoadSeqs(data={'Human': 'GGCCTCCTGCGCTCCCTGGCCCGCCACCAG',
+                             'Opossum': 'GGCTCCCTGCGCTCCCTTTCCCGCCGCCGG'},
+                       moltype='dna')
+        tree = LoadTree(tip_names=aln.names)
+        sm = get_model('HKY85')
+        lf = sm.make_likelihood_function(tree)
+        lf.set_alignment(aln)
+        Qs = lf.get_all_rate_matrices(calibrated=False)
+        self.assertEqual(len(Qs), 2)
+
     def test_get_p_q_sitehet_model(self):
         """exercising get psub in phylohmm model"""
         from cogent3.maths.matrix_exponentiation import PadeExponentiator

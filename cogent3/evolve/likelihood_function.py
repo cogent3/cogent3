@@ -313,30 +313,25 @@ class LikelihoodFunction(ParameterController):
             bin_index = None
 
         used_dims = defn.used_dimensions()
-        if 'edge' in used_dims:
-            edge_index = used_dims.index('edge')
-        else:
-            edge_index = defn.valid_dimensions.index('edge')
+        edge_index = defn.valid_dimensions.index('edge')
 
+        indices = {defn.valid_dimensions.index(k) for k in used_dims}
+        if not calibrated:
+            indices.add(edge_index)
 
-        indices = [defn.valid_dimensions.index(k) for k in used_dims]
-        if not calibrated and 'edge' not in used_dims:
-            indices.append(edge_index)
-            used_dims += ('edge',)
+        if not calibrated and rate_het:
+            indices.add(bin_index)
 
-        if not calibrated and rate_het and bin_index not in indices:
-            indices.append(bin_index)
-            used_dims += ('bin',)
-
-        indices.sort()
+        indices = list(sorted(indices))
         result = {}
         darr_template = DictArrayTemplate(self._motifs, self._motifs)
         for scope, index in defn.index.items():
             q = defn.values[index]  # this gives the appropriate Q
+            # from scope we extract only the relevant dimensions
             key = tuple(numpy.take(scope, indices))
             q = q.copy()
             if not calibrated:
-                length = self.get_param_value('length', edge=key[edge_index])
+                length = self.get_param_value('length', edge=scope[edge_index])
                 if rate_het:
                     bdex = bin_names[scope[bin_index]]
                     rate = rate_het.values[bdex]
