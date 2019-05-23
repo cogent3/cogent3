@@ -612,64 +612,16 @@ class LikelihoodFunction(ParameterController):
 
     def get_param_rules(self):
         """returns the [{rule}, ..] that would allow reconstruction"""
-        def mprob_rule(defn, index, edges):
-            uniq = defn.uniq[index]
-            value = uniq.value
-            # default min prob is 1e-6,
-            # values can drop below due to precision
-            # so we adjust
-            value = adjusted_gt_minprob(value, minprob=1e-6)
-            val = dict(zip(defn.bin_names, value))
-            rule = dict(par_name=defn.name, edges=edges)
-            if uniq.is_constant:
-                rule.update(dict(is_constant=True, value=val))
-            else:
-                rule.update(dict(init=val))
-            return rule
-
-        rules = []
-
         # markov model rate terms
+        rules = []
         param_names = self.get_param_names()
-        rate_names = self.model.get_param_list()
         for param_name in param_names:
             defn = self.defn_for[param_name]
-            scoped = defaultdict(list)
-            for key, index in defn.index.items():
-                edge_name = key[0]
-                scoped[index].append(edge_name)
-
-            if len(scoped) == 1:  # we have a global
-                if param_name == 'mprobs':
-                    rule = mprob_rule(defn, 0, None)
-                else:
-                    val = defn.values[0]
-                    rule = dict(par_name=param_name, edges=None)
-                    if defn.uniq[0].is_constant:
-                        rule.update(dict(is_constant=True, value=val))
-                    else:
-                        rule.update(dict(init=val, upper=defn.upper,
-                                         lower=defn.lower))
-
-                rules.append(rule)
-
-                continue
-
-            for index in scoped:
-                edges = scoped[index]
-                if param_name == 'mprobs':
-                    rule = mprob_rule(defn, index, edges)
-                else:
-                    uniq = defn.uniq[index]
-                    rule = dict(par_name=param_name, edges=edges)
-                    if uniq.is_constant:
-                        rule.update(dict(is_constant=True, value=uniq.value))
-                    else:
-                        value = adjusted_within_bounds(uniq.value,
-                                                       uniq.lower, uniq.upper)
-                        rule.update(dict(init=value, lower=uniq.lower,
-                                         upper=uniq.upper))
-                rules.append(rule)
+            try:
+                rules.extend(defn.get_param_rules())
+            except AttributeError:
+                # aggregate params, like those deriving from gamma shaped rates
+                pass
 
         return rules
 
