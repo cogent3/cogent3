@@ -12,23 +12,23 @@ tests to do:
 """
 import warnings
 
-from numpy.testing import assert_allclose
-
 warnings.filterwarnings("ignore", "Motif probs overspecified")
 warnings.filterwarnings("ignore", "Ignoring tree edge lengths")
+
+import json
 
 import os
 import numpy
 from numpy import ones
+from numpy.testing import assert_allclose
 
 from cogent3.evolve import substitution_model, predicate, ns_substitution_model
 from cogent3 import DNA, LoadSeqs, LoadTree
 from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
 from cogent3.maths.stats.information_criteria import aic, bic
-from cogent3.evolve.models import JTT92, CNFGTR, Y98, MG94HKY, GN, ssGN, GTR, HKY85
-from cogent3.evolve.substitution_model import TimeReversible
-
+from cogent3.evolve.models import (JTT92, CNFGTR, Y98, MG94HKY, GN, ssGN, GTR,
+                                   HKY85, get_model, )
 
 TimeReversibleNucleotide = substitution_model.TimeReversibleNucleotide
 MotifChange = predicate.MotifChange
@@ -643,6 +643,28 @@ NineBande      root    1.0000    1.0000
         lf = dm.make_likelihood_function(self.tree)
         lf.set_alignment(self.data)
         self.assertRaises(Exception, lf.get_rate_matrix_for_edge, 'NineBande')
+
+    def test_get_p_q_sitehet_model(self):
+        """exercising get psub in phylohmm model"""
+        from cogent3.maths.matrix_exponentiation import PadeExponentiator
+        sm = get_model('HKY85', ordered_param='rate', distribution='gamma')
+        lf1 = sm.make_likelihood_function(self.tree, bins=4, sites_independent=False)
+        lf1.set_alignment(self.data)
+        Qs = lf1.get_all_rate_matrices(calibrated=False)
+        Ps = lf1.get_all_psubs()
+        self.assertEqual(len(Ps), len(Qs))
+        self.assertEqual(set(Ps), set(Qs))
+        for key, P in Ps.items():
+            Pcomp = PadeExponentiator(Qs[key].toarray())()
+            assert_allclose(Pcomp, P.toarray())
+
+    def test_all_rate_matrices_unique(self):
+        """exercising this code"""
+        sm = get_model('HKY85', ordered_param='rate', distribution='gamma')
+        lf1 = sm.make_likelihood_function(self.tree, bins=4)
+        lf1.set_param_rule('kappa', init=4)
+        lf1.set_alignment(self.data)
+        lf1.all_rate_matrices_unique()
 
     def test_make_discrete_markov(self):
         """lf ignores tree lengths if a discrete Markov model"""

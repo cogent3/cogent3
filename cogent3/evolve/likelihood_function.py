@@ -261,6 +261,23 @@ class LikelihoodFunction(ParameterController):
     def get_log_likelihood(self):
         return self.get_final_result()
 
+    def get_all_psubs(self):
+        """returns all psubs as a dict keyed by used dimensions"""
+        try:
+            defn = self.defn_for['dsubs']
+        except KeyError:
+            defn = self.defn_for['psubs']
+
+        used_dims = defn.used_dimensions()
+        indices = [defn.valid_dimensions.index(k) for k in used_dims]
+        result = {}
+        darr_template = DictArrayTemplate(self._motifs, self._motifs)
+        for scope, index in defn.index.items():
+            psub = defn.values[index]
+            key = tuple(numpy.take(scope, indices))
+            result[key] = darr_template.wrap(psub)
+        return result
+
     def get_psub_for_edge(self, name, **kw):
         """returns the substitution probability matrix for the named edge"""
         try:
@@ -269,6 +286,67 @@ class LikelihoodFunction(ParameterController):
         except KeyError:
             array = self.get_param_value('psubs', edge=name, **kw)
         return DictArrayTemplate(self._motifs, self._motifs).wrap(array)
+
+    def get_all_rate_matrices(self, calibrated=True):
+        """returns all rate matrices (Q) as a dict, keyed by scope
+
+        Parameters
+        ----------
+        calibrated : bool
+            scales the rate matrix by branch length for each edge. If a rate
+            heterogeneity model, then the matrix is further scaled by rate
+            for a bin
+        Returns
+        -------
+        If a single rate matrix, the key is an empty tuple
+        """
+        defn = self.defn_for['Q']
+
+        rate_het = self.defn_for.get('rate', False)
+        if rate_het:
+            bin_index = rate_het.valid_dimensions.index('bin')
+            bin_names = [k[bin_index] for k in rate_het.index]
+            bin_names = {n: i for i, n in enumerate(bin_names)}
+            bin_index = defn.valid_dimensions.index('bin')
+        else:
+            bin_names = None
+            bin_index = None
+
+        used_dims = defn.used_dimensions()
+        if 'edge' in used_dims:
+            edge_index = used_dims.index('edge')
+        else:
+            edge_index = defn.valid_dimensions.index('edge')
+
+
+        indices = [defn.valid_dimensions.index(k) for k in used_dims]
+        if not calibrated and 'edge' not in used_dims:
+            indices.append(edge_index)
+            used_dims += ('edge',)
+
+        if not calibrated and rate_het and bin_index not in indices:
+            indices.append(bin_index)
+            used_dims += ('bin',)
+
+        indices.sort()
+        result = {}
+        darr_template = DictArrayTemplate(self._motifs, self._motifs)
+        for scope, index in defn.index.items():
+            q = defn.values[index]  # this gives the appropriate Q
+            key = tuple(numpy.take(scope, indices))
+            q = q.copy()
+            if not calibrated:
+                length = self.get_param_value('length', edge=key[edge_index])
+                if rate_het:
+                    bdex = bin_names[scope[bin_index]]
+                    rate = rate_het.values[bdex]
+                    length *= rate
+                q *= length
+            result[key] = darr_template.wrap(q)
+            if not indices and calibrated:
+                break  # single rate matrix
+
+        return result
 
     def get_rate_matrix_for_edge(self, name, calibrated=True, **kw):
         """returns the rate matrix (Q) for the named edge
@@ -827,18 +905,19 @@ class LikelihoodFunction(ParameterController):
 
     def all_psubs_DLC(self):
         """Returns True if every Psub matrix is Diagonal Largest in Column"""
-        for edge in self.tree.get_edge_vector(include_root=False):
-            P = self.get_psub_for_edge(edge.name).toarray()
-            if (P.diagonal() < P).any():
+        all_psubs = self.get_all_psubs()
+        for P in all_psubs.values():
+            if (P.toarray().diagonal() < P).any():
                 return False
         return True
 
     def all_rate_matrices_unique(self):
         """Returns True if every rate matrix is unique for its Psub matrix"""
-        for edge in self.tree.get_edge_vector(include_root=False):
-            Q = self.get_rate_matrix_for_edge(edge.name).toarray()
-            t = self.get_param_value('length', edge=edge.name)
-            if not is_generator_unique(Q * t):
+        # get all possible Q, as products of t, and any rate-het terms
+        all_Q = self.get_all_rate_matrices(calibrated=False)
+        for Q in all_Q.values():
+            Q = Q.toarray()
+            if not is_generator_unique(Q):
                 return False
         return True
 
