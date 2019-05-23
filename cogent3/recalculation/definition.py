@@ -196,7 +196,8 @@ class GammaDefn(MonotonicDefn):
         name = self.make_name(name, extra_label)
         shape = PositiveParamDefn(name + '_shape',
                                   default=default_shape, dimensions=dimensions, lower=1e-2)
-        CalculationDefn.__init__(self, weights, shape, name=name + '_distrib')
+        CalculationDefn.__init__(
+            self, weights, shape, name=name + '_distrib')
 
     def calc(self, weights, a):
         from cogent3.maths.stats.distribution import gdtri

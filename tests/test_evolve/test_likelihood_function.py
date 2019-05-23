@@ -57,6 +57,7 @@ _data = {'Human': 'ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG',
          'Opossum': 'ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG'}
 _aln = LoadSeqs(data=_data, moltype=DNA)
 
+
 ########################################################
 # some funcs for assembling Q-matrices for 'manual' calc
 
@@ -71,8 +72,8 @@ def isTransition(motif1, motif2):
 
 
 def numdiffs_position(motif1, motif2):
-    assert len(motif1) == len(motif2),\
-        "motif1[%s] & motif2[%s] have inconsistent length" %\
+    assert len(motif1) == len(motif2), \
+        "motif1[%s] & motif2[%s] have inconsistent length" % \
         (motif1, motif2)
 
     ndiffs, position = 0, -1
@@ -96,10 +97,12 @@ def getposition(motif1, motif2):
     ndiffs, position = numdiffs_position(motif1, motif2)
     return position
 
+
 ##############################################################
 # funcs for testing the monomer weighted substitution matrices
 _root_probs = lambda x: dict([(n1 + n2, p1 * p2)
-                              for n1, p1 in list(x.items()) for n2, p2 in list(x.items())])
+                              for n1, p1 in list(x.items()) for n2, p2 in
+                              list(x.items())])
 
 
 def make_p(length, coord, val):
@@ -304,19 +307,19 @@ class LikelihoodFunctionTests(TestCase):
 
     def _setLengthsAndBetas(self, likelihood_function):
         for (species, length) in [
-                ("DogFaced", 0.1),
-                ("NineBande", 0.2),
-                ("Human", 0.3),
-                ("HowlerMon", 0.4),
-                ("Mouse", 0.5)]:
+            ("DogFaced", 0.1),
+            ("NineBande", 0.2),
+            ("Human", 0.3),
+            ("HowlerMon", 0.4),
+            ("Mouse", 0.5)]:
             likelihood_function.set_param_rule("length", value=length,
-                                             edge=species, is_constant=True)
+                                               edge=species, is_constant=True)
         for (species1, species2, length) in [
-                ("Human", "HowlerMon", 0.7),
-                ("Human", "Mouse", 0.6)]:
+            ("Human", "HowlerMon", 0.7),
+            ("Human", "Mouse", 0.6)]:
             LCA = self.tree.get_connecting_node(species1, species2).name
             likelihood_function.set_param_rule("length", value=length,
-                                             edge=LCA, is_constant=True)
+                                               edge=LCA, is_constant=True)
 
         likelihood_function.set_param_rule("beta", value=4.0, is_constant=True)
 
@@ -388,7 +391,8 @@ NineBande    root    1.00  1.00
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
         self.assertAlmostEqual(-250.686745262,
-                               likelihood_function.get_log_likelihood(), places=9)
+                               likelihood_function.get_log_likelihood(),
+                               places=9)
 
     def test_g_statistic(self):
         likelihood_function = self._makeLikelihoodFunction()
@@ -403,7 +407,8 @@ NineBande    root    1.00  1.00
         a_column_with_mostly_Ts = -1
         motif_G = 2
         self.assertAlmostEqual(2.28460181711e-05,
-                               result[a_column_with_mostly_Ts][motif_G], places=8)
+                               result[a_column_with_mostly_Ts][motif_G],
+                               places=8)
         lf = self.submodel.make_likelihood_function(
             self.tree, bins=['low', 'high'])
         lf.set_param_rule('beta', bin='low', value=0.1)
@@ -475,14 +480,16 @@ NineBande    root    1.00  1.00
 
     def test_simulate_alignment_root_sequence(self):
         """provide a root sequence for simulating an alignment"""
+
         def use_root_seq(root_sequence):
             al = LoadSeqs(data={'a': 'ggaatt', 'c': 'cctaat'})
             t = LoadTree(treestring="(a,c);")
-            sm = substitution_model.TimeReversibleDinucleotide(mprob_model='tuple')
+            sm = substitution_model.TimeReversibleDinucleotide(
+                mprob_model='tuple')
             lf = sm.make_likelihood_function(t)
             lf.set_alignment(al)
             simalign = lf.simulate_alignment(exclude_internal=False,
-                                            root_sequence=root_sequence)
+                                             root_sequence=root_sequence)
             root = simalign.named_seqs['root']
             self.assertEqual(str(root), str(root_sequence))
 
@@ -502,7 +509,8 @@ NineBande    root    1.00  1.00
 
     def test_set_par_all(self):
         likelihood_function = self._makeLikelihoodFunction()
-        likelihood_function.set_param_rule("length", value=4.0, is_constant=True)
+        likelihood_function.set_param_rule("length", value=4.0,
+                                           is_constant=True)
         likelihood_function.set_param_rule("beta", value=6.0, is_constant=True)
         self.assertEqual(str(likelihood_function),
 """Likelihood function statistics
@@ -531,7 +539,7 @@ NineBande      root    4.0000
 ------------------------------------""")
 
         # self.submodel.setScaleRule("ts",['beta'])
-        #self.submodel.setScaleRule("tv",['beta'], exclude_pars = True)
+        # self.submodel.setScaleRule("tv",['beta'], exclude_pars = True)
         self.assertEqual(str(likelihood_function),
 """Likelihood function statistics
 log-likelihood = -413.1886
@@ -601,9 +609,11 @@ NineBande      root    1.0000    1.0000
 0.2500    0.2500    0.2500    0.2500
 ------------------------------------""")
         self.assertEqual(likelihood_function.get_param_value_dict(['edge']), {
-            'beta': {'NineBande': 1.0, 'edge.1': 1.0, 'DogFaced': 1.0, 'Human': 1.0,
+            'beta': {'NineBande': 1.0, 'edge.1': 1.0, 'DogFaced': 1.0,
+                     'Human': 1.0,
                      'edge.0': 1.0, 'Mouse': 1.0, 'HowlerMon': 1.0},
-            'length': {'NineBande': 1.0, 'edge.1': 1.0, 'DogFaced': 1.0, 'Human': 1.0,
+            'length': {'NineBande': 1.0, 'edge.1': 1.0, 'DogFaced': 1.0,
+                       'Human': 1.0,
                        'edge.0': 1.0, 'Mouse': 1.0, 'HowlerMon': 1.0}})
 
     def test_get_statistics_from_empirical_model(self):
@@ -621,9 +631,9 @@ NineBande      root    1.0000    1.0000
         lf = self.submodel.make_likelihood_function(self.tree)
         lf.set_alignment(self.data)
         lf.set_param_rule('beta', is_constant=True, value=2.0,
-                        edges=['NineBande', 'DogFaced'], is_clade=True)
+                          edges=['NineBande', 'DogFaced'], is_clade=True)
         lf.set_param_rule('beta', init=2.0, is_constant=False,
-                        edges=['NineBande', 'DogFaced'], is_clade=True)
+                          edges=['NineBande', 'DogFaced'], is_clade=True)
 
     def test_get_psub_rate_matrix(self):
         """lf should return consistent rate matrix and psub"""
@@ -671,7 +681,7 @@ NineBande      root    1.0000    1.0000
         t = LoadTree(treestring='(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;')
         dm = ns_substitution_model.DiscreteSubstitutionModel(DNA.alphabet)
         lf = dm.make_likelihood_function(t)
-    
+
     def test_exercise_set_align(self):
         "lf.set_align should work for different models"
         al = LoadSeqs(data={'a': 'ggaatt', 'c': 'cctaat'})
@@ -680,7 +690,7 @@ NineBande      root    1.0000    1.0000
             sm = klass()
             lf = sm.make_likelihood_function(t)
             lf.set_alignment(al)
-            
+
     def test_get_param_rules(self):
         """correctly return rules that can be used to reconstruct a lf"""
         lf = self.submodel.make_likelihood_function(self.tree)
@@ -689,7 +699,8 @@ NineBande      root    1.0000    1.0000
         lf.set_param_rule('beta', value=2.0, edges=['Human', 'HowlerMon'],
                           is_constant=True)
         lf.set_param_rule('length', init=0.5, edges='Human', upper=5)
-        lf.set_param_rule('length', value=0.25, edges='HowlerMon', is_constant=True)
+        lf.set_param_rule('length', value=0.25, edges='HowlerMon',
+                          is_constant=True)
         lnL = lf.get_log_likelihood()
         rules = lf.get_param_rules()
         for rule in rules:
@@ -700,7 +711,7 @@ NineBande      root    1.0000    1.0000
                     self.assertTrue(rule.get('is_constant', False))
             elif rule['par_name'] == 'mprobs':
                 self.assertEqual(rule['value'], {b: 0.25 for b in 'ACGT'})
-                    
+
         self.assertEqual(len(rules), 10)
         lf = self.submodel.make_likelihood_function(self.tree)
         lf.set_alignment(self.data)
@@ -721,13 +732,15 @@ NineBande      root    1.0000    1.0000
 
         lf = self.submodel.make_likelihood_function(self.tree)
         rules = [dict(par_name='beta', edges=['Human', 'HowlerMon'], init=2),
-                 dict(par_name='beta', edges=['NineBande', 'DogFaced'], init=4, is_independent=True)]
+                 dict(par_name='beta', edges=['NineBande', 'DogFaced'], init=4,
+                      is_independent=True)]
         lf.apply_param_rules(rules)
         self.assertEqual(lf.get_num_free_params(), nfp + 3)
 
         lf = self.submodel.make_likelihood_function(self.tree)
         rules = [dict(par_name='beta', edges=['Human', 'HowlerMon'], init=2),
-                 dict(par_name='beta', edges=['NineBande', 'DogFaced'], value=4, is_constant=True)]
+                 dict(par_name='beta', edges=['NineBande', 'DogFaced'], value=4,
+                      is_constant=True)]
         lf.apply_param_rules(rules)
         self.assertEqual(lf.get_num_free_params(), nfp + 1)
 
@@ -738,10 +751,10 @@ NineBande      root    1.0000    1.0000
         edge_sets = [dict(edges=['Human', 'HowlerMon'])]
         lf.set_time_heterogeneity(edge_sets=edge_sets, is_independent=False)
         nfp1 = lf.nfp
-        self.assertEqual(nfp1-nfp0, 1)
+        self.assertEqual(nfp1 - nfp0, 1)
         lf.set_time_heterogeneity(edge_sets=edge_sets, is_independent=True)
         nfp2 = lf.nfp
-        self.assertEqual(nfp2-nfp1, 1)
+        self.assertEqual(nfp2 - nfp1, 1)
 
     def test_time_het_init_from_nested(self):
         """initialise from nested should honour alt model setting"""
@@ -770,7 +783,8 @@ NineBande      root    1.0000    1.0000
         nfp = lf.get_num_free_params()
         # cannot exclude a param that isn't part of the model
         with self.assertRaises(ValueError):
-            lf.set_time_heterogeneity(is_independent=True, exclude_params='omega')
+            lf.set_time_heterogeneity(is_independent=True,
+                                      exclude_params='omega')
 
         # cannot specify is_constant and init
         with self.assertRaises(ValueError):
@@ -780,24 +794,28 @@ NineBande      root    1.0000    1.0000
         lf = self.submodel.make_likelihood_function(self.tree)
         lf.set_time_heterogeneity(is_independent=True)
         got = lf.get_num_free_params()
-        self.assertEqual(got, nfp + len(lf.tree.get_node_names(includeself=False)) - 1)
+        self.assertEqual(got, nfp + len(
+            lf.tree.get_node_names(includeself=False)) - 1)
 
         # we should be able to specify a set of edges that get treated as a block
         # if not specified, the edges are considered to be not-independent
         lf = self.submodel.make_likelihood_function(self.tree)
-        lf.set_time_heterogeneity(edge_sets=dict(edges=['Human', 'HowlerMon']), is_independent=False)
+        lf.set_time_heterogeneity(edge_sets=dict(edges=['Human', 'HowlerMon']),
+                                  is_independent=False)
         got = lf.get_num_free_params()
         self.assertEqual(got, nfp + 1)
-        
+
         # making them independent
         lf = self.submodel.make_likelihood_function(self.tree)
-        lf.set_time_heterogeneity(edge_sets=dict(edges=['Human', 'HowlerMon']), is_independent=True)
+        lf.set_time_heterogeneity(edge_sets=dict(edges=['Human', 'HowlerMon']),
+                                  is_independent=True)
         got = lf.get_num_free_params()
         self.assertEqual(got, nfp + 2)
-        
+
         # making them constant
         lf = self.submodel.make_likelihood_function(self.tree)
-        lf.set_time_heterogeneity(edge_sets=dict(edges=['Human', 'HowlerMon']), is_constant=True)
+        lf.set_time_heterogeneity(edge_sets=dict(edges=['Human', 'HowlerMon']),
+                                  is_constant=True)
         got = lf.get_num_free_params()
         self.assertEqual(got, nfp)
 
@@ -805,14 +823,14 @@ NineBande      root    1.0000    1.0000
         lf = self.submodel.make_likelihood_function(self.tree)
         lf.set_time_heterogeneity(edge_sets=[dict(edges=['Human', 'HowlerMon'],
                                                   init=3),
-                                             dict(edges=['NineBande', 'DogFaced'],
+                                             dict(edges=['NineBande',
+                                                         'DogFaced'],
                                                   value=5, is_constant=True)])
         got = lf.get_num_free_params()
         self.assertEqual(got, nfp + 1)
         for edge, exp in [('Human', 3), ('NineBande', 5)]:
             got = lf.get_param_value('beta', edge=edge)
             self.assertEqual(got, exp)
-
 
     def test_initialise_from_nested_diff_scoped(self):
         """non-reversible likelihood initialised from nested, scoped, time-reversible"""
@@ -848,7 +866,8 @@ NineBande      root    1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name('GN')
         glf.initialise_from_nested(slf)
-        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+        self.assertFloatEqual(glf.get_log_likelihood(),
+                              slf.get_log_likelihood())
 
     def test_initialise_from_nested_diff(self):
         """non-reversible likelihood initialised from nested, non-scoped, time-reversible"""
@@ -877,7 +896,8 @@ NineBande      root    1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name('GN')
         glf.initialise_from_nested(slf)
-        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+        self.assertFloatEqual(glf.get_log_likelihood(),
+                              slf.get_log_likelihood())
 
     def test_initialise_from_nested_same_type_tr(self):
         """time-reversible likelihood initialised from nested, non-scoped, time-reversible"""
@@ -901,7 +921,8 @@ NineBande      root    1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name('GTR')
         glf.initialise_from_nested(slf)
-        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+        self.assertFloatEqual(glf.get_log_likelihood(),
+                              slf.get_log_likelihood())
 
     def test_initialise_from_nested_same_type_tr_scoped(self):
         """time-reversible likelihood initialised from nested, scoped, time-reversible"""
@@ -928,7 +949,8 @@ NineBande      root    1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name('GTR')
         glf.initialise_from_nested(slf)
-        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+        self.assertFloatEqual(glf.get_log_likelihood(),
+                              slf.get_log_likelihood())
 
     def test_initialise_from_nested_same_type_nr(self):
         """non-reversible likelihood initialised from nested, non-scoped, non-reversible"""
@@ -957,8 +979,9 @@ NineBande      root    1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name('GN')
         glf.initialise_from_nested(slf)
-        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
-    
+        self.assertFloatEqual(glf.get_log_likelihood(),
+                              slf.get_log_likelihood())
+
     def test_initialise_from_nested_same_type_nr_scoped(self):
         """non-reversible likelihood initialised from nested, scoped, non-reversible"""
         mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
@@ -996,20 +1019,21 @@ NineBande      root    1.0000    1.0000
 
     def test_get_lengths_as_ens_equal(self):
         """lengths equals ENS for a time-reversible model"""
-        moprobs = numpy.array([0.1,0.2,0.3,0.4])
+        moprobs = numpy.array([0.1, 0.2, 0.3, 0.4])
         length = 0.1
-        lf = HKY85().make_likelihood_function(LoadTree(tip_names=['a', 'b', 'c']))
+        lf = HKY85().make_likelihood_function(
+            LoadTree(tip_names=['a', 'b', 'c']))
         lf.set_motif_probs(moprobs)
         lf.set_param_rule('kappa', init=1)
-        lf.set_param_rule('length', edge='a', init=length)      
+        lf.set_param_rule('length', edge='a', init=length)
         len_dict = lf.get_lengths_as_ens()
         self.assertFloatEqual(len_dict['a'], length)
-        
+
     def test_get_lengths_as_ens_not_equal(self):
         """lengths do not equal ENS for a non-reversible model"""
-        moprobs = numpy.array([0.1,0.2,0.3,0.4])
+        moprobs = numpy.array([0.1, 0.2, 0.3, 0.4])
         length = 0.1
-        lf = GN().make_likelihood_function(LoadTree(tip_names=['a', 'b', 'c']))     
+        lf = GN().make_likelihood_function(LoadTree(tip_names=['a', 'b', 'c']))
         lf.set_motif_probs(moprobs)
         lf.set_param_rule('length', init=length)
         # setting arbitrary values for GN rate terms
@@ -1019,7 +1043,7 @@ NineBande      root    1.0000    1.0000
             init += 0.1
 
         len_dict = lf.get_lengths_as_ens()
-        self.assertNotAlmostEqual(len_dict['a'], length)    
+        self.assertNotAlmostEqual(len_dict['a'], length)
 
 
 if __name__ == '__main__':
