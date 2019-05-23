@@ -330,7 +330,7 @@ def tight_simplex(x):
         raise ValueError("Input rows do not total to one.")
     cent = ones(4) / 4
     centx = mean(x, axis=0)
-    trans_vertices = identity(4) + cent - centx
+    trans_vertices = identity(4) - cent + centx
     radius = max(norm(x - centx, axis=1))
     radratio = minimum(radius * sqrt(12), 1.0)
     newvertices = centx + radratio * (trans_vertices - centx)

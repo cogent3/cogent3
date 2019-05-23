@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Tests of the geometry package."""
-from numpy import array, take, ones, allclose, isclose, sum, arange, insert, all
+from numpy import array, take, ones, allclose, isclose, sum, arange, insert, all, mean
 from numpy.linalg import norm, inv
 from numpy.random import dirichlet, choice
 from numpy.testing import assert_allclose
@@ -209,10 +209,13 @@ class TestTightSimplex(TestCase):
                     allclose(vertices[2] - vertices[3], l * array([0, 0, 1, -1]) / sqrt(2))])
 
     def test_coordinates(self):
-        """Barycentric coorinates of all input points relative to vertices returned
+        """Centre of gravity of vertices is the same as centre of gravity of input.
+        Barycentric coorinates of all input points relative to vertices returned
         by tight_simplex are positive, i.e. points lie within simplex."""
         x = self.x
         vertices = self.vertices
+        assert_allclose(mean(x, axis=0), mean(vertices, axis=0),
+                        err_msg='Centre of gravity of vertices and input differ.')
         coords = x @ inv(vertices)
         assert_allclose(sum(coords, axis=1), ones(5), err_msg='Barycentric coords do not total one.')
         if not all(coords > 0.):
