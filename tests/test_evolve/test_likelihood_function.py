@@ -744,6 +744,57 @@ NineBande      root    1.0000    1.0000
         lf.apply_param_rules(rules)
         self.assertEqual(lf.get_num_free_params(), nfp + 1)
 
+    def test_get_apply_param_rules_site_het_models(self):
+        """correctly use and apply param rules from site-het and phyloHMM models"""
+        with open('data/site-het-param-rules.json') as infile:
+            rules = json.load(infile)
+        aln = LoadSeqs('data/primates_brca1.fasta', moltype='dna')
+        tree = LoadTree('data/primates_brca1.tree')
+        # gamma distributed length
+        rule_lnL = rules.pop('gamma-length')
+        sm = get_model('HKY85', ordered_param='rate', distribution='gamma')
+        lf1 = sm.make_likelihood_function(tree, bins=4)
+        lf1.set_alignment(aln)
+        lf1.apply_param_rules(rule_lnL['rules'])
+        assert_allclose(lf1.lnL, rule_lnL['lnL'])
+        lf2 = sm.make_likelihood_function(tree, bins=4)
+        lf2.set_alignment(aln)
+        lf2.apply_param_rules(lf1.get_param_rules())
+        assert_allclose(lf2.lnL, lf1.lnL)
+        # gamma distributed kappa
+        rule_lnL = rules.pop('gamma-kappa')
+        sm = get_model('HKY85', ordered_param='kappa', distribution='gamma')
+        lf1 = sm.make_likelihood_function(tree, bins=4)
+        lf1.set_alignment(aln)
+        lf1.apply_param_rules(rule_lnL['rules'])
+        assert_allclose(lf1.lnL, rule_lnL['lnL'])
+        lf2 = sm.make_likelihood_function(tree, bins=4)
+        lf2.set_alignment(aln)
+        lf2.apply_param_rules(lf1.get_param_rules())
+        assert_allclose(lf2.lnL, lf1.lnL)
+        # free kappa
+        rule_lnL = rules.pop('free-kappa')
+        sm = get_model('HKY85')
+        lf1 = sm.make_likelihood_function(tree, bins=['slow', 'fast'])
+        lf1.set_alignment(aln)
+        lf1.apply_param_rules(rule_lnL['rules'])
+        assert_allclose(lf1.lnL, rule_lnL['lnL'])
+        lf2 = sm.make_likelihood_function(tree, bins=['slow', 'fast'])
+        lf2.set_alignment(aln)
+        lf2.apply_param_rules(lf1.get_param_rules())
+        assert_allclose(lf2.lnL, lf1.lnL)
+        # phylo-hmm kappa
+        rule_lnL = rules.pop('phylohmm-gamma-kappa')
+        sm = get_model('HKY85', ordered_param='rate', distribution='gamma')
+        lf1 = sm.make_likelihood_function(tree, bins=4, sites_independent=False)
+        lf1.set_alignment(aln)
+        lf1.apply_param_rules(rule_lnL['rules'])
+        assert_allclose(lf1.lnL, rule_lnL['lnL'])
+        lf2 = sm.make_likelihood_function(tree, bins=4, sites_independent=False)
+        lf2.set_alignment(aln)
+        lf2.apply_param_rules(lf1.get_param_rules())
+        assert_allclose(lf2.lnL, lf1.lnL)
+
     def test_set_time_heterogeneity_partial(self):
         """correctly apply partial time heterogeneity of rate terms"""
         lf = self.submodel.make_likelihood_function(self.tree)
