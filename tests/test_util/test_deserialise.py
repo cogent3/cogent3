@@ -1,6 +1,8 @@
 import json
 from tempfile import TemporaryDirectory
 
+from numpy.testing import assert_allclose
+
 from cogent3.util.unit_test import main, TestCase
 from cogent3.util.deserialise import deserialise_object
 from cogent3.evolve.models import get_model
@@ -107,7 +109,24 @@ class TestDeserialising(TestCase):
         data = lf.to_json()
         got_obj = deserialise_object(data)
         self.assertFloatEqual(got_obj.get_log_likelihood(), lnL)
-        
+
+    def test_roundtrip_het_lf(self):
+        """correctly round trips a site-het model"""
+        with open('data/site-het-param-rules.json') as infile:
+            rules = json.load(infile)
+
+        aln = LoadSeqs('data/primates_brca1.fasta', moltype='dna')
+        tree = LoadTree('data/primates_brca1.tree')
+        rule_lnL = rules.pop('phylohmm-gamma-kappa')
+        sm = get_model('HKY85', ordered_param='rate', distribution='gamma')
+        lf1 = sm.make_likelihood_function(tree, bins=4, sites_independent=False)
+        lf1.set_alignment(aln)
+        lf1.apply_param_rules(rule_lnL['rules'])
+        data = lf1.to_json()
+        got_lf = deserialise_object(data)
+        assert_allclose(lf1.lnL, got_lf.lnL)
+
+
     def test_roundtrip_from_file(self):
         """correctly roundtrips a likelihood function fro json file"""
         _data = {'Human': 'ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG',

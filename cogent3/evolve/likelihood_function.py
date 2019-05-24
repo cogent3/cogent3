@@ -261,6 +261,23 @@ class LikelihoodFunction(ParameterController):
     def get_log_likelihood(self):
         return self.get_final_result()
 
+    def get_all_psubs(self):
+        """returns all psubs as a dict keyed by used dimensions"""
+        try:
+            defn = self.defn_for['dsubs']
+        except KeyError:
+            defn = self.defn_for['psubs']
+
+        used_dims = defn.used_dimensions()
+        indices = [defn.valid_dimensions.index(k) for k in used_dims]
+        result = {}
+        darr_template = DictArrayTemplate(self._motifs, self._motifs)
+        for scope, index in defn.index.items():
+            psub = defn.values[index]
+            key = tuple(numpy.take(scope, indices))
+            result[key] = darr_template.wrap(psub)
+        return result
+
     def get_psub_for_edge(self, name, **kw):
         """returns the substitution probability matrix for the named edge"""
         try:
@@ -269,6 +286,62 @@ class LikelihoodFunction(ParameterController):
         except KeyError:
             array = self.get_param_value('psubs', edge=name, **kw)
         return DictArrayTemplate(self._motifs, self._motifs).wrap(array)
+
+    def get_all_rate_matrices(self, calibrated=True):
+        """returns all rate matrices (Q) as a dict, keyed by scope
+
+        Parameters
+        ----------
+        calibrated : bool
+            scales the rate matrix by branch length for each edge. If a rate
+            heterogeneity model, then the matrix is further scaled by rate
+            for a bin
+        Returns
+        -------
+        If a single rate matrix, the key is an empty tuple
+        """
+        defn = self.defn_for['Q']
+
+        rate_het = self.defn_for.get('rate', False)
+        if rate_het:
+            bin_index = rate_het.valid_dimensions.index('bin')
+            bin_names = [k[bin_index] for k in rate_het.index]
+            bin_names = {n: i for i, n in enumerate(bin_names)}
+            bin_index = defn.valid_dimensions.index('bin')
+        else:
+            bin_names = None
+            bin_index = None
+
+        used_dims = defn.used_dimensions()
+        edge_index = defn.valid_dimensions.index('edge')
+
+        indices = {defn.valid_dimensions.index(k) for k in used_dims}
+        if not calibrated:
+            indices.add(edge_index)
+
+        if not calibrated and rate_het:
+            indices.add(bin_index)
+
+        indices = list(sorted(indices))
+        result = {}
+        darr_template = DictArrayTemplate(self._motifs, self._motifs)
+        for scope, index in defn.index.items():
+            q = defn.values[index]  # this gives the appropriate Q
+            # from scope we extract only the relevant dimensions
+            key = tuple(numpy.take(scope, indices))
+            q = q.copy()
+            if not calibrated:
+                length = self.get_param_value('length', edge=scope[edge_index])
+                if rate_het:
+                    bdex = bin_names[scope[bin_index]]
+                    rate = rate_het.values[bdex]
+                    length *= rate
+                q *= length
+            result[key] = darr_template.wrap(q)
+            if not indices and calibrated:
+                break  # single rate matrix
+
+        return result
 
     def get_rate_matrix_for_edge(self, name, calibrated=True, **kw):
         """returns the rate matrix (Q) for the named edge
@@ -534,64 +607,16 @@ class LikelihoodFunction(ParameterController):
 
     def get_param_rules(self):
         """returns the [{rule}, ..] that would allow reconstruction"""
-        def mprob_rule(defn, index, edges):
-            uniq = defn.uniq[index]
-            value = uniq.value
-            # default min prob is 1e-6,
-            # values can drop below due to precision
-            # so we adjust
-            value = adjusted_gt_minprob(value, minprob=1e-6)
-            val = dict(zip(defn.bin_names, value))
-            rule = dict(par_name=defn.name, edges=edges)
-            if uniq.is_constant:
-                rule.update(dict(is_constant=True, value=val))
-            else:
-                rule.update(dict(init=val))
-            return rule
-
-        rules = []
-
         # markov model rate terms
+        rules = []
         param_names = self.get_param_names()
-        rate_names = self.model.get_param_list()
         for param_name in param_names:
             defn = self.defn_for[param_name]
-            scoped = defaultdict(list)
-            for key, index in defn.index.items():
-                edge_name = key[0]
-                scoped[index].append(edge_name)
-
-            if len(scoped) == 1:  # we have a global
-                if param_name == 'mprobs':
-                    rule = mprob_rule(defn, 0, None)
-                else:
-                    val = defn.values[0]
-                    rule = dict(par_name=param_name, edges=None)
-                    if defn.uniq[0].is_constant:
-                        rule.update(dict(is_constant=True, value=val))
-                    else:
-                        rule.update(dict(init=val, upper=defn.upper,
-                                         lower=defn.lower))
-
-                rules.append(rule)
-
-                continue
-
-            for index in scoped:
-                edges = scoped[index]
-                if param_name == 'mprobs':
-                    rule = mprob_rule(defn, index, edges)
-                else:
-                    uniq = defn.uniq[index]
-                    rule = dict(par_name=param_name, edges=edges)
-                    if uniq.is_constant:
-                        rule.update(dict(is_constant=True, value=uniq.value))
-                    else:
-                        value = adjusted_within_bounds(uniq.value,
-                                                       uniq.lower, uniq.upper)
-                        rule.update(dict(init=value, lower=uniq.lower,
-                                         upper=uniq.upper))
-                rules.append(rule)
+            try:
+                rules.extend(defn.get_param_rules())
+            except AttributeError:
+                # aggregate params, like those deriving from gamma shaped rates
+                pass
 
         return rules
 
@@ -827,18 +852,19 @@ class LikelihoodFunction(ParameterController):
 
     def all_psubs_DLC(self):
         """Returns True if every Psub matrix is Diagonal Largest in Column"""
-        for edge in self.tree.get_edge_vector(include_root=False):
-            P = self.get_psub_for_edge(edge.name).toarray()
-            if (P.diagonal() < P).any():
+        all_psubs = self.get_all_psubs()
+        for P in all_psubs.values():
+            if (P.toarray().diagonal() < P).any():
                 return False
         return True
 
     def all_rate_matrices_unique(self):
         """Returns True if every rate matrix is unique for its Psub matrix"""
-        for edge in self.tree.get_edge_vector(include_root=False):
-            Q = self.get_rate_matrix_for_edge(edge.name).toarray()
-            t = self.get_param_value('length', edge=edge.name)
-            if not is_generator_unique(Q * t):
+        # get all possible Q, as products of t, and any rate-het terms
+        all_Q = self.get_all_rate_matrices(calibrated=False)
+        for Q in all_Q.values():
+            Q = Q.toarray()
+            if not is_generator_unique(Q):
                 return False
         return True
 

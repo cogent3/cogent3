@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 """Code for geometric operations, e.g. distances and center of mass."""
 
-from numpy import array, take, sum, newaxis, sqrt, sqrt, sin, cos, pi, c_, \
-    vstack, dot, ones, exp, sum, log, linalg, delete, insert, append, min, mean, nonzero
+from numpy import array, take, newaxis, sqrt, sin, cos, pi, c_, \
+    vstack, dot, ones, exp, sum, log, linalg, delete, insert, append, min, mean,\
+    nonzero, allclose, identity, minimum, any
+from numpy.linalg import norm
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -308,3 +310,28 @@ def multiplicative_replacement(x, eps=.01):
     shape_zeros = x < delta
     y = x + shape_zeros * delta
     return y / sum(y)
+
+
+def tight_simplex(x):
+    """Input is an array whose rows are points in the unit simplex in R^4 (compositions).
+    Output is vertices of a smaller regular simplex also aligned within unit simplex
+    containing the points of input.
+    To be precise, it returns a regular simplex whose insphere is the smallest
+    sphere centred on the centre of mass of the points in the set x
+    that contains all the points."""
+    x = x.squeeze()
+    if x.ndim != 2:
+        raise ValueError("Input array must be 2D.")
+    if x.shape[1] != 4:
+        raise ValueError("Input rows must have length 4.")
+    if any(x <= 0):
+        raise ValueError("Input cannot have negative or zero elements.")
+    if not allclose(sum(x, axis=1), ones(x.shape[0])):
+        raise ValueError("Input rows do not total to one.")
+    cent = ones(4) / 4
+    centx = mean(x, axis=0)
+    trans_vertices = identity(4) - cent + centx
+    radius = max(norm(x - centx, axis=1))
+    radratio = minimum(radius * sqrt(12), 1.0)
+    newvertices = centx + radratio * (trans_vertices - centx)
+    return newvertices

@@ -47,7 +47,7 @@ class FastSlowDist:  # todo make this a composable type
 
     def __call__(self, aln):
         aln = aln.to_moltype(self._moltype)
-        self.fast_calc(aln)
+        self.fast_calc(aln, show_progress=False)
         dists = self.fast_calc.get_pairwise_distances()
         for (a, b) in dists:
             if not dists[(a, b)]:

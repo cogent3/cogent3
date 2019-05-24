@@ -525,28 +525,45 @@ class Table(DictArray):
                                                                digits=self._digits,
                                                                column_templates=self._column_templates,
                                                                missing_data=self._missing_data)
-        # but we strip the cell spacing
-        header = [v.strip() for v in header]
-        rows = [[c.strip() for c in r] for r in formatted_table]
+        subtables = table_format.get_continuation_tables(header,
+                                                         formatted_table,
+                                                         identifiers=self._row_ids,
+                                                         max_width=self._max_width)
+        tables = []
         title = self.title if self.title else ""
         if title:
             title = escape(title)
-            title = element_formatters.get('caption',
-                f'<span style="font-weight:bold">{title}</span>')
-
         legend = self.legend if self.legend else ""
         if legend:
             legend = escape(legend)
-            title = "%s %s" % (title, legend) if title else legend
+        for i, (h, t) in enumerate(subtables):
+            # but we strip the cell spacing
+            sh = [v.strip() for v in h]
+            t = [[c.strip() for c in r] for r in t]
 
-        caption = title if title else None
+            if title and i == 0:
+                st = element_formatters.get('caption',
+                    f'<span style="font-weight:bold">{title}</span>')
+            elif title:
+                st = element_formatters.get('caption',
+                    f'<span style="font-weight:bold">continuation</span>')
+            else:
+                st = None
 
-        return table_format.rich_html(rows, row_cell_func=row_cell_func,
-                                      header=header,
+
+            legend = self.legend if self.legend else ""
+            if legend and i == 0:
+                title = f"{st} {legend}" if st else legend
+
+            caption = st if st else None
+            subtable = table_format.rich_html(t, row_cell_func=row_cell_func,
+                                      header=sh,
                                       header_cell_func=header_cell_func,
                                       element_formatters=element_formatters,
                                       merge_identical=merge_identical,
                                       compact=compact, caption=caption)
+            tables.append(subtable)
+        return '\n'.join(tables)
 
     def write(self, filename, mode=None, writer=None, format=None,
               sep=None, compress=None, **kwargs):

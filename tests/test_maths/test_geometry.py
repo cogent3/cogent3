@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Tests of the geometry package."""
-from numpy import array, take, ones, allclose, isclose, sum, arange, insert
-from numpy.linalg import norm
+from numpy import array, take, ones, allclose, isclose, sum, arange, insert, all, mean
+from numpy.linalg import norm, inv
 from numpy.random import dirichlet, choice
 from numpy.testing import assert_allclose
 from math import sqrt
@@ -9,7 +9,7 @@ from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.geometry import center_of_mass_one_array, \
     center_of_mass_two_array, center_of_mass, distance, sphere_points, \
     SimplexTransform, alr, clr, alr_inv, clr_inv, aitchison_distance, \
-    multiplicative_replacement
+    multiplicative_replacement, tight_simplex
 
 
 __author__ = "Sandra Smit"
@@ -187,6 +187,41 @@ class TestAitchison(TestCase):
             'Multiplicative replacement peturbation is too large.'
         assert isclose(sum(u), 1), \
             'Multiplicative replacement does not yield a composition.'
+
+
+class TestTightSimplex(TestCase):
+    def setUp(self):
+        x = dirichlet(100 * ones(4), 5)
+        self.x = x
+        vertices = tight_simplex(x)
+        self.vertices = vertices
+
+    def test_vertices(self):
+        """Vertices lie within unit simplex, edges are equal in length and align
+        with unit simplex."""
+        vertices = self.vertices
+        assert_allclose(sum(vertices, axis=1), ones(4), err_msg='Vertices not in unit simplex.')
+        l = norm(vertices[0] - vertices[1])
+        assert all([allclose(vertices[0] - vertices[2], l * array([1, 0, -1, 0]) / sqrt(2)),
+                    allclose(vertices[0] - vertices[3], l * array([1, 0, 0, -1]) / sqrt(2)),
+                    allclose(vertices[1] - vertices[2], l * array([0, 1, -1, 0]) / sqrt(2)),
+                    allclose(vertices[1] - vertices[3], l * array([0, 1, 0, -1]) / sqrt(2)),
+                    allclose(vertices[2] - vertices[3], l * array([0, 0, 1, -1]) / sqrt(2))])
+
+    def test_coordinates(self):
+        """Centre of gravity of vertices is the same as centre of gravity of input.
+        Barycentric coorinates of all input points relative to vertices returned
+        by tight_simplex are positive, i.e. points lie within simplex."""
+        x = self.x
+        vertices = self.vertices
+        assert_allclose(mean(x, axis=0), mean(vertices, axis=0),
+                        err_msg='Centre of gravity of vertices and input differ.')
+        coords = x @ inv(vertices)
+        assert_allclose(sum(coords, axis=1), ones(5), err_msg='Barycentric coords do not total one.')
+        if not all(coords > 0.):
+            msg = (f'Not all barycentric coordinates are positive: {coords}'
+                   f'\n original were {x}')
+            raise AssertionError(msg)
 
 
 if __name__ == '__main__':

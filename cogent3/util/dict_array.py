@@ -119,7 +119,7 @@ def convert2DDict(twoDdict, header=None, row_order=None, make_symmetric=False):
         row_order = list(twoDdict.keys())
         row_order.sort()
 
-    if not header: # we assume columns consistent across dict
+    if not header:  # we assume columns consistent across dict
         header = list(twoDdict[row_order[0]].keys())
         header.sort()
 
@@ -250,6 +250,7 @@ class NumericKey(int):
         result = int.__new__(cls, val)
         return result
 
+
 class DictArrayTemplate(object):
 
     def __init__(self, *dimensions):
@@ -261,7 +262,8 @@ class DictArrayTemplate(object):
             elif isinstance(names, int):
                 names = list(range(names))
             else:
-                names = [NumericKey(v) if type(v) == int else v for v in names]
+                names = [NumericKey(v) if type(
+                    v) == int else v for v in names]
 
             self.names.append(names)
             self.ordinals.append(dict((c, i) for (i, c) in enumerate(names)))
@@ -269,8 +271,8 @@ class DictArrayTemplate(object):
 
     def __eq__(self, other):
         return self is other or (
-                isinstance(other,
-                           DictArrayTemplate) and self.names == other.names)
+            isinstance(other,
+                       DictArrayTemplate) and self.names == other.names)
 
     def _dict2list(self, value, depth=0):
         # Unpack (possibly nested) dictionary into correct order of elements
@@ -366,7 +368,7 @@ class DictArrayTemplate(object):
             return '%s dimensional %s' % (
                 len(self.names), type(self).__name__)
         row_ids = len(self.names) == 2
-        t = Table(heading, rows=a, digits=3, row_ids=row_ids)
+        t = Table(heading, rows=a, digits=3, row_ids=row_ids, max_width=80)
         return t._repr_html_(include_shape=False)
 
 
