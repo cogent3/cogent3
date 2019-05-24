@@ -1587,7 +1587,7 @@ class SequenceCollection(object):
         return result
 
     def dotplot(self, name1=None, name2=None, window=20, threshold=None,
-                min_gap=0, width=500, title=None):
+                min_gap=0, width=500, title=None, show_progress=False):
         """display a dotplot between specified sequences. Random sequences
         chosen if names not provided.
 
@@ -1619,9 +1619,37 @@ class SequenceCollection(object):
             raise ValueError(msg)
 
         dotplot = Display2D(self.named_seqs[name1], self.named_seqs[name2],
-                            moltype=self.moltype)
+                            moltype=self.moltype, show_progress=show_progress)
         dotplot.calc_lines(window=window, threshold=threshold, min_gap=min_gap)
         return dotplot
+
+    def rename_seqs(self, renamer):
+        """returns new instance with sequences renamed
+        Parameters
+        ----------
+        renamer : callable
+            function that will take current sequences and return the new one
+        """
+        new = {}
+        name_map = {}
+        for name, seq in self.named_seqs.items():
+            new_name = renamer(name)
+            name_map[new_name] = name
+            new_seq = self.moltype.make_seq(seq, new_name)
+            try:
+                new_seq = Aligned(seq.map, new_seq)
+            except AttributeError:
+                pass
+            new[new_name] = new_seq
+        result = self.__class__(data=new, info=self.info, moltype=self.moltype)
+        result.info.name_map = name_map
+        # now try copying annotations
+        if isinstance(self, Alignment):
+            for new, old in name_map.items():
+                new_seq = result.named_seqs[new]
+                old_seq = self.named_seqs[old]
+                new_seq.copy_annotations(old_seq.data)
+        return result
 
 
 @total_ordering
@@ -2060,9 +2088,11 @@ class AlignmentI(object):
             from cogent3.draw.drawable import Drawable
             if self.info.source:
                 trace_name = os.path.basename(self.info.source)
+            else:
+                trace_name=None
             draw = Drawable('Gaps Per Sequence',
                             showlegend=False)
-            draw.layout.update(dict(yaxis=dict(title='Gap counts')))
+            draw.layout.update(yaxis=dict(title='Gap counts'))
             if drawable.lower().startswith('box'):
                 trace = go.Box(y=result.array,
                                text=self.names,
@@ -2506,7 +2536,7 @@ class AlignmentI(object):
                     info=self.info, names=self.names)
         return new
 
-    def distance_matrix(self, calc='hamming'):
+    def distance_matrix(self, calc='hamming', show_progress=False):
         """Returns pairwise distances between sequences.
         Parameters
         ----------
@@ -2516,7 +2546,7 @@ class AlignmentI(object):
         from cogent3.evolve.pairwise_distance import get_calculator
         calculator = get_calculator(
             calc, moltype=self.moltype, alignment=self)
-        calculator.run()
+        calculator.run(show_progress=show_progress)
         result = calculator.get_pairwise_distances()
         return result
 

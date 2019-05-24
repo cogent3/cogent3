@@ -109,7 +109,7 @@ def get_align_coords(map1, map2):
 
 class Display2D(Drawable):
 
-    def __init__(self, seq1, seq2, moltype='text'):
+    def __init__(self, seq1, seq2, moltype='text', show_progress=False):
         if hasattr(seq1, 'moltype'):
             moltype = seq1.moltype
         else:
@@ -126,6 +126,7 @@ class Display2D(Drawable):
         self.seq2 = seq2
         self._aligned_coords = get_align_coords(map1, map2)
         self._cache = {}
+        self._show_progress = show_progress
 
     def calc_lines(self, window=20, threshold=None, min_gap=0):
         """
@@ -151,10 +152,12 @@ class Display2D(Drawable):
         key = (window, threshold, min_gap)
         if key not in self._cache:
             fwd = dotplot(str(self.seq1), str(self.seq2),
-                          window, threshold, min_gap, None)
+                          window, threshold, min_gap, None,
+                          show_progress=self._show_progress)
             if hasattr(self.seq1, "reverse_complement"):
                 rev = dotplot(str(self.seq1.reverse_complement()),
-                              str(self.seq2), window, threshold, min_gap, None)
+                              str(self.seq2), window, threshold, min_gap, None,
+                              show_progress=self._show_progress)
                 rev = [((len1 - x1, y1), (len1 - x2, y2))
                        for ((x1, y1), (x2, y2)) in rev]
                 rev = _convert_coords_for_scatter(rev)
@@ -165,23 +168,26 @@ class Display2D(Drawable):
             fwd = _convert_coords_for_scatter(fwd)
             self._cache[key] = (fwd, rev)
 
-        return self._cache[key]
+        return key
 
     def _build_fig(self, window=20, min_gap=0, threshold=None, **kw):
         import plotly.graph_objs as go
         # calculate the width based on ratio of seq lengths
         layout = {}
         if self.seq2.name:
-            layout.update(dict(xaxis=dict(title=self.seq1.name)))
+            layout.update(xaxis=dict(title=self.seq1.name))
 
         if self.seq2.name:
-            layout.update(dict(yaxis=dict(title=self.seq2.name)))
+            layout.update(yaxis=dict(title=self.seq2.name))
 
         self.layout.update(layout)
-        self.layout.update(dict(yaxis=dict(range=[0, len(self.seq2)]),
-                                xaxis=dict(range=[0, len(self.seq1)]),))
+        self.layout.update(yaxis=dict(range=[0, len(self.seq2)]),
+                                xaxis=dict(range=[0, len(self.seq1)]))
 
-        fwd, rev = self.calc_lines(window, threshold, min_gap)
+        key = self.calc_lines(window, threshold, min_gap)
+        fwd, rev = self._cache[key]
+        title = f"Window={key[0]}, Matched ≥ {key[1]}/{key[0]} & Gap ≤ {key[2]}"
+        self.layout.update(title=title)
         trace = go.Scatter(x=fwd[0], y=fwd[1], name='+ strand',
                            mode='lines', line=dict(color='blue'))
         self.add_trace(trace)

@@ -208,7 +208,11 @@ class _Defn(object):
                         break
                 else:
                     seen[rest_of_scope] = i
-        return tuple(used) + self.internal_dimensions
+        try:
+            internal_dims = self.internal_dimensions
+        except AttributeError:
+            internal_dims = ()
+        return tuple(used) + internal_dims
 
     def _getPosnForScope(self, *args, **scope):
         scope = self.interpret_positional_scope_args(*args, **scope)

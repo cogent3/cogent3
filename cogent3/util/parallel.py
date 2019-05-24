@@ -8,12 +8,16 @@ import threading
 import multiprocessing
 import warnings
 import concurrent.futures as concurrentfutures
+import warnings
 
 __author__ = "Sheng Han Moses Koh"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Sheng Han Moses Koh"]
+__credits__ = ["Peter Maxwell", "Sheng Han Moses Koh", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "3.0a2"
+__maintainer__ = "Gavin Huttley"
+__email__ = "gavin.huttley@anu.edu.au"
+__status__ = "Alpha"
 
 if os.environ.get('DONT_USE_MPI', 0):
     warnings.warn('Not using MPI', stacklevel=2)
@@ -30,19 +34,21 @@ else:
         if size == 1:
             MPI = None
 
-COMM = MPI.COMM_WORLD
 
-
-def generateRandomSeed(use_mpi):
+def generate_random_seed(use_mpi):
     global ran_seed
-    if use_mpi:
-        rank = COMM.Get_rank()
-    else:
+    if use_mpi and MPI:
+        rank = MPI.COMM_WORLD.Get_rank()
+    elif not use_mpi:
         processName = multiprocessing.current_process().name
         rank = int(processName[-1])
+    else:
+        raise RuntimeError('cannot use mpi4py')
     ran_seed = int(time.time()) + rank
+
+
 if MPI is not None:
-    generateRandomSeed(True)
+    generate_random_seed(True)
     USING_MPI = True
 else:
     USING_MPI = False
@@ -85,8 +91,8 @@ def imap(f, s, max_workers=None, use_mpi=False):
         _FUNCTIONS[key] = f
         f = PicklableAndCallable(id(f))
         with concurrentfutures.ProcessPoolExecutor(max_workers,
-                                    initializer=generateRandomSeed,
-                                    initargs=([False])) as executor:
+                                                   initializer=generate_random_seed,
+                                                   initargs=([False])) as executor:
             for result in executor.map(f, s):
                 yield result
 

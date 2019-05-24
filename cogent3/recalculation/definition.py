@@ -66,6 +66,7 @@ Recycling:
 
 import warnings
 import numpy
+from collections import defaultdict
 
 # In this module we bring together scopes, settings and calculations.
 # Most of the classes are 'Defns' with their superclasses in scope.py.
@@ -196,7 +197,8 @@ class GammaDefn(MonotonicDefn):
         name = self.make_name(name, extra_label)
         shape = PositiveParamDefn(name + '_shape',
                                   default=default_shape, dimensions=dimensions, lower=1e-2)
-        CalculationDefn.__init__(self, weights, shape, name=name + '_distrib')
+        CalculationDefn.__init__(
+            self, weights, shape, name=name + '_distrib')
 
     def calc(self, weights, a):
         from cogent3.maths.stats.distribution import gdtri
@@ -235,6 +237,58 @@ class _InputDefn(_LeafDefn):
     def get_num_free_params(self):
         (cells, outputs) = self.make_cells({}, None)
         return len([c for c in cells if isinstance(c, OptPar)])
+
+    def _get_scoped_params(self, keys, dim_indices):
+        result = {}
+        for index in dim_indices:
+            dim_name = self.valid_dimensions[index]
+            dim_name = {'edge': 'edges', 'bin': 'bins'}.get(
+                dim_name, dim_name)
+
+            result[dim_name] = list(sorted(set([k[index] for k in keys])))
+        return result
+
+    def get_param_rules(self):
+        """returns list of param rule dicts for this parameter"""
+        num_valid_dims = len(self.valid_dimensions)
+        # todo replace following with self.used_dimensions()
+        dimensioned = {k: set(v) for k, v in zip(
+            range(num_valid_dims), zip(*self.index))}
+
+        discard = []
+        for k, v in dimensioned.items():
+            if len(v) == 1:
+                discard.append(k)
+
+        for k in discard:
+            del dimensioned[k]
+
+        dimensioned = list(dimensioned.keys())
+
+        scoped = defaultdict(list)
+
+        for k, v in self.index.items():
+            scoped[v].append(k)
+
+        is_global = len(scoped) == 1
+
+        rules = []
+        is_probs = isinstance(self, PartitionDefn)
+        names = None if not is_probs else self.bin_names
+        for index, keys in scoped.items():
+            rule = dict(par_name=self.name)
+            dimms = self._get_scoped_params(keys, dimensioned)
+            rule.update(dimms)
+            rule.update(self.uniq[index].get_param_rule_dict(names=names,
+                                                             is_probs=is_probs))
+            rules.append(rule)
+
+        if is_global:
+            assert len(rules) == 1
+            rules[0]['edges'] = None
+            rules[0].pop('bins', None)
+
+        return rules
 
 
 class ParamDefn(_InputDefn):

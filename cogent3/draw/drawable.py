@@ -1,4 +1,5 @@
 from plotly.offline import iplot as _iplot
+from plotly.graph_objs import Layout
 from plotly.io import write_image, to_image
 
 __author__ = "Rahul Ghangas and Gavin Huttley"
@@ -17,7 +18,7 @@ class Drawable:
     def __init__(self, title=None, traces=None, width=None, height=None,
                  showlegend=True, visible_axes=True):
         self._traces = traces or []
-        self._layout = dict(title=title,
+        self._layout = Layout(title=title,
                             font=dict(family='Balto', size=14),
                             width=width,
                             height=height,
@@ -46,13 +47,35 @@ class Drawable:
         return self._traces
 
     def get_trace_titles(self):
-        titles = [tr.title for tr in self.traces]
+        titles = [tr.name for tr in self.traces]
         return titles
 
     def pop_trace(self, title):
         """removes the trace with a matching title attribute"""
-        index = self.get_trace_titles().index(title)
+        try:
+            index = self.get_trace_titles().index(title)
+        except ValueError:
+            UserWarning(f"no trace with name {title}")
+            return
+
         return self.traces.pop(index)
+
+    def remove_traces(self, names):
+        """removes traces by name
+
+        Parameters
+        ----------
+        names : str or iterable of str
+            trace names
+
+        """
+        if not self.traces:
+            self._build_fig()
+
+        names = names if type(names) != str else [names]
+        for name in names:
+            _ = self.pop_trace(name)
+
 
     def add_trace(self, trace):
         self.traces.append(trace)

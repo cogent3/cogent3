@@ -163,6 +163,53 @@ def latex(rows, header=None, caption=None, justify=None, label=None,
     return "\n".join(table_format)
 
 
+def get_continuation_tables(header, formatted_table, identifiers=None, space=2,
+                            max_width=1e100):
+    """returns series of tables segmented to not exceed max_width"""
+    tables = []
+    try:
+        space = " " * space
+    except TypeError:
+        pass
+
+    # if we are to split the table, creating sub tables, determine
+    # the boundaries
+    if len(space.join(header)) < max_width:
+        return [(header, formatted_table)]
+
+    if not identifiers:
+        identifiers = 0
+    # having determined the maximum string lengths we now need to
+    # produce subtables of width <= max_width
+    col_widths = [len(head) for head in header]
+    sep = len(space)
+    min_length = sep * (identifiers - 1) +  sum(col_widths[: identifiers])
+
+    if min_length > max_width:
+        raise RuntimeError("Maximum width too small for identifiers")
+
+    begin, width = identifiers, min_length
+
+    boundaries = []
+    for i in range(begin, len(header)):
+        width += col_widths[i] + sep
+        if width > max_width:
+            boundaries.append((begin, i,
+                                        width - col_widths[i] - sep))
+            width = min_length + col_widths[i] + sep
+            begin = i
+
+    # add the last sub-table
+    boundaries.append((begin, len(header), width))
+    # generate the table
+    for start, end, width in boundaries:
+        subhead = header[:identifiers] + header[start: end]
+        rows = [row[:identifiers] + row[start: end] for row in formatted_table]
+        tables.append((subhead, rows))
+
+    return tables
+
+
 def simple_format(header, formatted_table, title=None, legend=None,
                   max_width=1e100, identifiers=None, borders=True, space=2):
     """Returns a table in a simple text format.
@@ -181,9 +228,6 @@ def simple_format(header, formatted_table, title=None, legend=None,
         - space: minimum number of spaces between columns.
     """
     table = []
-    if title:
-        table.append(title)
-
     try:
         space = " " * space
     except TypeError:
@@ -191,65 +235,26 @@ def simple_format(header, formatted_table, title=None, legend=None,
 
     # if we are to split the table, creating sub tables, determine
     # the boundaries
-    if len(space.join(header)) > max_width:
-        if not identifiers:
-            identifiers = 0
-        # having determined the maximum string lengths we now need to
-        # produce subtables of width <= max_width
-        col_widths = [len(head) for head in header]
-        sep = len(space)
-        min_length = sep * (identifiers - 1) + \
-                     sum(col_widths[: identifiers])
-
-        if min_length > max_width:
-            raise RuntimeError("Maximum width too small for identifiers")
-
-        begin, width = identifiers, min_length
-
-        subtable_boundaries = []
-        for i in range(begin, len(header)):
-            width += col_widths[i] + sep
-            if width > max_width:
-                subtable_boundaries.append((begin, i,
-                                            width - col_widths[i] - sep))
-                width = min_length + col_widths[i] + sep
-                begin = i
-
-        # add the last sub-table
-        subtable_boundaries.append((begin, len(header), width))
-        # generate the table
-        for start, end, width in subtable_boundaries:
-            if start > identifiers:  # we are doing a sub-table
-                table.append("continued: %s" % title)
-
-            subhead = space.join([space.join(header[:identifiers]),
-                                  space.join(header[start: end])])
-            width = len(subhead)
-            table.append("=" * width)
-            table.append(subhead)
-            table.append("-" * width)
-            for row in formatted_table:
-                row = [space.join(row[:identifiers]),
-                       space.join(row[start: end])]
-                table.append(space.join(row))
-
-            table.append("-" * width + "\n")
-    # create the table as a list of correctly formatted strings
-    else:
-        header = space.join(header)
-        length_head = len(header)
+    subtables = get_continuation_tables(header, formatted_table, identifiers,
+                                        space, max_width)
+    for i, (h, t) in enumerate(subtables):
+        st = title if i == 0 else f'continued: {title}'
+        if st:
+            table.append(st)
+        sh = space.join(h)
+        length_head = len(sh)
         if borders:
-            table.append('=' * length_head)
-            table.append(header)
-            table.append('-' * length_head)
+            table.extend(['=' * length_head, sh, '-' * length_head])
         else:
-            table.append(header)
-
-        for row in formatted_table:
-            table.append(space.join(row))
-
+            table.append(sh)
+        rows = [space.join(r) for r in t]
+        rows = '\n'.join(rows)
+        if rows:
+            table.append(rows)
         if borders:
             table.append('-' * length_head)
+        if len(subtables) > 1:
+            table.append('')
 
     # add the legend, wrapped to the table widths
     if legend:
