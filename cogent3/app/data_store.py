@@ -125,12 +125,21 @@ class ReadOnlyDataStoreBase:
 
     def __contains__(self, identifier):
         """whether relative identifier has been stored"""
+        identifier = self.get_relative_identifier(identifier)
         result = False
         for member in self.members:
             if identifier in member:
                 result = True
                 break
         return result
+
+    def get_member(self, identifier):
+        """returns DataStoreMember"""
+        identifier = self.get_relative_identifier(identifier)
+        for member in self.members:
+            if identifier in member:
+                return member
+        return None
 
     def get_relative_identifier(self, identifier):
         """returns the identifier relative to store root path
