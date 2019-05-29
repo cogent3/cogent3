@@ -1792,6 +1792,10 @@ class Aligned(object):
         """returns G-test for strand symmetry"""
         return self.data.strand_symmetry(motif_length=motif_length)
 
+    def is_annotated(self):
+        """returns True if sequence has any annotations"""
+        return self.data.annotations != ()
+
 
 class AlignmentI(object):
     """Alignment interface object. Contains methods shared by implementations.
