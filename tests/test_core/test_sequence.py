@@ -108,11 +108,13 @@ class SequenceTests(TestCase):
         odd_dna = self.SEQ(odd, name='odd')
         self.assertEqual(even_dna.to_fasta(), '>even\nTCAGAT\n')
         # set line wrap to small number so we can test that it works
-        self.assertEqual(even_dna.to_fasta(block_size=2), '>even\nTC\nAG\nAT\n')
+        self.assertEqual(even_dna.to_fasta(
+            block_size=2), '>even\nTC\nAG\nAT\n')
         self.assertEqual(odd_dna.to_fasta(block_size=2),
                          '>odd\nTC\nAG\nAT\nAA\nA\n')
         # check that changing the linewrap again works
-        self.assertEqual(even_dna.to_fasta(block_size=4), '>even\nTCAG\nAT\n')
+        self.assertEqual(even_dna.to_fasta(
+            block_size=4), '>even\nTCAG\nAT\n')
 
     def test_serialize(self):
         """Sequence should be serializable"""
@@ -200,10 +202,12 @@ class SequenceTests(TestCase):
     def test_is_gapped(self):
         """Sequence is_gapped should return True if gaps in seq"""
         assert not self.RNA('').is_gapped()
-        assert not self.RNA('ACGUCAGUACGUCAGNRCGAUcaguaguacYRNRYRN').is_gapped()
+        assert not self.RNA(
+            'ACGUCAGUACGUCAGNRCGAUcaguaguacYRNRYRN').is_gapped()
         assert self.RNA('-').is_gapped()
         assert self.PROT('--').is_gapped()
-        assert self.RNA('CAGUCGUACGUCAGUACGUacucauacgac-caguACUG').is_gapped()
+        assert self.RNA(
+            'CAGUCGUACGUCAGUACGUacucauacgac-caguACUG').is_gapped()
         assert self.RNA('CA--CGUAUGCA-----g').is_gapped()
         assert self.RNA('CAGU-').is_gapped()
 
@@ -263,10 +267,12 @@ class SequenceTests(TestCase):
         """Sequence first_non_strict should return index of first non-strict symbol"""
         self.assertEqual(self.RNA('').first_non_strict(), None)
         self.assertEqual(self.RNA('A').first_non_strict(), None)
-        self.assertEqual(self.RNA('ACGUACGUcgaucagu').first_non_strict(), None)
+        self.assertEqual(
+            self.RNA('ACGUACGUcgaucagu').first_non_strict(), None)
         self.assertEqual(self.RNA('N').first_non_strict(), 0)
         self.assertEqual(self.RNA('-').first_non_strict(), 0)
-        self.assertEqual(self.RNA('ACGUcgAUGUGCAUcagu-').first_non_strict(), 18)
+        self.assertEqual(
+            self.RNA('ACGUcgAUGUGCAUcagu-').first_non_strict(), 18)
 
     def test_disambiguate(self):
         """Sequence disambiguate should remove degenerate bases"""
@@ -301,7 +307,8 @@ class SequenceTests(TestCase):
     def test_gap_indices(self):
         """Sequence gap_indices should return correct gap positions"""
         self.assertEqual(self.RNA('').gap_indices(), [])
-        self.assertEqual(self.RNA('ACUGUCAGUACGHSDKCUCDNNS').gap_indices(), [])
+        self.assertEqual(
+            self.RNA('ACUGUCAGUACGHSDKCUCDNNS').gap_indices(), [])
         self.assertEqual(self.RNA('GUACGUACAKDC-SDHDSK').gap_indices(), [12])
         self.assertEqual(self.RNA('-DSHUHDS').gap_indices(), [0])
         self.assertEqual(self.RNA('UACHASADS-').gap_indices(), [9])
@@ -311,7 +318,7 @@ class SequenceTests(TestCase):
 
     def test_gap_vector(self):
         """Sequence gap_vector should return correct gap positions"""
-        g = lambda x: self.RNA(x).gap_vector()
+        def g(x): return self.RNA(x).gap_vector()
         self.assertEqual(g(''), [])
         self.assertEqual(g('ACUGUCAGUACGHCSDKCCUCCDNCNS'), [False] * 27)
         self.assertEqual(g('GUACGUAACAKADC-SDAHADSAK'),
@@ -333,9 +340,11 @@ class SequenceTests(TestCase):
         start_gaps = '--abc'
         end_gaps = 'ab---'
         mid_gaps = '--a--b-cd---'
-        gm = lambda x: self.RNA(x).gap_maps()
+
+        def gm(x): return self.RNA(x).gap_maps()
         self.assertEqual(gm(empty), ({}, {}))
-        self.assertEqual(gm(no_gaps), ({0: 0, 1: 1, 2: 2}, {0: 0, 1: 1, 2: 2}))
+        self.assertEqual(
+            gm(no_gaps), ({0: 0, 1: 1, 2: 2}, {0: 0, 1: 1, 2: 2}))
         self.assertEqual(gm(all_gaps), ({}, {}))
         self.assertEqual(
             gm(start_gaps), ({0: 2, 1: 3, 2: 4}, {2: 0, 3: 1, 4: 2}))
@@ -522,7 +531,8 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA('UUUCCC').matrix_distance('UCACGG', m), 14)
         self.assertEqual(self.RNA('UUUCCC').matrix_distance('', m), 0)
         self.assertEqual(self.RNA('UUU').matrix_distance('CAC', m), 7)
-        self.assertRaises(KeyError, self.RNA('UUU').matrix_distance, 'CAG', m)
+        self.assertRaises(KeyError, self.RNA(
+            'UUU').matrix_distance, 'CAG', m)
 
     def test_frac_same(self):
         """Sequence frac_same should return similarity between sequences"""
@@ -615,7 +625,8 @@ class SequenceTests(TestCase):
         s9 = self.RNA('A-GG-A-C')
         e = self.RNA('')
 
-        test = lambda x, y, z: self.assertFloatEqual(x.frac_same_non_gaps(y), z)
+        def test(x, y, z): return self.assertFloatEqual(
+            x.frac_same_non_gaps(y), z)
         test(s1, s2, 0.25)
         test(s1, s3, 0)
         test(s2, s3, 0.75)
@@ -640,7 +651,8 @@ class SequenceTests(TestCase):
         s9 = self.RNA('A-GG-A-C')
         e = self.RNA('')
 
-        test = lambda x, y, z: self.assertFloatEqual(x.frac_diff_non_gaps(y), z)
+        def test(x, y, z): return self.assertFloatEqual(
+            x.frac_diff_non_gaps(y), z)
         test(s1, s2, 0.75)
         test(s1, s3, 1)
         test(s2, s3, 0.25)
@@ -663,7 +675,7 @@ class SequenceTests(TestCase):
         s3 = self.RNA('GGGGGGGG')
         e = self.RNA('')
 
-        test = lambda x, y, z: self.assertFloatEqual(
+        def test(x, y, z): return self.assertFloatEqual(
             x.frac_similar(y, transitions), z)
 
         test(e, e, 0)
@@ -704,20 +716,20 @@ class SequenceTests(TestCase):
         # test DNA seq
         orig = "AACCGGTTAN-T"
         seq = self.DNA(orig)
-        ## no gaps, no ambiguities
+        # no gaps, no ambiguities
         got = seq.counts()
         expect = dict(A=3, C=2, G=2, T=3)
         self.assertEqual(dict(got), expect)
-        ## gaps allowed
+        # gaps allowed
         got = seq.counts(allow_gap=True)
         expect = dict(A=3, C=2, G=2, T=3)
         expect.update({'-': 1})
         self.assertEqual(dict(got), expect)
-        ## ambig allowed
+        # ambig allowed
         got = seq.counts(include_ambiguity=True)
         expect = dict(A=3, C=2, G=2, T=3, N=1)
         self.assertEqual(dict(got), expect)
-        ## ambig and gap allowed
+        # ambig and gap allowed
         got = seq.counts(include_ambiguity=True, allow_gap=True)
         expect = dict(A=3, C=2, G=2, T=3, N=1)
         expect.update({'-': 1})
@@ -727,16 +739,17 @@ class SequenceTests(TestCase):
         got = seq.counts(motif_length=2)
         expect = dict(AA=1, CC=1, GG=1, TT=1)
         self.assertEqual(dict(got), expect)
-        ## gap allowed
+        # gap allowed
         got = seq.counts(motif_length=2, allow_gap=True)
         expect = dict(AA=1, CC=1, GG=1, TT=1)
         expect.update({'-T': 1})
-        ## ambig allowed
+        # ambig allowed
         got = seq.counts(motif_length=2, include_ambiguity=True)
         expect = dict(AA=1, CC=1, GG=1, TT=1, AN=1)
         self.assertEqual(dict(got), expect)
-        ## ambig and gap allowed
-        got = seq.counts(motif_length=2, include_ambiguity=True, allow_gap=True)
+        # ambig and gap allowed
+        got = seq.counts(
+            motif_length=2, include_ambiguity=True, allow_gap=True)
         expect = dict(AA=1, CC=1, GG=1, TT=1, AN=1)
         expect.update({'-T': 1})
         self.assertEqual(dict(got), expect)
@@ -794,6 +807,19 @@ class SequenceTests(TestCase):
         assert_allclose(ssym.observed['AA'].toarray(), [2, 1])
         assert_allclose(ssym.observed['CC'].toarray(), [1, 2])
 
+    def test_is_annotated(self):
+        """is_annotated operates correctly"""
+        from cogent3.core.annotation import _Annotatable
+        s = self.SEQ('ACGGCTGAAGCGCTCCGGGTTTAAAACG')
+        annotatable = isinstance(s, _Annotatable)
+        if annotatable:
+            self.assertFalse(s.is_annotated())
+            _ = s.add_feature('gene', 'blah', [(0, 10)])
+            self.assertTrue(s.is_annotated())
+        else:
+            with self.assertRaises(AttributeError):
+                s.is_annotated()
+
 
 class SequenceSubclassTests(TestCase):
     """Only one general set of tests, since the subclasses are very thin."""
@@ -824,11 +850,13 @@ class ModelSequenceTests(object):
         odd_dna = self.SequenceClass(odd, name='odd')
         self.assertEqual(even_dna.to_fasta(), '>even\nTCAGAT\n')
         # set line wrap to small number so we can test that it works
-        self.assertEqual(even_dna.to_fasta(block_size=2), '>even\nTC\nAG\nAT\n')
+        self.assertEqual(even_dna.to_fasta(
+            block_size=2), '>even\nTC\nAG\nAT\n')
         self.assertEqual(odd_dna.to_fasta(block_size=2),
                          '>odd\nTC\nAG\nAT\nAA\nA\n')
         # check that changing the linewrap again works
-        self.assertEqual(even_dna.to_fasta(block_size=4), '>even\nTCAG\nAT\n')
+        self.assertEqual(even_dna.to_fasta(
+            block_size=4), '>even\nTCAG\nAT\n')
 
     def test_to_phylip(self):
         """Sequence to_phylip() should return one-line phylip string"""

@@ -871,6 +871,10 @@ class Sequence(_Annotatable, SequenceI):
         new = self._seq.replace(oldchar, newchar)
         return self.__class__(new, name=self.name, info=self.info)
 
+    def is_annotated(self):
+        """returns True if sequence has any annotations"""
+        return self.annotations != ()
+
 
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence. MolType set in moltype module."""
