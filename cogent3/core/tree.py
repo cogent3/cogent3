@@ -813,7 +813,8 @@ class TreeNode(object):
     def to_rich_dict(self):
         """returns {'newick': with node names,
         'edge_attributes': {'tip1': {'length': ...}, ...}}"""
-        newick = self.get_newick(with_node_names=True, semicolon=False)
+        newick = self.get_newick(with_node_names=True, semicolon=False,
+                                 escape_name=False)
         attr = {}
         for edge in self.get_edge_vector(include_root=True):
             attr[edge.name] = edge.params.copy()
