@@ -54,6 +54,13 @@ class DataStoreBaseTests:
         self.assertTrue('brca1.fasta' in dstore)
         self.assertTrue(f'{basedir}/brca1.fasta' in dstore)
 
+    def test_get_member(self):
+        """returns a matching member"""
+        basedir = self.basedir.split('.')[0]
+        dstore = self.ReadClass(self.basedir, suffix='.fasta')
+        member = dstore.get_member('brca1.fasta')
+        self.assertNotEqual(member, None)
+
     def test_iter(self):
         """DataStore objects allow iteration over members"""
         dstore = self.ReadClass(self.basedir, suffix='.fasta')
