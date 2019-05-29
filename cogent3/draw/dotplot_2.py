@@ -1,3 +1,5 @@
+import plotly.graph_objs as go
+
 from cogent3.core.moltype import get_moltype
 from cogent3.draw.drawable import Drawable
 from cogent3.align.align import dotplot
@@ -210,3 +212,5 @@ class Display2D(Drawable):
             trace = go.Scatter(x=x, y=y, name='Alignment', mode='lines',
                                line=dict(color='black', dash='dot'))
             self.add_trace(trace)
+
+        return go.Figure(data=self.traces, layout=self.layout)
