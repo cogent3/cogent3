@@ -1587,7 +1587,8 @@ class SequenceCollection(object):
         return result
 
     def dotplot(self, name1=None, name2=None, window=20, threshold=None,
-                min_gap=0, width=500, title=None, show_progress=False):
+                min_gap=0, width=500, title=None, rc=False,
+                show_progress=False):
         """display a dotplot between specified sequences. Random sequences
         chosen if names not provided.
 
@@ -1607,6 +1608,9 @@ class SequenceCollection(object):
             len(seq1) / len(seq2)
         title
             title for the plot
+        rc : bool or None
+            include dotplot of reverse compliment also. Only applies to Nucleic
+            acids moltypes
         """
         from cogent3.draw.dotplot_2 import Display2D
 
@@ -1619,8 +1623,8 @@ class SequenceCollection(object):
             raise ValueError(msg)
 
         dotplot = Display2D(self.named_seqs[name1], self.named_seqs[name2],
-                            moltype=self.moltype, show_progress=show_progress)
-        dotplot.calc_lines(window=window, threshold=threshold, min_gap=min_gap)
+                            moltype=self.moltype, rc=rc,
+                            show_progress=show_progress)
         return dotplot
 
     def rename_seqs(self, renamer):
