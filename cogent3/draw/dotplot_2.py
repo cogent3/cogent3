@@ -1,3 +1,6 @@
+import numpy
+
+from plotly import tools
 import plotly.graph_objs as go
 
 from cogent3.core.moltype import get_moltype
@@ -111,7 +114,8 @@ def get_align_coords(map1, map2):
 
 class Display2D(Drawable):
 
-    def __init__(self, seq1, seq2, moltype='text', show_progress=False):
+    def __init__(self, seq1, seq2, moltype='text', rc=False,
+                 show_progress=False):
         if hasattr(seq1, 'moltype'):
             moltype = seq1.moltype
         else:
@@ -129,8 +133,10 @@ class Display2D(Drawable):
         self._aligned_coords = get_align_coords(map1, map2)
         self._cache = {}
         self._show_progress = show_progress
+        self._rc = rc
 
-    def calc_lines(self, window=20, threshold=None, min_gap=0):
+    def calc_lines(self, window=20, threshold=None, min_gap=0,
+                   show_progress=False, rc=None):
         """
         Parameters
         ----------
@@ -141,9 +147,15 @@ class Display2D(Drawable):
         min_gap : int
             permitted gap for joining adjacent line segments, default is no gap
             joining
+        show_progress : bool
+            displays progress bar
+        rc : bool or None
+            include dotplot of reverse compliment also. Only applies to Nucleic
+            acids moltypes
         """
         # Cache dotplot line segment coordinates as they can sometimes
         # be re-used at different resolutions, colours etc.
+        rc = self._rc if rc is None else rc
         (len1, len2) = len(self.seq1), len(self.seq2)
         if threshold is None:
             universe = (len1 - window) * (len2 - window)
@@ -156,7 +168,7 @@ class Display2D(Drawable):
             fwd = dotplot(str(self.seq1), str(self.seq2),
                           window, threshold, min_gap, None,
                           show_progress=self._show_progress)
-            if hasattr(self.seq1, "reverse_complement"):
+            if hasattr(self.seq1, "reverse_complement") and rc:
                 rev = dotplot(str(self.seq1.reverse_complement()),
                               str(self.seq2), window, threshold, min_gap, None,
                               show_progress=self._show_progress)
