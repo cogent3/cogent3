@@ -244,7 +244,7 @@ class TestIo(TestCase):
             mock.source = join('blah', 'delme.json')
             writer = io_app.write_json(outdir, create=True)
             _ = writer(mock)
-            reader = io_app.load_json(outdir)
+            reader = io_app.load_json()
             got = reader(join(outdir, 'delme.json'))
             self.assertEqual(got, DNA)
 
@@ -256,8 +256,9 @@ class TestIo(TestCase):
             mock.source = join('blah', 'delme.json')
             writer = io_app.write_json(outdir, create=True)
             identifier = writer(mock)
-            reader = io_app.load_json(outdir)
-            got = reader(join(outdir.replace('.zip', ''), 'delme.json'))
+            reader = io_app.load_json()
+            # checking loadable from a data store member too
+            got = reader(writer.data_store[0])
             self.assertEqual(got, DNA)
             self.assertEqual(identifier, join(outdir.replace('.zip', ''),
                                               'delme.json'))

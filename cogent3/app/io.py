@@ -320,14 +320,18 @@ class load_json(Composable):
 
     def read(self, path):
         """returns alignment"""
-        if self.data_store:
-            data_store = self.data_store
-        else:
-            data_store = SingleReadDataStore(path)
-        if isinstance(path, str):
-            data = data_store.read(path)
-        else:
-            raise NotImplementedError
+        if type(path) == str:
+            if self.data_store:
+                dstore = self.data_store
+            else:
+                dstore = SingleReadDataStore(path)
+
+            if path not in dstore:
+                raise ValueError(f'{path} does not exist')
+
+            path = dstore.get_member(path)
+
+        data = path.read()
 
         return deserialise_object(data)
 
