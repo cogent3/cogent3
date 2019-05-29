@@ -67,7 +67,7 @@ class model(ComposableModel):
             split_codons = False
 
         if type(tree) == str:
-            tree = LoadTree(treestring=tree)
+            tree = LoadTree(treestring=tree, underscore_unmunge=True)
 
         self._tree = tree
         self._lf_args = lf_args or {}
