@@ -45,7 +45,8 @@ class _Annotatable:
     def _shifted_annotations(self, new, shift):
         result = []
         if self.annotations:
-            newmap = Map([(shift, shift + len(self))], parent_length=len(new))
+            newmap = Map([(shift, shift + len(self))],
+                         parent_length=len(new))
             for annot in self.annotations:
                 annot = annot.remapped_to(new, newmap)
                 result.append(annot)
@@ -186,7 +187,8 @@ class _Annotatable:
 
         return feature_class(self, map, type='region', name=name)
 
-    def get_by_annotation(self, annotation_type, name=None, ignore_partial=False):
+    def get_by_annotation(self, annotation_type, name=None,
+                          ignore_partial=False):
         """yields the sequence segments corresponding to the specified
         annotation_type and name one at a time.
 

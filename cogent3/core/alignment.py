@@ -2100,7 +2100,7 @@ class AlignmentI(object):
             if self.info.source:
                 trace_name = os.path.basename(self.info.source)
             else:
-                trace_name=None
+                trace_name = None
             draw = Drawable('Gaps Per Sequence',
                             showlegend=False)
             draw.layout.update(yaxis=dict(title='Gap counts'))
@@ -3381,12 +3381,12 @@ def make_gap_filter(template, gap_fraction, gap_run):
         # check if gap runs bad
         if b'\x01' * gap_run in logical_and(seq_gaps,
                                             logical_not(template_gaps)).astype(
-            uint8).tostring():
+                uint8).tostring():
             return False
         # check if insertion runs bad
         elif b'\x01' * gap_run in logical_and(template_gaps,
                                               logical_not(seq_gaps)).astype(
-            uint8).tostring():
+                uint8).tostring():
             return False
         return True
 
@@ -3719,7 +3719,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 temp_aln = self.__class__({new_seq.name: str(new_seq)})
             else:
                 temp_aln = temp_aln.add_seqs(self.__class__({new_seq.name:
-                                                                 str(new_seq)}))
+                                                             str(new_seq)}))
 
         aln = self.add_seqs(temp_aln, before_name, after_name)
 
