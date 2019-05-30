@@ -1780,6 +1780,9 @@ class Aligned(object):
         for annot in self.data.get_annotations_matching(*args):
             yield annot.remapped_to(alignment, self.map.inverse())
 
+    def get_drawables(self):
+        return self.data.get_drawables()
+
     def gap_vector(self):
         """Returns gap_vector of GappedSeq, for omit_gap_pos."""
         return self.get_gapped_seq().gap_vector()

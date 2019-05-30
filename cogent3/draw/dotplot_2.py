@@ -133,6 +133,7 @@ class Display2D(Drawable):
         self._aligned_coords = get_align_coords(map1, map2)
         self._cache = {}
         self._show_progress = show_progress
+        self._composite = seq1.is_annotated() or seq2.is_annotated()
         self._rc = rc
 
     def calc_lines(self, window=20, threshold=None, min_gap=0,
@@ -184,32 +185,35 @@ class Display2D(Drawable):
 
         return key
 
-    def _build_fig(self, window=20, min_gap=0, threshold=None, **kw):
-        import plotly.graph_objs as go
+    def _build_fig(self, window=20, min_gap=0, threshold=None, xaxis='x',
+                   yaxis='y', **kw):
         # calculate the width based on ratio of seq lengths
-        layout = {}
-        if self.seq2.name:
-            layout.update(xaxis=dict(title=self.seq1.name))
+        if not self._composite:
+            layout = {}
+            if self.seq2.name:
+                layout.update(xaxis=dict(title=self.seq1.name))
 
-        if self.seq2.name:
-            layout.update(yaxis=dict(title=self.seq2.name))
+            if self.seq2.name:
+                layout.update(yaxis=dict(title=self.seq2.name))
 
-        self.layout.update(layout)
-        self.layout.update(yaxis=dict(range=[0, len(self.seq2)]),
-                                xaxis=dict(range=[0, len(self.seq1)]))
+            self.layout.update(layout)
+            self.layout.update(yaxis=dict(range=[0, len(self.seq2)]),
+                               xaxis=dict(range=[0, len(self.seq1)]))
 
         key = self.calc_lines(window, threshold, min_gap)
         fwd, rev = self._cache[key]
         title = f"Window={key[0]}, Matched ≥ {key[1]}/{key[0]} & Gap ≤ {key[2]}"
         self.layout.update(title=title)
         trace = go.Scatter(x=fwd[0], y=fwd[1], name='+ strand',
-                           mode='lines', line=dict(color='blue'))
+                           mode='lines', line=dict(color='blue'),
+                           xaxis=xaxis, yaxis=yaxis)
         self.add_trace(trace)
 
         if rev:
             trace = go.Scatter(x=rev[0], y=rev[1], name='- strand',
                                mode='lines',
-                               line=dict(color='red'))
+                               line=dict(color='red'),
+                               xaxis=xaxis, yaxis=yaxis)
             self.add_trace(trace)
 
         if self._aligned_coords:
@@ -222,7 +226,205 @@ class Display2D(Drawable):
                 x.append(e)
 
             trace = go.Scatter(x=x, y=y, name='Alignment', mode='lines',
-                               line=dict(color='black', dash='dot'))
+                               line=dict(color='black', dash='dot'),
+                               xaxis=xaxis, yaxis=yaxis)
             self.add_trace(trace)
 
         return go.Figure(data=self.traces, layout=self.layout)
+
+    def _build_2x2_fig(self):
+        if not self.traces:
+            self._build_fig(xaxis='x2', yaxis='y2')
+
+        fig = tools.make_subplots(rows=2, cols=2,
+                                  specs=[[{}, {}],
+                                         [None, {}]],
+                                  horizontal_spacing=0.01,
+                                  vertical_spacing=0.015,
+                                  print_grid=False,
+                                  row_width=[0.1, 0.9],
+                                  column_width=[0.1, 0.9])
+
+        layout = fig.layout
+        layout.update(self.layout)
+
+        # common settings
+        ticks_off_kwargs = dict(showticklabels=False, mirror=True, showgrid=False,
+                                showline=True)
+        ticks_on_kwargs = dict(showticklabels=True, mirror=True, showgrid=False,
+                               showline=True)
+
+        xrange = [0, len(self.seq1)]
+        yrange = [0, len(self.seq2)]
+
+        # dotpolot traces and layout
+        fig.add_traces(self.traces)
+
+        layout.xaxis2.update(range=xrange, **ticks_off_kwargs)
+        layout.yaxis2.update(range=yrange, **ticks_off_kwargs)
+
+        # seq2 traces
+        seen_types = set()
+        drawables = self.seq2.get_drawable(vertical=True)
+        max_x = 0
+        traces = []
+        for trace in drawables.traces:
+            traces.append(trace)
+            max_x = max(numpy.max(trace.x), max_x)
+            if trace.legendgroup in seen_types:
+                trace.showlegend = False
+            seen_types.add(trace.legendgroup)
+
+        fig.add_traces(traces)
+        layout.yaxis.update(title=self.seq2.name,
+                            range=yrange,
+                            **ticks_on_kwargs)
+        layout.xaxis.update(title=None,
+                            range=[0, int(max_x) + 1],
+                            **ticks_off_kwargs)
+
+        # seq1 traces
+        drawables = self.seq1.get_drawable(vertical=False)
+        max_y = 0
+        traces = []
+        for trace in drawables.traces:
+            trace.xaxis = 'x3'
+            trace.yaxis = 'y3'
+            traces.append(trace)
+            max_y = max(numpy.max(trace.y), max_y)
+            if trace.legendgroup in seen_types:
+                trace.showlegend = False
+            seen_types.add(trace.legendgroup)
+
+        fig.add_traces(traces)
+        layout.xaxis3.update(title=self.seq1.name,
+                             range=xrange,
+                             **ticks_on_kwargs)
+        layout.yaxis3.update(title=None,
+                             range=[0, int(max_y) + 1],
+                             **ticks_off_kwargs)
+        fig.add_traces(traces)
+
+        return fig
+
+    def _build_2x1_fig(self):
+        """2 rows, one column, dotplot and seq1 annotated"""
+        if not self.traces:
+            self._build_fig()
+
+        fig = tools.make_subplots(rows=2, cols=1,
+                                  vertical_spacing=0.015,
+                                  print_grid=False,
+                                  row_width=[0.1, 0.9],
+                                  shared_xaxes=True)
+        layout = fig.layout
+        layout.update(self.layout)
+
+        # common settings
+        ticks_off_kwargs = dict(showticklabels=False,
+                                mirror=True,
+                                showgrid=False,
+                                showline=True)
+        ticks_on_kwargs = dict(showticklabels=True,
+                               mirror=True,
+                               showgrid=False,
+                               showline=True)
+
+        xrange = [0, len(self.seq1)]
+        yrange = [0, len(self.seq2)]
+
+        # dotpolot traces and layout
+        fig.add_traces(self.traces)
+
+        layout.xaxis.update(title=self.seq1.name,
+                            range=xrange,
+                            **ticks_on_kwargs)
+        layout.yaxis.update(title=self.seq2.name,
+                            range=yrange,
+                            **ticks_on_kwargs)
+
+        # seq1 traces
+        seen_types = set()
+        drawables = self.seq1.get_drawable(vertical=False)
+        max_y = 0
+        traces = []
+        for trace in drawables.traces:
+            trace.yaxis = 'y2'
+            traces.append(trace)
+            max_y = max(numpy.max(trace.y), max_y)
+            if trace.legendgroup in seen_types:
+                trace.showlegend = False
+            seen_types.add(trace.legendgroup)
+
+        fig.add_traces(traces)
+        layout.yaxis2.update(title=None,
+                             range=[0, int(max_y) + 1],
+                             **ticks_off_kwargs)
+        return fig
+
+    def _build_1x2_fig(self):
+        if not self.traces:
+            self._build_fig(xaxis='x2')
+        fig = tools.make_subplots(rows=1, cols=2,
+                                  horizontal_spacing=0.01,
+                                  print_grid=False,
+                                  column_width=[0.1, 0.9],
+                                  shared_yaxes=True)
+        layout = fig.layout
+        layout.update(self.layout)
+
+        # common settings
+        ticks_off_kwargs = dict(showticklabels=False,
+                                mirror=True,
+                                showgrid=False,
+                                showline=True)
+        ticks_on_kwargs = dict(showticklabels=True,
+                               mirror=True,
+                               showgrid=False,
+                               showline=True)
+
+        xrange = [0, len(self.seq1)]
+        yrange = [0, len(self.seq2)]
+
+        # dotpolot traces and layout
+        fig.add_traces(self.traces)
+
+        layout.xaxis2.update(title=self.seq1.name,
+                             range=xrange,
+                             **ticks_on_kwargs)
+        layout.yaxis.update(title=self.seq2.name,
+                            range=yrange,
+                            **ticks_on_kwargs)
+
+        # seq2 traces
+        seen_types = set()
+        drawables = self.seq2.get_drawable(vertical=True)
+        max_x = 0
+        traces = []
+        for trace in drawables.traces:
+            traces.append(trace)
+            max_x = max(numpy.max(trace.x), max_x)
+            if trace.legendgroup in seen_types:
+                trace.showlegend = False
+            seen_types.add(trace.legendgroup)
+
+        fig.add_traces(traces)
+        layout.xaxis.update(title=None,
+                            range=[0, int(max_x) + 1],
+                            **ticks_off_kwargs)
+        return fig
+
+    @property
+    def figure(self):
+        if self.seq1.is_annotated() and self.seq2.is_annotated():
+            func = self._build_2x2_fig
+        elif self.seq1.is_annotated():
+            func = self._build_2x1_fig
+        elif self.seq2.is_annotated():
+            func = self._build_1x2_fig
+        else:
+            func = self._build_fig
+
+        result = func()
+
+        return result
