@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 
 from cogent3.util.misc import get_object_provenance
 from .location import as_map, Map
@@ -91,10 +92,51 @@ class _Annotatable:
             result.extend(annot.get_tracks(policy))
         return result
 
+    def get_drawables(self):
+        """returns a dict of drawables, keyed by type"""
+        result = defaultdict(list)
+        for a in self.annotations:
+            result[a.type].append(a.get_drawable())
+        return result
+
     def add_annotation(self, klass, *args, **kw):
         annot = klass(self, *args, **kw)
         self.attach_annotations([annot])
         return annot
+
+    def get_drawable(self, width=600, vertical=False):
+        """returns Drawable instance"""
+        from cogent3.draw.drawable import Drawable
+        drawables = self.get_drawables()
+        # we order by tracks
+        top = 0
+        space = 0.25
+        all_traces = []
+        for feature_type in drawables:
+            new_bottom = top + space
+            for i, annott in enumerate(drawables[feature_type]):
+                annott.shift(y=new_bottom - annott.bottom)
+                if i > 0:
+                    annott._showlegend = False
+                if vertical:
+                    annott = annott.T
+                trace = annott.as_trace()
+                all_traces.append(trace)
+
+            top = annott.top
+
+        top += space
+        height = max((top / len(self)) * width, 300)
+        xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
+        yaxis = dict(range=[0, top], visible=False,
+                     zeroline=True, showline=True)
+        if vertical:
+            width, height = height, width
+            xaxis, yaxis = yaxis, xaxis
+        drawer = Drawable(title=self.name, traces=all_traces,
+                          width=width, height=height)
+        drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
+        return drawer
 
     def attach_annotations(self, annots):
         for annot in annots:
@@ -225,6 +267,12 @@ class _Feature(_Annotatable, _Serialisable):
                 setattr(self, n, val)
                 self._serialisable[n] = val
         assert not kw, kw
+
+    def get_drawable(self):
+        """returns plotly trace"""
+        from cogent3.draw.drawable import make_shape
+        result = make_shape(type_=self)
+        return result
 
     def attach(self):
         self.parent.attach_annotations([self])

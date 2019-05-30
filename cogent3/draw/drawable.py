@@ -1,5 +1,6 @@
+import numpy
 from plotly.offline import iplot as _iplot
-from plotly.graph_objs import Layout
+from plotly import graph_objs as go, tools
 from plotly.io import write_image, to_image
 
 __author__ = "Rahul Ghangas and Gavin Huttley"
@@ -121,3 +122,140 @@ def bind_drawable(obj, drawable):
     obj.drawable = drawable
     obj.iplot = MethodType(_iplot_, obj)
     return obj
+
+
+class Shape:
+    _mode = 'lines'
+
+    def __init__(self, name=None, text=None, filled=True, legendgroup=None,
+                 showlegend=True, hoverinfo=None,
+                 fillcolor=None):
+        self.filled = filled
+        self.fillcolor = fillcolor
+        self._legendgroup = legendgroup
+        self._showlegend = showlegend
+        self.name = name
+        self.text = text
+        self._hoverinfo = hoverinfo or name
+
+    def shift(self, x=0, y=0):
+        self.x += x
+        self.y += y
+        return self
+
+    @property
+    def height(self):
+        return self.top - self.bottom
+
+    @property
+    def top(self):
+        return numpy.max(self.y)
+
+    @property
+    def bottom(self):
+        return numpy.min(self.y)
+
+    @property
+    def middle(self):
+        return self.height / 2 + self.bottom
+
+    @property
+    def T(self):
+        self.x, self.y = self.y, self.x
+        return self
+
+    def as_trace(self, name=None):
+        """returns component for plotly display"""
+        name = name or self.name
+        data = go.Scatter(x=self.x, y=self.y,
+                          mode=self._mode,
+                          fill='toself',
+                          fillcolor=self.fillcolor,
+                          line=dict(color=self.fillcolor),
+                          text=self.text,
+                          name=name,
+                          legendgroup=self._legendgroup,
+                          showlegend=self._showlegend,
+                          hoverinfo='text')
+        return data
+
+
+class Rectangle(Shape):
+    def __init__(self, x, width, y=0, height=0.5, **kwargs):
+        super(Rectangle, self).__init__(**kwargs)
+        self.x = numpy.array([x, x, x + width, x + width, x])
+        self.y = numpy.array([y, y + height, y + height, y, y])
+
+
+class Diamond(Shape):
+    def __init__(self, x, width, y=0, height=0.5, **kwargs):
+        super(Diamond, self).__init__(**kwargs)
+        hw = width / 2
+        hh = height / 2
+        self.x = numpy.array([x - hw, x, x + hw, x, x - hw])
+        self.y = numpy.array([y, y + hh, y, y - hh, y])
+
+
+class Arrow(Shape):
+    def __init__(self, x, width, y=0, height=0.5, arrow_head_w=0.1, **kwargs):
+        super(Arrow, self).__init__(**kwargs)
+        hw = width * arrow_head_w * 2
+        hh = height * arrow_head_w * 2
+        self.x = numpy.array([x, x + width - hw, x + width - hw, x + width,
+                              x + width - hw, x + width - hw, x, x])
+        self.y = numpy.array([y, y, y - hh, y + height / 2,
+                              y + height + hh, y + height, y + height, y])
+
+
+# https://plot.ly/python/marker-style/
+# https://plot.ly/python/reference/#scatter-marker-symbol
+class Point(Shape):
+    _mode = 'markers'
+
+    def __init__(self, x, y, size=14, symbol='square', **kwargs):
+        super(Point, self).__init__(**kwargs)
+        self.x = numpy.array([x], dtype='O')
+        self.y = numpy.array([y], dtype='O')
+        self._size = size
+        self._symbol = symbol
+
+
+class _MakeShape:
+    """container class that builds annotation shapes"""
+    _colors = dict(cds='rgba(0,0,150,0.5)',
+                   exon='rgba(0,0,100,0.5)',
+                   gene='rgba(0,0,150,0.5)',
+                   transcript='rgba(0,0,200,0.5)',
+                   snp='rgba(200,0,0,0.5)',
+                   snv='rgba(200,0,0,0.5)')
+    _shapes = dict(cds=Arrow,
+                   exon=Arrow,
+                   transcript=Arrow,
+                   gene=Arrow,
+                   repeat=Rectangle,
+                   snp=Point,
+                   snv=Point)
+
+    def __call__(self, type_=None, name=None, coords=None, width=None):
+        from cogent3.core.annotation import _Annotatable
+        if isinstance(type_, _Annotatable):
+            name = type_.name
+            width = len(type_)
+            map = type_.map.get_covering_span()
+            start = min(map.spans[0].start, map.spans[0].end)
+            type_ = type_.type
+
+        klass = self._shapes.get(type_.lower(), Rectangle)
+        color = self._colors.get(type_.lower(), None)
+        if klass != Point:
+            result = klass(name=type_, text=name, legendgroup=type_,
+                           x=start, width=width,
+                           fillcolor=color)
+        else:
+            result = Point(name=type_, text=name, legendgroup=type_,
+                           x=start, y=1, size=14, symbol='square',
+                           fillcolor=color)
+        return result
+
+
+make_shape = _MakeShape()
