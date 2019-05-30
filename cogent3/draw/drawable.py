@@ -19,18 +19,18 @@ class Drawable:
     def __init__(self, title=None, traces=None, width=None, height=None,
                  showlegend=True, visible_axes=True):
         self._traces = traces or []
-        self._layout = Layout(title=title,
-                            font=dict(family='Balto', size=14),
-                            width=width,
-                            height=height,
-                            autosize=False,
-                            showlegend=showlegend,
-                            xaxis=dict(visible=visible_axes),
-                            yaxis=dict(visible=visible_axes),
-                            hovermode='closest',
-                            plot_bgcolor='rgb(245,245,245)',
-                            margin=dict(l=50, r=50, t=50)
-                            )
+        self._layout = go.Layout(title=title,
+                                 font=dict(family='Balto', size=14),
+                                 width=width,
+                                 height=height,
+                                 autosize=False,
+                                 showlegend=showlegend,
+                                 xaxis=dict(visible=visible_axes),
+                                 yaxis=dict(visible=visible_axes),
+                                 hovermode='closest',
+                                 plot_bgcolor='rgb(245,245,245)',
+                                 margin=dict(l=50, r=50, t=50)
+                                 )
 
     def _repr_html_(self):
         self.iplot()
@@ -77,7 +77,6 @@ class Drawable:
         for name in names:
             _ = self.pop_trace(name)
 
-
     def add_trace(self, trace):
         self.traces.append(trace)
 
@@ -88,10 +87,7 @@ class Drawable:
     @property
     def figure(self):
         if not self.traces:
-            # try:
             self._build_fig()
-            # except AttributeError as err:
-            #     raise RuntimeError(err.args[0])
         return dict(data=self.traces, layout=self.layout)
 
     def iplot(self, *args, **kwargs):

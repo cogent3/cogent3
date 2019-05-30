@@ -123,9 +123,9 @@ class SequenceI(object):
 
     def counts(self, motif_length=1, include_ambiguity=False, allow_gap=False):
         """returns dict of counts of motifs
-        
+
         only non-overlapping motifs are counted.
-        
+
         Arguments:
         - motif_length: number of elements per character.
         - include_ambiguity: if True, motifs containing ambiguous characters
@@ -144,7 +144,7 @@ class SequenceI(object):
         else:
             if len(data) % motif_length != 0:
                 warnings.warn(
-                    "%s length not divisible by %s, truncating" % \
+                    "%s length not divisible by %s, truncating" %
                     (self.name, motif_length))
             limit = (len(data) // motif_length) * motif_length
             data = data[:limit]
@@ -479,7 +479,7 @@ class SequenceI(object):
 
         is_gap = self.moltype.gaps.__contains__
         return sum([is_gap(i) == is_gap(j) for i, j in zip(self, other)]) \
-               / min(len(self), len(other))
+            / min(len(self), len(other))
 
     def frac_diff_gaps(self, other):
         """Returns frac. of positions where self and other's gap states differ.
@@ -926,7 +926,7 @@ class NucleicAcidSequence(Sequence):
         codons = self._seq
         divisible_by_3 = len(codons) % 3 == 0
         end3 = self.__class__(self._seq[-3:]).degap()
-        if not allow_partial and (not divisible_by_3 or \
+        if not allow_partial and (not divisible_by_3 or
                                   len(end3) != 3):
             raise ValueError("seq length not divisible by 3")
 
@@ -1336,7 +1336,8 @@ class ArraySequenceBase(object):
             shortest = min(len(self), len(other))
             if not hasattr(other, '_data'):
                 other = self.__class__(other)
-            distance = (self._data[:shortest] != other._data[:shortest]).sum()
+            distance = (self._data[:shortest] !=
+                        other._data[:shortest]).sum()
         else:
             distance = 0
             if use_indices:
