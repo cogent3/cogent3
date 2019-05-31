@@ -36,10 +36,21 @@ __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
 
-def _todict(data):
+def _todict(data, flatten=False):
     if isinstance(data, DictArray):
-        out = {k: _todict(data[k]) for k in list(data.keys())}
-        return out
+        result = {}
+        for k in list(data.keys()):
+            new = _todict(data[k])
+            if not flatten:
+                result[k] = new
+            else:
+                for subkey in new:
+                    try:
+                        newkey = (k,) + subkey
+                    except TypeError:
+                        newkey = (k, subkey)
+                    result[newkey] = new[subkey]
+        return result
     return data
 
 
@@ -246,6 +257,7 @@ def convert_for_dictarray(data, header=None, row_order=None):
 
 class NumericKey(int):
     """a distinct numerical type for use as a DictArray key"""
+
     def __new__(cls, val):
         result = int.__new__(cls, val)
         return result
@@ -271,8 +283,8 @@ class DictArrayTemplate(object):
 
     def __eq__(self, other):
         return self is other or (
-            isinstance(other,
-                       DictArrayTemplate) and self.names == other.names)
+                isinstance(other,
+                           DictArrayTemplate) and self.names == other.names)
 
     def _dict2list(self, value, depth=0):
         # Unpack (possibly nested) dictionary into correct order of elements
@@ -410,8 +422,15 @@ class DictArray(object):
             array = array.astype(dtype)
         return array
 
-    def todict(self):
-        return _todict(self)
+    def todict(self, flatten=False):
+        """returns data as a dict
+        Parameters
+        ----------
+        flatten : bool
+            returns a 1D dictionary
+        """
+        result = _todict(self, flatten=flatten)
+        return result
 
     def __getitem__(self, names):
         (index, remaining) = self.template.interpret_index(names)

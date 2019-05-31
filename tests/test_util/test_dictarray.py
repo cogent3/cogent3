@@ -129,6 +129,29 @@ class DictArrayTest(TestCase):
         darr = DictArrayTemplate([0], keys).wrap(data)
         self.assertEqual(darr.todict(), {0: {'a': 0, 'b': 35, 'c': 45}})
 
+    def test_todict_1d(self):
+        """should successfully produce a 1D dict"""
+        data = {'ABAYE2984': {'ABAYE2984': 0, 'Atu3667': None,
+                              'Avin_42730': 0.6381173875591908,
+                              'BAA10469': None},
+                'Atu3667': {'ABAYE2984': None,
+                            'Atu3667': 0,
+                            'Avin_42730': 2.3682377869318993,
+                            'BAA10469': None},
+                'Avin_42730': {'ABAYE2984': 0.6381173875591908,
+                               'Atu3667': 2.3682377869318993,
+                               'Avin_42730': 0,
+                               'BAA10469': 1.8515731266342546},
+                'BAA10469': {'ABAYE2984': None,
+                             'Atu3667': None,
+                             'Avin_42730': 1.8515731266342546,
+                             'BAA10469': 0}}
+        darr = DictArray(data, dtype='O')
+        expect = {(n1, n2): darr[n1, n2] for n1 in darr.template.names[0]
+                  for n2 in darr.template.names[1]}
+        self.assertEqual(darr.todict(flatten=True), expect)
+
+
     def test_todict_nested(self):
         """DictArray.todict() should convert nested DictArray instances to
         dict's too."""
