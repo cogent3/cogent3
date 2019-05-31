@@ -579,7 +579,9 @@ Here is the latex format, note how the title and legend are joined into the late
 .. doctest::
 
     >>> print(t3.tostring(format='tex', justify="lrcccc", label="table:example"))
-    \begin{longtable}[htp!]{ l r c c c c }
+    \begin{table}[htp!]
+    \centering
+    \begin{tabular}{ l r c c c c }
     \hline
     \bf{edge.name} & \bf{edge.parent} & \bf{length} & \bf{x} & \bf{y} & \bf{z} \\
     \hline
@@ -592,15 +594,18 @@ Here is the latex format, note how the title and legend are joined into the late
        edge.0 &      edge.1 & 4.0000 & 1.0e+00 & 3.00 & 6.0000 \\
        edge.1 &        root & 4.0000 & 1.0e+00 & 3.00 & 6.0000 \\
     \hline
+    \end{tabular}
     \label{table:example}
-    \end{longtable}
+    \end{table}
 
 More complex latex table justifying is also possible. Specifying the width of individual columns requires passing in a series (list or tuple) of justification commands. In the following we introduce the command for specific columns widths.
 
 .. doctest::
 
     >>> print(t3.tostring(format='tex', justify=["l","p{3cm}","c","c","c","c"]))
-    \begin{longtable}[htp!]{ l p{3cm} c c c c }
+    \begin{table}[htp!]
+    \centering
+    \begin{tabular}{ l p{3cm} c c c c }
     \hline
     \bf{edge.name} & \bf{edge.parent} & \bf{length} & \bf{x} & \bf{y} & \bf{z} \\
     \hline
@@ -613,7 +618,8 @@ More complex latex table justifying is also possible. Specifying the width of in
        edge.0 &      edge.1 & 4.0000 & 1.0e+00 & 3.00 & 6.0000 \\
        edge.1 &        root & 4.0000 & 1.0e+00 & 3.00 & 6.0000 \\
     \hline
-    \end{longtable}
+    \end{tabular}
+    \end{table}
     >>> print(t3.tostring(sep=','))
     edge.name,edge.parent,length,      x,   y,     z
         Human,     edge.0,4.0000,1.0e+00,3.00,6.0000
@@ -2128,7 +2134,9 @@ We directly test the latex formatting.
 
     >>> print(latex(formatted, header, justify='lrl', caption='A legend',
     ...             label="table:test"))
-    \begin{longtable}[htp!]{ l r l }
+    \begin{table}[htp!]
+    \centering
+    \begin{tabular}{ l r l }
     \hline
     \bf{one} & \bf{two} & \bf{three} \\
     \hline
@@ -2136,9 +2144,10 @@ We directly test the latex formatting.
     230 & acdef & 1.3000 \\
       6 &    cc & 1.9876 \\
     \hline
+    \end{tabular}
     \caption{A legend}
     \label{table:test}
-    \end{longtable}
+    \end{table}
 
 ..
     Import the ``os`` module so some file cleanup can be done at the end. To check the contents of those files, just delete the following prior to running the test. The try/except clause below is aimed at case where ``junk.pdf`` wasn't created due to ``reportlab`` not being present.
