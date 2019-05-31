@@ -193,7 +193,8 @@ class Diamond(Shape):
 
 
 class Arrow(Shape):
-    def __init__(self, x, width, y=0, height=0.5, arrow_head_w=0.1, **kwargs):
+    def __init__(self, x, width, y=0, height=0.5, arrow_head_w=0.1,
+                 reverse=False, **kwargs):
         super(Arrow, self).__init__(**kwargs)
         hw = width * arrow_head_w * 2
         hh = height * arrow_head_w * 2
@@ -201,6 +202,9 @@ class Arrow(Shape):
                               x + width - hw, x + width - hw, x, x])
         self.y = numpy.array([y, y, y - hh, y + height / 2,
                               y + height + hh, y + height, y + height, y])
+        if reverse:
+            self.x = numpy.flip(self.x.max() - self.x + self.x.min())
+            self.y = numpy.flip(self.y)
 
 
 # https://plot.ly/python/marker-style/
@@ -232,25 +236,30 @@ class _MakeShape:
                    snp=Point,
                    snv=Point)
 
-    def __call__(self, type_=None, name=None, coords=None, width=None):
+    def __call__(self, type_=None, name=None, coords=None, width=None, **kwargs):
         from cogent3.core.annotation import _Annotatable
         if isinstance(type_, _Annotatable):
             name = type_.name
             width = len(type_)
             map = type_.map.get_covering_span()
+            reverse = map.reverse
             start = min(map.spans[0].start, map.spans[0].end)
             type_ = type_.type
+            kwargs.update(dict(reverse=reverse))
 
         klass = self._shapes.get(type_.lower(), Rectangle)
         color = self._colors.get(type_.lower(), None)
+        if klass != Arrow:
+            kwargs.pop('reverse', None)
+
         if klass != Point:
             result = klass(name=type_, text=name, legendgroup=type_,
                            x=start, width=width,
-                           fillcolor=color)
+                           fillcolor=color, **kwargs)
         else:
             result = Point(name=type_, text=name, legendgroup=type_,
                            x=start, y=1, size=14, symbol='square',
-                           fillcolor=color)
+                           fillcolor=color, **kwargs)
         return result
 
 
