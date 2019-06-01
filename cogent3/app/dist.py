@@ -24,7 +24,8 @@ class FastSlowDist:  # todo make this a composable type
                 distance = None
                 raise UserWarning('distance="%s" being ignored' % distance)
             elif fast_calc or slow_calc:
-                raise ValueError("most specify both fast and slow calculator")
+                raise ValueError(
+                    "must specify both fast and slow calculator")
             else:
                 fast_calc = get_calculator(distance, moltype)
                 self._sm = get_model(distance)
