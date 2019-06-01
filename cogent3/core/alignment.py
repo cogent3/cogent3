@@ -1534,8 +1534,8 @@ class SequenceCollection(object):
     def rc(self):
         """Returns the reverse complement alignment"""
         seqs = [self.named_seqs[name].rc() for name in self.names]
-        rc = self.__class__(data=seqs, names=self.names[
-                                             :], name=self.name, info=self.info)
+        rc = self.__class__(data=seqs,
+                            names=self.names[:], name=self.name, info=self.info)
         if isinstance(self, _Annotatable) and self.annotations:
             self._annotations_nucleic_reversed_on(rc)
         return rc
@@ -2613,7 +2613,7 @@ class AlignmentI(object):
             gap_counts = self.count_gaps_per_pos()
             y = [calc_stat(gap_counts[i: i + window]) for i in range(0, num)]
             trace_g = go.Scatter(x=x, y=y, yaxis='y2', name='Gaps', mode='lines',
-                             line=dict(shape='spline', smoothing=1.3))
+                                 line=dict(shape='spline', smoothing=1.3))
             traces = [trace_marks, trace_line, trace_g]
         else:
             layout.pop('yaxis2')

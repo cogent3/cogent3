@@ -172,7 +172,7 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords,
          (coeff2 * v2 / (2 * freq_pyrs)) + \
          (coeff3 * v3 / (2 * freq_purs * freq_pyrs))
     var = v1 ** 2 * pur_ts_diffs + v2 ** 2 * pyr_ts_diffs + v4 ** 2 * tv_diffs - \
-          (v1 * pur_ts_diffs + v2 * pyr_ts_diffs + v4 * tv_diffs) ** 2
+        (v1 * pur_ts_diffs + v2 * pyr_ts_diffs + v4 * tv_diffs) ** 2
     var /= total
 
     return total, p, dist, var
@@ -239,7 +239,8 @@ def _logdet(matrix, use_tk_adjustment=True):
     r = matrix.shape[0]
     if use_tk_adjustment:
         coeff = (sum(sum(freqs) ** 2) / 4 - 1) / (r - 1)
-        d_xy = coeff * log(det(frequency) / sqrt((freqs[0] * freqs[1]).prod()))
+        d_xy = coeff * log(det(frequency) /
+                           sqrt((freqs[0] * freqs[1]).prod()))
         var = None
     else:
         d_xy = - log(det(frequency)) / r - log(r)
@@ -602,7 +603,7 @@ _calculators = {'paralinear': ParalinearPair,
 
 def get_calculator(name, *args, **kwargs):
     """returns a pairwise distance calculator
-    
+
     name is converted to lower case"""
     name = name.lower()
     if name not in _calculators:
