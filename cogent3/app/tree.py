@@ -119,24 +119,22 @@ class quick_tree(ComposableTree):
         """estimates a neighbor joining tree"""
         aln = aln.to_moltype(self._moltype)
         dists = self._calc(aln)
-        if None in dists.values():
+        size = dists.shape[0]
+        dists = dists.drop_invalid()
+        if dists.shape[0] != size:
             msg = (f"some pairwise distances could not be computed with"
                    " {self._distance}, pick a different distance")
             raise ValueError(msg)
 
         # how many species do we have
-        species = set()
-        for sp1, sp2 in dists:
-            species.update([sp1, sp2])
-
-        species = tuple(species)
+        species = dists.keys()
         if len(species) == 2:
             dist = list(dists.values())[0] / 2.0
             treestring = '(%s:%.4f,%s:%.4f)' % (
                 species[0], dist, species[1], dist)
             tree = LoadTree(treestring=treestring, underscore_unmunge=True)
         else:
-            (result,) = gnj(dists, keep=1, show_progress=False)
+            (result,) = gnj(dists.todict(), keep=1, show_progress=False)
             (score, tree) = result
 
         return tree
