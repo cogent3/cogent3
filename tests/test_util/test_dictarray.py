@@ -151,6 +151,14 @@ class DictArrayTest(TestCase):
                   for n2 in darr.template.names[1]}
         self.assertEqual(darr.todict(flatten=True), expect)
 
+        darr = DictArrayTemplate(['s1', 's2'], ['s1', 's2']).wrap([[0.0, 0.25],
+                                                                   [0.25, 0.0]])
+        self.assertEqual(darr.todict(flatten=True), {('s1', 's2'): 0.25,
+                                                     ('s2', 's1'): 0.25,
+                                                     ('s1', 's1'): 0.0,
+                                                     ('s2', 's2'): 0.0})
+
+
 
     def test_todict_nested(self):
         """DictArray.todict() should convert nested DictArray instances to
