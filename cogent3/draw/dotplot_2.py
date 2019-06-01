@@ -303,7 +303,6 @@ class Display2D(Drawable):
         layout.yaxis3.update(title=None,
                              range=[0, int(max_y) + 1],
                              **ticks_off_kwargs)
-        fig.add_traces(traces)
 
         return fig
 

@@ -127,7 +127,7 @@ def rich_html(rows, row_cell_func=None, header=None, header_cell_func=None,
 
 def latex(rows, header=None, caption=None, justify=None, label=None,
           position=None):
-    """Returns the text a LaTeX longtable.
+    """Returns the text a LaTeX table.
 
     Arguments:
         - header: table header
@@ -145,20 +145,22 @@ def latex(rows, header=None, caption=None, justify=None, label=None,
         header = "%s \\\\" % " & ".join(
             [r"\bf{%s}" % head.strip() for head in header])
     rows = ["%s \\\\" % " & ".join(row) for row in rows]
-
-    table_format = [r"\begin{longtable}[%s]%s" %
-                    (position or "htp!", justify)]
+    position = position or "htp!"
+    table_format = [r"\begin{table}[%s]" % position,
+                    r'\centering',
+                    r"\begin{tabular}%s" % justify]
     table_format.append(r"\hline")
     table_format.append(header)
     table_format.append(r"\hline")
     table_format.append(r"\hline")
     table_format += rows
     table_format.append(r"\hline")
+    table_format.append(r"\end{tabular}")
     if caption:
         table_format.append(r"\caption{%s}" % caption)
     if label:
         table_format.append(r"\label{%s}" % label)
-    table_format.append(r"\end{longtable}")
+    table_format.append(r"\end{table}")
 
     return "\n".join(table_format)
 
