@@ -19,7 +19,8 @@ from cogent3.evolve.pairwise_distance import (get_moltype_index_array,
                                               ParalinearPair, HammingPair,
                                               _hamming, get_calculator,
                                               _calculators,
-                                              available_distances, )
+                                              available_distances,
+                                              DistanceMatrix, )
 from cogent3.evolve._pairwise_distance import \
     _fill_diversity_matrix as pyx_fill_diversity_matrix
 
@@ -176,6 +177,7 @@ class TestPair(TestCase):
         calc = TN93Pair(DNA, alignment=self.alignment)
         calc.run(show_progress=False)
         dists = calc.get_pairwise_distances()
+        dists = dists.todict()
         dist = 0.2554128119
         expect = {('s1', 's2'): dist, ('s2', 's1'): dist}
         self.assertEqual(list(dists.keys()), list(expect.keys()))
@@ -186,7 +188,7 @@ class TestPair(TestCase):
         aln = LoadSeqs('data/brca1_5.paml', moltype=DNA)
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
-        dists = logdet_calc.get_pairwise_distances()
+        dists = logdet_calc.get_pairwise_distances().todict()
         all_expected = {('Human', 'NineBande'): 0.075336929999999996,
                         ('NineBande', 'DogFaced'): 0.0898575452,
                         ('DogFaced', 'Human'): 0.1061747919,
@@ -240,11 +242,11 @@ class TestPair(TestCase):
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
 
-        dists = logdet_calc.get_pairwise_distances()
+        dists = logdet_calc.get_pairwise_distances().todict()
         self.assertTrue(list(dists.values())[0] is not None)
 
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
-        dists = logdet_calc.get_pairwise_distances()
+        dists = logdet_calc.get_pairwise_distances().todict()
         self.assertTrue(list(dists.values())[0] is not None)
 
     def test_logdet_variance(self):
@@ -286,10 +288,10 @@ class TestPair(TestCase):
 
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
-        dists = logdet_calc.get_pairwise_distances()
+        dists = logdet_calc.get_pairwise_distances().todict()
         self.assertTrue(list(dists.values())[0] is None)
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
-        dists = logdet_calc.get_pairwise_distances()
+        dists = logdet_calc.get_pairwise_distances().todict()
         self.assertTrue(list(dists.values())[0] is None)
 
     def test_paralinear_pair_aa(self):
@@ -363,10 +365,10 @@ class TestPair(TestCase):
 
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
-        dists = paralinear_calc.get_pairwise_distances()
+        dists = paralinear_calc.get_pairwise_distances().todict()
         self.assertTrue(list(dists.values())[0] is None)
         paralinear_calc.run(show_progress=False)
-        dists = paralinear_calc.get_pairwise_distances()
+        dists = paralinear_calc.get_pairwise_distances().todict()
         self.assertTrue(list(dists.values())[0] is None)
 
     def test_paralinear_pair_dna(self):
@@ -412,13 +414,13 @@ class TestPair(TestCase):
         self.assertTrue({"seq2": ["seq3"]} == calc.duplicated or
                         {"seq3": ["seq2"]} == calc.duplicated)
         # default to get all pairwise distances
-        pwds = calc.get_pairwise_distances()
+        pwds = calc.get_pairwise_distances().todict()
         self.assertEqual(pwds[('seq2', 'seq3')], 0.0)
         self.assertEqual(pwds[('seq2', 'seq1')], pwds[('seq3', 'seq1')])
 
         # only unique seqs when using include_duplicates=False
 
-        pwds = calc.get_pairwise_distances(include_duplicates=False)
+        pwds = calc.get_pairwise_distances(include_duplicates=False).todict()
         present = list(calc.duplicated.keys())[0]
         missing = calc.duplicated[present][0]
         self.assertEqual(set([(present, missing)]), set([('seq2', 'seq3')]))
@@ -441,6 +443,50 @@ class TestGetDisplayCalculators(TestCase):
         content = available_distances()
         self.assertEqual(content.shape, (5, 2))
         self.assertEqual(content['tn93', 1], 'dna, rna')
+
+
+class TestDistanceMatrix(TestCase):
+    def test_to_dict(self):
+        """distance matrix correctly produces a 1D dict"""
+        data = {('s1', 's2'): 0.25, ('s2', 's1'): 0.25}
+        dmat = DistanceMatrix(data)
+        got = dmat.todict()
+        self.assertEqual(got, data)
+
+    def test_dropping_from_matrix(self):
+        """pairwise distances should have method for dropping invalid data"""
+        data = {('ABAYE2984', 'Atu3667'): None,
+                ('ABAYE2984', 'Avin_42730'): 0.638,
+                ('ABAYE2984', 'BAA10469'): None,
+                ('Atu3667', 'ABAYE2984'): None,
+                ('Atu3667', 'Avin_42730'): 2.368,
+                ('Atu3667', 'BAA10469'): None,
+                ('Avin_42730', 'ABAYE2984'): 0.638,
+                ('Avin_42730', 'Atu3667'): 2.368,
+                ('Avin_42730', 'BAA10469'): 1.85,
+                ('BAA10469', 'ABAYE2984'): None,
+                ('BAA10469', 'Atu3667'): None,
+                ('BAA10469', 'Avin_42730'): 1.85}
+
+        darr = DistanceMatrix(data)
+        new = darr.drop_invalid()
+        self.assertEqual(new, None)
+
+        data = {('ABAYE2984', 'Atu3667'): 0.25,
+                ('ABAYE2984', 'Avin_42730'): 0.638,
+                ('ABAYE2984', 'BAA10469'): None,
+                ('Atu3667', 'ABAYE2984'): 0.25,
+                ('Atu3667', 'Avin_42730'): 2.368,
+                ('Atu3667', 'BAA10469'): 0.25,
+                ('Avin_42730', 'ABAYE2984'): 0.638,
+                ('Avin_42730', 'Atu3667'): 2.368,
+                ('Avin_42730', 'BAA10469'): 1.85,
+                ('BAA10469', 'ABAYE2984'): 0.25,
+                ('BAA10469', 'Atu3667'): 0.25,
+                ('BAA10469', 'Avin_42730'): 1.85}
+        darr = DistanceMatrix(data)
+        new = darr.drop_invalid()
+        self.assertEqual(new.shape, (2, 2))
 
 
 if __name__ == '__main__':

@@ -7,6 +7,7 @@ from itertools import combinations
 from cogent3.maths.stats.number import NumberCounter
 from cogent3 import LoadSeqs, LoadTree
 from cogent3.util import table, progress_display as UI
+from cogent3.evolve.pairwise_distance import DistanceMatrix
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -255,8 +256,10 @@ class EstimateDistances(object):
               estimating param from threeway distances. Valid values are 'mean'
               (default) and 'median'.
         """
-        return self.get_pairwise_param('length', summary_function=summary_function,
+        dists = self.get_pairwise_param('length', summary_function=summary_function,
                                      **kwargs)
+        result = DistanceMatrix(dists)
+        return result
 
     def get_param_values(self, param, **kwargs):
         """Returns a Numbers object with all estimated values of param.

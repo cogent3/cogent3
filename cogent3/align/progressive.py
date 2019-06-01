@@ -71,7 +71,7 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
         dcalc = EstimateDistances(seqs, model, do_pair_align=True,
                                   est_params=est_params)
         dcalc.run()
-        dists = dcalc.get_pairwise_distances()
+        dists = dcalc.get_pairwise_distances().todict()
         tree = NJ.nj(dists)
 
     LF = model.make_likelihood_function(

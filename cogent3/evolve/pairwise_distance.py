@@ -4,6 +4,7 @@ from numpy.linalg import det, norm, inv, LinAlgError
 
 from cogent3 import DNA, RNA, LoadTable, get_moltype
 from cogent3.util.progress_display import display_wrap
+from cogent3.util.dict_array import DictArray
 
 __author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -408,8 +409,8 @@ class _PairwiseDistance(object):
     __call__ = run
 
     def get_pairwise_distances(self, include_duplicates=True):
-        """returns a 2D dictionary of pairwise distances.
-        
+        """returns a matrix of pairwise distances.
+
         Arguments:
         - include_duplicates: all seqs included in the distances,
           otherwise only unique sequences are included.
@@ -421,7 +422,8 @@ class _PairwiseDistance(object):
         if include_duplicates:
             dists = self._expand(dists)
 
-        return dists
+        result = DistanceMatrix(dists)
+        return result
 
     def _expand(self, pwise):
         """returns a pwise statistic dict that includes duplicates"""
@@ -630,3 +632,63 @@ def available_distances():
                              "using 'Abbreviation' (case insensitive)."),
                       row_ids=True)
     return table
+
+
+class DistanceMatrix(DictArray):
+    """pairwise distance matrix"""
+
+    def __init__(self, dists, invalid=None):
+        super(DistanceMatrix, self).__init__(dists, dtype='O')
+        self._invalid = invalid
+
+    def __setitem__(self, names, value):
+        (index, remaining) = self.template.interpret_index(names)
+        self.array[index] = value
+        return
+
+    def todict(self):
+        result = {}
+        for n1 in self.template.names[0]:
+            for n2 in self.template.names[1]:
+                if n1 == n2:
+                    continue
+                result[(n1, n2)] = self[n1, n2]
+        return result
+
+    def drop_invalid(self, invalid=None):
+        """drops all rows / columns with an invalid entry"""
+        if (self.shape[0] != self.shape[1] or
+                self.template.names[0] != self.template.names[0]):
+            raise RuntimeError('Must be a square matrix')
+        names = array(self.template.names[0])
+        cols = (self.array == invalid).sum(axis=0)
+        exclude = names[cols != 0].tolist()
+        rows = (self.array == invalid).sum(axis=1)
+        exclude += names[rows != 0].tolist()
+        exclude = set(exclude)
+        keep = [i for i, n in enumerate(names) if n not in exclude]
+        data = self.array.take(keep, axis=0)
+        data = data.take(keep, axis=1)
+        names = names.take(keep)
+        dists = {(names[i], names[j]): data[i, j]
+                 for i in range(len(names))
+                 for j in range(len(names)) if i != j}
+        if not dists:
+            result = None
+        else:
+            result = self.__class__(dists)
+        return result
+
+    def build_tree(self, show_progress=False):
+        """returns a neighbour joining tree
+        Returns
+        -------
+        an estimated Neighbour Joining Tree, note that invalid distances are dropped
+        prior to building the tree
+        """
+        from cogent3.phylo.nj import gnj
+        dists = self.drop_invalid()
+        if not dists or dists.shape[0] == 1:
+            raise ValueError('Too few distances to build a tree')
+        dists = dists.todict(flatten=True)
+        return gnj(dists, show_progress=show_progress)

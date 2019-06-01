@@ -50,11 +50,12 @@ class FastSlowDist:  # todo make this a composable type
         aln = aln.to_moltype(self._moltype)
         self.fast_calc(aln, show_progress=False)
         dists = self.fast_calc.get_pairwise_distances()
-        for (a, b) in dists:
-            if not dists[(a, b)]:
-                subset = aln.take_seqs([a, b])
-                dist = self._est_dist_pair(subset)
-                dists[(a, b)] = dists[(b, a)] = dist
+        for a in dists.template.names[0]:
+            for b in dists.template.names[1]:
+                if not dists[a, b] and a != b:
+                    subset = aln.take_seqs([a, b])
+                    dist = self._est_dist_pair(subset)
+                    dists[a, b] = dists[b, a] = dist
         return dists
 
 
