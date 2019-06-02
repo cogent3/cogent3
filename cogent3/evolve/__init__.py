@@ -2,7 +2,7 @@
 
 __all__ = ["best_likelihood", "bootstrap", "likelihood_calculation",
            "likelihood_function", "likelihood_tree", "models",
-           "pairwise_distance", "parameter_controller", "predicate",
+           "fast_distance", "parameter_controller", "predicate",
            "simulate", "substitution_calculation", "substitution_model",
            "coevolution"]
 

@@ -7,7 +7,7 @@ from itertools import combinations
 from cogent3.maths.stats.number import NumberCounter
 from cogent3 import LoadSeqs, LoadTree
 from cogent3.util import table, progress_display as UI
-from cogent3.evolve.pairwise_distance import DistanceMatrix
+from cogent3.evolve.fast_distance import DistanceMatrix
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"

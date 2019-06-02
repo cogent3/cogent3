@@ -454,11 +454,7 @@ class _PairwiseDistance(object):
         if self._dists is None:
             return None
 
-        stats = {k: self._dists[k].dist for k in self._dists}
-        stats = self._expand(stats)
-        kwargs = dict(title='Pairwise Distances', digits=4)
-        t = _make_stat_table(stats, self.names, **kwargs)
-        return t
+        return self.get_pairwise_distances(include_duplicates=True)
 
     @property
     def stderr(self):

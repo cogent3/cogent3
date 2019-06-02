@@ -1,5 +1,8 @@
 #!/usr/bin/env python
+import os
 import warnings
+
+from numpy.testing import assert_allclose, assert_equal
 
 warnings.filterwarnings('ignore', 'Not using MPI as mpi4py not found')
 
@@ -8,19 +11,21 @@ import numpy
 # hides the warning from taking log of -ve determinant
 numpy.seterr(invalid='ignore')
 
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
 from cogent3 import LoadSeqs, DNA, RNA, PROTEIN
-from cogent3.evolve.pairwise_distance import (get_moltype_index_array,
-                                              seq_to_indices,
-                                              _fill_diversity_matrix,
-                                              _jc69_from_matrix, JC69Pair,
-                                              _tn93_from_matrix, TN93Pair,
-                                              LogDetPair,
-                                              ParalinearPair, HammingPair,
-                                              _hamming, get_calculator,
-                                              _calculators,
-                                              available_distances,
-                                              DistanceMatrix, )
+from cogent3.evolve.distance import EstimateDistances
+from cogent3.evolve.fast_distance import (get_moltype_index_array,
+                                          seq_to_indices,
+                                          _fill_diversity_matrix,
+                                          _jc69_from_matrix, JC69Pair,
+                                          _tn93_from_matrix, TN93Pair,
+                                          LogDetPair,
+                                          ParalinearPair, HammingPair,
+                                          _hamming, get_calculator,
+                                          _calculators,
+                                          available_distances,
+                                          DistanceMatrix, )
+from cogent3.evolve.models import JC69, HKY85, F81
 from cogent3.evolve._pairwise_distance import \
     _fill_diversity_matrix as pyx_fill_diversity_matrix
 
@@ -51,10 +56,10 @@ class TestPair(TestCase):
         seq = 'TCAGRNY?-'
         expected = [0, 1, 2, 3, -9, -9, -9, -9, -9]
         indices = seq_to_indices(seq, self.dna_char_indices)
-        self.assertEqual(indices, expected)
+        assert_equal(indices, expected)
         seq = 'UCAGRNY?-'
         indices = seq_to_indices(seq, self.rna_char_indices)
-        self.assertEqual(indices, expected)
+        assert_equal(indices, expected)
 
     def test_fill_diversity_matrix_all(self):
         """make correct diversity matrix when all chars valid"""
@@ -63,8 +68,8 @@ class TestPair(TestCase):
         matrix = numpy.zeros((4, 4), float)
         # self-self should just be an identity matrix
         _fill_diversity_matrix(matrix, s1, s1)
-        self.assertEqual(matrix.sum(), len(s1))
-        self.assertEqual(matrix,
+        assert_equal(matrix.sum(), len(s1))
+        assert_equal(matrix,
                          numpy.array([[2, 0, 0, 0],
                                       [0, 3, 0, 0],
                                       [0, 0, 3, 0],
@@ -73,11 +78,10 @@ class TestPair(TestCase):
         # small diffs
         matrix.fill(0)
         _fill_diversity_matrix(matrix, s1, s2)
-        self.assertEqual(matrix,
-                         numpy.array([[2, 0, 0, 0],
-                                      [1, 2, 0, 0],
-                                      [0, 0, 2, 1],
-                                      [0, 0, 0, 2]], float))
+        assert_equal(matrix, numpy.array([[2, 0, 0, 0],
+                                          [1, 2, 0, 0],
+                                          [0, 0, 2, 1],
+                                          [0, 0, 0, 2]], float))
 
     def test_fill_diversity_matrix_some(self):
         """make correct diversity matrix when not all chars valid"""
@@ -87,11 +91,10 @@ class TestPair(TestCase):
         # small diffs
         matrix.fill(0)
         _fill_diversity_matrix(matrix, s1, s2)
-        self.assertEqual(matrix,
-                         numpy.array([[2, 0, 0, 0],
-                                      [1, 2, 0, 0],
-                                      [0, 0, 2, 1],
-                                      [0, 0, 0, 2]], float))
+        assert_equal(matrix, numpy.array([[2, 0, 0, 0],
+                                          [1, 2, 0, 0],
+                                          [0, 0, 2, 1],
+                                          [0, 0, 0, 2]], float))
 
     def test_python_vs_cython_fill_matrix(self):
         """python & cython fill_diversity_matrix give same answer"""
@@ -101,7 +104,7 @@ class TestPair(TestCase):
         _fill_diversity_matrix(matrix1, s1, s2)
         matrix2 = numpy.zeros((4, 4), float)
         pyx_fill_diversity_matrix(matrix2, s1, s2)
-        self.assertFloatEqual(matrix1, matrix2)
+        assert_allclose(matrix1, matrix2)
 
     def test_hamming_from_matrix(self):
         """compute hamming from diversity matrix"""
@@ -136,16 +139,16 @@ class TestPair(TestCase):
         self.assertEqual(calc.lengths['s1', 's2'], 10)
         self.assertEqual(calc.proportions['s1', 's2'], 0.2)
         # value from OSX MEGA 5
-        self.assertFloatEqual(calc.dists['s1', 's2'], 0.2326161962)
+        assert_allclose(calc.dists['s1', 's2'], 0.2326161962)
         # value**2 from OSX MEGA 5
-        self.assertFloatEqual(calc.variances['s1', 's2'],
+        assert_allclose(calc.variances['s1', 's2'],
                               0.029752066125078681)
         # value from OSX MEGA 5
-        self.assertFloatEqual(calc.stderr['s1', 's2'], 0.1724878724)
+        assert_allclose(calc.stderr['s1', 's2'], 0.1724878724)
 
         # same answer when using ambiguous alignment
         calc.run(self.ambig_alignment, show_progress=False)
-        self.assertFloatEqual(calc.dists['s1', 's2'], 0.2326161962)
+        assert_allclose(calc.dists['s1', 's2'], 0.2326161962)
 
         # but different answer if subsequent alignment is different
         calc.run(self.diff_alignment, show_progress=False)
@@ -158,15 +161,15 @@ class TestPair(TestCase):
         self.assertEqual(calc.lengths['s1', 's2'], 10)
         self.assertEqual(calc.proportions['s1', 's2'], 0.2)
         # value from OSX MEGA 5
-        self.assertFloatEqual(calc.dists['s1', 's2'], 0.2554128119)
+        assert_allclose(calc.dists['s1', 's2'], 0.2554128119)
         # value**2 from OSX MEGA 5
-        self.assertFloatEqual(calc.variances['s1', 's2'], 0.04444444445376601)
+        assert_allclose(calc.variances['s1', 's2'], 0.04444444445376601)
         # value from OSX MEGA 5
-        self.assertFloatEqual(calc.stderr['s1', 's2'], 0.2108185107)
+        assert_allclose(calc.stderr['s1', 's2'], 0.2108185107)
 
         # same answer when using ambiguous alignment
         calc.run(self.ambig_alignment, show_progress=False)
-        self.assertFloatEqual(calc.dists['s1', 's2'], 0.2554128119)
+        assert_allclose(calc.dists['s1', 's2'], 0.2554128119)
 
         # but different answer if subsequent alignment is different
         calc.run(self.diff_alignment, show_progress=False)
@@ -181,7 +184,7 @@ class TestPair(TestCase):
         dist = 0.2554128119
         expect = {('s1', 's2'): dist, ('s2', 's1'): dist}
         self.assertEqual(list(dists.keys()), list(expect.keys()))
-        self.assertFloatEqual(list(dists.values()), list(expect.values()))
+        assert_allclose(list(dists.values()), list(expect.values()))
 
     def test_logdet_pair_dna(self):
         """logdet should produce distances that match MEGA"""
@@ -212,7 +215,7 @@ class TestPair(TestCase):
         for pair in dists:
             got = dists[pair]
             expected = all_expected[pair]
-            self.assertFloatEqual(got, expected)
+            assert_allclose(got, expected)
 
     def test_logdet_tk_adjustment(self):
         """logdet using tamura kumar differs from classic"""
@@ -277,7 +280,7 @@ class TestPair(TestCase):
 
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
         dists = logdet_calc.get_pairwise_distances()
-        self.assertFloatEqual(logdet_calc.variances[1, 1], var, eps=1e-3)
+        assert_allclose(logdet_calc.variances[1, 1], var, atol=1e-3)
 
     def test_logdet_for_determinant_lte_zero(self):
         """returns distance of None if the determinant is <= 0"""
@@ -325,7 +328,7 @@ class TestPair(TestCase):
         dist = -0.25 * numpy.log(numpy.linalg.det(J) /
                                  numpy.sqrt(f[0].prod() * f[1].prod()))
 
-        self.assertFloatEqual(paralinear_calc.dists[1, 1], dist, eps=1e-3)
+        assert_allclose(paralinear_calc.dists['seq1', 'seq2'], dist)
 
     def test_paralinear_variance(self):
         """calculate paralinear variance consistent with hand calculation"""
@@ -354,7 +357,7 @@ class TestPair(TestCase):
             var -= 1 / numpy.sqrt(f[0][i] * f[1][i])
         var /= 16 * len(data[0][1])
 
-        self.assertFloatEqual(paralinear_calc.variances[1, 1], var, eps=1e-3)
+        assert_allclose(paralinear_calc.variances[1, 1], var, atol=1e-3)
 
     def test_paralinear_for_determinant_lte_zero(self):
         """returns distance of None if the determinant is <= 0"""
@@ -382,11 +385,10 @@ class TestPair(TestCase):
         paralinear_calc.run(show_progress=False)
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(show_progress=False)
-
-        self.assertFloatEqual(logdet_calc.dists[1, 1],
-                              paralinear_calc.dists[1, 1], eps=1e-3)
-        self.assertFloatEqual(paralinear_calc.variances[1, 1],
-                              logdet_calc.variances[1, 1], eps=1e-3)
+        self.assertEqual(logdet_calc.dists[1, 1],
+                              paralinear_calc.dists[1, 1])
+        self.assertEqual(paralinear_calc.variances[1, 1],
+                              logdet_calc.variances[1, 1])
 
     def test_duplicated(self):
         """correctly identifies duplicates"""
@@ -488,6 +490,140 @@ class TestDistanceMatrix(TestCase):
         new = darr.drop_invalid()
         self.assertEqual(new.shape, (2, 2))
 
+class DistancesTests(TestCase):
+
+    def setUp(self):
+        self.al = LoadSeqs(data={'a': 'GTACGTACGATC',
+                                   'b': 'GTACGTACGTAC',
+                                   'c': 'GTACGTACGTTC',
+                                   'e': 'GTACGTACTGGT'})
+        self.collection = LoadSeqs(data={'a': 'GTACGTACGATC',
+                                           'b': 'GTACGTACGTAC',
+                                           'c': 'GTACGTACGTTC',
+                                           'e': 'GTACGTACTGGT'}, aligned=False)
+
+    def assertDistsAlmostEqual(self, expected, observed, precision=4):
+        observed = dict([(frozenset(k), v)
+                        for (k, v) in list(observed.items())])
+        expected = dict([(frozenset(k), v)
+                        for (k, v) in list(expected.items())])
+        for key in expected:
+            self.assertAlmostEqual(expected[key], observed[key], precision)
+
+    def test_EstimateDistances(self):
+        """testing (well, exercising at least), EstimateDistances"""
+        d = EstimateDistances(self.al, JC69())
+        d.run()
+        canned_result = {('b', 'e'): 0.440840,
+                         ('c', 'e'): 0.440840,
+                         ('a', 'c'): 0.088337,
+                         ('a', 'b'): 0.188486,
+                         ('a', 'e'): 0.440840,
+                         ('b', 'c'): 0.0883373}
+        result = d.get_pairwise_distances().todict()
+        self.assertDistsAlmostEqual(canned_result, result)
+
+        # excercise writing to file
+        d.write('junk.txt')
+        try:
+            os.remove('junk.txt')
+        except OSError:
+            pass  # probably parallel
+
+    def test_EstimateDistancesWithMotifProbs(self):
+        """EstimateDistances with supplied motif probs"""
+        motif_probs = {'A': 0.1, 'C': 0.2, 'G': 0.2, 'T': 0.5}
+        d = EstimateDistances(self.al, HKY85(), motif_probs=motif_probs)
+        d.run()
+        canned_result = {('a', 'c'): 0.07537,
+                         ('b', 'c'): 0.07537,
+                         ('a', 'e'): 0.39921,
+                         ('a', 'b'): 0.15096,
+                         ('b', 'e'): 0.39921,
+                         ('c', 'e'): 0.37243}
+        result = d.get_pairwise_distances().todict()
+        self.assertDistsAlmostEqual(canned_result, result)
+
+    def test_EstimateDistances_fromThreeway(self):
+        """testing (well, exercising at least), EsimateDistances fromThreeway"""
+        d = EstimateDistances(self.al, JC69(), threeway=True)
+        d.run()
+        canned_result = {('b', 'e'): 0.495312,
+                         ('c', 'e'): 0.479380,
+                         ('a', 'c'): 0.089934,
+                         ('a', 'b'): 0.190021,
+                         ('a', 'e'): 0.495305,
+                         ('b', 'c'): 0.0899339}
+        result = d.get_pairwise_distances(summary_function="mean").todict()
+        self.assertDistsAlmostEqual(canned_result, result)
+
+    def test_EstimateDistances_fromUnaligned(self):
+        """Excercising estimate distances from unaligned sequences"""
+        d = EstimateDistances(self.collection, JC69(), do_pair_align=True,
+                              rigorous_align=True)
+        d.run()
+        canned_result = {('b', 'e'): 0.440840,
+                         ('c', 'e'): 0.440840,
+                         ('a', 'c'): 0.088337,
+                         ('a', 'b'): 0.188486,
+                         ('a', 'e'): 0.440840,
+                         ('b', 'c'): 0.0883373}
+        result = d.get_pairwise_distances().todict()
+        self.assertDistsAlmostEqual(canned_result, result)
+
+        d = EstimateDistances(self.collection, JC69(), do_pair_align=True,
+                              rigorous_align=False)
+        d.run()
+        canned_result = {('b', 'e'): 0.440840,
+                         ('c', 'e'): 0.440840,
+                         ('a', 'c'): 0.088337,
+                         ('a', 'b'): 0.188486,
+                         ('a', 'e'): 0.440840,
+                         ('b', 'c'): 0.0883373}
+        result = d.get_pairwise_distances().todict()
+        self.assertDistsAlmostEqual(canned_result, result)
+
+    def test_EstimateDistances_other_model_params(self):
+        """test getting other model params from EstimateDistances"""
+        d = EstimateDistances(self.al, HKY85(), est_params=['kappa'])
+        d.run()
+        # this will be a Number object with Mean, Median etc ..
+        kappa = d.get_param_values('kappa')
+        self.assertAlmostEqual(kappa.mean, 0.8939, 4)
+        # this will be a dict with pairwise instances, it's called by the above
+        # method, so the correctness of it's values is already checked
+        kappa = d.get_pairwise_param('kappa')
+
+    def test_EstimateDistances_modify_lf(self):
+        """tests modifying the lf"""
+        def constrain_fit(lf):
+            lf.set_param_rule('kappa', is_constant=True)
+            lf.optimise(local=True)
+            return lf
+
+        d = EstimateDistances(self.al, HKY85(), modify_lf=constrain_fit)
+        d.run()
+        result = d.get_pairwise_distances().todict()
+        d = EstimateDistances(self.al, F81())
+        d.run()
+        expect = d.get_pairwise_distances().todict()
+        self.assertDistsAlmostEqual(expect, result)
+
+    def test_get_raw_estimates(self):
+        """correctly return raw result object"""
+        d = EstimateDistances(self.al, HKY85(), est_params=['kappa'])
+        d.run()
+        expect = {('a', 'b'): {'kappa': 1.0000226766004808e-06, 'length': 0.18232155856115662},
+                  ('a', 'c'): {'kappa': 1.0010380037049357e-06, 'length': 0.087070406623635604},
+                  ('a', 'e'): {'kappa': 2.3965871843412687, 'length': 0.4389176272584539},
+                  ('b', 'e'): {'kappa': 2.3965871854366592, 'length': 0.43891762729173389},
+                  ('b', 'c'): {'kappa': 1.0010380037049357e-06, 'length': 0.087070406623635604},
+                  ('c', 'e'): {'kappa': 0.57046787478038707, 'length': 0.43260232210282784}}
+        got = d.get_all_param_values()
+        for pair in expect:
+            for param in expect[pair]:
+                self.assertAlmostEqual(got[pair][param], expect[
+                                       pair][param], places=6)
 
 if __name__ == '__main__':
     main()
