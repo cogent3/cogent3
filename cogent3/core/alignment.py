@@ -2554,7 +2554,7 @@ class AlignmentI(object):
         name
             a pairwise distance calculator or name of one from pairwise_distance
         """
-        from cogent3.evolve.pairwise_distance import get_calculator
+        from cogent3.evolve.fast_distance import get_calculator
         calculator = get_calculator(
             calc, moltype=self.moltype, alignment=self)
         calculator.run(show_progress=show_progress)

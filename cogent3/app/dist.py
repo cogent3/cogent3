@@ -1,5 +1,5 @@
 from cogent3 import LoadTree, get_moltype
-from cogent3.evolve.pairwise_distance import get_calculator
+from cogent3.evolve.fast_distance import get_calculator
 from cogent3.evolve.models import get_model
 
 __author__ = "Gavin Huttley"

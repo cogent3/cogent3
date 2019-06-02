@@ -4,13 +4,11 @@ import warnings
 from numpy import log, exp
 warnings.filterwarnings('ignore', 'Not using MPI as mpi4py not found')
 
-from cogent3.phylo.distance import EstimateDistances
 from cogent3.phylo.nj import nj, gnj
 from cogent3.phylo.least_squares import wls
 from cogent3 import LoadSeqs, LoadTree
 from cogent3.phylo.tree_collection import LogLikelihoodScoredTreeCollection,\
     WeightedTreeCollection, LoadTrees, ScoredTreeCollection
-from cogent3.evolve.models import JC69, HKY85, F81
 from cogent3.phylo.consensus import majority_rule, weighted_majority_rule, \
     get_splits, get_tree
 from cogent3.util.misc import remove_files
@@ -294,142 +292,6 @@ class TreeReconstructionTests(unittest.TestCase):
         # if start tree has all seq names, should raise an error
         self.assertRaises(Exception, wls, self.dists,
                           start=[LoadTree(treestring='((a,c),b,(d,(e,f)))')])
-
-
-class DistancesTests(unittest.TestCase):
-
-    def setUp(self):
-        self.al = LoadSeqs(data={'a': 'GTACGTACGATC',
-                                   'b': 'GTACGTACGTAC',
-                                   'c': 'GTACGTACGTTC',
-                                   'e': 'GTACGTACTGGT'})
-        self.collection = LoadSeqs(data={'a': 'GTACGTACGATC',
-                                           'b': 'GTACGTACGTAC',
-                                           'c': 'GTACGTACGTTC',
-                                           'e': 'GTACGTACTGGT'}, aligned=False)
-
-    def assertDistsAlmostEqual(self, expected, observed, precision=4):
-        observed = dict([(frozenset(k), v)
-                        for (k, v) in list(observed.items())])
-        expected = dict([(frozenset(k), v)
-                        for (k, v) in list(expected.items())])
-        for key in expected:
-            self.assertAlmostEqual(expected[key], observed[key], precision)
-
-    def test_EstimateDistances(self):
-        """testing (well, exercising at least), EstimateDistances"""
-        d = EstimateDistances(self.al, JC69())
-        d.run()
-        canned_result = {('b', 'e'): 0.440840,
-                         ('c', 'e'): 0.440840,
-                         ('a', 'c'): 0.088337,
-                         ('a', 'b'): 0.188486,
-                         ('a', 'e'): 0.440840,
-                         ('b', 'c'): 0.0883373}
-        result = d.get_pairwise_distances().todict()
-        self.assertDistsAlmostEqual(canned_result, result)
-
-        # excercise writing to file
-        d.write('junk.txt')
-        try:
-            os.remove('junk.txt')
-        except OSError:
-            pass  # probably parallel
-
-    def test_EstimateDistancesWithMotifProbs(self):
-        """EstimateDistances with supplied motif probs"""
-        motif_probs = {'A': 0.1, 'C': 0.2, 'G': 0.2, 'T': 0.5}
-        d = EstimateDistances(self.al, HKY85(), motif_probs=motif_probs)
-        d.run()
-        canned_result = {('a', 'c'): 0.07537,
-                         ('b', 'c'): 0.07537,
-                         ('a', 'e'): 0.39921,
-                         ('a', 'b'): 0.15096,
-                         ('b', 'e'): 0.39921,
-                         ('c', 'e'): 0.37243}
-        result = d.get_pairwise_distances().todict()
-        self.assertDistsAlmostEqual(canned_result, result)
-
-    def test_EstimateDistances_fromThreeway(self):
-        """testing (well, exercising at least), EsimateDistances fromThreeway"""
-        d = EstimateDistances(self.al, JC69(), threeway=True)
-        d.run()
-        canned_result = {('b', 'e'): 0.495312,
-                         ('c', 'e'): 0.479380,
-                         ('a', 'c'): 0.089934,
-                         ('a', 'b'): 0.190021,
-                         ('a', 'e'): 0.495305,
-                         ('b', 'c'): 0.0899339}
-        result = d.get_pairwise_distances(summary_function="mean").todict()
-        self.assertDistsAlmostEqual(canned_result, result)
-
-    def test_EstimateDistances_fromUnaligned(self):
-        """Excercising estimate distances from unaligned sequences"""
-        d = EstimateDistances(self.collection, JC69(), do_pair_align=True,
-                              rigorous_align=True)
-        d.run()
-        canned_result = {('b', 'e'): 0.440840,
-                         ('c', 'e'): 0.440840,
-                         ('a', 'c'): 0.088337,
-                         ('a', 'b'): 0.188486,
-                         ('a', 'e'): 0.440840,
-                         ('b', 'c'): 0.0883373}
-        result = d.get_pairwise_distances().todict()
-        self.assertDistsAlmostEqual(canned_result, result)
-
-        d = EstimateDistances(self.collection, JC69(), do_pair_align=True,
-                              rigorous_align=False)
-        d.run()
-        canned_result = {('b', 'e'): 0.440840,
-                         ('c', 'e'): 0.440840,
-                         ('a', 'c'): 0.088337,
-                         ('a', 'b'): 0.188486,
-                         ('a', 'e'): 0.440840,
-                         ('b', 'c'): 0.0883373}
-        result = d.get_pairwise_distances().todict()
-        self.assertDistsAlmostEqual(canned_result, result)
-
-    def test_EstimateDistances_other_model_params(self):
-        """test getting other model params from EstimateDistances"""
-        d = EstimateDistances(self.al, HKY85(), est_params=['kappa'])
-        d.run()
-        # this will be a Number object with Mean, Median etc ..
-        kappa = d.get_param_values('kappa')
-        self.assertAlmostEqual(kappa.mean, 0.8939, 4)
-        # this will be a dict with pairwise instances, it's called by the above
-        # method, so the correctness of it's values is already checked
-        kappa = d.get_pairwise_param('kappa')
-
-    def test_EstimateDistances_modify_lf(self):
-        """tests modifying the lf"""
-        def constrain_fit(lf):
-            lf.set_param_rule('kappa', is_constant=True)
-            lf.optimise(local=True)
-            return lf
-
-        d = EstimateDistances(self.al, HKY85(), modify_lf=constrain_fit)
-        d.run()
-        result = d.get_pairwise_distances().todict()
-        d = EstimateDistances(self.al, F81())
-        d.run()
-        expect = d.get_pairwise_distances().todict()
-        self.assertDistsAlmostEqual(expect, result)
-
-    def test_get_raw_estimates(self):
-        """correctly return raw result object"""
-        d = EstimateDistances(self.al, HKY85(), est_params=['kappa'])
-        d.run()
-        expect = {('a', 'b'): {'kappa': 1.0000226766004808e-06, 'length': 0.18232155856115662},
-                  ('a', 'c'): {'kappa': 1.0010380037049357e-06, 'length': 0.087070406623635604},
-                  ('a', 'e'): {'kappa': 2.3965871843412687, 'length': 0.4389176272584539},
-                  ('b', 'e'): {'kappa': 2.3965871854366592, 'length': 0.43891762729173389},
-                  ('b', 'c'): {'kappa': 1.0010380037049357e-06, 'length': 0.087070406623635604},
-                  ('c', 'e'): {'kappa': 0.57046787478038707, 'length': 0.43260232210282784}}
-        got = d.get_all_param_values()
-        for pair in expect:
-            for param in expect[pair]:
-                self.assertAlmostEqual(got[pair][param], expect[
-                                       pair][param], places=6)
 
 if __name__ == '__main__':
     unittest.main()
