@@ -32,20 +32,21 @@ else:
             MPI = None
 
 
-def generate_random_seed(use_mpi):
-    global ran_seed
-    if use_mpi and MPI:
-        rank = MPI.COMM_WORLD.Get_rank()
-    elif not use_mpi:
-        processName = multiprocessing.current_process().name
-        rank = int(processName[-1])
+def generate_seed(use_mpi, seed=None):
+    global random_seed
+    if use_mpi:
+        rank = COMM.Get_rank()
     else:
-        raise RuntimeError('cannot use mpi4py')
-    ran_seed = int(time.time()) + rank
-
+        process_name = multiprocessing.current_process().name
+        rank = int(process_name[-1])
+    if seed is not None:
+        random_seed = seed + rank
+    else:
+        random_seed = int(time.time()) + rank
 
 if MPI is not None:
-    generate_random_seed(True)
+    if COMM.Get_size() > 1:
+        generate_seed(True, seed)
     USING_MPI = True
 else:
     USING_MPI = False
@@ -69,15 +70,16 @@ class PicklableAndCallable():
         return self.func(*args, **kw)
 
 
-def imap(f, s, max_workers=None, use_mpi=False):
+def imap(f, s, max_workers=None, use_mpi=False, seed=None):
     # If max_workers is not defined, get number of all processes available
     # minus 1 to leave for master process
     if use_mpi:
         if not USING_MPI:
             raise RuntimeError
         if not max_workers:
-        with MPIfutures.MPIPoolExecutor(max_workers) as executor:
             max_workers = COMM.Get_attr(MPI.UNIVERSE_SIZE) - 1
+        with MPIfutures.MPIPoolExecutor(max_workers=max_workers,
+                                        globals=dict(seed=seed)) as executor:
             for result in executor.map(f, s):
                 yield result
     else:
@@ -88,11 +90,11 @@ def imap(f, s, max_workers=None, use_mpi=False):
         _FUNCTIONS[key] = f
         f = PicklableAndCallable(id(f))
         with concurrentfutures.ProcessPoolExecutor(max_workers,
-                                                   initializer=generate_random_seed,
-                                                   initargs=([False])) as executor:
+                                        initializer=generate_seed,
+                                        initargs=([False, seed])) as executor:
             for result in executor.map(f, s):
                 yield result
 
 
-def map(f, s, max_workers=None, use_mpi=False):
-    return list(imap(f, s, max_workers, use_mpi))
+def map(f, s, max_workers=None, use_mpi=False, seed=None):
+    return list(imap(f, s, max_workers, use_mpi, seed))
