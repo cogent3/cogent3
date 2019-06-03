@@ -9,7 +9,7 @@ from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell"]
+__credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Greg Caporaso"
