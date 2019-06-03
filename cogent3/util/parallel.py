@@ -26,7 +26,8 @@ else:
     except ImportError:
         MPI = None
     else:
-        size = MPI.INFO_ENV.get("maxprocs", 1)
+        COMM = MPI.COMM_WORLD
+        size = COMM.Get_attr(MPI.UNIVERSE_SIZE)
         if size == 1:
             MPI = None
 
@@ -75,8 +76,8 @@ def imap(f, s, max_workers=None, use_mpi=False):
         if not USING_MPI:
             raise RuntimeError
         if not max_workers:
-            max_workers = multiprocessing.cpu_count() - 1
         with MPIfutures.MPIPoolExecutor(max_workers) as executor:
+            max_workers = COMM.Get_attr(MPI.UNIVERSE_SIZE) - 1
             for result in executor.map(f, s):
                 yield result
     else:
