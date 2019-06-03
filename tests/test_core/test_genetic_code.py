@@ -353,6 +353,17 @@ class GeneticCodeTests(TestCase):
         self.assertEqual(codes.shape, (17, 2))
         self.assertEqual(codes[0, 'Name'], 'Standard Nuclear')
 
+    def test_to_table(self):
+        """tests to_table method."""
+        from cogent3.core.moltype import IUPAC_PROTEIN_code_aa
+        sgc = GeneticCode(self.SGC)
+        table = sgc.to_table()
+        # check num rows
+        self.assertEqual(table.shape[0], len(IUPAC_PROTEIN_code_aa))
+        # check there are 3 headers
+        self.assertEqual(table.shape[1], 3)
+
+
 # Run tests if called from command line
 if __name__ == '__main__':
     main()
