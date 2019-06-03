@@ -65,7 +65,7 @@ class ProgressContext:
             message=self.message,
             rate=self.rate)
 
-    def display(self, msg=None, progress=None, current=0.0):
+    def display(self, msg=None, progress=None):
         if not self.progress_bar:
             self.set_new_progress_bar()
         updated = False
