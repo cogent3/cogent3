@@ -216,13 +216,20 @@ def demo(ui):
     ui.write("non-linebuffered output, tricky but look:")
     for i in ui.series(list(range(10))):
         time.sleep(.6)
-        if i == 5:
-            ui.write('halfway through, a new line: ')
-        if i % 2:
-            subdemo()
+        for i in imap(fun, [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]):
+            ui.write(str(i))
         ui.write(str(i) + ".")
     ui.write("done")
 
+
+@display_wrap
+def imap(f, s, ui):
+    for result in ui.imap(f,s):
+        yield result
+
+def fun(inp):
+    time.sleep(0.1)
+    return inp
 
 if __name__ == '__main__':
     demo()
