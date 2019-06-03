@@ -19,7 +19,7 @@ __status__ = "Alpha"
 class LogFileOutput:
     """A fake progress bar for when progress bars are impossible"""
 
-    def __init__(self, **kwg):
+    def __init__(self, **kw):
         self.n = 0
         self.message = ''
         self.t0 = time.time()
