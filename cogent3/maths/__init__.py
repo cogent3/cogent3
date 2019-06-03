@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-__all__ = ['function_optimisation',
-           'geometry',
+__all__ = ['geometry',
            'markov',
            'matrix_exponential_integration',
            'matrix_exponentiation',

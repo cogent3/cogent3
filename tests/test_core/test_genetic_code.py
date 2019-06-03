@@ -9,7 +9,7 @@ from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell"]
+__credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Greg Caporaso"
@@ -352,6 +352,17 @@ class GeneticCodeTests(TestCase):
         codes = available_codes()
         self.assertEqual(codes.shape, (17, 2))
         self.assertEqual(codes[0, 'Name'], 'Standard Nuclear')
+
+    def test_to_table(self):
+        """tests to_table method."""
+        from cogent3.core.moltype import IUPAC_PROTEIN_code_aa
+        sgc = GeneticCode(self.SGC)
+        table = sgc.to_table()
+        # check num rows
+        self.assertEqual(table.shape[0], len(IUPAC_PROTEIN_code_aa))
+        # check there are 3 headers
+        self.assertEqual(table.shape[1], 3)
+
 
 # Run tests if called from command line
 if __name__ == '__main__':
