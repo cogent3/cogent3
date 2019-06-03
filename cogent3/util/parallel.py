@@ -6,28 +6,24 @@ import time
 import math
 import threading
 import multiprocessing
-import warnings
 import concurrent.futures as concurrentfutures
-import warnings
 
 __author__ = "Sheng Han Moses Koh"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Sheng Han Moses Koh", "Gavin Huttley"]
+__credits__ = ["Peter Maxwell", "Sheng Han Moses Koh"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha"
+
 
 if os.environ.get('DONT_USE_MPI', 0):
-    warnings.warn('Not using MPI', stacklevel=2)
     MPI = None
 else:
     try:
         from mpi4py import MPI
         from mpi4py import futures as MPIfutures
     except ImportError:
-        warnings.warn('Not using MPI as mpi4py not found', stacklevel=2)
         MPI = None
     else:
         size = MPI.INFO_ENV.get("maxprocs", 1)
