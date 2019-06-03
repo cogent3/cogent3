@@ -181,6 +181,28 @@ DnaStandardPairs = {
 
 
 # protein letters & ambiguity codes
+IUPAC_PROTEIN_code_aa = {'A': 'Alanine',
+                         'C': 'Cysteine',
+                         'D': 'Aspartic Acid',
+                         'E': 'Glutamic Acid',
+                         'F': 'Phenylalanine',
+                         'G': 'Glycine',
+                         'H': 'Histidine',
+                         'I': 'Isoleucine',
+                         'K': 'Lysine',
+                         'L': 'Leucine',
+                         'M': 'Methionine',
+                         'N': 'Asparagine',
+                         'P': 'Proline',
+                         'Q': 'Glutamine',
+                         'R': 'Arginine',
+                         'S': 'Serine',
+                         'T': 'Threonine',
+                         'V': 'Valine',
+                         'W': 'Tryptophan',
+                         'Y': 'Tyrosine',
+                         '*': 'STOP'}
+
 IUPAC_PROTEIN_chars = [
     'A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K',
     'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',

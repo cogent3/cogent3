@@ -7,10 +7,12 @@ versa, lists of codons that they produce will be provided in DNA format.
 """
 import re
 from itertools import product
+from cogent3.util.table import Table
+
 
 __author__ = "Greg Caporaso and Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell"]
+__credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Greg Caporaso"
@@ -185,6 +187,17 @@ class GeneticCode(object):
 
     blocks = property(_get_blocks)
 
+    def to_table(self):
+        from cogent3.core.moltype import IUPAC_PROTEIN_code_aa
+        rows = []
+        headers = ['aa', 'IUPAC code', 'codons']
+        for code, aa in IUPAC_PROTEIN_code_aa.items():
+            codons = ','.join(self[code])
+            row = [aa, code, codons]
+            rows.append(row)
+        t = Table(header=headers, rows=rows, title=self.name)
+        return t
+
     def __str__(self):
         """Returns code_sequence that constructs the GeneticCode."""
         return self.code_sequence
@@ -192,6 +205,11 @@ class GeneticCode(object):
     def __repr__(self):
         """Returns reconstructable representation of the GeneticCode."""
         return 'GeneticCode(%s)' % str(self)
+
+    def _repr_html_(self):
+        """Returns the html representation of GeneticCode."""
+        display = self.to_table()
+        return display._repr_html_(include_shape=False)
 
     def __eq__(self, other):
         """ Allows two GeneticCode objects to be compared to each other.
