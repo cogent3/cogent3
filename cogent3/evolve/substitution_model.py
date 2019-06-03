@@ -32,6 +32,7 @@ called Q) is determined.
 
 import numpy
 from numpy.linalg import svd
+from cogent3.util.misc import extend_docstring_from
 import warnings
 import inspect
 import json
@@ -99,16 +100,6 @@ def _maxWidthIfTruncated(pars, delim, each):
 
 def _isSymmetrical(matrix):
     return numpy.alltrue(numpy.alltrue(matrix == numpy.transpose(matrix)))
-
-
-def extend_docstring_from(cls, pre=False):
-    def docstring_inheriting_decorator(fn):
-        parts = [getattr(cls, fn.__name__).__doc__, fn.__doc__ or '']
-        if pre:
-            parts.reverse()
-        fn.__doc__ = ''.join(parts)
-        return fn
-    return docstring_inheriting_decorator
 
 
 class _SubstitutionModel(object):
@@ -404,7 +395,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
     _exponentiator = None
     _default_expm_setting = 'either'
 
-    @extend_docstring_from(_SubstitutionModel)
+    @extend_docstring_from(_SubstitutionModel.__init__)
     def __init__(self, alphabet, with_rate=False, ordered_param=None,
                  distribution=None, partitioned_params=None, do_scaling=None, **kw):
         """
@@ -625,7 +616,7 @@ class Empirical(StationaryQ,_ContinuousSubstitutionModel):
     """A continuous substitution model with a predefined instantaneous rate
     matrix."""
 
-    @extend_docstring_from(_ContinuousSubstitutionModel)
+    @extend_docstring_from(_ContinuousSubstitutionModel.__init__)
     def __init__(self, alphabet, rate_matrix, **kw):
         """
          - rate_matrix: The instantaneous rate matrix
@@ -653,7 +644,7 @@ class Parametric(_ContinuousSubstitutionModel):
     parameters. This is a general process -- non-stationary and, if specified
     via predicates, non-reversible"""
 
-    @extend_docstring_from(_ContinuousSubstitutionModel)
+    @extend_docstring_from(_ContinuousSubstitutionModel.__init__)
     def __init__(self, alphabet, predicates=None, scales=None, **kw):
         """
          - predicates: a dict of {name:predicate}. See cogent3.evolve.predicate

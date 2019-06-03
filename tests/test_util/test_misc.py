@@ -14,7 +14,7 @@ from cogent3.util.misc import (iterable, is_iterable, is_char, is_char_or_nonite
                                NestedSplitter, curry, remove_files, identity, adjusted_within_bounds,
                                get_independent_coords, get_merged_by_value_coords,
                                get_merged_overlapping_coords, get_run_start_indices, get_tmp_filename,
-                               get_format_suffixes, adjusted_gt_minprob, get_object_provenance)
+                               get_format_suffixes, adjusted_gt_minprob, get_object_provenance, extend_docstring_from)
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -988,6 +988,99 @@ class MappedDictTests(TestCase):
         assert '1' in d
         assert 1 in d
         assert '5' not in d
+
+
+def f():
+    """This is a function docstring."""
+    pass
+
+
+@extend_docstring_from(f)
+def foo_append():
+    """I am foo."""
+    pass
+
+
+@extend_docstring_from(f)
+def foo_mirror():
+    pass
+
+
+@extend_docstring_from(f, pre=True)
+def foo_prepend():
+    """I am foo."""
+    pass
+
+
+class ExtendDocstringTests(TestCase):
+
+    @extend_docstring_from(f)
+    def foo_append(self):
+        """I am foo."""
+        pass
+
+    @extend_docstring_from(f)
+    def foo_mirror(self):
+        pass
+
+    @extend_docstring_from(f, pre=True)
+    def foo_prepend(self):
+        """I am foo."""
+        pass
+
+    class TemplateClass:
+        """This is a class docstring."""
+        pass
+
+    @extend_docstring_from(TemplateClass)
+    class FooAppend:
+        """I am foo."""
+        pass
+
+    @extend_docstring_from(TemplateClass)
+    class FooMirror:
+        pass
+
+    @extend_docstring_from(TemplateClass, pre=True)
+    class FooPrepend:
+        """I am foo."""
+        pass
+
+    def test_function_append(self):
+        self.assertEqual(foo_append.__doc__,
+                         'This is a function docstring.\nI am foo.')
+
+    def test_function_mirror(self):
+        self.assertEqual(foo_mirror.__doc__,
+                         'This is a function docstring.\n')
+
+    def test_function_prepend(self):
+        self.assertEqual(foo_prepend.__doc__,
+                         'I am foo.\nThis is a function docstring.')
+
+    def test_method_append(self):
+        self.assertEqual(self.foo_append.__doc__,
+                         'This is a function docstring.\nI am foo.')
+
+    def test_method_mirror(self):
+        self.assertEqual(self.foo_mirror.__doc__,
+                         'This is a function docstring.\n')
+
+    def test_method_prepend(self):
+        self.assertEqual(self.foo_prepend.__doc__,
+                         'I am foo.\nThis is a function docstring.')
+
+    def test_class_append(self):
+        self.assertEqual(self.FooAppend.__doc__,
+                         'This is a class docstring.\nI am foo.')
+
+    def test_class_mirror(self):
+        self.assertEqual(self.FooMirror.__doc__,
+                         'This is a class docstring.\n')
+
+    def test_class_prepend(self):
+        self.assertEqual(self.FooPrepend.__doc__,
+                         'I am foo.\nThis is a class docstring.')
 
 
 if __name__ == '__main__':
