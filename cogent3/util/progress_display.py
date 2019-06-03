@@ -91,6 +91,7 @@ class ProgressContext:
     def series(self, items, noun='', labels=None, start=None, end=1.0,
                count=None):
         """Wrap a looped-over list with a progress bar"""
+        # todo optimise label creation
         if count is None:
             if not hasattr(items, '__len__'):
                 items = list(items)
@@ -106,7 +107,7 @@ class ProgressContext:
             if noun:
                 noun += ' '
             template = '%s%%%sd/%s' % (noun, len(str(count)), count)
-            labels = [template % i for i in range(0, count)]
+            labels = [template % (i + 1) for i in range(0, count)]
         for (i, item) in enumerate(items):
             self.display(msg=labels[i], progress=start +
                                                  step * i)
@@ -119,9 +120,11 @@ class ProgressContext:
         else:
             print(*args, **kw)
 
-    def imap(self, f, s, workers=None, pure=True, **kw):
-        if pure:
-            results = parallel.map(f, s, workers)
+    def imap(self, f, s, parallel=False, par_kw=None, **kw):
+        if parallel:
+            # todo document parallel.map arguments
+            par_kw = par_kw or {}
+            results = parallel.map(f, s, **par_kw)
         else:
             results = map(f, s)
         for result in self.series(results, count=len(s), **kw):
@@ -162,11 +165,9 @@ def display_wrap(slow_function):
     """Decorator which give the function its own UI context.
     The function will receive an extra argument, 'ui',
     which is used to report progress etc."""
-    depth = 0
 
     @functools.wraps(slow_function)
     def f(*args, **kw):
-        nonlocal depth
         if getattr(CURRENT, 'context', None) is None:
             rate = None
             if sys.stdout.isatty():
@@ -189,7 +190,6 @@ def display_wrap(slow_function):
         parent = CURRENT.context
         show_progress = kw.pop('show_progress', None)
         if show_progress is False:
-            # PendingDeprecationWarning?
             subcontext = NULL_CONTEXT
         else:
             subcontext = parent.subcontext()

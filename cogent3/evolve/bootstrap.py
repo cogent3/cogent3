@@ -80,7 +80,7 @@ class ParametricBootstrapCore(object):
             # This is not done in parallel because we depend on the side-
             # effect of changing the parameter_controller current values
             memos = ui.map(one_model, self.parameter_controllers,
-                                 labels=model_label, pure=False)
+                                 labels=model_label)
             concise_result = self.simplify(*self.parameter_controllers)
             return (memos, concise_result)
 
