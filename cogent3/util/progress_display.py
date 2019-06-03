@@ -19,7 +19,7 @@ __status__ = "Alpha"
 class LogFileOutput:
     """A fake progress bar for when progress bars are impossible"""
 
-    def __init__(self, total=1, depth=0, leave=False, bar_format=None):
+    def __init__(self, **kw):
         self.n = 0
         self.message = ''
         self.t0 = time.time()
@@ -43,27 +43,28 @@ class LogFileOutput:
 
 class ProgressContext:
     def __init__(self, progress_bar_type=None, depth=-1,
-                 message=None, rate=1.0):
+                 message=None, mininterval=1.0):
         self.progress_bar_type = progress_bar_type
         self.progress_bar = None
         self.progress = 0
         self.depth = depth
         self.message = message
-        self.rate = rate
+        self.mininterval = mininterval
 
     def set_new_progress_bar(self):
         if self.progress_bar_type:
             self.progress_bar = self.progress_bar_type(total=1,
                                                        position=self.depth,
                                                        leave=True,
-                                                       bar_format='{desc} {percentage:3.0f}%|{bar}| ')
+                                                       bar_format='{desc} {percentage:3.0f}%|{bar}| ',
+                                                       mininterval=self.mininterval)
 
     def subcontext(self, *args, **kw):
         return ProgressContext(
             progress_bar_type=self.progress_bar_type,
             depth=self.depth + 1,
             message=self.message,
-            rate=self.rate)
+            mininterval=self.mininterval)
 
     def display(self, msg=None, progress=None):
         if not self.progress_bar:
@@ -120,7 +121,8 @@ class ProgressContext:
         else:
             print(*args, **kw)
 
-    def imap(self, f, s, parallel=False, par_kw=None, **kw):
+    def imap(self, f, s, mininterval=1.0, parallel=False, par_kw=None, **kw):
+        self.mininterval = mininterval
         if parallel:
             # todo document parallel.map arguments
             par_kw = par_kw or {}
@@ -169,24 +171,19 @@ def display_wrap(slow_function):
     @functools.wraps(slow_function)
     def f(*args, **kw):
         if getattr(CURRENT, 'context', None) is None:
-            rate = None
             if sys.stdout.isatty():
                 klass = tqdm
             elif using_notebook():
                 klass = tqdm_notebook
             elif isinstance(sys.stdout, io.FileIO):
                 klass = LogFileOutput
-                if rate is None:
-                    rate = 5.0
             else:
                 klass = None
 
             if klass is None:
                 CURRENT.context = NULL_CONTEXT
             else:
-                if rate is None:
-                    rate = 0.1
-                CURRENT.context = ProgressContext(klass, rate=rate)
+                CURRENT.context = ProgressContext(klass)
         parent = CURRENT.context
         show_progress = kw.pop('show_progress', None)
         if show_progress is False:
