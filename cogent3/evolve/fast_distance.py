@@ -643,12 +643,9 @@ class DistanceMatrix(DictArray):
         return
 
     def todict(self):
-        result = {}
+        result = super(DistanceMatrix, self).todict(flatten=True)
         for n1 in self.template.names[0]:
-            for n2 in self.template.names[1]:
-                if n1 == n2:
-                    continue
-                result[(n1, n2)] = self[n1, n2]
+            del result[(n1, n1)]
         return result
 
     def drop_invalid(self, invalid=None):

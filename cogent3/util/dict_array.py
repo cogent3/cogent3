@@ -21,7 +21,7 @@
     ['A', 'B', 'C']
 """
 from collections import defaultdict
-from itertools import combinations
+from itertools import combinations, product
 
 import numpy
 from cogent3.format import table
@@ -34,24 +34,6 @@ __version__ = "3.0a2"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
-
-
-def _todict(data, flatten=False):
-    if isinstance(data, DictArray):
-        result = {}
-        for k in list(data.keys()):
-            new = _todict(data[k])
-            if not flatten:
-                result[k] = new
-            else:
-                for subkey in new:
-                    try:
-                        newkey = (k,) + subkey
-                    except TypeError:
-                        newkey = (k, subkey)
-                    result[newkey] = new[subkey]
-        return result
-    return data
 
 
 def convert_1D_dict(data, row_order=None):
@@ -429,7 +411,26 @@ class DictArray(object):
         flatten : bool
             returns a 1D dictionary
         """
-        result = _todict(self, flatten=flatten)
+        names = self.template.names
+        shape = self.shape
+        result = {}
+        if len(names) == 1:
+            result = {names[0][i]: self.array[i] for i in range(len(names[0]))}
+        elif flatten:
+            for indices in product(*[range(n) for n in shape]):
+                value = self.array[indices]
+                coord = tuple(n[i] for n, i in zip(names, indices))
+                result[coord] = value
+        else:
+            for indices in product(*[range(n) for n in shape]):
+                value = self.array[indices]
+                coord = tuple(n[i] for n, i in zip(names, indices))
+                current = result
+                nested = coord[0]
+                for nested in coord[:-1]:
+                    current[nested] = current.get(nested, {})
+                current[nested][coord[-1]] = value
+
         return result
 
     def __getitem__(self, names):
