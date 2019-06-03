@@ -79,7 +79,6 @@ def suite():
         'test_format.test_bedgraph',
         'test_format.test_fasta',
         'test_format.test_clustal',
-        'test_maths.test_fit_function',
         'test_maths.test_geometry',
         'test_maths.test_matrix_logarithm',
         'test_maths.test_matrix_exponential_integration',
