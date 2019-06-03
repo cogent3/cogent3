@@ -210,7 +210,7 @@ class GeneticCodeTests(TestCase):
             ['GAA', 'GAG'],
             ['GGT', 'GGC', 'GGA', 'GGG'],
         ]
-        self.assertEqual(sgc.Blocks, exp_blocks)
+        self.assertEqual(sgc.blocks, exp_blocks)
 
     def test_Anticodons(self):
         """GeneticCode anticodons should return correct list"""
