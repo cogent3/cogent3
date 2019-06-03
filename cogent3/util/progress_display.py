@@ -19,7 +19,7 @@ __status__ = "Alpha"
 class LogFileOutput:
     """A fake progress bar for when progress bars are impossible"""
 
-    def __init__(self, total=1, depth=0, leave=False, bar_format=None, mininterval=None):
+    def __init__(self, **kwg):
         self.n = 0
         self.message = ''
         self.t0 = time.time()
@@ -43,13 +43,13 @@ class LogFileOutput:
 
 class ProgressContext:
     def __init__(self, progress_bar_type=None, depth=-1,
-                 message=None, rate=1.0):
+                 message=None, mininterval=1.0):
         self.progress_bar_type = progress_bar_type
         self.progress_bar = None
         self.progress = 0
         self.depth = depth
         self.message = message
-        self.rate = rate
+        self.mininterval = mininterval
 
     def set_new_progress_bar(self):
         if self.progress_bar_type:
@@ -57,14 +57,14 @@ class ProgressContext:
                                                        position=self.depth,
                                                        leave=True,
                                                        bar_format='{desc} {percentage:3.0f}%|{bar}| ',
-                                                       mininterval=self.rate)
+                                                       mininterval=self.mininterval)
 
     def subcontext(self, *args, **kw):
         return ProgressContext(
             progress_bar_type=self.progress_bar_type,
             depth=self.depth + 1,
             message=self.message,
-            rate=self.rate)
+            mininterval=self.mininterval)
 
     def display(self, msg=None, progress=None):
         if not self.progress_bar:
@@ -121,8 +121,8 @@ class ProgressContext:
         else:
             print(*args, **kw)
 
-    def imap(self, f, s, rate=1.0, parallel=False, par_kw=None, **kw):
-        self.rate = rate
+    def imap(self, f, s, mininterval=1.0, parallel=False, par_kw=None, **kw):
+        self.mininterval = mininterval
         if parallel:
             # todo document parallel.map arguments
             par_kw = par_kw or {}
