@@ -183,7 +183,7 @@ class GeneticCode(object):
             self._blocks = blocks
             return self._blocks
 
-    Blocks = property(_get_blocks)
+    blocks = property(_get_blocks)
 
     def __str__(self):
         """Returns code_sequence that constructs the GeneticCode."""
