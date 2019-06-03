@@ -7,6 +7,9 @@ import math
 import threading
 import multiprocessing
 import concurrent.futures as concurrentfutures
+import warnings
+
+from cogent3.util.misc import extend_docstring_from
 
 __author__ = "Sheng Han Moses Koh"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -71,14 +74,50 @@ class PicklableAndCallable():
         return self.func(*args, **kw)
 
 
-def imap(f, s, max_workers=None, use_mpi=False, seed=None):
+def imap(f, s, max_workers=None, use_mpi=False, seed=None, if_serial='raise'):
+    """
+    Parameters
+    ----------
+    f : callable
+        function that operates on values in s
+    s : iterable
+        series of inputs to f
+    max_workers : int or None
+        maximum number of workers. Defaults to 1-maximum available.
+    use_mpi : bool
+        use MPI for parallel execution
+    seed : int or None
+        seed value for random number generators. Defaults to time.time() on
+        master node, time.time() + process rank on worked nodes.
+    if_serial : str
+        action to take if conditions will result in serial execution. Valid
+        values are 'raise', 'ignore', 'warn'. Defaults to 'raise'.
+
+    Returns
+    -------
+    imap is a generator yielding result of f(s[i]), map returns the result
+    series
+    """
+    if_serial = if_serial.lower()
+    assert if_serial in ('ignore', 'raise', 'warn'), \
+        f"invalid choice '{if_serial}'"
     # If max_workers is not defined, get number of all processes available
     # minus 1 to leave for master process
     if use_mpi:
         if not USING_MPI:
-            raise RuntimeError
+            raise RuntimeError('Cannot use MPI')
+
+        err_msg = "Execution in serial. For parallel MPI execution, use:\n"\
+                  " $ mpirun -n 1 <executable script>"
+
+        if COMM.Get_attr(MPI.UNIVERSE_SIZE) == 1 and if_serial == 'raise':
+            raise RuntimeError(err_msg)
+        elif COMM.Get_attr(MPI.UNIVERSE_SIZE) == 1 and if_serial == 'warn':
+            warnings.warn(UserWarning, msg=err_msg)
+
         if not max_workers:
             max_workers = COMM.Get_attr(MPI.UNIVERSE_SIZE) - 1
+
         with MPIfutures.MPIPoolExecutor(max_workers=max_workers,
                                         globals=dict(seed=seed)) as executor:
             for result in executor.map(f, s):
@@ -96,6 +135,6 @@ def imap(f, s, max_workers=None, use_mpi=False, seed=None):
             for result in executor.map(f, s):
                 yield result
 
-
-def map(f, s, max_workers=None, use_mpi=False, seed=None):
-    return list(imap(f, s, max_workers, use_mpi, seed))
+@extend_docstring_from(imap)
+def map(f, s, max_workers=None, use_mpi=False, seed=None, if_serial='raise'):
+    return list(imap(f, s, max_workers, use_mpi, seed, if_serial))

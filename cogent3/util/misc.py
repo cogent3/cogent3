@@ -1041,11 +1041,11 @@ def get_object_provenance(obj):
     return result
 
 
-def extend_docstring_from(cls, pre=False):
-    def docstring_inheriting_decorator(fn):
-        parts = [cls.__doc__, fn.__doc__ or '']
+def extend_docstring_from(source, pre=False):
+    def docstring_inheriting_decorator(dest):
+        parts = [source.__doc__, dest.__doc__ or '']
         if pre:
             parts.reverse()
-        fn.__doc__ = '\n'.join(parts)
-        return fn
+        dest.__doc__ = '\n'.join(parts)
+        return dest
     return docstring_inheriting_decorator
