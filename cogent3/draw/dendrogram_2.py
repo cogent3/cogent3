@@ -348,15 +348,16 @@ class CircularDendrogram(_RootedDendrogram):
 
 
         annotations = []
+        print(angles)
         for i in range(len(xnodes)):
 
-            point = dict(x=xnodes[i] + 0.05 * np.cos(angles[i]),
-                         y=ynodes[i] - 0.02 * np.sin(- angles[i]),
+            point = dict(x=xnodes[i] + 0.13 * np.cos(angles[i]),
+                         y=ynodes[i] - 0.13 * np.sin(- angles[i]),
                          xref='x',
                          yref='y',
                          showarrow=False,
                          text=text[i],
-                         textangle=90 - angles[i] * 180 / np.pi
+                         textangle=-angles[i] * 180 / np.pi if np.cos(angles[i]) > 0 else -180 - angles[i] * 180 / np.pi
                          )
             annotations += [point]
 
