@@ -2078,6 +2078,9 @@ class AlignmentI(object):
             if True, resulting object is capable of plotting data via specified
             plot type 'bar' or 'box'
         """
+        from cogent3.draw.drawable import Drawable
+        from plotly import graph_objs as go
+
         gap_array = self.get_gap_array(include_ambiguity=include_ambiguity)
         darr = DictArrayTemplate(self.names)
 
@@ -2096,8 +2099,6 @@ class AlignmentI(object):
         result = gap_array.sum(axis=1)
         result = darr.wrap(result)
         if drawable:
-            from plotly import graph_objs as go
-            from cogent3.draw.drawable import Drawable
             if self.info.source:
                 trace_name = os.path.basename(self.info.source)
             else:
@@ -2579,8 +2580,8 @@ class AlignmentI(object):
         include_gap
             whether to include gap counts, shown on right y-axis
         """
-        from plotly import graph_objs as go
         from cogent3.draw.drawable import Drawable
+        from plotly import graph_objs as go
 
         window = window if window else numpy.sqrt(len(self))
         window = int(window)
