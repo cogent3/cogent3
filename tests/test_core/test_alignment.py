@@ -24,7 +24,7 @@ from cogent3.core.alignment import (SequenceCollection,
 
 from cogent3.core.moltype import AB, DNA
 from cogent3.parse.fasta import MinimalFastaParser
-from numpy import array, arange, transpose
+from numpy import array, arange, transpose, nan
 from tempfile import mktemp
 from os import remove
 import re
@@ -1137,6 +1137,7 @@ class SequenceCollectionBaseTests(object):
         # renamed contains the name map as info attribute
         self.assertEqual(new.info.name_map, {k.upper(): k for k in data})
 
+
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
     """Tests of the SequenceCollection object. Includes ragged collection tests.
 
@@ -1909,6 +1910,24 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(got.array, [2, 1, 2])
         self.assertEqual(got['b'], 1)
 
+    def test_coevolution(self):
+        """correctly produces matrix of coevo measures"""
+        data = {'s0': 'AA', 's1': 'AA', 's2': 'BB', 's3': 'BB', 's4': 'BC'}
+        aln = self.Class(data=data)
+        coevo = aln.coevolution(method='rmi')
+        expect = array([[nan, nan],
+                        [0.78333333, nan]])
+        assert_allclose(coevo.array, expect)
+        coevo = aln.coevolution(method='nmi')
+        self.assertNotEqual(coevo[1, 1], expect[1, 1])
+        # now check invoking drawable produces a result object with a drawable
+        # attribute
+        coevo = aln.coevolution(method='nmi', drawable='box')
+        self.assertTrue(hasattr(coevo, 'drawable'))
+        aln = LoadSeqs('data/brca1.fasta', moltype='dna')
+        aln = aln.take_seqs(aln.names[:20])
+        aln = aln.no_degenerates()[:20]
+
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
     Class = ArrayAlignment
@@ -2122,7 +2141,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
                 'seq3': 'ACGTACGTT'}
         seqs = self.Class(data, moltype=DNA)
         x = seqs.get_seq('seq1').add_annotation(Feature, 'exon', 'fred',
-                                            [(3, 8)])
+                                                [(3, 8)])
         expect = str(x.get_slice())
         new = seqs.rename_seqs(lambda x: x.upper())
         got = list(new.get_annotations_from_any_seq('exon'))[0]
@@ -2311,6 +2330,14 @@ class ArrayAlignmentSpecificTests(TestCase):
         f = a.entropy_per_pos()
         e = array([0, 0, 1, 1])
         self.assertEqual(f, e)
+
+    def test_coevolution_segments(self):
+        """specifying coordinate segments produces matrix with just those"""
+        aln = LoadSeqs('data/brca1.fasta', moltype='dna')
+        aln = aln.take_seqs(aln.names[:20])
+        aln = aln.no_degenerates()[:20]
+        coevo = aln.coevolution(segments=[(4, 6), (11, 13)])
+        self.assertEqual(coevo.template.names[0], [4, 5, 11, 12])
 
 
 class IntegrationTests(TestCase):

@@ -25,6 +25,7 @@ import json
 import warnings
 from types import GeneratorType
 from collections import defaultdict, Counter
+from itertools import combinations
 from functools import total_ordering
 
 import numpy
@@ -49,7 +50,7 @@ from numpy.random import randint, permutation, choice
 
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import bytes_to_string, get_object_provenance
-
+from cogent3.util import progress_display as UI
 from copy import copy, deepcopy
 from cogent3.core.profile import MotifCountsArray
 
@@ -2647,6 +2648,114 @@ class AlignmentI(object):
         draw.traces.extend(traces)
         draw.layout.update(layout)
         return draw
+
+    @UI.display_wrap
+    def coevolution(self, method='nmi', segments=None, drawable=None,
+                    show_progress=False, ui=None):
+        """performs pairwise coevolution measurement
+
+        Parameters
+        ----------
+        method : str
+            coevolution metric, defaults to 'nmi' (Normalized Mutual
+            Information). Valid choices are 'rmi' (Resampled Mutual Information)
+            and 'mi', mutual information.
+        segments : coordinate series
+            coordinates of the form [(start, end), ...] where all possible
+            pairs of alignment positions within and between segments are
+            examined.
+        drawable : None or str
+            Result object is capable of plotting data specified type. str value
+            must be one of plot type 'box' or 'heatmap'.
+        show_progress : bool
+            shows a progress bar
+
+        Returns
+        -------
+        DictArray of results with lower-triangular values. Upper triangular
+        elements and estimates that could not be computed for numerical reasons
+        are set as nan
+        """
+        from cogent3.draw.drawable import Drawable, AnnotatedDrawable
+        from plotly import graph_objs as go
+        from cogent3.evolve import coevolution as coevo
+
+        method = method.lower()
+        func = {'nmi': coevo.nmi_pair, 'rmi': coevo.rmi_pair,
+                'mi': coevo.mi_pair}.get(method, None)
+        if func is None:
+            raise ValueError(f'{method} not supported')
+
+        positions = []
+        if segments:
+            for segment in segments:
+                positions.extend(range(*segment))
+        else:
+            positions.extend(range(len(self)))
+
+        pos_pairs = combinations(positions, 2)
+        total = len(positions) * (len(positions) - 1) // 2
+        result = numpy.zeros((len(self), len(self)), dtype=float)
+        result[:] = numpy.nan  # default value
+        for pair in ui.series(pos_pairs, count=total, noun='position pairs'):
+            val = func(self, *pair)
+            if val is not None:
+                result[tuple(reversed(pair))] = val
+
+        result = result.take(positions, axis=0).take(positions, axis=1)
+        result = DictArrayTemplate(positions, positions).wrap(result)
+        if drawable == 'box':
+            trace = go.Box(y=result.array.flatten(),
+                           showlegend=False, name='')
+            draw = Drawable(width=500, height=500, title='Coevolution',
+                            ytitle=method.upper())
+            draw.add_trace(trace)
+            result = draw.bound_to(result)
+        elif drawable:
+            axis_title = 'Alignment Position'
+            axis_args = dict(showticklabels=True,
+                             mirror=True,
+                             showgrid=False,
+                             showline=True,
+                             zeroline=False)
+            if self.info.source:
+                trace_name = os.path.basename(self.info.source)
+            else:
+                trace_name = None
+
+            height = 500
+            width = height
+            draw = Drawable(width=width, height=height,
+                            xtitle=axis_title,
+                            ytitle=axis_title)
+
+            trace = go.Heatmap(z=result.array,
+                               colorbar=dict(title=dict(text=method.upper(),
+                                                        font=dict(size=16))))
+            draw.add_trace(trace)
+            draw.layout.xaxis.update(axis_args)
+            draw.layout.yaxis.update(axis_args)
+
+            try:
+                bottom = self.get_drawable()
+                left = self.get_drawable(vertical=True)
+            except AttributeError:
+                bottom = False
+
+            if bottom and not drawable == 'box':
+                xlim = 1.2
+                draw.layout.width = height * xlim
+                layout = dict(legend=dict(x=xlim, y=1))
+                draw = AnnotatedDrawable(draw,
+                                         left_track=left,
+                                         bottom_track=bottom,
+                                         xtitle=axis_title,
+                                         ytitle=axis_title,
+                                         layout=layout)
+
+            result = draw.bound_to(result)
+
+        return result
 
 
 def _one_length(seqs):
