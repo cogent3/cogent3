@@ -4,7 +4,7 @@ import threading
 import sys
 import io
 from tqdm import tqdm, tqdm_notebook
-from cogent3.util import parallel
+from cogent3.util import parallel as PAR
 
 __author__ = "Sheng Han Moses Koh"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -126,7 +126,7 @@ class ProgressContext:
         if parallel:
             # todo document parallel.map arguments
             par_kw = par_kw or {}
-            results = parallel.map(f, s, **par_kw)
+            results = PAR.map(f, s, **par_kw)
         else:
             results = map(f, s)
         for result in self.series(results, count=len(s), **kw):
