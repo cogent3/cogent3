@@ -236,7 +236,8 @@ class _MakeShape:
                    snp=Point,
                    snv=Point)
 
-    def __call__(self, type_=None, name=None, coords=None, width=None, **kwargs):
+    def __call__(self, type_=None, name=None, coords=None, width=None,
+                 **kwargs):
         from cogent3.core.annotation import _Annotatable
         if isinstance(type_, _Annotatable):
             name = type_.name

@@ -1618,7 +1618,7 @@ class SequenceCollection(object):
         name1 = names[0] if name1 is None else name1
         name2 = names[1] if name2 is None else name2
 
-        if not set([name1, name2]) <= set(self.names):
+        if not {name1, name2} <= set(self.names):
             msg = f'{name1}, {name2} missing'
             raise ValueError(msg)
 
@@ -1645,7 +1645,8 @@ class SequenceCollection(object):
             except AttributeError:
                 pass
             new[new_name] = new_seq
-        result = self.__class__(data=new, info=self.info, moltype=self.moltype)
+        result = self.__class__(
+            data=new, info=self.info, moltype=self.moltype)
         result.info.name_map = name_map
         # now try copying annotations
         if isinstance(self, Alignment):
