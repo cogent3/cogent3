@@ -1,5 +1,6 @@
 import json
 from collections import defaultdict
+from fnmatch import fnmatch
 
 from cogent3.util.misc import get_object_provenance
 from .location import as_map, Map
@@ -164,10 +165,22 @@ class _Annotatable:
         return self.add_annotation(Feature, type, name, spans)
 
     def get_annotations_matching(self, annotation_type, name=None):
+        """
+
+        Parameters
+        ----------
+        annotation_type : string
+            name of the annotation type. Wild-cards allowed.
+        name : string
+            name of the instance. Wild-cards allowed.
+        Returns
+        -------
+        list of AnnotatableFeatures
+        """
         result = []
         for annotation in self.annotations:
-            if annotation_type == annotation.type and (
-                    name is None or name == annotation.name):
+            if fnmatch(annotation.type, annotation_type) and (
+                    name is None or fnmatch(annotation.name, name)):
                 result.append(annotation)
         return result
 

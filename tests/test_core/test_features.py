@@ -169,7 +169,6 @@ class FeaturesTest(TestCase):
                                                [(3, 8)])
         aln_exons = aln.get_annotations_from_seq('x', 'exon')
         aln_exons = aln.get_annotations_from_any_seq('exon')
-
         # But these will be returned as **alignment**
         # features with locations in alignment coordinates.
 
@@ -204,6 +203,10 @@ class FeaturesTest(TestCase):
         aln_exons = list(aln.get_annotations_from_seq('y', 'exon'))
         self.assertEqual(str(aln_exons), '[exon "fred" at [3:4, 6:10]/10]')
         self.assertEqual(str(aln[aln_exons]), '>x\nAAAAA\n>y\nTCCCC\n')
+
+        # default for get_annotations_from_any_seq is return all features
+        got = aln.get_annotations_from_any_seq()
+        self.assertEqual(len(got), 2)
 
     def test_lost_spans(self):
         """features no longer included in an alignment represented by lost spans"""
