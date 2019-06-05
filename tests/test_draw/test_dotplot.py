@@ -4,7 +4,7 @@ from cogent3 import DNA
 from cogent3.core.alignment import Aligned
 from cogent3.draw.dotplot_2 import (_convert_coords_for_scatter, len_seq,
                                     not_gap, _convert_input, get_align_coords,
-                                    Display2D, )
+                                    Dotplot, )
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -65,11 +65,11 @@ class TestUtilFunctions(TestCase):
 
     def test_display2d(self):
         """correctly constructs a Display2d"""
-        dp = Display2D('-TGATGTAAGGTAGTT', 'CTGG---AAG---GGT')
+        dp = Dotplot('-TGATGTAAGGTAGTT', 'CTGG---AAG---GGT', window=5)
         expect = [0, 2, None, 6, 8, None, 12, 14], [1, 3, None, 4, 6, None, 7,
                                                     9]
         self.assertEqual(dp._aligned_coords, expect)
-        dp._build_fig(window=5)
+        dp._build_fig()
         traces = dp.traces
         self.assertEqual(len(traces), 2)  # no rev complement
         # we nudge alignment coordinates by 0.2 on x-axis
@@ -85,21 +85,21 @@ class TestUtilFunctions(TestCase):
 
     def test_remove_trace(self):
         """correctly removes a trace"""
-        dp = Display2D('-TGATGTAAGGTAGTT',
-                       'CTGG---AAG---GGT')
+        dp = Dotplot('-TGATGTAAGGTAGTT',
+                       'CTGG---AAG---GGT', window=5)
         expect = [0, 2, None, 6, 8, None, 12, 14], [1, 3, None, 4, 6, None, 7,
                                                     9]
         self.assertEqual(dp._aligned_coords, expect)
-        dp._build_fig(window=5)
+        dp._build_fig()
         traces = dp.traces
         self.assertEqual(len(traces), 2)
         _ = dp.pop_trace('Alignment')
         self.assertEqual(len(traces), 1)
         self.assertEqual(traces[0].name, '+ strand')
 
-        dp = Display2D('-TGATGTAAGGTAGTT',
-                       'CTGG---AAG---GGT')
-        dp._build_fig(window=5)
+        dp = Dotplot('-TGATGTAAGGTAGTT',
+                       'CTGG---AAG---GGT', window=5)
+        dp._build_fig()
         dp.remove_traces('Alignment')
         self.assertEqual(len(dp.traces), 1)
         self.assertEqual(dp.traces[0].name, '+ strand')

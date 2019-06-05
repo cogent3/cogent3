@@ -110,6 +110,8 @@ class _Annotatable:
         """returns Drawable instance"""
         from cogent3.draw.drawable import Drawable
         drawables = self.get_drawables()
+        if not drawables:
+            return None
         # we order by tracks
         top = 0
         space = 0.25

@@ -23,7 +23,7 @@ Write out the dotplot as a pdf file in the current directory note that seq1 will
 
 .. doctest::
 
-    >>> dp = dotplot.Display2D(seq1,seq2)
+    >>> dp = dotplot.Dotplot(seq1,seq2)
     >>> filename = 'dotplot_example.pdf'
     >>> dp.write_pdf(filename)
 

@@ -1612,7 +1612,8 @@ class SequenceCollection(object):
             include dotplot of reverse compliment also. Only applies to Nucleic
             acids moltypes
         """
-        from cogent3.draw.dotplot_2 import Display2D
+        from cogent3.draw.drawable import AnnotatedDrawable
+        from cogent3.draw.dotplot_2 import Dotplot
 
         names = choice(self.names, size=2, replace=False)
         name1 = names[0] if name1 is None else name1
@@ -1622,9 +1623,30 @@ class SequenceCollection(object):
             msg = f'{name1}, {name2} missing'
             raise ValueError(msg)
 
-        dotplot = Display2D(self.named_seqs[name1], self.named_seqs[name2],
-                            moltype=self.moltype, rc=rc,
-                            show_progress=show_progress)
+        seq1 = self.named_seqs[name1]
+        seq2 = self.named_seqs[name2]
+
+        if seq1.is_annotated() or seq2.is_annotated():
+            annotated = True
+            bottom = seq1.data.get_drawable()
+            left = seq2.data.get_drawable(vertical=True)
+        else:
+            annotated = False
+
+        dotplot = Dotplot(seq1, seq2,
+                          xtitle=None if annotated else seq1.name,
+                          ytitle=None if annotated else seq2.name,
+                          moltype=self.moltype, rc=rc,
+                          show_progress=show_progress)
+
+        if annotated:
+            dotplot = AnnotatedDrawable(dotplot,
+                                        left_track=left,
+                                        bottom_track=bottom,
+                                        xtitle=seq1.name,
+                                        ytitle=seq2.name,
+                                        xrange=[0, len(seq1)],
+                                        yrange=[0, len(seq2)])
         return dotplot
 
     def rename_seqs(self, renamer):
@@ -3774,3 +3796,13 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             new_seqs.append((label, Aligned(aligned.map * scale, seq)))
 
         return self.__class__(new_seqs, info=self.info)
+
+    def get_drawables(self):
+        """returns a dict of drawables, keyed by type"""
+        result = defaultdict(list)
+        for a in self.get_annotations_from_any_seq():
+            d = a.get_drawable()
+            result[a.type].append(d)
+
+        return result
+
