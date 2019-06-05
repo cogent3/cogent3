@@ -1614,7 +1614,7 @@ class SequenceCollection(object):
             acids moltypes
         """
         from cogent3.draw.drawable import AnnotatedDrawable
-        from cogent3.draw.dotplot_2 import Dotplot
+        from cogent3.draw.dotplot import Dotplot
 
         names = choice(self.names, size=2, replace=False)
         name1 = names[0] if name1 is None else name1

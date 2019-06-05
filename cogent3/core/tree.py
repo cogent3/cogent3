@@ -1682,7 +1682,7 @@ class TreeNode(object):
 
         """
         from plotly.offline import iplot
-        from cogent3.draw.dendrogram_2 import (SquareDendrogram,
+        from cogent3.draw.dendrogram import (SquareDendrogram,
                                                CircularDendrogram, )
         kind = kind.lower()
         if kind not in ('square', 'circular'):

@@ -128,13 +128,6 @@ def suite():
         'test_util.test_table.rst',
     ]
 
-    try:
-        import matplotlib
-    except:
-        print("No matplotlib so not running test_draw.py", file=sys.stderr)
-    else:
-        modules_to_test.append('test_draw')
-
     assert sys.version_info >= (2, 6)
 
     alltests = unittest.TestSuite()
