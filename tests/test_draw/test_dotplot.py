@@ -2,7 +2,7 @@ from unittest import TestCase, main
 
 from cogent3 import DNA
 from cogent3.core.alignment import Aligned
-from cogent3.draw.dotplot_2 import (_convert_coords_for_scatter, len_seq,
+from cogent3.draw.dotplot import (_convert_coords_for_scatter, len_seq,
                                     not_gap, _convert_input, get_align_coords,
                                     Dotplot, )
 

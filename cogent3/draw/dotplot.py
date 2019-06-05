@@ -1,22 +1,20 @@
-#!/usr/bin/env python
+import numpy
 
+from plotly import tools
+import plotly.graph_objs as go
 
-from matplotlib.path import Path
-from matplotlib.patches import PathPatch
-
-from cogent3.util.warning import discontinued
-from cogent3.draw.linear import Display
-from cogent3.draw.rlg2mpl import Drawable, figure_layout
+from cogent3.core.moltype import get_moltype
+from cogent3.draw.drawable import Drawable
 from cogent3.align.align import dotplot
 
-__author__ = "Peter Maxwell and Gavin Huttley"
+__author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Peter Maxwell"]
+__credits__ = ["Gavin Huttley", "Peter Maxwell", "Rahul Ghangas"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
+__status__ = "Alpha"
 
 
 def suitable_threshold(window, desired_probability):
@@ -27,7 +25,7 @@ def suitable_threshold(window, desired_probability):
     for matches in range(window, 0, -1):
         mismatches = window - matches
         p = 0.75 ** mismatches
-        for i in range(matches, 0, -1):   # n
+        for i in range(matches, 0, -1):  # n
             p *= (i + mismatches)
             p /= i
             p *= 0.25
@@ -37,116 +35,232 @@ def suitable_threshold(window, desired_probability):
     return matches
 
 
-def _reinchify(figsize, posn, *args):
-    (fw, fh) = figsize
-    (x, y, w, h) = posn
-    return [fw * x, fh * y, fw * w, fh * h]
+def len_seq(span):
+    """length of a Annotatable map object"""
+    return len(span.nongap())
 
 
-def comparison_display(seq1, seq2, left=.5, bottom=.5, **kw):
-    """'Fat' annotated X and Y axes for a dotplot
-
-    Returns a matplotlib axes object placed and scaled ready for plotting
-    a sequence vs sequence comparison between the sequences (or alignments)
-    seq1 and seq2, which are also displayed. The aspect ratio will depend on
-    the sequence lengths as the sequences are drawn to the same scale"""
-
-    import matplotlib.pyplot as plt
-
-    (x1, y1, w1, h1) = _reinchify(*seq1.figure_layout(
-        labeled=True, bottom=bottom, margin=0))
-    (x2, y2, w2, h2) = _reinchify(*seq2.figure_layout(
-        labeled=False, bottom=left, margin=0))
-
-    # equalize points-per-base scales to get aspect ratio 1.0
-    ipb = min(w1 / len(seq1), w2 / len(seq2))
-    (w1, w2) = ipb * len(seq1), ipb * len(seq2)
-
-    # Figure with correct aspect
-    # Indent enough for labels and/or vertical display
-    (w, h), posn = figure_layout(width=w1, height=w2,
-                                left=max(x1, y2 + h2), bottom=y1 + h1, **kw)
-    fig = plt.figure(figsize=(w, h), facecolor='white')
-
-    fw = fig.get_figwidth()
-    fh = fig.get_figheight()
-    # 2 sequence display axes
-    x = seq1.as_axes(fig, [posn[0], posn[1] - h1 / fh, posn[2], h1 / fh])
-    y = seq2.as_axes(fig, [posn[0] - h2 / fw, posn[1], h2 / fw, posn[3]],
-                    vertical=True, labeled=False)
-
-    # and 1 dotplot axes
-    d = fig.add_axes(posn, sharex=x, sharey=y)
-    d.xaxis.set_visible(False)
-    d.yaxis.set_visible(False)
-    return d
+def not_gap(span):
+    """whether a span corresponds to a non-gap"""
+    return len(span.gaps()) == 0
 
 
-class Display2D(Drawable):
+def _convert_input(seq, moltype):
+    """converts to Annotatable map instance and a Sequence object"""
+    if hasattr(seq, 'map'):
+        # already an Aligned instance
+        gap_map = seq.map
+        seq = seq.data
+        return gap_map, seq
 
-    def __init__(self, seq1, seq2, **kw):
-        if not isinstance(seq1, Display):
-            seq1 = Display(seq1, **kw)
-        if not isinstance(seq2, Display):
-            seq2 = Display(seq2, **kw)
-        self.seq1 = seq1.base
-        self.seq1d = seq1
-        self.seq2 = seq2.base
-        self.seq2d = seq2
-        self._cache = {}
-        # Check inputs are sufficiently sequence-like
-        assert len(self.seq1) == len(str(self.seq1))
-        assert len(self.seq2) == len(str(self.seq2))
+    if not hasattr(seq, 'moltype'):
+        seq = moltype.make_seq(seq)
+    else:
+        seq = moltype.make_seq(str(seq), seq.name)
+    gap_map, seq = seq.parse_out_gaps()
+    return gap_map, seq
 
-    def _calc_lines(self, window, threshold, min_gap):
-        # Cache dotplot line segment coordinates as they can sometimes
-        # be re-used at different resolutions, colours etc.
-        (len1, len2) = (len(self.seq1), len(self.seq2))
+
+def _convert_coords_for_scatter(coords):
+    """returns x, y coordinates from [(start_x, start_y), (end_x, end_y), ..]
+
+    Plotly scatter produces disjoint lines if the coordinates are separated
+    by None"""
+    new = {'x': [], 'y': []}
+    for (x1, y1), (x2, y2) in coords:
+        new['x'].extend([x1, x2, None])
+        new['y'].extend([y1, y2, None])
+
+    # drop trailing None
+    x = new['x'][:-1]
+    y = new['y'][:-1]
+    return x, y
+
+
+def get_dotplot_coords(seq1, seq2, window=20, threshold=None, min_gap=0,
+                       rc=None, show_progress=False):
+    """returns coordinates for forward / reverse strand"""
+    (len1, len2) = len(seq1), len(seq2)
+    if threshold is None:
+        universe = (len1 - window) * (len2 - window)
+        acceptable_noise = min(len1, len2) / window
+        threshold = suitable_threshold(
+            window, acceptable_noise / universe)
+
+    key = (window, threshold, min_gap)
+    fwd = dotplot(str(seq1), str(seq2),
+                  window, threshold, min_gap, None,
+                  show_progress=show_progress)
+    if hasattr(seq1, "reverse_complement") and rc:
+        rev = dotplot(str(seq1.reverse_complement()),
+                      str(seq2), window, threshold, min_gap, None,
+                      show_progress=show_progress)
+        rev = [((len1 - x1, y1), (len1 - x2, y2))
+               for ((x1, y1), (x2, y2)) in rev]
+        rev = _convert_coords_for_scatter(rev)
+    else:
+        rev = []
+
+    # convert for Plotly scatter
+    fwd = _convert_coords_for_scatter(fwd)
+    return fwd, rev
+
+
+def get_align_coords(map1, map2):
+    """sequence coordinates of aligned segments"""
+    if not_gap(map1) and not_gap(map2):
+        # no gaps
+        return None
+
+    assert len(map1) == len(map2), 'aligned sequences not equal length'
+    # diagonals are places where both sequences are NOT gaps
+    # so we record start of a diagonal and when we hit a 'gap'
+    # in either sequence, we have the end of the diagonal
+
+    start_x = start_y = None
+    coords = []
+    for i in range(len(map1)):
+        x_not_gap = not_gap(map1[i])
+        y_not_gap = not_gap(map2[i])
+        if x_not_gap and y_not_gap and start_x is None:
+            start_x = len_seq(map1[:i])
+            start_y = len_seq(map2[:i])
+        elif (not x_not_gap or not y_not_gap) and start_x is not None:
+            coord = [(start_x, start_y),
+                     (len_seq(map1[:i]) - 1,
+                      len_seq(map2[:i]) - 1)]
+            start_x = start_y = None
+            coords.append(coord)
+
+    if start_x is not None:
+        coord = [(start_x, start_y),
+                 (len_seq(map1) - 1,
+                  len_seq(map2) - 1)]
+        coords.append(coord)
+
+    return _convert_coords_for_scatter(coords)
+
+
+class Dotplot(Drawable):
+    """calculates matches between sequences and displays as a dotplot"""
+    def __init__(self, seq1, seq2, moltype='text', window=20,
+                 threshold=None, min_gap=0, rc=False, xtitle=None,
+                 ytitle=None, show_progress=False):
+        """
+        Parameters
+        ----------
+        seq1, seq2 : string or sequence object
+        moltype : str or MolType instance
+            if seq1, seq2 are strings, moltype is used to convert to sequence
+            objects
+        window : int
+            k-mer size for comparison between sequences
+        threshold : int
+            windows where the sequences are identical >= threshold are a match
+        min_gap : int
+            permitted gap for joining adjacent line segments, default is no gap
+            joining
+        rc : bool or None
+            include dotplot of reverse compliment also. Only applies to Nucleic
+            acids moltypes
+        xtitle, ytitle
+            name of the seq1, seq2. None if included as part of a
+            AnnotatedDrawable
+        show_progress : bool
+            displays progress bar
+        """
+        # we ensure sequences have gaps parsed and the calculate aspect ratio
+        if hasattr(seq1, 'moltype'):
+            moltype = seq1.moltype
+        else:
+            moltype = get_moltype(moltype)
+
+        map1, seq1 = _convert_input(seq1, moltype)
+        map2, seq2 = _convert_input(seq2, moltype)
+        len1, len2 = len(seq1), len(seq2)
+        height = 500 * len2 / len1
+
+        super(Dotplot, self).__init__(visible_axes=True, showlegend=True,
+                                      width=500, height=height)
+
+        self.seq1 = seq1
+        self.seq2 = seq2
+        self._aligned_coords = get_align_coords(map1, map2)
+
+        self.xtitle = xtitle
+        self.ytitle = ytitle
+        self._window = window
+        self._min_gap = min_gap
         if threshold is None:
             universe = (len1 - window) * (len2 - window)
             acceptable_noise = min(len1, len2) / window
-            threshold = suitable_threshold(window, acceptable_noise / universe)
-            # print 'require %s / %s bases' % (threshold, window)
-            # print 'expect %s / %s matching' % (acceptable_noise, universe)
+            threshold = suitable_threshold(
+                window, acceptable_noise / universe)
 
-        key = (min_gap, window, threshold)
-        if key not in self._cache:
-            fwd = dotplot(str(self.seq1), str(self.seq2),
-                          window, threshold, min_gap, None)
-            if hasattr(self.seq1, "reverse_complement"):
-                rev = dotplot(str(self.seq1.reverse_complement()),
-                              str(self.seq2), window, threshold, min_gap, None)
-                rev = [((len1 - x1, y1), (len1 - x2, y2))
-                       for ((x1, y1), (x2, y2)) in rev]
-            else:
-                rev = []
-            self._cache[key] = (fwd, rev)
+        self._threshold = threshold
 
-        return self._cache[key]
+        fwd, rev = get_dotplot_coords(self.seq1, self.seq2,
+                                      window=window,
+                                      threshold=threshold,
+                                      min_gap=min_gap,
+                                      rc=rc,
+                                      show_progress=show_progress)
+        self._fwd = fwd
+        self._rev = rev
+        self._figure = None
 
-    def make_figure(self, window=20, min_gap=0, **kw):
-        """Drawing of a line segment based dotplot with annotated axes"""
-        # hard to pick min_gap without knowing pixels per base, and
-        # matplotlib is reasonably fast anyway, so:
-        ax = comparison_display(self.seq1d, self.seq2d, **kw)
-        (fwd, rev) = self._calc_lines(window, None, min_gap)
-        for (lines, colour) in [(fwd, 'blue'), (rev, 'red')]:
-            vertices = []
-            for segment in lines:
-                vertices.extend(segment)
-            if vertices:
-                ops = [Path.MOVETO, Path.LINETO] * (len(vertices) // 2)
-                path = Path(vertices, ops)
-                patch = PathPatch(path, edgecolor=colour, fill=False)
-                ax.add_patch(patch)
-        return ax.get_figure()
+    def _build_fig(self, xaxis='x', yaxis='y'):
+        # calculate the width based on ratio of seq lengths
+        layout = {}
+        if self.xtitle:
+            layout.update(xaxis=dict(title=self.xtitle,
+                                     mirror=True, showgrid=False,
+                                     showline=True))
 
-    def simpler_make_figure(self):
-        """Drawing of a matrix style dotplot with annotated axes"""
-        import numpy
-        ax = comparison_display(self.seq1, self.seq2)
-        alphabet = self.seq1.moltype.alphabet
-        seq1 = alphabet.to_indices(self.seq1)
-        seq2 = alphabet.to_indices(self.seq2)
-        ax.pcolorfast(numpy.equal.outer(seq2, seq1))
-        return ax.get_figure()
+        if self.ytitle:
+            layout.update(yaxis=dict(title=self.ytitle,
+                                     mirror=True, showgrid=False,
+                                     showline=True))
+
+        self.layout.update(layout)
+        self.layout.update(yaxis=dict(range=[0, len(self.seq2)]),
+                           xaxis=dict(range=[0, len(self.seq1)]))
+
+        fwd, rev = self._fwd, self._rev
+        title = (f"Window={self._window}, Matched ≥ {self._threshold}/"
+                 f"{self._window} & Gap ≤ {self._min_gap}")
+        self.layout.update(title=title)
+        trace = go.Scatter(x=fwd[0], y=fwd[1], name='+ strand',
+                           mode='lines', line=dict(color='blue'),
+                           xaxis=xaxis, yaxis=yaxis)
+        self.add_trace(trace)
+
+        if rev:
+            trace = go.Scatter(x=rev[0], y=rev[1], name='- strand',
+                               mode='lines',
+                               line=dict(color='red'),
+                               xaxis=xaxis, yaxis=yaxis)
+            self.add_trace(trace)
+
+        if self._aligned_coords:
+            nudge = 0.2
+            n, y = self._aligned_coords
+            x = []
+            for e in n:
+                if e is not None:
+                    e += nudge
+                x.append(e)
+
+            trace = go.Scatter(x=x, y=y, name='Alignment', mode='lines',
+                               line=dict(color='black', dash='dot'),
+                               xaxis=xaxis, yaxis=yaxis)
+            self.add_trace(trace)
+
+        self._figure = go.Figure(data=self.traces, layout=self.layout)
+        self._layout = self._figure.layout
+
+    @property
+    def figure(self):
+        if self._figure is None:
+            self._build_fig()
+        return self._figure
