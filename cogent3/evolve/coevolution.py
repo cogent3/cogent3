@@ -171,9 +171,8 @@ def mi_pair(alignment, pos1, pos2, h1=None, h2=None, mi_calculator=mi,
          f(position_data,excludes=gDefaultExcludes) -> position_data
 
     """
-    positions = alignment.positions
-    col1 = positions[pos1]
-    col2 = positions[pos2]
+    col1 = list(alignment[pos1].positions)[0]
+    col2 = list(alignment[pos2].positions)[0]
     # Detect and process exclude characters.
     # This bit of code is slow, and not necessary if
     # exclude_hanlder == ignore_excludes, so I explicitly
@@ -921,7 +920,8 @@ def make_weights(counts, n):
     for C, P in char_prob:
         alts = CategoryFreqs({c: p for c, p in char_prob if c != C})
         alts = alts.to_normalized()
-        alts = CategoryCounter({c: w / (2 * n) for c, w in list(alts.items())})
+        alts = CategoryCounter({c: w / (2 * n)
+                                for c, w in list(alts.items())})
         weights += [(C, alts)]
     return weights
 
@@ -1026,6 +1026,9 @@ def resampled_mi_pair(alignment, pos1, pos2, weights=None,
                          if entropy <= e])
 
     return scaled_mi
+
+
+rmi_pair = resampled_mi_pair
 
 
 def resampled_mi_position(alignment, position, positional_entropies=None,
