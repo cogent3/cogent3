@@ -126,7 +126,7 @@ class ProgressContext:
         if parallel:
             # todo document parallel.map arguments
             par_kw = par_kw or {}
-            results = PAR.map(f, s, **par_kw)
+            results = PAR.imap(f, s, **par_kw)
         else:
             results = map(f, s)
         for result in self.series(results, count=len(s), **kw):
