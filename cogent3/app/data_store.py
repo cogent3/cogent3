@@ -406,7 +406,7 @@ class WritableDataStoreBase:
 class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
                                  WritableDataStoreBase):
     def __init__(self, source, suffix, mode='w', if_exists=RAISE, create=False,
-                 md5=True):
+                 md5=True, **kwargs):
         """
         Parameters
         ----------
@@ -430,6 +430,10 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
             self, source=source, suffix=suffix, md5=md5)
         WritableDataStoreBase.__init__(
             self, if_exists=if_exists, create=create)
+
+        d = locals()
+        d.pop('self')
+        self._persistent = d
         self.mode = mode
 
     def _source_create_delete(self, if_exists, create):
@@ -463,7 +467,7 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
 
 class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
     def __init__(self, source, suffix, mode='a', if_exists=RAISE, create=False,
-                 md5=True):
+                 md5=True, **kwargs):
         """
         Parameters
         ----------
@@ -486,7 +490,11 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
                                          md5=md5)
         WritableDataStoreBase.__init__(
             self, if_exists=if_exists, create=create)
-        self.mode = 'a' or mode  # todo does mode 'w' nuke an entire zip?
+
+        d = locals()
+        d.pop('self')
+        self._persistent = d
+        self.mode = 'a' or mode
 
     def _source_create_delete(self, if_exists, create):
         exists = os.path.exists(self.source)
