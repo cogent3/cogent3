@@ -1,11 +1,17 @@
+import os
+import re
+import pathlib
 import inspect
+
+import scitrack
 
 from cogent3 import LoadSeqs
 from cogent3.core.alignment import SequenceCollection
 from cogent3.util.misc import open_
+from cogent3.util import progress_display as UI
 from .data_store import (SKIP, RAISE, OVERWRITE, IGNORE,
                          WritableZippedDataStore,
-                         WritableDirectoryDataStore, )
+                         WritableDirectoryDataStore, DataStoreMember, )
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -15,6 +21,18 @@ __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
+
+
+def _make_logfile_name(process):
+    text = str(process)
+    text = re.split(r'\s+\+\s+', text)
+    parts = []
+    for part in text:
+        parts.append(part[:part.find('(')])
+    result = '-'.join(parts)
+    pid = os.getpid()
+    result = f'{result}-pid{pid}.log'
+    return result
 
 
 def _get_source(source):
@@ -271,6 +289,86 @@ class Composable(ComposableType):
         self._in = None
         self._out = None
         self._load_checkpoint = None
+
+    @UI.display_wrap
+    def apply_to(self, dstore, parallel=False, mininterval=5, par_kw=None,
+                 logger=None, cleanup=False, ui=None):
+        """invokes self composable function on the provided data store
+
+        Parameters
+        ----------
+        dstore : DataStore
+            applies composable function to this object
+        parallel : bool
+            run in parallel, according to arguments in par_kwargs. If True,
+            the last step of the composable function serves as the master
+            process, with earlier steps being executed in parallel for each
+            member of dstore.
+        par_kw
+            dict of values for configuring parallel execution.
+        logger
+            Only applies to io.writers. A scitrack logger, a logfile name or
+            True. If True, a scitrack logger is created with a name that
+            defaults to the composable function names and the process ID,
+            e.g. load_unaligned-progressive_align-write_seqs-pid6962.log.
+            If string, that name is used as the logfile name. Otherwise the
+            logger is used as is.
+        cleanup : bool
+            after copying of log files into the data store, they are deleted
+            from their original location
+
+        Returns
+        -------
+        Result of the process as a list
+        Notes
+        -----
+        If run in parallel, this instance serves as the master object and
+        aggregates results.
+        """
+        if logger and not hasattr(self, 'data_store'):
+            raise ValueError('only writers can log')
+
+        if type(logger) == scitrack.CachingLogger:
+            LOGGER = logger
+        elif type(logger) == str:
+            LOGGER = scitrack.CachingLogger
+            LOGGER.log_file_path = logger
+        elif logger == True:
+            log_file_path = pathlib.Path(_make_logfile_name(self))
+            source = pathlib.Path(self.data_store.source)
+            log_file_path = source.parent / log_file_path
+            LOGGER = scitrack.CachingLogger()
+            LOGGER.log_file_path = str(log_file_path)
+        else:
+            LOGGER = None
+
+        if LOGGER:
+            LOGGER.log_message(str(self), label='composable function')
+        results = []
+        i = 0
+        func = self.input if self.input else self
+        for result in ui.imap(func, dstore, parallel=parallel,
+                              par_kw=par_kw):
+            outcome = self(result)
+            results.append(outcome)
+            if LOGGER:
+                member = dstore[i]
+                LOGGER.log_message(member.md5, label='input md5sum')
+                if outcome:
+                    member = self.data_store.get_member(member.name)
+                    LOGGER.log_message(member.md5, label='output md5sum')
+                else:
+                    # we have a NotCompletedResult
+                    LOGGER.log_message(f'{outcome.origin} : {outcome.message}',
+                                       label=outcome.type)
+
+            i += 1
+
+        if LOGGER:
+            LOGGER.shutdown()
+            self.data_store.add_file(str(log_file_path), cleanup=cleanup)
+
+        return results
 
 
 class ComposableTabular(Composable):

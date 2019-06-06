@@ -88,6 +88,24 @@ class TestComposableBase(TestCase):
         # should be able to compose a new one now
         comb2 = aseqfunc1 + aseqfunc3
 
+    def test_apply_to(self):
+        """correctly applies iteratively"""
+        dstore = io_app.get_data_store('data', suffix='fasta', limit=3)
+        reader = io_app.load_unaligned(format='fasta', moltype='dna')
+        got = reader.apply_to(dstore, show_progress=False)
+        self.assertEqual(len(got), len(dstore))
+        # should also be able to apply the results to another composable func
+        min_length = sample_app.min_length(10)
+        got = min_length.apply_to(got, show_progress=False)
+        self.assertEqual(len(got), len(dstore))
+        # should work on a chained function
+        proc = reader + min_length
+        got = proc.apply_to(dstore, show_progress=False)
+        self.assertEqual(len(got), len(dstore))
+        # and works on just strings
+        got = proc.apply_to([str(m) for m in dstore], show_progress=False)
+        self.assertEqual(len(got), len(dstore))
+
 
 class TestNotCompletedResult(TestCase):
     def test_err_result(self):
