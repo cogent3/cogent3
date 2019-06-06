@@ -291,8 +291,8 @@ class Composable(ComposableType):
         self._load_checkpoint = None
 
     @UI.display_wrap
-    def apply_to(self, dstore, parallel=False, mininterval=5, par_kw=None,
-                 logger=None, cleanup=False, ui=None):
+    def apply_to(self, dstore, parallel=False, mininterval=2, par_kw=None,
+                 logger=True, cleanup=False, ui=None):
         """invokes self composable function on the provided data store
 
         Parameters
@@ -307,8 +307,8 @@ class Composable(ComposableType):
         par_kw
             dict of values for configuring parallel execution.
         logger
-            Only applies to io.writers. A scitrack logger, a logfile name or
-            True. If True, a scitrack logger is created with a name that
+            Argument ignored if not an io.writer. A scitrack logger, a logfile
+            name or True. If True, a scitrack logger is created with a name that
             defaults to the composable function names and the process ID,
             e.g. load_unaligned-progressive_align-write_seqs-pid6962.log.
             If string, that name is used as the logfile name. Otherwise the
@@ -325,10 +325,10 @@ class Composable(ComposableType):
         If run in parallel, this instance serves as the master object and
         aggregates results.
         """
-        if logger and not hasattr(self, 'data_store'):
-            raise ValueError('only writers can log')
-
-        if type(logger) == scitrack.CachingLogger:
+        loggable = hasattr(self, 'data_store')
+        if not loggable:
+            LOGGER = None
+        elif type(logger) == scitrack.CachingLogger:
             LOGGER = logger
         elif type(logger) == str:
             LOGGER = scitrack.CachingLogger
@@ -353,7 +353,7 @@ class Composable(ComposableType):
             self.input = None
 
         for result in ui.imap(func, dstore, parallel=parallel,
-                              par_kw=par_kw):
+                              par_kw=par_kw, mininterval=mininterval):
             outcome = self(result)
             results.append(outcome)
             if LOGGER:
