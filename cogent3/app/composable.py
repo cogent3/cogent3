@@ -360,7 +360,9 @@ class Composable(ComposableType):
                 member = dstore[i]
                 LOGGER.log_message(member.md5, label='input md5sum')
                 if outcome:
-                    member = self.data_store.get_member(member.name)
+                    mem_id = self.data_store.make_relative_identifier(
+                        member.name)
+                    member = self.data_store.get_member(mem_id)
                     LOGGER.log_message(member.md5, label='output md5sum')
                 else:
                     # we have a NotCompletedResult
