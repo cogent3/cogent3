@@ -166,6 +166,34 @@ class DataStoreBaseTests:
         data = re_member.read()
         self.assertTrue(len(data) > 0)
 
+    def test_add_file(self):
+        """correctly add an arbitrarily named file"""
+        with open('data/brca1.fasta') as infile:
+            data = infile.read()
+
+        with TemporaryDirectory(dir='.') as dirname:
+            log_path = os.path.join(dirname, 'some.log')
+            with open(log_path, 'w') as out:
+                out.write('some text')
+
+            path = os.path.join(dirname, self.basedir)
+            dstore = self.WriteClass(path, suffix='.fa', create=True)
+            _ = dstore.write('brca1.fa', data)
+            dstore.add_file(log_path)
+            self.assertTrue('some.log' in dstore)
+            self.assertTrue(os.path.exists(log_path))
+
+        with TemporaryDirectory(dir='.') as dirname:
+            log_path = os.path.join(dirname, 'some.log')
+            with open(log_path, 'w') as out:
+                out.write('some text')
+
+            path = os.path.join(dirname, self.basedir)
+            dstore = self.WriteClass(path, suffix='.fa', create=True)
+            _ = dstore.write('brca1.fa', data)
+            dstore.add_file(log_path, cleanup=True)
+            self.assertTrue('some.log' in dstore)
+            self.assertFalse(os.path.exists(log_path))
 
 class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
     basedir = 'data'

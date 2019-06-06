@@ -336,6 +336,45 @@ class WritableDataStoreBase:
             basename, from_relative=True)
         return identifier
 
+    def add_file(self, path, make_unique=True, keep_suffix=True, cleanup=False):
+        """
+        Parameters
+        ----------
+        path : str
+            location of file to be added to the data store
+        keep_suffix : bool
+            new path will retain the suffix of the provided file
+        make_unique : bool
+            a successive number will be added to the name before the suffix
+            until the name is unique
+        cleanup : bool
+            delete the original
+        """
+        relativeid = self.make_relative_identifier(path)
+        relativeid = Path(relativeid)
+        path = Path(path)
+        if keep_suffix:
+            relativeid = str(relativeid).replace(relativeid.suffix,
+                                                 ''.join(path.suffixes))
+            relativeid = Path(relativeid)
+
+        suffixes = ''.join(relativeid.suffixes)
+        new = relativeid
+        num = 0
+        while True:
+            if not str(relativeid) in self:
+                if num:
+                    new = str(relativeid).replace(suffixes, f'-{num}{suffixes}')
+                break
+
+            num += 1
+        relativeid = new
+        data = SingleReadDataStore(path)[0].read()
+        self.write(relativeid, data)
+
+        if cleanup:
+            path.unlink()
+
 
 class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
                                  WritableDataStoreBase):
