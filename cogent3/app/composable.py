@@ -346,13 +346,16 @@ class Composable(ComposableType):
             LOGGER.log_message(str(self), label='composable function')
         results = []
         i = 0
-        func = self.input if self.input else self
-        input_setting = self.input
+        process = self.input if self.input else self
         if self.input:
-            # we need to set this to None, so not called twice
+            # As we will be explicitly calling the input object, we disconnect
+            # the two-way interaction between input and self. This means self
+            # is not called twice, and self is not unecessarily pickled during
+            # parallel execution.
+            process.output = None
             self.input = None
 
-        for result in ui.imap(func, dstore, parallel=parallel,
+        for result in ui.imap(process, dstore, parallel=parallel,
                               par_kw=par_kw, mininterval=mininterval):
             outcome = self(result)
             results.append(outcome)
@@ -376,7 +379,9 @@ class Composable(ComposableType):
             self.data_store.add_file(str(log_file_path), cleanup=cleanup)
 
         # now reconnect input
-        self.input = input_setting
+        if process is not self:
+            self = process + self
+
         return results
 
 
