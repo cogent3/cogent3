@@ -1,7 +1,8 @@
+import sys
 import os
 import shutil
 from tempfile import TemporaryDirectory
-from unittest import TestCase, main
+from unittest import TestCase, main, skipIf
 
 from cogent3.app.data_store import (SingleReadDataStore,
                                     ReadOnlyDirectoryDataStore,
@@ -105,7 +106,7 @@ class DataStoreBaseTests:
 
     # todo not really bnroken, but something to do with line-feeds I
     #  suspect. This means scitrack needs a more platform robust approach...
-    @unittest.skipIf(sys.platform.lower() != 'darwin', 'broken on linux')
+    @skipIf(sys.platform.lower() != 'darwin', 'broken on linux')
     def test_md5_read(self):
         """tracks md5 checksums of read data"""
         dstore = self.ReadClass(self.basedir, suffix='.fasta')
@@ -129,7 +130,7 @@ class DataStoreBaseTests:
             got = dstore.read(abs_id)
             self.assertEqual(got, expect)
 
-    @unittest.skipIf(sys.platform.lower() != 'darwin', 'broken on linux')
+    @skipIf(sys.platform.lower() != 'darwin', 'broken on linux')
     def test_md5_write(self):
         """tracks md5 sums of written data"""
         with open('data/brca1.fasta') as infile:
