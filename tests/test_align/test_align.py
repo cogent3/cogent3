@@ -143,7 +143,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         # align.info object.
         if param_vals:
             for param, val in param_vals:
-                self.assertEqual(aln.info.AlignParams[param], val)
+                self.assertEqual(aln.info.align_params[param], val)
 
     def test_progressive1(self):
         """test progressive alignment, gaps in middle"""

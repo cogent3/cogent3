@@ -77,13 +77,13 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
     LF = model.make_likelihood_function(
         tree.bifurcating(name_unnamed=True), aligned=False)
     if ests_from_pairwise and not param_vals:
-        # we use the Median to avoid the influence of outlier pairs
+        # we use the median to avoid the influence of outlier pairs
         param_vals = {}
         for param in est_params:
             numbers = dcalc.get_param_values(param)
             print("Param Estimate Summary Stats: %s" % param)
             print(numbers.summarize())
-            param_vals[param] = numbers.Median
+            param_vals[param] = numbers.median
 
     ui.display("Doing %s alignment" % ["progressive", "pairwise"][two_seqs])
     with LF.updates_postponed():
@@ -94,9 +94,6 @@ def TreeAlign(model, seqs, tree=None, indel_rate=0.01, indel_length=0.01,
         LF.set_sequences(seqs)
     edge = LF.get_log_likelihood().edge
     align = edge.get_viterbi_path().get_alignment()
-    info = Info()
-    info["AlignParams"] = param_vals
-    info["AlignParams"].update(
-        dict(indel_length=indel_length, indel_rate=indel_rate))
-    align.info = info
+    param_vals.update(dict(indel_length=indel_length, indel_rate=indel_rate))
+    align.info['align_params'] = param_vals
     return align, tree
