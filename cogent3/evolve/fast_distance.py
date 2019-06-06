@@ -270,6 +270,7 @@ def _number_formatter(template):
 
     return call
 
+Stats = namedtuple("Stats", ["length", "fraction_variable", "dist", "variance"])
 
 def _make_stat_table(stats, names, **kwargs):
     header = [r'Seq1 \ Seq2'] + names
@@ -350,8 +351,6 @@ class _PairwiseDistance(object):
 
         dupes = set()
         duped = defaultdict(list)
-        Stats = namedtuple("Stats",
-                           ["length", "fraction_variable", "dist", "variance"])
 
         if alignment is not None:
             self._convert_seqs_to_indices(alignment)
