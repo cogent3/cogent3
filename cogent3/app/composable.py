@@ -347,6 +347,11 @@ class Composable(ComposableType):
         results = []
         i = 0
         func = self.input if self.input else self
+        input_setting = self.input
+        if self.input:
+            # we need to set this to None, so not called twice
+            self.input = None
+
         for result in ui.imap(func, dstore, parallel=parallel,
                               par_kw=par_kw):
             outcome = self(result)
@@ -368,6 +373,8 @@ class Composable(ComposableType):
             LOGGER.shutdown()
             self.data_store.add_file(str(log_file_path), cleanup=cleanup)
 
+        # now reconnect input
+        self.input = input_setting
         return results
 
 
