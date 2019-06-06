@@ -103,6 +103,16 @@ class DataStoreBaseTests:
         got = {l: s for l, s in MinimalFastaParser(data)}
         self.assertEqual(got, expect)
 
+    def test_md5_read(self):
+        """tracks md5 checksums of read data"""
+        dstore = self.ReadClass(self.basedir, suffix='.fasta')
+        basedir = self.basedir.replace('.zip', '')
+        identifier = os.path.join(basedir, 'brca1.fasta')
+        md5 = '05a7302479c55c0b5890b50f617c5642'
+        self.assertEqual(dstore.md5(identifier, force=True), md5)
+        # this property also directly available on the member
+        self.assertEqual(dstore[0].md5, md5)
+
     def test_write(self):
         """correctly write content"""
         with open('data/brca1.fasta') as infile:
@@ -115,6 +125,34 @@ class DataStoreBaseTests:
             abs_id = dstore.write(identifier, expect)
             got = dstore.read(abs_id)
             self.assertEqual(got, expect)
+
+    def test_md5_write(self):
+        """tracks md5 sums of written data"""
+        with open('data/brca1.fasta') as infile:
+            expect = infile.read()
+
+        with TemporaryDirectory(dir='.') as dirname:
+            path = os.path.join(dirname, self.basedir)
+            dstore = self.WriteClass(path, suffix='.fa', create=True)
+            identifier = dstore.make_absolute_identifier('brca1.fasta')
+            abs_id = dstore.write(identifier, expect)
+            md5 = '05a7302479c55c0b5890b50f617c5642'
+            self.assertEqual(dstore.md5(abs_id), md5)
+            # this property also directly available on the member
+            self.assertEqual(dstore[0].md5, md5)
+
+        # does not have md5 if not set
+        with TemporaryDirectory(dir='.') as dirname:
+            path = os.path.join(dirname, self.basedir)
+            dstore = self.WriteClass(path, suffix='.fa', create=True, md5=False)
+            identifier = dstore.make_absolute_identifier('brca1.fasta')
+            abs_id = dstore.write(identifier, expect)
+            got = dstore.md5(abs_id, force=False)
+            self.assertEqual(got, None)
+            # but if you set force=True, you get it
+            md5 = '05a7302479c55c0b5890b50f617c5642'
+            got = dstore.md5(abs_id, force=True)
+            self.assertEqual(got, md5)
 
     def test_multi_write(self):
         """correctly write multiple files to data store"""

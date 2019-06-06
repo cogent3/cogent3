@@ -9,6 +9,8 @@ from pprint import pprint
 from warnings import warn
 from io import TextIOWrapper
 
+from scitrack import get_text_hexdigest
+
 from cogent3.util.misc import open_, get_format_suffixes, atomic_write
 
 # handling archive, member existence
@@ -43,11 +45,16 @@ class DataStoreMember(str):
         self._file.close()
         self._file = None
 
+    @property
+    def md5(self):
+        return self.parent.md5(self.name, force=True)
+
 
 class ReadOnlyDataStoreBase:
     """a read only data store"""
 
-    def __init__(self, source, suffix=None, limit=None, verbose=False):
+    def __init__(self, source, suffix=None, limit=None, verbose=False,
+                 md5=True):
         """
         Parameters
         ----------
@@ -60,6 +67,8 @@ class ReadOnlyDataStoreBase:
         verbose
             displays files that don't match search (applies only to the Zipped
             variant)
+        md5 : bool
+            record md5 hexadecimal checksum of read data when possible
         """
         # assuming delimiter is /
 
@@ -80,6 +89,8 @@ class ReadOnlyDataStoreBase:
         self._members = []
         self.limit = limit
         self._verbose = verbose
+        self._md5 = md5
+        self._checksums = {}
 
     def __getstate__(self):
         data = self._persistent.copy()
@@ -168,7 +179,12 @@ class ReadOnlyDataStoreBase:
         return identifier
 
     def read(self, identifier):
-        raise NotImplementedError  # override in subclasses
+        source = self.open(identifier)
+        data = source.read()
+        if self._md5:
+            self._checksums[identifier] = get_text_hexdigest(data)
+        source.close()
+        return data
 
     @property
     def members(self):
@@ -187,6 +203,29 @@ class ReadOnlyDataStoreBase:
             result = [m for m in self if callback(m)]
         return result
 
+    def md5(self, identifier, force=True):
+        """
+        Parameters
+        ----------
+        identifier
+            name of data store member
+        force : bool
+            forces reading of data if not already done
+
+        Returns
+        -------
+        md5 checksum for the member, if available, None otherwise
+        """
+        md5_setting = self._md5  # for restoring automatic md5 calc setting
+        absoluteid = self.get_absolute_identifier(identifier)
+        if force and absoluteid not in self._checksums:
+            self._md5 = True
+            _ = self.read(absoluteid)
+
+        result = self._checksums.get(absoluteid, None)
+        self._md5 = md5_setting
+        return result
+
 
 class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):
     @property
@@ -203,12 +242,6 @@ class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):
                 members.append(member)
             self._members = members
         return self._members
-
-    def read(self, identifier):
-        infile = self.open(identifier)
-        data = infile.read()
-        infile.close()
-        return data
 
     def open(self, identifier):
         identifier = self.get_absolute_identifier(identifier,
@@ -265,12 +298,6 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
             self._members = members
 
         return self._members
-
-    def read(self, identifier):
-        record = self.open(identifier)
-        data = record.read()
-        record.close()
-        return data
 
     def open(self, identifier):
         identifier = self.get_relative_identifier(identifier)
@@ -378,7 +405,8 @@ class WritableDataStoreBase:
 
 class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
                                  WritableDataStoreBase):
-    def __init__(self, source, suffix, mode='w', if_exists=RAISE, create=False):
+    def __init__(self, source, suffix, mode='w', if_exists=RAISE, create=False,
+                 md5=True):
         """
         Parameters
         ----------
@@ -394,10 +422,12 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
              correspond to lower case version of the same word)
         create : bool
             if True, the destination is created
+        md5 : bool
+            record md5 hexadecimal checksum of data when possible
         """
         assert 'w' in mode or 'a' in mode
         ReadOnlyDirectoryDataStore.__init__(
-            self, source=source, suffix=suffix)
+            self, source=source, suffix=suffix, md5=md5)
         WritableDataStoreBase.__init__(
             self, if_exists=if_exists, create=create)
         self.mode = mode
@@ -419,6 +449,9 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
         absolute_id = self.get_absolute_identifier(relative_id,
                                                    from_relative=True)
 
+        if self._md5:
+            self._checksums[absolute_id] = get_text_hexdigest(data)
+
         with atomic_write(str(absolute_id), in_zip=False) as out:
             out.write(data)
 
@@ -429,7 +462,8 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
 
 
 class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
-    def __init__(self, source, suffix, mode='a', if_exists=RAISE, create=False):
+    def __init__(self, source, suffix, mode='a', if_exists=RAISE, create=False,
+                 md5=True):
         """
         Parameters
         ----------
@@ -445,8 +479,11 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
              correspond to lower case version of the same word)
         create : bool
             if True, the destination is created
+        md5 : bool
+            record md5 hexadecimal checksum of data when possible
         """
-        ReadOnlyZippedDataStore.__init__(self, source=source, suffix=suffix)
+        ReadOnlyZippedDataStore.__init__(self, source=source, suffix=suffix,
+                                         md5=md5)
         WritableDataStoreBase.__init__(
             self, if_exists=if_exists, create=create)
         self.mode = 'a' or mode  # todo does mode 'w' nuke an entire zip?
@@ -468,6 +505,9 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         relative_id = self.get_relative_identifier(identifier)
         absolute_id = self.get_absolute_identifier(relative_id,
                                                    from_relative=True)
+
+        if self._md5:
+            self._checksums[absolute_id] = get_text_hexdigest(data)
 
         with atomic_write(str(relative_id), in_zip=self.source) as out:
             out.write(data)
