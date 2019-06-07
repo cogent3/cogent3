@@ -8,6 +8,8 @@ from cogent3.maths.stats import chisqprob
 
 
 class generic_result(MutableMapping):
+    """a dict style container for storing results. All keys are
+    converted to strings to ensure the object can be json serialised"""
     type_ = 'generic_result'
 
     def __init__(self, source):
