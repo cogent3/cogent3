@@ -9,7 +9,7 @@ from cogent3.maths.optimisers import maximise, ParameterOutOfBoundsError
 
 
 import os
-TRACE_DEFAULT = 'COGENT_TRACE' in os.environ
+TRACE_DEFAULT = 'COGENT3_TRACE' in os.environ
 TRACE_SCALE = 100000
 
 __author__ = "Peter Maxwell"

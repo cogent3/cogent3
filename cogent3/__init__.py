@@ -40,7 +40,7 @@ version = __version__
 version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])
 
 
-warn_env = 'COGENT_WARNINGS'
+warn_env = 'COGENT3_WARNINGS'
 
 if warn_env in os.environ:
     warnings.simplefilter(os.environ[warn_env])

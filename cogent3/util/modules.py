@@ -24,7 +24,7 @@ def fail(msg):
 
 
 def importVersionedModule(name, exec_globals, min_version, alt_desc):
-    if 'COGENT_PURE_PYTHON' in os.environ:
+    if 'COGENT3_PURE_PYTHON' in os.environ:
         fail('Not using compiled module "%s".  Will use %s.' %
              (name, alt_desc))
     try:
