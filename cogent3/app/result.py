@@ -34,6 +34,9 @@ class generic_result(MutableMapping):
     def __iter__(self):
         return iter(self._store)
 
+    def keys(self):
+        return list(self)
+
     def to_rich_dict(self):
         """returns the rich dict on values"""
         result = {'type': get_object_provenance(self),
