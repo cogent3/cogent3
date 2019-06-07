@@ -57,6 +57,23 @@ class TestModel(TestCase):
         expect_nfp = 11 * 2 + 3 + 3
         self.assertEqual(result.lf.nfp, expect_nfp)
 
+    def test_model_hypothesis_result_repr(self):
+        """result objects __repr__ and _repr_html_ methods work correctly"""
+        _data = {'Human': 'ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG',
+                 'Mouse': 'ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG',
+                 'Opossum': 'ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG'}
+        aln = LoadSeqs(data=_data, moltype='dna')
+        model1 = evo_app.model('F81', opt_args=dict(max_evaluations=25,
+                                          limit_action='ignore'))
+        model2 = evo_app.model('HKY85', opt_args=dict(max_evaluations=25,
+                                          limit_action='ignore'))
+        hyp = evo_app.hypothesis(model1, model2)
+        result = hyp(aln)
+        self.assertIsInstance(result.__repr__(), str)
+        self.assertIsInstance(result._repr_html_(), str)
+        self.assertIsInstance(result.null.__repr__(), str)
+        self.assertIsInstance(result.null._repr_html_(), str)
+
     def test_hypothesis_str(self):
         """correct str representation"""
         model1 = evo_app.model('HKY85')

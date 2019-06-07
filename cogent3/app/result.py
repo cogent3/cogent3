@@ -34,6 +34,18 @@ class generic_result(MutableMapping):
     def __iter__(self):
         return iter(self._store)
 
+    def __repr__(self):
+        name = self.__class__.__name__
+        num = len(self)
+        types = [f'{repr(k)}: {self[k].__class__.__name__}' for k in
+                 self.keys()[:4]]
+        types = ', '.join(types)
+        result = f'{len(self)}x {name}({types})'
+        return result
+
+    def __str__(self):
+        return repr(self)
+
     def keys(self):
         return list(self)
 
@@ -81,6 +93,31 @@ class model_result(generic_result):
         self._nfp = None
         self._DLC = None
         self._unique_Q = None
+
+    def _get_repr_data_(self):
+        from cogent3.util.table import Table
+        self.lf  # making sure we're fully reloaded
+        attrs = ['lnL', 'nfp', 'DLC', 'unique_Q']
+        header = ['key'] + attrs[:]
+        rows = [[''] + [getattr(self, attr) for attr in attrs]]
+        if len(self) > 1:
+            # we just add keys, lnL and nfp
+            padd = ['', '']
+            attrs = ['lnL', 'nfp']
+            for key in self:
+                row = [repr(key), self[key].lnL, self[key].nfp, '', '']
+                rows.append(row)
+
+        table = Table(header=header, rows=rows, title=self.name)
+        return table
+
+    def _repr_html_(self):
+        table = self._get_repr_data_()
+        return table._repr_html_(include_shape=False)
+
+    def __repr__(self):
+        table = self._get_repr_data_()
+        return repr(table)
 
     def __setitem__(self, key, lf):
         super(self.__class__, self).__setitem__(key, lf)
@@ -231,6 +268,40 @@ class hypothesis_result(generic_result):
                                          source=source)
 
         self._name_of_null = name_of_null
+
+    def _get_repr_data_(self):
+        from cogent3.util.table import Table
+        rows = []
+        attrs = ['lnL', 'nfp', 'DLC', 'unique_Q']
+        for key, member in self.items():
+            member.lf  # making sure we're fully reloaded
+            if key == self._name_of_null:
+                status_name = ['null', key]
+            else:
+                status_name = ['alt', key]
+            row = status_name + [getattr(member, a) for a in attrs]
+            rows.append(row)
+
+        table = Table(header=['hypothesis', 'key'] + attrs, rows=rows)
+        table = table.sorted(columns='nfp')
+        stats = [[self.LR, self.df, self.pvalue]]
+        stats = Table(header=['LR', 'df', 'pvalue'], rows=stats,
+                      title='Statistics')
+        return stats, table
+
+    def _repr_html_(self):
+        stats, table = self._get_repr_data_()
+        result = [t._repr_html_(include_shape=False) for t in (stats, table)]
+        return '\n'.join(result)
+
+    def __repr__(self):
+        stats, table = self._get_repr_data_()
+        result = []
+        for t in (stats, table):
+            r, _ = t._get_repr_()
+            result.append(str(r))
+
+        return '\n'.join(result)
 
     @property
     def null(self):
