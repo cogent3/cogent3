@@ -49,7 +49,8 @@ from numpy import (nonzero, array, logical_or, logical_and, logical_not,
 from numpy.random import randint, permutation, choice
 
 from cogent3.util.dict_array import DictArrayTemplate
-from cogent3.util.misc import bytes_to_string, get_object_provenance
+from cogent3.util.misc import (bytes_to_string, get_object_provenance,
+                               extend_docstring_from, )
 from cogent3.util import progress_display as UI
 from copy import copy, deepcopy
 from cogent3.core.profile import MotifCountsArray
@@ -3175,22 +3176,31 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
                                 info=self.info, names=self.names)
         return result
 
-    def filtered(self, predicate, motif_length=1, **kwargs):
+    def filtered(self, predicate, motif_length=1, drop_remainder=True, **kwargs):
         """The alignment positions where predicate(column) is true.
-
-        Arguments:
-            - predicate: a callback function that takes an tuple of motifs and
-              returns True/False
-            - motif_length: length of the motifs the sequences should be split
-              into, eg. 3 for filtering aligned codons."""
+        Parameters
+        ----------
+        predicate : callable
+            a callback function that takes an tuple of motifs and returns
+            True/False
+        motif_length : int
+            length of the motifs the sequences should be split  into, eg. 3 for
+            filtering aligned codons.
+        drop_remainder : bool
+            If length is not modulo motif_length, allow dropping the terminal
+            remaining columns
+        """
         length = self.seq_len
-        if length % motif_length != 0:
+        if length % motif_length != 0 and not drop_remainder:
             raise ValueError("aligned length not divisible by "
                              "motif_length=%d" % motif_length)
 
         num_motifs = length // motif_length
-        shaped = self.array_seqs.reshape(
-            (self.num_seqs, num_motifs, motif_length))
+        shaped = self.array_seqs
+        if motif_length != 1:
+            shaped = shaped[:, :num_motifs * motif_length]
+
+        shaped = shaped.reshape((self.num_seqs, num_motifs, motif_length))
         indices = []
         elements = arange(motif_length)
         for i in range(num_motifs):
@@ -3670,14 +3680,12 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             data=masked_seqs, info=self.info, name=self.name)
         return new
 
-    def filtered(self, predicate, motif_length=1, **kwargs):
-        """The alignment positions where predicate(column) is true.
-
-        Arguments:
-            - predicate: a callback function that takes an tuple of motifs and
-              returns True/False
-            - motif_length: length of the motifs the sequences should be split
-              into, eg. 3 for filtering aligned codons."""
+    @extend_docstring_from(ArrayAlignment.filtered)
+    def filtered(self, predicate, motif_length=1, drop_remainder=True, **kwargs):
+        length = self.seq_len
+        if length % motif_length != 0 and not drop_remainder:
+            raise ValueError("aligned length not divisible by "
+                             "motif_length=%d" % motif_length)
         gv = []
         kept = False
         seqs = [self.get_gapped_seq(n).get_in_motif_size(motif_length,
