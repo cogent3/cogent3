@@ -155,7 +155,9 @@ class Composable(ComposableType):
         stack = inspect.stack()
         stack.reverse()
         for level in stack:
-            if '__class__' in inspect.getargvalues(level.frame).locals:
+            args = inspect.getargvalues(level.frame).locals
+            klass = args.get('__class__', None)
+            if klass and isinstance(self, klass):
                 break
         args = inspect.getargvalues(level.frame).locals
         params = inspect.signature(args['__class__'].__init__).parameters
