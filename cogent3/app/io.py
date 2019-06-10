@@ -115,7 +115,7 @@ class load_aligned(_seq_loader, ComposableAligned):
     """loads sequences"""
     klass = ArrayAlignment
 
-    def __init__(self, moltype=None, format='fasta', suffix='fa'):
+    def __init__(self, moltype=None, format='fasta'):
         """
         Parameters
         ----------
@@ -138,7 +138,7 @@ class load_unaligned(ComposableSeq, _seq_loader):
     """loads sequences"""
     klass = SequenceCollection
 
-    def __init__(self, moltype=None, format='fasta', suffix='fa'):
+    def __init__(self, moltype=None, format='fasta'):
         """
         Parameters
         ----------
@@ -299,37 +299,15 @@ class write_seqs(_checkpointable):
 class load_json(Composable):
     _type = 'output'
 
-    def __init__(self, data_path=None, suffix='json'):
+    def __init__(self):
         super(load_json, self).__init__(input_type=None,
                                         output_type=('result', 'serialisable'))
-        """
-        Parameters
-        ----------
-        data_path : str
-            path to a directory or zip archive
-        """
-        if data_path:
-            zipped = zipfile.is_zipfile(data_path)
-            klass = (ReadOnlyZippedDataStore
-                     if zipped else ReadOnlyDirectoryDataStore)
-            self.data_store = klass(data_path, suffix=suffix)
-        else:
-            self.data_store = None
-
         self.func = self.read
 
     def read(self, path):
-        """returns alignment"""
+        """returns object deserialised from json at path"""
         if type(path) == str:
-            if self.data_store:
-                dstore = self.data_store
-            else:
-                dstore = SingleReadDataStore(path)
-
-            if path not in dstore:
-                raise ValueError(f'{path} does not exist')
-
-            path = dstore.get_member(path)
+            path = SingleReadDataStore(path)[0]
 
         data = path.read()
 
