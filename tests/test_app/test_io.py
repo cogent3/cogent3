@@ -135,7 +135,7 @@ class TestIo(TestCase):
         """correctly writes sequences out"""
         fasta_paths = list(io_app.findall(self.basedir, suffix='.fasta',
                                           limit=2))
-        fasta_loader = io_app.load_aligned(format='fasta', suffix='fasta')
+        fasta_loader = io_app.load_aligned(format='fasta')
         alns = list(map(fasta_loader, fasta_paths))
         with TemporaryDirectory(dir='.') as dirname:
             writer = io_app.write_seqs(dirname, if_exists='ignore')
@@ -152,7 +152,7 @@ class TestIo(TestCase):
             outpath = join(dirname, 'delme.json')
             with open(outpath, 'w') as outfile:
                 outfile.write(data)
-            reader = io_app.load_json(dirname)
+            reader = io_app.load_json()
             got = reader(outpath)
             self.assertIsInstance(got, DNA.__class__)
             self.assertEqual(got, DNA)
@@ -170,8 +170,10 @@ class TestIo(TestCase):
             with zipfile.ZipFile(zip_path, 'a') as out:
                 out.writestr(outpath, data)
 
-            reader = io_app.load_json(zip_path)
-            got = reader(outpath)
+            dstore = io_app.get_data_store(zip_path, suffix='json')
+            member = dstore.get_member('delme.json')
+            reader = io_app.load_json()
+            got = reader(member)
             self.assertIsInstance(got, DNA.__class__)
             self.assertEqual(got, DNA)
 
@@ -215,7 +217,7 @@ class TestIo(TestCase):
             mock.info.source = join('blah', 'delme.json')
             writer = io_app.write_json(outdir, create=True)
             _ = writer(mock)
-            reader = io_app.load_json(outdir)
+            reader = io_app.load_json()
             got = reader(join(outdir, 'delme.json'))
             self.assertEqual(got, DNA)
 
@@ -227,8 +229,8 @@ class TestIo(TestCase):
             mock.info.source = join('blah', 'delme.json')
             writer = io_app.write_json(outdir, create=True)
             identifier = writer(mock)
-            reader = io_app.load_json(outdir)
-            got = reader(join(outdir.replace('.zip', ''), 'delme.json'))
+            reader = io_app.load_json()
+            got = reader(writer.data_store[0])
             self.assertEqual(got, DNA)
             self.assertEqual(identifier, join(outdir.replace('.zip', ''),
                                               'delme.json'))
@@ -245,7 +247,7 @@ class TestIo(TestCase):
             writer = io_app.write_json(outdir, create=True)
             _ = writer(mock)
             reader = io_app.load_json()
-            got = reader(join(outdir, 'delme.json'))
+            got = reader(writer.data_store[0])
             self.assertEqual(got, DNA)
 
         # now with a zipped archive
