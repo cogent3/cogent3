@@ -237,6 +237,9 @@ class EstimateDistances(object):
         pairwise_stats = {}
         assert param in self._est_params + ['length'], \
             "unrecognised param %s" % param
+        if not self._param_ests:
+            return None
+
         if self._threeway and param == 'length':
             pairwise_stats = get_pairwise_distance_from_triad(self._param_ests,
                                                               summary_function=summary_function)
@@ -258,7 +261,7 @@ class EstimateDistances(object):
         """
         dists = self.get_pairwise_param('length', summary_function=summary_function,
                                      **kwargs)
-        result = DistanceMatrix(dists)
+        result = None if not dists else DistanceMatrix(dists)
         return result
 
     def get_param_values(self, param, **kwargs):
