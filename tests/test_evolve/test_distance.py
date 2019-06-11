@@ -625,5 +625,11 @@ class DistancesTests(TestCase):
                 self.assertAlmostEqual(got[pair][param], expect[
                                        pair][param], places=6)
 
+    def test_no_calc(self):
+        """returns None if no calculation done"""
+        al = LoadSeqs("data/brca1_5.paml")
+        d = EstimateDistances(al, submodel=HKY85())
+        self.assertEqual(d.get_pairwise_distances(), None)
+
 if __name__ == '__main__':
     main()

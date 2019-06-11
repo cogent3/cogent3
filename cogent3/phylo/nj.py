@@ -181,6 +181,10 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
     Result:
         - a sorted list of (tree length, tree) tuples
     """
+    try:
+        dists = dists.todict()
+    except AttributeError:
+        pass
 
     (names, d) = distance_dict_to_2D(dists)
 
