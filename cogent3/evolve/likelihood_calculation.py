@@ -126,6 +126,7 @@ class LikelihoodTreeDefn(CalculationDefn):
     def calc(self, leaves):
         return recursive_lht_build(self.tree, leaves)
 
+
 def make_total_loglikelihood_defn(tree, leaves, psubs, mprobs, bprobs, bin_names,
                                locus_names, sites_independent):
 
@@ -246,7 +247,8 @@ class BinnedLikelihood(object):
         # posterior bin probs, not motif probs
         assert len(lhs) == len(self.distrib.bprobs)
         result = numpy.array(
-            [b * self.root.get_full_length_likelihoods(p) for (b, p) in zip(self.distrib.bprobs, lhs)])
+            [b * self.root.get_full_length_likelihoods(p) for
+            (b, p) in zip(self.distrib.bprobs, lhs)])
         result /= result.sum(axis=0)
         return result
 
@@ -265,7 +267,7 @@ class SiteHmm(object):
             matrix.StationaryProbs, matrix.Matrix, plhs)
 
     def get_posterior_probs(self, *lhs):
-        plhs = [self.root.get_full_length_likelihoods(lh) for 
+        plhs = [self.root.get_full_length_likelihoods(lh) for
                 lh in self.distrib.get_weighted_sum_lhs(lhs)]
         plhs = numpy.transpose(plhs)
         pprobs = self.distrib.transition_matrix.get_posterior_probs(plhs)
