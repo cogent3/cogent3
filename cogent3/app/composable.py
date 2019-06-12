@@ -227,6 +227,14 @@ class Composable(ComposableType):
         # over-ride in sub classes
         return False
 
+    def _trapped_call(self, func, val, *args, **kwargs):
+        try:
+            val = func(val, *args, **kwargs)
+        except Exception as err:
+            val = NotCompletedResult(
+                'ERROR', self, err.args[0], source=val)
+        return val
+
     def __call__(self, val, *args, **kwargs):
         # initial invocation always transfers call() to first composable
         # element to get input for self
@@ -244,17 +252,11 @@ class Composable(ComposableType):
                 return result
 
         if self.input:
-            try:
-                val = self._in(val, *args, **kwargs)
-            except Exception as err:
-                val = NotCompletedResult(
-                    'ERROR', self, err.args[0], source=val)
-                return val
+            val = self._trapped_call(self._in, val, *args, **kwargs)
 
         if not val:
             return val
-
-        result = self.func(val, *args, **kwargs)
+        result = self._trapped_call(self.func, val, *args, **kwargs)
         if not result and type(result) != NotCompletedResult:
             msg = ('This is unexpected! Please post this error message along'
                    ' with the code and data indicated as an Issue on the'
