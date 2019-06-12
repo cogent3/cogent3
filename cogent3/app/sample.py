@@ -235,7 +235,8 @@ class take_named_seqs(ComposableSeq):
         try:
             data = data.take_seqs(self._names, negate=self._negate)
         except KeyError:
-            msg = f'named seq(s) not present in {data.names}'
+            missing = set(self._names) - set(data.names)
+            msg = f'named seq(s) {missing} not in {data.names}'
             data = NotCompletedResult('FALSE', self, msg, source=data)
         return data
 
