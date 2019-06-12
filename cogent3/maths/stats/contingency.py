@@ -361,7 +361,10 @@ class TestResult:
         h, r = self._get_repr_()
         h, r = formatted_cells(r, header=h)
         result = simple_format(h, r, title=self.test_name)
-        return result
+        components = CategoryCounts(self.observed.todict(),
+                                    expected=self.expected.todict())
+        result = [result, str(components)]
+        return '\n'.join(result)
 
     def __str__(self):
         return repr(self)
@@ -370,7 +373,10 @@ class TestResult:
         from cogent3.util.table import Table
         h, r = self._get_repr_()
         table = Table(h, r, title=self.test_name)
-        return table._repr_html_(include_shape=False)
+        components = CategoryCounts(self.observed.todict(),
+                                    expected=self.expected.todict())
+        html = [table._repr_html_(include_shape=False), components._repr_html_()]
+        return '\n'.join(html)
 
 
 
