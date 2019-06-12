@@ -2,6 +2,7 @@ import os
 import re
 import pathlib
 import inspect
+import time
 
 import scitrack
 
@@ -327,6 +328,7 @@ class Composable(ComposableType):
         If run in parallel, this instance serves as the master object and
         aggregates results.
         """
+        start = time.time()
         loggable = hasattr(self, 'data_store')
         if not loggable:
             LOGGER = None
@@ -363,11 +365,13 @@ class Composable(ComposableType):
             results.append(outcome)
             if LOGGER:
                 member = dstore[i]
+                LOGGER.log_message(member, label='input')
                 LOGGER.log_message(member.md5, label='input md5sum')
                 if outcome:
                     mem_id = self.data_store.make_relative_identifier(
                         member.name)
                     member = self.data_store.get_member(mem_id)
+                    LOGGER.log_message(member, label='output')
                     LOGGER.log_message(member.md5, label='output md5sum')
                 else:
                     # we have a NotCompletedResult
@@ -376,7 +380,10 @@ class Composable(ComposableType):
 
             i += 1
 
+        finish = time.time()
+        taken = finish - start
         if LOGGER:
+            LOGGER.log_message(f'{taken}', label='TIME TAKEN')
             LOGGER.shutdown()
             self.data_store.add_file(str(log_file_path), cleanup=cleanup)
 
