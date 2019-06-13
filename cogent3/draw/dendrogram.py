@@ -1,6 +1,7 @@
 from cogent3.core.tree import TreeNode
 import numpy as np
 from cogent3.draw.drawable import Drawable
+from cogent3.util.misc import extend_docstring_from
 
 __author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -512,6 +513,21 @@ class TreeGeometryBase(TreeNode):
         """returns (self.start, self.end)"""
         return self.start, self.end
 
+    def value_and_coordinate(self, attr, padding=0.1):
+        """
+        Parameters
+        ----------
+        attr : str
+            attribute of self, e.g. 'name', or key in self.params
+        padding : float
+            distance from self coordinate
+
+        Returns
+        -------
+        (value of attr, (x, y)
+        """
+        # todo, possibly also return a rotation?
+        raise NotImplementedError('implement in sub-class')
 
 class SquareTreeGeometry(TreeGeometryBase):
     """represents Square dendrograms, contemporaneous or not"""
@@ -561,6 +577,16 @@ class SquareTreeGeometry(TreeGeometryBase):
         b = self.children[-1].start
         return a, b
 
+    @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
+    def value_and_coordinate(self, attr, padding=0.1):
+        # todo, possibly also return a rotation?
+        x = self.x + padding
+        y = self.y
+        value = self.params.get(attr, None)
+        if value is None:
+            value = getattr(self, attr, None)
+        return value, (x, y)
+
 
 class Dendrogram(Drawable):
     def __init__(self, tree, style='square', label_pad=.1, *args, **kwargs):
@@ -577,33 +603,40 @@ class Dendrogram(Drawable):
     def tip_font(self):
         return self._tip_font
 
-    def _get_name_annotations(self):
+    def _get_tip_name_annotations(self):
         annotations = []
         for tip in self.tree.tips():
-            anote = dict(x=tip.x + self.label_pad,
-                         y=tip.y,
+            name, (x, y) = tip.value_and_coordinate('name',
+                                                    padding=self.label_pad)
+            anote = dict(x=x,
+                         y=y,
                          xref='x',
                          yref='y',
                          showarrow=False,
-                         text=tip.name,
+                         text=name,
                          font=self.tip_font)
             annotations.append(anote)
         return annotations
+
 
     def _build_fig(self, **kwargs):
         X = []
         Y = []
         tree = self.tree
-        text = []
+        text = {'type': 'scatter', 'text': [], 'x': [], 'y': [],
+                'hoverinfo': 'text', 'mode': 'markers',
+                'marker': {'symbol': 'circle', 'color': 'black'}}
         for edge in tree.preorder():
             x0, y0 = edge.start
             x1, y1 = edge.end
             X.extend([x0, x1, None])
             Y.extend([y0, y1, None])
             if edge.is_tip():
-                text.extend([None, None, None])
                 continue
-            text.extend([edge.name, edge.name, None])
+            name, (x, y) = edge.value_and_coordinate('name', padding=0)
+            text['x'].append(x)
+            text['y'].append(y)
+            text['text'].append(name)
             segment = []
             for x, y in edge.get_segment_to_children():
                 segment += [(x, y)]
@@ -612,9 +645,8 @@ class Dendrogram(Drawable):
             ys += (None,)
             X.extend(xs)
             Y.extend(ys)
-        trace = dict(type='scatter', x=X, y=Y, text=text, mode='lines',
-                     hoverinfo='text',
+        trace = dict(type='scatter', x=X, y=Y, mode='lines',
                      line=dict(width=self._line_width,
                                color=self._line_color))
-        self.traces.append(trace)
-        self.layout.annotations = tuple(self._get_name_annotations())
+        self.traces.extend([trace, text])
+        self.layout.annotations = tuple(self._get_tip_name_annotations())
