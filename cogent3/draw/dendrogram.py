@@ -645,6 +645,7 @@ class Dendrogram(Drawable):
                          xref='x',
                          yref='y',
                          showarrow=False,
+                         xanchor='left',
                          text=name,
                          font=self.tip_font)
             annotations.append(anote)
