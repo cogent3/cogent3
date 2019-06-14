@@ -1,4 +1,4 @@
-from cogent3.core.tree import TreeNode
+from cogent3.core.tree import TreeNode, PhyloNode
 import numpy as np
 from cogent3.draw.drawable import Drawable
 from cogent3.util.misc import extend_docstring_from
@@ -457,7 +457,7 @@ def _get_line_lists(clade, x_left, xlines, ylines, xarc, yarc, node_radius,
                             node_ycoord)
 
 
-class TreeGeometryBase(TreeNode):
+class TreeGeometryBase(PhyloNode):
     """base class that computes geometric coordinates for display"""
 
     def __init__(self, tree, length_attr='length'):
@@ -468,9 +468,10 @@ class TreeGeometryBase(TreeNode):
         length_attr : str
             name of the attribute to use for length, defaults to 'length'
         """
-        children = [type(self)(child) for child in tree.children]
-        TreeNode.__init__(self, params=tree.params.copy(), children=children,
-                          name=tree.name)
+        children = [type(self)(child, length_attr=length_attr)
+                    for child in tree.children]
+        PhyloNode.__init__(self, params=tree.params.copy(), children=children,
+                           name=tree.name)
         # todo do we need to validate the length_attr key exists?
         self._length = length_attr
         self._node_space = 1.3
@@ -479,6 +480,9 @@ class TreeGeometryBase(TreeNode):
         self._y = None
         self._x = None
         self._tip_rank = None
+
+    def propagate_properties(self):
+        self._init_tip_ranks()
         self._init_length_depth_attr()
 
     @property
@@ -494,6 +498,17 @@ class TreeGeometryBase(TreeNode):
     def tip_rank(self):
         return self._tip_rank
 
+    def _max_child_depth(self):
+        """computes the maximum number of nodes to the tip"""
+        if 'max_child_depth' not in self.params:
+            if self.is_tip():
+                self.params['max_child_depth'] = self.params['depth']
+            else:
+                depths = [child._max_child_depth()
+                          for child in self.children]
+                self.params['max_child_depth'] = max(depths)
+        return self.params['max_child_depth']
+
     def _init_length_depth_attr(self):
         """check it exists, if not, creates with default value of 1"""
         for edge in self.preorder():
@@ -501,9 +516,22 @@ class TreeGeometryBase(TreeNode):
                 edge.params['depth'] = 0
                 edge.params[self._length] = 0
             else:
-                edge.params[self._length] = edge.params.get(
-                    self._length, 1) + 1
+                length = edge.params.get(self._length, None) or 1
+                edge.params[self._length] = length
                 edge.params['depth'] = edge.parent.params.get('depth', 0) + 1
+
+        self._max_child_depth()
+        for edge in self.preorder():
+            if edge.is_root():
+                continue
+
+            parent_frac = edge.parent.params.get('cum_frac', 0)
+            if edge.is_tip():
+                edge.params['frac_pos'] = 1 - parent_frac
+            else:
+                frac = 1 / edge.params['max_child_depth']
+                edge.params['frac_pos'] = frac
+                edge.params['cum_frac'] = parent_frac + frac
 
     @property
     def depth(self):
@@ -528,6 +556,7 @@ class TreeGeometryBase(TreeNode):
         """
         # todo, possibly also return a rotation?
         raise NotImplementedError('implement in sub-class')
+
 
 class SquareTreeGeometry(TreeGeometryBase):
     """represents Square dendrograms, contemporaneous or not"""
@@ -589,11 +618,14 @@ class SquareTreeGeometry(TreeGeometryBase):
 
 
 class Dendrogram(Drawable):
-    def __init__(self, tree, style='square', label_pad=.1, *args, **kwargs):
+    def __init__(self, tree, style='square', label_pad=.1, contemporaneous=True,
+                 *args, **kwargs):
         super(Dendrogram, self).__init__(
             visible_axes=False, showlegend=False, *args, **kwargs)
         klass = {'square': SquareTreeGeometry}[style]
-        self.tree = klass(tree)
+        kwargs = dict(length_attr='frac_pos') if contemporaneous else {}
+        self.tree = klass(tree, **kwargs)
+        self.tree.propagate_properties()
         self.label_pad = label_pad
         self._tip_font = dict(size=16, family='sans serif')
         self._line_width = 2
@@ -617,7 +649,6 @@ class Dendrogram(Drawable):
                          font=self.tip_font)
             annotations.append(anote)
         return annotations
-
 
     def _build_fig(self, **kwargs):
         X = []
