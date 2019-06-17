@@ -286,17 +286,17 @@ class AnnotatedDrawable(Drawable):
                                showgrid=False,
                                showline=True)
 
-        # dotpolot traces and layout
+        # core traces and layout
         fig.add_traces(self.traces)
 
-        layout.xaxis.update(title=self.bottom_track.name,
+        layout.xaxis.update(title=self.xtitle,
                             range=self.xrange,
                             **ticks_on_kwargs)
-        layout.yaxis.update(title=self.left_track.name,
+        layout.yaxis.update(title=self.ytitle,
                             range=self.yrange,
                             **ticks_on_kwargs)
 
-        # seq1 traces
+        # bottom traces
         seen_types = set()
         max_y = 0
         traces = []
@@ -335,22 +335,21 @@ class AnnotatedDrawable(Drawable):
                                showgrid=False,
                                showline=True)
 
-        # dotpolot traces and layout
+        # core traces and layout
         fig.add_traces(self.traces)
 
-        layout.xaxis2.update(title=self.bottom_track.name,
+        layout.xaxis2.update(title=self.xtitle,
                              range=self.xrange,
                              **ticks_on_kwargs)
-        layout.yaxis.update(title=self.left_track.name,
+        layout.yaxis.update(title=self.ytitle,
                             range=self.yrange,
                             **ticks_on_kwargs)
 
-        # seq2 traces
+        # left track
         seen_types = set()
-        drawables = self.left_track.get_drawable(vertical=True)
         max_x = 0
         traces = []
-        for trace in drawables.traces:
+        for trace in self.left_track.traces:
             traces.append(trace)
             max_x = max(numpy.max(trace.x), max_x)
             if trace.legendgroup in seen_types:
