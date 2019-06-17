@@ -116,6 +116,9 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
         assert format is None
         assert not kw, kw
     else:
+        info = constructor_kw.get('info', {})
+        info['source'] = filename
+        constructor_kw['info'] = info
         assert data is None, (filename, data)
         data = list(FromFilenameParser(filename, format, **parser_kw))
 
