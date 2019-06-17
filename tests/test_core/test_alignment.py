@@ -887,7 +887,7 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection.get_translation translates each seq"""
         for seqs in [
             {'seq1': 'GATTTT', 'seq2': 'GATC??'},
-                {'seq1': 'GAT---', 'seq2': '?GATCT'}]:
+            {'seq1': 'GAT---', 'seq2': '?GATCT'}]:
             alignment = self.Class(data=seqs, moltype=DNA)
             got = alignment.get_translation()
             self.assertEqual(len(got), 2)
@@ -903,7 +903,7 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection.get_translation preserves info attribute"""
         for seqs in [
             {'seq1': 'GATTTT', 'seq2': 'GATC??'},
-                {'seq1': 'GAT---', 'seq2': '?GATCT'}]:
+            {'seq1': 'GAT---', 'seq2': '?GATCT'}]:
             alignment = self.Class(
                 data=seqs, moltype=DNA, info={'key': 'value'})
             got = alignment.get_translation()
@@ -1202,6 +1202,12 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         # assertRaises error when pad_length is less than max seq length
         self.assertRaises(ValueError, self.ragged.pad_seqs, 5)
 
+    def test_info_source(self):
+        """info.source exists if LoadSeqs given a filename"""
+        seqs = LoadSeqs('data/brca1.fasta', aligned=False)
+        self.assertEqual(seqs.info.source, 'data/brca1.fasta')
+
+
 def _make_filter_func(aln):
     array_align = type(aln) == ArrayAlignment
     if array_align:
@@ -1209,9 +1215,11 @@ def _make_filter_func(aln):
     else:
         gap = '-'
 
-    def func_str(x): return gap not in ''.join(x)
+    def func_str(x):
+        return gap not in ''.join(x)
 
-    def func_arr(x): return (x != gap).all()
+    def func_arr(x):
+        return (x != gap).all()
 
     return func_arr if array_align else func_str
 
@@ -1987,6 +1995,12 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln = LoadSeqs('data/brca1.fasta', moltype='dna')
         aln = aln.take_seqs(aln.names[:20])
         aln = aln.no_degenerates()[:20]
+
+    def test_info_source(self):
+        """info.source exists if LoadSeqs given a filename"""
+        array_align = self.Class == ArrayAlignment
+        seqs = LoadSeqs('data/brca1.fasta', array_align=array_align)
+        self.assertEqual(seqs.info.source, 'data/brca1.fasta')
 
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
