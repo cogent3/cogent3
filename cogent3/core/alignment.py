@@ -2667,7 +2667,7 @@ class AlignmentI(object):
             examined.
         drawable : None or str
             Result object is capable of plotting data specified type. str value
-            must be one of plot type 'box' or 'heatmap'.
+            must be one of plot type 'box', 'heatmap', 'violin'.
         show_progress : bool
             shows a progress bar
 
@@ -2705,10 +2705,15 @@ class AlignmentI(object):
 
         result = result.take(positions, axis=0).take(positions, axis=1)
         result = DictArrayTemplate(positions, positions).wrap(result)
-        if drawable == 'box':
-            trace = go.Box(y=result.array.flatten(),
+        if self.info.source:
+            trace_name = os.path.basename(self.info.source)
+        else:
+            trace_name = None
+
+        if drawable in ('box', 'violin'):
+            trace = dict(type=drawable, y=result.array.flatten(),
                            showlegend=False, name='')
-            draw = Drawable(width=500, height=500, title='Coevolution',
+            draw = Drawable(width=500, height=500, title=trace_name,
                             ytitle=method.upper())
             draw.add_trace(trace)
             result = draw.bound_to(result)
@@ -2719,16 +2724,12 @@ class AlignmentI(object):
                              showgrid=False,
                              showline=True,
                              zeroline=False)
-            if self.info.source:
-                trace_name = os.path.basename(self.info.source)
-            else:
-                trace_name = None
-
             height = 500
             width = height
             draw = Drawable(width=width, height=height,
                             xtitle=axis_title,
-                            ytitle=axis_title)
+                            ytitle=axis_title,
+                            title=trace_name)
 
             trace = go.Heatmap(z=result.array,
                                colorbar=dict(title=dict(text=method.upper(),
