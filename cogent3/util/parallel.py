@@ -8,6 +8,8 @@ import threading
 import multiprocessing
 import concurrent.futures as concurrentfutures
 import warnings
+import random
+import numpy
 
 from cogent3.util.misc import extend_docstring_from
 
@@ -20,6 +22,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
 
+RANK = 0
 
 if os.environ.get('DONT_USE_MPI', 0):
     MPI = None
@@ -36,21 +39,23 @@ else:
             MPI = None
 
 
-def generate_seed(use_mpi, seed=None):
-    global random_seed
+def generate_seed(use_mpi, seed):
     if use_mpi:
-        rank = COMM.Get_rank()
+        rank = RANK
     else:
         process_name = multiprocessing.current_process().name
-        rank = int(process_name[-1])
-    if seed is not None:
-        random_seed = seed + rank
-    else:
-        random_seed = int(time.time()) + rank
+        if process_name is "MainProcess":
+            rank = 0
+        else:
+            rank = int(process_name[-1])
+    random_seed = int(seed) + rank
+    random.seed(random_seed)
+    numpy.random.seed(random_seed)
 
 if MPI is not None:
+    RANK = COMM.Get_rank()
     if COMM.Get_size() > 1:
-        generate_seed(True, seed)
+        generate_seed(True, os.environ['SEED'])
     USING_MPI = True
 else:
     USING_MPI = False
@@ -74,7 +79,8 @@ class PicklableAndCallable():
         return self.func(*args, **kw)
 
 
-def imap(f, s, max_workers=None, use_mpi=False, seed=None, if_serial='raise'):
+def imap(f, s, max_workers=None, use_mpi=False, seed=None,
+        if_serial='raise', chunksize=1):
     """
     Parameters
     ----------
@@ -101,6 +107,13 @@ def imap(f, s, max_workers=None, use_mpi=False, seed=None, if_serial='raise'):
     if_serial = if_serial.lower()
     assert if_serial in ('ignore', 'raise', 'warn'), \
         f"invalid choice '{if_serial}'"
+
+    if seed is None:
+        seed = time.time()
+
+    # Generate random number seed for master process
+    generate_seed(use_mpi, seed)
+
     # If max_workers is not defined, get number of all processes available
     # minus 1 to leave for master process
     if use_mpi:
@@ -119,8 +132,8 @@ def imap(f, s, max_workers=None, use_mpi=False, seed=None, if_serial='raise'):
             max_workers = COMM.Get_attr(MPI.UNIVERSE_SIZE) - 1
 
         with MPIfutures.MPIPoolExecutor(max_workers=max_workers,
-                                        globals=dict(seed=seed)) as executor:
-            for result in executor.map(f, s):
+                                        env=dict(SEED='{:.0f}'.format(seed))) as executor:
+            for result in executor.map(f, s, chunksize=chunksize):
                 yield result
     else:
         if not max_workers:
@@ -132,9 +145,11 @@ def imap(f, s, max_workers=None, use_mpi=False, seed=None, if_serial='raise'):
         with concurrentfutures.ProcessPoolExecutor(max_workers,
                                         initializer=generate_seed,
                                         initargs=([False, seed])) as executor:
-            for result in executor.map(f, s):
+            for result in executor.map(f, s, chunksize=chunksize):
                 yield result
 
+
 @extend_docstring_from(imap)
-def map(f, s, max_workers=None, use_mpi=False, seed=None, if_serial='raise'):
-    return list(imap(f, s, max_workers, use_mpi, seed, if_serial))
+def map(f, s, max_workers=None, use_mpi=False, seed=None,
+        if_serial='raise', chunksize=1):
+    return list(imap(f, s, max_workers, use_mpi, seed, if_serial, chunksize))
