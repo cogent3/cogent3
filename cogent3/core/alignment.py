@@ -2752,6 +2752,8 @@ class AlignmentI(object):
                                          bottom_track=bottom,
                                          xtitle=axis_title,
                                          ytitle=axis_title,
+                                         xrange=[0, len(self)],
+                                         yrange=[0, len(self)],
                                          layout=layout)
 
             result = draw.bound_to(result)
