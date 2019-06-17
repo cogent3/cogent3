@@ -277,10 +277,6 @@ class write_seqs(_checkpointable):
                                          create=create, if_exists=if_exists,
                                          suffix=suffix)
         self._formatted_params()
-        if format != 'fasta':
-            # todo refactor alignment formatters
-            raise NotImplementedError('must use fasta for now')
-
         self._format = format
         self._formatter = FORMATTERS[format]
 
