@@ -123,9 +123,10 @@ def suite():
         'test_util.test_dictarray',
         'test_util.test_misc',
         'test_util.test_recode_alignment',
+        'test_util.test_table',
         'test_util.test_transform',
+        'test_util.test_union_dict',
         'test_recalculation',
-        'test_util.test_table.rst',
     ]
 
     assert sys.version_info >= (2, 6)
