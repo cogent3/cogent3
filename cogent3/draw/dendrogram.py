@@ -1,6 +1,7 @@
-from cogent3.core.tree import TreeNode
+from cogent3.core.tree import TreeNode, PhyloNode
 import numpy as np
 from cogent3.draw.drawable import Drawable
+from cogent3.util.misc import extend_docstring_from
 
 __author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -44,7 +45,8 @@ class _Dendrogram(TreeNode, Drawable):
         children = self.children
         if children:
             for c in children:
-                c._update_geometry(use_lengths, self.depth, track_coordinates)
+                c._update_geometry(
+                    use_lengths, self.depth, track_coordinates)
             self.height = max([c.height for c in children]) + self.length
             self.leafcount = sum([c.leafcount for c in children])
             self.edgecount = sum([c.edgecount for c in children]) + 1
@@ -195,7 +197,7 @@ class SquareDendrogram(_RootedDendrogram):
 
     def _build_fig(self, width=800, height=800, title=None, use_lengths=None,
                    **kw):
-        layout = {k:v for k, v in locals().items() if k != 'self' and v}
+        layout = {k: v for k, v in locals().items() if k != 'self' and v}
         self.layout.update(layout)
         self._get_all_x_coordinates()
         self._get_all_y_coordinates()
@@ -242,6 +244,7 @@ class SquareDendrogram(_RootedDendrogram):
                       shapes=line_shapes)
         self.layout.update(layout)
 
+
 class CircularDendrogram(_RootedDendrogram):
     aspect_distorts_lengths = False
 
@@ -256,7 +259,8 @@ class CircularDendrogram(_RootedDendrogram):
         if start_leaf:
             node_ycoord = {leaf: k for k, leaf in enumerate(self.tips())}
         else:
-            node_ycoord = {leaf: k for k, leaf in enumerate(reversed(self.tips()))}
+            node_ycoord = {leaf: k for k, leaf in
+                           enumerate(reversed(self.tips()))}
 
         if self.root().children:
             node_ycoord = _assign_ycoord(self.root(), node_ycoord)
@@ -294,8 +298,8 @@ class CircularDendrogram(_RootedDendrogram):
         return xnodes, ynodes, xlines, ylines, xarc, yarc, angles
 
     def _build_fig(self, width=800, height=800, title=None,
-                            use_lengths=None, **kw):
-        layout = {k:v for k, v in locals().items() if k != 'self' and v}
+                   use_lengths=None, **kw):
+        layout = {k: v for k, v in locals().items() if k != 'self' and v}
         self.layout.update(layout)
 
         all_clades = list(self.postorder())
@@ -346,7 +350,6 @@ class CircularDendrogram(_RootedDendrogram):
                                     shape='spline'),
                           hoverinfo='none')
 
-
         annotations = []
         for i in range(len(xnodes)):
 
@@ -354,7 +357,8 @@ class CircularDendrogram(_RootedDendrogram):
                          y=ynodes[i] - 0.3 * np.sin(- angles[i]),
                          showarrow=False,
                          text=text[i],
-                         textangle=-angles[i] * 180 / np.pi if np.cos(angles[i]) > 0 else -180 - angles[i] * 180 / np.pi
+                         textangle=-angles[i] * 180 / np.pi if np.cos(
+                             angles[i]) > 0 else -180 - angles[i] * 180 / np.pi
                          )
             annotations += [point]
 
@@ -364,7 +368,6 @@ class CircularDendrogram(_RootedDendrogram):
         self.layout.update(layout)
 
         self.traces.extend([trace_radial_lines, trace_arcs, trace_nodes])
-
 
 
 class Dimensions(object):
@@ -454,3 +457,228 @@ def _get_line_lists(clade, x_left, xlines, ylines, xarc, yarc, node_radius,
                             node_ycoord)
 
 
+class TreeGeometryBase(PhyloNode):
+    """base class that computes geometric coordinates for display"""
+
+    def __init__(self, tree, length_attr='length'):
+        """
+        Parameters
+        ----------
+        tree : either a PhyloNode or TreeNode instance
+        length_attr : str
+            name of the attribute to use for length, defaults to 'length'
+        """
+        children = [type(self)(child, length_attr=length_attr)
+                    for child in tree.children]
+        PhyloNode.__init__(self, params=tree.params.copy(), children=children,
+                           name=tree.name)
+        # todo do we need to validate the length_attr key exists?
+        self._length = length_attr
+        self._node_space = 1.3
+        self._start = None
+        self._end = None
+        self._y = None
+        self._x = None
+        self._tip_rank = None
+
+    def propagate_properties(self):
+        self._init_tip_ranks()
+        self._init_length_depth_attr()
+
+    @property
+    def x(self):
+        if self.is_root():
+            self._x = 0
+        elif self._x is None:
+            val = self.params[self._length] + self.parent.x
+            self._x = val
+        return self._x
+
+    @property
+    def tip_rank(self):
+        return self._tip_rank
+
+    def _max_child_depth(self):
+        """computes the maximum number of nodes to the tip"""
+        if 'max_child_depth' not in self.params:
+            if self.is_tip():
+                self.params['max_child_depth'] = self.params['depth']
+            else:
+                depths = [child._max_child_depth()
+                          for child in self.children]
+                self.params['max_child_depth'] = max(depths)
+        return self.params['max_child_depth']
+
+    def _init_length_depth_attr(self):
+        """check it exists, if not, creates with default value of 1"""
+        for edge in self.preorder():
+            if edge.is_root():
+                edge.params['depth'] = 0
+                edge.params[self._length] = 0
+            else:
+                length = edge.params.get(self._length, None) or 1
+                edge.params[self._length] = length
+                edge.params['depth'] = edge.parent.params.get('depth', 0) + 1
+
+        self._max_child_depth()
+        for edge in self.preorder():
+            if edge.is_root():
+                continue
+
+            parent_frac = edge.parent.params.get('cum_frac', 0)
+            if edge.is_tip():
+                edge.params['frac_pos'] = 1 - parent_frac
+            else:
+                frac = 1 / edge.params['max_child_depth']
+                edge.params['frac_pos'] = frac
+                edge.params['cum_frac'] = parent_frac + frac
+
+    @property
+    def depth(self):
+        return self.params['depth']
+
+    def get_segment_to_parent(self, children):
+        """returns (self.start, self.end)"""
+        return self.start, self.end
+
+    def value_and_coordinate(self, attr, padding=0.1):
+        """
+        Parameters
+        ----------
+        attr : str
+            attribute of self, e.g. 'name', or key in self.params
+        padding : float
+            distance from self coordinate
+
+        Returns
+        -------
+        (value of attr, (x, y)
+        """
+        # todo, possibly also return a rotation?
+        raise NotImplementedError('implement in sub-class')
+
+
+class SquareTreeGeometry(TreeGeometryBase):
+    """represents Square dendrograms, contemporaneous or not"""
+
+    def __init__(self, *args, **kwargs):
+        super(SquareTreeGeometry, self).__init__(*args, **kwargs)
+
+        if self.is_root():
+            self._init_tip_ranks()
+
+    def _init_tip_ranks(self):
+        tips = self.tips()
+        num_tips = len(tips)
+        for index, tip in enumerate(tips):
+            tip._tip_rank = index
+            tip._y = ((num_tips - 1) / 2 - index) * self._node_space
+
+    @property
+    def y(self):
+        if self.is_root():
+            self._y = 0
+        elif self._y is None:
+            val = (self.children[0].y + self.children[-1].y) / 2
+            self._y = val
+        return self._y
+
+    @property
+    def start(self):
+        """x, y coordinate for line connecting parent to this node"""
+        # needs to ask parent, but has to do more than just get the parent
+        # end, parent needs to know
+        if self.is_root():
+            val = 0, 0
+        else:
+            val = self.parent.x, self.y
+        return val
+
+    @property
+    def end(self):
+        """x, y coordinate for this node"""
+        return self.x, self.y
+
+    def get_segment_to_children(self):
+        """returns coordinates connecting all children to self.end"""
+        # if tip needs to
+        a = self.children[0].start
+        b = self.children[-1].start
+        return a, b
+
+    @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
+    def value_and_coordinate(self, attr, padding=0.1):
+        # todo, possibly also return a rotation?
+        x = self.x + padding
+        y = self.y
+        value = self.params.get(attr, None)
+        if value is None:
+            value = getattr(self, attr, None)
+        return value, (x, y)
+
+
+class Dendrogram(Drawable):
+    def __init__(self, tree, style='square', label_pad=.1, contemporaneous=True,
+                 *args, **kwargs):
+        super(Dendrogram, self).__init__(
+            visible_axes=False, showlegend=False, *args, **kwargs)
+        klass = {'square': SquareTreeGeometry}[style]
+        kwargs = dict(length_attr='frac_pos') if contemporaneous else {}
+        self.tree = klass(tree, **kwargs)
+        self.tree.propagate_properties()
+        self.label_pad = label_pad
+        self._tip_font = dict(size=16, family='sans serif')
+        self._line_width = 2
+        self._line_color = 'black'
+
+    @property
+    def tip_font(self):
+        return self._tip_font
+
+    def _get_tip_name_annotations(self):
+        annotations = []
+        for tip in self.tree.tips():
+            name, (x, y) = tip.value_and_coordinate('name',
+                                                    padding=self.label_pad)
+            anote = dict(x=x,
+                         y=y,
+                         xref='x',
+                         yref='y',
+                         showarrow=False,
+                         xanchor='left',
+                         text=name,
+                         font=self.tip_font)
+            annotations.append(anote)
+        return annotations
+
+    def _build_fig(self, **kwargs):
+        X = []
+        Y = []
+        tree = self.tree
+        text = {'type': 'scatter', 'text': [], 'x': [], 'y': [],
+                'hoverinfo': 'text', 'mode': 'markers',
+                'marker': {'symbol': 'circle', 'color': 'black'}}
+        for edge in tree.preorder():
+            x0, y0 = edge.start
+            x1, y1 = edge.end
+            X.extend([x0, x1, None])
+            Y.extend([y0, y1, None])
+            if edge.is_tip():
+                continue
+            name, (x, y) = edge.value_and_coordinate('name', padding=0)
+            text['x'].append(x)
+            text['y'].append(y)
+            text['text'].append(name)
+            segment = []
+            for x, y in edge.get_segment_to_children():
+                segment += [(x, y)]
+            xs, ys = list(zip(*segment))
+            xs += (None,)
+            ys += (None,)
+            X.extend(xs)
+            Y.extend(ys)
+        trace = dict(type='scatter', x=X, y=Y, mode='lines',
+                     line=dict(width=self._line_width,
+                               color=self._line_color))
+        self.traces.extend([trace, text])
+        self.layout.annotations = tuple(self._get_tip_name_annotations())

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import unittest
+import numpy
 from numpy.testing import assert_allclose
 
 from cogent3 import LoadSeqs
@@ -1201,6 +1202,27 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         # assertRaises error when pad_length is less than max seq length
         self.assertRaises(ValueError, self.ragged.pad_seqs, 5)
 
+    def test_info_source(self):
+        """info.source exists if LoadSeqs given a filename"""
+        seqs = LoadSeqs('data/brca1.fasta', aligned=False)
+        self.assertEqual(seqs.info.source, 'data/brca1.fasta')
+
+
+def _make_filter_func(aln):
+    array_align = type(aln) == ArrayAlignment
+    if array_align:
+        gap = aln.alphabet.with_gap_motif().to_indices('-')[0]
+    else:
+        gap = '-'
+
+    def func_str(x):
+        return gap not in ''.join(x)
+
+    def func_arr(x):
+        return (x != gap).all()
+
+    return func_arr if array_align else func_str
+
 
 class AlignmentBaseTests(SequenceCollectionBaseTests):
     """Tests of basic Alignment functionality. All Alignments should pass these.
@@ -1209,6 +1231,51 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
     type of Alignment. Override self.Constructor with your alignment class
     as a constructor.
     """
+
+    def make_and_filter(self, raw, expected, motif_length, drop_remainder):
+        # a simple filter func
+        aln = self.Class(raw, info={'key': 'value'})
+        func = _make_filter_func(aln)
+        result = aln.filtered(
+            func,
+            motif_length=motif_length, log_warnings=False,
+            drop_remainder=drop_remainder)
+        self.assertEqual(result.todict(), expected)
+        self.assertEqual(result.info['key'], 'value')
+
+    def test_filtered(self):
+        """filtered should return new alignment with positions consistent with
+        provided callback function"""
+        # a simple filter option
+        raw = {'a': 'ACGACGACG',
+               'b': 'CCC---CCC',
+               'c': 'AAAA--AAA'}
+        self.make_and_filter(
+            raw, {'a': 'ACGACG', 'b': 'CCCCCC', 'c': 'AAAAAA'}, 1, True)
+        # check with motif_length = 2
+        self.make_and_filter(raw, {'a': 'ACAC', 'b': 'CCCC', 'c': 'AAAA'}, 2,
+                             True)
+        # check with motif_length = 3
+        self.make_and_filter(
+            raw, {'a': 'ACGACG', 'b': 'CCCCCC', 'c': 'AAAAAA'}, 3, True)
+
+    def test_filter_drop_remainder(self):
+        """filter allows dropping """
+        raw = {'a': 'ACGACGACG',
+               'b': 'CCC---CCC',
+               'c': 'AAAA--AAA'}
+        aln = self.Class(raw)
+        func = _make_filter_func(aln)
+        got = aln.filtered(func, motif_length=1, log_warnings=False)
+        self.assertEqual(len(got), 6)
+        # raises an assertion if the length is not modulo
+        with self.assertRaises(ValueError):
+            # because alignment not modulo 2
+            got = aln.filtered(func, motif_length=2,
+                               drop_remainder=False)
+        got = aln.filtered(func, motif_length=2,
+                           drop_remainder=True, log_warnings=False)
+        self.assertEqual(len(got), 4)
 
     def test_positions(self):
         """SequenceCollection positions property should iterate over positions, using self.names"""
@@ -1914,19 +1981,26 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         """correctly produces matrix of coevo measures"""
         data = {'s0': 'AA', 's1': 'AA', 's2': 'BB', 's3': 'BB', 's4': 'BC'}
         aln = self.Class(data=data)
-        coevo = aln.coevolution(method='rmi')
+        coevo = aln.coevolution(method='rmi', show_progress=False)
         expect = array([[nan, nan],
                         [0.78333333, nan]])
         assert_allclose(coevo.array, expect)
-        coevo = aln.coevolution(method='nmi')
+        coevo = aln.coevolution(method='nmi', show_progress=False)
         self.assertNotEqual(coevo[1, 1], expect[1, 1])
         # now check invoking drawable produces a result object with a drawable
         # attribute
-        coevo = aln.coevolution(method='nmi', drawable='box')
+        coevo = aln.coevolution(
+            method='nmi', drawable='box', show_progress=False)
         self.assertTrue(hasattr(coevo, 'drawable'))
         aln = LoadSeqs('data/brca1.fasta', moltype='dna')
         aln = aln.take_seqs(aln.names[:20])
         aln = aln.no_degenerates()[:20]
+
+    def test_info_source(self):
+        """info.source exists if LoadSeqs given a filename"""
+        array_align = self.Class == ArrayAlignment
+        seqs = LoadSeqs('data/brca1.fasta', array_align=array_align)
+        self.assertEqual(seqs.info.source, 'data/brca1.fasta')
 
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
@@ -1964,31 +2038,6 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
 
 class AlignmentTests(AlignmentBaseTests, TestCase):
     Class = Alignment
-
-    def make_and_filter(self, raw, expected, motif_length):
-        # a simple filter func
-        def func(x): return re.findall("[-N?]", " ".join(x)) == []
-
-        aln = self.Class(raw, info={'key': 'value'})
-        result = aln.filtered(
-            func, motif_length=motif_length, log_warnings=False)
-        self.assertEqual(result.todict(), expected)
-        self.assertEqual(result.info['key'], 'value')
-
-    def test_filtered(self):
-        """filtered should return new alignment with positions consistent with
-        provided callback function"""
-        # a simple filter option
-        raw = {'a': 'ACGACGACG',
-               'b': 'CCC---CCC',
-               'c': 'AAAA--AAA'}
-        self.make_and_filter(
-            raw, {'a': 'ACGACG', 'b': 'CCCCCC', 'c': 'AAAAAA'}, 1)
-        # check with motif_length = 2
-        self.make_and_filter(raw, {'a': 'ACAC', 'b': 'CCCC', 'c': 'AAAA'}, 2)
-        # check with motif_length = 3
-        self.make_and_filter(
-            raw, {'a': 'ACGACG', 'b': 'CCCCCC', 'c': 'AAAAAA'}, 3)
 
     def test_sliding_windows(self):
         """sliding_windows should return slices of alignments."""
@@ -2336,7 +2385,8 @@ class ArrayAlignmentSpecificTests(TestCase):
         aln = LoadSeqs('data/brca1.fasta', moltype='dna')
         aln = aln.take_seqs(aln.names[:20])
         aln = aln.no_degenerates()[:20]
-        coevo = aln.coevolution(segments=[(4, 6), (11, 13)])
+        coevo = aln.coevolution(segments=[(4, 6), (11, 13)],
+                                show_progress=False)
         self.assertEqual(coevo.template.names[0], [4, 5, 11, 12])
 
 

@@ -1587,7 +1587,7 @@ class PhyloNodeTests(TestCase):
         _ = t.get_figure(kind='circular')
 
 
-class Test_tip_tip_distances_I(object):
+class _tip_tip_distances_I:
     """Abstract class for testing different implementations of tip_to_tip."""
 
     def setUp(self):
@@ -1613,7 +1613,7 @@ class Test_tip_tip_distances_I(object):
                                      [4, 5, 0, 3.4], [1.4, 2.4, 3.4, 0]]))
 
 
-class Test_tip_tip_distances_array(Test_tip_tip_distances_I, TestCase):
+class Test_tip_tip_distances_array(_tip_tip_distances_I, TestCase):
     """Tests for the array implementation of tip_to_tip distances"""
 
     def setUp(self):

@@ -2,6 +2,7 @@ from cogent3 import LoadSeqs, DNA
 from unittest import TestCase, main
 
 from cogent3.app import sample, composable
+from cogent3.app.composable import NotCompletedResult
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -120,8 +121,9 @@ class TranslateTests(TestCase):
 
         # if using subtract_degen, fails if incorect moltype
         ml = sample.min_length(9, subtract_degen=True)
-        with self.assertRaises(ValueError):
-            ml(aln)
+        got = ml(aln)
+        self.assertIsInstance(got, NotCompletedResult)
+        self.assertEqual(got.type, 'ERROR')
 
         # but works if subtract_degen is False
         ml = sample.min_length(9, subtract_degen=False)
