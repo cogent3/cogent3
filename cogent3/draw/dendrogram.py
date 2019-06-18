@@ -490,7 +490,7 @@ class TreeGeometryBase(PhyloNode):
         if self.is_root():
             self._x = 0
         elif self._x is None:
-            val = self.params[self._length] + self.parent.x
+            val = self.params['cum_length']
             self._x = val
         return self._x
 
@@ -525,13 +525,13 @@ class TreeGeometryBase(PhyloNode):
             if edge.is_root():
                 continue
 
-            parent_frac = edge.parent.params.get('cum_frac', 0)
+            parent_frac = edge.parent.params.get('cum_length', 0)
             if edge.is_tip():
-                edge.params['frac_pos'] = 1 - parent_frac
+                frac = 1 - parent_frac
             else:
                 frac = 1 / edge.params['max_child_depth']
-                edge.params['frac_pos'] = frac
-                edge.params['cum_frac'] = parent_frac + frac
+            edge.params['frac_pos'] = frac
+            edge.params['cum_length'] = parent_frac + edge.params['frac_pos']
 
     @property
     def depth(self):
