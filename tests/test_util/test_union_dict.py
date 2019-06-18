@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+
+"""Unit tests for union_dict.
+"""
+from cogent3.util.unit_test import TestCase, main
+from cogent3.util.union_dict import UnionDict
+
+__author__ = "Thomas La"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__credits__ = ["Gavin Huttley", "Thomas La"]
+__license__ = "GPL"
+__version__ = "3.0a2"
+__maintainer__ = "Gavin Huttley"
+__email__ = "gavin.huttley@anu.edu.au"
+__status__ = "Production"
+
+
+class UnionDictTests(TestCase):
+    """Tests of individual functions in union_dict"""
+
+    def test_attr(self):
+        """test the "." read/write functionality"""
+        d = UnionDict({'a': 1, 'b': 2, 'c': 3, 'd': {'e': 5, 'f': 6}})
+        self.assertEqual(d.a, 1)
+        self.assertEqual(d.b, 2)
+        self.assertEqual(d.d.e, 5)
+        d.c = 0
+        d.d.f = 0
+        self.assertEqual(d.c, 0)
+        self.assertEqual(d.d.f, 0)
+
+    def test_union(self):
+        """correctly adjust a prob vector so all values > minval"""
+        d = UnionDict({'a': 1, 'b': 2, 'c': 3, 'd': {'e': 5, 'f': 6}})
+        e = UnionDict({'b': 0, 'd': {'f': 0, 'g': 7}})
+        d |= e
+        self.assertEqual(d.a, 1)
+        self.assertEqual(d.b, 0)
+        self.assertEqual(d.d.e, 5)
+        self.assertEqual(d.d.f, 0)
+        self.assertEqual(d.d.g, 7)
+
+    def test_sub_dicts_are_union(self):
+        """checks if UnionDict is propogated to children"""
+        d = UnionDict({'a': 1, 'b': 2, 'c': 3, 'd': {'e': 5, 'f': 6}})
+        d.e = {'g': 7}
+        d.e.g = {'h': 8}
+        self.assertTrue(isinstance(d, UnionDict))
+        self.assertTrue(isinstance(d.d, UnionDict))
+        self.assertTrue(isinstance(d.e, UnionDict))
+        self.assertTrue(isinstance(d.e.g, UnionDict))
+
+    def test_get_sub_attr(self):
+        """test string form of get_attr"""
+        d = UnionDict({'a': 1, 'b': 2, 'c': 3, 'd': {'e': 5, 'f': 6}})
+        self.assertEqual(d.get_sub_attr([], 'a'), 1)
+        self.assertEqual(d.get_sub_attr([], 'd'), UnionDict({'e': 5, 'f': 6}))
+        self.assertEqual(d.get_sub_attr(['d'], 'e'), 5)
+
+
+if __name__ == '__main__':
+    main()
