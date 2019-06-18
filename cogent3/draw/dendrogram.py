@@ -468,8 +468,7 @@ class TreeGeometryBase(PhyloNode):
         length_attr : str
             name of the attribute to use for length, defaults to 'length'
         """
-        children = [type(self)(child, length_attr=length_attr)
-                    for child in tree.children]
+        children = [type(self)(child) for child in tree.children]
         PhyloNode.__init__(self, params=tree.params.copy(), children=children,
                            name=tree.name)
         # todo do we need to validate the length_attr key exists?
@@ -538,7 +537,8 @@ class TreeGeometryBase(PhyloNode):
             else:
                 frac = 1 / edge.params['max_child_depth']
             edge.params['frac_pos'] = frac
-            edge.params['cum_length'] = parent_frac + edge.params['frac_pos']
+            edge.params['cum_length'] = parent_frac + \
+                edge.params[self._length]
 
     @property
     def depth(self):
