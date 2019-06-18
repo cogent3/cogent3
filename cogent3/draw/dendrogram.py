@@ -518,6 +518,8 @@ class TreeGeometryBase(PhyloNode):
     def _init_length_depth_attr(self):
         """check it exists, if not, creates with default value of 1"""
         for edge in self.preorder():
+            # making sure children have the correct setting for ._length
+            edge._length = self._length
             if edge.is_root():
                 edge.params['depth'] = 0
                 edge.params[self._length] = 0
