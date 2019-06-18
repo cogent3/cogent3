@@ -49,7 +49,8 @@ from numpy import (nonzero, array, logical_or, logical_and, logical_not,
 from numpy.random import randint, permutation, choice
 
 from cogent3.util.dict_array import DictArrayTemplate
-from cogent3.util.misc import bytes_to_string, get_object_provenance
+from cogent3.util.misc import (bytes_to_string, get_object_provenance,
+                               extend_docstring_from, )
 from cogent3.util import progress_display as UI
 from copy import copy, deepcopy
 from cogent3.core.profile import MotifCountsArray
@@ -2666,7 +2667,7 @@ class AlignmentI(object):
             examined.
         drawable : None or str
             Result object is capable of plotting data specified type. str value
-            must be one of plot type 'box' or 'heatmap'.
+            must be one of plot type 'box', 'heatmap', 'violin'.
         show_progress : bool
             shows a progress bar
 
@@ -2704,10 +2705,15 @@ class AlignmentI(object):
 
         result = result.take(positions, axis=0).take(positions, axis=1)
         result = DictArrayTemplate(positions, positions).wrap(result)
-        if drawable == 'box':
-            trace = go.Box(y=result.array.flatten(),
+        if self.info.source:
+            trace_name = os.path.basename(self.info.source)
+        else:
+            trace_name = None
+
+        if drawable in ('box', 'violin'):
+            trace = dict(type=drawable, y=result.array.flatten(),
                            showlegend=False, name='')
-            draw = Drawable(width=500, height=500, title='Coevolution',
+            draw = Drawable(width=500, height=500, title=trace_name,
                             ytitle=method.upper())
             draw.add_trace(trace)
             result = draw.bound_to(result)
@@ -2718,16 +2724,12 @@ class AlignmentI(object):
                              showgrid=False,
                              showline=True,
                              zeroline=False)
-            if self.info.source:
-                trace_name = os.path.basename(self.info.source)
-            else:
-                trace_name = None
-
             height = 500
             width = height
             draw = Drawable(width=width, height=height,
                             xtitle=axis_title,
-                            ytitle=axis_title)
+                            ytitle=axis_title,
+                            title=trace_name)
 
             trace = go.Heatmap(z=result.array,
                                colorbar=dict(title=dict(text=method.upper(),
@@ -2751,6 +2753,8 @@ class AlignmentI(object):
                                          bottom_track=bottom,
                                          xtitle=axis_title,
                                          ytitle=axis_title,
+                                         xrange=[0, len(self)],
+                                         yrange=[0, len(self)],
                                          layout=layout)
 
             result = draw.bound_to(result)
@@ -3175,22 +3179,31 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
                                 info=self.info, names=self.names)
         return result
 
-    def filtered(self, predicate, motif_length=1, **kwargs):
+    def filtered(self, predicate, motif_length=1, drop_remainder=True, **kwargs):
         """The alignment positions where predicate(column) is true.
-
-        Arguments:
-            - predicate: a callback function that takes an tuple of motifs and
-              returns True/False
-            - motif_length: length of the motifs the sequences should be split
-              into, eg. 3 for filtering aligned codons."""
+        Parameters
+        ----------
+        predicate : callable
+            a callback function that takes an tuple of motifs and returns
+            True/False
+        motif_length : int
+            length of the motifs the sequences should be split  into, eg. 3 for
+            filtering aligned codons.
+        drop_remainder : bool
+            If length is not modulo motif_length, allow dropping the terminal
+            remaining columns
+        """
         length = self.seq_len
-        if length % motif_length != 0:
+        if length % motif_length != 0 and not drop_remainder:
             raise ValueError("aligned length not divisible by "
                              "motif_length=%d" % motif_length)
 
         num_motifs = length // motif_length
-        shaped = self.array_seqs.reshape(
-            (self.num_seqs, num_motifs, motif_length))
+        shaped = self.array_seqs
+        if motif_length != 1:
+            shaped = shaped[:, :num_motifs * motif_length]
+
+        shaped = shaped.reshape((self.num_seqs, num_motifs, motif_length))
         indices = []
         elements = arange(motif_length)
         for i in range(num_motifs):
@@ -3670,14 +3683,12 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             data=masked_seqs, info=self.info, name=self.name)
         return new
 
-    def filtered(self, predicate, motif_length=1, **kwargs):
-        """The alignment positions where predicate(column) is true.
-
-        Arguments:
-            - predicate: a callback function that takes an tuple of motifs and
-              returns True/False
-            - motif_length: length of the motifs the sequences should be split
-              into, eg. 3 for filtering aligned codons."""
+    @extend_docstring_from(ArrayAlignment.filtered)
+    def filtered(self, predicate, motif_length=1, drop_remainder=True, **kwargs):
+        length = self.seq_len
+        if length % motif_length != 0 and not drop_remainder:
+            raise ValueError("aligned length not divisible by "
+                             "motif_length=%d" % motif_length)
         gv = []
         kept = False
         seqs = [self.get_gapped_seq(n).get_in_motif_size(motif_length,

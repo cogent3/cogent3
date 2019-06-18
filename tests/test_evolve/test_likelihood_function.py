@@ -819,6 +819,31 @@ NineBande      root    1.0000    1.0000
         nfp2 = lf.nfp
         self.assertEqual(nfp2 - nfp1, 1)
 
+    def test_getting_pprobs(self):
+        """posterior bin probs same length as aln for phylo-HMM model"""
+        with open('data/site-het-param-rules.json') as infile:
+            rules = json.load(infile)
+
+        aln = LoadSeqs('data/primates_brca1.fasta', moltype='dna')
+        tree = LoadTree('data/primates_brca1.tree')
+        rule_lnL = rules.pop('gamma-length')
+        sm = get_model('HKY85', ordered_param='rate', distribution='gamma')
+        lf = sm.make_likelihood_function(tree, bins=4, sites_independent=True)
+        lf.set_alignment(aln)
+        lf.apply_param_rules(rule_lnL['rules'])
+        bprobs = lf.get_bin_probs()
+        self.assertEqual(bprobs.shape[1], len(aln))
+
+    def test_bin_probs(self):
+        """posterior bin probs same length as aln for rate-het model"""
+        aln = LoadSeqs('data/primates_brca1.fasta', moltype='dna')
+        tree = LoadTree('data/primates_brca1.tree')
+        sm = get_model('HKY85', ordered_param='rate', distribution='gamma')
+        lf = sm.make_likelihood_function(tree, bins=4, sites_independent=False)
+        lf.set_alignment(aln)
+        bprobs = lf.get_bin_probs()
+        self.assertEqual(bprobs.shape[1], len(aln))
+
     def test_time_het_init_from_nested(self):
         """initialise from nested should honour alt model setting"""
         # setting time-het for entire Q

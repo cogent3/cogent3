@@ -2,6 +2,7 @@ import os
 import re
 import pathlib
 import inspect
+import time
 
 import scitrack
 
@@ -155,7 +156,9 @@ class Composable(ComposableType):
         stack = inspect.stack()
         stack.reverse()
         for level in stack:
-            if '__class__' in inspect.getargvalues(level.frame).locals:
+            args = inspect.getargvalues(level.frame).locals
+            klass = args.get('__class__', None)
+            if klass and isinstance(self, klass):
                 break
         args = inspect.getargvalues(level.frame).locals
         params = inspect.signature(args['__class__'].__init__).parameters
@@ -224,6 +227,14 @@ class Composable(ComposableType):
         # over-ride in sub classes
         return False
 
+    def _trapped_call(self, func, val, *args, **kwargs):
+        try:
+            val = func(val, *args, **kwargs)
+        except Exception as err:
+            val = NotCompletedResult(
+                'ERROR', self, err.args[0], source=val)
+        return val
+
     def __call__(self, val, *args, **kwargs):
         # initial invocation always transfers call() to first composable
         # element to get input for self
@@ -241,17 +252,11 @@ class Composable(ComposableType):
                 return result
 
         if self.input:
-            try:
-                val = self._in(val, *args, **kwargs)
-            except Exception as err:
-                val = NotCompletedResult(
-                    'ERROR', self, err.args[0], source=val)
-                return val
+            val = self._trapped_call(self._in, val, *args, **kwargs)
 
         if not val:
             return val
-
-        result = self.func(val, *args, **kwargs)
+        result = self._trapped_call(self.func, val, *args, **kwargs)
         if not result and type(result) != NotCompletedResult:
             msg = ('This is unexpected! Please post this error message along'
                    ' with the code and data indicated as an Issue on the'
@@ -325,6 +330,7 @@ class Composable(ComposableType):
         If run in parallel, this instance serves as the master object and
         aggregates results.
         """
+        start = time.time()
         loggable = hasattr(self, 'data_store')
         if not loggable:
             LOGGER = None
@@ -361,11 +367,13 @@ class Composable(ComposableType):
             results.append(outcome)
             if LOGGER:
                 member = dstore[i]
+                LOGGER.log_message(member, label='input')
                 LOGGER.log_message(member.md5, label='input md5sum')
                 if outcome:
                     mem_id = self.data_store.make_relative_identifier(
                         member.name)
                     member = self.data_store.get_member(mem_id)
+                    LOGGER.log_message(member, label='output')
                     LOGGER.log_message(member.md5, label='output md5sum')
                 else:
                     # we have a NotCompletedResult
@@ -374,7 +382,10 @@ class Composable(ComposableType):
 
             i += 1
 
+        finish = time.time()
+        taken = finish - start
         if LOGGER:
+            LOGGER.log_message(f'{taken}', label='TIME TAKEN')
             LOGGER.shutdown()
             self.data_store.add_file(str(log_file_path), cleanup=cleanup)
 

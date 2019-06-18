@@ -220,7 +220,8 @@ def _paralinear(matrix):
 
     r = matrix.shape[0]
     d_xy = - log(det(frequency) / sqrt((freqs[0] * freqs[1]).prod())) / r
-    var = (var_term - (1 / sqrt(freqs[0] * freqs[1])).sum()) / (r ** 2 * total)
+    var = (
+        var_term - (1 / sqrt(freqs[0] * freqs[1])).sum()) / (r ** 2 * total)
 
     return total, p, d_xy, var
 
@@ -270,7 +271,10 @@ def _number_formatter(template):
 
     return call
 
-Stats = namedtuple("Stats", ["length", "fraction_variable", "dist", "variance"])
+
+Stats = namedtuple(
+    "Stats", ["length", "fraction_variable", "dist", "variance"])
+
 
 def _make_stat_table(stats, names, **kwargs):
     header = [r'Seq1 \ Seq2'] + names
@@ -305,7 +309,8 @@ class _PairwiseDistance(object):
             raise ValueError(msg)
 
         self.moltype = moltype
-        self.char_to_indices = get_moltype_index_array(moltype, invalid=invalid)
+        self.char_to_indices = get_moltype_index_array(
+            moltype, invalid=invalid)
         self._dim = len(list(moltype))
         self._dists = None
         self._dupes = None
@@ -678,9 +683,9 @@ class DistanceMatrix(DictArray):
         an estimated Neighbour Joining Tree, note that invalid distances are dropped
         prior to building the tree
         """
-        from cogent3.phylo.nj import gnj
+        from cogent3.phylo.nj import nj
         dists = self.drop_invalid()
         if not dists or dists.shape[0] == 1:
-            raise ValueError('Too few distances to build a tree')
-        dists = dists.todict(flatten=True)
-        return gnj(dists, show_progress=show_progress)
+            raise ValueError('Too few distances to build a treenj')
+        dists = dists.todict()
+        return nj(dists, show_progress=show_progress)

@@ -506,7 +506,7 @@ class TreeNode(object):
 
     def isroot(self):
         """Returns True if root of a tree, i.e. no parent."""
-        return self._parent is None
+        return self.is_root()
 
     def siblings(self):
         """Returns all nodes that are children of the same parent as self.

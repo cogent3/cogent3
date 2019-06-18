@@ -490,6 +490,34 @@ class TestDistanceMatrix(TestCase):
         new = darr.drop_invalid()
         self.assertEqual(new.shape, (2, 2))
 
+    def test_build_phylogeny(self):
+        """build a NJ tree"""
+        from cogent3 import LoadTree
+        dists = {('DogFaced', 'FlyingFox'): 0.05,
+                 ('DogFaced', 'FreeTaile'): 0.14,
+                 ('DogFaced', 'LittleBro'): 0.16,
+                 ('DogFaced', 'TombBat'): 0.15,
+                 ('FlyingFox', 'DogFaced'): 0.05,
+                 ('FlyingFox', 'FreeTaile'): 0.12,
+                 ('FlyingFox', 'LittleBro'): 0.13,
+                 ('FlyingFox', 'TombBat'): 0.14,
+                 ('FreeTaile', 'DogFaced'): 0.14,
+                 ('FreeTaile', 'FlyingFox'): 0.12,
+                 ('FreeTaile', 'LittleBro'): 0.09,
+                 ('FreeTaile', 'TombBat'): 0.1,
+                 ('LittleBro', 'DogFaced'): 0.16,
+                 ('LittleBro', 'FlyingFox'): 0.13,
+                 ('LittleBro', 'FreeTaile'): 0.09,
+                 ('LittleBro', 'TombBat'): 0.12,
+                 ('TombBat', 'DogFaced'): 0.15,
+                 ('TombBat', 'FlyingFox'): 0.14,
+                 ('TombBat', 'FreeTaile'): 0.1,
+                 ('TombBat', 'LittleBro'): 0.12}
+        dists = DistanceMatrix(dists)
+        got = dists.build_tree(show_progress=False)
+        expect = LoadTree(treestring='((TombBat,(DogFaced,FlyingFox)),LittleBro,FreeTaile)')
+        self.assertTrue(expect.same_topology(got))
+
 class DistancesTests(TestCase):
 
     def setUp(self):
@@ -624,6 +652,12 @@ class DistancesTests(TestCase):
             for param in expect[pair]:
                 self.assertAlmostEqual(got[pair][param], expect[
                                        pair][param], places=6)
+
+    def test_no_calc(self):
+        """returns None if no calculation done"""
+        al = LoadSeqs("data/brca1_5.paml")
+        d = EstimateDistances(al, submodel=HKY85())
+        self.assertEqual(d.get_pairwise_distances(), None)
 
 if __name__ == '__main__':
     main()
