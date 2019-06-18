@@ -29,6 +29,35 @@ class UnionDictTests(TestCase):
         self.assertEqual(d.c, 0)
         self.assertEqual(d.d.f, 0)
 
+    def test_construction(self):
+        """should handle deeply nested dict"""
+        data = {'width': 600.0,
+                'xaxis': {'title': {'text': 'Alignment Position'},
+                          }}
+        d = UnionDict(data)
+        self.assertEqual(d.xaxis.title.text, 'Alignment Position')
+
+    def test_construct_from_empty(self):
+        """successfully define from an empty"""
+        data = {'width': 600.0,
+                'xaxis': {'title': {'text': 'Alignment Position'},
+                          }}
+        # empty object
+        d = UnionDict()
+        self.assertTrue(len(d) == 0)
+        # using update
+        d.update(data)
+        self.assertEqual(d.xaxis.title.text, 'Alignment Position')
+
+    def test_construct_from_kwargs(self):
+        """successfully define from an kwargs"""
+        data = {'width': 600.0,
+                'xaxis': {'title': {'text': 'Alignment Position'},
+                          }}
+        # empty object
+        d = UnionDict(**data)
+        self.assertEqual(d.xaxis.title.text, 'Alignment Position')
+
     def test_union(self):
         """correctly adjust a prob vector so all values > minval"""
         d = UnionDict({'a': 1, 'b': 2, 'c': 3, 'd': {'e': 5, 'f': 6}})
@@ -50,12 +79,12 @@ class UnionDictTests(TestCase):
         self.assertTrue(isinstance(d.e, UnionDict))
         self.assertTrue(isinstance(d.e.g, UnionDict))
 
-    def test_get_sub_attr(self):
-        """test string form of get_attr"""
+    def test_get_subattr(self):
+        """_getsubattr_ returns nested values via key"""
         d = UnionDict({'a': 1, 'b': 2, 'c': 3, 'd': {'e': 5, 'f': 6}})
-        self.assertEqual(d.get_sub_attr([], 'a'), 1)
-        self.assertEqual(d.get_sub_attr([], 'd'), UnionDict({'e': 5, 'f': 6}))
-        self.assertEqual(d.get_sub_attr(['d'], 'e'), 5)
+        self.assertEqual(d._getsubattr_([], 'a'), 1)
+        self.assertEqual(d._getsubattr_([], 'd'), UnionDict({'e': 5, 'f': 6}))
+        self.assertEqual(d._getsubattr_(['d'], 'e'), 5)
 
 
 if __name__ == '__main__':
