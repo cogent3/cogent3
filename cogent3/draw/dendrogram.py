@@ -509,6 +509,13 @@ class TreeGeometryBase(PhyloNode):
                 self.params['max_child_depth'] = max(depths)
         return self.params['max_child_depth']
 
+    def _init_tip_ranks(self):
+        tips = self.tips()
+        num_tips = len(tips)
+        for index, tip in enumerate(tips):
+            tip._tip_rank = index
+            tip._y = ((num_tips - 1) / 2 - index) * self._node_space
+
     def _init_length_depth_attr(self):
         """check it exists, if not, creates with default value of 1"""
         for edge in self.preorder():
@@ -563,16 +570,6 @@ class SquareTreeGeometry(TreeGeometryBase):
 
     def __init__(self, *args, **kwargs):
         super(SquareTreeGeometry, self).__init__(*args, **kwargs)
-
-        if self.is_root():
-            self._init_tip_ranks()
-
-    def _init_tip_ranks(self):
-        tips = self.tips()
-        num_tips = len(tips)
-        for index, tip in enumerate(tips):
-            tip._tip_rank = index
-            tip._y = ((num_tips - 1) / 2 - index) * self._node_space
 
     @property
     def y(self):
