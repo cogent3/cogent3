@@ -35,8 +35,7 @@ from cogent3.core.sequence import Sequence as DefaultSequence, RnaSequence, \
     ArrayDnaSequence, ArrayRnaSequence, ArrayDnaCodonSequence, \
     ArrayRnaCodonSequence, ArrayProteinSequence, ProteinWithStopSequence,\
     ArrayProteinWithStopSequence
-from cogent3.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE, \
-    GeneticCodes
+from cogent3.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE, get_code
 from cogent3.core.alignment import Alignment, ArrayAlignment, \
     SequenceCollection
 from random import choice
@@ -1254,7 +1253,7 @@ class _CodonAlphabet(Alphabet):
 
 def CodonAlphabet(gc=DEFAULT_GENETIC_CODE, include_stop_codons=False):
     if isinstance(gc, (int, str)):
-        gc = GeneticCodes[gc]
+        gc = get_code(gc)
     if include_stop_codons:
         motifset = list(gc.codons)
     else:
