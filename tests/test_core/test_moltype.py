@@ -12,7 +12,8 @@ from cogent3.core.moltype import (AlphabetError,
                                   IUPAC_DNA_chars, IUPAC_DNA_ambiguities,
                                   IUPAC_DNA_ambiguities_complements,
                                   RnaStandardPairs, DnaStandardPairs,
-                                  get_moltype, available_moltypes)
+                                  get_moltype, available_moltypes,
+                                  CodonAlphabet)
 
 from cogent3.util.unit_test import TestCase, main
 from cogent3.data.molecular_weight import DnaMW, RnaMW, ProteinMW
@@ -854,7 +855,7 @@ class DinucAlphabet(_AlphabetTestCase):
 
 
 
-class CodonAlphabet(_AlphabetTestCase):
+class TestCodonAlphabet(_AlphabetTestCase):
 
     def setUp(self):
         self.alpha = STANDARD_CODON
@@ -907,6 +908,15 @@ class CodonAlphabet(_AlphabetTestCase):
                     'TGG', 'TGT', 'TTA', 'TTC', 'TTG',
                     'TTT']
         self.assertEqualSets(alpha, expected)
+
+    def test_constructing_from_func(self):
+        """the CodonAlphabet function should support genetic code names as well"""
+        alpha_int = CodonAlphabet(1)
+        alpha_name = CodonAlphabet('Standard Nuclear')
+        self.assertEqual(alpha_int, alpha_name)
+        alpha_int = CodonAlphabet(2)
+        alpha_name = CodonAlphabet('Vertebrate Mitochondrial')
+        self.assertEqual(alpha_int, alpha_name)
 
 
 if __name__ == '__main__':
