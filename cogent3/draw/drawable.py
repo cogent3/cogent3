@@ -98,7 +98,7 @@ class Drawable:
             text=self.ytitle)
         self.layout.xaxis.title = xtitle
         self.layout.yaxis.title = ytitle
-        return dict(data=self.traces, layout=self.layout)
+        return UnionDict(data=self.traces, layout=self.layout)
 
     def iplot(self, *args, **kwargs):
         from plotly.offline import iplot as _iplot
