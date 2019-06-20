@@ -474,7 +474,8 @@ class TreeGeometryBase(PhyloNode):
         if tree is not None:
             children = [type(self)(child, *args, **kwargs)
                         for child in tree.children]
-            PhyloNode.__init__(self, params=tree.params.copy(), children=children,
+            PhyloNode.__init__(self, params=tree.params.copy(),
+                               children=children,
                                name=tree.name)
         else:
             PhyloNode.__init__(self, **kwargs)
@@ -487,6 +488,10 @@ class TreeGeometryBase(PhyloNode):
         self._y = None
         self._x = None
         self._tip_rank = None
+        self._max_x = 0
+        self._min_x = 0
+        self._max_y = 0
+        self._min_y = 0
 
     def propagate_properties(self):
         self._init_tip_ranks()
@@ -500,6 +505,40 @@ class TreeGeometryBase(PhyloNode):
             val = self.params['cum_length']
             self._x = val
         return self._x
+
+    @property
+    def max_x(self):
+        if not self._max_x:
+            self._max_x = max(e.x for e in self.tips())
+        return self._max_x
+
+    @property
+    def min_x(self):
+        if not self._min_x:
+            self._min_x = min([e.x for e in self.iter_nontips()] + [self.x])
+        return self._min_x
+
+    @property
+    def max_y(self):
+        if not self._max_y:
+            self._max_y = max(e.y for e in self.tips())
+        return self._max_y
+
+    @property
+    def min_y(self):
+        if not self._min_y:
+            self._min_y = min(e.y for e in self.tips())
+        return self._min_y
+
+    @property
+    def node_space(self):
+        return self._node_space
+
+    @node_space.setter
+    def node_space(self, value):
+        if value < 0:
+            raise ValueError('node spacing must be > 0')
+        self._node_space = value
 
     @property
     def tip_rank(self):
@@ -548,7 +587,7 @@ class TreeGeometryBase(PhyloNode):
                 frac = 1 / edge.params['max_child_depth']
             edge.params['frac_pos'] = frac
             edge.params['cum_length'] = parent_frac + \
-                edge.params[self._length]
+                                        edge.params[self._length]
 
     @property
     def depth(self):
