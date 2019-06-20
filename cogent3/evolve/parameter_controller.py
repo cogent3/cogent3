@@ -298,10 +298,10 @@ class _LikelihoodParameterController(_LF):
                 to apply rule.
               - outgroup_name: A tip name that, provided along with tip_names,
                 ensures a consistently specified tree scope.
-              - is_clade: The rule applies to all edges descending from the most
+              - clade: The rule applies to all edges descending from the most
                 recent common ancestor defined by the tip_names+outgroup_name
                 arguments.
-              - is_stem: The rule applies to the edge preceding the most recent
+              - stem: The rule applies to the edge preceding the most recent
                 common ancestor defined by the tip_names+outgroup_name
                 arguments.
         """
@@ -346,7 +346,7 @@ class _LikelihoodParameterController(_LF):
         Note: This is just a convenient interface to setParameterRule.
         """
         self.set_param_rule("length", tip_names=[tip1name, tip2name],
-                          is_clade=1, is_independent=0)
+                          clade=True, is_independent=0)
 
     def set_constant_lengths(self, tree=None, exclude_list=[]):
         """Constrains edge lengths to those in the tree.

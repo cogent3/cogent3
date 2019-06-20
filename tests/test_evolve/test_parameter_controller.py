@@ -25,7 +25,7 @@ good_rule_sets = [
         {'par_name': 'length', 'is_independent': True},
     ],
     [
-        {'par_name': 'length', 'is_clade': True,
+        {'par_name': 'length', 'clade': True,
             'is_independent': True, 'edges': ['a', 'b']},
     ],
     [
@@ -38,7 +38,7 @@ good_rule_sets = [
 ]
 bad_rule_sets = [
     [
-        {'par_name': 'length', 'is_clade': True, 'edges': ['b', 'f'], },
+        {'par_name': 'length', 'clade': True, 'edges': ['b', 'f'], },
     ],
 ]
 

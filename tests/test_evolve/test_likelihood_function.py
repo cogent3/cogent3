@@ -631,9 +631,9 @@ NineBande      root    1.0000    1.0000
         lf = self.submodel.make_likelihood_function(self.tree)
         lf.set_alignment(self.data)
         lf.set_param_rule('beta', is_constant=True, value=2.0,
-                          edges=['NineBande', 'DogFaced'], is_clade=True)
+                          edges=['NineBande', 'DogFaced'], clade=True)
         lf.set_param_rule('beta', init=2.0, is_constant=False,
-                          edges=['NineBande', 'DogFaced'], is_clade=True)
+                          edges=['NineBande', 'DogFaced'], clade=True)
 
     def test_get_psub_rate_matrix(self):
         """lf should return consistent rate matrix and psub"""
