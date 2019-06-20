@@ -88,12 +88,6 @@ class _Annotatable:
     def _mapped(self, map):
         raise NotImplementedError
 
-    def get_annotation_tracks(self, policy):
-        result = []
-        for annot in self.annotations:
-            result.extend(annot.get_tracks(policy))
-        return result
-
     def get_drawables(self):
         """returns a dict of drawables, keyed by type"""
         result = defaultdict(list)
@@ -361,8 +355,6 @@ class AnnotatableFeature(_Feature):
             annot for annot in self.annotations if annot.map.useful]
         return new
 
-    def get_tracks(self, policy):
-        return policy.at(self.map).tracks_for_feature(self)
 
 
 class Source(_Feature):
@@ -408,9 +400,6 @@ def Feature(parent, type, name, spans, value=None):
 class _Variable(_Feature):
     qualifier_names = _Feature.qualifier_names + ['xxy_list']
 
-    def get_tracks(self, policy):
-        return policy.tracks_for_variable(self)
-
     def without_lost_spans(self):
         if self.map.complete:
             return self
@@ -433,9 +422,6 @@ def Variable(parent, type, name, xxy_list):
 
 class _SimpleVariable(_Feature):
     qualifier_names = _Feature.qualifier_names + ['data']
-
-    def get_tracks(self, policy):
-        return policy.tracks_for_value(self)
 
     def without_lost_spans(self):
         if self.map.complete:
