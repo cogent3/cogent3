@@ -447,7 +447,7 @@ class Shape:
     def as_trace(self, name=None):
         """returns component for plotly display"""
         name = name or self.name
-        data = UnionDict(dict(type='scatter', x=self.x, y=self.y,
+        data = UnionDict(type='scatter', x=self.x, y=self.y,
                               mode=self._mode,
                               fill='toself',
                               fillcolor=self.fillcolor,
@@ -456,7 +456,7 @@ class Shape:
                               name=name,
                               legendgroup=self._legendgroup,
                               showlegend=self._showlegend,
-                              hoverinfo='text'))
+                              hoverinfo='text')
         return data
 
 
