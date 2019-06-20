@@ -1803,10 +1803,6 @@ class Aligned(object):
         """returns a json formatted string"""
         return json.dumps(self.to_rich_dict())
 
-    def get_tracks(self, policy):
-        policy = policy.at(self.map.inverse())
-        return self.data.get_tracks(policy)
-
     def remapped_to(self, map):
         result = Aligned(map[self.map.inverse()].inverse(), self.data)
         return result
@@ -3596,19 +3592,6 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         (map, seq) = self.moltype.make_seq(seq, key,
                                            preserve_case=True).parse_out_gaps()
         return Aligned(map, seq)
-
-    def get_tracks(self, policy):
-        # drawing code related
-        # same as sequence but annotations go below sequence tracks
-        return policy.tracks_for_alignment(self)
-
-    def get_child_tracks(self, policy):
-        """The only Alignment method required for cogent3.draw"""
-        tracks = []
-        for label in self.names:
-            seq = self.named_seqs[label]
-            tracks += seq.get_tracks(policy.copy(seqname=label))
-        return tracks
 
     def __repr__(self):
         seqs = []
