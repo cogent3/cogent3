@@ -73,6 +73,9 @@ class UnionDictTests(TestCase):
         """replacing union or of a value with a dict should be dict"""
         d = UnionDict({'A': {'B': 'Blah'}})
         e = UnionDict({'A': 'Blah'})
+        f = UnionDict(d.copy())
+        f |= e
+        self.assertNotEqual(d, f)
         e |= d
         self.assertEqual(d, e)
 
@@ -80,8 +83,9 @@ class UnionDictTests(TestCase):
         """unioning with a dict that has an empty sub-dict"""
         d = UnionDict({'title': {}})
         e = UnionDict({'title': {'text': 'Alignment Position'}})
+        f = UnionDict(e.copy())
         e |= d
-        self.assertEqual(e, e)
+        self.assertEqual(e, f)
 
     def test_sub_dicts_are_union(self):
         """checks if UnionDict is propogated to children"""
