@@ -1167,8 +1167,17 @@ class SequenceCollection(object):
         return self.seq_len
 
     def get_translation(self, gc=None, **kwargs):
-        """Returns a new alignment object with the DNA sequences translated,
-        using the current codon moltype, into an amino acid sequence.
+        """
+        Parameters
+        ----------
+        gc
+            genetic code, either the number or name
+            (use cogent3.core.genetic_code.available_codes)
+        kwargs
+            related to construction of the resulting object
+        Returns
+        -------
+        A new instance of self translated into protein
         """
         translated = []
         aligned = isinstance(self, Alignment)
@@ -2579,8 +2588,11 @@ class AlignmentI(object):
         """Returns pairwise distances between sequences.
         Parameters
         ----------
-        name
-            a pairwise distance calculator or name of one from pairwise_distance
+        calc : str
+            a pairwise distance calculator or name of one. For options see
+            cogent3.evolve.fast_distance.available_distances
+        show_progress : bool
+            controls progress display for distance calculation
         """
         from cogent3.evolve.fast_distance import get_calculator
         calculator = get_calculator(
