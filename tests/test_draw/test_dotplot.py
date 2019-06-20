@@ -73,13 +73,13 @@ class TestUtilFunctions(TestCase):
         traces = dp.traces
         self.assertEqual(len(traces), 2)  # no rev complement
         # we nudge alignment coordinates by 0.2 on x-axis
-        expect = (0.2, 2.2, None, 6.2, 8.2, None, 12.2, 14.2)
+        expect = [0.2, 2.2, None, 6.2, 8.2, None, 12.2, 14.2]
         self.assertEqual(traces[-1].x, expect)
         self.assertEqual(traces[-1].name, 'Alignment')
         self.assertEqual(traces[0].name, '+ strand')
         # check against hand calculated coords
-        expect_x = (6, 14, None, 2, 12, None, 3, 11, None, 0, 6)
-        expect_y = (0, 8, None, 0, 10, None, 2, 10, None, 2, 8)
+        expect_x = [6, 14, None, 2, 12, None, 3, 11, None, 0, 6]
+        expect_y = [0, 8, None, 0, 10, None, 2, 10, None, 2, 8]
         self.assertEqual(traces[0].x, expect_x)
         self.assertEqual(traces[0].y, expect_y)
 

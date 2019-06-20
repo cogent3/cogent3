@@ -54,6 +54,7 @@ from cogent3.util.misc import (bytes_to_string, get_object_provenance,
 from cogent3.util import progress_display as UI
 from copy import copy, deepcopy
 from cogent3.core.profile import MotifCountsArray
+from cogent3.util.union_dict import UnionDict
 
 __author__ = "Peter Maxwell and Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -2100,10 +2101,9 @@ class AlignmentI(object):
             included
         drawable : bool or str
             if True, resulting object is capable of plotting data via specified
-            plot type 'bar' or 'box'
+            plot type 'bar', 'box' or 'violin'
         """
         from cogent3.draw.drawable import Drawable
-        from plotly import graph_objs as go
 
         gap_array = self.get_gap_array(include_ambiguity=include_ambiguity)
         darr = DictArrayTemplate(self.names)
@@ -2123,20 +2123,22 @@ class AlignmentI(object):
         result = gap_array.sum(axis=1)
         result = darr.wrap(result)
         if drawable:
+            drawable = drawable.lower()
             if self.info.source:
                 trace_name = os.path.basename(self.info.source)
             else:
                 trace_name = None
             draw = Drawable('Gaps Per Sequence',
                             showlegend=False)
-            draw.layout.update(yaxis=dict(title='Gap counts'))
-            if drawable.lower().startswith('box'):
-                trace = go.Box(y=result.array,
+            draw.layout |= dict(yaxis=dict(title='Gap counts'))
+            if drawable == 'bar':
+                trace = UnionDict(type='bar', y=result.array,
+                               x=self.names)
+            else:
+                trace = UnionDict(type=drawable, y=result.array,
                                text=self.names,
                                name=trace_name)
-            else:
-                trace = go.Bar(y=result.array,
-                               x=self.names)
+
             draw.add_trace(trace)
             result = draw.bound_to(result)
 
@@ -2605,7 +2607,6 @@ class AlignmentI(object):
             whether to include gap counts, shown on right y-axis
         """
         from cogent3.draw.drawable import Drawable
-        from plotly import graph_objs as go
 
         window = window if window else numpy.sqrt(len(self))
         window = int(window)
@@ -2619,15 +2620,15 @@ class AlignmentI(object):
         v = [calc_stat(y[i: i + window]) for i in range(0, num)]
         x = numpy.arange(num)
         x += window // 2  # shift x-coordinates to middle of window
-        trace_line = go.Scatter(x=x, y=v, mode='lines',
+        trace_line = UnionDict(type='scatter', x=x, y=v, mode='lines',
                                 name='smoothed',
                                 line=dict(shape='spline', smoothing=1.3))
-        trace_marks = go.Scatter(x=numpy.arange(y.shape[0]),
+        trace_marks = UnionDict(type='scatter', x=numpy.arange(y.shape[0]),
                                  y=y,
                                  mode='markers',
                                  opacity=0.5,
                                  name='per position')
-        layout = dict(title='Information per position',
+        layout = UnionDict(title='Information per position',
                       xaxis=dict(title='Position'),
                       width=width,
                       height=height,
@@ -2638,8 +2639,9 @@ class AlignmentI(object):
         if include_gap:
             gap_counts = self.count_gaps_per_pos()
             y = [calc_stat(gap_counts[i: i + window]) for i in range(0, num)]
-            trace_g = go.Scatter(x=x, y=y, yaxis='y2', name='Gaps', mode='lines',
-                                 line=dict(shape='spline', smoothing=1.3))
+            trace_g = UnionDict(type='scatter', x=x, y=y, yaxis='y2',
+                                name='Gaps', mode='lines',
+                                line=dict(shape='spline', smoothing=1.3))
             traces = [trace_marks, trace_line, trace_g]
         else:
             layout.pop('yaxis2')
@@ -2647,7 +2649,7 @@ class AlignmentI(object):
 
         draw = Drawable(title='Information per position')
         draw.traces.extend(traces)
-        draw.layout.update(layout)
+        draw.layout |= layout
         return draw
 
     @UI.display_wrap
@@ -2678,8 +2680,8 @@ class AlignmentI(object):
         are set as nan
         """
         from cogent3.draw.drawable import Drawable, AnnotatedDrawable
-        from plotly import graph_objs as go
         from cogent3.evolve import coevolution as coevo
+        from cogent3.util.union_dict import UnionDict
 
         method = method.lower()
         func = {'nmi': coevo.nmi_pair, 'rmi': coevo.rmi_pair,
@@ -2711,7 +2713,7 @@ class AlignmentI(object):
             trace_name = None
 
         if drawable in ('box', 'violin'):
-            trace = dict(type=drawable, y=result.array.flatten(),
+            trace = UnionDict(type=drawable, y=result.array.flatten(),
                            showlegend=False, name='')
             draw = Drawable(width=500, height=500, title=trace_name,
                             ytitle=method.upper())
@@ -2731,7 +2733,8 @@ class AlignmentI(object):
                             ytitle=axis_title,
                             title=trace_name)
 
-            trace = go.Heatmap(z=result.array,
+            trace = UnionDict(type='heatmap',
+                                   z=result.array,
                                colorbar=dict(title=dict(text=method.upper(),
                                                         font=dict(size=16))))
             draw.add_trace(trace)

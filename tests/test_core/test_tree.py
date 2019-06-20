@@ -1583,8 +1583,7 @@ class PhyloNodeTests(TestCase):
         """exercising get_figure"""
         t_str = "(A:1,B:2,(C:3,D:3)E:2,(F,((G:1,H:2)I:2)J:3)K:2)L;"
         t = DndParser(t_str, constructor=PhyloNode)
-        _ = t.get_figure(kind='square')
-        _ = t.get_figure(kind='circular')
+        _ = t.get_figure(style='square')
 
 
 class _tip_tip_distances_I:
