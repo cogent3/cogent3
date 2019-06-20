@@ -606,8 +606,7 @@ class SquareTreeGeometry(TreeGeometryBase):
         """x, y coordinate for this node"""
         return self.x, self.y
 
-    # todo need a get_segment_to_children method, to handle case where
-    #  each needs a different color
+    # todo should there should be a single line connecting each parent to child?
     def get_segment_to_children(self):
         """returns coordinates connecting all children to self.end"""
         # if tip needs to
@@ -642,6 +641,23 @@ class Dendrogram(Drawable):
         self._scale_bar = None
         self._edge_sets = {}
         self._edge_mapping = {}
+        self._contemporaneous = contemporaneous
+
+    @property
+    def contemporaneous(self):
+        return self._contemporaneous
+
+    @contemporaneous.setter
+    def contemporaneous(self, value):
+        if not type(value) == bool:
+            raise TypeError
+        if not self._contemporaneous == value:
+            klass = self.tree.__class__
+            self.tree = klass(self.tree, length_attr='frac_pos')
+            self.tree.propagate_properties()
+            self._traces = []
+
+        self._contemporaneous = value
 
     @property
     def tip_font(self):
