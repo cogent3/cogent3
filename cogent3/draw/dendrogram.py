@@ -1,7 +1,10 @@
-from cogent3.core.tree import TreeNode, PhyloNode
+from collections import defaultdict
 import numpy as np
+
+from cogent3.core.tree import TreeNode, PhyloNode
 from cogent3.draw.drawable import Drawable
 from cogent3.util.misc import extend_docstring_from
+from cogent3.util.union_dict import UnionDict
 
 __author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -603,6 +606,8 @@ class SquareTreeGeometry(TreeGeometryBase):
         """x, y coordinate for this node"""
         return self.x, self.y
 
+    # todo need a get_segment_to_children method, to handle case where
+    #  each needs a different color
     def get_segment_to_children(self):
         """returns coordinates connecting all children to self.end"""
         # if tip needs to
@@ -634,6 +639,9 @@ class Dendrogram(Drawable):
         self._tip_font = dict(size=16, family='sans serif')
         self._line_width = 2
         self._line_color = 'black'
+        self._scale_bar = None
+        self._edge_sets = {}
+        self._edge_mapping = {}
 
     @property
     def tip_font(self):
@@ -663,33 +671,105 @@ class Dendrogram(Drawable):
         return annotations
 
     def _build_fig(self, **kwargs):
-        X = []
-        Y = []
+        grouped = {}
+
         tree = self.tree
         text = {'type': 'scatter', 'text': [], 'x': [], 'y': [],
                 'hoverinfo': 'text', 'mode': 'markers',
-                'marker': {'symbol': 'circle', 'color': 'black'}}
+                'marker': {'symbol': 'circle', 'color': 'black'},
+                'showlegend': False}
+
+        get_edge_group = self._edge_mapping.get
         for edge in tree.preorder():
+            key = get_edge_group(edge.name, None)
+            if key not in grouped:
+                grouped[key] = defaultdict(list)
+            group = grouped[key]
             x0, y0 = edge.start
             x1, y1 = edge.end
-            X.extend([x0, x1, None])
-            Y.extend([y0, y1, None])
+            group['x'].extend([x0, x1, None])
+            group['y'].extend([y0, y1, None])
             if edge.is_tip():
                 continue
+
             name, (x, y) = edge.value_and_coordinate('name', padding=0)
             text['x'].append(x)
             text['y'].append(y)
             text['text'].append(name)
+
+            child_groups = set(
+                get_edge_group(c.name, None) for c in edge.children)
             segment = []
             for x, y in edge.get_segment_to_children():
                 segment += [(x, y)]
             xs, ys = list(zip(*segment))
             xs += (None,)
             ys += (None,)
-            X.extend(xs)
-            Y.extend(ys)
-        trace = dict(type='scatter', x=X, y=Y, mode='lines',
-                     line=dict(width=self._line_width,
-                               color=self._line_color))
-        self.traces.extend([trace, text])
+            # todo this needs to be able to cope with children belonging to
+            # 2 different groups
+            if key not in child_groups:
+                # different affiliation
+                key = child_groups.pop()
+                if key not in grouped:
+                    grouped[key] = defaultdict(list)
+                group = grouped[key]
+            group['x'].extend(xs)
+            group['y'].extend(ys)
+
+        traces = []
+        for key in grouped:
+            group = grouped[key]
+            style = self._edge_sets.get(key,
+                                        dict(line=dict(width=self._line_width,
+                                                       color=self._line_color)))
+            trace = UnionDict(type='scatter', x=group['x'], y=group['y'],
+                              mode='lines')
+            trace |= style
+            if 'legendgroup' not in style:
+                trace['showlegend'] = False
+            else:
+                trace['name'] = style['legendgroup']
+            traces.append(trace)
+
+        self.traces.extend(traces + [text])
         self.layout.annotations = tuple(self._get_tip_name_annotations())
+
+    def style_edges(self, edges, line, legendgroup=None):
+        """adjust display layout for the edges
+
+        Parameters
+        ----------
+        edges : str or series
+            names of edges
+        line : dict
+            with plotly line style to applied to these edges
+        legendgroup : str or None
+            if str, a legend will be presented
+        """
+        if type(edges) == str:
+            edges = [edges]
+        edges = frozenset(edges)
+        style = dict(width=self._line_width, color=self._line_color)
+        style.update(line)
+        self._edge_sets[edges] = dict(legendgroup=legendgroup, line=style)
+        mapping = {e: edges for e in edges}
+        self._edge_mapping.update(mapping)
+        if legendgroup:
+            self.layout['showlegend'] = True
+
+        # need to trigger recreation of figure
+        self._traces = []
+
+    def get_edge_names(self, tip1, tip2, outgroup=None, stem=False, clade=True):
+        names = self.tree.get_edge_names(tip1, tip2, stem=stem,
+                                         clade=clade, outgroup_name=outgroup)
+        return names
+
+    @property
+    def scale_bar(self):
+        """where to place a scale bar"""
+        return self._scale_bar
+
+    @scale_bar.setter
+    def scale_bar(self, value):
+        self._scale_bar = value
