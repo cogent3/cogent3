@@ -2629,7 +2629,7 @@ class AlignmentI(object):
         x = numpy.arange(num)
         x += window // 2  # shift x-coordinates to middle of window
         trace_line = UnionDict(type='scatter', x=x, y=v, mode='lines',
-                                name='smoothed',
+                                name=f'smoothed {stat}',
                                 line=dict(shape='spline', smoothing=1.3))
         trace_marks = UnionDict(type='scatter', x=numpy.arange(y.shape[0]),
                                  y=y,
@@ -2637,27 +2637,32 @@ class AlignmentI(object):
                                  opacity=0.5,
                                  name='per position')
         layout = UnionDict(title='Information per position',
-                      xaxis=dict(title='Position'),
-                      width=width,
-                      height=height,
-                      yaxis=dict(title=f'{stat} Information (window={window})'),
-                      showlegend=True,
-                      yaxis2=dict(title='Count', side='right',
-                                  overlaying='y'))
+                           width=width,
+                           height=height,
+                           showlegend=True,
+                           yaxis=dict(range=[0, max(y) * 1.2],
+                                      showgrid=False),
+                           xaxis=dict(showgrid=False,
+                                      range=[0, len(self)]))
+
+        traces = [trace_marks, trace_line]
         if include_gap:
             gap_counts = self.count_gaps_per_pos()
             y = [calc_stat(gap_counts[i: i + window]) for i in range(0, num)]
             trace_g = UnionDict(type='scatter', x=x, y=y, yaxis='y2',
                                 name='Gaps', mode='lines',
                                 line=dict(shape='spline', smoothing=1.3))
-            traces = [trace_marks, trace_line, trace_g]
-        else:
-            layout.pop('yaxis2')
-            traces = [trace_marks, trace_line]
+            traces += [trace_g]
+            layout.yaxis2 = dict(title='Count', side='right', overlaying='y',
+                                 range=[0, max(gap_counts) * 1.2],
+                                 showgrid=False)
 
-        draw = Drawable(title='Information per position')
+        draw = Drawable(title='Information per position',
+                        xtitle='Position',
+                        ytitle=f'Information (window={window})')
         draw.traces.extend(traces)
         draw.layout |= layout
+        draw.layout.legend = dict(x=1.1, y=1)
         return draw
 
     @UI.display_wrap
