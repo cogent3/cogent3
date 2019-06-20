@@ -167,10 +167,11 @@ class AnnotatedDrawable(Drawable):
             trace.xaxis = xaxis
             trace.yaxis = yaxis
         self._traces = traces
+        return f
 
     def _build_2x2_fig(self):
         if not self.traces:
-            self._build_fig(xaxis='x2', yaxis='y2')
+            _ = self._build_fig(xaxis='x2', yaxis='y2')
 
         layout = UnionDict({
             'xaxis': {'anchor': 'y', 'domain': [0.0, 0.099]},
@@ -273,7 +274,7 @@ class AnnotatedDrawable(Drawable):
     def _build_2x1_fig(self):
         """2 rows, one column, dotplot and seq1 annotated"""
         if not self.traces:
-            self._build_fig()
+            _ = self._build_fig()
 
         layout = UnionDict(xaxis={'anchor': 'y2', 'domain': [0.0, 1.0]},
                            yaxis={'anchor': 'free', 'domain': [0.1135, 1.0],
@@ -382,6 +383,25 @@ class AnnotatedDrawable(Drawable):
         result = func()
 
         return result
+
+    def remove_track(self, left_track=False, bottom_track=False):
+        """
+        Parameters
+        ----------
+        left_track : bool
+            the left track is removed
+        bottom_track : bool
+            the bottom track is removed
+        """
+        if left_track:
+            self.left_track = None
+
+        if bottom_track:
+            self.bottom_track = None
+
+        if left_track or bottom_track:
+            self.core._traces = []
+            self._traces = []
 
 
 class Shape:
