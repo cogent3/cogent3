@@ -665,7 +665,8 @@ class SquareTreeGeometry(TreeGeometryBase):
 
 
 class Dendrogram(Drawable):
-    def __init__(self, tree, style='square', label_pad=.05, contemporaneous=True,
+    def __init__(self, tree, style='square', label_pad=.05,
+                 contemporaneous=True,
                  *args, **kwargs):
         super(Dendrogram, self).__init__(
             visible_axes=False, showlegend=False, *args, **kwargs)
@@ -673,14 +674,25 @@ class Dendrogram(Drawable):
         kwargs = dict(length_attr='frac_pos') if contemporaneous else {}
         self.tree = klass(tree, **kwargs)
         self.tree.propagate_properties()
-        self.label_pad = label_pad
+        assert 0 <= label_pad <= 1
+        self._label_pad = label_pad
         self._tip_font = dict(size=16, family='sans serif')
         self._line_width = 2
         self._line_color = 'black'
-        self._scale_bar = None
+        self._scale_bar = 'bottom left'
         self._edge_sets = {}
         self._edge_mapping = {}
         self._contemporaneous = contemporaneous
+
+    @property
+    def label_pad(self):
+        return self._label_pad
+
+    @label_pad.setter
+    def label_pad(self, value):
+        if not 0 <= value <= 1:
+            raise ValueError('label_pad must be in range [0, 1]')
+        self._label_pad = value
 
     @property
     def contemporaneous(self):
@@ -695,6 +707,8 @@ class Dendrogram(Drawable):
             self.tree = klass(self.tree, length_attr='frac_pos')
             self.tree.propagate_properties()
             self._traces = []
+            if value:  # scale bar not needed
+                self._scale_bar = False
 
         self._contemporaneous = value
 
@@ -704,8 +718,7 @@ class Dendrogram(Drawable):
 
     def _scale_label_pad(self):
         """returns the label pad scaled by maximum dist to tip"""
-        max_x = max(e.x for e in self.tree.preorder())
-        label_pad = max_x * self.label_pad
+        label_pad = self.tree.max_x * self.label_pad
         return label_pad
 
     def _get_tip_name_annotations(self):
@@ -724,6 +737,37 @@ class Dendrogram(Drawable):
                          font=self.tip_font)
             annotations.append(anote)
         return annotations
+
+    def _get_scale_bar(self):
+        if not self.scale_bar:
+            return None, None
+
+        if 'left' in self.scale_bar:
+            x = self.tree.min_x
+        else:
+            x = self.tree.max_x
+
+        if 'bottom' in self.scale_bar:
+            y = self.tree.min_y - self.tree.node_space
+        else:
+            y = self.tree.max_y + self.tree.node_space
+
+        scale = 0.1 * self.tree.max_x
+        if scale < 1e-4:
+            text = '{:.2e}'.format(scale)
+        else:
+            text = '{:.2f}'.format(scale)
+
+        shape = {'type': 'line', 'x0': x, 'y0': y,
+                   'x1': x + scale, 'y1': y,
+                   'line': {'color': self._line_color,
+                            'width': self._line_width, }}
+        annotation = UnionDict(x=x + scale + (0.5 * scale),
+                               y=y, xref='x', yref='y',
+                               text=text,
+                               showarrow=False, ax=0, ay=0)
+        return shape, annotation
+
 
     def _build_fig(self, **kwargs):
         grouped = {}
@@ -786,8 +830,15 @@ class Dendrogram(Drawable):
                 trace['name'] = style['legendgroup']
             traces.append(trace)
 
-        self.traces.extend(traces + [text])
+        scale_shape, scale_text = self._get_scale_bar()
+        traces.extend([text])
+        self.traces.extend(traces)
         self.layout.annotations = tuple(self._get_tip_name_annotations())
+        if scale_shape:
+            self.layout.shapes = self.layout.get('shape', []) + [scale_shape]
+            self.layout.annotations += (scale_text,)
+        else:
+            self.layout.pop('shapes')
 
     def style_edges(self, edges, line, legendgroup=None):
         """adjust display layout for the edges
@@ -827,4 +878,11 @@ class Dendrogram(Drawable):
 
     @scale_bar.setter
     def scale_bar(self, value):
+        if value is True:
+            value = 'bottom left'
+        valid = set(['bottom left', 'bottom right',
+                     'top left', 'top right'])
+        assert value in valid
+        if value != self._scale_bar:
+            self._traces = []
         self._scale_bar = value
