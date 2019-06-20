@@ -1118,7 +1118,6 @@ class SequenceCollectionBaseTests(object):
         assert_allclose(result['seq1'].observed.array, [[3, 2], [2, 2]])
         assert_allclose(result['seq2'].observed.array, [[3, 0], [2, 1]])
 
-    @unittest.skipIf(sys.platform.lower() != 'darwin', 'broken on linux')
     def test_dotplot(
             self):  # todo figure out why this passes on mac but not pipelines
         """excercising dotplot method"""

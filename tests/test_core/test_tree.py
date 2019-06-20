@@ -1578,7 +1578,6 @@ class PhyloNodeTests(TestCase):
         self.assertLessThan(len(unrooted.get_node_names()),
                             len(rooted.get_node_names()))
 
-    @unittest.skipIf(sys.platform.lower() != 'darwin', 'broken on linux')
     def test_get_figure(self):
         """exercising get_figure"""
         t_str = "(A:1,B:2,(C:3,D:3)E:2,(F,((G:1,H:2)I:2)J:3)K:2)L;"
