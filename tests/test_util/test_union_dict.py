@@ -69,6 +69,20 @@ class UnionDictTests(TestCase):
         self.assertEqual(d.d.f, 0)
         self.assertEqual(d.d.g, 7)
 
+    def test_union_value_dict(self):
+        """replacing union or of a value with a dict should be dict"""
+        d = UnionDict({'A': {'B': 'Blah'}})
+        e = UnionDict({'A': 'Blah'})
+        e |= d
+        self.assertEqual(d, e)
+
+    def test_union_with_empty_sub_dict(self):
+        """unioning with a dict that has an empty sub-dict"""
+        d = UnionDict({'title': {}})
+        e = UnionDict({'title': {'text': 'Alignment Position'}})
+        e |= d
+        self.assertEqual(e, e)
+
     def test_sub_dicts_are_union(self):
         """checks if UnionDict is propogated to children"""
         d = UnionDict({'a': 1, 'b': 2, 'c': 3, 'd': {'e': 5, 'f': 6}})

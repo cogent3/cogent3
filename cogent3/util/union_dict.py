@@ -66,8 +66,9 @@ class UnionDict(dict):
 
         for a in list(other):
 
-            if self.get(a) is None or not isinstance(other._getsubattr_([], a),
-                                                     dict):
+            if self.get(a) is None or not \
+                    (isinstance(other.get(a), dict) and
+                     isinstance(self.get(a), dict)):
                 self.update({a: other.get(a)})
                 continue
 
@@ -79,8 +80,8 @@ class UnionDict(dict):
                 path.append(name)
 
                 for attr in list(cd):
-                    if isinstance(cd.get(attr), dict) and cs.get(
-                            attr) is not None:
+                    if isinstance(cd.get(attr), dict) and \
+                            isinstance(cs.get(attr), dict):
                         # go into dict
                         path.append(attr)
                     else:
