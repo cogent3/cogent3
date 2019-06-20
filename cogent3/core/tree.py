@@ -961,7 +961,7 @@ class TreeNode(object):
             return True
 
     def get_edge_names(self, tip1name, tip2name,
-                       getclade, getstem, outgroup_name=None):
+                       clade=True, stem=False, outgroup_name=None):
         """Return the list of stem and/or sub tree (clade) edge name(s).
         This is done by finding the common intersection, and then getting
         the list of names. If the clade traverses the root, then use the
@@ -969,8 +969,8 @@ class TreeNode(object):
 
         Arguments:
             - tip1/2name: edge 1/2 names
-            - getstem: whether the name of the clade stem edge is returned.
-            - getclade: whether the names of the edges within the clade are
+            - stem: whether the name of the clade stem edge is returned.
+            - clade: whether the names of the edges within the clade are
               returned
             - outgroup_name: if provided the calculation is done on a version of
               the tree re-rooted relative to the provided tip.
@@ -995,14 +995,14 @@ class TreeNode(object):
 
         edge_names = []
 
-        if getstem:
+        if stem:
             if join_edge.isroot():
                 raise TreeError('LCA(%s,%s) is the root and so has no stem' %
                                 (tip1name, tip2name))
             else:
                 edge_names.append(join_edge.name)
 
-        if getclade:
+        if clade:
             # get the list of names contained by join_edge
             for child in join_edge.children:
                 branchnames = child.get_node_names(includeself=1)
@@ -2254,16 +2254,16 @@ class TreeBuilder(object):
             if params is None:
                 params = self._params_for_edge(edge)
             return self.create_edge(
-                children, edge.name, params, nameLoaded=edge.name_loaded)
+                children, edge.name, params, name_loaded=edge.name_loaded)
 
-    def create_edge(self, children, name, params, nameLoaded=True):
+    def create_edge(self, children, name, params, name_loaded=True):
         """Callback for newick parser"""
         if children is None:
             children = []
         node = self.TreeNodeClass(
             children=list(children),
             name=self._unique_name(name),
-            name_loaded=nameLoaded and (name is not None),
+            name_loaded=name_loaded and (name is not None),
             params=params,
         )
         self._known_edges[id(node)] = node

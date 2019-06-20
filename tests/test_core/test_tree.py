@@ -1687,15 +1687,15 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
 
     def test_get_edge_names(self):
         tree = self.default_tree
-        clade = tree.get_edge_names('C', 'E', getstem=0, getclade=1)
+        clade = tree.get_edge_names('C', 'E', stem=0, clade=1)
         clade.sort()
         self.assertEqual(clade, ['C', 'D', 'E', 'cd'])
 
-        all = tree.get_edge_names('C', 'E', getstem=1, getclade=1)
+        all = tree.get_edge_names('C', 'E', stem=1, clade=1)
         all.sort()
         self.assertEqual(all, ['C', 'D', 'E', 'cd', 'cde'])
 
-        stem = tree.get_edge_names('C', 'E', getstem=1, getclade=0)
+        stem = tree.get_edge_names('C', 'E', stem=1, clade=0)
         self.assertEqual(stem, ['cde'])
 
     def test_get_edge_namesUseOutgroup(self):
@@ -1704,7 +1704,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         t2 = LoadTree(treestring="((E,(A,B)ab)abe,F,(C,D)cd)root;")
         expected = ['A', 'B', 'E', 'ab']
         for t in [t1, t2]:
-            edges = t.get_edge_names('A', 'E', getstem=False, getclade=True,
+            edges = t.get_edge_names('A', 'E', stem=False, clade=True,
                                      outgroup_name="F")
             edges.sort()
             self.assertEqual(expected, edges)

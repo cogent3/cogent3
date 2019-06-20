@@ -167,7 +167,7 @@ class _LikelihoodParameterController(_LF):
         return super(_LF, self).make_calculator(**kw)
 
     def _process_scope_info(self, edge=None, tip_names=None, edges=None,
-                            is_clade=None, is_stem=None, outgroup_name=None):
+                            clade=None, stem=None, outgroup_name=None):
         """From information specifying the scope of a parameter derive a list of
          edge names"""
 
@@ -184,12 +184,13 @@ class _LikelihoodParameterController(_LF):
             raise TreeError("tip_names must contain 2 species")
         else:
             (species1, species2) = tip_names
-            if is_stem is None:
-                is_stem = False
-            if is_clade is None:
-                is_clade = not is_stem
+            if stem is None:
+                stem = False
+            if clade is None:
+                clade = not stem
             edges = self.tree.get_edge_names(species1, species2,
-                                           getstem=is_stem, getclade=is_clade, outgroup_name=outgroup_name)
+                                             stem=stem, clade=clade,
+                                             outgroup_name=outgroup_name)
 
         return edges
 
