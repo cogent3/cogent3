@@ -460,7 +460,7 @@ def _get_line_lists(clade, x_left, xlines, ylines, xarc, yarc, node_radius,
 class TreeGeometryBase(PhyloNode):
     """base class that computes geometric coordinates for display"""
 
-    def __init__(self, tree, length_attr='length'):
+    def __init__(self, tree=None, length_attr='length', *args, **kwargs):
         """
         Parameters
         ----------
@@ -468,9 +468,14 @@ class TreeGeometryBase(PhyloNode):
         length_attr : str
             name of the attribute to use for length, defaults to 'length'
         """
-        children = [type(self)(child) for child in tree.children]
-        PhyloNode.__init__(self, params=tree.params.copy(), children=children,
-                           name=tree.name)
+        if tree is not None:
+            children = [type(self)(child, *args, **kwargs)
+                        for child in tree.children]
+            PhyloNode.__init__(self, params=tree.params.copy(), children=children,
+                               name=tree.name)
+        else:
+            PhyloNode.__init__(self, **kwargs)
+
         # todo do we need to validate the length_attr key exists?
         self._length = length_attr
         self._node_space = 1.3
