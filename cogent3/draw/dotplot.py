@@ -6,6 +6,7 @@ import plotly.graph_objs as go
 from cogent3.core.moltype import get_moltype
 from cogent3.draw.drawable import Drawable
 from cogent3.align.align import dotplot
+from cogent3.util.union_dict import UnionDict
 
 __author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -143,6 +144,7 @@ def get_align_coords(map1, map2):
 
 class Dotplot(Drawable):
     """calculates matches between sequences and displays as a dotplot"""
+
     def __init__(self, seq1, seq2, moltype='text', window=20,
                  threshold=None, min_gap=0, rc=False, xtitle=None,
                  ytitle=None, show_progress=False):
@@ -211,35 +213,35 @@ class Dotplot(Drawable):
 
     def _build_fig(self, xaxis='x', yaxis='y'):
         # calculate the width based on ratio of seq lengths
-        layout = {}
+        layout = UnionDict()
         if self.xtitle:
-            layout.update(xaxis=dict(title=self.xtitle,
-                                     mirror=True, showgrid=False,
-                                     showline=True))
+            layout |= dict(xaxis=dict(title=self.xtitle,
+                                      mirror=True, showgrid=False,
+                                      showline=True))
 
         if self.ytitle:
-            layout.update(yaxis=dict(title=self.ytitle,
-                                     mirror=True, showgrid=False,
-                                     showline=True))
+            layout |= dict(yaxis=dict(title=self.ytitle,
+                                      mirror=True, showgrid=False,
+                                      showline=True))
 
-        self.layout.update(layout)
-        self.layout.update(yaxis=dict(range=[0, len(self.seq2)]),
-                           xaxis=dict(range=[0, len(self.seq1)]))
+        self.layout |= dict(layout)
+        self.layout |= dict(yaxis=dict(range=[0, len(self.seq2)]),
+                            xaxis=dict(range=[0, len(self.seq1)]))
 
         fwd, rev = self._fwd, self._rev
         title = (f"Window={self._window}, Matched ≥ {self._threshold}/"
                  f"{self._window} & Gap ≤ {self._min_gap}")
-        self.layout.update(title=title)
-        trace = go.Scatter(x=fwd[0], y=fwd[1], name='+ strand',
-                           mode='lines', line=dict(color='blue'),
-                           xaxis=xaxis, yaxis=yaxis)
+        self.layout |= dict(title=title)
+        trace = UnionDict(dict(type='scatter', x=fwd[0], y=fwd[1], name='+ strand',
+                               mode='lines', line=dict(color='blue'),
+                               xaxis=xaxis, yaxis=yaxis))
         self.add_trace(trace)
 
         if rev:
-            trace = go.Scatter(x=rev[0], y=rev[1], name='- strand',
-                               mode='lines',
-                               line=dict(color='red'),
-                               xaxis=xaxis, yaxis=yaxis)
+            trace = UnionDict(type='scatter', x=rev[0], y=rev[1], name='- strand',
+                              mode='lines',
+                              line=dict(color='red'),
+                              xaxis=xaxis, yaxis=yaxis)
             self.add_trace(trace)
 
         if self._aligned_coords:
@@ -251,12 +253,12 @@ class Dotplot(Drawable):
                     e += nudge
                 x.append(e)
 
-            trace = go.Scatter(x=x, y=y, name='Alignment', mode='lines',
-                               line=dict(color='black', dash='dot'),
-                               xaxis=xaxis, yaxis=yaxis)
+            trace = UnionDict(type='scatter', x=x, y=y, name='Alignment', mode='lines',
+                              line=dict(color='black', dash='dot'),
+                              xaxis=xaxis, yaxis=yaxis)
             self.add_trace(trace)
 
-        self._figure = go.Figure(data=self.traces, layout=self.layout)
+        self._figure = UnionDict(data=self.traces, layout=self.layout)
         self._layout = self._figure.layout
 
     @property

@@ -1,7 +1,6 @@
 import numpy
-from plotly.offline import iplot as _iplot
-from plotly import graph_objs as go, tools
-from plotly.io import write_image, to_image
+
+from cogent3.util.union_dict import UnionDict
 
 __author__ = "Rahul Ghangas and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -20,7 +19,8 @@ class Drawable:
                  showlegend=True, visible_axes=True, layout=None,
                  xtitle=None, ytitle=None):
         self._traces = traces or []
-        self._layout = go.Layout(title=title,
+        title = title if title is None else dict(text=title)
+        self._layout = UnionDict(title=title,
                                  font=dict(family='Balto', size=14),
                                  width=width,
                                  height=height,
@@ -30,10 +30,9 @@ class Drawable:
                                  yaxis=dict(visible=visible_axes),
                                  hovermode='closest',
                                  plot_bgcolor='rgb(245,245,245)',
-                                 margin=dict(l=50, r=50, t=50)
-                                 )
+                                 margin=dict(l=50, r=50, t=50))
         layout = layout or {}
-        self._layout.update(**layout)
+        self._layout |= layout
         self.xtitle = xtitle
         self.ytitle = ytitle
 
@@ -93,29 +92,38 @@ class Drawable:
     def figure(self):
         if not self.traces:
             self._build_fig()
-        self.layout.xaxis.title = self.xtitle
-        self.layout.yaxis.title = self.ytitle
+        xtitle = self.xtitle if not self.xtitle else dict(
+            text=self.xtitle)
+        ytitle = self.ytitle if not self.ytitle else dict(
+            text=self.ytitle)
+        self.layout.xaxis.title = xtitle
+        self.layout.yaxis.title = ytitle
         return dict(data=self.traces, layout=self.layout)
 
     def iplot(self, *args, **kwargs):
+        from plotly.offline import iplot as _iplot
         _iplot(self.figure, *args, **kwargs)
 
     def write(self, path, **kwargs):
         """writes static image file, suffix dictates format"""
+        from plotly.io import write_image
         write_image(self.figure, path, **kwargs)
 
     def to_image(self, format='png', **kwargs):
+        """creates static image, suffix dictates format"""
+        from plotly.io import to_image
         return to_image(self.figure, format=format, **kwargs)
 
 
 def _iplot_(cls, width=None, height=None):
+    from plotly.offline import iplot as _iplot
     layout = {}
     if width:
         layout['width'] = width
     if height:
         layout['height'] = height
     if layout:
-        cls.drawable.layout.update(layout)
+        cls.drawable.layout |= dict(layout)
     _iplot(cls.drawable.figure)
 
 
@@ -151,10 +159,10 @@ class AnnotatedDrawable(Drawable):
         f = self.core.figure
         try:
             traces = f.traces
-            self.layout.update(f.layout)
+            self.layout |= dict(f.layout)
         except AttributeError:
             traces = f['data']
-            self.layout.update(f['layout'])
+            self.layout |= f['layout']
         for trace in traces:
             trace.xaxis = xaxis
             trace.yaxis = yaxis
@@ -164,18 +172,16 @@ class AnnotatedDrawable(Drawable):
         if not self.traces:
             self._build_fig(xaxis='x2', yaxis='y2')
 
-        space = 0.01
-        fig = tools.make_subplots(rows=2, cols=2,
-                                  specs=[[{}, {}],
-                                         [None, {}]],
-                                  horizontal_spacing=space,
-                                  vertical_spacing=space,
-                                  print_grid=False,
-                                  row_width=[0.1, 0.9],
-                                  column_width=[0.1, 0.9])
-
-        layout = fig.layout
-        layout.update(self.layout)
+        layout = UnionDict({
+            'xaxis': {'anchor': 'y', 'domain': [0.0, 0.099]},
+            'xaxis2': {'anchor': 'y2', 'domain': [0.109, 1.0]},
+            'xaxis3': {'anchor': 'y3', 'domain': [0.109, 1.0]},
+            'yaxis': {'anchor': 'x', 'domain': [0.109, 1.0]},
+            'yaxis2': {'anchor': 'x2', 'domain': [0.109, 1.0]},
+            'yaxis3': {'anchor': 'x3', 'domain': [0.0, 0.099]}
+        })
+        layout |= self.layout
+        fig = UnionDict(data=[], layout=layout)
 
         # common settings
         ticks_off_kwargs = dict(showticklabels=False, mirror=True,
@@ -187,11 +193,11 @@ class AnnotatedDrawable(Drawable):
                                showline=True,
                                zeroline=False)
 
-        # dotpolot traces and layout
-        fig.add_traces(self.traces)
+        # core traces and layout
+        fig.data.extend(self.traces)
 
-        layout.xaxis2.update(range=self.xrange, **ticks_off_kwargs)
-        layout.yaxis2.update(range=self.yrange, **ticks_off_kwargs)
+        fig.layout.xaxis2 |= dict(range=self.xrange, **ticks_off_kwargs)
+        fig.layout.yaxis2 |= dict(range=self.yrange, **ticks_off_kwargs)
 
         # left_track traces
         seen_types = set()
@@ -220,15 +226,15 @@ class AnnotatedDrawable(Drawable):
         bottom_range = [0, int(max_y) + 1]
 
         # add all traces
-        fig.add_traces(traces)
-        # configure easy axes for titles, limits, border and ticks
-        layout.yaxis.update(title=self.ytitle,
-                            range=self.yrange,
-                            **ticks_on_kwargs)
+        fig.data.extend(traces)
+        # configure axes for titles, limits, border and ticks
+        fig.layout.yaxis |= dict(title=dict(text=self.ytitle),
+                                 range=self.yrange,
+                                 **ticks_on_kwargs)
 
-        layout.xaxis3.update(title=self.xtitle,
-                             range=self.xrange,
-                             **ticks_on_kwargs)
+        fig.layout.xaxis3 |= dict(title=dict(text=self.xtitle),
+                                  range=self.xrange,
+                                  **ticks_on_kwargs)
 
         # adjust row width of left plot for number of feature tracks
         min_range = min(left_range[1], bottom_range[1])
@@ -237,29 +243,30 @@ class AnnotatedDrawable(Drawable):
         # first the top row
         xaxis_domain = list(layout.xaxis.domain)
         xaxis_domain[1] = left_prop * xaxis_domain[1]
-        layout.xaxis.update(title=None,
-                            range=left_range,
-                            domain=xaxis_domain,
-                            **ticks_off_kwargs)
-        layout.xaxis.update(title=None,
-                            range=left_range,
-                            domain=xaxis_domain,
-                            **ticks_off_kwargs)
+        fig.layout.xaxis |= dict(title=None,
+                                 range=left_range,
+                                 domain=xaxis_domain,
+                                 **ticks_off_kwargs)
+        fig.layout.xaxis |= dict(title={},
+                                 range=left_range,
+                                 domain=xaxis_domain,
+                                 **ticks_off_kwargs)
 
-        layout.xaxis2.domain = (xaxis_domain[1] + space, 1.0)
+        space = 0.01
+        fig.layout.xaxis2.domain = (xaxis_domain[1] + space, 1.0)
 
         # now the right column
         bottom_prop = bottom_range[1] / min_range
         yaxis_domain = list(layout.yaxis3.domain)
         yaxis_domain[1] = bottom_prop * yaxis_domain[1]
-        layout.yaxis3.update(title=None,
-                             range=bottom_range,
-                             domain=yaxis_domain,
-                             **ticks_off_kwargs)
+        fig.layout.yaxis3 |= dict(title={},
+                                  range=bottom_range,
+                                  domain=yaxis_domain,
+                                  **ticks_off_kwargs)
 
         # and bottom of the boxes above
-        layout.yaxis.domain = (yaxis_domain[1] + space, 1.0)
-        layout.yaxis2.domain = (yaxis_domain[1] + space, 1.0)
+        fig.layout.yaxis.domain = (yaxis_domain[1] + space, 1.0)
+        fig.layout.yaxis2.domain = (yaxis_domain[1] + space, 1.0)
 
         return fig
 
@@ -268,13 +275,12 @@ class AnnotatedDrawable(Drawable):
         if not self.traces:
             self._build_fig()
 
-        fig = tools.make_subplots(rows=2, cols=1,
-                                  vertical_spacing=0.015,
-                                  print_grid=False,
-                                  row_width=[0.1, 0.9],
-                                  shared_xaxes=True)
-        layout = fig.layout
-        layout.update(self.layout)
+        layout = UnionDict(xaxis={'anchor': 'y2', 'domain': [0.0, 1.0]},
+                           yaxis={'anchor': 'free', 'domain': [0.1135, 1.0],
+                                  'position': 0.0},
+                           yaxis2={'anchor': 'x', 'domain': [0.0, 0.0985]})
+        layout |= dict(self.layout)
+        fig = UnionDict(data=[], layout=layout)
 
         # common settings
         ticks_off_kwargs = dict(showticklabels=False,
@@ -287,14 +293,14 @@ class AnnotatedDrawable(Drawable):
                                showline=True)
 
         # core traces and layout
-        fig.add_traces(self.traces)
+        fig.data.extend(self.traces)
 
-        layout.xaxis.update(title=self.xtitle,
-                            range=self.xrange,
-                            **ticks_on_kwargs)
-        layout.yaxis.update(title=self.ytitle,
-                            range=self.yrange,
-                            **ticks_on_kwargs)
+        fig.layout.xaxis |= dict(title=dict(text=self.xtitle),
+                                 range=self.xrange,
+                                 **ticks_on_kwargs)
+        fig.layout.yaxis |= dict(title=dict(text=self.ytitle),
+                                 range=self.yrange,
+                                 **ticks_on_kwargs)
 
         # bottom traces
         seen_types = set()
@@ -308,22 +314,22 @@ class AnnotatedDrawable(Drawable):
                 trace.showlegend = False
             seen_types.add(trace.legendgroup)
 
-        fig.add_traces(traces)
-        layout.yaxis2.update(title=None,
-                             range=[0, int(max_y) + 1],
-                             **ticks_off_kwargs)
+        fig.data.extend(traces)
+        fig.layout.yaxis2 |= dict(title={},
+                                  range=[0, int(max_y) + 1],
+                                  **ticks_off_kwargs)
         return fig
 
     def _build_1x2_fig(self):
         if not self.traces:
             self._build_fig(xaxis='x2')
-        fig = tools.make_subplots(rows=1, cols=2,
-                                  horizontal_spacing=0.01,
-                                  print_grid=False,
-                                  column_width=[0.1, 0.9],
-                                  shared_yaxes=True)
-        layout = fig.layout
-        layout.update(self.layout)
+        layout = UnionDict(xaxis={'anchor': 'y', 'domain': [0.0, 0.099]},
+                           xaxis2={'anchor': 'free', 'domain': [0.109, 1.0],
+                                   'position': 0.0},
+                           yaxis={'anchor': 'x', 'domain': [0.0, 1.0]})
+
+        layout |= self.layout
+        fig = UnionDict(data=[], layout=layout)
 
         # common settings
         ticks_off_kwargs = dict(showticklabels=False,
@@ -336,14 +342,14 @@ class AnnotatedDrawable(Drawable):
                                showline=True)
 
         # core traces and layout
-        fig.add_traces(self.traces)
+        fig.data.extend(self.traces)
 
-        layout.xaxis2.update(title=self.xtitle,
-                             range=self.xrange,
-                             **ticks_on_kwargs)
-        layout.yaxis.update(title=self.ytitle,
-                            range=self.yrange,
-                            **ticks_on_kwargs)
+        fig.layout.xaxis2 |= dict(title=self.xtitle,
+                                  range=self.xrange,
+                                  **ticks_on_kwargs)
+        fig.layout.yaxis |= dict(title=self.ytitle,
+                                 range=self.yrange,
+                                 **ticks_on_kwargs)
 
         # left track
         seen_types = set()
@@ -356,10 +362,10 @@ class AnnotatedDrawable(Drawable):
                 trace.showlegend = False
             seen_types.add(trace.legendgroup)
 
-        fig.add_traces(traces)
-        layout.xaxis.update(title=None,
-                            range=[0, int(max_x) + 1],
-                            **ticks_off_kwargs)
+        fig.data.extend(traces)
+        fig.layout.xaxis |= dict(title=None,
+                                 range=[0, int(max_x) + 1],
+                                 **ticks_off_kwargs)
         return fig
 
     @property
@@ -421,16 +427,16 @@ class Shape:
     def as_trace(self, name=None):
         """returns component for plotly display"""
         name = name or self.name
-        data = go.Scatter(x=self.x, y=self.y,
-                          mode=self._mode,
-                          fill='toself',
-                          fillcolor=self.fillcolor,
-                          line=dict(color=self.fillcolor),
-                          text=self.text,
-                          name=name,
-                          legendgroup=self._legendgroup,
-                          showlegend=self._showlegend,
-                          hoverinfo='text')
+        data = UnionDict(dict(type='scatter', x=self.x, y=self.y,
+                              mode=self._mode,
+                              fill='toself',
+                              fillcolor=self.fillcolor,
+                              line=dict(color=self.fillcolor),
+                              text=self.text,
+                              name=name,
+                              legendgroup=self._legendgroup,
+                              showlegend=self._showlegend,
+                              hoverinfo='text'))
         return data
 
 

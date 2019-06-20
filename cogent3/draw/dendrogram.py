@@ -606,7 +606,7 @@ class SquareTreeGeometry(TreeGeometryBase):
         return a, b
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
-    def value_and_coordinate(self, attr, padding=0.1):
+    def value_and_coordinate(self, attr, padding=0.05):
         # todo, possibly also return a rotation?
         x = self.x + padding
         y = self.y
@@ -617,7 +617,7 @@ class SquareTreeGeometry(TreeGeometryBase):
 
 
 class Dendrogram(Drawable):
-    def __init__(self, tree, style='square', label_pad=.1, contemporaneous=True,
+    def __init__(self, tree, style='square', label_pad=.05, contemporaneous=True,
                  *args, **kwargs):
         super(Dendrogram, self).__init__(
             visible_axes=False, showlegend=False, *args, **kwargs)
@@ -634,11 +634,18 @@ class Dendrogram(Drawable):
     def tip_font(self):
         return self._tip_font
 
+    def _scale_label_pad(self):
+        """returns the label pad scaled by maximum dist to tip"""
+        max_x = max(e.x for e in self.tree.preorder())
+        label_pad = max_x * self.label_pad
+        return label_pad
+
     def _get_tip_name_annotations(self):
         annotations = []
+        label_pad = self._scale_label_pad()
         for tip in self.tree.tips():
             name, (x, y) = tip.value_and_coordinate('name',
-                                                    padding=self.label_pad)
+                                                    padding=label_pad)
             anote = dict(x=x,
                          y=y,
                          xref='x',

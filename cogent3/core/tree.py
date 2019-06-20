@@ -1671,25 +1671,23 @@ class TreeNode(object):
                        :, other_order]
         return dist_f(self_matrix, other_matrix)
 
-    def get_figure(self, kind='square'):
+    def get_figure(self, style='square'):
         """
         gets Dendrogram for plotting the phylogeny
 
         Parameters
         ----------
-        kind : string
-            either 'square' or 'circular'
+        style : string
+            currently only 'square' supported
 
         """
-        from plotly.offline import iplot
-        from cogent3.draw.dendrogram import (SquareDendrogram,
-                                               CircularDendrogram, )
-        kind = kind.lower()
-        if kind not in ('square', 'circular'):
-            raise ValueError(f'kind must be square or circular, not {kind}')
+        from cogent3.draw.dendrogram import (Dendrogram, )
+        style = style.lower()
+        types = ('square',)
+        if style not in types:
+            raise ValueError(f'{style} not in supported types {types}')
 
-        klass = SquareDendrogram if kind == 'square' else CircularDendrogram
-        dnd = klass(self)
+        dnd = Dendrogram(self, style=style, contemporaneous=False)
         return dnd
 
 
