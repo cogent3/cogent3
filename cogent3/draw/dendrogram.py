@@ -329,15 +329,13 @@ class RadialTreeGeometry(TreeGeometryBase):
         return a, b, c
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
-    def value_and_coordinate(self, attr, padding=0.05):
+    def value_and_coordinate(self, attr, padding=0.05, just=20):
         if 90 < self.theta <= 270:
             radius = np.sqrt(self.x ** 2 + self.y ** 2) + 2 * padding
             textangle = 180 - self.theta
-            xanchor = "right"
         else:
             radius = np.sqrt(self.x ** 2 + self.y ** 2) + padding
             textangle = 360 - self.theta
-            xanchor = "left"
 
         x, y = polar_2_cartesian(self.theta, radius)
 
@@ -346,8 +344,9 @@ class RadialTreeGeometry(TreeGeometryBase):
             y=y,
             textangle=textangle,
             showarrow=False,
-            text=self.name,
-            xanchor=xanchor,
+            text=self.name.rjust(just),
+            xanchor="center",
+            align="left",
         )
         return data
 
@@ -435,9 +434,9 @@ class Dendrogram(Drawable):
             x = self.tree.max_x
 
         if "bottom" in self.scale_bar:
-            y = self.tree.min_y - self.tree.node_space
+            y = self.tree.min_y
         else:
-            y = self.tree.max_y + self.tree.node_space
+            y = self.tree.max_y
 
         scale = 0.1 * self.tree.max_x
         if scale < 1e-4:
