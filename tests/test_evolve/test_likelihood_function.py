@@ -1217,6 +1217,16 @@ NineBande      root    1.0000    1.0000
         len_dict = lf.get_lengths_as_ens()
         self.assertNotAlmostEqual(len_dict["a"], length)
 
+    def test_bin_probs(self):
+        """bin probs has same length as alignment for monomer alphabet"""
+        aln = LoadSeqs('data/primates_brca1.fasta', moltype='dna')
+        tree = LoadTree('data/primates_brca1.tree')
+        sm = get_model('HKY85', ordered_param='rate', distribution='gamma')
+        lf = sm.make_likelihood_function(tree, bins=4, sites_independent=False)
+        lf.set_alignment(aln)
+        bprobs = lf.get_bin_probs()
+        self.assertEqual(bprobs.shape[1], len(aln))
+
 
 if __name__ == "__main__":
     main()
