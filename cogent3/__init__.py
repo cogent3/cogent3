@@ -88,9 +88,6 @@ if warn_env in os.environ:
     warnings.simplefilter(os.environ[warn_env])
 
 
-
-
-
 def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
     if seq is None:
         for (a_name, a_seq) in FromFilenameParser(filename, format):

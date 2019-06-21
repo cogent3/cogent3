@@ -27,7 +27,6 @@ from cogent3.recalculation.definition import (
 Float = numpy.core.numerictypes.sctype2char(float)
 
 
-
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
