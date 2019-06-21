@@ -1,16 +1,18 @@
 import json
+
 from collections import OrderedDict
 from collections.abc import MutableMapping
 from functools import total_ordering
 
-from cogent3.util.misc import get_object_provenance
 from cogent3.maths.stats import chisqprob
+from cogent3.util.misc import get_object_provenance
 
 
 class generic_result(MutableMapping):
     """a dict style container for storing results. All keys are
     converted to strings to ensure the object can be json serialised"""
-    type_ = 'generic_result'
+
+    type_ = "generic_result"
 
     def __init__(self, source):
         self._store = dict()
@@ -37,10 +39,9 @@ class generic_result(MutableMapping):
     def __repr__(self):
         name = self.__class__.__name__
         num = len(self)
-        types = [f'{repr(k)}: {self[k].__class__.__name__}' for k in
-                 self.keys()[:4]]
-        types = ', '.join(types)
-        result = f'{len(self)}x {name}({types})'
+        types = [f"{repr(k)}: {self[k].__class__.__name__}" for k in self.keys()[:4]]
+        types = ", ".join(types)
+        result = f"{len(self)}x {name}({types})"
         return result
 
     def __str__(self):
@@ -51,8 +52,10 @@ class generic_result(MutableMapping):
 
     def to_rich_dict(self):
         """returns the rich dict on values"""
-        result = {'type': get_object_provenance(self),
-                  'result_construction': self._construction_kwargs}
+        result = {
+            "type": get_object_provenance(self),
+            "result_construction": self._construction_kwargs,
+        }
         for key, val in self.items():
             try:
                 val = val.to_rich_dict()
@@ -68,20 +71,33 @@ class generic_result(MutableMapping):
 
 @total_ordering
 class model_result(generic_result):
-    type_ = 'model_result'
-    _stat_attrs = ('lnL', 'nfp', 'DLC', 'unique_Q')
+    type_ = "model_result"
+    _stat_attrs = ("lnL", "nfp", "DLC", "unique_Q")
 
-    def __init__(self, name=None, stat=sum, source=None, elapsed_time=None,
-                 num_evaluations=None, evaluation_limit=None,
-                 lnL=None, nfp=None, DLC=None, unique_Q=None):
+    def __init__(
+        self,
+        name=None,
+        stat=sum,
+        source=None,
+        elapsed_time=None,
+        num_evaluations=None,
+        evaluation_limit=None,
+        lnL=None,
+        nfp=None,
+        DLC=None,
+        unique_Q=None,
+    ):
         super(model_result, self).__init__(source)
         if type(stat) == str:
             stat = eval(stat)
 
-        self._construction_kwargs = dict(name=name, stat=stat.__name__,
-                                         source=source,
-                                         elapsed_time=elapsed_time,
-                                         num_evaluations=num_evaluations)
+        self._construction_kwargs = dict(
+            name=name,
+            stat=stat.__name__,
+            source=source,
+            elapsed_time=elapsed_time,
+            num_evaluations=num_evaluations,
+        )
         self._store = dict()
         self._name = name
         assert stat is sum or stat is max
@@ -96,16 +112,17 @@ class model_result(generic_result):
 
     def _get_repr_data_(self):
         from cogent3.util.table import Table
+
         self.lf  # making sure we're fully reloaded
-        attrs = ['lnL', 'nfp', 'DLC', 'unique_Q']
-        header = ['key'] + attrs[:]
-        rows = [[''] + [getattr(self, attr) for attr in attrs]]
+        attrs = ["lnL", "nfp", "DLC", "unique_Q"]
+        header = ["key"] + attrs[:]
+        rows = [[""] + [getattr(self, attr) for attr in attrs]]
         if len(self) > 1:
             # we just add keys, lnL and nfp
-            padd = ['', '']
-            attrs = ['lnL', 'nfp']
+            padd = ["", ""]
+            attrs = ["lnL", "nfp"]
             for key in self:
-                row = [repr(key), self[key].lnL, self[key].nfp, '', '']
+                row = [repr(key), self[key].lnL, self[key].nfp, "", ""]
                 rows.append(row)
 
         table = Table(header=header, rows=rows, title=self.name)
@@ -130,10 +147,10 @@ class model_result(generic_result):
             except NotImplementedError:
                 unique_Q = None  # non-primary root issue
         else:
-            lnL = lf.get('lnL')
-            nfp = lf.get('nfp')
-            DLC = lf.get('DLC')
-            unique_Q = lf.get('unique_Q')
+            lnL = lf.get("lnL")
+            nfp = lf.get("nfp")
+            DLC = lf.get("DLC")
+            unique_Q = lf.get("unique_Q")
 
         if self.lnL is not None:
             self.DLC = all([DLC, self.DLC])
@@ -154,7 +171,7 @@ class model_result(generic_result):
     def num_evaluations(self, value):
         value = int(value)
         self._num_evaluations = value
-        self._construction_kwargs['num_evaluations'] = value
+        self._construction_kwargs["num_evaluations"] = value
 
     @property
     def elapsed_time(self):
@@ -163,7 +180,7 @@ class model_result(generic_result):
     @elapsed_time.setter
     def elapsed_time(self, value):
         self._elapsed_time = value
-        self._construction_kwargs['elapsed_time'] = value
+        self._construction_kwargs["elapsed_time"] = value
 
     @property
     def name(self):
@@ -185,7 +202,7 @@ class model_result(generic_result):
         data = {}
         for n in seqnames:
             seq1, seq2, seq3 = sim[0][n], sim[1][n], sim[2][n]
-            seq = ''.join((''.join(t) for t in zip(seq1, seq2, seq3)))
+            seq = "".join(("".join(t) for t in zip(seq1, seq2, seq3)))
             data[n] = seq
 
         simaln = aln.__class__(data=data)
@@ -202,6 +219,7 @@ class model_result(generic_result):
         result = list(self.values())
         if type(result[0]) == dict:
             from cogent3.util import deserialise
+
             # we reset the stat attributes to None
             for attr in self._stat_attrs:
                 setattr(self, attr, None)
@@ -256,7 +274,7 @@ class model_result(generic_result):
 
 
 class hypothesis_result(generic_result):
-    type_ = 'hypothesis_result'
+    type_ = "hypothesis_result"
 
     def __init__(self, name_of_null, source=None):
         """
@@ -264,35 +282,34 @@ class hypothesis_result(generic_result):
             either a likelihood function instance
         """
         super(hypothesis_result, self).__init__(source)
-        self._construction_kwargs = dict(name_of_null=name_of_null,
-                                         source=source)
+        self._construction_kwargs = dict(name_of_null=name_of_null, source=source)
 
         self._name_of_null = name_of_null
 
     def _get_repr_data_(self):
         from cogent3.util.table import Table
+
         rows = []
-        attrs = ['lnL', 'nfp', 'DLC', 'unique_Q']
+        attrs = ["lnL", "nfp", "DLC", "unique_Q"]
         for key, member in self.items():
             member.lf  # making sure we're fully reloaded
             if key == self._name_of_null:
-                status_name = ['null', key]
+                status_name = ["null", key]
             else:
-                status_name = ['alt', key]
+                status_name = ["alt", key]
             row = status_name + [getattr(member, a) for a in attrs]
             rows.append(row)
 
-        table = Table(header=['hypothesis', 'key'] + attrs, rows=rows)
-        table = table.sorted(columns='nfp')
+        table = Table(header=["hypothesis", "key"] + attrs, rows=rows)
+        table = table.sorted(columns="nfp")
         stats = [[self.LR, self.df, self.pvalue]]
-        stats = Table(header=['LR', 'df', 'pvalue'], rows=stats,
-                      title='Statistics')
+        stats = Table(header=["LR", "df", "pvalue"], rows=stats, title="Statistics")
         return stats, table
 
     def _repr_html_(self):
         stats, table = self._get_repr_data_()
         result = [t._repr_html_(include_shape=False) for t in (stats, table)]
-        return '\n'.join(result)
+        return "\n".join(result)
 
     def __repr__(self):
         stats, table = self._get_repr_data_()
@@ -301,7 +318,7 @@ class hypothesis_result(generic_result):
             r, _ = t._get_repr_()
             result.append(str(r))
 
-        return '\n'.join(result)
+        return "\n".join(result)
 
     @property
     def null(self):
@@ -341,7 +358,7 @@ class hypothesis_result(generic_result):
 
 
 class bootstrap_result(generic_result):
-    type_ = 'bootstrap_result'
+    type_ = "bootstrap_result"
 
     def __init__(self, source=None):
         super(bootstrap_result, self).__init__(source)
@@ -350,7 +367,7 @@ class bootstrap_result(generic_result):
     @property
     def observed(self):
         """the results for the observed data"""
-        return self['observed']
+        return self["observed"]
 
     @observed.setter
     def observed(self, data):
@@ -364,5 +381,5 @@ class bootstrap_result(generic_result):
     @property
     def null_dist(self):
         """returns the LR values corresponding to the synthetic data"""
-        result = [self[k].LR for k in self if k != 'observed']
+        result = [self[k].LR for k in self if k != "observed"]
         return result

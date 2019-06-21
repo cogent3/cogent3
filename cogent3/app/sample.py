@@ -1,12 +1,15 @@
 from collections import defaultdict
 
-from numpy import random as np_random, array
+from numpy import array
+from numpy import random as np_random
 
-from cogent3.core.moltype import get_moltype
+from cogent3.core.alignment import Alignment, ArrayAlignment
 from cogent3.core.genetic_code import get_code
-from cogent3.core.alignment import ArrayAlignment, Alignment
+from cogent3.core.moltype import get_moltype
+
+from .composable import ComposableAligned, ComposableSeq, NotCompletedResult
 from .translate import get_fourfold_degenerate_sets
-from .composable import ComposableSeq, ComposableAligned, NotCompletedResult
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -20,6 +23,7 @@ __status__ = "Alpha"
 
 # TODO need a function to filter sequences based on divergence, ala divergent
 # set.
+
 
 def intersection(groups):
     """returns the intersection of all groups"""
@@ -65,12 +69,11 @@ class concat:
         names = self._name_callback(list(aln.names for aln in data))
         collated = defaultdict(list)
         for aln in data:
-            assert isinstance(aln, ArrayAlignment) or isinstance(aln,
-                                                                 Alignment)
+            assert isinstance(aln, ArrayAlignment) or isinstance(aln, Alignment)
             if self._intersect:
                 seqs = aln.take_seqs(names).todict()
             else:
-                seqs = defaultdict(lambda: '?' * len(aln))
+                seqs = defaultdict(lambda: "?" * len(aln))
                 seqs.update(aln.todict())
 
             for name in names:
@@ -100,13 +103,13 @@ class omit_degenerates(ComposableAligned):
             tuple contains a degen character at any position the entire tuple
             is excluded
         """
-        super(omit_degenerates, self).__init__(input_type='aligned',
-                                               output_type=('aligned',
-                                                            'serialisable'))
+        super(omit_degenerates, self).__init__(
+            input_type="aligned", output_type=("aligned", "serialisable")
+        )
         self._formatted_params()
         if moltype:
             moltype = get_moltype(moltype)
-            assert moltype.label.lower() in ('dna', 'rna'), "Invalid moltype"
+            assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
         self.moltype = moltype
         self._no_degen = omit_degenerates
@@ -117,14 +120,14 @@ class omit_degenerates(ComposableAligned):
     def filter_degenerates(self, aln):
         if aln.moltype != self.moltype:
             # try converting
-            aln = aln.to_type(moltype=self.moltype,
-                              array_align=True)
-        result = aln.no_degenerates(motif_length=self._motif_length,
-                                    allow_gap=self._allow_gap)
+            aln = aln.to_type(moltype=self.moltype, array_align=True)
+        result = aln.no_degenerates(
+            motif_length=self._motif_length, allow_gap=self._allow_gap
+        )
         if not result:
-            result = NotCompletedResult('FAIL', self,
-                                        'all columns contained degenerates',
-                                        source=aln)
+            result = NotCompletedResult(
+                "FAIL", self, "all columns contained degenerates", source=aln
+            )
 
         return result
 
@@ -132,8 +135,13 @@ class omit_degenerates(ComposableAligned):
 class take_codon_positions(ComposableAligned):
     """returns the specified codon position(s) from an alignment"""
 
-    def __init__(self, *positions, fourfold_degenerate=False,
-                 gc='Standard Nuclear', moltype='dna'):
+    def __init__(
+        self,
+        *positions,
+        fourfold_degenerate=False,
+        gc="Standard Nuclear",
+        moltype="dna",
+    ):
         """selects the indicated codon positions from an alignment
 
         Parameters
@@ -149,14 +157,14 @@ class take_codon_positions(ComposableAligned):
         moltype : str
             molecular type, must be either DNA or RNA
         """
-        super(take_codon_positions, self).__init__(input_type='aligned',
-                                                   output_type=('aligned',
-                                                                'serialisable'))
+        super(take_codon_positions, self).__init__(
+            input_type="aligned", output_type=("aligned", "serialisable")
+        )
         self._formatted_params()
         assert moltype is not None
         moltype = get_moltype(moltype)
 
-        assert moltype.label.lower() in ('dna', 'rna'), "Invalid moltype"
+        assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
         self._moltype = moltype
         self._four_fold_degen = fourfold_degenerate
@@ -164,14 +172,16 @@ class take_codon_positions(ComposableAligned):
 
         if fourfold_degenerate:
             gc = get_code(gc)
-            sets = get_fourfold_degenerate_sets(gc, alphabet=moltype.alphabet,
-                                                as_indices=True)
+            sets = get_fourfold_degenerate_sets(
+                gc, alphabet=moltype.alphabet, as_indices=True
+            )
             self._fourfold_degen_sets = sets
             self.func = self.take_fourfold_positions
             return
 
-        assert 1 <= min(positions) <= 3 and 1 <= max(positions) <= 3, \
-            'Invalid codon positions'
+        assert (
+            1 <= min(positions) <= 3 and 1 <= max(positions) <= 3
+        ), "Invalid codon positions"
 
         by_index = True if len(positions) == 1 else False
         if by_index:
@@ -202,11 +212,11 @@ class take_codon_positions(ComposableAligned):
             indices = list(range(self._positions, len(aln), 3))
             result = aln.take_positions(indices)
         elif isinstance(aln, ArrayAlignment):
-            result = aln[self._positions::3]
+            result = aln[self._positions :: 3]
         return result
 
     def take_codon_positions(self, aln):
-        '''takes multiple positions'''
+        """takes multiple positions"""
         length = len(aln)
         indices = [k for k in range(length) if k % 3 in self._positions]
         return aln.take_positions(indices)
@@ -221,11 +231,10 @@ class take_named_seqs(ComposableSeq):
         A new sequence collection, or False if not all the named sequences are 
         in the collection.
         """
-        super(take_named_seqs, self).__init__(input_type=('sequences',
-                                                          'aligned'),
-                                              output_type=('sequences',
-                                                           'aligned',
-                                                           'serialisable'))
+        super(take_named_seqs, self).__init__(
+            input_type=("sequences", "aligned"),
+            output_type=("sequences", "aligned", "serialisable"),
+        )
         self._formatted_params()
         self._names = names
         self._negate = negate
@@ -236,16 +245,15 @@ class take_named_seqs(ComposableSeq):
             data = data.take_seqs(self._names, negate=self._negate)
         except KeyError:
             missing = set(self._names) - set(data.names)
-            msg = f'named seq(s) {missing} not in {data.names}'
-            data = NotCompletedResult('FALSE', self, msg, source=data)
+            msg = f"named seq(s) {missing} not in {data.names}"
+            data = NotCompletedResult("FALSE", self, msg, source=data)
         return data
 
 
 class min_length(ComposableSeq):
     """filters sequence collections by length"""
 
-    def __init__(self, length, motif_length=1, subtract_degen=True,
-                 moltype=None):
+    def __init__(self, length, motif_length=1, subtract_degen=True, moltype=None):
         """
         Parameters
         ----------
@@ -258,11 +266,10 @@ class min_length(ComposableSeq):
         moltype
             molecular type, can be string or instance
         """
-        super(min_length, self).__init__(input_type=('sequences',
-                                                     'aligned'),
-                                         output_type=('sequences',
-                                                      'aligned',
-                                                      'serialisable'))
+        super(min_length, self).__init__(
+            input_type=("sequences", "aligned"),
+            output_type=("sequences", "aligned", "serialisable"),
+        )
         self._formatted_params()
         if motif_length > 1:
             length = length // motif_length
@@ -279,19 +286,22 @@ class min_length(ComposableSeq):
             data = data.to_moltype(self._moltype)
 
         if self._subtract_degen:
-            if not hasattr(data.alphabet, 'non_degen'):
+            if not hasattr(data.alphabet, "non_degen"):
                 name = self.__class__.__name__
-                msg = ('%s(subtract_degen=True) requires DNA, RNA or PROTEIN '
-                       'moltype') % name
+                msg = (
+                    "%s(subtract_degen=True) requires DNA, RNA or PROTEIN " "moltype"
+                ) % name
                 raise ValueError(msg)
 
-        lengths = data.get_lengths(allow_gap=not self._subtract_degen,
-                                   include_ambiguity=not self._subtract_degen)
+        lengths = data.get_lengths(
+            allow_gap=not self._subtract_degen,
+            include_ambiguity=not self._subtract_degen,
+        )
         length, _ = min([(l, n) for n, l in lengths.items()])
 
         if length < self._min_length:
-            msg = f'{length} < min_length {self._min_length}'
-            data = NotCompletedResult('FALSE', self, msg, source=data)
+            msg = f"{length} < min_length {self._min_length}"
+            data = NotCompletedResult("FALSE", self, msg, source=data)
 
         return data
 
@@ -316,8 +326,9 @@ class _GetStart:
 class fixed_length(ComposableAligned):
     """return alignments of a fixed length"""
 
-    def __init__(self, length, start=0, random=False, seed=None,
-                 motif_length=1, moltype=None):
+    def __init__(
+        self, length, start=0, random=False, seed=None, motif_length=1, moltype=None
+    ):
         """
         Parameters
         ----------
@@ -337,9 +348,9 @@ class fixed_length(ComposableAligned):
         moltype
             molecular type, can be string or instance
         """
-        super(fixed_length, self).__init__(input_type='aligned',
-                                           output_type=('aligned',
-                                                        'serialisable'))
+        super(fixed_length, self).__init__(
+            input_type="aligned", output_type=("aligned", "serialisable")
+        )
         self._formatted_params()
         diff = length % motif_length
         if diff != 0:
@@ -352,7 +363,7 @@ class fixed_length(ComposableAligned):
             moltype = get_moltype(moltype)
         self._moltype = moltype
         if type(start) == str:
-            assert start.lower().startswith('rand')
+            assert start.lower().startswith("rand")
             random = False
         else:
             assert type(start) == int
@@ -365,20 +376,20 @@ class fixed_length(ComposableAligned):
         if seed:
             np_random.seed(seed)
 
-        self.func = {False: self.truncated}.get(
-            random, self.sample_positions)
+        self.func = {False: self.truncated}.get(random, self.sample_positions)
 
     def truncated(self, aln):
         if self._moltype:
             aln = aln.to_moltype(self._moltype)
 
         if len(aln) < self._length:
-            msg = f'{len(aln)} < min_length {self._length}'
-            result = NotCompletedResult('FALSE', self.__class__.__name__, msg,
-                                        source=aln)
+            msg = f"{len(aln)} < min_length {self._length}"
+            result = NotCompletedResult(
+                "FALSE", self.__class__.__name__, msg, source=aln
+            )
         else:
             start = self._start(len(aln) - self._length)
-            result = aln[start:start + self._length]
+            result = aln[start : start + self._length]
 
         return result
 
@@ -392,8 +403,9 @@ class fixed_length(ComposableAligned):
         else:
             number = self._length // self._motif_length
 
-        pos = np_random.choice(indices.shape[0] // self._motif_length,
-                               number, replace=False)
+        pos = np_random.choice(
+            indices.shape[0] // self._motif_length, number, replace=False
+        )
         if self._motif_length == 1:
             result = indices[pos]
         else:
@@ -407,8 +419,13 @@ class fixed_length(ComposableAligned):
 
 
 class omit_bad_seqs(ComposableAligned):
-    def __init__(self, disallowed_frac=0.9, allowed_frac_bad_cols=0,
-                 exclude_just_gap=True, moltype='dna'):
+    def __init__(
+        self,
+        disallowed_frac=0.9,
+        allowed_frac_bad_cols=0,
+        exclude_just_gap=True,
+        moltype="dna",
+    ):
         """Returns an alignment without the sequences responsible for
         exceeding disallowed_frac.
 
@@ -424,14 +441,15 @@ class omit_bad_seqs(ComposableAligned):
         moltype
             molecular type, can be string or instance
         """
-        super(omit_bad_seqs, self).__init__(input_type='aligned',
-                                            output_type=('aligned',
-                                                         'serialisable'))
+        super(omit_bad_seqs, self).__init__(
+            input_type="aligned", output_type=("aligned", "serialisable")
+        )
         self._formatted_params()
         if moltype:
             moltype = get_moltype(moltype)
-        assert moltype.label.lower() in 'dna rna protein protein_with_stop', \
-            'moltype must be one of DNA, RNA or PROTEIN'
+        assert (
+            moltype.label.lower() in "dna rna protein protein_with_stop"
+        ), "moltype must be one of DNA, RNA or PROTEIN"
         self._disallowed_frac = disallowed_frac
         self._allowed_frac_bad_col = allowed_frac_bad_cols
         self._exclude_just_gap = exclude_just_gap
@@ -440,15 +458,16 @@ class omit_bad_seqs(ComposableAligned):
 
     def drop_bad_seqs(self, aln):
         aln = aln.to_moltype(self._moltype)
-        result = aln.omit_bad_seqs(disallowed_frac=self._disallowed_frac,
-                                   allowed_frac_bad_cols=self._allowed_frac_bad_col,
-                                   exclude_just_gap=self._exclude_just_gap)
+        result = aln.omit_bad_seqs(
+            disallowed_frac=self._disallowed_frac,
+            allowed_frac_bad_cols=self._allowed_frac_bad_col,
+            exclude_just_gap=self._exclude_just_gap,
+        )
         return result
 
 
 class omit_duplicated(ComposableSeq):
-    def __init__(self, mask_degen=False, choose='longest', seed=None,
-                 moltype=None):
+    def __init__(self, mask_degen=False, choose="longest", seed=None, moltype=None):
         """Returns unique sequences, adds 'dropped' key to seqs.info
 
         Parameters
@@ -464,22 +483,22 @@ class omit_duplicated(ComposableSeq):
         moltype
             molecular type, can be string or instance
         """
-        super(omit_duplicated, self).__init__(input_type='sequences',
-                                              output_type=('sequences',
-                                                           'serialisable'))
+        super(omit_duplicated, self).__init__(
+            input_type="sequences", output_type=("sequences", "serialisable")
+        )
 
-        assert not choose or choose in 'longestrandom'
+        assert not choose or choose in "longestrandom"
         self._formatted_params()
         if moltype:
             moltype = get_moltype(moltype)
         self._moltype = moltype
-        if choose == 'random' and seed:
+        if choose == "random" and seed:
             np_random.seed(seed)
 
         self._mask_degen = mask_degen
-        if choose == 'longest':
+        if choose == "longest":
             self.func = self.choose_longest
-        elif choose == 'random':
+        elif choose == "random":
             self.func = self.choose_random
         else:
             self.func = self.take_unique
@@ -531,11 +550,10 @@ class trim_stop_codons(ComposableSeq):
         A new sequence collection, or False if not all the named sequences are
         in the collection.
         """
-        super(trim_stop_codons, self).__init__(input_type=('sequences',
-                                                           'aligned'),
-                                               output_type=('sequences',
-                                                            'aligned',
-                                                            'serialisable'))
+        super(trim_stop_codons, self).__init__(
+            input_type=("sequences", "aligned"),
+            output_type=("sequences", "aligned", "serialisable"),
+        )
         self._formatted_params()
         self._gc = gc
         self.func = self.trim_stops

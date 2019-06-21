@@ -4,6 +4,7 @@
 
 from cogent3.format.util import _AlignmentFormatter
 
+
 __author__ = "Thomas La"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Rob Knight", "Gavin Huttley", "Thomas La"]
@@ -15,11 +16,12 @@ __maintainer__ = "Thomas La"
 def alignment_to_paml(alignment_dict, block_size=60, order=None):
     """Returns a Paml string given an alignment.
     """
-    return PamlFormatter().format(alignment_dict, block_size, [] if order is None else order)
+    return PamlFormatter().format(
+        alignment_dict, block_size, [] if order is None else order
+    )
 
 
 class PamlFormatter(_AlignmentFormatter):
-
     def format(self, alignment_dict, block_size, order):
         """Format the alignment to Paml.
 
@@ -38,6 +40,16 @@ class PamlFormatter(_AlignmentFormatter):
         self.set_align_info(alignment_dict, order)
         self.set_block_size(block_size)
 
-        header = '%d  %d\n' % (self.number_sequences, self.align_length)
-        return header + ''.join(['%s\n%s' % (seq, self.wrap_string_to_block_size(
-                alignment_dict[seq], alt_block_size=block_size)) for seq in self.align_order])
+        header = "%d  %d\n" % (self.number_sequences, self.align_length)
+        return header + "".join(
+            [
+                "%s\n%s"
+                % (
+                    seq,
+                    self.wrap_string_to_block_size(
+                        alignment_dict[seq], alt_block_size=block_size
+                    ),
+                )
+                for seq in self.align_order
+            ]
+        )

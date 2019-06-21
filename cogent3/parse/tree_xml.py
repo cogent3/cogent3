@@ -30,6 +30,7 @@ Parameters are inherited by contained clades unless overridden.
 
 import xml.sax
 
+
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
@@ -41,13 +42,12 @@ __status__ = "Production"
 
 
 class TreeHandler(xml.sax.ContentHandler):
-
     def __init__(self, tree_builder):
         self.build_edge = tree_builder
 
     def startDocument(self):
         self.stack = [({}, None, None)]
-        self.data = {'clades': [], 'params': {}}
+        self.data = {"clades": [], "params": {}}
         self.in_clade = False
         self.current = None
 
@@ -56,8 +56,11 @@ class TreeHandler(xml.sax.ContentHandler):
         self.stack.append((self.data, self.in_clade, self.current))
         self.current = ""
         if name == "clade":
-            self.data = {'params': self.data[
-                'params'].copy(), 'clades': [], 'name': None}
+            self.data = {
+                "params": self.data["params"].copy(),
+                "clades": [],
+                "name": None,
+            }
             self.in_clade = True
         else:
             self.data = {}
@@ -67,7 +70,7 @@ class TreeHandler(xml.sax.ContentHandler):
         self.current += str(text)
 
     def endElement(self, name):
-        getattr(self, 'process_%s' % name)(self.current, **self.data)
+        getattr(self, "process_%s" % name)(self.current, **self.data)
         (self.data, self.in_clade, self.current) = self.stack.pop()
         self.parent = self.stack[-1][0]
 
@@ -76,24 +79,24 @@ class TreeHandler(xml.sax.ContentHandler):
 
     def process_clade(self, text, name, params, clades):
         edge = self.build_edge(clades, name, params)
-        self.parent['clades'].append(edge)
+        self.parent["clades"].append(edge)
 
     def process_param(self, text, name, value):
-        self.parent['params'][name] = value
+        self.parent["params"][name] = value
 
     def process_name(self, text):
-        self.parent['name'] = text.strip()
+        self.parent["name"] = text.strip()
 
     def process_value(self, text):
         if text == "None":
-            self.parent['value'] = None
+            self.parent["value"] = None
         else:
-            self.parent['value'] = float(text)
+            self.parent["value"] = float(text)
 
 
 def parse_string(text, tree_builder):
     handler = TreeHandler(tree_builder)
-    xml.sax.parseString(text.encode('utf8'), handler)
-    trees = handler.data['clades']
+    xml.sax.parseString(text.encode("utf8"), handler)
+    trees = handler.data["clades"]
     assert len(trees) == 1, trees
     return trees[0]

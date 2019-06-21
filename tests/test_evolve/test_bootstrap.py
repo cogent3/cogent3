@@ -1,19 +1,27 @@
 #!/usr/bin/env python
 
+import os
 import sys
 import unittest
 
-from cogent3.evolve import likelihood_function, \
-    parameter_controller, substitution_model, bootstrap
-
 from cogent3 import LoadSeqs, LoadTree
+from cogent3.evolve import (
+    bootstrap,
+    likelihood_function,
+    parameter_controller,
+    substitution_model,
+)
 
-import os
 
 __author__ = "Peter Maxwell and  Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield",
-               "Helen Lindsay", "Andrew Butterfield"]
+__credits__ = [
+    "Peter Maxwell",
+    "Gavin Huttley",
+    "Matthew Wakefield",
+    "Helen Lindsay",
+    "Andrew Butterfield",
+]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
@@ -21,10 +29,9 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 base_path = os.getcwd()
-data_path = os.path.join(base_path, 'data')
+data_path = os.path.join(base_path, "data")
 
-seqnames = ['Chimpanzee', 'Rhesus', 'Orangutan',
-            'Human']
+seqnames = ["Chimpanzee", "Rhesus", "Orangutan", "Human"]
 
 REPLICATES = 2
 
@@ -41,25 +48,24 @@ def float_ge_zero(num, epsilon=1e-6):
 
 
 class BootstrapTests(unittest.TestCase):
-
     def gettree(self):
         treeobj = LoadTree(filename=os.path.join(data_path, "murphy.tree"))
 
         return treeobj.get_sub_tree(seqnames)
 
-    def getsubmod(self, choice='F81'):
-        if choice == 'F81':
+    def getsubmod(self, choice="F81"):
+        if choice == "F81":
             return substitution_model.TimeReversibleNucleotide(model_gaps=True)
         else:
             return substitution_model.TimeReversibleNucleotide(
-                model_gaps=True,
-                predicates={'kappa': 'transition'})
+                model_gaps=True, predicates={"kappa": "transition"}
+            )
 
     def getalignmentobj(self):
         moltype = self.getsubmod().moltype
         alignmentobj = LoadSeqs(
-            filename=os.path.join(data_path, "brca1.fasta"),
-            moltype=moltype)
+            filename=os.path.join(data_path, "brca1.fasta"), moltype=moltype
+        )
         return alignmentobj.take_seqs(seqnames)[:1000]
 
     def getcontroller(self, treeobj, submodobj):
@@ -73,7 +79,7 @@ class BootstrapTests(unittest.TestCase):
         controller = self.getcontroller(treeobj, submodobj)
 
         # we are setting a local molecular clock for human/chimp
-        controller.set_local_clock('Human', 'Chimpanzee')
+        controller.set_local_clock("Human", "Chimpanzee")
         return controller
 
     def create_alt_controller(self, alignobj):
@@ -88,14 +94,15 @@ class BootstrapTests(unittest.TestCase):
     def calclength(self, likelihood_function):
         """This extracts the length of the human branch and returns it."""
 
-        return likelihood_function.get_param_value("length", 'Human')
+        return likelihood_function.get_param_value("length", "Human")
 
     def test_conf_int(self):
         """testing estimation of confidence intervals."""
         alignobj = self.getalignmentobj()
 
         bstrap = bootstrap.EstimateConfidenceIntervals(
-            self.create_null_controller(alignobj), self.calclength, alignobj)
+            self.create_null_controller(alignobj), self.calclength, alignobj
+        )
         bstrap.set_num_replicates(REPLICATES)
         bstrap.set_seed(1984)
         bstrap.run(local=True)
@@ -117,11 +124,13 @@ class BootstrapTests(unittest.TestCase):
     def test_prob(self):
         """testing estimation of probability."""
         import sys
+
         alignobj = self.getalignmentobj()
         prob_bstrap = bootstrap.EstimateProbability(
             self.create_null_controller(alignobj),
             self.create_alt_controller(alignobj),
-            alignobj)
+            alignobj,
+        )
         prob_bstrap.set_num_replicates(REPLICATES)
         prob_bstrap.set_seed(1984)
         prob_bstrap.run(local=True)

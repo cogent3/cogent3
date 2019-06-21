@@ -10,14 +10,23 @@ in addition to binary trees.
 """
 import numpy
 
-Float = numpy.core.numerictypes.sctype2char(float)
-
-from cogent3.recalculation.definition import CalculationDefn, _FuncDefn, \
-    CalcDefn, ProbabilityParamDefn, NonParamDefn, SumDefn, CallDefn
-
 from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge
 from cogent3.evolve.simulate import argpick
 from cogent3.maths.markov import SiteClassTransitionMatrix
+from cogent3.recalculation.definition import (
+    CalcDefn,
+    CalculationDefn,
+    CallDefn,
+    NonParamDefn,
+    ProbabilityParamDefn,
+    SumDefn,
+    _FuncDefn,
+)
+
+
+Float = numpy.core.numerictypes.sctype2char(float)
+
+
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -30,7 +39,6 @@ __status__ = "Production"
 
 
 class _PartialLikelihoodDefn(CalculationDefn):
-
     def setup(self, edge_name):
         self.edge_name = edge_name
 
@@ -54,12 +62,10 @@ class PartialLikelihoodProductDefn(_PartialLikelihoodDefn):
 
 
 class PartialLikelihoodProductDefnFixedMotif(PartialLikelihoodProductDefn):
-
     def calc(self, recycled_result, fixed_motif, lh_edge, *child_likelihoods):
         if recycled_result is None:
             recycled_result = lh_edge.make_partial_likelihoods_array()
-        result = lh_edge.sum_input_likelihoodsR(
-            recycled_result, *child_likelihoods)
+        result = lh_edge.sum_input_likelihoodsR(recycled_result, *child_likelihoods)
         if fixed_motif not in [None, -1]:
             for motif in range(result.shape[-1]):
                 if motif != fixed_motif:
@@ -68,20 +74,20 @@ class PartialLikelihoodProductDefnFixedMotif(PartialLikelihoodProductDefn):
 
 
 class LhtEdgeLookupDefn(CalculationDefn):
-    name = 'col_index'
+    name = "col_index"
 
     def setup(self, edge_name):
         self.edge_name = edge_name
         # so that it can be found by reconstruct_ancestral_seqs etc:
-        if edge_name == 'root':
-            self.name = 'root'
+        if edge_name == "root":
+            self.name = "root"
 
     def calc(self, lht):
         return lht.get_edge(self.edge_name)
 
 
 def make_partial_likelihood_defns(edge, lht, psubs, fixed_motifs):
-    kw = {'edge_name': edge.name}
+    kw = {"edge_name": edge.name}
 
     if edge.istip():
         plh = LeafPartialLikelihoodDefn(lht, **kw)
@@ -89,16 +95,16 @@ def make_partial_likelihood_defns(edge, lht, psubs, fixed_motifs):
         lht_edge = LhtEdgeLookupDefn(lht, **kw)
         children = []
         for child in edge.children:
-            child_plh = make_partial_likelihood_defns(child, lht, psubs,
-                                                   fixed_motifs)
-            psub = psubs.select_from_dimension('edge', child.name)
+            child_plh = make_partial_likelihood_defns(child, lht, psubs, fixed_motifs)
+            psub = psubs.select_from_dimension("edge", child.name)
             child_plh = CalcDefn(numpy.inner)(child_plh, psub)
             children.append(child_plh)
 
         if fixed_motifs:
-            fixed_motif = fixed_motifs.select_from_dimension('edge', edge.name)
+            fixed_motif = fixed_motifs.select_from_dimension("edge", edge.name)
             plh = PartialLikelihoodProductDefnFixedMotif(
-                fixed_motif, lht_edge, *children, **kw)
+                fixed_motif, lht_edge, *children, **kw
+            )
         else:
             plh = PartialLikelihoodProductDefn(lht, *children, **kw)
 
@@ -118,7 +124,7 @@ def recursive_lht_build(edge, leaves):
 
 
 class LikelihoodTreeDefn(CalculationDefn):
-    name = 'lht'
+    name = "lht"
 
     def setup(self, tree):
         self.tree = tree
@@ -127,10 +133,11 @@ class LikelihoodTreeDefn(CalculationDefn):
         return recursive_lht_build(self.tree, leaves)
 
 
-def make_total_loglikelihood_defn(tree, leaves, psubs, mprobs, bprobs, bin_names,
-                               locus_names, sites_independent):
+def make_total_loglikelihood_defn(
+    tree, leaves, psubs, mprobs, bprobs, bin_names, locus_names, sites_independent
+):
 
-    fixed_motifs = NonParamDefn('fixed_motif', ['edge'])
+    fixed_motifs = NonParamDefn("fixed_motif", ["edge"])
 
     lht = LikelihoodTreeDefn(leaves, tree=tree)
     plh = make_partial_likelihood_defns(tree, lht, psubs, fixed_motifs)
@@ -142,28 +149,25 @@ def make_total_loglikelihood_defn(tree, leaves, psubs, mprobs, bprobs, bin_names
     # be interleaved first, otherwise summing over the CPUs is done last to
     # minimise inter-CPU communicaton.
 
-    root_mprobs = mprobs.select_from_dimension('edge', 'root')
-    lh = CalcDefn(numpy.inner, name='lh')(plh, root_mprobs)
+    root_mprobs = mprobs.select_from_dimension("edge", "root")
+    lh = CalcDefn(numpy.inner, name="lh")(plh, root_mprobs)
     if len(bin_names) > 1:
         if sites_independent:
-            site_pattern = CalcDefn(BinnedSiteDistribution, name='bdist')(
-                bprobs)
+            site_pattern = CalcDefn(BinnedSiteDistribution, name="bdist")(bprobs)
         else:
-            switch = ProbabilityParamDefn('bin_switch', dimensions=['locus'])
-            site_pattern = CalcDefn(PatchSiteDistribution, name='bdist')(
-                switch, bprobs)
-        blh = CallDefn(site_pattern, lht, name='bindex')
-        tll = CallDefn(blh, *lh.across_dimension('bin', bin_names),
-                       **dict(name='tll'))
+            switch = ProbabilityParamDefn("bin_switch", dimensions=["locus"])
+            site_pattern = CalcDefn(PatchSiteDistribution, name="bdist")(switch, bprobs)
+        blh = CallDefn(site_pattern, lht, name="bindex")
+        tll = CallDefn(blh, *lh.across_dimension("bin", bin_names), **dict(name="tll"))
     else:
-        lh = lh.select_from_dimension('bin', bin_names[0])
-        tll = CalcDefn(log_sum_across_sites, name='logsum')(lht, lh)
+        lh = lh.select_from_dimension("bin", bin_names[0])
+        tll = CalcDefn(log_sum_across_sites, name="logsum")(lht, lh)
 
     if len(locus_names) > 1:
         # currently has no .make_likelihood_function() method.
-        tll = SumDefn(*tll.across_dimension('locus', locus_names))
+        tll = SumDefn(*tll.across_dimension("locus", locus_names))
     else:
-        tll = tll.select_from_dimension('locus', locus_names[0])
+        tll = tll.select_from_dimension("locus", locus_names[0])
 
     return tll
 
@@ -173,7 +177,6 @@ def log_sum_across_sites(root, root_lh):
 
 
 class BinnedSiteDistribution(object):
-
     def __init__(self, bprobs):
         self.bprobs = bprobs
 
@@ -197,7 +200,6 @@ class BinnedSiteDistribution(object):
 
 
 class PatchSiteDistribution(object):
-
     def __init__(self, switch, bprobs):
         half = len(bprobs) // 2
         self.alloc = [0] * half + [1] * (len(bprobs) - half)
@@ -206,8 +208,7 @@ class PatchSiteDistribution(object):
         for (b, p) in zip(self.alloc, bprobs):
             pprobs[b] += p
 
-        self.bprobs = [p / pprobs[self.alloc[i]]
-                       for (i, p) in enumerate(bprobs)]
+        self.bprobs = [p / pprobs[self.alloc[i]] for (i, p) in enumerate(bprobs)]
         self.transition_matrix = SiteClassTransitionMatrix(switch, pprobs)
 
     def get_weighted_sum_lhs(self, lhs):
@@ -223,8 +224,10 @@ class PatchSiteDistribution(object):
         return SiteHmm(self, root)
 
     def emit(self, length, random_series):
-        bprobs = [[p for (patch, p) in zip(self.alloc, self.bprobs) if patch == a]
-                  for a in [0, 1]]
+        bprobs = [
+            [p for (patch, p) in zip(self.alloc, self.bprobs) if patch == a]
+            for a in [0, 1]
+        ]
         source = self.transition_matrix.emit(random_series)
         result = numpy.zeros([length], int)
         for i in range(length):
@@ -234,7 +237,6 @@ class PatchSiteDistribution(object):
 
 
 class BinnedLikelihood(object):
-
     def __init__(self, distrib, root):
         self.distrib = distrib
         self.root = root
@@ -247,14 +249,16 @@ class BinnedLikelihood(object):
         # posterior bin probs, not motif probs
         assert len(lhs) == len(self.distrib.bprobs)
         result = numpy.array(
-            [b * self.root.get_full_length_likelihoods(p) for
-            (b, p) in zip(self.distrib.bprobs, lhs)])
+            [
+                b * self.root.get_full_length_likelihoods(p)
+                for (b, p) in zip(self.distrib.bprobs, lhs)
+            ]
+        )
         result /= result.sum(axis=0)
         return result
 
 
 class SiteHmm(object):
-
     def __init__(self, distrib, root):
         self.root = root
         self.distrib = distrib
@@ -263,12 +267,13 @@ class SiteHmm(object):
         plhs = self.distrib.get_weighted_sum_lhs(lhs)
         plhs = numpy.ascontiguousarray(numpy.transpose(plhs))
         matrix = self.distrib.transition_matrix
-        return self.root.log_dot_reduce(
-            matrix.StationaryProbs, matrix.Matrix, plhs)
+        return self.root.log_dot_reduce(matrix.StationaryProbs, matrix.Matrix, plhs)
 
     def get_posterior_probs(self, *lhs):
-        plhs = [self.root.get_full_length_likelihoods(lh) for
-                lh in self.distrib.get_weighted_sum_lhs(lhs)]
+        plhs = [
+            self.root.get_full_length_likelihoods(lh)
+            for lh in self.distrib.get_weighted_sum_lhs(lhs)
+        ]
         plhs = numpy.transpose(plhs)
         pprobs = self.distrib.transition_matrix.get_posterior_probs(plhs)
         pprobs = numpy.array(numpy.transpose(pprobs))
@@ -276,8 +281,11 @@ class SiteHmm(object):
         lhs = numpy.array(lhs)
         blhs = lhs / numpy.sum(lhs, axis=0)
         blhs = numpy.array(
-            [b * self.root.get_full_length_likelihoods(p) for
-            (b, p) in zip(self.distrib.bprobs, blhs)])
+            [
+                b * self.root.get_full_length_likelihoods(p)
+                for (b, p) in zip(self.distrib.bprobs, blhs)
+            ]
+        )
 
         binsum = numpy.zeros(pprobs.shape, Float)
         for (patch, data) in zip(self.distrib.alloc, blhs):

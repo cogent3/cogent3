@@ -16,16 +16,17 @@ def PamlParser(f):
     for i in range(numseqs):
         seqname = f.readline().strip()
         if not seqname:
-            raise ValueError('Sequence name missing')
+            raise ValueError("Sequence name missing")
         currseq = []
         length = 0
         while length < seqlen:
             seq_line = f.readline()
             if not seq_line:
-                raise ValueError('Sequence "%s" is short: %s < %s' %
-                                 (seqname, length, seqlen))
+                raise ValueError(
+                    'Sequence "%s" is short: %s < %s' % (seqname, length, seqlen)
+                )
             seq_line = seq_line.strip()
             length += len(seq_line)
             currseq.append(seq_line)
 
-        yield (seqname, ''.join(currseq))
+        yield (seqname, "".join(currseq))

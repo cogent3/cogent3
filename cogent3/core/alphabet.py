@@ -17,25 +17,40 @@ MolType provides services for resolving ambiguities, or providing the
 correct ambiguity for recoding -- will move to its own module.
 """
 
-from itertools import product
 import json
-
 import re
 import string
-from numpy import array, sum, transpose, remainder, zeros, arange, newaxis, \
-    ravel, asarray, frombuffer, take, uint8, uint16, uint32, take
+
+from itertools import product
 
 import numpy
 
+from numpy import (
+    arange,
+    array,
+    asarray,
+    frombuffer,
+    newaxis,
+    ravel,
+    remainder,
+    sum,
+    take,
+    transpose,
+    uint8,
+    uint16,
+    uint32,
+    zeros,
+)
+
 from cogent3.util.misc import bytes_to_string, get_object_provenance
+
 
 Float = numpy.core.numerictypes.sctype2char(float)
 Int = numpy.core.numerictypes.sctype2char(int)
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
-               "Andrew Butterfield"]
+__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Andrew Butterfield"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
@@ -77,7 +92,7 @@ def get_array_type(num_elements):
     """
     if num_elements <= 256:
         return uint8
-    elif num_elements <= 2**16:
+    elif num_elements <= 2 ** 16:
         return uint16
     return uint32
 
@@ -98,8 +113,8 @@ def _make_translation_tables(a):
     some mapping. Using translate() can be thousands of times faster, so it's
     almost always worth it if you have a choice.
     """
-    indices = ''.join(map(chr, list(range(len(a)))))
-    chars = ''.join(a)
+    indices = "".join(map(chr, list(range(len(a)))))
+    chars = "".join(a)
     return str.maketrans(indices, chars), str.maketrans(chars, indices)
 
 
@@ -185,8 +200,7 @@ class Enumeration(tuple):
         self._quick_motifset = frozenset(self)
         if len(self._quick_motifset) != len(self):
             # got duplicates: show user what they sent in
-            raise TypeError('Alphabet initialized with duplicate values:\n' +
-                            str(self))
+            raise TypeError("Alphabet initialized with duplicate values:\n" + str(self))
         self._obj_to_index = dict(list(zip(self, list(range(len(self))))))
         # handle gaps
         self.gap = gap
@@ -262,7 +276,7 @@ class Enumeration(tuple):
                 print("FIRST MAP:", list(map(str, data)))
                 print("SECOND MAP:", list(map(ord, list(map(str, data)))))
                 data = list(map(ord, list(map(str, data))))
-            return(list(map(self.__getitem__, data)))
+            return list(map(self.__getitem__, data))
 
     def __pow__(self, num):
         """Returns JointEnumeration with num copies of self.
@@ -329,16 +343,16 @@ class Enumeration(tuple):
 
     def _get_pairs(self):
         """Accessor for pairs, lazy evaluation."""
-        if not hasattr(self, '_pairs'):
-            self._pairs = self**2
+        if not hasattr(self, "_pairs"):
+            self._pairs = self ** 2
         return self._pairs
 
     pairs = property(_get_pairs)
 
     def _get_triples(self):
         """Accessor for triples, lazy evaluation."""
-        if not hasattr(self, '_triples'):
-            self._triples = self**3
+        if not hasattr(self, "_triples"):
+            self._triples = self ** 3
         return self._triples
 
     Triples = property(_get_triples)
@@ -355,12 +369,12 @@ class JointEnumeration(Enumeration):
     often convenient if they are (e.g. pair enumerations that underlie
     substitution matrices).
     """
+
     def __new__(cls, data=None, gap=None, moltype=None):
         """Fills in the tuple with tuples from the enumerations in data."""
         data = data or []
         sub_enums = cls._coerce_enumerations(data)
-        return Enumeration.__new__(cls, product(*sub_enums),
-                                   moltype=moltype)
+        return Enumeration.__new__(cls, product(*sub_enums), moltype=moltype)
 
     def __init__(self, data=None, gap=None, moltype=None):
         """Returns a new JointEnumeration object. See class docstring for info.
@@ -398,15 +412,18 @@ class JointEnumeration(Enumeration):
 
     def __getnewargs_ex__(self, *args, **kw):
         data = self.to_rich_dict(for_pickle=True)
-        r = tuple([data[k] for k in ('data', 'gap', 'moltype')])
+        r = tuple([data[k] for k in ("data", "gap", "moltype")])
         return r, {}
 
     def to_rich_dict(self, for_pickle=False):
-        data = {'data': [''.join(e) for e in self.sub_enumerations],
-                'gap': self.gap, 'moltype': self.moltype}
+        data = {
+            "data": ["".join(e) for e in self.sub_enumerations],
+            "gap": self.gap,
+            "moltype": self.moltype,
+        }
         if not for_pickle:
-            data['type'] = get_object_provenance(self)
-            data['moltype'] = self.moltype.label
+            data["type"] = get_object_provenance(self)
+            data["moltype"] = self.moltype.label
         return data
 
     def to_json(self):
@@ -532,29 +549,26 @@ class Alphabet(Enumeration):
     # make this exception avalable to objects calling alphabet methods.
     AlphabetError = AlphabetError
 
-    def __new__(cls, motifset, gap='-', moltype=None):
+    def __new__(cls, motifset, gap="-", moltype=None):
         """Returns a new Alphabet object."""
-        return Enumeration.__new__(cls, data=motifset, gap=gap,
-                                   moltype=moltype)
+        return Enumeration.__new__(cls, data=motifset, gap=gap, moltype=moltype)
 
-    def __init__(self, motifset, gap='-', moltype=None):
+    def __init__(self, motifset, gap="-", moltype=None):
         """Returns a new Alphabet object."""
-        super(Alphabet, self).__init__(data=motifset, gap=gap,
-                                       moltype=moltype)
+        super(Alphabet, self).__init__(data=motifset, gap=gap, moltype=moltype)
 
     def __getnewargs_ex__(self, *args, **kw):
         data = self.to_rich_dict(for_pickle=True)
-        r = tuple([data[k] for k in ('motifset', 'gap', 'moltype')])
+        r = tuple([data[k] for k in ("motifset", "gap", "moltype")])
         return r, {}
 
     def to_rich_dict(self, for_pickle=False):
-        data = {'motifset': tuple(self),
-                'gap': self.gap, 'moltype': self.moltype}
+        data = {"motifset": tuple(self), "gap": self.gap, "moltype": self.moltype}
         if not for_pickle:
-            data['type'] = get_object_provenance(self)
-            data['moltype'] = self.moltype.label
-            if hasattr(self, '_gc'):
-                data['genetic_code'] = self._gc.name
+            data["type"] = get_object_provenance(self)
+            data["moltype"] = self.moltype.label
+            if hasattr(self, "_gc"):
+                data["genetic_code"] = self._gc.name
         return data
 
     def to_json(self):
@@ -568,7 +582,7 @@ class Alphabet(Enumeration):
         Note that the result is not a JointEnumeration object, and cannot
         unpack its indices. However, the items in the result _are_ all strings.
         """
-        crossproduct = ['']
+        crossproduct = [""]
         for a in range(word_length):
             n = []
             for c in crossproduct:
@@ -596,8 +610,8 @@ class Alphabet(Enumeration):
         coerce the result into a sequence of the correct class. Note that if
         the MolType is not set, this method will raise an AttributeError.
         """
-        result = ''
-        return self.moltype.make_seq(''.join(self[i] for i in data))
+        result = ""
+        return self.moltype.make_seq("".join(self[i] for i in data))
 
     def get_matched_array(self, motifs, dtype=Float):
         """Returns an array in which rows are motifs, columns are items in self.
@@ -648,7 +662,7 @@ class Alphabet(Enumeration):
         """
         if self.includes_gap_motif():
             return self
-        if not hasattr(self, 'gapped'):
+        if not hasattr(self, "gapped"):
             self.gapped = self._with(list(self) + [self.get_gap_motif()])
         return self.gapped
 
@@ -679,14 +693,14 @@ class Alphabet(Enumeration):
 
         # resolve each letter, and build the possible sub motifs
         ambiguities = self.moltype.ambiguities
-        motif_set = ['']
+        motif_set = [""]
         ALL = self.moltype.alphabet.with_gap_motif()
         for character in ambig_motif:
             new_motifs = []
-            if character == '?':
+            if character == "?":
                 resolved = ALL
-            elif character == '-':
-                resolved = ['-']
+            elif character == "-":
+                resolved = ["-"]
             else:
                 try:
                     resolved = ambiguities[character]
@@ -694,13 +708,12 @@ class Alphabet(Enumeration):
                     raise AlphabetError(ambig_motif)
             for character2 in resolved:
                 for motif in motif_set:
-                    new_motifs.append(''.join([motif, character2]))
+                    new_motifs.append("".join([motif, character2]))
 
             motif_set = new_motifs
 
         # delete sub motifs that are not to be included
-        motif_set = [
-            motif for motif in motif_set if motif in self._quick_motifset]
+        motif_set = [motif for motif in motif_set if motif in self._quick_motifset]
 
         if not motif_set:
             raise AlphabetError(ambig_motif)
@@ -710,18 +723,18 @@ class Alphabet(Enumeration):
     def adapt_motif_probs(self, motif_probs):
         """Prepare an array or dictionary of probabilities for use with
         this alphabet by checking size and order"""
-        if hasattr(motif_probs, 'keys'):
+        if hasattr(motif_probs, "keys"):
             sample = list(motif_probs.keys())[0]
             if sample not in self:
-                raise ValueError("Can't find motif %s in alphabet" %
-                                 sample)
-            motif_probs = numpy.array(
-                [motif_probs[motif] for motif in self])
+                raise ValueError("Can't find motif %s in alphabet" % sample)
+            motif_probs = numpy.array([motif_probs[motif] for motif in self])
         else:
             if len(motif_probs) != len(self):
                 if len(motif_probs) != len(self):
-                    raise ValueError("Can't match %s probs to %s alphabet" %
-                                     (len(motif_probs), len(self)))
+                    raise ValueError(
+                        "Can't match %s probs to %s alphabet"
+                        % (len(motif_probs), len(self))
+                    )
             motif_probs = numpy.asarray(motif_probs)
         assert abs(sum(motif_probs) - 1.0) < 0.0001, motif_probs
         return motif_probs
@@ -739,7 +752,7 @@ class CharAlphabet(Alphabet):
     searately for remapping.
     """
 
-    def __init__(self, data=None, gap='-', moltype=None):
+    def __init__(self, data=None, gap="-", moltype=None):
         """Initializes self from items.
 
         data should be a sequence (string, list, etc.) of characters that
@@ -749,8 +762,7 @@ class CharAlphabet(Alphabet):
         """
         data = data or []
         super(CharAlphabet, self).__init__(data, gap, moltype=moltype)
-        self._indices_to_chars, self._chars_to_indices = \
-            _make_translation_tables(data)
+        self._indices_to_chars, self._chars_to_indices = _make_translation_tables(data)
         self._char_nums_to_indices = array(range(256), uint8)
         for c, i in self._chars_to_indices.items():
             self._char_nums_to_indices[c] = i
@@ -758,7 +770,7 @@ class CharAlphabet(Alphabet):
         chars = bytearray(range(256))
         for i, c in self._indices_to_chars.items():
             chars[i] = c
-        self._indices_nums_to_chars = array(list(chars), 'B').view('c')
+        self._indices_nums_to_chars = array(list(chars), "B").view("c")
 
     def from_string(self, data):
         """Returns array of indices from string containing elements.
@@ -772,7 +784,7 @@ class CharAlphabet(Alphabet):
         (e.g. Profile, Alignment) also need to use it.
         """
         vals = str.translate(data, self._chars_to_indices)
-        vals = frombuffer(memoryview(vals.encode('utf8')), dtype=uint8)
+        vals = frombuffer(memoryview(vals.encode("utf8")), dtype=uint8)
         return vals
 
     def is_valid(self, seq):
@@ -792,7 +804,7 @@ class CharAlphabet(Alphabet):
         characters that's been converted into a numpy array. See
         from_string docstring for general behavior.
         """
-        return take(self._char_nums_to_indices, data.view('B'))
+        return take(self._char_nums_to_indices, data.view("B"))
 
     def to_chars(self, data):
         """Converts array of indices into array of elements.
@@ -801,9 +813,9 @@ class CharAlphabet(Alphabet):
         [0,1,1] would return the characters [U,C,C] in a byte array.
         """
         data = array(data)
-        return take(self._indices_nums_to_chars, data.astype('B'))
+        return take(self._indices_nums_to_chars, data.astype("B"))
 
-    def to_string(self, data, delimiter='\n'):
+    def to_string(self, data, delimiter="\n"):
         """Converts array of data into string.
 
         For example, on the 'UCAG' RNA alphabet, an array with the data
@@ -813,10 +825,12 @@ class CharAlphabet(Alphabet):
         """
         s = data.shape
         if not s:
-            return ''
+            return ""
         elif len(s) == 1:
             val = self.to_chars(data)
-            val = val.tostring().decode('utf-8')
+            val = val.tostring().decode("utf-8")
             return val
         else:
-            return delimiter.join([i.tostring().decode('utf-8') for i in self.to_chars(data)])
+            return delimiter.join(
+                [i.tostring().decode("utf-8") for i in self.to_chars(data)]
+            )

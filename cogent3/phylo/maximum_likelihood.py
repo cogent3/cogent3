@@ -1,9 +1,11 @@
 #!/usr/bin/env python'
-from .tree_space import TreeEvaluator, ancestry2tree
-from .least_squares import WLS
 from math import exp
-from .tree_collection import LogLikelihoodScoredTreeCollection
+
+from .least_squares import WLS
 from .tree_collection import LoadTrees  # only for back compat.
+from .tree_collection import LogLikelihoodScoredTreeCollection
+from .tree_space import TreeEvaluator, ancestry2tree
+
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -26,7 +28,7 @@ class ML(TreeEvaluator):
         self.opt_args = opt_args
         self.names = alignment.names
         self.alignment = alignment
-        if hasattr(model, 'make_likelihood_function'):
+        if hasattr(model, "make_likelihood_function"):
             self.lf_factory = lambda tree: model.make_likelihood_function(tree)
         else:
             self.lf_factory = model
@@ -56,11 +58,12 @@ class ML(TreeEvaluator):
             lf = self.lf_factory(tree)
             lf.set_alignment(subalign)
             if lengths is not None:
-                lf.set_param_rule('length', is_constant=True)
+                lf.set_param_rule("length", is_constant=True)
             lf.optimise(show_progress=False, **self.opt_args)
             err = -1.0 * lf.get_log_likelihood()
             tree = lf.get_annotated_tree()
             return (err, tree)
+
         return evaluate
 
     def result2output(self, err, ancestry, annotated_tree, names):

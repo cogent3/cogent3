@@ -4,6 +4,7 @@
 
 from cogent3.format.util import _AlignmentFormatter
 
+
 __author__ = "Jeremy Widmann"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Rob Knight", "Gavin Huttley", "Thomas La"]
@@ -21,7 +22,6 @@ def alignment_to_fasta(alignment_dict, block_size=60, order=[]):
 
 
 class FastaFormatter(_AlignmentFormatter):
-
     def format(self, alignment_dict, block_size, order):
         """Format the alignment to Fasta.
 
@@ -41,7 +41,17 @@ class FastaFormatter(_AlignmentFormatter):
         self.set_block_size(block_size)
 
         if len(alignment_dict) == 0:
-            return ''
+            return ""
 
-        return ''.join(['>%s\n%s' % (seq, self.wrap_string_to_block_size(alignment_dict[seq],
-                       alt_block_size=block_size)) for seq in self.align_order])
+        return "".join(
+            [
+                ">%s\n%s"
+                % (
+                    seq,
+                    self.wrap_string_to_block_size(
+                        alignment_dict[seq], alt_block_size=block_size
+                    ),
+                )
+                for seq in self.align_order
+            ]
+        )

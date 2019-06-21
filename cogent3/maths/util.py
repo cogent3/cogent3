@@ -1,19 +1,50 @@
 #!/usr/bin/env python
 """Provides small utility functions for numpy arrays.
 """
-from operator import mul, __getitem__ as getitem
-from numpy import array, arange, logical_not, cumsum, where, compress, ravel,\
-    zeros, put, take, sort, searchsorted, log, nonzero, sum,\
-    sqrt, clip, maximum, reshape, argsort, argmin, repeat, product, identity,\
-    concatenate, less, trace, newaxis, min, pi
-from numpy.random import randint, normal
+from operator import __getitem__ as getitem
+from operator import mul
+
 import numpy
+
+from numpy import (
+    arange,
+    argmin,
+    argsort,
+    array,
+    clip,
+    compress,
+    concatenate,
+    cumsum,
+    identity,
+    less,
+    log,
+    logical_not,
+    maximum,
+    min,
+    newaxis,
+    nonzero,
+    pi,
+    product,
+    put,
+    ravel,
+    repeat,
+    reshape,
+    searchsorted,
+    sort,
+    sqrt,
+    sum,
+    take,
+    trace,
+    where,
+    zeros,
+)
+from numpy.random import normal, randint
 
 
 numerictypes = numpy.core.numerictypes.sctype2char
 Float = numerictypes(float)
 Int = numerictypes(int)
-err = numpy.seterr(divide='raise')
+err = numpy.seterr(divide="raise")
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -37,8 +68,8 @@ def safe_p_log_p(data):
 
     non_zero = data != 0
     result = numpy.zeros(data.shape, dtype=float)
-    with numpy.errstate(invalid='raise'):
-        result[non_zero] = -data[non_zero]*numpy.log2(data[non_zero])
+    with numpy.errstate(invalid="raise"):
+        result[non_zero] = -data[non_zero] * numpy.log2(data[non_zero])
     return result
 
 
@@ -56,7 +87,7 @@ def safe_log(data):
 
     non_zero = data != 0
     result = numpy.zeros(data.shape, dtype=float)
-    with numpy.errstate(invalid='raise'):
+    with numpy.errstate(invalid="raise"):
         result[non_zero] = numpy.log2(data[non_zero])
     return result
 
@@ -101,7 +132,7 @@ def column_uncertainty(a):
     return sum(safe_p_log_p(a), axis=0)
 
 
-def row_degeneracy(a, cutoff=.5):
+def row_degeneracy(a, cutoff=0.5):
     """Returns the number of characters that's needed to cover >= cutoff
 
     a: numpy array
@@ -136,7 +167,7 @@ def row_degeneracy(a, cutoff=.5):
     return clip(array(degen) + 1, 0, a.shape[1])
 
 
-def column_degeneracy(a, cutoff=.5):
+def column_degeneracy(a, cutoff=0.5):
     """Returns the number of characters that's needed to cover >= cutoff
 
     a: numpy array

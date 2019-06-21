@@ -24,7 +24,9 @@ from collections import defaultdict
 from itertools import combinations, product
 
 import numpy
+
 from cogent3.format import table
+
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -160,7 +162,7 @@ def convert_dict(data, header=None, row_order=None):
     first_key = list(data)[0]
     if type(first_key) == tuple and len(first_key) == 2:
         rows, row_order, header = convert2Ddistance(data, header, row_order)
-    elif hasattr(data[first_key], 'keys'):
+    elif hasattr(data[first_key], "keys"):
         rows, row_order, header = convert2DDict(data, header, row_order)
     else:
         rows, row_order = convert_1D_dict(data, header)
@@ -199,11 +201,15 @@ def convert_series(data, row_order=None, header=None):
 
     if nrows == 1 and ncols > 1:
         if dim_h is not None and dim_h != ncols:
-            raise ValueError(f'mismatch between number columns={dim_h} '
-                             f'and number of elements in data={ncols}')
+            raise ValueError(
+                f"mismatch between number columns={dim_h} "
+                f"and number of elements in data={ncols}"
+            )
         elif dim_r is not None and dim_r != 1:
-            raise ValueError(f'mismatch between number rows={dim_r} '
-                             f'and number of rows in data={ncols}')
+            raise ValueError(
+                f"mismatch between number rows={dim_r} "
+                f"and number of rows in data={ncols}"
+            )
 
     if not header:
         header = None if ncols == 1 else ncols
@@ -229,7 +235,7 @@ def convert_for_dictarray(data, header=None, row_order=None):
         header = data.template.names[0]
         row_order = data.template.names[1]
         data = data.array.copy()
-    elif hasattr(data, 'keys'):  # dictlike, it could be defaultdict
+    elif hasattr(data, "keys"):  # dictlike, it could be defaultdict
         data, row_order, header = convert_dict(data, header, row_order)
     else:
         data, row_order, header = convert_series(data, header, row_order)
@@ -246,7 +252,6 @@ class NumericKey(int):
 
 
 class DictArrayTemplate(object):
-
     def __init__(self, *dimensions):
         self.names = []
         self.ordinals = []
@@ -256,8 +261,7 @@ class DictArrayTemplate(object):
             elif isinstance(names, int):
                 names = list(range(names))
             else:
-                names = [NumericKey(v) if type(
-                    v) == int else v for v in names]
+                names = [NumericKey(v) if type(v) == int else v for v in names]
 
             self.names.append(names)
             self.ordinals.append(dict((c, i) for (i, c) in enumerate(names)))
@@ -265,14 +269,13 @@ class DictArrayTemplate(object):
 
     def __eq__(self, other):
         return self is other or (
-                isinstance(other,
-                           DictArrayTemplate) and self.names == other.names)
+            isinstance(other, DictArrayTemplate) and self.names == other.names
+        )
 
     def _dict2list(self, value, depth=0):
         # Unpack (possibly nested) dictionary into correct order of elements
         if depth < len(self._shape):
-            return [self._dict2list(value[key], depth + 1) for key in
-                    self.names[depth]]
+            return [self._dict2list(value[key], depth + 1) for key in self.names[depth]]
         else:
             return value
 
@@ -290,7 +293,7 @@ class DictArrayTemplate(object):
         return value
 
     def wrap(self, array, dtype=None):
-        if hasattr(array, 'keys'):
+        if hasattr(array, "keys"):
             if len(self._shape) == 2:
                 r, h = self.names[:2]
             else:
@@ -298,8 +301,10 @@ class DictArrayTemplate(object):
             array, _, _ = convert_for_dictarray(array, h, r)
         array = numpy.asarray(array, dtype=dtype)
         for (dim, categories) in enumerate(self.names):
-            assert len(categories) == numpy.shape(array)[
-                dim], "cats=%s; dim=%s" % (categories, dim)
+            assert len(categories) == numpy.shape(array)[dim], "cats=%s; dim=%s" % (
+                categories,
+                dim,
+            )
         return DictArray(array, self)
 
     def interpret_index(self, names):
@@ -326,7 +331,7 @@ class DictArrayTemplate(object):
                 name = slice(start, stop, name.step)
                 remaining.append(allnames.__getitem__(name))
             index.append(name)
-        remaining.extend(self.names[len(index):])
+        remaining.extend(self.names[len(index) :])
         if remaining:
             klass = type(self)(*remaining)
         else:
@@ -338,12 +343,10 @@ class DictArrayTemplate(object):
             heading = [str(n) for n in self.names[0]]
             a = a[numpy.newaxis, :]
         elif len(a.shape) == 2:
-            heading = [''] + [str(n) for n in self.names[1]]
-            a = [[str(name)] + list(row)
-                 for (name, row) in zip(self.names[0], a)]
+            heading = [""] + [str(n) for n in self.names[1]]
+            a = [[str(name)] + list(row) for (name, row) in zip(self.names[0], a)]
         else:
-            return '%s dimensional %s' % (
-                len(self.names), type(self).__name__)
+            return "%s dimensional %s" % (len(self.names), type(self).__name__)
 
         formatted = table.formatted_cells(rows=a, header=heading)
         return str(table.simple_format(formatted[0], formatted[1], space=4))
@@ -351,16 +354,15 @@ class DictArrayTemplate(object):
     def _get_repr_html(self, a):
         """returns Table._repr_html_()"""
         from cogent3.util.table import Table
+
         if len(a.shape) == 1:
             heading = [str(n) for n in self.names[0]]
             a = a[numpy.newaxis, :]
         elif len(a.shape) == 2:
-            heading = [''] + [str(n) for n in self.names[1]]
-            a = [[str(name)] + list(row)
-                 for (name, row) in zip(self.names[0], a)]
+            heading = [""] + [str(n) for n in self.names[1]]
+            a = [[str(name)] + list(row) for (name, row) in zip(self.names[0], a)]
         else:
-            return '%s dimensional %s' % (
-                len(self.names), type(self).__name__)
+            return "%s dimensional %s" % (len(self.names), type(self).__name__)
         row_ids = len(self.names) == 2
         t = Table(heading, rows=a, digits=3, row_ids=row_ids, max_width=80)
         return t._repr_html_(include_shape=False)
@@ -375,7 +377,7 @@ class DictArray(object):
         """allow alternate ways of creating for time being"""
         if len(args) == 1:
             vals, row_keys, col_keys = convert_for_dictarray(args[0])
-            dtype = kwargs.get('dtype', None)
+            dtype = kwargs.get("dtype", None)
             self.array = numpy.asarray(vals, dtype=dtype)
             self.template = DictArrayTemplate(row_keys, col_keys)
         elif len(args) == 2:
@@ -384,14 +386,13 @@ class DictArray(object):
             self.array = args[0]
             self.template = args[1]
         else:
-            if 'dtype' in kwargs or 'typecode' in kwargs:
-                dtype = kwargs['dtype']
-                kwargs.pop('dtype', None)
-                kwargs.pop('typecode', None)
+            if "dtype" in kwargs or "typecode" in kwargs:
+                dtype = kwargs["dtype"]
+                kwargs.pop("dtype", None)
+                kwargs.pop("typecode", None)
             else:
                 dtype = None
-            create_new = DictArrayTemplate(
-                *args[1:]).wrap(args[0], dtype=dtype)
+            create_new = DictArrayTemplate(*args[1:]).wrap(args[0], dtype=dtype)
             self.__dict__ = create_new.__dict__
         self.shape = self.array.shape
 
@@ -468,7 +469,8 @@ class DictArray(object):
             return True
         elif isinstance(other, DictArray):
             return self.template == other.template and numpy.all(
-                self.array == other.array)
+                self.array == other.array
+            )
         elif isinstance(other, type(self.array)):
             return self.array == other
         elif isinstance(other, dict):

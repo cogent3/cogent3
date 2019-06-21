@@ -3,12 +3,13 @@
 Each leaf holds a sequence.  Used by a likelihood function."""
 
 
-from cogent3.util.modules import importVersionedModule, ExpectedImportError
-from cogent3 import LoadTable
-
 import numpy
 
-numpy.seterr(all='ignore')
+from cogent3 import LoadTable
+from cogent3.util.modules import ExpectedImportError, importVersionedModule
+
+
+numpy.seterr(all="ignore")
 
 numerictypes = numpy.core.numerictypes.sctype2char
 
@@ -23,6 +24,7 @@ __status__ = "Production"
 
 try:
     from . import _likelihood_tree as pyrex
+
     # pyrex = importVersionedModule('_likelihood_tree', globals(),
     # (2, 1), "pure Python/NumPy likelihoodihood tree")
 except ImportError:
@@ -30,7 +32,6 @@ except ImportError:
 
 
 class _LikelihoodTreeEdge(object):
-
     def __init__(self, children, edge_name, alignment=None):
         self.edge_name = edge_name
         self.alphabet = children[0].alphabet
@@ -57,7 +58,11 @@ class _LikelihoodTreeEdge(object):
                     else:
                         u = c.index[col]
                         assert 0 <= u < len(c.uniq) - 1, (
-                            u, len(c.uniq), c.uniq[-1], align_index)
+                            u,
+                            len(c.uniq),
+                            c.uniq[-1],
+                            align_index,
+                        )
                     a.append(u)
                 assignments.append(a)
         (uniq, counts, self.index) = _indexed(list(zip(*assignments)))
@@ -71,7 +76,8 @@ class _LikelihoodTreeEdge(object):
         # For faster math, a contiguous index array for each child
         self.indexes = [
             numpy.array(list(ch), self.integer_type)
-            for ch in numpy.transpose(self.uniq)]
+            for ch in numpy.transpose(self.uniq)
+        ]
 
         # If this is the root it will need to weight the total
         # log likelihoods by these counts:
@@ -82,16 +88,16 @@ class _LikelihoodTreeEdge(object):
         self.shape = [len(self.uniq), M]
 
         # Derive per-column degree of ambiguity from children's
-        ambigs = [child.ambig[index]
-                  for (index, child) in self._indexed_children]
+        ambigs = [child.ambig[index] for (index, child) in self._indexed_children]
         self.ambig = numpy.product(ambigs, axis=0)
 
     def get_site_patterns(self, cols):
         # Recursive lookup of Site Patterns aka Alignment Columns
-        child_motifs = [child.get_site_patterns(index[cols])
-                        for (index, child) in self._indexed_children]
-        return [''.join(child[u] for child in child_motifs)
-                for u in range(len(cols))]
+        child_motifs = [
+            child.get_site_patterns(index[cols])
+            for (index, child) in self._indexed_children
+        ]
+        return ["".join(child[u] for child in child_motifs) for u in range(len(cols))]
 
     def restrict_motif(self, input_likelihoods, fixed_motif):
         # for reconstruct_ancestral_seqs
@@ -123,7 +129,8 @@ class _LikelihoodTreeEdge(object):
             rows = list(zip(motifs, observed, expected))
             rows.sort(key=lambda row: (-row[1], row[0]))
             table = LoadTable(
-                header=['Pattern', 'Observed', 'Expected'], rows=rows, row_ids=True)
+                header=["Pattern", "Observed", "Expected"], rows=rows, row_ids=True
+            )
             return (G, table)
         else:
             return G
@@ -148,8 +155,15 @@ class _LikelihoodTreeEdge(object):
 
     def as_leaf(self, likelihoods):
         assert len(likelihoods) == len(self.counts)
-        return LikelihoodTreeLeaf(likelihoods, likelihoods,
-                                  self.counts, self.index, self.edge_name, self.alphabet, None)
+        return LikelihoodTreeLeaf(
+            likelihoods,
+            likelihoods,
+            self.counts,
+            self.index,
+            self.edge_name,
+            self.alphabet,
+            None,
+        )
 
 
 class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
@@ -189,8 +203,8 @@ class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
 
 
 class _PyxLikelihoodTreeEdge(_LikelihoodTreeEdge):
-    integer_type = numerictypes(int)   # match checkArrayInt1D
-    float_type = numerictypes(float)   # match checkArrayDouble1D/2D
+    integer_type = numerictypes(int)  # match checkArrayInt1D
+    float_type = numerictypes(float)  # match checkArrayDouble1D/2D
 
     def sum_input_likelihoodsR(self, result, *likelihoods):
         pyrex.sum_input_likelihoods(self.indexes, result, likelihoods)
@@ -202,11 +216,11 @@ class _PyxLikelihoodTreeEdge(_LikelihoodTreeEdge):
         return pyrex.log_dot_reduce(self.index, patch_probs, switch_probs, plhs)
 
     def get_total_log_likelihood(self, input_likelihoods, mprobs):
-        return pyrex.get_total_log_likelihood(self.counts, input_likelihoods,
-                                           mprobs)
+        return pyrex.get_total_log_likelihood(self.counts, input_likelihoods, mprobs)
 
     def get_log_sum_across_sites(self, lhs):
         return pyrex.get_log_sum_across_sites(self.counts, lhs)
+
 
 if pyrex is None:
     LikelihoodTreeEdge = _PyLikelihoodTreeEdge
@@ -250,29 +264,26 @@ def make_likelihood_tree_leaf(sequence, alphabet=None, seq_name=None):
     (uniq_motifs, counts, index) = _indexed(sequence2)
 
     # extra column for gap
-    uniq_motifs.append('?' * motif_len)
+    uniq_motifs.append("?" * motif_len)
     counts.append(0)
 
     counts = numpy.array(counts, FLOAT_TYPE)
 
     # Convert list of unique motifs to array of unique profiles
     try:
-        likelihoods = alphabet.get_matched_array(
-            uniq_motifs, FLOAT_TYPE)
+        likelihoods = alphabet.get_matched_array(uniq_motifs, FLOAT_TYPE)
     except alphabet.AlphabetError as detail:
         motif = str(detail)
         posn = list(sequence2).index(motif) * motif_len
-        raise ValueError('%s at %s:%s not in alphabet' % (
-            repr(motif), seq_name, posn))
+        raise ValueError("%s at %s:%s not in alphabet" % (repr(motif), seq_name, posn))
 
-    return LikelihoodTreeLeaf(uniq_motifs, likelihoods,
-                              counts, index, seq_name, alphabet, sequence)
+    return LikelihoodTreeLeaf(
+        uniq_motifs, likelihoods, counts, index, seq_name, alphabet, sequence
+    )
 
 
 class LikelihoodTreeLeaf(object):
-
-    def __init__(self, uniq, likelihoods, counts, index, edge_name,
-                 alphabet, sequence):
+    def __init__(self, uniq, likelihoods, counts, index, edge_name, alphabet, sequence):
         if sequence is not None:
             self.sequence = sequence
         self.alphabet = alphabet
@@ -287,8 +298,15 @@ class LikelihoodTreeLeaf(object):
 
     def backward(self):
         index = numpy.array(self.index[::-1, ...])
-        result = self.__class__(self.uniq, self.input_likelihoods, self.counts,
-                                index, self.edge_name, self.alphabet, None)
+        result = self.__class__(
+            self.uniq,
+            self.input_likelihoods,
+            self.counts,
+            index,
+            self.edge_name,
+            self.alphabet,
+            None,
+        )
         return result
 
     def __len__(self):
@@ -322,8 +340,8 @@ class LikelihoodTreeLeaf(object):
         uniq = [self.uniq[u] for u in keep]
         likelihoods = self.input_likelihoods[keep]
         return self.__class__(
-            uniq, likelihoods, counts, index, self.edge_name,
-            self.alphabet, None)
+            uniq, likelihoods, counts, index, self.edge_name, self.alphabet, None
+        )
 
     def get_edge(self, name):
         if self.edge_name == name:

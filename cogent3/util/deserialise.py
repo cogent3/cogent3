@@ -1,13 +1,16 @@
 #!/usr/bin/env python
-import os
 import json
+import os
+
 from importlib import import_module
 
 import cogent3
+
 from cogent3.core.alignment import Aligned
-from cogent3.core.moltype import get_moltype, _CodonAlphabet
 from cogent3.core.genetic_code import get_code
+from cogent3.core.moltype import _CodonAlphabet, get_moltype
 from cogent3.util.misc import open_
+
 
 __author__ = ["Gavin Huttley"]
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -20,44 +23,47 @@ __status__ = "Production"
 
 
 def _get_class(provenance):
-    index = provenance.rfind('.')
+    index = provenance.rfind(".")
     assert index > 0
-    klass = provenance[index + 1:]
+    klass = provenance[index + 1 :]
     mod = import_module(provenance[:index])
     klass = getattr(mod, klass)
     return klass
 
+
 def deserialise_map_spans(map_element):
-    map_klass = _get_class(map_element.pop('type'))
+    map_klass = _get_class(map_element.pop("type"))
     spans = []
-    for element in map_element['spans']:
-        klass = _get_class(element.pop('type'))
+    for element in map_element["spans"]:
+        klass = _get_class(element.pop("type"))
         instance = klass(**element)
         spans.append(instance)
 
-    map_element['spans'] = spans
+    map_element["spans"] = spans
     map_instance = map_klass(**map_element)
     return map_instance
+
 
 def deserialise_annotation(data, parent):
     annots = []
     for element in data:
-        klass = _get_class(element.pop('type'))
-        kwargs = element.pop('annotation_construction')
-        kwargs['map'] = deserialise_map_spans(kwargs['map'])
+        klass = _get_class(element.pop("type"))
+        kwargs = element.pop("annotation_construction")
+        kwargs["map"] = deserialise_map_spans(kwargs["map"])
         instance = klass(parent, **kwargs)
         annots.append(instance)
     parent.annotations += tuple(annots)
 
+
 def deserialise_result(data):
     """returns a result object"""
-    klass = _get_class(data.pop('type'))
-    kwargs = data.pop('result_construction')
+    klass = _get_class(data.pop("type"))
+    kwargs = data.pop("result_construction")
     result = klass(**kwargs)
     for key, value in data.items():
         # only deserialise the result object, other attributes loaded as
         # required
-        if type(value) == dict and 'app.result' in str(value.get('type')):
+        if type(value) == dict and "app.result" in str(value.get("type")):
             value = deserialise_object(value)
         result[key] = value
     return result
@@ -65,30 +71,30 @@ def deserialise_result(data):
 
 def deserialise_moltype(data):
     """returns a cogent3 MolType instance, or a CodonAlphabet"""
-    label = data['moltype']
-    data['moltype'] = get_moltype(label)
-    klass = _get_class(data.pop('type'))
+    label = data["moltype"]
+    data["moltype"] = get_moltype(label)
+    klass = _get_class(data.pop("type"))
     if klass == _CodonAlphabet:
-        gc = get_code(data.pop('genetic_code'))
+        gc = get_code(data.pop("genetic_code"))
         result = _CodonAlphabet(**data)
         result._gc = gc
     else:
-        result = data['moltype']
+        result = data["moltype"]
 
     return result
 
 
 def deserialise_alphabet(data):
     """returns a cogent3 Alphabet instance"""
-    if _get_class(data.get('type')) == _CodonAlphabet:
+    if _get_class(data.get("type")) == _CodonAlphabet:
         result = deserialise_moltype(data)
         return result
 
-    label = data['moltype']
-    data['moltype'] = get_moltype(label)
-    key = 'data' if 'data' in data else 'motifset'
+    label = data["moltype"]
+    data["moltype"] = get_moltype(label)
+    key = "data" if "data" in data else "motifset"
     motifs = data.pop(key)
-    klass = _get_class(data.pop('type'))
+    klass = _get_class(data.pop("type"))
     result = klass(motifs, **data)
     return result
 
@@ -109,13 +115,13 @@ def deserialise_seq(data, aligned=False):
     """
     from cogent3.core.moltype import get_moltype
 
-    data['moltype'] = get_moltype(data.pop('moltype'))
-    annotations = data.pop('annotations', None)
-    make_seq = data['moltype'].make_seq
-    type_ = data.pop('type')
+    data["moltype"] = get_moltype(data.pop("moltype"))
+    annotations = data.pop("annotations", None)
+    make_seq = data["moltype"].make_seq
+    type_ = data.pop("type")
     klass = _get_class(type_)
 
-    data.pop('moltype')
+    data.pop("moltype")
     result = make_seq(**data)
     if aligned:
         map_, result = result.parse_out_gaps()
@@ -134,14 +140,14 @@ def deserialise_alignment(data):
     # We first try to load moltype/alphabet using get_moltype
     from cogent3.core.moltype import get_moltype
 
-    data['moltype'] = get_moltype(data.pop('moltype'))
-    annotations = data.pop('annotations', None)
-    type_ = data.pop('type')
+    data["moltype"] = get_moltype(data.pop("moltype"))
+    annotations = data.pop("annotations", None)
+    type_ = data.pop("type")
     klass = _get_class(type_)
-    assert 'alignment' in type_.lower(), 'not alignment type'
+    assert "alignment" in type_.lower(), "not alignment type"
     seqs = []
-    for v in data.pop('seqs').values():
-        v['moltype'] = data['moltype']
+    for v in data.pop("seqs").values():
+        v["moltype"] = data["moltype"]
         seq = deserialise_seq(v, aligned=True)
         seqs.append(seq)
 
@@ -156,8 +162,8 @@ def deserialise_alignment(data):
 def deserialise_tree(data):
     """returns a cogent3 PhyloNode instance"""
     # we load tree using LoadTree, then populate edge attributes
-    newick = data.pop('newick')
-    edge_attr = data.pop('edge_attributes')
+    newick = data.pop("newick")
+    edge_attr = data.pop("edge_attributes")
     tree = cogent3.LoadTree(treestring=newick)
     for edge in tree.get_edge_vector():
         params = edge_attr.get(edge.name, {})
@@ -168,18 +174,19 @@ def deserialise_tree(data):
 def deserialise_substitution_model(data):
     """returns a cogent3 substitution model instance"""
     from cogent3.evolve.models import get_model
-    kw = {} if 'kw' not in data else data.pop('kw')
+
+    kw = {} if "kw" not in data else data.pop("kw")
     sm = None
-    if kw and 'name' in kw:
-        name = kw.pop('name')
+    if kw and "name" in kw:
+        name = kw.pop("name")
         try:
             sm = get_model(name, **kw)
         except ValueError:  # user defined sm?
             pass
 
     if sm is None:
-        alphabet = deserialise_alphabet(data.pop('alphabet'))
-        klass = _get_class(data.pop('type'))
+        alphabet = deserialise_alphabet(data.pop("alphabet"))
+        klass = _get_class(data.pop("type"))
         sm = klass(**data)
 
     return sm
@@ -187,13 +194,13 @@ def deserialise_substitution_model(data):
 
 def deserialise_likelihood_function(data):
     """returns a cogent3 likelihood function instance"""
-    model = deserialise_substitution_model(data.pop('model'))
-    aln = deserialise_alignment(data.pop('alignment'))
-    tree = deserialise_tree(data.pop('tree'))
-    constructor_args = data.pop('likelihood_construction')
-    motif_probs = data.pop('motif_probs')
-    param_rules = data.pop('param_rules')
-    name = data.pop('name', None)
+    model = deserialise_substitution_model(data.pop("model"))
+    aln = deserialise_alignment(data.pop("alignment"))
+    tree = deserialise_tree(data.pop("tree"))
+    constructor_args = data.pop("likelihood_construction")
+    motif_probs = data.pop("motif_probs")
+    param_rules = data.pop("param_rules")
+    name = data.pop("name", None)
     lf = model.make_likelihood_function(tree, **constructor_args)
     lf.set_name(name)
     lf.set_alignment(aln)
@@ -212,23 +219,24 @@ def deserialise_object(data):
     if type(data) is str:
         data = json.loads(data)
 
-    type_ = data['type']
-    if 'core.sequence' in type_:
+    type_ = data["type"]
+    if "core.sequence" in type_:
         func = deserialise_seq
-    elif 'core.alignment' in type_:
+    elif "core.alignment" in type_:
         func = deserialise_alignment
-    elif 'core.tree' in type_:
+    elif "core.tree" in type_:
         func = deserialise_tree
-    elif ('evolve.substitution_model' in type_ or
-          'evolve.ns_substitution_model' in type_):
+    elif (
+        "evolve.substitution_model" in type_ or "evolve.ns_substitution_model" in type_
+    ):
         func = deserialise_substitution_model
-    elif 'evolve.parameter_controller' in type_:
+    elif "evolve.parameter_controller" in type_:
         func = deserialise_likelihood_function
-    elif 'core.moltype' in type_:
+    elif "core.moltype" in type_:
         func = deserialise_moltype
-    elif 'core.alphabet' in type_:
+    elif "core.alphabet" in type_:
         func = deserialise_alphabet
-    elif 'app.result' in type_:
+    elif "app.result" in type_:
         func = deserialise_result
     else:
         msg = "deserialising '%s' from json" % type_

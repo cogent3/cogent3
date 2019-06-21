@@ -2,7 +2,9 @@
 
 
 import numpy
+
 from cogent3.maths.markov import TransitionMatrix
+
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -19,7 +21,7 @@ def pair_transition_matrix(order, a):
     and optionally a silent wait state W"""
     size = len(order)
     assert a.shape == (size, size)
-    directions = {'W': (0, 0), 'X': (1, 0), 'Y': (0, 1), 'M': (1, 1)}
+    directions = {"W": (0, 0), "X": (1, 0), "Y": (0, 1), "M": (1, 1)}
     emits = [directions[state.upper()] for state in order]
     return TransitionMatrix(a, emits).withoutSilentStates()
 
@@ -27,17 +29,13 @@ def pair_transition_matrix(order, a):
 def classic_gap_scores(d, e):
     """gap open / gap extend costs.  No X to Y transitions"""
     _ = numpy.inf
-    C = numpy.array([
-        [e, _, 0],
-        [_, e, 0],
-        [d, d, 0]])
+    C = numpy.array([[e, _, 0], [_, e, 0], [d, d, 0]])
     T = numpy.exp(-1.0 * C)
     T = T / numpy.sum(T, axis=1)[..., numpy.newaxis]
-    return pair_transition_matrix('XYM', T)
+    return pair_transition_matrix("XYM", T)
 
 
 class _SimpleIndelParams(object):
-
     def __init__(self, indel_rate, indel_length):
         assert 0.0 < indel_length < 1.0, indel_length
         assert 0.0 < indel_rate < 1.0, indel_rate
@@ -52,13 +50,10 @@ class SimpleIndelModel(_SimpleIndelParams):
         d = 1.0 - numpy.exp(-self.indel_rate * distance)
         e = self.indel_length
         g = 0.0
-        T = numpy.array([
-            [0, d, d, 1 - 2 * d],
-            [1 - e, e, 0, 0],
-            [1 - e, 0, e, 0],
-            [1 - g, 0, 0, g],
-        ])
-        return pair_transition_matrix('WXYM', T).withoutSilentStates()
+        T = numpy.array(
+            [[0, d, d, 1 - 2 * d], [1 - e, e, 0, 0], [1 - e, 0, e, 0], [1 - g, 0, 0, g]]
+        )
+        return pair_transition_matrix("WXYM", T).withoutSilentStates()
 
 
 class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
@@ -89,16 +84,18 @@ class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
 
         eMX = insert * (1 - secondary_deletion * (1 - longer))
         eMY = deletion + insert * secondary_deletion * longer
-        eMZ = (eMX + eMY)
+        eMZ = eMX + eMY
 
-        eXM = extend * secondary_deletion * same_len + \
-            close * (deletion / 4 + (1.0 - indel))
-        eXX = extend * (secondary_insert * extend / close +
-                        secondary_deletion * shorted) + \
-            close * insert + extend
+        eXM = extend * secondary_deletion * same_len + close * (
+            deletion / 4 + (1.0 - indel)
+        )
+        eXX = (
+            extend * (secondary_insert * extend / close + secondary_deletion * shorted)
+            + close * insert
+            + extend
+        )
         # eXX = a + a**2/(1-a**2)*secondary_indel + (1-a)*insert
-        eXY = extend * secondary_deletion * longer + \
-            close * deletion * 3 / 4
+        eXY = extend * secondary_deletion * longer + close * deletion * 3 / 4
 
         # e = 1 + ( extend * secondary_indel/2 / close)
         # print e, (eXM + eXX + eXY)
@@ -112,12 +109,9 @@ class KnudsenMiyamotoIndelModel(_SimpleIndelParams):
         tXX = tYY = eXX / e
         tXY = tYX = eXY / e
 
-        tm = numpy.array([
-            [tMM, tMX, tMY],
-            [tXM, tXX, tXY],
-            [tYM, tYX, tYY]])
+        tm = numpy.array([[tMM, tMX, tMY], [tXM, tXX, tXY], [tYM, tYX, tYY]])
 
-        if(min(tm.flat) < 0):
+        if min(tm.flat) < 0:
             raise ValueError
 
-        return pair_transition_matrix('MXY', tm)
+        return pair_transition_matrix("MXY", tm)

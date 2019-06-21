@@ -1,17 +1,19 @@
 #!/usr/bin/env python
 
-import os
-import sys
-import time
-import math
-import threading
-import multiprocessing
 import concurrent.futures as concurrentfutures
-import warnings
+import math
+import multiprocessing
+import os
 import random
+import sys
+import threading
+import time
+import warnings
+
 import numpy
 
 from cogent3.util.misc import extend_docstring_from
+
 
 __author__ = "Sheng Han Moses Koh"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -24,7 +26,7 @@ __status__ = "Alpha"
 
 RANK = 0
 
-if os.environ.get('DONT_USE_MPI', 0):
+if os.environ.get("DONT_USE_MPI", 0):
     MPI = None
 else:
     try:
@@ -52,10 +54,11 @@ def generate_seed(use_mpi, seed):
     random.seed(random_seed)
     numpy.random.seed(random_seed)
 
+
 if MPI is not None:
     RANK = COMM.Get_rank()
     if COMM.Get_size() > 1:
-        generate_seed(True, os.environ['SEED'])
+        generate_seed(True, os.environ["SEED"])
     USING_MPI = True
 else:
     USING_MPI = False
@@ -64,8 +67,7 @@ else:
 _FUNCTIONS = {}
 
 
-class PicklableAndCallable():
-
+class PicklableAndCallable:
     def __init__(self, key):
         self.key = key
         self.func = None
@@ -79,8 +81,9 @@ class PicklableAndCallable():
         return self.func(*args, **kw)
 
 
-def imap(f, s, max_workers=None, use_mpi=False, seed=None,
-        if_serial='raise', chunksize=1):
+def imap(
+    f, s, max_workers=None, use_mpi=False, seed=None, if_serial="raise", chunksize=1
+):
     """
     Parameters
     ----------
@@ -105,8 +108,7 @@ def imap(f, s, max_workers=None, use_mpi=False, seed=None,
     series
     """
     if_serial = if_serial.lower()
-    assert if_serial in ('ignore', 'raise', 'warn'), \
-        f"invalid choice '{if_serial}'"
+    assert if_serial in ("ignore", "raise", "warn"), f"invalid choice '{if_serial}'"
 
     if seed is None:
         seed = time.time()
@@ -118,21 +120,24 @@ def imap(f, s, max_workers=None, use_mpi=False, seed=None,
     # minus 1 to leave for master process
     if use_mpi:
         if not USING_MPI:
-            raise RuntimeError('Cannot use MPI')
+            raise RuntimeError("Cannot use MPI")
 
-        err_msg = "Execution in serial. For parallel MPI execution, use:\n"\
-                  " $ mpirun -n 1 <executable script>"
+        err_msg = (
+            "Execution in serial. For parallel MPI execution, use:\n"
+            " $ mpirun -n 1 <executable script>"
+        )
 
-        if COMM.Get_attr(MPI.UNIVERSE_SIZE) == 1 and if_serial == 'raise':
+        if COMM.Get_attr(MPI.UNIVERSE_SIZE) == 1 and if_serial == "raise":
             raise RuntimeError(err_msg)
-        elif COMM.Get_attr(MPI.UNIVERSE_SIZE) == 1 and if_serial == 'warn':
+        elif COMM.Get_attr(MPI.UNIVERSE_SIZE) == 1 and if_serial == "warn":
             warnings.warn(UserWarning, msg=err_msg)
 
         if not max_workers:
             max_workers = COMM.Get_attr(MPI.UNIVERSE_SIZE) - 1
 
-        with MPIfutures.MPIPoolExecutor(max_workers=max_workers,
-                                        env=dict(SEED='{:.0f}'.format(seed))) as executor:
+        with MPIfutures.MPIPoolExecutor(
+            max_workers=max_workers, env=dict(SEED="{:.0f}".format(seed))
+        ) as executor:
             for result in executor.map(f, s, chunksize=chunksize):
                 yield result
     else:
@@ -142,14 +147,15 @@ def imap(f, s, max_workers=None, use_mpi=False, seed=None,
         key = id(f)
         _FUNCTIONS[key] = f
         f = PicklableAndCallable(id(f))
-        with concurrentfutures.ProcessPoolExecutor(max_workers,
-                                        initializer=generate_seed,
-                                        initargs=([False, seed])) as executor:
+        with concurrentfutures.ProcessPoolExecutor(
+            max_workers, initializer=generate_seed, initargs=([False, seed])
+        ) as executor:
             for result in executor.map(f, s, chunksize=chunksize):
                 yield result
 
 
 @extend_docstring_from(imap)
-def map(f, s, max_workers=None, use_mpi=False, seed=None,
-        if_serial='raise', chunksize=1):
+def map(
+    f, s, max_workers=None, use_mpi=False, seed=None, if_serial="raise", chunksize=1
+):
     return list(imap(f, s, max_workers, use_mpi, seed, if_serial, chunksize))

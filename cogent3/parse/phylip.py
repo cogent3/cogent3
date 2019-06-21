@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-from cogent3.parse.record import RecordError
 from cogent3.core.alignment import Alignment
+from cogent3.parse.record import RecordError
+
 
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Micah Hamady", "Peter Maxwell", "Gavin Huttley",
-               "Rob Knight"]
+__credits__ = ["Micah Hamady", "Peter Maxwell", "Gavin Huttley", "Rob Knight"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Micah Hamady"
@@ -83,7 +83,7 @@ def MinimalPhylipParser(data, id_map=None, interleaved=True):
         if not interleaved:
             if curr_id:
                 if seq_cache:
-                    yield seq_cache[0], ''.join(seq_cache[1:])
+                    yield seq_cache[0], "".join(seq_cache[1:])
                 seq_cache = [curr_id, curr_seq]
             else:
                 seq_cache.append(curr_seq)
@@ -103,19 +103,20 @@ def MinimalPhylipParser(data, id_map=None, interleaved=True):
     # return joined sequences if interleaved
     if interleaved:
         for curr_id_ix, seq_parts in list(seq_cache.items()):
-            join_seq = ''.join(seq_parts)
+            join_seq = "".join(seq_parts)
 
             if len(join_seq) != seq_len:
                 raise RecordError(
                     "Length of sequence '%s' is not the same as in header "
-                    "Found %d, Expected %d" % (
-                        interleaved_id_map[curr_id_ix], len(join_seq), seq_len))
+                    "Found %d, Expected %d"
+                    % (interleaved_id_map[curr_id_ix], len(join_seq), seq_len)
+                )
 
             yield interleaved_id_map[curr_id_ix], join_seq
     # return last seq if not interleaved
     else:
         if seq_cache:
-            yield seq_cache[0], ''.join(seq_cache[1:])
+            yield seq_cache[0], "".join(seq_cache[1:])
 
 
 def get_align_for_phylip(data, id_map=None):

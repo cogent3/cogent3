@@ -5,14 +5,16 @@ parses Nexus formatted tree files and Branchlength info in log files
 """
 
 import re
+
 from collections import defaultdict
-from cogent3.util.misc import open_
+
 from cogent3.parse.record import RecordError
+from cogent3.util.misc import open_
+
 
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Catherine Lozuopone", "Rob Knight", "Micah Hamady",
-               "Gavin Huttley"]
+__credits__ = ["Catherine Lozuopone", "Rob Knight", "Micah Hamady", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Catherine Lozupone"
@@ -45,11 +47,10 @@ def get_tree_info(tree_f):
     for line in tree_f:
         # get lines from the 'Begin trees;' tag to the 'End;' tag
         line_lower = line.lower()
-        if line_lower.startswith('begin trees;'):
+        if line_lower.startswith("begin trees;"):
             in_tree = True
         if in_tree:
-            if line_lower.startswith('end;') or \
-               line_lower.startswith('endblock;'):
+            if line_lower.startswith("end;") or line_lower.startswith("endblock;"):
                 return result
             else:
                 result.append(line)
@@ -76,15 +77,15 @@ def split_tree_info(tree_info):
         line_lower = line.lower()
         if state == "in_header":
             header.append(line)
-            if line_lower.strip() == 'translate':
+            if line_lower.strip() == "translate":
                 state = "in_trans"
-            elif line_lower.startswith('tree'):
+            elif line_lower.startswith("tree"):
                 state = "in_dnd"
                 dnd.append(line)
 
         elif state == "in_trans":
             trans_table.append(line)
-            if line.strip() == ';':
+            if line.strip() == ";":
                 state = "in_dnd"
 
         elif state == "in_dnd":
@@ -97,12 +98,12 @@ def parse_trans_table(trans_table):
     result = {}
     for line in trans_table:
         line = line.strip()
-        if line == ';':
+        if line == ";":
             pass
         else:
             label, name = line.split(None, 1)
             # take comma out of name if it is there
-            if name.endswith(','):
+            if name.endswith(","):
                 name = name[0:-1]
             # remove single quotes
             if name.startswith("'") and name.endswith("'"):
@@ -116,9 +117,9 @@ def parse_dnd(dnd):  # get rooted info
     dnd_dict = {}
     for line in dnd:
         line = line.strip()
-        name, dnd_s = list(map(strip, line.split('=', 1)))
+        name, dnd_s = list(map(strip, line.split("=", 1)))
         # get dnd from dnd_s and populate
-        dnd_index = dnd_s.find('(')
+        dnd_index = dnd_s.find("(")
         data = dnd_s[dnd_index:]
         dnd_dict[name] = data
     return dnd_dict
@@ -130,24 +131,24 @@ def get_BL_table(branch_lengths):
 
     in_table = 0
     result = []
-    beg_tag = re.compile(r'\s+Node\s+to node\s+length')
-    end_tag = re.compile('Sum')
+    beg_tag = re.compile(r"\s+Node\s+to node\s+length")
+    end_tag = re.compile("Sum")
     for line in branch_lengths:
         if end_tag.match(line):
             in_table = 0
         if beg_tag.match(line):
             in_table = 1
         if in_table == 1:
-            if (line.startswith("---") or beg_tag.match(line) or
-                    line.strip() == ''):
+            if line.startswith("---") or beg_tag.match(line) or line.strip() == "":
                 pass
             else:
                 result.append(line)
     return result
 
 
-def find_fields(line, field_order=["taxa", "parent", "bl"],
-                field_delims=[0, 21, 36, 49]):
+def find_fields(
+    line, field_order=["taxa", "parent", "bl"], field_delims=[0, 21, 36, 49]
+):
     """takes line from BL table and returns dict with field names mapped to info
 
     field order is the order of field names to extract from the file and
@@ -169,12 +170,12 @@ def parse_taxa(taxa_field):
     """gets taxa # from taxa field extracted with find_fields"""
 
     # look for lines with a number in parentheses
-    term_match = re.search(r'\(\d+\)', taxa_field)
+    term_match = re.search(r"\(\d+\)", taxa_field)
     if not term_match:
         data = taxa_field
     else:
         term = term_match.group(0)
-        data_match = re.search(r'\d+', term)
+        data_match = re.search(r"\d+", term)
         data = data_match.group(0)
     return data
 
@@ -206,7 +207,7 @@ def MinimalNexusAlignParser(align_path):
     isblock = re.compile(r"begin\s+(data|characters)").search
     inblock = False
     line = infile.readline().lower()
-    if not line.startswith('#nexus'):
+    if not line.startswith("#nexus"):
         raise ValueError("not a nexus file")
 
     block = []
@@ -233,8 +234,7 @@ def MinimalNexusAlignParser(align_path):
     block = block[index:]
     seqs = defaultdict(list)
     for line in block:
-        if not line or (line.startswith('[') and
-                        line.endswith(']')):
+        if not line or (line.startswith("[") and line.endswith("]")):
             # blank or comment line
             continue
 

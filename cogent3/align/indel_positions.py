@@ -31,7 +31,6 @@ def pog_traceback(pogs, aligned_positions):
 
 
 class POGBuilder(object):
-
     def __init__(self, children):
         self.children = children
         self.remap = [{} for child in children]
@@ -60,11 +59,11 @@ class POGBuilder(object):
         self.result.append(pre_merged)
         self.aligned_positions.append(posn)
         if None not in posn:
-            state = 'm'
+            state = "m"
         elif posn[0] is None:
-            state = 'x'
+            state = "x"
         else:
-            state = 'y'
+            state = "y"
         if not old_gap:
             state = state.upper()
         self.states.append(state)
@@ -76,8 +75,8 @@ class POGBuilder(object):
         # Build a list of gaps (ie: segments of X or Y state) in
         # the alignment and a dict which maps from seq posn to the
         # start of the surrounding gap.
-        for (i, state) in enumerate(self.states + ['.']):
-            gap = state in 'XYxy'
+        for (i, state) in enumerate(self.states + ["."]):
+            gap = state in "XYxy"
             if gap and not ingap:
                 start = i
                 ingap = True
@@ -104,7 +103,7 @@ class POGBuilder(object):
 
         pog = POG(len(self.aligned_positions), jumps, child_jumps)
         pog.aligned_positions = self.aligned_positions
-        pog.states = ''.join(self.states)
+        pog.states = "".join(self.states)
         return pog
 
 
@@ -172,8 +171,7 @@ class POG(object):
     def midlinks(self):
         # for the hirchberg algorithm.
         half = self.length // 2
-        jumps = [(i, j)
-                 for (i, j) in self.all_jumps if i <= half and j >= half]
+        jumps = [(i, j) for (i, j) in self.all_jumps if i <= half and j >= half]
         return [(half, half)] + jumps
 
     def __getitem__(self, index):
@@ -192,9 +190,9 @@ class POG(object):
             i2 = max(min(i, end), start) - start
             j2 = max(min(j, end), start) - start
             return (i2, j2)
+
         jumps = [moved(i, j) for (i, j) in self.jumps if i < end or j > start]
-        cjumps = [moved(i, j)
-                  for (i, j) in self.child_jumps if i < end or j > start]
+        cjumps = [moved(i, j) for (i, j) in self.child_jumps if i < end or j > start]
         return POG(end - start, jumps, cjumps)
 
     def backward(self):
@@ -207,20 +205,20 @@ class POG(object):
 
     def write_to_dot(self, dot):
         pred_sets = self.as_list_of_pred_lists()
-        print('digraph POG {', file=dot)
+        print("digraph POG {", file=dot)
         for (i, preds) in enumerate(pred_sets):
             # print i, preds
             for pred in preds:
-                print('  ', ('node%s -> node%s' % (pred, i)), file=dot)
+                print("  ", ("node%s -> node%s" % (pred, i)), file=dot)
             if i == 0:
-                label = 'START'
+                label = "START"
             elif i == len(pred_sets) - 1:
-                label = 'END'
+                label = "END"
             else:
                 label = str(i)
-            print('  ', ('node%s' % i), '[label="%s"]' % label, file=dot)
-        print('}', file=dot)
-        print('', file=dot)
+            print("  ", ("node%s" % i), '[label="%s"]' % label, file=dot)
+        print("}", file=dot)
+        print("", file=dot)
 
 
 class LeafPOG(POG):

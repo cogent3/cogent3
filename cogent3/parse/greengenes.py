@@ -6,8 +6,9 @@ The script is intended to be used with the following input:
 http://greengenes.lbl.gov/Download/Sequence_Data/Greengenes_format/greengenes16SrRNAgenes.txt.gz
 """
 
-from cogent3.parse.record_finder import DelimitedRecordFinder
 from cogent3.parse.record import DelimitedSplitter, GenericRecord
+from cogent3.parse.record_finder import DelimitedRecordFinder
+
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -21,9 +22,11 @@ __status__ = "Prototype"
 
 def make_ignore_f(start_line):
     """Make an ignore function that ignores bad gg lines"""
+
     def ignore(line):
         """Return false if line is bad"""
-        return not line or ['', ''] == line or [start_line, ''] == line
+        return not line or ["", ""] == line or [start_line, ""] == line
+
     return ignore
 
 
@@ -34,8 +37,9 @@ def DefaultDelimitedSplitter(delimiter):
     def f(line):
         parsed = parser(line)
         if len(parsed) == 1:
-            parsed.append('')
+            parsed.append("")
         return parsed
+
     return f
 
 
@@ -55,11 +59,13 @@ def MinimalGreengenesParser(lines, LineDelim="=", RecStart="BEGIN", RecEnd="END"
     # make sure to ignore the starting record
     ignore = make_ignore_f(RecStart)
 
-    parser = DelimitedRecordFinder(RecordDelim, constructor=line_parser,
-                                   keep_delimiter=False, ignore=ignore)
+    parser = DelimitedRecordFinder(
+        RecordDelim, constructor=line_parser, keep_delimiter=False, ignore=ignore
+    )
 
     for record in parser(lines):
         yield GenericRecord(record)
+
 
 all_ids = lambda x, y: True
 specific_ids = lambda x, y: x in y
@@ -86,5 +92,5 @@ def SpecificGreengenesParser(lines, fields, ids=None, **kwargs):
         id_lookup = all_ids
 
     for record in parser:
-        if id_lookup(record['prokMSA_id'], ids):
+        if id_lookup(record["prokMSA_id"], ids):
             yield tuple([record[field] for field in fields])

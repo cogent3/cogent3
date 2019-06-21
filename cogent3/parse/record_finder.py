@@ -13,7 +13,8 @@ whitespace.  The TailedRecodeFinder is Functional similar to
 DelimitedRecordFinder except that it accept a is_tail function instead of a
 str.  Note that its default constuctor is rstrip instead of strip.
 """
-from cogent3.parse.record import RecordError, FieldError
+from cogent3.parse.record import FieldError, RecordError
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -38,8 +39,9 @@ def never_ignore(line):
     return False
 
 
-def DelimitedRecordFinder(delimiter, constructor=strip, ignore=is_empty,
-                          keep_delimiter=True, strict=True):
+def DelimitedRecordFinder(
+    delimiter, constructor=strip, ignore=is_empty, keep_delimiter=True, strict=True
+):
     """Returns function that returns successive delimited records from file.
 
     Includes delimiter in return value. Returns list of relevant lines.
@@ -57,6 +59,7 @@ def DelimitedRecordFinder(delimiter, constructor=strip, ignore=is_empty,
     strict: when lines found after the last delimiter -- raise error if True
     (default), otherwise yield the lines silently
     """
+
     def parser(lines):
         curr = []
         for line in lines:
@@ -77,18 +80,18 @@ def DelimitedRecordFinder(delimiter, constructor=strip, ignore=is_empty,
                 curr.append(line)
         if curr:
             if strict:
-                raise RecordError("Found additional data after records: %s" %
-                                  (curr))
+                raise RecordError("Found additional data after records: %s" % (curr))
             else:
                 yield curr
+
     return parser
 
+
 # The following is an example of the sorts of iterators RecordFinder returns.
-GbFinder = DelimitedRecordFinder('//')
+GbFinder = DelimitedRecordFinder("//")
 
 
-def TailedRecordFinder(is_tail_line, constructor=rstrip, ignore=is_empty,
-                       strict=True):
+def TailedRecordFinder(is_tail_line, constructor=rstrip, ignore=is_empty, strict=True):
     """Returns function that returns successive tailed records from lines.
 
     Includes tail line in return value. Returns list of relevant lines.
@@ -102,6 +105,7 @@ def TailedRecordFinder(is_tail_line, constructor=rstrip, ignore=is_empty,
     strict: if True(default), raise error if the last line is not a tail.
     otherwise, yield the last lines.
     """
+
     def parser(lines):
         curr = []
         for line in lines:
@@ -119,8 +123,9 @@ def TailedRecordFinder(is_tail_line, constructor=rstrip, ignore=is_empty,
         # don't forget to return the last record in the file
         if curr:
             if strict:
-                raise RecordError('lines exist after the last tail_line '
-                                  'or no tail_line at all')
+                raise RecordError(
+                    "lines exist after the last tail_line " "or no tail_line at all"
+                )
             else:
                 yield curr
 
@@ -144,6 +149,7 @@ def LabeledRecordFinder(is_label_line, constructor=strip, ignore=is_empty):
     parsing the sets of lines returned into records to complain if a record
     is incomplete.
     """
+
     def parser(lines):
         curr = []
         for l in lines:
@@ -162,12 +168,15 @@ def LabeledRecordFinder(is_label_line, constructor=strip, ignore=is_empty):
         # don't forget to return the last record in the file
         if curr:
             yield curr
+
     return parser
 
 
 def is_fasta_label(x):
     """Checks if x looks like a FASTA label line."""
-    return x.startswith('>')
+    return x.startswith(">")
+
+
 # The following is an example of the sorts of iterators RecordFinder returns.
 FastaFinder = LabeledRecordFinder(is_fasta_label)
 
@@ -183,6 +192,7 @@ def LineGrouper(num, constructor=strip, ignore=is_empty):
     skip whitespace lines.
 
     """
+
     def parser(lines):
         curr = []
         for l in lines:
@@ -198,4 +208,5 @@ def LineGrouper(num, constructor=strip, ignore=is_empty):
                 curr = []
         if curr:
             raise RecordError("Non-blank lines not even multiple of %s" % num)
+
     return parser

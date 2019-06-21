@@ -1,10 +1,14 @@
 import json
+
 from collections import defaultdict
 from fnmatch import fnmatch
 
-from cogent3.util.misc import get_object_provenance
-from .location import as_map, Map
 import numpy
+
+from cogent3.util.misc import get_object_provenance
+
+from .location import Map, as_map
+
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -36,8 +40,10 @@ class _Annotatable:
                 for annot in self.annotations:
                     if not annot.map.useful:
                         continue
-                    if annot.map.start < slicemap.end and \
-                            annot.map.end > slicemap.start:
+                    if (
+                        annot.map.start < slicemap.end
+                        and annot.map.end > slicemap.start
+                    ):
                         annot = annot.remapped_to(new, newmap)
                         if annot.map.useful:
                             result.append(annot)
@@ -46,8 +52,7 @@ class _Annotatable:
     def _shifted_annotations(self, new, shift):
         result = []
         if self.annotations:
-            newmap = Map([(shift, shift + len(self))],
-                         parent_length=len(new))
+            newmap = Map([(shift, shift + len(self))], parent_length=len(new))
             for annot in self.annotations:
                 annot = annot.remapped_to(new, newmap)
                 result.append(annot)
@@ -65,12 +70,13 @@ class _Annotatable:
             map = feature.map
             base = feature.parent
             containers = []
-            while feature and base is not self and hasattr(base, 'parent'):
+            while feature and base is not self and hasattr(base, "parent"):
                 containers.append(base)
                 base = base.parent
             if base is not self:
-                raise ValueError("Can't map %s onto %s via %s" %
-                                 (index, repr(self), containers))
+                raise ValueError(
+                    "Can't map %s onto %s via %s" % (index, repr(self), containers)
+                )
             for base in containers:
                 feature = feature.remapped_to(base, base.map)
             index = map
@@ -103,6 +109,7 @@ class _Annotatable:
     def get_drawable(self, width=600, vertical=False):
         """returns Drawable instance"""
         from cogent3.draw.drawable import Drawable
+
         drawables = self.get_drawables()
         if not drawables:
             return None
@@ -126,13 +133,13 @@ class _Annotatable:
         top += space
         height = max((top / len(self)) * width, 300)
         xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
-        yaxis = dict(range=[0, top], visible=False,
-                     zeroline=True, showline=True)
+        yaxis = dict(range=[0, top], visible=False, zeroline=True, showline=True)
         if vertical:
             width, height = height, width
             xaxis, yaxis = yaxis, xaxis
-        drawer = Drawable(title=self.name, traces=all_traces,
-                          width=width, height=height)
+        drawer = Drawable(
+            title=self.name, traces=all_traces, width=width, height=height
+        )
         drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
         return drawer
 
@@ -176,7 +183,8 @@ class _Annotatable:
         result = []
         for annotation in self.annotations:
             if fnmatch(annotation.type, annotation_type) and (
-                    name is None or fnmatch(annotation.name, name)):
+                name is None or fnmatch(annotation.name, name)
+            ):
                 result.append(annotation)
         return result
 
@@ -189,15 +197,14 @@ class _Annotatable:
                 annotation_types.append(annot.type)
         map = Map(spans=spans, parent_length=len(self))
         map = map.covered()  # No overlaps
-        name = ','.join(annotation_types)
+        name = ",".join(annotation_types)
 
         if feature_class is None:
             feature_class = _Feature
 
-        return feature_class(self, map, type='region', name=name)
+        return feature_class(self, map, type="region", name=name)
 
-    def get_by_annotation(self, annotation_type, name=None,
-                          ignore_partial=False):
+    def get_by_annotation(self, annotation_type, name=None, ignore_partial=False):
         """yields the sequence segments corresponding to the specified
         annotation_type and name one at a time.
 
@@ -211,7 +218,7 @@ class _Annotatable:
                 if ignore_partial:
                     continue
                 raise msg
-            seq.info['name'] = annotation.name
+            seq.info["name"] = annotation.name
             yield seq
 
     def _annotations_nucleic_reversed_on(self, new):
@@ -231,14 +238,14 @@ class _Serialisable:
         data = self._serialisable.copy()
         # the first constructor argument will be the instance recreating
         # so we pop out the two possible keys
-        data.pop('parent', None)
-        data.pop('seq', None)
-        if 'original' in data:
-            data.pop('original')
+        data.pop("parent", None)
+        data.pop("seq", None)
+        if "original" in data:
+            data.pop("original")
         # convert the map to coordinates
-        data['map'] = data.pop('map').to_rich_dict()
+        data["map"] = data.pop("map").to_rich_dict()
         data = dict(annotation_construction=data)
-        data['type'] = get_object_provenance(self)
+        data["type"] = get_object_provenance(self)
         return data
 
     def to_json(self):
@@ -246,11 +253,11 @@ class _Serialisable:
 
 
 class _Feature(_Annotatable, _Serialisable):
-    qualifier_names = ['type', 'name']
+    qualifier_names = ["type", "name"]
 
     def __init__(self, parent, map, original=None, **kw):
         self._serialisable = locals()
-        for key in ('self', '__class__', 'kw'):
+        for key in ("self", "__class__", "kw"):
             self._serialisable.pop(key, None)
         self._serialisable.update(kw)
 
@@ -263,7 +270,7 @@ class _Feature(_Annotatable, _Serialisable):
             map = Map(locations=map, parent_length=len(parent))
 
         self.map = map
-        if hasattr(parent, 'base'):
+        if hasattr(parent, "base"):
             self.base = parent.base
             self.base_map = parent.base_map[self.map]
         else:
@@ -282,6 +289,7 @@ class _Feature(_Annotatable, _Serialisable):
     def get_drawable(self):
         """returns plotly trace"""
         from cogent3.draw.drawable import make_shape
+
         result = make_shape(type_=self)
         return result
 
@@ -320,17 +328,18 @@ class _Feature(_Annotatable, _Serialisable):
         return self.__class__(self.parent, new_map, type="span", name=self.name)
 
     def get_shadow(self):
-        return self.__class__(self.parent, self.map.shadow(), type='region',
-                              name='not ' + self.name)
+        return self.__class__(
+            self.parent, self.map.shadow(), type="region", name="not " + self.name
+        )
 
     def __len__(self):
         return len(self.map)
 
     def __repr__(self):
-        name = getattr(self, 'name', '')
+        name = getattr(self, "name", "")
         if name:
             name = ' "%s"' % name
-        return '%s%s at %s' % (self.type, name, self.map)
+        return "%s%s at %s" % (self.type, name, self.map)
 
     def remapped_to(self, grandparent, gmap):
         map = gmap[self.map]
@@ -347,29 +356,27 @@ class AnnotatableFeature(_Feature):
 
     def _mapped(self, slicemap):
         new_map = self.map[slicemap]
-        return self.__class__(self.parent, new_map, type='slice', name='')
+        return self.__class__(self.parent, new_map, type="slice", name="")
 
     def remapped_to(self, grandparent, gmap):
         new = _Feature.remapped_to(self, grandparent, gmap)
-        new.annotations = [
-            annot for annot in self.annotations if annot.map.useful]
+        new.annotations = [annot for annot in self.annotations if annot.map.useful]
         return new
-
 
 
 class Source(_Feature):
     # Has two maps - where it is on the sequence it annotates, and
     # where it is on the original sequence.
-    type = 'source'
+    type = "source"
 
     def __init__(self, seq, map, accession, basemap):
         self._serialisable = locals()
-        for key in ('self', '__class__', 'kw'):
+        for key in ("self", "__class__", "kw"):
             self._serialisable.pop(key, None)
         self._serialisable
 
         self.accession = accession
-        self.name = repr(basemap) + ' of ' + accession
+        self.name = repr(basemap) + " of " + accession
         self.parent = seq
         self.attached = False
         self.map = map
@@ -398,7 +405,7 @@ def Feature(parent, type, name, spans, value=None):
 
 
 class _Variable(_Feature):
-    qualifier_names = _Feature.qualifier_names + ['xxy_list']
+    qualifier_names = _Feature.qualifier_names + ["xxy_list"]
 
     def without_lost_spans(self):
         if self.map.complete:
@@ -412,8 +419,7 @@ def Variable(parent, type, name, xxy_list):
     start = min([min(x1, x2) for ((x1, x2), y) in xxy_list])
     end = max([max(x1, x2) for ((x1, x2), y) in xxy_list])
     if start != 0:
-        xxy_list = [((x1 - start, x2 - start), y)
-                    for ((x1, x2), y) in xxy_list]
+        xxy_list = [((x1 - start, x2 - start), y) for ((x1, x2), y) in xxy_list]
         end -= start
     # values = [location.Span(x1-start, x2-start, True, True, y) for ((x1, x2), y) in xxy]
     map = Map([(start, end)], parent_length=len(parent))
@@ -421,7 +427,7 @@ def Variable(parent, type, name, xxy_list):
 
 
 class _SimpleVariable(_Feature):
-    qualifier_names = _Feature.qualifier_names + ['data']
+    qualifier_names = _Feature.qualifier_names + ["data"]
 
     def without_lost_spans(self):
         if self.map.complete:
@@ -429,8 +435,7 @@ class _SimpleVariable(_Feature):
         keep = self.map.nongap()
         indices = numpy.concatenate([list(span) for span in keep.spans])
         data = numpy.asarray(self.data)[indices]
-        new = self.__class__(self.parent, self.map[
-                             keep], data=data, original=self)
+        new = self.__class__(self.parent, self.map[keep], data=data, original=self)
         return new
 
 

@@ -22,15 +22,21 @@ the EstimateProbability class.
 
 """
 
+import random
+
 from cogent3.util import parallel
 from cogent3.util import progress_display as UI
 
-import random
 
 __author__ = "Gavin Huttley, Andrew Butterfield and Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Andrew Butterfield", "Matthew Wakefield",
-               "Edward Lang", "Peter Maxwell"]
+__credits__ = [
+    "Gavin Huttley",
+    "Andrew Butterfield",
+    "Matthew Wakefield",
+    "Edward Lang",
+    "Peter Maxwell",
+]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
@@ -60,36 +66,36 @@ class ParametricBootstrapCore(object):
         # self.simplify() is used as the entire LF result might not be picklable
         # for MPI. Subclass must provide self.alignment and
         # self.parameter_controllers
-        if 'random_series' not in opt_args and not opt_args.get('local', None):
-            opt_args['random_series'] = random.Random()
+        if "random_series" not in opt_args and not opt_args.get("local", None):
+            opt_args["random_series"] = random.Random()
 
         null_pc = self.parameter_controllers[0]
         pcs = len(self.parameter_controllers)
         if pcs == 1:
-            model_label = ['']
+            model_label = [""]
         elif pcs == 2:
-            model_label = ['null', 'alt ']
+            model_label = ["null", "alt "]
         else:
-            model_label = ['null'] + ['alt%s' % i for i in range(1, pcs)]
+            model_label = ["null"] + ["alt%s" % i for i in range(1, pcs)]
 
         @UI.display_wrap
         def each_model(alignment, ui):
             def one_model(pc):
                 pc.set_alignment(alignment)
                 return pc.optimise(return_calculator=True, **opt_args)
+
             # This is not done in parallel because we depend on the side-
             # effect of changing the parameter_controller current values
-            memos = ui.map(one_model, self.parameter_controllers,
-                                 labels=model_label)
+            memos = ui.map(one_model, self.parameter_controllers, labels=model_label)
             concise_result = self.simplify(*self.parameter_controllers)
             return (memos, concise_result)
 
         # optimisations = pcs * (self._numreplicates + 1)
         init_work = pcs / (self._numreplicates + pcs)
-        ui.display('Original data', 0.0, init_work)
+        ui.display("Original data", 0.0, init_work)
         (starting_points, self.observed) = each_model(self.alignment)
 
-        ui.display('Randomness', init_work, 0.0)
+        ui.display("Randomness", init_work, 0.0)
         alignment_random_state = random.Random(self.seed).getstate()
         if self.seed is None:
             comm = parallel.get_communicator()
@@ -109,10 +115,13 @@ class ParametricBootstrapCore(object):
             (dummy, result) = each_model(simalign)
             return result
 
-        ui.display('Bootstrap', init_work)
+        ui.display("Bootstrap", init_work)
         self.results = ui.map(
-            one_replicate, list(range(self._numreplicates)), noun='replicate',
-            start=init_work)
+            one_replicate,
+            list(range(self._numreplicates)),
+            noun="replicate",
+            start=init_work,
+        )
 
 
 class EstimateProbability(ParametricBootstrapCore):
@@ -124,7 +133,9 @@ class EstimateProbability(ParametricBootstrapCore):
         self.null_parameter_controller = null_parameter_controller
         self.alt_parameter_controller = alt_parameter_controller
         self.parameter_controllers = [
-            self.null_parameter_controller, self.alt_parameter_controller]
+            self.null_parameter_controller,
+            self.alt_parameter_controller,
+        ]
 
     def simplify(self, null_result, alt_result):
         return (null_result.get_log_likelihood(), alt_result.get_log_likelihood())

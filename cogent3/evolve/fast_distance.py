@@ -1,10 +1,12 @@
 from collections import defaultdict, namedtuple
-from numpy import log, zeros, float64, int32, array, sqrt, dot, diag, eye
-from numpy.linalg import det, norm, inv, LinAlgError
+
+from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
+from numpy.linalg import LinAlgError, det, inv, norm
 
 from cogent3 import DNA, RNA, LoadTable, get_moltype
-from cogent3.util.progress_display import display_wrap
 from cogent3.util.dict_array import DictArray
+from cogent3.util.progress_display import display_wrap
+
 
 __author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -25,20 +27,20 @@ def get_pyrimidine_indices(moltype):
     """returns pyrimidine indices for the moltype"""
     states = list(moltype)
     if _same_moltype(RNA, moltype):
-        return list(map(states.index, 'CU'))
+        return list(map(states.index, "CU"))
     elif _same_moltype(DNA, moltype):
-        return list(map(states.index, 'CT'))
+        return list(map(states.index, "CT"))
     else:
-        raise RuntimeError('Non-nucleic acid MolType')
+        raise RuntimeError("Non-nucleic acid MolType")
 
 
 def get_purine_indices(moltype):
     """returns purine indices for the moltype"""
     states = list(moltype)
     if not _same_moltype(RNA, moltype) and not _same_moltype(DNA, moltype):
-        raise RuntimeError('Non-nucleic acid MolType')
+        raise RuntimeError("Non-nucleic acid MolType")
 
-    return list(map(states.index, 'AG'))
+    return list(map(states.index, "AG"))
 
 
 def get_matrix_diff_coords(indices):
@@ -118,20 +120,21 @@ def _jc69_from_matrix(matrix):
     if p >= 0.75:  # cannot take log
         return invalid
 
-    factor = (1 - (4 / 3) * p)
+    factor = 1 - (4 / 3) * p
 
     dist = -3.0 * log(factor) / 4
     var = p * (1 - p) / (factor * factor * total)
     return total, p, dist, var
 
 
-def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords,
-                      pyr_coords, tv_coords):
+def _tn93_from_matrix(
+    matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_coords, tv_coords
+):
     invalid = None, None, None, None
 
     total = matrix.sum()
     freqs = matrix.sum(axis=0) + matrix.sum(axis=1)
-    freqs /= (2 * total)
+    freqs /= 2 * total
 
     if total == 0:
         return invalid
@@ -154,9 +157,11 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords,
 
     coeff1 = 2 * prod_purs / freq_purs
     coeff2 = 2 * prod_pyrs / freq_pyrs
-    coeff3 = 2 * (freq_purs * freq_pyrs -
-                  (prod_purs * freq_pyrs / freq_purs) -
-                  (prod_pyrs * freq_purs / freq_pyrs))
+    coeff3 = 2 * (
+        freq_purs * freq_pyrs
+        - (prod_purs * freq_pyrs / freq_purs)
+        - (prod_pyrs * freq_purs / freq_pyrs)
+    )
 
     term1 = 1 - pur_ts_diffs / coeff1 - tv_diffs / (2 * freq_purs)
     term2 = 1 - pyr_ts_diffs / coeff2 - tv_diffs / (2 * freq_pyrs)
@@ -169,11 +174,17 @@ def _tn93_from_matrix(matrix, freqs, pur_indices, pyr_indices, pur_coords,
     v1 = 1 / term1
     v2 = 1 / term2
     v3 = 1 / term3
-    v4 = (coeff1 * v1 / (2 * freq_purs)) + \
-         (coeff2 * v2 / (2 * freq_pyrs)) + \
-         (coeff3 * v3 / (2 * freq_purs * freq_pyrs))
-    var = v1 ** 2 * pur_ts_diffs + v2 ** 2 * pyr_ts_diffs + v4 ** 2 * tv_diffs - \
-        (v1 * pur_ts_diffs + v2 * pyr_ts_diffs + v4 * tv_diffs) ** 2
+    v4 = (
+        (coeff1 * v1 / (2 * freq_purs))
+        + (coeff2 * v2 / (2 * freq_pyrs))
+        + (coeff3 * v3 / (2 * freq_purs * freq_pyrs))
+    )
+    var = (
+        v1 ** 2 * pur_ts_diffs
+        + v2 ** 2 * pyr_ts_diffs
+        + v4 ** 2 * tv_diffs
+        - (v1 * pur_ts_diffs + v2 * pyr_ts_diffs + v4 * tv_diffs) ** 2
+    )
     var /= total
 
     return total, p, dist, var
@@ -219,9 +230,8 @@ def _paralinear(matrix):
         return invalid
 
     r = matrix.shape[0]
-    d_xy = - log(det(frequency) / sqrt((freqs[0] * freqs[1]).prod())) / r
-    var = (
-        var_term - (1 / sqrt(freqs[0] * freqs[1])).sum()) / (r ** 2 * total)
+    d_xy = -log(det(frequency) / sqrt((freqs[0] * freqs[1]).prod())) / r
+    var = (var_term - (1 / sqrt(freqs[0] * freqs[1])).sum()) / (r ** 2 * total)
 
     return total, p, d_xy, var
 
@@ -241,19 +251,18 @@ def _logdet(matrix, use_tk_adjustment=True):
     r = matrix.shape[0]
     if use_tk_adjustment:
         coeff = (sum(sum(freqs) ** 2) / 4 - 1) / (r - 1)
-        d_xy = coeff * log(det(frequency) /
-                           sqrt((freqs[0] * freqs[1]).prod()))
+        d_xy = coeff * log(det(frequency) / sqrt((freqs[0] * freqs[1]).prod()))
         var = None
     else:
-        d_xy = - log(det(frequency)) / r - log(r)
+        d_xy = -log(det(frequency)) / r - log(r)
         var = (var_term / r ** 2 - 1) / total
 
     return total, p, d_xy, var
 
 
 try:
-    from ._pairwise_distance import \
-        _fill_diversity_matrix as fill_diversity_matrix
+    from ._pairwise_distance import _fill_diversity_matrix as fill_diversity_matrix
+
     # raise ImportError # for testing
 except ImportError:
     fill_diversity_matrix = _fill_diversity_matrix
@@ -272,12 +281,11 @@ def _number_formatter(template):
     return call
 
 
-Stats = namedtuple(
-    "Stats", ["length", "fraction_variable", "dist", "variance"])
+Stats = namedtuple("Stats", ["length", "fraction_variable", "dist", "variance"])
 
 
 def _make_stat_table(stats, names, **kwargs):
-    header = [r'Seq1 \ Seq2'] + names
+    header = [r"Seq1 \ Seq2"] + names
     rows = zeros((len(names), len(names)), dtype="O")
     for i in range(len(names) - 1):
         n1 = names[i]
@@ -290,13 +298,15 @@ def _make_stat_table(stats, names, **kwargs):
     for i in range(len(names)):
         rows[i].insert(0, names[i])
 
-    table = LoadTable(header=header, rows=rows, row_ids=True,
-                      missing_data='*', **kwargs)
+    table = LoadTable(
+        header=header, rows=rows, row_ids=True, missing_data="*", **kwargs
+    )
     return table
 
 
 class _PairwiseDistance(object):
     """base class for computing pairwise distances"""
+
     valid_moltypes = ()
 
     def __init__(self, moltype, invalid=-9, alignment=None):
@@ -304,13 +314,14 @@ class _PairwiseDistance(object):
         moltype = get_moltype(moltype)
         if moltype.label not in self.valid_moltypes:
             name = self.__class__.__name__
-            msg = (f"Invalid moltype for {name}: '{moltype.label}' not "
-                   f"in {self.valid_moltypes}")
+            msg = (
+                f"Invalid moltype for {name}: '{moltype.label}' not "
+                f"in {self.valid_moltypes}"
+            )
             raise ValueError(msg)
 
         self.moltype = moltype
-        self.char_to_indices = get_moltype_index_array(
-            moltype, invalid=invalid)
+        self.char_to_indices = get_moltype_index_array(moltype, invalid=invalid)
         self._dim = len(list(moltype))
         self._dists = None
         self._dupes = None
@@ -325,8 +336,9 @@ class _PairwiseDistance(object):
         self._func_args = []
 
     def _convert_seqs_to_indices(self, alignment):
-        assert isinstance(alignment.moltype, type(self.moltype)), \
-            'Alignment does not have correct MolType'
+        assert isinstance(
+            alignment.moltype, type(self.moltype)
+        ), "Alignment does not have correct MolType"
 
         self._dists = {}
         self.names = alignment.names[:]
@@ -362,8 +374,9 @@ class _PairwiseDistance(object):
 
         names = self.names[:]
         matrix = zeros((self._dim, self._dim), float64)
-        off_diag = [(i, j) for i in range(self._dim)
-                    for j in range(self._dim) if i != j]
+        off_diag = [
+            (i, j) for i in range(self._dim) for j in range(self._dim) if i != j
+        ]
         off_diag = tuple([tuple(a) for a in zip(*off_diag)])
 
         done = 0.0
@@ -379,7 +392,7 @@ class _PairwiseDistance(object):
                     continue
 
                 name_2 = names[j]
-                ui.display('%s vs %s' % (name_1, name_2), done / to_do)
+                ui.display("%s vs %s" % (name_1, name_2), done / to_do)
                 done += 1
                 matrix.fill(0)
                 s2 = self.indexed_seqs[j]
@@ -408,7 +421,7 @@ class _PairwiseDistance(object):
             keys = list(self._dists.keys())
             for key in keys:
                 if set(key) & remove:
-                    del (self._dists[key])
+                    del self._dists[key]
 
     __call__ = run
 
@@ -467,7 +480,7 @@ class _PairwiseDistance(object):
 
         stats = {k: sqrt(self._dists[k].variance) for k in self._dists}
         stats = self._expand(stats)
-        kwargs = dict(title='Standard Error of Pairwise Distances', digits=4)
+        kwargs = dict(title="Standard Error of Pairwise Distances", digits=4)
         t = _make_stat_table(stats, self.names, **kwargs)
         return t
 
@@ -478,7 +491,7 @@ class _PairwiseDistance(object):
 
         stats = {k: self._dists[k].variance for k in self._dists}
         stats = self._expand(stats)
-        kwargs = dict(title='Variances of Pairwise Distances', digits=4)
+        kwargs = dict(title="Variances of Pairwise Distances", digits=4)
         t = _make_stat_table(stats, self.names, **kwargs)
         var_formatter = _number_formatter("%.2e")
         for name in self.names:
@@ -492,7 +505,7 @@ class _PairwiseDistance(object):
 
         stats = {k: self._dists[k].fraction_variable for k in self._dists}
         stats = self._expand(stats)
-        kwargs = dict(title='Proportion variable sites', digits=4)
+        kwargs = dict(title="Proportion variable sites", digits=4)
         t = _make_stat_table(stats, self.names, **kwargs)
         return t
 
@@ -503,16 +516,17 @@ class _PairwiseDistance(object):
 
         stats = {k: self._dists[k].length for k in self._dists}
         stats = self._expand(stats)
-        kwargs = dict(title='Pairwise Aligned Lengths', digits=0)
+        kwargs = dict(title="Pairwise Aligned Lengths", digits=0)
         t = _make_stat_table(stats, self.names, **kwargs)
         return t
 
 
 class HammingPair(_PairwiseDistance):
     """Hamming distance calculator for pairwise alignments"""
-    valid_moltypes = ('dna', 'rna', 'protein', 'text')
 
-    def __init__(self, moltype='text', *args, **kwargs):
+    valid_moltypes = ("dna", "rna", "protein", "text")
+
+    def __init__(self, moltype="text", *args, **kwargs):
         """states: the valid sequence states"""
         super(HammingPair, self).__init__(moltype, *args, **kwargs)
         self.func = _hamming
@@ -520,19 +534,21 @@ class HammingPair(_PairwiseDistance):
 
 class _NucleicSeqPair(_PairwiseDistance):
     """base class pairwise distance calculator for nucleic acid seqs"""
-    valid_moltypes = ('dna', 'rna')
 
-    def __init__(self, moltype='dna', *args, **kwargs):
+    valid_moltypes = ("dna", "rna")
+
+    def __init__(self, moltype="dna", *args, **kwargs):
         super(_NucleicSeqPair, self).__init__(moltype, *args, **kwargs)
-        if not _same_moltype(DNA, self.moltype) and \
-                not _same_moltype(RNA, self.moltype):
-            raise RuntimeError('Invalid MolType for this metric')
+        if not _same_moltype(DNA, self.moltype) and not _same_moltype(
+            RNA, self.moltype
+        ):
+            raise RuntimeError("Invalid MolType for this metric")
 
 
 class JC69Pair(_NucleicSeqPair):
     """JC69 distance calculator for pairwise alignments"""
 
-    def __init__(self, moltype='dna', *args, **kwargs):
+    def __init__(self, moltype="dna", *args, **kwargs):
         """states: the valid sequence states"""
         super(JC69Pair, self).__init__(moltype, *args, **kwargs)
         self.func = _jc69_from_matrix
@@ -541,7 +557,7 @@ class JC69Pair(_NucleicSeqPair):
 class TN93Pair(_NucleicSeqPair):
     """TN93 calculator for pairwise alignments"""
 
-    def __init__(self, moltype='dna', *args, **kwargs):
+    def __init__(self, moltype="dna", *args, **kwargs):
         """states: the valid sequence states"""
         super(TN93Pair, self).__init__(moltype, *args, **kwargs)
         self._freqs = zeros(self._dim, float64)
@@ -562,16 +578,22 @@ class TN93Pair(_NucleicSeqPair):
         self.tv_coords = [i * 4 + j for i, j in self.tv_coords]
 
         self.func = _tn93_from_matrix
-        self._func_args = [self._freqs, self.pur_indices,
-                           self.pyr_indices, self.pur_coords,
-                           self.pyr_coords, self.tv_coords]
+        self._func_args = [
+            self._freqs,
+            self.pur_indices,
+            self.pyr_indices,
+            self.pur_coords,
+            self.pyr_coords,
+            self.tv_coords,
+        ]
 
 
 class LogDetPair(_PairwiseDistance):
     """computes logdet distance between sequence pairs"""
-    valid_moltypes = ('dna', 'rna', 'protein')
 
-    def __init__(self, moltype='dna', use_tk_adjustment=True, *args, **kwargs):
+    valid_moltypes = ("dna", "rna", "protein")
+
+    def __init__(self, moltype="dna", use_tk_adjustment=True, *args, **kwargs):
         """Arguments:
             - moltype: string or moltype instance (must be dna or rna)
             - use_tk_adjustment: use the correction of Tamura and Kumar 2002
@@ -589,18 +611,21 @@ class LogDetPair(_PairwiseDistance):
 
 class ParalinearPair(_PairwiseDistance):
     """computes the paralinear distance (Lake 1994) between sequence pairs"""
-    valid_moltypes = ('dna', 'rna', 'protein')
 
-    def __init__(self, moltype='dna', *args, **kwargs):
+    valid_moltypes = ("dna", "rna", "protein")
+
+    def __init__(self, moltype="dna", *args, **kwargs):
         super(ParalinearPair, self).__init__(moltype, *args, **kwargs)
         self.func = _paralinear
 
 
-_calculators = {'paralinear': ParalinearPair,
-                'logdet': LogDetPair,
-                'jc69': JC69Pair,
-                'tn93': TN93Pair,
-                'hamming': HammingPair}
+_calculators = {
+    "paralinear": ParalinearPair,
+    "logdet": LogDetPair,
+    "jc69": JC69Pair,
+    "tn93": TN93Pair,
+    "hamming": HammingPair,
+}
 
 
 def get_calculator(name, *args, **kwargs):
@@ -622,15 +647,20 @@ def available_distances():
     For more complicated genetic distance methods, see the evolve.models module.
     """
     from cogent3 import LoadTable
+
     rows = []
     for n, c in _calculators.items():
-        rows.append([n, ', '.join(c.valid_moltypes)])
+        rows.append([n, ", ".join(c.valid_moltypes)])
 
-    table = LoadTable(header=['Abbreviation', 'Suitable for moltype'],
-                      rows=rows,
-                      title=("Specify a pairwise genetic distance calculator "
-                             "using 'Abbreviation' (case insensitive)."),
-                      row_ids=True)
+    table = LoadTable(
+        header=["Abbreviation", "Suitable for moltype"],
+        rows=rows,
+        title=(
+            "Specify a pairwise genetic distance calculator "
+            "using 'Abbreviation' (case insensitive)."
+        ),
+        row_ids=True,
+    )
     return table
 
 
@@ -638,7 +668,7 @@ class DistanceMatrix(DictArray):
     """pairwise distance matrix"""
 
     def __init__(self, dists, invalid=None):
-        super(DistanceMatrix, self).__init__(dists, dtype='O')
+        super(DistanceMatrix, self).__init__(dists, dtype="O")
         self._invalid = invalid
 
     def __setitem__(self, names, value):
@@ -654,9 +684,11 @@ class DistanceMatrix(DictArray):
 
     def drop_invalid(self, invalid=None):
         """drops all rows / columns with an invalid entry"""
-        if (self.shape[0] != self.shape[1] or
-                self.template.names[0] != self.template.names[0]):
-            raise RuntimeError('Must be a square matrix')
+        if (
+            self.shape[0] != self.shape[1]
+            or self.template.names[0] != self.template.names[0]
+        ):
+            raise RuntimeError("Must be a square matrix")
         names = array(self.template.names[0])
         cols = (self.array == invalid).sum(axis=0)
         exclude = names[cols != 0].tolist()
@@ -667,9 +699,12 @@ class DistanceMatrix(DictArray):
         data = self.array.take(keep, axis=0)
         data = data.take(keep, axis=1)
         names = names.take(keep)
-        dists = {(names[i], names[j]): data[i, j]
-                 for i in range(len(names))
-                 for j in range(len(names)) if i != j}
+        dists = {
+            (names[i], names[j]): data[i, j]
+            for i in range(len(names))
+            for j in range(len(names))
+            if i != j
+        }
         if not dists:
             result = None
         else:
@@ -684,8 +719,9 @@ class DistanceMatrix(DictArray):
         prior to building the tree
         """
         from cogent3.phylo.nj import nj
+
         dists = self.drop_invalid()
         if not dists or dists.shape[0] == 1:
-            raise ValueError('Too few distances to build a treenj')
+            raise ValueError("Too few distances to build a treenj")
         dists = dists.todict()
         return nj(dists, show_progress=show_progress)

@@ -23,12 +23,11 @@ def GffParser(f):
             continue
 
         # parse columns
-        cols = line.split('\t')
+        cols = line.split("\t")
         if len(cols) == 8:
-            cols.append('')
+            cols.append("")
         assert len(cols) == 9, line
-        (seqname, source, feature, start, end, score,
-         strand, frame, attributes) = cols
+        (seqname, source, feature, start, end, score, strand, frame, attributes) = cols
 
         # adjust for python 0-based indexing etc.
         (start, end) = (int(start) - 1, int(end))
@@ -42,17 +41,27 @@ def GffParser(f):
 
         # but we use reversal of indices when the feature is on the opposite
         # strand
-        if strand == '-':
+        if strand == "-":
             (start, end) = (end, start)
 
         # should parse attributes too
-        yield (seqname, source, feature, start, end, score,
-               strand, frame, attributes, comments)
+        yield (
+            seqname,
+            source,
+            feature,
+            start,
+            end,
+            score,
+            strand,
+            frame,
+            attributes,
+            comments,
+        )
 
 
 def parse_attributes(attribute_string):
     """Returns region of attribute string between first pair of double quotes"""
-    attribute_string = attribute_string[attribute_string.find('"') + 1:]
+    attribute_string = attribute_string[attribute_string.find('"') + 1 :]
     if '"' in attribute_string:
-        attribute_string = attribute_string[:attribute_string.find('"')]
+        attribute_string = attribute_string[: attribute_string.find('"')]
     return attribute_string

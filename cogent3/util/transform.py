@@ -80,8 +80,10 @@ class for_seq(object):
         if self.normalizer is None:
             return self.aggregator([f(i, j) for i, j in zip(first, second)])
         else:
-            return self.normalizer(self.aggregator(
-                [f(i, j) for i, j in zip(first, second)]), first, second)
+            return self.normalizer(
+                self.aggregator([f(i, j) for i, j in zip(first, second)]), first, second
+            )
+
 
 # convenience functions for modifying objects
 
@@ -92,6 +94,7 @@ class KeepChars(object):
     Specifically, strips out everything in s that is not in keep.
     This filter is case sensitive by default.
     """
+
     allchars = bytes(range(256))
 
     def __init__(self, keep, case_sens=True):
@@ -101,16 +104,15 @@ class KeepChars(object):
             up = keep.upper()
             keep = low + up
 
-        keep = keep.encode('utf-8')
-        self._strip_table = dict([(c, None)
-                                  for c in self.allchars if c not in keep])
+        keep = keep.encode("utf-8")
+        self._strip_table = dict([(c, None) for c in self.allchars if c not in keep])
 
     def __call__(self, s):
         """f(s) -> s, translates using self.allchars and self.delchars"""
         if s is None:
             raise TypeError
         if isinstance(s, bytes):
-            s = s.decode('utf8')
+            s = s.decode("utf8")
         s = str(s)
         return s.translate(self._strip_table)
 

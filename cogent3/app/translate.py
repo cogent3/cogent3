@@ -1,10 +1,11 @@
 from collections import defaultdict
 
-from cogent3.core.moltype import get_moltype
-from cogent3.core.genetic_code import get_code, DEFAULT
 from cogent3.core.alignment import SequenceCollection
+from cogent3.core.genetic_code import DEFAULT, get_code
+from cogent3.core.moltype import get_moltype
 
 from .composable import ComposableSeq, NotCompletedResult
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -52,15 +53,15 @@ def best_frame(seq, gc=DEFAULT, allow_rc=False, require_stop=False):
     if not require_stop:
         # don't count stops if they're at the end of the aa sequence
         for i in range(len(translations)):
-            if translations[i].endswith('*'):
+            if translations[i].endswith("*"):
                 translations[i] = translations[i][:-1]
 
-    stops_in_frame = [(tr.count('*'), i) for i, tr in enumerate(translations)]
+    stops_in_frame = [(tr.count("*"), i) for i, tr in enumerate(translations)]
     stops_in_frame.sort()
     min_stops, frame = stops_in_frame[0]
     # if min_stops > 1, cannot be translated
     if min_stops > 1:
-        raise ValueError('%s cannot be robustly translated' % seq.name)
+        raise ValueError("%s cannot be robustly translated" % seq.name)
     elif min_stops == 0 and require_stop:
         # find seq with 1 stop
         min_stops = 20  # nonsense value
@@ -70,10 +71,10 @@ def best_frame(seq, gc=DEFAULT, allow_rc=False, require_stop=False):
                 break
 
     if 0 <= min_stops <= 1:
-        if min_stops == 1 and not translations[frame].endswith('*'):
-            raise ValueError('%s cannot be robustly translated' % seq.name)
+        if min_stops == 1 and not translations[frame].endswith("*"):
+            raise ValueError("%s cannot be robustly translated" % seq.name)
     else:
-        raise ValueError('%s cannot be robustly translated' % seq.name)
+        raise ValueError("%s cannot be robustly translated" % seq.name)
 
     frame += 1
     if allow_rc and frame > 3:
@@ -111,7 +112,7 @@ def translate_frames(seq, moltype=None, gc=DEFAULT, allow_rc=False):
 
 
 def get_fourfold_degenerate_sets(gc, alphabet=None, as_indices=True):
-    '''returns set() of codons that are 4-fold degenerate for genetic code gc
+    """returns set() of codons that are 4-fold degenerate for genetic code gc
     
     Parameters
     ----------
@@ -121,7 +122,7 @@ def get_fourfold_degenerate_sets(gc, alphabet=None, as_indices=True):
         nucleic acid Alphabet instance
     as_indices
         codons are represented as indices, rather than strings
-    '''
+    """
     four_fold = set()
     syns = gc.synonyms
     for codons in list(syns.values()):
@@ -136,8 +137,7 @@ def get_fourfold_degenerate_sets(gc, alphabet=None, as_indices=True):
                 four_fold.update([frozenset(groups)])
 
     if as_indices:
-        assert alphabet is not None, \
-            'Must provide alphabet to convert to indices'
+        assert alphabet is not None, "Must provide alphabet to convert to indices"
         ffold = set()
         to_indices = alphabet.to_indices
         for group in four_fold:
@@ -149,8 +149,9 @@ def get_fourfold_degenerate_sets(gc, alphabet=None, as_indices=True):
 
 
 class select_translatable(ComposableSeq):
-    def __init__(self, moltype='dna', gc=DEFAULT, allow_rc=False,
-                 trim_terminal_stop=True):
+    def __init__(
+        self, moltype="dna", gc=DEFAULT, allow_rc=False, trim_terminal_stop=True
+    ):
         """selects translatable sequences
 
         Sequences are truncated to modulo 3. seqs.info has a translation_errors
@@ -173,13 +174,13 @@ class select_translatable(ComposableSeq):
         A sequence collection. Sequences that could not be translated
         are excluded.
         """
-        super(select_translatable, self).__init__(input_type=('sequences',
-                                                              'aligned'),
-                                                  output_type='sequences')
+        super(select_translatable, self).__init__(
+            input_type=("sequences", "aligned"), output_type="sequences"
+        )
         self._formatted_params()
 
         moltype = get_moltype(moltype)
-        assert moltype.label.lower() in ('dna', 'rna'), "Invalid moltype"
+        assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
         self._moltype = moltype
         self._gc = get_code(gc)
@@ -203,7 +204,7 @@ class select_translatable(ComposableSeq):
                     frame *= -1
                 frame -= 1  # returned from best frame as 1, 2, 3
                 num_codons = (len(seq) - frame) // 3
-                seq = seq[frame: frame + (num_codons * 3)]
+                seq = seq[frame : frame + (num_codons * 3)]
                 if self._trim_terminal_stop:
                     seq = seq.trim_stop_codon(gc=self._gc)
                 translatable.append([seq.name, seq])
@@ -215,13 +216,13 @@ class select_translatable(ComposableSeq):
                 error_log.append([seq.name, msg.args[0]])
 
         if translatable:
-            translatable = SequenceCollection(data=translatable,
-                                              moltype=self._moltype,
-                                              info=seqs.info)
-            translatable.info['translation_errors'] = error_log
+            translatable = SequenceCollection(
+                data=translatable, moltype=self._moltype, info=seqs.info
+            )
+            translatable.info["translation_errors"] = error_log
         else:
-            translatable = NotCompletedResult('FALSE', self,
-                                              ' '.join(error_log),
-                                              source=seqs)
+            translatable = NotCompletedResult(
+                "FALSE", self, " ".join(error_log), source=seqs
+            )
 
         return translatable

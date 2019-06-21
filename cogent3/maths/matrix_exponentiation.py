@@ -10,10 +10,14 @@
 # Pade       instant        slow
 # Taylor     instant        very slow
 
-from cogent3.util.modules import importVersionedModule, ExpectedImportError
 import warnings
+
 import numpy
-from numpy.linalg import inv, eig, solve, LinAlgError
+
+from numpy.linalg import LinAlgError, eig, inv, solve
+
+from cogent3.util.modules import ExpectedImportError, importVersionedModule
+
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -26,7 +30,6 @@ __status__ = "Production"
 
 
 class _Exponentiator(object):
-
     def __init__(self, Q):
         self.Q = Q
 
@@ -37,7 +40,7 @@ class _Exponentiator(object):
 class EigenExponentiator(_Exponentiator):
     """A matrix ready for fast exponentiation.  P=exp(Q*t)"""
 
-    __slots__ = ['Q', 'ev', 'roots', 'evI', 'evT']
+    __slots__ = ["Q", "ev", "roots", "evI", "evT"]
 
     def __init__(self, Q, roots, ev, evT, evI):
         self.Q = Q
@@ -76,8 +79,8 @@ def SemiSymmetricExponentiator(motif_probs, Q):
 # from reusing Q with a new t, but for compatability with the diagonalising
 # approach they look like they do.  They are derived from code in SciPy.
 
-class TaylorExponentiator(_Exponentiator):
 
+class TaylorExponentiator(_Exponentiator):
     def __init__(self, Q):
         self.Q = Q
         self.q = 21
@@ -96,14 +99,12 @@ class TaylorExponentiator(_Exponentiator):
             trm = numpy.dot(trm, A / float(k))
             eA += trm
         if k >= self.q:
-            warnings.warn("Taylor series lengthened from %s to %s" %
-                          (self.q, k + 1))
+            warnings.warn("Taylor series lengthened from %s to %s" % (self.q, k + 1))
             self.q = k + 1
         return eA
 
 
 class PadeExponentiator(_Exponentiator):
-
     def __init__(self, Q):
         self.Q = Q
 
@@ -115,7 +116,7 @@ class PadeExponentiator(_Exponentiator):
         # Scale A so that norm is < 1/2
         norm = numpy.maximum.reduce(numpy.sum(numpy.absolute(A), axis=1))
         j = int(numpy.floor(numpy.log(max(norm, 0.5)) / numpy.log(2.0))) + 1
-        A = A / 2.0**j
+        A = A / 2.0 ** j
 
         # How many iterations required
         e = 1.0
@@ -124,8 +125,8 @@ class PadeExponentiator(_Exponentiator):
         while e > 1e-12:
             q += 1
             q2 = 2.0 * q
-            qf *= q**2 / (q2 * (q2 - 1) * q2 * (q2 + 1))
-            e = 8 * (norm / (2**j))**(2 * q) * qf
+            qf *= q ** 2 / (q2 * (q2 - 1) * q2 * (q2 + 1))
+            e = 8 * (norm / (2 ** j)) ** (2 * q) * qf
 
         # Pade Approximation for exp(A)
         X = A

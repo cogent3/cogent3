@@ -23,16 +23,36 @@ intervals! The major advantage is that you can reset the P-value gloabally over
 the whole test suite, so that rare failures don't occur every time.
 
 """
+from unittest import TestCase as orig_TestCase
+from unittest import TestSuite, findTestCases, main
+
 import numpy
-from numpy import testing, array, asarray, ravel, zeros, logical_and, logical_or, isfinite
-from unittest import main, TestCase as orig_TestCase, TestSuite, findTestCases
+
+from numpy import (
+    array,
+    asarray,
+    isfinite,
+    logical_and,
+    logical_or,
+    ravel,
+    testing,
+    zeros,
+)
+
+from cogent3.maths.stats.test import G_ind, t_two_sample
 from cogent3.util.misc import recursive_flatten
-from cogent3.maths.stats.test import t_two_sample, G_ind
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Rob Knight", "Peter Maxwell", "Sandra Smit",
-               "Zongzhi Liu", "Micah Hamady", "Daniel McDonald"]
+__credits__ = [
+    "Rob Knight",
+    "Peter Maxwell",
+    "Sandra Smit",
+    "Zongzhi Liu",
+    "Micah Hamady",
+    "Daniel McDonald",
+]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Rob Knight"
@@ -79,6 +99,7 @@ class TestCase(orig_TestCase):
     BEWARE: Do not start any method with 'test' unless you want it to actually
     run as a test suite in every instance!
     """
+
     _suite_pvalue = None  # see TestCase._set_suite_pvalue()
 
     def _get_values_from_matching_dicts(self, d1, d2):
@@ -94,11 +115,11 @@ class TestCase(orig_TestCase):
         for (data, error) in known_errors:
             self.assertRaises(error, call, data)
 
-    def valueCheck(self, call, known_values, arg_prefix='', eps=None):
+    def valueCheck(self, call, known_values, arg_prefix="", eps=None):
         """Applies function to (data, expected) tuples, treating data as args
         """
         for (data, expected) in known_values:
-            observed = eval('call(' + arg_prefix + 'data)')
+            observed = eval("call(" + arg_prefix + "data)")
             try:
                 allowed_diff = float(eps)
             except TypeError:
@@ -125,7 +146,7 @@ class TestCase(orig_TestCase):
         # floats/ints, so need to explicitly catch scalar values and prevent
         # cast to array if we want the exact object to print out correctly.
         is_array = False
-        if hasattr(obs, 'keys') and hasattr(exp, 'keys'):  # both dicts?
+        if hasattr(obs, "keys") and hasattr(exp, "keys"):  # both dicts?
             result = self._get_values_from_matching_dicts(obs, exp)
             if result:
                 obs, exp = result
@@ -142,8 +163,10 @@ class TestCase(orig_TestCase):
                     arr_exp = array(exp)
                     arr_diff = arr_obs - arr_exp
                     if arr_obs.shape != arr_exp.shape:
-                        self.fail("Wrong shape: Got %s, but expected %s" %
-                                  (repr(obs), repr(exp)))
+                        self.fail(
+                            "Wrong shape: Got %s, but expected %s"
+                            % (repr(obs), repr(exp))
+                        )
                     obs = arr_obs.ravel()
                     exp = arr_exp.ravel()
                     is_array = True
@@ -163,28 +186,35 @@ class TestCase(orig_TestCase):
             try:
                 sum = float(observed + expected)
                 diff = float(observed - expected)
-                if (sum == 0):
+                if sum == 0:
                     if is_array:
-                        self.assertFalse(abs(diff) > abs(eps),
-                                         "Got %s, but expected %s (diff was %s)" %
-                                         (repr(arr_obs), repr(arr_exp), repr(arr_diff)))
+                        self.assertFalse(
+                            abs(diff) > abs(eps),
+                            "Got %s, but expected %s (diff was %s)"
+                            % (repr(arr_obs), repr(arr_exp), repr(arr_diff)),
+                        )
                     else:
-                        self.assertFalse(abs(diff) > abs(eps),
-                                         "Got %s, but expected %s (diff was %s)" %
-                                         (repr(observed), repr(expected), repr(diff)))
+                        self.assertFalse(
+                            abs(diff) > abs(eps),
+                            "Got %s, but expected %s (diff was %s)"
+                            % (repr(observed), repr(expected), repr(diff)),
+                        )
 
                 else:
                     if is_array:
-                        self.assertFalse(abs(diff / sum) > abs(eps),
-                                         "Got %s, but expected %s (diff was %s)" %
-                                         (repr(arr_obs), repr(arr_exp), repr(arr_diff)))
+                        self.assertFalse(
+                            abs(diff / sum) > abs(eps),
+                            "Got %s, but expected %s (diff was %s)"
+                            % (repr(arr_obs), repr(arr_exp), repr(arr_diff)),
+                        )
                     else:
-                        self.assertFalse(abs(diff / sum) > abs(eps),
-                                         "Got %s, but expected %s (diff was %s)" %
-                                         (repr(observed), repr(expected), repr(diff)))
+                        self.assertFalse(
+                            abs(diff / sum) > abs(eps),
+                            "Got %s, but expected %s (diff was %s)"
+                            % (repr(observed), repr(expected), repr(diff)),
+                        )
             except (TypeError, ValueError, AttributeError, NotImplementedError):
-                self.fail("Got %s, but expected %s" %
-                          (repr(observed), repr(expected)))
+                self.fail("Got %s, but expected %s" % (repr(observed), repr(expected)))
 
     def assertFloatEqualAbs(self, obs, exp, eps=1e-6):
         """
@@ -198,7 +228,7 @@ class TestCase(orig_TestCase):
         # note that we can't use array ops to combine, because we need to check
         # at each element whether the expected is zero to do the test to avoid
         # floating point error.
-        if hasattr(obs, 'keys') and hasattr(exp, 'keys'):  # both dicts?
+        if hasattr(obs, "keys") and hasattr(exp, "keys"):  # both dicts?
             result = self._get_values_from_matching_dicts(obs, exp)
             if result:
                 obs, exp = result
@@ -214,12 +244,16 @@ class TestCase(orig_TestCase):
                     arr_obs = array(obs)
                     arr_exp = array(exp)
                     if arr_obs.shape != arr_exp.shape:
-                        self.fail("Wrong shape: Got %s, but expected %s" %
-                                  (repr(obs), repr(exp)))
+                        self.fail(
+                            "Wrong shape: Got %s, but expected %s"
+                            % (repr(obs), repr(exp))
+                        )
                     diff = arr_obs - arr_exp
-                    self.assertFalse(abs(diff).max() > eps,
-                                     "Got %s, but expected %s (diff was %s)" %
-                                     (repr(obs), repr(exp), repr(diff)))
+                    self.assertFalse(
+                        abs(diff).max() > eps,
+                        "Got %s, but expected %s (diff was %s)"
+                        % (repr(obs), repr(exp), repr(diff)),
+                    )
                     return
                 except (TypeError, ValueError):
                     pass
@@ -230,15 +264,15 @@ class TestCase(orig_TestCase):
                 continue
             try:
                 diff = observed - expected
-                self.assertFalse(abs(diff) > abs(eps),
-                                 "Got %s, but expected %s (diff was %s)" %
-                                 (repr(observed), repr(expected), repr(diff)))
+                self.assertFalse(
+                    abs(diff) > abs(eps),
+                    "Got %s, but expected %s (diff was %s)"
+                    % (repr(observed), repr(expected), repr(diff)),
+                )
             except (TypeError, ValueError, AttributeError, NotImplementedError):
-                self.fail("Got %s, but expected %s" %
-                          (repr(observed), repr(expected)))
+                self.fail("Got %s, but expected %s" % (repr(observed), repr(expected)))
 
-    def assertFloatEqual(self, obs, exp, eps=1e-6, rel_eps=None,
-                         abs_eps=None):
+    def assertFloatEqual(self, obs, exp, eps=1e-6, rel_eps=None, abs_eps=None):
         """Tests whether two floating point numbers are approximately equal.
 
         If one of the arguments is zero, tests the absolute magnitude of the
@@ -246,8 +280,8 @@ class TestCase(orig_TestCase):
 
         Use this method as a reasonable default.
         """
-        obs = numpy.asarray(obs, dtype='O')
-        exp = numpy.asarray(exp, dtype='O')
+        obs = numpy.asarray(obs, dtype="O")
+        exp = numpy.asarray(exp, dtype="O")
         obs = numpy.ravel(obs)
         exp = numpy.ravel(exp)
 
@@ -265,8 +299,7 @@ class TestCase(orig_TestCase):
                 else:
                     self.assertFloatEqualRel(observed, expected, rel_eps)
             except (TypeError, ValueError, AttributeError, NotImplementedError):
-                self.fail("Got %s, but expected %s" %
-                          (repr(observed), repr(expected)))
+                self.fail("Got %s, but expected %s" % (repr(observed), repr(expected)))
 
     def _is_equal(self, observed, expected):
         """Returns True if observed and expected are equal, False otherwise."""
@@ -292,7 +325,8 @@ class TestCase(orig_TestCase):
         try:
             if not self._is_equal(observed, expected):
                 raise self.failureException(
-                    msg or 'Got %s, but expected %s' % (repr(observed), repr(expected)))
+                    msg or "Got %s, but expected %s" % (repr(observed), repr(expected))
+                )
         except (ValueError, TypeError) as e:
             # The truth value of an array with more than one element is
             # ambiguous. Use a.any() or a.all()
@@ -306,10 +340,14 @@ class TestCase(orig_TestCase):
         except self.failureException:
             pass
         else:
-            raise self.failureException(msg or 'Observed %s and expected %s: shouldn\'t test equal'
-                                        % (repr(observed), repr(expected)))
+            raise self.failureException(
+                msg
+                or "Observed %s and expected %s: shouldn't test equal"
+                % (repr(observed), repr(expected))
+            )
 
         # following needed to get our version instead of unittest's
+
     assertEqual = assertEquals = failUnlessEqual
 
     assertNotEqual = assertNotEquals = failIfEqual
@@ -319,23 +357,32 @@ class TestCase(orig_TestCase):
         obs_items = list(observed)
         exp_items = list(expected)
         if len(obs_items) != len(exp_items):
-            raise self.failureException(msg or 'Observed and expected are different lengths: %s and %s'
-                                        % (len(obs_items), len(exp_items)))
+            raise self.failureException(
+                msg
+                or "Observed and expected are different lengths: %s and %s"
+                % (len(obs_items), len(exp_items))
+            )
 
         obs_items.sort()
         exp_items.sort()
         for index, (obs, exp) in enumerate(zip(obs_items, exp_items)):
             if obs != exp:
-                raise self.failureException(msg or 'Observed %s and expected %s at sorted index %s'
-                                            % (obs, exp, index))
+                raise self.failureException(
+                    msg
+                    or "Observed %s and expected %s at sorted index %s"
+                    % (obs, exp, index)
+                )
 
     def assertSameItems(self, observed, expected, msg=None):
         """Fail if the two items contain non-identical elements"""
         obs_items = list(observed)
         exp_items = list(expected)
         if len(obs_items) != len(exp_items):
-            raise self.failureException(msg or 'Observed and expected are different lengths: %s and %s'
-                                        % (len(obs_items), len(exp_items)))
+            raise self.failureException(
+                msg
+                or "Observed and expected are different lengths: %s and %s"
+                % (len(obs_items), len(exp_items))
+            )
 
         obs_ids = [(id(i), i) for i in obs_items]
         exp_ids = [(id(i), i) for i in exp_items]
@@ -345,9 +392,11 @@ class TestCase(orig_TestCase):
             o_id, o = obs
             e_id, e = exp
             if o_id != e_id:  # i.e. the ids are different
-                raise self.failureException(msg or
-                                            'Observed %s <%s> and expected %s <%s> at sorted index %s'
-                                            % (o, o_id, e, e_id, index))
+                raise self.failureException(
+                    msg
+                    or "Observed %s <%s> and expected %s <%s> at sorted index %s"
+                    % (o, o_id, e, e_id, index)
+                )
 
     def assertContains(self, observed, item, msg=None):
         """Fail if item not in observed"""
@@ -357,7 +406,8 @@ class TestCase(orig_TestCase):
         except (TypeError, ValueError):
             pass
         raise self.failureException(
-            msg or 'Item %s not found in %s' % (repr(item), repr(observed)))
+            msg or "Item %s not found in %s" % (repr(item), repr(observed))
+        )
 
     def assertNotContains(self, observed, item, msg=None):
         """Fail if item in observed"""
@@ -367,7 +417,8 @@ class TestCase(orig_TestCase):
         except (TypeError, ValueError):
             return
         raise self.failureException(
-            msg or 'Item %s should not have been in %s' % (repr(item), repr(observed)))
+            msg or "Item %s should not have been in %s" % (repr(item), repr(observed))
+        )
 
     def assertGreaterThan(self, observed, value, msg=None):
         """Fail if observed is <= value"""
@@ -379,7 +430,8 @@ class TestCase(orig_TestCase):
         except:
             pass
         raise self.failureException(
-            msg or 'Observed %s has elements <= %s' % (repr(observed), repr(value)))
+            msg or "Observed %s has elements <= %s" % (repr(observed), repr(value))
+        )
 
     def assertLessThan(self, observed, value, msg=None):
         """Fail if observed is >= value"""
@@ -391,20 +443,21 @@ class TestCase(orig_TestCase):
         except:
             pass
         raise self.failureException(
-            msg or 'Observed %s has elements >= %s' % (repr(observed), repr(value)))
+            msg or "Observed %s has elements >= %s" % (repr(observed), repr(value))
+        )
 
     def assertIsProb(self, observed, msg=None):
         """Fail is observed is not between 0.0 and 1.0"""
         try:
             if observed is None:
                 raise ValueError
-            if (asarray(observed) >= 0.0).all() and \
-               (asarray(observed) <= 1.0).all():
+            if (asarray(observed) >= 0.0).all() and (asarray(observed) <= 1.0).all():
                 return
         except:
             pass
         raise self.failureException(
-            msg or 'Observed %s has elements that are not probs' % (repr(observed)))
+            msg or "Observed %s has elements that are not probs" % (repr(observed))
+        )
 
     def _set_suite_pvalue(self, pvalue):
         """Sets the test suite pvalue to be used in similarity tests
@@ -436,7 +489,8 @@ class TestCase(orig_TestCase):
             return
         else:
             raise self.failureException(
-                msg or 'p-value %s, t-test p %s' % (repr(pvalue), repr(p)))
+                msg or "p-value %s, t-test p %s" % (repr(pvalue), repr(p))
+            )
 
     def assertSimilarFreqs(self, observed, expected, pvalue=0.01, msg=None):
         """Fail if observed p is lower than pvalue"""
@@ -456,7 +510,8 @@ class TestCase(orig_TestCase):
             return
         else:
             raise self.failureException(
-                msg or 'p-value %s, G-test p %s' % (repr(pvalue), repr(p)))
+                msg or "p-value %s, G-test p %s" % (repr(pvalue), repr(p))
+            )
 
     def assertSameObj(self, observed, expected, msg=None):
         """Fail if 'observed is not expected'"""
@@ -465,8 +520,11 @@ class TestCase(orig_TestCase):
                 return
         except:
             pass
-        raise self.failureException(msg or 'Observed %s is not the same as expected %s' %
-                                    (repr(observed), repr(expected)))
+        raise self.failureException(
+            msg
+            or "Observed %s is not the same as expected %s"
+            % (repr(observed), repr(expected))
+        )
 
     def assertNotSameObj(self, observed, expected, msg=None):
         """Fail if 'observed is expected'"""
@@ -475,5 +533,8 @@ class TestCase(orig_TestCase):
                 return
         except:
             pass
-        raise self.failureException(msg or 'Observed %s is the same as expected %s' %
-                                    (repr(observed), repr(expected)))
+        raise self.failureException(
+            msg
+            or "Observed %s is the same as expected %s"
+            % (repr(observed), repr(expected))
+        )

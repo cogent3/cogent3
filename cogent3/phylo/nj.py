@@ -10,12 +10,14 @@ Generalised as described by Pearson, Robins & Zhang, 1999.
 """
 
 
+from collections import deque
+
 import numpy
+
 from cogent3.core.tree import TreeBuilder
 from cogent3.phylo.tree_collection import ScoredTreeCollection
 from cogent3.phylo.util import distance_dict_to_2D
 from cogent3.util import progress_display as UI
-from collections import deque
 
 
 __author__ = "Peter Maxwell"
@@ -29,7 +31,6 @@ __status__ = "Production"
 
 
 class LightweightTreeTip(str):
-
     def convert(self, constructor, length):
         node = constructor([], str(self), {})
         node.length = max(0.0, length)
@@ -42,8 +43,7 @@ class LightweightTreeNode(frozenset):
     def convert(self, constructor=None, length=None):
         if constructor is None:
             constructor = TreeBuilder().create_edge
-        children = [child.convert(constructor, clength)
-                    for (clength, child) in self]
+        children = [child.convert(constructor, clength) for (clength, child) in self]
         node = constructor(children, None, {})
         if length is not None:
             node.length = max(0.0, length)
@@ -94,7 +94,8 @@ class PartialTree(object):
 
         # Join i and k to make new node
         new_node = LightweightTreeNode(
-            [(left_length, nodes[i]), (right_length, nodes[j])])
+            [(left_length, nodes[i]), (right_length, nodes[j])]
+        )
 
         # Store new node at i
         new_dists = 0.5 * (d[i] + d[j] - d[i, j])
@@ -108,7 +109,7 @@ class PartialTree(object):
         d[j, :] = d[L - 1, :]
         d[:, j] = d[:, L - 1]
         assert d[j, j] == 0.0, d
-        d = d[0:L - 1, 0:L - 1]
+        d = d[0 : L - 1, 0 : L - 1]
         nodes[j] = nodes[L - 1]
         nodes.pop()
         tips[j] = tips[L - 1]
@@ -130,7 +131,7 @@ class Pair(object):
     and unless we decide to use it, because calculating just the topology is
     faster than calculating the whole new distance matrix etc. as well."""
 
-    __slots__ = ['tree', 'i', 'j', 'topology', 'new_partition']
+    __slots__ = ["tree", "i", "j", "topology", "new_partition"]
 
     def __init__(self, tree, i, j, topology, new_partition):
         self.tree = tree
@@ -211,7 +212,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
     trees = [star_tree]
 
     # Progress display auxiliary code
-    template = ' size %%s/%s  trees %%%si' % (len(names), len(str(all_keep)))
+    template = " size %%s/%s  trees %%%si" % (len(names), len(str(all_keep)))
     total_work = 0
     max_candidates = 1
     total_work_before = {}

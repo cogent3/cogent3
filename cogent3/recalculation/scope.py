@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 
 import warnings
-import numpy
+
 from contextlib import contextmanager
-from .setting import Var, ConstVal
-from .calculation import Calculator
-from cogent3.maths.stats.distribution import chdtri
+
+import numpy
+
 from cogent3.maths.optimisers import MaximumEvaluationsReached
+from cogent3.maths.stats.distribution import chdtri
+
+from .calculation import Calculator
+from .setting import ConstVal, Var
+
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -24,22 +29,24 @@ class ScopeError(KeyError):
 
 class InvalidScopeError(ScopeError):
     """for scopes including an unknown value for a known dimension"""
+
     pass
 
 
 class InvalidDimensionError(ScopeError):
     """for scopes including an unknown dimension"""
+
     pass
 
 
 class IncompleteScopeError(ScopeError):
     """For underspecified scope when retrieving values"""
+
     pass
 
 
 # Can be passed to _LeafDefn.interpret_scopes()
 class _ExistentialQualifier(object):
-
     def __init__(self, cats=None):
         self.cats = cats
 
@@ -47,7 +54,7 @@ class _ExistentialQualifier(object):
         if self.cats is None:
             return self.__class__.__name__
         else:
-            return '%s(%s)' % (self.__class__.__name__, self.cats)
+            return "%s(%s)" % (self.__class__.__name__, self.cats)
 
 
 class EACH(_ExistentialQualifier):
@@ -83,15 +90,13 @@ def _indexed(values):
 
 
 def _fmtrow(width, values, maxwidth):
-    if (len(dict([(id(v), 1) for v in values])) == 1 and
-            len(str(values[0])) > width):
-        s = str(values[0]).replace('\n', ' ')
+    if len(dict([(id(v), 1) for v in values])) == 1 and len(str(values[0])) > width:
+        s = str(values[0]).replace("\n", " ")
         if len(s) > maxwidth:
-            s = s[:maxwidth - 4] + '...'
+            s = s[: maxwidth - 4] + "..."
     else:
-        template = '%%%ss' % width
-        s = ''.join([(template % (v,)).replace('\n', ' ')[:width]
-                     for v in values])
+        template = "%%%ss" % width
+        s = "".join([(template % (v,)).replace("\n", " ")[:width] for v in values])
     return s
 
 
@@ -103,7 +108,7 @@ class Undefined(object):
         self.name = name
 
     def __repr__(self):
-        return 'Undef(%s)' % self.name
+        return "Undef(%s)" % self.name
 
 
 def nullor(name, f, recycled=False):
@@ -120,7 +125,9 @@ def nullor(name, f, recycled=False):
             if recycled:
                 args = (None,) + args
             return f(*args)
+
     return g
+
 
 #  Level1:  D E F I N I T I O N S
 
@@ -134,7 +141,7 @@ def nullor(name, f, recycled=False):
 
 
 class _Defn(object):
-    name = '?'
+    name = "?"
     default = None
     user_param = False
 
@@ -187,7 +194,7 @@ class _Defn(object):
     def add_scopes(self, scopes):
         assert not self.activated
         for scope in scopes:
-            scope_t = [scope.get(d, 'all') for d in self.valid_dimensions]
+            scope_t = [scope.get(d, "all") for d in self.valid_dimensions]
             scope_t = tuple(scope_t)
             if scope_t not in self.assignments:
                 self.assignments[scope_t] = self.get_default_setting()
@@ -201,7 +208,7 @@ class _Defn(object):
         for (d, dim) in enumerate(self.valid_dimensions):
             seen = {}
             for (scope_t, i) in list(self.index.items()):
-                rest_of_scope = scope_t[:d] + scope_t[d + 1:]
+                rest_of_scope = scope_t[:d] + scope_t[d + 1 :]
                 if rest_of_scope in seen:
                     if i != seen[rest_of_scope]:
                         used.append(dim)
@@ -220,22 +227,22 @@ class _Defn(object):
         for scope_t in self.interpret_scope(**scope):
             posns.add(self.index[scope_t])
         if len(posns) == 0:
-            raise InvalidScopeError(
-                "no value for %s at %s" % (self.name, scope))
+            raise InvalidScopeError("no value for %s at %s" % (self.name, scope))
         if len(posns) > 1:
-            raise IncompleteScopeError("%s distinct values of %s within %s" %
-                                       (len(posns), self.name, scope))
+            raise IncompleteScopeError(
+                "%s distinct values of %s within %s" % (len(posns), self.name, scope)
+            )
         return the_one_item_in(posns)
 
     def wrap_value(self, value):
         if isinstance(value, Undefined):
             raise ValueError('Input "%s" is not defined' % value.name)
-        if getattr(self, 'array_template', None) is not None:
+        if getattr(self, "array_template", None) is not None:
             value = self.array_template.wrap(value)
         return value
 
     def unwrap_value(self, value):
-        if getattr(self, 'array_template', None) is not None:
+        if getattr(self, "array_template", None) is not None:
             value = self.array_template.unwrap(value)
         return value
 
@@ -358,7 +365,8 @@ class _Defn(object):
         posns = [
             list(self.valid_dimensions).index(d)
             for d in dimensions
-            if d in self.valid_dimensions]
+            if d in self.valid_dimensions
+        ]
         for (scope_t, i) in list(self.index.items()):
             value = cell_value_lookup(self, i)
             value = self.wrap_value(value)
@@ -371,9 +379,9 @@ class _Defn(object):
                 (d, key) = (d[key], key2)
 
             if key in d and value != d[key]:
-                msg = 'Multiple values for %s' % self.name
+                msg = "Multiple values for %s" % self.name
                 if scope:
-                    msg += ' within scope %s' % '/'.join(scope)
+                    msg += " within scope %s" % "/".join(scope)
                 raise IncompleteScopeError(msg)
             d[key] = value
 
@@ -393,16 +401,22 @@ class _Defn(object):
                 argname = arg.name
                 for nums in self.uniq:
                     row.append(nums[i])
-            body.append((['', self.name][i == 0], argname, row))
+            body.append((["", self.name][i == 0], argname, row))
 
-        return '\n'.join(
-            ['%-10s%-10s%s' % (label1[:9], label2[:9],
-                               _fmtrow(col_width + 1, settings, max_width))
-             for (label1, label2, settings) in body])
+        return "\n".join(
+            [
+                "%-10s%-10s%s"
+                % (label1[:9], label2[:9], _fmtrow(col_width + 1, settings, max_width))
+                for (label1, label2, settings) in body
+            ]
+        )
 
     def __repr__(self):
-        return '%s(%s x %s)' % (self.__class__.__name__, self.name,
-                                len(getattr(self, 'cells', [])))
+        return "%s(%s x %s)" % (
+            self.__class__.__name__,
+            self.name,
+            len(getattr(self, "cells", [])),
+        )
 
 
 class SelectFromDimension(_Defn):
@@ -410,15 +424,14 @@ class SelectFromDimension(_Defn):
     dimension is just part of the scope rules to later Defns where each
     value has its own Defn, eg: edges of a tree"""
 
-    name = 'select'
+    name = "select"
 
     def __init__(self, arg, **kw):
         assert not arg.activated, arg.name
         _Defn.__init__(self)
         self.args = (arg,)
         self.arg = arg
-        self.valid_dimensions = tuple([
-            d for d in arg.valid_dimensions if d not in kw])
+        self.valid_dimensions = tuple([d for d in arg.valid_dimensions if d not in kw])
         self.selection = kw
         arg.add_client(self)
 
@@ -438,7 +451,6 @@ class SelectFromDimension(_Defn):
 
 
 class _NonLeafDefn(_Defn):
-
     def __init__(self, *args, **kw):
         _Defn.__init__(self)
         valid_dimensions = []
@@ -452,8 +464,8 @@ class _NonLeafDefn(_Defn):
         valid_dimensions.sort()
         self.valid_dimensions = tuple(valid_dimensions)
         self.args = args
-        if 'name' in kw:
-            self.name = kw.pop('name')
+        if "name" in kw:
+            self.name = kw.pop("name")
         self.setup(**kw)
 
     def setup(self):
@@ -466,8 +478,12 @@ class _NonLeafDefn(_Defn):
             self.assignments[scope_t] = tuple(input_nums)
         self._update_from_assignments()
         calc = self.make_calc_function()
-        self.values = [nullor(self.name, calc, self.recycling)(
-            *[a.values[i] for (i, a) in zip(u, self.args)]) for u in self.uniq]
+        self.values = [
+            nullor(self.name, calc, self.recycling)(
+                *[a.values[i] for (i, a) in zip(u, self.args)]
+            )
+            for u in self.uniq
+        ]
 
 
 class _LeafDefn(_Defn):
@@ -489,8 +505,9 @@ class _LeafDefn(_Defn):
     array_template = None
     internal_dimensions = ()
 
-    def __init__(self, name=None, extra_label=None,
-                 dimensions=None, independent_by_default=None):
+    def __init__(
+        self, name=None, extra_label=None, dimensions=None, independent_by_default=None
+    ):
         _Defn.__init__(self)
         if dimensions is not None:
             assert type(dimensions) in [list, tuple], type(dimensions)
@@ -505,8 +522,10 @@ class _LeafDefn(_Defn):
             self.name = self.name + extra_label
 
     def get_default_setting(self):
-        if (getattr(self, '_default_setting', None) is None or
-                self.independent_by_default):
+        if (
+            getattr(self, "_default_setting", None) is None
+            or self.independent_by_default
+        ):
             self._default_setting = self.make_default_setting()
         return self._default_setting
 
@@ -515,14 +534,22 @@ class _LeafDefn(_Defn):
         gdv = lambda x: x.get_default_value()
         self.values = [nullor(self.name, gdv)(u) for u in self.uniq]
 
-    def assign_all(self, scope_spec=None, value=None,
-                  lower=None, upper=None, const=None, independent=None):
+    def assign_all(
+        self,
+        scope_spec=None,
+        value=None,
+        lower=None,
+        upper=None,
+        const=None,
+        independent=None,
+    ):
         settings = []
         if const is None:
             const = self.const_by_default
 
         for scope in self.interpret_scopes(
-                independent=independent, **(scope_spec or {})):
+            independent=independent, **(scope_spec or {})
+        ):
             if value is None:
                 s_value = self.get_mean_current_value(scope)
             else:
@@ -533,8 +560,8 @@ class _LeafDefn(_Defn):
             elif not self.numeric:
                 if lower is not None or upper is not None:
                     raise ValueError(
-                        "Non-scalar input '%s' doesn't support bounds"
-                        % self.name)
+                        "Non-scalar input '%s' doesn't support bounds" % self.name
+                    )
                 setting = Var((None, s_value, None))
             else:
                 (s_lower, s_upper) = self.get_current_bounds(scope)
@@ -547,12 +574,16 @@ class _LeafDefn(_Defn):
                     raise ValueError("Bounds: upper < lower")
                 elif (s_lower is not None) and s_value < s_lower:
                     s_value = s_lower
-                    warnings.warn("Value of %s increased to keep within bounds"
-                                  % self.name, stacklevel=3)
+                    warnings.warn(
+                        "Value of %s increased to keep within bounds" % self.name,
+                        stacklevel=3,
+                    )
                 elif (s_upper is not None) and s_value > s_upper:
                     s_value = s_upper
-                    warnings.warn("Value of %s decreased to keep within bounds"
-                                  % self.name, stacklevel=3)
+                    warnings.warn(
+                        "Value of %s decreased to keep within bounds" % self.name,
+                        stacklevel=3,
+                    )
                 setting = Var((s_lower, s_value, s_upper))
             self.check_setting_is_valid(setting)
             settings.append((scope, setting))
@@ -570,8 +601,10 @@ class _LeafDefn(_Defn):
             s_value = sum(values) / len(values)
             for value in values:
                 if not numpy.isclose(value, s_value).all():
-                    warnings.warn("Used mean of %s %s values" %
-                                  (len(values), self.name), stacklevel=4)
+                    warnings.warn(
+                        "Used mean of %s %s values" % (len(values), self.name),
+                        stacklevel=4,
+                    )
                     break
         return s_value
 
@@ -592,24 +625,28 @@ class _LeafDefn(_Defn):
         return (lowest, highest)
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__,
-                           self._local_repr(col_width=6, max_width=60))
+        return "%s(%s)" % (
+            self.__class__.__name__,
+            self._local_repr(col_width=6, max_width=60),
+        )
 
     def _local_repr(self, col_width, max_width):
         template = "%%%s.%sf" % (col_width, (col_width - 1) // 2)
         assignments = []
         for (i, a) in list(self.assignments.items()):
             if a is None:
-                assignments.append('None')
+                assignments.append("None")
             elif a.is_constant:
                 if isinstance(a.value, float):
                     assignments.append(template % a.value)
                 else:
                     assignments.append(a.value)
             else:
-                assignments.append('Var')  # %s' % str(i))
-        return '%-20s%s' % (self.name[:19],
-                            _fmtrow(col_width + 1, assignments, max_width))
+                assignments.append("Var")  # %s' % str(i))
+        return "%-20s%s" % (
+            self.name[:19],
+            _fmtrow(col_width + 1, assignments, max_width),
+        )
 
 
 class ParameterController(object):
@@ -671,8 +708,11 @@ class ParameterController(object):
 
     def get_param_names(self, scalar_only=False):
         """The names of the numerical inputs to the calculation."""
-        return [defn.name for defn in self.defns if defn.user_param and
-                (defn.numeric or not scalar_only)]
+        return [
+            defn.name
+            for defn in self.defns
+            if defn.user_param and (defn.numeric or not scalar_only)
+        ]
 
     def get_used_dimensions(self, par_name):
         return self.defn_for[par_name].used_dimensions()
@@ -690,11 +730,11 @@ class ParameterController(object):
         single parameter until the final result falls by 'dropoff', which
         can be specified directly or via 'p' as chdtri(1, p).  Additional
         arguments are taken to specify the scope."""
-        dropoff = kw.pop('dropoff', None)
-        p = kw.pop('p', None)
+        dropoff = kw.pop("dropoff", None)
+        p = kw.pop("p", None)
         if dropoff is None and p is None:
             p = 0.05
-        callback = self._makeValueCallback(dropoff, p, kw.pop('xtol', None))
+        callback = self._makeValueCallback(dropoff, p, kw.pop("xtol", None))
         defn = self.defn_for[par_name]
         posn = defn._getPosnForScope(*args, **kw)
         return callback(defn, posn)
@@ -702,8 +742,9 @@ class ParameterController(object):
     def get_final_result(self):
         return self.defns[-1].get_current_value_for_scope()
 
-    def get_param_value_dict(self, dimensions, p=None, dropoff=None,
-                          params=None, xtol=None):
+    def get_param_value_dict(
+        self, dimensions, p=None, dropoff=None, params=None, xtol=None
+    ):
         """A dict tree of parameter values, with parameter names as the
         top level keys, and the various dimensions ('edge', 'bin', etc.)
         supplying lower level keys: edge names, bin names etc.
@@ -724,8 +765,10 @@ class ParameterController(object):
             assert dropoff is None, (p, dropoff)
             dropoff = chdtri(1, p) / 2.0
         if dropoff is None:
+
             def callback(defn, posn):
                 return defn.values[posn]
+
         else:
             assert dropoff > 0, dropoff
 
@@ -734,6 +777,7 @@ class ParameterController(object):
                 assert len(lc.opt_pars) == 1, lc.opt_pars
                 opt_par = lc.opt_pars[0]
                 return lc._get_current_cell_interval(opt_par, dropoff, xtol)
+
         return callback
 
     @contextmanager
@@ -764,9 +808,8 @@ class ParameterController(object):
     def assign_all(self, par_name, *args, **kw):
         defn = self.defn_for[par_name]
         if not isinstance(defn, _LeafDefn):
-            args = ' and '.join(['"%s"' % a.name for a in defn.args])
-            msg = '"%s" is not settable as it is derived from %s.' % (
-                par_name, args)
+            args = " and ".join(['"%s"' % a.name for a in defn.args])
+            msg = '"%s" is not settable as it is derived from %s.' % (par_name, args)
             raise ValueError(msg)
         defn.assign_all(*args, **kw)
         self.update_intermediate_values([defn])
@@ -800,31 +843,47 @@ class ParameterController(object):
         return self.get_num_free_params()
 
     def get_num_free_params(self):
-        return sum(defn.get_num_free_params() for defn in self.defns if isinstance(defn, _LeafDefn))
+        return sum(
+            defn.get_num_free_params()
+            for defn in self.defns
+            if isinstance(defn, _LeafDefn)
+        )
 
-    def optimise(self, local=True,
-                 filename=None, interval=None,
-                 limit_action='warn', max_evaluations=None,
-                 tolerance=1e-6, global_tolerance=1e-1, **kw):
+    def optimise(
+        self,
+        local=True,
+        filename=None,
+        interval=None,
+        limit_action="warn",
+        max_evaluations=None,
+        tolerance=1e-6,
+        global_tolerance=1e-1,
+        **kw,
+    ):
         """Find input values that optimise this function.
         'local' controls the choice of optimiser, the default being to run
         both the global and local optimisers. 'filename' and 'interval'
         control checkpointing.  Unknown keyword arguments get passed on to
         the optimiser(s)."""
-        return_calculator = kw.pop(
-            'return_calculator', False)  # only for debug
-        for n in ['local', 'filename', 'interval', 'max_evaluations',
-                  'tolerance', 'global_tolerance']:
+        return_calculator = kw.pop("return_calculator", False)  # only for debug
+        for n in [
+            "local",
+            "filename",
+            "interval",
+            "max_evaluations",
+            "tolerance",
+            "global_tolerance",
+        ]:
             kw[n] = locals()[n]
         lc = self.make_calculator()
         try:
             lc.optimise(**kw)
         except MaximumEvaluationsReached as detail:
             evals = detail.args[0]
-            err_msg = 'FORCED EXIT from optimiser after %s evaluations' % evals
-            if limit_action == 'ignore':
+            err_msg = "FORCED EXIT from optimiser after %s evaluations" % evals
+            if limit_action == "ignore":
                 pass
-            elif limit_action == 'warn':
+            elif limit_action == "warn":
                 warnings.warn(err_msg, stacklevel=2)
             else:
                 raise ArithmeticError(err_msg)

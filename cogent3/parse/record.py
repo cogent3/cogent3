@@ -2,7 +2,9 @@
 """Provides support functions and classes for parsers.
 """
 from copy import deepcopy
+
 from cogent3.util.misc import iterable
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -16,16 +18,19 @@ __status__ = "Development"
 
 class FileFormatError(Exception):
     """Exception raised when a file can not be parsed."""
+
     pass
 
 
 class RecordError(FileFormatError):
     """Exception raised when a record is bad."""
+
     pass
 
 
 class FieldError(RecordError):
     """Exception raised when a field within a record is bad."""
+
     pass
 
 
@@ -45,8 +50,9 @@ class Grouper(object):
             num = int(self.NumItems)
             assert num >= 1
         except:
-            raise ValueError("Grouper.NumItems must be positive int, not %s"
-                             % (self.NumItems))
+            raise ValueError(
+                "Grouper.NumItems must be positive int, not %s" % (self.NumItems)
+            )
         curr = []
         for i, item in enumerate(seq):
             if (i % num == 0) and curr:
@@ -57,6 +63,7 @@ class Grouper(object):
         # return any leftover items
         if curr:
             yield curr
+
 
 # Example of the instances Grouper provides:
 ByPairs = Grouper(2)
@@ -80,13 +87,16 @@ def DelimitedSplitter(delimiter=None, max_splits=1):
     """
     is_int = isinstance(max_splits, int) or isinstance(max_splits, int)
     if is_int and (max_splits > 0):
+
         def parser(line):
             return [i.strip() for i in line.split(delimiter, max_splits)]
+
     elif is_int and (max_splits < 0):
+
         def parser(line):
-            to_insert = delimiter or ' '  # re-join fields w/ space if None
+            to_insert = delimiter or " "  # re-join fields w/ space if None
             fields = line.split(delimiter)
-            if (fields == []) or (fields == ['']):
+            if (fields == []) or (fields == [""]):
                 return []  # empty string or only delimiter: return nothing
             # if not enough fields, count from the start, not the end
             if len(fields) < max_splits:
@@ -104,16 +114,19 @@ def DelimitedSplitter(delimiter=None, max_splits=1):
             return [i.strip() for i in pieces]
 
     else:  # ignore max_splits if it was 0
+
         def parser(line):
             return [i.strip() for i in line.split(delimiter)]
+
     return parser
+
 
 # The following provide examples of the kinds of functions DelimitedSplitter
 # returns.
-semi_splitter = DelimitedSplitter(';', None)
+semi_splitter = DelimitedSplitter(";", None)
 space_pairs = DelimitedSplitter(None)
-equal_pairs = DelimitedSplitter('=')
-last_colon = DelimitedSplitter(':', -1)
+equal_pairs = DelimitedSplitter("=")
+last_colon = DelimitedSplitter(":", -1)
 
 
 class GenericRecord(dict):
@@ -132,6 +145,7 @@ class GenericRecord(dict):
     need to access items as attributes and vice versa, use MappedRecord
     instead.
     """
+
     Required = {}
 
     def __init__(self, *args, **kwargs):
@@ -190,19 +204,25 @@ class MappedRecord(GenericRecord):
     attributes to be set in the object and not the MappedRecord to which it
     forwards.
     """
+
     Aliases = {}
 
     DefaultValue = None
 
     def _copy(self, prototype):
         """Returns a copy of item."""
-        if hasattr(prototype, 'copy'):
+        if hasattr(prototype, "copy"):
             return prototype.copy()
         elif isinstance(prototype, list):
             return prototype[:]
-        elif isinstance(prototype, str) or isinstance(prototype, int) or\
-                isinstance(prototype, int) or isinstance(prototype, tuple)\
-                or isinstance(prototype, complex) or prototype is None:
+        elif (
+            isinstance(prototype, str)
+            or isinstance(prototype, int)
+            or isinstance(prototype, int)
+            or isinstance(prototype, tuple)
+            or isinstance(prototype, complex)
+            or prototype is None
+        ):
             return prototype  # immutable type: use directly
         else:
             return deepcopy(prototype)
@@ -234,7 +254,7 @@ class MappedRecord(GenericRecord):
             return self[attr]
         elif attr in self.__dict__:
             return self.__dict__[attr]
-        elif attr.startswith('__'):  # don't retrieve private class attrs
+        elif attr.startswith("__"):  # don't retrieve private class attrs
             raise AttributeError
         elif hasattr(self.__class__, attr):
             return getattr(self.__class__, attr)
@@ -301,6 +321,7 @@ class MappedRecord(GenericRecord):
         for key, val in temp.items():
             self[unalias(key)] = val
 
+
 # The following methods are useful for handling particular types of fields in
 # line-oriented parsers
 
@@ -311,12 +332,17 @@ def TypeSetter(constructor=None):
     constructor can be any callable that returns an object.
     """
     if constructor:
+
         def setter(obj, field, val):
             setattr(obj, field, constructor(val))
+
     else:
+
         def setter(obj, field, val):
             setattr(obj, field, val)
+
     return setter
+
 
 int_setter = TypeSetter(int)
 str_setter = TypeSetter(str)
@@ -360,8 +386,14 @@ def dict_adder(obj, field, val):
 class LineOrientedConstructor(object):
     """Constructs a MappedRecord from a sequence of lines."""
 
-    def __init__(self, Lines=None, LabelSplitter=space_pairs, FieldMap=None,
-                 Constructor=MappedRecord, Strict=False):
+    def __init__(
+        self,
+        Lines=None,
+        LabelSplitter=space_pairs,
+        FieldMap=None,
+        Constructor=MappedRecord,
+        Strict=False,
+    ):
         """Returns new LineOrientedConstructor.
 
         Fields:
@@ -421,8 +453,7 @@ class LineOrientedConstructor(object):
                     field, mapper = new_field, fieldmap[new_field]
                 else:
                     if self.Strict:
-                        raise FieldError(
-                            "Got unrecognized field %s" % (raw_field,))
+                        raise FieldError("Got unrecognized field %s" % (raw_field,))
                     else:
                         identity_setter(result, raw_field, val)
                     continue
@@ -430,7 +461,7 @@ class LineOrientedConstructor(object):
             try:
                 mapper(result, field, val)
             except:  # Warning: this is a catchall for _any_ exception,
-                        # and may mask what's actually going wrong.
+                # and may mask what's actually going wrong.
                 if self.Strict:
                     raise FieldError("Could not handle line %s" % (line,))
         return result
@@ -455,11 +486,15 @@ def FieldWrapper(fields, splitter=None, constructor=None):
     if splitter is None:
         splitter = DelimitedSplitter(None, None)
     if constructor:
+
         def parser(line):
             return constructor(dict(list(zip(fields, splitter(line)))))
+
     else:
+
         def parser(line):
             return dict(list(zip(fields, splitter(line))))
+
     return parser
 
 
@@ -480,19 +515,27 @@ def StrictFieldWrapper(fields, splitter=None, constructor=None):
     if splitter is None:
         splitter = DelimitedSplitter(None, None)
     if constructor:
+
         def parser(line):
             items = splitter(line)
             if len(items) != len(fields):
-                raise FieldError("Expected %s items but got %s: %s" %
-                                 (len(fields), len(items), items))
+                raise FieldError(
+                    "Expected %s items but got %s: %s"
+                    % (len(fields), len(items), items)
+                )
             return constructor(dict(list(zip(fields, items))))
+
     else:
+
         def parser(line):
             items = splitter(line)
             if len(items) != len(fields):
-                raise FieldError("Expected %s items but got %s: %s" %
-                                 (len(fields), len(items), items))
+                raise FieldError(
+                    "Expected %s items but got %s: %s"
+                    % (len(fields), len(items), items)
+                )
             return dict(list(zip(fields, items)))
+
     return parser
 
 

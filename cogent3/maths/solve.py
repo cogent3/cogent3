@@ -21,7 +21,7 @@ def bisection(func, a, b, args=(), xtol=1e-10, maxiter=400):
     i = 1
     eva = func(a, *args)
     evb = func(b, *args)
-    assert (eva * evb < 0), "Must start with interval with func(a) * func(b) <0"
+    assert eva * evb < 0, "Must start with interval with func(a) * func(b) <0"
     while i <= maxiter:
         dist = (b - a) / 2.0
         p = a + dist
@@ -49,7 +49,7 @@ def brent(func, a, b, args=(), xtol=1e-10, maxiter=100):
     i = 1
     fa = func(a, *args)
     fb = func(b, *args)
-    assert (fa * fb < 0), "Must start with interval with func(a) * func(b) <0"
+    assert fa * fb < 0, "Must start with interval with func(a) * func(b) <0"
     (c, fc) = (b, fb)
     while i <= maxiter:
         if fb * fc > 0.0:

@@ -14,12 +14,21 @@ __email__ = "krother@rubor.de"
 __status__ = "Prototype"
 
 
-from unittest import main, TestCase
-from cogent3.parse.blast_xml import BlastXMLResult, MinimalBlastParser7,\
-    get_tag, parse_hsp, parse_hit, parse_header, parse_parameters,\
-    HSP_XML_FIELDNAMES, HIT_XML_FIELDNAMES
-
 import xml.dom.minidom
+
+from unittest import TestCase, main
+
+from cogent3.parse.blast_xml import (
+    HIT_XML_FIELDNAMES,
+    HSP_XML_FIELDNAMES,
+    BlastXMLResult,
+    MinimalBlastParser7,
+    get_tag,
+    parse_header,
+    parse_hit,
+    parse_hsp,
+    parse_parameters,
+)
 
 
 class GetTagTests(TestCase):
@@ -27,27 +36,33 @@ class GetTagTests(TestCase):
 
     def setUp(self):
         self.single_tag = xml.dom.minidom.parseString(
-            "<outer>bla <inner>content</inner>bla</outer>")
+            "<outer>bla <inner>content</inner>bla</outer>"
+        )
         self.double_tag = xml.dom.minidom.parseString(
-            "<outer><inner>first content</inner><inner>second content</inner></outer>")
+            "<outer><inner>first content</inner><inner>second content</inner></outer>"
+        )
         self.empty_tag = xml.dom.minidom.parseString("<outer></outer>")
 
     def test_get_tag_works(self):
-        self.assertEqual(get_tag(self.single_tag, 'inner'), 'content')
-        self.assertEqual(get_tag(self.double_tag, 'inner'), 'first content')
-        self.assertEqual(get_tag(self.empty_tag, 'inner'), None)
-        self.assertEqual(get_tag(self.empty_tag, 'inner', 'blue elephant'),
-                         'blue elephant')
-        self.assertEqual(get_tag(self.single_tag, 'non-existing tag'), None)
-        self.assertEqual(get_tag(self.single_tag, 'non-existing tag',
-                                 'pink elephant'), 'pink elephant')
-        self.assertEqual(get_tag(self.single_tag, 'inner'), 'content')
+        self.assertEqual(get_tag(self.single_tag, "inner"), "content")
+        self.assertEqual(get_tag(self.double_tag, "inner"), "first content")
+        self.assertEqual(get_tag(self.empty_tag, "inner"), None)
+        self.assertEqual(
+            get_tag(self.empty_tag, "inner", "blue elephant"), "blue elephant"
+        )
+        self.assertEqual(get_tag(self.single_tag, "non-existing tag"), None)
+        self.assertEqual(
+            get_tag(self.single_tag, "non-existing tag", "pink elephant"),
+            "pink elephant",
+        )
+        self.assertEqual(get_tag(self.single_tag, "inner"), "content")
 
     def test_get_tag_fail(self):
         """Make sure the tag and name parameters are in the proper types."""
         self.assertRaises(AttributeError, get_tag, None, "h1")
-        self.assertRaises(AttributeError, get_tag,
-                          "<h1>This is not a XML tag object</h1>", "h1")
+        self.assertRaises(
+            AttributeError, get_tag, "<h1>This is not a XML tag object</h1>", "h1"
+        )
 
 
 class MinimalBlastParser7Tests(TestCase):
@@ -67,38 +82,40 @@ class MinimalBlastParser7Tests(TestCase):
     def test_parse_header(self):
         """Fields from XML header tag should be available as dict."""
         data = parse_header(self.header)
-        self.assertEqual(data.get('application'), 'my Grandma')
-        self.assertEqual(data.get('version'), 'has')
-        self.assertEqual(data.get('reference'), 'furry')
-        self.assertEqual(data.get('query_letters'), 27)
-        self.assertEqual(data.get('database'), 'Cats')
+        self.assertEqual(data.get("application"), "my Grandma")
+        self.assertEqual(data.get("version"), "has")
+        self.assertEqual(data.get("reference"), "furry")
+        self.assertEqual(data.get("query_letters"), 27)
+        self.assertEqual(data.get("database"), "Cats")
 
     def test_parse_parameters(self):
         """Fields from XML parameter tag should be available as dict."""
         data = parse_parameters(self.param)
-        self.assertEqual(data.get('matrix'), 'BLOSUM62')
-        self.assertEqual(data.get('expect'), '10')
-        self.assertEqual(data.get('gap_open_penalty'), 11.1)
-        self.assertEqual(data.get('gap_extend_penalty'), 22.2)
-        self.assertEqual(data.get('filter'), 'F')
+        self.assertEqual(data.get("matrix"), "BLOSUM62")
+        self.assertEqual(data.get("expect"), "10")
+        self.assertEqual(data.get("gap_open_penalty"), 11.1)
+        self.assertEqual(data.get("gap_extend_penalty"), 22.2)
+        self.assertEqual(data.get("filter"), "F")
 
     def test_parse_header_complete(self):
         """Fields from header+param tag should be available as dict."""
         # try to process header with parameters etc in the XML
         data = parse_header(self.complete)
-        self.assertEqual(data.get('database'), 'Cats')
-        self.assertEqual(data.get('matrix'), 'BLOSUM62')
+        self.assertEqual(data.get("database"), "Cats")
+        self.assertEqual(data.get("matrix"), "BLOSUM62")
 
     def test_parse_hit(self):
         """Should return a list with all values for a hit+hsp."""
         data = parse_hit(self.hit1)
         self.assertEqual(len(data), 1)
         d = dict(list(zip(HIT_XML_FIELDNAMES, data[0])))
-        self.assertEqual(d['SUBJECT_ID'], "gi|148670104|gb|EDL02051.1|")
-        self.assertEqual(d['HIT_DEF'],
-                         "insulin-like growth factor 2 receptor, isoform CRA_c [Mus musculus]")
-        self.assertEqual(d['HIT_ACCESSION'], "2001")
-        self.assertEqual(int(d['HIT_LENGTH']), 707)
+        self.assertEqual(d["SUBJECT_ID"], "gi|148670104|gb|EDL02051.1|")
+        self.assertEqual(
+            d["HIT_DEF"],
+            "insulin-like growth factor 2 receptor, isoform CRA_c [Mus musculus]",
+        )
+        self.assertEqual(d["HIT_ACCESSION"], "2001")
+        self.assertEqual(int(d["HIT_LENGTH"]), 707)
         # check hit with more HSPs
         data = parse_hit(self.hit2)
         self.assertEqual(len(data), 2)
@@ -108,19 +125,19 @@ class MinimalBlastParser7Tests(TestCase):
         """Should return list with all values for a hsp."""
         data = parse_hsp(self.hsp1)
         d = dict(list(zip(HSP_XML_FIELDNAMES, data)))
-        self.assertEqual(float(d['BIT_SCORE']), 1023.46)
-        self.assertEqual(float(d['SCORE']), 2645)
-        self.assertEqual(float(d['E_VALUE']), 0.333)
-        self.assertEqual(int(d['QUERY_START']), 4)
-        self.assertEqual(int(d['QUERY_END']), 18)
-        self.assertEqual(int(d['SUBJECT_START']), 5)
-        self.assertEqual(int(d['SUBJECT_END']), 19)
-        self.assertEqual(int(d['GAP_OPENINGS']), 0)
-        self.assertEqual(int(d['ALIGNMENT_LENGTH']), 14)
+        self.assertEqual(float(d["BIT_SCORE"]), 1023.46)
+        self.assertEqual(float(d["SCORE"]), 2645)
+        self.assertEqual(float(d["E_VALUE"]), 0.333)
+        self.assertEqual(int(d["QUERY_START"]), 4)
+        self.assertEqual(int(d["QUERY_END"]), 18)
+        self.assertEqual(int(d["SUBJECT_START"]), 5)
+        self.assertEqual(int(d["SUBJECT_END"]), 19)
+        self.assertEqual(int(d["GAP_OPENINGS"]), 0)
+        self.assertEqual(int(d["ALIGNMENT_LENGTH"]), 14)
 
-        self.assertEqual(d['QUERY_ALIGN'], 'ELEPHANTTHISISAHITTIGER')
-        self.assertEqual(d['MIDLINE_ALIGN'], 'ORCA-WHALE')
-        self.assertEqual(d['SUBJECT_ALIGN'], 'SEALSTHIS---HIT--GER')
+        self.assertEqual(d["QUERY_ALIGN"], "ELEPHANTTHISISAHITTIGER")
+        self.assertEqual(d["MIDLINE_ALIGN"], "ORCA-WHALE")
+        self.assertEqual(d["SUBJECT_ALIGN"], "SEALSTHIS---HIT--GER")
 
 
 class BlastXmlResultTests(TestCase):
@@ -160,38 +177,37 @@ class BlastXmlResultTests(TestCase):
         """The result should have data from hit fields."""
         for query in self.result:
             first_hsp = self.result[query][0][0]
-            self.assertEqual(first_hsp['SUBJECT_ID'],
-                             "gi|148670104|gb|EDL02051.1|")
-            self.assertEqual(first_hsp['HIT_DEF'],
-                             "insulin-like growth factor 2 receptor, isoform CRA_c [Mus musculus]")
-            self.assertEqual(first_hsp['HIT_ACCESSION'], "2001")
-            self.assertEqual(first_hsp['HIT_LENGTH'], 707)
+            self.assertEqual(first_hsp["SUBJECT_ID"], "gi|148670104|gb|EDL02051.1|")
+            self.assertEqual(
+                first_hsp["HIT_DEF"],
+                "insulin-like growth factor 2 receptor, isoform CRA_c [Mus musculus]",
+            )
+            self.assertEqual(first_hsp["HIT_ACCESSION"], "2001")
+            self.assertEqual(first_hsp["HIT_LENGTH"], 707)
 
     def test_parse_hsp_details(self):
         """The result should have data from hsp fields."""
         for query in self.result:
             # should check integers in next version.
             first_hsp = self.result[query][0][0]
-            self.assertEqual(first_hsp['QUERY ID'], 1)
-            self.assertEqual(first_hsp['BIT_SCORE'], '1023.46')
-            self.assertEqual(first_hsp['SCORE'], '2645')
-            self.assertEqual(first_hsp['E_VALUE'], '0.333')
-            self.assertEqual(first_hsp['QUERY_START'], '4')
-            self.assertEqual(first_hsp['QUERY_END'], '18')
-            self.assertEqual(first_hsp['QUERY_ALIGN'],
-                             'ELEPHANTTHISISAHITTIGER')
-            self.assertEqual(first_hsp['MIDLINE_ALIGN'], 'ORCA-WHALE')
-            self.assertEqual(
-                first_hsp['SUBJECT_ALIGN'], 'SEALSTHIS---HIT--GER')
-            self.assertEqual(first_hsp['SUBJECT_START'], '5')
-            self.assertEqual(first_hsp['SUBJECT_END'], '19')
-            self.assertEqual(first_hsp['PERCENT_IDENTITY'], '55')
-            self.assertEqual(first_hsp['POSITIVE'], '555')
-            self.assertEqual(first_hsp['GAP_OPENINGS'], 0)
-            self.assertEqual(first_hsp['ALIGNMENT_LENGTH'], '14')
+            self.assertEqual(first_hsp["QUERY ID"], 1)
+            self.assertEqual(first_hsp["BIT_SCORE"], "1023.46")
+            self.assertEqual(first_hsp["SCORE"], "2645")
+            self.assertEqual(first_hsp["E_VALUE"], "0.333")
+            self.assertEqual(first_hsp["QUERY_START"], "4")
+            self.assertEqual(first_hsp["QUERY_END"], "18")
+            self.assertEqual(first_hsp["QUERY_ALIGN"], "ELEPHANTTHISISAHITTIGER")
+            self.assertEqual(first_hsp["MIDLINE_ALIGN"], "ORCA-WHALE")
+            self.assertEqual(first_hsp["SUBJECT_ALIGN"], "SEALSTHIS---HIT--GER")
+            self.assertEqual(first_hsp["SUBJECT_START"], "5")
+            self.assertEqual(first_hsp["SUBJECT_END"], "19")
+            self.assertEqual(first_hsp["PERCENT_IDENTITY"], "55")
+            self.assertEqual(first_hsp["POSITIVE"], "555")
+            self.assertEqual(first_hsp["GAP_OPENINGS"], 0)
+            self.assertEqual(first_hsp["ALIGNMENT_LENGTH"], "14")
 
             gap_hsp = self.result[query][0][1]
-            self.assertEqual(gap_hsp['GAP_OPENINGS'], '33')
+            self.assertEqual(gap_hsp["GAP_OPENINGS"], "33")
 
 
 HSP_XML = """
@@ -215,8 +231,8 @@ HSP_XML = """
               <Hsp_midline>ORCA-WHALE</Hsp_midline>
             </Hsp>
             """
-HSP_ONE = HSP_XML % ''
-HSP_WITH_GAPS = HSP_XML % '<Hsp_gaps>33</Hsp_gaps>'
+HSP_ONE = HSP_XML % ""
+HSP_WITH_GAPS = HSP_XML % "<Hsp_gaps>33</Hsp_gaps>"
 
 HSP_TWO = """
         <Hsp>
@@ -291,12 +307,16 @@ HIT_SUFFIX = """
  </BlastOutput_iterations>
 """
 
-HEADER_COMPLETE = HEADER_XML % (PARAM_XML + HIT_PREFIX + HIT_WITH_ONE_HSP +
-                            HIT_WITH_TWO_HSPS + HIT_SUFFIX)
-COMPLETE_XML = """<?xml version="1.0"?>
+HEADER_COMPLETE = HEADER_XML % (
+    PARAM_XML + HIT_PREFIX + HIT_WITH_ONE_HSP + HIT_WITH_TWO_HSPS + HIT_SUFFIX
+)
+COMPLETE_XML = (
+    """<?xml version="1.0"?>
 <!DOCTYPE BlastOutput PUBLIC "-//NCBI//NCBI BlastOutput/EN" "http://www.ncbi.nlm.nih.gov/dtd/NCBI_BlastOutput.dtd">
-""" + HEADER_COMPLETE
+"""
+    + HEADER_COMPLETE
+)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

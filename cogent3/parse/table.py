@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
-import pickle
 import csv
-from .record_finder import is_empty
-from gzip import open as open_
+import pickle
+
 from collections.abc import Callable
+from gzip import open as open_
+
+from .record_finder import is_empty
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -33,8 +36,9 @@ class ConvertFields(object):
         self._func = self.convert_by_columns
 
         if not self.by_column:
-            assert isinstance(conversion, Callable), \
-                "conversion must be callable to convert by line"
+            assert isinstance(
+                conversion, Callable
+            ), "conversion must be callable to convert by line"
             self._func = self.convert_by_line
 
     def convert_by_columns(self, line):
@@ -53,8 +57,15 @@ class ConvertFields(object):
     __call__ = _call
 
 
-def SeparatorFormatParser(with_header=True, converter=None, ignore=None,
-                          sep=",", strip_wspace=True, limit=None, **kw):
+def SeparatorFormatParser(
+    with_header=True,
+    converter=None,
+    ignore=None,
+    sep=",",
+    strip_wspace=True,
+    limit=None,
+    **kw,
+):
     """Returns a parser for a delimited tabular file.
 
     Arguments:
@@ -70,7 +81,7 @@ def SeparatorFormatParser(with_header=True, converter=None, ignore=None,
     if ignore is None:  # keep all lines
         ignore = lambda x: False
 
-    by_column = getattr(converter, 'by_column', True)
+    by_column = getattr(converter, "by_column", True)
 
     def callable(lines):
         num_lines = 0
@@ -79,7 +90,7 @@ def SeparatorFormatParser(with_header=True, converter=None, ignore=None,
             if is_empty(line):
                 continue
 
-            line = line.strip('\n').split(sep)
+            line = line.strip("\n").split(sep)
             if strip_wspace and by_column:
                 line = [field.strip() for field in line]
 
@@ -116,34 +127,39 @@ def autogen_reader(infile, sep, with_title, limit=None):
     infile.seek(0)  # reset to start of file
 
     typed_fields = []
-    bool_map = {'True': True, 'False': False}
+    bool_map = {"True": True, "False": False}
     for index, value in enumerate(first_data_row.strip().split(sep)):
         try:
             v = eval(value)
             if type(v) in (float, int, complex):
                 typed_fields.append((index, v.__class__))
             elif type(v) == bool:
-                typed_fields.append((index,
-                                     lambda x: bool_map.get(x)))
+                typed_fields.append((index, lambda x: bool_map.get(x)))
         except:
             pass
 
+    return SeparatorFormatParser(
+        converter=ConvertFields(typed_fields), sep=sep, limit=limit
+    )
 
-    return SeparatorFormatParser(converter=ConvertFields(typed_fields),
-                                 sep=sep, limit=limit)
 
-
-def load_delimited(filename, header=True, delimiter=',',
-                   with_title=False, with_legend=False, limit=None):
+def load_delimited(
+    filename,
+    header=True,
+    delimiter=",",
+    with_title=False,
+    with_legend=False,
+    limit=None,
+):
     if limit is not None:
         limit += 1  # don't count header line
 
-    if filename.endswith('gz'):
-        f = open_(filename, 'rt')
+    if filename.endswith("gz"):
+        f = open_(filename, "rt")
     else:
         f = open(filename, newline=None)
 
-    reader = csv.reader(f, dialect='excel', delimiter=delimiter)
+    reader = csv.reader(f, dialect="excel", delimiter=delimiter)
     rows = []
     num_lines = 0
     for row in reader:
@@ -153,17 +169,17 @@ def load_delimited(filename, header=True, delimiter=',',
             break
     f.close()
     if with_title:
-        title = ''.join(rows.pop(0))
+        title = "".join(rows.pop(0))
     else:
-        title = ''
+        title = ""
     if header:
         header = rows.pop(0)
     else:
         header = None
     if with_legend:
-        legend = ''.join(rows.pop(-1))
+        legend = "".join(rows.pop(-1))
     else:
-        legend = ''
+        legend = ""
     # now do type casting in the order int, float, default is string
     for row in rows:
         for cdex, cell in enumerate(row):

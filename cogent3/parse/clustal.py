@@ -1,4 +1,4 @@
-#/usr/bin/env python
+# /usr/bin/env python
 
 """Parsers for Clustal and related formats (e.g. MUSCLE).
 
@@ -18,12 +18,12 @@ If the lines have trailing numbers (i.e. Clustal was run with -LINENOS=ON),
 silently deletes them. Does not check that the numbers actually correspond to
 the number of chars in the sequence printed so far.
 """
-from cogent3.parse.record import RecordError, DelimitedSplitter
+from cogent3.parse.record import DelimitedSplitter, RecordError
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Rob Knight", "Sandra Smit", "Gavin Huttley",
-               "Peter Maxwell"]
+__credits__ = ["Rob Knight", "Sandra Smit", "Gavin Huttley", "Peter Maxwell"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Rob Knight"
@@ -49,8 +49,7 @@ def LabelLineParser(record, splitter, strict=True):
             key, val = splitter(line.rstrip())
         except:
             if strict:
-                raise RecordError(
-                    "Failed to extract key and value from line %s" % line)
+                raise RecordError("Failed to extract key and value from line %s" % line)
             else:
                 continue  # just skip the line if not strict
 
@@ -67,8 +66,13 @@ def is_clustal_seq_line(line):
 
     Useful for filtering other lines out of the file.
     """
-    return line and (not line[0].isspace()) and\
-        (not line.startswith('CLUSTAL')) and (not line.startswith('MUSCLE'))
+    return (
+        line
+        and (not line[0].isspace())
+        and (not line.startswith("CLUSTAL"))
+        and (not line.startswith("MUSCLE"))
+    )
+
 
 last_space = DelimitedSplitter(None, -1)
 
@@ -83,7 +87,7 @@ def delete_trailing_number(line):
     pieces = line.split()
     try:
         int(pieces[-1])
-        return ' '.join(pieces[:-1])
+        return " ".join(pieces[:-1])
     except ValueError:  # no trailing numbers
         return line
 
@@ -93,11 +97,14 @@ def MinimalClustalParser(record, strict=True):
 
     Data is dict of label -> sequence (pieces not joined).
     """
-    return LabelLineParser(list(map(delete_trailing_number,
-                                    list(filter(is_clustal_seq_line, record)))), last_space, strict)
+    return LabelLineParser(
+        list(map(delete_trailing_number, list(filter(is_clustal_seq_line, record)))),
+        last_space,
+        strict,
+    )
 
 
 def ClustalParser(record, strict=True):
     seqs, labels = MinimalClustalParser(record, strict)
     for l in labels:
-        yield l, ''.join(seqs[l])
+        yield l, "".join(seqs[l])

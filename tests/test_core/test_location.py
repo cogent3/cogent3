@@ -2,8 +2,9 @@
 
 """Unit tests for Range, Span and Point classes.
 """
+from cogent3.core.location import Map, Point, Range, RangeFromString, Span
 from cogent3.util.unit_test import TestCase, main
-from cogent3.core.location import Span, Range, Point, RangeFromString, Map
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -89,16 +90,17 @@ class SpanTests(TestCase):
         """Span iter should loop through (integer) contents"""
         self.assertEqual(list(iter(self.empty)), [])
         self.assertEqual(list(iter(self.full)), [30, 31, 32, 33, 34])
-        self.assertEqual(list(iter(self.spans_zero)),
-                         [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4])
+        self.assertEqual(
+            list(iter(self.spans_zero)), [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]
+        )
         self.assertEqual(list(iter(self.inside)), [31])
         self.assertEqual(list(self.reverse), [34, 33, 32, 31, 30])
 
     def test_str(self):
         """Span str should print start, stop, reverse"""
-        self.assertEqual(str(self.empty), '(0,0,False)')
-        self.assertEqual(str(self.full), '(30,35,False)')
-        self.assertEqual(str(self.reverse), '(30,35,True)')
+        self.assertEqual(str(self.empty), "(0,0,False)")
+        self.assertEqual(str(self.full), "(30,35,False)")
+        self.assertEqual(str(self.reverse), "(30,35,True)")
 
     def test_len(self):
         """Span len should return difference between start and end"""
@@ -109,8 +111,14 @@ class SpanTests(TestCase):
 
     def test_cmp(self):
         """Span cmp should support sort by 1st/2nd index and direction"""
-        s, e, f, r, i, o = self.spans_zero, self.empty, self.full, \
-            self.reverse, self.inside, self.overlapping
+        s, e, f, r, i, o = (
+            self.spans_zero,
+            self.empty,
+            self.full,
+            self.reverse,
+            self.inside,
+            self.overlapping,
+        )
 
         n = Span(30, 36)
 
@@ -127,8 +135,14 @@ class SpanTests(TestCase):
 
     def test_sort(self):
         """Span should support sort by 1st/2nd index and direction"""
-        s, e, f, r, i, o = self.spans_zero, self.empty, self.full, \
-            self.reverse, self.inside, self.overlapping
+        s, e, f, r, i, o = (
+            self.spans_zero,
+            self.empty,
+            self.full,
+            self.reverse,
+            self.inside,
+            self.overlapping,
+        )
 
         n = Span(30, 36)
 
@@ -267,9 +281,9 @@ class RangeInterfaceTests(object):  # SpanTests):
         """Range str should print start, stop, reverse for each Span"""
         # note that the Range adds an extra level of parens, since it can
         # contain more than one Span.
-        self.assertEqual(str(self.empty), '((0,0,False))')
-        self.assertEqual(str(self.full), '((30,35,False))')
-        self.assertEqual(str(self.reverse), '((30,35,True))')
+        self.assertEqual(str(self.empty), "((0,0,False))")
+        self.assertEqual(str(self.full), "((30,35,False))")
+        self.assertEqual(str(self.reverse), "((30,35,True))")
 
 
 class RangeTests(TestCase):
@@ -296,8 +310,10 @@ class RangeTests(TestCase):
         # another range
         self.assertEqual(self.two, self.twocopy)
         # list of ranges
-        self.assertEqual(self.twothree.spans, [Span(3, 5), Span(8, 11),
-                                               Span(6, 7), Span(15, 17), Span(30, 35)])
+        self.assertEqual(
+            self.twothree.spans,
+            [Span(3, 5), Span(8, 11), Span(6, 7), Span(15, 17), Span(30, 35)],
+        )
         # list of numbers
         self.assertEqual(self.singles.spans, [Span(3, 4), Span(11, 12)])
         # single number
@@ -307,10 +323,12 @@ class RangeTests(TestCase):
 
     def test_str(self):
         """Range str should print nested with parens"""
-        self.assertEqual(str(self.one), '((0,100,False))')
-        self.assertEqual(str(self.twothree),
-                         '((3,5,False),(8,11,False),(6,7,False),(15,17,False),(30,35,False))')
-        self.assertEqual(str(self.single), '((0,1,False))')
+        self.assertEqual(str(self.one), "((0,100,False))")
+        self.assertEqual(
+            str(self.twothree),
+            "((3,5,False),(8,11,False),(6,7,False),(15,17,False),(30,35,False))",
+        )
+        self.assertEqual(str(self.single), "((0,1,False))")
 
     def test_len(self):
         """Range len should sum span lengths"""
@@ -321,8 +339,10 @@ class RangeTests(TestCase):
 
     def test_cmp(self):
         """Ranges should compare equal if they have the same spans"""
-        self.assertEqual(self.twothree, Range([Span(3, 5), Span(8, 11),
-                                               Span(6, 7), Span(15, 17), Span(30, 35)]))
+        self.assertEqual(
+            self.twothree,
+            Range([Span(3, 5), Span(8, 11), Span(6, 7), Span(15, 17), Span(30, 35)]),
+        )
         self.assertEqual(Range(), Range())
 
     def test_start_end(self):
@@ -423,11 +443,13 @@ class RangeTests(TestCase):
         one.sort()
         self.assertEqual(one.spans, [Span(-20, -10), Span(0, 100)])
         one.spans.append(Span(-20, -10, reverse=True))
-        self.assertEqual(one.spans, [Span(-20, -10), Span(0, 100),
-                                     Span(-20, -10, reverse=True)])
+        self.assertEqual(
+            one.spans, [Span(-20, -10), Span(0, 100), Span(-20, -10, reverse=True)]
+        )
         one.sort()
-        self.assertEqual(one.spans, [Span(-20, -10), Span(-20, -10, reverse=True),
-                                     Span(0, 100)])
+        self.assertEqual(
+            one.spans, [Span(-20, -10), Span(-20, -10, reverse=True), Span(0, 100)]
+        )
 
     def test_iter(self):
         """Range iter should iterate through each span in turn"""
@@ -473,19 +495,20 @@ class RangeTests(TestCase):
         # however, can't consolidate span in other orientation
         s = Range(r)
         s.spans.append(Span(-100, 100, reverse=True))
-        self.assertEqual(s.spans, [Span(-1, 5), Span(8, 14),
-                                   Span(-100, 100, reverse=True)])
+        self.assertEqual(
+            s.spans, [Span(-1, 5), Span(8, 14), Span(-100, 100, reverse=True)]
+        )
 
 
 class RangeFromStringTests(TestCase):
     """Tests of the RangeFromString factory function."""
 
     def test_init(self):
-        self.assertEqual(RangeFromString(''), Range())
-        self.assertEqual(RangeFromString('  3  , 4\t, ,, 10  ,'),
-                         Range([3, 4, 10]))
-        self.assertEqual(RangeFromString('3,4-10,1-5'),
-                         Range([Span(3), Span(4, 10), Span(1, 5)]))
+        self.assertEqual(RangeFromString(""), Range())
+        self.assertEqual(RangeFromString("  3  , 4\t, ,, 10  ,"), Range([3, 4, 10]))
+        self.assertEqual(
+            RangeFromString("3,4-10,1-5"), Range([Span(3), Span(4, 10), Span(1, 5)])
+        )
 
 
 class MapTests(TestCase):

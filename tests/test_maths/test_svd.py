@@ -1,11 +1,21 @@
 #!/usr/bin/env python
 """Unit tests for the svd-supporting functionality."""
 
-from cogent3.util.unit_test import TestCase, main
-from cogent3.maths.svd import ratio_two_best, ratio_best_to_sum, \
-    euclidean_distance, euclidean_norm, _dists_from_mean_slow, \
-    dists_from_v, weiss, three_item_combos, two_item_combos
 from numpy import array, sqrt
+
+from cogent3.maths.svd import (
+    _dists_from_mean_slow,
+    dists_from_v,
+    euclidean_distance,
+    euclidean_norm,
+    ratio_best_to_sum,
+    ratio_two_best,
+    three_item_combos,
+    two_item_combos,
+    weiss,
+)
+from cogent3.util.unit_test import TestCase, main
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -76,15 +86,32 @@ class functionTests(TestCase):
 
     def test_three_item_combos(self):
         """three_item_combos should return items in correct order"""
-        items = list(three_item_combos('abcde'))
-        self.assertEqual(items, list(map(tuple,
-                                         ['abc', 'abd', 'abe', 'acd', 'ace', 'ade', 'bcd', 'bce', 'bde', 'cde'])))
+        items = list(three_item_combos("abcde"))
+        self.assertEqual(
+            items,
+            list(
+                map(
+                    tuple,
+                    [
+                        "abc",
+                        "abd",
+                        "abe",
+                        "acd",
+                        "ace",
+                        "ade",
+                        "bcd",
+                        "bce",
+                        "bde",
+                        "cde",
+                    ],
+                )
+            ),
+        )
 
     def test_two_item_combos(self):
         """two_item_combos should return items in correct order"""
-        items = list(two_item_combos('abcd'))
-        self.assertEqual(items, list(
-            map(tuple, ['ab', 'ac', 'ad', 'bc', 'bd', 'cd'])))
+        items = list(two_item_combos("abcd"))
+        self.assertEqual(items, list(map(tuple, ["ab", "ac", "ad", "bc", "bd", "cd"])))
 
     def test_pca_qs(self):
         """pca_qs not tested b/c it just wraps eigenvalues(corrcoef(qs))"""
@@ -98,5 +125,6 @@ class functionTests(TestCase):
         """svd_qs not tested b/c it just wraps singular_value_decompositon(qs)"""
         pass
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

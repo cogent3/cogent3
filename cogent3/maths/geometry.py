@@ -1,15 +1,46 @@
 #!/usr/bin/env python
 """Code for geometric operations, e.g. distances and center of mass."""
 
-from numpy import array, take, newaxis, sqrt, sin, cos, pi, c_, \
-    vstack, dot, ones, exp, sum, log, linalg, delete, insert, append, min, mean,\
-    nonzero, allclose, identity, minimum, any
+from numpy import (
+    allclose,
+    any,
+    append,
+    array,
+    c_,
+    cos,
+    delete,
+    dot,
+    exp,
+    identity,
+    insert,
+    linalg,
+    log,
+    mean,
+    min,
+    minimum,
+    newaxis,
+    nonzero,
+    ones,
+    pi,
+    sin,
+    sqrt,
+    sum,
+    take,
+    vstack,
+)
 from numpy.linalg import norm
+
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Sandra Smit", "Gavin Huttley", "Rob Knight", "Daniel McDonald",
-               "Marcin Cieslik", "Helmut Simon"]
+__credits__ = [
+    "Sandra Smit",
+    "Gavin Huttley",
+    "Rob Knight",
+    "Daniel McDonald",
+    "Marcin Cieslik",
+    "Helmut Simon",
+]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Sandra Smit"
@@ -111,7 +142,7 @@ def coords_to_symmetry(coords, fmx, omx, mxs, mode):
           fractional coordinates (like in crystallographic tables).
     """
     all_coords = [coords]  # the first matrix is identity
-    if mode == 'fractional':  # working with fractional matrices
+    if mode == "fractional":  # working with fractional matrices
         coords = dot(coords, fmx.transpose())
     # add column of 1.
     coords4 = c_[coords, array([ones(len(coords))]).transpose()]
@@ -119,9 +150,8 @@ def coords_to_symmetry(coords, fmx, omx, mxs, mode):
         rot_mx = mxs[i].transpose()
         # rotate and translate, remove
         new_coords = dot(coords4, rot_mx)[:, :3]
-        if mode == 'fractional':                 # ones column
-            new_coords = dot(new_coords, omx.transpose()
-                             )  # return to orthogonal
+        if mode == "fractional":  # ones column
+            new_coords = dot(new_coords, omx.transpose())  # return to orthogonal
         all_coords.append(new_coords)
     # a vstack(arrays) with a following reshape is faster then
     # the equivalent creation of a new array via array(arrays).
@@ -150,8 +180,9 @@ def coords_to_crystal(coords, fmx, omx, n=1):
         all_coords.append(fcoords + primitive_vector)
     # a vstack(arrays) with a following reshape is faster then
     # the equivalent creation of a new array via array(arrays)
-    all_coords = vstack(all_coords).reshape((len(all_coords),
-                                             coords.shape[0], coords.shape[1], 3))
+    all_coords = vstack(all_coords).reshape(
+        (len(all_coords), coords.shape[0], coords.shape[1], 3)
+    )
     all_coords = dot(all_coords, omx.transpose())  # orthogonalize
     return all_coords
 
@@ -160,10 +191,14 @@ class SimplexTransform:
     def __init__(self):
         """regular tetrahedron with one vertex at origin, one edge on x axis and 
         one face (base) in x-y plane."""
-        q = array([[0, 0, 0], 
-                   [sqrt(2), 0, 0],
-                   [1/sqrt(2), sqrt(3/2), 0], 
-                   [1/sqrt(2), 1/sqrt(6), 2 * sqrt(1/3)]])
+        q = array(
+            [
+                [0, 0, 0],
+                [sqrt(2), 0, 0],
+                [1 / sqrt(2), sqrt(3 / 2), 0],
+                [1 / sqrt(2), 1 / sqrt(6), 2 * sqrt(1 / 3)],
+            ]
+        )
         self.q = q
 
     def __array__(self, dtype=None):
@@ -279,15 +314,19 @@ def aitchison_distance(x, y):
     numpy.float64
          A real value of this distance metric >= 0."""
     if any(x <= 0):
-        raise ValueError("Cannot have negative \
-                or zero proportions - parameter 0.")
+        raise ValueError(
+            "Cannot have negative \
+                or zero proportions - parameter 0."
+        )
     if any(y <= 0):
-        raise ValueError("Cannot have negative \
-                or zero proportions - parameter 1.")
+        raise ValueError(
+            "Cannot have negative \
+                or zero proportions - parameter 1."
+        )
     return linalg.norm(clr(x / y))
 
 
-def multiplicative_replacement(x, eps=.01):
+def multiplicative_replacement(x, eps=0.01):
     r"""
     Perturbs a composition with zero proportions
     to one with no zero proportions.

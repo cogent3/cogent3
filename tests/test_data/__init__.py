@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-__all__ = ['test_molecular_weight']
+__all__ = ["test_molecular_weight"]
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2016, The Cogent Project"

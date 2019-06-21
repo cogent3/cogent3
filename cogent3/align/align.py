@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
 import numpy
+
+from cogent3.align import indel_model, pairwise, pycompare
+from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
+
+
 Float = numpy.core.numerictypes.sctype2char(float)
 
-from cogent3.align import pairwise, indel_model, pycompare
-from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -19,16 +22,15 @@ __status__ = "Production"
 def dotplot(seq1, seq2, window, threshold, min_gap_length=0, band=None, **kw):
     # warnings.warn("cogent3.align.align.dotplot moved to cogent3.align.compare.dotplot",
     #    DeprecationWarning)
-    return pycompare.dotplot(seq1, seq2, window, threshold, min_gap_length,
-                             band, **kw)
+    return pycompare.dotplot(seq1, seq2, window, threshold, min_gap_length, band, **kw)
 
 
 def make_dna_scoring_dict(match, transition, transversion):
     DNA = {}
-    for a in 'ATCG':
-        ar = a in 'AG'
-        for b in 'ATCG':
-            br = b in 'AG'
+    for a in "ATCG":
+        ar = a in "AG"
+        for b in "ATCG":
+            br = b in "AG"
             if a == b:
                 score = match
             elif ar == br:
@@ -39,7 +41,9 @@ def make_dna_scoring_dict(match, transition, transversion):
     return DNA
 
 
-def _align_pairwise(s1, s2, mprobs, psub, TM, local, return_alignment=True, return_score=False, **kw):
+def _align_pairwise(
+    s1, s2, mprobs, psub, TM, local, return_alignment=True, return_score=False, **kw
+):
     """Generic alignment with any substitution model and indel model"""
     [p1, p2] = [make_likelihood_tree_leaf(seq) for seq in [s1, s2]]
     [p1, p2] = [pairwise.AlignableSeq(leaf) for leaf in [p1, p2]]
@@ -69,7 +73,10 @@ def classic_align_pairwise(s1, s2, Sd, d, e, local, return_score=False, **kw):
             S[i, j] = Sd[m1, m2]
     psub = numpy.exp(S)
     mprobs = numpy.ones(len(psub), Float) / len(psub)
-    return _align_pairwise(s1, s2, mprobs, psub, TM, local, return_score=return_score, **kw)
+    return _align_pairwise(
+        s1, s2, mprobs, psub, TM, local, return_score=return_score, **kw
+    )
+
 
 # these can't do codon sequences
 # they could be replaced with something more sophisticated, like the HMM

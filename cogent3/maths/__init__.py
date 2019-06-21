@@ -1,25 +1,34 @@
 #!/usr/bin/env python
 
-__all__ = ['geometry',
-           'markov',
-           'matrix_exponential_integration',
-           'matrix_exponentiation',
-           'matrix_logarithm',
-           'optimisers',
-           'period',
-           'scipy_optimisers',
-           'scipy_optimize',
-           'simannealingoptimiser',
-           'solve',
-           'svd',
-           'util']
+__all__ = [
+    "geometry",
+    "markov",
+    "matrix_exponential_integration",
+    "matrix_exponentiation",
+    "matrix_logarithm",
+    "optimisers",
+    "period",
+    "scipy_optimisers",
+    "scipy_optimize",
+    "simannealingoptimiser",
+    "solve",
+    "svd",
+    "util",
+]
 
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Peter Maxwell", "Matthew Wakefield",
-               "Rob Knight", "Edward Lang", "Sandra Smit",
-               "Antonio Gonzalez Pena", "Ben Kaehler"]
+__credits__ = [
+    "Gavin Huttley",
+    "Peter Maxwell",
+    "Matthew Wakefield",
+    "Rob Knight",
+    "Edward Lang",
+    "Sandra Smit",
+    "Antonio Gonzalez Pena",
+    "Ben Kaehler",
+]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"

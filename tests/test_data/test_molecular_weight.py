@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 """Tests for molecular weight.
 """
+from cogent3.data.molecular_weight import (
+    DnaMW,
+    ProteinMW,
+    RnaMW,
+    WeightCalculator,
+)
 from cogent3.util.unit_test import TestCase, main
-from cogent3.data.molecular_weight import WeightCalculator, DnaMW, RnaMW, \
-    ProteinMW
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -23,19 +28,24 @@ class WeightCalculatorTests(TestCase):
         """WeightCalculator should return correct molecular weight"""
         r = RnaMW
         p = ProteinMW
-        self.assertEqual(p(''), 0)
-        self.assertEqual(r(''), 0)
-        self.assertFloatEqual(p('A'), 89.09)
-        self.assertFloatEqual(r('A'), 375.17)
-        self.assertFloatEqual(p('AAA'), 231.27)
-        self.assertFloatEqual(r('AAA'), 1001.59)
-        self.assertFloatEqual(r('AAACCCA'), 2182.37)
-        self.assertFloatEqual(p('MVQQAESLEAESNLPREALDTEEGEFMACSPVALDESDPDWCKTASGHIKRPMNAFMVWSKIERRKIMEQSPDMHNAEISKRLGKR\
+        self.assertEqual(p(""), 0)
+        self.assertEqual(r(""), 0)
+        self.assertFloatEqual(p("A"), 89.09)
+        self.assertFloatEqual(r("A"), 375.17)
+        self.assertFloatEqual(p("AAA"), 231.27)
+        self.assertFloatEqual(r("AAA"), 1001.59)
+        self.assertFloatEqual(r("AAACCCA"), 2182.37)
+        self.assertFloatEqual(
+            p(
+                "MVQQAESLEAESNLPREALDTEEGEFMACSPVALDESDPDWCKTASGHIKRPMNAFMVWSKIERRKIMEQSPDMHNAEISKRLGKR\
                                  WKMLKDSEKIPFIREAERLRLKHMADYPDYKYRPRKKPKMDPSAKPSASQSPEKSAAGGGGGSAGGGAGGAKTSKGSSKKCGKLKA\
                                  PAAAGAKAGAGKAAQSGDYGGAGDDYVLGSLRVSGSGGGGAGKTVKCVFLDEDDDDDDDDDELQLQIKQEPDEEDEEPPHQQLLQP\
                                  PGQQPSQLLRRYNVAKVPASPTLSSSAESPEGASLYDEVRAGATSGAGGGSRLYYSFKNITKQHPPPLAQPALSPASSRSVSTSSS\
                                  SSSGSSSGSSGEDADDLMFDLSLNFSQSAHSASEQQLGGGAAAGNLSLSLVDKDLDSFSEGSLGSHFEFPDYCTPELSEMIAGDWL\
-                                 EANFSDLVFTY'), 46685.97)
+                                 EANFSDLVFTY"
+            ),
+            46685.97,
+        )
 
 
 # run if called from command-line

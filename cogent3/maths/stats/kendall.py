@@ -6,10 +6,11 @@ Translated from R 2.5 by Gavin Huttley
 """
 
 
-from numpy import floor, sqrt, array
+from numpy import array, floor, sqrt
 
 from cogent3.maths.stats.distribution import zprob
 from cogent3.maths.stats.number import CategoryCounter
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -33,8 +34,7 @@ def as_paired_ranks(x, y):
     rank_val_map_y = dict(list(zip(y, list(range(n)))))
     ranked = []
     for i in range(n):
-        ranked += [[rank_val_map_x[paired[i][0]],
-                    rank_val_map_y[paired[i][1]]]]
+        ranked += [[rank_val_map_x[paired[i][0]], rank_val_map_y[paired[i][1]]]]
     return ranked
 
 
@@ -104,7 +104,7 @@ def kendalls_tau(x, y, return_p=True):
 
     diff = con - discor
     total = con + discor
-    denom = ((total + y_tied) * (total + x_tied))**0.5
+    denom = ((total + y_tied) * (total + x_tied)) ** 0.5
     variance = (4 * n + 10) / (9 * n * (n - 1))
     tau = diff / denom
     stat = tau
@@ -120,11 +120,15 @@ def kendalls_tau(x, y, return_p=True):
         vt = sum(x_tied * (x_tied - 1) * (2 * x_tied + 5))
         vu = sum(y_tied * (y_tied - 1) * (2 * y_tied + 5))
         v1 = sum(x_tied * (x_tied - 1)) * sum(y_tied * (y_tied - 1))
-        v2 = sum(x_tied * (x_tied - 1) * (x_tied - 2)) * \
-            sum(y_tied * (y_tied - 1) * (y_tied - 2))
-        variance = (v0 - vt - vu) / 18 + v1 / (2 * n * (n - 1)) + v2 / (9 * n *
-                                                                        (n - 1) * (n - 2))
+        v2 = sum(x_tied * (x_tied - 1) * (x_tied - 2)) * sum(
+            y_tied * (y_tied - 1) * (y_tied - 2)
+        )
+        variance = (
+            (v0 - vt - vu) / 18
+            + v1 / (2 * n * (n - 1))
+            + v2 / (9 * n * (n - 1) * (n - 2))
+        )
     if return_p:
-        return tau, zprob(stat / variance**0.5)
+        return tau, zprob(stat / variance ** 0.5)
     else:
         return tau

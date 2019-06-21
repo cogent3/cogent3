@@ -11,6 +11,7 @@ from numpy import log
 
 from cogent3 import LoadSeqs
 
+
 __author__ = "Helen Lindsay, Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Helen Lindsay", "Gavin Huttley", "Daniel McDonald"]
@@ -40,7 +41,7 @@ def _take(array, indices):
     return new_array
 
 
-def aligned_columns_to_rows(aln, motif_len, exclude_chars=None, allowed_chars='ACGT'):
+def aligned_columns_to_rows(aln, motif_len, exclude_chars=None, allowed_chars="ACGT"):
     """return alignment broken into motifs as a transposed list with
     sequences as columns and aligned columns as rows
 
@@ -74,7 +75,7 @@ def count_column_freqs(columns_list):
     """return the frequency of columns"""
     col_freq_dict = {}
     for column in columns_list:
-        column = ' '.join(column)
+        column = " ".join(column)
         col_freq_dict[column] = col_freq_dict.get(column, 0) + 1
     return col_freq_dict
 
@@ -107,8 +108,14 @@ def get_G93_lnL_from_array(columns_list):
     return log_likelihood
 
 
-def BestLogLikelihood(aln, alphabet=None, exclude_chars=None,
-                      allowed_chars='ACGT', motif_length=None, return_length=False):
+def BestLogLikelihood(
+    aln,
+    alphabet=None,
+    exclude_chars=None,
+    allowed_chars="ACGT",
+    motif_length=None,
+    return_length=False,
+):
     """returns the best log-likelihood according to Goldman 1993.
 
     Arguments:
@@ -119,8 +126,9 @@ def BestLogLikelihood(aln, alphabet=None, exclude_chars=None,
           allowed
         - return_length: whether to also return the number of alignment columns
     """
-    assert alphabet or motif_length, "Must provide either an alphabet or a"\
-                                     " motif_length"
+    assert alphabet or motif_length, (
+        "Must provide either an alphabet or a" " motif_length"
+    )
     # need to use the alphabet, so we can enforce character compliance
     if alphabet:
         kwargs = dict(moltype=alphabet.moltype)
@@ -129,8 +137,7 @@ def BestLogLikelihood(aln, alphabet=None, exclude_chars=None,
         kwargs = {}
 
     aln = LoadSeqs(data=aln.todict(), **kwargs)
-    columns = aligned_columns_to_rows(aln, motif_length, exclude_chars,
-                                      allowed_chars)
+    columns = aligned_columns_to_rows(aln, motif_length, exclude_chars, allowed_chars)
     num_cols = len(columns)
     log_likelihood = get_G93_lnL_from_array(columns)
     if return_length:

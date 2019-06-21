@@ -4,11 +4,15 @@ following Brett Easton's suggestion, and a taylor series expansion approach.
 
 WARNING: The methods are not robust!
 """
-from numpy import array, dot, eye, zeros, transpose, log, \
-    allclose, inner as innerproduct, exp, diag, isclose, pi, argmin, ones
-from numpy.linalg import inv as inverse, eig as eigenvectors, norm
-
 from itertools import combinations
+
+from numpy import allclose, argmin, array, diag, dot, exp, eye
+from numpy import inner as innerproduct
+from numpy import isclose, log, ones, pi, transpose, zeros
+from numpy.linalg import eig as eigenvectors
+from numpy.linalg import inv as inverse
+from numpy.linalg import norm
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2014, The Cogent Project"
@@ -23,13 +27,13 @@ __status__ = "Production"
 def _is_Q_ok(Q):
     """Tests whether a square matrix is a valid transition rate matrix"""
     n = Q.shape[0]
-    if not allclose(Q.imag, 0.):
+    if not allclose(Q.imag, 0.0):
         return False
-    offd = Q * (1. - eye(n))
-    if not allclose(offd[offd < 0.], 0.):
+    offd = Q * (1.0 - eye(n))
+    if not allclose(offd[offd < 0.0], 0.0):
         return False
     one = ones(n)
-    if not allclose(Q.dot(one), 0.):
+    if not allclose(Q.dot(one), 0.0):
         return False
     return True
 
@@ -38,15 +42,15 @@ def is_generator_unique(Q):
     """Conservatively tests whether a transition rate matrix uniquely yields
     its transition probability matrix"""
     if not Q.shape[0] in (3, 4):
-        raise NotImplementedError('Only Q of 3x3 or 4x4 supported')
-    assert _is_Q_ok(Q), 'Q must be a valid transition rate matrix'
+        raise NotImplementedError("Only Q of 3x3 or 4x4 supported")
+    assert _is_Q_ok(Q), "Q must be a valid transition rate matrix"
 
     e, V = eigenvectors(Q)
     n = len(e)
 
     # Assert that the matrix is diagonalisable
     if not allclose(V.dot(diag(e)).dot(inverse(V)), Q):
-        raise ArithmeticError('matrix not diagonalisable')
+        raise ArithmeticError("matrix not diagonalisable")
 
     # Find the Perron-Frobenius eigenvalue
     PF_EV = argmin([norm(ones(n) / n - v / v.sum()) for v in V.T])
@@ -61,15 +65,15 @@ def is_generator_unique(Q):
 
         # Can't deal with non-primary roots yet
         if isclose(expe[i], expe[j]):
-            raise NotImplementedError('non-primary root detected:\n' + repr(Q))
+            raise NotImplementedError("non-primary root detected:\n" + repr(Q))
 
     # If the real parts of the eigenvalues are distinct, we're ok
     # For each candidate complex conjugate pair, check for equivalent Qs
     for i, j in real_close:
         s = zeros(n)
-        s[i] = 1.
-        s[j] = -1.
-        gen = 2. * pi * complex(0., 1.) * V.dot(diag(s)).dot(inverse(V))
+        s[i] = 1.0
+        s[j] = -1.0
+        gen = 2.0 * pi * complex(0.0, 1.0) * V.dot(diag(s)).dot(inverse(V))
         Qtest = Q + gen
         if _is_Q_ok(Qtest):
             return False
@@ -111,13 +115,13 @@ def logm_taylor(P, tol=1e-30):
     P = array(P)
     I = eye(P.shape[0])
     X = P - I
-    assert norm(X, ord='fro') < 1, "Frobenius norm > 1"
+    assert norm(X, ord="fro") < 1, "Frobenius norm > 1"
 
     Y = I
     Q = zeros(P.shape, dtype="double")
     i = 1
-    while norm(Y / i, ord='fro') > tol:
+    while norm(Y / i, ord="fro") > tol:
         Y = dot(Y, X)
-        Q += ((-1)**(i - 1) * Y / i)
+        Q += (-1) ** (i - 1) * Y / i
         i += 1
     return Q

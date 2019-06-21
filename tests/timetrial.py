@@ -10,6 +10,7 @@ import string
 import sys
 import time
 
+
 __author__ = "Peter Maxwell and  Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Edward Lang"]
@@ -30,7 +31,7 @@ type = ""
 
 for i in range(len(args)):
     if script_re.search(args[i], 1):
-        script = args[i][0:string.index(args[i], '.')]
+        script = args[i][0 : string.index(args[i], ".")]
     if args[i] == "mpirun":
         type = "parallel"
 
@@ -59,7 +60,7 @@ def standard_dev(numbers=[], mean=1):
 
 def main():
     if args:
-        command = ' '.join(map(str, args))
+        command = " ".join(map(str, args))
     else:
         usage()
         sys.exit()
@@ -117,10 +118,10 @@ def main():
         print("")
         print("CORRECTED RESULTS")
         print("Fastest time   : %.3f" % corrected_times[0])
-        print("Slowest time   : %.3f" %
-              corrected_times[len(corrected_times) - 1])
+        print("Slowest time   : %.3f" % corrected_times[len(corrected_times) - 1])
         print("Mean           : %.3f" % corrected_mean)
         print("Standard dev   : %.3f" % corrected_sd)
+
 
 if __name__ == "__main__":
     main()

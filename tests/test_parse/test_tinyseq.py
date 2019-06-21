@@ -1,9 +1,11 @@
 #!/usr/bin/env python
-from io import StringIO
 import xml.dom.minidom
 
+from io import StringIO
 from unittest import TestCase, main
+
 from cogent3.parse.tinyseq import TinyseqParser
+
 
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -32,17 +34,23 @@ data = """<?xml version="1.0"?>
 """
 
 sample_seq = ">AY286018.1\nGGCAGGGAAAGGGAAGAAAGTAAAGGGGCCATGACACAGGCATGGGACCCTGCAGGGTTCTTGGCTTGGCGGCGGGACGAGAACGAGGAGACGACTCGG\n"
-sample_annotations = '[genbank_id "AY286018.1" at [0:99]/99, organism "Macropus eugenii" at [0:99]/99]'
+sample_annotations = (
+    '[genbank_id "AY286018.1" at [0:99]/99, organism "Macropus eugenii" at [0:99]/99]'
+)
 
 
 class ParseTinyseq(TestCase):
-
     def test_parse(self):
-        for name, seq in [next(TinyseqParser(data)), next(TinyseqParser(xml.dom.minidom.parseString(data)))]:
-            self.assertEqual(name, 'AY286018.1')
+        for name, seq in [
+            next(TinyseqParser(data)),
+            next(TinyseqParser(xml.dom.minidom.parseString(data))),
+        ]:
+            self.assertEqual(name, "AY286018.1")
             self.assertEqual(sample_seq, seq.to_fasta(block_size=len(sample_seq)))
             self.assertEqual(str(seq.annotations), sample_annotations)
+
     pass
+
 
 if __name__ == "__main__":
     main()

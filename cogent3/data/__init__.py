@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 
-__all__ = ['energy_params', 'molecular_weight', 'protein_properties',
-           'ligand_properties']
+__all__ = [
+    "energy_params",
+    "molecular_weight",
+    "protein_properties",
+    "ligand_properties",
+]
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2016, The Cogent Project"

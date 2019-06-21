@@ -6,6 +6,7 @@ from cogent3 import DNA, LoadSeqs
 from cogent3.core.annotation import Feature, Variable, _Feature
 from cogent3.core.location import Map, Span, as_map
 
+
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
@@ -17,13 +18,13 @@ __status__ = "Production"
 
 
 def makeSampleSequence(with_gaps=False):
-    raw_seq = 'AACCCAAAATTTTTTGGGGGGGGGGCCCC'
+    raw_seq = "AACCCAAAATTTTTTGGGGGGGGGGCCCC"
     cds = (15, 25)
     utr = (12, 15)
     if with_gaps:
-        raw_seq = raw_seq[:5] + '-----' + raw_seq[10:-2] + '--'
+        raw_seq = raw_seq[:5] + "-----" + raw_seq[10:-2] + "--"
     seq = DNA.make_seq(raw_seq)
-    seq.add_annotation(Feature, 'CDS', 'CDS', [cds])
+    seq.add_annotation(Feature, "CDS", "CDS", [cds])
     seq.add_annotation(Feature, "5'UTR", "5' UTR", [utr])
     return seq
 
@@ -31,25 +32,24 @@ def makeSampleSequence(with_gaps=False):
 def makeSampleAlignment():
     seq1 = makeSampleSequence()
     seq2 = makeSampleSequence(with_gaps=True)
-    seqs = {'FAKE01': seq1, 'FAKE02': seq2}
+    seqs = {"FAKE01": seq1, "FAKE02": seq2}
     aln = LoadSeqs(data=seqs, array_align=False)
-    aln.add_annotation(Feature, 'misc_feature', 'misc', [(12, 25)])
-    aln.add_annotation(Feature, 'CDS', 'blue', [(15, 25)])
-    aln.add_annotation(Feature, "5'UTR", 'red', [(2, 4)])
+    aln.add_annotation(Feature, "misc_feature", "misc", [(12, 25)])
+    aln.add_annotation(Feature, "CDS", "blue", [(15, 25)])
+    aln.add_annotation(Feature, "5'UTR", "red", [(2, 4)])
     aln.add_annotation(Feature, "LTR", "fake", [(2, 15)])
     return aln
 
 
 class TestAnnotations(unittest.TestCase):
-
     def setUp(self):
         self.seq = makeSampleSequence()
         self.aln = makeSampleAlignment()
 
     def test_inherit_feature(self):
         """should be able to subclass and extend _Feature"""
-        class NewFeat(_Feature):
 
+        class NewFeat(_Feature):
             def __init__(self, *args, **kwargs):
                 super(NewFeat, self).__init__(*args, **kwargs)
 
@@ -59,17 +59,19 @@ class TestAnnotations(unittest.TestCase):
                     return as_one.newMethod()
                 return True
 
-        seq = DNA.make_seq('ACGTACGTACGT')
-        f = seq.add_annotation(NewFeat, as_map([(1, 3), (5, 7)], len(seq)),
-                              type='gene', name='abcd')
+        seq = DNA.make_seq("ACGTACGTACGT")
+        f = seq.add_annotation(
+            NewFeat, as_map([(1, 3), (5, 7)], len(seq)), type="gene", name="abcd"
+        )
         self.assertEqual(type(f.as_one_span()), NewFeat)
         self.assertEqual(type(f.get_shadow()), NewFeat)
-        f2 = seq.add_annotation(NewFeat, as_map([(3, 5)], len(seq)),
-                               type='gene', name='def')
+        f2 = seq.add_annotation(
+            NewFeat, as_map([(3, 5)], len(seq)), type="gene", name="def"
+        )
 
-        self.assertEqual(type(seq.get_region_covering_all([f, f2],
-                                                       feature_class=NewFeat)),
-                         NewFeat)
+        self.assertEqual(
+            type(seq.get_region_covering_all([f, f2], feature_class=NewFeat)), NewFeat
+        )
         # now use the new method
         f.newMethod()
 
@@ -82,17 +84,16 @@ class TestAnnotations(unittest.TestCase):
 
     def test_aln_annotations(self):
         """test that annotations to alignment and its' sequences"""
-        aln_expecteds = {"misc_feature": {'FAKE01': 'TTTGGGGGGGGGG',
-                                         'FAKE02': 'TTTGGGGGGGGGG'},
-                         "CDS": {'FAKE01': 'GGGGGGGGGG', 'FAKE02': 'GGGGGGGGGG'},
-                         "5'UTR": {'FAKE01': 'CC', 'FAKE02': 'CC'},
-                         "LTR": {"FAKE01": "CCCAAAATTTTTT",
-                                  "FAKE02": "CCC-----TTTTT"}
-                         }
-        seq_expecteds = {"CDS": {"FAKE01": "GGGGGGGGGG",
-                                 "FAKE02": "GGGGGGGGGG"},
-                         "5'UTR": {"FAKE01": "TTT",
-                                   "FAKE02": "TTT"}}
+        aln_expecteds = {
+            "misc_feature": {"FAKE01": "TTTGGGGGGGGGG", "FAKE02": "TTTGGGGGGGGGG"},
+            "CDS": {"FAKE01": "GGGGGGGGGG", "FAKE02": "GGGGGGGGGG"},
+            "5'UTR": {"FAKE01": "CC", "FAKE02": "CC"},
+            "LTR": {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"},
+        }
+        seq_expecteds = {
+            "CDS": {"FAKE01": "GGGGGGGGGG", "FAKE02": "GGGGGGGGGG"},
+            "5'UTR": {"FAKE01": "TTT", "FAKE02": "TTT"},
+        }
         for annot_type in ["misc_feature", "CDS", "5'UTR", "LTR"]:
             observed = list(self.aln.get_by_annotation(annot_type))[0].todict()
             expected = aln_expecteds[annot_type]
@@ -100,22 +101,22 @@ class TestAnnotations(unittest.TestCase):
             if annot_type in ["misc_feature", "LTR"]:
                 continue  # because seqs haven't been annotated with it
             for name in self.aln.names:
-                observed = list(self.aln.named_seqs[name].data.
-                                get_by_annotation(annot_type))[0]
+                observed = list(
+                    self.aln.named_seqs[name].data.get_by_annotation(annot_type)
+                )[0]
                 observed = str(observed)
                 expected = seq_expecteds[annot_type][name]
-                assert str(observed) == expected, (annot_type, name, expected,
-                                                   observed)
+                assert str(observed) == expected, (annot_type, name, expected, observed)
 
     def test_slice_aln_with_annotations(self):
         """test that annotations of sequences and alignments survive alignment
         slicing."""
-        aln_expecteds = {"misc_feature": {'FAKE01': 'TTTGGGGGGGGGG',
-                                         'FAKE02': 'TTTGGGGGGGGGG'},
-                         "CDS": {'FAKE01': 'GGGGGGGGGG', 'FAKE02': 'GGGGGGGGGG'},
-                         "5'UTR": {'FAKE01': 'CC', 'FAKE02': 'CC'},
-                         "LTR": {"FAKE01": "CCCTTTTT",
-                                  "FAKE02": "CCCTTTTT"}}
+        aln_expecteds = {
+            "misc_feature": {"FAKE01": "TTTGGGGGGGGGG", "FAKE02": "TTTGGGGGGGGGG"},
+            "CDS": {"FAKE01": "GGGGGGGGGG", "FAKE02": "GGGGGGGGGG"},
+            "5'UTR": {"FAKE01": "CC", "FAKE02": "CC"},
+            "LTR": {"FAKE01": "CCCTTTTT", "FAKE02": "CCCTTTTT"},
+        }
         newaln = self.aln[:5] + self.aln[10:]
         feature_list = newaln.get_annotations_matching("LTR")
         for annot_type in ["LTR", "misc_feature", "CDS", "5'UTR"]:
@@ -126,38 +127,43 @@ class TestAnnotations(unittest.TestCase):
             if annot_type in ["misc_feature", "LTR"]:
                 continue  # because seqs haven't been annotated with it
             for name in self.aln.names:
-                orig = str(list(self.aln.get_annotations_from_seq(name,
-                                                                    annot_type))[0].get_slice())
-                new = str(list(newaln.get_annotations_from_seq(name,
-                                                                 annot_type))[0].get_slice())
+                orig = str(
+                    list(self.aln.get_annotations_from_seq(name, annot_type))[
+                        0
+                    ].get_slice()
+                )
+                new = str(
+                    list(newaln.get_annotations_from_seq(name, annot_type))[
+                        0
+                    ].get_slice()
+                )
                 assert orig == new, (name, annot_type, orig, new)
 
     def test_feature_projection(self):
         expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
-        aln_ltr = self.aln.get_annotations_matching('LTR')[0]
-        for seq_name in ['FAKE01', 'FAKE02']:
+        aln_ltr = self.aln.get_annotations_matching("LTR")[0]
+        for seq_name in ["FAKE01", "FAKE02"]:
             expected = expecteds[seq_name]
             seq_ltr = self.aln.project_annotation(seq_name, aln_ltr)
-            if '-' in expected:
+            if "-" in expected:
                 self.assertRaises(ValueError, seq_ltr.get_slice)
                 seq_ltr = seq_ltr.without_lost_spans()
-                expected = expected.replace('-', '')
+                expected = expected.replace("-", "")
             self.assertEqual(seq_ltr.get_slice(), expected)
 
     def test_reverse_complement(self):
         """test correct translation of annotations on reverse complement."""
-        aln_expecteds = {"misc_feature": {'FAKE01': 'TTTGGGGGGGGGG',
-                                         'FAKE02': 'TTTGGGGGGGGGG'},
-                         "CDS": {'FAKE01': 'GGGGGGGGGG', 'FAKE02': 'GGGGGGGGGG'},
-                         "5'UTR": {'FAKE01': 'CC', 'FAKE02': 'CC'},
-                         "LTR": {"FAKE01": "CCCAAAATTTTTT",
-                                  "FAKE02": "CCC-----TTTTT"}
-                         }
+        aln_expecteds = {
+            "misc_feature": {"FAKE01": "TTTGGGGGGGGGG", "FAKE02": "TTTGGGGGGGGGG"},
+            "CDS": {"FAKE01": "GGGGGGGGGG", "FAKE02": "GGGGGGGGGG"},
+            "5'UTR": {"FAKE01": "CC", "FAKE02": "CC"},
+            "LTR": {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"},
+        }
 
-        seq_expecteds = {"CDS": {"FAKE01": "GGGGGGGGGG",
-                                 "FAKE02": "GGGGGGGGGG"},
-                         "5'UTR": {"FAKE01": "TTT",
-                                   "FAKE02": "TTT"}}
+        seq_expecteds = {
+            "CDS": {"FAKE01": "GGGGGGGGGG", "FAKE02": "GGGGGGGGGG"},
+            "5'UTR": {"FAKE01": "TTT", "FAKE02": "TTT"},
+        }
 
         rc = self.aln.rc()
         # rc'ing an Alignment or Sequence rc's their annotations too. This means
@@ -173,18 +179,30 @@ class TestAnnotations(unittest.TestCase):
             if annot_type in ["misc_feature", "LTR"]:
                 continue  # because seqs haven't been annotated with it
             for name in self.aln.names:
-                observed = list(self.aln.named_seqs[name].data.
-                                get_by_annotation(annot_type))[0]
+                observed = list(
+                    self.aln.named_seqs[name].data.get_by_annotation(annot_type)
+                )[0]
                 observed = str(observed)
                 expected = seq_expecteds[annot_type][name]
-                assert str(observed) == expected, ("+", annot_type, name, expected,
-                                                   observed)
-                observed = list(rc.named_seqs[name].data.
-                                get_by_annotation(annot_type))[0]
+                assert str(observed) == expected, (
+                    "+",
+                    annot_type,
+                    name,
+                    expected,
+                    observed,
+                )
+                observed = list(rc.named_seqs[name].data.get_by_annotation(annot_type))[
+                    0
+                ]
                 observed = str(observed)
                 expected = seq_expecteds[annot_type][name]
-                assert str(observed) == expected, ("-", annot_type, name, expected,
-                                                   observed)
+                assert str(observed) == expected, (
+                    "-",
+                    annot_type,
+                    name,
+                    expected,
+                    observed,
+                )
 
 
 class TestMapSpans(unittest.TestCase):
@@ -210,5 +228,5 @@ class TestMapSpans(unittest.TestCase):
             self.assertEqual(fmap_reversed.spans[i], rmap.spans[i])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

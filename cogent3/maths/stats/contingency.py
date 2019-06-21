@@ -1,10 +1,11 @@
-from numpy import zeros, sqrt, outer, log
+from numpy import log, outer, sqrt, zeros
 from numpy.random import shuffle
 
-from cogent3.format.table import rich_html, formatted_cells, simple_format
+from cogent3.format.table import formatted_cells, rich_html, simple_format
 from cogent3.maths.stats import chisqprob
-from cogent3.maths.stats.test import G_ind, G_fit
+from cogent3.maths.stats.test import G_fit, G_ind
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -57,7 +58,7 @@ def calc_expected(observed, pseudo_count=0):
     elif num_dim == 1:
         expecteds = [observed.mean()] * observed.shape[0]
     else:
-        raise NotImplementedError('too many dimensions')
+        raise NotImplementedError("too many dimensions")
     return expecteds
 
 
@@ -73,19 +74,27 @@ def calc_G(observed, expected, pseudo_count=0, williams=True):
     num_dim = len(observed.shape)
     df = observed.shape[0] - 1
     if num_dim == 2:
-        df *= (observed.shape[1] - 1)
+        df *= observed.shape[1] - 1
 
     non_zero = observed != 0
     if not non_zero.all():
-        G = 2 * (observed[non_zero] * (log(observed[non_zero]) -
-                                       log(expected[non_zero]))).sum()
+        G = (
+            2
+            * (
+                observed[non_zero] * (log(observed[non_zero]) - log(expected[non_zero]))
+            ).sum()
+        )
     else:
         G = 2 * (observed * (log(observed) - log(expected))).sum()
     if williams and num_dim > 1:
         total = observed.sum()
         denom = 6 * total * df
-        q = 1 + ((total / observed.sum(axis=0)).sum() - 1) * \
-            ((total / observed.sum(axis=1)).sum() - 1) / denom
+        q = (
+            1
+            + ((total / observed.sum(axis=0)).sum() - 1)
+            * ((total / observed.sum(axis=1)).sum() - 1)
+            / denom
+        )
         G /= q
     return G
 
@@ -108,12 +117,13 @@ def estimate_pval(observed, stat_func, num_reps=1000):
 
 class _format_row_cell:
     """class for handling html formatting of rows"""
+
     def __init__(self, row_labels):
         self.row_labels = row_labels
 
     def __call__(self, val, row, col):
         if val in self.row_labels:
-            result = f'<td><b>{val}<b></td>'
+            result = f"<td><b>{val}<b></td>"
         else:
             result = f'<td style="text-align:right">{val}</td>'
         return result
@@ -126,6 +136,7 @@ class CategoryCounts:
     The latter is calculated using the G-test, for goodness-of-fit if expecteds
     are provided, G-test of independence if not provided.
     """
+
     def __init__(self, observed, expected=None):
         """Parameters
         -------------
@@ -142,7 +153,7 @@ class CategoryCounts:
             expected = observed.template.wrap(expected)
 
         if observed.array.min() < 0 or expected and expected.array.min() < 0:
-            raise ValueError('negative values encountered')
+            raise ValueError("negative values encountered")
 
         self._observed = observed
         self._expected = expected
@@ -158,25 +169,27 @@ class CategoryCounts:
 
         ndim = len(self.observed.shape)
         if ndim == 1:
-            row_labels = 'Observed', 'Expected', 'Residuals'
+            row_labels = "Observed", "Expected", "Residuals"
             row_cell_func = _format_row_cell(row_labels)
             col_labels = [str(c) for c in self.observed.template.names[0]]
             rows = []
             # format floats for expecteds and resid
             for row_label, row in zip(row_labels, [obs, exp, res]):
-                if row_label == 'Observed':
-                    row = [row_label] + [f'{v:,}' for v in row]
+                if row_label == "Observed":
+                    row = [row_label] + [f"{v:,}" for v in row]
                 else:
-                    row = [row_label] + [f'{v:,.2f}' for v in row]
+                    row = [row_label] + [f"{v:,.2f}" for v in row]
                 rows.append(row)
 
             if html:
-                rows = rich_html(rows, header=[''] + col_labels,
-                                 row_cell_func=row_cell_func,
-                                 merge_identical=False)
+                rows = rich_html(
+                    rows,
+                    header=[""] + col_labels,
+                    row_cell_func=row_cell_func,
+                    merge_identical=False,
+                )
             else:
-                header, rows = formatted_cells(
-                    rows, header=[''] + col_labels)
+                header, rows = formatted_cells(rows, header=[""] + col_labels)
                 rows = simple_format(header, rows)
 
         else:
@@ -184,25 +197,30 @@ class CategoryCounts:
             col_labels = self.observed.template.names[1]
             row_cell_func = _format_row_cell(row_labels)
             result = []
-            for caption, table in zip(('Observed', 'Expected', 'Residuals'),
-                                      (obs, exp, res)):
+            for caption, table in zip(
+                ("Observed", "Expected", "Residuals"), (obs, exp, res)
+            ):
                 rows = []
                 for i, r in enumerate(table):
-                    if caption == 'Observed':
-                        r = [f'{v:,}' for v in r]
+                    if caption == "Observed":
+                        r = [f"{v:,}" for v in r]
                     else:
-                        r = [f'{v:,.2f}' for v in r]
+                        r = [f"{v:,.2f}" for v in r]
                     rows.append([row_labels[i]] + r)
                 if html:
-                    result.append(rich_html(rows, header=[''] + col_labels,
-                                            caption=f'<b>{caption}</b>',
-                                            row_cell_func=row_cell_func,
-                                            merge_identical=False))
+                    result.append(
+                        rich_html(
+                            rows,
+                            header=[""] + col_labels,
+                            caption=f"<b>{caption}</b>",
+                            row_cell_func=row_cell_func,
+                            merge_identical=False,
+                        )
+                    )
                 else:
-                    header, rows = formatted_cells(rows,
-                                                   header=[''] + col_labels)
+                    header, rows = formatted_cells(rows, header=[""] + col_labels)
                     result.append(simple_format(header, rows, title=caption))
-            joiner = '<br>' if html else '\n'
+            joiner = "<br>" if html else "\n"
             rows = joiner.join(result)
         return rows
 
@@ -233,7 +251,7 @@ class CategoryCounts:
     @property
     def residuals(self):
         if not self._residuals:
-            r = (self.observed.array - self.expected.array)
+            r = self.observed.array - self.expected.array
             r /= sqrt(self.expected.array)
             self._residuals = self.observed.template.wrap(r)
         return self._residuals
@@ -243,7 +261,7 @@ class CategoryCounts:
         if not self._df:
             self._df = self.shape[0] - 1
             if len(self.shape) == 2:
-                self._df *= (self.shape[1] - 1)
+                self._df *= self.shape[1] - 1
         return self._df
 
     def chisq_test(self, shuffled=0):
@@ -258,11 +276,18 @@ class CategoryCounts:
         if not shuffled:
             pval = chisqprob(stat, self.df)
         else:
-            pval = estimate_pval(self.observed.array, calc_chisq,
-                                 num_reps=shuffled)
-        title = 'Chisq-test for independence'
-        result = TestResult(self.observed, self.expected, self.residuals,
-                            'chisq', stat, self.df, pval, test_name=title)
+            pval = estimate_pval(self.observed.array, calc_chisq, num_reps=shuffled)
+        title = "Chisq-test for independence"
+        result = TestResult(
+            self.observed,
+            self.expected,
+            self.residuals,
+            "chisq",
+            stat,
+            self.df,
+            pval,
+            test_name=title,
+        )
         return result
 
     def G_independence(self, pseudo_count=0, williams=True, shuffled=0):
@@ -275,49 +300,72 @@ class CategoryCounts:
             pvalue is estimated via resampling shuffled times from the observed
             data, preserving the marginals
         """
-        assert type(pseudo_count) == int, f'{pseudo_count} not an integer'
-        assert type(shuffled) == int, f'{shuffled} not an integer'
-        G = calc_G(self.observed.array, self.expected.array,
-                   pseudo_count=pseudo_count, williams=williams)
+        assert type(pseudo_count) == int, f"{pseudo_count} not an integer"
+        assert type(shuffled) == int, f"{shuffled} not an integer"
+        G = calc_G(
+            self.observed.array,
+            self.expected.array,
+            pseudo_count=pseudo_count,
+            williams=williams,
+        )
         if not shuffled:
             pval = chisqprob(G, self.df)
         else:
-            pval = estimate_pval(self.observed.array, calc_G,
-                                 num_reps=shuffled)
-        title = 'G-test for independence'
+            pval = estimate_pval(self.observed.array, calc_G, num_reps=shuffled)
+        title = "G-test for independence"
         if williams:
-            title = f'{title} (with Williams correction)'
-        result = TestResult(self.observed, self.expected, self.residuals,
-                            'G', G, self.df, pval, test_name=title)
+            title = f"{title} (with Williams correction)"
+        result = TestResult(
+            self.observed,
+            self.expected,
+            self.residuals,
+            "G",
+            G,
+            self.df,
+            pval,
+            test_name=title,
+        )
         return result
 
     def G_fit(self, pseudo_count=0, williams=True):
         """performs the goodness-of-fit G test"""
-        assert type(pseudo_count) == int, f'{pseudo_count} not an integer'
+        assert type(pseudo_count) == int, f"{pseudo_count} not an integer"
         obs = self.observed.array
         if pseudo_count:
             obs += pseudo_count
 
-        G, pval = G_fit(obs.flatten(), self.expected.array.flatten(),
-                        williams=williams)
-        title = 'G-test goodness-of-fit'
+        G, pval = G_fit(obs.flatten(), self.expected.array.flatten(), williams=williams)
+        title = "G-test goodness-of-fit"
         if williams:
-            title = f'{title} (with Williams correction)'
+            title = f"{title} (with Williams correction)"
 
-        result = TestResult(self.observed, self.expected, self.residuals,
-                            'G', G, self.df, pval, test_name=title)
+        result = TestResult(
+            self.observed,
+            self.expected,
+            self.residuals,
+            "G",
+            G,
+            self.df,
+            pval,
+            test_name=title,
+        )
         return result
 
     def todict(self):
-        result = dict(observed=self.observed.todict(),
-                      expected=self.expected.todict(),
-                      residuals=self.residuals.todict())
+        result = dict(
+            observed=self.observed.todict(),
+            expected=self.expected.todict(),
+            residuals=self.residuals.todict(),
+        )
         return result
+
 
 class TestResult:
     """result of a contingency test"""
-    def __init__(self, observed, expected, residuals, stat_name, stat, df,
-                 pvalue, test_name=""):
+
+    def __init__(
+        self, observed, expected, residuals, stat_name, stat, df, pvalue, test_name=""
+    ):
         """
         Parameters
         ----------
@@ -349,34 +397,34 @@ class TestResult:
         setattr(self, stat_name, stat)
 
     def _get_repr_(self):
-        header = [str(self.stat_name), 'df', 'pvalue']
+        header = [str(self.stat_name), "df", "pvalue"]
         if self.pvalue > 1e-3:
-            pval = f'{self.pvalue:.4f}'
+            pval = f"{self.pvalue:.4f}"
         else:
-            pval = f'{self.pvalue:.4e}'
-        rows = [[f'{self.stat:.3f}', f'{self.df}', pval]]
+            pval = f"{self.pvalue:.4e}"
+        rows = [[f"{self.stat:.3f}", f"{self.df}", pval]]
         return header, rows
 
     def __repr__(self):
         h, r = self._get_repr_()
         h, r = formatted_cells(r, header=h)
         result = simple_format(h, r, title=self.test_name)
-        components = CategoryCounts(self.observed.todict(),
-                                    expected=self.expected.todict())
+        components = CategoryCounts(
+            self.observed.todict(), expected=self.expected.todict()
+        )
         result = [result, str(components)]
-        return '\n'.join(result)
+        return "\n".join(result)
 
     def __str__(self):
         return repr(self)
 
     def _repr_html_(self):
         from cogent3.util.table import Table
+
         h, r = self._get_repr_()
         table = Table(h, r, title=self.test_name)
-        components = CategoryCounts(self.observed.todict(),
-                                    expected=self.expected.todict())
+        components = CategoryCounts(
+            self.observed.todict(), expected=self.expected.todict()
+        )
         html = [table._repr_html_(include_shape=False), components._repr_html_()]
-        return '\n'.join(html)
-
-
-
+        return "\n".join(html)

@@ -10,9 +10,13 @@ inputs_from_dict_array function.
 Both return a PhyloNode object of the UPGMA cluster
 """
 
-from numpy import array, ravel, argmin, take, sum, average, ma, diag
+import numpy
+
+from numpy import argmin, array, average, diag, ma, ravel, sum, take
+
 from cogent3.core.tree import PhyloNode
 from cogent3.util.dict_array import DictArray
+
 
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -23,7 +27,7 @@ __maintainer__ = "Catherine Lozupone"
 __email__ = "lozupone@colorado.edu"
 __status__ = "Production"
 
-import numpy
+
 numerictypes = numpy.core.numerictypes.sctype2char
 Float = numerictypes(float)
 BIG_NUM = 1e305
@@ -41,9 +45,9 @@ def upgma(pairwise_distances):
     index = 0
     for node in tree.traverse():
         if not node.parent:
-            node.name = 'root'
+            node.name = "root"
         elif not node.name:
-            node.name = 'edge.' + str(index)
+            node.name = "edge." + str(index)
             index += 1
     return tree
 
@@ -108,9 +112,9 @@ def condense_node_order(matrix, smallest_index, node_order):
     d = distance / 2.0
     for n in nodes:
         if n.children:
-            n.length= d - n.children[0].TipLength
+            n.length = d - n.children[0].TipLength
         else:
-            n.length= d
+            n.length = d
         n.TipLength = d
     # combine the two nodes into a new PhyloNode object
     new_node = PhyloNode()
@@ -146,8 +150,7 @@ def UPGMA_cluster(matrix, node_order, large_number):
         if index1 == index2:
             matrix[diag([True] * len(matrix))] = large_number
             smallest_index = find_smallest_index(matrix)
-        row_order = condense_node_order(matrix, smallest_index,
-                                        node_order)
+        row_order = condense_node_order(matrix, smallest_index, node_order)
         matrix = condense_matrix(matrix, smallest_index, large_number)
         tree = node_order[smallest_index[0]]
     return tree
@@ -156,6 +159,6 @@ def UPGMA_cluster(matrix, node_order, large_number):
 def inputs_from_dict_array(darr):
     """makes inputs for UPGMA_cluster from a DictArray object
     """
-    darr.array += (numpy.eye(darr.shape[0]) * BIG_NUM)
+    darr.array += numpy.eye(darr.shape[0]) * BIG_NUM
     nodes = list(map(PhyloNode, darr.keys()))
     return darr.array, nodes

@@ -4,6 +4,7 @@ by a parameter controller"""
 
 from cogent3.util.misc import adjusted_gt_minprob
 
+
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
@@ -22,14 +23,14 @@ class Setting(object):
             assert len(self.value) == len(names)
             if is_probs:
                 value = adjusted_gt_minprob(
-                    adjusted_gt_minprob(self.value, minprob=1e-6))
+                    adjusted_gt_minprob(self.value, minprob=1e-6)
+                )
             value = {n: v for n, v in zip(names, value)}
 
         if self.is_constant:
             result = dict(value=value, is_constant=True)
         else:
-            result = dict(init=value, lower=self.lower,
-                          upper=self.upper)
+            result = dict(init=value, lower=self.lower, upper=self.upper)
         return result
 
 
@@ -56,9 +57,10 @@ class Var(Setting):
     def __repr__(self):
         constraints = []
         for (template, bound) in [
-                ("%s<", self.lower),
-                ("(%s)", self.value),
-                ("<%s", self.upper)]:
+            ("%s<", self.lower),
+            ("(%s)", self.value),
+            ("<%s", self.upper),
+        ]:
             if bound is not None:
                 constraints.append(template % bound)
         return "Var(%s)" % " ".join(constraints)

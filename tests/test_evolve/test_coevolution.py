@@ -6,48 +6,101 @@
 File created on 22 May 2007.
 """
 
-from tempfile import mktemp
-from os import remove, environ
+from os import environ, remove
 from os.path import exists
-from numpy import zeros, ones, array, transpose, arange, nan, log, e, sqrt,\
-    greater_equal, less_equal
+from tempfile import mktemp
 
-from cogent3.maths.stats.number import CategoryCounter
-from cogent3.util.unit_test import TestCase, main
-from cogent3 import DNA, RNA, PROTEIN, LoadTree, LoadSeqs
-from cogent3.core.alphabet import CharAlphabet
-from cogent3.core.alphabet import CharAlphabet, Alphabet
-from cogent3.maths.stats.distribution import binomial_exact
+from numpy import (
+    arange,
+    array,
+    e,
+    greater_equal,
+    less_equal,
+    log,
+    nan,
+    ones,
+    sqrt,
+    transpose,
+    zeros,
+)
+
+from cogent3 import DNA, PROTEIN, RNA, LoadSeqs, LoadTree
 from cogent3.core.alignment import ArrayAlignment
+from cogent3.core.alphabet import Alphabet, CharAlphabet
+from cogent3.evolve.coevolution import (
+    DEFAULT_NULL_VALUE,
+    AAGapless,
+    aln_position_pairs_cmp_threshold,
+    aln_position_pairs_ge_threshold,
+    aln_position_pairs_le_threshold,
+    ancestral_state_alignment,
+    ancestral_state_pair,
+    ancestral_state_position,
+    ancestral_states_input_validation,
+    build_coevolution_matrix_filepath,
+    build_rate_matrix,
+    calc_pair_scale,
+    coevolution_matrix_to_csv,
+    coevolve_alignment,
+    coevolve_alignments,
+    coevolve_alignments_validation,
+    coevolve_pair,
+    coevolve_position,
+    count_ge_threshold,
+    count_le_threshold,
+    csv_to_coevolution_matrix,
+    filter_exclude_positions,
+    filter_non_parsimony_informative,
+    filter_threshold_based_multiple_interdependency,
+    freqs_from_aln,
+    freqs_to_array,
+    get_allowed_perturbations,
+    get_ancestral_seqs,
+    get_dg,
+    get_dgg,
+    get_positional_frequencies,
+    get_positional_probabilities,
+    get_subalignments,
+    identify_aln_positions_above_threshold,
+    ignore_excludes,
+    is_parsimony_informative,
+    join_positions,
+    ltm_to_symmetric,
+    make_weights,
+    merge_alignments,
+    mi,
+    mi_alignment,
+    mi_pair,
+    mi_position,
+    n_random_seqs,
+    nmi,
+    nmi_alignment,
+    nmi_pair,
+    nmi_position,
+    normalized_mi,
+    parse_coevolution_matrix_filepath,
+    pickle_coevolution_result,
+    probs_from_dict,
+    protein_dict,
+    resampled_mi_alignment,
+    sca_alignment,
+    sca_input_validation,
+    sca_pair,
+    sca_position,
+    unpickle_coevolution_result,
+    validate_alignment,
+    validate_alphabet,
+    validate_ancestral_seqs,
+    validate_position,
+    validate_tree,
+)
+from cogent3.evolve.models import DSO78_freqs, DSO78_matrix
+from cogent3.evolve.substitution_model import Empirical, Parametric
+from cogent3.maths.stats.distribution import binomial_exact
+from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util.misc import get_tmp_filename
-from cogent3.evolve.models import DSO78_matrix, DSO78_freqs
-from cogent3.evolve.substitution_model import Parametric, Empirical
-from cogent3.evolve.coevolution import mi_alignment, nmi_alignment,\
-    resampled_mi_alignment, sca_alignment, make_weights,\
-    DEFAULT_NULL_VALUE,\
-    build_rate_matrix, coevolve_pair, validate_position, validate_alphabet,\
-    validate_alignment, unpickle_coevolution_result, mi,\
-    sca_pair, csv_to_coevolution_matrix, sca_position,\
-    coevolve_position, sca_input_validation, coevolve_alignment, \
-    probs_from_dict, pickle_coevolution_result, \
-    parse_coevolution_matrix_filepath, normalized_mi, n_random_seqs, \
-    mi_position, mi_pair, calc_pair_scale, coevolve_alignments, protein_dict,\
-    ignore_excludes, merge_alignments, ltm_to_symmetric, join_positions,\
-    is_parsimony_informative, identify_aln_positions_above_threshold, \
-    get_subalignments, get_positional_probabilities, \
-    get_positional_frequencies, get_dgg, get_dg, get_allowed_perturbations, \
-    freqs_to_array, freqs_from_aln, \
-    filter_threshold_based_multiple_interdependency, \
-    filter_non_parsimony_informative, filter_exclude_positions, \
-    coevolution_matrix_to_csv, count_le_threshold, count_ge_threshold, \
-    nmi_position, nmi_pair, AAGapless, ancestral_state_position, \
-    ancestral_state_pair, coevolve_alignments_validation, \
-    ancestral_state_alignment, nmi, build_coevolution_matrix_filepath,\
-    aln_position_pairs_cmp_threshold, validate_tree, validate_ancestral_seqs,\
-    validate_ancestral_seqs, get_ancestral_seqs, \
-    ancestral_states_input_validation, ancestral_state_pair,\
-    aln_position_pairs_ge_threshold, aln_position_pairs_ge_threshold,\
-    aln_position_pairs_le_threshold
+from cogent3.util.unit_test import TestCase, main
+
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -64,42 +117,106 @@ class CoevolutionTests(TestCase):
 
     def setUp(self):
         """Set up variables for us in tests """
-        self.run_slow_tests = int(environ.get('TEST_SLOW_APPC', 0))
+        self.run_slow_tests = int(environ.get("TEST_SLOW_APPC", 0))
         # Data used in SCA tests
-        self.dna_aln = ArrayAlignment(data=list(zip(
-            list(range(4)), ['ACGT', 'AGCT', 'ACCC', 'TAGG'])), moltype=DNA)
-        self.rna_aln = ArrayAlignment(data=list(zip(
-            list(range(4)), ['ACGU', 'AGCU', 'ACCC', 'UAGG'])), moltype=RNA)
-        self.protein_aln = ArrayAlignment(data=list(zip(
-            list(range(4)), ['ACGP', 'AGCT', 'ACCC', 'TAGG'])), moltype=PROTEIN)
-        self.dna_aln_gapped = ArrayAlignment(data=list(zip(list(range(4)),
-                                                           ['A-CGT', 'AGC-T', '-ACCC', 'TAGG-'])), moltype=DNA)
-        self.freq = ArrayAlignment(data=list(zip(list(range(20)),
-                                                 ['TCT', 'CCT', 'CCC', 'CCC',
-                                                  'CCG', 'CC-', 'AC-', 'AC-', 'AA-', 'AA-', 'GA-', 'GA-', 'GA-', 'GA-',
-                                                  'GA-', 'G--', 'G--', 'G--', 'G--', 'G--', ])), moltype=PROTEIN)
-        self.two_pos = ArrayAlignment(data=list(zip(list(map(str, list(range(20)))),
-                                                    ['TC', 'CC', 'CC', 'CC', 'CC', 'CC', 'AC', 'AC',
-                                                     'AA', 'AA', 'GA', 'GA', 'GA', 'GA', 'GA', 'GT',
-                                                     'GT', 'GT', 'GT', 'GT'])), moltype=PROTEIN)
+        self.dna_aln = ArrayAlignment(
+            data=list(zip(list(range(4)), ["ACGT", "AGCT", "ACCC", "TAGG"])),
+            moltype=DNA,
+        )
+        self.rna_aln = ArrayAlignment(
+            data=list(zip(list(range(4)), ["ACGU", "AGCU", "ACCC", "UAGG"])),
+            moltype=RNA,
+        )
+        self.protein_aln = ArrayAlignment(
+            data=list(zip(list(range(4)), ["ACGP", "AGCT", "ACCC", "TAGG"])),
+            moltype=PROTEIN,
+        )
+        self.dna_aln_gapped = ArrayAlignment(
+            data=list(zip(list(range(4)), ["A-CGT", "AGC-T", "-ACCC", "TAGG-"])),
+            moltype=DNA,
+        )
+        self.freq = ArrayAlignment(
+            data=list(
+                zip(
+                    list(range(20)),
+                    [
+                        "TCT",
+                        "CCT",
+                        "CCC",
+                        "CCC",
+                        "CCG",
+                        "CC-",
+                        "AC-",
+                        "AC-",
+                        "AA-",
+                        "AA-",
+                        "GA-",
+                        "GA-",
+                        "GA-",
+                        "GA-",
+                        "GA-",
+                        "G--",
+                        "G--",
+                        "G--",
+                        "G--",
+                        "G--",
+                    ],
+                )
+            ),
+            moltype=PROTEIN,
+        )
+        self.two_pos = ArrayAlignment(
+            data=list(
+                zip(
+                    list(map(str, list(range(20)))),
+                    [
+                        "TC",
+                        "CC",
+                        "CC",
+                        "CC",
+                        "CC",
+                        "CC",
+                        "AC",
+                        "AC",
+                        "AA",
+                        "AA",
+                        "GA",
+                        "GA",
+                        "GA",
+                        "GA",
+                        "GA",
+                        "GT",
+                        "GT",
+                        "GT",
+                        "GT",
+                        "GT",
+                    ],
+                )
+            ),
+            moltype=PROTEIN,
+        )
         self.tree20 = LoadTree(treestring=tree20_string)
         self.gpcr_aln = gpcr_aln
         self.myos_aln = myos_aln
         # a made-up dict of base frequencies to use as the natural freqs
         # for SCA calcs on DNA seqs
-        self.dna_base_freqs = dict(list(zip('ACGT', [0.25] * 4)))
-        self.rna_base_freqs = dict(list(zip('ACGU', [0.25] * 4)))
-        self.protein_aln4 = ArrayAlignment([('A1', 'AACF'), ('A12', 'AADF'),
-                                            ('A123', 'ADCF'), ('A111', 'AAD-')],
-                                           moltype=PROTEIN)
-        self.rna_aln4 = ArrayAlignment([('A1', 'AAUU'), ('A12', 'ACGU'),
-                                        ('A123', 'UUAA'), ('A111', 'AAA-')],
-                                       moltype=RNA)
-        self.dna_aln4 = ArrayAlignment([('A1', 'AATT'), ('A12', 'ACGT'),
-                                        ('A123', 'TTAA'), ('A111', 'AAA?')],
-                                       moltype=DNA)
+        self.dna_base_freqs = dict(list(zip("ACGT", [0.25] * 4)))
+        self.rna_base_freqs = dict(list(zip("ACGU", [0.25] * 4)))
+        self.protein_aln4 = ArrayAlignment(
+            [("A1", "AACF"), ("A12", "AADF"), ("A123", "ADCF"), ("A111", "AAD-")],
+            moltype=PROTEIN,
+        )
+        self.rna_aln4 = ArrayAlignment(
+            [("A1", "AAUU"), ("A12", "ACGU"), ("A123", "UUAA"), ("A111", "AAA-")],
+            moltype=RNA,
+        )
+        self.dna_aln4 = ArrayAlignment(
+            [("A1", "AATT"), ("A12", "ACGT"), ("A123", "TTAA"), ("A111", "AAA?")],
+            moltype=DNA,
+        )
         self.tree4 = LoadTree(
-            treestring="((A1:0.5,A111:0.5):0.5,(A12:0.5,A123:0.5):0.5);")
+            treestring="((A1:0.5,A111:0.5):0.5,(A12:0.5,A123:0.5):0.5);"
+        )
 
     def test_alignment_analyses_moltype_protein(self):
         """ alignment methods work with moltype = PROTEIN """
@@ -121,8 +238,12 @@ class CoevolutionTests(TestCase):
         self.assertEqual(r.shape, (4, 4))
         r = nmi_alignment(self.rna_aln4)
         self.assertEqual(r.shape, (4, 4))
-        r = sca_alignment(self.rna_aln4, cutoff=0.75, alphabet='ACGU',
-                          background_freqs=self.rna_base_freqs)
+        r = sca_alignment(
+            self.rna_aln4,
+            cutoff=0.75,
+            alphabet="ACGU",
+            background_freqs=self.rna_base_freqs,
+        )
         self.assertEqual(r.shape, (4, 4))
 
         r = ancestral_state_alignment(self.rna_aln4, self.tree4)
@@ -135,8 +256,12 @@ class CoevolutionTests(TestCase):
         self.assertEqual(r.shape, (4, 4))
         r = nmi_alignment(self.dna_aln4)
         self.assertEqual(r.shape, (4, 4))
-        r = sca_alignment(self.dna_aln4, cutoff=0.75, alphabet='ACGT',
-                          background_freqs=self.dna_base_freqs)
+        r = sca_alignment(
+            self.dna_aln4,
+            cutoff=0.75,
+            alphabet="ACGT",
+            background_freqs=self.dna_base_freqs,
+        )
         self.assertEqual(r.shape, (4, 4))
 
         r = ancestral_state_alignment(self.dna_aln4, self.tree4)
@@ -144,10 +269,10 @@ class CoevolutionTests(TestCase):
 
     def test_join_positions(self):
         """ join_positions functions as expected """
-        self.assertEqual(join_positions(list('ABCD'), list('WXYZ')),
-                         ['AW', 'BX', 'CY', 'DZ'])
-        self.assertEqual(join_positions(list('AAA'), list('BBB')),
-                         ['AB', 'AB', 'AB'])
+        self.assertEqual(
+            join_positions(list("ABCD"), list("WXYZ")), ["AW", "BX", "CY", "DZ"]
+        )
+        self.assertEqual(join_positions(list("AAA"), list("BBB")), ["AB", "AB", "AB"])
         self.assertEqual(join_positions([], []), [])
 
     def test_mi(self):
@@ -164,463 +289,579 @@ class CoevolutionTests(TestCase):
 
     def test_mi_pair(self):
         """ mi_pair calculates mi from a pair of columns """
-        aln = ArrayAlignment(data={'1': 'AB', '2': 'AB'}, moltype=PROTEIN)
+        aln = ArrayAlignment(data={"1": "AB", "2": "AB"}, moltype=PROTEIN)
         self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), 0.0)
-        aln = ArrayAlignment(data={'1': 'AB', '2': 'BA'}, moltype=PROTEIN)
+        aln = ArrayAlignment(data={"1": "AB", "2": "BA"}, moltype=PROTEIN)
         self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), 1.0)
         # order of positions doesn't matter (when it shouldn't)
-        aln = ArrayAlignment(data={'1': 'AB', '2': 'AB'}, moltype=PROTEIN)
-        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1),
-                              mi_pair(aln, pos1=1, pos2=0))
-        aln = ArrayAlignment(data={'1': 'AB', '2': 'BA'}, moltype=PROTEIN)
-        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1),
-                              mi_pair(aln, pos1=1, pos2=0))
+        aln = ArrayAlignment(data={"1": "AB", "2": "AB"}, moltype=PROTEIN)
+        self.assertFloatEqual(
+            mi_pair(aln, pos1=0, pos2=1), mi_pair(aln, pos1=1, pos2=0)
+        )
+        aln = ArrayAlignment(data={"1": "AB", "2": "BA"}, moltype=PROTEIN)
+        self.assertFloatEqual(
+            mi_pair(aln, pos1=0, pos2=1), mi_pair(aln, pos1=1, pos2=0)
+        )
 
     def test_wrapper_functions_handle_invalid_parameters(self):
         """coevolve_*: functions error on missing parameters"""
         # missing cutoff
-        aln = ArrayAlignment(data={'1': 'AC', '2': 'AC'}, moltype=PROTEIN)
+        aln = ArrayAlignment(data={"1": "AC", "2": "AC"}, moltype=PROTEIN)
         self.assertRaises(ValueError, coevolve_pair, sca_pair, aln, 0, 1)
-        self.assertRaises(ValueError, coevolve_position,
-                          sca_position, aln, 0)
+        self.assertRaises(ValueError, coevolve_position, sca_position, aln, 0)
         self.assertRaises(ValueError, coevolve_alignment, sca_alignment, aln)
-        self.assertRaises(ValueError, coevolve_alignments,
-                          sca_alignment, aln, aln)
+        self.assertRaises(ValueError, coevolve_alignments, sca_alignment, aln, aln)
 
     def test_coevolve_pair(self):
         """coevolve_pair: returns same as pair methods called directly """
-        aln = ArrayAlignment(data={'1': 'AC', '2': 'AC'}, moltype=PROTEIN)
-        t = LoadTree(treestring='(1:0.5,2:0.5);')
+        aln = ArrayAlignment(data={"1": "AC", "2": "AC"}, moltype=PROTEIN)
+        t = LoadTree(treestring="(1:0.5,2:0.5);")
         cutoff = 0.50
         # mi_pair == coevolve_pair(mi_pair,...)
-        self.assertFloatEqual(coevolve_pair(mi_pair, aln, pos1=0, pos2=1),
-                              mi_pair(aln, pos1=0, pos2=1))
-        self.assertFloatEqual(coevolve_pair(nmi_pair, aln, pos1=0, pos2=1),
-                              nmi_pair(aln, pos1=0, pos2=1))
-        self.assertFloatEqual(coevolve_pair(ancestral_state_pair, aln, pos1=0,
-                                            pos2=1, tree=t), ancestral_state_pair(aln, pos1=0, pos2=1, tree=t))
-        self.assertFloatEqual(coevolve_pair(sca_pair, aln, pos1=0,
-                                            pos2=1, cutoff=cutoff), sca_pair(aln, pos1=0, pos2=1, cutoff=cutoff))
+        self.assertFloatEqual(
+            coevolve_pair(mi_pair, aln, pos1=0, pos2=1), mi_pair(aln, pos1=0, pos2=1)
+        )
+        self.assertFloatEqual(
+            coevolve_pair(nmi_pair, aln, pos1=0, pos2=1), nmi_pair(aln, pos1=0, pos2=1)
+        )
+        self.assertFloatEqual(
+            coevolve_pair(ancestral_state_pair, aln, pos1=0, pos2=1, tree=t),
+            ancestral_state_pair(aln, pos1=0, pos2=1, tree=t),
+        )
+        self.assertFloatEqual(
+            coevolve_pair(sca_pair, aln, pos1=0, pos2=1, cutoff=cutoff),
+            sca_pair(aln, pos1=0, pos2=1, cutoff=cutoff),
+        )
 
     def test_coevolve_position(self):
         """coevolve_position: returns same as position methods called directly
         """
-        aln = ArrayAlignment(data={'1': 'AC', '2': 'AC'}, moltype=PROTEIN)
-        t = LoadTree(treestring='(1:0.5,2:0.5);')
+        aln = ArrayAlignment(data={"1": "AC", "2": "AC"}, moltype=PROTEIN)
+        t = LoadTree(treestring="(1:0.5,2:0.5);")
         cutoff = 0.50
         # mi_position == coevolve_position(mi_position,...)
-        self.assertFloatEqual(coevolve_position(mi_position, aln, position=0),
-                              mi_position(aln, position=0))
-        self.assertFloatEqual(coevolve_position(nmi_position, aln, position=0),
-                              nmi_position(aln, position=0))
-        self.assertFloatEqual(coevolve_position(
-            ancestral_state_position, aln, position=0,
-            tree=t), ancestral_state_position(aln, position=0, tree=t))
-        self.assertFloatEqual(coevolve_position(sca_position, aln, position=0,
-                                                cutoff=cutoff), sca_position(aln, position=0, cutoff=cutoff))
+        self.assertFloatEqual(
+            coevolve_position(mi_position, aln, position=0),
+            mi_position(aln, position=0),
+        )
+        self.assertFloatEqual(
+            coevolve_position(nmi_position, aln, position=0),
+            nmi_position(aln, position=0),
+        )
+        self.assertFloatEqual(
+            coevolve_position(ancestral_state_position, aln, position=0, tree=t),
+            ancestral_state_position(aln, position=0, tree=t),
+        )
+        self.assertFloatEqual(
+            coevolve_position(sca_position, aln, position=0, cutoff=cutoff),
+            sca_position(aln, position=0, cutoff=cutoff),
+        )
 
     def test_coevolve_alignment(self):
         """coevolve_alignment: returns same as alignment methods"""
-        aln = ArrayAlignment(data={'1': 'AC', '2': 'AC'}, moltype=PROTEIN)
-        t = LoadTree(treestring='(1:0.5,2:0.5);')
+        aln = ArrayAlignment(data={"1": "AC", "2": "AC"}, moltype=PROTEIN)
+        t = LoadTree(treestring="(1:0.5,2:0.5);")
         cutoff = 0.50
         # mi_alignment == coevolve_alignment(mi_alignment,...)
-        self.assertFloatEqual(coevolve_alignment(mi_alignment, aln),
-                              mi_alignment(aln))
-        self.assertFloatEqual(coevolve_alignment(mip_alignment, aln),
-                              mip_alignment(aln))
-        self.assertFloatEqual(coevolve_alignment(mia_alignment, aln),
-                              mia_alignment(aln))
-        self.assertFloatEqual(coevolve_alignment(nmi_alignment, aln),
-                              nmi_alignment(aln))
-        self.assertFloatEqual(coevolve_alignment(ancestral_state_alignment, aln,
-                                                 tree=t), ancestral_state_alignment(aln, tree=t))
-        self.assertFloatEqual(coevolve_alignment(sca_alignment, aln,
-                                                 cutoff=cutoff), sca_alignment(aln, cutoff=cutoff))
+        self.assertFloatEqual(coevolve_alignment(mi_alignment, aln), mi_alignment(aln))
+        self.assertFloatEqual(
+            coevolve_alignment(mip_alignment, aln), mip_alignment(aln)
+        )
+        self.assertFloatEqual(
+            coevolve_alignment(mia_alignment, aln), mia_alignment(aln)
+        )
+        self.assertFloatEqual(
+            coevolve_alignment(nmi_alignment, aln), nmi_alignment(aln)
+        )
+        self.assertFloatEqual(
+            coevolve_alignment(ancestral_state_alignment, aln, tree=t),
+            ancestral_state_alignment(aln, tree=t),
+        )
+        self.assertFloatEqual(
+            coevolve_alignment(sca_alignment, aln, cutoff=cutoff),
+            sca_alignment(aln, cutoff=cutoff),
+        )
 
     def test_coevolve_alignments_validation_idenifiers(self):
         """coevolve_alignments_validation: seq/tree validation functions
         """
         method = sca_alignment
-        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AD'}, moltype=PROTEIN)
-        aln2 = ArrayAlignment(data={'1': 'EFW', '2': 'EGY'}, moltype=PROTEIN)
-        t = LoadTree(treestring='(1:0.5,2:0.5);')
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AD"}, moltype=PROTEIN)
+        aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
+        t = LoadTree(treestring="(1:0.5,2:0.5);")
         # OK w/ no tree
         coevolve_alignments_validation(method, aln1, aln2, 2, None)
         # OK w/ tree
         coevolve_alignments_validation(method, aln1, aln2, 2, None, tree=t)
         # If there is a plus present in identifiers, we only care about the
         # text before the colon
-        aln1 = ArrayAlignment(
-            data={'1+a': 'AC', '2+b': 'AD'}, moltype=PROTEIN)
-        aln2 = ArrayAlignment(
-            data={'1 + c': 'EFW', '2 + d': 'EGY'}, moltype=PROTEIN)
-        t = LoadTree(treestring='(1+e:0.5,2 + f:0.5);')
+        aln1 = ArrayAlignment(data={"1+a": "AC", "2+b": "AD"}, moltype=PROTEIN)
+        aln2 = ArrayAlignment(data={"1 + c": "EFW", "2 + d": "EGY"}, moltype=PROTEIN)
+        t = LoadTree(treestring="(1+e:0.5,2 + f:0.5);")
         # OK w/ no tree
         coevolve_alignments_validation(method, aln1, aln2, 2, None)
         # OK w/ tree
         coevolve_alignments_validation(method, aln1, aln2, 2, None, tree=t)
 
         # mismatch b/w alignments seq names
-        aln1 = ArrayAlignment(data={'3': 'AC', '2': 'AD'}, moltype=PROTEIN)
-        aln2 = ArrayAlignment(data={'1': 'EFW', '2': 'EGY'}, moltype=PROTEIN)
-        t = LoadTree(treestring='(1:0.5,2:0.5);')
-        self.assertRaises(AssertionError, coevolve_alignments_validation,
-                          method, aln1, aln2, 2, None, tree=t)
+        aln1 = ArrayAlignment(data={"3": "AC", "2": "AD"}, moltype=PROTEIN)
+        aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
+        t = LoadTree(treestring="(1:0.5,2:0.5);")
+        self.assertRaises(
+            AssertionError,
+            coevolve_alignments_validation,
+            method,
+            aln1,
+            aln2,
+            2,
+            None,
+            tree=t,
+        )
 
         # mismatch b/w alignments and tree seq names
-        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AD'}, moltype=PROTEIN)
-        aln2 = ArrayAlignment(data={'1': 'EFW', '2': 'EGY'}, moltype=PROTEIN)
-        t = LoadTree(treestring='(3:0.5,2:0.5);')
-        self.assertRaises(AssertionError,
-                          coevolve_alignments_validation, method,
-                          aln1, aln2, 2, None, tree=t)
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AD"}, moltype=PROTEIN)
+        aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
+        t = LoadTree(treestring="(3:0.5,2:0.5);")
+        self.assertRaises(
+            AssertionError,
+            coevolve_alignments_validation,
+            method,
+            aln1,
+            aln2,
+            2,
+            None,
+            tree=t,
+        )
 
         # mismatch b/w alignments in number of seqs
-        aln1 = ArrayAlignment(
-            data={'1': 'AC', '2': 'AD', '3': 'AA'}, moltype=PROTEIN)
-        aln2 = ArrayAlignment(data={'1': 'EFW', '2': 'EGY'}, moltype=PROTEIN)
-        t = LoadTree(treestring='(1:0.5,2:0.5);')
-        self.assertRaises(AssertionError, coevolve_alignments_validation,
-                          method, aln1, aln2, 2, None)
-        self.assertRaises(AssertionError, coevolve_alignments_validation,
-                          method, aln1, aln2, 2, None, tree=t)
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AD", "3": "AA"}, moltype=PROTEIN)
+        aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
+        t = LoadTree(treestring="(1:0.5,2:0.5);")
+        self.assertRaises(
+            AssertionError, coevolve_alignments_validation, method, aln1, aln2, 2, None
+        )
+        self.assertRaises(
+            AssertionError,
+            coevolve_alignments_validation,
+            method,
+            aln1,
+            aln2,
+            2,
+            None,
+            tree=t,
+        )
 
         # mismatch b/w alignments & tree in number of seqs
-        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AD'}, moltype=PROTEIN)
-        aln2 = ArrayAlignment(data={'1': 'EFW', '2': 'EGY'}, moltype=PROTEIN)
-        t = LoadTree(treestring='(1:0.5,(2:0.5,3:0.25));')
-        self.assertRaises(AssertionError, coevolve_alignments_validation,
-                          method, aln1, aln2, 2, None, tree=t)
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AD"}, moltype=PROTEIN)
+        aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
+        t = LoadTree(treestring="(1:0.5,(2:0.5,3:0.25));")
+        self.assertRaises(
+            AssertionError,
+            coevolve_alignments_validation,
+            method,
+            aln1,
+            aln2,
+            2,
+            None,
+            tree=t,
+        )
 
     def test_coevolve_alignments_validation_min_num_seqs(self):
         """coevolve_alignments_validation: ValueError on fewer than min_num_seqs """
         method = mi_alignment
         # too few sequences -> ValueError
-        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AD'}, moltype=PROTEIN)
-        aln2 = ArrayAlignment(data={'1': 'EFW', '2': 'EGY'}, moltype=PROTEIN)
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AD"}, moltype=PROTEIN)
+        aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
         coevolve_alignments_validation(method, aln1, aln2, 1, None)
         coevolve_alignments_validation(method, aln1, aln2, 2, None)
-        self.assertRaises(ValueError,
-                          coevolve_alignments_validation, method, aln1, aln2, 3, None)
+        self.assertRaises(
+            ValueError, coevolve_alignments_validation, method, aln1, aln2, 3, None
+        )
 
     def test_coevolve_alignments_validation_max_num_seqs(self):
         """coevolve_alignments_validation: min_num_seqs <= max_num_seqs
         """
         method = mi_alignment
         # min_num_seqs > max_num_seqs-> ValueError
-        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AD'}, moltype=PROTEIN)
-        aln2 = ArrayAlignment(data={'1': 'EFW', '2': 'EGY'}, moltype=PROTEIN)
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AD"}, moltype=PROTEIN)
+        aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
         coevolve_alignments_validation(method, aln1, aln2, 1, None)
         coevolve_alignments_validation(method, aln1, aln2, 1, 3)
         coevolve_alignments_validation(method, aln1, aln2, 2, 3)
-        self.assertRaises(ValueError,
-                          coevolve_alignments_validation, method, aln1, aln2, 3, 2)
+        self.assertRaises(
+            ValueError, coevolve_alignments_validation, method, aln1, aln2, 3, 2
+        )
 
     def test_coevolve_alignments_validation_moltypes(self):
         """coevolve_alignments_validation: valid for acceptable moltypes
         """
-        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AU'}, moltype=RNA)
-        aln2 = ArrayAlignment(data={'1': 'EFW', '2': 'EGY'}, moltype=PROTEIN)
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AU"}, moltype=RNA)
+        aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
         # different moltype
         coevolve_alignments_validation(mi_alignment, aln1, aln2, 2, None)
         coevolve_alignments_validation(nmi_alignment, aln1, aln2, 2, None)
-        coevolve_alignments_validation(
-            resampled_mi_alignment, aln1, aln2, 2, None)
-        self.assertRaises(AssertionError, coevolve_alignments_validation,
-                          sca_alignment, aln1, aln2, 2, None)
-        self.assertRaises(AssertionError, coevolve_alignments_validation,
-                          ancestral_state_alignment, aln1, aln2, 2, None)
+        coevolve_alignments_validation(resampled_mi_alignment, aln1, aln2, 2, None)
+        self.assertRaises(
+            AssertionError,
+            coevolve_alignments_validation,
+            sca_alignment,
+            aln1,
+            aln2,
+            2,
+            None,
+        )
+        self.assertRaises(
+            AssertionError,
+            coevolve_alignments_validation,
+            ancestral_state_alignment,
+            aln1,
+            aln2,
+            2,
+            None,
+        )
 
     def test_coevolve_alignments(self):
         """ coevolve_alignments: returns correct len(aln1) x len(aln2) matrix
          """
-        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AD'}, moltype=PROTEIN)
-        aln2 = ArrayAlignment(data={'1': 'EFW', '2': 'EGY'}, moltype=PROTEIN)
-        combined_aln =\
-            ArrayAlignment(
-                data={'1': 'ACEFW', '2': 'ADEGY'}, moltype=PROTEIN)
-        t = LoadTree(treestring='(1:0.5,2:0.5);')
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AD"}, moltype=PROTEIN)
+        aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
+        combined_aln = ArrayAlignment(
+            data={"1": "ACEFW", "2": "ADEGY"}, moltype=PROTEIN
+        )
+        t = LoadTree(treestring="(1:0.5,2:0.5);")
         cutoff = 0.50
         # MI
         m = mi_alignment(combined_aln)
-        expected = array([[m[2, 0], m[2, 1]],
-                          [m[3, 0], m[3, 1]], [m[4, 0], m[4, 1]]])
-        self.assertFloatEqual(coevolve_alignments(mi_alignment, aln1, aln2),
-                              expected)
+        expected = array([[m[2, 0], m[2, 1]], [m[3, 0], m[3, 1]], [m[4, 0], m[4, 1]]])
+        self.assertFloatEqual(coevolve_alignments(mi_alignment, aln1, aln2), expected)
         # MI (return_full=True)
-        self.assertFloatEqual(coevolve_alignments(mi_alignment, aln1, aln2,
-                                                  return_full=True), m)
+        self.assertFloatEqual(
+            coevolve_alignments(mi_alignment, aln1, aln2, return_full=True), m
+        )
         # NMI
         m = nmi_alignment(combined_aln)
-        expected = array([[m[2, 0], m[2, 1]],
-                          [m[3, 0], m[3, 1]], [m[4, 0], m[4, 1]]])
-        self.assertFloatEqual(coevolve_alignments(nmi_alignment, aln1, aln2),
-                              expected)
+        expected = array([[m[2, 0], m[2, 1]], [m[3, 0], m[3, 1]], [m[4, 0], m[4, 1]]])
+        self.assertFloatEqual(coevolve_alignments(nmi_alignment, aln1, aln2), expected)
         # AS
         m = ancestral_state_alignment(combined_aln, tree=t)
-        expected = array([[m[2, 0], m[2, 1]],
-                          [m[3, 0], m[3, 1]], [m[4, 0], m[4, 1]]])
+        expected = array([[m[2, 0], m[2, 1]], [m[3, 0], m[3, 1]], [m[4, 0], m[4, 1]]])
         self.assertFloatEqual(
-            coevolve_alignments(ancestral_state_alignment, aln1, aln2,
-                                tree=t), expected)
+            coevolve_alignments(ancestral_state_alignment, aln1, aln2, tree=t), expected
+        )
         # SCA
         m = sca_alignment(combined_aln, cutoff=cutoff)
-        expected = array([[m[2, 0], m[2, 1]],
-                          [m[3, 0], m[3, 1]], [m[4, 0], m[4, 1]]])
-        self.assertFloatEqual(coevolve_alignments(sca_alignment, aln1, aln2,
-                                                  cutoff=cutoff), expected)
+        expected = array([[m[2, 0], m[2, 1]], [m[3, 0], m[3, 1]], [m[4, 0], m[4, 1]]])
+        self.assertFloatEqual(
+            coevolve_alignments(sca_alignment, aln1, aln2, cutoff=cutoff), expected
+        )
 
     def test_coevolve_alignments_watches_min_num_seqs(self):
         """ coevolve_alignments: error on too few sequences """
-        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AD'}, moltype=PROTEIN)
-        aln2 = ArrayAlignment(data={'1': 'EFW', '2': 'EGY'}, moltype=PROTEIN)
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AD"}, moltype=PROTEIN)
+        aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
 
         coevolve_alignments(mi_alignment, aln1, aln2)
         coevolve_alignments(mi_alignment, aln1, aln2, min_num_seqs=0)
         coevolve_alignments(mi_alignment, aln1, aln2, min_num_seqs=1)
         coevolve_alignments(mi_alignment, aln1, aln2, min_num_seqs=2)
-        self.assertRaises(ValueError,
-                          coevolve_alignments, mi_alignment, aln1, aln2, min_num_seqs=3)
-        self.assertRaises(ValueError,
-                          coevolve_alignments, mi_alignment, aln1, aln2, min_num_seqs=50)
+        self.assertRaises(
+            ValueError, coevolve_alignments, mi_alignment, aln1, aln2, min_num_seqs=3
+        )
+        self.assertRaises(
+            ValueError, coevolve_alignments, mi_alignment, aln1, aln2, min_num_seqs=50
+        )
 
     def test_coevolve_alignments_watches_max_num_seqs(self):
         """ coevolve_alignments: filtering or error on too many sequences """
-        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AD', '3': 'YP'},
-                              moltype=PROTEIN)
-        aln2 = ArrayAlignment(data={'1': 'ACP', '2': 'EAD', '3': 'PYP'},
-                              moltype=PROTEIN)
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AD", "3": "YP"}, moltype=PROTEIN)
+        aln2 = ArrayAlignment(
+            data={"1": "ACP", "2": "EAD", "3": "PYP"}, moltype=PROTEIN
+        )
 
         # keep all seqs
-        tmp_filepath = get_tmp_filename(
-            prefix='tmp_test_coevolution', suffix='.fasta')
-        coevolve_alignments(mi_alignment, aln1, aln2, max_num_seqs=3,
-                            merged_aln_filepath=tmp_filepath)
+        tmp_filepath = get_tmp_filename(prefix="tmp_test_coevolution", suffix=".fasta")
+        coevolve_alignments(
+            mi_alignment, aln1, aln2, max_num_seqs=3, merged_aln_filepath=tmp_filepath
+        )
         self.assertEqual(LoadSeqs(tmp_filepath).num_seqs, 3)
 
         # keep 2 seqs
-        coevolve_alignments(mi_alignment, aln1, aln2, max_num_seqs=2,
-                            merged_aln_filepath=tmp_filepath)
+        coevolve_alignments(
+            mi_alignment, aln1, aln2, max_num_seqs=2, merged_aln_filepath=tmp_filepath
+        )
         self.assertEqual(LoadSeqs(tmp_filepath).num_seqs, 2)
 
         # error if no sequence filter
-        self.assertRaises(ValueError,
-                          coevolve_alignments, mi_alignment, aln1, aln2, max_num_seqs=2,
-                          merged_aln_filepath=tmp_filepath, sequence_filter=None)
+        self.assertRaises(
+            ValueError,
+            coevolve_alignments,
+            mi_alignment,
+            aln1,
+            aln2,
+            max_num_seqs=2,
+            merged_aln_filepath=tmp_filepath,
+            sequence_filter=None,
+        )
 
         # clean up the temporary file
         remove(tmp_filepath)
 
     def test_coevolve_alignments_different_MolType(self):
         """ coevolve_alignments: different MolTypes supported """
-        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AU'}, moltype=RNA)
-        aln2 = ArrayAlignment(data={'1': 'EFW', '2': 'EGY'}, moltype=PROTEIN)
-        combined_aln = ArrayAlignment(data={'1': 'ACEFW', '2': 'AUEGY'})
-        t = LoadTree(treestring='(1:0.5,2:0.5);')
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AU"}, moltype=RNA)
+        aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
+        combined_aln = ArrayAlignment(data={"1": "ACEFW", "2": "AUEGY"})
+        t = LoadTree(treestring="(1:0.5,2:0.5);")
         cutoff = 0.50
         # MI
         m = mi_alignment(combined_aln)
-        expected = array([[m[2, 0], m[2, 1]],
-                          [m[3, 0], m[3, 1]], [m[4, 0], m[4, 1]]])
-        self.assertFloatEqual(coevolve_alignments(mi_alignment, aln1, aln2),
-                              expected)
+        expected = array([[m[2, 0], m[2, 1]], [m[3, 0], m[3, 1]], [m[4, 0], m[4, 1]]])
+        self.assertFloatEqual(coevolve_alignments(mi_alignment, aln1, aln2), expected)
         # MI (return_full=True)
-        self.assertFloatEqual(coevolve_alignments(mi_alignment, aln1, aln2,
-                                                  return_full=True), m)
+        self.assertFloatEqual(
+            coevolve_alignments(mi_alignment, aln1, aln2, return_full=True), m
+        )
         # NMI
         m = nmi_alignment(combined_aln)
-        expected = array([[m[2, 0], m[2, 1]],
-                          [m[3, 0], m[3, 1]], [m[4, 0], m[4, 1]]])
-        self.assertFloatEqual(coevolve_alignments(nmi_alignment, aln1, aln2),
-                              expected)
+        expected = array([[m[2, 0], m[2, 1]], [m[3, 0], m[3, 1]], [m[4, 0], m[4, 1]]])
+        self.assertFloatEqual(coevolve_alignments(nmi_alignment, aln1, aln2), expected)
 
     def test_mi_pair_cols_default_exclude_handling(self):
         """ mi_pair returns null_value on excluded by default """
-        aln = ArrayAlignment(data={'1': 'AB', '2': '-B'}, moltype=PROTEIN)
+        aln = ArrayAlignment(data={"1": "AB", "2": "-B"}, moltype=PROTEIN)
+        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
+        aln = ArrayAlignment(data={"1": "-B", "2": "-B"}, moltype=PROTEIN)
+        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
+        aln = ArrayAlignment(data={"1": "AA", "2": "-B"}, moltype=PROTEIN)
+        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
+        aln = ArrayAlignment(data={"1": "AA", "2": "PB"}, moltype=PROTEIN)
         self.assertFloatEqual(
-            mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
-        aln = ArrayAlignment(data={'1': '-B', '2': '-B'}, moltype=PROTEIN)
-        self.assertFloatEqual(
-            mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
-        aln = ArrayAlignment(data={'1': 'AA', '2': '-B'}, moltype=PROTEIN)
-        self.assertFloatEqual(
-            mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
-        aln = ArrayAlignment(data={'1': 'AA', '2': 'PB'}, moltype=PROTEIN)
-        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1, excludes='P'),
-                              DEFAULT_NULL_VALUE)
+            mi_pair(aln, pos1=0, pos2=1, excludes="P"), DEFAULT_NULL_VALUE
+        )
 
     def test_mi_pair_cols_non_default_exclude_handling(self):
         """ mi_pair uses non-default exclude_handler when provided"""
-        aln = ArrayAlignment(data={'1': 'A-', '2': 'A-'}, moltype=PROTEIN)
+        aln = ArrayAlignment(data={"1": "A-", "2": "A-"}, moltype=PROTEIN)
+        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
         self.assertFloatEqual(
-            mi_pair(aln, pos1=0, pos2=1), DEFAULT_NULL_VALUE)
-        self.assertFloatEqual(
-            mi_pair(aln, pos1=0, pos2=1, exclude_handler=ignore_excludes), 0.0)
+            mi_pair(aln, pos1=0, pos2=1, exclude_handler=ignore_excludes), 0.0
+        )
 
     def test_mi_pair_cols_and_entropies(self):
         """ mi_pair calculates mi from a pair of columns and precalc entropies
         """
-        aln = ArrayAlignment(data={'1': 'AB', '2': 'AB'}, moltype=PROTEIN)
-        self.assertFloatEqual(
-            mi_pair(aln, pos1=0, pos2=1, h1=0.0, h2=0.0), 0.0)
-        aln = ArrayAlignment(data={'1': 'AB', '2': 'BA'}, moltype=PROTEIN)
-        self.assertFloatEqual(
-            mi_pair(aln, pos1=0, pos2=1, h1=1.0, h2=1.0), 1.0)
+        aln = ArrayAlignment(data={"1": "AB", "2": "AB"}, moltype=PROTEIN)
+        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1, h1=0.0, h2=0.0), 0.0)
+        aln = ArrayAlignment(data={"1": "AB", "2": "BA"}, moltype=PROTEIN)
+        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1, h1=1.0, h2=1.0), 1.0)
         # incorrect positional entropies provided to ensure that the
         # precalculated values are used, and that entorpies are not
         # caluclated on-the-fly.
-        aln = ArrayAlignment(data={'1': 'AB', '2': 'AB'}, moltype=PROTEIN)
-        self.assertFloatEqual(
-            mi_pair(aln, pos1=0, pos2=1, h1=1.0, h2=1.0), 2.0)
+        aln = ArrayAlignment(data={"1": "AB", "2": "AB"}, moltype=PROTEIN)
+        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1, h1=1.0, h2=1.0), 2.0)
 
     def test_mi_pair_alt_calculator(self):
         """ mi_pair uses alternate mi_calculator when provided """
-        aln = ArrayAlignment(data={'1': 'AB', '2': 'AB'}, moltype=PROTEIN)
+        aln = ArrayAlignment(data={"1": "AB", "2": "AB"}, moltype=PROTEIN)
         self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1), 0.0)
-        self.assertFloatEqual(mi_pair(aln, pos1=0, pos2=1,
-                                      mi_calculator=normalized_mi), DEFAULT_NULL_VALUE)
+        self.assertFloatEqual(
+            mi_pair(aln, pos1=0, pos2=1, mi_calculator=normalized_mi),
+            DEFAULT_NULL_VALUE,
+        )
 
     def test_mi_position_valid_input(self):
         """ mi_position functions with varied valid input """
-        aln = ArrayAlignment(data={'1': 'ACG', '2': 'GAC'}, moltype=PROTEIN)
+        aln = ArrayAlignment(data={"1": "ACG", "2": "GAC"}, moltype=PROTEIN)
         self.assertFloatEqual(mi_position(aln, 0), array([1.0, 1.0, 1.0]))
-        aln = ArrayAlignment(data={'1': 'ACG', '2': 'ACG'}, moltype=PROTEIN)
+        aln = ArrayAlignment(data={"1": "ACG", "2": "ACG"}, moltype=PROTEIN)
         self.assertFloatEqual(mi_position(aln, 0), array([0.0, 0.0, 0.0]))
-        aln = ArrayAlignment(data={'1': 'ACG', '2': 'ACG'}, moltype=PROTEIN)
+        aln = ArrayAlignment(data={"1": "ACG", "2": "ACG"}, moltype=PROTEIN)
         self.assertFloatEqual(mi_position(aln, 2), array([0.0, 0.0, 0.0]))
 
     def test_mi_position_from_alignment_nmi(self):
         """mi_position functions w/ alternate mi_calculator """
-        aln = ArrayAlignment(data={'1': 'ACG', '2': 'ACG'}, moltype=PROTEIN)
+        aln = ArrayAlignment(data={"1": "ACG", "2": "ACG"}, moltype=PROTEIN)
         self.assertFloatEqual(mi_position(aln, 0), array([0.0, 0.0, 0.0]))
-        aln = ArrayAlignment(data={'1': 'ACG', '2': 'ACG'}, moltype=PROTEIN)
-        self.assertFloatEqual(mi_position(aln, 0, mi_calculator=normalized_mi),
-                              array([DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE]))
+        aln = ArrayAlignment(data={"1": "ACG", "2": "ACG"}, moltype=PROTEIN)
+        self.assertFloatEqual(
+            mi_position(aln, 0, mi_calculator=normalized_mi),
+            array([DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE]),
+        )
 
     def test_mi_position_from_alignment_default_exclude_handling(self):
         """ mi_position handles excludes by setting to null_value"""
-        aln = ArrayAlignment(data={'1': 'ACG', '2': 'G-C'}, moltype=PROTEIN)
-        self.assertFloatEqual(mi_position(aln, 0),
-                              array([1.0, DEFAULT_NULL_VALUE, 1.0]))
-        aln = ArrayAlignment(data={'1': 'ACG', '2': 'GPC'}, moltype=PROTEIN)
-        self.assertFloatEqual(mi_position(aln, 0, excludes='P'),
-                              array([1.0, DEFAULT_NULL_VALUE, 1.0]))
+        aln = ArrayAlignment(data={"1": "ACG", "2": "G-C"}, moltype=PROTEIN)
+        self.assertFloatEqual(
+            mi_position(aln, 0), array([1.0, DEFAULT_NULL_VALUE, 1.0])
+        )
+        aln = ArrayAlignment(data={"1": "ACG", "2": "GPC"}, moltype=PROTEIN)
+        self.assertFloatEqual(
+            mi_position(aln, 0, excludes="P"), array([1.0, DEFAULT_NULL_VALUE, 1.0])
+        )
 
     def test_mi_position_from_alignment_non_default_exclude_handling(self):
         """ mi_position handles excludes w/ non-default method"""
-        aln = ArrayAlignment(data={'1': 'ACG', '2': 'G-C'}, moltype=PROTEIN)
+        aln = ArrayAlignment(data={"1": "ACG", "2": "G-C"}, moltype=PROTEIN)
         self.assertFloatEqual(
-            mi_position(aln, 0, exclude_handler=ignore_excludes),
-            array([1.0, 1.0, 1.0]))
+            mi_position(aln, 0, exclude_handler=ignore_excludes), array([1.0, 1.0, 1.0])
+        )
 
     def test_mi_alignment_excludes(self):
         """ mi_alignment handles excludes properly """
-        expected = array([[0.0, DEFAULT_NULL_VALUE, 0.0],
-                          [DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE,
-                              DEFAULT_NULL_VALUE],
-                          [0.0, DEFAULT_NULL_VALUE, 0.0]])
+        expected = array(
+            [
+                [0.0, DEFAULT_NULL_VALUE, 0.0],
+                [DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+                [0.0, DEFAULT_NULL_VALUE, 0.0],
+            ]
+        )
         # gap in second column
-        aln = ArrayAlignment(data={'1': 'ACG', '2': 'A-G'}, moltype=PROTEIN)
+        aln = ArrayAlignment(data={"1": "ACG", "2": "A-G"}, moltype=PROTEIN)
         self.assertFloatEqual(mi_alignment(aln), expected)
 
         # excludes = 'P'
-        aln = ArrayAlignment(data={'1': 'ACG', '2': 'APG'}, moltype=PROTEIN)
-        self.assertFloatEqual(mi_alignment(aln, excludes='P'),
-                              expected)
+        aln = ArrayAlignment(data={"1": "ACG", "2": "APG"}, moltype=PROTEIN)
+        self.assertFloatEqual(mi_alignment(aln, excludes="P"), expected)
 
         # gap in first column
-        expected = array([
-            [DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
-            [DEFAULT_NULL_VALUE, 0.0, 0.0], [DEFAULT_NULL_VALUE, 0.0, 0.0]])
-        aln = ArrayAlignment(data={'1': '-CG', '2': 'ACG'}, moltype=PROTEIN)
+        expected = array(
+            [
+                [DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+                [DEFAULT_NULL_VALUE, 0.0, 0.0],
+                [DEFAULT_NULL_VALUE, 0.0, 0.0],
+            ]
+        )
+        aln = ArrayAlignment(data={"1": "-CG", "2": "ACG"}, moltype=PROTEIN)
         self.assertFloatEqual(mi_alignment(aln), expected)
 
     def test_mi_alignment_high(self):
         """ mi_alignment detected perfectly correlated columns """
         expected = [[1.0, 1.0], [1.0, 1.0]]
-        aln = ArrayAlignment(data={'1': 'AG', '2': 'GA'}, moltype=PROTEIN)
+        aln = ArrayAlignment(data={"1": "AG", "2": "GA"}, moltype=PROTEIN)
         self.assertFloatEqual(mi_alignment(aln), expected)
 
     def test_mi_alignment_low(self):
         """ mi_alignment detected in perfectly uncorrelated columns 
         """
         expected = [[0.0, 0.0], [0.0, 1.0]]
-        aln = ArrayAlignment(data={'1': 'AG', '2': 'AC'}, moltype=PROTEIN)
+        aln = ArrayAlignment(data={"1": "AG", "2": "AC"}, moltype=PROTEIN)
         self.assertFloatEqual(mi_alignment(aln), expected)
 
     def test_resampled_mi_alignment(self):
         """ resampled_mi_alignment returns without error """
-        aln = ArrayAlignment(data={'1': 'ACDEF', '2': 'ACFEF', '3': 'ACGEF'},
-                             moltype=PROTEIN)
+        aln = ArrayAlignment(
+            data={"1": "ACDEF", "2": "ACFEF", "3": "ACGEF"}, moltype=PROTEIN
+        )
         resampled_mi_alignment(aln)
-        aln = ArrayAlignment(data={'1': 'ACDEF', '2': 'ACF-F', '3': 'ACGEF'},
-                             moltype=PROTEIN)
+        aln = ArrayAlignment(
+            data={"1": "ACDEF", "2": "ACF-F", "3": "ACGEF"}, moltype=PROTEIN
+        )
         resampled_mi_alignment(aln)
 
     def test_coevolve_alignment(self):
         """ coevolve_alignment functions as expected with varied input """
-        aln1 = ArrayAlignment(data={'1': 'ACDEF', '2': 'ACFEF', '3': 'ACGEF'},
-                              moltype=PROTEIN)
+        aln1 = ArrayAlignment(
+            data={"1": "ACDEF", "2": "ACFEF", "3": "ACGEF"}, moltype=PROTEIN
+        )
         # no kwargs passed
-        self.assertFloatEqual(coevolve_alignment(mi_alignment, aln1),
-                              mi_alignment(aln1))
+        self.assertFloatEqual(
+            coevolve_alignment(mi_alignment, aln1), mi_alignment(aln1)
+        )
         # different method passed
-        self.assertFloatEqual(coevolve_alignment(nmi_alignment, aln1),
-                              nmi_alignment(aln1))
+        self.assertFloatEqual(
+            coevolve_alignment(nmi_alignment, aln1), nmi_alignment(aln1)
+        )
         # kwargs passed
-        self.assertFloatEqual(coevolve_alignment(mi_alignment, aln1,
-                                                 mi_calculator=nmi), nmi_alignment(aln1))
+        self.assertFloatEqual(
+            coevolve_alignment(mi_alignment, aln1, mi_calculator=nmi),
+            nmi_alignment(aln1),
+        )
 
     def test_build_coevolution_matrix_filepath(self):
         """ build_coevolution_matrix_filepath functions w/ varied input """
-        self.assertEqual(build_coevolution_matrix_filepath(
-            './blah.fasta'), './blah')
-        self.assertEqual(build_coevolution_matrix_filepath(
-            'blah.fasta'), './blah')
-        self.assertEqual(build_coevolution_matrix_filepath('blah'), './blah')
+        self.assertEqual(build_coevolution_matrix_filepath("./blah.fasta"), "./blah")
+        self.assertEqual(build_coevolution_matrix_filepath("blah.fasta"), "./blah")
+        self.assertEqual(build_coevolution_matrix_filepath("blah"), "./blah")
+        self.assertEqual(build_coevolution_matrix_filepath("./blah"), "./blah")
+
         self.assertEqual(
-            build_coevolution_matrix_filepath('./blah'), './blah')
-
-        self.assertEqual(build_coevolution_matrix_filepath('./blah.fasta',
-                                                           output_dir='./duh/', method='xx', alphabet='yyy'),
-                         './duh/blah.yyy.xx')
-        self.assertEqual(build_coevolution_matrix_filepath('./blah.fasta',
-                                                           output_dir='./duh/', method='xx', alphabet='yyy',
-                                                           parameter=0.25),
-                         './duh/blah.yyy.xx')
-        self.assertEqual(build_coevolution_matrix_filepath('./blah.fasta',
-                                                           output_dir='./duh/', method='xx'), './duh/blah.xx')
-        self.assertEqual(build_coevolution_matrix_filepath('./blah.fasta',
-                                                           output_dir='./duh/', method='sca', parameter=0.25),
-                         './duh/blah.sca_25')
-        self.assertEqual(build_coevolution_matrix_filepath('./blah.fasta',
-                                                           output_dir='./duh/', method='sca', parameter=0.25,
-                                                           alphabet='xx'), './duh/blah.xx.sca_25')
+            build_coevolution_matrix_filepath(
+                "./blah.fasta", output_dir="./duh/", method="xx", alphabet="yyy"
+            ),
+            "./duh/blah.yyy.xx",
+        )
+        self.assertEqual(
+            build_coevolution_matrix_filepath(
+                "./blah.fasta",
+                output_dir="./duh/",
+                method="xx",
+                alphabet="yyy",
+                parameter=0.25,
+            ),
+            "./duh/blah.yyy.xx",
+        )
+        self.assertEqual(
+            build_coevolution_matrix_filepath(
+                "./blah.fasta", output_dir="./duh/", method="xx"
+            ),
+            "./duh/blah.xx",
+        )
+        self.assertEqual(
+            build_coevolution_matrix_filepath(
+                "./blah.fasta", output_dir="./duh/", method="sca", parameter=0.25
+            ),
+            "./duh/blah.sca_25",
+        )
+        self.assertEqual(
+            build_coevolution_matrix_filepath(
+                "./blah.fasta",
+                output_dir="./duh/",
+                method="sca",
+                parameter=0.25,
+                alphabet="xx",
+            ),
+            "./duh/blah.xx.sca_25",
+        )
         # no trailing / to output_dir
-        self.assertEqual(build_coevolution_matrix_filepath('./blah.fasta',
-                                                           output_dir='./duh', method='sca', parameter=0.25,
-                                                           alphabet='xx'), './duh/blah.xx.sca_25')
+        self.assertEqual(
+            build_coevolution_matrix_filepath(
+                "./blah.fasta",
+                output_dir="./duh",
+                method="sca",
+                parameter=0.25,
+                alphabet="xx",
+            ),
+            "./duh/blah.xx.sca_25",
+        )
 
-        self.assertRaises(ValueError, build_coevolution_matrix_filepath,
-                          './blah.fasta', './duh/', 'sca')
-        self.assertRaises(ValueError, build_coevolution_matrix_filepath,
-                          './blah.fasta', './duh/', 'sca', 'xx')
+        self.assertRaises(
+            ValueError,
+            build_coevolution_matrix_filepath,
+            "./blah.fasta",
+            "./duh/",
+            "sca",
+        )
+        self.assertRaises(
+            ValueError,
+            build_coevolution_matrix_filepath,
+            "./blah.fasta",
+            "./duh/",
+            "sca",
+            "xx",
+        )
 
     def test_pickle_coevolution_result_error(self):
         """pickle matrix: IOError handled correctly"""
         m = array([[1, 2], [3, 4]])
-        self.assertRaises(IOError, pickle_coevolution_result, m, '')
+        self.assertRaises(IOError, pickle_coevolution_result, m, "")
 
     def test_unpickle_coevolution_result_error(self):
         """unpickle matrix: IOError handled correctly"""
-        self.assertRaises(IOError, unpickle_coevolution_result,
-                          'invalid/file/path.pkl')
+        self.assertRaises(IOError, unpickle_coevolution_result, "invalid/file/path.pkl")
 
     def test_pickle_and_unpickle(self):
         """unpickle(pickle(matrix)) == matrix"""
-        for expected in [4.5, array([1.2, 4.3, 5.5]),
-                         array([[1.4, 2.2], [3.0, 0.4]])]:
+        for expected in [4.5, array([1.2, 4.3, 5.5]), array([[1.4, 2.2], [3.0, 0.4]])]:
             filepath = mktemp()
             pickle_coevolution_result(expected, filepath)
             actual = unpickle_coevolution_result(filepath)
@@ -630,12 +871,11 @@ class CoevolutionTests(TestCase):
     def test_csv_coevolution_result_error(self):
         """matrix -> csv: IOError handled correctly"""
         m = array([[1, 2], [3, 4]])
-        self.assertRaises(IOError, coevolution_matrix_to_csv, m, '')
+        self.assertRaises(IOError, coevolution_matrix_to_csv, m, "")
 
     def test_uncsv_coevolution_result_error(self):
         """csv -> matrix: IOError handled correctly"""
-        self.assertRaises(IOError, csv_to_coevolution_matrix,
-                          'invalid/file/path.pkl')
+        self.assertRaises(IOError, csv_to_coevolution_matrix, "invalid/file/path.pkl")
 
     def test_csv_and_uncsv(self):
         """converting to/from csv matrix results in correct coevolution matrix
@@ -649,74 +889,73 @@ class CoevolutionTests(TestCase):
 
     def test_parse_coevolution_matrix_filepath(self):
         """Parsing matrix filepaths works as expected. """
-        expected = ('myosin_995', 'a1_4', 'nmi')
+        expected = ("myosin_995", "a1_4", "nmi")
         self.assertEqual(
-            parse_coevolution_matrix_filepath(
-                'pkls/myosin_995.a1_4.nmi.pkl'),
-            expected)
+            parse_coevolution_matrix_filepath("pkls/myosin_995.a1_4.nmi.pkl"), expected
+        )
         self.assertEqual(
-            parse_coevolution_matrix_filepath(
-                'pkls/myosin_995.a1_4.nmi.csv'),
-            expected)
-        expected = ('p53', 'orig', 'mi')
-        self.assertEqual(
-            parse_coevolution_matrix_filepath('p53.orig.mi.pkl'),
-            expected)
-        self.assertEqual(
-            parse_coevolution_matrix_filepath('p53.orig.mi.csv'),
-            expected)
+            parse_coevolution_matrix_filepath("pkls/myosin_995.a1_4.nmi.csv"), expected
+        )
+        expected = ("p53", "orig", "mi")
+        self.assertEqual(parse_coevolution_matrix_filepath("p53.orig.mi.pkl"), expected)
+        self.assertEqual(parse_coevolution_matrix_filepath("p53.orig.mi.csv"), expected)
 
     def test_parse_coevolution_matrix_filepath_error(self):
         """Parsing matrix file paths handles invalid filepaths """
-        self.assertRaises(ValueError,
-                          parse_coevolution_matrix_filepath, 'pkls/myosin_995.nmi.pkl')
-        self.assertRaises(ValueError,
-                          parse_coevolution_matrix_filepath, 'pkls/myosin_995.pkl')
-        self.assertRaises(ValueError,
-                          parse_coevolution_matrix_filepath, 'pkls/myosin_995')
-        self.assertRaises(ValueError,
-                          parse_coevolution_matrix_filepath, '')
+        self.assertRaises(
+            ValueError, parse_coevolution_matrix_filepath, "pkls/myosin_995.nmi.pkl"
+        )
+        self.assertRaises(
+            ValueError, parse_coevolution_matrix_filepath, "pkls/myosin_995.pkl"
+        )
+        self.assertRaises(
+            ValueError, parse_coevolution_matrix_filepath, "pkls/myosin_995"
+        )
+        self.assertRaises(ValueError, parse_coevolution_matrix_filepath, "")
 
     def test_identify_aln_positions_above_threshold(self):
         """Extracting scores above threshold works as expected """
-        m = array([
-            [DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE,
-             DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
-            [0.3, 1.0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
-            [0.25, 0.75, 1.0, DEFAULT_NULL_VALUE],
-            [0.9, 0.751, 0.8, 1.0]])
+        m = array(
+            [
+                [
+                    DEFAULT_NULL_VALUE,
+                    DEFAULT_NULL_VALUE,
+                    DEFAULT_NULL_VALUE,
+                    DEFAULT_NULL_VALUE,
+                ],
+                [0.3, 1.0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+                [0.25, 0.75, 1.0, DEFAULT_NULL_VALUE],
+                [0.9, 0.751, 0.8, 1.0],
+            ]
+        )
+        self.assertEqual(identify_aln_positions_above_threshold(m, 0.75, 0), [])
+        self.assertEqual(identify_aln_positions_above_threshold(m, 0.75, 1), [1])
+        self.assertEqual(identify_aln_positions_above_threshold(m, 0.75, 2), [1, 2])
         self.assertEqual(
-            identify_aln_positions_above_threshold(m, 0.75, 0), [])
-        self.assertEqual(identify_aln_positions_above_threshold(m, 0.75, 1),
-                         [1])
-        self.assertEqual(identify_aln_positions_above_threshold(m, 0.75, 2),
-                         [1, 2])
-        self.assertEqual(identify_aln_positions_above_threshold(m, 0.75, 3),
-                         [0, 1, 2, 3])
+            identify_aln_positions_above_threshold(m, 0.75, 3), [0, 1, 2, 3]
+        )
 
         m = ltm_to_symmetric(m)
-        self.assertEqual(identify_aln_positions_above_threshold(m, 0.75, 0),
-                         [3])
-        self.assertEqual(identify_aln_positions_above_threshold(m, 0.75, 1),
-                         [1, 2, 3])
-        self.assertEqual(identify_aln_positions_above_threshold(m, 0.75, 2),
-                         [1, 2, 3])
-        self.assertEqual(identify_aln_positions_above_threshold(m, 0.75, 3),
-                         [0, 1, 2, 3])
+        self.assertEqual(identify_aln_positions_above_threshold(m, 0.75, 0), [3])
+        self.assertEqual(identify_aln_positions_above_threshold(m, 0.75, 1), [1, 2, 3])
+        self.assertEqual(identify_aln_positions_above_threshold(m, 0.75, 2), [1, 2, 3])
+        self.assertEqual(
+            identify_aln_positions_above_threshold(m, 0.75, 3), [0, 1, 2, 3]
+        )
 
-        self.assertEqual(identify_aln_positions_above_threshold(m, 1.1, 0),
-                         [])
-        self.assertEqual(identify_aln_positions_above_threshold(m, -5., 0),
-                         [1, 2, 3])
-        self.assertEqual(identify_aln_positions_above_threshold(m, -5., 1),
-                         [0, 1, 2, 3])
+        self.assertEqual(identify_aln_positions_above_threshold(m, 1.1, 0), [])
+        self.assertEqual(identify_aln_positions_above_threshold(m, -5.0, 0), [1, 2, 3])
+        self.assertEqual(
+            identify_aln_positions_above_threshold(m, -5.0, 1), [0, 1, 2, 3]
+        )
 
     def test_count_ge_threshold(self):
         """count_ge_threshold works as expected """
         m = array([[DEFAULT_NULL_VALUE] * 3] * 3)
         self.assertEqual(count_ge_threshold(m, 1.0), (0, 0))
-        self.assertEqual(count_ge_threshold(m,
-                                            DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE), (0, 0))
+        self.assertEqual(
+            count_ge_threshold(m, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE), (0, 0)
+        )
         self.assertEqual(count_ge_threshold(m, 1.0, 42), (0, 9))
 
         m = array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
@@ -724,8 +963,13 @@ class CoevolutionTests(TestCase):
         self.assertEqual(count_ge_threshold(m, 8), (1, 9))
         self.assertEqual(count_ge_threshold(m, 9), (0, 9))
 
-        m = array([[0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
-                   [DEFAULT_NULL_VALUE, 4, 5], [6, 7, 8]])
+        m = array(
+            [
+                [0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+                [DEFAULT_NULL_VALUE, 4, 5],
+                [6, 7, 8],
+            ]
+        )
         self.assertEqual(count_ge_threshold(m, 4), (5, 6))
         self.assertEqual(count_ge_threshold(m, 8), (1, 6))
         self.assertEqual(count_ge_threshold(m, 9), (0, 6))
@@ -734,8 +978,9 @@ class CoevolutionTests(TestCase):
         """count_le_threshold works as expected """
         m = array([[DEFAULT_NULL_VALUE] * 3] * 3)
         self.assertEqual(count_le_threshold(m, 1.0), (0, 0))
-        self.assertEqual(count_le_threshold(m,
-                                            DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE), (0, 0))
+        self.assertEqual(
+            count_le_threshold(m, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE), (0, 0)
+        )
         self.assertEqual(count_le_threshold(m, 1.0, 42), (0, 9))
 
         m = array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
@@ -743,8 +988,13 @@ class CoevolutionTests(TestCase):
         self.assertEqual(count_le_threshold(m, 8), (9, 9))
         self.assertEqual(count_le_threshold(m, 9), (9, 9))
 
-        m = array([[0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
-                   [DEFAULT_NULL_VALUE, 4, 5], [6, 7, 8]])
+        m = array(
+            [
+                [0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+                [DEFAULT_NULL_VALUE, 4, 5],
+                [6, 7, 8],
+            ]
+        )
         self.assertEqual(count_le_threshold(m, 4), (2, 6))
         self.assertEqual(count_le_threshold(m, 8), (6, 6))
         self.assertEqual(count_le_threshold(m, 9), (6, 6))
@@ -756,41 +1006,43 @@ class CoevolutionTests(TestCase):
         m = array([[DEFAULT_NULL_VALUE] * 3] * 3)
         self.assertEqual(count_ge_threshold(m, 1.0, symmetric=True), (0, 0))
         self.assertEqual(count_ge_threshold(m, 1.0, symmetric=True), (0, 0))
-        self.assertEqual(count_ge_threshold(
-            m, 1.0, 42, symmetric=True), (0, 6))
-        self.assertEqual(count_ge_threshold(
-            m, 1.0, ignore_diagonal=True), (0, 0))
-        self.assertEqual(count_ge_threshold(
-            m, 1.0, ignore_diagonal=True), (0, 0))
-        self.assertEqual(count_ge_threshold(m, 1.0, 42,
-                                            ignore_diagonal=True), (0, 6))
-        self.assertEqual(count_ge_threshold(m, 1.0,
-                                            ignore_diagonal=True, symmetric=True), (0, 0))
-        self.assertEqual(count_ge_threshold(m, 1.0,
-                                            ignore_diagonal=True, symmetric=True), (0, 0))
-        self.assertEqual(count_ge_threshold(m, 1.0, 42,
-                                            ignore_diagonal=True, symmetric=True), (0, 3))
+        self.assertEqual(count_ge_threshold(m, 1.0, 42, symmetric=True), (0, 6))
+        self.assertEqual(count_ge_threshold(m, 1.0, ignore_diagonal=True), (0, 0))
+        self.assertEqual(count_ge_threshold(m, 1.0, ignore_diagonal=True), (0, 0))
+        self.assertEqual(count_ge_threshold(m, 1.0, 42, ignore_diagonal=True), (0, 6))
+        self.assertEqual(
+            count_ge_threshold(m, 1.0, ignore_diagonal=True, symmetric=True), (0, 0)
+        )
+        self.assertEqual(
+            count_ge_threshold(m, 1.0, ignore_diagonal=True, symmetric=True), (0, 0)
+        )
+        self.assertEqual(
+            count_ge_threshold(m, 1.0, 42, ignore_diagonal=True, symmetric=True), (0, 3)
+        )
 
         #  no null values, varied other values
         m = array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
         self.assertEqual(count_ge_threshold(m, 4), (5, 9))
         self.assertEqual(count_ge_threshold(m, 4, symmetric=True), (4, 6))
-        self.assertEqual(count_ge_threshold(
-            m, 4, ignore_diagonal=True), (3, 6))
-        self.assertEqual(count_ge_threshold(m, 4, symmetric=True,
-                                            ignore_diagonal=True), (2, 3))
+        self.assertEqual(count_ge_threshold(m, 4, ignore_diagonal=True), (3, 6))
+        self.assertEqual(
+            count_ge_threshold(m, 4, symmetric=True, ignore_diagonal=True), (2, 3)
+        )
 
         # null and mixed values
-        m = array([
-            [0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
-            [3, 4, DEFAULT_NULL_VALUE],
-            [DEFAULT_NULL_VALUE, 7, 8]])
+        m = array(
+            [
+                [0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+                [3, 4, DEFAULT_NULL_VALUE],
+                [DEFAULT_NULL_VALUE, 7, 8],
+            ]
+        )
         self.assertEqual(count_ge_threshold(m, 4), (3, 5))
         self.assertEqual(count_ge_threshold(m, 4, symmetric=True), (3, 5))
-        self.assertEqual(count_ge_threshold(
-            m, 4, ignore_diagonal=True), (1, 2))
-        self.assertEqual(count_ge_threshold(m, 4, symmetric=True,
-                                            ignore_diagonal=True), (1, 2))
+        self.assertEqual(count_ge_threshold(m, 4, ignore_diagonal=True), (1, 2))
+        self.assertEqual(
+            count_ge_threshold(m, 4, symmetric=True, ignore_diagonal=True), (1, 2)
+        )
 
     def test_count_le_threshold_symmetric_ignore_diagonal(self):
         """count_le_threshold works with symmetric and/or ignoring diag = True
@@ -799,153 +1051,192 @@ class CoevolutionTests(TestCase):
         m = array([[DEFAULT_NULL_VALUE] * 3] * 3)
         self.assertEqual(count_le_threshold(m, 1.0, symmetric=True), (0, 0))
         self.assertEqual(count_le_threshold(m, 1.0, symmetric=True), (0, 0))
-        self.assertEqual(count_le_threshold(
-            m, 1.0, 42, symmetric=True), (0, 6))
-        self.assertEqual(count_le_threshold(
-            m, 1.0, ignore_diagonal=True), (0, 0))
-        self.assertEqual(count_le_threshold(
-            m, 1.0, ignore_diagonal=True), (0, 0))
-        self.assertEqual(count_le_threshold(m, 1.0, 42,
-                                            ignore_diagonal=True), (0, 6))
-        self.assertEqual(count_le_threshold(m, 1.0,
-                                            ignore_diagonal=True, symmetric=True), (0, 0))
-        self.assertEqual(count_le_threshold(m, 1.0,
-                                            ignore_diagonal=True, symmetric=True), (0, 0))
-        self.assertEqual(count_le_threshold(m, 1.0, 42,
-                                            ignore_diagonal=True, symmetric=True), (0, 3))
+        self.assertEqual(count_le_threshold(m, 1.0, 42, symmetric=True), (0, 6))
+        self.assertEqual(count_le_threshold(m, 1.0, ignore_diagonal=True), (0, 0))
+        self.assertEqual(count_le_threshold(m, 1.0, ignore_diagonal=True), (0, 0))
+        self.assertEqual(count_le_threshold(m, 1.0, 42, ignore_diagonal=True), (0, 6))
+        self.assertEqual(
+            count_le_threshold(m, 1.0, ignore_diagonal=True, symmetric=True), (0, 0)
+        )
+        self.assertEqual(
+            count_le_threshold(m, 1.0, ignore_diagonal=True, symmetric=True), (0, 0)
+        )
+        self.assertEqual(
+            count_le_threshold(m, 1.0, 42, ignore_diagonal=True, symmetric=True), (0, 3)
+        )
 
         #  no null values, varied other values
         m = array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
         self.assertEqual(count_le_threshold(m, 4), (5, 9))
         self.assertEqual(count_le_threshold(m, 4, symmetric=True), (3, 6))
-        self.assertEqual(count_le_threshold(
-            m, 4, ignore_diagonal=True), (3, 6))
-        self.assertEqual(count_le_threshold(m, 4, symmetric=True,
-                                            ignore_diagonal=True), (1, 3))
+        self.assertEqual(count_le_threshold(m, 4, ignore_diagonal=True), (3, 6))
+        self.assertEqual(
+            count_le_threshold(m, 4, symmetric=True, ignore_diagonal=True), (1, 3)
+        )
 
         # null and mixed values
-        m = array([
-            [0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
-            [3, 4, DEFAULT_NULL_VALUE],
-            [DEFAULT_NULL_VALUE, 7, 8]])
+        m = array(
+            [
+                [0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+                [3, 4, DEFAULT_NULL_VALUE],
+                [DEFAULT_NULL_VALUE, 7, 8],
+            ]
+        )
         self.assertEqual(count_le_threshold(m, 4), (3, 5))
         self.assertEqual(count_le_threshold(m, 4, symmetric=True), (3, 5))
-        self.assertEqual(count_le_threshold(
-            m, 4, ignore_diagonal=True), (1, 2))
-        self.assertEqual(count_le_threshold(m, 4, symmetric=True,
-                                            ignore_diagonal=True), (1, 2))
+        self.assertEqual(count_le_threshold(m, 4, ignore_diagonal=True), (1, 2))
+        self.assertEqual(
+            count_le_threshold(m, 4, symmetric=True, ignore_diagonal=True), (1, 2)
+        )
 
     def test_aln_position_pairs_cmp_threshold_intramolecular(self):
         """aln_position_pairs_ge_threshold: intramolecular matrix
         """
-        m = array([
-            [0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
-            [3, 4, DEFAULT_NULL_VALUE],
-            [DEFAULT_NULL_VALUE, 7, 8]])
+        m = array(
+            [
+                [0, DEFAULT_NULL_VALUE, DEFAULT_NULL_VALUE],
+                [3, 4, DEFAULT_NULL_VALUE],
+                [DEFAULT_NULL_VALUE, 7, 8],
+            ]
+        )
         # cmp_function = ge
-        self.assertEqual(aln_position_pairs_cmp_threshold(m, 3.5, greater_equal),
-                         [(1, 1), (2, 1), (2, 2)])
+        self.assertEqual(
+            aln_position_pairs_cmp_threshold(m, 3.5, greater_equal),
+            [(1, 1), (2, 1), (2, 2)],
+        )
         # cmp_function = greater_equal, alt null_value
-        self.assertEqual(aln_position_pairs_cmp_threshold(
-            m, 3.5, greater_equal, null_value=4),
-            [(2, 1), (2, 2)])
+        self.assertEqual(
+            aln_position_pairs_cmp_threshold(m, 3.5, greater_equal, null_value=4),
+            [(2, 1), (2, 2)],
+        )
         # cmp_function = le
-        self.assertEqual(aln_position_pairs_cmp_threshold(m, 3.5, less_equal),
-                         [(0, 0), (1, 0)])
+        self.assertEqual(
+            aln_position_pairs_cmp_threshold(m, 3.5, less_equal), [(0, 0), (1, 0)]
+        )
 
         # results equal results with wrapper functions
-        self.assertEqual(aln_position_pairs_cmp_threshold(m, 3.5, greater_equal),
-                         aln_position_pairs_ge_threshold(m, 3.5))
-        self.assertEqual(aln_position_pairs_cmp_threshold(m, 3.5, less_equal),
-                         aln_position_pairs_le_threshold(m, 3.5))
-        self.assertEqual(aln_position_pairs_cmp_threshold(
-            m, 3.5, greater_equal, null_value=4),
-            aln_position_pairs_ge_threshold(m, 3.5, null_value=4))
-        self.assertEqual(aln_position_pairs_cmp_threshold(
-            m, 3.5, less_equal, null_value=0),
-            aln_position_pairs_le_threshold(m, 3.5, null_value=0))
+        self.assertEqual(
+            aln_position_pairs_cmp_threshold(m, 3.5, greater_equal),
+            aln_position_pairs_ge_threshold(m, 3.5),
+        )
+        self.assertEqual(
+            aln_position_pairs_cmp_threshold(m, 3.5, less_equal),
+            aln_position_pairs_le_threshold(m, 3.5),
+        )
+        self.assertEqual(
+            aln_position_pairs_cmp_threshold(m, 3.5, greater_equal, null_value=4),
+            aln_position_pairs_ge_threshold(m, 3.5, null_value=4),
+        )
+        self.assertEqual(
+            aln_position_pairs_cmp_threshold(m, 3.5, less_equal, null_value=0),
+            aln_position_pairs_le_threshold(m, 3.5, null_value=0),
+        )
 
     def test_aln_position_pairs_ge_threshold_intermolecular(self):
         """aln_position_pairs_ge_threshold: intermolecular matrix
         """
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
+        m = array([[1.0, 10.0, 4.0, 3.0], [9.0, 18.0, 5.0, 6.0]])
         # error if failed to specify intermolecular_data_only=True
-        self.assertRaises(AssertionError, aln_position_pairs_cmp_threshold,
-                          m, 3.5, greater_equal)
+        self.assertRaises(
+            AssertionError, aln_position_pairs_cmp_threshold, m, 3.5, greater_equal
+        )
         # cmp_function = ge
-        self.assertEqual(aln_position_pairs_cmp_threshold(
-            m, 3.5, greater_equal, intermolecular_data_only=True),
-            [(1, 4), (2, 4), (0, 5), (1, 5), (2, 5), (3, 5)])
+        self.assertEqual(
+            aln_position_pairs_cmp_threshold(
+                m, 3.5, greater_equal, intermolecular_data_only=True
+            ),
+            [(1, 4), (2, 4), (0, 5), (1, 5), (2, 5), (3, 5)],
+        )
         # cmp_function = greater_equal, alt null_value
-        self.assertEqual(aln_position_pairs_cmp_threshold(
-            m, 3.5, greater_equal, null_value=18., intermolecular_data_only=True),
-            [(1, 4), (2, 4), (0, 5), (2, 5), (3, 5)])
+        self.assertEqual(
+            aln_position_pairs_cmp_threshold(
+                m, 3.5, greater_equal, null_value=18.0, intermolecular_data_only=True
+            ),
+            [(1, 4), (2, 4), (0, 5), (2, 5), (3, 5)],
+        )
         # cmp_function = le
-        self.assertEqual(aln_position_pairs_cmp_threshold(
-            m, 3.5, less_equal, intermolecular_data_only=True),
-            [(0, 4), (3, 4)])
+        self.assertEqual(
+            aln_position_pairs_cmp_threshold(
+                m, 3.5, less_equal, intermolecular_data_only=True
+            ),
+            [(0, 4), (3, 4)],
+        )
 
         # results equal results with wrapper functions
-        self.assertEqual(aln_position_pairs_cmp_threshold(
-            m, 3.5, greater_equal, intermolecular_data_only=True),
-            aln_position_pairs_ge_threshold(m, 3.5, intermolecular_data_only=True))
-        self.assertEqual(aln_position_pairs_cmp_threshold(
-            m, 3.5, less_equal, intermolecular_data_only=True),
-            aln_position_pairs_le_threshold(m, 3.5, intermolecular_data_only=True))
+        self.assertEqual(
+            aln_position_pairs_cmp_threshold(
+                m, 3.5, greater_equal, intermolecular_data_only=True
+            ),
+            aln_position_pairs_ge_threshold(m, 3.5, intermolecular_data_only=True),
+        )
+        self.assertEqual(
+            aln_position_pairs_cmp_threshold(
+                m, 3.5, less_equal, intermolecular_data_only=True
+            ),
+            aln_position_pairs_le_threshold(m, 3.5, intermolecular_data_only=True),
+        )
 
-        self.assertEqual(aln_position_pairs_cmp_threshold(
-            m, 3.5, greater_equal, null_value=4., intermolecular_data_only=True),
-            aln_position_pairs_ge_threshold(m, 3.5, null_value=4.,
-                                            intermolecular_data_only=True))
-        self.assertEqual(aln_position_pairs_cmp_threshold(
-            m, 3.5, less_equal, null_value=18., intermolecular_data_only=True),
-            aln_position_pairs_le_threshold(m, 3.5, null_value=18.,
-                                            intermolecular_data_only=True))
+        self.assertEqual(
+            aln_position_pairs_cmp_threshold(
+                m, 3.5, greater_equal, null_value=4.0, intermolecular_data_only=True
+            ),
+            aln_position_pairs_ge_threshold(
+                m, 3.5, null_value=4.0, intermolecular_data_only=True
+            ),
+        )
+        self.assertEqual(
+            aln_position_pairs_cmp_threshold(
+                m, 3.5, less_equal, null_value=18.0, intermolecular_data_only=True
+            ),
+            aln_position_pairs_le_threshold(
+                m, 3.5, null_value=18.0, intermolecular_data_only=True
+            ),
+        )
 
     def test_is_parsimony_informative_strict(self):
         """ is_parsimony_informative functions as expected with strict=True
         """
-        freqs = {'A': 25}
+        freqs = {"A": 25}
         self.assertFalse(is_parsimony_informative(freqs, strict=True))
-        freqs = {'A': 25, '-': 25}
+        freqs = {"A": 25, "-": 25}
         self.assertFalse(is_parsimony_informative(freqs, strict=True))
-        freqs = {'A': 25, '?': 25}
+        freqs = {"A": 25, "?": 25}
         self.assertFalse(is_parsimony_informative(freqs, strict=True))
-        freqs = {'A': 25, 'B': 1}
+        freqs = {"A": 25, "B": 1}
         self.assertFalse(is_parsimony_informative(freqs, strict=True))
-        freqs = {'A': 1, 'B': 1, 'C': 1, 'D': 1, 'E': 1}
+        freqs = {"A": 1, "B": 1, "C": 1, "D": 1, "E": 1}
         self.assertFalse(is_parsimony_informative(freqs, strict=True))
-        freqs = {'A': 2, 'B': 1, 'C': 1, 'D': 1, 'E': 1}
+        freqs = {"A": 2, "B": 1, "C": 1, "D": 1, "E": 1}
         self.assertFalse(is_parsimony_informative(freqs, strict=True))
-        freqs = {'A': 2, 'B': 2, 'C': 1, 'D': 1, 'E': 1}
+        freqs = {"A": 2, "B": 2, "C": 1, "D": 1, "E": 1}
         self.assertFalse(is_parsimony_informative(freqs, strict=True))
 
-        freqs = {'A': 25, 'B': 2}
+        freqs = {"A": 25, "B": 2}
         self.assertTrue(is_parsimony_informative(freqs, strict=True))
-        freqs = {'A': 2, 'B': 2, 'C': 2, 'D': 2, 'E': 2}
+        freqs = {"A": 2, "B": 2, "C": 2, "D": 2, "E": 2}
         self.assertTrue(is_parsimony_informative(freqs, strict=True))
 
     def test_is_parsimony_informative_non_strict(self):
         """ is_parsimony_informative functions as expected with strict=False
         """
-        freqs = {'A': 25}
+        freqs = {"A": 25}
         self.assertFalse(is_parsimony_informative(freqs, strict=False))
-        freqs = {'A': 25, '-': 25}
+        freqs = {"A": 25, "-": 25}
         self.assertFalse(is_parsimony_informative(freqs, strict=False))
-        freqs = {'A': 25, '?': 25}
+        freqs = {"A": 25, "?": 25}
         self.assertFalse(is_parsimony_informative(freqs, strict=False))
-        freqs = {'A': 25, 'B': 1}
+        freqs = {"A": 25, "B": 1}
         self.assertFalse(is_parsimony_informative(freqs, strict=False))
-        freqs = {'A': 1, 'B': 1, 'C': 1, 'D': 1, 'E': 1}
+        freqs = {"A": 1, "B": 1, "C": 1, "D": 1, "E": 1}
         self.assertFalse(is_parsimony_informative(freqs, strict=False))
-        freqs = {'A': 2, 'B': 1, 'C': 1, 'D': 1, 'E': 1}
+        freqs = {"A": 2, "B": 1, "C": 1, "D": 1, "E": 1}
         self.assertFalse(is_parsimony_informative(freqs, strict=False))
 
-        freqs = {'A': 2, 'B': 2, 'C': 1, 'D': 1, 'E': 1}
+        freqs = {"A": 2, "B": 2, "C": 1, "D": 1, "E": 1}
         self.assertTrue(is_parsimony_informative(freqs, strict=False))
-        freqs = {'A': 25, 'B': 2}
+        freqs = {"A": 25, "B": 2}
         self.assertTrue(is_parsimony_informative(freqs, strict=False))
-        freqs = {'A': 2, 'B': 2, 'C': 2, 'D': 2, 'E': 2}
+        freqs = {"A": 2, "B": 2, "C": 2, "D": 2, "E": 2}
         self.assertTrue(is_parsimony_informative(freqs, strict=False))
 
     def test_is_parsimony_informative_non_default(self):
@@ -954,59 +1245,71 @@ class CoevolutionTests(TestCase):
         # NEED TO UPDATE THESE TESTS BASED ON MY ERROR IN THE
         # DEFINITION OF PARSIMONY INFORMATIVE.
         # changed minimum_count
-        freqs = {'A': 25, 'B': 2}
-        self.assertFalse(is_parsimony_informative(freqs,
-                                                  minimum_count=3, strict=False))
-        freqs = {'A': 25, 'B': 1}
-        self.assertTrue(is_parsimony_informative(freqs,
-                                                 minimum_count=1, strict=False))
+        freqs = {"A": 25, "B": 2}
+        self.assertFalse(is_parsimony_informative(freqs, minimum_count=3, strict=False))
+        freqs = {"A": 25, "B": 1}
+        self.assertTrue(is_parsimony_informative(freqs, minimum_count=1, strict=False))
 
         # different value of strict yields different results
-        freqs = {'A': 25, 'B': 2, 'C': 3}
-        self.assertTrue(is_parsimony_informative(freqs,
-                                                 minimum_count=3, strict=False))
-        self.assertFalse(is_parsimony_informative(freqs,
-                                                  minimum_count=3, strict=True))
+        freqs = {"A": 25, "B": 2, "C": 3}
+        self.assertTrue(is_parsimony_informative(freqs, minimum_count=3, strict=False))
+        self.assertFalse(is_parsimony_informative(freqs, minimum_count=3, strict=True))
 
         # changed minimum_differences
-        freqs = {'A': 25, 'B': 25}
-        self.assertFalse(is_parsimony_informative(
-            freqs, minimum_differences=3, strict=False))
-        freqs = {'A': 25}
-        self.assertTrue(is_parsimony_informative(
-            freqs, minimum_differences=1, strict=False))
+        freqs = {"A": 25, "B": 25}
+        self.assertFalse(
+            is_parsimony_informative(freqs, minimum_differences=3, strict=False)
+        )
+        freqs = {"A": 25}
+        self.assertTrue(
+            is_parsimony_informative(freqs, minimum_differences=1, strict=False)
+        )
 
         # changed ignored
-        freqs = {'A': 25, '-': 25, '?': 25}
-        self.assertTrue(is_parsimony_informative(freqs, ignored=None,
-                                                 strict=False))
-        freqs = {'A': 25, '?': 25}
-        self.assertTrue(is_parsimony_informative(freqs, ignored='',
-                                                 strict=False))
-        freqs = {'A': 25, '-': 25}
-        self.assertTrue(is_parsimony_informative(freqs, ignored=None,
-                                                 strict=False))
-        freqs = {'A': 25, 'C': 25}
-        self.assertFalse(is_parsimony_informative(freqs, ignored='A',
-                                                  strict=False))
+        freqs = {"A": 25, "-": 25, "?": 25}
+        self.assertTrue(is_parsimony_informative(freqs, ignored=None, strict=False))
+        freqs = {"A": 25, "?": 25}
+        self.assertTrue(is_parsimony_informative(freqs, ignored="", strict=False))
+        freqs = {"A": 25, "-": 25}
+        self.assertTrue(is_parsimony_informative(freqs, ignored=None, strict=False))
+        freqs = {"A": 25, "C": 25}
+        self.assertFalse(is_parsimony_informative(freqs, ignored="A", strict=False))
 
     def test_filter_non_parsimony_informative_intramolecular(self):
         """ non-parsimony informative sites in intramolecular matrix -> null
         """
-        aln = LoadSeqs(data={'1': 'ACDE', '2': 'ACDE', '3': 'ACDE', '4': 'ACDE'},
-                       moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
-                   [4., 1., 3., 2.], [21., 0., 1., 33.]])
+        aln = LoadSeqs(
+            data={"1": "ACDE", "2": "ACDE", "3": "ACDE", "4": "ACDE"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array(
+            [
+                [1.0, 10.0, 4.0, 3.0],
+                [9.0, 18.0, 5.0, 6.0],
+                [4.0, 1.0, 3.0, 2.0],
+                [21.0, 0.0, 1.0, 33.0],
+            ]
+        )
         expected = array([[DEFAULT_NULL_VALUE] * 4] * 4)
         filter_non_parsimony_informative(aln, m)
         self.assertFloatEqual(m, expected)
 
-        aln = LoadSeqs(data={'1': 'ACDE', '2': 'FCDE', '3': 'ACDE', '4': 'FCDE'},
-                       moltype=PROTEIN, array_align=True)
-        m = array([[42., 10., 4., 3.], [9., 18., 5., 6.],
-                   [4., 1., 3., 2.], [21., 0., 1., 33.]])
+        aln = LoadSeqs(
+            data={"1": "ACDE", "2": "FCDE", "3": "ACDE", "4": "FCDE"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array(
+            [
+                [42.0, 10.0, 4.0, 3.0],
+                [9.0, 18.0, 5.0, 6.0],
+                [4.0, 1.0, 3.0, 2.0],
+                [21.0, 0.0, 1.0, 33.0],
+            ]
+        )
         expected = array([[DEFAULT_NULL_VALUE] * 4] * 4)
-        expected[0, 0] = 42.
+        expected[0, 0] = 42.0
         filter_non_parsimony_informative(aln, m)
         self.assertFloatEqual(m, expected)
 
@@ -1014,116 +1317,245 @@ class CoevolutionTests(TestCase):
         """ non-parsimony informative sites in intermolecular matrix -> null
         """
         # all non-parsimony informative
-        aln = LoadSeqs(data={'1': 'ACDEWQ', '2': 'ACDEWQ', '3': 'ACDEWQ', '4': 'ACDEWQ'},
-                       moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
+        aln = LoadSeqs(
+            data={"1": "ACDEWQ", "2": "ACDEWQ", "3": "ACDEWQ", "4": "ACDEWQ"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array([[1.0, 10.0, 4.0, 3.0], [9.0, 18.0, 5.0, 6.0]])
         expected = array([[DEFAULT_NULL_VALUE] * 4] * 2)
-        filter_non_parsimony_informative(
-            aln, m, intermolecular_data_only=True)
+        filter_non_parsimony_informative(aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
         # one non-parsimony informative pair of positions
-        aln = LoadSeqs(data={'1': 'FCDEWD', '2': 'ACDEWQ', '3': 'ACDEWD', '4': 'FCDEWQ'},
-                       moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
+        aln = LoadSeqs(
+            data={"1": "FCDEWD", "2": "ACDEWQ", "3": "ACDEWD", "4": "FCDEWQ"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array([[1.0, 10.0, 4.0, 3.0], [9.0, 18.0, 5.0, 6.0]])
         expected = array([[DEFAULT_NULL_VALUE] * 4] * 2)
-        expected[1, 0] = 9.
-        filter_non_parsimony_informative(
-            aln, m, intermolecular_data_only=True)
+        expected[1, 0] = 9.0
+        filter_non_parsimony_informative(aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
         # all parsimony informative
-        aln = LoadSeqs(data={'1': 'FFFFFF', '2': 'FFFFFF', '3': 'GGGGGG', '4': 'GGGGGG'},
-                       moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
-        expected = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
-        filter_non_parsimony_informative(
-            aln, m, intermolecular_data_only=True)
+        aln = LoadSeqs(
+            data={"1": "FFFFFF", "2": "FFFFFF", "3": "GGGGGG", "4": "GGGGGG"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array([[1.0, 10.0, 4.0, 3.0], [9.0, 18.0, 5.0, 6.0]])
+        expected = array([[1.0, 10.0, 4.0, 3.0], [9.0, 18.0, 5.0, 6.0]])
+        filter_non_parsimony_informative(aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
 
     def test_filter_exclude_positions_intramolecular(self):
         """filter_exclude_positions: functions for intramolecular data
         """
         # filter zero positions (no excludes)
-        aln = LoadSeqs(data={'1': 'WCDE', '2': 'ACDE', '3': 'ACDE', '4': 'ACDE'},
-                       moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
-                   [4., 1., 3., 2.], [21., 0., 1., 33.]])
-        expected = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
-                          [4., 1., 3., 2.], [21., 0., 1., 33.]])
+        aln = LoadSeqs(
+            data={"1": "WCDE", "2": "ACDE", "3": "ACDE", "4": "ACDE"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array(
+            [
+                [1.0, 10.0, 4.0, 3.0],
+                [9.0, 18.0, 5.0, 6.0],
+                [4.0, 1.0, 3.0, 2.0],
+                [21.0, 0.0, 1.0, 33.0],
+            ]
+        )
+        expected = array(
+            [
+                [1.0, 10.0, 4.0, 3.0],
+                [9.0, 18.0, 5.0, 6.0],
+                [4.0, 1.0, 3.0, 2.0],
+                [21.0, 0.0, 1.0, 33.0],
+            ]
+        )
         filter_exclude_positions(aln, m)
         self.assertFloatEqual(m, expected)
         # filter zero positions (max_exclude_percentage = percent exclude)
-        aln = LoadSeqs(data={'1': '-CDE', '2': 'A-DE', '3': 'AC-E', '4': 'ACD-'},
-                       moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
-                   [4., 1., 3., 2.], [21., 0., 1., 33.]])
-        expected = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
-                          [4., 1., 3., 2.], [21., 0., 1., 33.]])
+        aln = LoadSeqs(
+            data={"1": "-CDE", "2": "A-DE", "3": "AC-E", "4": "ACD-"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array(
+            [
+                [1.0, 10.0, 4.0, 3.0],
+                [9.0, 18.0, 5.0, 6.0],
+                [4.0, 1.0, 3.0, 2.0],
+                [21.0, 0.0, 1.0, 33.0],
+            ]
+        )
+        expected = array(
+            [
+                [1.0, 10.0, 4.0, 3.0],
+                [9.0, 18.0, 5.0, 6.0],
+                [4.0, 1.0, 3.0, 2.0],
+                [21.0, 0.0, 1.0, 33.0],
+            ]
+        )
         filter_exclude_positions(aln, m, max_exclude_percent=0.25)
         self.assertFloatEqual(m, expected)
         # filter zero positions (max_exclude_percentage too high)
-        aln = LoadSeqs(data={'1': '-CDE', '2': 'A-DE', '3': 'AC-E', '4': 'ACD-'},
-                       moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
-                   [4., 1., 3., 2.], [21., 0., 1., 33.]])
-        expected = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
-                          [4., 1., 3., 2.], [21., 0., 1., 33.]])
+        aln = LoadSeqs(
+            data={"1": "-CDE", "2": "A-DE", "3": "AC-E", "4": "ACD-"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array(
+            [
+                [1.0, 10.0, 4.0, 3.0],
+                [9.0, 18.0, 5.0, 6.0],
+                [4.0, 1.0, 3.0, 2.0],
+                [21.0, 0.0, 1.0, 33.0],
+            ]
+        )
+        expected = array(
+            [
+                [1.0, 10.0, 4.0, 3.0],
+                [9.0, 18.0, 5.0, 6.0],
+                [4.0, 1.0, 3.0, 2.0],
+                [21.0, 0.0, 1.0, 33.0],
+            ]
+        )
         filter_exclude_positions(aln, m, max_exclude_percent=0.5)
         self.assertFloatEqual(m, expected)
         # filter one position (defualt max_exclude_percentage)
-        aln = LoadSeqs(data={'1': '-CDE', '2': 'ACDE', '3': 'ACDE', '4': 'ACDE'},
-                       moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
-                   [4., 1., 3., 2.], [21., 0., 1., 33.]])
-        expected = array([[DEFAULT_NULL_VALUE] * 4, [DEFAULT_NULL_VALUE, 18., 5., 6.],
-                          [DEFAULT_NULL_VALUE, 1., 3., 2.], [DEFAULT_NULL_VALUE, 0., 1., 33.]])
+        aln = LoadSeqs(
+            data={"1": "-CDE", "2": "ACDE", "3": "ACDE", "4": "ACDE"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array(
+            [
+                [1.0, 10.0, 4.0, 3.0],
+                [9.0, 18.0, 5.0, 6.0],
+                [4.0, 1.0, 3.0, 2.0],
+                [21.0, 0.0, 1.0, 33.0],
+            ]
+        )
+        expected = array(
+            [
+                [DEFAULT_NULL_VALUE] * 4,
+                [DEFAULT_NULL_VALUE, 18.0, 5.0, 6.0],
+                [DEFAULT_NULL_VALUE, 1.0, 3.0, 2.0],
+                [DEFAULT_NULL_VALUE, 0.0, 1.0, 33.0],
+            ]
+        )
         filter_exclude_positions(aln, m)
         self.assertFloatEqual(m, expected)
         # filter one position (non-defualt max_exclude_percentage)
-        aln = LoadSeqs(data={'1': '-CDE', '2': 'ACDE', '3': 'ACDE', '4': '-CDE'},
-                       moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
-                   [4., 1., 3., 2.], [21., 0., 1., 33.]])
-        expected = array([[DEFAULT_NULL_VALUE] * 4, [DEFAULT_NULL_VALUE, 18., 5., 6.],
-                          [DEFAULT_NULL_VALUE, 1., 3., 2.], [DEFAULT_NULL_VALUE, 0., 1., 33.]])
+        aln = LoadSeqs(
+            data={"1": "-CDE", "2": "ACDE", "3": "ACDE", "4": "-CDE"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array(
+            [
+                [1.0, 10.0, 4.0, 3.0],
+                [9.0, 18.0, 5.0, 6.0],
+                [4.0, 1.0, 3.0, 2.0],
+                [21.0, 0.0, 1.0, 33.0],
+            ]
+        )
+        expected = array(
+            [
+                [DEFAULT_NULL_VALUE] * 4,
+                [DEFAULT_NULL_VALUE, 18.0, 5.0, 6.0],
+                [DEFAULT_NULL_VALUE, 1.0, 3.0, 2.0],
+                [DEFAULT_NULL_VALUE, 0.0, 1.0, 33.0],
+            ]
+        )
         filter_exclude_positions(aln, m, max_exclude_percent=0.49)
         self.assertFloatEqual(m, expected)
         # filter all positions (defualt max_exclude_percentage)
-        aln = LoadSeqs(data={'1': '----', '2': 'ACDE', '3': 'ACDE', '4': 'ACDE'},
-                       moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
-                   [4., 1., 3., 2.], [21., 0., 1., 33.]])
+        aln = LoadSeqs(
+            data={"1": "----", "2": "ACDE", "3": "ACDE", "4": "ACDE"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array(
+            [
+                [1.0, 10.0, 4.0, 3.0],
+                [9.0, 18.0, 5.0, 6.0],
+                [4.0, 1.0, 3.0, 2.0],
+                [21.0, 0.0, 1.0, 33.0],
+            ]
+        )
         expected = array([[DEFAULT_NULL_VALUE] * 4] * 4)
         filter_exclude_positions(aln, m)
         self.assertFloatEqual(m, expected)
         # filter all positions (non-defualt max_exclude_percentage)
-        aln = LoadSeqs(data={'1': '----', '2': 'A-DE', '3': 'AC--', '4': '-CDE'},
-                       moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
-                   [4., 1., 3., 2.], [21., 0., 1., 3.]])
+        aln = LoadSeqs(
+            data={"1": "----", "2": "A-DE", "3": "AC--", "4": "-CDE"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array(
+            [
+                [1.0, 10.0, 4.0, 3.0],
+                [9.0, 18.0, 5.0, 6.0],
+                [4.0, 1.0, 3.0, 2.0],
+                [21.0, 0.0, 1.0, 3.0],
+            ]
+        )
         expected = array([[DEFAULT_NULL_VALUE] * 4] * 4)
         filter_exclude_positions(aln, m, max_exclude_percent=0.49)
         self.assertFloatEqual(m, expected)
 
         # filter one position (defualt max_exclude_percentage,
         # non-defualt excludes)
-        aln = LoadSeqs(data={'1': 'WCDE', '2': 'ACDE', '3': 'ACDE', '4': 'ACDE'},
-                       moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
-                   [4., 1., 3., 2.], [21., 0., 1., 33.]])
-        expected = array([[DEFAULT_NULL_VALUE] * 4, [DEFAULT_NULL_VALUE, 18., 5., 6.],
-                          [DEFAULT_NULL_VALUE, 1., 3., 2.], [DEFAULT_NULL_VALUE, 0., 1., 33.]])
-        filter_exclude_positions(aln, m, excludes='W')
+        aln = LoadSeqs(
+            data={"1": "WCDE", "2": "ACDE", "3": "ACDE", "4": "ACDE"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array(
+            [
+                [1.0, 10.0, 4.0, 3.0],
+                [9.0, 18.0, 5.0, 6.0],
+                [4.0, 1.0, 3.0, 2.0],
+                [21.0, 0.0, 1.0, 33.0],
+            ]
+        )
+        expected = array(
+            [
+                [DEFAULT_NULL_VALUE] * 4,
+                [DEFAULT_NULL_VALUE, 18.0, 5.0, 6.0],
+                [DEFAULT_NULL_VALUE, 1.0, 3.0, 2.0],
+                [DEFAULT_NULL_VALUE, 0.0, 1.0, 33.0],
+            ]
+        )
+        filter_exclude_positions(aln, m, excludes="W")
         self.assertFloatEqual(m, expected)
 
         # filter one position (defualt max_exclude_percentage,
         # non-defualt null_value)
-        aln = LoadSeqs(data={'1': '-CDE', '2': 'ACDE', '3': 'ACDE', '4': 'ACDE'},
-                       moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.],
-                   [4., 1., 3., 2.], [21., 0., 1., 33.]])
-        expected = array([[999.] * 4, [999., 18., 5., 6.],
-                          [999., 1., 3., 2.], [999., 0., 1., 33.]])
-        filter_exclude_positions(aln, m, null_value=999.)
+        aln = LoadSeqs(
+            data={"1": "-CDE", "2": "ACDE", "3": "ACDE", "4": "ACDE"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array(
+            [
+                [1.0, 10.0, 4.0, 3.0],
+                [9.0, 18.0, 5.0, 6.0],
+                [4.0, 1.0, 3.0, 2.0],
+                [21.0, 0.0, 1.0, 33.0],
+            ]
+        )
+        expected = array(
+            [
+                [999.0] * 4,
+                [999.0, 18.0, 5.0, 6.0],
+                [999.0, 1.0, 3.0, 2.0],
+                [999.0, 0.0, 1.0, 33.0],
+            ]
+        )
+        filter_exclude_positions(aln, m, null_value=999.0)
         self.assertFloatEqual(m, expected)
 
     def test_filter_exclude_positions_intermolecular(self):
@@ -1133,61 +1565,78 @@ class CoevolutionTests(TestCase):
         # respectively, hence a coevolution_matrix with shape = (2,4)
 
         # filter zero positions (no excludes)
-        merged_aln = LoadSeqs(data={'1': 'WCDEDE', '2': 'ACDEDE',
-                                    '3': 'ACDEDE', '4': 'ACDEDE'}, moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
-        expected = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
-        filter_exclude_positions(
-            merged_aln, m, intermolecular_data_only=True)
+        merged_aln = LoadSeqs(
+            data={"1": "WCDEDE", "2": "ACDEDE", "3": "ACDEDE", "4": "ACDEDE"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array([[1.0, 10.0, 4.0, 3.0], [9.0, 18.0, 5.0, 6.0]])
+        expected = array([[1.0, 10.0, 4.0, 3.0], [9.0, 18.0, 5.0, 6.0]])
+        filter_exclude_positions(merged_aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
 
         # filter one position (aln1)
-        merged_aln = LoadSeqs(data={'1': 'WC-EDE', '2': 'ACDEDE',
-                                    '3': 'ACDEDE', '4': 'ACDEDE'}, moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
-        expected = array([[1., 10., DEFAULT_NULL_VALUE, 3.],
-                          [9., 18., DEFAULT_NULL_VALUE, 6.]])
-        filter_exclude_positions(
-            merged_aln, m, intermolecular_data_only=True)
+        merged_aln = LoadSeqs(
+            data={"1": "WC-EDE", "2": "ACDEDE", "3": "ACDEDE", "4": "ACDEDE"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array([[1.0, 10.0, 4.0, 3.0], [9.0, 18.0, 5.0, 6.0]])
+        expected = array(
+            [[1.0, 10.0, DEFAULT_NULL_VALUE, 3.0], [9.0, 18.0, DEFAULT_NULL_VALUE, 6.0]]
+        )
+        filter_exclude_positions(merged_aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
         # filter one position (aln2)
-        merged_aln = LoadSeqs(data={'1': 'WCEEDE', '2': 'ACDEDE',
-                                    '3': 'ACDEDE', '4': 'ACDED-'}, moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
-        expected = array([[1., 10., 4., 3.],
-                          [DEFAULT_NULL_VALUE] * 4])
-        filter_exclude_positions(
-            merged_aln, m, intermolecular_data_only=True)
+        merged_aln = LoadSeqs(
+            data={"1": "WCEEDE", "2": "ACDEDE", "3": "ACDEDE", "4": "ACDED-"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array([[1.0, 10.0, 4.0, 3.0], [9.0, 18.0, 5.0, 6.0]])
+        expected = array([[1.0, 10.0, 4.0, 3.0], [DEFAULT_NULL_VALUE] * 4])
+        filter_exclude_positions(merged_aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
 
         # filter two positions (aln1 & aln2)
-        merged_aln = LoadSeqs(data={'1': '-CEEDE', '2': 'ACDEDE',
-                                    '3': 'ACDEDE', '4': 'ACDED-'}, moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
-        expected = array([[DEFAULT_NULL_VALUE, 10., 4., 3.],
-                          [DEFAULT_NULL_VALUE] * 4])
-        filter_exclude_positions(
-            merged_aln, m, intermolecular_data_only=True)
+        merged_aln = LoadSeqs(
+            data={"1": "-CEEDE", "2": "ACDEDE", "3": "ACDEDE", "4": "ACDED-"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array([[1.0, 10.0, 4.0, 3.0], [9.0, 18.0, 5.0, 6.0]])
+        expected = array(
+            [[DEFAULT_NULL_VALUE, 10.0, 4.0, 3.0], [DEFAULT_NULL_VALUE] * 4]
+        )
+        filter_exclude_positions(merged_aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
 
         # filter two positions (aln1 & aln2, alt excludes)
-        merged_aln = LoadSeqs(data={'1': 'WCEEDE', '2': 'ACDEDE',
-                                    '3': 'ACDEDE', '4': 'ACDEDW'}, moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
-        expected = array([[DEFAULT_NULL_VALUE, 10., 4., 3.],
-                          [DEFAULT_NULL_VALUE] * 4])
-        filter_exclude_positions(merged_aln, m, intermolecular_data_only=True,
-                                 excludes='W')
+        merged_aln = LoadSeqs(
+            data={"1": "WCEEDE", "2": "ACDEDE", "3": "ACDEDE", "4": "ACDEDW"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array([[1.0, 10.0, 4.0, 3.0], [9.0, 18.0, 5.0, 6.0]])
+        expected = array(
+            [[DEFAULT_NULL_VALUE, 10.0, 4.0, 3.0], [DEFAULT_NULL_VALUE] * 4]
+        )
+        filter_exclude_positions(
+            merged_aln, m, intermolecular_data_only=True, excludes="W"
+        )
         self.assertFloatEqual(m, expected)
 
         # filter two positions (aln1 & aln2, alt null_value)
-        merged_aln = LoadSeqs(data={'1': '-CEEDE', '2': 'ACDEDE',
-                                    '3': 'ACDEDE', '4': 'ACDED-'}, moltype=PROTEIN, array_align=True)
-        m = array([[1., 10., 4., 3.], [9., 18., 5., 6.]])
-        expected = array([[999., 10., 4., 3.],
-                          [999.] * 4])
-        filter_exclude_positions(merged_aln, m, intermolecular_data_only=True,
-                                 null_value=999.)
+        merged_aln = LoadSeqs(
+            data={"1": "-CEEDE", "2": "ACDEDE", "3": "ACDEDE", "4": "ACDED-"},
+            moltype=PROTEIN,
+            array_align=True,
+        )
+        m = array([[1.0, 10.0, 4.0, 3.0], [9.0, 18.0, 5.0, 6.0]])
+        expected = array([[999.0, 10.0, 4.0, 3.0], [999.0] * 4])
+        filter_exclude_positions(
+            merged_aln, m, intermolecular_data_only=True, null_value=999.0
+        )
         self.assertFloatEqual(m, expected)
 
     def test_filter_threshold_based_multiple_interdependency_intermolecular(self):
@@ -1195,51 +1644,83 @@ class CoevolutionTests(TestCase):
         ## cmp_function = ge
         # lower boundary
         null = DEFAULT_NULL_VALUE
-        m = array([[0.63, 0.00, null],
-                   [0.75, 0.10, 0.45],
-                   [0.95, 0.32, 0.33],
-                   [1.00, 0.95, 0.11]])
-        expected = array([[null, null, null],
-                          [null, null, 0.45],
-                          [null, null, null],
-                          [null, null, null]])
+        m = array(
+            [
+                [0.63, 0.00, null],
+                [0.75, 0.10, 0.45],
+                [0.95, 0.32, 0.33],
+                [1.00, 0.95, 0.11],
+            ]
+        )
+        expected = array(
+            [
+                [null, null, null],
+                [null, null, 0.45],
+                [null, null, null],
+                [null, null, null],
+            ]
+        )
         actual = filter_threshold_based_multiple_interdependency(
-            None, m, 0.95, 0, greater_equal, True)
+            None, m, 0.95, 0, greater_equal, True
+        )
         self.assertFloatEqual(actual, expected)
         # realisitic test case
-        m = array([[0.63, 0.00, null],
-                   [0.75, 0.10, 0.45],
-                   [0.95, 0.32, 0.33],
-                   [1.00, 0.95, 0.11]])
-        expected = array([[null, 0.00, null],
-                          [null, 0.10, 0.45],
-                          [null, 0.32, 0.33],
-                          [null, null, null]])
+        m = array(
+            [
+                [0.63, 0.00, null],
+                [0.75, 0.10, 0.45],
+                [0.95, 0.32, 0.33],
+                [1.00, 0.95, 0.11],
+            ]
+        )
+        expected = array(
+            [
+                [null, 0.00, null],
+                [null, 0.10, 0.45],
+                [null, 0.32, 0.33],
+                [null, null, null],
+            ]
+        )
         actual = filter_threshold_based_multiple_interdependency(
-            None, m, 0.95, 1, greater_equal, True)
+            None, m, 0.95, 1, greater_equal, True
+        )
         self.assertFloatEqual(actual, expected)
         # upper boundary, nothing filtered
         null = DEFAULT_NULL_VALUE
-        m = array([[0.63, 0.00, null],
-                   [0.75, 0.10, 0.45],
-                   [0.95, 0.32, 0.33],
-                   [1.00, 0.95, 0.11]])
+        m = array(
+            [
+                [0.63, 0.00, null],
+                [0.75, 0.10, 0.45],
+                [0.95, 0.32, 0.33],
+                [1.00, 0.95, 0.11],
+            ]
+        )
         expected = m
         actual = filter_threshold_based_multiple_interdependency(
-            None, m, 0.95, 5, greater_equal, True)
+            None, m, 0.95, 5, greater_equal, True
+        )
         self.assertFloatEqual(actual, expected)
 
         # cmp_function = less_equal, realistic test case
-        m = array([[0.63, 0.00, null],
-                   [0.75, 0.10, 0.45],
-                   [0.95, 0.32, 0.33],
-                   [1.00, 0.95, 0.11]])
-        expected = array([[0.63, null, null],
-                          [0.75, null, null],
-                          [null, null, null],
-                          [1.00, null, null]])
+        m = array(
+            [
+                [0.63, 0.00, null],
+                [0.75, 0.10, 0.45],
+                [0.95, 0.32, 0.33],
+                [1.00, 0.95, 0.11],
+            ]
+        )
+        expected = array(
+            [
+                [0.63, null, null],
+                [0.75, null, null],
+                [null, null, null],
+                [1.00, null, null],
+            ]
+        )
         actual = filter_threshold_based_multiple_interdependency(
-            None, m, 0.35, 1, less_equal, True)
+            None, m, 0.35, 1, less_equal, True
+        )
         self.assertFloatEqual(actual, expected)
 
     def test_filter_threshold_based_multiple_interdependency_intramolecular(self):
@@ -1247,66 +1728,98 @@ class CoevolutionTests(TestCase):
         null = DEFAULT_NULL_VALUE
         ## cmp_function = ge
         # lower bound, everything filtered
-        m = array([[0.63, 0.75, 0.95, 1.00],
-                   [0.75, 0.10, null, 0.95],
-                   [0.95, null, 0.33, 0.11],
-                   [1.00, 0.95, 0.11, 1.00]])
-        expected = array([[null, null, null, null],
-                          [null, null, null, null],
-                          [null, null, null, null],
-                          [null, null, null, null]])
+        m = array(
+            [
+                [0.63, 0.75, 0.95, 1.00],
+                [0.75, 0.10, null, 0.95],
+                [0.95, null, 0.33, 0.11],
+                [1.00, 0.95, 0.11, 1.00],
+            ]
+        )
+        expected = array(
+            [
+                [null, null, null, null],
+                [null, null, null, null],
+                [null, null, null, null],
+                [null, null, null, null],
+            ]
+        )
         actual = filter_threshold_based_multiple_interdependency(
-            None, m, 0.95, 0, greater_equal)
+            None, m, 0.95, 0, greater_equal
+        )
         self.assertFloatEqual(actual, expected)
 
         # realistic test case
-        m = array([[0.63, 0.75, 0.95, 1.00],
-                   [0.75, 0.10, null, 0.95],
-                   [0.95, null, 0.33, 0.11],
-                   [1.00, 0.95, 0.11, 1.00]])
-        expected = array([[null, null, null, null],
-                          [null, 0.10, null, null],
-                          [null, null, 0.33, null],
-                          [null, null, null, null]])
+        m = array(
+            [
+                [0.63, 0.75, 0.95, 1.00],
+                [0.75, 0.10, null, 0.95],
+                [0.95, null, 0.33, 0.11],
+                [1.00, 0.95, 0.11, 1.00],
+            ]
+        )
+        expected = array(
+            [
+                [null, null, null, null],
+                [null, 0.10, null, null],
+                [null, null, 0.33, null],
+                [null, null, null, null],
+            ]
+        )
         actual = filter_threshold_based_multiple_interdependency(
-            None, m, 0.95, 1, greater_equal)
+            None, m, 0.95, 1, greater_equal
+        )
         self.assertFloatEqual(actual, expected)
 
         # upper boundary, nothing filtered
-        m = array([[0.63, 0.75, 0.95, 1.00],
-                   [0.75, 0.10, null, 0.95],
-                   [0.95, null, 0.33, 0.11],
-                   [1.00, 0.95, 0.11, 1.00]])
+        m = array(
+            [
+                [0.63, 0.75, 0.95, 1.00],
+                [0.75, 0.10, null, 0.95],
+                [0.95, null, 0.33, 0.11],
+                [1.00, 0.95, 0.11, 1.00],
+            ]
+        )
         expected = m
         actual = filter_threshold_based_multiple_interdependency(
-            None, m, 0.95, 5, greater_equal)
+            None, m, 0.95, 5, greater_equal
+        )
         self.assertFloatEqual(actual, expected)
 
         ## cmp_function = le
         # realistic test case
-        m = array([[0.63, 0.75, 0.95, 1.00],
-                   [0.75, 0.10, null, 0.95],
-                   [0.95, null, 0.33, 0.11],
-                   [1.00, 0.95, 0.11, 1.00]])
-        expected = array([[0.63, 0.75, null, 1.00],
-                          [0.75, 0.10, null, 0.95],
-                          [null, null, null, null],
-                          [1.00, 0.95, null, 1.00]])
+        m = array(
+            [
+                [0.63, 0.75, 0.95, 1.00],
+                [0.75, 0.10, null, 0.95],
+                [0.95, null, 0.33, 0.11],
+                [1.00, 0.95, 0.11, 1.00],
+            ]
+        )
+        expected = array(
+            [
+                [0.63, 0.75, null, 1.00],
+                [0.75, 0.10, null, 0.95],
+                [null, null, null, null],
+                [1.00, 0.95, null, 1.00],
+            ]
+        )
         actual = filter_threshold_based_multiple_interdependency(
-            None, m, 0.33, 1, less_equal)
+            None, m, 0.33, 1, less_equal
+        )
         self.assertFloatEqual(actual, expected)
 
     def test_probs_from_dict(self):
         """probs_from_dict: dict of probs -> list of probs in alphabet's order
         """
-        d = {'A': 0.25, 'D': 0.52, 'C': 0.23}
-        a = list('ACD')
+        d = {"A": 0.25, "D": 0.52, "C": 0.23}
+        a = list("ACD")
         self.assertFloatEqual(probs_from_dict(d, a), [0.25, 0.23, 0.52])
-        a = list('ADC')
+        a = list("ADC")
         self.assertFloatEqual(probs_from_dict(d, a), [0.25, 0.52, 0.23])
-        a = list('DCA')
+        a = list("DCA")
         self.assertFloatEqual(probs_from_dict(d, a), [0.52, 0.23, 0.25])
-        a = CharAlphabet('DCA')
+        a = CharAlphabet("DCA")
         self.assertFloatEqual(probs_from_dict(d, a), [0.52, 0.23, 0.25])
 
         # protein natural probs
@@ -1318,27 +1831,31 @@ class CoevolutionTests(TestCase):
         """freqs_from_aln: freqs of alphabet chars in aln is calc'ed correctly
         """
         # non-default scaled_aln_size
-        aln = ArrayAlignment(data=list(zip(list(range(4)), ['ACGT', 'AGCT', 'ACCC', 'TAGG'])),
-                             moltype=PROTEIN)
-        alphabet = 'ACGT'
+        aln = ArrayAlignment(
+            data=list(zip(list(range(4)), ["ACGT", "AGCT", "ACCC", "TAGG"])),
+            moltype=PROTEIN,
+        )
+        alphabet = "ACGT"
         expected = [4, 5, 4, 3]
         self.assertEqual(freqs_from_aln(aln, alphabet, 16), expected)
         # change the order of the alphabet
-        alphabet = 'TGCA'
+        alphabet = "TGCA"
         expected = [3, 4, 5, 4]
         self.assertEqual(freqs_from_aln(aln, alphabet, 16), expected)
         # default scaled_aln_size, sums of freqs == 100
-        alphabet = 'ACGT'
-        expected = [25., 31.25, 25, 18.75]
+        alphabet = "ACGT"
+        expected = [25.0, 31.25, 25, 18.75]
         self.assertEqual(freqs_from_aln(aln, alphabet), expected)
         # alphabet char which doesn't show up gets zero freq
-        alphabet = 'ACGTW'
-        expected = [25., 31.25, 25, 18.75, 0]
+        alphabet = "ACGTW"
+        expected = [25.0, 31.25, 25, 18.75, 0]
         self.assertEqual(freqs_from_aln(aln, alphabet), expected)
         # alignment char which doesn't show up is silently ignored
-        aln = ArrayAlignment(data=list(zip(list(range(4)), ['ACGT', 'AGCT', 'ACCC', 'TWGG'])),
-                             moltype=PROTEIN)
-        alphabet = 'ACGT'
+        aln = ArrayAlignment(
+            data=list(zip(list(range(4)), ["ACGT", "AGCT", "ACCC", "TWGG"])),
+            moltype=PROTEIN,
+        )
+        alphabet = "ACGT"
         expected = [18.75, 31.25, 25, 18.75]
         self.assertEqual(freqs_from_aln(aln, alphabet), expected)
 
@@ -1349,14 +1866,14 @@ class CoevolutionTests(TestCase):
         f2a = freqs_to_array
         self.assertFloatEqual(f2a(f, AAGapless), zeros(20))
         # should work with full object, omitting unwanted keys
-        f = CategoryCounter({'A': 20, 'Q': 30, 'X': 20})
+        f = CategoryCounter({"A": 20, "Q": 30, "X": 20})
         expected = zeros(20)
-        expected[AAGapless.index('A')] = 20
-        expected[AAGapless.index('Q')] = 30
+        expected[AAGapless.index("A")] = 20
+        expected[AAGapless.index("Q")] = 30
         self.assertFloatEqual(f2a(f, AAGapless), expected)
 
         # should work for normal dict and any alphabet
-        d = {'A': 3, 'D': 1, 'C': 5, 'E': 2}
+        d = {"A": 3, "D": 1, "C": 5, "E": 2}
         alpha = "ABCD"
         exp = array([3, 0, 5, 1])
         self.assertFloatEqual(f2a(d, alpha), exp)
@@ -1365,133 +1882,134 @@ class CoevolutionTests(TestCase):
         """get_allowed_perturbations: should work for different cutoff values
         """
         counts = [50, 40, 10, 0]
-        a = list('ACGT')
+        a = list("ACGT")
         self.assertEqual(get_allowed_perturbations(counts, 1.0, a), [])
         self.assertEqual(get_allowed_perturbations(counts, 0.51, a), [])
-        self.assertEqual(get_allowed_perturbations(counts, 0.5, a), ['A'])
-        self.assertEqual(get_allowed_perturbations(counts, 0.49, a), ['A'])
-        self.assertEqual(get_allowed_perturbations(counts, 0.401, a), ['A'])
-        self.assertEqual(get_allowed_perturbations(
-            counts, 0.40, a), ['A', 'C'])
-        self.assertEqual(get_allowed_perturbations(
-            counts, 0.399, a), ['A', 'C'])
-        self.assertEqual(get_allowed_perturbations(counts, 0.10, a),
-                         ['A', 'C', 'G'])
+        self.assertEqual(get_allowed_perturbations(counts, 0.5, a), ["A"])
+        self.assertEqual(get_allowed_perturbations(counts, 0.49, a), ["A"])
+        self.assertEqual(get_allowed_perturbations(counts, 0.401, a), ["A"])
+        self.assertEqual(get_allowed_perturbations(counts, 0.40, a), ["A", "C"])
+        self.assertEqual(get_allowed_perturbations(counts, 0.399, a), ["A", "C"])
+        self.assertEqual(get_allowed_perturbations(counts, 0.10, a), ["A", "C", "G"])
         self.assertEqual(get_allowed_perturbations(counts, 0.0, a), a)
 
     def test_get_subalignments(self):
         """get_subalignments: works with different alignment sizes and cutoffs 
         """
         aln = ArrayAlignment(
-            data={1: 'AAAA', 2: 'AAAC', 3: 'AACG', 4: 'ACCT', 5: 'ACG-'},
-            moltype=PROTEIN)
+            data={1: "AAAA", 2: "AAAC", 3: "AACG", 4: "ACCT", 5: "ACG-"},
+            moltype=PROTEIN,
+        )
         sub_aln_0A = ArrayAlignment(
-            data={1: 'AAAA', 2: 'AAAC', 3: 'AACG', 4: 'ACCT', 5: 'ACG-'},
-            moltype=PROTEIN)
+            data={1: "AAAA", 2: "AAAC", 3: "AACG", 4: "ACCT", 5: "ACG-"},
+            moltype=PROTEIN,
+        )
         sub_aln_0C = {}
-        sub_aln_1A = ArrayAlignment(data={1: 'AAAA', 2: 'AAAC', 3: 'AACG'},
-                                    moltype=PROTEIN)
-        sub_aln_1C = ArrayAlignment(
-            data={4: 'ACCT', 5: 'ACG-'}, moltype=PROTEIN)
-        sub_aln_2G = ArrayAlignment(data={5: 'ACG-'}, moltype=PROTEIN)
+        sub_aln_1A = ArrayAlignment(
+            data={1: "AAAA", 2: "AAAC", 3: "AACG"}, moltype=PROTEIN
+        )
+        sub_aln_1C = ArrayAlignment(data={4: "ACCT", 5: "ACG-"}, moltype=PROTEIN)
+        sub_aln_2G = ArrayAlignment(data={5: "ACG-"}, moltype=PROTEIN)
 
-        self.assertEqual(get_subalignments(aln, 0, ['A']), [sub_aln_0A])
-        self.assertEqual(get_subalignments(aln, 0, ['C']), [sub_aln_0C])
-        self.assertEqual(get_subalignments(aln, 1, ['A']), [sub_aln_1A])
-        self.assertEqual(get_subalignments(aln, 1, ['C']), [sub_aln_1C])
-        self.assertEqual(get_subalignments(aln, 1, ['A', 'C']),
-                         [sub_aln_1A, sub_aln_1C])
-        self.assertEqual(get_subalignments(aln, 2, ['G']), [sub_aln_2G])
-        self.assertEqual(get_subalignments(aln, 3, ['-']), [sub_aln_2G])
+        self.assertEqual(get_subalignments(aln, 0, ["A"]), [sub_aln_0A])
+        self.assertEqual(get_subalignments(aln, 0, ["C"]), [sub_aln_0C])
+        self.assertEqual(get_subalignments(aln, 1, ["A"]), [sub_aln_1A])
+        self.assertEqual(get_subalignments(aln, 1, ["C"]), [sub_aln_1C])
+        self.assertEqual(
+            get_subalignments(aln, 1, ["A", "C"]), [sub_aln_1A, sub_aln_1C]
+        )
+        self.assertEqual(get_subalignments(aln, 2, ["G"]), [sub_aln_2G])
+        self.assertEqual(get_subalignments(aln, 3, ["-"]), [sub_aln_2G])
 
     def test_get_positional_frequencies_w_scale(self):
         """get_positional_frequencies: works with default scaled_aln_size"""
-        aln = ArrayAlignment(data={1: 'ACDE', 2: 'ADDE', 3: 'AEED', 4: 'AFEF'},
-                             moltype=PROTEIN)
-        expected_0 = array([100., 0., 0., 0., 0.])
-        expected_1 = array([0., 25., 25., 25., 25.])
-        expected_2 = array([0., 0., 50., 50., 0.])
-        expected_3 = array([0., 0., 25., 50., 25.])
-        self.assertFloatEqual(get_positional_frequencies(
-            aln, 0, 'ACDEF'), expected_0)
-        self.assertFloatEqual(get_positional_frequencies(
-            aln, 1, 'ACDEF'), expected_1)
-        self.assertFloatEqual(get_positional_frequencies(
-            aln, 2, 'ACDEF'), expected_2)
-        self.assertFloatEqual(get_positional_frequencies(
-            aln, 3, 'ACDEF'), expected_3)
+        aln = ArrayAlignment(
+            data={1: "ACDE", 2: "ADDE", 3: "AEED", 4: "AFEF"}, moltype=PROTEIN
+        )
+        expected_0 = array([100.0, 0.0, 0.0, 0.0, 0.0])
+        expected_1 = array([0.0, 25.0, 25.0, 25.0, 25.0])
+        expected_2 = array([0.0, 0.0, 50.0, 50.0, 0.0])
+        expected_3 = array([0.0, 0.0, 25.0, 50.0, 25.0])
+        self.assertFloatEqual(get_positional_frequencies(aln, 0, "ACDEF"), expected_0)
+        self.assertFloatEqual(get_positional_frequencies(aln, 1, "ACDEF"), expected_1)
+        self.assertFloatEqual(get_positional_frequencies(aln, 2, "ACDEF"), expected_2)
+        self.assertFloatEqual(get_positional_frequencies(aln, 3, "ACDEF"), expected_3)
         # extra characters (W) are silently ignored -- is this the desired
         # behavior?
-        aln = ArrayAlignment(data={1: 'WCDE', 2: 'ADDE', 3: 'AEED', 4: 'AFEF'},
-                             moltype=PROTEIN)
-        expected_0 = array([75., 0., 0., 0., 0.])
-        self.assertFloatEqual(get_positional_frequencies(
-            aln, 0, 'ACDEF'), expected_0)
+        aln = ArrayAlignment(
+            data={1: "WCDE", 2: "ADDE", 3: "AEED", 4: "AFEF"}, moltype=PROTEIN
+        )
+        expected_0 = array([75.0, 0.0, 0.0, 0.0, 0.0])
+        self.assertFloatEqual(get_positional_frequencies(aln, 0, "ACDEF"), expected_0)
         # 20 residue amino acid alphabet
-        aln = ArrayAlignment(data={1: 'ACDE', 2: 'ADDE', 3: 'AEED', 4: 'AFEF'},
-                             moltype=PROTEIN)
-        expected = array([100.] + [0.] * 19)
-        self.assertFloatEqual(get_positional_frequencies(
-            aln, 0, AAGapless), expected)
+        aln = ArrayAlignment(
+            data={1: "ACDE", 2: "ADDE", 3: "AEED", 4: "AFEF"}, moltype=PROTEIN
+        )
+        expected = array([100.0] + [0.0] * 19)
+        self.assertFloatEqual(get_positional_frequencies(aln, 0, AAGapless), expected)
 
     def test_get_positional_frequencies(self):
         """get_positional_frequencies: works with non-default scaled_aln_size
         """
-        aln = ArrayAlignment(data={1: 'ACDE', 2: 'ADDE', 3: 'AEED', 4: 'AFEF'},
-                             moltype=PROTEIN)
-        expected_0 = array([4., 0., 0., 0., 0.])
-        expected_1 = array([0., 1., 1., 1., 1.])
-        expected_2 = array([0., 0., 2., 2., 0.])
-        expected_3 = array([0., 0., 1., 2., 1.])
-        self.assertFloatEqual(get_positional_frequencies(aln, 0, 'ACDEF', 4),
-                              expected_0)
-        self.assertFloatEqual(get_positional_frequencies(aln, 1, 'ACDEF', 4),
-                              expected_1)
-        self.assertFloatEqual(get_positional_frequencies(aln, 2, 'ACDEF', 4),
-                              expected_2)
-        self.assertFloatEqual(get_positional_frequencies(aln, 3, 'ACDEF', 4),
-                              expected_3)
+        aln = ArrayAlignment(
+            data={1: "ACDE", 2: "ADDE", 3: "AEED", 4: "AFEF"}, moltype=PROTEIN
+        )
+        expected_0 = array([4.0, 0.0, 0.0, 0.0, 0.0])
+        expected_1 = array([0.0, 1.0, 1.0, 1.0, 1.0])
+        expected_2 = array([0.0, 0.0, 2.0, 2.0, 0.0])
+        expected_3 = array([0.0, 0.0, 1.0, 2.0, 1.0])
+        self.assertFloatEqual(
+            get_positional_frequencies(aln, 0, "ACDEF", 4), expected_0
+        )
+        self.assertFloatEqual(
+            get_positional_frequencies(aln, 1, "ACDEF", 4), expected_1
+        )
+        self.assertFloatEqual(
+            get_positional_frequencies(aln, 2, "ACDEF", 4), expected_2
+        )
+        self.assertFloatEqual(
+            get_positional_frequencies(aln, 3, "ACDEF", 4), expected_3
+        )
         # extra characters (W) are silently ignored -- is this the desired
         # behavior?
-        aln = ArrayAlignment(data={1: 'WCDE', 2: 'ADDE', 3: 'AEED', 4: 'AFEF'},
-                             moltype=PROTEIN)
-        expected_0 = array([3., 0., 0., 0., 0.])
-        self.assertFloatEqual(get_positional_frequencies(aln, 0, 'ACDEF', 4),
-                              expected_0)
+        aln = ArrayAlignment(
+            data={1: "WCDE", 2: "ADDE", 3: "AEED", 4: "AFEF"}, moltype=PROTEIN
+        )
+        expected_0 = array([3.0, 0.0, 0.0, 0.0, 0.0])
+        self.assertFloatEqual(
+            get_positional_frequencies(aln, 0, "ACDEF", 4), expected_0
+        )
         # 20 residue amino acid alphabet
-        aln = ArrayAlignment(data={1: 'ACDE', 2: 'ADDE', 3: 'AEED', 4: 'AFEF'},
-                             moltype=PROTEIN)
-        expected = array([4.] + [0.] * 19)
-        self.assertFloatEqual(get_positional_frequencies(aln, 0, AAGapless, 4),
-                              expected)
+        aln = ArrayAlignment(
+            data={1: "ACDE", 2: "ADDE", 3: "AEED", 4: "AFEF"}, moltype=PROTEIN
+        )
+        expected = array([4.0] + [0.0] * 19)
+        self.assertFloatEqual(
+            get_positional_frequencies(aln, 0, AAGapless, 4), expected
+        )
 
     def test_validate_alphabet_invalid(self):
         """validate_alphabet: raises error on incompatible alpabet and freqs 
         """
         # len(alpha) > len(freqs)
-        self.assertRaises(ValueError, validate_alphabet,
-                          'ABC', {'A': 0.5, 'B': 0.5})
-        self.assertRaises(ValueError, validate_alphabet,
-                          'ABCD', {'A': 0.5, 'B': 0.5})
+        self.assertRaises(ValueError, validate_alphabet, "ABC", {"A": 0.5, "B": 0.5})
+        self.assertRaises(ValueError, validate_alphabet, "ABCD", {"A": 0.5, "B": 0.5})
         # len(alpha) == len(freqs)
-        self.assertRaises(ValueError, validate_alphabet,
-                          'AC', {'A': 0.5, 'B': 0.5})
+        self.assertRaises(ValueError, validate_alphabet, "AC", {"A": 0.5, "B": 0.5})
         # len(alpha) < len(freqs)
-        self.assertRaises(ValueError, validate_alphabet,
-                          'A', {'A': 0.5, 'B': 0.5})
-        self.assertRaises(ValueError, validate_alphabet, '',
-                          {'A': 0.5, 'B': 0.5})
+        self.assertRaises(ValueError, validate_alphabet, "A", {"A": 0.5, "B": 0.5})
+        self.assertRaises(ValueError, validate_alphabet, "", {"A": 0.5, "B": 0.5})
         # different values, len(alpha) > len(freqs)
-        self.assertRaises(ValueError, validate_alphabet, [1, 42, 3],
-                          {42: 0.5, 1: 0.5})
-        self.assertRaises(ValueError, validate_alphabet, CharAlphabet('ABC'),
-                          {'A': 0.5, 'C': 0.5})
+        self.assertRaises(ValueError, validate_alphabet, [1, 42, 3], {42: 0.5, 1: 0.5})
+        self.assertRaises(
+            ValueError, validate_alphabet, CharAlphabet("ABC"), {"A": 0.5, "C": 0.5}
+        )
 
     def test_validate_alphabet_valid(self):
         """validate_alphabet: does nothing on compatible alpabet and freqs 
         """
-        validate_alphabet('AB', {'A': 0.5, 'B': 0.5})
-        validate_alphabet(CharAlphabet('AB'), {'A': 0.5, 'B': 0.5})
+        validate_alphabet("AB", {"A": 0.5, "B": 0.5})
+        validate_alphabet(CharAlphabet("AB"), {"A": 0.5, "B": 0.5})
         validate_alphabet([1, 42, 8], {1: 0.5, 42: 0.25, 8: 0.25})
 
     def test_validate_position_invalid(self):
@@ -1511,44 +2029,49 @@ class CoevolutionTests(TestCase):
     def test_validate_alignment(self):
         """validate_alignment: ValueError on bad alignment characters"""
         # ambiguous characters
-        aln = ArrayAlignment(data={0: 'BA', 1: 'AC', 2: 'CG', 3: 'CT', 4: 'TA'},
-                             moltype=PROTEIN)
+        aln = ArrayAlignment(
+            data={0: "BA", 1: "AC", 2: "CG", 3: "CT", 4: "TA"}, moltype=PROTEIN
+        )
         self.assertRaises(ValueError, validate_alignment, aln)
-        aln = ArrayAlignment(data={0: 'NA', 1: 'AC', 2: 'CG', 3: 'CT', 4: 'TA'},
-                             moltype=DNA)
+        aln = ArrayAlignment(
+            data={0: "NA", 1: "AC", 2: "CG", 3: "CT", 4: "TA"}, moltype=DNA
+        )
         self.assertRaises(ValueError, validate_alignment, aln)
-        aln = ArrayAlignment(data={0: 'YA', 1: 'AC', 2: 'CG', 3: 'CU', 4: 'UA'},
-                             moltype=RNA)
+        aln = ArrayAlignment(
+            data={0: "YA", 1: "AC", 2: "CG", 3: "CU", 4: "UA"}, moltype=RNA
+        )
         self.assertRaises(ValueError, validate_alignment, aln)
 
-        aln = ArrayAlignment(data={0: 'AA', 1: 'AC', 2: 'CG', 3: 'CT', 4: 'TA'},
-                             moltype=PROTEIN)
+        aln = ArrayAlignment(
+            data={0: "AA", 1: "AC", 2: "CG", 3: "CT", 4: "TA"}, moltype=PROTEIN
+        )
         validate_alignment(aln)
-        aln = ArrayAlignment(data={0: 'AA', 1: 'AC', 2: 'CG', 3: 'CT', 4: 'TA'},
-                             moltype=DNA)
+        aln = ArrayAlignment(
+            data={0: "AA", 1: "AC", 2: "CG", 3: "CT", 4: "TA"}, moltype=DNA
+        )
         validate_alignment(aln)
-        aln = ArrayAlignment(data={0: 'AA', 1: 'AC', 2: 'CG', 3: 'CU', 4: 'UA'},
-                             moltype=RNA)
+        aln = ArrayAlignment(
+            data={0: "AA", 1: "AC", 2: "CG", 3: "CU", 4: "UA"}, moltype=RNA
+        )
         validate_alignment(aln)
 
     def test_coevolve_functions_validate_alignment(self):
         """coevolve_*: functions run validate alignment"""
         aln = ArrayAlignment(
-            data={'0': 'BA', '1': 'AC', '2': 'CG', '3': 'CT', '4': 'TA'},
-            moltype=PROTEIN)
+            data={"0": "BA", "1": "AC", "2": "CG", "3": "CT", "4": "TA"},
+            moltype=PROTEIN,
+        )
         self.assertRaises(ValueError, coevolve_pair, mi_pair, aln, 0, 1)
         self.assertRaises(ValueError, coevolve_position, mi_position, aln, 0)
         self.assertRaises(ValueError, coevolve_alignment, mi_alignment, aln)
-        self.assertRaises(ValueError, coevolve_alignments,
-                          mi_alignment, aln, aln)
+        self.assertRaises(ValueError, coevolve_alignments, mi_alignment, aln, aln)
 
     def test_get_positional_probabilities_w_non_def_num_seqs(self):
         """get_positional_probabilities: works w/ non-def num_seqs"""
-        freqs = [1., 2., 0.]
+        freqs = [1.0, 2.0, 0.0]
         probs = [0.33, 0.33, 0.33]
         expected = array([0.444411, 0.218889, 0.300763])
-        self.assertFloatEqual(get_positional_probabilities(freqs, probs, 3),
-                              expected)
+        self.assertFloatEqual(get_positional_probabilities(freqs, probs, 3), expected)
 
     def test_get_dg(self):
         """get_dg: returns delta_g vector"""
@@ -1567,11 +2090,12 @@ class CoevolutionTests(TestCase):
     def test_get_positional_probabilities_w_def_num_seqs(self):
         """get_positional_probabilities: works w/ num_seqs scaled to 100 (def)
         """
-        freqs = [15., 33., 52.]
+        freqs = [15.0, 33.0, 52.0]
         probs = [0.33, 0.33, 0.33]
         expected = array([2.4990e-5, 0.0846, 3.8350e-5])
-        self.assertFloatEqual(get_positional_probabilities(freqs, probs),
-                              expected, 0.001)
+        self.assertFloatEqual(
+            get_positional_probabilities(freqs, probs), expected, 0.001
+        )
 
     def test_get_positional_probs_handles_rounding_error_in_freqs(self):
         """get_positional_probabilities: works w/ rounding error in freqs"""
@@ -1579,251 +2103,459 @@ class CoevolutionTests(TestCase):
         # errors for positions that are perfectly controled. Testing here that
         # that value error is handled.
         # default scaled_aln_size
-        freqs = [100.0000000001, 0., 0.]
+        freqs = [100.0000000001, 0.0, 0.0]
         probs = [0.33, 0.33, 0.33]
         expected = array([7.102218e-49, 4.05024e-18, 4.05024e-18])
-        self.assertFloatEqual(get_positional_probabilities(freqs, probs),
-                              expected)
+        self.assertFloatEqual(get_positional_probabilities(freqs, probs), expected)
         # value that is truely over raises an error
-        freqs = [101.0000000001, 0., 0.]
+        freqs = [101.0000000001, 0.0, 0.0]
         probs = [0.33, 0.33, 0.33]
-        self.assertRaises(
-            ValueError, get_positional_probabilities, freqs, probs)
+        self.assertRaises(ValueError, get_positional_probabilities, freqs, probs)
         # non-default scaled_aln_size
-        freqs = [50.0000000001, 0., 0.]
+        freqs = [50.0000000001, 0.0, 0.0]
         probs = [0.33, 0.33, 0.33]
         expected = array([8.42747e-25, 2.01252e-9, 2.01252e-9])
-        self.assertFloatEqual(get_positional_probabilities(freqs, probs, 50),
-                              expected)
+        self.assertFloatEqual(get_positional_probabilities(freqs, probs, 50), expected)
         # value that is truely over raises an error
-        freqs = [51.0000000001, 0., 0.]
+        freqs = [51.0000000001, 0.0, 0.0]
         probs = [0.33, 0.33, 0.33]
-        self.assertRaises(ValueError, get_positional_probabilities,
-                          freqs, probs, 50)
+        self.assertRaises(ValueError, get_positional_probabilities, freqs, probs, 50)
 
     def test_sca_input_validation(self):
         """sca_input_validation: handles sca-specific validation steps """
         # moltype != PROTEIN makes background freqs required
-        self.assertRaises(ValueError, sca_input_validation,
-                          self.dna_aln, cutoff=0.4)
-        self.assertRaises(ValueError, sca_input_validation,
-                          self.rna_aln, cutoff=0.4)
+        self.assertRaises(ValueError, sca_input_validation, self.dna_aln, cutoff=0.4)
+        self.assertRaises(ValueError, sca_input_validation, self.rna_aln, cutoff=0.4)
         # no cutoff -> ValueError
         self.assertRaises(ValueError, sca_input_validation, self.protein_aln)
         # low cutoff -> ValueError
-        self.assertRaises(ValueError, sca_input_validation,
-                          self.protein_aln, cutoff=-0.001)
+        self.assertRaises(
+            ValueError, sca_input_validation, self.protein_aln, cutoff=-0.001
+        )
         # high cutoff -> ValueError
-        self.assertRaises(ValueError, sca_input_validation,
-                          self.protein_aln, cutoff=1.001)
+        self.assertRaises(
+            ValueError, sca_input_validation, self.protein_aln, cutoff=1.001
+        )
         # good cut-off -> no error
         sca_input_validation(self.protein_aln, cutoff=0.50)
         sca_input_validation(self.protein_aln, cutoff=0.0)
         sca_input_validation(self.protein_aln, cutoff=1.0)
 
         # only bad alphabet -> ValueError
-        self.assertRaises(ValueError, sca_input_validation,
-                          self.dna_aln, cutoff=0.5, alphabet='ABC')
+        self.assertRaises(
+            ValueError, sca_input_validation, self.dna_aln, cutoff=0.5, alphabet="ABC"
+        )
         # only bad background_freqs -> ValueError
-        self.assertRaises(ValueError, sca_input_validation,
-                          self.dna_aln, cutoff=0.5, background_freqs={'A': 0.25, 'C': 0.75})
+        self.assertRaises(
+            ValueError,
+            sca_input_validation,
+            self.dna_aln,
+            cutoff=0.5,
+            background_freqs={"A": 0.25, "C": 0.75},
+        )
         # incompatible background_freqs & alphabet provided -> ValueError
-        self.assertRaises(ValueError, sca_input_validation,
-                          self.dna_aln, cutoff=0.5, alphabet='ABC',
-                          background_freqs={'A': 0.25, 'C': 0.75})
+        self.assertRaises(
+            ValueError,
+            sca_input_validation,
+            self.dna_aln,
+            cutoff=0.5,
+            alphabet="ABC",
+            background_freqs={"A": 0.25, "C": 0.75},
+        )
 
         # default alphabet, background_freqs -> no error
         sca_input_validation(self.protein_aln, cutoff=0.50)
         # compatible non-default alphabet, backgorund_freqs -> no error
-        sca_input_validation(self.dna_aln, cutoff=0.50, alphabet='A',
-                             background_freqs={'A': 1.0})
+        sca_input_validation(
+            self.dna_aln, cutoff=0.50, alphabet="A", background_freqs={"A": 1.0}
+        )
 
         # Note: don't need a full set of tests of validate_alphabet here --
         # it's tested on it's own.
 
     def test_sca_pair_no_error(self):
         """sca_pair: returns w/o error """
-        r = sca_pair(self.dna_aln, 1, 0, cutoff=0.50, alphabet='ACGT',
-                     background_freqs=self.dna_base_freqs)
-        r = coevolve_pair(sca_pair, self.dna_aln, 1, 0, cutoff=0.50,
-                          alphabet='ACGT', background_freqs=self.dna_base_freqs)
+        r = sca_pair(
+            self.dna_aln,
+            1,
+            0,
+            cutoff=0.50,
+            alphabet="ACGT",
+            background_freqs=self.dna_base_freqs,
+        )
+        r = coevolve_pair(
+            sca_pair,
+            self.dna_aln,
+            1,
+            0,
+            cutoff=0.50,
+            alphabet="ACGT",
+            background_freqs=self.dna_base_freqs,
+        )
 
     def test_sca_pair_return_all(self):
         """sca_pair: handles return_all by returning lists of proper length
         """
         # two allowed_perturbations
-        a = 'ACGT'
-        aln = ArrayAlignment(data={0: 'AA', 1: 'AC', 2: 'CG', 3: 'CT', 4: 'TA'},
-                             moltype=DNA)
-        actual = sca_pair(aln, 0, 1, cutoff=0.33, return_all=True, alphabet=a,
-                          background_freqs=self.dna_base_freqs)
+        a = "ACGT"
+        aln = ArrayAlignment(
+            data={0: "AA", 1: "AC", 2: "CG", 3: "CT", 4: "TA"}, moltype=DNA
+        )
+        actual = sca_pair(
+            aln,
+            0,
+            1,
+            cutoff=0.33,
+            return_all=True,
+            alphabet=a,
+            background_freqs=self.dna_base_freqs,
+        )
         self.assertEqual(len(actual), 2)
-        self.assertEqual(actual[0][0], 'A')
-        self.assertEqual(actual[1][0], 'C')
+        self.assertEqual(actual[0][0], "A")
+        self.assertEqual(actual[1][0], "C")
         # one allowed_perturbations
-        a = 'ACGT'
-        aln = ArrayAlignment(data={0: 'AA', 1: 'AC', 2: 'AG', 3: 'CT', 4: 'TA'},
-                             moltype=DNA)
-        actual = sca_pair(aln, 0, 1, 0.33, return_all=True, alphabet=a,
-                          background_freqs=self.dna_base_freqs)
+        a = "ACGT"
+        aln = ArrayAlignment(
+            data={0: "AA", 1: "AC", 2: "AG", 3: "CT", 4: "TA"}, moltype=DNA
+        )
+        actual = sca_pair(
+            aln,
+            0,
+            1,
+            0.33,
+            return_all=True,
+            alphabet=a,
+            background_freqs=self.dna_base_freqs,
+        )
         self.assertEqual(len(actual), 1)
-        self.assertEqual(actual[0][0], 'A')
+        self.assertEqual(actual[0][0], "A")
         # zero allowed_perturbations
-        actual = sca_pair(aln, 0, 1, 1.0, return_all=True, alphabet=a,
-                          background_freqs=self.dna_base_freqs)
-        #expected = [('A',-1),('C',-1)]
+        actual = sca_pair(
+            aln,
+            0,
+            1,
+            1.0,
+            return_all=True,
+            alphabet=a,
+            background_freqs=self.dna_base_freqs,
+        )
+        # expected = [('A',-1),('C',-1)]
         expected = DEFAULT_NULL_VALUE
         self.assertFloatEqual(actual, expected)
 
         # pos1 == pos2
-        actual = sca_pair(aln, 0, 0, 0.33, return_all=True, alphabet=a,
-                          background_freqs=self.dna_base_freqs)
-        #expected = [('A',-1),('C',-1)]
-        expected = [('A', 2.40381185618)]
+        actual = sca_pair(
+            aln,
+            0,
+            0,
+            0.33,
+            return_all=True,
+            alphabet=a,
+            background_freqs=self.dna_base_freqs,
+        )
+        # expected = [('A',-1),('C',-1)]
+        expected = [("A", 2.40381185618)]
         self.assertFloatEqual(actual, expected)
 
     def test_sca_pair_error(self):
         """sca_pair:returns w/ error when appropriate """
-        a = 'ACGT'
+        a = "ACGT"
         # pos1 out of range
-        self.assertRaises(ValueError, coevolve_pair, sca_pair, self.dna_aln,
-                          100, 1, cutoff=0.50, alphabet=a, background_freqs=self.dna_base_freqs)
+        self.assertRaises(
+            ValueError,
+            coevolve_pair,
+            sca_pair,
+            self.dna_aln,
+            100,
+            1,
+            cutoff=0.50,
+            alphabet=a,
+            background_freqs=self.dna_base_freqs,
+        )
         # pos2 out of range
-        self.assertRaises(ValueError, coevolve_pair, sca_pair, self.dna_aln,
-                          0, 100, cutoff=0.50, alphabet=a, background_freqs=self.dna_base_freqs)
+        self.assertRaises(
+            ValueError,
+            coevolve_pair,
+            sca_pair,
+            self.dna_aln,
+            0,
+            100,
+            cutoff=0.50,
+            alphabet=a,
+            background_freqs=self.dna_base_freqs,
+        )
         # pos1 & pos2 out of range
-        self.assertRaises(ValueError, coevolve_pair, sca_pair, self.dna_aln,
-                          100, 100, cutoff=0.50, alphabet=a,
-                          background_freqs=self.dna_base_freqs)
+        self.assertRaises(
+            ValueError,
+            coevolve_pair,
+            sca_pair,
+            self.dna_aln,
+            100,
+            100,
+            cutoff=0.50,
+            alphabet=a,
+            background_freqs=self.dna_base_freqs,
+        )
 
         # bad cut-off
-        self.assertRaises(ValueError, coevolve_pair, sca_pair,
-                          self.dna_aln, 0, 1, cutoff=1.2,
-                          alphabet=a, background_freqs=self.dna_base_freqs)
+        self.assertRaises(
+            ValueError,
+            coevolve_pair,
+            sca_pair,
+            self.dna_aln,
+            0,
+            1,
+            cutoff=1.2,
+            alphabet=a,
+            background_freqs=self.dna_base_freqs,
+        )
 
         # incompatible alphabet and background freqs
-        self.assertRaises(ValueError, coevolve_pair, sca_pair,
-                          self.dna_aln, 0, 1, cutoff=0.2, alphabet=a)
-        self.assertRaises(ValueError, coevolve_pair, sca_pair,
-                          self.dna_aln, 0, 1, cutoff=0.2, alphabet='ACGTBC',
-                          background_freqs=self.dna_base_freqs)
+        self.assertRaises(
+            ValueError,
+            coevolve_pair,
+            sca_pair,
+            self.dna_aln,
+            0,
+            1,
+            cutoff=0.2,
+            alphabet=a,
+        )
+        self.assertRaises(
+            ValueError,
+            coevolve_pair,
+            sca_pair,
+            self.dna_aln,
+            0,
+            1,
+            cutoff=0.2,
+            alphabet="ACGTBC",
+            background_freqs=self.dna_base_freqs,
+        )
 
     def test_sca_position_no_error(self):
         """sca_position: returns w/o error """
-        r = sca_position(self.dna_aln, 1, 0.50, alphabet='ACGT',
-                         background_freqs=self.dna_base_freqs)
+        r = sca_position(
+            self.dna_aln, 1, 0.50, alphabet="ACGT", background_freqs=self.dna_base_freqs
+        )
         # sanity check -- coupling w/ self
         self.assertFloatEqual(r[1], 3.087, 0.01)
-        r = sca_position(self.dna_aln_gapped, 1, 0.50,
-                         alphabet='ACGT', background_freqs=self.dna_base_freqs)
+        r = sca_position(
+            self.dna_aln_gapped,
+            1,
+            0.50,
+            alphabet="ACGT",
+            background_freqs=self.dna_base_freqs,
+        )
         self.assertFloatEqual(r[1], 3.387, 0.01)
 
         # same tests, but called via coevolve_position
-        r = coevolve_position(sca_position, self.dna_aln, 1, cutoff=0.50,
-                              alphabet='ACGT', background_freqs=self.dna_base_freqs)
+        r = coevolve_position(
+            sca_position,
+            self.dna_aln,
+            1,
+            cutoff=0.50,
+            alphabet="ACGT",
+            background_freqs=self.dna_base_freqs,
+        )
         # sanity check -- coupling w/ self
         self.assertFloatEqual(r[1], 3.087, 0.01)
-        r = coevolve_position(sca_position, self.dna_aln_gapped, 1, cutoff=0.50,
-                              alphabet='ACGT', background_freqs=self.dna_base_freqs)
+        r = coevolve_position(
+            sca_position,
+            self.dna_aln_gapped,
+            1,
+            cutoff=0.50,
+            alphabet="ACGT",
+            background_freqs=self.dna_base_freqs,
+        )
         # sanity check -- coupling w/ self
         self.assertFloatEqual(r[1], 3.387, 0.01)
 
     def test_sca_position_error(self):
         """sca_position: returns w/ error when appropriate """
-        a = 'ACGT'
+        a = "ACGT"
         # position out of range
-        self.assertRaises(ValueError, coevolve_position, sca_position,
-                          self.dna_aln, 100, cutoff=0.50, alphabet=a,
-                          background_freqs=self.dna_base_freqs)
+        self.assertRaises(
+            ValueError,
+            coevolve_position,
+            sca_position,
+            self.dna_aln,
+            100,
+            cutoff=0.50,
+            alphabet=a,
+            background_freqs=self.dna_base_freqs,
+        )
         # bad cutoff
         self.assertRaises(
-            ValueError, coevolve_position, sca_position, self.dna_aln,
-            1, cutoff=-8.2, alphabet=a, background_freqs=self.dna_base_freqs)
+            ValueError,
+            coevolve_position,
+            sca_position,
+            self.dna_aln,
+            1,
+            cutoff=-8.2,
+            alphabet=a,
+            background_freqs=self.dna_base_freqs,
+        )
 
         # incompatible alphabet and background freqs
-        self.assertRaises(ValueError, coevolve_position, sca_position,
-                          self.dna_aln, 0, cutoff=0.2, alphabet=a)
-        self.assertRaises(ValueError, coevolve_position, sca_position,
-                          self.dna_aln, 0, cutoff=0.2, alphabet='ACGTBC',
-                          background_freqs=self.dna_base_freqs)
+        self.assertRaises(
+            ValueError,
+            coevolve_position,
+            sca_position,
+            self.dna_aln,
+            0,
+            cutoff=0.2,
+            alphabet=a,
+        )
+        self.assertRaises(
+            ValueError,
+            coevolve_position,
+            sca_position,
+            self.dna_aln,
+            0,
+            cutoff=0.2,
+            alphabet="ACGTBC",
+            background_freqs=self.dna_base_freqs,
+        )
 
     def test_sca_position_returns_same_as_sca_pair(self):
         """sca_position: returns same as sca_pair called on each pos """
         expected = []
         for i in range(len(self.dna_aln)):
-            expected.append(sca_pair(self.dna_aln, 1, i, 0.50,
-                                     alphabet='ACGT', background_freqs=self.dna_base_freqs))
-        actual = sca_position(self.dna_aln, 1, 0.50,
-                              alphabet='ACGT', background_freqs=self.dna_base_freqs)
+            expected.append(
+                sca_pair(
+                    self.dna_aln,
+                    1,
+                    i,
+                    0.50,
+                    alphabet="ACGT",
+                    background_freqs=self.dna_base_freqs,
+                )
+            )
+        actual = sca_position(
+            self.dna_aln, 1, 0.50, alphabet="ACGT", background_freqs=self.dna_base_freqs
+        )
         self.assertFloatEqual(actual, expected)
         # change some of the defaults to make sure they make it through
-        bg_freqs = {'A': 0.50, 'C': 0.50}
+        bg_freqs = {"A": 0.50, "C": 0.50}
         expected = []
         for i in range(len(self.dna_aln)):
-            expected.append(sca_pair(self.dna_aln, 1, i, 0.50,
-                                     alphabet='AC', null_value=52., scaled_aln_size=20,
-                                     background_freqs=bg_freqs))
-        actual = sca_position(self.dna_aln, 1, 0.50, alphabet='AC',
-                              null_value=52., scaled_aln_size=20, background_freqs=bg_freqs)
+            expected.append(
+                sca_pair(
+                    self.dna_aln,
+                    1,
+                    i,
+                    0.50,
+                    alphabet="AC",
+                    null_value=52.0,
+                    scaled_aln_size=20,
+                    background_freqs=bg_freqs,
+                )
+            )
+        actual = sca_position(
+            self.dna_aln,
+            1,
+            0.50,
+            alphabet="AC",
+            null_value=52.0,
+            scaled_aln_size=20,
+            background_freqs=bg_freqs,
+        )
         self.assertFloatEqual(actual, expected)
 
     def test_sca_alignment_no_error(self):
         """sca_alignment: returns w/o error """
-        r = sca_alignment(self.dna_aln, 0.50, alphabet='ACGT',
-                          background_freqs=self.dna_base_freqs)
+        r = sca_alignment(
+            self.dna_aln, 0.50, alphabet="ACGT", background_freqs=self.dna_base_freqs
+        )
         # sanity check -- coupling w/ self
         self.assertFloatEqual(r[0][0], 2.32222608171)
 
         # same test, but called via coevolve_alignment
-        r = coevolve_alignment(sca_alignment, self.dna_aln,
-                               cutoff=0.50, alphabet='ACGT',
-                               background_freqs=self.dna_base_freqs)
+        r = coevolve_alignment(
+            sca_alignment,
+            self.dna_aln,
+            cutoff=0.50,
+            alphabet="ACGT",
+            background_freqs=self.dna_base_freqs,
+        )
         # sanity check -- coupling w/ self
         self.assertFloatEqual(r[0][0], 2.32222608171)
 
     def test_sca_alignment_error(self):
         """sca_alignment: returns w/ error when appropriate """
-        a = 'ACGT'
+        a = "ACGT"
         # incompatible alphabet and background freqs
-        self.assertRaises(ValueError, coevolve_position, sca_position,
-                          self.dna_aln, 0, cutoff=0.2, alphabet=a)
-        self.assertRaises(ValueError, coevolve_position, sca_position,
-                          self.dna_aln, 0, cutoff=0.2, alphabet='ACGTBC',
-                          background_freqs=self.dna_base_freqs)
+        self.assertRaises(
+            ValueError,
+            coevolve_position,
+            sca_position,
+            self.dna_aln,
+            0,
+            cutoff=0.2,
+            alphabet=a,
+        )
+        self.assertRaises(
+            ValueError,
+            coevolve_position,
+            sca_position,
+            self.dna_aln,
+            0,
+            cutoff=0.2,
+            alphabet="ACGTBC",
+            background_freqs=self.dna_base_freqs,
+        )
 
     def test_sca_alignment_returns_same_as_sca_position(self):
         """sca_alignment: returns same as sca_position on every position"""
         expected = []
         for i in range(len(self.dna_aln)):
             expected.append(
-                sca_position(self.dna_aln, i, 0.50, alphabet='ACGT',
-                             background_freqs=self.dna_base_freqs))
-        actual = sca_alignment(self.dna_aln, 0.50, alphabet='ACGT',
-                               background_freqs=self.dna_base_freqs)
+                sca_position(
+                    self.dna_aln,
+                    i,
+                    0.50,
+                    alphabet="ACGT",
+                    background_freqs=self.dna_base_freqs,
+                )
+            )
+        actual = sca_alignment(
+            self.dna_aln, 0.50, alphabet="ACGT", background_freqs=self.dna_base_freqs
+        )
         self.assertFloatEqual(actual, expected)
         # change some of the defaults to make sure they make it through
-        bg_freqs = {'A': 0.50, 'C': 0.50}
+        bg_freqs = {"A": 0.50, "C": 0.50}
         expected = []
         for i in range(len(self.dna_aln)):
             expected.append(
-                sca_position(self.dna_aln, i, 0.50, alphabet='AC',
-                             null_value=52.0, scaled_aln_size=20, background_freqs=bg_freqs))
-        actual = sca_alignment(self.dna_aln, 0.50, alphabet='AC',
-                               null_value=52.0, scaled_aln_size=20, background_freqs=bg_freqs)
+                sca_position(
+                    self.dna_aln,
+                    i,
+                    0.50,
+                    alphabet="AC",
+                    null_value=52.0,
+                    scaled_aln_size=20,
+                    background_freqs=bg_freqs,
+                )
+            )
+        actual = sca_alignment(
+            self.dna_aln,
+            0.50,
+            alphabet="AC",
+            null_value=52.0,
+            scaled_aln_size=20,
+            background_freqs=bg_freqs,
+        )
         self.assertFloatEqual(actual, expected)
 
     def test_sca_pair_gpcr(self):
         """sca_pair: reproduces several GPCR data from Suel et al., 2003 
         """
-        self.assertFloatEqual(
-            sca_pair(self.gpcr_aln, 295, 18, 0.32), 0.12, 0.1)
-        self.assertFloatEqual(
-            sca_pair(self.gpcr_aln, 295, 124, 0.32), 1.86, 0.1)
-        self.assertFloatEqual(
-            sca_pair(self.gpcr_aln, 295, 304, 0.32), 0.3, 0.1)
+        self.assertFloatEqual(sca_pair(self.gpcr_aln, 295, 18, 0.32), 0.12, 0.1)
+        self.assertFloatEqual(sca_pair(self.gpcr_aln, 295, 124, 0.32), 1.86, 0.1)
+        self.assertFloatEqual(sca_pair(self.gpcr_aln, 295, 304, 0.32), 0.3, 0.1)
         # covariation w/ self
-        self.assertFloatEqual(
-            sca_pair(self.gpcr_aln, 295, 295, 0.32), 7.70358628)
+        self.assertFloatEqual(sca_pair(self.gpcr_aln, 295, 295, 0.32), 7.70358628)
 
     def test_sca_position_gpcr(self):
         """sca_position: reproduces several GPCR data from Suel et al., 2003 
@@ -1843,74 +2575,71 @@ class CoevolutionTests(TestCase):
         expected = [[0, 3, 6], [3, 4, 7], [6, 7, 8]]
         self.assertEqual(ltm_to_symmetric(m), expected)
         # non-square matrices not supported
-        self.assertRaises(AssertionError,
-                          ltm_to_symmetric, arange(10).reshape(5, 2))
-        self.assertRaises(AssertionError,
-                          ltm_to_symmetric, arange(10).reshape(2, 5))
+        self.assertRaises(AssertionError, ltm_to_symmetric, arange(10).reshape(5, 2))
+        self.assertRaises(AssertionError, ltm_to_symmetric, arange(10).reshape(2, 5))
 
     def test_merge_alignments(self):
         """ merging alignments of same moltype functions as expected"""
         # PROTEIN
-        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AD'}, moltype=PROTEIN)
-        aln2 = ArrayAlignment(data={'1': 'EF', '2': 'EG'}, moltype=PROTEIN)
-        combined_aln = ArrayAlignment(
-            data={'1': 'ACEF', '2': 'ADEG'}, moltype=PROTEIN)
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AD"}, moltype=PROTEIN)
+        aln2 = ArrayAlignment(data={"1": "EF", "2": "EG"}, moltype=PROTEIN)
+        combined_aln = ArrayAlignment(data={"1": "ACEF", "2": "ADEG"}, moltype=PROTEIN)
         actual = merge_alignments(aln1, aln2)
         self.assertEqual(actual, combined_aln)
         self.assertEqual(actual.moltype, PROTEIN)
         # RNA
-        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AU'}, moltype=RNA)
-        aln2 = ArrayAlignment(data={'1': 'GG', '2': 'UG'}, moltype=RNA)
-        combined_aln = ArrayAlignment(
-            data={'1': 'ACGG', '2': 'AUUG'}, moltype=RNA)
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AU"}, moltype=RNA)
+        aln2 = ArrayAlignment(data={"1": "GG", "2": "UG"}, moltype=RNA)
+        combined_aln = ArrayAlignment(data={"1": "ACGG", "2": "AUUG"}, moltype=RNA)
         actual = merge_alignments(aln1, aln2)
         self.assertEqual(actual, combined_aln)
         self.assertEqual(actual.moltype, RNA)
         # DNA
-        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AT'}, moltype=DNA)
-        aln2 = ArrayAlignment(data={'1': 'GG', '2': 'TG'}, moltype=DNA)
-        combined_aln = ArrayAlignment(
-            data={'1': 'ACGG', '2': 'ATTG'}, moltype=DNA)
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AT"}, moltype=DNA)
+        aln2 = ArrayAlignment(data={"1": "GG", "2": "TG"}, moltype=DNA)
+        combined_aln = ArrayAlignment(data={"1": "ACGG", "2": "ATTG"}, moltype=DNA)
         actual = merge_alignments(aln1, aln2)
         self.assertEqual(actual, combined_aln)
         self.assertEqual(actual.moltype, DNA)
 
     def test_merge_alignments_ignores_id_following_plus(self):
         """ merge_alignments ignores all seq id characters after '+' """
-        aln1 = ArrayAlignment(
-            data={'1+a': 'AC', '2+b': 'AD'}, moltype=PROTEIN)
-        aln2 = ArrayAlignment(
-            data={'1 + c': 'EFW', '2 + d': 'EGY'}, moltype=PROTEIN)
+        aln1 = ArrayAlignment(data={"1+a": "AC", "2+b": "AD"}, moltype=PROTEIN)
+        aln2 = ArrayAlignment(data={"1 + c": "EFW", "2 + d": "EGY"}, moltype=PROTEIN)
         combined_aln = ArrayAlignment(
-            data={'1': 'ACEFW', '2': 'ADEGY'}, moltype=PROTEIN)
+            data={"1": "ACEFW", "2": "ADEGY"}, moltype=PROTEIN
+        )
         self.assertEqual(merge_alignments(aln1, aln2), combined_aln)
         # not all ids have a +
-        aln1 = ArrayAlignment(data={'1': 'AC', '2+b': 'AD'}, moltype=PROTEIN)
-        aln2 = ArrayAlignment(
-            data={'1+c': 'EFW', '2': 'EGY'}, moltype=PROTEIN)
+        aln1 = ArrayAlignment(data={"1": "AC", "2+b": "AD"}, moltype=PROTEIN)
+        aln2 = ArrayAlignment(data={"1+c": "EFW", "2": "EGY"}, moltype=PROTEIN)
         combined_aln = ArrayAlignment(
-            data={'1': 'ACEFW', '2': 'ADEGY'}, moltype=PROTEIN)
+            data={"1": "ACEFW", "2": "ADEGY"}, moltype=PROTEIN
+        )
         self.assertEqual(merge_alignments(aln1, aln2), combined_aln)
 
     def test_merge_alignments_different_moltype(self):
         """ merging alignments of different moltype functions as expected"""
-        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AU'}, moltype=RNA)
-        aln2 = ArrayAlignment(data={'1': 'EF', '2': 'EG'}, moltype=PROTEIN)
-        combined_aln = ArrayAlignment(data={'1': 'ACEF', '2': 'AUEG'})
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AU"}, moltype=RNA)
+        aln2 = ArrayAlignment(data={"1": "EF", "2": "EG"}, moltype=PROTEIN)
+        combined_aln = ArrayAlignment(data={"1": "ACEF", "2": "AUEG"})
         self.assertEqual(merge_alignments(aln1, aln2), combined_aln)
-        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AT'}, moltype=DNA)
-        aln2 = ArrayAlignment(data={'1': 'EF', '2': 'EG'}, moltype=PROTEIN)
-        combined_aln = ArrayAlignment(data={'1': 'ACEF', '2': 'ATEG'})
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AT"}, moltype=DNA)
+        aln2 = ArrayAlignment(data={"1": "EF", "2": "EG"}, moltype=PROTEIN)
+        combined_aln = ArrayAlignment(data={"1": "ACEF", "2": "ATEG"})
         self.assertEqual(merge_alignments(aln1, aln2), combined_aln)
-        aln1 = ArrayAlignment(data={'1': 'AC', '2': 'AT'}, moltype=DNA)
-        aln2 = ArrayAlignment(data={'1': 'UC', '2': 'UG'}, moltype=RNA)
-        combined_aln = ArrayAlignment(data={'1': 'ACUC', '2': 'ATUG'})
+        aln1 = ArrayAlignment(data={"1": "AC", "2": "AT"}, moltype=DNA)
+        aln2 = ArrayAlignment(data={"1": "UC", "2": "UG"}, moltype=RNA)
+        combined_aln = ArrayAlignment(data={"1": "ACUC", "2": "ATUG"})
         self.assertEqual(merge_alignments(aln1, aln2), combined_aln)
 
     def test_n_random_seqs(self):
         """n_random_seqs: functions as expected"""
-        aln1 = LoadSeqs(data=list(zip(list('abcd'), ['AA', 'AC', 'DD', 'GG'])),
-                        moltype=PROTEIN, array_align=True)
+        aln1 = LoadSeqs(
+            data=list(zip(list("abcd"), ["AA", "AC", "DD", "GG"])),
+            moltype=PROTEIN,
+            array_align=True,
+        )
         # Number of returned sequences correct
         self.assertEqual(n_random_seqs(aln1, 1).num_seqs, 1)
         self.assertEqual(n_random_seqs(aln1, 2).num_seqs, 2)
@@ -1950,200 +2679,255 @@ class AncestorCoevolve(TestCase):
         # alternate seqs are used with the same tree and ancestral_states,
         # the results vary when appropriate
         self.t1 = LoadTree(
-            treestring='((A:0.5,B:0.5):0.5,(C:0.5,(D:0.5,E:0.5):0.5):0.5);')
-        self.ancestral_states1 = ArrayAlignment(data={'root': 'AAA',
-                                                      'edge.0': 'AAA', 'edge.1': 'AAA', 'edge.2': 'AAA'}, moltype=PROTEIN)
-        self.ancestral_states1_w_gaps = ArrayAlignment(data={'root': 'AAA',
-                                                             'edge.0': 'AAA', 'edge.1': 'A-A', 'edge.2': 'AA-'}, moltype=PROTEIN)
+            treestring="((A:0.5,B:0.5):0.5,(C:0.5,(D:0.5,E:0.5):0.5):0.5);"
+        )
+        self.ancestral_states1 = ArrayAlignment(
+            data={"root": "AAA", "edge.0": "AAA", "edge.1": "AAA", "edge.2": "AAA"},
+            moltype=PROTEIN,
+        )
+        self.ancestral_states1_w_gaps = ArrayAlignment(
+            data={"root": "AAA", "edge.0": "AAA", "edge.1": "A-A", "edge.2": "AA-"},
+            moltype=PROTEIN,
+        )
 
         # no correlated changes count
-        self.aln1_1 = ArrayAlignment(data={'A': 'AAC', 'B': 'AAD', 'C': 'AAA',
-                                           'D': 'AAE', 'E': 'AFA'}, moltype=PROTEIN)
+        self.aln1_1 = ArrayAlignment(
+            data={"A": "AAC", "B": "AAD", "C": "AAA", "D": "AAE", "E": "AFA"},
+            moltype=PROTEIN,
+        )
         # 1 correlated change count
-        self.aln1_2 = ArrayAlignment(data={'A': 'AAC', 'B': 'AAD', 'C': 'AAA',
-                                           'D': 'AEE', 'E': 'AFF'}, moltype=PROTEIN)
+        self.aln1_2 = ArrayAlignment(
+            data={"A": "AAC", "B": "AAD", "C": "AAA", "D": "AEE", "E": "AFF"},
+            moltype=PROTEIN,
+        )
         # 1 different correlated change count
-        self.aln1_3 = ArrayAlignment(data={'A': 'AAC', 'B': 'AAD', 'C': 'AAA',
-                                           'D': 'AGE', 'E': 'AFH'}, moltype=PROTEIN)
+        self.aln1_3 = ArrayAlignment(
+            data={"A": "AAC", "B": "AAD", "C": "AAA", "D": "AGE", "E": "AFH"},
+            moltype=PROTEIN,
+        )
         # 3 correlated change counts
-        self.aln1_4 = ArrayAlignment(data={'A': 'AAC', 'B': 'AGD', 'C': 'AAA',
-                                           'D': 'AGE', 'E': 'AFH'}, moltype=PROTEIN)
+        self.aln1_4 = ArrayAlignment(
+            data={"A": "AAC", "B": "AGD", "C": "AAA", "D": "AGE", "E": "AFH"},
+            moltype=PROTEIN,
+        )
         # 8 correlated change counts
-        self.aln1_5 = ArrayAlignment(data={'A': 'YYC', 'B': 'HGD', 'C': 'AAA',
-                                           'D': 'AGE', 'E': 'AFH'}, moltype=PROTEIN)
-        self.aln1_w_gaps = ArrayAlignment(data={'A': 'AAC', 'B': 'AAD', 'C': 'AAA',
-                                                'D': 'AG-', 'E': 'A-H'}, moltype=PROTEIN)
+        self.aln1_5 = ArrayAlignment(
+            data={"A": "YYC", "B": "HGD", "C": "AAA", "D": "AGE", "E": "AFH"},
+            moltype=PROTEIN,
+        )
+        self.aln1_w_gaps = ArrayAlignment(
+            data={"A": "AAC", "B": "AAD", "C": "AAA", "D": "AG-", "E": "A-H"},
+            moltype=PROTEIN,
+        )
 
         # t2, ancestral_states2_*, and aln2 are used to test that when
         # alternate ancestral states are used with the same aln and tree,
         # the results vary when appropriate
-        self.t2 = LoadTree(treestring='(A:0.5,B:0.5,C:0.5);')
-        self.ancestral_states2_1 = ArrayAlignment(data={'root': 'AA'},
-                                                  moltype=PROTEIN)
-        self.ancestral_states2_2 = ArrayAlignment(data={'root': 'CC'},
-                                                  moltype=PROTEIN)
-        self.ancestral_states2_3 = ArrayAlignment(data={'root': 'EF'},
-                                                  moltype=PROTEIN)
-        self.aln2 = ArrayAlignment(data={'A': 'AA', 'B': 'CC', 'C': 'CA'},
-                                   moltype=PROTEIN)
+        self.t2 = LoadTree(treestring="(A:0.5,B:0.5,C:0.5);")
+        self.ancestral_states2_1 = ArrayAlignment(data={"root": "AA"}, moltype=PROTEIN)
+        self.ancestral_states2_2 = ArrayAlignment(data={"root": "CC"}, moltype=PROTEIN)
+        self.ancestral_states2_3 = ArrayAlignment(data={"root": "EF"}, moltype=PROTEIN)
+        self.aln2 = ArrayAlignment(
+            data={"A": "AA", "B": "CC", "C": "CA"}, moltype=PROTEIN
+        )
 
         # t3_*, ancestral_states3, and aln3 are used to test that when
         # alternate trees are used with the same aln and ancestral_states,
         # the results vary when appropriate
-        self.t3_1 = LoadTree(treestring='(A:0.5,(B:0.5,C:0.5):0.5);')
-        self.t3_2 = LoadTree(treestring='((A:0.5,B:0.5):0.5,C:0.5);')
+        self.t3_1 = LoadTree(treestring="(A:0.5,(B:0.5,C:0.5):0.5);")
+        self.t3_2 = LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
         self.ancestral_states3 = ArrayAlignment(
-            data={'root': 'CC', 'edge.0': 'AD'}, moltype=PROTEIN)
-        self.aln3 = ArrayAlignment(data={'A': 'AC', 'B': 'CA', 'C': 'CC'},
-                                   moltype=PROTEIN)
+            data={"root": "CC", "edge.0": "AD"}, moltype=PROTEIN
+        )
+        self.aln3 = ArrayAlignment(
+            data={"A": "AC", "B": "CA", "C": "CC"}, moltype=PROTEIN
+        )
 
     def test_validate_ancestral_seqs_invalid(self):
         """validate_ancestral_seqs: ValueError on incompatible anc. seqs & tree
         """
         # edge missing
-        aln = ArrayAlignment(
-            data={'A': 'AC', 'B': 'CA', 'C': 'CC'}, moltype=PROTEIN)
-        self.assertRaises(ValueError, validate_ancestral_seqs, aln,
-                          tree=LoadTree(
-                              treestring='((A:0.5,B:0.5):0.5,C:0.5);'),
-                          ancestral_seqs=ArrayAlignment(data={'root': 'AA'}, moltype=PROTEIN))
+        aln = ArrayAlignment(data={"A": "AC", "B": "CA", "C": "CC"}, moltype=PROTEIN)
+        self.assertRaises(
+            ValueError,
+            validate_ancestral_seqs,
+            aln,
+            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
+            ancestral_seqs=ArrayAlignment(data={"root": "AA"}, moltype=PROTEIN),
+        )
         # root missing
-        self.assertRaises(ValueError, validate_ancestral_seqs, aln,
-                          tree=LoadTree(
-                              treestring='((A:0.5,B:0.5):0.5,C:0.5);'),
-                          ancestral_seqs=ArrayAlignment(data={'edge.0': 'AA'}, moltype=PROTEIN))
+        self.assertRaises(
+            ValueError,
+            validate_ancestral_seqs,
+            aln,
+            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
+            ancestral_seqs=ArrayAlignment(data={"edge.0": "AA"}, moltype=PROTEIN),
+        )
         # correct numSeqs but wrong names
-        self.assertRaises(ValueError, validate_ancestral_seqs, aln,
-                          tree=LoadTree(
-                              treestring='((A:0.5,B:0.5):0.5,C:0.5);'),
-                          ancestral_seqs=ArrayAlignment(data={'root': 'AA', 'edge.1': 'AA'},
-                                                        moltype=PROTEIN))
-        self.assertRaises(ValueError, validate_ancestral_seqs, aln,
-                          tree=LoadTree(
-                              treestring='((A:0.5,B:0.5):0.5,C:0.5);'),
-                          ancestral_seqs=ArrayAlignment(data={'r': 'AA', 'edge.0': 'AA'},
-                                                        moltype=PROTEIN))
-        self.assertRaises(ValueError, validate_ancestral_seqs, aln,
-                          tree=LoadTree(
-                              treestring='((A:0.5,B:0.5):0.5,C:0.5);'),
-                          ancestral_seqs=ArrayAlignment(data={'r': 'AA', 'e': 'AA'},
-                                                        moltype=PROTEIN))
+        self.assertRaises(
+            ValueError,
+            validate_ancestral_seqs,
+            aln,
+            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
+            ancestral_seqs=ArrayAlignment(
+                data={"root": "AA", "edge.1": "AA"}, moltype=PROTEIN
+            ),
+        )
+        self.assertRaises(
+            ValueError,
+            validate_ancestral_seqs,
+            aln,
+            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
+            ancestral_seqs=ArrayAlignment(
+                data={"r": "AA", "edge.0": "AA"}, moltype=PROTEIN
+            ),
+        )
+        self.assertRaises(
+            ValueError,
+            validate_ancestral_seqs,
+            aln,
+            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
+            ancestral_seqs=ArrayAlignment(data={"r": "AA", "e": "AA"}, moltype=PROTEIN),
+        )
         # different tree: invalid
-        aln = ArrayAlignment(data={'A': 'AC', 'B': 'CA', 'C': 'CC', 'D': 'DD'},
-                             moltype=PROTEIN)
-        self.assertRaises(ValueError, validate_ancestral_seqs, aln,
-                          tree=LoadTree(
-                              treestring='((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);'),
-                          ancestral_seqs=ArrayAlignment(
-                              data={'root': 'AA', 'e': 'AA', 'edge.1': 'AA'}, moltype=PROTEIN))
+        aln = ArrayAlignment(
+            data={"A": "AC", "B": "CA", "C": "CC", "D": "DD"}, moltype=PROTEIN
+        )
+        self.assertRaises(
+            ValueError,
+            validate_ancestral_seqs,
+            aln,
+            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);"),
+            ancestral_seqs=ArrayAlignment(
+                data={"root": "AA", "e": "AA", "edge.1": "AA"}, moltype=PROTEIN
+            ),
+        )
 
     def test_validate_ancestral_seqs_valid(self):
         """validate_ancestral_seqs: does nothing on compatible anc. seqs & tree
         """
-        aln = ArrayAlignment(
-            data={'A': 'AC', 'B': 'CA', 'C': 'CC'}, moltype=PROTEIN)
+        aln = ArrayAlignment(data={"A": "AC", "B": "CA", "C": "CC"}, moltype=PROTEIN)
         # valid data -> no error
-        validate_ancestral_seqs(aln, tree=LoadTree(
-            treestring='((A:0.5,B:0.5):0.5,C:0.5);'),
-            ancestral_seqs=ArrayAlignment(data={'root': 'AA', 'edge.0': 'AA'},
-                                          moltype=PROTEIN))
+        validate_ancestral_seqs(
+            aln,
+            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
+            ancestral_seqs=ArrayAlignment(
+                data={"root": "AA", "edge.0": "AA"}, moltype=PROTEIN
+            ),
+        )
         # different tree: valid
-        aln = ArrayAlignment(data={'A': 'AC', 'B': 'CA', 'C': 'CC', 'D': 'DD'},
-                             moltype=PROTEIN)
-        validate_ancestral_seqs(aln, tree=LoadTree(
-            treestring='((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);'),
-            ancestral_seqs=ArrayAlignment(data={'root': 'AA', 'edge.0': 'AA', 'edge.1': 'AA'}, moltype=PROTEIN))
+        aln = ArrayAlignment(
+            data={"A": "AC", "B": "CA", "C": "CC", "D": "DD"}, moltype=PROTEIN
+        )
+        validate_ancestral_seqs(
+            aln,
+            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);"),
+            ancestral_seqs=ArrayAlignment(
+                data={"root": "AA", "edge.0": "AA", "edge.1": "AA"}, moltype=PROTEIN
+            ),
+        )
 
     def test_ancestral_states_input_validation(self):
         """ancestral_states_input_validation: all validation steps performed"""
-        aln = ArrayAlignment(data={'A': 'AC', 'B': 'CA', 'C': 'CC', 'D': 'DD'},
-                             moltype=PROTEIN)
+        aln = ArrayAlignment(
+            data={"A": "AC", "B": "CA", "C": "CC", "D": "DD"}, moltype=PROTEIN
+        )
         # incompatible tree and ancestral states (more thorough testing in
         # test_validate_ancestral_seqs)
-        self.assertRaises(ValueError, ancestral_states_input_validation, aln,
-                          tree=LoadTree(
-                              treestring='((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);'),
-                          ancestral_seqs=ArrayAlignment(data={'root': 'AA', 'e': 'AA',
-                                                              'edge.1': 'AA'}, moltype=PROTEIN))
+        self.assertRaises(
+            ValueError,
+            ancestral_states_input_validation,
+            aln,
+            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);"),
+            ancestral_seqs=ArrayAlignment(
+                data={"root": "AA", "e": "AA", "edge.1": "AA"}, moltype=PROTEIN
+            ),
+        )
         # no tree provided
-        self.assertRaises(ValueError, ancestral_states_input_validation, aln,
-                          ancestral_seqs=ArrayAlignment(data={'root': 'AA', 'e': 'AA',
-                                                              'edge.1': 'AA'}, moltype=PROTEIN))
+        self.assertRaises(
+            ValueError,
+            ancestral_states_input_validation,
+            aln,
+            ancestral_seqs=ArrayAlignment(
+                data={"root": "AA", "e": "AA", "edge.1": "AA"}, moltype=PROTEIN
+            ),
+        )
         # incompatible tree and alignment (more tests in test_validate_tree)
-        aln = ArrayAlignment(
-            data={'A': 'AC', 'B': 'CA', 'C': 'CC'}, moltype=PROTEIN)
-        self.assertRaises(ValueError, ancestral_states_input_validation, aln,
-                          tree=LoadTree(treestring='((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);'))
+        aln = ArrayAlignment(data={"A": "AC", "B": "CA", "C": "CC"}, moltype=PROTEIN)
+        self.assertRaises(
+            ValueError,
+            ancestral_states_input_validation,
+            aln,
+            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);"),
+        )
 
     def test_validate_tree_valid(self):
         """validate_tree: does nothing on compatible tree and aln """
-        t = LoadTree(treestring='((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);')
-        aln = ArrayAlignment(data={'A': 'AC', 'B': 'CA', 'C': 'CC', 'D': 'DD'},
-                             moltype=PROTEIN)
-        validate_tree(aln, t)
-        t = LoadTree(treestring='((A:0.5,B:0.5):0.5,C:0.5);')
+        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);")
         aln = ArrayAlignment(
-            data={'A': 'AC', 'B': 'CA', 'C': 'CC'}, moltype=PROTEIN)
+            data={"A": "AC", "B": "CA", "C": "CC", "D": "DD"}, moltype=PROTEIN
+        )
+        validate_tree(aln, t)
+        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
+        aln = ArrayAlignment(data={"A": "AC", "B": "CA", "C": "CC"}, moltype=PROTEIN)
         validate_tree(aln, t)
 
     def test_validate_tree_invalid(self):
         """validate_tree: raises ValueError on incompatible tree and aln """
         # different scale tree and aln
-        t = LoadTree(treestring='((A:0.5,B:0.5):0.5,C:0.5);')
-        aln = ArrayAlignment(data={'A': 'AC', 'B': 'CA', 'C': 'CC', 'D': 'DD'},
-                             moltype=PROTEIN)
+        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
+        aln = ArrayAlignment(
+            data={"A": "AC", "B": "CA", "C": "CC", "D": "DD"}, moltype=PROTEIN
+        )
         self.assertRaises(ValueError, validate_tree, aln, t)
-        t = LoadTree(treestring='((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);')
-        aln = ArrayAlignment(data={'A': 'AC', 'B': 'CA', 'C': 'CC'},
-                             moltype=PROTEIN)
+        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);")
+        aln = ArrayAlignment(data={"A": "AC", "B": "CA", "C": "CC"}, moltype=PROTEIN)
         self.assertRaises(ValueError, validate_tree, aln, t)
         # same scale tree and aln, but different names
-        t = LoadTree(treestring='((A:0.5,B:0.5):0.5,(C:0.5,Dee:0.5):0.5);')
-        aln = ArrayAlignment(data={'A': 'AC', 'B': 'CA', 'C': 'CC', 'D': 'DD'},
-                             moltype=PROTEIN)
+        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,Dee:0.5):0.5);")
+        aln = ArrayAlignment(
+            data={"A": "AC", "B": "CA", "C": "CC", "D": "DD"}, moltype=PROTEIN
+        )
         self.assertRaises(ValueError, validate_tree, aln, t)
 
     def test_get_ancestral_seqs(self):
         """get_ancestral_seqs: returns valid collection of ancestral seqs """
-        t = LoadTree(treestring='((A:0.5,B:0.5):0.5,C:0.5);')
-        aln = ArrayAlignment(
-            data={'A': 'AA', 'B': 'AA', 'C': 'AC'}, moltype=PROTEIN)
-        expected = ArrayAlignment(data={'root': 'AA', 'edge.0': 'AA'},
-                                  moltype=PROTEIN)
-        self.assertEqual(get_ancestral_seqs(
-            aln, t, optimise=False), expected)
-        t = LoadTree(treestring='(A:0.5,B:0.5,C:0.5);')
-        aln = ArrayAlignment(data={'A': 'AA', 'B': 'AA', 'C': 'AC'},
-                             moltype=PROTEIN)
-        expected = ArrayAlignment(data={'root': 'AA'}, moltype=PROTEIN)
-        self.assertEqual(get_ancestral_seqs(
-            aln, t, optimise=False), expected)
+        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
+        aln = ArrayAlignment(data={"A": "AA", "B": "AA", "C": "AC"}, moltype=PROTEIN)
+        expected = ArrayAlignment(data={"root": "AA", "edge.0": "AA"}, moltype=PROTEIN)
+        self.assertEqual(get_ancestral_seqs(aln, t, optimise=False), expected)
+        t = LoadTree(treestring="(A:0.5,B:0.5,C:0.5);")
+        aln = ArrayAlignment(data={"A": "AA", "B": "AA", "C": "AC"}, moltype=PROTEIN)
+        expected = ArrayAlignment(data={"root": "AA"}, moltype=PROTEIN)
+        self.assertEqual(get_ancestral_seqs(aln, t, optimise=False), expected)
 
-        t = LoadTree(treestring='(((A1:0.5,A2:0.5):0.5,B:0.5):0.5,\
-            (C:0.5,D:0.5):0.5);')
-        aln = ArrayAlignment(data={'A1': 'AD', 'A2': 'AD', 'B': 'AC',
-                                   'C': 'AC', 'D': 'AC'}, moltype=PROTEIN)
-        expected = ArrayAlignment(data={'root': 'AC', 'edge.0': 'AD',
-                                        'edge.1': 'AC', 'edge.2': 'AC'}, moltype=PROTEIN)
-        self.assertEqual(get_ancestral_seqs(
-            aln, t, optimise=False), expected)
+        t = LoadTree(
+            treestring="(((A1:0.5,A2:0.5):0.5,B:0.5):0.5,\
+            (C:0.5,D:0.5):0.5);"
+        )
+        aln = ArrayAlignment(
+            data={"A1": "AD", "A2": "AD", "B": "AC", "C": "AC", "D": "AC"},
+            moltype=PROTEIN,
+        )
+        expected = ArrayAlignment(
+            data={"root": "AC", "edge.0": "AD", "edge.1": "AC", "edge.2": "AC"},
+            moltype=PROTEIN,
+        )
+        self.assertEqual(get_ancestral_seqs(aln, t, optimise=False), expected)
 
     def test_get_ancestral_seqs_handles_gaps(self):
         """get_ancestral_seqs: handles gaps """
         # gaps handled OK
-        t = LoadTree(treestring='(A:0.5,B:0.5,C:0.5);')
-        aln = ArrayAlignment(
-            data={'A': 'A-', 'B': 'AA', 'C': 'AA'}, moltype=PROTEIN)
-        expected = ArrayAlignment(data={'root': 'AA'}, moltype=PROTEIN)
-        self.assertEqual(get_ancestral_seqs(
-            aln, t, optimise=False), expected)
+        t = LoadTree(treestring="(A:0.5,B:0.5,C:0.5);")
+        aln = ArrayAlignment(data={"A": "A-", "B": "AA", "C": "AA"}, moltype=PROTEIN)
+        expected = ArrayAlignment(data={"root": "AA"}, moltype=PROTEIN)
+        self.assertEqual(get_ancestral_seqs(aln, t, optimise=False), expected)
 
     def test_get_ancestral_seqs_handles_ambiguous_residues(self):
         """get_ancestral_seqs: handles ambiguous residues """
         # Non-canonical residues handled OK
-        t = LoadTree(treestring='(A:0.5,B:0.5,C:0.5);')
-        aln = ArrayAlignment(
-            data={'A': 'AX', 'B': 'Z-', 'C': 'BC'}, moltype=PROTEIN)
+        t = LoadTree(treestring="(A:0.5,B:0.5,C:0.5);")
+        aln = ArrayAlignment(data={"A": "AX", "B": "Z-", "C": "BC"}, moltype=PROTEIN)
         actual = get_ancestral_seqs(aln, t, optimise=False)
         self.assertEqual(len(actual), 2)
         self.assertEqual(actual.num_seqs, 1)
@@ -2151,31 +2935,27 @@ class AncestorCoevolve(TestCase):
     def test_ancestral_state_alignment_handles_ancestral_state_calc(self):
         """ancestral_state_alignment: functions when calc'ing ancestral states
         """
-        t = LoadTree(treestring='((A:0.5,B:0.5):0.5,C:0.5);')
-        aln = ArrayAlignment(
-            data={'A': 'AA', 'B': 'AA', 'C': 'AC'}, moltype=PROTEIN)
+        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
+        aln = ArrayAlignment(data={"A": "AA", "B": "AA", "C": "AC"}, moltype=PROTEIN)
         self.assertEqual(ancestral_state_alignment(aln, t), [[0, 0], [0, 2]])
         # non-bifurcating tree
-        t = LoadTree(treestring='(A:0.5,B:0.5,C:0.5);')
-        aln = ArrayAlignment(
-            data={'A': 'AA', 'B': 'AA', 'C': 'AC'}, moltype=PROTEIN)
+        t = LoadTree(treestring="(A:0.5,B:0.5,C:0.5);")
+        aln = ArrayAlignment(data={"A": "AA", "B": "AA", "C": "AC"}, moltype=PROTEIN)
         self.assertEqual(ancestral_state_alignment(aln, t), [[0, 0], [0, 2]])
 
     def test_ancestral_state_position_handles_ancestral_state_calc(self):
         """ancestral_state_position: functions when calc'ing ancestral states
         """
-        t = LoadTree(treestring='((A:0.5,B:0.5):0.5,C:0.5);')
-        aln = ArrayAlignment(
-            data={'A': 'AA', 'B': 'AA', 'C': 'AC'}, moltype=PROTEIN)
+        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
+        aln = ArrayAlignment(data={"A": "AA", "B": "AA", "C": "AC"}, moltype=PROTEIN)
         self.assertEqual(ancestral_state_position(aln, t, 0), [0, 0])
         self.assertEqual(ancestral_state_position(aln, t, 1), [0, 2])
 
     def test_ancestral_state_pair_handles_ancestral_state_calc(self):
         """ancestral_state_position: functions when calc'ing ancestral states
         """
-        t = LoadTree(treestring='((A:0.5,B:0.5):0.5,C:0.5);')
-        aln = ArrayAlignment(
-            data={'A': 'AA', 'B': 'AA', 'C': 'AC'}, moltype=PROTEIN)
+        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
+        aln = ArrayAlignment(data={"A": "AA", "B": "AA", "C": "AC"}, moltype=PROTEIN)
         self.assertEqual(ancestral_state_pair(aln, t, 0, 0), 0)
         self.assertEqual(ancestral_state_pair(aln, t, 0, 1), 0)
         self.assertEqual(ancestral_state_pair(aln, t, 1, 1), 2)
@@ -2183,192 +2963,316 @@ class AncestorCoevolve(TestCase):
 
     def test_ancestral_state_alignment_no_error_on_gap(self):
         """ancestral_state_alignment: return w/o error with gapped seqs """
-        ancestral_state_alignment(self.aln1_w_gaps, self.t1,
-                                  self.ancestral_states1)
-        ancestral_state_alignment(self.aln1_1, self.t1,
-                                  self.ancestral_states1_w_gaps)
+        ancestral_state_alignment(self.aln1_w_gaps, self.t1, self.ancestral_states1)
+        ancestral_state_alignment(self.aln1_1, self.t1, self.ancestral_states1_w_gaps)
 
     def test_ancestral_state_methods_handle_bad_ancestor_aln(self):
         """ancestral state methods raise error on bad ancestor alignment """
         # bad length and seq names
-        self.assertRaises(ValueError, coevolve_alignment,
-                          ancestral_state_alignment, self.aln1_2,
-                          tree=self.t1, ancestral_seqs=self.ancestral_states2_1)
-        self.assertRaises(ValueError, coevolve_position,
-                          ancestral_state_position, self.aln1_2, 0,
-                          tree=self.t1, ancestral_seqs=self.ancestral_states2_1)
-        self.assertRaises(ValueError, coevolve_pair,
-                          ancestral_state_pair, self.aln1_2, 0, 1,
-                          tree=self.t1, ancestral_seqs=self.ancestral_states2_1)
+        self.assertRaises(
+            ValueError,
+            coevolve_alignment,
+            ancestral_state_alignment,
+            self.aln1_2,
+            tree=self.t1,
+            ancestral_seqs=self.ancestral_states2_1,
+        )
+        self.assertRaises(
+            ValueError,
+            coevolve_position,
+            ancestral_state_position,
+            self.aln1_2,
+            0,
+            tree=self.t1,
+            ancestral_seqs=self.ancestral_states2_1,
+        )
+        self.assertRaises(
+            ValueError,
+            coevolve_pair,
+            ancestral_state_pair,
+            self.aln1_2,
+            0,
+            1,
+            tree=self.t1,
+            ancestral_seqs=self.ancestral_states2_1,
+        )
         # bad seq names
-        self.assertRaises(ValueError, coevolve_alignment,
-                          ancestral_state_alignment, self.aln1_2,
-                          tree=self.t1, ancestral_seqs=self.aln1_2)
-        self.assertRaises(ValueError, coevolve_position,
-                          ancestral_state_position, self.aln1_2, 0,
-                          tree=self.t1, ancestral_seqs=self.aln1_2)
-        self.assertRaises(ValueError, coevolve_pair,
-                          ancestral_state_pair, self.aln1_2, 0, 1,
-                          tree=self.t1, ancestral_seqs=self.aln1_2)
+        self.assertRaises(
+            ValueError,
+            coevolve_alignment,
+            ancestral_state_alignment,
+            self.aln1_2,
+            tree=self.t1,
+            ancestral_seqs=self.aln1_2,
+        )
+        self.assertRaises(
+            ValueError,
+            coevolve_position,
+            ancestral_state_position,
+            self.aln1_2,
+            0,
+            tree=self.t1,
+            ancestral_seqs=self.aln1_2,
+        )
+        self.assertRaises(
+            ValueError,
+            coevolve_pair,
+            ancestral_state_pair,
+            self.aln1_2,
+            0,
+            1,
+            tree=self.t1,
+            ancestral_seqs=self.aln1_2,
+        )
         # bad length
-        a = ArrayAlignment(data={'root': 'AC', 'edge.0': 'AD', 'edge.1': 'AA',
-                                 'edge.2': 'EE'})
-        self.assertRaises(ValueError, coevolve_alignment,
-                          ancestral_state_alignment, self.aln1_2,
-                          tree=self.t1, ancestral_seqs=a)
-        self.assertRaises(ValueError, coevolve_position,
-                          ancestral_state_position, self.aln1_2, 0,
-                          tree=self.t1, ancestral_seqs=a)
-        self.assertRaises(ValueError, coevolve_pair,
-                          ancestral_state_pair, self.aln1_2, 0, 1,
-                          tree=self.t1, ancestral_seqs=a)
+        a = ArrayAlignment(
+            data={"root": "AC", "edge.0": "AD", "edge.1": "AA", "edge.2": "EE"}
+        )
+        self.assertRaises(
+            ValueError,
+            coevolve_alignment,
+            ancestral_state_alignment,
+            self.aln1_2,
+            tree=self.t1,
+            ancestral_seqs=a,
+        )
+        self.assertRaises(
+            ValueError,
+            coevolve_position,
+            ancestral_state_position,
+            self.aln1_2,
+            0,
+            tree=self.t1,
+            ancestral_seqs=a,
+        )
+        self.assertRaises(
+            ValueError,
+            coevolve_pair,
+            ancestral_state_pair,
+            self.aln1_2,
+            0,
+            1,
+            tree=self.t1,
+            ancestral_seqs=a,
+        )
 
     def test_ancestral_states_methods_handle_bad_position_numbers(self):
         """coevolve_* w/ ancestral_states raise ValueError on bad position 
         """
 
-        self.assertRaises(ValueError, coevolve_position,
-                          ancestral_state_position, self.aln1_2,
-                          42, tree=self.t1, ancestral_states=self.ancestral_states2_1)
-        self.assertRaises(ValueError, coevolve_pair,
-                          ancestral_state_pair, self.aln1_2,
-                          0, 42, tree=self.t1, ancestral_states=self.ancestral_states2_1)
-        self.assertRaises(ValueError, coevolve_pair,
-                          ancestral_state_pair, self.aln1_2,
-                          42, 0, tree=self.t1, ancestral_states=self.ancestral_states2_1)
+        self.assertRaises(
+            ValueError,
+            coevolve_position,
+            ancestral_state_position,
+            self.aln1_2,
+            42,
+            tree=self.t1,
+            ancestral_states=self.ancestral_states2_1,
+        )
+        self.assertRaises(
+            ValueError,
+            coevolve_pair,
+            ancestral_state_pair,
+            self.aln1_2,
+            0,
+            42,
+            tree=self.t1,
+            ancestral_states=self.ancestral_states2_1,
+        )
+        self.assertRaises(
+            ValueError,
+            coevolve_pair,
+            ancestral_state_pair,
+            self.aln1_2,
+            42,
+            0,
+            tree=self.t1,
+            ancestral_states=self.ancestral_states2_1,
+        )
 
     def test_ancestral_state_alignment_non_bifurcating_tree(self):
         """ancestral_state_alignment: handles non-bifurcating tree correctly
         """
-        self.assertEqual(ancestral_state_alignment(self.aln2,
-                                                   self.t2, self.ancestral_states2_3), [[9, 9], [9, 9]])
+        self.assertEqual(
+            ancestral_state_alignment(self.aln2, self.t2, self.ancestral_states2_3),
+            [[9, 9], [9, 9]],
+        )
 
     def test_ancestral_state_alignment_bifurcating_tree(self):
         """ancestral_state_alignment: handles bifurcating tree correctly """
-        self.assertFloatEqual(ancestral_state_alignment(self.aln1_5,
-                                                        self.t1, self.ancestral_states1),
-                              [[5, 5, 5], [5, 11.6, 11.6], [5, 11.6, 11.6]])
+        self.assertFloatEqual(
+            ancestral_state_alignment(self.aln1_5, self.t1, self.ancestral_states1),
+            [[5, 5, 5], [5, 11.6, 11.6], [5, 11.6, 11.6]],
+        )
 
     def test_ancestral_state_alignment_ancestor_difference(self):
         """ancestral_state_alignment: different ancestor -> different result
         """
         # ancestral_states2_1
-        self.assertEqual(ancestral_state_alignment(self.aln2,
-                                                   self.t2, self.ancestral_states2_1), [[5, 2], [2, 2]])
+        self.assertEqual(
+            ancestral_state_alignment(self.aln2, self.t2, self.ancestral_states2_1),
+            [[5, 2], [2, 2]],
+        )
         # ancestral_states2_2
-        self.assertEqual(ancestral_state_alignment(self.aln2,
-                                                   self.t2, self.ancestral_states2_2), [[2, 2], [2, 5]])
+        self.assertEqual(
+            ancestral_state_alignment(self.aln2, self.t2, self.ancestral_states2_2),
+            [[2, 2], [2, 5]],
+        )
         # ancestral_states2_3
-        self.assertEqual(ancestral_state_alignment(self.aln2,
-                                                   self.t2, self.ancestral_states2_3), [[9, 9], [9, 9]])
+        self.assertEqual(
+            ancestral_state_alignment(self.aln2, self.t2, self.ancestral_states2_3),
+            [[9, 9], [9, 9]],
+        )
 
     def test_ancestral_state_position_ancestor_difference(self):
         """ancestral_state_position: difference_ancestor -> different result
         """
         # ancestral_states2_1
-        self.assertEqual(ancestral_state_position(self.aln2,
-                                                  self.t2, 0, self.ancestral_states2_1), [5, 2])
-        self.assertEqual(ancestral_state_position(self.aln2,
-                                                  self.t2, 1, self.ancestral_states2_1), [2, 2])
+        self.assertEqual(
+            ancestral_state_position(self.aln2, self.t2, 0, self.ancestral_states2_1),
+            [5, 2],
+        )
+        self.assertEqual(
+            ancestral_state_position(self.aln2, self.t2, 1, self.ancestral_states2_1),
+            [2, 2],
+        )
         # ancestral_states2_2
-        self.assertEqual(ancestral_state_position(self.aln2,
-                                                  self.t2, 0, self.ancestral_states2_2), [2, 2])
-        self.assertEqual(ancestral_state_position(self.aln2,
-                                                  self.t2, 1, self.ancestral_states2_2), [2, 5])
+        self.assertEqual(
+            ancestral_state_position(self.aln2, self.t2, 0, self.ancestral_states2_2),
+            [2, 2],
+        )
+        self.assertEqual(
+            ancestral_state_position(self.aln2, self.t2, 1, self.ancestral_states2_2),
+            [2, 5],
+        )
         # ancestral_states2_3
-        self.assertEqual(ancestral_state_position(self.aln2,
-                                                  self.t2, 0, self.ancestral_states2_3), [9, 9])
-        self.assertEqual(ancestral_state_position(self.aln2,
-                                                  self.t2, 1, self.ancestral_states2_3), [9, 9])
+        self.assertEqual(
+            ancestral_state_position(self.aln2, self.t2, 0, self.ancestral_states2_3),
+            [9, 9],
+        )
+        self.assertEqual(
+            ancestral_state_position(self.aln2, self.t2, 1, self.ancestral_states2_3),
+            [9, 9],
+        )
 
     def test_ancestral_state_pair_ancestor_difference(self):
         """ancestral_state_pair: difference_ancestor -> different result
         """
         # ancestral_states2_1
-        self.assertEqual(ancestral_state_pair(self.aln2,
-                                              self.t2, 0, 0, self.ancestral_states2_1), 5)
-        self.assertEqual(ancestral_state_pair(self.aln2,
-                                              self.t2, 0, 1, self.ancestral_states2_1), 2)
-        self.assertEqual(ancestral_state_pair(self.aln2,
-                                              self.t2, 1, 1, self.ancestral_states2_1), 2)
-        self.assertEqual(ancestral_state_pair(self.aln2,
-                                              self.t2, 1, 0, self.ancestral_states2_1), 2)
+        self.assertEqual(
+            ancestral_state_pair(self.aln2, self.t2, 0, 0, self.ancestral_states2_1), 5
+        )
+        self.assertEqual(
+            ancestral_state_pair(self.aln2, self.t2, 0, 1, self.ancestral_states2_1), 2
+        )
+        self.assertEqual(
+            ancestral_state_pair(self.aln2, self.t2, 1, 1, self.ancestral_states2_1), 2
+        )
+        self.assertEqual(
+            ancestral_state_pair(self.aln2, self.t2, 1, 0, self.ancestral_states2_1), 2
+        )
         # ancestral_states2_2
-        self.assertEqual(ancestral_state_pair(self.aln2,
-                                              self.t2, 0, 0, self.ancestral_states2_2), 2)
-        self.assertEqual(ancestral_state_pair(self.aln2,
-                                              self.t2, 0, 1, self.ancestral_states2_2), 2)
-        self.assertEqual(ancestral_state_pair(self.aln2,
-                                              self.t2, 1, 1, self.ancestral_states2_2), 5)
-        self.assertEqual(ancestral_state_pair(self.aln2,
-                                              self.t2, 1, 0, self.ancestral_states2_2), 2)
+        self.assertEqual(
+            ancestral_state_pair(self.aln2, self.t2, 0, 0, self.ancestral_states2_2), 2
+        )
+        self.assertEqual(
+            ancestral_state_pair(self.aln2, self.t2, 0, 1, self.ancestral_states2_2), 2
+        )
+        self.assertEqual(
+            ancestral_state_pair(self.aln2, self.t2, 1, 1, self.ancestral_states2_2), 5
+        )
+        self.assertEqual(
+            ancestral_state_pair(self.aln2, self.t2, 1, 0, self.ancestral_states2_2), 2
+        )
         # ancestral_states2_3
-        self.assertEqual(ancestral_state_pair(self.aln2,
-                                              self.t2, 0, 0, self.ancestral_states2_3), 9)
-        self.assertEqual(ancestral_state_pair(self.aln2,
-                                              self.t2, 0, 1, self.ancestral_states2_3), 9)
-        self.assertEqual(ancestral_state_pair(self.aln2,
-                                              self.t2, 1, 1, self.ancestral_states2_3), 9)
-        self.assertEqual(ancestral_state_pair(self.aln2,
-                                              self.t2, 1, 0, self.ancestral_states2_3), 9)
+        self.assertEqual(
+            ancestral_state_pair(self.aln2, self.t2, 0, 0, self.ancestral_states2_3), 9
+        )
+        self.assertEqual(
+            ancestral_state_pair(self.aln2, self.t2, 0, 1, self.ancestral_states2_3), 9
+        )
+        self.assertEqual(
+            ancestral_state_pair(self.aln2, self.t2, 1, 1, self.ancestral_states2_3), 9
+        )
+        self.assertEqual(
+            ancestral_state_pair(self.aln2, self.t2, 1, 0, self.ancestral_states2_3), 9
+        )
 
     def test_ancestral_state_alignment_tree_difference(self):
         """ancestral_state_alignment: different result on different tree
         """
         # tree: t3_1
-        self.assertEqual(ancestral_state_alignment(self.aln3,
-                                                   self.t3_1, self.ancestral_states3), [[7, 5], [5, 5]])
+        self.assertEqual(
+            ancestral_state_alignment(self.aln3, self.t3_1, self.ancestral_states3),
+            [[7, 5], [5, 5]],
+        )
         # tree: t3_2
-        self.assertEqual(ancestral_state_alignment(self.aln3,
-                                                   self.t3_2, self.ancestral_states3), [[2, 2], [2, 5]])
+        self.assertEqual(
+            ancestral_state_alignment(self.aln3, self.t3_2, self.ancestral_states3),
+            [[2, 2], [2, 5]],
+        )
 
     def test_ancestral_state_position_tree_difference(self):
         """ancestral_state_position: different result on different tree
         """
         # tree: t3_1
-        self.assertEqual(ancestral_state_position(self.aln3,
-                                                  self.t3_1, 0, self.ancestral_states3), [7, 5])
-        self.assertEqual(ancestral_state_position(self.aln3,
-                                                  self.t3_1, 1, self.ancestral_states3), [5, 5])
+        self.assertEqual(
+            ancestral_state_position(self.aln3, self.t3_1, 0, self.ancestral_states3),
+            [7, 5],
+        )
+        self.assertEqual(
+            ancestral_state_position(self.aln3, self.t3_1, 1, self.ancestral_states3),
+            [5, 5],
+        )
         # tree: t3_2
-        self.assertEqual(ancestral_state_position(self.aln3,
-                                                  self.t3_2, 0, self.ancestral_states3), [2, 2])
-        self.assertEqual(ancestral_state_position(self.aln3,
-                                                  self.t3_2, 1, self.ancestral_states3), [2, 5])
+        self.assertEqual(
+            ancestral_state_position(self.aln3, self.t3_2, 0, self.ancestral_states3),
+            [2, 2],
+        )
+        self.assertEqual(
+            ancestral_state_position(self.aln3, self.t3_2, 1, self.ancestral_states3),
+            [2, 5],
+        )
 
     def test_ancestral_state_pair_tree_difference(self):
         """ancestral_state_pair: different result on different tree
         """
         # tree: t3_1
-        self.assertFloatEqual(ancestral_state_pair(self.aln3,
-                                                   self.t3_1, 0, 1, self.ancestral_states3), 5)
-        self.assertFloatEqual(ancestral_state_pair(self.aln3,
-                                                   self.t3_1, 1, 0, self.ancestral_states3), 5)
-        self.assertFloatEqual(ancestral_state_pair(self.aln3,
-                                                   self.t3_1, 0, 0, self.ancestral_states3), 7)
-        self.assertFloatEqual(ancestral_state_pair(self.aln3,
-                                                   self.t3_1, 1, 1, self.ancestral_states3), 5)
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln3, self.t3_1, 0, 1, self.ancestral_states3), 5
+        )
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln3, self.t3_1, 1, 0, self.ancestral_states3), 5
+        )
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln3, self.t3_1, 0, 0, self.ancestral_states3), 7
+        )
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln3, self.t3_1, 1, 1, self.ancestral_states3), 5
+        )
         # tree: t3_2
-        self.assertFloatEqual(ancestral_state_pair(self.aln3,
-                                                   self.t3_2, 0, 1, self.ancestral_states3), 2)
-        self.assertFloatEqual(ancestral_state_pair(self.aln3,
-                                                   self.t3_2, 1, 0, self.ancestral_states3), 2)
-        self.assertFloatEqual(ancestral_state_pair(self.aln3,
-                                                   self.t3_2, 0, 0, self.ancestral_states3), 2)
-        self.assertFloatEqual(ancestral_state_pair(self.aln3,
-                                                   self.t3_2, 1, 1, self.ancestral_states3), 5)
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln3, self.t3_2, 0, 1, self.ancestral_states3), 2
+        )
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln3, self.t3_2, 1, 0, self.ancestral_states3), 2
+        )
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln3, self.t3_2, 0, 0, self.ancestral_states3), 2
+        )
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln3, self.t3_2, 1, 1, self.ancestral_states3), 5
+        )
 
     def test_ancestral_state_alignment_aln_difference(self):
         """ancestral_state_alignment: difference aln -> different result
         """
         expected = [[0, 0, 0], [0, 2, 0], [0, 0, 7.8]]
-        actual = ancestral_state_alignment(self.aln1_1,
-                                           self.t1, self.ancestral_states1)
+        actual = ancestral_state_alignment(self.aln1_1, self.t1, self.ancestral_states1)
         self.assertFloatEqual(actual, expected)
 
         expected = [[5, 5, 5], [5, 11.6, 11.6], [5, 11.6, 11.6]]
-        actual = ancestral_state_alignment(self.aln1_5,
-                                           self.t1, self.ancestral_states1)
+        actual = ancestral_state_alignment(self.aln1_5, self.t1, self.ancestral_states1)
         self.assertFloatEqual(actual, expected)
 
     def test_ancestral_state_position_aln_difference(self):
@@ -2376,58 +3280,75 @@ class AncestorCoevolve(TestCase):
         """
 
         expected = [0, 0, 0]
-        actual = ancestral_state_position(self.aln1_1,
-                                          self.t1, 0, self.ancestral_states1)
+        actual = ancestral_state_position(
+            self.aln1_1, self.t1, 0, self.ancestral_states1
+        )
         self.assertFloatEqual(actual, expected)
         expected = [0, 2, 0]
-        actual = ancestral_state_position(self.aln1_1,
-                                          self.t1, 1, self.ancestral_states1)
+        actual = ancestral_state_position(
+            self.aln1_1, self.t1, 1, self.ancestral_states1
+        )
         self.assertFloatEqual(actual, expected)
         expected = [0, 0, 7.8]
-        actual = ancestral_state_position(self.aln1_1,
-                                          self.t1, 2, self.ancestral_states1)
+        actual = ancestral_state_position(
+            self.aln1_1, self.t1, 2, self.ancestral_states1
+        )
         self.assertFloatEqual(actual, expected)
 
         expected = [5, 5, 5]
-        actual = ancestral_state_position(self.aln1_5,
-                                          self.t1, 0, self.ancestral_states1)
+        actual = ancestral_state_position(
+            self.aln1_5, self.t1, 0, self.ancestral_states1
+        )
         self.assertFloatEqual(actual, expected)
         expected = [5, 11.6, 11.6]
-        actual = ancestral_state_position(self.aln1_5,
-                                          self.t1, 1, self.ancestral_states1)
+        actual = ancestral_state_position(
+            self.aln1_5, self.t1, 1, self.ancestral_states1
+        )
         self.assertFloatEqual(actual, expected)
         expected = [5, 11.6, 11.6]
-        actual = ancestral_state_position(self.aln1_5,
-                                          self.t1, 2, self.ancestral_states1)
+        actual = ancestral_state_position(
+            self.aln1_5, self.t1, 2, self.ancestral_states1
+        )
         self.assertFloatEqual(actual, expected)
 
     def test_ancestral_state_pair_aln_difference(self):
         """acestral_state_pair: different aln -> different result """
-        self.assertFloatEqual(ancestral_state_pair(self.aln1_1, self.t1, 0, 0,
-                                                   self.ancestral_states1), 0)
-        self.assertFloatEqual(ancestral_state_pair(self.aln1_1, self.t1, 1, 1,
-                                                   self.ancestral_states1), 2)
-        self.assertFloatEqual(ancestral_state_pair(self.aln1_1, self.t1, 2, 2,
-                                                   self.ancestral_states1), 7.8)
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln1_1, self.t1, 0, 0, self.ancestral_states1), 0
+        )
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln1_1, self.t1, 1, 1, self.ancestral_states1), 2
+        )
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln1_1, self.t1, 2, 2, self.ancestral_states1),
+            7.8,
+        )
 
-        self.assertFloatEqual(ancestral_state_pair(self.aln1_5, self.t1, 0, 1,
-                                                   self.ancestral_states1), 5)
-        self.assertFloatEqual(ancestral_state_pair(self.aln1_5, self.t1, 0, 2,
-                                                   self.ancestral_states1), 5)
-        self.assertFloatEqual(ancestral_state_pair(self.aln1_5, self.t1, 1, 2,
-                                                   self.ancestral_states1), 11.6)
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln1_5, self.t1, 0, 1, self.ancestral_states1), 5
+        )
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln1_5, self.t1, 0, 2, self.ancestral_states1), 5
+        )
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln1_5, self.t1, 1, 2, self.ancestral_states1),
+            11.6,
+        )
 
     def test_ancestral_state_pair_symmetry(self):
         """ancestral_state_pair: value[i,j] == value[j,i] """
-        self.assertFloatEqual(ancestral_state_pair(self.aln1_5, self.t1, 0, 1,
-                                                   self.ancestral_states1), ancestral_state_pair(
-            self.aln1_5, self.t1, 1, 0, self.ancestral_states1))
-        self.assertFloatEqual(ancestral_state_pair(self.aln1_5, self.t1, 0, 2,
-                                                   self.ancestral_states1), ancestral_state_pair(
-            self.aln1_5, self.t1, 2, 0, self.ancestral_states1))
-        self.assertFloatEqual(ancestral_state_pair(self.aln1_5, self.t1, 1, 2,
-                                                   self.ancestral_states1), ancestral_state_pair(
-            self.aln1_5, self.t1, 2, 1, self.ancestral_states1))
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln1_5, self.t1, 0, 1, self.ancestral_states1),
+            ancestral_state_pair(self.aln1_5, self.t1, 1, 0, self.ancestral_states1),
+        )
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln1_5, self.t1, 0, 2, self.ancestral_states1),
+            ancestral_state_pair(self.aln1_5, self.t1, 2, 0, self.ancestral_states1),
+        )
+        self.assertFloatEqual(
+            ancestral_state_pair(self.aln1_5, self.t1, 1, 2, self.ancestral_states1),
+            ancestral_state_pair(self.aln1_5, self.t1, 2, 1, self.ancestral_states1),
+        )
 
     def est_ancestral_state_methods_handle_alt_null_value(self):
         """ancetral state methods handle non-default null value """
@@ -2435,6 +3356,7 @@ class AncestorCoevolve(TestCase):
         # null values into the ancestral states result, but that will change
         # when I fix the exclude handling
         pass
+
 
 # following are support funcs for ResampledMiTests
 
@@ -2457,17 +3379,20 @@ def make_sample(freqs):
 def _calc_mi():
     """one mutual info hand calc"""
     from math import log
+
     i = 37 / 42 * -log(37 / 42, 2) - (5 / 42 * log(5 / 42, 2))
     j = 39 / 42 * -log(39 / 42, 2) - (3 / 42 * log(3 / 42, 2))
-    k = 34 / 42 * -log(34 / 42, 2) - (3 / 42 * log(3 / 42, 2)
-                                      ) - (5 / 42 * log(5 / 42, 2))
+    k = (
+        34 / 42 * -log(34 / 42, 2)
+        - (3 / 42 * log(3 / 42, 2))
+        - (5 / 42 * log(5 / 42, 2))
+    )
     return i + j - k
 
 
 class ResampledMiTests(TestCase):
-
     def setUp(self):
-        self.c12 = CategoryCounter(['AA', 'AA', 'BB', 'BB', 'BC'])
+        self.c12 = CategoryCounter(["AA", "AA", "BB", "BB", "BC"])
         self.c1, self.c2 = make_freqs(self.c12)
         self.aln = make_sample(self.c12)
 
@@ -2475,9 +3400,11 @@ class ResampledMiTests(TestCase):
         """resampled mi weights should be correctly computed"""
         w1 = make_weights(self.c1, 5)
         w2 = make_weights(self.c2, 5)
-        e = [('A', {'C': 0.033333333333333333, 'B': 0.066666666666666666}),
-             ('B', {'A': 0.066666666666666666, 'C': 0.033333333333333333}),
-             ('C', {'A': 0.050000000000000003, 'B': 0.050000000000000003})]
+        e = [
+            ("A", {"C": 0.033333333333333333, "B": 0.066666666666666666}),
+            ("B", {"A": 0.066666666666666666, "C": 0.033333333333333333}),
+            ("C", {"A": 0.050000000000000003, "B": 0.050000000000000003}),
+        ]
 
         weights = []
         for w in w1, w2:
@@ -2489,6 +3416,7 @@ class ResampledMiTests(TestCase):
 
     def test_scaled_mi(self):
         """resampled mi should match hand calc"""
+
         def calc_scaled(data, expected_smi):
             col_i, col_j = CategoryCounter(), CategoryCounter()
             for i, j in data:
@@ -2497,20 +3425,58 @@ class ResampledMiTests(TestCase):
             pair_freqs = CategoryCounter(data)
             weights_i = make_weights(col_i, col_i.sum)
             weights_j = make_weights(col_j, col_j.sum)
-            entropy = mi(col_i.entropy, col_j.entropy,
-                         pair_freqs.entropy)
+            entropy = mi(col_i.entropy, col_j.entropy, pair_freqs.entropy)
             self.assertFloatEqual(entropy, _calc_mi())
-            scales = calc_pair_scale(
-                data, col_i, col_j, weights_i, weights_j)
-            scaled_mi = 1 - sum([w * pair_freqs[pr] for pr, e, w in scales
-                                 if entropy <= e])
+            scales = calc_pair_scale(data, col_i, col_j, weights_i, weights_j)
+            scaled_mi = 1 - sum(
+                [w * pair_freqs[pr] for pr, e, w in scales if entropy <= e]
+            )
             self.assertFloatEqual(scaled_mi, expected_smi)
 
-        data = ['BN', 'BN', 'BP', 'BN', 'PN', 'BN', 'BN', 'BN', 'BN', 'BN',
-                'BN', 'BN', 'BN', 'PN', 'BN', 'PN', 'BN', 'BN', 'BN', 'BN',
-                'BN', 'BP', 'BN', 'BN', 'BN', 'BN', 'BP', 'BN', 'BN', 'BN',
-                'BN', 'PN', 'PN', 'BN', 'BN', 'BN', 'BN', 'BN', 'BN', 'BN',
-                'BN', 'BN']
+        data = [
+            "BN",
+            "BN",
+            "BP",
+            "BN",
+            "PN",
+            "BN",
+            "BN",
+            "BN",
+            "BN",
+            "BN",
+            "BN",
+            "BN",
+            "BN",
+            "PN",
+            "BN",
+            "PN",
+            "BN",
+            "BN",
+            "BN",
+            "BN",
+            "BN",
+            "BP",
+            "BN",
+            "BN",
+            "BN",
+            "BN",
+            "BP",
+            "BN",
+            "BN",
+            "BN",
+            "BN",
+            "PN",
+            "PN",
+            "BN",
+            "BN",
+            "BN",
+            "BN",
+            "BN",
+            "BN",
+            "BN",
+            "BN",
+            "BN",
+        ]
         calc_scaled(data, 8 / 42)
 
     def test_resampled_mi_interface(self):
@@ -2518,24 +3484,20 @@ class ResampledMiTests(TestCase):
         alignment"""
         arr = resampled_mi_alignment(self.aln)
         # expected value from hand calculation
-        self.assertFloatEqual(
-            arr.tolist(), [[1., 0.78333333], [0.78333333, 1.]])
+        self.assertFloatEqual(arr.tolist(), [[1.0, 0.78333333], [0.78333333, 1.0]])
 
 
-ALN_FILE =\
-    """Seq_1   ACDEFG
+ALN_FILE = """Seq_1   ACDEFG
 Seq_2   STVWY-
 Seq_3 WY.ZBX"""
 
-#J in here
-ALN_FILE_WRONG_KEY =\
-    """Seq_1   ACDKLM
+# J in here
+ALN_FILE_WRONG_KEY = """Seq_1   ACDKLM
 Seq_2   JINCK-
 Seq_3 VX.MAB"""
 
 # last seq too long
-ALN_FILE_INC_SHAPE =\
-    """Seq_1   ACDKLM
+ALN_FILE_INC_SHAPE = """Seq_1   ACDKLM
 Seq_2   LINCK-
 Seq_3 VX.MABN"""
 
@@ -4421,7 +5383,7 @@ EEMKVDQFGPGHTTLPGELAPDSEPELIDSTKLIEVQVVLILAYCSIILLGVIGNSLVIHVVIKFKSMRTVTNFFIANLA
 >HH1R_RAT
 ----------MSFANTSSTFEDKMCEGNRTAMASPQLLPLVVVLSSISLVTVGLNLLVLYAVHSERKLHTVGNLYIVSLSVADLIVGAVVMPMNILYLIMTKWSLGRPLCLFWLSMDYVASTASIFSVFILCIDRYRSVQQPLYLRYRTKTRASATILGAWFFSFLWVIPILGWHHFM--EL-EDKCETD------FYNVTWFKIMTAIINFYLPTLLMLWFYVKIYKAVRRHLRSQYVSGLHLNRERKAAKQLGFIMAAFILCWIPYFIFFMVIAFCKSC-CSEPMHMFTIWLGYINSTLNPLIYPLCNENFKKTFKKILHIRS-----------------------"""
 
-gpcr_aln = ArrayAlignment(data=gpcr_ungapped.split('\n'), moltype=PROTEIN)
+gpcr_aln = ArrayAlignment(data=gpcr_ungapped.split("\n"), moltype=PROTEIN)
 
 myos_data = """>gi|107137|pir||A37102
 LSRIITRIQA
@@ -4652,10 +5614,10 @@ LAQLITRTQA
 >gi|9971579|dbj|BAB12571.1|
 LAALVTMTQA"""
 
-myos_aln = ArrayAlignment(data=myos_data.split('\n'), moltype=PROTEIN)
+myos_aln = ArrayAlignment(data=myos_data.split("\n"), moltype=PROTEIN)
 
 # a randomly generated tree to use in tests
-tree20_string = '(((0:0.5,1:0.5):0.5,(((2:0.5,3:0.5):0.5,(4:0.5,(5:0.5,6:0.5):0.5):0.5):0.5,((7:0.5,8:0.5):0.5,((9:0.5,((10:0.5,11:0.5):0.5,12:0.5):0.5):0.5,13:0.5):0.5):0.5):0.5):0.5,(((14:0.5,(15:0.5,16:0.5):0.5):0.5,17:0.5):0.5,(18:0.5,19:0.5):0.5):0.5);'
+tree20_string = "(((0:0.5,1:0.5):0.5,(((2:0.5,3:0.5):0.5,(4:0.5,(5:0.5,6:0.5):0.5):0.5):0.5,((7:0.5,8:0.5):0.5,((9:0.5,((10:0.5,11:0.5):0.5,12:0.5):0.5):0.5,13:0.5):0.5):0.5):0.5):0.5,(((14:0.5,(15:0.5,16:0.5):0.5):0.5,17:0.5):0.5,(18:0.5,19:0.5):0.5):0.5);"
 
 if __name__ == "__main__":
     main()

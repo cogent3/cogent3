@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import numpy
+
+
 Float = numpy.core.numerictypes.sctype2char(float)
 # Distance matricies are presently represented as simple dictionaries, which
 # need to be converted into numpy arrays before being fed into phylogenetic

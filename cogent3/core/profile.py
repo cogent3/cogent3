@@ -1,8 +1,11 @@
-from cogent3.util.dict_array import DictArray, DictArrayTemplate
-from cogent3.maths.util import safe_p_log_p, safe_log
 import numpy
-from numpy.random import random
+
 from numpy import digitize
+from numpy.random import random
+
+from cogent3.maths.util import safe_log, safe_p_log_p
+from cogent3.util.dict_array import DictArray, DictArrayTemplate
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -16,11 +19,10 @@ __status__ = "Production"
 
 def validate_freqs_array(data, axis=None):
     if (data < 0).any():
-        raise ValueError('negative frequency not allowed')
+        raise ValueError("negative frequency not allowed")
 
     if not numpy.allclose(data.sum(axis=axis), 1):
-        raise ValueError(
-            'invalid frequencies, sum(axis=1) is not equal to 1')
+        raise ValueError("invalid frequencies, sum(axis=1) is not equal to 1")
 
 
 class _MotifNumberArray(DictArray):
@@ -51,8 +53,7 @@ class _MotifNumberArray(DictArray):
             ndim = 2
         num_elements = len(data) if ndim == 1 else len(data[0])
         if num_elements != len(motifs):
-            raise ValueError(
-                f"number of data elements {len(data[0])} != {len(motifs)}")
+            raise ValueError(f"number of data elements {len(data[0])} != {len(motifs)}")
         motifs = tuple(motifs)
 
         # create template
@@ -62,7 +63,7 @@ class _MotifNumberArray(DictArray):
         template = DictArrayTemplate(row_indices, motifs)
         darr = template.wrap(data)
         try:
-            darr.array.astype(dtype, casting='safe')
+            darr.array.astype(dtype, casting="safe")
         except TypeError as err:
             raise ValueError(err)
         self.__dict__.update(darr.__dict__)
@@ -108,11 +109,11 @@ class _MotifNumberArray(DictArray):
         axis
             indicates row/column
         """
-        assert 0 <= axis <= 1, 'invalid axis'
+        assert 0 <= axis <= 1, "invalid axis"
         try:
             indices[0]
         except TypeError:
-            raise ValueError('must provide indexable series to take')
+            raise ValueError("must provide indexable series to take")
 
         one_dim = self.array.ndim == 1
         if one_dim:
@@ -123,13 +124,16 @@ class _MotifNumberArray(DictArray):
 
         # are indices a subset of of indicated axis
         if not set(indices) <= set(current):
-            if (isinstance(indices[0], int) and 0 <= min(indices) and
-                    max(indices) < len(current)):
+            if (
+                isinstance(indices[0], int)
+                and 0 <= min(indices)
+                and max(indices) < len(current)
+            ):
                 current = list(range(len(current)))
             elif isinstance(indices[0], int):
-                raise IndexError(f'{indices} out of bounds')
+                raise IndexError(f"{indices} out of bounds")
             else:
-                raise ValueError('unexpected indices')
+                raise ValueError("unexpected indices")
 
         if negate:
             indices = tuple(v for v in current if v not in indices)
@@ -153,8 +157,7 @@ class _MotifNumberArray(DictArray):
 
 class MotifCountsArray(_MotifNumberArray):
     def __init__(self, counts, motifs, row_indices=None):
-        super(MotifCountsArray, self).__init__(counts, motifs, row_indices,
-                                               dtype=int)
+        super(MotifCountsArray, self).__init__(counts, motifs, row_indices, dtype=int)
 
     def _to_freqs(self):
         row_sum = self.array.sum(axis=1)
@@ -164,8 +167,9 @@ class MotifCountsArray(_MotifNumberArray):
     def to_freq_array(self):
         """returns a MotifFreqsArray"""
         freqs = self._to_freqs()
-        return MotifFreqsArray(freqs, self.template.names[1],
-                               row_indices=self.template.names[0])
+        return MotifFreqsArray(
+            freqs, self.template.names[1], row_indices=self.template.names[0]
+        )
 
     def to_pssm(self, background=None):
         """returns a PSSM array
@@ -178,8 +182,12 @@ class MotifCountsArray(_MotifNumberArray):
         # make freqs, then pssm
         freqs = self._to_freqs()
 
-        return PSSM(freqs, self.motifs, row_indices=self.template.names[0],
-                    background=background)
+        return PSSM(
+            freqs,
+            self.motifs,
+            row_indices=self.template.names[0],
+            background=background,
+        )
 
     def motif_totals(self):
         """returns totalled motifs"""
@@ -195,8 +203,7 @@ class MotifCountsArray(_MotifNumberArray):
 
 class MotifFreqsArray(_MotifNumberArray):
     def __init__(self, data, motifs, row_indices=None):
-        super(MotifFreqsArray, self).__init__(data, motifs, row_indices,
-                                              dtype=float)
+        super(MotifFreqsArray, self).__init__(data, motifs, row_indices, dtype=float)
         axis = 0 if self.array.ndim == 1 else 1
         validate_freqs_array(self.array, axis=axis)
 
@@ -214,9 +221,10 @@ class MotifFreqsArray(_MotifNumberArray):
     def simulate_seq(self):
         """returns a simulated sequence as a string"""
         cumsum = self.array.cumsum(axis=1)
-        series = [digitize(random(), cumsum[i], right=False)
-                  for i in range(self.shape[0])]
-        seq = ''.join([self.motifs[i] for i in series])
+        series = [
+            digitize(random(), cumsum[i], right=False) for i in range(self.shape[0])
+        ]
+        seq = "".join([self.motifs[i] for i in series])
         return seq
 
 
@@ -230,12 +238,12 @@ class PSSM(_MotifNumberArray):
         if background is None:
             background = numpy.ones(len(motifs), dtype=float) / len(motifs)
         self._background = numpy.array(background)
-        assert len(background) == len(motifs), \
-            "Mismatch between number of motifs and the background"
+        assert len(background) == len(
+            motifs
+        ), "Mismatch between number of motifs and the background"
         validate_freqs_array(self._background)
         pssm = safe_log(freqs.array) - safe_log(self._background)
-        super(PSSM, self).__init__(pssm, motifs, row_indices,
-                                   dtype=float)
+        super(PSSM, self).__init__(pssm, motifs, row_indices, dtype=float)
         self._indices = numpy.arange(self.shape[0])  # used for scoring
 
     def score_seq(self, seq):
@@ -245,9 +253,8 @@ class PSSM(_MotifNumberArray):
             indexed = list(map(get_index, seq))
         else:
             indexed = []
-            for i in range(0, self.shape[0] - self.motif_length,
-                           self.motif_length):
-                indexed.append(get_index(seq[i: i + self.motif_length]))
+            for i in range(0, self.shape[0] - self.motif_length, self.motif_length):
+                indexed.append(get_index(seq[i : i + self.motif_length]))
         indexed = numpy.array(indexed)
         return self.score_indexed_seq(indexed)
 
@@ -256,7 +263,7 @@ class PSSM(_MotifNumberArray):
         indexed = numpy.array(indexed)
         scores = []
         for i in range(0, indexed.shape[0] - self.shape[0] + 1):
-            segment = indexed[i: i + self.shape[0]]
+            segment = indexed[i : i + self.shape[0]]
             score = self.array[self._indices, segment].sum()
             scores.append(score)
         return scores

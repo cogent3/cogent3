@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 import os
 import re
-from cogent3.parse.record import FileFormatError
-from cogent3.util.misc import open_
-from cogent3.format.phylip import alignment_to_phylip
-from cogent3.format.paml import alignment_to_paml
+
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.gde import alignment_to_gde
+from cogent3.format.paml import alignment_to_paml
+from cogent3.format.phylip import alignment_to_phylip
+from cogent3.parse.record import FileFormatError
+from cogent3.util.misc import open_
+
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -33,7 +35,7 @@ def save_to_filename(alignment, filename, format, **kw):
     if format is None:
         raise FileFormatError("format not known")
 
-    f = open_(filename, 'wt')
+    f = open_(filename, "wt")
     try:
         write_alignment_to_file(f, alignment, format, **kw)
     except Exception:
@@ -56,10 +58,10 @@ def write_alignment_to_file(f, alignment, format, **kw):
 
 
 FORMATTERS = {
-    'phylip': alignment_to_phylip,
-    'paml': alignment_to_paml,
-    'fasta': alignment_to_fasta,
-    'mfa': alignment_to_fasta,
-    'fa': alignment_to_fasta,
-    'gde': alignment_to_gde,
+    "phylip": alignment_to_phylip,
+    "paml": alignment_to_paml,
+    "fasta": alignment_to_fasta,
+    "mfa": alignment_to_fasta,
+    "fa": alignment_to_fasta,
+    "gde": alignment_to_gde,
 }
