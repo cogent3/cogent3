@@ -1683,7 +1683,7 @@ class TreeNode(object):
         """
         from cogent3.draw.dendrogram import (Dendrogram, )
         style = style.lower()
-        types = ('square',)
+        types = ('square', 'radial')
         if style not in types:
             raise ValueError(f'{style} not in supported types {types}')
 
