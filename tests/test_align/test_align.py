@@ -20,7 +20,6 @@ dna_model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
 )
 
 
-
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]

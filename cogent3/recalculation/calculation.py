@@ -13,7 +13,6 @@ from cogent3.maths.solve import find_root
 Float = numpy.core.numerictypes.sctype2char(float)
 
 
-
 TRACE_DEFAULT = "COGENT3_TRACE" in os.environ
 TRACE_SCALE = 100000
 
