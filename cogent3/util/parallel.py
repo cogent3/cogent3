@@ -24,8 +24,6 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
 
-RANK = 0
-
 if os.environ.get("DONT_USE_MPI", 0):
     MPI = None
 else:
@@ -41,27 +39,22 @@ else:
             MPI = None
 
 
-def generate_seed(use_mpi, seed):
-    if use_mpi:
-        rank = RANK
-    else:
-        process_name = multiprocessing.current_process().name
-        if process_name is "MainProcess":
-            rank = 0
-        else:
-            rank = int(process_name[-1])
-    random_seed = int(seed) + rank
-    random.seed(random_seed)
-    numpy.random.seed(random_seed)
-
-
 if MPI is not None:
-    RANK = COMM.Get_rank()
-    if COMM.Get_size() > 1:
-        generate_seed(True, os.environ["SEED"])
     USING_MPI = True
 else:
     USING_MPI = False
+
+# Returns the rank of the current process
+def get_rank():
+    rank = 0
+    if MPI is not None:
+        rank = COMM.Get_rank()
+    else:
+        process_name = multiprocessing.current_process().name
+        if process_name is not "MainProcess":
+            rank = int(process_name[-1])
+    return rank
+
 
 # Helping ProcessPoolExecutor map unpicklable functions
 _FUNCTIONS = {}
@@ -81,9 +74,7 @@ class PicklableAndCallable:
         return self.func(*args, **kw)
 
 
-def imap(
-    f, s, max_workers=None, use_mpi=False, seed=None, if_serial="raise", chunksize=1
-):
+def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=1):
     """
     Parameters
     ----------
@@ -110,12 +101,6 @@ def imap(
     if_serial = if_serial.lower()
     assert if_serial in ("ignore", "raise", "warn"), f"invalid choice '{if_serial}'"
 
-    if seed is None:
-        seed = time.time()
-
-    # Generate random number seed for master process
-    generate_seed(use_mpi, seed)
-
     # If max_workers is not defined, get number of all processes available
     # minus 1 to leave for master process
     if use_mpi:
@@ -135,9 +120,7 @@ def imap(
         if not max_workers:
             max_workers = COMM.Get_attr(MPI.UNIVERSE_SIZE) - 1
 
-        with MPIfutures.MPIPoolExecutor(
-            max_workers=max_workers, env=dict(SEED="{:.0f}".format(seed))
-        ) as executor:
+        with MPIfutures.MPIPoolExecutor(max_workers=max_workers) as executor:
             for result in executor.map(f, s, chunksize=chunksize):
                 yield result
     else:
@@ -147,15 +130,11 @@ def imap(
         key = id(f)
         _FUNCTIONS[key] = f
         f = PicklableAndCallable(id(f))
-        with concurrentfutures.ProcessPoolExecutor(
-            max_workers, initializer=generate_seed, initargs=([False, seed])
-        ) as executor:
+        with concurrentfutures.ProcessPoolExecutor(max_workers) as executor:
             for result in executor.map(f, s, chunksize=chunksize):
                 yield result
 
 
 @extend_docstring_from(imap)
-def map(
-    f, s, max_workers=None, use_mpi=False, seed=None, if_serial="raise", chunksize=1
-):
-    return list(imap(f, s, max_workers, use_mpi, seed, if_serial, chunksize))
+def map(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=1):
+    return list(imap(f, s, max_workers, use_mpi, if_serial, chunksize))
