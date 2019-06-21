@@ -180,7 +180,6 @@ def exponentiator_switch(switch):
     cogent3.evolve.substitution_calculation.use_new = switch
 
 
-
 if "relative" in sys.argv:
     test = CompareImplementations(exponentiator_switch)
 else:

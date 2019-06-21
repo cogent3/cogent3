@@ -34,7 +34,6 @@ from cogent3.util.unit_test import TestCase, main  # , numpy_err
 filterwarnings("ignore", "invalid value encountered in", category=RuntimeWarning)
 
 
-
 Float = numpy.core.numerictypes.sctype2char(float)
 
 __author__ = "Rob Knight and Jeremy Widmann"

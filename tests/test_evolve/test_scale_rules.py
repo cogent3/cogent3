@@ -11,7 +11,6 @@ def a_c(x, y):
     return (x == "A" and y == "C") or (x == "C" and y == "A")
 
 
-
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
