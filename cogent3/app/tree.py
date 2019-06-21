@@ -5,6 +5,7 @@ from cogent3.phylo.nj import gnj
 from .composable import ComposableTree
 from .dist import get_fast_slow_calc
 
+
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
@@ -16,10 +17,10 @@ __status__ = "Alpha"
 
 
 class scale_branches(ComposableTree):
-    def __init__(self, nuc_to_codon=None, codon_to_nuc=None, scalar=1,
-                 min_length=1e-6):
-        super(scale_branches, self).__init__(input_type='tree',
-                                             output_type=('tree', 'serialisable'))
+    def __init__(self, nuc_to_codon=None, codon_to_nuc=None, scalar=1, min_length=1e-6):
+        super(scale_branches, self).__init__(
+            input_type="tree", output_type=("tree", "serialisable")
+        )
         """returns a new tree with lengths divided by scalar
     
         Parameters
@@ -53,7 +54,7 @@ class scale_branches(ComposableTree):
         min_length = self._min_length
         tree = tree.deepcopy()
         for edge in tree.postorder():
-            if edge.name == 'root':
+            if edge.name == "root":
                 continue  # root has no length
             length = edge.length
             length = length / scalar if length else min_length
@@ -63,9 +64,10 @@ class scale_branches(ComposableTree):
 
 
 class uniformize_tree(ComposableTree):
-    def __init__(self, root_at='midpoint', ordered_names=None):
-        super(uniformize_tree, self).__init__(input_type='tree',
-                                              output_type=('tree', 'serialisable'))
+    def __init__(self, root_at="midpoint", ordered_names=None):
+        super(uniformize_tree, self).__init__(
+            input_type="tree", output_type=("tree", "serialisable")
+        )
         """returns a new tree with standardised orientation
         
         Parameters
@@ -82,7 +84,7 @@ class uniformize_tree(ComposableTree):
         self.func = self._uniformize
 
     def _uniformize(self, tree):
-        if self._root_at == 'midpoint':
+        if self._root_at == "midpoint":
             new = tree.root_at_midpoint()
         else:
             new = tree.rooted_with_tip(self._root_at)
@@ -94,7 +96,7 @@ class uniformize_tree(ComposableTree):
 
 
 class quick_tree(ComposableTree):
-    def __init__(self, distance='TN93', moltype='dna'):
+    def __init__(self, distance="TN93", moltype="dna"):
         """computes a neighbour joining tree from an alignment
         
         Parameters
@@ -104,11 +106,12 @@ class quick_tree(ComposableTree):
         moltype : str
             molecular type, must be either DNA or RNA
         """
-        super(quick_tree, self).__init__(input_type='aligned',
-                                         output_type=('tree', 'serialisable'))
+        super(quick_tree, self).__init__(
+            input_type="aligned", output_type=("tree", "serialisable")
+        )
         self._formatted_params()
         moltype = get_moltype(moltype)
-        assert moltype.label.lower() in ('dna', 'rna'), "Invalid moltype"
+        assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
         self._calc = get_fast_slow_calc(distance, moltype=moltype)
         self._distance = distance
@@ -122,16 +125,17 @@ class quick_tree(ComposableTree):
         size = dists.shape[0]
         dists = dists.drop_invalid()
         if dists.shape[0] != size:
-            msg = (f"some pairwise distances could not be computed with"
-                   " {self._distance}, pick a different distance")
+            msg = (
+                f"some pairwise distances could not be computed with"
+                " {self._distance}, pick a different distance"
+            )
             raise ValueError(msg)
 
         # how many species do we have
         species = dists.keys()
         if len(species) == 2:
             dist = list(dists.values())[0] / 2.0
-            treestring = '(%s:%.4f,%s:%.4f)' % (
-                species[0], dist, species[1], dist)
+            treestring = "(%s:%.4f,%s:%.4f)" % (species[0], dist, species[1], dist)
             tree = LoadTree(treestring=treestring, underscore_unmunge=True)
         else:
             (result,) = gnj(dists.todict(), keep=1, show_progress=False)

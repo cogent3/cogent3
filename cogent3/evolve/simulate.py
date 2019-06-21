@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 """Random sequences and random evolution of sequences in a tree"""
 
-import numpy
 import bisect
+
+import numpy
+
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -34,8 +36,9 @@ def _randomMotifGenerator(random_series, motif_probs):
         yield motifs[i]
 
 
-def evolve_sequence(random_series, motifs, parent_seq, site_cats,
-                   psubs, preserved_sites=()):
+def evolve_sequence(
+    random_series, motifs, parent_seq, site_cats, psubs, preserved_sites=()
+):
     """Evolve a new sequence derived from parent_seq.  Uses psubs[site_cats[i]]
     to pick a new motif derived from parent_seq[i]"""
     seq = []
@@ -52,16 +55,16 @@ def evolve_sequence(random_series, motifs, parent_seq, site_cats,
                 for (dest_motif_index, dest_motif) in enumerate(motifs):
                     prob = psub[parent_motif_index, dest_motif_index]
                     mprobs[dest_motif] = prob
-                randomMotifSources[site_cat, parent_motif] = \
-                    _randomMotifGenerator(random_series, mprobs)
+                randomMotifSources[site_cat, parent_motif] = _randomMotifGenerator(
+                    random_series, mprobs
+                )
             edge_motif = next(randomMotifSources[site_cat, parent_motif])
         seq.append(edge_motif)
     return seq
 
 
 def random_sequence(random_series, motif_probs, sequence_length):
-    getRootRandomMotif = _randomMotifGenerator(
-        random_series, motif_probs).__next__
+    getRootRandomMotif = _randomMotifGenerator(random_series, motif_probs).__next__
     return [getRootRandomMotif() for i in range(sequence_length)]
 
 
@@ -69,8 +72,16 @@ class AlignmentEvolver(object):
     # Encapsulates settings that are constant throughout the recursive generation
     # of a synthetic alignment.
 
-    def __init__(self, random_series, orig_ambig, exclude_internal,
-                 bin_names, site_bins, psub_for, motifs):
+    def __init__(
+        self,
+        random_series,
+        orig_ambig,
+        exclude_internal,
+        bin_names,
+        site_bins,
+        psub_for,
+        motifs,
+    ):
         self.random_series = random_series
         self.orig_ambig = orig_ambig
         self.exclude_internal = exclude_internal
@@ -104,7 +115,7 @@ class AlignmentEvolver(object):
         if self.exclude_internal and parent.children:
             simulated_sequences = {}
         else:
-            simulated_sequences = {parent.name: ''.join(parent_seq)}
+            simulated_sequences = {parent.name: "".join(parent_seq)}
 
         for edge in parent.children:
             # The result for this edge - a list of motifs
@@ -119,12 +130,17 @@ class AlignmentEvolver(object):
             psubs = [self.psub_for(edge.name, bin) for bin in self.bin_names]
 
             # Make the semi-random sequence for this edge.
-            edge_seq = evolve_sequence(self.random_series, self.motifs,
-                                      parent_seq, self.site_bins, psubs, orig_seq_ambig)
+            edge_seq = evolve_sequence(
+                self.random_series,
+                self.motifs,
+                parent_seq,
+                self.site_bins,
+                psubs,
+                orig_seq_ambig,
+            )
 
             # Pass this new edge sequence on down the tree
-            descendant_sequences = self.generate_simulated_seqs(
-                edge, edge_seq)
+            descendant_sequences = self.generate_simulated_seqs(edge, edge_seq)
             simulated_sequences.update(descendant_sequences)
 
         return simulated_sequences

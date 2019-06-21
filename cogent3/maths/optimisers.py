@@ -4,11 +4,15 @@
 """Local or Global-then-local optimisation with progress display
 """
 
-from cogent3.util import progress_display as UI
-from .simannealingoptimiser import SimulatedAnnealing
-from .scipy_optimisers import DownhillSimplex, Powell
 import warnings
+
 import numpy
+
+from cogent3.util import progress_display as UI
+
+from .scipy_optimisers import DownhillSimplex, Powell
+from .simannealingoptimiser import SimulatedAnnealing
+
 
 GlobalOptimiser = SimulatedAnnealing
 LocalOptimiser = Powell
@@ -23,8 +27,8 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-def unsteadyProgressIndicator(display_progress, label='', start=0.0, end=1.0):
-    template = 'f = % #10.6g  ±  % 9.3e   evals = %6i '
+def unsteadyProgressIndicator(display_progress, label="", start=0.0, end=1.0):
+    template = "f = % #10.6g  ±  % 9.3e   evals = %6i "
     label = label.rjust(5)
     goal = [1.0e-20]
 
@@ -34,6 +38,7 @@ def unsteadyProgressIndicator(display_progress, label='', start=0.0, end=1.0):
         progress = (goal[0] - remaining) / goal[0] * (end - start) + start
         msg = template % args + label
         return display_progress(msg, progress=progress)
+
     return _display_progress
 
 
@@ -47,6 +52,7 @@ class MaximumEvaluationsReached(Exception):
 
 # The following functions are used to wrap the optimised function to
 # adapt it to the optimiser in various ways.  They can be combined.
+
 
 def limited_use(f, max_evaluations=None):
     if max_evaluations is None:
@@ -68,6 +74,7 @@ def limited_use(f, max_evaluations=None):
     def get_best():
         f(best_x[0])  # for calculator, ensure best last
         return best_fval[0], best_x[0], evals[0]
+
     return get_best, wrapped_f
 
 
@@ -100,7 +107,7 @@ def bounds_exception_catching_function(f):
             result = f(x, **kw)
             if not numpy.isfinite(result):
                 if not acceptable_inf(result):
-                    warnings.warn('Non-finite f %s from %s' % (result, x))
+                    warnings.warn("Non-finite f %s from %s" % (result, x))
                     raise ParameterOutOfBoundsError
         except (ArithmeticError, ParameterOutOfBoundsError) as detail:
             result = out_of_bounds_value
@@ -111,17 +118,30 @@ def bounds_exception_catching_function(f):
 
 def minimise(f, *args, **kw):
     """See maximise"""
+
     def nf(x):
         return -1 * f(x)
+
     return maximise(nf, *args, **kw)
 
 
 @UI.display_wrap
-def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
-             max_restarts=None, max_evaluations=None, limit_action='warn',
-             tolerance=1e-6, global_tolerance=1e-1, ui=None,
-             return_eval_count=False,
-             **kw):
+def maximise(
+    f,
+    xinit,
+    bounds=None,
+    local=None,
+    filename=None,
+    interval=None,
+    max_restarts=None,
+    max_evaluations=None,
+    limit_action="warn",
+    tolerance=1e-6,
+    global_tolerance=1e-1,
+    ui=None,
+    return_eval_count=False,
+    **kw,
+):
     """Find input values that optimise this function.
     'local' controls the choice of optimiser, the default being to run
     both the global and local optimisers. 'filename' and 'interval'
@@ -131,7 +151,7 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
     do_global = (not local) or local is None
     do_local = local or local is None
 
-    assert limit_action in ['ignore', 'warn', 'raise', 'error']
+    assert limit_action in ["ignore", "warn", "raise", "error"]
     (get_best, f) = limited_use(f, max_evaluations)
 
     x = numpy.array(xinit, float)
@@ -151,10 +171,13 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
         fval = f(x)
     except (ArithmeticError, ParameterOutOfBoundsError) as detail:
         raise ValueError(
-            "Initial parameter values must be valid %s" % repr(detail.args))
+            "Initial parameter values must be valid %s" % repr(detail.args)
+        )
     if not numpy.isfinite(fval):
         raise ValueError(
-            "Initial parameter values must evaluate to a finite value, not %s. %s" % (fval, x))
+            "Initial parameter values must evaluate to a finite value, not %s. %s"
+            % (fval, x)
+        )
 
     f = bounds_exception_catching_function(f)
 
@@ -163,33 +186,36 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
         if do_global:
             if 0 and not do_local:
                 warnings.warn(
-                    'local=False causes the post-global optimisation local '
+                    "local=False causes the post-global optimisation local "
                     '"polishing" optimisation to be skipped entirely, which seems '
-                    'pointless, so its meaning may change to a simple boolean '
-                    'flag: local or global.')
+                    "pointless, so its meaning may change to a simple boolean "
+                    "flag: local or global."
+                )
                 # It also needlessly complicates this function.
                 gend = 1.0
             else:
                 gend = 0.9
-            callback = unsteadyProgressIndicator(
-                ui.display, 'Global', 0.0, gend)
+            callback = unsteadyProgressIndicator(ui.display, "Global", 0.0, gend)
             gtol = [tolerance, global_tolerance][do_local]
             opt = GlobalOptimiser(filename=filename, interval=interval)
-            x = opt.maximise(f, x, tolerance=gtol,
-                             show_remaining=callback, **kw)
+            x = opt.maximise(f, x, tolerance=gtol, show_remaining=callback, **kw)
         else:
             gend = 0.0
             for k in kw:
-                warnings.warn('Unused arg for local alignment: ' + k)
+                warnings.warn("Unused arg for local alignment: " + k)
 
         # Local optimisation
         if do_local:
-            callback = unsteadyProgressIndicator(
-                ui.display, 'Local', gend, 1.0)
+            callback = unsteadyProgressIndicator(ui.display, "Local", gend, 1.0)
             # ui.display('local opt', 1.0-per_opt, per_opt)
             opt = LocalOptimiser()
-            x = opt.maximise(f, x, tolerance=tolerance,
-                             max_restarts=max_restarts, show_remaining=callback)
+            x = opt.maximise(
+                f,
+                x,
+                tolerance=tolerance,
+                max_restarts=max_restarts,
+                show_remaining=callback,
+            )
     finally:
         # ensure state of calculator reflects optimised result, or
         # partialy optimised result if exiting on an exception.

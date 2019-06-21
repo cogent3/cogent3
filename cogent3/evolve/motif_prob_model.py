@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 
-import numpy
 import warnings
-from . import substitution_calculation
+
+import numpy
+
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
+
+from . import substitution_calculation
+
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -29,7 +33,6 @@ def make_model(mprob_model, tuple_alphabet, mask):
 
 
 class MotifProbModel(object):
-
     def __init__(self, *whatever, **kw):
         raise NotImplementedError
 
@@ -45,11 +48,14 @@ class MotifProbModel(object):
         """Makes the first part of a parameter controller definition for this
         model, the calculation of motif probabilities"""
         return substitution_calculation.PartitionDefn(
-            name="mprobs", default=None, dimensions=('locus', 'edge'),
-            dimension=('motif', tuple(self.get_input_alphabet())))
+            name="mprobs",
+            default=None,
+            dimensions=("locus", "edge"),
+            dimension=("motif", tuple(self.get_input_alphabet())),
+        )
 
     def set_param_controller_motif_probs(self, pc, motif_probs, **kw):
-        pc.set_param_rule('mprobs', value=motif_probs, **kw)
+        pc.set_param_rule("mprobs", value=motif_probs, **kw)
 
     def count_motifs(self, alignment, include_ambiguity=False, recode_gaps=True):
         result = None
@@ -57,12 +63,12 @@ class MotifProbModel(object):
             mtype = self.alphabet.moltype
         except AttributeError:
             mtype = self.monomer_alphabet.moltype
-        
+
         for seq_name in alignment.names:
-            sequence = alignment.get_gapped_seq(seq_name, recode_gaps,
-                                                moltype=mtype)
-            leaf = make_likelihood_tree_leaf(sequence, self.get_counted_alphabet(),
-                                          seq_name)
+            sequence = alignment.get_gapped_seq(seq_name, recode_gaps, moltype=mtype)
+            leaf = make_likelihood_tree_leaf(
+                sequence, self.get_counted_alphabet(), seq_name
+            )
             count = leaf.get_motif_counts(include_ambiguity=include_ambiguity)
             if result is None:
                 result = count.copy()
@@ -82,14 +88,15 @@ class MotifProbModel(object):
 
     def make_sample_motif_probs(self):
         import random
+
         motif_probs = numpy.array(
-            [random.uniform(0.2, 1.0) for m in self.get_counted_alphabet()])
+            [random.uniform(0.2, 1.0) for m in self.get_counted_alphabet()]
+        )
         motif_probs /= sum(motif_probs)
         return motif_probs
 
 
 class SimpleMotifProbModel(MotifProbModel):
-
     def __init__(self, alphabet):
         self.alphabet = alphabet
 
@@ -105,7 +112,6 @@ class SimpleMotifProbModel(MotifProbModel):
 
 
 class ComplexMotifProbModel(MotifProbModel):
-
     def __init__(self, tuple_alphabet, mask):
         """Arguments:
             - tuple_alphabet: series of multi-letter motifs
@@ -127,7 +133,7 @@ class ComplexMotifProbModel(MotifProbModel):
         for (i, word) in enumerate(tuple_alphabet):
             for j in range(length):
                 monomer = monomers.index(word[j])
-                context = contexts.index(word[:j] + word[j + 1:])
+                context = contexts.index(word[:j] + word[j + 1 :])
                 m2w[i, j] = monomer
                 w2m[j, i, monomer] = 1
                 w2c[i, context * length + j] = 1
@@ -139,7 +145,7 @@ class ComplexMotifProbModel(MotifProbModel):
         for (i, old_word, j, new_word, diff) in self._mutations():
             self.mutated_posn[i, j] = diff
             mutant_motif = new_word[diff]
-            context = new_word[:diff] + new_word[diff + 1:]
+            context = new_word[:diff] + new_word[diff + 1 :]
             self.mutant_motif[i, j] = monomers.index(mutant_motif)
             c = contexts.index(context)
             self.context_indices[i, j] = c * length + diff
@@ -160,7 +166,6 @@ class ComplexMotifProbModel(MotifProbModel):
 
 
 class MonomerProbModel(ComplexMotifProbModel):
-
     def get_input_alphabet(self):
         return self.monomer_alphabet
 
@@ -186,9 +191,11 @@ class MonomerProbModel(ComplexMotifProbModel):
     def make_motif_word_prob_defns(self):
         monomer_probs = self.make_motif_probs_defn()
         word_probs = substitution_calculation.CalcDefn(
-            self.calc_word_probs, name="wprobs")(monomer_probs)
+            self.calc_word_probs, name="wprobs"
+        )(monomer_probs)
         mprobs_matrix = substitution_calculation.CalcDefn(
-            self.calc_word_weight_matrix, name="mprobs_matrix")(monomer_probs)
+            self.calc_word_weight_matrix, name="mprobs_matrix"
+        )(monomer_probs)
         return (monomer_probs, word_probs, mprobs_matrix)
 
     def adapt_motif_probs(self, motif_probs, auto=False):
@@ -197,13 +204,12 @@ class MonomerProbModel(ComplexMotifProbModel):
         except ValueError:
             motif_probs = self.tuple_alphabet.adapt_motif_probs(motif_probs)
             if not auto:
-                warnings.warn('Motif probs overspecified', stacklevel=5)
+                warnings.warn("Motif probs overspecified", stacklevel=5)
             motif_probs = self.calc_monomer_probs(motif_probs)
         return motif_probs
 
 
 class PosnSpecificMonomerProbModel(MonomerProbModel):
-
     def get_counted_alphabet(self):
         return self.tuple_alphabet
 
@@ -215,10 +221,13 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
     def calc_word_probs(self, monomer_probs):
         positions = list(range(self.word_length))
         assert len(monomer_probs) == self.m2w.shape[1], (
-            len(monomer_probs), type(monomer_probs), self.m2w.shape)
+            len(monomer_probs),
+            type(monomer_probs),
+            self.m2w.shape,
+        )
         result = numpy.product(
-            [monomer_probs[i].take(self.m2w[:, i])
-             for i in positions], axis=0)
+            [monomer_probs[i].take(self.m2w[:, i]) for i in positions], axis=0
+        )
         result /= result.sum()
         return result
 
@@ -238,24 +247,29 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
 
     def make_motif_word_prob_defns(self):
         monomer_probs = substitution_calculation.PartitionDefn(
-            name="psmprobs", default=None,
-            dimensions=('locus', 'position', 'edge'),
-            dimension=('motif', tuple(self.get_input_alphabet())))
-        monomer_probs3 = monomer_probs.across_dimension('position', [
-            str(i) for i in range(self.word_length)])
+            name="psmprobs",
+            default=None,
+            dimensions=("locus", "position", "edge"),
+            dimension=("motif", tuple(self.get_input_alphabet())),
+        )
+        monomer_probs3 = monomer_probs.across_dimension(
+            "position", [str(i) for i in range(self.word_length)]
+        )
         monomer_probs3 = substitution_calculation.CalcDefn(
-            lambda *x: numpy.array(x), name='mprobs')(*monomer_probs3)
+            lambda *x: numpy.array(x), name="mprobs"
+        )(*monomer_probs3)
         word_probs = substitution_calculation.CalcDefn(
-            self.calc_word_probs, name="wprobs")(monomer_probs3)
+            self.calc_word_probs, name="wprobs"
+        )(monomer_probs3)
         mprobs_matrix = substitution_calculation.CalcDefn(
-            self.calc_word_weight_matrix, name="mprobs_matrix")(
-            monomer_probs3)
+            self.calc_word_weight_matrix, name="mprobs_matrix"
+        )(monomer_probs3)
         return (monomer_probs, word_probs, mprobs_matrix)
 
     def set_param_controller_motif_probs(self, pc, motif_probs, **kw):
         assert len(motif_probs) == self.word_length
         for (i, m) in enumerate(motif_probs):
-            pc.set_param_rule('psmprobs', value=m, position=str(i), **kw)
+            pc.set_param_rule("psmprobs", value=m, position=str(i), **kw)
 
     def adapt_motif_probs(self, motif_probs, auto=False):
         try:
@@ -269,7 +283,6 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
 
 
 class ConditionalMotifProbModel(ComplexMotifProbModel):
-
     def get_input_alphabet(self):
         return self.tuple_alphabet
 
@@ -285,5 +298,6 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
     def make_motif_word_prob_defns(self):
         mprobs = self.make_motif_probs_defn()
         mprobs_matrix = substitution_calculation.CalcDefn(
-            self.calc_word_weight_matrix, name="mprobs_matrix")(mprobs)
+            self.calc_word_weight_matrix, name="mprobs_matrix"
+        )(mprobs)
         return (mprobs, mprobs, mprobs_matrix)

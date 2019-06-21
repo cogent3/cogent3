@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-from cogent3.util.unit_test import TestCase, main
 from cogent3.maths.stats.information_criteria import aic, bic
+from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Gavin Huttley"
@@ -29,6 +29,7 @@ class InformationCriteria(TestCase):
         """correctly compute BIC"""
         # against hand calculated
         self.assertFloatEqual(bic(-9.7039, 4, 13), 29.6675974298)
+
 
 if __name__ == "__main__":
     main()

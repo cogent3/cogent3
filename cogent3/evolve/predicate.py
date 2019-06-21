@@ -10,7 +10,9 @@ also:
 
 import re
 import warnings
+
 import numpy
+
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -43,23 +45,22 @@ class _CallablePredicate(object):
         rows = []
         for i in range(l):
             row = [a[i] for a in list(self.alphabet)]
-            rows.append(' ' * (l + 1) + ' '.join(row))
+            rows.append(" " * (l + 1) + " ".join(row))
         for y in self.alphabet:
             row = []
             for x in self.alphabet:
                 if not self.model.isinstantanious(x, y):
-                    c = ' '
+                    c = " "
                 elif self(x, y):
-                    c = '*'
+                    c = "*"
                 else:
-                    c = '-'
+                    c = "-"
                 row.append(c)
-            rows.append(' '.join([y] + row))
-        return '\n'.join(rows)
+            rows.append(" ".join([y] + row))
+        return "\n".join(rows)
 
 
 class predicate(object):
-
     def __and__(self, other):
         return All(self, other)
 
@@ -71,12 +72,13 @@ class predicate(object):
 
     def __bool__(self):
         warnings.warn(
-            'alphabet predicate used as truth value. Use only binary operators: &, | and ~', stacklevel=2)
+            "alphabet predicate used as truth value. Use only binary operators: &, | and ~",
+            stacklevel=2,
+        )
         return True
 
     def __eq__(self, other):
-        warnings.warn(
-            'Warning: alphabet pair predicate used as value. Use parentheses')
+        warnings.warn("Warning: alphabet pair predicate used as value. Use parentheses")
         return self is other
 
     def aliased(self, new_name):
@@ -89,7 +91,6 @@ class predicate(object):
 
 
 class PredicateAlias(predicate):
-
     def __init__(self, name, subpredicate):
         self.name = name
         self.subpredicate = subpredicate
@@ -103,21 +104,19 @@ class PredicateAlias(predicate):
 
 
 class _UnaryPredicate(predicate):
-
     def __init__(self, subpredicate):
         assert isinstance(subpredicate, predicate), subpredicate
         self.subpredicate = subpredicate
         self.__doc__ = repr(self)
 
     def __repr__(self):
-        if hasattr(self, '_op_repr'):
+        if hasattr(self, "_op_repr"):
             return "%s(%s)" % (self._op_repr, self.subpredicate)
         else:
             return "%s(%s)" % (self.__class__.__name__, self.subpredicate)
 
 
 class _GenericPredicate(predicate):
-
     def __init__(self, *subpredicates):
         for p in subpredicates:
             assert isinstance(p, predicate), p
@@ -125,28 +124,35 @@ class _GenericPredicate(predicate):
         self.__doc__ = repr(self)
 
     def __repr__(self):
-        if hasattr(self, '_op_repr'):
-            return '(%s)' % (' %s ' % self._op_repr).join([repr(p) for p in self.subpredicates])
+        if hasattr(self, "_op_repr"):
+            return "(%s)" % (" %s " % self._op_repr).join(
+                [repr(p) for p in self.subpredicates]
+            )
         else:
-            return '%s(%s)' % (self.__class__.__name__, ','.join(['(%s)' % repr(p) for p in self.subpredicates]))
+            return "%s(%s)" % (
+                self.__class__.__name__,
+                ",".join(["(%s)" % repr(p) for p in self.subpredicates]),
+            )
 
 
 # Boolean logic on motif pair predicates
 
+
 class Not(_UnaryPredicate):
-    _op_repr = '~'
+    _op_repr = "~"
 
     def interpret(self, model):
         subpred = self.subpredicate.interpret(model)
 
         def call(*args):
             return not subpred(*args)
+
         call.__doc__ = repr(self)
         return call
 
 
 class All(_GenericPredicate):
-    _op_repr = '&'
+    _op_repr = "&"
 
     def interpret(self, model):
         subpreds = [p.interpret(model) for p in self.subpredicates]
@@ -156,12 +162,13 @@ class All(_GenericPredicate):
                 if not subpredicate(*args):
                     return False
             return True
+
         call.__doc__ = repr(self)
         return call
 
 
 class Any(_GenericPredicate):
-    _op_repr = '|'
+    _op_repr = "|"
 
     def interpret(self, model):
         subpreds = [p.interpret(model) for p in self.subpredicates]
@@ -171,12 +178,12 @@ class Any(_GenericPredicate):
                 if subpredicate(*args):
                     return True
             return False
+
         call.__doc__ = repr(self)
         return call
 
 
 class ModelSays(predicate):
-
     def __init__(self, name):
         self.name = name
 
@@ -188,9 +195,7 @@ class ModelSays(predicate):
 
 
 class DirectedMotifChange(predicate):
-
-    def __init__(self, from_motif, to_motif,
-                 diff_at=None):
+    def __init__(self, from_motif, to_motif, diff_at=None):
 
         self.from_motif = from_motif
         self.motiflen = len(from_motif)
@@ -199,16 +204,16 @@ class DirectedMotifChange(predicate):
 
     def __repr__(self):
         if self.diff_at is not None:
-            diff = '[%d]' % self.diff_at
+            diff = "[%d]" % self.diff_at
         else:
-            diff = ''
-        return '%s>%s%s' % (self.from_motif, self.to_motif, diff)
+            diff = ""
+        return "%s>%s%s" % (self.from_motif, self.to_motif, diff)
 
     def test_motif(self, motifs, query):
         """positions where motif pattern is found in query"""
         positions = set()
         for offset in range(len(query) - self.motiflen + 1):
-            for (q, ms) in zip(query[offset: offset + self.motiflen], motifs):
+            for (q, ms) in zip(query[offset : offset + self.motiflen], motifs):
                 if q not in ms:
                     break
             else:
@@ -229,8 +234,10 @@ class DirectedMotifChange(predicate):
         # 3nt pattern in dinucleotide alphabet.
         alphabet = model.get_alphabet()
         if alphabet.get_motif_len() < self.motiflen:
-            raise ValueError("alphabet motifs (%s) too short for %s (%s)" %
-                             (alphabet.get_motif_len(), repr(self), self.motiflen))
+            raise ValueError(
+                "alphabet motifs (%s) too short for %s (%s)"
+                % (alphabet.get_motif_len(), repr(self), self.motiflen)
+            )
 
         resolve = model.moltype.ambiguities.__getitem__
 
@@ -241,22 +248,22 @@ class DirectedMotifChange(predicate):
             diffs = [X != Y for (X, Y) in zip(x, y)]
             matches = []
             for posn in self.test_motifs(from_motifs, to_motifs, x, y):
-                diff = list(numpy.nonzero(diffs[posn:posn + self.motiflen])[0])
+                diff = list(numpy.nonzero(diffs[posn : posn + self.motiflen])[0])
                 if diff and self.diff_at is None or diff == [self.diff_at]:
                     matches.append(posn)
             return len(matches) == 1
+
         call.__doc__ = repr(self)
         return call
 
 
 class UndirectedMotifChange(DirectedMotifChange):
-
     def __repr__(self):
         if self.diff_at is not None:
-            diff = '[%d]' % self.diff_at
+            diff = "[%d]" % self.diff_at
         else:
-            diff = ''
-        return '%s/%s%s' % (self.from_motif, self.to_motif, diff)
+            diff = ""
+        return "%s/%s%s" % (self.from_motif, self.to_motif, diff)
 
     def test_motifs(self, from_motifs, to_motifs, x, y):
         preF = self.test_motif(from_motifs, x)
@@ -268,10 +275,10 @@ class UndirectedMotifChange(DirectedMotifChange):
 
 def MotifChange(x, y=None, forward_only=False, diff_at=None):
     if y is None:
-        y = ''
+        y = ""
         for i in range(len(x)):
             if i == diff_at or diff_at is None:
-                y += '?'
+                y += "?"
             else:
                 y += x[i]
     if forward_only:
@@ -281,46 +288,44 @@ def MotifChange(x, y=None, forward_only=False, diff_at=None):
 
 
 class UserPredicate(predicate):
-
     def __init__(self, f):
         self.f = f
 
     def __repr__(self):
-        return 'UserPredicate(%s)' % (
-            getattr(self.f, '__name__', None) or repr(self.f))
+        return "UserPredicate(%s)" % (getattr(self.f, "__name__", None) or repr(self.f))
 
     def interpret(self, model):
         return self.f
 
 
-silent = ModelSays('silent')
-replacement = ModelSays('replacement')
-omega = ModelSays('omega')
+silent = ModelSays("silent")
+replacement = ModelSays("replacement")
+omega = ModelSays("omega")
 
 
 def parse(rule):
-    if '|' in rule:
-        rules = re.sub('[()]', '', rule)
-        preds = [parse(r.strip()) for r in rules.split('|')]
+    if "|" in rule:
+        rules = re.sub("[()]", "", rule)
+        preds = [parse(r.strip()) for r in rules.split("|")]
         pred = preds.pop(0)
         for p in preds:
             pred = pred | p
         return pred
 
-    if ':' in rule:
-        (label, rule) = rule.split(':')
+    if ":" in rule:
+        (label, rule) = rule.split(":")
     else:
         label = None
-    if '@' in rule:
-        (rule, diff_at) = rule.split('@')
+    if "@" in rule:
+        (rule, diff_at) = rule.split("@")
         diff_at = int(diff_at)
     else:
         diff_at = None
 
-    if '>' in rule or '/' in rule:
-        forward_only = '>' in rule
-        rule = rule.replace('>', '/')
-        (x, y) = rule.split('/')
+    if ">" in rule or "/" in rule:
+        forward_only = ">" in rule
+        rule = rule.replace(">", "/")
+        (x, y) = rule.split("/")
         if not y:
             y = None
 

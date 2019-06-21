@@ -3,21 +3,23 @@ import os
 import re
 import shutil
 import zipfile
+
 from fnmatch import fnmatch
+from io import TextIOWrapper
 from pathlib import Path
 from pprint import pprint
 from warnings import warn
-from io import TextIOWrapper
 
 from scitrack import get_text_hexdigest
 
-from cogent3.util.misc import open_, get_format_suffixes, atomic_write
+from cogent3.util.misc import atomic_write, get_format_suffixes, open_
+
 
 # handling archive, member existence
-SKIP = 'skip'
-OVERWRITE = 'overwrite'
-RAISE = 'raise'
-IGNORE = 'ignore'
+SKIP = "skip"
+OVERWRITE = "overwrite"
+RAISE = "raise"
+IGNORE = "ignore"
 
 
 class DataStoreMember(str):
@@ -53,8 +55,7 @@ class DataStoreMember(str):
 class ReadOnlyDataStoreBase:
     """a read only data store"""
 
-    def __init__(self, source, suffix=None, limit=None, verbose=False,
-                 md5=True):
+    def __init__(self, source, suffix=None, limit=None, verbose=False, md5=True):
         """
         Parameters
         ----------
@@ -75,17 +76,17 @@ class ReadOnlyDataStoreBase:
         # todo this approach to caching persistent arguments for reconstruction
         # is fragile. Need an inspect module based approach
         d = locals()
-        d.pop('self')
+        d.pop("self")
         self._persistent = d
 
-        suffix = suffix or ''
-        if suffix != '*':  # wild card search for all
-            suffix = re.sub(r'^[\s.*]+', '', suffix)  # tidy the suffix
-        source = re.sub(r'/+$', '', source)  # tidy the source
+        suffix = suffix or ""
+        if suffix != "*":  # wild card search for all
+            suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
+        source = re.sub(r"/+$", "", source)  # tidy the source
 
         self.suffix = suffix
         self.source = source
-        self.mode = 'r'
+        self.mode = "r"
         self._members = []
         self.limit = limit
         self._verbose = verbose
@@ -104,13 +105,13 @@ class ReadOnlyDataStoreBase:
     def __repr__(self):
         if len(self) > 3:
             sample = str(list(self[:3]))
-            sample = f'{sample[:-1]}...'
+            sample = f"{sample[:-1]}..."
         else:
             sample = list(self)
 
         num = len(self)
         name = self.__class__.__name__
-        txt = f'{num}x member {name}({sample})'
+        txt = f"{num}x member {name}({sample})"
         return txt
 
     def __str__(self):
@@ -157,8 +158,8 @@ class ReadOnlyDataStoreBase:
         """
         source = self.source
         identifier = os.path.basename(identifier)
-        if source.endswith('.zip'):
-            source = source.replace('.zip', '')
+        if source.endswith(".zip"):
+            source = source.replace(".zip", "")
             source = os.path.basename(source)
             identifier = f"{source}/{identifier}"
         else:
@@ -171,7 +172,7 @@ class ReadOnlyDataStoreBase:
     def get_absolute_identifier(self, identifier, from_relative=False):
         if not from_relative:
             identifier = self.get_relative_identifier(identifier)
-        source = self.source.replace('.zip', '')
+        source = self.source.replace(".zip", "")
         if isinstance(identifier, DataStoreMember):
             identifier = identifier.name
         elif not identifier.startswith(source):
@@ -195,8 +196,7 @@ class ReadOnlyDataStoreBase:
 
     def filtered(self, pattern=None, callback=None):
         """returns list of members for which callback returns True"""
-        assert any([callback, pattern]
-                   ), 'Must provide a pattern or a callback'
+        assert any([callback, pattern]), "Must provide a pattern or a callback"
         if pattern:
             result = [m for m in self if fnmatch(m, pattern)]
         else:
@@ -231,21 +231,19 @@ class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):
     @property
     def members(self):
         if not self._members:
-            pattern = '%s/**/*.%s' % (self.source, self.suffix)
+            pattern = "%s/**/*.%s" % (self.source, self.suffix)
             paths = glob.iglob(pattern, recursive=True)
             members = []
             for i, path in enumerate(paths):
                 if self.limit and i >= self.limit:
                     break
-                member = DataStoreMember(self.get_absolute_identifier(path),
-                                         self)
+                member = DataStoreMember(self.get_absolute_identifier(path), self)
                 members.append(member)
             self._members = members
         return self._members
 
     def open(self, identifier):
-        identifier = self.get_absolute_identifier(identifier,
-                                                  from_relative=False)
+        identifier = self.get_absolute_identifier(identifier, from_relative=False)
         if not os.path.exists(identifier):
             raise ValueError(f"path '{identifier}' does not exist")
 
@@ -268,8 +266,9 @@ class SingleReadDataStore(ReadOnlyDirectoryDataStore):
         """
         path = Path(source)
         assert path.exists() and path.is_file()
-        super(SingleReadDataStore, self).__init__(str(path.parent),
-                                                  suffix=str(path.suffix))
+        super(SingleReadDataStore, self).__init__(
+            str(path.parent), suffix=str(path.suffix)
+        )
         self._members = [DataStoreMember(path, self)]
 
 
@@ -277,8 +276,8 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
     @property
     def members(self):
         if os.path.exists(self.source) and not self._members:
-            source_path = self.source.replace(Path(self.source).suffix, '')
-            pattern = '*.%s' % self.suffix
+            source_path = self.source.replace(Path(self.source).suffix, "")
+            pattern = "*.%s" % self.suffix
             members = []
             with zipfile.ZipFile(self.source) as archive:
                 names = archive.namelist()
@@ -287,8 +286,7 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
                     name = os.path.basename(name)
                     if fnmatch(name, pattern):
                         num_matches += 1
-                        member = DataStoreMember(
-                            os.path.join(source_path, name), self)
+                        member = DataStoreMember(os.path.join(source_path, name), self)
                         members.append(member)
                     elif self._verbose:
                         print(f"Did not match {name}")
@@ -323,8 +321,7 @@ class WritableDataStoreBase:
         if_exists = if_exists.lower()
         assert if_exists in (OVERWRITE, SKIP, RAISE, IGNORE)
         if create is False and if_exists == OVERWRITE:
-            warn(f"'{OVERWRITE}' reset to '{IGNORE}' and create=True",
-                 UserWarning)
+            warn(f"'{OVERWRITE}' reset to '{IGNORE}' and create=True", UserWarning)
             create = True
         self._source_create_delete(if_exists, create)
 
@@ -339,28 +336,29 @@ class WritableDataStoreBase:
                 try:
                     data = data.source
                 except AttributeError:
-                    raise ValueError('objects for storage require either a '
-                                     'source or info.source string attribute')
+                    raise ValueError(
+                        "objects for storage require either a "
+                        "source or info.source string attribute"
+                    )
         basename = os.path.basename(data)
         suffix, comp = get_format_suffixes(basename)
         if suffix and comp:
-            pattern = f'.{suffix}.{comp}$'
+            pattern = f".{suffix}.{comp}$"
         elif suffix:
-            pattern = f'.{suffix}$'
+            pattern = f".{suffix}$"
         elif comp:
-            pattern = f'.{comp}*$'
+            pattern = f".{comp}*$"
         else:
             raise ValueError(f"unknown name scheme {basename}")
 
-        basename = re.sub(pattern, '', basename)
-        basename = f'{basename}.{self.suffix}'
+        basename = re.sub(pattern, "", basename)
+        basename = f"{basename}.{self.suffix}"
         return basename
 
     def make_absolute_identifier(self, data):
         """returns a absolute identifier for a new member, includes source"""
         basename = self.make_relative_identifier(data)
-        identifier = self.get_absolute_identifier(
-            basename, from_relative=True)
+        identifier = self.get_absolute_identifier(basename, from_relative=True)
         return identifier
 
     def add_file(self, path, make_unique=True, keep_suffix=True, cleanup=False):
@@ -381,17 +379,18 @@ class WritableDataStoreBase:
         relativeid = Path(relativeid)
         path = Path(path)
         if keep_suffix:
-            relativeid = str(relativeid).replace(relativeid.suffix,
-                                                 ''.join(path.suffixes))
+            relativeid = str(relativeid).replace(
+                relativeid.suffix, "".join(path.suffixes)
+            )
             relativeid = Path(relativeid)
 
-        suffixes = ''.join(relativeid.suffixes)
+        suffixes = "".join(relativeid.suffixes)
         new = relativeid
         num = 0
         while True:
             if not str(relativeid) in self:
                 if num:
-                    new = str(relativeid).replace(suffixes, f'-{num}{suffixes}')
+                    new = str(relativeid).replace(suffixes, f"-{num}{suffixes}")
                 break
 
             num += 1
@@ -403,10 +402,17 @@ class WritableDataStoreBase:
             path.unlink()
 
 
-class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
-                                 WritableDataStoreBase):
-    def __init__(self, source, suffix, mode='w', if_exists=RAISE, create=False,
-                 md5=True, **kwargs):
+class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBase):
+    def __init__(
+        self,
+        source,
+        suffix,
+        mode="w",
+        if_exists=RAISE,
+        create=False,
+        md5=True,
+        **kwargs,
+    ):
         """
         Parameters
         ----------
@@ -425,14 +431,12 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
         md5 : bool
             record md5 hexadecimal checksum of data when possible
         """
-        assert 'w' in mode or 'a' in mode
-        ReadOnlyDirectoryDataStore.__init__(
-            self, source=source, suffix=suffix, md5=md5)
-        WritableDataStoreBase.__init__(
-            self, if_exists=if_exists, create=create)
+        assert "w" in mode or "a" in mode
+        ReadOnlyDirectoryDataStore.__init__(self, source=source, suffix=suffix, md5=md5)
+        WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
 
         d = locals()
-        d.pop('self')
+        d.pop("self")
         self._persistent = d
         self.mode = mode
 
@@ -450,8 +454,7 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
 
     def write(self, identifier, data):
         relative_id = self.get_relative_identifier(identifier)
-        absolute_id = self.get_absolute_identifier(relative_id,
-                                                   from_relative=True)
+        absolute_id = self.get_absolute_identifier(relative_id, from_relative=True)
 
         if self._md5:
             self._checksums[absolute_id] = get_text_hexdigest(data)
@@ -466,8 +469,16 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore,
 
 
 class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
-    def __init__(self, source, suffix, mode='a', if_exists=RAISE, create=False,
-                 md5=True, **kwargs):
+    def __init__(
+        self,
+        source,
+        suffix,
+        mode="a",
+        if_exists=RAISE,
+        create=False,
+        md5=True,
+        **kwargs,
+    ):
         """
         Parameters
         ----------
@@ -486,15 +497,13 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         md5 : bool
             record md5 hexadecimal checksum of data when possible
         """
-        ReadOnlyZippedDataStore.__init__(self, source=source, suffix=suffix,
-                                         md5=md5)
-        WritableDataStoreBase.__init__(
-            self, if_exists=if_exists, create=create)
+        ReadOnlyZippedDataStore.__init__(self, source=source, suffix=suffix, md5=md5)
+        WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
 
         d = locals()
-        d.pop('self')
+        d.pop("self")
         self._persistent = d
-        self.mode = 'a' or mode
+        self.mode = "a" or mode
 
     def _source_create_delete(self, if_exists, create):
         exists = os.path.exists(self.source)
@@ -511,8 +520,7 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
 
     def write(self, identifier, data):
         relative_id = self.get_relative_identifier(identifier)
-        absolute_id = self.get_absolute_identifier(relative_id,
-                                                   from_relative=True)
+        absolute_id = self.get_absolute_identifier(relative_id, from_relative=True)
 
         if self._md5:
             self._checksums[absolute_id] = get_text_hexdigest(data)

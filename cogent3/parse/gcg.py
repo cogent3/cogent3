@@ -21,33 +21,37 @@ def MsfParser(f):
     line = f.readline().strip()
     for line in f:
         line = line.strip()
-        if line.endswith('..'):
+        if line.endswith(".."):
             break
     # parse sequence info
     seqinfo = {}
     for line in f:
         line = line.strip()
-        if line.startswith('//'):
+        if line.startswith("//"):
             break
         line = line.split()
-        if line and line[0] == 'Name:':
+        if line and line[0] == "Name:":
             seqinfo[line[1]] = int(line[3])
     # parse sequences
     sequences = {}
     for line in f:
         line = line.strip().split()
         if line and line[0] in sequences:
-            sequences[line[0]] += ''.join(line[1:])
+            sequences[line[0]] += "".join(line[1:])
         elif line and line[0] in seqinfo:
-            sequences[line[0]] = ''.join(line[1:])
+            sequences[line[0]] = "".join(line[1:])
     # consistency check
     if len(sequences) != len(seqinfo):
-        warnings.warn("Number of loaded seqs[%s] not same as "
-                      "expected[%s]." % (len(sequences), len(seqinfo)))
+        warnings.warn(
+            "Number of loaded seqs[%s] not same as "
+            "expected[%s]." % (len(sequences), len(seqinfo))
+        )
     for name in sequences:
         if len(sequences[name]) != seqinfo[name]:
-            warnings.warn("Length of loaded seqs [%s] is [%s] not "
-                          "[%s] as expected." % (name, len(sequences[name]), seqinfo[name]))
+            warnings.warn(
+                "Length of loaded seqs [%s] is [%s] not "
+                "[%s] as expected." % (name, len(sequences[name]), seqinfo[name])
+            )
 
     # yield sequences
     for name in sequences:

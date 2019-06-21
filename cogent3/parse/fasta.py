@@ -1,13 +1,16 @@
 """Parsers for FASTA and related formats.
 """
-from cogent3.parse.record_finder import LabeledRecordFinder
-from cogent3.parse.record import RecordError
-from cogent3.core.info import Info
-from cogent3.core.moltype import BYTES, ASCII
+import re
+
+from collections.abc import Callable
 
 import cogent3
-import re
-from collections.abc import Callable
+
+from cogent3.core.info import Info
+from cogent3.core.moltype import ASCII, BYTES
+from cogent3.parse.record import RecordError
+from cogent3.parse.record_finder import LabeledRecordFinder
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -26,29 +29,35 @@ Sequence = BYTES.make_seq
 
 def is_fasta_label(x):
     """Checks if x looks like a FASTA label line."""
-    return x.startswith('>')
+    return x.startswith(">")
 
 
 def is_gde_label(x):
     """Checks if x looks like a GDE label line."""
-    return x and x[0] in '%#'
+    return x and x[0] in "%#"
 
 
 def is_blank_or_comment(x):
     """Checks if x is blank or a FASTA comment line."""
-    return (not x) or x.startswith('#') or x.isspace()
+    return (not x) or x.startswith("#") or x.isspace()
 
 
 def is_blank(x):
     """Checks if x is blank."""
     return (not x) or x.isspace()
 
+
 FastaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_blank_or_comment)
 
 
-def MinimalFastaParser(infile, strict=True,
-                       label_to_name=str, finder=FastaFinder,
-                       is_label=None, label_characters='>'):
+def MinimalFastaParser(
+    infile,
+    strict=True,
+    label_to_name=str,
+    finder=FastaFinder,
+    is_label=None,
+    label_characters=">",
+):
     """Yields successive sequences from infile as (label, seq) tuples.
 
     If strict is True (default), raises RecordError when label or seq missing.
@@ -58,56 +67,57 @@ def MinimalFastaParser(infile, strict=True,
         # first line must be a label line
         if not rec[0][0] in label_characters:
             if strict:
-                raise RecordError("Found Fasta record without label line: %s" %
-                                  rec)
+                raise RecordError("Found Fasta record without label line: %s" % rec)
             else:
                 continue
         # record must have at least one sequence
         if len(rec) < 2:
             if strict:
-                raise RecordError("Found label line without sequences: %s" %
-                                  rec)
+                raise RecordError("Found label line without sequences: %s" % rec)
             else:
                 continue
 
         label = rec[0][1:].strip()
         label = label_to_name(label)
-        seq = ''.join(rec[1:])
+        seq = "".join(rec[1:])
 
         yield label, seq
+
 
 GdeFinder = LabeledRecordFinder(is_gde_label, ignore=is_blank)
 
 
 def MinimalGdeParser(infile, strict=True, label_to_name=str):
-    return MinimalFastaParser(infile, strict, label_to_name, finder=GdeFinder,
-                              label_characters='%#')
+    return MinimalFastaParser(
+        infile, strict, label_to_name, finder=GdeFinder, label_characters="%#"
+    )
 
 
 def xmfa_label_to_name(line):
     (loc, strand, contig) = line.split()
-    (sp, loc) = loc.split(':')
-    (lo, hi) = [int(x) for x in loc.split('-')]
-    if strand == '-':
+    (sp, loc) = loc.split(":")
+    (lo, hi) = [int(x) for x in loc.split("-")]
+    if strand == "-":
         (lo, hi) = (hi, lo)
     else:
-        assert strand == '+'
-    name = '%s:%s:%s-%s' % (sp, contig, lo, hi)
+        assert strand == "+"
+    name = "%s:%s:%s-%s" % (sp, contig, lo, hi)
     return name
 
 
 def is_xmfa_blank_or_comment(x):
     """Checks if x is blank or an XMFA comment line."""
-    return (not x) or x.startswith('=') or x.isspace()
+    return (not x) or x.startswith("=") or x.isspace()
 
-XmfaFinder = LabeledRecordFinder(is_fasta_label,
-                                 ignore=is_xmfa_blank_or_comment)
+
+XmfaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_xmfa_blank_or_comment)
 
 
 def MinimalXmfaParser(infile, strict=True):
     # Fasta-like but with header info like ">1:10-1000 + chr1"
-    return MinimalFastaParser(infile, strict, label_to_name=xmfa_label_to_name,
-                              finder=XmfaFinder)
+    return MinimalFastaParser(
+        infile, strict, label_to_name=xmfa_label_to_name, finder=XmfaFinder
+    )
 
 
 def MinimalInfo(label):
@@ -117,7 +127,7 @@ def MinimalInfo(label):
 
 def NameLabelInfo(label):
     """Returns name as label split on whitespace, and label in Info."""
-    return label.split()[0], {'label': label}
+    return label.split()[0], {"label": label}
 
 
 def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
@@ -144,22 +154,19 @@ def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
                 yield name, seq_maker(seq, name=name, info=info)
             except Exception as e:
                 raise RecordError(
-                    "Sequence construction failed on record with label %s" % label)
+                    "Sequence construction failed on record with label %s" % label
+                )
         else:
             # not strict: just skip any record that raises an exception
             try:
                 name, info = info_maker(label)
-                yield(name, seq_maker(seq, name=name, info=info))
+                yield (name, seq_maker(seq, name=name, info=info))
             except Exception as e:
                 continue
 
+
 # labeled fields in the NCBI FASTA records
-NcbiLabels = {
-    'dbj': 'DDBJ',
-    'emb': 'EMBL',
-    'gb': 'GenBank',
-    'ref': 'RefSeq',
-}
+NcbiLabels = {"dbj": "DDBJ", "emb": "EMBL", "gb": "GenBank", "ref": "RefSeq"}
 
 
 def NcbiFastaLabelParser(line):
@@ -170,8 +177,7 @@ def NcbiFastaLabelParser(line):
     """
     info = Info()
     try:
-        ignore, gi, db, db_ref, description = list(
-            map(strip, line.split('|', 4)))
+        ignore, gi, db, db_ref, description = list(map(strip, line.split("|", 4)))
     except ValueError:  # probably got wrong value
         raise RecordError("Unable to parse label line %s" % line)
     info.GI = gi
@@ -181,8 +187,9 @@ def NcbiFastaLabelParser(line):
 
 
 def NcbiFastaParser(infile, seq_maker=None, strict=True):
-    return FastaParser(infile, seq_maker=seq_maker,
-                       info_maker=NcbiFastaLabelParser, strict=strict)
+    return FastaParser(
+        infile, seq_maker=seq_maker, info_maker=NcbiFastaLabelParser, strict=strict
+    )
 
 
 class RichLabel(str):
@@ -220,8 +227,7 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
     for index, field, converter in field_formatters:
         if field in display_template:
             indexed = True
-    assert indexed, "display_template [%s] does not use a field name"\
-                    % display_template
+    assert indexed, "display_template [%s] does not use a field name" % display_template
     sep = re.compile("[%s]" % split_with)
 
     def call(label):
@@ -236,15 +242,25 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
                     info[name] = converter(label[index])
                 except IndexError:
                     raise IndexError(
-                        'parsing label %s failed for property %s at index %s' % (label, name, index))
+                        "parsing label %s failed for property %s at index %s"
+                        % (label, name, index)
+                    )
             else:
                 info[name] = label[index]
         return RichLabel(info, display_template)
+
     return call
 
 
-def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
-                     moltype=ASCII, done_groups=None, DEBUG=False):
+def GroupFastaParser(
+    data,
+    label_to_name,
+    group_key="Group",
+    aligned=False,
+    moltype=ASCII,
+    done_groups=None,
+    DEBUG=False,
+):
     """yields related sequences as a separate seq collection
 
     Arguments:
@@ -257,8 +273,7 @@ def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
         """
 
     done_groups = [[], done_groups][done_groups is not None]
-    parser = MinimalFastaParser(
-        data, label_to_name=label_to_name, finder=XmfaFinder)
+    parser = MinimalFastaParser(data, label_to_name=label_to_name, finder=XmfaFinder)
     group_ids = []
     current_collection = {}
     for label, seq in parser:
@@ -274,16 +289,17 @@ def GroupFastaParser(data, label_to_name, group_key="Group", aligned=False,
             if group_ids[-1] not in done_groups:
                 info = Info(Group=group_ids[-1])
                 if DEBUG:
-                    print("GroupParser collection keys",
-                          list(current_collection.keys()))
-                seqs = cogent3.LoadSeqs(data=current_collection, moltype=moltype,
-                                        aligned=aligned)
+                    print(
+                        "GroupParser collection keys", list(current_collection.keys())
+                    )
+                seqs = cogent3.LoadSeqs(
+                    data=current_collection, moltype=moltype, aligned=aligned
+                )
                 seqs.info = info
                 yield seqs
             current_collection = {label: seq}
             group_ids.append(label.info[group_key])
     info = Info(Group=group_ids[-1])
-    seqs = cogent3.LoadSeqs(data=current_collection, moltype=moltype,
-                            aligned=aligned)
+    seqs = cogent3.LoadSeqs(data=current_collection, moltype=moltype, aligned=aligned)
     seqs.info = info
     yield seqs

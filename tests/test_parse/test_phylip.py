@@ -2,10 +2,12 @@
 # file cogent/parse/test_phylip.py
 """Unit tests for the phylip parser
 """
+from io import StringIO
+from unittest import TestCase, main
+
 from cogent3.parse.phylip import MinimalPhylipParser, get_align_for_phylip
 from cogent3.parse.record import RecordError
-from unittest import TestCase, main
-from io import StringIO
+
 
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -22,7 +24,8 @@ class PhylipGenericTest(TestCase):
 
     def setUp(self):
         """standard files"""
-        self.big_interleaved = StringIO("""10 705 I
+        self.big_interleaved = StringIO(
+            """10 705 I
 Cow       ATGGCATATCCCATACAACTAGGATTCCAAGATGCAACATCACCAATCATAGAAGAACTA
 Carp      ATGGCACACCCAACGCAACTAGGTTTCAAGGACGCGGCCATACCCGTTATAGAGGAACTT
 Chicken   ATGGCCAACCACTCCCAACTAGGCTTTCAAGACGCCTCATCCCCCATCATAGAAGAGCTC
@@ -154,9 +157,11 @@ AACTGATCAGCTTCTATAATT---------------------TAA
 AAATGATCTACCTCAATGCTT---------------------TAA
 AAATGATCTGTATCAATACTA---------------------TAA
 AACTGATCTTCATCAATACTA---GAAGCATCACTA------AGA
-        """)
+        """
+        )
 
-        self.space_interleaved = StringIO(""" 5 176 I
+        self.space_interleaved = StringIO(
+            """ 5 176 I
 cox2_leita   MAFILSFWMI FLLDSVIVLL SFVCFVCVWI CALLFSTVLL VSKLNNIYCT
 cox2_crifa   MAFILSFWMI FLIDAVIVLL SFVCFVCIWI CSLFFSSFLL VSKINNVYCT
 cox2_bsalt   MSFIISFWML FLIDSLIVLL SGAIFVCIWI CSLFFLCILF ICKLDYIFCS
@@ -180,8 +185,10 @@ cox2_tborr   MLFFINQLLL LLVDTFVILE IFSLFVCVFI IVMYILFINY NIFLKNINVY
              SAIDVIHSFT LANLGIKVD? ?PGRCN
              SAVDVIHSFT ISSLGIKVEN PGRCNE
              TSIDVIHSFT ISTLGIKIDC IPGRCN
-                                                                                                                                                                """)
-        self.interleaved_little = StringIO("""   6   39 I
+                                                                                                                                                                """
+        )
+        self.interleaved_little = StringIO(
+            """   6   39 I
 Archaeopt CGATGCTTAC CGCCGATGCT
 HesperorniCGTTACTCGT TGTCGTTACT
 BaluchitheTAATGTTAAT TGTTAATGTT
@@ -195,10 +202,12 @@ AATTGTTAAT GTTAATTGT
 CGTTGTTAAT GTTCGTTGT
 CATCATCAAA ACCCATCAT
 AATCACGGCA GCCAATCAC
-""")
+"""
+        )
         self.empty = []
 
-        self.noninterleaved_little = StringIO("""   6   20
+        self.noninterleaved_little = StringIO(
+            """   6   20
 
 Archaeopt CGATGCTTAC CGCCGATGCT
 HesperorniCGTTACTCGT TGTCGTTACT
@@ -208,9 +217,11 @@ B. virginiTAATGTTCGT TGTTAATGTT
 BrontosaurCAAAACCCAT CATCAAAACC
 B.subtilisGGCAGCCAAT CACGGCAGCC
 
-""")
+"""
+        )
 
-        self.noninterleaved_big = StringIO("""10  297
+        self.noninterleaved_big = StringIO(
+            """10  297
 Rhesus    tgtggcacaaatactcatgccagctcattacagcatgagaac---agtttgttactcact
           aaagacagaatgaatgtagaaaaggctgaattctgtaataaaagcaaacagcctggcttg
           gcaaggagccaacataacagatggactggaagtaaggaaacatgtaatgataggcagact
@@ -226,7 +237,8 @@ Pig       tgtggcacagatactcatgccagctcgttacagcatgagaacagcagtttattactcact
           gcaaagagccaacagagcagatgggctgaaagtaagggcacatgtaatgataggcagact
           cctaacacagagaaaaaggtagttctgaatactgatctcctgtatgggagaaacgaactg
           aataagcagaaacctgcgtgctctgacagtcctagagattcccaagatgttccttgg
-""")
+"""
+        )
 
 
 class MinimalPhylipParserTests(PhylipGenericTest):
@@ -241,43 +253,49 @@ class MinimalPhylipParserTests(PhylipGenericTest):
         seqs = list(MinimalPhylipParser(self.big_interleaved))
         self.assertEqual(len(seqs), 10)
         label, seq = seqs[-1]
-        self.assertEqual(label, 'Frog')
-        self.assertEqual(seq,
-                         'ATGGCACACCCATCACAATTAGGTTTTCAAGACGCAGCCTCTCCAATTATAGAAGAATTACTTCACTTCCACGACCATACCCTCATAGCCGTTTTTCTTATTAGTACGCTAGTTCTTTACATTATTACTATTATAATAACTACTAAACTAACTAATACAAACCTAATGGACGCACAAGAGATCGAAATAGTGTGAACTATTATACCAGCTATTAGCCTCATCATAATTGCCCTTCCATCCCTTCGTATCCTATATTTAATAGATGAAGTTAATGATCCACACTTAACAATTAAAGCAATCGGCCACCAATGATACTGAAGCTACGAATATACTAACTATGAGGATCTCTCATTTGACTCTTATATAATTCCAACTAATGACCTTACCCCTGGACAATTCCGGCTGCTAGAAGTTGATAATCGAATAGTAGTCCCAATAGAATCTCCAACCCGACTTTTAGTTACAGCCGAAGACGTCCTCCACTCGTGAGCTGTACCCTCCTTGGGTGTCAAAACAGATGCAATCCCAGGACGACTTCATCAAACATCATTTATTGCTACTCGTCCGGGAGTATTTTACGGACAATGTTCAGAAATTTGCGGAGCAAACCACAGCTTTATACCAATTGTAGTTGAAGCAGTACCGCTAACCGACTTTGAAAACTGATCTTCATCAATACTA---GAAGCATCACTA------AGA')
-        self.assertEqual(seqs[0][0], 'Cow')
+        self.assertEqual(label, "Frog")
+        self.assertEqual(
+            seq,
+            "ATGGCACACCCATCACAATTAGGTTTTCAAGACGCAGCCTCTCCAATTATAGAAGAATTACTTCACTTCCACGACCATACCCTCATAGCCGTTTTTCTTATTAGTACGCTAGTTCTTTACATTATTACTATTATAATAACTACTAAACTAACTAATACAAACCTAATGGACGCACAAGAGATCGAAATAGTGTGAACTATTATACCAGCTATTAGCCTCATCATAATTGCCCTTCCATCCCTTCGTATCCTATATTTAATAGATGAAGTTAATGATCCACACTTAACAATTAAAGCAATCGGCCACCAATGATACTGAAGCTACGAATATACTAACTATGAGGATCTCTCATTTGACTCTTATATAATTCCAACTAATGACCTTACCCCTGGACAATTCCGGCTGCTAGAAGTTGATAATCGAATAGTAGTCCCAATAGAATCTCCAACCCGACTTTTAGTTACAGCCGAAGACGTCCTCCACTCGTGAGCTGTACCCTCCTTGGGTGTCAAAACAGATGCAATCCCAGGACGACTTCATCAAACATCATTTATTGCTACTCGTCCGGGAGTATTTTACGGACAATGTTCAGAAATTTGCGGAGCAAACCACAGCTTTATACCAATTGTAGTTGAAGCAGTACCGCTAACCGACTTTGAAAACTGATCTTCATCAATACTA---GAAGCATCACTA------AGA",
+        )
+        self.assertEqual(seqs[0][0], "Cow")
 
         seqs = list(MinimalPhylipParser(self.space_interleaved))
         self.assertEqual(len(seqs), 5)
-        self.assertEqual(seqs[0][0], 'cox2_leita')
-        self.assertEqual(seqs[-1][0], 'cox2_tborr')
+        self.assertEqual(seqs[0][0], "cox2_leita")
+        self.assertEqual(seqs[-1][0], "cox2_tborr")
         self.assertEqual(len(seqs[0][1]), 176)
         self.assertEqual(len(seqs[-1][1]), 176)
 
         seqs = list(MinimalPhylipParser(self.interleaved_little))
         self.assertEqual(len(seqs), 6)
-        self.assertEqual(seqs[1][0], 'Hesperorni')
-        self.assertEqual(seqs[-1][0], 'B.subtilis')
-        self.assertEqual(
-            seqs[-1][1], 'GGCAGCCAATCACGGCAGCCAATCACGGCAGCCAATCAC')
+        self.assertEqual(seqs[1][0], "Hesperorni")
+        self.assertEqual(seqs[-1][0], "B.subtilis")
+        self.assertEqual(seqs[-1][1], "GGCAGCCAATCACGGCAGCCAATCACGGCAGCCAATCAC")
 
         seqs = list(MinimalPhylipParser(self.noninterleaved_little))
         self.assertEqual(len(seqs), 6)
-        self.assertEqual(seqs[0][0], 'Archaeopt')
-        self.assertEqual(seqs[-1][0], 'B.subtilis')
-        self.assertEqual(seqs[-1][-1], 'GGCAGCCAATCACGGCAGCC')
+        self.assertEqual(seqs[0][0], "Archaeopt")
+        self.assertEqual(seqs[-1][0], "B.subtilis")
+        self.assertEqual(seqs[-1][-1], "GGCAGCCAATCACGGCAGCC")
 
         seqs = list(MinimalPhylipParser(self.noninterleaved_big))
         self.assertEqual(len(seqs), 3)
-        self.assertEqual(seqs[0][0], 'Rhesus')
-        self.assertEqual(seqs[-1][0], 'Pig')
-        self.assertEqual(seqs[-1][1], 'tgtggcacagatactcatgccagctcgttacagcatgagaacagcagtttattactcactaaagacagaatgaatgtagaaaaggctgaattttgtaataaaagcaagcagcctgtcttagcaaagagccaacagagcagatgggctgaaagtaagggcacatgtaatgataggcagactcctaacacagagaaaaaggtagttctgaatactgatctcctgtatgggagaaacgaactgaataagcagaaacctgcgtgctctgacagtcctagagattcccaagatgttccttgg')
+        self.assertEqual(seqs[0][0], "Rhesus")
+        self.assertEqual(seqs[-1][0], "Pig")
+        self.assertEqual(
+            seqs[-1][1],
+            "tgtggcacagatactcatgccagctcgttacagcatgagaacagcagtttattactcactaaagacagaatgaatgtagaaaaggctgaattttgtaataaaagcaagcagcctgtcttagcaaagagccaacagagcagatgggctgaaagtaagggcacatgtaatgataggcagactcctaacacagagaaaaaggtagttctgaatactgatctcctgtatgggagaaacgaactgaataagcagaaacctgcgtgctctgacagtcctagagattcccaagatgttccttgg",
+        )
 
     def test_get_align(self):
         """get_align_for_phylip should return Aligment object for phylip files"""
         align = get_align_for_phylip(self.big_interleaved)
         align = get_align_for_phylip(self.interleaved_little)
         s = str(align)
-        self.assertEqual(s, '''>Archaeopt
+        self.assertEqual(
+            s,
+            """>Archaeopt
 CGATGCTTACCGCCGATGCTTACCGCCGATGCTTACCGC
 >Hesperorni
 CGTTACTCGTTGTCGTTACTCGTTGTCGTTACTCGTTGT
@@ -289,10 +307,13 @@ TAATGTTCGTTGTTAATGTTCGTTGTTAATGTTCGTTGT
 CAAAACCCATCATCAAAACCCATCATCAAAACCCATCAT
 >B.subtilis
 GGCAGCCAATCACGGCAGCCAATCACGGCAGCCAATCAC
-''')
+""",
+        )
         align = get_align_for_phylip(self.noninterleaved_little)
         s = str(align)
-        self.assertEqual(s, '''>Archaeopt
+        self.assertEqual(
+            s,
+            """>Archaeopt
 CGATGCTTACCGCCGATGCT
 >Hesperorni
 CGTTACTCGTTGTCGTTACT
@@ -304,7 +325,9 @@ TAATGTTCGTTGTTAATGTT
 CAAAACCCATCATCAAAACC
 >B.subtilis
 GGCAGCCAATCACGGCAGCC
-''')
+""",
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

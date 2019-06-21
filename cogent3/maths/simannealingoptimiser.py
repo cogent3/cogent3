@@ -9,9 +9,12 @@ Annealing," Goffe, Ferrier and Rogers, Journal of Econometrics, vol. 60, no. 1/2
 Jan./Feb. 1994, pp. 65-100.
 """
 
-import numpy
 import random
+
 from collections import deque
+
+import numpy
+
 from cogent3.util import checkpointing
 
 
@@ -38,13 +41,18 @@ class AnnealingSchedule(object):
         self.dwell = temp_iterations * step_cycles
 
     def checkSameConditions(self, other):
-        for attr in ['temp_reduction', 'initial_temp', 'temp_iterations', 'step_cycles']:
+        for attr in [
+            "temp_reduction",
+            "initial_temp",
+            "temp_iterations",
+            "step_cycles",
+        ]:
             if getattr(self, attr) != getattr(other, attr):
-                raise ValueError(
-                    'Checkpoint file ignored - %s different' % attr)
+                raise ValueError("Checkpoint file ignored - %s different" % attr)
 
     def roundsToReach(self, T):
         from math import log
+
         return int(-log(self.initial_temp / T) / log(self.temp_reduction)) + 1
 
     def cool(self):
@@ -52,7 +60,9 @@ class AnnealingSchedule(object):
 
     def willAccept(self, newF, oldF, random_series):
         deltaF = newF - oldF
-        return deltaF >= 0 or random_series.uniform(0.0, 1.0) < numpy.exp(deltaF / self.T)
+        return deltaF >= 0 or random_series.uniform(0.0, 1.0) < numpy.exp(
+            deltaF / self.T
+        )
 
 
 class AnnealingHistory(object):
@@ -71,12 +81,17 @@ class AnnealingHistory(object):
 
     def minRemainingRounds(self, tolerance):
         last = self.values[-1]
-        return max([0] + [i + 1 for (i, v) in enumerate(self.values)
-                          if v is None or abs(v - last) > tolerance])
+        return max(
+            [0]
+            + [
+                i + 1
+                for (i, v) in enumerate(self.values)
+                if v is None or abs(v - last) > tolerance
+            ]
+        )
 
 
 class AnnealingState(object):
-
     def __init__(self, X, function, random_series):
         self.random_series = random_series
         self.NFCNEV = 1
@@ -116,15 +131,14 @@ class AnnealingState(object):
         for I in range(len(self.X)):
             RATIO = (self.NACP[I] * 1.0) / self.NTRY
             if RATIO > 0.6:
-                self.VM[I] *= (1.0 + (2.0 * ((RATIO - 0.6) / 0.4)))
+                self.VM[I] *= 1.0 + (2.0 * ((RATIO - 0.6) / 0.4))
             elif RATIO < 0.4:
-                self.VM[I] /= (1.0 + (2.0 * ((0.4 - RATIO) / 0.4)))
+                self.VM[I] /= 1.0 + (2.0 * ((0.4 - RATIO) / 0.4))
             self.NACP[I] = 0
         self.NTRY = 0
 
 
 class AnnealingRun(object):
-
     def __init__(self, function, X, schedule, random_series):
         self.history = AnnealingHistory()
         self.schedule = schedule
@@ -135,16 +149,17 @@ class AnnealingRun(object):
         if len(xopt) != len(self.state.XOPT):
             raise ValueError(
                 "Number of parameters in checkpoint file '%s' (%s) "
-                "don't match current function (%s)" % (
-                    checkpointing_filename, len(self.state.XOPT), len(xopt)))
+                "don't match current function (%s)"
+                % (checkpointing_filename, len(self.state.XOPT), len(xopt))
+            )
         # if f(x) != g(x) then f isn't g.
         then = self.state.FOPT
         now = function(self.state.XOPT)
         if not numpy.allclose(now, then, 1e-8):
             raise ValueError(
                 "Function to optimise doesn't match checkpoint file "
-                "'%s': F=%s now, %s in file." % (
-                    checkpointing_filename, now, then))
+                "'%s': F=%s now, %s in file." % (checkpointing_filename, now, then)
+            )
 
     def run(self, function, tolerance, checkpointer, show_remaining):
         state = self.state
@@ -161,8 +176,12 @@ class AnnealingRun(object):
             est_anneal_remaining += -1
 
             for i in range(self.schedule.dwell):
-                show_remaining(remaining + 1 - i / self.schedule.dwell,
-                               state.FOPT, schedule.T, state.NFCNEV)
+                show_remaining(
+                    remaining + 1 - i / self.schedule.dwell,
+                    state.FOPT,
+                    schedule.T,
+                    state.NFCNEV,
+                )
                 state.step(function, self.schedule.willAccept)
                 self.test_count += 1
                 if self.test_count % schedule.step_cycles == 0:
@@ -177,8 +196,10 @@ class AnnealingRun(object):
         return state
 
     def save(self, checkpointer, final=False):
-        msg = "Number of function evaluations = %d; current F = %s" % \
-            (self.state.NFCNEV, self.state.FOPT)
+        msg = "Number of function evaluations = %d; current F = %s" % (
+            self.state.NFCNEV,
+            self.state.FOPT,
+        )
         checkpointer.record(self, msg, final)
 
 
@@ -199,10 +220,19 @@ class SimulatedAnnealing(object):
         self.checkpointer = checkpointing.Checkpointer(filename, interval)
         self.restore = restore
 
-    def maximise(self, function, xopt, show_remaining,
-                 random_series=None, seed=None,
-                 tolerance=None, temp_reduction=0.5, init_temp=5.0,
-                 temp_iterations=5, step_cycles=20):
+    def maximise(
+        self,
+        function,
+        xopt,
+        show_remaining,
+        random_series=None,
+        seed=None,
+        tolerance=None,
+        temp_reduction=0.5,
+        init_temp=5.0,
+        temp_iterations=5,
+        step_cycles=20,
+    ):
         """Optimise function(xopt).
 
         Arguments:
@@ -219,7 +249,7 @@ class SimulatedAnnealing(object):
         Returns optimised parameter vector xopt
         """
         if tolerance is None:
-            tolerance = 1E-6
+            tolerance = 1e-6
 
         if len(xopt) == 0:
             return xopt
@@ -229,7 +259,8 @@ class SimulatedAnnealing(object):
             random_series.seed(seed)
 
         schedule = AnnealingSchedule(
-            temp_reduction, init_temp, temp_iterations, step_cycles)
+            temp_reduction, init_temp, temp_iterations, step_cycles
+        )
 
         if self.restore and self.checkpointer.available():
             run = self.checkpointer.load()
@@ -243,6 +274,7 @@ class SimulatedAnnealing(object):
             function,
             tolerance,
             checkpointer=self.checkpointer,
-            show_remaining=show_remaining)
+            show_remaining=show_remaining,
+        )
 
         return result.XOPT

@@ -1,4 +1,4 @@
-#/usr/bin/env python
+# /usr/bin/env python
 """Parsers for tree formats.
 
 Implementation Notes
@@ -20,6 +20,7 @@ difficulty.
 from cogent3.core.tree import PhyloNode
 from cogent3.parse.record import RecordError
 
+
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Rob Knight", "Catherine Lozupone", "Daniel McDonald"]
@@ -32,12 +33,11 @@ __status__ = "Development"
 strip = str.strip
 maketrans = str.maketrans
 
-_dnd_token_str = '(:),;'
+_dnd_token_str = "(:),;"
 _dnd_tokens = dict.fromkeys(_dnd_token_str)
-_dnd_tokens_and_spaces = _dnd_token_str + ' \t\v\n'
+_dnd_tokens_and_spaces = _dnd_token_str + " \t\v\n"
 
-remove_dnd_tokens = maketrans(_dnd_tokens_and_spaces,
-                              '-' * len(_dnd_tokens_and_spaces))
+remove_dnd_tokens = maketrans(_dnd_tokens_and_spaces, "-" * len(_dnd_tokens_and_spaces))
 
 
 def safe_for_tree(s):
@@ -75,9 +75,9 @@ def DndTokenizer(data):
     sa = saved.append
     for d in data:
         if d == "'":
-            in_quotes = not(in_quotes)
+            in_quotes = not (in_quotes)
         if d in _dnd_tokens and not in_quotes:
-            curr = ''.join(saved).strip()
+            curr = "".join(saved).strip()
             if curr:
                 yield curr
             yield d
@@ -97,73 +97,74 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
     if isinstance(lines, str):
         data = lines
     else:
-        data = ''.join(lines)
+        data = "".join(lines)
     # skip arb comment stuff if present: start at first paren
-    paren_index = data.find('(')
+    paren_index = data.find("(")
     data = data[paren_index:]
-    left_count = data.count('(')
-    right_count = data.count(')')
+    left_count = data.count("(")
+    right_count = data.count(")")
     if left_count != right_count:
-        raise RecordError("Found %s left parens but %s right parens." %
-                          (left_count, right_count))
+        raise RecordError(
+            "Found %s left parens but %s right parens." % (left_count, right_count)
+        )
 
     tokens = DndTokenizer(data)
     curr_node = None
-    state = 'PreColon'
-    state1 = 'PreClosed'
+    state = "PreColon"
+    state1 = "PreClosed"
     last_token = None
     for t in tokens:
-        if t == ':':  # expecting branch length
-            state = 'PostColon'
+        if t == ":":  # expecting branch length
+            state = "PostColon"
             # prevent state reset
             last_token = t
             continue
-        if t == ')' and (last_token == ',' or last_token == '('):  # node without name
+        if t == ")" and (last_token == "," or last_token == "("):  # node without name
             new_node = _new_child(curr_node, constructor)
             new_node.name = None
             curr_node = new_node.parent
-            state1 = 'PostClosed'
+            state1 = "PostClosed"
             last_token = t
             continue
-        if t == ')':  # closing the current node
+        if t == ")":  # closing the current node
             curr_node = curr_node.parent
-            state1 = 'PostClosed'
+            state1 = "PostClosed"
             last_token = t
             continue
-        if t == '(':  # opening a new node
+        if t == "(":  # opening a new node
             curr_node = _new_child(curr_node, constructor)
-        elif t == ';':  # end of data
+        elif t == ";":  # end of data
             last_token = t
             break
         # node without name
-        elif t == ',' and (last_token == ',' or last_token == '('):
+        elif t == "," and (last_token == "," or last_token == "("):
             new_node = _new_child(curr_node, constructor)
             new_node.name = None
             curr_node = new_node.parent
-        elif t == ',':  # separator: next node adds to this node's parent
+        elif t == ",":  # separator: next node adds to this node's parent
             curr_node = curr_node.parent
-        elif state == 'PreColon' and state1 == 'PreClosed':  # data for the current node
+        elif state == "PreColon" and state1 == "PreClosed":  # data for the current node
             new_node = _new_child(curr_node, constructor)
             if unescape_name:
                 if t.startswith("'") and t.endswith("'"):
                     while t.startswith("'") and t.endswith("'"):
                         t = t[1:-1]
                 else:
-                    if '_' in t:
-                        t = t.replace('_', ' ')
+                    if "_" in t:
+                        t = t.replace("_", " ")
             new_node.name = t
             curr_node = new_node
-        elif state == 'PreColon' and state1 == 'PostClosed':
+        elif state == "PreColon" and state1 == "PostClosed":
             if unescape_name:
                 while t.startswith("'") and t.endswith("'"):
                     t = t[1:-1]
             curr_node.name = t
-        elif state == 'PostColon':  # length data for the current node
+        elif state == "PostColon":  # length data for the current node
             curr_node.length = float(t)
         else:  # can't think of a reason to get here
             raise RecordError("Incorrect PhyloNode state? %s" % t)
-        state = 'PreColon'  # get here for any non-colon token
-        state1 = 'PreClosed'
+        state = "PreColon"  # get here for any non-colon token
+        state1 = "PreClosed"
         last_token = t
 
     if curr_node is not None and curr_node.parent is not None:

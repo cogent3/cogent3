@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
-import numpy
 import bisect
+
+import numpy
+
 
 Float = numpy.core.numerictypes.sctype2char(float)
 
@@ -38,8 +40,7 @@ class TransitionMatrix(object):
             # Could recalculate, but if it is provided then faster to
             # just trust it
             assert len(stationary_probs) == self.size
-            self._stationary_probs = numpy.array(
-                stationary_probs, Float)
+            self._stationary_probs = numpy.array(stationary_probs, Float)
 
     def _getStationaryProbs(self):
         if self._stationary_probs is None:
@@ -48,6 +49,7 @@ class TransitionMatrix(object):
                 matrix = numpy.core.multiarray.dot(matrix, matrix)
             self._stationary_probs = matrix[0]
         return self._stationary_probs
+
     StationaryProbs = property(_getStationaryProbs)
 
     def emit(self, random_series):
@@ -56,8 +58,7 @@ class TransitionMatrix(object):
         for (state, row) in enumerate(partitions[:-1]):
             assert abs(row[-1] - 1.0) < 1e-6, (state, self.Matrix[state])
         x = random_series.uniform(0.0, 1.0)
-        state = bisect.bisect_left(
-            numpy.add.accumulate(self.StationaryProbs), x)
+        state = bisect.bisect_left(numpy.add.accumulate(self.StationaryProbs), x)
         while 1:
             yield self.Tags[state]
             x = random_series.uniform(0.0, 1.0)
@@ -65,15 +66,15 @@ class TransitionMatrix(object):
 
     def __repr__(self):
         from cogent3.util.table import Table
+
         labels = []
         for (i, label) in enumerate(self.Tags):
-            if hasattr(label, '__len__') and not isinstance(
-                    label, str):
-                label = ','.join(str(z) for z in label)
+            if hasattr(label, "__len__") and not isinstance(label, str):
+                label = ",".join(str(z) for z in label)
             # Table needs unique labels
             label = "%s (%s)" % (label, i)
             labels.append(label)
-        heading = [''] + labels
+        heading = [""] + labels
         a = [[name] + list(row) for (name, row) in zip(labels, self.Matrix)]
         return str(Table(header=heading, rows=a))
 
@@ -81,8 +82,7 @@ class TransitionMatrix(object):
         """An equivalent matrix without any of the states that have a
         false tag value"""
         N = self.size
-        silent = numpy.array(
-            [(not max(tag)) for tag in self.Tags], Float)
+        silent = numpy.array([(not max(tag)) for tag in self.Tags], Float)
         matrix = numpy.zeros([N, N], Float)
         for i in range(N):
             row = numpy.zeros([N], Float)
@@ -171,7 +171,7 @@ class TransitionMatrix(object):
             for (y, b) in enumerate(self.Tags):
                 b = Ts[b - 1].Matrix
                 block = self.Matrix[x, y] * blended(a, b)
-                result[x * c:(x + 1) * c, y * c:(y + 1) * c] = block
+                result[x * c : (x + 1) * c, y * c : (y + 1) * c] = block
         all_tags = []
         for i in self.Tags:
             all_tags.extend([[i * e for e in tag] for tag in tags])
@@ -185,8 +185,6 @@ def SiteClassTransitionMatrix(switch, probs):
     probs = numpy.asarray(probs)
     assert numpy.allclose(sum(probs), 1.0), probs
     I = numpy.identity(len(probs), Float)
-    switch_probs = (1.0 - I) * (probs * switch) + \
-        I * (1.0 - (1.0 - probs) * switch)
+    switch_probs = (1.0 - I) * (probs * switch) + I * (1.0 - (1.0 - probs) * switch)
     tags = [i + 1 for i in range(len(switch_probs))]
-    return TransitionMatrix(
-        switch_probs, tags, stationary_probs=probs.copy())
+    return TransitionMatrix(switch_probs, tags, stationary_probs=probs.copy())

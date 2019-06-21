@@ -12,35 +12,60 @@ performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
 
+import json
+import re
+import warnings
+
 from functools import total_ordering
 from operator import eq, ne
 from random import shuffle
-import re
-import json
-import warnings
 
-from numpy import (array, zeros, put, nonzero, take, ravel, compress,
-                   logical_or, logical_not, arange, )
+from numpy import (
+    arange,
+    array,
+    compress,
+    logical_not,
+    logical_or,
+    nonzero,
+    put,
+    ravel,
+    take,
+    zeros,
+)
 from numpy.random import permutation
 
-from cogent3.maths.stats.number import CategoryCounter
-from cogent3.maths.stats.contingency import CategoryCounts, TestResult
-from .annotation import Map, Feature, _Annotatable
-from cogent3.util.dict_array import DictArrayTemplate
-from cogent3.util.transform import (KeepChars, for_seq, per_shortest,
-                                    per_longest, )
-from cogent3.util.misc import (DistanceFromMatrix, bytes_to_string,
-                               get_object_provenance, )
-from cogent3.core.genetic_code import (DEFAULT as DEFAULT_GENETIC_CODE,
-                                       GeneticCodes, )
-from cogent3.parse import gff
-from cogent3.format.fasta import alignment_to_fasta
+from cogent3.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE
+from cogent3.core.genetic_code import GeneticCodes
 from cogent3.core.info import Info as InfoClass
+from cogent3.format.fasta import alignment_to_fasta
+from cogent3.maths.stats.contingency import CategoryCounts, TestResult
+from cogent3.maths.stats.number import CategoryCounter
+from cogent3.parse import gff
+from cogent3.util.dict_array import DictArrayTemplate
+from cogent3.util.misc import (
+    DistanceFromMatrix,
+    bytes_to_string,
+    get_object_provenance,
+)
+from cogent3.util.transform import (
+    KeepChars,
+    for_seq,
+    per_longest,
+    per_shortest,
+)
+
+from .annotation import Feature, Map, _Annotatable
+
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Rob Knight", "Peter Maxwell", "Gavin Huttley",
-               "Matthew Wakefield", "Daniel McDonald"]
+__credits__ = [
+    "Rob Knight",
+    "Peter Maxwell",
+    "Gavin Huttley",
+    "Matthew Wakefield",
+    "Daniel McDonald",
+]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Rob Knight"
@@ -61,6 +86,7 @@ class SequenceI(object):
     Specifies methods that Sequence delegates to its MolType, and methods for
     detecting gaps.
     """
+
     # String methods delegated to self._seq -- remember to override if self._seq
     # isn't a string in your base class, but it's probably better to make
     # self._seq a property that contains the string.
@@ -78,26 +104,30 @@ class SequenceI(object):
               returns a label str
         """
 
-        label = '0'
+        label = "0"
 
         if make_seqlabel is not None:
             label = make_seqlabel(self)
-        elif hasattr(self, 'label') and self.label:
+        elif hasattr(self, "label") and self.label:
             label = self.label
-        elif hasattr(self, 'name') and self.name:
+        elif hasattr(self, "name") and self.name:
             label = self.name
         return alignment_to_fasta({label: str(self)}, block_size=block_size)
 
     def to_rich_dict(self):
         """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
         info = {} if self.info is None else self.info
-        if not info.get('Refs', None) is None and 'Refs' in info:
-            info.pop('Refs')
+        if not info.get("Refs", None) is None and "Refs" in info:
+            info.pop("Refs")
 
         info = info or None
-        data = dict(name=self.name, seq=str(self), moltype=self.moltype.label,
-                    info=info,
-                    type=get_object_provenance(self))
+        data = dict(
+            name=self.name,
+            seq=str(self),
+            moltype=self.moltype.label,
+            info=info,
+            type=get_object_provenance(self),
+        )
 
         try:
             annotations = [a.to_rich_dict() for a in self.annotations]
@@ -105,7 +135,7 @@ class SequenceI(object):
             annotations = []
 
         if annotations:
-            data['annotations'] = annotations
+            data["annotations"] = annotations
 
         return data
 
@@ -144,17 +174,19 @@ class SequenceI(object):
         else:
             if len(data) % motif_length != 0:
                 warnings.warn(
-                    "%s length not divisible by %s, truncating" %
-                    (self.name, motif_length))
+                    "%s length not divisible by %s, truncating"
+                    % (self.name, motif_length)
+                )
             limit = (len(data) // motif_length) * motif_length
             data = data[:limit]
             if not_array:
-                counts = CategoryCounter(data[i:i + motif_length]
-                                         for i in range(0, limit, motif_length))
+                counts = CategoryCounter(
+                    data[i : i + motif_length] for i in range(0, limit, motif_length)
+                )
             else:
                 counts = CategoryCounter(
-                    tuple(v) for v in data.reshape(limit // motif_length,
-                                                   motif_length))
+                    tuple(v) for v in data.reshape(limit // motif_length, motif_length)
+                )
         if not not_array:
             for key in list(counts):
                 indices = [key] if motif_length == 1 else key
@@ -173,7 +205,7 @@ class SequenceI(object):
                     exclude.append(motif)
 
         for motif in exclude:
-            del (counts[motif])
+            del counts[motif]
 
         return counts
 
@@ -201,7 +233,7 @@ class SequenceI(object):
         """returns a randomized copy of the Sequence object"""
         randomized_copy_list = list(self)
         shuffle(randomized_copy_list)
-        return self.__class__(''.join(randomized_copy_list), info=self.info)
+        return self.__class__("".join(randomized_copy_list), info=self.info)
 
     def complement(self):
         """Returns complement of self, using data from MolType.
@@ -213,8 +245,7 @@ class SequenceI(object):
 
     def strip_degenerate(self):
         """Removes degenerate bases by stripping them out of the sequence."""
-        return self.__class__(self.moltype.strip_degenerate(self),
-                              info=self.info)
+        return self.__class__(self.moltype.strip_degenerate(self), info=self.info)
 
     def strip_bad(self):
         """Removes any symbols not in the alphabet."""
@@ -222,8 +253,7 @@ class SequenceI(object):
 
     def strip_bad_and_gaps(self):
         """Removes any symbols not in the alphabet, and any gaps."""
-        return self.__class__(self.moltype.strip_bad_and_gaps(self),
-                              info=self.info)
+        return self.__class__(self.moltype.strip_bad_and_gaps(self), info=self.info)
 
     def rc(self):
         """Returns reverse complement of self w/ data from MolType.
@@ -274,15 +304,14 @@ class SequenceI(object):
         """Returns the index of first non-strict symbol in sequence, or None."""
         return self.moltype.first_non_strict(self)
 
-    def disambiguate(self, method='strip'):
+    def disambiguate(self, method="strip"):
         """Returns a non-degenerate sequence from a degenerate one.
 
         method can be 'strip' (deletes any characters not in monomers or gaps)
         or 'random'(assigns the possibilities at random, using equal
         frequencies).
         """
-        return self.__class__(self.moltype.disambiguate(self, method),
-                              info=self.info)
+        return self.__class__(self.moltype.disambiguate(self, method), info=self.info)
 
     def degap(self):
         """Deletes all gap characters from sequence."""
@@ -316,7 +345,7 @@ class SequenceI(object):
         """
         return self.moltype.possibilities(self)
 
-    def mw(self, method='random', delta=None):
+    def mw(self, method="random", delta=None):
         """Returns the molecular weight of (one strand of) the sequence.
 
         If the sequence is ambiguous, uses method (random or strip) to
@@ -478,8 +507,9 @@ class SequenceI(object):
             return 0.0
 
         is_gap = self.moltype.gaps.__contains__
-        return sum([is_gap(i) == is_gap(j) for i, j in zip(self, other)]) \
-            / min(len(self), len(other))
+        return sum([is_gap(i) == is_gap(j) for i, j in zip(self, other)]) / min(
+            len(self), len(other)
+        )
 
     def frac_diff_gaps(self, other):
         """Returns frac. of positions where self and other's gap states differ.
@@ -569,8 +599,9 @@ class SequenceI(object):
         if not self or not other:
             return 0.0
 
-        return for_seq(f=lambda x, y: (x, y) in similar_pairs,
-                       normalizer=per_shortest)(self, other)
+        return for_seq(f=lambda x, y: (x, y) in similar_pairs, normalizer=per_shortest)(
+            self, other
+        )
 
     def with_termini_unknown(self):
         """Returns copy of sequence with terminal gaps remapped as missing."""
@@ -583,11 +614,10 @@ class SequenceI(object):
                 last_nongap = i
         missing = self.moltype.missing
         if first_nongap is None:  # sequence was all gaps
-            result = self.__class__(
-                [missing for i in len(self)], info=self.info)
+            result = self.__class__([missing for i in len(self)], info=self.info)
         else:
             prefix = missing * first_nongap
-            mid = str(self[first_nongap:last_nongap + 1])
+            mid = str(self[first_nongap : last_nongap + 1])
             suffix = missing * (len(self) - last_nongap - 1)
             result = self.__class__(prefix + mid + suffix, info=self.info)
         return result
@@ -603,11 +633,19 @@ class SequenceI(object):
 @total_ordering
 class Sequence(_Annotatable, SequenceI):
     """Holds the standard Sequence object. Immutable."""
+
     moltype = None  # connected to ACSII when moltype is imported
 
-    def __init__(self, seq='', name=None, info=None, check=True,
-                 preserve_case=False, gaps_allowed=True,
-                 wildcards_allowed=True):
+    def __init__(
+        self,
+        seq="",
+        name=None,
+        info=None,
+        check=True,
+        preserve_case=False,
+        gaps_allowed=True,
+        wildcards_allowed=True,
+    ):
         """Initialize a sequence.
 
         Arguments:
@@ -617,7 +655,7 @@ class Sequence(_Annotatable, SequenceI):
 
             check: if True (the default), validates against the MolType
         """
-        if name is None and hasattr(seq, 'name'):
+        if name is None and hasattr(seq, "name"):
             name = seq.name
         self.name = name
         orig_seq = seq
@@ -629,9 +667,9 @@ class Sequence(_Annotatable, SequenceI):
             seq = seq.decode("utf-8")
         elif not isinstance(seq, str):
             try:
-                seq = ''.join(seq)
+                seq = "".join(seq)
             except TypeError:
-                seq = ''.join(map(str, seq))
+                seq = "".join(map(str, seq))
 
         seq = self._seq_filter(seq)
         if not preserve_case and not seq.isupper():
@@ -639,15 +677,14 @@ class Sequence(_Annotatable, SequenceI):
         self._seq = seq
 
         if check:
-            self.moltype.verify_sequence(self._seq, gaps_allowed,
-                                         wildcards_allowed)
+            self.moltype.verify_sequence(self._seq, gaps_allowed, wildcards_allowed)
 
         if not isinstance(info, InfoClass):
             try:
                 info = InfoClass(info)
             except TypeError:
                 info = InfoClass()
-        if hasattr(orig_seq, 'info'):
+        if hasattr(orig_seq, "info"):
             try:
                 info.update(orig_seq.info)
             except:
@@ -672,8 +709,18 @@ class Sequence(_Annotatable, SequenceI):
 
     def annotate_from_gff(self, f):
         first_seqname = None
-        for (seqname, source, feature, start, end, score, strand,
-             frame, attributes, comments) in gff.GffParser(f):
+        for (
+            seqname,
+            source,
+            feature,
+            start,
+            end,
+            score,
+            strand,
+            frame,
+            attributes,
+            comments,
+        ) in gff.GffParser(f):
             if first_seqname is None:
                 first_seqname = seqname
             else:
@@ -681,8 +728,7 @@ class Sequence(_Annotatable, SequenceI):
             feat_label = gff.parse_attributes(attributes)
             self.add_feature(feature, feat_label, [(start, end)])
 
-    def with_masked_annotations(self, annot_types, mask_char=None,
-                                shadow=False):
+    def with_masked_annotations(self, annot_types, mask_char=None, shadow=False):
         """returns a sequence with annot_types regions replaced by mask_char
         if shadow is False, otherwise all other regions are masked.
 
@@ -693,15 +739,13 @@ class Sequence(_Annotatable, SequenceI):
             - shadow: whether to mask the annotated regions, or everything but
               the annotated regions"""
         if mask_char is None:
-            ambigs = [(len(v), c)
-                      for c, v in list(self.moltype.ambiguities.items())]
+            ambigs = [(len(v), c) for c, v in list(self.moltype.ambiguities.items())]
             ambigs.sort()
             mask_char = ambigs[-1][1]
-        assert mask_char in self.moltype, 'Invalid mask_char %s' % mask_char
+        assert mask_char in self.moltype, "Invalid mask_char %s" % mask_char
 
         annotations = []
-        annot_types = [annot_types, [annot_types]][
-            isinstance(annot_types, str)]
+        annot_types = [annot_types, [annot_types]][isinstance(annot_types, str)]
         for annot_type in annot_types:
             annotations += self.get_annotations_matching(annot_type)
 
@@ -717,26 +761,26 @@ class Sequence(_Annotatable, SequenceI):
             i = e
         segments.append(self._seq[i:])
 
-        new = self.__class__(''.join(segments), name=self.name, check=False,
-                             info=self.info)
+        new = self.__class__(
+            "".join(segments), name=self.name, check=False, info=self.info
+        )
         new.annotations = self.annotations[:]
         return new
 
-    def gapped_by_map_segment_iter(self, map, allow_gaps=True,
-                                   recode_gaps=False):
+    def gapped_by_map_segment_iter(self, map, allow_gaps=True, recode_gaps=False):
         for span in map.spans:
             if span.lost:
                 if allow_gaps:
                     unknown = span.terminal or recode_gaps
                     seg = "-?"[unknown] * span.length
                 else:
-                    raise ValueError('gap(s) in map %s' % map)
+                    raise ValueError("gap(s) in map %s" % map)
             else:
-                seg = self._seq[span.start:span.end]
+                seg = self._seq[span.start : span.end]
                 if span.reverse:
                     complement = self.moltype.complement
                     seg = [complement(base) for base in seg[::-1]]
-                    seg = ''.join(seg)
+                    seg = "".join(seg)
             yield seg
 
     def gapped_by_map_motif_iter(self, map):
@@ -746,8 +790,9 @@ class Sequence(_Annotatable, SequenceI):
 
     def gapped_by_map(self, map, recode_gaps=False):
         segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
-        new = self.__class__(''.join(segments),
-                             name=self.name, check=False, info=self.info)
+        new = self.__class__(
+            "".join(segments), name=self.name, check=False, info=self.info
+        )
         annots = self._sliced_annotations(new, map)
         new.annotations = annots
         return new
@@ -755,15 +800,16 @@ class Sequence(_Annotatable, SequenceI):
     def _mapped(self, map):
         # Called by generic __getitem__
         segments = self.gapped_by_map_segment_iter(map, allow_gaps=False)
-        new = self.__class__(''.join(segments), self.name, info=self.info)
+        new = self.__class__("".join(segments), self.name, info=self.info)
         return new
 
     def __add__(self, other):
         """Adds two sequences (other can be a string as well)."""
-        if hasattr(other, 'moltype'):
+        if hasattr(other, "moltype"):
             if self.moltype != other.moltype:
-                raise ValueError("MolTypes don't match: (%s,%s)" %
-                                 (self.moltype, other.moltype))
+                raise ValueError(
+                    "MolTypes don't match: (%s,%s)" % (self.moltype, other.moltype)
+                )
             other_seq = other._seq
         else:
             other_seq = other
@@ -772,21 +818,25 @@ class Sequence(_Annotatable, SequenceI):
         # or past the left end of the right sequence are dropped because
         # otherwise they will annotate the wrong part of the constructed
         # sequence.
-        left = [a for a in self._shifted_annotations(new_seq, 0)
-                if a.map.end <= len(self)]
-        if hasattr(other, '_shifted_annotations'):
-            right = [a for a in other._shifted_annotations(new_seq, len(self))
-                     if a.map.start >= len(self)]
+        left = [
+            a for a in self._shifted_annotations(new_seq, 0) if a.map.end <= len(self)
+        ]
+        if hasattr(other, "_shifted_annotations"):
+            right = [
+                a
+                for a in other._shifted_annotations(new_seq, len(self))
+                if a.map.start >= len(self)
+            ]
             new_seq.annotations = left + right
         else:
             new_seq.annotations = left
         return new_seq
 
     def __repr__(self):
-        myclass = '%s' % self.__class__.__name__
-        myclass = myclass.split('.')[-1]
+        myclass = "%s" % self.__class__.__name__
+        myclass = myclass.split(".")[-1]
         if len(self) > 10:
-            seq = str(self._seq[:7]) + '... %s' % len(self)
+            seq = str(self._seq[:7]) + "... %s" % len(self)
         else:
             seq = str(self._seq)
         return "%s(%s)" % (myclass, seq)
@@ -827,7 +877,7 @@ class Sequence(_Annotatable, SequenceI):
         end = min(len(self) - window + 1, end)
         if start < end and len(self) - end >= window - 1:
             for pos in range(start, end, step):
-                yield self[pos:pos + window]
+                yield self[pos : pos + window]
 
     def get_in_motif_size(self, motif_length=1, log_warnings=True):
         """returns sequence as list of non-overlapping motifs
@@ -842,25 +892,27 @@ class Sequence(_Annotatable, SequenceI):
             length = len(seq)
             remainder = length % motif_length
             if remainder and log_warnings:
-                warnings.warn('Dropped remainder "%s" from end of sequence' %
-                              seq[-remainder:])
-            return [seq[i:i + motif_length]
-                    for i in range(0, length - remainder, motif_length)]
+                warnings.warn(
+                    'Dropped remainder "%s" from end of sequence' % seq[-remainder:]
+                )
+            return [
+                seq[i : i + motif_length]
+                for i in range(0, length - remainder, motif_length)
+            ]
 
     def parse_out_gaps(self):
         gapless = []
         segments = []
-        nongap = re.compile('([^%s]+)' % re.escape("-"))
+        nongap = re.compile("([^%s]+)" % re.escape("-"))
         for match in nongap.finditer(self._seq):
             segments.append(match.span())
             gapless.append(match.group())
         map = Map(segments, parent_length=len(self)).inverse()
         seq = self.__class__(
-            ''.join(gapless),
-            name=self.get_name(), info=self.info, preserve_case=True)
+            "".join(gapless), name=self.get_name(), info=self.info, preserve_case=True
+        )
         if self.annotations:
-            seq.annotations = [a.remapped_to(seq, map)
-                               for a in self.annotations]
+            seq.annotations = [a.remapped_to(seq, map) for a in self.annotations]
         return (map, seq)
 
     def replace(self, oldchar, newchar):
@@ -875,6 +927,7 @@ class Sequence(_Annotatable, SequenceI):
 
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence. MolType set in moltype module."""
+
     pass
 
 
@@ -883,11 +936,13 @@ class ProteinWithStopSequence(Sequence):
 
     MolType set in moltype module
     """
+
     pass
 
 
 class NucleicAcidSequence(Sequence):
     """base class for DNA and RNA sequences. Abstract."""
+
     PROTEIN = None  # will set in moltype
     codon_alphabet = None  # will set in moltype
 
@@ -923,8 +978,7 @@ class NucleicAcidSequence(Sequence):
         codons = self._seq
         divisible_by_3 = len(codons) % 3 == 0
         end3 = self.__class__(self._seq[-3:]).degap()
-        if not allow_partial and (not divisible_by_3 or
-                                  len(end3) != 3):
+        if not allow_partial and (not divisible_by_3 or len(end3) != 3):
             raise ValueError("seq length not divisible by 3")
 
         if not divisible_by_3:
@@ -958,16 +1012,16 @@ class NucleicAcidSequence(Sequence):
         # translate the codons
         translation = []
         for posn in range(0, len(self._seq) - 2, 3):
-            orig_codon = self._seq[posn:posn + 3]
+            orig_codon = self._seq[posn : posn + 3]
             resolved = codon_alphabet.resolve_ambiguity(orig_codon)
             trans = []
             for codon in resolved:
-                if codon == '---':
-                    aa = '-'
+                if codon == "---":
+                    aa = "-"
                 else:
-                    assert '-' not in codon
+                    assert "-" not in codon
                     aa = gc[codon]
-                    if aa == '*':
+                    if aa == "*":
                         continue
                 trans.append(aa)
             if not trans:
@@ -975,8 +1029,7 @@ class NucleicAcidSequence(Sequence):
             aa = self.protein.what_ambiguity(trans)
             translation.append(aa)
 
-        translation = self.protein.make_seq(
-            seq=''.join(translation), name=self.name)
+        translation = self.protein.make_seq(seq="".join(translation), name=self.name)
 
         return translation
 
@@ -987,13 +1040,13 @@ class NucleicAcidSequence(Sequence):
         protein = self.get_translation(gc=gc)
         for (posn, aa) in enumerate(protein):
             posn *= 3
-            if aa == '*':
+            if aa == "*":
                 if start is not None:
                     orfs.append((start, posn))
                 start = None
             else:
                 if start is None:
-                    if (not atg) or gc.is_start(self[posn:posn + 3]):
+                    if (not atg) or gc.is_start(self[posn : posn + 3]):
                         start = posn
         if start is not None:
             orfs.append((start, posn + 3))
@@ -1010,8 +1063,7 @@ class NucleicAcidSequence(Sequence):
     def strand_symmetry(self, motif_length=1):
         """returns G-test for strand symmetry"""
         counts = self.counts(motif_length=motif_length)
-        ssym_pairs = self.moltype.strand_symmetric_motifs(
-            motif_length=motif_length)
+        ssym_pairs = self.moltype.strand_symmetric_motifs(motif_length=motif_length)
 
         motifs = []
         obs = []
@@ -1023,7 +1075,7 @@ class NucleicAcidSequence(Sequence):
             obs.append(row)
             motifs.append(plus)
 
-        template = DictArrayTemplate(motifs, ['+', '-'])
+        template = DictArrayTemplate(motifs, ["+", "-"])
         obs = template.wrap(obs)
         cat = CategoryCounts(obs)
         result = cat.G_fit()
@@ -1031,48 +1083,46 @@ class NucleicAcidSequence(Sequence):
 
 
 class DnaSequence(NucleicAcidSequence):
-
     def get_colour_scheme(self, colours):
         return {
-            'A': colours.black,
-            'T': colours.red,
-            'C': colours.blue,
-            'G': colours.green,
+            "A": colours.black,
+            "T": colours.red,
+            "C": colours.blue,
+            "G": colours.green,
         }
 
     def _seq_filter(self, seq):
         """Converts U to T."""
-        return seq.replace('u', 't').replace('U', 'T')
+        return seq.replace("u", "t").replace("U", "T")
 
 
 class RnaSequence(NucleicAcidSequence):
-
     def get_colour_scheme(self, colours):
         return {
-            'A': colours.black,
-            'U': colours.red,
-            'C': colours.blue,
-            'G': colours.green,
+            "A": colours.black,
+            "U": colours.red,
+            "C": colours.blue,
+            "G": colours.green,
         }
 
     def _seq_filter(self, seq):
         """Converts T to U."""
-        return seq.replace('t', 'u').replace('T', 'U')
+        return seq.replace("t", "u").replace("T", "U")
 
 
 class ABSequence(Sequence):
     """Used for two-state modeling; MolType set in moltypes."""
+
     pass
 
 
 class ByteSequence(Sequence):
     """Used for storing arbitrary bytes."""
 
-    def __init__(self, seq='', name=None, info=None, check=False,
-                 preserve_case=True):
-        return super(ByteSequence, self).__init__(seq, name=name, info=info,
-                                                  check=check,
-                                                  preserve_case=preserve_case)
+    def __init__(self, seq="", name=None, info=None, check=False, preserve_case=True):
+        return super(ByteSequence, self).__init__(
+            seq, name=name, info=info, check=check, preserve_case=preserve_case
+        )
 
 
 @total_ordering
@@ -1098,13 +1148,13 @@ class ArraySequenceBase(object):
     because it is often important to store just a subset of the possible
     characters (e.g. the non-degenerate bases) for modeling purposes.
     """
+
     alphabet = None  # REPLACE IN SUBCLASSES
     moltype = None  # REPLACE IN SUBCLASSES
-    Delimiter = ''  # Used for string conversions
+    Delimiter = ""  # Used for string conversions
     LineWrap = 80  # Wrap sequences at 80 characters by default.
 
-    def __init__(self, data='', alphabet=None, name=None, info=None,
-                 check='ignored'):
+    def __init__(self, data="", alphabet=None, name=None, info=None, check="ignored"):
         """Initializes sequence from data and alphabet.
 
         WARNING: Does not validate the data or alphabet for compatibility.
@@ -1114,9 +1164,9 @@ class ArraySequenceBase(object):
         WARNING: If data has name and/or info, gets ref to same object rather
         than copying in each case.
         """
-        if name is None and hasattr(data, 'name'):
+        if name is None and hasattr(data, "name"):
             name = data.name
-        if info is None and hasattr(data, 'info'):
+        if info is None and hasattr(data, "info"):
             info = data.info
         # set the label
         self.name = name
@@ -1125,7 +1175,7 @@ class ArraySequenceBase(object):
             self.alphabet = alphabet
         # if we haven't already set self._data (e.g. in a subclass __init__),
         # guess the data type and set it here
-        if not hasattr(self, '_data'):
+        if not hasattr(self, "_data"):
             # if data is a sequence, copy its data and alphabet
             if isinstance(data, ArraySequence):
                 self._data = data._data
@@ -1166,12 +1216,10 @@ class ArraySequenceBase(object):
 
     def __str__(self):
         """Uses alphabet to convert self to string, using delimiter."""
-        if hasattr(self.alphabet, 'to_string'):
+        if hasattr(self.alphabet, "to_string"):
             return self.alphabet.to_string(self._data)
         else:
-            return self.Delimiter.join(map(str,
-                                           self.alphabet.from_indices(
-                                               self._data)))
+            return self.Delimiter.join(map(str, self.alphabet.from_indices(self._data)))
 
     def __len__(self):
         """Returns length of data."""
@@ -1185,13 +1233,13 @@ class ArraySequenceBase(object):
               returns a label str
         """
 
-        label = '0'
+        label = "0"
 
         if make_seqlabel is not None:
             label = make_seqlabel(self)
-        elif hasattr(self, 'label') and self.label:
+        elif hasattr(self, "label") and self.label:
             label = self.label
-        elif hasattr(self, 'name') and self.name:
+        elif hasattr(self, "name") and self.name:
             label = self.name
 
         return alignment_to_fasta({label: str(self)}, block_size=block_size)
@@ -1222,16 +1270,16 @@ class ArraySequenceBase(object):
         result = zeros(num_words)
         for i in range(k):
             if overlapping:
-                curr_slice = seq[i:i + num_words]
+                curr_slice = seq[i : i + num_words]
             else:
-                curr_slice = seq[i:last_index + i:k]
+                curr_slice = seq[i : last_index + i : k]
             result *= alpha_len
             result += curr_slice
         return result
 
     def __iter__(self):
         """iter returns characters of self, rather than slices."""
-        if hasattr(self.alphabet, 'to_string'):
+        if hasattr(self.alphabet, "to_string"):
             return iter(self.alphabet.to_string(self._data))
         else:
             return iter(self.Alpabet.from_indices(self._data))
@@ -1274,16 +1322,16 @@ class ArraySequenceBase(object):
 
     def degap(self):
         """Returns ungapped copy of self, not changing alphabet."""
-        if not hasattr(self.alphabet, 'gap') or self.alphabet.gap is None:
+        if not hasattr(self.alphabet, "gap") or self.alphabet.gap is None:
             return self.copy()
         d = take(self._data, nonzero(logical_not(self.gap_array()))[0])
-        return self.__class__(d, alphabet=self.alphabet, name=self.name,
-                              info=self.info)
+        return self.__class__(d, alphabet=self.alphabet, name=self.name, info=self.info)
 
     def copy(self):
         """Returns copy of self, always separate object."""
-        return self.__class__(self._data.copy(), alphabet=self.alphabet,
-                              name=self.name, info=self.info)
+        return self.__class__(
+            self._data.copy(), alphabet=self.alphabet, name=self.name, info=self.info
+        )
 
     def __contains__(self, item):
         """Returns true if item in self (converts to strings)."""
@@ -1291,8 +1339,7 @@ class ArraySequenceBase(object):
 
     def disambiguate(self, *args, **kwargs):
         """Disambiguates self using strings/moltype. Should recode if demand."""
-        return self.__class__(self.moltype.disambiguate(str(self),
-                                                        *args, **kwargs))
+        return self.__class__(self.moltype.disambiguate(str(self), *args, **kwargs))
 
     def distance(self, other, function=None, use_indices=False):
         """Returns distance between self and other using function(i,j).
@@ -1331,19 +1378,18 @@ class ArraySequenceBase(object):
         if function is None:
             # use identity scoring
             shortest = min(len(self), len(other))
-            if not hasattr(other, '_data'):
+            if not hasattr(other, "_data"):
                 other = self.__class__(other)
-            distance = (self._data[:shortest] !=
-                        other._data[:shortest]).sum()
+            distance = (self._data[:shortest] != other._data[:shortest]).sum()
         else:
             distance = 0
             if use_indices:
                 self_seq = self._data
-                if hasattr(other, '_data'):
+                if hasattr(other, "_data"):
                     other_seq = other._data
             else:
                 self_seq = self.alphabet.from_indices(self._data)
-                if hasattr(other, '_data'):
+                if hasattr(other, "_data"):
                     other_seq = other.alphabet.from_indices(other._data)
                 else:
                     other_seq = other
@@ -1397,9 +1443,9 @@ class ArraySequenceBase(object):
         if not other:
             return 0
         self_gaps = self.gap_array()
-        if hasattr(other, 'gap_array'):
+        if hasattr(other, "gap_array"):
             other_gaps = other.gap_array()
-        elif hasattr(other, 'gap_vector'):
+        elif hasattr(other, "gap_vector"):
             other_gaps = array(other.gap_vector())
         else:
             other_gaps = array(self.moltype.gap_vector(other))
@@ -1440,8 +1486,7 @@ class ArraySequence(ArraySequenceBase, SequenceI):
         for resolving degenerates are complex. This could be optimized if
         speed becomes critical.
         """
-        return self.__class__(self.moltype.strip_degenerate(str(self)),
-                              info=self.info)
+        return self.__class__(self.moltype.strip_degenerate(str(self)), info=self.info)
 
     def count_gaps(self):
         """Returns count of gaps in self."""
@@ -1456,8 +1501,10 @@ class ArraySequence(ArraySequenceBase, SequenceI):
         nongaps = logical_not(self.gap_array())
         indices = arange(len(self)).compress(nongaps)
         new_indices = arange(len(indices))
-        return dict(list(zip(new_indices, indices))), dict(
-            list(zip(indices, new_indices)))
+        return (
+            dict(list(zip(new_indices, indices))),
+            dict(list(zip(indices, new_indices))),
+        )
 
     def first_gap(self):
         """Returns position of first gap, or None."""
@@ -1501,8 +1548,9 @@ class ArraySequence(ArraySequenceBase, SequenceI):
         if not self or not other:
             return 0.0
 
-        return for_seq(f=lambda x, y: (x, y) in similar_pairs,
-                       normalizer=per_shortest)(str(self), str(other))
+        return for_seq(f=lambda x, y: (x, y) in similar_pairs, normalizer=per_shortest)(
+            str(self), str(other)
+        )
 
     def replace(self, oldchar, newchar):
         """return new instance with oldchar replaced by newchar"""
@@ -1519,16 +1567,18 @@ class ArrayNucleicAcidSequence(ArraySequence):
     def to_codons(self):
         """Returns copy of self in codon alphabet. Assumes ungapped."""
         alpha_len = len(self.alphabet)
-        return ArrayCodonSequence(alpha_len * (
-                alpha_len * self._data[::3] + self._data[1::3]) + self._data[
-                                                                  2::3],
-                                  name=self.name,
-                                  alphabet=self.alphabet.Triples)
+        return ArrayCodonSequence(
+            alpha_len * (alpha_len * self._data[::3] + self._data[1::3])
+            + self._data[2::3],
+            name=self.name,
+            alphabet=self.alphabet.Triples,
+        )
 
     def complement(self):
         """Returns complement of sequence"""
-        return self.__class__(self.alphabet._complement_array.take(self._data),
-                              info=self.info)
+        return self.__class__(
+            self.alphabet._complement_array.take(self._data), info=self.info
+        )
 
     def rc(self):
         """Returns reverse-complement of sequence"""
@@ -1548,43 +1598,40 @@ class ArrayRnaSequence(ArrayNucleicAcidSequence):
     moltype = None  # set to RNA in moltype.py
     alphabet = None  # set to RNA.alphabets.degen_gapped in moltype.py
 
-    def __init__(self, data='', *args, **kwargs):
+    def __init__(self, data="", *args, **kwargs):
         """Returns new ArrayRnaSequence, converting T -> U"""
-        if hasattr(data, 'upper'):
-            data = data.upper().replace('T', 'U')
-        return super(ArrayNucleicAcidSequence, self).__init__(data,
-                                                              *args, **kwargs)
+        if hasattr(data, "upper"):
+            data = data.upper().replace("T", "U")
+        return super(ArrayNucleicAcidSequence, self).__init__(data, *args, **kwargs)
 
 
 class ArrayDnaSequence(ArrayNucleicAcidSequence):
     moltype = None  # set to DNA in moltype.py
     alphabet = None  # set to DNA.alphabets.degen_gapped in moltype.py
 
-    def __init__(self, data='', *args, **kwargs):
+    def __init__(self, data="", *args, **kwargs):
         """Returns new ArrayRnaSequence, converting U -> T"""
-        if hasattr(data, 'upper'):
-            data = data.upper().replace('U', 'T')
-        return super(ArrayNucleicAcidSequence, self).__init__(data,
-                                                              *args, **kwargs)
+        if hasattr(data, "upper"):
+            data = data.upper().replace("U", "T")
+        return super(ArrayNucleicAcidSequence, self).__init__(data, *args, **kwargs)
 
 
 class ArrayCodonSequence(ArraySequence):
     """Abstract base class for codon sequences, incl. string conversion."""
+
     SequenceClass = ArrayNucleicAcidSequence
 
     def __str__(self):
         """Joins triplets together as string."""
-        return self.Delimiter.join(map(''.join,
-                                       self.alphabet.from_indices(self._data)))
+        return self.Delimiter.join(map("".join, self.alphabet.from_indices(self._data)))
 
     def _from_string(self, s):
         """Reads from a raw string, rather than a DnaSequence."""
-        s = s.upper().replace('U', 'T')  # convert to uppercase DNA
-        d = self.SequenceClass(s,
-                               alphabet=self.alphabet.sub_enumerations[0])
+        s = s.upper().replace("U", "T")  # convert to uppercase DNA
+        d = self.SequenceClass(s, alphabet=self.alphabet.sub_enumerations[0])
         self._data = d.to_codons()._data
 
-    def __init__(self, data='', alphabet=None, name=None, info=None):
+    def __init__(self, data="", alphabet=None, name=None, info=None):
         """Override __init__ to handle init from string."""
         if isinstance(data, str):
             self._from_string(data)
@@ -1615,20 +1662,21 @@ class ArrayCodonSequence(ArraySequence):
 
 class ArrayDnaCodonSequence(ArrayCodonSequence):
     """Holds non-degenerate DNA codon sequence."""
+
     alphabet = None  # set to DNA.alphabets.base.Triples in moltype.py
     SequenceClass = ArrayDnaSequence
 
 
 class ArrayRnaCodonSequence(ArrayCodonSequence):
     """Holds non-degenerate DNA codon sequence."""
+
     alphabet = None  # set to RNA.alphabets.base.Triples in motype.py
     SequenceClass = ArrayRnaSequence
 
     def _from_string(self, s):
         """Reads from a raw string, rather than a DnaSequence."""
-        s = s.upper().replace('T', 'U')  # convert to uppercase DNA
-        d = self.SequenceClass(s,
-                               alphabet=self.alphabet.sub_enumerations[0])
+        s = s.upper().replace("T", "U")  # convert to uppercase DNA
+        d = self.SequenceClass(s, alphabet=self.alphabet.sub_enumerations[0])
         self._data = d.to_codons()._data
 
 

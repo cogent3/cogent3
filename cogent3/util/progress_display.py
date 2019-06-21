@@ -1,10 +1,13 @@
-import time
 import functools
-import threading
-import sys
 import io
+import sys
+import threading
+import time
+
 from tqdm import tqdm, tqdm_notebook
+
 from cogent3.util import parallel as PAR
+
 
 __author__ = "Sheng Han Moses Koh"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -21,12 +24,12 @@ class LogFileOutput:
 
     def __init__(self, **kw):
         self.n = 0
-        self.message = ''
+        self.message = ""
         self.t0 = time.time()
-        self.lpad = ''
+        self.lpad = ""
         self.output = sys.stdout  # sys.stderr
 
-    def set_description(self, desc='', refresh=False):
+    def set_description(self, desc="", refresh=False):
         self.message = desc
 
     def close(self):
@@ -34,16 +37,16 @@ class LogFileOutput:
 
     def refresh(self):
         if self.message:
-            delta = '+%s' % int(time.time() - self.t0)
+            delta = "+%s" % int(time.time() - self.t0)
             progress = int(100 * self.n + 0.5)
-            print("%s %5s %3i%% %s" % (
-                self.lpad, delta, progress,
-                str(self.message)), file=self.output)
+            print(
+                "%s %5s %3i%% %s" % (self.lpad, delta, progress, str(self.message)),
+                file=self.output,
+            )
 
 
 class ProgressContext:
-    def __init__(self, progress_bar_type=None, depth=-1,
-                 message=None, mininterval=1.0):
+    def __init__(self, progress_bar_type=None, depth=-1, message=None, mininterval=1.0):
         self.progress_bar_type = progress_bar_type
         self.progress_bar = None
         self.progress = 0
@@ -53,18 +56,21 @@ class ProgressContext:
 
     def set_new_progress_bar(self):
         if self.progress_bar_type:
-            self.progress_bar = self.progress_bar_type(total=1,
-                                                       position=self.depth,
-                                                       leave=True,
-                                                       bar_format='{desc} {percentage:3.0f}%|{bar}| ',
-                                                       mininterval=self.mininterval)
+            self.progress_bar = self.progress_bar_type(
+                total=1,
+                position=self.depth,
+                leave=True,
+                bar_format="{desc} {percentage:3.0f}%|{bar}| ",
+                mininterval=self.mininterval,
+            )
 
     def subcontext(self, *args, **kw):
         return ProgressContext(
             progress_bar_type=self.progress_bar_type,
             depth=self.depth + 1,
             message=self.message,
-            mininterval=self.mininterval)
+            mininterval=self.mininterval,
+        )
 
     def display(self, msg=None, progress=None):
         if not self.progress_bar:
@@ -78,8 +84,7 @@ class ProgressContext:
             self.progress_bar.n = 1
         if msg is not None and msg != self.message:
             self.message = msg
-            self.progress_bar.set_description(self.message,
-                                              refresh=False)
+            self.progress_bar.set_description(self.message, refresh=False)
             updated = True
         if updated:
             self.progress_bar.refresh()
@@ -89,12 +94,11 @@ class ProgressContext:
             self.progress_bar.close()
             self.progress_bar = None
 
-    def series(self, items, noun='', labels=None, start=None, end=1.0,
-               count=None):
+    def series(self, items, noun="", labels=None, start=None, end=1.0, count=None):
         """Wrap a looped-over list with a progress bar"""
         # todo optimise label creation
         if count is None:
-            if not hasattr(items, '__len__'):
+            if not hasattr(items, "__len__"):
                 items = list(items)
             count = len(items)
         if start is None:
@@ -103,15 +107,14 @@ class ProgressContext:
         if labels:
             assert len(labels) == count
         elif count == 1:
-            labels = ['']
+            labels = [""]
         else:
             if noun:
-                noun += ' '
-            template = '%s%%%sd/%s' % (noun, len(str(count)), count)
+                noun += " "
+            template = "%s%%%sd/%s" % (noun, len(str(count)), count)
             labels = [template % (i + 1) for i in range(0, count)]
         for (i, item) in enumerate(items):
-            self.display(msg=labels[i], progress=start +
-                                                 step * i)
+            self.display(msg=labels[i], progress=start + step * i)
             yield item
         self.display(progress=end)
 
@@ -170,7 +173,7 @@ def display_wrap(slow_function):
 
     @functools.wraps(slow_function)
     def f(*args, **kw):
-        if getattr(CURRENT, 'context', None) is None:
+        if getattr(CURRENT, "context", None) is None:
             if sys.stdout.isatty():
                 klass = tqdm
             elif using_notebook():
@@ -185,12 +188,12 @@ def display_wrap(slow_function):
             else:
                 CURRENT.context = ProgressContext(klass)
         parent = CURRENT.context
-        show_progress = kw.pop('show_progress', None)
+        show_progress = kw.pop("show_progress", None)
         if show_progress is False:
             subcontext = NULL_CONTEXT
         else:
             subcontext = parent.subcontext()
-        kw['ui'] = CURRENT.context = subcontext
+        kw["ui"] = CURRENT.context = subcontext
         try:
             result = slow_function(*args, **kw)
         finally:
@@ -212,8 +215,8 @@ def subdemo(ui):
 def demo(ui):
     ui.write("non-linebuffered output, tricky but look:")
     for i in ui.series(list(range(10))):
-        time.sleep(.6)
-        for i in imap(fun, [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]):
+        time.sleep(0.6)
+        for i in imap(fun, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]):
             ui.write(str(i))
         ui.write(str(i) + ".")
     ui.write("done")
@@ -221,12 +224,14 @@ def demo(ui):
 
 @display_wrap
 def imap(f, s, ui):
-    for result in ui.imap(f,s):
+    for result in ui.imap(f, s):
         yield result
+
 
 def fun(inp):
     time.sleep(0.1)
     return inp
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     demo()

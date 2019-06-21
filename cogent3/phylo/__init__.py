@@ -1,7 +1,14 @@
 #!/usr/bin/env python
 
-__all__ = ['consensus', 'distance', 'least_squares', 'maximum_likelihood',
-           'nj', 'tree_space', 'util']
+__all__ = [
+    "consensus",
+    "distance",
+    "least_squares",
+    "maximum_likelihood",
+    "nj",
+    "tree_space",
+    "util",
+]
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2016, The Cogent Project"

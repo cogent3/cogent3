@@ -1,16 +1,23 @@
-from .substitution_model import (_SubstitutionModel, _ContinuousSubstitutionModel,
-                                 Parametric, TimeReversibleNucleotide, Stationary,
-                                 _Codon)
+import numpy
+
+from cogent3.core import moltype
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
 from cogent3.evolve.predicate import MotifChange
-import numpy
 from cogent3.maths.optimisers import ParameterOutOfBoundsError
-from cogent3.core import moltype
+
+from .substitution_model import (
+    Parametric,
+    Stationary,
+    TimeReversibleNucleotide,
+    _Codon,
+    _ContinuousSubstitutionModel,
+    _SubstitutionModel,
+)
+
 
 __author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__contributors__ = ["Gavin Huttley", "Peter Maxwell",
-                    "Ben Kaeheler", "Ananias Iliadis"]
+__contributors__ = ["Gavin Huttley", "Peter Maxwell", "Ben Kaeheler", "Ananias Iliadis"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
@@ -19,11 +26,13 @@ __status__ = "Production"
 
 
 def _gen_sym_preds():
-    pair = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G'}
+    pair = {"A": "T", "T": "A", "G": "C", "C": "G"}
     sym_preds = []
-    for f, t in 'AG', 'AT', 'CG', 'CT', 'GT':
-        sym_preds.append(MotifChange(f, t, forward_only=True) |
-                         MotifChange(pair[f], pair[t], forward_only=True))
+    for f, t in "AG", "AT", "CG", "CT", "GT":
+        sym_preds.append(
+            MotifChange(f, t, forward_only=True)
+            | MotifChange(pair[f], pair[t], forward_only=True)
+        )
     return sym_preds
 
 
@@ -50,7 +59,7 @@ class General(Parametric):
         for (i, x) in enumerate(alphabet):
             for j in numpy.flatnonzero(mask[i]):
                 y = alphabet[j]
-                self.parameter_order.append('%s/%s' % (x, y))
+                self.parameter_order.append("%s/%s" % (x, y))
                 self.param_pick[i, j] = len(self.parameter_order)
         if self._do_scaling:
             const_param = self.parameter_order.pop()
@@ -87,7 +96,7 @@ class GeneralStationary(Stationary):
 
             for (i, j) in inst:
                 (x, y) = [alphabet[k] for k in [i, j]]
-                self.parameter_order.append('%s/%s' % (x, y))
+                self.parameter_order.append("%s/%s" % (x, y))
                 self.param_pick[i, j] = len(self.parameter_order)
         if self._do_scaling:
             const_param = self.parameter_order.pop()
@@ -124,8 +133,11 @@ class DiscreteSubstitutionModel(_SubstitutionModel):
         assert word_probs is mprobs_matrix, "Must use simple mprob model"
         motifs = tuple(self.get_alphabet())
         return PsubMatrixDefn(
-            name="psubs", dimension=('motif', motifs), default=None,
-            dimensions=('locus', 'edge'))
+            name="psubs",
+            dimension=("motif", motifs),
+            default=None,
+            dimensions=("locus", "edge"),
+        )
 
 
 class NonReversibleNucleotide(Parametric):
@@ -139,16 +151,14 @@ class NonReversibleDinucleotide(Parametric):
     """A dinucleotide substitution model."""
 
     def __init__(self, *args, **kw):
-        Parametric.__init__(
-            self, moltype.DNA.alphabet, motif_length=2, *args, **kw)
+        Parametric.__init__(self, moltype.DNA.alphabet, motif_length=2, *args, **kw)
 
 
 class NonReversibleTrinucleotide(Parametric):
     """A trinucleotide substitution model."""
 
     def __init__(self, *args, **kw):
-        Parametric.__init__(
-            self, moltype.DNA.alphabet, motif_length=3, *args, **kw)
+        Parametric.__init__(self, moltype.DNA.alphabet, motif_length=3, *args, **kw)
 
 
 class NonReversibleCodon(_Codon, Parametric):
@@ -161,15 +171,15 @@ class NonReversibleCodon(_Codon, Parametric):
 
 class StrandSymmetric(NonReversibleNucleotide):
     def __init__(self, **kw):
-        for argname in ('predicates', 'recode_gaps', 'model_gaps',
-                        'do_scaling'):
+        for argname in ("predicates", "recode_gaps", "model_gaps", "do_scaling"):
             kw.pop(argname, None)
         super(StrandSymmetric, self).__init__(
             predicates=_sym_preds,
             recode_gaps=True,
             model_gaps=False,
             do_scaling=True,
-            **kw)
+            **kw,
+        )
 
 
 class NonReversibleProtein(Parametric):
@@ -178,5 +188,5 @@ class NonReversibleProtein(Parametric):
     def __init__(self, with_selenocysteine=False, *args, **kw):
         alph = moltype.PROTEIN.alphabet
         if not with_selenocysteine:
-            alph = alph.get_subset('U', excluded=True)
+            alph = alph.get_subset("U", excluded=True)
         Parametric.__init__(self, alph, *args, **kw)

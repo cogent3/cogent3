@@ -2,9 +2,11 @@
 
 import numpy
 
+from cogent3.evolve import substitution_model
+
+
 Float = numpy.core.numerictypes.sctype2char(float)
 
-from cogent3.evolve import substitution_model
 
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -15,7 +17,7 @@ __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"
 
-three_letter_order = 'ARNDCQEGHILKMFPSTWYV'
+three_letter_order = "ARNDCQEGHILKMFPSTWYV"
 aa_order = numpy.array([ord(aa) for aa in three_letter_order])
 reorder = numpy.argsort(aa_order)
 

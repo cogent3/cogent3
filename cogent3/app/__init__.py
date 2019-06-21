@@ -1,6 +1,7 @@
 from warnings import filterwarnings
 
-filterwarnings('ignore', 'Not using MPI')
+
+filterwarnings("ignore", "Not using MPI")
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -11,4 +12,4 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
-__all__ = ['composable', 'translate', 'sample', 'tree', 'dist', 'align', 'io']
+__all__ = ["composable", "translate", "sample", "tree", "dist", "align", "io"]

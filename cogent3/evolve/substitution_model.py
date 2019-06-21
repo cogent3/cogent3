@@ -30,33 +30,55 @@ called Q) is determined.
 >>> parameter_controller = model.make_likelihood_function(tree)
 """
 
-import numpy
-from numpy.linalg import svd
-from cogent3.util.misc import extend_docstring_from
-import warnings
 import inspect
 import json
+import warnings
+
+from collections.abc import Callable
+
+import numpy
+
+from numpy.linalg import svd
 
 from cogent3 import LoadTable
 from cogent3.core import moltype
-from cogent3.evolve import parameter_controller, predicate, motif_prob_model
-from cogent3.evolve.substitution_calculation import (
-    SubstitutionParameterDefn as ParamDefn,
-    RateDefn, LengthDefn, ProductDefn, CallDefn, CalcDefn,
-    PartitionDefn, NonParamDefn, AlignmentAdaptDefn, ExpDefn,
-    ConstDefn, GammaDefn, MonotonicDefn, SelectForDimension,
-    WeightedPartitionDefn)
+from cogent3.evolve import motif_prob_model, parameter_controller, predicate
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
+from cogent3.evolve.substitution_calculation import (
+    AlignmentAdaptDefn,
+    CalcDefn,
+    CallDefn,
+    ConstDefn,
+    ExpDefn,
+    GammaDefn,
+    LengthDefn,
+    MonotonicDefn,
+    NonParamDefn,
+    PartitionDefn,
+    ProductDefn,
+    RateDefn,
+    SelectForDimension,
+)
+from cogent3.evolve.substitution_calculation import (
+    SubstitutionParameterDefn as ParamDefn,
+)
+from cogent3.evolve.substitution_calculation import WeightedPartitionDefn
 from cogent3.maths.optimisers import ParameterOutOfBoundsError
-from cogent3.util.misc import get_object_provenance
-from collections.abc import Callable
+from cogent3.util.misc import extend_docstring_from, get_object_provenance
+
 
 __author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__contributors__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell",
-                    "Matthew Wakefield", "Brett Easton", "Rob Knight",
-                    "Von Bing Yap"]
+__contributors__ = [
+    "Gavin Huttley",
+    "Andrew Butterfield",
+    "Peter Maxwell",
+    "Matthew Wakefield",
+    "Brett Easton",
+    "Rob Knight",
+    "Von Bing Yap",
+]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
@@ -80,8 +102,7 @@ def redundancy_in_predicate_masks(preds):
     # there is some redundancy and the model will be overparameterised.
     if len(preds) <= 1:
         return 0
-    eqns = 1.0 * numpy.array([list(mask.flat)
-                              for mask in list(preds.values())])
+    eqns = 1.0 * numpy.array([list(mask.flat) for mask in list(preds.values())])
     svs = svd(eqns)[1]
     # count non-duplicate non-zeros singular values
     matrix_rank = len([sv for sv in svs if abs(sv) > 1e-8])
@@ -92,10 +113,13 @@ def _maxWidthIfTruncated(pars, delim, each):
     # 'pars' is an array of lists of strings, how long would the longest
     # list representation be if the strings were truncated at 'each'
     # characters and joined together with 'delim'.
-    return max([
-        sum([min(len(par), each) for par in par_list])
-        + len(delim) * (len(par_list) - 1)
-        for par_list in pars.flat])
+    return max(
+        [
+            sum([min(len(par), each) for par in par_list])
+            + len(delim) * (len(par_list) - 1)
+            for par_list in pars.flat
+        ]
+    )
 
 
 def _isSymmetrical(matrix):
@@ -106,12 +130,21 @@ class _SubstitutionModel(object):
     # Subclasses must provide
     #  .make_param_controller_defns()
 
-    def __init__(self, alphabet,
-                 motif_probs=None, optimise_motif_probs=False,
-                 equal_motif_probs=False, motif_probs_from_data=None,
-                 motif_probs_alignment=None, mprob_model=None,
-                 model_gaps=False, recode_gaps=False, motif_length=1,
-                 name="", motifs=None):
+    def __init__(
+        self,
+        alphabet,
+        motif_probs=None,
+        optimise_motif_probs=False,
+        equal_motif_probs=False,
+        motif_probs_from_data=None,
+        motif_probs_alignment=None,
+        mprob_model=None,
+        model_gaps=False,
+        recode_gaps=False,
+        motif_length=1,
+        name="",
+        motifs=None,
+    ):
         # subclasses can extend this incomplete docstring
         """
 
@@ -139,10 +172,11 @@ class _SubstitutionModel(object):
 
         """
         self._serialisable = locals()
-        self._serialisable.pop('self')
+        self._serialisable.pop("self")
         # MISC
-        assert len(alphabet) < 65, "Alphabet too big. Try explicitly "\
-            "setting alphabet to PROTEIN or DNA"
+        assert len(alphabet) < 65, (
+            "Alphabet too big. Try explicitly " "setting alphabet to PROTEIN or DNA"
+        )
 
         self.name = name
         self._optimise_motif_probs = optimise_motif_probs
@@ -171,28 +205,31 @@ class _SubstitutionModel(object):
 
         # MOTIF PROB ALPHABET MAPPING
         if mprob_model is None:
-            mprob_model = 'tuple' if self._word_length == 1 else 'conditional'
-        elif mprob_model == 'word':
-            mprob_model = 'tuple'
+            mprob_model = "tuple" if self._word_length == 1 else "conditional"
+        elif mprob_model == "word":
+            mprob_model = "tuple"
 
-        if model_gaps and mprob_model != 'tuple':
+        if model_gaps and mprob_model != "tuple":
             raise ValueError("mprob_model must be 'tuple' to model gaps")
 
         isinst = self._is_instantaneous
         self._instantaneous_mask = predicate2matrix(self.alphabet, isinst)
         self._instantaneous_mask_f = self._instantaneous_mask * 1.0
         self._mprob_model = mprob_model
-        self.mprob_model = motif_prob_model.make_model(mprob_model, alphabet,
-                                                       self._instantaneous_mask_f)
+        self.mprob_model = motif_prob_model.make_model(
+            mprob_model, alphabet, self._instantaneous_mask_f
+        )
 
         # MOTIF PROBS
         if equal_motif_probs:
-            assert not (motif_probs or motif_probs_alignment), \
-                "Motif probs equal or provided but not both"
+            assert not (
+                motif_probs or motif_probs_alignment
+            ), "Motif probs equal or provided but not both"
             motif_probs = self.mprob_model.make_equal_motif_probs()
         elif motif_probs_alignment is not None:
-            assert not motif_probs, \
-                "Motif probs from alignment or provided but not both"
+            assert (
+                not motif_probs
+            ), "Motif probs from alignment or provided but not both"
             motif_probs = self.count_motifs(motif_probs_alignment)
             motif_probs = motif_probs.astype(float) / sum(motif_probs)
             assert len(alphabet) == len(motif_probs)
@@ -217,30 +254,32 @@ class _SubstitutionModel(object):
         if not for_pickle:
             for key, value in data.items():
                 type_ = get_object_provenance(value)
-                if type_.startswith('cogent3'):
+                if type_.startswith("cogent3"):
                     try:
                         value = value.to_rich_dict(for_pickle=False)
                     except AttributeError:
                         pass
                     finally:
                         data[key] = value
-            if 'predicates' in data and data['predicates']:
-                data['predicates'] = [str(p) for p in data['predicates']]
-            data['type'] = get_object_provenance(self)
+            if "predicates" in data and data["predicates"]:
+                data["predicates"] = [str(p) for p in data["predicates"]]
+            data["type"] = get_object_provenance(self)
         return data
 
     def to_json(self):
         """returns result of json formatted string"""
         data = self.to_rich_dict(for_pickle=False)
-        return json.dumps(data)        
+        return json.dumps(data)
 
     def get_param_list(self):
         return []
 
     def __str__(self):
         s = ["\n%s (" % self.__class__.__name__]
-        s.append("name = '%s'; type = '%s';" %
-                 (getattr(self, "name", None), getattr(self, "type", None)))
+        s.append(
+            "name = '%s'; type = '%s';"
+            % (getattr(self, "name", None), getattr(self, "type", None))
+        )
         if hasattr(self, "predicate_masks"):
             parlist = list(self.predicate_masks.keys())
             s.append("params = %s;" % parlist)
@@ -268,9 +307,17 @@ class _SubstitutionModel(object):
     def set_param_controller_motif_probs(self, pc, mprobs, **kw):
         return self.mprob_model.set_param_controller_motif_probs(pc, mprobs, **kw)
 
-    def make_likelihood_function(self, tree, motif_probs_from_align=None,
-                                 optimise_motif_probs=None, aligned=True, expm=None, digits=None,
-                                 space=None, **kw):
+    def make_likelihood_function(
+        self,
+        tree,
+        motif_probs_from_align=None,
+        optimise_motif_probs=None,
+        aligned=True,
+        expm=None,
+        digits=None,
+        space=None,
+        **kw,
+    ):
 
         if motif_probs_from_align is None:
             motif_probs_from_align = self.motif_probs_from_align
@@ -278,8 +325,8 @@ class _SubstitutionModel(object):
         if optimise_motif_probs is None:
             optimise_motif_probs = self._optimise_motif_probs
 
-        kw['optimise_motif_probs'] = optimise_motif_probs
-        kw['motif_probs_from_align'] = motif_probs_from_align
+        kw["optimise_motif_probs"] = optimise_motif_probs
+        kw["motif_probs_from_align"] = motif_probs_from_align
 
         if aligned:
             klass = parameter_controller.AlignmentLikelihoodFunction
@@ -292,7 +339,8 @@ class _SubstitutionModel(object):
 
         if self.motif_probs is not None:
             result.set_motif_probs(
-                self.motif_probs, is_constant=not optimise_motif_probs, auto=True)
+                self.motif_probs, is_constant=not optimise_motif_probs, auto=True
+            )
 
         if expm is None:
             expm = self._default_expm_setting
@@ -318,11 +366,12 @@ class _SubstitutionModel(object):
         return make_likelihood_tree_leaf(sequence, self.get_alphabet(), name)
 
     def count_motifs(self, alignment, include_ambiguity=False):
-        return self.mprob_model.count_motifs(alignment,
-                                             include_ambiguity, self.recode_gaps)
+        return self.mprob_model.count_motifs(
+            alignment, include_ambiguity, self.recode_gaps
+        )
 
     def make_alignment_defn(self, model):
-        align = NonParamDefn('alignment', ('locus',))
+        align = NonParamDefn("alignment", ("locus",))
         # The name of this matters, it's used in likelihood_function.py
         # to retrieve the correct (adapted) alignment.
         return AlignmentAdaptDefn(model, align)
@@ -341,36 +390,42 @@ class _SubstitutionModel(object):
         return self.mprob_model.calc_word_weight_matrix(monomer_probs)
 
     def make_param_controller_defns(self, bin_names, endAtQd=False):
-        (input_probs, word_probs, mprobs_matrix) = \
-            self.mprob_model.make_motif_word_prob_defns()
+        (
+            input_probs,
+            word_probs,
+            mprobs_matrix,
+        ) = self.mprob_model.make_motif_word_prob_defns()
 
         if len(bin_names) > 1:
             bprobs = PartitionDefn(
-                [1.0 / len(bin_names) for bin in bin_names], name="bprobs",
-                dimensions=['locus'], dimension=('bin', bin_names))
+                [1.0 / len(bin_names) for bin in bin_names],
+                name="bprobs",
+                dimensions=["locus"],
+                dimension=("bin", bin_names),
+            )
         else:
             bprobs = None
 
         defns = {
-            'align': self.make_alignment_defn(ConstDefn(self, 'model')),
-            'bprobs': bprobs,
-            'word_probs': word_probs,
+            "align": self.make_alignment_defn(ConstDefn(self, "model")),
+            "bprobs": bprobs,
+            "word_probs": word_probs,
         }
 
         rate_params = self.make_rate_params(bprobs)
         if endAtQd:
-            defns['Qd'] = self.make_Qd_defn(
-                word_probs, mprobs_matrix, rate_params)
+            defns["Qd"] = self.make_Qd_defn(word_probs, mprobs_matrix, rate_params)
         else:
-            defns['psubs'] = self.make_psubs_defn(
-                bprobs, word_probs, mprobs_matrix, rate_params)
+            defns["psubs"] = self.make_psubs_defn(
+                bprobs, word_probs, mprobs_matrix, rate_params
+            )
         return defns
 
 
 def non_zero_coords(matrix):
     dim = matrix.shape[0]
     coords = [(i, j) for i in range(dim) for j in range(dim) if matrix[i, j] != 0]
-    return coords    
+    return coords
 
 
 class _ContinuousSubstitutionModel(_SubstitutionModel):
@@ -393,11 +448,19 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
 
     _scalableQ = True
     _exponentiator = None
-    _default_expm_setting = 'either'
+    _default_expm_setting = "either"
 
     @extend_docstring_from(_SubstitutionModel.__init__)
-    def __init__(self, alphabet, with_rate=False, ordered_param=None,
-                 distribution=None, partitioned_params=None, do_scaling=None, **kw):
+    def __init__(
+        self,
+        alphabet,
+        with_rate=False,
+        ordered_param=None,
+        distribution=None,
+        partitioned_params=None,
+        do_scaling=None,
+        **kw,
+    ):
         """
          - with_rate: Add a 'rate' parameter which varies by bin.
          - ordered_param: name of a single parameter which distinguishes any bins.
@@ -410,30 +473,28 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
 
         _SubstitutionModel.__init__(self, alphabet, **kw)
         self._serialisable.update(locals())
-        self._serialisable.pop('self')
+        self._serialisable.pop("self")
         alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
 
         if do_scaling is None:
             do_scaling = self._scalableQ
         if do_scaling and not self._scalableQ:
-            raise ValueError("Can't autoscale a %s model" %
-                             type(self).__name__)
+            raise ValueError("Can't autoscale a %s model" % type(self).__name__)
         self._do_scaling = do_scaling
 
         # BINS
         if not ordered_param:
             if ordered_param is not None:
-                warnings.warn('ordered_param should be a string or None')
+                warnings.warn("ordered_param should be a string or None")
                 ordered_param = None
             if distribution:
                 if with_rate:
-                    ordered_param = 'rate'
+                    ordered_param = "rate"
                 else:
-                    raise ValueError(
-                        'distribution provided without ordered_param')
+                    raise ValueError("distribution provided without ordered_param")
         elif not isinstance(ordered_param, str):
-            warnings.warn('ordered_param should be a string or None')
-            assert len(ordered_param) == 1, 'More than one ordered_param'
+            warnings.warn("ordered_param should be a string or None")
+            assert len(ordered_param) == 1, "More than one ordered_param"
             ordered_param = ordered_param[0]
             assert ordered_param, "False value hidden in list"
         self.ordered_param = ordered_param
@@ -457,7 +518,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
                 partitioned_params += (self.ordered_param,)
         self.partitioned_params = partitioned_params
 
-        if 'rate' in partitioned_params:
+        if "rate" in partitioned_params:
             with_rate = True
         self.with_rate = with_rate
 
@@ -469,14 +530,17 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         """Raise an error if the parameters specified to be partitioned or
         ordered don't actually exist."""
         for param in self.partitioned_params:
-            if param not in self.parameter_order and param != 'rate':
-                desc = ['partitioned', 'ordered'][param == self.ordered_param]
+            if param not in self.parameter_order and param != "rate":
+                desc = ["partitioned", "ordered"][param == self.ordered_param]
                 raise ValueError('%s param "%s" unknown' % (desc, param))
 
     def _is_instantaneous(self, x, y):
         diffs = sum([X != Y for (X, Y) in zip(x, y)])
-        return diffs == 1 or (diffs > 1 and
-                              self.long_indels_are_instantaneous and self._is_any_indel(x, y))
+        return diffs == 1 or (
+            diffs > 1
+            and self.long_indels_are_instantaneous
+            and self._is_any_indel(x, y)
+        )
 
     def _is_any_indel(self, x, y):
         """An indel of any length"""
@@ -507,7 +571,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         if self._do_scaling:
             Q *= 1.0 / (word_probs * row_totals).sum()
         return Q
-    
+
     def get_reference_cell(self):
         """returns the reference cell of a given model"""
         dim = len(self.alphabet)
@@ -527,25 +591,24 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
             coords = [(i, j) for i in range(dim) for j in range(dim) if m[i, j] != 0]
             coords = set(coords)
             param_coords[key] = coords
-    
+
         if include_ref_cell:
-            param_coords['ref_cell'] = self.get_reference_cell()
+            param_coords["ref_cell"] = self.get_reference_cell()
         return param_coords
 
     def make_Qd_defn(self, word_probs, mprobs_matrix, rate_params):
         """Diagonalized Q, ie: rate matrix prepared for exponentiation"""
-        Q = CalcDefn(self.calcQ, name='Q')(
-            word_probs, mprobs_matrix, *rate_params)
-        expm = NonParamDefn('expm')
+        Q = CalcDefn(self.calcQ, name="Q")(word_probs, mprobs_matrix, *rate_params)
+        expm = NonParamDefn("expm")
         exp = ExpDefn(expm)
-        Qd = CallDefn(exp, Q, name='Qd')
+        Qd = CallDefn(exp, Q, name="Qd")
         return Qd
 
     def _make_bin_param_defn(self, edge_par_name, bin_par_name, bprob_defn):
         # if no ordered param defined, behaves as old, everything indexed by
         # and edge
         if edge_par_name not in self.partitioned_params:
-            return ParamDefn(dimensions=['bin'], name=bin_par_name)
+            return ParamDefn(dimensions=["bin"], name=bin_par_name)
 
         if edge_par_name == self.ordered_param:
             whole = self.distrib_class(bprob_defn, bin_par_name)
@@ -553,9 +616,9 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
             # this forces them to average to one, but no forced order
             # this means you can't force a param value to be shared across bins
             # so 1st above approach has to be used
-            whole = WeightedPartitionDefn(bprob_defn, bin_par_name + '_partn')
+            whole = WeightedPartitionDefn(bprob_defn, bin_par_name + "_partn")
         whole.bin_names = bprob_defn.bin_names
-        return SelectForDimension(whole, 'bin', name=bin_par_name)
+        return SelectForDimension(whole, "bin", name=bin_par_name)
 
     def make_rate_params(self, bprobs):
         params = []
@@ -563,11 +626,12 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
             if bprobs is None or param_name not in self.partitioned_params:
                 defn = ParamDefn(param_name)
             else:
-                e_defn = ParamDefn(param_name, dimensions=['edge', 'locus'])
+                e_defn = ParamDefn(param_name, dimensions=["edge", "locus"])
                 # should be weighted by bprobs*rates not bprobs
                 b_defn = self._make_bin_param_defn(
-                    param_name, param_name + '_factor', bprobs)
-                defn = ProductDefn(b_defn, e_defn, name=param_name + '_BE')
+                    param_name, param_name + "_factor", bprobs
+                )
+                defn = ProductDefn(b_defn, e_defn, name=param_name + "_BE")
             params.append(defn)
         return params
 
@@ -575,33 +639,37 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         """Everything one step short of the psubs, because cogent3.align code
         needs to handle Q*t itself."""
         defns = self.make_param_controller_defns(bin_names, endAtQd=True)
-        assert 'length' not in defns
-        defns['length'] = LengthDefn()
+        assert "length" not in defns
+        defns["length"] = LengthDefn()
         return defns
 
     def make_psubs_defn(self, bprobs, word_probs, mprobs_matrix, rate_params):
         distance = self.make_distance_defn(bprobs)
         P = self.make_continuous_psub_defn(
-            word_probs, mprobs_matrix, distance, rate_params)
+            word_probs, mprobs_matrix, distance, rate_params
+        )
         return P
 
     def make_distance_defn(self, bprobs):
         length = LengthDefn()
         if self.with_rate and bprobs is not None:
-            b_rate = self._make_bin_param_defn('rate', 'rate', bprobs)
+            b_rate = self._make_bin_param_defn("rate", "rate", bprobs)
             distance = ProductDefn(length, b_rate, name="distance")
         else:
             distance = length
         return distance
 
-    def make_continuous_psub_defn(self, word_probs, mprobs_matrix, distance, rate_params):
+    def make_continuous_psub_defn(
+        self, word_probs, mprobs_matrix, distance, rate_params
+    ):
         Qd = self.make_Qd_defn(word_probs, mprobs_matrix, rate_params)
-        P = CallDefn(Qd, distance, name='psubs')
+        P = CallDefn(Qd, distance, name="psubs")
         return P
-    
+
+
 class StationaryQ:
     "Contains the Original Definition of calcQ"
-    
+
     def calcQ(self, word_probs, mprobs_matrix, *params):
         Q = self.calc_exchangeability_matrix(word_probs, *params)
         Q *= mprobs_matrix
@@ -609,10 +677,10 @@ class StationaryQ:
         Q -= numpy.diag(row_totals)
         if self._do_scaling:
             Q *= 1.0 / (word_probs * row_totals).sum()
-        return Q    
+        return Q
 
 
-class Empirical(StationaryQ,_ContinuousSubstitutionModel):
+class Empirical(StationaryQ, _ContinuousSubstitutionModel):
     """A continuous substitution model with a predefined instantaneous rate
     matrix."""
 
@@ -623,14 +691,14 @@ class Empirical(StationaryQ,_ContinuousSubstitutionModel):
         """
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
         self._serialisable.update(locals())
-        self._serialisable.pop('self')
+        self._serialisable.pop("self")
 
         alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
         N = len(alphabet)
         assert rate_matrix.shape == (N, N)
         assert numpy.alltrue(numpy.diagonal(rate_matrix) == 0)
         self._instantaneous_mask_f = rate_matrix * 1.0
-        self._instantaneous_mask = (self._instantaneous_mask_f != 0.0)
+        self._instantaneous_mask = self._instantaneous_mask_f != 0.0
         self.symmetric = _isSymmetrical(self._instantaneous_mask_f)
         self.parameter_order = []
         self.check_params_exist()
@@ -654,7 +722,7 @@ class Parametric(_ContinuousSubstitutionModel):
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
 
         self._serialisable.update(locals())
-        self._serialisable.pop('self')
+        self._serialisable.pop("self")
 
         (predicate_masks, predicate_order) = self._adapt_predicates(predicates or [])
 
@@ -673,14 +741,18 @@ class Parametric(_ContinuousSubstitutionModel):
             if redundancy_in_predicate_masks(predicate_masks):
                 raise ValueError("Redundancy in predicates.")
             if redundancy_in_predicate_masks(predicates_plus_scale):
-                raise ValueError("Some combination of predicates is"
-                                 " equivalent to the overall rate parameter.")
+                raise ValueError(
+                    "Some combination of predicates is"
+                    " equivalent to the overall rate parameter."
+                )
         else:
             if redundancy_in_predicate_masks(predicate_masks):
                 raise ValueError("Redundancy in predicates.")
             if redundancy_in_predicate_masks(predicates_plus_scale):
-                warnings.warn("do_scaling=True would be more efficient than"
-                              " these overly general predicates")
+                warnings.warn(
+                    "do_scaling=True would be more efficient than"
+                    " these overly general predicates"
+                )
 
         self.predicate_masks = predicate_masks
         self.parameter_order = []
@@ -704,7 +776,7 @@ class Parametric(_ContinuousSubstitutionModel):
             R[indices] *= par
         return R
 
-    def ascii_art(self, delim='', delim2='|', max_width=70, return_table=False):
+    def ascii_art(self, delim="", delim2="|", max_width=70, return_table=False):
         """An ASCII-art table representing the model.  'delim' delimits
         parameter names, 'delim2' delimits motifs"""
         labels = [m for m in self.alphabet]
@@ -712,17 +784,18 @@ class Parametric(_ContinuousSubstitutionModel):
         rows = []
         for i, row in enumerate(pars):
             r = [labels[i]] + [delim.join(cell) for cell in row]
-            r[i + 1] = '*'  # identity
+            r[i + 1] = "*"  # identity
             rows.append(r)
 
-        labels.insert(0, r'From\To')
+        labels.insert(0, r"From\To")
         if self.name:
             title = "%s rate matrix" % self.name
         else:
             title = "rate matrix"
 
-        t = LoadTable(header=labels, rows=rows, max_width=max_width,
-                      title=title, row_ids=True)
+        t = LoadTable(
+            header=labels, rows=rows, max_width=max_width, title=title, row_ids=True
+        )
         result = t if return_table else t.tostring(center=True)
         return result
 
@@ -762,7 +835,8 @@ class Parametric(_ContinuousSubstitutionModel):
         lengths = {}
         for rule in self.scale_masks:
             lengths[rule] = length * self.get_scale_from_Qs(
-                [Q], [1.0], motif_probs, rule)
+                [Q], [1.0], motif_probs, rule
+            )
         return lengths
 
     def get_scale_from_Qs(self, Qs, bin_probs, motif_probss, rule):
@@ -779,7 +853,7 @@ class Parametric(_ContinuousSubstitutionModel):
 
     def get_predefined_predicates(self):
         # overridden in subclasses
-        return {'indel': predicate.parse('-/?')}
+        return {"indel": predicate.parse("-/?")}
 
     def get_predefined_predicate(self, name):
         # Called by predicate parsing code
@@ -811,7 +885,8 @@ class Parametric(_ContinuousSubstitutionModel):
         pred_func = pred.make_model_predicate(self)
         label = label or repr(pred)
         mask = predicate2matrix(
-            self.get_alphabet(), pred_func, mask=self._instantaneous_mask)
+            self.get_alphabet(), pred_func, mask=self._instantaneous_mask
+        )
         return (label, mask)
 
     def get_predicate_mask(self, pred):
@@ -824,7 +899,7 @@ class Parametric(_ContinuousSubstitutionModel):
         return mask
 
 
-class Stationary(StationaryQ,Parametric):
+class Stationary(StationaryQ, Parametric):
     def __init__(self, *args, **kw):
         Parametric.__init__(self, *args, **kw)
 
@@ -834,18 +909,18 @@ class TimeReversible(Stationary):
         """"""
         Stationary.__init__(self, *args, **kw)
         if not self.symmetric:
-            raise ValueError("TimeReversible exchangeability terms must be fully balanced")
-        
+            raise ValueError(
+                "TimeReversible exchangeability terms must be fully balanced"
+            )
+
 
 class _TimeReversibleNucleotide(TimeReversible):
-
     def get_predefined_predicates(self):
         return {
-            'transition': predicate.parse('R/R') | predicate.parse('Y/Y'),
-            'transversion': predicate.parse('R/Y'),
-            'indel': predicate.parse('-/?'),
-            'kappa': (predicate.parse('R/R') |
-                      predicate.parse('Y/Y')).aliased('kappa')
+            "transition": predicate.parse("R/R") | predicate.parse("Y/Y"),
+            "transversion": predicate.parse("R/Y"),
+            "indel": predicate.parse("-/?"),
+            "kappa": (predicate.parse("R/R") | predicate.parse("Y/Y")).aliased("kappa"),
         }
 
 
@@ -861,7 +936,8 @@ class TimeReversibleDinucleotide(_TimeReversibleNucleotide):
 
     def __init__(self, *args, **kw):
         _TimeReversibleNucleotide.__init__(
-            self, moltype.DNA.alphabet, motif_length=2, *args, **kw)
+            self, moltype.DNA.alphabet, motif_length=2, *args, **kw
+        )
 
 
 class TimeReversibleTrinucleotide(_TimeReversibleNucleotide):
@@ -869,7 +945,8 @@ class TimeReversibleTrinucleotide(_TimeReversibleNucleotide):
 
     def __init__(self, *args, **kw):
         _TimeReversibleNucleotide.__init__(
-            self, moltype.DNA.alphabet, motif_length=3, *args, **kw)
+            self, moltype.DNA.alphabet, motif_length=3, *args, **kw
+        )
 
 
 class TimeReversibleProtein(TimeReversible):
@@ -878,21 +955,34 @@ class TimeReversibleProtein(TimeReversible):
     def __init__(self, with_selenocysteine=False, *args, **kw):
         alph = moltype.PROTEIN.alphabet
         if not with_selenocysteine:
-            alph = alph.get_subset('U', excluded=True)
+            alph = alph.get_subset("U", excluded=True)
         TimeReversible.__init__(self, alph, *args, **kw)
 
 
-def EmpiricalProteinMatrix(matrix, motif_probs=None, optimise_motif_probs=False,
-                           recode_gaps=True, do_scaling=True, **kw):
-    alph = moltype.PROTEIN.alphabet.get_subset('U', excluded=True)
-    return Empirical(alph, rate_matrix=matrix, motif_probs=motif_probs,
-                     model_gaps=False, recode_gaps=recode_gaps, do_scaling=do_scaling,
-                     optimise_motif_probs=optimise_motif_probs, **kw)
-
+def EmpiricalProteinMatrix(
+    matrix,
+    motif_probs=None,
+    optimise_motif_probs=False,
+    recode_gaps=True,
+    do_scaling=True,
+    **kw,
+):
+    alph = moltype.PROTEIN.alphabet.get_subset("U", excluded=True)
+    return Empirical(
+        alph,
+        rate_matrix=matrix,
+        motif_probs=motif_probs,
+        model_gaps=False,
+        recode_gaps=recode_gaps,
+        do_scaling=do_scaling,
+        optimise_motif_probs=optimise_motif_probs,
+        **kw,
+    )
 
 
 class _CodonPredicates:
     """predicates for silent and replacement substitutions"""
+
     def __init__(self, gc):
         """
         Parameters
@@ -902,12 +992,12 @@ class _CodonPredicates:
             a genetic code instance
         """
         self.gc = gc
-    
+
     def silent(self, x, y):
-        return x != '---' and y != '---' and self.gc[x] == self.gc[y]
+        return x != "---" and y != "---" and self.gc[x] == self.gc[y]
 
     def replacement(self, x, y):
-        return x != '---' and y != '---' and self.gc[x] != self.gc[y]
+        return x != "---" and y != "---" and self.gc[x] != self.gc[y]
 
 
 class _Codon:
@@ -924,12 +1014,14 @@ class _Codon:
         codon_preds = _CodonPredicates(self.get_alphabet().get_genetic_code())
 
         preds = _TimeReversibleNucleotide.get_predefined_predicates(self)
-        preds.update({
-            'indel': predicate.parse('???/---'),
-            'silent': predicate.UserPredicate(codon_preds.silent),
-            'replacement': predicate.UserPredicate(codon_preds.replacement),
-            'omega': predicate.UserPredicate(codon_preds.replacement)
-        })
+        preds.update(
+            {
+                "indel": predicate.parse("???/---"),
+                "silent": predicate.UserPredicate(codon_preds.silent),
+                "replacement": predicate.UserPredicate(codon_preds.replacement),
+                "omega": predicate.UserPredicate(codon_preds.replacement),
+            }
+        )
         return preds
 
 
@@ -941,7 +1033,3 @@ class TimeReversibleCodon(_Codon, _TimeReversibleNucleotide):
             alphabet = moltype.CodonAlphabet(gc=gc)
         alphabet = alphabet or moltype.STANDARD_CODON
         _TimeReversibleNucleotide.__init__(self, alphabet, **kw)
-        
-
-    
-    

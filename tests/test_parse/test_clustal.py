@@ -1,11 +1,18 @@
 #!/usr/bin/env python
 """Unit tests for the clustal parsers.
 """
-from cogent3.parse.clustal import LabelLineParser, is_clustal_seq_line, \
-    last_space, delete_trailing_number, MinimalClustalParser
-from cogent3.parse.record import RecordError
 from unittest import TestCase, main
+
 from cogent3.core.alignment import Alignment
+from cogent3.parse.clustal import (
+    LabelLineParser,
+    MinimalClustalParser,
+    delete_trailing_number,
+    is_clustal_seq_line,
+    last_space,
+)
+from cogent3.parse.record import RecordError
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -21,8 +28,8 @@ __status__ = "Production"
 # base class. If the data were mutable, we'd need to take more precautions
 # to avoid crossover between tests.
 
-minimal = 'abc\tucag'
-two = 'abc\tuuu\ndef\tccc\n\n    ***\n\ndef ggg\nabc\taaa\n'.split('\n')
+minimal = "abc\tucag"
+two = "abc\tuuu\ndef\tccc\n\n    ***\n\ndef ggg\nabc\taaa\n".split("\n")
 
 real = """CLUSTAL W (1.82) multiple sequence alignment
 
@@ -40,11 +47,13 @@ xyz             -------------------------------------CAUGCAUCGUACGUACGCAUGAC 23
 abc             UGACUAGUCAGCUAGCAUCGAUCAGU 145
 def             CGAUCAGUCAGUCGAU---------- 34
 xyz             UGCUGCAUCA---------------- 33
-                *     ***""".split('\n')
+                *     ***""".split(
+    "\n"
+)
 
-bad = ['dshfjsdfhdfsj', 'hfsdjksdfhjsdf']
+bad = ["dshfjsdfhdfsj", "hfsdjksdfhjsdf"]
 
-space_labels = ['abc uca', 'def ggg ccc']
+space_labels = ["abc uca", "def ggg ccc"]
 
 
 class clustalTests(TestCase):
@@ -53,28 +62,28 @@ class clustalTests(TestCase):
     def test_is_clustal_seq_line(self):
         """is_clustal_seq_line should reject blanks and 'CLUSTAL'"""
         ic = is_clustal_seq_line
-        assert ic('abc')
-        assert ic('abc  def')
-        assert not ic('CLUSTAL')
-        assert not ic('CLUSTAL W fsdhicjkjsdk')
-        assert not ic('  *   *')
-        assert not ic(' abc def')
-        assert not ic('MUSCLE (3.41) multiple sequence alignment')
+        assert ic("abc")
+        assert ic("abc  def")
+        assert not ic("CLUSTAL")
+        assert not ic("CLUSTAL W fsdhicjkjsdk")
+        assert not ic("  *   *")
+        assert not ic(" abc def")
+        assert not ic("MUSCLE (3.41) multiple sequence alignment")
 
     def test_last_space(self):
         """last_space should split on last whitespace"""
-        self.assertEqual(last_space('a\t\t\t  b    c'), ['a b', 'c'])
-        self.assertEqual(last_space('xyz'), ['xyz'])
-        self.assertEqual(last_space('  a b'), ['a', 'b'])
+        self.assertEqual(last_space("a\t\t\t  b    c"), ["a b", "c"])
+        self.assertEqual(last_space("xyz"), ["xyz"])
+        self.assertEqual(last_space("  a b"), ["a", "b"])
 
     def test_delete_trailing_number(self):
         """delete_trailing_number should delete the trailing number if present"""
         dtn = delete_trailing_number
-        self.assertEqual(dtn('abc'), 'abc')
-        self.assertEqual(dtn('a b c'), 'a b c')
-        self.assertEqual(dtn('a \t  b  \t  c'), 'a \t  b  \t  c')
-        self.assertEqual(dtn('a b 3'), 'a b')
-        self.assertEqual(dtn('a b c \t 345'), 'a b c')
+        self.assertEqual(dtn("abc"), "abc")
+        self.assertEqual(dtn("a b c"), "a b c")
+        self.assertEqual(dtn("a \t  b  \t  c"), "a \t  b  \t  c")
+        self.assertEqual(dtn("a b 3"), "a b")
+        self.assertEqual(dtn("a b c \t 345"), "a b c")
 
 
 class MinimalClustalParserTests(TestCase):
@@ -88,35 +97,39 @@ class MinimalClustalParserTests(TestCase):
     def test_minimal(self):
         """MinimalClustalParser should handle single-line input correctly"""
         result = MinimalClustalParser([minimal])  # expects seq of lines
-        self.assertEqual(result, ({'abc': ['ucag']}, ['abc']))
+        self.assertEqual(result, ({"abc": ["ucag"]}, ["abc"]))
 
     def test_two(self):
         """MinimalClustalParser should handle two-sequence input correctly"""
         result = MinimalClustalParser(two)
-        self.assertEqual(result, ({'abc': ['uuu', 'aaa'], 'def': ['ccc', 'ggg']},
-                                  ['abc', 'def']))
+        self.assertEqual(
+            result, ({"abc": ["uuu", "aaa"], "def": ["ccc", "ggg"]}, ["abc", "def"])
+        )
 
     def test_real(self):
         """MinimalClustalParser should handle real Clustal output"""
         data, labels = MinimalClustalParser(real)
-        self.assertEqual(labels, ['abc', 'def', 'xyz'])
-        self.assertEqual(data, {
-            'abc':
-            ['GCAUGCAUGCAUGAUCGUACGUCAGCAUGCUAGACUGCAUACGUACGUACGCAUGCAUCA',
-                'GUCGAUACGUACGUCAGUCAGUACGUCAGCAUGCAUACGUACGUCGUACGUACGU-CGAC',
-                'UGACUAGUCAGCUAGCAUCGAUCAGU'
+        self.assertEqual(labels, ["abc", "def", "xyz"])
+        self.assertEqual(
+            data,
+            {
+                "abc": [
+                    "GCAUGCAUGCAUGAUCGUACGUCAGCAUGCUAGACUGCAUACGUACGUACGCAUGCAUCA",
+                    "GUCGAUACGUACGUCAGUCAGUACGUCAGCAUGCAUACGUACGUCGUACGUACGU-CGAC",
+                    "UGACUAGUCAGCUAGCAUCGAUCAGU",
                 ],
-            'def':
-            ['------------------------------------------------------------',
-                '-----------------------------------------CGCGAUGCAUGCAU-CGAU',
-                'CGAUCAGUCAGUCGAU----------'
+                "def": [
+                    "------------------------------------------------------------",
+                    "-----------------------------------------CGCGAUGCAUGCAU-CGAU",
+                    "CGAUCAGUCAGUCGAU----------",
                 ],
-            'xyz':
-            ['------------------------------------------------------------',
-                '-------------------------------------CAUGCAUCGUACGUACGCAUGAC',
-                'UGCUGCAUCA----------------'
-                ]
-        })
+                "xyz": [
+                    "------------------------------------------------------------",
+                    "-------------------------------------CAUGCAUCGUACGUACGCAUGAC",
+                    "UGCUGCAUCA----------------",
+                ],
+            },
+        )
 
     def test_bad(self):
         """MinimalClustalParser should reject bad data if strict"""
@@ -128,8 +141,10 @@ class MinimalClustalParserTests(TestCase):
     def test_space_labels(self):
         """MinimalClustalParser should tolerate spaces in labels"""
         result = MinimalClustalParser(space_labels)
-        self.assertEqual(result, ({'abc': ['uca'], 'def ggg': ['ccc']},
-                                  ['abc', 'def ggg']))
+        self.assertEqual(
+            result, ({"abc": ["uca"], "def ggg": ["ccc"]}, ["abc", "def ggg"])
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

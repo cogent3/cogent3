@@ -1,9 +1,17 @@
 #!/usr/bin/env python
 """Parsers for the various files in the UniGene database.
 """
-from cogent3.parse.record import MappedRecord, ByPairs, semi_splitter, \
-    equal_pairs, LineOrientedConstructor, list_adder, int_setter
+from cogent3.parse.record import (
+    ByPairs,
+    LineOrientedConstructor,
+    MappedRecord,
+    equal_pairs,
+    int_setter,
+    list_adder,
+    semi_splitter,
+)
 from cogent3.parse.record_finder import GbFinder
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -26,7 +34,7 @@ def _read_sts(line):
     in places they shouldn't. This was the case as of 10/9/03: expect this
     'feature' to be unstable!
     """
-    filtered = line.replace('=', ' ')
+    filtered = line.replace("=", " ")
     return MappedRecord(list(ByPairs(filtered.split())))
 
 
@@ -36,14 +44,27 @@ def _read_expression(line):
 
 
 class UniGeneSeqRecord(MappedRecord):
-    Aliases = {'ACC': 'Accession', 'CLONE': 'CloneId', 'END': 'End',
-               'LID': 'LibraryId', 'SEQTYPE': 'SequenceType', 'TRACE': 'Trace',
-               'EST': 'EstId', 'NID': 'NucleotideId', 'PID': 'ProteinId'}
+    Aliases = {
+        "ACC": "Accession",
+        "CLONE": "CloneId",
+        "END": "End",
+        "LID": "LibraryId",
+        "SEQTYPE": "SequenceType",
+        "TRACE": "Trace",
+        "EST": "EstId",
+        "NID": "NucleotideId",
+        "PID": "ProteinId",
+    }
 
 
 class UniGeneProtSimRecord(MappedRecord):
-    Aliases = {'ORG': 'Species', 'PROTGI': 'ProteinGi', 'ProtId': 'ProteinId',
-               'PCT': 'PercentSimilarity', 'ALN': 'AlignmentScore'}
+    Aliases = {
+        "ORG": "Species",
+        "PROTGI": "ProteinGi",
+        "ProtId": "ProteinId",
+        "PCT": "PercentSimilarity",
+        "ALN": "AlignmentScore",
+    }
 
 
 def _read_seq(line):
@@ -70,11 +91,20 @@ def _read_protsim(line):
 
 class UniGene(MappedRecord):
     """Holds data for a UniGene record."""
-    Required = {'STS': [], 'PROTSIM': [], 'SEQUENCE': [], 'EXPRESS': []}
-    Aliases = {'STS': 'Sts', 'PROTSIM': 'ProteinSimilarities',
-               'SEQUENCE': 'SequenceIds', 'SCOUNT': 'SequenceCount', 'CTYOBAND': 'CytoBand',
-               'EXPRESS': 'ExpressedIn', 'CHROMOSOME': 'Chromosome', 'ID': 'UniGeneId',
-               'TITLE': 'UniGeneTitle', 'LOCUSLINK': 'LocusLinkId'}
+
+    Required = {"STS": [], "PROTSIM": [], "SEQUENCE": [], "EXPRESS": []}
+    Aliases = {
+        "STS": "Sts",
+        "PROTSIM": "ProteinSimilarities",
+        "SEQUENCE": "SequenceIds",
+        "SCOUNT": "SequenceCount",
+        "CTYOBAND": "CytoBand",
+        "EXPRESS": "ExpressedIn",
+        "CHROMOSOME": "Chromosome",
+        "ID": "UniGeneId",
+        "TITLE": "UniGeneTitle",
+        "LOCUSLINK": "LocusLinkId",
+    }
 
 
 def _expressions_setter(obj, field, val):
@@ -96,15 +126,16 @@ def _protsim_adder(obj, field, val):
     """Appends the current ProtSim record to specified field"""
     list_adder(obj, field, _read_protsim(val))
 
+
 LinesToUniGene = LineOrientedConstructor()
 LinesToUniGene.Constructor = UniGene
 LinesToUniGene.FieldMap = {
-    'LOCUSLINK': int_setter,
-    'EXPRESS': _expressions_setter,
-    'PROTSIM': _protsim_adder,
-    'SCOUNT': int_setter,
-    'SEQUENCE': _seq_adder,
-    'STS': _sts_adder,
+    "LOCUSLINK": int_setter,
+    "EXPRESS": _expressions_setter,
+    "PROTSIM": _protsim_adder,
+    "SCOUNT": int_setter,
+    "SEQUENCE": _seq_adder,
+    "STS": _sts_adder,
 }
 
 
@@ -112,15 +143,17 @@ def UniGeneParser(lines):
     """Treats lines as a stream of unigene records"""
     for record in GbFinder(lines):
         curr = LinesToUniGene(record)
-        del curr['//']  # clean up delimiter
+        del curr["//"]  # clean up delimiter
         yield curr
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     from sys import argv, stdout
+
     filename = argv[1]
     count = 0
     for record in UniGeneParser(open(filename)):
-        stdout.write('.')
+        stdout.write(".")
         stdout.flush()
         count += 1
     print("read %s records" % count)

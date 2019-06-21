@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
 
-import numpy
 import math
 import warnings
-from cogent3.maths.scipy_optimize import fmin_bfgs, fmin_powell, fmin, brent
+
+import numpy
+
+from cogent3.maths.scipy_optimize import brent, fmin, fmin_bfgs, fmin_powell
+
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -58,10 +61,12 @@ class _SciPyOptimiser(object):
     def maximise(self, function, *args, **kw):
         def nf(x):
             return -1 * function(x)
+
         return self.minimise(nf, *args, **kw)
 
-    def minimise(self, function, xopt, show_remaining,
-                 max_restarts=None, tolerance=None):
+    def minimise(
+        self, function, xopt, show_remaining, max_restarts=None, tolerance=None
+    ):
         if max_restarts is None:
             max_restarts = 0
         if tolerance is None:
@@ -72,21 +77,28 @@ class _SciPyOptimiser(object):
             return function(xopt), xopt
 
         if show_remaining:
+
             def _callback(fcalls, x, fval, delta):
                 remaining = math.log(max(abs(delta) / tolerance, 1.0))
                 show_remaining(remaining, -fval, delta, fcalls)
+
         else:
             _callback = None
 
         for i in range((max_restarts + 1)):
             (xopt, fval, iterations, func_calls, warnflag) = self._minimise(
-                function, xopt, disp=False, callback=_callback,
-                ftol=tolerance, full_output=True)
+                function,
+                xopt,
+                disp=False,
+                callback=_callback,
+                ftol=tolerance,
+                full_output=True,
+            )
 
             xopt = numpy.atleast_1d(xopt)  # unsqueeze incase only one param
 
             if warnflag:
-                warnings.warn('Unexpected warning from scipy %s' % warnflag)
+                warnings.warn("Unexpected warning from scipy %s" % warnflag)
 
             # same tolerance check as in fmin_powell
             if abs(fval_last - fval) < tolerance:

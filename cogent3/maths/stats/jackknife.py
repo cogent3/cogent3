@@ -1,7 +1,7 @@
-
-
 import numpy as np
+
 from cogent3 import LoadTable
+
 
 __author__ = "Anuj Pahwa, Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -20,6 +20,7 @@ def IndexGen(length):
         temp = list(data)
         temp.pop(i)
         return temp
+
     return gen
 
 
@@ -71,8 +72,7 @@ class JackknifeStats(object):
 
         # Compute the approximate standard error of the jackknifed estimate
         # of the statistic
-        variance = np.square(self._pseudovalues -
-                             self._jackknifed_stat).sum(axis=0)
+        variance = np.square(self._pseudovalues - self._jackknifed_stat).sum(axis=0)
         variance_norm = np.divide(variance, n * n_minus_1)
         self._standard_error = np.sqrt(variance_norm)
 
@@ -103,7 +103,7 @@ class JackknifeStats(object):
             self.jackknife()
 
         # generate table
-        title = 'Subsample Stats'
+        title = "Subsample Stats"
         rows = []
         for index in range(self.n):
             row = []
@@ -116,15 +116,15 @@ class JackknifeStats(object):
                 row.append(subset_statistics)
             rows.append(row)
 
-        header = ['i']
+        header = ["i"]
         subset_stats = self._subset_statistics[0]
 
         try:
             num_datasets = len(subset_stats)
             for i in range(num_datasets):
-                header.append('Stat_%s-i' % i)
+                header.append("Stat_%s-i" % i)
         except TypeError:
-            header.append('Stat-i')
+            header.append("Stat-i")
 
         return LoadTable(rows=rows, header=header, title=title)
 
@@ -137,7 +137,7 @@ class JackknifeStats(object):
             self.jackknife()
 
         # detailed table
-        title = 'Pseudovalues'
+        title = "Pseudovalues"
         rows = []
         for index in range(self.n):
             row = [index]
@@ -149,15 +149,15 @@ class JackknifeStats(object):
                 row.append(pseudovalues)
             rows.append(row)
 
-        header = ['i']
+        header = ["i"]
         pseudovalues = self._pseudovalues[0]
 
         try:
             num_datasets = len(pseudovalues)
             for i in range(num_datasets):
-                header.append('Pseudovalue_%s-i' % i)
+                header.append("Pseudovalue_%s-i" % i)
         except TypeError:
-            header.append('Pseudovalue-i')
+            header.append("Pseudovalue-i")
 
         return LoadTable(rows=rows, header=header, title=title)
 
@@ -170,9 +170,10 @@ class JackknifeStats(object):
         if self._jackknifed_stat is None:
             self.jackknife()
 
-        header = ['Sample Stat', 'Jackknife Stat', 'Standard Error']
-        title = 'Summary Statistics'
-        rows = np.vstack((self._sample_statistic,
-                          self._jackknifed_stat, self._standard_error))
+        header = ["Sample Stat", "Jackknife Stat", "Standard Error"]
+        title = "Summary Statistics"
+        rows = np.vstack(
+            (self._sample_statistic, self._jackknifed_stat, self._standard_error)
+        )
         rows = rows.transpose()
         return LoadTable(header=header, rows=rows, title=title)

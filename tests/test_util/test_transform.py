@@ -1,9 +1,15 @@
 #!/usr/bin/env python
 """Tests of transformation and composition functions .
 """
+from cogent3.util.transform import (
+    KeepChars,
+    first_index_in_set,
+    for_seq,
+    per_longest,
+    per_shortest,
+)
 from cogent3.util.unit_test import TestCase, main
-from cogent3.util.transform import per_shortest, per_longest, for_seq, \
-    KeepChars, first_index_in_set
+
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -49,27 +55,25 @@ class metafunctionsTests(TestCase):
         self.Numbers = list(range(20))
         self.SmallNumbers = list(range(3))
         self.SmallNumbersRepeated = list(range(5)) * 4
-        self.Letters = 'abcde'
+        self.Letters = "abcde"
         self.Mixed = list(self.Letters) + list(range(5))
-        self.firsts = 'ab2'
-        self.seconds = '0bc'
+        self.firsts = "ab2"
+        self.seconds = "0bc"
 
         self.is_char = lambda x: isinstance(x, str) and len(x) == 1
-        self.is_vowel = lambda x: x in 'aeiou'
-        self.is_consonant = lambda x: x not in 'aeiuo'
+        self.is_vowel = lambda x: x in "aeiou"
+        self.is_consonant = lambda x: x not in "aeiuo"
         self.is_number = lambda x: isinstance(x, int)
         self.is_odd_number = lambda x: x % 2
-        self.is_odd_letter = lambda x: x in 'acegikmoqs'
+        self.is_odd_letter = lambda x: x in "acegikmoqs"
         self.is_zero = lambda x: x == 0
         self.is_small = lambda x: x < 3
         self.double = lambda x: x * 2
         self.minusone = lambda x: x - 1
 
         # function to test *args, **kwargs)
-        self.is_alpha_digit = lambda first, second: \
-            first.isalpha() and second.isdigit()
-        self.is_digit_alpha = lambda first, second: \
-            first.isdigit() and second.isalpha()
+        self.is_alpha_digit = lambda first, second: first.isalpha() and second.isdigit()
+        self.is_digit_alpha = lambda first, second: first.isdigit() and second.isalpha()
 
 
 class SequenceFunctionsTests(TestCase):
@@ -77,25 +81,25 @@ class SequenceFunctionsTests(TestCase):
 
     def test_per_shortest(self):
         """per_shortest should divide by min(len(x), len(y))"""
-        self.assertEqual(per_shortest(20, 'aaaaaa', 'bbbb'), 5)
-        self.assertEqual(per_shortest(20, 'aaaaaa', 'b'), 20)
-        self.assertEqual(per_shortest(20, 'a', 'bbbbb'), 20)
-        self.assertEqual(per_shortest(20, '', 'b'), 0)
-        self.assertEqual(per_shortest(20, '', ''), 0)
+        self.assertEqual(per_shortest(20, "aaaaaa", "bbbb"), 5)
+        self.assertEqual(per_shortest(20, "aaaaaa", "b"), 20)
+        self.assertEqual(per_shortest(20, "a", "bbbbb"), 20)
+        self.assertEqual(per_shortest(20, "", "b"), 0)
+        self.assertEqual(per_shortest(20, "", ""), 0)
         # check that it does it in floating-point
-        self.assertEqual(per_shortest(1, 'aaaaaa', 'bbbb'), 0.25)
+        self.assertEqual(per_shortest(1, "aaaaaa", "bbbb"), 0.25)
         # check that it raises TypeError on non-seq
         self.assertRaises(TypeError, per_shortest, 1, 2, 3)
 
     def test_per_longest(self):
         """per_longest should divide by max(len(x), len(y))"""
-        self.assertEqual(per_longest(20, 'aaaaaa', 'bbbb'), 20 / 6.0)
-        self.assertEqual(per_longest(20, 'aaaaaa', 'b'), 20 / 6.0)
-        self.assertEqual(per_longest(20, 'a', 'bbbbb'), 20 / 5.0)
-        self.assertEqual(per_longest(20, '', 'b'), 20)
-        self.assertEqual(per_longest(20, '', ''), 0)
+        self.assertEqual(per_longest(20, "aaaaaa", "bbbb"), 20 / 6.0)
+        self.assertEqual(per_longest(20, "aaaaaa", "b"), 20 / 6.0)
+        self.assertEqual(per_longest(20, "a", "bbbbb"), 20 / 5.0)
+        self.assertEqual(per_longest(20, "", "b"), 20)
+        self.assertEqual(per_longest(20, "", ""), 0)
         # check that it does it in floating-point
-        self.assertEqual(per_longest(1, 'aaaaaa', 'bbbb'), 1 / 6.0)
+        self.assertEqual(per_longest(1, "aaaaaa", "bbbb"), 1 / 6.0)
         # check that it raises TypeError on non-seq
         self.assertRaises(TypeError, per_longest, 1, 2, 3)
 
@@ -172,33 +176,33 @@ class Filter_Criteria_Tests(TestCase):
 
     def test_KeepChars(self):
         """KeepChars returns a string containing only chars in keep"""
-        f = KeepChars('ab c3*[')
-        self.assertEqual(f(''), '')  # empty
+        f = KeepChars("ab c3*[")
+        self.assertEqual(f(""), "")  # empty
         self.assertRaises(TypeError, f, None)  # None
 
         # one character, case sensitive
-        self.assertEqual(f('b'), 'b')
-        self.assertEqual(f('g'), '')
-        self.assertEqual(f('xyz123'), '3')
-        self.assertEqual(f('xyz  123'), '  3')
+        self.assertEqual(f("b"), "b")
+        self.assertEqual(f("g"), "")
+        self.assertEqual(f("xyz123"), "3")
+        self.assertEqual(f("xyz  123"), "  3")
 
         # more characters, case sensitive
-        self.assertEqual(f('kjbwherzcagebcujrkcs'), 'bcabcc')
-        self.assertEqual(f('f[ffff*ff*fff3fff'), '[**3')
+        self.assertEqual(f("kjbwherzcagebcujrkcs"), "bcabcc")
+        self.assertEqual(f("f[ffff*ff*fff3fff"), "[**3")
 
         # case insensitive
-        f = KeepChars('AbC', False)
-        self.assertEqual(f('abcdef'), 'abc')
-        self.assertEqual(f('ABCDEF'), 'ABC')
-        self.assertEqual(f('aBcDeF'), 'aBc')
+        f = KeepChars("AbC", False)
+        self.assertEqual(f("abcdef"), "abc")
+        self.assertEqual(f("ABCDEF"), "ABC")
+        self.assertEqual(f("aBcDeF"), "aBc")
 
     def test_first_index_in_set(self):
         """first_index_in_set should return index of first occurrence """
-        vowels = 'aeiou'
-        s1 = 'ebcua'
-        s2 = 'bcbae'
-        s3 = ''
-        s4 = 'cbd'
+        vowels = "aeiou"
+        s1 = "ebcua"
+        s2 = "bcbae"
+        s3 = ""
+        s4 = "cbd"
         self.assertEqual(first_index_in_set(s1, vowels), 0)
         self.assertEqual(first_index_in_set(s2, vowels), 3)
         self.assertEqual(first_index_in_set(s3, vowels), None)
@@ -206,5 +210,5 @@ class Filter_Criteria_Tests(TestCase):
 
 
 # run tests if invoked from the commandline
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

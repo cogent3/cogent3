@@ -14,8 +14,11 @@ also:
     Spaces and quote marks are OK inside unquoted labels.
 """
 
-from cogent3.parse.record import FileFormatError
 import re
+
+from cogent3.parse.record import FileFormatError
+
+
 EOT = None
 
 __author__ = "Peter Maxwell"
@@ -54,16 +57,16 @@ class _Tokeniser(object):
         if self.token:
             msg = 'Unexpected "%s" at ' % self.token
         else:
-            msg = 'At '
+            msg = "At "
         (line, column) = self.posn
-        sample = self.text.split('\n')[line][:column]
+        sample = self.text.split("\n")[line][:column]
         if column > 30:
             sample = "..." + sample[-20:]
         if line > 0:
             msg += 'line %s:%s "%s"' % (line + 1, column, sample)
         else:
             msg += 'char %s "%s"' % (column, sample)
-        return TreeParseError(msg + '. ' + detail)
+        return TreeParseError(msg + ". " + detail)
 
     def tokens(self):
         closing_quote_token = None
@@ -76,21 +79,21 @@ class _Tokeniser(object):
             label_complete = False
             token_consumed = True
             self.token = token
-            column += len(token or '')
+            column += len(token or "")
             self.posn = (line, column)
 
             if token == "":
                 pass
             elif in_comment:
                 if token is EOT:
-                    raise self.error('Ended with unclosed comment')
-                if token == ']':
+                    raise self.error("Ended with unclosed comment")
+                if token == "]":
                     in_comment = False
             elif closing_quote_token:
                 if token is EOT:
-                    raise self.error('Text ended inside quoted label')
-                if token == '\n':
-                    raise self.error('Line ended inside quoted label')
+                    raise self.error("Text ended inside quoted label")
+                if token == "\n":
+                    raise self.error("Line ended inside quoted label")
                 if token == closing_quote_token:
                     label_complete = True
                     closing_quote_token = None
@@ -98,16 +101,16 @@ class _Tokeniser(object):
                     if token == closing_quote_token * 2:
                         token = token[0]
                     text += token
-            elif token is EOT or token in '\n[():,;':
+            elif token is EOT or token in "\n[():,;":
                 if text:
                     text = text.strip()
-                    if self.underscore_unmunge and '_' in text:
-                        text = text.replace('_', ' ')
+                    if self.underscore_unmunge and "_" in text:
+                        text = text.replace("_", " ")
                     label_complete = True
-                if token == '\n':
+                if token == "\n":
                     line += 1
                     column = 1
-                elif token == '[':
+                elif token == "[":
                     in_comment = True
                 else:
                     token_consumed = False
@@ -145,7 +148,7 @@ def parse_string(text, constructor, **kw):
     if "(" not in text and ";" not in text and text.strip():
         # otherwise "filename" is a valid (if small) tree
         raise TreeParseError('Not a Newick tree: "%s"' % text[:10])
-    sentinals = [';', EOT]
+    sentinals = [";", EOT]
     stack = []
     nodes = []
     children = name = expected_attribute = None
@@ -157,23 +160,20 @@ def parse_string(text, constructor, **kw):
             try:
                 attributes[attr_name] = attr_cast(token)
             except ValueError:
-                raise tokeniser.error("Can't convert %s '%s'" %
-                                      (attr_name, token))
+                raise tokeniser.error("Can't convert %s '%s'" % (attr_name, token))
             expected_attribute = None
-        elif token == '(':
+        elif token == "(":
             if children is not None:
-                raise tokeniser.error(
-                    "Two subtrees in one node, missing comma?")
+                raise tokeniser.error("Two subtrees in one node, missing comma?")
             elif name or attributes:
-                raise tokeniser.error(
-                    "Subtree must be first element of the node.")
+                raise tokeniser.error("Subtree must be first element of the node.")
             stack.append((nodes, sentinals, attributes))
-            (nodes, sentinals, attributes) = ([], [')'], {})
-        elif token == ':':
-            if 'length' in attributes:
+            (nodes, sentinals, attributes) = ([], [")"], {})
+        elif token == ":":
+            if "length" in attributes:
                 raise tokeniser.error("Already have a length.")
-            expected_attribute = ('length', float)
-        elif token in [')', ';', ',', EOT]:
+            expected_attribute = ("length", float)
+        elif token in [")", ";", ",", EOT]:
             nodes.append(constructor(children, name, attributes))
             children = name = expected_attribute = None
             attributes = {}
@@ -183,15 +183,16 @@ def parse_string(text, constructor, **kw):
                     (nodes, sentinals, attributes) = stack.pop()
                 else:
                     break
-            elif token == ',' and ')' in sentinals:
+            elif token == "," and ")" in sentinals:
                 pass
             else:
-                raise tokeniser.error("Was expecting to end with %s" %
-                                      ' or '.join([repr(s) for s in sentinals]))
+                raise tokeniser.error(
+                    "Was expecting to end with %s"
+                    % " or ".join([repr(s) for s in sentinals])
+                )
         else:
             if name is not None:
-                raise tokeniser.error(
-                    "Already have a name '%s' for this node." % name)
+                raise tokeniser.error("Already have a name '%s' for this node." % name)
             elif attributes:
                 raise tokeniser.error("name should come before length.")
             name = token

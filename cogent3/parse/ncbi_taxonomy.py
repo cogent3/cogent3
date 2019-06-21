@@ -2,7 +2,9 @@
 """Extracts data from NCBI nodes.dmp and names.dmp files.
 """
 from functools import total_ordering
+
 from cogent3.core.tree import TreeNode
+
 
 __author__ = "Jason Carnes"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -19,36 +21,37 @@ strip = str.strip
 class MissingParentError(Exception):
     pass
 
+
 # Note: numbers not guaranteed to be consistent if new taxa are invented...
 RanksToNumbers = {
-    'forma': 1,
-    'varietas': 2,
-    'subspecies': 3,
-    'species': 4,
-    'species subgroup': 5,
-    'species group': 6,
-    'subgenus': 7,
-    'genus': 8,
-    'subtribe': 9,
-    'tribe': 10,
-    'subfamily': 11,
-    'family': 12,
-    'superfamily': 13,
-    'parvorder': 14,
-    'infraorder': 15,
-    'suborder': 16,
-    'order': 17,
-    'superorder': 18,
-    'infraclass': 19,
-    'subclass': 20,
-    'class': 21,
-    'superclass': 22,
-    'subphylum': 23,
-    'phylum': 24,
-    'superphylum': 25,
-    'kingdom': 26,
-    'superkingdom': 27,
-    'no rank': 28,
+    "forma": 1,
+    "varietas": 2,
+    "subspecies": 3,
+    "species": 4,
+    "species subgroup": 5,
+    "species group": 6,
+    "subgenus": 7,
+    "genus": 8,
+    "subtribe": 9,
+    "tribe": 10,
+    "subfamily": 11,
+    "family": 12,
+    "superfamily": 13,
+    "parvorder": 14,
+    "infraorder": 15,
+    "suborder": 16,
+    "order": 17,
+    "superorder": 18,
+    "infraclass": 19,
+    "subclass": 20,
+    "class": 21,
+    "superclass": 22,
+    "subphylum": 23,
+    "phylum": 24,
+    "superphylum": 25,
+    "kingdom": 26,
+    "superkingdom": 27,
+    "no rank": 28,
 }
 
 
@@ -76,32 +79,43 @@ class NcbiTaxon(object):
                     so much, NCBI...
                     Expect a string: '' by default.
     """
-    Fields = ['TaxonId', 'ParentId', 'Rank', 'EmblCode',
-              'DivisionId', 'DivisionInherited', 'TranslTable',
-              'TranslTableInherited',
-              'TranslTableMt', 'TranslTableMtInherited', 'Hidden',
-              'HiddenSubtreeRoot', 'Comments']
+
+    Fields = [
+        "TaxonId",
+        "ParentId",
+        "Rank",
+        "EmblCode",
+        "DivisionId",
+        "DivisionInherited",
+        "TranslTable",
+        "TranslTableInherited",
+        "TranslTableMt",
+        "TranslTableMtInherited",
+        "Hidden",
+        "HiddenSubtreeRoot",
+        "Comments",
+    ]
 
     def __init__(self, line):
         """Returns new NcbiTaxon from line containing taxonomy data."""
-        line_pieces = list(map(strip, line.split('|')))
+        line_pieces = list(map(strip, line.split("|")))
         for i in [0, 1, 5, 6, 7, 8, 9, 10, 11]:
             line_pieces[i] = int(line_pieces[i])
         # fix trailing delimiter
         last = line_pieces[-1]
-        if last.endswith('|'):
+        if last.endswith("|"):
             line_pieces[-1] = last[:-1]
         self.__dict__ = dict(list(zip(self.Fields, line_pieces)))
-        self.Name = ''  # will get name field from names.dmp; fillNames
+        self.Name = ""  # will get name field from names.dmp; fillNames
         self.RankId = RanksToNumbers.get(self.Rank, None)
 
     def __str__(self):
         """Writes data out in format we got it."""
         pieces = [str(getattr(self, f)) for f in self.Fields]
         # remember to set the parent of the root to itself
-        if pieces[1] == 'None':
+        if pieces[1] == "None":
             pieces[1] = pieces[0]
-        return '\t|\t'.join(pieces) + '\t|\n'
+        return "\t|\t".join(pieces) + "\t|\n"
 
     def __lt__(self, other):
         """Compare by taxon rank."""
@@ -149,18 +163,18 @@ class NcbiName(object):
         UniqueName  The unique variant of this name if Name not unique
         NameClass   Kind of name, e.g. scientific name, synonym, etc.
     """
-    Fields = ['TaxonId', 'Name', 'UniqueName', 'NameClass']
+
+    Fields = ["TaxonId", "Name", "UniqueName", "NameClass"]
 
     def __init__(self, line):
         """Returns new NcbiName from line containing name data."""
-        line_pieces = list(map(strip, line.split('|')))
+        line_pieces = list(map(strip, line.split("|")))
         line_pieces[0] = int(line_pieces[0])  # convert taxon_id
         self.__dict__ = dict(list(zip(self.Fields, line_pieces)))
 
     def __str__(self):
         """Writes data out in similar format as the one we got it from."""
-        return '\t|\t'.join([str(getattr(self, f)) for f in self.Fields]) \
-            + '|\n'
+        return "\t|\t".join([str(getattr(self, f)) for f in self.Fields]) + "|\n"
 
 
 def NcbiNameParser(infile):
@@ -174,7 +188,7 @@ def NcbiNameLookup(names):
     """Returns dict mapping taxon id -> NCBI scientific name."""
     result = {}
     for name in names:
-        if name.NameClass == 'scientific name':
+        if name.NameClass == "scientific name":
             result[name.TaxonId] = name
     return result
 
@@ -201,7 +215,7 @@ class NcbiTaxonomy(object):
             if name_rec:
                 name = name_rec.Name
             else:
-                name = 'Unknown'
+                name = "Unknown"
             t.Name = name
 
             node = NcbiTaxonNode(t)
@@ -220,8 +234,10 @@ class NcbiTaxonomy(object):
                     ids_to_nodes[t.ParentId].append(t)
                 except KeyError:  # found a child whose parent doesn't exist
                     if strict:
-                        raise MissingParentError("Node %s has parent %s, which isn't in taxa." %
-                                                 (t_id, t.ParentId))
+                        raise MissingParentError(
+                            "Node %s has parent %s, which isn't in taxa."
+                            % (t_id, t.ParentId)
+                        )
                     else:
                         deadbeats[t.ParentId] = t
         self.Deadbeats = deadbeats
@@ -261,18 +277,22 @@ class NcbiTaxonNode(TreeNode):
 
     def _get_parent_id(self):
         return self.Data.ParentId
+
     ParentId = property(_get_parent_id)
 
     def _get_taxon_id(self):
         return self.Data.TaxonId
+
     TaxonId = property(_get_taxon_id)
 
     def _get_rank(self):
         return self.Data.Rank
+
     Rank = property(_get_rank)
 
     def _get_name(self):
         return self.Data.Name
+
     Name = property(_get_name)
 
 

@@ -4,11 +4,12 @@
 Data in from the European rRNA database in distribution format.
 """
 
-from cogent3.parse.record_finder import DelimitedRecordFinder
-from cogent3.parse.record import RecordError
-from cogent3.core.sequence import Sequence, RnaSequence
-from cogent3.core.info import Info
 from cogent3.core.alphabet import AlphabetError
+from cogent3.core.info import Info
+from cogent3.core.sequence import RnaSequence, Sequence
+from cogent3.parse.record import RecordError
+from cogent3.parse.record_finder import DelimitedRecordFinder
+
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -23,33 +24,35 @@ strip = str.strip
 maketrans = str.maketrans
 
 
-RdbFinder = DelimitedRecordFinder('//')
+RdbFinder = DelimitedRecordFinder("//")
 
-_field_names = {'acc': 'rRNA',
-                'src': 'Source',
-                'str': 'Strain',
-                'ta1': 'Taxonomy1',
-                'ta2': 'Taxonomy2',
-                'ta3': 'Taxonomy3',
-                'ta4': 'Taxonomy4',
-                'chg': 'Changes',
-                'rem': 'Remarks',
-                'aut': 'Authors',
-                'ttl': 'Title',
-                'jou': 'Journal',
-                'dat': 'JournalYear',
-                'vol': 'JournalVolume',
-                'pgs': 'JournalPages',
-                'mty': 'Gene',
-                'del': 'Deletions',
-                'seq': 'Species'}
+_field_names = {
+    "acc": "rRNA",
+    "src": "Source",
+    "str": "Strain",
+    "ta1": "Taxonomy1",
+    "ta2": "Taxonomy2",
+    "ta3": "Taxonomy3",
+    "ta4": "Taxonomy4",
+    "chg": "Changes",
+    "rem": "Remarks",
+    "aut": "Authors",
+    "ttl": "Title",
+    "jou": "Journal",
+    "dat": "JournalYear",
+    "vol": "JournalVolume",
+    "pgs": "JournalPages",
+    "mty": "Gene",
+    "del": "Deletions",
+    "seq": "Species",
+}
 
 
 def InfoMaker(header_lines):
     """Returns an Info object constructed from the headerLines."""
     info = Info()
     for line in header_lines:
-        all = line.strip().split(':', 1)
+        all = line.strip().split(":", 1)
         # strip out empty lines, lines without name, lines without colon
         if not all[0] or len(all) != 2:
             continue
@@ -64,8 +67,8 @@ def InfoMaker(header_lines):
 
 
 def is_seq_label(x):
-    "Check if x looks like a sequence label line."""
-    return x.startswith('seq:')
+    "Check if x looks like a sequence label line." ""
+    return x.startswith("seq:")
 
 
 def MinimalRdbParser(infile, strict=True):
@@ -83,21 +86,21 @@ def MinimalRdbParser(infile, strict=True):
         # if there is no line that starts with 'seq:' throw error or skip
         if not index:
             if strict:
-                raise RecordError("Found Rdb record without seq label "
-                                  + "line: %s" % rec[0])
+                raise RecordError(
+                    "Found Rdb record without seq label " + "line: %s" % rec[0]
+                )
             else:
                 continue
 
         headerLines = rec[:index]
-        sequence = ''.join(rec[index:-1])  # strip off the delimiter
-        if sequence.endswith('*'):
+        sequence = "".join(rec[index:-1])  # strip off the delimiter
+        if sequence.endswith("*"):
             sequence = sequence[:-1]  # strip off '*'
 
         # if there are no sequences throw error or skip
         if not sequence:
             if strict:
-                raise RecordError("Found Rdb record without sequences: %s"
-                                  % rec[0])
+                raise RecordError("Found Rdb record without sequences: %s" % rec[0])
             else:
                 continue
 
@@ -114,13 +117,14 @@ def create_acceptable_sequence(sequence):
     Will strip out secondary structure annotation.
     """
     trans_table = dict([(ord(c), None) for c in "{}[]()^"])
-    trans_table[ord("o")] = ord('?')
+    trans_table[ord("o")] = ord("?")
     # strip out secondary structure annotation {}[]()^
     return sequence.translate(trans_table)  # should be accepted by RnaSequence
 
 
-def RdbParser(lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker,
-              strict=True):
+def RdbParser(
+    lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker, strict=True
+):
     """Yield sequences from the Rdb record.
 
     lines: a stream of Rdb records.
@@ -138,7 +142,7 @@ def RdbParser(lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker,
         info = LabelConstructor(header)
         clean_seq = create_acceptable_sequence(sequence)
         # add original raw sequence to info
-        info['OriginalSeq'] = sequence
+        info["OriginalSeq"] = sequence
         if strict:
             # need to do error checking while constructing info and sequence
             try:
@@ -146,7 +150,8 @@ def RdbParser(lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker,
             except AlphabetError:
                 raise RecordError(
                     "Sequence construction failed on record with reference %s."
-                    % (info.Refs))
+                    % (info.Refs)
+                )
         else:
             # not strict: just skip any record that raises an exception
             try:
@@ -154,8 +159,10 @@ def RdbParser(lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker,
             except:
                 continue
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     from sys import argv
+
     filename = argv[1]
     for sequence in RdbParser(open(filename)):
         print(sequence.info.Species)

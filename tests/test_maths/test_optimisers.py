@@ -1,9 +1,16 @@
 #!/usr/bin/env python
 
 
-import time, sys, os, numpy
+import os
+import sys
+import time
+
 from unittest import TestCase, main
-from cogent3.maths.optimisers import maximise, MaximumEvaluationsReached
+
+import numpy
+
+from cogent3.maths.optimisers import MaximumEvaluationsReached, maximise
+
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -19,11 +26,10 @@ def quartic(x):
     # Has global maximum at -4 and local maximum at 2
     # http://www.wolframalpha.com/input/?i=x**2*%283*x**2%2B8*x-48%29
     # Scaled down 10-fold to avoid having to change init_temp
-    return x**2 * (3 * x**2 + 8 * x - 48)
+    return x ** 2 * (3 * x ** 2 + 8 * x - 48)
 
 
 class NullFile(object):
-
     def write(self, x):
         pass
 
@@ -51,21 +57,21 @@ def MakeF():
         last[0] = x
         # Scaled down 10-fold to avoid having to change init_temp
         return -0.1 * quartic(x)
+
     return f, last, evals
 
 
 class OptimiserTestCase(TestCase):
-
     def _test_optimisation(self, target=-4, xinit=1.0, bounds=([-10, 10]), **kw):
-        local = kw.get('local', None)
-        max_evaluations = kw.get('max_evaluations', None)
+        local = kw.get("local", None)
+        max_evaluations = kw.get("max_evaluations", None)
 
         f, last, evals = MakeF()
 
         x = quiet(maximise, f, [xinit], bounds, **kw)
         self.assertEqual(x, last[0])  # important for Calculator
         error = abs(x[0] - target)
-        self.assertTrue(error < .0001, (kw, x, target, x))
+        self.assertTrue(error < 0.0001, (kw, x, target, x))
 
     def test_global(self):
         # Should find global minimum
@@ -81,8 +87,9 @@ class OptimiserTestCase(TestCase):
         self._test_optimisation(local=True, target=2)
 
     def test_limited(self):
-        self.assertRaises(MaximumEvaluationsReached,
-                          self._test_optimisation, max_evaluations=5)
+        self.assertRaises(
+            MaximumEvaluationsReached, self._test_optimisation, max_evaluations=5
+        )
 
     # def test_limited_warning(self):
     #     """optimiser warning if max_evaluations exceeded"""
@@ -91,22 +98,28 @@ class OptimiserTestCase(TestCase):
     def test_get_max_eval_count(self):
         """return the evaluation count from optimisation"""
         f, last, evals = MakeF()
-        x, e = quiet(maximise, f, xinit=[1.0], bounds=([-10, 10]),
-                     return_eval_count=True)
+        x, e = quiet(
+            maximise, f, xinit=[1.0], bounds=([-10, 10]), return_eval_count=True
+        )
         # picking arbitrary numerical value
         self.assertGreaterEqual(e, 10)
 
     def test_checkpointing(self):
-        filename = 'checkpoint.tmp.pickle'
+        filename = "checkpoint.tmp.pickle"
         if os.path.exists(filename):
             os.remove(filename)
         self._test_optimisation(filename=filename, seed=1, init_temp=10)
         self._test_optimisation(filename=filename, seed=1, init_temp=10)
-        self.assertRaises(Exception, self._test_optimisation,
-                          filename=filename, seed=1, init_temp=3.21)
+        self.assertRaises(
+            Exception,
+            self._test_optimisation,
+            filename=filename,
+            seed=1,
+            init_temp=3.21,
+        )
         if os.path.exists(filename):
             os.remove(filename)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

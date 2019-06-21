@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import re
+
 from cogent3 import ASCII
 
 

@@ -3,6 +3,7 @@
 """
 from cogent3.util.misc import extend_docstring_from
 
+
 __author__ = "Thomas La"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Thomas La"]
@@ -66,9 +67,9 @@ class UnionDict(dict):
 
         for a in list(other):
 
-            if self.get(a) is None or not \
-                    (isinstance(other.get(a), dict) and
-                     isinstance(self.get(a), dict)):
+            if self.get(a) is None or not (
+                isinstance(other.get(a), dict) and isinstance(self.get(a), dict)
+            ):
                 self.update({a: other.get(a)})
                 continue
 
@@ -80,8 +81,9 @@ class UnionDict(dict):
                 path.append(name)
 
                 for attr in list(cd):
-                    if isinstance(cd.get(attr), dict) and \
-                            isinstance(cs.get(attr), dict):
+                    if isinstance(cd.get(attr), dict) and isinstance(
+                        cs.get(attr), dict
+                    ):
                         # go into dict
                         path.append(attr)
                     else:

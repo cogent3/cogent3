@@ -2,8 +2,9 @@
 """Conversion of dynamic program results ("arrays of arrows") into gap vectors,
 gapped sequences or Cogent Alignment objects"""
 
-from cogent3.core.alignment import Alignment, Aligned
+from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.annotation import Map
+
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -34,7 +35,7 @@ def seq_traceback(s1, s2, aligned_positions, gap_value):
         alignments[dimension].reverse()
 
     if isinstance(s1, str):
-        alignments = [''.join(a) for a in alignments]
+        alignments = ["".join(a) for a in alignments]
 
     return alignments
 
@@ -60,29 +61,24 @@ def gap_traceback(aligned_positions):
         gv = gap_vectors[dimension]
         if consuming[dimension]:
             gv.append(a)
-        gap_vectors[dimension] = [
-            (gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
+        gap_vectors[dimension] = [(gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
     return (starts, ends, gap_vectors, a)
 
 
 def map_traceback(aligned_positions):
     # using Map's to keep track of gaps for indel alignment
-    (starts, ends, gap_vectors, alignment_len) = gap_traceback(
-        aligned_positions)
+    (starts, ends, gap_vectors, alignment_len) = gap_traceback(aligned_positions)
     # print 'gv', gap_vectors
-    maps = [Map(gv, parent_length=alignment_len).inverse()
-            for gv in gap_vectors]
+    maps = [Map(gv, parent_length=alignment_len).inverse() for gv in gap_vectors]
     return (starts, ends, maps)
 
 
 def alignment_traceback(seqs, aligned_positions, word_length):
     """Alignment object from state matrix and ending point.
     """
-    (starts, ends, maps) = map_traceback(
-        aligned_positions)
+    (starts, ends, maps) = map_traceback(aligned_positions)
     aligneds = []
     for (start, end, amap, (name, seq)) in zip(starts, ends, maps, seqs):
-        gs = Aligned(amap * word_length,
-                     seq[start * word_length:end * word_length])
+        gs = Aligned(amap * word_length, seq[start * word_length : end * word_length])
         aligneds.append((name, gs))
     return Alignment(moltype=None, data=aligneds)

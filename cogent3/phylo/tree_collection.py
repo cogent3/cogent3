@@ -1,5 +1,7 @@
 from numpy import exp, log
+
 from . import consensus
+
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2015, The Cogent Project"
@@ -9,7 +11,6 @@ __version__ = "3.0a2"
 
 
 class _UserList(list):
-
     def __getitem__(self, index):
         # Helpful to keep type after truncation like [self[:10]],
         # but not self[0] or self[x,y,-1]
@@ -23,37 +24,38 @@ class ScoredTreeCollection(_UserList):
     """An ordered list of (score, tree) tuples"""
 
     def write(self, filename):
-        f = open(filename, 'w')
+        f = open(filename, "w")
         for (score, tree) in self:
             f.writelines(
-                self.scored_tree_format(tree.get_newick(with_distances=True),
-                                      str(score)))
+                self.scored_tree_format(
+                    tree.get_newick(with_distances=True), str(score)
+                )
+            )
         f.close()
 
     def scored_tree_format(self, tree, score):
-        return [tree, '\t[', score, ']\n']
+        return [tree, "\t[", score, "]\n"]
 
-    def get_consensus_tree(self, strict=None, method='unrooted'):
+    def get_consensus_tree(self, strict=None, method="unrooted"):
         ctrees = self.get_consensus_trees(strict, method=method)
         assert len(ctrees) == 1, len(ctrees)
         return ctrees[0]
 
-    def get_consensus_trees(self, strict=True, method='unrooted'):
+    def get_consensus_trees(self, strict=True, method="unrooted"):
         if strict is None:
             strict = True
         return consensus.weighted_majority_rule(self, strict, method=method)
 
 
 class UsefullyScoredTreeCollection(ScoredTreeCollection):
-
     def scored_tree_format(self, tree, score):
-        return [score, '\t', tree, '\n']
+        return [score, "\t", tree, "\n"]
 
 
 class WeightedTreeCollection(UsefullyScoredTreeCollection):
     """An ordered list of (weight, tree) tuples"""
 
-    def get_consensus_trees(self, strict=False, method='unrooted'):
+    def get_consensus_trees(self, strict=False, method="unrooted"):
         if strict is None:
             strict = False
         return consensus.weighted_majority_rule(self, strict, method=method)
@@ -115,15 +117,17 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
                 break
         denominator = sum(weights)
         weights.reverse()
-        return WeightedTreeCollection((weight / denominator, tree)
-                                      for (weight, (lnL, tree)) in zip(weights, self))
+        return WeightedTreeCollection(
+            (weight / denominator, tree) for (weight, (lnL, tree)) in zip(weights, self)
+        )
 
 
 def LoadTrees(filename):
     """Parse a file of (score, tree) lines. Scores can be positive probabilities
     or negative log likelihoods."""
     from cogent3 import LoadTree
-    infile = open(filename, 'r')
+
+    infile = open(filename, "r")
     trees = []
     klass = list
     # expect score, tree
@@ -131,7 +135,7 @@ def LoadTrees(filename):
         line = line.split(None, 1)
         lnL = float(line[0])
         if lnL > 1:
-            raise ValueError('likelihoods expected, not %s' % lnL)
+            raise ValueError("likelihoods expected, not %s" % lnL)
         elif lnL > 0:
             assert klass in [list, WeightedTreeCollection]
             klass = WeightedTreeCollection

@@ -1,6 +1,9 @@
-from collections.abc import MutableMapping, Mapping
+from collections.abc import Mapping, MutableMapping
+
 import numpy
+
 from numpy.testing import assert_allclose
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -104,7 +107,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         return val
 
     def __delitem__(self, key):
-        del (self.__dict__[key])
+        del self.__dict__[key]
 
     def __len__(self):
         return sum(self.values())
@@ -196,7 +199,7 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
         return val
 
     def __delitem__(self, key):
-        del (self.__dict__[key])
+        del self.__dict__[key]
 
     def __len__(self):
         return len(self.__dict__)
@@ -246,7 +249,7 @@ class NumberCounter(CategoryCounter):
         else:
             key = next(iter(self))
             try:  # if a numpy type
-                result = key.dtype.kind in 'uifc'
+                result = key.dtype.kind in "uifc"
             except AttributeError:
                 result = False
 
@@ -256,7 +259,7 @@ class NumberCounter(CategoryCounter):
         # todo memory footprint can be improved by directly computing the
         #  summary statistics
         if check and not self.valid:
-            raise ValueError('non-numeric keys')
+            raise ValueError("non-numeric keys")
         values = []
         for k, v in self.items():
             values.extend([k] * v)
@@ -286,7 +289,7 @@ class NumberCounter(CategoryCounter):
         """updates values of self using counts dict"""
         for k, v in data.items():
             try:
-                k**2
+                k ** 2
             except TypeError:
-                raise TypeError(f'key {k} is not numeric')
+                raise TypeError(f"key {k} is not numeric")
             self[k] += v

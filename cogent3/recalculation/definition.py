@@ -65,20 +65,25 @@ Recycling:
 """
 
 import warnings
-import numpy
+
 from collections import defaultdict
+
+import numpy
+
+from cogent3.maths.stats.distribution import chdtri
+from cogent3.util.dict_array import DictArrayTemplate
+
+from .calculation import ConstCell, EvaluatedCell, LogOptPar, OptPar
+from .scope import ParameterController, _Defn, _LeafDefn, _NonLeafDefn
+from .setting import ConstVal, Var
+
 
 # In this module we bring together scopes, settings and calculations.
 # Most of the classes are 'Defns' with their superclasses in scope.py.
 # These supply a make_cells() method which instantiates 'Cell'
 # classes from calculation.py
 
-from .calculation import EvaluatedCell, OptPar, LogOptPar, ConstCell
-from .scope import _NonLeafDefn, _LeafDefn, _Defn, ParameterController
-from .setting import Var, ConstVal
 
-from cogent3.util.dict_array import DictArrayTemplate
-from cogent3.maths.stats.distribution import chdtri
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -114,8 +119,9 @@ class CalculationDefn(_NonLeafDefn):
 
     def make_cell(self, *args):
         calc = self.make_calc_function()
-        cell = EvaluatedCell(self.name, calc, args,
-                             recycling=self.recycling, default=self.default)
+        cell = EvaluatedCell(
+            self.name, calc, args, recycling=self.recycling, default=self.default
+        )
         return cell
 
     def make_cells(self, input_soup, variable=None):
@@ -133,7 +139,6 @@ class CalculationDefn(_NonLeafDefn):
 
 
 class _FuncDefn(CalculationDefn):
-
     def __init__(self, calc, *args, **kw):
         self.calc = calc
         CalculationDefn.__init__(self, *args, **kw)
@@ -151,7 +156,7 @@ class CalcDefn(object):
             name = self.calc.__name__
         else:
             assert isinstance(name, str), name
-        kw['name'] = name
+        kw["name"] = name
         self.kw = kw
 
     def __call__(self, *args):
@@ -164,10 +169,9 @@ class WeightedPartitionDefn(CalculationDefn):
 
     def __init__(self, weights, name):
         N = len(weights.bin_names)
-        partition = PartitionDefn(size=N, name=name + '_partition')
+        partition = PartitionDefn(size=N, name=name + "_partition")
         partition.user_param = False
-        CalculationDefn.__init__(self, weights, partition,
-                                 name=name + '_distrib')
+        CalculationDefn.__init__(self, weights, partition, name=name + "_distrib")
 
     def calc(self, weights, values):
         scale = numpy.sum(weights * values)
@@ -190,20 +194,22 @@ class GammaDefn(MonotonicDefn):
     their medians.  If N > 2 medians are approx means so their average
     is approx 1.0, but not quite so we scale them to make it exactly 1.0"""
 
-    name = 'gamma'
+    name = "gamma"
 
-    def __init__(self, weights, name=None, default_shape=1.0,
-                 extra_label=None, dimensions=()):
+    def __init__(
+        self, weights, name=None, default_shape=1.0, extra_label=None, dimensions=()
+    ):
         name = self.make_name(name, extra_label)
-        shape = PositiveParamDefn(name + '_shape',
-                                  default=default_shape, dimensions=dimensions, lower=1e-2)
-        CalculationDefn.__init__(
-            self, weights, shape, name=name + '_distrib')
+        shape = PositiveParamDefn(
+            name + "_shape", default=default_shape, dimensions=dimensions, lower=1e-2
+        )
+        CalculationDefn.__init__(self, weights, shape, name=name + "_distrib")
 
     def calc(self, weights, a):
         from cogent3.maths.stats.distribution import gdtri
+
         weights = weights / numpy.sum(weights)
-        percentiles = (numpy.add.accumulate(weights) - weights * 0.5)
+        percentiles = numpy.add.accumulate(weights) - weights * 0.5
         medians = numpy.array([gdtri(a, a, p) for p in percentiles])
         scale = numpy.sum(medians * weights)
         # assert 0.5 < scale < 2.0, scale # medians as approx. to means.
@@ -213,11 +219,12 @@ class GammaDefn(MonotonicDefn):
 class _InputDefn(_LeafDefn):
     user_param = True
 
-    def __init__(self, name=None, default=None, dimensions=None,
-                 lower=None, upper=None, **kw):
+    def __init__(
+        self, name=None, default=None, dimensions=None, lower=None, upper=None, **kw
+    ):
         _LeafDefn.__init__(self, name=name, dimensions=dimensions, **kw)
         if default is not None:
-            if hasattr(default, '__len__'):
+            if hasattr(default, "__len__"):
                 default = numpy.array(default)
             self.default = default
         # these two have no effect on constants
@@ -242,8 +249,7 @@ class _InputDefn(_LeafDefn):
         result = {}
         for index in dim_indices:
             dim_name = self.valid_dimensions[index]
-            dim_name = {'edge': 'edges', 'bin': 'bins'}.get(
-                dim_name, dim_name)
+            dim_name = {"edge": "edges", "bin": "bins"}.get(dim_name, dim_name)
 
             result[dim_name] = list(sorted(set([k[index] for k in keys])))
         return result
@@ -252,8 +258,9 @@ class _InputDefn(_LeafDefn):
         """returns list of param rule dicts for this parameter"""
         num_valid_dims = len(self.valid_dimensions)
         # todo replace following with self.used_dimensions()
-        dimensioned = {k: set(v) for k, v in zip(
-            range(num_valid_dims), zip(*self.index))}
+        dimensioned = {
+            k: set(v) for k, v in zip(range(num_valid_dims), zip(*self.index))
+        }
 
         discard = []
         for k, v in dimensioned.items():
@@ -279,14 +286,15 @@ class _InputDefn(_LeafDefn):
             rule = dict(par_name=self.name)
             dimms = self._get_scoped_params(keys, dimensioned)
             rule.update(dimms)
-            rule.update(self.uniq[index].get_param_rule_dict(names=names,
-                                                             is_probs=is_probs))
+            rule.update(
+                self.uniq[index].get_param_rule_dict(names=names, is_probs=is_probs)
+            )
             rules.append(rule)
 
         if is_global:
             assert len(rules) == 1
-            rules[0]['edges'] = None
-            rules[0].pop('bins', None)
+            rules[0]["edges"] = None
+            rules[0].pop("bins", None)
 
         return rules
 
@@ -313,8 +321,7 @@ class ParamDefn(_InputDefn):
     def make_cells(self, input_soup={}, variable=None):
         uniq_cells = []
         for (i, v) in enumerate(self.uniq):
-            scope = [key for key in self.assignments
-                     if self.assignments[key] is v]
+            scope = [key for key in self.assignments if self.assignments[key] is v]
             if v.is_constant or (variable is not None and variable is not v):
                 cell = ConstCell(self.name, v.value)
             else:
@@ -326,6 +333,7 @@ class ParamDefn(_InputDefn):
 
 # Example / basic ParamDefn subclasses
 
+
 class PositiveParamDefn(ParamDefn):
     lower = 0.0
 
@@ -336,7 +344,7 @@ class ProbabilityParamDefn(PositiveParamDefn):
 
 class RatioParamDefn(PositiveParamDefn):
     lower = 1e-6
-    upper = 1e+6
+    upper = 1e6
     opt_par_class = LogOptPar
 
 
@@ -363,8 +371,9 @@ class NonScalarDefn(_InputDefn):
     def make_cells(self, input_soup={}, variable=None):
         if None in self.uniq:
             if [v for v in self.uniq if v is not None]:
-                scope = [key for key in self.assignments
-                         if self.assignments[key] is None]
+                scope = [
+                    key for key in self.assignments if self.assignments[key] is None
+                ]
                 msg = 'Unoptimisable input "%%s" not set for %s' % scope
             else:
                 msg = 'Unoptimisable input "%s" not given'
@@ -388,8 +397,9 @@ def _proportions(total, params):
         return [total]
     half = (len(params) + 1) // 2
     part = 1.0 / (params[0] + 1.0)  # ratio -> proportion
-    return _proportions(total * part, params[1:half]) + \
-        _proportions(total * (1.0 - part), params[half:])
+    return _proportions(total * part, params[1:half]) + _proportions(
+        total * (1.0 - part), params[half:]
+    )
 
 
 def _unpack_proportions(values):
@@ -400,8 +410,11 @@ def _unpack_proportions(values):
     (num, denom) = (sum(values[half:]), sum(values[:half]))
     assert num > 0 and denom > 0
     ratio = num / denom
-    return [ratio] + _unpack_proportions(values[:half]) + \
-        _unpack_proportions(values[half:])
+    return (
+        [ratio]
+        + _unpack_proportions(values[:half])
+        + _unpack_proportions(values[half:])
+    )
 
 
 def _ratio_to_proportion(*ratios):
@@ -416,8 +429,9 @@ class PartitionDefn(_InputDefn):
     const_by_default = False
     independent_by_default = False
 
-    def __init__(self, default=None, name=None, dimensions=None,
-                 dimension=None, size=None, **kw):
+    def __init__(
+        self, default=None, name=None, dimensions=None, dimension=None, size=None, **kw
+    ):
         assert name
         if size is not None:
             pass
@@ -438,8 +452,9 @@ class PartitionDefn(_InputDefn):
             default = self.array_template.unwrap(default)
         else:
             default = numpy.asarray(default)
-        _InputDefn.__init__(self, name=name, default=default,
-                            dimensions=dimensions, **kw)
+        _InputDefn.__init__(
+            self, name=name, default=default, dimensions=dimensions, **kw
+        )
         self.check_value_is_valid(default, True)
 
     def _make_default_value(self):
@@ -455,8 +470,10 @@ class PartitionDefn(_InputDefn):
 
     def check_value_is_valid(self, value, is_constant):
         if value.shape != (self.size,):
-            raise ValueError("Wrong array shape %s for %s, expected (%s,)" %
-                             (value.shape, self.name, self.size))
+            raise ValueError(
+                "Wrong array shape %s for %s, expected (%s,)"
+                % (value.shape, self.name, self.size)
+            )
         for part in value:
             if part < 0:
                 raise ValueError("Negative probability in %s" % self.name)
@@ -465,24 +482,26 @@ class PartitionDefn(_InputDefn):
             if not is_constant:
                 # 0 or 1 leads to log(0) or log(inf) in optimiser code
                 if part == 0:
-                    raise ValueError("Zeros allowed in %s only when constant" %
-                                     self.name)
+                    raise ValueError(
+                        "Zeros allowed in %s only when constant" % self.name
+                    )
                 if part == 1:
-                    raise ValueError("Ones allowed in %s only when constant" %
-                                     self.name)
-        if abs(sum(value) - 1.0) > .00001:
-            raise ValueError("Elements of %s must sum to 1.0, not %s" %
-                             (self.name, sum(value)))
+                    raise ValueError(
+                        "Ones allowed in %s only when constant" % self.name
+                    )
+        if abs(sum(value) - 1.0) > 0.00001:
+            raise ValueError(
+                "Elements of %s must sum to 1.0, not %s" % (self.name, sum(value))
+            )
 
     def _make_partition_cell(self, name, scope, value):
         # This was originally put in its own function so as to provide a
         # closure containing the value of sum(value), which is no longer
         # required since it is now always 1.0.
         N = len(value)
-        assert abs(sum(value) - 1.0) < .00001
+        assert abs(sum(value) - 1.0) < 0.00001
         ratios = _unpack_proportions(value)
-        ratios = [LogOptPar(name + '_ratio', scope, (1e-6, r, 1e+6))
-                  for r in ratios]
+        ratios = [LogOptPar(name + "_ratio", scope, (1e-6, r, 1e6)) for r in ratios]
 
         partition = EvaluatedCell(name, _ratio_to_proportion, tuple(ratios))
         return (ratios, partition)
@@ -493,18 +512,16 @@ class PartitionDefn(_InputDefn):
         for (i, v) in enumerate(self.uniq):
             if v is None:
                 raise ValueError("input %s not set" % self.name)
-            assert hasattr(v, 'get_default_value'), v
+            assert hasattr(v, "get_default_value"), v
             value = v.get_default_value()
-            assert hasattr(value, 'shape'), value
+            assert hasattr(value, "shape"), value
             assert value.shape == (self.size,)
-            scope = [key for key in self.assignments
-                     if self.assignments[key] is v]
+            scope = [key for key in self.assignments if self.assignments[key] is v]
             assert value is not None
             if v.is_constant or (variable is not None and variable is not v):
                 partition = ConstCell(self.name, value)
             else:
-                (ratios, partition) = self._make_partition_cell(
-                    self.name, scope, value)
+                (ratios, partition) = self._make_partition_cell(self.name, scope, value)
                 all_cells.extend(ratios)
             all_cells.append(partition)
             uniq_cells.append(partition)
@@ -533,7 +550,7 @@ class SelectForDimension(_Defn):
     dimension is wrapped up inside an array to later Defns where each
     value has its own Defn, eg: gamma distributed rates"""
 
-    name = 'select'
+    name = "select"
     user_param = True
     numeric = True  # not guarenteed!
     internal_dimensions = ()
@@ -554,8 +571,9 @@ class SelectForDimension(_Defn):
     def update(self):
         for scope_t in self.assignments:
             scope = dict(list(zip(self.valid_dimensions, scope_t)))
-            scope2 = dict((n, v) for (n, v) in list(
-                scope.items()) if n != self.dimension)
+            scope2 = dict(
+                (n, v) for (n, v) in list(scope.items()) if n != self.dimension
+            )
             input_num = self.arg.output_ordinal_for(scope2)
             pos = self.arg.bin_names.index(scope[self.dimension])
             self.assignments[scope_t] = (input_num, pos)
@@ -570,7 +588,8 @@ class SelectForDimension(_Defn):
         distribs = input_soup[id(self.arg)]
         for (input_num, bin_num) in self.uniq:
             cell = EvaluatedCell(
-                self.name, (lambda x, p=bin_num: x[p]), (distribs[input_num],))
+                self.name, (lambda x, p=bin_num: x[p]), (distribs[input_num],)
+            )
             cells.append(cell)
         return (cells, cells)
 
@@ -581,8 +600,9 @@ class SelectForDimension(_Defn):
 # ProductDefn = CalcDefn(lambda *args:numpy.product(args), 'product')
 # CallDefn = CalcDefn(lambda func,*args:func(*args), 'call')
 
+
 class SwitchDefn(CalculationDefn):
-    name = 'switch'
+    name = "switch"
 
     def calc(self, condition, *args):
         return args[condition]
@@ -593,7 +613,7 @@ class SwitchDefn(CalculationDefn):
 
 
 class VectorMatrixInnerDefn(CalculationDefn):
-    name = 'evolve'
+    name = "evolve"
 
     def calc(self, pi, psub):
         return numpy.inner(pi, psub)
@@ -604,28 +624,36 @@ class VectorMatrixInnerDefn(CalculationDefn):
 
 
 class SumDefn(CalculationDefn):
-    name = 'sum'
+    name = "sum"
 
     def calc(self, *args):
         return sum(args)
 
 
 class ProductDefn(CalculationDefn):
-    name = 'product'
+    name = "product"
 
     def calc(self, *args):
         return numpy.product(args)
 
 
 class CallDefn(CalculationDefn):
-    name = 'call'
+    name = "call"
 
     def calc(self, func, *args):
         return func(*args)
 
 
-__all__ = ['ConstDefn', 'NonParamDefn', 'CalcDefn', 'SumDefn', 'ProductDefn',
-           'CallDefn'] + [
-    n for (n, c) in list(vars().items())
-    if (isinstance(c, type) and issubclass(c, _Defn) and n[0] != '_')
-    or isinstance(c, CalcDefn)]
+__all__ = [
+    "ConstDefn",
+    "NonParamDefn",
+    "CalcDefn",
+    "SumDefn",
+    "ProductDefn",
+    "CallDefn",
+] + [
+    n
+    for (n, c) in list(vars().items())
+    if (isinstance(c, type) and issubclass(c, _Defn) and n[0] != "_")
+    or isinstance(c, CalcDefn)
+]

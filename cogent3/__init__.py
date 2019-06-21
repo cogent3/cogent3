@@ -3,22 +3,63 @@ The rest are in the subpackages: core, draw, evolve, format, maths, parse
 and phylo.
 """
 
-import sys
-import re
-import pickle
-import numpy
 import os
+import pickle
+import re
+import sys
 import warnings
+
+import numpy
+
+from cogent3.core.alignment import (
+    Alignment,
+    ArrayAlignment,
+    SequenceCollection,
+)
+# note that moltype has to be imported last, because it sets the moltype in
+# the objects created by the other modules.
+from cogent3.core.moltype import (
+    ASCII,
+    DNA,
+    PROTEIN,
+    RNA,
+    STANDARD_CODON,
+    CodonAlphabet,
+    get_moltype,
+)
+from cogent3.core.tree import TreeBuilder, TreeError
+from cogent3.parse.newick import parse_string as newick_parse_string
+from cogent3.parse.sequence import FromFilenameParser
+from cogent3.parse.table import autogen_reader, load_delimited
+from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
+from cogent3.util.misc import get_format_suffixes, open_
+from cogent3.util.table import Table as _Table
+
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Rob Knight", "Peter Maxwell",
-               "Jeremy Widmann", "Catherine Lozupone", "Matthew Wakefield",
-               "Edward Lang", "Greg Caporaso", "Mike Robeson",
-               "Micah Hamady", "Sandra Smit", "Zongzhi Liu",
-               "Andrew Butterfield", "Amanda Birmingham", "Brett Easton",
-               "Hua Ying", "Jason Carnes", "Raymond Sammut",
-               "Helen Lindsay", "Daniel McDonald"]
+__credits__ = [
+    "Gavin Huttley",
+    "Rob Knight",
+    "Peter Maxwell",
+    "Jeremy Widmann",
+    "Catherine Lozupone",
+    "Matthew Wakefield",
+    "Edward Lang",
+    "Greg Caporaso",
+    "Mike Robeson",
+    "Micah Hamady",
+    "Sandra Smit",
+    "Zongzhi Liu",
+    "Andrew Butterfield",
+    "Amanda Birmingham",
+    "Brett Easton",
+    "Hua Ying",
+    "Jason Carnes",
+    "Raymond Sammut",
+    "Helen Lindsay",
+    "Daniel McDonald",
+]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
@@ -29,7 +70,8 @@ __status__ = "Production"
 if sys.version_info < (3, 6):
     PY_VERSION = ".".join([str(n) for n in sys.version_info])
     raise RuntimeError(
-        "Python-3.6 or greater is required, Python-%s used." % PY_VERSION)
+        "Python-3.6 or greater is required, Python-%s used." % PY_VERSION
+    )
 
 NUMPY_VERSION = re.split(r"[^\d]", numpy.__version__)
 numpy_version_info = tuple([int(i) for i in NUMPY_VERSION if i.isdigit()])
@@ -40,25 +82,13 @@ version = __version__
 version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])
 
 
-warn_env = 'COGENT3_WARNINGS'
+warn_env = "COGENT3_WARNINGS"
 
 if warn_env in os.environ:
     warnings.simplefilter(os.environ[warn_env])
 
 
-from cogent3.util.table import Table as _Table
-from cogent3.util.misc import get_format_suffixes, open_
-from cogent3.parse.table import load_delimited, autogen_reader
-from cogent3.core.tree import TreeBuilder, TreeError
-from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
-from cogent3.parse.newick import parse_string as newick_parse_string
-from cogent3.core.alignment import SequenceCollection
-from cogent3.core.alignment import Alignment, ArrayAlignment
-from cogent3.parse.sequence import FromFilenameParser
-# note that moltype has to be imported last, because it sets the moltype in
-# the objects created by the other modules.
-from cogent3.core.moltype import (ASCII, DNA, RNA, PROTEIN, STANDARD_CODON,
-    CodonAlphabet, get_moltype)
+
 
 
 def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
@@ -73,16 +103,26 @@ def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
     if moltype is not None:
         moltype = get_moltype(moltype)
         seq = moltype.make_seq(seq)
-    elif not hasattr(seq, 'moltype'):
+    elif not hasattr(seq, "moltype"):
         seq = ASCII.make_seq(seq)
     if name is not None:
         seq.name = name
     return seq
 
 
-def LoadSeqs(filename=None, format=None, data=None, moltype=None,
-             name=None, aligned=True, label_to_name=None, parser_kw=None,
-             constructor_kw=None, array_align=True, **kw):
+def LoadSeqs(
+    filename=None,
+    format=None,
+    data=None,
+    moltype=None,
+    name=None,
+    aligned=True,
+    label_to_name=None,
+    parser_kw=None,
+    constructor_kw=None,
+    array_align=True,
+    **kw,
+):
     """Initialize an alignment or collection of sequences.
 
     Arguments:
@@ -107,7 +147,7 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
     suffix. If label_to_name is None, will attempt to infer correct
     conversion from the format.
     """
-    
+
     constructor_kw = constructor_kw or {}
     parser_kw = parser_kw or {}
 
@@ -116,9 +156,9 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
         assert format is None
         assert not kw, kw
     else:
-        info = constructor_kw.get('info', {})
-        info['source'] = filename
-        constructor_kw['info'] = info
+        info = constructor_kw.get("info", {})
+        info["source"] = filename
+        constructor_kw["info"] = info
         assert data is None, (filename, data)
         data = list(FromFilenameParser(filename, format, **parser_kw))
 
@@ -126,16 +166,38 @@ def LoadSeqs(filename=None, format=None, data=None, moltype=None,
         klass = ArrayAlignment if array_align else Alignment
     else:  # generic case: return SequenceCollection
         klass = SequenceCollection
-    
-    return klass(data=data, moltype=moltype, name=name,
-                                  label_to_name=label_to_name, **constructor_kw)
+
+    return klass(
+        data=data,
+        moltype=moltype,
+        name=name,
+        label_to_name=label_to_name,
+        **constructor_kw,
+    )
 
 
-def LoadTable(filename=None, sep=None, reader=None, header=None, rows=None,
-              row_order=None, digits=4, space=4, title='', missing_data='',
-              max_width=1e100, row_ids=None, legend='', column_templates=None,
-              dtype=None, static_column_types=False, limit=None,
-              data_frame=None, format="simple", **kwargs):
+def LoadTable(
+    filename=None,
+    sep=None,
+    reader=None,
+    header=None,
+    rows=None,
+    row_order=None,
+    digits=4,
+    space=4,
+    title="",
+    missing_data="",
+    max_width=1e100,
+    row_ids=None,
+    legend="",
+    column_templates=None,
+    dtype=None,
+    static_column_types=False,
+    limit=None,
+    data_frame=None,
+    format="simple",
+    **kwargs,
+):
     """
     Arguments:
     - filename: path to file containing a pickled table
@@ -167,54 +229,72 @@ def LoadTable(filename=None, sep=None, reader=None, header=None, rows=None,
     - data_frame: a pandas DataFrame, supersedes header/rows
     - format: output format when using str(Table)
     """
-    sep = sep or kwargs.pop('delimiter', None)
+    sep = sep or kwargs.pop("delimiter", None)
     if filename is not None:
         file_format, compress_format = get_format_suffixes(filename)
 
     if filename is not None and not (reader or static_column_types):
-        if file_format == 'pickle':
-            f = open_(filename, mode='rb')
+        if file_format == "pickle":
+            f = open_(filename, mode="rb")
             loaded_table = pickle.load(f)
             f.close()
             return _Table(**loaded_table)
-        elif file_format == 'csv':
-            sep = sep or ','
-        elif file_format == 'tsv':
-            sep = sep or '\t'
-        
-        header, rows, loaded_title, legend = load_delimited(filename,
-                                                            delimiter=sep, limit=limit, **kwargs)
+        elif file_format == "csv":
+            sep = sep or ","
+        elif file_format == "tsv":
+            sep = sep or "\t"
+
+        header, rows, loaded_title, legend = load_delimited(
+            filename, delimiter=sep, limit=limit, **kwargs
+        )
         title = title or loaded_title
     elif filename and (reader or static_column_types):
         f = open_(filename, newline=None)
         if not reader:
-            if file_format == 'csv':
-                sep = sep or ','
-            elif file_format == 'tsv':
-                sep = sep or '\t'
+            if file_format == "csv":
+                sep = sep or ","
+            elif file_format == "tsv":
+                sep = sep or "\t"
             elif not sep:
-                raise ValueError("static_column_types option requires a value "
-                                 "for sep")
-            
-            reader = autogen_reader(f, sep, limit=limit,
-                                    with_title=kwargs.get('with_title', False))
+                raise ValueError(
+                    "static_column_types option requires a value " "for sep"
+                )
+
+            reader = autogen_reader(
+                f, sep, limit=limit, with_title=kwargs.get("with_title", False)
+            )
 
         rows = [row for row in reader(f)]
         f.close()
         header = rows.pop(0)
 
-    table = _Table(header=header, rows=rows, digits=digits, row_order=row_order,
-                   title=title,
-                   dtype=dtype, column_templates=column_templates, space=space,
-                   missing_data=missing_data, max_width=max_width, row_ids=row_ids,
-                   legend=legend,
-                   data_frame=data_frame, format=format)
+    table = _Table(
+        header=header,
+        rows=rows,
+        digits=digits,
+        row_order=row_order,
+        title=title,
+        dtype=dtype,
+        column_templates=column_templates,
+        space=space,
+        missing_data=missing_data,
+        max_width=max_width,
+        row_ids=row_ids,
+        legend=legend,
+        data_frame=data_frame,
+        format=format,
+    )
 
     return table
 
 
-def LoadTree(filename=None, treestring=None, tip_names=None, format=None,
-             underscore_unmunge=False):
+def LoadTree(
+    filename=None,
+    treestring=None,
+    tip_names=None,
+    format=None,
+    underscore_unmunge=False,
+):
     """Constructor for tree.
 
     Arguments, use only one of:
@@ -231,11 +311,11 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None,
         assert not (treestring or tip_names)
         with open_(filename) as tfile:
             treestring = tfile.read()
-        if format is None and filename.endswith('.xml'):
+        if format is None and filename.endswith(".xml"):
             format = "xml"
     if treestring:
         assert not tip_names
-        if format is None and treestring.startswith('<'):
+        if format is None and treestring.startswith("<"):
             format = "xml"
         if format == "xml":
             parser = tree_xml_parse_string
@@ -244,16 +324,17 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None,
         tree_builder = TreeBuilder().create_edge
         # FIXME: More general strategy for underscore_unmunge
         if parser is newick_parse_string:
-            tree = parser(treestring, tree_builder,
-                          underscore_unmunge=underscore_unmunge)
+            tree = parser(
+                treestring, tree_builder, underscore_unmunge=underscore_unmunge
+            )
         else:
             tree = parser(treestring, tree_builder)
         if not tree.name_loaded:
-            tree.name = 'root'
+            tree.name = "root"
     elif tip_names:
         tree_builder = TreeBuilder().create_edge
         tips = [tree_builder([], tip_name, {}) for tip_name in tip_names]
-        tree = tree_builder(tips, 'root', {})
+        tree = tree_builder(tips, "root", {})
     else:
-        raise TreeError('filename or treestring not specified')
+        raise TreeError("filename or treestring not specified")
     return tree

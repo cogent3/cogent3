@@ -1,15 +1,20 @@
 #!/usr/bin/env python
 
-import numpy
-Float = numpy.core.numerictypes.sctype2char(float)
+import os
 import time
 import warnings
+
+import numpy
+
+from cogent3.maths.optimisers import ParameterOutOfBoundsError, maximise
 from cogent3.maths.solve import find_root
-from cogent3.maths.optimisers import maximise, ParameterOutOfBoundsError
 
 
-import os
-TRACE_DEFAULT = 'COGENT3_TRACE' in os.environ
+Float = numpy.core.numerictypes.sctype2char(float)
+
+
+
+TRACE_DEFAULT = "COGENT3_TRACE" in os.environ
 TRACE_SCALE = 100000
 
 __author__ = "Peter Maxwell"
@@ -39,14 +44,25 @@ class OptPar(object):
     recycled = False
     args = ()
     # Use of __slots__ here and in Cell gives 8% speedup on small calculators.
-    __slots__ = ['clients', 'client_ranks', 'name', 'lower', 'default_value',
-                 'upper', 'scope', 'order', 'label', 'consequences', 'rank']
+    __slots__ = [
+        "clients",
+        "client_ranks",
+        "name",
+        "lower",
+        "default_value",
+        "upper",
+        "scope",
+        "order",
+        "label",
+        "consequences",
+        "rank",
+    ]
 
     def __init__(self, name, scope, bounds):
         self.clients = []
         self.client_ranks = []
         self.name = name
-        for (attr, v) in zip(['lower', 'default_value', 'upper'], bounds):
+        for (attr, v) in zip(["lower", "default_value", "upper"], bounds):
             setattr(self, attr, float(v))
 
         # controls order in optimiser - group for LF
@@ -70,7 +86,7 @@ class OptPar(object):
         return self.order != other.order
 
     def __repr__(self):
-        return '%s(%s)' % (self.__class__.__name__, self.label)
+        return "%s(%s)" % (self.__class__.__name__, self.label)
 
     def get_optimiser_bounds(self):
         lower = self.transform_to_optimiser(self.lower)
@@ -96,13 +112,24 @@ class LogOptPar(OptPar):
         try:
             return numpy.log(value)
         except OverflowError:
-            raise OverflowError('log(%s)' % value)
+            raise OverflowError("log(%s)" % value)
 
 
 class EvaluatedCell(object):
-    __slots__ = ['client_ranks', 'rank', 'calc', 'args', 'is_constant',
-                 'clients', 'failure_count', 'name', 'arg_ranks',
-                 'consequences', 'recycled', 'default']
+    __slots__ = [
+        "client_ranks",
+        "rank",
+        "calc",
+        "args",
+        "is_constant",
+        "clients",
+        "failure_count",
+        "name",
+        "arg_ranks",
+        "consequences",
+        "recycled",
+        "default",
+    ]
 
     def __init__(self, name, calc, args, recycling=None, default=None):
         self.name = name
@@ -129,8 +156,7 @@ class EvaluatedCell(object):
         self.clients.append(client)
 
     def update(self, data):
-        data[self.rank] = self.calc(
-            *[data[arg_rank] for arg_rank in self.arg_ranks])
+        data[self.rank] = self.calc(*[data[arg_rank] for arg_rank in self.arg_ranks])
 
     def prime(self, data_sets):
         if self.is_constant:
@@ -145,18 +171,17 @@ class EvaluatedCell(object):
     def report_error(self, detail, data):
         self.failure_count += 1
         if self.failure_count <= 5:
-            print(("%s in calculating %s:",
-                   detail.__class__.__name__, self.name))
+            print(("%s in calculating %s:", detail.__class__.__name__, self.name))
         if self.failure_count == 5:
             print("Additional failures of this type will not be reported.")
         if self.failure_count < 2:
-            print('%s inputs were:', len(self.arg_ranks))
+            print("%s inputs were:", len(self.arg_ranks))
             for (i, arg) in enumerate(self.arg_ranks):
-                print('%s: ' % i + repr(data[arg]))
+                print("%s: " % i + repr(data[arg]))
 
 
 class ConstCell(object):
-    __slots__ = ['name', 'scope', 'value', 'rank', 'consequences', 'clients']
+    __slots__ = ["name", "scope", "value", "rank", "consequences", "clients"]
 
     recycled = False
     is_constant = True
@@ -203,7 +228,7 @@ class Calculator(object):
             elif isinstance(cell, EvaluatedCell):
                 cell.arg_ranks = []
                 for arg in cell.args:
-                    if hasattr(arg, 'client_ranks'):
+                    if hasattr(arg, "client_ranks"):
                         arg.client_ranks.append(i)
                     self.arg_ranks[i].append(arg.rank)
                     cell.arg_ranks.append(arg.rank)
@@ -213,15 +238,13 @@ class Calculator(object):
                 except KeyboardInterrupt:
                     raise
                 except Exception as detail:
-                    print(("Failed initial calculation of %s"
-                            % cell.name))
+                    print(("Failed initial calculation of %s" % cell.name))
                     raise
             else:
-                raise RuntimeError('Unexpected Cell type %s' % type(cell))
+                raise RuntimeError("Unexpected Cell type %s" % type(cell))
 
         self._switch = 0
-        self.recycled_cells = [
-            cell.rank for cell in self._cells if cell.recycled]
+        self.recycled_cells = [cell.rank for cell in self._cells if cell.recycled]
         self.spare = [None] * len(self._cells)
 
         for cell in self._cells[::-1]:
@@ -245,7 +268,7 @@ class Calculator(object):
         """A string in the 'dot' graph description language used by the
         program 'Graphviz'.  One box per cell, grouped by Defn."""
 
-        lines = ['digraph G {\n rankdir = LR\n ranksep = 1\n']
+        lines = ["digraph G {\n rankdir = LR\n ranksep = 1\n"]
         evs = []
         for cell in self._cells:
             if cell.name not in evs:
@@ -253,34 +276,37 @@ class Calculator(object):
         nodes = dict([(name, []) for name in evs])
         edges = []
         for cell in self._cells:
-            if hasattr(cell, 'name'):
+            if hasattr(cell, "name"):
                 nodes[cell.name].append(cell)
                 for arg in cell.args:
                     if arg is not cell:
-                        edges.append('"%s":%s -> "%s":%s' %
-                                     (arg.name, arg.rank, cell.name, cell.rank))
+                        edges.append(
+                            '"%s":%s -> "%s":%s'
+                            % (arg.name, arg.rank, cell.name, cell.rank)
+                        )
         for name in evs:
             all_const = True
             some_const = False
-            enodes = [name.replace('edge', 'QQQ')]
+            enodes = [name.replace("edge", "QQQ")]
             for cell in nodes[name]:
                 value = self._get_current_cell_value(cell)
                 if isinstance(value, float):
-                    label = '%5.2e' % value
+                    label = "%5.2e" % value
                 else:
-                    label = '[]'
-                label = '<%s> %s' % (cell.rank, label)
+                    label = "[]"
+                label = "<%s> %s" % (cell.rank, label)
                 enodes.append(label)
                 all_const = all_const and cell.is_constant
                 some_const = some_const or cell.is_constant
-            enodes = '|'.join(enodes)
-            colour = ['', ' fillcolor=gray90, style=filled,'][some_const]
-            colour = [colour, ' fillcolor=gray, style=filled,'][all_const]
-            lines.append('"%s" [shape = "record",%s label="%s"];' %
-                         (name, colour, enodes))
+            enodes = "|".join(enodes)
+            colour = ["", " fillcolor=gray90, style=filled,"][some_const]
+            colour = [colour, " fillcolor=gray, style=filled,"][all_const]
+            lines.append(
+                '"%s" [shape = "record",%s label="%s"];' % (name, colour, enodes)
+            )
         lines.extend(edges)
-        lines.append('}')
-        return '\n'.join(lines).replace('edge', 'egde').replace('QQQ', 'edge')
+        lines.append("}")
+        return "\n".join(lines).replace("edge", "egde").replace("QQQ", "edge")
 
     def graphviz(self, keep=False):
         """Use Graphviz to display a graph representing the inner workings of
@@ -291,18 +317,18 @@ class Calculator(object):
         import os
         import sys
 
-        if sys.platform != 'darwin':
+        if sys.platform != "darwin":
             raise NotImplementedError("Graphviz support Mac only at present")
 
-        GRAPHVIZ = '/Applications/Graphviz.app'
+        GRAPHVIZ = "/Applications/Graphviz.app"
         # test that graphviz is installed
         if not os.path.exists(GRAPHVIZ):
-            raise RuntimeError('%s not present' % GRAPHVIZ)
+            raise RuntimeError("%s not present" % GRAPHVIZ)
 
         text = self._graphviz()
 
         fn = tempfile.mktemp(prefix="calc_", suffix=".dot")
-        f = open(fn, 'w')
+        f = open(fn, "w")
         f.write(text)
         f.close()
         # Mac specific!
@@ -329,7 +355,7 @@ class Calculator(object):
             n_opars = len(self.opt_pars)
             n_cells = len([c for c in self._cells if not c.is_constant])
             print(n_opars, "OptPars and", n_cells - n_opars, "derived values")
-            print('OptPars: ', ', '.join([par.name for par in self.opt_pars]))
+            print("OptPars: ", ", ".join([par.name for par in self.opt_pars]))
             print("Times in 1/%sths of a second" % TRACE_SCALE)
 
             groups = []
@@ -349,17 +375,19 @@ class Calculator(object):
                 widths.append(min(15, width))
             self._cellsGroupedForDisplay = list(zip(groups, widths))
             for ((name, cells), width) in self._cellsGroupedForDisplay:
-                print(name[:width].ljust(width), '|', end=' ')
+                print(name[:width].ljust(width), "|", end=" ")
             print()
             for width in widths:
-                print('-' * width, '|', end=' ')
+                print("-" * width, "|", end=" ")
             print()
 
     def get_value_array(self):
         """This being a caching function, you can ask it for its current
         input!  Handy for initialising the optimiser."""
-        values = [p.transform_to_optimiser(self._get_current_cell_value(p))
-                  for p in self.opt_pars]
+        values = [
+            p.transform_to_optimiser(self._get_current_cell_value(p))
+            for p in self.opt_pars
+        ]
         return values
 
     # get_bounds_vectors and testoptparvector make up the old LikelihoodFunction
@@ -380,6 +408,7 @@ class Calculator(object):
         # ridge starting points before local optimisation.
         if random_series is None:
             import random
+
             random_series = random.Random()
         if seed is not None:
             random_series.seed(seed)
@@ -397,9 +426,11 @@ class Calculator(object):
         array"""
 
         assert len(values) == len(self.opt_pars)
-        changes = [(i, new) for (i, (old, new))
-                   in enumerate(zip(self.last_values, values))
-                   if old != new]
+        changes = [
+            (i, new)
+            for (i, (old, new)) in enumerate(zip(self.last_values, values))
+            if old != new
+        ]
         return self.change(changes)
 
     __call__ = testoptparvector
@@ -467,8 +498,7 @@ class Calculator(object):
                 self.plain_update(program, data)
 
             # if non-optimiser parameter was set then undo is invalid
-            if (self.last_undo and
-                    max(self.last_undo)[0] >= len(self.opt_pars)):
+            if self.last_undo and max(self.last_undo)[0] >= len(self.opt_pars):
                 self.last_undo = []
             else:
                 self.last_undo = changed_optpars
@@ -499,8 +529,9 @@ class Calculator(object):
             consequences = {}
             for i in change_key:
                 consequences.update(self._cells[i].consequences)
-            self._programs[change_key] = program = (
-                [cell for cell in self._cells if cell.rank in consequences])
+            self._programs[change_key] = program = [
+                cell for cell in self._cells if cell.rank in consequences
+            ]
         return program
 
     def plain_update(self, program, data):
@@ -530,33 +561,33 @@ class Calculator(object):
             except (ParameterOutOfBoundsError, ArithmeticError) as exception:
                 error_cell = cell
                 break
-            elapsed[cell.rank] = (t1 - t0)
+            elapsed[cell.rank] = t1 - t0
 
         tds = []
         for ((name, cells), width) in self._cellsGroupedForDisplay:
-            text = ''.join([' +'[cell.rank in elapsed] for cell in cells])
+            text = "".join([" +"[cell.rank in elapsed] for cell in cells])
             elap = sum([elapsed.get(cell.rank, 0) for cell in cells])
             if len(text) > width - 4:
                 edge_width = min(len(text), (width - 4 - 3)) // 2
-                elipsis = ['   ', '...'][not not text.strip()]
+                elipsis = ["   ", "..."][not not text.strip()]
                 text = text[:edge_width] + elipsis + text[-edge_width:]
-            tds.append('%s%4s' % (text, int(TRACE_SCALE * elap + 0.5) or ''))
+            tds.append("%s%4s" % (text, int(TRACE_SCALE * elap + 0.5) or ""))
 
         par_descs = []
         for (i, v) in changes:
             cell = self._cells[i]
             if isinstance(cell, OptPar):
-                par_descs.append('%s=%8.6f' % (cell.name, v))
+                par_descs.append("%s=%8.6f" % (cell.name, v))
             else:
-                par_descs.append('%s=?' % cell.name)
-        par_descs = ', '.join(par_descs)[:22].ljust(22)
-        print(' | '.join(tds + ['']), end=' ')
+                par_descs.append("%s=?" % cell.name)
+        par_descs = ", ".join(par_descs)[:22].ljust(22)
+        print(" | ".join(tds + [""]), end=" ")
         if exception:
-            print('%15s | %s' % ('', par_descs))
+            print("%15s | %s" % ("", par_descs))
             error_cell.report_error(exception, data)
             raise CalculationInterupted(cell, exception)
         else:
-            print('%-15s | %s' % (repr(data[-1])[:15], par_descs))
+            print("%-15s | %s" % (repr(data[-1])[:15], par_descs))
 
     def measure_evals_per_second(self, time_limit=1.0, wall=True, sa=False):
         # Returns an estimate of the number of evaluations per second
@@ -612,9 +643,14 @@ class Calculator(object):
         return [self.cell_values[self._switch][cell.rank] for cell in cells]
 
     def __get_bounded_root(self, func, origX, direction, bound, xtol):
-        return find_root(func, origX, direction, bound, xtol=xtol,
-                         expected_exception=(
-                             ParameterOutOfBoundsError, ArithmeticError))
+        return find_root(
+            func,
+            origX,
+            direction,
+            bound,
+            xtol=xtol,
+            expected_exception=(ParameterOutOfBoundsError, ArithmeticError),
+        )
 
     def _get_current_cell_interval(self, opt_par, dropoff, xtol=None):
         # (min, opt, max) tuples for each parameter where f(min) ==
@@ -628,6 +664,7 @@ class Calculator(object):
         def func(x):
             Y = self.change([(opt_par.rank, x)])
             return Y - (origY - dropoff)
+
         try:
             lowX = self.__get_bounded_root(func, origX, -1, lower, xtol)
             highX = self.__get_bounded_root(func, origX, +1, upper, xtol)

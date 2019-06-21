@@ -4,6 +4,7 @@
 
 from cogent3.format.util import _AlignmentFormatter
 
+
 __author__ = "Thomas La"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Rob Knight", "Gavin Huttley", "Thomas La"]
@@ -15,11 +16,12 @@ __maintainer__ = "Thomas La"
 def alignment_to_gde(alignment_dict, block_size=60, order=None):
     """Returns a Gde string given an alignment.
     """
-    return GDEFormatter().format(alignment_dict, block_size, [] if order is None else order)
+    return GDEFormatter().format(
+        alignment_dict, block_size, [] if order is None else order
+    )
 
 
 class GDEFormatter(_AlignmentFormatter):
-
     def format(self, alignment_dict, block_size, order):
         """Format the alignment to GDE.
 
@@ -39,8 +41,16 @@ class GDEFormatter(_AlignmentFormatter):
         self.set_align_info(alignment_dict, order)
         self.set_block_size(block_size)
 
-        return ''.join(['%s%s\n%s' % ("%", seq,
-                        self.wrap_string_to_block_size(alignment_dict[seq],
-                                                       alt_block_size=block_size)) for seq in self.align_order])
-
-
+        return "".join(
+            [
+                "%s%s\n%s"
+                % (
+                    "%",
+                    seq,
+                    self.wrap_string_to_block_size(
+                        alignment_dict[seq], alt_block_size=block_size
+                    ),
+                )
+                for seq in self.align_order
+            ]
+        )

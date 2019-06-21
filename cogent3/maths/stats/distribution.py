@@ -3,12 +3,31 @@
 which is (c) Stephen L. Moshier 1984, 1995.
 """
 
-from cogent3.maths.stats.special import erf, erfc, igamc, igam, betai, log1p, \
-    expm1, SQRTH, MACHEP, MAXNUM, PI, ndtri, incbi, igami, fix_rounding_error,\
-    ln_binomial
+from numpy import arctan as atan
+from numpy import exp, sqrt
+
+from cogent3.maths.stats.special import (
+    MACHEP,
+    MAXNUM,
+    PI,
+    SQRTH,
+    betai,
+    erf,
+    erfc,
+    expm1,
+    fix_rounding_error,
+    igam,
+    igamc,
+    igami,
+    incbi,
+    ln_binomial,
+    log1p,
+    ndtri,
+)
+
+
 # ndtri import b/c it should be available via this module
 
-from numpy import sqrt, exp, arctan as atan
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -216,7 +235,7 @@ def f_high(df1, df2, x):
     return fdtrc(df1, df2, x)
 
 
-def fprob(dfn, dfd, F, side='right'):
+def fprob(dfn, dfd, F, side="right"):
     """Returns both tails of F distribution (-inf to F and F to inf)
 
     Use in case of two-tailed test. Usually this method is called by
@@ -229,9 +248,9 @@ def fprob(dfn, dfd, F, side='right'):
     """
     if F < 0:
         raise ValueError("fprob: F must be >= 0 (got %s)." % F)
-    if side == 'right':
+    if side == "right":
         return 2 * f_high(dfn, dfd, F)
-    elif side == 'left':
+    elif side == "left":
         return 2 * f_low(dfn, dfd, F)
     else:
         raise ValueError("Not a valid value for side %s" % (side))
@@ -243,7 +262,7 @@ def stdtr(k, t):
     See Cephes docs for details.
     """
     if k <= 0:
-        raise ValueError('stdtr: df must be > 0.')
+        raise ValueError("stdtr: df must be > 0.")
     if t == 0:
         return 0.5
     if t < -2:
@@ -327,7 +346,7 @@ def bdtrc(k, n, p):
         return 0
     dn = n - k
     if k == 0:
-        if p < .01:
+        if p < 0.01:
             dk = -expm1(dn * log1p(-p))
         else:
             dk = 1 - pow(1.0 - p, dn)
@@ -403,13 +422,14 @@ def gdtrc(a, b, x):
         raise ZeroDivisionError("x must be at least 0.")
     return igamc(b, a * x)
 
+
 # note: ndtri for the normal distribution is already imported
 
 
 def chdtri(df, y):
     """Returns inverse of chi-squared distribution."""
     y = fix_rounding_error(y)
-    if(y < 0.0 or y > 1.0 or df < 1.0):
+    if y < 0.0 or y > 1.0 or df < 1.0:
         raise ZeroDivisionError("y must be between 0 and 1; df >= 1")
     return 2 * igami(0.5 * df, y)
 
@@ -471,7 +491,7 @@ def bdtri(k, n, y):
         if y > 0.8:
             p = -expm1(log1p(y - 1.0) / dn)
         else:
-            p = 1.0 - y**(1.0 / dn)
+            p = 1.0 - y ** (1.0 / dn)
     else:
         dk = k + 1
         p = incbet(dn, dk, 0.5)
@@ -499,7 +519,7 @@ def gdtri(a, b, y):
 def fdtri(a, b, y):
     """Returns inverse of F distribution."""
     y = fix_rounding_error(y)
-    if(a < 1.0 or b < 1.0 or y <= 0.0 or y > 1.0):
+    if a < 1.0 or b < 1.0 or y <= 0.0 or y > 1.0:
         raise ZeroDivisionError("y must be between 0 and 1; a and b >= 1")
     y = 1.0 - y
     # Compute probability for x = 0.5

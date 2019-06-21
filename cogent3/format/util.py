@@ -67,7 +67,7 @@ class _AlignmentFormatter:
         seq_length = len(seq_string)
         for block in range(0, seq_length, block_size):
             if block + block_size < seq_length:
-                block_list.append(seq_string[block: block + block_size])
+                block_list.append(seq_string[block : block + block_size])
             else:
                 block_list.append(seq_string[block:])
 
@@ -88,4 +88,4 @@ class _AlignmentFormatter:
             self.block_size = alt_block_size
 
         str_list = self.slice_string_in_blocks(seq_string, self.block_size)
-        return '\n'.join(str_list) + "\n"
+        return "\n".join(str_list) + "\n"

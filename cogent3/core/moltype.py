@@ -14,8 +14,7 @@ types and the MolType can be made after the objects are created.
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
-               "Daniel McDonald"]
+__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
@@ -23,31 +22,70 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-from cogent3.core.alphabet import CharAlphabet, Enumeration, Alphabet, \
-    AlphabetError, _make_complement_array
-from cogent3.util.misc import (FunctionWrapper, add_lowercase, iterable,
-                               get_object_provenance)
-from cogent3.util.transform import KeepChars, first_index_in_set
-from cogent3.data.molecular_weight import DnaMW, RnaMW, ProteinMW
-from cogent3.core.sequence import Sequence as DefaultSequence, RnaSequence, \
-    DnaSequence, ProteinSequence, ABSequence, NucleicAcidSequence, \
-    ByteSequence, ArraySequence, \
-    ArrayDnaSequence, ArrayRnaSequence, ArrayDnaCodonSequence, \
-    ArrayRnaCodonSequence, ArrayProteinSequence, ProteinWithStopSequence,\
-    ArrayProteinWithStopSequence
-from cogent3.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE, get_code
-from cogent3.core.alignment import Alignment, ArrayAlignment, \
-    SequenceCollection
-from random import choice
-
-import re
 import json
-from string import ascii_letters as letters
+import re
+
 from collections import defaultdict
+from random import choice
+from string import ascii_letters as letters
 
 import numpy
-from numpy import array, transpose, remainder, zeros, arange, newaxis, \
-    ravel, asarray, take, uint8, uint16, uint32
+
+from numpy import (
+    arange,
+    array,
+    asarray,
+    newaxis,
+    ravel,
+    remainder,
+    take,
+    transpose,
+    uint8,
+    uint16,
+    uint32,
+    zeros,
+)
+
+from cogent3.core.alignment import (
+    Alignment,
+    ArrayAlignment,
+    SequenceCollection,
+)
+from cogent3.core.alphabet import (
+    Alphabet,
+    AlphabetError,
+    CharAlphabet,
+    Enumeration,
+    _make_complement_array,
+)
+from cogent3.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE
+from cogent3.core.genetic_code import get_code
+from cogent3.core.sequence import (
+    ABSequence,
+    ArrayDnaCodonSequence,
+    ArrayDnaSequence,
+    ArrayProteinSequence,
+    ArrayProteinWithStopSequence,
+    ArrayRnaCodonSequence,
+    ArrayRnaSequence,
+    ArraySequence,
+    ByteSequence,
+    DnaSequence,
+    NucleicAcidSequence,
+    ProteinSequence,
+    ProteinWithStopSequence,
+    RnaSequence,
+)
+from cogent3.core.sequence import Sequence as DefaultSequence
+from cogent3.data.molecular_weight import DnaMW, ProteinMW, RnaMW
+from cogent3.util.misc import (
+    FunctionWrapper,
+    add_lowercase,
+    get_object_provenance,
+    iterable,
+)
+from cogent3.util.transform import KeepChars, first_index_in_set
+
 
 Float = numpy.core.numerictypes.sctype2char(float)
 Int = numpy.core.numerictypes.sctype2char(int)
@@ -55,178 +93,221 @@ Int = numpy.core.numerictypes.sctype2char(int)
 maketrans = str.maketrans
 translate = str.translate
 
-IUPAC_gap = '-'
+IUPAC_gap = "-"
 
-IUPAC_missing = '?'
+IUPAC_missing = "?"
 
-IUPAC_DNA_chars = ['T', 'C', 'A', 'G']
+IUPAC_DNA_chars = ["T", "C", "A", "G"]
 IUPAC_DNA_ambiguities = {
-    'N': ('A', 'C', 'T', 'G'),
-    'R': ('A', 'G'),
-    'Y': ('C', 'T'),
-    'W': ('A', 'T'),
-    'S': ('C', 'G'),
-    'K': ('T', 'G'),
-    'M': ('C', 'A'),
-    'B': ('C', 'T', 'G'),
-    'D': ('A', 'T', 'G'),
-    'H': ('A', 'C', 'T'),
-    'V': ('A', 'C', 'G')
+    "N": ("A", "C", "T", "G"),
+    "R": ("A", "G"),
+    "Y": ("C", "T"),
+    "W": ("A", "T"),
+    "S": ("C", "G"),
+    "K": ("T", "G"),
+    "M": ("C", "A"),
+    "B": ("C", "T", "G"),
+    "D": ("A", "T", "G"),
+    "H": ("A", "C", "T"),
+    "V": ("A", "C", "G"),
 }
 IUPAC_DNA_ambiguities_complements = {
-    'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', '-': '-',
-    'M': 'K', 'K': 'M',
-    'N': 'N',
-    'R': 'Y', 'Y': 'R',
-    'W': 'W',
-    'S': 'S',
-    'X': 'X',  # not technically an IUPAC ambiguity, but used by repeatmasker
-    'V': 'B', 'B': 'V',
-    'H': 'D', 'D': 'H'
+    "A": "T",
+    "C": "G",
+    "G": "C",
+    "T": "A",
+    "-": "-",
+    "M": "K",
+    "K": "M",
+    "N": "N",
+    "R": "Y",
+    "Y": "R",
+    "W": "W",
+    "S": "S",
+    "X": "X",  # not technically an IUPAC ambiguity, but used by repeatmasker
+    "V": "B",
+    "B": "V",
+    "H": "D",
+    "D": "H",
 }
 
-IUPAC_DNA_complements = {
-    'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', '-': '-',
-}
+IUPAC_DNA_complements = {"A": "T", "C": "G", "G": "C", "T": "A", "-": "-"}
 
-IUPAC_DNA_complements = {
-    'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', '-': '-',
-}
+IUPAC_DNA_complements = {"A": "T", "C": "G", "G": "C", "T": "A", "-": "-"}
 
 
 # note change in standard order from DNA
-IUPAC_RNA_chars = ['U', 'C', 'A', 'G']
+IUPAC_RNA_chars = ["U", "C", "A", "G"]
 IUPAC_RNA_ambiguities = {
-    'N': ('A', 'C', 'U', 'G'),
-    'R': ('A', 'G'),
-    'Y': ('C', 'U'),
-    'W': ('A', 'U'),
-    'S': ('C', 'G'),
-    'K': ('U', 'G'),
-    'M': ('C', 'A'),
-    'B': ('C', 'U', 'G'),
-    'D': ('A', 'U', 'G'),
-    'H': ('A', 'C', 'U'),
-    'V': ('A', 'C', 'G')
+    "N": ("A", "C", "U", "G"),
+    "R": ("A", "G"),
+    "Y": ("C", "U"),
+    "W": ("A", "U"),
+    "S": ("C", "G"),
+    "K": ("U", "G"),
+    "M": ("C", "A"),
+    "B": ("C", "U", "G"),
+    "D": ("A", "U", "G"),
+    "H": ("A", "C", "U"),
+    "V": ("A", "C", "G"),
 }
 
 IUPAC_RNA_ambiguities_complements = {
-    'A': 'U', 'C': 'G', 'G': 'C', 'U': 'A', '-': '-',
-    'M': 'K', 'K': 'M',
-    'N': 'N',
-    'R': 'Y', 'Y': 'R',
-    'W': 'W',
-    'S': 'S',
-    'X': 'X',  # not technically an IUPAC ambiguity, but used by repeatmasker
-    'V': 'B', 'B': 'V',
-    'H': 'D', 'D': 'H'
+    "A": "U",
+    "C": "G",
+    "G": "C",
+    "U": "A",
+    "-": "-",
+    "M": "K",
+    "K": "M",
+    "N": "N",
+    "R": "Y",
+    "Y": "R",
+    "W": "W",
+    "S": "S",
+    "X": "X",  # not technically an IUPAC ambiguity, but used by repeatmasker
+    "V": "B",
+    "B": "V",
+    "H": "D",
+    "D": "H",
 }
 
-IUPAC_RNA_complements = {
-    'A': 'U', 'C': 'G', 'G': 'C', 'U': 'A', '-': '-',
-}
+IUPAC_RNA_complements = {"A": "U", "C": "G", "G": "C", "U": "A", "-": "-"}
 
 
 # Standard RNA pairing: GU pairs count as 'weak' pairs
 RnaStandardPairs = {
-    ('A', 'U'): True,  # True vs False for 'always' vs 'sometimes' pairing
-    ('C', 'G'): True,
-    ('G', 'C'): True,
-    ('U', 'A'): True,
-    ('G', 'U'): False,
-    ('U', 'G'): False,
+    ("A", "U"): True,  # True vs False for 'always' vs 'sometimes' pairing
+    ("C", "G"): True,
+    ("G", "C"): True,
+    ("U", "A"): True,
+    ("G", "U"): False,
+    ("U", "G"): False,
 }
 
 # Watson-Crick RNA pairing only: GU pairs don't count as pairs
-RnaWCPairs = {
-    ('A', 'U'): True,
-    ('C', 'G'): True,
-    ('G', 'C'): True,
-    ('U', 'A'): True,
-}
+RnaWCPairs = {("A", "U"): True, ("C", "G"): True, ("G", "C"): True, ("U", "A"): True}
 
 # RNA pairing with GU counted as standard pairs
 RnaGUPairs = {
-    ('A', 'U'): True,
-    ('C', 'G'): True,
-    ('G', 'C'): True,
-    ('U', 'A'): True,
-    ('G', 'U'): True,
-    ('U', 'G'): True,
+    ("A", "U"): True,
+    ("C", "G"): True,
+    ("G", "C"): True,
+    ("U", "A"): True,
+    ("G", "U"): True,
+    ("U", "G"): True,
 }
 
 # RNA pairing with GU, AA, GA, CA and UU mismatches allowed as weak pairs
 RnaExtendedPairs = {
-    ('A', 'U'): True,
-    ('C', 'G'): True,
-    ('G', 'C'): True,
-    ('U', 'A'): True,
-    ('G', 'U'): False,
-    ('U', 'G'): False,
-    ('A', 'A'): False,
-    ('G', 'A'): False,
-    ('A', 'G'): False,
-    ('C', 'A'): False,
-    ('A', 'C'): False,
-    ('U', 'U'): False,
+    ("A", "U"): True,
+    ("C", "G"): True,
+    ("G", "C"): True,
+    ("U", "A"): True,
+    ("G", "U"): False,
+    ("U", "G"): False,
+    ("A", "A"): False,
+    ("G", "A"): False,
+    ("A", "G"): False,
+    ("C", "A"): False,
+    ("A", "C"): False,
+    ("U", "U"): False,
 }
 # Standard DNA pairing: only Watson-Crick pairs count as pairs
 DnaStandardPairs = {
-    ('A', 'T'): True,
-    ('C', 'G'): True,
-    ('G', 'C'): True,
-    ('T', 'A'): True,
+    ("A", "T"): True,
+    ("C", "G"): True,
+    ("G", "C"): True,
+    ("T", "A"): True,
 }
 
 
 # protein letters & ambiguity codes
-IUPAC_PROTEIN_code_aa = {'A': 'Alanine',
-                         'C': 'Cysteine',
-                         'D': 'Aspartic Acid',
-                         'E': 'Glutamic Acid',
-                         'F': 'Phenylalanine',
-                         'G': 'Glycine',
-                         'H': 'Histidine',
-                         'I': 'Isoleucine',
-                         'K': 'Lysine',
-                         'L': 'Leucine',
-                         'M': 'Methionine',
-                         'N': 'Asparagine',
-                         'P': 'Proline',
-                         'Q': 'Glutamine',
-                         'R': 'Arginine',
-                         'S': 'Serine',
-                         'T': 'Threonine',
-                         'V': 'Valine',
-                         'W': 'Tryptophan',
-                         'Y': 'Tyrosine',
-                         '*': 'STOP'}
-
-IUPAC_PROTEIN_chars = [
-    'A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K',
-    'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
-    'W', 'Y']
-
-PROTEIN_WITH_STOP_chars = [
-    'A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K',
-    'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
-    'W', 'Y', '*']
-
-IUPAC_PROTEIN_ambiguities = {
-    'B': ['N', 'D'],
-    'X': IUPAC_PROTEIN_chars,
-    'Z': ['Q', 'E'],
+IUPAC_PROTEIN_code_aa = {
+    "A": "Alanine",
+    "C": "Cysteine",
+    "D": "Aspartic Acid",
+    "E": "Glutamic Acid",
+    "F": "Phenylalanine",
+    "G": "Glycine",
+    "H": "Histidine",
+    "I": "Isoleucine",
+    "K": "Lysine",
+    "L": "Leucine",
+    "M": "Methionine",
+    "N": "Asparagine",
+    "P": "Proline",
+    "Q": "Glutamine",
+    "R": "Arginine",
+    "S": "Serine",
+    "T": "Threonine",
+    "V": "Valine",
+    "W": "Tryptophan",
+    "Y": "Tyrosine",
+    "*": "STOP",
 }
 
+IUPAC_PROTEIN_chars = [
+    "A",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
+]
+
+PROTEIN_WITH_STOP_chars = [
+    "A",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
+    "*",
+]
+
+IUPAC_PROTEIN_ambiguities = {"B": ["N", "D"], "X": IUPAC_PROTEIN_chars, "Z": ["Q", "E"]}
+
 PROTEIN_WITH_STOP_ambiguities = {
-    'B': ['N', 'D'],
-    'X': PROTEIN_WITH_STOP_chars,
-    'Z': ['Q', 'E'],
+    "B": ["N", "D"],
+    "X": PROTEIN_WITH_STOP_chars,
+    "Z": ["Q", "E"],
 }
 
 
 class FoundMatch(Exception):
     """Raised when a match is found in a deep loop to skip many levels"""
+
     pass
 
 
@@ -330,10 +411,10 @@ def make_pairs(pairs=None, monomers=None, gaps=None, degenerates=None):
 # both the degenerate and non-degenerate pairing rules.
 # NOTE: uses make_pairs to augment the initial dict after construction.
 RnaPairingRules = {
-    'Standard': RnaStandardPairs,
-    'WC': RnaWCPairs,
-    'GU': RnaGUPairs,
-    'Extended': RnaExtendedPairs,
+    "Standard": RnaStandardPairs,
+    "WC": RnaWCPairs,
+    "GU": RnaGUPairs,
+    "Extended": RnaExtendedPairs,
 }
 
 for k, v in list(RnaPairingRules.items()):
@@ -342,7 +423,8 @@ for k, v in list(RnaPairingRules.items()):
 
 class CoreObjectGroup(object):
     """Container relating gapped, ungapped, degen, and non-degen objects."""
-    _types = ['base', 'degen', 'gap', 'degen_gap']
+
+    _types = ["base", "degen", "gap", "degen_gap"]
 
     def __init__(self, base, degen=None, gapped=None, degen_gapped=None):
         """Returns new CoreObjectGroup. Only base is required"""
@@ -365,12 +447,10 @@ class CoreObjectGroup(object):
             "self.degen.ungapped = self.degen",
             "self.degen.degen = self.degen",
             "self.degen.non_degen = self.base",
-
             "self.gapped.gapped = self.gapped",
             "self.gapped.ungapped = self.base",
             "self.gapped.degen = self.degen_gapped",
             "self.gapped.non_degen = self.gapped",
-
             "self.degen_gapped.gapped = self.degen_gapped",
             "self.degen_gapped.ungapped = self.degen",
             "self.degen_gapped.degen = self.degen_gapped",
@@ -394,21 +474,29 @@ class CoreObjectGroup(object):
 class AlphabetGroup(CoreObjectGroup):
     """Container relating gapped, ungapped, degen, and non-degen alphabets."""
 
-    def __init__(self, chars, degens, gap=IUPAC_gap, missing=IUPAC_missing,
-                 moltype=None, constructor=None):
+    def __init__(
+        self,
+        chars,
+        degens,
+        gap=IUPAC_gap,
+        missing=IUPAC_missing,
+        moltype=None,
+        constructor=None,
+    ):
         """Returns new AlphabetGroup."""
         if constructor is None:
             if max(list(map(len, chars))) == 1:
                 constructor = CharAlphabet
-                chars = ''.join(chars)
-                degens = ''.join(degens)
+                chars = "".join(chars)
+                degens = "".join(degens)
             else:
                 constructor = Alphabet  # assume multi-char
         self.base = constructor(chars, moltype=moltype)
         self.degen = constructor(chars + degens, moltype=moltype)
         self.gapped = constructor(chars + gap, gap, moltype=moltype)
-        self.degen_gapped = constructor(chars + gap + degens + missing, gap,
-                                        moltype=moltype)
+        self.degen_gapped = constructor(
+            chars + gap + degens + missing, gap, moltype=moltype
+        )
         self._items = [self.base, self.degen, self.gapped, self.degen_gapped]
         self._set_relationships()
         # set complements if MolType was specified
@@ -419,6 +507,7 @@ class AlphabetGroup(CoreObjectGroup):
 
 
 # colours for HTML representation
+
 
 def _expand_colors(base, colors):
     base = base.copy()
@@ -434,23 +523,26 @@ class _DefaultValue:
         return self.value
 
 
-_gray = _DefaultValue('gray')
+_gray = _DefaultValue("gray")
 _base_colors = defaultdict(_gray)
 
-NT_COLORS = _expand_colors(_base_colors, {'A': '#FF0102',
-                   'C': 'black',
-                   'G': 'green',
-                   'T': 'blue',
-                   'U': 'blue'})
+NT_COLORS = _expand_colors(
+    _base_colors, {"A": "#FF0102", "C": "black", "G": "green", "T": "blue", "U": "blue"}
+)
 
-AA_COLORS = _expand_colors(_base_colors, {'GAVLI': '#009999',
-             'FYW': '#ff6600',
-             'CM': 'orange',
-             'ST': '#009900',
-             'KRH': '#FF0102',
-             'DE': 'blue',
-             'NQ': '#993300',
-             'P': '#cc0099'})
+AA_COLORS = _expand_colors(
+    _base_colors,
+    {
+        "GAVLI": "#009999",
+        "FYW": "#ff6600",
+        "CM": "orange",
+        "ST": "#009900",
+        "KRH": "#FF0102",
+        "DE": "blue",
+        "NQ": "#993300",
+        "P": "#cc0099",
+    },
+)
 
 
 class MolType(object):
@@ -467,13 +559,24 @@ class MolType(object):
     don't want to reset the moltype.
     """
 
-    def __init__(self, motifset, gap=IUPAC_gap, missing=IUPAC_missing,
-                 gaps=None,
-                 seq_constructor=None, ambiguities=None,
-                 label=None, complements=None, pairs=None, mw_calculator=None,
-                 add_lower=False, preserve_existing_moltypes=False,
-                 make_alphabet_group=False, array_seq_constructor=None,
-                 colors=None):
+    def __init__(
+        self,
+        motifset,
+        gap=IUPAC_gap,
+        missing=IUPAC_missing,
+        gaps=None,
+        seq_constructor=None,
+        ambiguities=None,
+        label=None,
+        complements=None,
+        pairs=None,
+        mw_calculator=None,
+        add_lower=False,
+        preserve_existing_moltypes=False,
+        make_alphabet_group=False,
+        array_seq_constructor=None,
+        colors=None,
+    ):
         """Returns a new MolType object. Note that the parameters are in flux.
 
         Currently:
@@ -527,7 +630,7 @@ class MolType(object):
         Sometimes you want one, sometimes the other, so both are provided.
         """
         self._serialisable = locals()
-        self._serialisable.pop('self')
+        self._serialisable.pop("self")
         self.gap = gap
         self.missing = missing
         self.gaps = frozenset([gap, missing])
@@ -536,14 +639,13 @@ class MolType(object):
         self.label = label
         # set the sequence constructor
         if seq_constructor is None:
-            seq_constructor = ''.join  # safe default string constructor
+            seq_constructor = "".join  # safe default string constructor
         elif not preserve_existing_moltypes:
             seq_constructor.moltype = self
         self._make_seq = seq_constructor
 
         # set the ambiguities
-        ambigs = {self.missing: tuple(
-            motifset) + (self.gap,), self.gap: (self.gap,)}
+        ambigs = {self.missing: tuple(motifset) + (self.gap,), self.gap: (self.gap,)}
         if ambiguities:
             ambigs.update(ambiguities)
         for c in motifset:
@@ -554,8 +656,7 @@ class MolType(object):
         self.complements = complements or {}
 
         if make_alphabet_group:  # note: must use _original_ ambiguities here
-            self.alphabets = AlphabetGroup(motifset, ambiguities,
-                                           moltype=self)
+            self.alphabets = AlphabetGroup(motifset, ambiguities, moltype=self)
             self.alphabet = self.alphabets.base
         else:
             if isinstance(motifset, Enumeration):
@@ -566,11 +667,10 @@ class MolType(object):
                 self.alphabet = Alphabet(motifset, moltype=self)
         # set the other properties
         self.degenerates = ambiguities and ambiguities.copy() or {}
-        self.degenerates[self.missing] = ''.join(motifset) + self.gap
+        self.degenerates[self.missing] = "".join(motifset) + self.gap
         self.matches = make_matches(motifset, self.gaps, self.degenerates)
         self.pairs = pairs and pairs.copy() or {}
-        self.pairs.update(make_pairs(pairs, motifset, self.gaps,
-                                     self.degenerates))
+        self.pairs.update(make_pairs(pairs, motifset, self.gaps, self.degenerates))
         self.mw_calculator = mw_calculator
 
         # add lowercase characters, if we're doing that
@@ -582,13 +682,14 @@ class MolType(object):
         # a gap can be a true gap char or a degenerate character, typically '?'
         # we therefore want to ensure consistent treatment across the definition
         # of characters as either gap or degenerate
-        self.gap_string = ''.join(self.gaps)
+        self.gap_string = "".join(self.gaps)
         strict_gap = "".join(set(self.gap_string) - set(self.degenerates))
         self.strip_degenerate = FunctionWrapper(
-            KeepChars(strict_gap + ''.join(self.alphabet)))
-        self.strip_bad = FunctionWrapper(KeepChars(''.join(self.All)))
+            KeepChars(strict_gap + "".join(self.alphabet))
+        )
+        self.strip_bad = FunctionWrapper(KeepChars("".join(self.All)))
         to_keep = set(self.alphabet) ^ set(self.degenerates) - set(self.gaps)
-        self.strip_bad_and_gaps = FunctionWrapper(KeepChars(''.join(to_keep)))
+        self.strip_bad_and_gaps = FunctionWrapper(KeepChars("".join(to_keep)))
 
         # make inverse degenerates from degenerates
         # ensure that lowercase versions also exist if appropriate
@@ -596,11 +697,11 @@ class MolType(object):
         for key, val in list(self.degenerates.items()):
             inv_degens[frozenset(val)] = key.upper()
             if add_lower:
-                inv_degens[frozenset(''.join(val).lower())] = key.lower()
+                inv_degens[frozenset("".join(val).lower())] = key.lower()
         for m in self.alphabet:
             inv_degens[frozenset(m)] = m
             if add_lower:
-                inv_degens[frozenset(''.join(m).lower())] = m.lower()
+                inv_degens[frozenset("".join(m).lower())] = m.lower()
         for m in self.gaps:
             inv_degens[frozenset(m)] = m
         self.inverse_degenerates = inv_degens
@@ -613,9 +714,8 @@ class MolType(object):
 
         # set modeling sequence
         self.make_array_seq = array_seq_constructor
-        
-        self._colors = colors or defaultdict(_DefaultValue('black'))
 
+        self._colors = colors or defaultdict(_DefaultValue("black"))
 
     def __repr__(self):
         """String representation of MolType.
@@ -623,7 +723,7 @@ class MolType(object):
         WARNING: This doesn't allow you to reconstruct the object in its present
         incarnation.
         """
-        return 'MolType(%s)' % (self.alphabet,)
+        return "MolType(%s)" % (self.alphabet,)
 
     def __getnewargs_ex__(self, *args, **kw):
         data = self.to_rich_dict(for_pickle=True)
@@ -662,7 +762,7 @@ class MolType(object):
         if wildcards_allowed:
             alpha = alpha.union(self.missing)
         try:
-            nonalpha = re.compile('[^%s]' % re.escape(''.join(alpha)))
+            nonalpha = re.compile("[^%s]" % re.escape("".join(alpha)))
             badchar = nonalpha.search(seq)
             if badchar:
                 motif = badchar.group()
@@ -702,7 +802,7 @@ class MolType(object):
 
         Does this duplicate DegenerateFromSequence directly?
         """
-        if not hasattr(self, '_reverse_ambiguities'):
+        if not hasattr(self, "_reverse_ambiguities"):
             self._reverse_ambiguities = {}
         motifs = frozenset(motifs)
         if motifs not in self._reverse_ambiguities:
@@ -711,8 +811,14 @@ class MolType(object):
 
     def _add_lowercase(self):
         """Adds lowercase versions of keys and vals to each internal dict."""
-        for name in ['alphabet', 'degenerates', 'gaps', 'complements', 'pairs',
-                     'matches']:
+        for name in [
+            "alphabet",
+            "degenerates",
+            "gaps",
+            "complements",
+            "pairs",
+            "matches",
+        ]:
             curr = getattr(self, name)
             # temp hack to get around re-ordering
             if isinstance(curr, Alphabet):
@@ -742,8 +848,10 @@ class MolType(object):
         Note: self.ComplementTable is only set if self.complements exists.
         """
         if self.complements:
-            self.ComplementTable = maketrans(''.join(list(self.complements.keys())),
-                                             ''.join(list(self.complements.values())))
+            self.ComplementTable = maketrans(
+                "".join(list(self.complements.keys())),
+                "".join(list(self.complements.values())),
+            )
 
     def complement(self, item):
         """Returns complement of item, using data from self.complements.
@@ -753,7 +861,8 @@ class MolType(object):
         """
         if not self.complements:
             raise TypeError(
-                "Tried to complement sequence using alphabet without complements.")
+                "Tried to complement sequence using alphabet without complements."
+            )
         try:
             return item.translate(self.ComplementTable)
         except (AttributeError, TypeError):
@@ -769,14 +878,14 @@ class MolType(object):
         comp = list(self.complement(item))
         comp.reverse()
         if isinstance(item, str):
-            return item.__class__(''.join(comp))
+            return item.__class__("".join(comp))
         else:
             return item.__class__(comp)
 
     def strand_symmetric_motifs(self, motif_length=1):
         """returns ordered pairs of strand complementary motifs"""
         if not self.pairs:
-            raise TypeError('moltype must be DNA or RNA')
+            raise TypeError("moltype must be DNA or RNA")
 
         motif_set = self.alphabet.get_word_alphabet(word_length=motif_length)
         motif_pairs = []
@@ -872,14 +981,14 @@ class MolType(object):
                 return i
         return None
 
-    def disambiguate(self, sequence, method='strip'):
+    def disambiguate(self, sequence, method="strip"):
         """Returns a non-degenerate sequence from a degenerate one.
 
         method can be 'strip' (deletes any characters not in monomers or gaps)
         or 'random'(assigns the possibilities at random, using equal
         frequencies).
         """
-        if method == 'strip':
+        if method == "strip":
             try:
                 return sequence.__class__(self.strip_degenerate(sequence))
             except:
@@ -887,9 +996,10 @@ class MolType(object):
 
                 def not_ambiguous(x):
                     return x not in ambi
+
                 return sequence.__class__(list(filter(not_ambiguous, sequence)))
 
-        elif method == 'random':
+        elif method == "random":
             degen = self.degenerates
             result = []
             for i in sequence:
@@ -898,7 +1008,7 @@ class MolType(object):
                 else:
                     result.append(i)
             if isinstance(sequence, str):
-                return sequence.__class__(''.join(result))
+                return sequence.__class__("".join(result))
             else:
                 return sequence.__class__(result)
         else:
@@ -914,6 +1024,7 @@ class MolType(object):
 
             def not_gap(x):
                 return x not in gap
+
             return sequence.__class__(list(filter(not_gap, sequence)))
 
     def gap_indices(self, sequence):
@@ -954,17 +1065,16 @@ class MolType(object):
         gaps = self.gaps
         gap_count = sum(1 for s in sequence if s in gaps)
         return gap_count
-    
+
     def get_degenerate_positions(self, sequence, include_gap=True):
         """returns indices matching degenerate characters"""
         degen = list(self.degenerates)
         if include_gap:
             degen.append(self.gap)
-        
+
         pos = [i for i, c in enumerate(sequence) if c in degen]
         return pos
-        
-    
+
     def count_degenerate(self, sequence):
         """Counts the degenerate bases in the specified sequence."""
         degen = self.degenerates
@@ -987,7 +1097,7 @@ class MolType(object):
                 count *= len(degen[s])
         return count
 
-    def mw(self, sequence, method='random', delta=None):
+    def mw(self, sequence, method="random", delta=None):
         """Returns the molecular weight of the sequence.
 
         If the sequence is ambiguous, uses method (random or strip) to
@@ -1126,10 +1236,9 @@ class MolType(object):
             return inv_degens[lengths[sorted[0]]]
 
         # if we got here, nothing worked
-        raise TypeError("Cannot find degenerate char for symbols: %s"
-                        % symbols)
-    
-    def get_css_style(self, colors=None, font_size=12, font_family='Lucida Console'):
+        raise TypeError("Cannot find degenerate char for symbols: %s" % symbols)
+
+    def get_css_style(self, colors=None, font_size=12, font_family="Lucida Console"):
         """returns string of CSS classes and {character: <CSS class name>, ...}
         
         Arguments:
@@ -1138,20 +1247,27 @@ class MolType(object):
           - font_family: name of a monospace font"""
         colors = colors or self._colors
         # !important required to stop some browsers over-riding the style sheet ...!!
-        template = ('.%s_%s{font-family: "%s",monospace !important; '
-                    'font-size: %dpt !important; color: %s; }')
+        template = (
+            '.%s_%s{font-family: "%s",monospace !important; '
+            "font-size: %dpt !important; color: %s; }"
+        )
         styles = _style_defaults[self.label].copy()
-        styles.update({c: '_'.join([c, self.label])
-                       for c in list(self.alphabet) + ['terminal_ambig']})
+        styles.update(
+            {
+                c: "_".join([c, self.label])
+                for c in list(self.alphabet) + ["terminal_ambig"]
+            }
+        )
 
         css = []
-        for char in list(styles) + ['ambig']:
-            css.append(template % (char, self.label, font_family, font_size,
-                                         colors[char]))
-        
-        css = '\n'.join(css)
+        for char in list(styles) + ["ambig"]:
+            css.append(
+                template % (char, self.label, font_family, font_size, colors[char])
+            )
+
+        css = "\n".join(css)
         return css, styles
-        
+
 
 ASCII = MolType(
     # A default type for text read from a file etc. when we don't
@@ -1159,7 +1275,7 @@ ASCII = MolType(
     seq_constructor=DefaultSequence,
     motifset=letters,
     ambiguities={},
-    label='text',
+    label="text",
     array_seq_constructor=ArraySequence,
 )
 
@@ -1173,7 +1289,7 @@ DNA = MolType(
     pairs=DnaStandardPairs,
     make_alphabet_group=True,
     array_seq_constructor=ArrayDnaSequence,
-    colors=NT_COLORS
+    colors=NT_COLORS,
 )
 
 RNA = MolType(
@@ -1186,7 +1302,7 @@ RNA = MolType(
     pairs=RnaStandardPairs,
     make_alphabet_group=True,
     array_seq_constructor=ArrayRnaSequence,
-    colors=NT_COLORS
+    colors=NT_COLORS,
 )
 
 PROTEIN = MolType(
@@ -1197,7 +1313,8 @@ PROTEIN = MolType(
     make_alphabet_group=True,
     array_seq_constructor=ArrayProteinSequence,
     label="protein",
-    colors=AA_COLORS)
+    colors=AA_COLORS,
+)
 
 PROTEIN_WITH_STOP = MolType(
     seq_constructor=ProteinWithStopSequence,
@@ -1207,7 +1324,8 @@ PROTEIN_WITH_STOP = MolType(
     make_alphabet_group=True,
     array_seq_constructor=ArrayProteinWithStopSequence,
     label="protein_with_stop",
-    colors=AA_COLORS)
+    colors=AA_COLORS,
+)
 
 BYTES = MolType(
     # A default type for arbitrary chars read from a file etc. when we don't
@@ -1216,20 +1334,23 @@ BYTES = MolType(
     motifset=list(map(chr, list(range(256)))),
     ambiguities={},
     array_seq_constructor=ArraySequence,
-    label='bytes')
+    label="bytes",
+)
 
-_style_defaults = {mt.label: defaultdict(_DefaultValue('ambig_%s' % mt.label))
-                   for mt in (ASCII, BYTES, DNA, RNA, PROTEIN,
-                              PROTEIN_WITH_STOP)}
+_style_defaults = {
+    mt.label: defaultdict(_DefaultValue("ambig_%s" % mt.label))
+    for mt in (ASCII, BYTES, DNA, RNA, PROTEIN, PROTEIN_WITH_STOP)
+}
 
 
 # following is a two-state MolType useful for testing
 AB = MolType(
     seq_constructor=ABSequence,
-    motifset='ab',
+    motifset="ab",
     ambiguities={},
     array_seq_constructor=ArraySequence,
-    label='ab')
+    label="ab",
+)
 
 
 class _CodonAlphabet(Alphabet):
@@ -1258,7 +1379,7 @@ def CodonAlphabet(gc=DEFAULT_GENETIC_CODE, include_stop_codons=False):
         motifset = list(gc.codons)
     else:
         motifset = list(gc.sense_codons)
-    motifset = [codon.upper().replace('U', 'T') for codon in motifset]
+    motifset = [codon.upper().replace("U", "T") for codon in motifset]
     a = _CodonAlphabet(motifset, moltype=DNA)
     a._gc = gc
     return a
@@ -1267,6 +1388,7 @@ def CodonAlphabet(gc=DEFAULT_GENETIC_CODE, include_stop_codons=False):
 def _method_codon_alphabet(ignore, *args, **kwargs):
     """If CodonAlphabet is set as a property, it gets self as extra 1st arg."""
     return CodonAlphabet(*args, **kwargs)
+
 
 STANDARD_CODON = CodonAlphabet()
 
@@ -1327,6 +1449,7 @@ def get_moltype(name):
 def available_moltypes():
     """returns Table listing available moltypes"""
     from cogent3 import LoadTable
+
     rows = []
     for n, m in moltypes.items():
         v = str(m)
@@ -1334,8 +1457,8 @@ def available_moltypes():
         if num > 10:
             v = f"{v[:39]}..."
         rows.append([n, num, v])
-    header = ['Abbreviation', 'Number of states', 'Moltype']
-    title = ("Specify a moltype by the string 'Abbreviation' (case insensitive).")
+    header = ["Abbreviation", "Number of states", "Moltype"]
+    title = "Specify a moltype by the string 'Abbreviation' (case insensitive)."
     result = LoadTable(header=header, rows=rows, title=title, row_ids=True)
-    result = result.sorted(columns=['Number of states', 'Abbreviation'])
+    result = result.sorted(columns=["Number of states", "Abbreviation"])
     return result

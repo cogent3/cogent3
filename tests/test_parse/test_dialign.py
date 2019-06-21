@@ -1,8 +1,14 @@
 #!/usr/bin/env python
 
 import unittest
+
 from cogent3 import PROTEIN, LoadSeqs
-from cogent3.parse.dialign import align_block_lines, parse_data_line, DialignParser
+from cogent3.parse.dialign import (
+    DialignParser,
+    align_block_lines,
+    parse_data_line,
+)
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -14,8 +20,7 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-data = \
-    """
+data = """
                            DIALIGN 2.2.1 
                            *************
 
@@ -87,12 +92,13 @@ Tree constructed using UPGMAbased on DIALIGN fragment weight scores
 
 
 class TestDialign(unittest.TestCase):
-
     def setUp(self):
-        aln_seqs = {"HTL2": "ldtapC-LFSDGS------PQKAAYVL-------WDQTILQQDITPLPSHethSAQKGELLALICGLRAak------------",
-                    "MMLV": "pdadhtw-YTDGSSLLQEGQRKAGAAVtteteviWa----KALDAG---T---SAQRAELIALTQALKm--------------",
-                    "HEPB": "rpgl-CQVFADAT------PTGWGLVM-------GHQRMRGTFSAPLPIHt------AELLAA-CFARSrsganiigtdnsvv",
-                    "ECOL": "mlkqv-EIFTDGSCLGNPGPGGYGAIL-------RYRGREKTFSAGytrT---TNNRMELMAAIv------------------"}
+        aln_seqs = {
+            "HTL2": "ldtapC-LFSDGS------PQKAAYVL-------WDQTILQQDITPLPSHethSAQKGELLALICGLRAak------------",
+            "MMLV": "pdadhtw-YTDGSSLLQEGQRKAGAAVtteteviWa----KALDAG---T---SAQRAELIALTQALKm--------------",
+            "HEPB": "rpgl-CQVFADAT------PTGWGLVM-------GHQRMRGTFSAPLPIHt------AELLAA-CFARSrsganiigtdnsvv",
+            "ECOL": "mlkqv-EIFTDGSCLGNPGPGGYGAIL-------RYRGREKTFSAGytrT---TNNRMELMAAIv------------------",
+        }
         self.aln_seqs = {}
         for name, seq in list(aln_seqs.items()):
             self.aln_seqs[name] = PROTEIN.make_seq(seq, name=name)
@@ -101,26 +107,30 @@ class TestDialign(unittest.TestCase):
     def test_line_split(self):
         """test splitting of sequence record lines"""
         result = parse_data_line(
-            "HTL2               1   ldtapcLFSD GS------PQ KAAYVLWDQT ILQQDITPLP SHethsaqkg ")
+            "HTL2               1   ldtapcLFSD GS------PQ KAAYVLWDQT ILQQDITPLP SHethsaqkg "
+        )
         self.assertEqual(
-            result, ("HTL2", "ldtapcLFSDGS------PQKAAYVLWDQTILQQDITPLPSHethsaqkg"))
+            result, ("HTL2", "ldtapcLFSDGS------PQKAAYVLWDQTILQQDITPLPSHethsaqkg")
+        )
         result = parse_data_line(
-            "                       1111111111 1000001111 1111033333 3333333333 3000000000 ")
+            "                       1111111111 1000001111 1111033333 3333333333 3000000000 "
+        )
         self.assertEqual(
-            result, (None, "11111111111000001111111103333333333333333000000000"))
+            result, (None, "11111111111000001111111103333333333333333000000000")
+        )
 
     def test_aligned_from_dialign(self):
         """test getting aligned seqs"""
-        aligned_seq = dict(
-            list(DialignParser(data, seq_maker=PROTEIN.make_seq)))
+        aligned_seq = dict(list(DialignParser(data, seq_maker=PROTEIN.make_seq)))
         assert aligned_seq == self.aln_seqs
 
     def test_quality_scores(self):
         """test quality scores correctly returned"""
-        result = dict(list(DialignParser(data, seq_maker=PROTEIN.make_seq,
-                                         get_scores=True)))
+        result = dict(
+            list(DialignParser(data, seq_maker=PROTEIN.make_seq, get_scores=True))
+        )
         assert result["QualityScores"] == self.QualityScores
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

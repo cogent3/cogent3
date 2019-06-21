@@ -1,6 +1,5 @@
-
-
 import numpy
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"

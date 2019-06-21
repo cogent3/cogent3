@@ -1,14 +1,17 @@
+from random import choice, random, shuffle
 
-from random import shuffle, random, choice
 import numpy
+
+from cogent3.maths.stats.special import igam
+
 
 try:
     from math import factorial
 except ImportError:  # python version < 2.6
     from cogent3.maths.stats.special import Gamma
+
     factorial = lambda x: Gamma(x + 1)
 
-from cogent3.maths.stats.special import igam
 
 __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -24,8 +27,8 @@ def chi_square(x, p, df=1):
     """returns the chisquare statistic and it's probability"""
     N = len(x)
     end = N
-    sim = numpy.logical_not(numpy.logical_xor(x[0:end - p], x[p:end])) * 1
-    s = ((numpy.ones((N - p,), float) - sim)**2).sum()
+    sim = numpy.logical_not(numpy.logical_xor(x[0 : end - p], x[p:end])) * 1
+    s = ((numpy.ones((N - p,), float) - sim) ** 2).sum()
     D = s / (N - p)
     p_val = 1 - igam(df / 2.0, D / 2)
     return D, p_val
@@ -54,9 +57,8 @@ def g_statistic(X, p=None, idx=None):
     result = numpy.zeros((int(M + 1),), float)
     pmax_fact = factorial(pmax)
     for index in range(1, min(pmax, int(M)) + 1):
-        v = (-1)**(index - 1) * pmax_fact / \
-            factorial(pmax - index) / factorial(index)
-        v *= (1 - index * g_obs)**(pmax - 1)
+        v = (-1) ** (index - 1) * pmax_fact / factorial(pmax - index) / factorial(index)
+        v *= (1 - index * g_obs) ** (pmax - 1)
         result[index] = v
 
     p_val = result.sum()
@@ -79,10 +81,11 @@ def _seq_to_symbols(seq, motifs, motif_length, result=None):
         motif_length = len(motifs[0])
 
     for i in range(len(seq) - motif_length + 1):
-        if seq[i: i + motif_length] in motifs:
+        if seq[i : i + motif_length] in motifs:
             result[i] = 1
 
     return result
+
 
 try:
     from cogent3.maths._period import seq_to_symbols
@@ -100,7 +103,7 @@ class SeqToSymbols(object):
             motifs = [motifs]
         for i in range(len(motifs)):
             try:
-                motifs[i] = motifs[i].encode('utf8')
+                motifs[i] = motifs[i].encode("utf8")
             except AttributeError:
                 pass
         self.motifs = motifs
@@ -125,9 +128,9 @@ class SeqToSymbols(object):
         result = self.working
         result.fill(0)
         if type(seq) == str:
-            seq = seq.encode('utf8')
+            seq = seq.encode("utf8")
         elif type(seq) != bytes:
-            seq = b''.join(seq)
+            seq = b"".join(seq)
 
         return seq_to_symbols(seq, self.motifs, self.motif_length, result)
 
@@ -138,9 +141,9 @@ def circular_indices(vector, start, length, num):
         start = start - length
 
     if start + num < length:
-        return vector[start: start + num]
+        return vector[start : start + num]
     # get all till end, then from beginning
-    return vector[start:] + vector[:start + num - length]
+    return vector[start:] + vector[: start + num - length]
 
 
 def sampled_places(block_size, length):
@@ -163,7 +166,9 @@ def sampled_places(block_size, length):
     return result
 
 
-def blockwise_bootstrap(signal, calc, block_size, num_reps, seq_to_symbols=None, num_stats=None):
+def blockwise_bootstrap(
+    signal, calc, block_size, num_reps, seq_to_symbols=None, num_stats=None
+):
     """returns observed statistic and the probability from the bootstrap
     test of observing more `power' by chance than that estimated from the
     observed signal
@@ -182,7 +187,7 @@ def blockwise_bootstrap(signal, calc, block_size, num_reps, seq_to_symbols=None,
     signal_length = len(signal)
 
     if seq_to_symbols is not None:
-        dtype = 'c'
+        dtype = "c"
     else:
         dtype = None  # let numpy guess
 

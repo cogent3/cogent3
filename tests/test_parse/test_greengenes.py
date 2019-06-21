@@ -1,8 +1,14 @@
 #!/usr/bin/env python
 
 from unittest import TestCase, main
-from cogent3.parse.greengenes import MinimalGreengenesParser, make_ignore_f,\
-    DefaultDelimitedSplitter, SpecificGreengenesParser
+
+from cogent3.parse.greengenes import (
+    DefaultDelimitedSplitter,
+    MinimalGreengenesParser,
+    SpecificGreengenesParser,
+    make_ignore_f,
+)
+
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"  # consider project name
@@ -16,19 +22,21 @@ __status__ = "Prototype"
 
 
 class ParseGreengenesRecordsTests(TestCase):
-
     def setUp(self):
         pass
 
     def test_MinimalGreengenesParser_mock(self):
         """Test MinimalGreengenesParser against mock data"""
-        res = MinimalGreengenesParser(mock_data.splitlines(), RecStart="my_starting",
-                                      RecEnd="my_ending")
+        res = MinimalGreengenesParser(
+            mock_data.splitlines(), RecStart="my_starting", RecEnd="my_ending"
+        )
 
         records = list(res)
 
-        exp = [{'a': '1', 'b': '2', 'c': '3', 'd': '', 'e': '5'},
-               {'q': 'asdasd', 'c': 'taco'}]
+        exp = [
+            {"a": "1", "b": "2", "c": "3", "d": "", "e": "5"},
+            {"q": "asdasd", "c": "taco"},
+        ]
 
         self.assertEqual(records, exp)
 
@@ -37,42 +45,47 @@ class ParseGreengenesRecordsTests(TestCase):
         res = MinimalGreengenesParser(real_data.splitlines())
         record1, record2 = list(res)
 
-        self.assertEqual(record1['G2_chip_tax_string'], 'Unclassified')
+        self.assertEqual(record1["G2_chip_tax_string"], "Unclassified")
         self.assertEqual(
-            record1['authors'], 'Hernanandez-Eugenio,G., Silva-Rojas,H.V., Zelaya-Molina,L.X.')
-        self.assertEqual(record1['bel3_div_ratio'], '')
+            record1["authors"],
+            "Hernanandez-Eugenio,G., Silva-Rojas,H.V., Zelaya-Molina,L.X.",
+        )
+        self.assertEqual(record1["bel3_div_ratio"], "")
         self.assertEqual(len(record1), 72)
 
-        self.assertEqual(record2['ncbi_acc_w_ver'], 'FJ832719.1')
-        self.assertEqual(record2['timestamp'], '2010-03-23 14:08:27')
-        self.assertEqual(record2[
-                         'title'], 'Developmental Microbial Ecology of the Crop of the Folivorous Hoatzin')
+        self.assertEqual(record2["ncbi_acc_w_ver"], "FJ832719.1")
+        self.assertEqual(record2["timestamp"], "2010-03-23 14:08:27")
+        self.assertEqual(
+            record2["title"],
+            "Developmental Microbial Ecology of the Crop of the Folivorous Hoatzin",
+        )
 
     def test_SpecificGreengenesParser_real(self):
         """Test SpecificGreengenesParser against real data"""
-        fields = ['prokMSA_id', 'journal']
+        fields = ["prokMSA_id", "journal"]
         res = SpecificGreengenesParser(real_data.splitlines(), fields)
         records = list(res)
-        exp = [('604868', ''), ('604867', 'ISME J (2010) In press')]
+        exp = [("604868", ""), ("604867", "ISME J (2010) In press")]
         self.assertEqual(records, exp)
 
-        ids = ['604867', '12312312323']
+        ids = ["604867", "12312312323"]
         res = SpecificGreengenesParser(real_data.splitlines(), fields, ids)
         records = list(res)
-        exp = [('604867', 'ISME J (2010) In press')]
+        exp = [("604867", "ISME J (2010) In press")]
         self.assertEqual(records, exp)
 
     def test_make_ignore_f(self):
         """Properly ignore empty records and the start line"""
-        f = make_ignore_f('testing')
-        self.assertFalse(f(['asasdasd', '']))
-        self.assertFalse(f(['test', '']))
-        self.assertFalse(f(['testing2', '']))
-        self.assertFalse(f(['testing', 'asd']))
-        self.assertTrue(f(['', '']))
+        f = make_ignore_f("testing")
+        self.assertFalse(f(["asasdasd", ""]))
+        self.assertFalse(f(["test", ""]))
+        self.assertFalse(f(["testing2", ""]))
+        self.assertFalse(f(["testing", "asd"]))
+        self.assertTrue(f(["", ""]))
         self.assertTrue(f(None))
-        self.assertTrue(f(['', '']))
-        self.assertTrue(f(['testing', '']))
+        self.assertTrue(f(["", ""]))
+        self.assertTrue(f(["testing", ""]))
+
 
 mock_data = """my_starting
 a=1
@@ -239,5 +252,5 @@ aligned_seq=unaligned
 END
 """
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

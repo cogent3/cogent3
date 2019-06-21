@@ -3,9 +3,11 @@
 
 Info is a dictionary and is the annotation object of a Sequence object.
 """
-from cogent3.parse.record import MappedRecord
-from cogent3.util.misc import Delegator, FunctionWrapper, ConstrainedDict
 from warnings import warn
+
+from cogent3.parse.record import MappedRecord
+from cogent3.util.misc import ConstrainedDict, Delegator, FunctionWrapper
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -29,8 +31,7 @@ class DbRef(object):
     str(DbRef) always returns the accession.
     """
 
-    def __init__(self, Accession, Db='', name='', Description='',
-                 Data=None):
+    def __init__(self, Accession, Db="", name="", Description="", Data=None):
         """Returns new DbRef.
 
         str(DbRef) always returns the accession as a string.
@@ -96,14 +97,46 @@ class DbRefs(MappedRecord, ConstrainedDict):
     DbRefs will ultimately contain methods for actually getting the records
     from known databases.
     """
+
     value_mask = FunctionWrapper(_make_list)
     DefaultValue = []
 
-KnownDatabases = dict.fromkeys(['RefSeq', 'GenBank', 'GenNucl', 'GenPept',
-                                'GI', 'SwissProt', 'PIR', 'EMBL', 'DDBJ',
-                                'NDB', 'PDB', 'Taxon', 'LocusLink', 'UniGene', 'OMIM', 'PubMed', 'COGS',
-                                'CDD', 'Pfam', 'Rfam', 'GO', 'dbEST', 'IPI', 'rRNA', 'EC', 'HomoloGene',
-                                'KEGG', 'BRENDA', 'EcoCyc', 'HumanCyc', 'BLOCKS'])
+
+KnownDatabases = dict.fromkeys(
+    [
+        "RefSeq",
+        "GenBank",
+        "GenNucl",
+        "GenPept",
+        "GI",
+        "SwissProt",
+        "PIR",
+        "EMBL",
+        "DDBJ",
+        "NDB",
+        "PDB",
+        "Taxon",
+        "LocusLink",
+        "UniGene",
+        "OMIM",
+        "PubMed",
+        "COGS",
+        "CDD",
+        "Pfam",
+        "Rfam",
+        "GO",
+        "dbEST",
+        "IPI",
+        "rRNA",
+        "EC",
+        "HomoloGene",
+        "KEGG",
+        "BRENDA",
+        "EcoCyc",
+        "HumanCyc",
+        "BLOCKS",
+    ]
+)
 
 
 class Info(MappedRecord, Delegator):
@@ -111,13 +144,14 @@ class Info(MappedRecord, Delegator):
 
     Delegates to DbRefs for database IDs.
     """
-    Required = {'Refs': None}
+
+    Required = {"Refs": None}
 
     def __init__(self, *args, **kwargs):
         """Returns new Info object. Creates DbRefs if necessary."""
         temp = dict(*args, **kwargs)
-        if 'Refs' in temp:
-            refs = temp['Refs']
+        if "Refs" in temp:
+            refs = temp["Refs"]
             if not isinstance(refs, DbRefs):
                 refs = DbRefs(refs)
         else:
@@ -129,7 +163,7 @@ class Info(MappedRecord, Delegator):
                 del temp[key]
 
         Delegator.__init__(self, refs)
-        self['Refs'] = refs
+        self["Refs"] = refs
         MappedRecord.__init__(self, temp)
 
     def __getattr__(self, attr):
@@ -169,8 +203,7 @@ class Info(MappedRecord, Delegator):
 
     def update(self, item):
         """updates with another info object and warns when overwriting keys"""
-        overwrites = (set(self) ^ set(['Refs'])) & ((set(item)) ^ set(['Refs']))
+        overwrites = (set(self) ^ set(["Refs"])) & ((set(item)) ^ set(["Refs"]))
         if overwrites:
             warn("Keys overwritten by other sequence: " + "".join(overwrites))
         return super(Info, self).update(item)
-    

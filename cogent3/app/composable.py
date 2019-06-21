@@ -1,18 +1,26 @@
-import os
-import re
-import pathlib
 import inspect
+import os
+import pathlib
+import re
 import time
 
 import scitrack
 
 from cogent3 import LoadSeqs
 from cogent3.core.alignment import SequenceCollection
-from cogent3.util.misc import open_
 from cogent3.util import progress_display as UI
-from .data_store import (SKIP, RAISE, OVERWRITE, IGNORE,
-                         WritableZippedDataStore,
-                         WritableDirectoryDataStore, DataStoreMember, )
+from cogent3.util.misc import open_
+
+from .data_store import (
+    IGNORE,
+    OVERWRITE,
+    RAISE,
+    SKIP,
+    DataStoreMember,
+    WritableDirectoryDataStore,
+    WritableZippedDataStore,
+)
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -26,13 +34,13 @@ __status__ = "Alpha"
 
 def _make_logfile_name(process):
     text = str(process)
-    text = re.split(r'\s+\+\s+', text)
+    text = re.split(r"\s+\+\s+", text)
     parts = []
     for part in text:
-        parts.append(part[:part.find('(')])
-    result = '-'.join(parts)
+        parts.append(part[: part.find("(")])
+    result = "-".join(parts)
     pid = os.getpid()
-    result = f'{result}-pid{pid}.log'
+    result = f"{result}-pid{pid}.log"
     return result
 
 
@@ -77,9 +85,9 @@ class NotCompletedResult(int):
         # todo this approach to caching persistent arguments for reconstruction
         # is fragile. Need an inspect module based approach
         d = locals()
-        d.pop('cls')
+        d.pop("cls")
         result = int.__new__(cls, False)
-        args = tuple(d.pop(v) for v in ('type', 'origin', 'message'))
+        args = tuple(d.pop(v) for v in ("type", "origin", "message"))
         result._persistent = args, d
 
         result.type = type
@@ -96,9 +104,11 @@ class NotCompletedResult(int):
 
     def __str__(self):
         name = self.__class__.__name__
-        source = self.source or 'Unknown'
-        val = (f'{name}(type={self.type}, origin={self.origin}, '
-               f'source="{source}", message="{self.message}")')
+        source = self.source or "Unknown"
+        val = (
+            f"{name}(type={self.type}, origin={self.origin}, "
+            f'source="{source}", message="{self.message}")'
+        )
         return val
 
 
@@ -142,11 +152,10 @@ class Composable(ComposableType):
         self._formatted = ["type='%s'" % self._type]
 
     def __str__(self):
-        txt = '' if not self.input else str(self.input)
+        txt = "" if not self.input else str(self.input)
         if txt:
-            txt += ' + '
-        txt += '%s(%s)' % (self.__class__.__name__,
-                           ', '.join(self._formatted))
+            txt += " + "
+        txt += "%s(%s)" % (self.__class__.__name__, ", ".join(self._formatted))
         return txt
 
     def __repr__(self):
@@ -157,14 +166,14 @@ class Composable(ComposableType):
         stack.reverse()
         for level in stack:
             args = inspect.getargvalues(level.frame).locals
-            klass = args.get('__class__', None)
+            klass = args.get("__class__", None)
             if klass and isinstance(self, klass):
                 break
         args = inspect.getargvalues(level.frame).locals
-        params = inspect.signature(args['__class__'].__init__).parameters
+        params = inspect.signature(args["__class__"].__init__).parameters
         formatted = []
         for p in params:
-            if p == 'self':
+            if p == "self":
                 continue
             try:
                 v = args[p]
@@ -176,12 +185,11 @@ class Composable(ComposableType):
                 pass
             try:
                 get_ipython()
-                if p == 'kwargs' and v == {'store_history': True,
-                                           'silent': False}:
+                if p == "kwargs" and v == {"store_history": True, "silent": False}:
                     continue
             except NameError:
                 pass
-            formatted.append('%s=%r' % (p, v))
+            formatted.append("%s=%r" % (p, v))
         self._formatted += formatted
 
     def __add__(self, other):
@@ -190,13 +198,15 @@ class Composable(ComposableType):
             self_name = self.__class__.__name__
             other_name = other.__class__.__name__
             if self.output and other.input:
-                msg = f'{self_name} and {other_name} are already part of a' \
-                    ' composed function'
+                msg = (
+                    f"{self_name} and {other_name} are already part of a"
+                    " composed function"
+                )
             elif self.output:
-                msg = f'{self_name} already part of composed function'
+                msg = f"{self_name} already part of composed function"
             else:
-                msg = f'{other_name} already part of composed function'
-            raise AssertionError(f'{msg}, use disconnect() to free them up')
+                msg = f"{other_name} already part of composed function"
+            raise AssertionError(f"{msg}, use disconnect() to free them up")
 
         if not other.compatible_input(self):
             msg = '%s() requires input type "%s", %s() produces "%s"'
@@ -231,8 +241,7 @@ class Composable(ComposableType):
         try:
             val = func(val, *args, **kwargs)
         except Exception as err:
-            val = NotCompletedResult(
-                'ERROR', self, err.args[0], source=val)
+            val = NotCompletedResult("ERROR", self, err.args[0], source=val)
         return val
 
     def __call__(self, val, *args, **kwargs):
@@ -258,11 +267,13 @@ class Composable(ComposableType):
             return val
         result = self._trapped_call(self.func, val, *args, **kwargs)
         if not result and type(result) != NotCompletedResult:
-            msg = ('This is unexpected! Please post this error message along'
-                   ' with the code and data indicated as an Issue on the'
-                   ' bitbucket project page.')
+            msg = (
+                "This is unexpected! Please post this error message along"
+                " with the code and data indicated as an Issue on the"
+                " bitbucket project page."
+            )
             origin = str(self)
-            result = NotCompletedResult('BUG', origin, msg, source=val)
+            result = NotCompletedResult("BUG", origin, msg, source=val)
 
         return result
 
@@ -296,8 +307,16 @@ class Composable(ComposableType):
         self._load_checkpoint = None
 
     @UI.display_wrap
-    def apply_to(self, dstore, parallel=False, mininterval=2, par_kw=None,
-                 logger=True, cleanup=False, ui=None):
+    def apply_to(
+        self,
+        dstore,
+        parallel=False,
+        mininterval=2,
+        par_kw=None,
+        logger=True,
+        cleanup=False,
+        ui=None,
+    ):
         """invokes self composable function on the provided data store
 
         Parameters
@@ -331,7 +350,7 @@ class Composable(ComposableType):
         aggregates results.
         """
         start = time.time()
-        loggable = hasattr(self, 'data_store')
+        loggable = hasattr(self, "data_store")
         if not loggable:
             LOGGER = None
         elif type(logger) == scitrack.CachingLogger:
@@ -349,7 +368,7 @@ class Composable(ComposableType):
             LOGGER = None
 
         if LOGGER:
-            LOGGER.log_message(str(self), label='composable function')
+            LOGGER.log_message(str(self), label="composable function")
         results = []
         i = 0
         process = self.input if self.input else self
@@ -361,31 +380,32 @@ class Composable(ComposableType):
             process.output = None
             self.input = None
 
-        for result in ui.imap(process, dstore, parallel=parallel,
-                              par_kw=par_kw, mininterval=mininterval):
+        for result in ui.imap(
+            process, dstore, parallel=parallel, par_kw=par_kw, mininterval=mininterval
+        ):
             outcome = self(result)
             results.append(outcome)
             if LOGGER:
                 member = dstore[i]
-                LOGGER.log_message(member, label='input')
-                LOGGER.log_message(member.md5, label='input md5sum')
+                LOGGER.log_message(member, label="input")
+                LOGGER.log_message(member.md5, label="input md5sum")
                 if outcome:
-                    mem_id = self.data_store.make_relative_identifier(
-                        member.name)
+                    mem_id = self.data_store.make_relative_identifier(member.name)
                     member = self.data_store.get_member(mem_id)
-                    LOGGER.log_message(member, label='output')
-                    LOGGER.log_message(member.md5, label='output md5sum')
+                    LOGGER.log_message(member, label="output")
+                    LOGGER.log_message(member.md5, label="output md5sum")
                 else:
                     # we have a NotCompletedResult
-                    LOGGER.log_message(f'{outcome.origin} : {outcome.message}',
-                                       label=outcome.type)
+                    LOGGER.log_message(
+                        f"{outcome.origin} : {outcome.message}", label=outcome.type
+                    )
 
             i += 1
 
         finish = time.time()
         taken = finish - start
         if LOGGER:
-            LOGGER.log_message(f'{taken}', label='TIME TAKEN')
+            LOGGER.log_message(f"{taken}", label="TIME TAKEN")
             LOGGER.shutdown()
             self.data_store.add_file(str(log_file_path), cleanup=cleanup)
 
@@ -397,27 +417,27 @@ class Composable(ComposableType):
 
 
 class ComposableTabular(Composable):
-    _type = 'tabular'
+    _type = "tabular"
 
 
 class ComposableSeq(Composable):
-    _type = 'sequences'
+    _type = "sequences"
 
 
 class ComposableAligned(Composable):
-    _type = 'aligned'
+    _type = "aligned"
 
 
 class ComposableTree(Composable):
-    _type = 'tree'
+    _type = "tree"
 
 
 class ComposableModel(Composable):
-    _type = 'model'
+    _type = "model"
 
 
 class ComposableHypothesis(Composable):
-    _type = 'hypothesis'
+    _type = "hypothesis"
 
 
 class _seq_loader:
@@ -435,18 +455,25 @@ class _seq_loader:
             seqs = self.klass(data=data, moltype=self.moltype)
             seqs.info.path = data
         elif not isinstance(data, SequenceCollection):
-            seqs = LoadSeqs(data=data, moltype=self.moltype,
-                            aligned=self.aligned)
+            seqs = LoadSeqs(data=data, moltype=self.moltype, aligned=self.aligned)
 
-        if self._output_type == 'sequence':
+        if self._output_type == "sequence":
             seqs = seqs.degap()
 
         return seqs
 
 
 class _checkpointable(Composable):
-    def __init__(self, input_type, output_type, data_path, name_callback=None,
-                 create=False, if_exists=SKIP, suffix=None):
+    def __init__(
+        self,
+        input_type,
+        output_type,
+        data_path,
+        name_callback=None,
+        create=False,
+        if_exists=SKIP,
+        suffix=None,
+    ):
         """
         Parameters
         ----------
@@ -465,20 +492,29 @@ class _checkpointable(Composable):
             behaviour if output exists. Either 'skip', 'raise' (raises an
             exception), 'overwrite', 'ignore'
         """
-        super(_checkpointable, self).__init__(input_type=input_type,
-                                              output_type=output_type)
+        super(_checkpointable, self).__init__(
+            input_type=input_type, output_type=output_type
+        )
         self._formatted_params()
 
         self._checkpointable = True
         if_exists = if_exists.lower()
-        assert if_exists in (SKIP, IGNORE,
-                             RAISE, OVERWRITE), 'invalid value for if_exists'
+        assert if_exists in (
+            SKIP,
+            IGNORE,
+            RAISE,
+            OVERWRITE,
+        ), "invalid value for if_exists"
         self._if_exists = if_exists
 
-        klass = (WritableZippedDataStore
-                 if data_path.endswith('.zip') else WritableDirectoryDataStore)
-        self.data_store = klass(data_path, suffix=suffix, create=create,
-                                if_exists=if_exists)
+        klass = (
+            WritableZippedDataStore
+            if data_path.endswith(".zip")
+            else WritableDirectoryDataStore
+        )
+        self.data_store = klass(
+            data_path, suffix=suffix, create=create, if_exists=if_exists
+        )
         self._callback = name_callback
         self.func = self.write
 

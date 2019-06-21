@@ -2,6 +2,7 @@ from cogent3 import LoadTree, get_moltype
 from cogent3.evolve.fast_distance import get_calculator
 from cogent3.evolve.models import get_model
 
+
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
@@ -14,9 +15,9 @@ __status__ = "Alpha"
 
 # todo tests for dist
 
+
 class FastSlowDist:  # todo make this a composable type
-    def __init__(self, distance='TN93', moltype='dna', fast_calc=None,
-                 slow_calc=None):
+    def __init__(self, distance="TN93", moltype="dna", fast_calc=None, slow_calc=None):
         self._moltype = get_moltype(moltype)
         self._sm = None
         if distance:
@@ -24,8 +25,7 @@ class FastSlowDist:  # todo make this a composable type
                 distance = None
                 raise UserWarning('distance="%s" being ignored' % distance)
             elif fast_calc or slow_calc:
-                raise ValueError(
-                    "must specify both fast and slow calculator")
+                raise ValueError("must specify both fast and slow calculator")
             else:
                 fast_calc = get_calculator(distance, moltype)
                 self._sm = get_model(distance)
@@ -41,9 +41,9 @@ class FastSlowDist:  # todo make this a composable type
         tree = LoadTree(tip_names=aln.names)
         lf = self._sm.make_likelihood_function(tree)
         lf.set_alignment(aln)
-        lf.set_param_rule('length', is_independent=False)
+        lf.set_param_rule("length", is_independent=False)
         lf.optimise(max_restarts=0, show_progress=False)
-        dist = 2 * lf.get_param_value('length', edge=aln.names[0])
+        dist = 2 * lf.get_param_value("length", edge=aln.names[0])
         return dist
 
     def __call__(self, aln):

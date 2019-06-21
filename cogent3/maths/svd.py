@@ -2,14 +2,17 @@
 """Performs singular-value decomposition on a set of Q-matrices."""
 
 
-from cogent3.maths.stats.test import std  # numpy.std is biased
+# note: corrcoef and cov assume rows are observations, cols are variables
+from numpy import array, corrcoef, cov, log, mean
+from numpy import newaxis as NewAxis
+from numpy import product, ravel, reshape, sort, sqrt, sum, zeros
+from numpy.linalg import eigvals, svd
+from numpy.random import random
+
 from cogent3.maths.matrix_exponentiation import FastExponentiator as expm
 from cogent3.maths.matrix_logarithm import logm
-# note: corrcoef and cov assume rows are observations, cols are variables
-from numpy import log, newaxis as NewAxis, array, zeros, product, sqrt, ravel,\
-    sum, sort, reshape, corrcoef, cov, mean
-from numpy.random import random
-from numpy.linalg import svd, eigvals
+from cogent3.maths.stats.test import std  # numpy.std is biased
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -24,7 +27,7 @@ array_type = type(array([0.1]))
 
 
 def var(x):
-    return std(x)**2
+    return std(x) ** 2
 
 
 def ratio_two_best(eigenvalues):
@@ -70,7 +73,7 @@ def _dists_from_mean_slow(qs):
     """
     n = len(qs)
     average = mean(qs, axis=0)
-    result = zeros(n, 'float64')
+    result = zeros(n, "float64")
     for i in range(n):
         result[i] = euclidean_distance(average, qs[i])
     return result
@@ -84,7 +87,7 @@ def dists_from_v(a, v=None):
     if v is None:
         v = mean(a, axis=0)
     diff = a - v
-    return(sqrt(sum(diff * diff, axis=1)))
+    return sqrt(sum(diff * diff, axis=1))
 
 
 def weiss(eigens):

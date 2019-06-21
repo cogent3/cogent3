@@ -1,8 +1,15 @@
 #!/usr/bin/env python
 import numpy
+
 from numpy.linalg import solve as solve_linear_equations
+
 from .tree_space import TreeEvaluator, ancestry2tree
-from .util import distance_dict_and_names_to_1D, distance_dict_to_1D, triangular_order
+from .util import (
+    distance_dict_and_names_to_1D,
+    distance_dict_to_1D,
+    triangular_order,
+)
+
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -45,8 +52,7 @@ class WLS(TreeEvaluator):
               distance is used."""
 
         self.dists = dists
-        self.weights = weights or \
-            dict((key, 1.0 / (dists[key]**2)) for key in dists)
+        self.weights = weights or dict((key, 1.0 / (dists[key] ** 2)) for key in dists)
         (self.names, dists) = distance_dict_to_1D(self.dists)
 
     def make_tree_scorer(self, names):
@@ -57,14 +63,16 @@ class WLS(TreeEvaluator):
         # A
         weights_dists = weights * dists
 
-        def evaluate(ancestry,
-                     lengths=None,
-                     sum=sum,
-                     _ancestry2paths=_ancestry2paths,
-                     dot=numpy.dot,
-                     maximum=numpy.maximum,
-                     transpose=numpy.transpose,
-                     solve=solve_linear_equations):
+        def evaluate(
+            ancestry,
+            lengths=None,
+            sum=sum,
+            _ancestry2paths=_ancestry2paths,
+            dot=numpy.dot,
+            maximum=numpy.maximum,
+            transpose=numpy.transpose,
+            solve=solve_linear_equations,
+        ):
             A = _ancestry2paths(ancestry)
             if lengths is None:
                 At = transpose(A)
@@ -73,8 +81,9 @@ class WLS(TreeEvaluator):
                 lengths = solve(X, y)
                 lengths = maximum(lengths, 0.0)
             diffs = dot(A, lengths) - dists
-            err = sum(diffs**2)
+            err = sum(diffs ** 2)
             return (err, lengths)
+
         return evaluate
 
     def result2output(self, err, ancestry, lengths, names):

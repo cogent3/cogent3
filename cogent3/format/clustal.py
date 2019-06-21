@@ -2,8 +2,10 @@
 """
 Writer for Clustal format.
 """
-from cogent3.core.alignment import SequenceCollection
 from copy import copy
+
+from cogent3.core.alignment import SequenceCollection
+
 
 __author__ = "Jeremy Widmann"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -23,7 +25,7 @@ def clustal_from_alignment(aln, interleave_len=None):
             aligned.
     """
     if not aln:
-        return ''
+        return ""
 
     # get seq output order
     try:
@@ -36,8 +38,10 @@ def clustal_from_alignment(aln, interleave_len=None):
     clustal_list = ["CLUSTAL\n"]
 
     if seqs.is_ragged():
-        raise ValueError("Sequences in alignment are not all the same length." +
-                         "Cannot generate Clustal format.")
+        raise ValueError(
+            "Sequences in alignment are not all the same length."
+            + "Cannot generate Clustal format."
+        )
 
     aln_len = seqs.seq_len
     # Get all labels
@@ -54,14 +58,26 @@ def clustal_from_alignment(aln, interleave_len=None):
     if interleave_len is not None:
         curr_ix = 0
         while curr_ix < aln_len:
-            clustal_list.extend(["%s%s%s" % (x, ' ' * (max_spaces - len(x)),
-                                             y[curr_ix:curr_ix +
-                                               interleave_len]) for x, y in zip(order, ordered_seqs)])
+            clustal_list.extend(
+                [
+                    "%s%s%s"
+                    % (
+                        x,
+                        " " * (max_spaces - len(x)),
+                        y[curr_ix : curr_ix + interleave_len],
+                    )
+                    for x, y in zip(order, ordered_seqs)
+                ]
+            )
             clustal_list.append("")
             curr_ix += interleave_len
     else:
-        clustal_list.extend(["%s%s%s" % (x, ' ' * (max_spaces - len(x)), y)
-                             for x, y in zip(order, ordered_seqs)])
+        clustal_list.extend(
+            [
+                "%s%s%s" % (x, " " * (max_spaces - len(x)), y)
+                for x, y in zip(order, ordered_seqs)
+            ]
+        )
         clustal_list.append("")
 
-    return '\n'.join(clustal_list)
+    return "\n".join(clustal_list)

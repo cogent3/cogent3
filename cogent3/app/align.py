@@ -1,13 +1,13 @@
 from cogent3 import LoadTree
-from cogent3.core.alignment import ArrayAlignment
-from cogent3.core.moltype import get_moltype
 from cogent3.align import global_pairwise, make_dna_scoring_dict
 from cogent3.align.progressive import TreeAlign
+from cogent3.core.alignment import ArrayAlignment
+from cogent3.core.moltype import get_moltype
 from cogent3.evolve.models import get_model, protein_models
 
 from .composable import ComposableSeq, NotCompletedResult
-
 from .tree import quick_tree, scale_branches
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -22,8 +22,14 @@ __status__ = "Alpha"
 class align_to_ref(ComposableSeq):
     """returns an alignment to a reference seq. No gaps in the reference."""
 
-    def __init__(self, ref_seq='longest', score_matrix=None,
-                 insertion_penalty=20, extension_penalty=2, moltype='dna'):
+    def __init__(
+        self,
+        ref_seq="longest",
+        score_matrix=None,
+        insertion_penalty=20,
+        extension_penalty=2,
+        moltype="dna",
+    ):
         """
         Parameters
         ----------
@@ -39,15 +45,17 @@ class align_to_ref(ComposableSeq):
         moltype : str
             molecular type, currently only DNA or RNA suppported
         """
-        super(align_to_ref, self).__init__(input_type='sequences',
-                                           output_type='aligned')
+        super(align_to_ref, self).__init__(
+            input_type="sequences", output_type="aligned"
+        )
         assert moltype
         moltype = get_moltype(moltype)
         self._moltype = moltype
         S = score_matrix or make_dna_scoring_dict(10, -1, -8)
-        self._kwargs = dict(S=S, d=insertion_penalty, e=extension_penalty,
-                            return_score=False)
-        if ref_seq.lower() == 'longest':
+        self._kwargs = dict(
+            S=S, d=insertion_penalty, e=extension_penalty, return_score=False
+        )
+        if ref_seq.lower() == "longest":
             self.func = self.align_to_longest
         else:
             self.func = self.align_to_named_seq
@@ -80,7 +88,7 @@ class align_to_ref(ComposableSeq):
                 r = x[0] != gap_char
                 return r
 
-            func = {'-': standard_ref_gap}.get(gap_char, array_ref_gap)
+            func = {"-": standard_ref_gap}.get(gap_char, array_ref_gap)
             return func
 
         no_ref_gap = None
@@ -102,20 +110,25 @@ class align_to_ref(ComposableSeq):
                 aligned = result.to_type(array_align=False)
                 continue
 
-            aligned = aligned.add_from_ref_aln(
-                result.to_type(array_align=False))
+            aligned = aligned.add_from_ref_aln(result.to_type(array_align=False))
 
-        new = ArrayAlignment(
-            aligned.todict(), moltype=seqs.moltype, info=seqs.info)
+        new = ArrayAlignment(aligned.todict(), moltype=seqs.moltype, info=seqs.info)
         return new
 
 
 class progressive_align(ComposableSeq):
     """returns a multiple sequence alignment."""
 
-    def __init__(self, model, gc=None, param_vals=None, guide_tree=None,
-                 unique_guides=False,
-                 indel_length=1e-1, indel_rate=1e-10):
+    def __init__(
+        self,
+        model,
+        gc=None,
+        param_vals=None,
+        guide_tree=None,
+        unique_guides=False,
+        indel_length=1e-1,
+        indel_rate=1e-10,
+    ):
         """
         Parameters
         ----------
@@ -143,16 +156,21 @@ class progressive_align(ComposableSeq):
         indel_length : float
             probability of gap extension
         """
-        super(progressive_align, self).__init__(input_type='sequences',
-                                                output_type='aligned')
-        if guide_tree is None and model in protein_models + ['protein']:
-            raise NotImplementedError('auto-build of guide tree '
-                                      'not supported for protein seqs yet')
+        super(progressive_align, self).__init__(
+            input_type="sequences", output_type="aligned"
+        )
+        if guide_tree is None and model in protein_models + ["protein"]:
+            raise NotImplementedError(
+                "auto-build of guide tree " "not supported for protein seqs yet"
+            )
 
-        self._param_vals = {'codon': dict(omega=0.4, kappa=3),
-                            'nucleotide': dict(kappa=3)}.get(model, param_vals)
-        sm = {'codon': 'MG94HKY', 'nucleotide': 'HKY85',
-              'protein': 'JTT92'}.get(model, model)
+        self._param_vals = {
+            "codon": dict(omega=0.4, kappa=3),
+            "nucleotide": dict(kappa=3),
+        }.get(model, param_vals)
+        sm = {"codon": "MG94HKY", "nucleotide": "HKY85", "protein": "JTT92"}.get(
+            model, model
+        )
 
         kwargs = {} if gc is None else dict(gc=gc)
         sm = get_model(sm, **kwargs)
@@ -176,11 +194,13 @@ class progressive_align(ComposableSeq):
             guide_tree = scale_branches()(guide_tree)
 
         self._guide_tree = guide_tree
-        self._kwargs = dict(indel_length=self._indel_length,
-                            indel_rate=self._indel_rate,
-                            tree=self._guide_tree,
-                            param_vals=self._param_vals,
-                            show_progress=False)
+        self._kwargs = dict(
+            indel_length=self._indel_length,
+            indel_rate=self._indel_rate,
+            tree=self._guide_tree,
+            param_vals=self._param_vals,
+            show_progress=False,
+        )
 
         self.func = self.multiple_align
 
@@ -197,12 +217,11 @@ class progressive_align(ComposableSeq):
         seqs = seqs.to_moltype(self._moltype)
         if self._guide_tree is None or self._unique_guides:
             self._guide_tree = self._build_guide(seqs)
-            self._kwargs['tree'] = self._guide_tree
+            self._kwargs["tree"] = self._guide_tree
             diff = set(self._guide_tree.get_tip_names()) ^ set(seqs.names)
             if diff:
                 numtips = len(set(self._guide_tree.get_tip_names()))
-                print(f"numseqs={len(seqs.names)} not equal "
-                      f"to numtips={numtips}")
+                print(f"numseqs={len(seqs.names)} not equal " f"to numtips={numtips}")
                 print(f"These were different: {diff}")
                 seqs = seqs.take_seqs(self._guide_tree.get_tip_names())
 
@@ -214,6 +233,6 @@ class progressive_align(ComposableSeq):
             result.info.update(seqs.info)
         except ValueError as err:
             # probably an internal stop
-            result = NotCompletedResult('ERROR', self, err.args[0], source=seqs)
+            result = NotCompletedResult("ERROR", self, err.args[0], source=seqs)
             return result
         return result

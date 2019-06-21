@@ -1,5 +1,19 @@
-from numpy import zeros, array, exp, pi, cos, fft, arange, power, sqrt, sum,\
-    multiply, float64, polyval
+from numpy import (
+    arange,
+    array,
+    cos,
+    exp,
+    fft,
+    float64,
+    multiply,
+    pi,
+    polyval,
+    power,
+    sqrt,
+    sum,
+    zeros,
+)
+
 
 __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -19,7 +33,7 @@ def _goertzel_inner(x, N, period):
         s = x[n] + coeff * s_prev - s_prev2
         s_prev2 = s_prev
         s_prev = s
-    pwr = sqrt(s_prev2**2 + s_prev**2 - coeff * s_prev2 * s_prev)
+    pwr = sqrt(s_prev2 ** 2 + s_prev ** 2 - coeff * s_prev2 * s_prev)
     return pwr
 
 
@@ -49,11 +63,13 @@ def _autocorr_inner(x, xc, N):  # naive python
     for m in range(-N + 1, N):
         for n in range(N):
             if 0 <= n - m < N:
-                xc[m + N - 1] += (x[n] * x[n - m])
+                xc[m + N - 1] += x[n] * x[n - m]
+
 
 try:
     # try using pyrexed versions
     from ._period import ipdft_inner, autocorr_inner, goertzel_inner
+
     # raise ImportError # for profiling
 except ImportError:
     # fastest python versions
@@ -80,7 +96,7 @@ class _PeriodEstimator(object):
         self.ulim = ulim or (length - 1)
 
         if self.ulim > length:
-            raise RuntimeError('Error: ulim > length')
+            raise RuntimeError("Error: ulim > length")
 
         self.period = period
 
@@ -90,7 +106,6 @@ class _PeriodEstimator(object):
 
 
 class AutoCorrelation(_PeriodEstimator):
-
     def __init__(self, length, llim=None, ulim=None, period=None):
         """class for repetitive calculation of autocorrelation for series of
         fixed length
@@ -105,14 +120,14 @@ class AutoCorrelation(_PeriodEstimator):
 
         self.min_idx = periods.index(self.llim)
         self.max_idx = periods.index(self.ulim)
-        self.periods = array(periods[self.min_idx: self.max_idx + 1])
+        self.periods = array(periods[self.min_idx : self.max_idx + 1])
         self.xc = zeros(2 * self.length - 1)
 
     def evaluate(self, x):
         x = array(x, float64)
         self.xc.fill(0.0)
         autocorr_inner(x, self.xc, self.length)
-        xc = self.xc[self.min_idx: self.max_idx + 1]
+        xc = self.xc[self.min_idx : self.max_idx + 1]
         if self.period is not None:
             return xc[self.period - self.llim]
 
@@ -133,7 +148,6 @@ def auto_corr(x, llim=None, ulim=None):
 
 
 class Ipdft(_PeriodEstimator):
-
     def __init__(self, length, llim=None, ulim=None, period=None, abs_ft_sig=True):
         """factory function for computing the integer period discrete Fourier
         transform for repeated application to signals of the same length.
@@ -158,7 +172,7 @@ class Ipdft(_PeriodEstimator):
         x = array(x, float64)
         self.X.fill(0 + 0j)
         self.X = ipdft_inner(x, self.X, self.W, self.ulim, self.length)
-        pwr = self.X[self.llim - 1:self.ulim]
+        pwr = self.X[self.llim - 1 : self.ulim]
 
         if self.abs_ft_sig:
             pwr = abs(pwr)
@@ -190,7 +204,15 @@ class Hybrid(_PeriodEstimator):
 
     See Epps. EURASIP Journal on Bioinformatics and Systems Biology, 2009"""
 
-    def __init__(self, length, llim=None, ulim=None, period=None, abs_ft_sig=True, return_all=False):
+    def __init__(
+        self,
+        length,
+        llim=None,
+        ulim=None,
+        period=None,
+        abs_ft_sig=True,
+        return_all=False,
+    ):
         """Arguments:
             - length: the length of signals to be encountered
             - period: specified period at which to return the signal
@@ -273,8 +295,10 @@ def dft(x, **kwargs):
     periods.reverse()
     return array(pwr), array(periods)
 
+
 if __name__ == "__main__":
     from numpy import sin
+
     x = sin(2 * pi / 5 * arange(1, 9))
     print(x)
     print(goertzel(x, 4))

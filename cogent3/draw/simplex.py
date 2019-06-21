@@ -1,8 +1,10 @@
 import numpy
+
 from numpy.testing import assert_allclose
 
 from cogent3.draw.drawable import Drawable
 from cogent3.maths.geometry import SimplexTransform
+
 
 __author__ = "Rahul Ghangas and Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -60,7 +62,7 @@ class Simplex(Drawable):
         """
         if self.vertex_labels is None:
             labels = list(sorted(probs.keys()))
-            assert len(labels) == 4, '4-state systems only'
+            assert len(labels) == 4, "4-state systems only"
             self.vertex_labels = labels
 
         probs = [probs[k] for k in self.vertex_labels]
@@ -99,10 +101,10 @@ class Simplex(Drawable):
         legendgroup
             group to which the segment belongs
         """
-        assert segment[0], 'must provide valid data'
+        assert segment[0], "must provide valid data"
         if self.vertex_labels is None:
             labels = list(sorted(segment[0].keys()))
-            assert len(labels) == 4, '4-state systems only'
+            assert len(labels) == 4, "4-state systems only"
             self.vertex_labels = labels
 
         probs = []
@@ -118,75 +120,82 @@ class Simplex(Drawable):
 
     def _get_frame_trace(self):
         from itertools import combinations
+
         combos = numpy.array(list(combinations(self.vertices, 2)))
-        trace = dict(type='scatter3d',
-                     # Draw the edges of the Tetrahedron
-                     name='frame',
-                     x=combos[:, :, 0].ravel(),
-                     y=combos[:, :, 1].ravel(),
-                     z=combos[:, :, 2].ravel(),
-                     marker=dict(size=4, color='#1f77b4', colorscale='Viridis'),
-                     line=dict(color='#1f77b4', width=5),
-                     mode='lines',
-                     hoverinfo='skip',
-                     showlegend=False)
+        trace = dict(
+            type="scatter3d",
+            # Draw the edges of the Tetrahedron
+            name="frame",
+            x=combos[:, :, 0].ravel(),
+            y=combos[:, :, 1].ravel(),
+            z=combos[:, :, 2].ravel(),
+            marker=dict(size=4, color="#1f77b4", colorscale="Viridis"),
+            line=dict(color="#1f77b4", width=5),
+            mode="lines",
+            hoverinfo="skip",
+            showlegend=False,
+        )
         return trace
 
     def _get_vertex_label_trace(self):
-        trace = dict(type='scatter3d',
-                     # Draw the vertex labels
-                     x=self.vertices[:, 0],
-                     y=self.vertices[:, 1],
-                     z=self.vertices[:, 2],
-                     marker=dict(
-                         size=4,
-                         color='#1f77b4',
-                         colorscale='Viridis',
-                     ),
-                     text=self.vertex_labels,
-                     textfont=dict(size=16, family='sans serif'),
-                     mode='markers+text',
-                     hoverinfo='skip',
-                     showlegend=False,
-                     name='labels'
-                     )
+        trace = dict(
+            type="scatter3d",
+            # Draw the vertex labels
+            x=self.vertices[:, 0],
+            y=self.vertices[:, 1],
+            z=self.vertices[:, 2],
+            marker=dict(size=4, color="#1f77b4", colorscale="Viridis"),
+            text=self.vertex_labels,
+            textfont=dict(size=16, family="sans serif"),
+            mode="markers+text",
+            hoverinfo="skip",
+            showlegend=False,
+            name="labels",
+        )
         return trace
 
-    def _get_3d_scatter(self, data, mode, name=None, legendgroup=None,
-                        text=None,
-                        showlegend=None,
-                        line=None):
+    def _get_3d_scatter(
+        self,
+        data,
+        mode,
+        name=None,
+        legendgroup=None,
+        text=None,
+        showlegend=None,
+        line=None,
+    ):
         data = numpy.array(data, dtype=float)
         points = numpy.array([v @ self.transformer for v in data])
-        scatter = dict(type='scatter3d',
-                       x=points[:, 0],
-                       y=points[:, 1],
-                       z=points[:, 2],
-                       marker=dict(size=4, colorscale='Viridis'),
-                       showlegend=showlegend,
-                       mode=mode,
-                       name=name,
-                       text=text,
-                       opacity=0.75,
-                       legendgroup=legendgroup,
-                       line=line
-                       )
+        scatter = dict(
+            type="scatter3d",
+            x=points[:, 0],
+            y=points[:, 1],
+            z=points[:, 2],
+            marker=dict(size=4, colorscale="Viridis"),
+            showlegend=showlegend,
+            mode=mode,
+            name=name,
+            text=text,
+            opacity=0.75,
+            legendgroup=legendgroup,
+            line=line,
+        )
         return scatter
 
     def _get_point_traces(self):
         """returns scatter 3D for points"""
         data = numpy.array(self._points, dtype=float)
         if any(self._point_hovertext):
-            hovertext = numpy.array(self._point_hovertext, dtype='O')
+            hovertext = numpy.array(self._point_hovertext, dtype="O")
         else:
             hovertext = None
         groups = set(self._point_legendgroups)
         multigroup = len(groups) > 1
-        legendgroups = numpy.array(self._point_legendgroups, dtype='O')
+        legendgroups = numpy.array(self._point_legendgroups, dtype="O")
         traces = []
         for group in groups:
             if multigroup and group not in self._used_groups:
-                name = group or 'Other'
+                name = group or "Other"
                 showlegend = True
                 self._used_groups.add(name)
             else:
@@ -199,11 +208,14 @@ class Simplex(Drawable):
                 group_text = hovertext[indices]
             else:
                 group_text = None
-            trace = self._get_3d_scatter(group_data, mode='markers',
-                                         name=name,
-                                         legendgroup=group,
-                                         text=group_text,
-                                         showlegend=showlegend)
+            trace = self._get_3d_scatter(
+                group_data,
+                mode="markers",
+                name=name,
+                legendgroup=group,
+                text=group_text,
+                showlegend=showlegend,
+            )
             traces.append(trace)
 
         return traces
@@ -215,25 +227,29 @@ class Simplex(Drawable):
         for i, segment in enumerate(self._segments):
             group = self._segment_legendgroups[i]
             if multigroup or group not in self._used_groups:
-                name = group or 'Other'
+                name = group or "Other"
                 showlegend = True
                 self._used_groups.add(name)
             else:
                 name = None
                 showlegend = False
             data = numpy.array(segment, dtype=float)
-            traces.append(self._get_3d_scatter(data, 'lines+markers',
-                                               name=name,
-                                               legendgroup=group,
-                                               showlegend=showlegend,
-                                               line=dict(width=3)))
+            traces.append(
+                self._get_3d_scatter(
+                    data,
+                    "lines+markers",
+                    name=name,
+                    legendgroup=group,
+                    showlegend=showlegend,
+                    line=dict(width=3),
+                )
+            )
         return traces
 
     def _build_fig(self, **kwargs):
         from plotly import graph_objs as go
 
-        self.traces.extend([self._get_frame_trace(),
-                            self._get_vertex_label_trace()])
+        self.traces.extend([self._get_frame_trace(), self._get_vertex_label_trace()])
         if self._points:
             self.traces.extend(self._get_point_traces())
 
@@ -242,9 +258,12 @@ class Simplex(Drawable):
 
         # Layout attributes for plotly
         axis_range = [self.vertices.min(), self.vertices.max()]
-        layout = go.Layout(scene=dict(
-            xaxis=dict(title='x', visible=False, range=axis_range),
-            yaxis=dict(title='y', visible=False, range=axis_range),
-            zaxis=dict(title='z', visible=False, range=axis_range)),
-            autosize=False)
+        layout = go.Layout(
+            scene=dict(
+                xaxis=dict(title="x", visible=False, range=axis_range),
+                yaxis=dict(title="y", visible=False, range=axis_range),
+                zaxis=dict(title="z", visible=False, range=axis_range),
+            ),
+            autosize=False,
+        )
         self.layout.update(layout)

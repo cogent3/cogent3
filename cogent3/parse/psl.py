@@ -6,6 +6,7 @@
 from cogent3 import LoadTable
 from cogent3.parse.table import ConvertFields
 
+
 __author__ = "Gavin Huttley, Anuj Pahwa"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Gavin Huttley", "Anuj Pahwa"]
@@ -23,23 +24,26 @@ def make_header(lines):
     for index, line in enumerate(lines):
         if lengths[index] != max_length:
             for i in range(lengths[index], max_length):
-                line.append('')
+                line.append("")
 
     header = []
     for t, b in zip(*lines):
-        if t.strip().endswith('-'):
+        if t.strip().endswith("-"):
             c = t.strip() + b
         else:
-            c = ' '.join([t.strip(), b.strip()])
+            c = " ".join([t.strip(), b.strip()])
         header += [c.strip()]
     return header
 
-int_series = lambda x: list(map(int, x.replace(',', ' ').split()))
 
-row_converter = ConvertFields([(i, int) for i in range(8)] +
-                              [(i, int) for i in range(10, 13)] +
-                              [(i, int) for i in range(14, 18)] +
-                              [(i, int_series) for i in range(18, 21)])
+int_series = lambda x: list(map(int, x.replace(",", " ").split()))
+
+row_converter = ConvertFields(
+    [(i, int) for i in range(8)]
+    + [(i, int) for i in range(10, 13)]
+    + [(i, int) for i in range(14, 18)]
+    + [(i, int_series) for i in range(18, 21)]
+)
 
 
 def MinimalPslParser(data, row_converter=row_converter):
@@ -53,7 +57,7 @@ def MinimalPslParser(data, row_converter=row_converter):
 
     for record in data:
         if psl_version is None:
-            assert 'psLayout version' in record
+            assert "psLayout version" in record
             psl_version = record.strip()
             yield psl_version
             continue
@@ -61,13 +65,13 @@ def MinimalPslParser(data, row_converter=row_converter):
         if not record.strip():
             continue
 
-        if header is None and record[0] == '-':
+        if header is None and record[0] == "-":
             header = make_header(rows)
             yield header
             rows = []
             continue
 
-        rows += [record.rstrip().split('\t')]
+        rows += [record.rstrip().split("\t")]
         if header is not None:
             yield row_converter(rows[0])
             rows = []

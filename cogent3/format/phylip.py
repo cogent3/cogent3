@@ -4,6 +4,7 @@
 
 from cogent3.format.util import _AlignmentFormatter
 
+
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Thomas La"]
@@ -17,11 +18,12 @@ __status__ = "Production"
 def alignment_to_phylip(alignment_dict, block_size=60, order=None):
     """Returns a Phylip string given an alignment.
     """
-    return PhylipFormatter().format(alignment_dict, block_size, [] if order is None else order)
+    return PhylipFormatter().format(
+        alignment_dict, block_size, [] if order is None else order
+    )
 
 
 class PhylipFormatter(_AlignmentFormatter):
-
     def format(self, alignment_dict, block_size, order):
         """Format the alignment to Phylip.
 
@@ -40,7 +42,7 @@ class PhylipFormatter(_AlignmentFormatter):
         self.set_block_size(block_size)
 
         # header
-        header = '%d  %d\n' % (self.number_sequences, self.align_length)
+        header = "%d  %d\n" % (self.number_sequences, self.align_length)
 
         seqs = []
 
@@ -52,17 +54,17 @@ class PhylipFormatter(_AlignmentFormatter):
                 if not block:
                     # write the otu name
                     if len(seq_name) > 9:
-                        prefix = '%-10s' % seq_name[:9]
+                        prefix = "%-10s" % seq_name[:9]
                     else:
-                        prefix = '%-10s' % seq_name
+                        prefix = "%-10s" % seq_name
                 else:
-                    prefix = ' ' * 10
+                    prefix = " " * 10
 
                 if block + self.block_size > self.align_length:
                     to = self.align_length
                 else:
                     to = block + self.block_size
 
-                seqs.append('%s%s\n' % (prefix, seq[block:to]))
+                seqs.append("%s%s\n" % (prefix, seq[block:to]))
 
-        return header + ''.join(seqs)
+        return header + "".join(seqs)

@@ -2,7 +2,9 @@
 import xml.dom.minidom
 
 from unittest import TestCase, main
+
 from cogent3.parse.gbseq import GbSeqXmlParser
+
 
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -176,13 +178,17 @@ sample_annotations = '[source "[0:99]/99 of AY286018.1" at [0:99]/99, organism "
 
 
 class ParseGBseq(TestCase):
-
     def test_parse(self):
-        for name, seq in [next(GbSeqXmlParser(data)), next(GbSeqXmlParser(xml.dom.minidom.parseString(data)))]:
-            self.assertEqual(name, 'AY286018.1')
+        for name, seq in [
+            next(GbSeqXmlParser(data)),
+            next(GbSeqXmlParser(xml.dom.minidom.parseString(data))),
+        ]:
+            self.assertEqual(name, "AY286018.1")
             self.assertEqual(sample_seq, seq.to_fasta(block_size=len(sample_seq)))
             self.assertEqual(str(seq.annotations), sample_annotations)
+
     pass
+
 
 if __name__ == "__main__":
     main()

@@ -37,18 +37,24 @@ the point 3 contains exactly one element, 3, rather than no elements, and a
 range from 2:4 contains 2, 3 and 4, _not_ just 2 and 3.
 
 """
-from cogent3.util.misc import (FunctionWrapper, ClassChecker, ConstrainedList,
-                               iterable, get_object_provenance, )
-from itertools import chain
-from functools import total_ordering
-
-from bisect import bisect_right, bisect_left
 import copy
+
+from bisect import bisect_left, bisect_right
+from functools import total_ordering
+from itertools import chain
+
+from cogent3.util.misc import (
+    ClassChecker,
+    ConstrainedList,
+    FunctionWrapper,
+    get_object_provenance,
+    iterable,
+)
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield",
-               "Gavin Huttley"]
+__credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Rob Knight"
@@ -108,6 +114,7 @@ class SpanI(object):
 
     Required properties: start, end (must both be numbers)
     """
+
     __slots__ = []  # override in subclass
 
     def __contains__(self, other):
@@ -128,7 +135,7 @@ class SpanI(object):
 
     def __str__(self):
         """Returns string representation of self."""
-        return '(%s,%s)' % (self.start, self.end)
+        return "(%s,%s)" % (self.start, self.end)
 
     def __len__(self):
         """Returns length of self."""
@@ -209,13 +216,28 @@ class Span(SpanI):
 
     lost = False
 
-    __slots__ = ('tidy_start', 'tidy_end', 'length', 'value',
-                 'start', 'end', 'reverse', '_serialisable')
+    __slots__ = (
+        "tidy_start",
+        "tidy_end",
+        "length",
+        "value",
+        "start",
+        "end",
+        "reverse",
+        "_serialisable",
+    )
 
-    def __init__(self, start, end=None, tidy_start=False, tidy_end=False,
-                 value=None, reverse=False):
+    def __init__(
+        self,
+        start,
+        end=None,
+        tidy_start=False,
+        tidy_end=False,
+        value=None,
+        reverse=False,
+    ):
         self._serialisable = locals()
-        for key in ('self', '__class__', '__slots__'):
+        for key in ("self", "__class__", "__slots__"):
             self._serialisable.pop(key, None)
 
         self._new_init(start, end, reverse)
@@ -238,8 +260,7 @@ class Span(SpanI):
         # special handling in case we were passed another Span
         if isinstance(start, Span):
             assert end is None
-            self.start, self.end, self.reverse = start.start, start.end, \
-                start.reverse
+            self.start, self.end, self.reverse = start.start, start.end, start.reverse
         else:
             # reverse start and end so that start is always first
             if end is None:
@@ -253,24 +274,37 @@ class Span(SpanI):
 
     def to_rich_dict(self):
         attribs = self._serialisable.copy()
-        attribs['type'] = get_object_provenance(self)
+        attribs["type"] = get_object_provenance(self)
         return attribs
 
     def __setstate__(self, args):
         self.__init__(*args)
 
     def __getstate__(self):
-        return (self.start, self.end, self.tidy_start, self.tidy_end,
-                self.value, self.reverse)
+        return (
+            self.start,
+            self.end,
+            self.tidy_start,
+            self.tidy_end,
+            self.value,
+            self.reverse,
+        )
 
     def __repr__(self):
         (start, end) = (self.start, self.end)
         if self.reverse:
             (end, start) = (start, end)
-        return '%s:%s' % (start, end)
+        return "%s:%s" % (start, end)
 
     def reversed(self):
-        return self.__class__(self.start, self.end, self.tidy_end, self.tidy_start, self.value, reverse=not self.reverse)
+        return self.__class__(
+            self.start,
+            self.end,
+            self.tidy_end,
+            self.tidy_start,
+            self.value,
+            reverse=not self.reverse,
+        )
 
     def __getitem__(self, slice):
         start, end, step = _norm_slice(slice, self.length)
@@ -285,13 +319,25 @@ class Span(SpanI):
         return type(self)(start, end, tidy_start, tidy_end, self.value, reverse)
 
     def __mul__(self, scale):
-        return Span(self.start * scale, self.end * scale,
-                    self.tidy_start, self.tidy_end, self.value, self.reverse)
+        return Span(
+            self.start * scale,
+            self.end * scale,
+            self.tidy_start,
+            self.tidy_end,
+            self.value,
+            self.reverse,
+        )
 
     def __div__(self, scale):
         assert not self.start % scale or self.end % scale
-        return Span(self.start // scale, self.end // scale,
-                    self.tidy_start, self.tidy_end, self.value, self.reverse)
+        return Span(
+            self.start // scale,
+            self.end // scale,
+            self.tidy_start,
+            self.tidy_end,
+            self.value,
+            self.reverse,
+        )
 
     def remap_with(self, map):
         """The list of spans corresponding to this span on its grandparent, ie:
@@ -309,7 +355,7 @@ class Span(SpanI):
         # Find the right span(s) of the map
         first = bisect_right(offsets, zlo) - 1
         last = bisect_left(offsets, zhi, first) - 1
-        result = spans[first:last + 1]
+        result = spans[first : last + 1]
 
         # Cut off something at either end to get
         # the same position and length as 'self'
@@ -317,7 +363,7 @@ class Span(SpanI):
             end_trim = offsets[last] + spans[last].length - zhi
             start_trim = zlo - offsets[first]
             if end_trim > 0:
-                result[-1] = result[-1][:result[-1].length - end_trim]
+                result[-1] = result[-1][: result[-1].length - end_trim]
             if start_trim > 0:
                 result[0] = result[0][start_trim:]
 
@@ -382,8 +428,7 @@ class Span(SpanI):
         start = length - self.end
         assert start >= 0
         end = start + self.length
-        return self.__class__(start, end, value=self.value,
-                              reverse=not self.reverse)
+        return self.__class__(start, end, value=self.value, reverse=not self.reverse)
 
     def __iter__(self):
         """Iterates over indices contained in self.
@@ -399,7 +444,7 @@ class Span(SpanI):
 
     def __str__(self):
         """Returns string representation of self."""
-        return '(%s,%s,%s)' % (self.start, self.end, bool(self.reverse))
+        return "(%s,%s,%s)" % (self.start, self.end, bool(self.reverse))
 
     def __len__(self):
         """Returns length of self."""
@@ -407,7 +452,7 @@ class Span(SpanI):
 
     def __lt__(self, other):
         """Compares indices of self with indices of other."""
-        if hasattr(other, 'start') and hasattr(other, 'end'):
+        if hasattr(other, "start") and hasattr(other, "end"):
             s = (self.start, self.end, self.reverse)
             o = (other.start, other.end, other.reverse)
             return s < o
@@ -416,9 +461,12 @@ class Span(SpanI):
 
     def __eq__(self, other):
         """Compares indices of self with indices of other."""
-        if hasattr(other, 'start') and hasattr(other, 'end'):
-            return self.start == other.start and self.end == other.end \
+        if hasattr(other, "start") and hasattr(other, "end"):
+            return (
+                self.start == other.start
+                and self.end == other.end
                 and self.reverse == other.reverse
+            )
         else:
             return type(self) == type(other)
 
@@ -426,13 +474,13 @@ class Span(SpanI):
 class _LostSpan(object):
     """A placeholder span which doesn't exist in the underlying sequence"""
 
-    __slots__ = ['length', 'value', '_serialisable']
+    __slots__ = ["length", "value", "_serialisable"]
     lost = True
     terminal = False
 
     def __init__(self, length, value=None):
         self._serialisable = locals()
-        for key in ('self', '__class__', '__slots__'):
+        for key in ("self", "__class__", "__slots__"):
             self._serialisable.pop(key, None)
 
         self.length = length
@@ -440,7 +488,7 @@ class _LostSpan(object):
 
     def to_rich_dict(self):
         attribs = self._serialisable.copy()
-        attribs['type'] = get_object_provenance(self)
+        attribs["type"] = get_object_provenance(self)
         return attribs
 
     def __len__(self):
@@ -453,7 +501,7 @@ class _LostSpan(object):
         return (self.length, self.value)
 
     def __repr__(self):
-        return '-%s-' % (self.length)
+        return "-%s-" % (self.length)
 
     def where(self, index):
         return None
@@ -498,17 +546,23 @@ class TerminalPadding(_LostSpan):
     terminal = True
 
     def __repr__(self):
-        return '?%s?' % (self.length)
+        return "?%s?" % (self.length)
 
 
 class Map(object):
     """A map holds a list of spans.  """
 
-    def __init__(self, locations=None, spans=None, tidy=False,
-                 parent_length=None, termini_unknown=False):
+    def __init__(
+        self,
+        locations=None,
+        spans=None,
+        tidy=False,
+        parent_length=None,
+        termini_unknown=False,
+    ):
         assert parent_length is not None
         self._serialisable = locals()
-        for key in ('self', '__class__', '__slots__'):
+        for key in ("self", "__class__", "__slots__"):
             self._serialisable.pop(key, None)
 
         if spans is None:
@@ -517,8 +571,10 @@ class Map(object):
                 diff = 0
                 reverse = start > end
                 if max(start, end) < 0 or min(start, end) > parent_length:
-                    raise RuntimeError("located outside sequence: %s" %
-                                       str((start, end, parent_length)))
+                    raise RuntimeError(
+                        "located outside sequence: %s"
+                        % str((start, end, parent_length))
+                    )
                 elif max(start, end) < 0:
                     diff = min(start, end)
                     start = [start, 0][start < 0]
@@ -571,7 +627,7 @@ class Map(object):
         return self.length
 
     def __repr__(self):
-        return repr(self.spans) + '/%s' % self.parent_length
+        return repr(self.spans) + "/%s" % self.parent_length
 
     def __getitem__(self, slice):
         # A possible shorter map at the same level
@@ -601,9 +657,12 @@ class Map(object):
         return Map(spans=self.spans + other.spans, parent_length=self.parent_length)
 
     def with_termini_unknown(self):
-        return Map(self, spans=self.spans[:],
-                   parent_length=self.parent_length,
-                   termini_unknown=True)
+        return Map(
+            self,
+            spans=self.spans[:],
+            parent_length=self.parent_length,
+            termini_unknown=True,
+        )
 
     def get_covering_span(self):
         if self.reverse:
@@ -679,7 +738,8 @@ class Map(object):
     def without_gaps(self):
         return Map(
             spans=[s for s in self.spans if not s.lost],
-            parent_length=self.parent_length)
+            parent_length=self.parent_length,
+        )
 
     def inverse(self):
         if self.__inverse is None:
@@ -696,11 +756,9 @@ class Map(object):
         for span in self.spans:
             if not span.lost:
                 if span.reverse:
-                    temp.append(
-                        (span.start, span.end, posn + span.length, posn))
+                    temp.append((span.start, span.end, posn + span.length, posn))
                 else:
-                    temp.append(
-                        (span.start, span.end, posn, posn + span.length))
+                    temp.append((span.start, span.end, posn, posn + span.length))
             posn += span.length
 
         temp.sort()
@@ -710,8 +768,7 @@ class Map(object):
             if lo > last_hi:
                 new_spans.append(LostSpan(lo - last_hi))
             elif lo < last_hi:
-                raise ValueError(
-                    "Uninvertable. Overlap: %s < %s" % (lo, last_hi))
+                raise ValueError("Uninvertable. Overlap: %s < %s" % (lo, last_hi))
             new_spans.append(Span(start, end, reverse=start > end))
             last_hi = hi
         if self.parent_length > last_hi:
@@ -729,8 +786,9 @@ class Map(object):
         else:
             order_func = lambda x: x
 
-        coords = list(map(order_func,
-                      [(s.start, s.end) for s in self.spans if not s.lost]))
+        coords = list(
+            map(order_func, [(s.start, s.end) for s in self.spans if not s.lost])
+        )
 
         return coords
 
@@ -738,13 +796,15 @@ class Map(object):
         """returns dicts for contained spans [dict(), ..]"""
         spans = [s.to_rich_dict() for s in self.spans]
         data = self._serialisable.copy()
-        data.pop('locations')
-        data['spans'] = spans
-        data['type'] = get_object_provenance(self)
+        data.pop("locations")
+        data["spans"] = spans
+        data["type"] = get_object_provenance(self)
         return data
+
 
 class SpansOnly(ConstrainedList):
     """List that converts elements to Spans on addition."""
+
     mask = FunctionWrapper(Span)
     _constraint = ClassChecker(Span)
 
@@ -761,11 +821,11 @@ class Range(SpanI):
         # need to check if we got a single Span, since they define __iter__.
         if isinstance(spans, Span):
             result.append(spans)
-        elif hasattr(spans, 'spans'):  # probably a single range object?
+        elif hasattr(spans, "spans"):  # probably a single range object?
             result.extend(spans.spans)
         else:
             for s in iterable(spans):
-                if hasattr(s, 'spans'):
+                if hasattr(s, "spans"):
                     result.extend(s.spans)
                 else:
                     result.append(s)
@@ -773,7 +833,7 @@ class Range(SpanI):
 
     def __str__(self):
         """Returns string representation of self."""
-        return '(%s)' % ','.join(map(str, self.spans))
+        return "(%s)" % ",".join(map(str, self.spans))
 
     def __len__(self):
         """Returns sum of span lengths.
@@ -785,34 +845,32 @@ class Range(SpanI):
 
     def __lt__(self, other):
         """Compares spans of self with indices of other."""
-        if hasattr(other, 'spans'):
+        if hasattr(other, "spans"):
             return self.spans < other.spans
-        elif len(self.spans) == 1 and hasattr(other, 'start') and \
-                hasattr(other, 'end'):
-            return self.spans[0].start < other.start or \
-                self.spans[0].end < other.end
+        elif len(self.spans) == 1 and hasattr(other, "start") and hasattr(other, "end"):
+            return self.spans[0].start < other.start or self.spans[0].end < other.end
         else:
             return object < other
 
     def __eq__(self, other):
         """Compares spans of self with indices of other."""
-        if hasattr(other, 'spans'):
+        if hasattr(other, "spans"):
             return self.spans == other.spans
-        elif len(self.spans) == 1 and hasattr(other, 'start') and \
-                hasattr(other, 'end'):
-            return self.spans[0].start == other.start and \
-                self.spans[0].end == other.end
+        elif len(self.spans) == 1 and hasattr(other, "start") and hasattr(other, "end"):
+            return self.spans[0].start == other.start and self.spans[0].end == other.end
         else:
             return object == other
 
     def _get_start(self):
         """Finds earliest start of items in self.spans."""
         return min([i.start for i in self.spans])
+
     start = property(_get_start)
 
     def _get_end(self):
         """Finds latest end of items in self.spans."""
         return max([i.end for i in self.spans])
+
     end = property(_get_end)
 
     def _get_reverse(self):
@@ -821,6 +879,7 @@ class Range(SpanI):
             if i.reverse:
                 return True
         return False
+
     reverse = property(_get_reverse)
 
     def reverses(self):
@@ -833,7 +892,7 @@ class Range(SpanI):
 
         other must either be a number or have start and end properties.
         """
-        if hasattr(other, 'spans'):
+        if hasattr(other, "spans"):
             for curr in other.spans:
                 found = False
                 for i in self.spans:
@@ -851,7 +910,7 @@ class Range(SpanI):
 
     def overlaps(self, other):
         """Returns True if any positions in self are also in other."""
-        if hasattr(other, 'spans'):
+        if hasattr(other, "spans"):
             for i in self.spans:
                 for j in other.spans:
                     if i.overlaps(j):
@@ -864,7 +923,7 @@ class Range(SpanI):
 
     def overlaps_extent(self, other):
         """Returns True if any positions in self's extent also in other's."""
-        if hasattr(other, 'extent'):
+        if hasattr(other, "extent"):
             return self.extent.overlaps(other.extent)
         else:
             return self.extent.overlaps(other)
@@ -880,6 +939,7 @@ class Range(SpanI):
     def _get_extent(self):
         """Returns Span object representing the extent of self."""
         return Span(self.start, self.end)
+
     extent = property(_get_extent)
 
     def simplify(self):
@@ -901,8 +961,11 @@ class Range(SpanI):
 
             found_overlap = False
             for other in direction:
-                if span.overlaps(other) or (span.start == other.end) or \
-                        (other.start == span.end):  # handle adjacent spans also
+                if (
+                    span.overlaps(other)
+                    or (span.start == other.end)
+                    or (other.start == span.end)
+                ):  # handle adjacent spans also
                     other.start = min(span.start, other.start)
                     other.end = max(span.end, other.end)
                     found_overlap = True
@@ -940,7 +1003,7 @@ class Point(Span):
     end = start  # start and end are synonyms for the same property
 
 
-def RangeFromString(string, delimiter=','):
+def RangeFromString(string, delimiter=","):
     """Returns Range object from string of the form 1-5,11,20,30-50.
 
     Ignores whitespace; expects values to be comma-delimited and positive.
@@ -950,8 +1013,8 @@ def RangeFromString(string, delimiter=','):
     for p in pairs:
         if not p:  # adjacent delimiters?
             continue
-        if '-' in p:  # treat as pair
-            first, second = p.split('-')
+        if "-" in p:  # treat as pair
+            first, second = p.split("-")
             result.spans.append(Span(int(first), int(second)))
         else:
             result.spans.append(Span(int(p)))

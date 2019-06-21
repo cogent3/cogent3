@@ -1,12 +1,23 @@
-from numpy import identity, zeros, inner, allclose, array, asarray, maximum, exp, dot, diag
-from numpy.linalg import inv, eig, LinAlgError
+from numpy import (
+    allclose,
+    array,
+    asarray,
+    diag,
+    dot,
+    exp,
+    identity,
+    inner,
+    maximum,
+    zeros,
+)
+from numpy.linalg import LinAlgError, eig, inv
 
 import cogent3.maths.matrix_exponentiation as cme
 
+
 __author__ = "Ben Kaehler"
 __copyright__ = "Copyright 2007-2014, The Cogent Project"
-__credits__ = ['Ben Kaehler', 'Von Bing Yap', 'Gavin Huttley',
-               'Ananias Iliadis']
+__credits__ = ["Ben Kaehler", "Von Bing Yap", "Gavin Huttley", "Ananias Iliadis"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Ben Kaehler"
@@ -15,7 +26,6 @@ __status__ = "Production"
 
 
 class _Exponentiator(object):
-
     def __init__(self, Q):
         self.Q = Q
 
@@ -54,7 +64,7 @@ class VanLoanIntegratingExponentiator(_Exponentiator):
         self.expm = exponentiator(C)
 
     def __call__(self, t=1.0):
-        return self.expm(t)[:len(self.Q), len(self.Q):]
+        return self.expm(t)[: len(self.Q), len(self.Q) :]
 
 
 class VonBingIntegratingExponentiator(_Exponentiator):
@@ -75,13 +85,15 @@ class VonBingIntegratingExponentiator(_Exponentiator):
             raise ArithmeticError("eigendecomposition failed")
 
     def __call__(self, t=1.0):
-        int_roots = array([t if abs(x.real) < 1e-6 else
-                           (exp(x * t) - 1) / x for x in self.roots])
+        int_roots = array(
+            [t if abs(x.real) < 1e-6 else (exp(x * t) - 1) / x for x in self.roots]
+        )
         result = inner(self.evT * int_roots, self.evI)
         if result.dtype.kind == "c":
             result = asarray(result.real)
         result = maximum(result, 0.0)
         return result
+
 
 def expected_number_subs(p0, Q, t):
     """returns the expected number of substitutions

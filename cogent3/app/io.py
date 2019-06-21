@@ -1,22 +1,37 @@
+import json
 import os
 import zipfile
-import json
+
 import numpy
 
 from cogent3 import LoadSeqs
-from cogent3.core.moltype import get_moltype
-from cogent3.parse.sequence import PARSERS
-from cogent3.format.alignment import FORMATTERS
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
+from cogent3.core.moltype import get_moltype
+from cogent3.format.alignment import FORMATTERS
+from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
-from .data_store import (SingleReadDataStore, SKIP, RAISE,
-                         OVERWRITE, IGNORE, ReadOnlyZippedDataStore,
-                         ReadOnlyDirectoryDataStore,
-                         WritableDirectoryDataStore, WritableZippedDataStore, )
-from .composable import (ComposableSeq, ComposableAligned, Composable,
-                         _checkpointable, ComposableTabular,
-                         NotCompletedResult, )
+
+from .composable import (
+    Composable,
+    ComposableAligned,
+    ComposableSeq,
+    ComposableTabular,
+    NotCompletedResult,
+    _checkpointable,
+)
+from .data_store import (
+    IGNORE,
+    OVERWRITE,
+    RAISE,
+    SKIP,
+    ReadOnlyDirectoryDataStore,
+    ReadOnlyZippedDataStore,
+    SingleReadDataStore,
+    WritableDirectoryDataStore,
+    WritableZippedDataStore,
+)
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -28,7 +43,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-def findall(base_path, suffix='fa', limit=None, verbose=False):
+def findall(base_path, suffix="fa", limit=None, verbose=False):
     """returns glob match to suffix, path is relative to base_path
 
     Parameters
@@ -45,8 +60,7 @@ def findall(base_path, suffix='fa', limit=None, verbose=False):
 
     zipped = zipfile.is_zipfile(base_path)
     klass = ReadOnlyZippedDataStore if zipped else ReadOnlyDirectoryDataStore
-    data_store = klass(base_path, suffix=suffix,
-                       limit=limit, verbose=verbose)
+    data_store = klass(base_path, suffix=suffix, limit=limit, verbose=verbose)
     return data_store.members
 
 
@@ -68,12 +82,11 @@ def get_data_store(base_path, suffix, limit=None, verbose=False):
     if not os.path.exists(base_path):
         raise ValueError(f"'{base_path}' does not exist")
     if not type(suffix) == str:
-        raise ValueError(f'{suffix} is not a string')
+        raise ValueError(f"{suffix} is not a string")
 
     zipped = zipfile.is_zipfile(base_path)
     klass = ReadOnlyZippedDataStore if zipped else ReadOnlyDirectoryDataStore
-    data_store = klass(base_path, suffix=suffix,
-                       limit=limit, verbose=verbose)
+    data_store = klass(base_path, suffix=suffix, limit=limit, verbose=verbose)
     return data_store
 
 
@@ -99,12 +112,11 @@ class _seq_loader:
             seqs = self.klass(data=data, moltype=self.moltype)
             seqs.info.source = abs_path
         elif not isinstance(path, SequenceCollection):
-            seqs = LoadSeqs(data=path, moltype=self.moltype,
-                            aligned=self.aligned)
+            seqs = LoadSeqs(data=path, moltype=self.moltype, aligned=self.aligned)
         else:
             seqs = path  # it is a SequenceCollection
 
-        if self._output_type == {'sequences'}:
+        if self._output_type == {"sequences"}:
             seqs = seqs.degap()
             seqs.info.source = abs_path
 
@@ -113,9 +125,10 @@ class _seq_loader:
 
 class load_aligned(_seq_loader, ComposableAligned):
     """loads sequences"""
+
     klass = ArrayAlignment
 
-    def __init__(self, moltype=None, format='fasta'):
+    def __init__(self, moltype=None, format="fasta"):
         """
         Parameters
         ----------
@@ -124,8 +137,7 @@ class load_aligned(_seq_loader, ComposableAligned):
         format : str
             sequence file format
         """
-        super(ComposableAligned, self).__init__(input_type=None,
-                                                output_type='aligned')
+        super(ComposableAligned, self).__init__(input_type=None, output_type="aligned")
         _seq_loader.__init__(self)
         self._formatted_params()
         if moltype:
@@ -136,9 +148,10 @@ class load_aligned(_seq_loader, ComposableAligned):
 
 class load_unaligned(ComposableSeq, _seq_loader):
     """loads sequences"""
+
     klass = SequenceCollection
 
-    def __init__(self, moltype=None, format='fasta'):
+    def __init__(self, moltype=None, format="fasta"):
         """
         Parameters
         ----------
@@ -147,8 +160,7 @@ class load_unaligned(ComposableSeq, _seq_loader):
         format : str
             sequence file format
         """
-        super(ComposableSeq, self).__init__(input_type=None,
-                                            output_type='sequences')
+        super(ComposableSeq, self).__init__(input_type=None, output_type="sequences")
         _seq_loader.__init__(self)
         self._formatted_params()
         if moltype:
@@ -158,8 +170,9 @@ class load_unaligned(ComposableSeq, _seq_loader):
 
 
 class load_tabular(ComposableTabular):
-    def __init__(self, with_title=False, with_header=True, limit=None,
-                 sep='\t', strict=True):
+    def __init__(
+        self, with_title=False, with_header=True, limit=None, sep="\t", strict=True
+    ):
         """
 
         Parameters
@@ -175,8 +188,7 @@ class load_tabular(ComposableTabular):
         strict
             all rows MUST have the same number of records
         """
-        super(ComposableTabular, self).__init__(input_type=None,
-                                                output_type='tabular')
+        super(ComposableTabular, self).__init__(input_type=None, output_type="tabular")
         self._formatted_params()
         self._sep = sep
         self._with_title = with_title
@@ -211,14 +223,13 @@ class load_tabular(ComposableTabular):
             if num_records is None:
                 num_records = len(line)
             if strict and len(line) != num_records:
-                msg = (f'Inconsistent number of fields: {len(line)} '
-                       '!= {num_records}')
+                msg = f"Inconsistent number of fields: {len(line)} " "!= {num_records}"
                 raise AssertionError(msg)
             rows.append(line)
         data.close()
         records = []
         for record in zip(*rows):
-            record = numpy.array(record, dtype='O')
+            record = numpy.array(record, dtype="O")
             try:
                 record = record.astype(int)
             except ValueError:
@@ -227,7 +238,7 @@ class load_tabular(ComposableTabular):
                 except ValueError:
                     pass
             records.append(record)
-        records = numpy.array(records, dtype='O').T
+        records = numpy.array(records, dtype="O").T
         table = Table(header, rows=records, title=title)
         return table
 
@@ -239,15 +250,21 @@ class load_tabular(ComposableTabular):
         try:
             result = self._parse(path)
         except Exception as err:
-            result = NotCompletedResult('ERROR', self, err.args[0],
-                                        source=str(path))
+            result = NotCompletedResult("ERROR", self, err.args[0], source=str(path))
 
         return result
 
 
 class write_seqs(_checkpointable):
-    def __init__(self, data_path, format='fasta', suffix='fa',
-                 name_callback=None, create=False, if_exists=SKIP):
+    def __init__(
+        self,
+        data_path,
+        format="fasta",
+        suffix="fa",
+        name_callback=None,
+        create=False,
+        if_exists=SKIP,
+    ):
         """
         Parameters
         ----------
@@ -267,22 +284,21 @@ class write_seqs(_checkpointable):
             behaviour if output exists. Either 'skip', 'raise' (raises an
             exception), 'overwrite'
         """
-        super(write_seqs, self).__init__(input_type=('sequences',
-                                                     'aligned'),
-                                         output_type=('sequences',
-                                                      'aligned',
-                                                      'identifier'),
-                                         data_path=data_path,
-                                         name_callback=name_callback,
-                                         create=create, if_exists=if_exists,
-                                         suffix=suffix)
+        super(write_seqs, self).__init__(
+            input_type=("sequences", "aligned"),
+            output_type=("sequences", "aligned", "identifier"),
+            data_path=data_path,
+            name_callback=name_callback,
+            create=create,
+            if_exists=if_exists,
+            suffix=suffix,
+        )
         self._formatted_params()
         self._format = format
         self._formatter = FORMATTERS[format]
 
     def _set_checkpoint_loader(self):
-        loader = {'sequences': load_unaligned}.get(self._out._type,
-                                                   load_aligned)
+        loader = {"sequences": load_unaligned}.get(self._out._type, load_aligned)
         loader = loader(format=self._format)
         self._load_checkpoint = loader
 
@@ -293,11 +309,12 @@ class write_seqs(_checkpointable):
 
 
 class load_json(Composable):
-    _type = 'output'
+    _type = "output"
 
     def __init__(self):
-        super(load_json, self).__init__(input_type=None,
-                                        output_type=('result', 'serialisable'))
+        super(load_json, self).__init__(
+            input_type=None, output_type=("result", "serialisable")
+        )
         self.func = self.read
 
     def read(self, path):
@@ -311,22 +328,26 @@ class load_json(Composable):
 
 
 class write_json(_checkpointable):
-    _type = 'output'
+    _type = "output"
 
-    def __init__(self, data_path, name_callback=None, create=False,
-                 if_exists=SKIP, suffix='json'):
-        super(write_json, self).__init__(input_type='serialisable',
-                                         output_type=('identifier',
-                                                      'serialisable'),
-                                         data_path=data_path,
-                                         name_callback=name_callback,
-                                         create=create, if_exists=if_exists,
-                                         suffix=suffix)
+    def __init__(
+        self, data_path, name_callback=None, create=False, if_exists=SKIP, suffix="json"
+    ):
+        super(write_json, self).__init__(
+            input_type="serialisable",
+            output_type=("identifier", "serialisable"),
+            data_path=data_path,
+            name_callback=name_callback,
+            create=create,
+            if_exists=if_exists,
+            suffix=suffix,
+        )
         self.func = self.write
 
     def _set_checkpoint_loader(self):
-        self._load_checkpoint = load_json(self.data_store.source,
-                                          suffix=self.data_store.suffix)
+        self._load_checkpoint = load_json(
+            self.data_store.source, suffix=self.data_store.suffix
+        )
 
     def write(self, data):
         identifier = self._make_output_identifier(data)

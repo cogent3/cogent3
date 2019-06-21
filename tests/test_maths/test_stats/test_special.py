@@ -1,13 +1,25 @@
 #!/usr/bin/env python
 """Unit tests for special functions used in statistics.
 """
-from cogent3.util.unit_test import TestCase, main
-from cogent3.maths.stats.special import permutations, permutations_exact, \
-    ln_permutations, combinations, combinations_exact, \
-    ln_combinations, ln_binomial, log_one_minus, one_minus_exp, igami,\
-    ndtri, incbi, log1p
-
 import math
+
+from cogent3.maths.stats.special import (
+    combinations,
+    combinations_exact,
+    igami,
+    incbi,
+    ln_binomial,
+    ln_combinations,
+    ln_permutations,
+    log1p,
+    log_one_minus,
+    ndtri,
+    one_minus_exp,
+    permutations,
+    permutations_exact,
+)
+from cogent3.util.unit_test import TestCase, main
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
@@ -31,7 +43,7 @@ class SpecialTests(TestCase):
         self.assertEqual(permutations(4, 2), 12)
         self.assertEqual(permutations(4, 3), 24)
         self.assertEqual(permutations(4, 4), 24)
-        self.assertFloatEqual(permutations(300, 100), 3.8807387193009318e+239)
+        self.assertFloatEqual(permutations(300, 100), 3.8807387193009318e239)
 
     def test_permutations_errors(self):
         """permutations should raise errors on invalid input"""
@@ -48,7 +60,7 @@ class SpecialTests(TestCase):
         self.assertFloatEqual(permutations(4.0, 2.0), 12)
         self.assertFloatEqual(permutations(4.0, 3.0), 24)
         self.assertFloatEqual(permutations(4, 4.0), 24)
-        self.assertFloatEqual(permutations(300, 100), 3.8807387193009318e+239)
+        self.assertFloatEqual(permutations(300, 100), 3.8807387193009318e239)
 
     def test_permutations_range(self):
         """permutations should increase gradually with increasing k"""
@@ -74,8 +86,7 @@ class SpecialTests(TestCase):
         self.assertFloatEqual(permutations_exact(4, 2), 12)
         self.assertFloatEqual(permutations_exact(4, 3), 24)
         self.assertFloatEqual(permutations_exact(4, 4), 24)
-        self.assertFloatEqual(permutations_exact(300, 100),
-                              3.8807387193009318e239)
+        self.assertFloatEqual(permutations_exact(300, 100), 3.8807387193009318e239)
 
     def test_ln_permutations(self):
         """ln_permutations should return expected results"""
@@ -86,8 +97,9 @@ class SpecialTests(TestCase):
         self.assertFloatEqual(ln_permutations(4.0, 2), math.log(12))
         self.assertFloatEqual(ln_permutations(4, 3.0), math.log(24))
         self.assertFloatEqual(ln_permutations(4, 4), math.log(24))
-        self.assertFloatEqual(ln_permutations(300.0, 100),
-                              math.log(3.8807387193009318e239))
+        self.assertFloatEqual(
+            ln_permutations(300.0, 100), math.log(3.8807387193009318e239)
+        )
 
     def test_combinations(self):
         """combinations should return expected results when int as input"""
@@ -99,7 +111,7 @@ class SpecialTests(TestCase):
         self.assertEqual(combinations(4, 3), 4)
         self.assertEqual(combinations(4, 4), 1)
         self.assertEqual(combinations(20, 4), 19 * 17 * 15)
-        self.assertFloatEqual(combinations(300, 100), 4.1582514632578812e+81)
+        self.assertFloatEqual(combinations(300, 100), 4.1582514632578812e81)
 
     def test_combinations_errors(self):
         """combinations should raise errors on invalid input"""
@@ -144,8 +156,7 @@ class SpecialTests(TestCase):
         self.assertEqual(combinations_exact(4, 3), 4)
         self.assertEqual(combinations_exact(4, 4), 1)
         self.assertEqual(combinations_exact(20, 4), 19 * 17 * 15)
-        self.assertFloatEqual(combinations_exact(
-            300, 100), 4.1582514632578812e81)
+        self.assertFloatEqual(combinations_exact(300, 100), 4.1582514632578812e81)
 
     def test_ln_combinations(self):
         """ln_combinations should return expected results"""
@@ -157,8 +168,9 @@ class SpecialTests(TestCase):
         self.assertFloatEqual(ln_combinations(4, 3), math.log(4))
         self.assertFloatEqual(ln_combinations(4, 4.0), math.log(1))
         self.assertFloatEqual(ln_combinations(20, 4), math.log(19 * 17 * 15))
-        self.assertFloatEqual(ln_combinations(300, 100),
-                              math.log(4.1582514632578812e+81))
+        self.assertFloatEqual(
+            ln_combinations(300, 100), math.log(4.1582514632578812e81)
+        )
 
     def test_ln_binomial_integer(self):
         """ln_binomial should match R results for integer values"""
@@ -185,14 +197,14 @@ class SpecialTests(TestCase):
             (2.7, 1050, 0.06): (math.log(1.365299e-25), math.log(3.044327e-24)),
             (2, 100.5, 0.6): (math.log(7.303533e-37), math.log(1.789727e-36)),
             (0.2, 60, 0.5): (math.log(8.673617e-19), math.log(5.20417e-17)),
-            (.5, 5, .3): (math.log(0.16807), math.log(0.36015)),
-            (10, 100.5, .5): (math.log(7.578011e-18), math.log(1.365543e-17)),
+            (0.5, 5, 0.3): (math.log(0.16807), math.log(0.36015)),
+            (10, 100.5, 0.5): (math.log(7.578011e-18), math.log(1.365543e-17)),
         }
 
         for (key, value) in list(expected.items()):
             min_val, max_val = value
             assert min_val < ln_binomial(*key) < max_val
-            #self.assertFloatEqualRel(binomial_exact(*key), value, 1e-4)
+            # self.assertFloatEqualRel(binomial_exact(*key), value, 1e-4)
 
     def test_ln_binomial_range(self):
         """ln_binomial should increase in a monotonically increasing region.
@@ -204,7 +216,7 @@ class SpecialTests(TestCase):
         upper_lim = -1.021235 + 1e-4
         previous_value = -1.784
         while start <= end:
-            obs = ln_binomial(start, 5, .3)
+            obs = ln_binomial(start, 5, 0.3)
             assert lower_lim <= obs <= upper_lim
             assert obs > previous_value
             previous_value = obs
@@ -228,8 +240,20 @@ class SpecialTests(TestCase):
 
     def test_log1p(self):
         """log1p should give same results as cephes"""
-        p_s = [1e-10, 1e-5, 0.1, 0.8, 0.9, 0.95, 0.999, 0.9999999, 1,
-               1.000000001, 1.01, 2]
+        p_s = [
+            1e-10,
+            1e-5,
+            0.1,
+            0.8,
+            0.9,
+            0.95,
+            0.999,
+            0.9999999,
+            1,
+            1.000000001,
+            1.01,
+            2,
+        ]
         exp = [
             9.9999999995e-11,
             9.99995000033e-06,
@@ -242,7 +266,8 @@ class SpecialTests(TestCase):
             0.69314718056,
             0.69314718106,
             0.698134722071,
-            1.09861228867, ]
+            1.09861228867,
+        ]
         for p, e in zip(p_s, exp):
             self.assertFloatEqual(log1p(p), e)
 
@@ -251,143 +276,145 @@ class SpecialTests(TestCase):
         a_vals = [1e-10, 1e-5, 0.5, 1, 10, 200]
         y_vals = list(range(0, 10, 2))
         obs = [igami(a, y / 10.0) for a in a_vals for y in y_vals]
-        exp = [1.79769313486e+308,
-             0.0,
-             0.0,
-             0.0,
-             0.0,
-             1.79769313486e+308,
-             0.0,
-             0.0,
-             0.0,
-             0.0,
-             1.79769313486e+308,
-             0.821187207575,
-             0.3541631504,
-             0.137497948864,
-             0.0320923773337,
-             1.79769313486e+308,
-             1.60943791243,
-             0.916290731874,
-             0.510825623766,
-             0.223143551314,
-             1.79769313486e+308,
-             12.5187528198,
-             10.4756841889,
-             8.9044147366,
-             7.28921960854,
-             1.79769313486e+308,
-             211.794753362,
-             203.267574402,
-             196.108740945,
-             188.010915412,
-             ]
+        exp = [
+            1.79769313486e308,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.79769313486e308,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.79769313486e308,
+            0.821187207575,
+            0.3541631504,
+            0.137497948864,
+            0.0320923773337,
+            1.79769313486e308,
+            1.60943791243,
+            0.916290731874,
+            0.510825623766,
+            0.223143551314,
+            1.79769313486e308,
+            12.5187528198,
+            10.4756841889,
+            8.9044147366,
+            7.28921960854,
+            1.79769313486e308,
+            211.794753362,
+            203.267574402,
+            196.108740945,
+            188.010915412,
+        ]
         for o, e in zip(obs, exp):
             self.assertFloatEqual(o, e)
 
     def test_ndtri(self):
         """ndtri should give same result as implementation in cephes"""
-        exp = [-1.79769313486e+308,
-             -2.32634787404,
-             -2.05374891063,
-             -1.88079360815,
-             -1.75068607125,
-             -1.64485362695,
-             -1.5547735946,
-             -1.47579102818,
-             -1.40507156031,
-             -1.34075503369,
-             -1.28155156554,
-             -1.22652812004,
-             -1.17498679207,
-             -1.12639112904,
-             -1.08031934081,
-             -1.03643338949,
-             -0.99445788321,
-             -0.954165253146,
-             -0.915365087843,
-             -0.877896295051,
-             -0.841621233573,
-             -0.806421247018,
-             -0.772193214189,
-             -0.738846849185,
-             -0.70630256284,
-             -0.674489750196,
-             -0.643345405393,
-             -0.612812991017,
-             -0.582841507271,
-             -0.553384719556,
-             -0.524400512708,
-             -0.495850347347,
-             -0.467698799115,
-             -0.439913165673,
-             -0.412463129441,
-             -0.385320466408,
-             -0.358458793251,
-             -0.331853346437,
-             -0.305480788099,
-             -0.279319034447,
-             -0.253347103136,
-             -0.227544976641,
-             -0.201893479142,
-             -0.176374164781,
-             -0.150969215497,
-             -0.125661346855,
-             -0.100433720511,
-             -0.0752698620998,
-             -0.0501535834647,
-             -0.0250689082587,
-             0.0,
-             0.0250689082587,
-             0.0501535834647,
-             0.0752698620998,
-             0.100433720511,
-             0.125661346855,
-             0.150969215497,
-             0.176374164781,
-             0.201893479142,
-             0.227544976641,
-             0.253347103136,
-             0.279319034447,
-             0.305480788099,
-             0.331853346437,
-             0.358458793251,
-             0.385320466408,
-             0.412463129441,
-             0.439913165673,
-             0.467698799115,
-             0.495850347347,
-             0.524400512708,
-             0.553384719556,
-             0.582841507271,
-             0.612812991017,
-             0.643345405393,
-             0.674489750196,
-             0.70630256284,
-             0.738846849185,
-             0.772193214189,
-             0.806421247018,
-             0.841621233573,
-             0.877896295051,
-             0.915365087843,
-             0.954165253146,
-             0.99445788321,
-             1.03643338949,
-             1.08031934081,
-             1.12639112904,
-             1.17498679207,
-             1.22652812004,
-             1.28155156554,
-             1.34075503369,
-             1.40507156031,
-             1.47579102818,
-             1.5547735946,
-             1.64485362695,
-             1.75068607125,
-             1.88079360815,
-             2.05374891063,
-             2.32634787404,
-             ]
+        exp = [
+            -1.79769313486e308,
+            -2.32634787404,
+            -2.05374891063,
+            -1.88079360815,
+            -1.75068607125,
+            -1.64485362695,
+            -1.5547735946,
+            -1.47579102818,
+            -1.40507156031,
+            -1.34075503369,
+            -1.28155156554,
+            -1.22652812004,
+            -1.17498679207,
+            -1.12639112904,
+            -1.08031934081,
+            -1.03643338949,
+            -0.99445788321,
+            -0.954165253146,
+            -0.915365087843,
+            -0.877896295051,
+            -0.841621233573,
+            -0.806421247018,
+            -0.772193214189,
+            -0.738846849185,
+            -0.70630256284,
+            -0.674489750196,
+            -0.643345405393,
+            -0.612812991017,
+            -0.582841507271,
+            -0.553384719556,
+            -0.524400512708,
+            -0.495850347347,
+            -0.467698799115,
+            -0.439913165673,
+            -0.412463129441,
+            -0.385320466408,
+            -0.358458793251,
+            -0.331853346437,
+            -0.305480788099,
+            -0.279319034447,
+            -0.253347103136,
+            -0.227544976641,
+            -0.201893479142,
+            -0.176374164781,
+            -0.150969215497,
+            -0.125661346855,
+            -0.100433720511,
+            -0.0752698620998,
+            -0.0501535834647,
+            -0.0250689082587,
+            0.0,
+            0.0250689082587,
+            0.0501535834647,
+            0.0752698620998,
+            0.100433720511,
+            0.125661346855,
+            0.150969215497,
+            0.176374164781,
+            0.201893479142,
+            0.227544976641,
+            0.253347103136,
+            0.279319034447,
+            0.305480788099,
+            0.331853346437,
+            0.358458793251,
+            0.385320466408,
+            0.412463129441,
+            0.439913165673,
+            0.467698799115,
+            0.495850347347,
+            0.524400512708,
+            0.553384719556,
+            0.582841507271,
+            0.612812991017,
+            0.643345405393,
+            0.674489750196,
+            0.70630256284,
+            0.738846849185,
+            0.772193214189,
+            0.806421247018,
+            0.841621233573,
+            0.877896295051,
+            0.915365087843,
+            0.954165253146,
+            0.99445788321,
+            1.03643338949,
+            1.08031934081,
+            1.12639112904,
+            1.17498679207,
+            1.22652812004,
+            1.28155156554,
+            1.34075503369,
+            1.40507156031,
+            1.47579102818,
+            1.5547735946,
+            1.64485362695,
+            1.75068607125,
+            1.88079360815,
+            2.05374891063,
+            2.32634787404,
+        ]
         obs = [ndtri(i / 100.0) for i in range(100)]
         self.assertFloatEqual(obs, exp)
 
@@ -553,6 +580,7 @@ class SpecialTests(TestCase):
         # specific cases that failed elsewhere
         self.assertFloatEqual(incbi(999, 2, 1e-10), 0.97399698104554944)
 
+
 # execute tests if called from command line
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

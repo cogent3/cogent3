@@ -1,16 +1,18 @@
 #!/usr/bin/env python
-from cogent3.parse.record import FieldWrapper
-from cogent3.parse.record_finder import DelimitedRecordFinder, \
-    LabeledRecordFinder
-from cogent3.core.genetic_code import GeneticCodes
-from cogent3.core.moltype import PROTEIN, DNA, ASCII
 from cogent3.core.annotation import Feature
+from cogent3.core.genetic_code import GeneticCodes
 from cogent3.core.info import Info
+from cogent3.core.moltype import ASCII, DNA, PROTEIN
+from cogent3.parse.record import FieldWrapper
+from cogent3.parse.record_finder import (
+    DelimitedRecordFinder,
+    LabeledRecordFinder,
+)
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield",
-               "Gavin Huttley"]
+__credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield", "Gavin Huttley"]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Rob Knight"
@@ -21,20 +23,19 @@ maketrans = str.maketrans
 strip = str.strip
 rstrip = str.rstrip
 
-all_chars = maketrans('', '')
-dna_lc = 'utacgrywsmkbdhvn'
-dna_lc_cmp = 'aatgcyrwskmvhdbn'
+all_chars = maketrans("", "")
+dna_lc = "utacgrywsmkbdhvn"
+dna_lc_cmp = "aatgcyrwskmvhdbn"
 dna_trans = maketrans(dna_lc + dna_lc.upper(), dna_lc_cmp + dna_lc_cmp.upper())
-rna_lc = 'utacgrywsmkbdhvn'
-rna_lc_cmp = 'aaugcyrwskmvhdbn'
+rna_lc = "utacgrywsmkbdhvn"
+rna_lc_cmp = "aaugcyrwskmvhdbn"
 rna_trans = maketrans(rna_lc + rna_lc.upper(), rna_lc_cmp + rna_lc_cmp.upper())
 
-locus_fields = [None, 'locus', 'length', None,
-                'mol_type', 'topology', 'db', 'date']
+locus_fields = [None, "locus", "length", None, "mol_type", "topology", "db", "date"]
 _locus_parser = FieldWrapper(locus_fields)
 
 # need to turn off line stripping, because whitespace is significant
-GbFinder = DelimitedRecordFinder('//', constructor=rstrip)
+GbFinder = DelimitedRecordFinder("//", constructor=rstrip)
 
 
 class PartialRecordError(Exception):
@@ -50,7 +51,7 @@ def parse_locus(line):
     """
     result = _locus_parser(line)
     try:
-        result['length'] = int(result['length'])
+        result["length"] = int(result["length"])
     except KeyError as e:
         raise PartialRecordError(e)
 
@@ -89,14 +90,14 @@ def indent_splitter(lines):
         yield curr
 
 
-def parse_sequence(lines, constructor=''.join):
+def parse_sequence(lines, constructor="".join):
     """Parses a GenBank sequence block. Doesn't care about ORIGIN line."""
     result = []
     exclude = b"0123456789 \t\n\r/"
     strip_table = dict([(c, None) for c in exclude])
 
     for i in lines:
-        if i.startswith('ORIGIN'):
+        if i.startswith("ORIGIN"):
             continue
 
         result.append(i.translate(strip_table))
@@ -135,26 +136,27 @@ def parse_organism(lines):
     # get 'species'
     species = data[0].strip()
     # get rest of taxonomy
-    taxonomy = ' '.join(data[1:])
+    taxonomy = " ".join(data[1:])
     # normalize whitespace, including deleting newlines
-    taxonomy = ' '.join(taxonomy.split())
+    taxonomy = " ".join(taxonomy.split())
     # separate by semicolons
     # get rid of leading/trailing spaces
-    taxa = list(map(strip, taxonomy.split(';')))
+    taxa = list(map(strip, taxonomy.split(";")))
     # delete trailing period if present
     last = taxa[-1]
-    if last.endswith('.'):
+    if last.endswith("."):
         taxa[-1] = last[:-1]
     return species, taxa
 
 
 def is_feature_component_start(line):
     """Checks if a line starts with '/', ignoring whitespace."""
-    return line.lstrip().startswith('/')
+    return line.lstrip().startswith("/")
+
 
 feature_component_iterator = LabeledRecordFinder(is_feature_component_start)
 
-_join_with_empty = dict.fromkeys(['translation'])
+_join_with_empty = dict.fromkeys(["translation"])
 _leave_as_lines = {}
 
 
@@ -170,30 +172,29 @@ def parse_feature(lines):
     """
     result = {}
     type_, data = block_consolidator(lines)
-    result['type'] = type_
+    result["type"] = type_
     location = []
     found_feature = False
     for curr_line_idx, line in enumerate(data):
-        if line.lstrip().startswith('/'):
+        if line.lstrip().startswith("/"):
             found_feature = True
             break
         else:
             location.append(line)
-    result['raw_location'] = location
+    result["raw_location"] = location
     try:
-        result['location'] = \
-            parse_location_line(location_line_tokenizer(location))
+        result["location"] = parse_location_line(location_line_tokenizer(location))
     except (TypeError, ValueError):
-        result['location'] = None
+        result["location"] = None
     if not found_feature:
         return result
     fci = feature_component_iterator
     for feature_component in fci(data[curr_line_idx:]):
         first = feature_component[0].lstrip()[1:]  # remove leading space, '/'
         try:
-            label, first_line = first.split('=', 1)
+            label, first_line = first.split("=", 1)
         except ValueError:  # sometimes not delimited by =
-            label, first_line = first, ''
+            label, first_line = first, ""
         # chop off leading quote if appropriate
         if first_line.startswith('"'):
             first_line = first_line[1:]
@@ -203,14 +204,14 @@ def parse_feature(lines):
         if last_line.endswith('"'):
             remainder[-1] = last_line[:-1]
         if label in _join_with_empty:
-            curr_data = ''.join(map(strip, remainder))
+            curr_data = "".join(map(strip, remainder))
         elif label in _leave_as_lines:
             curr_data = remainder
         else:
-            curr_data = ' '.join(map(strip, remainder))
-        if label.lower() == 'type':
+            curr_data = " ".join(map(strip, remainder))
+        if label.lower() == "type":
             # some source features have /type=...
-            label = 'type_field'
+            label = "type_field"
         if label not in result:
             result[label.lower()] = []
 
@@ -221,32 +222,32 @@ def parse_feature(lines):
 def location_line_tokenizer(lines):
     """Tokenizes location lines into spans, joins and complements."""
     curr = []
-    text = ' '.join(map(strip, lines))
+    text = " ".join(map(strip, lines))
     for char in text:
-        if char == '(':
-            yield ''.join(curr).strip() + char
+        if char == "(":
+            yield "".join(curr).strip() + char
             curr = []
-        elif char == ')':
+        elif char == ")":
             if curr:
-                yield ''.join(curr).strip()
+                yield "".join(curr).strip()
             yield char
             curr = []
-        elif char == ',':
+        elif char == ",":
             if curr:
-                yield ''.join(curr).strip()
-            yield ','
+                yield "".join(curr).strip()
+            yield ","
             curr = []
         else:
             curr.append(char)
     if curr:
-        yield ''.join(curr).strip()
+        yield "".join(curr).strip()
 
 
 def parse_simple_location_segment(segment):
     """Parses location segment of form a..b or a, incl. '<' and '>'."""
     first_ambiguity, second_ambiguity = None, None
-    if '..' in segment:
-        first, second = segment.split('..')
+    if ".." in segment:
+        first, second = segment.split("..")
         if not first[0].isdigit():
             first_ambiguity = first[0]
             first = int(first[1:])
@@ -258,8 +259,12 @@ def parse_simple_location_segment(segment):
         else:
             second = int(second)
 
-        return Location([Location(first, Ambiguity=first_ambiguity),
-                         Location(second, Ambiguity=second_ambiguity)])
+        return Location(
+            [
+                Location(first, Ambiguity=first_ambiguity),
+                Location(second, Ambiguity=second_ambiguity),
+            ]
+        )
     else:
         if not segment[0].isdigit():
             first_ambiguity = segment[0]
@@ -272,16 +277,16 @@ def parse_location_line(tokens, parser=parse_simple_location_segment):
     stack = []
     curr = stack
     for t in tokens:
-        if t .endswith('('):
+        if t.endswith("("):
             new = [curr, t]
             curr.append(new)
             curr = new
-        elif t == ',':  # ignore
+        elif t == ",":  # ignore
             continue
-        elif t == ')':
+        elif t == ")":
             parent, type_ = curr[:2]
             children = curr[2:]
-            if type_ == 'complement(':
+            if type_ == "complement(":
                 children.reverse()
                 for c in children:
                     c.Strand *= -1
@@ -314,8 +319,16 @@ class Location(object):
     WARNING: Coordinates are based on 1, not 0, as in GenBank format.
     """
 
-    def __init__(self, data, Ambiguity=None, IsBetween=False, IsBounds=False,
-                 Accession=None, Db=None, Strand=1):
+    def __init__(
+        self,
+        data,
+        Ambiguity=None,
+        IsBetween=False,
+        IsBounds=False,
+        Accession=None,
+        Db=None,
+        Strand=1,
+    ):
         """Returns new LocalLocation object."""
         try:
             data = int(data)
@@ -339,9 +352,9 @@ class Location(object):
         if self.IsBetween:  # between two bases
             try:
                 first, last = self._data
-                curr = '%s^%s' % (first, last)
+                curr = "%s^%s" % (first, last)
             except TypeError:  # only one base? must be this or the next
-                curr = '%s^%s' % (first, first + 1)
+                curr = "%s^%s" % (first, first + 1)
         else:  # not self.IsBetween
             try:
                 data = int(self._data)
@@ -355,18 +368,18 @@ class Location(object):
                 # objects
                 first, last = self._data
                 if self.IsBounds:
-                    curr = '(%s%s%s)' % (first, '.', last)
+                    curr = "(%s%s%s)" % (first, ".", last)
                 else:
-                    curr = '%s%s%s' % (first, '..', last)
+                    curr = "%s%s%s" % (first, "..", last)
         # check if we need to add on the accession and database
         if self.Accession:
-            curr = self.Accession + ':' + curr
+            curr = self.Accession + ":" + curr
             # we're only going to add the Db if we got an accession
             if self.Db:
-                curr = self.Db + '::' + curr
+                curr = self.Db + "::" + curr
         # check if it's complemented
         if self.Strand == -1:
-            curr = 'complement(%s)' % curr
+            curr = "complement(%s)" % curr
         return curr
 
     def isAmbiguous(self):
@@ -400,6 +413,7 @@ class LocationList(list):
 
     WARNING: Coordinates are based on 1, not 0, to match GenBank format.
     """
+
     BIGNUM = 1e300
 
     def first(self):
@@ -434,11 +448,11 @@ class LocationList(list):
     def __str__(self):
         """Returns (normalized) string representation of self."""
         if len(self) == 0:
-            return ''
+            return ""
         elif len(self) == 1:
             return str(self[0])
         else:
-            return 'join(' + ','.join(map(str, self)) + ')'
+            return "join(" + ",".join(map(str, self)) + ")"
 
     def extract(self, sequence, trans_table=dna_trans):
         """Extracts pieces of self from sequence."""
@@ -447,27 +461,29 @@ class LocationList(list):
             first, last = i.first(), i.last() + 1  # inclusive, not exclusive
             # translate to 0-based indices and check if it wraps around
             if first < last:
-                curr = sequence[first - 1:last - 1]
+                curr = sequence[first - 1 : last - 1]
             else:
-                curr = sequence[first - 1:] + sequence[:last - 1]
+                curr = sequence[first - 1 :] + sequence[: last - 1]
             # reverse-complement if necessary
             if i.Strand == -1:
                 curr = curr.translate(trans_table)[::-1]
             result.append(curr)
-        return ''.join(result)
+        return "".join(result)
 
 
 def parse_feature_table(lines):
     """Simple parser for feature table. Assumes starts with FEATURES line."""
     if not lines:
         return []
-    if lines[0].startswith('FEATURES'):
+    if lines[0].startswith("FEATURES"):
         lines = lines[1:]
     return [parse_feature(f) for f in indent_splitter(lines)]
 
-reference_label_marker = ' ' * 11
-reference_field_finder = LabeledRecordFinder(lambda x:
-                                             not x.startswith(reference_label_marker), constructor=None)
+
+reference_label_marker = " " * 11
+reference_field_finder = LabeledRecordFinder(
+    lambda x: not x.startswith(reference_label_marker), constructor=None
+)
 
 
 def parse_reference(lines):
@@ -475,7 +491,7 @@ def parse_reference(lines):
     result = {}
     for field in reference_field_finder(lines):
         label, data = block_consolidator(field)
-        result[label.lower()] = ' '.join(map(strip, data))
+        result[label.lower()] = " ".join(map(strip, data))
     return result
 
 
@@ -485,12 +501,13 @@ def parse_source(lines):
     all_lines = list(lines)
     source_field = next(reference_field_finder(all_lines))
     label, data = block_consolidator(source_field)
-    result[label.lower()] = ' '.join(map(strip, data))
+    result[label.lower()] = " ".join(map(strip, data))
     source_length = len(source_field)
     species, taxonomy = parse_organism(lines[source_length:])
-    result['species'] = species
-    result['taxonomy'] = taxonomy
+    result["species"] = species
+    result["taxonomy"] = taxonomy
     return result
+
 
 # adaptors to update curr with data from each parser
 
@@ -504,38 +521,38 @@ def source_adaptor(lines, curr):
 
 
 def ref_adaptor(lines, curr):
-    if 'references' not in curr:
-        curr['references'] = []
-    curr['references'].append(parse_reference(lines))
+    if "references" not in curr:
+        curr["references"] = []
+    curr["references"].append(parse_reference(lines))
 
 
 def feature_table_adaptor(lines, curr):
-    if 'features' not in curr:
-        curr['features'] = []
-    curr['features'].extend(parse_feature_table(lines))
+    if "features" not in curr:
+        curr["features"] = []
+    curr["features"].extend(parse_feature_table(lines))
 
 
 def sequence_adaptor(lines, curr):
-    curr['sequence'] = parse_sequence(lines)
+    curr["sequence"] = parse_sequence(lines)
 
 
 def generic_adaptor(lines, curr):
     label, data = block_consolidator(lines)
-    curr[label.lower()] = ' '.join(map(strip, lines))
+    curr[label.lower()] = " ".join(map(strip, lines))
+
 
 handlers = {
-    'LOCUS': locus_adaptor,
-    'SOURCE': source_adaptor,
-    'REFERENCE': ref_adaptor,
-    'FEATURES': feature_table_adaptor,
-    'ORIGIN': sequence_adaptor,
-    '//': lambda lines, curr: None,
-    '?': lambda lines, curr: None
+    "LOCUS": locus_adaptor,
+    "SOURCE": source_adaptor,
+    "REFERENCE": ref_adaptor,
+    "FEATURES": feature_table_adaptor,
+    "ORIGIN": sequence_adaptor,
+    "//": lambda lines, curr: None,
+    "?": lambda lines, curr: None,
 }
 
 
-def MinimalGenbankParser(lines, handlers=handlers,
-                         default_handler=generic_adaptor):
+def MinimalGenbankParser(lines, handlers=handlers, default_handler=generic_adaptor):
     for rec in GbFinder(lines):
         curr = {}
         bad_record = False
@@ -571,50 +588,51 @@ def parse_location_segment(location_segment):
     s = location_segment  # save some typing...
     lsp = parse_location_segment
     # check if it's a range
-    if '..' in s:
-        first, second = s.split('..')
+    if ".." in s:
+        first, second = s.split("..")
         return Location([lsp(first), lsp(second)])
     # check if it's between two adjacent bases
-    elif '^' in s:
-        first, second = s.split('^')
+    elif "^" in s:
+        first, second = s.split("^")
         return Location([lsp(first), lsp(second)], IsBetween=True)
     # check if it's a single base reference -- but don't be fooled by
     # accessions!
-    elif '.' in s and s.startswith('(') and s.endswith(')'):
-        first, second = s.split('.')
+    elif "." in s and s.startswith("(") and s.endswith(")"):
+        first, second = s.split(".")
         return Location([lsp(first[1:]), lsp(second[:-1])])
 
 
 def parse_location_atom(location_atom):
     """Parses a location atom, supposed to be a single-base position."""
     a = location_atom
-    if a.startswith('<') or a.startswith('>'):  # fuzzy
+    if a.startswith("<") or a.startswith(">"):  # fuzzy
         position = int(a[1:])
         return Location(position, Ambiguity=a[0])
     # otherwise, should just be an integer
     return Location(int(a))
 
-wanted_types = dict.fromkeys(['CDS'])
+
+wanted_types = dict.fromkeys(["CDS"])
 
 
 def extract_nt_prot_seqs(rec, wanted=wanted_types):
     """Extracts nucleotide seqs, and, where possible, protein seqs, from recs."""
-    rec_seq = rec['sequence']
-    for f in rec['features']:
-        if f['type'] not in wanted:
+    rec_seq = rec["sequence"]
+    for f in rec["features"]:
+        if f["type"] not in wanted:
             continue
-        translation = f['translation'][0]
-        raw_seq = f['location'].extract(rec_seq)
+        translation = f["translation"][0]
+        raw_seq = f["location"].extract(rec_seq)
         print(raw_seq)
-        seq = raw_seq[int(f['codon_start'][0]) - 1:]
-        print('dt:', translation)
-        print('ct:', GeneticCodes[
-              f.get('transl_table', '1')[0]].translate(seq))
-        print('s :', seq)
+        seq = raw_seq[int(f["codon_start"][0]) - 1 :]
+        print("dt:", translation)
+        print("ct:", GeneticCodes[f.get("transl_table", "1")[0]].translate(seq))
+        print("s :", seq)
 
 
-def RichGenbankParser(handle, info_excludes=None, moltype=None,
-                      skip_contigs=False, add_annotation=None):
+def RichGenbankParser(
+    handle, info_excludes=None, moltype=None, skip_contigs=False, add_annotation=None
+):
     """Returns annotated sequences from GenBank formatted file.
 
     Arguments:
@@ -635,31 +653,31 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
                 continue
             info[label] = value
 
-        if rec['mol_type'] == 'protein':  # which it doesn't for genbank
+        if rec["mol_type"] == "protein":  # which it doesn't for genbank
             moltype = PROTEIN
-        elif rec['mol_type'] == 'DNA':
+        elif rec["mol_type"] == "DNA":
             moltype = DNA
 
         try:
-            seq = moltype.make_seq(rec['sequence'].upper(), info=info,
-                                       name=rec['locus'])
+            seq = moltype.make_seq(
+                rec["sequence"].upper(), info=info, name=rec["locus"]
+            )
         except KeyError:
             if not skip_contigs:
-                if 'contig' in rec:
-                    yield rec['locus'], rec['contig']
-                elif 'WGS' in rec:
-                    yield rec['locus'], rec['WGS']
+                if "contig" in rec:
+                    yield rec["locus"], rec["contig"]
+                elif "WGS" in rec:
+                    yield rec["locus"], rec["WGS"]
                 else:
-                    yield rec['locus'], None
+                    yield rec["locus"], None
             continue
 
-        for feature in rec['features']:
+        for feature in rec["features"]:
             spans = []
             reversed = None
-            if feature['location'] is None or feature['type'] in ['source',
-                                                                  'organism']:
+            if feature["location"] is None or feature["type"] in ["source", "organism"]:
                 continue
-            for location in feature['location']:
+            for location in feature["location"]:
                 (lo, hi) = (location.first() - 1, location.last())
                 if location.Strand == -1:
                     (lo, hi) = (hi, lo)
@@ -678,17 +696,17 @@ def RichGenbankParser(handle, info_excludes=None, moltype=None,
             if add_annotation:
                 add_annotation(seq, feature, spans)
             else:
-                for id_field in ['gene', 'note', 'product', 'clone']:
+                for id_field in ["gene", "note", "product", "clone"]:
                     if id_field in feature:
                         name = feature[id_field]
                         if not isinstance(name, str):
-                            name = ' '.join(name)
+                            name = " ".join(name)
                         break
                 else:
                     name = None
-                seq.add_annotation(Feature, feature['type'], name, spans)
+                seq.add_annotation(Feature, feature["type"], name, spans)
 
-        yield (rec['locus'], seq)
+        yield (rec["locus"], seq)
 
 
 def parse(*args):

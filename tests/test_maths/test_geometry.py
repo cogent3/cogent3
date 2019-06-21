@@ -1,15 +1,39 @@
 #!/usr/bin/env python
 """Tests of the geometry package."""
-from numpy import array, take, ones, allclose, isclose, sum, arange, insert, all, mean
-from numpy.linalg import norm, inv
-from numpy.random import dirichlet, choice
-from numpy.testing import assert_allclose
 from math import sqrt
+
+from numpy import (
+    all,
+    allclose,
+    arange,
+    array,
+    insert,
+    isclose,
+    mean,
+    ones,
+    sum,
+    take,
+)
+from numpy.linalg import inv, norm
+from numpy.random import choice, dirichlet
+from numpy.testing import assert_allclose
+
+from cogent3.maths.geometry import (
+    SimplexTransform,
+    aitchison_distance,
+    alr,
+    alr_inv,
+    center_of_mass,
+    center_of_mass_one_array,
+    center_of_mass_two_array,
+    clr,
+    clr_inv,
+    distance,
+    multiplicative_replacement,
+    sphere_points,
+    tight_simplex,
+)
 from cogent3.util.unit_test import TestCase, main
-from cogent3.maths.geometry import center_of_mass_one_array, \
-    center_of_mass_two_array, center_of_mass, distance, sphere_points, \
-    SimplexTransform, alr, clr, alr_inv, clr_inv, aitchison_distance, \
-    multiplicative_replacement, tight_simplex
 
 
 __author__ = "Sandra Smit"
@@ -32,8 +56,7 @@ class CenterOfMassTests(TestCase):
         self.more_weight = array([[1, 1, 3], [3, 1, 3], [2, 3, 50]])
         self.square = array([[1, 1, 25], [3, 1, 25], [3, 3, 25], [1, 3, 25]])
         self.square_odd = array([[1, 1, 25], [3, 1, 4], [3, 3, 25], [1, 3, 4]])
-        self.sec_weight = array(
-            [[1, 25, 1], [3, 25, 1], [3, 25, 3], [1, 25, 3]])
+        self.sec_weight = array([[1, 25, 1], [3, 25, 1], [3, 25, 3], [1, 25, 3]])
 
     def test_center_of_mass_one_array(self):
         """center_of_mass_one_array should behave correctly"""
@@ -48,10 +71,8 @@ class CenterOfMassTests(TestCase):
     def test_CoM_one_array_wrong(self):
         """center_of_mass_one_array should fail on wrong input"""
         com1 = center_of_mass_one_array
-        self.assertRaises(TypeError, com1, self.simple,
-                          'a')  # weight_idx wrong
-        self.assertRaises(IndexError, com1, self.simple,
-                          100)  # w_idx out of range
+        self.assertRaises(TypeError, com1, self.simple, "a")  # weight_idx wrong
+        self.assertRaises(IndexError, com1, self.simple, 100)  # w_idx out of range
         # shape[1] out of range
         self.assertRaises(IndexError, com1, [1, 2, 3], 2)
 
@@ -68,10 +89,8 @@ class CenterOfMassTests(TestCase):
         """center_of_mass_two_array should fail on wrong input"""
         com2 = center_of_mass_two_array
         weights = [1, 2]
-        self.assertRaises(TypeError, com2, self.simple,
-                          'a')  # weight_idx wrong
-        self.assertRaises(ValueError, com2, self.simple,
-                          weights)  # not aligned
+        self.assertRaises(TypeError, com2, self.simple, "a")  # weight_idx wrong
+        self.assertRaises(ValueError, com2, self.simple, weights)  # not aligned
 
     def test_center_of_mass(self):
         """center_of_mass should make right choice between functional methods
@@ -111,7 +130,8 @@ class CenterOfMassTests(TestCase):
 
     def test_sphere_points(self):
         """tests sphere points"""
-        self.assertEqual(sphere_points(1), array([[1., 0., 0.]]))
+        self.assertEqual(sphere_points(1), array([[1.0, 0.0, 0.0]]))
+
 
 #    def test_coords_to_symmetry(self):
 #        """tests symmetry expansion (TODO)"""
@@ -120,6 +140,7 @@ class CenterOfMassTests(TestCase):
 #    def test_coords_to_crystal(self):
 #        """tests crystal expansion (TODO)"""
 #        pass
+
 
 class TestSimplexTransform(TestCase):
     transform = SimplexTransform()
@@ -145,8 +166,19 @@ class TestSimplexTransform(TestCase):
         c = x @ self.transform
         x = array([0, 0, 0, 1], dtype=float)
         d = x @ self.transform
-        assert_allclose(array([norm(a-b), norm(a-c), norm(a-d),
-            norm(b-c), norm(b-d), norm(c-d)]), sqrt(2) * ones(6))
+        assert_allclose(
+            array(
+                [
+                    norm(a - b),
+                    norm(a - c),
+                    norm(a - d),
+                    norm(b - c),
+                    norm(b - d),
+                    norm(c - d),
+                ]
+            ),
+            sqrt(2) * ones(6),
+        )
 
 
 class TestAitchison(TestCase):
@@ -165,28 +197,32 @@ class TestAitchison(TestCase):
         length = len(self.x)
         for col in range(-1, length):
             y = alr_inv(self.x, col)
-            assert allclose(self.x, alr(y, col)), \
-                'Failed alr inverse test for col = ' + str(col) + '.'
+            assert allclose(self.x, alr(y, col)), (
+                "Failed alr inverse test for col = " + str(col) + "."
+            )
 
         z = dirichlet(self.x)
         y = clr(z)
-        assert allclose(z, clr_inv(y)), 'Failed clr inverse test.'
-        assert allclose(sum(y), 0), 'Failed clr hyperplane test.'
+        assert allclose(z, clr_inv(y)), "Failed clr inverse test."
+        assert allclose(sum(y), 0), "Failed clr hyperplane test."
 
     def test_Aitchison_distance(self):
         x = self.d[0]
         y = self.d[1]
-        assert allclose(aitchison_distance(x, y), \
-                           norm(clr(x) - clr(y))), 'Failed distance test.'
+        assert allclose(
+            aitchison_distance(x, y), norm(clr(x) - clr(y))
+        ), "Failed distance test."
 
     def test_multiplicative_replacement(self):
         x1 = dirichlet(self.a)
         y1 = insert(x1, 3, 0)
         u = multiplicative_replacement(y1)
-        assert allclose(y1, u, atol=1e-2), \
-            'Multiplicative replacement peturbation is too large.'
-        assert isclose(sum(u), 1), \
-            'Multiplicative replacement does not yield a composition.'
+        assert allclose(
+            y1, u, atol=1e-2
+        ), "Multiplicative replacement peturbation is too large."
+        assert isclose(
+            sum(u), 1
+        ), "Multiplicative replacement does not yield a composition."
 
 
 class TestTightSimplex(TestCase):
@@ -200,13 +236,19 @@ class TestTightSimplex(TestCase):
         """Vertices lie within unit simplex, edges are equal in length and align
         with unit simplex."""
         vertices = self.vertices
-        assert_allclose(sum(vertices, axis=1), ones(4), err_msg='Vertices not in unit simplex.')
+        assert_allclose(
+            sum(vertices, axis=1), ones(4), err_msg="Vertices not in unit simplex."
+        )
         l = norm(vertices[0] - vertices[1])
-        assert all([allclose(vertices[0] - vertices[2], l * array([1, 0, -1, 0]) / sqrt(2)),
-                    allclose(vertices[0] - vertices[3], l * array([1, 0, 0, -1]) / sqrt(2)),
-                    allclose(vertices[1] - vertices[2], l * array([0, 1, -1, 0]) / sqrt(2)),
-                    allclose(vertices[1] - vertices[3], l * array([0, 1, 0, -1]) / sqrt(2)),
-                    allclose(vertices[2] - vertices[3], l * array([0, 0, 1, -1]) / sqrt(2))])
+        assert all(
+            [
+                allclose(vertices[0] - vertices[2], l * array([1, 0, -1, 0]) / sqrt(2)),
+                allclose(vertices[0] - vertices[3], l * array([1, 0, 0, -1]) / sqrt(2)),
+                allclose(vertices[1] - vertices[2], l * array([0, 1, -1, 0]) / sqrt(2)),
+                allclose(vertices[1] - vertices[3], l * array([0, 1, 0, -1]) / sqrt(2)),
+                allclose(vertices[2] - vertices[3], l * array([0, 0, 1, -1]) / sqrt(2)),
+            ]
+        )
 
     def test_coordinates(self):
         """Centre of gravity of vertices is the same as centre of gravity of input.
@@ -214,15 +256,22 @@ class TestTightSimplex(TestCase):
         by tight_simplex are positive, i.e. points lie within simplex."""
         x = self.x
         vertices = self.vertices
-        assert_allclose(mean(x, axis=0), mean(vertices, axis=0),
-                        err_msg='Centre of gravity of vertices and input differ.')
+        assert_allclose(
+            mean(x, axis=0),
+            mean(vertices, axis=0),
+            err_msg="Centre of gravity of vertices and input differ.",
+        )
         coords = x @ inv(vertices)
-        assert_allclose(sum(coords, axis=1), ones(5), err_msg='Barycentric coords do not total one.')
-        if not all(coords > 0.):
-            msg = (f'Not all barycentric coordinates are positive: {coords}'
-                   f'\n original were {x}')
+        assert_allclose(
+            sum(coords, axis=1), ones(5), err_msg="Barycentric coords do not total one."
+        )
+        if not all(coords > 0.0):
+            msg = (
+                f"Not all barycentric coordinates are positive: {coords}"
+                f"\n original were {x}"
+            )
             raise AssertionError(msg)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

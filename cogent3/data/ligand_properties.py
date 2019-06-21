@@ -12,12 +12,9 @@ __maintainer__ = "Marcin Cieslik"
 __email__ = "mpc4p@virginia.edu"
 __status__ = "Production"
 
-HOH_NAMES = ['H_HOH', 'H_WAT', 'H_DOH', 'H_HOD', 'H_DOD']
+HOH_NAMES = ["H_HOH", "H_WAT", "H_DOH", "H_HOD", "H_DOD"]
 WATER_NAMES = HOH_NAMES
 
-LIGAND_ATOM_PROPERTIES = {
-    ('H_HOH', ' O  '): [1.60]
-}
+LIGAND_ATOM_PROPERTIES = {("H_HOH", " O  "): [1.60]}
 
-LIGAND_AREAIMOL_VDW_RADII = dict([(k, v[0])
-                                  for k, v in LIGAND_ATOM_PROPERTIES.items()])
+LIGAND_AREAIMOL_VDW_RADII = dict([(k, v[0]) for k, v in LIGAND_ATOM_PROPERTIES.items()])

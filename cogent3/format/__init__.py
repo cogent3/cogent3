@@ -5,13 +5,29 @@ Currently provides:
     xml:  xml base class
     file: general functions to read and write files
 """
-__all__ = ['alignment', 'bedgraph', 'clustal', 'fasta',
-           'gde', 'nexus', 'paml', 'phylip', 'table']
+__all__ = [
+    "alignment",
+    "bedgraph",
+    "clustal",
+    "fasta",
+    "gde",
+    "nexus",
+    "paml",
+    "phylip",
+    "table",
+]
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Jeremy Widmann", "Gavin Huttley", "Matthew Wakefield",
-               "Rob Knight", "Sandra Smit", "Peter Maxwell", "Marcin Cieslik"]
+__credits__ = [
+    "Jeremy Widmann",
+    "Gavin Huttley",
+    "Matthew Wakefield",
+    "Rob Knight",
+    "Sandra Smit",
+    "Peter Maxwell",
+    "Marcin Cieslik",
+]
 __license__ = "GPL"
 __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
