@@ -1,8 +1,3 @@
-import numpy
-import plotly.graph_objs as go
-
-from plotly import tools
-
 from cogent3.align.align import dotplot
 from cogent3.core.moltype import get_moltype
 from cogent3.draw.drawable import Drawable
