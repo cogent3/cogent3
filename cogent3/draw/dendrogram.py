@@ -365,12 +365,12 @@ class Dendrogram(Drawable):
             visible_axes=False, showlegend=False, *args, **kwargs
         )
         klass = {"square": SquareTreeGeometry, "radial": RadialTreeGeometry}[style]
-        kwargs = dict(length_attr="frac_pos") if contemporaneous else {}
+        kwargs = UnionDict(length_attr="frac_pos") if contemporaneous else {}
         self.tree = klass(tree, **kwargs)
         self.tree.propagate_properties()
         assert 0 <= label_pad <= 1
         self._label_pad = label_pad
-        self._tip_font = dict(size=16, family="sans serif")
+        self._tip_font = UnionDict(size=16, family="sans serif")
         self._line_width = 2
         self._line_color = "black"
         self._scale_bar = "bottom left"
@@ -420,7 +420,7 @@ class Dendrogram(Drawable):
         label_pad = self._scale_label_pad()
         for tip in self.tree.tips():
             anote = tip.value_and_coordinate("name", padding=label_pad)
-            anote |= dict(xref="x", yref="y", font=self.tip_font)
+            anote |= UnionDict(xref="x", yref="y", font=self.tip_font)
             annotations.append(anote)
         return annotations
 
@@ -520,8 +520,8 @@ class Dendrogram(Drawable):
             group = grouped[key]
             style = self._edge_sets.get(
                 key,
-                dict(
-                    line=dict(
+                UnionDict(
+                    line=UnionDict(
                         width=self._line_width,
                         color=self._line_color,
                         shape="spline",
@@ -574,9 +574,9 @@ class Dendrogram(Drawable):
         if type(edges) == str:
             edges = [edges]
         edges = frozenset(edges)
-        style = dict(width=self._line_width, color=self._line_color)
+        style = UnionDict(width=self._line_width, color=self._line_color)
         style.update(line)
-        self._edge_sets[edges] = dict(legendgroup=legendgroup, line=style)
+        self._edge_sets[edges] = UnionDict(legendgroup=legendgroup, line=style)
         mapping = {e: edges for e in edges}
         self._edge_mapping.update(mapping)
         if legendgroup:
@@ -600,9 +600,9 @@ class Dendrogram(Drawable):
     def scale_bar(self, value):
         if value is True:
             value = "bottom left"
-        valid = set(
-            ["bottom left", "bottom right", "top left", "top right", False, None]
-        )
+
+        valid = {"bottom left", "bottom right", "top left", "top right", False, None}
+
         assert value in valid
         if value != self._scale_bar:
             self._traces = []
