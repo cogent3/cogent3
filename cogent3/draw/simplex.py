@@ -4,6 +4,7 @@ from numpy.testing import assert_allclose
 
 from cogent3.draw.drawable import Drawable
 from cogent3.maths.geometry import SimplexTransform
+from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Rahul Ghangas and Gavin Huttley"
@@ -122,15 +123,15 @@ class Simplex(Drawable):
         from itertools import combinations
 
         combos = numpy.array(list(combinations(self.vertices, 2)))
-        trace = dict(
+        trace = UnionDict(
             type="scatter3d",
             # Draw the edges of the Tetrahedron
             name="frame",
             x=combos[:, :, 0].ravel(),
             y=combos[:, :, 1].ravel(),
             z=combos[:, :, 2].ravel(),
-            marker=dict(size=4, color="#1f77b4", colorscale="Viridis"),
-            line=dict(color="#1f77b4", width=5),
+            marker=UnionDict(size=4, color="#1f77b4", colorscale="Viridis"),
+            line=UnionDict(color="#1f77b4", width=5),
             mode="lines",
             hoverinfo="skip",
             showlegend=False,
@@ -138,15 +139,15 @@ class Simplex(Drawable):
         return trace
 
     def _get_vertex_label_trace(self):
-        trace = dict(
+        trace = UnionDict(
             type="scatter3d",
             # Draw the vertex labels
             x=self.vertices[:, 0],
             y=self.vertices[:, 1],
             z=self.vertices[:, 2],
-            marker=dict(size=4, color="#1f77b4", colorscale="Viridis"),
+            marker=UnionDict(size=4, color="#1f77b4", colorscale="Viridis"),
             text=self.vertex_labels,
-            textfont=dict(size=16, family="sans serif"),
+            textfont=UnionDict(size=16, family="sans serif"),
             mode="markers+text",
             hoverinfo="skip",
             showlegend=False,
@@ -166,12 +167,12 @@ class Simplex(Drawable):
     ):
         data = numpy.array(data, dtype=float)
         points = numpy.array([v @ self.transformer for v in data])
-        scatter = dict(
+        scatter = UnionDict(
             type="scatter3d",
             x=points[:, 0],
             y=points[:, 1],
             z=points[:, 2],
-            marker=dict(size=4, colorscale="Viridis"),
+            marker=UnionDict(size=4, colorscale="Viridis"),
             showlegend=showlegend,
             mode=mode,
             name=name,
@@ -241,14 +242,12 @@ class Simplex(Drawable):
                     name=name,
                     legendgroup=group,
                     showlegend=showlegend,
-                    line=dict(width=3),
+                    line=UnionDict(width=3),
                 )
             )
         return traces
 
     def _build_fig(self, **kwargs):
-        from plotly import graph_objs as go
-
         self.traces.extend([self._get_frame_trace(), self._get_vertex_label_trace()])
         if self._points:
             self.traces.extend(self._get_point_traces())
@@ -258,12 +257,12 @@ class Simplex(Drawable):
 
         # Layout attributes for plotly
         axis_range = [self.vertices.min(), self.vertices.max()]
-        layout = go.Layout(
-            scene=dict(
-                xaxis=dict(title="x", visible=False, range=axis_range),
-                yaxis=dict(title="y", visible=False, range=axis_range),
-                zaxis=dict(title="z", visible=False, range=axis_range),
+        layout = UnionDict(
+            scene=UnionDict(
+                xaxis=UnionDict(title="x", visible=False, range=axis_range),
+                yaxis=UnionDict(title="y", visible=False, range=axis_range),
+                zaxis=UnionDict(title="z", visible=False, range=axis_range),
             ),
             autosize=False,
         )
-        self.layout.update(layout)
+        self.layout |= layout
