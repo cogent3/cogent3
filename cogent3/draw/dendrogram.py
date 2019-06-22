@@ -346,6 +346,7 @@ class RadialTreeGeometry(TreeGeometryBase):
             showarrow=False,
             text=self.name.rjust(just),
             xanchor="center",
+            yanchor="middle",
             align="left",
         )
         return data
