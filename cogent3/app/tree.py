@@ -17,10 +17,11 @@ __status__ = "Alpha"
 
 
 class scale_branches(ComposableTree):
+    _input_type = frozenset(["tree"])
+    _output_type = frozenset(["tree", "serialisable"])
+
     def __init__(self, nuc_to_codon=None, codon_to_nuc=None, scalar=1, min_length=1e-6):
-        super(scale_branches, self).__init__(
-            input_type="tree", output_type=("tree", "serialisable")
-        )
+        super(scale_branches, self).__init__()
         """returns a new tree with lengths divided by scalar
     
         Parameters
@@ -64,10 +65,11 @@ class scale_branches(ComposableTree):
 
 
 class uniformize_tree(ComposableTree):
+    _input_type = frozenset(["tree"])
+    _output_type = frozenset(["tree", "serialisable"])
+
     def __init__(self, root_at="midpoint", ordered_names=None):
-        super(uniformize_tree, self).__init__(
-            input_type="tree", output_type=("tree", "serialisable")
-        )
+        super(uniformize_tree, self).__init__()
         """returns a new tree with standardised orientation
         
         Parameters
@@ -96,6 +98,9 @@ class uniformize_tree(ComposableTree):
 
 
 class quick_tree(ComposableTree):
+    _input_type = frozenset(["aligned"])
+    _output_type = frozenset(["tree", "serialisable"])
+
     def __init__(self, distance="TN93", moltype="dna"):
         """computes a neighbour joining tree from an alignment
         
@@ -106,9 +111,7 @@ class quick_tree(ComposableTree):
         moltype : str
             molecular type, must be either DNA or RNA
         """
-        super(quick_tree, self).__init__(
-            input_type="aligned", output_type=("tree", "serialisable")
-        )
+        super(quick_tree, self).__init__()
         self._formatted_params()
         moltype = get_moltype(moltype)
         assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"

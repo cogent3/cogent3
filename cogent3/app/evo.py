@@ -15,6 +15,9 @@ from .result import bootstrap_result, hypothesis_result, model_result
 class model(ComposableModel):
     """represents a substitution model + tree"""
 
+    _input_type = frozenset(["aligned"])
+    _output_type = frozenset(["result", "model_result", "serialisable"])
+
     def __init__(
         self,
         sm,
@@ -70,9 +73,7 @@ class model(ComposableModel):
         with the optimised likelihood function. In the case of split_codons,
         the result object has a separate entry for each.
         """
-        super(model, self).__init__(
-            input_type="aligned", output_type=("model_result", "serialisable")
-        )
+        super(model, self).__init__()
         self._verbose = verbose
         self._formatted_params()
         sm_args = sm_args or {}
@@ -202,11 +203,12 @@ class model(ComposableModel):
 
 
 class hypothesis(ComposableHypothesis):
+    _input_type = frozenset(["aligned"])
+    _output_type = frozenset(["result", "hypothesis_result", "serialisable"])
+
     def __init__(self, null, *alternates, init_alt=None):
         # todo document! init_alt needs to be able to take null, alt and *args
-        super(hypothesis, self).__init__(
-            input_type="aligned", output_type=("result", "serialisable")
-        )
+        super(hypothesis, self).__init__()
         self._formatted_params()
         self.null = null
         names = {a.name for a in alternates}
@@ -258,10 +260,11 @@ class hypothesis(ComposableHypothesis):
 
 
 class bootstrap(ComposableHypothesis):
+    _input_type = frozenset(["aligned"])
+    _output_type = frozenset(["result", "bootstrap_result", "serialisable"])
+
     def __init__(self, hyp, num_reps, verbose=False):
-        super(bootstrap, self).__init__(
-            input_type="aligned", output_type=("result", "serialisable")
-        )
+        super(bootstrap, self).__init__()
         self._formatted_params()
         self._hyp = hyp
         self._num_reps = num_reps

@@ -149,6 +149,9 @@ def get_fourfold_degenerate_sets(gc, alphabet=None, as_indices=True):
 
 
 class select_translatable(ComposableSeq):
+    _input_type = frozenset(["sequences", "aligned"])
+    _output_type = frozenset(["sequences"])
+
     def __init__(
         self, moltype="dna", gc=DEFAULT, allow_rc=False, trim_terminal_stop=True
     ):
@@ -174,9 +177,7 @@ class select_translatable(ComposableSeq):
         A sequence collection. Sequences that could not be translated
         are excluded.
         """
-        super(select_translatable, self).__init__(
-            input_type=("sequences", "aligned"), output_type="sequences"
-        )
+        super(select_translatable, self).__init__()
         self._formatted_params()
 
         moltype = get_moltype(moltype)

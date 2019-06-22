@@ -89,6 +89,9 @@ class concat:
 class omit_degenerates(ComposableAligned):
     """returns alignment filtered by position"""
 
+    _input_type = frozenset(["aligned"])
+    _output_type = frozenset(["aligned", "serialisable"])
+
     def __init__(self, moltype=None, gap_is_degen=True, motif_length=1):
         """excludes degenerate characters from alignment
 
@@ -103,9 +106,7 @@ class omit_degenerates(ComposableAligned):
             tuple contains a degen character at any position the entire tuple
             is excluded
         """
-        super(omit_degenerates, self).__init__(
-            input_type="aligned", output_type=("aligned", "serialisable")
-        )
+        super(omit_degenerates, self).__init__()
         self._formatted_params()
         if moltype:
             moltype = get_moltype(moltype)
@@ -135,6 +136,9 @@ class omit_degenerates(ComposableAligned):
 class take_codon_positions(ComposableAligned):
     """returns the specified codon position(s) from an alignment"""
 
+    _input_type = frozenset(["aligned"])
+    _output_type = frozenset(["aligned", "serialisable"])
+
     def __init__(
         self,
         *positions,
@@ -157,9 +161,7 @@ class take_codon_positions(ComposableAligned):
         moltype : str
             molecular type, must be either DNA or RNA
         """
-        super(take_codon_positions, self).__init__(
-            input_type="aligned", output_type=("aligned", "serialisable")
-        )
+        super(take_codon_positions, self).__init__()
         self._formatted_params()
         assert moltype is not None
         moltype = get_moltype(moltype)
@@ -223,6 +225,9 @@ class take_codon_positions(ComposableAligned):
 
 
 class take_named_seqs(ComposableSeq):
+    _input_type = frozenset(["sequences", "aligned"])
+    _output_type = frozenset(["sequences", "aligned", "serialisable"])
+
     def __init__(self, *names, negate=False):
         """selects named sequences from a collection
 
@@ -231,10 +236,7 @@ class take_named_seqs(ComposableSeq):
         A new sequence collection, or False if not all the named sequences are 
         in the collection.
         """
-        super(take_named_seqs, self).__init__(
-            input_type=("sequences", "aligned"),
-            output_type=("sequences", "aligned", "serialisable"),
-        )
+        super(take_named_seqs, self).__init__()
         self._formatted_params()
         self._names = names
         self._negate = negate
@@ -253,6 +255,9 @@ class take_named_seqs(ComposableSeq):
 class min_length(ComposableSeq):
     """filters sequence collections by length"""
 
+    _input_type = frozenset(["sequences", "aligned"])
+    _output_type = frozenset(["sequences", "aligned", "serialisable"])
+
     def __init__(self, length, motif_length=1, subtract_degen=True, moltype=None):
         """
         Parameters
@@ -266,10 +271,7 @@ class min_length(ComposableSeq):
         moltype
             molecular type, can be string or instance
         """
-        super(min_length, self).__init__(
-            input_type=("sequences", "aligned"),
-            output_type=("sequences", "aligned", "serialisable"),
-        )
+        super(min_length, self).__init__()
         self._formatted_params()
         if motif_length > 1:
             length = length // motif_length
@@ -326,6 +328,9 @@ class _GetStart:
 class fixed_length(ComposableAligned):
     """return alignments of a fixed length"""
 
+    _input_type = frozenset(["aligned"])
+    _output_type = frozenset(["aligned", "serialisable"])
+
     def __init__(
         self, length, start=0, random=False, seed=None, motif_length=1, moltype=None
     ):
@@ -348,9 +353,7 @@ class fixed_length(ComposableAligned):
         moltype
             molecular type, can be string or instance
         """
-        super(fixed_length, self).__init__(
-            input_type="aligned", output_type=("aligned", "serialisable")
-        )
+        super(fixed_length, self).__init__()
         self._formatted_params()
         diff = length % motif_length
         if diff != 0:
@@ -419,6 +422,9 @@ class fixed_length(ComposableAligned):
 
 
 class omit_bad_seqs(ComposableAligned):
+    _input_type = frozenset(["aligned"])
+    _output_type = frozenset(["aligned", "serialisable"])
+
     def __init__(
         self,
         disallowed_frac=0.9,
@@ -441,9 +447,7 @@ class omit_bad_seqs(ComposableAligned):
         moltype
             molecular type, can be string or instance
         """
-        super(omit_bad_seqs, self).__init__(
-            input_type="aligned", output_type=("aligned", "serialisable")
-        )
+        super(omit_bad_seqs, self).__init__()
         self._formatted_params()
         if moltype:
             moltype = get_moltype(moltype)
@@ -467,6 +471,10 @@ class omit_bad_seqs(ComposableAligned):
 
 
 class omit_duplicated(ComposableSeq):
+    # todo does this work with aligned too?
+    _input_type = frozenset(["sequences"])
+    _output_type = frozenset(["sequences", "serialisable"])
+
     def __init__(self, mask_degen=False, choose="longest", seed=None, moltype=None):
         """Returns unique sequences, adds 'dropped' key to seqs.info
 
@@ -483,9 +491,7 @@ class omit_duplicated(ComposableSeq):
         moltype
             molecular type, can be string or instance
         """
-        super(omit_duplicated, self).__init__(
-            input_type="sequences", output_type=("sequences", "serialisable")
-        )
+        super(omit_duplicated, self).__init__()
 
         assert not choose or choose in "longestrandom"
         self._formatted_params()
@@ -542,6 +548,9 @@ class omit_duplicated(ComposableSeq):
 
 
 class trim_stop_codons(ComposableSeq):
+    _input_type = frozenset(["sequences", "aligned"])
+    _output_type = frozenset(["sequences", "aligned", "serialisable"])
+
     def __init__(self, gc):
         """selects named sequences from a collection
 
@@ -550,10 +559,7 @@ class trim_stop_codons(ComposableSeq):
         A new sequence collection, or False if not all the named sequences are
         in the collection.
         """
-        super(trim_stop_codons, self).__init__(
-            input_type=("sequences", "aligned"),
-            output_type=("sequences", "aligned", "serialisable"),
-        )
+        super(trim_stop_codons, self).__init__()
         self._formatted_params()
         self._gc = gc
         self.func = self.trim_stops
