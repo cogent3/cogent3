@@ -341,7 +341,7 @@ class AnnotatedDrawable(Drawable):
         traces = []
         for trace in self.bottom_track.traces:
             trace.yaxis = "y2"
-            trace.xaxis = 'x'
+            trace.xaxis = "x"
             traces.append(trace)
             max_y = max(numpy.max(trace.y), max_y)
             if trace.legendgroup in seen_types:
@@ -389,7 +389,7 @@ class AnnotatedDrawable(Drawable):
         max_x = 0
         traces = []
         for trace in self.left_track.traces:
-            trace.yaxis = 'y'
+            trace.yaxis = "y"
             traces.append(trace)
             max_x = max(numpy.max(trace.x), max_x)
             if trace.legendgroup in seen_types:
