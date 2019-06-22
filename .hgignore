@@ -24,3 +24,4 @@ draw_results
 *.sublime*
 *.patch
 *.pytest_cache
+*.tox
