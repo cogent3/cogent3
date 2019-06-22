@@ -2,7 +2,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from cogent3.core.tree import PhyloNode, TreeNode
+from cogent3.core.tree import PhyloNode
 from cogent3.draw.drawable import Drawable
 from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
