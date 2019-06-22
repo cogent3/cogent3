@@ -1,5 +1,6 @@
 [build-system]
 requires = ["setuptools", "wheel", "numpy"]
+build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 88
@@ -28,4 +29,3 @@ lines_after_imports=2
 lines_between_types=1
 multi_line_output=3
 use_parentheses=true
-
