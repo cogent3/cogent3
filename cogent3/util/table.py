@@ -23,6 +23,7 @@ from cogent3.format import bedgraph
 from cogent3.format import table as table_format
 from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_format_suffixes, open_
+from cogent3.util.union_dict import UnionDict
 
 
 try:
@@ -1264,7 +1265,8 @@ class Table(DictArray):
         else:
             colours = "white"
 
-        tab = go.Table(
+        tab = UnionDict(
+            type="table",
             header=dict(
                 values=[f"<b>{c}</b>" for c in header],
                 fill=dict(color="rgba(161, 195, 209, 1)"),
@@ -1284,5 +1286,6 @@ class Table(DictArray):
             margin=dict(l=10, r=10, t=30, b=10, pad=10),
         )
         default_layout.update(layout)
-        draw._trace = dict(data=[tab], layout=default_layout)
+        draw.traces.append(tab)
+        draw.layout |= default_layout
         return draw
