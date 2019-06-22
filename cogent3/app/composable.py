@@ -114,26 +114,8 @@ class NotCompletedResult(int):
 
 class ComposableType:
     _type = None
-
-    def __init__(self, input_type=None, output_type=None):
-        """
-        Parameters
-        ----------
-        input_type
-            Allowed input types
-        output_type
-            Type of output
-        """
-        input_type = [] if input_type is None else input_type
-        output_type = [] if output_type is None else output_type
-
-        if type(input_type) == str:
-            input_type = [input_type]
-        if type(output_type) == str:
-            output_type = [output_type]
-
-        self._input_type = set(input_type)
-        self._output_type = set(output_type)
+    _input_type = None
+    _output_type = None
 
     def compatible_input(self, other):
         result = other._output_type & self._input_type
@@ -141,8 +123,8 @@ class ComposableType:
 
 
 class Composable(ComposableType):
-    def __init__(self, **kwargs):
-        super(Composable, self).__init__(**kwargs)
+    def __init__(self):
+        super(Composable, self).__init__()
         self.func = None  # over-ride in subclass
         self._in = None  # input rules
         self._out = None  # rules receiving output
@@ -419,25 +401,44 @@ class Composable(ComposableType):
 class ComposableTabular(Composable):
     _type = "tabular"
 
+    def __init__(self):
+        super(ComposableTabular, self).__init__()
+        super(ComposableTabular, self).__init__()
+
 
 class ComposableSeq(Composable):
     _type = "sequences"
+
+    def __init__(self):
+        super(ComposableSeq, self).__init__()
 
 
 class ComposableAligned(Composable):
     _type = "aligned"
 
+    def __init__(self):
+        super(ComposableAligned, self).__init__()
+
 
 class ComposableTree(Composable):
     _type = "tree"
+
+    def __init__(self):
+        super(ComposableTree, self).__init__()
 
 
 class ComposableModel(Composable):
     _type = "model"
 
+    def __init__(self):
+        super(ComposableModel, self).__init__()
+
 
 class ComposableHypothesis(Composable):
     _type = "hypothesis"
+
+    def __init__(self):
+        super(ComposableHypothesis, self).__init__()
 
 
 class _seq_loader:
@@ -465,22 +466,11 @@ class _seq_loader:
 
 class _checkpointable(Composable):
     def __init__(
-        self,
-        input_type,
-        output_type,
-        data_path,
-        name_callback=None,
-        create=False,
-        if_exists=SKIP,
-        suffix=None,
+        self, data_path, name_callback=None, create=False, if_exists=SKIP, suffix=None
     ):
         """
         Parameters
         ----------
-        input_type
-            compatible input types
-        output_type
-            output types
         data_path
             path to write output
         name_callback
@@ -492,9 +482,7 @@ class _checkpointable(Composable):
             behaviour if output exists. Either 'skip', 'raise' (raises an
             exception), 'overwrite', 'ignore'
         """
-        super(_checkpointable, self).__init__(
-            input_type=input_type, output_type=output_type
-        )
+        super(_checkpointable, self).__init__()
         self._formatted_params()
 
         self._checkpointable = True

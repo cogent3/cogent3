@@ -22,6 +22,9 @@ __status__ = "Alpha"
 class align_to_ref(ComposableSeq):
     """returns an alignment to a reference seq. No gaps in the reference."""
 
+    _input_type = frozenset(["sequences"])
+    _output_type = frozenset(["aligned"])
+
     def __init__(
         self,
         ref_seq="longest",
@@ -45,9 +48,7 @@ class align_to_ref(ComposableSeq):
         moltype : str
             molecular type, currently only DNA or RNA suppported
         """
-        super(align_to_ref, self).__init__(
-            input_type="sequences", output_type="aligned"
-        )
+        super(align_to_ref, self).__init__()
         assert moltype
         moltype = get_moltype(moltype)
         self._moltype = moltype
@@ -119,6 +120,9 @@ class align_to_ref(ComposableSeq):
 class progressive_align(ComposableSeq):
     """returns a multiple sequence alignment."""
 
+    _input_type = frozenset(["sequences"])
+    _output_type = frozenset(["aligned"])
+
     def __init__(
         self,
         model,
@@ -156,9 +160,7 @@ class progressive_align(ComposableSeq):
         indel_length : float
             probability of gap extension
         """
-        super(progressive_align, self).__init__(
-            input_type="sequences", output_type="aligned"
-        )
+        super(progressive_align, self).__init__()
         if guide_tree is None and model in protein_models + ["protein"]:
             raise NotImplementedError(
                 "auto-build of guide tree " "not supported for protein seqs yet"

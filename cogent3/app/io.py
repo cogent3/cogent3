@@ -126,6 +126,9 @@ class _seq_loader:
 class load_aligned(_seq_loader, ComposableAligned):
     """loads sequences"""
 
+    _input_type = frozenset([None])
+    _output_type = frozenset(["aligned"])
+
     klass = ArrayAlignment
 
     def __init__(self, moltype=None, format="fasta"):
@@ -137,7 +140,7 @@ class load_aligned(_seq_loader, ComposableAligned):
         format : str
             sequence file format
         """
-        super(ComposableAligned, self).__init__(input_type=None, output_type="aligned")
+        super(ComposableAligned, self).__init__()
         _seq_loader.__init__(self)
         self._formatted_params()
         if moltype:
@@ -148,6 +151,9 @@ class load_aligned(_seq_loader, ComposableAligned):
 
 class load_unaligned(ComposableSeq, _seq_loader):
     """loads sequences"""
+
+    _input_type = frozenset([None])
+    _output_type = frozenset(["sequences"])
 
     klass = SequenceCollection
 
@@ -160,7 +166,7 @@ class load_unaligned(ComposableSeq, _seq_loader):
         format : str
             sequence file format
         """
-        super(ComposableSeq, self).__init__(input_type=None, output_type="sequences")
+        super(ComposableSeq, self).__init__()
         _seq_loader.__init__(self)
         self._formatted_params()
         if moltype:
@@ -170,6 +176,9 @@ class load_unaligned(ComposableSeq, _seq_loader):
 
 
 class load_tabular(ComposableTabular):
+    _input_type = frozenset([None])
+    _output_type = frozenset(["tabular"])
+
     def __init__(
         self, with_title=False, with_header=True, limit=None, sep="\t", strict=True
     ):
@@ -188,7 +197,7 @@ class load_tabular(ComposableTabular):
         strict
             all rows MUST have the same number of records
         """
-        super(ComposableTabular, self).__init__(input_type=None, output_type="tabular")
+        super(ComposableTabular, self).__init__()
         self._formatted_params()
         self._sep = sep
         self._with_title = with_title
@@ -256,6 +265,9 @@ class load_tabular(ComposableTabular):
 
 
 class write_seqs(_checkpointable):
+    _input_type = frozenset(("sequences", "aligned"))
+    _output_type = frozenset(("sequences", "aligned", "identifier"))
+
     def __init__(
         self,
         data_path,
@@ -285,8 +297,6 @@ class write_seqs(_checkpointable):
             exception), 'overwrite'
         """
         super(write_seqs, self).__init__(
-            input_type=("sequences", "aligned"),
-            output_type=("sequences", "aligned", "identifier"),
             data_path=data_path,
             name_callback=name_callback,
             create=create,
@@ -310,11 +320,11 @@ class write_seqs(_checkpointable):
 
 class load_json(Composable):
     _type = "output"
+    _input_type = frozenset([None])
+    _output_type = frozenset(["result", "serialisable"])
 
     def __init__(self):
-        super(load_json, self).__init__(
-            input_type=None, output_type=("result", "serialisable")
-        )
+        super(load_json, self).__init__()
         self.func = self.read
 
     def read(self, path):
@@ -329,13 +339,13 @@ class load_json(Composable):
 
 class write_json(_checkpointable):
     _type = "output"
+    _input_type = frozenset(["serialisable"])
+    _output_type = frozenset(["identifier", "serialisable"])
 
     def __init__(
         self, data_path, name_callback=None, create=False, if_exists=SKIP, suffix="json"
     ):
         super(write_json, self).__init__(
-            input_type="serialisable",
-            output_type=("identifier", "serialisable"),
             data_path=data_path,
             name_callback=name_callback,
             create=create,
@@ -345,9 +355,7 @@ class write_json(_checkpointable):
         self.func = self.write
 
     def _set_checkpoint_loader(self):
-        self._load_checkpoint = load_json(
-            self.data_store.source, suffix=self.data_store.suffix
-        )
+        self._load_checkpoint = load_json()
 
     def write(self, data):
         identifier = self._make_output_identifier(data)
