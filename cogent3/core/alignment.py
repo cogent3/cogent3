@@ -2802,7 +2802,9 @@ class AlignmentI(object):
             height=height,
             showlegend=True,
             yaxis=dict(range=[0, max(y) * 1.2], showgrid=False),
-            xaxis=dict(showgrid=False, range=[0, len(self)]),
+            xaxis=dict(
+                showgrid=False, range=[0, len(self)], mirror=True, showline=True
+            ),
         )
 
         traces = [trace_marks, trace_line]
@@ -2825,6 +2827,7 @@ class AlignmentI(object):
                 overlaying="y",
                 range=[0, max(gap_counts) * 1.2],
                 showgrid=False,
+                showline=True,
             )
 
         draw = Drawable(
