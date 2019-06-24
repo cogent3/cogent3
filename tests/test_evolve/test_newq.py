@@ -3,6 +3,7 @@
 import warnings
 
 from numpy import dot, ones
+from numpy.testing import assert_allclose
 
 from cogent3 import DNA, LoadSeqs, LoadTree
 from cogent3.evolve.ns_substitution_model import (
@@ -146,6 +147,17 @@ class NewQ(TestCase):
         stats = lf.get_statistics(with_motif_probs=True, with_titles=True)
         mprobs = stats[-1]
         self.assertEqual(set(mprobs.header), set(sm.get_motifs()))
+
+    def test_get_motif_probs(self):
+        """exercise getting motif probs under all models"""
+        for (mprobs, model) in self.ordered_by_complexity:
+            di = TimeReversibleNucleotide(
+                motif_length=2, motif_probs=mprobs, mprob_model=model
+            )
+            lf = di.make_likelihood_function(self.tree)
+            lf.set_alignment(self.aln)
+            if model == "monomers":
+                _ = lf.get_motif_probs(position=0)
 
     def test_sim_alignment(self):
         """should be able to simulate an alignment under all models"""
