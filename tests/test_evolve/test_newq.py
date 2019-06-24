@@ -215,9 +215,7 @@ class NewQ(TestCase):
         posn2 = LoadSeqs(data=posn2)
 
         # a newQ dinucleotide model
-        sm = TimeReversibleNucleotide(
-            motif_length=2, mprob_model="monomer", do_scaling=False
-        )
+        sm = TimeReversibleNucleotide(motif_length=2, mprob_model="monomer")
         lf = sm.make_likelihood_function(self.tree)
         lf.set_alignment(posn1)
         posn1_lnL = lf.get_log_likelihood()
@@ -231,16 +229,15 @@ class NewQ(TestCase):
 
         # setting the full alignment, which has different motif probs, should
         # produce a different lnL
-        self.assertNotAlmostEqual(expect_lnL, aln_lnL)
+        self.assertNotAlmostEqual(aln_lnL, expect_lnL)
 
         # set the arguments for taking position specific mprobs
-        sm = TimeReversibleNucleotide(
-            motif_length=2, mprob_model="monomers", do_scaling=False
-        )
+        sm = TimeReversibleNucleotide(motif_length=2, mprob_model="monomers")
         lf = sm.make_likelihood_function(self.tree)
         lf.set_alignment(self.aln)
+        mprobs = lf.get_motif_probs()
         posn12_lnL = lf.get_log_likelihood()
-        self.assertFloatEqual(expect_lnL, posn12_lnL)
+        assert_allclose(posn12_lnL, expect_lnL, rtol=1e-4)
 
     def test_compute_conditional_mprobs(self):
         """equal likelihood from position specific and conditional mprobs"""

@@ -7,6 +7,8 @@ than the rate-matrix based alternative and provides no extra functionality.
 
 import numpy
 
+from numpy.testing import assert_allclose
+
 from cogent3.evolve.predicate import MotifChange
 from cogent3.evolve.substitution_model import (
     CalcDefn,
@@ -51,7 +53,7 @@ class PredefinedNucleotide(TimeReversibleNucleotide):
         if kappa_r is None:
             kappa_r = kappa_y
         result = numpy.empty([4, 4], float)
-        _solved_models.calc_TN93_P(self._do_scaling, pi, time, kappa_y, kappa_r, result)
+        _solved_models.calc_TN93_P(pi, time, kappa_y, kappa_r, result)
         return result
 
     def check_psub_calculations_match(self):
@@ -60,7 +62,7 @@ class PredefinedNucleotide(TimeReversibleNucleotide):
         Q = self.calcQ(pi, pi, *params)
         P1 = FastExponentiator(Q)(0.5)
         P2 = self.calc_psub_matrix(pi, 0.5, *params)
-        assert numpy.allclose(P1, P2)
+        assert_allclose(P1, P2)
 
 
 def _solvedNucleotide(name, predicates, rate_matrix_required=True, **kw):

@@ -118,9 +118,10 @@ def getposition(motif1, motif2):
 
 ##############################################################
 # funcs for testing the monomer weighted substitution matrices
-_root_probs = lambda x: dict(
-    [(n1 + n2, p1 * p2) for n1, p1 in list(x.items()) for n2, p2 in list(x.items())]
-)
+def _root_probs(x):
+    return dict(
+        [(n1 + n2, p1 * p2) for n1, p1 in list(x.items()) for n2, p2 in list(x.items())]
+    )
 
 
 def make_p(length, coord, val):
@@ -247,7 +248,6 @@ class LikelihoodCalcs(TestCase):
         """test a three taxa codon model."""
         submod = substitution_model.TimeReversibleCodon(
             equal_motif_probs=True,
-            do_scaling=False,
             motif_probs=None,
             predicates={"kappa": "transition", "omega": "replacement"},
             mprob_model="tuple",
@@ -256,30 +256,24 @@ class LikelihoodCalcs(TestCase):
         likelihood_function = self._makeLikelihoodFunction(submod)
         likelihood_function.set_param_rule("omega", value=0.5, is_constant=True)
         evolve_lnL = likelihood_function.get_log_likelihood()
-        self.assertFloatEqual(evolve_lnL, -80.67069614541883)
+        self.assertFloatEqual(evolve_lnL, -103.05742415448259)
 
     def test_nucleotide(self):
         """test a nucleotide model."""
         submod = TimeReversibleNucleotide(
-            equal_motif_probs=True,
-            do_scaling=False,
-            motif_probs=None,
-            predicates={"kappa": "transition"},
+            equal_motif_probs=True, motif_probs=None, predicates={"kappa": "transition"}
         )
         # now do using the evolve
         likelihood_function = self._makeLikelihoodFunction(submod)
         self.assertEqual(likelihood_function.get_num_free_params(), 0)
         evolve_lnL = likelihood_function.get_log_likelihood()
-        self.assertFloatEqual(evolve_lnL, -157.49363874840455)
+        self.assertFloatEqual(evolve_lnL, -148.6455087258624)
 
     def test_discrete_nucleotide(self):
         """test that partially discrete nucleotide model can be constructed, 
         differs from continuous, and has the expected number of free params"""
         submod = TimeReversibleNucleotide(
-            equal_motif_probs=True,
-            do_scaling=False,
-            motif_probs=None,
-            predicates={"kappa": "transition"},
+            equal_motif_probs=True, motif_probs=None, predicates={"kappa": "transition"}
         )
         likelihood_function = self._makeLikelihoodFunction(
             submod, discrete_edges=["Human"]
@@ -292,25 +286,21 @@ class LikelihoodCalcs(TestCase):
         """test a dinucleotide model."""
         submod = substitution_model.TimeReversibleDinucleotide(
             equal_motif_probs=True,
-            do_scaling=False,
-            motif_probs=None,
             predicates={"kappa": "transition"},
             mprob_model="tuple",
         )
         likelihood_function = self._makeLikelihoodFunction(submod)
         evolve_lnL = likelihood_function.get_log_likelihood()
-        self.assertFloatEqual(evolve_lnL, -102.48145536663735)
+        self.assertFloatEqual(evolve_lnL, -118.35045332768402)
 
     def test_protein(self):
         """test a protein model."""
-        submod = substitution_model.TimeReversibleProtein(
-            do_scaling=False, equal_motif_probs=True
-        )
+        submod = substitution_model.TimeReversibleProtein(equal_motif_probs=True)
 
         likelihood_function = self._makeLikelihoodFunction(submod, translate=True)
 
         evolve_lnL = likelihood_function.get_log_likelihood()
-        self.assertFloatEqual(evolve_lnL, -89.830370754876185)
+        self.assertFloatEqual(evolve_lnL, -91.35162044257062)
 
 
 class LikelihoodFunctionTests(TestCase):
@@ -320,10 +310,7 @@ class LikelihoodFunctionTests(TestCase):
 
     def setUp(self):
         self.submodel = TimeReversibleNucleotide(
-            do_scaling=True,
-            model_gaps=False,
-            equal_motif_probs=True,
-            predicates={"beta": "transition"},
+            equal_motif_probs=True, predicates={"beta": "transition"}
         )
 
         self.data = LoadSeqs(
@@ -1217,9 +1204,9 @@ NineBande      root    1.0000    1.0000
 
     def test_bin_probs(self):
         """bin probs has same length as alignment for monomer alphabet"""
-        aln = LoadSeqs('data/primates_brca1.fasta', moltype='dna')
-        tree = LoadTree('data/primates_brca1.tree')
-        sm = get_model('HKY85', ordered_param='rate', distribution='gamma')
+        aln = LoadSeqs("data/primates_brca1.fasta", moltype="dna")
+        tree = LoadTree("data/primates_brca1.tree")
+        sm = get_model("HKY85", ordered_param="rate", distribution="gamma")
         lf = sm.make_likelihood_function(tree, bins=4, sites_independent=False)
         lf.set_alignment(aln)
         bprobs = lf.get_bin_probs()
