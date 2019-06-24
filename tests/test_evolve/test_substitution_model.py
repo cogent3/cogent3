@@ -30,9 +30,7 @@ data_path = os.path.join(base_path, "data")
 
 class NucleotideModelTestMethods(TestCase):
     def setUp(self):
-        self.submodel = substitution_model.TimeReversibleNucleotide(
-            do_scaling=True, model_gaps=False
-        )
+        self.submodel = substitution_model.TimeReversibleNucleotide(model_gaps=False)
 
     def test_isTransition(self):
         """testing isTransition"""
@@ -58,9 +56,7 @@ class NucleotideModelTestMethods(TestCase):
 
     def test_isIndel(self):
         """testing indel comparison nucleotide model"""
-        model = substitution_model.TimeReversibleNucleotide(
-            do_scaling=True, model_gaps=True
-        )
+        model = substitution_model.TimeReversibleNucleotide(model_gaps=True)
         isIndel = model.get_predefined_predicate("indel")
         assert isIndel("A", "-")
         assert isIndel("-", "G")
@@ -110,7 +106,7 @@ class NucleotideModelTestMethods(TestCase):
 class MultiLetterMotifSubstModelTests(TestCase):
     def setUp(self):
         self.submodel = substitution_model.TimeReversibleDinucleotide(
-            do_scaling=True, model_gaps=True, mprob_model="tuple"
+            model_gaps=True, mprob_model="tuple"
         )
 
     def test_ascii_art(self):

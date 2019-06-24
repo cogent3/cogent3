@@ -446,7 +446,6 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
     # the default changed to False
     long_indels_are_instantaneous = True
 
-    _scalableQ = True
     _exponentiator = None
     _default_expm_setting = "either"
 
@@ -458,7 +457,6 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         ordered_param=None,
         distribution=None,
         partitioned_params=None,
-        do_scaling=None,
         **kw,
     ):
         """
@@ -467,20 +465,12 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
          - distribution: choices of 'free' or 'gamma' or an instance of some
            distribution. Could probably just deprecate free
          - partitioned_params: names of params to be partitioned across bins
-         - do_scaling: Scale branch lengths as the expected number of
-           substitutions.  Reduces the maximum substitution df by 1.
         """
 
         _SubstitutionModel.__init__(self, alphabet, **kw)
         self._serialisable.update(locals())
         self._serialisable.pop("self")
         alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
-
-        if do_scaling is None:
-            do_scaling = self._scalableQ
-        if do_scaling and not self._scalableQ:
-            raise ValueError("Can't autoscale a %s model" % type(self).__name__)
-        self._do_scaling = do_scaling
 
         # BINS
         if not ordered_param:
@@ -568,8 +558,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         Q = self.calc_exchangeability_matrix(word_probs, *params)
         row_totals = Q.sum(axis=1)
         Q -= numpy.diag(row_totals)
-        if self._do_scaling:
-            Q *= 1.0 / (word_probs * row_totals).sum()
+        Q *= 1.0 / (word_probs * row_totals).sum()
         return Q
 
     def get_reference_cell(self):
@@ -675,8 +664,7 @@ class StationaryQ:
         Q *= mprobs_matrix
         row_totals = Q.sum(axis=1)
         Q -= numpy.diag(row_totals)
-        if self._do_scaling:
-            Q *= 1.0 / (word_probs * row_totals).sum()
+        Q *= 1.0 / (word_probs * row_totals).sum()
         return Q
 
 
@@ -734,25 +722,16 @@ class Parametric(_ContinuousSubstitutionModel):
                 raise ValueError("Predicate %s is always false." % name)
         predicates_plus_scale = predicate_masks.copy()
         predicates_plus_scale[None] = self._instantaneous_mask
-        if self._do_scaling:
-            for (name, matrix) in list(predicate_masks.items()):
-                if numpy.alltrue((matrix == self._instantaneous_mask).flat):
-                    raise ValueError("Predicate %s is always true." % name)
-            if redundancy_in_predicate_masks(predicate_masks):
-                raise ValueError("Redundancy in predicates.")
-            if redundancy_in_predicate_masks(predicates_plus_scale):
-                raise ValueError(
-                    "Some combination of predicates is"
-                    " equivalent to the overall rate parameter."
-                )
-        else:
-            if redundancy_in_predicate_masks(predicate_masks):
-                raise ValueError("Redundancy in predicates.")
-            if redundancy_in_predicate_masks(predicates_plus_scale):
-                warnings.warn(
-                    "do_scaling=True would be more efficient than"
-                    " these overly general predicates"
-                )
+        for (name, matrix) in list(predicate_masks.items()):
+            if numpy.alltrue((matrix == self._instantaneous_mask).flat):
+                raise ValueError("Predicate %s is always true." % name)
+        if redundancy_in_predicate_masks(predicate_masks):
+            raise ValueError("Redundancy in predicates.")
+        if redundancy_in_predicate_masks(predicates_plus_scale):
+            raise ValueError(
+                "Some combination of predicates is"
+                " equivalent to the overall rate parameter."
+            )
 
         self.predicate_masks = predicate_masks
         self.parameter_order = []
@@ -960,12 +939,7 @@ class TimeReversibleProtein(TimeReversible):
 
 
 def EmpiricalProteinMatrix(
-    matrix,
-    motif_probs=None,
-    optimise_motif_probs=False,
-    recode_gaps=True,
-    do_scaling=True,
-    **kw,
+    matrix, motif_probs=None, optimise_motif_probs=False, recode_gaps=True, **kw
 ):
     alph = moltype.PROTEIN.alphabet.get_subset("U", excluded=True)
     return Empirical(
@@ -974,7 +948,6 @@ def EmpiricalProteinMatrix(
         motif_probs=motif_probs,
         model_gaps=False,
         recode_gaps=recode_gaps,
-        do_scaling=do_scaling,
         optimise_motif_probs=optimise_motif_probs,
         **kw,
     )

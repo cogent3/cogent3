@@ -61,8 +61,7 @@ class General(Parametric):
                 y = alphabet[j]
                 self.parameter_order.append("%s/%s" % (x, y))
                 self.param_pick[i, j] = len(self.parameter_order)
-        if self._do_scaling:
-            const_param = self.parameter_order.pop()
+        const_param = self.parameter_order.pop()
         self.symmetric = False
         self.check_params_exist()
 
@@ -98,8 +97,7 @@ class GeneralStationary(Stationary):
                 (x, y) = [alphabet[k] for k in [i, j]]
                 self.parameter_order.append("%s/%s" % (x, y))
                 self.param_pick[i, j] = len(self.parameter_order)
-        if self._do_scaling:
-            const_param = self.parameter_order.pop()
+        const_param = self.parameter_order.pop()
         self.symmetric = False
         self.check_params_exist()
 
@@ -171,14 +169,10 @@ class NonReversibleCodon(_Codon, Parametric):
 
 class StrandSymmetric(NonReversibleNucleotide):
     def __init__(self, **kw):
-        for argname in ("predicates", "recode_gaps", "model_gaps", "do_scaling"):
+        for argname in ("predicates", "recode_gaps", "model_gaps"):
             kw.pop(argname, None)
         super(StrandSymmetric, self).__init__(
-            predicates=_sym_preds,
-            recode_gaps=True,
-            model_gaps=False,
-            do_scaling=True,
-            **kw,
+            predicates=_sym_preds, recode_gaps=True, model_gaps=False, **kw
         )
 
 
