@@ -564,14 +564,44 @@ class LikelihoodFunction(ParameterController):
 
         return tree
 
-    def get_motif_probs(self, edge=None, bin=None, locus=None):
-        motif_probs_array = self.get_param_value(
-            "mprobs", edge=edge, bin=bin, locus=locus
-        )
+    def get_motif_probs(self, edge=None, bin=None, locus=None, position=None):
+        """
+        Parameters
+        ----------
+        edge : str
+            name of edge
+        bin : int or str
+            name of bin
+        locus : str
+            name of locus
+        position : int or str
+            name of position
+
+        Returns
+        -------
+        If 1D, returns DictArray, else a dict of DictArray
+        """
+        param_names = self.get_param_names()
+        mprob_name = [n for n in param_names if "mprob" in n][0]
+        dims = tuple(self.get_used_dimensions(mprob_name))
+        mprobs = self.get_param_value_dict(dimensions=dims, params=[mprob_name])
+        if len(dims) == 2:
+            var = [c for c in dims if c != mprob_name][0]
+            key = locals().get(var, None)
+            mprobs = mprobs[mprob_name]
+            if key is not None:
+                mprobs = mprobs.get(str(key), mprobs.get(key))
+                mprobs = {mprob_name: mprobs}
+
         # these can fall below the minimum allowed value due to
         # rounding errors, so I adjust these
-        motif_probs_array = adjusted_gt_minprob(motif_probs_array, minprob=1e-6)
-        return DictArrayTemplate(self._mprob_motifs).wrap(motif_probs_array)
+        for k, value in mprobs.items():
+            value.array = adjusted_gt_minprob(value.array, minprob=1e-6)
+
+        if len(mprobs) == 1:
+            mprobs = mprobs[mprob_name]
+
+        return mprobs
 
     def get_bin_prior_probs(self, locus=None):
         bin_probs_array = self.get_param_value("bprobs", locus=locus)
