@@ -16,7 +16,7 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-class UnionDictTests(TestCase):
+class TableTests(TestCase):
     """Tests of individual functions in table"""
 
     # test table 1
