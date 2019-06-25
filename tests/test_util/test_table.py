@@ -59,6 +59,8 @@ class TableTests(TestCase):
         self.assertEqual(t2.count('stableid.endswith("6")'), 2)
         self.assertEqual(t2.count('length % 2 == 0'), 2)
         self.assertEqual(t2.count('chrom == "Y"'), 0)
+        self.assertEqual(t2.count('length % 2 == 0 and chrom == "A"'), 2)
+        self.assertEqual(t2.count('length % 2 == 0 or chrom == "X"'), 6)
 
 
 if __name__ == "__main__":
