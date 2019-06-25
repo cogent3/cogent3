@@ -27,9 +27,8 @@ TREE = LoadTree(tip_names="ab")
 
 
 class ScaleRuleTests(unittest.TestCase):
-    def _makeModel(self, do_scaling, predicates, scale_rules=[]):
+    def _makeModel(self, predicates, scale_rules=[]):
         return substitution_model.TimeReversibleNucleotide(
-            do_scaling=do_scaling,
             equal_motif_probs=True,
             model_gaps=False,
             predicates=predicates,
@@ -47,7 +46,7 @@ class ScaleRuleTests(unittest.TestCase):
 
     def test_scaled(self):
         """Scale rule requiring matrix entries to have all pars specified"""
-        model = self._makeModel(True, {"k": trans}, {"ts": trans, "tv": ~trans})
+        model = self._makeModel({"k": trans}, {"ts": trans, "tv": ~trans})
 
         self.assertEqual(
             self._get_scaled_lengths(model, {"k": 6.0, "length": 4.0}),
@@ -55,7 +54,7 @@ class ScaleRuleTests(unittest.TestCase):
         )
 
     def test_binned(self):
-        model = self._makeModel(True, {"k": trans}, {"ts": trans, "tv": ~trans})
+        model = self._makeModel({"k": trans}, {"ts": trans, "tv": ~trans})
 
         LF = model.make_likelihood_function(TREE, bins=2)
         LF.set_param_rule("length", value=4.0, is_constant=True)
@@ -65,20 +64,10 @@ class ScaleRuleTests(unittest.TestCase):
         for (bin, expected) in [("bin0", 3.0), ("bin1", 4.0 / 3), (None, 13.0 / 6)]:
             self.assertEqual(LF.get_scaled_lengths("ts", bin=bin)["a"], expected)
 
-    def test_unscaled(self):
-        """Scale rule on a model which has scaling performed after calculation
-        rather than during it"""
-        model = self._makeModel(False, {"k": trans}, {"ts": trans, "tv": ~trans})
-
-        self.assertEqual(
-            self._get_scaled_lengths(model, {"k": 6.0, "length": 2.0}),
-            {"ts": 3.0, "tv": 1.0},
-        )
-
     def test_scaled_or(self):
         """Scale rule where matrix entries can have any of the pars specified"""
         model = self._makeModel(
-            True, {"k": trans, "ac": a_c}, {"or": (trans | a_c), "not": ~(trans | a_c)}
+            {"k": trans, "ac": a_c}, {"or": (trans | a_c), "not": ~(trans | a_c)}
         )
 
         self.assertEqual(
@@ -89,7 +78,6 @@ class ScaleRuleTests(unittest.TestCase):
     def test_scaling(self):
         """Testing scaling calculations using Dn and Ds as an example."""
         model = substitution_model.TimeReversibleCodon(
-            do_scaling=True,
             model_gaps=False,
             recode_gaps=True,
             predicates={"k": trans, "r": replacement},

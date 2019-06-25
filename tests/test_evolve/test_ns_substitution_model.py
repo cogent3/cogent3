@@ -238,7 +238,6 @@ class NonStatMarkov(TestCase):
     def test_nsGN(self):
         """ssGN correctly ignores provided args"""
         kw = {
-            "do_scaling": True,
             "model_gaps": False,
             "name": "StrandSymmetric",
             "optimise_motif_probs": True,

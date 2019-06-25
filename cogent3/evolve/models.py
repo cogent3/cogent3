@@ -88,7 +88,7 @@ def GN(optimise_motif_probs=True, **kw):
     required = dict(
         optimise_motif_probs=optimise_motif_probs, name="GN", predicates=_general_preds
     )
-    kwargs = dict(do_scaling=True, recode_gaps=True, model_gaps=False)
+    kwargs = dict(recode_gaps=True, model_gaps=False)
     kwargs.update(kw)
     kwargs.update(required)
     sm = ns_substitution_model.NonReversibleNucleotide(**kwargs)
@@ -129,7 +129,7 @@ def GTR(**kw):
     required = dict(
         name="GTR", predicates=_gtr_preds, mprob_model="conditional", model_gaps=False
     )
-    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs = dict(recode_gaps=True, motif_probs=None)
     kwargs.update(kw)
     kwargs.update(required)
     return substitution_model.TimeReversibleNucleotide(**kwargs)
@@ -147,7 +147,7 @@ def CNFGTR(**kw):
         mprob_model="conditional",
         model_gaps=False,
     )
-    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs = dict(recode_gaps=True, motif_probs=None)
     kwargs.update(kw)
     kwargs.update(required)
     return substitution_model.TimeReversibleCodon(**kwargs)
@@ -164,7 +164,7 @@ def CNFHKY(**kw):
         mprob_model="conditional",
         model_gaps=False,
     )
-    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs = dict(recode_gaps=True, motif_probs=None)
     kwargs.update(kw)
     kwargs.update(required)
     return substitution_model.TimeReversibleCodon(**kwargs)
@@ -181,7 +181,7 @@ def MG94HKY(**kw):
         mprob_model="monomer",
         model_gaps=False,
     )
-    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs = dict(recode_gaps=True, motif_probs=None)
     kwargs.update(kw)
     kwargs.update(required)
     return substitution_model.TimeReversibleCodon(**kwargs)
@@ -198,7 +198,7 @@ def MG94GTR(**kw):
         mprob_model="monomer",
         model_gaps=False,
     )
-    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs = dict(recode_gaps=True, motif_probs=None)
     kwargs.update(kw)
     kwargs.update(required)
     return substitution_model.TimeReversibleCodon(**kwargs)
@@ -218,7 +218,7 @@ def Y98(**kw):
     required = dict(
         name="Y98", predicates=[_kappa, _omega], mprob_model="tuple", model_gaps=False
     )
-    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs = dict(recode_gaps=True, motif_probs=None)
     kwargs.update(kw)
     kwargs.update(required)
     return substitution_model.TimeReversibleCodon(**kwargs)
@@ -235,7 +235,7 @@ def H04G(**kw):
         mprob_model="tuple",
         model_gaps=False,
     )
-    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs = dict(recode_gaps=True, motif_probs=None)
     kwargs.update(kw)
     kwargs.update(required)
     return substitution_model.TimeReversibleCodon(**kwargs)
@@ -252,7 +252,7 @@ def H04GK(**kw):
         mprob_model="tuple",
         model_gaps=False,
     )
-    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs = dict(recode_gaps=True, motif_probs=None)
     kwargs.update(kw)
     kwargs.update(required)
     return substitution_model.TimeReversibleCodon(**kwargs)
@@ -269,7 +269,7 @@ def H04GGK(**kw):
         mprob_model="tuple",
         model_gaps=False,
     )
-    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs = dict(recode_gaps=True, motif_probs=None)
     kwargs.update(kw)
     kwargs.update(required)
     return substitution_model.TimeReversibleCodon(**kwargs)
@@ -285,7 +285,7 @@ def GNC(**kw):
         mprob_model="tuple",
         model_gaps=False,
     )
-    kwargs = dict(do_scaling=True, recode_gaps=True, motif_probs=None)
+    kwargs = dict(recode_gaps=True, motif_probs=None)
     kwargs.update(kw)
     kwargs.update(required)
     return ns_substitution_model.NonReversibleCodon(**kwargs)
