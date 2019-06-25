@@ -3,6 +3,7 @@
 import warnings
 
 from numpy import dot, ones
+from numpy.testing import assert_allclose
 
 from cogent3 import DNA, LoadSeqs, LoadTree
 from cogent3.evolve.ns_substitution_model import (
@@ -147,6 +148,17 @@ class NewQ(TestCase):
         mprobs = stats[-1]
         self.assertEqual(set(mprobs.header), set(sm.get_motifs()))
 
+    def test_get_motif_probs(self):
+        """exercise getting motif probs under all models"""
+        for (mprobs, model) in self.ordered_by_complexity:
+            di = TimeReversibleNucleotide(
+                motif_length=2, motif_probs=mprobs, mprob_model=model
+            )
+            lf = di.make_likelihood_function(self.tree)
+            lf.set_alignment(self.aln)
+            if model == "monomers":
+                _ = lf.get_motif_probs(position=0)
+
     def test_sim_alignment(self):
         """should be able to simulate an alignment under all models"""
         for (mprobs, model) in self.ordered_by_complexity:
@@ -203,9 +215,7 @@ class NewQ(TestCase):
         posn2 = LoadSeqs(data=posn2)
 
         # a newQ dinucleotide model
-        sm = TimeReversibleNucleotide(
-            motif_length=2, mprob_model="monomer", do_scaling=False
-        )
+        sm = TimeReversibleNucleotide(motif_length=2, mprob_model="monomer")
         lf = sm.make_likelihood_function(self.tree)
         lf.set_alignment(posn1)
         posn1_lnL = lf.get_log_likelihood()
@@ -219,16 +229,15 @@ class NewQ(TestCase):
 
         # setting the full alignment, which has different motif probs, should
         # produce a different lnL
-        self.assertNotAlmostEqual(expect_lnL, aln_lnL)
+        self.assertNotAlmostEqual(aln_lnL, expect_lnL)
 
         # set the arguments for taking position specific mprobs
-        sm = TimeReversibleNucleotide(
-            motif_length=2, mprob_model="monomers", do_scaling=False
-        )
+        sm = TimeReversibleNucleotide(motif_length=2, mprob_model="monomers")
         lf = sm.make_likelihood_function(self.tree)
         lf.set_alignment(self.aln)
+        mprobs = lf.get_motif_probs()
         posn12_lnL = lf.get_log_likelihood()
-        self.assertFloatEqual(expect_lnL, posn12_lnL)
+        assert_allclose(posn12_lnL, expect_lnL, rtol=1e-4)
 
     def test_compute_conditional_mprobs(self):
         """equal likelihood from position specific and conditional mprobs"""

@@ -77,9 +77,8 @@ class CannedModelsTest(TestCase):
 
     def test_solved_models(self):
         for klass in [TN93, HKY85, F81]:
-            for scaled in [True, False]:
-                model = klass(rate_matrix_required=False, do_scaling=scaled)
-                model.check_psub_calculations_match()
+            model = klass(rate_matrix_required=False)
+            model.check_psub_calculations_match()
 
     def test_get_model(self):
         """get_models successfully creates model instances"""

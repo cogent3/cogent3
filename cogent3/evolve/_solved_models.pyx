@@ -8,7 +8,7 @@ cdef extern from "math.h":
 
 version_info = (1, 1)
 
-def calc_TN93_P(int do_scaling, double[::1] mprobs not None, double time, 
+def calc_TN93_P(double[::1] mprobs not None, double time,
         alpha_1, alpha_2, double[:, ::1] result not None):
     cdef int motif, i, other, row, column, b_row, b_column
     cdef double scale_factor
@@ -27,14 +27,14 @@ def calc_TN93_P(int do_scaling, double[::1] mprobs not None, double time,
     mu[0] = alpha[0] * pi_star[0] + 1.0 * pi_star[1]
     mu[1] = 1.0 * pi_star[0] + alpha[1] * pi_star[1]
     
-    if do_scaling:
-        scale_factor = 0.0
-        for motif in range(4):
-            i = motif // 2
-            other = 1 - i
-            scale_factor += (alpha[i] * mprobs[2*i+1-motif%2] + pi_star[other]) * mprobs[motif]
-        time /= scale_factor
-    
+    scale_factor = 0.0
+    for motif in range(4):
+        i = motif // 2
+        other = 1 - i
+        scale_factor += (alpha[i] * mprobs[2*i+1-motif%2] + pi_star[other]) * mprobs[motif]
+
+    time /= scale_factor
+
     e_beta_t = exp(-time)
     transversion = 1 - e_beta_t
     for i in range(2):

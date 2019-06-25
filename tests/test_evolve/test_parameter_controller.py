@@ -49,15 +49,12 @@ class test_parameter_controller(TestCase):
         )
         self.tree = LoadTree(treestring="((a,b),(c,d),e);")
         self.model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
-            do_scaling=True, equal_motif_probs=True, model_gaps=True
+            equal_motif_probs=True, model_gaps=True
         )
 
     def test_scoped_local(self):
         model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
-            do_scaling=True,
-            equal_motif_probs=True,
-            model_gaps=True,
-            predicates={"kappa": "transition"},
+            equal_motif_probs=True, model_gaps=True, predicates={"kappa": "transition"}
         )
         lf = model.make_likelihood_function(self.tree)
         lf.set_constant_lengths()
@@ -160,10 +157,7 @@ class test_parameter_controller(TestCase):
         al = LoadSeqs(data={"a": "agct", "b": "ggct"})
         tree = LoadTree(treestring="(a,b);")
         model = cogent3.evolve.substitution_model.TimeReversibleDinucleotide(
-            do_scaling=True,
-            equal_motif_probs=True,
-            model_gaps=True,
-            mprob_model="tuple",
+            equal_motif_probs=True, model_gaps=True, mprob_model="tuple"
         )
         lf = model.make_likelihood_function(tree)
         lf.set_local_clock("a", "b")
@@ -187,10 +181,7 @@ class test_parameter_controller(TestCase):
         # This test has many local minima and so does not cope
         # with changes to optimiser details.
         model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
-            do_scaling=True,
-            equal_motif_probs=True,
-            model_gaps=True,
-            predicates={"kappa": "transition"},
+            equal_motif_probs=True, model_gaps=True, predicates={"kappa": "transition"}
         )
         lf = model.make_likelihood_function(self.tree)
         lf.set_param_rule(par_name="kappa", is_independent=True)
