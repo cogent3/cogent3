@@ -25,3 +25,4 @@ draw_results
 *.patch
 *.pytest_cache
 *.tox
+*.vscode
