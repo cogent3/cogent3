@@ -74,7 +74,7 @@ class TreeGeometryBase(PhyloNode):
     @property
     def min_x(self):
         if not self._min_x:
-            self._min_x = min([e.x for e in self.iter_nontips()] + [self.x])
+            self._min_x = min([e.x for e in self.postorder()])
         return self._min_x
 
     @property
@@ -150,10 +150,11 @@ class TreeGeometryBase(PhyloNode):
             if edge.is_root():
                 edge.params["depth"] = 0
                 edge.params[self._length] = 0
-            else:
-                length = edge.params.get(self._length, None) or 1
-                edge.params[self._length] = length
-                edge.params["depth"] = edge.parent.params.get("depth", 0) + 1
+                continue
+
+            length = edge.params.get(self._length, None) or 1
+            edge.params[self._length] = length
+            edge.params["depth"] = edge.parent.params.get("depth", 0) + 1
 
         self._max_child_depth()
         for edge in self.preorder():
@@ -255,25 +256,21 @@ class RadialTreeGeometry(TreeGeometryBase):
         self._node_space = None
 
     def propagate_properties(self):
+        self._num_tips = len(self.tips())
         self._init_tip_ranks()
         self._init_length_depth_attr()
-
-    def _init_length_depth_attr(self):
-        self._num_tips = len(self.tips())
-        self._node_space = 360 / (self._num_tips + 1)
-        super()._init_length_depth_attr()
 
     @property
     def node_space(self):
         if self._node_space is None:
-            self._node_space = (self._num_tips + 1) / 360
+            self._node_space = 360 / self._num_tips
         return self._node_space
 
     @node_space.setter
     def node_space(self, value):
         if value < 0:
             raise ValueError("node spacing must be > 0")
-        if (self._num_tips + 1) * value > 360:
+        if self._num_tips * value > 360:
             raise ValueError(f"{value} * {(self._num_tips + 1)} is > 360")
         self._node_space = value
 
@@ -329,7 +326,7 @@ class RadialTreeGeometry(TreeGeometryBase):
         return a, b, c
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
-    def value_and_coordinate(self, attr, padding=0.05, just=20):
+    def value_and_coordinate(self, attr, padding=0.05):
         if 90 < self.theta <= 270:
             radius = np.sqrt(self.x ** 2 + self.y ** 2) + 2 * padding
             textangle = 180 - self.theta
@@ -344,7 +341,7 @@ class RadialTreeGeometry(TreeGeometryBase):
             y=y,
             textangle=textangle,
             showarrow=False,
-            text=self.name.rjust(just),
+            text=self.name,
             xanchor="center",
             yanchor="middle",
             align="left",
@@ -549,6 +546,12 @@ class Dendrogram(Drawable):
             self.layout.pop("shapes", None)
 
         if isinstance(self.tree, RadialTreeGeometry):
+            max_x = max(self.tree.max_x, abs(self.tree.min_x)) * 1.1
+            max_y = max(self.tree.max_y, abs(self.tree.min_y)) * 1.1
+            # making sure the coordinates centered on the origin to avoid
+            # distortion (over/under rotation of the text)
+            max_x = max_y = max(max_y, max_x)
+
             # must draw this square
             if self.layout.width and self.layout.height:
                 dim = max(self.layout.width, self.layout.height)
@@ -559,6 +562,12 @@ class Dendrogram(Drawable):
             else:
                 dim = 800
             self.layout.width = self.layout.height = dim
+
+            # I'm assuming we span the origin
+            axes_range = dict(
+                xaxis=dict(range=[-max_x, max_x]), yaxis=dict(range=[-max_y, max_y])
+            )
+            self.layout |= axes_range
 
     def style_edges(self, edges, line, legendgroup=None):
         """adjust display layout for the edges
