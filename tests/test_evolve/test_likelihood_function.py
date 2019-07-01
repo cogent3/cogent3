@@ -784,9 +784,9 @@ NineBande      root    1.0000    1.0000
         rules = lf.get_param_rules()
         for rule in rules:
             if rule["par_name"] == "length":
-                if rule["edges"] == ["Human"]:
+                if rule["edge"] == "Human":
                     self.assertEqual(rule["upper"], 5)
-                elif rule["edges"] == ["HowlerMon"]:
+                elif rule["edge"] == "HowlerMon":
                     self.assertTrue(rule.get("is_constant", False))
             elif rule["par_name"] == "mprobs":
                 self.assertEqual(rule["value"], {b: 0.25 for b in "ACGT"})
@@ -1152,7 +1152,9 @@ NineBande      root    1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name("GN")
         glf.initialise_from_nested(slf)
-        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+        expect = slf.get_log_likelihood()
+        got = glf.get_log_likelihood()
+        self.assertFloatEqual(got, expect)
 
     def test_initialise_from_nested_same_type_nr_scoped(self):
         """non-reversible likelihood initialised from nested, scoped, non-reversible"""
