@@ -800,6 +800,20 @@ NineBande      root    1.0000    1.0000
         new_lnL = lf.get_log_likelihood()
         self.assertFloatEqual(new_lnL, lnL)
 
+    def test_get_param_rules_constrained(self):
+        """correctly return rules that reconstruct a lf with constrained length"""
+        lf = self.submodel.make_likelihood_function(self.tree)
+        lf.set_alignment(self.data)
+        lf.set_param_rule("beta", init=2.0)
+        lf.set_param_rule(
+            "beta", value=2.0, edges=["Human", "HowlerMon"], is_constant=True
+        )
+        lf.set_param_rule("length", init=0.5, is_independent=False)
+        rules = lf.get_param_rules()
+        new = self.submodel.make_likelihood_function(self.tree)
+        new.apply_param_rules(rules)
+        self.assertEqual(new.nfp, lf.nfp)
+
     def test_apply_param_rules(self):
         """successfully apply a set of parameter rules"""
         lf = self.submodel.make_likelihood_function(self.tree)

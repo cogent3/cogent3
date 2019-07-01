@@ -288,6 +288,11 @@ class _InputDefn(_LeafDefn):
             rule.update(
                 self.uniq[index].get_param_rule_dict(names=names, is_probs=is_probs)
             )
+            if self.independent_by_default:
+                for d in dimms:
+                    if type(dimms[d]) == list:
+                        rule["is_independent"] = False
+                        break
             rules.append(rule)
 
         if is_global:
