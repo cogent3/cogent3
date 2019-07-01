@@ -25,7 +25,7 @@ class DataStoreBaseTests:
         """correctly identify all files with a suffix"""
         dstore = self.ReadClass(self.basedir, suffix=".fasta")
         num = len(dstore.members)
-        self.assertEqual(num, 3)
+        self.assertEqual(num, 5)
 
         dstore = self.ReadClass(self.basedir, suffix=".fasta", limit=2)
 
@@ -118,7 +118,8 @@ class DataStoreBaseTests:
         md5 = "05a7302479c55c0b5890b50f617c5642"
         self.assertEqual(dstore.md5(identifier, force=True), md5)
         # this property also directly available on the member
-        self.assertEqual(dstore[0].md5, md5)
+        member = dstore.get_member(identifier)
+        self.assertEqual(member.md5, md5)
 
     def test_write(self):
         """correctly write content"""
