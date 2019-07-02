@@ -1,4 +1,5 @@
 from collections import defaultdict
+from math import floor
 
 import numpy as np
 
@@ -53,8 +54,63 @@ class TreeGeometryBase(PhyloNode):
         self._num_tips = 1
 
     def propagate_properties(self):
-        self._init_tip_ranks()
         self._init_length_depth_attr()
+        self._init_tip_ranks()
+
+    def _max_child_depth(self):
+        """computes the maximum number of nodes to the tip"""
+        if self.is_tip():
+            self.params["max_child_depth"] = self.params["depth"]
+        else:
+            depths = [child._max_child_depth() for child in self.children]
+            self.params["max_child_depth"] = max(depths)
+        return self.params["max_child_depth"]
+
+    def _init_tip_ranks(self):
+        tips = self.tips()
+        num_tips = len(tips)
+        for index, tip in enumerate(tips):
+            tip._tip_rank = index
+            tip._y = ((num_tips - 1) / 2 - index) * self.node_space
+
+    def _init_length_depth_attr(self):
+        """check it exists, if not, creates with default value of 1"""
+        # we compute cumulative lengths first with sorting, as that dictates the ordering of children
+        # then determin
+        for edge in self.preorder():
+            # making sure children have the correct setting for ._length
+            edge._length = self._length
+            edge._num_tips = self._num_tips
+            edge.node_space = self.node_space
+            if len(edge.children) > 0:
+                # we order children by their length
+                children = sorted(
+                    [(c.params.get(self._length, 0) or 0, c) for c in edge.children]
+                )
+                edge.children = [c for _, c in children]
+
+            if edge.is_root():
+                edge.params["depth"] = 0
+                edge.params[self._length] = 0
+                continue
+
+            length = edge.params.get(self._length, None) or 1
+            edge.params[self._length] = length
+            edge.params["depth"] = edge.parent.params.get("depth", 0) + 1
+
+        self._max_child_depth()
+        for edge in self.preorder():
+            if edge.is_root():
+                edge.params["cum_length"] = 0
+                continue
+
+            parent_frac = edge.parent.params.get("cum_length", 0)
+            if edge.is_tip():
+                frac = 1 - parent_frac
+            else:
+                frac = 1 / edge.params["max_child_depth"]
+            edge.params["frac_pos"] = frac
+            edge.params["cum_length"] = parent_frac + edge.params[self._length]
 
     @property
     def x(self):
@@ -122,53 +178,6 @@ class TreeGeometryBase(PhyloNode):
     def end(self):
         """x, y coordinate for this node"""
         return self.x, self.y
-
-    def _max_child_depth(self):
-        """computes the maximum number of nodes to the tip"""
-        if "max_child_depth" not in self.params:
-            if self.is_tip():
-                self.params["max_child_depth"] = self.params["depth"]
-            else:
-                depths = [child._max_child_depth() for child in self.children]
-                self.params["max_child_depth"] = max(depths)
-        return self.params["max_child_depth"]
-
-    def _init_tip_ranks(self):
-        tips = self.tips()
-        num_tips = len(tips)
-        for index, tip in enumerate(tips):
-            tip._tip_rank = index
-            tip._y = ((num_tips - 1) / 2 - index) * self.node_space
-
-    def _init_length_depth_attr(self):
-        """check it exists, if not, creates with default value of 1"""
-        for edge in self.preorder():
-            # making sure children have the correct setting for ._length
-            edge._length = self._length
-            edge._num_tips = self._num_tips
-            edge.node_space = self.node_space
-            if edge.is_root():
-                edge.params["depth"] = 0
-                edge.params[self._length] = 0
-                continue
-
-            length = edge.params.get(self._length, None) or 1
-            edge.params[self._length] = length
-            edge.params["depth"] = edge.parent.params.get("depth", 0) + 1
-
-        self._max_child_depth()
-        for edge in self.preorder():
-            if edge.is_root():
-                edge.params["cum_length"] = 0
-                continue
-
-            parent_frac = edge.parent.params.get("cum_length", 0)
-            if edge.is_tip():
-                frac = 1 - parent_frac
-            else:
-                frac = 1 / edge.params["max_child_depth"]
-            edge.params["frac_pos"] = frac
-            edge.params["cum_length"] = parent_frac + edge.params[self._length]
 
     @property
     def depth(self):
