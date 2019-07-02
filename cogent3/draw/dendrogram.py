@@ -169,7 +169,7 @@ class TreeGeometryBase(PhyloNode):
         # needs to ask parent, but has to do more than just get the parent
         # end, parent needs to know
         if self.is_root():
-            val = 0, 0
+            val = 0, self.y
         else:
             val = self.parent.x, self.y
         return val
@@ -212,10 +212,15 @@ class SquareTreeGeometry(TreeGeometryBase):
 
     @property
     def y(self):
-        if self.is_root():
-            self._y = 0
-        elif self._y is None:
-            val = (self.children[0].y + self.children[-1].y) / 2
+        if self._y is None:
+            num_kids = len(self.children)
+            even = num_kids % 2 == 0
+            if even:
+                i = floor(num_kids / 2)
+                val = (self.children[i].y + self.children[i - 1].y) / 2
+            else:
+                i = floor(num_kids / 2)
+                val = self.children[i].y
             self._y = val
         return self._y
 
@@ -223,8 +228,9 @@ class SquareTreeGeometry(TreeGeometryBase):
     def get_segment_to_children(self):
         """returns coordinates connecting all children to self.end"""
         # if tip needs to
-        a = self.children[0].start
-        b = self.children[-1].start
+        ordered = list(sorted((c.y, c) for c in self.children))
+        a = ordered[0][1].start
+        b = ordered[-1][1].start
         return a, b
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
