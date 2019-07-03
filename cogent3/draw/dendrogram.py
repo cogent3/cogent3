@@ -422,6 +422,7 @@ class Dendrogram(Drawable):
         self._edge_sets = {}
         self._edge_mapping = {}
         self._contemporaneous = contemporaneous
+        self._tips_as_text = True
 
     @property
     def label_pad(self):
@@ -534,13 +535,14 @@ class Dendrogram(Drawable):
             x1, y1 = edge.end
             group["x"].extend([x0, x1, None])
             group["y"].extend([y0, y1, None])
-            if edge.is_tip():
-                continue
 
             edge_label = edge.value_and_coordinate("name", padding=0)
             text["x"].append(edge_label.x)
             text["y"].append(edge_label.y)
             text["text"].append(edge_label.text)
+
+            if edge.is_tip():
+                continue
 
             child_groups = set(get_edge_group(c.name, None) for c in edge.children)
             segment = []
@@ -585,14 +587,16 @@ class Dendrogram(Drawable):
         scale_shape, scale_text = self._get_scale_bar()
         traces.extend([text])
         self.traces.extend(traces)
-        self.layout.annotations = tuple(self._get_tip_name_annotations())
+        if self.tips_as_text:
+            self.layout.annotations = tuple(self._get_tip_name_annotations())
+
         if scale_shape:
             self.layout.shapes = self.layout.get("shape", []) + [scale_shape]
             self.layout.annotations += (scale_text,)
         else:
             self.layout.pop("shapes", None)
 
-        if isinstance(self.tree, RadialTreeGeometry):
+        if isinstance(self.tree, CircularTreeGeometry):
             max_x = max(self.tree.max_x, abs(self.tree.min_x)) * 1.1
             max_y = max(self.tree.max_y, abs(self.tree.min_y)) * 1.1
             # making sure the coordinates centered on the origin to avoid
@@ -664,3 +668,18 @@ class Dendrogram(Drawable):
         if value != self._scale_bar:
             self._traces = []
         self._scale_bar = value
+
+    @property
+    def tips_as_text(self):
+        """displays tips as text"""
+        return self._tips_as_text
+
+    @tips_as_text.setter
+    def tips_as_text(self, value):
+        assert type(value) is bool
+        if value == self._tips_as_text:
+            return
+
+        self._tips_as_text = value
+        self._traces = []
+        self.layout.annotations = ()
