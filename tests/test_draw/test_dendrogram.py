@@ -4,8 +4,8 @@ from numpy.testing import assert_allclose
 
 from cogent3 import LoadTree
 from cogent3.draw.dendrogram import (
+    CircularTreeGeometry,
     Dendrogram,
-    RadialTreeGeometry,
     SquareTreeGeometry,
 )
 
@@ -47,7 +47,7 @@ class TestDendro(TestCase):
     def test_min_max_x_y(self):
         """correctly compute the min and max of x and y"""
         tree = LoadTree(treestring="(A:1,B:2,C:3)")
-        geom = RadialTreeGeometry(tree)
+        geom = CircularTreeGeometry(tree)
         geom.propagate_properties()
         got = max(map(abs, [geom.min_x, geom.max_x]))
         expect = max(map(abs, [e.x for e in geom.postorder()]))

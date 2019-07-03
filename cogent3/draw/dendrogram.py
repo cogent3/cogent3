@@ -253,6 +253,29 @@ class SquareTreeGeometry(TreeGeometryBase):
         return data
 
 
+class _AngularGeometry:
+    """directly connects child to parents"""
+
+    @property
+    def start(self):
+        """x, y coordinate for line connecting parent to this node"""
+        if self.is_root():
+            val = 0, self.y
+        else:
+            val = self.parent.end
+        return val
+
+    def get_segment_to_children(self):
+        """returns coordinates connecting all children to self.end"""
+        # if tip needs to
+        return (self.end,)
+
+
+class AngularTreeGeometry(_AngularGeometry, SquareTreeGeometry):
+    def __init__(self, *args, **kwargs):
+        super(AngularTreeGeometry, self).__init__(*args, **kwargs)
+
+
 r_2_d = np.pi / 180
 
 
@@ -263,9 +286,9 @@ def polar_2_cartesian(θ, radius):
     return x, y
 
 
-class RadialTreeGeometry(TreeGeometryBase):
+class CircularTreeGeometry(TreeGeometryBase):
     def __init__(self, *args, **kwargs):
-        super(RadialTreeGeometry, self).__init__(*args, **kwargs)
+        super(CircularTreeGeometry, self).__init__(*args, **kwargs)
         self._num_tips = 1
         self._theta = None
         self._node_space = None
@@ -342,11 +365,10 @@ class RadialTreeGeometry(TreeGeometryBase):
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
     def value_and_coordinate(self, attr, padding=0.05):
+        radius = np.sqrt(self.x ** 2 + self.y ** 2) + padding
         if 90 < self.theta <= 270:
-            radius = np.sqrt(self.x ** 2 + self.y ** 2) + 2 * padding
             textangle = 180 - self.theta
         else:
-            radius = np.sqrt(self.x ** 2 + self.y ** 2) + padding
             textangle = 360 - self.theta
 
         x, y = polar_2_cartesian(self.theta, radius)
@@ -364,6 +386,11 @@ class RadialTreeGeometry(TreeGeometryBase):
         return data
 
 
+class RadialTreeGeometry(_AngularGeometry, CircularTreeGeometry):
+    def __init__(self, *args, **kwargs):
+        super(RadialTreeGeometry, self).__init__(*args, **kwargs)
+
+
 class Dendrogram(Drawable):
     def __init__(
         self,
@@ -377,7 +404,12 @@ class Dendrogram(Drawable):
         super(Dendrogram, self).__init__(
             visible_axes=False, showlegend=False, *args, **kwargs
         )
-        klass = {"square": SquareTreeGeometry, "radial": RadialTreeGeometry}[style]
+        klass = {
+            "square": SquareTreeGeometry,
+            "circular": CircularTreeGeometry,
+            "angular": AngularTreeGeometry,
+            "radial": RadialTreeGeometry,
+        }[style]
         kwargs = UnionDict(length_attr="frac_pos") if contemporaneous else {}
         self.tree = klass(tree, **kwargs)
         self.tree.propagate_properties()

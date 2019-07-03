@@ -1722,13 +1722,12 @@ class TreeNode(object):
         Parameters
         ----------
         style : string
-            currently only 'square' supported
-
+            'square', 'angular', 'radial' or 'circular'
         """
         from cogent3.draw.dendrogram import Dendrogram
 
         style = style.lower()
-        types = ("square", "radial")
+        types = ("square", "circular", "angular", "radial")
         if style not in types:
             raise ValueError(f"{style} not in supported types {types}")
 
