@@ -1,4 +1,5 @@
 from collections import defaultdict
+from math import floor
 
 import numpy as np
 
@@ -53,8 +54,63 @@ class TreeGeometryBase(PhyloNode):
         self._num_tips = 1
 
     def propagate_properties(self):
-        self._init_tip_ranks()
         self._init_length_depth_attr()
+        self._init_tip_ranks()
+
+    def _max_child_depth(self):
+        """computes the maximum number of nodes to the tip"""
+        if self.is_tip():
+            self.params["max_child_depth"] = self.params["depth"]
+        else:
+            depths = [child._max_child_depth() for child in self.children]
+            self.params["max_child_depth"] = max(depths)
+        return self.params["max_child_depth"]
+
+    def _init_tip_ranks(self):
+        tips = self.tips()
+        num_tips = len(tips)
+        for index, tip in enumerate(tips):
+            tip._tip_rank = index
+            tip._y = ((num_tips - 1) / 2 - index) * self.node_space
+
+    def _init_length_depth_attr(self):
+        """check it exists, if not, creates with default value of 1"""
+        # we compute cumulative lengths first with sorting, as that dictates the ordering of children
+        # then determin
+        for edge in self.preorder():
+            # making sure children have the correct setting for ._length
+            edge._length = self._length
+            edge._num_tips = self._num_tips
+            edge.node_space = self.node_space
+            if len(edge.children) > 0:
+                # we order children by their length
+                children = sorted(
+                    [(c.params.get(self._length, 0) or 0, c) for c in edge.children]
+                )
+                edge.children = [c for _, c in children]
+
+            if edge.is_root():
+                edge.params["depth"] = 0
+                edge.params[self._length] = 0
+                continue
+
+            length = edge.params.get(self._length, None) or 1
+            edge.params[self._length] = length
+            edge.params["depth"] = edge.parent.params.get("depth", 0) + 1
+
+        self._max_child_depth()
+        for edge in self.preorder():
+            if edge.is_root():
+                edge.params["cum_length"] = 0
+                continue
+
+            parent_frac = edge.parent.params.get("cum_length", 0)
+            if edge.is_tip():
+                frac = 1 - parent_frac
+            else:
+                frac = 1 / edge.params["max_child_depth"]
+            edge.params["frac_pos"] = frac
+            edge.params["cum_length"] = parent_frac + edge.params[self._length]
 
     @property
     def x(self):
@@ -74,7 +130,7 @@ class TreeGeometryBase(PhyloNode):
     @property
     def min_x(self):
         if not self._min_x:
-            self._min_x = min([e.x for e in self.iter_nontips()] + [self.x])
+            self._min_x = min([e.x for e in self.postorder()])
         return self._min_x
 
     @property
@@ -113,7 +169,7 @@ class TreeGeometryBase(PhyloNode):
         # needs to ask parent, but has to do more than just get the parent
         # end, parent needs to know
         if self.is_root():
-            val = 0, 0
+            val = 0, self.y
         else:
             val = self.parent.x, self.y
         return val
@@ -122,52 +178,6 @@ class TreeGeometryBase(PhyloNode):
     def end(self):
         """x, y coordinate for this node"""
         return self.x, self.y
-
-    def _max_child_depth(self):
-        """computes the maximum number of nodes to the tip"""
-        if "max_child_depth" not in self.params:
-            if self.is_tip():
-                self.params["max_child_depth"] = self.params["depth"]
-            else:
-                depths = [child._max_child_depth() for child in self.children]
-                self.params["max_child_depth"] = max(depths)
-        return self.params["max_child_depth"]
-
-    def _init_tip_ranks(self):
-        tips = self.tips()
-        num_tips = len(tips)
-        for index, tip in enumerate(tips):
-            tip._tip_rank = index
-            tip._y = ((num_tips - 1) / 2 - index) * self.node_space
-
-    def _init_length_depth_attr(self):
-        """check it exists, if not, creates with default value of 1"""
-        for edge in self.preorder():
-            # making sure children have the correct setting for ._length
-            edge._length = self._length
-            edge._num_tips = self._num_tips
-            edge.node_space = self.node_space
-            if edge.is_root():
-                edge.params["depth"] = 0
-                edge.params[self._length] = 0
-            else:
-                length = edge.params.get(self._length, None) or 1
-                edge.params[self._length] = length
-                edge.params["depth"] = edge.parent.params.get("depth", 0) + 1
-
-        self._max_child_depth()
-        for edge in self.preorder():
-            if edge.is_root():
-                edge.params["cum_length"] = 0
-                continue
-
-            parent_frac = edge.parent.params.get("cum_length", 0)
-            if edge.is_tip():
-                frac = 1 - parent_frac
-            else:
-                frac = 1 / edge.params["max_child_depth"]
-            edge.params["frac_pos"] = frac
-            edge.params["cum_length"] = parent_frac + edge.params[self._length]
 
     @property
     def depth(self):
@@ -202,10 +212,15 @@ class SquareTreeGeometry(TreeGeometryBase):
 
     @property
     def y(self):
-        if self.is_root():
-            self._y = 0
-        elif self._y is None:
-            val = (self.children[0].y + self.children[-1].y) / 2
+        if self._y is None:
+            num_kids = len(self.children)
+            even = num_kids % 2 == 0
+            if even:
+                i = floor(num_kids / 2)
+                val = (self.children[i].y + self.children[i - 1].y) / 2
+            else:
+                i = floor(num_kids / 2)
+                val = self.children[i].y
             self._y = val
         return self._y
 
@@ -213,8 +228,9 @@ class SquareTreeGeometry(TreeGeometryBase):
     def get_segment_to_children(self):
         """returns coordinates connecting all children to self.end"""
         # if tip needs to
-        a = self.children[0].start
-        b = self.children[-1].start
+        ordered = list(sorted((c.y, c) for c in self.children))
+        a = ordered[0][1].start
+        b = ordered[-1][1].start
         return a, b
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
@@ -237,6 +253,29 @@ class SquareTreeGeometry(TreeGeometryBase):
         return data
 
 
+class _AngularGeometry:
+    """directly connects child to parents"""
+
+    @property
+    def start(self):
+        """x, y coordinate for line connecting parent to this node"""
+        if self.is_root():
+            val = 0, self.y
+        else:
+            val = self.parent.end
+        return val
+
+    def get_segment_to_children(self):
+        """returns coordinates connecting all children to self.end"""
+        # if tip needs to
+        return (self.end,)
+
+
+class AngularTreeGeometry(_AngularGeometry, SquareTreeGeometry):
+    def __init__(self, *args, **kwargs):
+        super(AngularTreeGeometry, self).__init__(*args, **kwargs)
+
+
 r_2_d = np.pi / 180
 
 
@@ -247,33 +286,29 @@ def polar_2_cartesian(θ, radius):
     return x, y
 
 
-class RadialTreeGeometry(TreeGeometryBase):
+class CircularTreeGeometry(TreeGeometryBase):
     def __init__(self, *args, **kwargs):
-        super(RadialTreeGeometry, self).__init__(*args, **kwargs)
+        super(CircularTreeGeometry, self).__init__(*args, **kwargs)
         self._num_tips = 1
         self._theta = None
         self._node_space = None
 
     def propagate_properties(self):
+        self._num_tips = len(self.tips())
         self._init_tip_ranks()
         self._init_length_depth_attr()
-
-    def _init_length_depth_attr(self):
-        self._num_tips = len(self.tips())
-        self._node_space = 360 / (self._num_tips + 1)
-        super()._init_length_depth_attr()
 
     @property
     def node_space(self):
         if self._node_space is None:
-            self._node_space = (self._num_tips + 1) / 360
+            self._node_space = 360 / self._num_tips
         return self._node_space
 
     @node_space.setter
     def node_space(self, value):
         if value < 0:
             raise ValueError("node spacing must be > 0")
-        if (self._num_tips + 1) * value > 360:
+        if self._num_tips * value > 360:
             raise ValueError(f"{value} * {(self._num_tips + 1)} is > 360")
         self._node_space = value
 
@@ -329,12 +364,11 @@ class RadialTreeGeometry(TreeGeometryBase):
         return a, b, c
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
-    def value_and_coordinate(self, attr, padding=0.05, just=20):
+    def value_and_coordinate(self, attr, padding=0.05):
+        radius = np.sqrt(self.x ** 2 + self.y ** 2) + padding
         if 90 < self.theta <= 270:
-            radius = np.sqrt(self.x ** 2 + self.y ** 2) + 2 * padding
             textangle = 180 - self.theta
         else:
-            radius = np.sqrt(self.x ** 2 + self.y ** 2) + padding
             textangle = 360 - self.theta
 
         x, y = polar_2_cartesian(self.theta, radius)
@@ -344,12 +378,17 @@ class RadialTreeGeometry(TreeGeometryBase):
             y=y,
             textangle=textangle,
             showarrow=False,
-            text=self.name.rjust(just),
+            text=self.name,
             xanchor="center",
             yanchor="middle",
             align="left",
         )
         return data
+
+
+class RadialTreeGeometry(_AngularGeometry, CircularTreeGeometry):
+    def __init__(self, *args, **kwargs):
+        super(RadialTreeGeometry, self).__init__(*args, **kwargs)
 
 
 class Dendrogram(Drawable):
@@ -365,7 +404,12 @@ class Dendrogram(Drawable):
         super(Dendrogram, self).__init__(
             visible_axes=False, showlegend=False, *args, **kwargs
         )
-        klass = {"square": SquareTreeGeometry, "radial": RadialTreeGeometry}[style]
+        klass = {
+            "square": SquareTreeGeometry,
+            "circular": CircularTreeGeometry,
+            "angular": AngularTreeGeometry,
+            "radial": RadialTreeGeometry,
+        }[style]
         kwargs = UnionDict(length_attr="frac_pos") if contemporaneous else {}
         self.tree = klass(tree, **kwargs)
         self.tree.propagate_properties()
@@ -378,6 +422,8 @@ class Dendrogram(Drawable):
         self._edge_sets = {}
         self._edge_mapping = {}
         self._contemporaneous = contemporaneous
+        self._tips_as_text = True
+        self._length_attr = self.tree._length
 
     @property
     def label_pad(self):
@@ -397,9 +443,10 @@ class Dendrogram(Drawable):
     def contemporaneous(self, value):
         if not type(value) == bool:
             raise TypeError
-        if not self._contemporaneous == value:
+        if self._contemporaneous != value:
             klass = self.tree.__class__
-            self.tree = klass(self.tree, length_attr="frac_pos")
+            length_attr = "frac_pos" if value else self._length_attr
+            self.tree = klass(self.tree, length_attr=length_attr)
             self.tree.propagate_properties()
             self._traces = []
             if value:  # scale bar not needed
@@ -490,13 +537,14 @@ class Dendrogram(Drawable):
             x1, y1 = edge.end
             group["x"].extend([x0, x1, None])
             group["y"].extend([y0, y1, None])
-            if edge.is_tip():
-                continue
 
             edge_label = edge.value_and_coordinate("name", padding=0)
             text["x"].append(edge_label.x)
             text["y"].append(edge_label.y)
             text["text"].append(edge_label.text)
+
+            if edge.is_tip():
+                continue
 
             child_groups = set(get_edge_group(c.name, None) for c in edge.children)
             segment = []
@@ -541,14 +589,22 @@ class Dendrogram(Drawable):
         scale_shape, scale_text = self._get_scale_bar()
         traces.extend([text])
         self.traces.extend(traces)
-        self.layout.annotations = tuple(self._get_tip_name_annotations())
+        if self.tips_as_text:
+            self.layout.annotations = tuple(self._get_tip_name_annotations())
+
         if scale_shape:
             self.layout.shapes = self.layout.get("shape", []) + [scale_shape]
             self.layout.annotations += (scale_text,)
         else:
             self.layout.pop("shapes", None)
 
-        if isinstance(self.tree, RadialTreeGeometry):
+        if isinstance(self.tree, CircularTreeGeometry):
+            max_x = max(self.tree.max_x, abs(self.tree.min_x)) * 1.1
+            max_y = max(self.tree.max_y, abs(self.tree.min_y)) * 1.1
+            # making sure the coordinates centered on the origin to avoid
+            # distortion (over/under rotation of the text)
+            max_x = max_y = max(max_y, max_x)
+
             # must draw this square
             if self.layout.width and self.layout.height:
                 dim = max(self.layout.width, self.layout.height)
@@ -559,6 +615,12 @@ class Dendrogram(Drawable):
             else:
                 dim = 800
             self.layout.width = self.layout.height = dim
+
+            # I'm assuming we span the origin
+            axes_range = dict(
+                xaxis=dict(range=[-max_x, max_x]), yaxis=dict(range=[-max_y, max_y])
+            )
+            self.layout |= axes_range
 
     def style_edges(self, edges, line, legendgroup=None):
         """adjust display layout for the edges
@@ -608,3 +670,18 @@ class Dendrogram(Drawable):
         if value != self._scale_bar:
             self._traces = []
         self._scale_bar = value
+
+    @property
+    def tips_as_text(self):
+        """displays tips as text"""
+        return self._tips_as_text
+
+    @tips_as_text.setter
+    def tips_as_text(self, value):
+        assert type(value) is bool
+        if value == self._tips_as_text:
+            return
+
+        self._tips_as_text = value
+        self._traces = []
+        self.layout.annotations = ()

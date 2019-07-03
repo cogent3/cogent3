@@ -225,7 +225,6 @@ class Dotplot(Drawable):
         )
         self._fwd = fwd
         self._rev = rev
-        self._figure = None
 
     def _build_fig(self, xaxis="x", yaxis="y"):
         # calculate the width based on ratio of seq lengths
@@ -302,12 +301,3 @@ class Dotplot(Drawable):
                 yaxis=yaxis,
             )
             self.add_trace(trace)
-
-        self._figure = UnionDict(data=self.traces, layout=self.layout)
-        self._layout = self._figure.layout
-
-    @property
-    def figure(self):
-        if self._figure is None:
-            self._build_fig()
-        return self._figure

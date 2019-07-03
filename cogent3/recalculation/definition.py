@@ -93,6 +93,32 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+DIM_PLURALS = {
+    "bin": "bins",
+    "edge": "edges",
+    "locus": "loci",
+    "motif": "motifs",
+    "position": "positions",
+}
+
+
+def select_dim_label_value(dim, value):
+    """returns singular / plural for dim given value
+
+    Required for construction of param rules"""
+    if dim not in DIM_PLURALS:
+        return dim
+
+    if type(value) == str:
+        return dim
+
+    if len(value) > 1:
+        dim = DIM_PLURALS[dim]
+    else:
+        value = value[0]
+
+    return dim, value
+
 
 class CalculationDefn(_NonLeafDefn):
     """Defn for a derived value.  In most cases use CalcDefn instead
@@ -248,9 +274,9 @@ class _InputDefn(_LeafDefn):
         result = {}
         for index in dim_indices:
             dim_name = self.valid_dimensions[index]
-            dim_name = {"edge": "edges", "bin": "bins"}.get(dim_name, dim_name)
-
-            result[dim_name] = list(sorted(set([k[index] for k in keys])))
+            value = list(sorted(set([k[index] for k in keys])))
+            dim_name, value = select_dim_label_value(dim_name, value)
+            result[dim_name] = value
         return result
 
     def get_param_rules(self):
@@ -288,12 +314,18 @@ class _InputDefn(_LeafDefn):
             rule.update(
                 self.uniq[index].get_param_rule_dict(names=names, is_probs=is_probs)
             )
+            if self.independent_by_default:
+                for d in dimms:
+                    if type(dimms[d]) == list:
+                        rule["is_independent"] = False
+                        break
             rules.append(rule)
 
         if is_global:
             assert len(rules) == 1
-            rules[0]["edges"] = None
-            rules[0].pop("bins", None)
+            for s, p in DIM_PLURALS.items():
+                rules[0].pop(s, None)
+                rules[0].pop(p, None)
 
         return rules
 

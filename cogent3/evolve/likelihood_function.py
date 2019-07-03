@@ -53,7 +53,8 @@ def _get_keyed_rule_indices(rules):
     """returns {frozesent((par_name, edge1, edge2, ..)): index}"""
     new = {}
     for i, rule in enumerate(rules):
-        edges = rule.get("edges") or []
+        edges = rule.get("edges", rule.get("edge", None)) or []
+        edges = [edges] if type(edges) == str else edges
         par_name = rule["par_name"]
         key = frozenset([par_name] + edges)
         new[key] = i
@@ -72,9 +73,11 @@ def extend_rule_value(rich, nulls):
     val_key = "init" if "init" in rich else "value"
     rules = []
     for null in nulls:
-        for edge in null["edges"]:
+        edges = null.get("edges", null.get("edge"))
+        edges = [edges] if type(edges) == str else edges
+        for edge in edges:
             rule = deepcopy(rich)
-            rule["edges"] = [edge]
+            rule["edge"] = edge
             rule[val_key] = null.get("init", null.get("value"))
             rules.append(rule)
     return rules
@@ -101,7 +104,9 @@ def update_scoped_rules(rich, null):
         matches = []
         rich_rule = rich[richd[rich_key]]
         pname = rich_rule["par_name"]
-        enames = rich_rule.get("edges", None)
+        enames = rich_rule.get("edges", rich_rule.get("edge", None))
+        if type(enames) == str:
+            enames = [enames]
         enames = None if enames is None else set(enames)
         for null_key in null_remainder:
             null_rule = null[nulld[null_key]]
@@ -112,7 +117,7 @@ def update_scoped_rules(rich, null):
                 matches.append(null_rule)
                 continue
 
-            null_enames = null_rule.get("edges", None)
+            null_enames = null_rule.get("edges", null_rule.get("edge", None))
             null_enames = None if null_enames is None else set(null_enames)
             if None in (enames, null_enames) or null_enames & enames:
                 matches.append(null_rule)

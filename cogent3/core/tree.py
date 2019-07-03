@@ -1239,7 +1239,7 @@ class TreeNode(object):
     ):
         """A new instance of a sub tree that contains all the otus that are
         listed in name_list.
-        
+
         Arguments:
         - ignore_missing: if False, get_sub_tree will raise a ValueError if
           name_list contains names that aren't nodes in the tree
@@ -1432,12 +1432,12 @@ class TreeNode(object):
         """Return a list of edges from this edge - may or may not include self.
         This node (or first connection) will be the first, and then they will
         be listed in the natural traverse order.
-        
+
         Parameters
         ----------
         includeself : bool
             excludes self.name from the result
-        
+
         tipsonly : bool
             only tips returned
         """
@@ -1491,7 +1491,7 @@ class TreeNode(object):
 
     def get_connecting_edges(self, name1, name2):
         """returns a list of edges connecting two nodes.
-        
+
         If both are tips, the LCA is excluded from the result."""
         edge1 = self.get_node_matching_name(name1)
         edge2 = self.get_node_matching_name(name2)
@@ -1722,13 +1722,12 @@ class TreeNode(object):
         Parameters
         ----------
         style : string
-            currently only 'square' supported
-
+            'square', 'angular', 'radial' or 'circular'
         """
         from cogent3.draw.dendrogram import Dendrogram
 
         style = style.lower()
-        types = ("square", "radial")
+        types = ("square", "circular", "angular", "radial")
         if style not in types:
             raise ValueError(f"{style} not in supported types {types}")
 
@@ -2288,7 +2287,8 @@ class TreeBuilder(object):
         if name in self._used_names:
             self._used_names[name] += 1
             name += "." + str(self._used_names[name])
-            name = self._unique_name(name)  # in case of names like 'edge.1.1'
+            # in case of names like 'edge.1.1'
+            name = self._unique_name(name)
         else:
             self._used_names[name] = 1
         return name
