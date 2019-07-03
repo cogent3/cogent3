@@ -784,9 +784,9 @@ NineBande      root    1.0000    1.0000
         rules = lf.get_param_rules()
         for rule in rules:
             if rule["par_name"] == "length":
-                if rule["edges"] == ["Human"]:
+                if rule["edge"] == "Human":
                     self.assertEqual(rule["upper"], 5)
-                elif rule["edges"] == ["HowlerMon"]:
+                elif rule["edge"] == "HowlerMon":
                     self.assertTrue(rule.get("is_constant", False))
             elif rule["par_name"] == "mprobs":
                 self.assertEqual(rule["value"], {b: 0.25 for b in "ACGT"})
@@ -799,6 +799,20 @@ NineBande      root    1.0000    1.0000
                 lf.set_param_rule(**rule)
         new_lnL = lf.get_log_likelihood()
         self.assertFloatEqual(new_lnL, lnL)
+
+    def test_get_param_rules_constrained(self):
+        """correctly return rules that reconstruct a lf with constrained length"""
+        lf = self.submodel.make_likelihood_function(self.tree)
+        lf.set_alignment(self.data)
+        lf.set_param_rule("beta", init=2.0)
+        lf.set_param_rule(
+            "beta", value=2.0, edges=["Human", "HowlerMon"], is_constant=True
+        )
+        lf.set_param_rule("length", init=0.5, is_independent=False)
+        rules = lf.get_param_rules()
+        new = self.submodel.make_likelihood_function(self.tree)
+        new.apply_param_rules(rules)
+        self.assertEqual(new.nfp, lf.nfp)
 
     def test_apply_param_rules(self):
         """successfully apply a set of parameter rules"""
@@ -1138,7 +1152,9 @@ NineBande      root    1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name("GN")
         glf.initialise_from_nested(slf)
-        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+        expect = slf.get_log_likelihood()
+        got = glf.get_log_likelihood()
+        self.assertFloatEqual(got, expect)
 
     def test_initialise_from_nested_same_type_nr_scoped(self):
         """non-reversible likelihood initialised from nested, scoped, non-reversible"""
@@ -1211,6 +1227,758 @@ NineBande      root    1.0000    1.0000
         lf.set_alignment(aln)
         bprobs = lf.get_bin_probs()
         self.assertEqual(bprobs.shape[1], len(aln))
+
+
+class ComparisonTests(TestCase):
+    """comparisons of likelihood calcs with earlier pycogent"""
+
+    def test_simple_codon(self):
+        """return same likelihood for simple codon model"""
+        # from docs/examples/neutral_test
+        aln = LoadSeqs("data/long_testseqs.fasta", moltype="dna")
+        tree = LoadTree("data/long_testseqs.tree")
+        sm = get_model("MG94GTR")
+        lf = sm.make_likelihood_function(tree, digits=3, space=2)
+        lf.set_alignment(aln)
+        mprobs = {
+            "T": 0.23167456556082147,
+            "C": 0.18775671406003158,
+            "A": 0.36808846761453395,
+            "G": 0.21248025276461296,
+        }
+        lengths = {
+            "Human": 0.0930121148197949,
+            "HowlerMon": 0.12455050902011401,
+            "edge.0": 0.11566361642563996,
+            "Mouse": 0.8352888057852214,
+            "edge.1": 0.05801595370263309,
+            "NineBande": 0.28274573844117873,
+            "DogFaced": 0.33986809148384595,
+        }
+        rates = {
+            "A/C": 1.0193255854344692,
+            "A/G": 3.360125224439532,
+            "A/T": 0.7324800239384959,
+            "C/G": 0.9460411801916156,
+            "C/T": 3.7077261494484466,
+            "omega": 0.8991178277398568,
+        }
+        with lf.updates_postponed():
+            lf.set_motif_probs(mprobs)
+            for e, v in lengths.items():
+                lf.set_param_rule("length", edge=e, init=v)
+            for p, v in rates.items():
+                lf.set_param_rule(p, init=v)
+        assert_allclose(lf.lnL, -8636.180078337804)
+        assert_allclose(lf.nfp, 13)
+
+        # time-het variant
+        mprobs = {
+            "T": 0.23167456556082147,
+            "C": 0.18775671406003158,
+            "A": 0.36808846761453395,
+            "G": 0.21248025276461296,
+        }
+        rates = {
+            "A/C": 1.025238355386263,
+            "A/G": 3.3839111255685093,
+            "A/T": 0.7349455378588486,
+            "C/G": 0.954931780018286,
+            "C/T": 3.7190819957014605,
+        }
+        omega = {
+            "Human": 0.5932371497829559,
+            "HowlerMon": 0.9594738352514026,
+            "edge.0": 1.1318706411033768,
+            "Mouse": 0.9179170934077907,
+            "edge.1": 0.39245724788647784,
+            "NineBande": 1.2840869353261197,
+            "DogFaced": 0.8432882455927212,
+        }
+        lengths = {
+            "Human": 0.09424973246208838,
+            "HowlerMon": 0.12400390171673893,
+            "edge.0": 0.11480058221117359,
+            "Mouse": 0.8347998998652563,
+            "edge.1": 0.060388849069219555,
+            "NineBande": 0.27863806025656374,
+            "DogFaced": 0.3411611571500524,
+        }
+        with lf.updates_postponed():
+            lf.set_motif_probs(mprobs)
+            for e in lengths:
+                lf.set_param_rule("length", edge=e, init=lengths[e])
+                lf.set_param_rule("omega", edge=e, init=omega[e])
+            for p, v in rates.items():
+                lf.set_param_rule(p, init=v)
+        assert_allclose(lf.lnL, -8632.135459058676)
+        assert_allclose(lf.nfp, 19)
+
+    def test_codon_rate_het(self):
+        """recap rate het likelihoods"""
+        from cogent3 import LoadSeqs, LoadTree, DNA
+
+        aln = LoadSeqs("data/primate_brca1.fasta", moltype=DNA)
+        tree = LoadTree("data/primate_brca1.tree")
+        cnf = get_model("CNFGTR")
+        rate_lf = cnf.make_likelihood_function(
+            tree, bins=["neutral", "adaptive"], digits=2, space=3
+        )
+        rate_lf.set_alignment(aln)
+
+        rules = [
+            {
+                "par_name": "mprobs",
+                "edges": None,
+                "value": {
+                    "TTT": 0.018732866280840695,
+                    "TTC": 0.007767286018885166,
+                    "TTA": 0.02116966189460859,
+                    "TTG": 0.010813280536095034,
+                    "TCT": 0.02512945476698142,
+                    "TCC": 0.008224185196466647,
+                    "TCA": 0.02208346024977155,
+                    "TCG": 0.0015229972586049345,
+                    "TAT": 0.010051781906792567,
+                    "TAC": 0.002284495887907402,
+                    "TGT": 0.020103563813585135,
+                    "TGC": 0.0018275967103259215,
+                    "TGG": 0.0039597928723728295,
+                    "CTT": 0.010508681084374048,
+                    "CTC": 0.007767286018885166,
+                    "CTA": 0.01370697532744441,
+                    "CTG": 0.012488577520560463,
+                    "CCT": 0.026347852573865366,
+                    "CCC": 0.006244288760280232,
+                    "CCA": 0.019494364910143162,
+                    "CCG": 0.0006091989034419738,
+                    "CAT": 0.02208346024977155,
+                    "CAC": 0.005178190679256778,
+                    "CAA": 0.019646664636003654,
+                    "CAG": 0.02375875723423698,
+                    "CGT": 0.0031982942430703624,
+                    "CGC": 0.0009137983551629607,
+                    "CGA": 0.0010660980810234541,
+                    "CGG": 0.002284495887907402,
+                    "ATT": 0.019189765458422176,
+                    "ATC": 0.007005787389582699,
+                    "ATA": 0.0185805665549802,
+                    "ATG": 0.01279317697228145,
+                    "ACT": 0.028936947913493757,
+                    "ACC": 0.004568991775814804,
+                    "ACA": 0.022844958879074017,
+                    "ACG": 0.0007614986293024672,
+                    "AAT": 0.05558939993908011,
+                    "AAC": 0.023454157782515993,
+                    "AAA": 0.05558939993908011,
+                    "AAG": 0.03441973804447152,
+                    "AGT": 0.03807493146512336,
+                    "AGC": 0.028632348461772768,
+                    "AGA": 0.023149558330795003,
+                    "AGG": 0.014011574779165398,
+                    "GTT": 0.021321961620469083,
+                    "GTC": 0.007005787389582699,
+                    "GTA": 0.014773073408467865,
+                    "GTG": 0.006853487663722205,
+                    "GCT": 0.01370697532744441,
+                    "GCC": 0.009594882729211088,
+                    "GCA": 0.015839171489491318,
+                    "GCG": 0.0013706975327444412,
+                    "GAT": 0.031526043253122145,
+                    "GAC": 0.010508681084374048,
+                    "GAA": 0.07554066402680475,
+                    "GAG": 0.030307645446238197,
+                    "GGT": 0.01325007614986293,
+                    "GGC": 0.008985683825769114,
+                    "GGA": 0.016143770941212304,
+                    "GGG": 0.006701187937861712,
+                },
+                "is_constant": True,
+            },
+            {
+                "par_name": "omega",
+                "edges": [
+                    "Chimpanzee",
+                    "Galago",
+                    "Gorilla",
+                    "HowlerMon",
+                    "Human",
+                    "Orangutan",
+                    "Rhesus",
+                    "edge.0",
+                    "edge.1",
+                    "edge.2",
+                    "edge.3",
+                ],
+                "bins": ["adaptive"],
+                "init": 1.171804535696805,
+                "lower": 1.000001,
+                "upper": 100,
+            },
+            {
+                "par_name": "omega",
+                "edges": [
+                    "Chimpanzee",
+                    "Galago",
+                    "Gorilla",
+                    "HowlerMon",
+                    "Human",
+                    "Orangutan",
+                    "Rhesus",
+                    "edge.0",
+                    "edge.1",
+                    "edge.2",
+                    "edge.3",
+                ],
+                "bins": ["neutral"],
+                "init": 0.011244516074953196,
+                "lower": 1e-06,
+                "upper": 1,
+            },
+            {
+                "par_name": "C/T",
+                "edges": None,
+                "init": 4.197133081913153,
+                "lower": 1e-06,
+                "upper": 1000000.0,
+            },
+            {
+                "par_name": "C/G",
+                "edges": None,
+                "init": 1.959573221565973,
+                "lower": 1e-06,
+                "upper": 1000000.0,
+            },
+            {
+                "par_name": "A/T",
+                "edges": None,
+                "init": 0.7811160220383347,
+                "lower": 1e-06,
+                "upper": 1000000.0,
+            },
+            {
+                "par_name": "A/G",
+                "edges": None,
+                "init": 3.95572114917098,
+                "lower": 1e-06,
+                "upper": 1000000.0,
+            },
+            {
+                "par_name": "A/C",
+                "edges": None,
+                "init": 1.0689060203129388,
+                "lower": 1e-06,
+                "upper": 1000000.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["Chimpanzee"],
+                "init": 0.008587879544220245,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["Galago"],
+                "init": 0.5633709139717007,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["Gorilla"],
+                "init": 0.007511821374501532,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["HowlerMon"],
+                "init": 0.141460056857809,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["Human"],
+                "init": 0.01830472793116926,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["Orangutan"],
+                "init": 0.023530857462230628,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["Rhesus"],
+                "init": 0.06742406161034178,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["edge.0"],
+                "init": 1.4909085767703391e-12,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["edge.1"],
+                "init": 0.010125599780668576,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["edge.2"],
+                "init": 0.03492051749140553,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["edge.3"],
+                "init": 0.02185436682925549,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "bprobs",
+                "init": {"neutral": 0.1362876637533325, "adaptive": 0.8637123362466674},
+                "lower": None,
+                "upper": None,
+                "edges": None,
+            },
+        ]
+        rate_lf.apply_param_rules(rules)
+        assert_allclose(rate_lf.lnL, -6755.451985437475)
+        assert_allclose(rate_lf.nfp, 19)
+
+        # check posterior bin probs match
+        adaptive = [0.8138636520270726, 0.8723917957174725, 0.9922405018465282]
+        got = rate_lf.get_bin_probs()
+        assert_allclose(got["adaptive"][: len(adaptive)], adaptive, rtol=5e-6)
+        self.assertEqual(got.shape, (2, len(aln) // 3))  # /3 because codon model
+
+    def test_time_rate_het(self):
+        """recap the zhang model"""
+        aln = LoadSeqs("data/primate_brca1.fasta", moltype=DNA)
+        tree = LoadTree("data/primate_brca1.tree")
+        cnf = get_model("CNFGTR")
+        lf = cnf.make_likelihood_function(
+            tree, bins=["0", "1", "2a", "2b"], digits=2, space=3
+        )
+        lf.set_alignment(aln)
+        epsilon = 1e-6
+        lf.set_param_rule("omega", bins=["0", "2a"], upper=1.0, init=1 - epsilon)
+        lf.set_param_rule("omega", bins=["1", "2b"], is_constant=True, value=1.0)
+        lf.set_param_rule(
+            "omega",
+            bins=["2a", "2b"],
+            edges=["Chimpanzee", "Human"],
+            init=99,
+            lower=1.0,
+            upper=100.0,
+            is_constant=False,
+        )
+
+        rules = [
+            {
+                "par_name": "mprobs",
+                "edges": None,
+                "value": {
+                    "TTT": 0.018732866280840695,
+                    "TTC": 0.007767286018885166,
+                    "TTA": 0.02116966189460859,
+                    "TTG": 0.010813280536095034,
+                    "TCT": 0.02512945476698142,
+                    "TCC": 0.008224185196466647,
+                    "TCA": 0.02208346024977155,
+                    "TCG": 0.0015229972586049345,
+                    "TAT": 0.010051781906792567,
+                    "TAC": 0.002284495887907402,
+                    "TGT": 0.020103563813585135,
+                    "TGC": 0.0018275967103259215,
+                    "TGG": 0.0039597928723728295,
+                    "CTT": 0.010508681084374048,
+                    "CTC": 0.007767286018885166,
+                    "CTA": 0.01370697532744441,
+                    "CTG": 0.012488577520560463,
+                    "CCT": 0.026347852573865366,
+                    "CCC": 0.006244288760280232,
+                    "CCA": 0.019494364910143162,
+                    "CCG": 0.0006091989034419738,
+                    "CAT": 0.02208346024977155,
+                    "CAC": 0.005178190679256778,
+                    "CAA": 0.019646664636003654,
+                    "CAG": 0.02375875723423698,
+                    "CGT": 0.0031982942430703624,
+                    "CGC": 0.0009137983551629607,
+                    "CGA": 0.0010660980810234541,
+                    "CGG": 0.002284495887907402,
+                    "ATT": 0.019189765458422176,
+                    "ATC": 0.007005787389582699,
+                    "ATA": 0.0185805665549802,
+                    "ATG": 0.01279317697228145,
+                    "ACT": 0.028936947913493757,
+                    "ACC": 0.004568991775814804,
+                    "ACA": 0.022844958879074017,
+                    "ACG": 0.0007614986293024672,
+                    "AAT": 0.05558939993908011,
+                    "AAC": 0.023454157782515993,
+                    "AAA": 0.05558939993908011,
+                    "AAG": 0.03441973804447152,
+                    "AGT": 0.03807493146512336,
+                    "AGC": 0.028632348461772768,
+                    "AGA": 0.023149558330795003,
+                    "AGG": 0.014011574779165398,
+                    "GTT": 0.021321961620469083,
+                    "GTC": 0.007005787389582699,
+                    "GTA": 0.014773073408467865,
+                    "GTG": 0.006853487663722205,
+                    "GCT": 0.01370697532744441,
+                    "GCC": 0.009594882729211088,
+                    "GCA": 0.015839171489491318,
+                    "GCG": 0.0013706975327444412,
+                    "GAT": 0.031526043253122145,
+                    "GAC": 0.010508681084374048,
+                    "GAA": 0.07554066402680475,
+                    "GAG": 0.030307645446238197,
+                    "GGT": 0.01325007614986293,
+                    "GGC": 0.008985683825769114,
+                    "GGA": 0.016143770941212304,
+                    "GGG": 0.006701187937861712,
+                },
+                "is_constant": True,
+            },
+            {
+                "par_name": "omega",
+                "edges": [
+                    "Chimpanzee",
+                    "Galago",
+                    "Gorilla",
+                    "HowlerMon",
+                    "Human",
+                    "Orangutan",
+                    "Rhesus",
+                    "edge.0",
+                    "edge.1",
+                    "edge.2",
+                    "edge.3",
+                ],
+                "bins": ["0", "2a"],
+                "init": 1.00000034130505e-06,
+                "lower": 1e-06,
+                "upper": 1.0,
+            },
+            {
+                "par_name": "omega",
+                "edges": [
+                    "Chimpanzee",
+                    "Galago",
+                    "Gorilla",
+                    "HowlerMon",
+                    "Human",
+                    "Orangutan",
+                    "Rhesus",
+                    "edge.0",
+                    "edge.1",
+                    "edge.2",
+                    "edge.3",
+                ],
+                "bins": ["1", "2b"],
+                "value": 1.0,
+                "is_constant": True,
+            },
+            {
+                "par_name": "omega",
+                "edges": ["Chimpanzee", "Human"],
+                "bins": ["2a", "2b"],
+                "init": 19.00550828862512,
+                "lower": 1.0,
+                "upper": 100.0,
+            },
+            {
+                "par_name": "C/T",
+                "edges": None,
+                "init": 4.107017179700691,
+                "lower": 1e-06,
+                "upper": 1000000.0,
+            },
+            {
+                "par_name": "C/G",
+                "edges": None,
+                "init": 1.96190792766859,
+                "lower": 1e-06,
+                "upper": 1000000.0,
+            },
+            {
+                "par_name": "A/T",
+                "edges": None,
+                "init": 0.7729320058102641,
+                "lower": 1e-06,
+                "upper": 1000000.0,
+            },
+            {
+                "par_name": "A/G",
+                "edges": None,
+                "init": 3.9100044579566493,
+                "lower": 1e-06,
+                "upper": 1000000.0,
+            },
+            {
+                "par_name": "A/C",
+                "edges": None,
+                "init": 1.0654568108482438,
+                "lower": 1e-06,
+                "upper": 1000000.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["Chimpanzee"],
+                "init": 0.008556133589133694,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["Galago"],
+                "init": 0.5601765224662885,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["Gorilla"],
+                "init": 0.007512028921106184,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["HowlerMon"],
+                "init": 0.1409451751006042,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["Human"],
+                "init": 0.018235814843667496,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["Orangutan"],
+                "init": 0.023516404248762182,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["Rhesus"],
+                "init": 0.06730954128649547,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["edge.0"],
+                "init": 1.4909085767703391e-12,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["edge.1"],
+                "init": 0.01012135420651205,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["edge.2"],
+                "init": 0.0349479495846757,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "length",
+                "edges": ["edge.3"],
+                "init": 0.02202892799465516,
+                "lower": 0.0,
+                "upper": 10.0,
+            },
+            {
+                "par_name": "bprobs",
+                "init": {
+                    "0": 0.034996999380649305,
+                    "1": 0.3355065884659966,
+                    "2a": 0.0791090296297802,
+                    "2b": 0.5503873825235739,
+                },
+                "lower": None,
+                "upper": None,
+                "edges": None,
+            },
+        ]
+        lf.apply_param_rules(rules)
+        # values from earlier pycogent
+        lnL, nfp = -6753.45662012937, 21
+        assert_allclose(lf.lnL, lnL, rtol=1e-5)
+        assert_allclose(lf.nfp, nfp)
+
+    def test_loci(self):
+        """recap multiple-loci"""
+        from cogent3.recalculation.scope import EACH, ALL
+
+        aln = LoadSeqs("data/long_testseqs.fasta")
+        half = len(aln) // 2
+        aln1 = aln[:half]
+        aln2 = aln[half:]
+        loci_names = ["1st-half", "2nd-half"]
+        loci = [aln1, aln2]
+        tree = LoadTree(tip_names=aln.names)
+        sm = get_model("HKY85")
+        lf = sm.make_likelihood_function(tree, loci=loci_names, digits=2, space=3)
+        lf.set_param_rule("length", is_independent=False)
+        lf.set_param_rule("kappa", loci=ALL)
+        lf.set_alignment(loci)
+        # lf.optimise()
+        # rules = lf.get_param_rules()
+        rules = [
+            {
+                "par_name": "kappa",
+                "init": 3.9795417148915124,
+                "lower": 1e-06,
+                "upper": 1000000.0,
+            },
+            {
+                "par_name": "mprobs",
+                "locus": "1st-half",
+                "edges": [
+                    "DogFaced",
+                    "HowlerMon",
+                    "Human",
+                    "Mouse",
+                    "NineBande",
+                    "root",
+                ],
+                "value": {
+                    "T": 0.22338072669826226,
+                    "C": 0.1843601895734597,
+                    "A": 0.3824644549763033,
+                    "G": 0.20979462875197472,
+                },
+                "is_constant": True,
+            },
+            {
+                "par_name": "mprobs",
+                "locus": "2nd-half",
+                "edges": [
+                    "DogFaced",
+                    "HowlerMon",
+                    "Human",
+                    "Mouse",
+                    "NineBande",
+                    "root",
+                ],
+                "value": {
+                    "T": 0.23996840442338072,
+                    "C": 0.1911532385466035,
+                    "A": 0.35371248025276464,
+                    "G": 0.21516587677725119,
+                },
+                "is_constant": True,
+            },
+            {
+                "par_name": "length",
+                "init": 0.12839234555151016,
+                "lower": 0.0,
+                "upper": 10.0,
+                "is_independent": False,
+            },
+        ]
+        lf.apply_param_rules(rules)
+        lnL, nfp = -9168.333116203343, 2
+        assert_allclose(lf.lnL, lnL)
+        assert_allclose(lf.nfp, nfp)
+
+        lf.set_param_rule("kappa", loci=EACH)
+        lf.optimise(local=True)
+        rules = [
+            {
+                "par_name": "kappa",
+                "edges": ["DogFaced", "HowlerMon", "Human", "Mouse", "NineBande"],
+                "locus": "1st-half",
+                "init": 4.3253540083718285,
+                "lower": 1e-06,
+                "upper": 1000000.0,
+            },
+            {
+                "par_name": "kappa",
+                "edges": ["DogFaced", "HowlerMon", "Human", "Mouse", "NineBande"],
+                "locus": "2nd-half",
+                "init": 3.738155123420754,
+                "lower": 1e-06,
+                "upper": 1000000.0,
+            },
+            {
+                "par_name": "mprobs",
+                "locus": "1st-half",
+                "edges": [
+                    "DogFaced",
+                    "HowlerMon",
+                    "Human",
+                    "Mouse",
+                    "NineBande",
+                    "root",
+                ],
+                "value": {
+                    "T": 0.22338072669826226,
+                    "C": 0.1843601895734597,
+                    "A": 0.3824644549763033,
+                    "G": 0.20979462875197472,
+                },
+                "is_constant": True,
+            },
+            {
+                "par_name": "mprobs",
+                "locus": "2nd-half",
+                "edges": [
+                    "DogFaced",
+                    "HowlerMon",
+                    "Human",
+                    "Mouse",
+                    "NineBande",
+                    "root",
+                ],
+                "value": {
+                    "T": 0.23996840442338072,
+                    "C": 0.1911532385466035,
+                    "A": 0.35371248025276464,
+                    "G": 0.21516587677725119,
+                },
+                "is_constant": True,
+            },
+            {
+                "par_name": "length",
+                "init": 0.12844512742274064,
+                "lower": 0.0,
+                "upper": 10.0,
+                "is_independent": False,
+            },
+        ]
+        lf.apply_param_rules(rules)
+        lnL, nfp = -9167.537271862948, 3
+        assert_allclose(lf.lnL, lnL)
+        assert_allclose(lf.nfp, nfp)
 
 
 if __name__ == "__main__":
