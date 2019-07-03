@@ -423,6 +423,7 @@ class Dendrogram(Drawable):
         self._edge_mapping = {}
         self._contemporaneous = contemporaneous
         self._tips_as_text = True
+        self._length_attr = self.tree._length
 
     @property
     def label_pad(self):
@@ -442,9 +443,10 @@ class Dendrogram(Drawable):
     def contemporaneous(self, value):
         if not type(value) == bool:
             raise TypeError
-        if not self._contemporaneous == value:
+        if self._contemporaneous != value:
             klass = self.tree.__class__
-            self.tree = klass(self.tree, length_attr="frac_pos")
+            length_attr = "frac_pos" if value else self._length_attr
+            self.tree = klass(self.tree, length_attr=length_attr)
             self.tree.propagate_properties()
             self._traces = []
             if value:  # scale bar not needed
