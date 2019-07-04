@@ -378,8 +378,11 @@ class Composable(ComposableType):
             process.output = None
             self.input = None
 
+        # with a tinydb dstore, this also excludes data that failed to complete
+        todo = [m for m in dstore if not self.job_done(m)]
+
         for result in ui.imap(
-            process, dstore, parallel=parallel, par_kw=par_kw, mininterval=mininterval
+            process, todo, parallel=parallel, par_kw=par_kw, mininterval=mininterval
         ):
             outcome = self(result)
             results.append(outcome)
@@ -387,13 +390,18 @@ class Composable(ComposableType):
                 member = dstore[i]
                 LOGGER.log_message(member, label="input")
                 LOGGER.log_message(member.md5, label="input md5sum")
+                mem_id = self.data_store.make_relative_identifier(member.name)
                 if outcome:
-                    mem_id = self.data_store.make_relative_identifier(member.name)
                     member = self.data_store.get_member(mem_id)
                     LOGGER.log_message(member, label="output")
                     LOGGER.log_message(member.md5, label="output md5sum")
                 else:
                     # we have a NotCompletedResult
+                    try:
+                        # tinydb supports storage
+                        self.data_store.write_incomplete(mem_id, outcome.to_rich_dict())
+                    except AttributeError:
+                        pass
                     LOGGER.log_message(
                         f"{outcome.origin} : {outcome.message}", label=outcome.type
                     )
@@ -406,6 +414,7 @@ class Composable(ComposableType):
             LOGGER.log_message(f"{taken}", label="TIME TAKEN")
             LOGGER.shutdown()
             self.data_store.add_file(str(log_file_path), cleanup=cleanup)
+            self.data_store.close()
 
         # now reconnect input
         if process is not self:
