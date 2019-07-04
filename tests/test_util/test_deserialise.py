@@ -188,6 +188,16 @@ class TestDeserialising(TestCase):
         self.assertNotIsInstance(got_obj.lf, dict)
         self.assertEqual(got_obj.lf.nfp, got_obj.nfp)
 
+    def test_not_completed_result(self):
+        """correctly reconstructs a NotCompletedResult object"""
+        from cogent3.app.composable import NotCompletedResult
+
+        val = NotCompletedResult("ERROR", "nothing", "some error", source="here")
+        expect = val.to_rich_dict()
+        json = val.to_json()
+        got = deserialise_object(json)
+        self.assertEqual(got.to_rich_dict(), expect)
+
 
 if __name__ == "__main__":
     main()
