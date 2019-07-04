@@ -270,6 +270,13 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
         """zipped data store handles archive with no parent dir"""
         self.WriteClass("delme.zip", create=True, suffix="fa")
 
+    def test_store_suffix(self):
+        """data store adds file suffix if not provided"""
+        source = self.basedir.split(".")[0]
+        dstore = self.ReadClass(source, suffix="*")
+        self.assertEqual(dstore.source, self.basedir)
+        self.assertTrue(len(dstore) > 1)
+
 
 class SingleReadStoreTests(TestCase):
     basedir = "data/brca1.fasta"
