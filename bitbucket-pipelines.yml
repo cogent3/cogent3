@@ -11,6 +11,7 @@ pipelines:
           - pip install tqdm
           - pip install plotly
           - pip install scitrack
+          - pip install tinydb
           - bash run_tests
           
 
