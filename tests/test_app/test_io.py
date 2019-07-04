@@ -11,6 +11,7 @@ from cogent3 import DNA
 from cogent3.app import io as io_app
 from cogent3.app.composable import NotCompletedResult
 from cogent3.app.data_store import WritableZippedDataStore
+from cogent3.app.io import write_db
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.util.table import Table
 
@@ -152,12 +153,6 @@ class TestIo(TestCase):
             self.assertIsInstance(got, DNA.__class__)
             self.assertEqual(got, DNA)
 
-            # and a datastore member
-            dstore = io_app.get_data_store(dirname, suffix="json")
-            member = list(dstore)[0]
-            got = reader(member)
-            self.assertEqual(got, DNA)
-
         # zipped directory
         with TemporaryDirectory(dir=".") as dirname:
             zip_path = join(dirname, "delme.zip")
@@ -169,6 +164,24 @@ class TestIo(TestCase):
             member = dstore.get_member("delme.json")
             reader = io_app.load_json()
             got = reader(member)
+            self.assertIsInstance(got, DNA.__class__)
+            self.assertEqual(got, DNA)
+
+    def test_write_db_load_db(self):
+        """correctly write/load from tinydb"""
+        data = DNA.to_json()
+        # straight directory
+        with TemporaryDirectory(dir=".") as dirname:
+            outpath = join(dirname, "delme")
+            writer = write_db(outpath, create=True, if_exists="ignore")
+            mock = patch("data.source", autospec=True)
+            mock.to_json = DNA.to_json
+            mock.source = join("blah", "delme.json")
+            got = writer(mock)
+            writer.data_store.db.close()
+            dstore = io_app.get_data_store(f"{outpath}.tinydb", suffix="json")
+            reader = io_app.load_db()
+            got = reader(dstore[0])
             self.assertIsInstance(got, DNA.__class__)
             self.assertEqual(got, DNA)
 
@@ -227,7 +240,10 @@ class TestIo(TestCase):
             reader = io_app.load_json()
             got = reader(writer.data_store[0])
             self.assertEqual(got, DNA)
-            self.assertEqual(identifier, join(outdir.replace(".zip", ""), "delme.json"))
+            expect = join(outdir.replace(".zip", ""), "delme.json")
+            if expect.startswith("./"):
+                expect = expect[2:]
+            self.assertEqual(identifier, expect)
 
     def test_write_json_no_info(self):
         """correctly writes an object with out an info attribute from json"""
@@ -256,7 +272,10 @@ class TestIo(TestCase):
             # checking loadable from a data store member too
             got = reader(writer.data_store[0])
             self.assertEqual(got, DNA)
-            self.assertEqual(identifier, join(outdir.replace(".zip", ""), "delme.json"))
+            expect = join(outdir.replace(".zip", ""), "delme.json")
+            if expect.startswith("./"):
+                expect = expect[2:]
+            self.assertEqual(identifier, expect)
 
 
 if __name__ == "__main__":

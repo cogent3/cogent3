@@ -176,7 +176,7 @@ setup(
         "cogent3.recalculation",
         "cogent3.util",
     ],
-    install_requires=["numpy", "pandas", "plotly", "scitrack", "tqdm"],
+    install_requires=["numpy", "pandas", "plotly", "scitrack", "tqdm", "tinydb"],
     ext_modules=cythonize(
         [
             CythonExtension("cogent3.align._compare"),

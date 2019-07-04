@@ -1,9 +1,12 @@
 import glob
 import os
+import pathlib
 import re
 import shutil
+import weakref
 import zipfile
 
+from collections import defaultdict
 from fnmatch import fnmatch, translate
 from io import TextIOWrapper
 from pathlib import Path
@@ -11,8 +14,19 @@ from pprint import pprint
 from warnings import warn
 
 from scitrack import get_text_hexdigest
+from tinydb import Query, TinyDB
+from tinydb.middlewares import CachingMiddleware
+from tinydb.storages import JSONStorage
 
-from cogent3.util.misc import atomic_write, get_format_suffixes, open_
+from cogent3 import LoadTable
+from cogent3.util.deserialise import deserialise_not_completed
+from cogent3.util.misc import (
+    atomic_write,
+    extend_docstring_from,
+    get_format_suffixes,
+    open_,
+)
+from cogent3.util.union_dict import UnionDict
 
 
 # handling archive, member existence
@@ -23,16 +37,17 @@ IGNORE = "ignore"
 
 
 class DataStoreMember(str):
-    def __new__(klass, name, parent=None):
+    def __new__(klass, name, parent=None, id=None):
         result = str.__new__(klass, name)
         result.name = os.path.basename(name)
         result.parent = parent
         result._file = None
+        result.id = id
         return result
 
     def read(self):
         """returns contents"""
-        return self.parent.read(self.name)
+        return self.parent.read(self)
 
     def open(self):
         """returns file-like object"""
@@ -49,7 +64,7 @@ class DataStoreMember(str):
 
     @property
     def md5(self):
-        return self.parent.md5(self.name, force=True)
+        return self.parent.md5(self, force=True)
 
 
 class ReadOnlyDataStoreBase:
@@ -78,8 +93,7 @@ class ReadOnlyDataStoreBase:
         # todo this approach to caching persistent arguments for reconstruction
         # is fragile. Need an inspect module based approach
         d = locals()
-        d.pop("self")
-        self._persistent = d
+        self._persistent = UnionDict({k: v for k, v in d.items() if k != "self"})
 
         suffix = suffix or ""
         if suffix != "*":  # wild card search for all
@@ -89,7 +103,7 @@ class ReadOnlyDataStoreBase:
         self.suffix = suffix
         if self.store_suffix and not source.endswith(self.store_suffix):
             source = ".".join([source, self.store_suffix])
-        self.source = source
+        self.source = str(pathlib.Path(source).expanduser())
         self.mode = "r"
         self._members = []
         self.limit = limit
@@ -130,8 +144,11 @@ class ReadOnlyDataStoreBase:
         pprint(self[-n:])
 
     def __iter__(self):
-        for member in self.members:
-            yield DataStoreMember(self.get_absolute_identifier(member), self)
+        for i, member in enumerate(self.members):
+            if not isinstance(member, DataStoreMember):
+                member = DataStoreMember(self.get_absolute_identifier(member), self)
+                self.members[i] = member
+            yield member
 
     def __getitem__(self, index):
         return self.members[index]
@@ -174,6 +191,8 @@ class ReadOnlyDataStoreBase:
         return identifier
 
     def get_absolute_identifier(self, identifier, from_relative=False):
+        """returns the identifier relative to the root path
+        """
         if not from_relative:
             identifier = self.get_relative_identifier(identifier)
         source = self.source.replace(".zip", "")
@@ -323,6 +342,13 @@ class WritableDataStoreBase:
         create : bool
             if True, the destination is created
         """
+        d = locals()
+        d = UnionDict({k: v for k, v in d.items() if k != "self"})
+        if self._persistent:
+            self._persistent |= d
+        else:
+            self._persistent = d
+
         self._members = []
         if_exists = if_exists.lower()
         assert if_exists in (OVERWRITE, SKIP, RAISE, IGNORE)
@@ -355,9 +381,9 @@ class WritableDataStoreBase:
         elif comp:
             pattern = f".{comp}*$"
         else:
-            raise ValueError(f"unknown name scheme {basename}")
-
-        basename = re.sub(pattern, "", basename)
+            pattern = None
+        if pattern:
+            basename = re.sub(pattern, "", basename)
         basename = f"{basename}.{self.suffix}"
         return basename
 
@@ -402,10 +428,27 @@ class WritableDataStoreBase:
             num += 1
         relativeid = new
         data = SingleReadDataStore(path)[0].read()
-        self.write(relativeid, data)
+        self.write(str(relativeid), data)
 
         if cleanup:
             path.unlink()
+
+        return relativeid
+
+    def write(self, *args, **kwargs):
+        """
+        Parameters
+        ----------
+        identifier : str
+            identifier that data wil be saved under
+        data
+            data to be saved
+
+        Returns
+        -------
+        DataStoreMember instance
+        """
+        raise NotImplementedError
 
 
 class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBase):
@@ -442,8 +485,7 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
         WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
 
         d = locals()
-        d.pop("self")
-        self._persistent = d
+        self._persistent = {k: v for k, v in d.items() if k != "self"}
         self.mode = mode
 
     def _source_create_delete(self, if_exists, create):
@@ -451,13 +493,17 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
         if exists and if_exists == RAISE:
             raise RuntimeError(f"'{self.source}' exists")
         elif exists and if_exists == OVERWRITE:
-            shutil.rmtree(self.source)
+            try:
+                shutil.rmtree(self.source)
+            except NotADirectoryError:
+                os.remove(self.source)
         elif not exists and not create:
             raise RuntimeError(f"'{self.source}' does not exist")
 
         if create:
             os.makedirs(self.source, exist_ok=True)
 
+    @extend_docstring_from(WritableDataStoreBase.write)
     def write(self, identifier, data):
         relative_id = self.get_relative_identifier(identifier)
         absolute_id = self.get_absolute_identifier(relative_id, from_relative=True)
@@ -471,7 +517,7 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
         if relative_id not in self:
             self._members.append(DataStoreMember(relative_id, self))
 
-        return absolute_id
+        return self._members[-1]
 
 
 class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
@@ -507,8 +553,7 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
 
         d = locals()
-        d.pop("self")
-        self._persistent = d
+        self._persistent = {k: v for k, v in d.items() if k != "self"}
         self.mode = "a" or mode
 
     def _source_create_delete(self, if_exists, create):
@@ -524,6 +569,7 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         if create and dirname:
             os.makedirs(dirname, exist_ok=True)
 
+    @extend_docstring_from(WritableDataStoreBase.write)
     def write(self, identifier, data):
         relative_id = self.get_relative_identifier(identifier)
         absolute_id = self.get_absolute_identifier(relative_id, from_relative=True)
@@ -538,3 +584,395 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
             self._members.append(DataStoreMember(relative_id, self))
 
         return absolute_id
+
+
+def _db_lockid(path):
+    """returns value for pid in LOCK record or None"""
+    if not os.path.exists(path):
+        return None
+    db = TinyDB(path)
+    query = Query().identifier.matches("LOCK")
+    got = db.get(query)
+    lockid = None if not got else got["pid"]
+    return lockid
+
+
+class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
+    """A TinyDB based json data store"""
+
+    store_suffix = "tinydb"
+
+    def __init__(self, *args, **kwargs):
+        kwargs["suffix"] = "json"
+        super(ReadOnlyTinyDbDataStore, self).__init__(*args, **kwargs)
+        self._db = None
+        self._finish = None
+
+    def __contains__(self, identifier):
+        """whether identifier has been stored here"""
+        if isinstance(identifier, DataStoreMember):
+            return identifier.parent is self
+
+        query = Query().identifier.matches(identifier)
+        return self.db.contains(query)
+
+    def __repr__(self):
+        txt = super().__repr__()
+        query = Query().completed == False
+        num = self.db.count(query)
+        if num > 0:
+            txt = f"{txt}, {num}x incomplete"
+        return txt
+
+    @property
+    def db(self):
+        if self._db is None:
+            storage = CachingMiddleware(JSONStorage)
+            storage.WRITE_CACHE_SIZE = 50  # todo support for user specifying
+            self._db = TinyDB(self.source, storage=storage)
+            name = self.__class__.__name__
+            if "readonly" in name.lower():
+                # remove interface for inserting records making this a read only db
+                self._db.insert = None
+            else:
+                self.lock()
+
+            self._finish = weakref.finalize(self, self._close, self._db)
+
+        return self._db
+
+    def __del__(self):
+        self.close()
+
+    @classmethod
+    def _close(cls, db):
+        try:
+            db.storage.flush()
+            db.close()
+        except ValueError:
+            # file probably already closed
+            pass
+
+    def close(self):
+        """closes the data store"""
+        try:
+            self.unlock()
+            self.db.storage.flush()
+        except ValueError:
+            # file probably already closed
+            pass
+        self._finish()
+        self._finish.detach()
+
+    def lock(self):
+        """if writable, and not locked, locks the database to this pid
+        """
+        if not self.locked:
+            self._db.insert(dict(identifier="LOCK", pid=os.getpid()))
+            self._db.storage.flush()
+
+    @property
+    def locked(self):
+        """returns lock pid or None if unlocked or pid matches self"""
+        return _db_lockid(self.source) is not None
+
+    def unlock(self, force=False):
+        """remove a lock if pid matches. If force, ignores pid."""
+        if "readonly" in self.__class__.__name__:
+            # not allowed to touch a lock
+            return
+
+        query = Query().identifier.matches("LOCK")
+        got = self.db.get(query)
+        if not got:
+            return
+
+        lock_id = got["pid"]
+        if lock_id == os.getpid() or force:
+            self.db.remove(query)
+            self.db.storage.flush()
+
+        return lock_id
+
+    @property
+    def incomplete(self):
+        """returns database records with completed=False"""
+        query = Query().completed == False
+        incomplete = []
+        for record in self.db.search(query):
+            member = DataStoreMember(record["identifier"], self, id=record.doc_id)
+            incomplete.append(member)
+        return incomplete
+
+    @property
+    def summary_incomplete(self):
+        """returns a table summarising incomplete results"""
+        types = defaultdict(list)
+        indices = "type", "origin"
+        for member in self.incomplete:
+            record = member.read()
+            record = deserialise_not_completed(record)
+            key = tuple(getattr(record, k, None) for k in indices)
+            types[key].append([record.message, record.source])
+
+        header = list(indices) + ["message", "num", "source"]
+        rows = []
+        for record in types:
+            messages, sources = list(zip(*types[record]))
+            messages = list(sorted(set(messages)))
+            if len(messages) > 3:
+                messages = messages[:3] + ["..."]
+
+            if len(sources) > 3:
+                sources = sources[:3] + ("...",)
+
+            row = list(record) + [
+                ", ".join(messages),
+                len(types[record]),
+                ", ".join(sources),
+            ]
+            rows.append(row)
+
+        table = LoadTable(header=header, rows=rows, title="incomplete records")
+        return table
+
+    @property
+    def members(self):
+        if not self._members:
+            if self.suffix:
+                pattern = translate("*.%s" % self.suffix)
+            else:
+                pattern = translate("*")
+            members = []
+            query = Query()
+            query = (query.identifier.matches(pattern)) & (query.completed == True)
+            for record in self.db.search(query):
+                member = DataStoreMember(record["identifier"], self, id=record.doc_id)
+                members.append(member)
+
+                if self.limit and len(members) >= self.limit:
+                    break
+            self._members = members
+
+        return self._members
+
+    @extend_docstring_from(ReadOnlyDataStoreBase.get_absolute_identifier, pre=True)
+    def get_absolute_identifier(self, identifier, from_relative=True):
+        """For tinydb, this is the same as the relative identifier"""
+        return self.get_relative_identifier(identifier)
+
+    @extend_docstring_from(ReadOnlyDataStoreBase.get_relative_identifier)
+    def get_relative_identifier(self, identifier):
+        if isinstance(identifier, DataStoreMember) and identifier.parent is self:
+            return identifier
+
+        identifier = Path(identifier)
+        suffix = identifier.suffix
+        identifier = identifier.name
+        if suffix:
+            identifier = ".".join(identifier.split(".")[:-1])
+        elif identifier.endswith("."):
+            identifier = identifier[:-1]
+
+        if self.suffix:
+            identifier = f"{identifier}.{self.suffix}"
+
+        return identifier
+
+    def open(self, identifier):
+        if getattr(identifier, "parent", None) is not self:
+            member = self.get_member(identifier)
+        else:
+            member = identifier
+
+        record = self.db.get(doc_id=member.id)
+        return record["data"]
+
+    def read(self, identifier):
+        data = self.open(identifier)
+        if self._md5 and isinstance(data, str):
+            self._checksums[identifier] = get_text_hexdigest(data)
+
+        return data
+
+    @extend_docstring_from(ReadOnlyDataStoreBase.md5)
+    def md5(self, member, force=True):
+        md5_setting = self._md5  # for restoring automatic md5 calc setting
+        if not getattr(member, "id", None):
+            member = self.filtered(member)[0]
+
+        if force and member not in self._checksums:
+            self._md5 = True
+            _ = member.read()
+
+        result = self._checksums.get(member, None)
+        self._md5 = md5_setting
+        return result
+
+    @property
+    def logs(self):
+        """returns all records with a .log suffix"""
+        logfiles = []
+        query = Query().identifier.matches(translate("*.log"))
+        for record in self.db.search(query):
+            member = DataStoreMember(record["identifier"], self, id=record.doc_id)
+            logfiles.append(member)
+        return logfiles
+
+    @property
+    def summary_logs(self):
+        """returns a table summarising log files"""
+        rows = []
+        for record in self.logs:
+            data = record.read().splitlines()
+            first = data.pop(0).split("\t")
+            row = [first[0], record.name]
+            data = [r.split("\t")[-1].split(" : ", maxsplit=1) for r in data]
+            data = dict(data)
+            row.extend(
+                [
+                    data["python"],
+                    data["user"],
+                    data["command_string"],
+                    data["composable function"],
+                ]
+            )
+            rows.append(row)
+        table = LoadTable(
+            header=["time", "name", "python version", "who", "command", "composable"],
+            rows=rows,
+            title="summary of log files",
+        )
+        return table
+
+    @property
+    def describe(self):
+        """returns tables describing content types"""
+        lock_id = _db_lockid(self.source)
+        if lock_id:
+            title = (
+                f"Locked db store. Locked to pid={lock_id}, current pid={os.getpid()}"
+            )
+        else:
+            title = "Unlocked db store."
+        num_incomplete = len(self.incomplete)
+        num_complete = len(self.members)
+        num_logs = len(self.logs)
+        summary = LoadTable(
+            header=["record type", "number"],
+            rows=[
+                ["completed", num_complete],
+                ["incomplete", num_incomplete],
+                ["logs", num_logs],
+            ],
+            title=title,
+        )
+        return summary
+
+
+class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
+    def __init__(self, *args, **kwargs):
+        if_exists = kwargs.pop("if_exists", RAISE)
+        create = kwargs.pop("create", None)
+        ReadOnlyTinyDbDataStore.__init__(self, *args, **kwargs)
+        WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
+
+    def _source_create_delete(self, if_exists, create):
+        if _db_lockid(self.source):
+            return
+
+        exists = os.path.exists(self.source)
+        dirname = os.path.dirname(self.source)
+        if exists and if_exists == RAISE:
+            raise RuntimeError(f"'{self.source}' exists")
+        elif exists and if_exists == OVERWRITE:
+            try:
+                os.remove(self.source)
+            except PermissionError:
+                # probably user accidentally created a directory
+                shutil.rmtree(self.source)
+        elif dirname and not os.path.exists(dirname) and not create:
+            raise RuntimeError(f"'{dirname}' does not exist")
+
+        if create and dirname:
+            os.makedirs(dirname, exist_ok=True)
+
+    @extend_docstring_from(WritableDataStoreBase.write)
+    def write(self, identifier, data):
+        matches = self.filtered(identifier)
+        if matches:
+            return matches[0]
+
+        relative_id = self.get_relative_identifier(identifier)
+        doc_id = self.db.insert(
+            {"identifier": identifier, "data": data, "completed": True}
+        )
+
+        member = DataStoreMember(relative_id, self, id=doc_id)
+        self._members.append(member)
+
+        return member
+
+    def write_incomplete(self, identifier, not_completed):
+        """stores an incomplete result object"""
+        from .composable import NotCompletedResult
+
+        matches = self.filtered(identifier)
+        if matches:
+            return matches[0]
+
+        relative_id = self.get_relative_identifier(identifier)
+        if type(not_completed) == NotCompletedResult:
+            not_completed = not_completed.to_rich_dict()
+
+        doc_id = self.db.insert(
+            {"identifier": identifier, "data": not_completed, "completed": False}
+        )
+
+        member = DataStoreMember(relative_id, self, id=doc_id)
+        self._members.append(member)
+
+        return member
+
+    def add_file(self, path, make_unique=True, keep_suffix=True, cleanup=False):
+        """
+        Parameters
+        ----------
+        path : str
+            location of file to be added to the data store
+        keep_suffix : bool
+            new path will retain the suffix of the provided file
+        make_unique : bool
+            a successive number will be added to the name before the suffix
+            until the name is unique
+        cleanup : bool
+            delete the original
+        """
+        relativeid = self.make_relative_identifier(path)
+        relativeid = Path(relativeid)
+        path = Path(path)
+        if keep_suffix:
+            relativeid = str(relativeid).replace(
+                relativeid.suffix, "".join(path.suffixes)
+            )
+            relativeid = Path(relativeid)
+
+        if relativeid.suffix:
+            name_wo_suffix = ".".join(relativeid.name.split(".")[:-1])
+        else:
+            name_wo_suffix = relativeid
+        suffixes = "".join(relativeid.suffixes)
+        query = Query().identifier.matches(f"{name_wo_suffix}*")
+        num = self.db.count(query)
+        if num:
+            num += 1
+            relativeid = str(relativeid).replace(suffixes, f"-{num}{suffixes}")
+            relativeid = str(relativeid).replace(suffixes, f"-{num}{suffixes}")
+
+        data = path.read_text()
+        m = self.write(str(relativeid), data)
+
+        if cleanup:
+            path.unlink()
+
+        return m
