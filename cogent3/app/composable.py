@@ -1,4 +1,5 @@
 import inspect
+import json
 import os
 import pathlib
 import re
@@ -9,7 +10,7 @@ import scitrack
 from cogent3 import LoadSeqs
 from cogent3.core.alignment import SequenceCollection
 from cogent3.util import progress_display as UI
-from cogent3.util.misc import open_
+from cogent3.util.misc import get_object_provenance, open_
 
 from .data_store import (
     IGNORE,
@@ -84,16 +85,18 @@ class NotCompletedResult(int):
         """
         # todo this approach to caching persistent arguments for reconstruction
         # is fragile. Need an inspect module based approach
+        origin = _get_origin(origin)
+        source = _get_source(source)
         d = locals()
-        d.pop("cls")
+        d = {k: v for k, v in d.items() if k != "cls"}
         result = int.__new__(cls, False)
         args = tuple(d.pop(v) for v in ("type", "origin", "message"))
         result._persistent = args, d
 
         result.type = type
-        result.origin = _get_origin(origin)
+        result.origin = origin
         result.message = message
-        result.source = _get_source(source)
+        result.source = source
         return result
 
     def __getnewargs_ex__(self, *args, **kw):
@@ -110,6 +113,20 @@ class NotCompletedResult(int):
             f'source="{source}", message="{self.message}")'
         )
         return val
+
+    def to_rich_dict(self):
+        """returns components for to_json"""
+        data = {
+            "type": get_object_provenance(self),
+            "not_completed_construction": dict(
+                args=self._persistent[0], kwargs=self._persistent[1]
+            ),
+        }
+        return data
+
+    def to_json(self):
+        """returns json string"""
+        return json.dumps(self.to_rich_dict())
 
 
 class ComposableType:

@@ -31,6 +31,16 @@ def _get_class(provenance):
     return klass
 
 
+def deserialise_not_completed(data):
+    """deserialising NotCompletedResult"""
+    klass = _get_class(data.pop("type"))
+    init = data.pop("not_completed_construction")
+    args = init.pop("args")
+    kwargs = init.pop("kwargs")
+    result = klass(*args, **kwargs)
+    return result
+
+
 def deserialise_map_spans(map_element):
     map_klass = _get_class(map_element.pop("type"))
     spans = []
@@ -238,6 +248,8 @@ def deserialise_object(data):
         func = deserialise_alphabet
     elif "app.result" in type_:
         func = deserialise_result
+    elif "notcompleted" in type_.lower():
+        func = deserialise_not_completed
     else:
         msg = "deserialising '%s' from json" % type_
         raise NotImplementedError(msg)
