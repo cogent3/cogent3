@@ -949,22 +949,6 @@ class Table(DictArray):
         kw.update(kwargs)
         return Table(header=columns, rows=new, **kw)
 
-    def get_disjoint_rows(self, rows, **kwargs):
-        """Return the nominated disjoint rows."""
-        if isinstance(rows, str):
-            rows = [rows]
-
-        indexes = []
-        for row in rows:
-            idx, drop = self.template.interpret_index(row)
-            indexes.append(idx[0])
-
-        new = self.array.take(indexes, axis=0)
-
-        kw = self._get_persistent_attrs()
-        kw.update(kwargs)
-        return Table(header=self.header, rows=new, **kw)
-
     def with_new_column(self, new_column, callback, columns=None, **kwargs):
         """Returns a new table with an additional column, computed using
         callback.
