@@ -1205,20 +1205,6 @@ and range of rows.
        edge.0         edge.1    4.0000    1.0000    3.0000    6.0000
     ----------------------------------------------------------------
 
-You can get disjoint rows.
-
-.. doctest::
-
-    >>> print(t4.get_disjoint_rows(['Human', 'Mouse', 'DogFaced']))
-    My title
-    ================================================================
-    edge.name    edge.parent    length         x         y         z
-    ----------------------------------------------------------------
-        Human         edge.0    4.0000    1.0000    3.0000    6.0000
-        Mouse         edge.1    4.0000    1.0000    3.0000    6.0000
-     DogFaced           root    4.0000    1.0000    3.0000    6.0000
-    ----------------------------------------------------------------
-
 You can iterate over the table one row at a time and slice the rows. We illustrate this for slicing a single column,
 
 .. doctest::
