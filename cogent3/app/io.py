@@ -26,10 +26,10 @@ from .data_store import (
     RAISE,
     SKIP,
     ReadOnlyDirectoryDataStore,
+    ReadOnlyTinyDbDataStore,
     ReadOnlyZippedDataStore,
     SingleReadDataStore,
-    WritableDirectoryDataStore,
-    WritableZippedDataStore,
+    WritableTinyDbDataStore,
 )
 
 
@@ -85,7 +85,12 @@ def get_data_store(base_path, suffix, limit=None, verbose=False):
         raise ValueError(f"{suffix} is not a string")
 
     zipped = zipfile.is_zipfile(base_path)
-    klass = ReadOnlyZippedDataStore if zipped else ReadOnlyDirectoryDataStore
+    if base_path.endswith("tinydb"):
+        klass = ReadOnlyTinyDbDataStore
+    elif zipped:
+        klass = ReadOnlyZippedDataStore
+    else:
+        klass = ReadOnlyDirectoryDataStore
     data_store = klass(base_path, suffix=suffix, limit=limit, verbose=verbose)
     return data_store
 
@@ -355,7 +360,60 @@ class write_json(_checkpointable):
         self.func = self.write
 
     def _set_checkpoint_loader(self):
-        self._load_checkpoint = load_json()
+        self._load_checkpoint = self
+
+    def write(self, data):
+        identifier = self._make_output_identifier(data)
+        out = data.to_json()
+        stored = self.data_store.write(identifier, out)
+        try:
+            data.info.stored = stored
+        except AttributeError:
+            data.stored = stored
+        return identifier
+
+
+class load_db(Composable):
+    """loads json to a TinyDB instance"""
+
+    _type = "output"
+    _input_type = frozenset([None])
+    _output_type = frozenset(["result", "serialisable"])
+
+    def __init__(self):
+        super(load_db, self).__init__()
+        self.func = self.read
+
+    def read(self, identifier):
+        """returns object deserialised from a TinyDb"""
+        if not hasattr(identifier, "id") and identifier.id >= 1:
+            raise TypeError(f"{identifier} not connected to a TinyDB")
+        data = identifier.read()
+        return deserialise_object(data)
+
+
+class write_db(_checkpointable):
+    """writes json to a TinyDB instance"""
+
+    _type = "output"
+    _input_type = frozenset(["serialisable"])
+    _output_type = frozenset(["identifier", "serialisable"])
+
+    def __init__(
+        self, data_path, name_callback=None, create=False, if_exists=SKIP, suffix="json"
+    ):
+        super(write_db, self).__init__(
+            data_path=data_path,
+            name_callback=name_callback,
+            create=create,
+            if_exists=if_exists,
+            suffix=suffix,
+            writer_class=WritableTinyDbDataStore,
+        )
+        self.func = self.write
+
+    def _set_checkpoint_loader(self):
+        self._load_checkpoint = self
 
     def write(self, data):
         identifier = self._make_output_identifier(data)

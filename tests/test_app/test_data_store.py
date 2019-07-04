@@ -8,9 +8,11 @@ from unittest import TestCase, main, skipIf
 from cogent3.app.data_store import (
     DataStoreMember,
     ReadOnlyDirectoryDataStore,
+    ReadOnlyTinyDbDataStore,
     ReadOnlyZippedDataStore,
     SingleReadDataStore,
     WritableDirectoryDataStore,
+    WritableTinyDbDataStore,
     WritableZippedDataStore,
 )
 from cogent3.parse.fasta import MinimalFastaParser
@@ -81,6 +83,9 @@ class DataStoreBaseTests:
     def test_make_identifier(self):
         """correctly construct an identifier for a new member"""
         with TemporaryDirectory(dir=".") as dirname:
+            if dirname.startswith("./"):
+                dirname = dirname[2:]
+
             path = os.path.join(dirname, self.basedir)
             base_path = path.replace(".zip", "")
             dstore = self.WriteClass(path, suffix=".json", create=True)
@@ -276,6 +281,204 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
         dstore = self.ReadClass(source, suffix="*")
         self.assertEqual(dstore.source, self.basedir)
         self.assertTrue(len(dstore) > 1)
+
+
+class TinyDBDataStoreTests(TestCase):
+    basedir = "data"
+    ReadClass = ReadOnlyTinyDbDataStore
+    WriteClass = WritableTinyDbDataStore
+
+    def setUp(self):
+        dstore = ReadOnlyDirectoryDataStore(self.basedir, suffix="fasta")
+        data = {m.name: m.read() for m in dstore}
+        self.data = data
+
+    def test_len(self):
+        """len tindydb data store correct"""
+        with TemporaryDirectory(dir=".") as dirname:
+            path = os.path.join(dirname, self.basedir)
+            dstore = self.WriteClass(path, if_exists="overwrite")
+            for id_, data in self.data.items():
+                identifier = dstore.make_relative_identifier(id_)
+                dstore.write(identifier, data)
+            self.assertTrue(len(dstore), len(self.data))
+
+    def test_tiny_contains(self):
+        """contains operation works for tinydb data store"""
+        with TemporaryDirectory(dir=".") as dirname:
+            path = os.path.join(dirname, self.basedir)
+            dstore = self.WriteClass(path, if_exists="overwrite")
+            for id_, data in self.data.items():
+                identifier = dstore.make_relative_identifier(id_)
+                got = dstore.write(identifier, data)
+                # just string value matching element should return True
+                self.assertTrue(got in dstore)
+                # but if database member parent is not the same as the
+                # data store, it will be False
+                got.parent = "abcd"
+                self.assertTrue(got not in dstore)
+            self.assertTrue("brca1.json" in dstore)
+
+    def test_add_file(self):
+        """adding file to tinydb should work"""
+        with TemporaryDirectory(dir=".") as dirname:
+            keys = [k for k in self.data.keys()]
+            path = os.path.join(dirname, self.basedir)
+            dstore = self.WriteClass(path, if_exists="overwrite")
+            identifier = dstore.make_relative_identifier(keys[0])
+            got = dstore.write(identifier, self.data[keys[0]])
+            path = dstore.add_file(
+                os.path.join(self.basedir, keys[1]), keep_suffix=True, cleanup=False
+            )
+            self.assertTrue(keys[1] in dstore)
+
+    def test_tiny_get_member(self):
+        """get member works on TinyDbDataStore"""
+        with TemporaryDirectory(dir=".") as dirname:
+            keys = [k for k in self.data.keys()]
+            path = os.path.join(dirname, self.basedir)
+            dstore = self.WriteClass(path, if_exists="overwrite")
+            identifier = dstore.make_relative_identifier(keys[0])
+            inserted = dstore.write(identifier, self.data[keys[0]])
+            got = dstore.get_member(identifier)
+            self.assertEqual(got.name, identifier)
+            self.assertEqual(got.id, inserted.id)
+            self.assertEqual(got.read(), self.data[keys[0]])
+
+    def test_tinydb_iter(self):
+        """tinydb iter works"""
+        with TemporaryDirectory(dir=".") as dirname:
+            path = os.path.join(dirname, self.basedir)
+            dstore = self.WriteClass(path, if_exists="overwrite")
+            for id_, data in self.data.items():
+                identifier = dstore.make_relative_identifier(id_)
+                dstore.write(identifier, data)
+
+            members = [m for m in dstore]
+            self.assertEqual(members, dstore.members)
+
+    def test_tinydb_filter(self):
+        """filtering members by name"""
+        with TemporaryDirectory(dir=".") as dirname:
+            path = os.path.join(dirname, self.basedir)
+            dstore = self.WriteClass(path, if_exists="overwrite")
+            for id_, data in self.data.items():
+                identifier = dstore.make_relative_identifier(id_)
+                dstore.write(identifier, data)
+            matches = dstore.filtered("*brca1*")
+            self.assertGreater(len(matches), 2)
+
+    def test_pickleable_roundtrip(self):
+        """pickling of data stores should be reversible"""
+        from pickle import dumps, loads
+
+        with TemporaryDirectory(dir=".") as dirname:
+            path = os.path.join(dirname, self.basedir)
+            dstore = self.WriteClass(path, if_exists="ignore")
+            for id_, data in self.data.items():
+                identifier = dstore.make_relative_identifier(id_)
+                dstore.write(identifier, data)
+            dstore.db.storage.flush()  # make sure written to disk
+            re_dstore = loads(dumps(dstore))
+            got = re_dstore[0].read()
+            self.assertEqual(str(dstore), str(re_dstore))
+            self.assertEqual(got, dstore[0].read())
+
+    def test_tiny_write_incomplete(self):
+        """write an incomplete result to tinydb"""
+        from cogent3.app.composable import NotCompletedResult
+
+        keys = list(self.data)
+        incomplete = [
+            keys.pop(0),
+            NotCompletedResult("FAIL", "somefunc", "checking", source="testing.txt"),
+        ]
+        with TemporaryDirectory(dir=".") as dirname:
+            path = os.path.join(dirname, self.basedir)
+            dstore = self.WriteClass(path, if_exists="overwrite")
+            id_ = dstore.make_relative_identifier(incomplete[0])
+            dstore.write_incomplete(id_, incomplete[1])
+            for k in keys:
+                id_ = dstore.make_relative_identifier(k)
+                dstore.write(id_, self.data[k])
+            dstore.close()
+
+            # all records are contained
+            dstore = self.ReadClass(path)
+            for k in self.data:
+                id_ = dstore.get_relative_identifier(k)
+                self.assertTrue(id_ in dstore)
+
+            # but len(dstore) reflects only members with completed==True
+            len_store = len(dstore)
+            # but len(dstore.db) reflects all members
+            self.assertEqual(len(dstore.db), len_store + 1)
+            # the incomplete property contains the incomplete ones
+            got = dstore.incomplete[0].read()
+            self.assertTrue("notcompleted" in got["type"].lower())
+
+    def test_summary_methods(self):
+        """produce a table"""
+        from cogent3.app.composable import NotCompletedResult
+
+        keys = list(self.data)
+        incomplete = [
+            keys.pop(0),
+            NotCompletedResult("FAIL", "somefunc", "checking", source="testing.txt"),
+        ]
+        with TemporaryDirectory(dir=".") as dirname:
+            path = os.path.join(dirname, self.basedir)
+            dstore = self.WriteClass(path, if_exists="overwrite")
+            id_ = dstore.make_relative_identifier(incomplete[0])
+            dstore.write_incomplete(id_, incomplete[1])
+            for k in keys:
+                id_ = dstore.make_relative_identifier(k)
+                dstore.write(id_, self.data[k])
+            # now add a log file
+            dstore.add_file("data/scitrack.log", cleanup=False)
+            got = dstore.describe
+            # table has rows for completed, incomplete and log
+            self.assertEqual(got.shape, (3, 2))
+            # log summary has a row per log file and a column for each property
+            got = dstore.summary_logs
+            self.assertEqual(got.shape, (1, 6))
+            # incomplete summmary has a row per type and 5 columns
+            got = dstore.summary_incomplete
+            self.assertEqual(got.shape, (1, 5))
+
+    def test_dblock(self):
+        """locking/unlocking of db"""
+        from cogent3.app.data_store import _db_lockid
+        from pathlib import Path
+
+        keys = list(self.data)
+        with TemporaryDirectory(dir=".") as dirname:
+            path = os.path.join(dirname, self.basedir)
+            dstore = self.WriteClass(path, if_exists="overwrite")
+            for k in keys:
+                id_ = dstore.make_relative_identifier(k)
+                dstore.write(id_, self.data[k])
+            self.assertTrue(dstore.locked)
+            dstore.unlock(force=True)
+            # now introduce an artificial lock, making sure lock flushed to disk
+            dstore.db.insert({"identifier": "LOCK", "pid": 123})
+            dstore.db.storage.flush()
+            self.assertTrue(dstore.locked)
+            self.assertEqual(_db_lockid(dstore.source), 123)
+            # now calling _source_create_delete with overwrite should have no
+            # effect
+            dstore._source_create_delete("overwrite", False)
+            path = Path(dstore.source)
+            self.assertTrue(path.exists())
+            # unlocking with wrong pid has no effect
+            dstore.unlock()
+            self.assertTrue(dstore.locked)
+            # but we can force it
+            dstore.unlock(force=True)
+            self.assertFalse(dstore.locked)
+            # and now a call to _source_create_delete will delete
+            dstore._source_create_delete("overwrite", False)
+            self.assertFalse(path.exists())
 
 
 class SingleReadStoreTests(TestCase):

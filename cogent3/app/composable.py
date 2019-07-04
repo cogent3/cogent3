@@ -481,7 +481,13 @@ class _seq_loader:
 
 class _checkpointable(Composable):
     def __init__(
-        self, data_path, name_callback=None, create=False, if_exists=SKIP, suffix=None
+        self,
+        data_path,
+        name_callback=None,
+        create=False,
+        if_exists=SKIP,
+        suffix=None,
+        writer_class=None,
     ):
         """
         Parameters
@@ -496,6 +502,8 @@ class _checkpointable(Composable):
         if_exists : str
             behaviour if output exists. Either 'skip', 'raise' (raises an
             exception), 'overwrite', 'ignore'
+        writer_class : type
+            constructor for writer
         """
         super(_checkpointable, self).__init__()
         self._formatted_params()
@@ -510,11 +518,14 @@ class _checkpointable(Composable):
         ), "invalid value for if_exists"
         self._if_exists = if_exists
 
-        klass = (
-            WritableZippedDataStore
-            if data_path.endswith(".zip")
-            else WritableDirectoryDataStore
-        )
+        if writer_class:
+            klass = writer_class
+        else:
+            klass = (
+                WritableZippedDataStore
+                if data_path.endswith(".zip")
+                else WritableDirectoryDataStore
+            )
         self.data_store = klass(
             data_path, suffix=suffix, create=create, if_exists=if_exists
         )
