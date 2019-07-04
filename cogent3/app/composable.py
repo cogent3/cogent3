@@ -17,7 +17,6 @@ from .data_store import (
     OVERWRITE,
     RAISE,
     SKIP,
-    DataStoreMember,
     WritableDirectoryDataStore,
     WritableZippedDataStore,
 )
@@ -419,7 +418,6 @@ class ComposableTabular(Composable):
     _type = "tabular"
 
     def __init__(self):
-        super(ComposableTabular, self).__init__()
         super(ComposableTabular, self).__init__()
 
 
