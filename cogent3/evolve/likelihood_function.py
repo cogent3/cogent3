@@ -13,6 +13,7 @@ from cogent3.evolve import substitution_model
 from cogent3.evolve.simulate import AlignmentEvolver, random_sequence
 from cogent3.maths.matrix_exponential_integration import expected_number_subs
 from cogent3.maths.matrix_logarithm import is_generator_unique
+from cogent3.maths.measure import paralinear
 from cogent3.recalculation.definition import ParameterController
 from cogent3.util import table
 from cogent3.util.dict_array import DictArrayTemplate
@@ -41,6 +42,7 @@ __version__ = "3.0a2"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
+
 
 # cogent3.evolve.parameter_controller.LikelihoodParameterController tells the
 # recalculation framework to use this subclass rather than the generic
@@ -546,25 +548,39 @@ class LikelihoodFunction(ParameterController):
 
         return "\n".join(map(str, results))
 
-    def get_annotated_tree(self, length_as_ens=False):
+    def get_annotated_tree(self, length_as=None):
         """returns tree with model attributes on node.params
 
-        length_as_ens : bool
-            replaces 'length' param with expected number of substition,
-            which will be different to standard length if the substition
-            model is non-stationary
+        length_as : str or None
+            replaces 'length' param with either 'ENS' or 'paralinear'.
+            'ENS' is the expected number of substitution, (which will be
+            different to standard length if the substitution model is
+            non-stationary). 'paralinear' is the measure of Lake 1994.
+
+        The other measures are always available in the params dict of each
+        node.
         """
+        assert length_as in ("ENS", "paralinear", None)
         d = self.get_param_value_dict(["edge"])
-        if length_as_ens:
-            lengths = self.get_lengths_as_ens()
+        lengths = d.pop("length")
+        ens = self.get_lengths_as_ens()
+        plin = self.get_paralinear_metric()
+        if length_as == "ENS":
+            lengths = ens
+        elif length_as == "paralinear":
+            lengths = plin
+
         tree = self._tree.deepcopy()
         for edge in tree.get_edge_vector():
             if edge.name == "root":
                 continue
+            edge.params["ENS"] = ens[edge.name]
+            edge.params["paralinear"] = plin[edge.name]
+            edge.params["length"] = lengths[edge.name]
             for par in d:
                 val = d[par][edge.name]
-                if length_as_ens:
-                    val = lengths[edge.name]
+                if par == length_as:
+                    val = ens[edge.name]
                 edge.params[par] = val
 
         return tree
@@ -642,6 +658,20 @@ class LikelihoodFunction(ParameterController):
                 Qs, bprobs, mprobs, predicate
             )
         return scaled_lengths
+
+    def get_paralinear_metric(self):
+        """returns {edge: paralinear, ...}"""
+        mprobs = self.get_motif_probs_by_node()
+        plin = {}
+        for edge in self.tree.get_edge_vector(include_root=False):
+            parent_name = edge.parent.name
+            pi = mprobs[parent_name]
+            P = self.get_psub_for_edge(edge.name)
+            Q = self.get_rate_matrix_for_edge(edge.name, calibrated=False)
+            para = paralinear(Q.array, P.array, pi.array)
+            plin[edge.name] = para
+
+        return plin
 
     def get_lengths_as_ens(self):
         """returns {edge: ens, ...} where ens is the expected number of substitutions

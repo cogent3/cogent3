@@ -16,7 +16,7 @@ import warnings
 
 import numpy
 
-from numpy import ones
+from numpy import dot, ones
 from numpy.testing import assert_allclose
 
 from cogent3 import DNA, LoadSeqs, LoadTree
@@ -39,7 +39,6 @@ from cogent3.util.unit_test import TestCase, main
 
 warnings.filterwarnings("ignore", "Motif probs overspecified")
 warnings.filterwarnings("ignore", "Ignoring tree edge lengths")
-
 
 TimeReversibleNucleotide = substitution_model.TimeReversibleNucleotide
 MotifChange = predicate.MotifChange
@@ -137,6 +136,11 @@ def make_p(length, coord, val):
         Q[i, i] -= row_sum[i]
     Q *= scale
     return expm(Q)(length)
+
+
+def next_pi(pi, P):
+    """returns next pi from apply a P matrix to it"""
+    return dot(pi, P)
 
 
 class LikelihoodCalcs(TestCase):
@@ -611,13 +615,21 @@ NineBande      root    4.0000
         self.assertEqual(obs, keys)
 
     def test_get_annotated_tree(self):
-        likelihood_function = self._makeLikelihoodFunction()
-        likelihood_function.set_param_rule(
-            "length", value=4.0, edge="Human", is_constant=True
-        )
-        result = likelihood_function.get_annotated_tree()
-        self.assertEqual(result.get_node_matching_name("Human").params["length"], 4.0)
-        self.assertEqual(result.get_node_matching_name("Human").length, 4.0)
+        lf = self._makeLikelihoodFunction()
+        lf.set_param_rule("length", value=4.0, edge="Human", is_constant=True)
+        lf.set_param_rule("beta", value=2.0, edge="Human", is_constant=True)
+
+        result = lf.get_annotated_tree()
+        human = result.get_node_matching_name("Human")
+        self.assertEqual(human.params["length"], 4.0)
+        self.assertEqual(human.length, 4.0)
+        # specify length as paralinear or ENS does not fail
+        ens = lf.get_annotated_tree(length_as="ENS")
+        # now check correctly decorate with paralin
+        plin = lf.get_annotated_tree(length_as="paralinear")
+        plin_metric = lf.get_paralinear_metric()
+        human = plin.get_node_matching_name("Human")
+        assert_allclose(human.length, plin_metric["Human"])
 
     def test_getparamsasdict(self):
         likelihood_function = self._makeLikelihoodFunction()
@@ -1227,6 +1239,60 @@ NineBande      root    1.0000    1.0000
         lf.set_alignment(aln)
         bprobs = lf.get_bin_probs()
         self.assertEqual(bprobs.shape[1], len(aln))
+
+    def test_get_paralinear(self):
+        """returns correct paralinear from a lf"""
+        from cogent3.maths.measure import paralinear
+
+        aln = LoadSeqs("data/primates_brca1.fasta", moltype="dna")
+        tree = LoadTree("data/primates_brca1.tree")
+        names = ["TreeShrew", "Mouse", "Rhesus", "Orangutan", "Human"]
+        tree = tree.get_sub_tree(names)
+        aln = aln.take_seqs(names)
+        sm = get_model("GN")
+        lf = sm.make_likelihood_function(tree)
+        lf.set_alignment(aln)
+        rules = [
+            {"par_name": "G>T", "init": 0.6836},
+            {"par_name": "G>C", "init": 0.9666},
+            {"par_name": "G>A", "init": 4.207},
+            {"par_name": "T>C", "init": 3.419},
+            {"par_name": "T>A", "init": 1.06},
+            {"par_name": "C>G", "init": 1.04},
+            {"par_name": "C>T", "init": 2.95},
+            {"par_name": "C>A", "init": 0.739},
+            {"par_name": "A>G", "init": 3.49},
+            {"par_name": "A>T", "init": 0.835},
+            {"par_name": "A>C", "init": 1.15},
+            {
+                "par_name": "mprobs",
+                "init": {
+                    "T": 0.2416726186347738,
+                    "C": 0.1696848907070866,
+                    "A": 0.38111966812998566,
+                    "G": 0.2075228225281539,
+                },
+            },
+            {"par_name": "length", "edge": "Human", "init": 0.009},
+            {"par_name": "length", "edge": "Mouse", "init": 0.292},
+            {"par_name": "length", "edge": "Orangutan", "init": 0.008},
+            {"par_name": "length", "edge": "Rhesus", "init": 0.025},
+            {"par_name": "length", "edge": "TreeShrew", "init": 0.12},
+            {"par_name": "length", "edge": "edge.3", "init": 0.011},
+            {"par_name": "length", "edge": "edge.4", "init": 0.056},
+        ]
+        lf.apply_param_rules(rules)
+        rhesus = "Rhesus"
+        # hand calc a value
+        parent = lf.tree.get_node_matching_name(rhesus).parent.name
+        all_mprobs = lf.get_motif_probs_by_node()
+        pi = all_mprobs[parent]
+        P = lf.get_psub_for_edge(rhesus)
+        Q = lf.get_rate_matrix_for_edge(rhesus, calibrated=False)
+        pl = paralinear(Q.array, P.array, pi.array)
+        # check against lf computed one
+        plinear = lf.get_paralinear_metric()
+        assert_allclose(plinear[rhesus], pl)
 
 
 class ComparisonTests(TestCase):
