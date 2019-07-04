@@ -3,9 +3,7 @@
 # suite of cogent package unit tests.
 # run suite by executing this file
 #
-import doctest
 import importlib
-import os
 import sys
 
 from warnings import filterwarnings, resetwarnings
@@ -137,7 +135,6 @@ def suite():
         "test_util.test_misc",
         "test_util.test_recode_alignment",
         "test_util.test_table",
-        "test_util.test_table.rst",
         "test_util.test_transform",
         "test_util.test_union_dict",
         "test_recalculation",
@@ -148,13 +145,7 @@ def suite():
     alltests = unittest.TestSuite()
 
     for module in modules_to_test:
-        if module.endswith(".rst"):
-            module = os.path.join(*module.split(".")[:-1]) + ".rst"
-            test = doctest.DocFileSuite(
-                module, optionflags=doctest.REPORT_ONLY_FIRST_FAILURE | doctest.ELLIPSIS
-            )
-        else:
-            test = unittest.findTestCases(importlib.import_module(module))
+        test = unittest.findTestCases(importlib.import_module(module))
         alltests.addTest(test)
     return alltests
 
