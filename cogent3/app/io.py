@@ -106,7 +106,7 @@ class _seq_loader:
             # we use a data store as it's read() handles compression
             path = SingleReadDataStore(path)[0]
 
-        if isinstance(path, str):
+        if hasattr(path, "read"):
             data = path.read().splitlines()
             data = dict(record for record in self._parser(data))
             seqs = self.klass(data=data, moltype=self.moltype)
