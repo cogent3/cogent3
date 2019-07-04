@@ -4,7 +4,7 @@ import re
 import shutil
 import zipfile
 
-from fnmatch import fnmatch
+from fnmatch import fnmatch, translate
 from io import TextIOWrapper
 from pathlib import Path
 from pprint import pprint
@@ -55,12 +55,14 @@ class DataStoreMember(str):
 class ReadOnlyDataStoreBase:
     """a read only data store"""
 
+    store_suffix = None
+
     def __init__(self, source, suffix=None, limit=None, verbose=False, md5=True):
         """
         Parameters
         ----------
         source
-            path to directory / zip file
+            path to directory / zip file. Forced to end with store_suffix.
         suffix
             only members whose name matches the suffix are considered included
         limit
@@ -85,6 +87,8 @@ class ReadOnlyDataStoreBase:
         source = re.sub(r"/+$", "", source)  # tidy the source
 
         self.suffix = suffix
+        if self.store_suffix and not source.endswith(self.store_suffix):
+            source = ".".join([source, self.store_suffix])
         self.source = source
         self.mode = "r"
         self._members = []
@@ -273,6 +277,8 @@ class SingleReadDataStore(ReadOnlyDirectoryDataStore):
 
 
 class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
+    store_suffix = "zip"
+
     @property
     def members(self):
         if os.path.exists(self.source) and not self._members:
