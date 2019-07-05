@@ -6,7 +6,7 @@ from numpy.testing import assert_allclose
 
 from cogent3.maths.matrix_exponentiation import PadeExponentiator
 from cogent3.maths.matrix_logarithm import logm
-from cogent3.maths.measure import paralinear
+from cogent3.maths.measure import jsd, paralinear
 
 
 __author__ = "Gavin Huttley"
@@ -58,6 +58,7 @@ class ParalinearTest(TestCase):
         """paralinear validate check consistency"""
         qp1, qp2, qp3 = gen_qs_ps()
         pi1 = random(4)
+
         with self.assertRaises(AssertionError):
             paralinear(qp1[0], qp1[1], qp1[0], validate=True)  # pi invalid shape
 
@@ -78,6 +79,60 @@ class ParalinearTest(TestCase):
         qp2[1][0, 3] = 9
         with self.assertRaises(AssertionError):
             paralinear(qp1[0], qp2[1], pi1, validate=True)  # invalid P
+
+
+class TestJensenShannon(TestCase):
+    def test_jsd_validation(self):
+        """jsd fails with malformed data"""
+        freqs1 = random(5)
+        normalised_freqs1 = freqs1 / freqs1.sum()
+        two_dimensional_freqs1 = [freqs1, freqs1]
+        shorter_freqs1 = freqs1[:4]
+
+        freqs2 = random(5)
+        normalised_freqs2 = freqs2 / freqs2.sum()
+        two_dimensional_freqs2 = [freqs2, freqs2]
+        shorter_freqs2 = freqs2[:4]
+
+        with self.assertRaises(AssertionError):
+            jsd(
+                freqs1, two_dimensional_freqs2, validate=True
+            )  # freqs1/freqs2 mismatched shape
+
+        with self.assertRaises(AssertionError):
+            jsd(
+                two_dimensional_freqs1, freqs2, validate=True
+            )  # freqs1/freqs2 mismatched shape
+
+        with self.assertRaises(AssertionError):
+            jsd(freqs1, shorter_freqs2, validate=True)  # freqs1/freqs2 mismatched shape
+
+        with self.assertRaises(AssertionError):
+            jsd(shorter_freqs1, freqs2, validate=True)  # freqs1/freqs2 mismatched shape
+
+        with self.assertRaises(AssertionError):
+            jsd(
+                two_dimensional_freqs1, freqs2, validate=True
+            )  # freqs1 has incorrect dimension
+
+        with self.assertRaises(AssertionError):
+            jsd(
+                two_dimensional_freqs1, two_dimensional_freqs2, validate=True
+            )  # freqs1 has incorrect dimension
+
+        with self.assertRaises(AssertionError):
+            jsd(
+                freqs1, two_dimensional_freqs2, validate=True
+            )  # freqs2 has incorrect dimension
+
+        with self.assertRaises(AssertionError):
+            jsd(freqs1, freqs2, validate=True)  # invalid freqs1
+
+        with self.assertRaises(AssertionError):
+            jsd(freqs1, normalised_freqs2, validate=True)  # invalid freqs1
+
+        with self.assertRaises(AssertionError):
+            jsd(normalised_freqs1, freqs2, validate=True)  # invalid freqs2
 
 
 if __name__ == "__main__":
