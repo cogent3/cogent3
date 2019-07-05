@@ -187,7 +187,7 @@ class TreeGeometryBase(PhyloNode):
         """returns (self.start, self.end)"""
         return self.start, self.end
 
-    def value_and_coordinate(self, attr, padding=0.1):
+    def value_and_coordinate(self, attr, padding=0.1, max_attr_length=None):
         """
         Parameters
         ----------
@@ -195,7 +195,8 @@ class TreeGeometryBase(PhyloNode):
             attribute of self, e.g. 'name', or key in self.params
         padding : float
             distance from self coordinate
-
+        max_attr_length: int or None
+            maximum text length of the attribute
         Returns
         -------
         (value of attr, (x, y)
@@ -234,7 +235,7 @@ class SquareTreeGeometry(TreeGeometryBase):
         return a, b
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
-    def value_and_coordinate(self, attr, padding=0.05):
+    def value_and_coordinate(self, attr="name", padding=0.05, max_attr_length=None):
         # todo, possibly also return a rotation?
         x = self.x + padding
         y = self.y
@@ -242,12 +243,7 @@ class SquareTreeGeometry(TreeGeometryBase):
         if value is None:
             value = getattr(self, attr, None)
         data = UnionDict(
-            x=x,
-            y=y,
-            textangle=self.theta,
-            showarrow=False,
-            text=self.name,
-            xanchor="left",
+            x=x, y=y, textangle=self.theta, showarrow=False, text=value, xanchor="left"
         )
 
         return data
@@ -364,13 +360,20 @@ class CircularTreeGeometry(TreeGeometryBase):
         return a, b, c
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
-    def value_and_coordinate(self, attr, padding=0.05):
-        radius = np.sqrt(self.x ** 2 + self.y ** 2) + padding
+    def value_and_coordinate(self, attr="name", padding=0.05, max_attr_length=None):
+        value = self.params.get(attr, None)
+        if value is None:
+            value = getattr(self, attr, None)
+
+        max_attr_length = len(value) if max_attr_length is None else max_attr_length
         if 90 < self.theta <= 270:
             textangle = 180 - self.theta
+            value = value.rjust(max_attr_length)
         else:
             textangle = 360 - self.theta
+            value = value.ljust(max_attr_length)
 
+        radius = np.sqrt(self.x ** 2 + self.y ** 2) + padding
         x, y = polar_2_cartesian(self.theta, radius)
 
         data = UnionDict(
@@ -378,10 +381,9 @@ class CircularTreeGeometry(TreeGeometryBase):
             y=y,
             textangle=textangle,
             showarrow=False,
-            text=self.name,
+            text=value,
             xanchor="center",
             yanchor="middle",
-            align="left",
         )
         return data
 
@@ -396,7 +398,7 @@ class Dendrogram(Drawable):
         self,
         tree,
         style="square",
-        label_pad=0.05,
+        label_pad=None,
         contemporaneous=True,
         *args,
         **kwargs,
@@ -413,7 +415,6 @@ class Dendrogram(Drawable):
         kwargs = UnionDict(length_attr="frac_pos") if contemporaneous else {}
         self.tree = klass(tree, **kwargs)
         self.tree.propagate_properties()
-        assert 0 <= label_pad <= 1
         self._label_pad = label_pad
         self._tip_font = UnionDict(size=16, family="sans serif")
         self._line_width = 2
@@ -424,16 +425,20 @@ class Dendrogram(Drawable):
         self._contemporaneous = contemporaneous
         self._tips_as_text = True
         self._length_attr = self.tree._length
+        self._max_label_length = max(map(lambda e: len(e.name), self.tree))
 
     @property
     def label_pad(self):
+        if self._label_pad is None:
+            max_x = max(self.tree.max_x, abs(self.tree.min_x))
+            max_y = max(self.tree.max_y, abs(self.tree.min_y))
+            self._label_pad = max(max_x, max_y) * 0.1
         return self._label_pad
 
     @label_pad.setter
     def label_pad(self, value):
-        if not 0 <= value <= 1:
-            raise ValueError("label_pad must be in range [0, 1]")
         self._label_pad = value
+        self._traces = []
 
     @property
     def contemporaneous(self):
@@ -444,6 +449,7 @@ class Dendrogram(Drawable):
         if not type(value) == bool:
             raise TypeError
         if self._contemporaneous != value:
+            self._label_pad = None
             klass = self.tree.__class__
             length_attr = "frac_pos" if value else self._length_attr
             self.tree = klass(self.tree, length_attr=length_attr)
@@ -460,14 +466,14 @@ class Dendrogram(Drawable):
 
     def _scale_label_pad(self):
         """returns the label pad scaled by maximum dist to tip"""
-        label_pad = self.tree.max_x * self.label_pad
-        return label_pad
+        return self.label_pad
 
     def _get_tip_name_annotations(self):
         annotations = []
-        label_pad = self._scale_label_pad()
         for tip in self.tree.tips():
-            anote = tip.value_and_coordinate("name", padding=label_pad)
+            anote = tip.value_and_coordinate(
+                "name", padding=self.label_pad, max_attr_length=self._max_label_length
+            )
             anote |= UnionDict(xref="x", yref="y", font=self.tip_font)
             annotations.append(anote)
         return annotations
