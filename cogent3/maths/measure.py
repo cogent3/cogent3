@@ -33,9 +33,9 @@ def paralinear(Q, P, pi, validate=False):
         assert_equal(Q.shape, P.shape, err_msg="Q/P mismatched shape")
         assert_equal(Q.shape[0], pi.shape[0], err_msg="pi mismatched shape")
         assert pi.ndim == 1, "pi has incorrect dimension"
-        assert_allclose(Q.sum(axis=1), 0, err_msg="invalid Q")
+        assert_allclose(Q.sum(axis=1), 0, err_msg="invalid Q", atol=1e-12)
         assert_allclose(P.sum(axis=1), 1, err_msg="invalid P")
-        assert_allclose(pi, 1, err_msg="invalid pi")
+        assert_allclose(pi.sum(), 1, err_msg="invalid pi")
         off_diag = ~eye(Q.shape[0])
         assert not (Q[off_diag] < 0).any(), "invalid Q"
 
