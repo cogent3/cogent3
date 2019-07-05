@@ -429,10 +429,12 @@ class Dendrogram(Drawable):
 
     @property
     def label_pad(self):
-        if self._label_pad is None:
+        if self._label_pad is None and not self.contemporaneous:
             max_x = max(self.tree.max_x, abs(self.tree.min_x))
             max_y = max(self.tree.max_y, abs(self.tree.min_y))
             self._label_pad = max(max_x, max_y) * 0.1
+        elif self._label_pad is None:
+            self._label_pad = 0.1
         return self._label_pad
 
     @label_pad.setter
@@ -455,6 +457,8 @@ class Dendrogram(Drawable):
             self.tree = klass(self.tree, length_attr=length_attr)
             self.tree.propagate_properties()
             self._traces = []
+            self.layout.xaxis |= dict(range=None, autorange=True)
+            self.layout.yaxis |= dict(range=None, autorange=True)
             if value:  # scale bar not needed
                 self._scale_bar = False
 
