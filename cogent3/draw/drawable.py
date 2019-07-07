@@ -40,7 +40,7 @@ class Drawable:
             xaxis=dict(visible=visible_axes),
             yaxis=dict(visible=visible_axes),
             hovermode="closest",
-            plot_bgcolor="rgb(245,245,245)",
+            plot_bgcolor=None,
             margin=dict(l=50, r=50, t=50),
         )
         layout = layout or {}
