@@ -2,7 +2,10 @@
 """
 This takes doctest files and turns them into standalone scripts.
 """
-import doctest, sys, os
+import doctest
+import os
+import sys
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
