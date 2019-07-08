@@ -74,9 +74,13 @@ def pkendall(x, n, divisor, working):
 def kendalls_tau(x, y, return_p=True):
     """returns kendall's tau
 
-    Arguments:
-        - return_p: returns the probability from the normal approximation when
-          True, otherwise just returns tau"""
+    Parameters
+    ----------
+    return_p
+        returns the probability from the normal approximation when
+        True, otherwise just returns tau
+
+    """
     ranked = as_paired_ranks(x, y)
     n = len(ranked)
     denom = n * (n - 1) / 2

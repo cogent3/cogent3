@@ -1152,11 +1152,17 @@ def resampled_mi_pair(
 ):
     """returns scaled mutual information for a pair.
 
-    Arguments:
-        - alignment: Alignment instance
-        - pos1, pos2: alignment positions to be assessed
-        - weights: Freq objects of weights for pos1, pos2
-        - excludes: states to be excluded.
+    Parameters
+    ----------
+    alignment
+        Alignment instance
+    pos1, pos2
+        alignment positions to be assessed
+    weights
+        Freq objects of weights for pos1, pos2
+    excludes
+        states to be excluded.
+
     """
     positions = list(alignment.positions)
     col1 = positions[pos1]
@@ -1250,12 +1256,16 @@ def resampled_mi_alignment(
 def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
     """ Calculates ancestral sequences by maximum likelihood
 
-    Arguments:
-        - sm: a Parametric instance. If not provided, one is
-          constructed from the alignment alphabet
-        - pseudocount: unobserved sequence states must not be zero, this value
-          is assigned to sequence states not observed in the alignment.
-        - optimise: whether to optimise the likelihood function.
+    Parameters
+    ----------
+    sm
+        a Parametric instance. If not provided, one is
+        constructed from the alignment alphabet
+    pseudocount
+        unobserved sequence states must not be zero, this value
+        is assigned to sequence states not observed in the alignment.
+    optimise
+        whether to optimise the likelihood function.
 
         Note: for the sake of reduced alphabets, we calculate the
          substitution model from the alignment. This also appears

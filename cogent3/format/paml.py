@@ -25,13 +25,18 @@ class PamlFormatter(_AlignmentFormatter):
     def format(self, alignment_dict, block_size, order):
         """Format the alignment to Paml.
 
-        Arguments:
-            - alignment_dict: dict of seq_name -> seq_string.
-            - block_size: the sequence length to write to each line,
-              default is 60
-            - order: optional list of sequence names, which order to
-              print in.
-        (Assumes order is a complete and correct list of names)
+        Parameters
+        ----------
+        alignment_dict
+            dict of seq_name
+        block_size
+            the sequence length to write to each line,
+            default is 60
+        order
+            optional list of sequence names, which order to
+            print in.
+            (Assumes order is a complete and correct list of names)
+
         """
 
         # setup

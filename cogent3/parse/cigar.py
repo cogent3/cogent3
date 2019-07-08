@@ -133,11 +133,13 @@ def CigarParser(
     """return an alignment from raw sequences and cigar strings
     if sliced, will return an alignment correspondent to ref sequence start to end
 
-    Arguments:
+    Parameters
+    ----------
         seqs - raw sequences as {seqname: seq}
         cigars - corresponding cigar text as {seqname: cigar_text}
         cigars and seqs should have the same seqnames
         moltype - optional default to DNA
+
     """
     data = {}
     if not sliced:

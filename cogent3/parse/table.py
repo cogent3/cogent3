@@ -25,10 +25,13 @@ class ConvertFields(object):
     def __init__(self, conversion, by_column=True):
         """handles conversions of columns or lines
 
-        Arguments:
-            - by_column: conversion will by done for each column, otherwise
-              done by entire line
-            - """
+        Parameters
+        ----------
+        by_column
+            conversion will by done for each column, otherwise
+            done by entire line
+
+        """
         super(ConvertFields, self).__init__()
         self.conversion = conversion
         self.by_column = by_column
@@ -68,15 +71,24 @@ def SeparatorFormatParser(
 ):
     """Returns a parser for a delimited tabular file.
 
-    Arguments:
-        - with_header: when True, first line is taken to be the header. Not
-          passed to converter.
-        - converter: a callable that returns a correctly formatted line.
-        - ignore: lines for which ignore returns True are ignored. White-space
-          lines are always skipped.
-        - sep: the delimiter deparating fields.
-        - strip_wspace: removes redundant white-space from strings.
-        - limit: exits after this many lines"""
+    Parameters
+    ----------
+    with_header
+        when True, first line is taken to be the header. Not
+        passed to converter.
+    converter
+        a callable that returns a correctly formatted line.
+    ignore
+        lines for which ignore returns True are ignored. White
+        lines are always skipped.
+    sep
+        the delimiter deparating fields.
+    strip_wspace
+        removes redundant white
+    limit
+        exits after this many lines
+
+    """
     sep = kw.get("delim", sep)
     if ignore is None:  # keep all lines
         ignore = lambda x: False

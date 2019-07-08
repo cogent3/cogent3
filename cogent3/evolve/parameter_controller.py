@@ -346,17 +346,25 @@ class _LikelihoodParameterController(_LF):
         """Define a model constraint for par_name. Parameters can be set
         constant or split according to tree/bin scopes.
 
-        Arguments:
-            - par_name: The model parameter being modified.
-            - is_constant, value: if True, the parameter is held constant at
-              value, if provided, or the likelihood functions current value.
-            - is_independent: whether the partition specified by scope/bin
-              arguments are to be considered independent.
-            - lower, init, upper: specify the lower bound, initial value and
-              upper bound for optimisation. Can be set separately.
-            - bin, bins: the name(s) of the bin to apply rule.
-            - locus, loci: the name of the locus/loci to apply rule.
-            - **scope_info: tree scope arguments
+        Parameters
+        ----------
+        par_name
+            The model parameter being modified.
+        is_constant, value
+            if True, the parameter is held constant at
+            value, if provided, or the likelihood functions current value.
+        is_independent
+            whether the partition specified by scope/bin
+            arguments are to be considered independent.
+        lower, init, upper
+            specify the lower bound, initial value and
+            upper bound for optimisation. Can be set separately.
+        bin, bins
+            the name(s) of the bin to apply rule.
+        locus, loci
+            the name of the locus/loci to apply rule.
+        **scope_info
+            tree scope arguments
 
               - edge, edges: The name of the tree edge(s) affected by rule.
               - tip_names: a tuple of two tip names, specifying a tree scope
@@ -418,11 +426,15 @@ class _LikelihoodParameterController(_LF):
     def set_constant_lengths(self, tree=None, exclude_list=[]):
         """Constrains edge lengths to those in the tree.
 
-        Arguments:
-            - tree: must have the same topology as the current model.
-              If not provided, the current tree length's are used.
-            - exclude_list: a list of edge names whose branch lengths
-              will be constrained.
+        Parameters
+        ----------
+        tree
+            must have the same topology as the current model.
+            If not provided, the current tree length's are used.
+        exclude_list
+            a list of edge names whose branch lengths
+            will be constrained.
+
         """
         if tree is None:
             tree = self.tree
@@ -438,9 +450,13 @@ class _LikelihoodParameterController(_LF):
     def get_aic(self, second_order=False):
         """returns Aikake Information Criteria
 
-        Arguments:
-            - second_order: if true, the second-order AIC is returned,
-              adjusted by the alignment length"""
+        Parameters
+        ----------
+        second_order
+            if true, the second
+            adjusted by the alignment length
+
+        """
         if second_order:
             sequence_length = sum(
                 len(self.get_param_value("lht", locus=l).index)

@@ -67,13 +67,18 @@ def _reverse_num(x):
 def convert2DDict(twoDdict, header=None, row_order=None):
     """Returns a 2 dimensional list.
 
-    Arguments:
-        - twoDdict: a 2 dimensional dict with top level keys corresponding to
-          column headings, lower level keys correspond to row headings but are
-          not preserved.
-        - header: series with column headings. If not provided, the sorted top
-          level dict keys are used.
-        - row_order: a specified order to generate the rows.
+    Parameters
+    ----------
+    twoDdict
+        a 2 dimensional dict with top level keys corresponding to
+        column headings, lower level keys correspond to row headings but are
+        not preserved.
+    header
+        series with column headings. If not provided, the sorted top
+        level dict keys are used.
+    row_order
+        a specified order to generate the rows.
+
     """
     if not header:
         header = list(twoDdict.keys())
@@ -128,25 +133,42 @@ class Table(DictArray):
         format="simple",
     ):
         """
-        Arguments:
-        - header: column headings
-        - rows: a 2D dict, list or tuple. If a dict, it must have column
-          headings as top level keys, and common row labels as keys in each
-          column.
-        - row_order: the order in which rows will be pulled from the twoDdict
-        - digits: floating point resolution
-        - space: number of spaces between columns or a string
-        - title: as implied
-        - missing_data: character assigned if a row has no entry for a column
-        - max_width: maximum column width for printing
-        - row_ids: if True, the 0'th column is used as row identifiers and keys
-          for slicing.
-        - legend: table legend
-        - column_templates: dict of column headings: string format templates
-          or a function that will handle the formatting.
-        - dtype: optional numpy array typecode.
-        - data_frame: pandas DataFrame, Table will be created from this
-        - format: output format when using str(Table)
+
+        Parameters
+        ----------
+        header
+            column headings
+        rows
+            a 2D dict, list or tuple. If a dict, it must have column
+            headings as top level keys, and common row labels as keys in each
+            column.
+        row_order
+            the order in which rows will be pulled from the twoDdict
+        digits
+            floating point resolution
+        space
+            number of spaces between columns or a string
+        title
+            as implied
+        missing_data
+            character assigned if a row has no entry for a column
+        max_width
+            maximum column width for printing
+        row_ids
+            if True, the 0'th column is used as row identifiers and keys
+            for slicing.
+        legend
+            table legend
+        column_templates
+            dict of column headings
+            or a function that will handle the formatting.
+        dtype
+            optional numpy array typecode.
+        data_frame
+            pandas DataFrame, Table will be created from this
+        format
+            output format when using str(Table)
+
         """
         if data_frame is not None and not _pandas_available:
             raise ValueError("data_frame provided when pandas not installed")
@@ -364,7 +386,8 @@ class Table(DictArray):
     def set_repr_policy(self, head=None, tail=None, random=0):
         """specify policy for repr(self)
 
-        Arguments:
+        Parameters
+        ----------
 
         - head: number of top rows to included in represented display
         - tail: number of bottom rows to included in represented display
@@ -421,11 +444,15 @@ class Table(DictArray):
     def with_new_header(self, old, new, **kwargs):
         """returns a new Table with old header labels replaced by new
 
-        Arguments:
-            - old: the old column header(s). Can be a string or series of
-              them.
-            - new: the new column header(s). Can be a string or series of
-              them.
+        Parameters
+        ----------
+        old
+            the old column header(s). Can be a string or series of
+            them.
+        new
+            the new column header(s). Can be a string or series of
+            them.
+
         """
         if type(old) == str:
             old = [old]
@@ -458,10 +485,14 @@ class Table(DictArray):
     def format_column(self, column_head, format_template):
         """Provide a formatting template for a named column.
 
-        Arguments:
-            - column_head: the column label.
-            - format_template: string formatting template or a function that
-              will handle the formatting.
+        Parameters
+        ----------
+        column_head
+            the column label.
+        format_template
+            string formatting template or a function that
+            will handle the formatting.
+
         """
         assert column_head in self.header, "Unknown column heading %s" % column_head
 
@@ -470,14 +501,18 @@ class Table(DictArray):
     def tostring(self, format="", borders=True, sep=None, center=False, **kwargs):
         """Return the table as a formatted string.
 
-        Arguments:
-            - format: possible formats are 'rest'/'rst', 'markdown'/'md',
-              'latex', 'html', 'phylip', 'bedgraph', 'csv', 'tsv', or 'simple'
-              (default).
-            - sep: A string separator for delineating columns, e.g. ',' or
-              '\t'. Overrides format.
-            - center: content is centered in the column, default is right
-              justified
+        Parameters
+        ----------
+        format
+            possible formats are 'rest'/'rst', 'markdown'/'md',
+            'latex', 'html', 'phylip', 'bedgraph', 'csv', 'tsv', or 'simple'
+            (default).
+        sep
+            A string separator for delineating columns, e.g. ',' or
+            '\t'. Overrides format.
+        center
+            content is centered in the column, default is right
+            justified
 
         NOTE: If format is bedgraph, assumes that column headers are chrom,
         start, end, value. In that order!
@@ -542,15 +577,22 @@ class Table(DictArray):
         compact=False,
     ):
         """returns just the table html code.
-        Arguments:
-            - row_cell_func: callback function that formats the row values. Must
-              take the row value and coordinates (row index, column index).
-            - header_cell_func: callback function that formats the column headings
-              must take the header label value and coordinate
-            - element_formatters: a dictionary of specific callback funcs for
-              formatting individual html table elements.
-              e.g. {'table': lambda x: '<table border="1" class="docutils">'}
-            - merge_identical: cells within a row are merged to one span.
+
+        Parameters
+        ----------
+        row_cell_func
+            callback function that formats the row values. Must
+            take the row value and coordinates (row index, column index).
+        header_cell_func
+            callback function that formats the column headings
+            must take the header label value and coordinate
+        element_formatters
+            a dictionary of specific callback funcs for
+            formatting individual html table elements.
+            e.g. {'table': lambda x: '<table border="1" class="docutils">'}
+        merge_identical
+            cells within a row are merged to one span.
+
         """
         element_formatters = element_formatters or {}
         formatted_table = self.array.tolist()
@@ -623,14 +665,21 @@ class Table(DictArray):
         is provided, unformatted values are written to file in order to
         preserve numerical accuracy.
 
-        Arguments:
-            - mode: file opening mode
-            - format: Valid formats are those of the tostring method plus
-              pickle. Will try and guess from filename if not specified.
-            - writer: a function for formatting the data for output.
-            - sep: a character delimiter for fields.
-            - compress: if True, gzips the file and appends .gz to the
-              filename (if not already added).
+        Parameters
+        ----------
+        mode
+            file opening mode
+        format
+            Valid formats are those of the tostring method plus
+            pickle. Will try and guess from filename if not specified.
+        writer
+            a function for formatting the data for output.
+        sep
+            a character delimiter for fields.
+        compress
+            if True, gzips the file and appends .gz to the
+            filename (if not already added).
+
         """
         file_suffix, compress_suffix = get_format_suffixes(filename)
         format = format or file_suffix
@@ -686,10 +735,14 @@ class Table(DictArray):
         Returns a new table object. Optional keyword arguments to the new
         tables constructor may be passed.
 
-        Arguments:
-            - new_column: provide a heading for the new column, each tables
+        Parameters
+        ----------
+        new_column
+            provide a heading for the new column, each tables
             title will be placed in it. If value is false, the result is no
-            additional column."""
+            additional column.
+
+        """
         # default title is no title
         kwargs["title"] = kwargs.get("title", "")
         # convert series of tables
@@ -725,8 +778,12 @@ class Table(DictArray):
         """Returns raw data as a 1D or 2D list of rows from columns. If one
         column, its a 1D list.
 
-        Arguments:
-            - columns: if None, all data are returned"""
+        Parameters
+        ----------
+        columns
+            if None, all data are returned
+
+        """
 
         if columns is None:
             return self.array.tolist()
@@ -746,9 +803,12 @@ class Table(DictArray):
     def to_dataframe(self, categories=None):
         """returns pandas DataFrame instance
 
-        Arguments:
-            - categories: converts these columns to category dtype in the data
-              frame. Note, categories are not ordered.
+        Parameters
+        ----------
+        categories
+            converts these columns to category dtype in the data
+            frame. Note, categories are not ordered.
+
         """
         if not _pandas_available:
             raise ImportError("pandas not installed")
@@ -776,12 +836,17 @@ class Table(DictArray):
         function returns True when passed row data from columns. Row data
         is a 1D list if more than one column, raw row[col] value otherwise.
 
-        Arguments:
-            - columns: the columns whose values determine whether a row is to
+        Parameters
+        ----------
+        columns
+            the columns whose values determine whether a row is to
             be included.
-            - callback: Can be a function, which takes the sub-row delimited
+        callback
+            Can be a function, which takes the sub
             by columns and returns True/False, or a string representing valid
-            python code to be evaluated."""
+            python code to be evaluated.
+
+        """
 
         if isinstance(columns, str):
             columns = (columns,)
@@ -812,10 +877,14 @@ class Table(DictArray):
     def filtered_by_column(self, callback, **kwargs):
         """Returns a table with columns identified by callback
 
-        Arguments:
-            - callback: A function which takes the columns delimited
+        Parameters
+        ----------
+        callback
+            A function which takes the columns delimited
             by columns and returns True/False, or a string representing valid
-            python code to be evaluated."""
+            python code to be evaluated.
+
+        """
         data = self.array.transpose()
         column_indices = []
         append = column_indices.append
@@ -830,12 +899,17 @@ class Table(DictArray):
         function returns True when passed row data from columns. Row data
         is a 1D list if more than one column, raw row[col] value otherwise.
 
-        Arguments:
-            - columns: the columns whose values determine whether a row is to
+        Parameters
+        ----------
+        columns
+            the columns whose values determine whether a row is to
             be included.
-            - callback: Can be a function, which takes the sub-row delimited
+        callback
+            Can be a function, which takes the sub
             by columns and returns True/False, or a string representing valid
-            python code to be evaluated."""
+            python code to be evaluated.
+
+        """
 
         if isinstance(columns, str):
             columns = (columns,)
@@ -863,9 +937,12 @@ class Table(DictArray):
 
         If only reverse is provided, that order is used.
 
-        Arguments:
-            - columns: column headings, their order determines the sort order.
-            - reverse: column headings, these columns will be reverse sorted.
+        Parameters
+        ----------
+        columns
+            column headings, their order determines the sort order.
+        reverse
+            column headings, these columns will be reverse sorted.
 
             Either can be provided as just a single string, or a series of
             strings.
@@ -953,13 +1030,19 @@ class Table(DictArray):
         """Returns a new table with an additional column, computed using
         callback.
 
-        Arguments:
-            - new_column: new column heading
-            - columns: the columns whose values determine whether a row is to
+        Parameters
+        ----------
+        new_column
+            new column heading
+        columns
+            the columns whose values determine whether a row is to
             be included.
-            - callback: Can be a function, which takes the sub-row delimited
+        callback
+            Can be a function, which takes the sub
             by columns and returns True/False, or a string representing valid
-            python code to be evaluated."""
+            python code to be evaluated.
+
+        """
         if new_column in self.header:
             raise AssertionError("column '%s' already exists" % new_column)
 
@@ -1016,18 +1099,23 @@ class Table(DictArray):
         replacing the headers of other_table with
         <other_table.Title>_<other_table.header>.
 
-        Arguments:
-            - other_table: A table object which will be joined with this
-              table. other_table must have a title.
-            - columns_self, columns_other: indices of key columns that will
-              be compared in the join operation. Can be either column index,
-              or a string matching the column header. The order matters, and
-              the dimensions of columns_self and columns_other have to match.
-              A row will be included in the output iff
-              self[row][columns_self[i]]==other_table[row][columns_other[i]]
-              for all i
-            - inner_join: if False, the outer join of the two tables is
-              returned.
+        Parameters
+        ----------
+        other_table
+            A table object which will be joined with this
+            table. other_table must have a title.
+        columns_self, columns_other
+            indices of key columns that will
+            be compared in the join operation. Can be either column index,
+            or a string matching the column header. The order matters, and
+            the dimensions of columns_self and columns_other have to match.
+            A row will be included in the output iff
+            self[row][columns_self[i]]==other_table[row][columns_other[i]]
+            for all i
+        inner_join
+            if False, the outer join of the two tables is
+            returned.
+
         """
         other_title = other_table.title if other_table.title else "right"
         if self.title == other_title:
@@ -1115,12 +1203,18 @@ class Table(DictArray):
     def summed(self, indices=None, col_sum=True, strict=True, **kwargs):
         """returns the sum of numerical values for column(s)/row(s)
 
-        Arguments:
-            - indices: column name(s) or indices or row indices
-            - col_sum: sums values in the indicated column, the default. If
-              False, returns the row sum.
-            - strict: if False, ignores cells with non-numeric data in the
-              column/row."""
+        Parameters
+        ----------
+        indices
+            column name(s) or indices or row indices
+        col_sum
+            sums values in the indicated column, the default. If
+            False, returns the row sum.
+        strict
+            if False, ignores cells with non
+            column/row.
+
+        """
 
         all = indices is None
 
@@ -1165,10 +1259,15 @@ class Table(DictArray):
         """returns a table with elements expressed as a fraction according
         to the results from func
 
-        Arguments:
-            - by_row: normalisation done by row
-            - denominator_func: a callback function that takes an array and
-              returns a value to be used as the denominator. Default is sum."""
+        Parameters
+        ----------
+        by_row
+            normalisation done by row
+        denominator_func
+            a callback function that takes an array and
+            returns a value to be used as the denominator. Default is sum.
+
+        """
 
         if denominator_func:
             data = self.array
@@ -1194,11 +1293,15 @@ class Table(DictArray):
     def transposed(self, new_column_name, select_as_header=None, **kwargs):
         """returns the transposed table.
 
-        Arguments:
-            - new_column_name: the existing header will become a column with
-              this name
-            - select_as_header: current column name containing data to be used
-              as the header. Defaults to the first column.
+        Parameters
+        ----------
+        new_column_name
+            the existing header will become a column with
+            this name
+        select_as_header
+            current column name containing data to be used
+            as the header. Defaults to the first column.
+
         """
         select_as_header = select_as_header or self.header[0]
         assert select_as_header in self.header, (

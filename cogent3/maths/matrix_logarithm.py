@@ -109,8 +109,10 @@ def logm_taylor(P, tol=1e-30):
     Note: This exit condition is theoretically crude but seems to work
     reasonably well.
 
-    Arguments:
+    Parameters
+    ----------
         tol - the tolerance
+
     """
     P = array(P)
     I = eye(P.shape[0])
