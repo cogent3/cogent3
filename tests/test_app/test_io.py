@@ -241,7 +241,7 @@ class TestIo(TestCase):
             got = reader(writer.data_store[0])
             self.assertEqual(got, DNA)
             expect = join(outdir.replace(".zip", ""), "delme.json")
-            if expect.startswith("./"):
+            if expect.startswith("."+os.sep):
                 expect = expect[2:]
             self.assertEqual(identifier, expect)
 
@@ -273,7 +273,7 @@ class TestIo(TestCase):
             got = reader(writer.data_store[0])
             self.assertEqual(got, DNA)
             expect = join(outdir.replace(".zip", ""), "delme.json")
-            if expect.startswith("./"):
+            if expect.startswith("./") or expect.startswith(".\\"):
                 expect = expect[2:]
             self.assertEqual(identifier, expect)
 

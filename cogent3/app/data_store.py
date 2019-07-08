@@ -192,7 +192,7 @@ class ReadOnlyDataStoreBase:
         if source.endswith(".zip"):
             source = source.replace(".zip", "")
             source = os.path.basename(source)
-            identifier = f"{source}/{identifier}"
+            identifier = f"{source}{os.sep}{identifier}"
         else:
             if not isinstance(identifier, DataStoreMember):
                 identifier = Path(identifier)
@@ -209,7 +209,7 @@ class ReadOnlyDataStoreBase:
         if isinstance(identifier, DataStoreMember):
             identifier = identifier.name
         elif not identifier.startswith(source):
-            identifier = f"{source}/{identifier}"
+            identifier = f"{source}{os.sep}{identifier}"
         return identifier
 
     def read(self, identifier):
@@ -335,6 +335,7 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
     def open(self, identifier):
         identifier = self.get_relative_identifier(identifier)
         archive = zipfile.ZipFile(self.source)
+        # print("IDENTIFIER",identifier)
         record = archive.open(identifier)
         record = TextIOWrapper(record, encoding="latin-1")
         return record
