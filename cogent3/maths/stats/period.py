@@ -67,10 +67,16 @@ def g_statistic(X, p=None, idx=None):
 
 def _seq_to_symbols(seq, motifs, motif_length, result=None):
     """return symbolic represetation of the sequence
-    Arguments:
-        - seq: a sequence
-        - motifs: a list of sequence motifs
-        - motif_length: length of first motif
+
+    Parameters
+    ----------
+    seq
+        a sequence
+    motifs
+        a list of sequence motifs
+    motif_length
+        length of first motif
+
     """
     if result is None:
         result = numpy.zeros(len(seq), numpy.uint8)
@@ -173,16 +179,24 @@ def blockwise_bootstrap(
     test of observing more `power' by chance than that estimated from the
     observed signal
 
-    Arguments:
-        - signal: a series, can be a sequence object
-        - calc: function to calculate the period power, e.g. ipdft, hybrid,
-          auto_corr or any other statistic.
-        - block_size: size of contiguous values for resampling
-        - num_reps: number of randomly generated permutations
-        - seq_to_symbols: function to convert a sequence to 1/0. If not
-          provided, the raw data is used.
-        - num_stats: the number of statistics being evaluated for each
-          interation. Default to 1.
+    Parameters
+    ----------
+    signal
+        a series, can be a sequence object
+    calc
+        function to calculate the period power, e.g. ipdft, hybrid,
+        auto_corr or any other statistic.
+    block_size
+        size of contiguous values for resampling
+    num_reps
+        number of randomly generated permutations
+    seq_to_symbols
+        function to convert a sequence to 1/0. If not
+        provided, the raw data is used.
+    num_stats
+        the number of statistics being evaluated for each
+        interation. Default to 1.
+
     """
     signal_length = len(signal)
 

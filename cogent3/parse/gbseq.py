@@ -27,10 +27,15 @@ big files (>5MB), and huge XML files will for sure crash the program!
 def GbSeqXmlParser(doc):
     """Parser for NCBI Sequence Set XML format.
     DOCTYPE Bioseq-set PUBLIC "-//NCBI//NCBI Seqset/EN" "http://www.ncbi.nlm.nih.gov/dtd/NCBI_Seqset.dtd"
-    Arguments:
-        - doc: An xml.dom.minidom.Document, file object of string
-    Yields:
-        - name, cogent sequence
+
+    Parameters
+    ----------
+    doc
+        An xml.dom.minidom.Document, file object of string
+        
+    Returns
+    -------
+    name, cogent sequence
 
     CAUTION:
     This XML PARSER uses minidom. This means a bad performance for

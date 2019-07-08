@@ -208,9 +208,13 @@ class _Annotatable:
         """yields the sequence segments corresponding to the specified
         annotation_type and name one at a time.
 
-        Arguments:
-            - ignore_partial: if True, annotations that extend beyond the
-            current sequence are ignored."""
+        Parameters
+        ----------
+        ignore_partial
+            if True, annotations that extend beyond the
+            current sequence are ignored.
+
+        """
         for annotation in self.get_annotations_matching(annotation_type, name):
             try:
                 seq = self[annotation.map]

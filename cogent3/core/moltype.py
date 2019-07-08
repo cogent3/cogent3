@@ -579,50 +579,52 @@ class MolType(object):
     ):
         """Returns a new MolType object. Note that the parameters are in flux.
 
-        Currently:
-            motifset: Alphabet or sequence of items in the default
-                alphabet. Does not include degenerates.
-
-            gap: default gap symbol
-
-            missing: symbol for missing data
-
-            gaps: any other symbols that should be treated as gaps (doesn't have
-                  to include gap or missing; they will be silently added)
-
-            seq_constructor: Class for constructing sequences.
-
-            ambiguities: dict of char:tuple, doesn't include gaps (these are
-                hard-coded as - and ?, and added later.
-
-            label: text label, don't know what this is used for. Unnecessary?
-
-            complements: dict of symbol:symbol showing how the non-degenerate
-                single characters complement each other. Used for constructing
-                on the fly the complement table, incl. support for must_pair and
-                can_pair.
-
-            pairs: dict in which keys are pairs of symbols that can pair
-                with each other, values are True (must pair) or False (might
-                pair). Currently, the meaning of GU pairs as 'weak' is conflated
-                with the meaning of degenerate symbol pairs (which might pair
-                with each other but don't necessarily, depending on how the
-                symbol is resolved). This should be refactored.
-
-            mw_calculator: f(seq) -> molecular weight.
-
-            add_lower: if True (default: False) adds the lowercase versions of
-                everything into the alphabet. Slated for deletion.
-
-            preserve_existing_moltypes: if True (default: False), does not
+        Parameters
+        ----------
+        motifset
+            Alphabet or sequence of items in the default
+            alphabet. Does not include degenerates.
+        gap
+            default gap symbol
+        missing
+            symbol for missing data
+        gaps
+            any other symbols that should be treated as gaps (doesn't have
+            to include gap or missing; they will be silently added)
+        seq_constructor
+            Class for constructing sequences.
+        ambiguities
+            dict of char:tuple, doesn't include gaps (these are
+            hard-coded as - and ?, and added later.
+        label
+            text label, don't know what this is used for. Unnecessary?
+        complements
+            dict of symbol:symbol showing how the non-degenerate
+            single characters complement each other. Used for constructing
+            on the fly the complement table, incl. support for must_pair and
+            can_pair.
+        pairs
+            dict in which keys are pairs of symbols that can pair
+            with each other, values are True (must pair) or False (might
+            pair). Currently, the meaning of GU pairs as 'weak' is conflated
+            with the meaning of degenerate symbol pairs (which might pair
+            with each other but don't necessarily, depending on how the
+            symbol is resolved). This should be refactored.
+        mw_calculator
+            f(seq) -> molecular weight.
+        add_lower
+            if True (default: False) adds the lowercase versions of
+            everything into the alphabet. Slated for deletion.
+        preserve_existing_moltypes
+            if True (default: False), does not
             set the MolType of the things added in **kwargs to self.
-
-            make_alphabet_group: if True, makes an AlphabetGroup relating
+        make_alphabet_group
+            if True, makes an AlphabetGroup relating
             the various alphabets to one another.
-
-            array_seq_constructor: sequence type for array sequence
-            
-            colors: dict mapping moltype characters to colors for display
+        array_seq_constructor
+            sequence type for array sequence
+        colors
+            dict mapping moltype characters to colors for display
 
         Note on "degenerates" versus "ambiguities": self.degenerates contains
         _only_ mappings for degenerate symbols, whereas self.ambiguities
@@ -775,8 +777,12 @@ class MolType(object):
     def is_ambiguity(self, querymotif):
         """Return True if querymotif is an amibiguity character in alphabet.
 
-        Arguments:
-            - querymotif: the motif being queried."""
+        Parameters
+        ----------
+        querymotif
+            the motif being queried.
+
+        """
 
         return len(self.ambiguities[querymotif]) > 1
 
@@ -1241,10 +1247,16 @@ class MolType(object):
     def get_css_style(self, colors=None, font_size=12, font_family="Lucida Console"):
         """returns string of CSS classes and {character: <CSS class name>, ...}
         
-        Arguments:
-          - colors: {char: <color>, ..}, defaults to colors for specific moltype
-          - font_size: in points
-          - font_family: name of a monospace font"""
+        Parameters
+        ----------
+        colors
+            {char
+        font_size
+            in points
+        font_family
+            name of a monospace font
+
+        """
         colors = colors or self._colors
         # !important required to stop some browsers over-riding the style sheet ...!!
         template = (

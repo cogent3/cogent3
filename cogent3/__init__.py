@@ -122,23 +122,31 @@ def LoadSeqs(
 ):
     """Initialize an alignment or collection of sequences.
 
-    Arguments:
-    - filename: name of the sequence file
-    - format: format of the sequence file
-    - data: optional explicit provision of sequences
-    - moltype: the moltype, eg DNA, PROTEIN, 'dna', 'protein'
-    - aligned: set True if sequences are already aligned and have the same
-      length. If False, a SequenceCollection instance is returned instead.
-    - array_align: returns alignment as ArrayAlignment
-    - label_to_name: function for converting original name into another
-      name. Default behavior is to preserve the original FASTA label and
-      comment.
-      To remove all FASTA label comments, and pass in only the label, pass in:
-            label_to_name=lambda x: x.split()[0]
-      To look up names in a dict, pass in:
-            label_to_name = lambda x: d.get(x, default_name)
-      ...where d is a dict that's in scope, and default_name is what you want
-      to assign any sequence that isn't in the dict.
+    Parameters
+    ----------
+    filename
+        name of the sequence file
+    format
+        format of the sequence file
+    data
+        optional explicit provision of sequences
+    moltype
+        the moltype, eg DNA, PROTEIN, 'dna', 'protein'
+    aligned
+        set True if sequences are already aligned and have the same
+        length. If False, a SequenceCollection instance is returned instead.
+    array_align
+        returns alignment as ArrayAlignment
+    label_to_name
+        function for converting original name into another
+        name. Default behavior is to preserve the original FASTA label and
+        comment.
+        To remove all FASTA label comments, and pass in only the label, pass in:
+        label_to_name=lambda x: x.split()[0]
+        To look up names in a dict, pass in:
+        label_to_name = lambda x: d.get(x, default_name)
+        ...where d is a dict that's in scope, and default_name is what you want
+        to assign any sequence that isn't in the dict.
 
     If format is None, will attempt to infer format from the filename
     suffix. If label_to_name is None, will attempt to infer correct
@@ -196,35 +204,57 @@ def LoadTable(
     **kwargs,
 ):
     """
-    Arguments:
-    - filename: path to file containing a pickled table
-    - sep: the delimiting character between columns
-    - reader: a parser for reading filename. This approach assumes the first
-      row returned by the reader will be the header row.
-    - static_column_types: if True, and reader is None, identifies columns
-      with a numeric/bool data types from the first non-header row.
-      This assumes all subsequent entries in that column are of the same type.
-      Default is False.
-    - header: column headings
-    - rows: a 2D dict, list or tuple. If a dict, it must have column
-      headings as top level keys, and common row labels as keys in each
-      column.
-    - row_order: the order in which rows will be pulled from the twoDdict
-    - digits: floating point resolution
-    - space: number of spaces between columns or a string
-    - title: as implied
-    - missing_data: character assigned if a row has no entry for a column
-    - max_width: maximum column width for printing
-    - row_ids: if True, the 0'th column is used as row identifiers and keys
-      for slicing.
-    - legend: table legend
-    - column_templates: dict of column headings: string format templates
-      or a function that will handle the formatting.
-    - dtype: optional numpy array typecode.
-    - limit: exits after this many lines. Only applied for non pickled data
-      file types.
-    - data_frame: a pandas DataFrame, supersedes header/rows
-    - format: output format when using str(Table)
+
+    Parameters
+    ----------
+    filename
+        path to file containing a pickled table
+    sep
+        the delimiting character between columns
+    reader
+        a parser for reading filename. This approach assumes the first
+        row returned by the reader will be the header row.
+    static_column_types
+        if True, and reader is None, identifies columns
+        with a numeric/bool data types from the first non-header row.
+        This assumes all subsequent entries in that column are of the same type.
+        Default is False.
+    header
+        column headings
+    rows
+        a 2D dict, list or tuple. If a dict, it must have column
+        headings as top level keys, and common row labels as keys in each
+        column.
+    row_order
+        the order in which rows will be pulled from the twoDdict
+    digits
+        floating point resolution
+    space
+        number of spaces between columns or a string
+    title
+        as implied
+    missing_data
+        character assigned if a row has no entry for a column
+    max_width
+        maximum column width for printing
+    row_ids
+        if True, the 0'th column is used as row identifiers and keys
+        for slicing.
+    legend
+        table legend
+    column_templates
+        dict of column headings
+        or a function that will handle the formatting.
+    dtype
+        optional numpy array typecode.
+    limit
+        exits after this many lines. Only applied for non pickled data
+        file types.
+    data_frame
+        a pandas DataFrame, supersedes header/rows
+    format
+        output format when using str(Table)
+
     """
     sep = sep or kwargs.pop("delimiter", None)
     if filename is not None:
@@ -294,10 +324,14 @@ def LoadTree(
 ):
     """Constructor for tree.
 
-    Arguments, use only one of:
-        - filename: a file containing a newick or xml formatted tree.
-        - treestring: a newick or xml formatted tree string.
-        - tip_names: a list of tip names.
+    Parameters
+    ----------
+    filename
+        a file containing a newick or xml formatted tree.
+    treestring
+        a newick or xml formatted tree string.
+    tip_names
+        a list of tip names.
 
     Note: underscore_unmunging is turned off by default, although it is part
     of the Newick format. Set underscore_unmunge to True to replace underscores
