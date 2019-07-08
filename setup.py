@@ -1,7 +1,12 @@
 #!/usr/bin/env python
-from setuptools import setup, Command
+import os
+import re
+import subprocess
+import sys
+
+from setuptools import Command, setup
 from setuptools.extension import Extension
-import sys, os, re, subprocess
+
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2011, The Cogent Project"
