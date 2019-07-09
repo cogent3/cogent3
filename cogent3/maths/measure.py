@@ -1,5 +1,7 @@
-from numpy import array, diagonal, dot, eye
+from numpy import array, diagonal, dot, eye, sqrt
 from numpy.testing import assert_allclose, assert_equal
+
+import cogent3.util.misc
 
 from cogent3.maths.util import safe_p_log_p
 
@@ -79,3 +81,15 @@ def jsd(freqs1, freqs2, validate=False):
     H_mn = safe_p_log_p(freqs1 / 2 + freqs2 / 2).sum()
     mn_H = sum([sum(i) for i in map(safe_p_log_p, [freqs1, freqs2])]) / 2
     return H_mn - mn_H
+
+
+@cogent3.util.misc.extend_docstring_from(jsd)
+def jsm(*args, **kwargs):
+    """
+    Returns
+    -------
+    The square root of the Jensen–Shannon divergence,
+    which is a metric often referred to as Jensen-Shannon distance (2003)
+    """
+    val = jsd(*args, **kwargs)
+    return sqrt(val)
