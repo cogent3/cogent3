@@ -58,20 +58,31 @@ class TestDendro(TestCase):
 
     def test_length_attr_valid(self):
         """Tests whether setting a custom length attribute provides valid x values"""
-        tree = LoadTree(treestring='((a:0.1,b:0.25):0.1,(c:0.02,d:0.03, (e:0.035, f:0.04):0.15):0.3 , g:0.3)')
-        geom = SquareTreeGeometry(tree, length_attr='custom')
-        geom.params['custom'] = 1
+        tree = LoadTree(
+            treestring="((a:0.1,b:0.25):0.1,(c:0.02,d:0.03, (e:0.035, f:0.04):0.15):0.3 , g:0.3)"
+        )
+        geom = SquareTreeGeometry(tree, length_attr="custom")
+        geom.params["custom"] = 1
 
         to_explore = list(geom.children)
         while to_explore:
             node = to_explore.pop(0)
-            node.params['custom'] = node.parent.params['custom'] * 2
+            node.params["custom"] = node.parent.params["custom"] * 2
             if not node.is_tip():
                 to_explore.extend(list(node.children))
         geom.propagate_properties()
 
         func = geom.get_node_matching_name
-        xs = [func('root').x, func('a').x, func('b').x, func('c').x, func('d').x, func('e').x, func('f').x, func('g').x]
+        xs = [
+            func("root").x,
+            func("a").x,
+            func("b").x,
+            func("c").x,
+            func("d").x,
+            func("e").x,
+            func("f").x,
+            func("g").x,
+        ]
 
         # Root x resets to 0 so any assigned value is always discarded
         self.assertEqual(xs, [0, 6, 6, 6, 6, 14, 14, 2])
