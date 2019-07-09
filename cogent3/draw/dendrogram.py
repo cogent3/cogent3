@@ -291,8 +291,8 @@ class CircularTreeGeometry(TreeGeometryBase):
 
     def propagate_properties(self):
         self._num_tips = len(self.tips())
-        self._init_tip_ranks()
         self._init_length_depth_attr()
+        self._init_tip_ranks()
 
     @property
     def node_space(self):
@@ -354,10 +354,16 @@ class CircularTreeGeometry(TreeGeometryBase):
     def get_segment_to_children(self):
         """returns coordinates connecting all children to self.end"""
         # if tip needs to
-        a = self.children[0].start
-        b = self.end
-        c = self.children[-1].start
-        return a, b, c
+        segment = []
+        added = False
+        for child in self.children:
+            if self.theta < child.theta and not added:
+                segment += [tuple(self.end)]
+                added = True
+
+            segment += [tuple(child.start)]
+
+        return segment
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
     def value_and_coordinate(self, attr="name", padding=0.05, max_attr_length=None):
