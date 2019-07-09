@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import doctest, os, sys, glob
+import doctest
+import glob
+import os
+import sys
+
 import click
+
 
 """
 This will doctest all files ending with .rst in this directory.
