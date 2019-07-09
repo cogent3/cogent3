@@ -192,7 +192,7 @@ class ReadOnlyDataStoreBase:
         if source.endswith(".zip"):
             source = source.replace(".zip", "")
             source = os.path.basename(source)
-            identifier = f"{source}/{identifier}"
+            identifier = f"{source}{os.sep}{identifier}"
         else:
             if not isinstance(identifier, DataStoreMember):
                 identifier = Path(identifier)
@@ -209,7 +209,7 @@ class ReadOnlyDataStoreBase:
         if isinstance(identifier, DataStoreMember):
             identifier = identifier.name
         elif not identifier.startswith(source):
-            identifier = f"{source}/{identifier}"
+            identifier = f"{source}{os.sep}{identifier}"
         return identifier
 
     def read(self, identifier):
