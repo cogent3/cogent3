@@ -83,7 +83,7 @@ class DataStoreBaseTests:
     def test_make_identifier(self):
         """correctly construct an identifier for a new member"""
         with TemporaryDirectory(dir=".") as dirname:
-            if dirname.startswith("."+os.sep):
+            if dirname.startswith("." + os.sep):
                 dirname = dirname[2:]
 
             path = os.path.join(dirname, self.basedir)
