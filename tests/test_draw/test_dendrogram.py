@@ -64,14 +64,14 @@ class TestDendro(TestCase):
         geom = SquareTreeGeometry(tree, length_attr="custom")
         geom.params["custom"] = 1
 
-        to_explore = list(geom.children)
-        while to_explore:
-            node = to_explore.pop(0)
-            node.params["custom"] = node.parent.params["custom"] * 2
-            if not node.is_tip():
-                to_explore.extend(list(node.children))
+        for e in geom.preorder():
+            if e.is_root():
+                continue
+            e.params["custom"] = e.parent.params.get("custom", 1) * 2
         geom.propagate_properties()
 
+        # .x attribute is cumulative from the root, which we have set to 1
+        # for 'custom', e.g. a.x == 2 + 4 == 6
         func = geom.get_node_matching_name
         xs = [
             func("root").x,
