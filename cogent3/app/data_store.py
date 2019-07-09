@@ -335,7 +335,6 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
     def open(self, identifier):
         identifier = self.get_relative_identifier(identifier)
         archive = zipfile.ZipFile(self.source)
-        # print("IDENTIFIER",identifier)
         record = archive.open(identifier)
         record = TextIOWrapper(record, encoding="latin-1")
         return record
