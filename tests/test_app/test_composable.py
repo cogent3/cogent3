@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
-from cogent3.app.composable import ComposableSeq, NotCompletedResult
+from cogent3.app.composable import ComposableSeq, NotCompleted
 from cogent3.app.sample import min_length, omit_degenerates
 from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
@@ -105,7 +105,7 @@ class TestComposableBase(TestCase):
 class TestNotCompletedResult(TestCase):
     def test_err_result(self):
         """excercise creation of NotCompletedResult"""
-        result = NotCompletedResult("SKIP", "this", "some obj")
+        result = NotCompleted("SKIP", "this", "some obj")
         self.assertFalse(result)
         self.assertEqual(result.origin, "this")
         self.assertEqual(result.message, "some obj")
@@ -115,20 +115,20 @@ class TestNotCompletedResult(TestCase):
         fake_source = Mock()
         fake_source.source = "blah"
         del fake_source.info
-        result = NotCompletedResult("SKIP", "this", "err", source=fake_source)
+        result = NotCompleted("SKIP", "this", "err", source=fake_source)
         self.assertIs(result.source, "blah")
 
         fake_source = Mock()
         del fake_source.source
         fake_source.info.source = "blah"
-        result = NotCompletedResult("SKIP", "this", "err", source=fake_source)
+        result = NotCompleted("SKIP", "this", "err", source=fake_source)
         self.assertIs(result.source, "blah")
 
         try:
             _ = 0
             raise ValueError("error message")
         except ValueError as err:
-            result = NotCompletedResult("SKIP", "this", err.args[0])
+            result = NotCompleted("SKIP", "this", err.args[0])
 
         self.assertEqual(result.message, "error message")
 
@@ -201,7 +201,7 @@ class TestPicklable(TestCase):
         """should survive roundtripping pickle"""
         from pickle import dumps, loads
 
-        err = NotCompletedResult("FAIL", "mytest", "can we roundtrip")
+        err = NotCompleted("FAIL", "mytest", "can we roundtrip")
         p = dumps(err)
         new = loads(p)
         self.assertEqual(err.type, new.type)
@@ -217,7 +217,7 @@ class TestPicklable(TestCase):
         read = io.load_aligned(moltype="dna")
         read.func = lambda x: None
         got = read("somepath.fasta")
-        self.assertIsInstance(got, NotCompletedResult)
+        self.assertIsInstance(got, NotCompleted)
         self.assertEqual(got.type, "BUG")
 
 

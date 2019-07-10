@@ -66,8 +66,8 @@ def _get_origin(origin):
     return result
 
 
-class NotCompletedResult(int):
-    """for tracking app results that failed to complete"""
+class NotCompleted(int):
+    """results that failed to complete"""
 
     def __new__(cls, type, origin, message, source=None):
         """
@@ -239,7 +239,7 @@ class Composable(ComposableType):
         try:
             val = func(val, *args, **kwargs)
         except Exception as err:
-            val = NotCompletedResult("ERROR", self, err.args[0], source=val)
+            val = NotCompleted("ERROR", self, err.args[0], source=val)
         return val
 
     def __call__(self, val, *args, **kwargs):
@@ -264,14 +264,14 @@ class Composable(ComposableType):
         if not val:
             return val
         result = self._trapped_call(self.func, val, *args, **kwargs)
-        if not result and type(result) != NotCompletedResult:
+        if not result and type(result) != NotCompleted:
             msg = (
                 "This is unexpected! Please post this error message along"
                 " with the code and data indicated as an Issue on the"
                 " bitbucket project page."
             )
             origin = str(self)
-            result = NotCompletedResult("BUG", origin, msg, source=val)
+            result = NotCompleted("BUG", origin, msg, source=val)
 
         return result
 

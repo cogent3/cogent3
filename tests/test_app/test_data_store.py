@@ -387,12 +387,12 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_tiny_write_incomplete(self):
         """write an incomplete result to tinydb"""
-        from cogent3.app.composable import NotCompletedResult
+        from cogent3.app.composable import NotCompleted
 
         keys = list(self.data)
         incomplete = [
             keys.pop(0),
-            NotCompletedResult("FAIL", "somefunc", "checking", source="testing.txt"),
+            NotCompleted("FAIL", "somefunc", "checking", source="testing.txt"),
         ]
         with TemporaryDirectory(dir=".") as dirname:
             path = os.path.join(dirname, self.basedir)
@@ -420,12 +420,12 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_summary_methods(self):
         """produce a table"""
-        from cogent3.app.composable import NotCompletedResult
+        from cogent3.app.composable import NotCompleted
 
         keys = list(self.data)
         incomplete = [
             keys.pop(0),
-            NotCompletedResult("FAIL", "somefunc", "checking", source="testing.txt"),
+            NotCompleted("FAIL", "somefunc", "checking", source="testing.txt"),
         ]
         with TemporaryDirectory(dir=".") as dirname:
             path = os.path.join(dirname, self.basedir)

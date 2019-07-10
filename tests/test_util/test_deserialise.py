@@ -190,9 +190,9 @@ class TestDeserialising(TestCase):
 
     def test_not_completed_result(self):
         """correctly reconstructs a NotCompletedResult object"""
-        from cogent3.app.composable import NotCompletedResult
+        from cogent3.app.composable import NotCompleted
 
-        val = NotCompletedResult("ERROR", "nothing", "some error", source="here")
+        val = NotCompleted("ERROR", "nothing", "some error", source="here")
         expect = val.to_rich_dict()
         json = val.to_json()
         got = deserialise_object(json)

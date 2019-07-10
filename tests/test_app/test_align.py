@@ -2,7 +2,7 @@ from unittest import TestCase, main
 
 from cogent3 import DNA, LoadSeqs, LoadTree
 from cogent3.app import align as align_app
-from cogent3.app.composable import NotCompletedResult
+from cogent3.app.composable import NotCompleted
 
 
 __author__ = "Gavin Huttley"
@@ -75,7 +75,7 @@ class RefalignmentTests(TestCase):
         )
         aligner = align_app.progressive_align(model="codon")
         got = aligner(seqs)
-        self.assertTrue(type(got), NotCompletedResult)
+        self.assertTrue(type(got), NotCompleted)
 
     def test_progress_with_guide_tree(self):
         """progressive align works with provided guide tree"""
