@@ -18,7 +18,7 @@ from cogent3.util.unit_test import TestCase, main
 __author__ = "Helen Lindsay"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Helen Lindsay"]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Helen Lindsay"
 __email__ = "helen.lindsay@anu.edu.au"

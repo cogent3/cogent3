@@ -6,7 +6,7 @@ atoms."""
 __author__ = "Marcin Cieslik"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Marcin Cieslik"]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Marcin Cieslik"
 __email__ = "mpc4p@virginia.edu"

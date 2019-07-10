@@ -41,7 +41,7 @@ __credits__ = [
     "Marcin Cieslik",
     "Helmut Simon",
 ]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"

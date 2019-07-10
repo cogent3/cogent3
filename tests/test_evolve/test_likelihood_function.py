@@ -53,7 +53,7 @@ __credits__ = [
     "Brett Easton",
     "Ananias Iliadis",
 ]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"

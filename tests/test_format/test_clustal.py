@@ -12,7 +12,7 @@ from cogent3.format.clustal import clustal_from_alignment
 __author__ = "Jeremy Widmann"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Jeremy Widmann"]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Jeremy Widmann"
 __email__ = "jeremy.widmann@colorado.edu"

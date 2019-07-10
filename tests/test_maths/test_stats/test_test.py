@@ -87,7 +87,7 @@ __credits__ = [
     "Jai Ram Rideout",
     "Michael Dwan",
 ]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"

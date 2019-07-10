@@ -5,7 +5,7 @@
 __author__ = "Thomas La"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Rob Knight", "Gavin Huttley", "Thomas La"]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Thomas La"
 

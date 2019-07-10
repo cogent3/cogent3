@@ -10,8 +10,8 @@ import sys
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __contributors__ = ["Gavin Huttley", "Peter Maxwell"]
-__license__ = "GPL"
-__version__ = "1.3.0.dev"
+__license__ = "BSD-3"
+__version__ = "2019.07.10a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"

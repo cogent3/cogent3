@@ -21,7 +21,7 @@ from cogent3.parse.nexus import (
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Catherine Lozupone", "Rob Knight", "Micah Hamady"]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Catherine Lozupone"
 __email__ = "lozupone@colorado.edu"

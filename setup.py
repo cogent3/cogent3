@@ -17,7 +17,7 @@ __contributors__ = [
     "Greg Caporaso",
     "Daniel McDonald",
 ]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"

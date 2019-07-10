@@ -12,7 +12,7 @@ from cogent3.core.tree import TreeBuilder
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2015, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley", "Ben Kaehler"]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"

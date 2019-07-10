@@ -12,7 +12,7 @@ from cogent3.parse.record_finder import (
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Micah Hamady", "Rob Knight"]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Micah Hamady"
 __email__ = "hamady@colorado.edu"

@@ -18,7 +18,7 @@ import cogent3.maths.matrix_exponentiation as cme
 __author__ = "Ben Kaehler"
 __copyright__ = "Copyright 2007-2014, The Cogent Project"
 __credits__ = ["Ben Kaehler", "Von Bing Yap", "Gavin Huttley", "Ananias Iliadis"]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Ben Kaehler"
 __email__ = "benjamin.kaehler@anu.edu.au"

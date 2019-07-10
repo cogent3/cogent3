@@ -9,7 +9,7 @@ from cogent3.parse.gbseq import GbSeqXmlParser
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Matthew Wakefield"]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"

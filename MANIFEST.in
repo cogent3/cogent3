@@ -1,4 +1,4 @@
-include MANIFEST.in
+include MANIFEST.in LICENSE
 recursive-include cogent3 *.c
 recursive-include cogent3 *.pyx *.c
 recursive-include include *.pyx
