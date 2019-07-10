@@ -701,3 +701,12 @@ class Dendrogram(Drawable):
         self._tips_as_text = value
         self._traces = []
         self.layout.annotations = ()
+
+    @property
+    def line_width(self):
+        """width of dendrogram lines"""
+        return self._line_width
+
+    @line_width.setter
+    def line_width(self, width):
+        self._line_width = width
