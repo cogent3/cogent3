@@ -5,7 +5,7 @@ from cogent3.core.alignment import ArrayAlignment
 from cogent3.core.moltype import get_moltype
 from cogent3.evolve.models import get_model, protein_models
 
-from .composable import ComposableSeq, NotCompletedResult
+from .composable import ComposableSeq, NotCompleted
 from .tree import quick_tree, scale_branches
 
 
@@ -235,6 +235,6 @@ class progressive_align(ComposableSeq):
             result.info.update(seqs.info)
         except ValueError as err:
             # probably an internal stop
-            result = NotCompletedResult("ERROR", self, err.args[0], source=seqs)
+            result = NotCompleted("ERROR", self, err.args[0], source=seqs)
             return result
         return result

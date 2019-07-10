@@ -17,7 +17,7 @@ from .composable import (
     ComposableAligned,
     ComposableSeq,
     ComposableTabular,
-    NotCompletedResult,
+    NotCompleted,
     _checkpointable,
 )
 from .data_store import (
@@ -264,7 +264,7 @@ class load_tabular(ComposableTabular):
         try:
             result = self._parse(path)
         except Exception as err:
-            result = NotCompletedResult("ERROR", self, err.args[0], source=str(path))
+            result = NotCompleted("ERROR", self, err.args[0], source=str(path))
 
         return result
 

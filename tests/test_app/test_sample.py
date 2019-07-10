@@ -2,7 +2,7 @@ from unittest import TestCase, main
 
 from cogent3 import DNA, LoadSeqs
 from cogent3.app import composable, sample
-from cogent3.app.composable import NotCompletedResult
+from cogent3.app.composable import NotCompleted
 
 
 __author__ = "Gavin Huttley"
@@ -58,7 +58,7 @@ class TranslateTests(TestCase):
         self.assertEqual(got.todict(), {"a": "ACGAGAG", "b": "GATGTGT"})
         aln = LoadSeqs(data=[("a", "-C-A-G-C-"), ("b", "G-T-A-G-T")])
         got = degen(aln)
-        self.assertIsInstance(got, composable.NotCompletedResult)
+        self.assertIsInstance(got, composable.NotCompleted)
 
     def test_codon_positions_4fold_degen(self):
         """codon_positions correctly return fourfold degenerate bases"""
@@ -103,7 +103,7 @@ class TranslateTests(TestCase):
         aln = LoadSeqs(data=[("c", "GC--GCGTTTAT"), ("d", "GCAAGCNNTTAT")])
         got = select(aln)
         self.assertFalse(got)
-        self.assertTrue(type(got) == composable.NotCompletedResult)
+        self.assertTrue(type(got) == composable.NotCompleted)
 
         # using negate
         select = sample.take_named_seqs("c", negate=True)
@@ -134,7 +134,7 @@ class TranslateTests(TestCase):
         # if using subtract_degen, fails if incorect moltype
         ml = sample.min_length(9, subtract_degen=True)
         got = ml(aln)
-        self.assertIsInstance(got, NotCompletedResult)
+        self.assertIsInstance(got, NotCompleted)
         self.assertEqual(got.type, "ERROR")
 
         # but works if subtract_degen is False
@@ -157,7 +157,7 @@ class TranslateTests(TestCase):
 
         # returns NotCompletedResult if nothing satisifies
         got = ml(alns[1])
-        self.assertTrue(type(got) == sample.NotCompletedResult)
+        self.assertTrue(type(got) == sample.NotCompleted)
 
         alns = [
             LoadSeqs(
@@ -202,7 +202,7 @@ class TranslateTests(TestCase):
         self.assertEqual(got, expected)
         # returns NotCompletedResult if nothing satisifies
         got = fl(alns[0])
-        self.assertTrue(type(got) == sample.NotCompletedResult)
+        self.assertTrue(type(got) == sample.NotCompleted)
 
         fl = sample.fixed_length(9, random=True)
         got = fl(aln)

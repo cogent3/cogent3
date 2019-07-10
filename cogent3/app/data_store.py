@@ -925,14 +925,14 @@ class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
 
     def write_incomplete(self, identifier, not_completed):
         """stores an incomplete result object"""
-        from .composable import NotCompletedResult
+        from .composable import NotCompleted
 
         matches = self.filtered(identifier)
         if matches:
             return matches[0]
 
         relative_id = self.get_relative_identifier(identifier)
-        if type(not_completed) == NotCompletedResult:
+        if type(not_completed) == NotCompleted:
             not_completed = not_completed.to_rich_dict()
 
         doc_id = self.db.insert(

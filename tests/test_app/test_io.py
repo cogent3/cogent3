@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch
 
 from cogent3 import DNA
 from cogent3.app import io as io_app
-from cogent3.app.composable import NotCompletedResult
+from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store import WritableZippedDataStore
 from cogent3.app.io import write_db
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
@@ -204,7 +204,7 @@ class TestIo(TestCase):
                     row = "\t".join(map(str, row))
                     out.write(row + "\n")
             result = load_table(outpath)
-            self.assertIsInstance(result, NotCompletedResult)
+            self.assertIsInstance(result, NotCompleted)
 
         with TemporaryDirectory(dir=".") as dirname:
             outpath = join(dirname, "delme.zip")

@@ -7,7 +7,7 @@ from cogent3.core.alignment import Alignment, ArrayAlignment
 from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import get_moltype
 
-from .composable import ComposableAligned, ComposableSeq, NotCompletedResult
+from .composable import ComposableAligned, ComposableSeq, NotCompleted
 from .translate import get_fourfold_degenerate_sets
 
 
@@ -126,7 +126,7 @@ class omit_degenerates(ComposableAligned):
             motif_length=self._motif_length, allow_gap=self._allow_gap
         )
         if not result:
-            result = NotCompletedResult(
+            result = NotCompleted(
                 "FAIL", self, "all columns contained degenerates", source=aln
             )
 
@@ -248,7 +248,7 @@ class take_named_seqs(ComposableSeq):
         except KeyError:
             missing = set(self._names) - set(data.names)
             msg = f"named seq(s) {missing} not in {data.names}"
-            data = NotCompletedResult("FALSE", self, msg, source=data)
+            data = NotCompleted("FALSE", self, msg, source=data)
         return data
 
 
@@ -303,7 +303,7 @@ class min_length(ComposableSeq):
 
         if length < self._min_length:
             msg = f"{length} < min_length {self._min_length}"
-            data = NotCompletedResult("FALSE", self, msg, source=data)
+            data = NotCompleted("FALSE", self, msg, source=data)
 
         return data
 
@@ -387,9 +387,7 @@ class fixed_length(ComposableAligned):
 
         if len(aln) < self._length:
             msg = f"{len(aln)} < min_length {self._length}"
-            result = NotCompletedResult(
-                "FALSE", self.__class__.__name__, msg, source=aln
-            )
+            result = NotCompleted("FALSE", self.__class__.__name__, msg, source=aln)
         else:
             start = self._start(len(aln) - self._length)
             result = aln[start : start + self._length]

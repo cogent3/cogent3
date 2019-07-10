@@ -4,11 +4,7 @@ from cogent3 import LoadTree
 from cogent3.evolve.models import get_model
 from cogent3.util import parallel
 
-from .composable import (
-    ComposableHypothesis,
-    ComposableModel,
-    NotCompletedResult,
-)
+from .composable import ComposableHypothesis, ComposableModel, NotCompleted
 from .result import bootstrap_result, hypothesis_result, model_result
 
 
@@ -245,12 +241,12 @@ class hypothesis(ComposableHypothesis):
             null = self.null(aln)
         except ValueError as err:
             msg = f"Hypothesis null had bounds error {aln.info.source}"
-            return NotCompletedResult("ERROR", self, msg, source=aln)
+            return NotCompleted("ERROR", self, msg, source=aln)
         try:
             alts = [alt for alt in self._initialised_alt_from_null(null, aln)]
         except ValueError as err:
             msg = f"Hypothesis alt had bounds error {aln.info.source}"
-            return NotCompletedResult("ERROR", self, msg, source=aln)
+            return NotCompleted("ERROR", self, msg, source=aln)
         results = {alt.name: alt for alt in alts}
         results.update({null.name: null})
 
@@ -286,7 +282,7 @@ class bootstrap(ComposableHypothesis):
         try:
             obs = self._hyp(aln)
         except ValueError as err:
-            result = NotCompletedResult("ERROR", str(self._hyp), err.args[0])
+            result = NotCompleted("ERROR", str(self._hyp), err.args[0])
             return result
         result.observed = obs
         self._null = obs.null
