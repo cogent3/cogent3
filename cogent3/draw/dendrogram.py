@@ -431,7 +431,8 @@ class Dendrogram(Drawable):
         self._contemporaneous = contemporaneous
         self._tips_as_text = True
         self._length_attr = self.tree._length
-        self._max_label_length = max(map(lambda e: len(e.name), self.tree.tips()))
+        self._tip_names = tuple(e.name for e in self.tree.tips())
+        self._max_label_length = max(map(len, self._tip_names))
 
     @property
     def label_pad(self):
@@ -664,7 +665,52 @@ class Dendrogram(Drawable):
         # need to trigger recreation of figure
         self._traces = []
 
+    def reorient(self, name, tip2=None, **kwargs):
+        """change orientation of tree
+        Parameters
+        ----------
+        name : str
+            name of an edge in the tree. If name is a tip, its parent becomes
+            the new root, otherwise the edge becomes the root.
+        tip2 : str
+            if provided, passes name (as tip1) and all other args to get_edge_names,
+            but sets clade=False and stem=True
+        kwargs
+            keyword arguments passed onto get_edge_names
+        """
+        if tip2:
+            kwargs.update(dict(stem=True, clade=False))
+            edges = self.get_edge_names(name, tip2, **kwargs)
+            name = edges[0]
+
+        if name in self._tip_names:
+            self.tree = self.tree.rooted_with_tip(name)
+        else:
+            self.tree = self.tree.rooted_at(name)
+
+        self.tree.propagate_properties()
+        self._traces = []
+
     def get_edge_names(self, tip1, tip2, outgroup=None, stem=False, clade=True):
+        """
+
+        Parameters
+        ----------
+        tip1 : str
+            name of tip 1
+        tip2 : str
+            name of tip 1
+        outgroup : str
+            name of tip outside clade of interest
+        stem : bool
+            include name of stem to clade defined by tip1, tip2, outgroup
+        clade : bool
+            include names of edges within clade defined by tip1, tip2, outgroup
+
+        Returns
+        -------
+        list of edge names
+        """
         names = self.tree.get_edge_names(
             tip1, tip2, stem=stem, clade=clade, outgroup_name=outgroup
         )
