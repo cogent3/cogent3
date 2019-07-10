@@ -76,7 +76,7 @@ from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Peter Maxwell and Rob Knight"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = [
     "Peter Maxwell",
     "Rob Knight",
@@ -89,7 +89,7 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "GPL"
-__version__ = "3.0a2"
+__version__ = "2019.07.10a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"

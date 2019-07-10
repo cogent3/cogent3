@@ -63,10 +63,10 @@ from cogent3.parse.ebi import (
 
 
 __author__ = "Zongzhi Liu"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Zongzhi Liu", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "3.0a2"
+__version__ = "2019.07.10a"
 __maintainer__ = "Zongzhi Liu"
 __email__ = "zongzhi.liu@gmail.com"
 __status__ = "Development"

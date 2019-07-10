@@ -21,10 +21,10 @@ dna_model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "3.0a2"
+__version__ = "2019.07.10a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"

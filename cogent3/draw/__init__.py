@@ -2,7 +2,7 @@
 
 __all__ = ["dendrogram", "dotplot", "drawable", "simplex"]
 
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
 __contributors__ = [
     "Peter Maxwell",
     "Gavin Huttley",
@@ -13,5 +13,5 @@ __contributors__ = [
     "Rahul Ghangas",
 ]
 __license__ = "GPL"
-__version__ = "3.0a2"
+__version__ = "2019.07.10a"
 __status__ = "Production"

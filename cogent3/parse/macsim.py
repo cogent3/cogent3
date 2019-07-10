@@ -4,10 +4,10 @@ from cogent3.core import annotation, moltype
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Raymond Sammut", "Peter Maxwell", "Gavin Huttley", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "3.0a2"
+__version__ = "2019.07.10a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"

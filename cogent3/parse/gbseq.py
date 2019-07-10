@@ -9,10 +9,10 @@ from cogent3.core import annotation, moltype
 
 
 __author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "3.0a2"
+__version__ = "2019.07.10a"
 __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"
