@@ -210,12 +210,18 @@ class SimulatedAnnealing(object):
     def __init__(self, filename=None, interval=None, restore=True):
         """
         Set the checkpointing filename and time interval.
-        Arguments:
-        - filename: name of the file to which data will be written. If None, no
-          checkpointing will be done.
-        - interval: time expressed in seconds
-        - restore: flag to restore from this filename or not. will be set to 0 after
-          restoration
+
+        Parameters
+        ----------
+        filename
+            name of the file to which data will be written. If None, no
+            checkpointing will be done.
+        interval
+            time expressed in seconds
+        restore
+            flag to restore from this filename or not. will be set to 0 after
+            restoration
+
         """
         self.checkpointer = checkpointing.Checkpointer(filename, interval)
         self.restore = restore
@@ -235,16 +241,22 @@ class SimulatedAnnealing(object):
     ):
         """Optimise function(xopt).
 
-        Arguments:
-            - show_progress: whether the function values are printed as
-              the optimisation proceeds. Default is True.
-            - tolerance: the error condition for termination, default is 1E-6
-            - temp_reduction: the factor by which the annealing
-              "temperature" is reduced, default is 0.5
-            - temp_iterations: the number of iterations before a
-              temperature reduction, default is 5
-            - step_cycles: the number of cycles after which the step size
-              is modified, default is 20
+        Parameters
+        ----------
+        show_progress
+            whether the function values are printed as
+            the optimisation proceeds. Default is True.
+        tolerance
+            the error condition for termination, default is 1E
+        temp_reduction
+            the factor by which the annealing
+            "temperature" is reduced, default is 0.5
+        temp_iterations
+            the number of iterations before a
+            temperature reduction, default is 5
+        step_cycles
+            the number of cycles after which the step size
+            is modified, default is 20
 
         Returns optimised parameter vector xopt
         """

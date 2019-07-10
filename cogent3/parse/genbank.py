@@ -635,14 +635,21 @@ def RichGenbankParser(
 ):
     """Returns annotated sequences from GenBank formatted file.
 
-    Arguments:
-        - info_excludes: a series of fields to be excluded from the Info object
-        - moltype: a MolType instance, such as PROTEIN, DNA. Default is ASCII.
-        - skip_contigs: ignores records with no actual sequence data, typically
-          a genomic contig.
-        - add_annotation: a callback function to create an new annotation from a
-          GenBank feature. Function is called with the sequence, a feature dict
-          and the feature spans."""
+    Parameters
+    ----------
+    info_excludes
+        a series of fields to be excluded from the Info object
+    moltype
+        a MolType instance, such as PROTEIN, DNA. Default is ASCII.
+    skip_contigs
+        ignores records with no actual sequence data, typically
+        a genomic contig.
+    add_annotation
+        a callback function to create an new annotation from a
+        GenBank feature. Function is called with the sequence, a feature dict
+        and the feature spans.
+
+    """
     info_excludes = info_excludes or []
     moltype = moltype or ASCII
     for rec in MinimalGenbankParser(handle):

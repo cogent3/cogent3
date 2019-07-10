@@ -83,18 +83,26 @@ def rich_html(
 ):
     """returns just the html Table string
 
-    Arguments:
-        - rows: table rows
-        - row_cell_func: callback function that formats the row values. Must
-          take the row value and coordinates (row index, column index).
-        - header: the table header
-        - header_cell_func: callback function that formats the column headings
-          must take the header label value and coordinate
-        - element_formatters: a dictionary of specific callback funcs for
-          formatting individual html table elements.
-          e.g. {'table': lambda x: '<table border="1" class="docutils">'}
-        - merge_identical: cells within a row are merged to one span.
-        - caption: Table title / legend
+    Parameters
+    ----------
+    rows
+        table rows
+    row_cell_func
+        callback function that formats the row values. Must
+        take the row value and coordinates (row index, column index).
+    header
+        the table header
+    header_cell_func
+        callback function that formats the column headings
+        must take the header label value and coordinate
+    element_formatters
+        a dictionary of specific callback funcs for
+        formatting individual html table elements.
+        e.g. {'table': lambda x: '<table border="1" class="docutils">'}
+    merge_identical
+        cells within a row are merged to one span.
+    caption
+        Table title / legend
 
     Note: header_cell_func and row_cell_func override element_formatters.
     """
@@ -150,12 +158,20 @@ def rich_html(
 def latex(rows, header=None, caption=None, justify=None, label=None, position=None):
     """Returns the text a LaTeX table.
 
-    Arguments:
-        - header: table header
-        - position: table page position, default is here, top separate page
-        - justify: column justification, default is right aligned.
-        - caption: Table legend
-        - label: for cross referencing"""
+    Parameters
+    ----------
+    header
+        table header
+    position
+        table page position, default is here, top separate page
+    justify
+        column justification, default is right aligned.
+    caption
+        Table legend
+    label
+        for cross referencing
+
+    """
 
     if not justify:
         numcols = [len(header), len(rows[0])][not header]
@@ -246,18 +262,28 @@ def simple_format(
 ):
     """Returns a table in a simple text format.
 
-    Arguments:
-        - header: series with column headings
-        - formatted_table: a two dimensional structure (list/tuple) of strings
-          previously formatted to the same width within a column.
-        - title: optional table title
-        - legend: optional table legend
-        - max_width: forces wrapping of table onto successive lines if its'
-          width exceeds that specified
-        - identifiers: column index for the last column that uniquely identify
-          rows. Required if table width exceeds max_width.
-        - borders: whether to display borders.
-        - space: minimum number of spaces between columns.
+    Parameters
+    ----------
+    header
+        series with column headings
+    formatted_table
+        a two dimensional structure (list/tuple) of strings
+        previously formatted to the same width within a column.
+    title
+        optional table title
+    legend
+        optional table legend
+    max_width
+        forces wrapping of table onto successive lines if its'
+        width exceeds that specified
+    identifiers
+        column index for the last column that uniquely identify
+        rows. Required if table width exceeds max_width.
+    borders
+        whether to display borders.
+    space
+        minimum number of spaces between columns.
+
     """
     table = []
     try:
@@ -328,11 +354,17 @@ def _escape_pipes(formatted_table, header):
 def markdown(header, formatted_table, space=1, justify=None):
     """Returns a table in Markdown format
 
-    Arguments:
-        - header: series with column headings
-        - formatted_table: a two dimensional structure (list/tuple) of strings
-          previously formatted to the same width within a column.
-        - space: number of spaces surrounding the cell contents, must be >= 1"""
+    Parameters
+    ----------
+    header
+        series with column headings
+    formatted_table
+        a two dimensional structure (list/tuple) of strings
+        previously formatted to the same width within a column.
+    space
+        number of spaces surrounding the cell contents, must be >= 1
+
+    """
     assert space >= 1, "space must be >= 1"
     if justify is not None:
         assert len(justify) == len(
@@ -368,12 +400,18 @@ def markdown(header, formatted_table, space=1, justify=None):
 def grid_table_format(header, formatted_table, title=None, legend=None):
     """Returns a table in restructured text grid format.
 
-    Arguments:
-        - header: series with column headings
-        - formatted_table: a two dimensional structure (list/tuple) of strings
-          previously formatted to the same width within a column.
-        - title: optional table title
-        - legend: optional table legend
+    Parameters
+    ----------
+    header
+        series with column headings
+    formatted_table
+        a two dimensional structure (list/tuple) of strings
+        previously formatted to the same width within a column.
+    title
+        optional table title
+    legend
+        optional table legend
+
     """
     space = 2
     # make the delineators
@@ -439,13 +477,20 @@ def separator_format(header, formatted_table, title=None, legend=None, sep=None)
     legends (if provided) are forced to a single line and all words forced to
     single spaces.
 
-    Arguments:
-        - header: series with column headings
-        - formatted_table: a two dimensional structure (list/tuple) of strings
-          previously formatted to the same width within a column.
-        - sep: character to separate column entries (eg tab - \t, or comma)
-        - title: optional table title
-        - legend: optional table legend
+    Parameters
+    ----------
+    header
+        series with column headings
+    formatted_table
+        a two dimensional structure (list/tuple) of strings
+        previously formatted to the same width within a column.
+    sep
+        character to separate column entries (eg tab
+    title
+        optional table title
+    legend
+        optional table legend
+
     """
     if sep is None:
         raise RuntimeError("no separator provided")
@@ -476,10 +521,15 @@ def separator_format(header, formatted_table, title=None, legend=None, sep=None)
 
 def FormatFields(formats):
     """Formats row fields by index.
-    Arguments:
-        - formats: a series consisting of index,formatter callable pairs,
-          eg [(0, "'%s'"), (4, '%.4f')]. All non-specified columns are
-          formatted as strings."""
+
+    Parameters
+    ----------
+    formats
+        a series consisting of index,formatter callable pairs,
+        eg [(0, "'%s'"), (4, '%.4f')]. All non-specified columns are
+        formatted as strings.
+
+    """
     index_format = []
 
     def callable(line, index_format=index_format):
@@ -498,10 +548,16 @@ def SeparatorFormatWriter(formatter=None, ignore=None, sep=","):
     has_header argument which ignores the formatter for a header line. Default
     format is string. Does not currently handle Titles or Legends.
 
-    Arguments:
-    - formatter: a callable that returns a correctly formatted line.
-    - ignore: lines for which ignore returns True are ignored
-    - sep: the delimiter deparating fields."""
+    Parameters
+    ----------
+    formatter
+        a callable that returns a correctly formatted line.
+    ignore
+        lines for which ignore returns True are ignored
+    sep
+        the delimiter deparating fields.
+
+    """
     formatter = formatter or []
 
     def callable(lines, formatter=formatter, has_header=False):
@@ -525,12 +581,19 @@ def formatted_cells(
     """Return rows with each columns cells formatted as an equal length
     string.
 
-    Arguments:
-        - row: the series of table rows
-        - header: optional header
-        - digits: number of decimal places. Can be overridden by following.
-        - column_templates: specific format templates for each column.
-        - missing_data: default cell value.
+    Parameters
+    ----------
+    row
+        the series of table rows
+    header
+        optional header
+    digits
+        number of decimal places. Can be overridden by following.
+    column_templates
+        specific format templates for each column.
+    missing_data
+        default cell value.
+
     """
     if not header:
         num_col = max([len(row) for row in rows])

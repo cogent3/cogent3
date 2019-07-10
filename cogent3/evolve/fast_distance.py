@@ -238,8 +238,12 @@ def _paralinear(matrix):
 
 def _logdet(matrix, use_tk_adjustment=True):
     """returns the LogDet from a diversity matrix
-    Arguments:
-        - use_tk_adjustment: when True, unequal state frequencies are allowed
+
+    Parameters
+    ----------
+    use_tk_adjustment
+        when True, unequal state frequencies are allowed
+
     """
 
     invalid = (None,) * 4
@@ -428,9 +432,12 @@ class _PairwiseDistance(object):
     def get_pairwise_distances(self, include_duplicates=True):
         """returns a matrix of pairwise distances.
 
-        Arguments:
-        - include_duplicates: all seqs included in the distances,
-          otherwise only unique sequences are included.
+        Parameters
+        ----------
+        include_duplicates
+            all seqs included in the distances,
+            otherwise only unique sequences are included.
+
         """
         if self._dists is None:
             return None

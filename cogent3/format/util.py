@@ -22,17 +22,25 @@ class _AlignmentFormatter:
     def set_block_size(self, size):
         """Set the length of the sequence to be printed to each line.
 
-        Arguments:
-            - size: the sequence length to put on each line."""
+        Parameters
+        ----------
+        size
+            the sequence length to put on each line.
+
+        """
 
         self.block_size = size
 
     def set_align_info(self, alignment_dict, order=[]):
         """Set alignment attributes for writing.
 
-        Arguments:
-            - alignment_dict: dictionary of seq_name -> seq_string
-            - order: a list of seq_name's in the order for writing
+        Parameters
+        ----------
+        alignment_dict
+            dictionary of seq_name
+        order
+            a list of seq_name's in the order for writing
+
         """
 
         self.number_sequences = len(alignment_dict)
@@ -51,11 +59,15 @@ class _AlignmentFormatter:
     def slice_string_in_blocks(self, seq_string, alt_block_size=0):
         """Return a list of string slices of specified length. No line returns.
 
-        Arguments:
-            - seqstring: the raw sequence string
-            - altblocksize: the length of sequence for writing to each
-              line, default (0) means default value specified by blocksize
-              will be used.
+        Parameters
+        ----------
+        seqstring
+            the raw sequence string
+        altblocksize
+            the length of sequence for writing to each
+            line, default (0) means default value specified by blocksize
+            will be used.
+
         """
 
         if alt_block_size:
@@ -77,11 +89,15 @@ class _AlignmentFormatter:
         """Return sequence slices with line returns inserted at the end
         of each slice.
 
-        Arguments:
-            - seq_string: the raw sequence string
-            - alt_block_size: the length of sequence for writing to each
-              line, default (0) means default value specified by block size
-              will be used.
+        Parameters
+        ----------
+        seq_string
+            the raw sequence string
+        alt_block_size
+            the length of sequence for writing to each
+            line, default (0) means default value specified by block size
+            will be used.
+
         """
 
         if alt_block_size:

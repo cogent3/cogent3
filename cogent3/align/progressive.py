@@ -38,14 +38,21 @@ def TreeAlign(
     parallelised and only the master CPU returns the alignment and tree, other
     CPU's return None, None.
 
-    Arguments:
-        - model: a substitution model
-        - seqs: a sequence collection
-        - indel_rate, indel_length: parameters for the progressive pair-HMM
-        - ests_from_pairwise: if no tree provided and True, the median value
-          of the substitution model parameters are used
-        - param_vals: named key, value pairs for model parameters. These
-          override ests_from_pairwise.
+    Parameters
+    ----------
+    model
+        a substitution model
+    seqs
+        a sequence collection
+    indel_rate, indel_length
+        parameters for the progressive pair-HMM
+    ests_from_pairwise
+        if no tree provided and True, the median value
+        of the substitution model parameters are used
+    param_vals
+        named key, value pairs for model parameters. These
+        override ests_from_pairwise.
+
     """
     _exclude_params = ["mprobs", "rate", "bin_switch"]
     if param_vals:

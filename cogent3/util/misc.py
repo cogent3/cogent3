@@ -965,9 +965,12 @@ def get_independent_coords(spans, random_tie_breaker=False):
         [(start, end, ..), (..)]. spans can be decorated with arbitrary data
         after the end entry.
 
-    Arguments:
-        - random_tie_breaker: break overlaps by randomly choosing the first
-          or second span. Defaults to the first span.
+    Parameters
+    ----------
+    random_tie_breaker
+        break overlaps by randomly choosing the first
+        or second span. Defaults to the first span.
+
     """
 
     if len(spans) <= 1:
@@ -1039,9 +1042,12 @@ def get_merged_by_value_coords(spans_value, digits=None):
     [(start, end, val), ..] structure and that spans_value is sorted in
     ascending order.
 
-    Arguments:
-        - digits: if None, any data can be handled and exact values are
-          compared. Otherwise values are rounded to that many digits.
+    Parameters
+    ----------
+    digits
+        if None, any data can be handled and exact values are
+        compared. Otherwise values are rounded to that many digits.
+
     """
     assert len(spans_value[0]) == 3, "spans_value must have 3 records per row"
 

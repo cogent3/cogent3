@@ -99,9 +99,12 @@ class SequenceI(object):
     def to_fasta(self, make_seqlabel=None, block_size=60):
         """Return string of self in FASTA format, no trailing newline
 
-        Arguments:
-            - make_seqlabel: callback function that takes the seq object and
-              returns a label str
+        Parameters
+        ----------
+        make_seqlabel
+            callback function that takes the seq object and
+            returns a label str
+
         """
 
         label = "0"
@@ -156,11 +159,16 @@ class SequenceI(object):
 
         only non-overlapping motifs are counted.
 
-        Arguments:
-        - motif_length: number of elements per character.
-        - include_ambiguity: if True, motifs containing ambiguous characters
-          from the seq moltype are included. No expansion of those is attempted.
-        - allow_gaps: if True, motifs containing a gap character are included.
+        Parameters
+        ----------
+        motif_length
+            number of elements per character.
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gaps
+            if True, motifs containing a gap character are included.
+
         """
         try:
             data = self._seq
@@ -648,7 +656,8 @@ class Sequence(_Annotatable, SequenceI):
     ):
         """Initialize a sequence.
 
-        Arguments:
+        Parameters
+        ----------
             seq: the raw sequence string, default is ''
 
             name: the sequence name
@@ -732,12 +741,18 @@ class Sequence(_Annotatable, SequenceI):
         """returns a sequence with annot_types regions replaced by mask_char
         if shadow is False, otherwise all other regions are masked.
 
-        Arguments:
-            - annot_types: annotation type(s)
-            - mask_char: must be a character valid for the seq MolType. The
-              default value is the most ambiguous character, eg. '?' for DNA
-            - shadow: whether to mask the annotated regions, or everything but
-              the annotated regions"""
+        Parameters
+        ----------
+        annot_types
+            annotation type(s)
+        mask_char
+            must be a character valid for the seq MolType. The
+            default value is the most ambiguous character, eg. '?' for DNA
+        shadow
+            whether to mask the annotated regions, or everything but
+            the annotated regions
+
+        """
         if mask_char is None:
             ambigs = [(len(v), c) for c, v in list(self.moltype.ambiguities.items())]
             ambigs.sort()
@@ -865,12 +880,19 @@ class Sequence(_Annotatable, SequenceI):
     def sliding_windows(self, window, step, start=None, end=None):
         """Generator function that yield new sequence objects
         of a given length at a given interval.
-        Arguments:
-            - window: The length of the returned sequence
-            - step: The interval between the start of the returned
-              sequence objects
-            - start: first window start position
-            - end: last window start position
+
+        Parameters
+        ----------
+        window
+            The length of the returned sequence
+        step
+            The interval between the start of the returned
+            sequence objects
+        start
+            first window start position
+        end
+            last window start position
+
         """
         start = [start, 0][start is None]
         end = [end, len(self) - window + 1][end is None]
@@ -882,9 +904,14 @@ class Sequence(_Annotatable, SequenceI):
     def get_in_motif_size(self, motif_length=1, log_warnings=True):
         """returns sequence as list of non-overlapping motifs
 
-        Arguments:
-            - motif_length: length of the motifs
-            - log_warnings: whether to notify of an incomplete terminal motif"""
+        Parameters
+        ----------
+        motif_length
+            length of the motifs
+        log_warnings
+            whether to notify of an incomplete terminal motif
+
+        """
         seq = self._seq
         if motif_length == 1:
             return seq
@@ -969,10 +996,14 @@ class NucleicAcidSequence(Sequence):
     def has_terminal_stop(self, gc=None, allow_partial=False):
         """Return True if the sequence has a terminal stop codon.
 
-        Arguments:
-            - gc: genetic code object
-            - allow_partial: if True and the sequence length is not dividisble
-              by 3, ignores the 3' terminal incomplete codon
+        Parameters
+        ----------
+        gc
+            genetic code object
+        allow_partial
+            if True and the sequence length is not dividisble
+            by 3, ignores the 3' terminal incomplete codon
+
         """
         gc = self._gc_from_arg(gc)
         codons = self._seq
@@ -989,10 +1020,14 @@ class NucleicAcidSequence(Sequence):
     def trim_stop_codon(self, gc=None, allow_partial=False):
         """Removes a terminal stop codon from the sequence
 
-        Arguments:
-            - gc: genetic code object
-            - allow_partial: if True and the sequence length is not divisible
-              by 3, ignores the 3' terminal incomplete codon
+        Parameters
+        ----------
+        gc
+            genetic code object
+        allow_partial
+            if True and the sequence length is not divisible
+            by 3, ignores the 3' terminal incomplete codon
+
         """
         gc = self._gc_from_arg(gc)
         codons = self._seq
@@ -1228,9 +1263,12 @@ class ArraySequenceBase(object):
     def to_fasta(self, make_seqlabel=None, block_size=60):
         """Return string of self in FASTA format, no trailing newline
 
-        Arguments:
-            - make_seqlabel: callback function that takes the seq object and
-              returns a label str
+        Parameters
+        ----------
+        make_seqlabel
+            callback function that takes the seq object and
+            returns a label str
+
         """
 
         label = "0"
