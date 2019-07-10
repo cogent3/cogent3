@@ -639,7 +639,7 @@ class Dendrogram(Drawable):
             )
             self.layout |= axes_range
 
-    def style_edges(self, edges, line, legendgroup=None):
+    def style_edges(self, edges, line, legendgroup=None, tip2=None, **kwargs):
         """adjust display layout for the edges
 
         Parameters
@@ -650,7 +650,15 @@ class Dendrogram(Drawable):
             with plotly line style to applied to these edges
         legendgroup : str or None
             if str, a legend will be presented
+        tip2 : str
+            if provided, and edges is a str, passes edges (as tip1) and kwargs to get_edge_names
+        kwargs
+            keyword arguments passed onto get_edge_names
         """
+        if tip2:
+            assert type(edges) == str, "cannot use a series of edges and tip2"
+            edges = self.get_edge_names(edges, tip2, **kwargs)
+
         if type(edges) == str:
             edges = [edges]
         edges = frozenset(edges)
