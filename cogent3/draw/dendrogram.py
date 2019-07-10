@@ -291,8 +291,8 @@ class CircularTreeGeometry(TreeGeometryBase):
 
     def propagate_properties(self):
         self._num_tips = len(self.tips())
-        self._init_tip_ranks()
         self._init_length_depth_attr()
+        self._init_tip_ranks()
 
     @property
     def node_space(self):
@@ -354,10 +354,16 @@ class CircularTreeGeometry(TreeGeometryBase):
     def get_segment_to_children(self):
         """returns coordinates connecting all children to self.end"""
         # if tip needs to
-        a = self.children[0].start
-        b = self.end
-        c = self.children[-1].start
-        return a, b, c
+        segment = []
+        added = False
+        for child in self.children:
+            if self.theta < child.theta and not added:
+                segment += [tuple(self.end)]
+                added = True
+
+            segment += [tuple(child.start)]
+
+        return segment
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
     def value_and_coordinate(self, attr="name", padding=0.05, max_attr_length=None):
@@ -416,7 +422,7 @@ class Dendrogram(Drawable):
         self.tree = klass(tree, **kwargs)
         self.tree.propagate_properties()
         self._label_pad = label_pad
-        self._tip_font = UnionDict(size=16, family="sans serif")
+        self._tip_font = UnionDict(size=16, family="Inconsolata, monospace")
         self._line_width = 2
         self._line_color = "black"
         self._scale_bar = "bottom left"
@@ -425,7 +431,8 @@ class Dendrogram(Drawable):
         self._contemporaneous = contemporaneous
         self._tips_as_text = True
         self._length_attr = self.tree._length
-        self._max_label_length = max(map(lambda e: len(e.name), self.tree))
+        self._tip_names = tuple(e.name for e in self.tree.tips())
+        self._max_label_length = max(map(len, self._tip_names))
 
     @property
     def label_pad(self):
@@ -632,7 +639,7 @@ class Dendrogram(Drawable):
             )
             self.layout |= axes_range
 
-    def style_edges(self, edges, line, legendgroup=None):
+    def style_edges(self, edges, line, legendgroup=None, tip2=None, **kwargs):
         """adjust display layout for the edges
 
         Parameters
@@ -643,7 +650,15 @@ class Dendrogram(Drawable):
             with plotly line style to applied to these edges
         legendgroup : str or None
             if str, a legend will be presented
+        tip2 : str
+            if provided, and edges is a str, passes edges (as tip1) and kwargs to get_edge_names
+        kwargs
+            keyword arguments passed onto get_edge_names
         """
+        if tip2:
+            assert type(edges) == str, "cannot use a series of edges and tip2"
+            edges = self.get_edge_names(edges, tip2, **kwargs)
+
         if type(edges) == str:
             edges = [edges]
         edges = frozenset(edges)
@@ -658,7 +673,52 @@ class Dendrogram(Drawable):
         # need to trigger recreation of figure
         self._traces = []
 
+    def reorient(self, name, tip2=None, **kwargs):
+        """change orientation of tree
+        Parameters
+        ----------
+        name : str
+            name of an edge in the tree. If name is a tip, its parent becomes
+            the new root, otherwise the edge becomes the root.
+        tip2 : str
+            if provided, passes name (as tip1) and all other args to get_edge_names,
+            but sets clade=False and stem=True
+        kwargs
+            keyword arguments passed onto get_edge_names
+        """
+        if tip2:
+            kwargs.update(dict(stem=True, clade=False))
+            edges = self.get_edge_names(name, tip2, **kwargs)
+            name = edges[0]
+
+        if name in self._tip_names:
+            self.tree = self.tree.rooted_with_tip(name)
+        else:
+            self.tree = self.tree.rooted_at(name)
+
+        self.tree.propagate_properties()
+        self._traces = []
+
     def get_edge_names(self, tip1, tip2, outgroup=None, stem=False, clade=True):
+        """
+
+        Parameters
+        ----------
+        tip1 : str
+            name of tip 1
+        tip2 : str
+            name of tip 1
+        outgroup : str
+            name of tip outside clade of interest
+        stem : bool
+            include name of stem to clade defined by tip1, tip2, outgroup
+        clade : bool
+            include names of edges within clade defined by tip1, tip2, outgroup
+
+        Returns
+        -------
+        list of edge names
+        """
         names = self.tree.get_edge_names(
             tip1, tip2, stem=stem, clade=clade, outgroup_name=outgroup
         )
@@ -695,3 +755,30 @@ class Dendrogram(Drawable):
         self._tips_as_text = value
         self._traces = []
         self.layout.annotations = ()
+
+    @property
+    def line_width(self):
+        """width of dendrogram lines"""
+        return self._line_width
+
+    @line_width.setter
+    def line_width(self, width):
+        self._line_width = width
+
+    @property
+    def fig_width(self):
+        """figure width, also settable via .layout.width"""
+        return self.layout.width
+
+    @fig_width.setter
+    def fig_width(self, width):
+        self.layout.width = width
+
+    @property
+    def fig_height(self):
+        """figure height, also settable via .layout.height"""
+        return self.layout.height
+
+    @fig_height.setter
+    def fig_height(self, height):
+        self.layout.height = height

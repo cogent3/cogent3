@@ -31,11 +31,15 @@ def get_name_combinations(names, group_size):
 def get_pairwise_distance_from_triad(data, summary_function="mean"):
     """returns pairwise distances from lengths estimated from triads
 
-    Arguments:
-        - data: a dict keyed as {(a,b,c): {'length': 'a': val1, 'b', ...}}
-        - summary_function: a string naming the function used for
-          estimating param from threeway distances. Valid values are 'mean'
-          (default) and 'median'.
+    Parameters
+    ----------
+    data
+        a dict keyed as {(a,b,c)
+    summary_function
+        a string naming the function used for
+        estimating param from threeway distances. Valid values are 'mean'
+        (default) and 'median'.
+
     """
     summary_func = summary_function.lower()
     pairwise_stats = {}
@@ -198,12 +202,17 @@ class EstimateDistances(object):
         is done using the Powell local optimiser. This can be changed using the
         dist_opt_args and aln_opt_args.
 
-        Arguments:
-            - show_progress: whether to display progress. More detailed progress
-              information from individual optimisation is controlled by the
-              ..opt_args.
-            - dist_opt_args, aln_opt_args: arguments for the optimise method for
-              the distance estimation and alignment estimation respectively."""
+        Parameters
+        ----------
+        show_progress
+            whether to display progress. More detailed progress
+            information from individual optimisation is controlled by the
+            ..opt_args.
+        dist_opt_args, aln_opt_args
+            arguments for the optimise method for
+            the distance estimation and alignment estimation respectively.
+
+        """
 
         if "local" in kwargs:
             warn(
@@ -240,11 +249,16 @@ class EstimateDistances(object):
         """Return the pairwise statistic estimates as a dictionary keyed by
         (seq1, seq2)
 
-        Arguments:
-            - param: name of a parameter in est_params or 'length'
-            - summary_function: a string naming the function used for
-              estimating param from threeway distances. Valid values are 'mean'
-              (default) and 'median'."""
+        Parameters
+        ----------
+        param
+            name of a parameter in est_params or 'length'
+        summary_function
+            a string naming the function used for
+            estimating param from threeway distances. Valid values are 'mean'
+            (default) and 'median'.
+
+        """
         pairwise_stats = {}
         assert param in self._est_params + ["length"], "unrecognised param %s" % param
         if not self._param_ests:
@@ -265,10 +279,13 @@ class EstimateDistances(object):
         """Return the pairwise distances as a dictionary keyed by (seq1, seq2).
         Convenience interface to get_pairwise_param.
 
-        Arguments:
-            - summary_function: a string naming the function used for
-              estimating param from threeway distances. Valid values are 'mean'
-              (default) and 'median'.
+        Parameters
+        ----------
+        summary_function
+            a string naming the function used for
+            estimating param from threeway distances. Valid values are 'mean'
+            (default) and 'median'.
+
         """
         dists = self.get_pairwise_param(
             "length", summary_function=summary_function, **kwargs
@@ -279,9 +296,14 @@ class EstimateDistances(object):
     def get_param_values(self, param, **kwargs):
         """Returns a Numbers object with all estimated values of param.
 
-        Arguments:
-            - param: name of a parameter in est_params or 'length'
-            - **kwargs: arguments passed to get_pairwise_param"""
+        Parameters
+        ----------
+        param
+            name of a parameter in est_params or 'length'
+        **kwargs
+            arguments passed to get_pairwise_param
+
+        """
         ests = self.get_pairwise_param(param, **kwargs)
         return NumberCounter(list(ests.values()))
 
@@ -292,10 +314,14 @@ class EstimateDistances(object):
     def get_table(self, summary_function="mean", **kwargs):
         """returns a Table instance of the distance matrix.
 
-        Arguments:
-            - summary_function: a string naming the function used for
-              estimating param from threeway distances. Valid values are 'mean'
-              (default) and 'median'."""
+        Parameters
+        ----------
+        summary_function
+            a string naming the function used for
+            estimating param from threeway distances. Valid values are 'mean'
+            (default) and 'median'.
+
+        """
         d = self.get_pairwise_distances(summary_function=summary_function, **kwargs)
         if not d:
             d = {}
@@ -337,12 +363,17 @@ class EstimateDistances(object):
         """Save the pairwise distances to a file using phylip format. Other
         formats can be obtained by getting to a Table.
 
-        Arguments:
-            - filename: where distances will be written, required.
-            - summary_function: a string naming the function used for
-              estimating param from threeway distances. Valid values are 'mean'
-              (default) and 'median'.
-            - format: output format of distance matrix
+        Parameters
+        ----------
+        filename
+            where distances will be written, required.
+        summary_function
+            a string naming the function used for
+            estimating param from threeway distances. Valid values are 'mean'
+            (default) and 'median'.
+        format
+            output format of distance matrix
+
         """
 
         table = self.get_table(summary_function=summary_function, **kwargs)

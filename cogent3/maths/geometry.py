@@ -108,7 +108,8 @@ def sphere_points(n):
     """Calculates uniformly distributed points on a unit sphere using the
     Golden Section Spiral algorithm.
 
-    Arguments:
+    Parameters
+    ----------
 
         -n: number of points
     """
@@ -132,7 +133,8 @@ def coords_to_symmetry(coords, fmx, omx, mxs, mode):
     Returns all coordinates with included identity, which should be the first
     matrix in mxs.
 
-    Arguments:
+    Parameters
+    ----------
 
         - coords: an array of orthogonal coordinates
         - fmx: fractionalization matrix
@@ -164,11 +166,17 @@ def coords_to_crystal(coords, fmx, omx, n=1):
 
     Returns all coordinates with included zero translation (0, 0, 0).
 
-    Arguments:
-        - coords: an array of orthogonal coordinates
-        - fmx: fractionalization matrix
-        - omx: orthogonalization matrix
-        - n: number of layers of unit-cells == (2*n+1)^2 unit-cells
+    Parameters
+    ----------
+    coords
+        an array of orthogonal coordinates
+    fmx
+        fractionalization matrix
+    omx
+        orthogonalization matrix
+    n
+        number of layers of unit
+
     """
     rng = list(range(-n, n + 1))  # a range like -2, -1, 0, 1, 2
     fcoords = dot(coords, fmx.transpose())  # fractionalize

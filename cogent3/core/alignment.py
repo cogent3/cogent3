@@ -168,6 +168,7 @@ class GapsOk:
             check for runs of gaps
         allowed_run : int
             length of the allowed gap run
+
         """
         self.motif_length = motif_length
         self.is_array = is_array
@@ -433,33 +434,36 @@ class SequenceCollection(object):
         separate object; the motivation for having it on Alignment __init__
         is that it's easy for users to construct Alignment objects directly.
 
-        Parameters:
+        Parameters
+        ----------
 
-        data:           Data to convert into a SequenceCollection
+        data
+            Data to convert into a SequenceCollection
+        Names
+            Order of Names in the alignment. Should match the
+            names of the sequences (after processing by
+            label_to_name if present).
+        alphabet
+            Alphabet to use for the alignment (primarily important
+            for ArrayAlignment)
+        moltype
+            moltype to be applied to the Alignment and to each seq.
+        name
+            name of the SequenceCollection.
+        info
+            info object to be attached to the alignment itself.
+        conversion_f
+            Function to convert string into sequence.
+        is_array
+            True if input is an array, False otherwise.
+        force_same_data
+            True if data will be used as the same object.
+        remove_duplicate_names
+            True if duplicate names are to be silently
+            deleted instead of raising errors.
+        label_to_name
+            if present, converts name into f(name).
 
-        Names:          Order of Names in the alignment. Should match the
-                        names of the sequences (after processing by
-                        label_to_name if present).
-
-        alphabet:       Alphabet to use for the alignment (primarily important
-                        for ArrayAlignment)
-
-        moltype:        moltype to be applied to the Alignment and to each seq.
-
-        name:           name of the SequenceCollection.
-
-        info:           info object to be attached to the alignment itself.
-
-        conversion_f:   Function to convert string into sequence.
-
-        is_array:       True if input is an array, False otherwise.
-
-        force_same_data: True if data will be used as the same object.
-
-        remove_duplicate_names: True if duplicate names are to be silently
-                        deleted instead of raising errors.
-
-        label_to_name: if present, converts name into f(name).
         """
 
         # read all the data in if we were passed a generator
@@ -866,8 +870,12 @@ class SequenceCollection(object):
     def get_identical_sets(self, mask_degen=False):
         """returns sets of names for sequences that are identical
 
-        Arguments:
-         - mask_degen: if True, degenerate characters are ignored"""
+        Parameters
+        ----------
+        mask_degen
+            if True, degenerate characters are ignored
+
+        """
         # TODO handle case of not strict by building mask of degen positions
         # per seq
         if mask_degen and not hasattr(self.moltype, "alphabets"):
@@ -952,24 +960,27 @@ class SequenceCollection(object):
     ):
         """Returns new Alignment containing sequences similar to target.
 
-        target: sequence object to compare to. Can be in the alignment.
-
-        min_similarity: minimum similarity that will be kept. Default 0.0.
-
-        max_similarity: maximum similarity that will be kept. Default 1.0.
-        (Note that both min_similarity and max_similarity are inclusive.)
-
-        metric: similarity function to use. Must be f(first_seq, second_seq).
+        Parameters
+        ----------
+        target
+            sequence object to compare to. Can be in the alignment.
+        min_similarity
+            minimum similarity that will be kept. Default 0.0.
+        max_similarity
+            maximum similarity that will be kept. Default 1.0.
+            (Note that both min_similarity and max_similarity are inclusive.)
+            metric
+            similarity function to use. Must be f(first_seq, second_seq).
         The default metric is fraction similarity, ranging from 0.0 (0%
         identical) to 1.0 (100% identical). The Sequence classes have lots
         of methods that can be passed in as unbound methods to act as the
         metric, e.g. frac_same_gaps.
-
-        transform: transformation function to use on the sequences before
-        the metric is calculated. If None, uses the whole sequences in each
-        case. A frequent transformation is a function that returns a specified
-        range of a sequence, e.g. eliminating the ends. Note that the
-        transform applies to both the real sequence and the target sequence.
+        transform
+            transformation function to use on the sequences before
+            the metric is calculated. If None, uses the whole sequences in each
+            case. A frequent transformation is a function that returns a specified
+            range of a sequence, e.g. eliminating the ends. Note that the
+            transform applies to both the real sequence and the target sequence.
 
         WARNING: if the transformation changes the type of the sequence (e.g.
         extracting a string from an RnaSequence object), distance metrics that
@@ -1012,9 +1023,12 @@ class SequenceCollection(object):
 
         raises exception if invalid alignment
 
-        Arguments:
-            - make_seqlabel: callback function that takes the seq object and
-              returns a label str
+        Parameters
+        ----------
+        make_seqlabel
+            callback function that takes the seq object and
+            returns a label str
+
         """
         return alignment_to_phylip(self.todict())
 
@@ -1053,9 +1067,12 @@ class SequenceCollection(object):
     def to_fasta(self):
         """Return alignment in Fasta format
 
-        Arguments:
-            - make_seqlabel: callback function that takes the seq object and
-              returns a label str
+        Parameters
+        ----------
+        make_seqlabel
+            callback function that takes the seq object and
+            returns a label str
+
         """
         return alignment_to_fasta(self.todict())
 
@@ -1157,12 +1174,16 @@ class SequenceCollection(object):
         By default the sequence is appended to the end of the alignment,
         this can be changed by using either before_name or after_name arguments.
 
-        Arguments:
-            - other: same class as self or coerceable to that class
-            - before_name: str - [default:None] name of the sequence before
-              which sequence is added
-            - after_name: str - [default:None] name of the sequence after
-              which sequence is added
+        Parameters
+        ----------
+        other
+            same class as self or coerceable to that class
+        before_name
+            str
+            which sequence is added
+        after_name
+            str
+            which sequence is added
 
         If both before_name and after_name are specified, the seqs will be
         inserted using before_name.
@@ -1221,9 +1242,12 @@ class SequenceCollection(object):
     def write(self, filename=None, format=None, **kwargs):
         """Write the alignment to a file, preserving order of sequences.
 
-        Arguments:
-        - filename: name of the sequence file
-        - format: format of the sequence file
+        Parameters
+        ----------
+        filename
+            name of the sequence file
+        format
+            format of the sequence file
 
         If format is None, will attempt to infer format from the filename
         suffix.
@@ -1262,6 +1286,7 @@ class SequenceCollection(object):
             (use cogent3.core.genetic_code.available_codes)
         kwargs
             related to construction of the resulting object
+
         Returns
         -------
         A new instance of self translated into protein
@@ -1342,10 +1367,14 @@ class SequenceCollection(object):
     def has_terminal_stops(self, gc=None, allow_partial=False):
         """Returns True if any sequence has a terminal stop codon.
 
-        Arguments:
-            - gc: genetic code object
-            - allow_partial: if True and the sequence length is not divisible
-              by 3, ignores the 3' terminal incomplete codon
+        Parameters
+        ----------
+        gc
+            genetic code object
+        allow_partial
+            if True and the sequence length is not divisible
+            by 3, ignores the 3' terminal incomplete codon
+
         """
         stops = []
         aligned = isinstance(self, Alignment)
@@ -1360,10 +1389,14 @@ class SequenceCollection(object):
     def trim_stop_codons(self, gc=None, allow_partial=False, **kwargs):
         """Removes any terminal stop codons from the sequences
 
-        Arguments:
-            - gc: genetic code object
-            - allow_partial: if True and the sequence length is not divisible
-              by 3, ignores the 3' terminal incomplete codon
+        Parameters
+        ----------
+        gc
+            genetic code object
+        allow_partial
+            if True and the sequence length is not divisible
+            by 3, ignores the 3' terminal incomplete codon
+
         """
         gc = get_code(gc)
         new_seqs = []
@@ -1445,10 +1478,14 @@ class SequenceCollection(object):
     def get_lengths(self, include_ambiguity=False, allow_gap=False):
         """returns {name: seq length, ...}
 
-        Arguments:
-            - include_ambiguity: if True, motifs containing ambiguous characters
-              from the seq moltype are included. No expansion of those is attempted.
-            - allow_gaps: if True, motifs containing a gap character are included.
+        Parameters
+        ----------
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gaps
+            if True, motifs containing a gap character are included.
+
         """
         counts = self.counts_per_seq(
             motif_length=1, include_ambiguity=include_ambiguity, allow_gap=allow_gap
@@ -1461,11 +1498,16 @@ class SequenceCollection(object):
 
             only non-overlapping motifs are counted.
 
-            Arguments:
-            - motif_length: number of characters per tuple.
-            - include_ambiguity: if True, motifs containing ambiguous characters
-              from the seq moltype are included. No expansion of those is attempted.
-            - allow_gaps: if True, motifs containing a gap character are included.
+            Parameters
+            ----------
+            motif_length
+                number of characters per tuple.
+            include_ambiguity
+                if True, motifs containing ambiguous characters
+                from the seq moltype are included. No expansion of those is attempted.
+            allow_gaps
+                if True, motifs containing a gap character are included.
+
             """
         # this is overridden for Alignments, so just rely on the sequence counts
         # method
@@ -1496,11 +1538,16 @@ class SequenceCollection(object):
 
             only non-overlapping motifs are counted.
 
-            Arguments:
-            - motif_length: number of elements per character.
-            - include_ambiguity: if True, motifs containing ambiguous characters
-              from the seq moltype are included. No expansion of those is attempted.
-            - allow_gaps: if True, motifs containing a gap character are included.
+            Parameters
+            ----------
+            motif_length
+                number of elements per character.
+            include_ambiguity
+                if True, motifs containing ambiguous characters
+                from the seq moltype are included. No expansion of those is attempted.
+            allow_gaps
+                if True, motifs containing a gap character are included.
+
             """
         per_seq = self.counts_per_seq(
             motif_length=motif_length,
@@ -1521,13 +1568,18 @@ class SequenceCollection(object):
         """Return a dictionary of motif probs, calculated as the averaged
         frequency across sequences.
 
-        Arguments:
-            - include_ambiguity: if True resolved ambiguous codes are
-              included in estimation of frequencies, default is False.
-            - exclude_unobserved: if True, motifs that are not present in
-              the alignment are excluded from the returned dictionary,
-              default is False.
-            - allow_gap: allow gap motif
+        Parameters
+        ----------
+        include_ambiguity
+            if True resolved ambiguous codes are
+            included in estimation of frequencies, default is False.
+        exclude_unobserved
+            if True, motifs that are not present in
+            the alignment are excluded from the returned dictionary,
+            default is False.
+        allow_gap
+            allow gap motif
+
         """
         if alphabet is None:
             alphabet = self.moltype.alphabet
@@ -1656,7 +1708,10 @@ class SequenceCollection(object):
     def pad_seqs(self, pad_length=None, **kwargs):
         """Returns copy in which sequences are padded to same length.
 
-            pad_length: Length all sequences are to be padded to.  Will pad
+            Parameters
+            ----------
+            pad_length
+                Length all sequences are to be padded to.  Will pad
                 to max sequence length if pad_length is None or less than max
                 length.
         """
@@ -2115,11 +2170,15 @@ class AlignmentI(object):
     def no_degenerates(self, motif_length=1, allow_gap=False):
         """returns new alignment without degenerate characters
 
-        Arguments:
-        - motif_length: sequences are segmented into units of this size
-        - allow_gaps: whether gaps are to be treated as a degenerate
-          character (default, most evolutionary modelling treats gaps as
-          N) or not.
+        Parameters
+        ----------
+        motif_length
+            sequences are segmented into units of this size
+        allow_gaps
+            whether gaps are to be treated as a degenerate
+            character (default, most evolutionary modelling treats gaps as
+            N) or not.
+
         """
         try:
             chars = list(self.moltype.alphabet.non_degen)
@@ -2146,14 +2205,18 @@ class AlignmentI(object):
     def omit_gap_pos(self, allowed_gap_frac=1 - eps, motif_length=1):
         """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
 
-        Argments:
-        - allowed_gap_frac: specifies proportion of gaps is allowed in each
-          column (default is just < 1, i.e. only cols with at least one gap
-          character are preserved). Set to 1 - e-6 to exclude strictly gapped
-          columns.
-        - motif_length: set's the "column" width, e.g. setting to 3
-          corresponds to codons. A motif that includes a gap at any position
-          is included in the counting. Default is 1.
+        Parameters
+        ----------
+        allowed_gap_frac
+            specifies proportion of gaps is allowed in each
+            column (default is just < 1, i.e. only cols with at least one gap
+            character are preserved). Set to 1 - e-6 to exclude strictly gapped
+            columns.
+        motif_length
+            set's the "column" width, e.g. setting to 3
+            corresponds to codons. A motif that includes a gap at any position
+            is included in the counting. Default is 1.
+
         """
         is_array = isinstance(self, ArrayAlignment)
         try:
@@ -2274,9 +2337,15 @@ class AlignmentI(object):
     ):
         """Returns new alignment without the sequences responsible for exceeding disallowed_frac.
 
-        disallowed_frac: used to identify columns with excessive gaps
-        allowed_frac_bad_cols: the fraction of gaps induced by the sequence
-        exclude_just_gap: sequences that are just gaps are excluded
+        Parameters
+        ----------
+        disallowed_frac
+            used to identify columns with excessive gaps
+        allowed_frac_bad_cols
+            the fraction of gaps induced by the sequence
+        exclude_just_gap
+            sequences that are just gaps are excluded
+
         """
         is_array = isinstance(self, ArrayAlignment)
         alpha = self.alphabet
@@ -2344,13 +2413,17 @@ class AlignmentI(object):
     ):
         """Returns random sample of positions from self, e.g. to bootstrap.
 
-        Arguments:
-            - n: the number of positions to sample from the alignment.
-              Default is alignment length
-            - with_replacement: boolean flag for determining if sampled
-              positions
-            - random_series: a random number generator with
-              .randint(min,max) .random() methods
+        Parameters
+        ----------
+        n
+            the number of positions to sample from the alignment.
+            Default is alignment length
+        with_replacement
+            boolean flag for determining if sampled
+            positions
+        random_series
+            a random number generator with
+            .randint(min,max) .random() methods
 
 
         Notes:
@@ -2378,12 +2451,18 @@ class AlignmentI(object):
     def sliding_windows(self, window, step, start=None, end=None):
         """Generator yielding new Alignments of given length and interval.
 
-        Arguments:
-            - window: The length of each returned alignment.
-            - step: The interval between the start of the successive
-              alignment objects returned.
-            - start: first window start position
-            - end: last window start position
+        Parameters
+        ----------
+        window
+            The length of each returned alignment.
+        step
+            The interval between the start of the successive
+            alignment objects returned.
+        start
+            first window start position
+        end
+            last window start position
+
         """
         start = [start, 0][start is None]
         end = [end, len(self) - window + 1][end is None]
@@ -2435,18 +2514,26 @@ class AlignmentI(object):
     ):
         """returns html with embedded styles for sequence colouring
 
-        Arguments:
-            - name_order: order of names for display.
-            - interleave_len: maximum number of printed bases, defaults to
-              alignment length
-            - limit: truncate alignment to this length
-            - longest_ref: If True, the longest sequence (excluding gaps and
-              ambiguities) is selected as the reference.
-            - colors: {character: color, ...}. Defaults to those defined by
-              moltype.
-            - font_size: in points. Affects labels and sequence and line spacing
-              (proportional to value)
-            - font_family: string denoting font family
+        Parameters
+        ----------
+        name_order
+            order of names for display.
+        interleave_len
+            maximum number of printed bases, defaults to
+            alignment length
+        limit
+            truncate alignment to this length
+        longest_ref
+            If True, the longest sequence (excluding gaps and
+            ambiguities) is selected as the reference.
+        colors
+            {character
+            moltype.
+        font_size
+            in points. Affects labels and sequence and line spacing
+            (proportional to value)
+        font_family
+            string denoting font family
 
         To display in jupyter notebook:
 
@@ -2564,9 +2651,14 @@ class AlignmentI(object):
     def to_pretty(self, name_order=None, interleave_len=None):
         """returns a string representation of the alignment in pretty print format
 
-        Arguments:
-            - name_order: order of names for display.
-            - interleave_len: maximum number of printed bases, defaults to alignment length"""
+        Parameters
+        ----------
+        name_order
+            order of names for display.
+        interleave_len
+            maximum number of printed bases, defaults to alignment length
+
+        """
         names, output = self._get_raw_pretty(name_order=name_order)
         label_width = max(list(map(len, names)))
         name_template = "{:>%d}" % label_width
@@ -2639,14 +2731,21 @@ class AlignmentI(object):
     ):
         """returns dict of counts of non-overlapping motifs per sequence
 
-            Arguments:
-            - motif_length: number of elements per character.
-            - include_ambiguity: if True, motifs containing ambiguous characters
-              from the seq moltype are included. No expansion of those is attempted.
-            - allow_gaps: if True, motifs containing a gap character are included.
-            - exclude_unobserved: if False, all canonical states included
-            - alert: warns if motif_length > 1 and alignment trimmed to produce
-              motif columns
+            Parameters
+            ----------
+            motif_length
+                number of elements per character.
+            include_ambiguity
+                if True, motifs containing ambiguous characters
+                from the seq moltype are included. No expansion of those is attempted.
+            allow_gaps
+                if True, motifs containing a gap character are included.
+            exclude_unobserved
+                if False, all canonical states included
+            alert
+                warns if motif_length > 1 and alignment trimmed to produce
+                motif columns
+
             """
         length = (len(self) // motif_length) * motif_length
         if alert and len(self) != length:
@@ -2679,9 +2778,13 @@ class AlignmentI(object):
     def variable_positions(self, include_gap_motif=True):
         """Return a list of variable position indexes.
 
-        Arguments:
-            - include_gap_motif: if False, sequences with a gap motif in a
-              column are ignored."""
+        Parameters
+        ----------
+        include_gap_motif
+            if False, sequences with a gap motif in a
+            column are ignored.
+
+        """
         seqs = [str(self.named_seqs[n]) for n in self.names]
         seq1 = seqs[0]
         positions = list(zip(*seqs[1:]))
@@ -3369,13 +3472,17 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
     ):
         """Returns random sample of positions from self, e.g. to bootstrap.
 
-        Arguments:
-            - n: the number of positions to sample from the alignment.
-              Default is alignment length
-            - with_replacement: boolean flag for determining if sampled
-              positions
-            - randint and permutation: functions for random integer in a
-              specified range, and permutation, respectively.
+        Parameters
+        ----------
+        n
+            the number of positions to sample from the alignment.
+            Default is alignment length
+        with_replacement
+            boolean flag for determining if sampled
+            positions
+        randint and permutation
+            functions for random integer in a
+            specified range, and permutation, respectively.
 
 
         Notes:
@@ -3475,10 +3582,14 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
     def trim_stop_codons(self, gc=DEFAULT, allow_partial=False, **kwargs):
         """Removes any terminal stop codons from the sequences
 
-        Arguments:
-            - gc: genetic code object
-            - allow_partial: if True and the sequence length is not divisible
-              by 3, ignores the 3' terminal incomplete codon
+        Parameters
+        ----------
+        gc
+            genetic code object
+        allow_partial
+            if True and the sequence length is not divisible
+            by 3, ignores the 3' terminal incomplete codon
+
         """
         gc = get_code(gc)
         if len(self) % 3 != 0 and not allow_partial:
@@ -3538,8 +3649,11 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         Returns Alignment object of the same class.
         Note that the seqs in the new Alignment are always new objects.
 
-        Arguments:
-            - name: sequence name
+        Parameters
+        ----------
+        name
+            sequence name
+
         """
         if name not in self.names:
             raise ValueError(
@@ -3567,17 +3681,21 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
 
         Returns Alignment object of the same class.
 
-        Arguments:
-            - ref_aln: reference alignment (Alignment object/series) of
-              reference sequence and sequences to add.
-              New sequences in ref_aln (ref_aln.names[1:] are sequences to add.
-              If series is used as ref_aln, it must have the structure
-              [['ref_name', SEQ], ['name', SEQ]]
-            - before_name: name of the sequence before which
-              sequence is added
-            - after_name: name of the sequence after which sequence is added
-              If both before_name and after_name are specified seqs will be
-              inserted using before_name.
+        Parameters
+        ----------
+        ref_aln
+            reference alignment (Alignment object/series) of
+            reference sequence and sequences to add.
+            New sequences in ref_aln (ref_aln.names[1:] are sequences to add.
+            If series is used as ref_aln, it must have the structure
+            [['ref_name', SEQ], ['name', SEQ]]
+        before_name
+            name of the sequence before which
+            sequence is added
+        after_name
+            name of the sequence after which sequence is added
+            If both before_name and after_name are specified seqs will be
+            inserted using before_name.
 
         Example:
         Aln1:
@@ -3610,13 +3728,15 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
     def replace_seqs(self, seqs, aa_to_codon=True):
         """Returns new alignment with same shape but with data taken from seqs.
 
-        Arguments:
-            - aa_to_codon: If True (default) aligns codons from protein
-              alignment, or, more generally, substituting in codons from a set
-              of protein sequences (not necessarily aligned). For this reason,
-              it takes characters from seqs three at a time rather than one at
-              a time (i.e. 3 characters in seqs are put in place of 1 character
-              in self). If False, seqs must be the same lengths.
+        Parameters
+        ----------
+        aa_to_codon
+            If True (default) aligns codons from protein
+            alignment, or, more generally, substituting in codons from a set
+            of protein sequences (not necessarily aligned). For this reason,
+            it takes characters from seqs three at a time rather than one at
+            a time (i.e. 3 characters in seqs are put in place of 1 character
+            in self). If False, seqs must be the same lengths.
 
         If seqs is an alignment, any gaps in it will be ignored.
         """
@@ -3670,8 +3790,12 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
     def get_identical_sets(self, mask_degen=False):
         """returns sets of names for sequences that are identical
 
-        Arguments:
-         - mask_degen: if True, degenerate characters are ignored"""
+        Parameters
+        ----------
+        mask_degen
+            if True, degenerate characters are ignored
+
+        """
         if mask_degen and not hasattr(self.moltype, "alphabets"):
             UserWarning(
                 "in get_identical_sets, strict has no effect as moltype "
@@ -3908,12 +4032,18 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         """returns an alignment with annot_types regions replaced by mask_char
         if shadow is False, otherwise all other regions are masked.
 
-        Arguments:
-            - annot_types: annotation type(s)
-            - mask_char: must be a character valid for the seq moltype. The
-              default value is the most ambiguous character, eg. '?' for DNA
-            - shadow: whether to mask the annotated regions, or everything but
-              the annotated regions"""
+        Parameters
+        ----------
+        annot_types
+            annotation type(s)
+        mask_char
+            must be a character valid for the seq moltype. The
+            default value is the most ambiguous character, eg. '?' for DNA
+        shadow
+            whether to mask the annotated regions, or everything but
+            the annotated regions
+
+        """
         masked_seqs = []
         for seq in self.seqs:
             # we mask each sequence using these spans
@@ -4021,8 +4151,11 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         Returns Alignment object of the same class.
         Note that the seqs in the new Alignment are always new objects.
 
-        Arguments:
-            - name: sequence name
+        Parameters
+        ----------
+        name
+            sequence name
+
         """
         if name not in self.names:
             raise ValueError(
@@ -4048,17 +4181,21 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
         Returns Alignment object of the same class.
 
-        Arguments:
-            - ref_aln: reference alignment (Alignment object/series) of
-              reference sequence and sequences to add.
-              New sequences in ref_aln (ref_aln.names[1:] are sequences to add.
-              If series is used as ref_aln, it must have the structure
-              [['ref_name', SEQ], ['name', SEQ]]
-            - before_name: name of the sequence before which
-              sequence is added
-            - after_name: name of the sequence after which sequence is added
-              If both before_name and after_name are specified seqs will be
-              inserted using before_name.
+        Parameters
+        ----------
+        ref_aln
+            reference alignment (Alignment object/series) of
+            reference sequence and sequences to add.
+            New sequences in ref_aln (ref_aln.names[1:] are sequences to add.
+            If series is used as ref_aln, it must have the structure
+            [['ref_name', SEQ], ['name', SEQ]]
+        before_name
+            name of the sequence before which
+            sequence is added
+        after_name
+            name of the sequence after which sequence is added
+            If both before_name and after_name are specified seqs will be
+            inserted using before_name.
 
         Example:
         Aln1:
@@ -4124,13 +4261,15 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
     def replace_seqs(self, seqs, aa_to_codon=True):
         """Returns new alignment with same shape but with data taken from seqs.
 
-        Arguments:
-            - aa_to_codon: If True (default) aligns codons from protein
-              alignment, or, more generally, substituting in codons from a set
-              of protein sequences (not necessarily aligned). For this reason,
-              it takes characters from seqs three at a time rather than one at
-              a time (i.e. 3 characters in seqs are put in place of 1 character
-              in self). If False, seqs must be the same lengths.
+        Parameters
+        ----------
+        aa_to_codon
+            If True (default) aligns codons from protein
+            alignment, or, more generally, substituting in codons from a set
+            of protein sequences (not necessarily aligned). For this reason,
+            it takes characters from seqs three at a time rather than one at
+            a time (i.e. 3 characters in seqs are put in place of 1 character
+            in self). If False, seqs must be the same lengths.
 
         If seqs is an alignment, any gaps in it will be ignored.
         """

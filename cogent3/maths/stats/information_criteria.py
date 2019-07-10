@@ -14,10 +14,15 @@ __status__ = "Production"
 def aic(lnL, nfp, sample_size=None):
     """returns Aikake Information Criterion
 
-    Arguments:
-        - lnL: the maximum log-likelihood of a model
-        - nfp: the number of free parameters in the model
-        - sample_size: if provided, the second order AIC is returned
+    Parameters
+    ----------
+    lnL
+        the maximum log
+    nfp
+        the number of free parameters in the model
+    sample_size
+        if provided, the second order AIC is returned
+
     """
     if sample_size is None:
         correction = 1
@@ -31,9 +36,14 @@ def aic(lnL, nfp, sample_size=None):
 def bic(lnL, nfp, sample_size):
     """returns Bayesian Information Criterion
 
-    Arguments:
-        - lnL: the maximum log-likelihood of a model
-        - nfp: the number of free parameters in the model
-        - sample_size: size of the sample
+    Parameters
+    ----------
+    lnL
+        the maximum log
+    nfp
+        the number of free parameters in the model
+    sample_size
+        size of the sample
+
     """
     return -2 * lnL + nfp * numpy.log(sample_size)

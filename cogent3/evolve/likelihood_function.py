@@ -403,8 +403,12 @@ class LikelihoodFunction(ParameterController):
         """returns a dict of DictArray objects containing probabilities
         of each alphabet state for each node in the tree.
 
-        Arguments:
-            - locus: a named locus"""
+        Parameters
+        ----------
+        locus
+            a named locus
+
+        """
         result = {}
         array_template = None
         for restricted_edge in self._tree.get_edge_vector():
@@ -444,8 +448,12 @@ class LikelihoodFunction(ParameterController):
         """Returns the most likely reconstructed ancestral sequences as an
         alignment.
 
-        Arguments:
-            - locus: a named locus"""
+        Parameters
+        ----------
+        locus
+            a named locus
+
+        """
         prob_array = self.reconstruct_ancestral_seqs(locus=locus)
         seqs = []
         for edge, probs in list(prob_array.items()):
@@ -710,10 +718,15 @@ class LikelihoodFunction(ParameterController):
     def get_statistics(self, with_motif_probs=True, with_titles=True):
         """returns the parameter values as tables/dict
 
-        Arguments:
-            - with_motif_probs: include the motif probability table
-            - with_titles: include a title for each table based on it's
-              dimension"""
+        Parameters
+        ----------
+        with_motif_probs
+            include the motif probability table
+        with_titles
+            include a title for each table based on it's
+            dimension
+
+        """
         result = []
         group = {}
         param_names = self.get_param_names()
@@ -912,12 +925,18 @@ class LikelihoodFunction(ParameterController):
         Returns an alignment of simulated sequences with key's corresponding to
         names from the current attached alignment.
 
-        Arguments:
-            - sequence_length: the legnth of the alignment to be simulated,
-              default is the length of the attached alignment.
-            - random_series: a random number generator.
-            - exclude_internal: if True, only sequences for tips are returned.
-            - root_sequence: a sequence from which all others evolve.
+        Parameters
+        ----------
+        sequence_length
+            the legnth of the alignment to be simulated,
+            default is the length of the attached alignment.
+        random_series
+            a random number generator.
+        exclude_internal
+            if True, only sequences for tips are returned.
+        root_sequence
+            a sequence from which all others evolve.
+
         """
 
         if sequence_length is None:

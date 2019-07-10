@@ -256,10 +256,15 @@ class Hybrid(_PeriodEstimator):
 def ipdft(x, llim=None, ulim=None, period=None):
     """returns the integer period discrete Fourier transform of the signal x
 
-    Arguments:
-        - x: series of symbols
-        - llim: lower limit
-        - ulim: upper limit
+    Parameters
+    ----------
+    x
+        series of symbols
+    llim
+        lower limit
+    ulim
+        upper limit
+
     """
     x = array(x, float64)
     ipdft_calc = Ipdft(len(x), llim, ulim, period)
@@ -270,9 +275,11 @@ def hybrid(x, llim=None, ulim=None, period=None, return_all=False):
     """
     Return hybrid statistic and corresponding periods for signal x
 
-    Arguments:
-        - return_all: whether to return the hybrid, ipdft, autocorr
-          statistics as a numpy array, or just the hybrid statistic
+    Parameters
+    ----------
+    return_all
+        whether to return the hybrid, ipdft, autocorr
+        statistics as a numpy array, or just the hybrid statistic
 
     See Epps. EURASIP Journal on Bioinformatics and Systems Biology, 2009, 9
     """

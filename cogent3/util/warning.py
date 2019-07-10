@@ -16,12 +16,19 @@ __status__ = "Production"
 def deprecated(_type, old, new, version, stack_level=2):
     """a convenience function for deprecating classes, functions, arguments.
 
-    Arguments:
-        - _type should be one of class, method, function, argument
-        - old, new: the old and new names
-        - version: the version by which support for the old name will be
-          discontinued
-        - stack_level: as per warnings.warn"""
+    Parameters
+    ----------
+    _type
+        should be one of class, method, function, argument
+    old, new
+        the old and new names
+    version
+        the version by which support for the old name will be
+        discontinued
+    stack_level
+        as per warnings.warn
+
+    """
     msg = "use %s %s instead of %s, support discontinued in version %s" % (
         _type,
         new,
@@ -38,12 +45,20 @@ def deprecated(_type, old, new, version, stack_level=2):
 
 def discontinued(_type, name, version, stack_level=2):
     """convenience func to warn about discontinued attributes
-    Arguments:
-        - _type should be one of class, method, function, argument
-        - name: the attributes name
-        - version: the version by which support for the old name will be
-          discontinued
-        - stack_level: as per warnings.warn"""
+
+    Parameters
+    ----------
+    _type
+        should be one of class, method, function, argument
+    name
+        the attributes name
+    version
+        the version by which support for the old name will be
+        discontinued
+    stack_level
+        as per warnings.warn
+
+    """
     msg = "%s %s is discontinued, support will be stopped in version %s" % (
         _type,
         name,

@@ -13,9 +13,14 @@ __status__ = "Production"
 def nexus_from_alignment(aln, seq_type, interleave_len=50):
     """returns a nexus formatted string
 
-    Arguments:
-        - seq_type: dna, rna, or protein
-        - interleave_len: the line width"""
+    Parameters
+    ----------
+    seq_type
+        dna, rna, or protein
+    interleave_len
+        the line width
+
+    """
     if aln.is_ragged():
         raise ValueError(
             "Sequences in alignment are not all the same "

@@ -641,17 +641,19 @@ def mc_t_two_sample(x_items, y_items, tails=None, permutations=999, exp_diff=0):
     This code is partially based on Jeremy Widmann's
     qiime.make_distance_histograms.monte_carlo_group_distances code.
 
-    Arguments:
+    Parameters
+    ----------
         x_items - the first list of observations
         y_items - the second list of observations
         tails - if None (the default), a two-sided test is performed. 'high'
-            or 'low' for one-tailed tests
+        or 'low' for one-tailed tests
         permutations - the number of permutations to use in calculating the
-            nonparametric p-value. Must be a number greater than or equal to 0.
-            If 0, the nonparametric test will not be performed. In this case,
-            the list of t statistics obtained from permutations will be empty,
-            and the nonparametric p-value will be None
+        nonparametric p-value. Must be a number greater than or equal to 0.
+        If 0, the nonparametric test will not be performed. In this case,
+        the list of t statistics obtained from permutations will be empty,
+        and the nonparametric p-value will be None
         exp_diff - the expected difference in means (x_items - y_items)
+
     """
     if tails is not None and tails != "high" and tails != "low":
         raise ValueError(
@@ -780,9 +782,11 @@ def pearson(x_items, y_items):
     both of the input vectors do not have any variation, the return value will
     be 0.0.
 
-    Arguments:
+    Parameters
+    ----------
         x_items - the first list of observations
         y_items - the second list of observations
+
     """
     x_items, y_items = array(x_items), array(y_items)
 
@@ -832,9 +836,11 @@ def spearman(x_items, y_items):
     both of the input vectors do not have any variation, the return value will
     be 0.0.
 
-    Arguments:
+    Parameters
+    ----------
         x_items - the first list of observations
         y_items - the second list of observations
+
     """
     x_items, y_items = array(x_items), array(y_items)
 
@@ -955,22 +961,24 @@ def correlation_test(
     Note: the parametric portion of this function is based on the correlation
     function in this module.
 
-    Arguments:
+    Parameters
+    ----------
         x_items - the first list of observations
         y_items - the second list of observations
         method - 'pearson' or 'spearman'
         tails - if None (the default), a two-sided test is performed. 'high'
-            for a one-tailed test for positive association, or 'low' for a
-            one-tailed test for negative association. This parameter affects
-            both the parametric and nonparametric tests, but the confidence
-            interval will always be two-sided
+        for a one-tailed test for positive association, or 'low' for a
+        one-tailed test for negative association. This parameter affects
+        both the parametric and nonparametric tests, but the confidence
+        interval will always be two-sided
         permutations - the number of permutations to use in the nonparametric
-            test. Must be a number greater than or equal to 0. If 0, the
-            nonparametric test will not be performed. In this case, the list of
-            correlation coefficients obtained from permutations will be empty,
-            and the nonparametric p-value will be None
+        test. Must be a number greater than or equal to 0. If 0, the
+        nonparametric test will not be performed. In this case, the list of
+        correlation coefficients obtained from permutations will be empty,
+        and the nonparametric p-value will be None
         confidence_level - the confidence level to use when constructing the
-            confidence interval. Must be between 0 and 1 (exclusive)
+        confidence interval. Must be between 0 and 1 (exclusive)
+
     """
     # Perform some initial error checking.
     if method == "pearson":
@@ -1412,11 +1420,16 @@ def MonteCarloP(value, rand_values, tail="high"):
 def sign_test(success, trials, alt="two sided"):
     """Returns the probability for the sign test.
 
-    Arguments:
-        - success: the number of successes
-        - trials: the number of trials
-        - alt: the alternate hypothesis, one of 'less', 'greater', 'two sided'
-          (default).
+    Parameters
+    ----------
+    success
+        the number of successes
+    trials
+        the number of trials
+    alt
+        the alternate hypothesis, one of 'less', 'greater', 'two sided'
+        (default).
+
     """
     lo = ["less", "lo", "lower", "l"]
     hi = ["greater", "hi", "high", "h", "g"]
@@ -1440,12 +1453,17 @@ def sign_test(success, trials, alt="two sided"):
 def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
     """Returns the statistic and probability from the Kolmogorov-Smirnov test.
 
-    Arguments:
-        - x, y: vectors of numbers whose distributions are to be compared.
-        - alt: the alternative hypothesis, default is 2-sided.
-        - exact: whether to compute the exact probability
-        - warn_for_ties: warns when values are tied. This should left at True
-          unless a monte carlo variant, like ks_boot, is being used.
+    Parameters
+    ----------
+    x, y
+        vectors of numbers whose distributions are to be compared.
+    alt
+        the alternative hypothesis, default is 2
+    exact
+        whether to compute the exact probability
+    warn_for_ties
+        warns when values are tied. This should left at True
+        unless a monte carlo variant, like ks_boot, is being used.
 
     Note the 1-sample cases are not implemented, although their cdf's are
     implemented in ks.py"""
@@ -1525,10 +1543,16 @@ def ks_boot(x, y, alt="two sided", num_reps=1000):
     """Monte Carlo (bootstrap) variant of the Kolmogorov-Smirnov test. Useful
     for when there are ties.
 
-    Arguments:
-        - x, y: vectors of numbers
-        - alt: alternate hypothesis, as per ks_test
-        - num_reps: number of replicates for the  bootstrap"""
+    Parameters
+    ----------
+    x, y
+        vectors of numbers
+    alt
+        alternate hypothesis, as per ks_test
+    num_reps
+        number of replicates for the  bootstrap
+
+    """
     # based on the ks_boot method in the R Matching package
     # see http://sekhon.berkeley.edu/matching/
     # One important difference is I preserve the original sample sizes
@@ -1616,9 +1640,12 @@ def mw_test(x, y):
 def mw_boot(x, y, num_reps=1000):
     """Monte Carlo (bootstrap) variant of the Mann-Whitney test.
 
-    Arguments:
-        - x, y: vectors of numbers
-        - num_reps: number of replicates for the  bootstrap
+    Parameters
+    ----------
+    x, y
+        vectors of numbers
+    num_reps
+        number of replicates for the  bootstrap
 
     Uses the same Monte-Carlo resampling code as kw_boot
     """
@@ -1671,21 +1698,23 @@ def mantel_test(
     matrices, as only the lower triangle (excluding the diagonal) will be used
     in the calculations (matching R's vegan::mantel function).
 
-    Arguments:
+    Parameters
+    ----------
         m1  - the first distance matrix to use in the test (should be a numpy
-            array or convertible to a numpy array)
+        array or convertible to a numpy array)
         m2  - the second distance matrix to use in the test (should be a numpy
-            array or convertible to a numpy array)
+        array or convertible to a numpy array)
         n   - the number of permutations to test when calculating the p-value
         alt - the type of alternative hypothesis to test (can be either
-            'two sided' for a two-sided test, 'greater' or 'less' for one-sided
-            tests)
+        'two sided' for a two-sided test, 'greater' or 'less' for one-sided
+        tests)
         suppress_symmetry_and_hollowness_check - by default, the input distance
-            matrices will be checked for symmetry and hollowness. It is
-            recommended to leave this check in place for safety, as the check
-            is fairly fast. However, if you *know* you have symmetric and
-            hollow distance matrices, you can disable this check for small
-            performance gains on extremely large distance matrices
+        matrices will be checked for symmetry and hollowness. It is
+        recommended to leave this check in place for safety, as the check
+        is fairly fast. However, if you *know* you have symmetric and
+        hollow distance matrices, you can disable this check for small
+        performance gains on extremely large distance matrices
+
     """
     # Perform some sanity checks on our input.
     if alt not in ("two sided", "greater", "less"):
@@ -1741,8 +1770,10 @@ def _flatten_lower_triangle(matrix):
     The returned list will contain the elements in column-major order. The
     diagonal will be excluded.
 
-    Arguments:
+    Parameters
+    ----------
         matrix - numpy array containing the matrix data
+
     """
     matrix = asarray(matrix)
     flattened = []
@@ -1761,11 +1792,16 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
 
     Based on the algorithm implemented in R v2.5
 
-    Arguments:
-        - alt: the alternate hypothesis (greater, less, two sided)
-        - exact: when False, forces use of the large sample approximation
-          (normal distribution). Not allowed for len(x) >= 50.
-        - warn: whether to warn about tied values
+    Parameters
+    ----------
+    alt
+        the alternate hypothesis (greater, less, two sided)
+    exact
+        when False, forces use of the large sample approximation
+        (normal distribution). Not allowed for len(x) >= 50.
+    warn
+        whether to warn about tied values
+
     """
 
     assert len(x) == len(y), "data (x, y) not of same length"

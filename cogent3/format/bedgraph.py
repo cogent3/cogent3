@@ -119,13 +119,19 @@ def bedgraph(
     [(chrom, start, end, val), ...]. These will be merged such that adjacent
     records with the same value will be combined.
 
-    Arguments:
-        - name: track name
-        - description: track description
-        - color: (R,G,B) tuple of ints where max val of int is 255, e.g.
-          red is (255, 0, 0)
-        - **kwargs: keyword=val, .. valid bedgraph format modifiers
+    Parameters
+    ----------
+    name
+        track name
+    description
+        track description
+    color
+        (R,G,B) tuple of ints where max val of int is 255, e.g.
+        red is (255, 0, 0)
+    **kwargs
+        keyword=val, .. valid bedgraph format modifiers
         see https://cgwb.nci.nih.gov/goldenPath/help/bedgraph.html
+
     """
 
     header = get_header(name=name, description=description, color=color, **kwargs)

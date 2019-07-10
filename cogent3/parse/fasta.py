@@ -198,11 +198,15 @@ class RichLabel(str):
     template that uses the keys from the Info object."""
 
     def __new__(cls, info, template="%s"):
-        """Arguments:
+        """
 
-            - info: a cogent3.core.info.info instance
-            - template: a string template, using a subset of the keys in info.
-              Defaults to just '%s'.
+        Parameters
+        ----------
+        info
+            a cogent3.core.info.info instance
+        template
+            a string template, using a subset of the keys in info.
+            Defaults to just '%s'.
 
         Example:
             label = RichLabel(Info(name='rat', species='Rattus norvegicus'),
@@ -216,13 +220,19 @@ class RichLabel(str):
 def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False):
     """returns a function for creating a RichLabel's from a string
 
-    Arguments;
-        - display_template: string format template
-        - field_formatters: series of
-                (field index, field name, coverter function)
-        - split_with: characters separating fields in the label.
-          The display_template must use at least one of the assigned field
-          names."""
+    Parameters
+    ----------
+    display_template
+        string format template
+    field_formatters
+        series of
+        (field index, field name, coverter function)
+    split_with
+        characters separating fields in the label.
+        The display_template must use at least one of the assigned field
+        names.
+
+    """
     indexed = False
     for index, field, converter in field_formatters:
         if field in display_template:
@@ -263,13 +273,21 @@ def GroupFastaParser(
 ):
     """yields related sequences as a separate seq collection
 
-    Arguments:
-        - data: line iterable data source
-        - label_to_name: LabelParser callback
-        - group_key: name of group key in RichLabel.info object
-        - aligned: whether sequences are to be considered aligned
-        - moltype: default is ASCII
-        - done_groups: series of group keys to be excluded
+    Parameters
+    ----------
+    data
+        line iterable data source
+    label_to_name
+        LabelParser callback
+    group_key
+        name of group key in RichLabel.info object
+    aligned
+        whether sequences are to be considered aligned
+    moltype
+        default is ASCII
+    done_groups
+        series of group keys to be excluded
+
         """
 
     done_groups = [[], done_groups][done_groups is not None]

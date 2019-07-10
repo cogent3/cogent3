@@ -45,8 +45,11 @@ def aligned_columns_to_rows(aln, motif_len, exclude_chars=None, allowed_chars="A
     """return alignment broken into motifs as a transposed list with
     sequences as columns and aligned columns as rows
 
-    Arguments:
-        exclude_chars: columns containing these characters will be excluded"""
+    Parameters
+    ----------
+        exclude_chars: columns containing these characters will be excluded
+
+    """
     if exclude_chars:
         exclude_chars = set(exclude_chars)
         exclude_func = exclude_chars.intersection
@@ -118,13 +121,20 @@ def BestLogLikelihood(
 ):
     """returns the best log-likelihood according to Goldman 1993.
 
-    Arguments:
-        - alphabet: a sequence alphabet object.
-        - motif_length: 1 for nucleotide, 2 for dinucleotide, etc ..
-        - exclude_chars: a series of characters used to exclude motifs
-        - allowed_chars: only motifs that contain a subset of these are
-          allowed
-        - return_length: whether to also return the number of alignment columns
+    Parameters
+    ----------
+    alphabet
+        a sequence alphabet object.
+    motif_length
+        1 for nucleotide, 2 for dinucleotide, etc ..
+    exclude_chars
+        a series of characters used to exclude motifs
+    allowed_chars
+        only motifs that contain a subset of these are
+        allowed
+    return_length
+        whether to also return the number of alignment columns
+
     """
     assert alphabet or motif_length, (
         "Must provide either an alphabet or a" " motif_length"

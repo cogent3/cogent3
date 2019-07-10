@@ -22,13 +22,17 @@ __status__ = "Production"
 def majority_rule(trees, strict=False):
     """Determines the consensus tree from a list of rooted trees using the
      majority rules method of Margush and McMorris 1981
-    Arguments:
-        - trees: A list of cogent3.evolve.tree objects
-        - strict: A boolean flag for strict majority rule tree
-          construction when true only nodes occurring >50% will be used
-          when false the highest scoring < 50% node will be used if
-          there is more than one node with the same score this will be
-          arbitrarily chosen on sort order
+
+    Parameters
+    ----------
+    trees
+        A list of cogent3.evolve.tree objects
+    strict
+        A boolean flag for strict majority rule tree
+        construction when true only nodes occurring >50% will be used
+        when false the highest scoring < 50% node will be used if
+        there is more than one node with the same score this will be
+        arbitrarily chosen on sort order
 
     Returns:
         a list of cogent3.evolve.tree objects

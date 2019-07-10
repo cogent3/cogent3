@@ -83,7 +83,7 @@ class DataStoreBaseTests:
     def test_make_identifier(self):
         """correctly construct an identifier for a new member"""
         with TemporaryDirectory(dir=".") as dirname:
-            if dirname.startswith("./"):
+            if dirname.startswith("." + os.sep):
                 dirname = dirname[2:]
 
             path = os.path.join(dirname, self.basedir)
@@ -331,6 +331,7 @@ class TinyDBDataStoreTests(TestCase):
                 os.path.join(self.basedir, keys[1]), keep_suffix=True, cleanup=False
             )
             self.assertTrue(keys[1] in dstore)
+            dstore.close()
 
     def test_tiny_get_member(self):
         """get member works on TinyDbDataStore"""
@@ -482,13 +483,13 @@ class TinyDBDataStoreTests(TestCase):
 
 
 class SingleReadStoreTests(TestCase):
-    basedir = "data/brca1.fasta"
+    basedir = f"data{os.sep}brca1.fasta"
     Class = SingleReadDataStore
 
     def test_get_relative_identifier(self):
         """correctly returns the relative identifier"""
         dstore = self.Class(self.basedir)
-        self.assertEqual(dstore.members, ["data/brca1.fasta"])
+        self.assertEqual(dstore.members, [f"data{os.sep}brca1.fasta"])
 
     def test_absolute_identifier(self):
         """correctly returns the absolute identifier"""

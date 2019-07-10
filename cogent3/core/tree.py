@@ -855,12 +855,18 @@ class TreeNode(object):
     ):
         """Return the newick string for this edge.
 
-        Arguments:
-            - with_distances: whether branch lengths are included.
-            - semicolon: end tree string with a semicolon
-            - escape_name: if any of these characters []'"(),:;_ exist in a
-                nodes name, wrap the name in single quotes
-            - with_node_names: includes internal node names (except 'root')
+        Parameters
+        ----------
+        with_distances
+            whether branch lengths are included.
+        semicolon
+            end tree string with a semicolon
+        escape_name
+            if any of these characters []'"(),
+            nodes name, wrap the name in single quotes
+        with_node_names
+            includes internal node names (except 'root')
+
         """
         newick = []
         subtrees = []
@@ -903,12 +909,17 @@ class TreeNode(object):
     ):
         """Return the newick string for this tree.
 
-        Arguments:
-            - with_distances: whether branch lengths are included.
-            - semicolon: end tree string with a semicolon
-            - escape_name: if any of these characters []'"(),:;_ exist in a
-                nodes name, wrap the name in single quotes
-            - with_node_names: includes internal node names (except 'root')
+        Parameters
+        ----------
+        with_distances
+            whether branch lengths are included.
+        semicolon
+            end tree string with a semicolon
+        escape_name
+            if any of these characters []'"(),
+            nodes name, wrap the name in single quotes
+        with_node_names
+            includes internal node names (except 'root')
 
         NOTE: This method returns the Newick representation of this node
         and its descendents.
@@ -999,13 +1010,18 @@ class TreeNode(object):
         the list of names. If the clade traverses the root, then use the
         outgroup_name argument to ensure valid specification.
 
-        Arguments:
-            - tip1/2name: edge 1/2 names
-            - stem: whether the name of the clade stem edge is returned.
-            - clade: whether the names of the edges within the clade are
-              returned
-            - outgroup_name: if provided the calculation is done on a version of
-              the tree re-rooted relative to the provided tip.
+        Parameters
+        ----------
+        tip1/2name
+            edge 1/2 names
+        stem
+            whether the name of the clade stem edge is returned.
+        clade
+            whether the names of the edges within the clade are
+            returned
+        outgroup_name
+            if provided the calculation is done on a version of
+            the tree re-rooted relative to the provided tip.
 
         Usage:
             The returned list can be used to specify subtrees for special
@@ -1240,14 +1256,19 @@ class TreeNode(object):
         """A new instance of a sub tree that contains all the otus that are
         listed in name_list.
 
-        Arguments:
-        - ignore_missing: if False, get_sub_tree will raise a ValueError if
-          name_list contains names that aren't nodes in the tree
-        - keep_root: if False, the root of the subtree will be the last common
-          ancestor of all nodes kept in the subtree. Root to tip distance is
-          then (possibly) different from the original tree. If True, the root to
-          tip distance remains constant, but root may only have one child node.
-        - tipsonly: only tip names matching name_list are allowed
+        Parameters
+        ----------
+        ignore_missing
+            if False, get_sub_tree will raise a ValueError if
+            name_list contains names that aren't nodes in the tree
+        keep_root
+            if False, the root of the subtree will be the last common
+            ancestor of all nodes kept in the subtree. Root to tip distance is
+            then (possibly) different from the original tree. If True, the root to
+            tip distance remains constant, but root may only have one child node.
+        tipsonly
+            only tip names matching name_list are allowed
+
         """
         edge_names = set(self.get_node_names(includeself=1, tipsonly=tipsonly))
         if not ignore_missing:
@@ -1372,9 +1393,13 @@ class TreeNode(object):
     def ascii_art(self, show_internal=True, compact=False):
         """Returns a string containing an ascii drawing of the tree.
 
-        Arguments:
-        - show_internal: includes internal edge names.
-        - compact: use exactly one line per tip.
+        Parameters
+        ----------
+        show_internal
+            includes internal edge names.
+        compact
+            use exactly one line per tip.
+
         """
         (lines, mid) = self._ascii_art(show_internal=show_internal, compact=compact)
         return "\n".join(lines)
@@ -1409,11 +1434,16 @@ class TreeNode(object):
     def write(self, filename, with_distances=True, format=None):
         """Save the tree to filename
 
-        Arguments:
-            - filename: self-evident
-            - with_distances: whether branch lengths are included in string.
-            - format: default is newick, xml is alternate. Argument overrides
-              the filename suffix. All attributes are saved in the xml format.
+        Parameters
+        ----------
+        filename
+            self
+        with_distances
+            whether branch lengths are included in string.
+        format
+            default is newick, xml is alternate. Argument overrides
+            the filename suffix. All attributes are saved in the xml format.
+
         """
         if format:
             xml = format.lower() == "xml"
@@ -1457,8 +1487,12 @@ class TreeNode(object):
     def get_edge_vector(self, include_root=True):
         """Collect the list of edges in postfix order
 
-        Arguments:
-            - include_root: specifies whether root edge included"""
+        Parameters
+        ----------
+        include_root
+            specifies whether root edge included
+
+        """
         if include_root:
             result = [n for n in self.traverse(False, True)]
         else:
