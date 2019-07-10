@@ -1,12 +1,11 @@
-from unittest import TestCase, main
-
 from numpy import diag_indices, dot
 from numpy.random import random
 from numpy.testing import assert_allclose
 
 from cogent3.maths.matrix_exponentiation import PadeExponentiator
 from cogent3.maths.matrix_logarithm import logm
-from cogent3.maths.measure import jsd, paralinear
+from cogent3.maths.measure import jsd, jsm, paralinear
+from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Gavin Huttley"
@@ -133,6 +132,62 @@ class TestJensenShannon(TestCase):
 
         with self.assertRaises(AssertionError):
             jsd(normalised_freqs1, freqs2, validate=True)  # invalid freqs2
+
+    def test_jsd(self):
+        case1 = [
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ]
+        for pointer in range(10):
+            case1[0][pointer] = 1.0
+            case1[1][pointer] = 1.0
+            self.assertFloatEqual(jsd(case1[0], case1[1], validate=True), 0.0)
+            case1[0][pointer] = 0.0
+            case1[1][pointer] = 0.0
+
+        case2 = [[1.0 / 10, 9.0 / 10, 0], [0, 1.0 / 10, 9.0 / 10]]
+        self.assertFloatEqual(
+            jsd(case2[0], case2[1], validate=True), 0.7655022032053593
+        )
+
+        case3 = [[1.0, 0.0], [0.5, 0.5]]
+        self.assertFloatEqual(
+            jsd(case3[0], case3[1], validate=True), 0.3112781244591328
+        )
+
+        case4 = [
+            [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+            [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+        ]
+        self.assertFloatEqual(jsd(case4[0], case4[1], validate=True), 0.0)
+
+    def test_jsm(self):
+        case1 = [
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ]
+        for pointer in range(10):
+            case1[0][pointer] = 1.0
+            case1[1][pointer] = 1.0
+            self.assertFloatEqual(jsm(case1[0], case1[1], validate=True), 0.0)
+            case1[0][pointer] = 0.0
+            case1[1][pointer] = 0.0
+
+        case2 = [[1.0 / 10, 9.0 / 10, 0], [0, 1.0 / 10, 9.0 / 10]]
+        self.assertFloatEqual(
+            jsm(case2[0], case2[1], validate=True), 0.8749298275892526
+        )
+
+        case3 = [[1.0, 0.0], [0.5, 0.5]]
+        self.assertFloatEqual(
+            jsm(case3[0], case3[1], validate=True), 0.5579230452841438
+        )
+
+        case4 = [
+            [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+            [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+        ]
+        self.assertFloatEqual(jsd(case4[0], case4[1], validate=True), 0.0)
 
 
 if __name__ == "__main__":
