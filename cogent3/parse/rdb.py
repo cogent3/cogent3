@@ -14,7 +14,7 @@ from cogent3.parse.record_finder import DelimitedRecordFinder
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Sandra Smit", "Rob Knight"]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"

@@ -7,7 +7,7 @@ import time
 __author__ = ["Peter Maxwell", "Gavin Huttley"]
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"

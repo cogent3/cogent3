@@ -109,7 +109,7 @@ __credits__ = [
     "Antonio Gonzalez Pena",
     "Greg Caporaso",
 ]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"

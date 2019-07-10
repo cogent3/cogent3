@@ -11,7 +11,7 @@ from cogent3.util.unit_test import TestCase, main
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __contributors__ = ["Justin Kuczynski", "Zongzhi Liu", "Greg Caporaso"]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"

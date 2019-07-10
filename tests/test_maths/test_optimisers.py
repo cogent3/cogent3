@@ -15,7 +15,7 @@ from cogent3.maths.optimisers import MaximumEvaluationsReached, maximise
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"

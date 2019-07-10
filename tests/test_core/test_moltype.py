@@ -33,7 +33,7 @@ from cogent3.util.unit_test import TestCase, main
 __author__ = "Gavin Huttley, Peter Maxwell, and Rob Knight"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Peter Maxwell"]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"

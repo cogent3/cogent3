@@ -13,7 +13,7 @@ from cogent3.parse.record_finder import DelimitedRecordFinder
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Daniel McDonald"]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"

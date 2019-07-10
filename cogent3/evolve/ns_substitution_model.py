@@ -18,7 +18,7 @@ from .substitution_model import (
 __author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __contributors__ = ["Gavin Huttley", "Peter Maxwell", "Ben Kaeheler", "Ananias Iliadis"]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"

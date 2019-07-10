@@ -112,7 +112,7 @@ __credits__ = [
     "Sandra Smit",
     "Rob Knight",
 ]
-__license__ = "GPL"
+__license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
