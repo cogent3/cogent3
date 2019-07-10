@@ -4,10 +4,10 @@ from cogent3.parse.record import RecordError
 
 
 __author__ = "Micah Hamady"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Micah Hamady", "Peter Maxwell", "Gavin Huttley", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "3.0a2"
+__version__ = "2019.07.10a"
 __maintainer__ = "Micah Hamady"
 __email__ = "hamady@colorado.edu"
 __status__ = "Prototype"

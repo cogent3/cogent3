@@ -104,7 +104,7 @@ from cogent3.util.recode_alignment import (
 
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = [
     "Greg Caporaso",
     "Gavin Huttley",
@@ -113,7 +113,7 @@ __credits__ = [
     "Rob Knight",
 ]
 __license__ = "GPL"
-__version__ = "3.0a2"
+__version__ = "2019.07.10a"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"

@@ -15,10 +15,10 @@ from cogent3.maths.stats.test import std  # numpy.std is biased
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
 __contributors__ = ["Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "3.0a2"
+__version__ = "2019.07.10a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"

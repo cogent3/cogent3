@@ -13,10 +13,10 @@ from cogent3.util.misc import open_
 
 
 __author__ = "Catherine Lozupone"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Catherine Lozuopone", "Rob Knight", "Micah Hamady", "Gavin Huttley"]
 __license__ = "GPL"
-__version__ = "3.0a2"
+__version__ = "2019.07.10a"
 __maintainer__ = "Catherine Lozupone"
 __email__ = "lozupone@colorado.edu"
 __status__ = "Production"

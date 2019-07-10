@@ -16,10 +16,10 @@ from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Helen Lindsay"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Helen Lindsay"]
 __license__ = "GPL"
-__version__ = "3.0a2"
+__version__ = "2019.07.10a"
 __maintainer__ = "Helen Lindsay"
 __email__ = "helen.lindsay@anu.edu.au"
 __status__ = "Production"

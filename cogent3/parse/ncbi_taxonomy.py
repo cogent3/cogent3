@@ -7,10 +7,10 @@ from cogent3.core.tree import TreeNode
 
 
 __author__ = "Jason Carnes"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Jason Carnes", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "3.0a2"
+__version__ = "2019.07.10a"
 __maintainer__ = "Jason Carnes"
 __email__ = "jason.carnes@sbri.org"
 __status__ = "Development"

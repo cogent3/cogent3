@@ -4,11 +4,11 @@
 #
 
 __author__ = "Kristian Rother"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
 __contributors__ = ["Micah Hamady"]
 __credits__ = ["Rob Knight"]
 __license__ = "GPL"
-__version__ = "3.0a2"
+__version__ = "2019.07.10a"
 __maintainer__ = "Kristian Rother"
 __email__ = "krother@rubor.de"
 __status__ = "Prototype"
