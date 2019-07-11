@@ -139,7 +139,7 @@ class ReadOnlyDataStoreBase:
 
         num = len(self)
         name = self.__class__.__name__
-        txt = f"{num}x member {name}({sample})"
+        txt = f"{num}x member {name}(source='{self.source}', members={sample})"
         return txt
 
     def __str__(self):
