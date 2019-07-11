@@ -571,8 +571,9 @@ class LikelihoodFunction(ParameterController):
         assert length_as in ("ENS", "paralinear", None)
         d = self.get_param_value_dict(["edge"])
         lengths = d.pop("length")
-        ens = self.get_lengths_as_ens()
-        plin = self.get_paralinear_metric()
+        mprobs = self.get_motif_probs_by_node()
+        ens = self.get_lengths_as_ens(motif_probs=mprobs)
+        plin = self.get_paralinear_metric(motif_probs=mprobs)
         if length_as == "ENS":
             lengths = ens
         elif length_as == "paralinear":
@@ -581,10 +582,12 @@ class LikelihoodFunction(ParameterController):
         tree = self._tree.deepcopy()
         for edge in tree.get_edge_vector():
             if edge.name == "root":
+                edge.params["mprobs"] = mprobs[edge.name].todict()
                 continue
             edge.params["ENS"] = ens[edge.name]
             edge.params["paralinear"] = plin[edge.name]
             edge.params["length"] = lengths[edge.name]
+            edge.params["mprobs"] = mprobs[edge.name].todict()
             for par in d:
                 val = d[par][edge.name]
                 if par == length_as:
@@ -667,9 +670,15 @@ class LikelihoodFunction(ParameterController):
             )
         return scaled_lengths
 
-    def get_paralinear_metric(self):
-        """returns {edge.name: paralinear, ...}"""
-        motif_probs = self.get_motif_probs_by_node()
+    def get_paralinear_metric(self, motif_probs=None):
+        """returns {edge.name: paralinear, ...}
+        Parameters
+        ----------
+        motif_probs : dict or DictArray
+            an item for each edge of the tree. Computed if not provided.
+        """
+        if motif_probs is None:
+            motif_probs = self.get_motif_probs_by_node()
         plin = {}
         for edge in self.tree.get_edge_vector(include_root=False):
             parent_name = edge.parent.name
@@ -681,11 +690,17 @@ class LikelihoodFunction(ParameterController):
 
         return plin
 
-    def get_lengths_as_ens(self):
+    def get_lengths_as_ens(self, motif_probs=None):
         """returns {edge.name: ens, ...} where ens is the expected number of substitutions
 
-        for a stationary Markov process, this is just branch length"""
-        motif_probs = self.get_motif_probs_by_node()
+        for a stationary Markov process, this is just branch length
+        Parameters
+        ----------
+        motif_probs : dict or DictArray
+            an item for each edge of the tree. Computed if not provided.
+        """
+        if motif_probs is None:
+            motif_probs = self.get_motif_probs_by_node()
         node_names = self.tree.get_node_names()
         node_names.remove("root")
         lengths = {e: self.get_param_value("length", edge=e) for e in node_names}
