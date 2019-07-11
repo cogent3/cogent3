@@ -418,6 +418,10 @@ class Dendrogram(Drawable):
             "angular": AngularTreeGeometry,
             "radial": RadialTreeGeometry,
         }[style]
+        if not "length_attr" in kwargs:
+            contemporaneous = (
+                True if tree.children[0].length is None else contemporaneous
+            )
         kwargs = UnionDict(length_attr="frac_pos") if contemporaneous else {}
         self.tree = klass(tree, **kwargs)
         self.tree.propagate_properties()

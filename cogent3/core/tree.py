@@ -1749,7 +1749,7 @@ class TreeNode(object):
         other_matrix = other.tip_to_tip_distances()[0][other_order][:, other_order]
         return dist_f(self_matrix, other_matrix)
 
-    def get_figure(self, style="square"):
+    def get_figure(self, style="square", **kwargs):
         """
         gets Dendrogram for plotting the phylogeny
 
@@ -1757,6 +1757,8 @@ class TreeNode(object):
         ----------
         style : string
             'square', 'angular', 'radial' or 'circular'
+        kwargs
+            arguments passed to Dendrogram constructor
         """
         from cogent3.draw.dendrogram import Dendrogram
 
@@ -1765,7 +1767,7 @@ class TreeNode(object):
         if style not in types:
             raise ValueError(f"{style} not in supported types {types}")
 
-        dnd = Dendrogram(self, style=style, contemporaneous=False)
+        dnd = Dendrogram(self, style=style, **kwargs)
         return dnd
 
 
