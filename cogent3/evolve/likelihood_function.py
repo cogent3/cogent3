@@ -668,12 +668,12 @@ class LikelihoodFunction(ParameterController):
         return scaled_lengths
 
     def get_paralinear_metric(self):
-        """returns {edge: paralinear, ...}"""
-        mprobs = self.get_motif_probs_by_node()
+        """returns {edge.name: paralinear, ...}"""
+        motif_probs = self.get_motif_probs_by_node()
         plin = {}
         for edge in self.tree.get_edge_vector(include_root=False):
             parent_name = edge.parent.name
-            pi = mprobs[parent_name]
+            pi = motif_probs[parent_name]
             P = self.get_psub_for_edge(edge.name)
             Q = self.get_rate_matrix_for_edge(edge.name, calibrated=False)
             para = paralinear(Q.array, P.array, pi.array)
@@ -682,18 +682,18 @@ class LikelihoodFunction(ParameterController):
         return plin
 
     def get_lengths_as_ens(self):
-        """returns {edge: ens, ...} where ens is the expected number of substitutions
+        """returns {edge.name: ens, ...} where ens is the expected number of substitutions
 
         for a stationary Markov process, this is just branch length"""
+        motif_probs = self.get_motif_probs_by_node()
         node_names = self.tree.get_node_names()
         node_names.remove("root")
         lengths = {e: self.get_param_value("length", edge=e) for e in node_names}
         if not isinstance(self.model, substitution_model.Stationary):
             ens = {}
             for e in node_names:
-                mprobs = self.get_motif_probs(edge=e)
                 Q = self.get_rate_matrix_for_edge(e)
-                length = expected_number_subs(mprobs, Q, lengths[e])
+                length = expected_number_subs(motif_probs[e], Q, lengths[e])
                 ens[e] = length
 
             lengths = ens
