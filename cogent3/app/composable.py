@@ -413,7 +413,8 @@ class Composable(ComposableType):
         if LOGGER:
             LOGGER.log_message(f"{taken}", label="TIME TAKEN")
             LOGGER.shutdown()
-            self.data_store.add_file(str(log_file_path), cleanup=cleanup)
+            log_file_path = str(log_file_path)
+            self.data_store.add_file(log_file_path, cleanup=cleanup, keep_suffix=True)
             self.data_store.close()
 
         # now reconnect input
