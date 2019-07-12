@@ -67,7 +67,7 @@ period_tail_finder = TailedRecordFinder(endswith_period)
 #################################
 # pairs_to_dict
 def pairs_to_dict(
-    key_values, dict_mode=None, all_keys=None, handlers={}, default_handler=None
+    key_values, dict_mode=None, all_keys=None, handlers=None, default_handler=None
 ):
     """generate a function which return a dict from a sequence of key_value
     pairs.
@@ -100,6 +100,9 @@ def pairs_to_dict(
     Note: use default_handler=identity is often useful if you want to return
     the original value when no handler found.
     """
+
+    handlers = handlers or {}
+
     if not dict_mode:
         dict_mode = "overwrite_value"
 
@@ -227,7 +230,7 @@ def join_split_parser(
 
 
 def join_split_dict_parser(
-    lines, delimiters=[";", ("=", 1), ","], dict_mode=None, strict=True, **kwargs
+    lines, delimiters=None, dict_mode=None, strict=True, **kwargs
 ):
     """return a dict from lines, using the splited pairs from
     join_split_parser and pairs_to_dict.
@@ -243,6 +246,7 @@ def join_split_dict_parser(
     join_split_dict_parser(['aa=1; bb=2,3; cc=4 (if aa=1);'])
     -> {'aa':'1', 'bb': ['2','3'], 'cc': '4 (if aa=1)'}
     """
+    delimiters = delimiters or [";", ("=", 1), ","]
     primary_delimiters, value_delimiters = delimiters[:2], delimiters[2:]
     pairs = join_split_parser(
         lines, delimiters=primary_delimiters, same_level=True, **kwargs
@@ -270,7 +274,7 @@ def join_split_dict_parser(
     return result
 
 
-def mapping_parser(line, fields, delimiters=[";", None], flatten=list_flatten):
+def mapping_parser(line, fields, delimiters=None, flatten=list_flatten):
     """return a dict of zip(fields, splitted line), None key will be deleted
     from the result dict.
 
@@ -280,6 +284,7 @@ def mapping_parser(line, fields, delimiters=[";", None], flatten=list_flatten):
     delimiters: separators used to split the line.
     flatten: a function used to flatten the list from nested splitting.
     """
+    delimiters = delimiters or [";", None]
     splits = NestedSplitter(delimiters=delimiters)(line)
     values = flatten(splits)
     result = {}
@@ -1386,7 +1391,7 @@ required_labels = "ID AC DT DE OS OC OX SQ REF".split() + [""]
 # Minimal Ebi parser
 
 
-def MinimalEbiParser(lines, strict=True, selected_labels=[]):
+def MinimalEbiParser(lines, strict=True, selected_labels=None):
     """yield each (sequence as a str, a dict of header) from ebi record lines
 
     if strict (default), raise RecordError if a record lacks required labels.
@@ -1428,6 +1433,7 @@ def MinimalEbiParser(lines, strict=True, selected_labels=[]):
     by three blanks, so that the actual information begins with the sixth
     character. Information is not extended beyond character position 75 except
     for one exception: CC lines that contain the 'DATABASE' topic"""
+    selected_labels = selected_labels or []
     exclude = b" \t\n\r/"
     strip_table = dict([(c, None) for c in exclude])
 
@@ -1516,7 +1522,7 @@ def EbiParser(
     seq_constructor=Sequence,
     header_constructor=parse_header,
     strict=True,
-    selected_labels=[],
+    selected_labels=None,
 ):
     """Parser for the EBI data format.
 
@@ -1532,6 +1538,7 @@ def EbiParser(
         returned. All the original header labels are used, except for
         REFERENCES, which is 'REF'.
     """
+    selected_labels = selected_labels or []
     for sequence, header_dict in MinimalEbiParser(
         lines, strict=strict, selected_labels=selected_labels
     ):

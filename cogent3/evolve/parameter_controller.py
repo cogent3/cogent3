@@ -423,7 +423,7 @@ class _LikelihoodParameterController(_LF):
             "length", tip_names=[tip1name, tip2name], clade=True, is_independent=0
         )
 
-    def set_constant_lengths(self, tree=None, exclude_list=[]):
+    def set_constant_lengths(self, tree=None, exclude_list=None):
         """Constrains edge lengths to those in the tree.
 
         Parameters
@@ -436,6 +436,9 @@ class _LikelihoodParameterController(_LF):
             will be constrained.
 
         """
+
+        exclude_list = exclude_list or []
+
         if tree is None:
             tree = self.tree
 

@@ -31,7 +31,7 @@ class _AlignmentFormatter:
 
         self.block_size = size
 
-    def set_align_info(self, alignment_dict, order=[]):
+    def set_align_info(self, alignment_dict, order=None):
         """Set alignment attributes for writing.
 
         Parameters
@@ -42,6 +42,8 @@ class _AlignmentFormatter:
             a list of seq_name's in the order for writing
 
         """
+
+        order = order or []
 
         self.number_sequences = len(alignment_dict)
         # supersede the use of alignment length

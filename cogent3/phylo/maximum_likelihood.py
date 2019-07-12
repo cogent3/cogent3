@@ -24,7 +24,8 @@ class ML(TreeEvaluator):
     equivalent to Parametric.make_likelihood_function(tree).
     If 'dists' is provided uses WLS to get initial values for lengths"""
 
-    def __init__(self, model, alignment, dists=None, opt_args={}):
+    def __init__(self, model, alignment, dists=None, opt_args=None):
+        opt_args = opt_args or {}
         self.opt_args = opt_args
         self.names = alignment.names
         self.alignment = alignment
