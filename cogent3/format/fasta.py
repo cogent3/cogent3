@@ -15,9 +15,10 @@ __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Production"
 
 
-def alignment_to_fasta(alignment_dict, block_size=60, order=[]):
+def alignment_to_fasta(alignment_dict, block_size=60, order=None):
     """Returns a Fasta string given an alignment.
     """
+    order = order or []
     return FastaFormatter().format(alignment_dict, block_size, order)
 
 

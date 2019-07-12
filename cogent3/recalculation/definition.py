@@ -349,7 +349,8 @@ class ParamDefn(_InputDefn):
     def check_setting_is_valid(self, setting):
         pass
 
-    def make_cells(self, input_soup={}, variable=None):
+    def make_cells(self, input_soup=None, variable=None):
+        input_soup = input_soup or {}
         uniq_cells = []
         for (i, v) in enumerate(self.uniq):
             scope = [key for key in self.assignments if self.assignments[key] is v]
@@ -399,7 +400,8 @@ class NonScalarDefn(_InputDefn):
         if not isinstance(setting, ConstVal):
             raise ValueError("%s can only be constant" % self.name)
 
-    def make_cells(self, input_soup={}, variable=None):
+    def make_cells(self, input_soup=None, variable=None):
+        input_soup = input_soup or {}
         if None in self.uniq:
             if [v for v in self.uniq if v is not None]:
                 scope = [
@@ -537,7 +539,8 @@ class PartitionDefn(_InputDefn):
         partition = EvaluatedCell(name, _ratio_to_proportion, tuple(ratios))
         return (ratios, partition)
 
-    def make_cells(self, input_soup={}, variable=None):
+    def make_cells(self, input_soup=None, variable=None):
+        input_soup = input_soup or {}
         uniq_cells = []
         all_cells = []
         for (i, v) in enumerate(self.uniq):

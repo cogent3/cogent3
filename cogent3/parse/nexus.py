@@ -146,14 +146,15 @@ def get_BL_table(branch_lengths):
     return result
 
 
-def find_fields(
-    line, field_order=["taxa", "parent", "bl"], field_delims=[0, 21, 36, 49]
-):
+def find_fields(line, field_order=None, field_delims=None):
     """takes line from BL table and returns dict with field names mapped to info
 
     field order is the order of field names to extract from the file and
     field_delims is a list of index numbers indicating where the field is split
     """
+
+    field_order = field_order or ["taxa", "parent", "bl"]
+    field_delims = field_delims or [0, 21, 36, 49]
 
     field_dict = {}
     for i, f in enumerate(field_order):

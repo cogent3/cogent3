@@ -45,7 +45,8 @@ def usage():
     pass
 
 
-def standard_dev(numbers=[], mean=1):
+def standard_dev(numbers=None, mean=1):
+    numbers = numbers or []
     import math
 
     sum = 0

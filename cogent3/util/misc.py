@@ -887,7 +887,7 @@ class MappedDict(ConstrainedDict):
 
 
 def NestedSplitter(
-    delimiters=[None], same_level=False, constructor=str.strip, filter_=False
+    delimiters=None, same_level=False, constructor=str.strip, filter_=False
 ):
     """return a splitter which return a list (maybe nested) from a str using
     delimiters nestedly
@@ -900,6 +900,8 @@ def NestedSplitter(
 
     Note: the line input in parser is expected to be a str, but without check
     """
+
+    delimiters = delimiters or [None]
 
     def parser(line, index=0):
         # split line with curr delimiter

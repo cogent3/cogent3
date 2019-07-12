@@ -241,11 +241,12 @@ class TreeNode(object):
         return len(self.children)
 
     # support for copy module
-    def copy_recursive(self, memo=None, _nil=[], constructor="ignored"):
+    def copy_recursive(self, memo=None, _nil=None, constructor="ignored"):
         """Returns copy of self's structure, including shallow copy of attrs.
 
         constructor is ignored; required to support old tree unit tests.
         """
+        _nil = _nil or []
         result = self.__class__()
         efc = self._exclude_from_copy
         for k, v in list(self.__dict__.items()):
@@ -255,8 +256,10 @@ class TreeNode(object):
             result.append(c.copy())
         return result
 
-    def copy(self, memo=None, _nil=[], constructor="ignored"):
+    def copy(self, memo=None, _nil=None, constructor="ignored"):
         """Returns a copy of self using an iterative approach"""
+
+        _nil = _nil or []
 
         def __copy_node(n):
             result = n.__class__()

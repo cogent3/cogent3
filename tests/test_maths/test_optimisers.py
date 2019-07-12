@@ -62,7 +62,8 @@ def MakeF():
 
 
 class OptimiserTestCase(TestCase):
-    def _test_optimisation(self, target=-4, xinit=1.0, bounds=([-10, 10]), **kw):
+    def _test_optimisation(self, target=-4, xinit=1.0, bounds=None, **kw):
+        bounds = bounds or ([-10, 10])
         local = kw.get("local", None)
         max_evaluations = kw.get("max_evaluations", None)
 

@@ -1881,7 +1881,7 @@ class Aligned(object):
 
     moltype = property(_get_moltype)
 
-    def copy(self, memo=None, _nil=[], constructor="ignored"):
+    def copy(self, memo=None, _nil=None, constructor="ignored"):
         """Returns a shallow copy of self
 
         WARNING: cogent3.core.sequence.Sequence does NOT implement a copy method,
@@ -1892,6 +1892,7 @@ class Aligned(object):
         such, the data member variable of the copied object will maintain
         reference to the original object.
         """
+        _nil = _nil or []
         return self.__class__(self.map, self.data)
 
     def __repr__(self):

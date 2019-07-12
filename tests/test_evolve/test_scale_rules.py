@@ -27,7 +27,8 @@ TREE = LoadTree(tip_names="ab")
 
 
 class ScaleRuleTests(unittest.TestCase):
-    def _makeModel(self, predicates, scale_rules=[]):
+    def _makeModel(self, predicates, scale_rules=None):
+        scale_rules = scale_rules or []
         return substitution_model.TimeReversibleNucleotide(
             equal_motif_probs=True,
             model_gaps=False,
