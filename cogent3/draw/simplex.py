@@ -195,14 +195,15 @@ class Simplex(Drawable):
         legendgroups = numpy.array(self._point_legendgroups, dtype="O")
         traces = []
         for group in groups:
-            if multigroup and group not in self._used_groups:
-                name = group or "Other"
+            name = None
+            if multigroup and group is None:
+                name = "Other"
                 showlegend = True
-                self._used_groups.add(name)
-            else:
+            elif not multigroup:
                 name = None
                 showlegend = False
 
+            self._used_groups.add(group)
             indices = legendgroups == group
             group_data = data[indices, :]
             if hovertext is not None:
@@ -227,13 +228,15 @@ class Simplex(Drawable):
         traces = []
         for i, segment in enumerate(self._segments):
             group = self._segment_legendgroups[i]
-            if multigroup or group not in self._used_groups:
-                name = group or "Other"
+            name = None
+            if multigroup and group is None:
+                name = "Other"
                 showlegend = True
-                self._used_groups.add(name)
-            else:
+            elif not multigroup:
                 name = None
                 showlegend = False
+
+            self._used_groups.add(group)
             data = numpy.array(segment, dtype=float)
             traces.append(
                 self._get_3d_scatter(
