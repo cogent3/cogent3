@@ -322,15 +322,17 @@ class TinyDBDataStoreTests(TestCase):
     def test_add_file(self):
         """adding file to tinydb should work"""
         with TemporaryDirectory(dir=".") as dirname:
+            log_path = os.path.join(dirname, "some.log")
+            with open(log_path, "w") as out:
+                out.write("some text")
+
             keys = [k for k in self.data.keys()]
             path = os.path.join(dirname, self.basedir)
             dstore = self.WriteClass(path, if_exists="overwrite")
             identifier = dstore.make_relative_identifier(keys[0])
             got = dstore.write(identifier, self.data[keys[0]])
-            path = dstore.add_file(
-                os.path.join(self.basedir, keys[1]), keep_suffix=True, cleanup=False
-            )
-            self.assertTrue(keys[1] in dstore)
+            path = dstore.add_file(log_path, keep_suffix=True, cleanup=False)
+            self.assertTrue("some.log" in dstore)
             dstore.close()
 
     def test_tiny_get_member(self):
@@ -407,7 +409,7 @@ class TinyDBDataStoreTests(TestCase):
             # all records are contained
             dstore = self.ReadClass(path)
             for k in self.data:
-                id_ = dstore.get_relative_identifier(k)
+                id_ = f"{k.split('.')[0]}.json"
                 self.assertTrue(id_ in dstore)
 
             # but len(dstore) reflects only members with completed==True
