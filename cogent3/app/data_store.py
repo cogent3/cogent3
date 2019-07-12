@@ -168,6 +168,18 @@ class ReadOnlyDataStoreBase:
 
     def __contains__(self, identifier):
         """whether relative identifier has been stored"""
+        if isinstance(identifier, DataStoreMember):
+            return identifier.parent is self
+
+        if not identifier.endswith(self.suffix):
+            suffix = pathlib.Path(identifier).suffix
+            # possible an "added" file
+            if self.store_suffix == "zip":
+                klass = ReadOnlyZippedDataStore
+            else:
+                klass = ReadOnlyDirectoryDataStore
+            new = klass(self.source, suffix=suffix)
+            return identifier in new
         identifier = self.get_relative_identifier(identifier)
         result = False
         for member in self.members:
@@ -187,15 +199,20 @@ class ReadOnlyDataStoreBase:
     def get_relative_identifier(self, identifier):
         """returns the identifier relative to store root path
         """
+        if isinstance(identifier, DataStoreMember) and identifier.parent is self:
+            return identifier
+
         source = self.source
         identifier = os.path.basename(identifier)
         if source.endswith(".zip"):
+            # we insert the source path into identifier name
+            # for zip members to ensure inflation creates a directory
+            # containing them
             source = source.replace(".zip", "")
             source = os.path.basename(source)
             identifier = f"{source}{os.sep}{identifier}"
         else:
-            if not isinstance(identifier, DataStoreMember):
-                identifier = Path(identifier)
+            identifier = Path(identifier)
             identifier = identifier.name
 
         return identifier
@@ -213,7 +230,10 @@ class ReadOnlyDataStoreBase:
         return identifier
 
     def read(self, identifier):
+        if isinstance(identifier, DataStoreMember) and identifier.parent is self:
+            identifier = identifier.name
         source = self.open(identifier)
+
         data = source.read()
         if self._md5:
             self._checksums[identifier] = get_text_hexdigest(data)
@@ -524,10 +544,11 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
         with atomic_write(str(absolute_id), in_zip=False) as out:
             out.write(data)
 
-        if relative_id not in self:
-            self._members.append(DataStoreMember(relative_id, self))
+        member = DataStoreMember(relative_id, self)
+        if relative_id not in self and relative_id.endswith(self.suffix):
+            self._members.append(member)
 
-        return self._members[-1]
+        return member
 
 
 class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
@@ -590,10 +611,11 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         with atomic_write(str(relative_id), in_zip=self.source) as out:
             out.write(data)
 
-        if relative_id not in self:
-            self._members.append(DataStoreMember(relative_id, self))
+        member = DataStoreMember(relative_id, self)
+        if relative_id not in self and relative_id.endswith(self.suffix):
+            self._members.append(member)
 
-        return absolute_id
+        return member
 
 
 def _db_lockid(path):
@@ -778,16 +800,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             return identifier
 
         identifier = Path(identifier)
-        suffix = identifier.suffix
         identifier = identifier.name
-        if suffix:
-            identifier = ".".join(identifier.split(".")[:-1])
-        elif identifier.endswith("."):
-            identifier = identifier[:-1]
-
-        if self.suffix:
-            identifier = f"{identifier}.{self.suffix}"
-
         return identifier
 
     def open(self, identifier):
@@ -920,7 +933,8 @@ class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
         )
 
         member = DataStoreMember(relative_id, self, id=doc_id)
-        self._members.append(member)
+        if relative_id.endswith(self.suffix):
+            self._members.append(member)
 
         return member
 
@@ -941,7 +955,6 @@ class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
         )
 
         member = DataStoreMember(relative_id, self, id=doc_id)
-        self._members.append(member)
 
         return member
 
