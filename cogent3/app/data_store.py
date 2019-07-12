@@ -604,6 +604,7 @@ def _db_lockid(path):
     query = Query().identifier.matches("LOCK")
     got = db.get(query)
     lockid = None if not got else got["pid"]
+    db.close()
     return lockid
 
 
