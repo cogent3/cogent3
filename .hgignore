@@ -26,3 +26,4 @@ draw_results
 *.pytest_cache
 *.tox
 *.vscode
+*.code-workspace
