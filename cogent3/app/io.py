@@ -30,6 +30,8 @@ from .data_store import (
     ReadOnlyZippedDataStore,
     SingleReadDataStore,
     WritableTinyDbDataStore,
+    load_record_from_json,
+    make_record_for_json,
 )
 
 
@@ -338,6 +340,7 @@ class load_json(Composable):
             path = SingleReadDataStore(path)[0]
 
         data = path.read()
+        identifier, data, completed = load_record_from_json(data)
 
         return deserialise_object(data)
 
@@ -364,7 +367,8 @@ class write_json(_checkpointable):
 
     def write(self, data):
         identifier = self._make_output_identifier(data)
-        out = data.to_json()
+        out = make_record_for_json(os.path.basename(identifier), data, True)
+        out = json.dumps(out)
         stored = self.data_store.write(identifier, out)
         try:
             data.info.stored = stored

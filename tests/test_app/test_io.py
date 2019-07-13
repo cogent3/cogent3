@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import zipfile
@@ -142,7 +143,10 @@ class TestIo(TestCase):
 
     def test_load_json(self):
         """correctly loads an object from json"""
-        data = DNA.to_json()
+        from cogent3.app.data_store import make_record_for_json
+
+        data = make_record_for_json("delme", DNA, True)
+        data = json.dumps(data)
         # straight directory
         with TemporaryDirectory(dir=".") as dirname:
             outpath = join(dirname, "delme.json")
@@ -221,7 +225,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             outdir = join(dirname, "delme")
             mock = Mock()
-            mock.to_json = DNA.to_json
+            mock.to_rich_dict = DNA.to_rich_dict
             mock.info.source = join("blah", "delme.json")
             writer = io_app.write_json(outdir, create=True)
             _ = writer(mock)
@@ -233,7 +237,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             outdir = join(dirname, "delme.zip")
             mock = Mock()
-            mock.to_json = DNA.to_json
+            mock.to_rich_dict = DNA.to_rich_dict
             mock.info.source = join("blah", "delme.json")
             writer = io_app.write_json(outdir, create=True)
             identifier = writer(mock)
@@ -252,7 +256,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             outdir = join(dirname, "delme")
             mock = patch("data.source", autospec=True)
-            mock.to_json = DNA.to_json
+            mock.to_rich_dict = DNA.to_rich_dict
             mock.source = join("blah", "delme.json")
             writer = io_app.write_json(outdir, create=True)
             _ = writer(mock)
@@ -264,7 +268,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             outdir = join(dirname, "delme.zip")
             mock = patch("data.source", autospec=True)
-            mock.to_json = DNA.to_json
+            mock.to_rich_dict = DNA.to_rich_dict
             mock.source = join("blah", "delme.json")
             writer = io_app.write_json(outdir, create=True)
             identifier = writer(mock)
