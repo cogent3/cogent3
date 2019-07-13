@@ -14,7 +14,7 @@ class generic_result(MutableMapping):
     """a dict style container for storing results. All keys are
     converted to strings to ensure the object can be json serialised"""
 
-    type_ = "generic_result"
+    _type = "generic_result"
 
     def __init__(self, source):
         self._store = dict()
@@ -73,7 +73,7 @@ class generic_result(MutableMapping):
 
 @total_ordering
 class model_result(generic_result):
-    type_ = "model_result"
+    _type = "model_result"
     _stat_attrs = ("lnL", "nfp", "DLC", "unique_Q")
 
     def __init__(
@@ -276,7 +276,7 @@ class model_result(generic_result):
 
 
 class hypothesis_result(generic_result):
-    type_ = "hypothesis_result"
+    _type = "hypothesis_result"
 
     def __init__(self, name_of_null, source=None):
         """
@@ -397,7 +397,7 @@ class hypothesis_result(generic_result):
 
 
 class bootstrap_result(generic_result):
-    type_ = "bootstrap_result"
+    _type = "bootstrap_result"
 
     def __init__(self, source=None):
         super(bootstrap_result, self).__init__(source)
