@@ -89,7 +89,7 @@ class concat:
 class omit_degenerates(ComposableAligned):
     """returns alignment filtered by position"""
 
-    _input_type = frozenset(["aligned"])
+    _input_type = frozenset(["aligned", "serialisable"])
     _output_type = frozenset(["aligned", "serialisable"])
 
     def __init__(self, moltype=None, gap_is_degen=True, motif_length=1):
@@ -136,7 +136,7 @@ class omit_degenerates(ComposableAligned):
 class take_codon_positions(ComposableAligned):
     """returns the specified codon position(s) from an alignment"""
 
-    _input_type = frozenset(["aligned"])
+    _input_type = frozenset(["aligned", "serialisable"])
     _output_type = frozenset(["aligned", "serialisable"])
 
     def __init__(
@@ -225,7 +225,7 @@ class take_codon_positions(ComposableAligned):
 
 
 class take_named_seqs(ComposableSeq):
-    _input_type = frozenset(["sequences", "aligned"])
+    _input_type = frozenset(["sequences", "aligned", "serialisable"])
     _output_type = frozenset(["sequences", "aligned", "serialisable"])
 
     def __init__(self, *names, negate=False):
@@ -255,7 +255,7 @@ class take_named_seqs(ComposableSeq):
 class min_length(ComposableSeq):
     """filters sequence collections by length"""
 
-    _input_type = frozenset(["sequences", "aligned"])
+    _input_type = frozenset(["sequences", "aligned", "serialisable"])
     _output_type = frozenset(["sequences", "aligned", "serialisable"])
 
     def __init__(self, length, motif_length=1, subtract_degen=True, moltype=None):
@@ -328,7 +328,7 @@ class _GetStart:
 class fixed_length(ComposableAligned):
     """return alignments of a fixed length"""
 
-    _input_type = frozenset(["aligned"])
+    _input_type = frozenset(["aligned", "serialisable"])
     _output_type = frozenset(["aligned", "serialisable"])
 
     def __init__(
@@ -420,7 +420,7 @@ class fixed_length(ComposableAligned):
 
 
 class omit_bad_seqs(ComposableAligned):
-    _input_type = frozenset(["aligned"])
+    _input_type = frozenset(["aligned", "serialisable"])
     _output_type = frozenset(["aligned", "serialisable"])
 
     def __init__(
@@ -470,7 +470,7 @@ class omit_bad_seqs(ComposableAligned):
 
 class omit_duplicated(ComposableSeq):
     # todo does this work with aligned too?
-    _input_type = frozenset(["sequences"])
+    _input_type = frozenset(["sequences", "serialisable"])
     _output_type = frozenset(["sequences", "serialisable"])
 
     def __init__(self, mask_degen=False, choose="longest", seed=None, moltype=None):
@@ -546,7 +546,7 @@ class omit_duplicated(ComposableSeq):
 
 
 class trim_stop_codons(ComposableSeq):
-    _input_type = frozenset(["sequences", "aligned"])
+    _input_type = frozenset(["sequences", "aligned", "serialisable"])
     _output_type = frozenset(["sequences", "aligned", "serialisable"])
 
     def __init__(self, gc):
