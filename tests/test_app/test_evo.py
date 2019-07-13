@@ -1,7 +1,9 @@
 from unittest import TestCase, main
+from unittest.mock import MagicMock
 
 from cogent3 import LoadSeqs, LoadTree
 from cogent3.app import evo as evo_app
+from cogent3.app.result import hypothesis_result
 
 
 __author__ = "Gavin Huttley"
@@ -121,6 +123,48 @@ class TestModel(TestCase):
         result = mod(aln)
         aln1 = result.lf[1].get_param_value("alignment").todict()
         self.assertEqual(aln1, aln[::3].todict())
+
+
+class TestHypothesisResult(TestCase):
+    def test_get_best_model(self):
+        """should correctly identify the best model"""
+
+        def make_getter(val):
+            def call(**kwargs):
+                return val
+
+            return call
+
+        def make_hyp(aic1, aic2, aic3, nfp1, nfp2, nfp3):
+            null = MagicMock()
+            null.name = "unrooted"
+            null.lf.get_aic = make_getter(aic1)
+            null.nfp = nfp1
+            alt1 = MagicMock()
+            alt1.name = "alt1"
+            alt1.lf.get_aic = make_getter(aic2)
+            alt1.nfp = nfp2
+            alt2 = MagicMock()
+            alt2.name = "alt2"
+            alt2.lf.get_aic = make_getter(aic3)
+            alt2.nfp = nfp3
+            hyp = hypothesis_result("unrooted", source="something")
+            for m in (null, alt1, alt2):
+                hyp[m.name] = m
+            return hyp
+
+        # aic order is null, alt1, alt2
+        # in this case, no substantial diff, so should return smaller nfp, ie null
+        hyp = make_hyp(112, 110, 111, 10, 11, 12)
+        got = hyp.get_best_model(threshold=0.05)
+        self.assertIs(got, hyp.null)
+        # here alt2 is winner
+        hyp = make_hyp(110, 111, 104, 10, 11, 12)
+        got = hyp.get_best_model(threshold=0.05)
+        self.assertIs(got, hyp["alt2"])
+        # but if we set threshold more permissive, it will return null
+        got = hyp.get_best_model(threshold=0.03)
+        self.assertIs(got, hyp.null)
 
 
 if __name__ == "__main__":

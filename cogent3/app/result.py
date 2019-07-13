@@ -4,6 +4,8 @@ from collections import OrderedDict
 from collections.abc import MutableMapping
 from functools import total_ordering
 
+import numpy
+
 from cogent3.maths.stats import chisqprob
 from cogent3.util.misc import get_object_provenance
 
@@ -355,6 +357,43 @@ class hypothesis_result(generic_result):
         else:
             pvalue = None
         return pvalue
+
+    def get_best_model(self, stat="aicc", threshold=0.05):
+        """returns model with smallest value of stat
+        Parameters
+        ----------
+        stat : str
+            one of "aicc", "aic" which correspond to
+            AIC with correction, AIC or BIC
+        threshold : float
+            models with stat > this are considered indistinguishable from the
+            model with minimum stat
+
+        Returns
+        -------
+        if there are multiple models remaining, the one with the smallest number
+        of free parameters is returned
+        """
+        assert stat in ("aicc", "aic")
+        second_order = stat == "aicc"
+        results = []
+        for k, m in self.items():
+            val = m.lf.get_aic(second_order=second_order)
+            results.append((val, m))
+        results.sort()
+        min_model = results.pop(0)
+        min_stat = min_model[0]
+        selected = [min_model[1]]
+        for v, m in results:
+            rel_lik = numpy.exp((min_stat - v) / 2)
+            if rel_lik > threshold:
+                selected.append(m)
+
+        if len(selected) != 1:
+            selected = list(sorted(self.values(), key=lambda x: x.nfp))
+            selected = selected[:1]
+
+        return selected[0]
 
 
 class bootstrap_result(generic_result):
