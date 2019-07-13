@@ -72,7 +72,7 @@ class TestIo(TestCase):
         self.assertEqual(len(os.listdir(self.basedir)), len(found))
 
         # raises ValueError if suffix not provided or invalid
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             _ = io_app.get_data_store(self.basedir)
 
         with self.assertRaises(ValueError):

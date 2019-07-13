@@ -66,7 +66,7 @@ def findall(base_path, suffix="fa", limit=None, verbose=False):
     return data_store.members
 
 
-def get_data_store(base_path, suffix, limit=None, verbose=False):
+def get_data_store(base_path, suffix=None, limit=None, verbose=False):
     """returns DataStore containing glob matches to suffix in base_path
 
     Parameters
@@ -81,6 +81,12 @@ def get_data_store(base_path, suffix, limit=None, verbose=False):
     -------
     ReadOnlyDirectoryDataStore or ReadOnlyZippedDataStore
     """
+    if base_path.endswith('tinydb'):
+        suffix = "json"
+
+    if suffix is None:
+        raise ValueError("suffix required")
+
     if not os.path.exists(base_path):
         raise ValueError(f"'{base_path}' does not exist")
     if not type(suffix) == str:
