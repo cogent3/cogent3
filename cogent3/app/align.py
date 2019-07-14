@@ -24,6 +24,7 @@ class align_to_ref(ComposableSeq):
 
     _input_type = frozenset(["sequences"])
     _output_type = frozenset(["aligned"])
+    _data_types = frozenset(["SequenceCollection"])
 
     def __init__(
         self,
@@ -122,6 +123,7 @@ class progressive_align(ComposableSeq):
 
     _input_type = frozenset(["sequences"])
     _output_type = frozenset(["aligned"])
+    _data_types = frozenset(["SequenceCollection"])
 
     def __init__(
         self,

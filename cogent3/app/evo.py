@@ -13,6 +13,7 @@ class model(ComposableModel):
 
     _input_type = frozenset(["aligned"])
     _output_type = frozenset(["result", "model_result", "serialisable"])
+    _data_types = frozenset(["ArrayAlignment", "Alignment"])
 
     def __init__(
         self,
@@ -201,6 +202,7 @@ class model(ComposableModel):
 class hypothesis(ComposableHypothesis):
     _input_type = frozenset(["aligned"])
     _output_type = frozenset(["result", "hypothesis_result", "serialisable"])
+    _data_types = frozenset(["ArrayAlignment", "Alignment"])
 
     def __init__(self, null, *alternates, init_alt=None):
         # todo document! init_alt needs to be able to take null, alt and *args
@@ -258,6 +260,7 @@ class hypothesis(ComposableHypothesis):
 class bootstrap(ComposableHypothesis):
     _input_type = frozenset(["aligned"])
     _output_type = frozenset(["result", "bootstrap_result", "serialisable"])
+    _data_types = frozenset(["ArrayAlignment", "Alignment"])
 
     def __init__(self, hyp, num_reps, verbose=False):
         super(bootstrap, self).__init__()

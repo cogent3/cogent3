@@ -151,6 +151,7 @@ def get_fourfold_degenerate_sets(gc, alphabet=None, as_indices=True):
 class select_translatable(ComposableSeq):
     _input_type = frozenset(["sequences", "aligned"])
     _output_type = frozenset(["sequences"])
+    _data_types = frozenset(["ArrayAlignment", "Alignment", "SequenceCollection"])
 
     def __init__(
         self, moltype="dna", gc=DEFAULT, allow_rc=False, trim_terminal_stop=True

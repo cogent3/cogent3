@@ -19,6 +19,7 @@ __status__ = "Alpha"
 class scale_branches(ComposableTree):
     _input_type = frozenset(["tree"])
     _output_type = frozenset(["tree", "serialisable"])
+    _data_types = frozenset(["PhyloNode", "TreeNode"])
 
     def __init__(self, nuc_to_codon=None, codon_to_nuc=None, scalar=1, min_length=1e-6):
         super(scale_branches, self).__init__()
@@ -67,6 +68,7 @@ class scale_branches(ComposableTree):
 class uniformize_tree(ComposableTree):
     _input_type = frozenset(["tree"])
     _output_type = frozenset(["tree", "serialisable"])
+    _data_types = frozenset(["PhyloNode", "TreeNode"])
 
     def __init__(self, root_at="midpoint", ordered_names=None):
         super(uniformize_tree, self).__init__()
@@ -100,6 +102,7 @@ class uniformize_tree(ComposableTree):
 class quick_tree(ComposableTree):
     _input_type = frozenset(["aligned"])
     _output_type = frozenset(["tree", "serialisable"])
+    _data_types = frozenset(["ArrayAlignment", "Alignment"])
 
     def __init__(self, distance="TN93", moltype="dna"):
         """computes a neighbour joining tree from an alignment
