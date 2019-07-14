@@ -81,7 +81,7 @@ def get_data_store(base_path, suffix=None, limit=None, verbose=False):
     -------
     ReadOnlyDirectoryDataStore or ReadOnlyZippedDataStore
     """
-    if base_path.endswith('tinydb'):
+    if base_path.endswith("tinydb"):
         suffix = "json"
 
     if suffix is None:
@@ -141,6 +141,7 @@ class load_aligned(_seq_loader, ComposableAligned):
 
     _input_type = frozenset([None])
     _output_type = frozenset(["aligned"])
+    _data_types = frozenset(["DataStoreMember", "str", "Path"])
 
     klass = ArrayAlignment
 
@@ -167,6 +168,16 @@ class load_unaligned(ComposableSeq, _seq_loader):
 
     _input_type = frozenset([None])
     _output_type = frozenset(["sequences"])
+    _data_types = frozenset(
+        [
+            "DataStoreMember",
+            "str",
+            "Path",
+            "ArrayAlignment",
+            "Alignment",
+            "SequenceCollection",
+        ]
+    )
 
     klass = SequenceCollection
 
@@ -191,6 +202,7 @@ class load_unaligned(ComposableSeq, _seq_loader):
 class load_tabular(ComposableTabular):
     _input_type = frozenset([None])
     _output_type = frozenset(["tabular"])
+    _data_types = frozenset(["DataStoreMember", "str", "Path"])
 
     def __init__(
         self, with_title=False, with_header=True, limit=None, sep="\t", strict=True
@@ -280,6 +292,7 @@ class load_tabular(ComposableTabular):
 class write_seqs(_checkpointable):
     _input_type = frozenset(("sequences", "aligned"))
     _output_type = frozenset(("sequences", "aligned", "identifier"))
+    _data_types = frozenset(["ArrayAlignment", "Alignment", "SequenceCollection"])
 
     def __init__(
         self,

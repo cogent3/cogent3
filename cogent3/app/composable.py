@@ -132,10 +132,28 @@ class ComposableType:
     _type = None
     _input_type = None
     _output_type = None
+    _data_types = frozenset()
 
     def compatible_input(self, other):
         result = other._output_type & self._input_type
         return result != set()
+
+    def _validate_data_type(self, data):
+        """checks data class name matches defined compatible types"""
+        if not self._data_types:
+            # not defined
+            return True
+
+        name = data.__class__.__name__
+        valid = False
+        for type_ in self._data_types:
+            if type_ == name:
+                valid = True
+                break
+        if not valid:
+            msg = f"invalid data type, '{name}' not in {', '.join(self._data_types)}"
+            valid = NotCompleted("ERROR", self, message=msg, source=data)
+        return valid
 
 
 class Composable(ComposableType):
@@ -236,6 +254,9 @@ class Composable(ComposableType):
         return False
 
     def _trapped_call(self, func, val, *args, **kwargs):
+        valid = self._validate_data_type(val)
+        if not val:
+            return val
         try:
             val = func(val, *args, **kwargs)
         except Exception as err:
@@ -259,7 +280,7 @@ class Composable(ComposableType):
                 return result
 
         if self.input:
-            val = self._trapped_call(self._in, val, *args, **kwargs)
+            val = self._in(val, *args, **kwargs)
 
         if not val:
             return val
