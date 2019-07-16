@@ -358,20 +358,21 @@ class hypothesis_result(generic_result):
             pvalue = None
         return pvalue
 
-    def get_best_model(self, stat="aicc", threshold=0.05):
-        """returns model with smallest value of stat
+    def select_models(self, stat="aicc", threshold=0.05):
+        """returns models satisfying stat threshold.
         Parameters
         ----------
         stat : str
             one of "aicc", "aic" which correspond to
             AIC with correction, AIC or BIC
         threshold : float
-            models with stat > this are considered indistinguishable from the
+            models with exponential of mean difference to minimum
+            stat > threshold are considered indistinguishable from the
             model with minimum stat
 
         Returns
         -------
-        if there are multiple models remaining, the one with the smallest number
+        if list of models remaining the one with the smallest number
         of free parameters is returned
         """
         assert stat in ("aicc", "aic")
@@ -389,6 +390,26 @@ class hypothesis_result(generic_result):
             if rel_lik > threshold:
                 selected.append(m)
 
+        return selected
+
+    def get_best_model(self, stat="aicc", threshold=0.05):
+        """returns model with smallest value of stat
+        Parameters
+        ----------
+        stat : str
+            one of "aicc", "aic" which correspond to
+            AIC with correction, AIC or BIC
+        threshold : float
+            models with exponential of mean difference to minimum
+            stat > threshold are considered indistinguishable from the
+            model with minimum stat
+
+        Returns
+        -------
+        if there are multiple models remaining, the one with the smallest number
+        of free parameters is returned
+        """
+        selected = self.select_models(stat=stat, threshold=threshold)
         if len(selected) != 1:
             selected = list(sorted(self.values(), key=lambda x: x.nfp))
             selected = selected[:1]
