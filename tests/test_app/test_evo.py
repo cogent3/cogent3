@@ -125,46 +125,64 @@ class TestModel(TestCase):
         self.assertEqual(aln1, aln[::3].todict())
 
 
+def _make_getter(val):
+    def call(**kwargs):
+        return val
+
+    return call
+
+
+def _make_hyp(aic1, aic2, aic3, nfp1, nfp2, nfp3):
+    null = MagicMock()
+    null.name = "unrooted"
+    null.lf.get_aic = _make_getter(aic1)
+    null.nfp = nfp1
+    alt1 = MagicMock()
+    alt1.name = "alt1"
+    alt1.lf.get_aic = _make_getter(aic2)
+    alt1.nfp = nfp2
+    alt2 = MagicMock()
+    alt2.name = "alt2"
+    alt2.lf.get_aic = _make_getter(aic3)
+    alt2.nfp = nfp3
+    hyp = hypothesis_result("unrooted", source="something")
+    for m in (null, alt1, alt2):
+        hyp[m.name] = m
+    return hyp
+
+
 class TestHypothesisResult(TestCase):
     def test_get_best_model(self):
         """should correctly identify the best model"""
-
-        def make_getter(val):
-            def call(**kwargs):
-                return val
-
-            return call
-
-        def make_hyp(aic1, aic2, aic3, nfp1, nfp2, nfp3):
-            null = MagicMock()
-            null.name = "unrooted"
-            null.lf.get_aic = make_getter(aic1)
-            null.nfp = nfp1
-            alt1 = MagicMock()
-            alt1.name = "alt1"
-            alt1.lf.get_aic = make_getter(aic2)
-            alt1.nfp = nfp2
-            alt2 = MagicMock()
-            alt2.name = "alt2"
-            alt2.lf.get_aic = make_getter(aic3)
-            alt2.nfp = nfp3
-            hyp = hypothesis_result("unrooted", source="something")
-            for m in (null, alt1, alt2):
-                hyp[m.name] = m
-            return hyp
-
         # aic order is null, alt1, alt2
         # in this case, no substantial diff, so should return smaller nfp, ie null
-        hyp = make_hyp(112, 110, 111, 10, 11, 12)
+        hyp = _make_hyp(112, 110, 111, 10, 11, 12)
         got = hyp.get_best_model(threshold=0.05)
         self.assertIs(got, hyp.null)
         # here alt2 is winner
-        hyp = make_hyp(110, 111, 104, 10, 11, 12)
+        hyp = _make_hyp(110, 111, 104, 10, 11, 12)
         got = hyp.get_best_model(threshold=0.05)
         self.assertIs(got, hyp["alt2"])
         # but if we set threshold more permissive, it will return null
         got = hyp.get_best_model(threshold=0.03)
         self.assertIs(got, hyp.null)
+
+    def test_select_model(self):
+        """correctly identify models"""
+        hyp = _make_hyp(112, 110, 111, 10, 11, 12)
+        got = set(hyp.select_models(threshold=0.05))
+        expect = set(hyp.values())
+        self.assertEqual(got, expect)
+        # single model
+        hyp = _make_hyp(110, 111, 104, 10, 11, 12)
+        got = hyp.select_models(threshold=0.05)
+        self.assertEqual(len(got), 1)
+        self.assertIs(got[0], hyp["alt2"])
+        # but if we set threshold more permissive, it will return all
+        got = hyp.select_models(threshold=0.03)
+        self.assertEqual(len(got), 3)
+        expect = set(hyp.values())
+        self.assertEqual(set(got), expect)
 
 
 if __name__ == "__main__":
