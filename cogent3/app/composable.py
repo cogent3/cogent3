@@ -255,8 +255,8 @@ class Composable(ComposableType):
 
     def _trapped_call(self, func, val, *args, **kwargs):
         valid = self._validate_data_type(val)
-        if not val:
-            return val
+        if not valid:
+            return valid
         try:
             val = func(val, *args, **kwargs)
         except Exception as err:
