@@ -68,6 +68,18 @@ class TestModel(TestCase):
         expect_nfp = 11 * 2 + 3 + 3
         self.assertEqual(result.lf.nfp, expect_nfp)
 
+    def test_model_param_rules(self):
+        """applies upper bound if sensible"""
+        mod = evo_app.model(
+            "GN",
+            param_rules=[dict(par_name="length", edge="Mouse", is_independent=False)],
+        )
+        self.assertEqual(mod._param_rules[0].get("upper"), 50)
+        mod = evo_app.model(
+            "GN", param_rules=[dict(par_name="length", edge="Mouse", is_constant=True)]
+        )
+        self.assertEqual(mod._param_rules[0].get("upper", None), None)
+
     def test_model_hypothesis_result_repr(self):
         """result objects __repr__ and _repr_html_ methods work correctly"""
         _data = {

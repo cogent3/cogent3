@@ -95,6 +95,8 @@ class model(ComposableModel):
         param_rules = param_rules or {}
         if param_rules:
             for rule in param_rules:
+                if rule.get("is_constant"):
+                    continue
                 rule["upper"] = rule.get("upper", 50)  # default upper bound
         self._param_rules = param_rules
         self._time_het = time_het
