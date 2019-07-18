@@ -364,16 +364,15 @@ class hypothesis_result(generic_result):
         ----------
         stat : str
             one of "aicc", "aic" which correspond to
-            AIC with correction, AIC or BIC
+            AIC with correction or AIC.
         threshold : float
-            models with exponential of mean difference to minimum
-            stat > threshold are considered indistinguishable from the
-            model with minimum stat
+            models with exp((minimum stat - model stat) / 2) > threshold are
+            considered indistinguishable from the model with minimum stat. Such
+            models will be included in the returned result.
 
         Returns
         -------
-        if list of models remaining the one with the smallest number
-        of free parameters is returned
+        list of models satisfying threshold condition
         """
         assert stat in ("aicc", "aic")
         second_order = stat == "aicc"
@@ -397,17 +396,15 @@ class hypothesis_result(generic_result):
         Parameters
         ----------
         stat : str
-            one of "aicc", "aic" which correspond to
-            AIC with correction, AIC or BIC
+            one of "aicc", "aic" which correspond to AIC with correction or AIC
         threshold : float
-            models with exponential of mean difference to minimum
-            stat > threshold are considered indistinguishable from the
-            model with minimum stat
+            models with exp((minimum stat - model stat) / 2) > threshold are
+            considered indistinguishable from the model with minimum stat.
 
         Returns
         -------
-        if there are multiple models remaining, the one with the smallest number
-        of free parameters is returned
+        A single model. If multiple models satisfy threshold, the simplest model
+        (with the smallest number of free parameters) is returned.
         """
         selected = self.select_models(stat=stat, threshold=threshold)
         if len(selected) != 1:
