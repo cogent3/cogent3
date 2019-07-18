@@ -275,12 +275,13 @@ def H04GGK(**kw):
     return substitution_model.TimeReversibleCodon(**kwargs)
 
 
-def GNC(**kw):
+def GNC(optimise_motif_probs=True, **kw):
     """General Nucleotide Codon, a non-reversible codon model.
 
     Kaehler, Yap, Huttley, 2017, Gen Biol Evol 9(1): 134–49"""
     required = dict(
         name="GNC",
+        optimise_motif_probs=optimise_motif_probs,
         predicates=_general_preds + [_omega],
         mprob_model="tuple",
         model_gaps=False,
