@@ -107,7 +107,8 @@ class model(ComposableModel):
         lf.set_alignment(aln)
         if self._param_rules:
             lf.apply_param_rules(self._param_rules)
-        elif self._time_het:
+
+        if self._time_het:
             if not initialise:
                 if self._verbose:
                     print("Time homogeneous fit..")
