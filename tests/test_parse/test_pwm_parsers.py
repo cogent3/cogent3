@@ -1,6 +1,7 @@
 from unittest import TestCase, main
 
 from numpy import array
+from numpy.testing import assert_allclose, assert_array_equal
 
 from cogent3.parse import cisbp, jaspar
 
@@ -19,30 +20,31 @@ class TestPwmParsers(TestCase):
     def test_jaspar(self):
         """correctly load jaspar formatted counts matrix"""
         path = "data/sample.jaspar"
-        mid, bases, mat = jaspar.read(path)
+        mid, pwm = jaspar.read(path)
         assert mid == ["PSSMid", "HGNCsymbol"], "ID line wrong"
-        assert bases == list("ACGT"), "base order wrong"
-        assert mat == [
+        expect = [
             [352, 3, 354, 268, 360, 222, 155],
             [0, 10, 0, 0, 3, 2, 44],
             [2, 2, 5, 0, 10, 44, 157],
             [35, 374, 30, 121, 6, 121, 33],
-        ], "Matrix counts wrong"
+        ]
+        assert_array_equal(pwm.array, array(expect).T)
+        self.assertEqual(pwm[0, "A"], 352)
+        self.assertEqual(pwm[3, "T"], 121)
 
     def test_cisbp(self):
         """correctly read a wights matrix"""
         path = "data/M0926_1.02.txt"
-        bases, mat = cisbp.read(path)
-        assert bases == list("ACGT"), "base order wrong"
-        mat = array(mat)
-        mat = mat.round(2).tolist()
+        pfm = cisbp.read(path)
         expect = [
             [0.2, 0.17, 0.53, 0.78, 0.11, 0.16, 0.26, 0.18, 0.19],
             [0.24, 0.19, 0.07, 0.09, 0.15, 0.28, 0.08, 0.29, 0.28],
             [0.18, 0.09, 0.24, 0.06, 0.1, 0.28, 0.48, 0.27, 0.18],
             [0.37, 0.55, 0.17, 0.06, 0.64, 0.28, 0.18, 0.26, 0.35],
         ]
-        assert mat == expect, "Matrix weights wrong"
+        assert_allclose(pfm.array, array(expect).T, atol=1e-2)
+        assert_allclose(pfm[0, "A"], 0.199862209150251)
+        self.assertEqual(pfm[6, "C"], 0.0787969447816471)
 
 
 if __name__ == "__main__":
