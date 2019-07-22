@@ -123,6 +123,7 @@ def suite():
         "test_parse.test_psl",
         "test_parse.test_pamlmatrix",
         "test_parse.test_phylip",
+        "test_parse.test_pwm_parsers",
         "test_parse.test_rdb",
         "test_parse.test_record",
         "test_parse.test_record_finder",
