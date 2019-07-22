@@ -146,7 +146,8 @@ class model_result(generic_result):
             DLC = lf.all_psubs_DLC()
             try:
                 unique_Q = lf.all_rate_matrices_unique()
-            except NotImplementedError:
+            except (NotImplementedError, KeyError):
+                # KeyError happens on discrete time model
                 unique_Q = None  # non-primary root issue
         else:
             lnL = lf.get("lnL")
