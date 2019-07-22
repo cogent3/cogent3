@@ -1,5 +1,7 @@
 import numpy
 
+from cogent3.core.profile import MotifFreqsArray
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -12,7 +14,7 @@ __status__ = "Alpha"
 
 
 def read(filepath):
-    """returns base order, weights matrix"""
+    """returns MotifFreqsArray matrix"""
     try:
         infile = open(filepath)
         data = infile.readlines()
@@ -27,8 +29,10 @@ def read(filepath):
     for row in revised[1:]:
         bases.append(row[0])
         matrix.append([float(i) for i in row[1:]])
-    matrix = matrix
-    return bases, matrix
+    matrix = numpy.array(matrix).T
+    pfm = MotifFreqsArray(matrix, bases)
+
+    return pfm
 
 
 if __name__ == "__main__":

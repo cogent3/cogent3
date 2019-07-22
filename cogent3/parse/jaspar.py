@@ -1,5 +1,9 @@
 import re
 
+from numpy import array
+
+from cogent3.core.profile import MotifCountsArray
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -15,7 +19,7 @@ _brackets = re.compile(r"\[|\]")
 
 
 def read(filepath):
-    """returns matrixid, base order, counts matrix"""
+    """returns matrixid and MotifCountsArray matrix"""
     with open(filepath) as infile:
         matrix = []
         bases = []
@@ -28,4 +32,6 @@ def read(filepath):
                 line = line.split()
                 bases.append(line.pop(0))
                 matrix.append([int(i) for i in line])
-    return identifier, bases, matrix
+    matrix = array(matrix, dtype=int).T
+    pwm = MotifCountsArray(matrix, bases)
+    return identifier, pwm
