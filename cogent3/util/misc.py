@@ -33,25 +33,42 @@ __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
 
-def adjusted_gt_minprob(probs, minprob=1e-6):
-    """returns numpy array of probs scaled such that minimum is > minval
-    
-    result sums to 1 within machine precision"""
-    assert 0 <= minprob < 1, "invalid minval %s" % minprob
-    probs = array(probs, dtype=float64)
-    if (probs > minprob).all():
-        return probs
-
+def _adjusted_gt_minprob_vector(probs, minprob):
+    # operates on a 1D numpy vector
     total = probs.sum()
     smallest = probs.min()
+    if smallest > minprob:
+        # nothing to do
+        return probs
+
     dim = probs.shape[0]
-    # we need an adjustment that (smalvall+adj)/(adj + total) > minval
+    # we need an adjustment that (small_val + adj) / (n * adj + total) > minprob
     # the following solves for this, then adds machine precision
     adj = -(smallest + minprob * total) / (minprob * dim - 1)
     adj += finfo(float64).eps
 
     probs += adj
     probs /= probs.sum()
+    return probs
+
+
+def adjusted_gt_minprob(probs, minprob=1e-6):
+    """returns numpy array of probs scaled such that minimum is > minval
+    
+    result sums to 1 within machine precision
+    
+    if 2D array, assumes row-order"""
+    assert 0 <= minprob < 1, "invalid minval %s" % minprob
+    probs = array(probs, dtype=float64)
+    if (probs > minprob).all():
+        return probs
+
+    if probs.ndim == 1:
+        probs = _adjusted_gt_minprob_vector(probs, minprob)
+    else:
+        for i in range(probs.shape[0]):
+            probs[i] = _adjusted_gt_minprob_vector(probs[i], minprob)
+
     return probs
 
 
