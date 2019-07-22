@@ -728,6 +728,13 @@ NineBande      root    1.0000    1.0000
         lf.set_alignment(self.data)
         self.assertRaises(Exception, lf.get_rate_matrix_for_edge, "NineBande")
 
+    def test_get_all_psubs_discrete(self):
+        """should work for discrete time models"""
+        sm = get_model("BH")
+        lf = sm.make_likelihood_function(self.tree)
+        lf.set_alignment(self.data)
+        psubs = lf.get_all_psubs()
+
     def test_get_all_rate_matrices(self):
         """return matrices when just a pair"""
         aln = LoadSeqs(
