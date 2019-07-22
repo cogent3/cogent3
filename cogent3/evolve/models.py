@@ -97,7 +97,9 @@ def BH(optimise_motif_probs=True, **kw):
 
     Barry and Hartigan 1987. Biometrics 43: 261–76.
     """
-    return DT(optimise_motif_probs=optimise_motif_probs, motif_length=1, **kw)
+    return DT(
+        optimise_motif_probs=optimise_motif_probs, motif_length=1, name="BH", **kw
+    )
 
 
 def DT(optimise_motif_probs=True, motif_length=1, **kw):
@@ -105,6 +107,7 @@ def DT(optimise_motif_probs=True, motif_length=1, **kw):
     alpha = DNA.alphabet.get_word_alphabet(motif_length)
     kw["optimise_motif_probs"] = optimise_motif_probs
     kw["mprob_model"] = "tuple"
+    kw["name"] = kw.get("name", f"DT-{motif_length}")
     sm = ns_substitution_model.DiscreteSubstitutionModel(alpha, **kw)
     return sm
 
