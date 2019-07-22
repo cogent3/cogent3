@@ -283,7 +283,8 @@ class LikelihoodFunction(ParameterController):
             defn = self.defn_for["psubs"]
 
         used_dims = defn.used_dimensions()
-        indices = [defn.valid_dimensions.index(k) for k in used_dims]
+        vdims = defn.valid_dimensions
+        indices = [vdims.index(k) for k in used_dims if k in vdims]
         result = {}
         darr_template = DictArrayTemplate(self._motifs, self._motifs)
         for scope, index in defn.index.items():
