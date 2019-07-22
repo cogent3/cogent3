@@ -1977,7 +1977,7 @@ class ComparisonTests(TestCase):
         assert_allclose(lf.nfp, nfp)
 
         lf.set_param_rule("kappa", loci=EACH)
-        lf.optimise(local=True)
+        lf.optimise(local=True, show_progress=False)
         rules = [
             {
                 "par_name": "kappa",
