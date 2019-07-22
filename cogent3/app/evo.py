@@ -128,7 +128,7 @@ class model(ComposableModel):
         else:
             rules = lf.get_param_rules()
             for rule in rules:
-                if rule["par_name"] != "mprobs":
+                if rule["par_name"] not in ("mprobs", "psubs"):
                     rule["upper"] = rule.get("upper", 50)
 
             lf.apply_param_rules([rule])
