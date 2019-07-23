@@ -227,6 +227,21 @@ class MotifFreqsArray(_MotifNumberArray):
         seq = "".join([self.motifs[i] for i in series])
         return seq
 
+    def to_pssm(self, background=None):
+        """returns a PSSM array
+
+        Parameters
+        ----------
+        background
+            array of numbers representing the background frequency distribution
+        """
+        return PSSM(
+            self.array,
+            self.motifs,
+            row_indices=self.template.names[0],
+            background=background,
+        )
+
 
 class PSSM(_MotifNumberArray):
     """position specific scoring matrix
