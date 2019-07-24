@@ -1,8 +1,6 @@
 from warnings import filterwarnings
 
 
-filterwarnings("ignore", "Not using MPI")
-
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
