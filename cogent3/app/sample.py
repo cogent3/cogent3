@@ -40,6 +40,8 @@ def union(groups):
 
 
 class concat:
+    """Creates a concatenated alignment from a series. Returns an Alignment."""
+
     def __init__(self, join_seq="", intersect=True, moltype=None):
         """concatenate sequences from a series of alignments
 
@@ -87,7 +89,8 @@ class concat:
 
 
 class omit_degenerates(ComposableAligned):
-    """returns alignment filtered by position"""
+    """Excludes alignment columns with degenerate conditions. Can accomodate
+    reading frame. Returns modified Alignment."""
 
     _input_type = frozenset(["aligned", "serialisable"])
     _output_type = frozenset(["aligned", "serialisable"])
@@ -135,7 +138,8 @@ class omit_degenerates(ComposableAligned):
 
 
 class take_codon_positions(ComposableAligned):
-    """returns the specified codon position(s) from an alignment"""
+    """Extracts the specified codon position(s) from an alignment. 
+    Returns an Alignment."""
 
     _input_type = frozenset(["aligned", "serialisable"])
     _output_type = frozenset(["aligned", "serialisable"])
@@ -227,6 +231,9 @@ class take_codon_positions(ComposableAligned):
 
 
 class take_named_seqs(ComposableSeq):
+    """Extracts (or everything but) named sequences. Returns a filtered
+    sequences, alignment that satisified the condition, NotCompleted otherwise."""
+
     _input_type = frozenset(["sequences", "aligned", "serialisable"])
     _output_type = frozenset(["sequences", "aligned", "serialisable"])
     _data_types = frozenset(["ArrayAlignment", "Alignment", "SequenceCollection"])
@@ -256,7 +263,8 @@ class take_named_seqs(ComposableSeq):
 
 
 class min_length(ComposableSeq):
-    """filters sequence collections by length"""
+    """Filters sequence collections / alignments by length. Returns the 
+    data if it satisfies the condition, NotCompleted otherwise."""
 
     _input_type = frozenset(["sequences", "aligned", "serialisable"])
     _output_type = frozenset(["sequences", "aligned", "serialisable"])
@@ -330,7 +338,8 @@ class _GetStart:
 
 
 class fixed_length(ComposableAligned):
-    """return alignments of a fixed length"""
+    """Sample an alignment to a fixed length. Returns an Alignment of the 
+    specified length, or NotCompleted if alignment too short."""
 
     _input_type = frozenset(["aligned", "serialisable"])
     _output_type = frozenset(["aligned", "serialisable"])
@@ -425,6 +434,9 @@ class fixed_length(ComposableAligned):
 
 
 class omit_bad_seqs(ComposableAligned):
+    """Eliminates sequences from Alignment based on gap, ambiguous state
+    conditions. Returns modified alignment."""
+
     _input_type = frozenset(["aligned", "serialisable"])
     _output_type = frozenset(["aligned", "serialisable"])
     _data_types = frozenset(["ArrayAlignment", "Alignment"])
@@ -475,6 +487,9 @@ class omit_bad_seqs(ComposableAligned):
 
 
 class omit_duplicated(ComposableSeq):
+    """Removes redundant sequences, recording dropped sequences in
+    seqs.info.dropped. Returns sequence collection with only unique sequences."""
+
     # todo does this work with aligned too?
     _input_type = frozenset(["sequences", "serialisable"])
     _output_type = frozenset(["sequences", "serialisable"])
@@ -553,6 +568,7 @@ class omit_duplicated(ComposableSeq):
 
 
 class trim_stop_codons(ComposableSeq):
+    """Removes terminal stop codons. Returns sequences / alignment."""
 
     _input_type = frozenset(["sequences", "aligned", "serialisable"])
     _output_type = frozenset(["sequences", "aligned", "serialisable"])
