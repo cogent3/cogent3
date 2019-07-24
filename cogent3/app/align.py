@@ -24,7 +24,7 @@ class align_to_ref(ComposableSeq):
     Returns an Alignment object."""
 
     _input_type = frozenset(["sequences"])
-    _output_type = frozenset(["aligned"])
+    _output_type = frozenset(["aligned", "serialisable"])
     _data_types = frozenset(["SequenceCollection"])
 
     def __init__(
@@ -125,7 +125,7 @@ class progressive_align(ComposableSeq):
      Returns an Alignment object."""
 
     _input_type = frozenset(["sequences"])
-    _output_type = frozenset(["aligned"])
+    _output_type = frozenset(["aligned", "serialisable"])
     _data_types = frozenset(["SequenceCollection"])
 
     def __init__(
