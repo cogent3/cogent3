@@ -17,6 +17,9 @@ __status__ = "Alpha"
 
 
 class scale_branches(ComposableTree):
+    """Transforms tree branch lengths from nucleotide to codon, or the converse.
+    Returns a Tree."""
+
     _input_type = frozenset(["tree"])
     _output_type = frozenset(["tree", "serialisable"])
     _data_types = frozenset(["PhyloNode", "TreeNode"])
@@ -66,6 +69,8 @@ class scale_branches(ComposableTree):
 
 
 class uniformize_tree(ComposableTree):
+    """Standardises the orientation of unrooted trees. Returns a Tree."""
+
     _input_type = frozenset(["tree"])
     _output_type = frozenset(["tree", "serialisable"])
     _data_types = frozenset(["PhyloNode", "TreeNode"])
@@ -100,6 +105,9 @@ class uniformize_tree(ComposableTree):
 
 
 class quick_tree(ComposableTree):
+    """Fast pairwise distance based estimation of phylogeny using NJ.
+    Returns Tree."""
+
     _input_type = frozenset(["aligned"])
     _output_type = frozenset(["tree", "serialisable"])
     _data_types = frozenset(["ArrayAlignment", "Alignment"])
