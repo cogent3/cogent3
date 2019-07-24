@@ -20,7 +20,8 @@ __status__ = "Alpha"
 
 
 class align_to_ref(ComposableSeq):
-    """returns an alignment to a reference seq. No gaps in the reference."""
+    """Aligns to a reference seq, no gaps in the reference. 
+    Returns an Alignment object."""
 
     _input_type = frozenset(["sequences"])
     _output_type = frozenset(["aligned"])
@@ -119,7 +120,8 @@ class align_to_ref(ComposableSeq):
 
 
 class progressive_align(ComposableSeq):
-    """returns a multiple sequence alignment."""
+    """Progressive multiple sequence alignment via any cogent3 model.
+     Returns an Alignment object."""
 
     _input_type = frozenset(["sequences"])
     _output_type = frozenset(["aligned"])
