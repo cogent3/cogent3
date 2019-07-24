@@ -340,8 +340,9 @@ class Composable(ComposableType):
 
         Parameters
         ----------
-        dstore : DataStore
-            applies composable function to this object
+        dstore
+            a path, list of paths, or DataStore to which the process will be
+            applied.
         parallel : bool
             run in parallel, according to arguments in par_kwargs. If True,
             the last step of the composable function serves as the master
@@ -368,6 +369,9 @@ class Composable(ComposableType):
         If run in parallel, this instance serves as the master object and
         aggregates results.
         """
+        if isinstance(dstore, str):
+            dstore = [dstore]
+
         start = time.time()
         loggable = hasattr(self, "data_store")
         if not loggable:
