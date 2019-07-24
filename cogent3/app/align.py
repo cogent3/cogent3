@@ -51,6 +51,7 @@ class align_to_ref(ComposableSeq):
             molecular type, currently only DNA or RNA suppported
         """
         super(align_to_ref, self).__init__()
+        self._formatted_params()
         assert moltype
         moltype = get_moltype(moltype)
         self._moltype = moltype
@@ -177,7 +178,9 @@ class progressive_align(ComposableSeq):
         sm = {"codon": "MG94HKY", "nucleotide": "HKY85", "protein": "JTT92"}.get(
             model, model
         )
-
+        model = sm
+        param_vals = self._param_vals
+        self._formatted_params()
         kwargs = {} if gc is None else dict(gc=gc)
         sm = get_model(sm, **kwargs)
         moltype = sm.alphabet.moltype
