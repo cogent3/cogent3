@@ -13,7 +13,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
-__all__ = ["align", "composable", "dist", "io", "sample", "translate", "tree"]
+__all__ = ["align", "composable", "dist", "evo", "io", "sample", "translate", "tree"]
 
 
 def available_apps():

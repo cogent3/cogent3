@@ -9,7 +9,8 @@ from .result import bootstrap_result, hypothesis_result, model_result
 
 
 class model(ComposableModel):
-    """represents a substitution model + tree"""
+    """Define a substitution model + tree for maximum likelihood evaluation.
+    Returns model_result."""
 
     _input_type = frozenset(["aligned"])
     _output_type = frozenset(["result", "model_result", "serialisable"])
@@ -203,6 +204,9 @@ class model(ComposableModel):
 
 
 class hypothesis(ComposableHypothesis):
+    """Specify a hypothesis through defining two models. Returns a
+    hypothesis_result."""
+
     _input_type = frozenset(["aligned"])
     _output_type = frozenset(["result", "hypothesis_result", "serialisable"])
     _data_types = frozenset(["ArrayAlignment", "Alignment"])
@@ -261,6 +265,8 @@ class hypothesis(ComposableHypothesis):
 
 
 class bootstrap(ComposableHypothesis):
+    """Parametric bootstrap for a provided hypothesis. Returns a bootstrap_result."""
+
     _input_type = frozenset(["aligned"])
     _output_type = frozenset(["result", "bootstrap_result", "serialisable"])
     _data_types = frozenset(["ArrayAlignment", "Alignment"])
