@@ -5,7 +5,6 @@ Each leaf holds a sequence.  Used by a likelihood function."""
 
 import numpy
 
-from cogent3 import LoadTable
 from cogent3.util.modules import ExpectedImportError, importVersionedModule
 
 
@@ -117,6 +116,7 @@ class _LikelihoodTreeEdge(object):
 
     def calc_G_statistic(self, likelihoods, return_table=False):
         # A Goodness-of-fit statistic
+        from cogent3.util.table import Table
 
         unambig = (self.ambig == 1.0).nonzero()[0]
         observed = self.counts[unambig].astype(int)
@@ -128,7 +128,7 @@ class _LikelihoodTreeEdge(object):
             motifs = self.get_site_patterns(unambig)
             rows = list(zip(motifs, observed, expected))
             rows.sort(key=lambda row: (-row[1], row[0]))
-            table = LoadTable(
+            table = Table(
                 header=["Pattern", "Observed", "Expected"], rows=rows, row_ids=True
             )
             return (G, table)
