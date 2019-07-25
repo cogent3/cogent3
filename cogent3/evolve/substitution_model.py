@@ -40,7 +40,6 @@ import numpy
 
 from numpy.linalg import svd
 
-from cogent3 import LoadTable
 from cogent3.core import moltype
 from cogent3.evolve import motif_prob_model, parameter_controller, predicate
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
@@ -758,6 +757,8 @@ class Parametric(_ContinuousSubstitutionModel):
     def ascii_art(self, delim="", delim2="|", max_width=70, return_table=False):
         """An ASCII-art table representing the model.  'delim' delimits
         parameter names, 'delim2' delimits motifs"""
+        from cogent3 import LoadTable
+
         labels = [m for m in self.alphabet]
         pars = self.get_matrix_params()
         rows = []
