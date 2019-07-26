@@ -1,3 +1,5 @@
+import os
+
 from tqdm import tqdm
 
 from cogent3 import LoadTree
@@ -36,8 +38,10 @@ class model(ComposableModel):
         ----------
         sm : str or instance
             substitution model if string must be available via get_model()
-        tree : str, Tree instance, or None
-            if None, assumes a star phylogeny (only valid for 3 taxa)
+        tree
+            if None, assumes a star phylogeny (only valid for 3 taxa). Can be a
+            newick formatted tree, a path to a file containing one, or a Tree
+            instance.
         name
             name of the model
         sm_args
@@ -82,7 +86,11 @@ class model(ComposableModel):
             split_codons = False
 
         if type(tree) == str:
-            tree = LoadTree(treestring=tree, underscore_unmunge=True)
+            if os.path.exists(tree):
+                kwargs = dict(filename=tree, underscore_unmunge=True)
+            else:
+                kwargs = dict(treestring=tree, underscore_unmunge=True)
+            tree = LoadTree(**kwargs)
 
         self._tree = tree
         self._lf_args = lf_args or {}
