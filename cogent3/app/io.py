@@ -342,8 +342,9 @@ class write_seqs(_checkpointable):
         loader = loader(format=self._format)
         self._load_checkpoint = loader
 
-    def write(self, data):
-        identifier = self._make_output_identifier(data)
+    def write(self, data, identifier=None):
+        if identifier is None:
+            identifier = self._make_output_identifier(data)
         data.info.stored = self.data_store.write(identifier, data.to_fasta())
         return identifier
 
@@ -393,8 +394,9 @@ class write_json(_checkpointable):
     def _set_checkpoint_loader(self):
         self._load_checkpoint = self
 
-    def write(self, data):
-        identifier = self._make_output_identifier(data)
+    def write(self, data, identifier=None):
+        if identifier is None:
+            identifier = self._make_output_identifier(data)
         out = make_record_for_json(os.path.basename(identifier), data, True)
         out = json.dumps(out)
         stored = self.data_store.write(identifier, out)
@@ -448,8 +450,9 @@ class write_db(_checkpointable):
     def _set_checkpoint_loader(self):
         self._load_checkpoint = self
 
-    def write(self, data):
-        identifier = self._make_output_identifier(data)
+    def write(self, data, identifier=None):
+        if identifier is None:
+            identifier = self._make_output_identifier(data)
         out = data.to_json()
         stored = self.data_store.write(identifier, out)
         try:
