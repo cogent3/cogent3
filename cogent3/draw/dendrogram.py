@@ -438,12 +438,16 @@ class Dendrogram(Drawable):
 
     @property
     def label_pad(self):
+        if isinstance(self.tree, CircularTreeGeometry):
+            default = 0.15
+        else:
+            default = 0.025
+
         if self._label_pad is None and not self.contemporaneous:
             max_x = max(self.tree.max_x, abs(self.tree.min_x))
-            max_y = max(self.tree.max_y, abs(self.tree.min_y))
-            self._label_pad = max(max_x, max_y) * 0.1
+            self._label_pad = max_x * default
         elif self._label_pad is None:
-            self._label_pad = 0.1
+            self._label_pad = default
         return self._label_pad
 
     @label_pad.setter
