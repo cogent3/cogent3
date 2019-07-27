@@ -266,15 +266,16 @@ class Composable(ComposableType):
     def __call__(self, val, *args, **kwargs):
         # initial invocation always transfers call() to first composable
         # element to get input for self
+        refobj = kwargs.get("identifier", val)
         if not val:
             return val
 
         if self.checkpointable:
-            job_done = self.job_done(val)
+            job_done = self.job_done(refobj)
             if job_done and self.output:
-                result = self._load_checkpoint(val)
+                result = self._load_checkpoint(refobj)
             elif job_done:
-                result = self._make_output_identifier(val)
+                result = self._make_output_identifier(refobj)
 
             if job_done:
                 return result
