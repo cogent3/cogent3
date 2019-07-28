@@ -250,6 +250,28 @@ class MotifFreqsArrayTests(TestCase):
         got = freqs["FlyingFox"].toarray()
         assert_allclose(got, [0.3, 0.2, 0.3, 0.2])
 
+    def test_to_pssm(self):
+        """construct PSSM from freqs array"""
+        data = [
+            [0.1, 0.3, 0.5, 0.1],
+            [0.25, 0.25, 0.25, 0.25],
+            [0.05, 0.8, 0.05, 0.1],
+            [0.7, 0.1, 0.1, 0.1],
+            [0.6, 0.15, 0.05, 0.2],
+        ]
+        farr = MotifFreqsArray(data, "ACTG")
+        pssm = farr.to_pssm()
+        expect = array(
+            [
+                [-1.322, 0.263, 1.0, -1.322],
+                [0.0, 0.0, 0.0, 0.0],
+                [-2.322, 1.678, -2.322, -1.322],
+                [1.485, -1.322, -1.322, -1.322],
+                [1.263, -0.737, -2.322, -0.322],
+            ]
+        )
+        assert_allclose(pssm.array, expect, atol=1e-3)
+
 
 class PSSMTests(TestCase):
     def test_construct_succeeds(self):

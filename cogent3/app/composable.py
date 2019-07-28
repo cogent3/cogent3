@@ -266,15 +266,16 @@ class Composable(ComposableType):
     def __call__(self, val, *args, **kwargs):
         # initial invocation always transfers call() to first composable
         # element to get input for self
+        refobj = kwargs.get("identifier", val)
         if not val:
             return val
 
         if self.checkpointable:
-            job_done = self.job_done(val)
+            job_done = self.job_done(refobj)
             if job_done and self.output:
-                result = self._load_checkpoint(val)
+                result = self._load_checkpoint(refobj)
             elif job_done:
-                result = self._make_output_identifier(val)
+                result = self._make_output_identifier(refobj)
 
             if job_done:
                 return result
@@ -340,8 +341,9 @@ class Composable(ComposableType):
 
         Parameters
         ----------
-        dstore : DataStore
-            applies composable function to this object
+        dstore
+            a path, list of paths, or DataStore to which the process will be
+            applied.
         parallel : bool
             run in parallel, according to arguments in par_kwargs. If True,
             the last step of the composable function serves as the master
@@ -368,6 +370,9 @@ class Composable(ComposableType):
         If run in parallel, this instance serves as the master object and
         aggregates results.
         """
+        if isinstance(dstore, str):
+            dstore = [dstore]
+
         start = time.time()
         loggable = hasattr(self, "data_store")
         if not loggable:
