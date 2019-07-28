@@ -728,6 +728,13 @@ NineBande      root    1.0000    1.0000
         lf.set_alignment(self.data)
         self.assertRaises(Exception, lf.get_rate_matrix_for_edge, "NineBande")
 
+    def test_get_all_psubs_discrete(self):
+        """should work for discrete time models"""
+        sm = get_model("BH")
+        lf = sm.make_likelihood_function(self.tree)
+        lf.set_alignment(self.data)
+        psubs = lf.get_all_psubs()
+
     def test_get_all_rate_matrices(self):
         """return matrices when just a pair"""
         aln = LoadSeqs(
@@ -811,6 +818,28 @@ NineBande      root    1.0000    1.0000
                 lf.set_param_rule(**rule)
         new_lnL = lf.get_log_likelihood()
         self.assertFloatEqual(new_lnL, lnL)
+
+    def test_get_param_rules_discrete(self):
+        """discrete time models produce valid rules"""
+        sm = get_model("BH")
+        aln = self.data.take_seqs(self.data.names[:3])
+        tree = self.tree.get_sub_tree(aln.names)
+        lf = sm.make_likelihood_function(tree)
+        lf.set_alignment(aln)
+        lf.optimise(max_evaluations=100, limit_action="ignore")
+        rules = lf.get_param_rules()
+
+        new_lf = sm.make_likelihood_function(tree)
+        new_lf.set_alignment(aln)
+        new_lf.apply_param_rules(rules)
+        assert_allclose(new_lf.get_motif_probs().array, lf.get_motif_probs().array)
+        for edge in tree.preorder():
+            if edge.is_root():
+                continue
+            orig_p = lf.get_psub_for_edge(edge.name)
+            new_p = new_lf.get_psub_for_edge(edge.name)
+            assert_allclose(new_p.array, orig_p.array, err_msg=edge.name, atol=1e-5)
+        assert_allclose(lf.lnL, new_lf.lnL, atol=1e-4)
 
     def test_get_param_rules_constrained(self):
         """correctly return rules that reconstruct a lf with constrained length"""
@@ -1977,7 +2006,7 @@ class ComparisonTests(TestCase):
         assert_allclose(lf.nfp, nfp)
 
         lf.set_param_rule("kappa", loci=EACH)
-        lf.optimise(local=True)
+        lf.optimise(local=True, show_progress=False)
         rules = [
             {
                 "par_name": "kappa",

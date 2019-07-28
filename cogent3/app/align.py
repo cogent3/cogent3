@@ -20,10 +20,11 @@ __status__ = "Alpha"
 
 
 class align_to_ref(ComposableSeq):
-    """returns an alignment to a reference seq. No gaps in the reference."""
+    """Aligns to a reference seq, no gaps in the reference. 
+    Returns an Alignment object."""
 
     _input_type = frozenset(["sequences"])
-    _output_type = frozenset(["aligned"])
+    _output_type = frozenset(["aligned", "serialisable"])
     _data_types = frozenset(["SequenceCollection"])
 
     def __init__(
@@ -50,6 +51,7 @@ class align_to_ref(ComposableSeq):
             molecular type, currently only DNA or RNA suppported
         """
         super(align_to_ref, self).__init__()
+        self._formatted_params()
         assert moltype
         moltype = get_moltype(moltype)
         self._moltype = moltype
@@ -119,10 +121,11 @@ class align_to_ref(ComposableSeq):
 
 
 class progressive_align(ComposableSeq):
-    """returns a multiple sequence alignment."""
+    """Progressive multiple sequence alignment via any cogent3 model.
+     Returns an Alignment object."""
 
     _input_type = frozenset(["sequences"])
-    _output_type = frozenset(["aligned"])
+    _output_type = frozenset(["aligned", "serialisable"])
     _data_types = frozenset(["SequenceCollection"])
 
     def __init__(
@@ -175,7 +178,9 @@ class progressive_align(ComposableSeq):
         sm = {"codon": "MG94HKY", "nucleotide": "HKY85", "protein": "JTT92"}.get(
             model, model
         )
-
+        model = sm
+        param_vals = self._param_vals
+        self._formatted_params()
         kwargs = {} if gc is None else dict(gc=gc)
         sm = get_model(sm, **kwargs)
         moltype = sm.alphabet.moltype

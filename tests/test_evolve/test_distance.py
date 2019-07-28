@@ -622,7 +622,7 @@ class DistancesTests(TestCase):
     def test_EstimateDistances(self):
         """testing (well, exercising at least), EstimateDistances"""
         d = EstimateDistances(self.al, JC69())
-        d.run()
+        d.run(show_progress=False)
         canned_result = {
             ("b", "e"): 0.440840,
             ("c", "e"): 0.440840,
@@ -645,7 +645,7 @@ class DistancesTests(TestCase):
         """EstimateDistances with supplied motif probs"""
         motif_probs = {"A": 0.1, "C": 0.2, "G": 0.2, "T": 0.5}
         d = EstimateDistances(self.al, HKY85(), motif_probs=motif_probs)
-        d.run()
+        d.run(show_progress=False)
         canned_result = {
             ("a", "c"): 0.07537,
             ("b", "c"): 0.07537,
@@ -660,7 +660,7 @@ class DistancesTests(TestCase):
     def test_EstimateDistances_fromThreeway(self):
         """testing (well, exercising at least), EsimateDistances fromThreeway"""
         d = EstimateDistances(self.al, JC69(), threeway=True)
-        d.run()
+        d.run(show_progress=False)
         canned_result = {
             ("b", "e"): 0.495312,
             ("c", "e"): 0.479380,
@@ -677,7 +677,7 @@ class DistancesTests(TestCase):
         d = EstimateDistances(
             self.collection, JC69(), do_pair_align=True, rigorous_align=True
         )
-        d.run()
+        d.run(show_progress=False)
         canned_result = {
             ("b", "e"): 0.440840,
             ("c", "e"): 0.440840,
@@ -692,7 +692,7 @@ class DistancesTests(TestCase):
         d = EstimateDistances(
             self.collection, JC69(), do_pair_align=True, rigorous_align=False
         )
-        d.run()
+        d.run(show_progress=False)
         canned_result = {
             ("b", "e"): 0.440840,
             ("c", "e"): 0.440840,
@@ -707,7 +707,7 @@ class DistancesTests(TestCase):
     def test_EstimateDistances_other_model_params(self):
         """test getting other model params from EstimateDistances"""
         d = EstimateDistances(self.al, HKY85(), est_params=["kappa"])
-        d.run()
+        d.run(show_progress=False)
         # this will be a Number object with Mean, Median etc ..
         kappa = d.get_param_values("kappa")
         self.assertAlmostEqual(kappa.mean, 0.8939, 4)
@@ -724,17 +724,17 @@ class DistancesTests(TestCase):
             return lf
 
         d = EstimateDistances(self.al, HKY85(), modify_lf=constrain_fit)
-        d.run()
+        d.run(show_progress=False)
         result = d.get_pairwise_distances().todict()
         d = EstimateDistances(self.al, F81())
-        d.run()
+        d.run(show_progress=False)
         expect = d.get_pairwise_distances().todict()
         self.assertDistsAlmostEqual(expect, result)
 
     def test_get_raw_estimates(self):
         """correctly return raw result object"""
         d = EstimateDistances(self.al, HKY85(), est_params=["kappa"])
-        d.run()
+        d.run(show_progress=False)
         expect = {
             ("a", "b"): {
                 "kappa": 1.0000226766004808e-06,

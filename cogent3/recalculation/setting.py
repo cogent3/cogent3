@@ -25,7 +25,15 @@ class Setting(object):
                 value = adjusted_gt_minprob(
                     adjusted_gt_minprob(self.value, minprob=1e-6)
                 )
-            value = {n: v for n, v in zip(names, value)}
+            if value.ndim == 1:
+                value = {n: v for n, v in zip(names, value)}
+            else:
+                result = {}
+                for i, n1 in enumerate(names):
+                    result[n1] = {}
+                    for j, n2 in enumerate(names):
+                        result[n1][n2] = value[i, j]
+                value = result
 
         if self.is_constant:
             result = dict(value=value, is_constant=True)

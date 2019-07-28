@@ -137,7 +137,7 @@ class _seq_loader:
 
 
 class load_aligned(_seq_loader, ComposableAligned):
-    """loads sequences"""
+    """Loads aligned sequences. Returns an Alignment object."""
 
     _input_type = frozenset([None])
     _output_type = frozenset(["aligned"])
@@ -164,7 +164,7 @@ class load_aligned(_seq_loader, ComposableAligned):
 
 
 class load_unaligned(ComposableSeq, _seq_loader):
-    """loads sequences"""
+    """Loads unaligned sequences. Returns a SequenceCollection."""
 
     _input_type = frozenset([None])
     _output_type = frozenset(["sequences"])
@@ -200,6 +200,8 @@ class load_unaligned(ComposableSeq, _seq_loader):
 
 
 class load_tabular(ComposableTabular):
+    """Loads delimited data. Returns a Table."""
+
     _input_type = frozenset([None])
     _output_type = frozenset(["tabular"])
     _data_types = frozenset(["DataStoreMember", "str", "Path"])
@@ -290,6 +292,8 @@ class load_tabular(ComposableTabular):
 
 
 class write_seqs(_checkpointable):
+    """Writes sequences to text files in standard format."""
+
     _input_type = frozenset(("sequences", "aligned"))
     _output_type = frozenset(("sequences", "aligned", "identifier"))
     _data_types = frozenset(["ArrayAlignment", "Alignment", "SequenceCollection"])
@@ -338,13 +342,17 @@ class write_seqs(_checkpointable):
         loader = loader(format=self._format)
         self._load_checkpoint = loader
 
-    def write(self, data):
-        identifier = self._make_output_identifier(data)
+    def write(self, data, identifier=None):
+        if identifier is None:
+            identifier = self._make_output_identifier(data)
         data.info.stored = self.data_store.write(identifier, data.to_fasta())
         return identifier
 
 
 class load_json(Composable):
+    """Loads json serialised cogent3 objects from a json file. 
+    Returns whatever object type was stored."""
+
     _type = "output"
     _input_type = frozenset([None])
     _output_type = frozenset(["result", "serialisable"])
@@ -365,6 +373,8 @@ class load_json(Composable):
 
 
 class write_json(_checkpointable):
+    """Writes json serialised objects to individual json files."""
+
     _type = "output"
     _input_type = frozenset(["serialisable"])
     _output_type = frozenset(["identifier", "serialisable"])
@@ -384,8 +394,9 @@ class write_json(_checkpointable):
     def _set_checkpoint_loader(self):
         self._load_checkpoint = self
 
-    def write(self, data):
-        identifier = self._make_output_identifier(data)
+    def write(self, data, identifier=None):
+        if identifier is None:
+            identifier = self._make_output_identifier(data)
         out = make_record_for_json(os.path.basename(identifier), data, True)
         out = json.dumps(out)
         stored = self.data_store.write(identifier, out)
@@ -397,7 +408,8 @@ class write_json(_checkpointable):
 
 
 class load_db(Composable):
-    """loads json to a TinyDB instance"""
+    """Loads json serialised cogent3 objects from a TinyDB file. 
+    Returns whatever object type was stored."""
 
     _type = "output"
     _input_type = frozenset([None])
@@ -416,7 +428,7 @@ class load_db(Composable):
 
 
 class write_db(_checkpointable):
-    """writes json to a TinyDB instance"""
+    """Writes json serialised objects to a TinyDB instance."""
 
     _type = "output"
     _input_type = frozenset(["serialisable"])
@@ -438,8 +450,9 @@ class write_db(_checkpointable):
     def _set_checkpoint_loader(self):
         self._load_checkpoint = self
 
-    def write(self, data):
-        identifier = self._make_output_identifier(data)
+    def write(self, data, identifier=None):
+        if identifier is None:
+            identifier = self._make_output_identifier(data)
         out = data.to_json()
         stored = self.data_store.write(identifier, out)
         try:

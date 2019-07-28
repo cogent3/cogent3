@@ -1,3 +1,5 @@
+import os
+
 from tqdm import tqdm
 
 from cogent3 import LoadTree
@@ -9,7 +11,8 @@ from .result import bootstrap_result, hypothesis_result, model_result
 
 
 class model(ComposableModel):
-    """represents a substitution model + tree"""
+    """Define a substitution model + tree for maximum likelihood evaluation.
+    Returns model_result."""
 
     _input_type = frozenset(["aligned"])
     _output_type = frozenset(["result", "model_result", "serialisable"])
@@ -35,8 +38,10 @@ class model(ComposableModel):
         ----------
         sm : str or instance
             substitution model if string must be available via get_model()
-        tree : str, Tree instance, or None
-            if None, assumes a star phylogeny (only valid for 3 taxa)
+        tree
+            if None, assumes a star phylogeny (only valid for 3 taxa). Can be a
+            newick formatted tree, a path to a file containing one, or a Tree
+            instance.
         name
             name of the model
         sm_args
@@ -81,7 +86,11 @@ class model(ComposableModel):
             split_codons = False
 
         if type(tree) == str:
-            tree = LoadTree(treestring=tree, underscore_unmunge=True)
+            if os.path.exists(tree):
+                kwargs = dict(filename=tree, underscore_unmunge=True)
+            else:
+                kwargs = dict(treestring=tree, underscore_unmunge=True)
+            tree = LoadTree(**kwargs)
 
         self._tree = tree
         self._lf_args = lf_args or {}
@@ -128,7 +137,7 @@ class model(ComposableModel):
         else:
             rules = lf.get_param_rules()
             for rule in rules:
-                if rule["par_name"] != "mprobs":
+                if rule["par_name"] not in ("mprobs", "psubs"):
                     rule["upper"] = rule.get("upper", 50)
 
             lf.apply_param_rules([rule])
@@ -203,6 +212,9 @@ class model(ComposableModel):
 
 
 class hypothesis(ComposableHypothesis):
+    """Specify a hypothesis through defining two models. Returns a
+    hypothesis_result."""
+
     _input_type = frozenset(["aligned"])
     _output_type = frozenset(["result", "hypothesis_result", "serialisable"])
     _data_types = frozenset(["ArrayAlignment", "Alignment"])
@@ -261,6 +273,8 @@ class hypothesis(ComposableHypothesis):
 
 
 class bootstrap(ComposableHypothesis):
+    """Parametric bootstrap for a provided hypothesis. Returns a bootstrap_result."""
+
     _input_type = frozenset(["aligned"])
     _output_type = frozenset(["result", "bootstrap_result", "serialisable"])
     _data_types = frozenset(["ArrayAlignment", "Alignment"])

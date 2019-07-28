@@ -85,6 +85,8 @@ class TestComposableBase(TestCase):
 
     def test_apply_to(self):
         """correctly applies iteratively"""
+        from cogent3.core.alignment import SequenceCollection
+
         dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
         reader = io_app.load_unaligned(format="fasta", moltype="dna")
         got = reader.apply_to(dstore, show_progress=False)
@@ -97,9 +99,13 @@ class TestComposableBase(TestCase):
         proc = reader + min_length
         got = proc.apply_to(dstore, show_progress=False)
         self.assertEqual(len(got), len(dstore))
-        # and works on just strings
+        # and works on a list of just strings
         got = proc.apply_to([str(m) for m in dstore], show_progress=False)
         self.assertEqual(len(got), len(dstore))
+        # or a single string
+        got = proc.apply_to(str(dstore[0]), show_progress=False)
+        self.assertEqual(len(got), 1)
+        self.assertIsInstance(got[0], SequenceCollection)
 
 
 class TestNotCompletedResult(TestCase):

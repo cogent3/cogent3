@@ -80,6 +80,22 @@ class TestModel(TestCase):
         )
         self.assertEqual(mod._param_rules[0].get("upper", None), None)
 
+    def test_discrete_time_model(self):
+        """works with discrete-time submodel"""
+        from cogent3.app.composable import NotCompleted
+
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = LoadSeqs(data=_data, moltype="dna")
+        mod = evo_app.model(
+            "BH", opt_args=dict(max_evaluations=100, limit_action="ignore")
+        )
+        r = mod(aln)
+        self.assertNotIsInstance(r, NotCompleted)
+
     def test_model_hypothesis_result_repr(self):
         """result objects __repr__ and _repr_html_ methods work correctly"""
         _data = {

@@ -11,7 +11,6 @@ import warnings
 
 import numpy
 
-from cogent3 import LoadSeqs
 from cogent3.align.traceback import alignment_traceback, map_traceback
 from cogent3.core.alignment import Aligned
 from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge
@@ -470,6 +469,8 @@ class AlignablePOG(_Alignable):
         return "AlPOG(%s,%s)" % (self.pog.all_jumps, repr(self.leaf))
 
     def get_alignment(self):
+        from cogent3 import LoadSeqs
+
         return LoadSeqs(data=self.aligneds)
 
     def _calcAligneds(self, children):

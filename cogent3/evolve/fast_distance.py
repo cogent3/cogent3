@@ -3,7 +3,7 @@ from collections import defaultdict, namedtuple
 from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
 from numpy.linalg import LinAlgError, det, inv, norm
 
-from cogent3 import DNA, RNA, LoadTable, get_moltype
+from cogent3 import DNA, RNA, get_moltype
 from cogent3.util.dict_array import DictArray
 from cogent3.util.progress_display import display_wrap
 
@@ -289,6 +289,8 @@ Stats = namedtuple("Stats", ["length", "fraction_variable", "dist", "variance"])
 
 
 def _make_stat_table(stats, names, **kwargs):
+    from cogent3 import LoadTable
+
     header = [r"Seq1 \ Seq2"] + names
     rows = zeros((len(names), len(names)), dtype="O")
     for i in range(len(names) - 1):
