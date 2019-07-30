@@ -645,8 +645,8 @@ class LikelihoodFunction(ParameterController):
         if not hasattr(self._model, "get_scaled_lengths_from_Q"):
             return {}
 
-        def valueOf(param, **kw):
-            return self.get_param_value(param, locus=locus, **kw)
+        get_value_of = self.get_param_value
+        value_of_kw = dict(locus=locus)
 
         if bin is None:
             bin_names = self.bin_names
@@ -656,16 +656,19 @@ class LikelihoodFunction(ParameterController):
         if len(bin_names) == 1:
             bprobs = [1.0]
         else:
-            bprobs = valueOf("bprobs")
+            bprobs = get_value_of("bprobs", **value_of_kw)
 
-        mprobs = [valueOf("mprobs", bin=b) for b in bin_names]
+        mprobs = [get_value_of("mprobs", bin=b, **value_of_kw) for b in bin_names]
 
         scaled_lengths = {}
         for edge in self._tree.get_edge_vector():
             if edge.isroot():
                 continue
-            Qs = [valueOf("Qd", bin=b, edge=edge.name).Q for b in bin_names]
-            length = valueOf("length", edge=edge.name)
+            Qs = [
+                get_value_of("Qd", bin=b, edge=edge.name, **value_of_kw).Q
+                for b in bin_names
+            ]
+            length = get_value_of("length", edge=edge.name, **value_of_kw)
             scaled_lengths[edge.name] = length * self._model.get_scale_from_Qs(
                 Qs, bprobs, mprobs, predicate
             )
