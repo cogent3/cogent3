@@ -2134,6 +2134,25 @@ class TestTree(TestCase):
         sub2 = tree.get_sub_tree(names, tipsonly=True)
         self.assertTrue(expect.same_topology(sub2))
 
+    def test_getsubtree_6(self):
+        """get sub tree handles non-scalar params"""
+        names = ["A", "B", "C"]
+        treestring = "((E:2,(F:1,(C:0.1,D:0.2):0.3):0.3):0.3,A:0.2,B:0.2)"
+        tree = LoadTree(treestring=treestring)
+        # change internal node names to eliminate ending digits
+        vals = dict(A=42, B=43, C=44)
+        for edge in tree.postorder():
+            if edge.is_root():
+                continue
+            edge.params["non-scalar"] = {edge.name: vals.get(edge.name, 99)}
+
+        sub1 = tree.get_sub_tree(names, tipsonly=False)
+        self.assertTrue(set(tree.get_tip_names()), set("ABC"))
+        # the edge value for "non-scalar" should be same as original tree
+        for name in vals:
+            node = sub1.get_node_matching_name(name)
+            self.assertTrue(node.params["non-scalar"], {name: vals[node.name]})
+
     def test_ascii(self):
         self.tree.ascii_art()
         # unlabeled internal node

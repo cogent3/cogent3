@@ -25,6 +25,7 @@ Definition of relevant terms or abbreviations:
     -  stem: the edge immediately preceeding a clade
 """
 import json
+import numbers
 import re
 
 from copy import deepcopy
@@ -1209,10 +1210,11 @@ class TreeNode(object):
         else:
             # don't need to pass keep_root to children, though
             # internal nodes will be elminated this way
-            children = [
-                child._get_sub_tree(included_names, constructor, tipsonly=tipsonly)
-                for child in self.children
-            ]
+            children = []
+            for child in self.children:
+                st = child._get_sub_tree(included_names, constructor, tipsonly=tipsonly)
+                children.append(st)
+
             children = [child for child in children if child is not None]
             if len(children) == 0:
                 result = None
@@ -1233,19 +1235,23 @@ class TreeNode(object):
                     ]
                     length = self.length + child.length
                     if length:
-                        params = dict(
-                            [
-                                (
-                                    n,
-                                    (
-                                        self.params[n] * self.length
-                                        + child.params[n] * child.length
-                                    )
-                                    / length,
-                                )
-                                for n in shared_params
-                            ]
-                        )
+                        params = {}
+                        for n in shared_params:
+                            self_val = self.params[n]
+                            child_val = child.params[n]
+                            is_scalar = True
+                            for i in (self_val, child_val):
+                                if not isinstance(i, numbers.Number):
+                                    is_scalar = False
+                                    break
+                            if is_scalar:
+                                val = (
+                                    self_val * self.length + child_val * child.length
+                                ) / length
+                            else:
+                                val = self_val
+                            params[n] = val
+
                         params["length"] = length
                 result = child
                 result.params = params
