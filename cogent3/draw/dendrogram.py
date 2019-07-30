@@ -405,10 +405,11 @@ class Dendrogram(Drawable):
         tree,
         style="square",
         label_pad=None,
-        contemporaneous=True,
+        contemporaneous=None,
         *args,
         **kwargs,
     ):
+        length_attr = kwargs.pop("length_attr", None)
         super(Dendrogram, self).__init__(
             visible_axes=False, showlegend=False, *args, **kwargs
         )
@@ -418,9 +419,15 @@ class Dendrogram(Drawable):
             "angular": AngularTreeGeometry,
             "radial": RadialTreeGeometry,
         }[style]
-        if not "length_attr" in kwargs:
+        if length_attr is None:
             contemporaneous = True if tree.children[0].length is None else False
-        kwargs = UnionDict(length_attr="frac_pos") if contemporaneous else {}
+
+        if contemporaneous:
+            length_attr = "frac_pos"
+        else:
+            length_attr = length_attr or "length"
+
+        kwargs = UnionDict(length_attr=length_attr) if contemporaneous else {}
         self.tree = klass(tree, **kwargs)
         self.tree.propagate_properties()
         self._label_pad = label_pad
