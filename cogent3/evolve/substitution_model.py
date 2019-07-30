@@ -811,7 +811,7 @@ class Parametric(_ContinuousSubstitutionModel):
         inst_size = sum(self._instantaneous_mask.flat)
         return (r / pred_size) / ((t - r) / (inst_size - pred_size))
 
-    def get_scaled_lengthsFromQ(self, Q, motif_probs, length):
+    def get_scaled_lengths_from_Q(self, Q, motif_probs, length):
         lengths = {}
         for rule in self.scale_masks:
             lengths[rule] = length * self.get_scale_from_Qs(
