@@ -642,7 +642,7 @@ class LikelihoodFunction(ParameterController):
 
     def get_scaled_lengths(self, predicate, bin=None, locus=None):
         """A dictionary of {scale:{edge:length}}"""
-        if not hasattr(self._model, "get_scaled_lengthsFromQ"):
+        if not hasattr(self._model, "get_scaled_lengths_from_Q"):
             return {}
 
         def valueOf(param, **kw):
