@@ -431,7 +431,7 @@ class Dendrogram(Drawable):
         self.tree = klass(tree, **kwargs)
         self.tree.propagate_properties()
         self._label_pad = label_pad
-        self._tip_font = UnionDict(size=16, family="Inconsolata, monospace")
+        self._tip_font = UnionDict(size=12, family="Inconsolata, monospace")
         self._line_width = 2
         self._line_color = "black"
         self._scale_bar = "bottom left"
@@ -442,6 +442,7 @@ class Dendrogram(Drawable):
         self._length_attr = self.tree._length
         self._tip_names = tuple(e.name for e in self.tree.tips())
         self._max_label_length = max(map(len, self._tip_names))
+        self.layout.autosize = True
 
     @property
     def label_pad(self):
