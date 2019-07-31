@@ -70,6 +70,7 @@ from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
     bytes_to_string,
     extend_docstring_from,
+    get_merged_overlapping_coords,
     get_object_provenance,
 )
 from cogent3.util.union_dict import UnionDict
@@ -1964,7 +1965,16 @@ class Aligned(object):
         return Aligned(self.map, self.data.to_dna())
 
     def to_rich_dict(self):
-        data = self.data.to_rich_dict()
+        coords = self.map.get_coordinates()
+        coords = get_merged_overlapping_coords(coords)
+        if len(coords) != 1:
+            raise NotImplementedError
+        start, end = coords[0]
+        data = self.data[start:end]
+        # drop any lost spans
+        for i, a in enumerate(data.annotations):
+            data.annotations[i] = a.without_lost_spans()
+        data = data.to_rich_dict()
         data["seq"] = str(self)
         return data
 
