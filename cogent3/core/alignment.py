@@ -1791,9 +1791,15 @@ class SequenceCollection(object):
         from cogent3.draw.drawable import AnnotatedDrawable
         from cogent3.draw.dotplot import Dotplot
 
-        names = choice(self.names, size=2, replace=False)
-        name1 = names[0] if name1 is None else name1
-        name2 = names[1] if name2 is None else name2
+        names = list(choice(self.names, size=2, replace=False))
+        if name1 and name2 is None:
+            names.remove(name1)
+            name2 = names[0]
+        elif name2 and name1 is None:
+            names.remove(name2)
+            name1 = names[0]
+        elif not name1:
+            name1, name2 = names
 
         if not {name1, name2} <= set(self.names):
             msg = f"{name1}, {name2} missing"
