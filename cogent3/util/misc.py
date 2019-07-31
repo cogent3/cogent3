@@ -1014,7 +1014,7 @@ def get_independent_coords(spans, random_tie_breaker=False):
 
 def get_merged_overlapping_coords(start_end):
     """merges overlapping spans, assumes sorted by start"""
-    result = [start_end[0]]
+    result = [list(start_end[0])]
     prev_end = result[0][-1]
     for i in range(1, len(start_end)):
         curr_start, curr_end = start_end[i]

@@ -356,6 +356,11 @@ class UtilsTests(TestCase):
         result = get_merged_overlapping_coords(sample)
         expect = [[0, 10], [12, 16], [18, 25]]
         self.assertEqual(result, expect)
+        # test with tuples
+        sample = tuple(map(tuple, sample))
+        result = get_merged_overlapping_coords(sample)
+        expect = [[0, 10], [12, 16], [18, 25]]
+        self.assertEqual(result, expect)
 
     def test_get_run_start_indices(self):
         """return indices corresponding to start of a run of identical values"""
