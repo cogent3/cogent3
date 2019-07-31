@@ -291,6 +291,7 @@ class AnnotatedDrawable(Drawable):
 
         space = 0.01
         fig.layout.xaxis2.domain = (xaxis_domain[1] + space, 1.0)
+        fig.layout.xaxis3.domain = (xaxis_domain[1] + space, 1.0)
 
         # now the right column
         bottom_prop = bottom_range[1] / min_range

@@ -116,17 +116,14 @@ class _Annotatable:
         # we order by tracks
         top = 0
         space = 0.25
-        all_traces = []
+        annotes = []
         for feature_type in drawables:
             new_bottom = top + space
             for i, annott in enumerate(drawables[feature_type]):
                 annott.shift(y=new_bottom - annott.bottom)
                 if i > 0:
                     annott._showlegend = False
-                if vertical:
-                    annott = annott.T
-                trace = annott.as_trace()
-                all_traces.append(trace)
+                annotes.append(annott)
 
             top = annott.top
 
@@ -134,9 +131,14 @@ class _Annotatable:
         height = max((top / len(self)) * width, 300)
         xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
         yaxis = dict(range=[0, top], visible=False, zeroline=True, showline=True)
+
         if vertical:
+            all_traces = [t.T.as_trace() for t in annotes]
             width, height = height, width
             xaxis, yaxis = yaxis, xaxis
+        else:
+            all_traces = [t.as_trace() for t in annotes]
+
         drawer = Drawable(
             title=self.name, traces=all_traces, width=width, height=height
         )
