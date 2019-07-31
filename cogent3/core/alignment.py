@@ -1849,11 +1849,11 @@ class SequenceCollection(object):
         for name, seq in self.named_seqs.items():
             new_name = renamer(name)
             name_map[new_name] = name
-            new_seq = self.moltype.make_seq(seq, new_name)
             try:
+                new_seq = self.moltype.make_seq(seq.data, new_name)
                 new_seq = Aligned(seq.map, new_seq)
             except AttributeError:
-                pass
+                new_seq = self.moltype.make_seq(seq, new_name)
             new[new_name] = new_seq
         result = self.__class__(data=new, info=self.info, moltype=self.moltype)
         result.info.name_map = name_map
