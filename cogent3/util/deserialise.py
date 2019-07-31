@@ -130,6 +130,8 @@ def deserialise_seq(data, aligned=False):
     make_seq = data["moltype"].make_seq
     type_ = data.pop("type")
     klass = _get_class(type_)
+    if "-" in data["seq"]:
+        aligned = True
 
     data.pop("moltype")
     result = make_seq(**data)
