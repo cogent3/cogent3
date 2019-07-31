@@ -260,9 +260,9 @@ class _Feature(_Annotatable, _Serialisable):
     qualifier_names = ["type", "name"]
 
     def __init__(self, parent, map, original=None, **kw):
-        self._serialisable = locals()
-        for key in ("self", "__class__", "kw"):
-            self._serialisable.pop(key, None)
+        d = locals()
+        exclude = ("self", "__class__", "kw")
+        self._serialisable = {k: v for k, v in d.items() if k not in exclude}
         self._serialisable.update(kw)
 
         assert isinstance(parent, _Annotatable), parent
