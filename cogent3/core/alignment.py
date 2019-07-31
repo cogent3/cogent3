@@ -2624,16 +2624,15 @@ class AlignmentI(object):
         table = ["<table>"]
         seq_ = "<td>%s</td>"
         label_ = '<td class="label">%s</td>'
+        num_row_ = ('<tr style="background-color:'
+                    'rgba(161, 195, 209, 0.5);"><td></td><td><b>{:,d}</b></td></tr>')
         for i in range(0, seqlen, interleave_len):
+            table.append(num_row_.format(i))
             seqblock = seqs[:, i : i + interleave_len].tolist()
             for n, s in zip(names, seqblock):
                 s = "".join(s)
                 row = "".join([label_ % n, seq_ % s])
                 table.append("<tr>%s</tr>" % row)
-            table.append(
-                '<tr style="background-color:gray" '
-                'class="blank_row"><td></td><td></td></tr>'
-            )
         table.append("</table>")
         if limit and limit < len(self):
             summary = ("%s x %s (truncated to %s) %s " "alignment") % (
