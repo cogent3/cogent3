@@ -194,6 +194,8 @@ class AnnotatedDrawable(Drawable):
             trace.xaxis = xaxis
             trace.yaxis = yaxis
         self._traces = traces
+        f.layout.xaxis.title = self.xtitle
+        f.layout.yaxis.title = self.ytitle
         return f
 
     def _build_2x2_fig(self):
