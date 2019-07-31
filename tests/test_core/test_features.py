@@ -559,6 +559,31 @@ class FeaturesTest(TestCase):
         new = new.with_masked_annotations("exon", mask_char="?")
         self.assertEqual(new[4:9].todict(), dict(x="?????", y="--CCC"))
 
+    def test_roundtripped_alignment2(self):
+        """Sliced Alignment with annotations roundtrips correctly"""
+        # annotations just on member sequences
+        aln = LoadSeqs(
+            data=[["x", "-AAAGGGGGAACCCT"], ["y", "TTTT--TTTTAGGGA"]], array_align=False
+        )
+        of1 = aln.get_seq("x").add_annotation(Feature, "exon", "E1", [(3, 8)])
+        of2 = aln.get_seq("x").add_annotation(Feature, "exon", "E2", [(10, 13)])
+        # at the alignment level
+        sub_aln = aln[:-3]
+        s = sub_aln.named_seqs["x"]
+        e2 = s.data.get_annotations_matching("exon", "E2")[0]
+        d = s.data[:11]
+        json = s.to_json()
+        new = deserialise_object(json)
+        gf1, gf2 = list(new.data.get_annotations_matching("exon"))
+        self.assertEqual(str(gf1.get_slice()), "GGGGG")
+        self.assertEqual(str(gf2.get_slice()), "C")
+        # the sliced alignment
+        json = sub_aln.to_json()
+        got = deserialise_object(json)
+        x = got.named_seqs["x"]
+        self.assertEqual(str(x.data.annotations[0].get_slice()), "GGGGG")
+        self.assertEqual(str(x.data.annotations[1].get_slice()), "C")
+
     def test_roundtrip_variable(self):
         """should recover the Variable feature type"""
         seq = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
