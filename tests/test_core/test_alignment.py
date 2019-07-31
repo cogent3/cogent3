@@ -1211,6 +1211,10 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(set(new.names), expect)
         # renamed contains the name map as info attribute
         self.assertEqual(new.info.name_map, {k.upper(): k for k in data})
+        # if Alignment class, make sure data attribute does not have gaps
+        if self.Class == Alignment:
+            for seq in new.seqs:
+                self.assertFalse("-" in str(seq.data))
 
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
