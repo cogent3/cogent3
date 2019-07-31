@@ -508,14 +508,14 @@ class Shape:
 
 
 class Rectangle(Shape):
-    def __init__(self, x, width, y=0, height=0.5, **kwargs):
+    def __init__(self, x, width, y=0, height=0.25, **kwargs):
         super(Rectangle, self).__init__(**kwargs)
         self.x = numpy.array([x, x, x + width, x + width, x])
         self.y = numpy.array([y, y + height, y + height, y, y])
 
 
 class Diamond(Shape):
-    def __init__(self, x, width, y=0, height=0.5, **kwargs):
+    def __init__(self, x, width, y=0, height=0.25, **kwargs):
         super(Diamond, self).__init__(**kwargs)
         hw = width / 2
         hh = height / 2
@@ -525,7 +525,7 @@ class Diamond(Shape):
 
 class Arrow(Shape):
     def __init__(
-        self, x, width, y=0, height=0.5, arrow_head_w=0.1, reverse=False, **kwargs
+        self, x, width, y=0, height=0.25, arrow_head_w=0.1, reverse=False, **kwargs
     ):
         super(Arrow, self).__init__(**kwargs)
         hw = width * arrow_head_w * 2
