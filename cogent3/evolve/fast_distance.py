@@ -720,7 +720,7 @@ class DistanceMatrix(DictArray):
             result = self.__class__(dists)
         return result
 
-    def build_tree(self, show_progress=False):
+    def quick_tree(self, show_progress=False):
         """returns a neighbour joining tree
         Returns
         -------
