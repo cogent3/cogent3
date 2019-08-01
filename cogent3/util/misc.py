@@ -1109,6 +1109,16 @@ def get_object_provenance(obj):
 def extend_docstring_from(source, pre=False):
     def docstring_inheriting_decorator(dest):
         parts = [source.__doc__, dest.__doc__ or ""]
+        # trim leading/trailing blank lines from parts
+        for i, part in enumerate(parts):
+            part = part.split("\n")
+            if not part[0].strip():
+                part.pop(0)
+            if part and not part[-1].strip():
+                part.pop(-1)
+
+            parts[i] = "\n".join(part)
+
         if pre:
             parts.reverse()
         dest.__doc__ = "\n".join(parts)
