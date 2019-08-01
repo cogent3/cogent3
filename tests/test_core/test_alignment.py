@@ -2047,6 +2047,18 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         dists = aa.distance_matrix()
         self.assertEqual(dists, {("s1", "s2"): 1.0, ("s2", "s1"): 1.0})
 
+    def test_quick_tree(self):
+        """quick tree method returns tree"""
+        aln = self.Class(self.brca1_data, moltype=DNA)
+        aln = aln.take_seqs(aln.names[:5])[:100]
+        tree = aln.quick_tree(calc="hamming", show_progress=False)
+        # bootstrap
+        tree = aln.quick_tree(calc="hamming", bootstrap=2, show_progress=False)
+        for edge in tree.preorder():
+            if edge.is_root():
+                continue
+            self.assertIsInstance(edge.params["support"], float)
+
     def test_get_gapped_seq(self):
         """Alignment.get_gapped_seq should return seq, with gaps"""
         aln = self.Class({"seq1": "--TTT?", "seq2": "GATC??"})

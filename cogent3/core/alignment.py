@@ -2869,6 +2869,41 @@ class AlignmentI(object):
         result = calculator.get_pairwise_distances()
         return result
 
+    @UI.display_wrap
+    @extend_docstring_from(distance_matrix, pre=False)
+    def quick_tree(self, calc="hamming", bootstrap=None, show_progress=False, ui=None):
+        """
+        bootstrap : int or None
+            Number of non-parametric bootstrap replicates. Resamples alignment
+            columns with replacement and builds a phylogeny for each such
+            resampling.
+
+        Returns
+        -------
+        a phylogenetic tree. If bootstrap specified, returns the weighted
+        majority consensus. Support for each node is stored as
+        edge.params['params'].
+        """
+        from cogent3.phylo.consensus import weighted_majority_rule
+        from cogent3.phylo.nj import gnj
+
+        dm = self.distance_matrix(calc=calc, show_progress=show_progress)
+        results = gnj(dm, keep=1, show_progress=show_progress)
+        if bootstrap:
+            for i in ui.series(range(bootstrap), count=bootstrap, noun="bootstrap"):
+                b = self.sample(with_replacement=True)
+                bdist = b.distance_matrix(calc=calc, show_progress=show_progress)
+                bresult = gnj(bdist, keep=1, show_progress=show_progress)
+                results.extend(bresult)
+            consense = weighted_majority_rule(results)
+            assert len(consense) == 1
+            results = consense
+
+        tree = results[0]
+        if not bootstrap:
+            tree = tree[1]
+        return tree
+
     def information_plot(
         self, width=None, height=None, window=None, stat="median", include_gap=True
     ):
