@@ -204,6 +204,33 @@ class TreeGeometryBase(PhyloNode):
         # todo, possibly also return a rotation?
         raise NotImplementedError("implement in sub-class")
 
+    def support_text_coord(self, padding=0.05, threshold=1, max_attr_length=4):
+        """
+        Parameters
+        ----------
+        threshold : float
+            values below this will be displayed
+        max_attr_length: int or None
+            maximum text length of the attribute
+
+        Returns
+        -------
+        None if threshold not met, else params['support'] and coords
+        """
+        val = self.params.get("support", None)
+        if val is None or val > threshold:
+            return None
+        x = self.x + padding
+        data = UnionDict(
+            x=x,
+            y=self.y,
+            textangle=self.theta,
+            showarrow=False,
+            text=f"{val:.2f}",
+            xanchor="center",
+        )
+        return data
+
 
 class SquareTreeGeometry(TreeGeometryBase):
     """represents Square dendrograms, contemporaneous or not"""
@@ -393,6 +420,13 @@ class CircularTreeGeometry(TreeGeometryBase):
         )
         return data
 
+    @extend_docstring_from(TreeGeometryBase.support_text_coord)
+    def support_text_coord(self, padding=0.05, threshold=1, max_attr_length=4):
+        from warnings import warn
+
+        warn("Display of support on circular/radial not implemented yet", UserWarning)
+        return None
+
 
 class RadialTreeGeometry(_AngularGeometry, CircularTreeGeometry):
     def __init__(self, *args, **kwargs):
@@ -406,6 +440,8 @@ class Dendrogram(Drawable):
         style="square",
         label_pad=None,
         contemporaneous=None,
+        show_support=True,
+        threshold=1.0,
         *args,
         **kwargs,
     ):
@@ -442,6 +478,8 @@ class Dendrogram(Drawable):
         self._length_attr = self.tree._length
         self._tip_names = tuple(e.name for e in self.tree.tips())
         self._max_label_length = max(map(len, self._tip_names))
+        self._show_support = show_support
+        self._threshold = threshold
         self.layout.autosize = True
 
     @property
@@ -557,7 +595,7 @@ class Dendrogram(Drawable):
             "marker": {"symbol": "circle", "color": "black"},
             "showlegend": False,
         }
-
+        support_text = []
         get_edge_group = self._edge_mapping.get
         for edge in tree.preorder():
             key = get_edge_group(edge.name, None)
@@ -573,6 +611,13 @@ class Dendrogram(Drawable):
             text["x"].append(edge_label.x)
             text["y"].append(edge_label.y)
             text["text"].append(edge_label.text)
+            if self.show_support:
+                support = edge.support_text_coord(
+                    self.label_pad, threshold=self.support_threshold
+                )
+                if support is not None:
+                    support |= UnionDict(xref="x", yref="y", font=self.tip_font)
+                    support_text.append(support)
 
             if edge.is_tip():
                 continue
@@ -622,6 +667,9 @@ class Dendrogram(Drawable):
         self.traces.extend(traces)
         if self.tips_as_text:
             self.layout.annotations = tuple(self._get_tip_name_annotations())
+
+        if self.show_support and support_text:
+            self.layout.annotations = self.layout.annotations + tuple(support_text)
 
         if scale_shape:
             self.layout.shapes = self.layout.get("shape", []) + [scale_shape]
@@ -796,3 +844,34 @@ class Dendrogram(Drawable):
     @fig_height.setter
     def fig_height(self, height):
         self.layout.height = height
+
+    @property
+    def show_support(self):
+        """whether tree edge support entries are displayed"""
+        return self._show_support
+
+    @show_support.setter
+    def show_support(self, value):
+        """whether tree edge support entries are displayed"""
+        assert type(value) is bool
+        if value == self._show_support:
+            return
+
+        self._show_support = value
+        self._traces = []
+        self.layout.annotations = ()
+
+    @property
+    def support_threshold(self):
+        """cutoff for dislaying support"""
+        return self._threshold
+
+    @support_threshold.setter
+    def support_threshold(self, value):
+        assert 0 <= value <= 1, "Must be in [0, 1] interval"
+        if value == self._threshold:
+            return
+
+        self._threshold = value
+        self._traces = []
+        self.layout.annotations = ()
