@@ -7,6 +7,7 @@ from itertools import product
 
 from cogent3 import LoadTree
 from cogent3.core.tree import TreeBuilder
+from cogent3.util.misc import extend_docstring_from
 
 
 __author__ = "Matthew Wakefield"
@@ -48,16 +49,24 @@ def weighted_majority_rule(
     weights are taken as counts. Branch lengths calculated as per Holland
     (2006).
 
-    Args:
-        weighted_trees: A reverse ordered list of (weight, tree) tuples.
-        strict: Discard splits or clusters with consensus weight <= 0.5.
-        attr: Edge parameter in which to store consensus weight.
-        method: 'unrooted' or 'rooted': treat the trees as if they were such.
+    Parameters
+    ----------
+    weighted_trees : list
+        A reverse ordered list of (weight, tree) tuples.
+    strict : bool
+        Discard splits or clusters with consensus weight <= 0.5.
+    attr : str
+        Edge parameter in which to store consensus weight.
+    method : str
+        'unrooted' or 'rooted': treat the trees as if they were such.
 
-    Returns:
-        A list of consensus trees. List length will always be one if method is
-        'unrooted'.
+    Returns
+    -------
+    A list of consensus trees. List length will always be one if method is
+    'unrooted'.
 
+    Citations
+    ---------
     Bryant, D. (2003). A classification of consensus methods for phylogenetics.
     DIMACS series in discrete mathematics and theoretical computer science,
     61:163-184.
@@ -76,8 +85,8 @@ def weighted_majority_rule(
         raise ValueError('method must be "rooted" or "unrooted"')
 
 
+@extend_docstring_from(weighted_majority_rule)
 def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
-    """See documentation for weighted_majority_rule"""
     cladecounts = {}
     edgelengths = {}
     total = 0
@@ -156,9 +165,8 @@ def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
     return [root for root in list(nodes.values())]
 
 
+@extend_docstring_from(weighted_majority_rule)
 def weighted_unrooted_majority_rule(weighted_trees, strict=False, attr="support"):
-    """See documentation for weighted_majority_rule. All trees must have the same
-    tips"""
     # Calculate raw split lengths and weights
     split_weights = defaultdict(float)
     split_lengths = defaultdict(float)
