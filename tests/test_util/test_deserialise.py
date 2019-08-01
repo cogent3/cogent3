@@ -198,6 +198,65 @@ class TestDeserialising(TestCase):
         got = deserialise_object(json)
         self.assertEqual(got.to_rich_dict(), expect)
 
+    def test_deserialise_tabular_table(self):
+        """correctly deserialises Table"""
+        from cogent3 import LoadTable
+
+        table = LoadTable(
+            header=["id", "foo", "bar"],
+            rows=[
+                [1, "abc", 11],
+                [2, "bca", 22],
+                [3, "cab", 33],
+                [4, "abc", 44],
+                [5, "bca", 55],
+            ],
+        )
+        json = table.to_json()
+        got = deserialise_object(json)
+        self.assertEqual(got.todict(), table.todict())
+
+    def test_deserialise_tabular_dictarray(self):
+        """correctly deserialises DictArray"""
+        from cogent3.util.dict_array import DictArrayTemplate
+
+        template = DictArrayTemplate(5, ["id", "foo", "bar"])
+        data = [
+            [1, "abc", 11],
+            [2, "bca", 22],
+            [3, "cab", 33],
+            [4, "abc", 44],
+            [5, "bca", 55],
+        ]
+        darr = template.wrap(data)
+        json = darr.to_json()
+        got = deserialise_object(json)
+        self.assertEqual(got.todict(), darr.todict())
+
+    def test_deserialise_tabular_distancematrix(self):
+        """correctly deserialises DistanceMatrix"""
+        from cogent3.evolve.fast_distance import DistanceMatrix
+
+        data = {
+            ("ABAYE2984", "Atu3667"): None,
+            ("ABAYE2984", "Avin_42730"): 0.638,
+            ("ABAYE2984", "BAA10469"): None,
+            ("Atu3667", "ABAYE2984"): None,
+            ("Atu3667", "Avin_42730"): 2.368,
+            ("Atu3667", "BAA10469"): None,
+            ("Avin_42730", "ABAYE2984"): 0.638,
+            ("Avin_42730", "Atu3667"): 2.368,
+            ("Avin_42730", "BAA10469"): 1.85,
+            ("BAA10469", "ABAYE2984"): None,
+            ("BAA10469", "Atu3667"): None,
+            ("BAA10469", "Avin_42730"): 1.85,
+        }
+
+        dm = DistanceMatrix(data)
+        json = dm.to_json()
+        got = deserialise_object(json)
+        self.assertEqual(dm.todict(), got.todict())
+
 
 if __name__ == "__main__":
     main()

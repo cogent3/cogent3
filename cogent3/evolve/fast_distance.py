@@ -5,6 +5,7 @@ from numpy.linalg import LinAlgError, det, inv, norm
 
 from cogent3 import DNA, RNA, get_moltype
 from cogent3.util.dict_array import DictArray
+from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
 
 
@@ -690,6 +691,16 @@ class DistanceMatrix(DictArray):
         for n1 in self.template.names[0]:
             del result[(n1, n1)]
         return result
+
+    def to_rich_dict(self):
+        # because dicts with tuples as keys cannot be json'ed, we convert to
+        # a list of tuples
+        dists = self.todict()
+        json_safe = [(k[0], k[1], dists[k]) for k in dists]
+        data = dict(
+            dists=json_safe, invalid=self._invalid, type=get_object_provenance(self)
+        )
+        return data
 
     def drop_invalid(self, invalid=None):
         """drops all rows / columns with an invalid entry"""

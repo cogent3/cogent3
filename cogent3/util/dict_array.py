@@ -20,12 +20,15 @@
     >>> b['a'].keys()
     ['A', 'B', 'C']
 """
+import json
+
 from collections import defaultdict
 from itertools import combinations, product
 
 import numpy
 
 from cogent3.format import table
+from cogent3.util.misc import get_object_provenance
 
 
 __author__ = "Peter Maxwell"
@@ -433,6 +436,18 @@ class DictArray(object):
                 current[nested][coord[-1]] = value
 
         return result
+
+    def to_rich_dict(self):
+        data = self.array.tolist()
+        result = {
+            "type": get_object_provenance(self.template),
+            "array": data,
+            "names": self.template.names,
+        }
+        return result
+
+    def to_json(self):
+        return json.dumps(self.to_rich_dict())
 
     def __getitem__(self, names):
         (index, remaining) = self.template.interpret_index(names)
