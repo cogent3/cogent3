@@ -586,7 +586,7 @@ class TestDistanceMatrix(TestCase):
             ("TombBat", "LittleBro"): 0.12,
         }
         dists = DistanceMatrix(dists)
-        got = dists.build_tree(show_progress=False)
+        got = dists.quick_tree(show_progress=False)
         expect = LoadTree(
             treestring="((TombBat,(DogFaced,FlyingFox)),LittleBro,FreeTaile)"
         )
