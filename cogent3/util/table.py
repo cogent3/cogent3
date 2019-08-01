@@ -11,6 +11,7 @@ Table can read pickled and delimited formats.
 """
 
 import csv
+import json
 import pickle
 import warnings
 
@@ -22,7 +23,7 @@ import numpy
 from cogent3.format import bedgraph
 from cogent3.format import table as table_format
 from cogent3.util.dict_array import DictArray
-from cogent3.util.misc import get_format_suffixes, open_
+from cogent3.util.misc import get_format_suffixes, get_object_provenance, open_
 from cogent3.util.union_dict import UnionDict
 
 
@@ -1376,3 +1377,11 @@ class Table(DictArray):
         draw.traces.append(tab)
         draw.layout |= default_layout
         return draw
+
+    def to_rich_dict(self):
+        data = self.__getstate__()
+        data["type"] = get_object_provenance(self)
+        return data
+
+    def to_json(self):
+        return json.dumps(self.to_rich_dict())

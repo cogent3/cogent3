@@ -31,6 +31,30 @@ def _get_class(provenance):
     return klass
 
 
+def deserialise_tabular(data):
+    """deserialising DictArray, Table instances"""
+    type_ = data.pop("type")
+    klass = _get_class(type_)
+    if type_.endswith("Table"):
+        result = klass(**data)
+    elif "dictarray" in type_.lower():
+        named_dims = data.pop("names")
+        array = data.pop("array")
+        template = klass(*named_dims)
+        result = template.wrap(array)
+    else:  # DistanceMatrix
+        # dists is a list of simple dists from which we reconstruct a 1D dict
+        dists = {}
+        for element in data["dists"]:
+            key = tuple(element[:2])
+            value = element[2]
+            dists[key] = value
+        data["dists"] = dists
+        result = klass(**data)
+
+    return result
+
+
 def deserialise_not_completed(data):
     """deserialising NotCompletedResult"""
     klass = _get_class(data.pop("type"))
@@ -252,6 +276,12 @@ def deserialise_object(data):
         func = deserialise_result
     elif "notcompleted" in type_.lower():
         func = deserialise_not_completed
+    elif type_.lower().endswith("table"):
+        func = deserialise_tabular
+    elif "dictarray" in type_.lower():
+        func = deserialise_tabular
+    elif "distancematrix" in type_.lower():
+        func = deserialise_tabular
     else:
         msg = "deserialising '%s' from json" % type_
         raise NotImplementedError(msg)
