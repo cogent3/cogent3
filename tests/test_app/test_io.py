@@ -186,6 +186,7 @@ class TestIo(TestCase):
             dstore = io_app.get_data_store(f"{outpath}.tinydb", suffix="json")
             reader = io_app.load_db()
             got = reader(dstore[0])
+            dstore.close()
             self.assertIsInstance(got, DNA.__class__)
             self.assertEqual(got, DNA)
 
