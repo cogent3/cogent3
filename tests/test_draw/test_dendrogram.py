@@ -124,7 +124,7 @@ class TestDendro(TestCase):
 
         self.assertTrue(
             dp.get_trace_titles() != [] and len(trace_names) == len(dp.traces),
-            "No traces found found dotplot",
+            "No traces found for dotplot",
         )
         self.assertTrue(
             [trace_names[i] == dp.traces[i]["name"] for i in range(len(trace_names))],
