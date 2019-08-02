@@ -100,14 +100,19 @@ class TestDendro(TestCase):
             (func("b").x, func("b").y),
             (func("c").x, func("c").y),
             (func("d").x, func("d").y),
-            (func("e").x, func("e").y)
+            (func("e").x, func("e").y),
         ]
 
-        expected_vals = [(0, 1.3), (0.1, 2.6), (0.1, 1.3), (0.15, -2.6), (0.12, 0), (0.13, -1.3)]
-
+        expected_vals = [
+            (0, 1.3),
+            (0.1, 2.6),
+            (0.1, 1.3),
+            (0.15, -2.6),
+            (0.12, 0),
+            (0.13, -1.3),
+        ]
 
         assert_allclose(actual_vals, expected_vals)
-        # self.assertAlmostEqual(actual_vals[i][1], expected_vals[i][1])
 
 
 if __name__ == "__main__":
