@@ -95,7 +95,9 @@ class DataStoreBaseTests:
             self.assertEqual(got, expect)
 
             # now using a DataStoreMember
-            member = DataStoreMember(os.path.join("blah"+os.sep+"blah", f"2-{name}"), None)
+            member = DataStoreMember(
+                os.path.join("blah" + os.sep + "blah", f"2-{name}"), None
+            )
             got = dstore.make_absolute_identifier(member)
             expect = os.path.join(base_path, member.name.replace("fasta", "json"))
             self.assertEqual(got, expect)
@@ -103,7 +105,7 @@ class DataStoreBaseTests:
 
     def test_read(self):
         """correctly read content"""
-        with open("data"+os.sep+"brca1.fasta") as infile:
+        with open("data" + os.sep + "brca1.fasta") as infile:
             expect = {l: s for l, s in MinimalFastaParser(infile)}
 
         dstore = self.ReadClass(self.basedir, suffix=".fasta")
@@ -130,7 +132,7 @@ class DataStoreBaseTests:
 
     def test_write(self):
         """correctly write content"""
-        with open("data"+os.sep+"brca1.fasta") as infile:
+        with open("data" + os.sep + "brca1.fasta") as infile:
             expect = infile.read()
 
         with TemporaryDirectory(dir=".") as dirname:
@@ -145,7 +147,7 @@ class DataStoreBaseTests:
     @skipIf(sys.platform.lower() != "darwin", "broken on linux")
     def test_md5_write(self):
         """tracks md5 sums of written data"""
-        with open("data"+os.sep+"brca1.fasta") as infile:
+        with open("data" + os.sep + "brca1.fasta") as infile:
             expect = infile.read()
 
         with TemporaryDirectory(dir=".") as dirname:
@@ -175,10 +177,10 @@ class DataStoreBaseTests:
 
     def test_multi_write(self):
         """correctly write multiple files to data store"""
-        with open("data"+os.sep+"brca1.fasta") as infile:
+        with open("data" + os.sep + "brca1.fasta") as infile:
             expect_a = infile.read()
 
-        with open("data"+os.sep+"primates_brca1.fasta") as infile:
+        with open("data" + os.sep + "primates_brca1.fasta") as infile:
             expect_b = infile.read()
 
         with TemporaryDirectory(dir=".") as dirname:
@@ -229,7 +231,7 @@ class DataStoreBaseTests:
 
     def test_add_file(self):
         """correctly add an arbitrarily named file"""
-        with open("data"+os.sep+"brca1.fasta") as infile:
+        with open("data" + os.sep + "brca1.fasta") as infile:
             data = infile.read()
 
         with TemporaryDirectory(dir=".") as dirname:
@@ -454,7 +456,7 @@ class TinyDBDataStoreTests(TestCase):
                 id_ = dstore.make_relative_identifier(k)
                 dstore.write(id_, self.data[k])
             # now add a log file
-            dstore.add_file("data"+os.sep+"scitrack.log", cleanup=False)
+            dstore.add_file("data" + os.sep + "scitrack.log", cleanup=False)
             got = dstore.describe
             # table has rows for completed, incomplete and log
             self.assertEqual(got.shape, (3, 2))
@@ -526,7 +528,7 @@ class SingleReadStoreTests(TestCase):
 
     def test_read(self):
         """correctly read content"""
-        with open("data"+os.sep+"brca1.fasta") as infile:
+        with open("data" + os.sep + "brca1.fasta") as infile:
             expect = {l: s for l, s in MinimalFastaParser(infile)}
 
         dstore = self.Class(self.basedir, suffix=".fasta")

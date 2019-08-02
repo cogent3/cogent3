@@ -26,7 +26,7 @@ __status__ = "Alpha"
 class TestCheckpoint(TestCase):
     def test_checkpointable(self):
         """chained funcs should be be able to apply a checkpoint"""
-        path = "data"+os.sep+"brca1.fasta"
+        path = "data" + os.sep + "brca1.fasta"
         reader = io_app.load_aligned(moltype="dna")
         omit_degens = sample_app.omit_degenerates(moltype="dna")
         with TemporaryDirectory(dir=".") as dirname:
