@@ -719,7 +719,7 @@ class Table(DictArray):
             data = self.__getstate__()
             pickle.dump(data, outfile, protocol=1)
         elif sep is not None and format != "bedgraph":
-            writer = csv.writer(outfile, delimiter=sep)
+            writer = csv.writer(outfile, delimiter=sep, lineterminator="\n")
             if self.title:
                 writer.writerow([self.title])
             writer.writerow(self.header)
