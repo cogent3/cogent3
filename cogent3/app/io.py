@@ -259,6 +259,7 @@ class load_tabular(ComposableTabular):
             if num_records is None:
                 num_records = len(line)
             if strict and len(line) != num_records:
+                read.close()
                 msg = f"Inconsistent number of fields: {len(line)} " "!= {num_records}"
                 raise AssertionError(msg)
             rows.append(line)
