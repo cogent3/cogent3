@@ -94,7 +94,12 @@ def deserialise_result(data):
     klass = _get_class(data.pop("type"))
     kwargs = data.pop("result_construction")
     result = klass(**kwargs)
-    for key, value in data.items():
+    if "items" in data:
+        items = data.pop("items")
+    else:
+        # retain support for the old style result serialisation
+        items = data.items()
+    for key, value in items:
         # only deserialise the result object, other attributes loaded as
         # required
         if type(value) == dict and "app.result" in str(value.get("type")):

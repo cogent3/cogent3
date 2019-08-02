@@ -58,12 +58,14 @@ class generic_result(MutableMapping):
             "type": get_object_provenance(self),
             "result_construction": self._construction_kwargs,
         }
+        items = []
         for key, val in self.items():
             try:
                 val = val.to_rich_dict()
             except AttributeError:
                 pass
-            result[key] = val
+            items.append([key, val])
+        result["items"] = items
         return result
 
     def to_json(self):
