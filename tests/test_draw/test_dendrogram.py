@@ -73,7 +73,7 @@ class TestDendro(TestCase):
         # .x attribute is cumulative from the root, which we have set to 1
         # for 'custom', e.g. a.x == 2 + 4 == 6
         func = geom.get_node_matching_name
-        xs = [
+        actual_vals = [
             func("root").x,
             func("a").x,
             func("b").x,
@@ -84,8 +84,35 @@ class TestDendro(TestCase):
             func("g").x,
         ]
 
-        # Root x resets to 0 so any assigned value is always discarded
-        self.assertEqual(xs, [0, 6, 6, 6, 6, 14, 14, 2])
+        expected_vals = [0, 6, 6, 6, 6, 14, 14, 2]
+
+        # Root x resets to 0 so any assigned value to root is always discarded
+
+        assert_allclose(actual_vals, expected_vals)
+
+    def test_square_dendrogram_regression(self):
+        tree = LoadTree(treestring="(a:0.1,b:0.1,(c:0.05,(d:0.01,e:0.02):0.01):0.1)")
+        dendrogram = Dendrogram(tree, style="square", contemporaneous=False)
+        func = dendrogram.tree.get_node_matching_name
+        actual_vals = [
+            (func("root").x, func("root").y),
+            (func("a").x, func("a").y),
+            (func("b").x, func("b").y),
+            (func("c").x, func("c").y),
+            (func("d").x, func("d").y),
+            (func("e").x, func("e").y),
+        ]
+
+        expected_vals = [
+            (0, 1.3),
+            (0.1, 2.6),
+            (0.1, 1.3),
+            (0.15, -2.6),
+            (0.12, 0),
+            (0.13, -1.3),
+        ]
+
+        assert_allclose(actual_vals, expected_vals)
 
 
 if __name__ == "__main__":
