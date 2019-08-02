@@ -374,7 +374,7 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
     def open(self, identifier):
         identifier = self.get_relative_identifier(identifier)
         archive = zipfile.ZipFile(self.source)
-        record = archive.open(identifier)
+        record = archive.open(identifier.replace('\\', '/'))
         record = TextIOWrapper(record, encoding="latin-1")
         return record
 
