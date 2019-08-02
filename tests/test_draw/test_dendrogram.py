@@ -10,9 +10,9 @@ from cogent3.draw.dendrogram import (
 )
 
 
-__author__ = "Gavin Huttley"
+__author__ = "Gavin Huttley and Rahul Ghangas"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Rahul Ghangas"]
 __license__ = "BSD-3"
 __version__ = "2019.07.10a"
 __maintainer__ = "Gavin Huttley"
