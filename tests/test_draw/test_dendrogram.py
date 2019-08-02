@@ -2,7 +2,7 @@ from unittest import TestCase, main
 
 from numpy.testing import assert_allclose
 
-from cogent3 import LoadSeqs, LoadTree
+from cogent3 import LoadTree
 from cogent3.draw.dendrogram import (
     CircularTreeGeometry,
     Dendrogram,
@@ -113,30 +113,6 @@ class TestDendro(TestCase):
         ]
 
         assert_allclose(actual_vals, expected_vals)
-
-    def test_dotplot_regression(self):
-        aln = LoadSeqs("data/brca1.fasta")
-        aln = aln.take_seqs(["Human", "Chimpanzee"])
-        aln = aln[:200]
-        dp = aln.dotplot()
-        dp.figure
-        trace_names = dp.get_trace_titles()
-
-        self.assertTrue(
-            dp.get_trace_titles() != [] and len(trace_names) == len(dp.traces),
-            "No traces found for dotplot",
-        )
-        self.assertTrue(
-            [trace_names[i] == dp.traces[i]["name"] for i in range(len(trace_names))],
-            "Order of traces don't match with get_trace_titles()",
-        )
-
-        for trace_name in trace_names:
-            dp.pop_trace(trace_name)
-            self.assertFalse(
-                trace_name in dp.get_trace_titles(),
-                "Trace name still present in get_trace_titles() even after popping off trace",
-            )
 
 
 if __name__ == "__main__":
