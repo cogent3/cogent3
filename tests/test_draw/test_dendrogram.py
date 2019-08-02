@@ -87,8 +87,8 @@ class TestDendro(TestCase):
         expected_vals = [0, 6, 6, 6, 6, 14, 14, 2]
 
         # Root x resets to 0 so any assigned value to root is always discarded
-        for i in range(len(actual_vals)):
-            self.assertAlmostEqual(actual_vals[i], expected_vals[i])
+
+        assert_allclose(actual_vals, expected_vals)
 
     def test_square_dendrogram_regression(self):
         tree = LoadTree(treestring="(a:0.1,b:0.1,(c:0.05,(d:0.01,e:0.02):0.01):0.1)")
@@ -105,9 +105,9 @@ class TestDendro(TestCase):
 
         expected_vals = [(0, 1.3), (0.1, 2.6), (0.1, 1.3), (0.15, -2.6), (0.12, 0), (0.13, -1.3)]
 
-        for i in range(len(actual_vals)):
-            self.assertAlmostEqual(actual_vals[i][0], expected_vals[i][0])
-            self.assertAlmostEqual(actual_vals[i][1], expected_vals[i][1])
+
+        assert_allclose(actual_vals, expected_vals)
+        # self.assertAlmostEqual(actual_vals[i][1], expected_vals[i][1])
 
 
 if __name__ == "__main__":
