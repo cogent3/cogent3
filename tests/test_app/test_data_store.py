@@ -128,7 +128,6 @@ class DataStoreBaseTests:
         # this property also directly available on the member
         member = dstore.get_member(identifier)
         self.assertEqual(member.md5, md5)
-        dstore.close()
 
     def test_write(self):
         """correctly write content"""
