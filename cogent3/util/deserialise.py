@@ -253,7 +253,11 @@ def deserialise_likelihood_function(data):
 
 
 def deserialise_object(data):
-    if type(data) is str and os.path.exists(data):
+    try:
+        is_path = os.path.exists(data)
+    except (ValueError, TypeError):
+        is_path = False
+    if type(data) is str and is_path:
         with open_(data) as infile:
             data = json.load(infile)
 
