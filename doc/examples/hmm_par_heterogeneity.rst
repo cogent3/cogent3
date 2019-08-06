@@ -250,13 +250,10 @@ We then illustrate how to adjust the bin probabilities, here doing it so that on
     NineBande     root      0.1
      DogFaced     root      0.1
     ---------------------------
-    ==============
-    motif   mprobs
-    --------------
-        T      0.2
-        C      0.2
-        A      0.4
-        G      0.2
-    --------------
+    =====================
+      A     C     G     T
+    ---------------------
+    0.4   0.2   0.2   0.2
+    ---------------------
     >>> print(lf_kappa.get_log_likelihood())
     -8749.3...
