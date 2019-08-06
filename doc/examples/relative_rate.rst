@@ -55,6 +55,8 @@ View the resulting maximum-likelihood parameter values.
     >>> lf.set_name("clock")
     >>> print(lf)
     clock
+    log-likelihood = -8751.9425
+    number of free parameters = 7
     =====
     kappa
     -----
@@ -71,14 +73,11 @@ View the resulting maximum-likelihood parameter values.
     NineBande     root     0.09
      DogFaced     root     0.11
     ---------------------------
-    ==============
-    motif   mprobs
-    --------------
-        T     0.23
-        C     0.19
-        A     0.37
-        G     0.21
-    --------------
+    =========================
+       A      C      G      T
+    -------------------------
+    0.37   0.19   0.21   0.23
+    -------------------------
 
 We extract the log-likelihood and number of free parameters for later use.
 
@@ -106,6 +105,8 @@ View the resulting maximum-likelihood parameter values.
     >>> lf.set_name("non clock")
     >>> print(lf)
     non clock
+    log-likelihood = -8750.5889
+    number of free parameters = 8
     =====
     kappa
     -----
@@ -122,14 +123,11 @@ View the resulting maximum-likelihood parameter values.
     NineBande     root     0.09
      DogFaced     root     0.11
     ---------------------------
-    ==============
-    motif   mprobs
-    --------------
-        T     0.23
-        C     0.19
-        A     0.37
-        G     0.21
-    --------------
+    =========================
+       A      C      G      T
+    -------------------------
+    0.37   0.19   0.21   0.23
+    -------------------------
 
 These two lnL's are now used to calculate the likelihood ratio statistic it's degrees-of-freedom and the probability of observing the LR.
 
