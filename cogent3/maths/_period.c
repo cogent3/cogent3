@@ -1789,12 +1789,15 @@ static const char __pyx_k_period[] = "period";
 static const char __pyx_k_result[] = "result";
 static const char __pyx_k_s_prev[] = "s_prev";
 static const char __pyx_k_s_prev2[] = "s_prev2";
+static const char __pyx_k_version[] = "__version__";
 static const char __pyx_k_ValueError[] = "ValueError";
 static const char __pyx_k_num_motifs[] = "num_motifs";
+static const char __pyx_k_2019_07_10a[] = "('2019', '07', '10a')";
 static const char __pyx_k_ImportError[] = "ImportError";
 static const char __pyx_k_ipdft_inner[] = "ipdft_inner";
 static const char __pyx_k_RuntimeError[] = "RuntimeError";
 static const char __pyx_k_motif_length[] = "motif_length";
+static const char __pyx_k_version_info[] = "version_info";
 static const char __pyx_k_autocorr_inner[] = "autocorr_inner";
 static const char __pyx_k_goertzel_inner[] = "goertzel_inner";
 static const char __pyx_k_seq_to_symbols[] = "seq_to_symbols";
@@ -1809,6 +1812,7 @@ static const char __pyx_k_Non_native_byte_order_not_suppor[] = "Non-native byte 
 static const char __pyx_k_ndarray_is_not_Fortran_contiguou[] = "ndarray is not Fortran contiguous";
 static const char __pyx_k_numpy_core_umath_failed_to_impor[] = "numpy.core.umath failed to import";
 static const char __pyx_k_Format_string_allocated_too_shor_2[] = "Format string allocated too short.";
+static PyObject *__pyx_kp_s_2019_07_10a;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor_2;
 static PyObject *__pyx_n_s_ImportError;
@@ -1858,6 +1862,8 @@ static PyObject *__pyx_n_s_sqrt;
 static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_n_s_ulim;
 static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
+static PyObject *__pyx_n_s_version;
+static PyObject *__pyx_n_s_version_info;
 static PyObject *__pyx_n_s_w;
 static PyObject *__pyx_n_s_x;
 static PyObject *__pyx_n_s_xc;
@@ -1869,6 +1875,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static PyObject *__pyx_float_2_0;
 static PyObject *__pyx_int_2;
+static PyObject *__pyx_int_3;
 static PyObject *__pyx_tuple_;
 static PyObject *__pyx_tuple__2;
 static PyObject *__pyx_tuple__3;
@@ -1877,16 +1884,17 @@ static PyObject *__pyx_tuple__5;
 static PyObject *__pyx_tuple__6;
 static PyObject *__pyx_tuple__7;
 static PyObject *__pyx_tuple__8;
-static PyObject *__pyx_tuple__10;
-static PyObject *__pyx_tuple__12;
-static PyObject *__pyx_tuple__14;
-static PyObject *__pyx_codeobj__9;
-static PyObject *__pyx_codeobj__11;
-static PyObject *__pyx_codeobj__13;
-static PyObject *__pyx_codeobj__15;
+static PyObject *__pyx_tuple__9;
+static PyObject *__pyx_tuple__11;
+static PyObject *__pyx_tuple__13;
+static PyObject *__pyx_tuple__15;
+static PyObject *__pyx_codeobj__10;
+static PyObject *__pyx_codeobj__12;
+static PyObject *__pyx_codeobj__14;
+static PyObject *__pyx_codeobj__16;
 /* Late includes */
 
-/* "cogent3/maths/_period.pyx":6
+/* "cogent3/maths/_period.pyx":9
  * # TODO intro the version idea of peter's see email from him on Wednesday, 26 May 2010
  * 
  * def goertzel_inner(np.ndarray[np.float64_t, ndim=1] x, int N, int period):             # <<<<<<<<<<<<<<
@@ -1930,17 +1938,17 @@ static PyObject *__pyx_pw_7cogent3_5maths_7_period_1goertzel_inner(PyObject *__p
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_N)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("goertzel_inner", 1, 3, 3, 1); __PYX_ERR(0, 6, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("goertzel_inner", 1, 3, 3, 1); __PYX_ERR(0, 9, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_period)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("goertzel_inner", 1, 3, 3, 2); __PYX_ERR(0, 6, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("goertzel_inner", 1, 3, 3, 2); __PYX_ERR(0, 9, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "goertzel_inner") < 0)) __PYX_ERR(0, 6, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "goertzel_inner") < 0)) __PYX_ERR(0, 9, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -1950,18 +1958,18 @@ static PyObject *__pyx_pw_7cogent3_5maths_7_period_1goertzel_inner(PyObject *__p
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
     __pyx_v_x = ((PyArrayObject *)values[0]);
-    __pyx_v_N = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_N == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 6, __pyx_L3_error)
-    __pyx_v_period = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_period == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 6, __pyx_L3_error)
+    __pyx_v_N = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_N == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
+    __pyx_v_period = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_period == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("goertzel_inner", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 6, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("goertzel_inner", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 9, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cogent3.maths._period.goertzel_inner", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_x), __pyx_ptype_5numpy_ndarray, 1, "x", 0))) __PYX_ERR(0, 6, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_x), __pyx_ptype_5numpy_ndarray, 1, "x", 0))) __PYX_ERR(0, 9, __pyx_L1_error)
   __pyx_r = __pyx_pf_7cogent3_5maths_7_period_goertzel_inner(__pyx_self, __pyx_v_x, __pyx_v_N, __pyx_v_period);
 
   /* function exit code */
@@ -2002,27 +2010,27 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_goertzel_inner(CYTHON_UNUSED 
   __pyx_pybuffernd_x.rcbuffer = &__pyx_pybuffer_x;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_x.rcbuffer->pybuffer, (PyObject*)__pyx_v_x, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 6, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_x.rcbuffer->pybuffer, (PyObject*)__pyx_v_x, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 9, __pyx_L1_error)
   }
   __pyx_pybuffernd_x.diminfo[0].strides = __pyx_pybuffernd_x.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_x.diminfo[0].shape = __pyx_pybuffernd_x.rcbuffer->pybuffer.shape[0];
 
-  /* "cogent3/maths/_period.pyx":11
+  /* "cogent3/maths/_period.pyx":14
  *     cdef np.float64_t coeff, s, s_prev, s_prev2, power
  * 
  *     coeff = 2.0 * cos(2 * pi / period)             # <<<<<<<<<<<<<<
  *     s_prev = 0.0
  *     s_prev2 = 0.0
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_cos); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 11, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_cos); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_pi); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 11, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_pi); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyNumber_Multiply(__pyx_int_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 11, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Multiply(__pyx_int_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_period); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 11, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_period); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyNumber_Divide(__pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 11, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyNumber_Divide(__pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -2039,17 +2047,17 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_goertzel_inner(CYTHON_UNUSED 
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_t_5) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_5);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 11, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyNumber_Multiply(__pyx_float_2_0, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 11, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Multiply(__pyx_float_2_0, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_6 == ((npy_float64)-1)) && PyErr_Occurred())) __PYX_ERR(0, 11, __pyx_L1_error)
+  __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_6 == ((npy_float64)-1)) && PyErr_Occurred())) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_coeff = __pyx_t_6;
 
-  /* "cogent3/maths/_period.pyx":12
+  /* "cogent3/maths/_period.pyx":15
  * 
  *     coeff = 2.0 * cos(2 * pi / period)
  *     s_prev = 0.0             # <<<<<<<<<<<<<<
@@ -2058,7 +2066,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_goertzel_inner(CYTHON_UNUSED 
  */
   __pyx_v_s_prev = 0.0;
 
-  /* "cogent3/maths/_period.pyx":13
+  /* "cogent3/maths/_period.pyx":16
  *     coeff = 2.0 * cos(2 * pi / period)
  *     s_prev = 0.0
  *     s_prev2 = 0.0             # <<<<<<<<<<<<<<
@@ -2067,7 +2075,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_goertzel_inner(CYTHON_UNUSED 
  */
   __pyx_v_s_prev2 = 0.0;
 
-  /* "cogent3/maths/_period.pyx":14
+  /* "cogent3/maths/_period.pyx":17
  *     s_prev = 0.0
  *     s_prev2 = 0.0
  *     for n in range(N):             # <<<<<<<<<<<<<<
@@ -2079,7 +2087,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_goertzel_inner(CYTHON_UNUSED 
   for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
     __pyx_v_n = __pyx_t_9;
 
-    /* "cogent3/maths/_period.pyx":15
+    /* "cogent3/maths/_period.pyx":18
  *     s_prev2 = 0.0
  *     for n in range(N):
  *         s = x[n] + coeff * s_prev - s_prev2             # <<<<<<<<<<<<<<
@@ -2094,11 +2102,11 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_goertzel_inner(CYTHON_UNUSED 
     } else if (unlikely(__pyx_t_10 >= __pyx_pybuffernd_x.diminfo[0].shape)) __pyx_t_11 = 0;
     if (unlikely(__pyx_t_11 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_11);
-      __PYX_ERR(0, 15, __pyx_L1_error)
+      __PYX_ERR(0, 18, __pyx_L1_error)
     }
     __pyx_v_s = (((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_x.rcbuffer->pybuffer.buf, __pyx_t_10, __pyx_pybuffernd_x.diminfo[0].strides)) + (__pyx_v_coeff * __pyx_v_s_prev)) - __pyx_v_s_prev2);
 
-    /* "cogent3/maths/_period.pyx":16
+    /* "cogent3/maths/_period.pyx":19
  *     for n in range(N):
  *         s = x[n] + coeff * s_prev - s_prev2
  *         s_prev2 = s_prev             # <<<<<<<<<<<<<<
@@ -2107,7 +2115,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_goertzel_inner(CYTHON_UNUSED 
  */
     __pyx_v_s_prev2 = __pyx_v_s_prev;
 
-    /* "cogent3/maths/_period.pyx":17
+    /* "cogent3/maths/_period.pyx":20
  *         s = x[n] + coeff * s_prev - s_prev2
  *         s_prev2 = s_prev
  *         s_prev = s             # <<<<<<<<<<<<<<
@@ -2117,16 +2125,16 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_goertzel_inner(CYTHON_UNUSED 
     __pyx_v_s_prev = __pyx_v_s;
   }
 
-  /* "cogent3/maths/_period.pyx":19
+  /* "cogent3/maths/_period.pyx":22
  *         s_prev = s
  * 
  *     power = sqrt(s_prev2**2 + s_prev**2 - coeff * s_prev2 * s_prev)             # <<<<<<<<<<<<<<
  *     return power
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_sqrt); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 19, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_sqrt); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = PyFloat_FromDouble(((pow(__pyx_v_s_prev2, 2.0) + pow(__pyx_v_s_prev, 2.0)) - ((__pyx_v_coeff * __pyx_v_s_prev2) * __pyx_v_s_prev))); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 19, __pyx_L1_error)
+  __pyx_t_5 = PyFloat_FromDouble(((pow(__pyx_v_s_prev2, 2.0) + pow(__pyx_v_s_prev, 2.0)) - ((__pyx_v_coeff * __pyx_v_s_prev2) * __pyx_v_s_prev))); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
@@ -2141,14 +2149,14 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_goertzel_inner(CYTHON_UNUSED 
   __pyx_t_2 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_3, __pyx_t_5) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 19, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_6 == ((npy_float64)-1)) && PyErr_Occurred())) __PYX_ERR(0, 19, __pyx_L1_error)
+  __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_6 == ((npy_float64)-1)) && PyErr_Occurred())) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_power = __pyx_t_6;
 
-  /* "cogent3/maths/_period.pyx":20
+  /* "cogent3/maths/_period.pyx":23
  * 
  *     power = sqrt(s_prev2**2 + s_prev**2 - coeff * s_prev2 * s_prev)
  *     return power             # <<<<<<<<<<<<<<
@@ -2156,13 +2164,13 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_goertzel_inner(CYTHON_UNUSED 
  * def ipdft_inner(np.ndarray[np.float64_t, ndim=1] x,
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_power); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 20, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_power); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "cogent3/maths/_period.pyx":6
+  /* "cogent3/maths/_period.pyx":9
  * # TODO intro the version idea of peter's see email from him on Wednesday, 26 May 2010
  * 
  * def goertzel_inner(np.ndarray[np.float64_t, ndim=1] x, int N, int period):             # <<<<<<<<<<<<<<
@@ -2194,7 +2202,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_goertzel_inner(CYTHON_UNUSED 
   return __pyx_r;
 }
 
-/* "cogent3/maths/_period.pyx":22
+/* "cogent3/maths/_period.pyx":25
  *     return power
  * 
  * def ipdft_inner(np.ndarray[np.float64_t, ndim=1] x,             # <<<<<<<<<<<<<<
@@ -2244,29 +2252,29 @@ static PyObject *__pyx_pw_7cogent3_5maths_7_period_3ipdft_inner(PyObject *__pyx_
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_X)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("ipdft_inner", 1, 5, 5, 1); __PYX_ERR(0, 22, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("ipdft_inner", 1, 5, 5, 1); __PYX_ERR(0, 25, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_W)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("ipdft_inner", 1, 5, 5, 2); __PYX_ERR(0, 22, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("ipdft_inner", 1, 5, 5, 2); __PYX_ERR(0, 25, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_ulim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("ipdft_inner", 1, 5, 5, 3); __PYX_ERR(0, 22, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("ipdft_inner", 1, 5, 5, 3); __PYX_ERR(0, 25, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_N)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("ipdft_inner", 1, 5, 5, 4); __PYX_ERR(0, 22, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("ipdft_inner", 1, 5, 5, 4); __PYX_ERR(0, 25, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "ipdft_inner") < 0)) __PYX_ERR(0, 22, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "ipdft_inner") < 0)) __PYX_ERR(0, 25, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 5) {
       goto __pyx_L5_argtuple_error;
@@ -2280,20 +2288,20 @@ static PyObject *__pyx_pw_7cogent3_5maths_7_period_3ipdft_inner(PyObject *__pyx_
     __pyx_v_x = ((PyArrayObject *)values[0]);
     __pyx_v_X = ((PyArrayObject *)values[1]);
     __pyx_v_W = ((PyArrayObject *)values[2]);
-    __pyx_v_ulim = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_ulim == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 25, __pyx_L3_error)
-    __pyx_v_N = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_N == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 25, __pyx_L3_error)
+    __pyx_v_ulim = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_ulim == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 28, __pyx_L3_error)
+    __pyx_v_N = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_N == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 28, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("ipdft_inner", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 22, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("ipdft_inner", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 25, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cogent3.maths._period.ipdft_inner", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_x), __pyx_ptype_5numpy_ndarray, 1, "x", 0))) __PYX_ERR(0, 22, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_X), __pyx_ptype_5numpy_ndarray, 1, "X", 0))) __PYX_ERR(0, 23, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_W), __pyx_ptype_5numpy_ndarray, 1, "W", 0))) __PYX_ERR(0, 24, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_x), __pyx_ptype_5numpy_ndarray, 1, "x", 0))) __PYX_ERR(0, 25, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_X), __pyx_ptype_5numpy_ndarray, 1, "X", 0))) __PYX_ERR(0, 26, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_W), __pyx_ptype_5numpy_ndarray, 1, "W", 0))) __PYX_ERR(0, 27, __pyx_L1_error)
   __pyx_r = __pyx_pf_7cogent3_5maths_7_period_2ipdft_inner(__pyx_self, __pyx_v_x, __pyx_v_X, __pyx_v_W, __pyx_v_ulim, __pyx_v_N);
 
   /* function exit code */
@@ -2346,21 +2354,21 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_2ipdft_inner(CYTHON_UNUSED Py
   __pyx_pybuffernd_W.rcbuffer = &__pyx_pybuffer_W;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_x.rcbuffer->pybuffer, (PyObject*)__pyx_v_x, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 22, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_x.rcbuffer->pybuffer, (PyObject*)__pyx_v_x, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 25, __pyx_L1_error)
   }
   __pyx_pybuffernd_x.diminfo[0].strides = __pyx_pybuffernd_x.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_x.diminfo[0].shape = __pyx_pybuffernd_x.rcbuffer->pybuffer.shape[0];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_X.rcbuffer->pybuffer, (PyObject*)__pyx_v_X, &__Pyx_TypeInfo___pyx_t_double_complex, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 22, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_X.rcbuffer->pybuffer, (PyObject*)__pyx_v_X, &__Pyx_TypeInfo___pyx_t_double_complex, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 25, __pyx_L1_error)
   }
   __pyx_pybuffernd_X.diminfo[0].strides = __pyx_pybuffernd_X.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_X.diminfo[0].shape = __pyx_pybuffernd_X.rcbuffer->pybuffer.shape[0];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_W.rcbuffer->pybuffer, (PyObject*)__pyx_v_W, &__Pyx_TypeInfo___pyx_t_double_complex, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 22, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_W.rcbuffer->pybuffer, (PyObject*)__pyx_v_W, &__Pyx_TypeInfo___pyx_t_double_complex, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 25, __pyx_L1_error)
   }
   __pyx_pybuffernd_W.diminfo[0].strides = __pyx_pybuffernd_W.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_W.diminfo[0].shape = __pyx_pybuffernd_W.rcbuffer->pybuffer.shape[0];
 
-  /* "cogent3/maths/_period.pyx":31
+  /* "cogent3/maths/_period.pyx":34
  *     cdef np.complex128_t w
  * 
  *     for p in range(ulim):             # <<<<<<<<<<<<<<
@@ -2372,7 +2380,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_2ipdft_inner(CYTHON_UNUSED Py
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_p = __pyx_t_3;
 
-    /* "cogent3/maths/_period.pyx":32
+    /* "cogent3/maths/_period.pyx":35
  * 
  *     for p in range(ulim):
  *         w = 1.0             # <<<<<<<<<<<<<<
@@ -2381,7 +2389,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_2ipdft_inner(CYTHON_UNUSED Py
  */
     __pyx_v_w = __pyx_t_double_complex_from_parts(1.0, 0);
 
-    /* "cogent3/maths/_period.pyx":33
+    /* "cogent3/maths/_period.pyx":36
  *     for p in range(ulim):
  *         w = 1.0
  *         for n in range(N):             # <<<<<<<<<<<<<<
@@ -2393,7 +2401,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_2ipdft_inner(CYTHON_UNUSED Py
     for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
       __pyx_v_n = __pyx_t_6;
 
-      /* "cogent3/maths/_period.pyx":34
+      /* "cogent3/maths/_period.pyx":37
  *         w = 1.0
  *         for n in range(N):
  *             if n != 0:             # <<<<<<<<<<<<<<
@@ -2403,7 +2411,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_2ipdft_inner(CYTHON_UNUSED Py
       __pyx_t_7 = ((__pyx_v_n != 0) != 0);
       if (__pyx_t_7) {
 
-        /* "cogent3/maths/_period.pyx":35
+        /* "cogent3/maths/_period.pyx":38
  *         for n in range(N):
  *             if n != 0:
  *                 w = w * W[p]             # <<<<<<<<<<<<<<
@@ -2418,11 +2426,11 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_2ipdft_inner(CYTHON_UNUSED Py
         } else if (unlikely(__pyx_t_8 >= __pyx_pybuffernd_W.diminfo[0].shape)) __pyx_t_9 = 0;
         if (unlikely(__pyx_t_9 != -1)) {
           __Pyx_RaiseBufferIndexError(__pyx_t_9);
-          __PYX_ERR(0, 35, __pyx_L1_error)
+          __PYX_ERR(0, 38, __pyx_L1_error)
         }
         __pyx_v_w = __Pyx_c_prod_double(__pyx_v_w, (*__Pyx_BufPtrStrided1d(__pyx_t_double_complex *, __pyx_pybuffernd_W.rcbuffer->pybuffer.buf, __pyx_t_8, __pyx_pybuffernd_W.diminfo[0].strides)));
 
-        /* "cogent3/maths/_period.pyx":34
+        /* "cogent3/maths/_period.pyx":37
  *         w = 1.0
  *         for n in range(N):
  *             if n != 0:             # <<<<<<<<<<<<<<
@@ -2431,7 +2439,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_2ipdft_inner(CYTHON_UNUSED Py
  */
       }
 
-      /* "cogent3/maths/_period.pyx":36
+      /* "cogent3/maths/_period.pyx":39
  *             if n != 0:
  *                 w = w * W[p]
  *             X[p] = X[p] + x[n]*w             # <<<<<<<<<<<<<<
@@ -2446,7 +2454,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_2ipdft_inner(CYTHON_UNUSED Py
       } else if (unlikely(__pyx_t_10 >= __pyx_pybuffernd_X.diminfo[0].shape)) __pyx_t_9 = 0;
       if (unlikely(__pyx_t_9 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_9);
-        __PYX_ERR(0, 36, __pyx_L1_error)
+        __PYX_ERR(0, 39, __pyx_L1_error)
       }
       __pyx_t_11 = (*__Pyx_BufPtrStrided1d(__pyx_t_double_complex *, __pyx_pybuffernd_X.rcbuffer->pybuffer.buf, __pyx_t_10, __pyx_pybuffernd_X.diminfo[0].strides));
       __pyx_t_12 = __pyx_v_n;
@@ -2457,7 +2465,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_2ipdft_inner(CYTHON_UNUSED Py
       } else if (unlikely(__pyx_t_12 >= __pyx_pybuffernd_x.diminfo[0].shape)) __pyx_t_9 = 0;
       if (unlikely(__pyx_t_9 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_9);
-        __PYX_ERR(0, 36, __pyx_L1_error)
+        __PYX_ERR(0, 39, __pyx_L1_error)
       }
       __pyx_t_13 = __Pyx_c_sum_npy_float64(__pyx_t_npy_float64_complex_from_parts(__Pyx_CREAL(__pyx_t_11), __Pyx_CIMAG(__pyx_t_11)), __Pyx_c_prod_npy_float64(__pyx_t_npy_float64_complex_from_parts((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_x.rcbuffer->pybuffer.buf, __pyx_t_12, __pyx_pybuffernd_x.diminfo[0].strides)), 0), __pyx_t_npy_float64_complex_from_parts(__Pyx_CREAL(__pyx_v_w), __Pyx_CIMAG(__pyx_v_w))));
       __pyx_t_14 = __pyx_v_p;
@@ -2468,13 +2476,13 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_2ipdft_inner(CYTHON_UNUSED Py
       } else if (unlikely(__pyx_t_14 >= __pyx_pybuffernd_X.diminfo[0].shape)) __pyx_t_9 = 0;
       if (unlikely(__pyx_t_9 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_9);
-        __PYX_ERR(0, 36, __pyx_L1_error)
+        __PYX_ERR(0, 39, __pyx_L1_error)
       }
       *__Pyx_BufPtrStrided1d(__pyx_t_double_complex *, __pyx_pybuffernd_X.rcbuffer->pybuffer.buf, __pyx_t_14, __pyx_pybuffernd_X.diminfo[0].strides) = __pyx_t_double_complex_from_parts(__Pyx_CREAL(__pyx_t_13), __Pyx_CIMAG(__pyx_t_13));
     }
   }
 
-  /* "cogent3/maths/_period.pyx":37
+  /* "cogent3/maths/_period.pyx":40
  *                 w = w * W[p]
  *             X[p] = X[p] + x[n]*w
  *     return X             # <<<<<<<<<<<<<<
@@ -2486,7 +2494,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_2ipdft_inner(CYTHON_UNUSED Py
   __pyx_r = ((PyObject *)__pyx_v_X);
   goto __pyx_L0;
 
-  /* "cogent3/maths/_period.pyx":22
+  /* "cogent3/maths/_period.pyx":25
  *     return power
  * 
  * def ipdft_inner(np.ndarray[np.float64_t, ndim=1] x,             # <<<<<<<<<<<<<<
@@ -2517,7 +2525,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_2ipdft_inner(CYTHON_UNUSED Py
   return __pyx_r;
 }
 
-/* "cogent3/maths/_period.pyx":39
+/* "cogent3/maths/_period.pyx":42
  *     return X
  * 
  * def autocorr_inner(np.ndarray[np.float64_t, ndim=1] x, np.ndarray[np.float64_t, ndim=1] xc, int N):             # <<<<<<<<<<<<<<
@@ -2560,17 +2568,17 @@ static PyObject *__pyx_pw_7cogent3_5maths_7_period_5autocorr_inner(PyObject *__p
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_xc)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("autocorr_inner", 1, 3, 3, 1); __PYX_ERR(0, 39, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("autocorr_inner", 1, 3, 3, 1); __PYX_ERR(0, 42, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_N)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("autocorr_inner", 1, 3, 3, 2); __PYX_ERR(0, 39, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("autocorr_inner", 1, 3, 3, 2); __PYX_ERR(0, 42, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "autocorr_inner") < 0)) __PYX_ERR(0, 39, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "autocorr_inner") < 0)) __PYX_ERR(0, 42, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -2581,18 +2589,18 @@ static PyObject *__pyx_pw_7cogent3_5maths_7_period_5autocorr_inner(PyObject *__p
     }
     __pyx_v_x = ((PyArrayObject *)values[0]);
     __pyx_v_xc = ((PyArrayObject *)values[1]);
-    __pyx_v_N = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_N == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 39, __pyx_L3_error)
+    __pyx_v_N = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_N == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 42, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("autocorr_inner", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 39, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("autocorr_inner", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 42, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cogent3.maths._period.autocorr_inner", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_x), __pyx_ptype_5numpy_ndarray, 1, "x", 0))) __PYX_ERR(0, 39, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_xc), __pyx_ptype_5numpy_ndarray, 1, "xc", 0))) __PYX_ERR(0, 39, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_x), __pyx_ptype_5numpy_ndarray, 1, "x", 0))) __PYX_ERR(0, 42, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_xc), __pyx_ptype_5numpy_ndarray, 1, "xc", 0))) __PYX_ERR(0, 42, __pyx_L1_error)
   __pyx_r = __pyx_pf_7cogent3_5maths_7_period_4autocorr_inner(__pyx_self, __pyx_v_x, __pyx_v_xc, __pyx_v_N);
 
   /* function exit code */
@@ -2636,16 +2644,16 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_4autocorr_inner(CYTHON_UNUSED
   __pyx_pybuffernd_xc.rcbuffer = &__pyx_pybuffer_xc;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_x.rcbuffer->pybuffer, (PyObject*)__pyx_v_x, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 39, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_x.rcbuffer->pybuffer, (PyObject*)__pyx_v_x, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 42, __pyx_L1_error)
   }
   __pyx_pybuffernd_x.diminfo[0].strides = __pyx_pybuffernd_x.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_x.diminfo[0].shape = __pyx_pybuffernd_x.rcbuffer->pybuffer.shape[0];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_xc.rcbuffer->pybuffer, (PyObject*)__pyx_v_xc, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 39, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_xc.rcbuffer->pybuffer, (PyObject*)__pyx_v_xc, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 42, __pyx_L1_error)
   }
   __pyx_pybuffernd_xc.diminfo[0].strides = __pyx_pybuffernd_xc.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_xc.diminfo[0].shape = __pyx_pybuffernd_xc.rcbuffer->pybuffer.shape[0];
 
-  /* "cogent3/maths/_period.pyx":42
+  /* "cogent3/maths/_period.pyx":45
  *     cdef int m, n
  * 
  *     for m in range(-N+1, N):             # <<<<<<<<<<<<<<
@@ -2657,7 +2665,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_4autocorr_inner(CYTHON_UNUSED
   for (__pyx_t_3 = ((-__pyx_v_N) + 1); __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_m = __pyx_t_3;
 
-    /* "cogent3/maths/_period.pyx":43
+    /* "cogent3/maths/_period.pyx":46
  * 
  *     for m in range(-N+1, N):
  *         for n in range(N):             # <<<<<<<<<<<<<<
@@ -2669,7 +2677,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_4autocorr_inner(CYTHON_UNUSED
     for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
       __pyx_v_n = __pyx_t_6;
 
-      /* "cogent3/maths/_period.pyx":44
+      /* "cogent3/maths/_period.pyx":47
  *     for m in range(-N+1, N):
  *         for n in range(N):
  *             if 0 <= n-m < N:             # <<<<<<<<<<<<<<
@@ -2684,7 +2692,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_4autocorr_inner(CYTHON_UNUSED
       __pyx_t_9 = (__pyx_t_8 != 0);
       if (__pyx_t_9) {
 
-        /* "cogent3/maths/_period.pyx":45
+        /* "cogent3/maths/_period.pyx":48
  *         for n in range(N):
  *             if 0 <= n-m < N:
  *                 xc[m+N-1] += (x[n]*x[n-m])             # <<<<<<<<<<<<<<
@@ -2699,7 +2707,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_4autocorr_inner(CYTHON_UNUSED
         } else if (unlikely(__pyx_t_10 >= __pyx_pybuffernd_x.diminfo[0].shape)) __pyx_t_7 = 0;
         if (unlikely(__pyx_t_7 != -1)) {
           __Pyx_RaiseBufferIndexError(__pyx_t_7);
-          __PYX_ERR(0, 45, __pyx_L1_error)
+          __PYX_ERR(0, 48, __pyx_L1_error)
         }
         __pyx_t_11 = (__pyx_v_n - __pyx_v_m);
         __pyx_t_7 = -1;
@@ -2709,7 +2717,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_4autocorr_inner(CYTHON_UNUSED
         } else if (unlikely(__pyx_t_11 >= __pyx_pybuffernd_x.diminfo[0].shape)) __pyx_t_7 = 0;
         if (unlikely(__pyx_t_7 != -1)) {
           __Pyx_RaiseBufferIndexError(__pyx_t_7);
-          __PYX_ERR(0, 45, __pyx_L1_error)
+          __PYX_ERR(0, 48, __pyx_L1_error)
         }
         __pyx_t_12 = ((__pyx_v_m + __pyx_v_N) - 1);
         __pyx_t_7 = -1;
@@ -2719,11 +2727,11 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_4autocorr_inner(CYTHON_UNUSED
         } else if (unlikely(__pyx_t_12 >= __pyx_pybuffernd_xc.diminfo[0].shape)) __pyx_t_7 = 0;
         if (unlikely(__pyx_t_7 != -1)) {
           __Pyx_RaiseBufferIndexError(__pyx_t_7);
-          __PYX_ERR(0, 45, __pyx_L1_error)
+          __PYX_ERR(0, 48, __pyx_L1_error)
         }
         *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_xc.rcbuffer->pybuffer.buf, __pyx_t_12, __pyx_pybuffernd_xc.diminfo[0].strides) += ((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_x.rcbuffer->pybuffer.buf, __pyx_t_10, __pyx_pybuffernd_x.diminfo[0].strides)) * (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_x.rcbuffer->pybuffer.buf, __pyx_t_11, __pyx_pybuffernd_x.diminfo[0].strides)));
 
-        /* "cogent3/maths/_period.pyx":44
+        /* "cogent3/maths/_period.pyx":47
  *     for m in range(-N+1, N):
  *         for n in range(N):
  *             if 0 <= n-m < N:             # <<<<<<<<<<<<<<
@@ -2734,7 +2742,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_4autocorr_inner(CYTHON_UNUSED
     }
   }
 
-  /* "cogent3/maths/_period.pyx":39
+  /* "cogent3/maths/_period.pyx":42
  *     return X
  * 
  * def autocorr_inner(np.ndarray[np.float64_t, ndim=1] x, np.ndarray[np.float64_t, ndim=1] xc, int N):             # <<<<<<<<<<<<<<
@@ -2765,7 +2773,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_4autocorr_inner(CYTHON_UNUSED
   return __pyx_r;
 }
 
-/* "cogent3/maths/_period.pyx":47
+/* "cogent3/maths/_period.pyx":50
  *                 xc[m+N-1] += (x[n]*x[n-m])
  * 
  * def seq_to_symbols(char* seq, list motifs, int motif_length,             # <<<<<<<<<<<<<<
@@ -2811,23 +2819,23 @@ static PyObject *__pyx_pw_7cogent3_5maths_7_period_7seq_to_symbols(PyObject *__p
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_motifs)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("seq_to_symbols", 1, 4, 4, 1); __PYX_ERR(0, 47, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("seq_to_symbols", 1, 4, 4, 1); __PYX_ERR(0, 50, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_motif_length)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("seq_to_symbols", 1, 4, 4, 2); __PYX_ERR(0, 47, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("seq_to_symbols", 1, 4, 4, 2); __PYX_ERR(0, 50, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_result)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("seq_to_symbols", 1, 4, 4, 3); __PYX_ERR(0, 47, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("seq_to_symbols", 1, 4, 4, 3); __PYX_ERR(0, 50, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "seq_to_symbols") < 0)) __PYX_ERR(0, 47, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "seq_to_symbols") < 0)) __PYX_ERR(0, 50, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -2837,21 +2845,21 @@ static PyObject *__pyx_pw_7cogent3_5maths_7_period_7seq_to_symbols(PyObject *__p
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_seq = __Pyx_PyObject_AsWritableString(values[0]); if (unlikely((!__pyx_v_seq) && PyErr_Occurred())) __PYX_ERR(0, 47, __pyx_L3_error)
+    __pyx_v_seq = __Pyx_PyObject_AsWritableString(values[0]); if (unlikely((!__pyx_v_seq) && PyErr_Occurred())) __PYX_ERR(0, 50, __pyx_L3_error)
     __pyx_v_motifs = ((PyObject*)values[1]);
-    __pyx_v_motif_length = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_motif_length == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 47, __pyx_L3_error)
+    __pyx_v_motif_length = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_motif_length == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 50, __pyx_L3_error)
     __pyx_v_result = ((PyArrayObject *)values[3]);
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("seq_to_symbols", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 47, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("seq_to_symbols", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 50, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cogent3.maths._period.seq_to_symbols", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_motifs), (&PyList_Type), 1, "motifs", 1))) __PYX_ERR(0, 47, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_result), __pyx_ptype_5numpy_ndarray, 1, "result", 0))) __PYX_ERR(0, 48, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_motifs), (&PyList_Type), 1, "motifs", 1))) __PYX_ERR(0, 50, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_result), __pyx_ptype_5numpy_ndarray, 1, "result", 0))) __PYX_ERR(0, 51, __pyx_L1_error)
   __pyx_r = __pyx_pf_7cogent3_5maths_7_period_6seq_to_symbols(__pyx_self, __pyx_v_seq, __pyx_v_motifs, __pyx_v_motif_length, __pyx_v_result);
 
   /* function exit code */
@@ -2892,11 +2900,11 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_6seq_to_symbols(CYTHON_UNUSED
   __pyx_pybuffernd_result.rcbuffer = &__pyx_pybuffer_result;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_result.rcbuffer->pybuffer, (PyObject*)__pyx_v_result, &__Pyx_TypeInfo_nn___pyx_t_5numpy_uint8_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 47, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_result.rcbuffer->pybuffer, (PyObject*)__pyx_v_result, &__Pyx_TypeInfo_nn___pyx_t_5numpy_uint8_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 50, __pyx_L1_error)
   }
   __pyx_pybuffernd_result.diminfo[0].strides = __pyx_pybuffernd_result.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_result.diminfo[0].shape = __pyx_pybuffernd_result.rcbuffer->pybuffer.shape[0];
 
-  /* "cogent3/maths/_period.pyx":52
+  /* "cogent3/maths/_period.pyx":55
  *     cdef bytes got
  * 
  *     N = len(seq)             # <<<<<<<<<<<<<<
@@ -2906,7 +2914,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_6seq_to_symbols(CYTHON_UNUSED
   __pyx_t_1 = strlen(__pyx_v_seq); 
   __pyx_v_N = __pyx_t_1;
 
-  /* "cogent3/maths/_period.pyx":53
+  /* "cogent3/maths/_period.pyx":56
  * 
  *     N = len(seq)
  *     num_motifs = len(motifs)             # <<<<<<<<<<<<<<
@@ -2915,12 +2923,12 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_6seq_to_symbols(CYTHON_UNUSED
  */
   if (unlikely(__pyx_v_motifs == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-    __PYX_ERR(0, 53, __pyx_L1_error)
+    __PYX_ERR(0, 56, __pyx_L1_error)
   }
-  __pyx_t_2 = PyList_GET_SIZE(__pyx_v_motifs); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_t_2 = PyList_GET_SIZE(__pyx_v_motifs); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 56, __pyx_L1_error)
   __pyx_v_num_motifs = __pyx_t_2;
 
-  /* "cogent3/maths/_period.pyx":54
+  /* "cogent3/maths/_period.pyx":57
  *     N = len(seq)
  *     num_motifs = len(motifs)
  *     motif_length = len(motifs[0])             # <<<<<<<<<<<<<<
@@ -2929,15 +2937,15 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_6seq_to_symbols(CYTHON_UNUSED
  */
   if (unlikely(__pyx_v_motifs == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-    __PYX_ERR(0, 54, __pyx_L1_error)
+    __PYX_ERR(0, 57, __pyx_L1_error)
   }
-  __pyx_t_3 = __Pyx_GetItemInt_List(__pyx_v_motifs, 0, long, 1, __Pyx_PyInt_From_long, 1, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetItemInt_List(__pyx_v_motifs, 0, long, 1, __Pyx_PyInt_From_long, 1, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = PyObject_Length(__pyx_t_3); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_t_2 = PyObject_Length(__pyx_t_3); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_motif_length = __pyx_t_2;
 
-  /* "cogent3/maths/_period.pyx":55
+  /* "cogent3/maths/_period.pyx":58
  *     num_motifs = len(motifs)
  *     motif_length = len(motifs[0])
  *     for i in range(N - motif_length + 1):             # <<<<<<<<<<<<<<
@@ -2949,19 +2957,19 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_6seq_to_symbols(CYTHON_UNUSED
   for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
     __pyx_v_i = __pyx_t_6;
 
-    /* "cogent3/maths/_period.pyx":56
+    /* "cogent3/maths/_period.pyx":59
  *     motif_length = len(motifs[0])
  *     for i in range(N - motif_length + 1):
  *         got = seq[i: i+motif_length]             # <<<<<<<<<<<<<<
  *         for j in range(num_motifs):
  *             if got == motifs[j]:
  */
-    __pyx_t_3 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_seq + __pyx_v_i, (__pyx_v_i + __pyx_v_motif_length) - __pyx_v_i); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 56, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_seq + __pyx_v_i, (__pyx_v_i + __pyx_v_motif_length) - __pyx_v_i); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 59, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_XDECREF_SET(__pyx_v_got, ((PyObject*)__pyx_t_3));
     __pyx_t_3 = 0;
 
-    /* "cogent3/maths/_period.pyx":57
+    /* "cogent3/maths/_period.pyx":60
  *     for i in range(N - motif_length + 1):
  *         got = seq[i: i+motif_length]
  *         for j in range(num_motifs):             # <<<<<<<<<<<<<<
@@ -2973,7 +2981,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_6seq_to_symbols(CYTHON_UNUSED
     for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
       __pyx_v_j = __pyx_t_9;
 
-      /* "cogent3/maths/_period.pyx":58
+      /* "cogent3/maths/_period.pyx":61
  *         got = seq[i: i+motif_length]
  *         for j in range(num_motifs):
  *             if got == motifs[j]:             # <<<<<<<<<<<<<<
@@ -2982,15 +2990,15 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_6seq_to_symbols(CYTHON_UNUSED
  */
       if (unlikely(__pyx_v_motifs == Py_None)) {
         PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-        __PYX_ERR(0, 58, __pyx_L1_error)
+        __PYX_ERR(0, 61, __pyx_L1_error)
       }
-      __pyx_t_3 = __Pyx_GetItemInt_List(__pyx_v_motifs, __pyx_v_j, int, 1, __Pyx_PyInt_From_int, 1, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 58, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_GetItemInt_List(__pyx_v_motifs, __pyx_v_j, int, 1, __Pyx_PyInt_From_int, 1, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 61, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_10 = (__Pyx_PyBytes_Equals(__pyx_v_got, __pyx_t_3, Py_EQ)); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 58, __pyx_L1_error)
+      __pyx_t_10 = (__Pyx_PyBytes_Equals(__pyx_v_got, __pyx_t_3, Py_EQ)); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 61, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       if (__pyx_t_10) {
 
-        /* "cogent3/maths/_period.pyx":59
+        /* "cogent3/maths/_period.pyx":62
  *         for j in range(num_motifs):
  *             if got == motifs[j]:
  *                 result[i] = 1             # <<<<<<<<<<<<<<
@@ -3005,11 +3013,11 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_6seq_to_symbols(CYTHON_UNUSED
         } else if (unlikely(__pyx_t_11 >= __pyx_pybuffernd_result.diminfo[0].shape)) __pyx_t_12 = 0;
         if (unlikely(__pyx_t_12 != -1)) {
           __Pyx_RaiseBufferIndexError(__pyx_t_12);
-          __PYX_ERR(0, 59, __pyx_L1_error)
+          __PYX_ERR(0, 62, __pyx_L1_error)
         }
         *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_uint8_t *, __pyx_pybuffernd_result.rcbuffer->pybuffer.buf, __pyx_t_11, __pyx_pybuffernd_result.diminfo[0].strides) = 1;
 
-        /* "cogent3/maths/_period.pyx":58
+        /* "cogent3/maths/_period.pyx":61
  *         got = seq[i: i+motif_length]
  *         for j in range(num_motifs):
  *             if got == motifs[j]:             # <<<<<<<<<<<<<<
@@ -3020,7 +3028,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_6seq_to_symbols(CYTHON_UNUSED
     }
   }
 
-  /* "cogent3/maths/_period.pyx":61
+  /* "cogent3/maths/_period.pyx":64
  *                 result[i] = 1
  * 
  *     return result             # <<<<<<<<<<<<<<
@@ -3031,7 +3039,7 @@ static PyObject *__pyx_pf_7cogent3_5maths_7_period_6seq_to_symbols(CYTHON_UNUSED
   __pyx_r = ((PyObject *)__pyx_v_result);
   goto __pyx_L0;
 
-  /* "cogent3/maths/_period.pyx":47
+  /* "cogent3/maths/_period.pyx":50
  *                 xc[m+N-1] += (x[n]*x[n-m])
  * 
  * def seq_to_symbols(char* seq, list motifs, int motif_length,             # <<<<<<<<<<<<<<
@@ -5524,6 +5532,7 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
+  {&__pyx_kp_s_2019_07_10a, __pyx_k_2019_07_10a, sizeof(__pyx_k_2019_07_10a), 0, 0, 1, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor, __pyx_k_Format_string_allocated_too_shor, sizeof(__pyx_k_Format_string_allocated_too_shor), 0, 1, 0, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor_2, __pyx_k_Format_string_allocated_too_shor_2, sizeof(__pyx_k_Format_string_allocated_too_shor_2), 0, 1, 0, 0},
   {&__pyx_n_s_ImportError, __pyx_k_ImportError, sizeof(__pyx_k_ImportError), 0, 0, 1, 1},
@@ -5573,13 +5582,15 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
   {&__pyx_n_s_ulim, __pyx_k_ulim, sizeof(__pyx_k_ulim), 0, 0, 1, 1},
   {&__pyx_kp_u_unknown_dtype_code_in_numpy_pxd, __pyx_k_unknown_dtype_code_in_numpy_pxd, sizeof(__pyx_k_unknown_dtype_code_in_numpy_pxd), 0, 1, 0, 0},
+  {&__pyx_n_s_version, __pyx_k_version, sizeof(__pyx_k_version), 0, 0, 1, 1},
+  {&__pyx_n_s_version_info, __pyx_k_version_info, sizeof(__pyx_k_version_info), 0, 0, 1, 1},
   {&__pyx_n_s_w, __pyx_k_w, sizeof(__pyx_k_w), 0, 0, 1, 1},
   {&__pyx_n_s_x, __pyx_k_x, sizeof(__pyx_k_x), 0, 0, 1, 1},
   {&__pyx_n_s_xc, __pyx_k_xc, sizeof(__pyx_k_xc), 0, 0, 1, 1},
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 14, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 17, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 272, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(1, 856, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(1, 1038, __pyx_L1_error)
@@ -5669,53 +5680,64 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
 
-  /* "cogent3/maths/_period.pyx":6
+  /* "cogent3/maths/_period.pyx":4
+ * cimport numpy as np
+ * 
+ * version_info = (3, 2)             # <<<<<<<<<<<<<<
+ * __version__ = "('2019', '07', '10a')"
+ * 
+ */
+  __pyx_tuple__8 = PyTuple_Pack(2, __pyx_int_3, __pyx_int_2); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__8);
+  __Pyx_GIVEREF(__pyx_tuple__8);
+
+  /* "cogent3/maths/_period.pyx":9
  * # TODO intro the version idea of peter's see email from him on Wednesday, 26 May 2010
  * 
  * def goertzel_inner(np.ndarray[np.float64_t, ndim=1] x, int N, int period):             # <<<<<<<<<<<<<<
  *     """returns the power from series x for period"""
  *     cdef int n
  */
-  __pyx_tuple__8 = PyTuple_Pack(9, __pyx_n_s_x, __pyx_n_s_N, __pyx_n_s_period, __pyx_n_s_n, __pyx_n_s_coeff, __pyx_n_s_s, __pyx_n_s_s_prev, __pyx_n_s_s_prev2, __pyx_n_s_power); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 6, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__8);
-  __Pyx_GIVEREF(__pyx_tuple__8);
-  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(3, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cogent3_maths__period_pyx, __pyx_n_s_goertzel_inner, 6, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 6, __pyx_L1_error)
+  __pyx_tuple__9 = PyTuple_Pack(9, __pyx_n_s_x, __pyx_n_s_N, __pyx_n_s_period, __pyx_n_s_n, __pyx_n_s_coeff, __pyx_n_s_s, __pyx_n_s_s_prev, __pyx_n_s_s_prev2, __pyx_n_s_power); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 9, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__9);
+  __Pyx_GIVEREF(__pyx_tuple__9);
+  __pyx_codeobj__10 = (PyObject*)__Pyx_PyCode_New(3, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__9, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cogent3_maths__period_pyx, __pyx_n_s_goertzel_inner, 9, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__10)) __PYX_ERR(0, 9, __pyx_L1_error)
 
-  /* "cogent3/maths/_period.pyx":22
+  /* "cogent3/maths/_period.pyx":25
  *     return power
  * 
  * def ipdft_inner(np.ndarray[np.float64_t, ndim=1] x,             # <<<<<<<<<<<<<<
  *                        np.ndarray[np.complex128_t, ndim=1] X,
  *                        np.ndarray[np.complex128_t, ndim=1] W,
  */
-  __pyx_tuple__10 = PyTuple_Pack(8, __pyx_n_s_x, __pyx_n_s_X, __pyx_n_s_W, __pyx_n_s_ulim, __pyx_n_s_N, __pyx_n_s_n, __pyx_n_s_p, __pyx_n_s_w); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 22, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__10);
-  __Pyx_GIVEREF(__pyx_tuple__10);
-  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(5, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__10, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cogent3_maths__period_pyx, __pyx_n_s_ipdft_inner, 22, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_tuple__11 = PyTuple_Pack(8, __pyx_n_s_x, __pyx_n_s_X, __pyx_n_s_W, __pyx_n_s_ulim, __pyx_n_s_N, __pyx_n_s_n, __pyx_n_s_p, __pyx_n_s_w); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 25, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__11);
+  __Pyx_GIVEREF(__pyx_tuple__11);
+  __pyx_codeobj__12 = (PyObject*)__Pyx_PyCode_New(5, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__11, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cogent3_maths__period_pyx, __pyx_n_s_ipdft_inner, 25, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__12)) __PYX_ERR(0, 25, __pyx_L1_error)
 
-  /* "cogent3/maths/_period.pyx":39
+  /* "cogent3/maths/_period.pyx":42
  *     return X
  * 
  * def autocorr_inner(np.ndarray[np.float64_t, ndim=1] x, np.ndarray[np.float64_t, ndim=1] xc, int N):             # <<<<<<<<<<<<<<
  *     cdef int m, n
  * 
  */
-  __pyx_tuple__12 = PyTuple_Pack(5, __pyx_n_s_x, __pyx_n_s_xc, __pyx_n_s_N, __pyx_n_s_m, __pyx_n_s_n); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 39, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__12);
-  __Pyx_GIVEREF(__pyx_tuple__12);
-  __pyx_codeobj__13 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__12, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cogent3_maths__period_pyx, __pyx_n_s_autocorr_inner, 39, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__13)) __PYX_ERR(0, 39, __pyx_L1_error)
+  __pyx_tuple__13 = PyTuple_Pack(5, __pyx_n_s_x, __pyx_n_s_xc, __pyx_n_s_N, __pyx_n_s_m, __pyx_n_s_n); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__13);
+  __Pyx_GIVEREF(__pyx_tuple__13);
+  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cogent3_maths__period_pyx, __pyx_n_s_autocorr_inner, 42, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) __PYX_ERR(0, 42, __pyx_L1_error)
 
-  /* "cogent3/maths/_period.pyx":47
+  /* "cogent3/maths/_period.pyx":50
  *                 xc[m+N-1] += (x[n]*x[n-m])
  * 
  * def seq_to_symbols(char* seq, list motifs, int motif_length,             # <<<<<<<<<<<<<<
  *     np.ndarray[np.uint8_t, ndim=1] result):
  *     cdef int i, j, N, num_motifs
  */
-  __pyx_tuple__14 = PyTuple_Pack(9, __pyx_n_s_seq, __pyx_n_s_motifs, __pyx_n_s_motif_length, __pyx_n_s_result, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_N, __pyx_n_s_num_motifs, __pyx_n_s_got); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(0, 47, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__14);
-  __Pyx_GIVEREF(__pyx_tuple__14);
-  __pyx_codeobj__15 = (PyObject*)__Pyx_PyCode_New(4, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__14, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cogent3_maths__period_pyx, __pyx_n_s_seq_to_symbols, 47, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__15)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_tuple__15 = PyTuple_Pack(9, __pyx_n_s_seq, __pyx_n_s_motifs, __pyx_n_s_motif_length, __pyx_n_s_result, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_N, __pyx_n_s_num_motifs, __pyx_n_s_got); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 50, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__15);
+  __Pyx_GIVEREF(__pyx_tuple__15);
+  __pyx_codeobj__16 = (PyObject*)__Pyx_PyCode_New(4, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__15, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cogent3_maths__period_pyx, __pyx_n_s_seq_to_symbols, 50, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__16)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -5727,6 +5749,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   if (__Pyx_InitStrings(__pyx_string_tab) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
   __pyx_float_2_0 = PyFloat_FromDouble(2.0); if (unlikely(!__pyx_float_2_0)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_2 = PyInt_FromLong(2); if (unlikely(!__pyx_int_2)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_3 = PyInt_FromLong(3); if (unlikely(!__pyx_int_3)) __PYX_ERR(0, 1, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -6063,52 +6086,70 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "cogent3/maths/_period.pyx":6
+  /* "cogent3/maths/_period.pyx":4
+ * cimport numpy as np
+ * 
+ * version_info = (3, 2)             # <<<<<<<<<<<<<<
+ * __version__ = "('2019', '07', '10a')"
+ * 
+ */
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version_info, __pyx_tuple__8) < 0) __PYX_ERR(0, 4, __pyx_L1_error)
+
+  /* "cogent3/maths/_period.pyx":5
+ * 
+ * version_info = (3, 2)
+ * __version__ = "('2019', '07', '10a')"             # <<<<<<<<<<<<<<
+ * 
+ * # TODO intro the version idea of peter's see email from him on Wednesday, 26 May 2010
+ */
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2019_07_10a) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
+
+  /* "cogent3/maths/_period.pyx":9
  * # TODO intro the version idea of peter's see email from him on Wednesday, 26 May 2010
  * 
  * def goertzel_inner(np.ndarray[np.float64_t, ndim=1] x, int N, int period):             # <<<<<<<<<<<<<<
  *     """returns the power from series x for period"""
  *     cdef int n
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_5maths_7_period_1goertzel_inner, NULL, __pyx_n_s_cogent3_maths__period); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 6, __pyx_L1_error)
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_5maths_7_period_1goertzel_inner, NULL, __pyx_n_s_cogent3_maths__period); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_goertzel_inner, __pyx_t_2) < 0) __PYX_ERR(0, 6, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_goertzel_inner, __pyx_t_2) < 0) __PYX_ERR(0, 9, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "cogent3/maths/_period.pyx":22
+  /* "cogent3/maths/_period.pyx":25
  *     return power
  * 
  * def ipdft_inner(np.ndarray[np.float64_t, ndim=1] x,             # <<<<<<<<<<<<<<
  *                        np.ndarray[np.complex128_t, ndim=1] X,
  *                        np.ndarray[np.complex128_t, ndim=1] W,
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_5maths_7_period_3ipdft_inner, NULL, __pyx_n_s_cogent3_maths__period); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_5maths_7_period_3ipdft_inner, NULL, __pyx_n_s_cogent3_maths__period); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 25, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ipdft_inner, __pyx_t_2) < 0) __PYX_ERR(0, 22, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ipdft_inner, __pyx_t_2) < 0) __PYX_ERR(0, 25, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "cogent3/maths/_period.pyx":39
+  /* "cogent3/maths/_period.pyx":42
  *     return X
  * 
  * def autocorr_inner(np.ndarray[np.float64_t, ndim=1] x, np.ndarray[np.float64_t, ndim=1] xc, int N):             # <<<<<<<<<<<<<<
  *     cdef int m, n
  * 
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_5maths_7_period_5autocorr_inner, NULL, __pyx_n_s_cogent3_maths__period); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 39, __pyx_L1_error)
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_5maths_7_period_5autocorr_inner, NULL, __pyx_n_s_cogent3_maths__period); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 42, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_autocorr_inner, __pyx_t_2) < 0) __PYX_ERR(0, 39, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_autocorr_inner, __pyx_t_2) < 0) __PYX_ERR(0, 42, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "cogent3/maths/_period.pyx":47
+  /* "cogent3/maths/_period.pyx":50
  *                 xc[m+N-1] += (x[n]*x[n-m])
  * 
  * def seq_to_symbols(char* seq, list motifs, int motif_length,             # <<<<<<<<<<<<<<
  *     np.ndarray[np.uint8_t, ndim=1] result):
  *     cdef int i, j, N, num_motifs
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_5maths_7_period_7seq_to_symbols, NULL, __pyx_n_s_cogent3_maths__period); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_5maths_7_period_7seq_to_symbols, NULL, __pyx_n_s_cogent3_maths__period); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_seq_to_symbols, __pyx_t_2) < 0) __PYX_ERR(0, 47, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_seq_to_symbols, __pyx_t_2) < 0) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "cogent3/maths/_period.pyx":1

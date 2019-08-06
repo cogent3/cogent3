@@ -2086,6 +2086,8 @@ static PyObject *__pyx_tp_new_memoryview(PyTypeObject *t, PyObject *a, PyObject 
 static PyObject *__pyx_tp_new__memoryviewslice(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
+static PyObject *__pyx_int_2;
+static PyObject *__pyx_int_3;
 static PyObject *__pyx_int_184977713;
 static PyObject *__pyx_int_neg_1;
 static PyObject *__pyx_tuple_;
@@ -2609,8 +2611,8 @@ static int __pyx_fuse_2__pyx_f_7cogent3_6evolve_14_solved_models_checkDim(PyObje
   return __pyx_r;
 }
 
-/* "cogent3/evolve/_solved_models.pyx":11
- * version_info = (1, 1)
+/* "cogent3/evolve/_solved_models.pyx":13
+ * 
  * 
  * def calc_TN93_P(double[::1] mprobs not None, double time,             # <<<<<<<<<<<<<<
  *         alpha_1, alpha_2, double[:, ::1] result not None):
@@ -2658,29 +2660,29 @@ static PyObject *__pyx_pw_7cogent3_6evolve_14_solved_models_1calc_TN93_P(PyObjec
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_time)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("calc_TN93_P", 1, 5, 5, 1); __PYX_ERR(1, 11, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("calc_TN93_P", 1, 5, 5, 1); __PYX_ERR(1, 13, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_alpha_1)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("calc_TN93_P", 1, 5, 5, 2); __PYX_ERR(1, 11, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("calc_TN93_P", 1, 5, 5, 2); __PYX_ERR(1, 13, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_alpha_2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("calc_TN93_P", 1, 5, 5, 3); __PYX_ERR(1, 11, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("calc_TN93_P", 1, 5, 5, 3); __PYX_ERR(1, 13, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_result)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("calc_TN93_P", 1, 5, 5, 4); __PYX_ERR(1, 11, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("calc_TN93_P", 1, 5, 5, 4); __PYX_ERR(1, 13, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "calc_TN93_P") < 0)) __PYX_ERR(1, 11, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "calc_TN93_P") < 0)) __PYX_ERR(1, 13, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 5) {
       goto __pyx_L5_argtuple_error;
@@ -2691,25 +2693,25 @@ static PyObject *__pyx_pw_7cogent3_6evolve_14_solved_models_1calc_TN93_P(PyObjec
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
       values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
     }
-    __pyx_v_mprobs = __Pyx_PyObject_to_MemoryviewSlice_dc_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_mprobs.memview)) __PYX_ERR(1, 11, __pyx_L3_error)
-    __pyx_v_time = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_time == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 11, __pyx_L3_error)
+    __pyx_v_mprobs = __Pyx_PyObject_to_MemoryviewSlice_dc_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_mprobs.memview)) __PYX_ERR(1, 13, __pyx_L3_error)
+    __pyx_v_time = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_time == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 13, __pyx_L3_error)
     __pyx_v_alpha_1 = values[2];
     __pyx_v_alpha_2 = values[3];
-    __pyx_v_result = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_result.memview)) __PYX_ERR(1, 12, __pyx_L3_error)
+    __pyx_v_result = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_result.memview)) __PYX_ERR(1, 14, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("calc_TN93_P", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 11, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("calc_TN93_P", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 13, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cogent3.evolve._solved_models.calc_TN93_P", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
   if (unlikely(((PyObject *)__pyx_v_mprobs.memview) == Py_None)) {
-    PyErr_Format(PyExc_TypeError, "Argument '%.200s' must not be None", "mprobs"); __PYX_ERR(1, 11, __pyx_L1_error)
+    PyErr_Format(PyExc_TypeError, "Argument '%.200s' must not be None", "mprobs"); __PYX_ERR(1, 13, __pyx_L1_error)
   }
   if (unlikely(((PyObject *)__pyx_v_result.memview) == Py_None)) {
-    PyErr_Format(PyExc_TypeError, "Argument '%.200s' must not be None", "result"); __PYX_ERR(1, 12, __pyx_L1_error)
+    PyErr_Format(PyExc_TypeError, "Argument '%.200s' must not be None", "result"); __PYX_ERR(1, 14, __pyx_L1_error)
   }
   __pyx_r = __pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(__pyx_self, __pyx_v_mprobs, __pyx_v_time, __pyx_v_alpha_1, __pyx_v_alpha_2, __pyx_v_result);
 
@@ -2757,27 +2759,27 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
   Py_ssize_t __pyx_t_15;
   __Pyx_RefNannySetupContext("calc_TN93_P", 0);
 
-  /* "cogent3/evolve/_solved_models.pyx":18
+  /* "cogent3/evolve/_solved_models.pyx":20
  *     cdef double transition[2], transversion, p
  * 
  *     alpha[0] = alpha_1             # <<<<<<<<<<<<<<
  *     alpha[1] = alpha_2
  * 
  */
-  __pyx_t_1 = __pyx_PyFloat_AsDouble(__pyx_v_alpha_1); if (unlikely((__pyx_t_1 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 18, __pyx_L1_error)
+  __pyx_t_1 = __pyx_PyFloat_AsDouble(__pyx_v_alpha_1); if (unlikely((__pyx_t_1 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 20, __pyx_L1_error)
   (__pyx_v_alpha[0]) = __pyx_t_1;
 
-  /* "cogent3/evolve/_solved_models.pyx":19
+  /* "cogent3/evolve/_solved_models.pyx":21
  * 
  *     alpha[0] = alpha_1
  *     alpha[1] = alpha_2             # <<<<<<<<<<<<<<
  * 
  *     if not (mprobs.shape[0] == result.shape[0] == result.shape[1] == 4):
  */
-  __pyx_t_1 = __pyx_PyFloat_AsDouble(__pyx_v_alpha_2); if (unlikely((__pyx_t_1 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 19, __pyx_L1_error)
+  __pyx_t_1 = __pyx_PyFloat_AsDouble(__pyx_v_alpha_2); if (unlikely((__pyx_t_1 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 21, __pyx_L1_error)
   (__pyx_v_alpha[1]) = __pyx_t_1;
 
-  /* "cogent3/evolve/_solved_models.pyx":21
+  /* "cogent3/evolve/_solved_models.pyx":23
  *     alpha[1] = alpha_2
  * 
  *     if not (mprobs.shape[0] == result.shape[0] == result.shape[1] == 4):             # <<<<<<<<<<<<<<
@@ -2794,20 +2796,20 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
   __pyx_t_3 = ((!(__pyx_t_2 != 0)) != 0);
   if (unlikely(__pyx_t_3)) {
 
-    /* "cogent3/evolve/_solved_models.pyx":22
+    /* "cogent3/evolve/_solved_models.pyx":24
  * 
  *     if not (mprobs.shape[0] == result.shape[0] == result.shape[1] == 4):
  *         raise ValueError("all array dimensions must equal 4")             # <<<<<<<<<<<<<<
  * 
  *     pi_star[0] = mprobs[0] + mprobs[1]
  */
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 22, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 24, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_Raise(__pyx_t_4, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __PYX_ERR(1, 22, __pyx_L1_error)
+    __PYX_ERR(1, 24, __pyx_L1_error)
 
-    /* "cogent3/evolve/_solved_models.pyx":21
+    /* "cogent3/evolve/_solved_models.pyx":23
  *     alpha[1] = alpha_2
  * 
  *     if not (mprobs.shape[0] == result.shape[0] == result.shape[1] == 4):             # <<<<<<<<<<<<<<
@@ -2816,7 +2818,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
  */
   }
 
-  /* "cogent3/evolve/_solved_models.pyx":24
+  /* "cogent3/evolve/_solved_models.pyx":26
  *         raise ValueError("all array dimensions must equal 4")
  * 
  *     pi_star[0] = mprobs[0] + mprobs[1]             # <<<<<<<<<<<<<<
@@ -2827,7 +2829,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
   __pyx_t_6 = 1;
   (__pyx_v_pi_star[0]) = ((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_mprobs.data) + __pyx_t_5)) ))) + (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_mprobs.data) + __pyx_t_6)) ))));
 
-  /* "cogent3/evolve/_solved_models.pyx":25
+  /* "cogent3/evolve/_solved_models.pyx":27
  * 
  *     pi_star[0] = mprobs[0] + mprobs[1]
  *     pi_star[1] = mprobs[2] + mprobs[3]             # <<<<<<<<<<<<<<
@@ -2838,7 +2840,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
   __pyx_t_8 = 3;
   (__pyx_v_pi_star[1]) = ((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_mprobs.data) + __pyx_t_7)) ))) + (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_mprobs.data) + __pyx_t_8)) ))));
 
-  /* "cogent3/evolve/_solved_models.pyx":27
+  /* "cogent3/evolve/_solved_models.pyx":29
  *     pi_star[1] = mprobs[2] + mprobs[3]
  * 
  *     mu[0] = alpha[0] * pi_star[0] + 1.0 * pi_star[1]             # <<<<<<<<<<<<<<
@@ -2847,7 +2849,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
  */
   (__pyx_v_mu[0]) = (((__pyx_v_alpha[0]) * (__pyx_v_pi_star[0])) + (1.0 * (__pyx_v_pi_star[1])));
 
-  /* "cogent3/evolve/_solved_models.pyx":28
+  /* "cogent3/evolve/_solved_models.pyx":30
  * 
  *     mu[0] = alpha[0] * pi_star[0] + 1.0 * pi_star[1]
  *     mu[1] = 1.0 * pi_star[0] + alpha[1] * pi_star[1]             # <<<<<<<<<<<<<<
@@ -2856,7 +2858,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
  */
   (__pyx_v_mu[1]) = ((1.0 * (__pyx_v_pi_star[0])) + ((__pyx_v_alpha[1]) * (__pyx_v_pi_star[1])));
 
-  /* "cogent3/evolve/_solved_models.pyx":30
+  /* "cogent3/evolve/_solved_models.pyx":32
  *     mu[1] = 1.0 * pi_star[0] + alpha[1] * pi_star[1]
  * 
  *     scale_factor = 0.0             # <<<<<<<<<<<<<<
@@ -2865,7 +2867,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
  */
   __pyx_v_scale_factor = 0.0;
 
-  /* "cogent3/evolve/_solved_models.pyx":31
+  /* "cogent3/evolve/_solved_models.pyx":33
  * 
  *     scale_factor = 0.0
  *     for motif in range(4):             # <<<<<<<<<<<<<<
@@ -2875,7 +2877,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
   for (__pyx_t_9 = 0; __pyx_t_9 < 4; __pyx_t_9+=1) {
     __pyx_v_motif = __pyx_t_9;
 
-    /* "cogent3/evolve/_solved_models.pyx":32
+    /* "cogent3/evolve/_solved_models.pyx":34
  *     scale_factor = 0.0
  *     for motif in range(4):
  *         i = motif // 2             # <<<<<<<<<<<<<<
@@ -2884,7 +2886,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
  */
     __pyx_v_i = __Pyx_div_long(__pyx_v_motif, 2);
 
-    /* "cogent3/evolve/_solved_models.pyx":33
+    /* "cogent3/evolve/_solved_models.pyx":35
  *     for motif in range(4):
  *         i = motif // 2
  *         other = 1 - i             # <<<<<<<<<<<<<<
@@ -2893,7 +2895,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
  */
     __pyx_v_other = (1 - __pyx_v_i);
 
-    /* "cogent3/evolve/_solved_models.pyx":34
+    /* "cogent3/evolve/_solved_models.pyx":36
  *         i = motif // 2
  *         other = 1 - i
  *         scale_factor += (alpha[i] * mprobs[2*i+1-motif%2] + pi_star[other]) * mprobs[motif]             # <<<<<<<<<<<<<<
@@ -2905,7 +2907,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
     __pyx_v_scale_factor = (__pyx_v_scale_factor + ((((__pyx_v_alpha[__pyx_v_i]) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_mprobs.data) + __pyx_t_10)) )))) + (__pyx_v_pi_star[__pyx_v_other])) * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_mprobs.data) + __pyx_t_11)) )))));
   }
 
-  /* "cogent3/evolve/_solved_models.pyx":36
+  /* "cogent3/evolve/_solved_models.pyx":38
  *         scale_factor += (alpha[i] * mprobs[2*i+1-motif%2] + pi_star[other]) * mprobs[motif]
  * 
  *     time /= scale_factor             # <<<<<<<<<<<<<<
@@ -2914,11 +2916,11 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
  */
   if (unlikely(__pyx_v_scale_factor == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    __PYX_ERR(1, 36, __pyx_L1_error)
+    __PYX_ERR(1, 38, __pyx_L1_error)
   }
   __pyx_v_time = (__pyx_v_time / __pyx_v_scale_factor);
 
-  /* "cogent3/evolve/_solved_models.pyx":38
+  /* "cogent3/evolve/_solved_models.pyx":40
  *     time /= scale_factor
  * 
  *     e_beta_t = exp(-time)             # <<<<<<<<<<<<<<
@@ -2927,7 +2929,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
  */
   __pyx_v_e_beta_t = exp((-__pyx_v_time));
 
-  /* "cogent3/evolve/_solved_models.pyx":39
+  /* "cogent3/evolve/_solved_models.pyx":41
  * 
  *     e_beta_t = exp(-time)
  *     transversion = 1 - e_beta_t             # <<<<<<<<<<<<<<
@@ -2936,7 +2938,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
  */
   __pyx_v_transversion = (1.0 - __pyx_v_e_beta_t);
 
-  /* "cogent3/evolve/_solved_models.pyx":40
+  /* "cogent3/evolve/_solved_models.pyx":42
  *     e_beta_t = exp(-time)
  *     transversion = 1 - e_beta_t
  *     for i in range(2):             # <<<<<<<<<<<<<<
@@ -2946,7 +2948,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
   for (__pyx_t_9 = 0; __pyx_t_9 < 2; __pyx_t_9+=1) {
     __pyx_v_i = __pyx_t_9;
 
-    /* "cogent3/evolve/_solved_models.pyx":41
+    /* "cogent3/evolve/_solved_models.pyx":43
  *     transversion = 1 - e_beta_t
  *     for i in range(2):
  *         other = 1 - i             # <<<<<<<<<<<<<<
@@ -2955,7 +2957,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
  */
     __pyx_v_other = (1 - __pyx_v_i);
 
-    /* "cogent3/evolve/_solved_models.pyx":42
+    /* "cogent3/evolve/_solved_models.pyx":44
  *     for i in range(2):
  *         other = 1 - i
  *         e_mu_t[i] = exp(-mu[i]*time)             # <<<<<<<<<<<<<<
@@ -2964,7 +2966,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
  */
     (__pyx_v_e_mu_t[__pyx_v_i]) = exp(((-(__pyx_v_mu[__pyx_v_i])) * __pyx_v_time));
 
-    /* "cogent3/evolve/_solved_models.pyx":43
+    /* "cogent3/evolve/_solved_models.pyx":45
  *         other = 1 - i
  *         e_mu_t[i] = exp(-mu[i]*time)
  *         transition[i] = 1 + (pi_star[other] * e_beta_t - e_mu_t[i]) / pi_star[i]             # <<<<<<<<<<<<<<
@@ -2974,12 +2976,12 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
     __pyx_t_1 = (((__pyx_v_pi_star[__pyx_v_other]) * __pyx_v_e_beta_t) - (__pyx_v_e_mu_t[__pyx_v_i]));
     if (unlikely((__pyx_v_pi_star[__pyx_v_i]) == 0)) {
       PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-      __PYX_ERR(1, 43, __pyx_L1_error)
+      __PYX_ERR(1, 45, __pyx_L1_error)
     }
     (__pyx_v_transition[__pyx_v_i]) = (1.0 + (__pyx_t_1 / (__pyx_v_pi_star[__pyx_v_i])));
   }
 
-  /* "cogent3/evolve/_solved_models.pyx":45
+  /* "cogent3/evolve/_solved_models.pyx":47
  *         transition[i] = 1 + (pi_star[other] * e_beta_t - e_mu_t[i]) / pi_star[i]
  * 
  *     for row in range(4):             # <<<<<<<<<<<<<<
@@ -2989,7 +2991,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
   for (__pyx_t_9 = 0; __pyx_t_9 < 4; __pyx_t_9+=1) {
     __pyx_v_row = __pyx_t_9;
 
-    /* "cogent3/evolve/_solved_models.pyx":46
+    /* "cogent3/evolve/_solved_models.pyx":48
  * 
  *     for row in range(4):
  *         i = row // 2             # <<<<<<<<<<<<<<
@@ -2998,7 +3000,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
  */
     __pyx_v_i = __Pyx_div_long(__pyx_v_row, 2);
 
-    /* "cogent3/evolve/_solved_models.pyx":47
+    /* "cogent3/evolve/_solved_models.pyx":49
  *     for row in range(4):
  *         i = row // 2
  *         for column in range(4):             # <<<<<<<<<<<<<<
@@ -3008,7 +3010,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
     for (__pyx_t_12 = 0; __pyx_t_12 < 4; __pyx_t_12+=1) {
       __pyx_v_column = __pyx_t_12;
 
-      /* "cogent3/evolve/_solved_models.pyx":48
+      /* "cogent3/evolve/_solved_models.pyx":50
  *         i = row // 2
  *         for column in range(4):
  *             j = column // 2             # <<<<<<<<<<<<<<
@@ -3017,7 +3019,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
  */
       __pyx_v_j = __Pyx_div_long(__pyx_v_column, 2);
 
-      /* "cogent3/evolve/_solved_models.pyx":49
+      /* "cogent3/evolve/_solved_models.pyx":51
  *         for column in range(4):
  *             j = column // 2
  *             if i == j:             # <<<<<<<<<<<<<<
@@ -3027,7 +3029,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
       __pyx_t_3 = ((__pyx_v_i == __pyx_v_j) != 0);
       if (__pyx_t_3) {
 
-        /* "cogent3/evolve/_solved_models.pyx":50
+        /* "cogent3/evolve/_solved_models.pyx":52
  *             j = column // 2
  *             if i == j:
  *                 p = transition[i]             # <<<<<<<<<<<<<<
@@ -3036,7 +3038,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
  */
         __pyx_v_p = (__pyx_v_transition[__pyx_v_i]);
 
-        /* "cogent3/evolve/_solved_models.pyx":49
+        /* "cogent3/evolve/_solved_models.pyx":51
  *         for column in range(4):
  *             j = column // 2
  *             if i == j:             # <<<<<<<<<<<<<<
@@ -3046,7 +3048,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
         goto __pyx_L12;
       }
 
-      /* "cogent3/evolve/_solved_models.pyx":52
+      /* "cogent3/evolve/_solved_models.pyx":54
  *                 p = transition[i]
  *             else:
  *                 p = transversion             # <<<<<<<<<<<<<<
@@ -3058,7 +3060,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
       }
       __pyx_L12:;
 
-      /* "cogent3/evolve/_solved_models.pyx":53
+      /* "cogent3/evolve/_solved_models.pyx":55
  *             else:
  *                 p = transversion
  *             p *= mprobs[column]             # <<<<<<<<<<<<<<
@@ -3068,7 +3070,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
       __pyx_t_13 = __pyx_v_column;
       __pyx_v_p = (__pyx_v_p * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_mprobs.data) + __pyx_t_13)) ))));
 
-      /* "cogent3/evolve/_solved_models.pyx":54
+      /* "cogent3/evolve/_solved_models.pyx":56
  *                 p = transversion
  *             p *= mprobs[column]
  *             if row == column:             # <<<<<<<<<<<<<<
@@ -3078,7 +3080,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
       __pyx_t_3 = ((__pyx_v_row == __pyx_v_column) != 0);
       if (__pyx_t_3) {
 
-        /* "cogent3/evolve/_solved_models.pyx":55
+        /* "cogent3/evolve/_solved_models.pyx":57
  *             p *= mprobs[column]
  *             if row == column:
  *                 p += e_mu_t[i]             # <<<<<<<<<<<<<<
@@ -3087,7 +3089,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
  */
         __pyx_v_p = (__pyx_v_p + (__pyx_v_e_mu_t[__pyx_v_i]));
 
-        /* "cogent3/evolve/_solved_models.pyx":54
+        /* "cogent3/evolve/_solved_models.pyx":56
  *                 p = transversion
  *             p *= mprobs[column]
  *             if row == column:             # <<<<<<<<<<<<<<
@@ -3096,7 +3098,7 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
  */
       }
 
-      /* "cogent3/evolve/_solved_models.pyx":56
+      /* "cogent3/evolve/_solved_models.pyx":58
  *             if row == column:
  *                 p += e_mu_t[i]
  *             result[row, column] = p             # <<<<<<<<<<<<<<
@@ -3108,8 +3110,8 @@ static PyObject *__pyx_pf_7cogent3_6evolve_14_solved_models_calc_TN93_P(CYTHON_U
     }
   }
 
-  /* "cogent3/evolve/_solved_models.pyx":11
- * version_info = (1, 1)
+  /* "cogent3/evolve/_solved_models.pyx":13
+ * 
  * 
  * def calc_TN93_P(double[::1] mprobs not None, double time,             # <<<<<<<<<<<<<<
  *         alpha_1, alpha_2, double[:, ::1] result not None):
@@ -16755,7 +16757,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 55, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(1, 31, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(1, 33, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(2, 148, __pyx_L1_error)
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(2, 151, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(2, 2, __pyx_L1_error)
@@ -16771,14 +16773,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "cogent3/evolve/_solved_models.pyx":22
+  /* "cogent3/evolve/_solved_models.pyx":24
  * 
  *     if not (mprobs.shape[0] == result.shape[0] == result.shape[1] == 4):
  *         raise ValueError("all array dimensions must equal 4")             # <<<<<<<<<<<<<<
  * 
  *     pi_star[0] = mprobs[0] + mprobs[1]
  */
-  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_all_array_dimensions_must_equal); if (unlikely(!__pyx_tuple_)) __PYX_ERR(1, 22, __pyx_L1_error)
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_all_array_dimensions_must_equal); if (unlikely(!__pyx_tuple_)) __PYX_ERR(1, 24, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
@@ -16977,25 +16979,25 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "cogent3/evolve/_solved_models.pyx":9
  *     double exp(double)
  * 
- * version_info = (1, 1)             # <<<<<<<<<<<<<<
+ * version_info = (3, 2)             # <<<<<<<<<<<<<<
+ * __version__ = "('2019', '07', '10a')"
  * 
- * def calc_TN93_P(double[::1] mprobs not None, double time,
  */
-  __pyx_tuple__20 = PyTuple_Pack(2, __pyx_int_1, __pyx_int_1); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(1, 9, __pyx_L1_error)
+  __pyx_tuple__20 = PyTuple_Pack(2, __pyx_int_3, __pyx_int_2); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(1, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__20);
   __Pyx_GIVEREF(__pyx_tuple__20);
 
-  /* "cogent3/evolve/_solved_models.pyx":11
- * version_info = (1, 1)
+  /* "cogent3/evolve/_solved_models.pyx":13
+ * 
  * 
  * def calc_TN93_P(double[::1] mprobs not None, double time,             # <<<<<<<<<<<<<<
  *         alpha_1, alpha_2, double[:, ::1] result not None):
  *     cdef int motif, i, other, row, column, b_row, b_column
  */
-  __pyx_tuple__21 = PyTuple_Pack(22, __pyx_n_s_mprobs, __pyx_n_s_time, __pyx_n_s_alpha_1, __pyx_n_s_alpha_2, __pyx_n_s_result, __pyx_n_s_motif, __pyx_n_s_i, __pyx_n_s_other, __pyx_n_s_row, __pyx_n_s_column, __pyx_n_s_b_row, __pyx_n_s_b_column, __pyx_n_s_scale_factor, __pyx_n_s_pi_star, __pyx_n_s_alpha, __pyx_n_s_mu, __pyx_n_s_e_mu_t, __pyx_n_s_e_beta_t, __pyx_n_s_transition, __pyx_n_s_transversion, __pyx_n_s_p, __pyx_n_s_j); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(1, 11, __pyx_L1_error)
+  __pyx_tuple__21 = PyTuple_Pack(22, __pyx_n_s_mprobs, __pyx_n_s_time, __pyx_n_s_alpha_1, __pyx_n_s_alpha_2, __pyx_n_s_result, __pyx_n_s_motif, __pyx_n_s_i, __pyx_n_s_other, __pyx_n_s_row, __pyx_n_s_column, __pyx_n_s_b_row, __pyx_n_s_b_column, __pyx_n_s_scale_factor, __pyx_n_s_pi_star, __pyx_n_s_alpha, __pyx_n_s_mu, __pyx_n_s_e_mu_t, __pyx_n_s_e_beta_t, __pyx_n_s_transition, __pyx_n_s_transversion, __pyx_n_s_p, __pyx_n_s_j); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(1, 13, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__21);
   __Pyx_GIVEREF(__pyx_tuple__21);
-  __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(5, 0, 22, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cogent3_evolve__solved_models_py, __pyx_n_s_calc_TN93_P, 11, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) __PYX_ERR(1, 11, __pyx_L1_error)
+  __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(5, 0, 22, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cogent3_evolve__solved_models_py, __pyx_n_s_calc_TN93_P, 13, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) __PYX_ERR(1, 13, __pyx_L1_error)
 
   /* "View.MemoryView":286
  *         return self.name
@@ -17072,6 +17074,8 @@ static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   if (__Pyx_InitStrings(__pyx_string_tab) < 0) __PYX_ERR(1, 1, __pyx_L1_error);
   __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) __PYX_ERR(1, 1, __pyx_L1_error)
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_int_2 = PyInt_FromLong(2); if (unlikely(!__pyx_int_2)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_int_3 = PyInt_FromLong(3); if (unlikely(!__pyx_int_3)) __PYX_ERR(1, 1, __pyx_L1_error)
   __pyx_int_184977713 = PyInt_FromLong(184977713L); if (unlikely(!__pyx_int_184977713)) __PYX_ERR(1, 1, __pyx_L1_error)
   __pyx_int_neg_1 = PyInt_FromLong(-1); if (unlikely(!__pyx_int_neg_1)) __PYX_ERR(1, 1, __pyx_L1_error)
   return 0;
@@ -17412,22 +17416,31 @@ if (!__Pyx_RefNanny) {
   /* "cogent3/evolve/_solved_models.pyx":9
  *     double exp(double)
  * 
- * version_info = (1, 1)             # <<<<<<<<<<<<<<
+ * version_info = (3, 2)             # <<<<<<<<<<<<<<
+ * __version__ = "('2019', '07', '10a')"
  * 
- * def calc_TN93_P(double[::1] mprobs not None, double time,
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_version_info, __pyx_tuple__20) < 0) __PYX_ERR(1, 9, __pyx_L1_error)
 
-  /* "cogent3/evolve/_solved_models.pyx":11
- * version_info = (1, 1)
+  /* "cogent3/evolve/_solved_models.pyx":10
+ * 
+ * version_info = (3, 2)
+ * __version__ = "('2019', '07', '10a')"             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2019_07_10a) < 0) __PYX_ERR(1, 10, __pyx_L1_error)
+
+  /* "cogent3/evolve/_solved_models.pyx":13
+ * 
  * 
  * def calc_TN93_P(double[::1] mprobs not None, double time,             # <<<<<<<<<<<<<<
  *         alpha_1, alpha_2, double[:, ::1] result not None):
  *     cdef int motif, i, other, row, column, b_row, b_column
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_6evolve_14_solved_models_1calc_TN93_P, NULL, __pyx_n_s_cogent3_evolve__solved_models); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 11, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7cogent3_6evolve_14_solved_models_1calc_TN93_P, NULL, __pyx_n_s_cogent3_evolve__solved_models); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 13, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_calc_TN93_P, __pyx_t_1) < 0) __PYX_ERR(1, 11, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_calc_TN93_P, __pyx_t_1) < 0) __PYX_ERR(1, 13, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "cogent3/evolve/_solved_models.pyx":1
