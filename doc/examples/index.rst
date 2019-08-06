@@ -51,7 +51,6 @@ Modelling Evolution
     unrestricted_nucleotide
     simulate_alignment
     parametric_bootstrap
-    estimate_startingpoint
     coevolution
     rate_heterogeneity
     hmm_par_heterogeneity
