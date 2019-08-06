@@ -393,6 +393,7 @@ class Composable(ComposableType):
 
         if LOGGER:
             LOGGER.log_message(str(self), label="composable function")
+            LOGGER.log_versions(["cogent3"])
         results = []
         i = 0
         process = self.input if self.input else self
