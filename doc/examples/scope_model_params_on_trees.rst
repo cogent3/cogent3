@@ -43,8 +43,8 @@ In order to scope a parameter on a tree (meaning specifying a subset of edges fo
 
 - ``tip_names``: the name of two tips
 - ``outgroup_name``: the name of a tip that is not part of the clade of interest
-- ``is_clade``: if ``True``, all lineages descended from the tree node identified by the ``tip_names`` and ``outgroup_name`` argument are affected by the other arguments. If ``False``, then the ``is_stem`` argument must apply.
-- ``is_stem``: Whether the edge leading to the node is included.
+- ``clade``: if ``True``, all lineages descended from the tree node identified by the ``tip_names`` and ``outgroup_name`` argument are affected by the other arguments. If ``False``, then the ``stem`` argument must apply.
+- ``stem``: Whether the edge leading to the node is included.
 
 The next concepts include exactly what can be scoped and how. In the case of testing for distinctive periods of natural selection it is common to specify distinct values for ``omega`` for an edge. I'll first illustrate some possible uses for the arguments above by setting ``omega`` to be distinctive for specific edges. I will set a value for omega so that printing the likelihood function illustrates what edges have been effected, but I won't actually do any model fitting.
 
@@ -56,7 +56,7 @@ I'm going to cause ``omega`` to attain a different value for all branches aside 
 .. doctest::
 
     >>> lf.set_param_rule('omega', tip_names=['DogFaced', 'Mouse'],
-    ...              outgroup_name='Human', init=2.0, is_clade=True)
+    ...              outgroup_name='Human', init=2.0, clade=True)
     >>> print(lf)
     Likelihood function statistics
     log-likelihood = -9489.9506
@@ -77,16 +77,13 @@ I'm going to cause ``omega`` to attain a different value for all branches aside 
     NineBande     root     0.09    2.00
      DogFaced     root     0.11    2.00
     -----------------------------------
-    ==============
-    motif   mprobs
-    --------------
-        T     0.23
-        C     0.19
-        A     0.37
-        G     0.21
-    --------------
+    =========================
+       A      C      G      T
+    -------------------------
+    0.37   0.19   0.21   0.23
+    -------------------------
 
-As you can see ``omega`` for the primate edges I listed above have the default parameter value (1.0), while the others have what I've assigned. In fact, you could omit the ``is_clade`` argument as this is the default, but I think for readability of scripts it's best to be explicit.
+As you can see ``omega`` for the primate edges I listed above have the default parameter value (1.0), while the others have what I've assigned. In fact, you could omit the ``clade`` argument as this is the default, but I think for readability of scripts it's best to be explicit.
 
 Specifying a stem
 -----------------
@@ -99,7 +96,7 @@ This time I'll specify the stem leading to the primates as the edge of interest.
 
     >>> lf.set_param_rule('omega', init=1.0)
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
-    ...      outgroup_name='Mouse', init=2.0, is_stem=True, is_clade=False)
+    ...      outgroup_name='Mouse', init=2.0, stem=True, clade=False)
     >>> print(lf)
     Likelihood function statistics
     log-likelihood = -9424.8896
@@ -134,7 +131,7 @@ I'll specify that both the primates and their stem are to be considered.
 .. doctest::
 
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
-    ...      outgroup_name='Mouse', init=2.0, is_stem=True, is_clade=True)
+    ...      outgroup_name='Mouse', init=2.0, stem=True, clade=True)
     >>> print(lf)
     Likelihood function statistics
     log-likelihood = -9442.4271
@@ -169,17 +166,17 @@ The general use-cases for which a tree scope can be applied are:
 1. constraining all edges identified by a rule to have a specific value which is constant and not modifiable
 
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
-    ...      outgroup_name='Mouse', is_clade=True, is_constant=True)
+    ...      outgroup_name='Mouse', clade=True, is_constant=True)
 
 2. all edges identified by a rule have the same but different value to the rest of the tree
 
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
-    ...      outgroup_name='Mouse', is_clade=True)
+    ...      outgroup_name='Mouse', clade=True)
 
 3. allowing all edges identified by a rule to have different values of the parameter with the remaining tree edges having the same value
 
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
-    ...      outgroup_name='Mouse', is_clade=True, is_independent=True)
+    ...      outgroup_name='Mouse', clade=True, is_independent=True)
 
 4. allowing all edges to have a different value
 
@@ -197,7 +194,7 @@ I'll demonstrate these cases sequentially as they involve gradually increasing t
 .. doctest::
 
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
-    ...      outgroup_name='Mouse', is_clade=True, value=1.0, is_constant=True)
+    ...      outgroup_name='Mouse', clade=True, value=1.0, is_constant=True)
     >>> lf.optimise(local=True, show_progress=False)
     >>> print(lf)
     Likelihood function statistics
@@ -219,17 +216,14 @@ I'll demonstrate these cases sequentially as they involve gradually increasing t
     NineBande     root     0.28    0.92
      DogFaced     root     0.34    0.92
     -----------------------------------
-    ==============
-    motif   mprobs
-    --------------
-        T     0.23
-        C     0.19
-        A     0.37
-        G     0.21
-    --------------
-    >>> print(lf.get_log_likelihood())
+    =========================
+       A      C      G      T
+    -------------------------
+    0.37   0.19   0.21   0.23
+    -------------------------
+    >>> print(lf.lnL)
     -8640.9...
-    >>> print(lf.get_num_free_params())
+    >>> print(lf.nfp)
     9
 
 I'll now free up ``omega`` on the primate clade, but making it a single value shared by all primate lineages.
@@ -237,7 +231,7 @@ I'll now free up ``omega`` on the primate clade, but making it a single value sh
 .. doctest::
 
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
-    ...      outgroup_name='Mouse', is_clade=True, is_constant=False)
+    ...      outgroup_name='Mouse', clade=True, is_constant=False)
     >>> lf.optimise(local=True, show_progress=False)
     >>> print(lf)
     Likelihood function statistics
@@ -259,17 +253,14 @@ I'll now free up ``omega`` on the primate clade, but making it a single value sh
     NineBande     root     0.28    0.92
      DogFaced     root     0.34    0.92
     -----------------------------------
-    ==============
-    motif   mprobs
-    --------------
-        T     0.23
-        C     0.19
-        A     0.37
-        G     0.21
-    --------------
-    >>> print(lf.get_log_likelihood())
+    =========================
+       A      C      G      T
+    -------------------------
+    0.37   0.19   0.21   0.23
+    -------------------------
+    >>> print(lf.lnL)
     -8639.7...
-    >>> print(lf.get_num_free_params())
+    >>> print(lf.nfp)
     10
 
 Finally I'll allow all primate edges to have different values of ``omega``.
@@ -277,7 +268,7 @@ Finally I'll allow all primate edges to have different values of ``omega``.
 .. doctest::
 
     >>> lf.set_param_rule('omega', tip_names=['Human', 'HowlerMon'],
-    ...      outgroup_name='Mouse', is_clade=True, is_independent=True)
+    ...      outgroup_name='Mouse', clade=True, is_independent=True)
     >>> lf.optimise(local=True, show_progress=False)
     >>> print(lf)
     Likelihood function statistics
@@ -299,17 +290,14 @@ Finally I'll allow all primate edges to have different values of ``omega``.
     NineBande     root     0.28    0.92
      DogFaced     root     0.34    0.92
     -----------------------------------
-    ==============
-    motif   mprobs
-    --------------
-        T     0.23
-        C     0.19
-        A     0.37
-        G     0.21
-    --------------
-    >>> print(lf.get_log_likelihood())
+    =========================
+       A      C      G      T
+    -------------------------
+    0.37   0.19   0.21   0.23
+    -------------------------
+    >>> print(lf.lnL)
     -8638.9...
-    >>> print(lf.get_num_free_params())
+    >>> print(lf.nfp)
     11
 
 We now allow ``omega`` to be different on all edges.
@@ -338,15 +326,12 @@ We now allow ``omega`` to be different on all edges.
     NineBande     root     0.28    1.27
      DogFaced     root     0.34    0.84
     -----------------------------------
-    ==============
-    motif   mprobs
-    --------------
-        T     0.23
-        C     0.19
-        A     0.37
-        G     0.21
-    --------------
-    >>> print(lf.get_log_likelihood())
+    =========================
+       A      C      G      T
+    -------------------------
+    0.37   0.19   0.21   0.23
+    -------------------------
+    >>> print(lf.lnL)
     -8636.1...
-    >>> print(lf.get_num_free_params())
+    >>> print(lf.nfp)
     15
