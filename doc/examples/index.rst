@@ -46,7 +46,6 @@ Modelling Evolution
     codon_models
     empirical_protein_models
     testing_multi_loci
-    unrestricted_nucleotide
     simulate_alignment
     parametric_bootstrap
     coevolution
