@@ -33,16 +33,6 @@ General data analysis
 
     period_estimation
 
-******************
-Data Visualisation
-******************
-
-.. toctree::
-    :maxdepth: 1
-
-    draw_dendrogram
-    draw_dotplot
-
 *******************
 Modelling Evolution
 *******************
