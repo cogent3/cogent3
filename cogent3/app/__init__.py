@@ -32,7 +32,26 @@ def available_apps():
                 continue
             if obj.__module__ == mod.__name__:
                 is_composable = issubclass(obj, Composable)
-                rows.append([mod.__name__, name, is_composable, obj.__doc__])
-    header = ["module", "name", "composable", "doc"]
+                in_type = [
+                    {None: ""}.get(e, e) for e in getattr(obj, "_input_type", [])
+                ]
+                out_type = [
+                    {None: ""}.get(e, e) for e in getattr(obj, "_output_type", [])
+                ]
+                data_type = [
+                    {None: ""}.get(e, e) for e in getattr(obj, "_data_types", [])
+                ]
+                rows.append(
+                    [
+                        mod.__name__,
+                        name,
+                        is_composable,
+                        obj.__doc__,
+                        ", ".join(in_type),
+                        ", ".join(out_type),
+                        ", ".join(data_type),
+                    ]
+                )
+    header = ["module", "name", "composable", "doc", "inputs", "outputs", "data type"]
     table = Table(header, rows)
     return table
