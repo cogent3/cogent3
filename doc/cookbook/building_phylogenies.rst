@@ -20,7 +20,7 @@ For a limited number of evolutionary models a fast implementation is available. 
 .. doctest::
 
     >>> from cogent3 import LoadSeqs, DNA
-    >>> from cogent3.evolve.pairwise_distance import TN93Pair
+    >>> from cogent3.evolve.fast_distance import TN93Pair
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> dist_calc = TN93Pair(DNA, alignment=aln)
     >>> dist_calc.run(show_progress=False)
@@ -55,12 +55,11 @@ Other statistics are also available, such the as the standard errors of the esti
     ============================================
     Seq1 \ Seq2    Galago    HowlerMon    Rhesus
     --------------------------------------------
-         Galago         *       0.0103    0.0096
-      HowlerMon    0.0103            *    0.0054
-         Rhesus    0.0096       0.0054         *
+         Galago         0       0.0103    0.0096
+      HowlerMon    0.0103            0    0.0054
+         Rhesus    0.0096       0.0054         0
       Orangutan    0.0095       0.0053    0.0039
     --------------------------------------------
-
 
 More general estimation of pairwise distances
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -70,7 +69,7 @@ The standard ``cogent3`` likelihood function can also be used to estimate distan
 .. doctest::
 
     >>> from cogent3 import LoadSeqs, DNA
-    >>> from cogent3.phylo import distance
+    >>> from cogent3.evolve import distance
     >>> from cogent3.evolve.models import F81
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
     >>> d = distance.EstimateDistances(aln, submodel=F81())
@@ -106,7 +105,7 @@ Phylogenetic Trees can be built by using the neighbour joining algorithm by prov
     >>> from cogent3.phylo import nj
     >>> njtree = nj.nj(d.get_pairwise_distances())
     >>> njtree = njtree.balanced()
-    >>> print(njtree.ascii_art())
+    >>> print(njtree.ascii_art())  # doctest: +SKIP
                         /-Rhesus
               /edge.1--|
              |         |          /-HowlerMon
@@ -127,7 +126,7 @@ Or created manually as shown below.
 
     >>> dists = {('a', 'b'): 2.7, ('c', 'b'): 2.33, ('c', 'a'): 0.73}
     >>> njtree2 = nj.nj(dists)
-    >>> print(njtree2.ascii_art())
+    >>> print(njtree2.ascii_art())  # doctest: +SKIP
               /-a
              |
     -root----|--b
