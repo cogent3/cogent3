@@ -592,61 +592,6 @@ We first make a sequence and add some annotations.
     >>> v = seq.add_feature('repeat_unit', 'repeat_unit', [(39,49)])
     >>> v = seq.add_feature('repeat_unit', 'rep2', [(49,60)])
 
-We then make a ``Display`` instance and write to file. This will use standard feature policy for colouring and shape of feature types.
-
-.. doctest::
-
-    >>> from cogent3.draw.linear import Display
-    >>> seq_display = Display(seq, colour_sequences=True)
-    >>> fig = seq_display.make_figure()
-    >>> fig.savefig('annotated_1.png')
-
-Annotation display on alignments
-""""""""""""""""""""""""""""""""
-
-.. doctest::
-
-    >>> from cogent3 import DNA, LoadSeqs
-    >>> from cogent3.core.annotation import Variable
-    >>> from cogent3.draw.linear import Display
-    >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta', moltype=DNA,
-    ...                array_align=False)[:150]
-    >>> annot = aln.add_annotation(Variable, 'redline', 'align',
-    ...                          [((0,15),1),((15,30),2),((30,45),3)])
-    >>> annot = aln.add_annotation(Variable, 'blueline', 'align',
-    ...                          [((0,15),1.5),((15,30),2.5),((30,45),3.5)])
-    >>> align_display = Display(aln, colour_sequences=True)
-    >>> fig = align_display.make_figure(width=25, left=1, right=1)
-    >>> fig.savefig('annotated_2.png')
-
-Annotation display of a custom variable
-"""""""""""""""""""""""""""""""""""""""
-
-We just show a series of spans.
-
-.. doctest::
-
-    >>> from cogent3 import DNA
-    >>> from cogent3.draw.linear import Display
-    >>> from cogent3.core.annotation import Variable
-    >>> seq = DNA.make_seq('aaaccggttt' * 10)
-    >>> annot = seq.add_annotation(Variable, 'redline', 'align',
-    ...     [((0,15),1),((15,30),2),((30,45),3)])
-    ...
-    >>> seq_display = Display(seq, colour_sequences=True)
-    >>> fig = seq_display.make_figure()
-    >>> fig.savefig('annotated_3.png')
-
-Generic metadata
-^^^^^^^^^^^^^^^^
-
-*To be written.*
-
-Info object
-"""""""""""
-
-*To be written.*
-
 .. following cleans up files
 
 .. doctest::
