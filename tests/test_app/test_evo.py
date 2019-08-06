@@ -233,5 +233,28 @@ class TestAncestralStates(TestCase):
         assert_allclose(result["root"].row_sum(), 1)
 
 
+class TestTabulateStats(TestCase):
+    def test_tabulate(self):
+        """call returns tabular_result with Tables"""
+        from cogent3.util.table import Table
+
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = LoadSeqs(data=_data, moltype="dna")
+        mod = evo_app.model(
+            "GN", opt_args=dict(max_evaluations=25, limit_action="ignore")
+        )
+        result = mod(aln)
+        tabulator = evo_app.tabulate_stats()
+        tabulated = tabulator(result)
+        self.assertEqual(len(tabulated), 3)
+        for title in ("motif params", "global params", "edge params"):
+            self.assertTrue(title in tabulated)
+            self.assertIsInstance(tabulated[title], Table)
+
+
 if __name__ == "__main__":
     main()
