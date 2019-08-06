@@ -37,7 +37,7 @@ Now use this matrix to build a UPGMA cluster.
 .. doctest::
 
     >>> mycluster = upgma(d.get_pairwise_distances())
-    >>> print(mycluster.ascii_art())
+    >>> print(mycluster.ascii_art())  # doctest: +SKIP
                                   /-NineBande
                         /edge.1--|
                        |         |          /-HowlerMon
