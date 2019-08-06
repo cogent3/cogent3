@@ -48,20 +48,20 @@ We now use the discrete Fourier transform to estimate periodicity in this signal
     >>> from cogent3.maths.period import dft
     >>> pwr, period = dft(sig)
     >>> print(period)
-    [   2.            2.04081633    2.08333333    2.12765957    2.17391304
-        2.22222222    2.27272727    2.3255814     2.38095238    2.43902439
-        2.5           2.56410256    2.63157895    2.7027027     2.77777778
-        2.85714286    2.94117647    3.03030303    3.125         3.22580645...
+    [  2.           2.04081633   2.08333333   2.12765957   2.17391304
+       2.22222222   2.27272727   2.3255814    2.38095238   2.43902439
+       2.5          2.56410256   2.63157895   2.7027027    2.77777778
+       2.85714286   2.94117647   3.03030303   3.125        3.22580645...
     >>> print(pwr)
-    [ 1.06015801 +0.00000000e+00j  0.74686707 -1.93971914e-02j
-      0.36784793 -2.66370366e-02j  0.04384413 +2.86970840e-02j
-      1.54473269 -2.43777386e-02j  0.28522968 -2.33602932e-01j...
+    [ 1.06015801+0.00000000e+00j  0.74686707-1.93971914e-02j
+      0.36784793-2.66370366e-02j  0.04384413+2.86970840e-02j
+      1.54473269-2.43777386e-02j  0.28522968-2.33602932e-01j...
 
 The power (``pwr``) is returned as an array of complex numbers, so we convert into real numbers using ``abs``. We then zip the power and corresponding periods and sort to identify the period with maximum signal.
 
     >>> pwr = abs(pwr)
     >>> max_pwr, max_period = sorted(zip(pwr,period))[-1]
-    >>> print(max_pwr, max_period)
+    >>> print(max_pwr, max_period)  # doctest: +SKIP
     50.7685934719 10.0
 
 Auto-correlation
@@ -76,14 +76,14 @@ We now use auto-correlation.
     >>> print(period)
     [ 2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24...
     >>> print(pwr)
-    [  1.63366075e+01  -1.47309007e+01  -3.99310414e+01  -4.94779387e+01...
+    [ 1.63366075e+01 -1.47309007e+01 -3.99310414e+01 -4.94779387e+01...
 
 We then zip the power and corresponding periods and sort to identify the period with maximum signal.
 
 .. doctest::
 
     >>> max_pwr, max_period = sorted(zip(pwr,period))[-1]
-    >>> print(max_pwr, max_period)
+    >>> print(max_pwr, max_period)  # doctest: +SKIP
     46.7917300733 10
 
 For symbolic data
@@ -128,7 +128,7 @@ We can also compute the auto-correlation statistic, and the hybrid (which combin
     >>> from cogent3.maths.period import auto_corr, hybrid
     >>> powers, periods = auto_corr(symbols)
     >>> powers
-    array([ 11.,   9.,  11.,   9.,   6...
+    array([11.,  9., 11.,  9.,  6...
     >>> periods
     array([  2,   3,   4...
     >>> powers, periods = hybrid(symbols)
@@ -151,7 +151,7 @@ We just use ``sig`` created above. The Goertzel algorithm gives the same result 
     >>> from cogent3.maths.period import goertzel
     >>> pwr = goertzel(sig, 10)
     >>> print(pwr)
-    50.7685934719
+    50.7685...
 
 For symbolic data
 -----------------
@@ -213,7 +213,7 @@ Having defined this, we then just pass this calculator to the ``blockwise_bootst
     >>> obs_stat, p = blockwise_bootstrap(sig, calc=goertzel_calc, block_size=10,
     ...                              num_reps=1000)
     >>> print(obs_stat)
-    50.7685934719
+    50.7685...
     >>> print(p)
     0.0
 
