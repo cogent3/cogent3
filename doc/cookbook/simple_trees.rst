@@ -89,7 +89,7 @@ Get all the nodes, tips and edges
     >>> tr = LoadTree('data/test.tree')
     >>> nodes = tr.get_nodes_dict()
     >>> for n in nodes.items():
-    ...     print(n)
+    ...     print(n)  # doctest: +SKIP
     ...
     ('NineBande', Tree("NineBande;"))
     ('edge.1', Tree("((Human,HowlerMon),Mouse);"))
@@ -218,7 +218,7 @@ We also show how to select a subset of distances involving just one species.
 
     >>> human_dists = [names for names in dists if 'Human' in names]
     >>> for dist in human_dists:
-    ...     print(dist, dists[dist])
+    ...     print(dist, dists[dist])  # doctest: +SKIP
     ...
     ('Human', 'NineBande') 0.183106418165
     ('DogFaced', 'Human') 0.202340656203
@@ -368,26 +368,6 @@ XML format
           <clade>
              <name>Human</name>...
 
-Write to PDF
-""""""""""""
-
-.. note:: This requires ``matplotlib``. It will bring up a ``matplotlib`` window if run from the command line. But in any case, it will write the pdf file to the data directory.
-
-.. doctest::
-
-    >>> from cogent3 import LoadTree
-    >>> from cogent3.draw import dendrogram
-    >>> tr = LoadTree('data/test.tree')
-    >>> h, w = 500, 500
-    >>> np = dendrogram.ContemporaneousDendrogram(tr)
-    >>> np.write_pdf('temp.pdf', w, h, font_size=14)
-
-.. doctest::
-    :hide:
-
-    >>> from cogent3.util.misc import remove_files
-    >>> remove_files('temp.pdf', error_on_missing=False)
-
 Tree traversal
 ^^^^^^^^^^^^^^
 
@@ -461,7 +441,6 @@ One way to do it
     ...     print(tip_names)
     ...     sub_tree = tr.get_sub_tree(tip_names)
     ...     print(sub_tree.ascii_art())
-    ...     print
     ...
     ['Human', 'HowlerMon', 'Mouse']
               /-Human
@@ -469,12 +448,10 @@ One way to do it
     -root----|--HowlerMon
              |
               \-Mouse
-    <BLANKLINE>
     ['Human', 'HowlerMon']
               /-Human
     -root----|
               \-HowlerMon
-    <BLANKLINE>
 
 ..
     We do some file clean up
@@ -657,9 +634,9 @@ and a list of the tip nodes.
     >>> for i,t in enumerate(tips):
     ...     print(t.name,d[i])
     ...
-    B [  0.  10.  12.]
-    C [ 10.   0.   6.]
-    D [ 12.   6.   0.]
+    B [ 0. 10. 12.]
+    C [10.  0.  6.]
+    D [12.  6.  0.]
 
 Compare two trees using tip-to-tip distance matrices
 """"""""""""""""""""""""""""""""""""""""""""""""""""
