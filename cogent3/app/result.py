@@ -443,3 +443,13 @@ class bootstrap_result(generic_result):
         """returns the LR values corresponding to the synthetic data"""
         result = [self[k].LR for k in self if k != "observed"]
         return result
+
+
+class tabular_result(generic_result):
+    """stores one or multiple tabular data sets, keyed by a title"""
+
+    _type = "tabular_result"
+    _stat_attrs = ("header", "rows")
+
+    def __init__(self, source=None):
+        super(tabular_result, self).__init__(source)
