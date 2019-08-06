@@ -1,6 +1,8 @@
 from unittest import TestCase, main
 from unittest.mock import MagicMock
 
+from numpy.testing import assert_allclose
+
 from cogent3 import LoadSeqs, LoadTree
 from cogent3.app import evo as evo_app
 from cogent3.app.result import hypothesis_result
@@ -211,6 +213,24 @@ class TestHypothesisResult(TestCase):
         self.assertEqual(len(got), 3)
         expect = set(hyp.values())
         self.assertEqual(set(got), expect)
+
+
+class TestAncestralStates(TestCase):
+    def test_ancestral(self):
+        """recon ancestral states works"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = LoadSeqs(data=_data, moltype="dna")
+        mod = evo_app.model(
+            "GN", opt_args=dict(max_evaluations=25, limit_action="ignore")
+        )
+        anc = evo_app.ancestral_states()
+        result = anc(mod(aln))
+        self.assertEqual(result["root"].shape, (len(aln), 4))
+        assert_allclose(result["root"].row_sum(), 1)
 
 
 if __name__ == "__main__":

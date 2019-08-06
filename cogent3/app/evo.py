@@ -6,8 +6,18 @@ from cogent3 import LoadTree
 from cogent3.evolve.models import get_model
 from cogent3.util import parallel
 
-from .composable import ComposableHypothesis, ComposableModel, NotCompleted
-from .result import bootstrap_result, hypothesis_result, model_result
+from .composable import (
+    ComposableHypothesis,
+    ComposableModel,
+    ComposableTabular,
+    NotCompleted,
+)
+from .result import (
+    bootstrap_result,
+    hypothesis_result,
+    model_result,
+    tabular_result,
+)
 
 
 class model(ComposableModel):
@@ -318,3 +328,28 @@ class bootstrap(ComposableHypothesis):
             result.add_to_null(sym_result)
 
         return result
+
+
+class ancestral_states(ComposableTabular):
+    _input_type = frozenset(["model_result"])
+    _output_type = frozenset(["result", "tabular_result", "serialisable"])
+    _data_types = frozenset(["model_result"])
+
+    def __init__(self):
+        super(ancestral_states, self).__init__()
+        self._formatted_params()
+        self.func = self.recon_ancestor
+
+    def recon_ancestor(self, result):
+        """returns a tabular_result of posterior probabilities of ancestral states"""
+        anc = result.lf.reconstruct_ancestral_seqs()
+        fl = result.lf.get_full_length_likelihoods()
+        template = None
+        tab = tabular_result(source=result.source)
+        for name in anc:
+            state_p = anc[name]
+            if template is None:
+                template = state_p.template
+            pp = (state_p.array.T / fl).T
+            tab[name] = template.wrap(pp)
+        return tab
