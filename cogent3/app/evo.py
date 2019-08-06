@@ -353,3 +353,25 @@ class ancestral_states(ComposableTabular):
             pp = (state_p.array.T / fl).T
             tab[name] = template.wrap(pp)
         return tab
+
+
+class tabulate_stats(ComposableTabular):
+    """Extracts all model statistics from model_result as Table."""
+
+    _input_type = frozenset(["model_result"])
+    _output_type = frozenset(["result", "tabular_result", "serialisable"])
+    _data_types = frozenset(["model_result"])
+
+    def __init__(self):
+        super(tabulate_stats, self).__init__()
+        self._formatted_params()
+        self.func = self.extract_stats
+
+    def extract_stats(self, result):
+        """returns Table for all statistics returned by likelihood function
+        get_statistics"""
+        stats = result.lf.get_statistics(with_titles=True, with_motif_probs=True)
+        tab = tabular_result(source=result.source)
+        for table in stats:
+            tab[table.title] = table
+        return tab
