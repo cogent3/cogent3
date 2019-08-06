@@ -373,6 +373,10 @@ class Composable(ComposableType):
         if isinstance(dstore, str):
             dstore = [dstore]
 
+        dstore = [e for e in dstore if e]
+        if len(dstore) == 0:
+            raise ValueError("dstore is empty")
+
         start = time.time()
         loggable = hasattr(self, "data_store")
         if not loggable:

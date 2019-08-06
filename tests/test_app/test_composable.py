@@ -108,6 +108,13 @@ class TestComposableBase(TestCase):
         got = proc.apply_to(str(dstore[0]), show_progress=False)
         self.assertEqual(len(got), 1)
         self.assertIsInstance(got[0], SequenceCollection)
+        # raises ValueError if empty list
+        with self.assertRaises(ValueError):
+            proc.apply_to([])
+
+        # raises ValueError if list with empty string
+        with self.assertRaises(ValueError):
+            proc.apply_to(["", ""])
 
 
 class TestNotCompletedResult(TestCase):
