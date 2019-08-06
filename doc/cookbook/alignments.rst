@@ -49,8 +49,8 @@ Converting a ``SequenceCollection`` to FASTA format
 
     >>> from cogent3 import LoadSeqs
     >>> seq = LoadSeqs('data/test.paml', aligned=False)
-    >>> fasta_data = seq.to_fasta()
-    >>> print(fasta_data)
+    >>> fasta_data = seq
+    >>> print(fasta_data)  # doctest: +SKIP
     >DogFaced
     GCAAGGAGCCAGCAGAACAGATGGGTTGAAACTAAGGAAACATGTAATGATAGGCAGACT
     >HowlerMon
@@ -228,7 +228,7 @@ To see the names of the sequences in a sequence collection, you can use either t
 
     >>> aln.names
     ['seq1', 'seq2', 'seq3']
-    >>> aln.get_seq_names()
+    >>> aln.names
     ['seq1', 'seq2', 'seq3']
 
 Slice the sequences from an alignment like a list
@@ -289,8 +289,8 @@ Creating an ``Alignment`` object from a ``SequenceCollection``
     >>> from cogent3.core.alignment import Alignment
     >>> seq = LoadSeqs('data/test.paml', aligned=False)
     >>> aln = Alignment(seq)
-    >>> fasta_1 = seq.to_fasta()
-    >>> fasta_2 = aln.to_fasta()
+    >>> fasta_1 = seq
+    >>> fasta_2 = aln
     >>> assert fasta_1 == fasta_2
 
 Convert alignment to DNA, RNA or PROTEIN moltypes
@@ -382,7 +382,7 @@ Converting an alignment to FASTA format
     >>> from cogent3.core.alignment import Alignment
     >>> seq = LoadSeqs('data/long_testseqs.fasta')
     >>> aln = Alignment(seq)
-    >>> fasta_align = aln.to_fasta()
+    >>> fasta_align = aln
 
 Converting an alignment into Phylip format
 """"""""""""""""""""""""""""""""""""""""""
@@ -392,7 +392,15 @@ Converting an alignment into Phylip format
     >>> from cogent3.core.alignment import Alignment
     >>> seq = LoadSeqs('data/test.paml')
     >>> aln = Alignment(seq)
-    >>> phylip_file, name_dictionary = aln.to_phylip()
+    >>> got = aln.to_phylip()
+    >>> print(got)
+    5  60
+    NineBande GCAAGGCGCCAACAGAGCAGATGGGCTGAAAGTAAGGAAACATGTAATGATAGGCAGACT
+    Mouse     GCAGTGAGCCAGCAGAGCAGATGGGCTGCAAGTAAAGGAACATGTAACGACAGGCAGGTT
+    Human     GCAAGGAGCCAACATAACAGATGGGCTGGAAGTAAGGAAACATGTAATGATAGGCGGACT
+    HowlerMon GCAAGGAGCCAACATAACAGATGGGCTGAAAGTGAGGAAACATGTAATGATAGGCAGACT
+    DogFaced  GCAAGGAGCCAGCAGAACAGATGGGTTGAAACTAAGGAAACATGTAATGATAGGCAGACT
+    <BLANKLINE>
 
 Converting an alignment to a list of strings
 """"""""""""""""""""""""""""""""""""""""""""
@@ -490,7 +498,7 @@ We'll do this by specifying the position indices of interest, creating a sequenc
     [(2, 3), (5, 6), (8, 9), (11, 12)]
     >>> pos3 = aln.add_feature('pos3', 'pos3', indices)
     >>> pos3 = pos3.get_slice()
-    >>> print(pos3)
+    >>> print(pos3)  # doctest: +SKIP
     >seq2
     GGGG
     >seq1
@@ -508,7 +516,7 @@ We can use more conventional slice notation in this instance. Note, because Pyth
     >>> aln = LoadSeqs(data={'seq1': 'ATGATGATG---',
     ...                      'seq2': 'ATGATGATGATG'}, array_align=True)
     >>> pos3 = aln[2::3]
-    >>> print(pos3)
+    >>> print(pos3)  # doctest: +SKIP
     >seq1
     GGG-
     >seq2
@@ -533,7 +541,7 @@ For evolutionary analyses that use codon models we need to exclude terminating s
     ...                      'seq3': 'ACGCAATGA'}, moltype=DNA)
     ...
     >>> new = aln.trim_stop_codons()
-    >>> print(new)
+    >>> print(new)  # doctest: +SKIP
     >seq3
     ACGCAA
     >seq2
@@ -551,7 +559,7 @@ If the alignment contains sequences not divisible by 3, use the ``allow_partial`
     ...                      'seq3': 'ACGCAATGA'}, moltype=DNA)
     ...
     >>> new = aln.trim_stop_codons(allow_partial=True)
-    >>> print(new)
+    >>> print(new)  # doctest: +SKIP
     >seq3
     ACGCAA
     >seq2
@@ -699,7 +707,7 @@ Alternatively, you can extract only the sequences which are not specified by pas
 
 .. doctest::
 
-    >>> aln.take_seqs(['Human','Mouse'],negate=True)
+    >>> aln.take_seqs(['Human','Mouse'], negate=True)  # doctest: +SKIP
     3 x 2532 bytes alignment: NineBande[TGTGGCACAAA...], HowlerMon[TGTGGCACAAA...], DogFaced[TGTGGCACAAA...]
 
 Extracting sequences using an arbitrary function into a new alignment object
@@ -921,7 +929,7 @@ The ``omit_gap_runs`` method can be applied to remove long stretches of gaps in 
     >>> aln = LoadSeqs(data=[('seq1', 'ATGAA---TG-'),
     ...                      ('seq2', 'ATG-AGTGATG'),
     ...                      ('seq3', 'AT--AG-GATG')], moltype=DNA)
-    >>> print(aln.omit_gap_runs(2).to_fasta())
+    >>> print(aln.omit_gap_runs(2))  # doctest: +SKIP
     >seq2
     ATG-AGTGATG
     >seq3
@@ -934,7 +942,7 @@ If instead, we just wanted to remove positions from the alignment which are gaps
     >>> aln = LoadSeqs(data=[('seq1', 'ATGAA---TG-'),
     ...                      ('seq2', 'ATG-AGTGATG'),
     ...                      ('seq3', 'AT--AG-GATG')], moltype=DNA)
-    >>> print(aln.omit_gap_pos(0.40).to_fasta())
+    >>> print(aln.omit_gap_pos(0.40))  # doctest: +SKIP
     >seq1
     ATGA--TG-
     >seq2
@@ -950,7 +958,7 @@ If you wanted to remove sequences which contain more than a certain percent gap 
     ...                      ('seq2', 'ATG-AGTGATG'),
     ...                      ('seq3', 'AT--AG-GATG')], moltype=DNA)
     >>> filtered_aln = aln.omit_gap_seqs(0.50)
-    >>> print(filtered_aln.to_fasta())
+    >>> print(filtered_aln)  # doctest: +SKIP
     >seq2
     ATG-AGTGATG
     >seq3
@@ -958,7 +966,7 @@ If you wanted to remove sequences which contain more than a certain percent gap 
 
 Note that following this call to ``omit_gap_seqs``, the 4th column of ``filtered_aln`` is 100% gaps. This is generally not desirable, so a call to ``omit_gap_seqs`` is frequently followed with a call to ``omit_gap_pos`` with no parameters -- this defaults to removing positions which are all gaps:
 
-    >>> print(filtered_aln.omit_gap_pos().to_fasta())
+    >>> print(filtered_aln.omit_gap_pos())  # doctest: +SKIP
     >seq2
     ATGAGTGATG
     >seq3
