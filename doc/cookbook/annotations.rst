@@ -592,6 +592,9 @@ We first make a sequence and add some annotations.
     >>> v = seq.add_feature('repeat_unit', 'repeat_unit', [(39,49)])
     >>> v = seq.add_feature('repeat_unit', 'rep2', [(49,60)])
 
+.. todo document info attribute
+.. todo document how to visualise annotations
+
 .. following cleans up files
 
 .. doctest::
