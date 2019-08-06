@@ -96,21 +96,11 @@ We then provide an alignment and optimise the model. In the current case we just
         edge.2   edge.3     0.04
         edge.3     root     0.02
     ----------------------------
-    ===============
-    motif    mprobs
-    ---------------
-      AAA      0.06
-      AAC      0.02
-      AAG      0.03
-      AAT      0.06
-      ACA      0.02
-      ...       ...
-      TGT      0.02
-      TTA      0.02
-      TTC      0.01
-      TTG      0.01
-      TTT      0.02
-    ---------------
+    ==========================================================================
+     AAA    AAC    AAG    AAT    ACA    ACC    ACG    ACT    AGA    AGC    AGG
+    --------------------------------------------------------------------------
+    0.06   0.02   0.03   0.06   0.02   0.00   0.00   0.03   0.02   0.03   0.01
+    --------------------------------------------------------------------------...
 
 In the above output, the first table shows the maximum likelihood estimates (MLEs) for the substitution model parameters that are 'global' in scope. For instance, the ``C/T=4.58`` MLE indicates that the relative rate of substitutions between C and T is nearly 5 times the background substitution rate.
 
@@ -152,21 +142,11 @@ We can then free up the omega parameter, but before we do that we'll store the l
         edge.2   edge.3     0.03
         edge.3     root     0.02
     ----------------------------
-    ===============
-    motif    mprobs
-    ---------------
-      AAA      0.06
-      AAC      0.02
-      AAG      0.03
-      AAT      0.06
-      ACA      0.02
-      ...       ...
-      TGT      0.02
-      TTA      0.02
-      TTC      0.01
-      TTG      0.01
-      TTT      0.02
-    ---------------
+    ==========================================================================
+     AAA    AAC    AAG    AAT    ACA    ACC    ACG    ACT    AGA    AGC    AGG
+    --------------------------------------------------------------------------
+    0.06   0.02   0.03   0.06   0.02   0.00   0.00   0.03   0.02   0.03   0.01
+    --------------------------------------------------------------------------...
     >>> non_neutral_lnL = lf.get_log_likelihood()
     >>> non_neutral_nfp = lf.get_num_free_params()
 
@@ -183,7 +163,7 @@ Not surprisingly, this is significant. We then ask whether the Human and Chimpan
 .. doctest::
 
     >>> lf.set_param_rule('omega', tip_names=['Chimpanzee', 'Human'],
-    ...                          outgroup_name='Galago', is_clade=True)
+    ...                          outgroup_name='Galago', clade=True)
     >>> lf.optimise(**optimiser_args)
     >>> print(lf)
     Likelihood function statistics
@@ -209,21 +189,11 @@ Not surprisingly, this is significant. We then ask whether the Human and Chimpan
         edge.2   edge.3     0.03    0.73
         edge.3     root     0.02    0.73
     ------------------------------------
-    ===============
-    motif    mprobs
-    ---------------
-      AAA      0.06
-      AAC      0.02
-      AAG      0.03
-      AAT      0.06
-      ACA      0.02
-      ...       ...
-      TGT      0.02
-      TTA      0.02
-      TTC      0.01
-      TTG      0.01
-      TTT      0.02
-    ---------------
+    ==========================================================================
+     AAA    AAC    AAG    AAT    ACA    ACC    ACG    ACT    AGA    AGC    AGG
+    --------------------------------------------------------------------------
+    0.06   0.02   0.03   0.06   0.02   0.00   0.00   0.03   0.02   0.03   0.01
+    --------------------------------------------------------------------------...
     >>> chimp_human_clade_lnL = lf.get_log_likelihood()
     >>> chimp_human_clade_nfp = lf.get_num_free_params()
     >>> LR = 2 * (chimp_human_clade_lnL - non_neutral_lnL)
@@ -322,21 +292,11 @@ The above statement essentially assigns a probability of nearly 1 to the 'neutra
         edge.2   edge.3     0.03
         edge.3     root     0.02
     ----------------------------
-    ===============
-    motif    mprobs
-    ---------------
-      AAA      0.06
-      AAC      0.02
-      AAG      0.03
-      AAT      0.06
-      ACA      0.02
-      ...       ...
-      TGT      0.02
-      TTA      0.02
-      TTC      0.01
-      TTG      0.01
-      TTT      0.02
-    ---------------
+    ==========================================================================
+     AAA    AAC    AAG    AAT    ACA    ACC    ACG    ACT    AGA    AGC    AGG
+    --------------------------------------------------------------------------
+    0.06   0.02   0.03   0.06   0.02   0.00   0.00   0.03   0.02   0.03   0.01
+    --------------------------------------------------------------------------...
     >>> print(chisqprob(LR, df))
     0.000...
 
