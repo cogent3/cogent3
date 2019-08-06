@@ -20,7 +20,6 @@ Data manipulation
     complete_seq_features
     reverse_complement
     align_codons_to_protein
-    genetic_code_aa_index
     handling_tabular_data
     manipulating_tree_nodes
 
