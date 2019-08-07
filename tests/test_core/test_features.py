@@ -531,18 +531,18 @@ class FeaturesTest(TestCase):
         json = aln.to_json()
         new = deserialise_object(json)
         got_exons = list(new.get_annotations_from_seq("x", "exon"))[0]
-        self.assertEqual(got_exons.get_slice().todict(), expect.todict())
+        self.assertEqual(got_exons.get_slice().to_dict(), expect.to_dict())
 
         # annotations just on alignment
         aln = LoadSeqs(
             data=[["x", "-AAAAAGGGG"], ["y", "TTTT--CCCC"]], array_align=False
         )
         f = aln.add_annotation(Feature, "generic", "no name", [(1, 4), (6, 10)])
-        expect = f.get_slice().todict()
+        expect = f.get_slice().to_dict()
         json = aln.to_json()
         new = deserialise_object(json)
         got = list(new.get_annotations_matching("generic"))[0]
-        self.assertEqual(got.get_slice().todict(), expect)
+        self.assertEqual(got.get_slice().to_dict(), expect)
 
         # annotations on both alignment and sequence
         aln = LoadSeqs(
@@ -554,17 +554,17 @@ class FeaturesTest(TestCase):
         new = deserialise_object(json)
         ## get back the exon
         seq_exon = list(aln.get_annotations_from_seq("x", "exon"))[0]
-        expect = seq_exon.get_slice().todict()
+        expect = seq_exon.get_slice().to_dict()
         got_exons = list(new.get_annotations_from_seq("x", "exon"))[0]
-        self.assertEqual(got_exons.get_slice().todict(), expect)
+        self.assertEqual(got_exons.get_slice().to_dict(), expect)
         ## get back the generic
-        expect = f.get_slice().todict()
+        expect = f.get_slice().to_dict()
         got = list(new.get_annotations_matching("generic"))[0]
-        self.assertEqual(got.get_slice().todict(), expect)
+        self.assertEqual(got.get_slice().to_dict(), expect)
 
         # check masking of seq features still works
         new = new.with_masked_annotations("exon", mask_char="?")
-        self.assertEqual(new[4:9].todict(), dict(x="?????", y="--CCC"))
+        self.assertEqual(new[4:9].to_dict(), dict(x="?????", y="--CCC"))
 
     def test_roundtripped_alignment2(self):
         """Sliced Alignment with annotations roundtrips correctly"""

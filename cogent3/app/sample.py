@@ -73,10 +73,10 @@ class concat:
         for aln in data:
             assert isinstance(aln, ArrayAlignment) or isinstance(aln, Alignment)
             if self._intersect:
-                seqs = aln.take_seqs(names).todict()
+                seqs = aln.take_seqs(names).to_dict()
             else:
                 seqs = defaultdict(lambda: "?" * len(aln))
-                seqs.update(aln.todict())
+                seqs.update(aln.to_dict())
 
             for name in names:
                 collated[name].append(seqs[name])

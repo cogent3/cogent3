@@ -64,12 +64,12 @@ class TestTranslate(TestCase):
         tr = trans(seqs)
         ex = data.copy()
         ex.pop("rc")
-        self.assertEqual(tr.todict(), ex)
+        self.assertEqual(tr.to_dict(), ex)
         trans = select_translatable(allow_rc=True)
         tr = trans(seqs)
         ex = data.copy()
         ex["rc"] = data["a"]
-        self.assertEqual(tr.todict(), ex)
+        self.assertEqual(tr.to_dict(), ex)
 
         # if seqs not translatable returns NotCompletedResult
         data = dict(a="TAATTGATTAA", b="GCAGTTTATTA")

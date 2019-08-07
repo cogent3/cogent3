@@ -204,7 +204,7 @@ class NewQ(TestCase):
         aln_len = len(self.aln)
         posn1 = []
         posn2 = []
-        for name, seq in list(self.aln.todict().items()):
+        for name, seq in list(self.aln.to_dict().items()):
             p1 = [seq[i] for i in range(0, aln_len, 2)]
             p2 = [seq[i] for i in range(1, aln_len, 2)]
             posn1.append([name, "".join(p1)])

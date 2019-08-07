@@ -165,7 +165,7 @@ class LikelihoodCalcs(TestCase):
     def test_no_seq_named_root(self):
         """root is a reserved name"""
         aln = self.alignment.take_seqs(self.alignment.names[:4])
-        aln = aln.todict()
+        aln = aln.to_dict()
         one = aln.pop("Mouse")
         aln["root"] = one
         aln = LoadSeqs(data=aln)
@@ -511,7 +511,7 @@ NineBande    root    1.00  1.00
         self.assertEqual(len(simulated.names), 4)
         import re
 
-        self.assertEqual(re.sub("[ATCG]", "x", simulated.todict()["a"]), "x??xxxxxx?")
+        self.assertEqual(re.sub("[ATCG]", "x", simulated.to_dict()["a"]), "x??xxxxxx?")
 
     def test_simulate_alignment_root_sequence(self):
         """provide a root sequence for simulating an alignment"""

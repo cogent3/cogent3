@@ -151,8 +151,8 @@ class TestModel(TestCase):
             opt_args=dict(max_evaluations=5, limit_action="ignore"),
         )
         result = mod(aln)
-        aln1 = result.lf[1].get_param_value("alignment").todict()
-        self.assertEqual(aln1, aln[::3].todict())
+        aln1 = result.lf[1].get_param_value("alignment").to_dict()
+        self.assertEqual(aln1, aln[::3].to_dict())
 
 
 def _make_getter(val):
