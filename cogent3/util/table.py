@@ -338,9 +338,12 @@ class Table(DictArray):
         html.insert(
             1,
             "\n".join(
-                ["<style>", "tr:last-child {border-bottom: 1px solid #000;} "
-                "tr > th {text-align: center !important;} tr > td {text-align: left !important;}", 
-                "</style>"]
+                [
+                    "<style>",
+                    "tr:last-child {border-bottom: 1px solid #000;} "
+                    "tr > th {text-align: center !important;} tr > td {text-align: left !important;}",
+                    "</style>",
+                ]
             ),
         )
         html = "\n".join(["\n".join(html), shape_info])
