@@ -105,7 +105,7 @@ class MapTest(unittest.TestCase):
         b = aln.get_seq("b")
         b.add_annotation(Feature, "test_type", "test_label", [(4, 6)])
 
-        answer = aln.get_by_seq_annotation("b", "test_type")[0].todict()
+        answer = aln.get_by_seq_annotation("b", "test_type")[0].to_dict()
         self.assertEqual(answer, {"b": "A--T", "a": "AAAT"})
 
 

@@ -440,7 +440,7 @@ class GroupFastaParsingTest(TestCase):
         parser = GroupFastaParser(data, label_to_name, aligned=True)
         count = 0
         for group in parser:
-            got = group.todict()
+            got = group.to_dict()
             want = expected[count]
             self.assertEqual(got, want)
             self.assertEqual(group.info.Group, "group%s" % (count + 1))
@@ -452,7 +452,7 @@ class GroupFastaParsingTest(TestCase):
             data, label_to_name, done_groups=done_groups, aligned=True
         )
         for group in parser:
-            got = group.todict()
+            got = group.to_dict()
             want = expected[1]
             self.assertEqual(got, want)
             self.assertEqual(group.info.Group, "group2")

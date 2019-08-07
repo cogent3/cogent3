@@ -36,7 +36,7 @@ class RefalignmentTests(TestCase):
             "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
             "Rhesus": "GCCAGCTCATTACAGCATGAGAAC---AGTTTGTTACTCACT",
         }
-        self.assertEqual(aln.todict(), expect)
+        self.assertEqual(aln.to_dict(), expect)
 
     def test_progressive_align_nuc(self):
         """progressive alignment with nuc models"""
@@ -48,7 +48,7 @@ class RefalignmentTests(TestCase):
             "Bandicoot": "NACTCATTAATGCTTGAAACCAGCAG---TTTATTGTCCAAC",
             "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAG---TTTATTATACACT",
         }
-        got = aln.todict()
+        got = aln.to_dict()
         self.assertEqual(got, expect)
 
         # using default

@@ -210,7 +210,7 @@ class model_result(generic_result):
         seqnames = None
         for i in sorted(self):
             aln = self[i].simulate_alignment()
-            sim.append(aln.todict())
+            sim.append(aln.to_dict())
             if seqnames is None:
                 seqnames = list(sim[-1].keys())
 

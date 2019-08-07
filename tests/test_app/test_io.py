@@ -121,7 +121,7 @@ class TestIo(TestCase):
         fasta_loader = io_app.load_unaligned(format="fasta")
         for i, seqs in enumerate(map(fasta_loader, fasta_paths)):
             self.assertIsInstance(seqs, SequenceCollection)
-            self.assertTrue("-" not in "".join(seqs.todict().values()))
+            self.assertTrue("-" not in "".join(seqs.to_dict().values()))
             self.assertEqual(seqs.info.source, fasta_paths[i])
 
         # should also handle case where it's given an alignment/sequence

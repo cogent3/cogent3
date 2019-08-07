@@ -63,7 +63,7 @@ class TestDeserialising(TestCase):
         data = dict(A="TTGT", B="GGCT")
         seqcoll = LoadSeqs(data=data, moltype="dna", aligned=False)
         got = deserialise_object(seqcoll.to_json())
-        self.assertEqual(got.rc().todict(), seqcoll.rc().todict())
+        self.assertEqual(got.rc().to_dict(), seqcoll.rc().to_dict())
         self.assertIsInstance(got, alignment.SequenceCollection)
 
     def test_roundtrip_arrayalign(self):
@@ -71,7 +71,7 @@ class TestDeserialising(TestCase):
         data = dict(A="TTGTA", B="GGCT-")
         arrayalign = LoadSeqs(data=data, moltype="dna")
         got = deserialise_object(arrayalign.to_json())
-        self.assertEqual(got.rc().todict(), arrayalign.rc().todict())
+        self.assertEqual(got.rc().to_dict(), arrayalign.rc().to_dict())
         self.assertIsInstance(got, alignment.ArrayAlignment)
 
     def test_roundtrip_align(self):
@@ -79,7 +79,7 @@ class TestDeserialising(TestCase):
         data = dict(A="TTGTA", B="GGCT-")
         align = LoadSeqs(data=data, moltype="dna", array_align=False)
         got = deserialise_object(align.to_json())
-        self.assertEqual(got.rc().todict(), align.rc().todict())
+        self.assertEqual(got.rc().to_dict(), align.rc().to_dict())
         self.assertIsInstance(got, alignment.Alignment)
 
     def test_roundtrip_tree(self):

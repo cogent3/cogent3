@@ -146,7 +146,7 @@ def BestLogLikelihood(
     else:
         kwargs = {}
 
-    aln = LoadSeqs(data=aln.todict(), **kwargs)
+    aln = LoadSeqs(data=aln.to_dict(), **kwargs)
     columns = aligned_columns_to_rows(aln, motif_length, exclude_chars, allowed_chars)
     num_cols = len(columns)
     log_likelihood = get_G93_lnL_from_array(columns)

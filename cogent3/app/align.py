@@ -116,7 +116,7 @@ class align_to_ref(ComposableSeq):
 
             aligned = aligned.add_from_ref_aln(result.to_type(array_align=False))
 
-        new = ArrayAlignment(aligned.todict(), moltype=seqs.moltype, info=seqs.info)
+        new = ArrayAlignment(aligned.to_dict(), moltype=seqs.moltype, info=seqs.info)
         return new
 
 

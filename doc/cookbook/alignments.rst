@@ -410,7 +410,7 @@ Converting an alignment to a list of strings
     >>> from cogent3.core.alignment import Alignment
     >>> seq = LoadSeqs('data/test.paml')
     >>> aln = Alignment(seq)
-    >>> string_list = aln.todict().values()
+    >>> string_list = aln.to_dict().values()
 
 Slicing an alignment
 ^^^^^^^^^^^^^^^^^^^^

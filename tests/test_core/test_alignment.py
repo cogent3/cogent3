@@ -185,7 +185,7 @@ class SequenceCollectionBaseTests(object):
     """
 
     Class = SequenceCollection
-    brca1_data = LoadSeqs("data/brca1.fasta").todict()
+    brca1_data = LoadSeqs("data/brca1.fasta").to_dict()
 
     def setUp(self):
         """Define some standard SequenceCollection objects."""
@@ -878,7 +878,7 @@ class SequenceCollectionBaseTests(object):
         align1 = self.Class({"a": "AAAA", "b": "TTTT", "c": "CCCC"})
         align2 = self.Class({"a": "GGGG", "b": "----", "c": "NNNN"})
         align = align1 + align2
-        concatdict = align.todict()
+        concatdict = align.to_dict()
         self.assertEqual(
             concatdict, {"a": "AAAAGGGG", "b": "TTTT----", "c": "CCCCNNNN"}
         )
@@ -1002,8 +1002,8 @@ class SequenceCollectionBaseTests(object):
     def test_todict(self):
         """SequenceCollection.todict should return dict of strings (not obj)"""
         aln = self.Class({"seq1": "GATTTT", "seq2": "GATC??"})
-        self.assertEqual(aln.todict(), {"seq1": "GATTTT", "seq2": "GATC??"})
-        for i in list(aln.todict().values()):
+        self.assertEqual(aln.to_dict(), {"seq1": "GATTTT", "seq2": "GATC??"})
+        for i in list(aln.to_dict().values()):
             assert isinstance(i, str)
 
     def test_get_ambiguous_positions(self):
@@ -1160,7 +1160,7 @@ class SequenceCollectionBaseTests(object):
         data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
         seqs = self.Class(data=data)
         dna = seqs.to_moltype(DNA)
-        rc = dna.rc().todict()
+        rc = dna.rc().to_dict()
         expect = {"seq1": "TACGTACGT", "seq2": "---TTCGGT", "seq3": "AACGTACGT"}
         self.assertEqual(rc, expect)
 
@@ -1322,7 +1322,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             log_warnings=False,
             drop_remainder=drop_remainder,
         )
-        self.assertEqual(result.todict(), expected)
+        self.assertEqual(result.to_dict(), expected)
         self.assertEqual(result.info["key"], "value")
 
     def test_filtered(self):
@@ -1481,7 +1481,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln = self.Class(data=data, moltype=DNA)
 
         # motif length of 1, defaults - no gaps allowed
-        result = aln.no_degenerates().todict()
+        result = aln.no_degenerates().to_dict()
         expect = {
             "s1": "AA CC GG TTT".replace(" ", ""),
             "s2": "CC GG TT AAA".replace(" ", ""),
@@ -1490,7 +1490,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(result, expect)
 
         # allow gaps
-        result = aln.no_degenerates(allow_gap=True).todict()
+        result = aln.no_degenerates(allow_gap=True).to_dict()
         expect = {
             "s1": "AA CC GGG TTT".replace(" ", ""),
             "s2": "CC GG T-T AAA".replace(" ", ""),
@@ -1499,7 +1499,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(result, expect)
 
         # motif length of 3, defaults - no gaps allowed
-        result = aln.no_degenerates(motif_length=3).todict()
+        result = aln.no_degenerates(motif_length=3).to_dict()
         expect = {
             "s1": "TTT".replace(" ", ""),
             "s2": "AAA".replace(" ", ""),
@@ -1508,7 +1508,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(result, expect)
 
         # allow gaps
-        result = aln.no_degenerates(motif_length=3, allow_gap=True).todict()
+        result = aln.no_degenerates(motif_length=3, allow_gap=True).to_dict()
         expect = {
             "s1": "GGG TTT".replace(" ", ""),
             "s2": "T-T AAA".replace(" ", ""),
@@ -1529,22 +1529,22 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
         # default should strip out cols that are 100% gaps
         result = aln.omit_gap_pos()
-        self.assertEqual(result.todict(), {"a": "-ABC", "b": "CBA-", "c": "-DEF"})
+        self.assertEqual(result.to_dict(), {"a": "-ABC", "b": "CBA-", "c": "-DEF"})
         # if allowed_gap_frac is 1, shouldn't delete anything
         self.assertEqual(
-            aln.omit_gap_pos(1).todict(),
+            aln.omit_gap_pos(1).to_dict(),
             {"a": "--A-BC-", "b": "-CB-A--", "c": "--D-EF-"},
         )
         # if allowed_gap_frac is 0, should strip out any cols containing gaps
         self.assertEqual(
-            aln.omit_gap_pos(0).todict(), {"a": "AB", "b": "BA", "c": "DE"}
+            aln.omit_gap_pos(0).to_dict(), {"a": "AB", "b": "BA", "c": "DE"}
         )
         # intermediate numbers should work as expected
         self.assertEqual(
-            aln.omit_gap_pos(0.4).todict(), {"a": "ABC", "b": "BA-", "c": "DEF"}
+            aln.omit_gap_pos(0.4).to_dict(), {"a": "ABC", "b": "BA-", "c": "DEF"}
         )
         self.assertEqual(
-            aln.omit_gap_pos(0.7).todict(), {"a": "-ABC", "b": "CBA-", "c": "-DEF"}
+            aln.omit_gap_pos(0.7).to_dict(), {"a": "-ABC", "b": "CBA-", "c": "-DEF"}
         )
 
         # when we increase the number of sequences to 6, more differences
@@ -1573,7 +1573,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # with defaults, excludes the fully gapped seq
         result = aln.omit_bad_seqs()
         self.assertEqual(
-            result.todict(),
+            result.to_dict(),
             {
                 "s1": "-ACC--TT",
                 "s2": "-ACC--TT",
@@ -1584,13 +1584,13 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         )
         # unless exclude_just_gap=False, which should just return self
         result = aln.omit_bad_seqs(exclude_just_gap=False)
-        self.assertEqual(result.todict(), data)
+        self.assertEqual(result.to_dict(), data)
         self.assertEqual(id(result), id(aln))
 
         # with disallowed_frac=0.6, we should drop s4&5 too
         result = aln.omit_bad_seqs(disallowed_frac=0.5)
         self.assertEqual(
-            result.todict(), {"s1": "-ACC--TT", "s2": "-ACC--TT", "s3": "-ACC--TT"}
+            result.to_dict(), {"s1": "-ACC--TT", "s2": "-ACC--TT", "s3": "-ACC--TT"}
         )
 
     def test_matching_ref(self):
@@ -1706,7 +1706,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         sample = alignment.sample(10)
         self.assertEqual(len(sample), 10)
         # test columns alignment preserved
-        seqs = list(sample.todict().values())
+        seqs = list(sample.to_dict().values())
         self.assertEqual(seqs[0], seqs[1])
         # ensure each char occurs once as sampling without replacement
         for char in seqs[0]:
@@ -1748,7 +1748,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         sample = alignment.sample(10, motif_length=2)
         self.assertEqual(len(sample), 20)
         # test columns alignment preserved
-        seqs = list(sample.todict().values())
+        seqs = list(sample.to_dict().values())
         self.assertEqual(seqs[0], seqs[1])
         # ensure each char occurs twice as sampling dinucs without replacement
         for char in seqs[0]:
@@ -1759,7 +1759,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln = self.Class(data=[("a", "AC-GT"), ("b", "ACCGT")])
         copied = aln.copy()
         self.assertTrue(type(aln), type(copied))
-        self.assertEqual(aln.todict(), copied.todict())
+        self.assertEqual(aln.to_dict(), copied.to_dict())
         self.assertEqual(id(aln.moltype), id(copied.moltype))
         aln = self.Class(data=[("a", "AC-GT"), ("b", "ACCGT")], info={"check": True})
         copied = aln.copy()
@@ -1835,10 +1835,10 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
         # we should be able to specify moltype and alignment
         new = aln.to_type(array_align=not array_align, moltype=DNA)
-        self.assertEqual(new.todict(), new_seqs)
+        self.assertEqual(new.to_dict(), new_seqs)
         # and translate
         self.assertEqual(
-            new.get_translation().todict(),
+            new.get_translation().to_dict(),
             {"seq1": "TYV", "seq3": "TYV", "seq2": "TE-"},
         )
 
@@ -1934,12 +1934,12 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # should correctly gap the same sequences with same length
         result = a.replace_seqs(a.degap(), aa_to_codon=False)  # default behaviour
         self.assertEqual(
-            result.todict(), {"seq1": "ACGU", "seq2": "C-UA", "seq3": "C---"}
+            result.to_dict(), {"seq1": "ACGU", "seq2": "C-UA", "seq3": "C---"}
         )
 
         # should fail when not same length if aa_to_codon is False
         new = SequenceCollection(
-            [(n, s.replace("-", "")) for n, s in list(a[:3].todict().items())]
+            [(n, s.replace("-", "")) for n, s in list(a[:3].to_dict().items())]
         )
         self.assertRaises(ValueError, a.replace_seqs, new, aa_to_codon=False)
 
@@ -1949,7 +1949,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
         result = aln1.replace_seqs(aln2, aa_to_codon=False)
         self.assertTrue(id(aln1) != id(aln2))
-        self.assertEqual(aln1.todict(), result.todict())
+        self.assertEqual(aln1.to_dict(), result.to_dict())
 
     def test_replace_seqs_info(self):
         """replace_seqs should preserve info attribute"""
@@ -2138,11 +2138,11 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
         sub_align = alignment[2:5]
         self.assertTrue(isinstance(sub_align, self.Class))
         expect = {"seq1": "GAC", "seq2": "GAC", "seq3": "GAC"}
-        self.assertEqual(sub_align.todict(), expect)
+        self.assertEqual(sub_align.to_dict(), expect)
         # slice third positions
         sub_align = alignment[2::3]
         expect = {"seq1": "GGG", "seq2": "GGG", "seq3": "GGG"}
-        self.assertEqual(sub_align.todict(), expect)
+        self.assertEqual(sub_align.to_dict(), expect)
 
     def test_slice_align_info(self):
         """slicing alignment preserves info attribute"""
@@ -2165,26 +2165,26 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         for bit in alignment.sliding_windows(5, 2):
             result += [bit]
         self.assertEqual(
-            result[0].todict(), {"seq3": "ACGTA", "seq2": "ACGTA", "seq1": "ACGTA"}
+            result[0].to_dict(), {"seq3": "ACGTA", "seq2": "ACGTA", "seq1": "ACGTA"}
         )
         self.assertEqual(
-            result[1].todict(), {"seq3": "GTACG", "seq2": "GTACG", "seq1": "GTACG"}
+            result[1].to_dict(), {"seq3": "GTACG", "seq2": "GTACG", "seq1": "GTACG"}
         )
 
         result = []
         for bit in alignment.sliding_windows(5, 1):
             result += [bit]
         self.assertEqual(
-            result[0].todict(), {"seq3": "ACGTA", "seq2": "ACGTA", "seq1": "ACGTA"}
+            result[0].to_dict(), {"seq3": "ACGTA", "seq2": "ACGTA", "seq1": "ACGTA"}
         )
         self.assertEqual(
-            result[1].todict(), {"seq3": "CGTAC", "seq2": "CGTAC", "seq1": "CGTAC"}
+            result[1].to_dict(), {"seq3": "CGTAC", "seq2": "CGTAC", "seq1": "CGTAC"}
         )
         self.assertEqual(
-            result[2].todict(), {"seq3": "GTACG", "seq2": "GTACG", "seq1": "GTACG"}
+            result[2].to_dict(), {"seq3": "GTACG", "seq2": "GTACG", "seq1": "GTACG"}
         )
         self.assertEqual(
-            result[3].todict(), {"seq3": "TACGT", "seq2": "TACGT", "seq1": "TACGT"}
+            result[3].to_dict(), {"seq3": "TACGT", "seq2": "TACGT", "seq1": "TACGT"}
         )
 
     def test_with_gaps_from(self):
@@ -2192,8 +2192,8 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         gapless = self.Class({"seq1": "TCG", "seq2": "TCG"})
         pregapped = self.Class({"seq1": "-CG", "seq2": "TCG"})
         template = self.Class({"seq1": "A-?", "seq2": "ACG"})
-        r1 = gapless.with_gaps_from(template).todict()
-        r2 = pregapped.with_gaps_from(template).todict()
+        r1 = gapless.with_gaps_from(template).to_dict()
+        r2 = pregapped.with_gaps_from(template).to_dict()
         self.assertEqual(r1, {"seq1": "T-G", "seq2": "TCG"})
         self.assertEqual(r2, {"seq1": "--G", "seq2": "TCG"})
 
@@ -2328,7 +2328,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         expect = str(x.get_slice())
         new = seqs.rename_seqs(lambda x: x.upper())
         got = list(new.get_annotations_from_any_seq("exon"))[0]
-        self.assertEqual(got.get_slice().todict()["SEQ1"], expect)
+        self.assertEqual(got.get_slice().to_dict()["SEQ1"], expect)
 
 
 class ArrayAlignmentSpecificTests(TestCase):
@@ -2446,10 +2446,10 @@ class ArrayAlignmentSpecificTests(TestCase):
         a2 = self.a2
         expect = {"x": "B", "y": "E"}
         got = a2[1]
-        self.assertEqual(got.todict(), expect)
+        self.assertEqual(got.to_dict(), expect)
         expect = {"x": "BC", "y": "EF"}
         got = a2[1:]
-        self.assertEqual(got.todict(), expect)
+        self.assertEqual(got.to_dict(), expect)
 
     def test_get_sub_alignment(self):
         """ArrayAlignment get_sub_alignment should get requested part of alignment"""
