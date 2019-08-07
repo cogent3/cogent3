@@ -530,3 +530,21 @@ class DictArray(object):
 
     def _repr_html_(self):
         return self.template._get_repr_html(self.array)
+
+    def write(self, path, sep="\t"):
+        """
+        writes a flattened version to path
+        Parameters
+        ----------
+        path : str
+        sep : str
+            used to split fields, will be inferred from path suffix if not
+            provided
+        """
+        from cogent3.util.table import Table
+
+        header = [f"dim-{i+1}" for i in range(self.array.ndim)] + ["value"]
+        data = self.todict(flatten=True)
+        rows = [list(k) + [v] for k, v in data.items()]
+        table = Table(header=header, rows=rows)
+        table.write(path, sep=sep)

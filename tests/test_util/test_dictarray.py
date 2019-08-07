@@ -1,3 +1,6 @@
+import os
+
+from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
 import numpy
@@ -305,6 +308,20 @@ class DictArrayTest(TestCase):
         got = darr._repr_html_()
         self.assertIsInstance(got, str)
         self.assertTrue(len(got), 100)
+
+    def test_write(self):
+        """exercising write method"""
+        data = [[3, 7], [2, 8], [5, 5]]
+        darr = DictArrayTemplate(list("ABC"), list("ab")).wrap(data)
+        with TemporaryDirectory(dir=".") as dirname:
+            outpath = os.path.join(dirname, "delme.tsv")
+            darr.write(outpath)
+            with open(outpath) as infile:
+                contents = [l.strip().split("\t") for l in infile]
+            header = contents.pop(0)
+            self.assertEqual(header, ["dim-1", "dim-2", "value"])
+            got = {(k1, k2): int(v) for k1, k2, v in contents}
+            self.assertEqual(got, darr.todict(flatten=True))
 
 
 if __name__ == "__main__":
