@@ -34,6 +34,7 @@ from numpy import (
 )
 from numpy.random import permutation
 
+from cogent3.core.alphabet import AlphabetError
 from cogent3.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE
 from cogent3.core.genetic_code import GeneticCodes
 from cogent3.core.info import Info as InfoClass
@@ -1041,20 +1042,41 @@ class NucleicAcidSequence(Sequence):
 
         return self.__class__(codons, name=self.name, info=self.info)
 
-    def get_translation(self, gc=None):
+    def get_translation(self, gc=None, incomplete_ok=False):
+        """
+        translation to amino acid sequence
+        Parameters
+        ----------
+        gc
+            name or ID of genetic code
+        incomplete_ok : bool
+            codons that are mixes of nucleotide and gaps converted to '?'.
+            raises a ValueError if False
+        Returns
+        -------
+        sequence of PROTEIN moltype
+        """
         gc = self._gc_from_arg(gc)
         codon_alphabet = self.codon_alphabet(gc).with_gap_motif()
         # translate the codons
         translation = []
         for posn in range(0, len(self._seq) - 2, 3):
             orig_codon = self._seq[posn : posn + 3]
-            resolved = codon_alphabet.resolve_ambiguity(orig_codon)
+            try:
+                resolved = codon_alphabet.resolve_ambiguity(orig_codon)
+            except AlphabetError:
+                if not incomplete_ok or "-" not in orig_codon:
+                    raise
+                resolved = (orig_codon,)
             trans = []
             for codon in resolved:
                 if codon == "---":
                     aa = "-"
+                elif "-" in codon:
+                    aa = "?"
+                    if not incomplete_ok:
+                        raise AlphabetError(f"incomplete codon {codon} in {self.name}")
                 else:
-                    assert "-" not in codon
                     aa = gc[codon]
                     if aa == "*":
                         continue
