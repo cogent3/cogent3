@@ -195,27 +195,6 @@ def coords_to_crystal(coords, fmx, omx, n=1):
     return all_coords
 
 
-class SimplexTransform:
-    def __init__(self):
-        """regular tetrahedron with one vertex at origin, one edge on x axis and 
-        one face (base) in x-y plane."""
-        q = array(
-            [
-                [0, 0, 0],
-                [sqrt(2), 0, 0],
-                [1 / sqrt(2), sqrt(3 / 2), 0],
-                [1 / sqrt(2), 1 / sqrt(6), 2 * sqrt(1 / 3)],
-            ]
-        )
-        self.q = q
-
-    def __array__(self, dtype=None):
-        q = self.q
-        if dtype is not None:
-            q = q.astype(dtype)
-        return q
-
-
 def alr(x, col=-1):
     r"""
     Additive log ratio (alr) Aitchison transformation.
@@ -357,28 +336,3 @@ def multiplicative_replacement(x, eps=0.01):
     shape_zeros = x < delta
     y = x + shape_zeros * delta
     return y / sum(y)
-
-
-def tight_simplex(x):
-    """Input is an array whose rows are points in the unit simplex in R^4 (compositions).
-    Output is vertices of a smaller regular simplex also aligned within unit simplex
-    containing the points of input.
-    To be precise, it returns a regular simplex whose insphere is the smallest
-    sphere centred on the centre of mass of the points in the set x
-    that contains all the points."""
-    x = x.squeeze()
-    if x.ndim != 2:
-        raise ValueError("Input array must be 2D.")
-    if x.shape[1] != 4:
-        raise ValueError("Input rows must have length 4.")
-    if any(x <= 0):
-        raise ValueError("Input cannot have negative or zero elements.")
-    if not allclose(sum(x, axis=1), ones(x.shape[0])):
-        raise ValueError("Input rows do not total to one.")
-    cent = ones(4) / 4
-    centx = mean(x, axis=0)
-    trans_vertices = identity(4) - cent + centx
-    radius = max(norm(x - centx, axis=1))
-    radratio = minimum(radius * sqrt(12), 1.0)
-    newvertices = centx + radratio * (trans_vertices - centx)
-    return newvertices
