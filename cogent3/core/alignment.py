@@ -1278,13 +1278,16 @@ class SequenceCollection(object):
         """len of SequenceCollection returns length of longest sequence."""
         return self.seq_len
 
-    def get_translation(self, gc=None, **kwargs):
+    def get_translation(self, gc=None, incomplete_ok=False, **kwargs):
         """
         Parameters
         ----------
         gc
             genetic code, either the number or name
             (use cogent3.core.genetic_code.available_codes)
+        incomplete_ok : bool
+            codons that are mixes of nucleotide and gaps converted to '?'.
+            raises a ValueError if False
         kwargs
             related to construction of the resulting object
 
@@ -1302,7 +1305,7 @@ class SequenceCollection(object):
                     seq = self.get_gapped_seq(seqname)
                 else:
                     seq = self.named_seqs[seqname]
-                pep = seq.get_translation(gc)
+                pep = seq.get_translation(gc, incomplete_ok=incomplete_ok)
                 translated.append((seqname, pep))
             return self.__class__(translated, info=self.info, **kwargs)
         except AttributeError as msg:

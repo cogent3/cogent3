@@ -10,6 +10,7 @@ from cogent3 import DNA, PROTEIN, RNA
 from cogent3 import STANDARD_CODON as CODON
 from cogent3 import LoadSeqs, Sequence
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
+from cogent3.core.alphabet import AlphabetError
 from cogent3.parse.record import FileFormatError
 
 
@@ -680,6 +681,14 @@ class SequenceTestMethods(unittest.TestCase):
         """test of translating seqs"""
         seq = Sequence(DNA, "CGNTGN???---").get_translation()
         self.assertEqual(str(seq), "RX?-")
+
+    def test_translate_incomplete(self):
+        """test of translating seqs with incomplete codon"""
+        seq = Sequence(DNA, "CGNTGNAC----")
+        aa = seq.get_translation(incomplete_ok=True)
+        self.assertEqual(str(aa), "RX?-")
+        with self.assertRaises(AlphabetError):
+            _ = seq.get_translation(incomplete_ok=False)
 
     def test_slidingWindows(self):
         """test sliding window along sequences"""

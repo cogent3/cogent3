@@ -993,6 +993,14 @@ class SequenceCollectionBaseTests(object):
             got = alignment.get_translation()
             self.assertEqual(got.info["key"], "value")
 
+    def test_get_translation_incomplete(self):
+        """get translation works on incomplete codons"""
+        alignment = self.Class(data={"seq1": "GATN--", "seq2": "?GATCT"}, moltype=DNA)
+        got = alignment.get_translation(incomplete_ok=True)
+        self.assertEqual(got.to_dict(), {"seq1": "D?", "seq2": "XS"})
+        with self.assertRaises(AlphabetError):
+            got = alignment.get_translation(incomplete_ok=False)
+
     def test_get_seq(self):
         """SequenceCollection.get_seq should return specified seq"""
         aln = self.Class({"seq1": "GATTTT", "seq2": "GATC??"})
