@@ -103,7 +103,11 @@ def BH(optimise_motif_probs=True, **kw):
 
 
 def DT(optimise_motif_probs=True, motif_length=1, **kw):
-    """Discrete Time substitution model"""
+    """
+    Discrete Time substitution model (non-stationary, non-reversible).
+    motif_length=2 makes this a dinucleotide model, motif_length=3 a
+    trinucleotide model.
+    """
     alpha = DNA.alphabet.get_word_alphabet(motif_length)
     kw["optimise_motif_probs"] = optimise_motif_probs
     kw["mprob_model"] = "tuple"
@@ -113,7 +117,7 @@ def DT(optimise_motif_probs=True, motif_length=1, **kw):
 
 
 def GN(optimise_motif_probs=True, **kw):
-    """general Markov nucleotide (non-stationary, non-reversible)
+    """General Markov Nucleotide (non-stationary, non-reversible).
 
     Kaehler, Yap, Zhang, Huttley, 2015, Sys Biol 64 (2): 281–93"""
     required = dict(
@@ -127,9 +131,9 @@ def GN(optimise_motif_probs=True, **kw):
 
 
 def ssGN(optimise_motif_probs=True, **kw):
-    """strand-symmetric general Markov nucleotide (non-stationary, non-reversible)
+    """strand-symmetric general Markov nucleotide (non-stationary, non-reversible).
 
-    Kaehler, 2017 ,Journal of Theoretical Biology 420: 144–51"""
+    Kaehler, 2017, Journal of Theoretical Biology 420: 144–51"""
     # note the StrandSymmetric class predefines the predicates and name
     sm = ns_substitution_model.StrandSymmetric(
         optimise_motif_probs=optimise_motif_probs, name="ssGN", **kw
