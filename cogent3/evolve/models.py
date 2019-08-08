@@ -2789,6 +2789,6 @@ def available_models(model_types=None):
     t = Table(
         header=column_headings,
         rows=rows,
-        title="Specify a model using 'abbreviation' (case sensitive).",
+        title="Specify a model using 'Abbreviation' (case sensitive).",
     )
     return t
