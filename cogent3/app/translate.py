@@ -149,8 +149,12 @@ def get_fourfold_degenerate_sets(gc, alphabet=None, as_indices=True):
 
 
 class select_translatable(ComposableSeq):
+    """Identifies most likely reading frame. Returns modified sequences / alignment,
+    if it could be resolved, NotCompleted otherwise."""
+
     _input_type = frozenset(["sequences", "aligned"])
     _output_type = frozenset(["sequences"])
+    _data_types = frozenset(["ArrayAlignment", "Alignment", "SequenceCollection"])
 
     def __init__(
         self, moltype="dna", gc=DEFAULT, allow_rc=False, trim_terminal_stop=True

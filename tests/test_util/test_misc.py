@@ -6,6 +6,8 @@ from copy import copy, deepcopy
 from os import remove, rmdir
 from os.path import exists
 
+from numpy.testing import assert_allclose
+
 from cogent3.util.misc import (
     ClassChecker,
     ConstrainedContainer,
@@ -85,6 +87,17 @@ class UtilsTests(TestCase):
         minprob = 0
         got = adjusted_gt_minprob(vector, minprob=minprob)
         self.assertTrue(got.min() > minprob)
+
+    def test_adjusted_probs_2D(self):
+        """correctly adjust a 2D array"""
+        data = [
+            [1.0000, 0.0000, 0.0000, 0.0000],
+            [0.0000, 1.0000, 0.0000, 0.0000],
+            [0.1250, 0.1250, 0.6250, 0.1250],
+            [0.1250, 0.1250, 0.1250, 0.6250],
+        ]
+        got = adjusted_gt_minprob(data)
+        assert_allclose(got, data, atol=1e-5)
 
     def test_adjusted_within_bounds(self):
         """values correctly adjusted within specified bounds"""

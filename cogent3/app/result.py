@@ -4,6 +4,8 @@ from collections import OrderedDict
 from collections.abc import MutableMapping
 from functools import total_ordering
 
+import numpy
+
 from cogent3.maths.stats import chisqprob
 from cogent3.util.misc import get_object_provenance
 
@@ -12,7 +14,7 @@ class generic_result(MutableMapping):
     """a dict style container for storing results. All keys are
     converted to strings to ensure the object can be json serialised"""
 
-    type_ = "generic_result"
+    _type = "generic_result"
 
     def __init__(self, source):
         self._store = dict()
@@ -71,7 +73,7 @@ class generic_result(MutableMapping):
 
 @total_ordering
 class model_result(generic_result):
-    type_ = "model_result"
+    _type = "model_result"
     _stat_attrs = ("lnL", "nfp", "DLC", "unique_Q")
 
     def __init__(
@@ -144,7 +146,8 @@ class model_result(generic_result):
             DLC = lf.all_psubs_DLC()
             try:
                 unique_Q = lf.all_rate_matrices_unique()
-            except NotImplementedError:
+            except (NotImplementedError, KeyError):
+                # KeyError happens on discrete time model
                 unique_Q = None  # non-primary root issue
         else:
             lnL = lf.get("lnL")
@@ -274,7 +277,7 @@ class model_result(generic_result):
 
 
 class hypothesis_result(generic_result):
-    type_ = "hypothesis_result"
+    _type = "hypothesis_result"
 
     def __init__(self, name_of_null, source=None):
         """
@@ -356,9 +359,64 @@ class hypothesis_result(generic_result):
             pvalue = None
         return pvalue
 
+    def select_models(self, stat="aicc", threshold=0.05):
+        """returns models satisfying stat threshold.
+        Parameters
+        ----------
+        stat : str
+            one of "aicc", "aic" which correspond to
+            AIC with correction or AIC.
+        threshold : float
+            models with exp((minimum stat - model stat) / 2) > threshold are
+            considered indistinguishable from the model with minimum stat. Such
+            models will be included in the returned result.
+
+        Returns
+        -------
+        list of models satisfying threshold condition
+        """
+        assert stat in ("aicc", "aic")
+        second_order = stat == "aicc"
+        results = []
+        for k, m in self.items():
+            val = m.lf.get_aic(second_order=second_order)
+            results.append((val, m))
+        results.sort()
+        min_model = results.pop(0)
+        min_stat = min_model[0]
+        selected = [min_model[1]]
+        for v, m in results:
+            rel_lik = numpy.exp((min_stat - v) / 2)
+            if rel_lik > threshold:
+                selected.append(m)
+
+        return selected
+
+    def get_best_model(self, stat="aicc", threshold=0.05):
+        """returns model with smallest value of stat
+        Parameters
+        ----------
+        stat : str
+            one of "aicc", "aic" which correspond to AIC with correction or AIC
+        threshold : float
+            models with exp((minimum stat - model stat) / 2) > threshold are
+            considered indistinguishable from the model with minimum stat.
+
+        Returns
+        -------
+        A single model. If multiple models satisfy threshold, the simplest model
+        (with the smallest number of free parameters) is returned.
+        """
+        selected = self.select_models(stat=stat, threshold=threshold)
+        if len(selected) != 1:
+            selected = list(sorted(self.values(), key=lambda x: x.nfp))
+            selected = selected[:1]
+
+        return selected[0]
+
 
 class bootstrap_result(generic_result):
-    type_ = "bootstrap_result"
+    _type = "bootstrap_result"
 
     def __init__(self, source=None):
         super(bootstrap_result, self).__init__(source)

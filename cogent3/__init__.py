@@ -11,11 +11,13 @@ import warnings
 
 import numpy
 
+from cogent3.app import available_apps
 from cogent3.core.alignment import (
     Alignment,
     ArrayAlignment,
     SequenceCollection,
 )
+from cogent3.core.genetic_code import available_codes
 # note that moltype has to be imported last, because it sets the moltype in
 # the objects created by the other modules.
 from cogent3.core.moltype import (
@@ -25,9 +27,12 @@ from cogent3.core.moltype import (
     RNA,
     STANDARD_CODON,
     CodonAlphabet,
+    available_moltypes,
     get_moltype,
 )
 from cogent3.core.tree import TreeBuilder, TreeError
+from cogent3.evolve.fast_distance import available_distances
+from cogent3.evolve.models import available_models
 from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.sequence import FromFilenameParser
 from cogent3.parse.table import autogen_reader, load_delimited
@@ -86,6 +91,8 @@ warn_env = "COGENT3_WARNINGS"
 
 if warn_env in os.environ:
     warnings.simplefilter(os.environ[warn_env])
+
+# to avoid circular imports, we define a utility function that allows us to
 
 
 def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
