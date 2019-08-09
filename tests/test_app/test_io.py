@@ -21,7 +21,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -121,7 +121,7 @@ class TestIo(TestCase):
         fasta_loader = io_app.load_unaligned(format="fasta")
         for i, seqs in enumerate(map(fasta_loader, fasta_paths)):
             self.assertIsInstance(seqs, SequenceCollection)
-            self.assertTrue("-" not in "".join(seqs.todict().values()))
+            self.assertTrue("-" not in "".join(seqs.to_dict().values()))
             self.assertEqual(seqs.info.source, fasta_paths[i])
 
         # should also handle case where it's given an alignment/sequence
@@ -186,6 +186,7 @@ class TestIo(TestCase):
             dstore = io_app.get_data_store(f"{outpath}.tinydb", suffix="json")
             reader = io_app.load_db()
             got = reader(dstore[0])
+            dstore.close()
             self.assertIsInstance(got, DNA.__class__)
             self.assertEqual(got, DNA)
 

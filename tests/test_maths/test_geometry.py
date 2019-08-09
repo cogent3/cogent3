@@ -19,7 +19,6 @@ from numpy.random import choice, dirichlet
 from numpy.testing import assert_allclose
 
 from cogent3.maths.geometry import (
-    SimplexTransform,
     aitchison_distance,
     alr,
     alr_inv,
@@ -31,7 +30,6 @@ from cogent3.maths.geometry import (
     distance,
     multiplicative_replacement,
     sphere_points,
-    tight_simplex,
 )
 from cogent3.util.unit_test import TestCase, main
 
@@ -40,7 +38,7 @@ __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Sandra Smit", "Rob Knight", "Helmut Simon"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"
@@ -133,54 +131,6 @@ class CenterOfMassTests(TestCase):
         self.assertEqual(sphere_points(1), array([[1.0, 0.0, 0.0]]))
 
 
-#    def test_coords_to_symmetry(self):
-#        """tests symmetry expansion (TODO)"""
-#        pass
-#
-#    def test_coords_to_crystal(self):
-#        """tests crystal expansion (TODO)"""
-#        pass
-
-
-class TestSimplexTransform(TestCase):
-    transform = SimplexTransform()
-
-    def test_get_simplex_transform(self):
-        """distance between points on standard simplex
-        is  conserved under transform."""
-        alpha = ones(4)
-        y = dirichlet(alpha)
-        z = dirichlet(alpha)
-
-        y1 = y @ self.transform
-        z1 = z @ self.transform
-        assert_allclose(norm(y - z), norm(y1 - z1))
-
-    def test_vertices(self):
-        """length of any edge under transform is conserved as sqrt(2)."""
-        x = array([1, 0, 0, 0], dtype=float)
-        a = x @ self.transform
-        x = array([0, 1, 0, 0], dtype=float)
-        b = x @ self.transform
-        x = array([0, 0, 1, 0], dtype=float)
-        c = x @ self.transform
-        x = array([0, 0, 0, 1], dtype=float)
-        d = x @ self.transform
-        assert_allclose(
-            array(
-                [
-                    norm(a - b),
-                    norm(a - c),
-                    norm(a - d),
-                    norm(b - c),
-                    norm(b - d),
-                    norm(c - d),
-                ]
-            ),
-            sqrt(2) * ones(6),
-        )
-
-
 class TestAitchison(TestCase):
     def setUp(self):
         x = choice(20, size=10) + 0.1
@@ -223,54 +173,6 @@ class TestAitchison(TestCase):
         assert isclose(
             sum(u), 1
         ), "Multiplicative replacement does not yield a composition."
-
-
-class TestTightSimplex(TestCase):
-    def setUp(self):
-        x = dirichlet(100 * ones(4), 5)
-        self.x = x
-        vertices = tight_simplex(x)
-        self.vertices = vertices
-
-    def test_vertices(self):
-        """Vertices lie within unit simplex, edges are equal in length and align
-        with unit simplex."""
-        vertices = self.vertices
-        assert_allclose(
-            sum(vertices, axis=1), ones(4), err_msg="Vertices not in unit simplex."
-        )
-        l = norm(vertices[0] - vertices[1])
-        assert all(
-            [
-                allclose(vertices[0] - vertices[2], l * array([1, 0, -1, 0]) / sqrt(2)),
-                allclose(vertices[0] - vertices[3], l * array([1, 0, 0, -1]) / sqrt(2)),
-                allclose(vertices[1] - vertices[2], l * array([0, 1, -1, 0]) / sqrt(2)),
-                allclose(vertices[1] - vertices[3], l * array([0, 1, 0, -1]) / sqrt(2)),
-                allclose(vertices[2] - vertices[3], l * array([0, 0, 1, -1]) / sqrt(2)),
-            ]
-        )
-
-    def test_coordinates(self):
-        """Centre of gravity of vertices is the same as centre of gravity of input.
-        Barycentric coorinates of all input points relative to vertices returned
-        by tight_simplex are positive, i.e. points lie within simplex."""
-        x = self.x
-        vertices = self.vertices
-        assert_allclose(
-            mean(x, axis=0),
-            mean(vertices, axis=0),
-            err_msg="Centre of gravity of vertices and input differ.",
-        )
-        coords = x @ inv(vertices)
-        assert_allclose(
-            sum(coords, axis=1), ones(5), err_msg="Barycentric coords do not total one."
-        )
-        if not all(coords > 0.0):
-            msg = (
-                f"Not all barycentric coordinates are positive: {coords}"
-                f"\n original were {x}"
-            )
-            raise AssertionError(msg)
 
 
 if __name__ == "__main__":

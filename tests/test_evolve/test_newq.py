@@ -27,7 +27,7 @@ __author__ = "Peter Maxwell and  Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -204,7 +204,7 @@ class NewQ(TestCase):
         aln_len = len(self.aln)
         posn1 = []
         posn2 = []
-        for name, seq in list(self.aln.todict().items()):
+        for name, seq in list(self.aln.to_dict().items()):
             p1 = [seq[i] for i in range(0, aln_len, 2)]
             p2 = [seq[i] for i in range(1, aln_len, 2)]
             posn1.append([name, "".join(p1)])

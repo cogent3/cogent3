@@ -11,7 +11,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Matthew Wakefield"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -105,7 +105,7 @@ class MapTest(unittest.TestCase):
         b = aln.get_seq("b")
         b.add_annotation(Feature, "test_type", "test_label", [(4, 6)])
 
-        answer = aln.get_by_seq_annotation("b", "test_type")[0].todict()
+        answer = aln.get_by_seq_annotation("b", "test_type")[0].to_dict()
         self.assertEqual(answer, {"b": "A--T", "a": "AAAT"})
 
 

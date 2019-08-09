@@ -46,7 +46,7 @@ Perform a coevolutionary analysis on one position and all other positions in the
 .. doctest::
 
     >>> from cogent3.evolve.coevolution import coevolve_position_functions, coevolve_position
-    >>> coevolve_position(coevolve_position_functions['mi'],aln,position=1)
+    >>> coevolve_position(coevolve_position_functions['mi'],aln,position=1)  # doctest: +SKIP
     array([        nan,  0.81127812,  0.31127812])
 
 Perform a coevolutionary analysis on all pairs of positions in the alignment using mutual information (``mi``):
@@ -55,7 +55,7 @@ Perform a coevolutionary analysis on all pairs of positions in the alignment usi
     :options: +NORMALIZE_WHITESPACE
 
     >>> from cogent3.evolve.coevolution import coevolve_alignment_functions, coevolve_alignment
-    >>> coevolve_alignment(coevolve_alignment_functions['mi'],aln)
+    >>> coevolve_alignment(coevolve_alignment_functions['mi'],aln)  # doctest: +SKIP
     array([[        nan,         nan,         nan],
            [        nan,  0.81127812,  0.31127812],
            [        nan,  0.31127812,  1.        ]])
@@ -64,7 +64,7 @@ View the available algorithms for computing coevolution values:
 
 .. doctest::
 
-    >>> print(coevolve_pair_functions.keys())
+    >>> print(coevolve_pair_functions.keys())  # doctest: +SKIP
     dict_keys(['an', 'rmi', 'sca', 'mi', 'nmi'])
 
 Perform an intermolecular coevolutionary analysis using mutual information (``mi``). Note that there are strict requirements on the sequence identifiers for intermolecular analyses, and some important considerations involved in preparing alignments for these analyses. See the coevolve_alignments docstring (i.e., ``help(coevolve_alignments)`` from the python interpreter) for information. Briefly, sequence identifiers are split on ``+`` symbols. The ids before the + must match perfectly between the two alignments as these are used to match the sequences between alignments. In the following example, these are common species names: human, chicken, echidna, and pig. The text after the ``+`` can be anything, and should probably be the original database identifiers of the sequences.
@@ -79,7 +79,7 @@ Perform an intermolecular coevolutionary analysis using mutual information (``mi
     >>> aln2 = LoadSeqs(data={'pig+protein2':'AAAY','chicken+protein2':'CTAY',
     ...  'echidna+protein2':'CTCF','human+protein2':'-TCF'},
     ...   moltype=PROTEIN, array_align=True)
-    >>> coevolve_alignments(coevolve_alignment_functions['mi'],aln1,aln2)
+    >>> coevolve_alignments(coevolve_alignment_functions['mi'],aln1,aln2)  # doctest: +SKIP
     array([[        nan,         nan,         nan],
            [        nan,  0.12255625,  0.31127812],
            [        nan,  0.31127812,  0.        ],

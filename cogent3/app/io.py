@@ -39,7 +39,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -259,6 +259,7 @@ class load_tabular(ComposableTabular):
             if num_records is None:
                 num_records = len(line)
             if strict and len(line) != num_records:
+                read.close()
                 msg = f"Inconsistent number of fields: {len(line)} " "!= {num_records}"
                 raise AssertionError(msg)
             rows.append(line)

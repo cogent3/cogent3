@@ -20,8 +20,6 @@ Data manipulation
     complete_seq_features
     reverse_complement
     align_codons_to_protein
-    aln_profile
-    genetic_code_aa_index
     handling_tabular_data
     manipulating_tree_nodes
 
@@ -33,16 +31,6 @@ General data analysis
     :maxdepth: 1
 
     period_estimation
-
-******************
-Data Visualisation
-******************
-
-.. toctree::
-    :maxdepth: 1
-
-    draw_dendrogram
-    draw_dotplot
 
 *******************
 Modelling Evolution
@@ -58,11 +46,8 @@ Modelling Evolution
     codon_models
     empirical_protein_models
     testing_multi_loci
-    reuse_results
-    unrestricted_nucleotide
     simulate_alignment
     parametric_bootstrap
-    estimate_startingpoint
     coevolution
     rate_heterogeneity
     hmm_par_heterogeneity

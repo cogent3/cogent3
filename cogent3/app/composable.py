@@ -26,7 +26,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -373,6 +373,10 @@ class Composable(ComposableType):
         if isinstance(dstore, str):
             dstore = [dstore]
 
+        dstore = [e for e in dstore if e]
+        if len(dstore) == 0:
+            raise ValueError("dstore is empty")
+
         start = time.time()
         loggable = hasattr(self, "data_store")
         if not loggable:
@@ -393,6 +397,7 @@ class Composable(ComposableType):
 
         if LOGGER:
             LOGGER.log_message(str(self), label="composable function")
+            LOGGER.log_versions(["cogent3"])
         results = []
         i = 0
         process = self.input if self.input else self

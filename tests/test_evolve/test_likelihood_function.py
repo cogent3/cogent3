@@ -54,7 +54,7 @@ __credits__ = [
     "Ananias Iliadis",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -165,7 +165,7 @@ class LikelihoodCalcs(TestCase):
     def test_no_seq_named_root(self):
         """root is a reserved name"""
         aln = self.alignment.take_seqs(self.alignment.names[:4])
-        aln = aln.todict()
+        aln = aln.to_dict()
         one = aln.pop("Mouse")
         aln["root"] = one
         aln = LoadSeqs(data=aln)
@@ -511,7 +511,7 @@ NineBande    root    1.00  1.00
         self.assertEqual(len(simulated.names), 4)
         import re
 
-        self.assertEqual(re.sub("[ATCG]", "x", simulated.todict()["a"]), "x??xxxxxx?")
+        self.assertEqual(re.sub("[ATCG]", "x", simulated.to_dict()["a"]), "x??xxxxxx?")
 
     def test_simulate_alignment_root_sequence(self):
         """provide a root sequence for simulating an alignment"""

@@ -44,7 +44,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Felix Schill"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -338,7 +338,12 @@ class Table(DictArray):
         html.insert(
             1,
             "\n".join(
-                ["<style>", "tr:last-child {border-bottom: 1px solid #000}" "</style>"]
+                [
+                    "<style>",
+                    "tr:last-child {border-bottom: 1px solid #000;} "
+                    "tr > th {text-align: center !important;} tr > td {text-align: left !important;}",
+                    "</style>",
+                ]
             ),
         )
         html = "\n".join(["\n".join(html), shape_info])
@@ -719,7 +724,7 @@ class Table(DictArray):
             data = self.__getstate__()
             pickle.dump(data, outfile, protocol=1)
         elif sep is not None and format != "bedgraph":
-            writer = csv.writer(outfile, delimiter=sep)
+            writer = csv.writer(outfile, delimiter=sep, lineterminator="\n")
             if self.title:
                 writer.writerow([self.title])
             writer.writerow(self.header)

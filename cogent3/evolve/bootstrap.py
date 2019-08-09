@@ -38,7 +38,7 @@ __credits__ = [
     "Peter Maxwell",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -97,9 +97,6 @@ class ParametricBootstrapCore(object):
 
         ui.display("Randomness", init_work, 0.0)
         alignment_random_state = random.Random(self.seed).getstate()
-        if self.seed is None:
-            comm = parallel.get_communicator()
-            alignment_random_state = comm.bcast(alignment_random_state, 0)
 
         def one_replicate(i):
             for (pc, start_point) in zip(self.parameter_controllers, starting_points):

@@ -9,7 +9,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -36,7 +36,7 @@ class RefalignmentTests(TestCase):
             "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
             "Rhesus": "GCCAGCTCATTACAGCATGAGAAC---AGTTTGTTACTCACT",
         }
-        self.assertEqual(aln.todict(), expect)
+        self.assertEqual(aln.to_dict(), expect)
 
     def test_progressive_align_nuc(self):
         """progressive alignment with nuc models"""
@@ -48,7 +48,7 @@ class RefalignmentTests(TestCase):
             "Bandicoot": "NACTCATTAATGCTTGAAACCAGCAG---TTTATTGTCCAAC",
             "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAG---TTTATTATACACT",
         }
-        got = aln.todict()
+        got = aln.to_dict()
         self.assertEqual(got, expect)
 
         # using default

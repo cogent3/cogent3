@@ -15,7 +15,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -64,12 +64,12 @@ class TestTranslate(TestCase):
         tr = trans(seqs)
         ex = data.copy()
         ex.pop("rc")
-        self.assertEqual(tr.todict(), ex)
+        self.assertEqual(tr.to_dict(), ex)
         trans = select_translatable(allow_rc=True)
         tr = trans(seqs)
         ex = data.copy()
         ex["rc"] = data["a"]
-        self.assertEqual(tr.todict(), ex)
+        self.assertEqual(tr.to_dict(), ex)
 
         # if seqs not translatable returns NotCompletedResult
         data = dict(a="TAATTGATTAA", b="GCAGTTTATTA")

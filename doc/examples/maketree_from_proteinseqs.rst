@@ -19,7 +19,8 @@ The next components we need are for computing the matrix of pairwise sequence di
 
 .. doctest::
 
-    >>> from cogent3.phylo import nj, distance
+    >>> from cogent3.phylo import nj
+    >>> from cogent3.evolve import distance
 
 Now load our sequence alignment, explicitly setting the alphabet to be protein.
 

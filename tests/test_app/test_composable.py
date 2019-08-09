@@ -1,3 +1,5 @@
+import os
+
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 from unittest.mock import Mock
@@ -15,7 +17,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -24,7 +26,7 @@ __status__ = "Alpha"
 class TestCheckpoint(TestCase):
     def test_checkpointable(self):
         """chained funcs should be be able to apply a checkpoint"""
-        path = "data/brca1.fasta"
+        path = "data" + os.sep + "brca1.fasta"
         reader = io_app.load_aligned(moltype="dna")
         omit_degens = sample_app.omit_degenerates(moltype="dna")
         with TemporaryDirectory(dir=".") as dirname:
@@ -106,6 +108,13 @@ class TestComposableBase(TestCase):
         got = proc.apply_to(str(dstore[0]), show_progress=False)
         self.assertEqual(len(got), 1)
         self.assertIsInstance(got[0], SequenceCollection)
+        # raises ValueError if empty list
+        with self.assertRaises(ValueError):
+            proc.apply_to([])
+
+        # raises ValueError if list with empty string
+        with self.assertRaises(ValueError):
+            proc.apply_to(["", ""])
 
 
 class TestNotCompletedResult(TestCase):

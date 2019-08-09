@@ -1,6 +1,8 @@
 from unittest import TestCase, main
 from unittest.mock import MagicMock
 
+from numpy.testing import assert_allclose
+
 from cogent3 import LoadSeqs, LoadTree
 from cogent3.app import evo as evo_app
 from cogent3.app.result import hypothesis_result
@@ -10,7 +12,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -149,8 +151,8 @@ class TestModel(TestCase):
             opt_args=dict(max_evaluations=5, limit_action="ignore"),
         )
         result = mod(aln)
-        aln1 = result.lf[1].get_param_value("alignment").todict()
-        self.assertEqual(aln1, aln[::3].todict())
+        aln1 = result.lf[1].get_param_value("alignment").to_dict()
+        self.assertEqual(aln1, aln[::3].to_dict())
 
 
 def _make_getter(val):
@@ -211,6 +213,47 @@ class TestHypothesisResult(TestCase):
         self.assertEqual(len(got), 3)
         expect = set(hyp.values())
         self.assertEqual(set(got), expect)
+
+
+class TestAncestralStates(TestCase):
+    def test_ancestral(self):
+        """recon ancestral states works"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = LoadSeqs(data=_data, moltype="dna")
+        mod = evo_app.model(
+            "GN", opt_args=dict(max_evaluations=25, limit_action="ignore")
+        )
+        anc = evo_app.ancestral_states()
+        result = anc(mod(aln))
+        self.assertEqual(result["root"].shape, (len(aln), 4))
+        assert_allclose(result["root"].row_sum(), 1)
+
+
+class TestTabulateStats(TestCase):
+    def test_tabulate(self):
+        """call returns tabular_result with Tables"""
+        from cogent3.util.table import Table
+
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = LoadSeqs(data=_data, moltype="dna")
+        mod = evo_app.model(
+            "GN", opt_args=dict(max_evaluations=25, limit_action="ignore")
+        )
+        result = mod(aln)
+        tabulator = evo_app.tabulate_stats()
+        tabulated = tabulator(result)
+        self.assertEqual(len(tabulated), 3)
+        for title in ("motif params", "global params", "edge params"):
+            self.assertTrue(title in tabulated)
+            self.assertIsInstance(tabulated[title], Table)
 
 
 if __name__ == "__main__":

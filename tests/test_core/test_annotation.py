@@ -11,7 +11,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -95,7 +95,7 @@ class TestAnnotations(unittest.TestCase):
             "5'UTR": {"FAKE01": "TTT", "FAKE02": "TTT"},
         }
         for annot_type in ["misc_feature", "CDS", "5'UTR", "LTR"]:
-            observed = list(self.aln.get_by_annotation(annot_type))[0].todict()
+            observed = list(self.aln.get_by_annotation(annot_type))[0].to_dict()
             expected = aln_expecteds[annot_type]
             assert observed == expected, (annot_type, expected, observed)
             if annot_type in ["misc_feature", "LTR"]:
@@ -121,7 +121,7 @@ class TestAnnotations(unittest.TestCase):
         feature_list = newaln.get_annotations_matching("LTR")
         for annot_type in ["LTR", "misc_feature", "CDS", "5'UTR"]:
             feature_list = newaln.get_annotations_matching(annot_type)
-            new = newaln.get_region_covering_all(feature_list).get_slice().todict()
+            new = newaln.get_region_covering_all(feature_list).get_slice().to_dict()
             expected = aln_expecteds[annot_type]
             assert expected == new, (annot_type, expected, new)
             if annot_type in ["misc_feature", "LTR"]:
@@ -169,10 +169,10 @@ class TestAnnotations(unittest.TestCase):
         # rc'ing an Alignment or Sequence rc's their annotations too. This means
         # slicing returns the same sequence as the non-rc'd alignment/seq
         for annot_type in ["misc_feature", "CDS", "5'UTR", "LTR"]:
-            observed = list(self.aln.get_by_annotation(annot_type))[0].todict()
+            observed = list(self.aln.get_by_annotation(annot_type))[0].to_dict()
             expected = aln_expecteds[annot_type]
             assert observed == expected, ("+", annot_type, expected, observed)
-            observed = list(rc.get_by_annotation(annot_type))[0].todict()
+            observed = list(rc.get_by_annotation(annot_type))[0].to_dict()
             expected = aln_expecteds[annot_type]
             assert observed == expected, ("-", annot_type, expected, observed)
 

@@ -1969,7 +1969,7 @@ static const char __pyx_k_row_length[] = "row_length";
 static const char __pyx_k_seq1_index[] = "seq1_index";
 static const char __pyx_k_seq2_index[] = "seq2_index";
 static const char __pyx_k_underflows[] = "underflows";
-static const char __pyx_k_2019_07_10a[] = "('2019', '07', '10a')";
+static const char __pyx_k_2019_08_06a[] = "('2019', '08', '06a')";
 static const char __pyx_k_MemoryError[] = "MemoryError";
 static const char __pyx_k_PickleError[] = "PickleError";
 static const char __pyx_k_dest_states[] = "dest_states";
@@ -2046,7 +2046,7 @@ static const char __pyx_k_product_is_a_negative_probabilit[] = "product is a neg
 static const char __pyx_k_transition_is_a_negative_probabi[] = "transition is a negative probability";
 static const char __pyx_k_unable_to_allocate_shape_and_str[] = "unable to allocate shape and strides.";
 static PyObject *__pyx_kp_s_1st;
-static PyObject *__pyx_kp_s_2019_07_10a;
+static PyObject *__pyx_kp_s_2019_08_06a;
 static PyObject *__pyx_kp_s_2nd;
 static PyObject *__pyx_kp_s_3rd;
 static PyObject *__pyx_n_s_ASCII;
@@ -20624,7 +20624,7 @@ static struct PyModuleDef __pyx_moduledef = {
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_1st, __pyx_k_1st, sizeof(__pyx_k_1st), 0, 0, 1, 0},
-  {&__pyx_kp_s_2019_07_10a, __pyx_k_2019_07_10a, sizeof(__pyx_k_2019_07_10a), 0, 0, 1, 0},
+  {&__pyx_kp_s_2019_08_06a, __pyx_k_2019_08_06a, sizeof(__pyx_k_2019_08_06a), 0, 0, 1, 0},
   {&__pyx_kp_s_2nd, __pyx_k_2nd, sizeof(__pyx_k_2nd), 0, 0, 1, 0},
   {&__pyx_kp_s_3rd, __pyx_k_3rd, sizeof(__pyx_k_3rd), 0, 0, 1, 0},
   {&__pyx_n_s_ASCII, __pyx_k_ASCII, sizeof(__pyx_k_ASCII), 0, 0, 1, 1},
@@ -21048,7 +21048,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *     double log (double x)
  * 
  * version_info = (3, 2)             # <<<<<<<<<<<<<<
- * __version__ = "('2019', '07', '10a')"
+ * __version__ = "('2019', '08', '06a')"
  * 
  */
   __pyx_tuple__21 = PyTuple_Pack(2, __pyx_int_3, __pyx_int_2); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(1, 14, __pyx_L1_error)
@@ -21487,17 +21487,17 @@ if (!__Pyx_RefNanny) {
   /* "include/numerical_pyrex.pyx":13
  * #
  * 
- * __version__ = "('2019', '07', '10a')"             # <<<<<<<<<<<<<<
+ * __version__ = "('2019', '08', '06a')"             # <<<<<<<<<<<<<<
  * 
  * cdef extern from "limits.h":
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2019_07_10a) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2019_08_06a) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
 
   /* "cogent3/align/_pairwise_pogs.pyx":14
  *     double log (double x)
  * 
  * version_info = (3, 2)             # <<<<<<<<<<<<<<
- * __version__ = "('2019', '07', '10a')"
+ * __version__ = "('2019', '08', '06a')"
  * 
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_version_info, __pyx_tuple__21) < 0) __PYX_ERR(1, 14, __pyx_L1_error)
@@ -21505,11 +21505,11 @@ if (!__Pyx_RefNanny) {
   /* "cogent3/align/_pairwise_pogs.pyx":15
  * 
  * version_info = (3, 2)
- * __version__ = "('2019', '07', '10a')"             # <<<<<<<<<<<<<<
+ * __version__ = "('2019', '08', '06a')"             # <<<<<<<<<<<<<<
  * 
  * cdef double SCALE_STEP, MIN_FLOAT_VALUE
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2019_07_10a) < 0) __PYX_ERR(1, 15, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2019_08_06a) < 0) __PYX_ERR(1, 15, __pyx_L1_error)
 
   /* "cogent3/align/_pairwise_pogs.pyx":18
  * 

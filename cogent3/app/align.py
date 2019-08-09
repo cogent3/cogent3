@@ -13,7 +13,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -116,7 +116,7 @@ class align_to_ref(ComposableSeq):
 
             aligned = aligned.add_from_ref_aln(result.to_type(array_align=False))
 
-        new = ArrayAlignment(aligned.todict(), moltype=seqs.moltype, info=seqs.info)
+        new = ArrayAlignment(aligned.to_dict(), moltype=seqs.moltype, info=seqs.info)
         return new
 
 

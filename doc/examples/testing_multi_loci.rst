@@ -43,20 +43,14 @@ To make a likelihood function with multiple alignments we provide the list of lo
     --------------
      3.98     0.13
     --------------
-    =========================
-       locus   motif   mprobs
-    -------------------------
-    1st-half       T     0.22
-    1st-half       C     0.18
-    1st-half       A     0.38
-    1st-half       G     0.21
-    2nd-half       T     0.24
-    2nd-half       C     0.19
-    2nd-half       A     0.35
-    2nd-half       G     0.22
-    -------------------------
-    >>> all_lnL = lf.get_log_likelihood()
-    >>> all_nfp = lf.get_num_free_params()
+    ====================================
+       locus      A      C      G      T
+    ------------------------------------
+    1st-half   0.38   0.18   0.21   0.22
+    2nd-half   0.35   0.19   0.22   0.24
+    ------------------------------------
+    >>> all_lnL = lf.lnL
+    >>> all_nfp = lf.nfp
     >>> lf.set_param_rule('kappa', loci=EACH)
     >>> lf.optimise(local=True, show_progress=False)
     >>> print(lf)
@@ -74,20 +68,14 @@ To make a likelihood function with multiple alignments we provide the list of lo
     1st-half    4.33
     2nd-half    3.74
     ----------------
-    =========================
-       locus   motif   mprobs
-    -------------------------
-    1st-half       T     0.22
-    1st-half       C     0.18
-    1st-half       A     0.38
-    1st-half       G     0.21
-    2nd-half       T     0.24
-    2nd-half       C     0.19
-    2nd-half       A     0.35
-    2nd-half       G     0.22
-    -------------------------
-    >>> each_lnL = lf.get_log_likelihood()
-    >>> each_nfp = lf.get_num_free_params()
+    ====================================
+       locus      A      C      G      T
+    ------------------------------------
+    2nd-half   0.35   0.19   0.22   0.24
+    1st-half   0.38   0.18   0.21   0.22
+    ------------------------------------
+    >>> each_lnL = lf.lnL
+    >>> each_nfp = lf.nfp
     >>> LR = 2 * (each_lnL - all_lnL)
     >>> df = each_nfp - all_nfp
 

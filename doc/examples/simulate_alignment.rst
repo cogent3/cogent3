@@ -30,6 +30,7 @@ Define our Felsenstein 1981 substitution model.
     >>> lf.set_name('F81 model')
     >>> print(lf)
     F81 model
+    number of free parameters = 0
     ==========================
       edge    parent    length
     --------------------------
@@ -39,14 +40,11 @@ Define our Felsenstein 1981 substitution model.
          d    edge.0    0.2000
     edge.0      root    0.1000
     --------------------------
-    ===============
-    motif    mprobs
-    ---------------
-        T    0.1000
-        C    0.2000
-        A    0.5000
-        G    0.2000
-    ---------------
+    ====================================
+         A         C         G         T
+    ------------------------------------
+    0.5000    0.2000    0.2000    0.1000
+    ------------------------------------
 
 We'll now create a simulated alignment of length 1000 nucleotides.
 

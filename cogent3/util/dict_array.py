@@ -35,7 +35,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Ben Kaehler"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -530,3 +530,21 @@ class DictArray(object):
 
     def _repr_html_(self):
         return self.template._get_repr_html(self.array)
+
+    def write(self, path, sep="\t"):
+        """
+        writes a flattened version to path
+        Parameters
+        ----------
+        path : str
+        sep : str
+            used to split fields, will be inferred from path suffix if not
+            provided
+        """
+        from cogent3.util.table import Table
+
+        header = [f"dim-{i+1}" for i in range(self.array.ndim)] + ["value"]
+        data = self.todict(flatten=True)
+        rows = [list(k) + [v] for k, v in data.items()]
+        table = Table(header=header, rows=rows)
+        table.write(path, sep=sep)

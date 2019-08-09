@@ -12,6 +12,16 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.unit_test import TestCase, main
 
 
+__author__ = "Gavin Huttley"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__credits__ = ["Gavin Huttley"]
+__license__ = "BSD-3"
+__version__ = "2019.08.06a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
+__status__ = "Alpha"
+
+
 class TestDeserialising(TestCase):
     def test_roundtrip_codon_alphabet(self):
         """codon alphabet to_json enables roundtrip"""
@@ -53,7 +63,7 @@ class TestDeserialising(TestCase):
         data = dict(A="TTGT", B="GGCT")
         seqcoll = LoadSeqs(data=data, moltype="dna", aligned=False)
         got = deserialise_object(seqcoll.to_json())
-        self.assertEqual(got.rc().todict(), seqcoll.rc().todict())
+        self.assertEqual(got.rc().to_dict(), seqcoll.rc().to_dict())
         self.assertIsInstance(got, alignment.SequenceCollection)
 
     def test_roundtrip_arrayalign(self):
@@ -61,7 +71,7 @@ class TestDeserialising(TestCase):
         data = dict(A="TTGTA", B="GGCT-")
         arrayalign = LoadSeqs(data=data, moltype="dna")
         got = deserialise_object(arrayalign.to_json())
-        self.assertEqual(got.rc().todict(), arrayalign.rc().todict())
+        self.assertEqual(got.rc().to_dict(), arrayalign.rc().to_dict())
         self.assertIsInstance(got, alignment.ArrayAlignment)
 
     def test_roundtrip_align(self):
@@ -69,7 +79,7 @@ class TestDeserialising(TestCase):
         data = dict(A="TTGTA", B="GGCT-")
         align = LoadSeqs(data=data, moltype="dna", array_align=False)
         got = deserialise_object(align.to_json())
-        self.assertEqual(got.rc().todict(), align.rc().todict())
+        self.assertEqual(got.rc().to_dict(), align.rc().to_dict())
         self.assertIsInstance(got, alignment.Alignment)
 
     def test_roundtrip_tree(self):

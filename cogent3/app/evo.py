@@ -6,8 +6,28 @@ from cogent3 import LoadTree
 from cogent3.evolve.models import get_model
 from cogent3.util import parallel
 
-from .composable import ComposableHypothesis, ComposableModel, NotCompleted
-from .result import bootstrap_result, hypothesis_result, model_result
+from .composable import (
+    ComposableHypothesis,
+    ComposableModel,
+    ComposableTabular,
+    NotCompleted,
+)
+from .result import (
+    bootstrap_result,
+    hypothesis_result,
+    model_result,
+    tabular_result,
+)
+
+
+__author__ = "Gavin Huttley"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__credits__ = ["Gavin Huttley"]
+__license__ = "BSD-3"
+__version__ = "2019.08.06a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
+__status__ = "Alpha"
 
 
 class model(ComposableModel):
@@ -318,3 +338,50 @@ class bootstrap(ComposableHypothesis):
             result.add_to_null(sym_result)
 
         return result
+
+
+class ancestral_states(ComposableTabular):
+    _input_type = frozenset(["model_result"])
+    _output_type = frozenset(["result", "tabular_result", "serialisable"])
+    _data_types = frozenset(["model_result"])
+
+    def __init__(self):
+        super(ancestral_states, self).__init__()
+        self._formatted_params()
+        self.func = self.recon_ancestor
+
+    def recon_ancestor(self, result):
+        """returns a tabular_result of posterior probabilities of ancestral states"""
+        anc = result.lf.reconstruct_ancestral_seqs()
+        fl = result.lf.get_full_length_likelihoods()
+        template = None
+        tab = tabular_result(source=result.source)
+        for name in anc:
+            state_p = anc[name]
+            if template is None:
+                template = state_p.template
+            pp = (state_p.array.T / fl).T
+            tab[name] = template.wrap(pp)
+        return tab
+
+
+class tabulate_stats(ComposableTabular):
+    """Extracts all model statistics from model_result as Table."""
+
+    _input_type = frozenset(["model_result"])
+    _output_type = frozenset(["result", "tabular_result", "serialisable"])
+    _data_types = frozenset(["model_result"])
+
+    def __init__(self):
+        super(tabulate_stats, self).__init__()
+        self._formatted_params()
+        self.func = self.extract_stats
+
+    def extract_stats(self, result):
+        """returns Table for all statistics returned by likelihood function
+        get_statistics"""
+        stats = result.lf.get_statistics(with_titles=True, with_motif_probs=True)
+        tab = tabular_result(source=result.source)
+        for table in stats:
+            tab[table.title] = table
+        return tab

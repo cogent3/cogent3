@@ -88,7 +88,7 @@ Get all the nodes, tips and edges
     >>> from cogent3 import LoadTree
     >>> tr = LoadTree('data/test.tree')
     >>> nodes = tr.get_nodes_dict()
-    >>> for n in nodes.items():
+    >>> for n in nodes.items():  # doctest: +SKIP
     ...     print(n)
     ...
     ('NineBande', Tree("NineBande;"))
@@ -218,7 +218,7 @@ We also show how to select a subset of distances involving just one species.
 
     >>> human_dists = [names for names in dists if 'Human' in names]
     >>> for dist in human_dists:
-    ...     print(dist, dists[dist])
+    ...     print(dist, dists[dist])  # doctest: +SKIP
     ...
     ('Human', 'NineBande') 0.183106418165
     ('DogFaced', 'Human') 0.202340656203
@@ -341,26 +341,7 @@ XML format
           <clade>
              <name>Human</name>...
 
-Write to PDF
-""""""""""""
-
-.. note:: This requires ``matplotlib``. It will bring up a ``matplotlib`` window if run from the command line. But in any case, it will write the pdf file to the data directory.
-
-.. doctest::
-
-    >>> from cogent3 import LoadTree
-    >>> from cogent3.draw import dendrogram
-    >>> tr = LoadTree('data/test.tree')
-    >>> h, w = 500, 500
-    >>> np = dendrogram.ContemporaneousDendrogram(tr)
-    >>> np.write_pdf('temp.pdf', w, h, font_size=14)
-
-.. doctest::
-    :hide:
-
-    >>> from cogent3.util.misc import remove_files
-    >>> remove_files('temp.pdf', error_on_missing=False)
-
+.. todo write docs for display of dendrograms
 
 Tree traversal
 ^^^^^^^^^^^^^^

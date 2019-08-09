@@ -87,14 +87,14 @@ We load some unaligned DNA sequences and show their translation.
     ...         ('mus', 'AAGCAGATCCAGGAGAGCGGCGAGAGCGGCAGCCTGGCCGCGCGGCAGGAGAGGCAGGCCCAAGTCAACCTCACG'),
     ...         ('rat', 'CTGAACAAGCAGCCACTTTCAAACAAGAAA')]
     >>> unaligned_DNA = LoadSeqs(data=seqs, moltype=DNA, aligned=False)
-    >>> print(unaligned_DNA.to_fasta())
+    >>> print(unaligned_DNA)  # doctest: +SKIP
     >hum
     AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
     >mus
     AAGCAGATCCAGGAGAGCGGCGAGAGCGGCAGCCTGGCCGCGCGGCAGGAGAGGCAGGCCCAAGTCAACCTCACG
     >rat
     CTGAACAAGCAGCCACTTTCAAACAAGAAA
-    >>> print(unaligned_DNA.get_translation())
+    >>> print(unaligned_DNA.get_translation())  # doctest: +SKIP
     >hum
     KQIQESSENGSLAARQERQAQVNLT
     >mus
@@ -117,7 +117,7 @@ We then obtain an alignment of the DNA sequences from the alignment of their tra
 .. doctest::
 
     >>> aligned_DNA = aligned_aa.replace_seqs(unaligned_DNA, aa_to_codon=True)
-    >>> print(aligned_DNA)
+    >>> print(aligned_DNA)  # doctest: +SKIP
     >hum
     AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
     >mus

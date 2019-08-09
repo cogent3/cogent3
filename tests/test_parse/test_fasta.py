@@ -23,7 +23,7 @@ __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -440,7 +440,7 @@ class GroupFastaParsingTest(TestCase):
         parser = GroupFastaParser(data, label_to_name, aligned=True)
         count = 0
         for group in parser:
-            got = group.todict()
+            got = group.to_dict()
             want = expected[count]
             self.assertEqual(got, want)
             self.assertEqual(group.info.Group, "group%s" % (count + 1))
@@ -452,7 +452,7 @@ class GroupFastaParsingTest(TestCase):
             data, label_to_name, done_groups=done_groups, aligned=True
         )
         for group in parser:
-            got = group.todict()
+            got = group.to_dict()
             want = expected[1]
             self.assertEqual(got, want)
             self.assertEqual(group.info.Group, "group2")

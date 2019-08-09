@@ -90,7 +90,7 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -524,7 +524,7 @@ class SequenceCollection(object):
         """Returns self in FASTA-format, respecting name order."""
         from cogent3.format.alignment import FORMATTERS
 
-        fasta = FORMATTERS["fasta"](self.todict())
+        fasta = FORMATTERS["fasta"](self.to_dict())
         return fasta
 
     def _make_named_seqs(self, names, seqs):
@@ -896,7 +896,7 @@ class SequenceCollection(object):
         mask_posns = {}
         seen = []
         # if strict, we do a sort and one pass through the list
-        seqs = self.todict()
+        seqs = self.to_dict()
         if not mask_degen:
             seqs_names = [(s, n) for n, s in seqs.items()]
             seqs_names.sort()
@@ -1031,7 +1031,7 @@ class SequenceCollection(object):
             returns a label str
 
         """
-        return alignment_to_phylip(self.todict())
+        return alignment_to_phylip(self.to_dict())
 
     def to_rich_dict(self):
         """returns detailed content including info and moltype attributes"""
@@ -1075,7 +1075,7 @@ class SequenceCollection(object):
             returns a label str
 
         """
-        return alignment_to_fasta(self.todict())
+        return alignment_to_fasta(self.to_dict())
 
     def to_nexus(self, seq_type, interleave_len=50):
         """
@@ -1278,13 +1278,16 @@ class SequenceCollection(object):
         """len of SequenceCollection returns length of longest sequence."""
         return self.seq_len
 
-    def get_translation(self, gc=None, **kwargs):
+    def get_translation(self, gc=None, incomplete_ok=False, **kwargs):
         """
         Parameters
         ----------
         gc
             genetic code, either the number or name
             (use cogent3.core.genetic_code.available_codes)
+        incomplete_ok : bool
+            codons that are mixes of nucleotide and gaps converted to '?'.
+            raises a ValueError if False
         kwargs
             related to construction of the resulting object
 
@@ -1302,7 +1305,7 @@ class SequenceCollection(object):
                     seq = self.get_gapped_seq(seqname)
                 else:
                     seq = self.named_seqs[seqname]
-                pep = seq.get_translation(gc)
+                pep = seq.get_translation(gc, incomplete_ok=incomplete_ok)
                 translated.append((seqname, pep))
             return self.__class__(translated, info=self.info, **kwargs)
         except AttributeError as msg:
@@ -1313,7 +1316,7 @@ class SequenceCollection(object):
         """
         return self.named_seqs[seqname]
 
-    def todict(self):
+    def to_dict(self):
         """Returns the alignment as dict of names -> strings.
 
         Note: returns strings, NOT Sequence objects.
@@ -2720,7 +2723,7 @@ class AlignmentI(object):
         if alert and len(self) != length:
             warnings.warn(f"trimmed {len(self) - length}", UserWarning)
 
-        data = list(self.todict().values())
+        data = list(self.to_dict().values())
         alpha = self.moltype.alphabet.get_word_alphabet(motif_length)
         all_motifs = set() if allow_gap or include_ambiguity else None
         result = []
@@ -2841,7 +2844,7 @@ class AlignmentI(object):
         if isinstance(self, klass) and (moltype is None or moltype == self.moltype):
             return self
 
-        data = self.todict()
+        data = self.to_dict()
         if moltype is None:
             # Alignment and ArrayAlignment have different default moltypes
             moltype_default = self.moltype == self.__class__.moltype
