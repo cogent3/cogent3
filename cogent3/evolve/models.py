@@ -25,7 +25,7 @@ __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley", "James Kondilios"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"
@@ -103,7 +103,11 @@ def BH(optimise_motif_probs=True, **kw):
 
 
 def DT(optimise_motif_probs=True, motif_length=1, **kw):
-    """Discrete Time substitution model"""
+    """
+    Discrete Time substitution model (non-stationary, non-reversible).
+    motif_length=2 makes this a dinucleotide model, motif_length=3 a
+    trinucleotide model.
+    """
     alpha = DNA.alphabet.get_word_alphabet(motif_length)
     kw["optimise_motif_probs"] = optimise_motif_probs
     kw["mprob_model"] = "tuple"
@@ -113,7 +117,7 @@ def DT(optimise_motif_probs=True, motif_length=1, **kw):
 
 
 def GN(optimise_motif_probs=True, **kw):
-    """general Markov nucleotide (non-stationary, non-reversible)
+    """General Markov Nucleotide (non-stationary, non-reversible).
 
     Kaehler, Yap, Zhang, Huttley, 2015, Sys Biol 64 (2): 281–93"""
     required = dict(
@@ -127,9 +131,9 @@ def GN(optimise_motif_probs=True, **kw):
 
 
 def ssGN(optimise_motif_probs=True, **kw):
-    """strand-symmetric general Markov nucleotide (non-stationary, non-reversible)
+    """strand-symmetric general Markov nucleotide (non-stationary, non-reversible).
 
-    Kaehler, 2017 ,Journal of Theoretical Biology 420: 144–51"""
+    Kaehler, 2017, Journal of Theoretical Biology 420: 144–51"""
     # note the StrandSymmetric class predefines the predicates and name
     sm = ns_substitution_model.StrandSymmetric(
         optimise_motif_probs=optimise_motif_probs, name="ssGN", **kw
@@ -2785,6 +2789,6 @@ def available_models(model_types=None):
     t = Table(
         header=column_headings,
         rows=rows,
-        title="Specify a model using 'abbreviation' (case sensitive).",
+        title="Specify a model using 'Abbreviation' (case sensitive).",
     )
     return t

@@ -1,6 +1,9 @@
 from numpy import pi, exp, sqrt, cos
 cimport numpy as np
 
+version_info = (3, 2)
+__version__ = "('2019', '08', '06a')"
+
 # TODO intro the version idea of peter's see email from him on Wednesday, 26 May 2010
 
 def goertzel_inner(np.ndarray[np.float64_t, ndim=1] x, int N, int period):

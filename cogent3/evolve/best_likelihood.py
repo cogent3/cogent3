@@ -17,7 +17,7 @@ __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Helen Lindsay", "Gavin Huttley", "Daniel McDonald"]
 cite = "Goldman, N. (1993).  Statistical tests of models of DNA substitution.  J Mol Evol, 36: 182-98"
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -146,7 +146,7 @@ def BestLogLikelihood(
     else:
         kwargs = {}
 
-    aln = LoadSeqs(data=aln.todict(), **kwargs)
+    aln = LoadSeqs(data=aln.to_dict(), **kwargs)
     columns = aligned_columns_to_rows(aln, motif_length, exclude_chars, allowed_chars)
     num_cols = len(columns)
     log_likelihood = get_G93_lnL_from_array(columns)

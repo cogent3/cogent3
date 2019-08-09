@@ -12,8 +12,6 @@ Contents:
     building_alignments
     building_phylogenies
     using_likelihood_to_perform_evolutionary_analyses
-    standard_statistical_analyses
-    hpc_environments
     useful_utilities
 
 

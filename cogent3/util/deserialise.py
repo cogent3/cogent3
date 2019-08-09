@@ -16,7 +16,7 @@ __author__ = ["Gavin Huttley"]
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -253,7 +253,11 @@ def deserialise_likelihood_function(data):
 
 
 def deserialise_object(data):
-    if type(data) is str and os.path.exists(data):
+    try:
+        is_path = os.path.exists(data)
+    except (ValueError, TypeError):
+        is_path = False
+    if type(data) is str and is_path:
         with open_(data) as infile:
             data = json.load(infile)
 

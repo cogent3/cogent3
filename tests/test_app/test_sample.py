@@ -9,7 +9,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -23,24 +23,24 @@ class TranslateTests(TestCase):
         )
         one = sample.take_codon_positions(1)
         got = one(aln)
-        self.assertEqual(got.todict(), {"a": "AAA", "b": "GGG"})
+        self.assertEqual(got.to_dict(), {"a": "AAA", "b": "GGG"})
 
         two = sample.take_codon_positions(2)
         got = two(aln)
-        self.assertEqual(got.todict(), {"a": "CCC", "b": "AAA"})
+        self.assertEqual(got.to_dict(), {"a": "CCC", "b": "AAA"})
         three = sample.take_codon_positions(3)
         got = three(aln)
-        self.assertEqual(got.todict(), {"a": "GGG", "b": "TTT"})
+        self.assertEqual(got.to_dict(), {"a": "GGG", "b": "TTT"})
 
         one_two = sample.take_codon_positions(1, 2)
         got = one_two(aln)
-        self.assertEqual(got.todict(), {"a": "ACACAC", "b": "GAGAGA"})
+        self.assertEqual(got.to_dict(), {"a": "ACACAC", "b": "GAGAGA"})
         one_three = sample.take_codon_positions(1, 3)
         got = one_three(aln)
-        self.assertEqual(got.todict(), {"a": "AGAGAG", "b": "GTGTGT"})
+        self.assertEqual(got.to_dict(), {"a": "AGAGAG", "b": "GTGTGT"})
         two_three = sample.take_codon_positions(2, 3)
         got = two_three(aln)
-        self.assertEqual(got.todict(), {"a": "CGCGCG", "b": "ATATAT"})
+        self.assertEqual(got.to_dict(), {"a": "CGCGCG", "b": "ATATAT"})
 
     def test_take_codon_positions_array_align(self):
         """correctly return codon positions from ArrayAlignment"""
@@ -55,7 +55,7 @@ class TranslateTests(TestCase):
         aln = LoadSeqs(data=[("a", "ACGA-GACG"), ("b", "GATGATGYT")])
         degen = sample.omit_degenerates(moltype="dna")
         got = degen(aln)
-        self.assertEqual(got.todict(), {"a": "ACGAGAG", "b": "GATGTGT"})
+        self.assertEqual(got.to_dict(), {"a": "ACGAGAG", "b": "GATGTGT"})
         aln = LoadSeqs(data=[("a", "-C-A-G-C-"), ("b", "G-T-A-G-T")])
         got = degen(aln)
         self.assertIsInstance(got, composable.NotCompleted)
@@ -67,7 +67,7 @@ class TranslateTests(TestCase):
         expect = dict([("a", "AT"), ("b", "TC")])
         ffold = sample.take_codon_positions(fourfold_degenerate=True)
         got = ffold(aln)
-        self.assertEqual(got.todict(), expect)
+        self.assertEqual(got.to_dict(), expect)
         # error if no moltype
         with self.assertRaises(AssertionError):
             _ = sample.take_codon_positions(moltype=None)
@@ -93,7 +93,7 @@ class TranslateTests(TestCase):
                 ]
             ),
         ]
-        got = [aln.todict() for aln in map(select, alns) if aln]
+        got = [aln.to_dict() for aln in map(select, alns) if aln]
         expected = [
             dict((("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT"))),
             dict((("a", "GGAAGCGTTTAT"), ("b", "GCTTTTGTCAAT"))),
@@ -117,7 +117,7 @@ class TranslateTests(TestCase):
                 ]
             ),
         ]
-        got = [aln.todict() for aln in map(select, alns) if aln]
+        got = [aln.to_dict() for aln in map(select, alns) if aln]
         expect = [
             dict(d)
             for d in [
@@ -151,7 +151,7 @@ class TranslateTests(TestCase):
             LoadSeqs(data=[("a", "GGAAGCGT"), ("b", "GCTTT-GT")], moltype=DNA),
         ]
         ml = sample.min_length(9)
-        got = [aln.todict() for aln in map(ml, alns) if aln]
+        got = [aln.to_dict() for aln in map(ml, alns) if aln]
         expected = [dict((("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")))]
         self.assertEqual(got, expected)
 
@@ -165,12 +165,12 @@ class TranslateTests(TestCase):
             )
         ]
         ml = sample.min_length(6)
-        got = [aln.todict() for aln in map(ml, alns) if aln]
+        got = [aln.to_dict() for aln in map(ml, alns) if aln]
         expected = [dict((("a", "GGAAGCGT"), ("b", "GCTTNGT")))]
         self.assertEqual(got, expected)
 
         ml = sample.min_length(7)
-        got = [aln.todict() for aln in map(ml, alns) if aln]
+        got = [aln.to_dict() for aln in map(ml, alns) if aln]
         expected = []
         self.assertEqual(got, expected)
 
@@ -194,7 +194,7 @@ class TranslateTests(TestCase):
         got = [a for a in map(fl, alns) if a]
         self.assertEqual(len(got[0]), 9)
         expected = dict((("a", "GCAAGCGTT"), ("b", "GCTTTTGTC")))
-        self.assertEqual(got[0].todict(), expected)
+        self.assertEqual(got[0].to_dict(), expected)
 
         fl = sample.fixed_length(600)
         got = [a for a in map(fl, alns) if a]
@@ -212,22 +212,22 @@ class TranslateTests(TestCase):
         # these will be just a subset as sampling one triplet
         fl = sample.fixed_length(3, random=True, motif_length=3)
         d = LoadSeqs(data=[("a", "GCAAGCGTGTAT"), ("b", "GCTACTGTCAAT")])
-        expect = d.todict()
+        expect = d.to_dict()
         got = fl(d)
         self.assertEqual(len(got), 3)
-        for name, seq in got.todict().items():
+        for name, seq in got.to_dict().items():
             self.assertIn(seq, expect[name])
 
         fl = sample.fixed_length(9, start=2)
         got = fl(aln)
         self.assertEqual(len(got), 9)
-        self.assertEqual(got.todict(), aln[2:11].todict())
+        self.assertEqual(got.to_dict(), aln[2:11].to_dict())
 
         fl = sample.fixed_length(4, start="random")
-        expect = aln.todict()
+        expect = aln.to_dict()
         got = fl(aln)
         self.assertEqual(len(got), 4)
-        for name, seq in got.todict().items():
+        for name, seq in got.to_dict().items():
             self.assertIn(seq, expect[name])
 
     def test_omit_bad_seqs(self):
@@ -244,20 +244,20 @@ class TranslateTests(TestCase):
         # unless exclude_just_gap=False, which should just return self
         dropbad = sample.omit_bad_seqs(exclude_just_gap=False)
         got = dropbad(aln)
-        self.assertEqual(got.todict(), data)
+        self.assertEqual(got.to_dict(), data)
 
         # with disallowed_frac=0.6, we should drop s4&5 too
         dropbad = sample.omit_bad_seqs(disallowed_frac=0.5)
         got = dropbad(aln)
         self.assertEqual(
-            got.todict(), {"s1": "-ACC--TT", "s2": "-ACC--TT", "s3": "-ACC--TT"}
+            got.to_dict(), {"s1": "-ACC--TT", "s2": "-ACC--TT", "s3": "-ACC--TT"}
         )
 
         # with disallowed_frac=0.9, we should drop s6
         dropbad = sample.omit_bad_seqs(disallowed_frac=0.9)
         got = dropbad(aln)
         self.assertEqual(
-            got.todict(),
+            got.to_dict(),
             {
                 "s1": "-ACC--TT",
                 "s2": "-ACC--TT",
@@ -287,7 +287,7 @@ class TranslateTests(TestCase):
         # {'g', 'f'}] are dupe sets. Only 'h' unique
         drop = sample.omit_duplicated(mask_degen=True, choose=None, moltype="dna")
         got = drop(seqs)
-        self.assertEqual(got.todict(), {"h": "GGGG"})
+        self.assertEqual(got.to_dict(), {"h": "GGGG"})
         # mask_degen = False : [{'a', 'b'}, {'k', 'd', 'e'}]
         # c, f, g, h
         drop = sample.omit_duplicated(mask_degen=False, choose=None, moltype="dna")
@@ -300,14 +300,14 @@ class TranslateTests(TestCase):
             "g": "YAAA",
             "h": "GGGG",
         }
-        self.assertEqual(got.todict(), expect)
+        self.assertEqual(got.to_dict(), expect)
 
         # choose longest
         seqs = LoadSeqs(data=data, aligned=True, moltype=DNA)
         drop = sample.omit_duplicated(mask_degen=True, choose="longest", moltype="dna")
         got = drop(seqs)
         expect = {"a": "ACGT", "k": "ACGG", "g": "YAAA", "h": "GGGG"}
-        self.assertEqual(got.todict(), expect)
+        self.assertEqual(got.to_dict(), expect)
 
         # choose random
         drop = sample.omit_duplicated(mask_degen=True, choose="random", moltype="dna")
@@ -331,13 +331,13 @@ class TranslateTests(TestCase):
         ccat = sample.concat(intersect=True)
         got = ccat(alns)
         self.assertEqual(
-            got.todict(), {"seq1": "AAATTTCC", "seq2": "AAATTTCC", "seq3": "AAATTTCC"}
+            got.to_dict(), {"seq1": "AAATTTCC", "seq2": "AAATTTCC", "seq3": "AAATTTCC"}
         )
 
         ccat = sample.concat(intersect=False)
         got = ccat(alns)
         self.assertEqual(
-            got.todict(),
+            got.to_dict(),
             {
                 "seq1": "AAATTTCC",
                 "seq2": "AAATTTCC",
@@ -356,14 +356,14 @@ class TranslateTests(TestCase):
         )
         got = trimmer(seqs)
         expect = {"seq1": "AAATTTCCC", "seq2": "AAATTT"}
-        self.assertEqual(got.todict(), expect)
+        self.assertEqual(got.to_dict(), expect)
         trimmer = sample.trim_stop_codons(gc=1)  # standard code
         aln = LoadSeqs(
             data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"}, aligned=True, moltype="dna"
         )
         got = trimmer(aln)
         expect = {"seq1": "AAATTTCCC", "seq2": "AAATTT---"}
-        self.assertEqual(got.todict(), expect)
+        self.assertEqual(got.to_dict(), expect)
 
         # different genetic code
         trimmer = sample.trim_stop_codons(gc=2)  # mt code
@@ -374,7 +374,7 @@ class TranslateTests(TestCase):
         )
         got = trimmer(seqs)
         expect = {"seq1": "AAATTTCCC", "seq2": "AAATTT"}
-        self.assertEqual(got.todict(), expect)
+        self.assertEqual(got.to_dict(), expect)
 
 
 if __name__ == "__main__":

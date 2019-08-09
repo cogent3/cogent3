@@ -24,7 +24,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2019.07.10a"
+__version__ = "2019.08.06a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -148,7 +148,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
     def _test_aln(self, seqs, model=dna_model, param_vals=None, **kw):
         orig = dict((n, s.replace("-", "")) for (n, s) in list(seqs.items()))
         aln = self._make_aln(orig, model=model, param_vals=param_vals, **kw)
-        result = dict((n, s.lower()) for (n, s) in list(aln.todict().items()))
+        result = dict((n, s.lower()) for (n, s) in list(aln.to_dict().items()))
         # assert the alignment result is correct
         self.assertEqual(seqs, result)
         # assert the returned alignment has the correct parameter values in the
@@ -180,7 +180,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
             "C": "TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT",
             "B": "TGTGGCACAGATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT",
         }
-        self.assertEqual(aln.todict(), expect)
+        self.assertEqual(aln.to_dict(), expect)
 
     def test_progressive_params(self):
         """excercise progressive alignment providing model params"""

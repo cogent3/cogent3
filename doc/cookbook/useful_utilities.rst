@@ -38,46 +38,6 @@ We then import the minimise function and use it to minimise the function, obtain
 
 The minimise and maximise functions can also handle multidimensional optimisations, just make xinit (and the bounds) lists rather than scalar values.
 
-Fitting a function to a giving set of x and y values
-====================================================
-
-Giving a set of values for ``x`` and ``y`` fit a function ``func`` that has ``n_params`` using simplex iterations to minimize the error between the model ``func`` to fit and the given values. Here we fitting an exponential function.
-
-.. doctest::
-    :hide:
-
-    >>> from numpy.random import seed
-    >>> seed(42) # so the results are not volatile
-
-
-.. doctest::
-
-    >>> from numpy import array, arange, exp
-    >>> from numpy.random import rand, seed
-    >>> from cogent3.maths.fit_function import fit_function
-    >>> # creating x values
-    >>> x = arange(-1,1,.01)
-    >>>
-    >>> # defining our fitting function
-    >>> def f(x,a):
-    ...     return exp(a[0]+x*a[1])
-    ...
-    >>> # getting our real y
-    >>> y = f(x,a=[2,5])
-    >>>
-    >>> # creating our noisy y
-    >>> y_noise = y + rand(len(y))*5
-    >>>
-    >>> # fitting our noisy data to the function using 1 iteration
-    >>> params = fit_function(x, y_noise, f, 2, 1)
-    >>> params
-    array([ 2.0399908 ,  4.96109191])
-    >>>
-    >>> # fitting our noisy data to the function using 1 iteration
-    >>> params = fit_function(x, y_noise, f, 2, 5)
-    >>> params
-    array([ 2.0399641 ,  4.96112469])
-
 Miscellaneous functions
 =======================
 
@@ -117,121 +77,6 @@ This support method will force a variable to be an iterable, allowing you to gua
     ...   print(i)
     ...
     10
-
-Obtain the index of the largest item
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-To determine the index of the largest item in any iterable container, use ``max_index``:
-
-.. doctest::
-
-    >>> from cogent3.util.misc import max_index
-    >>> l = [5,4,2,2,6,8,0,10,0,5]
-    >>> max_index(l)
-    7
-
-.. note:: Will return the lowest index of duplicate max values
-
-Obtain the index of the smallest item
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-To determine the index of the smallest item in any iterable container, use ``min_index``:
-
-.. doctest::
-
-    >>> from cogent3.util.misc import min_index
-    >>> l = [5,4,2,2,6,8,0,10,0,5]
-    >>> min_index(l)
-    6
-
-.. note:: Will return the lowest index of duplicate min values
-
-Convert a nested tuple into a list
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Conversion of a nested ``tuple`` into a ``list`` can be performed using ``deep_list``:
-
-.. doctest::
-
-    >>> from cogent3.util.misc import deep_list
-    >>> t = ((1,2),(3,4),(5,6))
-    >>> deep_list(t)
-    [[1, 2], [3, 4], [5, 6]]
-
-Simply calling ``list`` will not convert the nested items:
-
-.. doctest::
-
-    >>> list(t)
-    [(1, 2), (3, 4), (5, 6)]
-
-Convert a nested list into a tuple
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Conversion of a nested ``list`` into a ``tuple`` can be performed using ``deep_list``:
-
-.. doctest::
-
-    >>> from cogent3.util.misc import deep_tuple
-    >>> l = [[1,2],[3,4],[5,6]]
-    >>> deep_tuple(l)
-    ((1, 2), (3, 4), (5, 6))
-
-Simply calling ``tuple`` will not convert the nested items:
-
-.. doctest::
-
-    >>> tuple(l)
-    ([1, 2], [3, 4], [5, 6])
-
-Testing if an item is between two values
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Same as: min <= number <= max, although it is quickly readable within code
-
-.. doctest::
-
-    >>> from cogent3.util.misc import between
-    >>> between((3,5),4)
-    True
-    >>> between((3,5),6)
-    False
-
-Return combinations of items
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-``Combinate`` returns all k-combinations of items. For instance:
-
-.. doctest::
-
-    >>> from cogent3.util.misc import combinate
-    >>> list(combinate([1,2,3],0))
-    [[]]
-    >>> list(combinate([1,2,3],1))
-    [[1], [2], [3]]
-    >>> list(combinate([1,2,3],2))
-    [[1, 2], [1, 3], [2, 3]]
-    >>> list(combinate([1,2,3],3))
-    [[1, 2, 3]]
-
-Save and load gzip'd files
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-These handy methods will ``pickle`` an object and automagically gzip the file. You can also then reload the object at a later date.
-
-.. doctest::
-
-    >>> from cogent3.util.misc import gzip_dump, gzip_load
-    >>> class foo(object):
-    ...   some_var = 5
-    ...
-    >>> bar = foo()
-    >>> bar.some_var = 10
-    >>> # gzip_dump(bar, 'test_file')
-    >>> # new_bar = gzip_load('test_file')
-    >>> # isinstance(new_bar, foo)
-
-.. note:: The above code does work, but pickle won't write out within doctest
 
 Curry a function
 ^^^^^^^^^^^^^^^^
@@ -313,44 +158,6 @@ Perform a simple check to see if an object is not a list or a tuple
     >>> not_list_tuple('ab')
     True
 
-Unzip items
-^^^^^^^^^^^
-
-Reverse the effects of a ``zip`` method, i.e. produces separate lists from tuples
-
-.. doctest::
-
-    >>> from cogent3.util.misc import unzip
-    >>> l = ((1,2),(3,4),(5,6))
-    >>> unzip(l)
-    [[1, 3, 5], [2, 4, 6]]
-
-Find multiple pattern occurrences
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Find all of the overlapping occurrences of multiple patterns within a text. Returned indices are sorted, each index is the start position of one of the patterns
-
-.. doctest::
-
-    >>> from cogent3.util.misc import find_many
-    >>> text = 'abababcabab'
-    >>> patterns = ['ab','abc']
-    >>> find_many(text, patterns)
-    [0, 2, 4, 4, 7, 9]
-
-Safely remove a trailing underscore
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-'Unreserve' a mutation of Python reserved words
-
-.. doctest::
-
-    >>> from cogent3.util.misc import unreserve
-    >>> unreserve('class_')
-    'class'
-    >>> unreserve('class')
-    'class'
-
 Create a case-insensitive iterable
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -360,20 +167,8 @@ Create a case-insensitive object, for instance, if you want the key 'a' and 'A' 
 
     >>> from cogent3.util.misc import add_lowercase
     >>> d = {'A':5,'B':6,'C':7,'foo':8,42:'life'}
-    >>> add_lowercase(d)
+    >>> add_lowercase(d)  # doctest: +SKIP
     {'A': 5, 'a': 5, 'C': 7, 'B': 6, 42: 'life', 'c': 7, 'b': 6, 'foo': 8}
-
-Extract data delimited by differing left and right delimiters
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Extract data from a line that is surrounded by different right/left delimiters
-
-.. doctest::
-
-    >>> from cogent3.util.misc import extract_delimited
-    >>> line = "abc[def]ghi"
-    >>> extract_delimited(line,'[',']')
-    'def'
 
 Construct a distance matrix lookup function
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -474,21 +269,9 @@ Here is a light example of the ``ConstrainedDict``
 
     >>> from cogent3.util.misc import ConstrainedDict
     >>> d = ConstrainedDict({'a':1,'b':2,'c':3}, constraint='abc')
-    >>> d
+    >>> d  # doctest: +SKIP
     {'a': 1, 'c': 3, 'b': 2}
     >>> d['d'] = 5
     Traceback (most recent call last):
-    ConstraintError: Item 'd' not in constraint 'abc'
+    cogent3.util.misc.ConstraintError: Item 'd' not in constraint 'abc'
 
-Check the location of an application
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Determine if an application is available on a system
-
-.. doctest::
-
-    >>> from cogent3.util.misc import app_path
-    >>> app_path('ls')
-    '/bin/ls'
-    >>> app_path('does_not_exist')
-    False

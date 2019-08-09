@@ -43,7 +43,7 @@ For really large files the automated conversion used by the standard read mechan
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', static_column_types=True)
+    >>> table = LoadTable('stats.txt', static_column_types=True, sep=",")
     >>> print(table)
     ====================================
         Locus    Region            Ratio
@@ -206,7 +206,7 @@ Summing a single column
 
     >>> table = LoadTable('stats.txt', sep=',')
     >>> table.summed('Ratio')
-    20571166.652847398
+    20571166.652...
 
 Summing multiple columns or rows - strictly numerical data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -517,7 +517,9 @@ It is also possible to specify column alignment, table caption and other argumen
 
     >>> table = LoadTable('stats.txt', sep=',')
     >>> print(table.tostring(format='latex'))
-    \begin{longtable}[htp!]{ r r r }
+    \begin{table}[htp!]
+    \centering
+    \begin{tabular}{ r r r }
     \hline
     \bf{Locus} & \bf{Region} & \bf{Ratio} \\
     \hline
@@ -528,7 +530,8 @@ It is also possible to specify column alignment, table caption and other argumen
     NP_005500 & NonCon &        0.0000 \\
     NP_055852 & NonCon & 10933217.7090 \\
     \hline
-    \end{longtable}
+    \end{tabular}
+    \end{table}
 
 .. we remove the table data
 
@@ -571,8 +574,8 @@ This format allows display of annotation tracks on genome browsers.
     ...     description='test of bedgraph', color=(255,0,0))) # doctest: +NORMALIZE_WHITESPACE
     track type=bedGraph name="test track" description="test of bedgraph" color=255,0,0
     1	100	108	1.12
-    1	108	118	1.0
-    1	118	161	2.0
+    1	108	118	1.00
+    1	118	161	2.00
 
     The bedgraph formatter defaults to rounding values to 2 decimal places. You can adjust that precision using the ``digits`` argument.
 
@@ -582,5 +585,5 @@ This format allows display of annotation tracks on genome browsers.
     >>> print(bgraph.tostring(format='bedgraph', name='test track',
     ...   description='test of bedgraph', color=(255,0,0), digits=0)) # doctest: +NORMALIZE_WHITESPACE
     track type=bedGraph name="test track" description="test of bedgraph" color=255,0,0
-    1	100	118	1.0
-    1	118	161	2.0
+    1	100	118	1.00
+    1	118	161	2.00

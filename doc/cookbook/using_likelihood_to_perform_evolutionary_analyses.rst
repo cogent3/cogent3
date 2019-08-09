@@ -15,19 +15,41 @@ The available nucleotide, codon and protein models are
 .. doctest::
 
     >>> from cogent3.evolve import models
-    >>> print(models.nucleotide_models)
-    ['JC69', 'K80', 'F81', 'HKY85', 'TN93', 'GTR']
-    >>> print(models.codon_models)
-    ['CNFGTR', 'CNFHKY', 'MG94HKY', 'MG94GTR', 'GY94', 'H04G', 'H04GK', 'H04GGK']
-    >>> print(models.protein_models)
-    ['DSO78', 'AH96', 'AH96_mtmammals', 'JTT92', 'WG01']
-
-While those values are strings, a function of the same name exists within the module so creating the substitution models requires only calling that function. I demonstrate that for a nucleotide model here.
+    >>> print(models.available_models())
+    Specify a model using 'abbreviation' (case sensitive).
+    ================================================================================================================================================================================================================================================================================================================================================
+    Model Type      Abbreviation                                                                                                                                                                                                                                                                                                         Description
+    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    nucleotide              JC69                                                                                                                                                                                                                                                                                       Jukes and Cantor's 1969 model
+    nucleotide               K80                                                                                                                                                                                                                                                                                                         Kimura 1980
+    nucleotide               F81                                                                                                                                                                                                                                                                                            Felsenstein's 1981 model
+    nucleotide             HKY85                                                                                                                                                                                                                                                                             Hasegawa, Kishino and Yanamo 1985 model
+    nucleotide              TN93                                                                                                                                                                                                                                                                                           Tamura and Nei 1993 model
+    nucleotide               GTR                                                                                                                                                                                                                                                              General Time Reversible nucleotide substitution model.
+    nucleotide              ssGN                                                                                                                                                                               strand-symmetric general Markov nucleotide (non-stationary, non-reversible) Kaehler, 2017 ,Journal of Theoretical Biology 420: 144–51
+    nucleotide                GN                                                                                                                                                                                              general Markov nucleotide (non-stationary, non-reversible) Kaehler, Yap, Zhang, Huttley, 2015, Sys Biol 64 (2): 281–93
+    nucleotide                BH                                                                                                                                                                                                                 Barry and Hartigan Discrete Time substitution model Barry and Hartigan 1987. Biometrics 43: 261–76.
+    nucleotide                DT                                                                                                                                                                                                                                                                                    Discrete Time substitution model
+         codon            CNFGTR                                                                                                                      Conditional nucleotide frequency codon substitution model, GTR variant (with params analagous to the nucleotide GTR model). Yap, Lindsay, Easteal and Huttley, 2010, Mol Biol Evol 27: 726-734
+         codon            CNFHKY                                                                                                                   Conditional nucleotide frequency codon substitution model, HKY variant (with kappa, the ratio of transitions to transversions) Yap, Lindsay, Easteal and Huttley, 2010, Mol Biol Evol 27: 726-734
+         codon           MG94HKY                                                                                                                                                     Muse and Gaut 1994 codon substitution model, HKY variant (with kappa, the ratio of transitions to transversions) Muse and Gaut, 1994, Mol Biol Evol, 11, 715-24
+         codon           MG94GTR                                                                                                                                                         Muse and Gaut 1994 codon substitution model, GTR variant (with params analagous to the nucleotide GTR model) Muse and Gaut, 1994, Mol Biol Evol, 11, 715-24
+         codon              GY94                                                                                                                                                                                                            Goldman and Yang 1994 codon substitution model. N Goldman and Z Yang, 1994, Mol Biol Evol, 11(5):725-36.
+         codon              H04G                                                                                                                                                                              Huttley 2004 CpG substitution model. Includes a term for substitutions to or from CpG's. GA Huttley, 2004, Mol Biol Evol, 21(9):1760-8
+         codon             H04GK                                                                                                                                                                   Huttley 2004 CpG substitution model. Includes a term for transition substitutions to or from CpG's. GA Huttley, 2004, Mol Biol Evol, 21(9):1760-8
+         codon            H04GGK                                                                                                                                Huttley 2004 CpG substitution model. Includes a general term for substitutions to or from CpG's and an adjustment for CpG transitions. GA Huttley, 2004, Mol Biol Evol, 21(9):1760-8
+         codon               GNC                                                                                                                                                                                                     General Nucleotide Codon, a non-reversible codon model. Kaehler, Yap, Huttley, 2017, Gen Biol Evol 9(1): 134–49
+       protein             DSO78    Dayhoff et al 1978 empirical protein model Dayhoff, MO, Schwartz RM, and Orcutt, BC. 1978 A model of evolutionary change in proteins. Pp. 345-352. Atlas of protein sequence and structure, Vol 5, Suppl. 3. National Biomedical Research Foundation, Washington D. C Matrix imported from PAML dayhoff.dat file
+       protein              AH96                                                                 Adachi and Hasegawa 1996 empirical model for mitochondrial proteins. Adachi J, Hasegawa M. Model of amino acid substitution in proteins encoded by mitochondrial DNA. J Mol Evol. 1996 Apr;42(4):459-68. Matrix imported from PAML mtREV24.dat file
+       protein    AH96_mtmammals                                                         Adachi and Hasegawa 1996 empirical model for mammalian mitochondrial proteins. Adachi J, Hasegawa M. Model of amino acid substitution in proteins encoded by mitochondrial DNA. J Mol Evol. 1996 Apr;42(4):459-68. Matrix imported from PAML mtmam.dat file
+       protein             JTT92                                                                 Jones, Taylor and Thornton 1992 empirical protein model Jones DT, Taylor WR, Thornton JM. The rapid generation of mutation data matrices from protein sequences. Comput Appl Biosci. 1992 Jun;8(3):275-82. Matrix imported from PAML jones.dat file
+       protein              WG01                          Whelan and Goldman 2001 empirical model for globular proteins. Whelan S, Goldman N. A general empirical model of protein evolution derived from multiple protein families using a maximum-likelihood approach. Mol Biol Evol. 2001 May;18(5):691-9. Matrix imported from PAML wag.dat file
+    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 .. doctest::
 
-    >>> from cogent3.evolve.models import F81
-    >>> sub_mod = F81()
+    >>> from cogent3.evolve.models import get_model
+    >>> sub_mod = get_model("F81")
 
 We'll be using these for the examples below.
 
@@ -43,8 +65,8 @@ We specify a general time reversible nucleotide model with gamma distributed rat
 
 .. doctest::
 
-    >>> from cogent3.evolve.models import GTR
-    >>> sub_mod = GTR(with_rate=True, distribution='gamma')
+    >>> from cogent3.evolve.models import get_model
+    >>> sub_mod = get_model("GTR", with_rate=True, distribution='gamma')
     >>> print(sub_mod)
     <BLANKLINE>
     TimeReversibleNucleotide ( name = 'GTR'; type = 'None'; params = ['A/C', 'A/G', 'A/T', 'C/G', 'C/T']; number of motifs = 4; motifs = ['T', 'C', 'A', 'G'])
@@ -57,8 +79,8 @@ We specify a conditional nucleotide frequency codon model with nucleotide genera
 
 .. doctest::
 
-    >>> from cogent3.evolve.models import CNFGTR
-    >>> sub_mod = CNFGTR(with_rate=True, distribution='gamma')
+    >>> from cogent3.evolve.models import get_model
+    >>> sub_mod = get_model("CNFGTR", with_rate=True, distribution='gamma')
     >>> print(sub_mod)
     <BLANKLINE>
     TimeReversibleCodon ( name = 'CNFGTR'; type = 'None'; params = ['A/C', 'A/G', 'A/T', 'C/G', 'C/T', 'omega']; ...
@@ -70,8 +92,8 @@ We specify a Jones, Taylor and Thornton 1992 empirical protein substitution mode
 
 .. doctest::
 
-    >>> from cogent3.evolve.models import JTT92
-    >>> sub_mod = JTT92(with_rate=True, distribution='gamma')
+    >>> from cogent3.evolve.models import get_model
+    >>> sub_mod = get_model("JTT92", with_rate=True, distribution='gamma')
     >>> print(sub_mod)
     <BLANKLINE>
     Empirical ( name = 'JTT92'; type = 'None'; number of motifs = 20; motifs = ['A', 'C'...
@@ -87,8 +109,8 @@ You start by specifying a substitution model and use that to construct a likelih
 .. doctest::
 
     >>> from cogent3 import LoadTree
-    >>> from cogent3.evolve.models import F81
-    >>> sub_mod = F81()
+    >>> from cogent3.evolve.models import get_model
+    >>> sub_mod = get_model("F81")
     >>> tree = LoadTree(treestring='(a,b,(c,d))')
     >>> lf = sub_mod.make_likelihood_function(tree)
 
@@ -100,8 +122,8 @@ You need to load an alignment and then provide it a likelihood function. I const
 .. doctest::
 
     >>> from cogent3 import LoadTree, LoadSeqs
-    >>> from cogent3.evolve.models import F81
-    >>> sub_mod = F81()
+    >>> from cogent3.evolve.models import get_model
+    >>> sub_mod = get_model("F81")
     >>> tree = LoadTree(treestring='(a,b,(c,d))')
     >>> lf = sub_mod.make_likelihood_function(tree)
     >>> aln = LoadSeqs(data=[('a', 'ACGT'), ('b', 'AC-T'), ('c', 'ACGT'),
@@ -117,7 +139,7 @@ For many evolutionary analyses, it's desirable to allow different branches on a 
 .. doctest::
 
     >>> from cogent3 import LoadTree
-    >>> from cogent3.evolve.models import CNFGTR
+    >>> from cogent3.evolve.models import get_model
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> print(tree.ascii_art())
               /-Galago
@@ -133,9 +155,9 @@ For many evolutionary analyses, it's desirable to allow different branches on a 
                                            |          /-Human
                                             \edge.0--|
                                                       \-Chimpanzee
-    >>> sm = CNFGTR()
+    >>> sm = get_model("CNFGTR")
     >>> lf = sm.make_likelihood_function(tree, digits=2)
-    >>> lf.set_param_rule('omega', tip_names=['Human', 'Orangutan'], outgroup_name='Galago', is_clade=True, init=0.5)
+    >>> lf.set_param_rule('omega', tip_names=['Human', 'Orangutan'], outgroup_name='Galago', clade=True, init=0.5)
 
 We've set an *initial* value for this clade so that the edges affected by this rule are evident below.
 
@@ -178,9 +200,9 @@ This means the parameter will not be modified during likelihood maximisation. We
 .. doctest::
 
     >>> from cogent3 import LoadTree
-    >>> from cogent3.evolve.models import CNFGTR
+    >>> from cogent3.evolve.models import get_model
     >>> tree = LoadTree('data/primate_brca1.tree')
-    >>> sm = CNFGTR()
+    >>> sm = get_model("CNFGTR")
     >>> lf = sm.make_likelihood_function(tree, digits=2)
     >>> lf.set_param_rule('omega', is_constant=True)
 
@@ -192,9 +214,9 @@ This can be useful to improve performance, the closer you are to the maximum lik
 .. doctest::
 
     >>> from cogent3 import LoadTree
-    >>> from cogent3.evolve.models import CNFGTR
+    >>> from cogent3.evolve.models import get_model
     >>> tree = LoadTree('data/primate_brca1.tree')
-    >>> sm = CNFGTR()
+    >>> sm = get_model("CNFGTR")
     >>> lf = sm.make_likelihood_function(tree, digits=2)
     >>> lf.set_param_rule('omega', init=0.1)
 
@@ -206,9 +228,9 @@ This can be useful for stopping optimisers from getting stuck in a bad part of p
 .. doctest::
 
     >>> from cogent3 import LoadTree
-    >>> from cogent3.evolve.models import CNFGTR
+    >>> from cogent3.evolve.models import get_model
     >>> tree = LoadTree('data/primate_brca1.tree')
-    >>> sm = CNFGTR()
+    >>> sm = get_model("CNFGTR")
     >>> lf = sm.make_likelihood_function(tree, digits=2)
     >>> lf.set_param_rule('omega', init=0.1, lower=1e-9, upper=20.0)
 
@@ -220,9 +242,9 @@ If the branch length estimates seem too large, setting just an upper bound can b
 .. doctest::
 
     >>> from cogent3 import LoadTree
-    >>> from cogent3.evolve.models import F81
+    >>> from cogent3.evolve.models import get_model
     >>> tree = LoadTree('data/primate_brca1.tree')
-    >>> sm = F81()
+    >>> sm = get_model("F81")
     >>> lf = sm.make_likelihood_function(tree)
     >>> lf.set_param_rule('length', upper=1.0)
 
@@ -236,8 +258,8 @@ We extend the simple gamma distributed rate heterogeneity case for nucleotides f
 .. doctest::
 
     >>> from cogent3 import LoadTree, LoadSeqs
-    >>> from cogent3.evolve.models import GTR
-    >>> sm = GTR(with_rate=True, distribution='gamma')
+    >>> from cogent3.evolve.models import get_model
+    >>> sm = get_model("GTR", with_rate=True, distribution='gamma')
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.make_likelihood_function(tree, bins=4, digits=2)
     >>> lf.set_param_rule('bprobs', is_constant=True)
@@ -250,8 +272,8 @@ Specifying Phylo-HMMs
 .. doctest::
 
     >>> from cogent3 import LoadTree, LoadSeqs
-    >>> from cogent3.evolve.models import GTR
-    >>> sm = GTR(with_rate=True, distribution='gamma')
+    >>> from cogent3.evolve.models import get_model
+    >>> sm = get_model("GTR", with_rate=True, distribution='gamma')
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.make_likelihood_function(tree, bins=4, sites_independent=False,
     ...                                 digits=2)
@@ -270,10 +292,10 @@ There are 2 types of optimiser: simulated annealing, a *global* optimiser; and P
 .. doctest::
 
     >>> from cogent3 import LoadTree, LoadSeqs
-    >>> from cogent3.evolve.models import F81
+    >>> from cogent3.evolve.models import get_model
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
-    >>> sm = F81()
+    >>> sm = get_model("F81")
     >>> lf = sm.make_likelihood_function(tree, digits=3, space=2)
     >>> lf.set_alignment(aln)
 
@@ -296,11 +318,6 @@ We might want to do crude simulated annealing following by more rigorous Powell.
     >>> lf.optimise(show_progress=False, global_tolerance=1.0, tolerance=1e-8,
     ...              max_restarts=5)
 
-Checkpointing runs
-------------------
-
-See :ref:`checkpointing-optimisation`.
-
 How to check your optimisation was successful.
 ----------------------------------------------
 
@@ -311,10 +328,10 @@ We can monitor this situation using the ``limit_action`` argument to ``optimise`
 .. doctest::
 
     >>> from cogent3 import LoadTree, LoadSeqs
-    >>> from cogent3.evolve.models import F81
+    >>> from cogent3.evolve.models import get_model
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
-    >>> sm = F81()
+    >>> sm = get_model("F81")
     >>> lf = sm.make_likelihood_function(tree, digits=3, space=2)
     >>> lf.set_alignment(aln)
     >>> max_evals = 10
@@ -338,8 +355,8 @@ Log likelihood and number of free parameters
 .. doctest::
 
     >>> from cogent3 import LoadTree, LoadSeqs
-    >>> from cogent3.evolve.models import GTR
-    >>> sm = GTR()
+    >>> from cogent3.evolve.models import get_model
+    >>> sm = get_model("GTR")
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.make_likelihood_function(tree)
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
@@ -349,10 +366,10 @@ We get the log-likelihood and the number of free parameters.
 
 .. doctest::
 
-    >>> lnL = lf.get_log_likelihood()
+    >>> lnL = lf.lnL
     >>> print(lnL)
     -24601.9...
-    >>> nfp = lf.get_num_free_params()
+    >>> nfp = lf.nfp
     >>> print(nfp)
     16
 
@@ -369,8 +386,8 @@ Aikake Information Criterion
 .. doctest::
 
     >>> from cogent3 import LoadTree, LoadSeqs
-    >>> from cogent3.evolve.models import GTR
-    >>> sm = GTR()
+    >>> from cogent3.evolve.models import get_model
+    >>> sm = get_model("GTR")
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.make_likelihood_function(tree)
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
@@ -395,8 +412,8 @@ Bayesian Information Criterion
 .. doctest::
 
     >>> from cogent3 import LoadTree, LoadSeqs
-    >>> from cogent3.evolve.models import GTR
-    >>> sm = GTR()
+    >>> from cogent3.evolve.models import get_model
+    >>> sm = get_model("GTR")
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> lf = sm.make_likelihood_function(tree)
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
@@ -438,26 +455,6 @@ Just the motif probabilities
     0.2406    0.1742    0.3757    0.2095
     ------------------------------------
 
-On the tree object
-^^^^^^^^^^^^^^^^^^
-
-If written to file in xml format, then model parameters will be saved. This can be useful for later plotting or recreating likelihood functions.
-
-.. doctest::
-
-    >>> annot_tree = lf.get_annotated_tree()
-    >>> print(annot_tree.get_xml()) # doctest: +SKIP
-    <?xml version="1.0"?>
-    <clade>
-      <clade>
-         <name>Galago</name>
-         <param><name>A/G</name><value>5.25342689214</value></param>
-         <param><name>A/C</name><value>1.23159157151</value></param>
-         <param><name>C/T</name><value>5.97001104267</value></param>
-         <param><name>length</name><value>0.173114172705</value></param>...
-
-.. warning:: This method fails for some rate-heterogeneity models.
-
 As tables
 ^^^^^^^^^
 
@@ -485,19 +482,19 @@ We test the molecular clock hypothesis for human and chimpanzee lineages. The nu
 .. doctest::
 
     >>> from cogent3 import LoadTree, LoadSeqs
-    >>> from cogent3.evolve.models import F81
+    >>> from cogent3.evolve.models import get_model
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
-    >>> sm = F81()
+    >>> sm = get_model("F81")
     >>> lf = sm.make_likelihood_function(tree, digits=3, space=2)
     >>> lf.set_alignment(aln)
     >>> lf.set_param_rule('length', tip_names=['Human', 'Chimpanzee'],
-    ...         outgroup_name='Galago', is_clade=True, is_independent=False)
+    ...         outgroup_name='Galago', clade=True, is_independent=False)
     ...
     >>> lf.set_name('Null Hypothesis')
     >>> lf.optimise(local=True, show_progress=False)
-    >>> null_lnL = lf.get_log_likelihood()
-    >>> null_nfp = lf.get_num_free_params()
+    >>> null_lnL = lf.lnL
+    >>> null_nfp = lf.nfp
     >>> print(lf)
     Null Hypothesis
     log-likelihood = -7177.4403
@@ -521,8 +518,8 @@ The alternate allows the human and chimpanzee branches to differ by just setting
     >>> lf.set_param_rule('length', is_independent=True)
     >>> lf.set_name('Alt Hypothesis')
     >>> lf.optimise(local=True, show_progress=False)
-    >>> alt_lnL = lf.get_log_likelihood()
-    >>> alt_nfp = lf.get_num_free_params()
+    >>> alt_lnL = lf.lnL
+    >>> alt_nfp = lf.nfp
     >>> print(lf)
     Alt Hypothesis
     log-likelihood = -7175.7756
@@ -542,14 +539,11 @@ The alternate allows the human and chimpanzee branches to differ by just setting
         edge.2  edge.3   0.012
         edge.3    root   0.009
     --------------------------
-    =============
-    motif  mprobs
-    -------------
-        T   0.241
-        C   0.174
-        A   0.376
-        G   0.209
-    -------------
+    ==========================
+        A      C      G      T
+    --------------------------
+    0.376  0.174  0.209  0.241
+    --------------------------
 
 We import the function for computing the probability of a chi-square test statistic, compute the likelihood ratio test statistic, degrees of freedom and the corresponding probability.
 
@@ -572,19 +566,19 @@ In general, however, this capability derives from the ability of any defined ``e
 .. doctest::
 
     >>> from cogent3 import LoadTree, LoadSeqs
-    >>> from cogent3.evolve.models import F81
+    >>> from cogent3.evolve.models import get_model
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
-    >>> sm = F81()
+    >>> sm = get_model("F81")
     >>> lf = sm.make_likelihood_function(tree, digits=3, space=2)
     >>> lf.set_alignment(aln)
     >>> lf.set_param_rule('length', tip_names=['Human', 'Chimpanzee'],
-    ...         outgroup_name='Galago', is_clade=True, is_independent=False)
+    ...         outgroup_name='Galago', clade=True, is_independent=False)
     ...
     >>> lf.set_name('Null Hypothesis')
     >>> lf.optimise(local=True, show_progress=False)
     >>> sim_aln = lf.simulate_alignment()
-    >>> print(repr(sim_aln))
+    >>> sim_aln  # doctest: +SKIP
     7 x 2814 dna alignment: Galago...
 
 Determining confidence intervals on MLEs
@@ -595,10 +589,10 @@ The profile method is used to calculate a confidence interval for a named parame
 .. doctest::
 
     >>> from cogent3 import LoadTree, LoadSeqs
-    >>> from cogent3.evolve.models import HKY85
+    >>> from cogent3.evolve.models import get_model
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
-    >>> sm = HKY85()
+    >>> sm = get_model("HKY85")
     >>> lf = sm.make_likelihood_function(tree)
     >>> lf.set_alignment(aln)
     >>> lf.optimise(local=True, show_progress=False)
@@ -622,10 +616,10 @@ We look at the distribution of ``omega`` from the CNF codon model family across 
 .. doctest::
 
     >>> from cogent3 import LoadTree, LoadSeqs
-    >>> from cogent3.evolve.models import CNFGTR
+    >>> from cogent3.evolve.models import get_model
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
-    >>> sm = CNFGTR()
+    >>> sm = get_model("CNFGTR")
     >>> lf = sm.make_likelihood_function(tree, digits=2, space=2)
     >>> lf.set_param_rule('omega', is_independent=True, upper=10.0)
     >>> lf.set_alignment(aln)
@@ -649,43 +643,16 @@ We look at the distribution of ``omega`` from the CNF codon model family across 
        Gorilla  edge.1    0.01   0.43
          Human  edge.0    0.02   2.44
     Chimpanzee  edge.0    0.01   2.28
-        edge.0  edge.1    0.00   0.00
+        edge.0  edge.1    0.00   0.01
         edge.1  edge.2    0.01   0.55
         edge.2  edge.3    0.04   0.33
         edge.3    root    0.02   1.10
     ---------------------------------
-    ===============
-    motif    mprobs
-    ---------------
-      AAA      0.06
-      AAC      0.02
-      AAG      0.03
-      AAT      0.06
-      ACA      0.02
-      ...       ...
-      TGT      0.02
-      TTA      0.02
-      TTC      0.01
-      TTG      0.01
-      TTT      0.02
-    ---------------
-
-We need an annotated tree object to do the drawing, we write this out to an XML formatted file so it can be reloaded for later reuse.
-
-.. doctest::
-
-    >>> annot_tree = lf.get_annotated_tree()
-    >>> annot_tree.write('result_tree.xml')
-
-We first import an unrooted dendrogram and then generate a heat mapped image to file where edges are colored red by the magnitude of ``omega`` with maximal saturation when ``omega=1``.
-
-.. doctest::
-
-    >>> from cogent3.draw.dendrogram import ContemporaneousDendrogram
-    >>> dend = ContemporaneousDendrogram(annot_tree)
-    >>> fig = dend.make_figure(height=6, width=6, shade_param='omega',
-    ...                      max_value=1.0, stroke_width=2)
-    >>> fig.savefig('omega_heat_map.png')
+    ============================================================================
+     AAA   AAC   AAG   AAT   ACA   ACC   ACG   ACT   AGA   AGC   AGG   AGT   ATA
+    ----------------------------------------------------------------------------
+    0.06  0.02  0.03  0.06  0.02  0.00  0.00  0.03  0.02  0.03  0.01  0.04  0.02
+    ----------------------------------------------------------------------------...
 
 Reconstructing ancestral sequences
 ==================================
@@ -695,10 +662,10 @@ We first fit a likelihood function.
 .. doctest::
 
     >>> from cogent3 import LoadTree, LoadSeqs
-    >>> from cogent3.evolve.models import F81
+    >>> from cogent3.evolve.models import get_model
     >>> tree = LoadTree('data/primate_brca1.tree')
     >>> aln = LoadSeqs('data/primate_brca1.fasta')
-    >>> sm = F81()
+    >>> sm = get_model("F81")
     >>> lf = sm.make_likelihood_function(tree, digits=3, space=2)
     >>> lf.set_alignment(aln)
     >>> lf.optimise(show_progress=False, local=True)
@@ -708,7 +675,7 @@ We then get the most likely ancestral sequences.
 .. doctest::
 
     >>> ancestors = lf.likely_ancestral_seqs()
-    >>> print(ancestors)
+    >>> print(ancestors)  # doctest: +SKIP
     >root
     TGTGGCACAAATACTCATGCCAGCTCATTACAGCA...
 

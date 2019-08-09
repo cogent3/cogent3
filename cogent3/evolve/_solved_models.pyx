@@ -6,7 +6,9 @@ include "../../include/numerical_pyrex.pyx"
 cdef extern from "math.h":
     double exp(double)
 
-version_info = (1, 1)
+version_info = (3, 2)
+__version__ = "('2019', '08', '06a')"
+
 
 def calc_TN93_P(double[::1] mprobs not None, double time,
         alpha_1, alpha_2, double[:, ::1] result not None):

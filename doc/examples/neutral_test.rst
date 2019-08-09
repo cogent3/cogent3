@@ -66,14 +66,11 @@ View the resulting maximum-likelihood parameter values
     NineBande    root    0.28
      DogFaced    root    0.34
     -------------------------
-    =============
-    motif  mprobs
-    -------------
-        T    0.23
-        C    0.19
-        A    0.37
-        G    0.21
-    -------------
+    ======================
+       A     C     G     T
+    ----------------------
+    0.37  0.19  0.21  0.23
+    ----------------------
 
 We'll get the lnL and number of free parameters for later use.
 
@@ -118,14 +115,11 @@ View the resulting maximum-likelihood parameter values.
     NineBande    root    0.28   1.28
      DogFaced    root    0.34   0.84
     --------------------------------
-    =============
-    motif  mprobs
-    -------------
-        T    0.23
-        C    0.19
-        A    0.37
-        G    0.21
-    -------------
+    ======================
+       A     C     G     T
+    ----------------------
+    0.37  0.19  0.21  0.23
+    ----------------------
 
 Get out an annotated tree, it looks just like a tree, but has the maximum-likelihood parameter estimates attached to each tree edge. This object can be used for plotting, or to provide starting estimates to a related model.
 

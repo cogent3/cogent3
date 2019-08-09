@@ -18,7 +18,7 @@ First I'm going to construct an artificial example, using the seqs dict as a mea
     ... 'mus': 'AAGCAGATCCAGGAGAGCGGCGAGAGCGGCAGCCTGGCCGCGCGGCAGGAGAGGCAGGCCCAAGTCAACCTCACG',
     ... 'rat': 'CTGAACAAGCAGCCACTTTCAAACAAGAAA'}
     >>> unaligned_DNA = LoadSeqs(data=seqs, moltype=DNA, aligned=False)
-    >>> print(unaligned_DNA.to_fasta())
+    >>> print(unaligned_DNA.to_fasta())  # doctest: +SKIP
     >hum
     AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
     >mus
@@ -31,7 +31,7 @@ In order to ensure the alignment algorithm preserves the coding frame, we align 
 .. doctest::
 
     >>> unaligned_aa = unaligned_DNA.get_translation()
-    >>> print(unaligned_aa.to_fasta())
+    >>> print(unaligned_aa.to_fasta())  # doctest: +SKIP
     >hum
     KQIQESSENGSLAARQERQAQVNLT
     >mus
@@ -53,7 +53,7 @@ Just to be sure, we'll check that the DNA sequence has gaps in the right place.
 
 .. doctest::
 
-    >>> print(aligned_DNA)
+    >>> print(aligned_DNA)  # doctest: +SKIP
     >hum
     AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
     >rat
