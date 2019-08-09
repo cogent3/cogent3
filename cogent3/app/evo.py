@@ -9,10 +9,12 @@ from .result import bootstrap_result, hypothesis_result, model_result
 
 
 class model(ComposableModel):
-    """represents a substitution model + tree"""
+    """Define a substitution model + tree for maximum likelihood evaluation.
+    Returns model_result."""
 
     _input_type = frozenset(["aligned"])
     _output_type = frozenset(["result", "model_result", "serialisable"])
+    _data_types = frozenset(["ArrayAlignment", "Alignment"])
 
     def __init__(
         self,
@@ -94,6 +96,8 @@ class model(ComposableModel):
         param_rules = param_rules or {}
         if param_rules:
             for rule in param_rules:
+                if rule.get("is_constant"):
+                    continue
                 rule["upper"] = rule.get("upper", 50)  # default upper bound
         self._param_rules = param_rules
         self._time_het = time_het
@@ -106,7 +110,8 @@ class model(ComposableModel):
         lf.set_alignment(aln)
         if self._param_rules:
             lf.apply_param_rules(self._param_rules)
-        elif self._time_het:
+
+        if self._time_het:
             if not initialise:
                 if self._verbose:
                     print("Time homogeneous fit..")
@@ -124,7 +129,7 @@ class model(ComposableModel):
         else:
             rules = lf.get_param_rules()
             for rule in rules:
-                if rule["par_name"] != "mprobs":
+                if rule["par_name"] not in ("mprobs", "psubs"):
                     rule["upper"] = rule.get("upper", 50)
 
             lf.apply_param_rules([rule])
@@ -199,8 +204,12 @@ class model(ComposableModel):
 
 
 class hypothesis(ComposableHypothesis):
+    """Specify a hypothesis through defining two models. Returns a
+    hypothesis_result."""
+
     _input_type = frozenset(["aligned"])
     _output_type = frozenset(["result", "hypothesis_result", "serialisable"])
+    _data_types = frozenset(["ArrayAlignment", "Alignment"])
 
     def __init__(self, null, *alternates, init_alt=None):
         # todo document! init_alt needs to be able to take null, alt and *args
@@ -256,8 +265,11 @@ class hypothesis(ComposableHypothesis):
 
 
 class bootstrap(ComposableHypothesis):
+    """Parametric bootstrap for a provided hypothesis. Returns a bootstrap_result."""
+
     _input_type = frozenset(["aligned"])
     _output_type = frozenset(["result", "bootstrap_result", "serialisable"])
+    _data_types = frozenset(["ArrayAlignment", "Alignment"])
 
     def __init__(self, hyp, num_reps, verbose=False):
         super(bootstrap, self).__init__()

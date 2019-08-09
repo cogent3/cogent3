@@ -30,6 +30,8 @@ from .data_store import (
     ReadOnlyZippedDataStore,
     SingleReadDataStore,
     WritableTinyDbDataStore,
+    load_record_from_json,
+    make_record_for_json,
 )
 
 
@@ -64,7 +66,7 @@ def findall(base_path, suffix="fa", limit=None, verbose=False):
     return data_store.members
 
 
-def get_data_store(base_path, suffix, limit=None, verbose=False):
+def get_data_store(base_path, suffix=None, limit=None, verbose=False):
     """returns DataStore containing glob matches to suffix in base_path
 
     Parameters
@@ -79,6 +81,12 @@ def get_data_store(base_path, suffix, limit=None, verbose=False):
     -------
     ReadOnlyDirectoryDataStore or ReadOnlyZippedDataStore
     """
+    if base_path.endswith("tinydb"):
+        suffix = "json"
+
+    if suffix is None:
+        raise ValueError("suffix required")
+
     if not os.path.exists(base_path):
         raise ValueError(f"'{base_path}' does not exist")
     if not type(suffix) == str:
@@ -129,10 +137,11 @@ class _seq_loader:
 
 
 class load_aligned(_seq_loader, ComposableAligned):
-    """loads sequences"""
+    """Loads aligned sequences. Returns an Alignment object."""
 
     _input_type = frozenset([None])
     _output_type = frozenset(["aligned"])
+    _data_types = frozenset(["DataStoreMember", "str", "Path"])
 
     klass = ArrayAlignment
 
@@ -155,10 +164,20 @@ class load_aligned(_seq_loader, ComposableAligned):
 
 
 class load_unaligned(ComposableSeq, _seq_loader):
-    """loads sequences"""
+    """Loads unaligned sequences. Returns a SequenceCollection."""
 
     _input_type = frozenset([None])
     _output_type = frozenset(["sequences"])
+    _data_types = frozenset(
+        [
+            "DataStoreMember",
+            "str",
+            "Path",
+            "ArrayAlignment",
+            "Alignment",
+            "SequenceCollection",
+        ]
+    )
 
     klass = SequenceCollection
 
@@ -181,8 +200,11 @@ class load_unaligned(ComposableSeq, _seq_loader):
 
 
 class load_tabular(ComposableTabular):
+    """Loads delimited data. Returns a Table."""
+
     _input_type = frozenset([None])
     _output_type = frozenset(["tabular"])
+    _data_types = frozenset(["DataStoreMember", "str", "Path"])
 
     def __init__(
         self, with_title=False, with_header=True, limit=None, sep="\t", strict=True
@@ -270,8 +292,11 @@ class load_tabular(ComposableTabular):
 
 
 class write_seqs(_checkpointable):
+    """Writes sequences to text files in standard format."""
+
     _input_type = frozenset(("sequences", "aligned"))
     _output_type = frozenset(("sequences", "aligned", "identifier"))
+    _data_types = frozenset(["ArrayAlignment", "Alignment", "SequenceCollection"])
 
     def __init__(
         self,
@@ -324,6 +349,9 @@ class write_seqs(_checkpointable):
 
 
 class load_json(Composable):
+    """Loads json serialised cogent3 objects from a json file. 
+    Returns whatever object type was stored."""
+
     _type = "output"
     _input_type = frozenset([None])
     _output_type = frozenset(["result", "serialisable"])
@@ -338,11 +366,14 @@ class load_json(Composable):
             path = SingleReadDataStore(path)[0]
 
         data = path.read()
+        identifier, data, completed = load_record_from_json(data)
 
         return deserialise_object(data)
 
 
 class write_json(_checkpointable):
+    """Writes json serialised objects to individual json files."""
+
     _type = "output"
     _input_type = frozenset(["serialisable"])
     _output_type = frozenset(["identifier", "serialisable"])
@@ -364,7 +395,8 @@ class write_json(_checkpointable):
 
     def write(self, data):
         identifier = self._make_output_identifier(data)
-        out = data.to_json()
+        out = make_record_for_json(os.path.basename(identifier), data, True)
+        out = json.dumps(out)
         stored = self.data_store.write(identifier, out)
         try:
             data.info.stored = stored
@@ -374,7 +406,8 @@ class write_json(_checkpointable):
 
 
 class load_db(Composable):
-    """loads json to a TinyDB instance"""
+    """Loads json serialised cogent3 objects from a TinyDB file. 
+    Returns whatever object type was stored."""
 
     _type = "output"
     _input_type = frozenset([None])
@@ -393,7 +426,7 @@ class load_db(Composable):
 
 
 class write_db(_checkpointable):
-    """writes json to a TinyDB instance"""
+    """Writes json serialised objects to a TinyDB instance."""
 
     _type = "output"
     _input_type = frozenset(["serialisable"])

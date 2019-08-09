@@ -1,4 +1,5 @@
 import glob
+import json
 import os
 import pathlib
 import re
@@ -44,6 +45,23 @@ SKIP = "skip"
 OVERWRITE = "overwrite"
 RAISE = "raise"
 IGNORE = "ignore"
+
+
+def make_record_for_json(identifier, data, completed):
+    """returns a dict for storage as json"""
+    try:
+        data = data.to_rich_dict()
+    except AttributeError:
+        pass
+
+    record = dict(identifier=identifier, data=data, completed=completed)
+    return record
+
+
+def load_record_from_json(data):
+    """returns identifier, data, completed status from json string"""
+    data = json.loads(data)
+    return data["identifier"], data["data"], data["completed"]
 
 
 class DataStoreMember(str):
@@ -230,6 +248,7 @@ class ReadOnlyDataStoreBase:
         return identifier
 
     def read(self, identifier):
+        """reads data corresponding to identifier"""
         if isinstance(identifier, DataStoreMember) and identifier.parent is self:
             identifier = identifier.name
         source = self.open(identifier)
@@ -465,6 +484,29 @@ class WritableDataStoreBase:
 
         return relativeid
 
+    def write_incomplete(self, identifier, not_completed):
+        """
+
+        Parameters
+        ----------
+        identifier : str
+            identifier for record
+        not_completed : NotComplete
+            instance that records key details for why incomplete
+        Returns
+        -------
+        None if storage class does not support writing incomplete, otherwise
+        a DataStoreMember.
+        """
+        if self.suffix != "json":
+            msg = f"not supported for {self.__class__.__name__}"
+            warn(msg, UserWarning)
+            return
+
+        record = make_record_for_json(identifier, not_completed, False)
+        record = json.dumps(record)
+        self.write(identifier, record)
+
     def write(self, *args, **kwargs):
         """
         Parameters
@@ -479,6 +521,9 @@ class WritableDataStoreBase:
         DataStoreMember instance
         """
         raise NotImplementedError
+
+    def close(self):
+        pass
 
 
 class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBase):
@@ -928,9 +973,8 @@ class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
             return matches[0]
 
         relative_id = self.get_relative_identifier(identifier)
-        doc_id = self.db.insert(
-            {"identifier": identifier, "data": data, "completed": True}
-        )
+        record = make_record_for_json(relative_id, data, True)
+        doc_id = self.db.insert(record)
 
         member = DataStoreMember(relative_id, self, id=doc_id)
         if relative_id.endswith(self.suffix):
@@ -947,12 +991,8 @@ class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
             return matches[0]
 
         relative_id = self.get_relative_identifier(identifier)
-        if type(not_completed) == NotCompleted:
-            not_completed = not_completed.to_rich_dict()
-
-        doc_id = self.db.insert(
-            {"identifier": identifier, "data": not_completed, "completed": False}
-        )
+        record = make_record_for_json(relative_id, not_completed, False)
+        doc_id = self.db.insert(record)
 
         member = DataStoreMember(relative_id, self, id=doc_id)
 

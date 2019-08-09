@@ -16,7 +16,11 @@ __status__ = "Alpha"
 # todo tests for dist
 
 
-class FastSlowDist:  # todo make this a composable type
+class fast_slow_dist:  # todo make this a composable type
+    """Pairwise distance calculation. Uses fast (but less
+    numerically robust) approach where possible, slow (robust)
+    approach when not. Returns a DistanceMatrix."""
+
     def __init__(self, distance="TN93", moltype="dna", fast_calc=None, slow_calc=None):
         self._moltype = get_moltype(moltype)
         self._sm = None
@@ -61,4 +65,4 @@ class FastSlowDist:  # todo make this a composable type
 
 def get_fast_slow_calc(distance, **kwargs):
     """returns FastSlow instance for a given distance name"""
-    return FastSlowDist(distance, **kwargs)
+    return fast_slow_dist(distance, **kwargs)

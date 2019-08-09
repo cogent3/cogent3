@@ -13,7 +13,7 @@ from itertools import permutations
 # The models are constructed in a strait forward manner with no attempt to condense
 import numpy
 
-from cogent3 import LoadTable
+from cogent3 import DNA
 from cogent3.evolve import ns_substitution_model, substitution_model
 from cogent3.evolve.predicate import MotifChange, omega, replacement
 from cogent3.evolve.solved_models import F81, HKY85, TN93
@@ -30,7 +30,18 @@ __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"
 
-nucleotide_models = ["JC69", "K80", "F81", "HKY85", "TN93", "GTR", "ssGN", "GN"]
+nucleotide_models = [
+    "JC69",
+    "K80",
+    "F81",
+    "HKY85",
+    "TN93",
+    "GTR",
+    "ssGN",
+    "GN",
+    "BH",
+    "DT",
+]
 
 codon_models = [
     "CNFGTR",
@@ -79,6 +90,26 @@ def _make_symn_preds():
 
 
 _sym_preds = _make_symn_preds()
+
+
+def BH(optimise_motif_probs=True, **kw):
+    """Barry and Hartigan Discrete Time substitution model
+
+    Barry and Hartigan 1987. Biometrics 43: 261–76.
+    """
+    return DT(
+        optimise_motif_probs=optimise_motif_probs, motif_length=1, name="BH", **kw
+    )
+
+
+def DT(optimise_motif_probs=True, motif_length=1, **kw):
+    """Discrete Time substitution model"""
+    alpha = DNA.alphabet.get_word_alphabet(motif_length)
+    kw["optimise_motif_probs"] = optimise_motif_probs
+    kw["mprob_model"] = "tuple"
+    kw["name"] = kw.get("name", f"DT-{motif_length}")
+    sm = ns_substitution_model.DiscreteSubstitutionModel(alpha, **kw)
+    return sm
 
 
 def GN(optimise_motif_probs=True, **kw):
@@ -275,12 +306,13 @@ def H04GGK(**kw):
     return substitution_model.TimeReversibleCodon(**kwargs)
 
 
-def GNC(**kw):
+def GNC(optimise_motif_probs=True, **kw):
     """General Nucleotide Codon, a non-reversible codon model.
 
     Kaehler, Yap, Huttley, 2017, Gen Biol Evol 9(1): 134–49"""
     required = dict(
         name="GNC",
+        optimise_motif_probs=optimise_motif_probs,
         predicates=_general_preds + [_omega],
         mprob_model="tuple",
         model_gaps=False,
