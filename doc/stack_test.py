@@ -2,7 +2,7 @@ import glob
 import subprocess
 
 base_cmd = 'python -m doctest {}'
-for doctest_file in glob.glob("*.rst"):
+for doctest_file in glob.glob("examples/*.rst"):
     cmd = base_cmd.format(doctest_file)
     process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
