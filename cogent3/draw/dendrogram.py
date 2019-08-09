@@ -678,12 +678,6 @@ class Dendrogram(Drawable):
             self.layout.pop("shapes", None)
 
         if isinstance(self.tree, CircularTreeGeometry):
-            max_x = max(self.tree.max_x, abs(self.tree.min_x)) * 1.1
-            max_y = max(self.tree.max_y, abs(self.tree.min_y)) * 1.1
-            # making sure the coordinates centered on the origin to avoid
-            # distortion (over/under rotation of the text)
-            max_x = max_y = max(max_y, max_x)
-
             # must draw this square
             if self.layout.width and self.layout.height:
                 dim = max(self.layout.width, self.layout.height)
@@ -695,9 +689,27 @@ class Dendrogram(Drawable):
                 dim = 800
             self.layout.width = self.layout.height = dim
 
-            # I'm assuming we span the origin
+            # Span of tree along x-axis and Span of tree along y-axis
+            x_diff = self.tree.max_x - self.tree.min_x
+            y_diff = self.tree.max_y - self.tree.min_y
+
+            # Maximum span
+            max_span = max(x_diff, y_diff)
+
+            # Use maximum span along both axes and pad the smaller one accordingly
             axes_range = dict(
-                xaxis=dict(range=[-max_x, max_x]), yaxis=dict(range=[-max_y, max_y])
+                xaxis=dict(
+                    range=[
+                        self.tree.min_x - (1.4 * max_span - x_diff) / 2,
+                        self.tree.max_x + (1.4 * max_span - x_diff) / 2,
+                    ]
+                ),
+                yaxis=dict(
+                    range=[
+                        self.tree.min_y - (1.4 * max_span - y_diff) / 2,
+                        self.tree.max_y + (1.4 * max_span - y_diff) / 2,
+                    ]
+                ),
             )
             self.layout |= axes_range
 
