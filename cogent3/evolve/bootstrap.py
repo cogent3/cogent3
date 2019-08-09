@@ -97,9 +97,6 @@ class ParametricBootstrapCore(object):
 
         ui.display("Randomness", init_work, 0.0)
         alignment_random_state = random.Random(self.seed).getstate()
-        if self.seed is None:
-            comm = parallel.get_communicator()
-            alignment_random_state = comm.bcast(alignment_random_state, 0)
 
         def one_replicate(i):
             for (pc, start_point) in zip(self.parameter_controllers, starting_points):
