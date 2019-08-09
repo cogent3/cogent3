@@ -1,6 +1,6 @@
-__all__ = ["test_dotplot", "test_dendrogram"]
+__all__ = ["test_dotplot", "test_dendrogram", "test_shapes"]
 
-__author__ = "Gavin Huttley"
+__author__ = "Gavin Huttley and Rahul Ghangas"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
