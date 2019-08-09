@@ -19,6 +19,6 @@ pipelines:
           - git clone hg::ssh://hg@bitbucket.org/t6677658/cogent3-apps
           - cd cogent3-apps
           - git remote add azure git@ssh.dev.azure.com:v3/tomla/private-cogent3/private-cogent3
-          - git pull azure/master
+          - git pull azure master
           - git push -u azure --all
 
