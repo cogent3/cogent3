@@ -13,8 +13,9 @@ pipelines:
 #          - pip install scitrack
 #          - pip install tinydb
 #          - bash run_tests
-          - wget https://raw.github.com/felipec/git-remote-hg/master/git-remote-hg -O ~/bin/git-remote-hg
-          - chmod +x ~/bin/git-remote-hg
+          - wget https://raw.github.com/felipec/git-remote-hg/master/git-remote-hg -O git-remote-hg
+          - chmod +x git-remote-hg
+          - export PATH=`pwd`:$PATH 
           - git clone hg::ssh://hg@bitbucket.org/t6677658/cogent3-apps
           - cd cogent3-apps
           - git remote add azure git@ssh.dev.azure.com:v3/tomla/private-cogent3/private-cogent3
