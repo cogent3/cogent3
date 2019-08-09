@@ -187,7 +187,7 @@ else:
 
 parallel.inefficiency_forgiven = True
 
-if parallel.get_communicator().Get_rank() > 0:
+if parallel.get_rank() > 0:
     # benchmarks(test)
     quiet(benchmarks, test)
 else:
