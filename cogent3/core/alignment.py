@@ -1821,6 +1821,8 @@ class SequenceCollection(object):
         dotplot = Dotplot(
             seq1,
             seq2,
+            window=window,
+            threshold=threshold,
             xtitle=None if annotated else seq1.name,
             ytitle=None if annotated else seq2.name,
             moltype=self.moltype,
