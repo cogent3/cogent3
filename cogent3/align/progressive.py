@@ -103,8 +103,6 @@ def TreeAlign(
         param_vals = {}
         for param in est_params:
             numbers = dcalc.get_param_values(param)
-            print("Param Estimate Summary Stats: %s" % param)
-            print(numbers.summarize())
             param_vals[param] = numbers.median
 
     ui.display("Doing %s alignment" % ["progressive", "pairwise"][two_seqs])
