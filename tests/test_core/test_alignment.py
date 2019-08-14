@@ -1205,12 +1205,12 @@ class SequenceCollectionBaseTests(object):
         assert_allclose(result["seq2"].observed.array, [[3, 0], [2, 1]])
 
     def test_dotplot(self):
-        """excercising dotplot method"""
+        """exercising dotplot method"""
         seqs = self.Class(data=self.brca1_data, moltype=DNA)
         _ = seqs.dotplot(show_progress=False)
 
     def test_dotplot_annotated(self):
-        """excercising dotplot method with annotated sequences"""
+        """exercising dotplot method with annotated sequences"""
         seqs = self.Class(data=self.brca1_data, moltype=DNA)
         seqs = seqs.take_seqs(["Human", "Mouse"])
         if type(self.Class) != ArrayAlignment:
