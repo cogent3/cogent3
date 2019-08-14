@@ -1204,11 +1204,21 @@ class SequenceCollectionBaseTests(object):
         assert_allclose(result["seq1"].observed.array, [[3, 2], [2, 2]])
         assert_allclose(result["seq2"].observed.array, [[3, 0], [2, 1]])
 
-    def test_dotplot(self):  # todo figure out why this passes on mac but not pipelines
+    def test_dotplot(self):
         """excercising dotplot method"""
-        # need to trap stdout so plotly doesn't dump content when it's headless
         seqs = self.Class(data=self.brca1_data, moltype=DNA)
-        _ = seqs.dotplot()
+        _ = seqs.dotplot(show_progress=False)
+
+    def test_dotplot_annotated(self):
+        """excercising dotplot method with annotated sequences"""
+        seqs = self.Class(data=self.brca1_data, moltype=DNA)
+        seqs = seqs.take_seqs(["Human", "Mouse"])
+        if type(self.Class) != ArrayAlignment:
+            # we annotated Human
+            seq = seqs.get_seq("Human")
+            _ = seq.add_feature("exon", "fred", [(10, 15)])
+
+        _ = seqs.dotplot(show_progress=False)
 
     def test_rename_seqs(self):
         """successfully rename sequences"""
