@@ -1811,8 +1811,10 @@ class SequenceCollection(object):
 
         if seq1.is_annotated() or seq2.is_annotated():
             annotated = True
-            bottom = seq1.data.get_drawable()
-            left = seq2.data.get_drawable(vertical=True)
+            data = getattr(seq1, "data", seq1)
+            bottom = data.get_drawable()
+            data = getattr(seq2, "data", seq2)
+            left = data.get_drawable(vertical=True)
         else:
             annotated = False
 
