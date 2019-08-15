@@ -1823,12 +1823,14 @@ class SequenceCollection(object):
             seq2,
             window=window,
             threshold=threshold,
+            min_gap=min_gap,
             xtitle=None if annotated else seq1.name,
             ytitle=None if annotated else seq2.name,
             title=title,
             moltype=self.moltype,
             rc=rc,
             show_progress=show_progress,
+            width=width,
         )
 
         if annotated:

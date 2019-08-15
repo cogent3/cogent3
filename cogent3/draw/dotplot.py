@@ -160,6 +160,7 @@ class Dotplot(Drawable):
         xtitle=None,
         ytitle=None,
         title=None,
+        width=500,
         show_progress=False,
     ):
         """
@@ -196,10 +197,10 @@ class Dotplot(Drawable):
         map1, seq1 = _convert_input(seq1, moltype)
         map2, seq2 = _convert_input(seq2, moltype)
         len1, len2 = len(seq1), len(seq2)
-        height = 500 * len2 / len1
+        height = width * len2 / len1
 
         super(Dotplot, self).__init__(
-            visible_axes=True, showlegend=True, width=500, height=height
+            visible_axes=True, showlegend=True, width=width, height=height
         )
 
         self.seq1 = seq1
