@@ -1825,6 +1825,7 @@ class SequenceCollection(object):
             threshold=threshold,
             xtitle=None if annotated else seq1.name,
             ytitle=None if annotated else seq2.name,
+            title=title,
             moltype=self.moltype,
             rc=rc,
             show_progress=show_progress,
@@ -1837,6 +1838,7 @@ class SequenceCollection(object):
                 bottom_track=bottom,
                 xtitle=seq1.name,
                 ytitle=seq2.name,
+                title=title,
                 xrange=[0, len(seq1)],
                 yrange=[0, len(seq2)],
             )

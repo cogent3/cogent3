@@ -159,6 +159,7 @@ class Dotplot(Drawable):
         rc=False,
         xtitle=None,
         ytitle=None,
+        title=None,
         show_progress=False,
     ):
         """
@@ -181,6 +182,8 @@ class Dotplot(Drawable):
         xtitle, ytitle
             name of the seq1, seq2. None if included as part of a
             AnnotatedDrawable
+        title : str
+            title for the plot
         show_progress : bool
             displays progress bar
         """
@@ -205,6 +208,7 @@ class Dotplot(Drawable):
 
         self.xtitle = xtitle
         self.ytitle = ytitle
+        self.title = title
         self._window = window
         self._min_gap = min_gap
         if threshold is None:
@@ -249,10 +253,14 @@ class Dotplot(Drawable):
         )
 
         fwd, rev = self._fwd, self._rev
-        title = (
-            f"Window={self._window}, Matched ≥ {self._threshold}/"
-            f"{self._window} & Gap ≤ {self._min_gap}"
-        )
+        if not self.title:
+            title = (
+                f"Window={self._window}, Matched ≥ {self._threshold}/"
+                f"{self._window} & Gap ≤ {self._min_gap}"
+            )
+        else:
+            title = self.title
+
         self.layout |= dict(title=title)
         trace = UnionDict(
             dict(

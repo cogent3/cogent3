@@ -176,6 +176,7 @@ class AnnotatedDrawable(Drawable):
         bottom_track=None,
         xtitle=None,
         ytitle=None,
+        title=None,
         xrange=None,
         yrange=None,
         width=500,
@@ -194,6 +195,8 @@ class AnnotatedDrawable(Drawable):
         self.ytitle = ytitle
         self.yrange = yrange
         self.xrange = xrange
+
+        core.title = title or core.title
         self.core = core
         self.left_track = left_track
         self.bottom_track = bottom_track
