@@ -50,9 +50,12 @@ class WLS(TreeEvaluator):
             - weights: an equivalently structured dict with measurements of
               variability of the distance estimates. By default, the sqrt of
               distance is used."""
-
+        try:
+            dists = dists.todict()
+        except AttributeError:
+            pass
         self.dists = dists
-        self.weights = weights or dict((key, 1.0 / (dists[key] ** 2)) for key in dists)
+        self.weights = weights or dict((key, 1.0 / (self.dists[key] ** 2)) for key in self.dists)
         (self.names, dists) = distance_dict_to_1D(self.dists)
 
     def make_tree_scorer(self, names):
