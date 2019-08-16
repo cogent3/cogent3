@@ -1,0 +1,45 @@
+2019-07-03 12:17:26	eratosthenes.uds.anu.edu.au:92022	INFO	system_details : system=Darwin Kernel Version 18.6.0: Thu Apr 25 23:16:27 PDT 2019; root:xnu-4903.261.4~2/RELEASE_X86_64
+2019-07-03 12:17:26	eratosthenes.uds.anu.edu.au:92022	INFO	python : 3.7.3
+2019-07-03 12:17:26	eratosthenes.uds.anu.edu.au:92022	INFO	user : gavin
+2019-07-03 12:17:26	eratosthenes.uds.anu.edu.au:92022	INFO	command_string : /Users/gavin/miniconda3/envs/c3dev/lib/python3.7/site-packages/ipykernel_launcher.py -f /Users/gavin/Library/Jupyter/runtime/kernel-b12c134a-a2d4-4a8d-b7d2-f226e12fe628.json
+2019-07-03 12:17:26	eratosthenes.uds.anu.edu.au:92022	INFO	composable function : load_unaligned(type='sequences', moltype='dna', format='fasta') + take_named_seqs(type='sequences', names=('Algerian mouse', 'Mouse', 'Rat'), negate=False) + min_length(type='sequences', length=600, motif_length=1, subtract_degen=True, moltype=None) + progressive_align(type='sequences') + omit_degenerates(type='aligned', moltype='dna', gap_is_degen=True, motif_length=3) + write_db(type='output', data_path='../data/rodent_cds/aligned_xy.tinydb', name_callback=None, create=True, if_exists='overwrite', suffix='json')
+2019-07-03 12:17:26	eratosthenes.uds.anu.edu.au:92022	INFO	input : ../data/rodent_cds/raw_xy/ENSMUSG00000031379.fa
+2019-07-03 12:17:26	eratosthenes.uds.anu.edu.au:92022	INFO	input md5sum : 3c740b2f8b4713754e23d612e2489768
+2019-07-03 12:17:26	eratosthenes.uds.anu.edu.au:92022	INFO	output : ENSMUSG00000031379.json
+2019-07-03 12:17:26	eratosthenes.uds.anu.edu.au:92022	INFO	output md5sum : 07babd6d7eedfe27fa1648213f4609c9
+2019-07-03 12:17:26	eratosthenes.uds.anu.edu.au:92022	INFO	input : ../data/rodent_cds/raw_xy/ENSMUSG00000031239.fa
+2019-07-03 12:17:26	eratosthenes.uds.anu.edu.au:92022	INFO	input md5sum : 43c78bd597e3edf7765e883aea8344b3
+2019-07-03 12:17:26	eratosthenes.uds.anu.edu.au:92022	INFO	output : ENSMUSG00000031239.json
+2019-07-03 12:17:26	eratosthenes.uds.anu.edu.au:92022	INFO	output md5sum : 236beef72a6f6f5aaa7afabf79fc3e5d
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	input : ../data/rodent_cds/raw_xy/ENSMUSG00000031328.fa
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	input md5sum : f255615238a754aa30fa316d126fa651
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	output : ENSMUSG00000031328.json
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	output md5sum : f93ccf09e267a513b72472afdb6e7229
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	input : ../data/rodent_cds/raw_xy/ENSMUSG00000063663.fa
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	input md5sum : 07fb8fff9da3cd37f5c3b1057236a44b
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	FALSE : min_length : 543 < min_length 600
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	input : ../data/rodent_cds/raw_xy/ENSMUSG00000042225.fa
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	input md5sum : 701311f0178ba16e848ed08a57a7aa47
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	output : ENSMUSG00000042225.json
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	output md5sum : bc0878d93bff8bc032feeebe57af642d
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	input : ../data/rodent_cds/raw_xy/ENSMUSG00000035847.fa
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	input md5sum : bf4a639e534aa97d2bbc215c3b1c7b23
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	output : ENSMUSG00000035847.json
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	output md5sum : bb218b33c4bc1fd9b1dff27a1351c8b2
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	input : ../data/rodent_cds/raw_xy/ENSMUSG00000054453.fa
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	input md5sum : 79b9e38b2e2d4129fb593503ea50a79f
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	output : ENSMUSG00000054453.json
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	output md5sum : 7c7edeb9a25fb49dff7298a4736a0a7b
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	input : ../data/rodent_cds/raw_xy/ENSMUSG00000073010.fa
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	input md5sum : 122875a99fcb55055f850a1de3cf09ec
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	output : ENSMUSG00000073010.json
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	output md5sum : 8da59b555fd94d22dd8a05574cd81af6
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	input : ../data/rodent_cds/raw_xy/ENSMUSG00000025261.fa
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	input md5sum : 5eab1a81a7e62e08607f65ff0437a14f
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	output : ENSMUSG00000025261.json
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	output md5sum : 9c9eba09762838f832c40383983d4221
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	input : ../data/rodent_cds/raw_xy/ENSMUSG00000034055.fa
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	input md5sum : d91d611ae9f66c5152b4af0aa2f421e6
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	output : ENSMUSG00000034055.json
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	output md5sum : 0f309bcc4d8856249d0f5c26fa6f455c
+2019-07-03 12:17:39	eratosthenes.uds.anu.edu.au:92022	INFO	TIME TAKEN : 13.204617977142334

@@ -1,0 +1,13 @@
+#nexus
+begin data;
+  dimensions ntax=5 nchar=43;
+  format datatype=dna missing=? gap=-;
+  matrix
+    Ephedra       TTAAGCCATGCATGTCTAAGTATGAACTAATTCCAAACGGTGA
+    Gnetum        TTAAGCCATGCATGTCTATGTACGAACTAATC-AGAACGGTGA
+    Welwitschia   TTAAGCCATGCACGTGTAAGTATGAACTAGTC-GAAACGGTGA
+    Ginkgo        TTAAGCCATGCATGTGTAAGTATGAACTCTTTACAGACTGTGA
+    Pinus         TTAAGCCATGCATGTCTAAGTATGAACTAATTGCAGACTGTGA
+                 [----+--10|----+--20|----+--30|----+--40|---]
+  ;
+end;

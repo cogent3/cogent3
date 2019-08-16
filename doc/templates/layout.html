@@ -1,0 +1,15 @@
+{% extends "!layout.html" %}
+ 
+{% block extrahead %}     
+<script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAbW_pA971hrPgosv-Msv7hRQZ4X-jPDmWcshBrz2j7-fJvuUABRTGWmdiw2G89JpgztGlFGG8hDxRAw"></script>\
+<script type="text/javascript" src="{{ pathto("_static/google_feed.js",1)}}"></script>
+{% endblock %}
+
+{% block sidebartoc %}
+<div class="news">
+<table id="feed"><tr><td><h3><a href="http://pycogent.wordpress.com/">PyCogent News and Announcements</a></h3></td>
+</tr></table></div>
+
+    {{ super() }}
+
+{% endblock %}
