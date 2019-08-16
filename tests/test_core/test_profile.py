@@ -358,6 +358,11 @@ class PSSMTests(TestCase):
         scores = pssm.score_indexed_seq(indices)
         assert_allclose(scores, [-4.481, -5.703, -2.966], atol=1e-3)
 
+        indices = [4, 1, 2, 0, 2, 2, 3]
+        scores = pssm.score_indexed_seq(indices)
+        # log2 of (0.25 * 0.05 * 0.7 * 0.05) / .25**4 = -3.158...
+        assert_allclose(scores, [-3.158, -5.703, -2.966], atol=1e-3)
+
     def test_score_str(self):
         """produce correct score from seq"""
         data = [
