@@ -235,6 +235,26 @@ class TestPair(TestCase):
             expected = all_expected[pair]
             assert_allclose(got, expected)
 
+    def test_slice_dmatrix(self):
+        data = {
+            ("ABAYE2984", "Atu3667"): 0.25,
+            ("ABAYE2984", "Avin_42730"): 0.638,
+            ("ABAYE2984", "BAA10469"): None,
+            ("Atu3667", "ABAYE2984"): 0.25,
+            ("Atu3667", "Avin_42730"): 2.368,
+            ("Atu3667", "BAA10469"): 0.25,
+            ("Avin_42730", "ABAYE2984"): 0.638,
+            ("Avin_42730", "Atu3667"): 2.368,
+            ("Avin_42730", "BAA10469"): 1.85,
+            ("BAA10469", "ABAYE2984"): 0.25,
+            ("BAA10469", "Atu3667"): 0.25,
+            ("BAA10469", "Avin_42730"): 1.85,
+        }
+        darr = DistanceMatrix(data)
+        names = darr.template.names[0][:3]
+        got = darr[:3, :3]
+        self.assertEqual(list(got.template.names[0]), names)
+
     def test_logdet_tk_adjustment(self):
         """logdet using tamura kumar differs from classic"""
         aln = LoadSeqs("data/brca1_5.paml", moltype=DNA)
