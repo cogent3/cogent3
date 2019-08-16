@@ -150,6 +150,22 @@ def bind_drawable(obj, drawable):
     return obj
 
 
+_ticks_off = (
+    ("showticklabels", False),
+    ("mirror", True),
+    ("showgrid", False),
+    ("showline", True),
+    ("ticks", ""),
+)
+
+_ticks_on = (
+    ("showticklabels", True),
+    ("mirror", True),
+    ("showgrid", False),
+    ("showline", True),
+)
+
+
 class AnnotatedDrawable(Drawable):
     """supports drawing with left and bottom tracks of annotations"""
 
@@ -160,6 +176,7 @@ class AnnotatedDrawable(Drawable):
         bottom_track=None,
         xtitle=None,
         ytitle=None,
+        title=None,
         xrange=None,
         yrange=None,
         width=500,
@@ -178,6 +195,8 @@ class AnnotatedDrawable(Drawable):
         self.ytitle = ytitle
         self.yrange = yrange
         self.xrange = xrange
+
+        core.title = title or core.title
         self.core = core
         self.left_track = left_track
         self.bottom_track = bottom_track
@@ -194,8 +213,11 @@ class AnnotatedDrawable(Drawable):
             trace.xaxis = xaxis
             trace.yaxis = yaxis
         self._traces = traces
+        ticks_on = dict(_ticks_on)
         f.layout.xaxis.title = self.xtitle
         f.layout.yaxis.title = self.ytitle
+        f.layout.xaxis |= ticks_on
+        f.layout.yaxis |= ticks_on
         return f
 
     def _build_2x2_fig(self):
@@ -216,21 +238,8 @@ class AnnotatedDrawable(Drawable):
         fig = UnionDict(data=[], layout=layout)
 
         # common settings
-        ticks_off_kwargs = dict(
-            showticklabels=False,
-            mirror=True,
-            showgrid=False,
-            showline=True,
-            zeroline=False,
-            ticks="",
-        )
-        ticks_on_kwargs = dict(
-            showticklabels=True,
-            mirror=True,
-            showgrid=False,
-            showline=True,
-            zeroline=False,
-        )
+        ticks_off_kwargs = dict(_ticks_off)
+        ticks_on_kwargs = dict(_ticks_on)
 
         # core traces and layout
         fig.data.extend(self.traces)
@@ -321,12 +330,8 @@ class AnnotatedDrawable(Drawable):
         fig = UnionDict(data=[], layout=layout)
 
         # common settings
-        ticks_off_kwargs = dict(
-            showticklabels=False, mirror=True, showgrid=False, showline=True
-        )
-        ticks_on_kwargs = dict(
-            showticklabels=True, mirror=True, showgrid=False, showline=True
-        )
+        ticks_off_kwargs = dict(_ticks_off)
+        ticks_on_kwargs = dict(_ticks_on)
 
         # core traces and layout
         fig.data.extend(self.traces)
@@ -370,12 +375,8 @@ class AnnotatedDrawable(Drawable):
         fig = UnionDict(data=[], layout=layout)
 
         # common settings
-        ticks_off_kwargs = dict(
-            showticklabels=False, mirror=True, showgrid=False, showline=True
-        )
-        ticks_on_kwargs = dict(
-            showticklabels=True, mirror=True, showgrid=False, showline=True
-        )
+        ticks_off_kwargs = dict(_ticks_off)
+        ticks_on_kwargs = dict(_ticks_on)
 
         # core traces and layout
         fig.data.extend(self.traces)
