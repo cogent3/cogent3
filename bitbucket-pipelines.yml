@@ -14,5 +14,4 @@ pipelines:
           - pip install tinydb
           - pip install pytest
           - pip install tox
-          - bash tox
-          
+          - tox
