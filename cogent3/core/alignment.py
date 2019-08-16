@@ -1889,7 +1889,7 @@ class SequenceCollection(object):
             adjustment for zero in matrix
         Returns
         -------
-        numpy array of scores at every position
+        numpy array of log2 based scores at every position
         """
         from cogent3.parse import jaspar, cisbp
 
