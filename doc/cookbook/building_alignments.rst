@@ -20,7 +20,8 @@ We import useful functions and then load the sequences to be aligned.
 .. doctest::
 
     >>> from cogent3 import LoadSeqs, LoadTree, DNA
-    >>> seqs = LoadSeqs('data/test2.fasta', aligned=False, moltype=DNA)
+    >>> import os
+    >>> seqs = LoadSeqs(os.path.dirname(os.getcwd()) + '/data/test2.fasta', aligned=False, moltype=DNA)
 
 For nucleotides
 ^^^^^^^^^^^^^^^
@@ -37,17 +38,6 @@ We first align without providing a guide tree. The ``TreeAlign`` algorithm build
 .. doctest::
 
     >>> aln, tree = TreeAlign(HKY85(), seqs)
-    Param Estimate Summary Stats: kappa
-    ==============================
-            Statistic        Value
-    ------------------------------
-                Count           10
-                  Sum        1e+06
-               Median        4.256
-                 Mean        1e+05
-    StandardDeviation    3.162e+05
-             Variance        1e+11
-    ------------------------------
     >>> aln
     5 x 60 bytes alignment: NineBande[-C-----GCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
 
