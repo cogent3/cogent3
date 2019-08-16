@@ -58,9 +58,14 @@ def main(file_paths, just, exclude, verbose):
     
     for test in file_paths:
         print()
-        print("#" * 40)
+        print("=" * 40)
         print(test)
-        doctest.testfile(test, optionflags=doctest.ELLIPSIS or doctest.SKIP, verbose=True, encoding='utf-8')
+        num_fails, num_tests = doctest.testfile(test,
+                                                optionflags=doctest.ELLIPSIS or doctest.SKIP,
+                                                verbose=False,
+                                                encoding='utf-8')
+        if num_fails > 0:
+            raise SystemExit(f"doctest failed in {test}")
 
 
 if __name__ == "__main__":
