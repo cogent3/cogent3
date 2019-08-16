@@ -288,8 +288,9 @@ class Composable(ComposableType):
         result = self._trapped_call(self.func, val, *args, **kwargs)
         if not result and type(result) != NotCompleted:
             msg = (
-                "This is unexpected! Please post this error message along"
-                " with the code and data indicated as an Issue on the"
+                f"The value {result} equates to False. "
+                "If unexpected, please post this error message along"
+                f" with the code and data '{val}' as an Issue on the"
                 " bitbucket project page."
             )
             origin = str(self)

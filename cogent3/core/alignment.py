@@ -1794,15 +1794,13 @@ class SequenceCollection(object):
         from cogent3.draw.drawable import AnnotatedDrawable
         from cogent3.draw.dotplot import Dotplot
 
-        names = list(choice(self.names, size=2, replace=False))
-        if name1 and name2 is None:
-            names.remove(name1)
-            name2 = names[0]
-        elif name2 and name1 is None:
-            names.remove(name2)
-            name1 = names[0]
-        elif not name1:
-            name1, name2 = names
+        if name1 is None and name2 is None:
+            name1, name2 = list(choice(self.names, size=2, replace=False))
+        elif not (name1 and name2):
+            names = list(set(self.names + [None]) ^ set([name1, name2]))
+            name = list(choice(names, size=1))[0]
+            name1 = name1 or name
+            name2 = name2 or name
 
         if not {name1, name2} <= set(self.names):
             msg = f"{name1}, {name2} missing"
@@ -1813,19 +1811,26 @@ class SequenceCollection(object):
 
         if seq1.is_annotated() or seq2.is_annotated():
             annotated = True
-            bottom = seq1.data.get_drawable()
-            left = seq2.data.get_drawable(vertical=True)
+            data = getattr(seq1, "data", seq1)
+            bottom = data.get_drawable()
+            data = getattr(seq2, "data", seq2)
+            left = data.get_drawable(vertical=True)
         else:
             annotated = False
 
         dotplot = Dotplot(
             seq1,
             seq2,
+            window=window,
+            threshold=threshold,
+            min_gap=min_gap,
             xtitle=None if annotated else seq1.name,
             ytitle=None if annotated else seq2.name,
+            title=title,
             moltype=self.moltype,
             rc=rc,
             show_progress=show_progress,
+            width=width,
         )
 
         if annotated:
@@ -1835,6 +1840,7 @@ class SequenceCollection(object):
                 bottom_track=bottom,
                 xtitle=seq1.name,
                 ytitle=seq2.name,
+                title=title,
                 xrange=[0, len(seq1)],
                 yrange=[0, len(seq2)],
             )
