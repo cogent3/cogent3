@@ -56,7 +56,7 @@ from cogent3.core.annotation import Map, _Annotatable
 from cogent3.core.genetic_code import DEFAULT, get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import LostSpan, Span
-from cogent3.core.profile import MotifCountsArray
+from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, frac_same
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
@@ -1873,6 +1873,50 @@ class SequenceCollection(object):
                 old_seq = self.named_seqs[old]
                 new_seq.copy_annotations(old_seq.data)
         return result
+
+    @UI.display_wrap
+    def apply_pssm(self, pssm=None, path=None, background=None, pseudocount=0, ui=None):
+        """
+        scores sequences using the specified pssm
+        Parameters
+        ----------
+        pssm : profile.PSSM
+            if not provided, will be loaded from path
+        path
+            path to either a jaspar or cisbp matrix (path must end have a suffix
+            matching the format).
+        pseudocount
+            adjustment for zero in matrix
+        Returns
+        -------
+        numpy array of scores at every position
+        """
+        from cogent3.parse import jaspar, cisbp
+
+        assert pssm or path, "Must specify a PSSM or a path"
+        assert not (pssm and path), "Can only specify one of pssm, path"
+        if path:
+            is_cisbp = path.endswith("cisbp")
+            is_jaspar = path.endswith("jaspar")
+            if not (is_cisbp or is_jaspar):
+                raise NotImplementedError(f"Unknown format {path.split('.')[-1]}")
+
+            if is_cisbp:
+                pfp = cisbp.read(path)
+                pssm = pfp.to_pssm(background=background)
+            else:
+                id_, pwm = jaspar.read(path)
+                pssm = pwm.to_pssm(background=background, pseudocount=pseudocount)
+
+        assert isinstance(pssm, PSSM)
+        array_align = hasattr(self, "array_seqs")
+        assert set(pssm.motifs) == set(self.moltype)
+        if array_align and list(pssm.motifs) == list(self.moltype):
+            result = [pssm.score_indexed_seq(seq) for seq in ui.series(self.array_seqs)]
+        else:
+            result = [pssm.score_seq(seq) for seq in ui.series(self.seqs)]
+
+        return array(result)
 
 
 @total_ordering

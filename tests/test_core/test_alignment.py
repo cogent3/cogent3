@@ -1234,6 +1234,28 @@ class SequenceCollectionBaseTests(object):
             for seq in new.seqs:
                 self.assertFalse("-" in str(seq.data))
 
+    def test_apply_pssm(self):
+        """should successfully produce pssm scores"""
+        from cogent3.parse import jaspar, cisbp
+
+        _, pwm = jaspar.read("data/sample.jaspar")
+        data = {
+            "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+            "ENSMUSG00000039616": "GCCCTTCAAATTTGGTTTCT",
+            "ENSMUSG00000024091": "TTTCCAGGGCAGACAAGACG",
+            "ENSMUSG00000024056": "ACAATAATGCCGAGAGCCAG",
+            "ENSMUSG00000054321": "TATGAAAATTTTTGCCAGGC",
+            "ENSMUSG00000052469": "CCTGTTTGCCTTTAAATATT",
+            "ENSMUSG00000024261": "CAGACAAGAAACCAGCAACA",
+            "ENSMUSG00000052031": "AGCGAGTATACACGCACAGA",
+            "ENSMUSG00000067872": "ACACAGCTCTGACAACTCAT",
+            "ENSMUSG00000023892": "GTAACATCAGTACAGCACAG",
+        }
+        seqs = self.Class(data=data, moltype=DNA)
+        scores = seqs.apply_pssm(path="data/sample.jaspar", show_progress=False)
+        self.assertEqual(scores.shape, (len(data), len(seqs) - pwm.shape[0] + 1))
+        scores = seqs.apply_pssm(pssm=pwm.to_pssm(), show_progress=False)
+
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
     """Tests of the SequenceCollection object. Includes ragged collection tests.
