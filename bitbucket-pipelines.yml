@@ -12,6 +12,7 @@ pipelines:
           - pip install plotly
           - pip install scitrack
           - pip install tinydb
-          - bash run_tests
+          - pip install pytest
+          - pip install tox
+          - bash tox
           
-
