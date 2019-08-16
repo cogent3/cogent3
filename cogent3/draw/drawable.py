@@ -41,7 +41,7 @@ class Drawable:
             yaxis=dict(visible=visible_axes),
             hovermode="closest",
             plot_bgcolor=None,
-            margin=dict(l=50, r=50, t=50),
+            margin=dict(l=50, r=50, t=50, b=50, pad=4),
         )
         layout = layout or {}
         self._layout |= layout
