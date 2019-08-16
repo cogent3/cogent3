@@ -686,6 +686,15 @@ class DistanceMatrix(DictArray):
         self.array[index] = value
         return
 
+    def __getitem__(self, names):
+        (index, remaining) = self.template.interpret_index(names)
+        result = self.array[index]
+        if remaining is not None:
+            result = self.__class__(result, remaining)
+            self.template.names = array(self.template.names)[index]
+            result.template = self.template
+        return result
+
     def todict(self):
         result = super(DistanceMatrix, self).todict(flatten=True)
         for n1 in self.template.names[0]:
