@@ -275,24 +275,40 @@ class PSSM(_MotifNumberArray):
         super(PSSM, self).__init__(pssm, motifs, row_indices, dtype=float)
         self._indices = numpy.arange(self.shape[0])  # used for scoring
 
-    def score_seq(self, seq):
-        """return score for a sequence"""
-        get_index = self.motifs.index
+    def get_indexed_seq(self, seq):
+        """converts seq to numpy array of int
+        characters in seq not present in motifs are assigned out-of-range index
+        """
+        get_index = {c: i for i, c in enumerate(self.motifs)}.get
+        num_motifs = len(self.motifs)
         if self.motif_length == 1:
-            indexed = list(map(get_index, seq))
+            indexed = [get_index(c, num_motifs) for c in seq]
         else:
             indexed = []
-            for i in range(0, self.shape[0] - self.motif_length, self.motif_length):
-                indexed.append(get_index(seq[i : i + self.motif_length]))
+            for i in range(0, self.shape[0] - self.motif_length + 1, self.motif_length):
+                indexed.append(get_index(seq[i : i + self.motif_length], num_motifs))
         indexed = numpy.array(indexed)
+        return indexed
+
+    def score_seq(self, seq):
+        """return score for a sequence"""
+        indexed = self.get_indexed_seq(seq)
         return self.score_indexed_seq(indexed)
 
     def score_indexed_seq(self, indexed):
         """return score for a sequence already converted to integer indices"""
         indexed = numpy.array(indexed)
+        num_motifs = len(self.motifs)
         scores = []
+
         for i in range(0, indexed.shape[0] - self.shape[0] + 1):
             segment = indexed[i : i + self.shape[0]]
-            score = self.array[self._indices, segment].sum()
+            un_ambig = segment < num_motifs
+            if not un_ambig.all():
+                pssm = self.array[un_ambig, :]
+                segment = segment[un_ambig]
+            else:
+                pssm = self.array
+            score = pssm[self._indices[: pssm.shape[0]], segment].sum()
             scores.append(score)
         return scores
