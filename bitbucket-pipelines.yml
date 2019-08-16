@@ -14,4 +14,4 @@ pipelines:
           - pip install tinydb
           - pip install pytest
           - pip install tox
-          - tox
+          - tox -e py37
