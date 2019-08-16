@@ -55,7 +55,9 @@ class WLS(TreeEvaluator):
         except AttributeError:
             pass
         self.dists = dists
-        self.weights = weights or dict((key, 1.0 / (self.dists[key] ** 2)) for key in self.dists)
+        self.weights = weights or dict(
+            (key, 1.0 / (self.dists[key] ** 2)) for key in self.dists
+        )
         (self.names, dists) = distance_dict_to_1D(self.dists)
 
     def make_tree_scorer(self, names):
