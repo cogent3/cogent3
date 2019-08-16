@@ -2,6 +2,7 @@ import re
 
 from numpy import array
 
+from cogent3.core.moltype import get_moltype
 from cogent3.core.profile import MotifCountsArray
 
 
@@ -22,7 +23,7 @@ def read(filepath):
     """returns matrixid and MotifCountsArray matrix"""
     with open(filepath) as infile:
         matrix = []
-        bases = []
+        states = []
         for line in infile:
             line = line.strip()
             if line.startswith(">"):
@@ -30,8 +31,17 @@ def read(filepath):
             elif line:
                 line = _brackets.sub("", line)
                 line = line.split()
-                bases.append(line.pop(0))
+                states.append(line.pop(0).upper())
                 matrix.append([int(i) for i in line])
-    matrix = array(matrix, dtype=int).T
-    pwm = MotifCountsArray(matrix, bases)
+
+    matrix = dict(zip(states, matrix))
+    if len(states) == 4:
+        name = "rna" if "U" in states else "dna"
+    else:
+        name = "protein"
+
+    states = list(get_moltype(name))
+    matrix = array([matrix[s] for s in states], dtype=int).T
+
+    pwm = MotifCountsArray(matrix, states)
     return identifier, pwm
