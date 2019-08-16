@@ -52,25 +52,15 @@ def get_rank():
     else:
         process_name = multiprocessing.current_process().name
         if process_name is not "MainProcess":
-            rank = int(process_name[-1])
+            rank = int(process_name.split("-")[-1])
     return rank
 
 
-# Helping ProcessPoolExecutor map unpicklable functions
-_FUNCTIONS = {}
-
-
 class PicklableAndCallable:
-    def __init__(self, key):
-        self.key = key
-        self.func = None
+    def __init__(self, func):
+        self.func = func
 
     def __call__(self, *args, **kw):
-        if self.func is None:
-            try:
-                self.func = _FUNCTIONS[self.key]
-            except KeyError:
-                raise RuntimeError
         return self.func(*args, **kw)
 
 
@@ -98,6 +88,7 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=1):
     imap is a generator yielding result of f(s[i]), map returns the result
     series
     """
+
     if_serial = if_serial.lower()
     assert if_serial in ("ignore", "raise", "warn"), f"invalid choice '{if_serial}'"
 
@@ -127,9 +118,7 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=1):
         if not max_workers:
             max_workers = multiprocessing.cpu_count() - 1
         assert max_workers < multiprocessing.cpu_count()
-        key = id(f)
-        _FUNCTIONS[key] = f
-        f = PicklableAndCallable(id(f))
+        f = PicklableAndCallable(f)
         with concurrentfutures.ProcessPoolExecutor(max_workers) as executor:
             for result in executor.map(f, s, chunksize=chunksize):
                 yield result

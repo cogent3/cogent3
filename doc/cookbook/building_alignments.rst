@@ -20,8 +20,7 @@ We import useful functions and then load the sequences to be aligned.
 .. doctest::
 
     >>> from cogent3 import LoadSeqs, LoadTree, DNA
-    >>> import os
-    >>> seqs = LoadSeqs(os.path.dirname(os.getcwd()) + '/data/test2.fasta', aligned=False, moltype=DNA)
+    >>> seqs = LoadSeqs('data/test2.fasta', aligned=False, moltype=DNA)
 
 For nucleotides
 ^^^^^^^^^^^^^^^
@@ -38,7 +37,7 @@ We first align without providing a guide tree. The ``TreeAlign`` algorithm build
 .. doctest::
 
     >>> aln, tree = TreeAlign(HKY85(), seqs)
-    >>> aln
+    >>> aln # doctest: +SKIP
     5 x 60 bytes alignment: NineBande[-C-----GCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
 
 We then align using a guide tree (pre-estimated) and specifying the ratio of transitions to transversions (kappa).
@@ -48,7 +47,7 @@ We then align using a guide tree (pre-estimated) and specifying the ratio of tra
     >>> tree = LoadTree(treestring='(((NineBande:0.0128202449453,Mouse:0.184732725695):0.0289459522137,DogFaced:0.0456427810916):0.0271363715538,Human:0.0341320714654,HowlerMon:0.0188456837006)root;')
     >>> params={'kappa': 4.0}
     >>> aln, tree = TreeAlign(HKY85(), seqs, tree=tree, param_vals=params)
-    >>> aln
+    >>> aln # doctest: +SKIP
     5 x 60 bytes alignment: NineBande[-C-----GCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
 
 For codons
@@ -62,7 +61,7 @@ We load a canned codon substitution model and use a pre-defined tree and paramet
     >>> tree = LoadTree(treestring='((NineBande:0.0575781680031,Mouse:0.594704139406):0.078919659556,DogFaced:0.142151930069,(HowlerMon:0.0619991555435,Human:0.10343006422):0.0792423439112)')
     >>> params={'kappa': 4.0, 'omega': 1.3}
     >>> aln, tree = TreeAlign(MG94HKY(), seqs, tree=tree, param_vals=params)
-    >>> aln
+    >>> aln # doctest: +SKIP
     5 x 60 bytes alignment: NineBande[------CGCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
 
 Converting gaps from aa-seq alignment to nuc seq alignment
