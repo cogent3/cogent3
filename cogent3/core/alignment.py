@@ -56,7 +56,7 @@ from cogent3.core.annotation import Map, _Annotatable
 from cogent3.core.genetic_code import DEFAULT, get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import LostSpan, Span
-from cogent3.core.profile import MotifCountsArray
+from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, frac_same
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
@@ -1794,15 +1794,13 @@ class SequenceCollection(object):
         from cogent3.draw.drawable import AnnotatedDrawable
         from cogent3.draw.dotplot import Dotplot
 
-        names = list(choice(self.names, size=2, replace=False))
-        if name1 and name2 is None:
-            names.remove(name1)
-            name2 = names[0]
-        elif name2 and name1 is None:
-            names.remove(name2)
-            name1 = names[0]
-        elif not name1:
-            name1, name2 = names
+        if name1 is None and name2 is None:
+            name1, name2 = list(choice(self.names, size=2, replace=False))
+        elif not (name1 and name2):
+            names = list(set(self.names + [None]) ^ set([name1, name2]))
+            name = list(choice(names, size=1))[0]
+            name1 = name1 or name
+            name2 = name2 or name
 
         if not {name1, name2} <= set(self.names):
             msg = f"{name1}, {name2} missing"
@@ -1813,19 +1811,26 @@ class SequenceCollection(object):
 
         if seq1.is_annotated() or seq2.is_annotated():
             annotated = True
-            bottom = seq1.data.get_drawable()
-            left = seq2.data.get_drawable(vertical=True)
+            data = getattr(seq1, "data", seq1)
+            bottom = data.get_drawable()
+            data = getattr(seq2, "data", seq2)
+            left = data.get_drawable(vertical=True)
         else:
             annotated = False
 
         dotplot = Dotplot(
             seq1,
             seq2,
+            window=window,
+            threshold=threshold,
+            min_gap=min_gap,
             xtitle=None if annotated else seq1.name,
             ytitle=None if annotated else seq2.name,
+            title=title,
             moltype=self.moltype,
             rc=rc,
             show_progress=show_progress,
+            width=width,
         )
 
         if annotated:
@@ -1835,6 +1840,7 @@ class SequenceCollection(object):
                 bottom_track=bottom,
                 xtitle=seq1.name,
                 ytitle=seq2.name,
+                title=title,
                 xrange=[0, len(seq1)],
                 yrange=[0, len(seq2)],
             )
@@ -1867,6 +1873,50 @@ class SequenceCollection(object):
                 old_seq = self.named_seqs[old]
                 new_seq.copy_annotations(old_seq.data)
         return result
+
+    @UI.display_wrap
+    def apply_pssm(self, pssm=None, path=None, background=None, pseudocount=0, ui=None):
+        """
+        scores sequences using the specified pssm
+        Parameters
+        ----------
+        pssm : profile.PSSM
+            if not provided, will be loaded from path
+        path
+            path to either a jaspar or cisbp matrix (path must end have a suffix
+            matching the format).
+        pseudocount
+            adjustment for zero in matrix
+        Returns
+        -------
+        numpy array of scores at every position
+        """
+        from cogent3.parse import jaspar, cisbp
+
+        assert pssm or path, "Must specify a PSSM or a path"
+        assert not (pssm and path), "Can only specify one of pssm, path"
+        if path:
+            is_cisbp = path.endswith("cisbp")
+            is_jaspar = path.endswith("jaspar")
+            if not (is_cisbp or is_jaspar):
+                raise NotImplementedError(f"Unknown format {path.split('.')[-1]}")
+
+            if is_cisbp:
+                pfp = cisbp.read(path)
+                pssm = pfp.to_pssm(background=background)
+            else:
+                id_, pwm = jaspar.read(path)
+                pssm = pwm.to_pssm(background=background, pseudocount=pseudocount)
+
+        assert isinstance(pssm, PSSM)
+        array_align = hasattr(self, "array_seqs")
+        assert set(pssm.motifs) == set(self.moltype)
+        if array_align and list(pssm.motifs) == list(self.moltype):
+            result = [pssm.score_indexed_seq(seq) for seq in ui.series(self.array_seqs)]
+        else:
+            result = [pssm.score_seq(seq) for seq in ui.series(self.seqs)]
+
+        return array(result)
 
 
 @total_ordering

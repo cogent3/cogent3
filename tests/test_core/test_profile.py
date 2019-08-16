@@ -3,7 +3,7 @@
 """
 from collections import Counter
 
-from numpy import array, vstack
+from numpy import array, log2, vstack
 from numpy.testing import assert_allclose
 
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
@@ -110,6 +110,20 @@ class MotifCountsArrayTests(TestCase):
         got = marr.to_freq_array()
         assert_allclose(got.array, expect)
 
+    def test_to_freqs_pseudocount(self):
+        """produces a freqs array with pseudocount"""
+        data = array([[2, 4], [3, 5], [0, 8]])
+        marr = MotifCountsArray(array(data), "AB")
+        got = marr.to_freq_array(pseudocount=1)
+        adj = data + 1
+        expect = adj / vstack(adj.sum(axis=1))
+        assert_allclose(got.array, expect)
+
+        got = marr.to_freq_array(pseudocount=0.5)
+        adj = data + 0.5
+        expect = adj / vstack(adj.sum(axis=1))
+        assert_allclose(got.array, expect)
+
     def test_to_pssm(self):
         """produces a PSSM array"""
         data = array(
@@ -132,6 +146,24 @@ class MotifCountsArrayTests(TestCase):
                 [1.263, -0.737, -2.322, -0.322],
             ]
         )
+        assert_allclose(got.array, expect, atol=1e-3)
+
+    def test_to_pssm_pseudocount(self):
+        """produces a PSSM array with pseudocount"""
+        data = array(
+            [
+                [10, 30, 50, 10],
+                [25, 25, 25, 25],
+                [5, 80, 0, 10],
+                [70, 10, 10, 10],
+                [60, 15, 0, 20],
+            ]
+        )
+        marr = MotifCountsArray(array(data), "ACGT")
+        adj = data + 1
+        got = marr.to_pssm(pseudocount=1)
+        freqs = marr._to_freqs(pseudocount=1)
+        expect = log2(freqs / 0.25)
         assert_allclose(got.array, expect, atol=1e-3)
 
     def test_iter(self):
@@ -325,6 +357,11 @@ class PSSMTests(TestCase):
         indices = [3, 1, 2, 0, 2, 2, 3]
         scores = pssm.score_indexed_seq(indices)
         assert_allclose(scores, [-4.481, -5.703, -2.966], atol=1e-3)
+
+        indices = [4, 1, 2, 0, 2, 2, 3]
+        scores = pssm.score_indexed_seq(indices)
+        # log2 of (0.25 * 0.05 * 0.7 * 0.05) / .25**4 = -3.158...
+        assert_allclose(scores, [-3.158, -5.703, -2.966], atol=1e-3)
 
     def test_score_str(self):
         """produce correct score from seq"""

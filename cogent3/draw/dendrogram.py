@@ -455,8 +455,8 @@ class Dendrogram(Drawable):
             "angular": AngularTreeGeometry,
             "radial": RadialTreeGeometry,
         }[style]
-        if length_attr is None:
-            contemporaneous = True if tree.children[0].length is None else False
+        if length_attr is None and not contemporaneous:
+            contemporaneous = tree.children[0].length is None
 
         if contemporaneous:
             length_attr = "frac_pos"
