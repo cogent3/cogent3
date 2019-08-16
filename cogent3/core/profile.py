@@ -159,28 +159,42 @@ class MotifCountsArray(_MotifNumberArray):
     def __init__(self, counts, motifs, row_indices=None):
         super(MotifCountsArray, self).__init__(counts, motifs, row_indices, dtype=int)
 
-    def _to_freqs(self):
-        row_sum = self.array.sum(axis=1)
-        freqs = self.array / numpy.vstack(row_sum)
+    def _to_freqs(self, pseudocount=0):
+        data = self.array
+        if pseudocount:
+            data = data + pseudocount
+        row_sum = data.sum(axis=1)
+        freqs = data / numpy.vstack(row_sum)
         return freqs
 
-    def to_freq_array(self):
-        """returns a MotifFreqsArray"""
-        freqs = self._to_freqs()
+    def to_freq_array(self, pseudocount=0):
+        """
+        Parameters
+        ----------
+        pseudocount
+            added to every element prior to normalising
+
+        Returns
+        -------
+        a MotifFreqsArray
+        """
+        freqs = self._to_freqs(pseudocount=pseudocount)
         return MotifFreqsArray(
             freqs, self.template.names[1], row_indices=self.template.names[0]
         )
 
-    def to_pssm(self, background=None):
+    def to_pssm(self, background=None, pseudocount=0):
         """returns a PSSM array
 
         Parameters
         ----------
         background
             array of numbers representing the background frequency distribution
+        pseudocount
+            added to every element prior to normalising
         """
         # make freqs, then pssm
-        freqs = self._to_freqs()
+        freqs = self._to_freqs(pseudocount=pseudocount)
 
         return PSSM(
             freqs,
