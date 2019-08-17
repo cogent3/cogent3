@@ -16,8 +16,9 @@ This will doctest all files ending with .rst in this directory.
 @click.option('-f', '--file_paths', help="specific rst files to test")
 @click.option('-j', '--just', help='comma separated list of names to be matched to files to be tested')
 @click.option('-x', '--exclude', help='comma separated list of names to be matched to files to be excluded')
+@click.option('-1', '--exit_on_first', is_flag=True, help='exit on first failure')
 @click.option('-v', '--verbose', is_flag=True, help='verbose output')
-def main(file_paths, just, exclude, verbose):
+def main(file_paths, just, exclude, exit_on_first, verbose):
     """runs doctests for the indicated files"""
     cwd = os.getcwd()
     if not file_paths:
@@ -64,7 +65,7 @@ def main(file_paths, just, exclude, verbose):
                                                 optionflags=doctest.ELLIPSIS or doctest.SKIP,
                                                 verbose=False,
                                                 encoding='utf-8')
-        if num_fails > 0:
+        if num_fails > 0 and exit_on_first:
             raise SystemExit(f"doctest failed in {test}")
 
 
