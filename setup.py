@@ -4,7 +4,7 @@ import re
 import subprocess
 import sys
 
-from setuptools import Command, setup
+from setuptools import Command, setup, find_packages
 from setuptools.extension import Extension
 
 
@@ -123,8 +123,9 @@ else:
 # Save some repetitive typing.  We have all compiled modules in place
 # with their python siblings, so their paths and names are the same.
 def CythonExtension(module_name, **kw):
-    path = module_name.replace(".", "/")
-    return Extension(module_name, [path + source_suffix], **kw)
+    path = [PACKAGE_DIR] + module_name.split(".")
+    path = os.path.join(*path) + source_suffix
+    return Extension(module_name, [path], **kw)
 
 
 short_description = "COmparative GENomics Toolkit 3"
@@ -137,6 +138,8 @@ Version %s.
 """
     % __version__
 )
+
+PACKAGE_DIR = "src"
 
 setup(
     name="cogent3",
@@ -164,23 +167,8 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Operating System :: OS Independent",
     ],
-    packages=[
-        "cogent3",
-        "cogent3.align",
-        "cogent3.app",
-        "cogent3.cluster",
-        "cogent3.core",
-        "cogent3.data",
-        "cogent3.draw",
-        "cogent3.evolve",
-        "cogent3.format",
-        "cogent3.maths",
-        "cogent3.maths.stats",
-        "cogent3.parse",
-        "cogent3.phylo",
-        "cogent3.recalculation",
-        "cogent3.util",
-    ],
+    packages=find_packages(where="src"),
+    package_dir={"": PACKAGE_DIR},
     install_requires=["numpy", "pandas", "plotly", "scitrack", "tqdm", "tinydb"],
     ext_modules=cythonize(
         [
