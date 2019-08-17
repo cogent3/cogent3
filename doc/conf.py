@@ -40,7 +40,7 @@ templates_path = ['templates']
 source_suffix = '.rst'
 
 # ignore the cookbook/ensembl.rst file as it's specifically imported
-exclude_patterns = ['cookbook/ensembl.rst', '_build', '**.ipynb_checkpoints']
+exclude_patterns = ['_build', '**.ipynb_checkpoints']
 
 # The encoding of source files.
 # source_encoding = 'utf-8'

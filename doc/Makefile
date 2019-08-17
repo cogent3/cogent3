@@ -86,3 +86,7 @@ doctest:
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) _build/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in _build/doctest/output.txt."
+
+.PHONY: livehtml
+livehtml:
+	sphinx-autobuild -p 5500 -b html $(ALLSPHINXOPTS) "$(SOURCEDIR)" $(BUILDDIR)/html
