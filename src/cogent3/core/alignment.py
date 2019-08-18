@@ -1875,7 +1875,9 @@ class SequenceCollection(object):
         return result
 
     @UI.display_wrap
-    def apply_pssm(self, pssm=None, path=None, background=None, pseudocount=0, ui=None):
+    def apply_pssm(
+        self, pssm=None, path=None, background=None, pseudocount=0, names=None, ui=None
+    ):
         """
         scores sequences using the specified pssm
         Parameters
@@ -1887,6 +1889,8 @@ class SequenceCollection(object):
             matching the format).
         pseudocount
             adjustment for zero in matrix
+        names
+            returns only scores for these sequences and in the name order
         Returns
         -------
         numpy array of log2 based scores at every position
@@ -1895,6 +1899,10 @@ class SequenceCollection(object):
 
         assert pssm or path, "Must specify a PSSM or a path"
         assert not (pssm and path), "Can only specify one of pssm, path"
+
+        if type(names) == str:
+            names = [names]
+
         if path:
             is_cisbp = path.endswith("cisbp")
             is_jaspar = path.endswith("jaspar")
@@ -1912,9 +1920,19 @@ class SequenceCollection(object):
         array_align = hasattr(self, "array_seqs")
         assert set(pssm.motifs) == set(self.moltype)
         if array_align and list(pssm.motifs) == list(self.moltype):
-            result = [pssm.score_indexed_seq(seq) for seq in ui.series(self.array_seqs)]
+            if names:
+                name_indices = [self.names.index(n) for n in names]
+                data = self.array_seqs.take(name_indices, axis=0)
+            else:
+                data = self.array_seqs
+
+            result = [pssm.score_indexed_seq(seq) for seq in ui.series(data)]
         else:
-            result = [pssm.score_seq(seq) for seq in ui.series(self.seqs)]
+            if names:
+                seqs = [self.named_seqs[n] for n in names]
+            else:
+                seqs = self.seqs
+            result = [pssm.score_seq(seq) for seq in ui.series(seqs)]
 
         return array(result)
 
