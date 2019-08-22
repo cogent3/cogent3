@@ -82,6 +82,17 @@ class generic_result(MutableMapping):
         data = self.to_rich_dict()
         return json.dumps(data)
 
+    def deserialised_values(self):
+        """deserialises any cogent3 members"""
+        from cogent3.util.deserialise import deserialise_object
+
+        for key, value in self.items():
+            if isinstance(value, dict):
+                type_ = value.get("type", "")
+                if "cogent3" in type_:
+                    object = deserialise_object(value)
+                    self[key] = object
+
 
 @total_ordering
 class model_result(generic_result):
