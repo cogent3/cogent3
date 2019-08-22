@@ -422,8 +422,13 @@ class load_db(Composable):
 
     def read(self, identifier):
         """returns object deserialised from a TinyDb"""
-        if not hasattr(identifier, "id") and identifier.id >= 1:
-            raise TypeError(f"{identifier} not connected to a TinyDB")
+        id_ = getattr(identifier, "id", None)
+        if id_ is None:
+            msg = (
+                f"{identifier} not connected to a TinyDB. "
+                "If a json file path, use io.load_json()"
+            )
+            raise TypeError(msg)
         data = identifier.read()
         return deserialise_object(data)
 
