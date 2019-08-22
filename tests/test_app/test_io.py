@@ -190,6 +190,26 @@ class TestIo(TestCase):
             self.assertIsInstance(got, DNA.__class__)
             self.assertEqual(got, DNA)
 
+    def test_load_db_failure_json_file(self):
+        """informative load_db error message when given a json file path"""
+        with TemporaryDirectory(dir=".") as dirname:
+            outpath = join(dirname, "delme")
+            writer = write_db(outpath, create=True, if_exists="ignore")
+            mock = patch("data.source", autospec=True)
+            mock.to_json = DNA.to_json
+            mock.source = join("blah", "delme.json")
+            got = writer(mock)
+            writer.data_store.db.close()
+            dstore = io_app.get_data_store(f"{outpath}.tinydb", suffix="json")
+            reader = io_app.load_db()
+            outpath = "dummy.json"
+            with open(outpath, mode="w") as outfile:
+                outfile.write("\n\n")
+
+            got = reader(outpath)
+            self.assertIsInstance(got, NotCompleted)
+            self.assertTrue("json" in got.message)
+
     def test_load_tabular(self):
         """correctly loads tabular data"""
         rows = [["1", "2"], ["3", "4"], ["5", "6.5"]]
