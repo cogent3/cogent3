@@ -4,7 +4,7 @@ Useful Utilities
 
 .. authors, Daniel McDonald, Gavin Huttley, Antonio Gonzalez Pena, Rob Knight
 
-Using PyCogent3's optimisers for your own functions
+Using Cogent3's optimisers for your own functions
 ===================================================
 
 You have a function that you want to maximise/minimise. The parameters in your function may be bounded (must lie in a specific interval) or not. The ``cogent3`` optimisers can be applied to these cases. The ``Powell`` (a local optimiser) and ``SimulatedAnnealing`` (a global optimiser) classes in particular have had their interfaces standardised for such use cases. We demonstrate for a very simple function below.
@@ -261,7 +261,7 @@ Wrap a function to hide it from a class so that it isn't a method.
 Construct a constrained container
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Wrap a container with a constraint. This is useful for enforcing that the data contained is valid within a defined context. PyCogent3 provides a base ``ConstrainedContainer`` which can be used to construct user-defined constrained objects. PyCogent3 also provides ``ConstrainedString``, ``ConstrainedList``, and ``ConstrainedDict``. These provided types fully cover the builtin types while staying integrated with the ``ConstrainedContainer``.
+Wrap a container with a constraint. This is useful for enforcing that the data contained is valid within a defined context. Cogent3 provides a base ``ConstrainedContainer`` which can be used to construct user-defined constrained objects. Cogent3 also provides ``ConstrainedString``, ``ConstrainedList``, and ``ConstrainedDict``. These provided types fully cover the builtin types while staying integrated with the ``ConstrainedContainer``.
 
 Here is a light example of the ``ConstrainedDict``
 

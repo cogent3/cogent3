@@ -1,5 +1,5 @@
 ##################
-PyCogent3 Cookbook
+Cogent3 Cookbook
 ##################
 
 Contents:
