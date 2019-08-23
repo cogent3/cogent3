@@ -17,7 +17,7 @@ The basic paradigm for evolutionary modelling is:
 Constructing the codon substitution model
 -----------------------------------------
 
-PyCogent3 implements 4 basic rate matrices, described in a recently accepted manuscript: i) NF models, these are nucleotide frequency weighted rate matrices and were initially described by Muse and Gaut (1994); ii) a variant of (i) where position specific nucleotide frequencies are used; iii) TF models, these are tuple (codon in this case) frequency weighted rate matrices and were initially described by Goldman and Yang (1994); iv) CNF, these use the conditional nucleotide frequency and have developed by Yap, Lindsay, Easteal and Huttley. These different models can be created using provided convenience functions which will be the case here, or specified by directly calling the ``TimeReversibleCodon`` substitution model class and setting the argument ``mprob_model`` equal to:
+Cogent3 implements 4 basic rate matrices, described in a recently accepted manuscript: i) NF models, these are nucleotide frequency weighted rate matrices and were initially described by Muse and Gaut (1994); ii) a variant of (i) where position specific nucleotide frequencies are used; iii) TF models, these are tuple (codon in this case) frequency weighted rate matrices and were initially described by Goldman and Yang (1994); iv) CNF, these use the conditional nucleotide frequency and have developed by Yap, Lindsay, Easteal and Huttley. These different models can be created using provided convenience functions which will be the case here, or specified by directly calling the ``TimeReversibleCodon`` substitution model class and setting the argument ``mprob_model`` equal to:
 
 - NF, ``mprob_model='monomer'``
 - NF with position specific nucleotide frequencies, ``mprob_model='monomers'``
@@ -216,7 +216,7 @@ It is also possible to specify rate-heterogeneity variants of these models. In t
     >>> non_neutral_lnL = lf.get_log_likelihood()
     >>> non_neutral_nfp = lf.get_num_free_params()
 
-Now, we have a null model which we know (from having fit it above) has a MLE < 1. We will construct a rate-heterogeneity model with just 2 rate-classes (neutral and adaptive) that are separated by the boundary of omega=1. These rate-classes are specified as discrete bins in PyCogent3 and the model configuration steps for a bin or bins are done using the ``set_param_rule`` method. To ensure the alternate model starts with a likelihood at least as good as the previous we need to make the probability of the neutral site-class bin ~= 1 (these are referenced by the ``bprobs`` parameter type) and assign the null model omega MLE to this class.
+Now, we have a null model which we know (from having fit it above) has a MLE < 1. We will construct a rate-heterogeneity model with just 2 rate-classes (neutral and adaptive) that are separated by the boundary of omega=1. These rate-classes are specified as discrete bins in Cogent3 and the model configuration steps for a bin or bins are done using the ``set_param_rule`` method. To ensure the alternate model starts with a likelihood at least as good as the previous we need to make the probability of the neutral site-class bin ~= 1 (these are referenced by the ``bprobs`` parameter type) and assign the null model omega MLE to this class.
 
 To get all the parameter MLEs (branch lengths, GTR terms, etc ..) into the alternate model we get an annotated tree from the null model which will have these values associated with it.
 
