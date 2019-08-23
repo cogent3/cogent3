@@ -631,8 +631,7 @@ class MolType(object):
         contains mappings for both degenerate and non-degenerate symbols.
         Sometimes you want one, sometimes the other, so both are provided.
         """
-        self._serialisable = locals()
-        self._serialisable.pop("self")
+        self._serialisable = {k: v for k, v in locals().items() if k != "self"}
         self.gap = gap
         self.missing = missing
         self.gaps = frozenset([gap, missing])
