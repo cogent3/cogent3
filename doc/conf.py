@@ -27,7 +27,7 @@ import sys
 extensions = ['sphinx.ext.todo',
               'sphinx.ext.doctest',
               'sphinx.ext.imgmath',
-              'nbsphinx',
+#              'nbsphinx',
               'sphinx.ext.mathjax',
               'sphinxcontrib.bibtex']
 
