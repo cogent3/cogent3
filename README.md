@@ -1,10 +1,10 @@
 # NOTICE
 
-We will be departing Bitbucket for GitHub soon due to their recent decision to drop support for mercurial.
+We will be departing Bitbucket for GitHub soon due to their recent decision to drop support for mercurial. Stay tuned for details.
 
 ## PyCogent3 →Cogent3
 
-This is the port of PyCogent to Python 3, it's being renamed to Cogent3 as it has been rewritten extensively and `cogent` has alwys been the import name (dating back to 2004!).
+This is the port of PyCogent to Python 3, it's being renamed to Cogent3 as it has been rewritten extensively and `cogent` was always been the import name (dating back to 2004!).
 
 ## What's New?
 
@@ -12,9 +12,9 @@ A massive amount!
 
 We integrated many of the new developments on modelling of non-stationary processes published by the Huttley lab over the last decade.
 
-We have implemented a `cogent3.app` module which contains very different capabilities -- a functional programming style interface for many capabilities to lower the effort for using cogent3's advanced capabilities. These are as yet documented.
+We have implemented a `cogent3.app` module which contains very different capabilities. Notably, a functional programming style interface for many capabilities to lower the effort for using cogent3's advanced capabilities. These are as yet documented.
 
-Importantly, the interface should be considered as alpha level code. Documentation for these new features will follow in the next few weeks.
+Importantly, the app interface should be considered as alpha level code. Documentation for these new features will follow in the next few weeks.
 
 ## What's Changed?
 
