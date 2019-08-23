@@ -63,7 +63,7 @@ def main(file_paths, just, exclude, exit_on_first, verbose):
         print(test)
         num_fails, num_tests = doctest.testfile(test,
                                                 optionflags=doctest.ELLIPSIS or doctest.SKIP,
-                                                verbose=False,
+                                                verbose=verbose,
                                                 encoding='utf-8')
         if num_fails > 0 and exit_on_first:
             raise SystemExit(f"doctest failed in {test}")
