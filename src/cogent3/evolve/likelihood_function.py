@@ -912,7 +912,38 @@ class LikelihoodFunction(ParameterController):
         digits = [digits, 4][type(digits) != int]
         self._format = dict(space=space, digits=digits)
 
+    def _get_motif_probs_by_node_tr(self, edges=None, bin=None, locus=None):
+        """returns motif probs by node for time-reversible models"""
+        mprob_rules = [r for r in self.get_param_rules() if "mprob" in r["par_name"]]
+        if len(mprob_rules) > 1 or self.model.mprob_model == "monomers":
+            raise NotImplementedError
+
+        mprobs = self.get_motif_probs()
+        if len(mprobs) != len(self.motifs):
+            # a Muse and Gaut model
+            expanded = numpy.zeros(len(self.motifs), dtype=float)
+            for i, motif in enumerate(self.motifs):
+                val = 1.0
+                for b in motif:
+                    val *= mprobs[b]
+                expanded[i] = val
+            mprobs = expanded / expanded.sum()
+        else:
+            mprobs = [mprobs[m] for m in self.motifs]
+        edges = []
+        values = []
+        for e in self.tree.postorder():
+            edges.append(e.name)
+            values.append(mprobs)
+
+        return DictArrayTemplate(edges, self.motifs).wrap(values)
+
     def get_motif_probs_by_node(self, edges=None, bin=None, locus=None):
+        from cogent3.evolve.substitution_model import TimeReversible
+
+        if isinstance(self.model, TimeReversible):
+            return self._get_motif_probs_by_node_tr(edges=edges, bin=bin, locus=locus)
+
         kw = dict(bin=bin, locus=locus)
         mprobs = self.get_param_value("mprobs", **kw)
         mprobs = self._model.calc_word_probs(mprobs)
