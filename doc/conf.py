@@ -26,10 +26,11 @@ import sys
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.todo',
               'sphinx.ext.doctest',
-              'sphinx.ext.imgmath',
+#              'sphinx.ext.imgmath',
 #              'nbsphinx',
               'sphinx.ext.mathjax',
-              'sphinxcontrib.bibtex']
+#              'sphinxcontrib.bibtex'
+              ]
 
 # todo_include_todos=True # to expose the TODOs, uncomment this line
 
