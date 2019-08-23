@@ -21,7 +21,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.08.06a"
+__version__ = "2019.8.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -189,6 +189,26 @@ class TestIo(TestCase):
             dstore.close()
             self.assertIsInstance(got, DNA.__class__)
             self.assertEqual(got, DNA)
+
+    def test_load_db_failure_json_file(self):
+        """informative load_db error message when given a json file path"""
+        with TemporaryDirectory(dir=".") as dirname:
+            outpath = join(dirname, "delme")
+            writer = write_db(outpath, create=True, if_exists="ignore")
+            mock = patch("data.source", autospec=True)
+            mock.to_json = DNA.to_json
+            mock.source = join("blah", "delme.json")
+            got = writer(mock)
+            writer.data_store.db.close()
+            dstore = io_app.get_data_store(f"{outpath}.tinydb", suffix="json")
+            reader = io_app.load_db()
+            outpath = "dummy.json"
+            with open(outpath, mode="w") as outfile:
+                outfile.write("\n\n")
+
+            got = reader(outpath)
+            self.assertIsInstance(got, NotCompleted)
+            self.assertTrue("json" in got.message)
 
     def test_load_tabular(self):
         """correctly loads tabular data"""

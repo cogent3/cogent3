@@ -60,7 +60,7 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.08.06a"
+__version__ = "2019.8.20a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -1204,11 +1204,21 @@ class SequenceCollectionBaseTests(object):
         assert_allclose(result["seq1"].observed.array, [[3, 2], [2, 2]])
         assert_allclose(result["seq2"].observed.array, [[3, 0], [2, 1]])
 
-    def test_dotplot(self):  # todo figure out why this passes on mac but not pipelines
-        """excercising dotplot method"""
-        # need to trap stdout so plotly doesn't dump content when it's headless
+    def test_dotplot(self):
+        """exercising dotplot method"""
         seqs = self.Class(data=self.brca1_data, moltype=DNA)
-        _ = seqs.dotplot()
+        _ = seqs.dotplot(show_progress=False)
+
+    def test_dotplot_annotated(self):
+        """exercising dotplot method with annotated sequences"""
+        seqs = self.Class(data=self.brca1_data, moltype=DNA)
+        seqs = seqs.take_seqs(["Human", "Mouse"])
+        if type(self.Class) != ArrayAlignment:
+            # we annotated Human
+            seq = seqs.get_seq("Human")
+            _ = seq.add_feature("exon", "fred", [(10, 15)])
+
+        _ = seqs.dotplot(show_progress=False)
 
     def test_rename_seqs(self):
         """successfully rename sequences"""
@@ -1223,6 +1233,68 @@ class SequenceCollectionBaseTests(object):
         if self.Class == Alignment:
             for seq in new.seqs:
                 self.assertFalse("-" in str(seq.data))
+
+    def test_apply_pssm(self):
+        """should successfully produce pssm scores"""
+        from cogent3.parse import jaspar, cisbp
+
+        _, pwm = jaspar.read("data/sample.jaspar")
+        data = {
+            "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+            "ENSMUSG00000039616": "GCCCTTCAAATTTGGTTTCT",
+            "ENSMUSG00000024091": "TTTCCAGGGCAGACAAGACG",
+            "ENSMUSG00000024056": "ACAATAATGCCGAGAGCCAG",
+            "ENSMUSG00000054321": "TATGAAAATTTTTGCCAGGC",
+            "ENSMUSG00000052469": "CCTGTTTGCCTTTAAATATT",
+            "ENSMUSG00000024261": "CAGACAAGAAACCAGCAACA",
+            "ENSMUSG00000052031": "AGCGAGTATNCACGCACAGA",
+            "ENSMUSG00000067872": "ACACAGCTCTGACAACTCAT",
+            "ENSMUSG00000023892": "GTAACATCAGTACAGCACAG",
+        }
+        seqs = self.Class(data=data, moltype=DNA)
+        scores = seqs.apply_pssm(path="data/sample.jaspar", show_progress=False)
+        self.assertEqual(scores.shape, (len(data), len(seqs) - pwm.shape[0] + 1))
+        scores = seqs.apply_pssm(pssm=pwm.to_pssm(), show_progress=False)
+        self.assertEqual(scores.shape, (len(data), len(seqs) - pwm.shape[0] + 1))
+
+        # using the names argument works to return scores in the correct order
+        seqs = self.Class(
+            data={"ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA"}, moltype=DNA
+        )
+        expect = []
+        expect.extend(seqs.apply_pssm(pssm=pwm.to_pssm(), show_progress=False))
+        seqs = self.Class(
+            data={"ENSMUSG00000039616": "GCCCTTCAAATTTGGTTTCT"}, moltype=DNA
+        )
+        expect.extend(seqs.apply_pssm(pssm=pwm.to_pssm(), show_progress=False))
+        expect = numpy.array(expect)
+        seqs = self.Class(
+            data={
+                "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+                "ENSMUSG00000039616": "GCCCTTCAAATTTGGTTTCT",
+            },
+            moltype=DNA,
+        )
+        got = seqs.apply_pssm(
+            pssm=pwm.to_pssm(), show_progress=False, names="ENSMUSG00000056468"
+        )
+        assert_allclose(got, expect[:1])
+        got = seqs.apply_pssm(
+            pssm=pwm.to_pssm(), show_progress=False, names=["ENSMUSG00000039616"]
+        )
+        assert_allclose(got, expect[1:])
+        got = seqs.apply_pssm(
+            pssm=pwm.to_pssm(),
+            show_progress=False,
+            names=["ENSMUSG00000056468", "ENSMUSG00000039616"],
+        )
+        assert_allclose(got, expect)
+        got = seqs.apply_pssm(
+            pssm=pwm.to_pssm(),
+            show_progress=False,
+            names=["ENSMUSG00000039616", "ENSMUSG00000056468"],
+        )
+        assert_allclose(got, expect[::-1])
 
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):

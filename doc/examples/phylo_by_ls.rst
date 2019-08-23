@@ -13,6 +13,7 @@ We will load some pre-computed pairwise distance data. To see how that data was 
     >>> from cogent3 import LoadSeqs
     >>> from cogent3.evolve import distance
     >>> from cogent3.evolve.models import HKY85
+    >>> from cogent3.evolve.fast_distance import DistanceMatrix
     >>> al = LoadSeqs("data/long_testseqs.fasta")
     >>> d = distance.EstimateDistances(al, submodel= HKY85())
     >>> d.run(show_progress=False)
@@ -41,6 +42,12 @@ We make the ls calculator.
 .. doctest::
 
     >>> ls = least_squares.WLS(dists)
+
+We also add tests that pass in a cogent3.evolve.fast_distance.DistanceMatrix and a pairwise distance dict.
+
+.. doctest::
+    >>> ls_distance_matrix = least_squares.WLS(DistanceMatrix(dists))
+    >>> ls_pairwise_matrix = least_squares.WLS(dists.todict())
 
 We will search tree space for the collection of best trees using the advanced stepwise addition algorithm (hereafter *asaa*).
 
@@ -90,7 +97,7 @@ From this you'll see that the first 5 results are very similar to each other and
 
     >>> t1 = trees[0][1].balanced()
     >>> t2 = trees[1][1].balanced()
-    >>> print(t1.ascii_art())
+    >>> print(t1.ascii_art())  # doctest: +SKIP
                         /-Human
               /edge.0--|
              |          \-HowlerMon
@@ -100,7 +107,7 @@ From this you'll see that the first 5 results are very similar to each other and
              |          /-NineBande
               \edge.1--|
                         \-DogFaced
-    >>> print(t2.ascii_art())
+    >>> print(t2.ascii_art()) # doctest: +SKIP
               /-DogFaced
              |
              |          /-Human
