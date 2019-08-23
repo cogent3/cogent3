@@ -36,15 +36,14 @@ or as a table for display / saving
 .. doctest::
 
     >>> print(dist_calc.dists[:4,:4]) # truncated to fit screens
-    Pairwise Distances
-    ============================================
-    Seq1 \ Seq2    Galago    HowlerMon    Rhesus
-    --------------------------------------------
-         Galago         *       0.2157    0.1962
-      HowlerMon    0.2157            *    0.0736
-         Rhesus    0.1962       0.0736         *
-      Orangutan    0.1944       0.0719    0.0411
-    --------------------------------------------
+    ==========================================================
+                  Chimpanzee    Galago    Gorilla    HowlerMon
+    ----------------------------------------------------------
+    Chimpanzee             0    0.1921     0.0054       0.0704
+        Galago        0.1921         0     0.1923       0.2157
+       Gorilla        0.0054    0.1923          0       0.0700
+     HowlerMon        0.0704    0.2157     0.0700            0
+    ----------------------------------------------------------
 
 Other statistics are also available, such the as the standard errors of the estimates.
 

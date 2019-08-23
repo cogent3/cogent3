@@ -6,6 +6,7 @@ pipelines:
         caches:
           - pip
         script: # Modify the commands below to build your repository.
+<<<<<<< working copy
 #          - pip install numpy
 #          - pip install pandas
 #          - pip install tqdm
@@ -24,3 +25,14 @@ pipelines:
           - git pull azure master
           - git push -u azure --all
 
+=======
+          - pip install numpy
+          - pip install pandas
+          - pip install tqdm
+          - pip install plotly
+          - pip install scitrack
+          - pip install tinydb
+          - pip install pytest
+          - pip install tox
+          - tox -e py37
+>>>>>>> merge rev

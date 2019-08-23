@@ -34,7 +34,7 @@ To make a likelihood function with multiple alignments we provide the list of lo
     >>> lf.set_param_rule("kappa", loci=ALL)
     >>> lf.set_alignment(loci)
     >>> lf.optimise(local=True)
-    >>> print(lf)
+    >>> print(lf)  # doctest: +SKIP
     Likelihood function statistics
     log-likelihood = -9168.3331
     number of free parameters = 2
