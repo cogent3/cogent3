@@ -72,6 +72,15 @@ Setting up a DNA ``MolType`` object allowing ``.`` as gaps
    >>> seq = DNAgapped.make_seq('ACG.')
 
 
+.. note:: At present, constructing custom moltype causes a change in the moltype for the ``DnaSequence`` class that affects all calls to that class in the process that made the change. So I'm resetting this attribute now to allow the rest of the documentation to be executed.
+
+.. doctest::
+
+   >>> from cogent3 import DNA
+   >>> from cogent3.core.sequence import DnaSequence
+   >>> DnaSequence.moltype = DNA
+
+
 Setting up a ``MolType`` object with a protein sequence
 -------------------------------------------------------
 
