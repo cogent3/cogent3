@@ -15,7 +15,7 @@ The available nucleotide, codon and protein models are
 .. doctest::
 
     >>> from cogent3.evolve import models
-    >>> print(models.available_models())
+    >>> models.available_models()  # doctest: +SKIP
     Specify a model using 'abbreviation' (case sensitive).
     ================================================================================================================================================================================================================================================================================================================================================
     Model Type      Abbreviation                                                                                                                                                                                                                                                                                                         Description

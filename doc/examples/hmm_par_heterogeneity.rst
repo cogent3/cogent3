@@ -237,7 +237,7 @@ We then illustrate how to adjust the bin probabilities, here doing it so that on
      bin   bprobs   kappa
     ---------------------
     slow      0.8     3.0
-    fast      0.2    23.3
+    fast      0.2    23.2
     ---------------------
     ===========================
          edge   parent   length
