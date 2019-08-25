@@ -39,6 +39,7 @@ Converting to FASTA format
     >>> print(my_seq.to_fasta())
     >0
     AGTACACTGGT
+    <BLANKLINE>
 
 Convert a RNA sequence to FASTA format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -48,7 +49,7 @@ Convert a RNA sequence to FASTA format
     >>> from cogent3 import RNA
     >>> rnaseq = RNA.make_seq('ACGUACGUACGUACGU')
     >>> rnaseq.to_fasta()
-    '>0\nACGUACGUACGUACGU'
+    '>0\nACGUACGUACGUACGU\n'
 
 Creating a named sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -73,6 +74,7 @@ Setting or changing the name of a sequence
     >>> print(my_seq.to_fasta())
     >my_gene
     AGTACACTGGT
+    <BLANKLINE>
 
 Complementing a DNA sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -89,7 +91,7 @@ Reverse complementing a DNA sequence
 
 .. doctest::
 
-    >>> print(my_seq.reversecomplement())
+    >>> print(my_seq.rc())
     ACCAGTGTACT
 
 The ``rc`` method name is easier to type
@@ -114,6 +116,7 @@ Translate a ``DnaSequence`` to protein
     >>> print(pep.to_fasta())
     >protein-X
     AWESQME
+    <BLANKLINE>
 
 Converting a DNA sequence to RNA
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -144,7 +147,7 @@ Testing complementarity
     >>> a = DNA.make_seq("AGTACACTGGT")
     >>> a.can_pair(a.complement())
     False
-    >>> a.can_pair(a.reversecomplement())
+    >>> a.can_pair(a.rc())
     True
 
 Joining two DNA sequences

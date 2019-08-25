@@ -143,7 +143,7 @@ You can't translate a sequence that contains a stop codon.
 
     >>> pep = my_seq.get_translation()
     Traceback (most recent call last):
-    AlphabetError: TAA
+    cogent3.core.alphabet.AlphabetError: TAA
 
 Remove the stop codon first
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -157,6 +157,7 @@ Remove the stop codon first
     >>> print(pep.to_fasta())
     >my_gene
     MHW
+    <BLANKLINE>
     >>> print(type(pep))
     <class 'cogent3.core.sequence.ProteinSequence'>
 
@@ -171,3 +172,4 @@ Or we can just grab the correct slice from the ``DnaSequence`` object
     >>> print(pep)
     >my_gene
     QMY
+    <BLANKLINE>

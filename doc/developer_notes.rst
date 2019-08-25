@@ -1,7 +1,7 @@
 How to make a contribution
 ==========================
 
-Look at the `PyCogent3 issues <https://bitbucket.org/pycogent3/cogent3/issues>`_. Pick something you think you can tackle which is not already assigned and have a go! (Following the process outlined below.)
+Look at the `Cogent3 issues <https://bitbucket.org/Cogent3/cogent3/issues>`_. Pick something you think you can tackle which is not already assigned and have a go! (Following the process outlined below.)
 
 For Developers
 ==============
@@ -10,13 +10,13 @@ You first need to `install and configure Mercurial <https://confluence.atlassian
 
 After that, the process is:
 
-#. `fork the PyCogent3 repository <https://confluence.atlassian.com/bitbucketserver/using-forks-in-bitbucket-server-776639958.html>`_
+#. `fork the Cogent3 repository <https://confluence.atlassian.com/bitbucketserver/using-forks-in-bitbucket-server-776639958.html>`_
 #. clone this fork to your local machine
 #. follow the :ref:`dev-install` instructions to install
 #. :ref:`run-tests` to make sure the install was correct
 #. `create a new branch <https://confluence.atlassian.com/bitbucket/branching-a-repository-223217999.html#BranchingaRepository-CreateaMercurialbranch>`_
 #. make your changes, and add tests to the test-suite
-#. Keep your repository in sync with the upstream PyCogent3 repository
+#. Keep your repository in sync with the upstream Cogent3 repository
 #. run the test suite
 #. commit your changes and push to your Bitbucket repo
 #. make a pull request
@@ -61,12 +61,12 @@ To build the documentation or ``doctest`` the contents, you'll need to install S
 
 Generating the html form of the documentation requires changing into the ``doc`` directory and executing a ``make`` command::
 
-    $ cd path/to/PyCogent3/doc
+    $ cd path/to/Cogent3/doc
     $ make html
     ... # bunch of output
     Build finished. The HTML pages are in _build/html.
 
-The index file czan be found in ``PyCogent3/doc/_build/html/index.html`` is the root of the documentation.
+The index file czan be found in ``Cogent3/doc/_build/html/index.html`` is the root of the documentation.
 
 You can also generate a pdf file, using the Sphinx latex generation capacity. This is slightly more involved. (It also requires that you have an installation of TeTex_.)
 
@@ -84,11 +84,11 @@ then change into the ``latex`` dir and build the pdf ::
     $ cd _build/latex
     $ make all-pdf
 
-You can now open ``PyCogent3.pdf``.
+You can now open ``Cogent3.pdf``.
 
 To actually test the documentation, you need to be in the ``doc`` directory and then execute another ``make`` command::
 
-    $ cd path/to/PyCogent3/doc
+    $ cd path/to/Cogent3/doc
     $ make doctest
 
 The results are in ``_build/doctest/output.txt``.
@@ -96,9 +96,9 @@ The results are in ``_build/doctest/output.txt``.
 Adding to the documentation
 ---------------------------
 
-You can maximise the cogent3 user experience for yourself and others by contributing to the documentation. If you solve a problem that you think might prove useful to others then fork, add it into the documentation and do a pull request. If you can think of ways to improve the existing documents let us know via a `ticket <https://bitbucket.org/pycogent3/cogent3/issues>`_.
+You can maximise the cogent3 user experience for yourself and others by contributing to the documentation. If you solve a problem that you think might prove useful to others then fork, add it into the documentation and do a pull request. If you can think of ways to improve the existing documents let us know via a `ticket <https://bitbucket.org/Cogent3/cogent3/issues>`_.
 
-For guidance on adding documentation, look at any of the existing examples. The restructured text format is pretty easy to write (for overview see the Sphinx `rest overview`_). The conventions adopted by PyCogent3 are to use heading levels to be consistent with the Python.org standard (taken from `Sphinx headings`_). They are
+For guidance on adding documentation, look at any of the existing examples. The restructured text format is pretty easy to write (for overview see the Sphinx `rest overview`_). The conventions adopted by Cogent3 are to use heading levels to be consistent with the Python.org standard (taken from `Sphinx headings`_). They are
 
 - # with overline, for parts
 - \* with overline, for chapters
@@ -116,14 +116,14 @@ The new documentation checklist
 Things you should check before committing your new document:
 
 - Add a line at the beginning with yourself as author (``.. sectionauthor:: My Name``) so people can contact you with feedback.
-- Add any data files used in your documentation under ``PyCogent3/doc/data/``
-- Add a download link to those files to ``PyCogent3/doc/data_file_links.rst`` following the style employed in that file.
+- Add any data files used in your documentation under ``Cogent3/doc/data/``
+- Add a download link to those files to ``Cogent3/doc/data_file_links.rst`` following the style employed in that file.
 - Spellcheck!!
 - Check what you wrote is valid restructured text by building the documents for both html and latex. If your document isn't connected into the table of contents, Sphinx will print a warning to screen.
 - Check you have correctly marked up the content and that it looks OK. Make sure that python code and shell commands are correctly highlighted and that literals are marked up as literals. In particular, check the latex build since it is common for text to span beyond the page margins. If the latter happens, revise your document!
 - Check that it works (rather than testing the entire suite, you can use the convenience script within doc). For instance, the following is a single test of one file::
 
-   $ cd path/to/PyCogent3/doc
+   $ cd path/to/Cogent3/doc
    $ python doctest_rsts.py examples/reverse_complement.rst
 
 Adding TODOs
@@ -144,11 +144,11 @@ To see the list of todo's in the project, uncomment the line that sets ``todo_in
 Developing C-extensions
 -----------------------
 
-Extensions for PyCogent3 should be written in `Cython <http://www.cython.org/>`_.
+Extensions for Cogent3 should be written in `Cython <http://www.cython.org/>`_.
 
 If you have any questions, contact Gavin_.
 
 .. _`rest overview`: http://sphinx.pocoo.org/rest.html
 .. _`Sphinx headings`: http://sphinx.pocoo.org/rest.html#sections
 .. _Gavin: Gavin.Huttley@anu.edu.au
-.. _PyCogent3: https://bitbucket.org/pycogent3/cogent3
+.. _Cogent3: https://bitbucket.org/Cogent3/cogent3

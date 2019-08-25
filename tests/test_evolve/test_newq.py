@@ -14,7 +14,10 @@ from cogent3.evolve.ns_substitution_model import (
     NonReversibleNucleotide,
 )
 from cogent3.evolve.predicate import MotifChange
-from cogent3.evolve.substitution_model import TimeReversibleNucleotide
+from cogent3.evolve.substitution_model import (
+    TimeReversibleCodon,
+    TimeReversibleNucleotide,
+)
 from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
 from cogent3.util.unit_test import TestCase, main
 
@@ -27,7 +30,7 @@ __author__ = "Peter Maxwell and  Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.08.06a"
+__version__ = "2019.8.23a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -358,6 +361,41 @@ class NewQ(TestCase):
         self.assertFloatEqual(prob_vectors["c"].array, c)
         self.assertFloatEqual(prob_vectors["d"].array, d)
         self.assertFloatEqual(prob_vectors["edge.0"].array, e)
+
+    def test_get_motif_probs_by_node_mg94(self):
+        """handles different statespace dimensions from process and stationary distribution"""
+        from cogent3.evolve.models import get_model
+
+        aln = LoadSeqs("data/primates_brca1.fasta", moltype="dna")
+        aln = aln.no_degenerates(motif_length=3)
+
+        tree = LoadTree("data/primates_brca1.tree")
+
+        # root mprobs are constant
+        sm = get_model("MG94HKY")
+        lf = sm.make_likelihood_function(tree)
+        lf.set_alignment(aln)
+        mprobs = lf.get_motif_probs()
+
+        mprobs = lf.get_motif_probs_by_node()
+        self.assertEqual(mprobs.shape, (len(tree.get_edge_vector()), 61))
+
+        # root mprobs are variable
+        sm = get_model("MG94HKY", optimise_motif_probs=True)
+        sm = get_model("MG94HKY")
+        lf = sm.make_likelihood_function(tree)
+        lf.set_alignment(aln)
+        mprobs = lf.get_motif_probs_by_node()
+        self.assertEqual(mprobs.shape, (len(tree.get_edge_vector()), 61))
+
+        # not imlemented for monomers variant
+        sm = TimeReversibleCodon(
+            mprob_model="monomers", model_gaps=False, recode_gaps=True
+        )
+        lf = sm.make_likelihood_function(tree)
+        lf.set_alignment(aln)
+        with self.assertRaises(NotImplementedError):
+            _ = lf.get_motif_probs_by_node()
 
 
 def _make_likelihood(model, tree, results, is_discrete=False):

@@ -60,7 +60,7 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.08.06a"
+__version__ = "2019.8.23a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -1255,6 +1255,46 @@ class SequenceCollectionBaseTests(object):
         scores = seqs.apply_pssm(path="data/sample.jaspar", show_progress=False)
         self.assertEqual(scores.shape, (len(data), len(seqs) - pwm.shape[0] + 1))
         scores = seqs.apply_pssm(pssm=pwm.to_pssm(), show_progress=False)
+        self.assertEqual(scores.shape, (len(data), len(seqs) - pwm.shape[0] + 1))
+
+        # using the names argument works to return scores in the correct order
+        seqs = self.Class(
+            data={"ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA"}, moltype=DNA
+        )
+        expect = []
+        expect.extend(seqs.apply_pssm(pssm=pwm.to_pssm(), show_progress=False))
+        seqs = self.Class(
+            data={"ENSMUSG00000039616": "GCCCTTCAAATTTGGTTTCT"}, moltype=DNA
+        )
+        expect.extend(seqs.apply_pssm(pssm=pwm.to_pssm(), show_progress=False))
+        expect = numpy.array(expect)
+        seqs = self.Class(
+            data={
+                "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+                "ENSMUSG00000039616": "GCCCTTCAAATTTGGTTTCT",
+            },
+            moltype=DNA,
+        )
+        got = seqs.apply_pssm(
+            pssm=pwm.to_pssm(), show_progress=False, names="ENSMUSG00000056468"
+        )
+        assert_allclose(got, expect[:1])
+        got = seqs.apply_pssm(
+            pssm=pwm.to_pssm(), show_progress=False, names=["ENSMUSG00000039616"]
+        )
+        assert_allclose(got, expect[1:])
+        got = seqs.apply_pssm(
+            pssm=pwm.to_pssm(),
+            show_progress=False,
+            names=["ENSMUSG00000056468", "ENSMUSG00000039616"],
+        )
+        assert_allclose(got, expect)
+        got = seqs.apply_pssm(
+            pssm=pwm.to_pssm(),
+            show_progress=False,
+            names=["ENSMUSG00000039616", "ENSMUSG00000056468"],
+        )
+        assert_allclose(got, expect[::-1])
 
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):

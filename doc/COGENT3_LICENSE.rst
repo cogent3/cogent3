@@ -1,11 +1,11 @@
 .. _cogent_license:
 
-PyCogent3 License
-=================
+Cogent3 License
+===============
 
 ::
 
-    Copyright (c) 2016, PyCogent3 Development Team
+    Copyright (c) 2019, Cogent3 Development Team
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -18,7 +18,7 @@ PyCogent3 License
       this list of conditions and the following disclaimer in the documentation
       and/or other materials provided with the distribution.
 
-    * Neither the name of PyCogent3, cogent3 nor the names of its
+    * Neither the name of Cogent3, cogent3 nor the names of its
       contributors may be used to endorse or promote products derived from
       this software without specific prior written permission.
 
