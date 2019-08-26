@@ -363,6 +363,10 @@ class PSSMTests(TestCase):
         # log2 of (0.25 * 0.05 * 0.7 * 0.05) / .25**4 = -3.158...
         assert_allclose(scores, [-3.158, -5.703, -2.966], atol=1e-3)
 
+        # fails if sequence too short
+        with self.assertRaises(ValueError):
+            pssm.score_indexed_seq(indices[:3])
+
     def test_score_str(self):
         """produce correct score from seq"""
         data = [
@@ -376,6 +380,8 @@ class PSSMTests(TestCase):
         seq = "".join("ACTG"[i] for i in [3, 1, 2, 0, 2, 2, 3])
         scores = pssm.score_seq(seq)
         assert_allclose(scores, [-4.481, -5.703, -2.966], atol=1e-3)
+        with self.assertRaises(ValueError):
+            pssm.score_indexed_seq(seq[:3])
 
     def test_score_seq_obj(self):
         """produce correct score from seq"""
