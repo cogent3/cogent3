@@ -239,6 +239,18 @@ class TestIo(TestCase):
             self.assertEqual(type(new[0, "B"]), float)
             self.assertEqual(type(new[0, "A"]), int)
 
+    def test_write_tabular(self):
+        """correctly writes tabular data"""
+        rows = [[1, 2], [3, 4], [5, 6.5]]
+        table = Table(["A", "B"], rows=rows)
+        loader = io_app.load_tabular(sep="\t")
+        with TemporaryDirectory(dir=".") as dirname:
+            writer = io_app.write_tabular(data_path=dirname, format="tsv")
+            outpath = join(dirname, "delme.tsv")
+            got = writer(table, identifier=outpath)
+            new = loader(outpath)
+            self.assertEqual(table.todict(), new.todict())
+
     def test_write_json_with_info(self):
         """correctly writes an object with info attribute from json"""
         # create a mock object that pretends like it's been derived from
