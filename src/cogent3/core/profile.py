@@ -297,6 +297,9 @@ class PSSM(_MotifNumberArray):
 
     def score_indexed_seq(self, indexed):
         """return score for a sequence already converted to integer indices"""
+        if len(indexed) < self.shape[1]:
+            msg = f"sequence length {len(indexed)} shorter than PSSM {self.shape[1]}"
+            raise ValueError(msg)
         indexed = numpy.array(indexed)
         num_motifs = len(self.motifs)
         scores = []
