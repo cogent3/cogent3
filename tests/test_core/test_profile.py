@@ -381,7 +381,7 @@ class PSSMTests(TestCase):
         scores = pssm.score_seq(seq)
         assert_allclose(scores, [-4.481, -5.703, -2.966], atol=1e-3)
         with self.assertRaises(ValueError):
-            pssm.score_indexed_seq(seq[:3])
+            pssm.score_seq(seq[:3])
 
     def test_score_seq_obj(self):
         """produce correct score from seq"""
