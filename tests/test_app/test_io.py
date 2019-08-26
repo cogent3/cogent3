@@ -202,7 +202,7 @@ class TestIo(TestCase):
             writer.data_store.db.close()
             dstore = io_app.get_data_store(f"{outpath}.tinydb", suffix="json")
             reader = io_app.load_db()
-            outpath = "dummy.json"
+            outpath = join(dirname, "dummy.json")
             with open(outpath, mode="w") as outfile:
                 outfile.write("\n\n")
 
