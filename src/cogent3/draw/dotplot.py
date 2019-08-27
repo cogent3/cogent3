@@ -114,11 +114,17 @@ def get_dotplot_coords(
     return fwd, rev
 
 
-def get_align_coords(map1, map2):
+def get_align_coords(map1, map2, aligned=False):
     """sequence coordinates of aligned segments"""
+    coords = None
     if not_gap(map1) and not_gap(map2):
         # no gaps
-        return None
+        if aligned:
+            assert len(map1) == len(map2), "Aligned sequences inconsistent length"
+            # but should return an alignment path
+            coords = [[(0, 0), (len(map1), len(map2))]]
+            coords = _convert_coords_for_scatter(coords)
+        return coords
 
     assert len(map1) == len(map2), "aligned sequences not equal length"
     # diagonals are places where both sequences are NOT gaps
@@ -188,12 +194,15 @@ class Dotplot(Drawable):
         show_progress : bool
             displays progress bar
         """
+        from cogent3.core.alignment import Aligned
+
         # we ensure sequences have gaps parsed and the calculate aspect ratio
         if hasattr(seq1, "moltype"):
             moltype = seq1.moltype
         else:
             moltype = get_moltype(moltype)
 
+        is_aligned = isinstance(seq1, Aligned) and isinstance(seq2, Aligned)
         map1, seq1 = _convert_input(seq1, moltype)
         map2, seq2 = _convert_input(seq2, moltype)
         len1, len2 = len(seq1), len(seq2)
@@ -205,7 +214,7 @@ class Dotplot(Drawable):
 
         self.seq1 = seq1
         self.seq2 = seq2
-        self._aligned_coords = get_align_coords(map1, map2)
+        self._aligned_coords = get_align_coords(map1, map2, aligned=is_aligned)
 
         self.xtitle = xtitle
         self.ytitle = ytitle
