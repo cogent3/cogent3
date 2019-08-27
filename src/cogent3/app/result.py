@@ -334,9 +334,9 @@ class hypothesis_result(generic_result):
         for key, member in self.items():
             member.lf  # making sure we're fully reloaded
             if key == self._name_of_null:
-                status_name = ["null", key]
+                status_name = ["null", repr(key)]
             else:
-                status_name = ["alt", key]
+                status_name = ["alt", (repr(key))]
             row = status_name + [getattr(member, a) for a in attrs]
             rows.append(row)
 
