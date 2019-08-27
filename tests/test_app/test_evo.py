@@ -154,6 +154,25 @@ class TestModel(TestCase):
         aln1 = result.lf[1].get_param_value("alignment").to_dict()
         self.assertEqual(aln1, aln[::3].to_dict())
 
+    def test_model_summed_branch_lengths(self):
+        """returns summed branch lengths"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = LoadSeqs(data=_data, moltype="dna")
+        model1 = evo_app.model(
+            "F81", opt_args=dict(max_evaluations=25, limit_action="ignore")
+        )
+        result = model1(aln)
+        tree = result.lf.get_annotated_tree()
+        assert_allclose(result.total_length(), tree.total_length())
+        tree = result.lf.get_annotated_tree(length_as="paralinear")
+        assert_allclose(
+            result.total_length(length_as="paralinear"), tree.total_length()
+        )
+
 
 def _make_getter(val):
     def call(**kwargs):

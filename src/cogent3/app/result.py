@@ -298,6 +298,20 @@ class model_result(generic_result):
     def unique_Q(self, value):
         self._unique_Q = value
 
+    def total_length(self, length_as=None):
+        """sum of all branch lengths on tree
+
+        Parameters
+        ----------
+        length_as : str or None
+            replaces 'length' param with either 'ENS' or 'paralinear'.
+            'ENS' is the expected number of substitution, (which will be
+            different to standard length if the substitution model is
+            non-stationary). 'paralinear' is the measure of Lake 1994.
+        """
+        tree = self.lf.get_annotated_tree(length_as=length_as)
+        return tree.total_length()
+
 
 class hypothesis_result(generic_result):
     _type = "hypothesis_result"

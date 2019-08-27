@@ -292,6 +292,51 @@ class load_tabular(ComposableTabular):
         return result
 
 
+class write_tabular(_checkpointable, ComposableTabular):
+    """writes tabular data"""
+
+    _input_type = frozenset(["tabular_result", "tabular"])
+    _output_type = frozenset(["identifier"])
+    _data_types = frozenset(["Table", "DictArray", "DistanceMatrix"])
+
+    def __init__(
+        self, data_path, format="tsv", name_callback=None, create=False, if_exists=SKIP
+    ):
+        """
+        Parameters
+        ----------
+        data_path
+            path to write output, if ends with .zip will be a compressed zip
+            archive
+        format : str
+            one of 'tsv', 'csv', 'tex', 'md'
+        name_callback
+            function that takes the data object and returns a base
+            file name
+        create : bool
+            whether to create the output directory
+        if_exists : str
+            behaviour if output exists. Either 'skip', 'raise' (raises an
+            exception), 'overwrite'
+        """
+        super(write_tabular, self).__init__(
+            data_path=data_path,
+            name_callback=name_callback,
+            create=create,
+            if_exists=if_exists,
+            suffix=format,
+        )
+        self._formatted_params()
+        self._format = format
+
+    def write(self, data, identifier=None):
+        if identifier is None:
+            identifier = self._make_output_identifier(data)
+        output = data.tostring(format=self._format)
+        self.data_store.write(identifier, output)
+        return identifier
+
+
 class write_seqs(_checkpointable):
     """Writes sequences to text files in standard format."""
 
