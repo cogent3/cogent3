@@ -164,6 +164,7 @@ class model_result(generic_result):
     def __setitem__(self, key, lf):
         super(self.__class__, self).__setitem__(key, lf)
         if type(lf) != dict:
+            lf.set_name(key)
             lnL = lf.lnL
             nfp = lf.nfp
             DLC = lf.all_psubs_DLC()
