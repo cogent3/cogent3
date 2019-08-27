@@ -69,6 +69,18 @@ class TestUtilFunctions(TestCase):
         m2, s2 = seq2.parse_out_gaps()
         self.assertEqual(get_align_coords(m1, m2), None)
 
+        # unless we indicate the seqs came from an Alignment
+        m1, seq1 = DNA.make_seq("ACGGTTTA").parse_out_gaps()
+        m2, seq2 = DNA.make_seq("GGGGTTTA").parse_out_gaps()
+        x, y = get_align_coords(m1, m2, aligned=True)
+        self.assertEqual((x, y), ([0, len(seq1)], [0, len(seq1)]))
+
+        # raises an exception if the Aligned seqs are different lengths
+        m1, seq1 = DNA.make_seq("ACGGTTTA").parse_out_gaps()
+        m2, seq2 = DNA.make_seq("GGGGTT").parse_out_gaps()
+        with self.assertRaises(AssertionError):
+            get_align_coords(m1, m2, aligned=True)
+
     def test_display2d(self):
         """correctly constructs a Display2d"""
         dp = Dotplot("-TGATGTAAGGTAGTT", "CTGG---AAG---GGT", window=5)
