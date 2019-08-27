@@ -28,7 +28,7 @@ from itertools import combinations, product
 import numpy
 
 from cogent3.format import table
-from cogent3.util.misc import get_object_provenance
+from cogent3.util.misc import get_object_provenance, open_
 
 
 __author__ = "Peter Maxwell"
@@ -531,15 +531,18 @@ class DictArray(object):
     def _repr_html_(self):
         return self.template._get_repr_html(self.array)
 
-    def write(self, path, sep="\t"):
-        """
-        writes a flattened version to path
+    def tostring(self, format="", sep=None):
+        """Return the data as a formatted string.
+
         Parameters
         ----------
-        path : str
-        sep : str
-            used to split fields, will be inferred from path suffix if not
-            provided
+        format
+            possible formats are 'rest'/'rst', 'markdown'/'md',
+            'latex', 'html', 'phylip', 'bedgraph', 'csv', 'tsv', or 'simple'
+            (default).
+        sep
+            A string separator for delineating columns, e.g. ',' or
+            '\t'. Overrides format.
         """
         from cogent3.util.table import Table
 
@@ -547,4 +550,22 @@ class DictArray(object):
         data = self.todict(flatten=True)
         rows = [list(k) + [v] for k, v in data.items()]
         table = Table(header=header, rows=rows)
-        table.write(path, sep=sep)
+        return table.tostring(format=format, sep=sep)
+
+    def write(self, path, format="", sep="\t"):
+        """
+        writes a flattened version to path
+        Parameters
+        ----------
+        path : str
+        format
+            possible formats are 'rest'/'rst', 'markdown'/'md',
+            'latex', 'html', 'phylip', 'bedgraph', 'csv', 'tsv', or 'simple'
+            (default).
+        sep : str
+            used to split fields, will be inferred from path suffix if not
+            provided
+        """
+        data = self.tostring(format=format, sep=sep)
+        with open_(path, "w") as outfile:
+            outfile.write(data)

@@ -317,7 +317,7 @@ class DictArrayTest(TestCase):
             outpath = os.path.join(dirname, "delme.tsv")
             darr.write(outpath)
             with open(outpath) as infile:
-                contents = [l.strip().split("\t") for l in infile]
+                contents = [l.strip().split() for l in infile]
             header = contents.pop(0)
             self.assertEqual(header, ["dim-1", "dim-2", "value"])
             got = {(k1, k2): int(v) for k1, k2, v in contents}
