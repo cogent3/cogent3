@@ -32,11 +32,9 @@ class generic_result(MutableMapping):
         self.source = source
 
     def __setitem__(self, key, val):
-        key = str(key)
         self._store[key] = val
 
     def __getitem__(self, key):
-        key = str(key)
         return self._store[key]
 
     def __delitem__(self, key):
@@ -261,7 +259,7 @@ class model_result(generic_result):
             result = OrderedDict()
             for k in sorted(self):
                 v = self[k]
-                if k.isdigit():
+                if type(k) == str and k.isdigit():
                     k = int(k)
                 result[k] = v
 
