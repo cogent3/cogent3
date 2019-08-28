@@ -1,7 +1,7 @@
 from unittest import TestCase, main
 from unittest.mock import MagicMock
 
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_raises
 
 from cogent3 import LoadSeqs, LoadTree
 from cogent3.app import evo as evo_app
@@ -171,6 +171,29 @@ class TestModel(TestCase):
         tree = result.lf.get_annotated_tree(length_as="paralinear")
         assert_allclose(
             result.total_length(length_as="paralinear"), tree.total_length()
+        )
+
+    def test_model_summed_branch_lengths(self):
+        """returns summed branch lengths"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = LoadSeqs(data=_data, moltype="dna")
+        model1 = evo_app.model(
+            "GN", opt_args=dict(max_evaluations=25, limit_action="ignore")
+        )
+        result = model1(aln)
+        expect_tree = result.lf.get_annotated_tree(length_as="ENS")
+        assert_allclose(result.tree.total_length(), expect_tree.total_length())
+        # it will be different to the standard length values
+        expect_tree = result.lf.get_annotated_tree()
+        assert_raises(
+            AssertionError,
+            assert_allclose,
+            result.tree.total_length(),
+            expect_tree.total_length(),
         )
 
 
