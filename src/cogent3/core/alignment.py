@@ -3048,7 +3048,11 @@ class AlignmentI(object):
         window = window if window else numpy.sqrt(len(self))
         window = int(window)
         y = self.entropy_per_pos()
-        y = y.max() - y  # convert to information
+        nan_indices = numpy.isnan(y)
+        max_entropy = y[nan_indices == False].max()
+        y = max_entropy - y  # convert to information
+        # now make all nan's 0
+        y[nan_indices] = 0
         stats = {"mean": numpy.mean, "median": numpy.median}
         if stat not in stats:
             raise ValueError('stat must be either "mean" or "median"')
