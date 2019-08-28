@@ -311,6 +311,15 @@ class model_result(generic_result):
         tree = self.lf.get_annotated_tree(length_as=length_as)
         return tree.total_length()
 
+    @property
+    def tree(self):
+        """an annotated tree with 'ENS' set as the branch length"""
+        if not hasattr(self, "_tree"):
+            tree = self.lf.get_annotated_tree(length_as="ENS")
+            self._tree = tree
+
+        return self._tree
+
 
 class hypothesis_result(generic_result):
     _type = "hypothesis_result"
