@@ -1,4 +1,5 @@
 from collections import defaultdict, namedtuple
+from numbers import Number
 
 from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
 from numpy.linalg import LinAlgError, det, inv, norm
@@ -316,7 +317,7 @@ class _PairwiseDistance(object):
 
     valid_moltypes = ()
 
-    def __init__(self, moltype, invalid=-9, alignment=None):
+    def __init__(self, moltype, invalid=-9, alignment=None, invalid_raises=False):
         super(_PairwiseDistance, self).__init__()
         moltype = get_moltype(moltype)
         if moltype.label not in self.valid_moltypes:
@@ -333,6 +334,7 @@ class _PairwiseDistance(object):
         self._dists = None
         self._dupes = None
         self._duped = None
+        self._invalid_raises = invalid_raises
 
         self.names = None
         self.indexed_seqs = None
@@ -411,6 +413,9 @@ class _PairwiseDistance(object):
                     continue
 
                 total, p, dist, var = self.func(matrix, *self._func_args)
+                if self._invalid_raises and not isinstance(dist, Number):
+                    msg = f"distance could not be calculated for {name_1} - {name_2}"
+                    raise ArithmeticError(msg)
                 result = Stats(total, p, dist, var)
                 self._dists[(name_1, name_2)] = result
                 self._dists[(name_2, name_1)] = result
