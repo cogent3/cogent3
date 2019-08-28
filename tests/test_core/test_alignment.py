@@ -2154,6 +2154,20 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         dists = aa.distance_matrix()
         self.assertEqual(dists, {("s1", "s2"): 1.0, ("s2", "s1"): 1.0})
 
+        # when there are invalid data
+        data = dict(
+            seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
+            seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
+            seq3="TACAAAAAAAAGGGGCGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
+        )
+
+        aln = self.Class(data=data, moltype="dna")
+        with self.assertRaises(ArithmeticError):
+            # default settings cause an exception
+            dists = aln.distance_matrix(calc="paralinear")
+        # but setting drop_invalid=False allows calc
+        dists = aln.distance_matrix(calc="paralinear", drop_invalid=True)
+
     def test_quick_tree(self):
         """quick tree method returns tree"""
         aln = self.Class(self.brca1_data, moltype=DNA)
@@ -2161,6 +2175,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         tree = aln.quick_tree(calc="hamming", show_progress=False)
         # bootstrap
         tree = aln.quick_tree(calc="hamming", bootstrap=2, show_progress=False)
+        self.assertEqual(set(tree.get_tip_names()), set(aln.names))
         for edge in tree.preorder():
             if edge.is_root():
                 continue
