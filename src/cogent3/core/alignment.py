@@ -2925,7 +2925,7 @@ class AlignmentI(object):
         new = klass(data=data, moltype=moltype, info=self.info, names=self.names)
         return new
 
-    def distance_matrix(self, calc="hamming", show_progress=False):
+    def distance_matrix(self, calc="hamming", show_progress=False, drop_invalid=False):
         """Returns pairwise distances between sequences.
         Parameters
         ----------
@@ -2934,33 +2934,67 @@ class AlignmentI(object):
             cogent3.evolve.fast_distance.available_distances
         show_progress : bool
             controls progress display for distance calculation
+        drop_invalid : bool
+            If True, sequences for which a pairwise distance could not be
+            calculated are excluded. If False, an ArithmeticError is raised if
+            a distance could not be computed on observed data.
         """
         from cogent3.evolve.fast_distance import get_calculator
 
-        calculator = get_calculator(calc, moltype=self.moltype, alignment=self)
-        calculator.run(show_progress=show_progress)
+        try:
+            calculator = get_calculator(
+                calc,
+                moltype=self.moltype,
+                alignment=self,
+                invalid_raises=not drop_invalid,
+            )
+            calculator.run(show_progress=show_progress)
+        except ArithmeticError:
+            msg = "not all pairwise distances could be computed, try drop_invalid=True"
+            raise ArithmeticError(msg)
         result = calculator.get_pairwise_distances()
+        if drop_invalid:
+            result = result.drop_invalid()
         return result
 
     @UI.display_wrap
     @extend_docstring_from(distance_matrix, pre=False)
-    def quick_tree(self, calc="hamming", bootstrap=None, show_progress=False, ui=None):
+    def quick_tree(
+        self,
+        calc="hamming",
+        bootstrap=None,
+        drop_invalid=False,
+        show_progress=False,
+        ui=None,
+    ):
         """
         bootstrap : int or None
             Number of non-parametric bootstrap replicates. Resamples alignment
             columns with replacement and builds a phylogeny for each such
             resampling.
+        drop_invalid : bool
+            If True, sequences for which a pairwise distance could not be
+            calculated are excluded. If False, an ArithmeticError is raised if
+            a distance could not be computed on observed data.
 
         Returns
         -------
         a phylogenetic tree. If bootstrap specified, returns the weighted
         majority consensus. Support for each node is stored as
         edge.params['params'].
+
+        Note
+        ----
+        Sequences in the observed alignment for which distances could not be
+        computed are omitted. Bootstrap replicates are required to have
+        distances for all seqs present in the observed data distance matrix.
         """
         from cogent3.phylo.consensus import weighted_majority_rule
         from cogent3.phylo.nj import gnj
 
-        dm = self.distance_matrix(calc=calc, show_progress=show_progress)
+        dm = self.distance_matrix(
+            calc=calc, show_progress=show_progress, drop_invalid=drop_invalid
+        )
         results = gnj(dm, keep=1, show_progress=show_progress)
         if bootstrap:
             for i in ui.series(range(bootstrap), count=bootstrap, noun="bootstrap"):
@@ -2968,6 +3002,7 @@ class AlignmentI(object):
                 bdist = b.distance_matrix(calc=calc, show_progress=show_progress)
                 bresult = gnj(bdist, keep=1, show_progress=show_progress)
                 results.extend(bresult)
+
             consense = weighted_majority_rule(results)
             assert len(consense) == 1
             results = consense
