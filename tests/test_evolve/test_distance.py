@@ -348,6 +348,11 @@ class TestPair(TestCase):
         dists = logdet_calc.get_pairwise_distances().todict()
         self.assertTrue(list(dists.values())[0] is None)
 
+        # but raises ArithmeticError if told to
+        logdet_calc = LogDetPair(moltype=DNA, alignment=aln, invalid_raises=True)
+        with self.assertRaises(ArithmeticError):
+            logdet_calc.run(use_tk_adjustment=True, show_progress=False)
+
     def test_paralinear_pair_aa(self):
         """paralinear shouldn't fail to produce distances for aa seqs"""
         aln = LoadSeqs("data/brca1_5.paml", moltype=DNA)
