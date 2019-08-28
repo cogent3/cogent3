@@ -21,7 +21,9 @@ def validate_freqs_array(data, axis=None):
     if (data < 0).any():
         raise ValueError("negative frequency not allowed")
 
-    if not numpy.allclose(data.sum(axis=axis), 1):
+    # we explicitly ignore nan
+    result = data.sum(axis=axis)
+    if not numpy.allclose(result[numpy.isnan(result) == False], 1):
         raise ValueError("invalid frequencies, sum(axis=1) is not equal to 1")
 
 
