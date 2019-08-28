@@ -33,9 +33,9 @@ master_doc = 'index'
 project = u'Cogent3'
 copyright = u'2019, Cogent3'
 
-version = "2019.8.23a"
+version = ""
 
-release = "2019.8.23a"
+release = "2019.8.28a"
 
 exclude_trees = ['_build']
 
