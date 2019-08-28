@@ -584,6 +584,27 @@ class TestDistanceMatrix(TestCase):
         new = darr.drop_invalid()
         self.assertEqual(new.shape, (2, 2))
 
+    def test_take_dists(self):
+        """subsets the distance matrix"""
+        data = {
+            ("ABAYE2984", "Atu3667"): 0.25,
+            ("ABAYE2984", "Avin_42730"): 0.638,
+            ("ABAYE2984", "BAA10469"): None,
+            ("Atu3667", "ABAYE2984"): 0.25,
+            ("Atu3667", "Avin_42730"): 2.368,
+            ("Atu3667", "BAA10469"): 0.25,
+            ("Avin_42730", "ABAYE2984"): 0.638,
+            ("Avin_42730", "Atu3667"): 2.368,
+            ("Avin_42730", "BAA10469"): 1.85,
+            ("BAA10469", "ABAYE2984"): 0.25,
+            ("BAA10469", "Atu3667"): 0.25,
+            ("BAA10469", "Avin_42730"): 1.85,
+        }
+        darr = DistanceMatrix(data)
+        got1 = darr.take_dists(["ABAYE2984", "Atu3667", "Avin_42730"])
+        got2 = darr.take_dists("BAA10469", negate=True)
+        assert_allclose(got1.array.astype(float), got2.array.astype(float))
+
     def test_build_phylogeny(self):
         """build a NJ tree"""
         from cogent3 import LoadTree

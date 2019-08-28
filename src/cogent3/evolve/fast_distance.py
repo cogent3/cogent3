@@ -716,6 +716,42 @@ class DistanceMatrix(DictArray):
         )
         return data
 
+    def take_dists(self, names, negate=False):
+        """
+        Parameters
+        ----------
+        names
+            series of names
+        negate : bool
+            if True, elements in names will be excluded
+        Returns
+        -------
+        DistanceMatrix for names x names
+        """
+        if type(names) == str:
+            names = [names]
+
+        current_names = array(self.template.names[0])
+        if negate:
+            keep = [i for i, n in enumerate(current_names) if n not in names]
+        else:
+            keep = [i for i, n in enumerate(current_names) if n in names]
+
+        data = self.array.take(keep, axis=0)
+        data = data.take(keep, axis=1)
+        names = current_names.take(keep)
+        dists = {
+            (names[i], names[j]): data[i, j]
+            for i in range(len(names))
+            for j in range(len(names))
+            if i != j
+        }
+        if not dists:
+            result = None
+        else:
+            result = self.__class__(dists)
+        return result
+
     def drop_invalid(self, invalid=None):
         """drops all rows / columns with an invalid entry"""
         if (
