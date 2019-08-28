@@ -2996,10 +2996,23 @@ class AlignmentI(object):
             calc=calc, show_progress=show_progress, drop_invalid=drop_invalid
         )
         results = gnj(dm, keep=1, show_progress=show_progress)
+        kept_names = set(dm.template.names[0])
         if bootstrap:
+            if set(self.names) != kept_names:
+                subaln = self.take_seqs(kept_names)
+            else:
+                subaln = self
+
             for i in ui.series(range(bootstrap), count=bootstrap, noun="bootstrap"):
-                b = self.sample(with_replacement=True)
-                bdist = b.distance_matrix(calc=calc, show_progress=show_progress)
+                b = subaln.sample(with_replacement=True)
+                try:
+                    bdist = b.distance_matrix(
+                        calc=calc, show_progress=show_progress, drop_invalid=False
+                    )
+                except ArithmeticError:
+                    # all sequences must have a pairwise distance to allow
+                    # constructing a consensus tree
+                    continue
                 bresult = gnj(bdist, keep=1, show_progress=show_progress)
                 results.extend(bresult)
 

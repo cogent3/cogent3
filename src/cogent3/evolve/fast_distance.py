@@ -729,20 +729,8 @@ class DistanceMatrix(DictArray):
         rows = (self.array == invalid).sum(axis=1)
         exclude += names[rows != 0].tolist()
         exclude = set(exclude)
-        keep = [i for i, n in enumerate(names) if n not in exclude]
-        data = self.array.take(keep, axis=0)
-        data = data.take(keep, axis=1)
-        names = names.take(keep)
-        dists = {
-            (names[i], names[j]): data[i, j]
-            for i in range(len(names))
-            for j in range(len(names))
-            if i != j
-        }
-        if not dists:
-            result = None
-        else:
-            result = self.__class__(dists)
+        keep = set(names) ^ exclude
+        result = self.take_dists(keep)
         return result
 
     def quick_tree(self, show_progress=False):
