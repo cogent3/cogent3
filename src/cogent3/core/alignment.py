@@ -796,6 +796,8 @@ class SequenceCollection(object):
         Note that the seqs in the new alignment will be references to the
         same objects as the seqs in the old alignment.
         """
+        if type(seqs) == str:
+            seqs = [seqs]
         get = self.named_seqs.__getitem__
         result = {}
         if "moltype" not in kwargs:

@@ -462,11 +462,20 @@ class SequenceCollectionBaseTests(object):
 
     def test_take_seqs(self):
         """SequenceCollection take_seqs should return new SequenceCollection with selected seqs."""
-        a = self.ragged_padded.take_seqs("bc")
+        a = self.ragged_padded.take_seqs(list("bc"))
         self.assertTrue(isinstance(a, SequenceCollection))
         self.assertEqual(a, {"b": "AAA---", "c": "AAAA--"})
         # should be able to negate
-        a = self.ragged_padded.take_seqs("bc", negate=True)
+        a = self.ragged_padded.take_seqs(list("bc"), negate=True)
+        self.assertEqual(a, {"a": "AAAAAA"})
+
+    def test_take_seqs_str(self):
+        """string arg to SequenceCollection take_seqs should work."""
+        a = self.ragged_padded.take_seqs("a", negate=True)
+        self.assertTrue(isinstance(a, SequenceCollection))
+        self.assertEqual(a, {"b": "AAA---", "c": "AAAA--"})
+        # should be able to negate
+        a = self.ragged_padded.take_seqs("a")
         self.assertEqual(a, {"a": "AAAAAA"})
 
     def test_take_seqs_info(self):
@@ -474,7 +483,7 @@ class SequenceCollectionBaseTests(object):
         orig = self.Class(
             data={"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}, info={"key": "value"}
         )
-        subset = orig.take_seqs("ab")
+        subset = orig.take_seqs(list("ab"))
         self.assertEqual(set(subset.info), set(orig.info))
 
     def test_take_seqs_moltype(self):
@@ -482,7 +491,7 @@ class SequenceCollectionBaseTests(object):
         orig = self.Class(
             data={"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}, moltype=DNA
         )
-        subset = orig.take_seqs("ab")
+        subset = orig.take_seqs(list("ab"))
         self.assertEqual(set(subset.moltype), set(orig.moltype))
 
     def test_get_seq_indices(self):
