@@ -218,7 +218,7 @@ class TreeGeometryBase(PhyloNode):
         None if threshold not met, else params['support'] and coords
         """
         val = self.params.get("support", None)
-        if val is None or val > threshold:
+        if val is None or val > threshold or self.is_tip():
             return None
         x = self.x + padding
         data = UnionDict(
