@@ -2125,6 +2125,24 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
         self.assertFloatEqual(entropy, array([1, 0, e]))
 
+    def test_seq_entropy_just_gaps(self):
+        """ArrayAlignment get_seq_entropy should get entropy of each seq"""
+        a = self.Class(dict(a="A---", b="----"), moltype=DNA)
+        entropy = a.entropy_per_seq()
+        assert_allclose(entropy, [0, numpy.nan])
+        a = self.Class(dict(a="----", b="----"), moltype=DNA)
+        entropy = a.entropy_per_seq()
+        assert_allclose(entropy, [numpy.nan, numpy.nan])
+
+    def test_entropy_per_pos_just_gaps(self):
+        """pos with just gaps have nan"""
+        a = self.Class(dict(a="A---", b="C---", c="C---"), moltype=DNA)
+        entropy = a.entropy_per_pos()
+        assert_allclose(entropy, [0.91829583, numpy.nan, numpy.nan, numpy.nan])
+        a = self.Class(dict(a="---", b="---", c="---"), moltype=DNA)
+        entropy = a.entropy_per_pos()
+        assert_allclose(entropy, [numpy.nan, numpy.nan, numpy.nan])
+
     def test_distance_matrix(self):
         """Alignment distance_matrix should produce correct scores"""
         data = dict([("s1", "ACGTACGTA"), ("s2", "GTGTACGTA")])
