@@ -185,7 +185,7 @@ class progressive_align(ComposableSeq):
         sm = get_model(sm, **kwargs)
         moltype = sm.alphabet.moltype
         self._model = sm
-        self._scalar = sm.get_word_length()
+        self._scalar = sm.word_length
         self._indel_length = indel_length
         self._indel_rate = indel_rate
         self._moltype = moltype
