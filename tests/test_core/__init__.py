@@ -29,7 +29,7 @@ __credits__ = [
     "Justin Kuczynski",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.8.28a"
+__version__ = "2019.8.30a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
