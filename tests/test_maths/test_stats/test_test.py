@@ -890,48 +890,48 @@ class StatTests(TestsHelper):
         y = array([2, 2, 2])
 
         exp = (float("-inf"), 0.0)
-        obs = mc_t_two_sample(x, y, permutations=10000)
+        obs = mc_t_two_sample(x, y, permutations=1000)
 
         self.assertEqual(obs[:2], exp)
-        self.assertEqual(len(obs[2]), 10000)
+        self.assertEqual(len(obs[2]), 1000)
         self.assertCorrectPValue(
-            0.09, 0.11, mc_t_two_sample, [x, y], {"permutations": 10000}, p_val_idx=3
+            0.09, 0.11, mc_t_two_sample, [x, y], {"permutations": 1000}, p_val_idx=3
         )
 
         exp = (float("inf"), 0.0)
-        obs = mc_t_two_sample(y, x, permutations=10000)
+        obs = mc_t_two_sample(y, x, permutations=1000)
 
         self.assertEqual(obs[:2], exp)
-        self.assertEqual(len(obs[2]), 10000)
+        self.assertEqual(len(obs[2]), 1000)
         self.assertCorrectPValue(
-            0.09, 0.11, mc_t_two_sample, [y, x], {"permutations": 10000}, p_val_idx=3
+            0.09, 0.11, mc_t_two_sample, [y, x], {"permutations": 1000}, p_val_idx=3
         )
 
         exp = (float("-inf"), 1.0)
-        obs = mc_t_two_sample(x, y, permutations=10000, tails="high")
+        obs = mc_t_two_sample(x, y, permutations=1000, tails="high")
 
         self.assertEqual(obs[:2], exp)
-        self.assertEqual(len(obs[2]), 10000)
+        self.assertEqual(len(obs[2]), 1000)
         self.assertCorrectPValue(
             0.9999,
             1.0,
             mc_t_two_sample,
             [x, y],
-            {"permutations": 10000, "tails": "high"},
+            {"permutations": 1000, "tails": "high"},
             p_val_idx=3,
         )
 
         exp = (float("-inf"), 0.0)
-        obs = mc_t_two_sample(x, y, permutations=10000, tails="low")
+        obs = mc_t_two_sample(x, y, permutations=1000, tails="low")
 
         self.assertEqual(obs[:2], exp)
-        self.assertEqual(len(obs[2]), 10000)
+        self.assertEqual(len(obs[2]), 1000)
         self.assertCorrectPValue(
             0.04,
             0.051,
             mc_t_two_sample,
             [x, y],
-            {"permutations": 10000, "tails": "low"},
+            {"permutations": 1000, "tails": "low"},
             p_val_idx=3,
         )
 
