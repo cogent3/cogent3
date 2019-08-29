@@ -1650,37 +1650,26 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
     def test_omit_bad_seqs(self):
         """omit_bad_seqs should return alignment w/o seqs causing most gaps"""
         data = {
-            "s1": "-ACC--TT",
-            "s2": "-ACC--TT",
-            "s3": "-ACC--TT",
-            "s4": "AACCGGTT",
-            "s5": "AACCGGTT",
-            "s6": "--------",
+            "s1": "---ACC---TT-",
+            "s2": "---ACC---TT-",
+            "s3": "---ACC---TT-",
+            "s4": "--AACCG-GTT-",
+            "s5": "--AACCGGGTTT",
+            "s6": "AGAACCGGGTT-",
         }
 
         aln = self.Class(data, moltype=DNA)
-        # with defaults, excludes the fully gapped seq
+        # with defaults, excludes s6
+        expect = data.copy()
+        del expect["s6"]
         result = aln.omit_bad_seqs()
-        self.assertEqual(
-            result.to_dict(),
-            {
-                "s1": "-ACC--TT",
-                "s2": "-ACC--TT",
-                "s3": "-ACC--TT",
-                "s4": "AACCGGTT",
-                "s5": "AACCGGTT",
-            },
-        )
-        # unless exclude_just_gap=False, which should just return self
-        result = aln.omit_bad_seqs(exclude_just_gap=False)
-        self.assertEqual(result.to_dict(), data)
-        self.assertEqual(id(result), id(aln))
-
-        # with disallowed_frac=0.6, we should drop s4&5 too
-        result = aln.omit_bad_seqs(disallowed_frac=0.5)
-        self.assertEqual(
-            result.to_dict(), {"s1": "-ACC--TT", "s2": "-ACC--TT", "s3": "-ACC--TT"}
-        )
+        self.assertEqual(result.to_dict(), expect)
+        # with quantile 0.5, just s1, s2, s3
+        expect = data.copy()
+        for key in ("s6", "s5"):
+            del expect[key]
+        result = aln.omit_bad_seqs(0.5)
+        self.assertEqual(result.to_dict(), expect)
 
     def test_matching_ref(self):
         """Alignment.matching_ref returns new aln with well-aln to temp"""

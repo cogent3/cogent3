@@ -233,39 +233,36 @@ class TranslateTests(TestCase):
     def test_omit_bad_seqs(self):
         """correctly omit bad sequences from an alignment"""
         data = {
-            "s1": "-ACC--TT",
-            "s2": "-ACC--TT",
-            "s3": "-ACC--TT",
-            "s4": "AACCGGTT",
-            "s5": "AACCGGTT",
-            "s6": "--------",
+            "s1": "---ACC---TT-",
+            "s2": "---ACC---TT-",
+            "s3": "---ACC---TT-",
+            "s4": "--AACCG-GTT-",
+            "s5": "--AACCGGGTTT",
+            "s6": "AGAACCGGGTT-",
+            "s7": "------------",
         }
         aln = LoadSeqs(data=data, moltype=DNA)
-        # unless exclude_just_gap=False, which should just return self
-        dropbad = sample.omit_bad_seqs(exclude_just_gap=False)
+        # default just eliminates strict gap sequences
+        dropbad = sample.omit_bad_seqs()
         got = dropbad(aln)
-        self.assertEqual(got.to_dict(), data)
+        expect = data.copy()
+        del expect["s7"]
+        self.assertEqual(got.to_dict(), expect)
+        # providing a more stringent gap_frac
+        dropbad = sample.omit_bad_seqs(gap_fraction=0.5)
+        got = dropbad(aln)
+        expect = data.copy()
+        for n in ("s1", "s2", "s3", "s7"):
+            del expect[n]
+        self.assertEqual(got.to_dict(), expect)
 
-        # with disallowed_frac=0.6, we should drop s4&5 too
-        dropbad = sample.omit_bad_seqs(disallowed_frac=0.5)
+        # setting quantile drops additional sequences
+        dropbad = sample.omit_bad_seqs(quantile=6 / 7)
         got = dropbad(aln)
-        self.assertEqual(
-            got.to_dict(), {"s1": "-ACC--TT", "s2": "-ACC--TT", "s3": "-ACC--TT"}
-        )
-
-        # with disallowed_frac=0.9, we should drop s6
-        dropbad = sample.omit_bad_seqs(disallowed_frac=0.9)
-        got = dropbad(aln)
-        self.assertEqual(
-            got.to_dict(),
-            {
-                "s1": "-ACC--TT",
-                "s2": "-ACC--TT",
-                "s3": "-ACC--TT",
-                "s4": "AACCGGTT",
-                "s5": "AACCGGTT",
-            },
-        )
+        expect = data.copy()
+        for n in ("s6", "s7"):
+            del expect[n]
+        self.assertEqual(got.to_dict(), expect)
 
     def test_omit_duplicated(self):
         """correctly drop duplicated sequences"""
