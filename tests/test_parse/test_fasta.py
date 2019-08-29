@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """Unit tests for FASTA and related parsers.
 """
+import os
+
 from unittest import TestCase, main
 
 from cogent3.core.info import Info
@@ -27,6 +29,9 @@ __version__ = "2019.8.28a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
+
+base_path = os.path.dirname(os.path.dirname(__file__))
+data_path = os.path.join(base_path, "data")
 
 
 def Dna(seq, *args, **kwargs):
@@ -122,6 +127,12 @@ class MinimalFastaParserTests(GenericFastaTest):
         a, b = f
         self.assertEqual(a, ("abc", "caggac"))
         self.assertEqual(b, ("456", "cg"))
+
+    def test_parser_from_file(self):
+        """passing path should work"""
+        path = os.path.join(data_path, "brca1.fasta")
+        seqs = dict(p for p in MinimalFastaParser(path))
+        self.assertTrue("Human" in seqs)
 
 
 class FastaParserTests(GenericFastaTest):

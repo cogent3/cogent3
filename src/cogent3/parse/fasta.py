@@ -10,6 +10,7 @@ from cogent3.core.info import Info
 from cogent3.core.moltype import ASCII, BYTES
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import LabeledRecordFinder
+from cogent3.util.misc import open_
 
 
 __author__ = "Rob Knight"
@@ -51,25 +52,24 @@ FastaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_blank_or_comment)
 
 
 def MinimalFastaParser(
-    infile,
-    strict=True,
-    label_to_name=str,
-    finder=FastaFinder,
-    is_label=None,
-    label_characters=">",
+    infile, strict=True, label_to_name=str, finder=FastaFinder, label_characters=">"
 ):
     """Yields successive sequences from infile as (label, seq) tuples.
 
     If strict is True (default), raises RecordError when label or seq missing.
     """
+    try:
+        infile = open_(infile)
+        close_at_end = True
+    except (TypeError, AttributeError):
+        close_at_end = False
 
     for rec in finder(infile):
         # first line must be a label line
         if not rec[0][0] in label_characters:
             if strict:
                 raise RecordError("Found Fasta record without label line: %s" % rec)
-            else:
-                continue
+            continue
         # record must have at least one sequence
         if len(rec) < 2:
             if strict:
@@ -82,6 +82,9 @@ def MinimalFastaParser(
         seq = "".join(rec[1:])
 
         yield label, seq
+
+    if close_at_end:
+        infile.close()
 
 
 GdeFinder = LabeledRecordFinder(is_gde_label, ignore=is_blank)
