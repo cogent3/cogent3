@@ -69,36 +69,45 @@ ATGCCAGTGAAAGTG------GCGGCGGTGTTCTCCGAGGCTGAGGATGGAGATAGCGAGAAAGGG---CCAGATCCTAG
 """
 
 
-def MakeCachedObjects(model, tree, seq_length, opt_args):
-    """simulates an alignment under F81, all models should be the same"""
-    lf = model.make_likelihood_function(tree)
-    lf.set_motif_probs(dict(A=0.1, C=0.2, G=0.3, T=0.4))
-    aln = lf.simulate_alignment(seq_length)
-    results = dict(aln=aln)
-    discrete_tree = LoadTree(tip_names=aln.names)
+class MakeCachedObjects:
+    def __init__(self, model, tree, seq_length, opt_args):
+        """simulates an alignment under F81, all models should be the same"""
+        self.lf = model.make_likelihood_function(tree)
+        self.lf.set_motif_probs(dict(A=0.1, C=0.2, G=0.3, T=0.4))
+        self.aln = self.lf.simulate_alignment(seq_length)
+        self.results = dict(aln=self.aln)
+        self.discrete_tree = LoadTree(tip_names=self.aln.names)
+        self.opt_args = opt_args
+        self.tree = tree
 
-    def fit_general(results=results):
-        if "general" in results:
+    def fit_general(self, **kwargs):
+        optargs = self.opt_args.copy()
+        # optargs.update(kwargs)
+        if "general" in self.results:
             return
         gen = General(DNA.alphabet)
-        gen_lf = _make_likelihood(gen, tree, results)
-        gen_lf.optimise(**opt_args)
-        results["general"] = gen_lf
+        gen_lf = _make_likelihood(gen, self.tree, self.results)
+        gen_lf.optimise(**optargs)
+        self.results["general"] = gen_lf
         return
 
-    def fit_gen_stat(results=results):
-        if "gen_stat" in results:
+    def fit_gen_stat(self, **kwargs):
+        optargs = self.opt_args.copy()
+        # optargs.update(kwargs)
+        if "gen_stat" in self.results:
             return
         gen_stat = GeneralStationary(DNA.alphabet)
-        gen_stat_lf = _make_likelihood(gen_stat, tree, results)
-        gen_stat_lf.optimise(**opt_args)
-        results["gen_stat"] = gen_stat_lf
+        gen_stat_lf = _make_likelihood(gen_stat, self.tree, self.results)
+        gen_stat_lf.optimise(**optargs)
+        self.results["gen_stat"] = gen_stat_lf
 
-    def fit_constructed_gen(results=results):
-        if "constructed_gen" in results:
+    def fit_constructed_gen(self, **kwargs):
+        optargs = self.opt_args.copy()
+        optargs.update(kwargs)
+        if "constructed_gen" in self.results:
             return
         preds = [
-            MotifChange(a, b, forward_only=True)
+            MotifChange(a, b, forward_only=True).aliased(f"{a}/{b}")
             for a, b in [
                 ["A", "C"],
                 ["A", "G"],
@@ -114,35 +123,35 @@ def MakeCachedObjects(model, tree, seq_length, opt_args):
             ]
         ]
         nuc = NonReversibleNucleotide(predicates=preds)
-        nuc_lf = _make_likelihood(nuc, tree, results)
-        nuc_lf.optimise(**opt_args)
-        results["constructed_gen"] = nuc_lf
+        nuc_lf = _make_likelihood(nuc, self.tree, self.results)
+        nuc_lf.optimise(**optargs)
+        self.results["constructed_gen"] = nuc_lf
 
-    def fit_discrete(results=results):
-        if "discrete" in results:
+    def fit_discrete(self, **kwargs):
+        optargs = self.opt_args.copy()
+        optargs.update(kwargs)
+        if "discrete" in self.results:
             return
         dis_lf = _make_likelihood(
             DiscreteSubstitutionModel(DNA.alphabet),
-            discrete_tree,
-            results,
+            self.discrete_tree,
+            self.results,
             is_discrete=True,
         )
-        dis_lf.optimise(**opt_args)
-        results["discrete"] = dis_lf
+        dis_lf.optimise(**optargs)
+        self.results["discrete"] = dis_lf
 
-    funcs = dict(
-        general=fit_general,
-        gen_stat=fit_gen_stat,
-        discrete=fit_discrete,
-        constructed_gen=fit_constructed_gen,
-    )
+    def __call__(self, obj_name, **kwargs):
+        funcs = dict(
+            general=self.fit_general,
+            gen_stat=self.fit_gen_stat,
+            discrete=self.fit_discrete,
+            constructed_gen=self.fit_constructed_gen,
+        )
 
-    def call(self, obj_name):
-        if obj_name not in results:
-            funcs[obj_name]()
-        return results[obj_name]
-
-    return call
+        if obj_name not in self.results:
+            funcs[obj_name](results=self.results, **kwargs)
+        return self.results[obj_name]
 
 
 class NonStatMarkov(TestCase):
@@ -153,7 +162,14 @@ class NonStatMarkov(TestCase):
     make_cached = MakeCachedObjects(TimeReversibleNucleotide(), tree, 100000, opt_args)
 
     def _setup_discrete_from_general(self, gen_lf):
-        dis_lf = self.make_cached("discrete")
+        discrete_tree = self.make_cached.discrete_tree
+        dis_lf = _make_likelihood(
+            DiscreteSubstitutionModel(DNA.alphabet),
+            discrete_tree,
+            dict(aln=self.make_cached.aln),
+            is_discrete=True,
+        )
+
         for edge in self.tree:
             init = gen_lf.get_psub_for_edge(edge.name)
             dis_lf.set_param_rule("psubs", edge=edge.name, init=init)
@@ -162,23 +178,25 @@ class NonStatMarkov(TestCase):
 
     def test_discrete_vs_general1(self):
         """compares fully general models"""
-        gen_lf = self.make_cached("general")
+        gen_lf = self.make_cached("general", max_evaluations=2)
         gen_lnL = gen_lf.get_log_likelihood()
         dis_lf = self._setup_discrete_from_general(gen_lf)
         self.assertFloatEqual(gen_lnL, dis_lf.get_log_likelihood())
 
     def test_general_vs_constructed_general(self):
         """a constructed general lnL should be identical to General"""
-        sm_lf = self.make_cached("constructed_gen")
+        sm_lf = self.make_cached("constructed_gen", max_evaluations=25)
         sm_lnL = sm_lf.get_log_likelihood()
-        gen_lf = self.make_cached("general")
+        gen_lf = self.make_cached("general", max_evaluations=0)
+        rules = sm_lf.get_param_rules()
+        gen_lf.apply_param_rules(rules)
         gen_lnL = gen_lf.get_log_likelihood()
         self.assertFloatEqualAbs(sm_lnL, gen_lnL, eps=0.1)
 
     def test_general_stationary(self):
         """General stationary should be close to General"""
-        gen_stat_lf = self.make_cached("gen_stat")
-        gen_lf = self.make_cached("general")
+        gen_stat_lf = self.make_cached("gen_stat", max_evaluations=25)
+        gen_lf = self.make_cached("general", max_evaluations=25)
         gen_stat_lnL = gen_stat_lf.get_log_likelihood()
         gen_lnL = gen_lf.get_log_likelihood()
         self.assertLessThan(gen_stat_lnL, gen_lnL)
@@ -195,7 +213,7 @@ class NonStatMarkov(TestCase):
 
     def test_general_is_not_stationary(self):
         """should not be stationary"""
-        gen_lf = self.make_cached("general")
+        gen_lf = self.make_cached("general", max_evaluations=5)
         mprobs = gen_lf.get_motif_probs()
         mprobs = array([mprobs[nuc] for nuc in DNA.alphabet])
         for edge in self.tree:
