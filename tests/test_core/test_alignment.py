@@ -1611,7 +1611,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertRaises(ValueError, aln.no_degenerates)
 
     def test_omit_gap_pos(self):
-        """SequenceCollection omit_gap_pos should return alignment w/o positions of gaps"""
+        """Alignment omit_gap_pos should return alignment w/o positions of gaps"""
         aln = self.end_gaps
         # first, check behavior when we're just acting on the cols (and not
         # trying to delete the naughty seqs).
@@ -1646,6 +1646,22 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
         # if no gaps are allowed, we get None
         self.assertEqual(aln.omit_gap_pos(0), None)
+
+    def test_omit_gap_pos2(self):
+        """consistency with different motif_length values"""
+        data = {
+            "seq1": "CAGGTCGACCTCGGC---------CACGAC",
+            "seq2": "CAGATCGACCTCGGC---------CACGAC",
+            "seq3": "CAGATCGACCTCGGT---------CACGAT",
+            "seq4": "CAGATCGACCTCGGCGAACACGGCCATGAT",
+            "seq5": "CCGATCGACATGGGC---------CACGAT",
+            "seq6": "GCC---------------------------",
+        }
+        aln = self.Class(data, moltype=DNA)
+        got1 = aln.omit_gap_pos(motif_length=1)
+        got3 = aln.omit_gap_pos(motif_length=3)
+        self.assertEqual(len(got3), len(got1))
+        self.assertEqual(got3.to_dict(), got1.to_dict())
 
     def test_omit_bad_seqs(self):
         """omit_bad_seqs should return alignment w/o seqs causing most gaps"""
