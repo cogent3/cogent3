@@ -188,11 +188,12 @@ class GapsOk:
             self.gap_chars = set([gap_chars])
 
     def _get_gap_frac(self, data):
-        length = len(data) / self.motif_length
+        length = len(data) * self.motif_length
+        # flatten the data and count elements equal to gap
         if self.is_array:
             data = Counter(data.flatten())
         else:
-            data = Counter(list(data))
+            data = Counter("".join(data))
 
         num_gap = sum(data[g] for g in self.gap_chars)
         gap_frac = num_gap / length
@@ -2318,7 +2319,9 @@ class AlignmentI(object):
         if is_array:
             gaps = list(map(alpha.index, gaps))
 
-        gaps_ok = GapsOk(gaps, allowed_gap_frac, is_array=is_array)
+        gaps_ok = GapsOk(
+            gaps, allowed_gap_frac, is_array=is_array, motif_length=motif_length
+        )
         # if we're not deleting the 'naughty' seqs that contribute to the
         # gaps, it's easy...
         result = self.filtered(gaps_ok, motif_length=motif_length)
