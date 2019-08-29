@@ -2422,64 +2422,25 @@ class AlignmentI(object):
 
         return result
 
-    def omit_bad_seqs(
-        self, disallowed_frac=0.9, allowed_frac_bad_cols=0, exclude_just_gap=True
-    ):
-        """Returns new alignment without the sequences responsible for exceeding disallowed_frac.
+    def omit_bad_seqs(self, quantile=None):
+        """Returns new alignment without sequences with a number of uniquely
+        introduced gaps exceeding quantile
+
+        Uses count_gaps_per_seq(unique=True) to obtain the counts of gaps
+        uniquely introduced by a sequence. The cutoff is the the quantile of
+        this distribution.
 
         Parameters
         ----------
-        disallowed_frac
-            used to identify columns with excessive gaps
-        allowed_frac_bad_cols
-            the fraction of gaps induced by the sequence
-        exclude_just_gap
-            sequences that are just gaps are excluded
-
+        quantile : float or None
+            sequences whose unique gap count is in a quantile larger than this
+            cutoff are excluded. The default quantile is (num_seqs - 1) / num_seqs
         """
-        is_array = isinstance(self, ArrayAlignment)
-        alpha = self.alphabet
-
-        gaps = list(self.moltype.gaps)
-        if is_array:
-            gaps = list(map(alpha.index, gaps))
-
-        excess_gaps = GapsOk(gaps, disallowed_frac, is_array=is_array, negate=True)
-        gapped_cols = self.get_position_indices(excess_gaps, native=True)
-
-        seqs_to_delete = {}
-        if exclude_just_gap:
-            # any seqs that are all gaps?
-            num_gaps = self.count_gaps_per_seq(induced_by=False)
-            length = len(self)
-            for name in self.names:
-                if num_gaps[name] == length:
-                    seqs_to_delete[name] = True
-
-        # we treat array and string data the same, likely inefficient
-        is_gap = list(self.moltype.gaps).__contains__
-        bad_cols_per_seq = Counter()
-        for name, seq in list(self.named_seqs.items()):
-            if name in seqs_to_delete:
-                continue
-
-            seq = str(seq)
-            for col in gapped_cols:
-                element = seq[col]
-                if not is_gap(element):
-                    bad_cols_per_seq[name] += 1
-
-        # figure out which of the seqs cause too many gaps
-        get = self.named_seqs.__getitem__
-        for name, count in list(bad_cols_per_seq.items()):
-            if count / len(get(name)) >= allowed_frac_bad_cols:
-                seqs_to_delete[name] = True
-
-        if not seqs_to_delete:
-            return self
-
-        good_seqs = self.take_seqs(seqs_to_delete, negate=True)
-        return good_seqs
+        gap_counts = self.count_gaps_per_seq(unique=True)
+        quantile = quantile if quantile else (self.num_seqs - 1) / self.num_seqs
+        cutoff = numpy.quantile(gap_counts.array, quantile)
+        names = [name for name, count in gap_counts.items() if count <= cutoff]
+        return self.take_seqs(names)
 
     def matching_ref(self, ref_name, gap_fraction, gap_run):
         """Returns new alignment with seqs well aligned with a reference.

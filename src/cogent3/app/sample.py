@@ -434,32 +434,27 @@ class fixed_length(ComposableAligned):
 
 
 class omit_bad_seqs(ComposableAligned):
-    """Eliminates sequences from Alignment based on gap, ambiguous state
-    conditions. Returns modified alignment."""
+    """Eliminates sequences from Alignment based on gap fraction, unique gaps.
+    Returns modified alignment."""
 
     _input_type = frozenset(["aligned", "serialisable"])
     _output_type = frozenset(["aligned", "serialisable"])
     _data_types = frozenset(["ArrayAlignment", "Alignment"])
 
-    def __init__(
-        self,
-        disallowed_frac=0.9,
-        allowed_frac_bad_cols=0,
-        exclude_just_gap=True,
-        moltype="dna",
-    ):
+    def __init__(self, quantile=None, gap_fraction=1, moltype="dna"):
         """Returns an alignment without the sequences responsible for
         exceeding disallowed_frac.
 
         Parameters
         ----------
-        disallowed_frac
-            an aligned column with gap frac > disallowed_frac is considered a
-            bad column
-        allowed_frac_bad_cols : float
-            the fraction of gaps induced by the sequence
-        exclude_just_gap
-            sequences that are just gaps are excluded
+        quantile : float or None
+            The number of gaps uniquely introduced by a sequence are counted.
+            The value corresponding to quantile is determined and all sequences
+            whose unique gap count is larger than this cutoff are excluded.
+            If None, this condition is not applied.
+        gap_fraction
+            sequences whose proportion of gaps is >= this value are excluded, the
+            default excludes sequences that are just gaps.
         moltype
             molecular type, can be string or instance
         """
@@ -470,19 +465,19 @@ class omit_bad_seqs(ComposableAligned):
         assert (
             moltype.label.lower() in "dna rna protein protein_with_stop"
         ), "moltype must be one of DNA, RNA or PROTEIN"
-        self._disallowed_frac = disallowed_frac
-        self._allowed_frac_bad_col = allowed_frac_bad_cols
-        self._exclude_just_gap = exclude_just_gap
+        self._quantile = quantile
+        self._gap_fraction = gap_fraction
         self._moltype = moltype
         self.func = self.drop_bad_seqs
 
     def drop_bad_seqs(self, aln):
         aln = aln.to_moltype(self._moltype)
-        result = aln.omit_bad_seqs(
-            disallowed_frac=self._disallowed_frac,
-            allowed_frac_bad_cols=self._allowed_frac_bad_col,
-            exclude_just_gap=self._exclude_just_gap,
-        )
+        gaps_per_seq = aln.count_gaps_per_seq()
+        length = len(aln)
+        keep = [n for n, c in gaps_per_seq.items() if c / length < self._gap_fraction]
+        result = aln.take_seqs(keep)
+        if self._quantile is not None:
+            result = result.omit_bad_seqs(quantile=self._quantile)
         return result
 
 
