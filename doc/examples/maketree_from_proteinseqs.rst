@@ -7,7 +7,7 @@ In this example we pull together the distance calculation and tree building with
 
 .. doctest::
 
-    >>> from cogent3 import load_aligned_seqs, PROTEIN
+    >>> from cogent3 import load_aligned_seqs
 
 We will use an empirical protein substitution matrix.
 
@@ -26,7 +26,7 @@ Now load our sequence alignment, explicitly setting the alphabet to be protein.
 
 .. doctest::
 
-    >>> aln = load_aligned_seqs('data/abglobin_aa.phylip', moltype=PROTEIN)
+    >>> aln = load_aligned_seqs('data/abglobin_aa.phylip', moltype="protein")
 
 Create an Empirical Protein Matrix Substitution model object. This will take the unscaled empirical matrix and use it and the motif frequencies to create a scaled Q matrix.
 

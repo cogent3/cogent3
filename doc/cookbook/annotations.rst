@@ -468,10 +468,10 @@ We mask exon's on an alignment.
 
 .. doctest::
 
-    >>> from cogent3 import make_aligned_seqs, DNA
+    >>> from cogent3 import make_aligned_seqs
     >>> aln = make_aligned_seqs(data=[['x', 'C-CCCAAAAAGGGAA'],
     ...                      ['y', '-T----TTTTG-GTT']],
-    ...                moltype=DNA, array_align=False)
+    ...                moltype="dna", array_align=False)
     >>> exon = aln.get_seq('x').add_feature('exon', 'norwegian', [(0,4)])
     >>> print(aln.with_masked_annotations('exon', mask_char='?'))
     >x

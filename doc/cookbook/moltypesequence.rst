@@ -11,14 +11,47 @@ MolType
 
 One issue with ``MolType``'s is that they need to know about ``Sequence``, ``Alphabet``, and other objects, but, at the same time, those objects need to know about the ``MolType``. It is thus essential that the connection between these other types and the ``MolType`` can be made after the objects are created.
 
+The available moltypes
+----------------------
+
+.. doctest::
+    
+    >>> from cogent3 import available_moltypes
+    >>> available_moltypes() # doctest: +SKIP
+    Specify a moltype by the string 'Abbreviation' (case insensitive).
+    ===================================================================================
+         Abbreviation    Number of states                                       Moltype
+    -----------------------------------------------------------------------------------
+                   ab                   2                           MolType(('a', 'b'))
+                  dna                   4                 MolType(('T', 'C', 'A', 'G'))
+                  rna                   4                 MolType(('U', 'C', 'A', 'G'))
+              protein                  21    MolType(('A', 'C', 'D', 'E', 'F', 'G', ...
+    protein_with_stop                  22    MolType(('A', 'C', 'D', 'E', 'F', 'G', ...
+                 text                  52    MolType(('a', 'b', 'c', 'd', 'e', 'f', ...
+                bytes                 256    MolType(('\x00', '\x01', '\x02', '\x03'...
+    -----------------------------------------------------------------------------------
+    <BLANKLINE>
+
+The ``get_moltype()`` function
+------------------------------
+
+This can take a string and return a moltype.
+
+.. doctest::
+    
+    >>> from cogent3 import get_moltype
+    >>> DNA = get_moltype("dna")
+    >>> DNA
+    MolType(('T', 'C', 'A', 'G'))
+
 Setting up a ``MolType`` object with an RNA sequence
 ----------------------------------------------------
 
 .. doctest::
 
-   >>> from cogent3.core.moltype import MolType, IUPAC_RNA_chars,\
-   ...   IUPAC_RNA_ambiguities, RnaStandardPairs, RnaMW,\
-   ...   IUPAC_RNA_ambiguities_complements
+   >>> from cogent3.core.moltype import (MolType, IUPAC_RNA_chars,
+   ...   IUPAC_RNA_ambiguities, RnaStandardPairs, RnaMW,
+   ...   IUPAC_RNA_ambiguities_complements)
    >>> from cogent3.core.sequence import NucleicAcidSequence
    >>> testrnaseq = 'ACGUACGUACGUACGU'
    >>> RnaMolType = MolType(
@@ -119,6 +152,6 @@ Verify sequences
 
 The ``Sequence`` object contains classes that represent biological sequence data. These provide generic biological sequence manipulation functions, plus functions that are critical for the ``evolve`` module calculations.
 
-.. warning:: Do not import sequence classes directly! It is expected that you will access them through ``MolType`` objects. The most common molecular types ``DNA``, ``RNA``, ``PROTEIN`` are provided as top level imports in ``cogent3`` (e.g. ``cogent3.DNA``). Sequence classes depend on information from the ``MolType`` that is **only** available after ``MolType`` has been imported. Sequences are intended to be immutable. This is not enforced by the code for performance reasons, but don't alter the ``MolType`` or the sequence data after creation.
+.. warning:: Do not import sequence classes directly! It is expected that you will access them through ``MolType`` objects. The most common molecular types ``DNA``, ``make_aligned_seqs(``, ``PROTEIN`` are provided as top level imports in ``cogent3`` (e.g. ``cogent3.DNA``). Sequence classes depend on information from the ``MolType`` that is **only** available after ``MolType`` has been imported. Sequences are intended to be immutable. This is not enforced by the code for performance reasons, but don't alter the ``MolType`` or the sequence data after creation.
 
 More detailed usage of sequence objects can be found in :ref:`dna-rna-seqs`.

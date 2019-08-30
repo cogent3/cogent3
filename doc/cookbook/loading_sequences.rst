@@ -15,8 +15,8 @@ The function ``load_unaligned_seqs()`` creates a sequence collection, ``load_ali
 
 .. doctest::
 
-    >>> from cogent3 import load_aligned_seqs, DNA
-    >>> aln = load_aligned_seqs('data/long_testseqs.fasta', moltype=DNA)
+    >>> from cogent3 import load_aligned_seqs
+    >>> aln = load_aligned_seqs('data/long_testseqs.fasta', moltype="dna")
     >>> type(aln)
     <class 'cogent3.core.alignment.ArrayAlignment'>
 
@@ -29,8 +29,8 @@ The ``load_unaligned_seqs()`` function returns a sequence collection.
 
 .. doctest::
 
-    >>> from cogent3 import load_unaligned_seqs, DNA
-    >>> seqs = load_unaligned_seqs('data/long_testseqs.fasta', moltype=DNA)
+    >>> from cogent3 import load_unaligned_seqs
+    >>> seqs = load_unaligned_seqs('data/long_testseqs.fasta', moltype="dna")
     >>> print(type(seqs))
     <class 'cogent3.core.alignment.SequenceCollection'>
 
@@ -43,8 +43,8 @@ Specifying the file format
 
 .. doctest::
 
-    >>> from cogent3 import load_aligned_seqs, DNA
-    >>> aln = load_aligned_seqs('data/long_testseqs.fasta', moltype=DNA,
+    >>> from cogent3 import load_aligned_seqs
+    >>> aln = load_aligned_seqs('data/long_testseqs.fasta', moltype="dna",
     ...                  format='fasta')
     ...
     >>> aln
@@ -83,7 +83,7 @@ Simple case of loading a ``list`` of aligned amino acid sequences in FASTA forma
 .. doctest::
 
     >>> from cogent3 import make_aligned_seqs
-    >>> from cogent3 import DNA, PROTEIN
+    >>> from cogent3 import DNA
     >>> protein_seqs = ['>seq1','DEKQL-RG','>seq2','DDK--SRG']
     >>> proteins_loaded = make_aligned_seqs(protein_seqs)
     >>> proteins_loaded.moltype
@@ -94,7 +94,7 @@ Simple case of loading a ``list`` of aligned amino acid sequences in FASTA forma
     >seq2
     DDK--SRG
     <BLANKLINE>
-    >>> proteins_loaded = make_aligned_seqs(protein_seqs, moltype=PROTEIN)
+    >>> proteins_loaded = make_aligned_seqs(protein_seqs, moltype="protein")
     >>> print(proteins_loaded)
     >seq1
     DEKQL-RG
@@ -109,9 +109,9 @@ Load a list of aligned nucleotide sequences, while specifying the DNA molecule t
 
 .. doctest::
 
-    >>> from cogent3 import make_aligned_seqs, DNA
+    >>> from cogent3 import make_aligned_seqs
     >>> DNA_seqs = ['>sample1 Mus musculus','AACCTGC--C','>sample2 Gallus gallus','AAC-TGCAAC']
-    >>> loaded_seqs = make_aligned_seqs(DNA_seqs, moltype=DNA, label_to_name=lambda x: x.split()[0])
+    >>> loaded_seqs = make_aligned_seqs(DNA_seqs, moltype="dna", label_to_name=lambda x: x.split()[0])
     >>> print(loaded_seqs)
     >sample1
     AACCTGC--C
