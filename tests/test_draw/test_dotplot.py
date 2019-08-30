@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from cogent3 import DNA, LoadSeqs
+from cogent3 import DNA, load_aligned_seqs
 from cogent3.core.alignment import Aligned
 from cogent3.draw.dotplot import (
     Dotplot,
@@ -120,7 +120,7 @@ class TestUtilFunctions(TestCase):
 
     def test_dotplot_regression(self):
         """Tests whether dotplot produces traces and in correct ordering. Also tests if pop_trace() works"""
-        aln = LoadSeqs("data/brca1.fasta", moltype="dna")
+        aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
         aln = aln.take_seqs(["Human", "Chimpanzee"])
         aln = aln[:200]
         dp = aln.dotplot()

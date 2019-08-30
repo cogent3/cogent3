@@ -9,7 +9,7 @@ An example of how to calculate the pairwise distances for a set of sequences.
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
+    >>> from cogent3 import load_aligned_seqs
     >>> from cogent3.evolve import distance
 
 Import a substitution model (or create your own)
@@ -22,7 +22,7 @@ Load my alignment
 
 .. doctest::
 
-    >>> al = LoadSeqs("data/long_testseqs.fasta")
+    >>> al = load_aligned_seqs("data/long_testseqs.fasta")
 
 Create a pairwise distances object with your alignment and substitution model
 

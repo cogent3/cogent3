@@ -3,7 +3,7 @@ import os
 import sys
 import unittest
 
-from cogent3 import DNA, LoadSeqs
+from cogent3 import DNA, make_aligned_seqs
 from cogent3.parse.cigar import (
     CigarParser,
     aligned_from_cigar,
@@ -31,8 +31,8 @@ class TestCigar(unittest.TestCase):
         self.map, self.seq = self.aln_seq.parse_out_gaps()
         self.map1, self.seq1 = self.aln_seq1.parse_out_gaps()
         self.slices = [(1, 4), (0, 8), (7, 12), (0, 1), (3, 5)]
-        self.aln = LoadSeqs(
-            data={"FAKE01": self.aln_seq, "FAKE02": self.aln_seq1}, array_align=False
+        self.aln = make_aligned_seqs(
+            {"FAKE01": self.aln_seq, "FAKE02": self.aln_seq1}, array_align=False
         )
         self.cigars = {"FAKE01": self.cigar_text, "FAKE02": map_to_cigar(self.map1)}
         self.seqs = {"FAKE01": str(self.seq), "FAKE02": str(self.seq1)}

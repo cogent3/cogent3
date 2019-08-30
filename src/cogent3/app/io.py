@@ -4,7 +4,7 @@ import zipfile
 
 import numpy
 
-from cogent3 import LoadSeqs
+from cogent3 import load_aligned_seqs, load_unaligned_seqs
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.moltype import get_moltype
 from cogent3.format.alignment import FORMATTERS
@@ -125,7 +125,8 @@ class _seq_loader:
             seqs = self.klass(data=data, moltype=self.moltype)
             seqs.info.source = abs_path
         elif not isinstance(path, SequenceCollection):
-            seqs = LoadSeqs(data=path, moltype=self.moltype, aligned=self.aligned)
+            func = load_aligned_seqs if self.aligned else load_unaligned_seqs
+            seqs = func(path, moltype=self.moltype)
         else:
             seqs = path  # it is a SequenceCollection
 

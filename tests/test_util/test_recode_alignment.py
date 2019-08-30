@@ -9,7 +9,7 @@ File created on 19 Jun 2007.
 
 from numpy import array
 
-from cogent3 import LoadSeqs
+from cogent3 import make_aligned_seqs
 from cogent3.core.alignment import ArrayAlignment
 from cogent3.core.alphabet import Alphabet
 from cogent3.evolve.models import DSO78_freqs, DSO78_matrix
@@ -53,7 +53,9 @@ class RecodeAlignmentTests(TestCase):
         self.hydropathy_3 = alphabets["hydropathy_3"]
         self.orig = alphabets["orig"]
         self.aln = ArrayAlignment(data={"1": "CDDFBXZ", "2": "CDD-BXZ", "3": "AAAASS-"})
-        self.aln2 = LoadSeqs(data={"1": "CDDFBXZ", "2": "CDD-BXZ", "3": "AAAASS-"})
+        self.aln2 = make_aligned_seqs(
+            data={"1": "CDDFBXZ", "2": "CDD-BXZ", "3": "AAAASS-"}
+        )
 
     def test_build_alphabet_map_handles_bad_data(self):
         """build_alphabet_map:  bad data raises error """
@@ -224,11 +226,11 @@ class RecodeAlignmentTests(TestCase):
     # def test_recode_alignment(self):
     #     """recode_alignment: recode alignment works as expected
     #     """
-    #     expected_c2 = LoadSeqs(data=\
+    #     expected_c2 = make_aligned_seqs(data=\
     #         {'1':'AKKAKAK','2':'AKK-KAK','3':'AAAAAA-'})
-    #     expected_h3 = LoadSeqs(data=\
+    #     expected_h3 = make_aligned_seqs(data=\
     #         {'1':'PRRPRPR','2':'PRR-RPR','3':'PPPPYY-'})
-    #     expected_aa = LoadSeqs(data=\
+    #     expected_aa = make_aligned_seqs(data=\
     #         {'1':'AAAAAAA','2':'AAA-AAA','3':'AAAAAA-'})
     #
     #     # provided with alphabet_id
@@ -255,7 +257,7 @@ class RecodeAlignmentTests(TestCase):
     #
     #     # non-alphabetic character mapped same as alphabetic characters
     #     actual = recode_alignment(self.aln2, alphabet_def=[('.','-')])
-    #     expected = LoadSeqs(\
+    #     expected = make_aligned_seqs(\
     #      data={'1':'CDDFBXZ', '2':'CDD.BXZ', '3':'AAAASS.'})
     #     self.assertEqual(actual,expected)
     #

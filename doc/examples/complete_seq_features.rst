@@ -147,8 +147,8 @@ Sequence features can be accessed via a containing ``Alignment``:
 
 .. doctest::
     
-    >>> from cogent3 import LoadSeqs
-    >>> aln = LoadSeqs(data=[['x','-AAAAAAAAA'], ['y','TTTT--TTTT']], array_align=False)
+    >>> from cogent3 import make_aligned_seqs
+    >>> aln = make_aligned_seqs([['x','-AAAAAAAAA'], ['y','TTTT--TTTT']], array_align=False)
     >>> print(aln)
     >x
     -AAAAAAAAA
@@ -191,7 +191,7 @@ We copy the annotations from another sequence,
 
 .. doctest::
     
-    >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--CCCC']], array_align=False)
+    >>> aln = make_aligned_seqs([['x', '-AAAAAAAAA'], ['y', 'TTTT--CCCC']], array_align=False)
     >>> s = DNA.make_seq("AAAAAAAAA", name="x")
     >>> exon = s.add_annotation(Feature, 'exon', 'fred', [(3,8)])
     >>> exon = aln.get_seq('x').copy_annotations(s)
@@ -218,7 +218,7 @@ If the feature lies outside the sequence being copied to, you get a lost span
 
 .. doctest::
 
-    >>> aln = LoadSeqs(data=[['x', '-AAAA'], ['y', 'TTTTT']], array_align=False)
+    >>> aln = make_aligned_seqs([['x', '-AAAA'], ['y', 'TTTTT']], array_align=False)
     >>> seq = DNA.make_seq('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> exon = seq.add_feature('exon', 'A', [(5,8)])
     >>> aln.get_seq('x').copy_annotations(seq)
@@ -232,7 +232,7 @@ You can copy to a sequence with a different name, in a different alignment if th
 
 .. doctest::
 
-    >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']], array_align=False)
+    >>> aln = make_aligned_seqs([['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']], array_align=False)
     >>> seq = DNA.make_seq('CCCCCCCCCCCCCCCCCCCC', 'x')
     >>> match_exon = seq.add_feature('exon', 'A', [(5,8)])
     >>> aln.get_seq('y').copy_annotations(seq)
@@ -244,7 +244,7 @@ If the sequence is shorter, again you get a lost span.
 
 .. doctest::
 
-    >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']], array_align=False)
+    >>> aln = make_aligned_seqs([['x', '-AAAAAAAAA'], ['y', 'TTTT--TTTT']], array_align=False)
     >>> diff_len_seq = DNA.make_seq('CCCCCCCCCCCCCCCCCCCCCCCCCCCC', 'x')
     >>> nonmatch = diff_len_seq.add_feature('repeat', 'A', [(12,14)])
     >>> aln.get_seq('y').copy_annotations(diff_len_seq)
@@ -256,7 +256,7 @@ We consider cases where there are terminal gaps.
 
 .. doctest::
     
-    >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', '------TTTT']], array_align=False)
+    >>> aln = make_aligned_seqs([['x', '-AAAAAAAAA'], ['y', '------TTTT']], array_align=False)
     >>> exon = aln.get_seq('x').add_feature('exon', 'fred', [(3,8)])
     >>> aln_exons = list(aln.get_annotations_from_seq('x', 'exon'))
     >>> print(aln_exons)
@@ -267,7 +267,7 @@ We consider cases where there are terminal gaps.
     >y
     --TTT
     <BLANKLINE>
-    >>> aln = LoadSeqs(data=[['x', '-AAAAAAAAA'], ['y', 'TTTT--T---']], array_align=False)
+    >>> aln = make_aligned_seqs([['x', '-AAAAAAAAA'], ['y', 'TTTT--T---']], array_align=False)
     >>> exon = aln.get_seq('x').add_feature('exon', 'fred', [(3,8)])
     >>> aln_exons = list(aln.get_annotations_from_seq('x', 'exon'))
     >>> print(aln_exons[0].get_slice())
@@ -281,7 +281,7 @@ In this case, only those residues included within the feature are covered - note
 
 .. doctest::
     
-    >>> aln = LoadSeqs(data=[['x', 'C-CCCAAAAA'], ['y', '-T----TTTT']],
+    >>> aln = make_aligned_seqs([['x', 'C-CCCAAAAA'], ['y', '-T----TTTT']],
     ...                      moltype=DNA, array_align=False)
     >>> print(aln)
     >x
@@ -349,7 +349,7 @@ We create an alignment with a sequence that has two different annotation types.
 
 .. doctest::
     
-    >>> aln = LoadSeqs(data=[['x', 'C-CCCAAAAAGGGAA'], ['y', '-T----TTTTG-GTT']],
+    >>> aln = make_aligned_seqs([['x', 'C-CCCAAAAAGGGAA'], ['y', '-T----TTTTG-GTT']],
     ...               array_align=False)
     >>> print(aln)
     >x
@@ -436,8 +436,8 @@ It shouldn't matter whether annotated coordinates are entered separately, or as 
 .. doctest::
     
     >>> data = [['human', 'CGAAACGTTT'], ['mouse', 'CTAAACGTCG']]
-    >>> as_series = LoadSeqs(data=data, array_align=False)
-    >>> as_items = LoadSeqs(data=data, array_align=False)
+    >>> as_series = make_aligned_seqs(data, array_align=False)
+    >>> as_items = make_aligned_seqs(data, array_align=False)
 
 We add annotations to the sequences as a series.
 

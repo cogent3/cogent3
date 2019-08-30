@@ -7,7 +7,7 @@ This file contains an example of importing an empirically determined protein sub
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, LoadTree, PROTEIN
+    >>> from cogent3 import load_aligned_seqs, LoadTree, PROTEIN
     >>> from cogent3.evolve.substitution_model import EmpiricalProteinMatrix
     >>> from cogent3.parse.paml_matrix import PamlMatrixParser
 
@@ -22,8 +22,7 @@ Import the alignment, explicitly setting the ``moltype`` to be protein
 
 .. doctest::
 
-    >>> al = LoadSeqs('data/abglobin_aa.phylip',
-    ...                interleaved=True,
+    >>> al = load_aligned_seqs('data/abglobin_aa.phylip',
     ...                moltype=PROTEIN,
     ...                )
 

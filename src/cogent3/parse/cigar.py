@@ -18,7 +18,7 @@ the aligned sequence will be:
 
 import re
 
-from cogent3 import DNA, LoadSeqs
+from cogent3 import DNA, make_aligned_seqs
 from cogent3.core.location import LostSpan, Map, Span, _LostSpan
 
 
@@ -165,5 +165,5 @@ def CigarParser(
                 data[seqname] = seq[seq_loc[0] : seq_loc[1]].gapped_by_map(m)
             else:
                 data[seqname] = DNA.make_seq("-" * (aln_loc[1] - aln_loc[0]))
-    aln = LoadSeqs(data=data, aligned=True)
+    aln = make_aligned_seqs(data)
     return aln

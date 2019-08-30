@@ -2,7 +2,7 @@
 
 import math
 
-from cogent3 import DNA, LoadSeqs
+from cogent3 import DNA, make_aligned_seqs
 from cogent3.evolve.best_likelihood import (
     BestLogLikelihood,
     _take,
@@ -35,7 +35,7 @@ def makeSampleAlignment(gaps=False, ambiguities=False):
     else:
         seqs_list = ["AAACCCGGGTTTA", "CCCGGGTTTAAAC", "GGGTTTAAACCCG"]
     seqs = list(zip("abc", seqs_list))
-    return LoadSeqs(data=seqs)
+    return make_aligned_seqs(data=seqs)
 
 
 class TestGoldman93(TestCase):

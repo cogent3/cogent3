@@ -4,7 +4,7 @@ import os
 import sys
 import unittest
 
-from cogent3 import LoadSeqs, LoadTree
+from cogent3 import LoadTree, load_aligned_seqs
 from cogent3.evolve import (
     bootstrap,
     likelihood_function,
@@ -63,8 +63,8 @@ class BootstrapTests(unittest.TestCase):
 
     def getalignmentobj(self):
         moltype = self.getsubmod().moltype
-        alignmentobj = LoadSeqs(
-            filename=os.path.join(data_path, "brca1.fasta"), moltype=moltype
+        alignmentobj = load_aligned_seqs(
+            os.path.join(data_path, "brca1.fasta"), moltype=moltype
         )
         return alignmentobj.take_seqs(seqnames)[:1000]
 

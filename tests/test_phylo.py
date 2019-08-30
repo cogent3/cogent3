@@ -5,13 +5,8 @@ import warnings
 
 from numpy import exp, log
 
-from cogent3 import LoadSeqs, LoadTree
-from cogent3.phylo.consensus import (
-    get_splits,
-    get_tree,
-    majority_rule,
-    weighted_majority_rule,
-)
+from cogent3 import LoadTree
+from cogent3.phylo.consensus import get_splits, get_tree, majority_rule
 from cogent3.phylo.least_squares import wls
 from cogent3.phylo.nj import gnj, nj
 from cogent3.phylo.tree_collection import (

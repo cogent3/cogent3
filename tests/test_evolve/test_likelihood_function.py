@@ -19,7 +19,7 @@ import numpy
 from numpy import dot, ones
 from numpy.testing import assert_allclose
 
-from cogent3 import DNA, LoadSeqs, LoadTree
+from cogent3 import DNA, LoadTree, load_aligned_seqs, make_aligned_seqs
 from cogent3.evolve import ns_substitution_model, predicate, substitution_model
 from cogent3.evolve.models import (
     CNFGTR,
@@ -62,7 +62,9 @@ __status__ = "Production"
 base_path = os.getcwd()
 data_path = os.path.join(base_path, "data")
 
-ALIGNMENT = LoadSeqs(moltype=DNA, filename=os.path.join(data_path, "brca1.fasta"))
+ALIGNMENT = load_aligned_seqs(
+    moltype=DNA, filename=os.path.join(data_path, "brca1.fasta")
+)
 
 OTU_NAMES = ["Human", "Mouse", "HowlerMon"]
 
@@ -71,7 +73,7 @@ _data = {
     "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
     "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
 }
-_aln = LoadSeqs(data=_data, moltype=DNA)
+_aln = make_aligned_seqs(data=_data, moltype=DNA)
 
 
 ########################################################
@@ -168,7 +170,7 @@ class LikelihoodCalcs(TestCase):
         aln = aln.to_dict()
         one = aln.pop("Mouse")
         aln["root"] = one
-        aln = LoadSeqs(data=aln)
+        aln = make_aligned_seqs(data=aln)
         submod = TimeReversibleNucleotide()
         tree = LoadTree(treestring="%s" % str(tuple(aln.names)))
         lf = submod.make_likelihood_function(tree)
@@ -317,7 +319,7 @@ class LikelihoodFunctionTests(TestCase):
             equal_motif_probs=True, predicates={"beta": "transition"}
         )
 
-        self.data = LoadSeqs(
+        self.data = load_aligned_seqs(
             filename=os.path.join(data_path, "brca1_5.paml"),
             moltype=self.submodel.moltype,
         )
@@ -482,7 +484,7 @@ NineBande    root    1.00  1.00
 
     def test_simulate_alignment2(self):
         "Simulate alignment with dinucleotide model"
-        al = LoadSeqs(data={"a": "ggaatt", "c": "cctaat"})
+        al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"})
         t = LoadTree(treestring="(a,c);")
         sm = substitution_model.TimeReversibleDinucleotide(mprob_model="tuple")
         lf = sm.make_likelihood_function(t)
@@ -494,7 +496,7 @@ NineBande    root    1.00  1.00
         """Simulated alignment with gap-induced ambiguous positions
         preserved"""
         t = LoadTree(treestring="(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;")
-        al = LoadSeqs(
+        al = make_aligned_seqs(
             data={
                 "a": "g--cactat?",
                 "b": "---c-ctcct",
@@ -517,7 +519,7 @@ NineBande    root    1.00  1.00
         """provide a root sequence for simulating an alignment"""
 
         def use_root_seq(root_sequence):
-            al = LoadSeqs(data={"a": "ggaatt", "c": "cctaat"})
+            al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"})
             t = LoadTree(treestring="(a,c);")
             sm = substitution_model.TimeReversibleDinucleotide(mprob_model="tuple")
             lf = sm.make_likelihood_function(t)
@@ -737,7 +739,7 @@ NineBande      root    1.0000    1.0000
 
     def test_get_all_rate_matrices(self):
         """return matrices when just a pair"""
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={
                 "Human": "GGCCTCCTGCGCTCCCTGGCCCGCCACCAG",
                 "Opossum": "GGCTCCCTGCGCTCCCTTTCCCGCCGCCGG",
@@ -782,7 +784,7 @@ NineBande      root    1.0000    1.0000
 
     def test_exercise_set_align(self):
         "lf.set_align should work for different models"
-        al = LoadSeqs(data={"a": "ggaatt", "c": "cctaat"})
+        al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"})
         t = LoadTree(treestring="(a,c);")
         for klass in [CNFGTR, Y98, MG94HKY]:
             sm = klass()
@@ -896,7 +898,7 @@ NineBande      root    1.0000    1.0000
         """correctly use and apply param rules from site-het and phyloHMM models"""
         with open("data/site-het-param-rules.json") as infile:
             rules = json.load(infile)
-        aln = LoadSeqs("data/primates_brca1.fasta", moltype="dna")
+        aln = load_aligned_seqs("data/primates_brca1.fasta", moltype="dna")
         tree = LoadTree("data/primates_brca1.tree")
         # gamma distributed length
         rule_lnL = rules.pop("gamma-length")
@@ -960,7 +962,7 @@ NineBande      root    1.0000    1.0000
         with open("data/site-het-param-rules.json") as infile:
             rules = json.load(infile)
 
-        aln = LoadSeqs("data/primates_brca1.fasta", moltype="dna")
+        aln = load_aligned_seqs("data/primates_brca1.fasta", moltype="dna")
         tree = LoadTree("data/primates_brca1.tree")
         rule_lnL = rules.pop("gamma-length")
         sm = get_model("HKY85", ordered_param="rate", distribution="gamma")
@@ -972,7 +974,7 @@ NineBande      root    1.0000    1.0000
 
     def test_bin_probs(self):
         """posterior bin probs same length as aln for rate-het model"""
-        aln = LoadSeqs("data/primates_brca1.fasta", moltype="dna")
+        aln = load_aligned_seqs("data/primates_brca1.fasta", moltype="dna")
         tree = LoadTree("data/primates_brca1.tree")
         sm = get_model("HKY85", ordered_param="rate", distribution="gamma")
         lf = sm.make_likelihood_function(tree, bins=4, sites_independent=False)
@@ -1261,7 +1263,7 @@ NineBande      root    1.0000    1.0000
 
     def test_bin_probs(self):
         """bin probs has same length as alignment for monomer alphabet"""
-        aln = LoadSeqs("data/primates_brca1.fasta", moltype="dna")
+        aln = load_aligned_seqs("data/primates_brca1.fasta", moltype="dna")
         tree = LoadTree("data/primates_brca1.tree")
         sm = get_model("HKY85", ordered_param="rate", distribution="gamma")
         lf = sm.make_likelihood_function(tree, bins=4, sites_independent=False)
@@ -1273,7 +1275,7 @@ NineBande      root    1.0000    1.0000
         """returns correct paralinear from a lf"""
         from cogent3.maths.measure import paralinear
 
-        aln = LoadSeqs("data/primates_brca1.fasta", moltype="dna")
+        aln = load_aligned_seqs("data/primates_brca1.fasta", moltype="dna")
         tree = LoadTree("data/primates_brca1.tree")
         names = ["TreeShrew", "Mouse", "Rhesus", "Orangutan", "Human"]
         tree = tree.get_sub_tree(names)
@@ -1330,7 +1332,7 @@ class ComparisonTests(TestCase):
     def test_simple_codon(self):
         """return same likelihood for simple codon model"""
         # from docs/examples/neutral_test
-        aln = LoadSeqs("data/long_testseqs.fasta", moltype="dna")
+        aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
         tree = LoadTree("data/long_testseqs.tree")
         sm = get_model("MG94GTR")
         lf = sm.make_likelihood_function(tree, digits=3, space=2)
@@ -1411,9 +1413,7 @@ class ComparisonTests(TestCase):
 
     def test_codon_rate_het(self):
         """recap rate het likelihoods"""
-        from cogent3 import LoadSeqs, LoadTree, DNA
-
-        aln = LoadSeqs("data/primate_brca1.fasta", moltype=DNA)
+        aln = load_aligned_seqs("data/primate_brca1.fasta", moltype=DNA)
         tree = LoadTree("data/primate_brca1.tree")
         cnf = get_model("CNFGTR")
         rate_lf = cnf.make_likelihood_function(
@@ -1662,7 +1662,7 @@ class ComparisonTests(TestCase):
 
     def test_time_rate_het(self):
         """recap the zhang model"""
-        aln = LoadSeqs("data/primate_brca1.fasta", moltype=DNA)
+        aln = load_aligned_seqs("data/primate_brca1.fasta", moltype=DNA)
         tree = LoadTree("data/primate_brca1.tree")
         cnf = get_model("CNFGTR")
         lf = cnf.make_likelihood_function(
@@ -1933,7 +1933,7 @@ class ComparisonTests(TestCase):
         """recap multiple-loci"""
         from cogent3.recalculation.scope import EACH, ALL
 
-        aln = LoadSeqs("data/long_testseqs.fasta")
+        aln = load_aligned_seqs("data/long_testseqs.fasta")
         half = len(aln) // 2
         aln1 = aln[:half]
         aln2 = aln[half:]

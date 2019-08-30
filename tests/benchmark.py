@@ -2,7 +2,7 @@
 
 import sys  # ,hotshot
 
-from cogent3 import LoadSeqs, LoadTree
+from cogent3 import LoadTree, load_aligned_seqs
 from cogent3.evolve.substitution_model import (
     TimeReversibleCodon,
     TimeReversibleDinucleotide,
@@ -21,7 +21,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-ALIGNMENT = LoadSeqs(filename="data/brca1.fasta")
+ALIGNMENT = load_aligned_seqs(filename="data/brca1.fasta")
 TREE = LoadTree(filename="data/murphy.tree")
 
 

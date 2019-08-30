@@ -12,7 +12,7 @@ import numpy
 from numpy import arange, array, nan, transpose
 from numpy.testing import assert_allclose
 
-from cogent3 import LoadSeqs
+from cogent3 import load_aligned_seqs, load_unaligned_seqs
 from cogent3.core.alignment import (
     Alignment,
     ArrayAlignment,
@@ -185,7 +185,7 @@ class SequenceCollectionBaseTests(object):
     """
 
     Class = SequenceCollection
-    brca1_data = LoadSeqs("data/brca1.fasta").to_dict()
+    brca1_data = load_aligned_seqs("data/brca1.fasta").to_dict()
 
     def setUp(self):
         """Define some standard SequenceCollection objects."""
@@ -1372,8 +1372,8 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         self.assertRaises(ValueError, self.ragged.pad_seqs, 5)
 
     def test_info_source(self):
-        """info.source exists if LoadSeqs given a filename"""
-        seqs = LoadSeqs("data/brca1.fasta", aligned=False)
+        """info.source exists if load seqs given a filename"""
+        seqs = load_unaligned_seqs("data/brca1.fasta")
         self.assertEqual(seqs.info.source, "data/brca1.fasta")
 
 
@@ -2244,14 +2244,14 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # attribute
         coevo = aln.coevolution(method="nmi", drawable="box", show_progress=False)
         self.assertTrue(hasattr(coevo, "drawable"))
-        aln = LoadSeqs("data/brca1.fasta", moltype="dna")
+        aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
         aln = aln.take_seqs(aln.names[:20])
         aln = aln.no_degenerates()[:20]
 
     def test_info_source(self):
-        """info.source exists if LoadSeqs given a filename"""
+        """info.source exists if load_aligned_seqs given a filename"""
         array_align = self.Class == ArrayAlignment
-        seqs = LoadSeqs("data/brca1.fasta", array_align=array_align)
+        seqs = load_aligned_seqs("data/brca1.fasta", array_align=array_align)
         self.assertEqual(seqs.info.source, "data/brca1.fasta")
 
 
@@ -2640,7 +2640,7 @@ class ArrayAlignmentSpecificTests(TestCase):
 
     def test_coevolution_segments(self):
         """specifying coordinate segments produces matrix with just those"""
-        aln = LoadSeqs("data/brca1.fasta", moltype="dna")
+        aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
         aln = aln.take_seqs(aln.names[:20])
         aln = aln.no_degenerates()[:20]
         coevo = aln.coevolution(segments=[(4, 6), (11, 13)], show_progress=False)

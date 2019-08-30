@@ -11,9 +11,9 @@ We start with the standard imports, plus using a canned codon substitution model
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, LoadTree
+    >>> from cogent3 import load_aligned_seqs, LoadTree
     >>> from cogent3.evolve.models import MG94HKY
-    >>> aln = LoadSeqs("data/long_testseqs.fasta")
+    >>> aln = load_aligned_seqs("data/long_testseqs.fasta")
     >>> tree = LoadTree("data/test.tree")
 
 We construct the substitution model and likelihood function and set the alignment.

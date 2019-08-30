@@ -7,7 +7,7 @@ import time
 
 import scitrack
 
-from cogent3 import LoadSeqs
+from cogent3 import make_aligned_seqs
 from cogent3.core.alignment import SequenceCollection
 from cogent3.util import progress_display as UI
 from cogent3.util.misc import get_object_provenance, open_
@@ -513,7 +513,10 @@ class _seq_loader:
             seqs = self.klass(data=data, moltype=self.moltype)
             seqs.info.path = data
         elif not isinstance(data, SequenceCollection):
-            seqs = LoadSeqs(data=data, moltype=self.moltype, aligned=self.aligned)
+            if self.aligned:
+                seqs = make_aligned_seqs(data, moltype=self.moltype)
+            else:
+                seqs = make_unaligned_seqs(data, moltype=self.moltype)
 
         if self._output_type == "sequence":
             seqs = seqs.degap()

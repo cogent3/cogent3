@@ -2,7 +2,7 @@
 
 import unittest
 
-from cogent3 import DNA, LoadSeqs
+from cogent3 import DNA, make_aligned_seqs
 from cogent3.core.annotation import Feature, _Annotatable, _Feature
 from cogent3.core.location import Map, Span
 
@@ -99,7 +99,7 @@ class MapTest(unittest.TestCase):
         self.assertEqual(str(answer[0]), "TCGAT")
 
     def test_get_by_seq_annotation(self):
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"a": "ATCGAAATCGAT", "b": "ATCGA--TCGAT"}, array_align=False
         )
         b = aln.get_seq("b")

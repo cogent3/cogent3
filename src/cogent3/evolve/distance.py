@@ -4,7 +4,7 @@
 from itertools import combinations
 from warnings import warn
 
-from cogent3 import LoadSeqs, LoadTree
+from cogent3 import LoadTree
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.maths.stats.number import NumberCounter
 from cogent3.util import progress_display as UI

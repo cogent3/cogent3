@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from numpy.testing import assert_allclose, assert_raises
 
-from cogent3 import LoadSeqs, LoadTree
+from cogent3 import LoadTree, make_aligned_seqs
 from cogent3.app import evo as evo_app
 from cogent3.app.result import hypothesis_result
 
@@ -58,7 +58,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = LoadSeqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(data=_data, moltype="dna")
         mod = evo_app.model(
             "GN",
             time_het=[dict(edges=["Mouse", "Human"], is_independent=False)],
@@ -91,7 +91,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = LoadSeqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(data=_data, moltype="dna")
         mod = evo_app.model(
             "BH", opt_args=dict(max_evaluations=100, limit_action="ignore")
         )
@@ -105,7 +105,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = LoadSeqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(data=_data, moltype="dna")
         model1 = evo_app.model(
             "F81", opt_args=dict(max_evaluations=25, limit_action="ignore")
         )
@@ -142,7 +142,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = LoadSeqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(data=_data, moltype="dna")
         tree = LoadTree(tip_names=aln.names)
         mod = evo_app.model(
             "F81",
@@ -161,7 +161,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = LoadSeqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(data=_data, moltype="dna")
         model1 = evo_app.model(
             "F81", opt_args=dict(max_evaluations=25, limit_action="ignore")
         )
@@ -180,7 +180,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = LoadSeqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(data=_data, moltype="dna")
         model1 = evo_app.model(
             "GN", opt_args=dict(max_evaluations=25, limit_action="ignore")
         )
@@ -265,7 +265,7 @@ class TestAncestralStates(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = LoadSeqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(data=_data, moltype="dna")
         mod = evo_app.model(
             "GN", opt_args=dict(max_evaluations=25, limit_action="ignore")
         )
@@ -285,7 +285,7 @@ class TestTabulateStats(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = LoadSeqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(data=_data, moltype="dna")
         mod = evo_app.model(
             "GN", opt_args=dict(max_evaluations=25, limit_action="ignore")
         )

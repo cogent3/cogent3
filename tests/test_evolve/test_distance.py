@@ -8,7 +8,14 @@ import numpy
 
 from numpy.testing import assert_allclose, assert_equal
 
-from cogent3 import DNA, PROTEIN, RNA, LoadSeqs
+from cogent3 import (
+    DNA,
+    PROTEIN,
+    RNA,
+    load_aligned_seqs,
+    make_aligned_seqs,
+    make_unaligned_seqs,
+)
 from cogent3.evolve._pairwise_distance import (
     _fill_diversity_matrix as pyx_fill_diversity_matrix,
 )
@@ -53,13 +60,15 @@ __status__ = "Production"
 class TestPair(TestCase):
     dna_char_indices = get_moltype_index_array(DNA)
     rna_char_indices = get_moltype_index_array(RNA)
-    alignment = LoadSeqs(data=[("s1", "ACGTACGTAC"), ("s2", "GTGTACGTAC")], moltype=DNA)
+    alignment = make_aligned_seqs(
+        data=[("s1", "ACGTACGTAC"), ("s2", "GTGTACGTAC")], moltype=DNA
+    )
 
-    ambig_alignment = LoadSeqs(
+    ambig_alignment = make_aligned_seqs(
         data=[("s1", "RACGTACGTACN"), ("s2", "AGTGTACGTACA")], moltype=DNA
     )
 
-    diff_alignment = LoadSeqs(
+    diff_alignment = make_aligned_seqs(
         data=[("s1", "ACGTACGTTT"), ("s2", "GTGTACGTAC")], moltype=DNA
     )
 
@@ -204,7 +213,7 @@ class TestPair(TestCase):
 
     def test_logdet_pair_dna(self):
         """logdet should produce distances that match MEGA"""
-        aln = LoadSeqs("data/brca1_5.paml", moltype=DNA)
+        aln = load_aligned_seqs("data/brca1_5.paml", moltype=DNA)
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
         dists = logdet_calc.get_pairwise_distances().todict()
@@ -257,7 +266,7 @@ class TestPair(TestCase):
 
     def test_logdet_tk_adjustment(self):
         """logdet using tamura kumar differs from classic"""
-        aln = LoadSeqs("data/brca1_5.paml", moltype=DNA)
+        aln = load_aligned_seqs("data/brca1_5.paml", moltype=DNA)
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
         tk = logdet_calc.get_pairwise_distances()
@@ -267,7 +276,7 @@ class TestPair(TestCase):
 
     def test_logdet_pair_aa(self):
         """logdet shouldn't fail to produce distances for aa seqs"""
-        aln = LoadSeqs("data/brca1_5.paml", moltype=DNA)
+        aln = load_aligned_seqs("data/brca1_5.paml", moltype=DNA)
         aln = aln.get_translation()
         logdet_calc = LogDetPair(moltype=PROTEIN, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
@@ -285,7 +294,7 @@ class TestPair(TestCase):
                 "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTNTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
             ),
         ]
-        aln = LoadSeqs(data=data, moltype=DNA)
+        aln = make_aligned_seqs(data=data, moltype=DNA)
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
 
@@ -308,7 +317,7 @@ class TestPair(TestCase):
                 "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
             ),
         ]
-        aln = LoadSeqs(data=data, moltype=DNA)
+        aln = make_aligned_seqs(data=data, moltype=DNA)
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
         self.assertEqual(logdet_calc.variances[1, 1], None)
@@ -338,7 +347,7 @@ class TestPair(TestCase):
             seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
             seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
         )
-        aln = LoadSeqs(data=data, moltype=DNA)
+        aln = make_aligned_seqs(data=data, moltype=DNA)
 
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
@@ -355,7 +364,7 @@ class TestPair(TestCase):
 
     def test_paralinear_pair_aa(self):
         """paralinear shouldn't fail to produce distances for aa seqs"""
-        aln = LoadSeqs("data/brca1_5.paml", moltype=DNA)
+        aln = load_aligned_seqs("data/brca1_5.paml", moltype=DNA)
         aln = aln.get_translation()
         paralinear_calc = ParalinearPair(moltype=PROTEIN, alignment=aln)
         paralinear_calc.run(show_progress=False)
@@ -373,7 +382,7 @@ class TestPair(TestCase):
                 "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
             ),
         ]
-        aln = LoadSeqs(data=data, moltype=DNA)
+        aln = make_aligned_seqs(data=data, moltype=DNA)
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
 
@@ -405,7 +414,7 @@ class TestPair(TestCase):
                 "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
             ),
         ]
-        aln = LoadSeqs(data=data, moltype=DNA)
+        aln = make_aligned_seqs(data=data, moltype=DNA)
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
 
@@ -434,7 +443,7 @@ class TestPair(TestCase):
             seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
             seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
         )
-        aln = LoadSeqs(data=data, moltype=DNA)
+        aln = make_aligned_seqs(data=data, moltype=DNA)
 
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
@@ -456,7 +465,7 @@ class TestPair(TestCase):
                 "AAAAAAAAAAAAAAAACCCCCCCCCCCCCCCCTTTTTTTTTTTTTTTTGGGGGGGGGGGGGGGG",
             ),
         ]
-        aln = LoadSeqs(data=data, moltype=DNA)
+        aln = make_aligned_seqs(data=data, moltype=DNA)
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
@@ -468,7 +477,7 @@ class TestPair(TestCase):
         """correctly identifies duplicates"""
 
         def get_calc(data):
-            aln = LoadSeqs(data=data, moltype=DNA)
+            aln = make_aligned_seqs(data=data, moltype=DNA)
             calc = ParalinearPair(moltype=DNA, alignment=aln)
             calc(show_progress=False)
             return calc
@@ -641,7 +650,7 @@ class TestDistanceMatrix(TestCase):
 
 class DistancesTests(TestCase):
     def setUp(self):
-        self.al = LoadSeqs(
+        self.al = make_aligned_seqs(
             data={
                 "a": "GTACGTACGATC",
                 "b": "GTACGTACGTAC",
@@ -649,14 +658,13 @@ class DistancesTests(TestCase):
                 "e": "GTACGTACTGGT",
             }
         )
-        self.collection = LoadSeqs(
+        self.collection = make_unaligned_seqs(
             data={
                 "a": "GTACGTACGATC",
                 "b": "GTACGTACGTAC",
                 "c": "GTACGTACGTTC",
                 "e": "GTACGTACTGGT",
-            },
-            aligned=False,
+            }
         )
 
     def assertDistsAlmostEqual(self, expected, observed, precision=4):
@@ -805,7 +813,7 @@ class DistancesTests(TestCase):
 
     def test_no_calc(self):
         """returns None if no calculation done"""
-        al = LoadSeqs("data/brca1_5.paml")
+        al = load_aligned_seqs("data/brca1_5.paml")
         d = EstimateDistances(al, submodel=HKY85())
         self.assertEqual(d.get_pairwise_distances(), None)
 

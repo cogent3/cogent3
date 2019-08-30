@@ -79,7 +79,7 @@ from numpy import (
 )
 from numpy.linalg import norm
 
-from cogent3 import PROTEIN, RNA, LoadSeqs, LoadTree
+from cogent3 import PROTEIN, RNA, LoadTree, make_aligned_seqs
 from cogent3.core.alignment import ArrayAlignment, seqs_from_fasta
 from cogent3.core.alphabet import Alphabet, CharAlphabet
 from cogent3.core.moltype import IUPAC_gap, IUPAC_missing
@@ -1648,7 +1648,7 @@ def merge_alignments(alignment1, alignment2):
             + "but not alignment1 -- did you filter out sequences identifiers"
             + " not common to both alignments?"
         )
-    return LoadSeqs(data=result, array_align=True)
+    return make_aligned_seqs(result, array_align=True)
 
 
 def n_random_seqs(alignment, n):

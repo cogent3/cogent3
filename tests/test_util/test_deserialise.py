@@ -4,7 +4,13 @@ from tempfile import TemporaryDirectory
 
 from numpy.testing import assert_allclose
 
-from cogent3 import LoadSeqs, LoadTree
+from cogent3 import (
+    LoadTree,
+    load_aligned_seqs,
+    load_unaligned_seqs,
+    make_aligned_seqs,
+    make_unaligned_seqs,
+)
 from cogent3.app.result import model_result
 from cogent3.core import alignment, moltype
 from cogent3.evolve.models import get_model
@@ -61,7 +67,7 @@ class TestDeserialising(TestCase):
     def test_roundtrip_seqcoll(self):
         """SequenceCollection to_json enables roundtrip"""
         data = dict(A="TTGT", B="GGCT")
-        seqcoll = LoadSeqs(data=data, moltype="dna", aligned=False)
+        seqcoll = make_unaligned_seqs(data=data, moltype="dna")
         got = deserialise_object(seqcoll.to_json())
         self.assertEqual(got.rc().to_dict(), seqcoll.rc().to_dict())
         self.assertIsInstance(got, alignment.SequenceCollection)
@@ -69,7 +75,7 @@ class TestDeserialising(TestCase):
     def test_roundtrip_arrayalign(self):
         """ArrayAlignment to_json enables roundtrip"""
         data = dict(A="TTGTA", B="GGCT-")
-        arrayalign = LoadSeqs(data=data, moltype="dna")
+        arrayalign = make_aligned_seqs(data=data, moltype="dna")
         got = deserialise_object(arrayalign.to_json())
         self.assertEqual(got.rc().to_dict(), arrayalign.rc().to_dict())
         self.assertIsInstance(got, alignment.ArrayAlignment)
@@ -77,7 +83,7 @@ class TestDeserialising(TestCase):
     def test_roundtrip_align(self):
         """Alignment to_json enables roundtrip"""
         data = dict(A="TTGTA", B="GGCT-")
-        align = LoadSeqs(data=data, moltype="dna", array_align=False)
+        align = make_aligned_seqs(data=data, moltype="dna", array_align=False)
         got = deserialise_object(align.to_json())
         self.assertEqual(got.rc().to_dict(), align.rc().to_dict())
         self.assertIsInstance(got, alignment.Alignment)
@@ -111,7 +117,7 @@ class TestDeserialising(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = LoadSeqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(data=_data, moltype="dna")
         tree = LoadTree(tip_names=aln.names)
         sm = get_model("HKY85")
         lf = sm.make_likelihood_function(tree)
@@ -129,7 +135,7 @@ class TestDeserialising(TestCase):
         with open("data/site-het-param-rules.json") as infile:
             rules = json.load(infile)
 
-        aln = LoadSeqs("data/primates_brca1.fasta", moltype="dna")
+        aln = load_aligned_seqs("data/primates_brca1.fasta", moltype="dna")
         tree = LoadTree("data/primates_brca1.tree")
         rule_lnL = rules.pop("phylohmm-gamma-kappa")
         sm = get_model("HKY85", ordered_param="rate", distribution="gamma")
@@ -147,7 +153,7 @@ class TestDeserialising(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = LoadSeqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(data=_data, moltype="dna")
         tree = LoadTree(tip_names=aln.names)
         sm = get_model("HKY85")
         lf = sm.make_likelihood_function(tree)
@@ -172,7 +178,7 @@ class TestDeserialising(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = LoadSeqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(data=_data, moltype="dna")
         tree = LoadTree(tip_names=aln.names)
         sm = get_model("HKY85")
         lf = sm.make_likelihood_function(tree)

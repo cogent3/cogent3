@@ -24,7 +24,14 @@ from numpy import (
     zeros,
 )
 
-from cogent3 import DNA, PROTEIN, RNA, LoadSeqs, LoadTree
+from cogent3 import (
+    DNA,
+    PROTEIN,
+    RNA,
+    LoadTree,
+    load_aligned_seqs,
+    make_aligned_seqs,
+)
 from cogent3.core.alignment import ArrayAlignment
 from cogent3.core.alphabet import Alphabet, CharAlphabet
 from cogent3.evolve.coevolution import (
@@ -583,13 +590,13 @@ class CoevolutionTests(TestCase):
         coevolve_alignments(
             mi_alignment, aln1, aln2, max_num_seqs=3, merged_aln_filepath=tmp_filepath
         )
-        self.assertEqual(LoadSeqs(tmp_filepath).num_seqs, 3)
+        self.assertEqual(load_aligned_seqs(tmp_filepath).num_seqs, 3)
 
         # keep 2 seqs
         coevolve_alignments(
             mi_alignment, aln1, aln2, max_num_seqs=2, merged_aln_filepath=tmp_filepath
         )
-        self.assertEqual(LoadSeqs(tmp_filepath).num_seqs, 2)
+        self.assertEqual(load_aligned_seqs(tmp_filepath).num_seqs, 2)
 
         # error if no sequence filter
         self.assertRaises(
@@ -1278,7 +1285,7 @@ class CoevolutionTests(TestCase):
     def test_filter_non_parsimony_informative_intramolecular(self):
         """ non-parsimony informative sites in intramolecular matrix -> null
         """
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"1": "ACDE", "2": "ACDE", "3": "ACDE", "4": "ACDE"},
             moltype=PROTEIN,
             array_align=True,
@@ -1295,7 +1302,7 @@ class CoevolutionTests(TestCase):
         filter_non_parsimony_informative(aln, m)
         self.assertFloatEqual(m, expected)
 
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"1": "ACDE", "2": "FCDE", "3": "ACDE", "4": "FCDE"},
             moltype=PROTEIN,
             array_align=True,
@@ -1317,7 +1324,7 @@ class CoevolutionTests(TestCase):
         """ non-parsimony informative sites in intermolecular matrix -> null
         """
         # all non-parsimony informative
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"1": "ACDEWQ", "2": "ACDEWQ", "3": "ACDEWQ", "4": "ACDEWQ"},
             moltype=PROTEIN,
             array_align=True,
@@ -1327,7 +1334,7 @@ class CoevolutionTests(TestCase):
         filter_non_parsimony_informative(aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
         # one non-parsimony informative pair of positions
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"1": "FCDEWD", "2": "ACDEWQ", "3": "ACDEWD", "4": "FCDEWQ"},
             moltype=PROTEIN,
             array_align=True,
@@ -1338,7 +1345,7 @@ class CoevolutionTests(TestCase):
         filter_non_parsimony_informative(aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
         # all parsimony informative
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"1": "FFFFFF", "2": "FFFFFF", "3": "GGGGGG", "4": "GGGGGG"},
             moltype=PROTEIN,
             array_align=True,
@@ -1352,7 +1359,7 @@ class CoevolutionTests(TestCase):
         """filter_exclude_positions: functions for intramolecular data
         """
         # filter zero positions (no excludes)
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"1": "WCDE", "2": "ACDE", "3": "ACDE", "4": "ACDE"},
             moltype=PROTEIN,
             array_align=True,
@@ -1376,7 +1383,7 @@ class CoevolutionTests(TestCase):
         filter_exclude_positions(aln, m)
         self.assertFloatEqual(m, expected)
         # filter zero positions (max_exclude_percentage = percent exclude)
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"1": "-CDE", "2": "A-DE", "3": "AC-E", "4": "ACD-"},
             moltype=PROTEIN,
             array_align=True,
@@ -1400,7 +1407,7 @@ class CoevolutionTests(TestCase):
         filter_exclude_positions(aln, m, max_exclude_percent=0.25)
         self.assertFloatEqual(m, expected)
         # filter zero positions (max_exclude_percentage too high)
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"1": "-CDE", "2": "A-DE", "3": "AC-E", "4": "ACD-"},
             moltype=PROTEIN,
             array_align=True,
@@ -1424,7 +1431,7 @@ class CoevolutionTests(TestCase):
         filter_exclude_positions(aln, m, max_exclude_percent=0.5)
         self.assertFloatEqual(m, expected)
         # filter one position (defualt max_exclude_percentage)
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"1": "-CDE", "2": "ACDE", "3": "ACDE", "4": "ACDE"},
             moltype=PROTEIN,
             array_align=True,
@@ -1448,7 +1455,7 @@ class CoevolutionTests(TestCase):
         filter_exclude_positions(aln, m)
         self.assertFloatEqual(m, expected)
         # filter one position (non-defualt max_exclude_percentage)
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"1": "-CDE", "2": "ACDE", "3": "ACDE", "4": "-CDE"},
             moltype=PROTEIN,
             array_align=True,
@@ -1472,7 +1479,7 @@ class CoevolutionTests(TestCase):
         filter_exclude_positions(aln, m, max_exclude_percent=0.49)
         self.assertFloatEqual(m, expected)
         # filter all positions (defualt max_exclude_percentage)
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"1": "----", "2": "ACDE", "3": "ACDE", "4": "ACDE"},
             moltype=PROTEIN,
             array_align=True,
@@ -1489,7 +1496,7 @@ class CoevolutionTests(TestCase):
         filter_exclude_positions(aln, m)
         self.assertFloatEqual(m, expected)
         # filter all positions (non-defualt max_exclude_percentage)
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"1": "----", "2": "A-DE", "3": "AC--", "4": "-CDE"},
             moltype=PROTEIN,
             array_align=True,
@@ -1508,7 +1515,7 @@ class CoevolutionTests(TestCase):
 
         # filter one position (defualt max_exclude_percentage,
         # non-defualt excludes)
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"1": "WCDE", "2": "ACDE", "3": "ACDE", "4": "ACDE"},
             moltype=PROTEIN,
             array_align=True,
@@ -1534,7 +1541,7 @@ class CoevolutionTests(TestCase):
 
         # filter one position (defualt max_exclude_percentage,
         # non-defualt null_value)
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"1": "-CDE", "2": "ACDE", "3": "ACDE", "4": "ACDE"},
             moltype=PROTEIN,
             array_align=True,
@@ -1565,7 +1572,7 @@ class CoevolutionTests(TestCase):
         # respectively, hence a coevolution_matrix with shape = (2,4)
 
         # filter zero positions (no excludes)
-        merged_aln = LoadSeqs(
+        merged_aln = make_aligned_seqs(
             data={"1": "WCDEDE", "2": "ACDEDE", "3": "ACDEDE", "4": "ACDEDE"},
             moltype=PROTEIN,
             array_align=True,
@@ -1576,7 +1583,7 @@ class CoevolutionTests(TestCase):
         self.assertFloatEqual(m, expected)
 
         # filter one position (aln1)
-        merged_aln = LoadSeqs(
+        merged_aln = make_aligned_seqs(
             data={"1": "WC-EDE", "2": "ACDEDE", "3": "ACDEDE", "4": "ACDEDE"},
             moltype=PROTEIN,
             array_align=True,
@@ -1588,7 +1595,7 @@ class CoevolutionTests(TestCase):
         filter_exclude_positions(merged_aln, m, intermolecular_data_only=True)
         self.assertFloatEqual(m, expected)
         # filter one position (aln2)
-        merged_aln = LoadSeqs(
+        merged_aln = make_aligned_seqs(
             data={"1": "WCEEDE", "2": "ACDEDE", "3": "ACDEDE", "4": "ACDED-"},
             moltype=PROTEIN,
             array_align=True,
@@ -1599,7 +1606,7 @@ class CoevolutionTests(TestCase):
         self.assertFloatEqual(m, expected)
 
         # filter two positions (aln1 & aln2)
-        merged_aln = LoadSeqs(
+        merged_aln = make_aligned_seqs(
             data={"1": "-CEEDE", "2": "ACDEDE", "3": "ACDEDE", "4": "ACDED-"},
             moltype=PROTEIN,
             array_align=True,
@@ -1612,7 +1619,7 @@ class CoevolutionTests(TestCase):
         self.assertFloatEqual(m, expected)
 
         # filter two positions (aln1 & aln2, alt excludes)
-        merged_aln = LoadSeqs(
+        merged_aln = make_aligned_seqs(
             data={"1": "WCEEDE", "2": "ACDEDE", "3": "ACDEDE", "4": "ACDEDW"},
             moltype=PROTEIN,
             array_align=True,
@@ -1627,7 +1634,7 @@ class CoevolutionTests(TestCase):
         self.assertFloatEqual(m, expected)
 
         # filter two positions (aln1 & aln2, alt null_value)
-        merged_aln = LoadSeqs(
+        merged_aln = make_aligned_seqs(
             data={"1": "-CEEDE", "2": "ACDEDE", "3": "ACDEDE", "4": "ACDED-"},
             moltype=PROTEIN,
             array_align=True,
@@ -2635,7 +2642,7 @@ class CoevolutionTests(TestCase):
 
     def test_n_random_seqs(self):
         """n_random_seqs: functions as expected"""
-        aln1 = LoadSeqs(
+        aln1 = make_aligned_seqs(
             data=list(zip(list("abcd"), ["AA", "AC", "DD", "GG"])),
             moltype=PROTEIN,
             array_align=True,
@@ -3373,7 +3380,7 @@ def make_sample(freqs):
     d = []
     for i, s in enumerate(freqs.expand()):
         d += [("s%d" % i, s)]
-    return LoadSeqs(data=d)
+    return make_aligned_seqs(data=d)
 
 
 def _calc_mi():

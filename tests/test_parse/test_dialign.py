@@ -2,12 +2,8 @@
 
 import unittest
 
-from cogent3 import PROTEIN, LoadSeqs
-from cogent3.parse.dialign import (
-    DialignParser,
-    align_block_lines,
-    parse_data_line,
-)
+from cogent3 import PROTEIN
+from cogent3.parse.dialign import DialignParser, parse_data_line
 
 
 __author__ = "Gavin Huttley"

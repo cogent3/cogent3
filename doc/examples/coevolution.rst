@@ -9,10 +9,10 @@ Before using an alignment in a coevolutionary analysis, you should be confident 
 
 .. doctest::
 
-   >>> from cogent3 import LoadSeqs, PROTEIN, DNA, RNA
+   >>> from cogent3 import make_aligned_seqs, PROTEIN, DNA, RNA
    >>> from cogent3.core.alignment import ArrayAlignment
    >>> from cogent3.evolve.coevolution import validate_alignment
-   >>> aln = LoadSeqs(data={'1':'GAA','2':'CTA', '3':'CTC','4':'-TC'},
+   >>> aln = make_aligned_seqs({'1':'GAA','2':'CTA', '3':'CTC','4':'-TC'},
    ...                moltype=PROTEIN, array_align=True)
    >>> validate_alignment(aln)
 
@@ -20,9 +20,9 @@ To run a coevolutionary analysis, first create a ``ArrayAlignment``:
 
 .. doctest::
 
-   >>> from cogent3 import LoadSeqs, PROTEIN, DNA, RNA
+   >>> from cogent3 import make_aligned_seqs, PROTEIN, DNA, RNA
    >>> from cogent3.core.alignment import ArrayAlignment
-   >>> aln = LoadSeqs(data={'1':'AAA','2':'CTA', '3':'CTC','4':'-TC'},
+   >>> aln = make_aligned_seqs({'1':'AAA','2':'CTA', '3':'CTC','4':'-TC'},
    ...                moltype=PROTEIN, array_align=True)
 
 Perform a coevolutionary analysis on a pair of positions in the alignment using mutual information (``mi``):
@@ -73,10 +73,10 @@ Perform an intermolecular coevolutionary analysis using mutual information (``mi
 
     >>> from cogent3.evolve.coevolution import coevolve_alignment_functions,\
     ...   coevolve_alignments
-    >>> aln1 = LoadSeqs(data={'human+protein1':'AAA','pig+protein1':'CTA',
+    >>> aln1 = make_aligned_seqs({'human+protein1':'AAA','pig+protein1':'CTA',
     ...  'chicken+protein1':'CTC','echidna+weird_db_identifier':'-TC'},
     ...   moltype=PROTEIN, array_align=True)
-    >>> aln2 = LoadSeqs(data={'pig+protein2':'AAAY','chicken+protein2':'CTAY',
+    >>> aln2 = make_aligned_seqs({'pig+protein2':'AAAY','chicken+protein2':'CTAY',
     ...  'echidna+protein2':'CTCF','human+protein2':'-TCF'},
     ...   moltype=PROTEIN, array_align=True)
     >>> coevolve_alignments(coevolve_alignment_functions['mi'],aln1,aln2)  # doctest: +SKIP

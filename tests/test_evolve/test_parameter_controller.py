@@ -4,7 +4,7 @@ import warnings
 import cogent3.evolve.parameter_controller
 import cogent3.evolve.substitution_model
 
-from cogent3 import LoadSeqs, LoadTree
+from cogent3 import LoadTree, make_aligned_seqs
 from cogent3.maths import optimisers
 from cogent3.util.unit_test import TestCase, main
 
@@ -44,7 +44,7 @@ class test_parameter_controller(TestCase):
     def setUp(self):
         # length all edges 1 except c=2.  b&d transitions all other
         # transverions
-        self.al = LoadSeqs(
+        self.al = make_aligned_seqs(
             data={"a": "tata", "b": "tgtc", "c": "gcga", "d": "gaac", "e": "gagc"}
         )
         self.tree = LoadTree(treestring="((a,b),(c,d),e);")
@@ -89,7 +89,7 @@ class test_parameter_controller(TestCase):
         self.assertNotEqual(lf.get_motif_probs()["G"], 0.6)
 
         # test with consideration of ambiguous states
-        al = LoadSeqs(
+        al = make_aligned_seqs(
             data={"seq1": "ACGTAAGNA", "seq2": "ACGTANGTC", "seq3": "ACGTACGTG"}
         )
         lf.set_motif_probs_from_data(al, include_ambiguity=True, is_constant=True)
@@ -154,7 +154,7 @@ class test_parameter_controller(TestCase):
         self.assertEqual(lf.get_param_value("length", "d"), 5)
 
     def test_pairwise_clock(self):
-        al = LoadSeqs(data={"a": "agct", "b": "ggct"})
+        al = make_aligned_seqs(data={"a": "agct", "b": "ggct"})
         tree = LoadTree(treestring="(a,b);")
         model = cogent3.evolve.substitution_model.TimeReversibleDinucleotide(
             equal_motif_probs=True, model_gaps=True, mprob_model="tuple"

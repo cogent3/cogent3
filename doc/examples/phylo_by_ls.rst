@@ -10,11 +10,11 @@ We will load some pre-computed pairwise distance data. To see how that data was 
 .. doctest::
     :hide:
 
-    >>> from cogent3 import LoadSeqs
+    >>> from cogent3 import load_aligned_seqs
     >>> from cogent3.evolve import distance
     >>> from cogent3.evolve.models import HKY85
     >>> from cogent3.evolve.fast_distance import DistanceMatrix
-    >>> al = LoadSeqs("data/long_testseqs.fasta")
+    >>> al = load_aligned_seqs("data/long_testseqs.fasta")
     >>> d = distance.EstimateDistances(al, submodel= HKY85())
     >>> d.run(show_progress=False)
     >>> import pickle
