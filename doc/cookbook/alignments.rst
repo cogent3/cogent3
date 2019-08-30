@@ -24,7 +24,7 @@ Constructing a ``SequenceCollection`` or ``Alignment`` object from strings
     <class 'cogent3.core.alignment.SequenceCollection'>
 
 Constructing a ``ArrayAlignment`` using ``make_aligned_seqs``
-""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. doctest::
 
