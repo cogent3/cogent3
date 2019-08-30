@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from cogent3 import DNA, LoadSeqs
+from cogent3 import DNA, make_unaligned_seqs
 from cogent3.app.composable import NotCompleted
 from cogent3.app.translate import (
     best_frame,
@@ -59,7 +59,7 @@ class TestTranslate(TestCase):
             "a": "AATATAAATGCCAGCTCATTACAGCATGAGAACA" "GCAGTTTATTACTTCATAAAGTCATA",
             "rc": "TATGACTTTATGAAGTAATAAACTGCTGTTCTCA" "TGCTGTAATGAGCTGGCATTTATATT",
         }
-        seqs = LoadSeqs(data=data, moltype=DNA, aligned=False)
+        seqs = make_unaligned_seqs(data=data, moltype=DNA)
         trans = select_translatable(allow_rc=False)
         tr = trans(seqs)
         ex = data.copy()
@@ -73,7 +73,7 @@ class TestTranslate(TestCase):
 
         # if seqs not translatable returns NotCompletedResult
         data = dict(a="TAATTGATTAA", b="GCAGTTTATTA")
-        seqs = LoadSeqs(data=data, moltype=DNA, aligned=False)
+        seqs = make_unaligned_seqs(data=data, moltype=DNA)
         got = select_translatable(allow_rc=False)
         self.assertTrue(type(got), NotCompleted)
 

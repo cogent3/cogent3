@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-
-
 import os
 import re
 import tempfile
@@ -8,8 +6,19 @@ import unittest
 
 from cogent3 import DNA, PROTEIN, RNA
 from cogent3 import STANDARD_CODON as CODON
-from cogent3 import LoadSeqs, Sequence
-from cogent3.core.alignment import ArrayAlignment, SequenceCollection
+from cogent3 import (
+    Sequence,
+    load_aligned_seqs,
+    load_unaligned_seqs,
+    make_aligned_seqs,
+    make_seq,
+    make_unaligned_seqs,
+)
+from cogent3.core.alignment import (
+    Alignment,
+    ArrayAlignment,
+    SequenceCollection,
+)
 from cogent3.core.alphabet import AlphabetError
 from cogent3.parse.record import FileFormatError
 
@@ -24,19 +33,94 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 _compression = re.compile(r"\.(gz|bz2)$")
-base_path = os.getcwd()
+base_path = os.path.dirname(os.path.dirname(__file__))
 data_path = os.path.join(base_path, "data")
+
+
+class TestConstructorFunctions(unittest.TestCase):
+    def test_make_seq(self):
+        """test constructor utility function"""
+        _seq = "ACGGT"
+        seq = make_seq(_seq)
+        self.assertEqual(seq.moltype.label, "text")
+        seq = make_seq(_seq, moltype="dna")
+        self.assertEqual(seq.moltype.label, "dna")
+        self.assertEqual(str(seq), _seq)
+
+    def test_make_unaligned_seqs(self):
+        """test SequenceCollection constructor utility function"""
+        data = {"a": "AGGTT", "b": "AG"}
+        got = make_unaligned_seqs(data)
+        self.assertIsInstance(got, SequenceCollection)
+        self.assertEqual(got.to_dict(), data)
+        self.assertEqual(got.info["source"], "unknown")
+        # moltype arg works
+        got = make_unaligned_seqs(data, moltype="dna")
+        self.assertEqual(got.moltype.label, "dna")
+        # info works
+        got = make_unaligned_seqs(data, info=dict(a=2))
+        self.assertEqual(got.info["a"], 2)
+        with self.assertRaises(AssertionError):
+            _ = make_unaligned_seqs(data, info=2)
+
+        # source works
+        got = make_unaligned_seqs(data, source="somewhere")
+        self.assertEqual(got.info["source"], "somewhere")
+
+    def test_make_aligned_seqs(self):
+        """test Alignment/ArrayAlignment constructor utility function"""
+        data = {"a": "AGGTT", "b": "AGAA-"}
+        got = make_aligned_seqs(data)
+        self.assertIsInstance(got, ArrayAlignment)
+        self.assertEqual(got.to_dict(), data)
+        self.assertEqual(got.info["source"], "unknown")
+        # moltype arg works
+        got = make_aligned_seqs(data, moltype="dna")
+        self.assertEqual(got.moltype.label, "dna")
+        # info works
+        got = make_aligned_seqs(data, info=dict(a=2))
+        self.assertEqual(got.info["a"], 2)
+        with self.assertRaises(AssertionError):
+            _ = make_unaligned_seqs(data, info=2)
+
+        # source works
+        got = make_aligned_seqs(data, source="somewhere")
+        self.assertEqual(got.info["source"], "somewhere")
+
+        # array_align works
+        got = make_aligned_seqs(data, array_align=False)
+        self.assertIsInstance(got, Alignment)
+        self.assertEqual(got.to_dict(), data)
+        self.assertEqual(got.info["source"], "unknown")
+
+    def test_load_unaligned_seqs(self):
+        """test loading unaligned from file"""
+        path = os.path.join(data_path, "brca1_5.paml")
+        got = load_unaligned_seqs(path)
+        self.assertIsInstance(got, SequenceCollection)
+        self.assertTrue("Human" in got.to_dict())
+        self.assertEqual(got.info["source"], path)
+
+    def test_load_aligned_seqs(self):
+        """test loading aligned from file"""
+        path = os.path.join(data_path, "brca1_5.paml")
+        got = load_aligned_seqs(path)
+        self.assertIsInstance(got, ArrayAlignment)
+        self.assertTrue("Human" in got.to_dict())
+        self.assertEqual(got.info["source"], path)
+        got = load_aligned_seqs(path, moltype="dna")
+        self.assertEqual(got.moltype.label, "dna")
+        got = load_aligned_seqs(path, moltype="dna", array_align=False)
+        self.assertEqual(got.moltype.label, "dna")
+        self.assertIsInstance(got, Alignment)
 
 
 class ReadingWritingFileFormats(unittest.TestCase):
     """Testing ability to read file formats."""
 
-    def setUp(self):
-        pass
-
     def _loadfromfile(self, filename, test_write=True, **kw):
         filename = os.path.join(data_path, filename)
-        aln = LoadSeqs(filename=filename, **kw)
+        aln = load_aligned_seqs(filename, **kw)
         if test_write:
             r = _compression.search(filename)
             if r:
@@ -52,7 +136,7 @@ class ReadingWritingFileFormats(unittest.TestCase):
     def test_write_unknown_raises(self):
         """writing unknown format raises FileFormatError"""
         filename = os.path.join(data_path, "primates_brca1.fasta")
-        aln = LoadSeqs(filename)
+        aln = load_aligned_seqs(filename)
         self.assertRaises(FileFormatError, aln.write, filename="blah")
         self.assertRaises(FileFormatError, aln.write, filename="blah.txt")
         self.assertRaises(
@@ -77,7 +161,9 @@ class ReadingWritingFileFormats(unittest.TestCase):
         self._loadfromfile("formattest.aln", test_write=False)
 
     def test_phylip_interleaved(self):
-        self._loadfromfile("interleaved.phylip", test_write=False, interleaved=True)
+        self._loadfromfile(
+            "interleaved.phylip", test_write=False, parser_kw=dict(interleaved=True)
+        )
 
     def test_paml(self):
         self._loadfromfile("formattest.paml")
@@ -93,7 +179,9 @@ class AlignmentTestMethods(unittest.TestCase):
     """Testing Alignment methods"""
 
     def setUp(self):
-        self.alignment = LoadSeqs(filename=os.path.join(data_path, "brca1_5.paml"))
+        self.alignment = load_aligned_seqs(
+            filename=os.path.join(data_path, "brca1_5.paml")
+        )
 
     def test_picklability(self):
         """Pickle an alignment containing an annotated sequence"""
@@ -106,7 +194,7 @@ class AlignmentTestMethods(unittest.TestCase):
         seq1 = DNA.make_seq("aagaagaagaccccca")
         seq2 = DNA.make_seq("aagaagaagaccccct")
         seq2.add_feature("exon", "fred", [(10, 15)])
-        aln = LoadSeqs(data={"a": seq1, "b": seq2})
+        aln = make_aligned_seqs(data={"a": seq1, "b": seq2})
         # TODO the ability to pickle/unpickle depends on the protocol
         # in Py3 for reasons that are not clear. This needs to be looked
         # more closely
@@ -116,7 +204,7 @@ class AlignmentTestMethods(unittest.TestCase):
     def test_empty_seq(self):
         """test creation of an alignment from scratch, with one sequence pure gap"""
         new_seqs = {"seq1": "ATGATG", "seq2": "------"}
-        align = LoadSeqs(moltype=DNA, data=new_seqs)
+        align = make_aligned_seqs(moltype=DNA, data=new_seqs)
         assert len(align) == 6, align
 
     def test_num_seqs(self):
@@ -133,7 +221,7 @@ class AlignmentTestMethods(unittest.TestCase):
     def test_init_from_strings(self):
         """testing constructing an alignment from a dictionary of strings"""
         new_seqs = {"seq1": "ACGTACGT", "seq2": "ACGTACGT", "seq3": "ACGTACGT"}
-        LoadSeqs(data=new_seqs)
+        make_aligned_seqs(data=new_seqs)
 
     def test_get_sub_alignment(self):
         """test slicing otus, and return of new alignment"""
@@ -163,7 +251,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_slice_align(self):
         """test slicing of sequences"""
-        alignment = LoadSeqs(
+        alignment = make_aligned_seqs(
             data={"seq1": "ACGTACGT", "seq2": "ACGTACGT", "seq3": "ACGTACGT"}
         )
         sub_align = alignment[2:5]
@@ -194,7 +282,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_sliding_windows(self):
         """test slicing of sequences"""
-        alignment = LoadSeqs(
+        alignment = make_aligned_seqs(
             data={"seq1": "ACGTACGT", "seq2": "ACGTACGT", "seq3": "ACGTACGT"}
         )
         result = []
@@ -254,7 +342,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_omit_gap_pos1(self):
         """test removal of redundant gaps (all entries in alignment column are gaps)"""
-        alignment = LoadSeqs(
+        alignment = make_aligned_seqs(
             data={
                 "seq1": "--ACGT--GT---",
                 "seq2": "--ACGTA-GT---",
@@ -268,7 +356,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_omit_gap_pos2(self):
         """test removal of all gaps (any entries in alignment column are gaps)"""
-        alignment = LoadSeqs(
+        alignment = make_aligned_seqs(
             data={
                 "seq1": "--ACGT--GT---",
                 "seq2": "--ACGTA-GT---",
@@ -280,13 +368,15 @@ class AlignmentTestMethods(unittest.TestCase):
             align_dict, {"seq1": "ACGTGT", "seq2": "ACGTGT", "seq3": "ACGTGT"}
         )
 
-        alignment = LoadSeqs(data={"seq1": "ACGT", "seq2": "----", "seq3": "----"})
+        alignment = make_aligned_seqs(
+            data={"seq1": "ACGT", "seq2": "----", "seq3": "----"}
+        )
         result = alignment.omit_gap_pos(allowed_gap_frac=0)
         self.assertEqual(result, None)
 
     def test_degap(self):
         """test stripping gaps from collections and alignments"""
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={
                 "seq1": "--ACGT--GT---",
                 "seq2": "--ACGTA-GT---",
@@ -296,13 +386,12 @@ class AlignmentTestMethods(unittest.TestCase):
         observed = aln.degap()
         expect = {"seq1": "ACGTGT", "seq2": "ACGTAGT", "seq3": "ACGTAGT"}
         self.assertEqual(observed.to_dict(), expect)
-        collection = LoadSeqs(
+        collection = make_unaligned_seqs(
             data={
                 "seq1": "--ACGT--GT---",
                 "seq2": "--ACGTA-GT---",
                 "seq3": "--ACGTA-GT---",
             },
-            aligned=False,
             moltype=DNA,
         )
         observed = collection.degap()
@@ -322,13 +411,13 @@ class AlignmentTestMethods(unittest.TestCase):
             "seq2": "--ACGUA-GU---",
             "seq3": "--ACGUA-GU---",
         }
-        collect_Dna = LoadSeqs(data=dna, aligned=False, moltype=DNA)
-        collect_Rna = LoadSeqs(data=rna, aligned=False, moltype=RNA)
+        collect_Dna = make_unaligned_seqs(data=dna, moltype=DNA)
+        collect_Rna = make_unaligned_seqs(data=rna, moltype=RNA)
         self.assertEqual(collect_Rna.to_dna().to_dict(), dna)
         self.assertEqual(collect_Dna.to_rna().to_dict(), rna)
 
-        aln_Dna = LoadSeqs(data=dna, moltype=DNA)
-        aln_Rna = LoadSeqs(data=rna, moltype=RNA)
+        aln_Dna = make_aligned_seqs(data=dna, moltype=DNA)
+        aln_Rna = make_aligned_seqs(data=rna, moltype=RNA)
         rna_from_dna = aln_Dna.to_rna()
         dna_from_rna = aln_Rna.to_dna()
         self.assertEqual(rna_from_dna.to_dict(), rna)
@@ -347,18 +436,18 @@ class AlignmentTestMethods(unittest.TestCase):
             "seq3": "--GGC-TACGT--",
         }
         # alignment with gaps
-        aln = LoadSeqs(data=dna, moltype=DNA)
+        aln = make_aligned_seqs(data=dna, moltype=DNA)
         aln_rc = aln.rc()
         self.assertEqual(aln_rc.to_dict(), dna_rc)
         # check collection, with gaps
-        coll = LoadSeqs(data=dna, moltype=DNA, aligned=False)
+        coll = make_unaligned_seqs(data=dna, moltype=DNA)
         coll_rc = coll.rc()
         self.assertEqual(coll_rc.to_dict(), dna_rc)
         self.assertEqual(coll_rc.to_dict(), coll.reverse_complement().to_dict())
         # collection with no gaps
         dna = {"seq1": "ACGTGT", "seq2": "TTACGTAGT", "seq3": "ACGTAGCC"}
         dna_rc = {"seq1": "ACACGT", "seq2": "ACTACGTAA", "seq3": "GGCTACGT"}
-        coll = LoadSeqs(data=dna, moltype=DNA, aligned=False)
+        coll = make_unaligned_seqs(data=dna, moltype=DNA)
         coll_rc = coll.rc()
         self.assertEqual(coll_rc.to_dict(), dna_rc)
 
@@ -380,21 +469,21 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_reverse_complement_with_ambig(self):
         """correctly reverse complement with ambiguous bases"""
-        n = LoadSeqs(data=[["x", "?-???AA"], ["y", "-T----T"]], moltype=DNA)
+        n = make_aligned_seqs(data=[["x", "?-???AA"], ["y", "-T----T"]], moltype=DNA)
         rc = n.rc()
         self.assertEqual(rc.to_dict(), {"x": "TT???-?", "y": "A----A-"})
 
     def test_getasdict(self):
         """getting the alignment as a dictionary"""
         seqs = {"seq1": "ACGT--GT", "seq2": "ACGTACGT", "seq3": "ACGTACGT"}
-        alignment = LoadSeqs(data=seqs)
+        alignment = make_aligned_seqs(data=seqs)
         align_dict = alignment.to_dict()
         self.assertEqual(align_dict, seqs)
 
     def test_alignadd(self):
         """testing adding one alignment to another."""
-        align1 = LoadSeqs(data={"a": "AAAA", "b": "TTTT", "c": "CCCC"})
-        align2 = LoadSeqs(data={"a": "GGGG", "b": "----", "c": "NNNN"})
+        align1 = make_aligned_seqs(data={"a": "AAAA", "b": "TTTT", "c": "CCCC"})
+        align2 = make_aligned_seqs(data={"a": "GGGG", "b": "----", "c": "NNNN"})
         align = align1 + align2
         concatdict = align.to_dict()
         self.assertEqual(
@@ -410,7 +499,7 @@ class AlignmentTestMethods(unittest.TestCase):
             "LittleBro": "C-TD-H",
             "TombBat": "C--STH",
         }
-        pal = LoadSeqs(moltype=PROTEIN, data=pd)
+        pal = make_aligned_seqs(moltype=PROTEIN, data=pd)
 
         cu = {
             "TombBat": "TGTAGTACTCAT",
@@ -420,7 +509,7 @@ class AlignmentTestMethods(unittest.TestCase):
             "DogFaced": "TGTGGCACAAATACT",
         }
 
-        co = LoadSeqs(moltype=DNA, data=cu, aligned=False)
+        co = make_unaligned_seqs(moltype=DNA, data=cu)
         cal = pal.replace_seqs(co)
         result = cal.to_dict()
         for taxon, expected_sequence in [
@@ -434,7 +523,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_sample(self):
         """Test sample generation"""
-        alignment = LoadSeqs(
+        alignment = make_aligned_seqs(
             data={"seq1": "ABCDEFGHIJKLMNOP", "seq2": "ABCDEFGHIJKLMNOP"}
         )
         # effectively permute columns, preserving length
@@ -451,12 +540,12 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_sample_with_replacement(self):
         # test with replacement
-        alignment = LoadSeqs(data={"seq1": "gatc", "seq2": "gatc"})
+        alignment = make_aligned_seqs(data={"seq1": "gatc", "seq2": "gatc"})
         sample = alignment.sample(1000, with_replacement=True)
 
     def test_sample_tuples(self):
         ##### test with motif size != 1 #####
-        alignment = LoadSeqs(
+        alignment = make_aligned_seqs(
             data={
                 "seq1": "AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPP",
                 "seq2": "AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPP",
@@ -478,10 +567,10 @@ class AlignmentTestMethods(unittest.TestCase):
             {"seq1": "GATTTT", "seq2": "GATC??"},
             {"seq1": "GAT---", "seq2": "?GATCT"},
         ]:
-            alignment = LoadSeqs(data=seqs, moltype=DNA)
+            alignment = make_aligned_seqs(data=seqs, moltype=DNA)
             self.assertEqual(len(alignment.get_translation()), 2)
             # check for a failure when no moltype specified
-            alignment = LoadSeqs(data=seqs)
+            alignment = make_aligned_seqs(data=seqs)
             try:
                 peps = alignment.get_translation()
             except AttributeError:
@@ -493,24 +582,22 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_trim_stop_codons(self):
         """test without terminal stop handling"""
-        seq_coll = LoadSeqs(
-            data={"seq1": "ACGTAA", "seq2": "ACGACG", "seq3": "ACGCGT"},
-            moltype=DNA,
-            aligned=False,
+        seq_coll = make_unaligned_seqs(
+            data={"seq1": "ACGTAA", "seq2": "ACGACG", "seq3": "ACGCGT"}, moltype=DNA
         )
         seq_coll = seq_coll.trim_stop_codons()
         seqs = seq_coll.to_dict()
         self.assertEqual(seqs["seq1"], "ACG")  # note: not 'acg---'
         self.assertEqual(seqs["seq2"], "ACGACG")
         # aligned
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"seq1": "ACGTAA", "seq2": "ACGTGA", "seq3": "ACGTAA"}, moltype=DNA
         )
         aln = aln.trim_stop_codons()
         self.assertEqual(
             aln.to_dict(), {"seq1": "ACG", "seq2": "ACG", "seq3": "ACG"}
         )  # note: not 'acg---'
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"seq1": "ACGAAA", "seq2": "ACGTGA", "seq3": "ACGTAA"}, moltype=DNA
         )
         aln = aln.trim_stop_codons()
@@ -519,8 +606,8 @@ class AlignmentTestMethods(unittest.TestCase):
         )
 
         # for case where a sequence length is not divisible by 3
-        seq_coll = LoadSeqs(
-            data={"seq1": "ACGTAA", "seq2": "ACGAC"}, moltype=DNA, aligned=False
+        seq_coll = make_unaligned_seqs(
+            data={"seq1": "ACGTAA", "seq2": "ACGAC"}, moltype=DNA
         )
         # fail
         self.assertRaises(ValueError, seq_coll.trim_stop_codons)
@@ -529,7 +616,7 @@ class AlignmentTestMethods(unittest.TestCase):
         self.assertEqual(new_coll.to_dict(), dict(seq1="ACG", seq2="ACGAC"))
 
         # should work for alignments too
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"seq1": "ACGTAA---", "seq2": "ACGAC----", "seq3": "ACGCAATTT"},
             moltype=DNA,
         )
@@ -542,7 +629,7 @@ class AlignmentTestMethods(unittest.TestCase):
             {"seq1": "ACG------", "seq2": "ACGAC----", "seq3": "ACGCAATTT"},
         )
         # mixed lengths
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"seq1": "ACGTAA---", "seq2": "ACGAC----", "seq3": "ACGCAATGA"},
             moltype=DNA,
         )
@@ -551,7 +638,7 @@ class AlignmentTestMethods(unittest.TestCase):
             aln.to_dict(), {"seq1": "ACG---", "seq2": "ACGAC-", "seq3": "ACGCAA"}
         )
         # longest seq not divisible by 3
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"seq1": "ACGTAA--", "seq2": "ACGAC---", "seq3": "ACGC-ATG"},
             moltype=DNA,
         )
@@ -582,34 +669,30 @@ class AlignmentTestMethods(unittest.TestCase):
     def test_has_terminal_stops(self):
         """test truth values for terminal stops"""
         # seq collections
-        seq_coll = LoadSeqs(
-            data={"seq1": "ACGTAA", "seq2": "ACG", "seq3": "ACGCGT"},
-            moltype=DNA,
-            aligned=False,
+        seq_coll = make_unaligned_seqs(
+            data={"seq1": "ACGTAA", "seq2": "ACG", "seq3": "ACGCGT"}, moltype=DNA
         )
         assert seq_coll.has_terminal_stops() == True
-        seq_coll = LoadSeqs(
-            data={"seq1": "ACGTAC", "seq2": "ACGACG", "seq3": "ACGCGT"},
-            moltype=DNA,
-            aligned=False,
+        seq_coll = make_unaligned_seqs(
+            data={"seq1": "ACGTAC", "seq2": "ACGACG", "seq3": "ACGCGT"}, moltype=DNA
         )
         assert seq_coll.has_terminal_stops() == False
         # alignments
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"seq1": "ACGTAA", "seq2": "ACGCAA", "seq3": "ACGCGT"}, moltype=DNA
         )
         assert aln.has_terminal_stops() == True
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"seq1": "ACGTAA", "seq2": "ACGTAG", "seq3": "ACGTGA"}, moltype=DNA
         )
         assert aln.has_terminal_stops() == True
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"seq1": "ACGCAA", "seq2": "ACGCAA", "seq3": "ACGCGT"}, moltype=DNA
         )
         assert aln.has_terminal_stops() == False
 
         # ValueError if ragged end
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data={"seq1": "ACGCAA", "seq2": "ACGTAA", "seq3": "ACGCG-"}, moltype=DNA
         )
         self.assertRaises(ValueError, aln.has_terminal_stops)
@@ -617,14 +700,14 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_slice(self):
         seqs = {"seq1": "ACGTANGT", "seq2": "ACGTACGT", "seq3": "ACGTACGT"}
-        alignment = LoadSeqs(data=seqs)
+        alignment = make_aligned_seqs(data=seqs)
         short = {"seq1": "A", "seq2": "A", "seq3": "A"}
         self.assertEqual(alignment[0:1].to_dict(), short)
 
     def test_get_motifprobs(self):
         """calculation of motif probs"""
         seqs = {"seq1": "ACGTANGT", "seq2": "-CGTACGT", "seq3": "ACGTACGT"}
-        aln = LoadSeqs(data=seqs, moltype=DNA)
+        aln = make_aligned_seqs(data=seqs, moltype=DNA)
         mprobs = aln.get_motif_probs(allow_gap=False)
         expected = {"A": 5 / 22, "T": 6 / 22, "C": 5 / 22, "G": 6 / 22}
         self.assertEqual(mprobs, expected)
@@ -644,7 +727,7 @@ class AlignmentTestMethods(unittest.TestCase):
         }
         self.assertEqual(mprobs, expected)
         seqs = {"seq1": "ACGAANGA", "seq2": "-CGAACGA", "seq3": "ACGAACGA"}
-        aln = LoadSeqs(data=seqs, moltype=DNA)
+        aln = make_aligned_seqs(data=seqs, moltype=DNA)
         mprobs = aln.get_motif_probs(exclude_unobserved=True)
         expected = {"A": 11 / 22, "C": 5 / 22, "G": 6 / 22}
         self.assertEqual(mprobs, expected)

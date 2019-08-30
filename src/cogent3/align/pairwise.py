@@ -469,9 +469,9 @@ class AlignablePOG(_Alignable):
         return "AlPOG(%s,%s)" % (self.pog.all_jumps, repr(self.leaf))
 
     def get_alignment(self):
-        from cogent3 import LoadSeqs
+        from cogent3 import make_aligned_seqs
 
-        return LoadSeqs(data=self.aligneds)
+        return make_aligned_seqs(self.aligneds)
 
     def _calcAligneds(self, children):
         word_length = self.alphabet.get_motif_len()

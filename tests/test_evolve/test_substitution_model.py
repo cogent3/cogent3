@@ -4,13 +4,7 @@ import os
 
 from unittest import TestCase, main
 
-from cogent3 import DNA, CodonAlphabet, LoadSeqs, LoadTable
-from cogent3.core import genetic_code
-from cogent3.evolve import (
-    predicate,
-    substitution_calculation,
-    substitution_model,
-)
+from cogent3.evolve import predicate, substitution_model
 from cogent3.evolve.models import F81, GN, HKY85
 from cogent3.evolve.predicate import MotifChange
 

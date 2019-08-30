@@ -4,7 +4,7 @@ import numpy
 
 from numpy.testing import assert_allclose
 
-from cogent3 import LoadSeqs
+from cogent3 import make_aligned_seqs
 from cogent3.maths.stats import number
 
 
@@ -146,7 +146,7 @@ class TestNumber(TestCase):
             "RoundEare": "TCATTA",
             "TombBat": "TCAGTA",
         }
-        aln = LoadSeqs(data=data, moltype="dna")
+        aln = make_aligned_seqs(data=data, moltype="dna")
         got = aln.counts_per_pos(motif_length=3)
         self.assertEqual(got[0, "TCA"], 8)
         self.assertEqual(got[0, "TCT"], 2)

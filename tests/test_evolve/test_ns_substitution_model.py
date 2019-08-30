@@ -4,7 +4,7 @@ import numpy
 
 from numpy import array, dot, empty, ones
 
-from cogent3 import DNA, LoadSeqs, LoadTable, LoadTree
+from cogent3 import DNA, LoadTable, LoadTree, make_aligned_seqs
 from cogent3.evolve.ns_substitution_model import (
     DiscreteSubstitutionModel,
     General,
@@ -228,7 +228,7 @@ class NonStatMarkov(TestCase):
         """StrandSymmetric should fit a strand symmetric model"""
         warnings.filterwarnings("ignore", "Model not reversible", UserWarning)
         taxa = "Human", "Mouse", "Opossum"
-        aln = LoadSeqs(data=_aln, moltype=DNA)
+        aln = make_aligned_seqs(data=_aln, moltype=DNA)
         aln = aln[2::3].no_degenerates()
         tree = LoadTree(tip_names=taxa)
         model = StrandSymmetric(optimise_motif_probs=True)

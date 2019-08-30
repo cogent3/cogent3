@@ -22,7 +22,6 @@ __status__ = "Production"
 def _est_simulations():
     # specify the 4 taxon tree, and a 'dummy' alignment
     t = LoadTree(treestring="(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;")
-    # al = alignments.LoadSeqs(data={'a':'a','b':'a','c':'a','d':'a'})
 
     # how long the simulated alignments should be
     # at 1000000 the estimates get nice and close

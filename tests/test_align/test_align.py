@@ -5,7 +5,7 @@ import unittest
 import cogent3.align.progressive
 import cogent3.evolve.substitution_model
 
-from cogent3 import DNA, LoadSeqs
+from cogent3 import DNA, make_unaligned_seqs
 from cogent3.align.align import (
     classic_align_pairwise,
     global_pairwise,
@@ -163,13 +163,12 @@ class MultipleAlignmentTestCase(unittest.TestCase):
 
     def test_progressive_est_tree(self):
         """excercise progressive alignment without a guide tree"""
-        seqs = LoadSeqs(
+        seqs = make_unaligned_seqs(
             data={
                 "A": "TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACA",
                 "B": "TGTGGCACAGATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT",
                 "C": "TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT",
-            },
-            aligned=False,
+            }
         )
         aln, tree = cogent3.align.progressive.TreeAlign(
             HKY85(), seqs, show_progress=False, param_vals={"kappa": 4.0}

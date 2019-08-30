@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from cogent3 import DNA, LoadSeqs
+from cogent3 import DNA, make_aligned_seqs, make_unaligned_seqs
 from cogent3.app import composable, sample
 from cogent3.app.composable import NotCompleted
 
@@ -18,7 +18,7 @@ __status__ = "Alpha"
 class TranslateTests(TestCase):
     def _codon_positions(self, array_align):
         """correctly return codon positions"""
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data=[("a", "ACGACGACG"), ("b", "GATGATGAT")], array_align=array_align
         )
         one = sample.take_codon_positions(1)
@@ -52,18 +52,20 @@ class TranslateTests(TestCase):
 
     def test_filter_degen(self):
         """just_nucs correctly identifies data with only nucleotides"""
-        aln = LoadSeqs(data=[("a", "ACGA-GACG"), ("b", "GATGATGYT")])
+        aln = make_aligned_seqs(data=[("a", "ACGA-GACG"), ("b", "GATGATGYT")])
         degen = sample.omit_degenerates(moltype="dna")
         got = degen(aln)
         self.assertEqual(got.to_dict(), {"a": "ACGAGAG", "b": "GATGTGT"})
-        aln = LoadSeqs(data=[("a", "-C-A-G-C-"), ("b", "G-T-A-G-T")])
+        aln = make_aligned_seqs(data=[("a", "-C-A-G-C-"), ("b", "G-T-A-G-T")])
         got = degen(aln)
         self.assertIsInstance(got, composable.NotCompleted)
 
     def test_codon_positions_4fold_degen(self):
         """codon_positions correctly return fourfold degenerate bases"""
         #                           **4---**4---
-        aln = LoadSeqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")], moltype=DNA)
+        aln = make_aligned_seqs(
+            data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")], moltype=DNA
+        )
         expect = dict([("a", "AT"), ("b", "TC")])
         ffold = sample.take_codon_positions(fourfold_degenerate=True)
         got = ffold(aln)
@@ -76,7 +78,7 @@ class TranslateTests(TestCase):
         """returns collections containing named seqs"""
         select = sample.take_named_seqs("a", "b")
         alns = [
-            LoadSeqs(
+            make_aligned_seqs(
                 data=[
                     ("a", "GCAAGCGTTTAT"),
                     ("b", "GCTTTTGTCAAT"),
@@ -84,7 +86,7 @@ class TranslateTests(TestCase):
                     ("d", "GCAAGCNNTTAT"),
                 ]
             ),
-            LoadSeqs(
+            make_aligned_seqs(
                 data=[
                     ("a", "GGAAGCGTTTAT"),
                     ("b", "GCTTTTGTCAAT"),
@@ -100,7 +102,7 @@ class TranslateTests(TestCase):
         ]
         self.assertEqual(got, expected)
         # return False if a named seq absent
-        aln = LoadSeqs(data=[("c", "GC--GCGTTTAT"), ("d", "GCAAGCNNTTAT")])
+        aln = make_aligned_seqs(data=[("c", "GC--GCGTTTAT"), ("d", "GCAAGCNNTTAT")])
         got = select(aln)
         self.assertFalse(got)
         self.assertTrue(type(got) == composable.NotCompleted)
@@ -108,8 +110,8 @@ class TranslateTests(TestCase):
         # using negate
         select = sample.take_named_seqs("c", negate=True)
         alns = [
-            LoadSeqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")]),
-            LoadSeqs(
+            make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")]),
+            make_aligned_seqs(
                 data=[
                     ("a", "GGAAGCGTTTAT"),
                     ("b", "GCTTTTGTCAAT"),
@@ -129,7 +131,7 @@ class TranslateTests(TestCase):
 
     def test_minlength(self):
         """correctly identifies data with minimal length"""
-        aln = LoadSeqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
+        aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
 
         # if using subtract_degen, fails if incorect moltype
         ml = sample.min_length(9, subtract_degen=True)
@@ -147,8 +149,10 @@ class TranslateTests(TestCase):
         self.assertEqual(len(aln), 12)
 
         alns = [
-            LoadSeqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")], moltype=DNA),
-            LoadSeqs(data=[("a", "GGAAGCGT"), ("b", "GCTTT-GT")], moltype=DNA),
+            make_aligned_seqs(
+                data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")], moltype=DNA
+            ),
+            make_aligned_seqs(data=[("a", "GGAAGCGT"), ("b", "GCTTT-GT")], moltype=DNA),
         ]
         ml = sample.min_length(9)
         got = [aln.to_dict() for aln in map(ml, alns) if aln]
@@ -160,9 +164,7 @@ class TranslateTests(TestCase):
         self.assertTrue(type(got) == sample.NotCompleted)
 
         alns = [
-            LoadSeqs(
-                data=[("a", "GGAAGCGT"), ("b", "GCTTNGT")], aligned=False, moltype=DNA
-            )
+            make_unaligned_seqs(data=[("a", "GGAAGCGT"), ("b", "GCTTNGT")], moltype=DNA)
         ]
         ml = sample.min_length(6)
         got = [aln.to_dict() for aln in map(ml, alns) if aln]
@@ -176,7 +178,7 @@ class TranslateTests(TestCase):
 
     def test_fixedlength(self):
         """correctly returns data with specified length"""
-        aln = LoadSeqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
+        aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
 
         fl = sample.fixed_length(4)
         got = fl(aln)
@@ -187,8 +189,10 @@ class TranslateTests(TestCase):
         self.assertEqual(list(got.moltype), list(DNA))
 
         alns = [
-            LoadSeqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")], moltype=DNA),
-            LoadSeqs(data=[("a", "GGAAGCGT"), ("b", "GCTTT-GT")], moltype=DNA),
+            make_aligned_seqs(
+                data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")], moltype=DNA
+            ),
+            make_aligned_seqs(data=[("a", "GGAAGCGT"), ("b", "GCTTT-GT")], moltype=DNA),
         ]
         fl = sample.fixed_length(9)
         got = [a for a in map(fl, alns) if a]
@@ -211,7 +215,7 @@ class TranslateTests(TestCase):
 
         # these will be just a subset as sampling one triplet
         fl = sample.fixed_length(3, random=True, motif_length=3)
-        d = LoadSeqs(data=[("a", "GCAAGCGTGTAT"), ("b", "GCTACTGTCAAT")])
+        d = make_aligned_seqs(data=[("a", "GCAAGCGTGTAT"), ("b", "GCTACTGTCAAT")])
         expect = d.to_dict()
         got = fl(d)
         self.assertEqual(len(got), 3)
@@ -241,7 +245,7 @@ class TranslateTests(TestCase):
             "s6": "AGAACCGGGTT-",
             "s7": "------------",
         }
-        aln = LoadSeqs(data=data, moltype=DNA)
+        aln = make_aligned_seqs(data=data, moltype=DNA)
         # default just eliminates strict gap sequences
         dropbad = sample.omit_bad_seqs()
         got = dropbad(aln)
@@ -278,7 +282,7 @@ class TranslateTests(TestCase):
             "g": "YAAA",  # non-strict identical
             "h": "GGGG",
         }  # unique!
-        seqs = LoadSeqs(data=data, aligned=False, moltype=DNA)
+        seqs = make_unaligned_seqs(data=data, moltype=DNA)
 
         # mask_degen = True : [{'a', 'c', 'b'}, {'k', 'd', 'e'},
         # {'g', 'f'}] are dupe sets. Only 'h' unique
@@ -300,7 +304,7 @@ class TranslateTests(TestCase):
         self.assertEqual(got.to_dict(), expect)
 
         # choose longest
-        seqs = LoadSeqs(data=data, aligned=True, moltype=DNA)
+        seqs = make_aligned_seqs(data=data, moltype=DNA)
         drop = sample.omit_duplicated(mask_degen=True, choose="longest", moltype="dna")
         got = drop(seqs)
         expect = {"a": "ACGT", "k": "ACGG", "g": "YAAA", "h": "GGGG"}
@@ -318,7 +322,7 @@ class TranslateTests(TestCase):
     def test_concat(self):
         """returns concatenated alignment"""
         alns = [
-            LoadSeqs(data=d, moltype=DNA)
+            make_aligned_seqs(data=d, moltype=DNA)
             for d in [
                 {"seq1": "AAA", "seq2": "AAA", "seq3": "AAA"},
                 {"seq1": "TTT", "seq2": "TTT", "seq3": "TTT", "seq4": "TTT"},
@@ -346,17 +350,15 @@ class TranslateTests(TestCase):
     def test_trim_stop_codons(self):
         """trims stop codons using the specified genetic code"""
         trimmer = sample.trim_stop_codons(gc=1)  # standard code
-        seqs = LoadSeqs(
-            data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"},
-            aligned=False,
-            moltype="dna",
+        seqs = make_unaligned_seqs(
+            data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"}, moltype="dna"
         )
         got = trimmer(seqs)
         expect = {"seq1": "AAATTTCCC", "seq2": "AAATTT"}
         self.assertEqual(got.to_dict(), expect)
         trimmer = sample.trim_stop_codons(gc=1)  # standard code
-        aln = LoadSeqs(
-            data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"}, aligned=True, moltype="dna"
+        aln = make_aligned_seqs(
+            data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"}, moltype="dna"
         )
         got = trimmer(aln)
         expect = {"seq1": "AAATTTCCC", "seq2": "AAATTT---"}
@@ -364,10 +366,8 @@ class TranslateTests(TestCase):
 
         # different genetic code
         trimmer = sample.trim_stop_codons(gc=2)  # mt code
-        seqs = LoadSeqs(
-            data={"seq1": "AAATTTCCC", "seq2": "AAATTTAGA"},
-            aligned=False,
-            moltype="dna",
+        seqs = make_unaligned_seqs(
+            data={"seq1": "AAATTTCCC", "seq2": "AAATTTAGA"}, moltype="dna"
         )
         got = trimmer(seqs)
         expect = {"seq1": "AAATTTCCC", "seq2": "AAATTT"}

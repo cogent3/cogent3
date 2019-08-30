@@ -2,7 +2,7 @@ import os
 
 from unittest import TestCase, main
 
-from cogent3 import DNA, LoadSeqs, LoadTree
+from cogent3 import DNA, LoadTree, load_aligned_seqs
 from cogent3.app import tree as tree_app
 
 
@@ -55,7 +55,7 @@ class TestTree(TestCase):
         path = os.path.join(
             os.path.abspath(__file__).split("test_app")[0], "data/brca1_5.paml"
         )
-        aln = LoadSeqs(path, moltype=DNA)
+        aln = load_aligned_seqs(path, moltype=DNA)
         quick = tree_app.quick_tree()
         tree = quick(aln)
         self.assertEqual(set(tree.get_tip_names()), set(aln.names))

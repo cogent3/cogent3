@@ -13,25 +13,25 @@ Constructing a ``SequenceCollection`` or ``Alignment`` object from strings
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
+    >>> from cogent3 import make_aligned_seqs, make_unaligned_seqs, DNA
     >>> dna  = {'seq1': 'ATGACC',
     ...         'seq2': 'ATCGCC'}
-    >>> seqs = LoadSeqs(data=dna, moltype=DNA)
+    >>> seqs = make_aligned_seqs(data=dna, moltype=DNA)
     >>> print(type(seqs))
     <class 'cogent3.core.alignment.ArrayAlignment'>
-    >>> seqs = LoadSeqs(data=dna, moltype=DNA, aligned=False)
+    >>> seqs = make_unaligned_seqs(data=dna, moltype=DNA)
     >>> print(type(seqs))
     <class 'cogent3.core.alignment.SequenceCollection'>
 
-Constructing a ``ArrayAlignment`` using ``LoadSeqs``
+Constructing a ``ArrayAlignment`` using ``make_aligned_seqs``
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
+    >>> from cogent3 import make_aligned_seqs, DNA
     >>> dna  = {'seq1': 'ATGACC',
     ...         'seq2': 'ATCGCC'}
-    >>> seqs = LoadSeqs(data=dna, moltype=DNA, aligned=True, array_align=True)
+    >>> seqs = make_aligned_seqs(data=dna, moltype=DNA, array_align=True)
     >>> print(type(seqs))
     <class 'cogent3.core.alignment.ArrayAlignment'>
     >>> print(seqs)
@@ -47,10 +47,9 @@ Converting a ``SequenceCollection`` to FASTA format
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
-    >>> seq = LoadSeqs('data/test.paml', aligned=False)
-    >>> fasta_data = seq
-    >>> print(fasta_data)  # doctest: +SKIP
+    >>> from cogent3 import load_unaligned_seqs
+    >>> seqs = load_unaligned_seqs('data/test.paml')
+    >>> print(seqs)  # doctest: +SKIP
     >DogFaced
     GCAAGGAGCCAGCAGAACAGATGGGTTGAAACTAAGGAAACATGTAATGATAGGCAGACT
     >HowlerMon
@@ -74,8 +73,8 @@ Appending the sequences
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
-    >>> aln = LoadSeqs(data= [('seq1', 'ATGAA------'),
+    >>> from cogent3 import make_aligned_seqs, DNA
+    >>> aln = make_aligned_seqs([('seq1', 'ATGAA------'),
     ...                       ('seq2', 'ATG-AGTGATG'),
     ...                       ('seq3', 'AT--AG-GATG')], moltype=DNA)
     >>> print(aln)
@@ -86,7 +85,7 @@ Appending the sequences
     >seq3
     AT--AG-GATG
     <BLANKLINE>
-    >>> new_seqs = LoadSeqs(data=[('seq0', 'ATG-AGT-AGG'),
+    >>> new_seqs = make_aligned_seqs([('seq0', 'ATG-AGT-AGG'),
     ...                           ('seq4', 'ATGCC------')], moltype=DNA)
     >>> new_aln = aln.add_seqs(new_seqs)
     >>> print(new_aln)
@@ -145,11 +144,11 @@ Already aligned sequences can be added to an existing ``Alignment`` object and a
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
-    >>> aln = LoadSeqs(data=[('seq1', 'ATGAA------'),
+    >>> from cogent3 import make_aligned_seqs, DNA
+    >>> aln = make_aligned_seqs([('seq1', 'ATGAA------'),
     ...                      ('seq2', 'ATG-AGTGATG'),
     ...                      ('seq3', 'AT--AG-GATG')], moltype=DNA)
-    >>> ref_aln = LoadSeqs(data=[('seq3', 'ATAGGATG'),
+    >>> ref_aln = make_aligned_seqs([('seq3', 'ATAGGATG'),
     ...                          ('seq0', 'ATG-AGCG'),
     ...                          ('seq4', 'ATGCTGGG')], moltype=DNA)
     >>> new_aln = aln.add_from_ref_aln(ref_aln)
@@ -175,8 +174,8 @@ Removing all columns with gaps in a named sequence
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
-    >>> aln = LoadSeqs(data=[('seq1', 'ATGAA---TG-'),
+    >>> from cogent3 import make_aligned_seqs, DNA
+    >>> aln = make_aligned_seqs([('seq1', 'ATGAA---TG-'),
     ...                      ('seq2', 'ATG-AGTGATG'),
     ...                      ('seq3', 'AT--AG-GATG')], moltype=DNA)
     >>> new_aln = aln.get_degapped_relative_to('seq1')
@@ -199,8 +198,8 @@ Using the ``get_seq`` method allows for extracting an unaligned sequence from a 
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
-    >>> aln = LoadSeqs(data=[('seq1', 'ATGAA------'),
+    >>> from cogent3 import make_aligned_seqs, DNA
+    >>> aln = make_aligned_seqs([('seq1', 'ATGAA------'),
     ...                      ('seq2', 'ATG-AGTGATG'),
     ...                      ('seq3', 'AT--AG-GATG')],
     ...                 moltype=DNA, array_align=False)
@@ -238,9 +237,9 @@ The usual approach is to access a ``SequenceCollection`` or ``Alignment`` object
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
+    >>> from cogent3 import load_unaligned_seqs, load_aligned_seqs
     >>> fn = 'data/long_testseqs.fasta'
-    >>> seqs = LoadSeqs(fn, moltype=DNA, aligned=False)
+    >>> seqs = load_unaligned_seqs(fn, moltype="dna")
     >>> my_seq = seqs.seqs[0]
     >>> my_seq[:24]
     DnaSequence(TGTGGCA... 24)
@@ -248,7 +247,7 @@ The usual approach is to access a ``SequenceCollection`` or ``Alignment`` object
     'TGTGGCACAAATACTCATGCCAGC'
     >>> type(my_seq)
     <class 'cogent3.core.sequence.DnaSequence'>
-    >>> aln = LoadSeqs(fn, moltype=DNA, aligned=True)
+    >>> aln = load_aligned_seqs(fn, moltype="dna")
     >>> aln.seqs[0][:24]
     DnaSequence(TGTGGCA... 24)
     >>> print(aln.seqs[0][:24])
@@ -259,8 +258,8 @@ Getting a subset of sequences from the alignment
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
-    >>> aln = LoadSeqs('data/test.paml', moltype=DNA)
+    >>> from cogent3 import load_aligned_seqs, DNA
+    >>> aln = load_aligned_seqs('data/test.paml', moltype=DNA)
     >>> aln.names
     ['NineBande', 'Mouse', 'Human', 'HowlerMon', 'DogFaced']
     >>> new = aln.take_seqs(['Human', 'HowlerMon'])
@@ -271,8 +270,8 @@ Note, if you set ``array_align=False``, then the subset contain references to th
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
-    >>> aln = LoadSeqs('data/test.paml', array_align=False, moltype=DNA)
+    >>> from cogent3 import load_aligned_seqs, DNA
+    >>> aln = load_aligned_seqs('data/test.paml', array_align=False, moltype=DNA)
     >>> seq = aln.get_seq('Human')
     >>> new = aln.take_seqs(['Human', 'HowlerMon'])
     >>> id(new.get_seq('Human')) == id(aln.get_seq('Human'))
@@ -286,8 +285,9 @@ Creating an ``Alignment`` object from a ``SequenceCollection``
 
 .. doctest::
 
+    >>> from cogent3 import load_unaligned_seqs
     >>> from cogent3.core.alignment import Alignment
-    >>> seq = LoadSeqs('data/test.paml', aligned=False)
+    >>> seq = load_unaligned_seqs('data/test.paml')
     >>> aln = Alignment(seq)
     >>> fasta_1 = seq
     >>> fasta_2 = aln
@@ -300,9 +300,9 @@ This is useful if you've loaded a sequence alignment without specifying the molt
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
+    >>> from cogent3 import make_aligned_seqs
     >>> data = [('a', 'ACG---'), ('b', 'CCTGGG')]
-    >>> aln = LoadSeqs(data=data)
+    >>> aln = make_aligned_seqs(data=data)
     >>> dna = aln.to_dna()
     >>> dna
     2 x 6 dna alignment: a[ACG---], b[CCTGGG]
@@ -311,9 +311,9 @@ To RNA
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
+    >>> from cogent3 import make_aligned_seqs
     >>> data = [('a', 'ACG---'), ('b', 'CCUGGG')]
-    >>> aln = LoadSeqs(data=data)
+    >>> aln = make_aligned_seqs(data=data)
     >>> rna = aln.to_rna()
     >>> rna
     2 x 6 rna alignment: a[ACG---], b[CCUGGG]
@@ -322,9 +322,9 @@ To PROTEIN
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
+    >>> from cogent3 import make_aligned_seqs
     >>> data = [('x', 'TYV'), ('y', 'TE-')]
-    >>> aln = LoadSeqs(data=data)
+    >>> aln = make_aligned_seqs(data=data)
     >>> prot = aln.to_protein()
     >>> prot
     2 x 3 protein alignment: x[TYV], y[TE-]
@@ -339,8 +339,8 @@ This necessarily returns a ``SequenceCollection``.
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
-    >>> aln = LoadSeqs("data/primate_cdx2_promoter.fasta")
+    >>> from cogent3 import load_aligned_seqs
+    >>> aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta")
     >>> degapped = aln.degap()
     >>> print(type(degapped))
     <class 'cogent3.core.alignment.SequenceCollection'>
@@ -354,10 +354,10 @@ Both collection and alignment objects have a ``write`` method. The output format
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
+    >>> from cogent3 import make_aligned_seqs, DNA
     >>> dna  = {'seq1': 'ATGACC',
     ...         'seq2': 'ATCGCC'}
-    >>> aln = LoadSeqs(data=dna, moltype=DNA)
+    >>> aln = make_aligned_seqs(data=dna, moltype=DNA)
     >>> aln.write('sample.fasta')
 
 or by the ``format`` argument.
@@ -379,8 +379,9 @@ Converting an alignment to FASTA format
 
 .. doctest::
 
+    >>> from cogent3 import load_aligned_seqs
     >>> from cogent3.core.alignment import Alignment
-    >>> seq = LoadSeqs('data/long_testseqs.fasta')
+    >>> seq = load_aligned_seqs('data/long_testseqs.fasta')
     >>> aln = Alignment(seq)
     >>> fasta_align = aln
 
@@ -389,8 +390,9 @@ Converting an alignment into Phylip format
 
 .. doctest::
 
+    >>> from cogent3 import load_aligned_seqs
     >>> from cogent3.core.alignment import Alignment
-    >>> seq = LoadSeqs('data/test.paml')
+    >>> seq = load_aligned_seqs('data/test.paml')
     >>> aln = Alignment(seq)
     >>> got = aln.to_phylip()
     >>> print(got)
@@ -407,8 +409,9 @@ Converting an alignment to a list of strings
 
 .. doctest::
 
+    >>> from cogent3 import load_aligned_seqs
     >>> from cogent3.core.alignment import Alignment
-    >>> seq = LoadSeqs('data/test.paml')
+    >>> seq = load_aligned_seqs('data/test.paml')
     >>> aln = Alignment(seq)
     >>> string_list = aln.to_dict().values()
 
@@ -422,9 +425,9 @@ An ``Alignment`` can be sliced
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
+    >>> from cogent3 import load_aligned_seqs, DNA
     >>> fn = 'data/long_testseqs.fasta'
-    >>> aln = LoadSeqs(fn, moltype=DNA, aligned=True)
+    >>> aln = load_aligned_seqs(fn, moltype=DNA)
     >>> print(aln[:24])
     >Human
     TGTGGCACAAATACTCATGCCAGC
@@ -442,9 +445,9 @@ but a ``SequenceCollection`` cannot be sliced
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
+    >>> from cogent3 import load_unaligned_seqs
     >>> fn = 'data/long_testseqs.fasta'
-    >>> seqs = LoadSeqs(fn, moltype=DNA, aligned=False)
+    >>> seqs = load_unaligned_seqs(fn)
     >>> print(seqs[:24])
     Traceback (most recent call last):
     TypeError: 'SequenceCollection' object...
@@ -454,9 +457,8 @@ Getting a single column from an alignment
 
 .. doctest::
 
-    >>> from cogent3.core.alignment import Alignment
-    >>> seq = LoadSeqs('data/test.paml')
-    >>> aln = Alignment(seq)
+    >>> from cogent3 import load_aligned_seqs
+    >>> seq = load_aligned_seqs('data/test.paml')
     >>> column_four = aln[3]
 
 Getting a region of contiguous columns
@@ -464,8 +466,8 @@ Getting a region of contiguous columns
 
 .. doctest::
 
-    >>> from cogent3.core.alignment import Alignment
-    >>> aln = LoadSeqs('data/long_testseqs.fasta')
+    >>> from cogent3 import load_aligned_seqs
+    >>> aln = load_aligned_seqs('data/long_testseqs.fasta')
     >>> region = aln[50:70]
 
 Iterating over alignment positions
@@ -473,8 +475,8 @@ Iterating over alignment positions
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
-    >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta')
+    >>> from cogent3 import load_aligned_seqs
+    >>> aln = load_aligned_seqs('data/primate_cdx2_promoter.fasta')
     >>> col = aln[113:115].iter_positions()
     >>> type(col)
     <class 'generator'>
@@ -488,8 +490,8 @@ We'll do this by specifying the position indices of interest, creating a sequenc
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
-    >>> aln = LoadSeqs(data={'seq1': 'ATGATGATG---',
+    >>> from cogent3 import make_aligned_seqs
+    >>> aln = make_aligned_seqs(data={'seq1': 'ATGATGATG---',
     ...                      'seq2': 'ATGATGATGATG'}, array_align=False)
     >>> list(range(len(aln))[2::3])
     [2, 5, 8, 11]
@@ -512,8 +514,8 @@ We can use more conventional slice notation in this instance. Note, because Pyth
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
-    >>> aln = LoadSeqs(data={'seq1': 'ATGATGATG---',
+    >>> from cogent3 import make_aligned_seqs
+    >>> aln = make_aligned_seqs(data={'seq1': 'ATGATGATG---',
     ...                      'seq2': 'ATGATGATGATG'}, array_align=True)
     >>> pos3 = aln[2::3]
     >>> print(pos3)  # doctest: +SKIP
@@ -535,8 +537,8 @@ For evolutionary analyses that use codon models we need to exclude terminating s
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
-    >>> aln = LoadSeqs(data={'seq1': 'ACGTAA---',
+    >>> from cogent3 import make_aligned_seqs, DNA
+    >>> aln = make_aligned_seqs(data={'seq1': 'ACGTAA---',
     ...                      'seq2': 'ACGACA---',
     ...                      'seq3': 'ACGCAATGA'}, moltype=DNA)
     ...
@@ -554,7 +556,7 @@ If the alignment contains sequences not divisible by 3, use the ``allow_partial`
 
 .. doctest::
 
-    >>> aln = LoadSeqs(data={'seq1': 'ACGTAA---',
+    >>> aln = make_aligned_seqs(data={'seq1': 'ACGTAA---',
     ...                      'seq2': 'ACGAC----', # terminal codon incomplete
     ...                      'seq3': 'ACGCAATGA'}, moltype=DNA)
     ...
@@ -576,8 +578,8 @@ We sometimes want to eliminate ambiguous or gap data from our alignments. We sho
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
-    >>> aln = LoadSeqs(data= [('seq1', 'ATGAAGGTG---'),
+    >>> from cogent3 import make_aligned_seqs, DNA
+    >>> aln = make_aligned_seqs(data= [('seq1', 'ATGAAGGTG---'),
     ...                       ('seq2', 'ATGAAGGTGATG'),
     ...                       ('seq3', 'ATGAAGGNGATG')], moltype=DNA)
 
@@ -614,8 +616,8 @@ Getting all variable positions from an alignment
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
-    >>> aln = LoadSeqs('data/long_testseqs.fasta')
+    >>> from cogent3 import load_aligned_seqs
+    >>> aln = load_aligned_seqs('data/long_testseqs.fasta')
     >>> pos = aln.variable_positions()
     >>> just_variable_aln = aln.take_positions(pos)
     >>> print(just_variable_aln[:10])
@@ -636,8 +638,8 @@ Getting all constant positions from an alignment
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
-    >>> aln = LoadSeqs('data/long_testseqs.fasta')
+    >>> from cogent3 import load_aligned_seqs
+    >>> aln = load_aligned_seqs('data/long_testseqs.fasta')
     >>> pos = aln.variable_positions()
     >>> just_constant_aln = aln.take_positions(pos, negate=True)
     >>> print(just_constant_aln[:10])
@@ -660,8 +662,8 @@ This is done using the ``filtered`` method using the ``motif_length`` argument. 
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
-    >>> aln = LoadSeqs('data/long_testseqs.fasta')
+    >>> from cogent3 import load_aligned_seqs
+    >>> aln = load_aligned_seqs('data/long_testseqs.fasta')
     >>> variable_codons = aln.filtered(lambda x: len(set(map(tuple, x))) > 1,
     ...                                motif_length=3)
     >>> print(just_variable_aln[:9])
@@ -698,8 +700,8 @@ You can use ``take_seqs`` to extract some sequences by sequence identifier from 
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
-    >>> aln = LoadSeqs('data/long_testseqs.fasta')
+    >>> from cogent3 import load_aligned_seqs
+    >>> aln = load_aligned_seqs('data/long_testseqs.fasta')
     >>> aln.take_seqs(['Human','Mouse'])
     2 x 2532 bytes alignment: Human[TGTGGCACAAA...], Mouse[TGTGGCACAGA...]
 
@@ -717,8 +719,8 @@ You can use ``take_seqs_if`` to extract sequences into a new alignment object ba
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
-    >>> aln = LoadSeqs(data= [('seq1', 'ATGAAGGTG---'),
+    >>> from cogent3 import make_aligned_seqs
+    >>> aln = make_aligned_seqs(data= [('seq1', 'ATGAAGGTG---'),
     ...                       ('seq2', 'ATGAAGGTGATG'),
     ...                       ('seq3', 'ATGAAGGNGATG')], moltype=DNA)
     >>> def no_N_chars(s):
@@ -743,8 +745,8 @@ We state the motif length we want and whether to allow gap or ambiguous characte
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
-    >>> aln = LoadSeqs(data= [('seq1', 'ATGAAGGTG---'),
+    >>> from cogent3 import make_aligned_seqs
+    >>> aln = make_aligned_seqs(data= [('seq1', 'ATGAAGGTG---'),
     ...                       ('seq2', 'ATGAAGGTGATG'),
     ...                       ('seq3', 'ATGAAGGNGATG')], moltype=DNA)
     >>> counts = aln.counts()
@@ -768,8 +770,8 @@ The method ``get_motif_probs`` of ``Alignment`` objects returns the probabilitie
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
-    >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta', moltype=DNA)
+    >>> from cogent3 import load_aligned_seqs, DNA
+    >>> aln = load_aligned_seqs('data/primate_cdx2_promoter.fasta', moltype=DNA)
     >>> motif_probs = aln.get_motif_probs()
     >>> print(motif_probs) # doctest: +SKIP
     {'A': 0.24...
@@ -778,9 +780,9 @@ For dinucleotides or longer, we need to pass in an ``Alphabet`` with the appropr
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
+    >>> from cogent3 import load_aligned_seqs, DNA
     >>> trinuc_alphabet = DNA.alphabet.get_word_alphabet(3)
-    >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta', moltype=DNA)
+    >>> aln = load_aligned_seqs('data/primate_cdx2_promoter.fasta', moltype=DNA)
     >>> motif_probs = aln.get_motif_probs(alphabet=trinuc_alphabet)
     >>> for m in sorted(motif_probs, key=lambda x: motif_probs[x],
     ...                 reverse=True):
@@ -796,7 +798,7 @@ Some calculations in ``cogent3`` require all non-zero values in the motif probab
 
 .. doctest::
 
-    >>> aln = LoadSeqs(data=[('a', 'AACAAC'),('b', 'AAGAAG')], moltype=DNA)
+    >>> aln = make_aligned_seqs(data=[('a', 'AACAAC'),('b', 'AAGAAG')], moltype=DNA)
     >>> motif_probs = aln.get_motif_probs()
     >>> assert motif_probs['T'] == 0.0
     >>> motif_probs = aln.get_motif_probs(pseudocount=1e-6)
@@ -809,7 +811,7 @@ We then create a dinucleotide ``Alphabet`` object and use this to get dinucleoti
 .. doctest::
 
     >>> seqs = [('a', 'AACGTAAG'), ('b', 'AACGTAAG')]
-    >>> aln = LoadSeqs(data=seqs, moltype=DNA)
+    >>> aln = make_aligned_seqs(data=seqs, moltype=DNA)
     >>> dinuc_alphabet = DNA.alphabet.get_word_alphabet(2)
     >>> motif_probs = aln.get_motif_probs(alphabet=dinuc_alphabet)
     >>> assert motif_probs['AA'] == 0.25
@@ -819,7 +821,7 @@ What about counting the total incidence of dinucleotides including those not in-
 .. doctest::
 
     >>> seqs = [('my_seq', 'AAAGTAAG')]
-    >>> aln = LoadSeqs(data=seqs, moltype=DNA)
+    >>> aln = make_aligned_seqs(data=seqs, moltype=DNA)
     >>> my_seq = aln.get_seq('my_seq')
     >>> my_seq.count('AA')
     2
@@ -832,8 +834,8 @@ To count all occurrences of a given dinucleotide in a DNA sequence, one could us
 
 .. doctest::
 
-    >>> from cogent3 import Sequence, DNA
-    >>> seq = Sequence(moltype=DNA, seq='AAAGTAAG')
+    >>> from cogent3 import make_seq, DNA
+    >>> seq = make_seq(moltype=DNA, seq='AAAGTAAG')
     >>> seq
     DnaSequence(AAAGTAAG)
     >>> di_nucs = [seq[i:i+2] for i in range(len(seq)-1)]
@@ -848,8 +850,8 @@ Filtering extracted columns for the gap character
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
-    >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta')
+    >>> from cogent3 import load_aligned_seqs
+    >>> aln = load_aligned_seqs('data/primate_cdx2_promoter.fasta')
     >>> col = aln[113:115].iter_positions()
     >>> c1, c2 = list(col)
     >>> c1, c2
@@ -864,8 +866,8 @@ Calculating the gap fraction
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
-    >>> aln = LoadSeqs('data/primate_cdx2_promoter.fasta')
+    >>> from cogent3 import load_aligned_seqs
+    >>> aln = load_aligned_seqs('data/primate_cdx2_promoter.fasta')
     >>> for column in aln[113:150].iter_positions():
     ...     ungapped = list(filter(lambda x: x == '-', column))
     ...     gap_fraction = len(ungapped) * 1.0 / len(column)
@@ -880,8 +882,8 @@ It's often important to know how an alignment position relates to a position in 
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
-    >>> aln = LoadSeqs(data=[('seq1', 'ATGAAGG-TG--'),
+    >>> from cogent3 import make_aligned_seqs
+    >>> aln = make_aligned_seqs(data=[('seq1', 'ATGAAGG-TG--'),
     ...                      ('seq2', 'ATG-AGGTGATG'),
     ...                      ('seq3', 'ATGAAG--GATG')], moltype=DNA)
     >>> seq_to_aln_map = aln.get_gapped_seq('seq1').gap_maps()[0]
@@ -926,7 +928,7 @@ The ``omit_gap_runs`` method can be applied to remove long stretches of gaps in 
 
 .. doctest::
 
-    >>> aln = LoadSeqs(data=[('seq1', 'ATGAA---TG-'),
+    >>> aln = make_aligned_seqs(data=[('seq1', 'ATGAA---TG-'),
     ...                      ('seq2', 'ATG-AGTGATG'),
     ...                      ('seq3', 'AT--AG-GATG')], moltype=DNA)
     >>> print(aln.omit_gap_runs(2))  # doctest: +SKIP
@@ -939,7 +941,7 @@ If instead, we just wanted to remove positions from the alignment which are gaps
 
 .. doctest::
 
-    >>> aln = LoadSeqs(data=[('seq1', 'ATGAA---TG-'),
+    >>> aln = make_aligned_seqs(data=[('seq1', 'ATGAA---TG-'),
     ...                      ('seq2', 'ATG-AGTGATG'),
     ...                      ('seq3', 'AT--AG-GATG')], moltype=DNA)
     >>> print(aln.omit_gap_pos(0.40))  # doctest: +SKIP
@@ -954,7 +956,7 @@ You'll notice that the 4th and 7th columns of the alignment have been removed be
 
 If you wanted to remove sequences which contain more than a certain percent gap characters, you could use the ``omit_gap_seqs`` method. This is commonly applied to filter partial sequences from an alignment.
 
-    >>> aln = LoadSeqs(data=[('seq1', 'ATGAA------'),
+    >>> aln = make_aligned_seqs(data=[('seq1', 'ATGAA------'),
     ...                      ('seq2', 'ATG-AGTGATG'),
     ...                      ('seq3', 'AT--AG-GATG')], moltype=DNA)
     >>> filtered_aln = aln.omit_gap_seqs(0.50)

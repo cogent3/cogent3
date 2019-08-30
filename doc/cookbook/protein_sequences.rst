@@ -31,8 +31,7 @@ Loading protein sequences from a Phylip file
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, PROTEIN
-    >>> seq = LoadSeqs('data/abglobin_aa.phylip', moltype=PROTEIN,
-    ...              aligned=True)
+    >>> from cogent3 import load_aligned_seqs, PROTEIN
+    >>> seq = load_aligned_seqs('data/abglobin_aa.phylip', moltype=PROTEIN)
 
 Loading other formats, or collections of sequences is shown in :ref:`load-seqs`.

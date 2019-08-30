@@ -95,6 +95,29 @@ if warn_env in os.environ:
 # to avoid circular imports, we define a utility function that allows us to
 
 
+def make_seq(seq, name=None, moltype=None):
+    """
+    Parameters
+    ----------
+    seq : str
+        raw string to be converted to sequence object
+    name : str
+        sequence name
+    moltype
+        name of a moltype or moltype instance
+
+    Returns
+    -------
+    returns a sequence object
+    """
+    moltype = moltype or "text"
+    moltype = get_moltype(moltype)
+    seq = moltype.make_seq(seq)
+    if name is not None:
+        seq.name = name
+    return seq
+
+
 def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
     if seq is None:
         for (a_name, a_seq) in FromFilenameParser(filename, format):
@@ -112,6 +135,175 @@ def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
     if name is not None:
         seq.name = name
     return seq
+
+
+def make_unaligned_seqs(
+    data, moltype=None, label_to_name=None, info=None, source=None, **kw
+):
+    """Initialize an unaligned collection of sequences.
+
+    Parameters
+    ----------
+    data
+        sequences
+    moltype
+        the moltype, eg DNA, PROTEIN, 'dna', 'protein'
+    label_to_name
+        function for converting original name into another name.
+    info
+        a dict from which to make an info object
+    source
+        origins of this data, defaults to 'unknown'
+    **kw
+        other keyword arguments passed to SequenceCollection
+    """
+
+    if moltype is not None:
+        moltype = get_moltype(moltype)
+
+    info = info or {}
+    for other_kw in ("constructor_kw", "kw"):
+        other_kw = kw.pop(other_kw, None) or {}
+        kw.update(other_kw)
+    assert isinstance(info, dict), "info must be a dict"
+    info["source"] = source or "unknown"
+
+    return SequenceCollection(
+        data=data, moltype=moltype, label_to_name=label_to_name, info=info, **kw
+    )
+
+
+def make_aligned_seqs(
+    data,
+    moltype=None,
+    array_align=True,
+    label_to_name=None,
+    info=None,
+    source=None,
+    **kw,
+):
+    """Initialize an aligned collection of sequences.
+
+    Parameters
+    ----------
+    data
+        sequences
+    moltype
+        the moltype, eg DNA, PROTEIN, 'dna', 'protein'
+    array_align : bool
+        if True, returns ArrayAlignment, otherwise an annotatable Alignment
+    label_to_name
+        function for converting original name into another name.
+    info
+        a dict from which to make an info object
+    source
+        origins of this data, defaults to 'unknown'
+    **kw
+        other keyword arguments passed to SequenceCollection
+    """
+    if moltype is not None:
+        moltype = get_moltype(moltype)
+
+    info = info or {}
+    for other_kw in ("constructor_kw", "kw"):
+        other_kw = kw.pop(other_kw, None) or {}
+        kw.update(other_kw)
+    assert isinstance(info, dict), "info must be a dict"
+    info["source"] = source or "unknown"
+    klass = ArrayAlignment if array_align else Alignment
+    return klass(
+        data=data, moltype=moltype, label_to_name=label_to_name, info=info, **kw
+    )
+
+
+def load_unaligned_seqs(
+    filename,
+    format=None,
+    moltype=None,
+    label_to_name=None,
+    parser_kw=None,
+    info=None,
+    **kw,
+):
+    """
+    loads unaligned sequences from file
+
+    Parameters
+    ----------
+    filename : str
+        path to sequence file
+    format : str
+        sequence file format, if not specified tries to guess from the path suffix
+    moltype
+        the moltype, eg DNA, PROTEIN, 'dna', 'protein'
+    label_to_name
+        function for converting original name into another name.
+    parser_kw : dict
+        optional arguments for the parser
+    Returns
+    -------
+    SequenceCollection instance
+    """
+    parser_kw = parser_kw or {}
+    for other_kw in ("constructor_kw", "kw"):
+        other_kw = kw.pop(other_kw, None) or {}
+        kw.update(other_kw)
+    data = list(FromFilenameParser(filename, format, **parser_kw))
+    return make_unaligned_seqs(
+        data,
+        label_to_name=label_to_name,
+        moltype=moltype,
+        source=filename,
+        info=info,
+        **kw,
+    )
+
+
+def load_aligned_seqs(
+    filename,
+    format=None,
+    array_align=True,
+    moltype=None,
+    label_to_name=None,
+    parser_kw=None,
+    info=None,
+    **kw,
+):
+    """
+    loads aligned sequences from file
+
+    Parameters
+    ----------
+    filename : str
+        path to sequence file
+    format : str
+        sequence file format, if not specified tries to guess from the path suffix
+    moltype
+        the moltype, eg DNA, PROTEIN, 'dna', 'protein'
+    array_align : bool
+        if True, returns ArrayAlignment, otherwise an annotatable Alignment
+    label_to_name
+        function for converting original name into another name.
+    parser_kw : dict
+        optional arguments for the parser
+    Returns
+    -------
+    ArrayAlignment or Alignment instance
+    """
+    parser_kw = parser_kw or {}
+    for other_kw in ("constructor_kw", "kw"):
+        other_kw = kw.pop(other_kw, None) or {}
+        kw.update(other_kw)
+    data = list(FromFilenameParser(filename, format, **parser_kw))
+    return make_aligned_seqs(
+        data,
+        array_align=array_align,
+        label_to_name=label_to_name,
+        moltype=moltype,
+        source=filename,
+        info=info,
+        **kw,
+    )
 
 
 def LoadSeqs(
@@ -159,33 +351,28 @@ def LoadSeqs(
     suffix. If label_to_name is None, will attempt to infer correct
     conversion from the format.
     """
-
-    constructor_kw = constructor_kw or {}
-    parser_kw = parser_kw or {}
-
-    if filename is None:
-        assert data is not None
-        assert format is None
-        assert not kw, kw
+    kwargs = locals()
+    from cogent3.util.warning import deprecated
+    if filename and aligned:
+        deprecated("function", "LoadSeqs", "load_aligned_seqs", "2020.1.1", 1)
+        for key in ("aligned", "data"):
+            del kwargs[key]
+        return load_aligned_seqs(**kwargs)
+    elif filename:
+        deprecated("function", "LoadSeqs", "load_unaligned_seqs", "2020.1.1", 1)
+        for key in ("aligned", "data", "array_align"):
+            del kwargs[key]
+        return load_unaligned_seqs(**kwargs)
+    elif aligned:
+        deprecated("function", "LoadSeqs", "make_aligned_seqs", "2020.1.1", 1)
+        for key in ("filename", "format", "aligned", "parser_kw"):
+            del kwargs[key]
+        return make_aligned_seqs(**kwargs)
     else:
-        info = constructor_kw.get("info", {})
-        info["source"] = filename
-        constructor_kw["info"] = info
-        assert data is None, (filename, data)
-        data = list(FromFilenameParser(filename, format, **parser_kw))
-
-    if aligned:
-        klass = ArrayAlignment if array_align else Alignment
-    else:  # generic case: return SequenceCollection
-        klass = SequenceCollection
-
-    return klass(
-        data=data,
-        moltype=moltype,
-        name=name,
-        label_to_name=label_to_name,
-        **constructor_kw,
-    )
+        deprecated("function", "LoadSeqs", "make_unaligned_seqs", "2020.1.1", 1)
+        for key in ("filename", "format", "aligned", "array_align", "parser_kw"):
+            del kwargs[key]
+        return make_unaligned_seqs(**kwargs)
 
 
 def LoadTable(

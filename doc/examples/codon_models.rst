@@ -48,8 +48,8 @@ For our example we load a sample alignment and tree as per usual. To reduce the 
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, LoadTree, DNA
-    >>> aln = LoadSeqs('data/primate_brca1.fasta', moltype=DNA)
+    >>> from cogent3 import load_aligned_seqs, LoadTree, DNA
+    >>> aln = load_aligned_seqs('data/primate_brca1.fasta', moltype=DNA)
     >>> tree = LoadTree('data/primate_brca1.tree')
 
 Standard test of neutrality

@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from cogent3 import DNA, LoadSeqs
+from cogent3 import DNA, make_aligned_seqs
 from cogent3.core.annotation import Feature, Variable
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
@@ -178,7 +178,7 @@ class FeaturesTest(TestCase):
 
         # Sequence features can be accessed via a containing Alignment:
 
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
         )
         self.assertEqual(str(aln), ">x\n-AAAAAAAAA\n>y\nTTTT--TTTT\n")
@@ -203,7 +203,7 @@ class FeaturesTest(TestCase):
 
         # We copy the annotations from another sequence,
 
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data=[["x", "-AAAAAAAAA"], ["y", "TTTT--CCCC"]], array_align=False
         )
         self.s = DNA.make_seq("AAAAAAAAA", name="x")
@@ -229,7 +229,9 @@ class FeaturesTest(TestCase):
         # If the feature lies outside the sequence being copied to, you get a
         # lost span
 
-        aln = LoadSeqs(data=[["x", "-AAAA"], ["y", "TTTTT"]], array_align=False)
+        aln = make_aligned_seqs(
+            data=[["x", "-AAAA"], ["y", "TTTTT"]], array_align=False
+        )
         seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCC", "x")
         exon = seq.add_feature("exon", "A", [(5, 8)])
         aln.get_seq("x").copy_annotations(seq)
@@ -243,7 +245,7 @@ class FeaturesTest(TestCase):
         # You can copy to a sequence with a different name,
         # in a different alignment if the feature lies within the length
 
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
         )
         seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCC", "x")
@@ -257,7 +259,7 @@ class FeaturesTest(TestCase):
 
         # If the sequence is shorter, again you get a lost span.
 
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
         )
         diff_len_seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCCCCCCCCCC", "x")
@@ -271,14 +273,14 @@ class FeaturesTest(TestCase):
 
         # We consider cases where there are terminal gaps.
 
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data=[["x", "-AAAAAAAAA"], ["y", "------TTTT"]], array_align=False
         )
         exon = aln.get_seq("x").add_feature("exon", "fred", [(3, 8)])
         aln_exons = list(aln.get_annotations_from_seq("x", "exon"))
         self.assertEqual(str(aln_exons), '[exon "fred" at [4:9]/10]')
         self.assertEqual(str(aln_exons[0].get_slice()), ">x\nAAAAA\n>y\n--TTT\n")
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data=[["x", "-AAAAAAAAA"], ["y", "TTTT--T---"]], array_align=False
         )
         exon = aln.get_seq("x").add_feature("exon", "fred", [(3, 8)])
@@ -290,7 +292,7 @@ class FeaturesTest(TestCase):
         # In this case, only those residues included within the feature are
         # covered - note the omission of the T in y opposite the gap in x.
 
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data=[["x", "C-CCCAAAAA"], ["y", "-T----TTTT"]],
             moltype=DNA,
             array_align=False,
@@ -338,7 +340,7 @@ class FeaturesTest(TestCase):
 
         # We create an alignment with a sequence that has two different annotation types.
 
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data=[["x", "C-CCCAAAAAGGGAA"], ["y", "-T----TTTTG-GTT"]], array_align=False
         )
         self.assertEqual(str(aln), ">x\nC-CCCAAAAAGGGAA\n>y\n-T----TTTTG-GTT\n")
@@ -431,8 +433,8 @@ class FeaturesTest(TestCase):
         # separately, or as a series.
 
         data = [["human", "CGAAACGTTT"], ["mouse", "CTAAACGTCG"]]
-        as_series = LoadSeqs(data=data, array_align=False)
-        as_items = LoadSeqs(data=data, array_align=False)
+        as_series = make_aligned_seqs(data=data, array_align=False)
+        as_items = make_aligned_seqs(data=data, array_align=False)
 
         # We add annotations to the sequences as a series.
 
@@ -477,8 +479,8 @@ class FeaturesTest(TestCase):
 
         # These different constructions should generate the same output.
         data = [["human", "CGAAACGTTT"], ["mouse", "CTAAACGTCG"]]
-        as_series = LoadSeqs(data=data, array_align=False)
-        as_items = LoadSeqs(data=data, array_align=False)
+        as_series = make_aligned_seqs(data=data, array_align=False)
+        as_items = make_aligned_seqs(data=data, array_align=False)
 
         serial = as_series.with_masked_annotations(["cpgsite"])
         itemwise = as_items.with_masked_annotations(["cpgsite"])
@@ -521,7 +523,7 @@ class FeaturesTest(TestCase):
     def test_roundtripped_alignment(self):
         """Alignment with annotations roundtrips correctly"""
         # annotations just on member sequences
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
         )
         _ = aln.get_seq("x").add_annotation(Feature, "exon", "fred", [(3, 8)])
@@ -534,7 +536,7 @@ class FeaturesTest(TestCase):
         self.assertEqual(got_exons.get_slice().to_dict(), expect.to_dict())
 
         # annotations just on alignment
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data=[["x", "-AAAAAGGGG"], ["y", "TTTT--CCCC"]], array_align=False
         )
         f = aln.add_annotation(Feature, "generic", "no name", [(1, 4), (6, 10)])
@@ -545,7 +547,7 @@ class FeaturesTest(TestCase):
         self.assertEqual(got.get_slice().to_dict(), expect)
 
         # annotations on both alignment and sequence
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data=[["x", "-AAAAAGGGG"], ["y", "TTTT--CCCC"]], array_align=False
         )
         f = aln.add_annotation(Feature, "generic", "no name", [(1, 4), (6, 10)])
@@ -569,7 +571,7 @@ class FeaturesTest(TestCase):
     def test_roundtripped_alignment2(self):
         """Sliced Alignment with annotations roundtrips correctly"""
         # annotations just on member sequences
-        aln = LoadSeqs(
+        aln = make_aligned_seqs(
             data=[["x", "-AAAGGGGGAACCCT"], ["y", "TTTT--TTTTAGGGA"]], array_align=False
         )
         of1 = aln.get_seq("x").add_annotation(Feature, "exon", "E1", [(3, 8)])

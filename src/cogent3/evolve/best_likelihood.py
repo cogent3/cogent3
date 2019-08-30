@@ -9,7 +9,7 @@ for a site-independent evolutionary process.
 
 from numpy import log
 
-from cogent3 import LoadSeqs
+from cogent3 import make_aligned_seqs
 
 
 __author__ = "Helen Lindsay, Gavin Huttley"
@@ -146,7 +146,7 @@ def BestLogLikelihood(
     else:
         kwargs = {}
 
-    aln = LoadSeqs(data=aln.to_dict(), **kwargs)
+    aln = make_aligned_seqs(aln.to_dict(), **kwargs)
     columns = aligned_columns_to_rows(aln, motif_length, exclude_chars, allowed_chars)
     num_cols = len(columns)
     log_likelihood = get_G93_lnL_from_array(columns)

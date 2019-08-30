@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from cogent3 import DNA, LoadSeqs, LoadTree
+from cogent3 import DNA, LoadTree, make_unaligned_seqs
 from cogent3.app import align as align_app
 from cogent3.app.composable import NotCompleted
 
@@ -23,7 +23,7 @@ _seqs = {
 
 
 class RefalignmentTests(TestCase):
-    seqs = LoadSeqs(data=_seqs, aligned=False, moltype=DNA)
+    seqs = make_unaligned_seqs(_seqs, moltype=DNA)
     treestring = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06," "Human:0.0):0.04);"
 
     def test_align_to_ref(self):
@@ -68,9 +68,8 @@ class RefalignmentTests(TestCase):
     def test_progressive_fails(self):
         """should return NotCompletedResult along with message"""
         # Bandicoot has an inf-frame stop codon
-        seqs = LoadSeqs(
+        seqs = make_unaligned_seqs(
             data={"Human": "GCCTCA", "Rhesus": "GCCAGCTCA", "Bandicoot": "TGATCATTA"},
-            aligned=False,
             moltype="dna",
         )
         aligner = align_app.progressive_align(model="codon")

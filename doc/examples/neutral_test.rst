@@ -7,7 +7,7 @@ This file contains an example for performing a likelihood ratio test of neutrali
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, LoadTree
+    >>> from cogent3 import load_aligned_seqs, LoadTree
     >>> from cogent3.evolve.models import MG94GTR
     >>> from cogent3.maths import stats
 
@@ -15,7 +15,7 @@ Get your alignment and tree.
 
 .. doctest::
 
-    >>> al = LoadSeqs("data/long_testseqs.fasta")
+    >>> al = load_aligned_seqs("data/long_testseqs.fasta")
     >>> t = LoadTree("data/test.tree")
 
 We use a Goldman Yang 1994 model.

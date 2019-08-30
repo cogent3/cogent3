@@ -3,11 +3,11 @@ Making a phylogenetic tree from a protein sequence alignment
 
 .. sectionauthor:: Gavin Huttley
 
-In this example we pull together the distance calculation and tree building with the additional twist of using an empirical protein substitution matrix. We will therefore be computing the tree from a protein sequence alignment. We will first do the standard ``cogent3`` import for ``LoadSeqs``.
+In this example we pull together the distance calculation and tree building with the additional twist of using an empirical protein substitution matrix. We will therefore be computing the tree from a protein sequence alignment. We will first do the standard ``cogent3`` import for ``load_aligned_seqs``.
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, PROTEIN
+    >>> from cogent3 import load_aligned_seqs, PROTEIN
 
 We will use an empirical protein substitution matrix.
 
@@ -26,8 +26,7 @@ Now load our sequence alignment, explicitly setting the alphabet to be protein.
 
 .. doctest::
 
-    >>> aln = LoadSeqs('data/abglobin_aa.phylip', interleaved=True,
-    ...                 moltype=PROTEIN)
+    >>> aln = load_aligned_seqs('data/abglobin_aa.phylip', moltype=PROTEIN)
 
 Create an Empirical Protein Matrix Substitution model object. This will take the unscaled empirical matrix and use it and the motif frequencies to create a scaled Q matrix.
 

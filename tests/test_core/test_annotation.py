@@ -2,7 +2,7 @@
 
 import unittest
 
-from cogent3 import DNA, LoadSeqs
+from cogent3 import DNA, make_aligned_seqs
 from cogent3.core.annotation import Feature, Variable, _Feature
 from cogent3.core.location import Map, Span, as_map
 
@@ -33,7 +33,7 @@ def makeSampleAlignment():
     seq1 = makeSampleSequence()
     seq2 = makeSampleSequence(with_gaps=True)
     seqs = {"FAKE01": seq1, "FAKE02": seq2}
-    aln = LoadSeqs(data=seqs, array_align=False)
+    aln = make_aligned_seqs(data=seqs, array_align=False)
     aln.add_annotation(Feature, "misc_feature", "misc", [(12, 25)])
     aln.add_annotation(Feature, "CDS", "blue", [(15, 25)])
     aln.add_annotation(Feature, "5'UTR", "red", [(2, 4)])

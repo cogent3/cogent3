@@ -5,18 +5,18 @@ Loading nucleotide, protein sequences
 
 .. author, Tony Walters, Tom Elliott, Gavin Huttley
 
-``LoadSeqs`` from a file
-^^^^^^^^^^^^^^^^^^^^^^^^
+Loading sequences from a file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As an alignment
 """""""""""""""
 
-The function ``LoadSeqs()`` creates either a sequence collection or an alignment depending on the keyword argument ``aligned`` (the default is ``True``).
+The function ``load_unaligned_seqs()`` creates a sequence collection, ``load_aligned_seqs()`` an alignment.
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
-    >>> aln = LoadSeqs('data/long_testseqs.fasta', moltype=DNA)
+    >>> from cogent3 import load_aligned_seqs, DNA
+    >>> aln = load_aligned_seqs('data/long_testseqs.fasta', moltype=DNA)
     >>> type(aln)
     <class 'cogent3.core.alignment.ArrayAlignment'>
 
@@ -25,12 +25,12 @@ This example and some of the following use the :download:`long_testseqs.fasta <.
 As a sequence collection (unaligned)
 """"""""""""""""""""""""""""""""""""
 
-Setting the ``LoadSeqs()`` function keyword argument ``aligned=False`` returns a sequence collection.
+The ``load_unaligned_seqs()`` function returns a sequence collection.
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
-    >>> seqs = LoadSeqs('data/long_testseqs.fasta', moltype=DNA, aligned=False)
+    >>> from cogent3 import load_unaligned_seqs, DNA
+    >>> seqs = load_unaligned_seqs('data/long_testseqs.fasta', moltype=DNA)
     >>> print(type(seqs))
     <class 'cogent3.core.alignment.SequenceCollection'>
 
@@ -39,26 +39,26 @@ Setting the ``LoadSeqs()`` function keyword argument ``aligned=False`` returns a
 Specifying the file format
 """"""""""""""""""""""""""
 
-``LoadSeqs()`` uses the filename suffix to infer the file format. This can be overridden using the ``format`` argument.
+`The loading functions use the filename suffix to infer the file format. This can be overridden using the ``format`` argument.
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
-    >>> aln = LoadSeqs('data/long_testseqs.fasta', moltype=DNA,
+    >>> from cogent3 import load_aligned_seqs, DNA
+    >>> aln = load_aligned_seqs('data/long_testseqs.fasta', moltype=DNA,
     ...                  format='fasta')
     ...
     >>> aln
     5 x 2532 dna alignment: Human[TGTGGCACAAA...
 
 
-``LoadSeqs`` from a series of strings
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``make_aligned_seqs`` from a series of strings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
+    >>> from cogent3 import make_aligned_seqs
     >>> seqs = ['>seq1','AATCG-A','>seq2','AATCGGA']
-    >>> seqs_loaded = LoadSeqs(data=seqs)
+    >>> seqs_loaded = make_aligned_seqs(seqs)
     >>> print(seqs_loaded)
     >seq1
     AATCG-A
@@ -66,14 +66,14 @@ Specifying the file format
     AATCGGA
     <BLANKLINE>
 
-``LoadSeqs`` from a dict of strings
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``make_aligned_seqs`` from a dict of strings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
+    >>> from cogent3 import make_aligned_seqs
     >>> seqs = {'seq1': 'AATCG-A','seq2': 'AATCGGA'}
-    >>> seqs_loaded = LoadSeqs(data=seqs)
+    >>> seqs_loaded = make_aligned_seqs(seqs)
 
 Specifying the sequence molecular type
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -82,10 +82,10 @@ Simple case of loading a ``list`` of aligned amino acid sequences in FASTA forma
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs
+    >>> from cogent3 import make_aligned_seqs
     >>> from cogent3 import DNA, PROTEIN
     >>> protein_seqs = ['>seq1','DEKQL-RG','>seq2','DDK--SRG']
-    >>> proteins_loaded = LoadSeqs(data=protein_seqs)
+    >>> proteins_loaded = make_aligned_seqs(protein_seqs)
     >>> proteins_loaded.moltype
     MolType(('\x00', '\x01', '\x02', '\x03'...
     >>> print(proteins_loaded)
@@ -94,7 +94,7 @@ Simple case of loading a ``list`` of aligned amino acid sequences in FASTA forma
     >seq2
     DDK--SRG
     <BLANKLINE>
-    >>> proteins_loaded = LoadSeqs(data=protein_seqs, moltype=PROTEIN)
+    >>> proteins_loaded = make_aligned_seqs(protein_seqs, moltype=PROTEIN)
     >>> print(proteins_loaded)
     >seq1
     DEKQL-RG
@@ -109,9 +109,9 @@ Load a list of aligned nucleotide sequences, while specifying the DNA molecule t
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
+    >>> from cogent3 import make_aligned_seqs, DNA
     >>> DNA_seqs = ['>sample1 Mus musculus','AACCTGC--C','>sample2 Gallus gallus','AAC-TGCAAC']
-    >>> loaded_seqs = LoadSeqs(data=DNA_seqs, moltype=DNA, label_to_name=lambda x: x.split()[0])
+    >>> loaded_seqs = make_aligned_seqs(DNA_seqs, moltype=DNA, label_to_name=lambda x: x.split()[0])
     >>> print(loaded_seqs)
     >sample1
     AACCTGC--C
@@ -119,28 +119,10 @@ Load a list of aligned nucleotide sequences, while specifying the DNA molecule t
     AAC-TGCAAC
     <BLANKLINE>
 
-Using alternative constructors for the `Alignment` object
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-An example of using an alternative constructor is given below. A constructor is passed to the aligned parameter in lieu of ``True`` or ``False``.
-
-.. doctest::
-
-    >>> from cogent3 import LoadSeqs
-    >>> from cogent3.core.alignment import ArrayAlignment
-    >>> seqs = ['>seq1','AATCG-A','>seq2','AATCGGA']
-    >>> seqs_loaded = LoadSeqs(data=seqs,array_align=True)
-    >>> print(seqs_loaded)
-    >seq1
-    AATCG-A
-    >seq2
-    AATCGGA
-    <BLANKLINE>
-
 Loading sequences using format parsers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``LoadSeqs`` is just a convenience interface to format parsers. It can sometimes be more effective to use the parsers directly, say when you don't want to load everything into memory.
+``load_aligned_seqs()`` and ``load_unaligned_seqs()`` are just convenience interfaces to format parsers. It can sometimes be more effective to use the parsers directly, say when you don't want to load everything into memory.
 
 Loading FASTA sequences from an open file or list of lines
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""

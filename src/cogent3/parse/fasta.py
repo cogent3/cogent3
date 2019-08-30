@@ -313,14 +313,12 @@ def GroupFastaParser(
                     print(
                         "GroupParser collection keys", list(current_collection.keys())
                     )
-                seqs = cogent3.LoadSeqs(
-                    data=current_collection, moltype=moltype, aligned=aligned
-                )
+                seqs = cogent3.make_aligned_seqs(current_collection, moltype=moltype)
                 seqs.info = info
                 yield seqs
             current_collection = {label: seq}
             group_ids.append(label.info[group_key])
     info = Info(Group=group_ids[-1])
-    seqs = cogent3.LoadSeqs(data=current_collection, moltype=moltype, aligned=aligned)
-    seqs.info = info
+    func = cogent3.make_aligned_seqs if aligned else cogent3.make_unaligned_seqs
+    seqs = func(current_collection, moltype=moltype, info=info)
     yield seqs

@@ -19,9 +19,9 @@ For a limited number of evolutionary models a fast implementation is available. 
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
+    >>> from cogent3 import load_aligned_seqs, DNA
     >>> from cogent3.evolve.fast_distance import TN93Pair
-    >>> aln = LoadSeqs('data/primate_brca1.fasta')
+    >>> aln = load_aligned_seqs('data/primate_brca1.fasta')
     >>> dist_calc = TN93Pair(DNA, alignment=aln)
     >>> dist_calc.run(show_progress=False)
 
@@ -67,10 +67,10 @@ The standard ``cogent3`` likelihood function can also be used to estimate distan
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
+    >>> from cogent3 import load_aligned_seqs, DNA
     >>> from cogent3.evolve import distance
     >>> from cogent3.evolve.models import F81
-    >>> aln = LoadSeqs('data/primate_brca1.fasta')
+    >>> aln = load_aligned_seqs('data/primate_brca1.fasta')
     >>> d = distance.EstimateDistances(aln, submodel=F81())
     >>> d.run(show_progress=False)
 
@@ -154,10 +154,10 @@ We illustrate the phylogeny reconstruction using maximum-likelihood using the F8
 
 .. doctest::
 
-    >>> from cogent3 import LoadSeqs, DNA
+    >>> from cogent3 import load_aligned_seqs, DNA
     >>> from cogent3.phylo.maximum_likelihood import ML
     >>> from cogent3.evolve.models import F81
-    >>> aln = LoadSeqs('data/primate_brca1.fasta')
+    >>> aln = load_aligned_seqs('data/primate_brca1.fasta')
     >>> ml = ML(F81(), aln)
 
 The ``ML`` object also has the ``trex`` method and this can be used in the same way as for above, i.e. ``ml.trex()``. We don't do that here because this is a very slow method for phylogenetic reconstruction.

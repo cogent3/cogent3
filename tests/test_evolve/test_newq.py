@@ -5,7 +5,7 @@ import warnings
 from numpy import dot, ones
 from numpy.testing import assert_allclose
 
-from cogent3 import DNA, LoadSeqs, LoadTree
+from cogent3 import DNA, LoadTree, load_aligned_seqs, make_aligned_seqs
 from cogent3.evolve.ns_substitution_model import (
     DiscreteSubstitutionModel,
     General,
@@ -71,7 +71,7 @@ def make_p(length, coord, val):
 
 
 class NewQ(TestCase):
-    aln = LoadSeqs(
+    aln = make_aligned_seqs(
         data={
             "seq1": "TGTGGCACAAATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
             "seq2": "TGTGGCACAAATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
@@ -214,8 +214,8 @@ class NewQ(TestCase):
             posn2.append([name, "".join(p2)])
 
         # the position specific alignments
-        posn1 = LoadSeqs(data=posn1)
-        posn2 = LoadSeqs(data=posn2)
+        posn1 = make_aligned_seqs(data=posn1)
+        posn2 = make_aligned_seqs(data=posn2)
 
         # a newQ dinucleotide model
         sm = TimeReversibleNucleotide(motif_length=2, mprob_model="monomer")
@@ -319,7 +319,9 @@ class NewQ(TestCase):
     def test_getting_node_mprobs(self):
         """return correct motif probability vector for tree nodes"""
         tree = LoadTree(treestring="(a:.2,b:.2,(c:.1,d:.1):.1)")
-        aln = LoadSeqs(data={"a": "TGTG", "b": "TGTG", "c": "TGTG", "d": "TGTG"})
+        aln = make_aligned_seqs(
+            data={"a": "TGTG", "b": "TGTG", "c": "TGTG", "d": "TGTG"}
+        )
 
         motifs = ["T", "C", "A", "G"]
         aX = MotifChange(motifs[0], motifs[3], forward_only=True).aliased("aX")
@@ -366,7 +368,7 @@ class NewQ(TestCase):
         """handles different statespace dimensions from process and stationary distribution"""
         from cogent3.evolve.models import get_model
 
-        aln = LoadSeqs("data/primates_brca1.fasta", moltype="dna")
+        aln = load_aligned_seqs("data/primates_brca1.fasta", moltype="dna")
         aln = aln.no_degenerates(motif_length=3)
 
         tree = LoadTree("data/primates_brca1.tree")

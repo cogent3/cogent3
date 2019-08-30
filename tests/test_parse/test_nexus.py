@@ -3,7 +3,7 @@
 
 from unittest import TestCase, main
 
-from cogent3 import LoadSeqs
+from cogent3 import load_aligned_seqs
 from cogent3.parse.nexus import (
     MinimalNexusAlignParser,
     find_fields,
@@ -419,12 +419,12 @@ class NexusParserTests(TestCase):
         self.assertEqual(lengths, {234})  # all same length and equal 234
 
     def test_load_seqs_interface(self):
-        """LoadSeqs correctly loads nexus alignments"""
-        aln = LoadSeqs("data/nexus_mixed.nex")
+        """load_aligned_seqs correctly loads nexus alignments"""
+        aln = load_aligned_seqs("data/nexus_mixed.nex")
         self.assertEqual(aln.num_seqs, 4)
         self.assertEqual(len(aln), 20)
 
-        aln = LoadSeqs("data/nexus_aa.nxs")
+        aln = load_aligned_seqs("data/nexus_aa.nxs")
         self.assertEqual(aln.num_seqs, 10)
         self.assertEqual(len(aln), 234)
 
