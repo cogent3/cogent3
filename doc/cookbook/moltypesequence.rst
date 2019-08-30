@@ -105,7 +105,7 @@ Setting up a DNA ``MolType`` object allowing ``.`` as gaps
    >>> seq = DNAgapped.make_seq('ACG.')
 
 
-.. note:: At present, constructing custom moltype causes a change in the moltype for the ``DnaSequence`` class that affects all calls to that class in the process that made the change. So I'm resetting this attribute now to allow the rest of the documentation to be executed.
+.. note:: At present, constructing custom moltype causes a change in the moltype. IN this instance, for the ``DnaSequence`` class. This affects all subsequent calls to that class in the running process that made the change. So I'm resetting this attribute now to allow the rest of the documentation to be executed.
 
 .. doctest::
 
@@ -152,6 +152,6 @@ Verify sequences
 
 The ``Sequence`` object contains classes that represent biological sequence data. These provide generic biological sequence manipulation functions, plus functions that are critical for the ``evolve`` module calculations.
 
-.. warning:: Do not import sequence classes directly! It is expected that you will access them through ``MolType`` objects. The most common molecular types ``DNA``, ``make_aligned_seqs(``, ``PROTEIN`` are provided as top level imports in ``cogent3`` (e.g. ``cogent3.DNA``). Sequence classes depend on information from the ``MolType`` that is **only** available after ``MolType`` has been imported. Sequences are intended to be immutable. This is not enforced by the code for performance reasons, but don't alter the ``MolType`` or the sequence data after creation.
+.. warning:: Do not import sequence classes directly! It is expected that you will access them through ``MolType`` objects. The molecular types can be accessed via the ``cogent3.get_moltype()`` function. Sequence classes depend on information from the ``MolType`` that is **only** available after ``MolType`` has been imported. Sequences are intended to be immutable. This is not enforced by the code for performance reasons, but don't alter the ``MolType`` or the sequence data after creation.
 
 More detailed usage of sequence objects can be found in :ref:`dna-rna-seqs`.
