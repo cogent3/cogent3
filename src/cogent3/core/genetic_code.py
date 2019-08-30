@@ -474,12 +474,12 @@ def get_code(code_id=1):
 
 def available_codes():
     """returns Table listing the available genetic codes"""
-    from cogent3 import LoadTable
+    from cogent3.util.table import Table
 
     all_keys = sorted({int(k) for k in GeneticCodes if str(k).isdigit()})
     rows = [(k, GeneticCodes[k].name) for k in all_keys]
     header = ["Code ID", "Name"]
-    table = LoadTable(
+    table = Table(
         header=header,
         rows=rows,
         row_ids=True,

@@ -758,7 +758,7 @@ class Parametric(_ContinuousSubstitutionModel):
     def ascii_art(self, delim="", delim2="|", max_width=70, return_table=False):
         """An ASCII-art table representing the model.  'delim' delimits
         parameter names, 'delim2' delimits motifs"""
-        from cogent3 import LoadTable
+        from cogent3.util.table import Table
 
         labels = [m for m in self.alphabet]
         pars = self.get_matrix_params()
@@ -774,7 +774,7 @@ class Parametric(_ContinuousSubstitutionModel):
         else:
             title = "rate matrix"
 
-        t = LoadTable(
+        t = Table(
             header=labels, rows=rows, max_width=max_width, title=title, row_ids=True
         )
         result = t if return_table else t.tostring(center=True)

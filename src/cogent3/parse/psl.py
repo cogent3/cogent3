@@ -3,8 +3,8 @@
    Compatible with blat v.34
 """
 
-from cogent3 import LoadTable
 from cogent3.parse.table import ConvertFields
+from cogent3.util.table import Table
 
 
 __author__ = "Gavin Huttley, Anuj Pahwa"
@@ -88,5 +88,5 @@ def PslToTable(data):
     version = next(parser)
     header = next(parser)
     rows = [row for row in parser]
-    table = LoadTable(header=header, rows=rows, title=version)
+    table = Table(header=header, rows=rows, title=version)
     return table

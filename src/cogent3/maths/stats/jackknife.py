@@ -1,6 +1,6 @@
 import numpy as np
 
-from cogent3 import LoadTable
+from cogent3.util.table import Table
 
 
 __author__ = "Anuj Pahwa, Gavin Huttley"
@@ -126,7 +126,7 @@ class JackknifeStats(object):
         except TypeError:
             header.append("Stat-i")
 
-        return LoadTable(rows=rows, header=header, title=title)
+        return Table(rows=rows, header=header, title=title)
 
     @property
     def Pseudovalues(self):
@@ -159,7 +159,7 @@ class JackknifeStats(object):
         except TypeError:
             header.append("Pseudovalue-i")
 
-        return LoadTable(rows=rows, header=header, title=title)
+        return Table(rows=rows, header=header, title=title)
 
     @property
     def SummaryStats(self):
@@ -176,4 +176,4 @@ class JackknifeStats(object):
             (self._sample_statistic, self._jackknifed_stat, self._standard_error)
         )
         rows = rows.transpose()
-        return LoadTable(header=header, rows=rows, title=title)
+        return Table(header=header, rows=rows, title=title)

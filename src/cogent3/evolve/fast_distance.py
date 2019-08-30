@@ -291,7 +291,7 @@ Stats = namedtuple("Stats", ["length", "fraction_variable", "dist", "variance"])
 
 
 def _make_stat_table(stats, names, **kwargs):
-    from cogent3 import LoadTable
+    from cogent3.util.table import Table
 
     header = [r"Seq1 \ Seq2"] + names
     rows = zeros((len(names), len(names)), dtype="O")
@@ -306,9 +306,7 @@ def _make_stat_table(stats, names, **kwargs):
     for i in range(len(names)):
         rows[i].insert(0, names[i])
 
-    table = LoadTable(
-        header=header, rows=rows, row_ids=True, missing_data="*", **kwargs
-    )
+    table = Table(header=header, rows=rows, row_ids=True, missing_data="*", **kwargs)
     return table
 
 
@@ -661,13 +659,13 @@ def available_distances():
     -----
     For more complicated genetic distance methods, see the evolve.models module.
     """
-    from cogent3 import LoadTable
+    from cogent3.util.table import Table
 
     rows = []
     for n, c in _calculators.items():
         rows.append([n, ", ".join(c.valid_moltypes)])
 
-    table = LoadTable(
+    table = Table(
         header=["Abbreviation", "Suitable for moltype"],
         rows=rows,
         title=(

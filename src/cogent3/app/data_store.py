@@ -19,7 +19,6 @@ from tinydb import Query, TinyDB
 from tinydb.middlewares import CachingMiddleware
 from tinydb.storages import JSONStorage
 
-from cogent3 import LoadTable
 from cogent3.util.deserialise import deserialise_not_completed
 from cogent3.util.misc import (
     atomic_write,
@@ -27,6 +26,7 @@ from cogent3.util.misc import (
     get_format_suffixes,
     open_,
 )
+from cogent3.util.table import Table
 from cogent3.util.union_dict import UnionDict
 
 
@@ -811,7 +811,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             ]
             rows.append(row)
 
-        table = LoadTable(header=header, rows=rows, title="incomplete records")
+        table = Table(header=header, rows=rows, title="incomplete records")
         return table
 
     @property
@@ -907,7 +907,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
                 ]
             )
             rows.append(row)
-        table = LoadTable(
+        table = Table(
             header=["time", "name", "python version", "who", "command", "composable"],
             rows=rows,
             title="summary of log files",
@@ -927,7 +927,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
         num_incomplete = len(self.incomplete)
         num_complete = len(self.members)
         num_logs = len(self.logs)
-        summary = LoadTable(
+        summary = Table(
             header=["record type", "number"],
             rows=[
                 ["completed", num_complete],

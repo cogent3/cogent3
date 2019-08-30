@@ -12,7 +12,7 @@ Data Manipulation using ``Table``
     Email, gavin.huttley@anu.edu.au
     Status, Production
 
-The toolkit has a ``Table`` object that can be used for manipulating tabular data. It's properties can be considered like an ordered 2 dimensional dictionary or tuple with flexible output format capabilities of use for exporting data for import into external applications. Importantly, via the restructured text format one can generate html or latex formatted tables. The ``table`` module is located within ``cogent3.util``. The ``LoadTable`` convenience function is provided as a top-level ``cogent3`` import.
+The toolkit has a ``Table`` object that can be used for manipulating tabular data. It's properties can be considered like an ordered 2 dimensional dictionary or tuple with flexible output format capabilities of use for exporting data for import into external applications. Importantly, via the restructured text format one can generate html or latex formatted tables. The ``table`` module is located within ``cogent3.util``. The ``load_table`` and ``make_table`` convenience functions are provided as top-level ``cogent3`` imports.
 
 Table creation
 --------------
@@ -21,7 +21,7 @@ Tables can be created directly using the Table object itself, or a convenience f
 
 .. doctest::
 
-    >>> from cogent3 import LoadTable
+    >>> from cogent3 import load_table, make_table
     >>> from cogent3.util.table import Table
 
 First, if you try and create a ``Table`` without any data, it raises a ``ValueError``.
@@ -255,10 +255,10 @@ Wrapping generate neat looking tables whether or not you index the table rows. W
 
 .. doctest::
 
-    >>> from cogent3 import LoadTable
+    >>> from cogent3 import make_table
     >>> h = ['A/C', 'A/G', 'A/T', 'C/A']
     >>> rows = [[0.0425, 0.1424, 0.0226, 0.0391]]
-    >>> wrap_table = LoadTable(header=h, rows=rows, max_width=30)
+    >>> wrap_table = make_table(header=h, rows=rows, max_width=30)
     >>> print(wrap_table)
     ==========================
        A/C       A/G       A/T
@@ -273,7 +273,7 @@ Wrapping generate neat looking tables whether or not you index the table rows. W
     0.0391
     ------
     <BLANKLINE>
-    >>> wrap_table = LoadTable(header=h, rows=rows, max_width=30,
+    >>> wrap_table = make_table(header=h, rows=rows, max_width=30,
     ...  row_ids=True)
     >>> print(wrap_table)
     ==========================
@@ -414,7 +414,7 @@ Assign the ``DataFrame`` instance to the ``data_frame`` argument.
        a  b
     0  0  1
     1  3  7
-    >>> df_as_table = LoadTable(data_frame=df)
+    >>> df_as_table = make_table(data_frame=df)
     >>> print(df_as_table)
     ======
     a    b
@@ -535,7 +535,7 @@ In the case of Markdown, the pipe character (``|``) is special and so cells cont
 
 .. doctest::
 
-    >>> md_table = LoadTable(header=["a", "b"],
+    >>> md_table = make_table(header=["a", "b"],
     ...                      rows=[["val1", "val2"],
     ...                            ["has | symbol", "val4"]])
     >>> print(md_table.tostring(format='md'))
@@ -550,7 +550,7 @@ The display format can be specified for a ``Table`` using any valid argument to 
 
 .. doctest::
 
-    >>> md_table = LoadTable(header=["a", "b"],
+    >>> md_table = make_table(header=["a", "b"],
     ...                      rows=[["val1", "val2"],
     ...                            ["has | symbol", "val4"]],
     ...                      format="md")
@@ -733,7 +733,7 @@ One export format available is bedGraph_. This format can be used for viewing da
     ...         ['1', 157, 158, 2], ['1', 158, 159, 2],
     ...         ['1', 159, 160, 2], ['1', 160, 161, 2]]
     ... 
-    >>> bgraph = LoadTable(header=['chrom', 'start', 'end', 'value'],
+    >>> bgraph = make_table(header=['chrom', 'start', 'end', 'value'],
     ...                   rows=rows)
     ...                     
     >>> print(bgraph.tostring(format='bedgraph', name='test track',
@@ -772,7 +772,7 @@ Saving a table object to file for later reloading can be done using the standard
     ...            max_width=50, row_ids=True, title='My title',
     ...            legend='legend: this is a nonsense example.')
     >>> t3.write("t3.pickle")
-    >>> t3_loaded = LoadTable(filename="t3.pickle")
+    >>> t3_loaded = load_table("t3.pickle")
     >>> print(t3_loaded)
     My title
     ==========================================
@@ -817,7 +817,7 @@ Saving a table object to file for later reloading can be done using the standard
     >>> t2 = Table(['abcd', 'data'], [[str([1, 2, 3, 4, 5]), '0'], ['x', 5.0],
     ... ['y', None]], missing_data='*', title='A \ntitle')
     >>> t2.write('t2.csv')
-    >>> t2_loaded = LoadTable(filename='t2.csv', header=True, with_title=True)
+    >>> t2_loaded = load_table('t2.csv', header=True, with_title=True)
     >>> print(t2_loaded)
     A 
     title
@@ -830,7 +830,7 @@ Saving a table object to file for later reloading can be done using the standard
     -------------------------
     >>> t2.title = ""
     >>> t2.write("t2.tsv")
-    >>> t2_loaded = LoadTable(filename='t2.tsv')
+    >>> t2_loaded = load_table('t2.tsv')
     >>> print(t2_loaded)
     =========================
                abcd      data
@@ -848,7 +848,7 @@ Note the ``missing_data`` attribute is not saved in the delimited format, but is
     ...            ['y', None]], missing_data='*', title='A \ntitle',
     ...            legend="And\na legend too")
     >>> t2.write('t2.csv', sep=',')
-    >>> t2_loaded = LoadTable(filename='t2.csv', header=True, with_title=True,
+    >>> t2_loaded = load_table('t2.csv', header=True, with_title=True,
     ...                       with_legend=True, sep=',', digits = 2)
     >>> print(t2_loaded) # doctest: +NORMALIZE_WHITESPACE
     A
@@ -885,12 +885,12 @@ You can also read and write tables in gzip compressed format. This can be done s
 .. doctest::
 
     >>> t2.write('t2.csv.gz', sep=',')
-    >>> t2_gz = LoadTable('t2.csv.gz', sep=',', with_title=True,
+    >>> t2_gz = load_table('t2.csv.gz', sep=',', with_title=True,
     ...                 with_legend=True)
     >>> t2_gz.shape == t2.shape
     True
     >>> t2.write('t2.csv', sep=',', compress=True)
-    >>> t2_gz = LoadTable('t2.csv.gz', sep=',', with_title=True,
+    >>> t2_gz = load_table('t2.csv.gz', sep=',', with_title=True,
     ...                 with_legend=True)
     >>> t2_gz.shape == t2.shape
     True
@@ -917,7 +917,7 @@ We convert columns 2-5 to floats by specifying a field convertor. We then create
     >>> t3.write("t3.tab", sep="\t")
     >>> reader = SeparatorFormatParser(with_header=True,converter=converter,
     ...      sep="\t")
-    >>> t3a = LoadTable(filename="t3.tab", reader=reader, title="new title",
+    >>> t3a = load_table("t3.tab", reader=reader, title="new title",
     ...       space=2)
     ...
     >>> print(t3a)
@@ -944,7 +944,7 @@ We can use the ``SeparatorFormatParser`` to ignore reading certain lines by usin
     >>> reader = SeparatorFormatParser(with_header=True,converter=converter,
     ...      sep="\t", ignore=ignore_internal_nodes)
     ...
-    >>> tips = LoadTable(filename="t3.tab", reader=reader, digits=1, space=2)
+    >>> tips = load_table("t3.tab", reader=reader, digits=1, space=2)
     >>> print(tips)
     =============================================
     edge.name  edge.parent  length    x    y    z
@@ -960,7 +960,7 @@ We can also limit the amount of data to be read in, very handy for checking larg
 
 .. doctest::
 
-    >>> t3a = LoadTable("t3.tab", sep='\t', limit=3)
+    >>> t3a = load_table("t3.tab", sep='\t', limit=3)
     >>> print(t3a)
     ================================================================
     edge.name    edge.parent    length         x         y         z
@@ -974,7 +974,7 @@ Limiting should also work when ``static_column_types`` is invoked
 
 .. doctest::
 
-    >>> t3a = LoadTable("t3.tab", sep='\t', limit=3, static_column_types=True)
+    >>> t3a = load_table("t3.tab", sep='\t', limit=3, static_column_types=True)
     >>> t3a.shape[0] == 3
     True
 
@@ -984,7 +984,7 @@ In the above example, the data type in a column is static, e.g. all values in ``
 
 .. doctest::
 
-    >>> t3a = LoadTable(filename="t3.tab", static_column_types=True, digits=1,
+    >>> t3a = load_table("t3.tab", static_column_types=True, digits=1,
     ...                 sep='\t')
     >>> print(t3a)
     =======================================================
@@ -1003,7 +1003,7 @@ If you invoke the ``static_column_types`` argument and the column data are not s
 
 .. doctest::
 
-    >>> t3b = LoadTable(header=['A', 'B'], rows=[[1,1], ['a', 2]], sep=2)
+    >>> t3b = make_table(header=['A', 'B'], rows=[[1,1], ['a', 2]])
     >>> print(t3b)
     ======
     A    B
@@ -1012,7 +1012,7 @@ If you invoke the ``static_column_types`` argument and the column data are not s
     a    2
     ------
     >>> t3b.write('test3b.txt', sep='\t')
-    >>> t3b = LoadTable('test3b.txt', sep='\t', static_column_types=True)
+    >>> t3b = load_table('test3b.txt', sep='\t', static_column_types=True)
     Traceback (most recent call last):
     ValueError: invalid literal for int() with base 10: 'a'
 
@@ -1088,7 +1088,7 @@ We can likewise specify a writer, using a custom field formatter and provide thi
     >>> converter = ConvertFields([(0,strip), (1, strip)])
     >>> reader = SeparatorFormatParser(with_header=True, converter=converter,
     ...       sep="|", strip_wspace=True)
-    >>> t3a = LoadTable(filename="t3.tab", reader=reader, title="new title",
+    >>> t3a = load_table("t3.tab", reader=reader, title="new title",
     ...       space=2)
     >>> print(t3a)
     new title
@@ -1463,7 +1463,7 @@ We construct an example with mixed numerical and non-numerical data. We now comp
 .. doctest::
     :options: +NORMALIZE_WHITESPACE
 
-    >>> mix = LoadTable(header=['A', 'B'], rows=[[0,''],[1,2],[3,4]])
+    >>> mix = make_table(header=['A', 'B'], rows=[[0,''],[1,2],[3,4]])
     >>> print(mix)
     ======
     A    B
@@ -1505,7 +1505,7 @@ We test these for a strictly numerical table.
 
 .. doctest::
 
-    >>> non_mix = LoadTable(header=['A', 'B'], rows=[[0,1],[1,2],[3,4]])
+    >>> non_mix = make_table(header=['A', 'B'], rows=[[0,1],[1,2],[3,4]])
     >>> non_mix.summed()
     [4, 7]
     >>> non_mix.summed(col_sum=False)
@@ -1978,7 +1978,7 @@ We then establish that a join with no values does not cause a failure, just retu
 
     >>> t4_header = ['b', 'c']
     >>> t4_rows = [(5,6),(7,8)]
-    >>> t4 = LoadTable(header=t4_header, rows=t4_rows)
+    >>> t4 = make_table(header=t4_header, rows=t4_rows)
     >>> t4.title = 't4'
     >>> t5 = t1.joined(t4, columns_self=["b"], columns_other=["b"])
     >>> print(t5)
@@ -2019,7 +2019,7 @@ Tables can be transposed.
     ...         [-1350, 60, 113],
     ...         [-2160, 57, 52],
     ...         [-11632, 47, 36]]
-    >>> table = LoadTable(header=header,rows=rows,title=title)
+    >>> table = make_table(header=header,rows=rows,title=title)
     >>> print(table)
     #Full OTU Counts
     =============================
