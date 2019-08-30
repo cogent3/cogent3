@@ -376,6 +376,207 @@ def LoadSeqs(
         return make_unaligned_seqs(**kwargs)
 
 
+def make_table(
+    header=None,
+    rows=None,
+    row_order=None,
+    digits=4,
+    space=4,
+    title="",
+    max_width=1e100,
+    row_ids=None,
+    legend="",
+    missing_data="",
+    column_templates=None,
+    dtype=None,
+    data_frame=None,
+    format="simple",
+):
+    """
+
+    Parameters
+    ----------
+    header
+        column headings
+    rows
+        a 2D dict, list or tuple. If a dict, it must have column
+        headings as top level keys, and common row labels as keys in each
+        column.
+    row_order
+        the order in which rows will be pulled from the twoDdict
+    digits
+        floating point resolution
+    space
+        number of spaces between columns or a string
+    title
+        as implied
+    max_width
+        maximum column width for printing
+    row_ids
+        if True, the 0'th column is used as row identifiers and keys
+        for slicing.
+    legend
+        table legend
+    column_templates
+        dict of column headings
+        or a function that will handle the formatting.
+    dtype
+        optional numpy array typecode.
+    limit
+        exits after this many lines. Only applied for non pickled data
+        file types.
+    data_frame
+        a pandas DataFrame, supersedes header/rows
+    format
+        output format when using str(Table)
+
+    """
+    table = _Table(
+        header=header,
+        rows=rows,
+        digits=digits,
+        row_order=row_order,
+        title=title,
+        dtype=dtype,
+        column_templates=column_templates,
+        space=space,
+        missing_data=missing_data,
+        max_width=max_width,
+        row_ids=row_ids,
+        legend=legend,
+        data_frame=data_frame,
+        format=format,
+    )
+
+    return table
+
+
+def load_table(
+    filename,
+    sep=None,
+    reader=None,
+    digits=4,
+    space=4,
+    title="",
+    missing_data="",
+    max_width=1e100,
+    row_ids=None,
+    legend="",
+    column_templates=None,
+    dtype=None,
+    static_column_types=False,
+    limit=None,
+    format="simple",
+    **kwargs,
+):
+    """
+
+    Parameters
+    ----------
+    filename
+        path to file containing a pickled table
+    sep
+        the delimiting character between columns
+    reader
+        a parser for reading filename. This approach assumes the first
+        row returned by the reader will be the header row.
+    static_column_types
+        if True, and reader is None, identifies columns
+        with a numeric/bool data types from the first non-header row.
+        This assumes all subsequent entries in that column are of the same type.
+        Default is False.
+    header
+        column headings
+    rows
+        a 2D dict, list or tuple. If a dict, it must have column
+        headings as top level keys, and common row labels as keys in each
+        column.
+    row_order
+        the order in which rows will be pulled from the twoDdict
+    digits
+        floating point resolution
+    space
+        number of spaces between columns or a string
+    title
+        as implied
+    missing_data
+        character assigned if a row has no entry for a column
+    max_width
+        maximum column width for printing
+    row_ids
+        if True, the 0'th column is used as row identifiers and keys
+        for slicing.
+    legend
+        table legend
+    column_templates
+        dict of column headings
+        or a function that will handle the formatting.
+    dtype
+        optional numpy array typecode.
+    limit
+        exits after this many lines. Only applied for non pickled data
+        file types.
+    data_frame
+        a pandas DataFrame, supersedes header/rows
+    format
+        output format when using str(Table)
+
+    """
+    sep = sep or kwargs.pop("delimiter", None)
+    file_format, compress_format = get_format_suffixes(filename)
+
+    if not (reader or static_column_types):
+        if file_format == "pickle":
+            f = open_(filename, mode="rb")
+            loaded_table = pickle.load(f)
+            f.close()
+            return _Table(**loaded_table)
+        elif file_format == "csv":
+            sep = sep or ","
+        elif file_format == "tsv":
+            sep = sep or "\t"
+
+        header, rows, loaded_title, legend = load_delimited(
+            filename, delimiter=sep, limit=limit, **kwargs
+        )
+        title = title or loaded_title
+    else:
+        f = open_(filename, newline=None)
+        if not reader:
+            if file_format == "csv":
+                sep = sep or ","
+            elif file_format == "tsv":
+                sep = sep or "\t"
+            elif not sep:
+                raise ValueError(
+                    "static_column_types option requires a value " "for sep"
+                )
+
+            reader = autogen_reader(
+                f, sep, limit=limit, with_title=kwargs.get("with_title", False)
+            )
+
+        rows = [row for row in reader(f)]
+        f.close()
+        header = rows.pop(0)
+    return make_table(
+        header=header,
+        rows=rows,
+        digits=digits,
+        title=title,
+        dtype=dtype,
+        column_templates=column_templates,
+        space=space,
+        missing_data=missing_data,
+        max_width=max_width,
+        row_ids=row_ids,
+        legend=legend,
+        format=format,
+    )
+
+    return table
+
+
 def LoadTable(
     filename=None,
     sep=None,
@@ -651,14 +852,14 @@ def LoadTree(
     from cogent3.util.warning import deprecated
 
     if filename:
-        deprecated("function", "LoadTree", "load_tree", "2020.1.1", 1)
+        deprecated("function", "LoadTable", "load_table", "2020.1.1", 1)
         return load_tree(filename, format=format, underscore_unmunge=underscore_unmunge)
-    else:
-        deprecated("function", "LoadTree", "make_tree", "2020.1.1", 1)
-        tree = make_tree(
-            treestring=treestring,
-            tip_names=tip_names,
-            format=format,
-            underscore_unmunge=underscore_unmunge,
-        )
-        return tree
+
+    deprecated("function", "LoadTable", "make_table", "2020.1.1", 1)
+    tree = make_tree(
+        treestring=treestring,
+        tip_names=tip_names,
+        format=format,
+        underscore_unmunge=underscore_unmunge,
+    )
+    return tree

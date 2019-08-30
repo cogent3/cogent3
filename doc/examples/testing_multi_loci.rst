@@ -7,7 +7,7 @@ We want to know whether an exchangeability parameter is different between alignm
 
 .. doctest::
 
-    >>> from cogent3 import load_aligned_seqs, make_tree, LoadTable
+    >>> from cogent3 import load_aligned_seqs, make_tree, make_table
     >>> from cogent3.evolve.models import HKY85
     >>> from cogent3.recalculation.scope import EACH, ALL
     >>> from cogent3.maths.stats import chisqprob
@@ -81,7 +81,7 @@ To make a likelihood function with multiple alignments we provide the list of lo
 
 Just to pretty up the result display, I'll print(a table consisting of the test statistics created on the fly.)
 
-    >>> print(LoadTable(header=['LR', 'df', 'p'],
+    >>> print(make_table(header=['LR', 'df', 'p'],
     ...             rows=[[LR, df, chisqprob(LR, df)]], digits=2, space=3))
     ================
       LR   df      p

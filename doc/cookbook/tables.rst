@@ -7,13 +7,13 @@ Tabular data
     :hide:
 
     >>> # just saving some tabular data for subsequent data
-    >>> from cogent3 import LoadTable
+    >>> from cogent3 import make_table, load_table
     >>> rows = (('NP_003077', 'Con', 2.5386013224378985),
     ... ('NP_004893', 'Con', 0.12135142635634111e+06),
     ... ('NP_005079', 'Con', 0.95165949788861326e+07),
     ... ('NP_005500', 'NonCon', 0.73827030202664901e-07),
     ... ('NP_055852', 'NonCon', 1.0933217708952725e+07))
-    >>> table = LoadTable(header=['Locus', 'Region', 'Ratio'], rows=rows)
+    >>> table = make_table(header=['Locus', 'Region', 'Ratio'], rows=rows)
     >>> table.write('stats.txt', sep=',')
 
 Loading delimited formats
@@ -23,8 +23,8 @@ We load a comma separated data file using the generic ``LoadTable`` function.
 
 .. doctest::
 
-    >>> from cogent3 import LoadTable
-    >>> table = LoadTable('stats.txt', sep=',')
+    >>> from cogent3 import load_table
+    >>> table = load_table('stats.txt', sep=',')
     >>> print(table)
     ====================================
         Locus    Region            Ratio
@@ -43,7 +43,7 @@ For really large files the automated conversion used by the standard read mechan
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', static_column_types=True, sep=",")
+    >>> table = load_table('stats.txt', static_column_types=True, sep=",")
     >>> print(table)
     ====================================
         Locus    Region            Ratio
@@ -84,7 +84,7 @@ This can be done on table loading,
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', sep=',', digits=1, space=2)
+    >>> table = load_table('stats.txt', sep=',', digits=1, space=2)
     >>> print(table)
     =============================
         Locus  Region       Ratio
@@ -119,7 +119,7 @@ The table ``header`` is immutable. Changing column headings is done as follows.
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', sep=',')
+    >>> table = load_table('stats.txt', sep=',')
     >>> print(table.header)
     ['Locus', 'Region', 'Ratio']
     >>> table = table.with_new_header('Ratio', 'Stat')
@@ -133,7 +133,7 @@ This can be used to take a single, or multiple columns and generate a new column
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', sep=',')
+    >>> table = load_table('stats.txt', sep=',')
     >>> table = table.with_new_column('LargeCon',
     ...                     lambda r_v: r_v[0] == 'Con' and r_v[1]>10.0,
     ...                     columns=['Region', 'Ratio'])
@@ -155,8 +155,8 @@ Can be done without specifying a new column. Here we simply use the same table d
 
 .. doctest::
 
-    >>> table1 = LoadTable('stats.txt', sep=',')
-    >>> table2 = LoadTable('stats.txt', sep=',')
+    >>> table1 = load_table('stats.txt', sep=',')
+    >>> table2 = load_table('stats.txt', sep=',')
     >>> table = table1.appended(None, table2)
     >>> print(table)
     ====================================
@@ -204,7 +204,7 @@ Summing a single column
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', sep=',')
+    >>> table = load_table('stats.txt', sep=',')
     >>> table.summed('Ratio')
     20571166.652...
 
@@ -215,7 +215,7 @@ We define a strictly numerical table,
 
 .. doctest::
 
-    >>> all_numeric = LoadTable(header=['A', 'B', 'C'], rows=[range(3),
+    >>> all_numeric = make_table(header=['A', 'B', 'C'], rows=[range(3),
     ...                                 range(3,6), range(6,9), range(9,12)])
     >>> print(all_numeric)
     =============
@@ -248,7 +248,7 @@ We define a table with mixed data, like a distance matrix.
 
 .. doctest::
 
-    >>> mixed = LoadTable(header=['A', 'B', 'C'], rows=[['*',1,2], [3,'*', 5],
+    >>> mixed = make_table(header=['A', 'B', 'C'], rows=[['*',1,2], [3,'*', 5],
     ...                                                 [6,7,'*']])
     >>> print(mixed)
     ===========
@@ -281,7 +281,7 @@ We can do this by providing a reference to an external function
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', sep=',')
+    >>> table = load_table('stats.txt', sep=',')
     >>> sub_table = table.filtered(lambda x: x < 10.0, columns='Ratio')
     >>> print(sub_table)
     =============================
@@ -342,7 +342,7 @@ Standard sorting
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', sep=',')
+    >>> table = load_table('stats.txt', sep=',')
     >>> print(table.sorted(columns='Ratio'))
     ====================================
         Locus    Region            Ratio
@@ -394,7 +394,7 @@ For a single column
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', sep=',')
+    >>> table = load_table('stats.txt', sep=',')
     >>> raw = table.tolist('Region')
     >>> print(raw)
     ['Con', 'Con', 'Con', 'NonCon', 'NonCon']
@@ -404,7 +404,7 @@ For multiple columns
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', sep=',')
+    >>> table = load_table('stats.txt', sep=',')
     >>> raw = table.tolist(['Locus', 'Region'])
     >>> print(raw)
     [['NP_003077', 'Con'], ['NP_004893', 'Con'], ...
@@ -414,7 +414,7 @@ Iterating over table rows
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', sep=',')
+    >>> table = load_table('stats.txt', sep=',')
     >>> for row in table:
     ...     print(row['Locus'])
     ...
@@ -432,7 +432,7 @@ Using column names
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', sep=',')
+    >>> table = load_table('stats.txt', sep=',')
     >>> print(table[:2, :'Region'])
     =========
         Locus
@@ -446,7 +446,7 @@ Using column indices
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', sep=',')
+    >>> table = load_table('stats.txt', sep=',')
     >>> print(table[:2,: 1])
     =========
         Locus
@@ -463,7 +463,7 @@ Distinct values
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', sep=',')
+    >>> table = load_table('stats.txt', sep=',')
     >>> assert table.distinct_values('Region') == set(['NonCon', 'Con'])
 
 Counting
@@ -471,7 +471,7 @@ Counting
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', sep=',')
+    >>> table = load_table('stats.txt', sep=',')
     >>> assert table.count("Region == 'NonCon' and Ratio > 1") == 1
 
 Joining tables
@@ -483,9 +483,9 @@ SQL-like join operations requires tables have different ``title`` attributes whi
 
     >>> rows = [['NP_004893', True], ['NP_005079', True],
     ...         ['NP_005500', False], ['NP_055852', False]]
-    >>> region_type = LoadTable(header=['Locus', 'LargeCon'], rows=rows,
+    >>> region_type = make_table(header=['Locus', 'LargeCon'], rows=rows,
     ...                 title='RegionClass')
-    >>> stats_table = LoadTable('stats.txt', sep=',', title='Stats')
+    >>> stats_table = load_table('stats.txt', sep=',', title='Stats')
     >>> new = stats_table.joined(region_type, columns_self='Locus')
     >>> print(new)
     ============================================================
@@ -505,7 +505,7 @@ Writing delimited formats
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', sep=',')
+    >>> table = load_table('stats.txt', sep=',')
     >>> table.write('stats_tab.txt', sep='\t')
 
 Writing latex format
@@ -515,7 +515,7 @@ It is also possible to specify column alignment, table caption and other argumen
 
 .. doctest::
 
-    >>> table = LoadTable('stats.txt', sep=',')
+    >>> table = load_table('stats.txt', sep=',')
     >>> print(table.tostring(format='latex'))
     \begin{table}[htp!]
     \centering
@@ -567,7 +567,7 @@ This format allows display of annotation tracks on genome browsers.
     ...         ['1', 157, 158, 2], ['1', 158, 159, 2],
     ...         ['1', 159, 160, 2], ['1', 160, 161, 2]]
     ...
-    >>> bgraph = LoadTable(header=['chrom', 'start', 'end', 'value'],
+    >>> bgraph = make_table(header=['chrom', 'start', 'end', 'value'],
     ...                   rows=rows)
     ...
     >>> print(bgraph.tostring(format='bedgraph', name='test track',
