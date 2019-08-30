@@ -7,8 +7,8 @@ This is a property of DNA, and hence alignments need to be created with the appr
 
 .. doctest::
 
-    >>> from cogent3 import load_aligned_seqs, DNA
-    >>> aln = load_aligned_seqs("data/long_testseqs.fasta", moltype=DNA)[:50]
+    >>> from cogent3 import load_aligned_seqs
+    >>> aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")[:50]
 
 The original alignment looks like this.
 

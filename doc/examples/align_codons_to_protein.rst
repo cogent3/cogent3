@@ -7,7 +7,7 @@ Although Cogent3 provides a means for directly aligning codon sequences, you may
 
 .. doctest::
 
-    >>> from cogent3 import make_unaligned_seqs, make_aligned_seqs, DNA, PROTEIN
+    >>> from cogent3 import make_unaligned_seqs, make_aligned_seqs
 
 First I'm going to construct an artificial example, using the seqs dict as a means to get the data into the Alignment object. The basic idea, however, is that you should already have a set of DNA sequences that are in frame (i.e. position 0 is the 1st codon position), you've translated those sequences and aligned these translated sequences. The result is an alignment of aa sequences and a set of unaligned DNA sequences from which the aa seqs were derived. If your sequences are not in frame you can adjust it by either slicing, or adding N's to the beginning of the raw string.
 
@@ -17,7 +17,7 @@ First I'm going to construct an artificial example, using the seqs dict as a mea
     ... 'hum': 'AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT',
     ... 'mus': 'AAGCAGATCCAGGAGAGCGGCGAGAGCGGCAGCCTGGCCGCGCGGCAGGAGAGGCAGGCCCAAGTCAACCTCACG',
     ... 'rat': 'CTGAACAAGCAGCCACTTTCAAACAAGAAA'}
-    >>> unaligned_DNA = make_unaligned_seqs(seqs, moltype=DNA)
+    >>> unaligned_DNA = make_unaligned_seqs(seqs, moltype="dna")
     >>> print(unaligned_DNA.to_fasta())  # doctest: +SKIP
     >hum
     AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
@@ -46,7 +46,7 @@ The translated seqs can then be written to file, using the method ``write``. Tha
     >>> aligned_aa_seqs = {'hum': 'KQIQESSENGSLAARQERQAQVNLT',
     ... 'mus': 'KQIQESGESGSLAARQERQAQVNLT',
     ... 'rat': 'LNKQ------PLS---------NKK'}
-    >>> aligned_aa = make_aligned_seqs(aligned_aa_seqs, moltype=PROTEIN)
+    >>> aligned_aa = make_aligned_seqs(aligned_aa_seqs, moltype="protein")
     >>> aligned_DNA = aligned_aa.replace_seqs(unaligned_DNA)
 
 Just to be sure, we'll check that the DNA sequence has gaps in the right place.

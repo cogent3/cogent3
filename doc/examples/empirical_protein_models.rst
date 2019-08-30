@@ -7,7 +7,7 @@ This file contains an example of importing an empirically determined protein sub
 
 .. doctest::
 
-    >>> from cogent3 import load_aligned_seqs, make_tree, PROTEIN
+    >>> from cogent3 import load_aligned_seqs, make_tree
     >>> from cogent3.evolve.substitution_model import EmpiricalProteinMatrix
     >>> from cogent3.parse.paml_matrix import PamlMatrixParser
 
@@ -23,7 +23,7 @@ Import the alignment, explicitly setting the ``moltype`` to be protein
 .. doctest::
 
     >>> al = load_aligned_seqs('data/abglobin_aa.phylip',
-    ...                moltype=PROTEIN,
+    ...                moltype="protein",
     ...                )
 
 Open the file that contains the empirical matrix and parse the matrix and frequencies.

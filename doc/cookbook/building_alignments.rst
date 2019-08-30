@@ -19,8 +19,8 @@ We import useful functions and then load the sequences to be aligned.
 
 .. doctest::
 
-    >>> from cogent3 import load_unaligned_seqs, make_tree, DNA
-    >>> seqs = load_unaligned_seqs('data/test2.fasta', moltype=DNA)
+    >>> from cogent3 import load_unaligned_seqs, make_tree
+    >>> seqs = load_unaligned_seqs('data/test2.fasta', moltype="dna")
 
 For nucleotides
 ^^^^^^^^^^^^^^^
@@ -71,11 +71,11 @@ We load some unaligned DNA sequences and show their translation.
 
 .. doctest::
 
-    >>> from cogent3 import make_unaligned_seqs, DNA, PROTEIN
+    >>> from cogent3 import make_unaligned_seqs
     >>> seqs = [('hum', 'AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT'),
     ...         ('mus', 'AAGCAGATCCAGGAGAGCGGCGAGAGCGGCAGCCTGGCCGCGCGGCAGGAGAGGCAGGCCCAAGTCAACCTCACG'),
     ...         ('rat', 'CTGAACAAGCAGCCACTTTCAAACAAGAAA')]
-    >>> unaligned_DNA = make_unaligned_seqs(seqs, moltype=DNA)
+    >>> unaligned_DNA = make_unaligned_seqs(seqs, moltype="dna")
     >>> print(unaligned_DNA)  # doctest: +SKIP
     >hum
     AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT
@@ -96,11 +96,11 @@ We load an alignment of these protein sequences.
 
 .. doctest::
 
-    >>> from cogent3 import make_aligned_seqs, DNA, PROTEIN
+    >>> from cogent3 import make_aligned_seqs
     >>> aligned_aa_seqs = [('hum', 'KQIQESSENGSLAARQERQAQVNLT'),
     ...                    ('mus', 'KQIQESGESGSLAARQERQAQVNLT'),
     ...                    ('rat', 'LNKQ------PLS---------NKK')]
-    >>> aligned_aa = make_aligned_seqs(aligned_aa_seqs, moltype=PROTEIN)
+    >>> aligned_aa = make_aligned_seqs(aligned_aa_seqs, moltype="protein")
 
 We then obtain an alignment of the DNA sequences from the alignment of their translation.
 

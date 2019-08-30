@@ -54,10 +54,12 @@ Convert a RNA sequence to FASTA format
 Creating a named sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+You can also use a convenience ``make_seq()`` function, providing the moltype as a string.
+
 .. doctest::
 
-    >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_seq('AGTACACTGGT','my_gene')
+    >>> from cogent3 import make_seq
+    >>> my_seq = make_seq('AGTACACTGGT','my_gene', moltype="dna")
     >>> my_seq
     DnaSequence(AGTACAC... 11)
     >>> type(my_seq)
@@ -68,8 +70,8 @@ Setting or changing the name of a sequence
 
 .. doctest::
 
-    >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_seq('AGTACACTGGT')
+    >>> from cogent3 import make_seq
+    >>> my_seq = make_seq('AGTACACTGGT', moltype="dna")
     >>> my_seq.name = 'my_gene'
     >>> print(my_seq.to_fasta())
     >my_gene

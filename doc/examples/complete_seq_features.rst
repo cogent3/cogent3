@@ -282,7 +282,7 @@ In this case, only those residues included within the feature are covered - note
 .. doctest::
     
     >>> aln = make_aligned_seqs([['x', 'C-CCCAAAAA'], ['y', '-T----TTTT']],
-    ...                      moltype=DNA, array_align=False)
+    ...                      moltype="dna", array_align=False)
     >>> print(aln)
     >x
     C-CCCAAAAA
