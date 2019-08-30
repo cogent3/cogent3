@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from cogent3 import DNA, LoadTree, make_unaligned_seqs
+from cogent3 import DNA, make_tree, make_unaligned_seqs
 from cogent3.app import align as align_app
 from cogent3.app.composable import NotCompleted
 
@@ -78,7 +78,7 @@ class RefalignmentTests(TestCase):
 
     def test_progress_with_guide_tree(self):
         """progressive align works with provided guide tree"""
-        tree = LoadTree(treestring=self.treestring)
+        tree = make_tree(treestring=self.treestring)
         aligner = align_app.progressive_align(
             model="nucleotide", guide_tree=self.treestring
         )

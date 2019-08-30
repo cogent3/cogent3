@@ -9,7 +9,7 @@ from copy import copy, deepcopy
 
 from numpy import arange, array
 
-from cogent3 import LoadTree
+from cogent3 import make_tree
 from cogent3.core.tree import PhyloNode, TreeError, TreeNode
 from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
@@ -41,14 +41,14 @@ __status__ = "Production"
 class TreeTests(TestCase):
     """Tests of top-level functions."""
 
-    def test_LoadTree(self):
-        """LoadTree should load a tree from a file or a string"""
+    def test_make_tree(self):
+        """make_tree should load a tree from a file or a string"""
         # NOTE: This method now sits in cogent3.__init__
 
         t_str = "(a_a:10,(b_b:2,c_c:4):5);"
         # NOTE: Tree quotes these labels because they have underscores in them.
         result_str = "('a_a':10.0,('b_b':2.0,'c_c':4.0):5.0);"
-        t = LoadTree(treestring=t_str)
+        t = make_tree(treestring=t_str)
         # t = DndParser(t_str)
         names = [i.name for i in t.tips()]
         self.assertEqual(names, ["a_a", "b_b", "c_c"])
@@ -58,7 +58,7 @@ class TreeTests(TestCase):
         # NOTE: Tree silently converts spaces to underscores (only for output),
         # presumably for Newick compatibility.
         result_str = "(a_a:10.0,(b_b:2.0,c_c:4.0):5.0);"
-        t = LoadTree(treestring=t_str, underscore_unmunge=True)
+        t = make_tree(treestring=t_str, underscore_unmunge=True)
         # t = DndParser(t_str, unescape_name=True)
         names = [i.name for i in t.tips()]
         self.assertEqual(names, ["a a", "b b", "c c"])
@@ -174,7 +174,7 @@ class TreeNodeTests(TestCase):
 
     def test_to_dict(self):
         """tree produces dict"""
-        tr = LoadTree(treestring="(a,b,(c,d)e1)")
+        tr = make_tree(treestring="(a,b,(c,d)e1)")
         got = tr.to_rich_dict()
         attrs = {"length": None}
         expect = {
@@ -191,7 +191,7 @@ class TreeNodeTests(TestCase):
         }
         self.assertEqual(got, expect)
 
-        tr = LoadTree(treestring="(a:1,b:1,(c:1,d:1)e1:1)")
+        tr = make_tree(treestring="(a:1,b:1,(c:1,d:1)e1:1)")
         got = tr.to_rich_dict()
         attrs = {"length": 1.0}
         expect = {
@@ -210,13 +210,13 @@ class TreeNodeTests(TestCase):
 
     def test_to_json(self):
         """tree produces json string that round trips correctly"""
-        tr = LoadTree(treestring="(a,b,(c,d)e1)")
+        tr = make_tree(treestring="(a,b,(c,d)e1)")
         got = json.loads(tr.to_json())
         attrs = {"length": None}
         expect = tr.to_rich_dict()
         self.assertEqual(got, expect)
 
-        tr = LoadTree(treestring="(a:1,b:1,(c:1,d:1)e1:1)")
+        tr = make_tree(treestring="(a:1,b:1,(c:1,d:1)e1:1)")
         got = json.loads(tr.to_json())
         attrs = {"length": 1.0}
         expect = tr.to_rich_dict()
@@ -798,7 +798,7 @@ class TreeNodeTests(TestCase):
         for i, treestring in enumerate(treestrings):
             if i < 2:
                 continue
-            tree = LoadTree(treestring=treestring)
+            tree = make_tree(treestring=treestring)
             nwk = tree.get_newick(with_node_names=True, with_distances=True)
             self.assertEqual(nwk, expect[i])
             nwk = tree.get_newick_recursive(with_node_names=True, with_distances=True)
@@ -1117,7 +1117,7 @@ class TreeNodeTests(TestCase):
 
     def test_get_node_names(self):
         """get_node_names works correctly"""
-        tree = LoadTree(treestring="((a:3,(b:2,(c:1,d:1):1):1):2,(e:3,f:3):2);")
+        tree = make_tree(treestring="((a:3,(b:2,(c:1,d:1):1):1):2,(e:3,f:3):2);")
         names = tree.get_node_names(includeself=False, tipsonly=False)
         self.assertTrue(tree.name not in names)
         names = tree.get_node_names(includeself=True, tipsonly=False)
@@ -1630,7 +1630,7 @@ class PhyloNodeTests(TestCase):
 
     def test_unrooted(self):
         """unrooted should preserve tips, drop a node"""
-        rooted = LoadTree(treestring="(B:0.2,(C:0.2,D:0.2)F:0.2)G;")
+        rooted = make_tree(treestring="(B:0.2,(C:0.2,D:0.2)F:0.2)G;")
         unrooted = rooted.unrooted()
         self.assertEqual(
             sorted(rooted.get_tip_names()), sorted(unrooted.get_tip_names())
@@ -1723,7 +1723,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
     def _maketree(self, treestring=None):
         if treestring is None:
             treestring = self.default_newick
-        return LoadTree(treestring=treestring, underscore_unmunge=True)
+        return make_tree(treestring=treestring, underscore_unmunge=True)
 
     def setUp(self):
         self.default_tree = self._maketree()
@@ -1761,9 +1761,9 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         self.assertEqual(stem, ["cde"])
 
     def test_get_edge_namesUseOutgroup(self):
-        t1 = LoadTree(treestring="((A,B)ab,(F,(C,D)cd)cdf,E)root;")
+        t1 = make_tree(treestring="((A,B)ab,(F,(C,D)cd)cdf,E)root;")
         # a, e, ogroup f
-        t2 = LoadTree(treestring="((E,(A,B)ab)abe,F,(C,D)cd)root;")
+        t2 = make_tree(treestring="((E,(A,B)ab)abe,F,(C,D)cd)root;")
         expected = ["A", "B", "E", "ab"]
         for t in [t1, t2]:
             edges = t.get_edge_names(
@@ -1779,7 +1779,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
 
     def test_get_connecting_edges(self):
         """correctly identify connecting edges"""
-        tree = LoadTree(treestring="(((Human,HowlerMon)a,Mouse)b,NineBande,DogFaced);")
+        tree = make_tree(treestring="(((Human,HowlerMon)a,Mouse)b,NineBande,DogFaced);")
         edges = [e.name for e in tree.get_connecting_edges("Human", "Mouse")]
         self.assertEqual(set(edges), set(["Human", "Mouse", "a"]))
 
@@ -1868,7 +1868,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         # should add some non-length parameters
         orig = self.default_tree
         xml = orig.get_xml()
-        parsed = LoadTree(treestring=xml)
+        parsed = make_tree(treestring=xml)
         self.assertEqual(str(orig), str(parsed))
 
     # Magic methods
@@ -1891,12 +1891,12 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
 
     def test_balanced(self):
         """balancing an unrooted tree"""
-        t = LoadTree(treestring="((a,b),((c1,(c2,(c3,(c4,(c5,(c6,c7)))))),(d,e)),f)")
-        b = LoadTree(treestring="(c1,(c2,(c3,(c4,(c5,(c6,c7))))),((d,e),((a,b),f)))")
+        t = make_tree(treestring="((a,b),((c1,(c2,(c3,(c4,(c5,(c6,c7)))))),(d,e)),f)")
+        b = make_tree(treestring="(c1,(c2,(c3,(c4,(c5,(c6,c7))))),((d,e),((a,b),f)))")
         self.assertEqual(str(t.balanced()), str(b))
 
     def test_params_merge(self):
-        t = LoadTree(treestring="((((a,b)ab,c)abc),d)")
+        t = make_tree(treestring="((((a,b)ab,c)abc),d)")
         for (label, length, beta) in [("a", 1, 20), ("b", 3, 2.0), ("ab", 4, 5.0)]:
             t.get_node_matching_name(label).params = {"length": length, "beta": beta}
         t = t.get_sub_tree(["b", "c", "d"])
@@ -1912,14 +1912,14 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
     def test_making_from_list(self):
         tipnames_with_spaces = ["a_b", "a b", "T'lk"]
         tipnames_with_spaces.sort()
-        t = LoadTree(tip_names=tipnames_with_spaces)
+        t = make_tree(tip_names=tipnames_with_spaces)
         result = t.get_tip_names()
         result.sort()
         assert result == tipnames_with_spaces
 
     def test_getset_param_value(self):
         """test getting, setting of param values"""
-        t = LoadTree(treestring="((((a:.2,b:.3)ab:.1,c:.3)abc:.4),d:.6)")
+        t = make_tree(treestring="((((a:.2,b:.3)ab:.1,c:.3)abc:.4),d:.6)")
         self.assertEqual(t.get_param_value("length", "ab"), 0.1, 2)
         t.set_param_value("zz", "ab", 4.321)
         node = t.get_node_matching_name("ab")
@@ -1929,20 +1929,20 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
 class SmallTreeReshapeTestClass(TestCase):
     def test_rootswaps(self):
         """testing (well, exercising at least), unrooted"""
-        new_tree = LoadTree(treestring="((a,b),(c,d))")
+        new_tree = make_tree(treestring="((a,b),(c,d))")
         new_tree = new_tree.unrooted()
         self.assertTrue(len(new_tree.children) > 2, "not unrooted right")
 
     def test_reroot(self):
-        tree = LoadTree(treestring="((a,b),(c,d),e)")
+        tree = make_tree(treestring="((a,b),(c,d),e)")
         tree2 = tree.rooted_with_tip("b")
         self.assertEqual(tree2.get_newick(), "(a,b,((c,d),e));")
 
     def test_same_shape(self):
         """test topology assessment"""
-        t1 = LoadTree(treestring="(((s1,s5),s3),s2,s4);")
-        t2 = LoadTree(treestring="((s1,s5),(s2,s4),s3);")
-        t3 = LoadTree(treestring="((s1,s4),(s2,s5),s3);")
+        t1 = make_tree(treestring="(((s1,s5),s3),s2,s4);")
+        t2 = make_tree(treestring="((s1,s5),(s2,s4),s3);")
+        t3 = make_tree(treestring="((s1,s4),(s2,s5),s3);")
         assert t1.same_topology(t2), (t1, t2)
         assert not t1.same_topology(t3), (t1, t3)
         assert not t2.same_topology(t3), (t2, t3)
@@ -1966,7 +1966,7 @@ class TestTree(TestCase):
         self.newick = "(((Human,HowlerMon),Mouse),NineBande,DogFaced);"
         self.newick_sorted = "(DogFaced,((HowlerMon,Human),Mouse),NineBande);"
         self.newick_reduced = "((HowlerMon,Mouse),NineBande,DogFaced);"
-        self.tree = LoadTree(treestring=self.newick)
+        self.tree = make_tree(treestring=self.newick)
 
     def test_sorttree(self):
         """testing (well, exercising at least) treesort"""
@@ -1978,7 +1978,7 @@ class TestTree(TestCase):
         """testing getting a subtree"""
         subtree = self.tree.unrooted().get_sub_tree(self.otu_names)
 
-        new_tree = LoadTree(treestring=self.newick_reduced).unrooted()
+        new_tree = make_tree(treestring=self.newick_reduced).unrooted()
 
         # check we get the same names
         self.assertEqual(*[len(t.children) for t in (subtree, new_tree)])
@@ -2116,7 +2116,7 @@ class TestTree(TestCase):
             "(Mus_musculus:0.1,Mus_musculus_LPJ:0.2):0.3)Mus_musculus:0.3)"
             ",Canis_familiaris,Ornithorhynchus_anatinus)"
         )
-        tree = LoadTree(treestring=treestring, underscore_unmunge=True)
+        tree = make_tree(treestring=treestring, underscore_unmunge=True)
         # change internal node names to eliminate ending digits
         for edge in tree.postorder():
             if edge.istip():
@@ -2126,7 +2126,7 @@ class TestTree(TestCase):
 
         sub1 = tree.get_sub_tree(names, tipsonly=False)
         self.assertTrue(tree.same_topology(sub1))
-        expect = LoadTree(
+        expect = make_tree(
             treestring="(Homo_sapiens,Mus_musculus,"
             "(Canis_familiaris,Ornithorhynchus_anatinus))",
             underscore_unmunge=True,
@@ -2138,7 +2138,7 @@ class TestTree(TestCase):
         """get sub tree handles non-scalar params"""
         names = ["A", "B", "C"]
         treestring = "((E:2,(F:1,(C:0.1,D:0.2):0.3):0.3):0.3,A:0.2,B:0.2)"
-        tree = LoadTree(treestring=treestring)
+        tree = make_tree(treestring=treestring)
         # change internal node names to eliminate ending digits
         vals = dict(A=42, B=43, C=44)
         for edge in tree.postorder():
@@ -2198,7 +2198,7 @@ class BigTreeSingleTests(TestTree):
         self.otu_names.sort()
         self.newick = "((((((((FlyingFox,DogFaced),((FreeTaile,LittleBro),(TombBat,RoundEare))),(FalseVamp,LeafNose)),(((Horse,Rhino),(Pangolin,(Cat,Dog))),(Llama,(Pig,(Cow,(Hippo,(SpermWhal,HumpbackW))))))),(Mole,Hedgehog)),(TreeShrew,(FlyingLem,((Jackrabbit,(FlyingSqu,(OldWorld,(Mouse,Rat)))),(Galago,(HowlerMon,(Rhesus,(Orangutan,(Gorilla,(Human,Chimpanzee)))))))))),(((NineBande,HairyArma),(Anteater,Sloth)),(((Dugong,Manatee),((AfricanEl,AsianElep),(RockHyrax,TreeHyrax))),(Aardvark,((GoldenMol,(Madagascar,Tenrec)),(LesserEle,GiantElep)))))),(caenolest,(phascogale,(wombat,bandicoot))));"
         self.newick_reduced = "(((((TombBat,(((Horse,Rhino),(Pangolin,Cat)),(Pig,SpermWhal))),Hedgehog),(Orangutan,Gorilla)),((HairyArma,Sloth),((Manatee,AsianElep),GoldenMol))),bandicoot);"
-        self.tree = LoadTree(treestring=self.newick)
+        self.tree = make_tree(treestring=self.newick)
 
     def test_get_edge_names(self):
         """testing (well, exercising at least), getedgenames"""

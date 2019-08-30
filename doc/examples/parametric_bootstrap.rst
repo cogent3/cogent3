@@ -11,7 +11,7 @@ From ``cogent3`` import all the components we need.
 
 .. doctest::
 
-    >>> from cogent3 import load_aligned_seqs, LoadTree
+    >>> from cogent3 import load_aligned_seqs, load_tree
     >>> from cogent3.evolve import bootstrap
     >>> from cogent3.evolve.models import HKY85
     >>> from cogent3.maths import stats
@@ -23,7 +23,7 @@ We will use a HKY model.
 .. doctest::
 
     >>> def create_alt_function():
-    ...     t = LoadTree("data/test.tree")
+    ...     t = load_tree("data/test.tree")
     ...     sm = HKY85()
     ...     return sm.make_likelihood_function(t)
 

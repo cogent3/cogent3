@@ -1,4 +1,4 @@
-from cogent3 import LoadTree
+from cogent3 import make_tree
 from cogent3.align import global_pairwise, make_dna_scoring_dict
 from cogent3.align.progressive import TreeAlign
 from cogent3.core.alignment import ArrayAlignment
@@ -198,7 +198,7 @@ class progressive_align(ComposableSeq):
 
         if guide_tree is not None:
             if type(guide_tree) == str:
-                guide_tree = LoadTree(treestring=guide_tree)
+                guide_tree = make_tree(treestring=guide_tree)
             # make sure no zero lengths
             guide_tree = scale_branches()(guide_tree)
 

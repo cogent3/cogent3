@@ -5,10 +5,10 @@ from tempfile import TemporaryDirectory
 from numpy.testing import assert_allclose
 
 from cogent3 import (
-    LoadTree,
     load_aligned_seqs,
-    load_unaligned_seqs,
+    load_tree,
     make_aligned_seqs,
+    make_tree,
     make_unaligned_seqs,
 )
 from cogent3.app.result import model_result
@@ -90,7 +90,7 @@ class TestDeserialising(TestCase):
 
     def test_roundtrip_tree(self):
         """Tree to_json enables roundtrip"""
-        tree = LoadTree(treestring="(c:01,d:0.3,(a:0.05,b:0.08)xx:0.2)")
+        tree = make_tree(treestring="(c:01,d:0.3,(a:0.05,b:0.08)xx:0.2)")
         got = deserialise_object(tree.to_json())
         self.assertFloatEqual(got.get_node_matching_name("a").length, 0.05)
         self.assertFloatEqual(got.get_node_matching_name("xx").length, 0.2)
@@ -118,7 +118,7 @@ class TestDeserialising(TestCase):
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
         aln = make_aligned_seqs(data=_data, moltype="dna")
-        tree = LoadTree(tip_names=aln.names)
+        tree = make_tree(tip_names=aln.names)
         sm = get_model("HKY85")
         lf = sm.make_likelihood_function(tree)
         lf.set_alignment(aln)
@@ -136,7 +136,7 @@ class TestDeserialising(TestCase):
             rules = json.load(infile)
 
         aln = load_aligned_seqs("data/primates_brca1.fasta", moltype="dna")
-        tree = LoadTree("data/primates_brca1.tree")
+        tree = load_tree("data/primates_brca1.tree")
         rule_lnL = rules.pop("phylohmm-gamma-kappa")
         sm = get_model("HKY85", ordered_param="rate", distribution="gamma")
         lf1 = sm.make_likelihood_function(tree, bins=4, sites_independent=False)
@@ -154,7 +154,7 @@ class TestDeserialising(TestCase):
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
         aln = make_aligned_seqs(data=_data, moltype="dna")
-        tree = LoadTree(tip_names=aln.names)
+        tree = make_tree(tip_names=aln.names)
         sm = get_model("HKY85")
         lf = sm.make_likelihood_function(tree)
         lf.set_alignment(aln)
@@ -179,7 +179,7 @@ class TestDeserialising(TestCase):
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
         aln = make_aligned_seqs(data=_data, moltype="dna")
-        tree = LoadTree(tip_names=aln.names)
+        tree = make_tree(tip_names=aln.names)
         sm = get_model("HKY85")
         lf = sm.make_likelihood_function(tree)
         lf.set_alignment(aln)

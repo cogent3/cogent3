@@ -5,7 +5,7 @@ import warnings
 from collections import defaultdict
 from itertools import product
 
-from cogent3 import LoadTree
+from cogent3 import make_tree
 from cogent3.core.tree import TreeBuilder
 from cogent3.util.misc import extend_docstring_from
 
@@ -298,7 +298,7 @@ if __name__ == "__main__":
     trees = []
     for filename in sys.argv[1:]:
         for tree in open(filename):
-            trees.append(LoadTree(treestring=tree))
+            trees.append(make_tree(treestring=tree))
     print("Consensus of %s trees from %s" % (len(trees), sys.argv[1:]))
     outtrees = majority_rule(trees, strict=True)
     for tree in outtrees:

@@ -2,7 +2,7 @@
 
 import unittest
 
-from cogent3 import LoadTree
+from cogent3 import make_tree
 from cogent3.evolve import substitution_model
 from cogent3.evolve.predicate import MotifChange, replacement
 
@@ -23,7 +23,7 @@ __status__ = "Production"
 a_c = MotifChange("A", "C")
 trans = MotifChange("A", "G") | MotifChange("T", "C")
 
-TREE = LoadTree(tip_names="ab")
+TREE = make_tree(tip_names="ab")
 
 
 class ScaleRuleTests(unittest.TestCase):

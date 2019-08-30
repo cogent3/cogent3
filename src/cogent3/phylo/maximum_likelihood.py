@@ -2,7 +2,7 @@
 from math import exp
 
 from .least_squares import WLS
-from .tree_collection import LoadTrees  # only for back compat.
+from .tree_collection import make_trees  # only for back compat.
 from .tree_collection import LogLikelihoodScoredTreeCollection
 from .tree_space import TreeEvaluator, ancestry2tree
 

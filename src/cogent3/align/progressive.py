@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-from cogent3 import LoadTree
+from cogent3 import make_tree
 from cogent3.core.info import Info
 from cogent3.evolve.distance import EstimateDistances
 from cogent3.phylo import nj as NJ
@@ -76,7 +76,7 @@ def TreeAlign(
         )
         ests_from_pairwise = False
     elif two_seqs:
-        tree = LoadTree(tip_names=seqs.names)
+        tree = make_tree(tip_names=seqs.names)
         ests_from_pairwise = False
     else:
         if ests_from_pairwise:

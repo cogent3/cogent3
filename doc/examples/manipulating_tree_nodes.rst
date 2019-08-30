@@ -8,10 +8,10 @@ Examples of how to initialize and manipulate various tree node objects.
 .. doctest ::
 
     >>> from cogent3.core.tree import PhyloNode
-    >>> from cogent3 import LoadTree
+    >>> from cogent3 import load_tree, make_tree
     >>> from cogent3.parse.tree import DndParser
 
-The general method to initialize a tree is ``LoadTree``, however, for exceptionally large trees or if one needs to specify the node objects (``TreeNode``, ``PhyloNode``, or ``RangeNode``), ``DndParser`` should be used.  ``LoadTree`` uses ``PhyloNode`` objects by default.
+The general method to initialize a tree is ``load_tree``, however, for exceptionally large trees or if one needs to specify the node objects (``TreeNode``, ``PhyloNode``, or ``RangeNode``), ``DndParser`` should be used.  ``load_tree`` uses ``PhyloNode`` objects by default.
 
 The basic properties of the tree node objects are:
 
@@ -25,7 +25,7 @@ The following demonstrates the two methods for initializing a phylogenetic tree 
 
     >>> simple_tree_string="(B:0.2,(C:0.3,D:0.4)E:0.5)F;"
     >>> complex_tree_string="(((363564 AB294167.1 Alkalibacterium putridalgicola:0.0028006,55874 AB083411.1 Marinilactibacillus psychrotolerans:0.0022089):0.40998,(15050 Y10772.1 Facklamia hominis:0.32304,(132509 AY707780.1 Aerococcus viridans:0.58815,((143063 AY879307.1 Abiotrophia defectiva:0.5807,83619 AB042060.1 Bacillus schlegelii:0.23569):0.03586,169722 AB275483.1 Fibrobacter succinogenes:0.38272):0.06516):0.03492):0.14265):0.63594,(3589 M62687.1 Fibrobacter intestinalis:0.65866,314063 CP001146.1 Dictyoglomus thermophilum:0.38791):0.32147,276579 EU652053.1 Thermus scotoductus:0.57336);"
-    >>> simple_tree=LoadTree(treestring=simple_tree_string)
+    >>> simple_tree=make_tree(simple_tree_string)
     >>> complex_tree=DndParser(complex_tree_string, PhyloNode)
 
 Now to displaying, creating, deleting, and inserting a node in simple_tree.  Note that simple_tree has three tips, one internal node 'E', and the root 'F.'  For this example, we will create a node named 'A', with a distance of 0.1, delete the node 'C' through its parent, the internal node 'E', and finally we will insert 'A' where 'C' once was.

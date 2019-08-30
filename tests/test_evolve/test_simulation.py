@@ -5,7 +5,7 @@ Jukes Cantor model using a four taxon tree with very different branch lengths,
  and a Kimura two (really one) parameter model.
 
 The test is to reestimate the parameter values as accurately as possible."""
-from cogent3 import LoadTree
+from cogent3 import make_tree
 from cogent3.evolve import substitution_model
 
 
@@ -21,7 +21,7 @@ __status__ = "Production"
 
 def _est_simulations():
     # specify the 4 taxon tree, and a 'dummy' alignment
-    t = LoadTree(treestring="(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;")
+    t = make_tree(treestring="(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;")
 
     # how long the simulated alignments should be
     # at 1000000 the estimates get nice and close

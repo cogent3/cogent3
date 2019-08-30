@@ -10,14 +10,14 @@ A simple example for analyses involving rate heterogeneity among sites. In this 
 .. doctest::
 
     >>> from cogent3.evolve.substitution_model import TimeReversibleNucleotide
-    >>> from cogent3 import LoadTree
+    >>> from cogent3 import load_tree
 
 Make an alignment with equal split between rates 0.6 and 0.2, and then concatenate them to create a new alignment.
 
 .. doctest::
 
     >>> model = TimeReversibleNucleotide(equal_motif_probs=True)
-    >>> tree = LoadTree("data/test.tree")
+    >>> tree = load_tree("data/test.tree")
     >>> lf = model.make_likelihood_function(tree)
     >>> lf.set_param_rule('length', value=0.6, is_constant=True)
     >>> aln1 = lf.simulate_alignment(sequence_length=10000)

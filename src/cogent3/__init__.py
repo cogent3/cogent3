@@ -353,6 +353,7 @@ def LoadSeqs(
     """
     kwargs = locals()
     from cogent3.util.warning import deprecated
+
     if filename and aligned:
         deprecated("function", "LoadSeqs", "load_aligned_seqs", "2020.1.1", 1)
         for key in ("aligned", "data"):
@@ -509,7 +510,7 @@ def LoadTable(
     return table
 
 
-def LoadTree(
+def make_tree(
     filename=None,
     treestring=None,
     tip_names=None,
@@ -563,3 +564,101 @@ def LoadTree(
     else:
         raise TreeError("filename or treestring not specified")
     return tree
+
+
+def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=False):
+    """Initialises a tree.
+
+    Parameters
+    ----------
+    treestring
+        a newick or xml formatted tree string.
+    tip_names
+        a list of tip names.
+
+    Note: underscore_unmunging is turned off by default, although it is part
+    of the Newick format. Set underscore_unmunge to True to replace underscores
+    with spaces in all names read.
+    """
+    assert treestring or tip_names, "must provide either treestring or tip_names"
+    if tip_names:
+        tree_builder = TreeBuilder().create_edge
+        tips = [tree_builder([], tip_name, {}) for tip_name in tip_names]
+        tree = tree_builder(tips, "root", {})
+        return tree
+
+    if format is None and treestring.startswith("<"):
+        format = "xml"
+    if format == "xml":
+        parser = tree_xml_parse_string
+    else:
+        parser = newick_parse_string
+    tree_builder = TreeBuilder().create_edge
+    # FIXME: More general strategy for underscore_unmunge
+    if parser is newick_parse_string:
+        tree = parser(treestring, tree_builder, underscore_unmunge=underscore_unmunge)
+    else:
+        tree = parser(treestring, tree_builder)
+    if not tree.name_loaded:
+        tree.name = "root"
+
+    return tree
+
+
+def load_tree(filename, format=None, underscore_unmunge=False):
+    """Constructor for tree.
+
+    Parameters
+    ----------
+    filename
+        a file containing a newick or xml formatted tree.
+
+    Note: underscore_unmunging is turned off by default, although it is part
+    of the Newick format. Set underscore_unmunge to True to replace underscores
+    with spaces in all names read.
+    """
+
+    with open_(filename) as tfile:
+        treestring = tfile.read()
+        if format is None and filename.endswith(".xml"):
+            format = "xml"
+    tree = make_tree(treestring, format=format, underscore_unmunge=underscore_unmunge)
+    return tree
+
+
+def LoadTree(
+    filename=None,
+    treestring=None,
+    tip_names=None,
+    format=None,
+    underscore_unmunge=False,
+):
+    """Constructor for tree.
+
+    Parameters
+    ----------
+    filename
+        a file containing a newick or xml formatted tree.
+    treestring
+        a newick or xml formatted tree string.
+    tip_names
+        a list of tip names.
+
+    Note: underscore_unmunging is turned off by default, although it is part
+    of the Newick format. Set underscore_unmunge to True to replace underscores
+    with spaces in all names read.
+    """
+    from cogent3.util.warning import deprecated
+
+    if filename:
+        deprecated("function", "LoadTree", "load_tree", "2020.1.1", 1)
+        return load_tree(filename, format=format, underscore_unmunge=underscore_unmunge)
+    else:
+        deprecated("function", "LoadTree", "make_tree", "2020.1.1", 1)
+        tree = make_tree(
+            treestring=treestring,
+            tip_names=tip_names,
+            format=format,
+            underscore_unmunge=underscore_unmunge,
+        )
+        return tree

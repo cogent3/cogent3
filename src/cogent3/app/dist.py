@@ -1,4 +1,4 @@
-from cogent3 import LoadTree, get_moltype
+from cogent3 import get_moltype, make_tree
 from cogent3.evolve.fast_distance import get_calculator
 from cogent3.evolve.models import get_model
 
@@ -42,7 +42,7 @@ class fast_slow_dist:  # todo make this a composable type
     def _est_dist_pair(self, aln):
         """returns distance between seq pairs in aln"""
         assert len(aln.names) == 2
-        tree = LoadTree(tip_names=aln.names)
+        tree = make_tree(tip_names=aln.names)
         lf = self._sm.make_likelihood_function(tree)
         lf.set_alignment(aln)
         lf.set_param_rule("length", is_independent=False)

@@ -10,14 +10,14 @@ See the other examples for how to define other substitution models.
 .. doctest::
 
     >>> import sys
-    >>> from cogent3 import LoadTree
+    >>> from cogent3 import make_tree
     >>> from cogent3.evolve import substitution_model
 
 Specify the 4 taxon tree,
 
 .. doctest::
 
-    >>> t = LoadTree(treestring='(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1);')
+    >>> t = make_tree('(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1);')
 
 Define our Felsenstein 1981 substitution model.
 

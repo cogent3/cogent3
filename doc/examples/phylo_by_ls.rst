@@ -127,9 +127,8 @@ In some instances we may have a tree from the literature or elsewhere whose fit 
 
 .. doctest::
 
-    >>> from cogent3 import LoadTree
-    >>> query_tree = LoadTree(
-    ... treestring="((Human:.2,DogFaced:.2):.3,(NineBande:.1, Mouse:.5):.2,HowlerMon:.1)")
+    >>> from cogent3 import make_tree
+    >>> query_tree = make_tree("((Human:.2,DogFaced:.2):.3,(NineBande:.1, Mouse:.5):.2,HowlerMon:.1)")
 
 We now just use the ``ls`` object created above. The following evaluates the query using it's associated branch lengths, returning only the wls statistic.
 

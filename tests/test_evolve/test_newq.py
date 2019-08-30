@@ -5,11 +5,14 @@ import warnings
 from numpy import dot, ones
 from numpy.testing import assert_allclose
 
-from cogent3 import DNA, LoadTree, load_aligned_seqs, make_aligned_seqs
+from cogent3 import (
+    DNA,
+    load_aligned_seqs,
+    load_tree,
+    make_aligned_seqs,
+    make_tree,
+)
 from cogent3.evolve.ns_substitution_model import (
-    DiscreteSubstitutionModel,
-    General,
-    GeneralStationary,
     NonReversibleCodon,
     NonReversibleNucleotide,
 )
@@ -78,7 +81,7 @@ class NewQ(TestCase):
         },
         moltype=DNA,
     )
-    tree = LoadTree(tip_names=["seq1", "seq2"])
+    tree = make_tree(tip_names=["seq1", "seq2"])
 
     symm_nuc_probs = dict(A=0.25, T=0.25, C=0.25, G=0.25)
     symm_root_probs = _dinuc_root_probs(symm_nuc_probs)
@@ -318,7 +321,7 @@ class NewQ(TestCase):
 
     def test_getting_node_mprobs(self):
         """return correct motif probability vector for tree nodes"""
-        tree = LoadTree(treestring="(a:.2,b:.2,(c:.1,d:.1):.1)")
+        tree = make_tree(treestring="(a:.2,b:.2,(c:.1,d:.1):.1)")
         aln = make_aligned_seqs(
             data={"a": "TGTG", "b": "TGTG", "c": "TGTG", "d": "TGTG"}
         )
@@ -371,7 +374,7 @@ class NewQ(TestCase):
         aln = load_aligned_seqs("data/primates_brca1.fasta", moltype="dna")
         aln = aln.no_degenerates(motif_length=3)
 
-        tree = LoadTree("data/primates_brca1.tree")
+        tree = load_tree("data/primates_brca1.tree")
 
         # root mprobs are constant
         sm = get_model("MG94HKY")

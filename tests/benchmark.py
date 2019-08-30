@@ -2,7 +2,7 @@
 
 import sys  # ,hotshot
 
-from cogent3 import LoadTree, load_aligned_seqs
+from cogent3 import load_aligned_seqs, load_tree
 from cogent3.evolve.substitution_model import (
     TimeReversibleCodon,
     TimeReversibleDinucleotide,
@@ -22,7 +22,7 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 ALIGNMENT = load_aligned_seqs(filename="data/brca1.fasta")
-TREE = LoadTree(filename="data/murphy.tree")
+TREE = load_tree(filename="data/murphy.tree")
 
 
 def subtree(size):

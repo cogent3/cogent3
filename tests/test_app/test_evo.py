@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from numpy.testing import assert_allclose, assert_raises
 
-from cogent3 import LoadTree, make_aligned_seqs
+from cogent3 import make_aligned_seqs, make_tree
 from cogent3.app import evo as evo_app
 from cogent3.app.result import hypothesis_result
 
@@ -39,9 +39,9 @@ class TestModel(TestCase):
     def test_model_tree(self):
         """allows tree to be string, None or tree"""
         treestring = "(a,b,c)"
-        for tree in (treestring, LoadTree(treestring=treestring), None):
+        for tree in (treestring, make_tree(treestring=treestring), None):
             mod = evo_app.model("HKY85", tree=tree)
-            expect = None if tree is None else LoadTree(treestring=treestring)
+            expect = None if tree is None else make_tree(treestring=treestring)
             self.assertIsInstance(mod._tree, expect.__class__)
 
     def test_unique_models(self):
@@ -143,7 +143,7 @@ class TestModel(TestCase):
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
         aln = make_aligned_seqs(data=_data, moltype="dna")
-        tree = LoadTree(tip_names=aln.names)
+        tree = make_tree(tip_names=aln.names)
         mod = evo_app.model(
             "F81",
             tree=tree,

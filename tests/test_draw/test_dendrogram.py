@@ -2,7 +2,7 @@ from unittest import TestCase, main
 
 from numpy.testing import assert_allclose
 
-from cogent3 import LoadTree
+from cogent3 import make_tree
 from cogent3.draw.dendrogram import (
     CircularTreeGeometry,
     Dendrogram,
@@ -23,7 +23,7 @@ __status__ = "Alpha"
 class TestDendro(TestCase):
     def test_geometry(self):
         """tree geometry class get_edge_names works"""
-        tree = LoadTree(treestring="(a,b,(c,(d,e)e1)e2)")
+        tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
         geom = SquareTreeGeometry(tree)
         series = [
             dict(tip1name="d", tip2name="c", clade=True, stem=False),
@@ -39,14 +39,14 @@ class TestDendro(TestCase):
 
     def test_get_edges(self):
         """returns edge names"""
-        tree = LoadTree(treestring="(a,b,(c,(d,e)e1)e2)")
+        tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
         dnd = Dendrogram(tree=tree)
         edges = dnd.get_edge_names("d", "c", clade=True, stem=False)
         self.assertEqual(set(edges), set(["c", "d", "e", "e1"]))
 
     def test_min_max_x_y(self):
         """correctly compute the min and max of x and y"""
-        tree = LoadTree(treestring="(A:1,B:2,C:3)")
+        tree = make_tree(treestring="(A:1,B:2,C:3)")
         geom = CircularTreeGeometry(tree)
         geom.propagate_properties()
         got = max(map(abs, [geom.min_x, geom.max_x]))
@@ -58,7 +58,7 @@ class TestDendro(TestCase):
 
     def test_length_attr_valid(self):
         """Tests whether setting a custom length attribute provides valid x values"""
-        tree = LoadTree(
+        tree = make_tree(
             treestring="((a:0.1,b:0.25):0.1,(c:0.02,d:0.03, (e:0.035, f:0.04):0.15):0.3 , g:0.3)"
         )
         geom = SquareTreeGeometry(tree, length_attr="custom")
@@ -91,7 +91,7 @@ class TestDendro(TestCase):
         assert_allclose(actual_vals, expected_vals)
 
     def test_square_dendrogram_regression(self):
-        tree = LoadTree(treestring="(a:0.1,b:0.1,(c:0.05,(d:0.01,e:0.02):0.01):0.1)")
+        tree = make_tree(treestring="(a:0.1,b:0.1,(c:0.05,(d:0.01,e:0.02):0.01):0.1)")
         dendrogram = Dendrogram(tree, style="square", contemporaneous=False)
         func = dendrogram.tree.get_node_matching_name
         actual_vals = [

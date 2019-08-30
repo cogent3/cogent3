@@ -7,7 +7,7 @@ We want to know whether an exchangeability parameter is different between alignm
 
 .. doctest::
 
-    >>> from cogent3 import load_aligned_seqs, LoadTree, LoadTable
+    >>> from cogent3 import load_aligned_seqs, make_tree, LoadTable
     >>> from cogent3.evolve.models import HKY85
     >>> from cogent3.recalculation.scope import EACH, ALL
     >>> from cogent3.maths.stats import chisqprob
@@ -22,7 +22,7 @@ We provide names for those alignments, then construct the tree, model instances.
 
     >>> loci_names = ["1st-half", "2nd-half"]
     >>> loci = [aln1, aln2]
-    >>> tree = LoadTree(tip_names=aln.names)
+    >>> tree = make_tree(tip_names=aln.names)
     >>> mod = HKY85()
 
 To make a likelihood function with multiple alignments we provide the list of loci names. We can then specify a parameter (other than length) to be the same across the loci (using the imported ``ALL``) or different for each locus (using ``EACH``). We conduct a LR test as before.

@@ -122,10 +122,10 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
         )
 
 
-def LoadTrees(filename):
+def make_trees(filename):
     """Parse a file of (score, tree) lines. Scores can be positive probabilities
     or negative log likelihoods."""
-    from cogent3 import LoadTree
+    from cogent3 import make_tree
 
     infile = open(filename, "r")
     trees = []
@@ -142,7 +142,7 @@ def LoadTrees(filename):
         else:
             assert klass in [list, LogLikelihoodScoredTreeCollection]
             klass = LogLikelihoodScoredTreeCollection
-        tree = LoadTree(treestring=line[1])
+        tree = make_tree(treestring=line[1])
         trees.append((lnL, tree))
     trees.sort(reverse=True)
     infile.close()
