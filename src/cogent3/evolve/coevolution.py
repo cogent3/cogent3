@@ -79,7 +79,7 @@ from numpy import (
 )
 from numpy.linalg import norm
 
-from cogent3 import PROTEIN, RNA, LoadTree, make_aligned_seqs
+from cogent3 import PROTEIN, make_aligned_seqs
 from cogent3.core.alignment import ArrayAlignment, seqs_from_fasta
 from cogent3.core.alphabet import Alphabet, CharAlphabet
 from cogent3.core.moltype import IUPAC_gap, IUPAC_missing

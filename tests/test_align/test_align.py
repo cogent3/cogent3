@@ -95,7 +95,7 @@ class AlignmentTestCase(unittest.TestCase):
         codon_model = cogent3.evolve.substitution_model.TimeReversibleCodon(
             model_gaps=False, equal_motif_probs=True, mprob_model="conditional"
         )
-        tree = cogent3.LoadTree(tip_names=["A", "B"])
+        tree = cogent3.make_tree(tip_names=["A", "B"])
         lf = codon_model.make_likelihood_function(tree, aligned=False)
         lf.set_sequences(dict(A=s1, B=s2))
         a = lf.get_log_likelihood().edge.get_viterbi_path().get_alignment()
@@ -115,7 +115,7 @@ class AlignmentTestCase(unittest.TestCase):
 
 class UnalignedPairTestCase(unittest.TestCase):
     def test_forward(self):
-        tree = cogent3.LoadTree(tip_names="AB")
+        tree = cogent3.make_tree(tip_names="AB")
         pc = dna_model.make_likelihood_function(tree, aligned=False)
         pc.set_sequences({"A": seq1, "B": seq2})
         LnL = pc.get_log_likelihood()
@@ -136,10 +136,10 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         kw["indel_length"] = indel_length
         seqs = dict((key, DNA.make_seq(value)) for (key, value) in list(orig.items()))
         if len(seqs) == 2:
-            tree = cogent3.LoadTree(tip_names=list(seqs.keys()))
-            tree = cogent3.LoadTree(treestring="(A:.1,B:.1)")
+            tree = cogent3.make_tree(tip_names=list(seqs.keys()))
+            tree = cogent3.make_tree(treestring="(A:.1,B:.1)")
         else:
-            tree = cogent3.LoadTree(treestring="(((A:.1,B:.1):.1,C:.1):.1,D:.1)")
+            tree = cogent3.make_tree(treestring="(((A:.1,B:.1):.1,C:.1):.1,D:.1)")
         aln, tree = cogent3.align.progressive.TreeAlign(
             model, seqs, tree=tree, param_vals=param_vals, show_progress=False, **kw
         )

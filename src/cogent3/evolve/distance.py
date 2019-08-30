@@ -4,7 +4,7 @@
 from itertools import combinations
 from warnings import warn
 
-from cogent3 import LoadTree
+from cogent3 import make_tree
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.maths.stats.number import NumberCounter
 from cogent3.util import progress_display as UI
@@ -133,7 +133,7 @@ class EstimateDistances(object):
 
     def _make_pair_alignment(self, seqs, opt_kwargs):
         lf = self._sm.make_likelihood_function(
-            LoadTree(tip_names=seqs.names), aligned=False
+            make_tree(tip_names=seqs.names), aligned=False
         )
         lf.set_sequences(seqs.named_seqs)
 
@@ -161,7 +161,7 @@ class EstimateDistances(object):
         # note that we may want to consider removing the redundant gaps
 
         # create the tree object
-        tree = LoadTree(tip_names=sequence_names)
+        tree = make_tree(tip_names=sequence_names)
 
         # make the parameter controller
         lf = self._sm.make_likelihood_function(tree)

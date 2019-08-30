@@ -5,7 +5,7 @@ import numpy
 
 from numpy import array
 
-from cogent3 import LoadTree
+from cogent3 import make_tree
 from cogent3.cluster.UPGMA import (
     UPGMA_cluster,
     condense_matrix,
@@ -93,7 +93,7 @@ class UPGMATests(TestCase):
         pairwise_dist = self.pairwise_distances
         cluster = upgma(pairwise_dist)
         cluster = cluster.sorted()  # so we can make a stable comparison
-        expect = LoadTree(
+        expect = make_tree(
             treestring="(((a:0.5,b:0.5)edge.1:1.75,c:2.25)edge.0:5.875,(d:1.0,e:1.0)edge.2:7.125)root;"
         )
         self.assertTrue(cluster.same_topology(expect))

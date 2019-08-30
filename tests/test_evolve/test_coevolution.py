@@ -28,9 +28,9 @@ from cogent3 import (
     DNA,
     PROTEIN,
     RNA,
-    LoadTree,
     load_aligned_seqs,
     make_aligned_seqs,
+    make_tree,
 )
 from cogent3.core.alignment import ArrayAlignment
 from cogent3.core.alphabet import Alphabet, CharAlphabet
@@ -202,7 +202,7 @@ class CoevolutionTests(TestCase):
             ),
             moltype=PROTEIN,
         )
-        self.tree20 = LoadTree(treestring=tree20_string)
+        self.tree20 = make_tree(treestring=tree20_string)
         self.gpcr_aln = gpcr_aln
         self.myos_aln = myos_aln
         # a made-up dict of base frequencies to use as the natural freqs
@@ -221,7 +221,7 @@ class CoevolutionTests(TestCase):
             [("A1", "AATT"), ("A12", "ACGT"), ("A123", "TTAA"), ("A111", "AAA?")],
             moltype=DNA,
         )
-        self.tree4 = LoadTree(
+        self.tree4 = make_tree(
             treestring="((A1:0.5,A111:0.5):0.5,(A12:0.5,A123:0.5):0.5);"
         )
 
@@ -322,7 +322,7 @@ class CoevolutionTests(TestCase):
     def test_coevolve_pair(self):
         """coevolve_pair: returns same as pair methods called directly """
         aln = ArrayAlignment(data={"1": "AC", "2": "AC"}, moltype=PROTEIN)
-        t = LoadTree(treestring="(1:0.5,2:0.5);")
+        t = make_tree(treestring="(1:0.5,2:0.5);")
         cutoff = 0.50
         # mi_pair == coevolve_pair(mi_pair,...)
         self.assertFloatEqual(
@@ -344,7 +344,7 @@ class CoevolutionTests(TestCase):
         """coevolve_position: returns same as position methods called directly
         """
         aln = ArrayAlignment(data={"1": "AC", "2": "AC"}, moltype=PROTEIN)
-        t = LoadTree(treestring="(1:0.5,2:0.5);")
+        t = make_tree(treestring="(1:0.5,2:0.5);")
         cutoff = 0.50
         # mi_position == coevolve_position(mi_position,...)
         self.assertFloatEqual(
@@ -367,7 +367,7 @@ class CoevolutionTests(TestCase):
     def test_coevolve_alignment(self):
         """coevolve_alignment: returns same as alignment methods"""
         aln = ArrayAlignment(data={"1": "AC", "2": "AC"}, moltype=PROTEIN)
-        t = LoadTree(treestring="(1:0.5,2:0.5);")
+        t = make_tree(treestring="(1:0.5,2:0.5);")
         cutoff = 0.50
         # mi_alignment == coevolve_alignment(mi_alignment,...)
         self.assertFloatEqual(coevolve_alignment(mi_alignment, aln), mi_alignment(aln))
@@ -395,7 +395,7 @@ class CoevolutionTests(TestCase):
         method = sca_alignment
         aln1 = ArrayAlignment(data={"1": "AC", "2": "AD"}, moltype=PROTEIN)
         aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
-        t = LoadTree(treestring="(1:0.5,2:0.5);")
+        t = make_tree(treestring="(1:0.5,2:0.5);")
         # OK w/ no tree
         coevolve_alignments_validation(method, aln1, aln2, 2, None)
         # OK w/ tree
@@ -404,7 +404,7 @@ class CoevolutionTests(TestCase):
         # text before the colon
         aln1 = ArrayAlignment(data={"1+a": "AC", "2+b": "AD"}, moltype=PROTEIN)
         aln2 = ArrayAlignment(data={"1 + c": "EFW", "2 + d": "EGY"}, moltype=PROTEIN)
-        t = LoadTree(treestring="(1+e:0.5,2 + f:0.5);")
+        t = make_tree(treestring="(1+e:0.5,2 + f:0.5);")
         # OK w/ no tree
         coevolve_alignments_validation(method, aln1, aln2, 2, None)
         # OK w/ tree
@@ -413,7 +413,7 @@ class CoevolutionTests(TestCase):
         # mismatch b/w alignments seq names
         aln1 = ArrayAlignment(data={"3": "AC", "2": "AD"}, moltype=PROTEIN)
         aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
-        t = LoadTree(treestring="(1:0.5,2:0.5);")
+        t = make_tree(treestring="(1:0.5,2:0.5);")
         self.assertRaises(
             AssertionError,
             coevolve_alignments_validation,
@@ -428,7 +428,7 @@ class CoevolutionTests(TestCase):
         # mismatch b/w alignments and tree seq names
         aln1 = ArrayAlignment(data={"1": "AC", "2": "AD"}, moltype=PROTEIN)
         aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
-        t = LoadTree(treestring="(3:0.5,2:0.5);")
+        t = make_tree(treestring="(3:0.5,2:0.5);")
         self.assertRaises(
             AssertionError,
             coevolve_alignments_validation,
@@ -443,7 +443,7 @@ class CoevolutionTests(TestCase):
         # mismatch b/w alignments in number of seqs
         aln1 = ArrayAlignment(data={"1": "AC", "2": "AD", "3": "AA"}, moltype=PROTEIN)
         aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
-        t = LoadTree(treestring="(1:0.5,2:0.5);")
+        t = make_tree(treestring="(1:0.5,2:0.5);")
         self.assertRaises(
             AssertionError, coevolve_alignments_validation, method, aln1, aln2, 2, None
         )
@@ -461,7 +461,7 @@ class CoevolutionTests(TestCase):
         # mismatch b/w alignments & tree in number of seqs
         aln1 = ArrayAlignment(data={"1": "AC", "2": "AD"}, moltype=PROTEIN)
         aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
-        t = LoadTree(treestring="(1:0.5,(2:0.5,3:0.25));")
+        t = make_tree(treestring="(1:0.5,(2:0.5,3:0.25));")
         self.assertRaises(
             AssertionError,
             coevolve_alignments_validation,
@@ -535,7 +535,7 @@ class CoevolutionTests(TestCase):
         combined_aln = ArrayAlignment(
             data={"1": "ACEFW", "2": "ADEGY"}, moltype=PROTEIN
         )
-        t = LoadTree(treestring="(1:0.5,2:0.5);")
+        t = make_tree(treestring="(1:0.5,2:0.5);")
         cutoff = 0.50
         # MI
         m = mi_alignment(combined_aln)
@@ -618,7 +618,7 @@ class CoevolutionTests(TestCase):
         aln1 = ArrayAlignment(data={"1": "AC", "2": "AU"}, moltype=RNA)
         aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
         combined_aln = ArrayAlignment(data={"1": "ACEFW", "2": "AUEGY"})
-        t = LoadTree(treestring="(1:0.5,2:0.5);")
+        t = make_tree(treestring="(1:0.5,2:0.5);")
         cutoff = 0.50
         # MI
         m = mi_alignment(combined_aln)
@@ -2685,7 +2685,7 @@ class AncestorCoevolve(TestCase):
         # t1, ancestral_states1, and aln1_* are used to test that when
         # alternate seqs are used with the same tree and ancestral_states,
         # the results vary when appropriate
-        self.t1 = LoadTree(
+        self.t1 = make_tree(
             treestring="((A:0.5,B:0.5):0.5,(C:0.5,(D:0.5,E:0.5):0.5):0.5);"
         )
         self.ancestral_states1 = ArrayAlignment(
@@ -2730,7 +2730,7 @@ class AncestorCoevolve(TestCase):
         # t2, ancestral_states2_*, and aln2 are used to test that when
         # alternate ancestral states are used with the same aln and tree,
         # the results vary when appropriate
-        self.t2 = LoadTree(treestring="(A:0.5,B:0.5,C:0.5);")
+        self.t2 = make_tree(treestring="(A:0.5,B:0.5,C:0.5);")
         self.ancestral_states2_1 = ArrayAlignment(data={"root": "AA"}, moltype=PROTEIN)
         self.ancestral_states2_2 = ArrayAlignment(data={"root": "CC"}, moltype=PROTEIN)
         self.ancestral_states2_3 = ArrayAlignment(data={"root": "EF"}, moltype=PROTEIN)
@@ -2741,8 +2741,8 @@ class AncestorCoevolve(TestCase):
         # t3_*, ancestral_states3, and aln3 are used to test that when
         # alternate trees are used with the same aln and ancestral_states,
         # the results vary when appropriate
-        self.t3_1 = LoadTree(treestring="(A:0.5,(B:0.5,C:0.5):0.5);")
-        self.t3_2 = LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
+        self.t3_1 = make_tree(treestring="(A:0.5,(B:0.5,C:0.5):0.5);")
+        self.t3_2 = make_tree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
         self.ancestral_states3 = ArrayAlignment(
             data={"root": "CC", "edge.0": "AD"}, moltype=PROTEIN
         )
@@ -2759,7 +2759,7 @@ class AncestorCoevolve(TestCase):
             ValueError,
             validate_ancestral_seqs,
             aln,
-            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
+            tree=make_tree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
             ancestral_seqs=ArrayAlignment(data={"root": "AA"}, moltype=PROTEIN),
         )
         # root missing
@@ -2767,7 +2767,7 @@ class AncestorCoevolve(TestCase):
             ValueError,
             validate_ancestral_seqs,
             aln,
-            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
+            tree=make_tree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
             ancestral_seqs=ArrayAlignment(data={"edge.0": "AA"}, moltype=PROTEIN),
         )
         # correct numSeqs but wrong names
@@ -2775,7 +2775,7 @@ class AncestorCoevolve(TestCase):
             ValueError,
             validate_ancestral_seqs,
             aln,
-            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
+            tree=make_tree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
             ancestral_seqs=ArrayAlignment(
                 data={"root": "AA", "edge.1": "AA"}, moltype=PROTEIN
             ),
@@ -2784,7 +2784,7 @@ class AncestorCoevolve(TestCase):
             ValueError,
             validate_ancestral_seqs,
             aln,
-            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
+            tree=make_tree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
             ancestral_seqs=ArrayAlignment(
                 data={"r": "AA", "edge.0": "AA"}, moltype=PROTEIN
             ),
@@ -2793,7 +2793,7 @@ class AncestorCoevolve(TestCase):
             ValueError,
             validate_ancestral_seqs,
             aln,
-            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
+            tree=make_tree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
             ancestral_seqs=ArrayAlignment(data={"r": "AA", "e": "AA"}, moltype=PROTEIN),
         )
         # different tree: invalid
@@ -2804,7 +2804,7 @@ class AncestorCoevolve(TestCase):
             ValueError,
             validate_ancestral_seqs,
             aln,
-            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);"),
+            tree=make_tree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);"),
             ancestral_seqs=ArrayAlignment(
                 data={"root": "AA", "e": "AA", "edge.1": "AA"}, moltype=PROTEIN
             ),
@@ -2817,7 +2817,7 @@ class AncestorCoevolve(TestCase):
         # valid data -> no error
         validate_ancestral_seqs(
             aln,
-            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
+            tree=make_tree(treestring="((A:0.5,B:0.5):0.5,C:0.5);"),
             ancestral_seqs=ArrayAlignment(
                 data={"root": "AA", "edge.0": "AA"}, moltype=PROTEIN
             ),
@@ -2828,7 +2828,7 @@ class AncestorCoevolve(TestCase):
         )
         validate_ancestral_seqs(
             aln,
-            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);"),
+            tree=make_tree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);"),
             ancestral_seqs=ArrayAlignment(
                 data={"root": "AA", "edge.0": "AA", "edge.1": "AA"}, moltype=PROTEIN
             ),
@@ -2845,7 +2845,7 @@ class AncestorCoevolve(TestCase):
             ValueError,
             ancestral_states_input_validation,
             aln,
-            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);"),
+            tree=make_tree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);"),
             ancestral_seqs=ArrayAlignment(
                 data={"root": "AA", "e": "AA", "edge.1": "AA"}, moltype=PROTEIN
             ),
@@ -2865,33 +2865,33 @@ class AncestorCoevolve(TestCase):
             ValueError,
             ancestral_states_input_validation,
             aln,
-            tree=LoadTree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);"),
+            tree=make_tree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);"),
         )
 
     def test_validate_tree_valid(self):
         """validate_tree: does nothing on compatible tree and aln """
-        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);")
+        t = make_tree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);")
         aln = ArrayAlignment(
             data={"A": "AC", "B": "CA", "C": "CC", "D": "DD"}, moltype=PROTEIN
         )
         validate_tree(aln, t)
-        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
+        t = make_tree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
         aln = ArrayAlignment(data={"A": "AC", "B": "CA", "C": "CC"}, moltype=PROTEIN)
         validate_tree(aln, t)
 
     def test_validate_tree_invalid(self):
         """validate_tree: raises ValueError on incompatible tree and aln """
         # different scale tree and aln
-        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
+        t = make_tree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
         aln = ArrayAlignment(
             data={"A": "AC", "B": "CA", "C": "CC", "D": "DD"}, moltype=PROTEIN
         )
         self.assertRaises(ValueError, validate_tree, aln, t)
-        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);")
+        t = make_tree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,D:0.5):0.5);")
         aln = ArrayAlignment(data={"A": "AC", "B": "CA", "C": "CC"}, moltype=PROTEIN)
         self.assertRaises(ValueError, validate_tree, aln, t)
         # same scale tree and aln, but different names
-        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,Dee:0.5):0.5);")
+        t = make_tree(treestring="((A:0.5,B:0.5):0.5,(C:0.5,Dee:0.5):0.5);")
         aln = ArrayAlignment(
             data={"A": "AC", "B": "CA", "C": "CC", "D": "DD"}, moltype=PROTEIN
         )
@@ -2899,16 +2899,16 @@ class AncestorCoevolve(TestCase):
 
     def test_get_ancestral_seqs(self):
         """get_ancestral_seqs: returns valid collection of ancestral seqs """
-        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
+        t = make_tree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
         aln = ArrayAlignment(data={"A": "AA", "B": "AA", "C": "AC"}, moltype=PROTEIN)
         expected = ArrayAlignment(data={"root": "AA", "edge.0": "AA"}, moltype=PROTEIN)
         self.assertEqual(get_ancestral_seqs(aln, t, optimise=False), expected)
-        t = LoadTree(treestring="(A:0.5,B:0.5,C:0.5);")
+        t = make_tree(treestring="(A:0.5,B:0.5,C:0.5);")
         aln = ArrayAlignment(data={"A": "AA", "B": "AA", "C": "AC"}, moltype=PROTEIN)
         expected = ArrayAlignment(data={"root": "AA"}, moltype=PROTEIN)
         self.assertEqual(get_ancestral_seqs(aln, t, optimise=False), expected)
 
-        t = LoadTree(
+        t = make_tree(
             treestring="(((A1:0.5,A2:0.5):0.5,B:0.5):0.5,\
             (C:0.5,D:0.5):0.5);"
         )
@@ -2925,7 +2925,7 @@ class AncestorCoevolve(TestCase):
     def test_get_ancestral_seqs_handles_gaps(self):
         """get_ancestral_seqs: handles gaps """
         # gaps handled OK
-        t = LoadTree(treestring="(A:0.5,B:0.5,C:0.5);")
+        t = make_tree(treestring="(A:0.5,B:0.5,C:0.5);")
         aln = ArrayAlignment(data={"A": "A-", "B": "AA", "C": "AA"}, moltype=PROTEIN)
         expected = ArrayAlignment(data={"root": "AA"}, moltype=PROTEIN)
         self.assertEqual(get_ancestral_seqs(aln, t, optimise=False), expected)
@@ -2933,7 +2933,7 @@ class AncestorCoevolve(TestCase):
     def test_get_ancestral_seqs_handles_ambiguous_residues(self):
         """get_ancestral_seqs: handles ambiguous residues """
         # Non-canonical residues handled OK
-        t = LoadTree(treestring="(A:0.5,B:0.5,C:0.5);")
+        t = make_tree(treestring="(A:0.5,B:0.5,C:0.5);")
         aln = ArrayAlignment(data={"A": "AX", "B": "Z-", "C": "BC"}, moltype=PROTEIN)
         actual = get_ancestral_seqs(aln, t, optimise=False)
         self.assertEqual(len(actual), 2)
@@ -2942,18 +2942,18 @@ class AncestorCoevolve(TestCase):
     def test_ancestral_state_alignment_handles_ancestral_state_calc(self):
         """ancestral_state_alignment: functions when calc'ing ancestral states
         """
-        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
+        t = make_tree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
         aln = ArrayAlignment(data={"A": "AA", "B": "AA", "C": "AC"}, moltype=PROTEIN)
         self.assertEqual(ancestral_state_alignment(aln, t), [[0, 0], [0, 2]])
         # non-bifurcating tree
-        t = LoadTree(treestring="(A:0.5,B:0.5,C:0.5);")
+        t = make_tree(treestring="(A:0.5,B:0.5,C:0.5);")
         aln = ArrayAlignment(data={"A": "AA", "B": "AA", "C": "AC"}, moltype=PROTEIN)
         self.assertEqual(ancestral_state_alignment(aln, t), [[0, 0], [0, 2]])
 
     def test_ancestral_state_position_handles_ancestral_state_calc(self):
         """ancestral_state_position: functions when calc'ing ancestral states
         """
-        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
+        t = make_tree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
         aln = ArrayAlignment(data={"A": "AA", "B": "AA", "C": "AC"}, moltype=PROTEIN)
         self.assertEqual(ancestral_state_position(aln, t, 0), [0, 0])
         self.assertEqual(ancestral_state_position(aln, t, 1), [0, 2])
@@ -2961,7 +2961,7 @@ class AncestorCoevolve(TestCase):
     def test_ancestral_state_pair_handles_ancestral_state_calc(self):
         """ancestral_state_position: functions when calc'ing ancestral states
         """
-        t = LoadTree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
+        t = make_tree(treestring="((A:0.5,B:0.5):0.5,C:0.5);")
         aln = ArrayAlignment(data={"A": "AA", "B": "AA", "C": "AC"}, moltype=PROTEIN)
         self.assertEqual(ancestral_state_pair(aln, t, 0, 0), 0)
         self.assertEqual(ancestral_state_pair(aln, t, 0, 1), 0)

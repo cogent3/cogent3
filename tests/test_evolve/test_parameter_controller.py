@@ -4,7 +4,7 @@ import warnings
 import cogent3.evolve.parameter_controller
 import cogent3.evolve.substitution_model
 
-from cogent3 import LoadTree, make_aligned_seqs
+from cogent3 import make_aligned_seqs, make_tree
 from cogent3.maths import optimisers
 from cogent3.util.unit_test import TestCase, main
 
@@ -47,7 +47,7 @@ class test_parameter_controller(TestCase):
         self.al = make_aligned_seqs(
             data={"a": "tata", "b": "tgtc", "c": "gcga", "d": "gaac", "e": "gagc"}
         )
-        self.tree = LoadTree(treestring="((a,b),(c,d),e);")
+        self.tree = make_tree(treestring="((a,b),(c,d),e);")
         self.model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
             equal_motif_probs=True, model_gaps=True
         )
@@ -145,7 +145,7 @@ class test_parameter_controller(TestCase):
         pass
 
     def test_set_constant_lengths(self):
-        t = LoadTree(treestring="((a:1,b:2):3,(c:4,d:5):6,e:7);")
+        t = make_tree(treestring="((a:1,b:2):3,(c:4,d:5):6,e:7);")
         lf = self.model.make_likelihood_function(t)  # self.tree)
         lf.set_param_rule("length", is_constant=True)
         # lf.set_constant_lengths(t)
@@ -155,7 +155,7 @@ class test_parameter_controller(TestCase):
 
     def test_pairwise_clock(self):
         al = make_aligned_seqs(data={"a": "agct", "b": "ggct"})
-        tree = LoadTree(treestring="(a,b);")
+        tree = make_tree(treestring="(a,b);")
         model = cogent3.evolve.substitution_model.TimeReversibleDinucleotide(
             equal_motif_probs=True, model_gaps=True, mprob_model="tuple"
         )
@@ -186,7 +186,7 @@ class test_parameter_controller(TestCase):
         lf = model.make_likelihood_function(self.tree)
         lf.set_param_rule(par_name="kappa", is_independent=True)
         lf.set_param_rule(par_name="kappa", is_independent=False, edges=["b", "d"])
-        lf.set_constant_lengths(LoadTree(treestring="((a:1,b:1):1,(c:2,d:1):1,e:1);"))
+        lf.set_constant_lengths(make_tree(treestring="((a:1,b:1):1,(c:2,d:1):1,e:1);"))
         # print self.pc
         lf.set_alignment(self.al)
         lf.optimise(local=True)

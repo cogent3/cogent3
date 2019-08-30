@@ -2,7 +2,7 @@ import os
 
 from tqdm import tqdm
 
-from cogent3 import LoadTree
+from cogent3 import make_tree
 from cogent3.evolve.models import get_model
 from cogent3.util import parallel
 
@@ -110,7 +110,7 @@ class model(ComposableModel):
                 kwargs = dict(filename=tree, underscore_unmunge=True)
             else:
                 kwargs = dict(treestring=tree, underscore_unmunge=True)
-            tree = LoadTree(**kwargs)
+            tree = make_tree(**kwargs)
 
         self._tree = tree
         self._lf_args = lf_args or {}
@@ -194,7 +194,7 @@ class model(ComposableModel):
         evaluation_limit = opt_args.get("max_evaluations", None)
         if self._tree is None:
             assert len(aln.names) == 3
-            self._tree = LoadTree(tip_names=aln.names)
+            self._tree = make_tree(tip_names=aln.names)
 
         result = model_result(
             name=self.name,

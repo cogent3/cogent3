@@ -16,7 +16,7 @@ First import standard components necessary for all of the following calculations
 .. doctest::
 
     >>> from cogent3.evolve.substitution_model import TimeReversibleNucleotide, predicate
-    >>> from cogent3 import load_aligned_seqs, LoadTree
+    >>> from cogent3 import load_aligned_seqs, load_tree
     >>> from cogent3.maths.stats import chisqprob
 
 Load the alignment and tree.
@@ -24,7 +24,7 @@ Load the alignment and tree.
 .. doctest::
 
     >>> aln = load_aligned_seqs("data/long_testseqs.fasta")
-    >>> tree = LoadTree("data/test.tree")
+    >>> tree = load_tree("data/test.tree")
 
 Model Ho: no rate heterogeneity
 -------------------------------

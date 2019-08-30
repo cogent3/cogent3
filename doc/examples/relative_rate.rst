@@ -7,7 +7,7 @@ From ``cogent3`` import all the components we need
 
 .. doctest::
 
-    >>> from cogent3 import load_aligned_seqs, LoadTree
+    >>> from cogent3 import load_aligned_seqs, load_tree
     >>> from cogent3.evolve.models import HKY85
     >>> from cogent3.maths import stats
 
@@ -16,7 +16,7 @@ Get your alignment and tree.
 .. doctest::
 
     >>> aln = load_aligned_seqs("data/long_testseqs.fasta")
-    >>> t = LoadTree(filename="data/test.tree")
+    >>> t = load_tree(filename="data/test.tree")
 
 Create a HKY85 model.
 

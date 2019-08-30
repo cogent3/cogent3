@@ -1,4 +1,4 @@
-from cogent3 import LoadTree
+from cogent3 import make_tree
 from cogent3.core.moltype import get_moltype
 from cogent3.phylo.nj import gnj
 
@@ -150,7 +150,7 @@ class quick_tree(ComposableTree):
         if len(species) == 2:
             dist = list(dists.values())[0] / 2.0
             treestring = "(%s:%.4f,%s:%.4f)" % (species[0], dist, species[1], dist)
-            tree = LoadTree(treestring=treestring, underscore_unmunge=True)
+            tree = make_tree(treestring=treestring, underscore_unmunge=True)
         else:
             (result,) = gnj(dists.todict(), keep=1, show_progress=False)
             (score, tree) = result

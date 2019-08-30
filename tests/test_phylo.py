@@ -5,15 +5,15 @@ import warnings
 
 from numpy import exp, log
 
-from cogent3 import LoadTree
+from cogent3 import load_tree, make_tree
 from cogent3.phylo.consensus import get_splits, get_tree, majority_rule
 from cogent3.phylo.least_squares import wls
 from cogent3.phylo.nj import gnj, nj
 from cogent3.phylo.tree_collection import (
-    LoadTrees,
     LogLikelihoodScoredTreeCollection,
     ScoredTreeCollection,
     WeightedTreeCollection,
+    make_trees,
 )
 from cogent3.util.misc import remove_files
 
@@ -41,7 +41,7 @@ data_path = os.path.join(base_path, "data")
 
 
 def Tree(t):
-    return LoadTree(treestring=t)
+    return make_tree(treestring=t)
 
 
 class ConsensusTests(unittest.TestCase):
@@ -404,7 +404,7 @@ class ConsensusTests(unittest.TestCase):
 
     def test_get_tree_get_splits(self):
         """get_tree should provide a reciprocal map of get_splits"""
-        tree = LoadTree(filename=os.path.join(data_path, "murphy.tree"))
+        tree = load_tree(os.path.join(data_path, "murphy.tree"))
         self.assertTrue(tree.same_topology(get_tree(get_splits(tree))))
 
     def test_consensus_tree_branch_lengths(self):
@@ -481,7 +481,7 @@ class ConsensusTests(unittest.TestCase):
 
         def eval_klass(coll):
             coll.write("sample.trees")
-            read = LoadTrees("sample.trees")
+            read = make_trees("sample.trees")
             self.assertTrue(type(read) == type(coll))
 
         eval_klass(LogLikelihoodScoredTreeCollection(self.scored_trees))
@@ -493,7 +493,7 @@ class ConsensusTests(unittest.TestCase):
 
 class TreeReconstructionTests(unittest.TestCase):
     def setUp(self):
-        self.tree = LoadTree(treestring="((a:3,b:4):2,(c:6,d:7):30,(e:5,f:5):5)")
+        self.tree = make_tree(treestring="((a:3,b:4):2,(c:6,d:7):30,(e:5,f:5):5)")
         self.dists = self.tree.get_distances()
 
     def assertTreeDistancesEqual(self, t1, t2):
@@ -553,20 +553,20 @@ class TreeReconstructionTests(unittest.TestCase):
 
     def test_limited_wls(self):
         """testing (well, exercising at least), wls with constrained start"""
-        init = LoadTree(treestring="((a,c),b,d)")
+        init = make_tree(treestring="((a,c),b,d)")
         reconstructed = wls(self.dists, start=init)
         self.assertEqual(len(reconstructed.get_tip_names()), 6)
-        init2 = LoadTree(treestring="((a,d),b,c)")
+        init2 = make_tree(treestring="((a,d),b,c)")
         reconstructed = wls(self.dists, start=[init, init2])
         self.assertEqual(len(reconstructed.get_tip_names()), 6)
-        init3 = LoadTree(treestring="((a,d),b,z)")
+        init3 = make_tree(treestring="((a,d),b,z)")
         self.assertRaises(Exception, wls, self.dists, start=[init, init3])
         # if start tree has all seq names, should raise an error
         self.assertRaises(
             Exception,
             wls,
             self.dists,
-            start=[LoadTree(treestring="((a,c),b,(d,(e,f)))")],
+            start=[make_tree(treestring="((a,c),b,(d,(e,f)))")],
         )
 
 

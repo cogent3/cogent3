@@ -4,7 +4,7 @@ import numpy
 
 from numpy import array, dot, empty, ones
 
-from cogent3 import DNA, LoadTable, LoadTree, make_aligned_seqs
+from cogent3 import DNA, LoadTable, make_aligned_seqs, make_tree
 from cogent3.evolve.ns_substitution_model import (
     DiscreteSubstitutionModel,
     General,
@@ -76,7 +76,7 @@ class MakeCachedObjects:
         self.lf.set_motif_probs(dict(A=0.1, C=0.2, G=0.3, T=0.4))
         self.aln = self.lf.simulate_alignment(seq_length)
         self.results = dict(aln=self.aln)
-        self.discrete_tree = LoadTree(tip_names=self.aln.names)
+        self.discrete_tree = make_tree(tip_names=self.aln.names)
         self.opt_args = opt_args
         self.tree = tree
 
@@ -157,7 +157,7 @@ class MakeCachedObjects:
 class NonStatMarkov(TestCase):
     """test discrete and general markov"""
 
-    tree = LoadTree(treestring="(a:0.4,b:0.4,c:0.6)")
+    tree = make_tree(treestring="(a:0.4,b:0.4,c:0.6)")
     opt_args = dict(max_restarts=1, local=True, show_progress=False)
     make_cached = MakeCachedObjects(TimeReversibleNucleotide(), tree, 100000, opt_args)
 
@@ -230,7 +230,7 @@ class NonStatMarkov(TestCase):
         taxa = "Human", "Mouse", "Opossum"
         aln = make_aligned_seqs(data=_aln, moltype=DNA)
         aln = aln[2::3].no_degenerates()
-        tree = LoadTree(tip_names=taxa)
+        tree = make_tree(tip_names=taxa)
         model = StrandSymmetric(optimise_motif_probs=True)
         lf = model.make_likelihood_function(tree)
         lf.set_alignment(aln)

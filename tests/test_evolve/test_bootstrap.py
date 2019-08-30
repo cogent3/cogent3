@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 
 import os
-import sys
 import unittest
 
-from cogent3 import LoadTree, load_aligned_seqs
-from cogent3.evolve import (
-    bootstrap,
-    likelihood_function,
-    parameter_controller,
-    substitution_model,
-)
+from cogent3 import load_aligned_seqs, load_tree
+from cogent3.evolve import bootstrap, substitution_model
 
 
 __author__ = "Peter Maxwell and  Gavin Huttley"
@@ -49,7 +43,7 @@ def float_ge_zero(num, epsilon=1e-6):
 
 class BootstrapTests(unittest.TestCase):
     def gettree(self):
-        treeobj = LoadTree(filename=os.path.join(data_path, "murphy.tree"))
+        treeobj = load_tree(filename=os.path.join(data_path, "murphy.tree"))
 
         return treeobj.get_sub_tree(seqnames)
 

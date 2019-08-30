@@ -616,7 +616,7 @@ class TestDistanceMatrix(TestCase):
 
     def test_build_phylogeny(self):
         """build a NJ tree"""
-        from cogent3 import LoadTree
+        from cogent3 import make_tree
 
         dists = {
             ("DogFaced", "FlyingFox"): 0.05,
@@ -642,7 +642,7 @@ class TestDistanceMatrix(TestCase):
         }
         dists = DistanceMatrix(dists)
         got = dists.quick_tree(show_progress=False)
-        expect = LoadTree(
+        expect = make_tree(
             treestring="((TombBat,(DogFaced,FlyingFox)),LittleBro,FreeTaile)"
         )
         self.assertTrue(expect.same_topology(got))

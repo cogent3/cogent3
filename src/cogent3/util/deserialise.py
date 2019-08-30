@@ -202,10 +202,10 @@ def deserialise_alignment(data):
 
 def deserialise_tree(data):
     """returns a cogent3 PhyloNode instance"""
-    # we load tree using LoadTree, then populate edge attributes
+    # we load tree using make_tree, then populate edge attributes
     newick = data.pop("newick")
     edge_attr = data.pop("edge_attributes")
-    tree = cogent3.LoadTree(treestring=newick)
+    tree = cogent3.make_tree(treestring=newick)
     for edge in tree.get_edge_vector():
         params = edge_attr.get(edge.name, {})
         edge.params.update(params)
