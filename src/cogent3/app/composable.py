@@ -7,7 +7,7 @@ import time
 
 import scitrack
 
-from cogent3 import make_aligned_seqs
+from cogent3 import make_aligned_seqs, make_unaligned_seqs
 from cogent3.core.alignment import SequenceCollection
 from cogent3.util import progress_display as UI
 from cogent3.util.misc import get_object_provenance, open_
@@ -496,6 +496,13 @@ class ComposableHypothesis(Composable):
 
     def __init__(self):
         super(ComposableHypothesis, self).__init__()
+
+
+class ComposableDistance(Composable):
+    _type = "distance"
+
+    def __init__(self):
+        super(ComposableDistance, self).__init__()
 
 
 class _seq_loader:

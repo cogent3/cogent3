@@ -3,6 +3,7 @@ import os
 from unittest import TestCase, main
 
 from cogent3 import DNA, load_aligned_seqs, make_tree
+from cogent3.app import dist
 from cogent3.app import tree as tree_app
 
 
@@ -56,8 +57,10 @@ class TestTree(TestCase):
             os.path.abspath(__file__).split("test_app")[0], "data/brca1_5.paml"
         )
         aln = load_aligned_seqs(path, moltype=DNA)
+        fast_slow_dist = dist.fast_slow_dist()
+        dist_matrix = fast_slow_dist(aln)
         quick = tree_app.quick_tree()
-        tree = quick(aln)
+        tree = quick.quick_tree(dist_matrix)
         self.assertEqual(set(tree.get_tip_names()), set(aln.names))
 
     def test_uniformize_tree(self):

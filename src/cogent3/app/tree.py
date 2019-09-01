@@ -1,10 +1,8 @@
 from cogent3 import make_tree
-from cogent3.core.moltype import get_moltype
 from cogent3.phylo.nj import gnj
+from cogent3.evolve.fast_distance import DistanceMatrix
 
 from .composable import ComposableTree
-from .dist import get_fast_slow_calc
-
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
@@ -108,34 +106,20 @@ class quick_tree(ComposableTree):
     """Fast pairwise distance based estimation of phylogeny using NJ.
     Returns Tree."""
 
-    _input_type = frozenset(["aligned"])
+    _input_type = frozenset(["pairwise_distances"])
     _output_type = frozenset(["tree", "serialisable"])
     _data_types = frozenset(["ArrayAlignment", "Alignment"])
 
-    def __init__(self, distance="TN93", moltype="dna"):
-        """computes a neighbour joining tree from an alignment
-        
-        Parameters
-        ----------
-        distance : str
-            known name for a distance calculation (case insensitive)
-        moltype : str
-            molecular type, must be either DNA or RNA
-        """
+    def __init__(self):
+        """computes a neighbour joining tree from an alignment"""
         super(quick_tree, self).__init__()
         self._formatted_params()
-        moltype = get_moltype(moltype)
-        assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
-
-        self._calc = get_fast_slow_calc(distance, moltype=moltype)
-        self._distance = distance
-        self._moltype = moltype
         self.func = self.quick_tree
 
-    def quick_tree(self, aln):
+    def quick_tree(self, distance_matrix):
         """estimates a neighbor joining tree"""
-        aln = aln.to_moltype(self._moltype)
-        dists = self._calc(aln)
+        assert distance_matrix.__class__ is DistanceMatrix
+        dists = distance_matrix
         size = dists.shape[0]
         dists = dists.drop_invalid()
         if dists.shape[0] != size:

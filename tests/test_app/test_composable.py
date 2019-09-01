@@ -184,9 +184,7 @@ class TestNotCompletedResult(TestCase):
         )
 
         qt = quick_tree()
-        self.assertEqual(
-            str(qt), "quick_tree(type='tree', distance='TN93'," " moltype='dna')"
-        )
+        self.assertEqual(str(qt), "quick_tree(type='tree')")
 
 
 class TestPicklable(TestCase):

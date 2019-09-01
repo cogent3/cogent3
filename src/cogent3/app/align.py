@@ -3,6 +3,7 @@ from cogent3.align import global_pairwise, make_dna_scoring_dict
 from cogent3.align.progressive import TreeAlign
 from cogent3.core.alignment import ArrayAlignment
 from cogent3.core.moltype import get_moltype
+from cogent3.app import dist
 from cogent3.evolve.models import get_model, protein_models
 
 from .composable import ComposableSeq, NotCompleted
@@ -20,7 +21,7 @@ __status__ = "Alpha"
 
 
 class align_to_ref(ComposableSeq):
-    """Aligns to a reference seq, no gaps in the reference. 
+    """Aligns to a reference seq, no gaps in the reference.
     Returns an Alignment object."""
 
     _input_type = frozenset(["sequences"])
@@ -194,7 +195,7 @@ class progressive_align(ComposableSeq):
             self._make_tree = guide_tree
             guide_tree = None  # callback takes precedence
         else:
-            self._make_tree = quick_tree()
+            self._make_tree = quick_tree().quick_tree
 
         if guide_tree is not None:
             if type(guide_tree) == str:
@@ -216,6 +217,9 @@ class progressive_align(ComposableSeq):
     def _build_guide(self, seqs):
         crude_aligner = align_to_ref(moltype=self._moltype)
         aln = crude_aligner(seqs)
+        if self._make_tree.__name__ == "quick_tree":
+            fast_slow_dist = dist.fast_slow_dist()
+            aln = fast_slow_dist(aln)
         tree = self._make_tree(aln)
         if self._scalar != 1:
             scaler = scale_branches(scalar=self._scalar)
