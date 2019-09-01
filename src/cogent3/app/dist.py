@@ -2,6 +2,8 @@ from cogent3 import get_moltype, make_tree
 from cogent3.evolve.fast_distance import get_calculator
 from cogent3.evolve.models import get_model
 
+from .composable import ComposableDistance
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
@@ -13,15 +15,16 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-# todo tests for dist
-
-
-class fast_slow_dist:  # todo make this a composable type
+class fast_slow_dist(ComposableDistance):
     """Pairwise distance calculation. Uses fast (but less
     numerically robust) approach where possible, slow (robust)
     approach when not. Returns a DistanceMatrix."""
 
+    _input_type = frozenset(["aligned"])
+    _output_type = frozenset(["pairwise_distances"])
+
     def __init__(self, distance="TN93", moltype="dna", fast_calc=None, slow_calc=None):
+        super(fast_slow_dist, self).__init__()
         self._moltype = get_moltype(moltype)
         self._sm = None
         if distance:
