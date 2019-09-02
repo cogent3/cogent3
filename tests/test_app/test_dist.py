@@ -47,7 +47,8 @@ class FastSlowDistTests(TestCase):
         got = fast_slow_dist + quick_tree
 
         self.assertEqual(
-            str(got), "fast_slow_dist(type='distance') + quick_tree(type='tree')"
+            str(got),
+            "fast_slow_dist(type='distance') + quick_tree(type='tree', drop_invalid=False)",
         )
         self.assertIsInstance(got, quick_tree.__class__)
         self.assertEqual(got._type, "tree")

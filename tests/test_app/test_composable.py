@@ -184,7 +184,7 @@ class TestNotCompletedResult(TestCase):
         )
 
         qt = quick_tree()
-        self.assertEqual(str(qt), "quick_tree(type='tree')")
+        self.assertEqual(str(qt), "quick_tree(type='tree', drop_invalid=False)")
 
 
 class TestPicklable(TestCase):
