@@ -5,6 +5,8 @@ from unittest import TestCase, main
 from cogent3 import DNA, load_aligned_seqs, make_tree
 from cogent3.app import dist
 from cogent3.app import tree as tree_app
+from cogent3.app.composable import NotCompleted
+from cogent3.core.tree import PhyloNode
 
 
 __author__ = "Gavin Huttley"
@@ -59,9 +61,54 @@ class TestTree(TestCase):
         aln = load_aligned_seqs(path, moltype=DNA)
         fast_slow_dist = dist.fast_slow_dist()
         dist_matrix = fast_slow_dist(aln)
-        quick = tree_app.quick_tree()
-        tree = quick.quick_tree(dist_matrix)
-        self.assertEqual(set(tree.get_tip_names()), set(aln.names))
+        quick1 = tree_app.quick_tree()
+        tree1 = quick1.quick_tree(dist_matrix)
+        self.assertEqual(set(tree1.get_tip_names()), set(aln.names))
+        # tests when distances cannot be computed
+        data = {
+            ("ABAYE2984", "Atu3667"): None,
+            ("ABAYE2984", "Avin_42730"): 0.638,
+            ("ABAYE2984", "BAA10469"): None,
+            ("Atu3667", "ABAYE2984"): None,
+            ("Atu3667", "Avin_42730"): 2.368,
+            ("Atu3667", "BAA10469"): None,
+            ("Avin_42730", "ABAYE2984"): 0.638,
+            ("Avin_42730", "Atu3667"): 2.368,
+            ("Avin_42730", "BAA10469"): 1.85,
+            ("BAA10469", "ABAYE2984"): None,
+            ("BAA10469", "Atu3667"): None,
+            ("BAA10469", "Avin_42730"): 1.85,
+        }
+        from cogent3.evolve.fast_distance import DistanceMatrix
+
+        darr = DistanceMatrix(data)
+        quick2 = tree_app.quick_tree(drop_invalid=True)
+        with self.assertRaises(ValueError):
+            tree2 = quick2.quick_tree(darr)
+
+    def test_communicable_apps(self):
+        """checks the ability of these two apps to communicate"""
+        path = os.path.join(
+            os.path.abspath(__file__).split("test_app")[0], "data/brca1_5.paml"
+        )
+        aln1 = load_aligned_seqs(path, moltype=DNA)
+        fast_slow_dist = dist.fast_slow_dist()
+        quick = tree_app.quick_tree(drop_invalid=False)
+        proc = fast_slow_dist + quick
+        tree1 = proc(aln1)
+        self.assertIsInstance(tree1, PhyloNode().__class__)
+        self.assertIsNotNone(tree1.children)
+        self.assertEqual(set(tree1.get_tip_names()), set(aln1.names))
+        # tests when distances contain None
+        from cogent3 import make_aligned_seqs
+
+        data = dict(
+            seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
+            seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
+        )
+        aln2 = make_aligned_seqs(data=data, moltype=DNA)
+        tree2 = proc(aln2)
+        self.assertIsInstance(tree2, NotCompleted)
 
     def test_uniformize_tree(self):
         """equivalent topologies should be the same"""

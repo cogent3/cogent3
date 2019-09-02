@@ -1,6 +1,5 @@
 from cogent3 import make_tree
 from cogent3.phylo.nj import gnj
-from cogent3.evolve.fast_distance import DistanceMatrix
 
 from .composable import ComposableTree
 
@@ -103,26 +102,26 @@ class uniformize_tree(ComposableTree):
 
 
 class quick_tree(ComposableTree):
-    """Fast pairwise distance based estimation of phylogeny using NJ.
-    Returns Tree."""
+    """Neighbour Joining tree based on pairwise distances."""
 
     _input_type = frozenset(["pairwise_distances"])
     _output_type = frozenset(["tree", "serialisable"])
-    _data_types = frozenset(["ArrayAlignment", "Alignment"])
+    _data_types = frozenset(["ArrayAlignment", "Alignment", "DistanceMatrix"])
 
-    def __init__(self):
+    def __init__(self, drop_invalid=False):
         """computes a neighbour joining tree from an alignment"""
         super(quick_tree, self).__init__()
         self._formatted_params()
         self.func = self.quick_tree
+        # removes records with missing distances symmetrically.
+        self._drop_invalid = drop_invalid
 
     def quick_tree(self, distance_matrix):
         """estimates a neighbor joining tree"""
-        assert distance_matrix.__class__ is DistanceMatrix
         dists = distance_matrix
         size = dists.shape[0]
-        dists = dists.drop_invalid()
-        if dists.shape[0] != size:
+        dists = dists.drop_invalid() if self._drop_invalid else dists
+        if dists is None or dists.shape[0] != size:
             msg = (
                 f"some pairwise distances could not be computed with"
                 " {self._distance}, pick a different distance"
