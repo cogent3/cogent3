@@ -15,5 +15,3 @@ pipelines:
           - pip install pytest
           - pip install tox
           - tox -e py37
-
-
