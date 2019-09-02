@@ -14,8 +14,8 @@ from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store import WritableZippedDataStore
 from cogent3.app.io import write_db
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
+from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.util.table import Table
-
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
@@ -239,7 +239,26 @@ class TestIo(TestCase):
             self.assertEqual(type(new[0, "B"]), float)
             self.assertEqual(type(new[0, "A"]), int)
 
-    def test_write_tabular(self):
+    def test_write_tabular_distance_matrix(self):
+        """correctly writes tabular data"""
+        data = { (0,0): 'a', (0,1): 'b', (1,0): 'c', (1,1): 'd' }
+        matrix = DistanceMatrix(data)
+        loader = io_app.load_tabular(sep="\t")
+        with TemporaryDirectory(dir=".") as dirname:
+            writer = io_app.write_tabular(data_path=dirname, format="tsv")
+            outpath = join(dirname, "delme.tsv")
+            writer.write(matrix, identifier=outpath)
+            new = loader(outpath)
+            # when written to file in tabular form
+            # the loaded table will have dim-1 dim-2 as column labels
+            # and the key-values pairs listed below; in dict form...
+            expected = {
+                0: {'dim-1': 0, 'dim-2': 1, 'value': 'b'},
+                1: {'dim-1': 1, 'dim-2': 0, 'value': 'c'},
+            }
+            self.assertEqual(expected, new.todict())
+
+    def test_write_tabular_table(self):
         """correctly writes tabular data"""
         rows = [[1, 2], [3, 4], [5, 6.5]]
         table = Table(["A", "B"], rows=rows)
@@ -247,7 +266,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_tabular(data_path=dirname, format="tsv")
             outpath = join(dirname, "delme.tsv")
-            got = writer(table, identifier=outpath)
+            writer(table, identifier=outpath)
             new = loader(outpath)
             self.assertEqual(table.todict(), new.todict())
 
