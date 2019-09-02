@@ -14,9 +14,10 @@ from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store import WritableZippedDataStore
 from cogent3.app.io import write_db
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
-from cogent3.core.profile import MotifCountsArray, MotifFreqsArray, PSSM
+from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.util.table import Table
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
@@ -174,7 +175,6 @@ class TestIo(TestCase):
 
     def test_write_db_load_db(self):
         """correctly write/load from tinydb"""
-        data = DNA.to_json()
         # straight directory
         with TemporaryDirectory(dir=".") as dirname:
             outpath = join(dirname, "delme")
@@ -255,12 +255,12 @@ class TestIo(TestCase):
             # the loaded table will have dim-1 dim-2 as column labels
             # and the key-values pairs listed below; in dict form...
             expected = {
-                0: {'dim-1': 0, 'dim-2': 'A', 'value': 2},
-                1: {'dim-1': 0, 'dim-2': 'B', 'value': 4},
-                2: {'dim-1': 1, 'dim-2': 'A', 'value': 3},
-                3: {'dim-1': 1, 'dim-2': 'B', 'value': 5},
-                4: {'dim-1': 2, 'dim-2': 'A', 'value': 4},
-                5: {'dim-1': 2, 'dim-2': 'B', 'value': 8},
+                0: {"dim-1": 0, "dim-2": "A", "value": 2},
+                1: {"dim-1": 0, "dim-2": "B", "value": 4},
+                2: {"dim-1": 1, "dim-2": "A", "value": 3},
+                3: {"dim-1": 1, "dim-2": "B", "value": 5},
+                4: {"dim-1": 2, "dim-2": "A", "value": 4},
+                5: {"dim-1": 2, "dim-2": "B", "value": 8},
             }
             self.assertEqual(expected, new.todict())
 
@@ -279,12 +279,12 @@ class TestIo(TestCase):
             # the loaded table will have dim-1 dim-2 as column labels
             # and the key-values pairs listed below; in dict form...
             expected = {
-                0: {'dim-1': 0, 'dim-2': 'A', 'value': 0.3333},
-                1: {'dim-1': 0, 'dim-2': 'B', 'value': 0.6667},
-                2: {'dim-1': 1, 'dim-2': 'A', 'value': 0.3750},
-                3: {'dim-1': 1, 'dim-2': 'B', 'value': 0.6250},
-                4: {'dim-1': 2, 'dim-2': 'A', 'value': 0.3333},
-                5: {'dim-1': 2, 'dim-2': 'B', 'value': 0.6667},
+                0: {"dim-1": 0, "dim-2": "A", "value": 0.3333},
+                1: {"dim-1": 0, "dim-2": "B", "value": 0.6667},
+                2: {"dim-1": 1, "dim-2": "A", "value": 0.3750},
+                3: {"dim-1": 1, "dim-2": "B", "value": 0.6250},
+                4: {"dim-1": 2, "dim-2": "A", "value": 0.3333},
+                5: {"dim-1": 2, "dim-2": "B", "value": 0.6667},
             }
             self.assertEqual(expected, new.todict())
 
@@ -310,32 +310,32 @@ class TestIo(TestCase):
             # the loaded table will have dim-1 dim-2 as column labels
             # and the key-values pairs listed below; in dict form...
             expected = {
-                0:  {'dim-1': 0, 'dim-2': 'A', 'value': -1.3219},
-                1:  {'dim-1': 0, 'dim-2': 'C', 'value':  0.2630},
-                2:  {'dim-1': 0, 'dim-2': 'T', 'value':  1.0000},
-                3:  {'dim-1': 0, 'dim-2': 'G', 'value': -1.3219},
-                4:  {'dim-1': 1, 'dim-2': 'A', 'value':  0.0000},
-                5:  {'dim-1': 1, 'dim-2': 'C', 'value':  0.0000},
-                6:  {'dim-1': 1, 'dim-2': 'T', 'value':  0.0000},
-                7:  {'dim-1': 1, 'dim-2': 'G', 'value':  0.0000},
-                8:  {'dim-1': 2, 'dim-2': 'A', 'value': -2.3219},
-                9:  {'dim-1': 2, 'dim-2': 'C', 'value':  1.6781},
-                10: {'dim-1': 2, 'dim-2': 'T', 'value': -2.3219},
-                11: {'dim-1': 2, 'dim-2': 'G', 'value': -1.3219},
-                12: {'dim-1': 3, 'dim-2': 'A', 'value':  1.4854},
-                13: {'dim-1': 3, 'dim-2': 'C', 'value': -1.3219},
-                14: {'dim-1': 3, 'dim-2': 'T', 'value': -1.3219},
-                15: {'dim-1': 3, 'dim-2': 'G', 'value': -1.3219},
-                16: {'dim-1': 4, 'dim-2': 'A', 'value':  1.2630},
-                17: {'dim-1': 4, 'dim-2': 'C', 'value': -0.7370},
-                18: {'dim-1': 4, 'dim-2': 'T', 'value': -2.3219},
-                19: {'dim-1': 4, 'dim-2': 'G', 'value': -0.3219},
+                0: {"dim-1": 0, "dim-2": "A", "value": -1.3219},
+                1: {"dim-1": 0, "dim-2": "C", "value": 0.2630},
+                2: {"dim-1": 0, "dim-2": "T", "value": 1.0000},
+                3: {"dim-1": 0, "dim-2": "G", "value": -1.3219},
+                4: {"dim-1": 1, "dim-2": "A", "value": 0.0000},
+                5: {"dim-1": 1, "dim-2": "C", "value": 0.0000},
+                6: {"dim-1": 1, "dim-2": "T", "value": 0.0000},
+                7: {"dim-1": 1, "dim-2": "G", "value": 0.0000},
+                8: {"dim-1": 2, "dim-2": "A", "value": -2.3219},
+                9: {"dim-1": 2, "dim-2": "C", "value": 1.6781},
+                10: {"dim-1": 2, "dim-2": "T", "value": -2.3219},
+                11: {"dim-1": 2, "dim-2": "G", "value": -1.3219},
+                12: {"dim-1": 3, "dim-2": "A", "value": 1.4854},
+                13: {"dim-1": 3, "dim-2": "C", "value": -1.3219},
+                14: {"dim-1": 3, "dim-2": "T", "value": -1.3219},
+                15: {"dim-1": 3, "dim-2": "G", "value": -1.3219},
+                16: {"dim-1": 4, "dim-2": "A", "value": 1.2630},
+                17: {"dim-1": 4, "dim-2": "C", "value": -0.7370},
+                18: {"dim-1": 4, "dim-2": "T", "value": -2.3219},
+                19: {"dim-1": 4, "dim-2": "G", "value": -0.3219},
             }
             self.assertEqual(expected, new.todict())
 
     def test_write_tabular_distance_matrix(self):
         """correctly writes tabular data for DistanceMatrix"""
-        data = { (0,0): 0, (0,1): 4, (1,0): 4, (1,1): 0 }
+        data = {(0, 0): 0, (0, 1): 4, (1, 0): 4, (1, 1): 0}
         matrix = DistanceMatrix(data)
         loader = io_app.load_tabular(sep="\t")
         with TemporaryDirectory(dir=".") as dirname:
@@ -347,8 +347,8 @@ class TestIo(TestCase):
             # the loaded table will have dim-1 dim-2 as column labels
             # and the key-values pairs listed below; in dict form...
             expected = {
-                0: {'dim-1': 0, 'dim-2': 1, 'value': 4},
-                1: {'dim-1': 1, 'dim-2': 0, 'value': 4},
+                0: {"dim-1": 0, "dim-2": 1, "value": 4},
+                1: {"dim-1": 1, "dim-2": 0, "value": 4},
             }
             self.assertEqual(expected, new.todict())
 
