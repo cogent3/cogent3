@@ -4,6 +4,7 @@ import os
 import pathlib
 import re
 import time
+import traceback
 
 import scitrack
 
@@ -259,8 +260,8 @@ class Composable(ComposableType):
             return valid
         try:
             val = func(val, *args, **kwargs)
-        except Exception as err:
-            val = NotCompleted("ERROR", self, err.args[0], source=val)
+        except Exception:
+            val = NotCompleted("ERROR", self, traceback.format_exc(), source=val)
         return val
 
     def __call__(self, val, *args, **kwargs):
