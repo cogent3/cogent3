@@ -6,26 +6,6 @@ pipelines:
         caches:
           - pip
         script: # Modify the commands below to build your repository.
-<<<<<<< working copy
-#          - pip install numpy
-#          - pip install pandas
-#          - pip install tqdm
-#          - pip install plotly
-#          - pip install scitrack
-#          - pip install tinydb
-#          - bash run_tests
-          - wget https://raw.github.com/felipec/git-remote-hg/master/git-remote-hg -O git-remote-hg
-          - chmod +x git-remote-hg
-          - export PATH=`pwd`:$PATH 
-          - git config --global user.email "thomasla256@gmail.com"
-          - git config --global user.name "Thomas La"
-          - git clone hg::ssh://hg@bitbucket.org/t6677658/cogent3-apps
-          - cd cogent3-apps
-          - git remote add azure git@ssh.dev.azure.com:v3/tomla/private-cogent3/private-cogent3
-          - git pull azure master
-          - git push -u azure --all
-
-=======
           - pip install numpy
           - pip install pandas
           - pip install tqdm
@@ -35,4 +15,5 @@ pipelines:
           - pip install pytest
           - pip install tox
           - tox -e py37
->>>>>>> merge rev
+
+
