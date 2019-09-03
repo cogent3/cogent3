@@ -63,11 +63,13 @@ class PicklableAndCallable:
     def __call__(self, *args, **kw):
         return self.func(*args, **kw)
 
+
 def set_default_chunksize(s, max_workers):
     chunksize, remainder = divmod(len(s), max_workers * 4)
     if remainder:
         chunksize += 1
     return chunksize
+
 
 def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=None):
     """
