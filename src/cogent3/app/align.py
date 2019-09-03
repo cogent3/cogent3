@@ -177,7 +177,7 @@ class progressive_align(ComposableSeq):
                 "auto-build of guide tree " "not supported for protein seqs yet"
             )
 
-        if all([type(model) is str, type(distance) is str, model.lower() != distance.lower(), distance.lower() != "hamming"]):
+        if all([type(model) is str, type(distance) is str, model.lower() != distance.lower(), distance.lower() != "hamming", model.lower() != "hamming"]):
             raise ValueError(
                 "Invalid setting, model parameter is required to be consistent with distance parameter"
             )
