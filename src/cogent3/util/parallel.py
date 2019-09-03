@@ -86,8 +86,7 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
         values are 'raise', 'ignore', 'warn'. Defaults to 'raise'.
     chunksize : int or None
         Size of data chunks executed by worker processes. Defaults to None
-        where optimal chunksize is determined by concurrent.futures or
-        mpi4py futures.
+        where optimal chunksize is determined by set_default_chunksize()
 
     Returns
     -------
