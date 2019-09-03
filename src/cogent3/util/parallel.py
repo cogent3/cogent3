@@ -64,7 +64,7 @@ class PicklableAndCallable:
         return self.func(*args, **kw)
 
 
-def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=1):
+def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=None):
     """
     Parameters
     ----------
@@ -118,12 +118,14 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=1):
         if not max_workers:
             max_workers = multiprocessing.cpu_count() - 1
         assert max_workers < multiprocessing.cpu_count()
+
         f = PicklableAndCallable(f)
+
         with concurrentfutures.ProcessPoolExecutor(max_workers) as executor:
             for result in executor.map(f, s, chunksize=chunksize):
                 yield result
 
 
 @extend_docstring_from(imap)
-def map(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=1):
+def map(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=None):
     return list(imap(f, s, max_workers, use_mpi, if_serial, chunksize))
