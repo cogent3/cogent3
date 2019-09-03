@@ -40,7 +40,7 @@ class RefalignmentTests(TestCase):
 
     def test_progressive_align_nuc(self):
         """progressive alignment with nuc models"""
-        aligner = align_app.progressive_align(model="F81")
+        aligner = align_app.progressive_align(model="F81", distance="TN93")
         aln = aligner(self.seqs)
         expect = {
             "Rhesus": "GCCAGCTCATTACAGCATGAGAACAG---TTTGTTACTCACT",
@@ -52,7 +52,7 @@ class RefalignmentTests(TestCase):
         self.assertEqual(got, expect)
 
         # using default
-        aligner = align_app.progressive_align(model="nucleotide")
+        aligner = align_app.progressive_align(model="nucleotide", distance="TN93")
         aln = aligner(self.seqs)
         self.assertEqual(len(aln), 42)
         self.assertEqual(aln.moltype, aligner._moltype)

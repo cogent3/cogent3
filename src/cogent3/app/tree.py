@@ -109,11 +109,19 @@ class quick_tree(ComposableTree):
     _data_types = frozenset(["ArrayAlignment", "Alignment", "DistanceMatrix"])
 
     def __init__(self, drop_invalid=False):
-        """computes a neighbour joining tree from an alignment"""
+        """computes a neighbour joining tree from an alignment
+
+            Parameters
+            ----------
+            drop_invalid : bool
+                drops all rows / columns with an invalid entry
+                if True, sequences for which a pairwise distance could not be
+            calculated are excluded, the resulting tree will be for the subset of labels with strictly valid distances
+                if False, an ArithmeticError is raised if a distance could not be computed on observed data.
+        """
         super(quick_tree, self).__init__()
         self._formatted_params()
         self.func = self.quick_tree
-        # removes records with missing distances symmetrically.
         self._drop_invalid = drop_invalid
 
     def quick_tree(self, distance_matrix):

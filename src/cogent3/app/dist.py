@@ -28,16 +28,18 @@ class fast_slow_dist(ComposableDistance):
         super(fast_slow_dist, self).__init__()
         self._moltype = get_moltype(moltype)
         self._sm = None
-        if distance:
-            if fast_calc and slow_calc:
-                distance = None
-                raise UserWarning('distance="%s" being ignored' % distance)
-            elif fast_calc or slow_calc:
-                raise ValueError("must specify both fast and slow calculator")
-            else:
-                fast_calc = get_calculator(distance, moltype)
-                self._sm = get_model(distance)
-                slow_calc = None
+        if fast_calc and slow_calc and distance:
+            distance = None
+            raise UserWarning('distance="%s" being ignored' % distance)
+
+        assert any([fast_calc, slow_calc, distance]), "must specify a distance, fast or slow calc"
+
+        fast_calc = get_calculator(distance, moltype)
+        try:
+            self._sm = get_model(distance)
+        except ValueError:
+            self._sm = None
+            slow_calc = None
 
         self._distance = distance
         self.slow_calc = slow_calc
