@@ -76,12 +76,13 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
         maximum number of workers. Defaults to 1-maximum available.
     use_mpi : bool
         use MPI for parallel execution
-    seed : int or None
-        seed value for random number generators. Defaults to time.time() on
-        master node, time.time() + process rank on worked nodes.
     if_serial : str
         action to take if conditions will result in serial execution. Valid
         values are 'raise', 'ignore', 'warn'. Defaults to 'raise'.
+    chunksize : int or None
+        Size of data chunks executed by worker processes. Defaults to None
+        where optimal chunksize is determined by concurrent.futures or
+        mpi4py futures.
 
     Returns
     -------
