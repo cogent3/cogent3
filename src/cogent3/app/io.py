@@ -505,8 +505,11 @@ class write_db(_checkpointable):
     def write(self, data, identifier=None):
         if identifier is None:
             identifier = self._make_output_identifier(data)
-        out = data.to_json()
-        stored = self.data_store.write(identifier, out)
+        try:
+            data = data.to_json()
+        except AttributeError:
+            data = json.dumps(data)
+        stored = self.data_store.write(identifier, data)
         try:
             data.info.stored = stored
         except AttributeError:

@@ -698,7 +698,8 @@ class DistanceMatrix(DictArray):
             result.template = self.template
         return result
 
-    def todict(self):
+    def todict(self, **kwargs):
+        """Returns a flattened dict with diagonal elements removed"""
         result = super(DistanceMatrix, self).todict(flatten=True)
         for n1 in self.template.names[0]:
             del result[(n1, n1)]
