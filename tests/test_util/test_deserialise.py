@@ -110,6 +110,18 @@ class TestDeserialising(TestCase):
         got = deserialise_object(data)
         self.assertEqual(got.to_rich_dict(), sm.to_rich_dict())
 
+    def test_roundtrip_discrete_time_submod(self):
+        """discrete time substitution models to_json enables roundtrip"""
+        sm = get_model("DT")
+        data = sm.to_json()
+        got = deserialise_object(data)
+        self.assertEqual(got.to_rich_dict(), sm.to_rich_dict())
+
+        sm = get_model("DT", motif_length=2)
+        data = sm.to_json()
+        got = deserialise_object(data)
+        self.assertEqual(got.to_rich_dict(), sm.to_rich_dict())
+
     def test_roundtrip_likelihood_function(self):
         """likelihood function.to_json enables roundtrip"""
         _data = {
