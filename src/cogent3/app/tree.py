@@ -106,30 +106,29 @@ class quick_tree(ComposableTree):
 
     _input_type = frozenset(["pairwise_distances"])
     _output_type = frozenset(["tree", "serialisable"])
-    _data_types = frozenset(["ArrayAlignment", "Alignment", "DistanceMatrix"])
+    _data_types = frozenset(["DistanceMatrix"])
 
     def __init__(self, drop_invalid=False):
         """computes a neighbour joining tree from an alignment
 
-            Parameters
-            ----------
-            drop_invalid : bool
-                drops all rows / columns with an invalid entry
-                if True, sequences for which a pairwise distance could not be
+        Parameters
+        ----------
+        drop_invalid : bool
+            drops all rows / columns with an invalid entry
+            if True, sequences for which a pairwise distance could not be
             calculated are excluded, the resulting tree will be for the subset of labels with strictly valid distances
-                if False, an ArithmeticError is raised if a distance could not be computed on observed data.
+            if False, an ArithmeticError is raised if a distance could not be computed on observed data.
         """
         super(quick_tree, self).__init__()
         self._formatted_params()
         self.func = self.quick_tree
         self._drop_invalid = drop_invalid
 
-    def quick_tree(self, distance_matrix):
+    def quick_tree(self, dists):
         """estimates a neighbor joining tree"""
-        dists = distance_matrix
         size = dists.shape[0]
         dists = dists.drop_invalid() if self._drop_invalid else dists
-        if dists is None or dists.shape[0] != size:
+        if dists is None or (dists.shape[0] != size and not self._drop_invalid):
             msg = (
                 f"some pairwise distances could not be computed with"
                 " {self._distance}, pick a different distance"

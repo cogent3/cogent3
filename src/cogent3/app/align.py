@@ -169,11 +169,17 @@ class progressive_align(ComposableSeq):
         distance : string
             it allows the user to pick the distance measure
             default is hamming
+            which is applicable for any moltype, and sequences with very high percent identify
         """
         super(progressive_align, self).__init__()
         if guide_tree is None and model in protein_models + ["protein"]:
             raise NotImplementedError(
                 "auto-build of guide tree " "not supported for protein seqs yet"
+            )
+
+        if all([type(model) is str, type(distance) is str, model.lower() != distance.lower(), distance.lower() != "hamming"]):
+            raise ValueError(
+                "Invalid setting, model parameter is required to be consistent with distance parameter"
             )
 
         self._param_vals = {
