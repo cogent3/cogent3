@@ -33,23 +33,46 @@ __status__ = "Production"
 class CannedModelsTest(TestCase):
     """Check each canned model can actually be instantiated."""
 
-    def _instantiate_models(self, models, **kwargs):
-        for model in models:
-            model(**kwargs)
+    def _make_model_cache(self):
+        # constructs all the substitution  models
+        if hasattr(self, "_cached_models"):
+            return
+
+        cache = {}
+        for name in models:
+            cache[name] = get_model(name)
+        self._cached_models = cache
 
     def test_nuc_models(self):
         """excercising nucleotide model construction"""
-        self._instantiate_models([JC69, F81, HKY85, GTR, GN, ssGN])
+        self._make_model_cache()
+        # just checking present
+        for name in ["JC69", "F81", "HKY85", "GTR", "GN", "ssGN"]:
+            self.assertIn(name, self._cached_models)
 
     def test_codon_models(self):
         """excercising codon model construction"""
-        self._instantiate_models(
-            [CNFGTR, CNFHKY, MG94HKY, MG94GTR, GY94, H04G, H04GK, H04GGK, GNC]
-        )
+        self._make_model_cache()
+        # just checking present
+        for name in [
+            "CNFGTR",
+            "CNFHKY",
+            "MG94HKY",
+            "MG94GTR",
+            "GY94",
+            "H04G",
+            "H04GK",
+            "H04GGK",
+            "GNC",
+        ]:
+            self.assertIn(name, self._cached_models)
 
     def test_aa_models(self):
         """excercising aa model construction"""
-        self._instantiate_models([DSO78, AH96, AH96_mtmammals, JTT92, WG01])
+        self._make_model_cache()
+        # just checking present
+        for name in ["DSO78", "AH96", "AH96_mtmammals", "JTT92", "WG01"]:
+            self.assertIn(name, self._cached_models)
 
     def test_bin_options(self):
         kwargs = dict(with_rate=True, distribution="gamma")
@@ -68,9 +91,6 @@ class CannedModelsTest(TestCase):
 
     def test_get_model(self):
         """get_models successfully creates model instances"""
-        for name in models:
-            model = get_model(name)
-
         # just returns query if it's already a substitution model
         for mod in (CNFGTR(), WG01(), GN()):
             got = get_model(mod)
