@@ -65,4 +65,3 @@ latex_documents = [
   ('index', 'Cogent3.tex', u'Cogent3 Documentation',
    u'Cogent3 Team', 'manual'),
 ]
-
