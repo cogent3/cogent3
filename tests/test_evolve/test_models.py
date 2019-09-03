@@ -2,26 +2,13 @@ from unittest import TestCase, main
 
 from cogent3.evolve import models as models_module
 from cogent3.evolve.models import (
-    AH96,
     CNFGTR,
-    CNFHKY,
-    DSO78,
     F81,
     GN,
-    GNC,
     GTR,
-    GY94,
-    H04G,
-    H04GGK,
-    H04GK,
     HKY85,
-    JC69,
-    JTT92,
-    MG94GTR,
-    MG94HKY,
     TN93,
     WG01,
-    AH96_mtmammals,
     WG01_freqs,
     WG01_matrix,
     available_models,
@@ -30,7 +17,6 @@ from cogent3.evolve.models import (
     models,
     nucleotide_models,
     protein_models,
-    ssGN,
 )
 
 
