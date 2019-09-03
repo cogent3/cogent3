@@ -865,7 +865,12 @@ class LikelihoodFunction(ParameterController):
         for edge in edge_attr:
             if edge == "root":
                 continue
-            edge_attr[edge]["length"] = self.get_param_value("length", edge=edge)
+            try:
+                edge_attr[edge]["length"] = self.get_param_value("length", edge=edge)
+            except KeyError:
+                # probably discrete-time model
+                edge_attr[edge]["length"] = None
+
         model = self._model.to_rich_dict(for_pickle=False)
         alignment = self.get_param_value("alignment").to_rich_dict()
         mprobs = self.get_motif_probs().todict()

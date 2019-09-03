@@ -142,6 +142,24 @@ class TestDeserialising(TestCase):
         got_obj = deserialise_object(data)
         self.assertFloatEqual(got_obj.get_log_likelihood(), lnL)
 
+    def test_roundtrip_discrete_time_likelihood_function(self):
+        """discrete time likelihood function.to_json enables roundtrip"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        tree = make_tree(tip_names=aln.names)
+        sm = get_model("BH")
+        lf = sm.make_likelihood_function(tree)
+        lf.set_alignment(aln)
+        lf.optimise(max_evaluations=25, limit_action="ignore", show_progress=False)
+        lnL = lf.get_log_likelihood()
+        data = lf.to_json()
+        got_obj = deserialise_object(data)
+        self.assertFloatEqual(got_obj.get_log_likelihood(), lnL)
+
     def test_roundtrip_het_lf(self):
         """correctly round trips a site-het model"""
         with open("data/site-het-param-rules.json") as infile:
