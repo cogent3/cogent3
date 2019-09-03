@@ -63,6 +63,11 @@ class PicklableAndCallable:
     def __call__(self, *args, **kw):
         return self.func(*args, **kw)
 
+def set_default_chunksize(s, max_workers):
+    chunksize, remainder = divmod(len(s), max_workers * 4)
+    if remainder:
+        chunksize += 1
+    return chunksize
 
 def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=None):
     """
@@ -112,6 +117,9 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
         if not max_workers:
             max_workers = COMM.Get_attr(MPI.UNIVERSE_SIZE) - 1
 
+        if not chunksize:
+            chunksize = set_default_chunksize(s, max_workers)
+
         with MPIfutures.MPIPoolExecutor(max_workers=max_workers) as executor:
             for result in executor.map(f, s, chunksize=chunksize):
                 yield result
@@ -119,6 +127,9 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
         if not max_workers:
             max_workers = multiprocessing.cpu_count() - 1
         assert max_workers < multiprocessing.cpu_count()
+
+        if not chunksize:
+            chunksize = set_default_chunksize(s, max_workers)
 
         f = PicklableAndCallable(f)
 
