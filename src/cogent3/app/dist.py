@@ -22,7 +22,7 @@ class fast_slow_dist(ComposableDistance):
 
     _input_type = frozenset(["aligned"])
     _output_type = frozenset(["pairwise_distances", "serialisable"])
-    _data_types = frozenset(["DistanceMatrix"])
+    _data_types = frozenset(["ArrayAlignment", "Alignment"])
 
     def __init__(self, distance="TN93", moltype="dna", fast_calc=None, slow_calc=None):
         super(fast_slow_dist, self).__init__()

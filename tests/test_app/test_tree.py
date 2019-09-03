@@ -198,18 +198,34 @@ class TestTree(TestCase):
             tree = quick_tree.quick_tree(darr)
 
         data = {
-            ("ABAYE2984", "Atu3667"): 0.25,
-            ("ABAYE2984", "Avin_42730"): 0.638,
-            ("ABAYE2984", "BAA10469"): 0.31,
-            ("Atu3667", "ABAYE2984"): 0.25,
-            ("Atu3667", "Avin_42730"): None,
-            ("Atu3667", "BAA10469"): 0.25,
+            ("DogFaced", "FlyingFox"): 0.05,
+            ("DogFaced", "FreeTaile"): 0.14,
+            ("DogFaced", "LittleBro"): 0.16,
+            ("DogFaced", "TombBat"): 0.15,
+            ("FlyingFox", "DogFaced"): 0.05,
+            ("FlyingFox", "FreeTaile"): 0.12,
+            ("FlyingFox", "LittleBro"): 0.13,
+            ("FlyingFox", "TombBat"): 0.14,
+            ("FreeTaile", "DogFaced"): 0.14,
+            ("FreeTaile", "FlyingFox"): 0.12,
+            ("FreeTaile", "LittleBro"): 0.09,
+            ("FreeTaile", "TombBat"): 0.1,
+            ("LittleBro", "DogFaced"): 0.16,
+            ("LittleBro", "FlyingFox"): 0.13,
+            ("LittleBro", "FreeTaile"): 0.09,
+            ("LittleBro", "TombBat"): 0.12,
+            ("TombBat", "DogFaced"): 0.15,
+            ("TombBat", "FlyingFox"): 0.14,
+            ("TombBat", "FreeTaile"): 0.1,
+            ("TombBat", "LittleBro"): 0.12,
         }
         darr = DistanceMatrix(data)
-        # when distance_matrix's shape changed after dropping invalid
-        with self.assertRaises(ValueError):
-            quick_tree = tree_app.quick_tree(drop_invalid=True)
-            tree = quick_tree.quick_tree(darr)
+        tree = quick_tree.quick_tree(darr)
+        self.assertIsInstance(tree, PhyloNode)
+        self.assertIsNotNone(tree.children)
+        self.assertEqual(
+            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data.keys()))
+        )
 
     def test_uniformize_tree(self):
         """equivalent topologies should be the same"""
