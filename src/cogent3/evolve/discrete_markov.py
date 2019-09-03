@@ -18,6 +18,10 @@ __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
 
+def _make_array(*x):
+    return numpy.array(x)
+
+
 class PsubMatrixDefn(PartitionDefn):
     "Square 2D array made of 1D partitions"
 
@@ -72,7 +76,7 @@ class PsubMatrixDefn(PartitionDefn):
                     all_cells.extend(ratios)
                     rows.append(partition)
                 all_cells.extend(rows)
-                matrix = EvaluatedCell(self.name, lambda *x: numpy.array(x), rows)
+                matrix = EvaluatedCell(self.name, _make_array, rows)
             all_cells.append(matrix)
             uniq_cells.append(matrix)
         return (all_cells, uniq_cells)
