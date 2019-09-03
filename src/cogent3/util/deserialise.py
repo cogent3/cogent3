@@ -228,7 +228,7 @@ def deserialise_substitution_model(data):
     if sm is None:
         alphabet = deserialise_alphabet(data.pop("alphabet"))
         klass = _get_class(data.pop("type"))
-        sm = klass(**data)
+        sm = klass(alphabet, **data)
 
     return sm
 
