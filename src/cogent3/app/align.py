@@ -138,6 +138,7 @@ class progressive_align(ComposableSeq):
         unique_guides=False,
         indel_length=1e-1,
         indel_rate=1e-10,
+        distance="hamming"
     ):
         """
         Parameters
@@ -165,6 +166,9 @@ class progressive_align(ComposableSeq):
             probability of gap insertion
         indel_length : float
             probability of gap extension
+        distance : string
+            it allows the user to pick the distance measure
+            default is hamming
         """
         super(progressive_align, self).__init__()
         if guide_tree is None and model in protein_models + ["protein"]:
@@ -191,11 +195,12 @@ class progressive_align(ComposableSeq):
         self._indel_rate = indel_rate
         self._moltype = moltype
         self._unique_guides = unique_guides
+        self._distance = distance
         if callable(guide_tree):
             self._make_tree = guide_tree
             guide_tree = None  # callback takes precedence
         else:
-            self._make_tree = align_to_ref(moltype=self._moltype) + dist.fast_slow_dist() + quick_tree()
+            self._make_tree = align_to_ref(moltype=self._moltype) + dist.fast_slow_dist(distance=self._distance, moltype=self._moltype) + quick_tree()
 
         if guide_tree is not None:
             if type(guide_tree) == str:

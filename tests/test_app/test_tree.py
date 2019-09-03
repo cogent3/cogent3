@@ -2,11 +2,12 @@ import os
 
 from unittest import TestCase, main
 
-from cogent3 import DNA, load_aligned_seqs, make_tree
+from cogent3 import DNA, load_aligned_seqs, make_aligned_seqs, make_tree
 from cogent3.app import dist
 from cogent3.app import tree as tree_app
 from cogent3.app.composable import NotCompleted
 from cogent3.core.tree import PhyloNode
+from cogent3.evolve.fast_distance import DistanceMatrix
 
 
 __author__ = "Gavin Huttley"
@@ -64,7 +65,115 @@ class TestTree(TestCase):
         quick1 = tree_app.quick_tree()
         tree1 = quick1.quick_tree(dist_matrix)
         self.assertEqual(set(tree1.get_tip_names()), set(aln.names))
-        # tests when distances cannot be computed
+
+    def test_communicable_apps(self):
+        """checks the ability of these two apps(fast_slow_dist and quick_tree) to communicate"""
+        path = os.path.join(
+            os.path.abspath(__file__).split("test_app")[0], "data/brca1_5.paml"
+        )
+        aln1 = load_aligned_seqs(path, moltype=DNA)
+        fast_slow_dist = dist.fast_slow_dist()
+        quick = tree_app.quick_tree(drop_invalid=False)
+        proc = fast_slow_dist + quick
+        self.assertEqual(
+            str(proc),
+            "fast_slow_dist(type='distance') + quick_tree(type='tree', drop_invalid=False)",
+        )
+        self.assertIsInstance(proc, tree_app.quick_tree)
+        self.assertEqual(proc._type, "tree")
+        self.assertIsInstance(proc.input, dist.fast_slow_dist)
+        self.assertIs(proc.output, None)
+        self.assertIsInstance(proc._input_type, frozenset)
+        self.assertIsInstance(proc._output_type, frozenset)
+        self.assertIsInstance(proc._in, dist.fast_slow_dist)
+        self.assertIs(proc._out, None)
+
+        tree1 = proc(aln1)
+        self.assertIsInstance(tree1, PhyloNode)
+        self.assertIsNotNone(tree1.children)
+        self.assertEqual(set(tree1.get_tip_names()), set(aln1.names))
+
+        # tests when distances contain None
+        data = dict(
+            seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
+            seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
+        )
+        aln2 = make_aligned_seqs(data=data, moltype=DNA)
+        tree2 = proc(aln2)
+        self.assertIsInstance(tree2, NotCompleted)
+
+    def test_quick_tree_taking_distance_matrix(self):
+        """quick_tree should take a distance matrix"""
+        quick_tree = tree_app.quick_tree()
+        data = {
+            ("ABAYE2984", "Avin_42730"): 0.638,
+            ("Atu3667", "Avin_42730"): 2.368,
+            ("Avin_42730", "ABAYE2984"): 0.638,
+            ("Avin_42730", "Atu3667"): 2.368,
+            ("Avin_42730", "BAA10469"): 1.85,
+            ("BAA10469", "Avin_42730"): 1.85,
+        }
+
+        darr = DistanceMatrix(data)
+        tree = quick_tree.quick_tree(darr)
+        self.assertIsInstance(tree, PhyloNode)
+        self.assertIsNotNone(tree.children)
+        self.assertEqual(
+            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data.keys()))
+        )
+
+        data = {
+            ("DogFaced", "FlyingFox"): 0.05,
+            ("DogFaced", "FreeTaile"): 0.14,
+            ("DogFaced", "LittleBro"): 0.16,
+            ("DogFaced", "TombBat"): 0.15,
+            ("FlyingFox", "DogFaced"): 0.05,
+            ("FlyingFox", "FreeTaile"): 0.12,
+            ("FlyingFox", "LittleBro"): 0.13,
+            ("FlyingFox", "TombBat"): 0.14,
+            ("FreeTaile", "DogFaced"): 0.14,
+            ("FreeTaile", "FlyingFox"): 0.12,
+            ("FreeTaile", "LittleBro"): 0.09,
+            ("FreeTaile", "TombBat"): 0.1,
+            ("LittleBro", "DogFaced"): 0.16,
+            ("LittleBro", "FlyingFox"): 0.13,
+            ("LittleBro", "FreeTaile"): 0.09,
+            ("LittleBro", "TombBat"): 0.12,
+            ("TombBat", "DogFaced"): 0.15,
+            ("TombBat", "FlyingFox"): 0.14,
+            ("TombBat", "FreeTaile"): 0.1,
+            ("TombBat", "LittleBro"): 0.12,
+        }
+        darr = DistanceMatrix(data)
+        tree = quick_tree.quick_tree(darr)
+        self.assertIsInstance(tree, PhyloNode)
+        self.assertIsNotNone(tree.children)
+        self.assertEqual(
+            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data.keys()))
+        )
+
+        data = {
+            ("ABAYE2984", "Atu3667"): 0.25,
+            ("ABAYE2984", "Avin_42730"): 0.638,
+            ("ABAYE2984", "BAA10469"): None,
+            ("Atu3667", "ABAYE2984"): 0.25,
+            ("Atu3667", "Avin_42730"): 2.368,
+            ("Atu3667", "BAA10469"): 0.25,
+            ("Avin_42730", "ABAYE2984"): 0.638,
+            ("Avin_42730", "Atu3667"): 2.368,
+            ("Avin_42730", "BAA10469"): 1.85,
+            ("BAA10469", "ABAYE2984"): 0.25,
+            ("BAA10469", "Atu3667"): 0.25,
+            ("BAA10469", "Avin_42730"): 1.85,
+        }
+        darr = DistanceMatrix(data)
+        tree = quick_tree.quick_tree(darr)
+        self.assertIsInstance(tree, PhyloNode)
+        self.assertIsNotNone(tree.children)
+        self.assertEqual(
+            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data.keys()))
+        )
+
         data = {
             ("ABAYE2984", "Atu3667"): None,
             ("ABAYE2984", "Avin_42730"): 0.638,
@@ -79,36 +188,28 @@ class TestTree(TestCase):
             ("BAA10469", "Atu3667"): None,
             ("BAA10469", "Avin_42730"): 1.85,
         }
-        from cogent3.evolve.fast_distance import DistanceMatrix
 
         darr = DistanceMatrix(data)
-        quick2 = tree_app.quick_tree(drop_invalid=True)
+        with self.assertRaises(KeyError):
+            tree = quick_tree.quick_tree(darr)
+        # when distance_matrix is None after dropping invalid
         with self.assertRaises(ValueError):
-            tree2 = quick2.quick_tree(darr)
+            quick_tree = tree_app.quick_tree(drop_invalid=True)
+            tree = quick_tree.quick_tree(darr)
 
-    def test_communicable_apps(self):
-        """checks the ability of these two apps to communicate"""
-        path = os.path.join(
-            os.path.abspath(__file__).split("test_app")[0], "data/brca1_5.paml"
-        )
-        aln1 = load_aligned_seqs(path, moltype=DNA)
-        fast_slow_dist = dist.fast_slow_dist()
-        quick = tree_app.quick_tree(drop_invalid=False)
-        proc = fast_slow_dist + quick
-        tree1 = proc(aln1)
-        self.assertIsInstance(tree1, PhyloNode().__class__)
-        self.assertIsNotNone(tree1.children)
-        self.assertEqual(set(tree1.get_tip_names()), set(aln1.names))
-        # tests when distances contain None
-        from cogent3 import make_aligned_seqs
-
-        data = dict(
-            seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
-            seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
-        )
-        aln2 = make_aligned_seqs(data=data, moltype=DNA)
-        tree2 = proc(aln2)
-        self.assertIsInstance(tree2, NotCompleted)
+        data = {
+            ("ABAYE2984", "Atu3667"): 0.25,
+            ("ABAYE2984", "Avin_42730"): 0.638,
+            ("ABAYE2984", "BAA10469"): 0.31,
+            ("Atu3667", "ABAYE2984"): 0.25,
+            ("Atu3667", "Avin_42730"): None,
+            ("Atu3667", "BAA10469"): 0.25,
+        }
+        darr = DistanceMatrix(data)
+        # when distance_matrix's shape changed after dropping invalid
+        with self.assertRaises(ValueError):
+            quick_tree = tree_app.quick_tree(drop_invalid=True)
+            tree = quick_tree.quick_tree(darr)
 
     def test_uniformize_tree(self):
         """equivalent topologies should be the same"""
