@@ -698,10 +698,14 @@ class DistanceMatrix(DictArray):
             result.template = self.template
         return result
 
+    @property
+    def names(self):
+        return self.template.names[0]
+
     def todict(self, **kwargs):
         """Returns a flattened dict with diagonal elements removed"""
         result = super(DistanceMatrix, self).todict(flatten=True)
-        for n1 in self.template.names[0]:
+        for n1 in self.names:
             del result[(n1, n1)]
         return result
 
@@ -730,7 +734,7 @@ class DistanceMatrix(DictArray):
         if type(names) == str:
             names = [names]
 
-        current_names = array(self.template.names[0])
+        current_names = array(self.names)
         if negate:
             keep = [i for i, n in enumerate(current_names) if n not in names]
         else:
@@ -755,10 +759,10 @@ class DistanceMatrix(DictArray):
         """drops all rows / columns with an invalid entry"""
         if (
             self.shape[0] != self.shape[1]
-            or self.template.names[0] != self.template.names[0]
+            or self.template.names[0] != self.template.names[1]
         ):
             raise RuntimeError("Must be a square matrix")
-        names = array(self.template.names[0])
+        names = array(self.names)
         cols = (self.array == invalid).sum(axis=0)
         exclude = names[cols != 0].tolist()
         rows = (self.array == invalid).sum(axis=1)

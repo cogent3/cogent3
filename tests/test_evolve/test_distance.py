@@ -647,6 +647,32 @@ class TestDistanceMatrix(TestCase):
         )
         self.assertTrue(expect.same_topology(got))
 
+    def test_names(self):
+        """names property works"""
+        data = {
+            ("ABAYE2984", "Atu3667"): 0.25,
+            ("ABAYE2984", "Avin_42730"): 0.638,
+            ("ABAYE2984", "BAA10469"): None,
+            ("Atu3667", "ABAYE2984"): 0.25,
+            ("Atu3667", "Avin_42730"): 2.368,
+            ("Atu3667", "BAA10469"): 0.25,
+            ("Avin_42730", "ABAYE2984"): 0.638,
+            ("Avin_42730", "Atu3667"): 2.368,
+            ("Avin_42730", "BAA10469"): 1.85,
+            ("BAA10469", "ABAYE2984"): 0.25,
+            ("BAA10469", "Atu3667"): 0.25,
+            ("BAA10469", "Avin_42730"): 1.85,
+        }
+        names = set()
+        for p in data:
+            names.update(p)
+        darr = DistanceMatrix(data)
+        self.assertEqual(set(darr.names), names)
+        darr = darr.drop_invalid()
+        for n in ("ABAYE2984", "BAA10469"):
+            names.remove(n)
+        self.assertEqual(set(darr.names), names)
+
 
 class DistancesTests(TestCase):
     def setUp(self):
