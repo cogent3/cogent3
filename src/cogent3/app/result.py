@@ -175,16 +175,16 @@ class model_result(generic_result):
             DLC = lf.get("DLC")
             unique_Q = lf.get("unique_Q")
 
-        if self.lnL is not None:
-            self.DLC = all([DLC, self.DLC])
-            self.unique_Q = all([unique_Q, self.unique_Q])
-            self.lnL = self._stat([lnL, self.lnL])
-            self.nfp = self._stat([nfp, self.nfp])
+        if self._lnL is not None:
+            self._DLC = all([DLC, self.DLC])
+            self._unique_Q = all([unique_Q, self.unique_Q])
+            self._lnL = self._stat([lnL, self.lnL])
+            self._nfp = self._stat([nfp, self.nfp])
         else:
-            self.lnL = lnL
-            self.nfp = nfp
-            self.DLC = DLC
-            self.unique_Q = unique_Q
+            self._lnL = lnL
+            self._nfp = nfp
+            self._DLC = DLC
+            self._unique_Q = unique_Q
 
     @property
     def num_evaluations(self):
