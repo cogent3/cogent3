@@ -142,8 +142,6 @@ class model_result(generic_result):
         rows = [[""] + [getattr(self, attr) for attr in attrs]]
         if len(self) > 1:
             # we just add keys, lnL and nfp
-            padd = ["", ""]
-            attrs = ["lnL", "nfp"]
             for key in self:
                 row = [repr(key), self[key].lnL, self[key].nfp, "", ""]
                 rows.append(row)
