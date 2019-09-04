@@ -64,7 +64,14 @@ class PicklableAndCallable:
         return self.func(*args, **kw)
 
 
-def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=1):
+def set_default_chunksize(s, max_workers):
+    chunksize, remainder = divmod(len(s), max_workers * 4)
+    if remainder:
+        chunksize += 1
+    return chunksize
+
+
+def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=None):
     """
     Parameters
     ----------
@@ -76,12 +83,12 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=1):
         maximum number of workers. Defaults to 1-maximum available.
     use_mpi : bool
         use MPI for parallel execution
-    seed : int or None
-        seed value for random number generators. Defaults to time.time() on
-        master node, time.time() + process rank on worked nodes.
     if_serial : str
         action to take if conditions will result in serial execution. Valid
         values are 'raise', 'ignore', 'warn'. Defaults to 'raise'.
+    chunksize : int or None
+        Size of data chunks executed by worker processes. Defaults to None
+        where optimal chunksize is determined by set_default_chunksize()
 
     Returns
     -------
@@ -111,6 +118,9 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=1):
         if not max_workers:
             max_workers = COMM.Get_attr(MPI.UNIVERSE_SIZE) - 1
 
+        if not chunksize:
+            chunksize = set_default_chunksize(s, max_workers)
+
         with MPIfutures.MPIPoolExecutor(max_workers=max_workers) as executor:
             for result in executor.map(f, s, chunksize=chunksize):
                 yield result
@@ -118,12 +128,17 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=1):
         if not max_workers:
             max_workers = multiprocessing.cpu_count() - 1
         assert max_workers < multiprocessing.cpu_count()
+
+        if not chunksize:
+            chunksize = set_default_chunksize(s, max_workers)
+
         f = PicklableAndCallable(f)
+
         with concurrentfutures.ProcessPoolExecutor(max_workers) as executor:
             for result in executor.map(f, s, chunksize=chunksize):
                 yield result
 
 
 @extend_docstring_from(imap)
-def map(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=1):
+def map(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=None):
     return list(imap(f, s, max_workers, use_mpi, if_serial, chunksize))
