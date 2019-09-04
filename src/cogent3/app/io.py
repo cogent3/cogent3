@@ -416,7 +416,16 @@ class load_json(Composable):
         data = path.read()
         identifier, data, completed = load_record_from_json(data)
 
-        return deserialise_object(data)
+        result = deserialise_object(data)
+        if hasattr(result, "info"):
+            result.info["source"] = result.info.get("source", identifier)
+        else:
+            try:
+                identifier = getattr(result, "source", identifier)
+                setattr(result, "source", identifier)
+            except AttributeError:
+                pass
+        return result
 
 
 class write_json(_checkpointable):
@@ -447,10 +456,15 @@ class write_json(_checkpointable):
         out = make_record_for_json(os.path.basename(identifier), data, True)
         out = json.dumps(out)
         stored = self.data_store.write(identifier, out)
-        try:
-            data.info.stored = stored
-        except AttributeError:
-            data.stored = stored
+        # todo is anything actually using this stored attriubte? if not, delete this
+        #  code and all other cases
+        if hasattr(data, "info"):
+            data.info["stored"] = stored
+        else:
+            try:
+                data.stored = stored
+            except AttributeError:
+                pass
         return identifier
 
 
@@ -476,7 +490,17 @@ class load_db(Composable):
             )
             raise TypeError(msg)
         data = identifier.read()
-        return deserialise_object(data)
+
+        result = deserialise_object(data)
+        if hasattr(result, "info"):
+            result.info["source"] = result.info.get("source", identifier)
+        else:
+            try:
+                identifier = getattr(result, "source", identifier)
+                setattr(result, "source", identifier)
+            except AttributeError:
+                pass
+        return result
 
 
 class write_db(_checkpointable):
@@ -505,13 +529,19 @@ class write_db(_checkpointable):
     def write(self, data, identifier=None):
         if identifier is None:
             identifier = self._make_output_identifier(data)
+        # todo revisit this when we establish immutability behaviour of database
         try:
-            data = data.to_json()
+            out = data.to_json()
         except AttributeError:
-            data = json.dumps(data)
-        stored = self.data_store.write(identifier, data)
-        try:
-            data.info.stored = stored
-        except AttributeError:
-            data.stored = stored
+            out = json.dumps(data)
+        stored = self.data_store.write(identifier, out)
+        # todo is anything actually using this stored attriubte? if not, delete this
+        #  code and all other cases
+        if hasattr(data, "info"):
+            data.info["stored"] = stored
+        else:
+            try:
+                data.stored = stored
+            except AttributeError:
+                pass
         return identifier
