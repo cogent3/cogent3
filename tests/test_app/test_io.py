@@ -191,6 +191,20 @@ class TestIo(TestCase):
             self.assertIsInstance(got, DNA.__class__)
             self.assertEqual(got, DNA)
 
+    def test_write_db_load_db2(self):
+        """correctly write/load built-in python from tinydb"""
+        with TemporaryDirectory(dir=".") as dirname:
+            outpath = join(dirname, "delme")
+            writer = write_db(outpath, create=True, if_exists="ignore")
+            data = dict(a=[1, 2], b="string")
+            m = writer(data, identifier=join("blah", "delme.json"))
+            writer.data_store.db.close()
+            dstore = io_app.get_data_store(f"{outpath}.tinydb", suffix="json")
+            reader = io_app.load_db()
+            got = reader(dstore[0])
+            dstore.close()
+            self.assertEqual(got, data)
+
     def test_load_db_failure_json_file(self):
         """informative load_db error message when given a json file path"""
         with TemporaryDirectory(dir=".") as dirname:
@@ -368,11 +382,13 @@ class TestIo(TestCase):
         """correctly writes an object with info attribute from json"""
         # create a mock object that pretends like it's been derived from
         # something
+        from cogent3.util.union_dict import UnionDict
+
         with TemporaryDirectory(dir=".") as dirname:
             outdir = join(dirname, "delme")
             mock = Mock()
             mock.to_rich_dict = DNA.to_rich_dict
-            mock.info.source = join("blah", "delme.json")
+            mock.info = UnionDict(source=join("blah", "delme.json"))
             writer = io_app.write_json(outdir, create=True)
             _ = writer(mock)
             reader = io_app.load_json()
@@ -384,7 +400,7 @@ class TestIo(TestCase):
             outdir = join(dirname, "delme.zip")
             mock = Mock()
             mock.to_rich_dict = DNA.to_rich_dict
-            mock.info.source = join("blah", "delme.json")
+            mock.info = UnionDict(source=join("blah", "delme.json"))
             writer = io_app.write_json(outdir, create=True)
             identifier = writer(mock)
             reader = io_app.load_json()

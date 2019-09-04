@@ -228,7 +228,7 @@ def deserialise_substitution_model(data):
     if sm is None:
         alphabet = deserialise_alphabet(data.pop("alphabet"))
         klass = _get_class(data.pop("type"))
-        sm = klass(**data)
+        sm = klass(alphabet, **data)
 
     return sm
 
@@ -253,6 +253,18 @@ def deserialise_likelihood_function(data):
 
 
 def deserialise_object(data):
+    """
+    deserialises from json
+    Parameters
+    ----------
+    data
+        path to json file, json string or a dict
+
+    Returns
+    -------
+    If the dict from json.loads does not contain a "type" key, the object will
+    be returned as is. Otherwise, it will be deserialised to a cogent3 object.
+    """
     try:
         is_path = os.path.exists(data)
     except (ValueError, TypeError):
@@ -264,7 +276,10 @@ def deserialise_object(data):
     if type(data) is str:
         data = json.loads(data)
 
-    type_ = data["type"]
+    type_ = data.get("type", None)
+    if type_ is None:
+        return data
+
     if "core.sequence" in type_:
         func = deserialise_seq
     elif "core.alignment" in type_:
