@@ -296,7 +296,7 @@ class model_result(generic_result):
         self._unique_Q = value
 
     def total_length(self, length_as=None):
-        """sum of all branch lengths on tree
+        """sum of all branch lengths on tree. If split codons, sums across trees
 
         Parameters
         ----------
@@ -306,8 +306,16 @@ class model_result(generic_result):
             different to standard length if the substitution model is
             non-stationary). 'paralinear' is the measure of Lake 1994.
         """
-        tree = self.lf.get_annotated_tree(length_as=length_as)
-        return tree.total_length()
+        if len(self) == 1:
+            tree = self.lf.get_annotated_tree(length_as=length_as)
+            return tree.total_length()
+
+        total_length = 0
+        for lf in self.lf.values():
+            tree = lf.get_annotated_tree(length_as=length_as)
+            total_length += tree.total_length()
+
+        return total_length
 
     @property
     def tree(self):
