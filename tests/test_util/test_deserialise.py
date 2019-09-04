@@ -303,6 +303,13 @@ class TestDeserialising(TestCase):
         got = deserialise_object(json)
         self.assertEqual(dm.todict(), got.todict())
 
+    def test_deserialise_python_builtins(self):
+        """any object that does not contain a type key is returned as is"""
+        data = dict(a=123, b="text")
+        jdata = json.dumps(data)
+        got = deserialise_object(jdata)
+        self.assertEqual(got, data)
+
 
 if __name__ == "__main__":
     main()
