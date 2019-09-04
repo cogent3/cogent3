@@ -183,9 +183,22 @@ class TreeGeometryBase(PhyloNode):
     def depth(self):
         return self.params["depth"]
 
-    def get_segment_to_parent(self, children):
+    def get_segment_to_parent(self):
         """returns (self.start, self.end)"""
-        return self.start, self.end
+        if self.is_root():
+            return ((None, None),)
+
+        segment_start = self.parent.get_segment_to_child(self)
+        if isinstance(segment_start, list):
+            result = segment_start + [(None, None), self.start, self.end]
+        else:
+            result = segment_start, self.start, (None, None), self.start, self.end
+        return tuple(result)
+
+    def get_segment_to_child(self, child):
+        """returns coordinates connecting a child to self and descendants"""
+        # if tip needs to
+        return self.end
 
     def value_and_coordinate(self, attr, padding=0.1, max_attr_length=None):
         """
@@ -252,15 +265,6 @@ class SquareTreeGeometry(TreeGeometryBase):
             self._y = val
         return self._y
 
-    # todo should there should be a single line connecting each parent to child?
-    def get_segment_to_children(self):
-        """returns coordinates connecting all children to self.end"""
-        # if tip needs to
-        ordered = list(sorted((c.y, c) for c in self.children))
-        a = ordered[0][1].start
-        b = ordered[-1][1].start
-        return a, b
-
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
     def value_and_coordinate(self, attr="name", padding=0.05, max_attr_length=None):
         # todo, possibly also return a rotation?
@@ -287,11 +291,6 @@ class _AngularGeometry:
         else:
             val = self.parent.end
         return val
-
-    def get_segment_to_children(self):
-        """returns coordinates connecting all children to self.end"""
-        # if tip needs to
-        return (self.end,)
 
 
 class AngularTreeGeometry(_AngularGeometry, SquareTreeGeometry):
@@ -378,20 +377,6 @@ class CircularTreeGeometry(TreeGeometryBase):
             val = polar_2_cartesian(self.theta, radius)
         return val
 
-    def get_segment_to_children(self):
-        """returns coordinates connecting all children to self.end"""
-        # if tip needs to
-        segment = []
-        added = False
-        for child in self.children:
-            if self.theta < child.theta and not added:
-                segment += [tuple(self.end)]
-                added = True
-
-            segment += [tuple(child.start)]
-
-        return segment
-
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
     def value_and_coordinate(self, attr="name", padding=0.05, max_attr_length=None):
         value = self.params.get(attr, None)
@@ -426,6 +411,11 @@ class CircularTreeGeometry(TreeGeometryBase):
 
         warn("Display of support on circular/radial not implemented yet", UserWarning)
         return None
+
+    def get_segment_to_child(self, child):
+        """returns coordinates connecting a child to self and descendants"""
+        # if tip needs to
+        return self.end
 
 
 class RadialTreeGeometry(_AngularGeometry, CircularTreeGeometry):
@@ -604,10 +594,10 @@ class Dendrogram(Drawable):
             if key not in grouped:
                 grouped[key] = defaultdict(list)
             group = grouped[key]
-            x0, y0 = edge.start
-            x1, y1 = edge.end
-            group["x"].extend([x0, x1, None])
-            group["y"].extend([y0, y1, None])
+            coords = edge.get_segment_to_parent()
+            xs, ys = list(zip(*coords))
+            group["x"].extend(xs + (None,))
+            group["y"].extend(ys + (None,))
 
             edge_label = edge.value_and_coordinate("name", padding=0)
             text["x"].append(edge_label.x)
@@ -620,27 +610,6 @@ class Dendrogram(Drawable):
                 if support is not None:
                     support |= UnionDict(xref="x", yref="y", font=self.tip_font)
                     support_text.append(support)
-
-            if edge.is_tip():
-                continue
-
-            child_groups = set(get_edge_group(c.name, None) for c in edge.children)
-            segment = []
-            for x, y in edge.get_segment_to_children():
-                segment += [(x, y)]
-            xs, ys = list(zip(*segment))
-            xs += (None,)
-            ys += (None,)
-            # todo this needs to be able to cope with children belonging to
-            # 2 different groups
-            if key not in child_groups:
-                # different affiliation
-                key = child_groups.pop()
-                if key not in grouped:
-                    grouped[key] = defaultdict(list)
-                group = grouped[key]
-            group["x"].extend(xs)
-            group["y"].extend(ys)
 
         traces = []
         for key in grouped:
