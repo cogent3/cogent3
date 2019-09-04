@@ -1331,6 +1331,17 @@ NineBande      root    1.0000    1.0000
         plinear = lf.get_paralinear_metric()
         assert_allclose(plinear[rhesus], pl)
 
+    def test_to_rich_dict(self):
+        """lf's from different substitution model classes can make rich dict"""
+        # mixture of discrete-time, continuous-time models
+        names = ["BH", "DT", "CNFGTR", "GN", "WG01"]
+        tree = make_tree(tip_names=_aln.names)
+        for name in names:
+            sm = get_model(name)
+            lf = sm.make_likelihood_function(tree)
+            lf.set_alignment(_aln)
+            _ = lf.to_rich_dict()
+
 
 class ComparisonTests(TestCase):
     """comparisons of likelihood calcs with earlier pycogent"""

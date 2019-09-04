@@ -4,7 +4,7 @@ import re
 import subprocess
 import sys
 
-from setuptools import Command, setup, find_packages
+from setuptools import Command, find_packages, setup
 from setuptools.extension import Extension
 
 

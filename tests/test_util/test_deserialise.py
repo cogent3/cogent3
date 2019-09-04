@@ -110,6 +110,18 @@ class TestDeserialising(TestCase):
         got = deserialise_object(data)
         self.assertEqual(got.to_rich_dict(), sm.to_rich_dict())
 
+    def test_roundtrip_discrete_time_submod(self):
+        """discrete time substitution models to_json enables roundtrip"""
+        sm = get_model("DT")
+        data = sm.to_json()
+        got = deserialise_object(data)
+        self.assertEqual(got.to_rich_dict(), sm.to_rich_dict())
+
+        sm = get_model("DT", motif_length=2)
+        data = sm.to_json()
+        got = deserialise_object(data)
+        self.assertEqual(got.to_rich_dict(), sm.to_rich_dict())
+
     def test_roundtrip_likelihood_function(self):
         """likelihood function.to_json enables roundtrip"""
         _data = {
@@ -125,6 +137,24 @@ class TestDeserialising(TestCase):
         edge_vals = zip(aln.names, (2, 3, 4))
         for edge, val in edge_vals:
             lf.set_param_rule("kappa", edge=edge, init=val)
+        lnL = lf.get_log_likelihood()
+        data = lf.to_json()
+        got_obj = deserialise_object(data)
+        self.assertFloatEqual(got_obj.get_log_likelihood(), lnL)
+
+    def test_roundtrip_discrete_time_likelihood_function(self):
+        """discrete time likelihood function.to_json enables roundtrip"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        tree = make_tree(tip_names=aln.names)
+        sm = get_model("BH")
+        lf = sm.make_likelihood_function(tree)
+        lf.set_alignment(aln)
+        lf.optimise(max_evaluations=25, limit_action="ignore", show_progress=False)
         lnL = lf.get_log_likelihood()
         data = lf.to_json()
         got_obj = deserialise_object(data)
@@ -272,6 +302,13 @@ class TestDeserialising(TestCase):
         json = dm.to_json()
         got = deserialise_object(json)
         self.assertEqual(dm.todict(), got.todict())
+
+    def test_deserialise_python_builtins(self):
+        """any object that does not contain a type key is returned as is"""
+        data = dict(a=123, b="text")
+        jdata = json.dumps(data)
+        got = deserialise_object(jdata)
+        self.assertEqual(got, data)
 
 
 if __name__ == "__main__":
