@@ -506,6 +506,7 @@ class Dendrogram(Drawable):
         self._label_pad = label_pad
         self._tip_font = UnionDict(size=12, family="Inconsolata, monospace")
         self._line_width = 2
+        self._marker_size = 6
         self._line_color = "black"
         self._scale_bar = "bottom left"
         self._edge_sets = {}
@@ -624,16 +625,22 @@ class Dendrogram(Drawable):
         grouped = {}
 
         tree = self.tree
-        text = {
-            "type": "scatter",
-            "text": [],
-            "x": [],
-            "y": [],
-            "hoverinfo": "text",
-            "mode": "markers",
-            "marker": {"symbol": "circle", "color": "black"},
-            "showlegend": False,
-        }
+        text = UnionDict(
+            {
+                "type": "scatter",
+                "text": [],
+                "x": [],
+                "y": [],
+                "hoverinfo": "text",
+                "mode": "markers",
+                "marker": {
+                    "symbol": "circle",
+                    "color": "black",
+                    "size": self._marker_size,
+                },
+                "showlegend": False,
+            }
+        )
         support_text = []
         get_edge_group = self._edge_mapping.get
         for edge in tree.preorder():
@@ -863,6 +870,19 @@ class Dendrogram(Drawable):
                     trace["line"] |= setting
                 except KeyError:
                     pass
+
+    @property
+    def marker(self):
+        return self._marker_size
+
+    @marker.setter
+    def marker(self, size):
+        self._marker_size = size
+        if self.traces:
+            setting = dict(size=size)
+            for trace in self.traces:
+                if trace.get("mode", None) == "markers":
+                    trace["marker"] |= setting
 
     @property
     def fig_width(self):
