@@ -205,7 +205,9 @@ class TestModel(TestCase):
         }
         aln = make_aligned_seqs(data=_data, moltype="dna")
         model1 = evo_app.model(
-            "GN", split_codons=True, opt_args=dict(max_evaluations=25, limit_action="ignore")
+            "GN",
+            split_codons=True,
+            opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
         result = model1(aln)
         expect = 0.0

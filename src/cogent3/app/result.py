@@ -321,7 +321,16 @@ class model_result(generic_result):
     def tree(self):
         """an annotated tree with 'ENS' set as the branch length"""
         if not hasattr(self, "_tree"):
-            tree = self.lf.get_annotated_tree(length_as="ENS")
+            if len(self) == 1:
+                tree = self.lf.get_annotated_tree(length_as="ENS")
+            else:
+                tree = OrderedDict()
+                for k in sorted(self):
+                    v = self[k]
+                    if type(k) == str and k.isdigit():
+                        k = int(k)
+                    tree[k] = v.get_annotated_tree(length_as="ENS")
+
             self._tree = tree
 
         return self._tree
