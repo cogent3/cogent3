@@ -197,7 +197,6 @@ class TreeGeometryBase(PhyloNode):
 
     def get_segment_to_child(self, child):
         """returns coordinates connecting a child to self and descendants"""
-        # if tip needs to
         return self.end
 
     def value_and_coordinate(self, attr, padding=0.1, max_attr_length=None):
@@ -267,7 +266,6 @@ class SquareTreeGeometry(TreeGeometryBase):
 
     def get_segment_to_child(self, child):
         """returns coordinates connecting a child to self and descendants"""
-        # if tip needs to
 
         if not hasattr(self, "_ordered"):
             self._ordered = sorted(
@@ -433,7 +431,6 @@ class CircularTreeGeometry(TreeGeometryBase):
 
     def get_segment_to_child(self, child):
         """returns coordinates connecting a child to self and descendants"""
-        # if tip needs to
 
         if not hasattr(self, "_ordered"):
             self._ordered = sorted(
@@ -470,7 +467,6 @@ class RadialTreeGeometry(_AngularGeometry, CircularTreeGeometry):
 
     def get_segment_to_child(self, child):
         """returns coordinates connecting a child to self and descendants"""
-        # if tip needs to
         return self.end
 
 
