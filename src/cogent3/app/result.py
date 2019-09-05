@@ -335,6 +335,19 @@ class model_result(generic_result):
 
         return self._tree
 
+    @property
+    def alignment(self):
+        if len(self) == 1:
+            result = self.lf.get_param_value("alignment")
+        else:
+            result = OrderedDict()
+            for k in sorted(self):
+                v = self[k]
+                if type(k) == str and k.isdigit():
+                    k = int(k)
+                result[k] = v.get_param_value("alignment")
+        return result
+
 
 class hypothesis_result(generic_result):
     _type = "hypothesis_result"
