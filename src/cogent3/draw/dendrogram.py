@@ -265,6 +265,25 @@ class SquareTreeGeometry(TreeGeometryBase):
             self._y = val
         return self._y
 
+    def get_segment_to_child(self, child):
+        """returns coordinates connecting a child to self and descendants"""
+        # if tip needs to
+
+        if not hasattr(self, "_ordered"):
+            self._ordered = sorted(
+                [(c.y, c.start) for c in self.children] + [(self.y, self.end)]
+            )
+        ordered = self._ordered
+        dist = child.y - self.y
+        if np.allclose(dist, 0):
+            return self.end
+        if dist < 0:
+            result = ordered[ordered.index((child.y, child.start)) + 1][1]
+        else:
+            result = ordered[ordered.index((child.y, child.start)) - 1][1]
+
+        return result
+
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
     def value_and_coordinate(self, attr="name", padding=0.05, max_attr_length=None):
         # todo, possibly also return a rotation?
@@ -415,12 +434,44 @@ class CircularTreeGeometry(TreeGeometryBase):
     def get_segment_to_child(self, child):
         """returns coordinates connecting a child to self and descendants"""
         # if tip needs to
-        return self.end
+
+        if not hasattr(self, "_ordered"):
+            self._ordered = sorted(
+                [(c.theta, c.start) for c in self.children] + [(self.theta, self.end)]
+            )
+        ordered = self._ordered
+        dist = child.theta - self.theta
+        if np.allclose(dist, 0):
+            return self.end
+        if dist < 0:
+            neighbours = [
+                ordered[ordered.index((child.theta, child.start)) + 1],
+                (child.theta, child.start),
+            ]
+        else:
+            neighbours = [
+                ordered[ordered.index((child.theta, child.start)) - 1],
+                (child.theta, child.start),
+            ]
+
+        neighbours = sorted(neighbours)
+        result = [
+            polar_2_cartesian(theta, self.params["cum_length"])
+            for theta in np.arange(neighbours[0][0], neighbours[1][0], 5)
+        ]
+        result.append(neighbours[1][1])
+
+        return result
 
 
 class RadialTreeGeometry(_AngularGeometry, CircularTreeGeometry):
     def __init__(self, *args, **kwargs):
         super(RadialTreeGeometry, self).__init__(*args, **kwargs)
+
+    def get_segment_to_child(self, child):
+        """returns coordinates connecting a child to self and descendants"""
+        # if tip needs to
+        return self.end
 
 
 class Dendrogram(Drawable):
