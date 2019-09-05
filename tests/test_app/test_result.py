@@ -41,6 +41,43 @@ class TestGenericResult(TestCase):
         got = result["key"]
         self.assertEqual(got, data)
 
+    def test_model_result_alignment(self):
+        """returns alignment from lf"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        mod = evo_app.model(
+            "F81",
+            show_progress=False,
+            opt_args=dict(max_evaluations=5, limit_action="ignore"),
+        )
+        result = mod(aln)
+        got = result.alignment
+        self.assertEqual(got.to_dict(), _data)
+
+    def test_model_result_alignment_split_pos_model(self):
+        """returns alignment from lf with split codon positions"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        mod = evo_app.model(
+            "F81",
+            split_codons=True,
+            show_progress=False,
+            opt_args=dict(max_evaluations=5, limit_action="ignore"),
+        )
+        result = mod(aln)
+        for i in range(1, 4):
+            got = result.alignment[i]
+            expect = aln[i - 1 :: 3]
+            self.assertEqual(got.to_dict(), expect.to_dict())
+
     def test_model_result_tree_split_pos_model(self):
         """returns tree from lf with split codon positions"""
         _data = {
