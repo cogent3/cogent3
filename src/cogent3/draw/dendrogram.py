@@ -856,6 +856,13 @@ class Dendrogram(Drawable):
     @line_width.setter
     def line_width(self, width):
         self._line_width = width
+        if self.traces:
+            setting = dict(width=width)
+            for trace in self.traces:
+                try:
+                    trace["line"] |= setting
+                except KeyError:
+                    pass
 
     @property
     def fig_width(self):
