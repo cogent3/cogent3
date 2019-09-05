@@ -1,0 +1,231 @@
+LOCUS       AE017341                6201 bp    DNA     linear   PLN 08-MAR-2010
+DEFINITION  Cryptococcus neoformans var. neoformans JEC21 chromosome 1,
+            complete sequence.
+ACCESSION   AE017341 REGION: 32900..39100
+VERSION     AE017341.1  GI:57222571
+DBLINK      BioProject: PRJNA13856
+KEYWORDS    .
+SOURCE      Cryptococcus neoformans var. neoformans JEC21 (Filobasidiella
+            neoformans var. neoformans strain JEC21)
+  ORGANISM  Cryptococcus neoformans var. neoformans JEC21
+            Eukaryota; Fungi; Dikarya; Basidiomycota; Agaricomycotina;
+            Tremellomycetes; Tremellales; Tremellaceae; Filobasidiella;
+            Filobasidiella/Cryptococcus neoformans species complex.
+REFERENCE   1  (bases 1 to 6201)
+  AUTHORS   Loftus,B.J., Fung,E., Roncaglia,P., Rowley,D., Amedeo,P., Bruno,D.,
+            Vamathevan,J., Miranda,M., Anderson,I.J., Fraser,J.A., Allen,J.E.,
+            Bosdet,I.E., Brent,M.R., Chiu,R., Doering,T.L., Donlin,M.J.,
+            D'Souza,C.A., Fox,D.S., Grinberg,V., Fu,J., Fukushima,M.,
+            Haas,B.J., Huang,J.C., Janbon,G., Jones,S.J.M., Krzywinski,M.I.,
+            Kwon-Chung,J.K., Lengeler,K.B., Maiti,R., Marra,M.A., Marra,R.E.,
+            Mathewson,C.A., Mitchell,T.G., Pertea,M., Riggs,F.R.,
+            Salzberg,S.L., Shvartsbeyn,A., Schein,J.E., Shin,H., Specht,C.A.,
+            Suh,B., Tenney,A., Utterback,T., Wickes,B.L., Wye,N.H.,
+            Kronstad,J., Lodge,J.K., Heitman,J., Davis,R.W., Fraser,C.M. and
+            Hyman,R.W.
+  TITLE     The genome and transcriptome of Cryptococcus neoformans, a
+            basidiomycete fungal pathogen of humans
+  JOURNAL   Science (2005) In press
+REFERENCE   2  (bases 1 to 6201)
+  AUTHORS   Loftus,B., Amedeo,P., Roncaglia,P., Vamathevan,J., Utterback,T.,
+            Van Aken,S. and Fraser,C.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (20-MAY-2004) The Institute for Genomic Research, 9712
+            Medical Center Dr, Rockville, MD 20850, USA
+COMMENT     This record represents the complete annotated sequence of the C.
+            neoformans JEC21 genome. A small number of gaps exist which are
+            represented by NNNNs within the final sequence. The genome has been
+            annotated by TIGR and the annotation data is available for viewing
+            and download from the TIGR database
+            (http://www.tigr.org/tdb/e2k1/cna1/).
+FEATURES             Location/Qualifiers
+     source          1..6201
+                     /organism="Cryptococcus neoformans var. neoformans JEC21"
+                     /mol_type="genomic DNA"
+                     /strain="JEC21"
+                     /variety="neoformans"
+                     /serotype="D"
+                     /db_xref="taxon:214684"
+                     /chromosome="1"
+                     /note="MAT-alpha"
+     repeat_region   617..690
+                     /rpt_type=tandem
+                     /rpt_unit_seq="cat"
+                     /satellite="microsatellite"
+     gene            2952..5711
+                     /locus_tag="CNA00110"
+     mRNA            join(2952..4023,4075..4608,4673..4728,4785..5121,
+                     5170..5318,5367..5711)
+                     /locus_tag="CNA00110"
+                     /product="conserved hypothetical protein"
+                     /note="supported by cDNAs and ESTs:
+                     gi|41530289|gb|CF676130.1,gi|41537787|gb|CF683628.1,
+                     gi|41537795|gb|CF683636.1,gi|41541034|gb|CF686875.1,
+                     gi|41543525|gb|CF689366.1,gi|41556552|gb|CF702393.1,
+                     gi|41556564|gb|CF702405.1,gi|41558523|gb|CF704364.1,
+                     gi|41558526|gb|CF704367.1,gi|41569682|gb|CF715523.1,
+                     gi|41569694|gb|CF715535.1,gi|41571148|gb|CF716989.1,
+                     gi|41571158|gb|CF716999.1"
+     CDS             join(2963..4023,4075..4608,4673..4728,4785..5121,
+                     5170..5318,5367..5641)
+                     /locus_tag="CNA00110"
+                     /note="GO_component: GO:0005634 - nucleus;
+                     GO_function: GO:0016563 - transcriptional activator
+                     activity;
+                     GO_process: GO:0019878 - lysine biosynthesis, aminoadipic
+                     pathway"
+                     /codon_start=1
+                     /product="conserved hypothetical protein"
+                     /protein_id="AAW41429.1"
+                     /db_xref="GI:57223385"
+                     /translation="MAGYDARYGNPLDPMSGGRPSPPETSQQDAYEYSKHGSSSGYLG
+                     QLPLGADSAQAETASALRTLFGEGADVQALQEPPNQINTLAEGAAVAETGGVLGGDTT
+                     RSDNEALAIDPSLSEQAAPAPKDSTETPDDRSRSPSSGNHHHHHPAVKRKATSRAGML
+                     ARGGACEFCKRRKLKCSAELPACANCVKSGKECVYAQKKQRSRVKVLEDRLQELEKRL
+                     EQGQAGAASASGGDSGAHAASSVYTAPSLGSGGGSELTVEQTLVHNVDPSLLPPSEYD
+                     EAFILHDFDSFADMRKQETQLEPDLMTLADAAAADTPAAAAAETNDPWAKMSPEEIVK
+                     EIIKVATGGKGEGERIISHLVQTYMNSTVNTWHPLVIPPMDLVSRVSRTTPDPIHPTL
+                     LLSLIPALLPLSPIQSLRHPAIPLLLLPHARAHSVQAITQSDPRVLDTIIAGVSRAYS
+                     FFNEAKNIDGWVDCVAATSLVRAAGLTKQGGVGERFVPEDRVPAERLAKRRREAGLRA
+                     LMHKGAIVPPPESWYQFGQRVNLFWTSYICDRAAAIGWGWPSSYNDEDITTPWPKDDY
+                     KSVQALLDDTTIHTFLSPLAPAPAPATPDSDLCAQAKSITLLYHAQRLLDSPPELSTP
+                     EKTHRLLGLTEGYMESLEKMRGPRMRAGKLSSVWMILYTTIAVLHSKDGFDKCDPDGA
+                     DQVSITRVVAAADKVLELVSAVQNTGDTHLSSCDVISSVLFLHLARLMIQYTNRLRLR
+                     VQDSALVSTLRAKTESFKRALIDQGERLVFAQVAAQMLENYHVGAEWKAGEWERADGG
+                     DWRGV"
+     repeat_region   3881..3922
+                     /rpt_type=tandem
+                     /rpt_unit_seq="cgg"
+                     /satellite="microsatellite"
+     misc_feature    4888..4909
+                     /locus_tag="CNA00110"
+                     /note="GC_rich"
+     gene            complement(<5670..>6126)
+                     /locus_tag="CNA00120"
+     mRNA            complement(join(<5670..5918,5965..>6126))
+                     /locus_tag="CNA00120"
+                     /product="chaperone, putative"
+     CDS             complement(join(5670..5918,5965..6126))
+                     /locus_tag="CNA00120"
+                     /note="GO_component: GO:0005758 - mitochondrial
+                     intermembrane space;
+                     GO_component: GO:0042719 - mitochondrial intermembrane
+                     space protein transporter complex;
+                     GO_function: GO:0003754 - chaperone activity;
+                     GO_function: GO:0008565 - protein transporter activity;
+                     GO_process: GO:0045039 - mitochondrial inner membrane
+                     protein import"
+                     /codon_start=1
+                     /product="chaperone, putative"
+                     /protein_id="AAW41258.1"
+                     /db_xref="GI:57223214"
+                     /translation="MDFSQFNGAEQAHMSKVIEKKQMQDFMRLYSGLVEKCFNACAQD
+                     FTSKALTTNETTCVQNCTDKFLKHSERVGARFAEHNAGMLSPYGAASLMASQSKCRAP
+                     DSNGLGVFCKWRRIKSTVVLYNHLACIKQMDNRF"
+ORIGIN      
+        1 caatacccac ccttcccact cccgccttca tgagttggcc gctcggcgtt gataaagcag
+       61 tcattaagag agaggttgtg tcttatcgaa ttctatattc catttcatta caccatatca
+      121 gaatcaattt tacactctga acggtcgggg tgagggagat gtgaatgggg ataggaatga
+      181 cggagaactg aacaaaacat accttccacg tagagcctgc tgctttatgc cacggccagc
+      241 gttcttcgat cgcttggtat atctatcaga aaaaagtgtt aggtagaggt atcgtgaatt
+      301 tggactatac ggaaagtaga gggagggtgg tgggttttaa aaaaagcaac agacgtactt
+      361 gggcaagagt catcatcttt cgaggagaag ctgcaatgac tagacgtatg gcttggacgt
+      421 gtgtcatgtc aggccgataa tctatgtctt tggatcagca tactggtaaa gagaaccccg
+      481 agagggagaa ggaaagatag agatggaaag attaaggact taccattccc atcccggtca
+      541 tacgcatacc tgaataactc tcctgcacct ttcgccaact cacccacttg ctcccatctc
+      601 ctccaaaccg cttcactcat cgtcatcggc ttcccatcac cctcttcgcc gccaccatca
+      661 tcatcaacat ccatatccac atcaacatca acgccgcacc tcccatgagc gccattccgg
+      721 aacctggaaa gatcagaatg gttaaactgg aaacctaggg ggttgggagc aaagacataa
+      781 ttggacacgg ggatacctaa cgcttggaca gtagggtctg agagacgggg cagagcgcgg
+      841 atgggtcgga cttgaacttt gagggatgga gatgggagtg gggatcgagg tcgggagggc
+      901 ggcgagggcg agggcgaagg agaggttctt accggacaga cccgaggctc atcatccgct
+      961 tttgctggga caccgtctgg atcaagttca tcgacccttt gctggtcctg atactttcgg
+     1021 tggtggtgac cttggccata accatcagct ctccgataat taggctgcac ctctctcatt
+     1081 gagattttat gtttcgcagc acggtattta ggactgataa tagtcgatgg gtccggggag
+     1141 atgggagaga ggggaggtcg gggagatgaa attgccaggc aagaagtggg agatacacct
+     1201 ggggtgagag tggccatggc ggtagagaca agaatggcgt gggagagcgt tgtaatggag
+     1261 acacatacat tagtacacac ccaggagctg ctccagccca tcggccatag cacacagcat
+     1321 acatcacatc gcatcccatt cgcaacataa gccgggagat gtattgctgg ttgttttgtt
+     1381 ttgatgcgcg atcgaccctt gatggaaaag agataaccca aaggacccca cccgctccag
+     1441 aagccaccaa acggggaacc caggttagag catagcttgg gaatccacgt ttagtgccta
+     1501 gcccatcgcg aatagtgacc acaaagggag gggaaaaggt ctgtgcgtgt gtatgttgat
+     1561 gtctcagaaa caaaaagctg acatcgtcaa cctcacaatc ctaaacatct cccgtcggct
+     1621 tcctacgcta tatgatttga tcccgccctg ctatgacgac cgagaatccc tcgtccttac
+     1681 ttcctctccc ttctgcatct tgccctctcg agacatgtaa gaaacccaaa cccccgacag
+     1741 cgccctaatc cattcttata ccacaaagca cttttgtgta tcccggctcc tctttcggaa
+     1801 acaatcccga tcaaccgtca acgttcctac tacgtgctct gcgcactgat tctggttaca
+     1861 gatattgatt aatcagcaat cgacccttta cctggcccta cgtgactgcc atatggttcc
+     1921 ctccttccgc cttgcgtcgt tccgcaactc tgaacaactg cgccgagcaa ctctgaacaa
+     1981 ctgcgccgag caactctgaa caactgcgcc gagtagcccg aggaatccgt gttccccatc
+     2041 tgccatcgga aggatcaaca aactgccccc ctctccccac aggcccccaa attgaacgaa
+     2101 caatccacat cctacacaaa ccacaaacaa tgtgtaacgc gttactcgta ctgcgtacct
+     2161 ttatgcgtta tacaagtatc atacacgcca cacacaatcc atcacctgaa cgccccttcc
+     2221 gagtcaagaa tcaagaatag ccagtgggcg caaaagaacc tttgcctcaa tctctcacag
+     2281 atctcgacat ccaaacatca agctaataag ctataaacac gttatgcatt acctcaatcc
+     2341 ccaattgtcg attcgactat acttgtcgtt tctttctcga cactcaccaa caaacgatct
+     2401 caagggtccg aaccattcat cctattctcg gctaatacgg tatgctcaaa cactcaaaac
+     2461 gataacctca accatcaaca atctttgatt tcacggttcg cgaggccgtg acggatggtc
+     2521 atgtatcaaa gggcaaatcg gggcaaggta tctgtcattt tcatctcatc tgcttaacag
+     2581 gtgagcttga gcatcatctc cagtagcttg ggtattgccg gttgctggcg tcgtcagccg
+     2641 tcgttgaact gttcaagagt ccagagttag agttacagat gtgccctaga cctctcttac
+     2701 cttggccctg actatgcaca catcttatct ttgatgcatg atccaacatc aacatggtcc
+     2761 cattctgtac ttttcttttg aacgtggtaa tccgataaat gtgaagaatt cagccaaaag
+     2821 ttctctaccc gaaaatccaa attacgtaaa ctctctatac cgcacccata agtccatctc
+     2881 cgttcccacg cctcggaggt ggatgttgta ttccgtcttg tcaacaaatc aacaaccata
+     2941 attaacaagc agcgaataaa ccatggcagg atatgacgcc cggtacggca acccgctgga
+     3001 ccccatgtct ggtggccggc catcgcctcc tgaaacctcg cagcaagatg cgtacgagta
+     3061 ctccaaacac ggcagcagct cgggttacct cgggcagcta ccgcttggtg ccgattctgc
+     3121 gcaagcggag actgcttctg ctttgcggac gctgtttggc gagggcgccg acgtgcaggc
+     3181 tttgcaagaa cctccgaatc agatcaatac cctggctgaa ggtgccgcgg tggcggagac
+     3241 gggcggtgta ctaggtggtg ataccacccg gtctgacaac gaagcgcttg ccatcgaccc
+     3301 atctctatcc gaacaagccg cgcctgcgcc caaggattcg acggaaacgc cagacgaccg
+     3361 atcccgctct ccctcgtccg gtaaccacca ccaccaccac ccggccgtca aacggaaagc
+     3421 cacgtcccgc gccggcatgc tcgcacgagg cggcgcgtgt gaattctgta aacgtcgaaa
+     3481 actgaaatgt tccgccgaat tgcctgcgtg cgcaaactgt gtcaagtcgg gcaaggaatg
+     3541 cgtttacgcg caaaagaagc agcggagtcg ggtcaaggtg ctggaggatc ggctgcaaga
+     3601 gctggagaaa cggttggagc aaggtcaggc cggggcggcg tcggcgtctg ggggcgacag
+     3661 cggcgcacac gctgcgagct cggtgtatac agccccgagt ttgggttcgg gcggcgggag
+     3721 cgagcttacc gttgagcaga cgcttgtcca caatgtcgat ccgagtctct taccgccgag
+     3781 cgagtatgac gaggccttta tcctgcacga tttcgacagt ttcgcggata tgcgcaagca
+     3841 ggagacgcag ctggagccgg accttatgac gctggctgat gcagcggcgg cggatacccc
+     3901 ggcggcggcg gcggcggaga cgaacgatcc atgggcaaag atgtctccag aggagattgt
+     3961 aaaggaaatt atcaaggttg ccactggcgg gaagggcgag ggcgagagga tcatatcgca
+     4021 tctgtacgtc tattttgtat ctacatctaa actttacttg acgagaagaa aaagagtgca
+     4081 aacgtacatg aactcgactg tcaacacgtg gcacccgctc gtcatcccgc cgatggatct
+     4141 cgtcagccgc gtgtcccgca cgacgccgga ccctatccac cccaccctcc tcctctcgct
+     4201 catccccgct ctgctccctc tatcgcctat ccaatcgctc cgccatcccg ccatcccgct
+     4261 cctcctcctc ccgcacgcgc gcgcccactc tgtgcaggcc atcacgcaat ccgacccccg
+     4321 cgtgctcgac accatcatcg ccggcgtgtc gcgtgcgtac agcttcttca acgaggcgaa
+     4381 gaacattgac gggtgggtcg attgcgtggc tgcgacgtcg ctcgtgcgcg ccgcgggctt
+     4441 gacaaagcag ggcggggtcg gggagaggtt cgtgccggag gatagggtgc cggcggaaag
+     4501 gctggcgaaa aggaggaggg aagctgggtt gagggcgttg atgcataaag gcgcgatcgt
+     4561 cccgccgcct gaatcgtggt accagtttgg ccagcgagtc aatcttttgc aagtggtcct
+     4621 tcttcatctc gtttccggaa attgcagagc tgaacttgac ggttttggtt agctggacct
+     4681 cttacatttg cgatcgggca gcggccatcg gctggggttg gccttcgtgt aagcgctccc
+     4741 gtcgcatact ttcgtttcga catgttttgc tgacgtacgc aaagcgtata atgacgagga
+     4801 tatcaccacg ccatggccta aagacgacta taaatccgtc caagcgcttt tggacgacac
+     4861 gaccatccac actttcctct ctcccctcgc gcccgcgccc gcgcccgcga cacccgactc
+     4921 tgacctgtgt gcgcaagcga aatccatcac actgctctac cacgcccagc gcctcctcga
+     4981 ttccccgcca gagctgtcca cccccgaaaa gacacaccgc ttacttggcc tgaccgaggg
+     5041 gtacatggag tctttagaaa agatgagagg gccgaggatg agggctggca agttgagttc
+     5101 tgtgtggatg attctgtaca cgtgagtgtt ggtcgggttt agtctatgct atactgaaaa
+     5161 tgggaaaagg acgattgcag tgttacactc gaaagacgga ttcgacaagt gcgacccgga
+     5221 cggcgctgac caagtgtcaa tcacgcgtgt cgtggcggct gccgacaaag tcctcgaact
+     5281 cgtctccgcc gtccaaaaca ctggcgatac ccatctctgt acgtccatct catcacgtct
+     5341 tgactaaaca ttaacacacg atcaagcctc gtgcgacgtc atctcctctg tccttttcct
+     5401 gcacctcgcc cgtctaatga tccaatacac aaaccgtctg cgcctccgcg tgcaagactc
+     5461 ggcgctcgtc agcacgctcc gggcgaaaac ggagtcgttc aagcgcgcgc tcatcgacca
+     5521 aggggaacga ctcgtgttcg cccaagtggc ggcgcagatg ctggagaact atcatgtggg
+     5581 cgcggaatgg aaggcggggg agtgggagag ggctgacggt ggggattggc ggggggttta
+     5641 gcgtatagtt tagggtatcg tttagggggt tagaatctgt tatccatctg tttgatacat
+     5701 gcaagatgat tgtaaagtac gactgttgat tttatcctac gccacttgca aaatactccc
+     5761 agaccgttac tgtccggcgc cctgcatttg ctctgcgacg ccattagcga tgcggcacca
+     5821 tacggggata acataccggc gttgtgctct gcaaacctcg cgccgacccg ttcagagtgc
+     5881 ttcagaaact tgtcggtgca gttctggacg caggtggtct tctcacacgg ttagttggtg
+     5941 gcatgcacga cacaggggac gcacctcgtt ggtggtgagg gctttactgg taaagtcctg
+     6001 ggcacaggcg ttgaagcact tttcgacgag gccggagtag agacgcataa agtcctgcat
+     6061 ctgcttcttc tcgatgacct tggacatgtg tgcctgctcg gcgccgttga attgtgaaaa
+     6121 gtccatggtg tgtgtgtgtg tggagtgtgg agagaggtgg agagatgaaa gaaagaggtg
+     6181 aaaaagagag tgtgtacgta a
+//
+

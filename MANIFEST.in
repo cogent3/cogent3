@@ -1,0 +1,3 @@
+include MANIFEST.in LICENSE
+recursive-include src *.c
+recursive-include src *.pyx *.c

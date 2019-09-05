@@ -1,0 +1,518 @@
+LOCUS       AE006468             4857432 bp    DNA     circular BCT 23-FEB-2009
+DEFINITION  Salmonella enterica subsp. enterica serovar Typhimurium str. LT2,
+            complete genome.
+ACCESSION   AE006468 AE008693-AE008916
+VERSION     AE006468.1  GI:16445344
+DBLINK      Project:241
+KEYWORDS    .
+SOURCE      Salmonella enterica subsp. enterica serovar Typhimurium str. LT2
+  ORGANISM  Salmonella enterica subsp. enterica serovar Typhimurium str. LT2
+            Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales;
+            Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica
+            serovar Typhimurium.
+REFERENCE   1  (bases 1 to 4857432)
+  AUTHORS   McClelland,M., Sanderson,K.E., Spieth,J., Clifton,S.W.,
+            Latreille,P., Courtney,L., Porwollik,S., Ali,J., Dante,M., Du,F.,
+            Hou,S., Layman,D., Leonard,S., Nguyen,C., Scott,K., Holmes,A.,
+            Grewal,N., Mulvaney,E., Ryan,E., Sun,H., Florea,L., Miller,W.,
+            Stoneking,T., Nhan,M., Waterston,R. and Wilson,R.K.
+  TITLE     Complete genome sequence of Salmonella enterica serovar Typhimurium
+            LT2
+  JOURNAL   Nature 413 (6858), 852-856 (2001)
+   PUBMED   11677609
+REFERENCE   2  (bases 1 to 4857432)
+  CONSRTM   The Salmonella typhimurium Genome Sequencing Project
+  TITLE     Direct Submission
+  JOURNAL   Submitted (29-MAR-2001) Genome Sequencing Center, Department of
+            Genetics, Washington University School of Medicine, 4444 Forest
+            Park Boulevard, St. Louis, MO 63108, USA
+COMMENT     On or before Feb 20, 2009 this sequence version replaced
+            gi:16418493, gi:16418512, gi:16418529, gi:16418549, gi:16418569,
+            gi:16418591, gi:16418608, gi:16418628, gi:16418650, gi:16418668,
+            gi:16418689, gi:16418705, gi:16418723, gi:16418742, gi:16418760,
+            gi:16418784, gi:16418804, gi:16418824, gi:16418844, gi:16418861,
+            gi:16418878, gi:16418900, gi:16418921, gi:16418944, gi:16418964,
+            gi:16418985, gi:16419003, gi:16419024, gi:16419047, gi:16419070,
+            gi:16419090, gi:16419110, gi:16419136, gi:16419161, gi:16419181,
+            gi:16419199, gi:16419219, gi:16419241, gi:16419261, gi:16419282,
+            gi:16419303, gi:16419326, gi:16419345, gi:16419364, gi:22024638,
+            gi:16419449, gi:16419469, gi:16419487, gi:22024639, gi:16419572,
+            gi:16419592, gi:16419620, gi:16419641, gi:16419665, gi:16419687,
+            gi:16419709, gi:16419731, gi:16419750, gi:16419776, gi:16419802,
+            gi:16419825, gi:16419849, gi:16419870, gi:16419888, gi:16419908,
+            gi:16419944, gi:16419969, gi:16419990, gi:16420008, gi:16420030,
+            gi:16420061, gi:16420079, gi:16420095, gi:16420112, gi:16420132,
+            gi:16420154, gi:16420173, gi:16420194, gi:16420213, gi:16420237,
+            gi:16420258, gi:16420281, gi:16420298, gi:16420325, gi:16420348,
+            gi:16420369, gi:16420391, gi:16420418, gi:16420438, gi:16420461,
+            gi:16420488, gi:16420517, gi:16420539, gi:16420565, gi:16420590,
+            gi:16420610, gi:16420630, gi:16420649, gi:16420666, gi:16420687,
+            gi:16420709, gi:16420731, gi:16420749, gi:16420769, gi:16420795,
+            gi:16420811, gi:16420832, gi:16420856, gi:16420874, gi:16420896,
+            gi:16420916, gi:16420938, gi:16420955, gi:16420979, gi:16421005,
+            gi:16421023, gi:16421046, gi:16421058, gi:16421075, gi:16421092,
+            gi:16421111, gi:16421131, gi:16421159, gi:16421190, gi:16421206,
+            gi:16421230, gi:16421239, gi:16421268, gi:16421292, gi:16421311,
+            gi:16421327, gi:16421347, gi:16421370, gi:16421388, gi:16421412,
+            gi:16421434, gi:16421460, gi:16421485, gi:16421501, gi:16421517,
+            gi:16421536, gi:16421550, gi:16421569, gi:16421592, gi:16421612,
+            gi:16421636, gi:16421663, gi:16421682, gi:16421705, gi:16421729,
+            gi:16421751, gi:16421769, gi:16421791, gi:16421808, gi:16421834,
+            gi:16421851, gi:16421879, gi:16421897, gi:16421920, gi:16421939,
+            gi:16421954, gi:16421987, gi:16422017, gi:16422036, gi:16422058,
+            gi:16422074, gi:16422092, gi:16422111, gi:16422137, gi:16422156,
+            gi:16422173, gi:16422188, gi:16422205, gi:16422228, gi:16422247,
+            gi:16422263, gi:16422283, gi:16422308, gi:16422324, gi:16422343,
+            gi:16422367, gi:16422393, gi:16422410, gi:16422430, gi:16422449,
+            gi:16422464, gi:16422484, gi:16422503, gi:16422527, gi:16422547,
+            gi:16422561, gi:16422586, gi:16422609, gi:16422630, gi:16422654,
+            gi:16422675, gi:16422691, gi:16422706, gi:16422728, gi:16422744,
+            gi:16422768, gi:16422789, gi:16422815, gi:16422822, gi:16422843,
+            gi:16422860, gi:16422882, gi:16422906, gi:16422923, gi:16422950,
+            gi:16422976, gi:16422994, gi:16423017, gi:16423037, gi:16423054,
+            gi:16423067, gi:16423088, gi:16423108, gi:16423133, gi:16423153.
+            Supported by NIH grant 5U 01 AI43283
+            
+            Coding sequences below are predicted from manually evaluated
+            computer analysis, using similarity information and the programs;
+            GLIMMER; http://www.tigr.org/softlab/glimmer/glimmer.html and
+            GeneMark; http://opal.biology.gatech.edu/GeneMark/
+            
+            EC numbers were kindly provided by Junko Yabuzaki and the Kyoto
+            Encyclopedia of Genes and Genomes; http://www.genome.ad.jp/kegg/,
+            and Pedro Romero and Peter Karp at EcoCyc;
+            http://ecocyc.PangeaSystems.com/ecocyc/
+            
+            The analyses of ribosome binding sites and promoter binding sites
+            were kindly provided by Heladia Salgado, Julio Collado-Vides and
+            ReguonDB;
+            http://kinich.cifn.unam.mx:8850/db/regulondb_intro.frameset
+            
+            This sequence was finished as follows unless otherwise noted: all
+            regions were double stranded, sequenced with an alternate
+            chemistries or covered by high quality data (i.e., phred quality >=
+            30); an attempt was made to resolve all sequencing problems, such
+            as compressions and repeats; all regions were covered by sequence
+            from more than one m13 subclone.
+FEATURES             Location/Qualifiers
+     source          join(1..962611,1004276..1098227,1143715..2728971,
+                     2776823..2844426,2879234..4857432)
+                     /organism="Salmonella enterica subsp. enterica serovar
+                     Typhimurium str. LT2"
+                     /mol_type="genomic DNA"
+                     /strain="LT2; SGSC 1412; ATCC 700720"
+                     /serovar="Typhimurium"
+                     /culture_collection="ATCC:700720"
+                     /db_xref="taxon:99287"
+                     /focus
+     source          962612..1004275
+                     /organism="Salmonella phage Fels-1"
+                     /mol_type="genomic DNA"
+                     /db_xref="taxon:128975"
+     source          1098228..1143714
+                     /organism="Phage Gifsy-2"
+                     /mol_type="genomic DNA"
+                     /db_xref="taxon:129862"
+     source          2728972..2776822
+                     /organism="Phage Gifsy-1"
+                     /mol_type="genomic DNA"
+                     /db_xref="taxon:129861"
+     source          2844427..2879233
+                     /organism="Enterobacteria phage Fels-2"
+                     /mol_type="genomic DNA"
+                     /db_xref="taxon:194701"
+     gene            190..255
+                     /gene="thrL"
+                     /locus_tag="STM0001"
+     CDS             190..255
+                     /gene="thrL"
+                     /locus_tag="STM0001"
+                     /note="similar to E. coli thr operon leader peptide
+                     (AAC73112.1); Blastp hit to AAC73112.1 (21 aa),
+                     85-1073758644dentity in aa 1 - 21"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="thr operon leader peptide"
+                     /protein_id="AAL18965.1"
+                     /db_xref="GI:16418494"
+                     /translation="MNRISTTTITTITITTGNGAG"
+     gene            325..2799
+                     /gene="thrA"
+                     /locus_tag="STM0002"
+     RBS             325..330
+                     /gene="thrA"
+                     /locus_tag="STM0002"
+                     /note="putative RBS for thrA; RegulonDB:STMS1H000398"
+     CDS             337..2799
+                     /gene="thrA"
+                     /locus_tag="STM0002"
+                     /EC_number="1.1.1.3"
+                     /EC_number="2.7.2.4"
+                     /note="bifunctional; N-terminaus is aspartokinase I and C
+                     terminus is homoserine dehydrogenase I; similar to E. coli
+                     aspartokinase I, homoserine dehydrogenase I (AAC73113.1);
+                     Blastp hit to AAC73113.1 (820 aa), 94% identity in aa 1 -
+                     820"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="aspartokinase I"
+                     /protein_id="AAL18966.1"
+                     /db_xref="GI:16418495"
+                     /translation="MRVLKFGGTSVANAERFLRVADILESNARQGQVATVLSAPAKIT
+                     NHLVAMIEKTIGGQDALPNISDAERIFSDLLAGLASAQPGFPLARLKMVVEQEFAQIK
+                     HVLHGISLLGQCPDSINAALICRGEKMSIAIMAGLLEARGHRVTVIDPVEKLLAVGHY
+                     LESTVDIAESTRRIAASQIPADHMILMAGFTAGNEKGELVVLGRNGSDYSAAVLAACL
+                     RADCCEIWTDVDGVYTCDPRQVPDARLLKSMSYQEAMELSYFGAKVLHPRTITPIAQF
+                     QIPCLIKNTGNPQAPGTLIGASSDDDNLPVKGISNLNNMAMFSVSGPGMKGMIGMAAR
+                     VFAAMSRAGISVVLITQSSSEYSISFCVPQSDCARARRAMQDEFYLELKEGLLEPLAV
+                     TERLAIISVVGDGMRTLRGISAKFFAALARANINIVAIAQGSSERSISVVVNNDDATT
+                     GVRVTHQMLFNTDQVIEVFVIGVGGVGGALLEQLKRQQTWLKNKHIDLRVCGVANSKA
+                     LLTNVHGLNLDNWQAELAQANAPFNLGRLIRLVKEYHLLNPVIVDCTSSQAVADQYAD
+                     FLREGFHVVTPNKKANTSSMDYYHQLRFAAAQSRRKFLYDTNVGAGLPVIENLQNLLN
+                     AGDELQKFSGILSGSLSFIFGKLEEGMSLSQATALAREMGYTEPDPRDDLSGMDVARK
+                     LLILARETGRELELSDIVIEPVLPNEFDASGDVTAFMAHLPQLDDAFAARVAKARDEG
+                     KVLRYVGNIEEDGVCRVKIAEVDGNDPLFKVKNGENALAFYSHYYQPLPLVLRGYGAG
+                     NDVTAAGVFADLLRTLSWKLGV"
+     gene            2789..3730
+                     /gene="thrB"
+                     /locus_tag="STM0003"
+     RBS             2789..2794
+                     /gene="thrB"
+                     /locus_tag="STM0003"
+                     /note="putative RBS for thrB; RegulonDB:STMS1H000399"
+     CDS             2801..3730
+                     /gene="thrB"
+                     /locus_tag="STM0003"
+                     /EC_number="2.7.1.39"
+                     /note="similar to E. coli homoserine kinase (AAC73114.1);
+                     Blastp hit to AAC73114.1 (310 aa), 93% identity in aa 1 -
+                     308"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="homoserine kinase"
+                     /protein_id="AAL18967.1"
+                     /db_xref="GI:16418496"
+                     /translation="MVKVYAPASSANMSVGFDVLGAAVTPVDGTLLGDVVSVEAADHF
+                     RLHNLGRFADKLPPEPRENIVYQCWERFCQALGKTIPVAMTLEKNMPIGSGLGSSACS
+                     VVAALVAMNEHCGKPLNDTRLLALMGELEGRISGSIHYDNVAPCFLGGMQLMIEENGI
+                     ISQQVPGFDEWLWVLAYPGIKVSTAEARAILPAQYRRQDCIAHGRHLAGFIHACYSRQ
+                     PQLAAALMKDVIAEPYRARLLPGFSQARQAVSEIGALASGISGSGPTLFALCDKPETA
+                     QRVADWLSKHYLQNQEGFVHICRLDTAGARVVG"
+     gene            3722..5020
+                     /gene="thrC"
+                     /locus_tag="STM0004"
+     RBS             3722..3727
+                     /gene="thrB"
+                     /locus_tag="STM0003"
+                     /note="putative RBS for thrC; RegulonDB:STMS1H000400"
+     CDS             3734..5020
+                     /gene="thrC"
+                     /locus_tag="STM0004"
+                     /EC_number="4.2.3.1"
+                     /note="similar to E. coli threonine synthase (AAC73115.1);
+                     Blastp hit to AAC73115.1 (428 aa), 93% identity in aa 1 -
+                     428"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="threonine synthase"
+                     /protein_id="AAL18968.1"
+                     /db_xref="GI:16418497"
+                     /translation="MKLYNLKDHNEQVSFAQAVTQGLGKQQGLFFPHDLPEFSLTEID
+                     EMLNQDFVSRSAKILSAFIGDEIPQQILEERVRAAFAFPAPVAQVESDVGCLELFHGP
+                     TLAFKDFGGRFMAQMLTHISGDKPVTILTATSGDTGAAVAHAFYGLENVRVVILYPRG
+                     KISPLQEKLFCTLGGNIETVAIDGDFDACQALVKQAFDDEELKTALGLNSANSINISR
+                     LLAQICYYFEAVAQLPQGARNQLVISVPSGNFGDLTAGLLAKSLGLPVKRFIAATNVN
+                     DTVPRFLHDGKWAPKATQATLSNAMDVSQPNNWPRVEELFRRKIWRLTELGYAAVDDT
+                     TTQQTMRELKAKGYISEPHAAVAYRALRDQLNPGEYGLFLGTAHPAKFKESVESILGE
+                     TLALPEALAERADLPLLSHHLPADFAALRKLMMTRQ"
+     gene            complement(5114..5898)
+                     /gene="yaaA"
+                     /locus_tag="STM0005"
+     CDS             complement(5114..5887)
+                     /gene="yaaA"
+                     /locus_tag="STM0005"
+                     /note="similar to E. coli orf, hypothetical protein
+                     (AAC73117.1); Blastp hit to AAC73117.1 (258 aa), 86%
+                     identity in aa 1 - 257"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="putative cytoplasmic protein"
+                     /protein_id="AAL18969.1"
+                     /db_xref="GI:16418498"
+                     /translation="MLILISPAKTLDYQSPLATTRYTQPELLDHSQQLIQQARQLSAP
+                     QISRLMGISDKLADLNATRFHDWQPHFTPDNARQAILAFKGDVYTGLQAETFNDADFD
+                     FAQQHLRMLSGLYGVLRPLDLMQPYRLEMGIRLENPRGKDLYQFWGDIITDKLNEALE
+                     AQGDRVVVNLASEEYFKSVKPKKLNAELIKPVFLDEKNGKFKVVSFYAKKARGLMSRF
+                     IIENRLTKPEQLTAFDREGYFFDEETSTQDELVFKRYEQ"
+     RBS             complement(5893..5898)
+                     /gene="yaaA"
+                     /locus_tag="STM0005"
+                     /note="putative RBS for yaaA; RegulonDB:STMS1H000401"
+     gene            complement(5966..7407)
+                     /gene="yaaJ"
+                     /locus_tag="STM0006"
+     CDS             complement(5966..7396)
+                     /gene="yaaJ"
+                     /locus_tag="STM0006"
+                     /note="AGCS family; similar to E. coli inner membrane
+                     transport protein (AAC73118.1); Blastp hit to AAC73118.1
+                     (476 aa), 76% identity in aa 1 - 476"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="putative alanine/glycine transport protein"
+                     /protein_id="AAL18970.1"
+                     /db_xref="GI:16418499"
+                     /translation="MPEFFSFINEILWGSVMIYLLLGAGCWFTWRTGFIQFRYIRQFS
+                     RSLKGSLSPQPGGLTSFQALCTSLAARIGSGNLAGVALAIAAGGPGAVFWMWVSAIIG
+                     MATSFAECSLAQLYKERDPTGQFRGGPAWYMARGLGMRWMGVVFALFLLVAYGLIFNS
+                     VQANAVSRALHFAFNIPPLISGIALAFCALLIIIRGIKGVARLMQWLIPLIALLWVAG
+                     SVFICLWHIEQMPGVIASIVKSAFGWQEAAAGAAGYTLTQAITSGFQRGMFSNEAGMG
+                     STPNAAAAATSYPPHPVAQGIVQMIGVFSDTIIICTASAMIILLAGNHASHSSTEGIQ
+                     LLQHAMVSLTGEWGASFVALIVILFAFSSIVANYIYAENNLFFLRLHNAKAIWLLRLA
+                     TLGMVIAGTLISFPLIWQLADMIMACMAITNLTAILLLSPVVYTLASDYLRQRKLGVR
+                     PQFDPRRFPDIEPQLAPDTWEAASRD"
+     RBS             complement(7402..7407)
+                     /gene="yaaJ"
+                     /locus_tag="STM0006"
+                     /note="putative RBS for yaaJ; RegulonDB:STMS1H000402"
+     gene            7652..8618
+                     /gene="talB"
+                     /locus_tag="STM0007"
+     RBS             7652..7657
+                     /gene="talB"
+                     /locus_tag="STM0007"
+                     /note="putative RBS for talB; RegulonDB:STMS1H000403"
+     CDS             7665..8618
+                     /gene="talB"
+                     /locus_tag="STM0007"
+                     /EC_number="2.2.1.2"
+                     /note="similar to E. coli transaldolase B (AAC73119.1);
+                     Blastp hit to AAC73119.1 (317 aa), 94% identity in aa 1 -
+                     317"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="transaldolase B"
+                     /protein_id="AAL18971.1"
+                     /db_xref="GI:16418500"
+                     /translation="MTDKLTSLRQFTTVVADTGDIAAMKLYQPQDATTNPSLILNAAQ
+                     IPEYRKLIDDAVAWAKQQSSDRAQQVVDATDKLAVNIGLEILKLVPGRISTEVDARLS
+                     YDTEASIAKAKRIIKLYNDAGISNDRILIKLASTWQGIRAAEQLEKEGINCNLTLLFS
+                     FAQARACAEAGVYLISPFVGRILDWYKANTDKKDYAPAEDPGVVSVTEIYEYYKQHGY
+                     ETVVMGASFRNVGEILELAGCDRLTIAPALLKELAESEGAIERKLSFSGEVKARPERI
+                     TEAEFLWQHHQDPMAVDKLADGIRKFAVDQEKLEKMIGDLL"
+     gene            8718..9319
+                     /gene="mog"
+                     /locus_tag="STM0008"
+     RBS             8718..8723
+                     /gene="mog"
+                     /locus_tag="STM0008"
+                     /note="putative RBS for mog; RegulonDB:STMS1H000404"
+     CDS             8729..9319
+                     /gene="mog"
+                     /locus_tag="STM0008"
+                     /note="molybdopterine biosynthesis; similar to E. coli
+                     required for the efficient incorporation of molybdate into
+                     molybdoproteins (AAC73120.1); Blastp hit to AAC73120.1
+                     (195 aa), 91% identity in aa 1 - 192"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="putative molybdochetalase"
+                     /protein_id="AAL18972.1"
+                     /db_xref="GI:16418501"
+                     /translation="MDTLRIGLVSISDRASSGVYQDKGIPALEEWLASALTTPFEVQR
+                     RLIPDEQEIIEQTLCELVDEMSCHLVLTTGGTGPARRDVTPDATLAIADREMPGFGEQ
+                     MRQISLRFVPTAILSRQVGVIRKQALILNLPGQPKSIKETLEGVKADDGSVSVPGIFA
+                     SVPYCIQLLDGPYVETAPEVVAAFRPKSARRENMSD"
+     gene            complement(9376..9950)
+                     /gene="yaaH"
+                     /locus_tag="STM0009"
+     CDS             complement(9376..9942)
+                     /gene="yaaH"
+                     /locus_tag="STM0009"
+                     /note="similar to E. coli orf, hypothetical protein
+                     (AAC73121.1); Blastp hit to AAC73121.1 (188 aa), 90%
+                     identity in aa 1 - 188"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="putative regulatory protein"
+                     /protein_id="AAL18973.1"
+                     /db_xref="GI:16418502"
+                     /translation="MGNTKLANPAPLGLMGFGMTTILLNLHNAGFFALDGIILAMGIF
+                     YGGIAQIFAGLLEYKKGNTFGLTAFTSYGSFWLTLVAILLMPKMGLTDAPDAQLLGAY
+                     LGLWGVFTLFMFFGTLKAARALQFVFLSLTVLFALLAVGNITGNEATIHIAGWVGLVC
+                     GASAIYLAMGEVLNEQFGRTILPIGEAH"
+     RBS             complement(9945..9950)
+                     /gene="yaaH"
+                     /locus_tag="STM0009"
+                     /note="putative RBS for yaaH; RegulonDB:STMS1H000405"
+
+ORIGIN      
+        1 agagattacg tctggttgca agagatcatg acagggggaa ttggttgaaa ataaatatat
+       61 cgccagcagc acatgaacaa gtttcggaat gtgatcaatt taaaaattta ttgacttagg
+      121 cgggcagata ctttaaccaa tataggaata caagacagac aaataaaaat gacagagtac
+      181 acaacatcca tgaaccgcat cagcaccacc accattacca ccatcaccat taccacaggt
+      241 aacggtgcgg gctgacgcgt acaggaaaca cagaaaaaag cccgcacctg aacagtgcgg
+      301 gctttttttt cgaccagaga tcacgaggta acaaccatgc gagtgttgaa gttcggcggt
+      361 acatcagtgg caaatgcaga acgttttctg cgtgttgccg atattctgga aagcaatgcc
+      421 aggcaagggc aggtagcgac cgtactttcc gcccccgcga aaattaccaa ccatctggtg
+      481 gcaatgattg aaaaaactat cggcggccag gatgctttgc cgaatatcag cgatgcagaa
+      541 cgtatttttt ctgacctgct cgcaggactt gccagcgcgc agccgggatt cccgcttgca
+      601 cggttgaaaa tggttgtcga acaagaattc gctcagatca aacatgttct gcatggtatc
+      661 agcctgctgg gtcagtgccc ggatagcatc aacgccgcgc tgatttgccg tggcgaaaaa
+      721 atgtcgatcg cgattatggc gggacttctg gaggcgcgtg ggcatcgcgt cacggtgatc
+      781 gatccggtag aaaaattgct ggcggtgggc cattaccttg aatctaccgt tgatatcgcg
+      841 gaatcgactc gccgtatcgc cgccagccag atcccggccg atcacatgat cctgatggcg
+      901 ggctttaccg ccggtaatga aaagggtgaa ctggtggtgc tgggccgtaa tggttccgac
+      961 tattccgccg ccgtgctggc cgcctgttta cgcgctgact gctgtgaaat ctggactgac
+     1021 gtcgatggcg tgtatacctg tgacccgcgc caggtgccgg acgccaggct gctgaaatcg
+     1081 atgtcctacc aggaagcgat ggaactctct tacttcggcg ccaaagtcct tcaccctcgc
+     1141 accattacgc ccatcgccca gttccagatc ccctgtctga ttaaaaatac cggtaatccg
+     1201 caggcgccag gaacgctgat cggcgcgtcc agcgacgatg ataacctgcc ggttaaaggg
+     1261 atctctaacc ttaacaacat ggcgatgttt agcgtctccg gcccgggaat gaaagggatg
+     1321 attgggatgg cggcgcgtgt tttcgccgcc atgtctcgcg ccgggatctc ggtggtgctc
+     1381 attacccagt cctcctctga gtacagcatc agtttctgtg tgccgcagag tgactgcgcg
+     1441 cgtgcccgcc gtgcgatgca ggatgagttc tatctggagc tgaaagaggg gctgctggag
+     1501 ccgctggcgg ttacggagcg gttggcgatt atctctgttg tcggcgacgg tatgcgcacg
+     1561 ctacgcggca tttcagcgaa attcttcgcc gcgctggcgc gggctaatat caatatcgtg
+     1621 gcgatcgctc agggatcttc tgagcgttct atttctgtgg tggtgaataa cgacgatgcc
+     1681 accaccggcg tgcgggtaac gcaccagatg ctgttcaata ccgatcaggt gattgaagtg
+     1741 tttgtcattg gcgtcggcgg cgtcggcggc gcgctactgg aacagcttaa acgtcagcaa
+     1801 acctggctga agaacaagca catcgatcta cgcgtgtgcg gcgtggcgaa ctcaaaggcg
+     1861 ttgctaacca atgtgcatgg cctgaatctg gacaactggc aggcggaact ggcgcaagcg
+     1921 aacgcgccgt tcaatctggg acgcttaatt cgcctggtga aagaatatca tctactcaat
+     1981 ccggtgattg ttgattgtac ctccagtcag gcggtggccg accagtatgc cgacttcctg
+     2041 cgtgaagggt tccatgtggt gacgccaaac aagaaagcga acacctcgtc aatggactac
+     2101 taccatcagc tacgtttcgc cgccgcgcaa tcacggcgca aattcttgta tgacaccaac
+     2161 gtcggcgccg gtttgccggt aatcgaaaac ctgcaaaacc tgctgaatgc cggtgatgaa
+     2221 ctgcaaaaat tttccggcat tctttccggg tcgctctctt ttattttcgg taaactggaa
+     2281 gaggggatga gtctctcaca ggcgaccgcc ctggcgcgcg agatgggcta taccgaaccc
+     2341 gatccgcgcg acgatctttc cggtatggat gtggcgcgta aactgttgat cctcgcccgc
+     2401 gagacgggcc gcgagctgga gctttccgat attgtgattg aaccggtgtt gccgaacgag
+     2461 tttgacgcct ccggcgatgt gaccgccttt atggcacatc tgccgcagct tgacgacgcg
+     2521 tttgccgccc gtgtggcgaa agctcgtgat gaaggtaagg tattgcgcta tgtgggcaat
+     2581 atcgaagagg atggcgtgtg ccgcgtgaaa attgccgaag ttgatggtaa cgatccgctc
+     2641 ttcaaagtga aaaacggtga aaacgcgctg gcgttctaca gccactatta tcagcccttg
+     2701 ccgttggtgc tgcgcggcta cggcgcaggc aatgatgtga cggcggcggg cgtgtttgcc
+     2761 gatctgttac ggaccctctc atggaagtta ggagtttaac atggtgaaag tgtatgcccc
+     2821 ggcttccagc gcgaacatga gcgtcggttt cgacgtgttg ggcgcagccg tcacacccgt
+     2881 tgacggcacg ttgctgggcg atgtggtatc cgttgaagca gcggaccatt tccgtctgca
+     2941 taacctgggg cgatttgccg ataaactgcc gccggagccg cgtgaaaata ttgtttatca
+     3001 gtgctgggaa cgtttttgcc aggcattggg gaaaaccatc ccggtggcga tgacgctgga
+     3061 aaaaaatatg ccgattggtt ccgggttagg gtccagcgcc tgttccgtcg tcgccgcgct
+     3121 ggtcgcgatg aatgagcact gcggcaaacc gttaaacgac acgcgtctgt tggcgctgat
+     3181 gggcgagctg gaaggccgta tctccggcag catccattac gataacgtcg cgccgtgctt
+     3241 tcttggcggt atgcagttga tgattgaaga aaacggcatt attagtcagc aggtgccggg
+     3301 ctttgatgag tggctatggg tactggctta tccgggcatt aaagtttcta ccgcagaagc
+     3361 acgggccatt ttgcctgcgc agtatcgccg tcaggattgc attgcgcatg gacggcatct
+     3421 ggccggtttt attcacgcct gttactcgcg gcagccgcag cttgccgccg cgctgatgaa
+     3481 agatgttatt gccgaaccat accgcgcgcg tttactgccg ggctttagcc aggcgcggca
+     3541 ggcggtgtcg gagatcggcg cgctggcgag cgggatttcc gggtcggggc cgacgctgtt
+     3601 tgcgctatgc gataaaccgg agacggcgca gcgcgtcgcg gactggctga gcaaacatta
+     3661 tctgcaaaat caggaaggct tcgttcatat ttgccggctg gatacggcgg gcgcacgagt
+     3721 agtgggataa tcaatgaaac tctataatct gaaagaccat aatgagcagg tcagctttgc
+     3781 gcaggccgtc acgcaaggac tgggcaaaca gcagggactt ttttttccgc acgatctgcc
+     3841 ggagtttagc ctgacggaaa ttgatgagat gctcaaccag gactttgtca gccgtagcgc
+     3901 aaagatcctc tcggcattta ttggcgatga aataccgcag caaattctgg aagagcgcgt
+     3961 ccgcgcggcg tttgcgttcc cggcaccggt agcgcaggta gaaagcgatg tcggctgcct
+     4021 ggagctgttc catggtccga cgctggcctt taaagacttc ggcgggcgtt ttatggcgca
+     4081 aatgctgacg catatcagcg gcgacaaacc ggtgacgatt ctgactgcaa cgtcaggcga
+     4141 taccggcgcg gcggtggctc acgcgttcta tggcctggaa aatgtgcggg tcgtcattct
+     4201 ctacccgcgc ggtaagatca gtccgttgca ggaaaaactg ttctgtacgc tgggcggcaa
+     4261 cattgaaacc gtggcgatcg acggcgattt cgacgcgtgc caggcgctgg tgaaacaggc
+     4321 atttgatgac gaagaactga aaacggcgct ggggctgaat tcggctaatt cgattaatat
+     4381 cagccgcctg ttggcgcaaa tttgctacta ctttgaagcc gtggcgcaac tgccgcaggg
+     4441 ggcgcgtaac caactggtga tctccgtccc cagcggcaac tttggcgatt tgacggcagg
+     4501 gctgctggcg aagtcgttag gcctaccggt gaaacgtttt atcgccgcca ccaacgtcaa
+     4561 cgacacggtg ccgcgttttc tgcatgacgg aaagtgggcg ccgaaagcga cgcaggcgac
+     4621 cctgtcgaat gcgatggatg tcagccagcc gaataactgg ccgcgcgtgg aggagctatt
+     4681 ccgccgtaaa atctggcgcc tgactgagct gggctatgcg gcggtggatg atactacgac
+     4741 acagcagacg atgcgcgagc tgaaagcgaa aggttatatc tcggaacctc atgcggcggt
+     4801 agcgtatcgg gcattacgcg accagttaaa ccctggcgag tatggcttgt ttctcggaac
+     4861 ggcgcatccg gcgaagttta aagagagcgt ggagtccatt ctgggagaaa cgctggcctt
+     4921 gcctgaagcg ctcgccgaac gcgccgacct gccgctgctt tcacatcatc tgcctgcgga
+     4981 ttttgccgcc ctgcgtaagc tgatgatgac ccgccaataa ccattgcgcc cggtggcgct
+     5041 gtcgcttacc gggcctatgg ggtggtgtcg atttgtaggc cggataaggc gtaaccgcca
+     5101 tccggcgatg ccgttactgc tcgtagcgtt taaagaccag ctcgtcttgt gtggaggttt
+     5161 cttcatcaaa gaaataccct tcacggtcaa acgcggtaag ctgttccggc ttcgttaagc
+     5221 ggttttcaat aataaaacgg ctcatcagtc cgcgcgcttt tttggcgtag aagcttacca
+     5281 ccttaaactt gccgtttttc tcatcaagga acacgggctt aatcagttcg gcattcagtt
+     5341 tcttcggctt caccgattta aaatattcct cggaggccag attcaccacc acccgatcgc
+     5401 cctgcgcctc aagcgcttcg ttgagcttat cggtaatgat atcgccccag aattgataaa
+     5461 gatctttgcc gcgcggattc tccaggcgaa tccccatctc cagacgataa ggctgcatta
+     5521 aatccagcgg gcgcaatacg ccatacaagc cagagagcat acgcagatgt tgttgagcaa
+     5581 aatcaaaatc cgcgtcgttg aacgtttccg cctgtaggcc ggtataaaca tcgcctttga
+     5641 acgccagaat cgcctggcgt gcattatccg gcgtaaaatg aggctgccag tcatgaaaac
+     5701 gcgtggcgtt gagatccgcc agtttgtcgc taattcccat cagcctggaa atttgcggcg
+     5761 ccgaaagctg gcgggcctgt tgaataagct gctggctgtg atccaacagc tccggctggg
+     5821 tatagcgggt cgtggccagc gggctttgat aatcaagcgt ttttgcaggt gaaatcagaa
+     5881 tcagcatatt cagtccttgc agggaatttt ctgcgacttt agcaaaaaaa cgccgcagag
+     5941 ttgaccgatg gttgcgattg tcggcttaat cgcgcgatgc cgcctcccag gtatctggcg
+     6001 ccagttgtgg ttcgatatcc gggaagcgcc gcggatcgaa ctgcggtctt acgcccagtt
+     6061 tccgttgtcg cagataatcg ctggcgaggg tatacaccac cggtgagagc aacaaaatcg
+     6121 ccgtcagatt ggtaatggcc atacaggcca tgatcatgtc agcgagctgc catatcagcg
+     6181 gaaaactgat aagcgtaccg gcgataacca tgccaagcgt cgcaaggcgt aatagccaga
+     6241 tagcctttgc gttatgtaac cgcagaaaaa acagattgtt ttcggcgtaa atatagttgg
+     6301 cgacgataga actgaacgcg aacagaatga cgataagcgc gacaaaactg gcgccccatt
+     6361 caccggtcaa cgaaaccatt gcatgttgga gaagctgaat gccttctgtt gacgagtggg
+     6421 acgcgtgatt ccccgccagc aggataatca tcgcgctggc ggtacagatg ataatggtgt
+     6481 cgctgaatac gccaatcatt tgcacaatcc cctgcgcgac agggtgaggg ggatacgacg
+     6541 ttgccgctgc ggccgcatta ggcgttgacc ccattcccgc ttcattagag aacatcccac
+     6601 gctgaaaacc gctggtaata gcctgggtga gcgtatatcc ggctgcgcct gccgcggctt
+     6661 cctgccagcc aaatgcgctt ttgactatcg aggcgataac gccaggcatt tgctcaatat
+     6721 gccagaggca aatgaatacg ctgccggcga cccacaataa cgcgatgagg ggaatcagcc
+     6781 attgcatcag acgggcgacg cctttgatgc cgcgaatgat aattaacagg gcacagaacg
+     6841 ccagagcaat gccggagata agcggcggaa tgttgaaggc gaaatggagc gcgcgtgaga
+     6901 cggcattcgc ctgcacgcta ttaaaaatca acccgtaggc gacgagcaga aagagggcga
+     6961 aaaccacgcc catccagcgc attcccagcc cacgcgccat ataccacgcc gggccgccgc
+     7021 ggaactggcc tgtcgggtca cgttctttat aaagctgggc aagcgaacac tcggcgaagg
+     7081 aggtcgccat gccaatgatg gccgagaccc acatccagaa taccgcgccg ggaccgcctg
+     7141 cggcgatagc cagcgccacg ccggccaggt taccgctgcc aatccgcgcc gcgaggctgg
+     7201 tacacagagc ctgaaatgac gtcaggccgc ctggctgcgg gctaaggctg cctttcagac
+     7261 tgcggctaaa ttggcgaata taacgaaact gaatgaatcc ggtacgccag gtaaaccaac
+     7321 atcctgcgcc gagcagcagg taaatcatta ccgagcccca gagtatttcg ttaataaaac
+     7381 tgaaaaactc aggcattaac gtccctcttg ttgatgccgg cacgctttga taatcctgta
+     7441 taagcgtgac ccatgatgta gatgaccttg tcagactaat attaacggca gtttaccata
+     7501 aatacggtgg tatcctttaa ttgcgcatca accgtcggca gatacgcaaa cagtgcacaa
+     7561 gggcagccag gtgcatgtag gcggttgcgc tgtgagtgcg tcgtgttatc atcagggtag
+     7621 accggttaca tcccctaaca agctgtttaa agagaaactc tatcatgacg gacaaattga
+     7681 cctcccttcg tcagttcacc accgtagtgg ctgataccgg agatatcgcg gcaatgaaac
+     7741 tgtatcagcc gcaggatgct acaactaacc cttctctcat tcttaacgca gcgcaaatcc
+     7801 cggaatatcg taagctgatt gacgatgctg tcgcctgggc gaaacagcag agcagcgacc
+     7861 gcgcgcagca ggttgttgac gcgaccgata agctggcggt gaatattggc ctggagatcc
+     7921 tgaagctggt gccggggcgt atttctaccg aagttgacgc gcgtctgtct tatgacactg
+     7981 aagcgtctat cgccaaagca aaacgtatca ttaaactcta caatgatgcg ggtatcagca
+     8041 acgatcgtat cctgatcaag ctggcgtcca cctggcaggg cattcgtgca gccgaacagc
+     8101 tggaaaaaga aggcatcaac tgtaacctga cgctgctgtt ctccttcgcg caggcgcgtg
+     8161 cgtgcgccga agcgggcgtc tacctgatct cgccgttcgt aggtcgtatt cttgactggt
+     8221 ataaagccaa taccgacaag aaagactatg cgccagctga agatccgggc gtggtttccg
+     8281 taacggaaat ctacgagtac tacaaacagc atggttacga aaccgtcgtt atgggcgcaa
+     8341 gcttccgtaa cgtaggcgaa attctggagc tggcgggctg cgaccgtctg actatcgcgc
+     8401 cggcattgct gaaagaactg gcggaaagcg aaggggcgat tgagcgtaag ctctctttct
+     8461 ccggcgaagt caaagcgcgc ccggaacgca ttaccgaagc cgagttcctg tggcagcatc
+     8521 accaggaccc catggcggtt gacaaactgg cggatggtat ccgtaagttt gcggtagacc
+     8581 aggaaaaact ggaaaaaatg atcggcgatc tgctgtaatc attaacgcgt ggccctgata
+     8641 tgggtcacgc tacctcttct gaaacctgtc tgtccttccc ttcgcagtgt atcattctgt
+     8701 ttaacgagac tgtttaaacg gaataatcat ggatacctta cgtattggct tagtttctat
+     8761 ctccgaccgc gcttcaagcg gcgtttacca ggataaaggc attcctgcgc ttgaggagtg
+     8821 gctcgcttct gcgctgacca cgcctttcga ggtccaacgg cgcttaattc ctgatgaaca
+     8881 ggaaattatc gagcaaacgt tgtgtgaact ggtcgatgag atgagctgtc atctggtgct
+     8941 gaccactggc ggtaccggtc cggcgcgtcg cgacgtcacg ccggacgcga cccttgccat
+     9001 cgccgaccgt gaaatgccag gttttggcga gcagatgcgc cagatcagcc tgcgctttgt
+     9061 gccgaccgcc attctttccc gccaggtggg cgttatccgt aaacaggcgt taattcttaa
+     9121 tctgcctgga cagccaaaat cgatcaaaga aacgctggaa ggcgtaaaag cggacgatgg
+     9181 cagcgttagc gtgccgggca tttttgcgag cgtgccgtat tgcatacagc tgcttgacgg
+     9241 gccgtatgtc gaaaccgcgc cggaagtggt tgccgctttc cgtccaaaga gcgccagacg
+     9301 tgagaatatg tcggactgac cggaaaatac tgatagtagg gttattcctc ccggtgcggg
+     9361 aggaataaaa gagatttagt gcgcctcgcc gattggcaga atagtgcggc caaattgctc
+     9421 gtttagcact tcacccatcg ccagataaat agcgctggcg ccgcaaacca gaccaaccca
+     9481 gcctgcgata tggatagttg cttcgttacc ggtgatattg ccgaccgcca gcagagcgaa
+     9541 cagtacggtc aggctcagga aaacaaattg cagcgcgcgg gcggctttca gcgtaccgaa
+     9601 gaacataaac agcgtgaaca cgccccacag acctaaataa gcgccgagta gctgagcgtc
+     9661 aggcgcatcc gtcagaccca ttttcggcat cagcaggata gcgaccagcg tcagccagaa
+     9721 cgaaccgtaa gaggtaaagg ccgttaaacc aaaggtattg ccttttttgt actccagcag
+     9781 accggcaaaa atttgcgcga taccgccgta gaaaatcccc atcgccagaa taataccgtc
+     9841 cagggcgaaa aaaccggcat tgtgcaggtt aagcagaatg gtggtcatgc cgaagcccat
+     9901 caggcccagc ggtgccggat tagccaactt agtgttgccc ataattcctc aaaatcatca
+     9961 taattgaatg gtgaaatagt ttcccagaat aacgagttcc gtattcgggg cgcggcataa
+//
+
