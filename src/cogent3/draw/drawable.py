@@ -30,7 +30,7 @@ class Drawable:
     ):
         self._traces = traces or []
         title = title if title is None else dict(text=title)
-        self._layout = UnionDict(
+        self._default_layout = UnionDict(
             title=title,
             font=dict(family="Balto", size=14),
             width=width,
@@ -44,7 +44,8 @@ class Drawable:
             margin=dict(l=50, r=50, t=50, b=50, pad=4),
         )
         layout = layout or {}
-        self._layout |= layout
+        self.layout = UnionDict(self._default_layout)
+        self.layout |= layout
         self.xtitle = xtitle
         self.ytitle = ytitle
 
@@ -53,6 +54,8 @@ class Drawable:
 
     @property
     def layout(self):
+        if not hasattr(self, "_layout"):
+            self._layout = UnionDict()
         return self._layout
 
     @layout.setter

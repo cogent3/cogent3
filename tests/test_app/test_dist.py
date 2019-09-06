@@ -2,10 +2,13 @@ import os
 
 from unittest import TestCase, main
 
+from numpy.testing import assert_allclose
+
 from cogent3 import DNA, PROTEIN, make_unaligned_seqs
 from cogent3.app import align
 from cogent3.app import dist as dist_app
 from cogent3.app import io, sample
+from cogent3.evolve.fast_distance import HammingPair, TN93Pair
 
 
 __author__ = "Gavin Huttley"
@@ -66,61 +69,172 @@ class FastSlowDistTests(TestCase):
     seqs4 = make_unaligned_seqs(_seqs4, moltype=DNA)
     seqs5 = make_unaligned_seqs(_seqs5, moltype=PROTEIN)
 
+    def test_init(self):
+        """tests if fast_slow_dist can be initialised correctly"""
+
+        fast_slow_dist = dist_app.fast_slow_dist()
+        self.assertIsInstance(fast_slow_dist.fast_calc, HammingPair)
+        self.assertIsNone(fast_slow_dist.slow_calc)
+        fast_slow_dist = dist_app.fast_slow_dist(
+            distance=None, fast_calc=None, slow_calc=None
+        )
+        self.assertIsInstance(fast_slow_dist.fast_calc, HammingPair)
+        self.assertIsNone(fast_slow_dist.slow_calc)
+
+        fast_slow_dist = dist_app.fast_slow_dist(distance=None)
+        self.assertIsInstance(fast_slow_dist.fast_calc, HammingPair)
+        self.assertIsNone(fast_slow_dist.slow_calc)
+        fast_slow_dist = dist_app.fast_slow_dist(distance="TN93")
+        self.assertIsInstance(fast_slow_dist.fast_calc, TN93Pair)
+        self.assertIsNone(fast_slow_dist.slow_calc)
+        fast_slow_dist = dist_app.fast_slow_dist(distance="GTR")
+        self.assertIsInstance(fast_slow_dist.fast_calc, HammingPair)
+        self.assertIsNone(fast_slow_dist.slow_calc)
+        fast_slow_dist = dist_app.fast_slow_dist(distance="hamming")
+        self.assertIsInstance(fast_slow_dist.fast_calc, HammingPair)
+        self.assertIsNone(fast_slow_dist.slow_calc)
+
+        fast_slow_dist = dist_app.fast_slow_dist(fast_calc=None)
+        self.assertIsInstance(fast_slow_dist.fast_calc, HammingPair)
+        self.assertIsNone(fast_slow_dist.slow_calc)
+        fast_slow_dist = dist_app.fast_slow_dist(fast_calc="hamming")
+        self.assertIsInstance(fast_slow_dist.fast_calc, HammingPair)
+        self.assertIsNone(fast_slow_dist.slow_calc)
+        fast_slow_dist = dist_app.fast_slow_dist(fast_calc="TN93")
+        self.assertIsInstance(fast_slow_dist.fast_calc, TN93Pair)
+        self.assertIsNone(fast_slow_dist.slow_calc)
+
+        fast_slow_dist = dist_app.fast_slow_dist(slow_calc=None)
+        self.assertIsInstance(fast_slow_dist.fast_calc, HammingPair)
+        self.assertIsNone(fast_slow_dist.slow_calc)
+        fast_slow_dist = dist_app.fast_slow_dist(slow_calc="GTR")
+        self.assertEqual(fast_slow_dist.slow_calc, "GTR")
+        self.assertIsInstance(fast_slow_dist.fast_calc, HammingPair)
+        fast_slow_dist = dist_app.fast_slow_dist(slow_calc="TN93")
+        self.assertEqual(fast_slow_dist.slow_calc, "TN93")
+        self.assertIsInstance(fast_slow_dist.fast_calc, HammingPair)
+
+        with self.assertRaises(ValueError):
+            fast_slow_dist = dist_app.fast_slow_dist(
+                distance="TN93", fast_calc="TN93", slow_calc="TN93"
+            )
+
+        with self.assertRaises(ValueError):
+            fast_slow_dist = dist_app.fast_slow_dist(fast_calc="GTR")
+
+        with self.assertRaises(ValueError):
+            fast_slow_dist = dist_app.fast_slow_dist(slow_calc="hamming")
+
+    def test_compatible_parameters(self):
+        """tests if the input parameters are compatible with fast_slow_dist initialisation"""
+        fast_slow_dist = dist_app.fast_slow_dist(fast_calc="hamming")
+        fast_slow_dist = dist_app.fast_slow_dist(fast_calc="TN93")
+        fast_slow_dist = dist_app.fast_slow_dist(slow_calc="GTR")
+        fast_slow_dist = dist_app.fast_slow_dist(fast_calc="TN93")
+
+        with self.assertRaises(ValueError):
+            fast_slow_dist = dist_app.fast_slow_dist(slow_calc="hamming")
+        with self.assertRaises(ValueError):
+            fast_slow_dist = dist_app.fast_slow_dist(fast_calc="GTR")
+
     def test_composable_apps(self):
+        """tests two composable apps"""
         composable_apps = _get_all_composable_apps()
         fast_slow_dist = dist_app.fast_slow_dist()
         for app in composable_apps:
             # Compose two composable applications, there should not be exceptions.
             got = app + fast_slow_dist
-            self.assertIsInstance(got, dist.fast_slow_dist)
+            self.assertIsInstance(got, dist_app.fast_slow_dist)
             self.assertEqual(got._type, "distance")
             self.assertIs(got.input, app)
             self.assertIs(got.output, None)
-            self.assertIsInstance(got._input_type, frozenset)
-            self.assertIsInstance(got._output_type, frozenset)
+            self.assertIsInstance(got._input_types, frozenset)
+            self.assertIsInstance(got._output_types, frozenset)
             self.assertIs(got._in, app)
             self.assertIs(got._out, None)
             app.disconnect()
             fast_slow_dist.disconnect()
 
-    def test_est_dist_pair(self):
+    def test_est_dist_pair_slow(self):
         """tests the distance between seq pairs in aln"""
 
         aligner = align.align_to_ref()
         aln3 = aligner(self.seqs3)
-        fast_slow_dist = dist_app.fast_slow_dist()
-        got = fast_slow_dist._est_dist_pair(aln3)
-        self.assertAlmostEqual(got, 0.161372, places=6)
+        fast_slow_dist = dist_app.fast_slow_dist(slow_calc="GTR")
+        got = fast_slow_dist(aln3).todict()
+        assert_allclose(got[("Human", "Mouse")], 4.0)
+        assert_allclose(got[("Mouse", "Human")], 4.0)
+        fast_slow_dist = dist_app.fast_slow_dist(slow_calc="TN93")
+        got = fast_slow_dist(aln3).todict()
+        assert_allclose(got[("Human", "Mouse")], 4.0)
+        assert_allclose(got[("Mouse", "Human")], 4.0)
 
         aligner = align.align_to_ref(ref_seq="Human")
         aln3 = aligner(self.seqs3)
-        fast_slow_dist = dist_app.fast_slow_dist()
-        got = fast_slow_dist._est_dist_pair(aln3)
-        self.assertAlmostEqual(got, 0.161224, places=6)
+        fast_slow_dist = dist_app.fast_slow_dist(slow_calc="GTR")
+        got = fast_slow_dist(aln3).todict()
+        assert_allclose(got[("Human", "Mouse")], 4.0)
+        assert_allclose(got[("Mouse", "Human")], 4.0)
+        fast_slow_dist = dist_app.fast_slow_dist(slow_calc="TN93")
+        got = fast_slow_dist(aln3).todict()
+        assert_allclose(got[("Human", "Mouse")], 4.0)
+        assert_allclose(got[("Mouse", "Human")], 4.0)
 
         aligner = align.align_to_ref(ref_seq="Mouse")
         aln3 = aligner(self.seqs3)
-        fast_slow_dist = dist_app.fast_slow_dist()
-        got = fast_slow_dist._est_dist_pair(aln3)
-        self.assertAlmostEqual(got, 0.161372, places=6)
+        fast_slow_dist = dist_app.fast_slow_dist(slow_calc="GTR")
+        got = fast_slow_dist(aln3).todict()
+        assert_allclose(got[("Human", "Mouse")], 4.0)
+        assert_allclose(got[("Mouse", "Human")], 4.0)
+        fast_slow_dist = dist_app.fast_slow_dist(slow_calc="TN93")
+        got = fast_slow_dist(aln3).todict()
+        assert_allclose(got[("Human", "Mouse")], 4.0)
+        assert_allclose(got[("Mouse", "Human")], 4.0)
 
         aligner = align.align_to_ref()
-        aln4 = aligner(self.seqs4)
-        fast_slow_dist = dist_app.fast_slow_dist()
-        got = fast_slow_dist._est_dist_pair(aln4)
-        self.assertAlmostEqual(got, 0.591988, places=6)
+        aln3 = aligner(self.seqs4)
+        fast_slow_dist = dist_app.fast_slow_dist(slow_calc="GTR")
+        got = fast_slow_dist(aln3).todict()
+        assert_allclose(got[("Human", "Opossum")], 12.0)
+        assert_allclose(got[("Opossum", "Human")], 12.0)
+        fast_slow_dist = dist_app.fast_slow_dist(slow_calc="TN93")
+        got = fast_slow_dist(aln3).todict()
+        assert_allclose(got[("Human", "Opossum")], 12.0)
+        assert_allclose(got[("Opossum", "Human")], 12.0)
+
+        aligner = align.align_to_ref(ref_seq="Human")
+        aln3 = aligner(self.seqs4)
+        fast_slow_dist = dist_app.fast_slow_dist(slow_calc="GTR")
+        got = fast_slow_dist(aln3).todict()
+        assert_allclose(got[("Human", "Opossum")], 12.0)
+        assert_allclose(got[("Opossum", "Human")], 12.0)
+        fast_slow_dist = dist_app.fast_slow_dist(slow_calc="TN93")
+        got = fast_slow_dist(aln3).todict()
+        assert_allclose(got[("Human", "Opossum")], 12.0)
+        assert_allclose(got[("Opossum", "Human")], 12.0)
+
+        aligner = align.align_to_ref(ref_seq="Opossum")
+        aln3 = aligner(self.seqs4)
+        fast_slow_dist = dist_app.fast_slow_dist(slow_calc="GTR")
+        got = fast_slow_dist(aln3).todict()
+        assert_allclose(got[("Human", "Opossum")], 12.0)
+        assert_allclose(got[("Opossum", "Human")], 12.0)
+        fast_slow_dist = dist_app.fast_slow_dist(slow_calc="TN93")
+        got = fast_slow_dist(aln3).todict()
+        assert_allclose(got[("Human", "Opossum")], 12.0)
+        assert_allclose(got[("Opossum", "Human")], 12.0)
 
         treestring = "(Human, Bandicoot)"
         aligner = align.progressive_align(model="WG01", guide_tree=treestring)
         aln5 = aligner(self.seqs5)
-        fast_slow_dist = dist_app.fast_slow_dist(
-            distance="paralinear", moltype="protein"
-        )
-        with self.assertRaises(AttributeError):
-            got = fast_slow_dist._est_dist_pair(aln5)
-        fast_slow_dist = dist_app.fast_slow_dist(distance="hamming", moltype="protein")
-        with self.assertRaises(AttributeError):
-            got = fast_slow_dist._est_dist_pair(aln5)
+        fast_slow_dist = dist_app.fast_slow_dist(moltype="protein", slow_calc="GTR")
+        got = fast_slow_dist(aln5).todict()
+        assert_allclose(got[("Human", "Bandicoot")], 5.0)
+        assert_allclose(got[("Bandicoot", "Human")], 5.0)
+        fast_slow_dist = dist_app.fast_slow_dist(moltype="protein", slow_calc="TN93")
+        got = fast_slow_dist(aln5).todict()
+        assert_allclose(got[("Human", "Bandicoot")], 5.0)
+        assert_allclose(got[("Bandicoot", "Human")], 5.0)
 
 
 if __name__ == "__main__":
