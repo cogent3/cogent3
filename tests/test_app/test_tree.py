@@ -60,7 +60,7 @@ class TestTree(TestCase):
             os.path.abspath(__file__).split("test_app")[0], "data/brca1_5.paml"
         )
         aln = load_aligned_seqs(path, moltype=DNA)
-        fast_slow_dist = dist.fast_slow_dist()
+        fast_slow_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
         dist_matrix = fast_slow_dist(aln)
         quick1 = tree_app.quick_tree()
         tree1 = quick1.quick_tree(dist_matrix)
@@ -72,7 +72,7 @@ class TestTree(TestCase):
             os.path.abspath(__file__).split("test_app")[0], "data/brca1_5.paml"
         )
         aln1 = load_aligned_seqs(path, moltype=DNA)
-        fast_slow_dist = dist.fast_slow_dist()
+        fast_slow_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
         quick = tree_app.quick_tree(drop_invalid=False)
         proc = fast_slow_dist + quick
         self.assertEqual(

@@ -1,9 +1,9 @@
 from cogent3 import make_tree
 from cogent3.align import global_pairwise, make_dna_scoring_dict
 from cogent3.align.progressive import TreeAlign
+from cogent3.app import dist
 from cogent3.core.alignment import ArrayAlignment
 from cogent3.core.moltype import get_moltype
-from cogent3.app import dist
 from cogent3.evolve.models import get_model, protein_models
 
 from .composable import ComposableSeq, NotCompleted
@@ -134,7 +134,7 @@ class progressive_align(ComposableSeq):
         unique_guides=False,
         indel_length=1e-1,
         indel_rate=1e-10,
-        distance="hamming"
+        distance="hamming",
     ):
         """
         Parameters
@@ -202,7 +202,9 @@ class progressive_align(ComposableSeq):
             guide_tree = None  # callback takes precedence
         else:
             al_to_ref = align_to_ref(moltype=self._moltype)
-            dist_calc = dist.fast_slow_dist(distance=self._distance, moltype=self._moltype)
+            dist_calc = dist.fast_slow_dist(
+                distance=self._distance, moltype=self._moltype
+            )
             est_tree = quick_tree()
             self._make_tree = al_to_ref + dist_calc + est_tree
 
