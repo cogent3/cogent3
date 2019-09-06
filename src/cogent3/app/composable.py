@@ -131,12 +131,33 @@ class NotCompleted(int):
 
 class ComposableType:
     _type = None
-    _input_type = None
-    _output_type = None
-    _data_types = frozenset()
+
+    def __init__(self, input_types=None, output_types=None, data_types=None):
+        """
+        Parameters
+        ----------
+        input_types
+            Allowed input types
+        output_types
+            Types of output
+        """
+        input_types = [] if input_types is None else input_types
+        output_types = [] if output_types is None else output_types
+        data_types = [] if data_types is None else data_types
+
+        if type(input_types) == str:
+            input_types = [input_types]
+        if type(output_types) == str:
+            output_types = [output_types]
+        if type(data_types) == str:
+            data_types = [data_types]
+
+        self._input_types = frozenset(input_types)
+        self._output_types = frozenset(output_types)
+        self._data_types = frozenset(data_types)
 
     def compatible_input(self, other):
-        result = other._output_type & self._input_type
+        result = other._output_types & self._input_types
         return result != set()
 
     def _validate_data_type(self, data):
@@ -158,8 +179,8 @@ class ComposableType:
 
 
 class Composable(ComposableType):
-    def __init__(self):
-        super(Composable, self).__init__()
+    def __init__(self, **kwargs):
+        super(Composable, self).__init__(**kwargs)
         self.func = None  # over-ride in subclass
         self._in = None  # input rules
         self._out = None  # rules receiving output
@@ -228,9 +249,9 @@ class Composable(ComposableType):
         if not other.compatible_input(self):
             msg = '%s() requires input type "%s", %s() produces "%s"'
             my_name = self.__class__.__name__
-            my_output = self._output_type
+            my_output = self._output_types
             their_name = other.__class__.__name__
-            their_input = other._input_type
+            their_input = other._input_types
             msg = msg % (their_name, their_input, my_name, my_output)
             raise TypeError(msg)
         self.output = other
@@ -460,43 +481,44 @@ class Composable(ComposableType):
 class ComposableTabular(Composable):
     _type = "tabular"
 
-    def __init__(self):
-        super(ComposableTabular, self).__init__()
+    def __init__(self, **kwargs):
+        super(ComposableTabular, self).__init__(**kwargs)
 
 
 class ComposableSeq(Composable):
+
     _type = "sequences"
 
-    def __init__(self):
-        super(ComposableSeq, self).__init__()
+    def __init__(self, **kwargs):
+        super(ComposableSeq, self).__init__(**kwargs)
 
 
 class ComposableAligned(Composable):
     _type = "aligned"
 
-    def __init__(self):
-        super(ComposableAligned, self).__init__()
+    def __init__(self, **kwargs):
+        super(ComposableAligned, self).__init__(**kwargs)
 
 
 class ComposableTree(Composable):
     _type = "tree"
 
-    def __init__(self):
-        super(ComposableTree, self).__init__()
+    def __init__(self, **kwargs):
+        super(ComposableTree, self).__init__(**kwargs)
 
 
 class ComposableModel(Composable):
     _type = "model"
 
-    def __init__(self):
-        super(ComposableModel, self).__init__()
+    def __init__(self, **kwargs):
+        super(ComposableModel, self).__init__(**kwargs)
 
 
 class ComposableHypothesis(Composable):
     _type = "hypothesis"
 
-    def __init__(self):
-        super(ComposableHypothesis, self).__init__()
+    def __init__(self, **kwargs):
+        super(ComposableHypothesis, self).__init__(**kwargs)
 
 
 class _seq_loader:
@@ -519,7 +541,7 @@ class _seq_loader:
             else:
                 seqs = make_unaligned_seqs(data, moltype=self.moltype)
 
-        if self._output_type == "sequence":
+        if self._output_types == "sequence":
             seqs = seqs.degap()
 
         return seqs
@@ -534,6 +556,7 @@ class _checkpointable(Composable):
         if_exists=SKIP,
         suffix=None,
         writer_class=None,
+        **kwargs,
     ):
         """
         Parameters
@@ -551,7 +574,7 @@ class _checkpointable(Composable):
         writer_class : type
             constructor for writer
         """
-        super(_checkpointable, self).__init__()
+        super(_checkpointable, self).__init__(**kwargs)
         self._formatted_params()
 
         self._checkpointable = True

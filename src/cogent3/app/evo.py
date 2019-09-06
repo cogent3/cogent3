@@ -34,10 +34,6 @@ class model(ComposableModel):
     """Define a substitution model + tree for maximum likelihood evaluation.
     Returns model_result."""
 
-    _input_type = frozenset(["aligned"])
-    _output_type = frozenset(["result", "model_result", "serialisable"])
-    _data_types = frozenset(["ArrayAlignment", "Alignment"])
-
     def __init__(
         self,
         sm,
@@ -95,7 +91,11 @@ class model(ComposableModel):
         with the optimised likelihood function. In the case of split_codons,
         the result object has a separate entry for each.
         """
-        super(model, self).__init__()
+        super(model, self).__init__(
+            input_types="aligned",
+            output_types=("result", "model_result", "serialisable"),
+            data_types=("ArrayAlignment", "Alignment"),
+        )
         self._verbose = verbose
         self._formatted_params()
         sm_args = sm_args or {}
@@ -235,13 +235,13 @@ class hypothesis(ComposableHypothesis):
     """Specify a hypothesis through defining two models. Returns a
     hypothesis_result."""
 
-    _input_type = frozenset(["aligned"])
-    _output_type = frozenset(["result", "hypothesis_result", "serialisable"])
-    _data_types = frozenset(["ArrayAlignment", "Alignment"])
-
     def __init__(self, null, *alternates, init_alt=None):
         # todo document! init_alt needs to be able to take null, alt and *args
-        super(hypothesis, self).__init__()
+        super(hypothesis, self).__init__(
+            input_types="aligned",
+            output_types=("result", "hypothesis_result", "serialisable"),
+            data_types=("ArrayAlignment", "Alignment"),
+        )
         self._formatted_params()
         self.null = null
         names = {a.name for a in alternates}
@@ -295,12 +295,12 @@ class hypothesis(ComposableHypothesis):
 class bootstrap(ComposableHypothesis):
     """Parametric bootstrap for a provided hypothesis. Returns a bootstrap_result."""
 
-    _input_type = frozenset(["aligned"])
-    _output_type = frozenset(["result", "bootstrap_result", "serialisable"])
-    _data_types = frozenset(["ArrayAlignment", "Alignment"])
-
     def __init__(self, hyp, num_reps, verbose=False):
-        super(bootstrap, self).__init__()
+        super(bootstrap, self).__init__(
+            input_types="aligned",
+            output_types=("result", "bootstrap_result", "serialisable"),
+            data_types=("ArrayAlignment", "Alignment"),
+        )
         self._formatted_params()
         self._hyp = hyp
         self._num_reps = num_reps
@@ -341,8 +341,8 @@ class bootstrap(ComposableHypothesis):
 
 
 class ancestral_states(ComposableTabular):
-    _input_type = frozenset(["model_result"])
-    _output_type = frozenset(["result", "tabular_result", "serialisable"])
+    _input_types = frozenset(["model_result"])
+    _output_types = frozenset(["result", "tabular_result", "serialisable"])
     _data_types = frozenset(["model_result"])
 
     def __init__(self):
@@ -368,8 +368,8 @@ class ancestral_states(ComposableTabular):
 class tabulate_stats(ComposableTabular):
     """Extracts all model statistics from model_result as Table."""
 
-    _input_type = frozenset(["model_result"])
-    _output_type = frozenset(["result", "tabular_result", "serialisable"])
+    _input_types = frozenset(["model_result"])
+    _output_types = frozenset(["result", "tabular_result", "serialisable"])
     _data_types = frozenset(["model_result"])
 
     def __init__(self):

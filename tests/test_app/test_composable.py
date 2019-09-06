@@ -45,14 +45,14 @@ class TestCheckpoint(TestCase):
             self.assertTrue(len(got) > 1000)
 
 
-ComposableSeq._input_type = ComposableSeq._output_type = set([None])
+ComposableSeq._input_types = ComposableSeq._output_types = set([None])
 
 
 class TestComposableBase(TestCase):
     def test_composable(self):
         """correctly form string"""
-        aseqfunc1 = ComposableSeq()
-        aseqfunc2 = ComposableSeq()
+        aseqfunc1 = ComposableSeq(input_types="sequences", output_types="sequences")
+        aseqfunc2 = ComposableSeq(input_types="sequences", output_types="sequences")
         comb = aseqfunc1 + aseqfunc2
         expect = "ComposableSeq(type='sequences') + " "ComposableSeq(type='sequences')"
         got = str(comb)
@@ -60,22 +60,22 @@ class TestComposableBase(TestCase):
 
     def test_composables_once(self):
         """composables can only be used in a single composition"""
-        aseqfunc1 = ComposableSeq()
-        aseqfunc2 = ComposableSeq()
+        aseqfunc1 = ComposableSeq(input_types="sequences", output_types="sequences")
+        aseqfunc2 = ComposableSeq(input_types="sequences", output_types="sequences")
         comb = aseqfunc1 + aseqfunc2
         with self.assertRaises(AssertionError):
-            aseqfunc3 = ComposableSeq()
+            aseqfunc3 = ComposableSeq(input_types="sequences", output_types="sequences")
             comb2 = aseqfunc1 + aseqfunc3
         # the other order
         with self.assertRaises(AssertionError):
-            aseqfunc3 = ComposableSeq()
+            aseqfunc3 = ComposableSeq(input_types="sequences", output_types="sequences")
             comb2 = aseqfunc3 + aseqfunc2
 
     def test_disconnect(self):
         """disconnect breaks all connections and allows parts to be reused"""
-        aseqfunc1 = ComposableSeq()
-        aseqfunc2 = ComposableSeq()
-        aseqfunc3 = ComposableSeq()
+        aseqfunc1 = ComposableSeq(input_types="sequences", output_types="sequences")
+        aseqfunc2 = ComposableSeq(input_types="sequences", output_types="sequences")
+        aseqfunc3 = ComposableSeq(input_types="sequences", output_types="sequences")
         comb = aseqfunc1 + aseqfunc2 + aseqfunc3
         comb.disconnect()
         self.assertEqual(aseqfunc1.input, None)

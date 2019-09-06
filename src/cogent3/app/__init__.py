@@ -33,10 +33,10 @@ def available_apps():
             if obj.__module__ == mod.__name__:
                 is_composable = issubclass(obj, Composable)
                 in_type = [
-                    {None: ""}.get(e, e) for e in getattr(obj, "_input_type", [])
+                    {None: ""}.get(e, e) for e in getattr(obj, "_input_types", [])
                 ]
                 out_type = [
-                    {None: ""}.get(e, e) for e in getattr(obj, "_output_type", [])
+                    {None: ""}.get(e, e) for e in getattr(obj, "_output_types", [])
                 ]
                 data_type = [
                     {None: ""}.get(e, e) for e in getattr(obj, "_data_types", [])
