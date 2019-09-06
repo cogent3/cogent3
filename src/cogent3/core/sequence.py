@@ -1315,28 +1315,6 @@ class ArraySequenceBase(object):
         """Checks that no items in self are out of the alphabet range."""
         return self._data == self._data.clip(0, len(self.alphabet) - 1)
 
-    def to_k_words(self, k, overlapping=True):
-        """Turns sequence into sequence of its k-words.
-
-        Just returns array, not Sequence object."""
-        alpha_len = len(self.alphabet)
-        seq = self._data
-        seq_len = len(seq)
-        if overlapping:
-            num_words = seq_len - k + 1
-        else:
-            num_words, remainder = divmod(seq_len, k)
-            last_index = num_words * k
-        result = zeros(num_words)
-        for i in range(k):
-            if overlapping:
-                curr_slice = seq[i : i + num_words]
-            else:
-                curr_slice = seq[i : last_index + i : k]
-            result *= alpha_len
-            result += curr_slice
-        return result
-
     def __iter__(self):
         """iter returns characters of self, rather than slices."""
         if hasattr(self.alphabet, "to_string"):
