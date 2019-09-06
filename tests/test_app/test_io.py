@@ -8,6 +8,8 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 from unittest.mock import Mock, patch
 
+import numpy
+
 from cogent3 import DNA
 from cogent3.app import io as io_app
 from cogent3.app.composable import NotCompleted
@@ -16,6 +18,7 @@ from cogent3.app.io import write_db
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.evolve.fast_distance import DistanceMatrix
+from cogent3.maths.util import safe_log
 from cogent3.util.table import Table
 
 
@@ -306,13 +309,15 @@ class TestIo(TestCase):
         """correctly writes tabular data for PSSM"""
 
         # data from test_profile
-        data = [
-            [0.1, 0.3, 0.5, 0.1],
-            [0.25, 0.25, 0.25, 0.25],
-            [0.05, 0.8, 0.05, 0.1],
-            [0.7, 0.1, 0.1, 0.1],
-            [0.6, 0.15, 0.05, 0.2],
-        ]
+        data = numpy.array(
+            [
+                [0.1, 0.3, 0.5, 0.1],
+                [0.25, 0.25, 0.25, 0.25],
+                [0.05, 0.8, 0.05, 0.1],
+                [0.7, 0.1, 0.1, 0.1],
+                [0.6, 0.15, 0.05, 0.2],
+            ]
+        )
         pssm = PSSM(data, "ACTG")
         loader = io_app.load_tabular(sep="\t")
         with TemporaryDirectory(dir=".") as dirname:
@@ -320,32 +325,12 @@ class TestIo(TestCase):
             outpath = join(dirname, "delme.tsv")
             writer.write(pssm, identifier=outpath)
             new = loader(outpath)
-            # when written to file in tabular form
-            # the loaded table will have dim-1 dim-2 as column labels
-            # and the key-values pairs listed below; in dict form...
-            expected = {
-                0: {"dim-1": 0, "dim-2": "A", "value": -1.3219},
-                1: {"dim-1": 0, "dim-2": "C", "value": 0.2630},
-                2: {"dim-1": 0, "dim-2": "T", "value": 1.0000},
-                3: {"dim-1": 0, "dim-2": "G", "value": -1.3219},
-                4: {"dim-1": 1, "dim-2": "A", "value": 0.0000},
-                5: {"dim-1": 1, "dim-2": "C", "value": 0.0000},
-                6: {"dim-1": 1, "dim-2": "T", "value": 0.0000},
-                7: {"dim-1": 1, "dim-2": "G", "value": 0.0000},
-                8: {"dim-1": 2, "dim-2": "A", "value": -2.3219},
-                9: {"dim-1": 2, "dim-2": "C", "value": 1.6781},
-                10: {"dim-1": 2, "dim-2": "T", "value": -2.3219},
-                11: {"dim-1": 2, "dim-2": "G", "value": -1.3219},
-                12: {"dim-1": 3, "dim-2": "A", "value": 1.4854},
-                13: {"dim-1": 3, "dim-2": "C", "value": -1.3219},
-                14: {"dim-1": 3, "dim-2": "T", "value": -1.3219},
-                15: {"dim-1": 3, "dim-2": "G", "value": -1.3219},
-                16: {"dim-1": 4, "dim-2": "A", "value": 1.2630},
-                17: {"dim-1": 4, "dim-2": "C", "value": -0.7370},
-                18: {"dim-1": 4, "dim-2": "T", "value": -2.3219},
-                19: {"dim-1": 4, "dim-2": "G", "value": -0.3219},
-            }
-            self.assertEqual(expected, new.todict())
+            expected = safe_log(data) - safe_log(numpy.array([0.25, 0.25, 0.25, 0.25]))
+            for i in range(len(expected)):
+                j = i // 4
+                self.assertTrue(
+                    numpy.isclose(new.array[i][2], expected[j][i - j], atol=0.0001)
+                )
 
     def test_write_tabular_distance_matrix(self):
         """correctly writes tabular data for DistanceMatrix"""
@@ -371,6 +356,76 @@ class TestIo(TestCase):
         rows = [[1, 2], [3, 4], [5, 6.5]]
         table = Table(["A", "B"], rows=rows)
         loader = io_app.load_tabular(sep="\t")
+        with TemporaryDirectory(dir=".") as dirname:
+            writer = io_app.write_tabular(data_path=dirname, format="tsv")
+            outpath = join(dirname, "delme.tsv")
+            writer.write(table, identifier=outpath)
+            new = loader(outpath)
+            self.assertEqual(table.todict(), new.todict())
+
+    def test_load_tabular_motif_counts_array(self):
+        """correctly writes tabular data for MotifCountsArray"""
+
+        data = [[2, 4], [3, 5], [4, 8]]
+        mca = MotifCountsArray(data, "AB")
+        loader = io_app.load_tabular(sep="\t", as_type="motif_counts")
+        with TemporaryDirectory(dir=".") as dirname:
+            writer = io_app.write_tabular(data_path=dirname, format="tsv")
+            outpath = join(dirname, "delme.tsv")
+            writer.write(mca, identifier=outpath)
+            new = loader(outpath)
+            self.assertEqual(mca.todict(), new.todict())
+
+    def test_load_tabular_motif_freqs_array(self):
+        """correctly writes tabular data for MotifFreqsArray"""
+
+        data = [[0.3333, 0.6667], [0.3750, 0.625], [0.3333, 0.6667]]
+        mfa = MotifFreqsArray(data, "AB")
+        loader = io_app.load_tabular(sep="\t", as_type="motif_freqs")
+        with TemporaryDirectory(dir=".") as dirname:
+            writer = io_app.write_tabular(data_path=dirname, format="tsv")
+            outpath = join(dirname, "delme.tsv")
+            writer.write(mfa, identifier=outpath)
+            new = loader(outpath)
+            self.assertEqual(mfa.todict(), new.todict())
+
+    def test_load_tabular_pssm(self):
+        """correctly writes tabular data for PSSM"""
+
+        # data from test_profile
+        data = [
+            [0.1, 0.3, 0.5, 0.1],
+            [0.25, 0.25, 0.25, 0.25],
+            [0.05, 0.8, 0.05, 0.1],
+            [0.7, 0.1, 0.1, 0.1],
+            [0.6, 0.15, 0.05, 0.2],
+        ]
+        pssm = PSSM(data, "ACTG")
+        loader = io_app.load_tabular(sep="\t", as_type="pssm")
+        with TemporaryDirectory(dir=".") as dirname:
+            writer = io_app.write_tabular(data_path=dirname, format="tsv")
+            outpath = join(dirname, "delme.tsv")
+            writer.write(pssm, identifier=outpath)
+            new = loader(outpath)
+            self.assertEqual(pssm.todict(), new.todict())
+
+    def test_load_tabular_distance_matrix(self):
+        """correctly writes tabular data for DistanceMatrix"""
+        data = {(0, 0): 0, (0, 1): 4, (1, 0): 4, (1, 1): 0}
+        matrix = DistanceMatrix(data)
+        loader = io_app.load_tabular(sep="\t", as_type="distances")
+        with TemporaryDirectory(dir=".") as dirname:
+            writer = io_app.write_tabular(data_path=dirname, format="tsv")
+            outpath = join(dirname, "delme.tsv")
+            writer.write(matrix, identifier=outpath)
+            new = loader(outpath)
+            self.assertEqual(matrix.todict(), new.todict())
+
+    def test_load_tabular_table(self):
+        """correctly writes tabular data"""
+        rows = [[1, 2], [3, 4], [5, 6.5]]
+        table = Table(["A", "B"], rows=rows)
+        loader = io_app.load_tabular(sep="\t", as_type="table")
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_tabular(data_path=dirname, format="tsv")
             outpath = join(dirname, "delme.tsv")
