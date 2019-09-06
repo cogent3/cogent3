@@ -646,6 +646,8 @@ def get_calculator(name, *args, **kwargs):
 
     name is converted to lower case"""
     name = name.lower()
+    if "moltype" in kwargs and kwargs.get("moltype") is None:
+        kwargs.pop("moltype")
     if name not in _calculators:
         raise ValueError('Unknown pairwise distance calculator "%s"' % name)
 

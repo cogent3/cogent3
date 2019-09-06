@@ -16,62 +16,58 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
-_calculators = {
-    "fast_calculators": ["hamming"],
-    "slow_calculators": ["gtr"],
-    "fast_and_slow_calculators": ["tn93"],
-}
-
 
 class fast_slow_dist(ComposableDistance):
     """Pairwise distance calculation. Uses fast (but less
     numerically robust) approach where possible, slow (robust)
     approach when not. Returns a DistanceMatrix."""
 
-    def __init__(self, distance=None, moltype="dna", fast_calc=None, slow_calc=None):
-        super(fast_slow_dist, self).__init__(input_types="aligned",
-                                             output_types=("pairwise_distances", "serialisable"),
-                                             data_types=("ArrayAlignment", "Alignment"))
-        self._moltype = get_moltype(moltype)
+    def __init__(self, distance=None, moltype=None, fast_calc=None, slow_calc=None):
+        super(fast_slow_dist, self).__init__(
+            input_types="aligned",
+            output_types=("pairwise_distances", "serialisable"),
+            data_types=("ArrayAlignment", "Alignment"),
+        )
+        self._moltype = moltype if moltype is None else get_moltype(moltype)
         self._sm = None
-
-        if distance is None and fast_calc is None:
-            fast_calc = "hamming"
 
         if (fast_calc or slow_calc) and distance:
             raise ValueError("cannot combine distance and fast/slow")
 
-        if (
-            fast_calc
-            and fast_calc.lower()
-            not in _calculators["fast_calculators"]
-            + _calculators["fast_and_slow_calculators"]
-        ):
-            raise ValueError("%s is not a fast calculator" % fast_calc)
+        if distance:
+            fast_calc = distance
+            slow_calc = distance
 
-        if (
-            slow_calc
-            and slow_calc.lower()
-            not in _calculators["slow_calculators"]
-            + _calculators["fast_and_slow_calculators"]
-        ):
-            raise ValueError("%s is not a slow calculator" % slow_calc)
+        d = set(["hamming", "paralinear", "logdet"]) & set([slow_calc, fast_calc])
+        if d and not self._moltype:
+            raise ValueError(f"you must provide a moltype for {d}")
 
         try:
-            fast_calc = get_calculator(distance, moltype)
+            fast_calc = get_calculator(fast_calc, moltype=self._moltype)
         except (ValueError, AttributeError):
-            self.fast_calc = None
+            fast_calc = None
 
         try:
-            self._sm = get_model(distance)
+            slow_calc = get_model(slow_calc)
         except ValueError:
-            self._sm = None
-            self.slow_calc = None
+            slow_calc = None
 
-        if type(fast_calc) is str:
-            fast_calc = get_calculator(fast_calc, moltype)
-        self.fast_calc = fast_calc if fast_calc else get_calculator("hamming", moltype)
-        self.slow_calc = slow_calc
+        if not (fast_calc or slow_calc):
+            raise ValueError(f"invalid values for {slow_calc} or {fast_calc}")
+
+        self.fast_calc = fast_calc
+        if fast_calc and self._moltype and fast_calc.moltype != self._moltype:
+            raise ValueError(
+                f"{self._moltype} incompatible moltype with fast calculator {fast_calc.moltype}"
+            )
+        elif fast_calc:
+            self._moltype = fast_calc.moltype
+
+        if slow_calc and self._moltype and slow_calc.moltype != self._moltype:
+            raise ValueError("incompatible moltype with slow calculator")
+        elif slow_calc:
+            self._moltype = slow_calc.moltype
+        self._sm = slow_calc
 
     def _est_dist_pair_slow(self, aln):
         """returns distance between seq pairs in aln"""
@@ -92,7 +88,7 @@ class fast_slow_dist(ComposableDistance):
         else:
             empty = {p: 0 for p in itertools.product(aln.names, aln.names)}
             dists = DistanceMatrix(empty)
-        if self.slow_calc:
+        if self._sm:
             for a in dists.template.names[0]:
                 for b in dists.template.names[1]:
                     if not dists[a, b] and a != b:

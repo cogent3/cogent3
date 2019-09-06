@@ -3,6 +3,7 @@ from cogent3.phylo.nj import gnj
 
 from .composable import ComposableTree
 
+
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
