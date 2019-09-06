@@ -183,9 +183,21 @@ class TreeGeometryBase(PhyloNode):
     def depth(self):
         return self.params["depth"]
 
-    def get_segment_to_parent(self, children):
+    def get_segment_to_parent(self):
         """returns (self.start, self.end)"""
-        return self.start, self.end
+        if self.is_root():
+            return ((None, None),)
+
+        segment_start = self.parent.get_segment_to_child(self)
+        if isinstance(segment_start, list):
+            result = segment_start + [(None, None), self.start, self.end]
+        else:
+            result = segment_start, self.start, (None, None), self.start, self.end
+        return tuple(result)
+
+    def get_segment_to_child(self, child):
+        """returns coordinates connecting a child to self and descendants"""
+        return self.end
 
     def value_and_coordinate(self, attr, padding=0.1, max_attr_length=None):
         """
@@ -252,14 +264,23 @@ class SquareTreeGeometry(TreeGeometryBase):
             self._y = val
         return self._y
 
-    # todo should there should be a single line connecting each parent to child?
-    def get_segment_to_children(self):
-        """returns coordinates connecting all children to self.end"""
-        # if tip needs to
-        ordered = list(sorted((c.y, c) for c in self.children))
-        a = ordered[0][1].start
-        b = ordered[-1][1].start
-        return a, b
+    def get_segment_to_child(self, child):
+        """returns coordinates connecting a child to self and descendants"""
+
+        if not hasattr(self, "_ordered"):
+            self._ordered = sorted(
+                [(c.y, c.start) for c in self.children] + [(self.y, self.end)]
+            )
+        ordered = self._ordered
+        dist = child.y - self.y
+        if np.allclose(dist, 0):
+            return self.end
+        if dist < 0:
+            result = ordered[ordered.index((child.y, child.start)) + 1][1]
+        else:
+            result = ordered[ordered.index((child.y, child.start)) - 1][1]
+
+        return result
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
     def value_and_coordinate(self, attr="name", padding=0.05, max_attr_length=None):
@@ -287,11 +308,6 @@ class _AngularGeometry:
         else:
             val = self.parent.end
         return val
-
-    def get_segment_to_children(self):
-        """returns coordinates connecting all children to self.end"""
-        # if tip needs to
-        return (self.end,)
 
 
 class AngularTreeGeometry(_AngularGeometry, SquareTreeGeometry):
@@ -378,20 +394,6 @@ class CircularTreeGeometry(TreeGeometryBase):
             val = polar_2_cartesian(self.theta, radius)
         return val
 
-    def get_segment_to_children(self):
-        """returns coordinates connecting all children to self.end"""
-        # if tip needs to
-        segment = []
-        added = False
-        for child in self.children:
-            if self.theta < child.theta and not added:
-                segment += [tuple(self.end)]
-                added = True
-
-            segment += [tuple(child.start)]
-
-        return segment
-
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
     def value_and_coordinate(self, attr="name", padding=0.05, max_attr_length=None):
         value = self.params.get(attr, None)
@@ -427,10 +429,45 @@ class CircularTreeGeometry(TreeGeometryBase):
         warn("Display of support on circular/radial not implemented yet", UserWarning)
         return None
 
+    def get_segment_to_child(self, child):
+        """returns coordinates connecting a child to self and descendants"""
+
+        if not hasattr(self, "_ordered"):
+            self._ordered = sorted(
+                [(c.theta, c.start) for c in self.children] + [(self.theta, self.end)]
+            )
+        ordered = self._ordered
+        dist = child.theta - self.theta
+        if np.allclose(dist, 0):
+            return self.end
+        if dist < 0:
+            neighbours = [
+                ordered[ordered.index((child.theta, child.start)) + 1],
+                (child.theta, child.start),
+            ]
+        else:
+            neighbours = [
+                ordered[ordered.index((child.theta, child.start)) - 1],
+                (child.theta, child.start),
+            ]
+
+        neighbours = sorted(neighbours)
+        result = [
+            polar_2_cartesian(theta, self.params["cum_length"])
+            for theta in np.arange(neighbours[0][0], neighbours[1][0], 5)
+        ]
+        result.append(neighbours[1][1])
+
+        return result
+
 
 class RadialTreeGeometry(_AngularGeometry, CircularTreeGeometry):
     def __init__(self, *args, **kwargs):
         super(RadialTreeGeometry, self).__init__(*args, **kwargs)
+
+    def get_segment_to_child(self, child):
+        """returns coordinates connecting a child to self and descendants"""
+        return self.end
 
 
 class Dendrogram(Drawable):
@@ -469,6 +506,7 @@ class Dendrogram(Drawable):
         self._label_pad = label_pad
         self._tip_font = UnionDict(size=12, family="Inconsolata, monospace")
         self._line_width = 2
+        self._marker_size = 6
         self._line_color = "black"
         self._scale_bar = "bottom left"
         self._edge_sets = {}
@@ -587,16 +625,22 @@ class Dendrogram(Drawable):
         grouped = {}
 
         tree = self.tree
-        text = {
-            "type": "scatter",
-            "text": [],
-            "x": [],
-            "y": [],
-            "hoverinfo": "text",
-            "mode": "markers",
-            "marker": {"symbol": "circle", "color": "black"},
-            "showlegend": False,
-        }
+        text = UnionDict(
+            {
+                "type": "scatter",
+                "text": [],
+                "x": [],
+                "y": [],
+                "hoverinfo": "text",
+                "mode": "markers",
+                "marker": {
+                    "symbol": "circle",
+                    "color": "black",
+                    "size": self._marker_size,
+                },
+                "showlegend": False,
+            }
+        )
         support_text = []
         get_edge_group = self._edge_mapping.get
         for edge in tree.preorder():
@@ -604,10 +648,10 @@ class Dendrogram(Drawable):
             if key not in grouped:
                 grouped[key] = defaultdict(list)
             group = grouped[key]
-            x0, y0 = edge.start
-            x1, y1 = edge.end
-            group["x"].extend([x0, x1, None])
-            group["y"].extend([y0, y1, None])
+            coords = edge.get_segment_to_parent()
+            xs, ys = list(zip(*coords))
+            group["x"].extend(xs + (None,))
+            group["y"].extend(ys + (None,))
 
             edge_label = edge.value_and_coordinate("name", padding=0)
             text["x"].append(edge_label.x)
@@ -620,27 +664,6 @@ class Dendrogram(Drawable):
                 if support is not None:
                     support |= UnionDict(xref="x", yref="y", font=self.tip_font)
                     support_text.append(support)
-
-            if edge.is_tip():
-                continue
-
-            child_groups = set(get_edge_group(c.name, None) for c in edge.children)
-            segment = []
-            for x, y in edge.get_segment_to_children():
-                segment += [(x, y)]
-            xs, ys = list(zip(*segment))
-            xs += (None,)
-            ys += (None,)
-            # todo this needs to be able to cope with children belonging to
-            # 2 different groups
-            if key not in child_groups:
-                # different affiliation
-                key = child_groups.pop()
-                if key not in grouped:
-                    grouped[key] = defaultdict(list)
-                group = grouped[key]
-            group["x"].extend(xs)
-            group["y"].extend(ys)
 
         traces = []
         for key in grouped:
@@ -840,6 +863,26 @@ class Dendrogram(Drawable):
     @line_width.setter
     def line_width(self, width):
         self._line_width = width
+        if self.traces:
+            setting = dict(width=width)
+            for trace in self.traces:
+                try:
+                    trace["line"] |= setting
+                except KeyError:
+                    pass
+
+    @property
+    def marker(self):
+        return self._marker_size
+
+    @marker.setter
+    def marker(self, size):
+        self._marker_size = size
+        if self.traces:
+            setting = dict(size=size)
+            for trace in self.traces:
+                if trace.get("mode", None) == "markers":
+                    trace["marker"] |= setting
 
     @property
     def fig_width(self):

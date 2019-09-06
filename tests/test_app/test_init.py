@@ -72,7 +72,7 @@ class TestAvalableApps(TestCase):
             (app1, app2)
             for app1 in applications
             for app2 in applications
-            if app1 != app2 and app1._output_type & app2._input_type != set()
+            if app1 != app2 and app1._output_types & app2._input_types != set()
         ]
 
         for composable_application_tuple in composable_application_tuples:
@@ -94,7 +94,7 @@ class TestAvalableApps(TestCase):
             (app1, app2)
             for app1 in applications
             for app2 in applications
-            if app1 != app2 and app1._output_type & app2._input_type == set()
+            if app1 != app2 and app1._output_types & app2._input_types == set()
         ]
 
         for incompatible_application_tuple in incompatible_application_tuples:

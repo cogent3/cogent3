@@ -63,19 +63,6 @@ class RefalignmentTests(TestCase):
         }
         self.assertEqual(aln.to_dict(), expect)
 
-    def test_model_distance_consistency(self):
-        test_distances = ["paralinear", "logdet", "jc69", "tn93", "hamming"]
-        test_models = filter(
-            lambda x: x not in test_distances, _nucleotide_models + _codon_models
-        )
-        self.assertEqual(set(test_models).intersection(set(test_distances)), set())
-        for test_model in test_models:
-            for test_distance in test_distances:
-                with self.assertRaises(ValueError):
-                    aligner = align_app.progressive_align(
-                        model=test_model, distance=test_distance
-                    )
-
     def test_progressive_align_nuc(self):
         """progressive alignment with nuc models"""
         aligner = align_app.progressive_align(model="TN93", distance="TN93")

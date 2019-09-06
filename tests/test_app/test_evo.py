@@ -173,7 +173,7 @@ class TestModel(TestCase):
             result.total_length(length_as="paralinear"), tree.total_length()
         )
 
-    def test_model_summed_branch_lengths(self):
+    def test_model_result_total_length(self):
         """returns summed branch lengths"""
         _data = {
             "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
@@ -195,6 +195,28 @@ class TestModel(TestCase):
             result.tree.total_length(),
             expect_tree.total_length(),
         )
+
+    def test_model_result_total_length_split_codon(self):
+        """returns summed branch lengths across positions when split_codons True"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        model1 = evo_app.model(
+            "GN",
+            split_codons=True,
+            opt_args=dict(max_evaluations=25, limit_action="ignore"),
+        )
+        result = model1(aln)
+        expect = 0.0
+        for lf in result.lf.values():
+            tree = lf.get_annotated_tree(length_as="ENS")
+            expect += tree.total_length()
+
+        got = result.total_length(length_as="ENS")
+        assert_allclose(got, expect)
 
 
 def _make_getter(val):

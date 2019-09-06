@@ -142,8 +142,6 @@ class model_result(generic_result):
         rows = [[""] + [getattr(self, attr) for attr in attrs]]
         if len(self) > 1:
             # we just add keys, lnL and nfp
-            padd = ["", ""]
-            attrs = ["lnL", "nfp"]
             for key in self:
                 row = [repr(key), self[key].lnL, self[key].nfp, "", ""]
                 rows.append(row)
@@ -177,16 +175,16 @@ class model_result(generic_result):
             DLC = lf.get("DLC")
             unique_Q = lf.get("unique_Q")
 
-        if self.lnL is not None:
-            self.DLC = all([DLC, self.DLC])
-            self.unique_Q = all([unique_Q, self.unique_Q])
-            self.lnL = self._stat([lnL, self.lnL])
-            self.nfp = self._stat([nfp, self.nfp])
+        if self._lnL is not None:
+            self._DLC = all([DLC, self.DLC])
+            self._unique_Q = all([unique_Q, self.unique_Q])
+            self._lnL = self._stat([lnL, self.lnL])
+            self._nfp = self._stat([nfp, self.nfp])
         else:
-            self.lnL = lnL
-            self.nfp = nfp
-            self.DLC = DLC
-            self.unique_Q = unique_Q
+            self._lnL = lnL
+            self._nfp = nfp
+            self._DLC = DLC
+            self._unique_Q = unique_Q
 
     @property
     def num_evaluations(self):
@@ -298,7 +296,7 @@ class model_result(generic_result):
         self._unique_Q = value
 
     def total_length(self, length_as=None):
-        """sum of all branch lengths on tree
+        """sum of all branch lengths on tree. If split codons, sums across trees
 
         Parameters
         ----------
@@ -308,17 +306,47 @@ class model_result(generic_result):
             different to standard length if the substitution model is
             non-stationary). 'paralinear' is the measure of Lake 1994.
         """
-        tree = self.lf.get_annotated_tree(length_as=length_as)
-        return tree.total_length()
+        if len(self) == 1:
+            tree = self.lf.get_annotated_tree(length_as=length_as)
+            return tree.total_length()
+
+        total_length = 0
+        for lf in self.lf.values():
+            tree = lf.get_annotated_tree(length_as=length_as)
+            total_length += tree.total_length()
+
+        return total_length
 
     @property
     def tree(self):
         """an annotated tree with 'ENS' set as the branch length"""
         if not hasattr(self, "_tree"):
-            tree = self.lf.get_annotated_tree(length_as="ENS")
+            if len(self) == 1:
+                tree = self.lf.get_annotated_tree(length_as="ENS")
+            else:
+                tree = OrderedDict()
+                for k in sorted(self):
+                    v = self[k]
+                    if type(k) == str and k.isdigit():
+                        k = int(k)
+                    tree[k] = v.get_annotated_tree(length_as="ENS")
+
             self._tree = tree
 
         return self._tree
+
+    @property
+    def alignment(self):
+        if len(self) == 1:
+            result = self.lf.get_param_value("alignment")
+        else:
+            result = OrderedDict()
+            for k in sorted(self):
+                v = self[k]
+                if type(k) == str and k.isdigit():
+                    k = int(k)
+                result[k] = v.get_param_value("alignment")
+        return result
 
 
 class hypothesis_result(generic_result):

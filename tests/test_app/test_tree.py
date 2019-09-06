@@ -66,7 +66,7 @@ class TestTree(TestCase):
         tree1 = quick1.quick_tree(dist_matrix)
         self.assertEqual(set(tree1.get_tip_names()), set(aln.names))
 
-    def test_communicable_apps(self):
+    def test_composable_apps(self):
         """checks the ability of these two apps(fast_slow_dist and quick_tree) to communicate"""
         path = os.path.join(
             os.path.abspath(__file__).split("test_app")[0], "data/brca1_5.paml"
@@ -83,8 +83,8 @@ class TestTree(TestCase):
         self.assertEqual(proc._type, "tree")
         self.assertIsInstance(proc.input, dist.fast_slow_dist)
         self.assertIs(proc.output, None)
-        self.assertIsInstance(proc._input_type, frozenset)
-        self.assertIsInstance(proc._output_type, frozenset)
+        self.assertIsInstance(proc._input_types, frozenset)
+        self.assertIsInstance(proc._output_types, frozenset)
         self.assertIsInstance(proc._in, dist.fast_slow_dist)
         self.assertIs(proc._out, None)
 

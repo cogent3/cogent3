@@ -130,7 +130,7 @@ class _seq_loader:
         else:
             seqs = path  # it is a SequenceCollection
 
-        if self._output_type == {"sequences"}:
+        if self._output_types == {"sequences"}:
             seqs = seqs.degap()
             seqs.info.source = abs_path
 
@@ -139,10 +139,6 @@ class _seq_loader:
 
 class load_aligned(_seq_loader, ComposableAligned):
     """Loads aligned sequences. Returns an Alignment object."""
-
-    _input_type = frozenset([None])
-    _output_type = frozenset(["aligned"])
-    _data_types = frozenset(["DataStoreMember", "str", "Path"])
 
     klass = ArrayAlignment
 
@@ -155,7 +151,11 @@ class load_aligned(_seq_loader, ComposableAligned):
         format : str
             sequence file format
         """
-        super(ComposableAligned, self).__init__()
+        super(ComposableAligned, self).__init__(
+            input_types=None,
+            output_types="aligned",
+            data_types=("DataStoreMember", "str", "Path"),
+        )
         _seq_loader.__init__(self)
         self._formatted_params()
         if moltype:
@@ -166,19 +166,6 @@ class load_aligned(_seq_loader, ComposableAligned):
 
 class load_unaligned(ComposableSeq, _seq_loader):
     """Loads unaligned sequences. Returns a SequenceCollection."""
-
-    _input_type = frozenset([None])
-    _output_type = frozenset(["sequences"])
-    _data_types = frozenset(
-        [
-            "DataStoreMember",
-            "str",
-            "Path",
-            "ArrayAlignment",
-            "Alignment",
-            "SequenceCollection",
-        ]
-    )
 
     klass = SequenceCollection
 
@@ -191,7 +178,18 @@ class load_unaligned(ComposableSeq, _seq_loader):
         format : str
             sequence file format
         """
-        super(ComposableSeq, self).__init__()
+        super(ComposableSeq, self).__init__(
+            input_types=None,
+            output_types="sequences",
+            data_types=(
+                "DataStoreMember",
+                "str",
+                "Path",
+                "ArrayAlignment",
+                "Alignment",
+                "SequenceCollection",
+            ),
+        )
         _seq_loader.__init__(self)
         self._formatted_params()
         if moltype:
@@ -202,10 +200,6 @@ class load_unaligned(ComposableSeq, _seq_loader):
 
 class load_tabular(ComposableTabular):
     """Loads delimited data. Returns a Table."""
-
-    _input_type = frozenset([None])
-    _output_type = frozenset(["tabular"])
-    _data_types = frozenset(["DataStoreMember", "str", "Path"])
 
     def __init__(
         self, with_title=False, with_header=True, limit=None, sep="\t", strict=True
@@ -225,7 +219,11 @@ class load_tabular(ComposableTabular):
         strict
             all rows MUST have the same number of records
         """
-        super(ComposableTabular, self).__init__()
+        super(ComposableTabular, self).__init__(
+            input_types=None,
+            output_types="tabular",
+            data_types=("DataStoreMember", "str", "Path"),
+        )
         self._formatted_params()
         self._sep = sep
         self._with_title = with_title
@@ -296,10 +294,6 @@ class load_tabular(ComposableTabular):
 class write_tabular(_checkpointable, ComposableTabular):
     """writes tabular data"""
 
-    _input_type = frozenset(["tabular_result", "tabular"])
-    _output_type = frozenset(["identifier"])
-    _data_types = frozenset(["Table", "DictArray", "DistanceMatrix"])
-
     def __init__(
         self, data_path, format="tsv", name_callback=None, create=False, if_exists=SKIP
     ):
@@ -321,6 +315,9 @@ class write_tabular(_checkpointable, ComposableTabular):
             exception), 'overwrite'
         """
         super(write_tabular, self).__init__(
+            input_types=("tabular_result", "tabular"),
+            output_types="identifier",
+            data_types=("Table", "DictArray", "DistanceMatrix"),
             data_path=data_path,
             name_callback=name_callback,
             create=create,
@@ -340,10 +337,6 @@ class write_tabular(_checkpointable, ComposableTabular):
 
 class write_seqs(_checkpointable):
     """Writes sequences to text files in standard format."""
-
-    _input_type = frozenset(("sequences", "aligned"))
-    _output_type = frozenset(("sequences", "aligned", "identifier"))
-    _data_types = frozenset(["ArrayAlignment", "Alignment", "SequenceCollection"])
 
     def __init__(
         self,
@@ -374,6 +367,9 @@ class write_seqs(_checkpointable):
             exception), 'overwrite'
         """
         super(write_seqs, self).__init__(
+            input_types=("sequences", "aligned"),
+            output_types=("sequences", "aligned", "identifier"),
+            data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
             data_path=data_path,
             name_callback=name_callback,
             create=create,
@@ -401,11 +397,11 @@ class load_json(Composable):
     Returns whatever object type was stored."""
 
     _type = "output"
-    _input_type = frozenset([None])
-    _output_type = frozenset(["result", "serialisable"])
 
     def __init__(self):
-        super(load_json, self).__init__()
+        super(load_json, self).__init__(
+            input_types=None, output_types=("result", "serialisable")
+        )
         self.func = self.read
 
     def read(self, path):
@@ -432,13 +428,13 @@ class write_json(_checkpointable):
     """Writes json serialised objects to individual json files."""
 
     _type = "output"
-    _input_type = frozenset(["serialisable"])
-    _output_type = frozenset(["identifier", "serialisable"])
 
     def __init__(
         self, data_path, name_callback=None, create=False, if_exists=SKIP, suffix="json"
     ):
         super(write_json, self).__init__(
+            input_types="serialisable",
+            output_types=("identifier", "serialisable"),
             data_path=data_path,
             name_callback=name_callback,
             create=create,
@@ -473,11 +469,11 @@ class load_db(Composable):
     Returns whatever object type was stored."""
 
     _type = "output"
-    _input_type = frozenset([None])
-    _output_type = frozenset(["result", "serialisable"])
 
     def __init__(self):
-        super(load_db, self).__init__()
+        super(load_db, self).__init__(
+            input_types=None, output_types=("result", "serialisable")
+        )
         self.func = self.read
 
     def read(self, identifier):
@@ -507,13 +503,13 @@ class write_db(_checkpointable):
     """Writes json serialised objects to a TinyDB instance."""
 
     _type = "output"
-    _input_type = frozenset(["serialisable"])
-    _output_type = frozenset(["identifier", "serialisable"])
 
     def __init__(
         self, data_path, name_callback=None, create=False, if_exists=SKIP, suffix="json"
     ):
         super(write_db, self).__init__(
+            input_types="serialisable",
+            output_types=("identifier", "serialisable"),
             data_path=data_path,
             name_callback=name_callback,
             create=create,

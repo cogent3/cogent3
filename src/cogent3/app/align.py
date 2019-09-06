@@ -24,10 +24,6 @@ class align_to_ref(ComposableSeq):
     """Aligns to a reference seq, no gaps in the reference.
     Returns an Alignment object."""
 
-    _input_type = frozenset(["sequences"])
-    _output_type = frozenset(["aligned", "serialisable"])
-    _data_types = frozenset(["SequenceCollection"])
-
     def __init__(
         self,
         ref_seq="longest",
@@ -51,7 +47,11 @@ class align_to_ref(ComposableSeq):
         moltype : str
             molecular type, currently only DNA or RNA suppported
         """
-        super(align_to_ref, self).__init__()
+        super(align_to_ref, self).__init__(
+            input_types="sequences",
+            output_types=("aligned", "serialisable"),
+            data_types="SequenceCollection",
+        )
         self._formatted_params()
         assert moltype
         moltype = get_moltype(moltype)
@@ -125,10 +125,6 @@ class progressive_align(ComposableSeq):
     """Progressive multiple sequence alignment via any cogent3 model.
      Returns an Alignment object."""
 
-    _input_type = frozenset(["sequences"])
-    _output_type = frozenset(["aligned", "serialisable"])
-    _data_types = frozenset(["SequenceCollection"])
-
     def __init__(
         self,
         model,
@@ -171,15 +167,14 @@ class progressive_align(ComposableSeq):
             default is hamming
             which is applicable for any moltype, and sequences with very high percent identify
         """
-        super(progressive_align, self).__init__()
+        super(progressive_align, self).__init__(
+            input_types="sequences",
+            output_types=("aligned", "serialisable"),
+            data_types="SequenceCollection",
+        )
         if guide_tree is None and model in protein_models + ["protein"]:
             raise NotImplementedError(
                 "auto-build of guide tree " "not supported for protein seqs yet"
-            )
-
-        if all([type(model) is str, type(distance) is str, model.lower() != distance.lower(), distance.lower() != "hamming", model.lower() != "hamming"]):
-            raise ValueError(
-                "Invalid setting, model parameter is required to be consistent with distance parameter"
             )
 
         self._param_vals = {
@@ -206,12 +201,15 @@ class progressive_align(ComposableSeq):
             self._make_tree = guide_tree
             guide_tree = None  # callback takes precedence
         else:
-            self._make_tree = align_to_ref(moltype=self._moltype) + dist.fast_slow_dist(distance=self._distance, moltype=self._moltype) + quick_tree()
+            al_to_ref = align_to_ref(moltype=self._moltype)
+            dist_calc = dist.fast_slow_dist(distance=self._distance, moltype=self._moltype)
+            est_tree = quick_tree()
+            self._make_tree = al_to_ref + dist_calc + est_tree
 
         if guide_tree is not None:
             if type(guide_tree) == str:
                 guide_tree = make_tree(treestring=guide_tree)
-            # make sure no zero lengths
+            # make sure no zero lengthsq
             guide_tree = scale_branches()(guide_tree)
 
         self._guide_tree = guide_tree
