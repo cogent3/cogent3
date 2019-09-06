@@ -152,10 +152,6 @@ class select_translatable(ComposableSeq):
     """Identifies most likely reading frame. Returns modified sequences / alignment,
     if it could be resolved, NotCompleted otherwise."""
 
-    _input_type = frozenset(["sequences", "aligned"])
-    _output_type = frozenset(["sequences"])
-    _data_types = frozenset(["ArrayAlignment", "Alignment", "SequenceCollection"])
-
     def __init__(
         self, moltype="dna", gc=DEFAULT, allow_rc=False, trim_terminal_stop=True
     ):
@@ -181,7 +177,11 @@ class select_translatable(ComposableSeq):
         A sequence collection. Sequences that could not be translated
         are excluded.
         """
-        super(select_translatable, self).__init__()
+        super(select_translatable, self).__init__(
+            input_types=("sequences", "aligned"),
+            output_types="sequences",
+            data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
+        )
         self._formatted_params()
 
         moltype = get_moltype(moltype)

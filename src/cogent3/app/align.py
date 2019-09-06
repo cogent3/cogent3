@@ -23,10 +23,6 @@ class align_to_ref(ComposableSeq):
     """Aligns to a reference seq, no gaps in the reference. 
     Returns an Alignment object."""
 
-    _input_type = frozenset(["sequences"])
-    _output_type = frozenset(["aligned", "serialisable"])
-    _data_types = frozenset(["SequenceCollection"])
-
     def __init__(
         self,
         ref_seq="longest",
@@ -50,7 +46,11 @@ class align_to_ref(ComposableSeq):
         moltype : str
             molecular type, currently only DNA or RNA suppported
         """
-        super(align_to_ref, self).__init__()
+        super(align_to_ref, self).__init__(
+            input_types="sequences",
+            output_types=("aligned", "serialisable"),
+            data_types="SequenceCollection",
+        )
         self._formatted_params()
         assert moltype
         moltype = get_moltype(moltype)
@@ -124,10 +124,6 @@ class progressive_align(ComposableSeq):
     """Progressive multiple sequence alignment via any cogent3 model.
      Returns an Alignment object."""
 
-    _input_type = frozenset(["sequences"])
-    _output_type = frozenset(["aligned", "serialisable"])
-    _data_types = frozenset(["SequenceCollection"])
-
     def __init__(
         self,
         model,
@@ -165,7 +161,11 @@ class progressive_align(ComposableSeq):
         indel_length : float
             probability of gap extension
         """
-        super(progressive_align, self).__init__()
+        super(progressive_align, self).__init__(
+            input_types="sequences",
+            output_types=("aligned", "serialisable"),
+            data_types="SequenceCollection",
+        )
         if guide_tree is None and model in protein_models + ["protein"]:
             raise NotImplementedError(
                 "auto-build of guide tree " "not supported for protein seqs yet"
