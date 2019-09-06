@@ -136,10 +136,12 @@ class ComposableType:
         """
         Parameters
         ----------
-        input_types
+        input_types : str or collection of str
             Allowed input types
-        output_types
+        output_types : str or collection of str
             Types of output
+        data_types : str or collection of str
+            Allowed data types
         """
         input_types = [] if input_types is None else input_types
         output_types = [] if output_types is None else output_types
