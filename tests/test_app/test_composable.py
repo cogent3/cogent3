@@ -71,6 +71,12 @@ class TestComposableBase(TestCase):
             aseqfunc3 = ComposableSeq(input_types="sequences", output_types="sequences")
             comb2 = aseqfunc3 + aseqfunc2
 
+    def test_composable_to_self(self):
+        """this should raise a ValueError"""
+        app1 = ComposableSeq(input_types="sequences", output_types="sequences")
+        with self.assertRaises(ValueError):
+            _ = app1 + app1
+
     def test_disconnect(self):
         """disconnect breaks all connections and allows parts to be reused"""
         aseqfunc1 = ComposableSeq(input_types="sequences", output_types="sequences")
