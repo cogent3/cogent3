@@ -233,6 +233,9 @@ class Composable(ComposableType):
         self._formatted += formatted
 
     def __add__(self, other):
+        if other is self:
+            raise ValueError("cannot add an app to itself")
+
         if self.output or other.input:
             # can only be part of a single composable function
             self_name = self.__class__.__name__
