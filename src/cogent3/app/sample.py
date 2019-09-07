@@ -485,8 +485,6 @@ class omit_duplicated(ComposableSeq):
     """Removes redundant sequences, recording dropped sequences in
     seqs.info.dropped. Returns sequence collection with only unique sequences."""
 
-    # todo does this work with aligned too?
-
     def __init__(self, mask_degen=False, choose="longest", seed=None, moltype=None):
         """Returns unique sequences, adds 'dropped' key to seqs.info
 
@@ -504,8 +502,8 @@ class omit_duplicated(ComposableSeq):
             molecular type, can be string or instance
         """
         super(omit_duplicated, self).__init__(
-            input_types=("sequences", "serialisable"),
-            output_types=("sequences", "serialisable"),
+            input_types=("sequences", "serialisable", "aligned"),
+            output_types=("sequences", "serialisable", "aligned"),
             data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
         )
 
