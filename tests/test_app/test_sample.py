@@ -303,6 +303,19 @@ class TranslateTests(TestCase):
         }
         self.assertEqual(got.to_dict(), expect)
 
+    def test_omit_duplicated_aligned(self):
+        """omit_duplicated works on aligned sequences"""
+        data = {
+            "a": "ACGT",
+            "b": "ACG-",  # identical excepting -
+            "c": "ACGN",  # non-strict matches above
+            "d": "ACGG",
+            "e": "ACGG",
+            "k": "ACGG",  # strict identical
+            "f": "RAAA",
+            "g": "YAAA",  # non-strict identical
+            "h": "GGGG",
+        }  # unique!
         # choose longest
         seqs = make_aligned_seqs(data=data, moltype=DNA)
         drop = sample.omit_duplicated(mask_degen=True, choose="longest", moltype="dna")
