@@ -351,9 +351,7 @@ def fmin(
     if fcalls[0] >= maxfun:
         warnflag = 1
         if disp:
-            print(
-                "Warning: Maximum number of function evaluations has " "been exceeded."
-            )
+            print("Warning: Maximum number of function evaluations has been exceeded.")
     elif iterations >= maxiter:
         warnflag = 2
         if disp:
