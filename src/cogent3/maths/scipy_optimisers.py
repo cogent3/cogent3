@@ -97,9 +97,6 @@ class _SciPyOptimiser(object):
 
             xopt = numpy.atleast_1d(xopt)  # unsqueeze incase only one param
 
-            if warnflag:
-                warnings.warn("Unexpected warning from scipy %s" % warnflag)
-
             # same tolerance check as in fmin_powell
             if abs(fval_last - fval) < tolerance:
                 break
