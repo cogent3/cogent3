@@ -3,6 +3,7 @@ import warnings
 import numpy
 
 from numpy import array, dot, empty, ones
+from numpy.testing import assert_allclose
 
 from cogent3 import DNA, LoadTable, make_aligned_seqs, make_tree
 from cogent3.evolve.ns_substitution_model import (
@@ -182,6 +183,16 @@ class NonStatMarkov(TestCase):
         gen_lnL = gen_lf.get_log_likelihood()
         dis_lf = self._setup_discrete_from_general(gen_lf)
         self.assertFloatEqual(gen_lnL, dis_lf.get_log_likelihood())
+
+    def test_paralinear_consistent_discrete_continuous(self):
+        """paralinear masure should be consistent between the two classes"""
+        gen_lf = self.make_cached("general", max_evaluations=2)
+        gen_lnL = gen_lf.get_log_likelihood()
+        dis_lf = self._setup_discrete_from_general(gen_lf)
+        ct_para = gen_lf.get_paralinear_metric()
+        dt_para = dis_lf.get_paralinear_metric()
+        keys = sorted(ct_para)
+        assert_allclose([ct_para[k] for k in keys], [dt_para[k] for k in keys])
 
     def test_general_vs_constructed_general(self):
         """a constructed general lnL should be identical to General"""

@@ -100,6 +100,21 @@ class TestGenericResult(TestCase):
             lengths.add(t.total_length())
         self.assertTrue(len(lengths) > 1)
 
+    def test_model_result_tree_discrete_time(self):
+        """returns paralinear lengths"""
+
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        model1 = evo_app.model(
+            "BH", opt_args=dict(max_evaluations=25, limit_action="ignore")
+        )
+        result = model1(aln)
+        got = result.tree
+
 
 if __name__ == "__main__":
     main()

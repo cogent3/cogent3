@@ -13,7 +13,10 @@ from cogent3.evolve import substitution_model
 from cogent3.evolve.simulate import AlignmentEvolver, random_sequence
 from cogent3.maths.matrix_exponential_integration import expected_number_subs
 from cogent3.maths.matrix_logarithm import is_generator_unique
-from cogent3.maths.measure import paralinear_continuous_time
+from cogent3.maths.measure import (
+    paralinear_continuous_time,
+    paralinear_discrete_time,
+)
 from cogent3.recalculation.definition import ParameterController
 from cogent3.util import table
 from cogent3.util.dict_array import DictArrayTemplate
@@ -569,11 +572,20 @@ class LikelihoodFunction(ParameterController):
         The other measures are always available in the params dict of each
         node.
         """
+        from cogent3.evolve.ns_substitution_model import DiscreteSubstitutionModel
+
+        is_discrete = isinstance(self.model, DiscreteSubstitutionModel)
+
+        if is_discrete and not length_as == "paralinear":
+            raise ValueError(f"{length_as} invalid for discrete time process")
+
         assert length_as in ("ENS", "paralinear", None)
         d = self.get_param_value_dict(["edge"])
-        lengths = d.pop("length")
+        lengths = d.pop("length", None)
         mprobs = self.get_motif_probs_by_node()
-        ens = self.get_lengths_as_ens(motif_probs=mprobs)
+        if not is_discrete:
+            ens = self.get_lengths_as_ens(motif_probs=mprobs)
+
         plin = self.get_paralinear_metric(motif_probs=mprobs)
         if length_as == "ENS":
             lengths = ens
@@ -585,9 +597,12 @@ class LikelihoodFunction(ParameterController):
             if edge.name == "root":
                 edge.params["mprobs"] = mprobs[edge.name].todict()
                 continue
-            edge.params["ENS"] = ens[edge.name]
+
+            if not is_discrete:
+                edge.params["ENS"] = ens[edge.name]
+                edge.params["length"] = lengths[edge.name]
+
             edge.params["paralinear"] = plin[edge.name]
-            edge.params["length"] = lengths[edge.name]
             edge.params["mprobs"] = mprobs[edge.name].todict()
             for par in d:
                 val = d[par][edge.name]
@@ -681,6 +696,10 @@ class LikelihoodFunction(ParameterController):
         motif_probs : dict or DictArray
             an item for each edge of the tree. Computed if not provided.
         """
+        from cogent3.evolve.ns_substitution_model import DiscreteSubstitutionModel
+
+        is_discrete = isinstance(self.model, DiscreteSubstitutionModel)
+
         if motif_probs is None:
             motif_probs = self.get_motif_probs_by_node()
         plin = {}
@@ -688,8 +707,12 @@ class LikelihoodFunction(ParameterController):
             parent_name = edge.parent.name
             pi = motif_probs[parent_name]
             P = self.get_psub_for_edge(edge.name)
-            Q = self.get_rate_matrix_for_edge(edge.name, calibrated=False)
-            para = paralinear_continuous_time(P.array, pi.array, Q.array)
+            if is_discrete:
+                para = paralinear_discrete_time(P.array, pi.array)
+            else:
+                Q = self.get_rate_matrix_for_edge(edge.name, calibrated=False)
+                para = paralinear_continuous_time(P.array, pi.array, Q.array)
+
             plin[edge.name] = para
 
         return plin

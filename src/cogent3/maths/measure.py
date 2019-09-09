@@ -1,4 +1,4 @@
-from numpy import array, diagonal, dot, eye, sqrt, diag, log
+from numpy import array, diag, diagonal, dot, eye, log, sqrt
 from numpy.linalg import slogdet
 from numpy.testing import assert_allclose, assert_equal
 
