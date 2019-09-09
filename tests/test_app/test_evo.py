@@ -168,9 +168,10 @@ class TestModel(TestCase):
         result = model1(aln)
         tree = result.lf.get_annotated_tree()
         assert_allclose(result.total_length(), tree.total_length())
-        tree = result.lf.get_annotated_tree(length_as="paralinear")
+        tree = result.lf.get_annotated_tree(length_as="paralinear_continuous_time")
         assert_allclose(
-            result.total_length(length_as="paralinear"), tree.total_length()
+            result.total_length(length_as="paralinear_continuous_time"),
+            tree.total_length(),
         )
 
     def test_model_result_total_length(self):

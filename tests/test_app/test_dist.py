@@ -104,11 +104,13 @@ class FastSlowDistTests(TestCase):
         fast_slow_dist = dist_app.fast_slow_dist(slow_calc="GTR")
         fast_slow_dist = dist_app.fast_slow_dist(fast_calc="TN93")
 
-        # fails for paralinear or hamming if no moltype
+        # fails for paralinear_continuous_time or hamming if no moltype
         with self.assertRaises(ValueError):
             fast_slow_dist = dist_app.fast_slow_dist(slow_calc="hamming")
         with self.assertRaises(ValueError):
-            fast_slow_dist = dist_app.fast_slow_dist(slow_calc="paralinear")
+            fast_slow_dist = dist_app.fast_slow_dist(
+                slow_calc="paralinear_continuous_time"
+            )
 
         # fails for hamming as slow_calc
         with self.assertRaises(ValueError):

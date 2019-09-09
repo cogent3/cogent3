@@ -223,7 +223,7 @@ def _logdetcommon(matrix):
 
 
 def _paralinear(matrix):
-    """the paralinear distance from a diversity matrix"""
+    """the paralinear_continuous_time distance from a diversity matrix"""
 
     invalid = (None,) * 4
 
@@ -623,7 +623,7 @@ class LogDetPair(_PairwiseDistance):
 
 
 class ParalinearPair(_PairwiseDistance):
-    """computes the paralinear distance (Lake 1994) between sequence pairs"""
+    """computes the paralinear_continuous_time distance (Lake 1994) between sequence pairs"""
 
     valid_moltypes = ("dna", "rna", "protein")
 
@@ -633,7 +633,7 @@ class ParalinearPair(_PairwiseDistance):
 
 
 _calculators = {
-    "paralinear": ParalinearPair,
+    "paralinear_continuous_time": ParalinearPair,
     "logdet": LogDetPair,
     "jc69": JC69Pair,
     "tn93": TN93Pair,

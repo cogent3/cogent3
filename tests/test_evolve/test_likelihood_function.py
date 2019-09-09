@@ -631,10 +631,10 @@ NineBande      root    4.0000
         human = result.get_node_matching_name("Human")
         self.assertEqual(human.params["length"], 4.0)
         self.assertEqual(human.length, 4.0)
-        # specify length as paralinear or ENS does not fail
+        # specify length as paralinear_continuous_time or ENS does not fail
         ens = lf.get_annotated_tree(length_as="ENS")
         # now check correctly decorate with paralin
-        plin = lf.get_annotated_tree(length_as="paralinear")
+        plin = lf.get_annotated_tree(length_as="paralinear_continuous_time")
         plin_metric = lf.get_paralinear_metric()
         human = plin.get_node_matching_name("Human")
         assert_allclose(human.length, plin_metric["Human"])
@@ -1278,8 +1278,8 @@ NineBande      root    1.0000    1.0000
         self.assertEqual(bprobs.shape[1], len(aln))
 
     def test_get_paralinear(self):
-        """returns correct paralinear from a lf"""
-        from cogent3.maths.measure import paralinear
+        """returns correct paralinear_continuous_time from a lf"""
+        from cogent3.maths.measure import paralinear_continuous_time
 
         aln = load_aligned_seqs("data/primates_brca1.fasta", moltype="dna")
         tree = load_tree("data/primates_brca1.tree")
@@ -1326,7 +1326,7 @@ NineBande      root    1.0000    1.0000
         pi = all_mprobs[parent]
         P = lf.get_psub_for_edge(rhesus)
         Q = lf.get_rate_matrix_for_edge(rhesus, calibrated=False)
-        pl = paralinear(Q.array, P.array, pi.array)
+        pl = paralinear_continuous_time(P.array, pi.array, Q.array)
         # check against lf computed one
         plinear = lf.get_paralinear_metric()
         assert_allclose(plinear[rhesus], pl)

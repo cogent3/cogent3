@@ -301,10 +301,10 @@ class model_result(generic_result):
         Parameters
         ----------
         length_as : str or None
-            replaces 'length' param with either 'ENS' or 'paralinear'.
+            replaces 'length' param with either 'ENS' or 'paralinear_continuous_time'.
             'ENS' is the expected number of substitution, (which will be
             different to standard length if the substitution model is
-            non-stationary). 'paralinear' is the measure of Lake 1994.
+            non-stationary). 'paralinear_continuous_time' is the measure of Lake 1994.
         """
         if len(self) == 1:
             tree = self.lf.get_annotated_tree(length_as=length_as)

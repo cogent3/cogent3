@@ -1,4 +1,5 @@
-from numpy import array, diagonal, dot, eye, sqrt
+from numpy import array, diagonal, dot, eye, sqrt, diag, log
+from numpy.linalg import slogdet
 from numpy.testing import assert_allclose, assert_equal
 
 import cogent3.util.misc
@@ -18,12 +19,10 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-def paralinear(Q, P, pi, validate=False):
+def paralinear_discrete_time(P, pi, validate=False):
     """
     Parameters
     ----------
-    Q : numpy array
-        rate-matrix, rows sum to zero, off-diagnoal >= 0
     P : numpy array
         row stochastic matrix
     pi : numpy array
@@ -31,7 +30,43 @@ def paralinear(Q, P, pi, validate=False):
     validate : bool
     Returns
     -------
-    the paralinear metric of Lake (1994)
+    the paralinear_continuous_time metric of Lake (1994) for a discrete time process
+    """
+    if validate:
+        assert_equal(P.shape[0], pi.shape[0], err_msg="pi mismatched shape")
+        assert pi.ndim == 1, "pi has incorrect dimension"
+        assert_allclose(P.sum(axis=1), 1, err_msg="invalid P")
+        assert_allclose(pi.sum(), 1, err_msg="invalid pi")
+
+    pi_end = diag(dot(pi, P))
+    pi = diag(pi)
+    J = dot(pi, P)
+    sign, b = slogdet(J)
+    b *= sign
+    b *= -1
+    sign, a = slogdet(pi)
+    a *= sign / 2
+
+    sign, c = slogdet(pi_end)
+    c *= sign / 2
+    return b + a + c
+
+
+def paralinear_continuous_time(P, pi, Q, validate=False):
+    """
+    Parameters
+    ----------
+    P : numpy array
+        row stochastic matrix
+    pi : numpy array
+        row vector state frequencies
+    Q : numpy array
+        rate-matrix, rows sum to zero, off-diagnoal >= 0. If None, returns
+        paralinear_discrete_time(P, pi, validate)
+    validate : bool
+    Returns
+    -------
+    the paralinear_continuous_time metric of Lake (1994)
     """
     if validate:
         assert_equal(Q.shape, P.shape, err_msg="Q/P mismatched shape")
@@ -43,9 +78,10 @@ def paralinear(Q, P, pi, validate=False):
         off_diag = ~eye(Q.shape[0])
         assert not (Q[off_diag] < 0).any(), "invalid Q"
 
-    a = -safe_log(pi).sum() / 2
+    # todo need to implement a safe natural log to handle possible 0 elements
+    a = -log(pi).sum() / 2
     b = -diagonal(Q).sum()
-    c = safe_log(dot(pi, P)).sum() / 2
+    c = log(dot(pi, P)).sum() / 2
     pl = a + b + c
     pl = getattr(pl, "real", pl)
     return pl
