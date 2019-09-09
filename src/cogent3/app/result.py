@@ -319,17 +319,32 @@ class model_result(generic_result):
 
     @property
     def tree(self):
-        """an annotated tree with 'ENS' set as the branch length"""
+        """an annotated tree with 'ENS' set as the branch length
+        Note
+        ----
+        In the case of a discrete time process, length is 'paralinear'"""
+        from cogent3.evolve.ns_substitution_model import DiscreteSubstitutionModel
+
+        try:
+            model = self.lf.model
+        except AttributeError:
+            model = self.lf[1].model
+
+        if isinstance(model, DiscreteSubstitutionModel):
+            length_as = "paralinear"
+        else:
+            length_as = "ENS"
+
         if not hasattr(self, "_tree"):
             if len(self) == 1:
-                tree = self.lf.get_annotated_tree(length_as="ENS")
+                tree = self.lf.get_annotated_tree(length_as=length_as)
             else:
                 tree = OrderedDict()
                 for k in sorted(self):
                     v = self[k]
                     if type(k) == str and k.isdigit():
                         k = int(k)
-                    tree[k] = v.get_annotated_tree(length_as="ENS")
+                    tree[k] = v.get_annotated_tree(length_as=length_as)
 
             self._tree = tree
 
