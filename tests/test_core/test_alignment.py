@@ -2169,9 +2169,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln = self.Class(data=data, moltype="dna")
         with self.assertRaises(ArithmeticError):
             # default settings cause an exception
-            dists = aln.distance_matrix(calc="paralinear")
+            dists = aln.distance_matrix(calc="paralinear_continuous_time")
         # but setting drop_invalid=False allows calc
-        dists = aln.distance_matrix(calc="paralinear", drop_invalid=True)
+        dists = aln.distance_matrix(
+            calc="paralinear_continuous_time", drop_invalid=True
+        )
 
     def test_quick_tree(self):
         """quick tree method returns tree"""

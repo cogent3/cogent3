@@ -6,7 +6,12 @@ from numpy.testing import assert_allclose
 
 from cogent3.maths.matrix_exponentiation import PadeExponentiator
 from cogent3.maths.matrix_logarithm import logm
-from cogent3.maths.measure import jsd, jsm, paralinear
+from cogent3.maths.measure import (
+    jsd,
+    jsm,
+    paralinear_continuous_time,
+    paralinear_discrete_time,
+)
 
 
 __author__ = "Gavin Huttley"
@@ -41,44 +46,68 @@ def next_pi(pi, p):
 
 
 class ParalinearTest(TestCase):
-    def test_paralinear(self):
-        """paralinear is additive from random matrices"""
+    def test_paralinear_discrete_time(self):
+        """tests paralinear_discrete_time to compare it with the output of paralinear_continuous_time"""
+        qp1, qp2, qp3 = gen_qs_ps()
+        pi1 = random(4)
+        pi1 /= pi1.sum()
+        pi2 = next_pi(pi1, qp1[1])
+        pi3 = next_pi(pi2, qp2[1])
+
+        con_time_pl1 = paralinear_continuous_time(qp1[1], pi1, qp1[0])
+        dis_time_pl1 = paralinear_discrete_time(qp1[1], pi1)
+        assert_allclose(con_time_pl1, dis_time_pl1)
+
+        con_time_pl2 = paralinear_continuous_time(qp2[1], pi2, qp2[0])
+        dis_time_pl2 = paralinear_discrete_time(qp2[1], pi2)
+        assert_allclose(con_time_pl2, dis_time_pl2)
+
+        con_time_pl3 = paralinear_continuous_time(qp3[1], pi3, qp3[0])
+        dis_time_pl3 = paralinear_discrete_time(qp3[1], pi3)
+        assert_allclose(con_time_pl3, dis_time_pl3)
+
+    def test_paralinear_continuous_time(self):
+        """paralinear_continuous_time is additive from random matrices"""
         qp1, qp2, qp3 = gen_qs_ps()
         pi1 = random(4)
         pi1 /= pi1.sum()
         pi2 = next_pi(pi1, qp1[1])
 
-        pl1 = paralinear(qp1[0], qp1[1], pi1)
-        pl2 = paralinear(qp2[0], qp2[1], pi2)
-        pl3 = paralinear(qp3[0], qp3[1], pi1)
+        pl1 = paralinear_continuous_time(qp1[1], pi1, qp1[0])
+        pl2 = paralinear_continuous_time(qp2[1], pi2, qp2[0])
+        pl3 = paralinear_continuous_time(qp3[1], pi1, qp3[0])
 
         assert_allclose(pl1 + pl2, pl3)
 
-    def test_paralinear_validate(self):
-        """paralinear validate check consistency"""
+    def test_paralinear_continuous_time_validate(self):
+        """paralinear_continuous_time validate check consistency"""
         qp1, qp2, qp3 = gen_qs_ps()
         pi1 = random(4)
 
         with self.assertRaises(AssertionError):
-            paralinear(qp1[0], qp1[1], qp1[0], validate=True)  # pi invalid shape
+            paralinear_continuous_time(
+                qp1[1], qp1[0], qp1[0], validate=True
+            )  # pi invalid shape
 
         with self.assertRaises(AssertionError):
-            paralinear(qp1[0], qp1[1], pi1, validate=True)  # pi invalid values
+            paralinear_continuous_time(
+                qp1[1], pi1, qp1[0], validate=True
+            )  # pi invalid values
 
         pi1 /= pi1.sum()
         with self.assertRaises(AssertionError):
-            paralinear(qp1[1], qp1[1], pi1, validate=True)  # invalid Q
+            paralinear_continuous_time(qp1[1], pi1, qp1[1], validate=True)  # invalid Q
 
         with self.assertRaises(AssertionError):
-            paralinear(qp1[0], qp1[0], pi1, validate=True)  # invalid P
+            paralinear_continuous_time(qp1[0], pi1, qp1[0], validate=True)  # invalid P
 
         qp2[0][0, 0] = 9
         with self.assertRaises(AssertionError):
-            paralinear(qp2[0], qp1[1], pi1, validate=True)  # invalid Q
+            paralinear_continuous_time(qp1[1], pi1, qp2[0], validate=True)  # invalid Q
 
         qp2[1][0, 3] = 9
         with self.assertRaises(AssertionError):
-            paralinear(qp1[0], qp2[1], pi1, validate=True)  # invalid P
+            paralinear_continuous_time(qp2[1], pi1, qp1[0], validate=True)  # invalid P
 
 
 class TestJensenShannon(TestCase):

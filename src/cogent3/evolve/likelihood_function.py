@@ -13,7 +13,7 @@ from cogent3.evolve import substitution_model
 from cogent3.evolve.simulate import AlignmentEvolver, random_sequence
 from cogent3.maths.matrix_exponential_integration import expected_number_subs
 from cogent3.maths.matrix_logarithm import is_generator_unique
-from cogent3.maths.measure import paralinear
+from cogent3.maths.measure import paralinear_continuous_time
 from cogent3.recalculation.definition import ParameterController
 from cogent3.util import table
 from cogent3.util.dict_array import DictArrayTemplate
@@ -561,15 +561,15 @@ class LikelihoodFunction(ParameterController):
         """returns tree with model attributes on node.params
 
         length_as : str or None
-            replaces 'length' param with either 'ENS' or 'paralinear'.
+            replaces 'length' param with either 'ENS' or 'paralinear_continuous_time'.
             'ENS' is the expected number of substitution, (which will be
             different to standard length if the substitution model is
-            non-stationary). 'paralinear' is the measure of Lake 1994.
+            non-stationary). 'paralinear_continuous_time' is the measure of Lake 1994.
 
         The other measures are always available in the params dict of each
         node.
         """
-        assert length_as in ("ENS", "paralinear", None)
+        assert length_as in ("ENS", "paralinear_continuous_time", None)
         d = self.get_param_value_dict(["edge"])
         lengths = d.pop("length")
         mprobs = self.get_motif_probs_by_node()
@@ -577,7 +577,7 @@ class LikelihoodFunction(ParameterController):
         plin = self.get_paralinear_metric(motif_probs=mprobs)
         if length_as == "ENS":
             lengths = ens
-        elif length_as == "paralinear":
+        elif length_as == "paralinear_continuous_time":
             lengths = plin
 
         tree = self._tree.deepcopy()
@@ -586,7 +586,7 @@ class LikelihoodFunction(ParameterController):
                 edge.params["mprobs"] = mprobs[edge.name].todict()
                 continue
             edge.params["ENS"] = ens[edge.name]
-            edge.params["paralinear"] = plin[edge.name]
+            edge.params["paralinear_continuous_time"] = plin[edge.name]
             edge.params["length"] = lengths[edge.name]
             edge.params["mprobs"] = mprobs[edge.name].todict()
             for par in d:
@@ -675,7 +675,7 @@ class LikelihoodFunction(ParameterController):
         return scaled_lengths
 
     def get_paralinear_metric(self, motif_probs=None):
-        """returns {edge.name: paralinear, ...}
+        """returns {edge.name: paralinear_continuous_time, ...}
         Parameters
         ----------
         motif_probs : dict or DictArray
@@ -689,7 +689,7 @@ class LikelihoodFunction(ParameterController):
             pi = motif_probs[parent_name]
             P = self.get_psub_for_edge(edge.name)
             Q = self.get_rate_matrix_for_edge(edge.name, calibrated=False)
-            para = paralinear(Q.array, P.array, pi.array)
+            para = paralinear_continuous_time(P.array, pi.array, Q.array)
             plin[edge.name] = para
 
         return plin

@@ -38,7 +38,7 @@ class fast_slow_dist(ComposableDistance):
             fast_calc = distance
             slow_calc = distance
 
-        d = set(["hamming", "paralinear", "logdet"]) & set([slow_calc, fast_calc])
+        d = set(["hamming", "paralinear_continuous_time", "logdet"]) & set([slow_calc, fast_calc])
         if d and not self._moltype:
             raise ValueError(f"you must provide a moltype for {d}")
 

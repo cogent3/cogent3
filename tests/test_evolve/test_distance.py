@@ -363,7 +363,7 @@ class TestPair(TestCase):
             logdet_calc.run(use_tk_adjustment=True, show_progress=False)
 
     def test_paralinear_pair_aa(self):
-        """paralinear shouldn't fail to produce distances for aa seqs"""
+        """paralinear_continuous_time shouldn't fail to produce distances for aa seqs"""
         aln = load_aligned_seqs("data/brca1_5.paml", moltype=DNA)
         aln = aln.get_translation()
         paralinear_calc = ParalinearPair(moltype=PROTEIN, alignment=aln)
@@ -371,7 +371,7 @@ class TestPair(TestCase):
         dists = paralinear_calc.get_pairwise_distances()
 
     def test_paralinear_distance(self):
-        """calculate paralinear variance consistent with hand calculation"""
+        """calculate paralinear_continuous_time variance consistent with hand calculation"""
         data = [
             (
                 "seq1",
@@ -403,7 +403,7 @@ class TestPair(TestCase):
         assert_allclose(paralinear_calc.dists["seq1", "seq2"], dist)
 
     def test_paralinear_variance(self):
-        """calculate paralinear variance consistent with hand calculation"""
+        """calculate paralinear_continuous_time variance consistent with hand calculation"""
         data = [
             (
                 "seq1",
@@ -454,7 +454,7 @@ class TestPair(TestCase):
         self.assertTrue(list(dists.values())[0] is None)
 
     def test_paralinear_pair_dna(self):
-        """calculate paralinear distance consistent with logdet distance"""
+        """calculate paralinear_continuous_time distance consistent with logdet distance"""
         data = [
             (
                 "seq1",
