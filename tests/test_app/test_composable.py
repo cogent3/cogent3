@@ -272,6 +272,7 @@ class TestUserFunction(TestCase):
         return val.distance_matrix(show_progress=False)
 
     def test_user_function(self):
+        """composable functions should be user definable"""
         from cogent3 import make_aligned_seqs
 
         u_function = user_function_slice(self.foo, "Alignment", "Alignment")
@@ -282,6 +283,7 @@ class TestUserFunction(TestCase):
         self.assertEqual(got.to_dict(), {"a": "GCAA", "b": "GCTT"})
 
     def test_user_function_multiple(self):
+        """user defined composable functions should not interfere with each other"""
         from cogent3 import make_aligned_seqs
         from cogent3.core.alignment import Alignment
 
