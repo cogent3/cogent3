@@ -30,7 +30,7 @@ def paralinear_discrete_time(P, pi, validate=False):
     validate : bool
     Returns
     -------
-    the paralinear_continuous_time metric of Lake (1994) for a discrete time process
+    the paralinear metric of Lake (1994) for a discrete time process
     """
     if validate:
         assert_equal(P.shape[0], pi.shape[0], err_msg="pi mismatched shape")
@@ -66,7 +66,7 @@ def paralinear_continuous_time(P, pi, Q, validate=False):
     validate : bool
     Returns
     -------
-    the paralinear_continuous_time metric of Lake (1994)
+    the paralinear metric of Lake (1994)
     """
     if validate:
         assert_equal(Q.shape, P.shape, err_msg="Q/P mismatched shape")

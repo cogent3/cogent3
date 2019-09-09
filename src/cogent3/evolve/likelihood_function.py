@@ -561,15 +561,15 @@ class LikelihoodFunction(ParameterController):
         """returns tree with model attributes on node.params
 
         length_as : str or None
-            replaces 'length' param with either 'ENS' or 'paralinear_continuous_time'.
+            replaces 'length' param with either 'ENS' or 'paralinear'.
             'ENS' is the expected number of substitution, (which will be
             different to standard length if the substitution model is
-            non-stationary). 'paralinear_continuous_time' is the measure of Lake 1994.
+            non-stationary). 'paralinear' is the measure of Lake 1994.
 
         The other measures are always available in the params dict of each
         node.
         """
-        assert length_as in ("ENS", "paralinear_continuous_time", None)
+        assert length_as in ("ENS", "paralinear", None)
         d = self.get_param_value_dict(["edge"])
         lengths = d.pop("length")
         mprobs = self.get_motif_probs_by_node()
@@ -577,7 +577,7 @@ class LikelihoodFunction(ParameterController):
         plin = self.get_paralinear_metric(motif_probs=mprobs)
         if length_as == "ENS":
             lengths = ens
-        elif length_as == "paralinear_continuous_time":
+        elif length_as == "paralinear":
             lengths = plin
 
         tree = self._tree.deepcopy()
@@ -586,7 +586,7 @@ class LikelihoodFunction(ParameterController):
                 edge.params["mprobs"] = mprobs[edge.name].todict()
                 continue
             edge.params["ENS"] = ens[edge.name]
-            edge.params["paralinear_continuous_time"] = plin[edge.name]
+            edge.params["paralinear"] = plin[edge.name]
             edge.params["length"] = lengths[edge.name]
             edge.params["mprobs"] = mprobs[edge.name].todict()
             for par in d:
@@ -675,7 +675,7 @@ class LikelihoodFunction(ParameterController):
         return scaled_lengths
 
     def get_paralinear_metric(self, motif_probs=None):
-        """returns {edge.name: paralinear_continuous_time, ...}
+        """returns {edge.name: paralinear, ...}
         Parameters
         ----------
         motif_probs : dict or DictArray
