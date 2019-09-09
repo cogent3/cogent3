@@ -207,6 +207,8 @@ class TestIo(TestCase):
 
     def test_load_db_failure_json_file(self):
         """informative load_db error message when given a json file path"""
+        # todo this test has a trapped exception about being unable to delete
+        # a file
         with TemporaryDirectory(dir=".") as dirname:
             outpath = join(dirname, "delme")
             writer = write_db(outpath, create=True, if_exists="ignore")
@@ -442,6 +444,21 @@ class TestIo(TestCase):
             if expect.startswith("." + os.sep):
                 expect = expect[2:]
             self.assertEqual(identifier, expect)
+
+    def test_restricted_usage_of_tinydb_suffix(self):
+        """can only use tinydb in a load_db, write_db context"""
+        with TemporaryDirectory(dir=".") as dirname:
+            outdir = join(dirname, "delme.tinydb")
+            for writer_class in (
+                io_app.write_seqs,
+                io_app.write_json,
+                io_app.write_tabular,
+            ):
+                with self.assertRaises(ValueError):
+                    writer_class(outdir, create=True, if_exists="skip")
+            # but OK for write_db
+            w = io_app.write_db(outdir, create=True, if_exists="skip")
+            w.data_store.close()
 
 
 if __name__ == "__main__":

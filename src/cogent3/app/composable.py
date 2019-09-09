@@ -589,6 +589,9 @@ class _checkpointable(Composable):
         super(_checkpointable, self).__init__(**kwargs)
         self._formatted_params()
 
+        if data_path.endswith(".tinydb") and not self.__class__.__name__.endswith("db"):
+            raise ValueError("tinydb suffix reserved for write_db")
+
         self._checkpointable = True
         if_exists = if_exists.lower()
         assert if_exists in (
