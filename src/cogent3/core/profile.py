@@ -158,6 +158,7 @@ class _MotifNumberArray(DictArray):
 
 
 def get_motif_data_from_tabular(d, pssm=False):
+    """backend conversion function for motif_counts, motif_freqs and pssm"""
     s = ""
     for v in d.values():
         if v["dim-1"] != 0:
@@ -181,16 +182,19 @@ def get_motif_data_from_tabular(d, pssm=False):
 
 
 def make_motif_counts_from_tabular(t):
+    """converts tabular data to MotifCountsArray"""
     data = get_motif_data_from_tabular(t.todict())
     return MotifCountsArray(data["data"], data["s"])
 
 
 def make_motif_freqs_from_tabular(t):
+    """converts tabular data to MotifFreqsArray"""
     data = get_motif_data_from_tabular(t.todict())
     return MotifFreqsArray(data["data"], data["s"])
 
 
 def make_pssm_from_tabular(t):
+    """converts tabular data to PSSM"""
     data = get_motif_data_from_tabular(t.todict(), pssm=True)
     return PSSM(data["data"], data["s"])
 
