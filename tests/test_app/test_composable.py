@@ -6,7 +6,7 @@ from unittest.mock import Mock
 
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
-from cogent3.app.composable import ComposableSeq, NotCompleted
+from cogent3.app.composable import ComposableSeq, NotCompleted, user_function
 from cogent3.app.sample import min_length, omit_degenerates
 from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
@@ -238,6 +238,43 @@ class TestPicklable(TestCase):
         got = read("somepath.fasta")
         self.assertIsInstance(got, NotCompleted)
         self.assertEqual(got.type, "BUG")
+
+
+class TestUserFunction(TestCase):
+    def foo(self, val, *args, **kwargs):
+        return val[:4]
+
+    def bar(self, val, *args, **kwargs):
+        return val.distance_matrix(show_progress=False)
+
+    def test_user_function(self):
+        """composable functions should be user definable"""
+        from cogent3 import make_aligned_seqs
+
+        u_function = user_function(self.foo, "aligned", "aligned")
+
+        aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
+        got = u_function(aln)
+
+        self.assertEqual(got.to_dict(), {"a": "GCAA", "b": "GCTT"})
+
+    def test_user_function_multiple(self):
+        """user defined composable functions should not interfere with each other"""
+        from cogent3 import make_aligned_seqs
+        from cogent3.core.alignment import Alignment
+
+        u_function_1 = user_function(self.foo, "aligned", "aligned")
+        u_function_2 = user_function(self.bar, "aligned", "pairwise_distances")
+
+        aln_1 = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
+        data = dict([("s1", "ACGTACGTA"), ("s2", "GTGTACGTA")])
+        aln_2 = Alignment(data=data, moltype="dna")
+
+        got_1 = u_function_1(aln_1)
+        got_2 = u_function_2(aln_2)
+
+        self.assertEqual(got_1.to_dict(), {"a": "GCAA", "b": "GCTT"})
+        self.assertEqual(got_2, {("s1", "s2"): 2.0, ("s2", "s1"): 2.0})
 
 
 if __name__ == "__main__":
