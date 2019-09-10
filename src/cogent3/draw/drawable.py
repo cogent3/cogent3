@@ -582,88 +582,50 @@ class Arrow(Shape):
         super(Arrow, self).__init__(**kwargs)
         xs = []
         ys = []
+        for i in range(len(coords) - 1):
+            # Add coordinates for individual rectangle
+            width = abs(coords[i][0] - coords[i][1])
+            x_coord = min(coords[i][0], coords[i][1])
+            xs += [x_coord, x_coord, x_coord + width, x_coord + width, x_coord]
+            ys += [y, y + height, y + height, y, y]
+            # Add coordinates for connecting line segment
+            xs += [None, coords[i][1], coords[i + 1][0], None]
+            ys += [None, y + height / 2, y + height / 2, None]
+
+        width = abs(coords[-1][0] - coords[-1][1])
+        x_coord = min(coords[-1][0], coords[-1][1])
+        hh = height * arrow_head_w * 2
+        hw = width * arrow_head_w * 2
+
+        # Coordinates for arrow head
+        arrow_x = [
+            x_coord,
+            x_coord + width - hw,
+            x_coord + width - hw,
+            x_coord + width,
+            x_coord + width - hw,
+            x_coord + width - hw,
+            x_coord,
+            x_coord,
+        ]
+        arrow_y = [
+            y,
+            y,
+            y - hh,
+            y + height / 2,
+            y + height + hh,
+            y + height,
+            y + height,
+            y,
+        ]
         if not reverse:
-            for i in range(len(coords) - 1):
-                # Add coordinates for individual rectangle
-                width = abs(coords[i][0] - coords[i][1])
-                x_coord = coords[i][0]
-                xs += [x_coord, x_coord, x_coord + width, x_coord + width, x_coord]
-                ys += [y, y + height, y + height, y, y]
-                # Add coordinates for connecting line segment
-                xs += [None, coords[i][1], coords[i + 1][0], None]
-                ys += [None, y + height / 2, y + height / 2, None]
-
-            width = abs(coords[-1][0] - coords[-1][1])
-            x_coord = coords[-1][0]
-            hh = height * arrow_head_w * 2
-            hw = width * arrow_head_w * 2
-            # Add coordinates for arrow head
-            xs += [
-                x_coord,
-                x_coord + width - hw,
-                x_coord + width - hw,
-                x_coord + width,
-                x_coord + width - hw,
-                x_coord + width - hw,
-                x_coord,
-                x_coord,
-            ]
-            ys += [
-                y,
-                y,
-                y - hh,
-                y + height / 2,
-                y + height + hh,
-                y + height,
-                y + height,
-                y,
-            ]
-
+            xs += arrow_x
+            ys += arrow_y
         else:
-            coords = (
-                numpy.array(coords) * -1 + abs(coords[0][0] + coords[-1][1])
-            ).tolist()
-            for i in range(1, len(coords)):
-                # Add coordinates for individual rectangle
-                width = abs(coords[i][0] - coords[i][1])
-                x_coord = coords[i][0]
-                xs += [None, coords[i - 1][1], coords[i][0], None]
-                ys += [None, y + height / 2, y + height / 2, None]
-                # Add coordinates for connecting line segment
-                xs += [x_coord, x_coord, x_coord + width, x_coord + width, x_coord]
-                ys += [y, y + height, y + height, y, y]
-
-            width = abs(coords[0][0] - coords[0][1])
-            x_coord = coords[0][0]
-            hw = width * arrow_head_w * 2
-            hh = height * arrow_head_w * 2
-            # Add coordinates for arrow head
-            arrow_x = numpy.array(
-                [
-                    x_coord,
-                    x_coord + width - hw,
-                    x_coord + width - hw,
-                    x_coord + width,
-                    x_coord + width - hw,
-                    x_coord + width - hw,
-                    x_coord,
-                    x_coord,
-                ]
-            )
-            arrow_y = numpy.array(
-                [
-                    y,
-                    y,
-                    y - hh,
-                    y + height / 2,
-                    y + height + hh,
-                    y + height,
-                    y + height,
-                    y,
-                ]
-            )
-            xs = list(numpy.flip(arrow_x.max() - arrow_x + arrow_x.min())) + xs
-            ys = list(numpy.flip(arrow_y)) + ys
+            arrow_x = numpy.array(arrow_x)
+            arrow_y = numpy.array(arrow_y)
+            xs += list(numpy.flip(arrow_x.max() - arrow_x + arrow_x.min()))
+            ys += list(numpy.flip(arrow_y))
 
         self.x = numpy.array(xs)
         self.y = numpy.array(ys)
@@ -710,15 +672,16 @@ class _MakeShape:
         if isinstance(type_, _Annotatable):
             name = type_.name
             coords = type_.map.get_coordinates()
+            reverse = type_.map.get_covering_span().reverse
+            type_ = type_.type
+        else:
             if coords[0][0] > coords[-1][1]:
                 reverse = True
             else:
                 reverse = False
-            type_ = type_.type
-            kwargs.update(dict(reverse=reverse))
-        else:
             if coords is None:
                 raise Exception("No coordinates defined")
+        kwargs.update(dict(reverse=reverse))
 
         klass = self._shapes.get(type_.lower(), Rectangle)
         color = self._colors.get(type_.lower(), None)
