@@ -7,8 +7,18 @@ import numpy
 from cogent3 import load_aligned_seqs, load_unaligned_seqs
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.moltype import get_moltype
-from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
-from cogent3.evolve.fast_distance import DistanceMatrix
+from cogent3.core.profile import (
+    PSSM,
+    MotifCountsArray,
+    MotifFreqsArray,
+    make_motif_counts_from_tabular,
+    make_motif_freqs_from_tabular,
+    make_pssm_from_tabular,
+)
+from cogent3.evolve.fast_distance import (
+    DistanceMatrix,
+    make_distance_matrix_from_tabular,
+)
 from cogent3.format.alignment import FORMATTERS
 from cogent3.maths.util import safe_log
 from cogent3.parse.sequence import PARSERS
@@ -300,45 +310,14 @@ class load_tabular(ComposableTabular):
 
         if self.as_type == "table":
             return result
-
-        d = result.todict()
-
         if self.as_type == "distances":
-            return DistanceMatrix(
-                {(v["dim-1"], v["dim-2"]): v["value"] for v in d.values()}
-            )
-        if self.as_type == "motif_counts" or self.as_type == "motif_freqs":
-            s = ""
-            for v in d.values():
-                if v["dim-1"] != 0:
-                    break
-                s = s + v["dim-2"]
-            num_lists = len(d) // len(s)
-            data = []
-            for i in range(num_lists):
-                data.append([d[i * len(s) + x]["value"] for x in range(len(s))])
-            return (
-                MotifCountsArray if self.as_type == "motif_counts" else MotifFreqsArray
-            )(data, s)
+            return make_distance_matrix_from_tabular(result)
+        if self.as_type == "motif_counts":
+            return make_motif_counts_from_tabular(result)
+        if self.as_type == "motif_freqs":
+            return make_motif_freqs_from_tabular(result)
         if self.as_type == "pssm":
-            s = ""
-            for v in d.values():
-                if v["dim-1"] != 0:
-                    break
-                s = s + v["dim-2"]
-            num_lists = len(d) // len(s)
-            data = []
-            for i in range(num_lists):
-                l = [
-                    round(
-                        10000
-                        * 2 ** (d[i * len(s) + x]["value"] + numpy.log2(1 / len(s)))
-                    )
-                    / 10000
-                    for x in range(len(s))
-                ]
-                data.append(l)
-            return PSSM(data, s)
+            return make_pssm_from_tabular(result)
 
         return None
 
