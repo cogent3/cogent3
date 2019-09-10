@@ -16,12 +16,29 @@ __status__ = "Alpha"
 __all__ = ["align", "composable", "dist", "evo", "io", "sample", "translate", "tree"]
 
 
+def _get_app_attr(name, obj, mod, is_composable):
+    """returns app details for display"""
+    in_type = [{None: ""}.get(e, e) for e in getattr(obj, "_input_types", [])]
+    out_type = [{None: ""}.get(e, e) for e in getattr(obj, "_output_types", [])]
+    data_type = [{None: ""}.get(e, e) for e in getattr(obj, "_data_types", [])]
+    row = [
+        mod.__name__,
+        name,
+        is_composable,
+        obj.__doc__,
+        ", ".join(in_type),
+        ", ".join(out_type),
+        ", ".join(data_type),
+    ]
+    return row
+
+
 def available_apps():
     """returns table of all available apps"""
     from cogent3.util.table import Table
-    from .composable import Composable
+    from .composable import Composable, user_function
 
-    # exclude composable, find all class
+    # excluding composable, find all class
     rows = []
     for m in __all__:
         if m == "composable":
@@ -32,26 +49,14 @@ def available_apps():
                 continue
             if obj.__module__ == mod.__name__:
                 is_composable = issubclass(obj, Composable)
-                in_type = [
-                    {None: ""}.get(e, e) for e in getattr(obj, "_input_types", [])
-                ]
-                out_type = [
-                    {None: ""}.get(e, e) for e in getattr(obj, "_output_types", [])
-                ]
-                data_type = [
-                    {None: ""}.get(e, e) for e in getattr(obj, "_data_types", [])
-                ]
-                rows.append(
-                    [
-                        mod.__name__,
-                        name,
-                        is_composable,
-                        obj.__doc__,
-                        ", ".join(in_type),
-                        ", ".join(out_type),
-                        ", ".join(data_type),
-                    ]
-                )
+                rows.append(_get_app_attr(name, obj, mod, is_composable))
+
+    mod = importlib.import_module(f"{__name__}.composable")
+    rows.append(
+        _get_app_attr(
+            "user_function", user_function, mod, issubclass(user_function, Composable)
+        )
+    )
     header = ["module", "name", "composable", "doc", "inputs", "outputs", "data type"]
     table = Table(header, rows)
     return table
