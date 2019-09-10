@@ -643,6 +643,7 @@ class _checkpointable(Composable):
         # over-ride in subclass
         raise NotImplementedError
 
+
 class user_function(Composable):
     """user specified function"""
 
