@@ -431,14 +431,14 @@ class TinyDBDataStoreTests(TestCase):
             id_ = dstore.make_relative_identifier(list(data).pop(0))
 
             m = dstore.write(id_, data)
-            data = data.pop(set(data.keys()).pop())
+            data.pop(set(data.keys()).pop())
             got = loader(m)
             self.assertNotEqual(got, data)
             self.assertEqual(got, original_record)
             data = deepcopy(original_record)
 
             m = dstore.write(id_, data)
-            data = {x: None for x in data}
+            data[set(data.keys()).pop()] = None
             got = loader(m)
             self.assertNotEqual(got, data)
             self.assertEqual(got, original_record)
