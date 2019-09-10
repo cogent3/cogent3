@@ -11,6 +11,7 @@ import time
 import warnings
 
 import numpy
+import psutil
 
 from cogent3.util.misc import extend_docstring_from
 
@@ -54,6 +55,21 @@ def get_rank():
         if process_name is not "MainProcess":
             rank = int(process_name.split("-")[-1])
     return rank
+
+
+# Returns True if current process is master
+# False otherwise
+def is_master_process():
+    if MPI is not None:
+        process = psutil.Process(os.getpid())
+        process_cmd = process.cmdline()
+        if process_cmd[-1] == "mpi4py.futures.server":
+            return False
+    else:
+        process_name = multiprocessing.current_process().name
+        if process_name[:-2] in ("ForkProcess", "SpawnProcess"):
+            return False
+    return True
 
 
 class PicklableAndCallable:
