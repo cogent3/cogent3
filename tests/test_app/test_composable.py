@@ -239,6 +239,7 @@ class TestPicklable(TestCase):
         self.assertIsInstance(got, NotCompleted)
         self.assertEqual(got.type, "BUG")
 
+
 class TestUserFunction(TestCase):
     def foo(self, val, *args, **kwargs):
         return val[:4]
