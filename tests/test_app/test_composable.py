@@ -6,7 +6,7 @@ from unittest.mock import Mock
 
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
-from cogent3.app.composable import Composable, ComposableSeq, NotCompleted, user_function
+from cogent3.app.composable import ComposableSeq, NotCompleted, user_function
 from cogent3.app.sample import min_length, omit_degenerates
 from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
