@@ -59,4 +59,7 @@ def available_apps():
     )
     header = ["module", "name", "composable", "doc", "inputs", "outputs", "data type"]
     table = Table(header, rows)
+    # todo the inputs/outputs/data type columns no longer being populated as
+    # these attributes are instance attributes and not resolved at present
+    table = table.get_columns(["module", "name", "composable", "doc"])
     return table
