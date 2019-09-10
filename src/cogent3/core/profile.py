@@ -157,6 +157,48 @@ class _MotifNumberArray(DictArray):
         return self.__class__(result, motifs=motifs, row_indices=row_order)
 
 
+def get_motif_data_from_tabular(d, pssm=False):
+    """backend conversion function for motif_counts, motif_freqs and pssm"""
+    s = ""
+    for v in d.values():
+        if v["dim-1"] != 0:
+            break
+        s = s + v["dim-2"]
+    num_lists = len(d) // len(s)
+    data = []
+    for i in range(num_lists):
+        if pssm:
+            l = [
+                round(
+                    10000 * 2 ** (d[i * len(s) + x]["value"] + numpy.log2(1 / len(s)))
+                )
+                / 10000
+                for x in range(len(s))
+            ]
+            data.append(l)
+        else:
+            data.append([d[i * len(s) + x]["value"] for x in range(len(s))])
+    return {"data": data, "s": s}
+
+
+def make_motif_counts_from_tabular(t):
+    """converts tabular data to MotifCountsArray"""
+    data = get_motif_data_from_tabular(t.todict())
+    return MotifCountsArray(data["data"], data["s"])
+
+
+def make_motif_freqs_from_tabular(t):
+    """converts tabular data to MotifFreqsArray"""
+    data = get_motif_data_from_tabular(t.todict())
+    return MotifFreqsArray(data["data"], data["s"])
+
+
+def make_pssm_from_tabular(t):
+    """converts tabular data to PSSM"""
+    data = get_motif_data_from_tabular(t.todict(), pssm=True)
+    return PSSM(data["data"], data["s"])
+
+
 class MotifCountsArray(_MotifNumberArray):
     def __init__(self, counts, motifs, row_indices=None):
         super(MotifCountsArray, self).__init__(counts, motifs, row_indices, dtype=int)
