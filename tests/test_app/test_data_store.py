@@ -5,6 +5,7 @@ import sys
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main, skipIf
 
+from cogent3 import DNA, RNA
 from cogent3.app.data_store import (
     DataStoreMember,
     ReadOnlyDirectoryDataStore,
@@ -14,6 +15,7 @@ from cogent3.app.data_store import (
     WritableDirectoryDataStore,
     WritableTinyDbDataStore,
     WritableZippedDataStore,
+    make_record_for_json,
 )
 from cogent3.parse.fasta import MinimalFastaParser
 
@@ -125,7 +127,7 @@ class DataStoreBaseTests:
         got = {l: s for l, s in MinimalFastaParser(data)}
         self.assertEqual(got, expect)
 
-    # todo not really bnroken, but something to do with line-feeds I
+    # todo not really broken, but something to do with line-feeds I
     #  suspect. This means scitrack needs a more platform robust approach...
     @skipIf(sys.platform.lower() != "darwin", "broken on linux")
     def test_md5_read(self):
@@ -400,18 +402,33 @@ class TinyDBDataStoreTests(TestCase):
         from pickle import dumps, loads
 
         with TemporaryDirectory(dir=".") as dirname:
-            path = os.path.join(dirname, self.basedir)
+            path = os.path.join(dirname, "data")
             dstore = self.WriteClass(path, if_exists="ignore")
             for id_, data in self.data.items():
                 identifier = dstore.make_relative_identifier(id_)
                 dstore.write(identifier, data)
             dstore.db.storage.flush()  # make sure written to disk
+            m = dstore[0]
+            got = m.read()
             re_dstore = loads(dumps(dstore))
             got = re_dstore[0].read()
             re_dstore.close()
             self.assertEqual(str(dstore), str(re_dstore))
             self.assertEqual(got, dstore[0].read())
             dstore.close()
+
+    def test_unchanged_database_record(self):
+        """modify the original mutable data, the database record should remain unchanged"""
+        data = self.data
+        record = make_record_for_json("delme", data, True)
+        original_dna_record = record
+
+        data = data.pop(set(data.keys()).pop())
+        self.assertEqual(original_dna_record, record)
+        data = {x: None for x in data}
+        self.assertEqual(original_dna_record, record)
+        data.clear()
+        self.assertEqual(original_dna_record, record)
 
     def test_tiny_write_incomplete(self):
         """write an incomplete result to tinydb"""

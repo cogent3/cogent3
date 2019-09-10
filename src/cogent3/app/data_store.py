@@ -54,14 +54,17 @@ def make_record_for_json(identifier, data, completed):
     except AttributeError:
         pass
 
+    data = json.dumps(data)
     record = dict(identifier=identifier, data=data, completed=completed)
     return record
 
 
 def load_record_from_json(data):
     """returns identifier, data, completed status from json string"""
-    data = json.loads(data)
-    return data["identifier"], data["data"], data["completed"]
+    if type(data) == str:
+        data = json.loads(data)
+    value = json.loads(data["data"])
+    return data["identifier"], value, data["completed"]
 
 
 class DataStoreMember(str):
@@ -854,8 +857,8 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
         else:
             member = identifier
 
-        record = self.db.get(doc_id=member.id)
-        return record["data"]
+        _, record, _ = load_record_from_json(self.db.get(doc_id=member.id))
+        return record
 
     def read(self, identifier):
         data = self.open(identifier)
