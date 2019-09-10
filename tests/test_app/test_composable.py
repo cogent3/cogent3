@@ -6,7 +6,7 @@ from unittest.mock import Mock
 
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
-from cogent3.app.composable import Composable, ComposableSeq, NotCompleted
+from cogent3.app.composable import Composable, ComposableSeq, NotCompleted, user_function
 from cogent3.app.sample import min_length, omit_degenerates
 from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
@@ -239,31 +239,6 @@ class TestPicklable(TestCase):
         self.assertIsInstance(got, NotCompleted)
         self.assertEqual(got.type, "BUG")
 
-
-class user_function_slice(Composable):
-    """user specified function"""
-
-    _type = "function"
-
-    def __init__(self, func, input_types, output_types, data_types=None):
-        super(user_function_slice, self).__init__(
-            input_types=input_types, output_types=output_types
-        )
-        self.func = func
-
-
-class user_function_distance(Composable):
-    """user specified function"""
-
-    _type = "function"
-
-    def __init__(self, func, input_types, output_types, data_types=None):
-        super(user_function_distance, self).__init__(
-            input_types=input_types, output_types=output_types
-        )
-        self.func = func
-
-
 class TestUserFunction(TestCase):
     def foo(self, val, *args, **kwargs):
         return val[:4]
@@ -275,7 +250,7 @@ class TestUserFunction(TestCase):
         """composable functions should be user definable"""
         from cogent3 import make_aligned_seqs
 
-        u_function = user_function_slice(self.foo, "Alignment", "Alignment")
+        u_function = user_function(self.foo, "aligned", "aligned")
 
         aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
         got = u_function(aln)
@@ -287,8 +262,8 @@ class TestUserFunction(TestCase):
         from cogent3 import make_aligned_seqs
         from cogent3.core.alignment import Alignment
 
-        u_function_1 = user_function_slice(self.foo, "Alignment", "Alignment")
-        u_function_2 = user_function_distance(self.bar, "aligned", "pairwise_distances")
+        u_function_1 = user_function(self.foo, "aligned", "aligned")
+        u_function_2 = user_function(self.bar, "aligned", "pairwise_distances")
 
         aln_1 = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
         data = dict([("s1", "ACGTACGTA"), ("s2", "GTGTACGTA")])
