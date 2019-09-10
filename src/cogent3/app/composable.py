@@ -642,3 +642,14 @@ class _checkpointable(Composable):
     def write(self, data):
         # over-ride in subclass
         raise NotImplementedError
+
+class user_function(Composable):
+    """user specified function"""
+
+    _type = "function"
+
+    def __init__(self, func, input_types, output_types, data_types=None):
+        super(user_function, self).__init__(
+            input_types=input_types, output_types=output_types
+        )
+        self.func = func
