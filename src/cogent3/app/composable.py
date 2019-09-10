@@ -645,7 +645,7 @@ class _checkpointable(Composable):
 
 
 class user_function(Composable):
-    """user specified function"""
+    """wrapper class for user specified function"""
 
     _type = "function"
 
