@@ -667,8 +667,6 @@ class Arrow(Shape):
 
         self.x = numpy.array(xs)
         self.y = numpy.array(ys)
-        print(self.y)
-        print(self.x)
 
 
 # https://plot.ly/python/marker-style/
@@ -716,7 +714,6 @@ class _MakeShape:
                 reverse = True
             else:
                 reverse = False
-            # start = min(map.spans[0].start, map.spans[0].end)
             type_ = type_.type
             kwargs.update(dict(reverse=reverse))
         else:
