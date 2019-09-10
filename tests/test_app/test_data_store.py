@@ -5,7 +5,6 @@ import sys
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main, skipIf
 
-from cogent3 import DNA, RNA
 from cogent3.app.data_store import (
     DataStoreMember,
     ReadOnlyDirectoryDataStore,
@@ -418,17 +417,38 @@ class TinyDBDataStoreTests(TestCase):
             dstore.close()
 
     def test_unchanged_database_record(self):
-        """modify the original mutable data, the database record should remain unchanged"""
-        data = self.data
-        record = make_record_for_json("delme", data, True)
-        original_dna_record = record
+        """tests unchanged record via the Readable and Writable DataStore interface to TinyDB"""
+        from cogent3.app.io import load_db
+        from copy import deepcopy
 
-        data = data.pop(set(data.keys()).pop())
-        self.assertEqual(original_dna_record, record)
-        data = {x: None for x in data}
-        self.assertEqual(original_dna_record, record)
-        data.clear()
-        self.assertEqual(original_dna_record, record)
+        loader = load_db()
+        data = self.data
+        original_record = deepcopy(data)
+
+        with TemporaryDirectory(dir=".") as dirname:
+            path = os.path.join(dirname, self.basedir)
+            dstore = self.WriteClass(path, if_exists="overwrite")
+            id_ = dstore.make_relative_identifier(list(data).pop(0))
+
+            m = dstore.write(id_, data)
+            data = data.pop(set(data.keys()).pop())
+            got = loader(m)
+            self.assertNotEqual(got, data)
+            self.assertEqual(got, original_record)
+            data = deepcopy(original_record)
+
+            m = dstore.write(id_, data)
+            data = {x: None for x in data}
+            got = loader(m)
+            self.assertNotEqual(got, data)
+            self.assertEqual(got, original_record)
+            data = deepcopy(original_record)
+
+            m = dstore.write(id_, data)
+            data.clear()
+            got = loader(m)
+            self.assertNotEqual(got, data)
+            self.assertEqual(got, original_record)
 
     def test_tiny_write_incomplete(self):
         """write an incomplete result to tinydb"""
