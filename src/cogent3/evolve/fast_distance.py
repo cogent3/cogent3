@@ -679,6 +679,12 @@ def available_distances():
     return table
 
 
+def make_distance_matrix_from_tabular(t):
+    return DistanceMatrix(
+        {(v["dim-1"], v["dim-2"]): v["value"] for v in t.todict().values()}
+    )
+
+
 class DistanceMatrix(DictArray):
     """pairwise distance matrix"""
 
