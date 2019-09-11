@@ -293,11 +293,6 @@ class load_tabular(ComposableTabular):
             records.append(record)
         records = numpy.array(records, dtype="O").T
         return {"header": header, "records": records, "title": title}
-        table = Table(header, rows=records, title=title)
-        print("header: ", header)
-        print("recs: ", records)
-        print("t: ", title)
-        return table
 
     def load(self, path):
         if type(path) == str:
