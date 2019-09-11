@@ -409,7 +409,9 @@ class TestIo(TestCase):
             outpath = join(dirname, "delme.tsv")
             writer.write(pssm, identifier=outpath)
             new = loader(outpath)
-            self.assertTrue(numpy.isclose(pssm.toarray(), new.toarray(), atol=0.0001).all())
+            self.assertTrue(
+                numpy.isclose(pssm.toarray(), new.toarray(), atol=0.0001).all()
+            )
 
     def test_load_tabular_distance_matrix(self):
         """correctly loads tabular data for DistanceMatrix"""
