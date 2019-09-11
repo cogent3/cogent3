@@ -157,14 +157,14 @@ class _MotifNumberArray(DictArray):
         return self.__class__(result, motifs=motifs, row_indices=row_order)
 
 
-def get_ordered_motifs_from_tabular(data):
+def get_ordered_unique(data, index):
     """backend motif extraction function for motif_counts, motif_freqs and pssm
        assumed index 1 are motif strings; motif returned in order of occurrence"""
 
     chars = []
     for entry in data:
-        if not entry[1] in chars:
-            chars.append(entry[1])
+        if not entry[index] in chars:
+            chars.append(entry[index])
     return chars
 
 
