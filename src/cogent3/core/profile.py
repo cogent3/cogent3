@@ -157,7 +157,7 @@ class _MotifNumberArray(DictArray):
         return self.__class__(result, motifs=motifs, row_indices=row_order)
 
 
-def get_ordered_unique(data, index):
+def get_ordered_motifs_from_tabular(data, index=1):
     """backend motif extraction function for motif_counts, motif_freqs and pssm
        assumed index 1 are motif strings; motif returned in order of occurrence"""
 
@@ -168,11 +168,19 @@ def get_ordered_unique(data, index):
     return chars
 
 
-def get_data_from_tabular(tab_data, motif):
+def get_data_from_tabular(tab_data, motifs):
     """backend data extraction function for motif_counts, motif_freqs and pssm"""
-    num_lists = len(tab_data) // len(motif)
+    # num_motifs = len(motifs)
+    # num_pos = len(tab_data) // num_motifs
+    # result = numpy.zeros((num_pos, num_motifs), dtype="float")
+    # for pos, motif, value in tab_data:
+    #     motif_index = motifs.index(motif)
+    #     result[pos, motif_index] = value
+    # return result
+
+    num_lists = len(tab_data) // len(motifs)
     return [
-        [tab_data[i + j * len(motif)][2] for i in range(len(motif))]
+        [tab_data[i + j * len(motifs)][2] for i in range(len(motifs))]
         for j in range(num_lists)
     ]
 
@@ -321,7 +329,6 @@ class PSSM(_MotifNumberArray):
             row_sum[numpy.isnan(row_sum) == False], 1
         ):
             # standard PSSM object creation
-            freqs = MotifFreqsArray(data, motifs, row_indices=row_indices)
             if background is None:
                 background = numpy.ones(len(motifs), dtype=float) / len(motifs)
             self._background = numpy.array(background)
@@ -329,20 +336,17 @@ class PSSM(_MotifNumberArray):
                 motifs
             ), "Mismatch between number of motifs and the background"
             validate_freqs_array(self._background)
-            pssm = safe_log(freqs.array) - safe_log(self._background)
+            pssm = safe_log(data) - safe_log(self._background)
             super(PSSM, self).__init__(pssm, motifs, row_indices, dtype=float)
             self._indices = numpy.arange(self.shape[0])  # used for scoring
             return
 
-        # are we dealing with pssm data?
-        if data.min() < 0 < data.max():
-            super(PSSM, self).__init__(data, motifs, row_indices, dtype=float)
-            self._indices = numpy.arange(self.shape[0])  # used for scoring
-            return
+        if not (data.min() < 0 < data.max()):
+            raise ValueError("PSSM has been supplied invalid data")
 
-        # at this point something has gone horribly wrong and
-        # we should tell the user that invalid data has been supplied
-        raise ValueError("PSSM has been supplied invalid data")
+        # we dealing with pssm data
+        super(PSSM, self).__init__(data, motifs, row_indices=row_indices, dtype=float)
+        self._indices = numpy.arange(self.shape[0])  # used for scoring
 
     def get_indexed_seq(self, seq):
         """converts seq to numpy array of int
