@@ -328,18 +328,14 @@ class PSSMTests(TestCase):
         assert_allclose(pssm.array, expect, atol=1e-3)
 
     def test_construct_fails(self):
-        """construction fails for non-freq based input"""
-        data = [[2, 4], [3, 5], [4, 8]]
-        with self.assertRaises(ValueError):
-            pssm = PSSM(data, "AB")
+        """construction fails for invalid input"""
 
-        # fails for negative numbers
+        # fails for entries all negative numbers
         data = [
-            [-1.322, 0.263, 1.0, -1.322],
-            [0.0, 0.0, 0.0, 0.0],
-            [-2.322, 1.678, -2.322, -1.322],
-            [1.485, -1.322, -1.322, -1.322],
-            [1.263, -0.737, -2.322, -0.322],
+            [-1.322, -0.263, -1.0, -1.322],
+            [-2.322, -1.678, -2.322, -1.322],
+            [-1.485, -1.322, -1.322, -1.322],
+            [-1.263, -0.737, -2.322, -0.322],
         ]
         with self.assertRaises(ValueError):
             pssm = PSSM(data, "ACTG")
