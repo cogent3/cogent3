@@ -292,15 +292,11 @@ class load_tabular(ComposableTabular):
                     pass
             records.append(record)
         records = numpy.array(records, dtype="O").T
-        return {
-            'header': header,
-            'records': records,
-            'title': title,
-        }
+        return {"header": header, "records": records, "title": title}
         table = Table(header, rows=records, title=title)
-        print('header: ', header)
-        print('recs: ', records)
-        print('t: ', title)
+        print("header: ", header)
+        print("recs: ", records)
+        print("t: ", title)
         return table
 
     def load(self, path):
@@ -314,12 +310,14 @@ class load_tabular(ComposableTabular):
             result = NotCompleted("ERROR", self, err.args[0], source=str(path))
 
         if self.as_type == "table":
-            return Table(result['header'], rows=result['records'], title=result['title'])
+            return Table(
+                result["header"], rows=result["records"], title=result["title"]
+            )
         if self.as_type == "distances":
             # records is of the form [[dim-1, dim-2, value] for entries in DistanceMatrix]
-            return DistanceMatrix({(e[0], e[1]): e[2] for e in result['records']})
+            return DistanceMatrix({(e[0], e[1]): e[2] for e in result["records"]})
 
-        data = result['records']
+        data = result["records"]
         if self.as_type == "motif_counts":
             return make_motif_counts_from_tabular(data)
         if self.as_type == "motif_freqs":

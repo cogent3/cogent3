@@ -164,10 +164,15 @@ def get_motif_from_tabular(data):
             chars.append(entry[1])
     return "".join(chars)
 
+
 def get_data_from_tabular(tab_data, motif):
     """backend conversion function for motif_counts, motif_freqs and pssm"""
     num_lists = len(tab_data) // len(motif)
-    return [[tab_data[i+j*len(motif)][2] for i in range(len(motif))] for j in range(num_lists)]
+    return [
+        [tab_data[i + j * len(motif)][2] for i in range(len(motif))]
+        for j in range(num_lists)
+    ]
+
 
 def make_motif_counts_from_tabular(tab_data):
     """converts tabular data to MotifCountsArray"""
@@ -309,7 +314,9 @@ class PSSM(_MotifNumberArray):
             row_sum = data.sum(axis=1)
 
         # are we dealing with freqs data?
-        if (data >= 0).all() and numpy.allclose(row_sum[numpy.isnan(row_sum) == False], 1):
+        if (data >= 0).all() and numpy.allclose(
+            row_sum[numpy.isnan(row_sum) == False], 1
+        ):
             # standard PSSM object creation
             freqs = MotifFreqsArray(data, motifs, row_indices=row_indices)
             if background is None:
@@ -332,7 +339,7 @@ class PSSM(_MotifNumberArray):
 
         # at this point something has gone horribly wrong and
         # we should tell the user that invalid data has been supplied
-        raise ValueError('PSSM has been supplied invalid data')
+        raise ValueError("PSSM has been supplied invalid data")
 
     def get_indexed_seq(self, seq):
         """converts seq to numpy array of int
