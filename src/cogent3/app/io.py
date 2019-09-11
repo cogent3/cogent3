@@ -15,10 +15,7 @@ from cogent3.core.profile import (
     make_motif_freqs_from_tabular,
     make_pssm_from_tabular,
 )
-from cogent3.evolve.fast_distance import (
-    DistanceMatrix,
-    make_distance_matrix_from_tabular,
-)
+from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.format.alignment import FORMATTERS
 from cogent3.maths.util import safe_log
 from cogent3.parse.sequence import PARSERS
@@ -295,7 +292,15 @@ class load_tabular(ComposableTabular):
                     pass
             records.append(record)
         records = numpy.array(records, dtype="O").T
+        return {
+            'header': header,
+            'records': records,
+            'title': title,
+        }
         table = Table(header, rows=records, title=title)
+        print('header: ', header)
+        print('recs: ', records)
+        print('t: ', title)
         return table
 
     def load(self, path):
@@ -309,15 +314,18 @@ class load_tabular(ComposableTabular):
             result = NotCompleted("ERROR", self, err.args[0], source=str(path))
 
         if self.as_type == "table":
-            return result
+            return Table(result['header'], rows=result['records'], title=result['title'])
         if self.as_type == "distances":
-            return make_distance_matrix_from_tabular(result)
+            # records is of the form [[dim-1, dim-2, value] for entries in DistanceMatrix]
+            return DistanceMatrix({(e[0], e[1]): e[2] for e in result['records']})
+
+        data = result['records']
         if self.as_type == "motif_counts":
-            return make_motif_counts_from_tabular(result)
+            return make_motif_counts_from_tabular(data)
         if self.as_type == "motif_freqs":
-            return make_motif_freqs_from_tabular(result)
+            return make_motif_freqs_from_tabular(data)
         if self.as_type == "pssm":
-            return make_pssm_from_tabular(result)
+            return make_pssm_from_tabular(data)
 
         return None
 

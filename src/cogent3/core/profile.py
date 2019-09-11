@@ -157,46 +157,37 @@ class _MotifNumberArray(DictArray):
         return self.__class__(result, motifs=motifs, row_indices=row_order)
 
 
-def get_motif_data_from_tabular(d, pssm=False):
+def get_motif_from_tabular(data):
+    chars = []
+    for entry in data:
+        if not entry[1] in chars:
+            chars.append(entry[1])
+    return "".join(chars)
+
+def get_data_from_tabular(tab_data, motif):
     """backend conversion function for motif_counts, motif_freqs and pssm"""
-    s = ""
-    for v in d.values():
-        if v["dim-1"] != 0:
-            break
-        s = s + v["dim-2"]
-    num_lists = len(d) // len(s)
-    data = []
-    for i in range(num_lists):
-        if pssm:
-            l = [
-                round(
-                    10000 * 2 ** (d[i * len(s) + x]["value"] + numpy.log2(1 / len(s)))
-                )
-                / 10000
-                for x in range(len(s))
-            ]
-            data.append(l)
-        else:
-            data.append([d[i * len(s) + x]["value"] for x in range(len(s))])
-    return {"data": data, "s": s}
+    num_lists = len(tab_data) // len(motif)
+    return [[tab_data[i+j*len(motif)][2] for i in range(len(motif))] for j in range(num_lists)]
 
-
-def make_motif_counts_from_tabular(t):
+def make_motif_counts_from_tabular(tab_data):
     """converts tabular data to MotifCountsArray"""
-    data = get_motif_data_from_tabular(t.todict())
-    return MotifCountsArray(data["data"], data["s"])
+    motif = get_motif_from_tabular(tab_data)
+    data = get_data_from_tabular(tab_data, motif)
+    return MotifCountsArray(data, motif)
 
 
-def make_motif_freqs_from_tabular(t):
+def make_motif_freqs_from_tabular(tab_data):
     """converts tabular data to MotifFreqsArray"""
-    data = get_motif_data_from_tabular(t.todict())
-    return MotifFreqsArray(data["data"], data["s"])
+    motif = get_motif_from_tabular(tab_data)
+    data = get_data_from_tabular(tab_data, motif)
+    return MotifFreqsArray(data, motif)
 
 
-def make_pssm_from_tabular(t):
+def make_pssm_from_tabular(tab_data):
     """converts tabular data to PSSM"""
-    data = get_motif_data_from_tabular(t.todict(), pssm=True)
-    return PSSM(data["data"], data["s"])
+    motif = get_motif_from_tabular(tab_data)
+    data = get_data_from_tabular(tab_data, motif)
+    return PSSM(data, motif)
 
 
 class MotifCountsArray(_MotifNumberArray):
@@ -307,17 +298,41 @@ class PSSM(_MotifNumberArray):
     A log-odds matrix"""
 
     def __init__(self, data, motifs, row_indices=None, background=None):
-        freqs = MotifFreqsArray(data, motifs, row_indices=row_indices)
-        if background is None:
-            background = numpy.ones(len(motifs), dtype=float) / len(motifs)
-        self._background = numpy.array(background)
-        assert len(background) == len(
-            motifs
-        ), "Mismatch between number of motifs and the background"
-        validate_freqs_array(self._background)
-        pssm = safe_log(freqs.array) - safe_log(self._background)
-        super(PSSM, self).__init__(pssm, motifs, row_indices, dtype=float)
-        self._indices = numpy.arange(self.shape[0])  # used for scoring
+        data = [numpy.array(a) for a in data]
+        data = numpy.array(data)
+        row_sum = data.sum(axis=1)
+
+        # are we dealing with counts data?
+        if 0 <= data.min() and 1 < data.max():
+            # convert to freqs data
+            data = data / numpy.vstack(row_sum)
+            row_sum = data.sum(axis=1)
+
+        # are we dealing with freqs data?
+        if (data >= 0).all() and numpy.allclose(row_sum[numpy.isnan(row_sum) == False], 1):
+            # standard PSSM object creation
+            freqs = MotifFreqsArray(data, motifs, row_indices=row_indices)
+            if background is None:
+                background = numpy.ones(len(motifs), dtype=float) / len(motifs)
+            self._background = numpy.array(background)
+            assert len(background) == len(
+                motifs
+            ), "Mismatch between number of motifs and the background"
+            validate_freqs_array(self._background)
+            pssm = safe_log(freqs.array) - safe_log(self._background)
+            super(PSSM, self).__init__(pssm, motifs, row_indices, dtype=float)
+            self._indices = numpy.arange(self.shape[0])  # used for scoring
+            return
+
+        # are we dealing with pssm data?
+        if data.min() < 0 < data.max():
+            super(PSSM, self).__init__(data, motifs, row_indices, dtype=float)
+            self._indices = numpy.arange(self.shape[0])  # used for scoring
+            return
+
+        # at this point something has gone horribly wrong and
+        # we should tell the user that invalid data has been supplied
+        raise ValueError('PSSM has been supplied invalid data')
 
     def get_indexed_seq(self, seq):
         """converts seq to numpy array of int
