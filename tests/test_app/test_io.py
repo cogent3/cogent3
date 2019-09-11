@@ -366,7 +366,7 @@ class TestIo(TestCase):
             self.assertEqual(table.todict(), new.todict())
 
     def test_load_tabular_motif_counts_array(self):
-        """correctly writes tabular data for MotifCountsArray"""
+        """correctly loads tabular data for MotifCountsArray"""
 
         data = [[2, 4], [3, 5], [4, 8]]
         mca = MotifCountsArray(data, "AB")
@@ -379,7 +379,7 @@ class TestIo(TestCase):
             self.assertEqual(mca.todict(), new.todict())
 
     def test_load_tabular_motif_freqs_array(self):
-        """correctly writes tabular data for MotifFreqsArray"""
+        """correctly loads tabular data for MotifFreqsArray"""
 
         data = [[0.3333, 0.6667], [0.3750, 0.625], [0.3333, 0.6667]]
         mfa = MotifFreqsArray(data, "AB")
@@ -392,7 +392,7 @@ class TestIo(TestCase):
             self.assertEqual(mfa.todict(), new.todict())
 
     def test_load_tabular_pssm(self):
-        """correctly writes tabular data for PSSM"""
+        """correctly loads tabular data for PSSM"""
 
         # data from test_profile
         data = [
@@ -409,10 +409,10 @@ class TestIo(TestCase):
             outpath = join(dirname, "delme.tsv")
             writer.write(pssm, identifier=outpath)
             new = loader(outpath)
-            self.assertEqual(pssm.todict(), new.todict())
+            self.assertTrue(numpy.isclose(pssm.toarray(), new.toarray(), atol=0.0001).all())
 
     def test_load_tabular_distance_matrix(self):
-        """correctly writes tabular data for DistanceMatrix"""
+        """correctly loads tabular data for DistanceMatrix"""
         data = {(0, 0): 0, (0, 1): 4, (1, 0): 4, (1, 1): 0}
         matrix = DistanceMatrix(data)
         loader = io_app.load_tabular(sep="\t", as_type="distances")
@@ -424,7 +424,7 @@ class TestIo(TestCase):
             self.assertEqual(matrix.todict(), new.todict())
 
     def test_load_tabular_table(self):
-        """correctly writes tabular data"""
+        """correctly loads tabular data"""
         rows = [[1, 2], [3, 4], [5, 6.5]]
         table = Table(["A", "B"], rows=rows)
         loader = io_app.load_tabular(sep="\t", as_type="table")
