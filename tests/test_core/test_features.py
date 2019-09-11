@@ -593,6 +593,27 @@ class FeaturesTest(TestCase):
         self.assertEqual(str(x.data.annotations[0].get_slice()), "GGGGG")
         self.assertEqual(str(x.data.annotations[1].get_slice()), "C")
 
+    def test_roundtrip_rc_annotated_align(self):
+        """should work for an alignment that has been reverse complemented"""
+        # the key that exposed the bug was a gap in the middle of the sequence
+        aln = make_aligned_seqs(
+            data=[["x", "-AAAGGGGGAAC-CT"], ["y", "TTTT--TTTTAGGGA"]],
+            array_align=False,
+            moltype="dna",
+        )
+        of1 = aln.get_seq("x").add_annotation(Feature, "exon", "E1", [(3, 8)])
+        of2 = aln.get_seq("x").add_annotation(Feature, "exon", "E2", [(10, 13)])
+
+        raln = aln.rc()
+        json = raln.to_json()
+        got = deserialise_object(json)
+        self.assertEqual(got.to_dict(), raln.to_dict())
+        orig_annots = {
+            a.name: a.get_slice() for a in raln.get_annotations_from_any_seq()
+        }
+        got_annots = {a.name: a.get_slice() for a in got.get_annotations_from_any_seq()}
+        self.assertEqual(got_annots, orig_annots)
+
     def test_roundtrip_variable(self):
         """should recover the Variable feature type"""
         seq = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
