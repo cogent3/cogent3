@@ -250,6 +250,7 @@ class load_tabular(ComposableTabular):
         self.as_type = as_type
 
     def _parse(self, data):
+        """returns header, records, title"""
         title = header = None
         sep = self._sep
         strict = self.strict
@@ -292,7 +293,7 @@ class load_tabular(ComposableTabular):
                     pass
             records.append(record)
         records = numpy.array(records, dtype="O").T
-        return {"header": header, "records": records, "title": title}
+        return header, records, title
 
     def load(self, path):
         if type(path) == str:
@@ -300,19 +301,20 @@ class load_tabular(ComposableTabular):
             path = SingleReadDataStore(path)[0]
 
         try:
-            result = self._parse(path)
+            header, data, title = self._parse(path)
         except Exception as err:
             result = NotCompleted("ERROR", self, err.args[0], source=str(path))
 
         if self.as_type == "table":
-            return Table(
-                result["header"], rows=result["records"], title=result["title"]
-            )
-        if self.as_type == "distances":
-            # records is of the form [[dim-1, dim-2, value] for entries in DistanceMatrix]
-            return DistanceMatrix({(e[0], e[1]): e[2] for e in result["records"]})
+            return Table(header, rows=data, title=title)
 
-        data = result["records"]
+        for l in data:
+            assert len(l) == 3, "Invalid tabular data"
+
+        if self.as_type == "distances":
+            # records is of the form [ [dim-1, dim-2, value] for entries in DistanceMatrix ]
+            return DistanceMatrix({(e[0], e[1]): e[2] for e in data})
+
         if self.as_type == "motif_counts":
             return make_motif_counts_from_tabular(data)
         if self.as_type == "motif_freqs":

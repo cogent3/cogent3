@@ -157,14 +157,15 @@ class _MotifNumberArray(DictArray):
         return self.__class__(result, motifs=motifs, row_indices=row_order)
 
 
-def get_motif_from_tabular(data):
-    """backend motif extraction function for motif_counts, motif_freqs and pssm"""
+def get_ordered_motifs_from_tabular(data):
+    """backend motif extraction function for motif_counts, motif_freqs and pssm
+       assumed index 1 are motif strings; motif returned in order of occurrence"""
 
     chars = []
     for entry in data:
         if not entry[1] in chars:
             chars.append(entry[1])
-    return "".join(chars)
+    return chars
 
 
 def get_data_from_tabular(tab_data, motif):
@@ -178,21 +179,21 @@ def get_data_from_tabular(tab_data, motif):
 
 def make_motif_counts_from_tabular(tab_data):
     """converts tabular data to MotifCountsArray"""
-    motif = get_motif_from_tabular(tab_data)
+    motif = get_ordered_motifs_from_tabular(tab_data)
     data = get_data_from_tabular(tab_data, motif)
     return MotifCountsArray(data, motif)
 
 
 def make_motif_freqs_from_tabular(tab_data):
     """converts tabular data to MotifFreqsArray"""
-    motif = get_motif_from_tabular(tab_data)
+    motif = get_ordered_motifs_from_tabular(tab_data)
     data = get_data_from_tabular(tab_data, motif)
     return MotifFreqsArray(data, motif)
 
 
 def make_pssm_from_tabular(tab_data):
     """converts tabular data to PSSM"""
-    motif = get_motif_from_tabular(tab_data)
+    motif = get_ordered_motifs_from_tabular(tab_data)
     data = get_data_from_tabular(tab_data, motif)
     return PSSM(data, motif)
 
