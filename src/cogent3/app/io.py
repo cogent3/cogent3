@@ -308,8 +308,7 @@ class load_tabular(ComposableTabular):
         if self.as_type == "table":
             return Table(header, rows=data, title=title)
 
-        for l in data:
-            assert len(l) == 3, "Invalid tabular data"
+        assert data.shape[1] == 3, "Invalid tabular data"
 
         if self.as_type == "distances":
             # records is of the form [ [dim-1, dim-2, value] for entries in DistanceMatrix ]
