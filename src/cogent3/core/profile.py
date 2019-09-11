@@ -158,6 +158,8 @@ class _MotifNumberArray(DictArray):
 
 
 def get_motif_from_tabular(data):
+    """backend motif extraction function for motif_counts, motif_freqs and pssm"""
+
     chars = []
     for entry in data:
         if not entry[1] in chars:
@@ -166,7 +168,7 @@ def get_motif_from_tabular(data):
 
 
 def get_data_from_tabular(tab_data, motif):
-    """backend conversion function for motif_counts, motif_freqs and pssm"""
+    """backend data extraction function for motif_counts, motif_freqs and pssm"""
     num_lists = len(tab_data) // len(motif)
     return [
         [tab_data[i + j * len(motif)][2] for i in range(len(motif))]
