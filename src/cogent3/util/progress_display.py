@@ -101,6 +101,10 @@ class ProgressContext:
             if not hasattr(items, "__len__"):
                 items = list(items)
             count = len(items)
+        if count == 0:
+            # nothing to do
+            return
+
         if start is None:
             start = 0.0
         step = (end - start) / count
