@@ -168,41 +168,35 @@ def get_ordered_motifs_from_tabular(data, index=1):
     return chars
 
 
-def get_data_from_tabular(tab_data, motifs):
+def get_data_from_tabular(tab_data, motifs, dtype):
     """backend data extraction function for motif_counts, motif_freqs and pssm"""
-    # num_motifs = len(motifs)
-    # num_pos = len(tab_data) // num_motifs
-    # result = numpy.zeros((num_pos, num_motifs), dtype="float")
-    # for pos, motif, value in tab_data:
-    #     motif_index = motifs.index(motif)
-    #     result[pos, motif_index] = value
-    # return result
-
-    num_lists = len(tab_data) // len(motifs)
-    return [
-        [tab_data[i + j * len(motifs)][2] for i in range(len(motifs))]
-        for j in range(num_lists)
-    ]
+    num_motifs = len(motifs)
+    num_pos = len(tab_data) // num_motifs
+    result = numpy.zeros((num_pos, num_motifs), dtype=dtype)
+    for pos, motif, value in tab_data:
+        motif_index = motifs.index(motif)
+        result[pos, motif_index] = value
+    return result
 
 
 def make_motif_counts_from_tabular(tab_data):
     """converts tabular data to MotifCountsArray"""
     motif = get_ordered_motifs_from_tabular(tab_data)
-    data = get_data_from_tabular(tab_data, motif)
+    data = get_data_from_tabular(tab_data, motif, "int")
     return MotifCountsArray(data, motif)
 
 
 def make_motif_freqs_from_tabular(tab_data):
     """converts tabular data to MotifFreqsArray"""
     motif = get_ordered_motifs_from_tabular(tab_data)
-    data = get_data_from_tabular(tab_data, motif)
+    data = get_data_from_tabular(tab_data, motif, "float")
     return MotifFreqsArray(data, motif)
 
 
 def make_pssm_from_tabular(tab_data):
     """converts tabular data to PSSM"""
     motif = get_ordered_motifs_from_tabular(tab_data)
-    data = get_data_from_tabular(tab_data, motif)
+    data = get_data_from_tabular(tab_data, motif, "float")
     return PSSM(data, motif)
 
 
@@ -337,7 +331,9 @@ class PSSM(_MotifNumberArray):
             ), "Mismatch between number of motifs and the background"
             validate_freqs_array(self._background)
             pssm = safe_log(data) - safe_log(self._background)
-            super(PSSM, self).__init__(pssm, motifs, row_indices, dtype=float)
+            super(PSSM, self).__init__(
+                pssm, motifs, row_indices=row_indices, dtype=float
+            )
             self._indices = numpy.arange(self.shape[0])  # used for scoring
             return
 
