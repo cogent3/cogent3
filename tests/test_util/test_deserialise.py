@@ -2,6 +2,8 @@ import json
 
 from tempfile import TemporaryDirectory
 
+import numpy
+
 from numpy.testing import assert_allclose
 
 from cogent3 import (
@@ -301,7 +303,13 @@ class TestDeserialising(TestCase):
         dm = DistanceMatrix(data)
         json = dm.to_json()
         got = deserialise_object(json)
-        self.assertEqual(dm.todict(), got.todict())
+        dm_dict = dm.todict()
+        got_dict = got.todict()
+        for key in dm_dict.keys():
+            if numpy.isnan(dm_dict[key]):
+                self.assertTrue(numpy.isnan(got_dict[key]))
+            else:
+                self.assertEqual(dm_dict[key], got_dict[key])
 
     def test_deserialise_python_builtins(self):
         """any object that does not contain a type key is returned as is"""

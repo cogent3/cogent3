@@ -1,6 +1,8 @@
 from collections import defaultdict, namedtuple
 from numbers import Number
 
+import numpy
+
 from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
 from numpy.linalg import LinAlgError, det, inv, norm
 
@@ -682,8 +684,8 @@ def available_distances():
 class DistanceMatrix(DictArray):
     """pairwise distance matrix"""
 
-    def __init__(self, dists, invalid=None):
-        super(DistanceMatrix, self).__init__(dists, dtype="O")
+    def __init__(self, dists, invalid=None, dtype="float"):
+        super(DistanceMatrix, self).__init__(dists, dtype=dtype)
         self._invalid = invalid
 
     def __setitem__(self, names, value):
@@ -765,9 +767,14 @@ class DistanceMatrix(DictArray):
         ):
             raise RuntimeError("Must be a square matrix")
         names = array(self.names)
-        cols = (self.array == invalid).sum(axis=0)
+
+        indicator_matrix = self.array == invalid
+        if numpy.any(numpy.isnan(self.array)):
+            indicator_matrix = numpy.zeros((self.shape[0], self.shape[1]))
+            indicator_matrix[numpy.isnan(self.array)] = 1
+        cols = indicator_matrix.sum(axis=0)
         exclude = names[cols != 0].tolist()
-        rows = (self.array == invalid).sum(axis=1)
+        rows = indicator_matrix.sum(axis=1)
         exclude += names[rows != 0].tolist()
         exclude = set(exclude)
         keep = set(names) ^ exclude

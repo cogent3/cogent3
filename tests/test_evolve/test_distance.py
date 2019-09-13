@@ -352,10 +352,10 @@ class TestPair(TestCase):
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
         dists = logdet_calc.get_pairwise_distances().todict()
-        self.assertTrue(list(dists.values())[0] is None)
+        self.assertTrue(numpy.isnan(list(dists.values())[0]))
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
         dists = logdet_calc.get_pairwise_distances().todict()
-        self.assertTrue(list(dists.values())[0] is None)
+        self.assertTrue(numpy.isnan(list(dists.values())[0]))
 
         # but raises ArithmeticError if told to
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln, invalid_raises=True)
@@ -448,10 +448,10 @@ class TestPair(TestCase):
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
         dists = paralinear_calc.get_pairwise_distances().todict()
-        self.assertTrue(list(dists.values())[0] is None)
+        self.assertTrue(numpy.isnan(list(dists.values())[0]))
         paralinear_calc.run(show_progress=False)
         dists = paralinear_calc.get_pairwise_distances().todict()
-        self.assertTrue(list(dists.values())[0] is None)
+        self.assertTrue(numpy.isnan(list(dists.values())[0]))
 
     def test_paralinear_pair_dna(self):
         """calculate paralinear distance consistent with logdet distance"""
@@ -553,6 +553,55 @@ class TestDistanceMatrix(TestCase):
         dmat = DistanceMatrix(data)
         got = dmat.todict()
         self.assertEqual(got, data)
+
+    def test_matrix_dtype(self):
+        """tests DistanceMatrix correctly accepts the data with proper dtype"""
+        data = {
+            ("ABAYE2984", "Atu3667"): None,
+            ("ABAYE2984", "Avin_42730"): 0.638,
+            ("ABAYE2984", "BAA10469"): None,
+            ("Atu3667", "ABAYE2984"): None,
+            ("Atu3667", "Avin_42730"): 2.368,
+            ("Atu3667", "BAA10469"): None,
+            ("Avin_42730", "ABAYE2984"): 0.638,
+            ("Avin_42730", "Atu3667"): 2.368,
+            ("Avin_42730", "BAA10469"): 1.85,
+            ("BAA10469", "ABAYE2984"): None,
+            ("BAA10469", "Atu3667"): None,
+            ("BAA10469", "Avin_42730"): 1.85,
+        }
+        names = set()
+        for p in data:
+            names.update(p)
+
+        # tests when data has None values and DistanceMatrix using default dtype('float')
+        darr = DistanceMatrix(data)
+        self.assertEqual(darr.shape, (4, 4))
+        self.assertEqual(set(darr.names), names)
+        for key in data.keys():
+            if data[key] is None:
+                self.assertTrue(numpy.isnan(darr[key]))
+            else:
+                self.assertEqual(data[key], darr[key])
+
+        data = {
+            ("ABAYE2984", "Atu3667"): "None",
+            ("ABAYE2984", "Avin_42730"): 0.638,
+            ("ABAYE2984", "BAA10469"): None,
+            ("Atu3667", "ABAYE2984"): None,
+            ("Atu3667", "Avin_42730"): 2.368,
+            ("Atu3667", "BAA10469"): "None",
+            ("Avin_42730", "ABAYE2984"): 0.638,
+            ("Avin_42730", "Atu3667"): 2.368,
+            ("Avin_42730", "BAA10469"): 1.85,
+            ("BAA10469", "ABAYE2984"): None,
+            ("BAA10469", "Atu3667"): None,
+            ("BAA10469", "Avin_42730"): 1.85,
+        }
+
+        # tests when data has str values and DistanceMatrix using default dtype('float')
+        with self.assertRaises(ValueError):
+            darr = DistanceMatrix(data)
 
     def test_dropping_from_matrix(self):
         """pairwise distances should have method for dropping invalid data"""

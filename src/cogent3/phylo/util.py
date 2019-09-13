@@ -33,6 +33,11 @@ def lookup_symmetric_dict(dists, a, b):
     don't contradict each other"""
     v1 = dists.get((a, b), None)
     v2 = dists.get((b, a), None)
+    try:
+        v1 = None if numpy.isnan(v1) else v1
+        v2 = None if numpy.isnan(v2) else v2
+    except TypeError:
+        pass
     if v1 is None and v2 is None:
         raise KeyError((a, b))
     elif v1 is None or v2 is None or v1 == v2:
