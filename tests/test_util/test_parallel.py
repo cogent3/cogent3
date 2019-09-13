@@ -36,11 +36,11 @@ class ParallelTests(TestCase):
     def test_create_processes(self):
         """Procressor pool should create multiple distingue processes"""
         index = [2, 3, 4, 5, 6, 7, 8, 9, 10]
-        result = parallel.map(get_process_value, index, max_workers=None, use_mpi=False)
-        resultProcesses = [v[0] for v in result]
-        resultValues = [v[1] for v in result]
-        self.assertEqual(sorted(list(resultValues)), index)
-        self.assertNotEqual(len(set(resultProcesses)), 1)
+        result = parallel.map(get_process_value, index, max_workers=2, use_mpi=False)
+        result_processes = [v[0] for v in result]
+        result_values = [v[1] for v in result]
+        self.assertEqual(sorted(list(result_values)), index)
+        self.assertNotEqual(len(set(result_processes)), 1)
 
     def test_random_seeding(self):
         """Random seed should be set every function call"""
@@ -59,13 +59,13 @@ class ParallelTests(TestCase):
         for all child processes
         """
         index = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        masterProcesses = 0
+        master_processes = 0
         for result in parallel.imap(
-            check_is_master_process, index, max_workers=None, use_mpi=False
+            check_is_master_process, index, max_workers=2, use_mpi=False
         ):
             if result:
-                masterProcesses += 1
-        self.assertEqual(masterProcesses, 0)
+                master_processes += 1
+        self.assertEqual(master_processes, 0)
 
 
 if __name__ == "__main__":
