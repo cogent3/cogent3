@@ -19,7 +19,7 @@ jobs:
           addToPath: false
         name: pyTools
 
-      - script: $(pyTools.pythonLocation)/bin/pip install --upgrade tox
+      - script: $(pyTools.pythonLocation)/bin/pip install --upgrade tox pytest click cython numpy pandas plotly scitrack tqdm tinydb
         displayName: Install Python-based tools.
 
       - task: UsePythonVersion@0
