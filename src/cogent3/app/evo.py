@@ -341,12 +341,12 @@ class bootstrap(ComposableHypothesis):
 
 
 class ancestral_states(ComposableTabular):
-    _input_types = frozenset(["model_result"])
-    _output_types = frozenset(["result", "tabular_result", "serialisable"])
-    _data_types = frozenset(["model_result"])
-
     def __init__(self):
-        super(ancestral_states, self).__init__()
+        super(ancestral_states, self).__init__(
+            input_types="model_result",
+            output_types=("result", "tabular_result", "serialisable"),
+            data_types="model_result",
+        )
         self._formatted_params()
         self.func = self.recon_ancestor
 
@@ -368,12 +368,12 @@ class ancestral_states(ComposableTabular):
 class tabulate_stats(ComposableTabular):
     """Extracts all model statistics from model_result as Table."""
 
-    _input_types = frozenset(["model_result"])
-    _output_types = frozenset(["result", "tabular_result", "serialisable"])
-    _data_types = frozenset(["model_result"])
-
     def __init__(self):
-        super(tabulate_stats, self).__init__()
+        super(tabulate_stats, self).__init__(
+            input_types="model_result",
+            output_types=("result", "tabular_result", "serialisable"),
+            data_types="model_result",
+        )
         self._formatted_params()
         self.func = self.extract_stats
 

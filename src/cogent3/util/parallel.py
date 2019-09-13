@@ -11,7 +11,6 @@ import time
 import warnings
 
 import numpy
-import psutil
 
 from cogent3.util.misc import extend_docstring_from
 
@@ -61,9 +60,9 @@ def get_rank():
 # False otherwise
 def is_master_process():
     if MPI is not None:
-        process = psutil.Process(os.getpid())
-        process_cmd = process.cmdline()
-        if process_cmd[-1] == "mpi4py.futures.server":
+        process_cmd = sys.argv[0]
+        process_file = process_cmd.split("/")[-1]
+        if process_file == "server.py":
             return False
     else:
         process_name = multiprocessing.current_process().name

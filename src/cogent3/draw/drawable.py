@@ -466,8 +466,13 @@ class Shape:
         self._hoverinfo = hoverinfo or name
 
     def shift(self, x=0, y=0):
-        self.x += x
-        self.y += y
+        if not isinstance(self.x, numpy.ndarray):
+            self.x += x
+            self.y += y
+        else:
+            self.x[self.x != None] += x
+            self.y[self.y != None] += y
+
         return self
 
     @property
@@ -476,11 +481,17 @@ class Shape:
 
     @property
     def top(self):
-        return numpy.max(self.y)
+        if not isinstance(self.y, numpy.ndarray):
+            return numpy.max(self.y)
+        else:
+            return numpy.max(self.y[self.y != None])
 
     @property
     def bottom(self):
-        return numpy.min(self.y)
+        if not isinstance(self.y, numpy.ndarray):
+            return numpy.min(self.y)
+        else:
+            return numpy.min(self.y[self.y != None])
 
     @property
     def middle(self):
@@ -512,46 +523,112 @@ class Shape:
 
 
 class Rectangle(Shape):
-    def __init__(self, x, width, y=0, height=0.25, **kwargs):
+    def __init__(self, coords, y=0, height=0.25, **kwargs):
         super(Rectangle, self).__init__(**kwargs)
-        self.x = numpy.array([x, x, x + width, x + width, x])
-        self.y = numpy.array([y, y + height, y + height, y, y])
+        width = abs(coords[0][0] - coords[0][1])
+        x_coord = min(coords[0][0], coords[0][1])
+        xs = [x_coord, x_coord, x_coord + width, x_coord + width, x_coord]
+        ys = [y, y + height, y + height, y, y]
+        for i in range(1, len(coords)):
+            # Add coordinates for connecting line segment
+            xs += [None, coords[i - 1][1], coords[i][0], None]
+            ys += [None, y + height / 2, y + height / 2, None]
+            # Add coordinates for individual rectangle
+            width = abs(coords[i][0] - coords[i][1])
+            x_coord = min(coords[i][0], coords[i][1])
+            xs += [x_coord, x_coord, x_coord + width, x_coord + width, x_coord]
+            ys += [y, y + height, y + height, y, y]
+        self.x = numpy.array(xs)
+        self.y = numpy.array(ys)
 
 
 class Diamond(Shape):
-    def __init__(self, x, width, y=0, height=0.25, **kwargs):
+    def __init__(self, coords, y=0, height=0.25, **kwargs):
         super(Diamond, self).__init__(**kwargs)
-        hw = width / 2
+        width = abs(coords[0][0] - coords[0][1])
+        x_coord = min(coords[0][0], coords[0][1])
         hh = height / 2
-        self.x = numpy.array([x - hw, x, x + hw, x, x - hw])
-        self.y = numpy.array([y, y + hh, y, y - hh, y])
+        xs = [
+            x_coord,
+            x_coord + width / 2,
+            x_coord + width,
+            x_coord + width / 2,
+            x_coord,
+        ]
+        ys = [y, y + hh, y, y - hh, y]
+        for i in range(1, len(coords)):
+            # Add coordinates for connecting line segment
+            xs += [None, coords[i - 1][1], coords[i][0], None]
+            ys += [None, y, y, None]
+            # Add coordinates for individual diamond
+            width = abs(coords[i][0] - coords[i][1])
+            x_coord = min(coords[i][0], coords[i][1])
+            xs += [
+                x_coord,
+                x_coord + width / 2,
+                x_coord + width,
+                x_coord + width / 2,
+                x_coord,
+            ]
+            ys += [y, y + hh, y, y - hh, y]
+        self.x = numpy.array(xs)
+        self.y = numpy.array(ys)
 
 
 class Arrow(Shape):
     def __init__(
-        self, x, width, y=0, height=0.25, arrow_head_w=0.1, reverse=False, **kwargs
+        self, coords, y=0, height=0.25, arrow_head_w=0.1, reverse=False, **kwargs
     ):
         super(Arrow, self).__init__(**kwargs)
-        hw = width * arrow_head_w * 2
+        xs = []
+        ys = []
+        for i in range(len(coords) - 1):
+            # Add coordinates for individual rectangle
+            width = abs(coords[i][0] - coords[i][1])
+            x_coord = min(coords[i][0], coords[i][1])
+            xs += [x_coord, x_coord, x_coord + width, x_coord + width, x_coord]
+            ys += [y, y + height, y + height, y, y]
+            # Add coordinates for connecting line segment
+            xs += [None, coords[i][1], coords[i + 1][0], None]
+            ys += [None, y + height / 2, y + height / 2, None]
+
+        width = abs(coords[-1][0] - coords[-1][1])
+        x_coord = min(coords[-1][0], coords[-1][1])
         hh = height * arrow_head_w * 2
-        self.x = numpy.array(
-            [
-                x,
-                x + width - hw,
-                x + width - hw,
-                x + width,
-                x + width - hw,
-                x + width - hw,
-                x,
-                x,
-            ]
-        )
-        self.y = numpy.array(
-            [y, y, y - hh, y + height / 2, y + height + hh, y + height, y + height, y]
-        )
-        if reverse:
-            self.x = numpy.flip(self.x.max() - self.x + self.x.min())
-            self.y = numpy.flip(self.y)
+        hw = width * arrow_head_w * 2
+
+        # Coordinates for arrow head
+        arrow_x = [
+            x_coord,
+            x_coord + width - hw,
+            x_coord + width - hw,
+            x_coord + width,
+            x_coord + width - hw,
+            x_coord + width - hw,
+            x_coord,
+            x_coord,
+        ]
+        arrow_y = [
+            y,
+            y,
+            y - hh,
+            y + height / 2,
+            y + height + hh,
+            y + height,
+            y + height,
+            y,
+        ]
+        if not reverse:
+            xs += arrow_x
+            ys += arrow_y
+        else:
+            arrow_x = numpy.array(arrow_x)
+            arrow_y = numpy.array(arrow_y)
+            xs += list(numpy.flip(arrow_x.max() - arrow_x + arrow_x.min()))
+            ys += list(numpy.flip(arrow_y))
+
+        self.x = numpy.array(xs)
+        self.y = numpy.array(ys)
 
 
 # https://plot.ly/python/marker-style/
@@ -586,19 +663,25 @@ class _MakeShape:
         repeat=Rectangle,
         snp=Point,
         snv=Point,
+        variation=Diamond,
     )
 
-    def __call__(self, type_=None, name=None, coords=None, width=None, **kwargs):
+    def __call__(self, type_=None, name=None, coords=None, **kwargs):
         from cogent3.core.annotation import _Annotatable
 
         if isinstance(type_, _Annotatable):
             name = type_.name
-            width = len(type_)
-            map = type_.map.get_covering_span()
-            reverse = map.reverse
-            start = min(map.spans[0].start, map.spans[0].end)
+            coords = type_.map.get_coordinates()
+            reverse = type_.map.get_covering_span().reverse
             type_ = type_.type
-            kwargs.update(dict(reverse=reverse))
+        else:
+            if coords[0][0] > coords[-1][1]:
+                reverse = True
+            else:
+                reverse = False
+            if coords is None:
+                raise Exception("No coordinates defined")
+        kwargs.update(dict(reverse=reverse))
 
         klass = self._shapes.get(type_.lower(), Rectangle)
         color = self._colors.get(type_.lower(), None)
@@ -610,8 +693,7 @@ class _MakeShape:
                 name=type_,
                 text=name,
                 legendgroup=type_,
-                x=start,
-                width=width,
+                coords=coords,
                 fillcolor=color,
                 **kwargs,
             )
@@ -620,7 +702,7 @@ class _MakeShape:
                 name=type_,
                 text=name,
                 legendgroup=type_,
-                x=start,
+                x=min(coords[0][0], coords[-1][1]),
                 y=1,
                 size=14,
                 symbol="square",
