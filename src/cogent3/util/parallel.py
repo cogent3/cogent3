@@ -56,6 +56,21 @@ def get_rank():
     return rank
 
 
+# Returns True if current process is master
+# False otherwise
+def is_master_process():
+    if MPI is not None:
+        process_cmd = sys.argv[0]
+        process_file = process_cmd.split("/")[-1]
+        if process_file == "server.py":
+            return False
+    else:
+        process_name = multiprocessing.current_process().name
+        if process_name[:-2] in ("ForkProcess", "SpawnProcess"):
+            return False
+    return True
+
+
 class PicklableAndCallable:
     def __init__(self, func):
         self.func = func
@@ -88,7 +103,7 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
         values are 'raise', 'ignore', 'warn'. Defaults to 'raise'.
     chunksize : int or None
         Size of data chunks executed by worker processes. Defaults to None
-        where optimal chunksize is determined by set_default_chunksize()
+        where stable chunksize is determined by set_default_chunksize()
 
     Returns
     -------
