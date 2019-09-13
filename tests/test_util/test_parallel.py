@@ -28,6 +28,10 @@ def get_ranint(n):
     return numpy.random.randint(1, 10)
 
 
+def check_is_master_process(n):
+    return parallel.is_master_process()
+
+
 class ParallelTests(TestCase):
     def test_create_processes(self):
         """Procressor pool should create multiple distingue processes"""
@@ -48,6 +52,20 @@ class ParallelTests(TestCase):
         result2 = parallel.map(get_ranint, index2, max_workers=1, use_mpi=False)
         self.assertEqual(result1[0], result2[0])
         self.assertNotEqual(result1, result2)
+
+    def test_is_master_process(self):
+        """
+        is_master_process() should return False
+        for all child processes
+        """
+        index = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        masterProcesses = 0
+        for result in parallel.imap(
+            check_is_master_process, index, max_workers=None, use_mpi=False
+        ):
+            if result:
+                masterProcesses += 1
+        self.assertEqual(masterProcesses, 0)
 
 
 if __name__ == "__main__":
