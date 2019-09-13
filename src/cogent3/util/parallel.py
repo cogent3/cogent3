@@ -75,7 +75,7 @@ def is_master_process():
             return False
     else:
         process_name = multiprocessing.current_process().name
-        if process_name[:-2] in ("ForkProcess", "SpawnProcess"):
+        if "ForkProcess" in process_name or "SpawnProcess" in process_name:
             return False
     return True
 
