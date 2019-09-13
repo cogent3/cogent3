@@ -3,7 +3,7 @@
 """
 from collections import Counter
 
-from numpy import array, log2, vstack
+from numpy import array, log2, nan, vstack
 from numpy.testing import assert_allclose
 
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
@@ -329,6 +329,25 @@ class PSSMTests(TestCase):
 
     def test_construct_fails(self):
         """construction fails for invalid input"""
+
+        # fails for entries all zero
+        data_all_zero = [
+            [0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0],
+        ]
+        with self.assertRaises(ValueError):
+            pssm = PSSM(data_all_zero, "ACTG")
+
+        # fails for numpy.nan
+        data_nan = [
+            [nan, -0.263, -1.0, -1.322],
+            [-2.322, -1.678, -2.322, -1.322],
+            [-1.485, -1.322, -1.322, -1.322],
+            [-1.263, -0.737, -2.322, -0.322],
+        ]
+        with self.assertRaises(ValueError):
+            pssm = PSSM(data_nan, "ACTG")
 
         # fails for entries all negative numbers
         data = [

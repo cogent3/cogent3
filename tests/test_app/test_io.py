@@ -10,6 +10,8 @@ from unittest.mock import Mock, patch
 
 import numpy
 
+from numpy.testing import assert_allclose
+
 from cogent3 import DNA
 from cogent3.app import io as io_app
 from cogent3.app.composable import NotCompleted
@@ -409,9 +411,7 @@ class TestIo(TestCase):
             outpath = join(dirname, "delme.tsv")
             writer.write(pssm, identifier=outpath)
             new = loader(outpath)
-            self.assertTrue(
-                numpy.isclose(pssm.toarray(), new.toarray(), atol=0.0001).all()
-            )
+            assert_allclose(pssm.array, new.array, atol=0.0001)
 
     def test_load_tabular_distance_matrix(self):
         """correctly loads tabular data for DistanceMatrix"""
