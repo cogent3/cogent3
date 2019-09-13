@@ -448,7 +448,8 @@ class Composable(ComposableType):
             if LOGGER:
                 member = dstore[i]
                 LOGGER.log_message(member, label="input")
-                LOGGER.log_message(member.md5, label="input md5sum")
+                if member.md5:
+                    LOGGER.log_message(member.md5, label="input md5sum")
                 mem_id = self.data_store.make_relative_identifier(member.name)
                 if outcome:
                     member = self.data_store.get_member(mem_id)
@@ -645,7 +646,7 @@ class _checkpointable(Composable):
 
 
 class user_function(Composable):
-    """user specified function"""
+    """wrapper class for user specified function"""
 
     _type = "function"
 
