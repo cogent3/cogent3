@@ -5,6 +5,7 @@ from numpy.random import random
 
 from cogent3.maths.util import safe_log, safe_p_log_p
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
+from cogent3.util.misc import extend_docstring_from
 
 
 __author__ = "Gavin Huttley"
@@ -157,7 +158,7 @@ class _MotifNumberArray(DictArray):
         return self.__class__(result, motifs=motifs, row_indices=row_order)
 
 
-def get_ordered_motifs_from_tabular(data, index=1):
+def _get_ordered_motifs_from_tabular(data, index=1):
     """backend motif extraction function for motif_counts, motif_freqs and pssm
        assumed index 1 are motif strings; motif returned in order of occurrence"""
 
@@ -168,7 +169,7 @@ def get_ordered_motifs_from_tabular(data, index=1):
     return chars
 
 
-def get_data_from_tabular(tab_data, motifs, dtype):
+def _get_data_from_tabular(tab_data, motifs, dtype):
     """backend data extraction function for motif_counts, motif_freqs and pssm"""
     num_motifs = len(motifs)
     num_pos = len(tab_data) // num_motifs
@@ -180,23 +181,29 @@ def get_data_from_tabular(tab_data, motifs, dtype):
 
 
 def make_motif_counts_from_tabular(tab_data):
-    """converts tabular data to MotifCountsArray"""
-    motif = get_ordered_motifs_from_tabular(tab_data)
-    data = get_data_from_tabular(tab_data, motif, "int")
+    """converts data to indicated motif number class
+
+    Parameters
+    ----------
+    tab_data : numpy array
+       tab_data is numpy array, with tab_data.shape must be (n, 3)
+   """
+    motif = _get_ordered_motifs_from_tabular(tab_data)
+    data = _get_data_from_tabular(tab_data, motif, "int")
     return MotifCountsArray(data, motif)
 
 
+@extend_docstring_from(make_motif_counts_from_tabular)
 def make_motif_freqs_from_tabular(tab_data):
-    """converts tabular data to MotifFreqsArray"""
-    motif = get_ordered_motifs_from_tabular(tab_data)
-    data = get_data_from_tabular(tab_data, motif, "float")
+    motif = _get_ordered_motifs_from_tabular(tab_data)
+    data = _get_data_from_tabular(tab_data, motif, "float")
     return MotifFreqsArray(data, motif)
 
 
+@extend_docstring_from(make_motif_counts_from_tabular)
 def make_pssm_from_tabular(tab_data):
-    """converts tabular data to PSSM"""
-    motif = get_ordered_motifs_from_tabular(tab_data)
-    data = get_data_from_tabular(tab_data, motif, "float")
+    motif = _get_ordered_motifs_from_tabular(tab_data)
+    data = _get_data_from_tabular(tab_data, motif, "float")
     return PSSM(data, motif)
 
 
@@ -308,7 +315,6 @@ class PSSM(_MotifNumberArray):
     A log-odds matrix"""
 
     def __init__(self, data, motifs, row_indices=None, background=None):
-        data = [numpy.array(a) for a in data]
         data = numpy.array(data)
         row_sum = data.sum(axis=1)
 
