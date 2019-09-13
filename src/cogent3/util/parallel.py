@@ -70,7 +70,7 @@ def is_master_process():
     """
     if MPI is not None:
         process_cmd = sys.argv[0]
-        process_file = process_cmd.split("/")[-1]
+        process_file = process_cmd.split(os.sep)[-1]
         if process_file == "server.py":
             return False
     else:
