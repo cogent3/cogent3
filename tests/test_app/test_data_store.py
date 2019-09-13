@@ -449,6 +449,7 @@ class TinyDBDataStoreTests(TestCase):
             got = loader(m)
             self.assertNotEqual(got, data)
             self.assertEqual(got, original_record)
+            dstore.close()
 
     def test_tiny_write_incomplete(self):
         """write an incomplete result to tinydb"""
