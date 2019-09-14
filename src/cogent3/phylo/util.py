@@ -35,6 +35,9 @@ def lookup_symmetric_dict(dists, a, b):
     v2 = dists.get((b, a), None)
     try:
         v1 = None if numpy.isnan(v1) else v1
+    except TypeError:
+        pass
+    try:
         v2 = None if numpy.isnan(v2) else v2
     except TypeError:
         pass

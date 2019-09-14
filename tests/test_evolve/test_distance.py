@@ -574,15 +574,15 @@ class TestDistanceMatrix(TestCase):
         for p in data:
             names.update(p)
 
-        # tests when data has None values and DistanceMatrix using default dtype('float')
+        # tests when data has None values and DistanceMatrix using dtype('float')
         darr = DistanceMatrix(data)
         self.assertEqual(darr.shape, (4, 4))
         self.assertEqual(set(darr.names), names)
-        for key in data.keys():
-            if data[key] is None:
-                self.assertTrue(numpy.isnan(darr[key]))
+        for (a, b), dist in data.items():
+            if dist is None:
+                assert numpy.isnan(darr[a, b])
             else:
-                self.assertEqual(data[key], darr[key])
+                assert_allclose(dist, darr[a, b])
 
         data = {
             ("ABAYE2984", "Atu3667"): "None",
@@ -599,7 +599,7 @@ class TestDistanceMatrix(TestCase):
             ("BAA10469", "Avin_42730"): 1.85,
         }
 
-        # tests when data has str values and DistanceMatrix using default dtype('float')
+        # tests when data has str values and DistanceMatrix using dtype('float')
         with self.assertRaises(ValueError):
             darr = DistanceMatrix(data)
 

@@ -684,8 +684,9 @@ def available_distances():
 class DistanceMatrix(DictArray):
     """pairwise distance matrix"""
 
-    def __init__(self, dists, invalid=None, dtype="float"):
-        super(DistanceMatrix, self).__init__(dists, dtype=dtype)
+    def __init__(self, dists, invalid=None):
+        super(DistanceMatrix, self).__init__(dists, dtype=float)
+
         self._invalid = invalid
 
     def __setitem__(self, names, value):
@@ -759,7 +760,7 @@ class DistanceMatrix(DictArray):
             result = self.__class__(dists)
         return result
 
-    def drop_invalid(self, invalid=None):
+    def drop_invalid(self):
         """drops all rows / columns with an invalid entry"""
         if (
             self.shape[0] != self.shape[1]
@@ -767,14 +768,10 @@ class DistanceMatrix(DictArray):
         ):
             raise RuntimeError("Must be a square matrix")
         names = array(self.names)
-
-        indicator_matrix = self.array == invalid
-        if numpy.any(numpy.isnan(self.array)):
-            indicator_matrix = numpy.zeros((self.shape[0], self.shape[1]))
-            indicator_matrix[numpy.isnan(self.array)] = 1
-        cols = indicator_matrix.sum(axis=0)
+        # NaN is an invalid value
+        cols = numpy.isnan(self.array).sum(axis=0)
         exclude = names[cols != 0].tolist()
-        rows = indicator_matrix.sum(axis=1)
+        rows = numpy.isnan(self.array).sum(axis=1)
         exclude += names[rows != 0].tolist()
         exclude = set(exclude)
         keep = set(names) ^ exclude
