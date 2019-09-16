@@ -3,7 +3,7 @@
 Quick installation
 ==================
 
-Until the library is officially released, these installation instructions explicitly reference the `bitbucket repository <https://bitbucket.org/Cogent3/cogent3>`_.
+Until the library is officially released, these installation instructions explicitly reference the `GitHub repository <https://github.com/cogent3/cogent3>`_.
 
 Using ``pip``
 -------------
@@ -18,9 +18,9 @@ Assuming you have `pip <https://pypi.python.org/pypi/pip/>`_ installed on your s
     
     a) If you have `mercurial <https://pypi.python.org/pypi/Mercurial/3.9.1>`_ installed::
 
-        $ DONT_USE_CYTHON=1 pip install hg+https://bitbucket.org/Cogent3/cogent3
+        $ DONT_USE_CYTHON=1 pip install hg+https://github.com/cogent3/cogent3
 
-    b) If you don't have mercurial installed, `download a zip file <https://bitbucket.org/Cogent3/cogent3/downloads>`_ to your hard drive and pip install as::
+    b) If you don't have mercurial installed, `download a zip file <https://github.com/cogent3/cogent3/downloads>`_ to your hard drive and pip install as::
     
         $ DONT_USE_CYTHON=1 pip install /path/to/downloaded/archive.zip
 

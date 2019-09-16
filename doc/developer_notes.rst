@@ -1,24 +1,23 @@
 How to make a contribution
 ==========================
 
-Look at the `Cogent3 issues <https://bitbucket.org/Cogent3/cogent3/issues>`_. Pick something you think you can tackle which is not already assigned and have a go! (Following the process outlined below.)
+Look at the `Cogent3 issues <https://github.com/cogent3/cogent3/issues>`_. Pick something you think you can tackle which is not already assigned and have a go! (Following the process outlined below.)
 
 For Developers
 ==============
 
-You first need to `install and configure Mercurial <https://confluence.atlassian.com/get-started-with-bitbucket/install-and-set-up-mercurial-860009660.html>`_ on your machine.
+Install `git <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`_.
 
 After that, the process is:
 
-#. `fork the Cogent3 repository <https://confluence.atlassian.com/bitbucketserver/using-forks-in-bitbucket-server-776639958.html>`_
+#. `fork the Cogent3 repository <https://help.github.com/en/articles/fork-a-repo>`_
 #. clone this fork to your local machine
 #. follow the :ref:`dev-install` instructions to install
 #. :ref:`run-tests` to make sure the install was correct
-#. `create a new branch <https://confluence.atlassian.com/bitbucket/branching-a-repository-223217999.html#BranchingaRepository-CreateaMercurialbranch>`_
 #. make your changes, and add tests to the test-suite
 #. Keep your repository in sync with the upstream Cogent3 repository
 #. run the test suite
-#. commit your changes and push to your Bitbucket repo
+#. commit your changes and push to your GitHub repo
 #. make a pull request
 
 .. _dev-install:
@@ -38,19 +37,15 @@ That will also build the library.
 Run the test suite
 ------------------
 
-We use the `unittest` framework for testing. The `tests/` directory largely mirrors the structure of `cogent3`, so finding the place to put tests should be pretty straighforward.
-
 To run the tests, either::
 
     $ cd <to local repo>
-    $ ./run_tests
+    $ tox -e py37
 
 or, you can also run these tests directly within the `tests/` directory.::
 
     $ cd <to local repo>/tests
-    $ python alltests.py
-
-In both cases, allowed options are ``--output-ok`` and ``--verbose``.
+    $ pytest
 
 Building/testing the documentation
 ----------------------------------
@@ -96,7 +91,7 @@ The results are in ``_build/doctest/output.txt``.
 Adding to the documentation
 ---------------------------
 
-You can maximise the cogent3 user experience for yourself and others by contributing to the documentation. If you solve a problem that you think might prove useful to others then fork, add it into the documentation and do a pull request. If you can think of ways to improve the existing documents let us know via a `ticket <https://bitbucket.org/Cogent3/cogent3/issues>`_.
+You can maximise the cogent3 user experience for yourself and others by contributing to the documentation. If you solve a problem that you think might prove useful to others then fork, add it into the documentation and do a pull request. If you can think of ways to improve the existing documents let us know via a `ticket <https://github.com/cogent3/cogent3/issues>`_.
 
 For guidance on adding documentation, look at any of the existing examples. The restructured text format is pretty easy to write (for overview see the Sphinx `rest overview`_). The conventions adopted by Cogent3 are to use heading levels to be consistent with the Python.org standard (taken from `Sphinx headings`_). They are
 
@@ -146,9 +141,6 @@ Developing C-extensions
 
 Extensions for Cogent3 should be written in `Cython <http://www.cython.org/>`_.
 
-If you have any questions, contact Gavin_.
-
 .. _`rest overview`: http://sphinx.pocoo.org/rest.html
 .. _`Sphinx headings`: http://sphinx.pocoo.org/rest.html#sections
-.. _Gavin: Gavin.Huttley@anu.edu.au
-.. _Cogent3: https://bitbucket.org/Cogent3/cogent3
+.. _Cogent3: https://github.com/cogent3/cogent3

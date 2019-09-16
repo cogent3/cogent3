@@ -31,7 +31,7 @@ Be warned that Cogent3_ is a significantly changed library from the original `Py
 
 Most of the changes from PyCogent involved elimination of modules, using `black <https://github.com/psf/black>`_ and `isort <https://github.com/timothycrosley/isort>`_ for coding style, rationalisation of interfaces and the addition of new features. For instance, we have an experimental ``cogent3.app`` module (documentation still being written) that is intended to present a functional programming style interface to ``cogent3`` capabilities.
 
-The rewrite has been a massive amount of work and unfortunately the changes to the API are only partially documented at present -- please see the `wiki pages <https://bitbucket.org/Cogent3/cogent3/wiki/Home>`_. We will endeavour to make that up-to-date when we can. But if you want to see what happened to something, search in the repository history.
+The rewrite has been a massive amount of work and unfortunately the changes to the API are only partially documented at present -- please see the `wiki pages <https://github.com/cogent3/cogent3/wiki/Home>`_. We will endeavour to make that up-to-date when we can. But if you want to see what happened to something, search in the repository history.
 
 *************
 YOU CAN HELP!
@@ -72,7 +72,7 @@ Search
 
 * :ref:`search`
 
-.. _Cogent3: https://bitbucket.org/Cogent3/cogent3
+.. _Cogent3: https://github.com/cogent3/cogent3
 
 *******
 Support
@@ -80,4 +80,4 @@ Support
 
 We acknowledge the provision by `Wingware <http://wingware.com>`_ of free licenses for their professional IDE. Their commitment, over more than a decade, to supporting our development of Open Source software for science is greatly appreciated. (The port of PyCogent to Python 3 was made much easier by using Wing's refactor tools!)
 
-.. _issues: https://bitbucket.org/pycogent3/cogent3/issues/
+.. _issues: https://github.com/cogent3/cogent3/issues
