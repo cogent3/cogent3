@@ -1,8 +1,4 @@
 import os
-import sys
-
-
-# -- General configuration -----------------------------------------------------
 
 extensions = ['sphinx.ext.todo',
               'sphinx.ext.doctest',
@@ -47,6 +43,7 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
+
 # on_rtd is whether we are on readthedocs.org, this line of code grabbed from docs.readthedocs.org
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
