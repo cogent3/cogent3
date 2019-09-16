@@ -4,6 +4,12 @@
 Welcome to Cogent3's documentation!
 #####################################
 
+*********************************
+COGENT3 IS HEADING TO A NEW HOME!
+*********************************
+
+We will be leaving Bitbucket and heading to GitHub soon. All issues will be migrated over to the new home. Rest assured, any issues to you post at issues_ will not be lost.
+
 **Contents**
 
 .. toctree::
