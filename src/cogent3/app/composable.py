@@ -318,7 +318,7 @@ class Composable(ComposableType):
                 f"The value {result} equates to False. "
                 "If unexpected, please post this error message along"
                 f" with the code and data '{val}' as an Issue on the"
-                " bitbucket project page."
+                " github project page."
             )
             origin = str(self)
             result = NotCompleted("BUG", origin, msg, source=val)

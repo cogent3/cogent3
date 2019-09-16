@@ -144,7 +144,7 @@ PACKAGE_DIR = "src"
 setup(
     name="cogent3",
     version=__version__,
-    url="https://bitbucket.org/pycogent3/pycogent3",
+    url="https://github.com/cogent3/cogent3",
     author="Gavin Huttley",
     author_email="gavin.huttley@anu.edu.au",
     description=short_description,
