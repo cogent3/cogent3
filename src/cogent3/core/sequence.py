@@ -1323,7 +1323,7 @@ class ArraySequenceBase(object):
             return iter(self.Alpabet.from_indices(self._data))
 
     def tostring(self):
-        """tostring delegates to self._data."""
+        """to_string delegates to self._data."""
         return self._data.tostring()
 
     def gaps(self):

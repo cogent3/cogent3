@@ -469,11 +469,41 @@ and larger
 Table output
 ------------
 
-Table can output in multiple formats, including restructured text or 'rest' and delimited. These can be obtained using the ``tostring`` method and ``format`` argument as follows. Using table ``t`` from above,
+Table can output in multiple formats, including restructured text or 'rest' and delimited. These can be obtained using the ``to_string`` method and ``format`` argument as follows. Using table ``t`` from above,
 
 .. doctest::
 
-    >>> print(t.tostring(format='rest'))
+    >>> print(t.to_string(format='rest'))
+        +----------------------------------+
+        |        Alignment lengths         |
+        +-------+-----------------+--------+
+        | chrom |        stableid | length |
+        +=======+=================+========+
+        |     X | ENSG00000005893 |   1353 |
+        +-------+-----------------+--------+
+        |     A | ENSG00000019485 |   1827 |
+        +-------+-----------------+--------+
+        |     A | ENSG00000019102 |    999 |
+        +-------+-----------------+--------+
+        |     X | ENSG00000012174 |   1599 |
+        +-------+-----------------+--------+
+        |     X | ENSG00000010671 |   1977 |
+        +-------+-----------------+--------+
+        |     A | ENSG00000019186 |   1554 |
+        +-------+-----------------+--------+
+        |     A | ENSG00000019144 |   4185 |
+        +-------+-----------------+--------+
+        |     X | ENSG00000008056 |   2307 |
+        +-------+-----------------+--------+
+        |     A | ENSG00000018408 |   1383 |
+        +-------+-----------------+--------+
+        |     A | ENSG00000019169 |   1698 |
+        +-------+-----------------+--------+
+        | Some analysis                    |
+        +----------------------------------+
+
+
+    or Markdown format
     +----------------------------------+
     |        Alignment lengths         |
     +-------+-----------------+--------+
@@ -507,7 +537,9 @@ or Markdown format
 
 .. doctest::
 
-    >>> print(t.tostring(format='md'))
+    >>> print(t.to_string(format='md'))
+        | chrom |        stableid | length |
+
     | chrom |        stableid | length |
     |-------|-----------------|--------|
     |     X | ENSG00000005893 |   1353 |
@@ -520,7 +552,9 @@ which can also take an optional `justify` argument. The latter must be a series 
 
 .. doctest::
 
-    >>> print(t.tostring(format='md', justify='lcr'))
+    >>> print(t.to_string(format='md', justify='lcr'))
+        | chrom |        stableid | length |
+
     | chrom |        stableid | length |
     |:------|:---------------:|-------:|
     |     X | ENSG00000005893 |   1353 |
@@ -536,9 +570,14 @@ In the case of Markdown, the pipe character (``|``) is special and so cells cont
 .. doctest::
 
     >>> md_table = make_table(header=["a", "b"],
+        ...                      rows=[["val1", "val2"],
+        ...                            ["has | symbol", "val4"]])
+        >>> print(md_table.to_string(format='md'))
+        |             a |    b |
+
     ...                      rows=[["val1", "val2"],
     ...                            ["has | symbol", "val4"]])
-    >>> print(md_table.tostring(format='md'))
+    >>> print(md_table.to_string(format='md'))
     |             a |    b |
     |---------------|------|
     |          val1 | val2 |
@@ -546,7 +585,7 @@ In the case of Markdown, the pipe character (``|``) is special and so cells cont
 
 Arguments such as ``space`` have no effect in this case. The table may also be written to file in any of the available formats (latex, simple text, html, pickle) or using a custom separator (such as a comma or tab). This makes it convenient to get data into other applications (such as R or a spreadsheet program).
 
-The display format can be specified for a ``Table`` using any valid argument to ``tostring()``. For instance, we can make a ``Table`` instance that defaults to Markdown display.
+The display format can be specified for a ``Table`` using any valid argument to ``to_string()``. For instance, we can make a ``Table`` instance that defaults to Markdown display.
 
 .. doctest::
 
@@ -578,7 +617,8 @@ Here is the latex format, note how the title and legend are joined into the late
 
 .. doctest::
 
-    >>> print(t3.tostring(format='tex', justify="lrcccc", label="table:example"))
+    >>> print(t3.to_string(format='tex', justify="lrcccc", label="table:example"))
+
     \begin{table}[htp!]
     \centering
     \begin{tabular}{ l r c c c c }
@@ -602,7 +642,8 @@ More complex latex table justifying is also possible. Specifying the width of in
 
 .. doctest::
 
-    >>> print(t3.tostring(format='tex', justify=["l","p{3cm}","c","c","c","c"]))
+    >>> print(t3.to_string(format='tex', justify=["l","p{3cm}","c","c","c","c"]))
+
     \begin{table}[htp!]
     \centering
     \begin{tabular}{ l p{3cm} c c c c }
@@ -620,7 +661,29 @@ More complex latex table justifying is also possible. Specifying the width of in
     \hline
     \end{tabular}
     \end{table}
-    >>> print(t3.tostring(sep=','))
+        >>> print(t3.to_string(sep=','))
+        edge.name,edge.parent,length,      x,   y,     z
+            Human,     edge.0,4.0000,1.0e+00,3.00,6.0000
+        HowlerMon,     edge.0,4.0000,1.0e+00,3.00,6.0000
+            Mouse,     edge.1,4.0000,1.0e+00,3.00,6.0000
+        NineBande,       root,4.0000,1.0e+00,3.00,6.0000
+         DogFaced,       root,4.0000,1.0e+00,3.00,6.0000
+           edge.0,     edge.1,4.0000,1.0e+00,3.00,6.0000
+           edge.1,       root,4.0000,1.0e+00,3.00,6.0000
+
+    You can specify any standard text character that will work with your desired target. Useful separators are tabs (
+        >>> print(t3.to_string(sep=','))
+        edge.name,edge.parent,length,      x,   y,     z
+            Human,     edge.0,4.0000,1.0e+00,3.00,6.0000
+        HowlerMon,     edge.0,4.0000,1.0e+00,3.00,6.0000
+            Mouse,     edge.1,4.0000,1.0e+00,3.00,6.0000
+        NineBande,       root,4.0000,1.0e+00,3.00,6.0000
+         DogFaced,       root,4.0000,1.0e+00,3.00,6.0000
+           edge.0,     edge.1,4.0000,1.0e+00,3.00,6.0000
+           edge.1,       root,4.0000,1.0e+00,3.00,6.0000
+
+    You can specify any standard text character that will work with your desired target. Useful separators are tabs (
+    >>> print(t3.to_string(sep=','))
     edge.name,edge.parent,length,      x,   y,     z
         Human,     edge.0,4.0000,1.0e+00,3.00,6.0000
     HowlerMon,     edge.0,4.0000,1.0e+00,3.00,6.0000
@@ -634,7 +697,15 @@ You can specify any standard text character that will work with your desired tar
 
 .. doctest::
 
-    >>> print(t2.tostring(sep=', '))
+    >>> print(t2.to_string(sep=', '))
+                   abcd,   data
+        "[1, 2, 3, 4, 5]",      0
+                      x, 5.0000
+                      y,      *
+
+    Note that I introduced an extra space after the column just to make the result more readable in this example.
+
+    Test the writing of phylip distance matrix format.
                abcd,   data
     "[1, 2, 3, 4, 5]",      0
                   x, 5.0000
@@ -647,20 +718,34 @@ Test the writing of phylip distance matrix format.
 .. doctest::
 
     >>> rows = [['a', '', 0.088337278874079342, 0.18848582712597683,
+        ...  0.44084000179091454], ['c', 0.088337278874079342, '',
+        ...  0.088337278874079342, 0.44083999937417828], ['b', 0.18848582712597683,
+        ...  0.088337278874079342, '', 0.44084000179090932], ['e',
+        ...  0.44084000179091454, 0.44083999937417828, 0.44084000179090932, '']]
+        >>> header = ['seq1/2', 'a', 'c', 'b', 'e']
+        >>> dist = Table(header=header, rows=rows, row_ids=True)
+        >>> print(dist.to_string(format='phylip'))
+           4
+        a           0.0000  0.0883  0.1885  0.4408
+        c           0.0883  0.0000  0.0883  0.4408
+        b           0.1885  0.0883  0.0000  0.4408
+        e           0.4408  0.4408  0.4408  0.0000
+
+    The
     ...  0.44084000179091454], ['c', 0.088337278874079342, '',
     ...  0.088337278874079342, 0.44083999937417828], ['b', 0.18848582712597683,
     ...  0.088337278874079342, '', 0.44084000179090932], ['e',
     ...  0.44084000179091454, 0.44083999937417828, 0.44084000179090932, '']]
     >>> header = ['seq1/2', 'a', 'c', 'b', 'e']
     >>> dist = Table(header=header, rows=rows, row_ids=True)
-    >>> print(dist.tostring(format='phylip'))
+    >>> print(dist.to_string(format='phylip'))
        4
     a           0.0000  0.0883  0.1885  0.4408
     c           0.0883  0.0000  0.0883  0.4408
     b           0.1885  0.0883  0.0000  0.4408
     e           0.4408  0.4408  0.4408  0.0000
 
-The ``tostring`` method also provides generic html generation via the restructured text format. The ``to_rich_html`` method can be used to generate the html table element by itself, with greater control over formatting. Specifically, users can provide custom callback functions to the ``row_cell_func`` and ``header_cell_func`` arguments to control in detail the formatting of table elements, or use the simpler dictionary based ``element_formatters`` approach. We use the above ``dist`` table to provide a specific callback that will set the background color for diagonal cells. We first write a function that takes the cell value and coordinates, returning the html formmatted text.
+The ``to_string`` method also provides generic html generation via the restructured text format. The ``to_rich_html`` method can be used to generate the html table element by itself, with greater control over formatting. Specifically, users can provide custom callback functions to the ``row_cell_func`` and ``header_cell_func`` arguments to control in detail the formatting of table elements, or use the simpler dictionary based ``element_formatters`` approach. We use the above ``dist`` table to provide a specific callback that will set the background color for diagonal cells. We first write a function that takes the cell value and coordinates, returning the html formmatted text.
 
 .. doctest::
 
@@ -717,6 +802,33 @@ One export format available is bedGraph_. This format can be used for viewing da
 .. doctest::
     
     >>> rows = [['1', 100, 101, 1.123], ['1', 101, 102, 1.123],
+        ...         ['1', 102, 103, 1.123], ['1', 103, 104, 1.123],
+        ...         ['1', 104, 105, 1.123], ['1', 105, 106, 1.123],
+        ...         ['1', 106, 107, 1.123], ['1', 107, 108, 1.123],
+        ...         ['1', 108, 109, 1], ['1', 109, 110, 1],
+        ...         ['1', 110, 111, 1], ['1', 111, 112, 1],
+        ...         ['1', 112, 113, 1], ['1', 113, 114, 1],
+        ...         ['1', 114, 115, 1], ['1', 115, 116, 1],
+        ...         ['1', 116, 117, 1], ['1', 117, 118, 1],
+        ...         ['1', 118, 119, 2], ['1', 119, 120, 2],
+        ...         ['1', 120, 121, 2], ['1', 150, 151, 2],
+        ...         ['1', 151, 152, 2], ['1', 152, 153, 2],
+        ...         ['1', 153, 154, 2], ['1', 154, 155, 2],
+        ...         ['1', 155, 156, 2], ['1', 156, 157, 2],
+        ...         ['1', 157, 158, 2], ['1', 158, 159, 2],
+        ...         ['1', 159, 160, 2], ['1', 160, 161, 2]]
+        ...
+        >>> bgraph = make_table(header=['chrom', 'start', 'end', 'value'],
+        ...                   rows=rows)
+        ...
+        >>> print(bgraph.to_string(format='bedgraph', name='test track',
+        ...     graphType='bar', description='test of bedgraph', color=(255,0,0))) # doctest: +NORMALIZE_WHITESPACE
+        track type=bedGraph name="test track" description="test of bedgraph" color=255,0,0 graphType=bar
+        1	100	108	1.12
+        1	108	118	1.00
+        1	118	161	2.00
+
+    The bedgraph formatter defaults to rounding values to 2 decimal places. You can adjust that precision using the
     ...         ['1', 102, 103, 1.123], ['1', 103, 104, 1.123],
     ...         ['1', 104, 105, 1.123], ['1', 105, 106, 1.123],
     ...         ['1', 106, 107, 1.123], ['1', 107, 108, 1.123],
@@ -736,7 +848,7 @@ One export format available is bedGraph_. This format can be used for viewing da
     >>> bgraph = make_table(header=['chrom', 'start', 'end', 'value'],
     ...                   rows=rows)
     ...                     
-    >>> print(bgraph.tostring(format='bedgraph', name='test track',
+    >>> print(bgraph.to_string(format='bedgraph', name='test track',
     ...     graphType='bar', description='test of bedgraph', color=(255,0,0))) # doctest: +NORMALIZE_WHITESPACE
     track type=bedGraph name="test track" description="test of bedgraph" color=255,0,0 graphType=bar
     1	100	108	1.12
@@ -747,8 +859,22 @@ The bedgraph formatter defaults to rounding values to 2 decimal places. You can 
 
 .. doctest::
     :options: +NORMALIZE_WHITESPACE
+
+        >>> print(bgraph.to_string(format='bedgraph', name='test track',
+        ...     graphType='bar', description='test of bedgraph', color=(255,0,0),
+        ...     digits=0)) # doctest: +NORMALIZE_WHITESPACE
+        track type=bedGraph name="test track" description="test of bedgraph" color=255,0,0 graphType=bar
+        1	100	118	1.00
+        1	118	161	2.00
+
+        >>> print(bgraph.to_string(format='bedgraph', name='test track',
+        ...     graphType='bar', description='test of bedgraph', color=(255,0,0),
+        ...     digits=0)) # doctest: +NORMALIZE_WHITESPACE
+        track type=bedGraph name="test track" description="test of bedgraph" color=255,0,0 graphType=bar
+        1	100	118	1.00
+        1	118	161	2.00
     
-    >>> print(bgraph.tostring(format='bedgraph', name='test track',  
+    >>> print(bgraph.to_string(format='bedgraph', name='test track',
     ...     graphType='bar', description='test of bedgraph', color=(255,0,0),
     ...     digits=0)) # doctest: +NORMALIZE_WHITESPACE
     track type=bedGraph name="test track" description="test of bedgraph" color=255,0,0 graphType=bar
@@ -762,7 +888,7 @@ The bedgraph formatter defaults to rounding values to 2 decimal places. You can 
 Saving a table for reloading
 ----------------------------
 
-Saving a table object to file for later reloading can be done using the standard ``write`` method and ``filename`` argument to the ``Table`` constructor, specifying any of the formats supported by ``tostring``. The table loading will recreate a table from raw data located at ``filename``. To illustrate this, we first write out the table ``t3`` in ``pickle`` format, then the table ``t2`` in a csv (comma separated values format). We then remove it's header and write/reload as a tsv (tab separated values format).
+Saving a table object to file for later reloading can be done using the standard ``write`` method and ``filename`` argument to the ``Table`` constructor, specifying any of the formats supported by ``to_string``. The table loading will recreate a table from raw data located at ``filename``. To illustrate this, we first write out the table ``t3`` in ``pickle`` format, then the table ``t2`` in a csv (comma separated values format). We then remove it's header and write/reload as a tsv (tab separated values format).
 
 .. doctest::
     :options: +NORMALIZE_WHITESPACE
@@ -904,8 +1030,39 @@ We convert columns 2-5 to floats by specifying a field convertor. We then create
 .. doctest::
 
     >>> from cogent3.parse.table import ConvertFields, SeparatorFormatParser
+        >>> t3.title = t3.legend = None
+        >>> comma_sep = t3.to_string(sep=",").splitlines()
+        >>> print(comma_sep)
+        ['edge.name,edge.parent,length,     x,     y,     z', '    Human,    ...
+        >>> converter = ConvertFields([(2,float), (3,float), (4,float), (5, float)])
+        >>> reader = SeparatorFormatParser(with_header=True,converter=converter,
+        ...      sep=",")
+        >>> comma_sep = [line for line in reader(comma_sep)]
+        >>> print(comma_sep)
+        [['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], ['Human',...
+        >>> t3.write("t3.tab", sep="\t")
+        >>> reader = SeparatorFormatParser(with_header=True,converter=converter,
+        ...      sep="\t")
+        >>> t3a = load_table("t3.tab", reader=reader, title="new title",
+        ...       space=2)
+        ...
+        >>> print(t3a)
+        new title
+        ======================================================
+        edge.name  edge.parent  length       x       y       z
+        ------------------------------------------------------
+            Human       edge.0  4.0000  1.0000  3.0000  6.0000
+        HowlerMon       edge.0  4.0000  1.0000  3.0000  6.0000
+            Mouse       edge.1  4.0000  1.0000  3.0000  6.0000
+        NineBande         root  4.0000  1.0000  3.0000  6.0000
+         DogFaced         root  4.0000  1.0000  3.0000  6.0000
+           edge.0       edge.1  4.0000  1.0000  3.0000  6.0000
+           edge.1         root  4.0000  1.0000  3.0000  6.0000
+        ------------------------------------------------------
+
+    We can use the
     >>> t3.title = t3.legend = None
-    >>> comma_sep = t3.tostring(sep=",").splitlines()
+    >>> comma_sep = t3.to_string(sep=",").splitlines()
     >>> print(comma_sep)
     ['edge.name,edge.parent,length,     x,     y,     z', '    Human,    ...
     >>> converter = ConvertFields([(2,float), (3,float), (4,float), (5, float)])

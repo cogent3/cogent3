@@ -350,7 +350,7 @@ class Table(DictArray):
         return html
 
     def __str__(self):
-        return self.tostring(self.format)
+        return self.to_string(self.format)
 
     def __getitem__(self, names):
         (index, remaining) = self.template.interpret_index(names)
@@ -504,7 +504,7 @@ class Table(DictArray):
 
         self._column_templates[column_head] = format_template
 
-    def tostring(self, format="", borders=True, sep=None, center=False, **kwargs):
+    def to_string(self, format="", borders=True, sep=None, center=False, **kwargs):
         """Return the table as a formatted string.
 
         Parameters
@@ -676,7 +676,7 @@ class Table(DictArray):
         mode
             file opening mode
         format
-            Valid formats are those of the tostring method plus
+            Valid formats are those of the to_string method plus
             pickle. Will try and guess from filename if not specified.
         writer
             a function for formatting the data for output.
@@ -732,7 +732,7 @@ class Table(DictArray):
             if self.legend:
                 writer.writerow([self.legend])
         else:
-            table = self.tostring(format=format, sep=sep, **kwargs)
+            table = self.to_string(format=format, sep=sep, **kwargs)
             outfile.writelines(table + "\n")
         outfile.close()
 

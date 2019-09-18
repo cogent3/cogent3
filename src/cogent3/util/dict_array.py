@@ -531,7 +531,7 @@ class DictArray(object):
     def _repr_html_(self):
         return self.template._get_repr_html(self.array)
 
-    def tostring(self, format="", sep=None):
+    def to_string(self, format="", sep=None):
         """Return the data as a formatted string.
 
         Parameters
@@ -550,7 +550,7 @@ class DictArray(object):
         data = self.to_dict(flatten=True)
         rows = [list(k) + [v] for k, v in data.items()]
         table = Table(header=header, rows=rows)
-        return table.tostring(format=format, sep=sep)
+        return table.to_string(format=format, sep=sep)
 
     def write(self, path, format="", sep="\t"):
         """
@@ -566,6 +566,6 @@ class DictArray(object):
             used to split fields, will be inferred from path suffix if not
             provided
         """
-        data = self.tostring(format=format, sep=sep)
+        data = self.to_string(format=format, sep=sep)
         with open_(path, "w") as outfile:
             outfile.write(data)

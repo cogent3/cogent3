@@ -256,7 +256,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             outpath = join(dirname, "delme.zip")
             dstore = WritableZippedDataStore(outpath, suffix="tsv", create=True)
-            dstore.write("sample1.tsv", table.tostring("tsv"))
+            dstore.write("sample1.tsv", table.to_string("tsv"))
             new = load_table(dstore[0])
             self.assertEqual(type(new[0, "B"]), float)
             self.assertEqual(type(new[0, "A"]), int)

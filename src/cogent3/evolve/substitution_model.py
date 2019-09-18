@@ -777,7 +777,7 @@ class Parametric(_ContinuousSubstitutionModel):
         t = Table(
             header=labels, rows=rows, max_width=max_width, title=title, row_ids=True
         )
-        result = t if return_table else t.tostring(center=True)
+        result = t if return_table else t.to_string(center=True)
         return result
 
     def get_matrix_params(self):
