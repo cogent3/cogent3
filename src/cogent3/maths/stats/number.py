@@ -150,7 +150,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         data = data / self.sum
         return -(data * numpy.log2(data)).sum()
 
-    def tofreqs(self):
+    def to_freqs(self):
         """returns dict of {key: val/total, ..}"""
         result = CategoryFreqs(self, total=self.sum)
         return result

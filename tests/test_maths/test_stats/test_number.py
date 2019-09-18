@@ -164,9 +164,9 @@ class TestNumber(TestCase):
         assert_allclose(nums.entropy, 0)
 
     def test_to_freqs(self):
-        """CategoryCounter.tofreqs produces CategoryFreqs"""
+        """CategoryCounter.to_freqs produces CategoryFreqs"""
         nums = number.CategoryCounter("AAAACCCGGGGT")
-        freqs = nums.tofreqs()
+        freqs = nums.to_freqs()
         assert_allclose(freqs.to_array(list(freqs)), nums.to_array(list(freqs)) / 12)
 
     def test_expand(self):

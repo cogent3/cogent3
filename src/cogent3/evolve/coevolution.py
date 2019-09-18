@@ -1076,7 +1076,7 @@ def make_weights(counts, n):
     """Return the weights for replacement states for each possible character.
     We compute the weight as the normalized frequency of the replacement state
     divided by 2*n."""
-    char_prob = list(counts.tofreqs().items())
+    char_prob = list(counts.to_freqs().items())
     weights = []
     for C, P in char_prob:
         alts = CategoryFreqs({c: p for c, p in char_prob if c != C})
