@@ -39,10 +39,10 @@ or as a table for display / saving
     ==========================================================
                   Chimpanzee    Galago    Gorilla    HowlerMon
     ----------------------------------------------------------
-    Chimpanzee             0    0.1921     0.0054       0.0704
-        Galago        0.1921         0     0.1923       0.2157
-       Gorilla        0.0054    0.1923          0       0.0700
-     HowlerMon        0.0704    0.2157     0.0700            0
+    Chimpanzee        0.0000    0.1921     0.0054       0.0704
+        Galago        0.1921    0.0000     0.1923       0.2157
+       Gorilla        0.0054    0.1923     0.0000       0.0700
+     HowlerMon        0.0704    0.2157     0.0700       0.0000
     ----------------------------------------------------------
 
 Other statistics are also available, such the as the standard errors of the estimates.
