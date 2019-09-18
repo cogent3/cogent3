@@ -11,6 +11,7 @@ Welcome to Cogent3's documentation!
     
     install
     data_file_links
+    app/index
     examples/index
     cookbook/index
     licenses
