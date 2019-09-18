@@ -143,7 +143,7 @@ class quick_tree(ComposableTree):
             treestring = "(%s:%.4f,%s:%.4f)" % (species[0], dist, species[1], dist)
             tree = make_tree(treestring=treestring, underscore_unmunge=True)
         else:
-            (result,) = gnj(dists.todict(), keep=1, show_progress=False)
+            (result,) = gnj(dists.to_dict(), keep=1, show_progress=False)
             (score, tree) = result
 
         return tree

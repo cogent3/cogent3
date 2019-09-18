@@ -408,7 +408,7 @@ class DictArray(object):
             array = array.astype(dtype)
         return array
 
-    def todict(self, flatten=False):
+    def to_dict(self, flatten=False):
         """returns data as a dict
         Parameters
         ----------
@@ -489,7 +489,7 @@ class DictArray(object):
         elif isinstance(other, type(self.array)):
             return self.array == other
         elif isinstance(other, dict):
-            return self.todict() == other
+            return self.to_dict() == other
         else:
             return False
 
@@ -547,7 +547,7 @@ class DictArray(object):
         from cogent3.util.table import Table
 
         header = [f"dim-{i+1}" for i in range(self.array.ndim)] + ["value"]
-        data = self.todict(flatten=True)
+        data = self.to_dict(flatten=True)
         rows = [list(k) + [v] for k, v in data.items()]
         table = Table(header=header, rows=rows)
         return table.tostring(format=format, sep=sep)

@@ -71,7 +71,7 @@ class DictArrayTest(TestCase):
         }
         vals, row_keys, col_keys = convert2DDict(data)
         b = DictArrayTemplate(row_keys, col_keys).wrap(vals)
-        got = b.todict()
+        got = b.to_dict()
         self.assertEqual(got, data)
         self.assertEqual(b.template.names, [["a", "b", "e"], ["a", "b", "e"]])
 
@@ -136,25 +136,25 @@ class DictArrayTest(TestCase):
         assert_allclose(mprobs.dot(darr), [0.25, 0.25, 0.25, 0.25])
         assert_allclose(numpy.dot(mprobs, darr), [0.25, 0.25, 0.25, 0.25])
 
-    def test_todict(self):
+    def test_to_dict(self):
         """DictArray should convert 1D / 2D arrays with/without named row"""
         # 1D data, only 1D keys provided
         data = [0, 35, 45]
         keys = "a", "b", "c"
         darr = DictArrayTemplate(keys).wrap(data)
-        self.assertEqual(darr.todict(), dict(zip(keys, data)))
+        self.assertEqual(darr.to_dict(), dict(zip(keys, data)))
         # 2D data, 2D keys, both string, provided
         data = [[0, 35, 45]]
         darr = DictArrayTemplate(["0"], keys).wrap(data)
-        darr.todict()
-        self.assertEqual(darr.todict(), {"0": {"a": 0, "b": 35, "c": 45}})
+        darr.to_dict()
+        self.assertEqual(darr.to_dict(), {"0": {"a": 0, "b": 35, "c": 45}})
         # 2D data, 2D keys, one int, one string, provided
         darr = DictArrayTemplate([1], keys).wrap(data)
-        self.assertEqual(darr.todict(), {1: {"a": 0, "b": 35, "c": 45}})
+        self.assertEqual(darr.to_dict(), {1: {"a": 0, "b": 35, "c": 45}})
         darr = DictArrayTemplate([0], keys).wrap(data)
-        self.assertEqual(darr.todict(), {0: {"a": 0, "b": 35, "c": 45}})
+        self.assertEqual(darr.to_dict(), {0: {"a": 0, "b": 35, "c": 45}})
 
-    def test_todict_1d(self):
+    def test_to_dict_1d(self):
         """should successfully produce a 1D dict"""
         data = {
             "ABAYE2984": {
@@ -188,13 +188,13 @@ class DictArrayTest(TestCase):
             for n1 in darr.template.names[0]
             for n2 in darr.template.names[1]
         }
-        self.assertEqual(darr.todict(flatten=True), expect)
+        self.assertEqual(darr.to_dict(flatten=True), expect)
 
         darr = DictArrayTemplate(["s1", "s2"], ["s1", "s2"]).wrap(
             [[0.0, 0.25], [0.25, 0.0]]
         )
         self.assertEqual(
-            darr.todict(flatten=True),
+            darr.to_dict(flatten=True),
             {
                 ("s1", "s2"): 0.25,
                 ("s2", "s1"): 0.25,
@@ -203,21 +203,21 @@ class DictArrayTest(TestCase):
             },
         )
 
-    def test_todict_nested(self):
-        """DictArray.todict() should convert nested DictArray instances to
+    def test_to_dict_nested(self):
+        """DictArray.to_dict() should convert nested DictArray instances to
         dict's too."""
         a = numpy.identity(3, int)
         b = DictArrayTemplate("abc", "ABC")
         b = b.wrap(a)
         self.assertEqual(b.array.tolist(), [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
         c = DictArrayTemplate("de", "DE").wrap([[b, b], [b, b]])
-        self.assertTrue(isinstance(c.todict()["d"], dict))
+        self.assertTrue(isinstance(c.to_dict()["d"], dict))
 
-    def test_todict_roundtrip(self):
-        """roundtrip of DictArray.todict() should produce same order."""
+    def test_to_dict_roundtrip(self):
+        """roundtrip of DictArray.to_dict() should produce same order."""
         d1 = dict(a=dict(k=1, l=2, m=3), b=dict(k=4, l=5, m=6))
         darr1 = DictArray(d1)
-        d2 = darr1.todict()
+        d2 = darr1.to_dict()
         darr2 = DictArray(d2)
         self.assertEqual(d1, d2)
         d3 = DictArray(d2)
@@ -321,7 +321,7 @@ class DictArrayTest(TestCase):
             header = contents.pop(0)
             self.assertEqual(header, ["dim-1", "dim-2", "value"])
             got = {(k1, k2): int(v) for k1, k2, v in contents}
-            self.assertEqual(got, darr.todict(flatten=True))
+            self.assertEqual(got, darr.to_dict(flatten=True))
 
 
 if __name__ == "__main__":

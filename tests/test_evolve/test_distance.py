@@ -205,7 +205,7 @@ class TestPair(TestCase):
         calc = TN93Pair(DNA, alignment=self.alignment)
         calc.run(show_progress=False)
         dists = calc.get_pairwise_distances()
-        dists = dists.todict()
+        dists = dists.to_dict()
         dist = 0.2554128119
         expect = {("s1", "s2"): dist, ("s2", "s1"): dist}
         self.assertEqual(list(dists.keys()), list(expect.keys()))
@@ -216,7 +216,7 @@ class TestPair(TestCase):
         aln = load_aligned_seqs("data/brca1_5.paml", moltype=DNA)
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
-        dists = logdet_calc.get_pairwise_distances().todict()
+        dists = logdet_calc.get_pairwise_distances().to_dict()
         all_expected = {
             ("Human", "NineBande"): 0.075336929999999996,
             ("NineBande", "DogFaced"): 0.0898575452,
@@ -298,11 +298,11 @@ class TestPair(TestCase):
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
 
-        dists = logdet_calc.get_pairwise_distances().todict()
+        dists = logdet_calc.get_pairwise_distances().to_dict()
         self.assertTrue(list(dists.values())[0] is not None)
 
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
-        dists = logdet_calc.get_pairwise_distances().todict()
+        dists = logdet_calc.get_pairwise_distances().to_dict()
         self.assertTrue(list(dists.values())[0] is not None)
 
     def test_logdet_variance(self):
@@ -351,10 +351,10 @@ class TestPair(TestCase):
 
         logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
-        dists = logdet_calc.get_pairwise_distances().todict()
+        dists = logdet_calc.get_pairwise_distances().to_dict()
         self.assertTrue(numpy.isnan(list(dists.values())[0]))
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
-        dists = logdet_calc.get_pairwise_distances().todict()
+        dists = logdet_calc.get_pairwise_distances().to_dict()
         self.assertTrue(numpy.isnan(list(dists.values())[0]))
 
         # but raises ArithmeticError if told to
@@ -447,10 +447,10 @@ class TestPair(TestCase):
 
         paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
         paralinear_calc.run(show_progress=False)
-        dists = paralinear_calc.get_pairwise_distances().todict()
+        dists = paralinear_calc.get_pairwise_distances().to_dict()
         self.assertTrue(numpy.isnan(list(dists.values())[0]))
         paralinear_calc.run(show_progress=False)
-        dists = paralinear_calc.get_pairwise_distances().todict()
+        dists = paralinear_calc.get_pairwise_distances().to_dict()
         self.assertTrue(numpy.isnan(list(dists.values())[0]))
 
     def test_paralinear_pair_dna(self):
@@ -515,13 +515,13 @@ class TestPair(TestCase):
             or {"seq3": ["seq2"]} == calc.duplicated
         )
         # default to get all pairwise distances
-        pwds = calc.get_pairwise_distances().todict()
+        pwds = calc.get_pairwise_distances().to_dict()
         self.assertEqual(pwds[("seq2", "seq3")], 0.0)
         self.assertEqual(pwds[("seq2", "seq1")], pwds[("seq3", "seq1")])
 
         # only unique seqs when using include_duplicates=False
 
-        pwds = calc.get_pairwise_distances(include_duplicates=False).todict()
+        pwds = calc.get_pairwise_distances(include_duplicates=False).to_dict()
         present = list(calc.duplicated.keys())[0]
         missing = calc.duplicated[present][0]
         self.assertEqual(set([(present, missing)]), set([("seq2", "seq3")]))
@@ -551,7 +551,7 @@ class TestDistanceMatrix(TestCase):
         """distance matrix correctly produces a 1D dict"""
         data = {("s1", "s2"): 0.25, ("s2", "s1"): 0.25}
         dmat = DistanceMatrix(data)
-        got = dmat.todict()
+        got = dmat.to_dict()
         self.assertEqual(got, data)
 
     def test_matrix_dtype(self):
@@ -760,7 +760,7 @@ class DistancesTests(TestCase):
             ("a", "e"): 0.440840,
             ("b", "c"): 0.0883373,
         }
-        result = d.get_pairwise_distances().todict()
+        result = d.get_pairwise_distances().to_dict()
         self.assertDistsAlmostEqual(canned_result, result)
 
         # excercise writing to file
@@ -783,7 +783,7 @@ class DistancesTests(TestCase):
             ("b", "e"): 0.39921,
             ("c", "e"): 0.37243,
         }
-        result = d.get_pairwise_distances().todict()
+        result = d.get_pairwise_distances().to_dict()
         self.assertDistsAlmostEqual(canned_result, result)
 
     def test_EstimateDistances_fromThreeway(self):
@@ -798,7 +798,7 @@ class DistancesTests(TestCase):
             ("a", "e"): 0.495305,
             ("b", "c"): 0.0899339,
         }
-        result = d.get_pairwise_distances(summary_function="mean").todict()
+        result = d.get_pairwise_distances(summary_function="mean").to_dict()
         self.assertDistsAlmostEqual(canned_result, result)
 
     def test_EstimateDistances_fromUnaligned(self):
@@ -815,7 +815,7 @@ class DistancesTests(TestCase):
             ("a", "e"): 0.440840,
             ("b", "c"): 0.0883373,
         }
-        result = d.get_pairwise_distances().todict()
+        result = d.get_pairwise_distances().to_dict()
         self.assertDistsAlmostEqual(canned_result, result)
 
         d = EstimateDistances(
@@ -830,7 +830,7 @@ class DistancesTests(TestCase):
             ("a", "e"): 0.440840,
             ("b", "c"): 0.0883373,
         }
-        result = d.get_pairwise_distances().todict()
+        result = d.get_pairwise_distances().to_dict()
         self.assertDistsAlmostEqual(canned_result, result)
 
     def test_EstimateDistances_other_model_params(self):
@@ -854,10 +854,10 @@ class DistancesTests(TestCase):
 
         d = EstimateDistances(self.al, HKY85(), modify_lf=constrain_fit)
         d.run(show_progress=False)
-        result = d.get_pairwise_distances().todict()
+        result = d.get_pairwise_distances().to_dict()
         d = EstimateDistances(self.al, F81())
         d.run(show_progress=False)
-        expect = d.get_pairwise_distances().todict()
+        expect = d.get_pairwise_distances().to_dict()
         self.assertDistsAlmostEqual(expect, result)
 
     def test_get_raw_estimates(self):

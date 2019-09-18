@@ -21,7 +21,7 @@ __status__ = "Alpha"
 class TestNumber(TestCase):
     def test_construction(self):
         nums = number.CategoryCounter("AAAACCCGGGGT")
-        self.assertEqual(nums.todict(), dict(A=4, C=3, G=4, T=1))
+        self.assertEqual(nums.to_dict(), dict(A=4, C=3, G=4, T=1))
         self.assertEqual(nums.sum, 12)
         nums["A"] += 1
 
@@ -30,19 +30,19 @@ class TestNumber(TestCase):
         nums = number.CategoryCounter("AAAACCCGGGGT")
         new = nums.copy()
         self.assertNotEqual(id(new), id(nums))
-        self.assertEqual(new.todict(), nums.todict())
+        self.assertEqual(new.to_dict(), nums.to_dict())
 
         nums = number.NumberCounter(data=[0, 0, 2, 4, 4, 4])
         new = nums.copy()
         self.assertNotEqual(id(new), id(nums))
-        self.assertEqual(new.todict(), nums.todict())
+        self.assertEqual(new.to_dict(), nums.to_dict())
 
     def test_construct_from_dict(self):
         """construction from dict of counts"""
         data = {"A": 20, "Q": 30, "X": 20}
         got = number.CategoryCounter(data)
         self.assertEqual(got["A"], 20)
-        self.assertEqual(got.todict(), data)
+        self.assertEqual(got.to_dict(), data)
 
     def test_add(self):
         """allow adding elements, or series"""
@@ -65,7 +65,7 @@ class TestNumber(TestCase):
         self.assertEqual(got, [1, 3, 4, 4])
         got = nums.toarray(keys="TCAG")
         assert_allclose(got, numpy.array([1, 3, 4, 4], dtype=int))
-        self.assertEqual(nums.todict(), dict(A=4, C=3, G=4, T=1))
+        self.assertEqual(nums.to_dict(), dict(A=4, C=3, G=4, T=1))
 
     def test_valid(self):
         """correctly identify when numbers contains numbers"""
@@ -192,7 +192,7 @@ class TestNumber(TestCase):
         # from an empty dict
         freqs = number.CategoryFreqs()
         d = freqs.to_normalized()
-        self.assertEqual(d.todict(), {})
+        self.assertEqual(d.to_dict(), {})
 
     def test_numbers_update(self):
         """correctly update number counts"""

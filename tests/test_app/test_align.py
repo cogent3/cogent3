@@ -87,7 +87,7 @@ class RefalignmentTests(TestCase):
         #           'Rhesus': 'GCCAGCTCATTACAGCATGAGAA---CAGTTTGTTACTCACT',
         #           'Bandicoot': 'NACTCATTAATGCTTGAAACCAG---CAGTTTATTGTCCAAC',
         #           'FlyingFox': 'GCCAGCTCTTTACAGCATGAGAA---CAGTTTATTATACACT'}
-        # got = aln.todict()
+        # got = aln.to_dict()
         # self.assertEqual(got, expect)
 
     def test_progressive_fails(self):

@@ -2058,7 +2058,7 @@ def is_parsimony_informative(
 
     """
     try:
-        column_freqs = column_freqs.todict()
+        column_freqs = column_freqs.to_dict()
     except AttributeError:
         pass
     ignored = None if not ignored else list(set(ignored) & set(column_freqs.keys()))

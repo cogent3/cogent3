@@ -95,7 +95,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         return values
 
     def copy(self):
-        data = self.todict().copy()
+        data = self.to_dict().copy()
         new = self.__class__(data)
         return new
 
@@ -128,7 +128,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
     def __repr__(self):
         return repr(self.__dict__)
 
-    def todict(self):
+    def to_dict(self):
         return dict(self)
 
     def tolist(self, keys=None):
@@ -187,7 +187,7 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
         return values
 
     def copy(self):
-        data = self.todict().copy()
+        data = self.to_dict().copy()
         new = self.__class__(data=data)
         return new
 
@@ -210,7 +210,7 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
     def __repr__(self):
         return repr(self.__dict__)
 
-    def todict(self):
+    def to_dict(self):
         return dict(self)
 
     def tolist(self, keys=None):

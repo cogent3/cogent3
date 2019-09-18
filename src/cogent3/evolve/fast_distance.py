@@ -707,9 +707,9 @@ class DistanceMatrix(DictArray):
     def names(self):
         return self.template.names[0]
 
-    def todict(self, **kwargs):
+    def to_dict(self, **kwargs):
         """Returns a flattened dict with diagonal elements removed"""
-        result = super(DistanceMatrix, self).todict(flatten=True)
+        result = super(DistanceMatrix, self).to_dict(flatten=True)
         for n1 in self.names:
             del result[(n1, n1)]
         return result
@@ -717,7 +717,7 @@ class DistanceMatrix(DictArray):
     def to_rich_dict(self):
         # because dicts with tuples as keys cannot be json'ed, we convert to
         # a list of tuples
-        dists = self.todict()
+        dists = self.to_dict()
         json_safe = [(k[0], k[1], dists[k]) for k in dists]
         data = dict(
             dists=json_safe, invalid=self._invalid, type=get_object_provenance(self)
@@ -790,5 +790,5 @@ class DistanceMatrix(DictArray):
         dists = self.drop_invalid()
         if not dists or dists.shape[0] == 1:
             raise ValueError("Too few distances to build a treenj")
-        dists = dists.todict()
+        dists = dists.to_dict()
         return nj(dists, show_progress=show_progress)

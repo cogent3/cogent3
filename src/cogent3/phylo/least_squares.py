@@ -51,7 +51,7 @@ class WLS(TreeEvaluator):
               variability of the distance estimates. By default, the sqrt of
               distance is used."""
         try:
-            dists = dists.todict()
+            dists = dists.to_dict()
         except AttributeError:
             pass
         self.dists = dists

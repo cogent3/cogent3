@@ -595,7 +595,7 @@ class LikelihoodFunction(ParameterController):
         tree = self._tree.deepcopy()
         for edge in tree.get_edge_vector():
             if edge.name == "root":
-                edge.params["mprobs"] = mprobs[edge.name].todict()
+                edge.params["mprobs"] = mprobs[edge.name].to_dict()
                 continue
 
             if not is_discrete:
@@ -603,7 +603,7 @@ class LikelihoodFunction(ParameterController):
                 edge.params["length"] = lengths[edge.name]
 
             edge.params["paralinear"] = plin[edge.name]
-            edge.params["mprobs"] = mprobs[edge.name].todict()
+            edge.params["mprobs"] = mprobs[edge.name].to_dict()
             for par in d:
                 val = d[par][edge.name]
                 if par == length_as:
@@ -896,7 +896,7 @@ class LikelihoodFunction(ParameterController):
 
         model = self._model.to_rich_dict(for_pickle=False)
         alignment = self.get_param_value("alignment").to_rich_dict()
-        mprobs = self.get_motif_probs().todict()
+        mprobs = self.get_motif_probs().to_dict()
         DLC = self.all_psubs_DLC()
         try:
             unique_Q = self.all_rate_matrices_unique()

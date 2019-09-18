@@ -95,12 +95,12 @@ class MotifCountsArrayTests(TestCase):
         subset = counts[:2]
         self.assertEqual(subset.keys(), names[:2])
 
-    def test_todict(self):
+    def test_to_dict(self):
         """correctly converts to a dict"""
         motifs = ["A", "C", "D"]
         counts = [[4, 0, 0]]
         marr = MotifCountsArray(counts, motifs)
-        self.assertEqual(marr.todict(), {0: {"A": 4, "C": 0, "D": 0}})
+        self.assertEqual(marr.to_dict(), {0: {"A": 4, "C": 0, "D": 0}})
 
     def test_to_freqs(self):
         """produces a freqs array"""
