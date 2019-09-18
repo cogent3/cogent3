@@ -771,8 +771,8 @@ NineBande      root    1.0000    1.0000
         self.assertEqual(len(Ps), len(Qs))
         self.assertEqual(set(Ps), set(Qs))
         for key, P in Ps.items():
-            Pcomp = PadeExponentiator(Qs[key].toarray())()
-            assert_allclose(Pcomp, P.toarray())
+            Pcomp = PadeExponentiator(Qs[key].to_array())()
+            assert_allclose(Pcomp, P.to_array())
 
     def test_all_rate_matrices_unique(self):
         """exercising this code"""

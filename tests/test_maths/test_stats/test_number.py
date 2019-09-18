@@ -63,7 +63,7 @@ class TestNumber(TestCase):
         self.assertEqual(got, [4, 3, 4, 1])
         got = nums.tolist(keys="TCAG")
         self.assertEqual(got, [1, 3, 4, 4])
-        got = nums.toarray(keys="TCAG")
+        got = nums.to_array(keys="TCAG")
         assert_allclose(got, numpy.array([1, 3, 4, 4], dtype=int))
         self.assertEqual(nums.to_dict(), dict(A=4, C=3, G=4, T=1))
 
@@ -167,7 +167,7 @@ class TestNumber(TestCase):
         """CategoryCounter.tofreqs produces CategoryFreqs"""
         nums = number.CategoryCounter("AAAACCCGGGGT")
         freqs = nums.tofreqs()
-        assert_allclose(freqs.toarray(list(freqs)), nums.toarray(list(freqs)) / 12)
+        assert_allclose(freqs.to_array(list(freqs)), nums.to_array(list(freqs)) / 12)
 
     def test_expand(self):
         """correctly reconstitutes original series content"""

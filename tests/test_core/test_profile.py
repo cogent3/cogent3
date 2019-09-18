@@ -279,7 +279,7 @@ class MotifFreqsArrayTests(TestCase):
             row_indices=["DogFaced", "FlyingFox"],
         )
         freqs = counts.to_freq_array()
-        got = freqs["FlyingFox"].toarray()
+        got = freqs["FlyingFox"].to_array()
         assert_allclose(got, [0.3, 0.2, 0.3, 0.2])
 
     def test_to_pssm(self):

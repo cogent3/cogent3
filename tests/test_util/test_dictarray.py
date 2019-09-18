@@ -271,9 +271,9 @@ class DictArrayTest(TestCase):
             ]
         )
         r = darr[:, "A":"G"]
-        assert_allclose(r.toarray(), [[0.1], [0.1], [0.7], [0.1]])
+        assert_allclose(r.to_array(), [[0.1], [0.1], [0.7], [0.1]])
         r = darr[2:, "A":"G"]
-        assert_allclose(r.toarray(), [[0.7], [0.1]])
+        assert_allclose(r.to_array(), [[0.7], [0.1]])
 
     def test_to_normalized(self):
         """computes frequencies across correct dimension"""

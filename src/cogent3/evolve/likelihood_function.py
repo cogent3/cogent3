@@ -1069,7 +1069,7 @@ class LikelihoodFunction(ParameterController):
         """Returns True if every Psub matrix is Diagonal Largest in Column"""
         all_psubs = self.get_all_psubs()
         for P in all_psubs.values():
-            if (P.toarray().diagonal() < P).any():
+            if (P.to_array().diagonal() < P).any():
                 return False
         return True
 
@@ -1078,7 +1078,7 @@ class LikelihoodFunction(ParameterController):
         # get all possible Q, as products of t, and any rate-het terms
         all_Q = self.get_all_rate_matrices(calibrated=False)
         for Q in all_Q.values():
-            Q = Q.toarray()
+            Q = Q.to_array()
             if not is_generator_unique(Q):
                 return False
         return True

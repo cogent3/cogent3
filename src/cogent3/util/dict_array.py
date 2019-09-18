@@ -399,7 +399,7 @@ class DictArray(object):
             self.__dict__ = create_new.__dict__
         self.shape = self.array.shape
 
-    def toarray(self):
+    def to_array(self):
         return self.array
 
     def __array__(self, dtype=None):
