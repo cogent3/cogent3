@@ -10,13 +10,11 @@ Welcome to Cogent3's documentation!
     :maxdepth: 1
     
     install
-    coding_guidelines
     data_file_links
+    app/index
     examples/index
     cookbook/index
-    developer_notes
     licenses
-    ChangeLog
 
 .. note:: All the code presented in this documentation is working, but does not reflect the current best-practice. The documentation will be significantly revised in the next couple of months.
 
