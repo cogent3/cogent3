@@ -624,7 +624,7 @@ We look at the distribution of ``omega`` from the CNF codon model family across 
     >>> lf.set_param_rule('omega', is_independent=True, upper=10.0)
     >>> lf.set_alignment(aln)
     >>> lf.optimise(show_progress=False, local=True)
-    >>> print(lf)
+    >>> print(lf)  # doctest: +SKIP
     Likelihood function statistics
     log-likelihood = -6755.9726
     number of free parameters = 27
