@@ -25,7 +25,7 @@ class FormatBedgraph(TestCase):
             + [["1", 150, i, 10] for i in range(151, 161)],
         )
 
-        bgraph = table.tostring(
+        bgraph = table.to_string(
             format="bedgraph",
             name="test track",
             description="test of bedgraph",
@@ -50,7 +50,7 @@ class FormatBedgraph(TestCase):
         ]
         table = Table(header=["chrom", "start", "end", "value"], rows=rows)
 
-        bgraph = table.tostring(
+        bgraph = table.to_string(
             format="bedgraph",
             name="test track",
             description="test of bedgraph",
@@ -75,7 +75,7 @@ class FormatBedgraph(TestCase):
         ]
         rows += [["2", i, i + 1, 0] for i in range(100, 121)]
         table = Table(header=["chrom", "start", "end", "value"], rows=rows)
-        bgraph = table.tostring(
+        bgraph = table.to_string(
             format="bedgraph",
             name="test track",
             description="test of bedgraph",
@@ -104,7 +104,7 @@ class FormatBedgraph(TestCase):
 
         self.assertRaises(
             RuntimeError,
-            table.tostring,
+            table.to_string,
             format="bedgraph",
             name="test track",
             description="test of bedgraph",
@@ -121,7 +121,7 @@ class FormatBedgraph(TestCase):
 
         self.assertRaises(
             AssertionError,
-            table.tostring,
+            table.to_string,
             format="bedgraph",
             name="test track",
             description="test of bedgraph",
@@ -136,7 +136,7 @@ class FormatBedgraph(TestCase):
         ]
         table = Table(header=["chrom", "start", "end", "value"], rows=rows)
 
-        bgraph = table.tostring(
+        bgraph = table.to_string(
             format="bedgraph",
             name="test track",
             description="test of bedgraph",
@@ -163,7 +163,7 @@ class FormatBedgraph(TestCase):
         ]
         table = Table(header=["chrom", "start", "end", "value"], rows=rows)
 
-        bgraph = table.tostring(
+        bgraph = table.to_string(
             format="bedgraph",
             name="test track",
             description="test of bedgraph",
@@ -192,7 +192,7 @@ class FormatBedgraph(TestCase):
 
         self.assertRaises(
             AssertionError,
-            table.tostring,
+            table.to_string,
             format="bedgraph",
             name="test track",
             description="test of bedgraph",

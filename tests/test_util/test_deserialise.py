@@ -262,7 +262,7 @@ class TestDeserialising(TestCase):
         )
         json = table.to_json()
         got = deserialise_object(json)
-        self.assertEqual(got.todict(), table.todict())
+        self.assertEqual(got.to_dict(), table.to_dict())
 
     def test_deserialise_tabular_dictarray(self):
         """correctly deserialises DictArray"""
@@ -279,7 +279,7 @@ class TestDeserialising(TestCase):
         darr = template.wrap(data)
         json = darr.to_json()
         got = deserialise_object(json)
-        self.assertEqual(got.todict(), darr.todict())
+        self.assertEqual(got.to_dict(), darr.to_dict())
 
     def test_deserialise_tabular_distancematrix(self):
         """correctly deserialises DistanceMatrix"""
@@ -303,8 +303,8 @@ class TestDeserialising(TestCase):
         dm = DistanceMatrix(data)
         json = dm.to_json()
         got = deserialise_object(json)
-        dm_dict = dm.todict()
-        got_dict = got.todict()
+        dm_dict = dm.to_dict()
+        got_dict = got.to_dict()
         for (a, b), dist in dm_dict.items():
             if dist is None:
                 assert numpy.isnan(got_dict[a, b])

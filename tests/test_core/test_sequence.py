@@ -836,8 +836,8 @@ class SequenceTests(TestCase):
         seq = DnaSequence("AC GG CT GA AG CG CT CC GG GT TT AA AA CG".replace(" ", ""))
         ssym = seq.strand_symmetry(motif_length=2)
         self.assertLessEqual(len(ssym.observed.keys()), 8)
-        assert_allclose(ssym.observed["AA"].toarray(), [2, 1])
-        assert_allclose(ssym.observed["CC"].toarray(), [1, 2])
+        assert_allclose(ssym.observed["AA"].to_array(), [2, 1])
+        assert_allclose(ssym.observed["CC"].to_array(), [1, 2])
 
     def test_is_annotated(self):
         """is_annotated operates correctly"""

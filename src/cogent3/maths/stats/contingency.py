@@ -351,11 +351,11 @@ class CategoryCounts:
         )
         return result
 
-    def todict(self):
+    def to_dict(self):
         result = dict(
-            observed=self.observed.todict(),
-            expected=self.expected.todict(),
-            residuals=self.residuals.todict(),
+            observed=self.observed.to_dict(),
+            expected=self.expected.to_dict(),
+            residuals=self.residuals.to_dict(),
         )
         return result
 
@@ -410,7 +410,7 @@ class TestResult:
         h, r = formatted_cells(r, header=h)
         result = simple_format(h, r, title=self.test_name)
         components = CategoryCounts(
-            self.observed.todict(), expected=self.expected.todict()
+            self.observed.to_dict(), expected=self.expected.to_dict()
         )
         result = [result, str(components)]
         return "\n".join(result)
@@ -424,7 +424,7 @@ class TestResult:
         h, r = self._get_repr_()
         table = Table(h, r, title=self.test_name)
         components = CategoryCounts(
-            self.observed.todict(), expected=self.expected.todict()
+            self.observed.to_dict(), expected=self.expected.to_dict()
         )
         html = [table._repr_html_(include_shape=False), components._repr_html_()]
         return "\n".join(html)

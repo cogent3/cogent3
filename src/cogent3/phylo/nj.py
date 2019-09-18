@@ -183,7 +183,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
         - a sorted list of (tree length, tree) tuples
     """
     try:
-        dists = dists.todict()
+        dists = dists.to_dict()
     except AttributeError:
         pass
 

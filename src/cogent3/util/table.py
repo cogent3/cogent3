@@ -350,7 +350,7 @@ class Table(DictArray):
         return html
 
     def __str__(self):
-        return self.tostring(self.format)
+        return self.to_string(self.format)
 
     def __getitem__(self, names):
         (index, remaining) = self.template.interpret_index(names)
@@ -504,7 +504,7 @@ class Table(DictArray):
 
         self._column_templates[column_head] = format_template
 
-    def tostring(self, format="", borders=True, sep=None, center=False, **kwargs):
+    def to_string(self, format="", borders=True, sep=None, center=False, **kwargs):
         """Return the table as a formatted string.
 
         Parameters
@@ -676,7 +676,7 @@ class Table(DictArray):
         mode
             file opening mode
         format
-            Valid formats are those of the tostring method plus
+            Valid formats are those of the to_string method plus
             pickle. Will try and guess from filename if not specified.
         writer
             a function for formatting the data for output.
@@ -732,7 +732,7 @@ class Table(DictArray):
             if self.legend:
                 writer.writerow([self.legend])
         else:
-            table = self.tostring(format=format, sep=sep, **kwargs)
+            table = self.to_string(format=format, sep=sep, **kwargs)
             outfile.writelines(table + "\n")
         outfile.close()
 
@@ -771,9 +771,9 @@ class Table(DictArray):
             new_twoD = []
             for row in table:
                 if new_column:
-                    new_twoD.append([table.title] + row.toarray().tolist())
+                    new_twoD.append([table.title] + row.to_array().tolist())
                 else:
-                    new_twoD.append(row.toarray().tolist())
+                    new_twoD.append(row.to_array().tolist())
             new_twoD = tuple(new_twoD)
             big_twoD += new_twoD
         kw = self._get_persistent_attrs()
@@ -820,7 +820,7 @@ class Table(DictArray):
             raise ImportError("pandas not installed")
 
         index = None if self._row_ids is None else self.template.names[0]
-        data = dict(zip(self.header, self.toarray().T.tolist()))
+        data = dict(zip(self.header, self.to_array().T.tolist()))
         df = DataFrame(data=data, index=index)
         if categories is not None:
             categories = [categories] if type(categories) == str else categories

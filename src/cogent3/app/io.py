@@ -363,7 +363,7 @@ class write_tabular(_checkpointable, ComposableTabular):
     def write(self, data, identifier=None):
         if identifier is None:
             identifier = self._make_output_identifier(data)
-        output = data.tostring(format=self._format)
+        output = data.to_string(format=self._format)
         self.data_store.write(identifier, output)
         return identifier
 

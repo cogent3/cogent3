@@ -47,7 +47,9 @@ We also add tests that pass in a cogent3.evolve.fast_distance.DistanceMatrix and
 
 .. doctest::
     >>> ls_distance_matrix = least_squares.WLS(DistanceMatrix(dists))
-    >>> ls_pairwise_matrix = least_squares.WLS(dists.todict())
+    >>> ls_pairwise_matrix = least_squares.WLS(dists.to_dict())
+
+    We will search tree space for the collection of best trees using the advanced stepwise addition algorithm (hereafter
 
 We will search tree space for the collection of best trees using the advanced stepwise addition algorithm (hereafter *asaa*).
 

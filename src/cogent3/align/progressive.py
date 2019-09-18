@@ -92,7 +92,7 @@ def TreeAlign(
             seqs, model, do_pair_align=True, est_params=est_params
         )
         dcalc.run()
-        dists = dcalc.get_pairwise_distances().todict()
+        dists = dcalc.get_pairwise_distances().to_dict()
         tree = NJ.nj(dists)
 
     LF = model.make_likelihood_function(

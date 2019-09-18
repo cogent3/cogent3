@@ -102,7 +102,6 @@ def _make_translation_tables(a):
 
     Return value is a tuple containing (a) the translation table where
     s.translate(a) -> array data, i.e. mapping characters to numbers, and
-    (b) the translation table where a.tostring().translate(s) -> string of
     the characters in the original alphabet (e.g. array of 0..4 converted
     to strings of UCAG...).
 

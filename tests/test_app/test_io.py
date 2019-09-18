@@ -256,7 +256,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             outpath = join(dirname, "delme.zip")
             dstore = WritableZippedDataStore(outpath, suffix="tsv", create=True)
-            dstore.write("sample1.tsv", table.tostring("tsv"))
+            dstore.write("sample1.tsv", table.to_string("tsv"))
             new = load_table(dstore[0])
             self.assertEqual(type(new[0, "B"]), float)
             self.assertEqual(type(new[0, "A"]), int)
@@ -283,7 +283,7 @@ class TestIo(TestCase):
                 4: {"dim-1": 2, "dim-2": "A", "value": 4},
                 5: {"dim-1": 2, "dim-2": "B", "value": 8},
             }
-            self.assertEqual(expected, new.todict())
+            self.assertEqual(expected, new.to_dict())
 
     def test_write_tabular_motif_freqs_array(self):
         """correctly writes tabular data for MotifFreqsArray"""
@@ -307,7 +307,7 @@ class TestIo(TestCase):
                 4: {"dim-1": 2, "dim-2": "A", "value": 0.3333},
                 5: {"dim-1": 2, "dim-2": "B", "value": 0.6667},
             }
-            self.assertEqual(expected, new.todict())
+            self.assertEqual(expected, new.to_dict())
 
     def test_write_tabular_pssm(self):
         """correctly writes tabular data for PSSM"""
@@ -353,7 +353,7 @@ class TestIo(TestCase):
                 0: {"dim-1": 0, "dim-2": 1, "value": 4},
                 1: {"dim-1": 1, "dim-2": 0, "value": 4},
             }
-            self.assertEqual(expected, new.todict())
+            self.assertEqual(expected, new.to_dict())
 
     def test_write_tabular_table(self):
         """correctly writes tabular data"""
@@ -365,7 +365,7 @@ class TestIo(TestCase):
             outpath = join(dirname, "delme.tsv")
             writer.write(table, identifier=outpath)
             new = loader(outpath)
-            self.assertEqual(table.todict(), new.todict())
+            self.assertEqual(table.to_dict(), new.to_dict())
 
     def test_load_tabular_motif_counts_array(self):
         """correctly loads tabular data for MotifCountsArray"""
@@ -378,7 +378,7 @@ class TestIo(TestCase):
             outpath = join(dirname, "delme.tsv")
             writer.write(mca, identifier=outpath)
             new = loader(outpath)
-            self.assertEqual(mca.todict(), new.todict())
+            self.assertEqual(mca.to_dict(), new.to_dict())
 
     def test_load_tabular_motif_freqs_array(self):
         """correctly loads tabular data for MotifFreqsArray"""
@@ -391,7 +391,7 @@ class TestIo(TestCase):
             outpath = join(dirname, "delme.tsv")
             writer.write(mfa, identifier=outpath)
             new = loader(outpath)
-            self.assertEqual(mfa.todict(), new.todict())
+            self.assertEqual(mfa.to_dict(), new.to_dict())
 
     def test_load_tabular_pssm(self):
         """correctly loads tabular data for PSSM"""
@@ -423,7 +423,7 @@ class TestIo(TestCase):
             outpath = join(dirname, "delme.tsv")
             writer.write(matrix, identifier=outpath)
             new = loader(outpath)
-            self.assertEqual(matrix.todict(), new.todict())
+            self.assertEqual(matrix.to_dict(), new.to_dict())
 
     def test_load_tabular_table(self):
         """correctly loads tabular data"""
@@ -435,7 +435,7 @@ class TestIo(TestCase):
             outpath = join(dirname, "delme.tsv")
             writer.write(table, identifier=outpath)
             new = loader(outpath)
-            self.assertEqual(table.todict(), new.todict())
+            self.assertEqual(table.to_dict(), new.to_dict())
 
     def test_write_json_with_info(self):
         """correctly writes an object with info attribute from json"""

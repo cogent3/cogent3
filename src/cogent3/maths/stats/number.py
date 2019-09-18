@@ -95,7 +95,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         return values
 
     def copy(self):
-        data = self.todict().copy()
+        data = self.to_dict().copy()
         new = self.__class__(data)
         return new
 
@@ -128,7 +128,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
     def __repr__(self):
         return repr(self.__dict__)
 
-    def todict(self):
+    def to_dict(self):
         return dict(self)
 
     def tolist(self, keys=None):
@@ -138,7 +138,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         result = [self[key] for key in keys]
         return result
 
-    def toarray(self, keys=None):
+    def to_array(self, keys=None):
         """return values for these keys as an array"""
         data = self.tolist(keys=keys)
         data = numpy.array(data, dtype=int)
@@ -146,11 +146,11 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
 
     @property
     def entropy(self):
-        data = self.toarray()
+        data = self.to_array()
         data = data / self.sum
         return -(data * numpy.log2(data)).sum()
 
-    def tofreqs(self):
+    def to_freqs(self):
         """returns dict of {key: val/total, ..}"""
         result = CategoryFreqs(self, total=self.sum)
         return result
@@ -187,7 +187,7 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
         return values
 
     def copy(self):
-        data = self.todict().copy()
+        data = self.to_dict().copy()
         new = self.__class__(data=data)
         return new
 
@@ -210,7 +210,7 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
     def __repr__(self):
         return repr(self.__dict__)
 
-    def todict(self):
+    def to_dict(self):
         return dict(self)
 
     def tolist(self, keys=None):
@@ -220,7 +220,7 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
         result = [self[key] for key in keys]
         return result
 
-    def toarray(self, keys=None):
+    def to_array(self, keys=None):
         """return just these keys as an array"""
         data = self.tolist(keys=keys)
         data = numpy.array(data, dtype=float)
@@ -228,7 +228,7 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
 
     @property
     def entropy(self):
-        data = self.toarray()
+        data = self.to_array()
         return -(data * numpy.log2(data)).sum()
 
     def to_normalized(self):

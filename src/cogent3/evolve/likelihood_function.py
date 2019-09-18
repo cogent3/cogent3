@@ -595,7 +595,7 @@ class LikelihoodFunction(ParameterController):
         tree = self._tree.deepcopy()
         for edge in tree.get_edge_vector():
             if edge.name == "root":
-                edge.params["mprobs"] = mprobs[edge.name].todict()
+                edge.params["mprobs"] = mprobs[edge.name].to_dict()
                 continue
 
             if not is_discrete:
@@ -603,7 +603,7 @@ class LikelihoodFunction(ParameterController):
                 edge.params["length"] = lengths[edge.name]
 
             edge.params["paralinear"] = plin[edge.name]
-            edge.params["mprobs"] = mprobs[edge.name].todict()
+            edge.params["mprobs"] = mprobs[edge.name].to_dict()
             for par in d:
                 val = d[par][edge.name]
                 if par == length_as:
@@ -896,7 +896,7 @@ class LikelihoodFunction(ParameterController):
 
         model = self._model.to_rich_dict(for_pickle=False)
         alignment = self.get_param_value("alignment").to_rich_dict()
-        mprobs = self.get_motif_probs().todict()
+        mprobs = self.get_motif_probs().to_dict()
         DLC = self.all_psubs_DLC()
         try:
             unique_Q = self.all_rate_matrices_unique()
@@ -1069,7 +1069,7 @@ class LikelihoodFunction(ParameterController):
         """Returns True if every Psub matrix is Diagonal Largest in Column"""
         all_psubs = self.get_all_psubs()
         for P in all_psubs.values():
-            if (P.toarray().diagonal() < P).any():
+            if (P.to_array().diagonal() < P).any():
                 return False
         return True
 
@@ -1078,7 +1078,7 @@ class LikelihoodFunction(ParameterController):
         # get all possible Q, as products of t, and any rate-het terms
         all_Q = self.get_all_rate_matrices(calibrated=False)
         for Q in all_Q.values():
-            Q = Q.toarray()
+            Q = Q.to_array()
             if not is_generator_unique(Q):
                 return False
         return True

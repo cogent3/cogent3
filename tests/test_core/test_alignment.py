@@ -1016,8 +1016,8 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(aln.get_seq("seq1"), "GATTTT")
         self.assertRaises(KeyError, aln.get_seq, "seqx")
 
-    def test_todict(self):
-        """SequenceCollection.todict should return dict of strings (not obj)"""
+    def test_to_dict(self):
+        """SequenceCollection.to_dict should return dict of strings (not obj)"""
         aln = self.Class({"seq1": "GATTTT", "seq2": "GATC??"})
         self.assertEqual(aln.to_dict(), {"seq1": "GATTTT", "seq2": "GATC??"})
         for i in list(aln.to_dict().values()):
@@ -2090,7 +2090,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # N, -, ? are the additional states
         self.assertEqual(len(got.motifs), 7)
         self.assertEqual(
-            got["b"].todict(), {"-": 2, "?": 0, "A": 0, "C": 3, "G": 3, "N": 2, "T": 0}
+            got["b"].to_dict(), {"-": 2, "?": 0, "A": 0, "C": 3, "G": 3, "N": 2, "T": 0}
         )
         got = coll.counts_per_seq(motif_length=2)
         self.assertEqual(len(got.motifs), 16)
