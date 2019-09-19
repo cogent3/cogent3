@@ -74,6 +74,17 @@ class TestDeserialising(TestCase):
         self.assertEqual(got.rc().to_dict(), seqcoll.rc().to_dict())
         self.assertIsInstance(got, alignment.SequenceCollection)
 
+    def test_roundtrip_annotated_seqcoll(self):
+        """SequenceCollection to_json enables roundtrip of annotated sequences"""
+        data = dict(A="TTGTA", B="GGCT")
+        seqs = make_unaligned_seqs(data=data, moltype="dna")
+
+        f = seqs.named_seqs["A"].add_feature("gene", "n1", [(2, 5)])
+        data = seqs.to_json()
+        expect = str(f.get_slice())
+        got = deserialise_object(data)
+        self.assertEqual(str(got.named_seqs["A"].annotations[0].get_slice()), expect)
+
     def test_roundtrip_arrayalign(self):
         """ArrayAlignment to_json enables roundtrip"""
         data = dict(A="TTGTA", B="GGCT-")

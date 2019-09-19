@@ -186,10 +186,11 @@ def deserialise_alignment(data):
     type_ = data.pop("type")
     klass = _get_class(type_)
     assert "alignment" in type_.lower(), "not alignment type"
+    aligned = not type_.endswith("SequenceCollection")
     seqs = []
     for v in data.pop("seqs").values():
         v["moltype"] = data["moltype"]
-        seq = deserialise_seq(v, aligned=True)
+        seq = deserialise_seq(v, aligned=aligned)
         seqs.append(seq)
 
     result = klass(seqs, **data)
