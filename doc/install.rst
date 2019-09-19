@@ -1,6 +1,6 @@
 .. _quick-install:
 
-Quick installation
+Quick Installation
 ==================
 
 Until the library is officially released, these installation instructions explicitly reference the `GitHub repository <https://github.com/cogent3/cogent3>`_.
