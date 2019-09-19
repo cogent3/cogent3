@@ -176,7 +176,7 @@ def deserialise_seq(data, aligned=False):
     return result
 
 
-def deserialise_alignment(data):
+def deserialise_seq_collections(data):
     """returns a cogent3 sequence/collection/alignment instance"""
     # We first try to load moltype/alphabet using get_moltype
     from cogent3.core.moltype import get_moltype
@@ -237,7 +237,7 @@ def deserialise_substitution_model(data):
 def deserialise_likelihood_function(data):
     """returns a cogent3 likelihood function instance"""
     model = deserialise_substitution_model(data.pop("model"))
-    aln = deserialise_alignment(data.pop("alignment"))
+    aln = deserialise_seq_collections(data.pop("alignment"))
     tree = deserialise_tree(data.pop("tree"))
     constructor_args = data.pop("likelihood_construction")
     motif_probs = data.pop("motif_probs")
@@ -284,7 +284,7 @@ def deserialise_object(data):
     if "core.sequence" in type_:
         func = deserialise_seq
     elif "core.alignment" in type_:
-        func = deserialise_alignment
+        func = deserialise_seq_collections
     elif "core.tree" in type_:
         func = deserialise_tree
     elif (
