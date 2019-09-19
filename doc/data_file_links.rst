@@ -1,5 +1,5 @@
-The data files used in the documentation
-========================================
+Data Files Used in the Documentation
+====================================
 
 All data files referred to in the documentation can be download by clicking on the links below.
 
