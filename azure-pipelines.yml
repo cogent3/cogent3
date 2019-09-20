@@ -2,31 +2,28 @@ trigger:
   - master
 
 jobs:
-  - job: 'Test'
-    pool:
-      vmImage: 'ubuntu-latest'
-    strategy:
-      matrix:
-        py37:
-          python.version: '3.7'
-          tox.env: py37
-
-    steps:
-      - task: UsePythonVersion@0
-        displayName: Get Python for Python tools.
-        inputs:
-          versionSpec: '3.7'
-          addToPath: false
-        name: pyTools
-
-      - script: $(pyTools.pythonLocation)/bin/pip install --upgrade tox pytest click cython numpy pandas plotly scitrack tqdm tinydb
-        displayName: Install Python-based tools.
-
-      - task: UsePythonVersion@0
-        inputs:
-          versionSpec: '$(python.version)'
-          architecture: 'x64'
-        displayName: Use cached Python $(python.version) for tests.
-
-      - script: $(pyTools.pythonLocation)/bin/tox -e $(tox.env)
-        displayName: run tox -e $(tox.env)
+- job: linux
+  pool: {vmImage: 'Ubuntu-16.04'}
+  steps: 
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        python -m pip install tox pytest click cython numpy pandas plotly scitrack tqdm tinydb
+        tox -e py37
+- job: macos
+  pool: {vmImage: 'macOS-10.13'}
+  steps: 
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        python -m pip install tox pytest click cython numpy pandas plotly scitrack tqdm tinydb
+        tox -e py37
+- job: windows
+  pool: {vmImage: 'vs2017-win2016'}
+  steps:
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
+    - bash: |
+        python -m pip install --upgrade pip
+        python -m pip install tox pytest click cython numpy pandas plotly scitrack tqdm tinydb
+        tox -e py37
