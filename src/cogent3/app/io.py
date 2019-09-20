@@ -432,9 +432,7 @@ class load_json(Composable):
     _type = "output"
 
     def __init__(self):
-        super(load_json, self).__init__(
-            input_types=None, output_types=("result", "serialisable")
-        )
+        super(load_json, self).__init__(input_types=None, output_types="serialisable")
         self.func = self.read
 
     def read(self, path):
@@ -504,9 +502,7 @@ class load_db(Composable):
     _type = "output"
 
     def __init__(self):
-        super(load_db, self).__init__(
-            input_types=None, output_types=("serialisable")
-        )
+        super(load_db, self).__init__(input_types=None, output_types="serialisable")
         self.func = self.read
 
     def read(self, identifier):
