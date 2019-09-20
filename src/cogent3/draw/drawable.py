@@ -256,7 +256,10 @@ class AnnotatedDrawable(Drawable):
         traces = []
         for trace in self.left_track.traces:
             traces.append(trace)
-            max_x = max(numpy.max(trace.x), max_x)
+            # convert to numpy array to handle None's
+            x = numpy.array(trace.x, dtype=float)
+            indices = numpy.logical_not(numpy.isnan(x))
+            max_x = max(x[indices].max(), max_x)
             if trace.legendgroup in seen_types:
                 trace.showlegend = False
             seen_types.add(trace.legendgroup)
@@ -269,7 +272,10 @@ class AnnotatedDrawable(Drawable):
             trace.xaxis = "x3"
             trace.yaxis = "y3"
             traces.append(trace)
-            max_y = max(numpy.max(trace.y), max_y)
+            # convert to numpy array to handle None's
+            y = numpy.array(trace.y, dtype=float)
+            indices = numpy.logical_not(numpy.isnan(y))
+            max_y = max(y[indices].max(), max_y)
             if trace.legendgroup in seen_types:
                 trace.showlegend = False
             seen_types.add(trace.legendgroup)
