@@ -179,6 +179,7 @@ setup(
             "click",
             "sphinx",
             "sphinx_rtd_theme",
+            "sphinx-autobuild",
             "nbsphinx",
             "jupytext",
             "pytest",
