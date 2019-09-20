@@ -140,7 +140,7 @@ class _seq_loader:
         else:
             seqs = path  # it is a SequenceCollection
 
-        if self._output_types == {"sequences"}:
+        if self._output_types & {"sequences"}:
             seqs = seqs.degap()
             seqs.info.source = abs_path
 
@@ -163,7 +163,7 @@ class load_aligned(_seq_loader, ComposableAligned):
         """
         super(ComposableAligned, self).__init__(
             input_types=None,
-            output_types="aligned",
+            output_types=("aligned", "serialisable"),
             data_types=("DataStoreMember", "str", "Path"),
         )
         _seq_loader.__init__(self)
@@ -190,7 +190,7 @@ class load_unaligned(ComposableSeq, _seq_loader):
         """
         super(ComposableSeq, self).__init__(
             input_types=None,
-            output_types="sequences",
+            output_types=("sequences", "serialisable"),
             data_types=(
                 "DataStoreMember",
                 "str",
@@ -237,7 +237,7 @@ class load_tabular(ComposableTabular):
         """
         super(ComposableTabular, self).__init__(
             input_types=None,
-            output_types="tabular",
+            output_types=("tabular", "serialisable"),
             data_types=("DataStoreMember", "str", "Path"),
         )
         self._formatted_params()
@@ -505,7 +505,7 @@ class load_db(Composable):
 
     def __init__(self):
         super(load_db, self).__init__(
-            input_types=None, output_types=("result", "serialisable")
+            input_types=None, output_types=("serialisable")
         )
         self.func = self.read
 
