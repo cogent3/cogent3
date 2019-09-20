@@ -63,7 +63,7 @@ class ParallelTests(TestCase):
         index = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         master_processes = 0
         for result in parallel.imap(
-            check_is_master_process, index, max_workers=2, use_mpi=False
+            check_is_master_process, index, max_workers=None, use_mpi=False
         ):
             if result:
                 master_processes += 1
