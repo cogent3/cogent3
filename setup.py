@@ -170,6 +170,25 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": PACKAGE_DIR},
     install_requires=["numpy", "pandas", "plotly", "scitrack", "tqdm", "tinydb"],
+    extras_require={
+        "dev": [
+            "pytest-azurepipelines",
+            "jupyterlab",
+            "ipykernel",
+            "ipywidgets",
+            "click",
+            "sphinx",
+            "sphinx_rtd_theme",
+            "nbsphinx",
+            "jupytext",
+            "pytest",
+            "pytest-cov",
+            "pytest>=4.3.0",
+            "tox",
+            "black",
+            "isort",
+        ]
+    },
     ext_modules=cythonize(
         [
             CythonExtension("cogent3.align._compare"),
