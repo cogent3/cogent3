@@ -1,6 +1,6 @@
-********************
-WARNING & DISCLAIMER
-********************
+*******
+Warning
+*******
 
 Be warned that cogent3_ is a significantly changed library from the original `PyCogent <http://www.pycogent.org>`_. The renaming has been done to emphasise these differences and to make the project name and import statement consistent (``cogent`` was always the import name, originating in the ``pyevolve`` project from 2004).
 
