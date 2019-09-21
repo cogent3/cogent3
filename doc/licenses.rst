@@ -1,5 +1,5 @@
-Licenses and disclaimer
-=======================
+Licenses
+========
 
 .. toctree::
    :maxdepth: 1
