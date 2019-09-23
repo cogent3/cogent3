@@ -1770,7 +1770,7 @@ class SequenceCollection(object):
         rc=False,
         show_progress=False,
     ):
-        """display a dotplot between specified sequences. Random sequences
+        """make a dotplot between specified sequences. Random sequences
         chosen if names not provided.
 
         Parameters
@@ -1792,6 +1792,9 @@ class SequenceCollection(object):
         rc : bool or None
             include dotplot of reverse compliment also. Only applies to Nucleic
             acids moltypes
+        Returns
+        -------
+        a Drawable or AnnotatedDrawable
         """
         from cogent3.draw.drawable import AnnotatedDrawable
         from cogent3.draw.dotplot import Dotplot
