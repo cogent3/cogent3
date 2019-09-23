@@ -4,13 +4,11 @@ import zipfile
 
 import numpy
 
-from cogent3 import load_aligned_seqs, load_unaligned_seqs
+from cogent3 import load_aligned_seqs as _load_aligned_seqs
+from cogent3 import load_unaligned_seqs as _load_unaligned_seqs
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.moltype import get_moltype
 from cogent3.core.profile import (
-    PSSM,
-    MotifCountsArray,
-    MotifFreqsArray,
     make_motif_counts_from_tabular,
     make_motif_freqs_from_tabular,
     make_pssm_from_tabular,
@@ -135,7 +133,7 @@ class _seq_loader:
             seqs = self.klass(data=data, moltype=self.moltype)
             seqs.info.source = abs_path
         elif not isinstance(path, SequenceCollection):
-            func = load_aligned_seqs if self.aligned else load_unaligned_seqs
+            func = _load_aligned_seqs if self.aligned else _load_unaligned_seqs
             seqs = func(path, moltype=self.moltype)
         else:
             seqs = path  # it is a SequenceCollection
