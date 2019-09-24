@@ -200,6 +200,8 @@ class progressive_align(ComposableSeq):
         if callable(guide_tree):
             self._make_tree = guide_tree
             guide_tree = None  # callback takes precedence
+        elif guide_tree is None and self._moltype.label == "protein":
+            self._distance = "paralinear"
         else:
             al_to_ref = align_to_ref(moltype=self._moltype)
             dist_calc = dist.fast_slow_dist(
