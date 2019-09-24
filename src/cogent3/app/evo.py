@@ -341,6 +341,9 @@ class bootstrap(ComposableHypothesis):
 
 
 class ancestral_states(ComposableTabular):
+    """Computes ancestral state probabilities from a model result. Returns a dict
+    with a DictArray for each node."""
+
     def __init__(self):
         super(ancestral_states, self).__init__(
             input_types="model_result",
