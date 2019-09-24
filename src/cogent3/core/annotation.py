@@ -252,6 +252,7 @@ class _Serialisable:
         data["map"] = data.pop("map").to_rich_dict()
         data = dict(annotation_construction=data)
         data["type"] = get_object_provenance(self)
+        data["version"] = __version__
         return data
 
     def to_json(self):

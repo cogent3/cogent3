@@ -1050,7 +1050,7 @@ class SequenceCollection(object):
             data[seq.name] = d
 
         data = dict(
-            seqs=data, moltype=moltype, info=info, type=get_object_provenance(self)
+            seqs=data, moltype=moltype, info=info, type=get_object_provenance(self), version=__version__
         )
 
         try:
@@ -2057,6 +2057,7 @@ class Aligned(object):
             data.annotations[i] = a.without_lost_spans()
         data = data.to_rich_dict()
         data["seq"] = str(self)
+        data["version"] = __version__
         return data
 
     def to_json(self):

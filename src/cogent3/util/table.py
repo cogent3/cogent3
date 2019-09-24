@@ -1386,6 +1386,7 @@ class Table(DictArray):
     def to_rich_dict(self):
         data = self.__getstate__()
         data["type"] = get_object_provenance(self)
+        data["version"] = __version__
         return data
 
     def to_json(self):

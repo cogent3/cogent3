@@ -734,6 +734,7 @@ class MolType(object):
         data = self._serialisable.copy()
         if not for_pickle:  # we rely on reconstruction from label
             data = dict(type=get_object_provenance(self), moltype=self.label)
+            data["version"] = __version__
         return data
 
     def to_json(self):

@@ -121,6 +121,7 @@ class NotCompleted(int):
             "not_completed_construction": dict(
                 args=self._persistent[0], kwargs=self._persistent[1]
             ),
+            "version": __version__
         }
         return data
 
