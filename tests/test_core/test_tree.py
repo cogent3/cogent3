@@ -188,6 +188,7 @@ class TreeNodeTests(TestCase):
                 "root": attrs,
             },
             "type": get_object_provenance(tr),
+            "version": __version__,
         }
         self.assertEqual(got, expect)
 
@@ -205,6 +206,7 @@ class TreeNodeTests(TestCase):
                 "root": {"length": None},
             },
             "type": get_object_provenance(tr),
+            "version": __version__,
         }
         self.assertEqual(got, expect)
 

@@ -138,6 +138,7 @@ class SequenceTests(TestCase):
             "moltype": r.moltype.label,
             "info": None,
             "type": get_object_provenance(r),
+            "version": __version__,
         }
         self.assertEqual(got, expect)
 
@@ -151,6 +152,7 @@ class SequenceTests(TestCase):
             "moltype": r.moltype.label,
             "info": None,
             "type": get_object_provenance(r),
+            "version": __version__,
         }
         self.assertEqual(got, expect)
 

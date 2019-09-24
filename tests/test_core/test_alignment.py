@@ -810,6 +810,7 @@ class SequenceCollectionBaseTests(object):
                     "info": None,
                     "type": seq_type,
                     "moltype": aln.moltype.label,
+                    "version": __version__,
                 },
                 "seq2": {
                     "name": "seq2",
@@ -817,6 +818,7 @@ class SequenceCollectionBaseTests(object):
                     "info": None,
                     "type": seq_type,
                     "moltype": aln.moltype.label,
+                    "version": __version__,
                 },
                 "seq3": {
                     "name": "seq3",
@@ -824,11 +826,13 @@ class SequenceCollectionBaseTests(object):
                     "info": None,
                     "type": seq_type,
                     "moltype": aln.moltype.label,
+                    "version": __version__,
                 },
             },
             "moltype": aln.moltype.label,
             "info": None,
             "type": get_object_provenance(aln),
+            "version": __version__,
         }
         self.assertEqual(got, expect)
 
