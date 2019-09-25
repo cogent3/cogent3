@@ -3,6 +3,7 @@ from unittest import TestCase, main
 from cogent3 import DNA, make_aligned_seqs, make_unaligned_seqs
 from cogent3.app import composable, sample
 from cogent3.app.composable import NotCompleted
+from cogent3.core import alignment
 
 
 __author__ = "Gavin Huttley"
@@ -62,8 +63,6 @@ class TranslateTests(TestCase):
 
     def test_omit_gapped(self):
         """omit_gap_pos correctly drops aligned columns"""
-        from cogent3.core import alignment
-
         # array alignment
         data = [("a", "ACGA-GA-CG"), ("b", "GATGATG-AT")]
         aln = make_aligned_seqs(data=data)
@@ -94,6 +93,11 @@ class TranslateTests(TestCase):
         expect = dict(a="ACGACG", b="GATGAT")
         got = not_all_gaps(aln)
         self.assertEqual(got.to_dict(), expect)
+
+        # no ungapped columns returns NotCompleted
+        aln = make_aligned_seqs(data=[("a", "-C-A-G-C-"), ("b", "G-T-A-G-T")])
+        got = nogaps(aln)
+        self.assertIsInstance(got, composable.NotCompleted)
 
     def test_codon_positions_4fold_degen(self):
         """codon_positions correctly return fourfold degenerate bases"""
