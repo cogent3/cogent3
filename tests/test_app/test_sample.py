@@ -57,9 +57,19 @@ class TranslateTests(TestCase):
         degen = sample.omit_degenerates(moltype="dna")
         got = degen(aln)
         self.assertEqual(got.to_dict(), {"a": "ACGAGAG", "b": "GATGTGT"})
+        self.assertIsInstance(got, alignment.ArrayAlignment)
+
+        # no ungapped columns
         aln = make_aligned_seqs(data=[("a", "-C-A-G-C-"), ("b", "G-T-A-G-T")])
         got = degen(aln)
         self.assertIsInstance(got, composable.NotCompleted)
+
+        # we get back the alignment type we passed in
+        aln = make_aligned_seqs(
+            data=[("a", "ACGA-GACG"), ("b", "GATGATGYT")], array_align=False
+        )
+        got = degen(aln)
+        self.assertIsInstance(got, alignment.Alignment)
 
     def test_omit_gapped(self):
         """omit_gap_pos correctly drops aligned columns"""
