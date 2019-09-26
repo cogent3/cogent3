@@ -363,6 +363,20 @@ class TestNatSel(TestCase):
         result = natsel(aln)
         self.assertIsInstance(result, NotCompleted)
 
+    def test_zhang_mprobs(self):
+        """optimise_motif_probs setting should work"""
+        opt = dict(max_evaluations=2, limit_action="ignore")
+        aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
+        # default, not optimising root probs
+        natsel = evo_app.natsel_zhang("MG94HKY", tip1="Human", opt_args=opt, gc=2)
+        result = natsel(aln)
+        self.assertEqual(result.null.lf.nfp, 6)
+        
+        # optimising root probs
+        natsel = evo_app.natsel_zhang("MG94HKY", tip1="Human", opt_args=opt, gc=2, optimise_motif_probs=True)
+        result = natsel(aln)
+        self.assertEqual(result.null.lf.nfp, 9)
+
 
 class TestTabulateStats(TestCase):
     def test_tabulate(self):

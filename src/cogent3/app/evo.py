@@ -414,6 +414,7 @@ class natsel_zhang(ComposableHypothesis):
         tree=None,
         sm_args=None,
         gc=1,
+        optimise_motif_probs=False,
         tip1=None,
         tip2=None,
         outgroup=None,
@@ -429,8 +430,8 @@ class natsel_zhang(ComposableHypothesis):
         Parameters
         ----------
         sm : str or instance
-            substitution model if string must be available via get_model(),
-            see cogent3.available_models
+            substitution model, if string must be available via get_model()
+            (see cogent3.available_models).
         tree
             if None, assumes a star phylogeny (only valid for 3 taxa). Can be a
             newick formatted tree, a path to a file containing one, or a Tree
@@ -440,6 +441,9 @@ class natsel_zhang(ComposableHypothesis):
             dict(optimise_motif_probs=True)
         gc
             genetic code, either name or number (see cogent3.available_codes)
+        optimise_motif_probs : bool
+            If True, motif probabilities are free parameters. If False (default)
+            they are estimated frokm the alignment.
         tip1 : str
             name of tip 1
         tip2 : str
@@ -505,6 +509,7 @@ class natsel_zhang(ComposableHypothesis):
         # instantiate model, ensuring genetic code setting passed on
         sm_args = sm_args or {}
         sm_args["gc"] = sm_args.get("gc", gc)
+        sm_args["optimise_motif_probs"] = optimise_motif_probs
         if type(sm) == str:
             sm = get_model(sm, **sm_args)
 
