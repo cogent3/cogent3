@@ -413,6 +413,7 @@ class natsel_zhang(ComposableHypothesis):
         sm,
         tree=None,
         sm_args=None,
+        gc=1,
         tip1=None,
         tip2=None,
         outgroup=None,
@@ -428,7 +429,8 @@ class natsel_zhang(ComposableHypothesis):
         Parameters
         ----------
         sm : str or instance
-            substitution model if string must be available via get_model()
+            substitution model if string must be available via get_model(),
+            see cogent3.available_models
         tree
             if None, assumes a star phylogeny (only valid for 3 taxa). Can be a
             newick formatted tree, a path to a file containing one, or a Tree
@@ -436,6 +438,8 @@ class natsel_zhang(ComposableHypothesis):
         sm_args
             arguments to be passed to the substitution model constructor, e.g.
             dict(optimise_motif_probs=True)
+        gc
+            genetic code, either name or number (see cogent3.available_codes)
         tip1 : str
             name of tip 1
         tip2 : str
@@ -486,16 +490,25 @@ class natsel_zhang(ComposableHypothesis):
         if tree and not isinstance(tree, TreeNode):
             raise TypeError(f"invalid tree type {type(tree)}")
 
-        edges = tree.get_edge_names(
-            tip1, tip2, stem=stem, clade=clade, outgroup_name=outgroup
-        )
+        if all([tip1, tip2]):
+            edges = tree.get_edge_names(
+                tip1, tip2, stem=stem, clade=clade, outgroup_name=outgroup
+            )
+        elif tip1:
+            edges = [tip1]
+        elif tip2:
+            edges = [tip2]
+
         assert edges, "No edges"
         epsilon = 1e-6
 
+        # instantiate model, ensuring genetic code setting passed on
+        sm_args = sm_args or {}
+        sm_args["gc"] = sm_args.get("gc", gc)
         if type(sm) == str:
-            model_name = sm
-        else:
-            model_name = sm.name
+            sm = get_model(sm, **sm_args)
+
+        model_name = sm.name
         # defining the null model
         null_param_rules = [
             dict(par_name="omega", bins="0", upper=1 - epsilon, init=1 - epsilon),

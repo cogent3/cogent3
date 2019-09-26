@@ -3,9 +3,10 @@ from unittest.mock import MagicMock
 
 from numpy.testing import assert_allclose, assert_raises
 
-from cogent3 import make_aligned_seqs, make_tree
+from cogent3 import load_aligned_seqs, make_aligned_seqs, make_tree
 from cogent3.app import evo as evo_app
 from cogent3.app.result import hypothesis_result
+from cogent3.evolve.models import get_model
 
 
 __author__ = "Gavin Huttley"
@@ -302,9 +303,6 @@ class TestNatSel(TestCase):
     # stem etc..
     def test_zhang(self):
         """natsel_zhang correctly configured and should not fail"""
-        from cogent3 import load_aligned_seqs
-        from cogent3.evolve.models import get_model
-
         opt = dict(max_evaluations=20, limit_action="ignore")
         aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
         natsel = evo_app.natsel_zhang(
@@ -313,7 +311,6 @@ class TestNatSel(TestCase):
             tip1="Human",
             tip2="Chimpanzee",
             opt_args=opt,
-            show_progress=True,
         )
         result = natsel(aln)
         self.assertEqual(result.df, 3)
@@ -349,10 +346,22 @@ class TestNatSel(TestCase):
         # fails if no tip names provided
         with self.assertRaises(ValueError):
             _ = evo_app.natsel_zhang(
-                "Y98",
-                tree="data/primate_brca1.tree",
-                opt_args=opt,
+                "Y98", tree="data/primate_brca1.tree", opt_args=opt
             )
+
+    def test_zhang_mtseq(self):
+        """genetic code setting should work"""
+        from cogent3.app.composable import NotCompleted
+
+        opt = dict(max_evaluations=20, limit_action="ignore")
+        aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
+        natsel = evo_app.natsel_zhang("CNFGTR", tip1="Human", opt_args=opt, gc=2)
+        result = natsel(aln)
+        self.assertEqual(result.df, 3)
+        # but if provide wrong gc, get NotCompleted
+        natsel = evo_app.natsel_zhang("CNFGTR", tip1="Human", opt_args=opt, gc=1)
+        result = natsel(aln)
+        self.assertIsInstance(result, NotCompleted)
 
 
 class TestTabulateStats(TestCase):
