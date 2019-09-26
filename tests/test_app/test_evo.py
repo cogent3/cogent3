@@ -424,6 +424,15 @@ class TestNatSel(TestCase):
         result = natsel(aln)
         self.assertEqual(result.null.lf.nfp, 7)
 
+    def test_neutral_nstat_model(self):
+        """test of neutrality, non-stationary codon model"""
+        opt = dict(max_evaluations=2, limit_action="ignore")
+        aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
+        neutral = evo_app.natsel_neutral("GNC", opt_args=opt, gc=2)
+        result = neutral(aln)
+        # 11 rate matrix params for GNC (omega omitted in null), 3 edges
+        self.assertEqual(result.null.lf.nfp, 3 + 11)
+
     def test_natsel_sitehet(self):
         """site-het natsel hypothesis test"""
         opt = dict(max_evaluations=2, limit_action="ignore")
