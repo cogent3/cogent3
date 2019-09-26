@@ -2,7 +2,7 @@ import os
 
 from tqdm import tqdm
 
-from cogent3 import make_tree
+from cogent3 import load_tree, make_tree
 from cogent3.core.tree import TreeNode
 from cogent3.evolve.models import get_model
 from cogent3.util import misc, parallel
@@ -107,7 +107,7 @@ class model(ComposableModel):
             split_codons = False
 
         if misc.path_exists(tree):
-            tree = make_tree(filename=tree, underscore_unmunge=True)
+            tree = load_tree(filename=tree, underscore_unmunge=True)
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
 
