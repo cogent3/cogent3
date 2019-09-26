@@ -24,23 +24,21 @@ Cogent3 implements 4 basic rate matrices, described in a recently accepted manus
 - TF, ``mprob_model=None``
 - CNF, ``mprob_model='conditional'``
 
-.. warning:: The TF form is the currently the default, but this will be changed in the near future.
-
 In the following I will construct GTR variants of i and iv and a HKY variant of iii.
 
 We import these explicitly from the ``cogent3.evolve.models`` module.
 
 .. doctest::
 
-    >>> from cogent3.evolve.models import CNFGTR, MG94GTR, GY94
+    >>> from cogent3.evolve.models import get_model
 
 These are functions and calling them returns the indicated substitution model with default behaviour of recoding gap characters into N's.
 
 .. doctest::
 
-    >>> tf = GY94()
-    >>> nf = MG94GTR()
-    >>> cnf = CNFGTR()
+    >>> tf = get_model("GY94")
+    >>> nf = get_model("MG94GTR")
+    >>> cnf = get_model("CNFGTR")
 
 In the following demonstration I will use only the CNF form (``cnf``).
 

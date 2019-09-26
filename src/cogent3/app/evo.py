@@ -3,8 +3,9 @@ import os
 from tqdm import tqdm
 
 from cogent3 import make_tree
+from cogent3.core.tree import TreeNode
 from cogent3.evolve.models import get_model
-from cogent3.util import parallel
+from cogent3.util import misc, parallel
 
 from .composable import (
     ComposableHypothesis,
@@ -105,12 +106,13 @@ class model(ComposableModel):
         if len(sm.get_motifs()[0]) > 1:
             split_codons = False
 
-        if type(tree) == str:
-            if os.path.exists(tree):
-                kwargs = dict(filename=tree, underscore_unmunge=True)
-            else:
-                kwargs = dict(treestring=tree, underscore_unmunge=True)
-            tree = make_tree(**kwargs)
+        if misc.path_exists(tree):
+            tree = make_tree(filename=tree, underscore_unmunge=True)
+        elif type(tree) == str:
+            tree = make_tree(treestring=tree, underscore_unmunge=True)
+
+        if tree and not isinstance(tree, TreeNode):
+            raise TypeError(f"invalid tree type {type(tree)}")
 
         self._tree = tree
         self._lf_args = lf_args or {}
