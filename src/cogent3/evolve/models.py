@@ -49,6 +49,7 @@ codon_models = [
     "MG94HKY",
     "MG94GTR",
     "GY94",
+    "Y98",
     "H04G",
     "H04GK",
     "H04GGK",

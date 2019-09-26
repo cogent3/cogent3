@@ -389,3 +389,187 @@ class tabulate_stats(ComposableTabular):
         for table in stats:
             tab[table.title] = table
         return tab
+
+
+class natsel_zhang(ComposableHypothesis):
+    """The branch by site-class hypothesis test for natural selection of
+    Zhang et al MBE 22: 2472-2479.
+
+    Note: Our implementation is not as parametrically succinct as that of
+    Zhang et al, we have 1 additional bin probability.
+    """
+
+    def __init__(
+        self,
+        sm,
+        tree=None,
+        sm_args=None,
+        tip1=None,
+        tip2=None,
+        outgroup=None,
+        stem=False,
+        clade=True,
+        lf_args=None,
+        upper_omega=20,
+        opt_args=None,
+        show_progress=False,
+        verbose=False,
+    ):
+        """
+        Parameters
+        ----------
+        sm : str or instance
+            substitution model if string must be available via get_model()
+        tree
+            if None, assumes a star phylogeny (only valid for 3 taxa). Can be a
+            newick formatted tree, a path to a file containing one, or a Tree
+            instance.
+        sm_args
+            arguments to be passed to the substitution model constructor, e.g.
+            dict(optimise_motif_probs=True)
+        tip1 : str
+            name of tip 1
+        tip2 : str
+            name of tip 1
+        outgroup : str
+            name of tip outside clade of interest
+        stem : bool
+            include name of stem to clade defined by tip1, tip2, outgroup
+        clade : bool
+            include names of edges within clade defined by tip1, tip2, outgroup
+        lf_args
+            arguments to be passed to the likelihood function constructor
+        upper_omega : float
+            upper bound for positive selection omega
+        time_het
+            'max' or a list of dicts corresponding to edge_sets, e.g.
+            [dict(edges=['Human', 'Chimp'], is_independent=False, upper=10)].
+            Passed to the likelihood function .set_time_heterogeneity()
+            method.
+        param_rules
+            other parameter rules, passed to the likelihood function
+            set_param_rule() method
+        opt_args
+            arguments for the numerical optimiser, e.g.
+            dict(max_restarts=5, tolerance=1e-6, max_evaluations=1000,
+            limit_action='ignore')
+        show_progress : bool
+            show progress bars during numerical optimisation
+        verbose : bool
+            prints intermediate states to screen during fitting
+        Notes
+        -----
+        The scoping parameters (tip1, tip2, outgroup, stem, clade) define the
+        foreground edges.
+        """
+        super(natsel_zhang, self).__init__(
+            input_types=("aligned", "serialisable"),
+            output_types=("result", "hypothesis_result", "serialisable"),
+            data_types=("ArrayAlignment", "Alignment"),
+        )
+        self._formatted_params()
+        if misc.path_exists(tree):
+            tree = load_tree(filename=tree, underscore_unmunge=True)
+        elif type(tree) == str:
+            tree = make_tree(treestring=tree, underscore_unmunge=True)
+
+        if tree and not isinstance(tree, TreeNode):
+            raise TypeError(f"invalid tree type {type(tree)}")
+
+        edges = tree.get_edge_names(
+            tip1, tip2, stem=stem, clade=clade, outgroup_name=outgroup
+        )
+        assert edges, "No edges"
+        epsilon = 1e-6
+
+        if type(sm) == str:
+            model_name = sm
+        else:
+            model_name = sm.name
+        # defining the null model
+        null_param_rules = [
+            dict(par_name="omega", bins="0", upper=1 - epsilon, init=1 - epsilon),
+            dict(par_name="omega", bins="1", is_constant=True, value=1.0),
+        ]
+        lf_args = lf_args or {}
+        null_lf_args = lf_args.copy()
+        null_lf_args.update(dict(bins=("0", "1")))
+        self.null = model(
+            sm,
+            tree,
+            name=f"{model_name}-null",
+            sm_args=sm_args,
+            param_rules=null_param_rules,
+            lf_args=null_lf_args,
+            opt_args=opt_args,
+            show_progress=show_progress,
+            verbose=verbose,
+        )
+
+        # defining the alternate model, param rules to be completed each call
+        alt_lf_args = lf_args.copy()
+        alt_lf_args.update(dict(bins=("0", "1", "2a", "2b")))
+        self.alt_args = dict(
+            sm=sm,
+            tree=tree,
+            name=f"{model_name}-alt",
+            sm_args=sm_args,
+            edges=edges,
+            lf_args=alt_lf_args,
+            opt_args=opt_args,
+            show_progress=show_progress,
+            verbose=verbose,
+            upper_omega=upper_omega,
+        )
+
+        self.func = self.test_hypothesis
+
+    def _get_alt_from_null(self, null):
+        rules = null.lf.get_param_rules()
+        # extend the bprobs rule to include new bins
+        epsilon = 1e-6
+        bprobs = {"2a": epsilon, "2b": epsilon}
+        for r in rules:
+            if r["par_name"] == "bprobs":
+                for k in r["init"]:
+                    r["init"][k] -= epsilon
+                r["init"].update(bprobs)
+                continue
+
+            if r["par_name"] == "omega":
+                bin_id = r.pop("bin")
+                r["bins"] = [bin_id, "2a"] if bin_id == "0" else [bin_id, "2b"]
+
+        # set the starting values for 2a/b
+        alt_args = self.alt_args.copy()
+        edges = alt_args.pop("edges")
+        upper_omega = alt_args.pop("upper_omega")
+        rules.append(
+            dict(
+                par_name="omega",
+                bins=["2a", "2b"],
+                edges=edges,
+                lower=1.0,
+                upper=upper_omega,
+                init=1 + epsilon,
+            )
+        )
+        alt_args["param_rules"] = rules
+        alt = model(**alt_args)
+        return alt
+
+    def test_hypothesis(self, aln, *args, **kwargs):
+        null_result = self.null(aln)
+        if not null_result:
+            return null_result
+
+        alt = self._get_alt_from_null(null_result)
+        alt_result = alt(aln)
+        if not alt_result:
+            return alt_result
+
+        result = hypothesis_result(
+            name_of_null=null_result.name, source=aln.info.source
+        )
+        result.update({alt_result.name: alt_result, null_result.name: null_result})
+        return result

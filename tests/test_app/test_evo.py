@@ -297,6 +297,46 @@ class TestAncestralStates(TestCase):
         assert_allclose(result["root"].row_sum(), 1)
 
 
+class TestNatSel(TestCase):
+    # needs to work for single edge, just two edges, and all combos of clae,
+    # stem etc..
+    def test_zhang(self):
+        """natsel_zhang correctly configured and should not fail"""
+        from cogent3 import load_aligned_seqs
+        from cogent3.evolve.models import get_model
+
+        opt = dict(max_evaluations=20, limit_action="ignore")
+        aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+        natsel = evo_app.natsel_zhang(
+            "CNFGTR",
+            tree="data/primate_brca1.tree",
+            tip1="Human",
+            tip2="Chimpanzee",
+            opt_args=opt,
+            show_progress=True,
+        )
+        result = natsel(aln)
+        self.assertEqual(result.df, 3)
+        self.assertEqual(result.alt.nfp, 21)
+        # the naming scheme is model name followed by null/alt
+        self.assertTrue("CNFGTR-null" in result)
+        self.assertTrue("CNFGTR-alt" in result)
+
+        # result keys correct when given a model
+        Y98 = get_model("Y98")
+        natsel = evo_app.natsel_zhang(
+            Y98,
+            tree="data/primate_brca1.tree",
+            tip1="Human",
+            tip2="Chimpanzee",
+            opt_args=opt,
+        )
+        result = natsel(aln)
+        self.assertEqual(result.df, 3)
+        self.assertTrue("Y98-null" in result)
+        self.assertTrue("Y98-alt" in result)
+
+
 class TestTabulateStats(TestCase):
     def test_tabulate(self):
         """call returns tabular_result with Tables"""
