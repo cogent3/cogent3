@@ -2,6 +2,8 @@
 
 """Unit tests for utility functions and classes.
 """
+import pathlib
+
 from copy import copy, deepcopy
 from os import remove, rmdir
 from os.path import exists
@@ -39,6 +41,7 @@ from cogent3.util.misc import (
     iterable,
     list_flatten,
     not_list_tuple,
+    path_exists,
     recursive_flatten,
     remove_files,
 )
@@ -494,6 +497,18 @@ class UtilsTests(TestCase):
         knowns = ((3, False), (9, False), (5, True))
         for arg2, result in knowns:
             self.assertEqual(curry_test(arg2), result)
+
+    def test_path_exists(self):
+        """robustly identifies whether an object is a valid path and exists"""
+        self.assertFalse(path_exists({}))
+        self.assertFalse(path_exists("not an existing path"))
+        self.assertFalse(path_exists("(a,b,(c,d))"))
+        self.assertFalse(path_exists("(a:0.1,b:0.1,(c:0.1,d:0.1):0.1)"))
+        # works for a Path instance
+        p = pathlib.Path(__file__)
+        self.assertTrue(path_exists(p))
+        # or string instance
+        self.assertTrue(path_exists(__file__))
 
 
 class _my_dict(dict):

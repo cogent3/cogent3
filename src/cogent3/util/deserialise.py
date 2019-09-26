@@ -9,7 +9,7 @@ import cogent3
 from cogent3.core.alignment import Aligned
 from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import _CodonAlphabet, get_moltype
-from cogent3.util.misc import open_
+from cogent3.util.misc import open_, path_exists
 
 
 __author__ = ["Gavin Huttley"]
@@ -266,11 +266,7 @@ def deserialise_object(data):
     If the dict from json.loads does not contain a "type" key, the object will
     be returned as is. Otherwise, it will be deserialised to a cogent3 object.
     """
-    try:
-        is_path = os.path.exists(data)
-    except (ValueError, TypeError):
-        is_path = False
-    if type(data) is str and is_path:
+    if path_exists(data):
         with open_(data) as infile:
             data = json.load(infile)
 
