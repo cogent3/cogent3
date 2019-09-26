@@ -336,6 +336,24 @@ class TestNatSel(TestCase):
         self.assertTrue("Y98-null" in result)
         self.assertTrue("Y98-alt" in result)
 
+        # fails if not a codon model
+        with self.assertRaises(ValueError):
+            _ = evo_app.natsel_zhang(
+                "F81",
+                tree="data/primate_brca1.tree",
+                tip1="Human",
+                tip2="Chimpanzee",
+                opt_args=opt,
+            )
+
+        # fails if no tip names provided
+        with self.assertRaises(ValueError):
+            _ = evo_app.natsel_zhang(
+                "Y98",
+                tree="data/primate_brca1.tree",
+                opt_args=opt,
+            )
+
 
 class TestTabulateStats(TestCase):
     def test_tabulate(self):

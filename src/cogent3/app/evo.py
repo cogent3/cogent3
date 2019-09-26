@@ -391,6 +391,15 @@ class tabulate_stats(ComposableTabular):
         return tab
 
 
+def is_codon_model(sm):
+    """True of sm, or get_model(sm), is a Codon substitution model"""
+    from cogent3.evolve.substitution_model import _Codon
+
+    if type(sm) == str:
+        sm = get_model(sm)
+    return isinstance(sm, _Codon)
+
+
 class natsel_zhang(ComposableHypothesis):
     """The branch by site-class hypothesis test for natural selection of
     Zhang et al MBE 22: 2472-2479.
@@ -463,6 +472,12 @@ class natsel_zhang(ComposableHypothesis):
             data_types=("ArrayAlignment", "Alignment"),
         )
         self._formatted_params()
+        if not is_codon_model(sm):
+            raise ValueError(f"{sm} is not a codon model")
+
+        if not any([tip1, tip2]):
+            raise ValueError("must provide at least a single tip name")
+
         if misc.path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
         elif type(tree) == str:
