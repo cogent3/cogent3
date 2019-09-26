@@ -424,6 +424,38 @@ class TestNatSel(TestCase):
         result = natsel(aln)
         self.assertEqual(result.null.lf.nfp, 7)
 
+    def test_natsel_sitehet(self):
+        """site-het natsel hypothesis test"""
+        opt = dict(max_evaluations=2, limit_action="ignore")
+        aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+        # default, not optimising root probs
+        natsel = evo_app.natsel_sitehet(
+            "MG94HKY", tree="data/primate_brca1.tree", opt_args=opt
+        )
+        result = natsel(aln)
+        # one free param for each edge, 1 for kappa, 1 for omega, 1 for bprobs
+        self.assertEqual(result.null.lf.nfp, 14)
+        # plus one extra bprob and one extra omega
+        self.assertEqual(result.alt.lf.nfp, 16)
+        # fails if not a codon model
+        with self.assertRaises(ValueError):
+            _ = evo_app.natsel_sitehet("F81", tree="data/primate_brca1.tree")
+
+    def test_natsel_sitehet_mprob(self):
+        """natsel_sitehet correctly applies genetic code and optimise_motif_probs args"""
+        opt = dict(max_evaluations=2, limit_action="ignore")
+        aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
+        # optimising root probs
+        natsel = evo_app.natsel_sitehet(
+            "MG94HKY", opt_args=opt, gc=2, optimise_motif_probs=True
+        )
+        # test of genetic code is implicit, if not correct, the following
+        # call would return NotCompleted (for this mtDNA gene), which does not
+        # have a .null attribute
+        result = natsel(aln)
+        # 3 edges, 1 kappa, 1 omega, 1 bprob, 3 mprob
+        self.assertEqual(result.null.lf.nfp, 9)
+
 
 class TestTabulateStats(TestCase):
     def test_tabulate(self):

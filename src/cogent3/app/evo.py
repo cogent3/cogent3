@@ -605,7 +605,6 @@ class natsel_zhang(ComposableHypothesis):
             edges = [tip2]
 
         assert edges, "No edges"
-        epsilon = 1e-6
 
         # instantiate model, ensuring genetic code setting passed on
         sm_args = sm_args or {}
@@ -616,6 +615,7 @@ class natsel_zhang(ComposableHypothesis):
 
         model_name = sm.name
         # defining the null model
+        epsilon = 1e-6
         null_param_rules = [
             dict(par_name="omega", bins="0", upper=1 - epsilon, init=1 - epsilon),
             dict(par_name="omega", bins="1", is_constant=True, value=1.0),
@@ -678,6 +678,162 @@ class natsel_zhang(ComposableHypothesis):
                 par_name="omega",
                 bins=["2a", "2b"],
                 edges=edges,
+                lower=1.0,
+                upper=upper_omega,
+                init=1 + epsilon,
+            )
+        )
+        alt_args["param_rules"] = rules
+        alt = model(**alt_args)
+        return alt
+
+    def test_hypothesis(self, aln, *args, **kwargs):
+        null_result = self.null(aln)
+        if not null_result:
+            return null_result
+
+        alt = self._get_alt_from_null(null_result)
+        alt_result = alt(aln)
+        if not alt_result:
+            return alt_result
+
+        result = hypothesis_result(
+            name_of_null=null_result.name, source=aln.info.source
+        )
+        result.update({alt_result.name: alt_result, null_result.name: null_result})
+        return result
+
+
+class natsel_sitehet(ComposableHypothesis):
+    """Test for site-heterogeneity in omega. Under null, there are 2 site-classes,
+    omega < 1 and omega = 1. Under the alternate, an additional site-class of
+    omega > 1 is added."""
+
+    def __init__(
+        self,
+        sm,
+        tree=None,
+        sm_args=None,
+        gc=1,
+        optimise_motif_probs=False,
+        upper_omega=20.0,
+        lf_args=None,
+        opt_args=None,
+        show_progress=False,
+        verbose=False,
+    ):
+        """
+        Parameters
+        ----------
+        sm : str or instance
+            substitution model, if string must be available via get_model()
+            (see cogent3.available_models).
+        tree
+            if None, assumes a star phylogeny (only valid for 3 taxa). Can be a
+            newick formatted tree, a path to a file containing one, or a Tree
+            instance.
+        sm_args
+            arguments to be passed to the substitution model constructor, e.g.
+            dict(optimise_motif_probs=True)
+        gc
+            genetic code, either name or number (see cogent3.available_codes)
+        optimise_motif_probs : bool
+            If True, motif probabilities are free parameters. If False (default)
+            they are estimated from the alignment.
+        upper_omega : float
+            upper bound for positive selection omega
+        lf_args
+            arguments to be passed to the likelihood function constructor
+        opt_args
+            arguments for the numerical optimiser, e.g.
+            dict(max_restarts=5, tolerance=1e-6, max_evaluations=1000,
+            limit_action='ignore')
+        show_progress : bool
+            show progress bars during numerical optimisation
+        verbose : bool
+            prints intermediate states to screen during fitting
+        """
+        super(natsel_sitehet, self).__init__(
+            input_types=("aligned", "serialisable"),
+            output_types=("result", "hypothesis_result", "serialisable"),
+            data_types=("ArrayAlignment", "Alignment"),
+        )
+        self._formatted_params()
+        if not is_codon_model(sm):
+            raise ValueError(f"{sm} is not a codon model")
+
+        if misc.path_exists(tree):
+            tree = load_tree(filename=tree, underscore_unmunge=True)
+        elif type(tree) == str:
+            tree = make_tree(treestring=tree, underscore_unmunge=True)
+
+        if tree and not isinstance(tree, TreeNode):
+            raise TypeError(f"invalid tree type {type(tree)}")
+
+        # instantiate model, ensuring genetic code setting passed on
+        sm_args = sm_args or {}
+        sm_args["gc"] = sm_args.get("gc", gc)
+        sm_args["optimise_motif_probs"] = optimise_motif_probs
+        if type(sm) == str:
+            sm = get_model(sm, **sm_args)
+
+        model_name = sm.name
+        # defining the null model
+        epsilon = 1e-6
+        null_param_rules = [
+            dict(par_name="omega", bins="-ve", upper=1 - epsilon, init=1 - epsilon),
+            dict(par_name="omega", bins="neutral", is_constant=True, value=1.0),
+        ]
+        lf_args = lf_args or {}
+        null_lf_args = lf_args.copy()
+        null_lf_args.update(dict(bins=("-ve", "neutral")))
+        self.null = model(
+            sm,
+            tree,
+            name=f"{model_name}-null",
+            sm_args=sm_args,
+            param_rules=null_param_rules,
+            lf_args=null_lf_args,
+            opt_args=opt_args,
+            show_progress=show_progress,
+            verbose=verbose,
+        )
+
+        # defining the alternate model, param rules to be completed each call
+        alt_lf_args = lf_args.copy()
+        alt_lf_args.update(dict(bins=("-ve", "neutral", "+ve")))
+        self.alt_args = dict(
+            sm=sm,
+            tree=tree,
+            name=f"{model_name}-alt",
+            sm_args=sm_args,
+            lf_args=alt_lf_args,
+            opt_args=opt_args,
+            show_progress=show_progress,
+            verbose=verbose,
+            upper_omega=upper_omega,
+        )
+
+        self.func = self.test_hypothesis
+
+    def _get_alt_from_null(self, null):
+        rules = null.lf.get_param_rules()
+        # extend the bprobs rule to include new bin
+        epsilon = 1e-6
+        for r in rules:
+            if r["par_name"] == "bprobs":
+                for k in r["init"]:
+                    r["init"][k] -= epsilon
+                r["init"].update({"+ve": epsilon})
+                break
+
+        # set the starting value for +ve bin
+        alt_args = self.alt_args.copy()
+        upper_omega = alt_args.pop("upper_omega")
+        rules.append(
+            dict(
+                par_name="omega",
+                bin="+ve",
                 lower=1.0,
                 upper=upper_omega,
                 init=1 + epsilon,
