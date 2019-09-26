@@ -50,7 +50,6 @@ class model(ComposableModel):
         verbose=False,
     ):
         """
-
         Parameters
         ----------
         sm : str or instance
@@ -93,7 +92,7 @@ class model(ComposableModel):
         the result object has a separate entry for each.
         """
         super(model, self).__init__(
-            input_types="aligned",
+            input_types=("aligned", "serialisable"),
             output_types=("result", "model_result", "serialisable"),
             data_types=("ArrayAlignment", "Alignment"),
         )
@@ -240,7 +239,7 @@ class hypothesis(ComposableHypothesis):
     def __init__(self, null, *alternates, init_alt=None):
         # todo document! init_alt needs to be able to take null, alt and *args
         super(hypothesis, self).__init__(
-            input_types="aligned",
+            input_types=("aligned", "serialisable"),
             output_types=("result", "hypothesis_result", "serialisable"),
             data_types=("ArrayAlignment", "Alignment"),
         )
