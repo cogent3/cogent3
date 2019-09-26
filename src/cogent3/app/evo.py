@@ -441,11 +441,6 @@ class natsel_zhang(ComposableHypothesis):
             arguments to be passed to the likelihood function constructor
         upper_omega : float
             upper bound for positive selection omega
-        time_het
-            'max' or a list of dicts corresponding to edge_sets, e.g.
-            [dict(edges=['Human', 'Chimp'], is_independent=False, upper=10)].
-            Passed to the likelihood function .set_time_heterogeneity()
-            method.
         param_rules
             other parameter rules, passed to the likelihood function
             set_param_rule() method
