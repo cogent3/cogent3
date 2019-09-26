@@ -364,18 +364,65 @@ class TestNatSel(TestCase):
         self.assertIsInstance(result, NotCompleted)
 
     def test_zhang_mprobs(self):
-        """optimise_motif_probs setting should work"""
+        """natsel_zhang optimise_motif_probs setting should work"""
         opt = dict(max_evaluations=2, limit_action="ignore")
         aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
         # default, not optimising root probs
         natsel = evo_app.natsel_zhang("MG94HKY", tip1="Human", opt_args=opt, gc=2)
         result = natsel(aln)
         self.assertEqual(result.null.lf.nfp, 6)
-        
+
         # optimising root probs
-        natsel = evo_app.natsel_zhang("MG94HKY", tip1="Human", opt_args=opt, gc=2, optimise_motif_probs=True)
+        natsel = evo_app.natsel_zhang(
+            "MG94HKY", tip1="Human", opt_args=opt, gc=2, optimise_motif_probs=True
+        )
         result = natsel(aln)
         self.assertEqual(result.null.lf.nfp, 9)
+
+    def test_neutral(self):
+        """test of neutrality, one omega != 1"""
+        opt = dict(max_evaluations=20, limit_action="ignore")
+        aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+        neutral = evo_app.natsel_neutral(
+            "MG94HKY", tree="data/primate_brca1.tree", opt_args=opt
+        )
+        result = neutral(aln)
+        self.assertEqual(result.df, 1)
+        self.assertTrue("MG94HKY-null" in result)
+        self.assertTrue("MG94HKY-alt" in result)
+        # fails if not a codon model
+        with self.assertRaises(ValueError):
+            _ = evo_app.natsel_neutral("F81", tree="data/primate_brca1.tree")
+
+    def test_neutral_mtdna(self):
+        """test of neutrality, different genetic code"""
+        from cogent3.app.composable import NotCompleted
+
+        opt = dict(max_evaluations=2, limit_action="ignore")
+        aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
+        neutral = evo_app.natsel_neutral("MG94HKY", opt_args=opt, gc=2)
+        result = neutral(aln)
+        self.assertEqual(result.df, 1)
+        # not completed if wrong gc
+        neutral = evo_app.natsel_neutral("MG94HKY", opt_args=opt, gc=1)
+        result = neutral(aln)
+        self.assertIsInstance(result, NotCompleted)
+
+    def test_neutral_mprobs(self):
+        """test of neutrality, optimise_motif_probs setting should work"""
+        opt = dict(max_evaluations=2, limit_action="ignore")
+        aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
+        # default, not optimising root probs
+        natsel = evo_app.natsel_neutral("MG94HKY", opt_args=opt, gc=2)
+        result = natsel(aln)
+        self.assertEqual(result.null.lf.nfp, 4)
+
+        # optimising root probs
+        natsel = evo_app.natsel_neutral(
+            "MG94HKY", opt_args=opt, gc=2, optimise_motif_probs=True
+        )
+        result = natsel(aln)
+        self.assertEqual(result.null.lf.nfp, 7)
 
 
 class TestTabulateStats(TestCase):

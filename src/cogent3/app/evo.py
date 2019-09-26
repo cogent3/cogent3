@@ -400,6 +400,107 @@ def is_codon_model(sm):
     return isinstance(sm, _Codon)
 
 
+class natsel_neutral(ComposableHypothesis):
+    """Test of selective neutrality by assessing whether omega equals 1.
+    Under the alternate, there is one omega for all branches and all sites.
+    """
+
+    def __init__(
+        self,
+        sm,
+        tree=None,
+        sm_args=None,
+        gc=1,
+        optimise_motif_probs=False,
+        lf_args=None,
+        opt_args=None,
+        show_progress=False,
+        verbose=False,
+    ):
+        """
+        Parameters
+        ----------
+        sm : str or instance
+            substitution model, if string must be available via get_model()
+            (see cogent3.available_models).
+        tree
+            if None, assumes a star phylogeny (only valid for 3 taxa). Can be a
+            newick formatted tree, a path to a file containing one, or a Tree
+            instance.
+        sm_args
+            arguments to be passed to the substitution model constructor, e.g.
+            dict(optimise_motif_probs=True)
+        gc
+            genetic code, either name or number (see cogent3.available_codes)
+        optimise_motif_probs : bool
+            If True, motif probabilities are free parameters. If False (default)
+            they are estimated frokm the alignment.
+        lf_args
+            arguments to be passed to the likelihood function constructor
+        opt_args
+            arguments for the numerical optimiser, e.g.
+            dict(max_restarts=5, tolerance=1e-6, max_evaluations=1000,
+            limit_action='ignore')
+        show_progress : bool
+            show progress bars during numerical optimisation
+        verbose : bool
+            prints intermediate states to screen during fitting
+        """
+        super(natsel_neutral, self).__init__(
+            input_types=("aligned", "serialisable"),
+            output_types=("result", "hypothesis_result", "serialisable"),
+            data_types=("ArrayAlignment", "Alignment"),
+        )
+        self._formatted_params()
+        if not is_codon_model(sm):
+            raise ValueError(f"{sm} is not a codon model")
+
+        if misc.path_exists(tree):
+            tree = load_tree(filename=tree, underscore_unmunge=True)
+        elif type(tree) == str:
+            tree = make_tree(treestring=tree, underscore_unmunge=True)
+
+        if tree and not isinstance(tree, TreeNode):
+            raise TypeError(f"invalid tree type {type(tree)}")
+
+        # instantiate model, ensuring genetic code setting passed on
+        sm_args = sm_args or {}
+        sm_args["gc"] = sm_args.get("gc", gc)
+        sm_args["optimise_motif_probs"] = optimise_motif_probs
+        if type(sm) == str:
+            sm = get_model(sm, **sm_args)
+
+        model_name = sm.name
+        # defining the null model
+        lf_args = lf_args or {}
+        null = model(
+            sm,
+            tree,
+            name=f"{model_name}-null",
+            sm_args=sm_args,
+            opt_args=opt_args,
+            show_progress=show_progress,
+            param_rules=[dict(par_name="omega", is_constant=True, value=1.0)],
+            lf_args=lf_args,
+            verbose=verbose,
+        )
+
+        # defining the alternate model
+        alt = model(
+            sm,
+            tree,
+            name=f"{model_name}-alt",
+            sm_args=sm_args,
+            opt_args=opt_args,
+            show_progress=show_progress,
+            lf_args=lf_args,
+            verbose=verbose,
+        )
+        hyp = hypothesis(null, alt)
+
+        self.func = hyp
+
+
 class natsel_zhang(ComposableHypothesis):
     """The branch by site-class hypothesis test for natural selection of
     Zhang et al MBE 22: 2472-2479.
