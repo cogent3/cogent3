@@ -276,6 +276,26 @@ class TestUserFunction(TestCase):
         self.assertEqual(got_1.to_dict(), {"a": "GCAA", "b": "GCTT"})
         self.assertEqual(got_2, {("s1", "s2"): 2.0, ("s2", "s1"): 2.0})
 
+    def test_user_function_repr(self):
+        u_function_1 = user_function(self.foo, "aligned", "aligned")
+        u_function_2 = user_function(self.bar, "aligned", "pairwise_distances")
+        self.assertEqual(
+            repr(u_function_1), "user_function(name='foo', module='test_composable')"
+        )
+        self.assertEqual(
+            repr(u_function_2), "user_function(name='bar', module='test_composable')"
+        )
+
+    def test_user_function_str(self):
+        u_function_1 = user_function(self.foo, "aligned", "aligned")
+        u_function_2 = user_function(self.bar, "aligned", "pairwise_distances")
+        self.assertEqual(
+            str(u_function_1), "user_function(name='foo', module='test_composable')"
+        )
+        self.assertEqual(
+            str(u_function_2), "user_function(name='bar', module='test_composable')"
+        )
+
 
 if __name__ == "__main__":
     main()
