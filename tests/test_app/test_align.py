@@ -1,6 +1,17 @@
 from unittest import TestCase, main
 
-from cogent3 import DNA, make_tree, make_unaligned_seqs
+from cogent3 import (
+    AB,
+    ASCII,
+    BYTES,
+    DNA,
+    PROTEIN,
+    PROTEIN_WITH_STOP,
+    RNA,
+    make_tree,
+    make_unaligned_seqs,
+)
+from cogent3.align.align import make_generic_scoring_dict
 from cogent3.app import align as align_app
 from cogent3.app.composable import NotCompleted
 
@@ -62,6 +73,43 @@ class RefalignmentTests(TestCase):
             "Rhesus": "GCCAGCTCATTACAGCATGAGAAC---AGTTTGTTACTCACT",
         }
         self.assertEqual(aln.to_dict(), expect)
+
+    def test_align_to_ref_generic_moltype(self):
+        """tests when the moltype is generic"""
+        aligner = align_app.align_to_ref(moltype="text")
+        self.assertEqual(aligner._moltype.label, "text")
+        self.assertEqual(aligner._kwargs["S"], make_generic_scoring_dict(10, ASCII))
+        aligner = align_app.align_to_ref(moltype="rna")
+        self.assertEqual(aligner._moltype.label, "rna")
+        self.assertEqual(aligner._kwargs["S"], make_generic_scoring_dict(10, RNA))
+        aligner = align_app.align_to_ref(moltype="protein")
+        self.assertEqual(aligner._moltype.label, "protein")
+        self.assertEqual(aligner._kwargs["S"], make_generic_scoring_dict(10, PROTEIN))
+        aligner = align_app.align_to_ref(moltype="protein_with_stop")
+        self.assertEqual(aligner._moltype.label, "protein_with_stop")
+        self.assertEqual(
+            aligner._kwargs["S"], make_generic_scoring_dict(10, PROTEIN_WITH_STOP)
+        )
+        aligner = align_app.align_to_ref(moltype="bytes")
+        self.assertEqual(aligner._moltype.label, "bytes")
+        self.assertEqual(aligner._kwargs["S"], make_generic_scoring_dict(10, BYTES))
+        aligner = align_app.align_to_ref(moltype="ab")
+        self.assertEqual(aligner._moltype.label, "ab")
+        self.assertEqual(aligner._kwargs["S"], make_generic_scoring_dict(10, AB))
+
+    def test_progressive_align_protein_moltype(self):
+        """tests guide_tree is None and moltype is protein"""
+        from cogent3 import load_aligned_seqs
+
+        seqs = load_aligned_seqs("data/nexus_aa.nxs", moltype="protein")
+        seqs = seqs.degap()
+        seqs = seqs.take_seqs(["Rat", "Cow", "Human", "Mouse", "Whale"])
+        aligner = align_app.progressive_align(model="WG01")
+        got = aligner(seqs)
+        self.assertNotIsInstance(got, NotCompleted)
+        aligner = align_app.progressive_align(model="protein")
+        got = aligner(seqs)
+        self.assertNotIsInstance(got, NotCompleted)
 
     def test_progressive_align_nuc(self):
         """progressive alignment with nuc models"""
@@ -137,9 +185,6 @@ class RefalignmentTests(TestCase):
     def test_progressive_align_protein(self):
         """progressive alignment with protein models"""
         seqs = self.seqs.get_translation()
-        with self.assertRaises(NotImplementedError):
-            _ = align_app.progressive_align(model="protein")
-
         aligner = align_app.progressive_align(model="WG01", guide_tree=self.treestring)
         aln = aligner(seqs)
         self.assertEqual(len(aln), 14)

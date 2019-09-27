@@ -6,6 +6,7 @@ from .align import (
     global_pairwise,
     local_pairwise,
     make_dna_scoring_dict,
+    make_generic_scoring_dict,
 )
 
 
