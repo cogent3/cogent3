@@ -465,6 +465,65 @@ class TestNatSel(TestCase):
         # 3 edges, 1 kappa, 1 omega, 1 bprob, 3 mprob
         self.assertEqual(result.null.lf.nfp, 9)
 
+    def test_natsel_timehet(self):
+        """natsel_timehet works"""
+        opt = dict(max_evaluations=2, limit_action="ignore")
+        aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+        natsel = evo_app.natsel_timehet(
+            "MG94HKY",
+            tree="data/primate_brca1.tree",
+            tip1="Human",
+            tip2="Chimpanzee",
+            opt_args=opt,
+        )
+        result = natsel(aln)
+        self.assertEqual(result.df, 1)
+        # the naming scheme is model name followed by null/alt
+        self.assertTrue("MG94HKY-null" in result)
+        self.assertTrue("MG94HKY-alt" in result)
+        # that is_independent works
+        natsel = evo_app.natsel_timehet(
+            "MG94HKY",
+            tree="data/primate_brca1.tree",
+            tip1="Human",
+            tip2="Chimpanzee",
+            is_independent=True,
+            opt_args=opt,
+        )
+        result = natsel(aln)
+        self.assertEqual(result.df, 2)
+
+        # handle specifying just single edge
+        natsel = evo_app.natsel_timehet(
+            "MG94HKY", tree="data/primate_brca1.tree", tip1="Human", opt_args=opt
+        )
+        result = natsel(aln)
+        self.assertEqual(result.df, 1)
+
+        # fails if not a codon model
+        with self.assertRaises(ValueError):
+            _ = evo_app.natsel_timehet("F81", tip1="Human")
+
+    def test_natsel_timehet_mprobs(self):
+        """natsel_timehet works with gc and mprobs settings"""
+        opt = dict(max_evaluations=2, limit_action="ignore")
+        aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
+        natsel = evo_app.natsel_timehet(
+            "MG94HKY",
+            tip1="Human",
+            tip2="Chimp",
+            opt_args=opt,
+            gc=2,
+            optimise_motif_probs=True,
+        )
+        result = natsel(aln)
+        self.assertEqual(result.df, 1)
+        self.assertEqual(result.null.lf.nfp, 3 + 3 + 1 + 1)
+        self.assertEqual(result.alt.lf.nfp, 3 + 3 + 1 + 2)
+        # the naming scheme is model name followed by null/alt
+        self.assertTrue("MG94HKY-null" in result)
+        self.assertTrue("MG94HKY-alt" in result)
+
 
 class TestTabulateStats(TestCase):
     def test_tabulate(self):

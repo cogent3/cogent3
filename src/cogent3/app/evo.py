@@ -595,10 +595,12 @@ class natsel_zhang(ComposableHypothesis):
         if tree and not isinstance(tree, TreeNode):
             raise TypeError(f"invalid tree type {type(tree)}")
 
-        if all([tip1, tip2]):
+        if all([tip1, tip2]) and tree:
             edges = tree.get_edge_names(
                 tip1, tip2, stem=stem, clade=clade, outgroup_name=outgroup
             )
+        elif all([tip1, tip2]):
+            edges = [tip1, tip2]
         elif tip1:
             edges = [tip1]
         elif tip2:
@@ -858,3 +860,156 @@ class natsel_sitehet(ComposableHypothesis):
         )
         result.update({alt_result.name: alt_result, null_result.name: null_result})
         return result
+
+
+class natsel_timehet(ComposableHypothesis):
+    """The branch heterogeneity hypothesis test for natural selection.
+    Tests for whether a single omega for all branches is sufficient against the
+    alternate that a user specified subset of branches have a distinct value
+    (or values) of omega.
+    """
+
+    def __init__(
+        self,
+        sm,
+        tree=None,
+        sm_args=None,
+        gc=1,
+        optimise_motif_probs=False,
+        tip1=None,
+        tip2=None,
+        outgroup=None,
+        stem=False,
+        clade=True,
+        is_independent=False,
+        lf_args=None,
+        upper_omega=20,
+        opt_args=None,
+        show_progress=False,
+        verbose=False,
+    ):
+        """
+        Parameters
+        ----------
+        sm : str or instance
+            substitution model, if string must be available via get_model()
+            (see cogent3.available_models).
+        tree
+            if None, assumes a star phylogeny (only valid for 3 taxa). Can be a
+            newick formatted tree, a path to a file containing one, or a Tree
+            instance.
+        sm_args
+            arguments to be passed to the substitution model constructor, e.g.
+            dict(optimise_motif_probs=True)
+        gc
+            genetic code, either name or number (see cogent3.available_codes)
+        optimise_motif_probs : bool
+            If True, motif probabilities are free parameters. If False (default)
+            they are estimated frokm the alignment.
+        tip1 : str
+            name of tip 1
+        tip2 : str
+            name of tip 1
+        outgroup : str
+            name of tip outside clade of interest
+        stem : bool
+            include name of stem to clade defined by tip1, tip2, outgroup
+        clade : bool
+            include names of edges within clade defined by tip1, tip2, outgroup
+        is_independent : bool
+            if True, all edges specified by the scoping info get their own
+            value of omega, if False, only a single omega
+        lf_args
+            arguments to be passed to the likelihood function constructor
+        upper_omega : float
+            upper bound for omega
+        param_rules
+            other parameter rules, passed to the likelihood function
+            set_param_rule() method
+        opt_args
+            arguments for the numerical optimiser, e.g.
+            dict(max_restarts=5, tolerance=1e-6, max_evaluations=1000,
+            limit_action='ignore')
+        show_progress : bool
+            show progress bars during numerical optimisation
+        verbose : bool
+            prints intermediate states to screen during fitting
+        """
+        super(natsel_timehet, self).__init__(
+            input_types=("aligned", "serialisable"),
+            output_types=("result", "hypothesis_result", "serialisable"),
+            data_types=("ArrayAlignment", "Alignment"),
+        )
+        self._formatted_params()
+        if not is_codon_model(sm):
+            raise ValueError(f"{sm} is not a codon model")
+
+        if not any([tip1, tip2]):
+            raise ValueError("must provide at least a single tip name")
+
+        if misc.path_exists(tree):
+            tree = load_tree(filename=tree, underscore_unmunge=True)
+        elif type(tree) == str:
+            tree = make_tree(treestring=tree, underscore_unmunge=True)
+
+        if tree and not isinstance(tree, TreeNode):
+            raise TypeError(f"invalid tree type {type(tree)}")
+
+        if all([tip1, tip2]) and tree:
+            edges = tree.get_edge_names(
+                tip1, tip2, stem=stem, clade=clade, outgroup_name=outgroup
+            )
+        elif all([tip1, tip2]):
+            edges = [tip1, tip2]
+        elif tip1:
+            edges = [tip1]
+        elif tip2:
+            edges = [tip2]
+
+        assert edges, "No edges"
+
+        # instantiate model, ensuring genetic code setting passed on
+        sm_args = sm_args or {}
+        sm_args["gc"] = sm_args.get("gc", gc)
+        sm_args["optimise_motif_probs"] = optimise_motif_probs
+        if type(sm) == str:
+            sm = get_model(sm, **sm_args)
+
+        model_name = sm.name
+        # defining the null model
+        lf_args = lf_args or {}
+        null_lf_args = lf_args.copy()
+        null = model(
+            sm,
+            tree,
+            name=f"{model_name}-null",
+            sm_args=sm_args,
+            lf_args=null_lf_args,
+            opt_args=opt_args,
+            show_progress=show_progress,
+            verbose=verbose,
+        )
+
+        # defining the alternate model
+        param_rules = [
+            dict(
+                par_name="omega",
+                edges=edges,
+                upper=upper_omega,
+                is_independent=is_independent,
+            )
+        ]
+        alt = model(
+            sm,
+            tree,
+            name=f"{model_name}-alt",
+            sm_args=sm_args,
+            opt_args=opt_args,
+            show_progress=show_progress,
+            param_rules=param_rules,
+            lf_args=lf_args,
+            verbose=verbose,
+        )
+        hyp = hypothesis(null, alt)
+
+        self.func = hyp
