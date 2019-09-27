@@ -42,6 +42,17 @@ def make_dna_scoring_dict(match, transition, transversion):
 
 
 def make_generic_scoring_dict(match, mtype):
+    """returns scoring dict for alignment
+
+    Parameters
+    ----------
+    match : int
+        value for a match, mismatches default to -1
+    mtype
+        MolType instance or string that can be used to get_moltype
+    """
+    from cogent3 import get_moltype
+    mtype = get_moltype(mtype)
     S = {}
     for a in mtype:
         for b in mtype:
