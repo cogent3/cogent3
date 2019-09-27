@@ -3,6 +3,7 @@ from unittest import TestCase, main
 from cogent3 import DNA, make_aligned_seqs, make_unaligned_seqs
 from cogent3.app import composable, sample
 from cogent3.app.composable import NotCompleted
+from cogent3.core import alignment
 
 
 __author__ = "Gavin Huttley"
@@ -56,8 +57,56 @@ class TranslateTests(TestCase):
         degen = sample.omit_degenerates(moltype="dna")
         got = degen(aln)
         self.assertEqual(got.to_dict(), {"a": "ACGAGAG", "b": "GATGTGT"})
+        self.assertIsInstance(got, alignment.ArrayAlignment)
+
+        # no ungapped columns
         aln = make_aligned_seqs(data=[("a", "-C-A-G-C-"), ("b", "G-T-A-G-T")])
         got = degen(aln)
+        self.assertIsInstance(got, composable.NotCompleted)
+
+        # we get back the alignment type we passed in
+        aln = make_aligned_seqs(
+            data=[("a", "ACGA-GACG"), ("b", "GATGATGYT")], array_align=False
+        )
+        got = degen(aln)
+        self.assertIsInstance(got, alignment.Alignment)
+
+    def test_omit_gapped(self):
+        """omit_gap_pos correctly drops aligned columns"""
+        # array alignment
+        data = [("a", "ACGA-GA-CG"), ("b", "GATGATG-AT")]
+        aln = make_aligned_seqs(data=data)
+        nogaps = sample.omit_gap_pos(moltype="dna", allowed_frac=0)  # default
+        got = nogaps(aln)
+        self.assertIsInstance(got, alignment.ArrayAlignment)
+        expect = dict(a="ACGAGACG", b="GATGTGAT")
+        self.assertEqual(got.to_dict(), expect)
+        # standard alignment
+        aln = make_aligned_seqs(data=data, array_align=False)
+        got = nogaps(aln)
+        self.assertIsInstance(got, alignment.Alignment)
+        self.assertEqual(got.to_dict(), expect)
+        # non-exclusive gaps
+        not_all_gaps = sample.omit_gap_pos(moltype="dna")  # default
+        expect = dict(a="ACGA-GACG", b="GATGATGAT")
+        aln = make_aligned_seqs(data=data)
+        got = not_all_gaps(aln)
+        self.assertEqual(got.to_dict(), expect)
+        aln = make_aligned_seqs(data=data, array_align=False)
+        got = not_all_gaps(aln)
+        self.assertEqual(got.to_dict(), expect)
+        # with motif length
+        not_all_gaps = sample.omit_gap_pos(
+            moltype="dna", allowed_frac=0, motif_length=2
+        )
+        aln = make_aligned_seqs(data=data)
+        expect = dict(a="ACGACG", b="GATGAT")
+        got = not_all_gaps(aln)
+        self.assertEqual(got.to_dict(), expect)
+
+        # no ungapped columns returns NotCompleted
+        aln = make_aligned_seqs(data=[("a", "-C-A-G-C-"), ("b", "G-T-A-G-T")])
+        got = nogaps(aln)
         self.assertIsInstance(got, composable.NotCompleted)
 
     def test_codon_positions_4fold_degen(self):

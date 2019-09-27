@@ -166,7 +166,7 @@ class _SubstitutionModel(object):
          - optimise_motif_probs: Treat like other free parameters.  Any values
            set by the other motif_prob options will be used as initial values.
 
-         - mprob_model: 'tuple', 'conditional' or 'monomer' to specify how
+         - mprob_model: 'tuple', 'conditional', 'monomer' or 'monomers' to specify how
            tuple-alphabet (including codon) motif probs are used.
 
         """

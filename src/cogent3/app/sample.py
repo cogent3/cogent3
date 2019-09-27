@@ -125,13 +125,61 @@ class omit_degenerates(ComposableAligned):
     def filter_degenerates(self, aln):
         if aln.moltype != self.moltype:
             # try converting
-            aln = aln.to_type(moltype=self.moltype, array_align=True)
+            array_align = isinstance(aln, ArrayAlignment)
+            aln = aln.to_type(moltype=self.moltype, array_align=array_align)
         result = aln.no_degenerates(
             motif_length=self._motif_length, allow_gap=self._allow_gap
         )
         if not result:
             result = NotCompleted(
                 "FAIL", self, "all columns contained degenerates", source=aln
+            )
+
+        return result
+
+
+class omit_gap_pos(ComposableAligned):
+    """Excludes gapped alignment columns meeting a threshold. Can accomodate
+    reading frame. Returns modified Alignment."""
+
+    def __init__(self, allowed_frac=0.99, motif_length=1, moltype=None):
+        """
+        Parameters
+        ----------
+        allowed_frac : float
+            columns with a fraction of gap characters exceeding allowed_frac are
+            excluded
+        motif_length : int
+            sequences split into non-overlapping tuples of this size.
+        moltype : str
+            molecular type, must be either DNA or RNA
+        """
+        super(omit_gap_pos, self).__init__(
+            input_types=("aligned", "serialisable"),
+            output_types=("aligned", "serialisable"),
+            data_types=("ArrayAlignment", "Alignment"),
+        )
+        self._formatted_params()
+        if moltype:
+            moltype = get_moltype(moltype)
+            assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
+
+        self.moltype = moltype
+        self._allowed_frac = allowed_frac
+        self._motif_length = motif_length
+        self.func = self.omit
+
+    def omit(self, aln):
+        if aln.moltype != self.moltype:
+            # try converting
+            array_align = isinstance(aln, ArrayAlignment)
+            aln = aln.to_type(moltype=self.moltype, array_align=array_align)
+        result = aln.omit_gap_pos(
+            allowed_gap_frac=self._allowed_frac, motif_length=self._motif_length
+        )
+        if not result:
+            result = NotCompleted(
+                "FAIL", self, "all columns exceeded gap threshold", source=aln
             )
 
         return result

@@ -5,6 +5,7 @@ import zipfile
 
 from bz2 import open as bzip_open
 from gzip import open as gzip_open
+from os import path as os_path
 from os import remove
 from pathlib import Path
 from random import choice, randint
@@ -1104,6 +1105,17 @@ def get_object_provenance(obj):
     else:
         result = ".".join([mod, name])
     return result
+
+
+def path_exists(path):
+    """whether path is a valid path and it exists"""
+    if not (isinstance(path, str) or isinstance(path, Path)):
+        return False
+    try:
+        is_path = os_path.exists(str(path))
+    except (ValueError, TypeError):
+        is_path = False
+    return is_path
 
 
 def extend_docstring_from(source, pre=False):
