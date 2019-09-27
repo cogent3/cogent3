@@ -1,16 +1,6 @@
 from unittest import TestCase, main
 
-from cogent3 import (
-    AB,
-    ASCII,
-    BYTES,
-    DNA,
-    PROTEIN,
-    PROTEIN_WITH_STOP,
-    RNA,
-    make_tree,
-    make_unaligned_seqs,
-)
+from cogent3 import DNA, get_moltype, make_tree, make_unaligned_seqs
 from cogent3.align.align import make_generic_scoring_dict
 from cogent3.app import align as align_app
 from cogent3.app.composable import NotCompleted
@@ -76,26 +66,14 @@ class RefalignmentTests(TestCase):
 
     def test_align_to_ref_generic_moltype(self):
         """tests when the moltype is generic"""
-        aligner = align_app.align_to_ref(moltype="text")
-        self.assertEqual(aligner._moltype.label, "text")
-        self.assertEqual(aligner._kwargs["S"], make_generic_scoring_dict(10, ASCII))
-        aligner = align_app.align_to_ref(moltype="rna")
-        self.assertEqual(aligner._moltype.label, "rna")
-        self.assertEqual(aligner._kwargs["S"], make_generic_scoring_dict(10, RNA))
-        aligner = align_app.align_to_ref(moltype="protein")
-        self.assertEqual(aligner._moltype.label, "protein")
-        self.assertEqual(aligner._kwargs["S"], make_generic_scoring_dict(10, PROTEIN))
-        aligner = align_app.align_to_ref(moltype="protein_with_stop")
-        self.assertEqual(aligner._moltype.label, "protein_with_stop")
-        self.assertEqual(
-            aligner._kwargs["S"], make_generic_scoring_dict(10, PROTEIN_WITH_STOP)
-        )
-        aligner = align_app.align_to_ref(moltype="bytes")
-        self.assertEqual(aligner._moltype.label, "bytes")
-        self.assertEqual(aligner._kwargs["S"], make_generic_scoring_dict(10, BYTES))
-        aligner = align_app.align_to_ref(moltype="ab")
-        self.assertEqual(aligner._moltype.label, "ab")
-        self.assertEqual(aligner._kwargs["S"], make_generic_scoring_dict(10, AB))
+        test_moltypes = ["text", "rna", "protein", "protein_with_stop", "bytes", "ab"]
+        for test_moltype in test_moltypes:
+            aligner = align_app.align_to_ref(moltype=test_moltype)
+            self.assertEqual(aligner._moltype.label, test_moltype)
+            self.assertEqual(
+                aligner._kwargs["S"],
+                make_generic_scoring_dict(10, get_moltype(test_moltype)),
+            )
 
     def test_progressive_align_protein_moltype(self):
         """tests guide_tree is None and moltype is protein"""
