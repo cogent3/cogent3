@@ -656,3 +656,11 @@ class user_function(Composable):
             input_types=input_types, output_types=output_types
         )
         self.func = func
+
+    def __str__(self):
+        name = self.func.__name__
+        module = self.func.__module__
+        return f"user_function(name='{name}', module='{module}')"
+
+    def __repr__(self):
+        return str(self)
