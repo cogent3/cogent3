@@ -13,6 +13,7 @@ import numpy
 from numpy.testing import assert_allclose
 
 from cogent3 import DNA
+from cogent3.app import align as align_app
 from cogent3.app import io as io_app
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store import WritableZippedDataStore
@@ -516,6 +517,26 @@ class TestIo(TestCase):
             # but OK for write_db
             w = io_app.write_db(outdir, create=True, if_exists="skip")
             w.data_store.close()
+
+    def test_write_db_parallel(self):
+        """writing with overwrite in parallel should reset db"""
+        dstore = io_app.get_data_store(self.basedir, suffix="fasta")
+        members = dstore.filtered(callback=lambda x: "brca1.fasta" not in x.split("/"))
+        reader = io_app.load_unaligned()
+        aligner = align_app.align_to_ref()
+        writer = write_db("delme.tinydb", create=True, if_exists="overwrite")
+        process = reader + aligner + writer
+
+        r = process.apply_to(members, logger=False, show_progress=False, parallel=True)
+
+        expect = [str(m) for m in process.data_store]
+        process.data_store.close()
+
+        # now get read only and check what's in there
+        result = io_app.get_data_store("delme.tinydb")
+        got = [str(m) for m in result]
+
+        self.assertEqual(got, expect)
 
 
 if __name__ == "__main__":
