@@ -3,9 +3,10 @@ from unittest.mock import MagicMock
 
 from numpy.testing import assert_allclose, assert_raises
 
-from cogent3 import make_aligned_seqs, make_tree
+from cogent3 import load_aligned_seqs, make_aligned_seqs, make_tree
 from cogent3.app import evo as evo_app
 from cogent3.app.result import hypothesis_result
+from cogent3.evolve.models import get_model
 
 
 __author__ = "Gavin Huttley"
@@ -295,6 +296,233 @@ class TestAncestralStates(TestCase):
         result = anc(mod(aln))
         self.assertEqual(result["root"].shape, (len(aln), 4))
         assert_allclose(result["root"].row_sum(), 1)
+
+
+class TestNatSel(TestCase):
+    # needs to work for single edge, just two edges, and all combos of clae,
+    # stem etc..
+    def test_zhang(self):
+        """natsel_zhang correctly configured and should not fail"""
+        opt = dict(max_evaluations=20, limit_action="ignore")
+        aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+        natsel = evo_app.natsel_zhang(
+            "CNFGTR",
+            tree="data/primate_brca1.tree",
+            tip1="Human",
+            tip2="Chimpanzee",
+            opt_args=opt,
+        )
+        result = natsel(aln)
+        self.assertEqual(result.df, 3)
+        self.assertEqual(result.alt.nfp, 21)
+        # the naming scheme is model name followed by null/alt
+        self.assertTrue("CNFGTR-null" in result)
+        self.assertTrue("CNFGTR-alt" in result)
+
+        # result keys correct when given a model
+        Y98 = get_model("Y98")
+        natsel = evo_app.natsel_zhang(
+            Y98,
+            tree="data/primate_brca1.tree",
+            tip1="Human",
+            tip2="Chimpanzee",
+            opt_args=opt,
+        )
+        result = natsel(aln)
+        self.assertEqual(result.df, 3)
+        self.assertTrue("Y98-null" in result)
+        self.assertTrue("Y98-alt" in result)
+
+        # fails if not a codon model
+        with self.assertRaises(ValueError):
+            _ = evo_app.natsel_zhang(
+                "F81",
+                tree="data/primate_brca1.tree",
+                tip1="Human",
+                tip2="Chimpanzee",
+                opt_args=opt,
+            )
+
+        # fails if no tip names provided
+        with self.assertRaises(ValueError):
+            _ = evo_app.natsel_zhang(
+                "Y98", tree="data/primate_brca1.tree", opt_args=opt
+            )
+
+    def test_zhang_mtseq(self):
+        """genetic code setting should work"""
+        from cogent3.app.composable import NotCompleted
+
+        opt = dict(max_evaluations=20, limit_action="ignore")
+        aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
+        natsel = evo_app.natsel_zhang("CNFGTR", tip1="Human", opt_args=opt, gc=2)
+        result = natsel(aln)
+        self.assertEqual(result.df, 3)
+        # but if provide wrong gc, get NotCompleted
+        natsel = evo_app.natsel_zhang("CNFGTR", tip1="Human", opt_args=opt, gc=1)
+        result = natsel(aln)
+        self.assertIsInstance(result, NotCompleted)
+
+    def test_zhang_mprobs(self):
+        """natsel_zhang optimise_motif_probs setting should work"""
+        opt = dict(max_evaluations=2, limit_action="ignore")
+        aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
+        # default, not optimising root probs
+        natsel = evo_app.natsel_zhang("MG94HKY", tip1="Human", opt_args=opt, gc=2)
+        result = natsel(aln)
+        self.assertEqual(result.null.lf.nfp, 6)
+
+        # optimising root probs
+        natsel = evo_app.natsel_zhang(
+            "MG94HKY", tip1="Human", opt_args=opt, gc=2, optimise_motif_probs=True
+        )
+        result = natsel(aln)
+        self.assertEqual(result.null.lf.nfp, 9)
+
+    def test_neutral(self):
+        """test of neutrality, one omega != 1"""
+        opt = dict(max_evaluations=20, limit_action="ignore")
+        aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+        neutral = evo_app.natsel_neutral(
+            "MG94HKY", tree="data/primate_brca1.tree", opt_args=opt
+        )
+        result = neutral(aln)
+        self.assertEqual(result.df, 1)
+        self.assertTrue("MG94HKY-null" in result)
+        self.assertTrue("MG94HKY-alt" in result)
+        # fails if not a codon model
+        with self.assertRaises(ValueError):
+            _ = evo_app.natsel_neutral("F81", tree="data/primate_brca1.tree")
+
+    def test_neutral_mtdna(self):
+        """test of neutrality, different genetic code"""
+        from cogent3.app.composable import NotCompleted
+
+        opt = dict(max_evaluations=2, limit_action="ignore")
+        aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
+        neutral = evo_app.natsel_neutral("MG94HKY", opt_args=opt, gc=2)
+        result = neutral(aln)
+        self.assertEqual(result.df, 1)
+        # not completed if wrong gc
+        neutral = evo_app.natsel_neutral("MG94HKY", opt_args=opt, gc=1)
+        result = neutral(aln)
+        self.assertIsInstance(result, NotCompleted)
+
+    def test_neutral_mprobs(self):
+        """test of neutrality, optimise_motif_probs setting should work"""
+        opt = dict(max_evaluations=2, limit_action="ignore")
+        aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
+        # default, not optimising root probs
+        natsel = evo_app.natsel_neutral("MG94HKY", opt_args=opt, gc=2)
+        result = natsel(aln)
+        self.assertEqual(result.null.lf.nfp, 4)
+
+        # optimising root probs
+        natsel = evo_app.natsel_neutral(
+            "MG94HKY", opt_args=opt, gc=2, optimise_motif_probs=True
+        )
+        result = natsel(aln)
+        self.assertEqual(result.null.lf.nfp, 7)
+
+    def test_neutral_nstat_model(self):
+        """test of neutrality, non-stationary codon model"""
+        opt = dict(max_evaluations=2, limit_action="ignore")
+        aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
+        neutral = evo_app.natsel_neutral("GNC", opt_args=opt, gc=2)
+        result = neutral(aln)
+        # 11 rate matrix params for GNC (omega omitted in null), 3 edges
+        self.assertEqual(result.null.lf.nfp, 3 + 11)
+
+    def test_natsel_sitehet(self):
+        """site-het natsel hypothesis test"""
+        opt = dict(max_evaluations=2, limit_action="ignore")
+        aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+        # default, not optimising root probs
+        natsel = evo_app.natsel_sitehet(
+            "MG94HKY", tree="data/primate_brca1.tree", opt_args=opt
+        )
+        result = natsel(aln)
+        # one free param for each edge, 1 for kappa, 1 for omega, 1 for bprobs
+        self.assertEqual(result.null.lf.nfp, 14)
+        # plus one extra bprob and one extra omega
+        self.assertEqual(result.alt.lf.nfp, 16)
+        # fails if not a codon model
+        with self.assertRaises(ValueError):
+            _ = evo_app.natsel_sitehet("F81", tree="data/primate_brca1.tree")
+
+    def test_natsel_sitehet_mprob(self):
+        """natsel_sitehet correctly applies genetic code and optimise_motif_probs args"""
+        opt = dict(max_evaluations=2, limit_action="ignore")
+        aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
+        # optimising root probs
+        natsel = evo_app.natsel_sitehet(
+            "MG94HKY", opt_args=opt, gc=2, optimise_motif_probs=True
+        )
+        # test of genetic code is implicit, if not correct, the following
+        # call would return NotCompleted (for this mtDNA gene), which does not
+        # have a .null attribute
+        result = natsel(aln)
+        # 3 edges, 1 kappa, 1 omega, 1 bprob, 3 mprob
+        self.assertEqual(result.null.lf.nfp, 9)
+
+    def test_natsel_timehet(self):
+        """natsel_timehet works"""
+        opt = dict(max_evaluations=2, limit_action="ignore")
+        aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+        natsel = evo_app.natsel_timehet(
+            "MG94HKY",
+            tree="data/primate_brca1.tree",
+            tip1="Human",
+            tip2="Chimpanzee",
+            opt_args=opt,
+        )
+        result = natsel(aln)
+        self.assertEqual(result.df, 1)
+        # the naming scheme is model name followed by null/alt
+        self.assertTrue("MG94HKY-null" in result)
+        self.assertTrue("MG94HKY-alt" in result)
+        # that is_independent works
+        natsel = evo_app.natsel_timehet(
+            "MG94HKY",
+            tree="data/primate_brca1.tree",
+            tip1="Human",
+            tip2="Chimpanzee",
+            is_independent=True,
+            opt_args=opt,
+        )
+        result = natsel(aln)
+        self.assertEqual(result.df, 2)
+
+        # handle specifying just single edge
+        natsel = evo_app.natsel_timehet(
+            "MG94HKY", tree="data/primate_brca1.tree", tip1="Human", opt_args=opt
+        )
+        result = natsel(aln)
+        self.assertEqual(result.df, 1)
+
+        # fails if not a codon model
+        with self.assertRaises(ValueError):
+            _ = evo_app.natsel_timehet("F81", tip1="Human")
+
+    def test_natsel_timehet_mprobs(self):
+        """natsel_timehet works with gc and mprobs settings"""
+        opt = dict(max_evaluations=2, limit_action="ignore")
+        aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
+        natsel = evo_app.natsel_timehet(
+            "MG94HKY",
+            tip1="Human",
+            tip2="Chimp",
+            opt_args=opt,
+            gc=2,
+            optimise_motif_probs=True,
+        )
+        result = natsel(aln)
+        self.assertEqual(result.df, 1)
+        self.assertEqual(result.null.lf.nfp, 3 + 3 + 1 + 1)
+        self.assertEqual(result.alt.lf.nfp, 3 + 3 + 1 + 2)
+        # the naming scheme is model name followed by null/alt
+        self.assertTrue("MG94HKY-null" in result)
+        self.assertTrue("MG94HKY-alt" in result)
 
 
 class TestTabulateStats(TestCase):
