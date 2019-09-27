@@ -65,6 +65,7 @@ class generic_result(MutableMapping):
         result = {
             "type": get_object_provenance(self),
             "result_construction": self._construction_kwargs,
+            "version": __version__
         }
         items = []
         for key, val in self.items():

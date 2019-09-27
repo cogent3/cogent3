@@ -842,7 +842,7 @@ class TreeNode(object):
         for edge in self.get_edge_vector(include_root=True):
             attr[edge.name] = edge.params.copy()
         result = dict(
-            newick=newick, edge_attributes=attr, type=get_object_provenance(self)
+            newick=newick, edge_attributes=attr, type=get_object_provenance(self), version=__version__
         )
         return result
 

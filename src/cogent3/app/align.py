@@ -1,5 +1,9 @@
 from cogent3 import make_tree
-from cogent3.align import global_pairwise, make_dna_scoring_dict
+from cogent3.align import (
+    global_pairwise,
+    make_dna_scoring_dict,
+    make_generic_scoring_dict,
+)
 from cogent3.align.progressive import TreeAlign
 from cogent3.app import dist
 from cogent3.core.alignment import ArrayAlignment
@@ -45,7 +49,7 @@ class align_to_ref(ComposableSeq):
         extension_penalty
             penalty for gap extension
         moltype : str
-            molecular type, currently only DNA or RNA suppported
+            molecular type
         """
         super(align_to_ref, self).__init__(
             input_types="sequences",
@@ -56,7 +60,11 @@ class align_to_ref(ComposableSeq):
         assert moltype
         moltype = get_moltype(moltype)
         self._moltype = moltype
-        S = score_matrix or make_dna_scoring_dict(10, -1, -8)
+        S = score_matrix or (
+            make_dna_scoring_dict(10, -1, -8)
+            if self._moltype.label == "dna"
+            else make_generic_scoring_dict(10, self._moltype)
+        )
         self._kwargs = dict(
             S=S, d=insertion_penalty, e=extension_penalty, return_score=False
         )
@@ -172,10 +180,6 @@ class progressive_align(ComposableSeq):
             output_types=("aligned", "serialisable"),
             data_types="SequenceCollection",
         )
-        if guide_tree is None and model in protein_models + ["protein"]:
-            raise NotImplementedError(
-                "auto-build of guide tree " "not supported for protein seqs yet"
-            )
 
         self._param_vals = {
             "codon": dict(omega=0.4, kappa=3),
@@ -196,6 +200,8 @@ class progressive_align(ComposableSeq):
         self._indel_rate = indel_rate
         self._moltype = moltype
         self._unique_guides = unique_guides
+        if guide_tree is None and self._moltype.label == "protein":
+            distance = "paralinear"
         self._distance = distance
         if callable(guide_tree):
             self._make_tree = guide_tree

@@ -33,6 +33,7 @@ def _get_class(provenance):
 
 def deserialise_tabular(data):
     """deserialising DictArray, Table instances"""
+    data.pop("version", None)
     type_ = data.pop("type")
     klass = _get_class(type_)
     if type_.endswith("Table"):
@@ -57,6 +58,7 @@ def deserialise_tabular(data):
 
 def deserialise_not_completed(data):
     """deserialising NotCompletedResult"""
+    data.pop("version", None)
     klass = _get_class(data.pop("type"))
     init = data.pop("not_completed_construction")
     args = init.pop("args")
@@ -66,9 +68,11 @@ def deserialise_not_completed(data):
 
 
 def deserialise_map_spans(map_element):
+    map_element.pop("version", None)
     map_klass = _get_class(map_element.pop("type"))
     spans = []
     for element in map_element["spans"]:
+        element.pop("version", None)
         klass = _get_class(element.pop("type"))
         instance = klass(**element)
         spans.append(instance)
@@ -81,6 +85,7 @@ def deserialise_map_spans(map_element):
 def deserialise_annotation(data, parent):
     annots = []
     for element in data:
+        element.pop("version", None)
         klass = _get_class(element.pop("type"))
         kwargs = element.pop("annotation_construction")
         kwargs["map"] = deserialise_map_spans(kwargs["map"])
@@ -91,6 +96,7 @@ def deserialise_annotation(data, parent):
 
 def deserialise_result(data):
     """returns a result object"""
+    data.pop("version", None)
     klass = _get_class(data.pop("type"))
     kwargs = data.pop("result_construction")
     result = klass(**kwargs)
@@ -110,6 +116,7 @@ def deserialise_result(data):
 
 def deserialise_moltype(data):
     """returns a cogent3 MolType instance, or a CodonAlphabet"""
+    data.pop("version", None)
     label = data["moltype"]
     data["moltype"] = get_moltype(label)
     klass = _get_class(data.pop("type"))
@@ -125,6 +132,7 @@ def deserialise_moltype(data):
 
 def deserialise_alphabet(data):
     """returns a cogent3 Alphabet instance"""
+    data.pop("version", None)
     if _get_class(data.get("type")) == _CodonAlphabet:
         result = deserialise_moltype(data)
         return result
@@ -154,6 +162,7 @@ def deserialise_seq(data, aligned=False):
     """
     from cogent3.core.moltype import get_moltype
 
+    data.pop("version", None)
     data["moltype"] = get_moltype(data.pop("moltype"))
     annotations = data.pop("annotations", None)
     make_seq = data["moltype"].make_seq
@@ -181,6 +190,7 @@ def deserialise_seq_collections(data):
     # We first try to load moltype/alphabet using get_moltype
     from cogent3.core.moltype import get_moltype
 
+    data.pop("version", None)
     data["moltype"] = get_moltype(data.pop("moltype"))
     annotations = data.pop("annotations", None)
     type_ = data.pop("type")
@@ -203,6 +213,7 @@ def deserialise_seq_collections(data):
 
 def deserialise_tree(data):
     """returns a cogent3 PhyloNode instance"""
+    data.pop("version", None)
     # we load tree using make_tree, then populate edge attributes
     newick = data.pop("newick")
     edge_attr = data.pop("edge_attributes")
@@ -217,6 +228,7 @@ def deserialise_substitution_model(data):
     """returns a cogent3 substitution model instance"""
     from cogent3.evolve.models import get_model
 
+    data.pop("version", None)
     kw = {} if "kw" not in data else data.pop("kw")
     sm = None
     if kw and "name" in kw:
@@ -236,6 +248,7 @@ def deserialise_substitution_model(data):
 
 def deserialise_likelihood_function(data):
     """returns a cogent3 likelihood function instance"""
+    data.pop("version", None)
     model = deserialise_substitution_model(data.pop("model"))
     aln = deserialise_seq_collections(data.pop("alignment"))
     tree = deserialise_tree(data.pop("tree"))
@@ -272,7 +285,7 @@ def deserialise_object(data):
 
     if type(data) is str:
         data = json.loads(data)
-
+        
     type_ = data.get("type", None)
     if type_ is None:
         return data

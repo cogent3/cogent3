@@ -275,6 +275,7 @@ class Span(SpanI):
     def to_rich_dict(self):
         attribs = self._serialisable.copy()
         attribs["type"] = get_object_provenance(self)
+        attribs["version"] = __version__
         return attribs
 
     def __setstate__(self, args):
@@ -489,6 +490,7 @@ class _LostSpan(object):
     def to_rich_dict(self):
         attribs = self._serialisable.copy()
         attribs["type"] = get_object_provenance(self)
+        attribs["version"] = __version__
         return attribs
 
     def __len__(self):
@@ -799,6 +801,7 @@ class Map(object):
         data.pop("locations")
         data["spans"] = spans
         data["type"] = get_object_provenance(self)
+        data["version"] = __version__
         return data
 
 

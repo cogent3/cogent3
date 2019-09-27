@@ -423,6 +423,7 @@ class JointEnumeration(Enumeration):
         if not for_pickle:
             data["type"] = get_object_provenance(self)
             data["moltype"] = self.moltype.label
+            data["version"] = __version__
         return data
 
     def to_json(self):
@@ -566,6 +567,7 @@ class Alphabet(Enumeration):
         if not for_pickle:
             data["type"] = get_object_provenance(self)
             data["moltype"] = self.moltype.label
+            data["version"] = __version__
             if hasattr(self, "_gc"):
                 data["genetic_code"] = self._gc.name
         return data

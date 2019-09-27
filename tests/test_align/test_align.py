@@ -11,6 +11,7 @@ from cogent3.align.align import (
     global_pairwise,
     local_pairwise,
     make_dna_scoring_dict,
+    make_generic_scoring_dict,
 )
 from cogent3.evolve.models import HKY85
 
@@ -60,6 +61,16 @@ class AlignmentTestCase(unittest.TestCase):
         for a in self._aligned_both_ways(seq1, seq2, local=True):
             self.assertEqual(matchedColumns(a), 15)
             self.assertEqual(len(a), 19)
+
+    def test_pwise_protein(self):
+        """works for pairwise protein alignment"""
+        from cogent3 import PROTEIN
+
+        S = make_generic_scoring_dict(1, PROTEIN)
+        seq1 = PROTEIN.make_seq("MAYPFQLGLQD", "seq1")
+        seq2 = PROTEIN.make_seq("MAYPFGLQD", "seq2")
+        a1 = classic_align_pairwise(seq1, seq2, S, 10, 2, local=False)
+        self.assertEqual(a1.to_dict(), dict(seq1="MAYPFQLGLQD", seq2="MAYPF--GLQD"))
 
     def test_gap_at_one_end(self):
         for a in self._aligned_both_ways(seq1, seq2, local=False):

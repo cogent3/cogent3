@@ -263,6 +263,7 @@ class _SubstitutionModel(object):
             if "predicates" in data and data["predicates"]:
                 data["predicates"] = [str(p) for p in data["predicates"]]
             data["type"] = get_object_provenance(self)
+            data["version"] = __version__
         return data
 
     def to_json(self):
