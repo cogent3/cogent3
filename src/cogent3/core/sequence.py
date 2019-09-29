@@ -131,7 +131,7 @@ class SequenceI(object):
             moltype=self.moltype.label,
             info=info,
             type=get_object_provenance(self),
-            version=__version__
+            version=__version__,
         )
 
         try:

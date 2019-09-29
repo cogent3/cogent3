@@ -918,7 +918,7 @@ class LikelihoodFunction(ParameterController):
             unique_Q=unique_Q,
             type=get_object_provenance(self),
             name=self.get_name(),
-            version=__version__
+            version=__version__,
         )
         return data
 

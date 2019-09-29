@@ -1050,7 +1050,11 @@ class SequenceCollection(object):
             data[seq.name] = d
 
         data = dict(
-            seqs=data, moltype=moltype, info=info, type=get_object_provenance(self), version=__version__
+            seqs=data,
+            moltype=moltype,
+            info=info,
+            type=get_object_provenance(self),
+            version=__version__,
         )
 
         try:

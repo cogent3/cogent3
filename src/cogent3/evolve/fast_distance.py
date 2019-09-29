@@ -720,7 +720,10 @@ class DistanceMatrix(DictArray):
         dists = self.to_dict()
         json_safe = [(k[0], k[1], dists[k]) for k in dists]
         data = dict(
-            dists=json_safe, invalid=self._invalid, type=get_object_provenance(self), version=__version__
+            dists=json_safe,
+            invalid=self._invalid,
+            type=get_object_provenance(self),
+            version=__version__,
         )
         return data
 
