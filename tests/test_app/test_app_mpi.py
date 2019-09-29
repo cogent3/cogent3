@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+from unittest import TestCase, main, skipUnless
 
 from cogent3.app import align as align_app
 from cogent3.app import io as io_app
@@ -19,6 +19,7 @@ __status__ = "Alpha"
 class MPITests(TestCase):
     basedir = "data"
 
+    @skipUnless(parallel.USING_MPI, reason="Not using MPI")
     def test_write_db(self):
         """writing with overwrite in MPI should reset db"""
         dstore = io_app.get_data_store("data", suffix="fasta")
@@ -44,3 +45,7 @@ class MPITests(TestCase):
         got = [str(m) for m in result]
 
         assert got == expect
+
+
+if __name__ == "__main__":
+    main()
