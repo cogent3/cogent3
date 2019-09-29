@@ -443,7 +443,7 @@ class DictArray(object):
             "type": get_object_provenance(self.template),
             "array": data,
             "names": self.template.names,
-            "version": __version__
+            "version": __version__,
         }
         return result
 
