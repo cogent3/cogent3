@@ -1,38 +1,10 @@
-Getting a genetic code
-----------------------
-
-The standard genetic code.
-
-.. doctest::
-
-    >>> from cogent3.core.genetic_code import GeneticCodes
-    >>> standard_code = GeneticCodes[1]
-
-The vertebrate mt genetic code.
-
-.. doctest::
-
-    >>> from cogent3.core.genetic_code import GeneticCodes
-    >>> mt_gc = GeneticCodes[2]
-    >>> print(mt_gc.name)
-    Vertebrate Mitochondrial
-
-To see the key -> genetic code mapping, use a loop.
-
-.. doctest::
-
-    >>> for key, code in GeneticCodes.items():
-    ...     print(key, code.name)
-    1 Standard Nuclear
-    2 Vertebrate Mitochondrial
-    3 Yeast Mitochondrial...
-
 Translate DNA sequences
 -----------------------
 
 .. doctest::
 
-    >>> from cogent3.core.genetic_code import DEFAULT as standard_code
+    >>> from cogent3 import get_code
+    >>> standard_code = get_code(1)
     >>> standard_code.translate('TTTGCAAAC')
     'FAN'
 
@@ -43,9 +15,9 @@ Translate all six frames
 
 .. doctest::
 
-    >>> from cogent3 import DNA
-    >>> from cogent3.core.genetic_code import DEFAULT as standard_code
-    >>> seq = DNA.make_seq('ATGCTAACATAAA')
+    >>> from cogent3 import make_seq, get_code
+    >>> standard_code = get_code(1)
+    >>> seq = make_seq('ATGCTAACATAAA', moltype="dna")
     >>> translations = standard_code.sixframes(seq)
     >>> print(translations)
     ['MLT*', 'C*HK', 'ANI', 'FMLA', 'LC*H', 'YVS']
@@ -55,9 +27,9 @@ Find out how many stops in a frame
 
 .. doctest::
 
-    >>> from cogent3 import DNA
-    >>> from cogent3.core.genetic_code import DEFAULT as standard_code
-    >>> seq = DNA.make_seq('ATGCTAACATAAA')
+    >>> from cogent3 import make_seq, get_code
+    >>> standard_code = get_code(1)
+    >>> seq = make_seq('ATGCTAACATAAA', moltype="dna")
     >>> stops_frame1 = standard_code.get_stop_indices(seq, start=0)
     >>> stops_frame1
     [9]
@@ -71,7 +43,8 @@ Translate a codon
 
 .. doctest::
 
-    >>> from cogent3.core.genetic_code import DEFAULT as standard_code
+    >>> from cogent3 import make_seq, get_code
+    >>> standard_code = get_code(1)
     >>> standard_code['TTT']
     'F'
 
@@ -87,7 +60,8 @@ Look up the amino acid corresponding to a single codon
 
 .. doctest::
 
-    >>> from cogent3.core.genetic_code import DEFAULT as standard_code
+    >>> from cogent3 import get_code
+    >>> standard_code = get_code(1)
     >>> standard_code['TTT']
     'F'
 
@@ -96,6 +70,8 @@ Or get all the codons for one amino acid
 
 .. doctest::
 
+    >>> from cogent3 import get_code
+    >>> standard_code = get_code(1)
     >>> standard_code['A']
     ['GCT', 'GCC', 'GCA', 'GCG']
 
@@ -117,8 +93,8 @@ Converting the ``CodonAlphabet`` to codon series
 
 .. doctest::
 
-    >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_seq("AGTACACTGGTT")
+    >>> from cogent3 import make_seq
+    >>> my_seq = make_seq("AGTACACTGGTT", moltype="dna")
     >>> sorted(my_seq.codon_alphabet())
     ['AAA', 'AAC', 'AAG', 'AAT'...
     >>> len(my_seq.codon_alphabet())
@@ -131,8 +107,8 @@ Use the method ``get_in_motif_size``
 
 .. doctest::
 
-    >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_seq('ATGCACTGGTAA','my_gene')
+    >>> from cogent3 import make_seq
+    >>> my_seq = make_seq("ATGCACTGGTAA", name="my_gene", moltype="dna")
     >>> codons = my_seq.get_in_motif_size(3)
     >>> print(codons)
     ['ATG', 'CAC', 'TGG', 'TAA']
@@ -150,8 +126,8 @@ Remove the stop codon first
 
 .. doctest::
 
-    >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_seq('ATGCACTGGTAA','my_gene')
+    >>> from cogent3 import make_seq
+    >>> my_seq = make_seq('ATGCACTGGTAA',name='my_gene', moltype="dna")
     >>> seq = my_seq.trim_stop_codon()
     >>> pep = seq.get_translation()
     >>> print(pep.to_fasta())
@@ -166,10 +142,10 @@ Or we can just grab the correct slice from the ``DnaSequence`` object
 
 .. doctest::
 
-    >>> from cogent3 import DNA
-    >>> my_seq = DNA.make_seq('CAAATGTATTAA','my_gene')
-    >>> pep = my_seq[:-3].get_translation().to_fasta()
-    >>> print(pep)
+    >>> from cogent3 import make_seq
+    >>> my_seq = make_seq('CAAATGTATTAA',name='my_gene', moltype="dna")
+    >>> pep = my_seq[:-3].get_translation()
+    >>> print(pep.to_fasta())
     >my_gene
     QMY
     <BLANKLINE>
