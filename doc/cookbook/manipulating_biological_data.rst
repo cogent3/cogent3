@@ -24,6 +24,7 @@ Genetic code
 .. toctree::
     :maxdepth: 1
 
+    what_codes
     genetic_code
 
 Trees
