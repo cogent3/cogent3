@@ -32,7 +32,7 @@ from cogent3.core.moltype import (
 )
 from cogent3.core.tree import TreeBuilder, TreeError
 from cogent3.evolve.fast_distance import available_distances
-from cogent3.evolve.models import available_models
+from cogent3.evolve.models import available_models, get_model
 from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.sequence import FromFilenameParser
 from cogent3.parse.table import autogen_reader, load_delimited
