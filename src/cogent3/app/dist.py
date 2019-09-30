@@ -1,7 +1,10 @@
 import itertools
 
 from cogent3 import get_moltype, make_tree
-from cogent3.evolve.fast_distance import DistanceMatrix, get_calculator
+from cogent3.evolve.fast_distance import (
+    DistanceMatrix,
+    get_distance_calculator,
+)
 from cogent3.evolve.models import get_model
 
 from .composable import ComposableDistance
@@ -43,7 +46,7 @@ class fast_slow_dist(ComposableDistance):
             raise ValueError(f"you must provide a moltype for {d}")
 
         try:
-            fast_calc = get_calculator(fast_calc, moltype=self._moltype)
+            fast_calc = get_distance_calculator(fast_calc, moltype=self._moltype)
         except (ValueError, AttributeError):
             fast_calc = None
 

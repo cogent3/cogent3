@@ -2909,10 +2909,10 @@ class AlignmentI(object):
             calculated are excluded. If False, an ArithmeticError is raised if
             a distance could not be computed on observed data.
         """
-        from cogent3.evolve.fast_distance import get_calculator
+        from cogent3.evolve.fast_distance import get_distance_calculator
 
         try:
-            calculator = get_calculator(
+            calculator = get_distance_calculator(
                 calc,
                 moltype=self.moltype,
                 alignment=self,
