@@ -33,7 +33,7 @@ from cogent3.evolve.fast_distance import (
     _jc69_from_matrix,
     _tn93_from_matrix,
     available_distances,
-    get_calculator,
+    get_distance_calculator,
     get_moltype_index_array,
     seq_to_indices,
 )
@@ -533,11 +533,11 @@ class TestGetDisplayCalculators(TestCase):
     def test_get_calculator(self):
         """exercising getting specified calculator"""
         for key in _calculators:
-            get_calculator(key)
-            get_calculator(key.upper())
+            get_distance_calculator(key)
+            get_distance_calculator(key.upper())
 
         with self.assertRaises(ValueError):
-            get_calculator("blahblah")
+            get_distance_calculator("blahblah")
 
     def test_available_distances(self):
         """available_distances has correct content"""
