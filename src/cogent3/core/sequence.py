@@ -705,6 +705,24 @@ class Sequence(_Annotatable, SequenceI):
         if isinstance(orig_seq, _Annotatable):
             self.copy_annotations(orig_seq)
 
+    def to_moltype(self, moltype):
+        """returns copy of self with moltype seq"""
+        make_seq = moltype.make_seq
+        new = self.__class__(seq=make_seq(self))
+        new.clear_annotations()
+        for ann in self.annotations:
+            ann_name = ann.__class__.__name__
+            if ann_name == "AnnotatableFeature":
+                new.add_feature(ann.type, ann.name, ann.map)
+            elif ann_name == "_Variable":
+                new.add_variable(ann.type, ann.name, ann.xxy_list)
+            elif ann_name == "_SimpleVariable":
+                new.add_simple_variable(ann.type, ann.name, ann.data)
+            else:
+                err_msg = "Annotation %s is not recognised" % ann_name
+                raise ValueError(err_msg)
+        return new
+
     def _seq_filter(self, seq):
         """Returns filtered seq; used to do DNA/RNA conversions."""
         return seq

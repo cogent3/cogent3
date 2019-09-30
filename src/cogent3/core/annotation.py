@@ -106,6 +106,9 @@ class _Annotatable:
         self.attach_annotations([annot])
         return annot
 
+    def clear_annotations(self):
+        self.annotations = []
+
     def get_drawable(self, width=600, vertical=False):
         """returns Drawable instance"""
         from cogent3.draw.drawable import Drawable
@@ -168,6 +171,12 @@ class _Annotatable:
 
     def add_feature(self, type, name, spans):
         return self.add_annotation(Feature, type, name, spans)
+
+    def add_variable(self, type, name, xxy_list):
+        return self.add_annotation(Variable, type, name, xxy_list)
+
+    def add_simple_variable(self, type, name, data):
+        return self.add_annotation(SimpleVariable, type, name, data)
 
     def get_annotations_matching(self, annotation_type, name=None):
         """
