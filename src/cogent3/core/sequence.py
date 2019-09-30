@@ -55,7 +55,14 @@ from cogent3.util.transform import (
     per_shortest,
 )
 
-from .annotation import Feature, Map, _Annotatable
+from .annotation import (
+    AnnotatableFeature,
+    Feature,
+    Map,
+    _Annotatable,
+    _SimpleVariable,
+    _Variable,
+)
 
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
@@ -711,15 +718,14 @@ class Sequence(_Annotatable, SequenceI):
         new = self.__class__(seq=make_seq(self))
         new.clear_annotations()
         for ann in self.annotations:
-            ann_name = ann.__class__.__name__
-            if ann_name == "AnnotatableFeature":
+            if isinstance(ann, AnnotatableFeature):
                 new.add_feature(ann.type, ann.name, ann.map)
-            elif ann_name == "_Variable":
+            elif isinstance(ann, _Variable):
                 new.add_variable(ann.type, ann.name, ann.xxy_list)
-            elif ann_name == "_SimpleVariable":
+            elif isinstance(ann, _SimpleVariable):
                 new.add_simple_variable(ann.type, ann.name, ann.data)
             else:
-                err_msg = "Annotation %s is not recognised" % ann_name
+                err_msg = "Annotation %s is not recognised" % ann.__class__
                 raise ValueError(err_msg)
         return new
 
