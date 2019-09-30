@@ -1,5 +1,12 @@
 .. _dna-rna-seqs:
 
+``Sequence``
+============
+
+The ``Sequence`` object contains classes that represent biological sequence data. These provide generic biological sequence manipulation functions, plus functions that are critical for the ``evolve`` module calculations.
+
+.. warning:: Do not import sequence classes directly! It is expected that you will access them through ``MolType`` objects. The molecular types can be accessed via the ``cogent3.get_moltype()`` function. Sequence classes depend on information from the ``MolType`` that is **only** available after ``MolType`` has been imported. Sequences are intended to be immutable. This is not enforced by the code for performance reasons, but don't alter the ``MolType`` or the sequence data after creation.
+
 DNA and RNA sequences
 ---------------------
 
