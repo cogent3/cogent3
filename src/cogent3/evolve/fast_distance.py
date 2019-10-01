@@ -643,7 +643,7 @@ _calculators = {
 }
 
 
-def get_calculator(name, *args, **kwargs):
+def get_distance_calculator(name, *args, **kwargs):
     """returns a pairwise distance calculator
 
     name is converted to lower case"""

@@ -4,14 +4,14 @@ Manipulating biological data
 
 .. authors, Gavin Huttley, Kristian Rother, Patrick Yannul
 
-Sequences
-=========
+Sequences and Alignments
+========================
 
 .. toctree::
     :maxdepth: 1
     
+    moltypes
     loading_sequences
-    moltypesequence
     alphabet
     DNA_and_RNA_sequences
     protein_sequences
