@@ -157,7 +157,19 @@ class SequenceTests(TestCase):
         }
         self.assertEqual(got, expect)
 
-    def test_to_moltype(self):
+    def test_annotable_copy_to_seq(self):
+        s = Sequence("TTTTTTTTTTAAAA", name="Orig")
+        annot = s.add_annotation(Feature, "exon", "fred", [(0, 14)])
+        seq = Sequence("UUUUUUUUUUAAAA", name="Test")
+        got = annot.copy_to_seq(seq)
+        self.assertEqual(got._serialisable["parent"], seq)
+        self.assertEqual(got._serialisable["type"], "exon")
+        self.assertEqual(got._serialisable["name"], "fred")
+
+        with self.assertRaises(AssertionError):
+            got = annot.copy_to_seq(Sequence("UUUUUUUUUUUAAAA", name="Wrong_seq"))
+
+    def test_sequence_to_moltype(self):
         """correctly convert to specified moltype"""
         s = Sequence("TTTTTTTTTTAAAA", name="Orig")
         annot1 = s.add_annotation(Feature, "exon", "fred", [(0, 10)])
