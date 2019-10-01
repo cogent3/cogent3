@@ -187,30 +187,8 @@ class _Annotatable:
         """
         assert len(seq) == len(self.parent)
         serialisable = copy.deepcopy(self._serialisable)
-        if isinstance(self, AnnotatableFeature):
-            new = Feature(
-                parent=seq,
-                type=serialisable["type"],
-                name=serialisable["name"],
-                spans=serialisable["map"],
-            )
-        elif isinstance(self, _Variable):
-            new = Variable(
-                parent=seq,
-                type=serialisable["type"],
-                name=serialisable["name"],
-                xxy_list=serialisable["xxy_list"],
-            )
-        elif isinstance(self, _SimpleVariable):
-            new = SimpleVariable(
-                parent=seq,
-                type=serialisable["type"],
-                name=serialisable["name"],
-                data=serialisable["data"],
-            )
-        else:
-            err_msg = "Annotation %s is not recognised" % self
-            raise ValueError(err_msg)
+        serialisable["parent"] = seq
+        new = self.__class__(**serialisable)
         return new
 
     def get_annotations_matching(self, annotation_type, name=None):

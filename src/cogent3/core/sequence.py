@@ -720,6 +720,9 @@ class Sequence(_Annotatable, SequenceI):
         moltype : str
             molecular type
         """
+        from cogent3 import get_moltype
+
+        moltype = get_moltype(moltype)
         make_seq = moltype.make_seq
         new_seq = make_seq(self)
         new = self.__class__(seq=new_seq)
