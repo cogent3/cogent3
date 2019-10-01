@@ -713,20 +713,18 @@ class Sequence(_Annotatable, SequenceI):
             self.copy_annotations(orig_seq)
 
     def to_moltype(self, moltype):
-        """returns copy of self with moltype seq"""
+        """returns copy of self with moltype seq
+
+        Parameters
+        ----------
+        moltype : str
+            molecular type
+        """
         make_seq = moltype.make_seq
-        new = self.__class__(seq=make_seq(self))
+        new_seq = make_seq(self)
+        new = self.__class__(seq=new_seq)
         new.clear_annotations()
-        for ann in self.annotations:
-            if isinstance(ann, AnnotatableFeature):
-                new.add_feature(ann.type, ann.name, ann.map)
-            elif isinstance(ann, _Variable):
-                new.add_variable(ann.type, ann.name, ann.xxy_list)
-            elif isinstance(ann, _SimpleVariable):
-                new.add_simple_variable(ann.type, ann.name, ann.data)
-            else:
-                err_msg = "Annotation %s is not recognised" % ann.__class__
-                raise ValueError(err_msg)
+        new.annotations = [ann.copy_to_seq(new_seq) for ann in self.annotations]
         return new
 
     def _seq_filter(self, seq):
