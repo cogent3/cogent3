@@ -12,7 +12,7 @@ Contents:
     building_alignments
     calc_genetic_distance
     building_phylogenies
-    using_likelihood_to_perform_evolutionary_analyses
+    evo_modelling
     useful_utilities
 
 
