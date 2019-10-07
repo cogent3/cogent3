@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 import shutil
 import zipfile
 
@@ -37,6 +38,11 @@ __status__ = "Alpha"
 
 class TestIo(TestCase):
     basedir = "data"
+
+    def tearDown(self) -> None:
+        path = pathlib.Path("delme.tinydb")
+        if path.exists():
+            path.unlink()
 
     def test_findall(self):
         """find all files recursively"""
