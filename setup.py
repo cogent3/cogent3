@@ -180,6 +180,7 @@ setup(
             "sphinx",
             "sphinx_rtd_theme",
             "sphinx-autobuild",
+            "numpydoc",
             "nbsphinx",
             "jupytext",
             "pytest",
