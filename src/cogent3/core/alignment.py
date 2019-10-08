@@ -2953,8 +2953,8 @@ class AlignmentI(object):
         majority consensus. Support for each node is stored as
         edge.params['params'].
 
-        Note
-        ----
+        Notes
+        -----
         Sequences in the observed alignment for which distances could not be
         computed are omitted. Bootstrap replicates are required to have
         distances for all seqs present in the observed data distance matrix.

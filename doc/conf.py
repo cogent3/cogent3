@@ -1,6 +1,7 @@
 import os
 
 extensions = [
+    "numpydoc",
     "sphinx.ext.todo",
     "sphinx.ext.doctest",
     "nbsphinx",

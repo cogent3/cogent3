@@ -243,9 +243,10 @@ def load_unaligned_seqs(
         function for converting original name into another name.
     parser_kw : dict
         optional arguments for the parser
+
     Returns
     -------
-    SequenceCollection instance
+    ``SequenceCollection``
     """
     parser_kw = parser_kw or {}
     for other_kw in ("constructor_kw", "kw"):
@@ -289,9 +290,10 @@ def load_aligned_seqs(
         function for converting original name into another name.
     parser_kw : dict
         optional arguments for the parser
+
     Returns
     -------
-    ArrayAlignment or Alignment instance
+    ``ArrayAlignment`` or ``Alignment`` instance
     """
     parser_kw = parser_kw or {}
     for other_kw in ("constructor_kw", "kw"):
@@ -322,37 +324,12 @@ def LoadSeqs(
     array_align=True,
     **kw,
 ):
-    """Initialize an alignment or collection of sequences.
+    """
+    .. deprecated:: 2019.8.30a
 
-    Parameters
-    ----------
-    filename
-        name of the sequence file
-    format
-        format of the sequence file
-    data
-        optional explicit provision of sequences
-    moltype
-        the moltype, eg DNA, PROTEIN, 'dna', 'protein'
-    aligned
-        set True if sequences are already aligned and have the same
-        length. If False, a SequenceCollection instance is returned instead.
-    array_align
-        returns alignment as ArrayAlignment
-    label_to_name
-        function for converting original name into another
-        name. Default behavior is to preserve the original FASTA label and
-        comment.
-        To remove all FASTA label comments, and pass in only the label, pass in:
-        label_to_name=lambda x: x.split()[0]
-        To look up names in a dict, pass in:
-        label_to_name = lambda x: d.get(x, default_name)
-        ...where d is a dict that's in scope, and default_name is what you want
-        to assign any sequence that isn't in the dict.
-
-    If format is None, will attempt to infer format from the filename
-    suffix. If label_to_name is None, will attempt to infer correct
-    conversion from the format.
+        ``LoadSeqs`` will be removed in ``cogent3`` 2020.1.1. It's replaced by
+        ``load_unaligned_seqs``, ``load_aligned_seqs``, ``make_unaligned_seqs``
+        and ``make_aligned_seqs``.
     """
     kwargs = locals()
     from cogent3.util.warning import deprecated
@@ -477,7 +454,7 @@ def load_table(
     Parameters
     ----------
     filename
-        path to file containing a pickled table
+        path to file containing a tabular data
     sep
         the delimiting character between columns
     reader
@@ -603,57 +580,10 @@ def LoadTable(
     **kwargs,
 ):
     """
+    .. deprecated:: 2019.8.30a
 
-    Parameters
-    ----------
-    filename
-        path to file containing a pickled table
-    sep
-        the delimiting character between columns
-    reader
-        a parser for reading filename. This approach assumes the first
-        row returned by the reader will be the header row.
-    static_column_types
-        if True, and reader is None, identifies columns
-        with a numeric/bool data types from the first non-header row.
-        This assumes all subsequent entries in that column are of the same type.
-        Default is False.
-    header
-        column headings
-    rows
-        a 2D dict, list or tuple. If a dict, it must have column
-        headings as top level keys, and common row labels as keys in each
-        column.
-    row_order
-        the order in which rows will be pulled from the twoDdict
-    digits
-        floating point resolution
-    space
-        number of spaces between columns or a string
-    title
-        as implied
-    missing_data
-        character assigned if a row has no entry for a column
-    max_width
-        maximum column width for printing
-    row_ids
-        if True, the 0'th column is used as row identifiers and keys
-        for slicing.
-    legend
-        table legend
-    column_templates
-        dict of column headings
-        or a function that will handle the formatting.
-    dtype
-        optional numpy array typecode.
-    limit
-        exits after this many lines. Only applied for non pickled data
-        file types.
-    data_frame
-        a pandas DataFrame, supersedes header/rows
-    format
-        output format when using str(Table)
-
+        ``LoadTable`` will be removed in ``cogent3`` 2020.1.1. It's replaced by
+        ``load_table`` and ``make_table``.
     """
     sep = sep or kwargs.pop("delimiter", None)
     if filename is not None:
@@ -724,8 +654,10 @@ def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=F
     tip_names
         a list of tip names.
 
-    Note: underscore_unmunging is turned off by default, although it is part
-    of the Newick format. Set underscore_unmunge to True to replace underscores
+    Notes
+    -----
+    Underscore unmunging is turned off by default, although it is part
+    of the Newick format. Set ``underscore_unmunge=True`` to replace underscores
     with spaces in all names read.
     """
     assert treestring or tip_names, "must provide either treestring or tip_names"
@@ -761,8 +693,10 @@ def load_tree(filename, format=None, underscore_unmunge=False):
     filename
         a file containing a newick or xml formatted tree.
 
-    Note: underscore_unmunging is turned off by default, although it is part
-    of the Newick format. Set underscore_unmunge to True to replace underscores
+    Notes
+    -----
+    Underscore unmunging is turned off by default, although it is part
+    of the Newick format. Set ``underscore_unmunge=True`` to replace underscores
     with spaces in all names read.
     """
 
@@ -781,20 +715,11 @@ def LoadTree(
     format=None,
     underscore_unmunge=False,
 ):
-    """Constructor for tree.
+    """
+    .. deprecated:: 2019.8.30a
 
-    Parameters
-    ----------
-    filename
-        a file containing a newick or xml formatted tree.
-    treestring
-        a newick or xml formatted tree string.
-    tip_names
-        a list of tip names.
-
-    Note: underscore_unmunging is turned off by default, although it is part
-    of the Newick format. Set underscore_unmunge to True to replace underscores
-    with spaces in all names read.
+        ``LoadTree`` will be removed in ``cogent3`` 2020.1.1. It's replaced by
+        ``load_tree`` and ``make_tree``.
     """
     from cogent3.util.warning import deprecated
 
