@@ -538,9 +538,7 @@ class DictArray(object):
         Parameters
         ----------
         format
-            possible formats are 'rest'/'rst', 'markdown'/'md',
-            'latex', 'html', 'phylip', 'bedgraph', 'csv', or 'tsv'
-            (default).
+            possible formats are 'csv', or 'tsv' (default).
         sep
             A string separator for delineating columns, e.g. ',' or
             '\t'. Overrides format.
