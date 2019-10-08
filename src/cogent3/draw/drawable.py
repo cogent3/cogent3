@@ -1,5 +1,8 @@
+import os
+
 import numpy
 
+from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
 
 
@@ -11,6 +14,62 @@ __version__ = "2019.9.13a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
+
+# user specified environment variable for plotly renderer
+PLOTLY_RENDERER = os.environ.get("PLOTLY_RENDERER", None)
+
+
+def _show_(cls, renderer=None, **kwargs):
+    """display figure
+
+    Parameters
+    ----------
+    renderer : str
+        names of renderers that control ability for display. If not specified,
+        looks for PLOTLY_RENDERER environment variable, otherwise defaults to
+        'notebook_connected+plotly_mimetype'. This setting supports display in
+        JupyterLab and Jupyter Notebook, while keeping notebook size small (relies
+        on internet connection for getting the javascript). See
+        help(plotly.io.renderer) for more options.
+    kwargs
+        other arguments for plotly.io.show
+    """
+    from plotly.io import show
+
+    if renderer is None and PLOTLY_RENDERER is None:
+        renderer = "notebook_connected+plotly_mimetype"
+    elif renderer is None:
+        renderer = PLOTLY_RENDERER
+    kwargs["renderer"] = renderer
+    drawable = getattr(cls, "drawable", None) or cls
+    fig = getattr(drawable, "figure", None)
+    if fig is None:
+        raise TypeError(f"{cls} does not have a drawable or figure attribute")
+
+    show(fig, **kwargs)
+
+
+def _iplot_(cls, width=None, height=None):
+    from plotly.offline import iplot as _iplot
+
+    layout = {}
+    if width:
+        layout["width"] = width
+    if height:
+        layout["height"] = height
+    if layout:
+        cls.drawable.layout |= dict(layout)
+    _iplot(cls.drawable.figure)
+
+
+def bind_drawable(obj, drawable):
+    """binds drawable"""
+    from types import MethodType
+
+    obj.drawable = drawable
+    obj.iplot = MethodType(_iplot_, obj)
+    obj.show = MethodType(_show_, obj)
+    return obj
 
 
 class Drawable:
@@ -50,7 +109,7 @@ class Drawable:
         self.ytitle = ytitle
 
     def _repr_html_(self):
-        self.iplot()
+        self.show()
 
     @property
     def layout(self):
@@ -118,6 +177,10 @@ class Drawable:
 
         _iplot(self.figure, *args, **kwargs)
 
+    @extend_docstring_from(_show_)
+    def show(self, renderer=None, **kwargs):
+        _show_(self, renderer, **kwargs)
+
     def write(self, path, **kwargs):
         """writes static image file, suffix dictates format"""
         from plotly.io import write_image
@@ -129,28 +192,6 @@ class Drawable:
         from plotly.io import to_image
 
         return to_image(self.figure, format=format, **kwargs)
-
-
-def _iplot_(cls, width=None, height=None):
-    from plotly.offline import iplot as _iplot
-
-    layout = {}
-    if width:
-        layout["width"] = width
-    if height:
-        layout["height"] = height
-    if layout:
-        cls.drawable.layout |= dict(layout)
-    _iplot(cls.drawable.figure)
-
-
-def bind_drawable(obj, drawable):
-    """binds drawable"""
-    from types import MethodType
-
-    obj.drawable = drawable
-    obj.iplot = MethodType(_iplot_, obj)
-    return obj
 
 
 _ticks_off = (
@@ -360,7 +401,9 @@ class AnnotatedDrawable(Drawable):
             trace.yaxis = "y2"
             trace.xaxis = "x"
             traces.append(trace)
-            max_y = max(numpy.max(trace.y), max_y)
+            y = numpy.array(trace.y, dtype=float)
+            indices = numpy.logical_not(numpy.isnan(y))
+            max_y = max(y[indices].max(), max_y)
             if trace.legendgroup in seen_types:
                 trace.showlegend = False
             seen_types.add(trace.legendgroup)
@@ -404,7 +447,9 @@ class AnnotatedDrawable(Drawable):
         for trace in self.left_track.traces:
             trace.yaxis = "y"
             traces.append(trace)
-            max_x = max(numpy.max(trace.x), max_x)
+            x = numpy.array(trace.x, dtype=float)
+            indices = numpy.logical_not(numpy.isnan(x))
+            max_x = max(x[indices].max(), max_x)
             if trace.legendgroup in seen_types:
                 trace.showlegend = False
             seen_types.add(trace.legendgroup)

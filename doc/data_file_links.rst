@@ -34,3 +34,5 @@ All data files referred to in the documentation can be download by clicking on t
 :download:`inseqs_protein.fasta <data/inseqs_protein.fasta>`
 
 :download:`SCA1-cds.fasta <data/SCA1-cds.fasta>`
+
+:download:`SCA1-cds.fasta <data/tp53.json>`

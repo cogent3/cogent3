@@ -13,6 +13,11 @@ ALLSPHINXOPTS   = -d _build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
 .PHONY: help clean html dirhtml pickle json htmlhelp qthelp latex changes linkcheck doctest
 
+# define plotly rendern environment settings
+html: export PLOTLY_RENDERER="notebook_connected+plotly_mimetype"
+livehtml: export PLOTLY_RENDERER="notebook_connected+plotly_mimetype"
+latex: export PLOTLY_RENDERER="pdf"
+
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html      to make standalone HTML files"

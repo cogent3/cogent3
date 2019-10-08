@@ -10,5 +10,6 @@ We use `Plotly <https://plot.ly/python/>`_ as our backend for visualisation. It 
     :maxdepth: 1
 
     dotplot
+    dotplot-annotated
     display-gaps-per-seq
 
