@@ -714,62 +714,6 @@ def LoadTable(
     return table
 
 
-def make_tree(
-    filename=None,
-    treestring=None,
-    tip_names=None,
-    format=None,
-    underscore_unmunge=False,
-):
-    """Constructor for tree.
-
-    Parameters
-    ----------
-    filename
-        a file containing a newick or xml formatted tree.
-    treestring
-        a newick or xml formatted tree string.
-    tip_names
-        a list of tip names.
-
-    Note: underscore_unmunging is turned off by default, although it is part
-    of the Newick format. Set underscore_unmunge to True to replace underscores
-    with spaces in all names read.
-    """
-
-    if filename:
-        assert not (treestring or tip_names)
-        with open_(filename) as tfile:
-            treestring = tfile.read()
-        if format is None and filename.endswith(".xml"):
-            format = "xml"
-    if treestring:
-        assert not tip_names
-        if format is None and treestring.startswith("<"):
-            format = "xml"
-        if format == "xml":
-            parser = tree_xml_parse_string
-        else:
-            parser = newick_parse_string
-        tree_builder = TreeBuilder().create_edge
-        # FIXME: More general strategy for underscore_unmunge
-        if parser is newick_parse_string:
-            tree = parser(
-                treestring, tree_builder, underscore_unmunge=underscore_unmunge
-            )
-        else:
-            tree = parser(treestring, tree_builder)
-        if not tree.name_loaded:
-            tree.name = "root"
-    elif tip_names:
-        tree_builder = TreeBuilder().create_edge
-        tips = [tree_builder([], tip_name, {}) for tip_name in tip_names]
-        tree = tree_builder(tips, "root", {})
-    else:
-        raise TreeError("filename or treestring not specified")
-    return tree
-
-
 def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=False):
     """Initialises a tree.
 
