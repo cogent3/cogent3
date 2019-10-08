@@ -189,6 +189,7 @@ class _Annotatable:
         serialisable = copy.deepcopy(self._serialisable)
         serialisable["parent"] = seq
         new = self.__class__(**serialisable)
+        seq.attach_annotations([new])
         return new
 
     def get_annotations_matching(self, annotation_type, name=None):
