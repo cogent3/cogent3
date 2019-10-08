@@ -55,14 +55,7 @@ from cogent3.util.transform import (
     per_shortest,
 )
 
-from .annotation import (
-    AnnotatableFeature,
-    Feature,
-    Map,
-    _Annotatable,
-    _SimpleVariable,
-    _Variable,
-)
+from .annotation import Map, _Annotatable
 
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
