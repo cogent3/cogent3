@@ -55,7 +55,7 @@ from cogent3.util.transform import (
     per_shortest,
 )
 
-from .annotation import Feature, Map, _Annotatable
+from .annotation import Map, _Annotatable
 
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
@@ -704,6 +704,25 @@ class Sequence(_Annotatable, SequenceI):
 
         if isinstance(orig_seq, _Annotatable):
             self.copy_annotations(orig_seq)
+
+    def to_moltype(self, moltype):
+        """returns copy of self with moltype seq
+
+        Parameters
+        ----------
+        moltype : str
+            molecular type
+        """
+        from cogent3 import get_moltype
+
+        moltype = get_moltype(moltype)
+        make_seq = moltype.make_seq
+        new_seq = make_seq(self)
+        new = self.__class__(seq=new_seq)
+        new.clear_annotations()
+        for ann in self.annotations:
+            ann.copy_to_seq(new)
+        return new
 
     def _seq_filter(self, seq):
         """Returns filtered seq; used to do DNA/RNA conversions."""

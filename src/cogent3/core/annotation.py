@@ -1,3 +1,4 @@
+import copy
 import json
 
 from collections import defaultdict
@@ -106,6 +107,9 @@ class _Annotatable:
         self.attach_annotations([annot])
         return annot
 
+    def clear_annotations(self):
+        self.annotations = []
+
     def get_drawable(self, width=600, vertical=False):
         """returns Drawable instance"""
         from cogent3.draw.drawable import Drawable
@@ -168,6 +172,25 @@ class _Annotatable:
 
     def add_feature(self, type, name, spans):
         return self.add_annotation(Feature, type, name, spans)
+
+    def copy_to_seq(self, seq):
+        """creates a new annotation with identical content on a new sequence
+
+        Parameters
+        ----------
+        seq : Sequence
+            represents the new sequence.
+
+        Returns
+        -------
+        a new annotation
+        """
+        assert len(seq) == len(self.parent)
+        serialisable = copy.deepcopy(self._serialisable)
+        serialisable["parent"] = seq
+        new = self.__class__(**serialisable)
+        seq.attach_annotations([new])
+        return new
 
     def get_annotations_matching(self, annotation_type, name=None):
         """
