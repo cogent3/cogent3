@@ -532,26 +532,25 @@ class DictArray(object):
     def _repr_html_(self):
         return self.template._get_repr_html(self.array)
 
-    def to_string(self, format="", sep=None):
+    def to_string(self, format="tsv", sep=None):
         """Return the data as a formatted string.
 
         Parameters
         ----------
         format
-            possible formats are 'rest'/'rst', 'markdown'/'md',
-            'latex', 'html', 'phylip', 'bedgraph', 'csv', 'tsv', or 'simple'
-            (default).
+            possible formats are 'csv', or 'tsv' (default).
         sep
             A string separator for delineating columns, e.g. ',' or
             '\t'. Overrides format.
         """
-        from cogent3.util.table import Table
-
-        header = [f"dim-{i+1}" for i in range(self.array.ndim)] + ["value"]
+        if format.lower() in ("tsv", "csv"):
+            sep = sep or {"tsv": "\t", "csv": ","}[format.lower()]
         data = self.to_dict(flatten=True)
-        rows = [list(k) + [v] for k, v in data.items()]
-        table = Table(header=header, rows=rows)
-        return table.to_string(format=format, sep=sep)
+        rows = [[f"dim-{i + 1}" for i in range(self.array.ndim)] + ["value"]] + [
+            list(map(lambda x: str(x), row))
+            for row in [list(k) + [v] for k, v in data.items()]
+        ]
+        return "\n".join([sep.join(row) for row in rows])
 
     def write(self, path, format="", sep="\t"):
         """

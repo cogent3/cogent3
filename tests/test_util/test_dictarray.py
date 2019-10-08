@@ -323,6 +323,23 @@ class DictArrayTest(TestCase):
             got = {(k1, k2): int(v) for k1, k2, v in contents}
             self.assertEqual(got, darr.to_dict(flatten=True))
 
+    def test_to_string(self):
+        darr = DictArrayTemplate(2, 2).wrap(
+            [[3.123456789, 2 * 3.123456789], [3 * 3.123456789, 4 * 3.123456789]]
+        )
+        self.assertEqual(
+            darr.to_string(sep=","),
+            "dim-1,dim-2,value\n0,0,3.123456789\n0,1,6.246913578\n1,0,9.370370367\n1,1,12.493827156",
+        )
+        self.assertEqual(
+            darr.to_string(),
+            "dim-1\tdim-2\tvalue\n0\t0\t3.123456789\n0\t1\t6.246913578\n1\t0\t9.370370367\n1\t1\t12.493827156",
+        )
+        self.assertEqual(
+            darr.to_string(sep=" "),
+            "dim-1 dim-2 value\n0 0 3.123456789\n0 1 6.246913578\n1 0 9.370370367\n1 1 12.493827156",
+        )
+
 
 if __name__ == "__main__":
     main()
