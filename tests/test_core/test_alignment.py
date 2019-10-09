@@ -1356,7 +1356,8 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         )
 
         # no longer applicable in new implementation
-        # self.assertRaises(ValueError, align_rag.to_phylip)
+        with self.assertRaises(ValueError):
+            r = align_rag.to_phylip()
 
     def test_pad_seqs_ragged(self):
         """SequenceCollection pad_seqs should work on ragged alignment."""
@@ -1379,6 +1380,16 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         """info.source exists if load seqs given a filename"""
         seqs = load_unaligned_seqs("data/brca1.fasta")
         self.assertEqual(seqs.info.source, "data/brca1.fasta")
+
+    def test_apply_pssm2(self):
+        """apply_pssm fail if ragged sequences"""
+        data = {
+            "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+            "ENSMUSG00000039616": "GCCCTTCAAATTT",
+        }
+        seqs = self.Class(data=data, moltype=DNA)
+        with self.assertRaises(AssertionError):
+            _ = seqs.apply_pssm(path="data/sample.jaspar", show_progress=False)
 
 
 def _make_filter_func(aln):

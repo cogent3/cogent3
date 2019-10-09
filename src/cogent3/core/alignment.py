@@ -1020,19 +1020,15 @@ class SequenceCollection(object):
         # lengths were all equal
         return False
 
-    def to_phylip(self, generic_label=True, make_seqlabel=None):
+    def to_phylip(self):
         """
         Return alignment in PHYLIP format and mapping to sequence ids
 
         raises exception if invalid alignment
-
-        Parameters
-        ----------
-        make_seqlabel
-            callback function that takes the seq object and
-            returns a label str
-
         """
+        if self.is_ragged():
+            raise ValueError("not all seqs same length, cannot convert to phylip")
+
         return alignment_to_phylip(self.to_dict())
 
     def to_rich_dict(self):
@@ -1904,6 +1900,7 @@ class SequenceCollection(object):
         -------
         numpy array of log2 based scores at every position
         """
+        assert not self.is_ragged(), "all sequences must have same length"
         from cogent3.parse import jaspar, cisbp
 
         assert pssm or path, "Must specify a PSSM or a path"
