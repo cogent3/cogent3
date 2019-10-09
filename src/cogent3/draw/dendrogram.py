@@ -505,8 +505,8 @@ class Dendrogram(Drawable):
         self.tree.propagate_properties()
         self._label_pad = label_pad
         self._tip_font = UnionDict(size=12, family="Inconsolata, monospace")
-        self._line_width = 2
-        self._marker_size = 6
+        self._line_width = 1.25
+        self._marker_size = 3
         self._line_color = "black"
         self._scale_bar = "bottom left"
         self._edge_sets = {}
