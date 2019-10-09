@@ -1356,7 +1356,8 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         )
 
         # no longer applicable in new implementation
-        # self.assertRaises(ValueError, align_rag.to_phylip)
+        with self.assertRaises(ValueError):
+            r = align_rag.to_phylip()
 
     def test_pad_seqs_ragged(self):
         """SequenceCollection pad_seqs should work on ragged alignment."""
