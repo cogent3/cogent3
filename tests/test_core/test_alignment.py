@@ -1381,6 +1381,16 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         seqs = load_unaligned_seqs("data/brca1.fasta")
         self.assertEqual(seqs.info.source, "data/brca1.fasta")
 
+    def test_apply_pssm2(self):
+        """apply_pssm fail if ragged sequences"""
+        data = {
+            "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+            "ENSMUSG00000039616": "GCCCTTCAAATTT",
+        }
+        seqs = self.Class(data=data, moltype=DNA)
+        with self.assertRaises(AssertionError):
+            _ = seqs.apply_pssm(path="data/sample.jaspar", show_progress=False)
+
 
 def _make_filter_func(aln):
     array_align = type(aln) == ArrayAlignment

@@ -1900,6 +1900,7 @@ class SequenceCollection(object):
         -------
         numpy array of log2 based scores at every position
         """
+        assert not self.is_ragged(), "all sequences must have same length"
         from cogent3.parse import jaspar, cisbp
 
         assert pssm or path, "Must specify a PSSM or a path"
