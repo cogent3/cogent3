@@ -555,7 +555,7 @@ class _seq_loader:
             else:
                 seqs = make_unaligned_seqs(data, moltype=self.moltype)
 
-        if self._output_types == "sequence":
+        if not (self._output_types & {"aligned"}):
             seqs = seqs.degap()
 
         return seqs
