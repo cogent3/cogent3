@@ -36,3 +36,5 @@ All data files referred to in the documentation can be download by clicking on t
 :download:`SCA1-cds.fasta <data/SCA1-cds.fasta>`
 
 :download:`SCA1-cds.fasta <data/tp53.json>`
+
+:download:`brca1-bats.fasta <data/brca1-bats.fasta>`

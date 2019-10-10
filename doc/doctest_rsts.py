@@ -1,35 +1,76 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import doctest
-import glob
 import os
-import sys
+import pathlib
+
+import nbformat
+from nbconvert.preprocessors import ExecutePreprocessor
+from nbconvert.preprocessors import CellExecutionError
 
 import click
 
+from cogent3.util.misc import atomic_write
 
 """
 This will doctest all files ending with .rst in this directory.
 """
 
+def execute_ipynb(file_paths, exit_on_first, verbose):
+    failed = False
+    for test in file_paths:
+        path = pathlib.Path(test)
+        print()
+        print("=" * 40)
+        print(test)
+        with open(test) as f:
+            nb = nbformat.read(f, as_version=4)
+        ep = ExecutePreprocessor(timeout=600, kernel_name='python3',
+                                 store_widget_state=True)
+        try:
+            ep.preprocess(nb, {'metadata': {'path': path.parent}})
+        except CellExecutionError:
+            failed = True
+
+        with atomic_write(test, mode='w') as f:
+            nbformat.write(nb, f)
+
+        if failed and exit_on_first:
+            raise SystemExit(f"notebook execution failed in {test}, error saved "
+                             "in notebook")
+
+def execute_rsts(file_paths, exit_on_first, verbose):
+    for test in file_paths:
+        print()
+        print("=" * 40)
+        print(test)
+        test = str(test)
+        num_fails, num_tests = doctest.testfile(test,
+                                                optionflags=doctest.ELLIPSIS or doctest.SKIP,
+                                                verbose=verbose,
+                                                encoding='utf-8')
+        if num_fails > 0 and exit_on_first:
+            raise SystemExit(f"doctest failed in {test}")
+
+
 @click.command()
-@click.option('-f', '--file_paths', help="specific rst files to test")
+@click.option('-f', '--file_paths', required=True, help="directory or specific"
+        " files to test. If directory, glob searches for files matching suffix.")
 @click.option('-j', '--just', help='comma separated list of names to be matched to files to be tested')
 @click.option('-x', '--exclude', help='comma separated list of names to be matched to files to be excluded')
 @click.option('-1', '--exit_on_first', is_flag=True, help='exit on first failure')
+@click.option('-s', '--suffix', type=click.Choice(["rst", "ipynb"]), help='suffix of docs to test')
 @click.option('-v', '--verbose', is_flag=True, help='verbose output')
-def main(file_paths, just, exclude, exit_on_first, verbose):
+def main(file_paths, just, exclude, exit_on_first, suffix, verbose):
     """runs doctests for the indicated files"""
     cwd = os.getcwd()
-    if not file_paths:
-        # find all files that end with rest
-        file_paths = [fname for fname in os.listdir(cwd) if fname.endswith('.rst')]
-    elif "*" in file_paths:
-        file_paths = glob.glob(file_paths)
-    else:
+    if "*" in file_paths: # trim to just parent directory
+        file_paths = pathlib.Path(file_paths).parent
+
+    if "," in file_paths:
         file_paths = file_paths.split(',')
-    #file_paths = [os.path.join(cwd, fp) for fp in file_paths]
-    
+    else:
+        file_paths = list(pathlib.Path(file_paths).glob(f"*.{suffix}"))
+
     if verbose:
         print(file_paths)
     
@@ -57,17 +98,10 @@ def main(file_paths, just, exclude, exit_on_first, verbose):
     if verbose:
         print("File paths, after filtering: %s" % str(file_paths))
     
-    for test in file_paths:
-        print()
-        print("=" * 40)
-        print(test)
-        num_fails, num_tests = doctest.testfile(test,
-                                                optionflags=doctest.ELLIPSIS or doctest.SKIP,
-                                                verbose=verbose,
-                                                encoding='utf-8')
-        if num_fails > 0 and exit_on_first:
-            raise SystemExit(f"doctest failed in {test}")
-
+    if suffix == "rst":
+        execute_rsts(file_paths, exit_on_first, verbose)
+    else:
+        execute_ipynb(file_paths, exit_on_first, verbose)
 
 if __name__ == "__main__":
     main()
