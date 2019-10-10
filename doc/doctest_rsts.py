@@ -3,17 +3,18 @@ import doctest
 import os
 import pathlib
 
-import nbformat
-from nbconvert.preprocessors import ExecutePreprocessor
-from nbconvert.preprocessors import CellExecutionError
-
 import click
+import nbformat
+
+from nbconvert.preprocessors import CellExecutionError, ExecutePreprocessor
 
 from cogent3.util.misc import atomic_write
+
 
 """
 This will doctest all files ending with .rst in this directory.
 """
+
 
 def execute_ipynb(file_paths, exit_on_first, verbose):
     failed = False
@@ -24,19 +25,22 @@ def execute_ipynb(file_paths, exit_on_first, verbose):
         print(test)
         with open(test) as f:
             nb = nbformat.read(f, as_version=4)
-        ep = ExecutePreprocessor(timeout=600, kernel_name='python3',
-                                 store_widget_state=True)
+        ep = ExecutePreprocessor(
+            timeout=600, kernel_name="python3", store_widget_state=True
+        )
         try:
-            ep.preprocess(nb, {'metadata': {'path': path.parent}})
+            ep.preprocess(nb, {"metadata": {"path": path.parent}})
         except CellExecutionError:
             failed = True
 
-        with atomic_write(test, mode='w') as f:
+        with atomic_write(test, mode="w") as f:
             nbformat.write(nb, f)
 
         if failed and exit_on_first:
-            raise SystemExit(f"notebook execution failed in {test}, error saved "
-                             "in notebook")
+            raise SystemExit(
+                f"notebook execution failed in {test}, error saved " "in notebook"
+            )
+
 
 def execute_rsts(file_paths, exit_on_first, verbose):
     for test in file_paths:
@@ -44,38 +48,55 @@ def execute_rsts(file_paths, exit_on_first, verbose):
         print("=" * 40)
         print(test)
         test = str(test)
-        num_fails, num_tests = doctest.testfile(test,
-                                                optionflags=doctest.ELLIPSIS or doctest.SKIP,
-                                                verbose=verbose,
-                                                encoding='utf-8')
+        num_fails, num_tests = doctest.testfile(
+            test,
+            optionflags=doctest.ELLIPSIS or doctest.SKIP,
+            verbose=verbose,
+            encoding="utf-8",
+        )
         if num_fails > 0 and exit_on_first:
             raise SystemExit(f"doctest failed in {test}")
 
 
 @click.command()
-@click.option('-f', '--file_paths', required=True, help="directory or specific"
-        " files to test. If directory, glob searches for files matching suffix.")
-@click.option('-j', '--just', help='comma separated list of names to be matched to files to be tested')
-@click.option('-x', '--exclude', help='comma separated list of names to be matched to files to be excluded')
-@click.option('-1', '--exit_on_first', is_flag=True, help='exit on first failure')
-@click.option('-s', '--suffix', type=click.Choice(["rst", "ipynb"]), help='suffix of docs to test')
-@click.option('-v', '--verbose', is_flag=True, help='verbose output')
+@click.option(
+    "-f",
+    "--file_paths",
+    required=True,
+    help="directory or specific"
+    " files to test. If directory, glob searches for files matching suffix.",
+)
+@click.option(
+    "-j",
+    "--just",
+    help="comma separated list of names to be matched to files to be tested",
+)
+@click.option(
+    "-x",
+    "--exclude",
+    help="comma separated list of names to be matched to files to be excluded",
+)
+@click.option("-1", "--exit_on_first", is_flag=True, help="exit on first failure")
+@click.option(
+    "-s", "--suffix", type=click.Choice(["rst", "ipynb"]), help="suffix of docs to test"
+)
+@click.option("-v", "--verbose", is_flag=True, help="verbose output")
 def main(file_paths, just, exclude, exit_on_first, suffix, verbose):
     """runs doctests for the indicated files"""
     cwd = os.getcwd()
-    if "*" in file_paths: # trim to just parent directory
+    if "*" in file_paths:  # trim to just parent directory
         file_paths = pathlib.Path(file_paths).parent
 
     if "," in file_paths:
-        file_paths = file_paths.split(',')
+        file_paths = file_paths.split(",")
     else:
         file_paths = list(pathlib.Path(file_paths).glob(f"*.{suffix}"))
 
     if verbose:
         print(file_paths)
-    
+
     if just:
-        just = just.split(',')
+        just = just.split(",")
         new = []
         for fn in file_paths:
             for sub_word in just:
@@ -83,7 +104,7 @@ def main(file_paths, just, exclude, exit_on_first, suffix, verbose):
                     new.append(fn)
         file_paths = new
     elif exclude:
-        exclude = exclude.split(',')
+        exclude = exclude.split(",")
         new = []
         for fn in file_paths:
             keep = True
@@ -94,14 +115,15 @@ def main(file_paths, just, exclude, exit_on_first, suffix, verbose):
             if keep:
                 new.append(fn)
         file_paths = new
-    
+
     if verbose:
         print("File paths, after filtering: %s" % str(file_paths))
-    
+
     if suffix == "rst":
         execute_rsts(file_paths, exit_on_first, verbose)
     else:
         execute_ipynb(file_paths, exit_on_first, verbose)
+
 
 if __name__ == "__main__":
     main()

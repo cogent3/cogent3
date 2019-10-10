@@ -17,17 +17,17 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 for filename in sys.argv[1:]:
-    print(filename) 
+    print(filename)
     (name, suffix) = os.path.splitext(filename)
-    if suffix != '.rst':
-        print('not a .rst file')
+    if suffix != ".rst":
+        print("not a .rst file")
         continue
-    f = open(filename,'r')
-    s = ''.join(f.readlines())
+    f = open(filename, "r")
+    s = "".join(f.readlines())
     f.close()
-    
+
     s = doctest.script_from_examples(s)
-    f = open(name+'.py','w')
+    f = open(name + ".py", "w")
     f.write(s)
     f.close()
-    print('->', name+'.py')
+    print("->", name + ".py")
