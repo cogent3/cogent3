@@ -10,6 +10,7 @@ dependencies:
   - plotly-orca
   - pip:
     - numpy
+    - numpydoc
     - tqdm
     - scitrack
     - tinydb
