@@ -71,6 +71,14 @@ class ParallelTests(TestCase):
                 master_processes += 1
         self.assertEqual(master_processes, 0)
 
+    @skipIf(sys.version_info[1] >= 7, "exception test for Python 3.6 and below")
+    def test_is_master_process_version_exception(self):
+        """
+        is_master_process() should throw an exception
+        for Python versions below 3.7
+        """
+        self.assertRaises(RuntimeError, parallel.is_master_process)
+
 
 if __name__ == "__main__":
     main()
