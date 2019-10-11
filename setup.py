@@ -130,14 +130,9 @@ def CythonExtension(module_name, **kw):
 
 short_description = "COmparative GENomics Toolkit 3"
 
-# This ends up displayed by the installer
-long_description = (
-    """Cogent3
-A toolkit for statistical analysis of biological sequences.
-Version %s.
-"""
-    % __version__
-)
+readme_path = pathlib.Path(__file__).parent / "README.md"
+
+long_description = readme_path.read_text()
 
 PACKAGE_DIR = "src"
 
