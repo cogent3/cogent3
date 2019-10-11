@@ -1,7 +1,8 @@
 import multiprocessing
+import sys
 import time
 
-from unittest import TestCase, main
+from unittest import TestCase, main, skipIf
 
 import numpy
 
@@ -55,6 +56,7 @@ class ParallelTests(TestCase):
         self.assertEqual(result1[0], result2[0])
         self.assertNotEqual(result1, result2)
 
+    @skipIf(sys.version_info[1] < 7, "method exclusive to Python 3.7 and above")
     def test_is_master_process(self):
         """
         is_master_process() should return False
