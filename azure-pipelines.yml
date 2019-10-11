@@ -1,6 +1,9 @@
 trigger:
   - master
 
+variables:
+  - CODECOV_TOKEN: 504b0637-b4c1-4991-bc79-7a29aee41b44
+
 jobs:
 - job: linux
   pool: {vmImage: 'Ubuntu-16.04'}
