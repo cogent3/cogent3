@@ -1,3 +1,6 @@
+[![Azure](https://dev.azure.com/GavinHuttley/cogent3/_apis/build/status/azure-pipeline%20cogent3.cogent3)](
+    https://dev.azure.com/GavinHuttley/cogent3/_build/latest?definitionId=1)
+
 ## `cogent3`
 
 `cogent3` is a python library for genomic data analysis, specifically comparative genomics data.
