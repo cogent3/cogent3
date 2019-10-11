@@ -71,7 +71,7 @@ class ParallelTests(TestCase):
                 master_processes += 1
         self.assertEqual(master_processes, 0)
 
-    @skipIf(sys.version_info[1] >= 7, "exception test for Python 3.6 and below")
+    @skipIf(sys.version_info[1] >= 7, "exception test for Python 3.6")
     def test_is_master_process_version_exception(self):
         """
         is_master_process() should throw an exception
