@@ -8,16 +8,18 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install tox pytest click cython numpy pandas plotly scitrack tqdm tinydb
+        python -m pip install tox codecov pytest pytest-cov click cython numpy pandas plotly scitrack tqdm tinydb
         tox -e py37
+        codecov
 - job: macos
   pool: {vmImage: 'macOS-10.13'}
   steps: 
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install tox pytest click cython numpy pandas plotly scitrack tqdm tinydb
+        python -m pip install tox codecov pytest pytest-cov click cython numpy pandas plotly scitrack tqdm tinydb
         tox -e py37
+        codecov
 - job: windows
   pool: {vmImage: 'vs2017-win2016'}
   steps:
@@ -25,5 +27,6 @@ jobs:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install tox pytest click cython numpy pandas plotly scitrack tqdm tinydb
+        python -m pip install tox codecov pytest pytest-cov click cython numpy pandas plotly scitrack tqdm tinydb
         tox -e py37
+        codecov
