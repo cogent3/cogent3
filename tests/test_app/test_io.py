@@ -541,6 +541,7 @@ class TestIo(TestCase):
         # now get read only and check what's in there
         result = io_app.get_data_store("delme.tinydb")
         got = [str(m) for m in result]
+        result.close()
 
         self.assertEqual(got, expect)
 
