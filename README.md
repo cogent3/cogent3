@@ -1,5 +1,4 @@
-[![Azure](https://dev.azure.com/GavinHuttley/cogent3/_apis/build/status/azure-pipeline%20cogent3.cogent3)](
-    https://dev.azure.com/GavinHuttley/cogent3/_build/latest?definitionId=1)
+[![Build Status](https://dev.azure.com/GavinHuttley/cogent3/_apis/build/status/cogent3.cogent3?branchName=master)](https://dev.azure.com/GavinHuttley/cogent3/_build/latest?definitionId=1&branchName=master)
 
 ## `cogent3`
 
