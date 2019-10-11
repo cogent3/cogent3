@@ -1,3 +1,6 @@
+[![Build Status](https://dev.azure.com/GavinHuttley/cogent3/_apis/build/status/cogent3.cogent3?branchName=master)](https://dev.azure.com/GavinHuttley/cogent3/_build/latest?definitionId=1&branchName=master)
+![Using Black Formatting](https://img.shields.io/badge/code%20style-black-000000.svg)
+
 ## `cogent3`
 
 `cogent3` is a python library for genomic data analysis, specifically comparative genomics data.
