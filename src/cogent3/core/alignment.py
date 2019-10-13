@@ -1657,11 +1657,8 @@ class SequenceCollection(object):
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seqs"""
-        make_seq = moltype.make_seq
-        data = [make_seq(s, s.name) for s in self.seqs]
+        data = [s.to_moltype() for s in self.seqs]
         new = self.__class__(data=data, moltype=moltype, name=self.name, info=self.info)
-        if isinstance(self, _Annotatable) and self.annotations:
-            new.annotations = self.annotations[:]
         return new
 
     def to_dna(self):
