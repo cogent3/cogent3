@@ -7,7 +7,14 @@ from cogent3.core.alignment import Alignment, ArrayAlignment
 from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import get_moltype
 
-from .composable import ComposableAligned, ComposableSeq, NotCompleted
+from .composable import (
+    ALIGNED_TYPE,
+    SEQUENCES_TYPE,
+    SERIALISABLE_TYPE,
+    ComposableAligned,
+    ComposableSeq,
+    NotCompleted,
+)
 from .translate import get_fourfold_degenerate_sets
 
 
@@ -107,8 +114,8 @@ class omit_degenerates(ComposableAligned):
             is excluded
         """
         super(omit_degenerates, self).__init__(
-            input_types=("aligned", "serialisable"),
-            output_types=("aligned", "serialisable"),
+            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment"),
         )
         self._formatted_params()
@@ -155,8 +162,8 @@ class omit_gap_pos(ComposableAligned):
             molecular type, must be either DNA or RNA
         """
         super(omit_gap_pos, self).__init__(
-            input_types=("aligned", "serialisable"),
-            output_types=("aligned", "serialisable"),
+            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment"),
         )
         self._formatted_params()
@@ -212,8 +219,8 @@ class take_codon_positions(ComposableAligned):
             molecular type, must be either DNA or RNA
         """
         super(take_codon_positions, self).__init__(
-            input_types=("aligned", "serialisable"),
-            output_types=("aligned", "serialisable"),
+            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment"),
         )
         self._formatted_params()
@@ -291,8 +298,8 @@ class take_named_seqs(ComposableSeq):
         in the collection.
         """
         super(take_named_seqs, self).__init__(
-            input_types=("sequences", "aligned", "serialisable"),
-            output_types=("sequences", "aligned", "serialisable"),
+            input_types=(SEQUENCES_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(SEQUENCES_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
         )
         self._formatted_params()
@@ -328,8 +335,8 @@ class min_length(ComposableSeq):
             molecular type, can be string or instance
         """
         super(min_length, self).__init__(
-            input_types=("sequences", "aligned", "serialisable"),
-            output_types=("sequences", "aligned", "serialisable"),
+            input_types=(SEQUENCES_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(SEQUENCES_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
         )
         self._formatted_params()
@@ -412,8 +419,8 @@ class fixed_length(ComposableAligned):
             molecular type, can be string or instance
         """
         super(fixed_length, self).__init__(
-            input_types=("aligned", "serialisable"),
-            output_types=("aligned", "serialisable"),
+            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment"),
         )
         self._formatted_params()
@@ -503,8 +510,8 @@ class omit_bad_seqs(ComposableAligned):
             molecular type, can be string or instance
         """
         super(omit_bad_seqs, self).__init__(
-            input_types=("aligned", "serialisable"),
-            output_types=("aligned", "serialisable"),
+            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment"),
         )
         self._formatted_params()
@@ -550,8 +557,8 @@ class omit_duplicated(ComposableSeq):
             molecular type, can be string or instance
         """
         super(omit_duplicated, self).__init__(
-            input_types=("sequences", "serialisable", "aligned"),
-            output_types=("sequences", "serialisable", "aligned"),
+            input_types=(SEQUENCES_TYPE, SERIALISABLE_TYPE, ALIGNED_TYPE),
+            output_types=(SEQUENCES_TYPE, SERIALISABLE_TYPE, ALIGNED_TYPE),
             data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
         )
 
@@ -621,8 +628,8 @@ class trim_stop_codons(ComposableSeq):
         in the collection.
         """
         super(trim_stop_codons, self).__init__(
-            input_types=("sequences", "aligned", "serialisable"),
-            output_types=("sequences", "aligned", "serialisable"),
+            input_types=(SEQUENCES_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(SEQUENCES_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
         )
         self._formatted_params()

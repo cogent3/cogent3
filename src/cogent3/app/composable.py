@@ -130,6 +130,22 @@ class NotCompleted(int):
         return json.dumps(self.to_rich_dict())
 
 
+MODEL_RESULT_TYPE = "model_result"
+RESULT_TYPE = "result"
+TABULAR_RESULT_TYPE = "tabular_result"
+SERIALISABLE_TYPE = "serialisable"
+TABULAR_TYPE = "tabular"
+IDENTIFIER_TYPE = "identifier"
+TABLE_TYPE = "Table"
+SEQUENCES_TYPE = "sequences"
+ALIGNED_TYPE = "aligned"
+SEQUENCECOLLECTION_TYPE = "SequenceCollection"
+TREE_TYPE = "tree"
+PAIRWISE_DISTANCES_TYPE = "pairwise_distances"
+HYPOTHESIS_RESULT_TYPE = "hypothesis_result"
+BOOTSTRAP_RESULT_TYPE = "bootstrap_result"
+
+
 class ComposableType:
     _type = None
 
