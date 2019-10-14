@@ -1657,7 +1657,7 @@ class SequenceCollection(object):
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seqs"""
-        data = [s.to_moltype() for s in self.seqs]
+        data = [s.to_moltype(moltype) for s in self.seqs]
         new = self.__class__(data=data, moltype=moltype, name=self.name, info=self.info)
         return new
 
@@ -3929,6 +3929,16 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
             new_seqarr.T, names=self.names, moltype=seqs.moltype, info=self.info
         )
 
+    def to_moltype(self, moltype):
+        """returns copy of self with moltype seqs"""
+        from cogent3 import get_moltype
+
+        moltype = get_moltype(moltype)
+        make_seq = moltype.make_seq
+        data = [make_seq(s) for s in self.seqs]
+        new = self.__class__(data=data, moltype=moltype, name=self.name, info=self.info)
+        return new
+
     def get_identical_sets(self, mask_degen=False):
         """returns sets of names for sequences that are identical
 
@@ -4444,6 +4454,21 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             new_seqs.append((label, Aligned(aligned.map * scale, seq)))
 
         return self.__class__(new_seqs, info=self.info)
+
+    def to_moltype(self, moltype):
+        """returns copy of self with moltype seqs"""
+        from cogent3 import get_moltype
+
+        moltype = get_moltype(moltype)
+        make_seq = moltype.make_seq
+        data = [make_seq(s) for s in self.seqs]
+        new = self.__class__(data=data, moltype=moltype, name=self.name, info=self.info)
+        for new_seq in new.seqs:
+            annotations = new_seq.data.annotations
+            new_seq.data.clear_annotations()
+            for ann in annotations:
+                ann.copy_to_seq(new_seq.data)
+        return new
 
     def get_drawables(self):
         """returns a dict of drawables, keyed by type"""
