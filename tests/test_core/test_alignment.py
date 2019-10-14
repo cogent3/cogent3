@@ -1194,6 +1194,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(rc, expect)
 
     def test_to_moltype_annotations(self):
+        """correctly convert to specified moltype with proper sequence annotations"""
         s1 = Sequence("TTTTTTAAAA", name="test_seq1")
         s2 = Sequence("AAAATTTTTT", name="test_seq2")
         s3 = Sequence("AATTTTTAAA", name="test_seq3")
