@@ -73,10 +73,12 @@ def is_master_process():
         process_file = process_cmd.split(os.sep)[-1]
         if process_file == "server.py":
             return False
-    else:
+    elif sys.version_info[1] >= 7:
         process_name = multiprocessing.current_process().name
         if "ForkProcess" in process_name or "SpawnProcess" in process_name:
             return False
+    else:
+        raise RuntimeError("is_master_process() requires Python 3.7 or greater")
     return True
 
 

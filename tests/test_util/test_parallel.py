@@ -1,7 +1,8 @@
 import multiprocessing
+import sys
 import time
 
-from unittest import TestCase, main
+from unittest import TestCase, main, skipIf
 
 import numpy
 
@@ -55,6 +56,7 @@ class ParallelTests(TestCase):
         self.assertEqual(result1[0], result2[0])
         self.assertNotEqual(result1, result2)
 
+    @skipIf(sys.version_info[1] < 7, "method exclusive to Python 3.7 and above")
     def test_is_master_process(self):
         """
         is_master_process() should return False
@@ -68,6 +70,14 @@ class ParallelTests(TestCase):
             if result:
                 master_processes += 1
         self.assertEqual(master_processes, 0)
+
+    @skipIf(sys.version_info[1] >= 7, "exception test for Python 3.6")
+    def test_is_master_process_version_exception(self):
+        """
+        is_master_process() should throw an exception
+        for Python versions below 3.7
+        """
+        self.assertRaises(RuntimeError, parallel.is_master_process)
 
 
 if __name__ == "__main__":
