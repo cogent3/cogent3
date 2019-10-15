@@ -2,7 +2,7 @@ from cogent3 import make_tree
 from cogent3.phylo.nj import gnj
 
 from .composable import (
-    PAIRWISE_DISTANCES_TYPE,
+    PAIRWISE_DISTANCE_TYPE,
     SERIALISABLE_TYPE,
     TREE_TYPE,
     ComposableTree,
@@ -122,7 +122,7 @@ class quick_tree(ComposableTree):
             if False, an ArithmeticError is raised if a distance could not be computed on observed data.
         """
         super(quick_tree, self).__init__(
-            input_types=PAIRWISE_DISTANCES_TYPE,
+            input_types=PAIRWISE_DISTANCE_TYPE,
             output_types=(TREE_TYPE, SERIALISABLE_TYPE),
             data_types="DistanceMatrix",
         )

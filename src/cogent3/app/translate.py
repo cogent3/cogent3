@@ -6,7 +6,7 @@ from cogent3.core.moltype import get_moltype
 
 from .composable import (
     ALIGNED_TYPE,
-    SEQUENCES_TYPE,
+    SEQUENCE_TYPE,
     ComposableSeq,
     NotCompleted,
 )
@@ -183,8 +183,8 @@ class select_translatable(ComposableSeq):
         are excluded.
         """
         super(select_translatable, self).__init__(
-            input_types=(SEQUENCES_TYPE, ALIGNED_TYPE),
-            output_types=SEQUENCES_TYPE,
+            input_types=(SEQUENCE_TYPE, ALIGNED_TYPE),
+            output_types=SEQUENCE_TYPE,
             data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
         )
         self._formatted_params()

@@ -23,7 +23,7 @@ from cogent3.util.table import Table, convert2DDict
 from .composable import (
     ALIGNED_TYPE,
     IDENTIFIER_TYPE,
-    SEQUENCES_TYPE,
+    SEQUENCE_TYPE,
     SERIALISABLE_TYPE,
     TABULAR_RESULT_TYPE,
     TABULAR_TYPE,
@@ -194,7 +194,7 @@ class load_unaligned(ComposableSeq, _seq_loader):
         """
         super(ComposableSeq, self).__init__(
             input_types=None,
-            output_types=(SEQUENCES_TYPE, SERIALISABLE_TYPE),
+            output_types=(SEQUENCE_TYPE, SERIALISABLE_TYPE),
             data_types=(
                 "DataStoreMember",
                 "str",

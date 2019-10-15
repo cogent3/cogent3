@@ -12,7 +12,7 @@ from cogent3.evolve.models import get_model, protein_models
 
 from .composable import (
     ALIGNED_TYPE,
-    SEQUENCES_TYPE,
+    SEQUENCE_TYPE,
     SERIALISABLE_TYPE,
     ComposableSeq,
     NotCompleted,
@@ -58,7 +58,7 @@ class align_to_ref(ComposableSeq):
             molecular type
         """
         super(align_to_ref, self).__init__(
-            input_types=SEQUENCES_TYPE,
+            input_types=SEQUENCE_TYPE,
             output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
             data_types="SequenceCollection",
         )
@@ -182,7 +182,7 @@ class progressive_align(ComposableSeq):
             which is applicable for any moltype, and sequences with very high percent identify
         """
         super(progressive_align, self).__init__(
-            input_types=SEQUENCES_TYPE,
+            input_types=SEQUENCE_TYPE,
             output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
             data_types="SequenceCollection",
         )

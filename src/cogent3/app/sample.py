@@ -9,7 +9,7 @@ from cogent3.core.moltype import get_moltype
 
 from .composable import (
     ALIGNED_TYPE,
-    SEQUENCES_TYPE,
+    SEQUENCE_TYPE,
     SERIALISABLE_TYPE,
     ComposableAligned,
     ComposableSeq,
@@ -298,8 +298,8 @@ class take_named_seqs(ComposableSeq):
         in the collection.
         """
         super(take_named_seqs, self).__init__(
-            input_types=(SEQUENCES_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(SEQUENCES_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
+            input_types=(SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
         )
         self._formatted_params()
@@ -335,8 +335,8 @@ class min_length(ComposableSeq):
             molecular type, can be string or instance
         """
         super(min_length, self).__init__(
-            input_types=(SEQUENCES_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(SEQUENCES_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
+            input_types=(SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
         )
         self._formatted_params()
@@ -557,8 +557,8 @@ class omit_duplicated(ComposableSeq):
             molecular type, can be string or instance
         """
         super(omit_duplicated, self).__init__(
-            input_types=(SEQUENCES_TYPE, SERIALISABLE_TYPE, ALIGNED_TYPE),
-            output_types=(SEQUENCES_TYPE, SERIALISABLE_TYPE, ALIGNED_TYPE),
+            input_types=(SEQUENCE_TYPE, SERIALISABLE_TYPE, ALIGNED_TYPE),
+            output_types=(SEQUENCE_TYPE, SERIALISABLE_TYPE, ALIGNED_TYPE),
             data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
         )
 
@@ -628,8 +628,8 @@ class trim_stop_codons(ComposableSeq):
         in the collection.
         """
         super(trim_stop_codons, self).__init__(
-            input_types=(SEQUENCES_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(SEQUENCES_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
+            input_types=(SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
         )
         self._formatted_params()
