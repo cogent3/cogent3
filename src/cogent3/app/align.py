@@ -10,7 +10,13 @@ from cogent3.core.alignment import ArrayAlignment
 from cogent3.core.moltype import get_moltype
 from cogent3.evolve.models import get_model, protein_models
 
-from .composable import ComposableSeq, NotCompleted
+from .composable import (
+    ALIGNED_TYPE,
+    SEQUENCE_TYPE,
+    SERIALISABLE_TYPE,
+    ComposableSeq,
+    NotCompleted,
+)
 from .tree import quick_tree, scale_branches
 
 
@@ -52,8 +58,8 @@ class align_to_ref(ComposableSeq):
             molecular type
         """
         super(align_to_ref, self).__init__(
-            input_types="sequences",
-            output_types=("aligned", "serialisable"),
+            input_types=SEQUENCE_TYPE,
+            output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
             data_types="SequenceCollection",
         )
         self._formatted_params()
@@ -176,8 +182,8 @@ class progressive_align(ComposableSeq):
             which is applicable for any moltype, and sequences with very high percent identify
         """
         super(progressive_align, self).__init__(
-            input_types="sequences",
-            output_types=("aligned", "serialisable"),
+            input_types=SEQUENCE_TYPE,
+            output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
             data_types="SequenceCollection",
         )
 
