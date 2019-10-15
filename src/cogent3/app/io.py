@@ -25,7 +25,6 @@ from .composable import (
     IDENTIFIER_TYPE,
     SEQUENCES_TYPE,
     SERIALISABLE_TYPE,
-    TABLE_TYPE,
     TABULAR_RESULT_TYPE,
     TABULAR_TYPE,
     Composable,
@@ -242,7 +241,7 @@ class load_tabular(ComposableTabular):
         """
         super(ComposableTabular, self).__init__(
             input_types=None,
-            output_types=(TABLE_TYPE, SERIALISABLE_TYPE),
+            output_types=(TABULAR_TYPE, SERIALISABLE_TYPE),
             data_types=("DataStoreMember", "str", "Path"),
         )
         self._formatted_params()
