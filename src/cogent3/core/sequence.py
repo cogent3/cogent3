@@ -721,7 +721,7 @@ class Sequence(_Annotatable, SequenceI):
         new = self.__class__(seq=new_seq)
         new.clear_annotations()
         for ann in self.annotations:
-            ann.copy_to_seq(new)
+            ann.copy_annotations_to(new)
         return new
 
     def _seq_filter(self, seq):

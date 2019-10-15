@@ -4458,7 +4458,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         for s in self.seqs:
             new_seq = make_seq(s)
             for ann in s.data.annotations:
-                ann.copy_to_seq(new_seq)
+                ann.copy_annotations_to(new_seq)
             data.append(new_seq)
         new = self.__class__(data=data, moltype=moltype, name=self.name, info=self.info)
         return new

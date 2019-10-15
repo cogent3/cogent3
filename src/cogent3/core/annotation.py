@@ -173,7 +173,7 @@ class _Annotatable:
     def add_feature(self, type, name, spans):
         return self.add_annotation(Feature, type, name, spans)
 
-    def copy_to_seq(self, seq):
+    def copy_annotations_to(self, seq):
         """creates a new annotation with identical content on a new sequence
 
         Parameters

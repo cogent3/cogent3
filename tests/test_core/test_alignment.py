@@ -1188,7 +1188,7 @@ class SequenceCollectionBaseTests(object):
 
         data = {"seq1": "TTTTTTAAAA", "seq2": "AAAATTTTTT", "seq3": "AATTTTTAAA"}
         seqs = self.Class(data=data)
-        rna = seqs.to_moltype(RNA)
+        rna = seqs.to_moltype("rna")
         rc = rna.rc().to_dict()
         expect = {"seq1": "UUUUAAAAAA", "seq2": "AAAAAAUUUU", "seq3": "UUUAAAAAUU"}
         self.assertEqual(rc, expect)
