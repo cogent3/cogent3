@@ -216,7 +216,7 @@ class TreeGeometryBase(PhyloNode):
         # todo, possibly also return a rotation?
         raise NotImplementedError("implement in sub-class")
 
-    def support_text_coord(self, padding=0.05, threshold=1, max_attr_length=4):
+    def support_text_coord(self, padding=0.1, threshold=1, max_attr_length=4):
         """
         Parameters
         ----------
@@ -232,10 +232,11 @@ class TreeGeometryBase(PhyloNode):
         val = self.params.get("support", None)
         if val is None or val > threshold or self.is_tip():
             return None
-        x = self.x + padding
+        x = self.x
         data = UnionDict(
             x=x,
             y=self.y,
+            xshift=padding,
             textangle=self.theta,
             showarrow=False,
             text=f"{val:.2f}",
