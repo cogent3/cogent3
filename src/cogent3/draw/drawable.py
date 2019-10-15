@@ -45,7 +45,8 @@ def _show_(cls, renderer=None, **kwargs):
     fig = getattr(drawable, "figure", None)
     if fig is None:
         raise TypeError(f"{cls} does not have a drawable or figure attribute")
-
+    kwargs["width"] = kwargs.get("width", fig.layout.width)
+    kwargs["height"] = kwargs.get("height", fig.layout.height)
     show(fig, **kwargs)
 
 
@@ -185,13 +186,21 @@ class Drawable:
         """writes static image file, suffix dictates format"""
         from plotly.io import write_image
 
-        write_image(self.figure, path, **kwargs)
+        fig = self.figure
+        kwargs["width"] = kwargs.get("width", fig.layout.width)
+        kwargs["height"] = kwargs.get("height", fig.layout.height)
+
+        write_image(fig, path, **kwargs)
 
     def to_image(self, format="png", **kwargs):
         """creates static image, suffix dictates format"""
         from plotly.io import to_image
 
-        return to_image(self.figure, format=format, **kwargs)
+        fig = self.figure
+        kwargs["width"] = kwargs.get("width", fig.layout.width)
+        kwargs["height"] = kwargs.get("height", fig.layout.height)
+
+        return to_image(fig, format=format, **kwargs)
 
     @property
     def fig_width(self):
