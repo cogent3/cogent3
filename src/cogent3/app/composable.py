@@ -132,8 +132,8 @@ class NotCompleted(int):
 
 ALIGNED_TYPE = "aligned"
 IDENTIFIER_TYPE = "identifier"
-PAIRWISE_DISTANCES_TYPE = "pairwise_distances"
-SEQUENCES_TYPE = "sequences"
+PAIRWISE_DISTANCE_TYPE = "pairwise_distances"
+SEQUENCE_TYPE = "sequences"
 SERIALISABLE_TYPE = "serialisable"
 TABULAR_TYPE = "tabular"
 TREE_TYPE = "tree"
