@@ -886,24 +886,6 @@ class Dendrogram(Drawable):
                     trace["marker"] |= setting
 
     @property
-    def fig_width(self):
-        """figure width, also settable via .layout.width"""
-        return self.layout.width
-
-    @fig_width.setter
-    def fig_width(self, width):
-        self.layout.width = width
-
-    @property
-    def fig_height(self):
-        """figure height, also settable via .layout.height"""
-        return self.layout.height
-
-    @fig_height.setter
-    def fig_height(self, height):
-        self.layout.height = height
-
-    @property
     def show_support(self):
         """whether tree edge support entries are displayed"""
         return self._show_support
