@@ -34,7 +34,7 @@ copyright = "2019, Cogent3"
 
 version = ""
 
-release = "2019.9.13a"
+release = "2019.10.17a"
 
 # exclude_trees = ["_build"]
 
