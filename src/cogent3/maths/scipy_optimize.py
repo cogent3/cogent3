@@ -98,7 +98,7 @@ abs = absolute
 
 pymin = builtins.min
 pymax = builtins.max
-__version__ = "2019.9.13a"
+__version__ = "2019.10.17a"
 
 
 _epsilon = sqrt(numpy.finfo(float).eps)

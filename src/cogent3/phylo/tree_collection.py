@@ -7,7 +7,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2015, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Ben Kaehler"]
 __license__ = "BSD-3"
-__version__ = "2019.9.13a"
+__version__ = "2019.10.17a"
 
 
 class _UserList(list):

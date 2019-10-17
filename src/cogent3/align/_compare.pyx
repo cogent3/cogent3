@@ -2,7 +2,7 @@
 """
 
 version_info = (1, 3)
-__version__ = "('2019', '9', '13a')"
+__version__ = "('2019', '10', '17a')"
 
 cdef int cmax(int a, int b):
     if a > b:
