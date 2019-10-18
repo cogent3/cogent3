@@ -157,15 +157,15 @@ class SequenceTests(TestCase):
         }
         self.assertEqual(got, expect)
 
-    def test_annotable_copy_to_seq(self):
-        s = Sequence("TTTTTTTTTTAAAA", name="Orig")
+    def test_annotatable_copy_to_seq(self):
+        s = DnaSequence("TTTTTTTTTTAAAA", name="Orig")
         annot = s.add_annotation(Feature, "exon", "fred", [(0, 14)])
-        seq = Sequence("UUUUUUUUUUAAAA", name="Test")
+        seq = RnaSequence("UUUUUUUUUUAAAA", name="Test")
         got = annot.copy_to_seq(seq)
         self.assertEqual(got._serialisable["parent"], seq)
         self.assertEqual(got._serialisable["type"], "exon")
         self.assertEqual(got._serialisable["name"], "fred")
-
+        self.assertEqual(seq.moltype.label, "rna")
         with self.assertRaises(AssertionError):
             got = annot.copy_to_seq(Sequence("UUUUUUUUUUUAAAA", name="Wrong_seq"))
 
