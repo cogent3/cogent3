@@ -205,6 +205,9 @@ class _Annotatable:
         the processed annotatable object
         """
         annotations = copy.deepcopy(self.annotations)
+        for annot in annotations:
+            annot.parent = annotatable
+            annot.attached = False
         annotatable.attach_annotations(annotations)
         return annotatable
 

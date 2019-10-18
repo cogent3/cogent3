@@ -1188,7 +1188,7 @@ class SequenceCollectionBaseTests(object):
 
         data = {"seq1": "TTTTTTAAAA", "seq2": "AAAATTTTTT", "seq3": "AATTTTTAAA"}
         seqs = self.Class(data=data)
-        rna = seqs.to_moltype("rna")
+        rna = seqs.to_moltype('rna')
         rc = rna.rc().to_dict()
         expect = {"seq1": "UUUUAAAAAA", "seq2": "AAAAAAUUUU", "seq3": "UUUAAAAAUU"}
         self.assertEqual(rc, expect)
@@ -2478,9 +2478,11 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         s3.add_annotation(Feature, "exon", "fred", [(2, 7)])
         data = {"seq1": s1, "seq2": s2, "seq3": s3}
         seqs = self.Class(data=data)
+        seqs.add_annotation(Feature, "test_feature", "test", [(0, 3)])
         rna = seqs.to_moltype('rna')
         for seq in rna.seqs:
             self.assertIsInstance(seq.data.annotations[0], _Annotatable)
+        self.assertIsInstance(seqs.annotations[0], _Annotatable)
 
     def test_rename_handles_annotations(self):
         """rename seqs on Alignment preserves annotations"""
