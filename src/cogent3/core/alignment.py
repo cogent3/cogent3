@@ -1657,11 +1657,8 @@ class SequenceCollection(object):
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seqs"""
-        make_seq = moltype.make_seq
-        data = [make_seq(s, s.name) for s in self.seqs]
+        data = [s.to_moltype(moltype) for s in self.seqs]
         new = self.__class__(data=data, moltype=moltype, name=self.name, info=self.info)
-        if isinstance(self, _Annotatable) and self.annotations:
-            new.annotations = self.annotations[:]
         return new
 
     def to_dna(self):
@@ -2064,6 +2061,11 @@ class Aligned(object):
     def to_json(self):
         """returns a json formatted string"""
         return json.dumps(self.to_rich_dict())
+
+    def to_moltype(self, moltype):
+        """returns copy of self with moltype seqs"""
+        data = self.data.to_moltype(moltype)
+        return self.__class__(map=self.map, data=data)
 
     def remapped_to(self, map):
         result = Aligned(map[self.map.inverse()].inverse(), self.data)
@@ -3932,6 +3934,10 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
             new_seqarr.T, names=self.names, moltype=seqs.moltype, info=self.info
         )
 
+    def to_moltype(self, moltype):
+        """returns copy of self with moltype seqs"""
+        return super().to_moltype(moltype)
+
     def get_identical_sets(self, mask_degen=False):
         """returns sets of names for sequences that are identical
 
@@ -4447,6 +4453,12 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             new_seqs.append((label, Aligned(aligned.map * scale, seq)))
 
         return self.__class__(new_seqs, info=self.info)
+
+    def to_moltype(self, moltype):
+        """returns copy of self with moltype seqs"""
+        new = super().to_moltype(moltype)
+        new = self.copy_annotations_to(new)
+        return new
 
     def get_drawables(self):
         """returns a dict of drawables, keyed by type"""

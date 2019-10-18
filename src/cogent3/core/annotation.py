@@ -192,6 +192,22 @@ class _Annotatable:
         seq.attach_annotations([new])
         return new
 
+    def copy_annotations_to(self, annotatable):
+        """copies annotations to another annotatable object
+
+        Parameters
+        ----------
+        annotatable : _Annotatable
+            another annotatable object
+
+        Returns
+        -------
+        the processed annotatable object
+        """
+        annotations = copy.deepcopy(self.annotations)
+        annotatable.attach_annotations(annotations)
+        return annotatable
+
     def get_annotations_matching(self, annotation_type, name=None):
         """
 

@@ -37,6 +37,7 @@ from cogent3.core.alignment import (
     seqs_from_kv_pairs,
 )
 from cogent3.core.alphabet import AlphabetError
+from cogent3.core.annotation import Feature, _Annotatable
 from cogent3.core.moltype import AB, ASCII, BYTES, DNA, PROTEIN, RNA
 from cogent3.core.sequence import (
     ArraySequence,
@@ -1185,6 +1186,32 @@ class SequenceCollectionBaseTests(object):
         expect = {"seq1": "TACGTACGT", "seq2": "---TTCGGT", "seq3": "AACGTACGT"}
         self.assertEqual(rc, expect)
 
+        data = {"seq1": "TTTTTTAAAA", "seq2": "AAAATTTTTT", "seq3": "AATTTTTAAA"}
+        seqs = self.Class(data=data)
+        rna = seqs.to_moltype("rna")
+        rc = rna.rc().to_dict()
+        expect = {"seq1": "UUUUAAAAAA", "seq2": "AAAAAAUUUU", "seq3": "UUUAAAAAUU"}
+        self.assertEqual(rc, expect)
+
+    def test_to_moltype_annotations(self):
+        """correctly convert to specified moltype with proper sequence annotations"""
+        s1 = Sequence("TTTTTTAAAA", name="test_seq1")
+        s2 = Sequence("AAAATTTTTT", name="test_seq2")
+        s3 = Sequence("AATTTTTAAA", name="test_seq3")
+        s1.add_annotation(Feature, "exon", "fred", [(0, 6)])
+        s2.add_annotation(Feature, "exon", "fred", [(4, 10)])
+        s3.add_annotation(Feature, "exon", "fred", [(2, 7)])
+        data = {"seq1": s1, "seq2": s2, "seq3": s3}
+        seqs = self.Class(data=data)
+        rna = seqs.to_moltype(RNA)
+        if isinstance(self, AlignmentTests):
+            for seq in rna.seqs:
+                self.assertTrue(len(seq.data.annotations) > 0)
+                self.assertIsInstance(seq.data.annotations[0], _Annotatable)
+        elif isinstance(self, ArrayAlignmentTests):
+            for seq in rna.seqs:
+                self.assertTrue(len(seq.annotations) == 0)
+
     def test_to_moltype_info(self):
         """correctly convert to specified moltype"""
         data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
@@ -2294,6 +2321,10 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
         self.assertTrue(len(sub_align) == 3)
         self.assertEqual(sub_align.info["key"], "value")
 
+    def test_to_moltype(self):
+        super().test_to_moltype()
+        super().test_to_moltype_annotations()
+
 
 class AlignmentTests(AlignmentBaseTests, TestCase):
     Class = Alignment
@@ -2360,6 +2391,10 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(aln.get_degapped_relative_to("name1"), out_aln)
 
         self.assertRaises(ValueError, aln.get_degapped_relative_to, "nameX")
+
+    def test_to_moltype(self):
+        super().test_to_moltype()
+        super().test_to_moltype_annotations()
 
     def test_get_degapped_relative_to_info(self):
         """should remove all columns with a gap in sequence with given name
