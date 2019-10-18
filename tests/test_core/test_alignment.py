@@ -1181,7 +1181,7 @@ class SequenceCollectionBaseTests(object):
         """correctly convert to specified moltype"""
         data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
         seqs = self.Class(data=data)
-        dna = seqs.to_moltype(DNA)
+        dna = seqs.to_moltype('dna')
         rc = dna.rc().to_dict()
         expect = {"seq1": "TACGTACGT", "seq2": "---TTCGGT", "seq3": "AACGTACGT"}
         self.assertEqual(rc, expect)
@@ -1192,25 +1192,6 @@ class SequenceCollectionBaseTests(object):
         rc = rna.rc().to_dict()
         expect = {"seq1": "UUUUAAAAAA", "seq2": "AAAAAAUUUU", "seq3": "UUUAAAAAUU"}
         self.assertEqual(rc, expect)
-
-    def test_to_moltype_annotations(self):
-        """correctly convert to specified moltype with proper sequence annotations"""
-        s1 = Sequence("TTTTTTAAAA", name="test_seq1")
-        s2 = Sequence("AAAATTTTTT", name="test_seq2")
-        s3 = Sequence("AATTTTTAAA", name="test_seq3")
-        s1.add_annotation(Feature, "exon", "fred", [(0, 6)])
-        s2.add_annotation(Feature, "exon", "fred", [(4, 10)])
-        s3.add_annotation(Feature, "exon", "fred", [(2, 7)])
-        data = {"seq1": s1, "seq2": s2, "seq3": s3}
-        seqs = self.Class(data=data)
-        rna = seqs.to_moltype(RNA)
-        if isinstance(self, AlignmentTests):
-            for seq in rna.seqs:
-                self.assertTrue(len(seq.data.annotations) > 0)
-                self.assertIsInstance(seq.data.annotations[0], _Annotatable)
-        elif isinstance(self, ArrayAlignmentTests):
-            for seq in rna.seqs:
-                self.assertTrue(len(seq.annotations) == 0)
 
     def test_to_moltype_info(self):
         """correctly convert to specified moltype"""
@@ -2321,10 +2302,6 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
         self.assertTrue(len(sub_align) == 3)
         self.assertEqual(sub_align.info["key"], "value")
 
-    def test_to_moltype(self):
-        super().test_to_moltype()
-        super().test_to_moltype_annotations()
-
 
 class AlignmentTests(AlignmentBaseTests, TestCase):
     Class = Alignment
@@ -2391,10 +2368,6 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(aln.get_degapped_relative_to("name1"), out_aln)
 
         self.assertRaises(ValueError, aln.get_degapped_relative_to, "nameX")
-
-    def test_to_moltype(self):
-        super().test_to_moltype()
-        super().test_to_moltype_annotations()
 
     def test_get_degapped_relative_to_info(self):
         """should remove all columns with a gap in sequence with given name
@@ -2494,6 +2467,20 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertRaises(
             ValueError, aln1.add_from_ref_aln, aln2_wrong_refseq
         )  # test wrong_refseq
+
+    def test_to_moltype_annotations(self):
+        """correctly convert to specified moltype with proper sequence annotations"""
+        s1 = Sequence("TTTTTTAAAA", name="test_seq1")
+        s2 = Sequence("AAAATTTTTT", name="test_seq2")
+        s3 = Sequence("AATTTTTAAA", name="test_seq3")
+        s1.add_annotation(Feature, "exon", "fred", [(0, 6)])
+        s2.add_annotation(Feature, "exon", "fred", [(4, 10)])
+        s3.add_annotation(Feature, "exon", "fred", [(2, 7)])
+        data = {"seq1": s1, "seq2": s2, "seq3": s3}
+        seqs = self.Class(data=data)
+        rna = seqs.to_moltype('rna')
+        for seq in rna.seqs:
+            self.assertIsInstance(seq.data.annotations[0], _Annotatable)
 
     def test_rename_handles_annotations(self):
         """rename seqs on Alignment preserves annotations"""
