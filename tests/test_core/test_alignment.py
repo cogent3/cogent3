@@ -1181,14 +1181,14 @@ class SequenceCollectionBaseTests(object):
         """correctly convert to specified moltype"""
         data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
         seqs = self.Class(data=data)
-        dna = seqs.to_moltype('dna')
+        dna = seqs.to_moltype("dna")
         rc = dna.rc().to_dict()
         expect = {"seq1": "TACGTACGT", "seq2": "---TTCGGT", "seq3": "AACGTACGT"}
         self.assertEqual(rc, expect)
 
         data = {"seq1": "TTTTTTAAAA", "seq2": "AAAATTTTTT", "seq3": "AATTTTTAAA"}
         seqs = self.Class(data=data)
-        rna = seqs.to_moltype('rna')
+        rna = seqs.to_moltype("rna")
         rc = rna.rc().to_dict()
         expect = {"seq1": "UUUUAAAAAA", "seq2": "AAAAAAUUUU", "seq3": "UUUAAAAAUU"}
         self.assertEqual(rc, expect)
@@ -2479,7 +2479,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         data = {"seq1": s1, "seq2": s2, "seq3": s3}
         seqs = self.Class(data=data)
         seqs.add_annotation(Feature, "test_feature", "test", [(0, 3)])
-        rna = seqs.to_moltype('rna')
+        rna = seqs.to_moltype("rna")
         for seq in rna.seqs:
             self.assertIsInstance(seq.data.annotations[0], _Annotatable)
         self.assertIsInstance(seqs.annotations[0], _Annotatable)
