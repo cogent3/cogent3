@@ -2062,6 +2062,11 @@ class Aligned(object):
         """returns a json formatted string"""
         return json.dumps(self.to_rich_dict())
 
+    def to_moltype(self, moltype):
+        """returns copy of self with moltype seqs"""
+        data = self.data.to_moltype(moltype)
+        return self.__class__(map=self.map, data=data)
+
     def remapped_to(self, map):
         result = Aligned(map[self.map.inverse()].inverse(), self.data)
         return result
@@ -4451,16 +4456,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seqs"""
-        from cogent3 import get_moltype
-
-        make_seq = get_moltype(moltype).make_seq
-        data = []
-        for s in self.seqs:
-            new_seq = make_seq(s)
-            for ann in s.data.annotations:
-                ann.copy_annotations_to(new_seq)
-            data.append(new_seq)
-        new = self.__class__(data=data, moltype=moltype, name=self.name, info=self.info)
+        new = super().to_moltype(moltype)
+        new = self.copy_annotations_to(new)
         return new
 
     def get_drawables(self):
