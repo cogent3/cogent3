@@ -43,8 +43,10 @@ class UnionDict(dict):
     def __getattr__(self, item):
         if item in self:
             return self.get(item)
-        else:
-            return super().__getattr__(item)
+        try:
+            result = super().__getattr__(item)
+        except AttributeError:
+            raise AttributeError(f"'{item}' not a key or attribute")
 
     def __setattr__(self, key, value):
         if isinstance(value, dict):
