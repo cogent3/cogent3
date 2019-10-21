@@ -27,7 +27,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.9.13a"
+__version__ = "2019.10.17a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -128,6 +128,21 @@ class NotCompleted(int):
     def to_json(self):
         """returns json string"""
         return json.dumps(self.to_rich_dict())
+
+
+ALIGNED_TYPE = "aligned"
+IDENTIFIER_TYPE = "identifier"
+PAIRWISE_DISTANCE_TYPE = "pairwise_distances"
+SEQUENCE_TYPE = "sequences"
+SERIALISABLE_TYPE = "serialisable"
+TABULAR_TYPE = "tabular"
+TREE_TYPE = "tree"
+
+BOOTSTRAP_RESULT_TYPE = "bootstrap_result"
+HYPOTHESIS_RESULT_TYPE = "hypothesis_result"
+MODEL_RESULT_TYPE = "model_result"
+RESULT_TYPE = "result"
+TABULAR_RESULT_TYPE = "tabular_result"
 
 
 class ComposableType:

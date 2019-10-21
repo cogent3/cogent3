@@ -21,6 +21,12 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table, convert2DDict
 
 from .composable import (
+    ALIGNED_TYPE,
+    IDENTIFIER_TYPE,
+    SEQUENCE_TYPE,
+    SERIALISABLE_TYPE,
+    TABULAR_RESULT_TYPE,
+    TABULAR_TYPE,
     Composable,
     ComposableAligned,
     ComposableSeq,
@@ -47,7 +53,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.9.13a"
+__version__ = "2019.10.17a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -161,7 +167,7 @@ class load_aligned(_seq_loader, ComposableAligned):
         """
         super(ComposableAligned, self).__init__(
             input_types=None,
-            output_types=("aligned", "serialisable"),
+            output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
             data_types=("DataStoreMember", "str", "Path"),
         )
         _seq_loader.__init__(self)
@@ -188,7 +194,7 @@ class load_unaligned(ComposableSeq, _seq_loader):
         """
         super(ComposableSeq, self).__init__(
             input_types=None,
-            output_types=("sequences", "serialisable"),
+            output_types=(SEQUENCE_TYPE, SERIALISABLE_TYPE),
             data_types=(
                 "DataStoreMember",
                 "str",
@@ -235,7 +241,7 @@ class load_tabular(ComposableTabular):
         """
         super(ComposableTabular, self).__init__(
             input_types=None,
-            output_types=("tabular", "serialisable"),
+            output_types=(TABULAR_TYPE, SERIALISABLE_TYPE),
             data_types=("DataStoreMember", "str", "Path"),
         )
         self._formatted_params()
@@ -346,8 +352,8 @@ class write_tabular(_checkpointable, ComposableTabular):
             exception), 'overwrite'
         """
         super(write_tabular, self).__init__(
-            input_types=("tabular_result", "tabular"),
-            output_types="identifier",
+            input_types=(TABULAR_RESULT_TYPE, TABULAR_TYPE),
+            output_types=IDENTIFIER_TYPE,
             data_types=("Table", "DictArray", "DistanceMatrix"),
             data_path=data_path,
             name_callback=name_callback,

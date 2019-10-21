@@ -13,7 +13,7 @@ __author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rahul Ghangas"]
 __license__ = "BSD-3"
-__version__ = "2019.9.13a"
+__version__ = "2019.10.17a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -884,24 +884,6 @@ class Dendrogram(Drawable):
             for trace in self.traces:
                 if trace.get("mode", None) == "markers":
                     trace["marker"] |= setting
-
-    @property
-    def fig_width(self):
-        """figure width, also settable via .layout.width"""
-        return self.layout.width
-
-    @fig_width.setter
-    def fig_width(self, width):
-        self.layout.width = width
-
-    @property
-    def fig_height(self):
-        """figure height, also settable via .layout.height"""
-        return self.layout.height
-
-    @fig_height.setter
-    def fig_height(self, height):
-        self.layout.height = height
 
     @property
     def show_support(self):

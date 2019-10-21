@@ -8,6 +8,13 @@ from cogent3.evolve.models import get_model
 from cogent3.util import misc, parallel
 
 from .composable import (
+    ALIGNED_TYPE,
+    BOOTSTRAP_RESULT_TYPE,
+    HYPOTHESIS_RESULT_TYPE,
+    MODEL_RESULT_TYPE,
+    RESULT_TYPE,
+    SERIALISABLE_TYPE,
+    TABULAR_RESULT_TYPE,
     ComposableHypothesis,
     ComposableModel,
     ComposableTabular,
@@ -25,7 +32,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.9.13a"
+__version__ = "2019.10.17a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -92,8 +99,8 @@ class model(ComposableModel):
         the result object has a separate entry for each.
         """
         super(model, self).__init__(
-            input_types=("aligned", "serialisable"),
-            output_types=("result", "model_result", "serialisable"),
+            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(RESULT_TYPE, MODEL_RESULT_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment"),
         )
         self._verbose = verbose
@@ -239,8 +246,8 @@ class hypothesis(ComposableHypothesis):
     def __init__(self, null, *alternates, init_alt=None):
         # todo document! init_alt needs to be able to take null, alt and *args
         super(hypothesis, self).__init__(
-            input_types=("aligned", "serialisable"),
-            output_types=("result", "hypothesis_result", "serialisable"),
+            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment"),
         )
         self._formatted_params()
@@ -298,8 +305,8 @@ class bootstrap(ComposableHypothesis):
 
     def __init__(self, hyp, num_reps, verbose=False):
         super(bootstrap, self).__init__(
-            input_types="aligned",
-            output_types=("result", "bootstrap_result", "serialisable"),
+            input_types=ALIGNED_TYPE,
+            output_types=(RESULT_TYPE, BOOTSTRAP_RESULT_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment"),
         )
         self._formatted_params()
@@ -347,8 +354,8 @@ class ancestral_states(ComposableTabular):
 
     def __init__(self):
         super(ancestral_states, self).__init__(
-            input_types="model_result",
-            output_types=("result", "tabular_result", "serialisable"),
+            input_types=MODEL_RESULT_TYPE,
+            output_types=(RESULT_TYPE, TABULAR_RESULT_TYPE, SERIALISABLE_TYPE),
             data_types="model_result",
         )
         self._formatted_params()
@@ -374,8 +381,8 @@ class tabulate_stats(ComposableTabular):
 
     def __init__(self):
         super(tabulate_stats, self).__init__(
-            input_types="model_result",
-            output_types=("result", "tabular_result", "serialisable"),
+            input_types=MODEL_RESULT_TYPE,
+            output_types=(RESULT_TYPE, TABULAR_RESULT_TYPE, SERIALISABLE_TYPE),
             data_types="model_result",
         )
         self._formatted_params()
@@ -447,8 +454,8 @@ class natsel_neutral(ComposableHypothesis):
             prints intermediate states to screen during fitting
         """
         super(natsel_neutral, self).__init__(
-            input_types=("aligned", "serialisable"),
-            output_types=("result", "hypothesis_result", "serialisable"),
+            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment"),
         )
         self._formatted_params()
@@ -576,8 +583,8 @@ class natsel_zhang(ComposableHypothesis):
         foreground edges.
         """
         super(natsel_zhang, self).__init__(
-            input_types=("aligned", "serialisable"),
-            output_types=("result", "hypothesis_result", "serialisable"),
+            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment"),
         )
         self._formatted_params()
@@ -756,8 +763,8 @@ class natsel_sitehet(ComposableHypothesis):
             prints intermediate states to screen during fitting
         """
         super(natsel_sitehet, self).__init__(
-            input_types=("aligned", "serialisable"),
-            output_types=("result", "hypothesis_result", "serialisable"),
+            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment"),
         )
         self._formatted_params()
@@ -936,8 +943,8 @@ class natsel_timehet(ComposableHypothesis):
             prints intermediate states to screen during fitting
         """
         super(natsel_timehet, self).__init__(
-            input_types=("aligned", "serialisable"),
-            output_types=("result", "hypothesis_result", "serialisable"),
+            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
+            output_types=(RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment"),
         )
         self._formatted_params()

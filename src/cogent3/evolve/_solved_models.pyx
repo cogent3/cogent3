@@ -7,7 +7,7 @@ cdef extern from "math.h":
     double exp(double)
 
 version_info = (3, 2)
-__version__ = "('2019', '9', '13a')"
+__version__ = "('2019', '10', '17a')"
 
 
 def calc_TN93_P(double[::1] mprobs not None, double time,

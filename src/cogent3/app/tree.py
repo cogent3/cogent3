@@ -1,14 +1,19 @@
 from cogent3 import make_tree
 from cogent3.phylo.nj import gnj
 
-from .composable import ComposableTree
+from .composable import (
+    PAIRWISE_DISTANCE_TYPE,
+    SERIALISABLE_TYPE,
+    TREE_TYPE,
+    ComposableTree,
+)
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.9.13a"
+__version__ = "2019.10.17a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -20,8 +25,8 @@ class scale_branches(ComposableTree):
 
     def __init__(self, nuc_to_codon=None, codon_to_nuc=None, scalar=1, min_length=1e-6):
         super(scale_branches, self).__init__(
-            input_types="tree",
-            output_types=("tree", "serialisable"),
+            input_types=TREE_TYPE,
+            output_types=(TREE_TYPE, SERIALISABLE_TYPE),
             data_types=("PhyloNode", "TreeNode"),
         )
         """returns a new tree with lengths divided by scalar
@@ -71,8 +76,8 @@ class uniformize_tree(ComposableTree):
 
     def __init__(self, root_at="midpoint", ordered_names=None):
         super(uniformize_tree, self).__init__(
-            input_types="tree",
-            output_types=("tree", "serialisable"),
+            input_types=TREE_TYPE,
+            output_types=(TREE_TYPE, SERIALISABLE_TYPE),
             data_types=("PhyloNode", "TreeNode"),
         )
         """returns a new tree with standardised orientation
@@ -117,8 +122,8 @@ class quick_tree(ComposableTree):
             if False, an ArithmeticError is raised if a distance could not be computed on observed data.
         """
         super(quick_tree, self).__init__(
-            input_types="pairwise_distances",
-            output_types=("tree", "serialisable"),
+            input_types=PAIRWISE_DISTANCE_TYPE,
+            output_types=(TREE_TYPE, SERIALISABLE_TYPE),
             data_types="DistanceMatrix",
         )
         self._formatted_params()

@@ -4,14 +4,19 @@ from cogent3.core.alignment import SequenceCollection
 from cogent3.core.genetic_code import DEFAULT, get_code
 from cogent3.core.moltype import get_moltype
 
-from .composable import ComposableSeq, NotCompleted
+from .composable import (
+    ALIGNED_TYPE,
+    SEQUENCE_TYPE,
+    ComposableSeq,
+    NotCompleted,
+)
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.9.13a"
+__version__ = "2019.10.17a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -178,8 +183,8 @@ class select_translatable(ComposableSeq):
         are excluded.
         """
         super(select_translatable, self).__init__(
-            input_types=("sequences", "aligned"),
-            output_types="sequences",
+            input_types=(SEQUENCE_TYPE, ALIGNED_TYPE),
+            output_types=SEQUENCE_TYPE,
             data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
         )
         self._formatted_params()

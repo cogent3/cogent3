@@ -10,7 +10,7 @@ __author__ = "Rahul Ghangas and Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Rahul Ghangas", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.9.13a"
+__version__ = "2019.10.17a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -45,7 +45,8 @@ def _show_(cls, renderer=None, **kwargs):
     fig = getattr(drawable, "figure", None)
     if fig is None:
         raise TypeError(f"{cls} does not have a drawable or figure attribute")
-
+    kwargs["width"] = kwargs.get("width", fig.layout.width)
+    kwargs["height"] = kwargs.get("height", fig.layout.height)
     show(fig, **kwargs)
 
 
@@ -99,6 +100,7 @@ class Drawable:
             xaxis=dict(visible=visible_axes),
             yaxis=dict(visible=visible_axes),
             hovermode="closest",
+            template=None,
             plot_bgcolor=None,
             margin=dict(l=50, r=50, t=50, b=50, pad=4),
         )
@@ -185,13 +187,39 @@ class Drawable:
         """writes static image file, suffix dictates format"""
         from plotly.io import write_image
 
-        write_image(self.figure, path, **kwargs)
+        fig = self.figure
+        kwargs["width"] = kwargs.get("width", fig.layout.width)
+        kwargs["height"] = kwargs.get("height", fig.layout.height)
+
+        write_image(fig, path, **kwargs)
 
     def to_image(self, format="png", **kwargs):
         """creates static image, suffix dictates format"""
         from plotly.io import to_image
 
-        return to_image(self.figure, format=format, **kwargs)
+        fig = self.figure
+        kwargs["width"] = kwargs.get("width", fig.layout.width)
+        kwargs["height"] = kwargs.get("height", fig.layout.height)
+
+        return to_image(fig, format=format, **kwargs)
+
+    @property
+    def fig_width(self):
+        """figure width, also settable via .layout.width"""
+        return self.layout.width
+
+    @fig_width.setter
+    def fig_width(self, width):
+        self.layout.width = width
+
+    @property
+    def fig_height(self):
+        """figure height, also settable via .layout.height"""
+        return self.layout.height
+
+    @fig_height.setter
+    def fig_height(self, height):
+        self.layout.height = height
 
 
 _ticks_off = (

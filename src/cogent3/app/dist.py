@@ -7,14 +7,19 @@ from cogent3.evolve.fast_distance import (
 )
 from cogent3.evolve.models import get_model
 
-from .composable import ComposableDistance
+from .composable import (
+    ALIGNED_TYPE,
+    PAIRWISE_DISTANCE_TYPE,
+    SERIALISABLE_TYPE,
+    ComposableDistance,
+)
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.9.13a"
+__version__ = "2019.10.17a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -27,8 +32,8 @@ class fast_slow_dist(ComposableDistance):
 
     def __init__(self, distance=None, moltype=None, fast_calc=None, slow_calc=None):
         super(fast_slow_dist, self).__init__(
-            input_types="aligned",
-            output_types=("pairwise_distances", "serialisable"),
+            input_types=ALIGNED_TYPE,
+            output_types=(PAIRWISE_DISTANCE_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment"),
         )
         self._moltype = moltype if moltype is None else get_moltype(moltype)
