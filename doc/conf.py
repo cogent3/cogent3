@@ -19,8 +19,8 @@ templates_path = ["templates"]
 # The suffix of source filenames.
 source_suffix = ".rst", ".ipynb"
 
-# ignore the cookbook/ensembl.rst file as it's specifically imported
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
+# ignore the cookbook/union_dict.rst file as it's specifically included
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints", "cookbook/union_dict.rst"]
 
 # The encoding of source files.
 # source_encoding = 'utf-8'
