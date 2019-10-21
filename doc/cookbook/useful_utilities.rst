@@ -4,6 +4,8 @@ Useful Utilities
 
 .. authors, Daniel McDonald, Gavin Huttley, Antonio Gonzalez Pena, Rob Knight
 
+.. include:: union_dict.rst
+
 Using Cogent3's optimisers for your own functions
 ===================================================
 
@@ -44,7 +46,7 @@ Miscellaneous functions
 .. index:: cogent3.util.misc
 
 Identity testing
-^^^^^^^^^^^^^^^^
+----------------
 
 Basic ``identity`` function to avoid having to test explicitly for None
 
@@ -60,7 +62,7 @@ Basic ``identity`` function to avoid having to test explicitly for None
     bar
 
 Force a variable to be iterable
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------
 
 This support method will force a variable to be an iterable, allowing you to guarantee that the variable will be safe for use in, say, a ``for`` loop.
 
@@ -79,7 +81,7 @@ This support method will force a variable to be an iterable, allowing you to gua
     10
 
 Curry a function
-^^^^^^^^^^^^^^^^
+----------------
 
 curry(f,x)(y) = f(x,y) or = lambda y: f(x,y). This was modified from the Python Cookbook. Docstrings are also carried over.
 
@@ -99,7 +101,7 @@ curry(f,x)(y) = f(x,y) or = lambda y: f(x,y). This was modified from the Python 
     15
 
 Test to see if an object is iterable
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------
 
 Perform a simple test to see if an object supports iteration
 
@@ -114,7 +116,7 @@ Perform a simple test to see if an object supports iteration
     False
 
 Test to see if an object is a single char
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------
 
 Perform a simple test to see if an object is a single character
 
@@ -132,7 +134,7 @@ Perform a simple test to see if an object is a single character
     False
 
 Flatten a deeply nested iterable
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
 To flatten a deeply nested iterable, use ``recursive_flatten``. This method supports multiple levels of nesting, and multiple iterable types
 
@@ -144,7 +146,7 @@ To flatten a deeply nested iterable, use ``recursive_flatten``. This method supp
     [1, 2, 'a', 'b', 'c', 'd', 'e', 5, 6, 7, 8, 9, 10]
 
 Test to determine if ``list`` of ``tuple``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------
 
 Perform a simple check to see if an object is not a list or a tuple
 
@@ -159,7 +161,7 @@ Perform a simple check to see if an object is not a list or a tuple
     True
 
 Create a case-insensitive iterable
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------
 
 Create a case-insensitive object, for instance, if you want the key 'a' and 'A' to point to the same item in a dict
 
@@ -171,7 +173,7 @@ Create a case-insensitive object, for instance, if you want the key 'a' and 'A' 
     {'A': 5, 'a': 5, 'C': 7, 'B': 6, 42: 'life', 'c': 7, 'b': 6, 'foo': 8}
 
 Construct a distance matrix lookup function
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------
 
 Automatically construct a distance matrix lookup function. This is useful for maintaining flexibility about whether a function is being computed or if a lookup is being used
 
@@ -187,7 +189,7 @@ Automatically construct a distance matrix lookup function. This is useful for ma
     6
 
 Check class types
-^^^^^^^^^^^^^^^^^
+-----------------
 
 Check an object against base classes or derived classes to see if it is acceptable
 
@@ -221,7 +223,7 @@ Check an object against base classes or derived classes to see if it is acceptab
     True
 
 Delegate to a separate object
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------
 
 Delegate object method calls, properties and variables to the appropriate object. Useful to combine multiple objects together while assuring that the calls will go to the correct object.
 
@@ -245,7 +247,7 @@ Delegate object method calls, properties and variables to the appropriate object
     ['ab', 'cd']
 
 Wrap a function to hide from a class
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------
 
 Wrap a function to hide it from a class so that it isn't a method.
 
@@ -259,7 +261,7 @@ Wrap a function to hide it from a class so that it isn't a method.
     '123'
 
 Construct a constrained container
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------
 
 Wrap a container with a constraint. This is useful for enforcing that the data contained is valid within a defined context. Cogent3 provides a base ``ConstrainedContainer`` which can be used to construct user-defined constrained objects. Cogent3 also provides ``ConstrainedString``, ``ConstrainedList``, and ``ConstrainedDict``. These provided types fully cover the builtin types while staying integrated with the ``ConstrainedContainer``.
 
