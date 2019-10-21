@@ -1,3 +1,11 @@
+resources:
+  repositories:
+  - repository: tox
+    type: github
+    endpoint: github
+    name: tox-dev/azure-pipelines-template
+    ref: refs/tags/0
+
 trigger:
   - master
 
@@ -5,39 +13,16 @@ variables:
   CODECOV_TOKEN: 504b0637-b4c1-4991-bc79-7a29aee41b44
 
 jobs:
-- job: linux
-  pool: {vmImage: 'Ubuntu-16.04'}
-  strategy:
-    matrix:
-        py36:
-          python.version: '3.6'
-          tox.env: py36
-        py37:
-          python.version: '3.7'
-          tox.env: py37
-  steps:
-    - task: UsePythonVersion@0
-    - bash: |
-        python -m pip install --upgrade pip
-        python -m pip install .[dev]
-        tox -e $(tox.env)
-        codecov
-- job: macos
-  pool: {vmImage: 'macOS-10.14'}
-  steps: 
-    - task: UsePythonVersion@0
-    - bash: |
-        python -m pip install --upgrade pip
-        python -m pip install .[dev]
-        tox -e py37
-        codecov
-- job: windows
-  pool: {vmImage: 'vs2017-win2016'}
-  steps:
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
-    - bash: |
-        python -m pip install --upgrade pip
-        python -m pip install .[dev]
-        tox -e py37
-        codecov
+- template: run-tox-env.yml@tox
+  parameters:
+    tox_version: ''
+    jobs:
+      fix_lint: null
+      docs: null
+      py37:
+        image: [linux, windows, macOs]
+      py36:
+        image: [linux, windows, macOs]
+    coverage:
+      with_toxenv: 'coverage'
+      for_envs: [py37, py36]
