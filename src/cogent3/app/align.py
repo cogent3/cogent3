@@ -30,6 +30,24 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
+class _GapInRef:
+    """assumes first element of series is reference, returns True if that matches
+    gap_state"""
+
+    def __init__(self, moltype, gap):
+        self.gap_state = moltype.alphabet.to_indices(gap)[0]
+        self.func = self._ref_gap if gap == "-" else self._array_ref_gap
+
+    def _ref_gap(self, x):
+        return x[0] != self.gap_state
+
+    def _array_ref_gap(self, x):
+        return x.flatten()[0] != self.gap_state
+
+    def __call__(self, x):
+        return self.func(x)
+
+
 class align_to_ref(ComposableSeq):
     """Aligns to a reference seq, no gaps in the reference.
     Returns an Alignment object."""
@@ -80,6 +98,8 @@ class align_to_ref(ComposableSeq):
             self.func = self.align_to_named_seq
             self._ref_name = ref_seq
 
+        self._gap_state = None  # can be character or int, depends on aligner
+
     def align_to_longest(self, seqs):
         """returns alignment to longest seq"""
         seqs = seqs.to_moltype(self._moltype)
@@ -95,21 +115,6 @@ class align_to_ref(ComposableSeq):
         ref_seq = seqs.get_seq(self._ref_name)
         aligned = None
         kwargs = self._kwargs.copy()
-
-        def gap_in_ref(gap_char):
-            gap_char = gap_char[0]
-
-            def array_ref_gap(x):
-                r = x.flatten()[0] != gap_char
-                return r
-
-            def standard_ref_gap(x):
-                r = x[0] != gap_char
-                return r
-
-            func = {"-": standard_ref_gap}.get(gap_char, array_ref_gap)
-            return func
-
         no_ref_gap = None
 
         for i in range(seqs.num_seqs):
@@ -119,8 +124,7 @@ class align_to_ref(ComposableSeq):
 
             result = global_pairwise(ref_seq, seq, **kwargs)
             if no_ref_gap is None:
-                gap = result.moltype.alphabet.to_indices(seqs.moltype.gap)
-                no_ref_gap = gap_in_ref(gap)
+                no_ref_gap = _GapInRef(result.moltype, seqs.moltype.gap)
 
             # as we're going to be using a pairwise distance that excludes gaps
             # eliminating positions with deletions in the reference
@@ -131,7 +135,8 @@ class align_to_ref(ComposableSeq):
 
             aligned = aligned.add_from_ref_aln(result.to_type(array_align=False))
 
-        new = ArrayAlignment(aligned.to_dict(), moltype=seqs.moltype, info=seqs.info)
+        # default to ArrayAlign
+        new = aligned.to_type(array_align=True)
         return new
 
 
