@@ -17,12 +17,10 @@ jobs:
   parameters:
     tox_version: ''
     jobs:
-      fix_lint: null
-      docs: null
       py37:
         image: [linux, windows, macOs]
       py36:
-        image: [linux, windows, macOs]
+        image: [linux]
     coverage:
       with_toxenv: 'coverage'
-      for_envs: [py37, py36]
+      for_envs: [py37]
