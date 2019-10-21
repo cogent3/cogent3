@@ -89,6 +89,8 @@ def main(file_paths, just, exclude, exit_on_first, suffix, verbose):
 
     if "," in file_paths:
         file_paths = file_paths.split(",")
+    elif pathlib.Path(file_paths).is_file():
+        file_paths = [file_paths]
     else:
         file_paths = list(pathlib.Path(file_paths).glob(f"*.{suffix}"))
 
