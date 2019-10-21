@@ -176,6 +176,7 @@ setup(
             "sphinx",
             "sphinx_rtd_theme",
             "sphinx-autobuild",
+            "sphinxcontrib-bibtex",
             "numpydoc",
             "nbformat",
             "nbconvert",
