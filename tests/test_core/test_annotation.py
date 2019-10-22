@@ -163,6 +163,8 @@ class TestAnnotations(unittest.TestCase):
             self.assertEqual(src.get_coordinates(), dest.get_coordinates())
             self.assertIsInstance(src, dest.__class__)
             self.assertIs(dest.parent, seq)
+        with self.assertRaises(AssertionError):
+            _ = annot.copy_annotations_to(seq[:-2])
 
     def test_reverse_complement(self):
         """test correct translation of annotations on reverse complement."""
