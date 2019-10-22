@@ -12,7 +12,6 @@ __all__ = [
     "scipy_optimize",
     "simannealingoptimiser",
     "solve",
-    "svd",
     "util",
 ]
 
