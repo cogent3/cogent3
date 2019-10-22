@@ -1,12 +1,9 @@
 #!/usr/bin/env python
-
-
 import math
-import warnings
 
 import numpy
 
-from cogent3.maths.scipy_optimize import brent, fmin, fmin_bfgs, fmin_powell
+from cogent3.maths.scipy_optimize import brent, fmin_powell
 
 
 __author__ = "Peter Maxwell and Gavin Huttley"
@@ -113,14 +110,6 @@ class Powell(_SciPyOptimiser):
         # same length full-results tuple as simplex:
         (xopt, fval, directions, iterations, func_calls, warnflag) = result
         return (xopt, fval, iterations, func_calls, warnflag)
-
-
-class DownhillSimplex(_SciPyOptimiser):
-    """On a small brca1 tree this fails to find a minimum as good as the
-    other optimisers.  Restarts help a lot though."""
-
-    def _minimise(self, f, x, **kw):
-        return fmin(f, x, **kw)
 
 
 DefaultLocalOptimiser = Powell

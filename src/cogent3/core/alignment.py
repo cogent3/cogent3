@@ -4466,6 +4466,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         result = defaultdict(list)
         for a in self.get_annotations_from_any_seq():
             d = a.get_drawable()
+            if not d:
+                continue
             result[a.type].append(d)
 
         return result

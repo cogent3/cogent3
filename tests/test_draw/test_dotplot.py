@@ -118,31 +118,6 @@ class TestUtilFunctions(TestCase):
         self.assertEqual(len(dp.traces), 1)
         self.assertEqual(dp.traces[0].name, "+ strand")
 
-    def test_dotplot_regression(self):
-        """Tests whether dotplot produces traces and in correct ordering. Also tests if pop_trace() works"""
-        aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
-        aln = aln.take_seqs(["Human", "Chimpanzee"])
-        aln = aln[:200]
-        dp = aln.dotplot()
-        dp.figure
-        trace_names = dp.get_trace_titles()
-
-        self.assertTrue(
-            dp.get_trace_titles() != [] and len(trace_names) == len(dp.traces),
-            "No traces found for dotplot",
-        )
-        self.assertTrue(
-            [trace_names[i] == dp.traces[i]["name"] for i in range(len(trace_names))],
-            "Order of traces don't match with get_trace_titles()",
-        )
-
-        for trace_name in trace_names:
-            dp.pop_trace(trace_name)
-            self.assertFalse(
-                trace_name in dp.get_trace_titles(),
-                "Trace name still present in get_trace_titles() even after popping off trace",
-            )
-
 
 if __name__ == "__main__":
     main()
