@@ -10,7 +10,7 @@ import numpy
 
 from cogent3.util import progress_display as UI
 
-from .scipy_optimisers import DownhillSimplex, Powell
+from .scipy_optimisers import Powell
 from .simannealingoptimiser import SimulatedAnnealing
 
 
