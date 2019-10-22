@@ -8,6 +8,7 @@ from cogent3.draw.dendrogram import (
     Dendrogram,
     SquareTreeGeometry,
 )
+from cogent3.util.deserialise import deserialise_object
 from cogent3.util.union_dict import UnionDict
 
 
@@ -128,6 +129,35 @@ class TestDendro(TestCase):
             self.assertTrue("data" in fig)
             # data traces should be of type "scatter"
             self.assertEqual({tr.type for tr in fig.data}, {"scatter"})
+
+    def test_dendro_with_support(self):
+        """exercising creating dendrograms with support measure"""
+        data = {
+            "newick": "(A,(B,C)edge.1,(D,E)edge.0)",
+            "edge_attributes": {
+                "A": {"support": 1.0, "length": 0.148},
+                "B": {"support": 1.0, "length": 0.098},
+                "C": {"support": 1.0, "length": 0.134},
+                "edge.1": {"support": 0.8, "length": 0.016},
+                "D": {"support": 1.0, "length": 0.087},
+                "E": {"support": 1.0, "length": 0.048},
+                "edge.0": {"support": 0.6, "length": 0.131},
+                "root": {"length": None},
+            },
+            "type": "cogent3.core.tree.PhyloNode",
+            "version": "2019.10.17a",
+        }
+        tree = deserialise_object(data)
+        # currently not supported for "circular", "radial"
+        for style in ("square", "angular"):
+            y_support = Dendrogram(tree, style=style, show_support=True, threshold=0.8)
+            n_support = Dendrogram(tree, style=style, show_support=False)
+            self.assertEqual(
+                len(y_support.figure.layout.annotations)
+                - len(n_support.figure.layout.annotations),
+                2,
+                style,
+            )
 
 
 if __name__ == "__main__":
