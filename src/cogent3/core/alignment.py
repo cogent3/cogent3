@@ -4457,7 +4457,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
     def to_moltype(self, moltype):
         """returns copy of self with moltype seqs"""
         new = super().to_moltype(moltype)
-        new = self.copy_annotations_to(new)
+        for annot in self.annotations:
+            new = annot.copy_annotations_to(new)
         return new
 
     def get_drawables(self):
