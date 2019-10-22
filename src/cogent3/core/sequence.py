@@ -717,10 +717,10 @@ class Sequence(_Annotatable, SequenceI):
 
         moltype = get_moltype(moltype)
         make_seq = moltype.make_seq
-        new = make_seq(self)
+        new = make_seq(self, name=self.name)
         new.clear_annotations()
         for ann in self.annotations:
-            ann.copy_to_seq(new)
+            ann.copy_annotations_to(new)
         return new
 
     def _seq_filter(self, seq):

@@ -173,41 +173,6 @@ class _Annotatable:
     def add_feature(self, type, name, spans):
         return self.add_annotation(Feature, type, name, spans)
 
-    def copy_to_seq(self, seq):
-        """creates a new annotation with identical content on a new sequence
-
-        Parameters
-        ----------
-        seq : Sequence
-            represents the new sequence.
-
-        Returns
-        -------
-        a new annotation
-        """
-        assert len(seq) == len(self.parent)
-        serialisable = copy.deepcopy(self._serialisable)
-        serialisable["parent"] = seq
-        new = self.__class__(**serialisable)
-        seq.attach_annotations([new])
-        return new
-
-    def copy_annotations_to(self, annotatable):
-        """copies annotations to another annotatable object
-
-        Parameters
-        ----------
-        annotatable : _Annotatable
-            another annotatable object
-
-        Returns
-        -------
-        the processed annotatable object
-        """
-        annotations = copy.deepcopy(self.annotations)
-        annotatable.attach_annotations(annotations)
-        return annotatable
-
     def get_annotations_matching(self, annotation_type, name=None):
         """
 
@@ -395,6 +360,25 @@ class _Feature(_Annotatable, _Serialisable):
         """returns sequence coordinates of this Feature as
         [(start1, end1), ...]"""
         return self.map.get_coordinates()
+
+    def copy_annotations_to(self, annotatable):
+        """copies annotations to another annotatable object
+
+        Parameters
+        ----------
+        annotatable : _Annotatable
+            another annotatable object
+
+        Returns
+        -------
+        the processed annotatable object
+        """
+        assert len(annotatable) == len(self.parent)
+        serialisable = copy.deepcopy(self._serialisable)
+        serialisable["parent"] = annotatable
+        new = self.__class__(**serialisable)
+        annotatable.attach_annotations([new])
+        return annotatable
 
 
 class AnnotatableFeature(_Feature):
