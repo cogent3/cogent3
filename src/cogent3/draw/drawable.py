@@ -749,6 +749,9 @@ class _MakeShape:
         from cogent3.core.annotation import _Annotatable
 
         if isinstance(type_, _Annotatable):
+            if not type_.map.useful:
+                return None
+
             name = type_.name
             coords = type_.map.get_coordinates()
             reverse = type_.map.get_covering_span().reverse
