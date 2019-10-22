@@ -214,7 +214,7 @@ class TableDrawablesTest(BaseDrawablesTests):
     """single Table method produces a Drawable"""
 
     def test_to_plotly(self):
-        """produces a plotly table"""
+        """exercise producing a plotly table"""
         table = make_table(header=["a", "b"], rows=[[0, 1]])
         drawable = table.to_plotly()
         self.assertIsInstance(drawable, Drawable)
