@@ -1334,7 +1334,6 @@ class Table(DictArray):
 
     def to_plotly(self, width=500, font_size=12, layout=None, **kwargs):
         """returns a Plotly Table"""
-        import plotly.graph_objs as go
         from cogent3.draw.drawable import Drawable
 
         rows = self.array.tolist()
