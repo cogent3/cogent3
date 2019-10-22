@@ -109,6 +109,7 @@ class Drawable:
         self.layout |= layout
         self.xtitle = xtitle
         self.ytitle = ytitle
+        self.title = title
 
     def _repr_html_(self):
         self.show()
