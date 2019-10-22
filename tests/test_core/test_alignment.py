@@ -1182,6 +1182,7 @@ class SequenceCollectionBaseTests(object):
         data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
         seqs = self.Class(data=data)
         dna = seqs.to_moltype("dna")
+        self.assertEqual(dna.moltype.label, "dna")
         rc = dna.rc().to_dict()
         expect = {"seq1": "TACGTACGT", "seq2": "---TTCGGT", "seq3": "AACGTACGT"}
         self.assertEqual(rc, expect)
@@ -1189,6 +1190,7 @@ class SequenceCollectionBaseTests(object):
         data = {"seq1": "TTTTTTAAAA", "seq2": "AAAATTTTTT", "seq3": "AATTTTTAAA"}
         seqs = self.Class(data=data)
         rna = seqs.to_moltype("rna")
+        self.assertEqual(rna.moltype.label, "rna")
         rc = rna.rc().to_dict()
         expect = {"seq1": "UUUUAAAAAA", "seq2": "AAAAAAUUUU", "seq3": "UUUAAAAAUU"}
         self.assertEqual(rc, expect)
@@ -2477,13 +2479,20 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         s2.add_annotation(Feature, "exon", "fred", [(4, 10)])
         s3.add_annotation(Feature, "exon", "fred", [(2, 7)])
         data = {"seq1": s1, "seq2": s2, "seq3": s3}
-        seqs = self.Class(data=data)
-        seqs.add_feature("demo", "one", [(0, 1), (2, 4)])
-        rna = seqs.to_moltype("rna")
-        for seq in rna.seqs:
-            self.assertIsInstance(seq.data.annotations[0], _Annotatable)
-        self.assertIsInstance(seqs.annotations[0], _Annotatable)
+        aln = self.Class(data=data)
+        aln.add_feature("demo", "one", [(0, 1), (2, 4)])
+        rna = aln.to_moltype("rna")
+        for name in rna.names:
+            orig_seq = aln.get_seq(name)
+            new_seq = rna.get_seq(name)
+            self.assertEqual(len(orig_seq.annotations), len(new_seq.annotations))
+            for src, dest in zip(orig_seq.annotations, new_seq.annotations):
+                self.assertEqual(src.get_coordinates(), dest.get_coordinates())
+                self.assertIsInstance(src, dest.__class__)
+                self.assertIs(dest.parent, new_seq)
+        # check the sequence moltypes
         self.assertEqual({s.data.moltype.label for s in rna.seqs}, {"rna"})
+        self.assertEqual(rna.moltype.label, "rna")
 
     def test_rename_handles_annotations(self):
         """rename seqs on Alignment preserves annotations"""
