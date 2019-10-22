@@ -705,25 +705,22 @@ class Sequence(_Annotatable, SequenceI):
         if isinstance(orig_seq, _Annotatable):
             self.copy_annotations(orig_seq)
 
-    def to_moltype(self, moltype, name=None):
+    def to_moltype(self, moltype):
         """returns copy of self with moltype seq
 
         Parameters
         ----------
         moltype : str
             molecular type
-
-        name : str
-            the new sequence name
         """
         from cogent3 import get_moltype
 
         moltype = get_moltype(moltype)
         make_seq = moltype.make_seq
-        new = make_seq(self, name)
+        new = make_seq(self, name=self.name)
         new.clear_annotations()
         for ann in self.annotations:
-            ann.copy_to_seq(new)
+            ann.copy_annotations_to(new)
         return new
 
     def _seq_filter(self, seq):
