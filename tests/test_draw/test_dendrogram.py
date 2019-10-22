@@ -8,6 +8,7 @@ from cogent3.draw.dendrogram import (
     Dendrogram,
     SquareTreeGeometry,
 )
+from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Gavin Huttley and Rahul Ghangas"
@@ -113,6 +114,20 @@ class TestDendro(TestCase):
         ]
 
         assert_allclose(actual_vals, expected_vals)
+
+    def test_dendro_shape(self):
+        """exercising using different values of shape parameter"""
+        tree = make_tree(treestring="(a:0.1,b:0.1,(c:0.05,(d:0.01,e:0.02):0.01):0.1)")
+        for style in ("square", "angular", "circular", "radial"):
+            dnd = Dendrogram(tree, style=style)
+            # the figure attribute should be a dict
+            fig = dnd.figure
+            self.assertIsInstance(fig, UnionDict)
+            # should have a layout and a data key
+            self.assertTrue("layout" in fig)
+            self.assertTrue("data" in fig)
+            # data traces should be of type "scatter"
+            self.assertEqual({tr.type for tr in fig.data}, {"scatter"})
 
 
 if __name__ == "__main__":
