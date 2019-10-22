@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-__all__ = ["dendrogram", "dotplot", "drawable", "simplex"]
+__all__ = ["dendrogram", "dotplot", "drawable"]
 
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __contributors__ = [
