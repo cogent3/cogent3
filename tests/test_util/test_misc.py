@@ -59,7 +59,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.10.17a"
+__version__ = "2019.10.24a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
