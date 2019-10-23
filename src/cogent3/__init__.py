@@ -69,7 +69,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.10.17a"
+__version__ = "2019.10.24a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
