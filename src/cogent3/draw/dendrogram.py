@@ -216,10 +216,12 @@ class TreeGeometryBase(PhyloNode):
         # todo, possibly also return a rotation?
         raise NotImplementedError("implement in sub-class")
 
-    def support_text_coord(self, padding=0.1, threshold=1, max_attr_length=4):
+    def support_text_coord(self, xshift, yshift, threshold=1, max_attr_length=4):
         """
         Parameters
         ----------
+        xshift, yshift : int
+            relative position (in pixels) of text
         threshold : float
             values below this will be displayed
         max_attr_length: int or None
@@ -229,6 +231,9 @@ class TreeGeometryBase(PhyloNode):
         -------
         None if threshold not met, else params['support'] and coords
         """
+        if self.is_tip():
+            return None
+
         val = self.params.get("support", None)
         if val is None or val > threshold or self.is_tip():
             return None
@@ -236,7 +241,8 @@ class TreeGeometryBase(PhyloNode):
         data = UnionDict(
             x=x,
             y=self.y,
-            xshift=padding,
+            xshift=xshift,
+            yshift=yshift,
             textangle=self.theta,
             showarrow=False,
             text=f"{val:.2f}",
@@ -424,7 +430,7 @@ class CircularTreeGeometry(TreeGeometryBase):
         return data
 
     @extend_docstring_from(TreeGeometryBase.support_text_coord)
-    def support_text_coord(self, padding=0.05, threshold=1, max_attr_length=4):
+    def support_text_coord(self, xshift, yshift, threshold=1, max_attr_length=4):
         from warnings import warn
 
         warn("Display of support on circular/radial not implemented yet", UserWarning)
@@ -521,6 +527,8 @@ class Dendrogram(Drawable):
             show_support = False
         self._show_support = show_support
         self._threshold = threshold
+        self._support_xshift = -14
+        self._support_yshift = 7
         self.layout.autosize = True
 
     @property
@@ -543,6 +551,24 @@ class Dendrogram(Drawable):
         self._traces = []
 
     @property
+    def support_xshift(self):
+        """relative x position (in pixels) of support text. Can be negative or positive."""
+        return self._support_xshift
+
+    @support_xshift.setter
+    def support_xshift(self, value):
+        self._support_xshift = value
+
+    @property
+    def support_yshift(self):
+        """relative y position (in pixels) of support text. Can be negative or positive."""
+        return self._support_yshift
+
+    @support_yshift.setter
+    def support_yshift(self, value):
+        self._support_yshift = value
+
+    @property
     def contemporaneous(self):
         return self._contemporaneous
 
@@ -551,7 +577,6 @@ class Dendrogram(Drawable):
         if not type(value) == bool:
             raise TypeError
         if self._contemporaneous != value:
-            self._label_pad = None
             klass = self.tree.__class__
             length_attr = "frac_pos" if value else self._length_attr
             self.tree = klass(self.tree, length_attr=length_attr)
@@ -660,7 +685,9 @@ class Dendrogram(Drawable):
             text["text"].append(edge_label.text)
             if self.show_support:
                 support = edge.support_text_coord(
-                    self.label_pad, threshold=self.support_threshold
+                    self.support_xshift,
+                    self.support_yshift,
+                    threshold=self.support_threshold,
                 )
                 if support is not None:
                     support |= UnionDict(xref="x", yref="y", font=self.tip_font)
