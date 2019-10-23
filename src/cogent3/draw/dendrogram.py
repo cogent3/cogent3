@@ -577,7 +577,6 @@ class Dendrogram(Drawable):
         if not type(value) == bool:
             raise TypeError
         if self._contemporaneous != value:
-            self._label_pad = None
             klass = self.tree.__class__
             length_attr = "frac_pos" if value else self._length_attr
             self.tree = klass(self.tree, length_attr=length_attr)
