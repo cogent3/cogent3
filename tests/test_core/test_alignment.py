@@ -12,8 +12,9 @@ import numpy
 from numpy import arange, array, nan, transpose
 from numpy.testing import assert_allclose
 
-from cogent3 import load_aligned_seqs, load_unaligned_seqs
+from cogent3 import load_aligned_seqs, load_unaligned_seqs, make_seq
 from cogent3.core.alignment import (
+    Aligned,
     Alignment,
     ArrayAlignment,
     DataError,
@@ -1401,6 +1402,12 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         with self.assertRaises(AssertionError):
             _ = seqs.apply_pssm(path="data/sample.jaspar", show_progress=False)
 
+    def test_construction(self):
+        """correctly construct from list of sequences of length 2"""
+        seq1 = make_seq("AC", name="seq1")
+        seq2 = make_seq("AC", name="seq2")
+        coll = SequenceCollection(data=[seq1, seq2])
+
 
 def _make_filter_func(aln):
     array_align = type(aln) == ArrayAlignment
@@ -2505,6 +2512,14 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         new = seqs.rename_seqs(lambda x: x.upper())
         got = list(new.get_annotations_from_any_seq("exon"))[0]
         self.assertEqual(got.get_slice().to_dict()["SEQ1"], expect)
+
+    def test_construction(self):
+        """correctly construct from list of sequences of length 2"""
+        seq1 = make_seq("AC-", name="seq1")
+        seq1 = Aligned(*seq1.parse_out_gaps())
+        seq2 = make_seq("ACG", name="seq2")
+        seq2 = Aligned(*seq2.parse_out_gaps())
+        coll = self.Class(data=[seq1, seq2])
 
 
 class ArrayAlignmentSpecificTests(TestCase):
