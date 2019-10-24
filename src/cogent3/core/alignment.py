@@ -382,7 +382,7 @@ class SequenceCollection(object):
         "kv_pairs": seqs_from_kv_pairs,
     }
 
-    IsArray = set(["array", "array_seqs"])
+    is_array = set(["array", "array_seqs"])
 
     DefaultNameFunction = assign_sequential_names
 
@@ -629,7 +629,7 @@ class SequenceCollection(object):
         # figure out conversion function and whether it's an array
         if not conversion_f:
             input_type = self._guess_input_type(data)
-            is_array = input_type in self.IsArray
+            is_array = input_type in self.is_array
             conversion_f = self._input_handlers[input_type]
         # set seqs and names as properties
         if alphabet:
