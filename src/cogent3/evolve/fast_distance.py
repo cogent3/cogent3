@@ -442,10 +442,9 @@ class _PairwiseDistance(object):
 
         Parameters
         ----------
-        include_duplicates
-            all seqs included in the distances,
-            otherwise only unique sequences are included.
-
+        include_duplicates : bool
+            all seqs included in the distances, otherwise only unique sequences
+            are included.
         """
         if self._dists is None:
             return None
