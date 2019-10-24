@@ -698,6 +698,16 @@ class SequenceCollection(object):
         as a specific type. Note that bad sequences are not guaranteed to
         return 'empty', and may be recognized as another type incorrectly.
         """
+        from cogent3.core.sequence import Sequence
+
+        try:
+            length = len(data)
+        except TypeError:
+            length = 0
+
+        if length == 0:
+            return "empty"
+
         if isinstance(data, ArrayAlignment):
             return "array_aln"
         if isinstance(data, Alignment):
@@ -711,33 +721,25 @@ class SequenceCollection(object):
                 return "fasta"
             else:
                 return "generic"
-        first = None
-        try:
-            first = data[0]
-        except (IndexError, TypeError):
-            pass
-        try:
-            first = next(iter(data))
-        except (IndexError, TypeError, StopIteration):
-            pass
+
+        first = self._get_container_item(data)
         if first is None:
             return "empty"
-        try:
-            if isinstance(first, ArraySequence):  # model sequence base type
-                return "array_seqs"
-            elif hasattr(first, "dtype"):  # array object
-                return "array"
-            elif isinstance(first, str) and first.startswith(">"):
-                return "fasta"
-            else:
-                try:
-                    dict(data)
-                    return "kv_pairs"
-                except (TypeError, ValueError):
-                    pass
+
+        if isinstance(first, ArraySequence):  # model sequence base type
+            return "array_seqs"
+        if hasattr(first, "dtype"):  # array object
+            return "array"
+        if isinstance(first, str) and first.startswith(">"):
+            return "fasta"
+        if isinstance(first, Aligned) or isinstance(first, Sequence):
             return "generic"
-        except (IndexError, TypeError) as e:
-            return "empty"
+        try:
+            dict(data)
+            return "kv_pairs"
+        except (TypeError, ValueError):
+            pass
+        return "generic"
 
     def __eq__(self, other):
         """first tests as dict, then as str"""
