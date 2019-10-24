@@ -26,6 +26,7 @@ from cogent3.evolve.fast_distance import (
     JC69Pair,
     LogDetPair,
     ParalinearPair,
+    PercentIdentityPair,
     TN93Pair,
     _calculators,
     _fill_diversity_matrix,
@@ -142,6 +143,28 @@ class TestPair(TestCase):
         self.assertEqual(total, 10.0)
         self.assertEqual(dist, 2)
         self.assertEqual(p, 0.2)
+
+    def test_hamming_pair(self):
+        """get distances dict"""
+        calc = HammingPair(DNA, alignment=self.alignment)
+        calc.run(show_progress=False)
+        dists = calc.get_pairwise_distances()
+        dists = dists.to_dict()
+        dist = 2.0
+        expect = {("s1", "s2"): dist, ("s2", "s1"): dist}
+        self.assertEqual(list(dists.keys()), list(expect.keys()))
+        assert_allclose(list(dists.values()), list(expect.values()))
+
+    def test_percent_pair(self):
+        """get distances dict"""
+        calc = PercentIdentityPair(DNA, alignment=self.alignment)
+        calc.run(show_progress=False)
+        dists = calc.get_pairwise_distances()
+        dists = dists.to_dict()
+        dist = 0.2
+        expect = {("s1", "s2"): dist, ("s2", "s1"): dist}
+        self.assertEqual(list(dists.keys()), list(expect.keys()))
+        assert_allclose(list(dists.values()), list(expect.values()))
 
     def test_jc69_from_matrix(self):
         """compute JC69 from diversity matrix"""
@@ -542,7 +565,7 @@ class TestGetDisplayCalculators(TestCase):
     def test_available_distances(self):
         """available_distances has correct content"""
         content = available_distances()
-        self.assertEqual(content.shape, (5, 2))
+        self.assertEqual(content.shape, (6, 2))
         self.assertEqual(content["tn93", 1], "dna, rna")
 
 

@@ -6,9 +6,8 @@ from cogent3.align import (
 )
 from cogent3.align.progressive import TreeAlign
 from cogent3.app import dist
-from cogent3.core.alignment import ArrayAlignment
 from cogent3.core.moltype import get_moltype
-from cogent3.evolve.models import get_model, protein_models
+from cogent3.evolve.models import get_model
 
 from .composable import (
     ALIGNED_TYPE,
@@ -153,7 +152,7 @@ class progressive_align(ComposableSeq):
         unique_guides=False,
         indel_length=1e-1,
         indel_rate=1e-10,
-        distance="hamming",
+        distance="percent",
     ):
         """
         Parameters
@@ -182,9 +181,10 @@ class progressive_align(ComposableSeq):
         indel_length : float
             probability of gap extension
         distance : string
-            it allows the user to pick the distance measure
-            default is hamming
-            which is applicable for any moltype, and sequences with very high percent identify
+            the distance measure for building a guide tree. Default is 'percent',
+            the proportion of differences. This is applicable for any moltype,
+            and sequences with very high percent identity. For more diverged
+            sequences we recommend 'paralinear'.
         """
         super(progressive_align, self).__init__(
             input_types=SEQUENCE_TYPE,
@@ -199,8 +199,6 @@ class progressive_align(ComposableSeq):
         sm = {"codon": "MG94HKY", "nucleotide": "HKY85", "protein": "JTT92"}.get(
             model, model
         )
-        model = sm
-        param_vals = self._param_vals
         self._formatted_params()
         kwargs = {} if gc is None else dict(gc=gc)
         sm = get_model(sm, **kwargs)
@@ -211,8 +209,6 @@ class progressive_align(ComposableSeq):
         self._indel_rate = indel_rate
         self._moltype = moltype
         self._unique_guides = unique_guides
-        if guide_tree is None and self._moltype.label == "protein":
-            distance = "paralinear"
         self._distance = distance
         if callable(guide_tree):
             self._make_tree = guide_tree
@@ -228,7 +224,7 @@ class progressive_align(ComposableSeq):
         if guide_tree is not None:
             if type(guide_tree) == str:
                 guide_tree = make_tree(treestring=guide_tree)
-            # make sure no zero lengthsq
+            # make sure no zero lengths
             guide_tree = scale_branches()(guide_tree)
 
         self._guide_tree = guide_tree
