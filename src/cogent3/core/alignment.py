@@ -384,7 +384,7 @@ class SequenceCollection(object):
 
     is_array = set(["array", "array_seqs"])
 
-    DefaultNameFunction = assign_sequential_names
+    _make_names = assign_sequential_names
 
     def __init__(
         self,
@@ -645,7 +645,7 @@ class SequenceCollection(object):
         # default names
         if name_order is None:
             if (names is None) or (None in names):
-                per_seq_names = name_order = self.DefaultNameFunction(len(curr_seqs))
+                per_seq_names = name_order = self._make_names(len(curr_seqs))
             else:  # got names from seqs
                 per_seq_names = name_order = names
         else:
@@ -3469,7 +3469,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         if isinstance(data, ArrayAlignment):
             data = data._positions
         self.array_positions = data
-        self.names = names or self.DefaultNameFunction(len(data[0]))
+        self.names = names or self._make_names(len(data[0]))
 
     def _get_positions(self):
         """Override superclass positions to return positions as symbols."""
