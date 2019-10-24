@@ -143,6 +143,17 @@ class TestPair(TestCase):
         self.assertEqual(dist, 2)
         self.assertEqual(p, 0.2)
 
+    def test_hamming_pair(self):
+        """get distances dict"""
+        calc = HammingPair(DNA, alignment=self.alignment)
+        calc.run(show_progress=False)
+        dists = calc.get_pairwise_distances()
+        dists = dists.to_dict()
+        dist = 2.0
+        expect = {("s1", "s2"): dist, ("s2", "s1"): dist}
+        self.assertEqual(list(dists.keys()), list(expect.keys()))
+        assert_allclose(list(dists.values()), list(expect.values()))
+
     def test_jc69_from_matrix(self):
         """compute JC69 from diversity matrix"""
         s1 = seq_to_indices("ACGTACGTAC", self.dna_char_indices)
