@@ -442,10 +442,9 @@ class _PairwiseDistance(object):
 
         Parameters
         ----------
-        include_duplicates
-            all seqs included in the distances,
-            otherwise only unique sequences are included.
-
+        include_duplicates : bool
+            all seqs included in the distances, otherwise only unique sequences
+            are included.
         """
         if self._dists is None:
             return None
@@ -547,6 +546,36 @@ class HammingPair(_PairwiseDistance):
         self.func = _hamming
 
 
+class PercentIdentityPair(_PairwiseDistance):
+    """Percent identity distance calculator for pairwise alignments"""
+
+    valid_moltypes = ("dna", "rna", "protein", "text")
+
+    def __init__(self, moltype="text", *args, **kwargs):
+        """states: the valid sequence states"""
+        super(PercentIdentityPair, self).__init__(moltype, *args, **kwargs)
+        self.func = _hamming
+
+    def get_pairwise_distances(self, include_duplicates=True):
+        """returns a matrix of pairwise distances.
+
+        Parameters
+        ----------
+        include_duplicates : bool
+            all seqs included in the distances, otherwise only unique sequences
+            are included.
+        """
+        if self._dists is None:
+            return None
+
+        dists = {k: self._dists[k].fraction_variable for k in self._dists}
+        if include_duplicates:
+            dists = self._expand(dists)
+
+        result = DistanceMatrix(dists)
+        return result
+
+
 class _NucleicSeqPair(_PairwiseDistance):
     """base class pairwise distance calculator for nucleic acid seqs"""
 
@@ -640,6 +669,7 @@ _calculators = {
     "jc69": JC69Pair,
     "tn93": TN93Pair,
     "hamming": HammingPair,
+    "percent": PercentIdentityPair,
 }
 
 
