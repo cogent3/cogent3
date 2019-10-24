@@ -369,7 +369,7 @@ class SequenceCollection(object):
     - moltype: specifies what kind of sequences are in the collection
     """
 
-    InputHandlers = {
+    _input_handlers = {
         "array": seqs_from_array,
         "array_seqs": seqs_from_array_seqs,
         "generic": seqs_from_generic,
@@ -382,9 +382,9 @@ class SequenceCollection(object):
         "kv_pairs": seqs_from_kv_pairs,
     }
 
-    IsArray = set(["array", "array_seqs"])
+    is_array = set(["array", "array_seqs"])
 
-    DefaultNameFunction = assign_sequential_names
+    _make_names = assign_sequential_names
 
     def __init__(
         self,
@@ -629,8 +629,8 @@ class SequenceCollection(object):
         # figure out conversion function and whether it's an array
         if not conversion_f:
             input_type = self._guess_input_type(data)
-            is_array = input_type in self.IsArray
-            conversion_f = self.InputHandlers[input_type]
+            is_array = input_type in self.is_array
+            conversion_f = self._input_handlers[input_type]
         # set seqs and names as properties
         if alphabet:
             seqs, names = conversion_f(data, alphabet=alphabet)
@@ -645,7 +645,7 @@ class SequenceCollection(object):
         # default names
         if name_order is None:
             if (names is None) or (None in names):
-                per_seq_names = name_order = self.DefaultNameFunction(len(curr_seqs))
+                per_seq_names = name_order = self._make_names(len(curr_seqs))
             else:  # got names from seqs
                 per_seq_names = name_order = names
         else:
@@ -689,7 +689,7 @@ class SequenceCollection(object):
         return list(map(self.moltype.make_seq, seqs))
 
     def _guess_input_type(self, data):
-        """Guesses input type of data; returns result as key of InputHandlers.
+        """Guesses input type of data; returns result as key of _input_handlers.
 
         First checks whether data is an Alignment, then checks for some common
         string formats, then tries to do it based on string or array properties.
@@ -3420,8 +3420,8 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
 
     SequenceType: Constructor to use when building sequences. Default: Sequence
 
-    InputHandlers: dict of {input_type:input_handler} where input_handler is
-    from the InputHandlers above and input_type is a result of the method
+    _input_handlers: dict of {input_type:input_handler} where input_handler is
+    from the _input_handlers above and input_type is a result of the method
     self._guess_input_type (should always be a string).
 
     Creating a new array will always result in a new object unless you use
@@ -3440,7 +3440,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
     moltype = None  # will be set to BYTES on moltype import
     alphabet = None  # will be set to BYTES.alphabet on moltype import
 
-    InputHandlers = {
+    _input_handlers = {
         "array": aln_from_array,
         "array_seqs": aln_from_array_seqs,
         "generic": aln_from_generic,
@@ -3469,7 +3469,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
         if isinstance(data, ArrayAlignment):
             data = data._positions
         self.array_positions = data
-        self.names = names or self.DefaultNameFunction(len(data[0]))
+        self.names = names or self._make_names(len(data[0]))
 
     def _get_positions(self):
         """Override superclass positions to return positions as symbols."""
@@ -4011,7 +4011,7 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
 class CodonArrayAlignment(ArrayAlignment):
     """Stores alignment of gapped codons, no degenerate symbols."""
 
-    InputHandlers = {
+    _input_handlers = {
         "array": aln_from_array,
         "seqs": aln_from_array_seqs,
         "generic": aln_from_generic,
