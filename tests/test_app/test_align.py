@@ -138,6 +138,16 @@ class RefalignmentTests(TestCase):
         aligner = align_app.progressive_align(model="nucleotide", guide_tree=tree)
         aln = aligner(self.seqs)
         self.assertEqual(len(aln), 42)
+        # even if it has underscores in name
+        treestring = (
+            "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus_macaque:0.06," "Human:0.0):0.04);"
+        )
+        aligner = align_app.progressive_align(model="nucleotide", guide_tree=treestring)
+        data = self.seqs.to_dict()
+        data["Rhesus macaque"] = data.pop("Rhesus")
+        seqs = make_unaligned_seqs(data)
+        aln = aligner(seqs)
+        self.assertEqual(len(aln), 42)
 
     def test_progressive_align_codon(self):
         """progressive alignment with codon models"""

@@ -245,7 +245,7 @@ class TestUserFunction(TestCase):
         return val[:4]
 
     def bar(self, val, *args, **kwargs):
-        return val.distance_matrix(show_progress=False)
+        return val.distance_matrix(calc="hamming", show_progress=False)
 
     def test_user_function(self):
         """composable functions should be user definable"""
@@ -272,7 +272,6 @@ class TestUserFunction(TestCase):
 
         got_1 = u_function_1(aln_1)
         got_2 = u_function_2(aln_2)
-
         self.assertEqual(got_1.to_dict(), {"a": "GCAA", "b": "GCTT"})
         self.assertEqual(got_2, {("s1", "s2"): 2.0, ("s2", "s1"): 2.0})
 

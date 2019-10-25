@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from cogent3 import DNA, make_unaligned_seqs
+from cogent3 import DNA, make_aligned_seqs, make_unaligned_seqs
 from cogent3.app.composable import NotCompleted
 from cogent3.app.translate import (
     best_frame,
@@ -8,6 +8,7 @@ from cogent3.app.translate import (
     get_fourfold_degenerate_sets,
     select_translatable,
     translate_frames,
+    translate_seqs,
 )
 
 
@@ -21,7 +22,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-class TestTranslate(TestCase):
+class TestTranslatable(TestCase):
     """testing translation functions"""
 
     def test_best_frame(self):
@@ -85,6 +86,39 @@ class TestTranslate(TestCase):
         # with the bacterial nuclear and plant plastid code
         tr = translate_frames(seq, gc="Euplotid Nuclear")
         self.assertEqual(tr, ["MLT*", "CCHK", "ADI"])
+
+
+class TestTranslate(TestCase):
+    def test_translate_seqcoll(self):
+        """correctly translate a sequence collection"""
+        seqs = dict(a="ATGAGG", b="ATGTAA")
+        seqs = make_unaligned_seqs(seqs)
+        # trim terminal stops
+        translater = translate_seqs()
+        aa = translater(seqs)
+        self.assertEqual(aa.to_dict(), dict(a="MR", b="M"))
+        self.assertEqual(aa.moltype.label, "protein")
+        # don't trim terminal stops, returns NotCompleted
+        translater = translate_seqs(trim_terminal_stop=False)
+        aa = translater(seqs)
+        self.assertIsInstance(aa, NotCompleted)
+
+    def test_translate_aln(self):
+        """correctly translates alignments"""
+        data = dict(a="ATGAGGCCC", b="ATGTTT---")
+        # an array alignment
+        aln = make_aligned_seqs(data)
+        translater = translate_seqs()
+        aa = translater(aln)
+        self.assertEqual(aa.to_dict(), dict(a="MRP", b="MF-"))
+        self.assertEqual(aa.moltype.label, "protein")
+        self.assertIsInstance(aa, type(aln))
+        # Alignment
+        aln = aln.to_type(array_align=True)
+        aa = translater(aln)
+        self.assertEqual(aa.to_dict(), dict(a="MRP", b="MF-"))
+        self.assertEqual(aa.moltype.label, "protein")
+        self.assertIsInstance(aa, type(aln))
 
 
 class TestFourFoldDegen(TestCase):
