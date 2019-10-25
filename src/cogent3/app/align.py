@@ -129,10 +129,10 @@ class align_to_ref(ComposableSeq):
             # eliminating positions with deletions in the reference
             result = result.filtered(no_ref_gap)
             if aligned is None:
-                aligned = result.to_type(array_align=False)
+                aligned = result
                 continue
 
-            aligned = aligned.add_from_ref_aln(result.to_type(array_align=False))
+            aligned = aligned.add_from_ref_aln(result)
 
         # default to ArrayAlign
         new = aligned.to_type(array_align=True)
