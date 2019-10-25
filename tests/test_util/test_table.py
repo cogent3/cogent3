@@ -2,6 +2,8 @@
 
 """Unit tests for table.
 """
+from pandas import DataFrame
+
 from cogent3.util.table import Table
 from cogent3.util.unit_test import TestCase, main
 
@@ -14,6 +16,12 @@ __version__ = "2019.10.24a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
+
+
+class TrapOutput:
+    def __call__(self, data):
+        self.data, _ = data._get_repr_()
+        self.output = repr(data)
 
 
 class TableTests(TestCase):
@@ -247,6 +255,57 @@ class TableTests(TestCase):
             self.assertNotEqual(got, last)
             self.assertTrue(got.startswith(startwith))
             last = got
+
+    def test_set_repr_policy(self):
+        """exercising setting repr policy"""
+        t = Table(self.t2_header, rows=self.t2_rows)
+        t.set_repr_policy(random=2)
+        r = repr(t)
+        self.assertIsInstance(r, str)
+        r, _ = t._get_repr_()
+        self.assertEqual(r.shape[0], 2)
+        t.set_repr_policy(head=1)
+        r, _ = t._get_repr_()
+        self.assertEqual(r.shape[0], 1)
+        t.set_repr_policy(tail=3)
+        r, _ = t._get_repr_()
+        self.assertEqual(r.shape[0], 3)
+
+    def test_head(self):
+        """returns the head of the table!"""
+        from cogent3.util import table
+
+        display = table.display
+        head = TrapOutput()
+        table.display = head
+        t = Table(self.t1_header, rows=self.t1_rows)
+        t.head(nrows=3)
+        self.assertEqual(head.data.shape[0], 3)
+        self.assertEqual(len(head.output.splitlines()), 9)
+        self.assertEqual(head.data.tolist(), self.t1_rows[:3])
+        table.display = display
+
+    def test_tail(self):
+        """returns the tail of the table!"""
+        from cogent3.util import table
+
+        display = table.display
+        tail = TrapOutput()
+        table.display = tail
+        t = Table(self.t1_header, rows=self.t1_rows)
+        t.tail(nrows=3)
+        self.assertEqual(tail.data.shape[0], 3)
+        self.assertEqual(len(tail.output.splitlines()), 9)
+        self.assertEqual(tail.data.tolist(), self.t1_rows[-3:])
+        table.display = display
+
+    def test_to_dataframe(self):
+        """produces a dataframe"""
+        t = Table(self.t1_header, rows=self.t1_rows)
+        df = t.to_dataframe()
+        self.assertIsInstance(df, DataFrame)
+        data = df.to_numpy()
+        self.assertEqual(data.tolist(), self.t1_rows)
 
 
 if __name__ == "__main__":
