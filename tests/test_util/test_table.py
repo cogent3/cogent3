@@ -229,6 +229,25 @@ class TableTests(TestCase):
         t2 = t2.with_new_header("moo", "foo")
         self.assertEqual(t2.header[1], "foo")
 
+    def test_formats(self):
+        """exercising the different supported formats"""
+        last = ""
+        for format, startwith in (
+            ("md", "|"),
+            ("rst", "+"),
+            ("latex", r"\begin"),
+            ("markdown", "|"),
+            ("csv", "id,"),
+            ("tsv", "id\t"),
+            ("simple", "="),
+        ):
+            t3 = Table(self.t3_header, rows=self.t3_rows, format=format)
+            got = str(t3)
+            self.assertIsInstance(got, str)
+            self.assertNotEqual(got, last)
+            self.assertTrue(got.startswith(startwith))
+            last = got
+
 
 if __name__ == "__main__":
     main()
