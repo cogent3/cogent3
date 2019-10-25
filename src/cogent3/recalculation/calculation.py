@@ -263,8 +263,8 @@ class Calculator(object):
         self.set_tracing(trace)
         self.optimised = False
 
-    def _graphviz(self):
-        """A string in the 'dot' graph description language used by the
+    def graphviz(self):
+        """Returns a string in the 'dot' graph description language used by the
         program 'Graphviz'.  One box per cell, grouped by Defn."""
 
         lines = ["digraph G {\n rankdir = LR\n ranksep = 1\n"]
@@ -306,37 +306,6 @@ class Calculator(object):
         lines.extend(edges)
         lines.append("}")
         return "\n".join(lines).replace("edge", "egde").replace("QQQ", "edge")
-
-    def graphviz(self, keep=False):
-        """Use Graphviz to display a graph representing the inner workings of
-        the calculator.  Leaves behind a temporary file (so that Graphviz can
-        redraw it with different settings) unless 'keep' is False"""
-
-        import tempfile
-        import os
-        import sys
-
-        if sys.platform != "darwin":
-            raise NotImplementedError("Graphviz support Mac only at present")
-
-        GRAPHVIZ = "/Applications/Graphviz.app"
-        # test that graphviz is installed
-        if not os.path.exists(GRAPHVIZ):
-            raise RuntimeError("%s not present" % GRAPHVIZ)
-
-        text = self._graphviz()
-
-        fn = tempfile.mktemp(prefix="calc_", suffix=".dot")
-        f = open(fn, "w")
-        f.write(text)
-        f.close()
-        # Mac specific!
-        # Specify Graphviz as ".dot" can mean other things.
-        # Would be sensible to eventually use LaunchServices.
-        os.system('open -a "%s" "%s"' % (GRAPHVIZ, fn))
-        if not keep:
-            time.sleep(5)
-            os.remove(fn)
 
     def optimise(self, **kw):
         x = self.get_value_array()
