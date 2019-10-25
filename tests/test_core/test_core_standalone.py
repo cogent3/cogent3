@@ -7,7 +7,6 @@ import unittest
 from cogent3 import DNA, PROTEIN, RNA
 from cogent3 import STANDARD_CODON as CODON
 from cogent3 import (
-    Sequence,
     load_aligned_seqs,
     load_unaligned_seqs,
     make_aligned_seqs,
@@ -738,7 +737,7 @@ class SequenceTestMethods(unittest.TestCase):
     """Testing Sequence methods"""
 
     def setUp(self):
-        self.seq = Sequence("dna", "ATGACGTTGCGTAGCATAGCTCGA")
+        self.seq = make_seq("ATGACGTTGCGTAGCATAGCTCGA", "dna")
 
     def test_getlength(self):
         """testing getting length"""
@@ -757,17 +756,17 @@ class SequenceTestMethods(unittest.TestCase):
 
     def test_translate(self):
         """test of translating seqs"""
-        seq = Sequence(DNA, "ATGACGTTGCGTAGCATAGCTCGA").get_translation()
+        seq = make_seq("ATGACGTTGCGTAGCATAGCTCGA", moltype=DNA).get_translation()
         self.assertEqual(str(seq), "MTLRSIAR")
 
     def test_ambig_translate(self):
         """test of translating seqs"""
-        seq = Sequence(DNA, "CGNTGN???---").get_translation()
+        seq = make_seq("CGNTGN???---", moltype=DNA).get_translation()
         self.assertEqual(str(seq), "RX?-")
 
     def test_translate_incomplete(self):
         """test of translating seqs with incomplete codon"""
-        seq = Sequence(DNA, "CGNTGNAC----")
+        seq = make_seq("CGNTGNAC----", moltype=DNA)
         aa = seq.get_translation(incomplete_ok=True)
         self.assertEqual(str(aa), "RX?-")
         with self.assertRaises(AlphabetError):
@@ -836,26 +835,26 @@ class SequenceTestMethods(unittest.TestCase):
 
     def test_reverse_complement(self):
         """testing reversal and complementing of a sequence"""
-        seq = Sequence(DNA, seq="ACTGTAA")
+        seq = make_seq(moltype=DNA, seq="ACTGTAA")
         rev = seq.reverse_complement()
         self.assertEqual(str(rev), "TTACAGT")
-        seq = Sequence(DNA, seq="ACTG-TAA")
+        seq = make_seq(moltype=DNA, seq="ACTG-TAA")
         rev = seq.reverse_complement()
         self.assertEqual(str(rev), "TTA-CAGT")
         # try amigbuities
-        seq = Sequence(DNA, seq="ACHNRTAA")
+        seq = make_seq(moltype=DNA, seq="ACHNRTAA")
         rev = seq.reverse_complement()
         self.assertEqual(str(rev), "TTAYNDGT")
 
     def test_without_terminal_stop_sodon(self):
         """testing deleting terminal stop"""
         # for standard code
-        seq = Sequence(DNA, seq="ACTTAA")
+        seq = make_seq(moltype=DNA, seq="ACTTAA")
         seq2 = seq.trim_stop_codon()
         self.assertEqual(str(seq2), "ACT")
 
         # for sequence not divisible by 3
-        seq = Sequence(DNA, seq="ACTTA")
+        seq = make_seq(moltype=DNA, seq="ACTTA")
         # fail
         self.assertRaises(ValueError, seq.trim_stop_codon)
         # unless explicitly over-ride length issue using allow_partial
@@ -863,12 +862,12 @@ class SequenceTestMethods(unittest.TestCase):
 
     def test_has_terminal_stop(self):
         """test check for terminal stop codons"""
-        seq = Sequence(DNA, seq="ACTTAA")
+        seq = make_seq(moltype=DNA, seq="ACTTAA")
         assert seq.has_terminal_stop() == True
-        seq = Sequence(DNA, seq="ACTTAT") == False
+        seq = make_seq(moltype=DNA, seq="ACTTAT") == False
 
         # for sequence not divisible by 3
-        seq = Sequence(DNA, seq="ACTTA")
+        seq = make_seq(moltype=DNA, seq="ACTTA")
         # fail
         self.assertRaises(ValueError, seq.has_terminal_stop)
         # unless explicitly over-ride length issue using allow_partial

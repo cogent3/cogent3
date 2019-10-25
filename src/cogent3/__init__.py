@@ -121,25 +121,6 @@ def make_seq(seq, name=None, moltype=None):
     return seq
 
 
-def Sequence(moltype=None, seq=None, name=None, filename=None, format=None):
-    if seq is None:
-        for (a_name, a_seq) in FromFilenameParser(filename, format):
-            if seq is None:
-                seq = a_seq
-                if name is None:
-                    name = a_name
-            else:
-                raise ValueError("Multiple sequences in '%s'" % filename)
-    if moltype is not None:
-        moltype = get_moltype(moltype)
-        seq = moltype.make_seq(seq)
-    elif not hasattr(seq, "moltype"):
-        seq = ASCII.make_seq(seq)
-    if name is not None:
-        seq.name = name
-    return seq
-
-
 def make_unaligned_seqs(
     data, moltype=None, label_to_name=None, info=None, source=None, **kw
 ):
