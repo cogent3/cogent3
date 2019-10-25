@@ -225,7 +225,7 @@ class progressive_align(ComposableSeq):
 
         if guide_tree is not None:
             if type(guide_tree) == str:
-                guide_tree = make_tree(treestring=guide_tree)
+                guide_tree = make_tree(treestring=guide_tree, underscore_unmunge=True)
             # make sure no zero lengths
             guide_tree = scale_branches()(guide_tree)
 
