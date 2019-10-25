@@ -170,7 +170,7 @@ class select_translatable(ComposableSeq):
         moltype : str
             molecular type, must be either DNA or RNA
         gc
-            identifer for a genetic code or a genetic code instance
+            identifier for a genetic code or a genetic code instance
         allow_rc : bool
             If False, forward strand considered only. If True, and
               best frame on rc, it will be negative
@@ -234,3 +234,49 @@ class select_translatable(ComposableSeq):
             translatable = NotCompleted("FALSE", self, " ".join(error_log), source=seqs)
 
         return translatable
+
+
+class translate_seqs(ComposableSeq):
+    """Translates sequences, assumes in correct reading frame."""
+
+    def __init__(
+        self, moltype="dna", gc=DEFAULT, allow_rc=False, trim_terminal_stop=True
+    ):
+        """generates aa sequences
+
+        Parameters
+        ----------
+        moltype : str
+            molecular type, must be either DNA or RNA
+        gc
+            identifier for a genetic code or a genetic code instance
+        trim_terminal_stop : bool
+            exclude terminal stop codon from seqs
+
+        Returns
+        -------
+        A sequence collection. Sequences that could not be translated
+        are excluded.
+        """
+        super(translate_seqs, self).__init__(
+            input_types=(SEQUENCE_TYPE, ALIGNED_TYPE),
+            output_types=(SEQUENCE_TYPE, ALIGNED_TYPE),
+            data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
+        )
+        self._formatted_params()
+
+        moltype = get_moltype(moltype)
+        assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
+
+        self._moltype = moltype
+        self._gc = get_code(gc)
+        self._trim_terminal_stop = trim_terminal_stop
+        self.func = self.get_translated
+
+    def get_translated(self, seqs):
+        """returns translated sequences"""
+        seqs = seqs.to_moltype(self._moltype)
+        if self._trim_terminal_stop:
+            seqs = seqs.trim_stop_codons(gc=self._gc)
+        aa = seqs.get_translation(gc=self._gc)
+        return aa
