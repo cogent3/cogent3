@@ -7,22 +7,40 @@ variables:
 jobs:
 - job: linux
   pool: {vmImage: 'Ubuntu-16.04'}
-  steps: 
+  steps:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install tox codecov pytest pytest-cov click cython numpy pandas plotly scitrack tqdm tinydb
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.7'
+    - bash: |
         tox -e py37
+        codecov
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.6'
+    - bash: |
         tox -e py36
         codecov
 - job: macos
   pool: {vmImage: 'macOS-10.13'}
-  steps: 
+  steps:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install tox codecov pytest pytest-cov click cython numpy pandas plotly scitrack tqdm tinydb
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.7'
+    - bash: |
         tox -e py37
+        codecov
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.6'
+    - bash: |
         tox -e py36
         codecov
 - job: windows
