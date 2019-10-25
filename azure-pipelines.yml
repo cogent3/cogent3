@@ -1,5 +1,5 @@
 trigger:
-  - master
+  - 284_azure
 
 variables:
   CODECOV_TOKEN: 504b0637-b4c1-4991-bc79-7a29aee41b44
@@ -13,6 +13,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install tox codecov pytest pytest-cov click cython numpy pandas plotly scitrack tqdm tinydb
         tox -e py37
+        tox -e py36
         codecov
 - job: macos
   pool: {vmImage: 'macOS-10.13'}
@@ -22,14 +23,18 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install tox codecov pytest pytest-cov click cython numpy pandas plotly scitrack tqdm tinydb
         tox -e py37
+        tox -e py36
         codecov
 - job: windows
   pool: {vmImage: 'vs2017-win2016'}
   steps:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x64}}
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install tox codecov pytest pytest-cov click cython numpy pandas plotly scitrack tqdm tinydb
         tox -e py37
+        tox -e py36
         codecov
