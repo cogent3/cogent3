@@ -37,7 +37,7 @@ except ImportError:
 try:
     from IPython.display import display
 except ImportError:
-    display = print
+    display = lambda x: print(repr(x))
 
 
 __author__ = "Gavin Huttley"
