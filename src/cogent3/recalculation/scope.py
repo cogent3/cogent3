@@ -892,6 +892,6 @@ class ParameterController(object):
         if return_calculator:
             return lc
 
-    def graphviz(self, **kw):
+    def graphviz(self):
         lc = self.make_calculator()
-        return lc.graphviz(**kw)
+        return lc.graphviz()
