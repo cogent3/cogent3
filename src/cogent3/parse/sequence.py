@@ -10,7 +10,6 @@ from cogent3.parse import (
     gbseq,
     gcg,
     genbank,
-    macsim,
     nexus,
     paml,
     phylip,
@@ -111,8 +110,4 @@ PARSERS = {
     "nxs": nexus.MinimalNexusAlignParser,
 }
 
-XML_PARSERS = {
-    "gbseq": gbseq.GbSeqXmlParser,
-    "tseq": tinyseq.TinyseqParser,
-    "macsim": macsim.MacsimParser,
-}
+XML_PARSERS = {"gbseq": gbseq.GbSeqXmlParser, "tseq": tinyseq.TinyseqParser}

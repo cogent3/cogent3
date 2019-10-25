@@ -11,7 +11,6 @@ __all__ = [
     "genbank",
     "gff",
     "locuslink",
-    "macsim",
     "ncbi_taxonomy",
     "newick",
     "nexus",
