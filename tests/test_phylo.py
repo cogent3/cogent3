@@ -5,9 +5,10 @@ import warnings
 
 from numpy import exp, log
 
-from cogent3 import load_tree, make_tree
+from cogent3 import get_model, load_aligned_seqs, load_tree, make_tree
 from cogent3.phylo.consensus import get_splits, get_tree, majority_rule
 from cogent3.phylo.least_squares import wls
+from cogent3.phylo.maximum_likelihood import ML
 from cogent3.phylo.nj import gnj, nj
 from cogent3.phylo.tree_collection import (
     LogLikelihoodScoredTreeCollection,
@@ -36,7 +37,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-base_path = os.getcwd()
+base_path = os.path.dirname(__file__)
 data_path = os.path.join(base_path, "data")
 
 
@@ -505,16 +506,16 @@ class TreeReconstructionTests(unittest.TestCase):
 
     def test_nj(self):
         """testing nj"""
-        reconstructed = nj(self.dists)
+        reconstructed = nj(self.dists, show_progress=False)
         self.assertTreeDistancesEqual(self.tree, reconstructed)
 
     def test_gnj(self):
         """testing gnj"""
-        results = gnj(self.dists, keep=1)
+        results = gnj(self.dists, keep=1, show_progress=False)
         (length, reconstructed) = results[0]
         self.assertTreeDistancesEqual(self.tree, reconstructed)
 
-        results = gnj(self.dists, keep=10)
+        results = gnj(self.dists, keep=10, show_progress=False)
         (length, reconstructed) = results[0]
         self.assertTreeDistancesEqual(self.tree, reconstructed)
 
@@ -535,29 +536,29 @@ class TreeReconstructionTests(unittest.TestCase):
             ("c", "e"): 3,
             ("d", "e"): 3,
         }
-        results = gnj(tied_dists, keep=3)
+        results = gnj(tied_dists, keep=3, show_progress=False)
         scores = [score for (score, tree) in results]
         self.assertEqual(scores[:2], [7.75, 7.75])
         self.assertNotEqual(scores[2], 7.75)
 
     def test_wls(self):
         """testing wls"""
-        reconstructed = wls(self.dists, a=4)
+        reconstructed = wls(self.dists, a=4, show_progress=False)
         self.assertTreeDistancesEqual(self.tree, reconstructed)
 
     def test_truncated_wls(self):
         """testing wls with order option"""
         order = ["e", "b", "c", "d"]
-        reconstructed = wls(self.dists, order=order)
+        reconstructed = wls(self.dists, order=order, show_progress=False)
         self.assertEqual(set(reconstructed.get_tip_names()), set(order))
 
     def test_limited_wls(self):
         """testing (well, exercising at least), wls with constrained start"""
         init = make_tree(treestring="((a,c),b,d)")
-        reconstructed = wls(self.dists, start=init)
+        reconstructed = wls(self.dists, start=init, show_progress=False)
         self.assertEqual(len(reconstructed.get_tip_names()), 6)
         init2 = make_tree(treestring="((a,d),b,c)")
-        reconstructed = wls(self.dists, start=[init, init2])
+        reconstructed = wls(self.dists, start=[init, init2], show_progress=False)
         self.assertEqual(len(reconstructed.get_tip_names()), 6)
         init3 = make_tree(treestring="((a,d),b,z)")
         self.assertRaises(Exception, wls, self.dists, start=[init, init3])
@@ -568,6 +569,18 @@ class TreeReconstructionTests(unittest.TestCase):
             self.dists,
             start=[make_tree(treestring="((a,c),b,(d,(e,f)))")],
         )
+
+    def test_ml(self):
+        """exercise the ML tree estimation"""
+        from numpy.testing import assert_allclose
+
+        aln = load_aligned_seqs(os.path.join(data_path, "brca1.fasta"), moltype="dna")
+        aln = aln.take_seqs(["Human", "Mouse", "Rat", "Dog"])
+        aln = aln.omit_gap_pos(allowed_gap_frac=0)
+        model = get_model("JC69")
+        lnL, tree = ML(model, aln).trex(a=3, k=1, show_progress=False)
+        assert_allclose(lnL, -8882.217502905267)
+        self.assertTrue(tree.same_topology(make_tree("(Mouse,Rat,(Human,Dog));")))
 
 
 if __name__ == "__main__":
