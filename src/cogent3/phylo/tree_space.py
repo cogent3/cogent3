@@ -171,6 +171,7 @@ class TreeEvaluator(object):
         return_all=False,
         filename=None,
         interval=None,
+        show_progress=False,
         ui=None,
     ):
         """TrexML policy for tree sampling - all trees up to size 'a' and

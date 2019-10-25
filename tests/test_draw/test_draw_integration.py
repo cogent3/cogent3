@@ -1,7 +1,7 @@
 import pathlib
 import unittest
 
-from cogent3 import load_aligned_seqs, make_table
+from cogent3 import load_aligned_seqs, make_aligned_seqs, make_table
 from cogent3.draw.drawable import AnnotatedDrawable, Drawable
 from cogent3.util.union_dict import UnionDict
 
@@ -23,9 +23,10 @@ def load_alignment(annotate1=False, annotate2=False):
     aln = aln.omit_gap_pos()
     if annotate1:
         x1 = aln.get_seq(aln.names[0]).add_feature("gene", "abcde1", [(20, 50)])
-        x2 = aln.get_seq(aln.names[0]).add_feature("SNP", "one", [(11, 12)])
+        x2 = aln.get_seq(aln.names[0]).add_feature("variation", "one", [(11, 12)])
     if annotate2:
-        y = aln.get_seq(aln.names[1]).add_feature("gene", "abcde2", [(20, 50)])
+        y1 = aln.get_seq(aln.names[1]).add_feature("gene", "abcde2", [(20, 50)])
+        y2 = aln.get_seq(aln.names[1]).add_feature("domain", "abcde2", [(10, 15)])
     return aln
 
 
@@ -200,14 +201,15 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         self._check_drawable_attrs(drawable.figure, "scatter")
 
     def test_get_drawable(self):
-        """alignment with features returns a drawable"""
-        aln = load_alignment(False, False)
+        """sliced alignment with features returns a drawable"""
+        aln = make_aligned_seqs(
+            data=dict(a="AAACGGTTT", b="CAA--GTAA"), array_align=False
+        )
+        _ = aln.get_seq("b").add_feature("domain", "1", [(1, 5)])
+        _ = aln.get_seq("b").add_feature("variation", "1", [(1, 5)])
+        _ = aln.get_seq("b").add_feature("gene", "1", [(1, 5)])
+        _ = aln.get_seq("b").add_feature("gene", "1", [(5, 1)])
         drawable = aln.get_drawable()
-        self.assertIs(drawable, None)
-        aln = load_alignment(True, False)
-        drawable = aln.get_drawable()
-        self.assertIsInstance(drawable, Drawable)
-        self._check_drawable_attrs(drawable.figure, "scatter")
 
 
 class TableDrawablesTest(BaseDrawablesTests):
