@@ -265,7 +265,7 @@ class Table(DictArray):
         if rn:
             indices = numpy.random.choice(self.shape[0], size=rn, replace=False)
             indices = list(sorted(indices))
-            rows = self.get_disjoint_rows(indices).tolist()
+            rows = self.array.take(indices, axis=0).tolist()
             shape_info = f"Random selection of {rn} rows"
         elif all([head, tail]):
             top = self[:head].tolist()
