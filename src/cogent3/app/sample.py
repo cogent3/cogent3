@@ -132,8 +132,7 @@ class omit_degenerates(ComposableAligned):
     def filter_degenerates(self, aln):
         if aln.moltype != self.moltype:
             # try converting
-            array_align = isinstance(aln, ArrayAlignment)
-            aln = aln.to_type(moltype=self.moltype, array_align=array_align)
+            aln = aln.to_moltype(self.moltype)
         result = aln.no_degenerates(
             motif_length=self._motif_length, allow_gap=self._allow_gap
         )
@@ -179,8 +178,7 @@ class omit_gap_pos(ComposableAligned):
     def omit(self, aln):
         if aln.moltype != self.moltype:
             # try converting
-            array_align = isinstance(aln, ArrayAlignment)
-            aln = aln.to_type(moltype=self.moltype, array_align=array_align)
+            aln = aln.to_moltype(self.moltype)
         result = aln.omit_gap_pos(
             allowed_gap_frac=self._allowed_frac, motif_length=self._motif_length
         )
