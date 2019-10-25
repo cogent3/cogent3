@@ -1,3 +1,5 @@
+import warnings
+
 from cogent3 import make_tree
 from cogent3.align import (
     global_pairwise,
@@ -261,12 +263,14 @@ class progressive_align(ComposableSeq):
 
         kwargs = self._kwargs.copy()
 
-        try:
-            result, tree = TreeAlign(self._model, seqs, **kwargs)
-            result = result.to_moltype(self._moltype)
-            result.info.update(seqs.info)
-        except ValueError as err:
-            # probably an internal stop
-            result = NotCompleted("ERROR", self, err.args[0], source=seqs)
-            return result
+        with warnings.catch_warnings(record=False):
+            warnings.simplefilter("ignore")
+            try:
+                result, tree = TreeAlign(self._model, seqs, **kwargs)
+                result = result.to_moltype(self._moltype)
+                result.info.update(seqs.info)
+            except ValueError as err:
+                # probably an internal stop
+                result = NotCompleted("ERROR", self, err.args[0], source=seqs)
+                return result
         return result
