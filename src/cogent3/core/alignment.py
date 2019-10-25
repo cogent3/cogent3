@@ -2896,7 +2896,7 @@ class AlignmentI(object):
         new = klass(data=data, moltype=moltype, info=self.info, names=self.names)
         return new
 
-    def distance_matrix(self, calc="hamming", show_progress=False, drop_invalid=False):
+    def distance_matrix(self, calc="percent", show_progress=False, drop_invalid=False):
         """Returns pairwise distances between sequences.
         Parameters
         ----------
@@ -2932,7 +2932,7 @@ class AlignmentI(object):
     @extend_docstring_from(distance_matrix, pre=False)
     def quick_tree(
         self,
-        calc="hamming",
+        calc="percent",
         bootstrap=None,
         drop_invalid=False,
         show_progress=False,
