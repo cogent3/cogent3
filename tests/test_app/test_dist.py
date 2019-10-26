@@ -194,9 +194,9 @@ class FastSlowDistTests(TestCase):
         got = fast_slow_dist(aln3).to_dict()
         self.assertTrue(0 <= got[("Human", "Opossum")])
 
-        treestring = "(Human, Bandicoot)"
+        treestring = "(Human:0.2,Bandicoot:0.2)"
         aligner = align.progressive_align(model="WG01", guide_tree=treestring)
-        aln5 = aligner(self.seqs5)
+        _ = aligner(self.seqs5)
 
 
 if __name__ == "__main__":
