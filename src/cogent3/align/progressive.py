@@ -114,6 +114,13 @@ def TreeAlign(
         LF.set_sequences(seqs)
     edge = LF.get_log_likelihood().edge
     align = edge.get_viterbi_path().get_alignment()
-    param_vals.update(dict(indel_length=indel_length, indel_rate=indel_rate))
+    param_vals.update(
+        dict(
+            indel_length=indel_length,
+            indel_rate=indel_rate,
+            guide_tree=tree.get_newick(with_distances=True),
+            model=model.name,
+        )
+    )
     align.info["align_params"] = param_vals
     return align, tree
