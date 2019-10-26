@@ -148,6 +148,12 @@ class RefalignmentTests(TestCase):
         seqs = make_unaligned_seqs(data)
         aln = aligner(seqs)
         self.assertEqual(len(aln), 42)
+        # guide tree with no lengths raises value error
+        with self.assertRaises(ValueError):
+            _ = align_app.progressive_align(
+                model="nucleotide",
+                guide_tree="(Bandicoot,FlyingFox,(Rhesus_macaque,Human));",
+            )
 
     def test_progressive_align_codon(self):
         """progressive alignment with codon models"""
