@@ -29,8 +29,8 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints", 
 master_doc = "index"
 
 # General information about the project.
-project = "Cogent3"
-copyright = "2019, Cogent3"
+project = "cogent3"
+copyright = "2019, cogent3"
 
 version = ""
 
@@ -48,12 +48,12 @@ html_theme = "alabaster"
 
 html_static_path = ["_static"]
 
-htmlhelp_basename = "Cogent3doc"
+htmlhelp_basename = "cogent3doc"
 
 
 # -- Options for LaTeX output --------------------------------------------------
 latex_documents = [
-    ("index", "Cogent3.tex", "Cogent3 Documentation", "Cogent3 Team", "manual")
+    ("index", "cogent3.tex", "cogent3 Documentation", "cogent3 Team", "manual")
 ]
 
 

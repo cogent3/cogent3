@@ -16,4 +16,6 @@ We use `Plotly <https://plot.ly/python/>`_ as our backend for visualisation. It 
     draw-tree-angular
     draw-tree-circular
     draw-tree-radial
+    draw-alignment-coevolution
+    draw-alignment-info-plot
 
