@@ -118,16 +118,6 @@ class Drawable:
         self.show()
 
     @property
-    def layout(self):
-        if not hasattr(self, "_layout"):
-            self._layout = UnionDict()
-        return self._layout
-
-    @layout.setter
-    def layout(self, value):
-        self.layout.update(value)
-
-    @property
     def traces(self):
         return self._traces
 
