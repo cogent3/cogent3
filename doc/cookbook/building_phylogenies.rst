@@ -5,11 +5,13 @@ Building phylogenies
 Building A Phylogenetic Tree From Pairwise Distances
 ====================================================
 
-Using the ``Alignment`` object
-------------------------------
+Directly via ``alignment.quick_tree()``
+=======================================
+
+Both the ``ArrayAlignment`` and ``Alignment`` classes support this.
 
 .. doctest::
-    
+
     >>> from cogent3 import load_aligned_seqs
     >>> aln = load_aligned_seqs('data/primate_brca1.fasta', moltype="dna")
     >>> tree = aln.quick_tree(calc="TN93")
@@ -30,11 +32,18 @@ Using the ``Alignment`` object
                                   \-Gorilla
 
 
+The ``quick_tree()`` method also supports non-parametric bootstrapping. The number of resampled alignments is specified using the ``bootstrap`` argument. In the following, trees are estimated from 100 resampled alignments and merged into a single consensus topology using a weighted consensus tree algorithm.
+
+.. doctest::
+    
+    >>> tree = aln.quick_tree(calc="TN93", bootstrap=100)
+
+
 Using the ``DistanceMatrix`` object
 -----------------------------------
 
 .. doctest::
-    
+
     >>> from cogent3 import load_aligned_seqs
     >>> aln = load_aligned_seqs('data/primate_brca1.fasta', moltype="dna")
     >>> dists = aln.distance_matrix(calc="TN93")
