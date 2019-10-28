@@ -615,7 +615,7 @@ class Dendrogram(Drawable):
         return annotations
 
     def _get_scale_bar(self):
-        if not self.scale_bar:
+        if not self.scale_bar or self.contemporaneous:
             return None, None
 
         if "left" in self.scale_bar:
