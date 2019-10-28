@@ -529,7 +529,8 @@ class Dendrogram(Drawable):
         self._threshold = threshold
         self._support_xshift = -14
         self._support_yshift = 7
-        self.layout.autosize = True
+        self._default_layout.autosize = True
+        self.layout = UnionDict(self._default_layout)
 
     @property
     def label_pad(self):
@@ -557,7 +558,10 @@ class Dendrogram(Drawable):
 
     @support_xshift.setter
     def support_xshift(self, value):
+        if value == self._support_xshift:
+            return
         self._support_xshift = value
+        self._traces = []
 
     @property
     def support_yshift(self):
@@ -566,7 +570,10 @@ class Dendrogram(Drawable):
 
     @support_yshift.setter
     def support_yshift(self, value):
+        if value == self._support_yshift:
+            return
         self._support_yshift = value
+        self._traces = []
 
     @property
     def contemporaneous(self):
@@ -648,6 +655,7 @@ class Dendrogram(Drawable):
         return shape, annotation
 
     def _build_fig(self, **kwargs):
+        self.layout = UnionDict(self._default_layout)
         grouped = {}
 
         tree = self.tree
