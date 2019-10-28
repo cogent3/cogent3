@@ -13,6 +13,7 @@ We use `Plotly <https://plot.ly/python/>`_ as our backend for visualisation. It 
     dotplot-annotated
     display-gaps-per-seq
     draw-tree-square
+    draw-tree-support
     draw-tree-angular
     draw-tree-circular
     draw-tree-radial
