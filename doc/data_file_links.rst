@@ -40,3 +40,7 @@ All data files referred to in the documentation can be download by clicking on t
 :download:`brca1-bats.fasta <data/brca1-bats.fasta>`
 
 :download:`brca1.fasta <data/brca1.fasta>`
+
+:download:`GN-tree.json <data/GN-tree.json>`
+
+:download:`tree-with-support.json <data/tree-with-support.json>`
