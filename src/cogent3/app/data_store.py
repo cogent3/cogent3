@@ -68,7 +68,6 @@ def load_record_from_json(data):
 
 
 def _check_before_remove(path, suffix):
-    print("Hello World")
     is_dir = os.path.isdir(path)
     if is_dir:
         for f in os.listdir(path):
