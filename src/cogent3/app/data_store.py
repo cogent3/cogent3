@@ -590,8 +590,7 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
                 try:
                     shutil.rmtree(self.source)
                 except NotADirectoryError:
-                    if _check_before_remove(self.source, self.suffix):
-                        os.remove(self.source)
+                    os.remove(self.source)
         elif not exists and not create:
             raise RuntimeError(f"'{self.source}' does not exist")
 
