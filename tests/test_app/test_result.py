@@ -114,6 +114,9 @@ class TestGenericResult(TestCase):
         )
         result = model1(aln)
         got = result.tree
+        self.assertEqual(
+            got.children[0].params["length"], got.children[0].params["paralinear"]
+        )
 
 
 if __name__ == "__main__":
