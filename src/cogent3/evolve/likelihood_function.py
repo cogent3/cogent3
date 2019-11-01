@@ -600,8 +600,8 @@ class LikelihoodFunction(ParameterController):
 
             if not is_discrete:
                 edge.params["ENS"] = ens[edge.name]
-                edge.params["length"] = lengths[edge.name]
 
+            edge.params["length"] = lengths[edge.name]
             edge.params["paralinear"] = plin[edge.name]
             edge.params["mprobs"] = mprobs[edge.name].to_dict()
             for par in d:
