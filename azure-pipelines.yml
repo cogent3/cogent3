@@ -3,9 +3,11 @@ trigger:
 
 variables:
   CODECOV_TOKEN: 504b0637-b4c1-4991-bc79-7a29aee41b44
+  CIBW_BUILD: cp36-* cp37-*
+  CIBW_BEFORE_BUILD: python -m pip install --upgrade pip
 
 jobs:
-- job: linux
+- job: Linux Test
   pool: {vmImage: 'Ubuntu-16.04'}
   steps:
     - task: UsePythonVersion@0
@@ -24,7 +26,7 @@ jobs:
     - bash: |
         tox -e py36
         codecov
-- job: macos
+- job: MacOS Test
   pool: {vmImage: 'macOS-10.13'}
   steps:
     - task: UsePythonVersion@0
@@ -43,7 +45,7 @@ jobs:
     - bash: |
         tox -e py36
         codecov
-- job: windows
+- job: Windows Test
   pool: {vmImage: 'vs2017-win2016'}
   steps:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
@@ -56,3 +58,38 @@ jobs:
         tox -e py37
         tox -e py36
         codecov
+jobs:
+- job: Linux Build
+  pool: {vmImage: 'Ubuntu-16.04'}
+  steps: 
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        python -m pip install tox pytest click cython numpy pandas plotly scitrack tqdm tinydb cibuildwheel==0.11.1 pytest-azurepipelines
+        cibuildwheel --output-dir wheelhouse .
+    - task: PublishBuildArtifacts@1
+      inputs: {pathtoPublish: 'wheelhouse'}
+- job: MacOS Build
+  pool: {vmImage: 'macOS-10.13'}
+  steps: 
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        python -m pip install tox pytest click cython numpy pandas plotly scitrack tqdm tinydb cibuildwheel==0.11.1
+        tox -e py37
+        cibuildwheel --output-dir wheelhouse .
+    - task: PublishBuildArtifacts@1
+      inputs: {pathtoPublish: 'wheelhouse'}
+- job: Windows Build
+  pool: {vmImage: 'vs2017-win2016'}
+  steps:
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x64}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
+    - bash: |
+        python -m pip install --upgrade pip
+        python -m pip install tox pytest click cython numpy pandas plotly scitrack tqdm tinydb cibuildwheel==0.11.1
+        cibuildwheel --output-dir wheelhouse .
+    - task: PublishBuildArtifacts@1
+      inputs: {pathtoPublish: 'wheelhouse'}
