@@ -303,7 +303,7 @@ class hypothesis(ComposableHypothesis):
 class bootstrap(ComposableHypothesis):
     """Parametric bootstrap for a provided hypothesis. Returns a bootstrap_result."""
 
-    def __init__(self, hyp, num_reps, verbose=False):
+    def __init__(self, hyp, num_reps, parallel=False, verbose=False):
         super(bootstrap, self).__init__(
             input_types=ALIGNED_TYPE,
             output_types=(RESULT_TYPE, BOOTSTRAP_RESULT_TYPE, SERIALISABLE_TYPE),
@@ -313,6 +313,7 @@ class bootstrap(ComposableHypothesis):
         self._hyp = hyp
         self._num_reps = num_reps
         self._verbose = verbose
+        self._parallel = parallel
         self.func = self.run
 
     def _fit_sim(self, rep_num):
@@ -336,10 +337,9 @@ class bootstrap(ComposableHypothesis):
         self._null = obs.null
         self._inpath = aln.info.source
 
-        sym_results = [
-            r for r in parallel.imap(self._fit_sim, range(self._num_reps)) if r
-        ]
-        for sym_result in tqdm(sym_results):
+        map_fun = map if not self._parallel else parallel.imap
+        sym_results = [r for r in map_fun(self._fit_sim, range(self._num_reps)) if r]
+        for sym_result in sym_results:
             if not sym_result:
                 continue
 
