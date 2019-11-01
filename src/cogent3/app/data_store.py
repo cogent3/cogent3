@@ -67,11 +67,18 @@ def load_record_from_json(data):
     return data["identifier"], value, data["completed"]
 
 
-def _has_other_suffixes(path, suffix):
-    for f in os.listdir(path):
-        if get_format_suffixes(f)[0] != suffix:
-            return False
-    return True
+def _has_other_suffixes(path, suffix, is_zip=False):
+    if is_zip:
+        for f in zipfile.ZipFile(path).namelist():
+            if get_format_suffixes(f)[0] != suffix:
+                return False
+        return True
+    else:
+        p = Path(path)
+        for f in p.iterdir():
+            if get_format_suffixes(str(f))[0] != suffix:
+                return False
+        return True
 
 
 class DataStoreMember(str):
@@ -649,7 +656,7 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         if exists and if_exists == RAISE:
             raise RuntimeError(f"'{self.source}' exists")
         elif exists and if_exists == OVERWRITE:
-            if not _has_other_suffixes(self.source, self.suffix):
+            if not _has_other_suffixes(self.source, self.suffix, is_zip=True):
                 raise RuntimeError(
                     f"Unsafe to delete {self.source} as it contains ",
                     f"files other than {self.suffix}."

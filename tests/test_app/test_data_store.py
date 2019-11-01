@@ -1,11 +1,13 @@
 import os
 import shutil
 import sys
+import zipfile
 
-from tempfile import TemporaryDirectory
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 from unittest import TestCase, main, skipIf
 
 from cogent3.app.data_store import (
+    OVERWRITE,
     DataStoreMember,
     ReadOnlyDirectoryDataStore,
     ReadOnlyTinyDbDataStore,
@@ -113,6 +115,9 @@ class DataStoreBaseTests:
             expect = os.path.join(base_path, member.name.replace("fasta", "json"))
             self.assertEqual(got, expect)
             dstore.close()
+
+    def test_has_other_suffixes(self):
+        pass
 
     def test_read(self):
         """correctly read content"""
@@ -301,6 +306,25 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
         dstore = self.ReadClass(source, suffix="*")
         self.assertEqual(dstore.source, self.basedir)
         self.assertTrue(len(dstore) > 1)
+
+    def test_write_class_source_create_delete(self):
+        # tests the case when directory has other different suffixes to self.suffix
+        with zipfile.ZipFile(self.basedir, "w") as myzip:
+            with open("dummyPrefix_.dummySuffix", "w"):
+                pass
+            myzip.write("dummyPrefix_.dummySuffix")
+        with self.assertRaises(RuntimeError):
+            dstore = self.WriteClass(
+                self.basedir, suffix=".json", if_exists=OVERWRITE, create=True
+            )
+        # tests the case when directory only contains files with the same suffix as self.suffix
+        with zipfile.ZipFile("delme.zip", "w") as myzip:
+            with open("dummyPrefix_.json", "w"):
+                pass
+            myzip.write("dummyPrefix_.json")
+        dstore = self.WriteClass(
+            "delme.zip", suffix=".json", if_exists=OVERWRITE, create=True
+        )
 
 
 class TinyDBDataStoreTests(TestCase):
