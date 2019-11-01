@@ -7,7 +7,7 @@ variables:
   CIBW_BEFORE_BUILD: python -m pip install --upgrade pip
 
 jobs:
-- job: Linux Test
+- job: Linux_Test
   pool: {vmImage: 'Ubuntu-16.04'}
   steps:
     - task: UsePythonVersion@0
@@ -26,7 +26,7 @@ jobs:
     - bash: |
         tox -e py36
         codecov
-- job: MacOS Test
+- job: MacOS_Test
   pool: {vmImage: 'macOS-10.13'}
   steps:
     - task: UsePythonVersion@0
@@ -45,7 +45,7 @@ jobs:
     - bash: |
         tox -e py36
         codecov
-- job: Windows Test
+- job: Windows_Test
   pool: {vmImage: 'vs2017-win2016'}
   steps:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
@@ -59,7 +59,7 @@ jobs:
         tox -e py36
         codecov
 
-- job: Linux Build
+- job: Linux_Build
   pool: {vmImage: 'Ubuntu-16.04'}
   steps: 
     - task: UsePythonVersion@0
@@ -69,7 +69,7 @@ jobs:
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
-- job: MacOS Build
+- job: MacOS_Build
   pool: {vmImage: 'macOS-10.13'}
   steps: 
     - task: UsePythonVersion@0
@@ -80,7 +80,7 @@ jobs:
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
-- job: Windows Build
+- job: Windows_Build
   pool: {vmImage: 'vs2017-win2016'}
   steps:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x86}}
