@@ -67,19 +67,11 @@ def load_record_from_json(data):
     return data["identifier"], value, data["completed"]
 
 
-def _check_before_remove(path, suffix):
-    is_dir = os.path.isdir(path)
-    if is_dir:
-        for f in os.listdir(path):
-            if get_format_suffixes(f)[0] != suffix:
-                return False
-        return True
-    else:
-        got = get_format_suffixes(path)[0]
-        if got != suffix and got != "tinydb":
+def _has_other_suffixes(path, suffix):
+    for f in os.listdir(path):
+        if get_format_suffixes(f)[0] != suffix:
             return False
-        else:
-            return True
+    return True
 
 
 class DataStoreMember(str):
@@ -586,7 +578,7 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
         if exists and if_exists == RAISE:
             raise RuntimeError(f"'{self.source}' exists")
         elif exists and if_exists == OVERWRITE:
-            if _check_before_remove(self.source, self.suffix):
+            if _has_other_suffixes(self.source, self.suffix):
                 try:
                     shutil.rmtree(self.source)
                 except NotADirectoryError:
@@ -657,8 +649,13 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         if exists and if_exists == RAISE:
             raise RuntimeError(f"'{self.source}' exists")
         elif exists and if_exists == OVERWRITE:
-            if _check_before_remove(self.source, self.suffix):
-                os.remove(self.source)
+            if not _has_other_suffixes(self.source, self.suffix):
+                raise RuntimeError(
+                    f"Unsafe to delete {self.source} as it contains ",
+                    f"files other than {self.suffix}."
+                    " You will need to remove this directly yourself.",
+                )
+            os.remove(self.source)
         elif dirname and not os.path.exists(dirname) and not create:
             raise RuntimeError(f"'{dirname}' does not exist")
 
@@ -975,12 +972,11 @@ class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
         if exists and if_exists == RAISE:
             raise RuntimeError(f"'{self.source}' exists")
         elif exists and if_exists == OVERWRITE:
-            if _check_before_remove(self.source, self.suffix):
-                try:
-                    os.remove(self.source)
-                except PermissionError:
-                    # probably user accidentally created a directory
-                    shutil.rmtree(self.source)
+            try:
+                os.remove(self.source)
+            except PermissionError:
+                # probably user accidentally created a directory
+                shutil.rmtree(self.source)
         elif dirname and not os.path.exists(dirname) and not create:
             raise RuntimeError(f"'{dirname}' does not exist")
 
