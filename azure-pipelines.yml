@@ -58,7 +58,7 @@ jobs:
         tox -e py37
         tox -e py36
         codecov
-jobs:
+
 - job: Linux Build
   pool: {vmImage: 'Ubuntu-16.04'}
   steps: 
