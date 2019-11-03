@@ -101,7 +101,7 @@ class TestComposableBase(TestCase):
         self.assertEqual(len(got), len(dstore))
         # should also be able to apply the results to another composable func
         min_length = sample_app.min_length(10)
-        got = min_length.apply_to(got, show_progress=False)
+        got = min_length.apply_to(got, show_progress=False, logger=True)
         self.assertEqual(len(got), len(dstore))
         # should work on a chained function
         proc = reader + min_length
@@ -135,6 +135,44 @@ class TestComposableBase(TestCase):
             # create paths as strings
             r = process.apply_to(dstore, show_progress=False)
             self.assertEqual(len(process.data_store.logs), 1)
+            process.data_store.close()
+
+    def test_apply_to_logging(self):
+        """correctly creates log file"""
+        dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+        with TemporaryDirectory(dir=".") as dirname:
+            reader = io_app.load_aligned(format="fasta", moltype="dna")
+            min_length = sample_app.min_length(10)
+            outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
+            writer = io_app.write_db(outpath)
+            process = reader + min_length + writer
+            r = process.apply_to(dstore, show_progress=False, logger=False)
+            self.assertEqual(len(process.data_store.logs), 0)
+            process.data_store.close()
+
+        with TemporaryDirectory(dir=".") as dirname:
+            reader = io_app.load_aligned(format="fasta", moltype="dna")
+            # trigger creation of notcompleted
+            min_length = sample_app.min_length(10)
+            outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
+            writer = io_app.write_db(outpath)
+            process = reader + min_length + writer
+            r = process.apply_to(dstore, show_progress=False, logger=True)
+            self.assertEqual(len(process.data_store.logs), 1)
+            process.data_store.close()
+
+    def test_apply_to_not_completed(self):
+        """correctly creates notcompleted"""
+        dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+        with TemporaryDirectory(dir=".") as dirname:
+            reader = io_app.load_aligned(format="fasta", moltype="dna")
+            # trigger creation of notcompleted
+            min_length = sample_app.min_length(3000)
+            outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
+            writer = io_app.write_db(outpath)
+            process = reader + min_length + writer
+            r = process.apply_to(dstore, show_progress=False)
+            self.assertEqual(len(process.data_store.incomplete), 3)
             process.data_store.close()
 
 
