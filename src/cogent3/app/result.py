@@ -523,7 +523,7 @@ class bootstrap_result(generic_result):
     def add_to_null(self, data):
         """add results for a synthetic data set"""
         size = len(self)
-        self.update({size + 1: data.to_rich_dict()})
+        self[size + 1] = data
 
     @property
     def null_dist(self):
