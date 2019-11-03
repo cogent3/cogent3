@@ -122,6 +122,21 @@ class TestComposableBase(TestCase):
         with self.assertRaises(ValueError):
             proc.apply_to(["", ""])
 
+    def test_apply_to_strings(self):
+        """apply_to handles strings as paths"""
+        dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+        dstore = [str(m) for m in dstore]
+        with TemporaryDirectory(dir=".") as dirname:
+            reader = io_app.load_aligned(format="fasta", moltype="dna")
+            min_length = sample_app.min_length(10)
+            outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
+            writer = io_app.write_db(outpath)
+            process = reader + min_length + writer
+            # create paths as strings
+            r = process.apply_to(dstore, show_progress=False)
+            self.assertEqual(len(process.data_store.logs), 1)
+            process.data_store.close()
+
 
 class TestNotCompletedResult(TestCase):
     def test_err_result(self):
