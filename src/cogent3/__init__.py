@@ -95,8 +95,6 @@ warn_env = "COGENT3_WARNINGS"
 if warn_env in os.environ:
     warnings.simplefilter(os.environ[warn_env])
 
-# to avoid circular imports, we define a utility function that allows us to
-
 
 def make_seq(seq, name=None, moltype=None):
     """
