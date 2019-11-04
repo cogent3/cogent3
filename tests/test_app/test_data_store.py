@@ -295,6 +295,14 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
 
     def tearDown(self):
         os.remove(self.basedir)
+        try:
+            os.remove("dummyPrefix_.dummySuffix")
+        except OSError:
+            pass
+        try:
+            os.remove("dummyPrefix_.json")
+        except OSError:
+            pass
 
     def test_write_no_parent(self):
         """zipped data store handles archive with no parent dir"""

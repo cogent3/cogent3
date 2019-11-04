@@ -67,20 +67,6 @@ def load_record_from_json(data):
     return data["identifier"], value, data["completed"]
 
 
-def _has_other_suffixes(path, suffix, is_zip=False):
-    if is_zip:
-        for f in zipfile.ZipFile(path).namelist():
-            if get_format_suffixes(f)[0] != suffix:
-                return False
-        return True
-    else:
-        p = Path(path)
-        for f in p.iterdir():
-            if get_format_suffixes(str(f))[0] != suffix:
-                return False
-        return True
-
-
 class DataStoreMember(str):
     def __new__(klass, name, parent=None, id=None):
         result = str.__new__(klass, name)
@@ -580,12 +566,19 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
         self._persistent = {k: v for k, v in d.items() if k != "self"}
         self.mode = mode
 
+    def _has_other_suffixes(self, path, suffix):
+        p = Path(path)
+        for f in p.iterdir():
+            if get_format_suffixes(str(f))[0] != suffix:
+                return False
+        return True
+
     def _source_create_delete(self, if_exists, create):
         exists = os.path.exists(self.source)
         if exists and if_exists == RAISE:
             raise RuntimeError(f"'{self.source}' exists")
         elif exists and if_exists == OVERWRITE:
-            if _has_other_suffixes(self.source, self.suffix):
+            if self._has_other_suffixes(self.source, self.suffix):
                 try:
                     shutil.rmtree(self.source)
                 except NotADirectoryError:
@@ -650,13 +643,19 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         self._persistent = {k: v for k, v in d.items() if k != "self"}
         self.mode = "a" or mode
 
+    def _has_other_suffixes(self, path, suffix):
+        for f in zipfile.ZipFile(path).namelist():
+            if get_format_suffixes(f)[0] != suffix:
+                return False
+        return True
+
     def _source_create_delete(self, if_exists, create):
         exists = os.path.exists(self.source)
         dirname = os.path.dirname(self.source)
         if exists and if_exists == RAISE:
             raise RuntimeError(f"'{self.source}' exists")
         elif exists and if_exists == OVERWRITE:
-            if not _has_other_suffixes(self.source, self.suffix, is_zip=True):
+            if not self._has_other_suffixes(self.source, self.suffix):
                 raise RuntimeError(
                     f"Unsafe to delete {self.source} as it contains ",
                     f"files other than {self.suffix}."
