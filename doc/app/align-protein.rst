@@ -33,7 +33,7 @@ The distance measures available are percent or paralinear.
 
 .. doctest::
     
-    >>> nt_aligner = progressive_align("nucleotide", distance="paralinear")
-    >>> aligned = nt_aligner(seqs)
+    >>> aa_aligner = progressive_align("protein", distance="paralinear")
+    >>> aligned = aa_aligner(seqs)
     >>> aligned
-    6 x 2478 dna alignment...
+    6 x 825 protein alignment...
