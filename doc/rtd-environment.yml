@@ -4,10 +4,11 @@ channels:
   - plotly
 dependencies:
   - nodejs
-  - python>=3.7
+  - python=3.7
   - pandoc
   - plotly
   - plotly-orca
+  - pip
   - pip:
     - numpy
     - numpydoc
