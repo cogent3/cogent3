@@ -461,7 +461,7 @@ class Composable(ComposableType):
         for result in ui.imap(
             process, todo, parallel=parallel, par_kw=par_kw, mininterval=mininterval
         ):
-            outcome = self(result)
+            outcome = result if process is self else self(result)
             results.append(outcome)
             if LOGGER:
                 member = dstore[i]
