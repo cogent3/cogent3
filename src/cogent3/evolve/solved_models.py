@@ -74,7 +74,7 @@ class PredefinedNucleotide(TimeReversibleNucleotide):
         assert_allclose(P1, P2)
 
 
-def _solvedNucleotide(name, predicates, rate_matrix_required=True, **kw):
+def _solved_nucleotide(name, predicates, rate_matrix_required=True, **kw):
     if _solved_models is not None and not rate_matrix_required:
         klass = PredefinedNucleotide
     else:
@@ -91,16 +91,16 @@ kappa = (kappa_y | kappa_r).aliased("kappa")
 def TN93(**kw):
     """Tamura and Nei 1993 model"""
     kw["recode_gaps"] = True
-    return _solvedNucleotide("TN93", [kappa_y, kappa_r], **kw)
+    return _solved_nucleotide("TN93", [kappa_y, kappa_r], **kw)
 
 
 def HKY85(**kw):
     """Hasegawa, Kishino and Yanamo 1985 model"""
     kw["recode_gaps"] = True
-    return _solvedNucleotide("HKY85", [kappa], **kw)
+    return _solved_nucleotide("HKY85", [kappa], **kw)
 
 
 def F81(**kw):
     """Felsenstein's 1981 model"""
     kw["recode_gaps"] = True
-    return _solvedNucleotide("F81", [], **kw)
+    return _solved_nucleotide("F81", [], **kw)

@@ -177,7 +177,7 @@ class LikelihoodCalcs(TestCase):
         one = aln.pop("Mouse")
         aln["root"] = one
         aln = make_aligned_seqs(data=aln)
-        submod = TimeReversibleNucleotide()
+        submod = get_model("TN93")
         tree = make_tree("%s" % str(tuple(aln.names)))
         lf = submod.make_likelihood_function(tree)
         try:
@@ -280,6 +280,16 @@ class LikelihoodCalcs(TestCase):
         self.assertEqual(likelihood_function.get_num_free_params(), 0)
         evolve_lnL = likelihood_function.get_log_likelihood()
         self.assertFloatEqual(evolve_lnL, -148.6455087258624)
+
+    def test_solved_nucleotide(self):
+        """test a solved nucleotide model."""
+        submod = get_model("TN93", rate_matrix_required=False)
+        # now do using the evolve
+        lf = submod.make_likelihood_function(self.tree)
+        lf.set_alignment(self.alignment)
+        self.assertEqual(lf.get_num_free_params(), 5)
+        lf.optimise(show_progress=False, max_evaluations=20, limit_action="ignore")
+        self.assertTrue(lf.lnL > -152)
 
     def test_discrete_nucleotide(self):
         """test that partially discrete nucleotide model can be constructed, 
