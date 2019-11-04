@@ -41,7 +41,7 @@ The distance measures available are the same as for the nucleotide case (percent
 
 .. doctest::
     
-    >>> nt_aligner = progressive_align("nucleotide", distance="paralinear")
+    >>> nt_aligner = progressive_align("codon", distance="paralinear")
     >>> aligned = nt_aligner(seqs)
     >>> aligned
     6 x 2478 dna alignment...
