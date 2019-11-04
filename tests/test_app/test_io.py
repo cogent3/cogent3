@@ -138,10 +138,10 @@ class TestIo(TestCase):
             self.assertTrue("-" not in "".join(seqs.to_dict().values()))
             self.assertEqual(seqs.info.source, fasta_paths[i])
 
-        # should also handle case where it's given an alignment/sequence
+        # returns NotCompleted when it's given an alignment/sequence
         # collection
         got = fasta_loader(seqs)
-        self.assertEqual(got, seqs)
+        self.assertIsInstance(got, NotCompleted)
 
     def test_write_seqs(self):
         """correctly writes sequences out"""
