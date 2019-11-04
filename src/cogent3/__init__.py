@@ -566,63 +566,20 @@ def LoadTable(
         ``LoadTable`` will be removed in ``cogent3`` 2020.1.1. It's replaced by
         ``load_table`` and ``make_table``.
     """
-    sep = sep or kwargs.pop("delimiter", None)
-    if filename is not None:
-        file_format, compress_format = get_format_suffixes(filename)
+    from cogent3.util.warning import deprecated
 
-    if filename is not None and not (reader or static_column_types):
-        if file_format == "pickle":
-            f = open_(filename, mode="rb")
-            loaded_table = pickle.load(f)
-            f.close()
-            return _Table(**loaded_table)
-        elif file_format == "csv":
-            sep = sep or ","
-        elif file_format == "tsv":
-            sep = sep or "\t"
+    args = {k: v for k, v in locals().items() if k != "deprecated"}
+    kwargs = args.pop("kwargs", {})
+    args.update(kwargs)
+    if filename:
+        deprecated("function", "LoadTable", "load_table", "2020.1.1", 1)
 
-        header, rows, loaded_title, legend = load_delimited(
-            filename, delimiter=sep, limit=limit, **kwargs
-        )
-        title = title or loaded_title
-    elif filename and (reader or static_column_types):
-        f = open_(filename, newline=None)
-        if not reader:
-            if file_format == "csv":
-                sep = sep or ","
-            elif file_format == "tsv":
-                sep = sep or "\t"
-            elif not sep:
-                raise ValueError(
-                    "static_column_types option requires a value " "for sep"
-                )
+        return load_table(**args)
 
-            reader = autogen_reader(
-                f, sep, limit=limit, with_title=kwargs.get("with_title", False)
-            )
-
-        rows = [row for row in reader(f)]
-        f.close()
-        header = rows.pop(0)
-
-    table = _Table(
-        header=header,
-        rows=rows,
-        digits=digits,
-        row_order=row_order,
-        title=title,
-        dtype=dtype,
-        column_templates=column_templates,
-        space=space,
-        missing_data=missing_data,
-        max_width=max_width,
-        row_ids=row_ids,
-        legend=legend,
-        data_frame=data_frame,
-        format=format,
-    )
-
-    return table
+    deprecated("function", "LoadTable", "make_table", "2020.1.1", 1)
+    for skip in ("filename", "sep", "reader", "static_column_types", "limit"):
+        del args[skip]
+    return make_table(**args)
 
 
 def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=False):
@@ -705,10 +662,10 @@ def LoadTree(
     from cogent3.util.warning import deprecated
 
     if filename:
-        deprecated("function", "LoadTable", "load_table", "2020.1.1", 1)
+        deprecated("function", "LoadTree", "load_tree", "2020.1.1", 1)
         return load_tree(filename, format=format, underscore_unmunge=underscore_unmunge)
 
-    deprecated("function", "LoadTable", "make_table", "2020.1.1", 1)
+    deprecated("function", "LoadTree", "make_tree", "2020.1.1", 1)
     tree = make_tree(
         treestring=treestring,
         tip_names=tip_names,
