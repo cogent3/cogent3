@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 __all__ = [
+    "test_blast",
+    "test_blast_xml",
     "test_cigar",
     "test_clustal",
     "test_dialign",
