@@ -5,8 +5,7 @@
 
 from unittest import TestCase, main
 
-from cogent3 import LoadTable
-from cogent3.parse.psl import MinimalPslParser, PslToTable, make_header
+from cogent3.parse.psl import MinimalPslParser, PslToTable
 
 
 __author__ = "Gavin Huttley, Anuj Pahwa"

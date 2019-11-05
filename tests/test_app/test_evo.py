@@ -1,3 +1,4 @@
+from os.path import dirname, join
 from unittest import TestCase, main
 from unittest.mock import MagicMock
 
@@ -7,6 +8,7 @@ from cogent3 import load_aligned_seqs, make_aligned_seqs, make_tree
 from cogent3.app import evo as evo_app
 from cogent3.app.result import hypothesis_result
 from cogent3.evolve.models import get_model
+from cogent3.util.deserialise import deserialise_object
 
 
 __author__ = "Gavin Huttley"
@@ -17,6 +19,8 @@ __version__ = "2019.10.24a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
+
+data_dir = join(dirname(dirname(__file__)), "data")
 
 
 class TestModel(TestCase):
@@ -546,6 +550,40 @@ class TestTabulateStats(TestCase):
         for title in ("motif params", "global params", "edge params"):
             self.assertTrue(title in tabulated)
             self.assertIsInstance(tabulated[title], Table)
+
+
+class TestBootstrap(TestCase):
+    """testing the bootstrap app"""
+
+    def test_bstrap(self):
+        """exercising bootstrap with simple hypothesis"""
+        aln = load_aligned_seqs(join(data_dir, "brca1.fasta"), moltype="dna")
+        aln = aln.take_seqs(aln.names[:3])
+        aln = aln.omit_gap_pos(allowed_gap_frac=0)
+        opt_args = dict(max_evaluations=20, limit_action="ignore")
+        m1 = evo_app.model("F81", opt_args=opt_args)
+        m2 = evo_app.model("HKY85", opt_args=opt_args)
+        hyp = evo_app.hypothesis(m1, m2)
+        strapper = evo_app.bootstrap(hyp, num_reps=2, parallel=False)
+        result = strapper(aln)
+        nd = result.null_dist
+        self.assertTrue(set(type(v) for v in nd), {float})
+        json = result.to_json()
+        got = deserialise_object(json)
+        self.assertIsInstance(got, evo_app.bootstrap_result)
+
+    def test_bstrap_parallel(self):
+        """exercising bootstrap with parallel"""
+        aln = load_aligned_seqs(join(data_dir, "brca1.fasta"), moltype="dna")
+        aln = aln.take_seqs(aln.names[:3])
+        aln = aln.omit_gap_pos(allowed_gap_frac=0)
+        opt_args = dict(max_evaluations=20, limit_action="ignore")
+        m1 = evo_app.model("F81", opt_args=opt_args)
+        m2 = evo_app.model("HKY85", opt_args=opt_args)
+        hyp = evo_app.hypothesis(m1, m2)
+        strapper = evo_app.bootstrap(hyp, num_reps=2, parallel=True)
+        result = strapper(aln)
+        self.assertIsInstance(result, evo_app.bootstrap_result)
 
 
 if __name__ == "__main__":

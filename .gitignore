@@ -24,6 +24,7 @@ pip-log.txt
 # Unit test / coverage reports
 .coverage
 .tox
+coverage.xml
 nosetests.xml
 tests/draw_results
 
@@ -34,6 +35,7 @@ tests/draw_results
 .mr.developer.cfg
 .project
 .pydevproject
+.idea/*
 
 # vi
 .*.swp

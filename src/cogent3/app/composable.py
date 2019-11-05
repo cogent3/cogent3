@@ -18,6 +18,8 @@ from .data_store import (
     OVERWRITE,
     RAISE,
     SKIP,
+    DataStoreMember,
+    SingleReadDataStore,
     WritableDirectoryDataStore,
     WritableZippedDataStore,
 )
@@ -459,10 +461,14 @@ class Composable(ComposableType):
         for result in ui.imap(
             process, todo, parallel=parallel, par_kw=par_kw, mininterval=mininterval
         ):
-            outcome = self(result)
+            outcome = result if process is self else self(result)
             results.append(outcome)
             if LOGGER:
                 member = dstore[i]
+                # ensure member is a DataStoreMember instance
+                if not isinstance(member, DataStoreMember):
+                    member = SingleReadDataStore(member)[0]
+
                 LOGGER.log_message(member, label="input")
                 if member.md5:
                     LOGGER.log_message(member.md5, label="input md5sum")

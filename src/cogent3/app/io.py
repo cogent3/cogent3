@@ -133,16 +133,10 @@ class _seq_loader:
             # we use a data store as it's read() handles compression
             path = SingleReadDataStore(path)[0]
 
-        if hasattr(path, "read"):
-            data = path.read().splitlines()
-            data = dict(record for record in self._parser(data))
-            seqs = self.klass(data=data, moltype=self.moltype)
-            seqs.info.source = abs_path
-        elif not isinstance(path, SequenceCollection):
-            func = _load_aligned_seqs if self.aligned else _load_unaligned_seqs
-            seqs = func(path, moltype=self.moltype)
-        else:
-            seqs = path  # it is a SequenceCollection
+        data = path.read().splitlines()
+        data = dict(record for record in self._parser(data))
+        seqs = self.klass(data=data, moltype=self.moltype)
+        seqs.info.source = abs_path
 
         if self._output_types & {"sequences"}:
             seqs = seqs.degap()
@@ -195,14 +189,7 @@ class load_unaligned(ComposableSeq, _seq_loader):
         super(ComposableSeq, self).__init__(
             input_types=None,
             output_types=(SEQUENCE_TYPE, SERIALISABLE_TYPE),
-            data_types=(
-                "DataStoreMember",
-                "str",
-                "Path",
-                "ArrayAlignment",
-                "Alignment",
-                "SequenceCollection",
-            ),
+            data_types=("DataStoreMember", "str", "Path"),
         )
         _seq_loader.__init__(self)
         self._formatted_params()

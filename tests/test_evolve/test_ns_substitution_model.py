@@ -5,7 +5,7 @@ import numpy
 from numpy import array, dot, empty, ones
 from numpy.testing import assert_allclose
 
-from cogent3 import DNA, LoadTable, make_aligned_seqs, make_tree
+from cogent3 import DNA, make_aligned_seqs, make_tree
 from cogent3.evolve.ns_substitution_model import (
     DiscreteSubstitutionModel,
     General,
