@@ -1,3 +1,4 @@
+import glob
 import os
 import shutil
 import sys
@@ -115,9 +116,6 @@ class DataStoreBaseTests:
             expect = os.path.join(base_path, member.name.replace("fasta", "json"))
             self.assertEqual(got, expect)
             dstore.close()
-
-    def test_has_other_suffixes(self):
-        pass
 
     def test_read(self):
         """correctly read content"""
@@ -281,6 +279,30 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
     ReadClass = ReadOnlyDirectoryDataStore
     WriteClass = WritableDirectoryDataStore
 
+    def test_write_class_source_create_delete(self):
+        # tests the case when the directory has other different suffixes to self.suffix
+        os.mkdir("delme_dir")
+        with open(f"delme_dir/test_write_class_source_create_delete.json", "w"):
+            pass
+        dstore = self.WriteClass(
+            "delme_dir", suffix=".json", if_exists=OVERWRITE, create=True
+        )
+        self.assertEqual(len(glob.glob(f"delme_dir/*.json")), 0)
+        with open(f"delme_dir/test_write_class_source_create_delete.dummySuffix", "w"):
+            pass
+        dstore = self.WriteClass(
+            "delme_dir", suffix=".json", if_exists=OVERWRITE, create=True
+        )
+        self.assertEqual(len(glob.glob(f"delme_dir/*.dummySuffix")), 1)
+        dstore = self.WriteClass(
+            "delme_dir", suffix=".dummySuffix", if_exists=OVERWRITE, create=True
+        )
+        self.assertEqual(len(glob.glob(f"delme_dir/*.dummySuffix")), 0)
+        try:
+            os.removedirs("delme_dir")
+        except OSError:
+            pass
+
 
 class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
     basedir = "data.zip"
@@ -316,7 +338,7 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
         self.assertTrue(len(dstore) > 1)
 
     def test_write_class_source_create_delete(self):
-        # tests the case when directory has other different suffixes to self.suffix
+        # tests the case when the ZippedDataStore has other different suffixes to self.suffix
         with zipfile.ZipFile(self.basedir, "w") as myzip:
             with open("dummyPrefix_.dummySuffix", "w"):
                 pass
@@ -325,7 +347,7 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
             dstore = self.WriteClass(
                 self.basedir, suffix=".json", if_exists=OVERWRITE, create=True
             )
-        # tests the case when directory only contains files with the same suffix as self.suffix
+        # tests the case when the ZippedDataStore only contains files with the same suffix as self.suffix
         with zipfile.ZipFile("delme.zip", "w") as myzip:
             with open("dummyPrefix_.json", "w"):
                 pass
