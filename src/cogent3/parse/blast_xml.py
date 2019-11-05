@@ -15,7 +15,6 @@ __status__ = "Prototype"
 import xml.dom.minidom
 
 from cogent3.parse.blast import (
-    BlastResult,
     MinimalBlastParser9,
     MinimalPsiBlastParser9,
 )
@@ -166,7 +165,7 @@ def MinimalBlastParser7(lines, include_column_names=False, format="xml"):
         yield props, hits
 
 
-class BlastXMLResult(BlastResult):
+class BlastXMLResult(dict):
     """the BlastResult objects have the query sequence as keys,
     and the values are lists of lists of dictionaries.
     The FIELD NAMES given are the keys of the dict.
@@ -181,6 +180,19 @@ class BlastXMLResult(BlastResult):
     HIT_LENGTH = "HIT_LENGTH"
     SCORE = "SCORE"
     POSITIVE = "POSITIVE"
+    ITERATION = "ITERATION"
+    QUERY_ID = "QUERY ID"
+    SUBJECT_ID = "SUBJECT ID"
+    PERCENT_IDENTITY = "% IDENTITY"
+    ALIGNMENT_LENGTH = "ALIGNMENT LENGTH"
+    MISMATCHES = "MISMATCHES"
+    GAP_OPENINGS = "GAP OPENINGS"
+    QUERY_START = "Q. START"
+    QUERY_END = "Q. END"
+    SUBJECT_START = "S. START"
+    SUBJECT_END = "S. END"
+    E_VALUE = "E-VALUE"
+    BIT_SCORE = "BIT SCORE"
 
     # FieldComparisonOperators = (
     #    BlastResult.FieldComparisonOperators = {
@@ -188,9 +200,7 @@ class BlastXMLResult(BlastResult):
     #        }
     # .. to be done
 
-    # .. extend HitKeys
-    HitKeys = BlastResult.HitKeys.union(
-        set(
+    HitKeys = set(
             [
                 HIT_DEF,
                 HIT_ACCESSION,
@@ -200,9 +210,21 @@ class BlastXMLResult(BlastResult):
                 QUERY_ALIGN,
                 SUBJECT_ALIGN,
                 MIDLINE_ALIGN,
+                ITERATION,
+                QUERY_ID,
+                SUBJECT_ID,
+                PERCENT_IDENTITY,
+                ALIGNMENT_LENGTH,
+                MISMATCHES,
+                GAP_OPENINGS,
+                QUERY_START,
+                QUERY_END,
+                SUBJECT_START,
+                SUBJECT_END,
+                E_VALUE,
+                BIT_SCORE,
             ]
         )
-    )
 
     def __init__(self, data, psiblast=False, parser=None, xml=False):
         # iterate blast results, generate data structure
@@ -249,3 +271,9 @@ class BlastXMLResult(BlastResult):
             if query_id not in self:
                 self[query_id] = []
             self[query_id].append(hits)
+
+    def iterHitsByQuery(self, iteration=-1):
+        """Iterates over set of hits, returning list of hits for each query"""
+        for query_id in self:
+            yield query_id, self[query_id][iteration]
+
