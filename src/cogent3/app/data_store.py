@@ -570,15 +570,15 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
         p = Path(path)
         for f in p.iterdir():
             if get_format_suffixes(str(f))[0] != suffix:
-                return False
-        return True
+                return True
+        return False
 
     def _source_create_delete(self, if_exists, create):
         exists = os.path.exists(self.source)
         if exists and if_exists == RAISE:
             raise RuntimeError(f"'{self.source}' exists")
         elif exists and if_exists == OVERWRITE:
-            if self._has_other_suffixes(self.source, self.suffix):
+            if not self._has_other_suffixes(self.source, self.suffix):
                 try:
                     shutil.rmtree(self.source)
                 except NotADirectoryError:
@@ -646,8 +646,8 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
     def _has_other_suffixes(self, path, suffix):
         for f in zipfile.ZipFile(path).namelist():
             if get_format_suffixes(f)[0] != suffix:
-                return False
-        return True
+                return True
+        return False
 
     def _source_create_delete(self, if_exists, create):
         exists = os.path.exists(self.source)
@@ -655,7 +655,7 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         if exists and if_exists == RAISE:
             raise RuntimeError(f"'{self.source}' exists")
         elif exists and if_exists == OVERWRITE:
-            if not self._has_other_suffixes(self.source, self.suffix):
+            if self._has_other_suffixes(self.source, self.suffix):
                 raise RuntimeError(
                     f"Unsafe to delete {self.source} as it contains ",
                     f"files other than {self.suffix}."
