@@ -4,7 +4,7 @@ import shutil
 import sys
 import zipfile
 
-from tempfile import NamedTemporaryFile, TemporaryDirectory
+from tempfile import TemporaryDirectory
 from unittest import TestCase, main, skipIf
 
 from cogent3.app.data_store import (
@@ -17,7 +17,6 @@ from cogent3.app.data_store import (
     WritableDirectoryDataStore,
     WritableTinyDbDataStore,
     WritableZippedDataStore,
-    make_record_for_json,
 )
 from cogent3.parse.fasta import MinimalFastaParser
 
