@@ -27,3 +27,4 @@ draw_results
 *.tox
 *.vscode
 *.code-workspace
+coverage.xml
