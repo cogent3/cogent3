@@ -281,7 +281,7 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
 
     def test_write_class_source_create_delete(self):
         with TemporaryDirectory(dir=".") as dirname:
-            # tests the case when the directory has other different suffixes to self.suffix
+            # tests the case when the directory has the file with the same suffix to self.suffix
             os.mkdir(f"{dirname}{os.sep}delme_dir")
             with open(
                 f"{dirname}{os.sep}delme_dir/test_write_class_source_create_delete.json",
@@ -295,6 +295,7 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
                 create=True,
             )
             self.assertEqual(len(glob.glob(f"{dirname}{os.sep}delme_dir/*.json")), 0)
+            # tests the case when the directory has the file with the different suffix to self.suffix
             with open(
                 f"{dirname}{os.sep}delme_dir/test_write_class_source_create_delete.dummySuffix",
                 "w",
@@ -310,6 +311,7 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
             self.assertEqual(
                 len(glob.glob(f"{dirname}{os.sep}delme_dir/*.dummySuffix")), 1
             )
+            # tests the case when the directory has the file with the same suffix to self.suffix
             dstore = self.WriteClass(
                 f"{dirname}{os.sep}delme_dir",
                 suffix=".dummySuffix",
