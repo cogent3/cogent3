@@ -14,10 +14,7 @@ __status__ = "Prototype"
 
 import xml.dom.minidom
 
-from cogent3.parse.blast import (
-    MinimalBlastParser9,
-    MinimalPsiBlastParser9,
-)
+from cogent3.parse.blast import MinimalBlastParser9, MinimalPsiBlastParser9
 
 
 """
@@ -143,7 +140,7 @@ def parse_parameters(tag):
     return result
 
 
-def MinimalBlastParser7(lines, include_column_names=False, format="xml"):
+def minimal_blast_parser_7(lines, include_column_names=False, format="xml"):
     """Yields succesive records from lines (props, data list).
 
     lines must be XML BLAST output format.
@@ -201,30 +198,30 @@ class BlastXMLResult(dict):
     # .. to be done
 
     HitKeys = set(
-            [
-                HIT_DEF,
-                HIT_ACCESSION,
-                HIT_LENGTH,
-                SCORE,
-                POSITIVE,
-                QUERY_ALIGN,
-                SUBJECT_ALIGN,
-                MIDLINE_ALIGN,
-                ITERATION,
-                QUERY_ID,
-                SUBJECT_ID,
-                PERCENT_IDENTITY,
-                ALIGNMENT_LENGTH,
-                MISMATCHES,
-                GAP_OPENINGS,
-                QUERY_START,
-                QUERY_END,
-                SUBJECT_START,
-                SUBJECT_END,
-                E_VALUE,
-                BIT_SCORE,
-            ]
-        )
+        [
+            HIT_DEF,
+            HIT_ACCESSION,
+            HIT_LENGTH,
+            SCORE,
+            POSITIVE,
+            QUERY_ALIGN,
+            SUBJECT_ALIGN,
+            MIDLINE_ALIGN,
+            ITERATION,
+            QUERY_ID,
+            SUBJECT_ID,
+            PERCENT_IDENTITY,
+            ALIGNMENT_LENGTH,
+            MISMATCHES,
+            GAP_OPENINGS,
+            QUERY_START,
+            QUERY_END,
+            SUBJECT_START,
+            SUBJECT_END,
+            E_VALUE,
+            BIT_SCORE,
+        ]
+    )
 
     def __init__(self, data, psiblast=False, parser=None, xml=False):
         # iterate blast results, generate data structure
@@ -242,7 +239,7 @@ class BlastXMLResult(dict):
 
         if not parser:
             if xml:
-                parser = MinimalBlastParser7
+                parser = minimal_blast_parser_7
             elif psiblast:
                 parser = MinimalPsiBlastParser9
             else:
@@ -272,8 +269,7 @@ class BlastXMLResult(dict):
                 self[query_id] = []
             self[query_id].append(hits)
 
-    def iterHitsByQuery(self, iteration=-1):
+    def iter_hits_by_query(self, iteration=-1):
         """Iterates over set of hits, returning list of hits for each query"""
         for query_id in self:
             yield query_id, self[query_id][iteration]
-

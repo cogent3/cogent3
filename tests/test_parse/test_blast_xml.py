@@ -22,8 +22,8 @@ from cogent3.parse.blast_xml import (
     HIT_XML_FIELDNAMES,
     HSP_XML_FIELDNAMES,
     BlastXMLResult,
-    MinimalBlastParser7,
     get_tag,
+    minimal_blast_parser_7,
     parse_header,
     parse_hit,
     parse_hsp,
@@ -148,7 +148,7 @@ class BlastXmlResultTests(TestCase):
 
     def test_options(self):
         """Constructor should take parser as an option."""
-        result = BlastXMLResult(COMPLETE_XML, parser=MinimalBlastParser7)
+        result = BlastXMLResult(COMPLETE_XML, parser=minimal_blast_parser_7)
         self.assertEqual(len(list(result.keys())), 1)
         # make sure whether normal Blast parser still works upon code merge!
 
@@ -162,14 +162,14 @@ class BlastXmlResultTests(TestCase):
     def test_parsed_iterations(self):
         """The result should have the right number of iterations."""
         n_iter = 0
-        for query_id, hits in self.result.iterHitsByQuery():
+        for query_id, hits in self.result.iter_hits_by_query():
             n_iter += 1
         self.assertEqual(n_iter, 1)
 
     def test_parsed_hsps(self):
         """The result should have the right number of hsps."""
         n_hsps = 0
-        for query_id, hsps in self.result.iterHitsByQuery():
+        for query_id, hsps in self.result.iter_hits_by_query():
             n_hsps += len(hsps)
         self.assertEqual(n_hsps, 3)
 
