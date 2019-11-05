@@ -2,9 +2,9 @@
 
 """Unit tests for table.
 """
-from cogent3 import make_table, load_table
 from pandas import DataFrame
 
+from cogent3 import load_table, make_table
 from cogent3.util.table import Table
 from cogent3.util.unit_test import TestCase, main
 
@@ -313,11 +313,11 @@ class TableTests(TestCase):
         exercising load table
         """
         import os
+
         path = os.path.dirname(os.path.dirname(__file__))
         path = os.path.join(path, "data/sample.tsv")
         table = load_table(path)
-        self.assertEqual(table.shape, (10,3))
-
+        self.assertEqual(table.shape, (10, 3))
 
 
 if __name__ == "__main__":

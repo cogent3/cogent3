@@ -259,9 +259,9 @@ class TestDeserialising(TestCase):
 
     def test_deserialise_tabular_table(self):
         """correctly deserialises Table"""
-        from cogent3 import LoadTable
+        from cogent3 import make_table
 
-        table = LoadTable(
+        table = make_table(
             header=["id", "foo", "bar"],
             rows=[
                 [1, "abc", 11],
