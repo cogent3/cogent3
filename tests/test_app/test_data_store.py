@@ -280,28 +280,45 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
     WriteClass = WritableDirectoryDataStore
 
     def test_write_class_source_create_delete(self):
-        # tests the case when the directory has other different suffixes to self.suffix
-        os.mkdir("delme_dir")
-        with open(f"delme_dir/test_write_class_source_create_delete.json", "w"):
-            pass
-        dstore = self.WriteClass(
-            "delme_dir", suffix=".json", if_exists=OVERWRITE, create=True
-        )
-        self.assertEqual(len(glob.glob(f"delme_dir/*.json")), 0)
-        with open(f"delme_dir/test_write_class_source_create_delete.dummySuffix", "w"):
-            pass
-        dstore = self.WriteClass(
-            "delme_dir", suffix=".json", if_exists=OVERWRITE, create=True
-        )
-        self.assertEqual(len(glob.glob(f"delme_dir/*.dummySuffix")), 1)
-        dstore = self.WriteClass(
-            "delme_dir", suffix=".dummySuffix", if_exists=OVERWRITE, create=True
-        )
-        self.assertEqual(len(glob.glob(f"delme_dir/*.dummySuffix")), 0)
-        try:
-            os.removedirs("delme_dir")
-        except OSError:
-            pass
+        with TemporaryDirectory(dir=".") as dirname:
+            # tests the case when the directory has other different suffixes to self.suffix
+            os.mkdir(f"{dirname}{os.sep}delme_dir")
+            with open(
+                f"{dirname}{os.sep}delme_dir/test_write_class_source_create_delete.json",
+                "w",
+            ):
+                pass
+            dstore = self.WriteClass(
+                f"{dirname}{os.sep}delme_dir",
+                suffix=".json",
+                if_exists=OVERWRITE,
+                create=True,
+            )
+            self.assertEqual(len(glob.glob(f"{dirname}{os.sep}delme_dir/*.json")), 0)
+            with open(
+                f"{dirname}{os.sep}delme_dir/test_write_class_source_create_delete.dummySuffix",
+                "w",
+            ):
+                pass
+            with self.assertRaises(RuntimeError):
+                dstore = self.WriteClass(
+                    f"{dirname}{os.sep}delme_dir",
+                    suffix=".json",
+                    if_exists=OVERWRITE,
+                    create=True,
+                )
+            self.assertEqual(
+                len(glob.glob(f"{dirname}{os.sep}delme_dir/*.dummySuffix")), 1
+            )
+            dstore = self.WriteClass(
+                f"{dirname}{os.sep}delme_dir",
+                suffix=".dummySuffix",
+                if_exists=OVERWRITE,
+                create=True,
+            )
+            self.assertEqual(
+                len(glob.glob(f"{dirname}{os.sep}delme_dir/*.dummySuffix")), 0
+            )
 
 
 class ZippedDataStoreTests(TestCase, DataStoreBaseTests):

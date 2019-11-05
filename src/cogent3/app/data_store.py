@@ -578,11 +578,16 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
         if exists and if_exists == RAISE:
             raise RuntimeError(f"'{self.source}' exists")
         elif exists and if_exists == OVERWRITE:
-            if not self._has_other_suffixes(self.source, self.suffix):
-                try:
-                    shutil.rmtree(self.source)
-                except NotADirectoryError:
-                    os.remove(self.source)
+            if self._has_other_suffixes(self.source, self.suffix):
+                raise RuntimeError(
+                    f"Unsafe to delete {self.source} as it contains ",
+                    f"files other than {self.suffix}."
+                    " You will need to remove this directly yourself.",
+                )
+            try:
+                shutil.rmtree(self.source)
+            except NotADirectoryError:
+                os.remove(self.source)
         elif not exists and not create:
             raise RuntimeError(f"'{self.source}' does not exist")
 
