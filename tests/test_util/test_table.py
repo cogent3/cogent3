@@ -7,7 +7,7 @@ from pandas import DataFrame
 from cogent3 import load_table, make_table
 from cogent3.util.table import Table
 from cogent3.util.unit_test import TestCase, main
-
+import os
 
 __author__ = "Thomas La"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
@@ -204,8 +204,6 @@ class TableTests(TestCase):
         self.assertEqual(t5.sorted().tolist("a"), [1, 1, 2])
         self.assertEqual(t5.sorted(reverse="a").tolist("a"), [2, 1, 1])
 
-        import os
-
         path = os.path.dirname(os.path.dirname(__file__))
         path = os.path.join(path, "data/sample.tsv")
         table = load_table(path)
@@ -291,6 +289,46 @@ class TableTests(TestCase):
             self.assertTrue(got.startswith(startwith))
             last = got
 
+    def test_separator_format_writer(self):
+        from cogent3.format.table import FormatFields, SeparatorFormatWriter
+        from cogent3.parse.table import ConvertFields, SeparatorFormatParser
+        d2D={'edge.parent': {'NineBande': 'root', 'edge.1': 'root',
+                'DogFaced': 'root', 'Human': 'edge.0', 'edge.0': 'edge.1',
+                'Mouse': 'edge.1', 'HowlerMon': 'edge.0'}, 'x': {'NineBande': 1.0,
+                'edge.1': 1.0, 'DogFaced': 1.0, 'Human': 1.0, 'edge.0': 1.0,
+                'Mouse': 1.0, 'HowlerMon': 1.0}, 'length': {'NineBande': 4.0,
+                'edge.1': 4.0, 'DogFaced': 4.0, 'Human': 4.0, 'edge.0': 4.0,
+                'Mouse': 4.0, 'HowlerMon': 4.0}, 'y': {'NineBande': 3.0, 'edge.1': 3.0,
+                'DogFaced': 3.0, 'Human': 3.0, 'edge.0': 3.0, 'Mouse': 3.0,
+                'HowlerMon': 3.0}, 'z': {'NineBande': 6.0, 'edge.1': 6.0,
+                'DogFaced': 6.0, 'Human': 6.0, 'edge.0': 6.0, 'Mouse': 6.0,
+                'HowlerMon': 6.0},
+                'edge.name': ['Human', 'HowlerMon', 'Mouse', 'NineBande', 'DogFaced',
+                'edge.0', 'edge.1']}
+        row_order = d2D['edge.name']
+        d2D['edge.name'] = dict(zip(row_order, row_order))
+        t3 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
+                     row_order = row_order, missing_data = '*', space = 8)
+        t3.title = t3.legend = None
+        converter = ConvertFields([(2, float), (3, float), (4, float), (5, float)])
+        comma_sep = t3.to_string(sep=",").splitlines()
+        reader = SeparatorFormatParser(with_header=True, converter=converter,
+                                       sep=",")
+        comma_sep = [line for line in reader(comma_sep)]
+        print(comma_sep,"\n\n")
+        formatter = FormatFields([(0, '"%s"'), (1, '"%s"')])
+        writer = SeparatorFormatWriter(formatter=formatter, sep=" | ")
+        formatted = [f for f in writer(comma_sep, has_header=True)]
+        expected_format = ['edge.name | edge.parent | length | x | y | z',
+                           '"Human" | "edge.0" | 4.0 | 1.0 | 3.0 | 6.0',
+                           '"HowlerMon" | "edge.0" | 4.0 | 1.0 | 3.0 | 6.0',
+                           '"Mouse" | "edge.1" | 4.0 | 1.0 | 3.0 | 6.0',
+                           '"NineBande" | "root" | 4.0 | 1.0 | 3.0 | 6.0',
+                           '"DogFaced" | "root" | 4.0 | 1.0 | 3.0 | 6.0',
+                           '"edge.0" | "edge.1" | 4.0 | 1.0 | 3.0 | 6.0',
+                           '"edge.1" | "root" | 4.0 | 1.0 | 3.0 | 6.0']
+        self.assertEqual(formatted, expected_format)
+
     def test_set_repr_policy(self):
         """exercising setting repr policy"""
         t = Table(self.t2_header, rows=self.t2_rows)
@@ -344,8 +382,6 @@ class TableTests(TestCase):
 
     def test_load_table(self):
         """exercising load table"""
-        import os
-
         path = os.path.dirname(os.path.dirname(__file__))
         path = os.path.join(path, "data/sample.tsv")
         table = load_table(path)
