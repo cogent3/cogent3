@@ -179,7 +179,7 @@ class BlastXMLResult(dict):
     POSITIVE = "POSITIVE"
     ITERATION = "ITERATION"
     QUERY_ID = "QUERY ID"
-    SUBJECT_ID = "SUBJECT ID"
+    SUBJECT_ID = "SUBJECT_ID"
     PERCENT_IDENTITY = "% IDENTITY"
     ALIGNMENT_LENGTH = "ALIGNMENT LENGTH"
     MISMATCHES = "MISMATCHES"
@@ -189,7 +189,7 @@ class BlastXMLResult(dict):
     SUBJECT_START = "S. START"
     SUBJECT_END = "S. END"
     E_VALUE = "E-VALUE"
-    BIT_SCORE = "BIT SCORE"
+    BIT_SCORE = "BIT_SCORE"
 
     # FieldComparisonOperators = (
     #    BlastResult.FieldComparisonOperators = {
@@ -222,6 +222,22 @@ class BlastXMLResult(dict):
             BIT_SCORE,
         ]
     )
+
+    # standard comparison for each field, e.g.
+    # want long matches, small e-values
+    _lt = lambda x, y: x < y
+    _le = lambda x, y: x <= y
+    _gt = lambda x, y: x > y
+    _ge = lambda x, y: x >= y
+    _eq = lambda x, y: x == y
+
+    FieldComparisonOperators = {
+        PERCENT_IDENTITY: (_gt, float),
+        ALIGNMENT_LENGTH: (_gt, int),
+        MISMATCHES: (_lt, int),
+        E_VALUE: (_lt, float),
+        BIT_SCORE: (_gt, float),
+    }
 
     def __init__(self, data, psiblast=False, parser=None, xml=False):
         # iterate blast results, generate data structure
@@ -273,3 +289,37 @@ class BlastXMLResult(dict):
         """Iterates over set of hits, returning list of hits for each query"""
         for query_id in self:
             yield query_id, self[query_id][iteration]
+
+    def best_hits_by_query(self, iteration=-1, n=1, field="BIT_SCORE", return_self=False):
+        """Iterates over all queries and returns best hit for each
+        return_self: if False, will not return best hit as itself.
+        Uses FieldComparisonOperators to figure out which direction to compare.
+        """
+
+        # check that given valid comparison field
+        if field not in self.FieldComparisonOperators:
+            raise ValueError(
+                "Invalid field: %s. You must specify one of: %s"
+                % (field, str(self.FieldComparisonOperators))
+            )
+        cmp_fun, cast_fun = self.FieldComparisonOperators[field]
+
+        # enumerate hits
+        for q, hits in self.iter_hits_by_query(iteration=iteration):
+            best_hits = []
+            for hit in hits:
+                # check if want to skip self hit
+                if not return_self:
+                    if hit[self.SUBJECT_ID] == q:
+                        continue
+                # check if better hit than ones we have
+                if len(best_hits) < n:
+                    best_hits.append(hit)
+                else:
+                    for ix, best_hit in enumerate(best_hits):
+                        new_val = cast_fun(hit[field])
+                        old_val = cast_fun(best_hit[field])
+                        if cmp_fun(new_val, old_val):
+                            best_hits[ix] = hit
+                            continue
+            yield q, best_hits
