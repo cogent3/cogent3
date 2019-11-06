@@ -210,7 +210,8 @@ class BlastXmlResultTests(TestCase):
             self.assertEqual(gap_hsp["GAP_OPENINGS"], "33")
 
     def test_best_hits_by_query(self):
-        q, best_hits = next(self.result.best_hits_by_query(n=1))
+        """Exercising best hits"""
+        q, best_hits = next(self.result.best_hits_by_query())
         best_hit = best_hits[0]
         self.assertEqual(best_hit["QUERY ID"], 1)
         self.assertEqual(best_hit["BIT_SCORE"], "1023.46")
@@ -227,6 +228,16 @@ class BlastXmlResultTests(TestCase):
         self.assertEqual(best_hit["POSITIVE"], "555")
         self.assertEqual(best_hit["GAP_OPENINGS"], 0)
         self.assertEqual(best_hit["ALIGNMENT_LENGTH"], "14")
+
+    def test_best_hits_limited(self):
+        """Exercising best hits with different values of n.
+        result should never contain identical hits
+        """
+        for q, best_hits in self.result.best_hits_by_query(n=5):
+            assert len(best_hits) == 3
+            assert best_hits[0].values() != best_hits[1].values()
+            assert best_hits[0].values() != best_hits[2].values()
+            assert best_hits[2].values() != best_hits[2].values()
 
 
 HSP_XML = """
