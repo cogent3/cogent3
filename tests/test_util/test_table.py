@@ -223,7 +223,6 @@ class TableTests(TestCase):
         self.assertEqual(table[0, "stableid"], "ENSG00000019102")
         self.assertEqual(table[last_index, "stableid"], "ENSG00000019144")
 
-
     def test_summed(self):
         """test the table summed method"""
         t5 = Table(header=self.t5_header, rows=self.t5_rows)
@@ -240,6 +239,8 @@ class TableTests(TestCase):
         self.assertEqual(mix.summed(col_sum=False, strict=False), [0, 3, 7])
         with self.assertRaises(RuntimeError):
             _ = mix.summed([0, 2], col_sum=False, strict=False)
+        with self.assertRaises(TypeError):
+            _ = mix.summed(strict=True)
 
     def test_tolist(self):
         """test the table tolist method"""
