@@ -309,15 +309,37 @@ class TableTests(TestCase):
         self.assertEqual(data.tolist(), self.t1_rows)
 
     def test_load_table(self):
-        """
-        exercising load table
-        """
+        """exercising load table"""
         import os
 
         path = os.path.dirname(os.path.dirname(__file__))
         path = os.path.join(path, "data/sample.tsv")
         table = load_table(path)
         self.assertEqual(table.shape, (10, 3))
+
+    def test_sorted(self):
+        """First and last elements should be highest and lowest values after sorting"""
+        import os
+
+        path = os.path.dirname(os.path.dirname(__file__))
+        path = os.path.join(path, "data/sample.tsv")
+        table = load_table(path)
+
+        table = table.sorted(columns=["chrom","stableid"])
+        df_table = table.to_dataframe()
+        last_index = len(df_table["stableid"]) - 1
+        self.assertEqual(df_table["stableid"][0], "ENSG00000018408")
+        self.assertEqual(df_table["stableid"][last_index], "ENSG00000012174")
+
+        table = table.sorted(reverse="stableid")
+        df_table = table.to_dataframe()
+        self.assertEqual(df_table["stableid"][0], "ENSG00000019485")
+        self.assertEqual(df_table["stableid"][last_index], "ENSG00000005893")
+
+        table = table.sorted(reverse="chrom", columns="length")
+        df_table = table.to_dataframe()
+        self.assertEqual(df_table["stableid"][0], "ENSG00000019102")
+        self.assertEqual(df_table["stableid"][last_index], "ENSG00000019144")
 
 
 if __name__ == "__main__":
