@@ -22,8 +22,8 @@ from cogent3.parse.blast_xml import (
     HIT_XML_FIELDNAMES,
     HSP_XML_FIELDNAMES,
     BlastXMLResult,
-    MinimalBlastParser7,
     get_tag,
+    minimal_blast_parser_7,
     parse_header,
     parse_hit,
     parse_hsp,
@@ -148,7 +148,7 @@ class BlastXmlResultTests(TestCase):
 
     def test_options(self):
         """Constructor should take parser as an option."""
-        result = BlastXMLResult(COMPLETE_XML, parser=MinimalBlastParser7)
+        result = BlastXMLResult(COMPLETE_XML, parser=minimal_blast_parser_7)
         self.assertEqual(len(list(result.keys())), 1)
         # make sure whether normal Blast parser still works upon code merge!
 
@@ -162,14 +162,14 @@ class BlastXmlResultTests(TestCase):
     def test_parsed_iterations(self):
         """The result should have the right number of iterations."""
         n_iter = 0
-        for query_id, hits in self.result.iterHitsByQuery():
+        for query_id, hits in self.result.iter_hits_by_query():
             n_iter += 1
         self.assertEqual(n_iter, 1)
 
     def test_parsed_hsps(self):
         """The result should have the right number of hsps."""
         n_hsps = 0
-        for query_id, hsps in self.result.iterHitsByQuery():
+        for query_id, hsps in self.result.iter_hits_by_query():
             n_hsps += len(hsps)
         self.assertEqual(n_hsps, 3)
 
@@ -208,6 +208,33 @@ class BlastXmlResultTests(TestCase):
 
             gap_hsp = self.result[query][0][1]
             self.assertEqual(gap_hsp["GAP_OPENINGS"], "33")
+
+    def test_best_hits_by_query(self):
+        """Exercising best hits"""
+        q, best_hits = next(self.result.best_hits_by_query())
+        best_hit = best_hits[0]
+        self.assertEqual(best_hit["QUERY ID"], 1)
+        self.assertEqual(best_hit["BIT_SCORE"], "1023.46")
+        self.assertEqual(best_hit["SCORE"], "2645")
+        self.assertEqual(best_hit["E_VALUE"], "0.333")
+        self.assertEqual(best_hit["QUERY_START"], "4")
+        self.assertEqual(best_hit["QUERY_END"], "18")
+        self.assertEqual(best_hit["QUERY_ALIGN"], "ELEPHANTTHISISAHITTIGER")
+        self.assertEqual(best_hit["MIDLINE_ALIGN"], "ORCA-WHALE")
+        self.assertEqual(best_hit["SUBJECT_ALIGN"], "SEALSTHIS---HIT--GER")
+        self.assertEqual(best_hit["SUBJECT_START"], "5")
+        self.assertEqual(best_hit["SUBJECT_END"], "19")
+        self.assertEqual(best_hit["PERCENT_IDENTITY"], "55")
+        self.assertEqual(best_hit["POSITIVE"], "555")
+        self.assertEqual(best_hit["GAP_OPENINGS"], 0)
+        self.assertEqual(best_hit["ALIGNMENT_LENGTH"], "14")
+
+    def test_best_hits_unique(self):
+        """The result should never contain identical hits """
+        records = [h for _, h in self.result.best_hits_by_query(n=5)][0]
+        self.assertEqual(len(records), 3)
+        values = {tuple(h.values()) for h in records}
+        self.assertEqual(len(values), 3)
 
 
 HSP_XML = """
