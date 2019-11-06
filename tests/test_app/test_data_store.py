@@ -281,45 +281,32 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
     def test_write_class_source_create_delete(self):
         with TemporaryDirectory(dir=".") as dirname:
             # tests the case when the directory has the file with the same suffix to self.suffix
-            os.mkdir(f"{dirname}{os.sep}delme_dir")
+            path = os.path.join(dirname, "delme_dir")
+            os.mkdir(path)
             with open(
-                f"{dirname}{os.sep}delme_dir/test_write_class_source_create_delete.json",
-                "w",
+                os.path.join(path, "test_write_class_source_create_delete.json"), "w"
             ):
                 pass
             dstore = self.WriteClass(
-                f"{dirname}{os.sep}delme_dir",
-                suffix=".json",
-                if_exists=OVERWRITE,
-                create=True,
+                path, suffix=".json", if_exists=OVERWRITE, create=True
             )
-            self.assertEqual(len(glob.glob(f"{dirname}{os.sep}delme_dir/*.json")), 0)
+            self.assertEqual(len(glob.glob(os.path.join(path, "*.json"))), 0)
             # tests the case when the directory has the file with the different suffix to self.suffix
             with open(
-                f"{dirname}{os.sep}delme_dir/test_write_class_source_create_delete.dummySuffix",
+                os.path.join(path, "test_write_class_source_create_delete.dummySuffix"),
                 "w",
             ):
                 pass
             with self.assertRaises(RuntimeError):
                 dstore = self.WriteClass(
-                    f"{dirname}{os.sep}delme_dir",
-                    suffix=".json",
-                    if_exists=OVERWRITE,
-                    create=True,
+                    path, suffix=".json", if_exists=OVERWRITE, create=True
                 )
-            self.assertEqual(
-                len(glob.glob(f"{dirname}{os.sep}delme_dir/*.dummySuffix")), 1
-            )
+            self.assertEqual(len(glob.glob(os.path.join(path, "*.dummySuffix"))), 1)
             # tests the case when the directory has the file with the same suffix to self.suffix
             dstore = self.WriteClass(
-                f"{dirname}{os.sep}delme_dir",
-                suffix=".dummySuffix",
-                if_exists=OVERWRITE,
-                create=True,
+                path, suffix=".dummySuffix", if_exists=OVERWRITE, create=True
             )
-            self.assertEqual(
-                len(glob.glob(f"{dirname}{os.sep}delme_dir/*.dummySuffix")), 0
-            )
+            self.assertEqual(len(glob.glob(os.path.join(path, "*.dummySuffix"))), 0)
 
 
 class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
