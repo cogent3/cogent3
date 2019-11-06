@@ -202,11 +202,44 @@ class TableTests(TestCase):
         t5 = Table(header=self.t5_header, rows=self.t5_rows)
         self.assertEqual(t5.sorted("b").tolist("b"), [0, 1, 3])
 
+        import os
+
+        path = os.path.dirname(os.path.dirname(__file__))
+        path = os.path.join(path, "data/sample.tsv")
+        table = load_table(path)
+
+        table = table.sorted(columns=["chrom", "stableid"])
+        df_table = table.to_dataframe()
+        last_index = len(df_table["stableid"]) - 1
+        self.assertEqual(df_table["stableid"][0], "ENSG00000018408")
+        self.assertEqual(df_table["stableid"][last_index], "ENSG00000012174")
+
+        table = table.sorted(reverse="stableid")
+        df_table = table.to_dataframe()
+        self.assertEqual(df_table["stableid"][0], "ENSG00000019485")
+        self.assertEqual(df_table["stableid"][last_index], "ENSG00000005893")
+
+        table = table.sorted(reverse="chrom", columns="length")
+        df_table = table.to_dataframe()
+        self.assertEqual(df_table["stableid"][0], "ENSG00000019102")
+        self.assertEqual(df_table["stableid"][last_index], "ENSG00000019144")
+
+
     def test_summed(self):
         """test the table summed method"""
         t5 = Table(header=self.t5_header, rows=self.t5_rows)
         self.assertEqual(t5.summed(), [4, 4, 4, 4])
         self.assertEqual(t5.summed(col_sum=False), [4, 4, 8])
+        t2 = Table(header=self.t2_header, rows=self.t2_rows)
+        self.assertEqual(t2.summed(indices=2),165)
+
+        mix = make_table(header=['A', 'B'], rows=[[0, ''], [1, 2], [3, 4]])
+        self.assertEqual(mix.summed('B', strict=False),6)
+        self.assertEqual(mix.summed(0, col_sum=False, strict=False), 0)
+        self.assertEqual(mix.summed(1, col_sum=False), 3)
+        self.assertEqual(mix.summed(strict=False), [4,6])
+        self.assertEqual(mix.summed(col_sum=False, strict=False), [0, 3, 7])
+
 
     def test_tolist(self):
         """test the table tolist method"""
@@ -316,30 +349,6 @@ class TableTests(TestCase):
         path = os.path.join(path, "data/sample.tsv")
         table = load_table(path)
         self.assertEqual(table.shape, (10, 3))
-
-    def test_sorted(self):
-        """First and last elements should be highest and lowest values after sorting"""
-        import os
-
-        path = os.path.dirname(os.path.dirname(__file__))
-        path = os.path.join(path, "data/sample.tsv")
-        table = load_table(path)
-
-        table = table.sorted(columns=["chrom","stableid"])
-        df_table = table.to_dataframe()
-        last_index = len(df_table["stableid"]) - 1
-        self.assertEqual(df_table["stableid"][0], "ENSG00000018408")
-        self.assertEqual(df_table["stableid"][last_index], "ENSG00000012174")
-
-        table = table.sorted(reverse="stableid")
-        df_table = table.to_dataframe()
-        self.assertEqual(df_table["stableid"][0], "ENSG00000019485")
-        self.assertEqual(df_table["stableid"][last_index], "ENSG00000005893")
-
-        table = table.sorted(reverse="chrom", columns="length")
-        df_table = table.to_dataframe()
-        self.assertEqual(df_table["stableid"][0], "ENSG00000019102")
-        self.assertEqual(df_table["stableid"][last_index], "ENSG00000019144")
 
 
 if __name__ == "__main__":
