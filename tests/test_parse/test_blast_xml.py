@@ -209,6 +209,25 @@ class BlastXmlResultTests(TestCase):
             gap_hsp = self.result[query][0][1]
             self.assertEqual(gap_hsp["GAP_OPENINGS"], "33")
 
+    def test_best_hits_by_query(self):
+        q, best_hits = next(self.result.best_hits_by_query(n=1))
+        best_hit = best_hits[0]
+        self.assertEqual(best_hit["QUERY ID"], 1)
+        self.assertEqual(best_hit["BIT_SCORE"], "1023.46")
+        self.assertEqual(best_hit["SCORE"], "2645")
+        self.assertEqual(best_hit["E_VALUE"], "0.333")
+        self.assertEqual(best_hit["QUERY_START"], "4")
+        self.assertEqual(best_hit["QUERY_END"], "18")
+        self.assertEqual(best_hit["QUERY_ALIGN"], "ELEPHANTTHISISAHITTIGER")
+        self.assertEqual(best_hit["MIDLINE_ALIGN"], "ORCA-WHALE")
+        self.assertEqual(best_hit["SUBJECT_ALIGN"], "SEALSTHIS---HIT--GER")
+        self.assertEqual(best_hit["SUBJECT_START"], "5")
+        self.assertEqual(best_hit["SUBJECT_END"], "19")
+        self.assertEqual(best_hit["PERCENT_IDENTITY"], "55")
+        self.assertEqual(best_hit["POSITIVE"], "555")
+        self.assertEqual(best_hit["GAP_OPENINGS"], 0)
+        self.assertEqual(best_hit["ALIGNMENT_LENGTH"], "14")
+
 
 HSP_XML = """
         <Hsp>
