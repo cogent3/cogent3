@@ -202,6 +202,7 @@ class TableTests(TestCase):
         t5 = Table(header=self.t5_header, rows=self.t5_rows)
         self.assertEqual(t5.sorted("b").tolist("b"), [0, 1, 3])
         self.assertEqual(t5.sorted().tolist("a"), [1, 1, 2])
+        self.assertEqual(t5.sorted(reverse="a").tolist("a"), [2, 1, 1])
 
         import os
 
@@ -216,11 +217,12 @@ class TableTests(TestCase):
 
         table = table.sorted(reverse="stableid")
         self.assertEqual(table[0, "stableid"], "ENSG00000019485")
-        self.assertEqual(table[last_index,"stableid"], "ENSG00000005893")
+        self.assertEqual(table[last_index, "stableid"], "ENSG00000005893")
 
         table = table.sorted(reverse="chrom", columns="length")
         self.assertEqual(table[0, "stableid"], "ENSG00000019102")
         self.assertEqual(table[last_index, "stableid"], "ENSG00000019144")
+
 
     def test_summed(self):
         """test the table summed method"""
@@ -236,6 +238,8 @@ class TableTests(TestCase):
         self.assertEqual(mix.summed(1, col_sum=False), 3)
         self.assertEqual(mix.summed(strict=False), [4, 6])
         self.assertEqual(mix.summed(col_sum=False, strict=False), [0, 3, 7])
+        with self.assertRaises(RuntimeError):
+            _ = mix.summed([0, 2], col_sum=False, strict=False)
 
     def test_tolist(self):
         """test the table tolist method"""
