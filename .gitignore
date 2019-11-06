@@ -36,6 +36,7 @@ tests/draw_results
 .project
 .pydevproject
 .idea/*
+.DS_Store
 
 # vi
 .*.swp

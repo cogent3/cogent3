@@ -15,6 +15,7 @@ __status__ = "Prototype"
 import xml.dom.minidom
 
 from cogent3.parse.blast import MinimalBlastParser9, MinimalPsiBlastParser9
+from operator import lt as _lt, le as _le, gt as _gt, eq as _eq
 
 
 """
@@ -197,7 +198,7 @@ class BlastXMLResult(dict):
     #        }
     # .. to be done
 
-    HitKeys = set(
+    hit_keys = set(
         [
             HIT_DEF,
             HIT_ACCESSION,
@@ -223,15 +224,7 @@ class BlastXMLResult(dict):
         ]
     )
 
-    # standard comparison for each field, e.g.
-    # want long matches, small e-values
-    _lt = lambda x, y: x < y
-    _le = lambda x, y: x <= y
-    _gt = lambda x, y: x > y
-    _ge = lambda x, y: x >= y
-    _eq = lambda x, y: x == y
-
-    FieldComparisonOperators = {
+    _field_comparison_operators = {
         PERCENT_IDENTITY: (_gt, float),
         ALIGNMENT_LENGTH: (_gt, int),
         MISMATCHES: (_lt, int),
@@ -290,19 +283,21 @@ class BlastXMLResult(dict):
         for query_id in self:
             yield query_id, self[query_id][iteration]
 
-    def best_hits_by_query(self, iteration=-1, n=1, field="BIT_SCORE", return_self=False):
+    def best_hits_by_query(
+        self, iteration=-1, n=1, field="BIT_SCORE", return_self=False
+    ):
         """Iterates over all queries and returns best hit for each
         return_self: if False, will not return best hit as itself.
         Uses FieldComparisonOperators to figure out which direction to compare.
         """
 
         # check that given valid comparison field
-        if field not in self.FieldComparisonOperators:
+        if field not in self._field_comparison_operators:
             raise ValueError(
                 "Invalid field: %s. You must specify one of: %s"
-                % (field, str(self.FieldComparisonOperators))
+                % (field, str(self._field_comparison_operators))
             )
-        cmp_fun, cast_fun = self.FieldComparisonOperators[field]
+        cmp_fun, cast_fun = self._field_comparison_operators[field]
 
         # enumerate hits
         for q, hits in self.iter_hits_by_query(iteration=iteration):
