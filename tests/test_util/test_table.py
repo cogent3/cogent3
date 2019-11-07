@@ -169,7 +169,10 @@ class TableTests(TestCase):
         self.assertEqual(len(formatted_grid.split("\n")), len(self.t6_rows) * 2 + 7)
 
         formatted_grid = grid_table_format(
-            self.t6_header, self.t6_rows, title="Really Long Title", legend="Extra Long Legend"
+            self.t6_header,
+            self.t6_rows,
+            title="Really Long Title",
+            legend="Extra Long Legend",
         )
         self.assertEqual(len(formatted_grid.split("\n")), len(self.t6_rows) * 2 + 7 + 2)
 
