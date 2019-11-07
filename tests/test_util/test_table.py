@@ -153,6 +153,19 @@ class TableTests(TestCase):
         self.assertEqual(t1.get_columns(["chrom", "length"]).shape[0], t1.shape[0])
         self.assertEqual(t1.get_columns(["chrom", "length"]).shape[1], 2)
 
+    def test_grid_table_format(self):
+        """test the table grid_table_format method"""
+        from cogent3.format.table import grid_table_format
+
+        t6_header = ["foo", "bar"]
+        t6_rows = [[" | ", "666"], ["bca", "777"]]
+        formatted_grid = grid_table_format(t6_header, t6_rows, title="Test", legend="Units")
+        self.assertEqual(len(formatted_grid), 153)
+
+        formatted_grid = grid_table_format(t6_header, t6_rows, title="Really Long Title", legend="Extra Long Legend")
+        self.assertEqual(len(formatted_grid), 237)
+
+
     def test_joined(self):
         """test the table joined method"""
         t2 = Table(header=self.t2_header, rows=self.t2_rows)
