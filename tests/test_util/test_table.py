@@ -301,8 +301,7 @@ class TableTests(TestCase):
         formatted = [
             f for f in writer([l.split(",") for l in comma_sep], has_header=True)
         ]
-        expected_format = ["id | foo | bar", " 6 | abc |  66",
-                           " 7 | bca |  77"]
+        expected_format = ["id | foo | bar", " 6 | abc |  66", " 7 | bca |  77"]
         self.assertEqual(formatted, expected_format)
 
     def test_set_repr_policy(self):
