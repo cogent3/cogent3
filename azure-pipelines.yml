@@ -50,13 +50,10 @@ jobs:
   steps:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x86}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x64}}
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
         tox -e py37
-        tox -e py36
         codecov
 
 - job: Linux_Build
@@ -65,21 +62,24 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install .[dev] cibuildwheel==0.11.1
+        python -m pip install cibuildwheel==0.11.1 numpy
         cibuildwheel --output-dir wheelhouse .
+        python setup.py sdist
+        cp dist/*.gz wheelhouse/.
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
+
 - job: MacOS_Build
   pool: {vmImage: 'macOS-10.13'}
   steps: 
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install .[dev] cibuildwheel==0.11.1
-        tox -e py37
+        python -m pip install cibuildwheel==0.11.1 numpy
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
+
 - job: Windows_Build
   pool: {vmImage: 'vs2017-win2016'}
   steps:
@@ -89,7 +89,7 @@ jobs:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install .[dev] cibuildwheel==0.11.1
+        python -m pip install cibuildwheel==0.11.1 numpy
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
