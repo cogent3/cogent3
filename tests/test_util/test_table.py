@@ -291,6 +291,18 @@ class TableTests(TestCase):
             self.assertTrue(got.startswith(startwith))
             last = got
 
+    def test_separator_format(self):
+        """exercising separator format"""
+        from cogent3.format.table import separator_format
+
+        t6_header = ["id", "foo", "bar"]
+        t6_rows = [["6", " | ", "66"], ["7", "bca", "77"]]
+        with self.assertRaises(RuntimeError):
+            _ = separator_format(t6_header, t6_rows)
+        separated_table = separator_format(t6_header, t6_rows, sep=" | ", title="Test", legend="Units")
+        expected_table =  "Test\n" "id | foo | bar\n" '6 | " | " | 66\n' "7 | bca | 77\n" "Units"
+        self.assertEqual(separated_table, expected_table)
+
     def test_set_repr_policy(self):
         """exercising setting repr policy"""
         t = Table(self.t2_header, rows=self.t2_rows)
