@@ -177,6 +177,20 @@ class TableTests(TestCase):
             t2.joined(t3, inner_join=False).shape[1], t2.shape[1] + t3.shape[1]
         )
 
+    def test_markdown(self):
+        """Exercising the table markdown method"""
+        from cogent3.format.table import markdown
+
+        t6_header = ["id", "foo", "bar"]
+        t6_rows = [["60", " | ", "666"], ["70", "bca", "777"]]
+        markdown_table = markdown(t6_header, t6_rows, justify="crl")
+        markdown_list = markdown_table.split("\n")
+        self.assertEqual(len(markdown_list), len(t6_rows) + 2)
+        self.assertEqual(markdown_list[2][8], "\\")
+
+        with self.assertRaises(ValueError):
+            _ = markdown(t6_header, t6_rows, justify="cr1")
+
     def test_normalized(self):
         """test the table normalized method"""
         t5 = Table(header=self.t5_header, rows=self.t5_rows)
@@ -302,7 +316,7 @@ class TableTests(TestCase):
         separated_table = separator_format(
             t6_header, t6_rows, sep=" | ", title="Test", legend="Units"
         )
-        self.assertEqual(len(separated_table.split("\n")), len(t6_rows)+3)
+        self.assertEqual(len(separated_table.split("\n")), len(t6_rows) + 3)
 
     def test_separator_format_writer(self):
         """exercising separator_format_writer"""
