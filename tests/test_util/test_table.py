@@ -157,14 +157,17 @@ class TableTests(TestCase):
         """test the table grid_table_format method"""
         from cogent3.format.table import grid_table_format
 
-        t6_header = ["foo", "bar"]
-        t6_rows = [[" | ", "666"], ["bca", "777"]]
-        formatted_grid = grid_table_format(t6_header, t6_rows, title="Test", legend="Units")
-        self.assertEqual(len(formatted_grid), 153)
+        t6_header = ["id", "foo", "bar"]
+        t6_rows = [["60", " | ", "666"], ["70", "bca", "777"]]
+        formatted_grid = grid_table_format(
+            t6_header, t6_rows, title="Test", legend="Units"
+        )
+        self.assertEqual(len(formatted_grid.split("\n")), len(t6_rows) * 2 + 7)
 
-        formatted_grid = grid_table_format(t6_header, t6_rows, title="Really Long Title", legend="Extra Long Legend")
-        self.assertEqual(len(formatted_grid), 237)
-
+        formatted_grid = grid_table_format(
+            t6_header, t6_rows, title="Really Long Title", legend="Extra Long Legend"
+        )
+        self.assertEqual(len(formatted_grid.split("\n")), len(t6_rows) * 2 + 7 + 2)
 
     def test_joined(self):
         """test the table joined method"""
