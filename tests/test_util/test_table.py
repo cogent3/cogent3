@@ -2,6 +2,8 @@
 
 """Unit tests for table.
 """
+import os
+
 from pandas import DataFrame
 
 from cogent3 import load_table, make_table
@@ -204,8 +206,6 @@ class TableTests(TestCase):
         self.assertEqual(t5.sorted().tolist("a"), [1, 1, 2])
         self.assertEqual(t5.sorted(reverse="a").tolist("a"), [2, 1, 1])
 
-        import os
-
         path = os.path.dirname(os.path.dirname(__file__))
         path = os.path.join(path, "data/sample.tsv")
         table = load_table(path)
@@ -291,6 +291,19 @@ class TableTests(TestCase):
             self.assertTrue(got.startswith(startwith))
             last = got
 
+    def test_separator_format_writer(self):
+        """exercising separator_format_writer"""
+        from cogent3.format.table import SeparatorFormatWriter
+
+        t3 = Table(self.t3_header, rows=self.t3_rows)
+        comma_sep = t3.to_string(sep=",").splitlines()
+        writer = SeparatorFormatWriter(sep=" | ")
+        formatted = [
+            f for f in writer([l.split(",") for l in comma_sep], has_header=True)
+        ]
+        expected_format = ["id | foo | bar", " 6 | abc |  66", " 7 | bca |  77"]
+        self.assertEqual(formatted, expected_format)
+
     def test_set_repr_policy(self):
         """exercising setting repr policy"""
         t = Table(self.t2_header, rows=self.t2_rows)
@@ -344,8 +357,6 @@ class TableTests(TestCase):
 
     def test_load_table(self):
         """exercising load table"""
-        import os
-
         path = os.path.dirname(os.path.dirname(__file__))
         path = os.path.join(path, "data/sample.tsv")
         table = load_table(path)
