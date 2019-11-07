@@ -1960,14 +1960,15 @@ def get_ltm_cells(cells):
 
     """
     new_cells = []
-    for cell in cells:
-        if cell[0] < cell[1]:
-            new_cells.append((cell[1], cell[0]))
-        elif cell[0] > cell[1]:
-            new_cells.append(cell)
+    for i, j in cells:
+        if i == j:
+            continue
+
+        if i < j:
+            i, j = j, i
+
+        new_cells.append((i, j))
     # remove duplicates
-    new_cells = set(new_cells)
-    return list(new_cells)
+    new_cells = sorted(set(new_cells))
+    return new_cells
 
-
-# End functions for distance_matrix_permutation_test
