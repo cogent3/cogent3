@@ -1907,10 +1907,10 @@ class TestDistMatrixPermutationTest(TestCase):
         "get_ltm_cells converts indices to be below the diagonal"
         cells = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
         result = get_ltm_cells(cells)
-        self.assertEqual(result, [(2, 0), (1, 0), (2, 1)])
+        self.assertEqual(result, [(1, 0), (2, 0), (2, 1)])
         cells = [(0, 1), (0, 2)]
         result = get_ltm_cells(cells)
-        self.assertEqual(result, [(2, 0), (1, 0)])
+        self.assertEqual(result, [(1, 0), (2, 0)])
 
     def test_get_values_from_matrix(self):
         """get_values_from_matrix returns the special and other values from matrix"""
