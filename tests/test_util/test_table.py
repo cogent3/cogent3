@@ -67,6 +67,10 @@ class TableTests(TestCase):
     t5_header = ["a", "b", "c", "d"]
     t5_rows = [[1, 1, 1, 1], [2, 0, 1, 1], [1, 3, 2, 2]]
 
+    # test table 6
+    t6_header = ["id", "foo", "bar"]
+    t6_rows = [["60", " | ", "666"], ["70", "bca", "777"]]
+
     def test_appended(self):
         """test the table appended method"""
         t2 = Table(header=self.t2_header, rows=self.t2_rows)
@@ -155,6 +159,20 @@ class TableTests(TestCase):
         self.assertEqual(t1.get_columns(["chrom", "length"]).shape[0], t1.shape[0])
         self.assertEqual(t1.get_columns(["chrom", "length"]).shape[1], 2)
 
+    def test_grid_table_format(self):
+        """test the table grid_table_format method"""
+        from cogent3.format.table import grid_table_format
+
+        formatted_grid = grid_table_format(
+            self.t6_header, self.t6_rows, title="Test", legend="Units"
+        )
+        self.assertEqual(len(formatted_grid.split("\n")), len(self.t6_rows) * 2 + 7)
+
+        formatted_grid = grid_table_format(
+            self.t6_header, self.t6_rows, title="Really Long Title", legend="Extra Long Legend"
+        )
+        self.assertEqual(len(formatted_grid.split("\n")), len(self.t6_rows) * 2 + 7 + 2)
+
     def test_joined(self):
         """test the table joined method"""
         t2 = Table(header=self.t2_header, rows=self.t2_rows)
@@ -176,6 +194,18 @@ class TableTests(TestCase):
         self.assertEqual(
             t2.joined(t3, inner_join=False).shape[1], t2.shape[1] + t3.shape[1]
         )
+
+    def test_markdown(self):
+        """Exercising the table markdown method"""
+        from cogent3.format.table import markdown
+
+        markdown_table = markdown(self.t6_header, self.t6_rows, justify="crl")
+        markdown_list = markdown_table.split("\n")
+        self.assertEqual(len(markdown_list), len(self.t6_rows) + 2)
+        self.assertEqual(markdown_list[2][8], "\\")
+
+        with self.assertRaises(ValueError):
+            _ = markdown(self.t6_header, self.t6_rows, justify="cr1")
 
     def test_normalized(self):
         """test the table normalized method"""
@@ -295,22 +325,20 @@ class TableTests(TestCase):
         """testing separator_format with title and legend, and contents that match the separator"""
         from cogent3.format.table import separator_format
 
-        t6_header = ["id", "foo", "bar"]
-        t6_rows = [["60", " | ", "666"], ["70", "bca", "777"]]
         with self.assertRaises(RuntimeError):
-            _ = separator_format(t6_header, t6_rows)
+            _ = separator_format(self.t6_header, self.t6_rows)
         separated_table = separator_format(
-            t6_header, t6_rows, sep=" | ", title="Test", legend="Units"
+            self.t6_header, self.t6_rows, sep=" | ", title="Test", legend="Units"
         )
-        self.assertEqual(len(separated_table.split("\n")), len(t6_rows)+3)
+        self.assertEqual(len(separated_table.split("\n")), len(self.t6_rows) + 3)
 
     def test_separator_format_writer(self):
         """exercising separator_format_writer"""
-        from cogent3.format.table import SeparatorFormatWriter
+        from cogent3.format.table import separator_formatter
 
         t3 = Table(self.t3_header, rows=self.t3_rows)
         comma_sep = t3.to_string(sep=",").splitlines()
-        writer = SeparatorFormatWriter(sep=" | ")
+        writer = separator_formatter(sep=" | ")
         formatted = [
             f for f in writer([l.split(",") for l in comma_sep], has_header=True)
         ]

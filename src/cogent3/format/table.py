@@ -519,7 +519,7 @@ def separator_format(header, formatted_table, title=None, legend=None, sep=None)
     return table
 
 
-def FormatFields(formats):
+def format_fields(formats):
     """Formats row fields by index.
 
     Parameters
@@ -543,7 +543,7 @@ def FormatFields(formats):
     return callable
 
 
-def SeparatorFormatWriter(formatter=None, ignore=None, sep=","):
+def separator_formatter(formatter=None, ignore=None, sep=","):
     """Returns a writer for a delimited tabular file. The writer has a
     has_header argument which ignores the formatter for a header line. Default
     format is string. Does not currently handle Titles or Legends.
@@ -562,7 +562,7 @@ def SeparatorFormatWriter(formatter=None, ignore=None, sep=","):
 
     def callable(lines, formatter=formatter, has_header=False):
         if not formatter:
-            formatter = FormatFields([(i, "%s") for i in range(len(lines[0]))])
+            formatter = format_fields([(i, "%s") for i in range(len(lines[0]))])
         header_done = None
         for line in lines:
             if has_header and not header_done:
