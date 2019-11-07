@@ -2,12 +2,14 @@
 
 """Unit tests for table.
 """
+import os
+
 from pandas import DataFrame
 
 from cogent3 import load_table, make_table
 from cogent3.util.table import Table
 from cogent3.util.unit_test import TestCase, main
-import os
+
 
 __author__ = "Thomas La"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
@@ -274,13 +276,13 @@ class TableTests(TestCase):
         """exercising the different supported formats"""
         last = ""
         for format, startwith in (
-                ("md", "|"),
-                ("rst", "+"),
-                ("latex", r"\begin"),
-                ("markdown", "|"),
-                ("csv", "id,"),
-                ("tsv", "id\t"),
-                ("simple", "="),
+            ("md", "|"),
+            ("rst", "+"),
+            ("latex", r"\begin"),
+            ("markdown", "|"),
+            ("csv", "id,"),
+            ("tsv", "id\t"),
+            ("simple", "="),
         ):
             t3 = Table(self.t3_header, rows=self.t3_rows, format=format)
             got = str(t3)
@@ -292,13 +294,15 @@ class TableTests(TestCase):
     def test_separator_format_writer(self):
         """exercising separator_format_writer"""
         from cogent3.format.table import SeparatorFormatWriter
+
         t3 = Table(self.t3_header, rows=self.t3_rows)
         comma_sep = t3.to_string(sep=",").splitlines()
         writer = SeparatorFormatWriter(sep=" | ")
-        formatted = [f for f in writer(comma_sep, has_header=True)]
-        expected_format = ['i | d | , | f | o | o | , | b | a | r',
-                           '  | 6 | , | a | b | c | , |   | 6 | 6',
-                           '  | 7 | , | b | c | a | , |   | 7 | 7']
+        formatted = [
+            f for f in writer([l.split(",") for l in comma_sep], has_header=True)
+        ]
+        expected_format = ["id | foo | bar", " 6 | abc |  66",
+                           " 7 | bca |  77"]
         self.assertEqual(formatted, expected_format)
 
     def test_set_repr_policy(self):
