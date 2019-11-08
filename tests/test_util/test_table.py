@@ -13,7 +13,7 @@ from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Thomas La"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Thomas La"]
+__credits__ = ["Gavin Huttley", "Thomas La", "Christopher Bradley"]
 __license__ = "BSD-3"
 __version__ = "2019.10.24a"
 __maintainer__ = "Gavin Huttley"
