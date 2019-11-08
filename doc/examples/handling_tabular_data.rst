@@ -1072,7 +1072,7 @@ We can likewise specify a writer, using a custom field formatter and provide thi
 
     >>> from cogent3.format.table import format_fields, separator_formatter
             >>> formatter = format_fields([(0,'"%s"'), (1,'"%s"')])
-            >>> writer = SeparatorFormatWriter(formatter=formatter, sep=" | ")
+            >>> writer = separator_formatter(formatter=formatter, sep=" | ")
             >>> for formatted in writer(comma_sep, has_header=True):
             ...      print(formatted)
             edge.name | edge.parent | length | x | y | z
@@ -1103,8 +1103,8 @@ We can likewise specify a writer, using a custom field formatter and provide thi
                edge.0       edge.1     4.0  1.0  3.0  6.0
                edge.1         root     4.0  1.0  3.0  6.0
             ---------------------------------------------
-        >>> formatter = FormatFields([(0,'"%s"'), (1,'"%s"')])
-        >>> writer = SeparatorFormatWriter(formatter=formatter, sep=" | ")
+        >>> formatter = format_fields([(0,'"%s"'), (1,'"%s"')])
+        >>> writer = separator_formatter(formatter=formatter, sep=" | ")
         >>> for formatted in writer(comma_sep, has_header=True):
         ...      print(formatted)
         edge.name | edge.parent | length | x | y | z
@@ -1135,8 +1135,8 @@ We can likewise specify a writer, using a custom field formatter and provide thi
            edge.0       edge.1     4.0  1.0  3.0  6.0
            edge.1         root     4.0  1.0  3.0  6.0
         ---------------------------------------------
-        >>> formatter = FormatFields([(0,'"%s"'), (1,'"%s"')])
-        >>> writer = SeparatorFormatWriter(formatter=formatter, sep=" | ")
+        >>> formatter = format_fields([(0,'"%s"'), (1,'"%s"')])
+        >>> writer = separator_formatter(formatter=formatter, sep=" | ")
         >>> for formatted in writer(comma_sep, has_header=True):
         ...      print(formatted)
         edge.name | edge.parent | length | x | y | z
@@ -1167,8 +1167,8 @@ We can likewise specify a writer, using a custom field formatter and provide thi
            edge.0       edge.1     4.0  1.0  3.0  6.0
            edge.1         root     4.0  1.0  3.0  6.0
         ---------------------------------------------
-    >>> formatter = FormatFields([(0,'"%s"'), (1,'"%s"')])
-    >>> writer = SeparatorFormatWriter(formatter=formatter, sep=" | ")
+    >>> formatter = format_fields([(0,'"%s"'), (1,'"%s"')])
+    >>> writer = separator_formatter(formatter=formatter, sep=" | ")
     >>> for formatted in writer(comma_sep, has_header=True):
     ...      print(formatted)
     edge.name | edge.parent | length | x | y | z
