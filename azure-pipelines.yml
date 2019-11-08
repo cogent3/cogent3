@@ -8,7 +8,7 @@ variables:
 
 jobs:
 - job: Linux_Test
-  pool: {vmImage: 'Ubuntu-16.04'}
+  pool: {vmImage: 'ubuntu-latest'}
   steps:
     - task: UsePythonVersion@0
     - bash: |
@@ -27,7 +27,7 @@ jobs:
         tox -e py36
         codecov
 - job: MacOS_Test
-  pool: {vmImage: 'macOS-10.13'}
+  pool: {vmImage: 'macos-latest'}
   steps:
     - task: UsePythonVersion@0
     - bash: |
@@ -46,7 +46,7 @@ jobs:
         tox -e py36
         codecov
 - job: Windows_Test
-  pool: {vmImage: 'vs2017-win2016'}
+  pool: {vmImage: 'windows-latest'}
   steps:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
@@ -57,7 +57,7 @@ jobs:
         codecov
 
 - job: Linux_Build
-  pool: {vmImage: 'Ubuntu-16.04'}
+  pool: {vmImage: 'ubuntu-latest'}
   steps: 
     - task: UsePythonVersion@0
     - bash: |
@@ -70,7 +70,7 @@ jobs:
       inputs: {pathtoPublish: 'wheelhouse'}
 
 - job: MacOS_Build
-  pool: {vmImage: 'macOS-10.13'}
+  pool: {vmImage: 'macos-latest'}
   steps: 
     - task: UsePythonVersion@0
     - bash: |
@@ -81,7 +81,7 @@ jobs:
       inputs: {pathtoPublish: 'wheelhouse'}
 
 - job: Windows_Build
-  pool: {vmImage: 'vs2017-win2016'}
+  pool: {vmImage: 'windows-latest'}
   steps:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x86}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x64}}
