@@ -162,12 +162,19 @@ class TableTests(TestCase):
     def test_get_continuation_tables(self):
         """test the table get_continuation_tables method"""
         from cogent3.format.table import get_continuation_tables
-        continuation_table = get_continuation_tables(self.t6_header, self.t6_rows, max_width=7)
+
+        continuation_table = get_continuation_tables(
+            self.t6_header, self.t6_rows, max_width=7
+        )
         self.assertEqual(len(continuation_table), 2)
-        continuation_table = get_continuation_tables(self.t6_header,self.t6_rows, max_width=20)
+        continuation_table = get_continuation_tables(
+            self.t6_header, self.t6_rows, max_width=20
+        )
         self.assertEqual(len(continuation_table), 1)
         with self.assertRaises(RuntimeError):
-            _ = get_continuation_tables(self.t6_header, self.t6_rows, identifiers=3, max_width=2)
+            _ = get_continuation_tables(
+                self.t6_header, self.t6_rows, identifiers=3, max_width=2
+            )
 
     def test_grid_table_format(self):
         """test the table grid_table_format method"""
