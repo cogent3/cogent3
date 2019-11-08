@@ -625,6 +625,13 @@ class FeaturesTest(TestCase):
         # annoyingly, comes back as list of lists
         self.assertEqual(got.xxy_list, [[list(xx), y] for xx, y in y_valued.xxy_list])
 
+    def test_nested_annotations(self):
+        """annotations of annotations should be able to access their sequence"""
+        feature = self.exon1.add_feature('repeat', 'C', [(2,5)])
+        self.assertEqual(feature.get_slice(), "CCC")
+        # a sequence cannot directly access a grandchild
+        self.assertEqual(self.s.get_annotations_matching('repeat'), [])
+
 
 if __name__ == "__main__":
     main()

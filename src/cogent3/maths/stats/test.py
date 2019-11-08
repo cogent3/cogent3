@@ -1971,4 +1971,3 @@ def get_ltm_cells(cells):
     # remove duplicates
     new_cells = sorted(set(new_cells))
     return new_cells
-

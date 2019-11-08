@@ -302,7 +302,7 @@ class TableTests(TestCase):
         separated_table = separator_format(
             t6_header, t6_rows, sep=" | ", title="Test", legend="Units"
         )
-        self.assertEqual(len(separated_table.split("\n")), len(t6_rows)+3)
+        self.assertEqual(len(separated_table.split("\n")), len(t6_rows) + 3)
 
     def test_separator_format_writer(self):
         """exercising separator_format_writer"""

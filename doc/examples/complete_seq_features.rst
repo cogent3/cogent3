@@ -51,6 +51,15 @@ A sequence can be annotated with a feature that also has an annotation, but you 
     [repeat "C" at [2:5]/5]
     >>> print(s.get_annotations_matching('repeat'))
     []
+    >>> print(s.get_annotations_matching('*'))
+    [exon "fred" at [10:15]/48, exon "trev" at [30:40]/48]
+    >>> print(s.get_annotations_matching('*')[0].get_annotations_matching('repeat'))
+    [repeat "C" at [2:5]/5]
+    >>> print(feature1.get_slice())
+    CCC
+    >>> rich_dict = s.to_rich_dict()["annotations"]
+    >>> print([x["annotation_construction"]["name"] for x in rich_dict])
+    ['fred', 'trev']
 
 To construct a pseudo-feature covering (or excluding) multiple features, use ``get_region_covering_all``:
 
