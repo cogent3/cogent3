@@ -221,8 +221,9 @@ class TableTests(TestCase):
 
         markdown_table = markdown(self.t6_header, self.t6_rows, justify="crl")
         markdown_list = markdown_table.split("\n")
-        self.assertEqual(len(markdown_list), len(self.t6_rows) + 2)
-        self.assertEqual(markdown_list[2][8], "\\")
+        self.assertEqual(markdown_list[2].count(r"|"), 5)
+        # the pipe symbol should have been escaped
+        self.assertEqual(markdown_list[2].count(r"\|"), 1)
 
         with self.assertRaises(ValueError):
             _ = markdown(self.t6_header, self.t6_rows, justify="cr1")
