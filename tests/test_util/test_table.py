@@ -13,7 +13,7 @@ from cogent3.util.unit_test import TestCase, main
 
 __author__ = "Thomas La"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Thomas La"]
+__credits__ = ["Gavin Huttley", "Thomas La", "Christopher Bradley"]
 __license__ = "BSD-3"
 __version__ = "2019.10.24a"
 __maintainer__ = "Gavin Huttley"
@@ -66,6 +66,10 @@ class TableTests(TestCase):
     # test table 5
     t5_header = ["a", "b", "c", "d"]
     t5_rows = [[1, 1, 1, 1], [2, 0, 1, 1], [1, 3, 2, 2]]
+
+    # test table 6
+    t6_header = ["id", "foo", "bar"]
+    t6_rows = [["60", " | ", "666"], ["70", "bca", "777"]]
 
     def test_appended(self):
         """test the table appended method"""
@@ -159,17 +163,18 @@ class TableTests(TestCase):
         """test the table grid_table_format method"""
         from cogent3.format.table import grid_table_format
 
-        t6_header = ["id", "foo", "bar"]
-        t6_rows = [["60", " | ", "666"], ["70", "bca", "777"]]
         formatted_grid = grid_table_format(
-            t6_header, t6_rows, title="Test", legend="Units"
+            self.t6_header, self.t6_rows, title="Test", legend="Units"
         )
-        self.assertEqual(len(formatted_grid.split("\n")), len(t6_rows) * 2 + 7)
+        self.assertEqual(len(formatted_grid.split("\n")), len(self.t6_rows) * 2 + 7)
 
         formatted_grid = grid_table_format(
-            t6_header, t6_rows, title="Really Long Title", legend="Extra Long Legend"
+            self.t6_header,
+            self.t6_rows,
+            title="Really Long Title",
+            legend="Extra Long Legend",
         )
-        self.assertEqual(len(formatted_grid.split("\n")), len(t6_rows) * 2 + 7 + 2)
+        self.assertEqual(len(formatted_grid.split("\n")), len(self.t6_rows) * 2 + 7 + 2)
 
     def test_joined(self):
         """test the table joined method"""
@@ -197,16 +202,14 @@ class TableTests(TestCase):
         """Exercising the table markdown method"""
         from cogent3.format.table import markdown
 
-        t6_header = ["id", "foo", "bar"]
-        t6_rows = [["60", " | ", "666"], ["70", "bca", "777"]]
-        markdown_table = markdown(t6_header, t6_rows, justify="crl")
+        markdown_table = markdown(self.t6_header, self.t6_rows, justify="crl")
         markdown_list = markdown_table.split("\n")
         self.assertEqual(markdown_list[2].count(r"|"), 5)
         # the pipe symbol should have been escaped
         self.assertEqual(markdown_list[2].count(r"\|"), 1)
 
         with self.assertRaises(ValueError):
-            _ = markdown(t6_header, t6_rows, justify="cr1")
+            _ = markdown(self.t6_header, self.t6_rows, justify="cr1")
 
     def test_normalized(self):
         """test the table normalized method"""
@@ -326,22 +329,20 @@ class TableTests(TestCase):
         """testing separator_format with title and legend, and contents that match the separator"""
         from cogent3.format.table import separator_format
 
-        t6_header = ["id", "foo", "bar"]
-        t6_rows = [["60", " | ", "666"], ["70", "bca", "777"]]
         with self.assertRaises(RuntimeError):
-            _ = separator_format(t6_header, t6_rows)
+            _ = separator_format(self.t6_header, self.t6_rows)
         separated_table = separator_format(
-            t6_header, t6_rows, sep=" | ", title="Test", legend="Units"
+            self.t6_header, self.t6_rows, sep=" | ", title="Test", legend="Units"
         )
-        self.assertEqual(len(separated_table.split("\n")), len(t6_rows) + 3)
+        self.assertEqual(len(separated_table.split("\n")), len(self.t6_rows) + 3)
 
     def test_separator_format_writer(self):
         """exercising separator_format_writer"""
-        from cogent3.format.table import SeparatorFormatWriter
+        from cogent3.format.table import separator_formatter
 
         t3 = Table(self.t3_header, rows=self.t3_rows)
         comma_sep = t3.to_string(sep=",").splitlines()
-        writer = SeparatorFormatWriter(sep=" | ")
+        writer = separator_formatter(sep=" | ")
         formatted = [
             f for f in writer([l.split(",") for l in comma_sep], has_header=True)
         ]
