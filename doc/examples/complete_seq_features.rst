@@ -14,6 +14,7 @@ A Sequence with a couple of exons on it.
     >>> exon1 = s.add_annotation(Feature, 'exon', 'fred', [(10,15)])
     >>> exon2 = s.add_annotation(Feature, 'exon', 'trev', [(30,40)])
 
+
 The corresponding sequence can be extracted either with slice notation or by asking the feature to do it, since the feature knows what sequence it belongs to.
 
 .. doctest::
@@ -40,6 +41,16 @@ If the sequence does not have a matching feature you get back an empty list, and
     []
     >>> s[dont_exist]
     DnaSequence()
+
+A sequence can be annotated with a feature that also has an annotation, but you cannot query for the nested feature from the sequence.
+
+.. doctest::
+
+    >>> feature1 = exon1.add_feature('repeat', 'C', [(2,5)])
+    >>> print(exon1.get_annotations_matching('repeat'))
+    [repeat "C" at [2:5]/5]
+    >>> print(s.get_annotations_matching('repeat'))
+    []
 
 To construct a pseudo-feature covering (or excluding) multiple features, use ``get_region_covering_all``:
 
