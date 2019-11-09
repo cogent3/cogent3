@@ -633,7 +633,7 @@ class FeaturesTest(TestCase):
         self.assertEqual(self.s.get_annotations_matching("repeat"), [])
 
         # a nested annotation can access its grandparent through recursion
-        def get_orig_parent (a):
+        def get_orig_parent(a):
             return a if a.name is "Orig" else get_orig_parent(a.parent)
 
         self.assertEqual(get_orig_parent(feature), self.s)
@@ -641,9 +641,7 @@ class FeaturesTest(TestCase):
         # a sequence can access a grandchild through recursion
         def get_all_annotations_matching(a, type):
             matches = a.get_annotations_matching(type)
-            if matches:
-                return matches
-            for f in [f for f in a.get_annotations_matching("*") if f not in matches]:
+            for f in a.get_annotations_matching("*"):
                 matches.extend(get_all_annotations_matching(f, type))
             return matches
 
