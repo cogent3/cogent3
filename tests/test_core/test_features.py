@@ -626,26 +626,28 @@ class FeaturesTest(TestCase):
         self.assertEqual(got.xxy_list, [[list(xx), y] for xx, y in y_valued.xxy_list])
 
     def test_nested_annotations(self):
-        """Test annotations can be nested, and features can be accessed recursively"""
-        feature = self.exon1.add_feature('repeat', 'C', [(2,5)])
+        """check annotations can be nested and features can be accessed recursively"""
+        feature = self.exon1.add_feature("repeat", "C", [(2, 5)])
         self.assertEqual(feature.get_slice(), "CCC")
         # a sequence cannot directly access a grandchild
-        self.assertEqual(self.s.get_annotations_matching('repeat'), [])
+        self.assertEqual(self.s.get_annotations_matching("repeat"), [])
 
-        # a nested annotation can access it's grandparent through recursion
-        def find_orig_parent(a):
-            return a if a.name is 'Orig' else find_orig_parent(a.parent)
-        self.assertEqual(find_orig_parent(feature).name, 'Orig')
+        # a nested annotation can access its grandparent through recursion
+        def get_orig_parent (a):
+            return a if a.name is "Orig" else get_orig_parent(a.parent)
+
+        self.assertEqual(get_orig_parent(feature), self.s)
 
         # a sequence can access a grandchild through recursion
-        def find_annotation(a, match):
-            matches = a.get_annotations_matching(match)
-            if len(matches) > 0:
+        def get_all_annotations_matching(a, type):
+            matches = a.get_annotations_matching(type)
+            if matches:
                 return matches
             for f in [f for f in a.get_annotations_matching("*") if f not in matches]:
-                matches.extend(find_annotation(f, match))
+                matches.extend(get_all_annotations_matching(f, type))
             return matches
-        self.assertEqual(find_annotation(self.s, 'repeat')[0].name, "C")
+
+        self.assertEqual(get_all_annotations_matching(self.s, "repeat"), [feature])
 
 
 if __name__ == "__main__":
