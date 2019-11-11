@@ -49,6 +49,17 @@ class FeaturesTest(TestCase):
             str(exons), '[exon "fred" at [10:15]/48, exon "trev" at [30:40]/48]'
         )
 
+    def test_get_nested_annotations_matching(self):
+        """correctly identifies all features of a given type when nested annotations"""
+
+        nested = DNA.make_seq("AAAAAAAAA", name="x")
+        nested_exon = nested.add_annotation(Feature, "exon", "fred", [(3, 8)])
+        # Force to make a nested annotation only for testing purpose
+        nested.annotations[0].annotations = [nested_exon]
+        exons = nested.get_annotations_matching("exon", extend_query=True)
+        self.assertEqual(len(exons), 2)
+        self.assertEqual(str(exons), '[exon "fred" at [3:8]/9, exon "fred" at [3:8]/9]')
+
     def test_get_annotations_matching2(self):
         """get_annotations_matching returns empty feature if no matches"""
 
