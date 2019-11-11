@@ -173,7 +173,7 @@ class _Annotatable:
     def add_feature(self, type, name, spans):
         return self.add_annotation(Feature, type, name, spans)
 
-    def get_annotations_matching(self, annotation_type, name=None):
+    def get_annotations_matching(self, annotation_type, name=None, extend_query=False):
         """
 
         Parameters
@@ -182,6 +182,8 @@ class _Annotatable:
             name of the annotation type. Wild-cards allowed.
         name : string
             name of the instance. Wild-cards allowed.
+        extend_query : boolean
+            if extended search required here
         Returns
         -------
         list of AnnotatableFeatures
@@ -192,6 +194,12 @@ class _Annotatable:
                 name is None or fnmatch(annotation.name, name)
             ):
                 result.append(annotation)
+        if extend_query:
+            for nested_res in [
+                annotation.get_annotations_matching(annotation_type, name)
+                for annotation in self.annotations
+            ]:
+                result += nested_res
         return result
 
     def get_region_covering_all(self, annotations, feature_class=None):
