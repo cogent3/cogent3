@@ -203,7 +203,7 @@ class _Annotatable:
                 )
                 for annotation in self.annotations
             ]:
-                result += nested_res
+                result.extend(nested_res)
         return result
 
     def get_region_covering_all(self, annotations, feature_class=None):
