@@ -183,27 +183,25 @@ class _Annotatable:
         name : string
             name of the instance. Wild-cards allowed.
         extend_query : boolean
-            if extended search required here
+            queries sub-annotations if True
         Returns
         -------
         list of AnnotatableFeatures
         """
         result = []
+        if len(self.annotations) == 0:
+            return result
         for annotation in self.annotations:
             if fnmatch(annotation.type, annotation_type) and (
                 name is None or fnmatch(annotation.name, name)
             ):
                 result.append(annotation)
-        if extend_query:
-            if len(self.annotations) == 0:
-                return result
-            for nested_res in [
-                annotation.get_annotations_matching(
-                    annotation_type, name, extend_query=True
+            if extend_query:
+                result.extend(
+                    annotation.get_annotations_matching(
+                        annotation_type, name, extend_query=extend_query
+                    )
                 )
-                for annotation in self.annotations
-            ]:
-                result.extend(nested_res)
         return result
 
     def get_region_covering_all(self, annotations, feature_class=None):
