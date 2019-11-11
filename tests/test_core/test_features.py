@@ -637,14 +637,12 @@ class FeaturesTest(TestCase):
         )
 
     def test_nested_deserialise_annotation(self):
-        """Nested annotations can be deserialised"""
-        from cogent3.util.deserialise import deserialise_object
-
+        """nested annotations can be deserialised"""
         got = self.s.to_json()
         new = deserialise_object(got)
         new_exon1 = new.annotations[0]
         new_nested_feature = new_exon1.annotations[0]
-        self.assertEqual(new_nested_feature.name, self.nested_feature.name)
+        self.assertEqual(new_nested_feature.to_json(), self.nested_feature.to_json())
 
 
 if __name__ == "__main__":
