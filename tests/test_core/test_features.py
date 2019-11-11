@@ -26,7 +26,7 @@ class FeaturesTest(TestCase):
         )
         self.exon1 = self.s.add_annotation(Feature, "exon", "fred", [(10, 15)])
         self.exon2 = self.s.add_annotation(Feature, "exon", "trev", [(30, 40)])
-        self.nested_feature = self.exon1.add_feature("repeat", "C", [(2, 5)])
+        self.nested_feature = self.exon1.add_feature("repeat", "bob", [(2, 5)])
 
     def test_exon_extraction(self):
         """exon feature used to slice or directly access sequence"""
