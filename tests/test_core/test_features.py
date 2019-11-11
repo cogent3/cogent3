@@ -629,8 +629,8 @@ class FeaturesTest(TestCase):
         """check the get_slice method works on nested annotations"""
         self.assertEqual(self.nested_feature.get_slice(), "CCC")
 
-    def test_nested_deserialise_annotation(self):
-        """check the deserialise_annotation method works with nested annotations"""
+    def test_nested_to_rich_dict(self):
+        """check the to_rich_dict method works with nested annotations"""
         self.assertEqual(
             self.exon1.to_rich_dict()["annotations"][0],
             self.nested_feature.to_rich_dict(),
