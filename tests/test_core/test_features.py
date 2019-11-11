@@ -467,16 +467,6 @@ class FeaturesTest(TestCase):
         )
         self.assertEqual(masked, "TT???????")
 
-        # mock an annotation to test the case when discrete spans and dual exon annotations
-        mocked_exon = aln.get_seq("y").add_feature("exon", "norwegian", [(3, 4)])
-        mocked_exon.parent = repeat
-        mocked_exon.attached = False
-        repeat.attach_annotations([mocked_exon])
-        masked = str(
-            aln.get_seq("y").with_masked_annotations("exon", mask_char="?", shadow=True)
-        )
-        self.assertEqual(masked, "TT?T?????")
-
     def test_annotated_separately_equivalence(self):
         """allow defining features as a series or individually"""
 
