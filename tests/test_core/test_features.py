@@ -629,12 +629,22 @@ class FeaturesTest(TestCase):
         """check the get_slice method works on nested annotations"""
         self.assertEqual(self.nested_feature.get_slice(), "CCC")
 
-    def test_nested_deserialise_annotation(self):
-        """check the deserialise_annotation method works with nested annotations"""
+    def test_nested_to_rich_dict(self):
+        """check the to_rich_dict method works with nested annotations"""
         self.assertEqual(
             self.exon1.to_rich_dict()["annotations"][0],
             self.nested_feature.to_rich_dict(),
         )
+
+    def test_nested_deserialise_annotation(self):
+        """Nested annotations can be deserialised"""
+        from cogent3.util.deserialise import deserialise_object
+
+        got = self.s.to_json()
+        new = deserialise_object(got)
+        new_exon1 = new.annotations[0]
+        new_nested_feature = new_exon1.annotations[0]
+        self.assertEqual(new_nested_feature.name, self.nested_feature.name)
 
 
 if __name__ == "__main__":
