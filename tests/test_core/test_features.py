@@ -442,16 +442,22 @@ class FeaturesTest(TestCase):
         aln = make_aligned_seqs(
             data=[["x", "C-CCCAAAAAGGGAA"], ["y", "-T----TTTTG-GTT"]], array_align=False
         )
-        self.assertEqual(str(aln), ">x\nC-CCCAAAAAGGGAA\n>y\n-T----TTTTG-GTT\n")
         exon = aln.get_seq("x").add_feature("exon", "norwegian", [(1, 4)])
-        nested = exon.add_feature("repeat", "blue", [(0, 2)])
-        # force to make a nested annotations case only for testing purpose
+        exon.add_feature("repeat", "blue", [(1, 3)])
         masked = str(
             aln.get_seq("x").with_masked_annotations(
                 "repeat", mask_char="?", shadow=True
             )
         )
-        self.assertEqual(masked, "CC????????????")
+        self.assertEqual(masked, "?CC???????????")
+
+        repeat = aln.get_seq("y").add_feature("repeat", "frog", [(5, 8)])
+        exon = repeat.add_feature("exon", "norwegian", [(0, 2)])
+        exon.add_feature("exon", "norwegian", [(0, 1)])
+        masked = str(
+            aln.get_seq("y").with_masked_annotations("exon", mask_char="?", shadow=True)
+        )
+        self.assertEqual(masked, "TT???????")
 
     def test_annotated_separately_equivalence(self):
         """allow defining features as a series or individually"""
