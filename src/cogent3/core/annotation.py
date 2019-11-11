@@ -260,11 +260,10 @@ class _Serialisable:
 
         try:
             annotations = [a.to_rich_dict() for a in self.annotations]
+            if annotations:
+                data["annotations"] = annotations
         except AttributeError:
-            annotations = []
-
-        if annotations:
-            data["annotations"] = annotations
+            pass
 
         return data
 
