@@ -195,8 +195,12 @@ class _Annotatable:
             ):
                 result.append(annotation)
         if extend_query:
+            if len(self.annotations) == 0:
+                return result
             for nested_res in [
-                annotation.get_annotations_matching(annotation_type, name)
+                annotation.get_annotations_matching(
+                    annotation_type, name, extend_query=True
+                )
                 for annotation in self.annotations
             ]:
                 result += nested_res
