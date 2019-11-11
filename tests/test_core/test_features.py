@@ -21,7 +21,6 @@ class FeaturesTest(TestCase):
 
     def setUp(self):
         # A Sequence with a couple of exons on it.
-
         self.s = DNA.make_seq(
             "AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig"
         )
@@ -624,6 +623,11 @@ class FeaturesTest(TestCase):
         got = list(new.get_annotations_matching("SNP"))[0]
         # annoyingly, comes back as list of lists
         self.assertEqual(got.xxy_list, [[list(xx), y] for xx, y in y_valued.xxy_list])
+
+    def test_nested_get_slice(self):
+        """check the get_slice method works on nested annotations"""
+        nested_feature = self.exon1.add_feature("repeat", "C", [(2, 5)])
+        self.assertEqual(nested_feature.get_slice(), "CCC")
 
 
 if __name__ == "__main__":
