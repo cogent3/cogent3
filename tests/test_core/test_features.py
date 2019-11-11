@@ -437,6 +437,23 @@ class FeaturesTest(TestCase):
             ">x\nC-CCC?????GGG??\n>y\n-?----????G-G??\n",
         )
 
+    def test_nested_annotated_region_masks(self):
+        """masking a sequence with specific features when nested annotations"""
+
+        aln = make_aligned_seqs(
+            data=[["x", "C-CCCAAAAAGGGAA"], ["y", "-T----TTTTG-GTT"]], array_align=False
+        )
+        self.assertEqual(str(aln), ">x\nC-CCCAAAAAGGGAA\n>y\n-T----TTTTG-GTT\n")
+        exon = aln.get_seq("x").add_feature("exon", "norwegian", [(1, 4)])
+        nested = exon.add_feature("repeat", "blue", [(0, 2)])
+        # force to make a nested annotations case only for testing purpose
+        masked = str(
+            aln.get_seq("x").with_masked_annotations(
+                "repeat", mask_char="?", shadow=True
+            )
+        )
+        self.assertEqual(masked, "CC????????????")
+
     def test_annotated_separately_equivalence(self):
         """allow defining features as a series or individually"""
 
