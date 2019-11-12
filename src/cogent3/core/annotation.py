@@ -173,7 +173,7 @@ class _Annotatable:
     def add_feature(self, type, name, spans):
         return self.add_annotation(Feature, type, name, spans)
 
-    def get_annotations_matching(self, annotation_type, name=None):
+    def get_annotations_matching(self, annotation_type, name=None, extend_query=False):
         """
 
         Parameters
@@ -182,19 +182,33 @@ class _Annotatable:
             name of the annotation type. Wild-cards allowed.
         name : string
             name of the instance. Wild-cards allowed.
+        extend_query : boolean
+            queries sub-annotations if True
         Returns
         -------
         list of AnnotatableFeatures
         """
         result = []
+        if len(self.annotations) == 0:
+            return result
         for annotation in self.annotations:
             if fnmatch(annotation.type, annotation_type) and (
                 name is None or fnmatch(annotation.name, name)
             ):
                 result.append(annotation)
+            if extend_query:
+                result.extend(
+                    annotation.get_annotations_matching(
+                        annotation_type, name, extend_query=extend_query
+                    )
+                )
         return result
 
-    def get_region_covering_all(self, annotations, feature_class=None):
+    def get_region_covering_all(
+        self, annotations, feature_class=None, extend_query=False
+    ):
+        if extend_query:
+            annotations = [annot._projected_to_base(self) for annot in annotations]
         spans = []
         annotation_types = []
         for annot in annotations:
@@ -240,6 +254,9 @@ class _Annotatable:
             new_map = annot.map.nucleic_reversed()
             annotations.append(annot.__class__(new, new_map, annot))
         new.attach_annotations(annotations)
+
+    def _projected_to_base(self, base):
+        raise NotImplementedError
 
 
 class _Serialisable:
@@ -359,6 +376,11 @@ class _Feature(_Annotatable, _Serialisable):
         if name:
             name = ' "%s"' % name
         return "%s%s at %s" % (self.type, name, self.map)
+
+    def _projected_to_base(self, base):
+        if self.parent == base:
+            return self.__class__(base, self.map, original=self)
+        return self.remapped_to(base, self.parent._projected_to_base(base).map)
 
     def remapped_to(self, grandparent, gmap):
         map = gmap[self.map]
