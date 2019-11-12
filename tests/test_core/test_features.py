@@ -473,7 +473,7 @@ class FeaturesTest(TestCase):
         aln = make_aligned_seqs(
             data=[["x", "C-GGCAAAAATTTAA"], ["y", "-T----TTTTG-GTT"]], array_align=False
         )
-        gene = aln.get_seq("x").add_feature("exon", "norwegian", [(0, 4)])
+        gene = aln.get_seq("x").add_feature("gene", "norwegian", [(0, 4)])
         self.assertEqual(str(gene.get_slice()), "CGGC")
         gene.add_feature("repeat", "blue", [(1, 3)])
         # evaluate the sequence directly
