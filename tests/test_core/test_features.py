@@ -642,7 +642,9 @@ class FeaturesTest(TestCase):
         new = deserialise_object(got)
         new_exon1 = new.annotations[0]
         new_nested_feature = new_exon1.annotations[0]
-        self.assertEqual(new_nested_feature.to_json(), self.nested_feature.to_json())
+        self.assertEqual(
+            new_nested_feature.to_rich_dict(), self.nested_feature.to_rich_dict()
+        )
 
 
 if __name__ == "__main__":
