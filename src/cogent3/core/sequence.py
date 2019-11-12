@@ -773,6 +773,8 @@ class Sequence(_Annotatable, SequenceI):
         shadow
             whether to mask the annotated regions, or everything but
             the annotated regions
+        extend_query : boolean
+            queries sub-annotations if True
 
         """
         if mask_char is None:

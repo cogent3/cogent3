@@ -494,7 +494,7 @@ class FeaturesTest(TestCase):
         )
         self.assertEqual(masked, "T???TGGTT")
 
-        masked = aln.with_masked_annotations("exon", mask_char="?")
+        masked = aln.with_masked_annotations("gene", mask_char="?")
         got = masked.to_dict()
         self.assertEqual(got["x"], "?-???AAAAATTTAA")
         self.assertEqual(got["y"], "-T----TTTTG-GTT")
