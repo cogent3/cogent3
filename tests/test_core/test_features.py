@@ -65,6 +65,10 @@ class FeaturesTest(TestCase):
             str(exons),
             '[exon "fred" at [3:8]/9, exon "fred" at [3:7]/5, exon "fred" at [3:6]/4]',
         )
+        # tests extend_query=False, and only get back the base exon
+        exons = seq.get_annotations_matching("exon")
+        self.assertEqual(len(exons), 1)
+        self.assertEqual(str(exons), '[exon "fred" at [3:8]/9]')
 
     def test_get_annotations_matching2(self):
         """get_annotations_matching returns empty feature if no matches"""
