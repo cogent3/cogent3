@@ -320,14 +320,6 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
 
     def tearDown(self):
         os.remove(self.basedir)
-        try:
-            os.remove("dummyPrefix_.dummySuffix")
-        except OSError:
-            pass
-        try:
-            os.remove("dummyPrefix_.json")
-        except OSError:
-            pass
 
     def test_write_no_parent(self):
         """zipped data store handles archive with no parent dir"""
@@ -341,23 +333,29 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
         self.assertTrue(len(dstore) > 1)
 
     def test_write_class_source_create_delete(self):
-        # tests the case when the ZippedDataStore has other different suffixes to self.suffix
-        with zipfile.ZipFile(self.basedir, "w") as myzip:
-            with open("dummyPrefix_.dummySuffix", "w"):
-                pass
-            myzip.write("dummyPrefix_.dummySuffix")
-        with self.assertRaises(RuntimeError):
+        with TemporaryDirectory(dir=".") as dirname:
+            path = os.path.join(dirname, "delme_dir")
+            os.mkdir(path)
+            with zipfile.ZipFile(os.path.join(path, self.basedir), "w") as myzip:
+                with open("dummyPrefix_.dummySuffix", "w"):
+                    pass
+                myzip.write("dummyPrefix_.dummySuffix")
+            # tests the case when the ZippedDataStore has other different suffixes to self.suffix
+            with self.assertRaises(RuntimeError):
+                dstore = self.WriteClass(
+                    os.path.join(path, self.basedir),
+                    suffix=".json",
+                    if_exists=OVERWRITE,
+                    create=True,
+                )
+            # tests the case when the ZippedDataStore only contains files with the same suffix as self.suffix
+            with zipfile.ZipFile("delme.zip", "w") as myzip:
+                with open("dummyPrefix_.json", "w"):
+                    pass
+                myzip.write("dummyPrefix_.json")
             dstore = self.WriteClass(
-                self.basedir, suffix=".json", if_exists=OVERWRITE, create=True
+                "delme.zip", suffix=".json", if_exists=OVERWRITE, create=True
             )
-        # tests the case when the ZippedDataStore only contains files with the same suffix as self.suffix
-        with zipfile.ZipFile("delme.zip", "w") as myzip:
-            with open("dummyPrefix_.json", "w"):
-                pass
-            myzip.write("dummyPrefix_.json")
-        dstore = self.WriteClass(
-            "delme.zip", suffix=".json", if_exists=OVERWRITE, create=True
-        )
 
 
 class TinyDBDataStoreTests(TestCase):
