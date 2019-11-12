@@ -1,11 +1,13 @@
 import os
 import shutil
 import sys
+import zipfile
 
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main, skipIf
 
 from cogent3.app.data_store import (
+    OVERWRITE,
     DataStoreMember,
     ReadOnlyDirectoryDataStore,
     ReadOnlyTinyDbDataStore,
@@ -14,7 +16,6 @@ from cogent3.app.data_store import (
     WritableDirectoryDataStore,
     WritableTinyDbDataStore,
     WritableZippedDataStore,
-    make_record_for_json,
 )
 from cogent3.parse.fasta import MinimalFastaParser
 
@@ -276,6 +277,35 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
     ReadClass = ReadOnlyDirectoryDataStore
     WriteClass = WritableDirectoryDataStore
 
+    def test_write_class_source_create_delete(self):
+        with TemporaryDirectory(dir=".") as dirname:
+            # tests the case when the directory has the file with the same suffix to self.suffix
+            path = os.path.join(dirname, "delme_dir")
+            os.mkdir(path)
+            with open(
+                os.path.join(path, "test_write_class_source_create_delete.json"), "w"
+            ):
+                pass
+            dstore = self.WriteClass(
+                path, suffix=".json", if_exists=OVERWRITE, create=True
+            )
+            self.assertEqual(len(dstore), 0)
+            # tests the case when the directory has the file with the different suffix to self.suffix
+            with open(
+                os.path.join(path, "test_write_class_source_create_delete.dummySuffix"),
+                "w",
+            ):
+                pass
+            with self.assertRaises(RuntimeError):
+                dstore = self.WriteClass(
+                    path, suffix=".json", if_exists=OVERWRITE, create=True
+                )
+            # tests the case when the directory has the file with the same suffix to self.suffix
+            dstore = self.WriteClass(
+                path, suffix=".dummySuffix", if_exists=OVERWRITE, create=True
+            )
+            self.assertEqual(len(dstore), 0)
+
 
 class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
     basedir = "data.zip"
@@ -301,6 +331,31 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
         dstore = self.ReadClass(source, suffix="*")
         self.assertEqual(dstore.source, self.basedir)
         self.assertTrue(len(dstore) > 1)
+
+    def test_write_class_source_create_delete(self):
+        with TemporaryDirectory(dir=".") as dirname:
+            path = os.path.join(dirname, "delme_dir")
+            os.mkdir(path)
+            with zipfile.ZipFile(os.path.join(path, self.basedir), "w") as myzip:
+                with open("dummyPrefix_.dummySuffix", "w"):
+                    pass
+                myzip.write("dummyPrefix_.dummySuffix")
+            # tests the case when the ZippedDataStore has other different suffixes to self.suffix
+            with self.assertRaises(RuntimeError):
+                dstore = self.WriteClass(
+                    os.path.join(path, self.basedir),
+                    suffix=".json",
+                    if_exists=OVERWRITE,
+                    create=True,
+                )
+            # tests the case when the ZippedDataStore only contains files with the same suffix as self.suffix
+            with zipfile.ZipFile("delme.zip", "w") as myzip:
+                with open("dummyPrefix_.json", "w"):
+                    pass
+                myzip.write("dummyPrefix_.json")
+            dstore = self.WriteClass(
+                "delme.zip", suffix=".json", if_exists=OVERWRITE, create=True
+            )
 
 
 class TinyDBDataStoreTests(TestCase):
