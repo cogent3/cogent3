@@ -1,4 +1,3 @@
-import glob
 import os
 import shutil
 import sys
@@ -290,7 +289,7 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
             dstore = self.WriteClass(
                 path, suffix=".json", if_exists=OVERWRITE, create=True
             )
-            self.assertEqual(len(glob.glob(os.path.join(path, "*.json"))), 0)
+            self.assertEqual(len(dstore), 0)
             # tests the case when the directory has the file with the different suffix to self.suffix
             with open(
                 os.path.join(path, "test_write_class_source_create_delete.dummySuffix"),
@@ -301,12 +300,11 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
                 dstore = self.WriteClass(
                     path, suffix=".json", if_exists=OVERWRITE, create=True
                 )
-            self.assertEqual(len(glob.glob(os.path.join(path, "*.dummySuffix"))), 1)
             # tests the case when the directory has the file with the same suffix to self.suffix
             dstore = self.WriteClass(
                 path, suffix=".dummySuffix", if_exists=OVERWRITE, create=True
             )
-            self.assertEqual(len(glob.glob(os.path.join(path, "*.dummySuffix"))), 0)
+            self.assertEqual(len(dstore), 0)
 
 
 class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
