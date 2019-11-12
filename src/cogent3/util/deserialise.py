@@ -86,10 +86,13 @@ def deserialise_annotation(data, parent):
     annots = []
     for element in data:
         element.pop("version", None)
+        annotations = element.pop("annotations", None)
         klass = _get_class(element.pop("type"))
         kwargs = element.pop("annotation_construction")
         kwargs["map"] = deserialise_map_spans(kwargs["map"])
         instance = klass(parent, **kwargs)
+        if annotations:
+            deserialise_annotation(annotations, instance)
         annots.append(instance)
     parent.annotations += tuple(annots)
 

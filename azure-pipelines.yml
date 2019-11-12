@@ -3,15 +3,17 @@ trigger:
 
 variables:
   CODECOV_TOKEN: 504b0637-b4c1-4991-bc79-7a29aee41b44
+  CIBW_BUILD: cp36-* cp37-*
+  CIBW_BEFORE_BUILD: python -m pip install --upgrade pip
 
 jobs:
-- job: linux
-  pool: {vmImage: 'Ubuntu-16.04'}
+- job: Linux_Test
+  pool: {vmImage: 'ubuntu-latest'}
   steps:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install tox codecov pytest pytest-cov click cython numpy pandas plotly scitrack tqdm tinydb
+        python -m pip install .[dev] codecov
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '3.7'
@@ -24,13 +26,13 @@ jobs:
     - bash: |
         tox -e py36
         codecov
-- job: macos
-  pool: {vmImage: 'macOS-10.13'}
+- job: MacOS_Test
+  pool: {vmImage: 'macos-latest'}
   steps:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install tox codecov pytest pytest-cov click cython numpy pandas plotly scitrack tqdm tinydb
+        python -m pip install .[dev] codecov
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '3.7'
@@ -43,16 +45,51 @@ jobs:
     - bash: |
         tox -e py36
         codecov
-- job: windows
-  pool: {vmImage: 'vs2017-win2016'}
+- job: Windows_Test
+  pool: {vmImage: 'windows-latest'}
   steps:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x86}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x64}}
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install tox codecov pytest pytest-cov click cython numpy pandas plotly scitrack tqdm tinydb
+        python -m pip install .[dev] codecov
         tox -e py37
-        tox -e py36
         codecov
+
+- job: Linux_Build
+  pool: {vmImage: 'ubuntu-latest'}
+  steps: 
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        python -m pip install cibuildwheel==0.11.1 numpy
+        cibuildwheel --output-dir wheelhouse .
+        python setup.py sdist
+        cp dist/*.gz wheelhouse/.
+    - task: PublishBuildArtifacts@1
+      inputs: {pathtoPublish: 'wheelhouse'}
+
+- job: MacOS_Build
+  pool: {vmImage: 'macos-latest'}
+  steps: 
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        python -m pip install cibuildwheel==0.11.1 numpy
+        cibuildwheel --output-dir wheelhouse .
+    - task: PublishBuildArtifacts@1
+      inputs: {pathtoPublish: 'wheelhouse'}
+
+- job: Windows_Build
+  pool: {vmImage: 'windows-latest'}
+  steps:
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x64}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
+    - bash: |
+        python -m pip install --upgrade pip
+        python -m pip install cibuildwheel==0.11.1 numpy
+        cibuildwheel --output-dir wheelhouse .
+    - task: PublishBuildArtifacts@1
+      inputs: {pathtoPublish: 'wheelhouse'}

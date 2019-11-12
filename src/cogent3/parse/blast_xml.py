@@ -14,11 +14,12 @@ __status__ = "Prototype"
 
 import xml.dom.minidom
 
-from cogent3.parse.blast import (
-    BlastResult,
-    MinimalBlastParser9,
-    MinimalPsiBlastParser9,
-)
+from operator import eq as _eq
+from operator import gt as _gt
+from operator import le as _le
+from operator import lt as _lt
+
+from cogent3.parse.blast import MinimalBlastParser9, MinimalPsiBlastParser9
 
 
 """
@@ -144,7 +145,7 @@ def parse_parameters(tag):
     return result
 
 
-def MinimalBlastParser7(lines, include_column_names=False, format="xml"):
+def minimal_blast_parser_7(lines, include_column_names=False, format="xml"):
     """Yields succesive records from lines (props, data list).
 
     lines must be XML BLAST output format.
@@ -166,7 +167,7 @@ def MinimalBlastParser7(lines, include_column_names=False, format="xml"):
         yield props, hits
 
 
-class BlastXMLResult(BlastResult):
+class BlastXMLResult(dict):
     """the BlastResult objects have the query sequence as keys,
     and the values are lists of lists of dictionaries.
     The FIELD NAMES given are the keys of the dict.
@@ -181,6 +182,19 @@ class BlastXMLResult(BlastResult):
     HIT_LENGTH = "HIT_LENGTH"
     SCORE = "SCORE"
     POSITIVE = "POSITIVE"
+    ITERATION = "ITERATION"
+    QUERY_ID = "QUERY ID"
+    SUBJECT_ID = "SUBJECT_ID"
+    PERCENT_IDENTITY = "% IDENTITY"
+    ALIGNMENT_LENGTH = "ALIGNMENT LENGTH"
+    MISMATCHES = "MISMATCHES"
+    GAP_OPENINGS = "GAP OPENINGS"
+    QUERY_START = "Q. START"
+    QUERY_END = "Q. END"
+    SUBJECT_START = "S. START"
+    SUBJECT_END = "S. END"
+    E_VALUE = "E-VALUE"
+    BIT_SCORE = "BIT_SCORE"
 
     # FieldComparisonOperators = (
     #    BlastResult.FieldComparisonOperators = {
@@ -188,21 +202,39 @@ class BlastXMLResult(BlastResult):
     #        }
     # .. to be done
 
-    # .. extend HitKeys
-    HitKeys = BlastResult.HitKeys.union(
-        set(
-            [
-                HIT_DEF,
-                HIT_ACCESSION,
-                HIT_LENGTH,
-                SCORE,
-                POSITIVE,
-                QUERY_ALIGN,
-                SUBJECT_ALIGN,
-                MIDLINE_ALIGN,
-            ]
-        )
+    hit_keys = set(
+        [
+            HIT_DEF,
+            HIT_ACCESSION,
+            HIT_LENGTH,
+            SCORE,
+            POSITIVE,
+            QUERY_ALIGN,
+            SUBJECT_ALIGN,
+            MIDLINE_ALIGN,
+            ITERATION,
+            QUERY_ID,
+            SUBJECT_ID,
+            PERCENT_IDENTITY,
+            ALIGNMENT_LENGTH,
+            MISMATCHES,
+            GAP_OPENINGS,
+            QUERY_START,
+            QUERY_END,
+            SUBJECT_START,
+            SUBJECT_END,
+            E_VALUE,
+            BIT_SCORE,
+        ]
     )
+
+    _field_comparison_operators = {
+        PERCENT_IDENTITY: (_gt, float),
+        ALIGNMENT_LENGTH: (_gt, int),
+        MISMATCHES: (_lt, int),
+        E_VALUE: (_lt, float),
+        BIT_SCORE: (_gt, float),
+    }
 
     def __init__(self, data, psiblast=False, parser=None, xml=False):
         # iterate blast results, generate data structure
@@ -220,7 +252,7 @@ class BlastXMLResult(BlastResult):
 
         if not parser:
             if xml:
-                parser = MinimalBlastParser7
+                parser = minimal_blast_parser_7
             elif psiblast:
                 parser = MinimalPsiBlastParser9
             else:
@@ -249,3 +281,44 @@ class BlastXMLResult(BlastResult):
             if query_id not in self:
                 self[query_id] = []
             self[query_id].append(hits)
+
+    def iter_hits_by_query(self, iteration=-1):
+        """Iterates over set of hits, returning list of hits for each query"""
+        for query_id in self:
+            yield query_id, self[query_id][iteration]
+
+    def best_hits_by_query(
+        self, iteration=-1, n=1, field="BIT_SCORE", return_self=False
+    ):
+        """Iterates over all queries and returns best hit for each
+        return_self: if False, will not return best hit as itself.
+        Uses FieldComparisonOperators to figure out which direction to compare.
+        """
+
+        # check that given valid comparison field
+        if field not in self._field_comparison_operators:
+            raise ValueError(
+                "Invalid field: %s. You must specify one of: %s"
+                % (field, str(self._field_comparison_operators))
+            )
+        cmp_fun, cast_fun = self._field_comparison_operators[field]
+
+        # enumerate hits
+        for q, hits in self.iter_hits_by_query(iteration=iteration):
+            best_hits = []
+            for hit in hits:
+                # check if want to skip self hit
+                if not return_self:
+                    if hit[self.SUBJECT_ID] == q:
+                        continue
+                # check if better hit than ones we have
+                if len(best_hits) < n:
+                    best_hits.append(hit)
+                else:
+                    for ix, best_hit in enumerate(best_hits):
+                        new_val = cast_fun(hit[field])
+                        old_val = cast_fun(best_hit[field])
+                        if cmp_fun(new_val, old_val):
+                            best_hits[ix] = hit
+                            continue
+            yield q, best_hits

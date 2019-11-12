@@ -757,7 +757,9 @@ class Sequence(_Annotatable, SequenceI):
             feat_label = gff.parse_attributes(attributes)
             self.add_feature(feature, feat_label, [(start, end)])
 
-    def with_masked_annotations(self, annot_types, mask_char=None, shadow=False):
+    def with_masked_annotations(
+        self, annot_types, mask_char=None, shadow=False, extend_query=False
+    ):
         """returns a sequence with annot_types regions replaced by mask_char
         if shadow is False, otherwise all other regions are masked.
 
@@ -771,6 +773,8 @@ class Sequence(_Annotatable, SequenceI):
         shadow
             whether to mask the annotated regions, or everything but
             the annotated regions
+        extend_query : boolean
+            queries sub-annotations if True
 
         """
         if mask_char is None:
@@ -782,9 +786,11 @@ class Sequence(_Annotatable, SequenceI):
         annotations = []
         annot_types = [annot_types, [annot_types]][isinstance(annot_types, str)]
         for annot_type in annot_types:
-            annotations += self.get_annotations_matching(annot_type)
+            annotations += self.get_annotations_matching(
+                annot_type, extend_query=extend_query
+            )
 
-        region = self.get_region_covering_all(annotations)
+        region = self.get_region_covering_all(annotations, extend_query=extend_query)
         if shadow:
             region = region.get_shadow()
 

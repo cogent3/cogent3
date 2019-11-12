@@ -21,12 +21,12 @@ class FeaturesTest(TestCase):
 
     def setUp(self):
         # A Sequence with a couple of exons on it.
-
         self.s = DNA.make_seq(
             "AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig"
         )
         self.exon1 = self.s.add_annotation(Feature, "exon", "fred", [(10, 15)])
         self.exon2 = self.s.add_annotation(Feature, "exon", "trev", [(30, 40)])
+        self.nested_feature = self.exon1.add_feature("repeat", "bob", [(2, 5)])
 
     def test_exon_extraction(self):
         """exon feature used to slice or directly access sequence"""
@@ -48,6 +48,28 @@ class FeaturesTest(TestCase):
         self.assertEqual(
             str(exons), '[exon "fred" at [10:15]/48, exon "trev" at [30:40]/48]'
         )
+
+    def test_get_nested_annotations_matching(self):
+        """correctly identifies all features of a given type when nested annotations"""
+
+        seq = DNA.make_seq("AAAAAAAAA", name="x")
+        exon = seq.add_annotation(Feature, "exon", "fred", [(3, 8)])
+        nested_exon = exon.add_annotation(Feature, "exon", "fred", [(3, 7)])
+        exons = seq.get_annotations_matching("exon", extend_query=True)
+        self.assertEqual(len(exons), 2)
+        self.assertEqual(str(exons), '[exon "fred" at [3:8]/9, exon "fred" at [3:7]/5]')
+        # tests multiple layers of nested annotations
+        nested_exon.add_annotation(Feature, "exon", "fred", [(3, 6)])
+        exons = seq.get_annotations_matching("exon", extend_query=True)
+        self.assertEqual(len(exons), 3)
+        self.assertEqual(
+            str(exons),
+            '[exon "fred" at [3:8]/9, exon "fred" at [3:7]/5, exon "fred" at [3:6]/4]',
+        )
+        # tests extend_query=False, and only get back the base exon
+        exons = seq.get_annotations_matching("exon")
+        self.assertEqual(len(exons), 1)
+        self.assertEqual(str(exons), '[exon "fred" at [3:8]/9]')
 
     def test_get_annotations_matching2(self):
         """get_annotations_matching returns empty feature if no matches"""
@@ -426,6 +448,62 @@ class FeaturesTest(TestCase):
             ">x\nC-CCC?????GGG??\n>y\n-?----????G-G??\n",
         )
 
+    def test_projected_to_base(self):
+        """tests a given annotation is correctly projected on the base sequence"""
+
+        seq = DNA.make_seq("AAAAAAAAATTTTTTTTT", name="x")
+        layer_one = seq.add_feature("repeat", "frog", [(1, 17)])
+        layer_two = layer_one.add_feature("repeat", "frog", [(2, 16)])
+        got = layer_two._projected_to_base(seq)
+        self.assertEqual(got.map.start, 3)
+        self.assertEqual(got.map.end, 17)
+        self.assertEqual(got.map.parent_length, len(seq))
+
+        layer_three = layer_two.add_feature("repeat", "frog", [(5, 10)])
+        got = layer_three._projected_to_base(seq)
+        self.assertEqual(got.map.start, 8)
+        self.assertEqual(got.map.end, 13)
+        self.assertEqual(got.map.parent_length, len(seq))
+
+        layer_four = layer_three.add_feature("repeat", "frog", [(0, 4)])
+        layer_five = layer_four.add_feature("repeat", "frog", [(1, 2)])
+        got = layer_five._projected_to_base(seq)
+        self.assertEqual(got.map.start, 9)
+        self.assertEqual(got.map.end, 10)
+        self.assertEqual(got.map.parent_length, len(seq))
+
+    def test_nested_annotated_region_masks(self):
+        """masking a sequence with specific features when nested annotations"""
+
+        aln = make_aligned_seqs(
+            data=[["x", "C-GGCAAAAATTTAA"], ["y", "-T----TTTTG-GTT"]], array_align=False
+        )
+        gene = aln.get_seq("x").add_feature("gene", "norwegian", [(0, 4)])
+        self.assertEqual(str(gene.get_slice()), "CGGC")
+        gene.add_feature("repeat", "blue", [(1, 3)])
+        # evaluate the sequence directly
+        masked = str(
+            aln.get_seq("x").with_masked_annotations(
+                "repeat", mask_char="?", extend_query=True
+            )
+        )
+        self.assertEqual(masked, "C??CAAAAATTTAA")
+
+        exon = aln.get_seq("y").add_feature("repeat", "frog", [(1, 4)])
+        self.assertEqual(str(exon.get_slice()), "TTT")
+        # evaluate the sequence directly
+        masked = str(
+            aln.get_seq("y").with_masked_annotations(
+                "repeat", mask_char="?", extend_query=True
+            )
+        )
+        self.assertEqual(masked, "T???TGGTT")
+
+        masked = aln.with_masked_annotations("gene", mask_char="?")
+        got = masked.to_dict()
+        self.assertEqual(got["x"], "?-???AAAAATTTAA")
+        self.assertEqual(got["y"], "-T----TTTTG-GTT")
+
     def test_annotated_separately_equivalence(self):
         """allow defining features as a series or individually"""
 
@@ -624,6 +702,27 @@ class FeaturesTest(TestCase):
         got = list(new.get_annotations_matching("SNP"))[0]
         # annoyingly, comes back as list of lists
         self.assertEqual(got.xxy_list, [[list(xx), y] for xx, y in y_valued.xxy_list])
+
+    def test_nested_get_slice(self):
+        """check the get_slice method works on nested annotations"""
+        self.assertEqual(self.nested_feature.get_slice(), "CCC")
+
+    def test_nested_to_rich_dict(self):
+        """check the to_rich_dict method works with nested annotations"""
+        self.assertEqual(
+            self.exon1.to_rich_dict()["annotations"][0],
+            self.nested_feature.to_rich_dict(),
+        )
+
+    def test_nested_deserialise_annotation(self):
+        """nested annotations can be deserialised"""
+        got = self.s.to_json()
+        new = deserialise_object(got)
+        new_exon1 = new.annotations[0]
+        new_nested_feature = new_exon1.annotations[0]
+        self.assertEqual(
+            new_nested_feature.to_rich_dict(), self.nested_feature.to_rich_dict()
+        )
 
 
 if __name__ == "__main__":
