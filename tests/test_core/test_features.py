@@ -471,24 +471,33 @@ class FeaturesTest(TestCase):
         """masking a sequence with specific features when nested annotations"""
 
         aln = make_aligned_seqs(
-            data=[["x", "C-CCCAAAAAGGGAA"], ["y", "-T----TTTTG-GTT"]], array_align=False
+            data=[["x", "C-GGCAAAAATTTAA"], ["y", "-T----TTTTG-GTT"]], array_align=False
         )
-        exon = aln.get_seq("x").add_feature("exon", "norwegian", [(1, 4)])
+        exon = aln.get_seq("x").add_feature("exon", "norwegian", [(0, 4)])
+        self.assertEqual(str(exon.get_slice()), "CGGC")
         exon.add_feature("repeat", "blue", [(1, 3)])
+        # evaluate the sequence directly
         masked = str(
             aln.get_seq("x").with_masked_annotations(
-                "repeat", mask_char="?", shadow=True
+                "repeat", mask_char="?", extend_query=True
             )
         )
-        self.assertEqual(masked, "?CC???????????")
+        self.assertEqual(masked, "C??CAAAAATTTAA")
 
-        repeat = aln.get_seq("y").add_feature("repeat", "frog", [(5, 8)])
-        exon = repeat.add_feature("exon", "norwegian", [(0, 2)])
-        exon.add_feature("exon", "norwegian", [(0, 1)])
+        repeat = aln.get_seq("y").add_feature("repeat", "frog", [(1, 4)])
+        self.assertEqual(str(repeat.get_slice()), "TTT")
+        # evaluate the sequence directly
         masked = str(
-            aln.get_seq("y").with_masked_annotations("exon", mask_char="?", shadow=True)
+            aln.get_seq("y").with_masked_annotations(
+                "repeat", mask_char="?", extend_query=True
+            )
         )
-        self.equal = self.assertEqual(masked, "TT???????")
+        self.assertEqual(masked, "T???TGGTT")
+
+        masked = aln.with_masked_annotations("exon", mask_char="?")
+        got = masked.to_dict()
+        self.assertEqual(got["x"], "?-???AAAAATTTAA")
+        self.assertEqual(got["y"], "-T----TTTTG-GTT")
 
     def test_annotated_separately_equivalence(self):
         """allow defining features as a series or individually"""

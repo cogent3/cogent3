@@ -204,7 +204,11 @@ class _Annotatable:
                 )
         return result
 
-    def get_region_covering_all(self, annotations, feature_class=None):
+    def get_region_covering_all(
+        self, annotations, feature_class=None, extend_query=False
+    ):
+        if extend_query:
+            annotations = [annot._projected_to_base(self) for annot in annotations]
         spans = []
         annotation_types = []
         for annot in annotations:
