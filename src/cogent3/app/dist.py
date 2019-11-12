@@ -39,6 +39,9 @@ class fast_slow_dist(ComposableDistance):
         self._moltype = moltype if moltype is None else get_moltype(moltype)
         self._sm = None
 
+        self._formatted.append("fast_cal='%s'" % str(fast_calc))
+        self._formatted.append("slow_cal='%s'" % str(slow_calc))
+
         if (fast_calc or slow_calc) and distance:
             raise ValueError("cannot combine distance and fast/slow")
 
@@ -87,9 +90,6 @@ class fast_slow_dist(ComposableDistance):
         lf.optimise(max_restarts=0, show_progress=False)
         dist = 2 * lf.get_param_value("length", edge=aln.names[0])
         return dist
-
-    def __str__(self):
-        return str(self)
 
     def __call__(self, aln):
         aln = aln.to_moltype(self._moltype)
