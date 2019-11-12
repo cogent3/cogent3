@@ -36,11 +36,9 @@ class fast_slow_dist(ComposableDistance):
             output_types=(PAIRWISE_DISTANCE_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment"),
         )
+        self._formatted_params()
         self._moltype = moltype if moltype is None else get_moltype(moltype)
         self._sm = None
-
-        self._formatted.append("fast_cal='%s'" % str(fast_calc))
-        self._formatted.append("slow_cal='%s'" % str(slow_calc))
 
         if (fast_calc or slow_calc) and distance:
             raise ValueError("cannot combine distance and fast/slow")
