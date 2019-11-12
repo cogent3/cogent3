@@ -251,6 +251,9 @@ class _Annotatable:
             annotations.append(annot.__class__(new, new_map, annot))
         new.attach_annotations(annotations)
 
+    def _projected_to_base(self, base):
+        raise NotImplementedError
+
 
 class _Serialisable:
     def to_rich_dict(self):
@@ -361,6 +364,11 @@ class _Feature(_Annotatable, _Serialisable):
         if name:
             name = ' "%s"' % name
         return "%s%s at %s" % (self.type, name, self.map)
+
+    def _projected_to_base(self, base):
+        if self.parent == base:
+            return self.__class__(base, self.map, original=self)
+        return self.remapped_to(base, self.parent._projected_to_base(base).map)
 
     def remapped_to(self, grandparent, gmap):
         map = gmap[self.map]
