@@ -88,6 +88,9 @@ class fast_slow_dist(ComposableDistance):
         dist = 2 * lf.get_param_value("length", edge=aln.names[0])
         return dist
 
+    def __str__(self):
+        return str(self)
+
     def __call__(self, aln):
         aln = aln.to_moltype(self._moltype)
         if self.fast_calc:
