@@ -473,9 +473,9 @@ class FeaturesTest(TestCase):
         aln = make_aligned_seqs(
             data=[["x", "C-GGCAAAAATTTAA"], ["y", "-T----TTTTG-GTT"]], array_align=False
         )
-        exon = aln.get_seq("x").add_feature("exon", "norwegian", [(0, 4)])
-        self.assertEqual(str(exon.get_slice()), "CGGC")
-        exon.add_feature("repeat", "blue", [(1, 3)])
+        gene = aln.get_seq("x").add_feature("exon", "norwegian", [(0, 4)])
+        self.assertEqual(str(gene.get_slice()), "CGGC")
+        gene.add_feature("repeat", "blue", [(1, 3)])
         # evaluate the sequence directly
         masked = str(
             aln.get_seq("x").with_masked_annotations(
@@ -484,8 +484,8 @@ class FeaturesTest(TestCase):
         )
         self.assertEqual(masked, "C??CAAAAATTTAA")
 
-        repeat = aln.get_seq("y").add_feature("repeat", "frog", [(1, 4)])
-        self.assertEqual(str(repeat.get_slice()), "TTT")
+        exon = aln.get_seq("y").add_feature("repeat", "frog", [(1, 4)])
+        self.assertEqual(str(exon.get_slice()), "TTT")
         # evaluate the sequence directly
         masked = str(
             aln.get_seq("y").with_masked_annotations(
