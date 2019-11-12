@@ -636,6 +636,16 @@ class FeaturesTest(TestCase):
             self.nested_feature.to_rich_dict(),
         )
 
+    def test_nested_deserialise_annotation(self):
+        """nested annotations can be deserialised"""
+        got = self.s.to_json()
+        new = deserialise_object(got)
+        new_exon1 = new.annotations[0]
+        new_nested_feature = new_exon1.annotations[0]
+        self.assertEqual(
+            new_nested_feature.to_rich_dict(), self.nested_feature.to_rich_dict()
+        )
+
 
 if __name__ == "__main__":
     main()
