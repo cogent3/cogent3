@@ -26,6 +26,7 @@ class FeaturesTest(TestCase):
         )
         self.exon1 = self.s.add_annotation(Feature, "exon", "fred", [(10, 15)])
         self.exon2 = self.s.add_annotation(Feature, "exon", "trev", [(30, 40)])
+        self.nested_feature = self.exon1.add_feature("repeat", "bob", [(2, 5)])
 
     def test_exon_extraction(self):
         """exon feature used to slice or directly access sequence"""
@@ -626,8 +627,14 @@ class FeaturesTest(TestCase):
 
     def test_nested_get_slice(self):
         """check the get_slice method works on nested annotations"""
-        nested_feature = self.exon1.add_feature("repeat", "C", [(2, 5)])
-        self.assertEqual(nested_feature.get_slice(), "CCC")
+        self.assertEqual(self.nested_feature.get_slice(), "CCC")
+
+    def test_nested_to_rich_dict(self):
+        """check the to_rich_dict method works with nested annotations"""
+        self.assertEqual(
+            self.exon1.to_rich_dict()["annotations"][0],
+            self.nested_feature.to_rich_dict(),
+        )
 
 
 if __name__ == "__main__":

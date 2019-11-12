@@ -257,6 +257,14 @@ class _Serialisable:
         data = dict(annotation_construction=data)
         data["type"] = get_object_provenance(self)
         data["version"] = __version__
+
+        try:
+            annotations = [a.to_rich_dict() for a in self.annotations]
+            if annotations:
+                data["annotations"] = annotations
+        except AttributeError:
+            pass
+
         return data
 
     def to_json(self):
