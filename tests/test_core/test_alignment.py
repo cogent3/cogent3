@@ -878,22 +878,26 @@ class SequenceCollectionBaseTests(object):
             ["seq5", "prog2", "snp", "2", "3", "1.0", "+", "1", '"yyy"'],
         ]
         gff = list(map("\t".join, gff))
-        aln.annotate_from_gff(gff)
-        aln_seq_1 = aln.named_seqs["seq1"]
-        if not hasattr(aln_seq_1, "annotations"):
-            aln_seq_1 = aln_seq_1.data
-        aln_seq_2 = aln.named_seqs["seq2"]
-        if not hasattr(aln_seq_2, "annotations"):
-            aln_seq_2 = aln_seq_2.data
-        self.assertEqual(len(aln_seq_1.annotations), 1)
-        self.assertEqual(aln_seq_1.annotations[0].name, "abc")
-        self.assertEqual(len(aln_seq_2.annotations), 0)
+        if isinstance(aln, ArrayAlignment):
+            with self.assertRaises(TypeError):
+                aln.annotate_from_gff(gff)
+        else:
+            aln.annotate_from_gff(gff)
+            aln_seq_1 = aln.named_seqs["seq1"]
+            if not hasattr(aln_seq_1, "annotations"):
+                aln_seq_1 = aln_seq_1.data
+            aln_seq_2 = aln.named_seqs["seq2"]
+            if not hasattr(aln_seq_2, "annotations"):
+                aln_seq_2 = aln_seq_2.data
+            self.assertEqual(len(aln_seq_1.annotations), 1)
+            self.assertEqual(aln_seq_1.annotations[0].name, "abc")
+            self.assertEqual(len(aln_seq_2.annotations), 0)
 
-        aln_seq_3 = aln.named_seqs["seq3"]
-        if not hasattr(aln_seq_3, "annotations"):
-            aln_seq_3 = aln_seq_3.data
-        matches = [m for m in aln_seq_3.get_annotations_matching("*")]
-        self.assertFalse('-' in matches[0].get_slice())
+            aln_seq_3 = aln.named_seqs["seq3"]
+            if not hasattr(aln_seq_3, "annotations"):
+                aln_seq_3 = aln_seq_3.data
+            matches = [m for m in aln_seq_3.get_annotations_matching("*")]
+            # self.assertFalse('-' in matches[0].get_slice())
 
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""
