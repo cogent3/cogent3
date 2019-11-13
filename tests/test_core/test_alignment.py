@@ -881,17 +881,18 @@ class SequenceCollectionBaseTests(object):
         if isinstance(aln, ArrayAlignment):
             with self.assertRaises(TypeError):
                 aln.annotate_from_gff(gff)
-        else:
-            aln.annotate_from_gff(gff)
-            aln_seq_1 = aln.named_seqs["seq1"]
-            if not hasattr(aln_seq_1, "annotations"):
-                aln_seq_1 = aln_seq_1.data
-            aln_seq_2 = aln.named_seqs["seq2"]
-            if not hasattr(aln_seq_2, "annotations"):
-                aln_seq_2 = aln_seq_2.data
-            self.assertEqual(len(aln_seq_1.annotations), 1)
-            self.assertEqual(aln_seq_1.annotations[0].name, "abc")
-            self.assertEqual(len(aln_seq_2.annotations), 0)
+            return
+        
+        aln.annotate_from_gff(gff)
+        aln_seq_1 = aln.named_seqs["seq1"]
+        if not hasattr(aln_seq_1, "annotations"):
+            aln_seq_1 = aln_seq_1.data
+        aln_seq_2 = aln.named_seqs["seq2"]
+        if not hasattr(aln_seq_2, "annotations"):
+            aln_seq_2 = aln_seq_2.data
+        self.assertEqual(len(aln_seq_1.annotations), 1)
+        self.assertEqual(aln_seq_1.annotations[0].name, "abc")
+        self.assertEqual(len(aln_seq_2.annotations), 0)
 
         if isinstance(aln, Alignment):
             aln_seq_3 = aln.get_seq("seq3")
