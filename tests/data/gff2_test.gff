@@ -1,3 +1,11 @@
+##gff-version 2
+##source-version <source> <version text>
+##date <date>
+##Type <type> [<seqname>]
+##DNA <seqname>
+##acggctcggattggcgctggatgatagatcagacgac
+##...
+##end-DNA
 seq1	BLASTX	similarity	101	235	87.1	+	0	Target "HBA_HUMAN" 11 55 ; E_value 0.0003
 dJ102G20	GD_mRNA	coding_exon	7105	7201	.	-	2	Sequence "dJ102G20.C1.1"
 dJ102G20	GD_mRNA	coding_exon	7105	7201	.	-	2

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Unit tests for GFF and related parsers.
 """
-from pathlib import Path
 from io import StringIO
+from pathlib import Path
 from unittest import TestCase, main
 
 from cogent3.parse.gff import *
