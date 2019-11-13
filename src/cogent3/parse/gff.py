@@ -29,6 +29,7 @@ def gff_parser(f):
     else:
         raise TypeError
 
+
 def gff2_parser(f):
     assert not isinstance(f, str)
     for line in f:

@@ -109,6 +109,12 @@ class GffTest(TestCase):
             ["HBA_HUMAN", "dJ102G20.C1.1", "", "BROADO5"],
         )
 
+    def test_gff2_parser_string(self):
+        """Test the gff_parser works with a string filepath"""
+        filepath = "data/gff2_test.gff"
+        for result in gff_parser(filepath):
+            # print(result)
+            pass
 
 if __name__ == "__main__":
     main()
