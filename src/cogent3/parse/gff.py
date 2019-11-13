@@ -22,7 +22,7 @@ from cogent3.util.misc import open_
 
 def gff_parser(f):
     if isinstance(f, str) or isinstance(f, Path):
-        with open_(f) as infile:
+        with open(f) as infile:
             yield from gff2_parser(infile)
     elif isinstance(f, StringIO):
         yield from gff2_parser(f)

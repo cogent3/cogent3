@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Unit tests for GFF and related parsers.
 """
+from pathlib import Path
 from io import StringIO
 from unittest import TestCase, main
 
@@ -112,9 +113,15 @@ class GffTest(TestCase):
     def test_gff2_parser_string(self):
         """Test the gff_parser works with a string filepath"""
         filepath = "data/gff2_test.gff"
-        for result in gff_parser(filepath):
-            # print(result)
-            pass
+        for i, result in enumerate(gff_parser(filepath)):
+            self.assertEqual(result, data_lines[i][1])
+
+    def test_gff2_parser_path(self):
+        """Test the gff_parser works with a pathlib.Path filepath"""
+        filepath = Path("data/gff2_test.gff")
+        for i, result in enumerate(gff_parser(filepath)):
+            self.assertEqual(result, data_lines[i][1])
+
 
 if __name__ == "__main__":
     main()
