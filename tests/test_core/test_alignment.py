@@ -881,9 +881,9 @@ class SequenceCollectionBaseTests(object):
         if isinstance(aln, ArrayAlignment):
             with self.assertRaises(TypeError):
                 aln.annotate_from_gff(gff)
-        elif isinstance(aln, Alignment):
+        else:
             aln.annotate_from_gff(gff)
-            aln_seq_1 = aln.get_seq("seq1")
+            aln_seq_1 = aln.named_seqs["seq1"]
             if not hasattr(aln_seq_1, "annotations"):
                 aln_seq_1 = aln_seq_1.data
             aln_seq_2 = aln.named_seqs["seq2"]
@@ -893,6 +893,7 @@ class SequenceCollectionBaseTests(object):
             self.assertEqual(aln_seq_1.annotations[0].name, "abc")
             self.assertEqual(len(aln_seq_2.annotations), 0)
 
+        if isinstance(aln, Alignment):
             aln_seq_3 = aln.get_seq("seq3")
             matches = [m for m in aln_seq_3.get_annotations_matching("*")]
             self.assertFalse("-" in matches[0].get_slice())
