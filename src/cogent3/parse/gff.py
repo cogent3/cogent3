@@ -21,17 +21,60 @@ from cogent3.util.misc import open_
 
 
 def gff_parser(f):
-    if isinstance(f, str):
+    """delegates to the correct gff_parser based on the version"""
+    if isinstance(f, str) or isinstance(f, Path):
+        f = f if not isinstance(f, Path) else str(f)
         with open_(f) as infile:
-            yield from gff2_parser(infile)
-    elif isinstance(f, Path):
-        with open(f) as infile:
-            yield from gff2_parser(infile)
+            if "gff-version 3" in infile.readline():
+                parser = gff3_parser
+            else:
+                parser = gff2_parser
+            infile.seek(0)
+            yield from parser(infile)
     elif isinstance(f, StringIO):
         yield from gff2_parser(f)
     else:
         raise TypeError
 
+
+def gff3_parser(f):
+    """parses a file following the gff3 standard"""
+    for line in f:
+        # comments are not allowed on lines with data in gff3
+        if "#" in line:
+            continue
+
+        line = line.strip()
+        cols = line.split("\t")
+        # the final column (attributes) may be empty
+        if len(cols) == 8:
+            cols.append("")
+        assert len(cols) == 9, line
+        (seqid, source, type, start, end, score, strand, phase, attributes) = cols
+
+        # adjust for 0-based indexing
+        (start, end) = (int(start) - 1, int(end))
+        # start is always meant to be less than end in GFF
+        # features that extend beyond sequence have negative indices
+        if start < 0 or end < 0:
+            start, end = abs(start), abs(end)
+            if start > end:
+                start, end = end, start
+        # reverse indices when the feature is on the opposite strand
+        if strand == "-":
+            (start, end) = (end, start)
+
+        yield (
+            seqid,
+            source,
+            type,
+            start,
+            end,
+            score,
+            strand,
+            phase,
+            attributes,
+        )
 
 def gff2_parser(f):
     assert not isinstance(f, str)

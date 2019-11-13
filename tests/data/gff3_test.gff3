@@ -1,0 +1,37 @@
+##gff-version 3
+##sequence-region P0A7B8 1 176
+P0A7B8	UniProtKB	Initiator methionine	1	1	.	.	.	Note=Removed
+P0A7B8	UniProtKB	Chain	2	176	.	.	.	ID=PRO_0000148105;Note=ATP-dependent protease subunit HslV
+P0A7B8	UniProtKB	Active site	2	2	.	.	.	Ontology_term=ECO:0000255,ECO:0000269;evidence=ECO:0000255|HAMAP-Rule:MF_00248,ECO:0000269|PubMed:9257689;Dbxref=PMID:9257689
+P0A7B8	UniProtKB	Metal binding	157	157	.	.	.	Note=Sodium%3B via carbonyl oxygen
+P0A7B8	UniProtKB	Metal binding	160	160	.	.	.	Note=Sodium%3B via carbonyl oxygen
+P0A7B8	UniProtKB	Metal binding	163	163	.	.	.	Note=Sodium%3B via carbonyl oxygen
+P0A7B8	UniProtKB	Mutagenesis	2	2	.	.	.	Note=80%25 reduced protease activity in the absence of HslU. Almost no effect in the presence of HslU. T->S;Ontology_term=ECO:0000269;evidence=ECO:0000269|PubMed:9257689;Dbxref=PMID:9257689
+P0A7B8	UniProtKB	Mutagenesis	2	2	.	.	.	Note=No protease activity. T->V;Ontology_term=ECO:0000269;evidence=ECO:0000269|PubMed:9257689;Dbxref=PMID:9257689
+P0A7B8	UniProtKB	Mutagenesis	3	3	.	.	.	Note=80%25 reduced protease activity. T->S%2CV;Ontology_term=ECO:0000269;evidence=ECO:0000269|PubMed:9257689;Dbxref=PMID:9257689
+P0A7B8	UniProtKB	Mutagenesis	6	6	.	.	.	Note=No effect. S->A;Ontology_term=ECO:0000269;evidence=ECO:0000269|PubMed:9257689;Dbxref=PMID:9257689
+P0A7B8	UniProtKB	Mutagenesis	104	104	.	.	.	Note=50%25 reduced protease activity. S->A;Ontology_term=ECO:0000269;evidence=ECO:0000269|PubMed:9257689;Dbxref=PMID:9257689
+P0A7B8	UniProtKB	Mutagenesis	125	125	.	.	.	Note=Almost no protease activity. S->A;Ontology_term=ECO:0000269;evidence=ECO:0000269|PubMed:9257689;Dbxref=PMID:9257689
+P0A7B8	UniProtKB	Mutagenesis	144	144	.	.	.	Note=No effect. S->A;Ontology_term=ECO:0000269;evidence=ECO:0000269|PubMed:9257689;Dbxref=PMID:9257689
+P0A7B8	UniProtKB	Mutagenesis	160	160	.	.	.	Note=No protease activity. Cannot form complexes with HslU. C->A%2CS;Ontology_term=ECO:0000269;evidence=ECO:0000269|PubMed:9722513;Dbxref=PMID:9722513
+P0A7B8	UniProtKB	Mutagenesis	173	173	.	.	.	Note=Almost no protease activity. S->A;Ontology_term=ECO:0000269;evidence=ECO:0000269|PubMed:9257689;Dbxref=PMID:9257689
+P0A7B8	UniProtKB	Beta strand	3	8	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Beta strand	10	17	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Beta strand	21	23	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Beta strand	26	30	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Beta strand	35	38	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Turn	39	42	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Beta strand	43	49	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Helix	51	66	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Turn	67	70	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Helix	72	85	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Helix	89	91	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Beta strand	94	99	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Beta strand	104	108	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Turn	109	111	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Beta strand	112	114	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Turn	117	119	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1G4A
+P0A7B8	UniProtKB	Beta strand	121	124	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Helix	127	138	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Helix	145	159	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
+P0A7B8	UniProtKB	Beta strand	168	173	.	.	.	Ontology_term=ECO:0000244;evidence=ECO:0000244|PDB:1E94
