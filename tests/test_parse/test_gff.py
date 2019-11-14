@@ -130,5 +130,6 @@ class GffTest(TestCase):
         # 37 total lines, but 2 comments
         self.assertEqual(i + 1, 37 - 2)
 
+
 if __name__ == "__main__":
     main()

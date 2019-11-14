@@ -882,7 +882,7 @@ class SequenceCollectionBaseTests(object):
             with self.assertRaises(TypeError):
                 aln.annotate_from_gff(gff)
             return
-        
+
         aln.annotate_from_gff(gff)
         aln_seq_1 = aln.named_seqs["seq1"]
         if not hasattr(aln_seq_1, "annotations"):
@@ -902,18 +902,28 @@ class SequenceCollectionBaseTests(object):
     def test_annotate_from_gff3(self):
         """annotate_from_gff should work on data from gff3 files"""
 
-        # Don't need to run this test 3 times
-        if self.Class == ArrayAlignment:
+        if self.Class == Alignment:
             from cogent3.parse.fasta import FastaParser
+
             fasta_path = "data/gff3_test.fasta"
             gff3_path = "data/gff3_test.gff3"
             name, seq = next(FastaParser(fasta_path))
+
+            # you can annotate onto a sequence directly
             sequence = Sequence(seq)
             sequence.annotate_from_gff(gff3_path)
             matches = [m for m in sequence.get_annotations_matching("*")]
             self.assertEqual(len(matches), 35)
 
-
+            # you can annotate a sequence that is part of an alignment
+            seq_name = "P0A7B8"
+            aln = self.Class({seq_name:seq})
+            aln.annotate_from_gff(gff3_path)
+            aln_seq = aln.named_seqs[seq_name]
+            if not hasattr(aln_seq, "annotations"):
+                 aln_seq = aln_seq.data
+            self.assertEqual(len(aln_seq.annotations), 35)
+            
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""
         align1 = self.Class({"a": "AAAA", "b": "TTTT", "c": "CCCC"})

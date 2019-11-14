@@ -83,8 +83,9 @@ def gff3_parser(f):
             strand,
             phase,
             attributes,
-            comments
+            comments,
         )
+
 
 def gff2_parser(f):
     assert not isinstance(f, str)
