@@ -31,10 +31,8 @@ def gff_parser(f):
                 parser = gff2_parser
             infile.seek(0)
             yield from parser(infile)
-    elif isinstance(f, StringIO):
-        yield from gff2_parser(f)
     else:
-        raise TypeError
+        yield from gff2_parser(f)
 
 
 def gff3_parser(f):
@@ -103,8 +101,7 @@ def gff2_parser(f):
         cols = line.split("\t")
         if len(cols) == 8:
             cols.append("")
-        print(line)
-        assert len(cols) == 9, (len(line), line)
+        assert len(cols) == 9, line
         (seqname, source, feature, start, end, score, strand, frame, attributes) = cols
 
         # adjust for python 0-based indexing etc.

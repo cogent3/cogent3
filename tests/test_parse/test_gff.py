@@ -126,7 +126,7 @@ class GffTest(TestCase):
         """Test the gff_parser works on a gff3 file"""
         filepath = "data/gff3_test.gff3"
         for i, result in enumerate(gff_parser(filepath)):
-            self.assertEqual(len(result), 9)
+            self.assertEqual(len(result), 10)
         # 37 total lines, but 2 comments
         self.assertEqual(i + 1, 37 - 2)
 

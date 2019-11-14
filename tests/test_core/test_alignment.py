@@ -917,13 +917,13 @@ class SequenceCollectionBaseTests(object):
 
             # you can annotate a sequence that is part of an alignment
             seq_name = "P0A7B8"
-            aln = self.Class({seq_name:seq})
+            aln = self.Class({seq_name: seq})
             aln.annotate_from_gff(gff3_path)
             aln_seq = aln.named_seqs[seq_name]
             if not hasattr(aln_seq, "annotations"):
-                 aln_seq = aln_seq.data
+                aln_seq = aln_seq.data
             self.assertEqual(len(aln_seq.annotations), 35)
-            
+
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""
         align1 = self.Class({"a": "AAAA", "b": "TTTT", "c": "CCCC"})
