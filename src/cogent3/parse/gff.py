@@ -62,13 +62,7 @@ def gff3_parser(f):
         if strand == "-":
             (start, end) = (end, start)
 
-        # parse the attributes as a dictionary
-        # tags = attributes.split(";")
-        # tags = [t.split("=") for t in tags]
-        # tag_dict = {}
-        # for tag in tags:
-        #     tag_dict[tag[0]] = tag[1]
-        attributes = ""
+        attributes = '"' + attributes + '"'
         comments = ""
 
         yield (

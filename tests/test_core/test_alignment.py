@@ -923,6 +923,7 @@ class SequenceCollectionBaseTests(object):
             if not hasattr(aln_seq, "annotations"):
                 aln_seq = aln_seq.data
             self.assertEqual(len(aln_seq.annotations), 35)
+            matches = [m for m in aln_seq.get_annotations_matching("*")]
 
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""

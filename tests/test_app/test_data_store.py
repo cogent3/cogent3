@@ -39,7 +39,7 @@ class DataStoreBaseTests:
         """correctly identify all files with a suffix"""
         dstore = self.ReadClass(self.basedir, suffix=".fasta")
         num = len(dstore.members)
-        self.assertEqual(num, 5)
+        self.assertEqual(num, 6)
 
         dstore = self.ReadClass(self.basedir, suffix=".fasta", limit=2)
 
