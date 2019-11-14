@@ -140,7 +140,7 @@ def parse_attributes(attributes):
     """Returns an attribute dict for gff3, and an attribute string for gff2"""
     if isinstance(attributes, str):
         # Returns region of attribute string between first pair of double quotes
-        attributes = attributes[attributes.find('"') + 1:]
+        attributes = attributes[attributes.find('"') + 1 :]
         if '"' in attributes:
             attributes = attributes[: attributes.find('"')]
         return attributes

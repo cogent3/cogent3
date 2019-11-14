@@ -1,4 +1,4 @@
-##gff-version	3
+##gff-version 3
 ctg123	.	operon	13	150	.	+	.	ID=operon001;Name=superOperon
 ctg123	.	mRNA	13	90	.	+	.	ID=mrna0001;Parent=operon001;Name=sonichedgehog
 ctg123	.	exon	13	15	.	+	.	Parent=mrna0001

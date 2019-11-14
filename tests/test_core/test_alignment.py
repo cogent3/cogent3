@@ -923,6 +923,7 @@ class SequenceCollectionBaseTests(object):
             aln_seq = aln_seq.data
             self.assertEqual(len(aln_seq.annotations), 35)
 
+            # annotations get nested when they have a known parent
             # sequence and features do not match, but adequate for testing nesting
             seq_name = "ctg123"
             aln = self.Class({seq_name: seq})
@@ -930,8 +931,12 @@ class SequenceCollectionBaseTests(object):
             aln.annotate_from_gff(gff3_path_nested)
             aln_seq = aln.named_seqs[seq_name]
             aln_seq = aln_seq.data
+            # self.assertEqual(len(aln_seq.annotations), 10)
             matches = [m for m in aln_seq.get_annotations_matching("*")]
-            self.assertEqual(len(aln_seq.annotations), 10)
+            print(matches)
+            nested_matches = matches[0].get_annotations_matching("mRNA")
+            print(nested_matches)
+            # self.assertEqual(len(nested_matches), 2)
 
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""
