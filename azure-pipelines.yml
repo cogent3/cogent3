@@ -62,9 +62,12 @@ jobs:
   steps:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8', architecture: x64}}
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
+        tox -e py38
         tox -e py37
         codecov
 
@@ -76,7 +79,7 @@ jobs:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8'}}
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install cibuildwheel==1.0.0 numpy
+        python -m pip install cibuildwheel numpy
         cibuildwheel --output-dir wheelhouse .
         python setup.py sdist
         cp dist/*.gz wheelhouse/.
@@ -91,7 +94,7 @@ jobs:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8'}}
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install cibuildwheel==1.0.0 numpy
+        python -m pip install cibuildwheel numpy
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
@@ -107,7 +110,7 @@ jobs:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8', architecture: x64}}
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install cibuildwheel==1.0.0 numpy
+        python -m pip install cibuildwheel numpy
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
