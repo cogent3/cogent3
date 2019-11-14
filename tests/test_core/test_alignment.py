@@ -871,12 +871,18 @@ class SequenceCollectionBaseTests(object):
 
     def test_annotate_from_gff(self):
         """SequenceCollection.annotate_from_gff should read gff features"""
-        aln = self.Class({"seq1": "ACGU", "seq2": "CGUA", "seq3": "CCGU"})
+        aln = self.Class({"seq1": "ACGU", "seq2": "CGUA", "seq3": "C-GU"})
         gff = [
             ["seq1", "prog1", "snp", "1", "2", "1.0", "+", "1", '"abc"'],
+            ["seq3", "prog2", "del", "1", "3", "1.0", "+", "1", '"xyz"'],
             ["seq5", "prog2", "snp", "2", "3", "1.0", "+", "1", '"yyy"'],
         ]
         gff = list(map("\t".join, gff))
+        if isinstance(aln, ArrayAlignment):
+            with self.assertRaises(TypeError):
+                aln.annotate_from_gff(gff)
+            return
+        
         aln.annotate_from_gff(gff)
         aln_seq_1 = aln.named_seqs["seq1"]
         if not hasattr(aln_seq_1, "annotations"):
@@ -887,6 +893,11 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(len(aln_seq_1.annotations), 1)
         self.assertEqual(aln_seq_1.annotations[0].name, "abc")
         self.assertEqual(len(aln_seq_2.annotations), 0)
+
+        if isinstance(aln, Alignment):
+            aln_seq_3 = aln.get_seq("seq3")
+            matches = [m for m in aln_seq_3.get_annotations_matching("*")]
+            self.assertFalse("-" in matches[0].get_slice())
 
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""
