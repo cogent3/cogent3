@@ -878,7 +878,7 @@ class SequenceCollectionBaseTests(object):
             ["seq5", "prog2", "snp", "2", "3", "1.0", "+", "1", '"yyy"'],
         ]
         gff = list(map("\t".join, gff))
-        if isinstance(aln, ArrayAlignment):
+        if self.Class == ArrayAlignment:
             with self.assertRaises(TypeError):
                 aln.annotate_from_gff(gff)
             return
@@ -894,7 +894,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(aln_seq_1.annotations[0].name, "abc")
         self.assertEqual(len(aln_seq_2.annotations), 0)
 
-        if isinstance(aln, Alignment):
+        if self.Class == Alignment:
             aln_seq_3 = aln.get_seq("seq3")
             matches = [m for m in aln_seq_3.get_annotations_matching("*")]
             self.assertFalse("-" in matches[0].get_slice())
