@@ -2,6 +2,7 @@
 """Unit tests for GFF and related parsers.
 """
 from io import StringIO
+from pathlib import Path
 from unittest import TestCase, main
 
 from cogent3.parse.gff import *
@@ -92,14 +93,14 @@ class GffTest(TestCase):
     def testGffParserData(self):
         """Test GffParser with valid data lines"""
         for (line, canned_result) in data_lines:
-            result = next(GffParser(StringIO(line)))
+            result = next(gff_parser(StringIO(line)))
             self.assertEqual(result, canned_result)
 
     def testGffParserHeaders(self):
         """Test GffParser with valid data headers"""
         data = "".join([x[0] for x in data_lines])
         for header in headers:
-            result = list(GffParser(StringIO(header + data)))
+            result = list(gff_parser(StringIO(header + data)))
             self.assertEqual(result, [x[1] for x in data_lines])
 
     def test_parse_attributes(self):
@@ -108,6 +109,18 @@ class GffTest(TestCase):
             [parse_attributes(x[1][8]) for x in data_lines],
             ["HBA_HUMAN", "dJ102G20.C1.1", "", "BROADO5"],
         )
+
+    def test_gff2_parser_string(self):
+        """Test the gff_parser works with a string filepath"""
+        filepath = "data/gff2_test.gff"
+        for i, result in enumerate(gff_parser(filepath)):
+            self.assertEqual(result, data_lines[i][1])
+
+    def test_gff2_parser_path(self):
+        """Test the gff_parser works with a pathlib.Path filepath"""
+        filepath = Path("data/gff2_test.gff")
+        for i, result in enumerate(gff_parser(filepath)):
+            self.assertEqual(result, data_lines[i][1])
 
 
 if __name__ == "__main__":

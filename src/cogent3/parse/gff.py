@@ -2,15 +2,37 @@
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Matthew Wakefield", "Gavin Huttley"]
+__credits__ = [
+    "Peter Maxwell",
+    "Matthew Wakefield",
+    "Gavin Huttley",
+    "Christopher Bradley",
+]
 __license__ = "BSD-3"
 __version__ = "2019.10.24a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+from io import StringIO
+from pathlib import Path
 
-def GffParser(f):
+from cogent3.util.misc import open_
+
+
+def gff_parser(f):
+    """delegates to the correct gff_parser based on the version"""
+    f = f if not isinstance(f, Path) else str(f)
+    if isinstance(f, str):
+        with open_(f) as infile:
+            yield from gff2_parser(infile)
+    elif isinstance(f, StringIO):
+        yield from gff2_parser(f)
+    else:
+        raise TypeError
+
+
+def gff2_parser(f):
     assert not isinstance(f, str)
     for line in f:
         # comments and blank lines
