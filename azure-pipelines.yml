@@ -7,7 +7,33 @@ variables:
   CIBW_BEFORE_BUILD: python -m pip install --upgrade pip
 
 jobs:
-- job: Linux_Test
+- job: Linux_Test_py36
+  pool: {vmImage: 'ubuntu-latest'}
+  steps:
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        python -m pip install .[dev] codecov
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.6'
+    - bash: |
+        tox -e py36
+        codecov
+- job: Linux_Test_py37
+  pool: {vmImage: 'ubuntu-latest'}
+  steps:
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        python -m pip install .[dev] codecov
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.7'
+    - bash: |
+        tox -e py37
+        codecov
+- job: Linux_Test_py38
   pool: {vmImage: 'ubuntu-latest'}
   steps:
     - task: UsePythonVersion@0
@@ -20,19 +46,33 @@ jobs:
     - bash: |
         tox -e py38
         codecov
+- job: MacOS_Test_py36
+  pool: {vmImage: 'macos-latest'}
+  steps:
     - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.7'
     - bash: |
-        tox -e py37
-        codecov
+        python -m pip install --upgrade pip
+        python -m pip install .[dev] codecov
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '3.6'
     - bash: |
         tox -e py36
         codecov
-- job: MacOS_Test
+- job: MacOS_Test_py37
+  pool: {vmImage: 'macos-latest'}
+  steps:
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        python -m pip install .[dev] codecov
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.7'
+    - bash: |
+        tox -e py37
+        codecov
+- job: MacOS_Test_py38
   pool: {vmImage: 'macos-latest'}
   steps:
     - task: UsePythonVersion@0
@@ -45,18 +85,6 @@ jobs:
     - bash: |
         tox -e py38
         codecov
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.7'
-    - bash: |
-        tox -e py37
-        codecov
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.6'
-    - bash: |
-        tox -e py36
-        codecov
 - job: Windows_Test
   pool: {vmImage: 'windows-latest'}
   steps:
@@ -67,7 +95,6 @@ jobs:
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
-        tox -e py38
         tox -e py37
         codecov
 
