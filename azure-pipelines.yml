@@ -85,7 +85,7 @@ jobs:
     - bash: |
         tox -e py38
         codecov
-- job: Windows_Test
+- job: Windows_Test_py37
   pool: {vmImage: 'windows-latest'}
   steps:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
