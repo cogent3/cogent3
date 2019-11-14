@@ -145,5 +145,8 @@ def parse_attributes(attributes):
             attributes = attributes[: attributes.find('"')]
         return attributes
     else:
-        # parsing done in gff3_parser
-        return attributes
+        if "ID" in attributes.keys():
+            id = attributes["ID"]
+        else:
+            id = str(attributes)
+        return id

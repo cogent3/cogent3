@@ -8,4 +8,3 @@ ctg123	.	exon	50	55	.	+	.	Parent=mrna0001
 ctg123	.	exon	70	90	.	+	.	Parent=mrna0001
 ctg123	.	mRNA	100	150	.	+	.	ID=mrna0002;Parent=operon001;Name=subsonicsquirrel
 ctg123	.	exon	100	120	.	+	.	Parent=mrna0002
-ctg123	.	exon	140	150	.	+	.	Parent=mrna0002

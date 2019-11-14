@@ -931,12 +931,12 @@ class SequenceCollectionBaseTests(object):
             aln.annotate_from_gff(gff3_path_nested)
             aln_seq = aln.named_seqs[seq_name]
             aln_seq = aln_seq.data
-            # self.assertEqual(len(aln_seq.annotations), 10)
-            matches = [m for m in aln_seq.get_annotations_matching("*")]
-            print(matches)
+            matches = [m for m in aln_seq.get_annotations_matching("operon")]
+            self.assertEqual(len(matches), 1)
             nested_matches = matches[0].get_annotations_matching("mRNA")
-            print(nested_matches)
-            # self.assertEqual(len(nested_matches), 2)
+            self.assertEqual(len(nested_matches), 2)
+            nested_matches2 = nested_matches[0].get_annotations_matching("exon")
+            self.assertEqual(len(nested_matches2), 5)
 
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""

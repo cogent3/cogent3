@@ -1137,22 +1137,24 @@ class SequenceCollection(object):
             comments,
         ) in gff_parser(f):
             if isinstance(attributes, dict) and "Parent" in attributes.keys():
-                # Currently the names are all none
-                # Need to store the id with each annotation for this to work.
-                if self.name == attributes["Parent"]:
-                    self.named_seqs[name].add_feature(
-                    feature, parse_attributes(attributes), [(start, end)]
+                matches = self.named_seqs[name].data.get_annotations_matching(
+                    "*", name=attributes["Parent"], extend_query=True
+                )
+                if matches:
+                    match = matches[0]
+                    assert len(matches) == 1, "Each annotation name should be unique"
+                    # Not sure how to directly access the parent start index
+                    s = str(match)
+                    s = s[s.find("[")+1 : s.find(":")]
+                    s = int(s)
+                    match.add_feature(
+                        # start and end are relative to the parent featurelandmark
+                        feature, parse_attributes(attributes), [(start - s, end - s)]
                     )
-                else:
-                    p = self.get_annotations_matching("*", name=attributes["Parent"], extend_query=True)
-                    if p:
-                        assert len(p) == 1, "Each annotation name should be unique"
-                        p[0].add_feature(
-                        feature, parse_attributes(attributes), [(start, end)]
-                        )
-            elif name in self.named_seqs:
+                    continue
+            if name in self.named_seqs:
                 self.named_seqs[name].add_feature(
-                feature, parse_attributes(attributes), [(start, end)]
+                    feature, parse_attributes(attributes), [(start, end)]
                 )
 
     def __add__(self, other):
