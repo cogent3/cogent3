@@ -47,7 +47,7 @@ def gff3_parser(f):
         # the final column (attributes) may be empty
         if len(cols) == 8:
             cols.append("")
-        assert len(cols) == 9, line
+        assert len(cols) == 9, len(line)
         (seqid, source, type, start, end, score, strand, phase, attributes) = cols
 
         # adjust for 0-based indexing
@@ -62,7 +62,15 @@ def gff3_parser(f):
         if strand == "-":
             (start, end) = (end, start)
 
-        attributes = '"' + attributes + '"'
+        # parse the attributes as a dictionary
+        tags = attributes.split(";")
+        tags = [t.split("=") for t in tags]
+        tag_dict = {}
+        for tag in tags:
+            if tag[0]:
+                tag_dict[tag[0]] = tag[1]
+
+        attributes = tag_dict
         comments = ""
 
         yield (
@@ -128,9 +136,14 @@ def gff2_parser(f):
         )
 
 
-def parse_attributes(attribute_string):
-    """Returns region of attribute string between first pair of double quotes"""
-    attribute_string = attribute_string[attribute_string.find('"') + 1 :]
-    if '"' in attribute_string:
-        attribute_string = attribute_string[: attribute_string.find('"')]
-    return attribute_string
+def parse_attributes(attributes):
+    """Returns an attribute dict for gff3, and an attribute string for gff2"""
+    if isinstance(attributes, str):
+        # Returns region of attribute string between first pair of double quotes
+        attributes = attributes[attributes.find('"') + 1:]
+        if '"' in attributes:
+            attributes = attributes[: attributes.find('"')]
+        return attributes
+    else:
+        # parsing done in gff3_parser
+        return attributes

@@ -920,10 +920,18 @@ class SequenceCollectionBaseTests(object):
             aln = self.Class({seq_name: seq})
             aln.annotate_from_gff(gff3_path)
             aln_seq = aln.named_seqs[seq_name]
-            if not hasattr(aln_seq, "annotations"):
-                aln_seq = aln_seq.data
+            aln_seq = aln_seq.data
             self.assertEqual(len(aln_seq.annotations), 35)
+
+            # sequence and features do not match, but adequate for testing nesting
+            seq_name = "ctg123"
+            aln = self.Class({seq_name: seq})
+            gff3_path_nested = "data/gff3_nested.gff3"
+            aln.annotate_from_gff(gff3_path_nested)
+            aln_seq = aln.named_seqs[seq_name]
+            aln_seq = aln_seq.data
             matches = [m for m in aln_seq.get_annotations_matching("*")]
+            self.assertEqual(len(aln_seq.annotations), 10)
 
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""
