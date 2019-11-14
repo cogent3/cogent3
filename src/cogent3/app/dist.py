@@ -36,6 +36,7 @@ class fast_slow_dist(ComposableDistance):
             output_types=(PAIRWISE_DISTANCE_TYPE, SERIALISABLE_TYPE),
             data_types=("ArrayAlignment", "Alignment"),
         )
+        self._formatted_params()
         self._moltype = moltype if moltype is None else get_moltype(moltype)
         self._sm = None
 
