@@ -16,6 +16,12 @@ jobs:
         python -m pip install .[dev] codecov
     - task: UsePythonVersion@0
       inputs:
+        versionSpec: '3.8'
+    - bash: |
+        tox -e py38
+        codecov
+    - task: UsePythonVersion@0
+      inputs:
         versionSpec: '3.7'
     - bash: |
         tox -e py37
@@ -33,6 +39,12 @@ jobs:
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.8'
+    - bash: |
+        tox -e py38
+        codecov
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '3.7'
@@ -59,7 +71,9 @@ jobs:
 - job: Linux_Build
   pool: {vmImage: 'ubuntu-latest'}
   steps: 
-    - task: UsePythonVersion@0
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6'}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7'}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8'}}
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install cibuildwheel==0.11.1 numpy
@@ -72,7 +86,9 @@ jobs:
 - job: MacOS_Build
   pool: {vmImage: 'macos-latest'}
   steps: 
-    - task: UsePythonVersion@0
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6'}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7'}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8'}}
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install cibuildwheel==0.11.1 numpy
@@ -87,6 +103,8 @@ jobs:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x64}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8', architecture: x64}}
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install cibuildwheel==0.11.1 numpy
