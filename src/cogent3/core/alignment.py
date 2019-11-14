@@ -1145,11 +1145,13 @@ class SequenceCollection(object):
                     assert len(matches) == 1, "Each annotation name should be unique"
                     # Not sure how to directly access the parent start index
                     s = str(match)
-                    s = s[s.find("[")+1 : s.find(":")]
+                    s = s[s.find("[") + 1 : s.find(":")]
                     s = int(s)
                     match.add_feature(
                         # start and end are relative to the parent featurelandmark
-                        feature, parse_attributes(attributes), [(start - s, end - s)]
+                        feature,
+                        parse_attributes(attributes),
+                        [(start - s, end - s)],
                     )
                     continue
             if name in self.named_seqs:
