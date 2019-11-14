@@ -899,6 +899,21 @@ class SequenceCollectionBaseTests(object):
             matches = [m for m in aln_seq_3.get_annotations_matching("*")]
             self.assertFalse("-" in matches[0].get_slice())
 
+    def test_annotate_from_gff3(self):
+        """annotate_from_gff should work on data from gff3 files"""
+
+        # Don't need to run this test 3 times
+        if self.Class == ArrayAlignment:
+            from cogent3.parse.fasta import FastaParser
+            fasta_path = "data/gff3_test.fasta"
+            gff3_path = "data/gff3_test.gff3"
+            name, seq = next(FastaParser(fasta_path))
+            sequence = Sequence(seq)
+            sequence.annotate_from_gff(gff3_path)
+            matches = [m for m in sequence.get_annotations_matching("*")]
+            self.assertEqual(len(matches), 35)
+
+
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""
         align1 = self.Class({"a": "AAAA", "b": "TTTT", "c": "CCCC"})

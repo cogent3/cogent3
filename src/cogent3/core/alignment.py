@@ -64,7 +64,7 @@ from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.nexus import nexus_from_alignment
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.parse.gff import gff2_parser, parse_attributes
+from cogent3.parse.gff import gff_parser, parse_attributes
 from cogent3.util import progress_display as UI
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
@@ -1135,7 +1135,7 @@ class SequenceCollection(object):
             frame,
             attributes,
             comments,
-        ) in gff2_parser(f):
+        ) in gff_parser(f):
             if name in self.named_seqs:
                 self.named_seqs[name].add_feature(
                     feature, parse_attributes(attributes), [(start, end)]

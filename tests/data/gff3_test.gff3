@@ -1,7 +1,7 @@
 ##gff-version 3
 ##sequence-region P0A7B8 1 176
 P0A7B8	UniProtKB	Initiator methionine	1	1	.	.	.	Note=Removed
-P0A7B8	UniProtKB	Chain	2	176	.	.	.	ID=PRO_0000148105;Note=ATP-dependent protease subunit HslV
+P0A7B8	UniProtKB	Chain	2	176	.	.	.	ID=PRO_0000148105;Note=ATP-dependent protease subunit HslV;
 P0A7B8	UniProtKB	Active site	2	2	.	.	.	Ontology_term=ECO:0000255,ECO:0000269;evidence=ECO:0000255|HAMAP-Rule:MF_00248,ECO:0000269|PubMed:9257689;Dbxref=PMID:9257689
 P0A7B8	UniProtKB	Metal binding	157	157	.	.	.	Note=Sodium%3B via carbonyl oxygen
 P0A7B8	UniProtKB	Metal binding	160	160	.	.	.	Note=Sodium%3B via carbonyl oxygen

@@ -749,7 +749,7 @@ class Sequence(_Annotatable, SequenceI):
             frame,
             attributes,
             comments,
-        ) in gff.gff2_parser(f):
+        ) in gff.gff_parser(f):
             if first_seqname is None:
                 first_seqname = seqname
             else:

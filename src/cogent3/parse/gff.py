@@ -22,8 +22,8 @@ from cogent3.util.misc import open_
 
 def gff_parser(f):
     """delegates to the correct gff_parser based on the version"""
-    if isinstance(f, str) or isinstance(f, Path):
-        f = f if not isinstance(f, Path) else str(f)
+    f = f if not isinstance(f, Path) else str(f)
+    if isinstance(f, str):
         with open_(f) as infile:
             if "gff-version 3" in infile.readline():
                 parser = gff3_parser
@@ -64,6 +64,15 @@ def gff3_parser(f):
         if strand == "-":
             (start, end) = (end, start)
 
+        # parse the attributes as a dictionary
+        # tags = attributes.split(";")
+        # tags = [t.split("=") for t in tags]
+        # tag_dict = {}
+        # for tag in tags:
+        #     tag_dict[tag[0]] = tag[1]
+        attributes = ""
+        comments = ""
+
         yield (
             seqid,
             source,
@@ -74,6 +83,7 @@ def gff3_parser(f):
             strand,
             phase,
             attributes,
+            comments
         )
 
 def gff2_parser(f):
@@ -92,7 +102,8 @@ def gff2_parser(f):
         cols = line.split("\t")
         if len(cols) == 8:
             cols.append("")
-        assert len(cols) == 9, line
+        print(line)
+        assert len(cols) == 9, (len(line), line)
         (seqname, source, feature, start, end, score, strand, frame, attributes) = cols
 
         # adjust for python 0-based indexing etc.
