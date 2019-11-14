@@ -337,9 +337,10 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
             path = os.path.join(dirname, "delme_dir")
             os.mkdir(path)
             with zipfile.ZipFile(os.path.join(path, self.basedir), "w") as myzip:
-                with open("dummyPrefix_.dummySuffix", "w"):
+                test_path1 = os.path.join(path, "dummyPrefix_.dummySuffix")
+                with open(test_path1, "w"):
                     pass
-                myzip.write("dummyPrefix_.dummySuffix")
+                myzip.write(test_path1)
             # tests the case when the ZippedDataStore has other different suffixes to self.suffix
             with self.assertRaises(RuntimeError):
                 dstore = self.WriteClass(
@@ -350,9 +351,10 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
                 )
             # tests the case when the ZippedDataStore only contains files with the same suffix as self.suffix
             with zipfile.ZipFile("delme.zip", "w") as myzip:
-                with open("dummyPrefix_.json", "w"):
+                test_path2 = os.path.join(path, "dummyPrefix_.json")
+                with open(test_path2, "w"):
                     pass
-                myzip.write("dummyPrefix_.json")
+                myzip.write(test_path2)
             dstore = self.WriteClass(
                 "delme.zip", suffix=".json", if_exists=OVERWRITE, create=True
             )
