@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Unit tests for GFF and related parsers.
 """
+import os
 from io import StringIO
 from pathlib import Path
 from unittest import TestCase, main
@@ -103,7 +104,9 @@ class GffTest(TestCase):
         for header in headers:
             result = list(gff_parser(StringIO(header + data)))
             self.assertEqual([l[:8] for l in result], [x[1][:8] for x in data_lines])
-            self.assertEqual([l[8]["Info"] for l in result], [x[1][8] for x in data_lines])
+            self.assertEqual(
+                [l[8]["Info"] for l in result], [x[1][8] for x in data_lines]
+            )
 
     def test_gff_label(self):
         """Test gff_label"""
@@ -114,7 +117,7 @@ class GffTest(TestCase):
 
     def test_gff2_parser_string(self):
         """Test the gff_parser works with a string filepath"""
-        filepath = "data/gff2_test.gff"
+        filepath = os.path.join("data/gff2_test.gff")
         for i, result in enumerate(gff_parser(filepath)):
             self.assertEqual(result[:8], data_lines[i][1][:8])
             self.assertEqual(result[8]["Info"], data_lines[i][1][8])
@@ -128,7 +131,7 @@ class GffTest(TestCase):
 
     def test_gff3_parser(self):
         """Test the gff_parser works on a gff3 file"""
-        filepath = "data/gff3_test.gff3"
+        filepath = os.path.join("data/gff3_test.gff3")
         for i, result in enumerate(gff_parser(filepath)):
             self.assertEqual(len(result), 10)
         # 37 total lines, but 2 comments

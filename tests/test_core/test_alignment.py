@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import json
+import os
 import re
 import sys
 import unittest
@@ -905,8 +906,8 @@ class SequenceCollectionBaseTests(object):
         if self.Class == Alignment:
             from cogent3.parse.fasta import FastaParser
 
-            fasta_path = "data/gff3_test.fasta"
-            gff3_path = "data/gff3_test.gff3"
+            fasta_path = os.path.join("data/gff3_test.fasta")
+            gff3_path = os.path.join("data/gff3_test.gff3")
             name, seq = next(FastaParser(fasta_path))
 
             # you can annotate onto a sequence directly
@@ -927,7 +928,7 @@ class SequenceCollectionBaseTests(object):
             # sequence and features do not match, but adequate for testing nesting
             seq_name = "ctg123"
             aln = self.Class({seq_name: seq})
-            gff3_path_nested = "data/gff3_nested.gff3"
+            gff3_path_nested = os.path.join("data/gff3_nested.gff3")
             aln.annotate_from_gff(gff3_path_nested)
             aln_seq = aln.named_seqs[seq_name]
             aln_seq = aln_seq.data

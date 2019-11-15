@@ -15,6 +15,7 @@ __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
 from pathlib import Path
+
 from cogent3.util.misc import open_
 
 
@@ -35,9 +36,13 @@ def gff_parser(f):
 
 
 def _gff_version(f):
-    """Checks if the file follows the gff3 standard"""
-    gff3 = True if "gff-version 3" in f.readline() else False
-    f.seek(0)
+    """Checks if the file contains the gff3 header standard"""
+    gff3_header = "gff-version 3"
+    if isinstance(f, list):
+        gff3 = f and gff3_header in f[0]
+    else:
+        gff3 = gff3_header in f.readline()
+        f.seek(0)
     return gff3
 
 
@@ -107,6 +112,7 @@ def parse_attributes_gff3(attributes):
     attributes = attributes.split(";")
     attributes = dict(t.split("=") for t in attributes)
     return attributes
+
 
 def gff_label(attributes):
     """Returns an identifier from the attributes"""
