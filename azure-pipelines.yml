@@ -90,8 +90,6 @@ jobs:
   steps:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8', architecture: x86}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8', architecture: x64}}
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
