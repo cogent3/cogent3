@@ -14,35 +14,45 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
-from io import StringIO
 from pathlib import Path
-
 from cogent3.util.misc import open_
 
 
 def gff_parser(f):
-    """delegates to the correct gff_parser based on the version"""
+    """parses a gff file
+    Parameters
+    -----------
+    f
+        accepts string path or pathlib.Path or file-like object (e.g. StringIO)
+    """
+
     f = f if not isinstance(f, Path) else str(f)
     if isinstance(f, str):
         with open_(f) as infile:
-            if "gff-version 3" in infile.readline():
-                parser = gff3_parser
-            else:
-                parser = gff2_parser
-            infile.seek(0)
-            yield from parser(infile)
+            yield from _parse_gff(infile, _gff_version(infile))
     else:
-        yield from gff2_parser(f)
+        yield from _parse_gff(f, _gff_version(f))
 
 
-def gff3_parser(f):
-    """parses a file following the gff3 standard"""
+def _gff_version(f):
+    """Checks if the file follows the gff3 standard"""
+    gff3 = True if "gff-version 3" in f.readline() else False
+    f.seek(0)
+    return gff3
+
+
+def _parse_gff(f, gff3=True):
+    """parses a gff file"""
     for line in f:
-        # comments are not allowed on lines with data in gff3
+        # comments and blank lines
         if "#" in line:
+            (line, comments) = line.split("#", 1)
+        else:
+            comments = None
+        line = line.strip()
+        if not line:
             continue
 
-        line = line.strip()
         cols = line.split("\t")
         # the final column (attributes) may be empty
         if len(cols) == 8:
@@ -62,16 +72,11 @@ def gff3_parser(f):
         if strand == "-":
             (start, end) = (end, start)
 
-        # parse the attributes as a dictionary
-        tags = attributes.split(";")
-        tags = [t.split("=") for t in tags]
-        tag_dict = {}
-        for tag in tags:
-            if tag[0]:
-                tag_dict[tag[0]] = tag[1]
-
-        attributes = tag_dict
-        comments = ""
+        if gff3:
+            attribute_parser = parse_attributes_gff3
+        else:
+            attribute_parser = parse_attributes_gff2
+        attributes = attribute_parser(attributes)
 
         yield (
             seqid,
@@ -87,66 +92,27 @@ def gff3_parser(f):
         )
 
 
-def gff2_parser(f):
-    assert not isinstance(f, str)
-    for line in f:
-        # comments and blank lines
-        if "#" in line:
-            (line, comments) = line.split("#", 1)
-        else:
-            comments = None
-        line = line.strip()
-        if not line:
-            continue
-
-        # parse columns
-        cols = line.split("\t")
-        if len(cols) == 8:
-            cols.append("")
-        assert len(cols) == 9, line
-        (seqname, source, feature, start, end, score, strand, frame, attributes) = cols
-
-        # adjust for python 0-based indexing etc.
-        (start, end) = (int(start) - 1, int(end))
-        # start is always meant to be less than end in GFF
-        # and in v 2.0, features that extend beyond sequence have negative
-        # indices
-        if start < 0 or end < 0:
-            start, end = abs(start), abs(end)
-            if start > end:
-                start, end = end, start
-
-        # but we use reversal of indices when the feature is on the opposite
-        # strand
-        if strand == "-":
-            (start, end) = (end, start)
-
-        # should parse attributes too
-        yield (
-            seqname,
-            source,
-            feature,
-            start,
-            end,
-            score,
-            strand,
-            frame,
-            attributes,
-            comments,
-        )
+def parse_attributes_gff2(attributes):
+    """Returns a dict with name and info keys"""
+    name = attributes[attributes.find('"') + 1 :]
+    if '"' in name:
+        name = name[: name.find('"')]
+    attr_dict = {"Name": name, "Info": attributes}
+    return attr_dict
 
 
-def parse_attributes(attributes):
-    """Returns an attribute dict for gff3, and an attribute string for gff2"""
-    if isinstance(attributes, str):
-        # Returns region of attribute string between first pair of double quotes
-        attributes = attributes[attributes.find('"') + 1 :]
-        if '"' in attributes:
-            attributes = attributes[: attributes.find('"')]
-        return attributes
+def parse_attributes_gff3(attributes):
+    """Returns a dictionary containing all the attributes"""
+    attributes = attributes.strip(";")
+    attributes = attributes.split(";")
+    attributes = dict(t.split("=") for t in attributes)
+    return attributes
+
+def gff_label(attributes):
+    """Returns an identifier from the attributes"""
+    if "ID" in attributes.keys():
+        return attributes["ID"]
+    elif "Name" in attributes.keys():
+        return attributes["Name"]
     else:
-        if "ID" in attributes.keys():
-            id = attributes["ID"]
-        else:
-            id = str(attributes)
-        return id
+        return str(attributes)

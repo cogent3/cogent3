@@ -64,7 +64,7 @@ from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.nexus import nexus_from_alignment
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.parse.gff import gff_parser, parse_attributes
+from cogent3.parse.gff import gff_parser, gff_label
 from cogent3.util import progress_display as UI
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
@@ -1136,27 +1136,23 @@ class SequenceCollection(object):
             attributes,
             comments,
         ) in gff_parser(f):
-            if isinstance(attributes, dict) and "Parent" in attributes.keys():
+            parent = self
+            if "Parent" in attributes.keys():
                 matches = self.named_seqs[name].data.get_annotations_matching(
                     "*", name=attributes["Parent"], extend_query=True
                 )
                 if matches:
-                    match = matches[0]
                     assert len(matches) == 1, "Each annotation name should be unique"
-                    # Not sure how to directly access the parent start index
-                    s = str(match)
-                    s = s[s.find("[") + 1 : s.find(":")]
-                    s = int(s)
-                    match.add_feature(
-                        # start and end are relative to the parent featurelandmark
-                        feature,
-                        parse_attributes(attributes),
-                        [(start - s, end - s)],
-                    )
-                    continue
+                    parent = matches[0]
+                    # Start and end are relative to the parent strand
+                    s = str(parent)
+                    parent_start = s[s.find("[") + 1 : s.find(":")]
+                    parent_start = int(parent_start)
+                    start = start - parent_start
+                    end = end - parent_start
             if name in self.named_seqs:
-                self.named_seqs[name].add_feature(
-                    feature, parse_attributes(attributes), [(start, end)]
+                parent.named_seqs[name].add_feature(
+                    feature, gff_label(attributes), [(start, end)]
                 )
 
     def __add__(self, other):

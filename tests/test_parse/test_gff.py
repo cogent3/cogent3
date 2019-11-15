@@ -94,19 +94,21 @@ class GffTest(TestCase):
         """Test GffParser with valid data lines"""
         for (line, canned_result) in data_lines:
             result = next(gff_parser(StringIO(line)))
-            self.assertEqual(result, canned_result)
+            self.assertEqual(result[:8], canned_result[:8])
+            self.assertEqual(result[8]["Info"], canned_result[8])
 
     def testGffParserHeaders(self):
         """Test GffParser with valid data headers"""
         data = "".join([x[0] for x in data_lines])
         for header in headers:
             result = list(gff_parser(StringIO(header + data)))
-            self.assertEqual(result, [x[1] for x in data_lines])
+            self.assertEqual([l[:8] for l in result], [x[1][:8] for x in data_lines])
+            self.assertEqual([l[8]["Info"] for l in result], [x[1][8] for x in data_lines])
 
-    def test_parse_attributes(self):
-        """Test parse_attributes"""
+    def test_gff_label(self):
+        """Test gff_label"""
         self.assertEqual(
-            [parse_attributes(x[1][8]) for x in data_lines],
+            [gff_label(parse_attributes_gff2(x[1][8])) for x in data_lines],
             ["HBA_HUMAN", "dJ102G20.C1.1", "", "BROADO5"],
         )
 
@@ -114,13 +116,15 @@ class GffTest(TestCase):
         """Test the gff_parser works with a string filepath"""
         filepath = "data/gff2_test.gff"
         for i, result in enumerate(gff_parser(filepath)):
-            self.assertEqual(result, data_lines[i][1])
+            self.assertEqual(result[:8], data_lines[i][1][:8])
+            self.assertEqual(result[8]["Info"], data_lines[i][1][8])
 
     def test_gff2_parser_path(self):
         """Test the gff_parser works with a pathlib.Path filepath"""
         filepath = Path("data/gff2_test.gff")
         for i, result in enumerate(gff_parser(filepath)):
-            self.assertEqual(result, data_lines[i][1])
+            self.assertEqual(result[:8], data_lines[i][1][:8])
+            self.assertEqual(result[8]["Info"], data_lines[i][1][8])
 
     def test_gff3_parser(self):
         """Test the gff_parser works on a gff3 file"""
