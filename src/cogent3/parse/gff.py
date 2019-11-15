@@ -30,24 +30,21 @@ def gff_parser(f):
     f = f if not isinstance(f, Path) else str(f)
     if isinstance(f, str):
         with open_(f) as infile:
-            yield from _parse_gff(infile, _gff_version(infile))
+            yield from _parse_gff(infile)
     else:
-        yield from _parse_gff(f, _gff_version(f))
+        yield from _parse_gff(f)
 
 
-def _gff_version(f):
-    """Checks if the file contains the gff3 header standard"""
+def _parse_gff(f):
+    """parses a gff file"""
+
     gff3_header = "gff-version 3"
     if isinstance(f, list):
         gff3 = f and gff3_header in f[0]
     else:
         gff3 = gff3_header in f.readline()
         f.seek(0)
-    return gff3
 
-
-def _parse_gff(f, gff3=True):
-    """parses a gff file"""
     for line in f:
         # comments and blank lines
         if "#" in line:
