@@ -571,7 +571,7 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
         for f in p.iterdir():
             if (
                 get_format_suffixes(str(f))[0] != suffix
-                or get_format_suffixes(str(f))[0] == "log"
+                or get_format_suffixes(str(f))[0].lower() == "log"
             ):
                 return True
         return False
@@ -655,7 +655,7 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         for f in zipfile.ZipFile(path).namelist():
             if (
                 get_format_suffixes(f)[0] != suffix
-                or get_format_suffixes(str(f))[0] == "log"
+                or get_format_suffixes(str(f))[0].lower() == "log"
             ):
                 return True
         return False
