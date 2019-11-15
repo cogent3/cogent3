@@ -1792,7 +1792,7 @@ static const char __pyx_k_s_prev2[] = "s_prev2";
 static const char __pyx_k_version[] = "__version__";
 static const char __pyx_k_ValueError[] = "ValueError";
 static const char __pyx_k_num_motifs[] = "num_motifs";
-static const char __pyx_k_2019_10_24a[] = "('2019', '10', '24a')";
+static const char __pyx_k_2019_11_11a[] = "('2019', '11', '11a')";
 static const char __pyx_k_ImportError[] = "ImportError";
 static const char __pyx_k_ipdft_inner[] = "ipdft_inner";
 static const char __pyx_k_RuntimeError[] = "RuntimeError";
@@ -1812,7 +1812,7 @@ static const char __pyx_k_Non_native_byte_order_not_suppor[] = "Non-native byte 
 static const char __pyx_k_ndarray_is_not_Fortran_contiguou[] = "ndarray is not Fortran contiguous";
 static const char __pyx_k_numpy_core_umath_failed_to_impor[] = "numpy.core.umath failed to import";
 static const char __pyx_k_Format_string_allocated_too_shor_2[] = "Format string allocated too short.";
-static PyObject *__pyx_kp_s_2019_10_24a;
+static PyObject *__pyx_kp_s_2019_11_11a;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor_2;
 static PyObject *__pyx_n_s_ImportError;
@@ -5532,7 +5532,7 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
-  {&__pyx_kp_s_2019_10_24a, __pyx_k_2019_10_24a, sizeof(__pyx_k_2019_10_24a), 0, 0, 1, 0},
+  {&__pyx_kp_s_2019_11_11a, __pyx_k_2019_11_11a, sizeof(__pyx_k_2019_11_11a), 0, 0, 1, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor, __pyx_k_Format_string_allocated_too_shor, sizeof(__pyx_k_Format_string_allocated_too_shor), 0, 1, 0, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor_2, __pyx_k_Format_string_allocated_too_shor_2, sizeof(__pyx_k_Format_string_allocated_too_shor_2), 0, 1, 0, 0},
   {&__pyx_n_s_ImportError, __pyx_k_ImportError, sizeof(__pyx_k_ImportError), 0, 0, 1, 1},
@@ -5684,7 +5684,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * cimport numpy as np
  * 
  * version_info = (3, 2)             # <<<<<<<<<<<<<<
- * __version__ = "('2019', '10', '24a')"
+ * __version__ = "('2019', '11', '11a')"
  * 
  */
   __pyx_tuple__8 = PyTuple_Pack(2, __pyx_int_3, __pyx_int_2); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 4, __pyx_L1_error)
@@ -6090,7 +6090,7 @@ if (!__Pyx_RefNanny) {
  * cimport numpy as np
  * 
  * version_info = (3, 2)             # <<<<<<<<<<<<<<
- * __version__ = "('2019', '10', '24a')"
+ * __version__ = "('2019', '11', '11a')"
  * 
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_version_info, __pyx_tuple__8) < 0) __PYX_ERR(0, 4, __pyx_L1_error)
@@ -6098,11 +6098,11 @@ if (!__Pyx_RefNanny) {
   /* "cogent3/maths/_period.pyx":5
  * 
  * version_info = (3, 2)
- * __version__ = "('2019', '10', '24a')"             # <<<<<<<<<<<<<<
+ * __version__ = "('2019', '11', '11a')"             # <<<<<<<<<<<<<<
  * 
  * # TODO intro the version idea of peter's see email from him on Wednesday, 26 May 2010
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2019_10_24a) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2019_11_11a) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
 
   /* "cogent3/maths/_period.pyx":9
  * # TODO intro the version idea of peter's see email from him on Wednesday, 26 May 2010
