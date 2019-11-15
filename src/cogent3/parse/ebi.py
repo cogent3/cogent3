@@ -26,7 +26,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.10.24a"
+__version__ = "2019.11.15.a"
 __maintainer__ = "Zongzhi Liu"
 __email__ = "zongzhi.liu@gmail.com"
 __status__ = "Development"

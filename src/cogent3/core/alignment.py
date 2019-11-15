@@ -89,7 +89,7 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.10.24a"
+__version__ = "2019.11.15.a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -4009,7 +4009,9 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
 
     def annotate_from_gff(self, f):
         """Override annotate_from_gff since an ArrayAlignment cannot be annotated"""
-        raise TypeError("not supported on ArrayAlignment, use to_type(array_align=True) to convert")
+        raise TypeError(
+            "not supported on ArrayAlignment, use to_type(array_align=True) to convert"
+        )
 
 
 class CodonArrayAlignment(ArrayAlignment):

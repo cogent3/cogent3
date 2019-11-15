@@ -1896,11 +1896,11 @@ static const char __pyx_k_ValueError[] = "ValueError";
 static const char __pyx_k_parent_col[] = "parent_col";
 static const char __pyx_k_pyx_result[] = "__pyx_result";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
-static const char __pyx_k_2019_10_24a[] = "('2019', '10', '24a')";
 static const char __pyx_k_MemoryError[] = "MemoryError";
 static const char __pyx_k_PickleError[] = "PickleError";
 static const char __pyx_k_likelihoods[] = "likelihoods";
 static const char __pyx_k_patch_probs[] = "patch_probs";
+static const char __pyx_k_2019_11_15_a[] = "('2019', '11', '15', 'a')";
 static const char __pyx_k_patch_probs1[] = "patch_probs1";
 static const char __pyx_k_patch_probs2[] = "patch_probs2";
 static const char __pyx_k_pyx_checksum[] = "__pyx_checksum";
@@ -1953,7 +1953,7 @@ static const char __pyx_k_no_default___reduce___due_to_non[] = "no default __red
 static const char __pyx_k_src_cogent3_evolve__likelihood_t[] = "src/cogent3/evolve/_likelihood_tree.pyx";
 static const char __pyx_k_unable_to_allocate_shape_and_str[] = "unable to allocate shape and strides.";
 static PyObject *__pyx_kp_s_1st;
-static PyObject *__pyx_kp_s_2019_10_24a;
+static PyObject *__pyx_kp_s_2019_11_15_a;
 static PyObject *__pyx_kp_s_2nd;
 static PyObject *__pyx_n_s_ASCII;
 static PyObject *__pyx_kp_s_Array_required_got_None;
@@ -17856,7 +17856,7 @@ static struct PyModuleDef __pyx_moduledef = {
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_1st, __pyx_k_1st, sizeof(__pyx_k_1st), 0, 0, 1, 0},
-  {&__pyx_kp_s_2019_10_24a, __pyx_k_2019_10_24a, sizeof(__pyx_k_2019_10_24a), 0, 0, 1, 0},
+  {&__pyx_kp_s_2019_11_15_a, __pyx_k_2019_11_15_a, sizeof(__pyx_k_2019_11_15_a), 0, 0, 1, 0},
   {&__pyx_kp_s_2nd, __pyx_k_2nd, sizeof(__pyx_k_2nd), 0, 0, 1, 0},
   {&__pyx_n_s_ASCII, __pyx_k_ASCII, sizeof(__pyx_k_ASCII), 0, 0, 1, 1},
   {&__pyx_kp_s_Array_required_got_None, __pyx_k_Array_required_got_None, sizeof(__pyx_k_Array_required_got_None), 0, 0, 1, 0},
@@ -18216,7 +18216,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  * include "../../include/numerical_pyrex.pyx"
  * version_info = (2, 2)             # <<<<<<<<<<<<<<
- * __version__ = "('2019', '10', '24a')"
+ * __version__ = "('2019', '11', '15', 'a')"
  * 
  */
   __pyx_tuple__20 = PyTuple_Pack(2, __pyx_int_2, __pyx_int_2); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(1, 5, __pyx_L1_error)
@@ -18678,17 +18678,17 @@ if (!__Pyx_RefNanny) {
   /* "src/include/numerical_pyrex.pyx":13
  * #
  * 
- * __version__ = "('2019', '10', '24a')"             # <<<<<<<<<<<<<<
+ * __version__ = "('2019', '11', '15', 'a')"             # <<<<<<<<<<<<<<
  * 
  * cdef extern from "limits.h":
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2019_10_24a) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2019_11_15_a) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
 
   /* "cogent3/evolve/_likelihood_tree.pyx":5
  * 
  * include "../../include/numerical_pyrex.pyx"
  * version_info = (2, 2)             # <<<<<<<<<<<<<<
- * __version__ = "('2019', '10', '24a')"
+ * __version__ = "('2019', '11', '15', 'a')"
  * 
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_version_info, __pyx_tuple__20) < 0) __PYX_ERR(1, 5, __pyx_L1_error)
@@ -18696,11 +18696,11 @@ if (!__Pyx_RefNanny) {
   /* "cogent3/evolve/_likelihood_tree.pyx":6
  * include "../../include/numerical_pyrex.pyx"
  * version_info = (2, 2)
- * __version__ = "('2019', '10', '24a')"             # <<<<<<<<<<<<<<
+ * __version__ = "('2019', '11', '15', 'a')"             # <<<<<<<<<<<<<<
  * 
  * cdef extern from "math.h":
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2019_10_24a) < 0) __PYX_ERR(1, 6, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2019_11_15_a) < 0) __PYX_ERR(1, 6, __pyx_L1_error)
 
   /* "cogent3/evolve/_likelihood_tree.pyx":12
  * 
