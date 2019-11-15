@@ -13,5 +13,5 @@ __contributors__ = [
     "Rahul Ghangas",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.10.24a"
+__version__ = "2019.11.11a"
 __status__ = "Production"

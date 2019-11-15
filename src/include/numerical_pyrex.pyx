@@ -10,7 +10,7 @@
 #      checkArray2D(B, &z, &x)  # x must match
 #
 
-__version__ = "('2019', '10', '24a')"
+__version__ = "('2019', '11', '11a')"
 
 cdef extern from "limits.h":
     int INT_MAX

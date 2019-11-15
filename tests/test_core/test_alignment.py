@@ -62,7 +62,7 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.10.24a"
+__version__ = "2019.11.11a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -882,7 +882,7 @@ class SequenceCollectionBaseTests(object):
             with self.assertRaises(TypeError):
                 aln.annotate_from_gff(gff)
             return
-        
+
         aln.annotate_from_gff(gff)
         aln_seq_1 = aln.named_seqs["seq1"]
         if not hasattr(aln_seq_1, "annotations"):
