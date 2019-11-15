@@ -938,7 +938,9 @@ class SequenceCollectionBaseTests(object):
             self.assertEqual(len(nested_matches), 2)
             nested_matches2 = nested_matches[0].get_annotations_matching("exon")
             self.assertEqual(len(nested_matches2), 5)
-            matches = [m for m in aln_seq.get_annotations_matching("*", extend_query=True)]
+            matches = [
+                m for m in aln_seq.get_annotations_matching("*", extend_query=True)
+            ]
             self.assertEqual(len(matches), 9)
 
     def test_add(self):
