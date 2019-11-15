@@ -305,6 +305,19 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
                 path, suffix=".dummySuffix", if_exists=OVERWRITE, create=True
             )
             self.assertEqual(len(dstore), 0)
+            # tests the case when the directory has log files
+            with open(
+                os.path.join(path, "test_write_class_source_create_delete.log"), "w"
+            ):
+                pass
+            with self.assertRaises(RuntimeError):
+                dstore = self.WriteClass(
+                    path, suffix=".json", if_exists=OVERWRITE, create=True
+                )
+            with self.assertRaises(RuntimeError):
+                dstore = self.WriteClass(
+                    path, suffix=".log", if_exists=OVERWRITE, create=True
+                )
 
 
 class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
@@ -350,14 +363,37 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
                     create=True,
                 )
             # tests the case when the ZippedDataStore only contains files with the same suffix as self.suffix
-            with zipfile.ZipFile("delme.zip", "w") as myzip:
+            with zipfile.ZipFile(os.path.join(path, "delme1.zip"), "w") as myzip:
                 test_path2 = os.path.join(path, "dummyPrefix_.json")
                 with open(test_path2, "w"):
                     pass
                 myzip.write(test_path2)
             dstore = self.WriteClass(
-                "delme.zip", suffix=".json", if_exists=OVERWRITE, create=True
+                os.path.join(path, "delme1.zip"),
+                suffix=".json",
+                if_exists=OVERWRITE,
+                create=True,
             )
+            # tests the case when the ZippedDataStore contatins log files
+            with zipfile.ZipFile(os.path.join(path, "delme2.zip"), "w") as myzip:
+                test_path3 = os.path.join(path, "dummyPrefix_.log")
+                with open(test_path3, "w"):
+                    pass
+                myzip.write(test_path3)
+            with self.assertRaises(RuntimeError):
+                dstore = self.WriteClass(
+                    os.path.join(path, "delme2.zip"),
+                    suffix=".json",
+                    if_exists=OVERWRITE,
+                    create=True,
+                )
+            with self.assertRaises(RuntimeError):
+                dstore = self.WriteClass(
+                    os.path.join(path, "delme2.zip"),
+                    suffix=".log",
+                    if_exists=OVERWRITE,
+                    create=True,
+                )
 
 
 class TinyDBDataStoreTests(TestCase):

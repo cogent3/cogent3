@@ -569,7 +569,10 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
     def _has_other_suffixes(self, path, suffix):
         p = Path(path)
         for f in p.iterdir():
-            if get_format_suffixes(str(f))[0] != suffix:
+            if (
+                get_format_suffixes(str(f))[0] != suffix
+                or get_format_suffixes(str(f))[0] == "log"
+            ):
                 return True
         return False
 
@@ -581,7 +584,7 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
             if self._has_other_suffixes(self.source, self.suffix):
                 raise RuntimeError(
                     f"Unsafe to delete {self.source} as it contains ",
-                    f"files other than {self.suffix}."
+                    f"files other than {self.suffix} or log files."
                     " You will need to remove this directly yourself.",
                 )
             try:
@@ -650,7 +653,10 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
 
     def _has_other_suffixes(self, path, suffix):
         for f in zipfile.ZipFile(path).namelist():
-            if get_format_suffixes(f)[0] != suffix:
+            if (
+                get_format_suffixes(f)[0] != suffix
+                or get_format_suffixes(str(f))[0] == "log"
+            ):
                 return True
         return False
 
@@ -663,7 +669,7 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
             if self._has_other_suffixes(self.source, self.suffix):
                 raise RuntimeError(
                     f"Unsafe to delete {self.source} as it contains ",
-                    f"files other than {self.suffix}."
+                    f"files other than {self.suffix} or log files."
                     " You will need to remove this directly yourself.",
                 )
             os.remove(self.source)
