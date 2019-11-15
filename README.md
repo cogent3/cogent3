@@ -22,7 +22,11 @@ Our `cogent3.app` module provides a very different approach to using the library
 
 ## Installation?
 
-We will be up on PyPI as soon as the documentation is written, until then it's install from this repo
+```bash
+$ pip install cogent3
+```
+
+### Installing the development version
 
 ```bash
 $ pip install git+https://github.com/cogent3/cogent3.git@master#egg=cogent3
