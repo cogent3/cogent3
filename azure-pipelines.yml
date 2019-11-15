@@ -20,7 +20,7 @@ jobs:
     - bash: |
         tox -e py36
         codecov
-- job: Linux_Test_py37
+- job: Linux_Test_py37_py37mpi
   pool: {vmImage: 'ubuntu-latest'}
   steps:
     - task: UsePythonVersion@0
@@ -31,6 +31,7 @@ jobs:
       inputs:
         versionSpec: '3.7'
     - bash: |
+        tox -e py37mpi
         tox -e py37
         codecov
 - job: Linux_Test_py38
