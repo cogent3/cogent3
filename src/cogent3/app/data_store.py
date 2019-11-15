@@ -568,7 +568,7 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
 
     def _has_other_suffixes(self, path, suffix):
         p = Path(path)
-        allowed = {suffix, "log"}
+        allowed = {str(suffix), "log"}
         for f in p.iterdir():
             if get_format_suffixes(str(f))[0] not in allowed:
                 return True
@@ -650,7 +650,7 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         self.mode = "a" or mode
 
     def _has_other_suffixes(self, path, suffix):
-        allowed = {suffix, "log"}
+        allowed = {str(suffix), "log"}
         for f in zipfile.ZipFile(path).namelist():
             if get_format_suffixes(str(f))[0] not in allowed:
                 return True
