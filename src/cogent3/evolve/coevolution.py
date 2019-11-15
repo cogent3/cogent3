@@ -113,7 +113,7 @@ __credits__ = [
     "Rob Knight",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.11.11a"
+__version__ = "2019.11.15.a"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"
