@@ -1154,9 +1154,7 @@ class SequenceCollection(object):
                     start = start - parent_start
                     end = end - parent_start
             if parent:
-                parent.add_feature(
-                    feature, gff_label(attributes), [(start, end)]
-                )
+                parent.add_feature(feature, gff_label(attributes), [(start, end)])
 
     def __add__(self, other):
         """Concatenates sequence data for same names"""

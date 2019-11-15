@@ -2,6 +2,7 @@
 """Unit tests for GFF and related parsers.
 """
 import os
+
 from io import StringIO
 from pathlib import Path
 from unittest import TestCase, main
