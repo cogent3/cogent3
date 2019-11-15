@@ -1136,25 +1136,24 @@ class SequenceCollection(object):
             attributes,
             comments,
         ) in gff_parser(f):
-            if name in self.named_seqs:
-                parent = self.named_seqs[name]
+            if name not in self.named_seqs:
+                continue
+            if "Parent" not in attributes.keys():
+                self.named_seqs[name].add_feature(
+                    feature, gff_label(attributes), [(start, end)]
+                )
             else:
-                parent = None
-            if "Parent" in attributes.keys():
                 matches = self.named_seqs[name].data.get_annotations_matching(
                     "*", name=attributes["Parent"], extend_query=True
                 )
-                if matches:
-                    assert len(matches) == 1, "Each annotation name should be unique"
-                    parent = matches[0]
+                for parent in matches:
                     # Start and end are relative to the parent strand
-                    s = str(parent)
-                    parent_start = s[s.find("[") + 1 : s.find(":")]
-                    parent_start = int(parent_start)
+                    parent_start = parent.map.start
                     start = start - parent_start
                     end = end - parent_start
-            if parent:
-                parent.add_feature(feature, gff_label(attributes), [(start, end)])
+                    if strand == "-":
+                        (start, end) = (end, start)
+                    parent.add_feature(feature, gff_label(attributes), [(start, end)])
 
     def __add__(self, other):
         """Concatenates sequence data for same names"""
