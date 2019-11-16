@@ -754,7 +754,7 @@ class Sequence(_Annotatable, SequenceI):
                 first_seqname = seqname
             else:
                 assert seqname == first_seqname, (seqname, first_seqname)
-            feat_label = gff.gff_label(attributes)
+            feat_label = gff.gff_label(attributes, (start, end))
             self.add_feature(feature, feat_label, [(start, end)])
 
     def with_masked_annotations(

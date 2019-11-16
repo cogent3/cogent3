@@ -1116,6 +1116,7 @@ class SequenceCollection(object):
             if name in self.named_seqs:
                 self.named_seqs[name].copy_annotations(seq)
 
+
     def annotate_from_gff(self, f):
         """Copies annotations from gff-format file to self.
 
@@ -1124,6 +1125,9 @@ class SequenceCollection(object):
 
         Skips sequences in the file that are not in self.
         """
+
+        features = dict()
+
         for (
             name,
             source,
@@ -1138,22 +1142,60 @@ class SequenceCollection(object):
         ) in gff_parser(f):
             if name not in self.named_seqs:
                 continue
+            label = gff_label(attributes, (start,end))
             if "Parent" not in attributes.keys():
                 self.named_seqs[name].add_feature(
-                    feature, gff_label(attributes), [(start, end)]
+                    feature, label, [(start, end)]
                 )
             else:
-                matches = self.named_seqs[name].data.get_annotations_matching(
-                    "*", name=attributes["Parent"], extend_query=True
+                print(label)
+                print(features)
+                print("\n\n")
+                # This feature must have a parent in attributes["Parent"]
+                features[label] = {
+                        "Name": name,
+                        "Source": source,
+                        "Feature": feature,
+                        "Start": start,
+                        "End": end,
+                        "Score": score,
+                        "Strand": strand,
+                        "Frame": frame,
+                        "Attributes": attributes,
+                        "Comments": comments,
+                        "Label":label
+                }
+        if features:
+            sorted_features = self._sort_parents(features.copy(), [], next(iter(features.keys())))
+            for feature_name in sorted_features:
+                matches = self.named_seqs[features[feature_name]["Name"]].data.get_annotations_matching(
+                    "*", name=features[feature_name]["Attributes"]["Parent"], extend_query=True
                 )
                 for parent in matches:
-                    # Start and end are relative to the parent strand
-                    parent_start = parent.map.start
-                    start = start - parent_start
-                    end = end - parent_start
+                    # Start and end are relative to the parent's absolute starting position
+                    if parent.name not in features.keys():
+                        parent_start = 0
+                    else:
+                        parent_start = features[parent.name]["Start"]
+                    start = features[feature_name]["Start"] - parent_start
+                    end = features[feature_name]["End"] - parent_start
                     if strand == "-":
                         (start, end) = (end, start)
-                    parent.add_feature(feature, gff_label(attributes), [(start, end)])
+                    parent.add_feature(features[feature_name]["Feature"], features[feature_name]["Label"], [(start, end)])
+
+    def _sort_parents(self, features, sorted, key):
+        """returns a list of feature labels in order with respect to their hierarchy"""
+        keys = features.keys()
+        if features[key]["Attributes"]["Parent"] in keys:
+            # find the root parent in the dict
+            return self._sort_parents(features, sorted, features[key]["Attributes"]["Parent"])
+        else:
+            sorted.append(key)
+            features.pop(key)
+            if not features:
+                return sorted
+            return self._sort_parents(features, sorted, next(iter(keys)))
+
 
     def __add__(self, other):
         """Concatenates sequence data for same names"""

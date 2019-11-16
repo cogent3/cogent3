@@ -108,14 +108,16 @@ def parse_attributes_gff3(attributes):
     attributes = attributes.strip(";")
     attributes = attributes.split(";")
     attributes = dict(t.split("=") for t in attributes)
+    if "Parent" in attributes.keys() and "," in attributes["Parent"]:
+        attributes["Parent"] = attributes["Parent"].split(",")
     return attributes
 
 
-def gff_label(attributes):
+def gff_label(attributes, span):
     """Returns an identifier from the attributes"""
     if "ID" in attributes.keys():
         return attributes["ID"]
     elif "Name" in attributes.keys():
         return attributes["Name"]
     else:
-        return str(attributes)
+        return str(span)
