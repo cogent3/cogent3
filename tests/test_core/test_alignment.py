@@ -916,6 +916,7 @@ class SequenceCollectionBaseTests(object):
             matches = [m for m in sequence.get_annotations_matching("*")]
             self.assertEqual(len(matches), 35)
 
+
             # you can annotate a sequence that is part of an alignment
             seq_name = "P0A7B8"
             aln = self.Class({seq_name: seq})
@@ -932,20 +933,25 @@ class SequenceCollectionBaseTests(object):
             aln.annotate_from_gff(gff3_path_nested)
             aln_seq = aln.named_seqs[seq_name]
             aln_seq = aln_seq.data
-            # matches = [m for m in aln_seq.get_annotations_matching("operon")]
-            # print(matches)
-            # self.assertEqual(len(matches), 1)
-            # nested_matches = matches[0].get_annotations_matching("mRNA")
-            # print(nested_matches)
-            # self.assertEqual(len(nested_matches), 2)
-            # nested_matches2 = nested_matches[0].get_annotations_matching("exon")
-            # print(nested_matches2)
-            # self.assertEqual(len(nested_matches2), 5)
+            matches = [m for m in aln_seq.get_annotations_matching("operon")]
+            self.assertEqual(len(matches), 1)
+            nested_matches = matches[0].get_annotations_matching("mRNA")
+            self.assertEqual(len(nested_matches), 2)
+            nested_matches2 = nested_matches[0].get_annotations_matching("exon")
+            self.assertEqual(len(nested_matches2), 5)
             matches = [
                 m for m in aln_seq.get_annotations_matching("*", extend_query=True)
             ]
-            print(matches)
             self.assertEqual(len(matches), 9)
+
+            fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
+            gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
+            name, seq = next(FastaParser(fasta_path))
+            sequence = Sequence(seq)
+            sequence.annotate_from_gff(gff3_path)
+            matches = [m for m in sequence.get_annotations_matching("*")]
+            self.assertEqual(len(matches), 13)
+
 
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""
