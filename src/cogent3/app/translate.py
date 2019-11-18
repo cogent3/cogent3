@@ -157,6 +157,10 @@ class select_translatable(ComposableSeq):
     """Identifies most likely reading frame. Returns modified sequences / alignment,
     if it could be resolved, NotCompleted otherwise."""
 
+    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE)
+    _output_types = SEQUENCE_TYPE
+    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
+
     def __init__(
         self, moltype="dna", gc=DEFAULT, allow_rc=False, trim_terminal_stop=True
     ):
@@ -183,9 +187,9 @@ class select_translatable(ComposableSeq):
         are excluded.
         """
         super(select_translatable, self).__init__(
-            input_types=(SEQUENCE_TYPE, ALIGNED_TYPE),
-            output_types=SEQUENCE_TYPE,
-            data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
 
