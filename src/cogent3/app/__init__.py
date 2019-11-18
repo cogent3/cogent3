@@ -22,24 +22,23 @@ def _get_app_attr(name, obj, mod, is_composable):
     _output_types = getattr(obj, "_output_types", [])
     _data_types = getattr(obj, "_data_types", [])
 
-    if type(_input_types) == str:
-        _input_types = [_input_types]
-    if type(_output_types) == str:
-        _output_types = [_output_types]
-    if type(_data_types) == str:
-        _data_types = [_data_types]
-
     if _input_types:
+        if type(_input_types) == str:
+            _input_types = [_input_types]
         in_type = [{None: ""}.get(e, e) for e in _input_types]
     else:
         in_type = []
 
     if _output_types:
+        if type(_output_types) == str:
+            _output_types = [_output_types]
         out_type = [{None: ""}.get(e, e) for e in _output_types]
     else:
         out_type = []
 
     if _data_types:
+        if type(_data_types) == str:
+            _data_types = [_data_types]
         data_type = [{None: ""}.get(e, e) for e in _data_types]
     else:
         data_type = []
