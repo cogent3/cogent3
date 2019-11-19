@@ -1,127 +1,95 @@
-######################
 Custom composable apps
-######################
+======================
 
-Overview
---------
+You can make a simple customised app using the ``user_function`` app. This is a wrapper class that takes a reference to your function and the input, output and data types. The resulting app can then become part of a composed function.
 
-``user_function`` is a wrapper class for user specified function
+Defining a ``user_function`` requires you consider four things.
 
-Configuration
--------------
-``user_function`` is supposed to wrap a function with associated ``input_types``, ``output_types`` and ``data_types``
+``func``
+    A function you have written. This is required.
 
-:``input_types``: Allowed input types
+``input_types``
+    A type, or collection of type that your function can handle. This setting dictates what other apps have an output that is a compatable input for your function.
 
-                  is a String or a Collection of String
-:``output_types``: The types of output
+``output_types``
+    A type, or collection of type that your function produces. This setting dictates what other apps can have yours as input.
 
-                  is a String or a Collection of String
-:``data_types``: Allowed data types
+``data_types``
+    The data class names, as strings, that your function can handle. Not required, but useful.
 
-                  is a String or a Collection of String
+A simple example
+----------------
 
-                  the default value is ``None``
-
-Example:
-
-.. code-block:: python
-
-    from cogent3.app.composable import user_function
-    u_function = user_function(func, input_types="allowed_input_types", output_types="corresponding_output_types", data_types="allowed_data_types")
-
-Usages
-----------------------
-
-Example 1
-~~~~~~~~~
-
-We first make a very simple function ``foo``.
+We make a very simple function ``first4``, that returns the first 4 elements of an alignment.
 
 .. doctest::
 
-    >>> def foo(self, val, *args, **kwargs):
+    >>> def first4(val):
     ...     return val[:4]
 
-Now we define ``user_function``:
-
-.. code-block:: python
-
-    >>> from cogent3.app.composable import user_function
-    >>> u_function = user_function(foo, input_types="aligned", output_types="aligned")
-
-Here we specify that the user specified function ``foo`` will have ``aligned`` input type and ``aligned`` output type
-
-Next, we make an ``ArrayAlignment`` data type by invoking function ``make_aligned_seqs`` and feed it into defined ``u_function``
-
-.. code-block:: python
-
-    >>> from cogent3 import make_aligned_seqs
-    >>> aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
-    >>> result = u_function(aln).to_dict()
-    >>> result
-
-    {"a": "GCAA", "b": "GCTT"}
-
-Example 2
-~~~~~~~~~
-
-In this example, we make another function ``bar`` that returns DistanceMatrix of an alignment
+Now we define a ``user_function`` instance that takes and returns an ``ALIGNED_TYPE``.
 
 .. doctest::
 
-    >>> def bar(self, val, *args, **kwargs):
-    ...     return return val.distance_matrix(calc="hamming", show_progress=False)
+    >>> from cogent3.app.composable import user_function, ALIGNED_TYPE
+    >>> just4 = user_function(first4, input_types=ALIGNED_TYPE, output_types=ALIGNED_TYPE, data_types="Alignment")
 
-Noticeably, function ``bar`` is supposed to have ``"aligned"`` as its input type and ``"pairwise_distances"`` as its output type, and we will be feeding it an ``Alignment`` data type
+The ``repr()`` of your ``user_function`` instance indicates the wrapped function and the module it's in.
 
-.. code-block:: python
+.. doctest::
 
-    >>> from cogent3.app.composable import user_function
-    >>> from cogent3.core.alignment import Alignment
-    >>> data = dict([("s1", "ACGTACGTA"), ("s2", "GTGTACGTA")])
-    >>> aln = Alignment(data=data, moltype="dna")
-    >>> u_function = user_function(bar, input_types="aligned", output_types="pairwise_distances", data_types="Alignment")
-    >>> result = u_function(aln)
+    >>> just4
+    user_function(name='first4', module='__main__')
+
+You use it like all composable apps which we demonstrate using a small sample alignment.
+
+.. doctest::
+
+    >>> from cogent3 import make_aligned_seqs
+    >>> aln = make_aligned_seqs(data=dict(a="GCAAGCGTTTAT", b="GCTTTTGTCAAT"), array_align=False)
+    >>> result = just4(aln)
     >>> result
+    2 x 4 text alignment: a[GCAA], b[GCTT]
 
-    {("s1", "s2"): 2.0, ("s2", "s1"): 2.0}
+Renaming sequences
+------------------
 
-Example 3
-~~~~~~~~~
+This time we wrap a method call on a ``SequenceCollection`` (and the alignment sub-classes) for renaming sequences. We also illustrate here that to support both aligned and unaligned data types as input/output, we have to include these in the construction of the custom function.
 
-This time we wrap a function ``rename_seqs`` which takes the responsibility of capitalising all the names of sequences in a ``SequenceCollection``
+.. note:: The ``SERIALISABLE_TYPE`` indicates the data has the ability to converted to ``json``.
 
-Define function rename_seqs:
+.. doctest::
+    
+    >>> from cogent3.app.composable import user_function, ALIGNED_TYPE, SEQUENCE_TYPE, SERIALISABLE_TYPE
+    >>> def renamer(aln):
+    ...     """upper case names"""
+    ...     return aln.rename_seqs(lambda x: x.upper())
+    >>> rename_seqs = user_function(renamer, 
+    ...                             input_types=(ALIGNED_TYPE, SEQUENCE_TYPE),
+    ...                             output_types=SERIALISABLE_TYPE,
+    ...                             data_types=("SequenceCollection", "Alignment", "ArrayAlignment"))
+    >>> result = rename_seqs(aln)
+    >>> result.names
+    ['A', 'B']
 
-.. code-block:: python
+A user function for with a different output type
+------------------------------------------------
 
-        >>> _renamer = lambda x: x.upper()
-        >>> def rename_seqs(seqs_collection):
-        ...     new = {}
-        ...     for name, seq in seqs_collection.named_seqs.items():
-        ...         new_name = _renamer(name)
-        ...         new_seq = seqs_collection.moltype.make_seq(seq, new_name)
-        ...         new[new_name] = new_seq
-        ...     result = seqs_collection.__class__(data=new, info=seqs_collection.info, moltype=seqs.moltype)
-        ...     return result
+In this example, we make an function that returns ``DistanceMatrix`` of an alignment.
 
+.. doctest::
 
-Next, we make a ``SequenceCollection``
-
-.. code-block:: python
-
-    >>> from cogent3.core.alignment import SequenceCollection
-    >>> from cogent3.core.moltype import DNA
-    >>> data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-    >>> seqs = SequenceCollection(data, moltype=DNA)
-
-We then feed this ``SequenceCollection`` into a defined ``user_function`` wrapping the user specified function ``rename_seqs`` and return the result
-
-.. code-block:: python
-
-    >>> from cogent3.app.composable import user_function
-    >>> u_function = user_function(rename_seqs, input_types="aligned", output_types="aligned", data_types="SequenceCollection")
-    >>> result = u_function(seqs)
-
-    >SEQ1\nACGTACGTA\n>SEQ2\nACCGAA---\n>SEQ3\nACGTACGTT\n
+    >>> from cogent3.app.composable import user_function, ALIGNED_TYPE, PAIRWISE_DISTANCE_TYPE
+    >>> def _get_dist(aln):
+    ...     return aln.distance_matrix(calc="hamming", show_progress=False)
+    >>> get_dist = user_function(_get_dist, input_types=ALIGNED_TYPE,
+    ...                          output_types=PAIRWISE_DISTANCE_TYPE,
+    ...                          data_types=("Alignment", "ArrayAlignment"))
+    >>> result = get_dist(aln)
+    >>> result
+    =====================
+              a         b
+    ---------------------
+    a    0.0000    6.0000
+    b    6.0000    0.0000
+    ---------------------
