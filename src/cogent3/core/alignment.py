@@ -1125,7 +1125,7 @@ class SequenceCollection(object):
         Skips sequences in the file that are not in self.
         """
 
-        # features with parent features
+        # only features with parent features included in this dict
         features = dict()
 
         for gff_dict in gff_parser(f):
@@ -1138,18 +1138,22 @@ class SequenceCollection(object):
                     [(gff_dict["Start"], gff_dict["End"])],
                 )
             else:
-                # This feature must have at least one parent in attributes["Parent"]
-                features[gff_dict["Attributes"]["ID"]] = gff_dict
+                # ID's may not be unique
+                id_ = gff_dict["Attributes"]["ID"]
+                if id_ in features.keys():
+                    id_ = id_ + str((gff_dict["Start"],gff_dict["End"]))
+                features[id_] = gff_dict
         if features:
             parents = {}
-            for key in features.keys():
-                parents[key] = features[key]["Attributes"]["Parent"]
+            for id_ in features.keys():
+                parents[id_] = features[id_]["Attributes"]["Parent"]
             sorted_features = self._sort_parents(
                 parents, [], next(iter(features.keys()))
             )
             for id_ in sorted_features:
                 matches = []
                 for parent in features[id_]["Attributes"]["Parent"]:
+                    # If a feature has multiple parents, a separate instance is added to each parent
                     matches.extend(
                         self.named_seqs[
                             features[id_]["SeqID"]
@@ -1160,11 +1164,11 @@ class SequenceCollection(object):
                 for parent in matches:
                     # Start and end are relative to the parent's absolute starting position
                     if parent.name not in features.keys():
-                        parent_start = 0
+                        parent_min = 0
                     else:
-                        parent_start = features[parent.name]["Start"]
-                    start = features[id_]["Start"] - parent_start
-                    end = features[id_]["End"] - parent_start
+                        parent_min = min(features[parent.name]["Start"], features[parent.name]["End"])
+                    start = features[id_]["Start"] - parent_min
+                    end = features[id_]["End"] - parent_min
                     parent.add_feature(
                         features[id_]["Type"],
                         features[id_]["Attributes"]["ID"],
@@ -1177,8 +1181,7 @@ class SequenceCollection(object):
         if key in keys:
             for parent in parents[key]:
                 if parent in keys:
-                    return self._sort_parents(parents, sorted, parents[key])
-        # no parents in the dict
+                    return self._sort_parents(parents, sorted, parent)
         sorted.append(key)
         parents.pop(key)
         if not parents:

@@ -906,50 +906,30 @@ class SequenceCollectionBaseTests(object):
         if self.Class == Alignment:
             from cogent3.parse.fasta import FastaParser
 
-            fasta_path = os.path.join("data/gff3_test.fasta")
-            gff3_path = os.path.join("data/gff3_test.gff3")
+            fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
+            gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
             name, seq = next(FastaParser(fasta_path))
 
             # you can annotate onto a sequence directly
             sequence = Sequence(seq)
             sequence.annotate_from_gff(gff3_path)
             matches = [m for m in sequence.get_annotations_matching("*")]
-            self.assertEqual(len(matches), 35)
+            self.assertEqual(len(matches), 13)
 
             # you can annotate a sequence that is part of an alignment
-            seq_name = "P0A7B8"
-            aln = self.Class({seq_name: seq})
+            aln = self.Class({name: seq})
             aln.annotate_from_gff(gff3_path)
-            aln_seq = aln.named_seqs[seq_name]
+            aln_seq = aln.named_seqs[name]
             aln_seq = aln_seq.data
-            self.assertEqual(len(aln_seq.annotations), 35)
-
-            # annotations get nested when they have a known parent
-            # sequence and features do not match, but adequate for testing nesting
-            seq_name = "ctg123"
-            aln = self.Class({seq_name: seq})
-            gff3_path_nested = os.path.join("data/gff3_nested.gff3")
-            aln.annotate_from_gff(gff3_path_nested)
-            aln_seq = aln.named_seqs[seq_name]
-            aln_seq = aln_seq.data
-            matches = [m for m in aln_seq.get_annotations_matching("operon")]
+            matches = [m for m in aln_seq.get_annotations_matching("*", extend_query=True)]
+            # 13 features with one having 2 parents, so 14 instances should be found
+            self.assertEqual(len(matches), 14)
+            matches = [m for m in aln_seq.get_annotations_matching("gene")]
             self.assertEqual(len(matches), 1)
-            nested_matches = matches[0].get_annotations_matching("mRNA")
-            self.assertEqual(len(nested_matches), 2)
-            nested_matches2 = nested_matches[0].get_annotations_matching("exon")
-            self.assertEqual(len(nested_matches2), 5)
-            matches = [
-                m for m in aln_seq.get_annotations_matching("*", extend_query=True)
-            ]
-            self.assertEqual(len(matches), 9)
-
-            fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
-            gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
-            name, seq = next(FastaParser(fasta_path))
-            sequence = Sequence(seq)
-            sequence.annotate_from_gff(gff3_path)
-            matches = [m for m in sequence.get_annotations_matching("*")]
-            self.assertEqual(len(matches), 13)
+            matches = matches[0].get_annotations_matching("mRNA")
+            self.assertEqual(len(matches), 1)
+            matches = matches[0].get_annotations_matching("exon")
+            self.assertEqual(len(matches), 3)
 
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""
