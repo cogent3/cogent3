@@ -17,6 +17,7 @@ __status__ = "Production"
 from pathlib import Path
 
 from cogent3.util.misc import open_
+from cogent3.util.union_dict import UnionDict
 
 
 def gff_parser(f):
@@ -25,17 +26,22 @@ def gff_parser(f):
     -----------
     f
         accepts string path or pathlib.Path or file-like object (e.g. StringIO)
+
+    Returns
+    -------
+    dict
+        contains each of the 9 parameters specified by gff3, and comments.
     """
 
     f = f if not isinstance(f, Path) else str(f)
     if isinstance(f, str):
         with open_(f) as infile:
-            yield from _parse_gff(infile)
+            yield from _gff_parser(infile)
     else:
-        yield from _parse_gff(f)
+        yield from _gff_parser(f)
 
 
-def _parse_gff(f):
+def _gff_parser(f):
     """parses a gff file"""
 
     gff3_header = "gff-version 3"
@@ -78,46 +84,39 @@ def _parse_gff(f):
             attribute_parser = parse_attributes_gff3
         else:
             attribute_parser = parse_attributes_gff2
-        attributes = attribute_parser(attributes)
+        attributes = attribute_parser(attributes, (start, end))
 
-        yield (
-            seqid,
-            source,
-            type,
-            start,
-            end,
-            score,
-            strand,
-            phase,
-            attributes,
-            comments,
-        )
+        rtn = {"SeqID": seqid,
+                "Source": source,
+                "Type": type,
+                "Start": start,
+                "End": end,
+                "Score": score,
+                "Strand": strand,
+                "Phase": phase,
+                "Attributes": attributes,
+                "Comments": comments,
+               }
+        yield rtn
 
 
-def parse_attributes_gff2(attributes):
+def parse_attributes_gff2(attributes, span):
     """Returns a dict with name and info keys"""
     name = attributes[attributes.find('"') + 1 :]
     if '"' in name:
         name = name[: name.find('"')]
-    attr_dict = {"Name": name, "Info": attributes}
+    id_ = name if name else str(span)
+    attr_dict = {"ID": id_, "Info": attributes}
     return attr_dict
 
 
-def parse_attributes_gff3(attributes):
+def parse_attributes_gff3(attributes, span):
     """Returns a dictionary containing all the attributes"""
     attributes = attributes.strip(";")
     attributes = attributes.split(";")
     attributes = dict(t.split("=") for t in attributes)
     if "Parent" in attributes.keys() and "," in attributes["Parent"]:
         attributes["Parent"] = attributes["Parent"].split(",")
+    if "ID" not in attributes.keys():
+        attributes["ID"] = str(span)
     return attributes
-
-
-def gff_label(attributes, span):
-    """Returns an identifier from the attributes"""
-    if "ID" in attributes.keys():
-        return attributes["ID"]
-    elif "Name" in attributes.keys():
-        return attributes["Name"]
-    else:
-        return str(span)

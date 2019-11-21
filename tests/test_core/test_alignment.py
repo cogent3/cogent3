@@ -916,7 +916,6 @@ class SequenceCollectionBaseTests(object):
             matches = [m for m in sequence.get_annotations_matching("*")]
             self.assertEqual(len(matches), 35)
 
-
             # you can annotate a sequence that is part of an alignment
             seq_name = "P0A7B8"
             aln = self.Class({seq_name: seq})
@@ -951,7 +950,6 @@ class SequenceCollectionBaseTests(object):
             sequence.annotate_from_gff(gff3_path)
             matches = [m for m in sequence.get_annotations_matching("*")]
             self.assertEqual(len(matches), 13)
-
 
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""

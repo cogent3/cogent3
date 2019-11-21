@@ -738,24 +738,13 @@ class Sequence(_Annotatable, SequenceI):
 
     def annotate_from_gff(self, f):
         first_seqname = None
-        for (
-            seqname,
-            source,
-            feature,
-            start,
-            end,
-            score,
-            strand,
-            frame,
-            attributes,
-            comments,
-        ) in gff.gff_parser(f):
+        for gff_dict in gff.gff_parser(f):
             if first_seqname is None:
-                first_seqname = seqname
+                first_seqname = gff_dict["SeqID"]
             else:
-                assert seqname == first_seqname, (seqname, first_seqname)
-            feat_label = gff.gff_label(attributes, (start, end))
-            self.add_feature(feature, feat_label, [(start, end)])
+                assert gff_dict["SeqID"] == first_seqname, (gff_dict["SeqID"], first_seqname)
+            feat_label = gff_dict["Attributes"]["ID"]
+            self.add_feature(gff_dict["Type"], feat_label, [(gff_dict["Start"], gff_dict["End"])])
 
     def with_masked_annotations(
         self, annot_types, mask_char=None, shadow=False, extend_query=False

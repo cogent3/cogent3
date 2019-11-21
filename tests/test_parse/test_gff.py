@@ -112,7 +112,7 @@ class GffTest(TestCase):
     def test_gff_label(self):
         """Test gff_label"""
         self.assertEqual(
-            [gff_label(parse_attributes_gff2(x[1][8]), (1, 5)) for x in data_lines],
+            [gff_label(parse_attributes_gff2(x[1][8])) for x in data_lines],
             ["HBA_HUMAN", "dJ102G20.C1.1", "", "BROADO5"],
         )
 
