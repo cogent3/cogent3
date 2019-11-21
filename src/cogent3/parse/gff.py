@@ -86,17 +86,18 @@ def _gff_parser(f):
             attribute_parser = parse_attributes_gff2
         attributes = attribute_parser(attributes, (start, end))
 
-        rtn = {"SeqID": seqid,
-                "Source": source,
-                "Type": type,
-                "Start": start,
-                "End": end,
-                "Score": score,
-                "Strand": strand,
-                "Phase": phase,
-                "Attributes": attributes,
-                "Comments": comments,
-               }
+        rtn = {
+            "SeqID": seqid,
+            "Source": source,
+            "Type": type,
+            "Start": start,
+            "End": end,
+            "Score": score,
+            "Strand": strand,
+            "Phase": phase,
+            "Attributes": attributes,
+            "Comments": comments,
+        }
         yield rtn
 
 
@@ -115,8 +116,12 @@ def parse_attributes_gff3(attributes, span):
     attributes = attributes.strip(";")
     attributes = attributes.split(";")
     attributes = dict(t.split("=") for t in attributes)
-    if "Parent" in attributes.keys() and "," in attributes["Parent"]:
-        attributes["Parent"] = attributes["Parent"].split(",")
+    if "Parent" in attributes.keys():
+        # There may be multiple parents
+        if "," in attributes["Parent"]:
+            attributes["Parent"] = attributes["Parent"].split(",")
+        else:
+            attributes["Parent"] = [attributes["Parent"]]
     if "ID" not in attributes.keys():
         attributes["ID"] = str(span)
     return attributes

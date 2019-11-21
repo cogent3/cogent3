@@ -1132,9 +1132,13 @@ class SequenceCollection(object):
             if gff_dict["SeqID"] not in self.named_seqs:
                 continue
             if "Parent" not in gff_dict["Attributes"].keys():
-                self.named_seqs[gff_dict["SeqID"]].add_feature(gff_dict["Type"], gff_dict["Attributes"]["ID"], [(gff_dict["Start"], gff_dict["End"])])
+                self.named_seqs[gff_dict["SeqID"]].add_feature(
+                    gff_dict["Type"],
+                    gff_dict["Attributes"]["ID"],
+                    [(gff_dict["Start"], gff_dict["End"])],
+                )
             else:
-                # This feature must have a parent in attributes["Parent"]
+                # This feature must have at least one parent in attributes["Parent"]
                 features[gff_dict["Attributes"]["ID"]] = gff_dict
         if features:
             parents = {}
@@ -1144,13 +1148,15 @@ class SequenceCollection(object):
                 parents, [], next(iter(features.keys()))
             )
             for id_ in sorted_features:
-                matches = self.named_seqs[
-                    features[id_]["SeqID"]
-                ].data.get_annotations_matching(
-                    "*",
-                    name=features[id_]["Attributes"]["Parent"],
-                    extend_query=True,
-                )
+                matches = []
+                for parent in features[id_]["Attributes"]["Parent"]:
+                    matches.extend(
+                        self.named_seqs[
+                            features[id_]["SeqID"]
+                        ].data.get_annotations_matching(
+                            "*", name=parent, extend_query=True,
+                        )
+                    )
                 for parent in matches:
                     # Start and end are relative to the parent's absolute starting position
                     if parent.name not in features.keys():
@@ -1168,17 +1174,16 @@ class SequenceCollection(object):
     def _sort_parents(self, parents, sorted, key):
         """returns a list of feature id's in order with respect to their hierarchy"""
         keys = parents.keys()
-        if parents[key] in keys:
-            # find the root parent in the dict
-            return self._sort_parents(
-                parents, sorted, parents[key]
-            )
-        else:
-            sorted.append(key)
-            parents.pop(key)
-            if not parents:
-                return sorted
-            return self._sort_parents(parents, sorted, next(iter(keys)))
+        if key in keys:
+            for parent in parents[key]:
+                if parent in keys:
+                    return self._sort_parents(parents, sorted, parents[key])
+        # no parents in the dict
+        sorted.append(key)
+        parents.pop(key)
+        if not parents:
+            return sorted
+        return self._sort_parents(parents, sorted, next(iter(keys)))
 
     def __add__(self, other):
         """Concatenates sequence data for same names"""

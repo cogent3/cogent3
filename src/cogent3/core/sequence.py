@@ -742,9 +742,14 @@ class Sequence(_Annotatable, SequenceI):
             if first_seqname is None:
                 first_seqname = gff_dict["SeqID"]
             else:
-                assert gff_dict["SeqID"] == first_seqname, (gff_dict["SeqID"], first_seqname)
+                assert gff_dict["SeqID"] == first_seqname, (
+                    gff_dict["SeqID"],
+                    first_seqname,
+                )
             feat_label = gff_dict["Attributes"]["ID"]
-            self.add_feature(gff_dict["Type"], feat_label, [(gff_dict["Start"], gff_dict["End"])])
+            self.add_feature(
+                gff_dict["Type"], feat_label, [(gff_dict["Start"], gff_dict["End"])]
+            )
 
     def with_masked_annotations(
         self, annot_types, mask_char=None, shadow=False, extend_query=False
