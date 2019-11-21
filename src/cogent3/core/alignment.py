@@ -1141,7 +1141,7 @@ class SequenceCollection(object):
                 # ID's may not be unique
                 id_ = gff_dict["Attributes"]["ID"]
                 if id_ in features.keys():
-                    id_ = id_ + str((gff_dict["Start"],gff_dict["End"]))
+                    id_ = id_ + str((gff_dict["Start"], gff_dict["End"]))
                 features[id_] = gff_dict
         if features:
             parents = {}
@@ -1166,7 +1166,9 @@ class SequenceCollection(object):
                     if parent.name not in features.keys():
                         parent_min = 0
                     else:
-                        parent_min = min(features[parent.name]["Start"], features[parent.name]["End"])
+                        parent_min = min(
+                            features[parent.name]["Start"], features[parent.name]["End"]
+                        )
                     start = features[id_]["Start"] - parent_min
                     end = features[id_]["End"] - parent_min
                     parent.add_feature(

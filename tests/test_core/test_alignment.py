@@ -921,7 +921,9 @@ class SequenceCollectionBaseTests(object):
             aln.annotate_from_gff(gff3_path)
             aln_seq = aln.named_seqs[name]
             aln_seq = aln_seq.data
-            matches = [m for m in aln_seq.get_annotations_matching("*", extend_query=True)]
+            matches = [
+                m for m in aln_seq.get_annotations_matching("*", extend_query=True)
+            ]
             # 13 features with one having 2 parents, so 14 instances should be found
             self.assertEqual(len(matches), 14)
             matches = [m for m in aln_seq.get_annotations_matching("gene")]

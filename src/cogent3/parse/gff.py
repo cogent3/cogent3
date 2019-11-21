@@ -115,7 +115,10 @@ def parse_attributes_gff3(attributes, span):
     """Returns a dictionary containing all the attributes"""
     attributes = attributes.strip(";")
     attributes = attributes.split(";")
-    attributes = dict(t.split("=") for t in attributes)
+    if attributes[0]:
+        attributes = dict(t.split("=") for t in attributes)
+    else:
+        attributes = {}
     if "Parent" in attributes.keys():
         # There may be multiple parents
         if "," in attributes["Parent"]:
