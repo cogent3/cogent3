@@ -243,6 +243,10 @@ class select_translatable(ComposableSeq):
 class translate_seqs(ComposableSeq):
     """Translates sequences, assumes in correct reading frame."""
 
+    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE)
+    _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
+
     def __init__(
         self, moltype="dna", gc=DEFAULT, allow_rc=False, trim_terminal_stop=True
     ):
@@ -263,9 +267,9 @@ class translate_seqs(ComposableSeq):
         are excluded.
         """
         super(translate_seqs, self).__init__(
-            input_types=(SEQUENCE_TYPE, ALIGNED_TYPE),
-            output_types=(SEQUENCE_TYPE, ALIGNED_TYPE),
-            data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
 
