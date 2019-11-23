@@ -18,30 +18,19 @@ __all__ = ["align", "composable", "dist", "evo", "io", "sample", "translate", "t
 
 def _get_app_attr(name, obj, mod, is_composable):
     """returns app details for display"""
-    _input_types = getattr(obj, "_input_types", [])
-    _output_types = getattr(obj, "_output_types", [])
-    _data_types = getattr(obj, "_data_types", [])
 
-    if _input_types:
-        if type(_input_types) == str:
-            _input_types = [_input_types]
-        in_type = [{None: ""}.get(e, e) for e in _input_types]
-    else:
-        in_type = []
+    _types = {"_input_types": [], "_output_types": [], "_data_types": []}
 
-    if _output_types:
-        if type(_output_types) == str:
-            _output_types = [_output_types]
-        out_type = [{None: ""}.get(e, e) for e in _output_types]
-    else:
-        out_type = []
+    for types in _types.keys():
+        tys = types
+        types = getattr(obj, types, [])
+        types = [] if types is None else types
+        types = [types] if type(types) == str else types
+        _types[tys] = types
 
-    if _data_types:
-        if type(_data_types) == str:
-            _data_types = [_data_types]
-        data_type = [{None: ""}.get(e, e) for e in _data_types]
-    else:
-        data_type = []
+    in_type = [{None: ""}.get(e, e) for e in _types["_input_types"]]
+    out_type = [{None: ""}.get(e, e) for e in _types["_output_types"]]
+    data_type = [{None: ""}.get(e, e) for e in _types["_data_types"]]
 
     row = [
         mod.__name__,
