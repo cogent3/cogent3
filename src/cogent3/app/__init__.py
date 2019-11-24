@@ -23,8 +23,7 @@ def _get_app_attr(name, obj, mod, is_composable):
 
     for types in _types.keys():
         tys = types
-        types = getattr(obj, types, [])
-        types = [] if types is None else types
+        types = getattr(obj, types, None) or []
         types = [types] if type(types) == str else types
         _types[tys] = types
 
