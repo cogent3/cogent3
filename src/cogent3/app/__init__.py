@@ -25,20 +25,16 @@ def _get_app_attr(name, obj, mod, is_composable):
         tys = types
         types = getattr(obj, types, None) or []
         types = [types] if type(types) == str else types
-        _types[tys] = types
-
-    in_type = [{None: ""}.get(e, e) for e in _types["_input_types"]]
-    out_type = [{None: ""}.get(e, e) for e in _types["_output_types"]]
-    data_type = [{None: ""}.get(e, e) for e in _types["_data_types"]]
+        _types[tys] = [{None: ""}.get(e, e) for e in types]
 
     row = [
         mod.__name__,
         name,
         is_composable,
         obj.__doc__,
-        ", ".join(in_type),
-        ", ".join(out_type),
-        ", ".join(data_type),
+        ", ".join(_types["_input_types"]),
+        ", ".join(_types["_output_types"]),
+        ", ".join(_types["_data_types"]),
     ]
     return row
 
