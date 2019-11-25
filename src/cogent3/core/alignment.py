@@ -2073,8 +2073,12 @@ class Aligned(object):
         result = Aligned(map[self.map.inverse()].inverse(), self.data)
         return result
 
-    def get_annotations_matching(self, alignment, annotation_type="*", *args):
-        for annot in self.data.get_annotations_matching(annotation_type, *args):
+    def get_annotations_matching(
+        self, alignment, annotation_type="*", name=None, *args
+    ):
+        for annot in self.data.get_annotations_matching(
+            annotation_type=annotation_type, name=name, *args
+        ):
             yield annot.remapped_to(alignment, self.map.inverse())
 
     def get_drawables(self):
@@ -4158,17 +4162,17 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         aln_annots = self.get_annotations_matching(*args)
         return [self.project_annotation(seq_name, a) for a in aln_annots]
 
-    def get_annotations_from_seq(self, seq_name, annotation_type="*", *args):
+    def get_annotations_from_seq(self, seq_name, annotation_type="*", name=None, *args):
         aligned = self.named_seqs[seq_name]
         return aligned.get_annotations_matching(
-            self, annotation_type=annotation_type, *args
+            self, annotation_type=annotation_type, name=name, *args
         )
 
-    def get_annotations_from_any_seq(self, annotation_type="*", *args):
+    def get_annotations_from_any_seq(self, annotation_type="*", name=None, *args):
         result = []
         for seq_name in self.names:
             a = self.get_annotations_from_seq(
-                seq_name, annotation_type=annotation_type, *args
+                seq_name, annotation_type=annotation_type, name=name, *args
             )
             result.extend(a)
         return result
