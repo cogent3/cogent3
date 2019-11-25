@@ -24,7 +24,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.10.24a"
+__version__ = "2019.11.15.a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -290,6 +290,23 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
                 path, suffix=".json", if_exists=OVERWRITE, create=True
             )
             self.assertEqual(len(dstore), 0)
+            # tests the case when the directory has the file with the same suffix to self.suffix and log files
+            with open(
+                os.path.join(path, "test_write_class_source_create_delete.json"), "w"
+            ):
+                pass
+            dstore = self.WriteClass(
+                path, suffix=".json", if_exists=OVERWRITE, create=True
+            )
+            self.assertEqual(len(dstore), 0)
+            with open(
+                os.path.join(path, "test_write_class_source_create_delete.log"), "w"
+            ):
+                pass
+            dstore = self.WriteClass(
+                path, suffix=".json", if_exists=OVERWRITE, create=True
+            )
+            self.assertEqual(len(dstore), 0)
             # tests the case when the directory has the file with the different suffix to self.suffix
             with open(
                 os.path.join(path, "test_write_class_source_create_delete.dummySuffix"),
@@ -303,6 +320,15 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
             # tests the case when the directory has the file with the same suffix to self.suffix
             dstore = self.WriteClass(
                 path, suffix=".dummySuffix", if_exists=OVERWRITE, create=True
+            )
+            self.assertEqual(len(dstore), 0)
+            # tests the case when the directory only has log files
+            with open(
+                os.path.join(path, "test_write_class_source_create_delete.log"), "w"
+            ):
+                pass
+            dstore = self.WriteClass(
+                path, suffix=".json", if_exists=OVERWRITE, create=True
             )
             self.assertEqual(len(dstore), 0)
 
@@ -336,26 +362,70 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
         with TemporaryDirectory(dir=".") as dirname:
             path = os.path.join(dirname, "delme_dir")
             os.mkdir(path)
-            with zipfile.ZipFile(os.path.join(path, self.basedir), "w") as myzip:
-                with open("dummyPrefix_.dummySuffix", "w"):
+
+            # tests the case when the ZippedDataStore only contains files with the same suffix as self.suffix
+            test_case1_zip = "delme1.zip"
+            with zipfile.ZipFile(os.path.join(path, test_case1_zip), "w") as myzip:
+                test_path = os.path.join(path, "dummyPrefix_.json")
+                with open(test_path, "w"):
                     pass
-                myzip.write("dummyPrefix_.dummySuffix")
-            # tests the case when the ZippedDataStore has other different suffixes to self.suffix
+                myzip.write(test_path)
+            dstore = self.WriteClass(
+                os.path.join(path, test_case1_zip),
+                suffix=".json",
+                if_exists=OVERWRITE,
+                create=True,
+            )
+            self.assertEqual(len(dstore), 0)
+
+            # tests the case when the ZippedDataStore contains both files with the same suffix as self.suffix and log files
+            test_case2_zip = "delme2.zip"
+            with zipfile.ZipFile(os.path.join(path, test_case2_zip), "w") as myzip:
+                test_path = os.path.join(path, "dummyPrefix_.json")
+                with open(test_path, "w"):
+                    pass
+                myzip.write(test_path)
+                test_path = os.path.join(path, "dummyPrefix_.log")
+                with open(test_path, "w"):
+                    pass
+                myzip.write(test_path)
+            dstore = self.WriteClass(
+                os.path.join(path, test_case2_zip),
+                suffix=".json",
+                if_exists=OVERWRITE,
+                create=True,
+            )
+            self.assertEqual(len(dstore), 0)
+
+            # tests the case when the ZippedDataStore contains files with the different suffixes to self.suffix
+            test_case3_zip = "delme3.zip"
+            with zipfile.ZipFile(os.path.join(path, test_case3_zip), "w") as myzip:
+                test_path = os.path.join(path, "dummyPrefix_.dummySuffix")
+                with open(test_path, "w"):
+                    pass
+                myzip.write(test_path)
             with self.assertRaises(RuntimeError):
                 dstore = self.WriteClass(
-                    os.path.join(path, self.basedir),
+                    os.path.join(path, test_case3_zip),
                     suffix=".json",
                     if_exists=OVERWRITE,
                     create=True,
                 )
-            # tests the case when the ZippedDataStore only contains files with the same suffix as self.suffix
-            with zipfile.ZipFile("delme.zip", "w") as myzip:
-                with open("dummyPrefix_.json", "w"):
+
+            # tests the case when the ZippedDataStore contains only log files
+            test_case4_zip = "delme4.zip"
+            with zipfile.ZipFile(os.path.join(path, test_case4_zip), "w") as myzip:
+                test_path = os.path.join(path, "dummyPrefix_.log")
+                with open(test_path, "w"):
                     pass
-                myzip.write("dummyPrefix_.json")
+                myzip.write(test_path)
             dstore = self.WriteClass(
-                "delme.zip", suffix=".json", if_exists=OVERWRITE, create=True
+                os.path.join(path, test_case4_zip),
+                suffix=".json",
+                if_exists=OVERWRITE,
+                create=True,
             )
+            self.assertEqual(len(dstore), 0)
 
 
 class TinyDBDataStoreTests(TestCase):

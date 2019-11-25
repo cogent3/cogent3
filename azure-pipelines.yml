@@ -3,11 +3,24 @@ trigger:
 
 variables:
   CODECOV_TOKEN: 504b0637-b4c1-4991-bc79-7a29aee41b44
-  CIBW_BUILD: cp36-* cp37-*
+  CIBW_BUILD: cp36-* cp37-* cp38-*
   CIBW_BEFORE_BUILD: python -m pip install --upgrade pip
 
 jobs:
-- job: Linux_Test
+- job: Linux_Test_py36
+  pool: {vmImage: 'ubuntu-latest'}
+  steps:
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        python -m pip install .[dev] codecov
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.6'
+    - bash: |
+        tox -e py36
+        codecov
+- job: Linux_Test_py37
   pool: {vmImage: 'ubuntu-latest'}
   steps:
     - task: UsePythonVersion@0
@@ -20,13 +33,33 @@ jobs:
     - bash: |
         tox -e py37
         codecov
+- job: Linux_Test_py38
+  pool: {vmImage: 'ubuntu-latest'}
+  steps:
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        python -m pip install .[dev] codecov
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.8'
+    - bash: |
+        tox -e py38
+        codecov
+- job: MacOS_Test_py36
+  pool: {vmImage: 'macos-latest'}
+  steps:
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        python -m pip install .[dev] codecov
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '3.6'
     - bash: |
         tox -e py36
         codecov
-- job: MacOS_Test
+- job: MacOS_Test_py37
   pool: {vmImage: 'macos-latest'}
   steps:
     - task: UsePythonVersion@0
@@ -39,13 +72,20 @@ jobs:
     - bash: |
         tox -e py37
         codecov
+- job: MacOS_Test_py38
+  pool: {vmImage: 'macos-latest'}
+  steps:
+    - task: UsePythonVersion@0
+    - bash: |
+        python -m pip install --upgrade pip
+        python -m pip install .[dev] codecov
     - task: UsePythonVersion@0
       inputs:
-        versionSpec: '3.6'
+        versionSpec: '3.8'
     - bash: |
-        tox -e py36
+        tox -e py38
         codecov
-- job: Windows_Test
+- job: Windows_Test_py37
   pool: {vmImage: 'windows-latest'}
   steps:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
@@ -59,10 +99,12 @@ jobs:
 - job: Linux_Build
   pool: {vmImage: 'ubuntu-latest'}
   steps: 
-    - task: UsePythonVersion@0
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6'}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7'}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8'}}
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install cibuildwheel==0.11.1 numpy
+        python -m pip install cibuildwheel numpy
         cibuildwheel --output-dir wheelhouse .
         python setup.py sdist
         cp dist/*.gz wheelhouse/.
@@ -72,10 +114,12 @@ jobs:
 - job: MacOS_Build
   pool: {vmImage: 'macos-latest'}
   steps: 
-    - task: UsePythonVersion@0
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6'}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7'}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8'}}
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install cibuildwheel==0.11.1 numpy
+        python -m pip install cibuildwheel numpy
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
@@ -87,9 +131,11 @@ jobs:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x64}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8', architecture: x86}}
+    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8', architecture: x64}}
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install cibuildwheel==0.11.1 numpy
+        python -m pip install cibuildwheel numpy
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}

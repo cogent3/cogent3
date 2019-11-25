@@ -14,7 +14,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.10.24a"
+__version__ = "2019.11.15.a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -77,7 +77,7 @@ class TestTree(TestCase):
         proc = fast_slow_dist + quick
         self.assertEqual(
             str(proc),
-            "fast_slow_dist(type='distance') + quick_tree(type='tree', drop_invalid=False)",
+            "fast_slow_dist(type='distance', distance=None, moltype='dna', fast_calc='hamming', slow_calc=None) + quick_tree(type='tree', drop_invalid=False)",
         )
         self.assertIsInstance(proc, tree_app.quick_tree)
         self.assertEqual(proc._type, "tree")

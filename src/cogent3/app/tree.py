@@ -13,7 +13,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.10.24a"
+__version__ = "2019.11.15.a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -23,11 +23,15 @@ class scale_branches(ComposableTree):
     """Transforms tree branch lengths from nucleotide to codon, or the converse.
     Returns a Tree."""
 
+    _input_types = TREE_TYPE
+    _output_types = (TREE_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("PhyloNode", "TreeNode")
+
     def __init__(self, nuc_to_codon=None, codon_to_nuc=None, scalar=1, min_length=1e-6):
         super(scale_branches, self).__init__(
-            input_types=TREE_TYPE,
-            output_types=(TREE_TYPE, SERIALISABLE_TYPE),
-            data_types=("PhyloNode", "TreeNode"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         """returns a new tree with lengths divided by scalar
     
@@ -74,11 +78,15 @@ class scale_branches(ComposableTree):
 class uniformize_tree(ComposableTree):
     """Standardises the orientation of unrooted trees. Returns a Tree."""
 
+    _input_types = TREE_TYPE
+    _output_types = (TREE_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("PhyloNode", "TreeNode")
+
     def __init__(self, root_at="midpoint", ordered_names=None):
         super(uniformize_tree, self).__init__(
-            input_types=TREE_TYPE,
-            output_types=(TREE_TYPE, SERIALISABLE_TYPE),
-            data_types=("PhyloNode", "TreeNode"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         """returns a new tree with standardised orientation
         
@@ -110,6 +118,10 @@ class uniformize_tree(ComposableTree):
 class quick_tree(ComposableTree):
     """Neighbour Joining tree based on pairwise distances."""
 
+    _input_types = PAIRWISE_DISTANCE_TYPE
+    _output_types = (TREE_TYPE, SERIALISABLE_TYPE)
+    _data_types = "DistanceMatrix"
+
     def __init__(self, drop_invalid=False):
         """computes a neighbour joining tree from an alignment
 
@@ -122,9 +134,9 @@ class quick_tree(ComposableTree):
             if False, an ArithmeticError is raised if a distance could not be computed on observed data.
         """
         super(quick_tree, self).__init__(
-            input_types=PAIRWISE_DISTANCE_TYPE,
-            output_types=(TREE_TYPE, SERIALISABLE_TYPE),
-            data_types="DistanceMatrix",
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         self.func = self.quick_tree

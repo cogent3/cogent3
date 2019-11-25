@@ -63,7 +63,7 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.10.24a"
+__version__ = "2019.11.15.a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -2548,6 +2548,33 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         # check the sequence moltypes
         self.assertEqual({s.data.moltype.label for s in rna.seqs}, {"rna"})
         self.assertEqual(rna.moltype.label, "rna")
+
+    def test_get_annotations_from_any_seq(self):
+        """get_annotations_from_any_seq returns correct annotations"""
+        data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+        seqs = self.Class(data, moltype=DNA)
+        seqs.get_seq("seq1").add_annotation(Feature, "exon", "annotation1", [(3, 8)])
+        seqs.get_seq("seq2").add_annotation(Feature, "exon", "annotation2", [(1, 2)])
+        seqs.get_seq("seq3").add_annotation(Feature, "exon", "annotation3", [(3, 6)])
+        got = seqs.get_annotations_from_any_seq()
+        self.assertEqual(len(got), 3)
+        self.assertEqual(str(got[0]), 'exon "annotation1" at [3:8]/9')
+        self.assertEqual(str(got[1]), 'exon "annotation2" at [1:2]/9')
+        self.assertEqual(str(got[2]), 'exon "annotation3" at [3:6]/9')
+
+        got = seqs.get_annotations_from_any_seq(annotation_type="*", name="annotation1")
+        self.assertEqual(len(got), 1)
+        self.assertEqual(str(got[0]), 'exon "annotation1" at [3:8]/9')
+
+        got = seqs.get_annotations_from_any_seq(
+            annotation_type="exon", name="annotation2"
+        )
+        self.assertEqual(len(got), 1)
+        self.assertEqual(str(got[0]), 'exon "annotation2" at [1:2]/9')
+
+        got = seqs.get_annotations_from_any_seq(annotation_type="*", name="annotation3")
+        self.assertEqual(len(got), 1)
+        self.assertEqual(str(got[0]), 'exon "annotation3" at [3:6]/9')
 
     def test_rename_handles_annotations(self):
         """rename seqs on Alignment preserves annotations"""

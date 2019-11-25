@@ -19,7 +19,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.10.24a"
+__version__ = "2019.11.15.a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -30,12 +30,17 @@ class fast_slow_dist(ComposableDistance):
     numerically robust) approach where possible, slow (robust)
     approach when not. Returns a DistanceMatrix."""
 
+    _input_types = ALIGNED_TYPE
+    _output_types = (PAIRWISE_DISTANCE_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment")
+
     def __init__(self, distance=None, moltype=None, fast_calc=None, slow_calc=None):
         super(fast_slow_dist, self).__init__(
-            input_types=ALIGNED_TYPE,
-            output_types=(PAIRWISE_DISTANCE_TYPE, SERIALISABLE_TYPE),
-            data_types=("ArrayAlignment", "Alignment"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
+        self._formatted_params()
         self._moltype = moltype if moltype is None else get_moltype(moltype)
         self._sm = None
 

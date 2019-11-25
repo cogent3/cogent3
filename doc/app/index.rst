@@ -73,3 +73,14 @@ These apps all employ codon models to evaluate different types of hypotheses reg
     evo-natsel_timehet
     evo-natsel_sitehet
     evo-natsel_zhang
+
+
+The ``user_function`` Apps
+==========================
+
+These apps are capable to wrap another user specified function
+
+.. toctree::
+    :maxdepth: 1
+
+    user_function

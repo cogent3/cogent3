@@ -32,7 +32,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.10.24a"
+__version__ = "2019.11.15.a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -41,6 +41,10 @@ __status__ = "Alpha"
 class model(ComposableModel):
     """Define a substitution model + tree for maximum likelihood evaluation.
     Returns model_result."""
+
+    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _output_types = (RESULT_TYPE, MODEL_RESULT_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment")
 
     def __init__(
         self,
@@ -99,9 +103,9 @@ class model(ComposableModel):
         the result object has a separate entry for each.
         """
         super(model, self).__init__(
-            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(RESULT_TYPE, MODEL_RESULT_TYPE, SERIALISABLE_TYPE),
-            data_types=("ArrayAlignment", "Alignment"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._verbose = verbose
         self._formatted_params()
@@ -243,12 +247,16 @@ class hypothesis(ComposableHypothesis):
     """Specify a hypothesis through defining two models. Returns a
     hypothesis_result."""
 
+    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _output_types = (RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment")
+
     def __init__(self, null, *alternates, init_alt=None):
         # todo document! init_alt needs to be able to take null, alt and *args
         super(hypothesis, self).__init__(
-            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE),
-            data_types=("ArrayAlignment", "Alignment"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         self.null = null
@@ -303,11 +311,15 @@ class hypothesis(ComposableHypothesis):
 class bootstrap(ComposableHypothesis):
     """Parametric bootstrap for a provided hypothesis. Returns a bootstrap_result."""
 
+    _input_types = ALIGNED_TYPE
+    _output_types = (RESULT_TYPE, BOOTSTRAP_RESULT_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment")
+
     def __init__(self, hyp, num_reps, parallel=False, verbose=False):
         super(bootstrap, self).__init__(
-            input_types=ALIGNED_TYPE,
-            output_types=(RESULT_TYPE, BOOTSTRAP_RESULT_TYPE, SERIALISABLE_TYPE),
-            data_types=("ArrayAlignment", "Alignment"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         self._hyp = hyp
@@ -352,11 +364,15 @@ class ancestral_states(ComposableTabular):
     """Computes ancestral state probabilities from a model result. Returns a dict
     with a DictArray for each node."""
 
+    _input_types = MODEL_RESULT_TYPE
+    _output_types = (RESULT_TYPE, TABULAR_RESULT_TYPE, SERIALISABLE_TYPE)
+    _data_types = "model_result"
+
     def __init__(self):
         super(ancestral_states, self).__init__(
-            input_types=MODEL_RESULT_TYPE,
-            output_types=(RESULT_TYPE, TABULAR_RESULT_TYPE, SERIALISABLE_TYPE),
-            data_types="model_result",
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         self.func = self.recon_ancestor
@@ -379,11 +395,15 @@ class ancestral_states(ComposableTabular):
 class tabulate_stats(ComposableTabular):
     """Extracts all model statistics from model_result as Table."""
 
+    _input_types = MODEL_RESULT_TYPE
+    _output_types = (RESULT_TYPE, TABULAR_RESULT_TYPE, SERIALISABLE_TYPE)
+    _data_types = "model_result"
+
     def __init__(self):
         super(tabulate_stats, self).__init__(
-            input_types=MODEL_RESULT_TYPE,
-            output_types=(RESULT_TYPE, TABULAR_RESULT_TYPE, SERIALISABLE_TYPE),
-            data_types="model_result",
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         self.func = self.extract_stats
@@ -411,6 +431,10 @@ class natsel_neutral(ComposableHypothesis):
     """Test of selective neutrality by assessing whether omega equals 1.
     Under the alternate, there is one omega for all branches and all sites.
     """
+
+    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _output_types = (RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment")
 
     def __init__(
         self,
@@ -454,9 +478,9 @@ class natsel_neutral(ComposableHypothesis):
             prints intermediate states to screen during fitting
         """
         super(natsel_neutral, self).__init__(
-            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE),
-            data_types=("ArrayAlignment", "Alignment"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         if not is_codon_model(sm):
@@ -515,6 +539,10 @@ class natsel_zhang(ComposableHypothesis):
     Note: Our implementation is not as parametrically succinct as that of
     Zhang et al, we have 1 additional bin probability.
     """
+
+    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _output_types = (RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment")
 
     def __init__(
         self,
@@ -583,9 +611,9 @@ class natsel_zhang(ComposableHypothesis):
         foreground edges.
         """
         super(natsel_zhang, self).__init__(
-            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE),
-            data_types=("ArrayAlignment", "Alignment"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         if not is_codon_model(sm):
@@ -718,6 +746,10 @@ class natsel_sitehet(ComposableHypothesis):
     omega < 1 and omega = 1. Under the alternate, an additional site-class of
     omega > 1 is added."""
 
+    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _output_types = (RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment")
+
     def __init__(
         self,
         sm,
@@ -763,9 +795,9 @@ class natsel_sitehet(ComposableHypothesis):
             prints intermediate states to screen during fitting
         """
         super(natsel_sitehet, self).__init__(
-            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE),
-            data_types=("ArrayAlignment", "Alignment"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         if not is_codon_model(sm):
@@ -876,6 +908,10 @@ class natsel_timehet(ComposableHypothesis):
     (or values) of omega.
     """
 
+    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _output_types = (RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment")
+
     def __init__(
         self,
         sm,
@@ -943,9 +979,9 @@ class natsel_timehet(ComposableHypothesis):
             prints intermediate states to screen during fitting
         """
         super(natsel_timehet, self).__init__(
-            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE),
-            data_types=("ArrayAlignment", "Alignment"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         if not is_codon_model(sm):
