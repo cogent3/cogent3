@@ -17,7 +17,6 @@ __status__ = "Production"
 from pathlib import Path
 
 from cogent3.util.misc import open_
-from cogent3.util.union_dict import UnionDict
 
 
 def gff_parser(f):
@@ -33,6 +32,7 @@ def gff_parser(f):
         contains each of the 9 parameters specified by gff3, and comments.
     """
 
+    # calling a separate function to ensure file closes correctly
     f = f if not isinstance(f, Path) else str(f)
     if isinstance(f, str):
         with open_(f) as infile:
@@ -66,7 +66,7 @@ def _gff_parser(f):
         if len(cols) == 8:
             cols.append("")
         assert len(cols) == 9, len(line)
-        (seqid, source, type, start, end, score, strand, phase, attributes) = cols
+        (seqid, source, type_, start, end, score, strand, phase, attributes) = cols
 
         # adjust for 0-based indexing
         (start, end) = (int(start) - 1, int(end))
@@ -80,6 +80,7 @@ def _gff_parser(f):
         if strand == "-":
             (start, end) = (end, start)
 
+        # all attributes have an "ID" but this may not be unique
         if gff3:
             attribute_parser = parse_attributes_gff3
         else:
@@ -89,7 +90,7 @@ def _gff_parser(f):
         rtn = {
             "SeqID": seqid,
             "Source": source,
-            "Type": type,
+            "Type": type_,
             "Start": start,
             "End": end,
             "Score": score,
@@ -106,8 +107,7 @@ def parse_attributes_gff2(attributes, span):
     name = attributes[attributes.find('"') + 1 :]
     if '"' in name:
         name = name[: name.find('"')]
-    id_ = name if name else str(span)
-    attr_dict = {"ID": id_, "Info": attributes}
+    attr_dict = {"ID": name, "Info": attributes}
     return attr_dict
 
 
@@ -126,5 +126,5 @@ def parse_attributes_gff3(attributes, span):
         else:
             attributes["Parent"] = [attributes["Parent"]]
     if "ID" not in attributes.keys():
-        attributes["ID"] = str(span)
+        attributes["ID"] = ""
     return attributes

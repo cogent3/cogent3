@@ -1127,22 +1127,24 @@ class SequenceCollection(object):
 
         # only features with parent features included in this dict
         features = dict()
+        fake_id = 0
 
         for gff_dict in gff_parser(f):
             if gff_dict["SeqID"] not in self.named_seqs:
                 continue
+            # make the ID's unique
+            id_ = gff_dict["Attributes"]["ID"]
+            if id_ in features.keys():
+                id_ = f"{id_}:{gff_dict['Type']}:{gff_dict['Start']}-{gff_dict['End']}:{fake_id}"
+                fake_id = fake_id + 1
             if "Parent" not in gff_dict["Attributes"].keys():
                 self.named_seqs[gff_dict["SeqID"]].add_feature(
                     gff_dict["Type"],
                     gff_dict["Attributes"]["ID"],
                     [(gff_dict["Start"], gff_dict["End"])],
                 )
-            else:
-                # ID's may not be unique
-                id_ = gff_dict["Attributes"]["ID"]
-                if id_ in features.keys():
-                    id_ = id_ + str((gff_dict["Start"], gff_dict["End"]))
-                features[id_] = gff_dict
+                continue
+            features[id_] = gff_dict
         if features:
             parents = {}
             for id_ in features.keys():
@@ -1177,18 +1179,18 @@ class SequenceCollection(object):
                         [(start, end)],
                     )
 
-    def _sort_parents(self, parents, sorted, key):
-        """returns a list of feature id's in order with respect to their hierarchy"""
+    def _sort_parents(self, parents, ordered, key):
+        """returns a list of feature id's with parents before children"""
         keys = parents.keys()
         if key in keys:
             for parent in parents[key]:
                 if parent in keys:
-                    return self._sort_parents(parents, sorted, parent)
-        sorted.append(key)
+                    return self._sort_parents(parents, ordered, parent)
+        ordered.append(key)
         parents.pop(key)
         if not parents:
-            return sorted
-        return self._sort_parents(parents, sorted, next(iter(keys)))
+            return ordered
+        return self._sort_parents(parents, ordered, next(iter(keys)))
 
     def __add__(self, other):
         """Concatenates sequence data for same names"""

@@ -100,22 +100,27 @@ class GffTest(TestCase):
             self.assertEqual(result.pop("Attributes")["Info"], canned_result.pop(8))
             self.assertEqual(set(result.values()), set(canned_result))
 
-
     def test_gff_parser_headers(self):
         """Test gff_parser with valid data headers"""
         data = "".join([x[0] for x in data_lines])
         for header in headers:
             result = list(gff_parser(StringIO(header + data)))
-            lines = [(x[0],list(x[1])) for x in data_lines]
+            lines = [(x[0], list(x[1])) for x in data_lines]
             self.assertEqual(
-                [l.pop("Attributes")["Info"] for l in result], [x[1].pop(8) for x in lines]
+                [l.pop("Attributes")["Info"] for l in result],
+                [x[1].pop(8) for x in lines],
             )
-            self.assertEqual([set(l.values()) for l in result], [set(x[1]) for x in lines])
+            self.assertEqual(
+                [set(l.values()) for l in result], [set(x[1]) for x in lines]
+            )
 
     def test_parse_attributes_gff2(self):
         """Test the parse_attributes_gff2 method"""
         self.assertEqual(
-            [parse_attributes_gff2(x[1][8], (x[1][3], x[1][4]))["ID"] for x in data_lines],
+            [
+                parse_attributes_gff2(x[1][8], (x[1][3], x[1][4]))["ID"]
+                for x in data_lines
+            ],
             ["HBA_HUMAN", "dJ102G20.C1.1", "(7201, 7104)", "BROADO5"],
         )
 
