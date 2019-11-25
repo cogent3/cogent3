@@ -21,9 +21,8 @@ def _get_app_attr(name, obj, mod, is_composable):
 
     _types = {"_input_types": [], "_output_types": [], "_data_types": []}
 
-    for types in _types.keys():
-        tys = types
-        types = getattr(obj, types, None) or []
+    for tys in _types.keys():
+        types = getattr(obj, tys, None) or []
         types = [types] if type(types) == str else types
         _types[tys] = [{None: ""}.get(e, e) for e in types]
 
