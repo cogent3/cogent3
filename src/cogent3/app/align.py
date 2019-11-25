@@ -53,6 +53,10 @@ class align_to_ref(ComposableSeq):
     """Aligns to a reference seq, no gaps in the reference.
     Returns an Alignment object."""
 
+    _input_types = SEQUENCE_TYPE
+    _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _data_types = "SequenceCollection"
+
     def __init__(
         self,
         ref_seq="longest",
@@ -77,9 +81,9 @@ class align_to_ref(ComposableSeq):
             molecular type
         """
         super(align_to_ref, self).__init__(
-            input_types=SEQUENCE_TYPE,
-            output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            data_types="SequenceCollection",
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         assert moltype
@@ -145,6 +149,10 @@ class progressive_align(ComposableSeq):
     """Progressive multiple sequence alignment via any cogent3 model.
      Returns an Alignment object."""
 
+    _input_types = SEQUENCE_TYPE
+    _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _data_types = "SequenceCollection"
+
     def __init__(
         self,
         model,
@@ -189,9 +197,9 @@ class progressive_align(ComposableSeq):
             sequences we recommend 'paralinear'.
         """
         super(progressive_align, self).__init__(
-            input_types=SEQUENCE_TYPE,
-            output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            data_types="SequenceCollection",
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
 
         self._param_vals = {
