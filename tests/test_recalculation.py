@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from cogent3.recalculation.definition import *
+from cogent3.recalculation.definition import CalcDefn, ParamDefn
 from cogent3.recalculation.scope import (
     InvalidDimensionError,
     InvalidScopeError,

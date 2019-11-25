@@ -150,6 +150,10 @@ class load_aligned(_seq_loader, ComposableAligned):
 
     klass = ArrayAlignment
 
+    _input_types = None
+    _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("DataStoreMember", "str", "Path")
+
     def __init__(self, moltype=None, format="fasta"):
         """
         Parameters
@@ -160,9 +164,9 @@ class load_aligned(_seq_loader, ComposableAligned):
             sequence file format
         """
         super(ComposableAligned, self).__init__(
-            input_types=None,
-            output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            data_types=("DataStoreMember", "str", "Path"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         _seq_loader.__init__(self)
         self._formatted_params()
@@ -177,6 +181,10 @@ class load_unaligned(ComposableSeq, _seq_loader):
 
     klass = SequenceCollection
 
+    _input_types = None
+    _output_types = (SEQUENCE_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("DataStoreMember", "str", "Path")
+
     def __init__(self, moltype=None, format="fasta"):
         """
         Parameters
@@ -187,9 +195,9 @@ class load_unaligned(ComposableSeq, _seq_loader):
             sequence file format
         """
         super(ComposableSeq, self).__init__(
-            input_types=None,
-            output_types=(SEQUENCE_TYPE, SERIALISABLE_TYPE),
-            data_types=("DataStoreMember", "str", "Path"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         _seq_loader.__init__(self)
         self._formatted_params()
@@ -201,6 +209,10 @@ class load_unaligned(ComposableSeq, _seq_loader):
 
 class load_tabular(ComposableTabular):
     """Loads delimited data. Returns a Table."""
+
+    _input_types = None
+    _output_types = (TABULAR_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("DataStoreMember", "str", "Path")
 
     def __init__(
         self,
@@ -227,9 +239,9 @@ class load_tabular(ComposableTabular):
             all rows MUST have the same number of records
         """
         super(ComposableTabular, self).__init__(
-            input_types=None,
-            output_types=(TABULAR_TYPE, SERIALISABLE_TYPE),
-            data_types=("DataStoreMember", "str", "Path"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         self._sep = sep
@@ -318,6 +330,10 @@ class load_tabular(ComposableTabular):
 class write_tabular(_checkpointable, ComposableTabular):
     """writes tabular data"""
 
+    _input_types = (TABULAR_RESULT_TYPE, TABULAR_TYPE)
+    _output_types = IDENTIFIER_TYPE
+    _data_types = ("Table", "DictArray", "DistanceMatrix")
+
     def __init__(
         self, data_path, format="tsv", name_callback=None, create=False, if_exists=SKIP
     ):
@@ -339,9 +355,9 @@ class write_tabular(_checkpointable, ComposableTabular):
             exception), 'overwrite'
         """
         super(write_tabular, self).__init__(
-            input_types=(TABULAR_RESULT_TYPE, TABULAR_TYPE),
-            output_types=IDENTIFIER_TYPE,
-            data_types=("Table", "DictArray", "DistanceMatrix"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
             data_path=data_path,
             name_callback=name_callback,
             create=create,
@@ -361,6 +377,10 @@ class write_tabular(_checkpointable, ComposableTabular):
 
 class write_seqs(_checkpointable):
     """Writes sequences to text files in standard format."""
+
+    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE)
+    _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE, IDENTIFIER_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
 
     def __init__(
         self,
@@ -391,9 +411,9 @@ class write_seqs(_checkpointable):
             exception), 'overwrite'
         """
         super(write_seqs, self).__init__(
-            input_types=("sequences", "aligned"),
-            output_types=("sequences", "aligned", "identifier"),
-            data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
             data_path=data_path,
             name_callback=name_callback,
             create=create,
@@ -422,8 +442,13 @@ class load_json(Composable):
 
     _type = "output"
 
+    _input_types = None
+    _output_types = SERIALISABLE_TYPE
+
     def __init__(self):
-        super(load_json, self).__init__(input_types=None, output_types="serialisable")
+        super(load_json, self).__init__(
+            input_types=self._input_types, output_types=self._output_types
+        )
         self.func = self.read
 
     def read(self, path):
@@ -451,12 +476,15 @@ class write_json(_checkpointable):
 
     _type = "output"
 
+    _input_types = SERIALISABLE_TYPE
+    _output_types = (IDENTIFIER_TYPE, SERIALISABLE_TYPE)
+
     def __init__(
         self, data_path, name_callback=None, create=False, if_exists=SKIP, suffix="json"
     ):
         super(write_json, self).__init__(
-            input_types="serialisable",
-            output_types=("identifier", "serialisable"),
+            input_types=self._input_types,
+            output_types=self._output_types,
             data_path=data_path,
             name_callback=name_callback,
             create=create,
@@ -492,8 +520,13 @@ class load_db(Composable):
 
     _type = "output"
 
+    _input_types = None
+    _output_types = SERIALISABLE_TYPE
+
     def __init__(self):
-        super(load_db, self).__init__(input_types=None, output_types="serialisable")
+        super(load_db, self).__init__(
+            input_types=self._input_types, output_types=self._output_types
+        )
         self.func = self.read
 
     def read(self, identifier):
@@ -524,12 +557,15 @@ class write_db(_checkpointable):
 
     _type = "output"
 
+    _input_types = SERIALISABLE_TYPE
+    _output_types = (IDENTIFIER_TYPE, SERIALISABLE_TYPE)
+
     def __init__(
         self, data_path, name_callback=None, create=False, if_exists=SKIP, suffix="json"
     ):
         super(write_db, self).__init__(
-            input_types="serialisable",
-            output_types=("identifier", "serialisable"),
+            input_types=self._input_types,
+            output_types=self._output_types,
             data_path=data_path,
             name_callback=name_callback,
             create=create,

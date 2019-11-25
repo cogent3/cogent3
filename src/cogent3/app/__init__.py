@@ -18,17 +18,22 @@ __all__ = ["align", "composable", "dist", "evo", "io", "sample", "translate", "t
 
 def _get_app_attr(name, obj, mod, is_composable):
     """returns app details for display"""
-    in_type = [{None: ""}.get(e, e) for e in getattr(obj, "_input_types", [])]
-    out_type = [{None: ""}.get(e, e) for e in getattr(obj, "_output_types", [])]
-    data_type = [{None: ""}.get(e, e) for e in getattr(obj, "_data_types", [])]
+
+    _types = {"_input_types": [], "_output_types": [], "_data_types": []}
+
+    for tys in _types.keys():
+        types = getattr(obj, tys, None) or []
+        types = [types] if type(types) == str else types
+        _types[tys] = [{None: ""}.get(e, e) for e in types]
+
     row = [
         mod.__name__,
         name,
         is_composable,
         obj.__doc__,
-        ", ".join(in_type),
-        ", ".join(out_type),
-        ", ".join(data_type),
+        ", ".join(_types["_input_types"]),
+        ", ".join(_types["_output_types"]),
+        ", ".join(_types["_data_types"]),
     ]
     return row
 
@@ -59,7 +64,4 @@ def available_apps():
     )
     header = ["module", "name", "composable", "doc", "inputs", "outputs", "data type"]
     table = Table(header, rows)
-    # todo the inputs/outputs/data type columns no longer being populated as
-    # these attributes are instance attributes and not resolved at present
-    table = table.get_columns(["module", "name", "composable", "doc"])
     return table
