@@ -927,13 +927,14 @@ class SequenceCollectionBaseTests(object):
         matches = matches[0].get_annotations_matching("exon")
         self.assertEqual(len(matches), 3)
 
-        # perhaps this belongs in test_sequence?
+        # Class doesn't matter, but only need to run this once
         if self.Class == Alignment:
             # using annotate_from_gff onto a sequence directly will not nest annotations
             sequence = Sequence(seq)
             sequence.annotate_from_gff(gff3_path)
-            matches = [m for m in sequence.get_annotations_matching("*")]
-            self.assertEqual(len(matches), 13)
+            matches = [m for m in sequence.get_annotations_matching("*", extend_query=True)]
+            # 13 features with one having 2 parents, so 14 instances should be found
+            self.assertEqual(len(matches), 14)
 
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""

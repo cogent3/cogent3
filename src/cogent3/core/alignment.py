@@ -1119,79 +1119,28 @@ class SequenceCollection(object):
     def annotate_from_gff(self, f):
         """Copies annotations from gff-format file to self.
 
-        Matches by name of sequence. This method expects a file handle, not
-        the name of a file.
+        Matches by name of sequence. This method accepts string path
+        or pathlib.Path or file-like object (e.g. StringIO)
 
         Skips sequences in the file that are not in self.
         """
 
-        # only features with parent features included in this dict
-        features = dict()
-        fake_id = 0
+        seq_dict = {}
 
         for gff_dict in gff_parser(f):
             if gff_dict["SeqID"] not in self.named_seqs:
                 continue
-            # make the ID's unique
-            id_ = gff_dict["Attributes"]["ID"]
-            if id_ in features.keys():
-                id_ = f"{id_}:{gff_dict['Type']}:{gff_dict['Start']}-{gff_dict['End']}:{fake_id}"
-                fake_id = fake_id + 1
-            if "Parent" not in gff_dict["Attributes"].keys():
-                self.named_seqs[gff_dict["SeqID"]].add_feature(
-                    gff_dict["Type"],
-                    gff_dict["Attributes"]["ID"],
-                    [(gff_dict["Start"], gff_dict["End"])],
-                )
+            seq_id = gff_dict["SeqID"]
+            if seq_id not in seq_dict.keys():
+                seq_dict[seq_id] = [gff_dict]
                 continue
-            features[id_] = gff_dict
-        if features:
-            parents = {}
-            for id_ in features.keys():
-                parents[id_] = features[id_]["Attributes"]["Parent"]
-            sorted_features = self._sort_parents(
-                parents, [], next(iter(features.keys()))
-            )
-            for id_ in sorted_features:
-                matches = []
-                for parent in features[id_]["Attributes"]["Parent"]:
-                    # If a feature has multiple parents, a separate instance is added to each parent
-                    seq = self.named_seqs[features[id_]["SeqID"]]
-                    if not hasattr(seq, "annotations"):
-                        seq = seq.data
-                    matches.extend(
-                        seq.get_annotations_matching(
-                            "*", name=parent, extend_query=True,
-                        )
-                    )
-                for parent in matches:
-                    # Start and end are relative to the parent's absolute starting position
-                    if parent.name not in features.keys():
-                        parent_min = 0
-                    else:
-                        parent_min = min(
-                            features[parent.name]["Start"], features[parent.name]["End"]
-                        )
-                    start = features[id_]["Start"] - parent_min
-                    end = features[id_]["End"] - parent_min
-                    parent.add_feature(
-                        features[id_]["Type"],
-                        features[id_]["Attributes"]["ID"],
-                        [(start, end)],
-                    )
+            seq_dict[seq_id].append(gff_dict)
+        for seq_id in seq_dict.keys():
+            seq = self.named_seqs[seq_id]
+            if not hasattr(seq, "annotations"):
+                seq = seq.data
+            seq.annotate_from_gff(seq_dict[seq_id], pre_parsed = True)
 
-    def _sort_parents(self, parents, ordered, key):
-        """returns a list of feature id's with parents before children"""
-        keys = parents.keys()
-        if key in keys:
-            for parent in parents[key]:
-                if parent in keys:
-                    return self._sort_parents(parents, ordered, parent)
-        ordered.append(key)
-        parents.pop(key)
-        if not parents:
-            return ordered
-        return self._sort_parents(parents, ordered, next(iter(keys)))
 
     def __add__(self, other):
         """Concatenates sequence data for same names"""
