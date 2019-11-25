@@ -121,7 +121,7 @@ class GffTest(TestCase):
                 parse_attributes_gff2(x[1][8], (x[1][3], x[1][4]))["ID"]
                 for x in data_lines
             ],
-            ["HBA_HUMAN", "dJ102G20.C1.1", "(7201, 7104)", "BROADO5"],
+            ["HBA_HUMAN", "dJ102G20.C1.1", "", "BROADO5"],
         )
 
     def test_gff2_parser_string(self):

@@ -1156,10 +1156,11 @@ class SequenceCollection(object):
                 matches = []
                 for parent in features[id_]["Attributes"]["Parent"]:
                     # If a feature has multiple parents, a separate instance is added to each parent
+                    seq = self.named_seqs[features[id_]["SeqID"]]
+                    if not hasattr(seq, "annotations"):
+                        seq = seq.data
                     matches.extend(
-                        self.named_seqs[
-                            features[id_]["SeqID"]
-                        ].data.get_annotations_matching(
+                        seq.get_annotations_matching(
                             "*", name=parent, extend_query=True,
                         )
                     )
