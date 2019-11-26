@@ -1,0 +1,15 @@
+##gff-version 3
+# Tests nesting, out of order features, multiple parents, and non-unique id's, no attributes
+I	Coding_transcript	CDS	10	20	.	-	0	ID=CDS:B0019.1;Parent=Transcript:B0019.1,Gene:WBGene00000138;locus=amx-2;status=Partially_confirmed;wormpep=CE:CE40797
+I	Coding_transcript	CDS	30	45	.	-	2	ID=CDS:B0019.1;Parent=Transcript:B0019.1;locus=amx-2;status=Partially_confirmed;wormpep=CE:CE40797
+I	Coding_transcript	CDS	60	70	.	-	2	ID=CDS:B0019.1;Parent=Transcript:B0019.1;locus=amx-2;status=Partially_confirmed;wormpep=CE:CE40797
+I	Coding_transcript	mRNA	10	70	.	-	.	ID=Transcript:B0019.1;Note=amx-2;Parent=Gene:WBGene00000138;cds=B0019.1;prediction_status=Partially_confirmed;wormpep=CE:CE40797
+I	Allele	SNP	13	13	.	+	.
+I	Coding_transcript	exon	10	20	.	-	0	Parent=Transcript:B0019.1
+I	Coding_transcript	exon	30	45	.	-	2	Parent=Transcript:B0019.1
+I	Coding_transcript	exon	60	70	.	-	2	Parent=Transcript:B0019.1
+I	Coding_transcript	five_prime_UTR	1	9	.	-	.	Parent=Transcript:B0019.1
+I	Coding_transcript	three_prime_UTR	71	100	.	-	.	Parent=Transcript:B0019.1
+I	Coding_transcript	intron	21	29	.	-	.	Parent=Transcript:B0019.1;confirmed_est=EC027594
+I	Coding_transcript	intron	46	59	.	-	.	Parent=Transcript:B0019.1;confirmed_est=EC027594
+I	Coding_transcript	gene	1	100	.	-	.	ID=Gene:WBGene00000138

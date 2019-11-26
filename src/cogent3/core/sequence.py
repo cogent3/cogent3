@@ -736,26 +736,79 @@ class Sequence(_Annotatable, SequenceI):
     def copy_annotations(self, other):
         self.annotations = other.annotations[:]
 
-    def annotate_from_gff(self, f):
+    def annotate_from_gff(self, f, pre_parsed=False):
+        """annotates a Sequence from a gff file where each entry has the same SeqID"""
         first_seqname = None
-        for (
-            seqname,
-            source,
-            feature,
-            start,
-            end,
-            score,
-            strand,
-            frame,
-            attributes,
-            comments,
-        ) in gff.gff2_parser(f):
+        # only features with parent features included in the 'features' dict
+        features = dict()
+        fake_id = 0
+        if pre_parsed:
+            gff_contents = f
+        else:
+            gff_contents = gff.gff_parser(f)
+        for gff_dict in gff_contents:
             if first_seqname is None:
-                first_seqname = seqname
+                first_seqname = gff_dict["SeqID"]
             else:
-                assert seqname == first_seqname, (seqname, first_seqname)
-            feat_label = gff.parse_attributes(attributes)
-            self.add_feature(feature, feat_label, [(start, end)])
+                assert gff_dict["SeqID"] == first_seqname, (
+                    gff_dict["SeqID"],
+                    first_seqname,
+                )
+            # ensure the ID is unique
+            id_ = gff_dict["Attributes"]["ID"]
+            if id_ in features.keys():
+                id_ = f"{id_}:{gff_dict['Type']}:{gff_dict['Start']}-{gff_dict['End']}:{fake_id}"
+                fake_id = fake_id + 1
+            if "Parent" not in gff_dict["Attributes"].keys():
+                self.add_feature(
+                    gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])],
+                )
+                continue
+            features[id_] = gff_dict
+        if features:
+            parents = {}
+            for id_ in features.keys():
+                parents[id_] = features[id_]["Attributes"]["Parent"]
+            sorted_features = self._sort_parents(
+                parents, [], next(iter(features.keys()))
+            )
+            for id_ in sorted_features:
+                matches = []
+                for parent in features[id_]["Attributes"]["Parent"]:
+                    # If a feature has multiple parents, a separate instance is added to each parent
+                    matches.extend(
+                        self.get_annotations_matching(
+                            "*", name=parent, extend_query=True,
+                        )
+                    )
+                for parent in matches:
+                    # Start and end are relative to the parent's absolute starting position
+                    if parent.name not in features.keys():
+                        parent_min = 0
+                    else:
+                        parent_min = min(
+                            features[parent.name]["Start"], features[parent.name]["End"]
+                        )
+                    start = features[id_]["Start"] - parent_min
+                    end = features[id_]["End"] - parent_min
+                    parent.add_feature(
+                        features[id_]["Type"],
+                        features[id_]["Attributes"]["ID"],
+                        [(start, end)],
+                    )
+
+    def _sort_parents(self, parents, ordered, key):
+        """returns a list of feature id's with parents before children"""
+        keys = parents.keys()
+        if key in keys:
+            for parent in parents[key]:
+                if parent in keys:
+                    return self._sort_parents(parents, ordered, parent)
+        ordered.append(key)
+        parents.pop(key)
+        if not parents:
+            return ordered
+        return self._sort_parents(parents, ordered, next(iter(keys)))
 
     def with_masked_annotations(
         self, annot_types, mask_char=None, shadow=False, extend_query=False

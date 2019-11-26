@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import json
+import os
 import re
 import sys
 import unittest
@@ -898,6 +899,33 @@ class SequenceCollectionBaseTests(object):
             aln_seq_3 = aln.get_seq("seq3")
             matches = [m for m in aln_seq_3.get_annotations_matching("*")]
             self.assertFalse("-" in matches[0].get_slice())
+
+    def test_annotate_from_gff3(self):
+        """annotate_from_gff should work on data from gff3 files"""
+        from cogent3.parse.fasta import FastaParser
+
+        if self.Class == ArrayAlignment:
+            return
+
+        fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
+        gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
+        name, seq = next(FastaParser(fasta_path))
+
+        # using annotate_from_gff will nest annotations
+        aln = self.Class({name: seq})
+        aln.annotate_from_gff(gff3_path)
+        aln_seq = aln.named_seqs[name]
+        if not hasattr(aln_seq, "annotations"):
+            aln_seq = aln_seq.data
+        matches = [m for m in aln_seq.get_annotations_matching("*", extend_query=True)]
+        # 13 features with one having 2 parents, so 14 instances should be found
+        self.assertEqual(len(matches), 14)
+        matches = [m for m in aln_seq.get_annotations_matching("gene")]
+        self.assertEqual(len(matches), 1)
+        matches = matches[0].get_annotations_matching("mRNA")
+        self.assertEqual(len(matches), 1)
+        matches = matches[0].get_annotations_matching("exon")
+        self.assertEqual(len(matches), 3)
 
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""
