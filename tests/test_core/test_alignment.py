@@ -911,7 +911,7 @@ class SequenceCollectionBaseTests(object):
         gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
         name, seq = next(FastaParser(fasta_path))
 
-        # using annotate_from_gff on an Alignment will nest annotations
+        # using annotate_from_gff will nest annotations
         aln = self.Class({name: seq})
         aln.annotate_from_gff(gff3_path)
         aln_seq = aln.named_seqs[name]
@@ -926,15 +926,6 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(len(matches), 1)
         matches = matches[0].get_annotations_matching("exon")
         self.assertEqual(len(matches), 3)
-
-        # Class doesn't matter, but only need to run this once
-        if self.Class == Alignment:
-            # using annotate_from_gff onto a sequence directly will not nest annotations
-            sequence = Sequence(seq)
-            sequence.annotate_from_gff(gff3_path)
-            matches = [m for m in sequence.get_annotations_matching("*", extend_query=True)]
-            # 13 features with one having 2 parents, so 14 instances should be found
-            self.assertEqual(len(matches), 14)
 
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""

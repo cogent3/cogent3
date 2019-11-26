@@ -3,6 +3,7 @@
 """
 
 import json
+import os
 import re
 
 from pickle import dumps
@@ -192,6 +193,20 @@ class SequenceTests(TestCase):
         self.assertEqual(annot4_slice[10:20], got_slice[10:20])
         self.assertEqual(got.moltype.label, "rna")
         self.assertEqual(got.name, "test3")
+
+    def test_annotate_from_gff(self):
+        """correctly annotates a Sequence from a gff file"""
+        from cogent3.parse.fasta import FastaParser
+
+        fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
+        gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
+        name, seq = next(FastaParser(fasta_path))
+
+        sequence = Sequence(seq)
+        sequence.annotate_from_gff(gff3_path)
+        matches = [m for m in sequence.get_annotations_matching("*", extend_query=True)]
+        # 13 features with one having 2 parents, so 14 instances should be found
+        self.assertEqual(len(matches), 14)
 
     def test_strip_degenerate(self):
         """Sequence strip_degenerate should remove any degenerate bases"""

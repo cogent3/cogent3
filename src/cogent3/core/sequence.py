@@ -736,8 +736,7 @@ class Sequence(_Annotatable, SequenceI):
     def copy_annotations(self, other):
         self.annotations = other.annotations[:]
 
-
-    def annotate_from_gff(self, f, pre_parsed = False):
+    def annotate_from_gff(self, f, pre_parsed=False):
         """annotates a Sequence from a gff file where each entry has the same SeqID"""
         first_seqname = None
         # only features with parent features included in the 'features' dict
@@ -762,9 +761,7 @@ class Sequence(_Annotatable, SequenceI):
                 fake_id = fake_id + 1
             if "Parent" not in gff_dict["Attributes"].keys():
                 self.add_feature(
-                    gff_dict["Type"],
-                    id_,
-                    [(gff_dict["Start"], gff_dict["End"])],
+                    gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])],
                 )
                 continue
             features[id_] = gff_dict
@@ -800,7 +797,6 @@ class Sequence(_Annotatable, SequenceI):
                         [(start, end)],
                     )
 
-
     def _sort_parents(self, parents, ordered, key):
         """returns a list of feature id's with parents before children"""
         keys = parents.keys()
@@ -813,7 +809,6 @@ class Sequence(_Annotatable, SequenceI):
         if not parents:
             return ordered
         return self._sort_parents(parents, ordered, next(iter(keys)))
-
 
     def with_masked_annotations(
         self, annot_types, mask_char=None, shadow=False, extend_query=False

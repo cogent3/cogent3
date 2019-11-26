@@ -1139,8 +1139,7 @@ class SequenceCollection(object):
             seq = self.named_seqs[seq_id]
             if not hasattr(seq, "annotations"):
                 seq = seq.data
-            seq.annotate_from_gff(seq_dict[seq_id], pre_parsed = True)
-
+            seq.annotate_from_gff(seq_dict[seq_id], pre_parsed=True)
 
     def __add__(self, other):
         """Concatenates sequence data for same names"""
