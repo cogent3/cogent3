@@ -761,7 +761,7 @@ class Sequence(_Annotatable, SequenceI):
                 fake_id = fake_id + 1
             if "Parent" not in gff_dict["Attributes"].keys():
                 self.add_feature(
-                    gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])],
+                    gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])]
                 )
                 continue
             features[id_] = gff_dict
@@ -778,7 +778,7 @@ class Sequence(_Annotatable, SequenceI):
                     # If a feature has multiple parents, a separate instance is added to each parent
                     matches.extend(
                         self.get_annotations_matching(
-                            "*", name=parent, extend_query=True,
+                            "*", name=parent, extend_query=True
                         )
                     )
                 for parent in matches:

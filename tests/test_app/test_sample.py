@@ -411,6 +411,14 @@ class TranslateTests(TestCase):
 
     def test_trim_stop_codons(self):
         """trims stop codons using the specified genetic code"""
+        trimmer = sample.trim_stop_codons()  # defaults to standard code
+        seqs = make_unaligned_seqs(
+            data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"}, moltype="dna"
+        )
+        got = trimmer(seqs)
+        expect = {"seq1": "AAATTTCCC", "seq2": "AAATTT"}
+        self.assertEqual(got.to_dict(), expect)
+
         trimmer = sample.trim_stop_codons(gc=1)  # standard code
         seqs = make_unaligned_seqs(
             data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"}, moltype="dna"
