@@ -653,8 +653,14 @@ class trim_stop_codons(ComposableSeq):
     _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
     _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
 
-    def __init__(self, gc):
+    def __init__(self, gc=1):
         """selects named sequences from a collection
+
+        Parameters
+        ----------
+        gc
+            identifier for a genetic code or a genetic code instance, defaults
+            to standard genetic code
 
         Returns
         -------
