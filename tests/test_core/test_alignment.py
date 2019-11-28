@@ -20,6 +20,7 @@ from cogent3.core.alignment import (
     ArrayAlignment,
     DataError,
     SequenceCollection,
+    _SequenceCollectionBase,
     aln_from_array,
     aln_from_array_aln,
     aln_from_array_seqs,
@@ -466,7 +467,7 @@ class SequenceCollectionBaseTests(object):
     def test_take_seqs(self):
         """SequenceCollection take_seqs should return new SequenceCollection with selected seqs."""
         a = self.ragged_padded.take_seqs(list("bc"))
-        self.assertTrue(isinstance(a, SequenceCollection))
+        self.assertTrue(isinstance(a, _SequenceCollectionBase))
         self.assertEqual(a, {"b": "AAA---", "c": "AAAA--"})
         # should be able to negate
         a = self.ragged_padded.take_seqs(list("bc"), negate=True)
@@ -475,7 +476,7 @@ class SequenceCollectionBaseTests(object):
     def test_take_seqs_str(self):
         """string arg to SequenceCollection take_seqs should work."""
         a = self.ragged_padded.take_seqs("a", negate=True)
-        self.assertTrue(isinstance(a, SequenceCollection))
+        self.assertTrue(isinstance(a, _SequenceCollectionBase))
         self.assertEqual(a, {"b": "AAA---", "c": "AAAA--"})
         # should be able to negate
         a = self.ragged_padded.take_seqs("a")
@@ -539,7 +540,7 @@ class SequenceCollectionBaseTests(object):
         srp.names = list(srp.named_seqs.keys())
         self.assertEqual(srp.take_seqs_if(is_med), {"c": "AAAA--", "a": "AAAAAA"})
         self.assertEqual(srp.take_seqs_if(is_any), srp)
-        self.assertTrue(isinstance(srp.take_seqs_if(is_med), SequenceCollection))
+        self.assertTrue(isinstance(srp.take_seqs_if(is_med), _SequenceCollectionBase))
         # should be able to negate
         self.assertEqual(srp.take_seqs_if(is_med, negate=True), {"b": "AAA---"})
 
@@ -853,6 +854,8 @@ class SequenceCollectionBaseTests(object):
 
     def test_copy_annotations(self):
         """SequenceCollection copy_annotations should copy from seq objects"""
+        if self.Class == ArrayAlignment:
+            return
         aln = self.Class({"seq1": "ACGU", "seq2": "CGUA", "seq3": "CCGU"})
         seq_1 = Sequence("ACGU", name="seq1")
         seq_1.add_feature("xyz", "abc", [(1, 2)])
@@ -1143,7 +1146,7 @@ class SequenceCollectionBaseTests(object):
         # check new object creation
         self.assertNotSameObj(self.gaps.omit_gap_seqs(0.99), self.gaps)
         self.assertTrue(
-            isinstance(self.gaps.omit_gap_seqs(3.0 / 7), SequenceCollection)
+            isinstance(self.gaps.omit_gap_seqs(3.0 / 7), _SequenceCollectionBase)
         )
         # repeat tests for object that supplies its own gaps
         self.assertEqual(self.gaps_rna.omit_gap_seqs(-1), {})
@@ -1165,7 +1168,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(self.gaps_rna.omit_gap_seqs(0.99), self.gaps_rna)
         self.assertNotSameObj(self.gaps_rna.omit_gap_seqs(0.99), self.gaps_rna)
         self.assertTrue(
-            isinstance(self.gaps_rna.omit_gap_seqs(3.0 / 7), SequenceCollection)
+            isinstance(self.gaps_rna.omit_gap_seqs(3.0 / 7), _SequenceCollectionBase)
         )
 
     def test_omit_gap_runs(self):
@@ -1183,7 +1186,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(self.gaps.omit_gap_runs(1000), self.gaps)
         # test new object creation
         self.assertNotSameObj(self.gaps.omit_gap_runs(6), self.gaps)
-        self.assertTrue(isinstance(self.gaps.omit_gap_runs(6), SequenceCollection))
+        self.assertTrue(isinstance(self.gaps.omit_gap_runs(6), _SequenceCollectionBase))
 
     def test_consistent_gap_degen_handling(self):
         """gap degen character should be treated consistently"""
@@ -1544,7 +1547,9 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(
             self.gaps.take_positions([5, 4, 0]), {"a": "AAA", "b": "A-A", "c": "--A"}
         )
-        self.assertTrue(isinstance(self.gaps.take_positions([0]), SequenceCollection))
+        self.assertTrue(
+            isinstance(self.gaps.take_positions([0]), _SequenceCollectionBase)
+        )
         # should be able to negate
         self.assertEqual(
             self.gaps.take_positions([5, 4, 0], negate=True),
@@ -1618,7 +1623,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(self.gaps.take_positions_if(is_list), self.gaps)
 
         self.assertTrue(
-            isinstance(self.gaps.take_positions_if(gap_1st), SequenceCollection)
+            isinstance(self.gaps.take_positions_if(gap_1st), _SequenceCollectionBase)
         )
         # should be able to negate
         self.assertEqual(self.gaps.take_positions_if(gap_1st, negate=True), self.gaps)
