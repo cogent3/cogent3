@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """Unit tests for GFF and related parsers.
 """
+import os
+
 from io import StringIO
 from pathlib import Path
 from unittest import TestCase, main
@@ -91,36 +93,60 @@ class GffTest(TestCase):
     """Setup data for all the GFF parsers."""
 
     def testGffParserData(self):
-        """Test GffParser with valid data lines"""
+        """Test gff_parser with valid data lines"""
         for (line, canned_result) in data_lines:
             result = next(gff_parser(StringIO(line)))
-            self.assertEqual(result, canned_result)
+            canned_result = list(canned_result)
+            self.assertEqual(result.pop("Attributes")["Info"], canned_result.pop(8))
+            self.assertEqual(set(result.values()), set(canned_result))
 
-    def testGffParserHeaders(self):
-        """Test GffParser with valid data headers"""
+    def test_gff_parser_headers(self):
+        """Test gff_parser with valid data headers"""
         data = "".join([x[0] for x in data_lines])
         for header in headers:
             result = list(gff_parser(StringIO(header + data)))
-            self.assertEqual(result, [x[1] for x in data_lines])
+            lines = [(x[0], list(x[1])) for x in data_lines]
+            self.assertEqual(
+                [l.pop("Attributes")["Info"] for l in result],
+                [x[1].pop(8) for x in lines],
+            )
+            self.assertEqual(
+                [set(l.values()) for l in result], [set(x[1]) for x in lines]
+            )
 
-    def test_parse_attributes(self):
-        """Test parse_attributes"""
+    def test_parse_attributes_gff2(self):
+        """Test the parse_attributes_gff2 method"""
         self.assertEqual(
-            [parse_attributes(x[1][8]) for x in data_lines],
+            [
+                parse_attributes_gff2(x[1][8], (x[1][3], x[1][4]))["ID"]
+                for x in data_lines
+            ],
             ["HBA_HUMAN", "dJ102G20.C1.1", "", "BROADO5"],
         )
 
     def test_gff2_parser_string(self):
         """Test the gff_parser works with a string filepath"""
-        filepath = "data/gff2_test.gff"
+        filepath = os.path.join("data/gff2_test.gff")
         for i, result in enumerate(gff_parser(filepath)):
-            self.assertEqual(result, data_lines[i][1])
+            line = list(data_lines[i][1])
+            self.assertEqual(result.pop("Attributes")["Info"], line.pop(8))
+            self.assertEqual(set(result.values()), set(line))
 
     def test_gff2_parser_path(self):
         """Test the gff_parser works with a pathlib.Path filepath"""
         filepath = Path("data/gff2_test.gff")
         for i, result in enumerate(gff_parser(filepath)):
-            self.assertEqual(result, data_lines[i][1])
+            line = list(data_lines[i][1])
+            self.assertEqual(result.pop("Attributes")["Info"], line.pop(8))
+            self.assertEqual(set(result.values()), set(line))
+
+    def test_gff3_parser(self):
+        """Test the gff_parser works on a gff3 file"""
+        gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
+        for i, result in enumerate(gff_parser(gff3_path)):
+            self.assertEqual(len(result), 10)
+        # 15 total lines, but 2 comments
+        self.assertEqual(i + 1, 15 - 2)
 
 
 if __name__ == "__main__":

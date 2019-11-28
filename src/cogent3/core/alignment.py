@@ -64,7 +64,7 @@ from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.nexus import nexus_from_alignment
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.parse.gff import gff2_parser, parse_attributes
+from cogent3.parse.gff import gff_parser
 from cogent3.util import progress_display as UI
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
@@ -1119,27 +1119,27 @@ class SequenceCollection(object):
     def annotate_from_gff(self, f):
         """Copies annotations from gff-format file to self.
 
-        Matches by name of sequence. This method expects a file handle, not
-        the name of a file.
+        Matches by name of sequence. This method accepts string path
+        or pathlib.Path or file-like object (e.g. StringIO)
 
         Skips sequences in the file that are not in self.
         """
-        for (
-            name,
-            source,
-            feature,
-            start,
-            end,
-            score,
-            strand,
-            frame,
-            attributes,
-            comments,
-        ) in gff2_parser(f):
-            if name in self.named_seqs:
-                self.named_seqs[name].add_feature(
-                    feature, parse_attributes(attributes), [(start, end)]
-                )
+
+        seq_dict = {}
+
+        for gff_dict in gff_parser(f):
+            if gff_dict["SeqID"] not in self.named_seqs:
+                continue
+            seq_id = gff_dict["SeqID"]
+            if seq_id not in seq_dict.keys():
+                seq_dict[seq_id] = [gff_dict]
+                continue
+            seq_dict[seq_id].append(gff_dict)
+        for seq_id in seq_dict.keys():
+            seq = self.named_seqs[seq_id]
+            if not hasattr(seq, "annotations"):
+                seq = seq.data
+            seq.annotate_from_gff(seq_dict[seq_id], pre_parsed=True)
 
     def __add__(self, other):
         """Concatenates sequence data for same names"""
@@ -2073,8 +2073,10 @@ class Aligned(object):
         result = Aligned(map[self.map.inverse()].inverse(), self.data)
         return result
 
-    def get_annotations_matching(self, alignment, annotation_type="*", *args):
-        for annot in self.data.get_annotations_matching(annotation_type, *args):
+    def get_annotations_matching(self, alignment, annotation_type="*", **kwargs):
+        for annot in self.data.get_annotations_matching(
+            annotation_type=annotation_type, **kwargs
+        ):
             yield annot.remapped_to(alignment, self.map.inverse())
 
     def get_drawables(self):
@@ -4172,17 +4174,17 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         aln_annots = self.get_annotations_matching(*args)
         return [self.project_annotation(seq_name, a) for a in aln_annots]
 
-    def get_annotations_from_seq(self, seq_name, annotation_type="*", *args):
+    def get_annotations_from_seq(self, seq_name, annotation_type="*", **kwargs):
         aligned = self.named_seqs[seq_name]
         return aligned.get_annotations_matching(
-            self, annotation_type=annotation_type, *args
+            self, annotation_type=annotation_type, **kwargs
         )
 
-    def get_annotations_from_any_seq(self, annotation_type="*", *args):
+    def get_annotations_from_any_seq(self, annotation_type="*", **kwargs):
         result = []
         for seq_name in self.names:
             a = self.get_annotations_from_seq(
-                seq_name, annotation_type=annotation_type, *args
+                seq_name, annotation_type=annotation_type, **kwargs
             )
             result.extend(a)
         return result

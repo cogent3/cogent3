@@ -99,6 +99,10 @@ class omit_degenerates(ComposableAligned):
     """Excludes alignment columns with degenerate conditions. Can accomodate
     reading frame. Returns modified Alignment."""
 
+    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment")
+
     def __init__(self, moltype=None, gap_is_degen=True, motif_length=1):
         """excludes degenerate characters from alignment
 
@@ -114,9 +118,9 @@ class omit_degenerates(ComposableAligned):
             is excluded
         """
         super(omit_degenerates, self).__init__(
-            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            data_types=("ArrayAlignment", "Alignment"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         if moltype:
@@ -148,6 +152,10 @@ class omit_gap_pos(ComposableAligned):
     """Excludes gapped alignment columns meeting a threshold. Can accomodate
     reading frame. Returns modified Alignment."""
 
+    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment")
+
     def __init__(self, allowed_frac=0.99, motif_length=1, moltype=None):
         """
         Parameters
@@ -161,9 +169,9 @@ class omit_gap_pos(ComposableAligned):
             molecular type, must be either DNA or RNA
         """
         super(omit_gap_pos, self).__init__(
-            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            data_types=("ArrayAlignment", "Alignment"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         if moltype:
@@ -194,6 +202,10 @@ class take_codon_positions(ComposableAligned):
     """Extracts the specified codon position(s) from an alignment. 
     Returns an Alignment."""
 
+    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment")
+
     def __init__(
         self,
         *positions,
@@ -217,9 +229,9 @@ class take_codon_positions(ComposableAligned):
             molecular type, must be either DNA or RNA
         """
         super(take_codon_positions, self).__init__(
-            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            data_types=("ArrayAlignment", "Alignment"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         assert moltype is not None
@@ -287,6 +299,10 @@ class take_named_seqs(ComposableSeq):
     """Extracts (or everything but) named sequences. Returns a filtered
     sequences, alignment that satisified the condition, NotCompleted otherwise."""
 
+    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
+
     def __init__(self, *names, negate=False):
         """selects named sequences from a collection
 
@@ -296,9 +312,9 @@ class take_named_seqs(ComposableSeq):
         in the collection.
         """
         super(take_named_seqs, self).__init__(
-            input_types=(SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
-            data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         self._names = names
@@ -319,6 +335,10 @@ class min_length(ComposableSeq):
     """Filters sequence collections / alignments by length. Returns the 
     data if it satisfies the condition, NotCompleted otherwise."""
 
+    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
+
     def __init__(self, length, motif_length=1, subtract_degen=True, moltype=None):
         """
         Parameters
@@ -333,9 +353,9 @@ class min_length(ComposableSeq):
             molecular type, can be string or instance
         """
         super(min_length, self).__init__(
-            input_types=(SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
-            data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         if motif_length > 1:
@@ -394,6 +414,10 @@ class fixed_length(ComposableAligned):
     """Sample an alignment to a fixed length. Returns an Alignment of the 
     specified length, or NotCompleted if alignment too short."""
 
+    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment")
+
     def __init__(
         self, length, start=0, random=False, seed=None, motif_length=1, moltype=None
     ):
@@ -417,9 +441,9 @@ class fixed_length(ComposableAligned):
             molecular type, can be string or instance
         """
         super(fixed_length, self).__init__(
-            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            data_types=("ArrayAlignment", "Alignment"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         diff = length % motif_length
@@ -490,6 +514,10 @@ class omit_bad_seqs(ComposableAligned):
     """Eliminates sequences from Alignment based on gap fraction, unique gaps.
     Returns modified alignment."""
 
+    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment")
+
     def __init__(self, quantile=None, gap_fraction=1, moltype="dna"):
         """Returns an alignment without the sequences responsible for
         exceeding disallowed_frac.
@@ -508,9 +536,9 @@ class omit_bad_seqs(ComposableAligned):
             molecular type, can be string or instance
         """
         super(omit_bad_seqs, self).__init__(
-            input_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(ALIGNED_TYPE, SERIALISABLE_TYPE),
-            data_types=("ArrayAlignment", "Alignment"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         if moltype:
@@ -538,6 +566,10 @@ class omit_duplicated(ComposableSeq):
     """Removes redundant sequences, recording dropped sequences in
     seqs.info.dropped. Returns sequence collection with only unique sequences."""
 
+    _input_types = (SEQUENCE_TYPE, SERIALISABLE_TYPE, ALIGNED_TYPE)
+    _output_types = (SEQUENCE_TYPE, SERIALISABLE_TYPE, ALIGNED_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
+
     def __init__(self, mask_degen=False, choose="longest", seed=None, moltype=None):
         """Returns unique sequences, adds 'dropped' key to seqs.info
 
@@ -555,9 +587,9 @@ class omit_duplicated(ComposableSeq):
             molecular type, can be string or instance
         """
         super(omit_duplicated, self).__init__(
-            input_types=(SEQUENCE_TYPE, SERIALISABLE_TYPE, ALIGNED_TYPE),
-            output_types=(SEQUENCE_TYPE, SERIALISABLE_TYPE, ALIGNED_TYPE),
-            data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
 
         assert not choose or choose in "longestrandom"
@@ -617,8 +649,18 @@ class omit_duplicated(ComposableSeq):
 class trim_stop_codons(ComposableSeq):
     """Removes terminal stop codons. Returns sequences / alignment."""
 
-    def __init__(self, gc):
+    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
+
+    def __init__(self, gc=1):
         """selects named sequences from a collection
+
+        Parameters
+        ----------
+        gc
+            identifier for a genetic code or a genetic code instance, defaults
+            to standard genetic code
 
         Returns
         -------
@@ -626,9 +668,9 @@ class trim_stop_codons(ComposableSeq):
         in the collection.
         """
         super(trim_stop_codons, self).__init__(
-            input_types=(SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
-            output_types=(SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE),
-            data_types=("ArrayAlignment", "Alignment", "SequenceCollection"),
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
         )
         self._formatted_params()
         self._gc = gc
