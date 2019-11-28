@@ -4233,11 +4233,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
 
         return identical_sets
 
-    def annotate_from_gff(self, f):
-        """Override annotate_from_gff since an ArrayAlignment cannot be annotated"""
-        raise TypeError(
-            "not supported on ArrayAlignment, use to_type(array_align=True) to convert"
-        )
 
 
 class CodonArrayAlignment(ArrayAlignment):

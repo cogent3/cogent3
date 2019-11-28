@@ -883,8 +883,6 @@ class SequenceCollectionBaseTests(object):
         ]
         gff = list(map("\t".join, gff))
         if self.Class == ArrayAlignment:
-            with self.assertRaises(TypeError):
-                aln.annotate_from_gff(gff)
             return
 
         aln.annotate_from_gff(gff)
