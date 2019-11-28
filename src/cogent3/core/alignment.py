@@ -3014,7 +3014,7 @@ class AlignmentI(object):
         include_gap
             whether to include gap counts, shown on right y-axis
         """
-        from cogent3.draw.drawable import Drawable
+        from cogent3.draw.drawable import Drawable, AnnotatedDrawable
 
         window = window if window else numpy.sqrt(len(self))
         window = int(window)
@@ -3076,7 +3076,6 @@ class AlignmentI(object):
             layout.yaxis2 = dict(
                 title="Count",
                 side="right",
-                overlaying="y",
                 range=[0, max(gap_counts) * 1.2],
                 showgrid=False,
                 showline=True,
@@ -3090,6 +3089,21 @@ class AlignmentI(object):
         draw.traces.extend(traces)
         draw.layout |= layout
         draw.layout.legend = dict(x=1.1, y=1)
+
+        try:
+            drawable = self.get_drawable()
+        except AttributeError:
+            drawable = False
+
+        if drawable:
+            draw = AnnotatedDrawable(
+                draw,
+                bottom_track=drawable,
+                xtitle="position",
+                ytitle=f"Information (window={window})",
+                layout=layout,
+            )
+
         return draw
 
     @UI.display_wrap
