@@ -261,6 +261,7 @@ class AnnotatedDrawable(Drawable):
         self.ytitle = ytitle
         self.yrange = yrange
         self.xrange = xrange
+        self._overlaying = False
 
         core.title = title or core.title
         self.core = core
@@ -270,6 +271,12 @@ class AnnotatedDrawable(Drawable):
     def _build_fig(self, xaxis="x", yaxis="y"):
         f = self.core.figure
         try:
+            if self.layout.yaxis2.overlaying != "free":
+                self._overlaying = True
+        except AttributeError:
+            pass
+
+        try:
             traces = f.traces
             self.layout |= dict(f.layout)
         except AttributeError:
@@ -277,7 +284,10 @@ class AnnotatedDrawable(Drawable):
             self.layout |= f["layout"]
         for trace in traces:
             trace.xaxis = xaxis
-            trace.yaxis = yaxis
+            if self._overlaying and "yaxis" in trace:
+                trace.yaxis = "y3"
+            else:
+                trace.yaxis = yaxis
         self._traces = traces
         ticks_on = dict(_ticks_on)
         f.layout.xaxis.title = self.xtitle
@@ -398,6 +408,10 @@ class AnnotatedDrawable(Drawable):
             yaxis={"anchor": "free", "domain": [0.1135, 1.0], "position": 0.0},
             yaxis2={"anchor": "x", "domain": [0.0, 0.0985]},
         )
+        if self._overlaying:
+            self.layout.yaxis3 = self.layout.yaxis2
+            self.layout.yaxis2 = {}
+            self.layout.legend.x = 1.3
         layout |= dict(self.layout)
         fig = UnionDict(data=[], layout=layout)
 

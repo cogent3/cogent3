@@ -60,7 +60,7 @@ class ProgressContext:
                 total=1,
                 position=self.depth,
                 leave=True,
-                bar_format="{desc} {percentage:3.0f}%|{bar}| ",
+                bar_format="{desc} {percentage:3.0f}%|{bar}|{elapsed}<{remaining}",
                 mininterval=self.mininterval,
             )
 
