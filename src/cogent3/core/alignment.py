@@ -3078,6 +3078,7 @@ class AlignmentI(object):
             layout.yaxis2 = dict(
                 title="Count",
                 side="right",
+                overlaying="y",
                 range=[0, max(gap_counts) * 1.2],
                 showgrid=False,
                 showline=True,
