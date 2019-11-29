@@ -352,8 +352,8 @@ def seqs_from_empty(obj, *args, **kwargs):
 
 
 @total_ordering
-class SequenceCollection(object):
-    """base class for Alignment, but also just stores unaligned seqs.
+class _SequenceCollectionBase:
+    """base class for ArrayAlignment and SequeqnceCollection
 
     Handles shared functionality: detecting the input type, writing out the
     sequences as different formats, translating the sequences, chopping off
@@ -1099,47 +1099,6 @@ class SequenceCollection(object):
     def num_seqs(self):
         """Returns the number of sequences in the alignment."""
         return len(self.named_seqs)
-
-    def copy_annotations(self, unaligned):
-        """Copies annotations from seqs in unaligned to self, matching by name.
-
-        Alignment programs like ClustalW don't preserve annotations,
-        so this method is available to copy annotations off the unaligned
-        sequences.
-
-        unaligned should be a dictionary of Sequence instances.
-
-        Ignores sequences that are not in self, so safe to use on larger dict
-        of seqs that are not in the current collection/alignment.
-        """
-        for name, seq in list(unaligned.items()):
-            if name in self.named_seqs:
-                self.named_seqs[name].copy_annotations(seq)
-
-    def annotate_from_gff(self, f):
-        """Copies annotations from gff-format file to self.
-
-        Matches by name of sequence. This method accepts string path
-        or pathlib.Path or file-like object (e.g. StringIO)
-
-        Skips sequences in the file that are not in self.
-        """
-
-        seq_dict = {}
-
-        for gff_dict in gff_parser(f):
-            if gff_dict["SeqID"] not in self.named_seqs:
-                continue
-            seq_id = gff_dict["SeqID"]
-            if seq_id not in seq_dict.keys():
-                seq_dict[seq_id] = [gff_dict]
-                continue
-            seq_dict[seq_id].append(gff_dict)
-        for seq_id in seq_dict.keys():
-            seq = self.named_seqs[seq_id]
-            if not hasattr(seq, "annotations"):
-                seq = seq.data
-            seq.annotate_from_gff(seq_dict[seq_id], pre_parsed=True)
 
     def __add__(self, other):
         """Concatenates sequence data for same names"""
@@ -1941,6 +1900,271 @@ class SequenceCollection(object):
 
         return array(result)
 
+
+class SequenceCollection(_SequenceCollectionBase):
+    """base class for Alignment.
+
+    Handles shared functionality: detecting the input type, writing out the
+    sequences as different formats, translating the sequences, chopping off
+    stop codons, looking up sequences by name, etc.
+
+    A SequenceCollection must support:
+
+    - input handlers for different data types
+    - seq_data: behaves like list of lists of chars, holds seq data
+    - seqs: behaves like list of Sequence objects, iterable in name order
+    - names: behaves like list of names for the sequence objects
+    - named_seqs: behaves like dict of {name:seq}
+    - moltype: specifies what kind of sequences are in the collection
+    """
+
+    _input_handlers = {
+        "array": seqs_from_array,
+        "array_seqs": seqs_from_array_seqs,
+        "generic": seqs_from_generic,
+        "fasta": seqs_from_fasta,
+        "collection": seqs_from_aln,
+        "aln": seqs_from_aln,
+        "array_aln": seqs_from_aln,
+        "dict": seqs_from_dict,
+        "empty": seqs_from_empty,
+        "kv_pairs": seqs_from_kv_pairs,
+    }
+
+    is_array = set(["array", "array_seqs"])
+
+    _make_names = assign_sequential_names
+
+    def __init__(
+        self,
+        data,
+        names=None,
+        alphabet=None,
+        moltype=None,
+        name=None,
+        info=None,
+        conversion_f=None,
+        is_array=False,
+        force_same_data=False,
+        remove_duplicate_names=False,
+        label_to_name=None,
+        suppress_named_seqs=False,
+    ):
+        """Initialize self with data and optionally info.
+
+        We are always going to convert to characters, so Sequence objects
+        in the collection will lose additional special attributes they have.
+        This is somewhat inefficient, so it might be worth revisiting this
+        decision later.
+
+        The handling of sequence names requires special attention. Depending
+        on the input data, we might get the names from the sequences themselves,
+        or we might add them from Names that are passed in. However, the Names
+        attribute controls the order that we examine the sequences in, so if
+        it is passed in it should override the order that we got from the
+        input data (e.g. you might pass in unlabeled sequences with the names
+        ['b','a'], so that you want the first sequence to be called 'b' and
+        the second to be called 'a', or you might pass in labeled sequences,
+        e.g. as a dict, and the names ['b','a'], indicating that you want the
+        sequence called b to be first and the sequence called a to be second
+        despite the fact that they are in arbitrary order in the original
+        input. In this second situation, it is imortant that the sequences not
+        be relabeled.
+
+        This is handled as followed. If the sequences are passed in using a
+        method that does not carry the names with it, the Names that are passed
+        in will be handed out to successive sequences. If the sequences are
+        passed in using a method that does carry the names with it, the Names
+        that are passed in will be used to order the sequences, but they will
+        not be relabeled. Note that if you're passing in a data type that
+        is already labeled (e.g. a list of Sequence objects) you _must_ have
+        unique names beforehand.
+
+        It's possible that this additional handling should be moved to a
+        separate object; the motivation for having it on Alignment __init__
+        is that it's easy for users to construct Alignment objects directly.
+
+        Parameters
+        ----------
+
+        data
+            Data to convert into a SequenceCollection
+        Names
+            Order of Names in the alignment. Should match the
+            names of the sequences (after processing by
+            label_to_name if present).
+        alphabet
+            Alphabet to use for the alignment (primarily important
+            for ArrayAlignment)
+        moltype
+            moltype to be applied to the Alignment and to each seq.
+        name
+            name of the SequenceCollection.
+        info
+            info object to be attached to the alignment itself.
+        conversion_f
+            Function to convert string into sequence.
+        is_array
+            True if input is an array, False otherwise.
+        force_same_data
+            True if data will be used as the same object.
+        remove_duplicate_names
+            True if duplicate names are to be silently
+            deleted instead of raising errors.
+        label_to_name
+            if present, converts name into f(name).
+
+        """
+
+        # read all the data in if we were passed a generator
+        if isinstance(data, GeneratorType):
+            data = list(data)
+        # set the name
+        self.name = name
+        # figure out alphabet and moltype
+        self.alphabet, self.moltype = self._get_alphabet_and_moltype(
+            alphabet, moltype, data
+        )
+        if not isinstance(info, InfoClass):
+            if info:
+                info = InfoClass(info)
+            else:
+                info = InfoClass()
+        self.info = info
+        # if we're forcing the same data, skip the validation
+        if force_same_data:
+            self._force_same_data(data, names)
+            curr_seqs = data
+        # otherwise, figure out what we got and coerce it into the right type
+        else:
+            per_seq_names, curr_seqs, name_order = self._names_seqs_order(
+                conversion_f,
+                data,
+                names,
+                is_array,
+                label_to_name,
+                remove_duplicate_names,
+                alphabet=self.alphabet,
+            )
+            self.names = list(name_order)
+
+            # will take only the seqs and names that are in name_order
+            if per_seq_names != name_order:
+                good_indices = []
+                for n in name_order:
+                    good_indices.append(per_seq_names.index(n))
+                if hasattr(curr_seqs, "astype"):  # it's an array
+                    # much faster to check than to raise exception in this case
+                    curr_seqs = take(curr_seqs, good_indices, axis=0)
+                else:
+                    curr_seqs = [curr_seqs[i] for i in good_indices]
+                per_seq_names = name_order
+
+            # create named_seqs dict for fast lookups
+            if not suppress_named_seqs:
+                self.named_seqs = self._make_named_seqs(self.names, curr_seqs)
+        # Sequence objects behave like sequences of chars, so no difference
+        # between seqs and seq_data. Note that this differs for Alignments,
+        # so be careful which you use if writing methods that should work for
+        # both SequenceCollections and Alignments.
+        self._set_additional_attributes(curr_seqs)
+
+    def get_similar(
+        self,
+        target,
+        min_similarity=0.0,
+        max_similarity=1.0,
+        metric=frac_same,
+        transform=None,
+    ):
+        """Returns new Alignment containing sequences similar to target.
+
+        Parameters
+        ----------
+        target
+            sequence object to compare to. Can be in the alignment.
+        min_similarity
+            minimum similarity that will be kept. Default 0.0.
+        max_similarity
+            maximum similarity that will be kept. Default 1.0.
+            (Note that both min_similarity and max_similarity are inclusive.)
+            metric
+            similarity function to use. Must be f(first_seq, second_seq).
+        The default metric is fraction similarity, ranging from 0.0 (0%
+        identical) to 1.0 (100% identical). The Sequence classes have lots
+        of methods that can be passed in as unbound methods to act as the
+        metric, e.g. frac_same_gaps.
+        transform
+            transformation function to use on the sequences before
+            the metric is calculated. If None, uses the whole sequences in each
+            case. A frequent transformation is a function that returns a specified
+            range of a sequence, e.g. eliminating the ends. Note that the
+            transform applies to both the real sequence and the target sequence.
+
+        WARNING: if the transformation changes the type of the sequence (e.g.
+        extracting a string from an RnaSequence object), distance metrics that
+        depend on instance data of the original class may fail.
+        """
+        if transform:
+            target = transform(target)
+
+        def m(x):
+            return metric(target, x)
+
+        if transform:
+
+            def f(x):
+                result = m(transform(x))
+                return min_similarity <= result <= max_similarity
+
+        else:
+
+            def f(x):
+                result = m(x)
+                return min_similarity <= result <= max_similarity
+
+        return self.take_seqs_if(f)
+
+    def copy_annotations(self, unaligned):
+        """Copies annotations from seqs in unaligned to self, matching by name.
+
+        Alignment programs like ClustalW don't preserve annotations,
+        so this method is available to copy annotations off the unaligned
+        sequences.
+
+        unaligned should be a dictionary of Sequence instances.
+
+        Ignores sequences that are not in self, so safe to use on larger dict
+        of seqs that are not in the current collection/alignment.
+        """
+        for name, seq in list(unaligned.items()):
+            if name in self.named_seqs:
+                self.named_seqs[name].copy_annotations(seq)
+
+    def annotate_from_gff(self, f):
+        """Copies annotations from gff-format file to self.
+
+        Matches by name of sequence. This method accepts string path
+        or pathlib.Path or file-like object (e.g. StringIO)
+
+        Skips sequences in the file that are not in self.
+        """
+
+        seq_dict = {}
+
+        for gff_dict in gff_parser(f):
+            if gff_dict["SeqID"] not in self.named_seqs:
+                continue
+            seq_id = gff_dict["SeqID"]
+            if seq_id not in seq_dict.keys():
+                seq_dict[seq_id] = [gff_dict]
+                continue
+            seq_dict[seq_id].append(gff_dict)
+        for seq_id in seq_dict.keys():
+            seq = self.named_seqs[seq_id]
+            if not hasattr(seq, "annotations"):
+                seq = seq.data
+            seq.annotate_from_gff(seq_dict[seq_id], pre_parsed=True)
 
 @total_ordering
 class Aligned(object):
@@ -3394,7 +3618,7 @@ def aln_from_empty(obj, *args, **kwargs):
 # Implementation of Alignment base class
 
 
-class ArrayAlignment(AlignmentI, SequenceCollection):
+class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
     """Holds a dense array representing a multiple sequence alignment.
 
     An Alignment is _often_, but not necessarily, an array of chars. You might
@@ -4024,11 +4248,6 @@ class ArrayAlignment(AlignmentI, SequenceCollection):
 
         return identical_sets
 
-    def annotate_from_gff(self, f):
-        """Override annotate_from_gff since an ArrayAlignment cannot be annotated"""
-        raise TypeError(
-            "not supported on ArrayAlignment, use to_type(array_align=True) to convert"
-        )
 
 
 class CodonArrayAlignment(ArrayAlignment):
