@@ -12,6 +12,7 @@ performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
 
+import copy
 import json
 import re
 import warnings
@@ -735,6 +736,9 @@ class Sequence(_Annotatable, SequenceI):
 
     def copy_annotations(self, other):
         self.annotations = other.annotations[:]
+
+    def copy(self):
+        return copy.deepcopy(self)
 
     def annotate_from_gff(self, f, pre_parsed=False):
         """annotates a Sequence from a gff file where each entry has the same SeqID"""

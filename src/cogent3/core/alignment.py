@@ -1983,6 +1983,12 @@ class Aligned(object):
         _nil = _nil or []
         return self.__class__(self.map, self.data)
 
+    def deep_copy(self):
+        new_seq = self.data.copy()
+        span = self.map.get_covering_span()
+        new_seq = new_seq[span.start : span.end]
+        return self.__class__(self.map, new_seq)
+
     def __repr__(self):
         return "%s of %s" % (repr(self.map), repr(self.data))
 
