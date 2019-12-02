@@ -738,7 +738,11 @@ class Sequence(_Annotatable, SequenceI):
         self.annotations = other.annotations[:]
 
     def copy(self):
-        return copy.deepcopy(self)
+        new = self.__class__(self._seq, name=self.name, info=self.info)
+        if self.is_annotated():
+            for annot in self.annotations:
+                annot.copy_annotations_to(new)
+        return new
 
     def annotate_from_gff(self, f, pre_parsed=False):
         """annotates a Sequence from a gff file where each entry has the same SeqID"""
