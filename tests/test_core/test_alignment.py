@@ -1937,10 +1937,32 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         """correctly deep copy aligned objects in an alignment"""
         path = "data/brca1_5.paml"
         aln = load_aligned_seqs(path, array_align=False, moltype="dna")
+        aln.AlignedSeqs["NineBande"].data.add_annotation(
+            Feature, "exon", "annot1", [(0, 10)]
+        )
+        aln.AlignedSeqs["Mouse"].data.add_annotation(
+            Feature, "exon", "annot2", [(10, 21)]
+        )
+        aln.AlignedSeqs["Human"].data.add_annotation(
+            Feature, "exon", "annot3", [(20, 25)]
+        )
+        aln.AlignedSeqs["HowlerMon"].data.add_annotation(
+            Feature, "exon", "annot4", [(25, 32)]
+        )
+        aln.AlignedSeqs["DogFaced"].data.add_annotation(
+            Feature, "exon", "annot5", [(40, 45)]
+        )
         aln = aln[20:30]
-        for seq in aln.seqs:
-            new_seq = seq.deepcopy()
+
+        for name in ["Mouse", "Human", "HowlerMon"]:
+            new_seq = aln.AlignedSeqs[name].deepcopy()
             self.assertEqual(len(new_seq.data), 10)
+            self.assertTrue(new_seq.data.is_annotated())
+            self.assertEqual(len(new_seq.data.annotations), 1)
+        for name in ["NineBande", "DogFaced"]:
+            new_seq = aln.AlignedSeqs[name].deepcopy()
+            self.assertEqual(len(new_seq.data), 10)
+            self.assertFalse(new_seq.data.is_annotated())
 
     def test_to_pretty(self):
         """produce correct pretty print formatted text"""

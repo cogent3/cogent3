@@ -86,8 +86,12 @@ class SequenceTests(TestCase):
         annot1 = s.add_annotation(Feature, "exon", "annot1", [(0, 10)])
         annot2 = s.add_annotation(Feature, "exon", "annot2", [(10, 14)])
         got = s.copy()
-        got_annot1 = got.get_annotations_matching(annotation_type="exon", name="annot1")[0]
-        got_annot2 = got.get_annotations_matching(annotation_type="exon", name="annot2")[0]
+        got_annot1 = got.get_annotations_matching(
+            annotation_type="exon", name="annot1"
+        )[0]
+        got_annot2 = got.get_annotations_matching(
+            annotation_type="exon", name="annot2"
+        )[0]
         self.assertIsNot(got, s)
         self.assertIsNot(got_annot1, annot1)
         self.assertIsNot(got_annot2, annot2)
