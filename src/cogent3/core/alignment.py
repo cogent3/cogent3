@@ -1984,6 +1984,7 @@ class Aligned(object):
         return self.__class__(self.map, self.data)
 
     def deep_copy(self):
+        """does a proper slice on the copied sequence and returns a shallow copy of self"""
         new_seq = self.data.copy()
         span = self.map.get_covering_span()
         new_seq = new_seq[span.start : span.end]

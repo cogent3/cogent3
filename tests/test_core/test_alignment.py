@@ -1933,6 +1933,13 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         copied = aln.copy()
         self.assertEqual(aln.info, copied.info)
 
+    def test_deep_copy(self):
+        """correctly deep copy aligned objects in an alignment"""
+        path = str("data/brca1_5.paml")
+        aln = load_aligned_seqs(path, array_align=False, moltype="dna")
+        s = aln[20:30].seqs[0].deep_copy()
+        self.assertEqual(len(s.data), 10)
+
     def test_to_pretty(self):
         """produce correct pretty print formatted text"""
         seqs = {"seq1": "ACGAANGA", "seq2": "-CGAACGA", "seq3": "ATGAACGA"}
