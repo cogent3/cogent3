@@ -1989,12 +1989,12 @@ class Aligned(object):
         _nil = _nil or []
         return self.__class__(self.map, self.data)
 
-    def deepcopy(self, just_span=True):
+    def deepcopy(self, sliced=True):
         """
         does a proper slice on the copied sequence and returns a copy of self
         Parameters
         -----------
-        just_span : bool
+        sliced : bool
             Slices underlying sequence with start/end of self coordinates. This has the effect of breaking the connection
             to any longer parent sequence.
         Returns
@@ -2002,7 +2002,7 @@ class Aligned(object):
         a copy of self
         """
         new_seq = self.data.copy()
-        if just_span:
+        if sliced:
             span = self.map.get_covering_span()
             new_seq = new_seq[span.start : span.end]
         return self.__class__(self.map, new_seq)

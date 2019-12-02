@@ -2522,20 +2522,25 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
     def test_deepcopy(self):
         """correctly deep copy aligned objects in an alignment"""
         path = "data/brca1_5.paml"
-        # Generates an annotatable Alignment object
+        # generates an annotatable Alignment object
         aln = load_aligned_seqs(path, array_align=False, moltype="dna")
+        # when the annotation is outside boundary of the slice
         aln.AlignedSeqs["NineBande"].data.add_annotation(
             Feature, "exon", "annot1", [(0, 10)]
         )
+        # when the annotation is across boundary of the slice
         aln.AlignedSeqs["Mouse"].data.add_annotation(
             Feature, "exon", "annot2", [(10, 21)]
         )
+        # when the annotation is within boundary of the slice
         aln.AlignedSeqs["Human"].data.add_annotation(
             Feature, "exon", "annot3", [(20, 25)]
         )
+        # when the annotation is across boundary of the slice
         aln.AlignedSeqs["HowlerMon"].data.add_annotation(
             Feature, "exon", "annot4", [(25, 32)]
         )
+        # when the annotation is outside boundary of the slice
         aln.AlignedSeqs["DogFaced"].data.add_annotation(
             Feature, "exon", "annot5", [(40, 45)]
         )
@@ -2546,8 +2551,8 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
             self.assertEqual(len(new_seq.data), 10)
             self.assertTrue(new_seq.data.is_annotated())
             self.assertEqual(len(new_seq.data.annotations), 1)
-            # tests the case when just_span argument if False
-            new_seq = aln.AlignedSeqs[name].deepcopy(just_span=False)
+            # tests the case when sliced argument if False
+            new_seq = aln.AlignedSeqs[name].deepcopy(sliced=False)
             self.assertEqual(len(new_seq.data), len(aln.AlignedSeqs[name].data))
             self.assertTrue(new_seq.data.is_annotated())
             self.assertEqual(len(new_seq.data.annotations), 1)
@@ -2555,8 +2560,8 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
             new_seq = aln.AlignedSeqs[name].deepcopy()
             self.assertEqual(len(new_seq.data), 10)
             self.assertFalse(new_seq.data.is_annotated())
-            # tests the case when just_span argument if False
-            new_seq = aln.AlignedSeqs[name].deepcopy(just_span=False)
+            # tests the case when sliced argument if False
+            new_seq = aln.AlignedSeqs[name].deepcopy(sliced=False)
             self.assertEqual(len(new_seq.data), len(aln.AlignedSeqs[name].data))
             self.assertTrue(new_seq.data.is_annotated())
             self.assertEqual(len(new_seq.data.annotations), 1)
@@ -2566,12 +2571,9 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         aln = self.Class([["name1", "TTTTTTAAAA"], ["name2", "AAAATTTTTT"]])
         aln = aln[2:8]
         draw = aln.dotplot(show_progress=False)
-        self.assertEqual(draw._aligned_coords, ([0, 6], [0, 6]))
-        for seq in [draw.seq1, draw.seq2]:
-            if seq.name == "name1":
-                self.assertEqual(seq._seq, "TTTTAA")
-            else:
-                self.assertEqual(seq._seq, "AATTTT")
+        expected = set([("name1", "TTTTAA"), ("name2", "AATTTT")])
+        got = {(s.name, s._seq) for s in (draw.seq1, draw.seq2)}
+        self.assertEqual(got, expected)
 
     def test_to_moltype_annotations(self):
         """correctly convert to specified moltype with proper sequence annotations"""
