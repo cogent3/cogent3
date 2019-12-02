@@ -2556,6 +2556,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         aln = self.Class([["name1", "TTTTTTAAAA"], ["name2", "AAAATTTTTT"]])
         aln = aln[2:8]
         draw = aln.dotplot(show_progress=False)
+        self.assertEqual(draw._aligned_coords, ([0, 6], [0, 6]))
         for seq in [draw.seq1, draw.seq2]:
             if seq.name == "name1":
                 self.assertEqual(seq._seq, "TTTTAA")
