@@ -1771,10 +1771,11 @@ class _SequenceCollectionBase:
         seq1 = self.named_seqs[name1]
         seq2 = self.named_seqs[name2]
 
+        # Deep copying Aligned instance to ensure only region specified by Aligned.map is displayed.
         if isinstance(seq1, Aligned):
-            seq1 = seq1.deep_copy()
+            seq1 = seq1.deepcopy()
         if isinstance(seq2, Aligned):
-            seq2 = seq2.deep_copy()
+            seq2 = seq2.deepcopy()
 
         if seq1.is_annotated() or seq2.is_annotated():
             annotated = True
@@ -1988,11 +1989,22 @@ class Aligned(object):
         _nil = _nil or []
         return self.__class__(self.map, self.data)
 
-    def deep_copy(self):
-        """does a proper slice on the copied sequence and returns a shallow copy of self"""
+    def deepcopy(self, just_span=True):
+        """
+        does a proper slice on the copied sequence and returns a copy of self
+        Parameters
+        -----------
+        just_span : bool
+            Slices underlying sequence with start/end of self coordinates. This has the effect of breaking the connection
+            to any longer parent sequence.
+        Returns
+        -------
+        a copy of self
+        """
         new_seq = self.data.copy()
-        span = self.map.get_covering_span()
-        new_seq = new_seq[span.start : span.end]
+        if just_span:
+            span = self.map.get_covering_span()
+            new_seq = new_seq[span.start : span.end]
         return self.__class__(self.map, new_seq)
 
     def __repr__(self):
@@ -2116,7 +2128,7 @@ class Aligned(object):
 
     def is_annotated(self):
         """returns True if sequence has any annotations"""
-        return len(self.data.annotations) != 0
+        return self.data.is_annotated()
 
 
 class AlignmentI(object):

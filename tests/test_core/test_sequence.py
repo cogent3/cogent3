@@ -81,7 +81,7 @@ class SequenceTests(TestCase):
         self.assertEqual(s.info.z, 3)
 
     def test_copy(self):
-        """correctly returns a deep copy version of self"""
+        """correctly returns a copy version of self"""
         s = Sequence("TTTTTTTTTTAAAA", name="test_copy")
         annot1 = s.add_annotation(Feature, "exon", "annot1", [(0, 10)])
         annot2 = s.add_annotation(Feature, "exon", "annot2", [(10, 14)])

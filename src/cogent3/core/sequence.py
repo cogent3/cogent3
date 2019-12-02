@@ -738,6 +738,7 @@ class Sequence(_Annotatable, SequenceI):
         self.annotations = other.annotations[:]
 
     def copy(self):
+        """returns a copy of self"""
         new = self.__class__(self._seq, name=self.name, info=self.info)
         if self.is_annotated():
             for annot in self.annotations:
