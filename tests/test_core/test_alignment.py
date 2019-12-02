@@ -2546,10 +2546,20 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
             self.assertEqual(len(new_seq.data), 10)
             self.assertTrue(new_seq.data.is_annotated())
             self.assertEqual(len(new_seq.data.annotations), 1)
+            # tests the case when just_span argument if False
+            new_seq = aln.AlignedSeqs[name].deepcopy(just_span=False)
+            self.assertEqual(len(new_seq.data), len(aln.AlignedSeqs[name].data))
+            self.assertTrue(new_seq.data.is_annotated())
+            self.assertEqual(len(new_seq.data.annotations), 1)
         for name in ["NineBande", "DogFaced"]:
             new_seq = aln.AlignedSeqs[name].deepcopy()
             self.assertEqual(len(new_seq.data), 10)
             self.assertFalse(new_seq.data.is_annotated())
+            # tests the case when just_span argument if False
+            new_seq = aln.AlignedSeqs[name].deepcopy(just_span=False)
+            self.assertEqual(len(new_seq.data), len(aln.AlignedSeqs[name].data))
+            self.assertTrue(new_seq.data.is_annotated())
+            self.assertEqual(len(new_seq.data.annotations), 1)
 
     def test_dotplot(self):
         """exercising dotplot method"""
