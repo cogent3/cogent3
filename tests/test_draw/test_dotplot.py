@@ -1,7 +1,7 @@
 from unittest import TestCase, main
 
 from cogent3 import DNA, load_aligned_seqs
-from cogent3.core.alignment import Aligned
+from cogent3.core.alignment import Aligned, ArrayAlignment
 from cogent3.draw.dotplot import (
     Dotplot,
     _convert_coords_for_scatter,
@@ -67,19 +67,19 @@ class TestUtilFunctions(TestCase):
         # we have no gaps, so coords will be None
         m1, s1 = seq1.parse_out_gaps()
         m2, s2 = seq2.parse_out_gaps()
-        self.assertEqual(get_align_coords(m1, m2), None)
+        self.assertEqual(get_align_coords(m1, m2), ([0, 6], [0, 6]))
 
         # unless we indicate the seqs came from an Alignment
         m1, seq1 = DNA.make_seq("ACGGTTTA").parse_out_gaps()
         m2, seq2 = DNA.make_seq("GGGGTTTA").parse_out_gaps()
-        x, y = get_align_coords(m1, m2, aligned=True)
+        x, y = get_align_coords(m1, m2)
         self.assertEqual((x, y), ([0, len(seq1)], [0, len(seq1)]))
 
         # raises an exception if the Aligned seqs are different lengths
         m1, seq1 = DNA.make_seq("ACGGTTTA").parse_out_gaps()
         m2, seq2 = DNA.make_seq("GGGGTT").parse_out_gaps()
         with self.assertRaises(AssertionError):
-            get_align_coords(m1, m2, aligned=True)
+            get_align_coords(m1, m2)
 
     def test_display2d(self):
         """correctly constructs a Display2d"""
@@ -117,6 +117,12 @@ class TestUtilFunctions(TestCase):
         dp.remove_traces("Alignment")
         self.assertEqual(len(dp.traces), 1)
         self.assertEqual(dp.traces[0].name, "+ strand")
+
+    def test_align_without_gaps(self):
+        """alignment is plotted even if sequences have no gaps"""
+        aln = ArrayAlignment({"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"})
+        aln_plot = aln.dotplot("seq1", "seq2")
+        print(aln_plot._aligned_coords)
 
 
 if __name__ == "__main__":
