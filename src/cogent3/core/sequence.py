@@ -1032,7 +1032,7 @@ class Sequence(_Annotatable, SequenceI):
 
     def is_annotated(self):
         """returns True if sequence has any annotations"""
-        return self.annotations != ()
+        return len(self.annotations) != 0
 
 
 class ProteinSequence(Sequence):

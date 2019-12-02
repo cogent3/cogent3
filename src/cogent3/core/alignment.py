@@ -1771,6 +1771,11 @@ class _SequenceCollectionBase:
         seq1 = self.named_seqs[name1]
         seq2 = self.named_seqs[name2]
 
+        if isinstance(seq1, Aligned):
+            seq1 = seq1.deep_copy()
+        if isinstance(seq2, Aligned):
+            seq2 = seq2.deep_copy()
+
         if seq1.is_annotated() or seq2.is_annotated():
             annotated = True
             data = getattr(seq1, "data", seq1)
@@ -2111,7 +2116,7 @@ class Aligned(object):
 
     def is_annotated(self):
         """returns True if sequence has any annotations"""
-        return self.data.annotations != ()
+        return len(self.data.annotations) != 0
 
 
 class AlignmentI(object):
