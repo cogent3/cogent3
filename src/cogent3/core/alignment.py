@@ -1771,6 +1771,12 @@ class _SequenceCollectionBase:
         seq1 = self.named_seqs[name1]
         seq2 = self.named_seqs[name2]
 
+        # Deep copying Aligned instance to ensure only region specified by Aligned.map is displayed.
+        if isinstance(seq1, Aligned):
+            seq1 = seq1.deepcopy()
+        if isinstance(seq2, Aligned):
+            seq2 = seq2.deepcopy()
+
         if seq1.is_annotated() or seq2.is_annotated():
             annotated = True
             data = getattr(seq1, "data", seq1)
@@ -1984,6 +1990,24 @@ class Aligned(object):
         _nil = _nil or []
         return self.__class__(self.map, self.data)
 
+    def deepcopy(self, sliced=True):
+        """
+        does a proper slice on the copied sequence when sliced is True and returns a deep copy of self
+        Parameters
+        -----------
+        sliced : bool
+            Slices underlying sequence with start/end of self coordinates. This has the effect of breaking the connection
+            to any longer parent sequence.
+        Returns
+        -------
+        a copy of self
+        """
+        new_seq = self.data.copy()
+        if sliced:
+            span = self.map.get_covering_span()
+            new_seq = new_seq[span.start : span.end]
+        return self.__class__(self.map, new_seq)
+
     def __repr__(self):
         return "%s of %s" % (repr(self.map), repr(self.data))
 
@@ -2105,7 +2129,7 @@ class Aligned(object):
 
     def is_annotated(self):
         """returns True if sequence has any annotations"""
-        return self.data.annotations != ()
+        return self.data.is_annotated()
 
 
 class AlignmentI(object):
@@ -4113,7 +4137,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 aligned_seqs.append(s)
             else:
                 aligned_seqs.append(self._seq_to_aligned(s, n))
-        self.named_seqs = self.AlignedSeqs = dict(list(zip(names, aligned_seqs)))
+        self.named_seqs = self.named_seqs = dict(list(zip(names, aligned_seqs)))
         self.seq_data = self._seqs = aligned_seqs
 
     def _coerce_seqs(self, seqs, is_array):

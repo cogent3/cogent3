@@ -80,6 +80,32 @@ class SequenceTests(TestCase):
         self.assertEqual(s.name, "x")
         self.assertEqual(s.info.z, 3)
 
+    def test_copy(self):
+        """correctly returns a copy version of self"""
+        s = Sequence("TTTTTTTTTTAAAA", name="test_copy")
+        annot1 = s.add_annotation(Feature, "exon", "annot1", [(0, 10)])
+        annot2 = s.add_annotation(Feature, "exon", "annot2", [(10, 14)])
+        got = s.copy()
+        got_annot1 = got.get_annotations_matching(
+            annotation_type="exon", name="annot1"
+        )[0]
+        got_annot2 = got.get_annotations_matching(
+            annotation_type="exon", name="annot2"
+        )[0]
+        self.assertIsNot(got, s)
+        self.assertIsNot(got_annot1, annot1)
+        self.assertIsNot(got_annot2, annot2)
+        self.assertEqual(got.name, s.name)
+        self.assertEqual(got.info, s.info)
+        self.assertEqual(got._seq, s._seq)
+        self.assertEqual(got.moltype, s.moltype)
+        annot1_slice = str(annot1.get_slice())
+        annot2_slice = str(annot2.get_slice())
+        got1_slice = str(got.annotations[0].get_slice())
+        got2_slice = str(got.annotations[1].get_slice())
+        self.assertEqual(annot1_slice, got1_slice)
+        self.assertEqual(annot2_slice, got2_slice)
+
     def test_compare_to_string(self):
         """Sequence should compare equal to same string."""
         r = self.RNA("UCC")
