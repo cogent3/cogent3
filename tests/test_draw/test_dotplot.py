@@ -1,7 +1,7 @@
 from unittest import TestCase, main
 
 from cogent3 import DNA, load_aligned_seqs
-from cogent3.core.alignment import Aligned
+from cogent3.core.alignment import Aligned, ArrayAlignment
 from cogent3.draw.dotplot import (
     Dotplot,
     _convert_coords_for_scatter,
@@ -83,7 +83,7 @@ class TestUtilFunctions(TestCase):
 
     def test_display2d(self):
         """correctly constructs a Display2d"""
-        dp = Dotplot("-TGATGTAAGGTAGTT", "CTGG---AAG---GGT", window=5)
+        dp = Dotplot("-TGATGTAAGGTAGTT", "CTGG---AAG---GGT", is_aligned=True, window=5)
         expect = [0, 2, None, 6, 8, None, 12, 14], [1, 3, None, 4, 6, None, 7, 9]
         self.assertEqual(dp._aligned_coords, expect)
         dp._build_fig()
@@ -102,7 +102,7 @@ class TestUtilFunctions(TestCase):
 
     def test_remove_trace(self):
         """correctly removes a trace"""
-        dp = Dotplot("-TGATGTAAGGTAGTT", "CTGG---AAG---GGT", window=5)
+        dp = Dotplot("-TGATGTAAGGTAGTT", "CTGG---AAG---GGT", is_aligned=True, window=5)
         expect = [0, 2, None, 6, 8, None, 12, 14], [1, 3, None, 4, 6, None, 7, 9]
         self.assertEqual(dp._aligned_coords, expect)
         dp._build_fig()
@@ -112,11 +112,19 @@ class TestUtilFunctions(TestCase):
         self.assertEqual(len(traces), 1)
         self.assertEqual(traces[0].name, "+ strand")
 
-        dp = Dotplot("-TGATGTAAGGTAGTT", "CTGG---AAG---GGT", window=5)
+        dp = Dotplot("-TGATGTAAGGTAGTT", "CTGG---AAG---GGT", is_aligned=True, window=5)
         dp._build_fig()
         dp.remove_traces("Alignment")
         self.assertEqual(len(dp.traces), 1)
         self.assertEqual(dp.traces[0].name, "+ strand")
+
+    def test_align_without_gaps(self):
+        """dotplot has alignment coordinates if no gaps"""
+        aln = ArrayAlignment(
+            {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna"
+        )
+        aln_plot = aln.dotplot("seq1", "seq2")
+        self.assertNotEqual(aln_plot._aligned_coords, None)
 
 
 if __name__ == "__main__":
