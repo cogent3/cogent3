@@ -1789,6 +1789,7 @@ class _SequenceCollectionBase:
         dotplot = Dotplot(
             seq1,
             seq2,
+            isinstance(self, AlignmentI),
             window=window,
             threshold=threshold,
             min_gap=min_gap,

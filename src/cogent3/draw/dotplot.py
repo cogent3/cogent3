@@ -158,6 +158,7 @@ class Dotplot(Drawable):
         self,
         seq1,
         seq2,
+        is_aligned,
         moltype="text",
         window=20,
         threshold=None,
@@ -202,7 +203,6 @@ class Dotplot(Drawable):
         else:
             moltype = get_moltype(moltype)
 
-        is_aligned = isinstance(seq1, Aligned) and isinstance(seq2, Aligned)
         map1, seq1 = _convert_input(seq1, moltype)
         map2, seq2 = _convert_input(seq2, moltype)
         len1, len2 = len(seq1), len(seq2)
