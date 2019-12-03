@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from cogent3 import DNA, load_aligned_seqs
+from cogent3 import DNA, load_aligned_seqs, make_unaligned_seqs
 from cogent3.core.alignment import Aligned, ArrayAlignment
 from cogent3.draw.dotplot import (
     Dotplot,
@@ -125,6 +125,16 @@ class TestUtilFunctions(TestCase):
         )
         aln_plot = aln.dotplot("seq1", "seq2")
         self.assertNotEqual(aln_plot._aligned_coords, None)
+
+    def test_dotplot_seqcoll(self):
+        """dotplot sequence collection, gaps are removed"""
+        seqs = make_unaligned_seqs(
+            {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna"
+        )
+        dp = seqs.dotplot("seq1", "seq3")
+        self.assertNotEqual(dp._aligned_coords, None)
+        self.assertEqual(len(dp.seq1), 4)
+        self.assertEqual(len(dp.seq2), 3)
 
 
 if __name__ == "__main__":
