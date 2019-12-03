@@ -2524,47 +2524,58 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         path = "data/brca1_5.paml"
         # generates an annotatable Alignment object
         aln = load_aligned_seqs(path, array_align=False, moltype="dna")
-        # when the annotation is outside boundary of the slice
-        aln.AlignedSeqs["NineBande"].data.add_annotation(
+        # when the annotation is outside(before) boundary of the slice
+        aln.named_seqs["NineBande"].data.add_annotation(
             Feature, "exon", "annot1", [(0, 10)]
         )
         # when the annotation is across boundary of the slice
-        aln.AlignedSeqs["Mouse"].data.add_annotation(
+        aln.named_seqs["Mouse"].data.add_annotation(
             Feature, "exon", "annot2", [(10, 21)]
         )
         # when the annotation is within boundary of the slice
-        aln.AlignedSeqs["Human"].data.add_annotation(
+        aln.named_seqs["Human"].data.add_annotation(
             Feature, "exon", "annot3", [(20, 25)]
         )
         # when the annotation is across boundary of the slice
-        aln.AlignedSeqs["HowlerMon"].data.add_annotation(
+        aln.named_seqs["HowlerMon"].data.add_annotation(
             Feature, "exon", "annot4", [(25, 32)]
         )
-        # when the annotation is outside boundary of the slice
-        aln.AlignedSeqs["DogFaced"].data.add_annotation(
+        # when the annotation is outside(after) boundary of the slice
+        aln.named_seqs["DogFaced"].data.add_annotation(
             Feature, "exon", "annot5", [(40, 45)]
         )
         aln = aln[20:30]
 
+        # for these species, each has an annotation spanning slice boundary or within it
         for name in ["Mouse", "Human", "HowlerMon"]:
-            new_seq = aln.AlignedSeqs[name].deepcopy()
+            new_seq = aln.named_seqs[name].deepcopy()
             self.assertEqual(len(new_seq.data), 10)
             self.assertTrue(new_seq.data.is_annotated())
             self.assertEqual(len(new_seq.data.annotations), 1)
             # tests the case when sliced argument if False
-            new_seq = aln.AlignedSeqs[name].deepcopy(sliced=False)
-            self.assertEqual(len(new_seq.data), len(aln.AlignedSeqs[name].data))
+            new_seq = aln.named_seqs[name].deepcopy(sliced=False)
+            self.assertEqual(len(new_seq.data), len(aln.named_seqs[name].data))
             self.assertTrue(new_seq.data.is_annotated())
-            self.assertEqual(len(new_seq.data.annotations), 1)
+        # for these species, each has an annotation outside slice
         for name in ["NineBande", "DogFaced"]:
-            new_seq = aln.AlignedSeqs[name].deepcopy()
+            new_seq = aln.named_seqs[name].deepcopy()
             self.assertEqual(len(new_seq.data), 10)
             self.assertFalse(new_seq.data.is_annotated())
             # tests the case when sliced argument if False
-            new_seq = aln.AlignedSeqs[name].deepcopy(sliced=False)
-            self.assertEqual(len(new_seq.data), len(aln.AlignedSeqs[name].data))
+            new_seq = aln.named_seqs[name].deepcopy(sliced=False)
+            self.assertEqual(len(new_seq.data), len(aln.named_seqs[name].data))
             self.assertTrue(new_seq.data.is_annotated())
             self.assertEqual(len(new_seq.data.annotations), 1)
+
+        # add another human annotation that is outside slice
+        aln.named_seqs["Human"].data.add_annotation(
+            Feature, "exon", "annot6", [(40, 45)]
+        )
+        # tests the case when sliced argument if False regarding the Human sequence
+        new_seq = aln.named_seqs["Human"].deepcopy(sliced=False)
+        self.assertEqual(len(new_seq.data), len(aln.named_seqs["Human"].data))
+        self.assertTrue(new_seq.data.is_annotated())
+        self.assertEqual(len(new_seq.data.annotations), 2)
 
     def test_dotplot(self):
         """exercising dotplot method"""
