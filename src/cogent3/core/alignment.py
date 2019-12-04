@@ -1366,76 +1366,11 @@ class _SequenceCollectionBase:
         """
         gc = get_code(gc)
         new_seqs = []
-        aligned = isinstance(self, Alignment)
 
-        new_length = 0
         for seq_name in self.names:
             old_seq = self.named_seqs[seq_name]
-            if not aligned:
-                new_seq = old_seq.trim_stop_codon(gc=gc, allow_partial=allow_partial)
-                new_seqs.append((seq_name, new_seq))
-                continue
-
-            new_seq = old_seq.data.trim_stop_codon(gc=gc, allow_partial=allow_partial)
-
-            diff = len(old_seq.data._seq) - len(new_seq._seq)
-            if diff and not old_seq.map.spans[-1].lost:
-                new_length = max(new_length, (len(old_seq) - diff))
-
-            # calc lengths of gaps up to last span, add to raw seq length
-            seq_length = sum([len(s) for s in old_seq.map.spans[:-1] if s.lost])
-            seq_length += len(new_seq._seq)
-
-            new_length = max(new_length, seq_length)
-
-            new_seqs.append([seq_name, diff, old_seq.map, new_seq])
-
-        if aligned:
-            if new_length == 0:  # all seqs ended in a gap
-                new_length = len(self)
-
-            self_length = len(self)
-            aln_diff = self_length - new_length
-            assert aln_diff >= 0
-
-            for i, data in enumerate(new_seqs):
-                seq_name, diff, old_map, new_seq = data
-                if not aln_diff == diff == 0:
-                    # duplicate the spans
-                    spans = [deepcopy(s) for s in old_map.spans]
-
-                if diff == 0:  # seq unchanged
-                    if aln_diff == 0:  # aln length unchanged
-                        new_map = old_map
-                    else:  # aln length changed
-                        assert spans[-1].lost
-                        # shrink/remove this last gap
-                        spans[-1].length -= aln_diff
-                        assert spans[-1].length >= 0
-                        if spans[-1].length == 0:
-                            del spans[-1]
-                        new_map = Map(spans=spans, parent_length=new_length)
-                    seq = Aligned(new_map, new_seq)
-                    new_seqs[i] = (seq_name, seq)
-                    continue
-
-                # seq length has changed, establish whether we need to adjust
-                # the last one and/or to add a lost span
-                index = -2
-                if spans[-1].lost:
-                    # grow terminal gap
-                    spans[-1].length = spans[-1].length - aln_diff + diff
-                elif aln_diff == 0:
-                    spans.append(LostSpan(diff))
-                else:
-                    index = -1
-
-                spans[index].end -= diff
-                spans[index].length -= diff
-
-                new_map = Map(spans=spans, parent_length=new_length)
-                seq = Aligned(new_map, new_seq)
-                new_seqs[i] = (seq_name, seq)
+            new_seq = old_seq.trim_stop_codon(gc=gc, allow_partial=allow_partial)
+            new_seqs.append((seq_name, new_seq))
 
         return self.__class__(
             moltype=self.moltype, data=new_seqs, info=self.info, **kwargs
