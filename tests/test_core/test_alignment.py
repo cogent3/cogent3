@@ -1245,7 +1245,7 @@ class SequenceCollectionBaseTests(object):
 
     def test_get_lengths(self):
         """returns correct seq lengths"""
-        """SequenceCollection.counts_per_seq handles motif length, allow_gaps etc.."""
+        """SequenceCollection.test_get_lengths handles motif length, allow_gaps etc.."""
         data = {"a": "AAAA??????", "b": "CCCGGG--NN"}
         coll = self.Class(data=data, moltype=DNA)
         got = coll.get_lengths()
@@ -2154,7 +2154,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             self.assertEqual(got[k], v)
 
     def test_counts_per_seq(self):
-        """SequenceCollection.counts_per_seq handles motif length, allow_gaps etc.."""
+        """Alignment.counts_per_seq handles motif length, allow_gaps etc.."""
         data = {"a": "AAAA??????", "b": "CCCGGG--NN"}
         coll = self.Class(data=data, moltype=DNA)
         got = coll.counts_per_seq()
