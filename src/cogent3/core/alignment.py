@@ -1366,76 +1366,11 @@ class _SequenceCollectionBase:
         """
         gc = get_code(gc)
         new_seqs = []
-        aligned = isinstance(self, Alignment)
 
-        new_length = 0
         for seq_name in self.names:
             old_seq = self.named_seqs[seq_name]
-            if not aligned:
-                new_seq = old_seq.trim_stop_codon(gc=gc, allow_partial=allow_partial)
-                new_seqs.append((seq_name, new_seq))
-                continue
-
-            new_seq = old_seq.data.trim_stop_codon(gc=gc, allow_partial=allow_partial)
-
-            diff = len(old_seq.data._seq) - len(new_seq._seq)
-            if diff and not old_seq.map.spans[-1].lost:
-                new_length = max(new_length, (len(old_seq) - diff))
-
-            # calc lengths of gaps up to last span, add to raw seq length
-            seq_length = sum([len(s) for s in old_seq.map.spans[:-1] if s.lost])
-            seq_length += len(new_seq._seq)
-
-            new_length = max(new_length, seq_length)
-
-            new_seqs.append([seq_name, diff, old_seq.map, new_seq])
-
-        if aligned:
-            if new_length == 0:  # all seqs ended in a gap
-                new_length = len(self)
-
-            self_length = len(self)
-            aln_diff = self_length - new_length
-            assert aln_diff >= 0
-
-            for i, data in enumerate(new_seqs):
-                seq_name, diff, old_map, new_seq = data
-                if not aln_diff == diff == 0:
-                    # duplicate the spans
-                    spans = [deepcopy(s) for s in old_map.spans]
-
-                if diff == 0:  # seq unchanged
-                    if aln_diff == 0:  # aln length unchanged
-                        new_map = old_map
-                    else:  # aln length changed
-                        assert spans[-1].lost
-                        # shrink/remove this last gap
-                        spans[-1].length -= aln_diff
-                        assert spans[-1].length >= 0
-                        if spans[-1].length == 0:
-                            del spans[-1]
-                        new_map = Map(spans=spans, parent_length=new_length)
-                    seq = Aligned(new_map, new_seq)
-                    new_seqs[i] = (seq_name, seq)
-                    continue
-
-                # seq length has changed, establish whether we need to adjust
-                # the last one and/or to add a lost span
-                index = -2
-                if spans[-1].lost:
-                    # grow terminal gap
-                    spans[-1].length = spans[-1].length - aln_diff + diff
-                elif aln_diff == 0:
-                    spans.append(LostSpan(diff))
-                else:
-                    index = -1
-
-                spans[index].end -= diff
-                spans[index].length -= diff
-
-                new_map = Map(spans=spans, parent_length=new_length)
-                seq = Aligned(new_map, new_seq)
-                new_seqs[i] = (seq_name, seq)
+            new_seq = old_seq.trim_stop_codon(gc=gc, allow_partial=allow_partial)
+            new_seqs.append((seq_name, new_seq))
 
         return self.__class__(
             moltype=self.moltype, data=new_seqs, info=self.info, **kwargs
@@ -1771,6 +1706,12 @@ class _SequenceCollectionBase:
         seq1 = self.named_seqs[name1]
         seq2 = self.named_seqs[name2]
 
+        # Deep copying Aligned instance to ensure only region specified by Aligned.map is displayed.
+        if isinstance(seq1, Aligned):
+            seq1 = seq1.deepcopy()
+        if isinstance(seq2, Aligned):
+            seq2 = seq2.deepcopy()
+
         if seq1.is_annotated() or seq2.is_annotated():
             annotated = True
             data = getattr(seq1, "data", seq1)
@@ -1783,6 +1724,7 @@ class _SequenceCollectionBase:
         dotplot = Dotplot(
             seq1,
             seq2,
+            isinstance(self, AlignmentI),
             window=window,
             threshold=threshold,
             min_gap=min_gap,
@@ -1983,6 +1925,24 @@ class Aligned(object):
         _nil = _nil or []
         return self.__class__(self.map, self.data)
 
+    def deepcopy(self, sliced=True):
+        """
+        does a proper slice on the copied sequence when sliced is True and returns a deep copy of self
+        Parameters
+        -----------
+        sliced : bool
+            Slices underlying sequence with start/end of self coordinates. This has the effect of breaking the connection
+            to any longer parent sequence.
+        Returns
+        -------
+        a copy of self
+        """
+        new_seq = self.data.copy()
+        if sliced:
+            span = self.map.get_covering_span()
+            new_seq = new_seq[span.start : span.end]
+        return self.__class__(self.map, new_seq)
+
     def __repr__(self):
         return "%s of %s" % (repr(self.map), repr(self.data))
 
@@ -2104,7 +2064,7 @@ class Aligned(object):
 
     def is_annotated(self):
         """returns True if sequence has any annotations"""
-        return self.data.annotations != ()
+        return self.data.is_annotated()
 
 
 class AlignmentI(object):
@@ -4112,7 +4072,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 aligned_seqs.append(s)
             else:
                 aligned_seqs.append(self._seq_to_aligned(s, n))
-        self.named_seqs = self.AlignedSeqs = dict(list(zip(names, aligned_seqs)))
+        self.named_seqs = self.named_seqs = dict(list(zip(names, aligned_seqs)))
         self.seq_data = self._seqs = aligned_seqs
 
     def _coerce_seqs(self, seqs, is_array):

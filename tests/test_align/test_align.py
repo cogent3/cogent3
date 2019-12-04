@@ -192,6 +192,13 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         }
         self.assertEqual(aln.to_dict(), expect)
 
+    def test_align_info(self):
+        """alignment info object has parameter values"""
+        aln = self._make_aln(
+            {"A": "gcctcgg", "B": "gcctcgg", "C": "gcctcggaaacgt", "D": "aaacgt"}
+        )
+        self.assertTrue(aln.info["align_params"]["lnL"] < 0)
+
     def test_progressive_params(self):
         """excercise progressive alignment providing model params"""
         self._test_aln(
