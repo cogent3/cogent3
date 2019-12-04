@@ -678,6 +678,9 @@ class user_function(Composable):
         )
         self.func = func
 
+    def func(self, *args, **kwargs):
+        self._func(self, *args, **kwargs)
+
     def __str__(self):
         name = self.func.__name__
         module = self.func.__module__
