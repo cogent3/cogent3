@@ -519,6 +519,8 @@ class _SequenceCollectionBase:
         # both SequenceCollections and Alignments.
         self._set_additional_attributes(curr_seqs)
 
+        self._repr_policy = dict(num_seqs=10, num_pos=60)
+
     def __str__(self):
         """Returns self in FASTA-format, respecting name order."""
         from cogent3.format.alignment import FORMATTERS
@@ -1841,6 +1843,19 @@ class _SequenceCollectionBase:
 
         return array(result)
 
+    def set_repr_policy(self, num_seqs=None, num_pos=None):
+        """specify policy for repr(self)
+
+        Parameters
+        ----------
+
+        - num_seqs: number of sequences to included in represented display
+        - num_pos: length of sequences to included in represented display
+        """
+        if not any([num_seqs, num_pos]):
+            return
+        self._repr_policy = dict(num_seqs=num_seqs, num_pos=num_pos)
+
 
 class SequenceCollection(_SequenceCollectionBase):
     """Container for unaligned sequences
@@ -2502,7 +2517,7 @@ class AlignmentI(object):
     def _get_raw_pretty(self, name_order):
         """returns dict {name: seq, ...} for pretty print"""
         if name_order is not None:
-            assert set(name_order) == set(self.names), "names don't match"
+            assert set(name_order) <= set(self.names), "names don't match"
 
         names = name_order or self.names
         output = defaultdict(list)
@@ -2527,7 +2542,12 @@ class AlignmentI(object):
 
     def _repr_html_(self):
         # we put the longest sequence first
-        html = self.to_html(longest_ref=True, limit=2000)
+
+        html = self.to_html(
+            name_order=self.names[: self._repr_policy["num_seqs"]],
+            longest_ref=True,
+            limit=self._repr_policy["num_pos"],
+        )
         return html
 
     def to_html(
@@ -2648,9 +2668,10 @@ class AlignmentI(object):
                 table.append("<tr>%s</tr>" % row)
         table.append("</table>")
         if limit and limit < len(self):
-            summary = ("%s x %s (truncated to %s) %s " "alignment") % (
+            summary = ("%s x %s (truncated to %s x %s) %s " "alignment") % (
                 len(self.names),
                 len(self),
+                len(name_order),
                 limit,
                 self.moltype.label,
             )
