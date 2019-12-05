@@ -2667,12 +2667,17 @@ class AlignmentI(object):
                 row = "".join([label_ % n, seq_ % s])
                 table.append("<tr>%s</tr>" % row)
         table.append("</table>")
-        if limit and limit < len(self):
+        if (
+            limit
+            and limit < len(self)
+            or name_order
+            and len(name_order) < len(self.names)
+        ):
             summary = ("%s x %s (truncated to %s x %s) %s " "alignment") % (
                 len(self.names),
                 len(self),
-                len(name_order),
-                limit,
+                len(name_order) if name_order else len(self.names),
+                limit if limit else len(self),
                 self.moltype.label,
             )
         else:
