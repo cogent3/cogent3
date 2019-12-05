@@ -1846,16 +1846,21 @@ class _SequenceCollectionBase:
     def set_repr_policy(self, num_seqs=None, num_pos=None):
         """specify policy for repr(self)
 
-        Parameters
-        ----------
+            Parameters
+            ----------
             num_seqs
                 number of sequences to include in represented display.
             num_pos
                 length of sequences to include in represented display.
-        """
+            """
         if not any([num_seqs, num_pos]):
             return
-        self._repr_policy = dict(num_seqs=num_seqs, num_pos=num_pos)
+        if num_seqs:
+            assert isinstance(num_seqs, int), "num_seqs is not an integer"
+            self._repr_policy["num_seqs"] = num_seqs
+        if num_pos:
+            assert isinstance(num_pos, int), "num_pos is not an integer"
+            self._repr_policy["num_pos"] = num_pos
 
 
 class SequenceCollection(_SequenceCollectionBase):
