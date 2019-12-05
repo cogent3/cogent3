@@ -2774,8 +2774,8 @@ class ArrayAlignmentSpecificTests(TestCase):
         a = self.a
         f = a.counts_per_seq()
         self.assertEqual(f.array, array([[3, 1], [1, 3]]))
-        f = a.counts_per_seq(exclude_unobserved=True)
-        self.assertEqual(f.array, array([[3, 1], [1, 3]]))
+        f = a.counts_per_seq(motif_length = 2, exclude_unobserved=True)
+        self.assertEqual(f.array, array([[1,1,0], [0,1,1]]))
 
 
     def test_entropy_per_pos(self):
