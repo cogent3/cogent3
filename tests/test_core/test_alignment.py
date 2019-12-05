@@ -1360,6 +1360,27 @@ class SequenceCollectionBaseTests(object):
         )
         assert_allclose(got, expect[::-1])
 
+    def test_set_repr_policy_no_input(self):
+        """repr_policy should remain unchanged"""
+        seqs = self.Class({"a": "AAAAA"})
+        seqs.set_repr_policy(num_seqs=None, num_pos=None)
+        self.assertEqual(seqs._repr_policy, dict(num_seqs=10, num_pos=60))
+
+    def test_set_repr_policy_invalid_input(self):
+        """repr_policy should remain unchanged"""
+        seqs = self.Class({"a": "AAAAA"})
+        try:
+            seqs.set_repr_policy(num_seqs="foo", num_pos=4.2)
+            self.fail("Inputs not detected as invalid")
+        except AssertionError:
+            self.assertEqual(seqs._repr_policy, dict(num_seqs=10, num_pos=60))
+
+    def test_set_repr_policy_valid_input(self):
+        """repr_policy should be set to new values"""
+        seqs = self.Class({"a": "AAAAA"})
+        seqs.set_repr_policy(num_seqs=5, num_pos=40)
+        self.assertEqual(seqs._repr_policy, dict(num_seqs=5, num_pos=40))
+
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
     """Tests of the SequenceCollection object. Includes ragged collection tests.
