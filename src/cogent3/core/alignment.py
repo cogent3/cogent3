@@ -1848,9 +1848,10 @@ class _SequenceCollectionBase:
 
         Parameters
         ----------
-
-        - num_seqs: number of sequences to included in represented display
-        - num_pos: length of sequences to included in represented display
+            num_seqs
+                number of sequences to include in represented display.
+            num_pos
+                length of sequences to include in represented display.
         """
         if not any([num_seqs, num_pos]):
             return
