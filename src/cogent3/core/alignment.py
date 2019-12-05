@@ -2486,9 +2486,18 @@ class AlignmentI(object):
         )
         return counts.to_freq_array()
 
-    def entropy_per_seq(self, motif_length=1):
-        """returns shannon entropy per sequence"""
-        probs = self.probs_per_seq(motif_length=motif_length)
+    def entropy_per_seq(self,
+        motif_length=1,
+        include_ambiguity=False,
+        allow_gap=False,
+        exclude_unobserved=False,
+        alert=False):
+        """returns shannon entropy per sequence
+        Note: for motif_length > 1, it's advisable to specify exclude_unobserved=True,
+        this avoids unnecessary calculations.
+        """
+        probs = self.probs_per_seq(motif_length=motif_length, include_ambiguity=include_ambiguity, allow_gap=allow_gap,
+                                   exclude_unobserved=exclude_unobserved, alert=alert)
         return probs.entropy()
 
     def no_degenerates(self, motif_length=1, allow_gap=False):
