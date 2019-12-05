@@ -2509,10 +2509,7 @@ class AlignmentI(object):
         allow_gap=False,
         exclude_unobserved=False,
         alert=False):
-        """returns shannon entropy per sequence
-        Note: for motif_length > 1, it's advisable to specify exclude_unobserved=True,
-        this avoids unnecessary calculations.
-        """
+        """returns shannon entropy per sequence"""
         probs = self.probs_per_seq(motif_length=motif_length, include_ambiguity=include_ambiguity, allow_gap=allow_gap,
                                    exclude_unobserved=exclude_unobserved, alert=alert)
         return probs.entropy()
