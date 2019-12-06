@@ -1136,22 +1136,22 @@ class _SequenceCollectionBase:
     def add_seqs(self, other, before_name=None, after_name=None):
         """Returns new object of class self with sequences from other added.
 
-        By default the sequence is appended to the end of the alignment,
-        this can be changed by using either before_name or after_name arguments.
-
         Parameters
         ----------
         other
             same class as self or coerceable to that class
-        before_name
-            str
+        before_name : str
             which sequence is added
-        after_name
-            str
+        after_name : str
             which sequence is added
 
+        Notes
+        -----
         If both before_name and after_name are specified, the seqs will be
         inserted using before_name.
+
+        By default the sequence is appended to the end of the alignment,
+        this can be changed by using either before_name or after_name arguments.
         """
         assert not isinstance(other, str), (
             "Must provide a series of seqs " + "or an alignment"
@@ -1214,6 +1214,9 @@ class _SequenceCollectionBase:
         format
             format of the sequence file
 
+        Notes
+        -----
+
         If format is None, will attempt to infer format from the filename
         suffix.
         """
@@ -1243,7 +1246,8 @@ class _SequenceCollectionBase:
         return self.seq_len
 
     def get_translation(self, gc=None, incomplete_ok=False, **kwargs):
-        """
+        """translate from nucleic acid to protein
+
         Parameters
         ----------
         gc
@@ -1405,19 +1409,21 @@ class _SequenceCollectionBase:
     ):
         """returns dict of counts of motifs per sequence
 
-            only non-overlapping motifs are counted.
+        Parameters
+        ----------
+        motif_length
+            number of characters per tuple.
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gaps
+            if True, motifs containing a gap character are included.
 
-            Parameters
-            ----------
-            motif_length
-                number of characters per tuple.
-            include_ambiguity
-                if True, motifs containing ambiguous characters
-                from the seq moltype are included. No expansion of those is attempted.
-            allow_gaps
-                if True, motifs containing a gap character are included.
+        Notes
+        -----
 
-            """
+        only non-overlapping motifs are counted
+        """
         # this is overridden for Alignments, so just rely on the sequence counts
         # method
         counts = []
@@ -1446,21 +1452,23 @@ class _SequenceCollectionBase:
     ):
         """returns dict of counts of motifs
 
-            only non-overlapping motifs are counted.
+        Parameters
+        ----------
+        motif_length
+            number of elements per character.
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gaps
+            if True, motifs containing a gap character are included.
+        exclude_unobserved
+            if True, unobserved motif combinations are excluded.
 
-            Parameters
-            ----------
-            motif_length
-                number of elements per character.
-            include_ambiguity
-                if True, motifs containing ambiguous characters
-                from the seq moltype are included. No expansion of those is attempted.
-            allow_gaps
-                if True, motifs containing a gap character are included.
-            exclude_unobserved
-                if True, unobserved motif combinations are excluded.
+        Notes
+        -----
 
-            """
+        only non-overlapping motifs are counted
+        """
         per_seq = self.counts_per_seq(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
@@ -1492,6 +1500,10 @@ class _SequenceCollectionBase:
         allow_gap
             allow gap motif
 
+        Notes
+        -----
+
+        only non-overlapping motifs are counted
         """
         if alphabet is None:
             alphabet = self.moltype.alphabet
@@ -1763,6 +1775,7 @@ class _SequenceCollectionBase:
 
     def rename_seqs(self, renamer):
         """returns new instance with sequences renamed
+
         Parameters
         ----------
         renamer : callable
@@ -1793,8 +1806,8 @@ class _SequenceCollectionBase:
     def apply_pssm(
         self, pssm=None, path=None, background=None, pseudocount=0, names=None, ui=None
     ):
-        """
-        scores sequences using the specified pssm
+        """scores sequences using the specified pssm
+
         Parameters
         ----------
         pssm : profile.PSSM
@@ -1806,6 +1819,7 @@ class _SequenceCollectionBase:
             adjustment for zero in matrix
         names
             returns only scores for these sequences and in the name order
+
         Returns
         -------
         numpy array of log2 based scores at every position
@@ -1871,30 +1885,35 @@ class _SequenceCollectionBase:
             assert isinstance(num_pos, int), "num_pos is not an integer"
             self._repr_policy["num_pos"] = num_pos
 
-    def probs_per_seq(self, motif_length=1,
-                      include_ambiguity=False,
-                      allow_gap=False,
-                      exclude_unobserved=False,
-                      alert=False):
+    def probs_per_seq(
+        self,
+        motif_length=1,
+        include_ambiguity=False,
+        allow_gap=False,
+        exclude_unobserved=False,
+        alert=False,
+    ):
         """return MotifFreqsArray per sequence"""
 
         counts = self.counts_per_seq(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
             allow_gap=allow_gap,
-            exclude_unobserved=exclude_unobserved
+            exclude_unobserved=exclude_unobserved,
         )
         if counts is None:
             return None
 
         return counts.to_freq_array()
 
-    def entropy_per_seq(self,
-                        motif_length=1,
-                        include_ambiguity=False,
-                        allow_gap=False,
-                        exclude_unobserved=True,
-                        alert=False):
+    def entropy_per_seq(
+        self,
+        motif_length=1,
+        include_ambiguity=False,
+        allow_gap=False,
+        exclude_unobserved=True,
+        alert=False,
+    ):
         """returns the Shannon entropy per sequence
 
                 Parameters
@@ -1914,9 +1933,13 @@ class _SequenceCollectionBase:
                 For motif_length > 1, it's advisable to specify exclude_unobserved=True,
                 this avoids unnecessary calculations.
                 """
-        probs = self.probs_per_seq(motif_length=motif_length, include_ambiguity=include_ambiguity,
-                                   allow_gap=allow_gap,
-                                   exclude_unobserved=exclude_unobserved, alert=alert)
+        probs = self.probs_per_seq(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            exclude_unobserved=exclude_unobserved,
+            alert=alert,
+        )
         if probs is None:
             return None
 
@@ -2307,7 +2330,20 @@ class AlignmentI(object):
         exclude_unobserved=False,
         alert=False,
     ):
-        """return MotifFreqsArray per sequence"""
+        """return MotifFreqsArray per sequence
+
+        Parameters
+        ----------
+        motif_length
+            number of characters per tuple.
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gap
+            if True, motifs containing a gap character are included.
+        exclude_unobserved
+            if True, unobserved motif combinations are excluded.
+        """
         counts = self.counts_per_seq(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
@@ -2329,23 +2365,23 @@ class AlignmentI(object):
     ):
         """returns the Shannon entropy per sequence
 
-                Parameters
-                ----------
-                motif_length
-                    number of characters per tuple.
-                include_ambiguity
-                    if True, motifs containing ambiguous characters
-                    from the seq moltype are included. No expansion of those is attempted.
-                allow_gap
-                    if True, motifs containing a gap character are included.
-                exclude_unobserved
-                    if True, unobserved motif combinations are excluded.
+        Parameters
+        ----------
+        motif_length
+            number of characters per tuple.
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gap
+            if True, motifs containing a gap character are included.
+        exclude_unobserved
+            if True, unobserved motif combinations are excluded.
 
-                Notes
-                -----
-                For motif_length > 1, it's advisable to specify exclude_unobserved=True,
-                this avoids unnecessary calculations.
-                """
+        Notes
+        -----
+        For motif_length > 1, it's advisable to specify exclude_unobserved=True,
+        this avoids unnecessary calculations.
+        """
         probs = self.probs_per_seq(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
@@ -2860,6 +2896,9 @@ class AlignmentI(object):
     ):
         """return DictArray of counts per position
 
+        Parameters
+        ----------
+
         alert
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
@@ -2897,22 +2936,21 @@ class AlignmentI(object):
     ):
         """returns dict of counts of non-overlapping motifs per sequence
 
-            Parameters
-            ----------
-            motif_length
-                number of elements per character.
-            include_ambiguity
-                if True, motifs containing ambiguous characters
-                from the seq moltype are included. No expansion of those is attempted.
-            allow_gaps
-                if True, motifs containing a gap character are included.
-            exclude_unobserved
-                if False, all canonical states included
-            alert
-                warns if motif_length > 1 and alignment trimmed to produce
-                motif columns
-
-            """
+        Parameters
+        ----------
+        motif_length
+            number of elements per character.
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gaps
+            if True, motifs containing a gap character are included.
+        exclude_unobserved
+            if False, all canonical states included
+        alert
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
+        """
         length = (len(self) // motif_length) * motif_length
         if alert and len(self) != length:
             warnings.warn(f"trimmed {len(self) - length}", UserWarning)
@@ -3006,6 +3044,7 @@ class AlignmentI(object):
 
     def distance_matrix(self, calc="percent", show_progress=False, drop_invalid=False):
         """Returns pairwise distances between sequences.
+
         Parameters
         ----------
         calc : str
@@ -3790,6 +3829,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
 
     def filtered(self, predicate, motif_length=1, drop_remainder=True, **kwargs):
         """The alignment positions where predicate(column) is true.
+
         Parameters
         ----------
         predicate : callable
@@ -3969,7 +4009,9 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             If both before_name and after_name are specified seqs will be
             inserted using before_name.
 
-        Example:
+        Examples
+        --------
+
         Aln1:
         -AC-DEFGHI (name: seq1)
         XXXXXX--XX (name: seq2)

@@ -1138,8 +1138,8 @@ class NucleicAcidSequence(Sequence):
         return self.__class__(codons, name=self.name, info=self.info)
 
     def get_translation(self, gc=None, incomplete_ok=False):
-        """
-        translation to amino acid sequence
+        """translate to amino acid sequence
+
         Parameters
         ----------
         gc
@@ -1147,6 +1147,7 @@ class NucleicAcidSequence(Sequence):
         incomplete_ok : bool
             codons that are mixes of nucleotide and gaps converted to '?'.
             raises a ValueError if False
+
         Returns
         -------
         sequence of PROTEIN moltype

@@ -410,6 +410,7 @@ class DictArray(object):
 
     def to_dict(self, flatten=False):
         """returns data as a dict
+
         Parameters
         ----------
         flatten : bool
