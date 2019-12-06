@@ -1866,6 +1866,57 @@ class _SequenceCollectionBase:
             assert isinstance(num_pos, int), "num_pos is not an integer"
             self._repr_policy["num_pos"] = num_pos
 
+    def probs_per_seq(self, motif_length=1,
+                      include_ambiguity=False,
+                      allow_gap=False,
+                      exclude_unobserved=False,
+                      alert=False):
+        """return MotifFreqsArray per sequence"""
+
+        counts = self.counts_per_seq(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            exclude_unobserved=exclude_unobserved
+        )
+        if counts is None:
+            return None
+
+        return counts.to_freq_array()
+
+    def entropy_per_seq(self,
+                        motif_length=1,
+                        include_ambiguity=False,
+                        allow_gap=False,
+                        exclude_unobserved=True,
+                        alert=False):
+        """returns the Shannon entropy per sequence
+
+                Parameters
+                ----------
+                motif_length
+                    number of characters per tuple.
+                include_ambiguity
+                    if True, motifs containing ambiguous characters
+                    from the seq moltype are included. No expansion of those is attempted.
+                allow_gap
+                    if True, motifs containing a gap character are included.
+                exclude_unobserved
+                    if True, unobserved motif combinations are excluded.
+
+                Notes
+                -----
+                For motif_length > 1, it's advisable to specify exclude_unobserved=True,
+                this avoids unnecessary calculations.
+                """
+        probs = self.probs_per_seq(motif_length=motif_length, include_ambiguity=include_ambiguity,
+                                   allow_gap=allow_gap,
+                                   exclude_unobserved=exclude_unobserved, alert=alert)
+        if probs is None:
+            return None
+
+        return probs.entropy()
+
 
 class SequenceCollection(_SequenceCollectionBase):
     """Container for unaligned sequences
