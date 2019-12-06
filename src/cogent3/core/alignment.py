@@ -519,6 +519,8 @@ class _SequenceCollectionBase:
         # both SequenceCollections and Alignments.
         self._set_additional_attributes(curr_seqs)
 
+        self._repr_policy = dict(num_seqs=10, num_pos=60)
+
     def __str__(self):
         """Returns self in FASTA-format, respecting name order."""
         from cogent3.format.alignment import FORMATTERS
@@ -1394,7 +1396,13 @@ class _SequenceCollectionBase:
         lengths = counts.row_sum()
         return lengths
 
-    def counts_per_seq(self, motif_length=1, include_ambiguity=False, allow_gap=False):
+    def counts_per_seq(
+        self,
+        motif_length=1,
+        include_ambiguity=False,
+        allow_gap=False,
+        exclude_unobserved=False,
+    ):
         """returns dict of counts of motifs per sequence
 
             only non-overlapping motifs are counted.
@@ -1420,6 +1428,7 @@ class _SequenceCollectionBase:
                 motif_length=motif_length,
                 include_ambiguity=include_ambiguity,
                 allow_gap=allow_gap,
+                exclude_unobserved=exclude_unobserved,
             )
             motifs.update(c.keys())
             counts.append(c)
@@ -1448,6 +1457,8 @@ class _SequenceCollectionBase:
                 from the seq moltype are included. No expansion of those is attempted.
             allow_gaps
                 if True, motifs containing a gap character are included.
+            exclude_unobserved
+                if True, unobserved motif combinations are excluded.
 
             """
         per_seq = self.counts_per_seq(
@@ -1841,6 +1852,25 @@ class _SequenceCollectionBase:
 
         return array(result)
 
+    def set_repr_policy(self, num_seqs=None, num_pos=None):
+        """specify policy for repr(self)
+
+            Parameters
+            ----------
+            num_seqs
+                number of sequences to include in represented display.
+            num_pos
+                length of sequences to include in represented display.
+            """
+        if not any([num_seqs, num_pos]):
+            return
+        if num_seqs:
+            assert isinstance(num_seqs, int), "num_seqs is not an integer"
+            self._repr_policy["num_seqs"] = num_seqs
+        if num_pos:
+            assert isinstance(num_pos, int), "num_pos is not an integer"
+            self._repr_policy["num_pos"] = num_pos
+
 
 class SequenceCollection(_SequenceCollectionBase):
     """Container for unaligned sequences
@@ -2218,18 +2248,63 @@ class AlignmentI(object):
         probs = self.probs_per_pos(motif_length=motif_length)
         return probs.entropy()
 
-    def probs_per_seq(self, motif_length=1, include_ambiguity=False, allow_gap=False):
+    def probs_per_seq(
+        self,
+        motif_length=1,
+        include_ambiguity=False,
+        allow_gap=False,
+        exclude_unobserved=False,
+        alert=False,
+    ):
         """return MotifFreqsArray per sequence"""
         counts = self.counts_per_seq(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
             allow_gap=allow_gap,
+            exclude_unobserved=exclude_unobserved,
         )
+        if counts is None:
+            return None
+
         return counts.to_freq_array()
 
-    def entropy_per_seq(self, motif_length=1):
-        """returns shannon entropy per sequence"""
-        probs = self.probs_per_seq(motif_length=motif_length)
+    def entropy_per_seq(
+        self,
+        motif_length=1,
+        include_ambiguity=False,
+        allow_gap=False,
+        exclude_unobserved=True,
+        alert=False,
+    ):
+        """returns the Shannon entropy per sequence
+
+                Parameters
+                ----------
+                motif_length
+                    number of characters per tuple.
+                include_ambiguity
+                    if True, motifs containing ambiguous characters
+                    from the seq moltype are included. No expansion of those is attempted.
+                allow_gap
+                    if True, motifs containing a gap character are included.
+                exclude_unobserved
+                    if True, unobserved motif combinations are excluded.
+
+                Notes
+                -----
+                For motif_length > 1, it's advisable to specify exclude_unobserved=True,
+                this avoids unnecessary calculations.
+                """
+        probs = self.probs_per_seq(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            exclude_unobserved=exclude_unobserved,
+            alert=alert,
+        )
+        if probs is None:
+            return None
+
         return probs.entropy()
 
     def no_degenerates(self, motif_length=1, allow_gap=False):
@@ -2502,7 +2577,7 @@ class AlignmentI(object):
     def _get_raw_pretty(self, name_order):
         """returns dict {name: seq, ...} for pretty print"""
         if name_order is not None:
-            assert set(name_order) == set(self.names), "names don't match"
+            assert set(name_order) <= set(self.names), "names don't match"
 
         names = name_order or self.names
         output = defaultdict(list)
@@ -2527,7 +2602,12 @@ class AlignmentI(object):
 
     def _repr_html_(self):
         # we put the longest sequence first
-        html = self.to_html(longest_ref=True, limit=2000)
+
+        html = self.to_html(
+            name_order=self.names[: self._repr_policy["num_seqs"]],
+            longest_ref=True,
+            limit=self._repr_policy["num_pos"],
+        )
         return html
 
     def to_html(
@@ -2647,11 +2727,17 @@ class AlignmentI(object):
                 row = "".join([label_ % n, seq_ % s])
                 table.append("<tr>%s</tr>" % row)
         table.append("</table>")
-        if limit and limit < len(self):
-            summary = ("%s x %s (truncated to %s) %s " "alignment") % (
+        if (
+            limit
+            and limit < len(self)
+            or name_order
+            and len(name_order) < len(self.names)
+        ):
+            summary = ("%s x %s (truncated to %s x %s) %s " "alignment") % (
                 len(self.names),
                 len(self),
-                limit,
+                len(name_order) if name_order else len(self.names),
+                limit if limit else len(self),
                 self.moltype.label,
             )
         else:
@@ -2792,6 +2878,7 @@ class AlignmentI(object):
                 motif_length=motif_length,
                 include_ambiguity=include_ambiguity,
                 allow_gap=allow_gap,
+                exclude_unobserved=exclude_unobserved,
             )
             motifs.update(c.keys())
             counts.append(c)
@@ -2800,6 +2887,9 @@ class AlignmentI(object):
             motifs.update(self.moltype.alphabet.get_word_alphabet(motif_length))
 
         motifs = list(sorted(motifs))
+        if not motifs:
+            return None
+
         for i, c in enumerate(counts):
             counts[i] = c.tolist(motifs)
         return MotifCountsArray(counts, motifs, row_indices=self.names)

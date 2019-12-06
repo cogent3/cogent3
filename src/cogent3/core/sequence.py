@@ -157,7 +157,13 @@ class SequenceI(object):
         """count() delegates to self._seq."""
         return self._seq.count(item)
 
-    def counts(self, motif_length=1, include_ambiguity=False, allow_gap=False):
+    def counts(
+        self,
+        motif_length=1,
+        include_ambiguity=False,
+        allow_gap=False,
+        exclude_unobserved=False,
+    ):
         """returns dict of counts of motifs
 
         only non-overlapping motifs are counted.
@@ -171,6 +177,8 @@ class SequenceI(object):
             from the seq moltype are included. No expansion of those is attempted.
         allow_gaps
             if True, motifs containing a gap character are included.
+        exclude_unobserved
+            if True, unobserved motif combinations are excluded.
 
         """
         try:
