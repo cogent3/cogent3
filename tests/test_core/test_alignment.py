@@ -2175,8 +2175,8 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             self.assertEqual(got[k], v)
 
     def test_counts_per_seq(self):
-        """Alignment.counts_per_seq handles motif length, allow_gaps etc.."""
-        data = {"a": "AAAA??????", "b": "CCCGGG--NN"}
+        """SequenceCollection.counts_per_seq handles motif length, allow_gaps etc.."""
+        data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
         coll = self.Class(data=data, moltype=DNA)
         got = coll.counts_per_seq()
         self.assertEqual(got["a", "A"], 4)
@@ -2191,6 +2191,10 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(len(got.motifs), 16)
         self.assertEqual(got["a", "AA"], 2)
         self.assertEqual(got["b", "GG"], 1)
+        got = coll.counts_per_seq(exclude_unobserved=True)
+        self.assertEqual(
+            got["c"].to_dict(),{"C":4, "G": 2, "T": 2, "A": 2}
+        )
 
     def test_counts_per_pos(self):
         """correctly count motifs"""
@@ -2232,7 +2236,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         assert_allclose(entropy, [0, numpy.nan])
         a = self.Class(dict(a="----", b="----"), moltype=DNA)
         entropy = a.entropy_per_seq()
-        assert_allclose(entropy, [numpy.nan, numpy.nan])
+        self.assertIs(entropy, None)
 
     def test_entropy_per_pos_just_gaps(self):
         """pos with just gaps have nan"""
@@ -2242,6 +2246,13 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         a = self.Class(dict(a="---", b="---", c="---"), moltype=DNA)
         entropy = a.entropy_per_pos()
         assert_allclose(entropy, [numpy.nan, numpy.nan, numpy.nan])
+
+    def test_entropy_excluding_unobserved(self):
+        """omitting unobserved motifs should not affect entropy calculation"""
+        a = self.Class(dict(a="ACAGGG", b="AGACCC", c="GGCCTA"), moltype=DNA)
+        entropy_excluded = a.entropy_per_seq(exclude_unobserved=True)
+        entropy_unexcluded = a.entropy_per_seq(exclude_unobserved=False)
+        self.assertEqual(entropy_excluded, entropy_unexcluded)
 
     def test_distance_matrix(self):
         """Alignment distance_matrix should produce correct scores"""
@@ -2851,6 +2862,9 @@ class ArrayAlignmentSpecificTests(TestCase):
         a = self.a
         f = a.counts_per_seq()
         self.assertEqual(f.array, array([[3, 1], [1, 3]]))
+        f = a.counts_per_seq(motif_length = 2, exclude_unobserved=True)
+        self.assertEqual(f.array, array([[1,1,0], [0,1,1]]))
+
 
     def test_entropy_per_pos(self):
         """entropy_per_pos should get entropy of each pos"""

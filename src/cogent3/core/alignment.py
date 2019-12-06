@@ -1396,7 +1396,8 @@ class _SequenceCollectionBase:
         lengths = counts.row_sum()
         return lengths
 
-    def counts_per_seq(self, motif_length=1, include_ambiguity=False, allow_gap=False):
+    def counts_per_seq(self, motif_length=1, include_ambiguity=False, allow_gap=False,
+                       exclude_unobserved=False):
         """returns dict of counts of motifs per sequence
 
             only non-overlapping motifs are counted.
@@ -1422,6 +1423,7 @@ class _SequenceCollectionBase:
                 motif_length=motif_length,
                 include_ambiguity=include_ambiguity,
                 allow_gap=allow_gap,
+                exclude_unobserved=exclude_unobserved
             )
             motifs.update(c.keys())
             counts.append(c)
@@ -1450,6 +1452,8 @@ class _SequenceCollectionBase:
                 from the seq moltype are included. No expansion of those is attempted.
             allow_gaps
                 if True, motifs containing a gap character are included.
+            exclude_unobserved
+                if True, unobserved motif combinations are excluded.
 
             """
         per_seq = self.counts_per_seq(
@@ -2239,18 +2243,53 @@ class AlignmentI(object):
         probs = self.probs_per_pos(motif_length=motif_length)
         return probs.entropy()
 
-    def probs_per_seq(self, motif_length=1, include_ambiguity=False, allow_gap=False):
+    def probs_per_seq(self, motif_length=1,
+                      include_ambiguity=False,
+                      allow_gap=False,
+                      exclude_unobserved=False,
+                      alert=False):
         """return MotifFreqsArray per sequence"""
         counts = self.counts_per_seq(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
             allow_gap=allow_gap,
+            exclude_unobserved=exclude_unobserved
         )
+        if counts is None:
+            return None
+
         return counts.to_freq_array()
 
-    def entropy_per_seq(self, motif_length=1):
-        """returns shannon entropy per sequence"""
-        probs = self.probs_per_seq(motif_length=motif_length)
+    def entropy_per_seq(self,
+        motif_length=1,
+        include_ambiguity=False,
+        allow_gap=False,
+        exclude_unobserved=True,
+        alert=False):
+        """returns the Shannon entropy per sequence
+
+                Parameters
+                ----------
+                motif_length
+                    number of characters per tuple.
+                include_ambiguity
+                    if True, motifs containing ambiguous characters
+                    from the seq moltype are included. No expansion of those is attempted.
+                allow_gap
+                    if True, motifs containing a gap character are included.
+                exclude_unobserved
+                    if True, unobserved motif combinations are excluded.
+
+                Notes
+                -----
+                For motif_length > 1, it's advisable to specify exclude_unobserved=True,
+                this avoids unnecessary calculations.
+                """
+        probs = self.probs_per_seq(motif_length=motif_length, include_ambiguity=include_ambiguity, allow_gap=allow_gap,
+                                   exclude_unobserved=exclude_unobserved, alert=alert)
+        if probs is None:
+            return None
+
         return probs.entropy()
 
     def no_degenerates(self, motif_length=1, allow_gap=False):
@@ -2824,6 +2863,7 @@ class AlignmentI(object):
                 motif_length=motif_length,
                 include_ambiguity=include_ambiguity,
                 allow_gap=allow_gap,
+                exclude_unobserved=exclude_unobserved
             )
             motifs.update(c.keys())
             counts.append(c)
@@ -2832,6 +2872,9 @@ class AlignmentI(object):
             motifs.update(self.moltype.alphabet.get_word_alphabet(motif_length))
 
         motifs = list(sorted(motifs))
+        if not motifs:
+                return None
+
         for i, c in enumerate(counts):
             counts[i] = c.tolist(motifs)
         return MotifCountsArray(counts, motifs, row_indices=self.names)
