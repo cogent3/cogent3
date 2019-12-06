@@ -12,3 +12,4 @@ This section is for those users comfortable with Python programming.
     examples/index
     cookbook/index
     data_file_links
+    api/index
