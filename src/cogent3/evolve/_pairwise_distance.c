@@ -1658,9 +1658,9 @@ static const char __pyx_k_test[] = "__test__";
 static const char __pyx_k_range[] = "range";
 static const char __pyx_k_matrix[] = "matrix";
 static const char __pyx_k_version[] = "__version__";
+static const char __pyx_k_2019_12_6a[] = "('2019', '12', '6a')";
 static const char __pyx_k_ValueError[] = "ValueError";
 static const char __pyx_k_ImportError[] = "ImportError";
-static const char __pyx_k_2019_11_15_a[] = "('2019', '11', '15', 'a')";
 static const char __pyx_k_RuntimeError[] = "RuntimeError";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_fill_diversity_matrix[] = "_fill_diversity_matrix";
@@ -1674,7 +1674,7 @@ static const char __pyx_k_ndarray_is_not_Fortran_contiguou[] = "ndarray is not F
 static const char __pyx_k_numpy_core_umath_failed_to_impor[] = "numpy.core.umath failed to import";
 static const char __pyx_k_src_cogent3_evolve__pairwise_dis[] = "src/cogent3/evolve/_pairwise_distance.pyx";
 static const char __pyx_k_Format_string_allocated_too_shor_2[] = "Format string allocated too short.";
-static PyObject *__pyx_kp_s_2019_11_15_a;
+static PyObject *__pyx_kp_s_2019_12_6a;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor_2;
 static PyObject *__pyx_n_s_ImportError;
@@ -4464,7 +4464,7 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
-  {&__pyx_kp_s_2019_11_15_a, __pyx_k_2019_11_15_a, sizeof(__pyx_k_2019_11_15_a), 0, 0, 1, 0},
+  {&__pyx_kp_s_2019_12_6a, __pyx_k_2019_12_6a, sizeof(__pyx_k_2019_12_6a), 0, 0, 1, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor, __pyx_k_Format_string_allocated_too_shor, sizeof(__pyx_k_Format_string_allocated_too_shor), 0, 1, 0, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor_2, __pyx_k_Format_string_allocated_too_shor_2, sizeof(__pyx_k_Format_string_allocated_too_shor_2), 0, 1, 0, 0},
   {&__pyx_n_s_ImportError, __pyx_k_ImportError, sizeof(__pyx_k_ImportError), 0, 0, 1, 1},
@@ -4900,11 +4900,11 @@ if (!__Pyx_RefNanny) {
   /* "cogent3/evolve/_pairwise_distance.pyx":3
  * cimport numpy as np
  * 
- * __version__ = "('2019', '11', '15', 'a')"             # <<<<<<<<<<<<<<
+ * __version__ = "('2019', '12', '6a')"             # <<<<<<<<<<<<<<
  * 
  * # fills in a diversity matrix from sequences of integers
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2019_11_15_a) < 0) __PYX_ERR(0, 3, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2019_12_6a) < 0) __PYX_ERR(0, 3, __pyx_L1_error)
 
   /* "cogent3/evolve/_pairwise_distance.pyx":6
  * 
@@ -4921,7 +4921,7 @@ if (!__Pyx_RefNanny) {
   /* "cogent3/evolve/_pairwise_distance.pyx":1
  * cimport numpy as np             # <<<<<<<<<<<<<<
  * 
- * __version__ = "('2019', '11', '15', 'a')"
+ * __version__ = "('2019', '12', '6a')"
  */
   __pyx_t_1 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
