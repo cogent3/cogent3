@@ -1,6 +1,12 @@
 import os
 
 
+# Allow autosummary to generate stub files
+autosummary_generate = True
+
+# Prevent numpydoc from requiring stub files for methods
+numpydoc_class_members_toctree = False
+
 extensions = [
     "numpydoc",
     "sphinx.ext.todo",
@@ -8,6 +14,7 @@ extensions = [
     "nbsphinx",
     "sphinx.ext.mathjax",
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
     "sphinxcontrib.bibtex",
 ]
 
