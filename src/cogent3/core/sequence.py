@@ -157,8 +157,13 @@ class SequenceI(object):
         """count() delegates to self._seq."""
         return self._seq.count(item)
 
-    def counts(self, motif_length=1, include_ambiguity=False, allow_gap=False,
-               exclude_unobserved=False):
+    def counts(
+        self,
+        motif_length=1,
+        include_ambiguity=False,
+        allow_gap=False,
+        exclude_unobserved=False,
+    ):
         """returns dict of counts of motifs
 
         only non-overlapping motifs are counted.

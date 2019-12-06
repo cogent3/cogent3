@@ -1396,8 +1396,13 @@ class _SequenceCollectionBase:
         lengths = counts.row_sum()
         return lengths
 
-    def counts_per_seq(self, motif_length=1, include_ambiguity=False, allow_gap=False,
-                       exclude_unobserved=False):
+    def counts_per_seq(
+        self,
+        motif_length=1,
+        include_ambiguity=False,
+        allow_gap=False,
+        exclude_unobserved=False,
+    ):
         """returns dict of counts of motifs per sequence
 
             only non-overlapping motifs are counted.
@@ -1423,7 +1428,7 @@ class _SequenceCollectionBase:
                 motif_length=motif_length,
                 include_ambiguity=include_ambiguity,
                 allow_gap=allow_gap,
-                exclude_unobserved=exclude_unobserved
+                exclude_unobserved=exclude_unobserved,
             )
             motifs.update(c.keys())
             counts.append(c)
@@ -2243,29 +2248,34 @@ class AlignmentI(object):
         probs = self.probs_per_pos(motif_length=motif_length)
         return probs.entropy()
 
-    def probs_per_seq(self, motif_length=1,
-                      include_ambiguity=False,
-                      allow_gap=False,
-                      exclude_unobserved=False,
-                      alert=False):
+    def probs_per_seq(
+        self,
+        motif_length=1,
+        include_ambiguity=False,
+        allow_gap=False,
+        exclude_unobserved=False,
+        alert=False,
+    ):
         """return MotifFreqsArray per sequence"""
         counts = self.counts_per_seq(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
             allow_gap=allow_gap,
-            exclude_unobserved=exclude_unobserved
+            exclude_unobserved=exclude_unobserved,
         )
         if counts is None:
             return None
 
         return counts.to_freq_array()
 
-    def entropy_per_seq(self,
+    def entropy_per_seq(
+        self,
         motif_length=1,
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=True,
-        alert=False):
+        alert=False,
+    ):
         """returns the Shannon entropy per sequence
 
                 Parameters
@@ -2285,8 +2295,13 @@ class AlignmentI(object):
                 For motif_length > 1, it's advisable to specify exclude_unobserved=True,
                 this avoids unnecessary calculations.
                 """
-        probs = self.probs_per_seq(motif_length=motif_length, include_ambiguity=include_ambiguity, allow_gap=allow_gap,
-                                   exclude_unobserved=exclude_unobserved, alert=alert)
+        probs = self.probs_per_seq(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            exclude_unobserved=exclude_unobserved,
+            alert=alert,
+        )
         if probs is None:
             return None
 
@@ -2863,7 +2878,7 @@ class AlignmentI(object):
                 motif_length=motif_length,
                 include_ambiguity=include_ambiguity,
                 allow_gap=allow_gap,
-                exclude_unobserved=exclude_unobserved
+                exclude_unobserved=exclude_unobserved,
             )
             motifs.update(c.keys())
             counts.append(c)
@@ -2873,7 +2888,7 @@ class AlignmentI(object):
 
         motifs = list(sorted(motifs))
         if not motifs:
-                return None
+            return None
 
         for i, c in enumerate(counts):
             counts[i] = c.tolist(motifs)
