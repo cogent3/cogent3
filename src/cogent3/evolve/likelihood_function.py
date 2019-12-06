@@ -540,6 +540,9 @@ class LikelihoodFunction(ParameterController):
         results = ["<h4>%s</h4>" % title, lnL, nfp] + results
         return "\n".join(results)
 
+    def __repr__(self):
+        return str(self)
+
     def __str__(self):
         title, results = self._for_display()
 

@@ -1352,6 +1352,18 @@ NineBande      root    1.0000    1.0000
             lf.set_alignment(_aln)
             _ = lf.to_rich_dict()
 
+    def test_repr(self):
+        """repr should not fail"""
+        lf = self._makeLikelihoodFunction()
+        got = repr(lf)
+        self.assertIn("log-likelihood", got)
+
+    def test_repr_html(self):
+        "exercising for jupyter"
+        lf = self._makeLikelihoodFunction()
+        got = lf._repr_html_()
+        self.assertIn("<p>log-likelihood", got)
+
 
 class ComparisonTests(TestCase):
     """comparisons of likelihood calcs with earlier pycogent"""
