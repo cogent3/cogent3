@@ -112,7 +112,8 @@ def TreeAlign(
         LF.set_param_rule("indel_rate", value=indel_rate, is_constant=True)
         LF.set_param_rule("indel_length", value=indel_length, is_constant=True)
         LF.set_sequences(seqs)
-    edge = LF.get_log_likelihood().edge
+    lnL = LF.get_log_likelihood()
+    edge = lnL.edge
     align = edge.get_viterbi_path().get_alignment()
     param_vals.update(
         dict(
@@ -120,6 +121,7 @@ def TreeAlign(
             indel_rate=indel_rate,
             guide_tree=tree.get_newick(with_distances=True),
             model=model.name,
+            lnL=lnL,
         )
     )
     align.info["align_params"] = param_vals

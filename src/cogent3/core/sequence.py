@@ -12,6 +12,7 @@ performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
 
+import copy
 import json
 import re
 import warnings
@@ -739,6 +740,14 @@ class Sequence(_Annotatable, SequenceI):
     def copy_annotations(self, other):
         self.annotations = other.annotations[:]
 
+    def copy(self):
+        """returns a copy of self"""
+        new = self.__class__(self._seq, name=self.name, info=self.info)
+        if self.is_annotated():
+            for annot in self.annotations:
+                annot.copy_annotations_to(new)
+        return new
+
     def annotate_from_gff(self, f, pre_parsed=False):
         """annotates a Sequence from a gff file where each entry has the same SeqID"""
         first_seqname = None
@@ -1031,7 +1040,7 @@ class Sequence(_Annotatable, SequenceI):
 
     def is_annotated(self):
         """returns True if sequence has any annotations"""
-        return self.annotations != ()
+        return len(self.annotations) != 0
 
 
 class ProteinSequence(Sequence):
