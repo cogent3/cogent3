@@ -29,7 +29,7 @@ $ pip install cogent3
 ### Installing the development version
 
 ```bash
-$ pip install git+https://github.com/cogent3/cogent3.git@master#egg=cogent3
+$ pip install git+https://github.com/cogent3/cogent3.git@develop#egg=cogent3
 ```
 
 ## Project Information
