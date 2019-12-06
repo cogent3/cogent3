@@ -2215,7 +2215,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         assert_allclose(entropy, [0, numpy.nan])
         a = self.Class(dict(a="----", b="----"), moltype=DNA)
         entropy = a.entropy_per_seq()
-        assert_allclose(entropy, [numpy.nan, numpy.nan])
+        self.assertIs(entropy, None)
 
     def test_entropy_per_pos_just_gaps(self):
         """pos with just gaps have nan"""

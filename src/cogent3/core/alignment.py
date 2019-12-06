@@ -2502,7 +2502,7 @@ class AlignmentI(object):
         motif_length=1,
         include_ambiguity=False,
         allow_gap=False,
-        exclude_unobserved=False,
+        exclude_unobserved=True,
         alert=False):
         """returns the Shannon entropy per sequence
 
