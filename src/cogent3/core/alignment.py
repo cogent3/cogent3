@@ -2484,8 +2484,8 @@ class AlignmentI(object):
     def probs_per_seq(self, motif_length=1,
                       include_ambiguity=False,
                       allow_gap=False,
-                      exclude_unobserved = False,
-                      alert = False):
+                      exclude_unobserved=False,
+                      alert=False):
         """return MotifFreqsArray per sequence"""
         counts = self.counts_per_seq(
             motif_length=motif_length,
@@ -2493,6 +2493,9 @@ class AlignmentI(object):
             allow_gap=allow_gap,
             exclude_unobserved=exclude_unobserved
         )
+        if counts is None:
+            return None
+
         return counts.to_freq_array()
 
     def entropy_per_seq(self,
@@ -2522,6 +2525,9 @@ class AlignmentI(object):
                 """
         probs = self.probs_per_seq(motif_length=motif_length, include_ambiguity=include_ambiguity, allow_gap=allow_gap,
                                    exclude_unobserved=exclude_unobserved, alert=alert)
+        if probs is None:
+            return None
+
         return probs.entropy()
 
     def no_degenerates(self, motif_length=1, allow_gap=False):
@@ -3093,6 +3099,9 @@ class AlignmentI(object):
             motifs.update(self.moltype.alphabet.get_word_alphabet(motif_length))
 
         motifs = list(sorted(motifs))
+        if not motifs:
+                return None
+
         for i, c in enumerate(counts):
             counts[i] = c.tolist(motifs)
         return MotifCountsArray(counts, motifs, row_indices=self.names)
