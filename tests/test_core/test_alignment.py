@@ -1388,6 +1388,7 @@ class SequenceCollectionBaseTests(object):
         e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
         self.assertFloatEqual(entropy, array([e, 1.5]))
 
+
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
     """Tests of the SequenceCollection object. Includes ragged collection tests.
 
@@ -2372,6 +2373,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         a = self.Class(dict(a="----", b="----"), moltype=DNA)
         entropy = a.entropy_per_seq()
         self.assertIs(entropy, None)
+
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
     Class = ArrayAlignment
