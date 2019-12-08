@@ -55,7 +55,7 @@ __credits__ = [
     "Justin Kuczynski",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.11.15.a"
+__version__ = "2019.12.6a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -385,23 +385,14 @@ class TreeNode(object):
                 stack.extend(curr.children[::-1])  # 20% faster than reversed
 
     def postorder(self, include_self=True):
-        """Performs postorder iteration over tree.
+        """performs postorder iteration over tree.
+
+        Notes
+        -----
 
         This is somewhat inelegant compared to saving the node and its index
         on the stack, but is 30% faster in the average case and 3x faster in
         the worst case (for a comb tree).
-
-        Zongzhi Liu's slower but more compact version is:
-
-        def postorder_zongzhi(self):
-            stack = [[self, 0]]
-            while stack:
-                curr, child_idx = stack[-1]
-                if child_idx < len(curr.children):
-                    stack[-1][1] += 1
-                    stack.append([curr.children[child_idx], 0])
-                else:
-                    yield stack.pop()[0]
         """
         child_index_stack = [0]
         curr = self
@@ -1582,12 +1573,19 @@ class TreeNode(object):
                 n.name = mapping[n.name]
 
     def multifurcating(self, num, eps=None, constructor=None, name_unnamed=False):
-        """Return a new tree with every node having num or few children
+        """return a new tree with every node having num or few children
 
-        num : the number of children a node can have max
-        eps : default branch length to set if self or constructor is of
+        Parameters
+        ----------
+        num : int
+            the number of children a node can have max
+        eps : float
+            default branch length to set if self or constructor is of
             PhyloNode type
-        constructor : a TreeNode or subclass constructor. If None, uses self
+        constructor
+            a TreeNode or subclass constructor. If None, uses self
+        name_unnamed : bool
+            names unnamed nodes
         """
         if num < 2:
             raise TreeError("Minimum number of children must be >= 2")

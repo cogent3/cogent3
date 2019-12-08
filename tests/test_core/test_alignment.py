@@ -64,7 +64,7 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.11.15.a"
+__version__ = "2019.12.6a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -1381,6 +1381,13 @@ class SequenceCollectionBaseTests(object):
         seqs.set_repr_policy(num_seqs=5, num_pos=40)
         self.assertEqual(seqs._repr_policy, dict(num_seqs=5, num_pos=40))
 
+    def test_get_seq_entropy(self):
+        """get_seq_entropy should get entropy of each seq"""
+        a = self.Class(dict(a="ACCC", b="AGTA"), moltype=DNA)
+        entropy = a.entropy_per_seq()
+        e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
+        self.assertFloatEqual(entropy, array([e, 1.5]))
+
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
     """Tests of the SequenceCollection object. Includes ragged collection tests.
@@ -2357,6 +2364,15 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         array_align = self.Class == ArrayAlignment
         seqs = load_aligned_seqs("data/brca1.fasta", array_align=array_align)
         self.assertEqual(seqs.info.source, "data/brca1.fasta")
+
+    def test_seq_entropy_just_gaps(self):
+        """get_seq_entropy should get entropy of each seq"""
+        a = self.Class(dict(a="A---", b="----"), moltype=DNA)
+        entropy = a.entropy_per_seq()
+        assert_allclose(entropy, [0, numpy.nan])
+        a = self.Class(dict(a="----", b="----"), moltype=DNA)
+        entropy = a.entropy_per_seq()
+        self.assertIs(entropy, None)
 
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
