@@ -742,6 +742,17 @@ class MolType(object):
         data = self.to_rich_dict(for_pickle=False)
         return json.dumps(data)
 
+    def to_regex(self, seq):
+        """returns regular expression for input sequence"""
+        degen_index = self.get_degenerate_positions(sequence=seq, include_gap=False)
+        reg_ex_seq = ""
+        for element in range(0, len(seq)):
+            if element in degen_index:
+                reg_ex_seq += "["+''.join(self.ambiguities[seq[element]]) + "]"
+            else:
+                reg_ex_seq += seq[element]
+        return reg_ex_seq
+
     def gettype(self):
         """Returns type, e.g. 'dna', 'rna', 'protein'. Delete?"""
         return self.label
