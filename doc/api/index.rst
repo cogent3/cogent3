@@ -1,14 +1,15 @@
-###########
+###
 API
-###########
+###
 
-
-**Contents**
+********************************
+Objects for the major data types
+********************************
 
 .. toctree::
     :maxdepth: 1
-    
+
     alignment/alignment
     sequence/sequence
-    tree/tree
     table/table
+    tree/tree
