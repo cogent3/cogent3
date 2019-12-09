@@ -260,7 +260,6 @@ class MolTypeTests(TestCase):
     def test_to_regex(self):
         seq = "ACYGR"
         regular_expression = DNA.to_regex(seq=seq)
-        print(regular_expression)
         self.assertEqual(regular_expression, "AC[CT]G[AG]")
 
     def test_pickling(self):
