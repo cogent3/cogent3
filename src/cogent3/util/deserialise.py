@@ -113,7 +113,10 @@ def deserialise_result(data):
         # required
         if type(value) == dict and "app.result" in str(value.get("type")):
             value = deserialise_object(value)
-        result[key] = value
+        try:
+            result[key] = value
+        except TypeError:
+            result[tuple(key)] = value
     return result
 
 
