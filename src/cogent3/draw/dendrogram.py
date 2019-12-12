@@ -643,10 +643,11 @@ class Dendrogram(Drawable):
             "line": {"color": self._line_color, "width": self._line_width},
         }
         annotation = UnionDict(
-            x=x + scale + (0.5 * scale),
+            x=x + (0.5 * scale),
             y=y,
             xref="x",
             yref="y",
+            yshift=10,
             text=text,
             showarrow=False,
             ax=0,
