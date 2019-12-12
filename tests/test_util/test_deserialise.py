@@ -248,6 +248,7 @@ class TestDeserialising(TestCase):
         self.assertEqual(got_obj.lf.nfp, got_obj.nfp)
 
     def test_roundtrip_tuple_key(self):
+        """deserialise_result handles tuples as keys"""
         from cogent3.app.result import generic_result
 
         r = generic_result(source="none")
