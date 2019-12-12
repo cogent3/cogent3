@@ -247,6 +247,15 @@ class TestDeserialising(TestCase):
         self.assertNotIsInstance(got_obj.lf, dict)
         self.assertEqual(got_obj.lf.nfp, got_obj.nfp)
 
+    def test_roundtrip_tuple_key(self):
+        """deserialise_result handles tuples as keys"""
+        from cogent3.app.result import generic_result
+
+        r = generic_result(source="none")
+        r[(1, 2)] = 24
+        got = deserialise_object(r.to_json())
+        self.assertEqual(got[(1, 2)], 24)
+
     def test_not_completed_result(self):
         """correctly reconstructs a NotCompletedResult object"""
         from cogent3.app.composable import NotCompleted
