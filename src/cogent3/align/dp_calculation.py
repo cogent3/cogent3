@@ -107,20 +107,25 @@ class FwdDefn(CalculationDefn):
         return edge.get_forward_score(use_cost_function=False)
 
 
+class _GetAlign():
+    def __init__(self, edge, length1, length2):
+        try:
+            ratio = length1 / (length1 + length2)
+        except (ZeroDivisionError, FloatingPointError):
+            ratio = 1.0
+        self.edge = edge
+        self.ratio = ratio
+
+    def __call__(self):
+        return self.edge.get_viterbi_path().get_alignable(self.ratio)
+
+
 class EdgeSumAndAlignDefn(CalculationDefn):
     name = "pair"
 
     def calc(self, pog1, pog2, length1, length2, bin):
         edge = Edge(pog1, pog2, length1 + length2, [bin])
-
-        def _getaln():
-            try:
-                ratio = length1 / (length1 + length2)
-            except (ZeroDivisionError, FloatingPointError):
-                ratio = 1.0
-            return edge.get_viterbi_path().get_alignable(ratio)
-
-        edge.getaln = _getaln
+        edge.getaln = _GetAlign(edge, length1, length2)
         return edge
 
 
