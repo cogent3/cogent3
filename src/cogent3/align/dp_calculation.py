@@ -107,7 +107,7 @@ class FwdDefn(CalculationDefn):
         return edge.get_forward_score(use_cost_function=False)
 
 
-class _GetAlign():
+class _GetAlign:
     def __init__(self, edge, length1, length2):
         try:
             ratio = length1 / (length1 + length2)
