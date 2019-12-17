@@ -724,6 +724,9 @@ class Sequence(_Annotatable, SequenceI):
         """
         from cogent3 import get_moltype
 
+        if not moltype:
+            raise ValueError(f"unknown moltype '{moltype}'")
+
         moltype = get_moltype(moltype)
         make_seq = moltype.make_seq
         new = make_seq(self, name=self.name)
