@@ -300,16 +300,18 @@ class TestUserFunction(TestCase):
     def bar(self, val, *args, **kwargs):
         return val.distance_matrix(calc="hamming", show_progress=False)
 
-    def _demo(self,ctx, aln):
-        assert ctx.frame_start
-        return aln
+    def _demo(self, ctx, expect):
+        self.assertEqual(ctx.frame_start, expect)
+        return expect
 
     def test_user_function_custom_variables(self):
         demo = user_function(
             self._demo, ("aligned", "serialisable"), ("aligned", "serialisable")
         )
-        foo = demo(1)
-        foo.frame_start = 2
+        foo = demo
+        frame_start = 2
+        foo.frame_start = frame_start
+        foo(frame_start)
 
     def test_user_function(self):
         """composable functions should be user definable"""
@@ -321,7 +323,6 @@ class TestUserFunction(TestCase):
         got = u_function(aln)
 
         self.assertEqual(got.to_dict(), {"a": "GCAA", "b": "GCTT"})
-
 
     def test_user_function_multiple(self):
         """user defined composable functions should not interfere with each other"""
