@@ -743,15 +743,13 @@ class MolType(object):
         return json.dumps(data)
 
     def to_regex(self, seq):
-        """returns regular expression for input sequence"""
-        degen_index = self.get_degenerate_positions(sequence=seq, include_gap=False)
-        reg_ex_seq = ""
-        for element in range(0, len(seq)):
-            if element in degen_index:
-                reg_ex_seq += "["+''.join(self.ambiguities[seq[element]]) + "]"
-            else:
-                reg_ex_seq += seq[element]
-        return reg_ex_seq
+        """returns a regex pattern with ambiguities expanded to a character set"""
+        degen_indices = self.get_degenerate_positions(sequence=seq, include_gap=False)
+        seq = list(seq)  # seq can now be modified
+        for index in degen_indices:
+            expanded = self.ambiguities[seq[index]]
+            seq[index] = f"[{''.join(expanded)}]"
+        return "".join(seq)
 
     def gettype(self):
         """Returns type, e.g. 'dna', 'rna', 'protein'. Delete?"""
