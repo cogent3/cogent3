@@ -1235,6 +1235,12 @@ class SequenceCollectionBaseTests(object):
         rc = rna.rc().to_dict()
         expect = {"seq1": "UUUUAAAAAA", "seq2": "AAAAAAUUUU", "seq3": "UUUAAAAAUU"}
         self.assertEqual(rc, expect)
+        # calling with a null object should raise an exception
+        with self.assertRaises(ValueError):
+            seqs.to_moltype(None)
+
+        with self.assertRaises(ValueError):
+            seqs.to_moltype("")
 
     def test_to_moltype_info(self):
         """correctly convert to specified moltype"""
