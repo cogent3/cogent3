@@ -207,7 +207,9 @@ class select_translatable(ComposableSeq):
 
         translation errors are stroed in the info object"""
         seqs = seqs.degap()
-        seqs = seqs.to_moltype(self._moltype)
+        if self._moltype and self._moltype != seqs.moltype:
+            seqs = seqs.to_moltype(self._moltype)
+
         translatable = []
         error_log = []
         for seq in seqs.seqs:
@@ -283,7 +285,9 @@ class translate_seqs(ComposableSeq):
 
     def get_translated(self, seqs):
         """returns translated sequences"""
-        seqs = seqs.to_moltype(self._moltype)
+        if self._moltype and self._moltype != seqs.moltype:
+            seqs = seqs.to_moltype(self._moltype)
+
         if self._trim_terminal_stop:
             seqs = seqs.trim_stop_codons(gc=self._gc)
         aa = seqs.get_translation(gc=self._gc)
