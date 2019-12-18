@@ -98,6 +98,22 @@ class SequenceI(object):
         """__str__ returns self._seq unmodified."""
         return self._seq
 
+    def annotate_matches_to(
+        self, pattern=None, annot_type=None, name=None, allow_multiple=False
+    ):
+        """Creates an annotation at the specified pattern in a sequence."""
+        from cogent3.core.annotation import Feature
+
+        pos = [m.span() for m in re.finditer(pattern, self._seq)]
+        if allow_multiple == False:
+            annot = self.add_annotation(Feature, annot_type, name, pos)
+        else:
+            for i in range(0, len(pos)):
+                annot = self.add_annotation(
+                    Feature, annot_type, name + str(i), [pos[i]]
+                )
+        return annot
+
     def to_fasta(self, make_seqlabel=None, block_size=60):
         """Return string of self in FASTA format, no trailing newline
 
@@ -157,8 +173,13 @@ class SequenceI(object):
         """count() delegates to self._seq."""
         return self._seq.count(item)
 
-    def counts(self, motif_length=1, include_ambiguity=False, allow_gap=False,
-               exclude_unobserved=False):
+    def counts(
+        self,
+        motif_length=1,
+        include_ambiguity=False,
+        allow_gap=False,
+        exclude_unobserved=False,
+    ):
         """returns dict of counts of motifs
 
         only non-overlapping motifs are counted.
