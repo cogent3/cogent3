@@ -2192,9 +2192,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(got["a", "AA"], 2)
         self.assertEqual(got["b", "GG"], 1)
         got = coll.counts_per_seq(exclude_unobserved=True)
-        self.assertEqual(
-            got["c"].to_dict(),{"C":4, "G": 2, "T": 2, "A": 2}
-        )
+        self.assertEqual(got["c"].to_dict(), {"C": 4, "G": 2, "T": 2, "A": 2})
 
     def test_counts_per_pos(self):
         """correctly count motifs"""
@@ -2551,6 +2549,19 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
             ValueError, aln1.add_from_ref_aln, aln2_wrong_refseq
         )  # test wrong_refseq
 
+    def test_annotate_matches_to(self):
+        """Tests annotate_matches_to method in Aligned class."""
+        if isinstance(self, Sequence):
+            seq = self.SEQ("CCCCCAAAGTACCCCCCAAAGTA", name="x")
+            pattern = "AAAGTA"
+            annot = seq.annotate_matches_to(
+                pattern=pattern, annot_type="domain", name="fred", allow_multiple=True
+            )
+            fred = annot.get_slice()
+            self.assertEqual(str(fred)[0 : len(pattern)], pattern)
+        else:
+            assert True
+
     def test_deepcopy(self):
         """correctly deep copy aligned objects in an alignment"""
         path = "data/brca1_5.paml"
@@ -2862,9 +2873,8 @@ class ArrayAlignmentSpecificTests(TestCase):
         a = self.a
         f = a.counts_per_seq()
         self.assertEqual(f.array, array([[3, 1], [1, 3]]))
-        f = a.counts_per_seq(motif_length = 2, exclude_unobserved=True)
-        self.assertEqual(f.array, array([[1,1,0], [0,1,1]]))
-
+        f = a.counts_per_seq(motif_length=2, exclude_unobserved=True)
+        self.assertEqual(f.array, array([[1, 1, 0], [0, 1, 1]]))
 
     def test_entropy_per_pos(self):
         """entropy_per_pos should get entropy of each pos"""
