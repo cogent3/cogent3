@@ -50,6 +50,19 @@ class SequenceTests(TestCase):
     DNA = DnaSequence
     PROT = ProteinSequence
 
+    def test_annotate_matches_to(self):
+        """Tests annotate_matches_to method in SequenceI class."""
+        if isinstance(self, Sequence):
+            seq = self.SEQ("CCCCCAAAGTACCCCCCAAAGTA", name="x")
+            pattern = "AAAGTA"
+            annot = seq.annotate_matches_to(
+                pattern=pattern, annot_type="domain", name="fred", allow_multiple=True
+            )
+            fred = annot.get_slice()
+            self.assertEqual(str(fred)[0 : len(pattern)], pattern)
+        else:
+            assert True
+
     def test_init_empty(self):
         """Sequence and subclasses should init correctly."""
         # NOTE: ModelSequences can't be initialized empty because it screws up
