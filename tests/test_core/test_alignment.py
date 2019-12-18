@@ -64,7 +64,7 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.11.15.a"
+__version__ = "2019.12.6a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -1235,6 +1235,12 @@ class SequenceCollectionBaseTests(object):
         rc = rna.rc().to_dict()
         expect = {"seq1": "UUUUAAAAAA", "seq2": "AAAAAAUUUU", "seq3": "UUUAAAAAUU"}
         self.assertEqual(rc, expect)
+        # calling with a null object should raise an exception
+        with self.assertRaises(ValueError):
+            seqs.to_moltype(None)
+
+        with self.assertRaises(ValueError):
+            seqs.to_moltype("")
 
     def test_to_moltype_info(self):
         """correctly convert to specified moltype"""
@@ -1380,6 +1386,13 @@ class SequenceCollectionBaseTests(object):
         seqs = self.Class({"a": "AAAAA"})
         seqs.set_repr_policy(num_seqs=5, num_pos=40)
         self.assertEqual(seqs._repr_policy, dict(num_seqs=5, num_pos=40))
+
+    def test_get_seq_entropy(self):
+        """get_seq_entropy should get entropy of each seq"""
+        a = self.Class(dict(a="ACCC", b="AGTA"), moltype=DNA)
+        entropy = a.entropy_per_seq()
+        e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
+        self.assertFloatEqual(entropy, array([e, 1.5]))
 
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
@@ -2357,6 +2370,15 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         array_align = self.Class == ArrayAlignment
         seqs = load_aligned_seqs("data/brca1.fasta", array_align=array_align)
         self.assertEqual(seqs.info.source, "data/brca1.fasta")
+
+    def test_seq_entropy_just_gaps(self):
+        """get_seq_entropy should get entropy of each seq"""
+        a = self.Class(dict(a="A---", b="----"), moltype=DNA)
+        entropy = a.entropy_per_seq()
+        assert_allclose(entropy, [0, numpy.nan])
+        a = self.Class(dict(a="----", b="----"), moltype=DNA)
+        entropy = a.entropy_per_seq()
+        self.assertIs(entropy, None)
 
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):

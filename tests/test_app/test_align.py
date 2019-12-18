@@ -10,7 +10,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.11.15.a"
+__version__ = "2019.12.6a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -163,6 +163,15 @@ class RefalignmentTests(TestCase):
         aligner = align_app.progressive_align(model="codon")
         aln = aligner(self.seqs)
         self.assertEqual(len(aln), 42)
+
+    def test_pickle_progressive_align(self):
+        """test progressive_align is picklable"""
+        from pickle import dumps, loads
+
+        aligner = align_app.progressive_align(model="codon")
+        aln = aligner(self.seqs)
+        got = loads(dumps(aln))
+        self.assertTrue(got)
 
     def test_with_genetic_code(self):
         """handles genetic code argument"""

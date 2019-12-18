@@ -41,7 +41,7 @@ __credits__ = [
     "Ananias Iliadis",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.11.15.a"
+__version__ = "2019.12.6a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -539,6 +539,9 @@ class LikelihoodFunction(ParameterController):
             results[i] = table._repr_html_(include_shape=False)
         results = ["<h4>%s</h4>" % title, lnL, nfp] + results
         return "\n".join(results)
+
+    def __repr__(self):
+        return str(self)
 
     def __str__(self):
         title, results = self._for_display()

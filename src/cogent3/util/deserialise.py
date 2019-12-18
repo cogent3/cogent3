@@ -16,7 +16,7 @@ __author__ = ["Gavin Huttley"]
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.11.15.a"
+__version__ = "2019.12.6a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -113,7 +113,10 @@ def deserialise_result(data):
         # required
         if type(value) == dict and "app.result" in str(value.get("type")):
             value = deserialise_object(value)
-        result[key] = value
+        try:
+            result[key] = value
+        except TypeError:
+            result[tuple(key)] = value
     return result
 
 

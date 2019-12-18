@@ -10,7 +10,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.11.15.a"
+__version__ = "2019.12.6a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -266,6 +266,12 @@ class TranslateTests(TestCase):
         fl = sample.fixed_length(3, random=True, motif_length=3)
         d = make_aligned_seqs(data=[("a", "GCAAGCGTGTAT"), ("b", "GCTACTGTCAAT")])
         expect = d.to_dict()
+        got = fl(d)
+        self.assertEqual(len(got), 3)
+        for name, seq in got.to_dict().items():
+            self.assertIn(seq, expect[name])
+        # as above, but with moltype defined
+        fl = sample.fixed_length(3, random=True, motif_length=3, moltype="dna")
         got = fl(d)
         self.assertEqual(len(got), 3)
         for name, seq in got.to_dict().items():

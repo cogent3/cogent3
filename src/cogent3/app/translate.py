@@ -16,7 +16,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.11.15.a"
+__version__ = "2019.12.6a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -207,7 +207,9 @@ class select_translatable(ComposableSeq):
 
         translation errors are stroed in the info object"""
         seqs = seqs.degap()
-        seqs = seqs.to_moltype(self._moltype)
+        if self._moltype and self._moltype != seqs.moltype:
+            seqs = seqs.to_moltype(self._moltype)
+
         translatable = []
         error_log = []
         for seq in seqs.seqs:
@@ -283,7 +285,9 @@ class translate_seqs(ComposableSeq):
 
     def get_translated(self, seqs):
         """returns translated sequences"""
-        seqs = seqs.to_moltype(self._moltype)
+        if self._moltype and self._moltype != seqs.moltype:
+            seqs = seqs.to_moltype(self._moltype)
+
         if self._trim_terminal_stop:
             seqs = seqs.trim_stop_codons(gc=self._gc)
         aa = seqs.get_translation(gc=self._gc)
