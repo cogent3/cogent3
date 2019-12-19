@@ -98,19 +98,31 @@ class SequenceI(object):
         """__str__ returns self._seq unmodified."""
         return self._seq
 
-    def annotate_matches_to(
-        self, pattern=None, annot_type=None, name=None, allow_multiple=False
-    ):
-        """Creates an annotation at the specified pattern in a sequence."""
+    def annotate_matches_to(self, pattern, annot_type, name, allow_multiple=False):
+        """
+        Adds an annotation at the specified pattern in a sequence.
+
+        Parameters
+        ----------
+        pattern : The string for which annotations are made.
+        annot_type : The type of the annotation (e.g. exon).
+        name : The name of the annotation.
+        allow_multiple : checks for multiple occurences of the input pattern.
+
+        Returns
+        -------
+        Returns a list of Annotation instances.
+        """
         from cogent3.core.annotation import Feature
 
         pos = [m.span() for m in re.finditer(pattern, self._seq)]
+        annot = []
         if allow_multiple == False:
             annot = self.add_annotation(Feature, annot_type, name, pos)
         else:
             for i in range(0, len(pos)):
-                annot = self.add_annotation(
-                    Feature, annot_type, name + str(i), [pos[i]]
+                annot.append(
+                    self.add_annotation(Feature, annot_type, f"{name}:{i}", [pos[i]])
                 )
         return annot
 
