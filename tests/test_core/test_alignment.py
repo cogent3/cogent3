@@ -2550,17 +2550,29 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         )  # test wrong_refseq
 
     def test_annotate_matches_to(self):
-        """Tests annotate_matches_to method in Aligned class."""
-        if isinstance(self, Sequence):
-            seq = self.SEQ("CCCCCAAAGTACCCCCCAAAGTA", name="x")
-            pattern = "AAAGTA"
-            annot = seq.annotate_matches_to(
-                pattern=pattern, annot_type="domain", name="fred", allow_multiple=True
-            )
-            fred = annot.get_slice()
-            self.assertEqual(str(fred)[0 : len(pattern)], pattern)
+        """annotate_matches_to method should attach
+         annotations correctly to a Sequence object."""
+        seq = Sequence("TTCCACTTCCGCTT", name="x")
+        allow_multiple = True
+        if not isinstance(seq, Sequence):
+            return True
+        pattern = "CCRC"
+        regular_expression = DNA.to_regex(seq=pattern)
+        annot = seq.annotate_matches_to(
+            pattern=regular_expression,
+            annot_type="domain",
+            name="fred",
+            allow_multiple=allow_multiple,
+        )
+        if allow_multiple == True:
+            for i in range(0, len(annot)):
+                fred = annot[i].get_slice()
+                self.assertEqual(
+                    str(fred), re.search(regular_expression, str(fred)).group()
+                )
         else:
-            assert True
+            fred = annot.get_slice()
+            self.assertEqual(str(fred), pattern)
 
     def test_deepcopy(self):
         """correctly deep copy aligned objects in an alignment"""

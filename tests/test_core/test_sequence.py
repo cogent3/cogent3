@@ -51,17 +51,29 @@ class SequenceTests(TestCase):
     PROT = ProteinSequence
 
     def test_annotate_matches_to(self):
-        """Tests annotate_matches_to method in SequenceI class."""
-        if isinstance(self, Sequence):
-            seq = self.SEQ("CCCCCAAAGTACCCCCCAAAGTA", name="x")
-            pattern = "AAAGTA"
-            annot = seq.annotate_matches_to(
-                pattern=pattern, annot_type="domain", name="fred", allow_multiple=True
-            )
-            fred = annot.get_slice()
-            self.assertEqual(str(fred)[0 : len(pattern)], pattern)
+        """annotate_matches_to method should attach
+         annotations correctly to a Sequence object."""
+        seq = self.SEQ("TTCCACTTCCGCTT", name="x")
+        allow_multiple = True
+        if not isinstance(seq, Sequence):
+            return True
+        pattern = "CCRC"
+        regular_expression = DNA.to_regex(seq=pattern)
+        annot = seq.annotate_matches_to(
+            pattern=regular_expression,
+            annot_type="domain",
+            name="fred",
+            allow_multiple=allow_multiple,
+        )
+        if allow_multiple == True:
+            for i in range(0, len(annot)):
+                fred = annot[i].get_slice()
+                self.assertEqual(
+                    str(fred), re.search(regular_expression, str(fred)).group()
+                )
         else:
-            assert True
+            fred = annot.get_slice()
+            self.assertEqual(str(fred), pattern)
 
     def test_init_empty(self):
         """Sequence and subclasses should init correctly."""
