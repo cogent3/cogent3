@@ -69,7 +69,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.11.15.a"
+__version__ = "2019.12.6a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -752,6 +752,9 @@ class Sequence(_Annotatable, SequenceI):
         """
         from cogent3 import get_moltype
 
+        if not moltype:
+            raise ValueError(f"unknown moltype '{moltype}'")
+
         moltype = get_moltype(moltype)
         make_seq = moltype.make_seq
         new = make_seq(self, name=self.name)
@@ -1166,8 +1169,8 @@ class NucleicAcidSequence(Sequence):
         return self.__class__(codons, name=self.name, info=self.info)
 
     def get_translation(self, gc=None, incomplete_ok=False):
-        """
-        translation to amino acid sequence
+        """translate to amino acid sequence
+
         Parameters
         ----------
         gc
@@ -1175,6 +1178,7 @@ class NucleicAcidSequence(Sequence):
         incomplete_ok : bool
             codons that are mixes of nucleotide and gaps converted to '?'.
             raises a ValueError if False
+
         Returns
         -------
         sequence of PROTEIN moltype

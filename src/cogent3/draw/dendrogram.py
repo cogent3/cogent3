@@ -13,7 +13,7 @@ __author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rahul Ghangas"]
 __license__ = "BSD-3"
-__version__ = "2019.11.15.a"
+__version__ = "2019.12.6a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -643,10 +643,11 @@ class Dendrogram(Drawable):
             "line": {"color": self._line_color, "width": self._line_width},
         }
         annotation = UnionDict(
-            x=x + scale + (0.5 * scale),
+            x=x + (0.5 * scale),
             y=y,
             xref="x",
             yref="y",
+            yshift=10,
             text=text,
             showarrow=False,
             ax=0,

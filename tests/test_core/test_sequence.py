@@ -36,7 +36,7 @@ __author__ = "Rob Knight, Gavin Huttley and Peter Maxwell"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Peter Maxwell", "Matthew Wakefield"]
 __license__ = "BSD-3"
-__version__ = "2019.11.15.a"
+__version__ = "2019.12.6a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -244,6 +244,13 @@ class SequenceTests(TestCase):
         self.assertEqual(annot4_slice[10:20], got_slice[10:20])
         self.assertEqual(got.moltype.label, "rna")
         self.assertEqual(got.name, "test3")
+
+        # calling with a null object should raise an exception
+        with self.assertRaises(ValueError):
+            s.to_moltype(None)
+
+        with self.assertRaises(ValueError):
+            s.to_moltype("")
 
     def test_annotate_from_gff(self):
         """correctly annotates a Sequence from a gff file"""

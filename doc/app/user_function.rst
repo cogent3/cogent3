@@ -56,7 +56,7 @@ Renaming sequences
 
 This time we wrap a method call on a ``SequenceCollection`` (and the alignment sub-classes) for renaming sequences. We also illustrate here that to support both aligned and unaligned data types as input/output, we have to include these in the construction of the custom function.
 
-.. note:: The ``SERIALISABLE_TYPE`` indicates the data has the ability to converted to ``json``.
+.. note:: The ``SERIALISABLE_TYPE`` indicates the data has the ability to be converted to ``json``.
 
 .. doctest::
     
