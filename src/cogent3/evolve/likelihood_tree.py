@@ -5,7 +5,7 @@ Each leaf holds a sequence.  Used by a likelihood function."""
 
 import numpy
 
-from cogent3.util.modules import ExpectedImportError, importVersionedModule
+from . import _likelihood_tree_numba as likelihood_tree_numba
 
 
 numpy.seterr(all="ignore")
@@ -20,14 +20,6 @@ __version__ = "2019.12.6a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
-
-try:
-    from . import _likelihood_tree as pyrex
-
-    # pyrex = importVersionedModule('_likelihood_tree', globals(),
-    # (2, 1), "pure Python/NumPy likelihoodihood tree")
-except ImportError:
-    pyrex = None
 
 
 class _LikelihoodTreeEdge(object):
@@ -177,10 +169,11 @@ class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
     LOG_BASE = numpy.log(BASE)
 
     def sum_input_likelihoodsR(self, result, *likelihoods):
-        result[:] = 1.0
-        for (i, index) in enumerate(self.indexes):
-            result *= numpy.take(likelihoods[i], index, 0)
-        return result
+        return likelihood_tree_numba.sum_input_likelihoods(
+            numpy.ascontiguousarray(self.indexes),
+            numpy.ascontiguousarray(result),
+            likelihoods,
+        )
 
     # For root
 
@@ -195,37 +188,16 @@ class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
         return numpy.log(sum(state_probs)) + exponent * self.LOG_BASE
 
     def get_total_log_likelihood(self, input_likelihoods, mprobs):
-        lhs = numpy.inner(input_likelihoods, mprobs)
+        lhs = likelihood_tree_numba.get_total_log_likelihood_step1(
+            input_likelihoods, mprobs
+        )
         return self.get_log_sum_across_sites(lhs)
 
     def get_log_sum_across_sites(self, lhs):
-        return numpy.inner(numpy.log(lhs), self.counts)
+        return likelihood_tree_numba.get_log_sum_across_sites(lhs, self.counts)
 
 
-class _PyxLikelihoodTreeEdge(_LikelihoodTreeEdge):
-    integer_type = numerictypes(int)  # match checkArrayInt1D
-    float_type = numerictypes(float)  # match checkArrayDouble1D/2D
-
-    def sum_input_likelihoodsR(self, result, *likelihoods):
-        pyrex.sum_input_likelihoods(self.indexes, result, likelihoods)
-        return result
-
-    # For root
-
-    def log_dot_reduce(self, patch_probs, switch_probs, plhs):
-        return pyrex.log_dot_reduce(self.index, patch_probs, switch_probs, plhs)
-
-    def get_total_log_likelihood(self, input_likelihoods, mprobs):
-        return pyrex.get_total_log_likelihood(self.counts, input_likelihoods, mprobs)
-
-    def get_log_sum_across_sites(self, lhs):
-        return pyrex.get_log_sum_across_sites(self.counts, lhs)
-
-
-if pyrex is None:
-    LikelihoodTreeEdge = _PyLikelihoodTreeEdge
-else:
-    LikelihoodTreeEdge = _PyxLikelihoodTreeEdge
+LikelihoodTreeEdge = _PyLikelihoodTreeEdge
 
 FLOAT_TYPE = LikelihoodTreeEdge.float_type
 INTEGER_TYPE = LikelihoodTreeEdge.integer_type
