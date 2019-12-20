@@ -164,6 +164,15 @@ class RefalignmentTests(TestCase):
         aln = aligner(self.seqs)
         self.assertEqual(len(aln), 42)
 
+    def test_pickle_progressive_align(self):
+        """test progressive_align is picklable"""
+        from pickle import dumps, loads
+
+        aligner = align_app.progressive_align(model="codon")
+        aln = aligner(self.seqs)
+        got = loads(dumps(aln))
+        self.assertTrue(got)
+
     def test_with_genetic_code(self):
         """handles genetic code argument"""
         aligner = align_app.progressive_align(model="GY94", gc="2")
