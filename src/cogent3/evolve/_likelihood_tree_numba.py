@@ -1,12 +1,6 @@
-import numba
-import numba.types
 import numpy
 
-from numba import jit, njit
-
-
-BASE = 2.0 ** 100
-LOG_BASE = numpy.log(BASE)
+from numba import njit
 
 
 @njit(cache=True)
