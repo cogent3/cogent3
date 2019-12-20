@@ -10,7 +10,7 @@ in addition to binary trees.
 """
 import numpy
 
-from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge
+from cogent3.evolve.likelihood_tree2 import LikelihoodTreeEdge
 from cogent3.evolve.simulate import argpick
 from cogent3.maths.markov import SiteClassTransitionMatrix
 from cogent3.recalculation.definition import (

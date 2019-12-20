@@ -4,7 +4,7 @@ import warnings
 
 import numpy
 
-from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
+from cogent3.evolve.likelihood_tree2 import make_likelihood_tree_leaf
 
 from . import substitution_calculation
 

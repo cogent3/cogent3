@@ -43,7 +43,7 @@ from numpy.linalg import svd
 from cogent3.core import moltype
 from cogent3.evolve import motif_prob_model, parameter_controller, predicate
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
-from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
+from cogent3.evolve.likelihood_tree2 import make_likelihood_tree_leaf
 from cogent3.evolve.substitution_calculation import (
     AlignmentAdaptDefn,
     CalcDefn,

@@ -13,7 +13,7 @@ import numpy
 
 from cogent3.align.traceback import alignment_traceback, map_traceback
 from cogent3.core.alignment import Aligned
-from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge
+from cogent3.evolve.likelihood_tree2 import LikelihoodTreeEdge
 from cogent3.util.modules import ExpectedImportError, importVersionedModule
 from cogent3.util.warning import deprecated, discontinued
 

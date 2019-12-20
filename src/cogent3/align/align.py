@@ -3,7 +3,7 @@
 import numpy
 
 from cogent3.align import indel_model, pairwise, pycompare
-from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
+from cogent3.evolve.likelihood_tree2 import make_likelihood_tree_leaf
 
 
 Float = numpy.core.numerictypes.sctype2char(float)
