@@ -1,5 +1,5 @@
 trigger:
-  - master
+  - 408_performance_improvement_migration
 
 variables:
   CODECOV_TOKEN: 504b0637-b4c1-4991-bc79-7a29aee41b44
