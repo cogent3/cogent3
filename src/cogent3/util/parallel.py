@@ -19,7 +19,7 @@ __author__ = "Sheng Han Moses Koh"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Sheng Han Moses Koh", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.11.15.a"
+__version__ = "2019.12.6a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -141,8 +141,14 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
         elif COMM.Get_attr(MPI.UNIVERSE_SIZE) == 1 and if_serial == "warn":
             warnings.warn(UserWarning, msg=err_msg)
 
-        if not max_workers:
-            max_workers = COMM.Get_attr(MPI.UNIVERSE_SIZE) - 1
+        max_workers = max_workers or 0
+
+        if max_workers > COMM.Get_attr(MPI.UNIVERSE_SIZE):
+            warnings.warn(
+                UserWarning, msg="max_workers too large, reducing to UNIVERSE_SIZE-1"
+            )
+
+        max_workers = min(max_workers, COMM.Get_attr(MPI.UNIVERSE_SIZE) - 1)
 
         if not chunksize:
             chunksize = set_default_chunksize(s, max_workers)

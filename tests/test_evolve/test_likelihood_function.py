@@ -60,7 +60,7 @@ __credits__ = [
     "Ananias Iliadis",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.11.15.a"
+__version__ = "2019.12.6a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -1351,6 +1351,18 @@ NineBande      root    1.0000    1.0000
             lf = sm.make_likelihood_function(tree)
             lf.set_alignment(_aln)
             _ = lf.to_rich_dict()
+
+    def test_repr(self):
+        """repr should not fail"""
+        lf = self._makeLikelihoodFunction()
+        got = repr(lf)
+        self.assertIn("log-likelihood", got)
+
+    def test_repr_html(self):
+        "exercising for jupyter"
+        lf = self._makeLikelihoodFunction()
+        got = lf._repr_html_()
+        self.assertIn("<p>log-likelihood", got)
 
 
 class ComparisonTests(TestCase):

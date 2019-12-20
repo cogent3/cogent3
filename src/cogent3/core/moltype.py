@@ -16,7 +16,7 @@ __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2019.11.15.a"
+__version__ = "2019.12.6a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -741,6 +741,15 @@ class MolType(object):
         """returns result of json formatted string"""
         data = self.to_rich_dict(for_pickle=False)
         return json.dumps(data)
+
+    def to_regex(self, seq):
+        """returns a regex pattern with ambiguities expanded to a character set"""
+        degen_indices = self.get_degenerate_positions(sequence=seq, include_gap=False)
+        seq = list(seq)  # seq can now be modified
+        for index in degen_indices:
+            expanded = self.ambiguities[seq[index]]
+            seq[index] = f"[{''.join(expanded)}]"
+        return "".join(seq)
 
     def gettype(self):
         """Returns type, e.g. 'dna', 'rna', 'protein'. Delete?"""
