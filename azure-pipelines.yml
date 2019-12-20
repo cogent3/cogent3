@@ -13,6 +13,7 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
+        python -m pip install numba
         python -m pip install .[dev] codecov
     - task: UsePythonVersion@0
       inputs:
@@ -26,6 +27,7 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
+        python -m pip install numba
         python -m pip install .[dev] codecov
     - task: UsePythonVersion@0
       inputs:
@@ -39,6 +41,7 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
+        python -m pip install numba
         python -m pip install .[dev] codecov
     - task: UsePythonVersion@0
       inputs:
