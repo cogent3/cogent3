@@ -1,5 +1,5 @@
 trigger:
-  - 408_performance_improvement_migration
+  - master
 
 variables:
   CODECOV_TOKEN: 504b0637-b4c1-4991-bc79-7a29aee41b44
@@ -13,7 +13,6 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install numba
         python -m pip install .[dev] codecov
     - task: UsePythonVersion@0
       inputs:
@@ -27,7 +26,6 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install numba
         python -m pip install .[dev] codecov
     - task: UsePythonVersion@0
       inputs:
@@ -41,7 +39,6 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        python -m pip install numba
         python -m pip install .[dev] codecov
     - task: UsePythonVersion@0
       inputs:
@@ -98,10 +95,9 @@ jobs:
         python -m pip install .[dev] codecov
         tox -e py37
         codecov
-
 - job: Linux_Build
   pool: {vmImage: 'ubuntu-latest'}
-  steps: 
+  steps:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6'}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7'}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8'}}
@@ -116,7 +112,7 @@ jobs:
 
 - job: MacOS_Build
   pool: {vmImage: 'macos-latest'}
-  steps: 
+  steps:
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6'}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7'}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8'}}
