@@ -1575,6 +1575,9 @@ class _SequenceCollectionBase:
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seqs"""
+        if not moltype:
+            raise ValueError(f"unknown moltype '{moltype}'")
+
         data = [s.to_moltype(moltype) for s in self.seqs]
         new = self.__class__(data=data, moltype=moltype, name=self.name, info=self.info)
         return new

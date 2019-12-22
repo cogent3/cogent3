@@ -107,7 +107,9 @@ class align_to_ref(ComposableSeq):
 
     def align_to_longest(self, seqs):
         """returns alignment to longest seq"""
-        seqs = seqs.to_moltype(self._moltype)
+        if self._moltype and self._moltype != seqs.moltype:
+            seqs = seqs.to_moltype(self._moltype)
+
         lengths = seqs.get_lengths()
         lengths = [(l, n) for n, l in lengths.items()]
         _, ref_seq_name = max(lengths)
@@ -116,7 +118,9 @@ class align_to_ref(ComposableSeq):
 
     def align_to_named_seq(self, seqs):
         """returns alignment to named seq"""
-        seqs = seqs.to_moltype(self._moltype)
+        if self._moltype and self._moltype != seqs.moltype:
+            seqs = seqs.to_moltype(self._moltype)
+
         ref_seq = seqs.get_seq(self._ref_name)
         aligned = None
         kwargs = self._kwargs.copy()
@@ -260,7 +264,9 @@ class progressive_align(ComposableSeq):
         return tree
 
     def multiple_align(self, seqs):
-        seqs = seqs.to_moltype(self._moltype)
+        if self._moltype and self._moltype != seqs.moltype:
+            seqs = seqs.to_moltype(self._moltype)
+
         if self._guide_tree is None or self._unique_guides:
             self._guide_tree = self._build_guide(seqs)
             self._kwargs["tree"] = self._guide_tree
@@ -277,7 +283,9 @@ class progressive_align(ComposableSeq):
             warnings.simplefilter("ignore")
             try:
                 result, tree = TreeAlign(self._model, seqs, **kwargs)
-                result = result.to_moltype(self._moltype)
+                if self._moltype and self._moltype != result.moltype:
+                    result = result.to_moltype(self._moltype)
+
                 result.info.update(seqs.info)
             except ValueError as err:
                 # probably an internal stop

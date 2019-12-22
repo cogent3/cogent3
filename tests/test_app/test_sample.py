@@ -270,6 +270,12 @@ class TranslateTests(TestCase):
         self.assertEqual(len(got), 3)
         for name, seq in got.to_dict().items():
             self.assertIn(seq, expect[name])
+        # as above, but with moltype defined
+        fl = sample.fixed_length(3, random=True, motif_length=3, moltype="dna")
+        got = fl(d)
+        self.assertEqual(len(got), 3)
+        for name, seq in got.to_dict().items():
+            self.assertIn(seq, expect[name])
 
         fl = sample.fixed_length(9, start=2)
         got = fl(aln)
