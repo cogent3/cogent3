@@ -1917,25 +1917,25 @@ class _SequenceCollectionBase:
         exclude_unobserved=True,
         alert=False,
     ):
-        """returns the Shannon entropy per sequence
+        """Returns the Shannon entropy per sequence.
 
-                Parameters
-                ----------
-                motif_length
-                    number of characters per tuple.
-                include_ambiguity
-                    if True, motifs containing ambiguous characters
-                    from the seq moltype are included. No expansion of those is attempted.
-                allow_gap
-                    if True, motifs containing a gap character are included.
-                exclude_unobserved
-                    if True, unobserved motif combinations are excluded.
+        Parameters
+        ----------
+        motif_length: int
+            number of characters per tuple.
+        include_ambiguity: bool
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gap: bool
+            if True, motifs containing a gap character are included.
+        exclude_unobserved: bool
+            if True, unobserved motif combinations are excluded.
 
-                Notes
-                -----
-                For motif_length > 1, it's advisable to specify exclude_unobserved=True,
-                this avoids unnecessary calculations.
-                """
+        Notes
+        -----
+        For motif_length > 1, it's advisable to specify exclude_unobserved=True,
+        this avoids unnecessary calculations.
+        """
         probs = self.probs_per_seq(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
