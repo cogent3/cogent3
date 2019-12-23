@@ -51,11 +51,13 @@ class SequenceTests(TestCase):
     PROT = ProteinSequence
 
     def test_annotate_matches_to(self):
-        """annotate_matches_to method should attach
-         annotations correctly to a Sequence object, tested
-         for both multiple and singular annotations.
-         For Sequence objects of MolType
-         ASCII, annotate_matches_to should return an empty annotation."""
+        """
+        annotate_matches_to method should attach
+        annotations correctly to a Sequence object, tested
+        for both multiple and singular annotations.
+        For Sequence objects of MolType
+        ASCII, annotate_matches_to should return an empty annotation.
+        """
         seq = self.DNA("TTCCACTTCCGCTT", name="x")
         if not isinstance(seq, Sequence):
             return True
@@ -66,12 +68,7 @@ class SequenceTests(TestCase):
             name="fred",
             allow_multiple=True,
         )
-        regular_expression = DNA.to_regex(seq=pattern)
-        for i in range(0, len(annot)):
-            fred = annot[i].get_slice()[0:len(pattern)]
-            self.assertEqual(
-                str(fred), re.search(regular_expression, str(fred)).group()
-            )
+        self.assertEqual([a.get_slice() for a in annot], ["CCAC", "CCGC"])
         annot = seq.annotate_matches_to(
             pattern=pattern,
             annot_type="domain",
