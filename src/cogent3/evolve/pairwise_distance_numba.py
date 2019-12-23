@@ -1,12 +1,19 @@
 from numba import njit
 
 
-__version__ = "('2019', '12', '6a')"
+__author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__credits__ = ["Gavin Huttley", "Yicheng Zhu", "Ben Kaehler", "Stephen Ma"]
+__license__ = "BSD-3"
+__version__ = "2019.12.6a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "gavin.huttley@anu.edu.au"
+__status__ = "Alpha"
 
 
 # fills in a diversity matrix from sequences of integers
 @njit(cache=True)
-def _fill_diversity_matrix(matrix, seq1, seq2):
+def fill_diversity_matrix(matrix, seq1, seq2):
     """fills the diversity matrix for valid positions.
 
     Assumes the provided sequences have been converted to indices with

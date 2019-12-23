@@ -3,6 +3,16 @@ import numpy
 from numba import njit
 
 
+__author__ = "Peter Maxwell"
+__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley", "Stephen Ma"]
+__license__ = "BSD-3"
+__version__ = "2019.12.6a"
+__maintainer__ = "Peter Maxwell"
+__email__ = "pm67nz@gmail.com"
+__status__ = "Production"
+
+
 @njit(cache=True)
 def sum_input_likelihoods(child_indexes, result, likelihoods):
     C = child_indexes.shape[0]

@@ -37,7 +37,7 @@ from cogent3.evolve.fast_distance import (
 )
 from cogent3.evolve.models import F81, HKY85, JC69
 from cogent3.evolve.pairwise_distance_numba import (
-    _fill_diversity_matrix as numba_fill_diversity_matrix,
+    fill_diversity_matrix as numba_fill_diversity_matrix,
 )
 
 
