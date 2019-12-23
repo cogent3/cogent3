@@ -158,7 +158,7 @@ class _LikelihoodTreeEdge(object):
         )
 
 
-class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
+class LikelihoodTreeEdge(_LikelihoodTreeEdge):
     # Should be a subclass of regular tree edge?
 
     float_type = numerictypes(float)
@@ -188,16 +188,12 @@ class _PyLikelihoodTreeEdge(_LikelihoodTreeEdge):
         return numpy.log(sum(state_probs)) + exponent * self.LOG_BASE
 
     def get_total_log_likelihood(self, input_likelihoods, mprobs):
-        lhs = likelihood_tree_numba.get_total_log_likelihood_step1(
-            input_likelihoods, mprobs
-        )
+        lhs = likelihood_tree_numba.inner_product(input_likelihoods, mprobs)
         return self.get_log_sum_across_sites(lhs)
 
     def get_log_sum_across_sites(self, lhs):
         return likelihood_tree_numba.get_log_sum_across_sites(lhs, self.counts)
 
-
-LikelihoodTreeEdge = _PyLikelihoodTreeEdge
 
 FLOAT_TYPE = LikelihoodTreeEdge.float_type
 INTEGER_TYPE = LikelihoodTreeEdge.integer_type

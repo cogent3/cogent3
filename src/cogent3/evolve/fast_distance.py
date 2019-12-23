@@ -11,9 +11,7 @@ from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
 
-from .pairwise_distance_numba import (
-    fill_diversity_matrix as fill_diversity_matrix,
-)
+from .pairwise_distance_numba import fill_diversity_matrix
 
 
 __author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"

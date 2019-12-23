@@ -35,7 +35,7 @@ def sum_input_likelihoods(child_indexes, result, likelihoods):
 
 
 @njit(cache=True)
-def get_total_log_likelihood_step1(input_likelihoods, mprobs):
+def inner_product(input_likelihoods, mprobs):
     res = 0.0
     for i in range(len(mprobs)):
         res += input_likelihoods[i] * mprobs[i]
