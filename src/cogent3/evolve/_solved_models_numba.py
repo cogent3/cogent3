@@ -15,20 +15,13 @@ def calc_TN93_P(mprobs, time, alpha1, alpha2, result):
     if not (mprobs.shape[0] == result.shape[0] == result.shape[1] == 4):
         raise ValueError("all array dimensions must equal 4")
 
-    alpha = np.zeros(2)
-    pi_star = np.zeros(2)
-    mu = np.zeros(2)
+    alpha = np.array([alpha1, alpha2])
+    pi_star = np.array([mprobs[0] + mprobs[1], mprobs[2] + mprobs[3]])
+    mu = np.array(
+        [alpha1 * pi_star[0] + 1.0 * pi_star[1], 1.0 * pi_star[0] + alpha2 * pi_star[1]]
+    )
     e_mu_t = np.zeros(2)
     transition = np.zeros(2)
-
-    alpha[0] = alpha1
-    alpha[1] = alpha2
-
-    pi_star[0] = mprobs[0] + mprobs[1]
-    pi_star[1] = mprobs[2] + mprobs[3]
-
-    mu[0] = alpha[0] * pi_star[0] + 1.0 * pi_star[1]
-    mu[1] = 1.0 * pi_star[0] + alpha[1] * pi_star[1]
 
     scale_factor = 0.0
     for motif in range(4):
