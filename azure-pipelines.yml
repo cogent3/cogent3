@@ -11,6 +11,8 @@ jobs:
   pool: {vmImage: 'ubuntu-latest'}
   steps:
     - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.7'
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
@@ -24,6 +26,8 @@ jobs:
   pool: {vmImage: 'ubuntu-latest'}
   steps:
     - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.7'
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
@@ -37,6 +41,8 @@ jobs:
   pool: {vmImage: 'ubuntu-latest'}
   steps:
     - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.7'
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
@@ -50,6 +56,8 @@ jobs:
   pool: {vmImage: 'macos-latest'}
   steps:
     - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.7'
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
@@ -63,6 +71,8 @@ jobs:
   pool: {vmImage: 'macos-latest'}
   steps:
     - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.7'
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
@@ -76,6 +86,8 @@ jobs:
   pool: {vmImage: 'macos-latest'}
   steps:
     - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.7'
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
