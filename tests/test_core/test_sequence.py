@@ -59,8 +59,6 @@ class SequenceTests(TestCase):
         ASCII, annotate_matches_to should return an empty annotation.
         """
         seq = self.DNA("TTCCACTTCCGCTT", name="x")
-        if not isinstance(seq, Sequence):
-            return True
         pattern = "CCRC"
         annot = seq.annotate_matches_to(
             pattern=pattern,
