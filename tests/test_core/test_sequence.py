@@ -52,28 +52,44 @@ class SequenceTests(TestCase):
 
     def test_annotate_matches_to(self):
         """annotate_matches_to method should attach
-         annotations correctly to a Sequence object."""
-        seq = self.SEQ("TTCCACTTCCGCTT", name="x")
-        allow_multiple = True
+         annotations correctly to a Sequence object, tested
+         for both multiple and singular annotations.
+         For Sequence objects of MolType
+         ASCII, annotate_matches_to should return an empty annotation."""
+        seq = self.DNA("TTCCACTTCCGCTT", name="x")
         if not isinstance(seq, Sequence):
             return True
         pattern = "CCRC"
-        regular_expression = DNA.to_regex(seq=pattern)
         annot = seq.annotate_matches_to(
-            pattern=regular_expression,
+            pattern=pattern,
             annot_type="domain",
             name="fred",
-            allow_multiple=allow_multiple,
+            allow_multiple=True,
         )
-        if allow_multiple == True:
-            for i in range(0, len(annot)):
-                fred = annot[i].get_slice()
-                self.assertEqual(
-                    str(fred), re.search(regular_expression, str(fred)).group()
-                )
-        else:
-            fred = annot.get_slice()
-            self.assertEqual(str(fred), pattern)
+        regular_expression = DNA.to_regex(seq=pattern)
+        for i in range(0, len(annot)):
+            fred = annot[i].get_slice()[0:len(pattern)]
+            self.assertEqual(
+                str(fred), re.search(regular_expression, str(fred)).group()
+            )
+        annot = seq.annotate_matches_to(
+            pattern=pattern,
+            annot_type="domain",
+            name="fred",
+            allow_multiple=False,
+        )
+        fred = annot[0].get_slice()[0:len(pattern)]
+        self.assertEqual(len(annot), 1)
+        self.assertEqual(str(fred), "CCAC")
+        seq = ASCII.make_seq(seq="TTCCACTTCCGCTT")
+        annot = seq.annotate_matches_to(
+            pattern=pattern,
+            annot_type="domain",
+            name="fred",
+            allow_multiple=False,
+        )
+        self.assertEqual(annot, [])
+
 
     def test_init_empty(self):
         """Sequence and subclasses should init correctly."""
