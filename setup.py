@@ -201,7 +201,6 @@ setup(
             CythonExtension("cogent3.align._compare"),
             CythonExtension("cogent3.align._pairwise_seqs"),
             CythonExtension("cogent3.align._pairwise_pogs"),
-            CythonExtension("cogent3.evolve._solved_models"),
             CythonExtension("cogent3.maths._period"),
         ]
     ),
