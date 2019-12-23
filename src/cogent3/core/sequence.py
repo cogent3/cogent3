@@ -121,6 +121,8 @@ class SequenceI(object):
         """
         pattern = self.moltype.to_regex(seq=pattern)
         pos = [m.span() for m in re.finditer(pattern, self._seq)]
+        if not pos:
+            return []
         annot = []
         if allow_multiple:
             for i in range(0, len(pos)):
@@ -128,8 +130,9 @@ class SequenceI(object):
                     self.add_feature(annot_type, f"{name}:{i}", [pos[i]])
                 )
         else:
+            pos = pos[:1]
             annot.append(self.add_feature(annot_type, name, pos))
-        return annot if pos != [] else []
+        return annot
 
     def to_fasta(self, make_seqlabel=None, block_size=60):
         """Return string of self in FASTA format, no trailing newline
