@@ -272,8 +272,6 @@ def _logdet(matrix, use_tk_adjustment=True):
     return total, p, d_xy, var
 
 
-
-
 def _number_formatter(template):
     """flexible number formatter"""
 

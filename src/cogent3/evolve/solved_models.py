@@ -19,7 +19,7 @@ from cogent3.util.modules import ExpectedImportError, importVersionedModule
 
 
 try:
-    from . import _solved_models
+    from . import _solved_models_numba as _solved_models
 
     # _solved_models = importVersionedModule('_solved_models', globals(),
     # (1, 0), "only matrix exponentiating DNA models")
