@@ -101,30 +101,35 @@ class SequenceI(object):
     def annotate_matches_to(self, pattern, annot_type, name, allow_multiple=False):
         """
         Adds an annotation at the specified pattern in a sequence.
+        The pattern allows for IUPAC ambiguities,
+        as they are converted to regex.
 
         Parameters
         ----------
-        pattern : The string for which annotations are made.
-        annot_type : The type of the annotation (e.g. exon).
-        name : The name of the annotation.
-        allow_multiple : checks for multiple occurences of the input pattern.
+        pattern : string
+            The search string for which annotations are made.
+        annot_type : string
+            The type of the annotation (e.g. exon).
+        name : string
+            The name of the annotation.
+        allow_multiple : boolean
+            If True, checks for multiple occurences of the input pattern.
 
         Returns
         -------
         Returns a list of Annotation instances.
         """
-        from cogent3.core.annotation import Feature
-
+        pattern = self.moltype.to_regex(seq=pattern)
         pos = [m.span() for m in re.finditer(pattern, self._seq)]
         annot = []
-        if allow_multiple == False:
-            annot = self.add_annotation(Feature, annot_type, name, pos)
-        else:
+        if allow_multiple:
             for i in range(0, len(pos)):
                 annot.append(
-                    self.add_annotation(Feature, annot_type, f"{name}:{i}", [pos[i]])
+                    self.add_feature(annot_type, f"{name}:{i}", [pos[i]])
                 )
-        return annot
+        else:
+            annot.append(self.add_feature(annot_type, name, pos))
+        return annot if pos != [] else []
 
     def to_fasta(self, make_seqlabel=None, block_size=60):
         """Return string of self in FASTA format, no trailing newline
