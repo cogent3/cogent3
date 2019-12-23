@@ -16,9 +16,6 @@ from cogent3 import (
     make_aligned_seqs,
     make_unaligned_seqs,
 )
-from cogent3.evolve._pairwise_distance_numba import (
-    _fill_diversity_matrix as numba_fill_diversity_matrix,
-)
 from cogent3.evolve.distance import EstimateDistances
 from cogent3.evolve.fast_distance import (
     DistanceMatrix,
@@ -39,6 +36,9 @@ from cogent3.evolve.fast_distance import (
     seq_to_indices,
 )
 from cogent3.evolve.models import F81, HKY85, JC69
+from cogent3.evolve.pairwise_distance_numba import (
+    _fill_diversity_matrix as numba_fill_diversity_matrix,
+)
 
 
 warnings.filterwarnings("ignore", "Not using MPI as mpi4py not found")

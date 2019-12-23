@@ -5,7 +5,7 @@ Each leaf holds a sequence.  Used by a likelihood function."""
 
 import numpy
 
-from . import _likelihood_tree_numba as likelihood_tree_numba
+from . import likelihood_tree_numba as likelihood_tree_numba
 
 
 numpy.seterr(all="ignore")
