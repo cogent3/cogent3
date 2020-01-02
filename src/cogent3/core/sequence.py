@@ -98,42 +98,6 @@ class SequenceI(object):
         """__str__ returns self._seq unmodified."""
         return self._seq
 
-    def annotate_matches_to(self, pattern, annot_type, name, allow_multiple=False):
-        """
-        Adds an annotation at the specified pattern in a sequence.
-        The pattern allows for IUPAC ambiguities,
-        as they are converted to regex.
-
-        Parameters
-        ----------
-        pattern : string
-            The search string for which annotations are made.
-        annot_type : string
-            The type of the annotation (e.g. exon).
-        name : string
-            The name of the annotation.
-        allow_multiple : boolean
-            If True, checks for multiple occurences of the input pattern.
-
-        Returns
-        -------
-        Returns a list of Annotation instances.
-        """
-        pattern = self.moltype.to_regex(seq=pattern)
-        pos = [m.span() for m in re.finditer(pattern, self._seq)]
-        if not pos:
-            return []
-        annot = []
-        if allow_multiple:
-            for i in range(0, len(pos)):
-                annot.append(
-                    self.add_feature(annot_type, f"{name}:{i}", [pos[i]])
-                )
-        else:
-            pos = pos[:1]
-            annot.append(self.add_feature(annot_type, name, pos))
-        return annot
-
     def to_fasta(self, make_seqlabel=None, block_size=60):
         """Return string of self in FASTA format, no trailing newline
 
@@ -1085,6 +1049,39 @@ class Sequence(_Annotatable, SequenceI):
     def is_annotated(self):
         """returns True if sequence has any annotations"""
         return len(self.annotations) != 0
+
+    def annotate_matches_to(self, pattern, annot_type, name, allow_multiple=False):
+        """Adds an annotation at sequence positions matching pattern.
+
+        Parameters
+        ----------
+        pattern : string
+            The search string for which annotations are made. IUPAC ambiguities
+            are converted to regex on sequences with the appropriate MolType.
+        annot_type : string
+            The type of the annotation (e.g. "domain").
+        name : string
+            The name of the annotation.
+        allow_multiple : boolean
+            If True, allows multiple occurrences of the input pattern. Otherwise
+            only the first match is used.
+
+        Returns
+        -------
+        Returns a list of Annotation instances.
+        """
+        pattern = self.moltype.to_regex(seq=pattern)
+        pos = [m.span() for m in re.finditer(pattern, self._seq)]
+        if not pos:
+            return []
+
+        num_match = len(pos) if allow_multiple else 1
+        annot = [
+            self.add_feature(annot_type, f"{name}:{i}", [pos[i]])
+            for i in range(num_match)
+        ]
+
+        return annot
 
 
 class ProteinSequence(Sequence):
