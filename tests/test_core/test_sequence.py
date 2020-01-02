@@ -50,42 +50,6 @@ class SequenceTests(TestCase):
     DNA = DnaSequence
     PROT = ProteinSequence
 
-    def test_annotate_matches_to(self):
-        """
-        annotate_matches_to method should attach
-        annotations correctly to a Sequence object, tested
-        for both multiple and singular annotations.
-        For Sequence objects of MolType
-        ASCII, annotate_matches_to should return an empty annotation.
-        """
-        seq = self.DNA("TTCCACTTCCGCTT", name="x")
-        pattern = "CCRC"
-        annot = seq.annotate_matches_to(
-            pattern=pattern,
-            annot_type="domain",
-            name="fred",
-            allow_multiple=True,
-        )
-        self.assertEqual([a.get_slice() for a in annot], ["CCAC", "CCGC"])
-        annot = seq.annotate_matches_to(
-            pattern=pattern,
-            annot_type="domain",
-            name="fred",
-            allow_multiple=False,
-        )
-        fred = annot[0].get_slice()[0:len(pattern)]
-        self.assertEqual(len(annot), 1)
-        self.assertEqual(str(fred), "CCAC")
-        seq = ASCII.make_seq(seq="TTCCACTTCCGCTT")
-        annot = seq.annotate_matches_to(
-            pattern=pattern,
-            annot_type="domain",
-            name="fred",
-            allow_multiple=False,
-        )
-        self.assertEqual(annot, [])
-
-
     def test_init_empty(self):
         """Sequence and subclasses should init correctly."""
         # NOTE: ModelSequences can't be initialized empty because it screws up
@@ -994,6 +958,7 @@ class SequenceSubclassTests(TestCase):
         self.assertEqual(DnaSequence("TTTAc").rc(), "GTAAA")
 
 
+# TODO move methods of this class onto the single class that inherits from it!
 class ModelSequenceTests(object):
     """base class for tests of specific ArraySequence objects."""
 
