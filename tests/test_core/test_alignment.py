@@ -2572,29 +2572,32 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         )  # test wrong_refseq
 
     def test_annotate_matches_to(self):
-        """annotate_matches_to method should attach
-         annotations correctly to a Sequence object."""
-        seq = Sequence("TTCCACTTCCGCTT", name="x")
-        allow_multiple = True
-        if not isinstance(seq, Sequence):
-            return True
+        """Aligned. annotate_matches_to correctly delegates to sequence"""
+        aln = Alignment(dict(x="TTCCACTTCCGCTT"), moltype="dna")
+        seq = aln.named_seqs["x"]
         pattern = "CCRC"
-        regular_expression = DNA.to_regex(seq=pattern)
         annot = seq.annotate_matches_to(
-            pattern=regular_expression,
+            pattern=pattern,
             annot_type="domain",
             name="fred",
-            allow_multiple=allow_multiple,
+            allow_multiple=True,
         )
-        if allow_multiple == True:
-            for i in range(0, len(annot)):
-                fred = annot[i].get_slice()
-                self.assertEqual(
-                    str(fred), re.search(regular_expression, str(fred)).group()
-                )
-        else:
-            fred = annot.get_slice()
-            self.assertEqual(str(fred), pattern)
+        regular_expression = DNA.to_regex(seq=pattern)
+        for i in range(0, len(annot)):
+            fred = annot[i].get_slice()
+            self.assertEqual(
+                str(fred), re.search(regular_expression, str(fred)).group()
+            )
+        annot = seq.annotate_matches_to(
+            pattern=pattern,
+            annot_type="domain",
+            name="fred",
+            allow_multiple=False,
+        )
+        fred = annot[0].get_slice()
+        self.assertEqual(
+            str(fred), re.search(regular_expression, str(fred)).group()
+        )
 
     def test_deepcopy(self):
         """correctly deep copy aligned objects in an alignment"""
