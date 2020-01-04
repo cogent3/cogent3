@@ -290,51 +290,6 @@ def load_aligned_seqs(
     )
 
 
-def LoadSeqs(
-    filename=None,
-    format=None,
-    data=None,
-    moltype=None,
-    name=None,
-    aligned=True,
-    label_to_name=None,
-    parser_kw=None,
-    constructor_kw=None,
-    array_align=True,
-    **kw,
-):
-    """
-    .. deprecated:: 2019.8.30a
-
-        ``LoadSeqs`` will be removed in ``cogent3`` 2020.1.1. It's replaced by
-        ``load_unaligned_seqs``, ``load_aligned_seqs``, ``make_unaligned_seqs``
-        and ``make_aligned_seqs``.
-    """
-    kwargs = locals()
-    from cogent3.util.warning import deprecated
-
-    if filename and aligned:
-        deprecated("function", "LoadSeqs", "load_aligned_seqs", "2020.1.1", 1)
-        for key in ("aligned", "data"):
-            del kwargs[key]
-        return load_aligned_seqs(**kwargs)
-    elif filename:
-        deprecated("function", "LoadSeqs", "load_unaligned_seqs", "2020.1.1", 1)
-        for key in ("aligned", "data", "array_align"):
-            del kwargs[key]
-        return load_unaligned_seqs(**kwargs)
-    elif aligned:
-        deprecated("function", "LoadSeqs", "make_aligned_seqs", "2020.1.1", 1)
-        for key in ("filename", "format", "aligned", "parser_kw"):
-            del kwargs[key]
-        return make_aligned_seqs(**kwargs)
-    else:
-        deprecated("function", "LoadSeqs", "make_unaligned_seqs", "2020.1.1", 1)
-        for key in ("filename", "format", "aligned", "array_align", "parser_kw"):
-            del kwargs[key]
-        return make_unaligned_seqs(**kwargs)
-
-
 def make_table(
     header=None,
     rows=None,
@@ -536,50 +491,6 @@ def load_table(
     return table
 
 
-def LoadTable(
-    filename=None,
-    sep=None,
-    reader=None,
-    header=None,
-    rows=None,
-    row_order=None,
-    digits=4,
-    space=4,
-    title="",
-    missing_data="",
-    max_width=1e100,
-    row_ids=None,
-    legend="",
-    column_templates=None,
-    dtype=None,
-    static_column_types=False,
-    limit=None,
-    data_frame=None,
-    format="simple",
-    **kwargs,
-):
-    """
-    .. deprecated:: 2019.8.30a
-
-        ``LoadTable`` will be removed in ``cogent3`` 2020.1.1. It's replaced by
-        ``load_table`` and ``make_table``.
-    """
-    from cogent3.util.warning import deprecated
-
-    args = {k: v for k, v in locals().items() if k != "deprecated"}
-    kwargs = args.pop("kwargs", {})
-    args.update(kwargs)
-    if filename:
-        deprecated("function", "LoadTable", "load_table", "2020.1.1", 1)
-
-        return load_table(**args)
-
-    deprecated("function", "LoadTable", "make_table", "2020.1.1", 1)
-    for skip in ("filename", "sep", "reader", "static_column_types", "limit"):
-        del args[skip]
-    return make_table(**args)
-
-
 def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=False):
     """Initialises a tree.
 
@@ -641,33 +552,4 @@ def load_tree(filename, format=None, underscore_unmunge=False):
         if format is None and filename.endswith(".xml"):
             format = "xml"
     tree = make_tree(treestring, format=format, underscore_unmunge=underscore_unmunge)
-    return tree
-
-
-def LoadTree(
-    filename=None,
-    treestring=None,
-    tip_names=None,
-    format=None,
-    underscore_unmunge=False,
-):
-    """
-    .. deprecated:: 2019.8.30a
-
-        ``LoadTree`` will be removed in ``cogent3`` 2020.1.1. It's replaced by
-        ``load_tree`` and ``make_tree``.
-    """
-    from cogent3.util.warning import deprecated
-
-    if filename:
-        deprecated("function", "LoadTree", "load_tree", "2020.1.1", 1)
-        return load_tree(filename, format=format, underscore_unmunge=underscore_unmunge)
-
-    deprecated("function", "LoadTree", "make_tree", "2020.1.1", 1)
-    tree = make_tree(
-        treestring=treestring,
-        tip_names=tip_names,
-        format=format,
-        underscore_unmunge=underscore_unmunge,
-    )
     return tree
