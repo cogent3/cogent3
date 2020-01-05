@@ -1050,6 +1050,39 @@ class Sequence(_Annotatable, SequenceI):
         """returns True if sequence has any annotations"""
         return len(self.annotations) != 0
 
+    def annotate_matches_to(self, pattern, annot_type, name, allow_multiple=False):
+        """Adds an annotation at sequence positions matching pattern.
+
+        Parameters
+        ----------
+        pattern : string
+            The search string for which annotations are made. IUPAC ambiguities
+            are converted to regex on sequences with the appropriate MolType.
+        annot_type : string
+            The type of the annotation (e.g. "domain").
+        name : string
+            The name of the annotation.
+        allow_multiple : boolean
+            If True, allows multiple occurrences of the input pattern. Otherwise
+            only the first match is used.
+
+        Returns
+        -------
+        Returns a list of Annotation instances.
+        """
+        pattern = self.moltype.to_regex(seq=pattern)
+        pos = [m.span() for m in re.finditer(pattern, self._seq)]
+        if not pos:
+            return []
+
+        num_match = len(pos) if allow_multiple else 1
+        annot = [
+            self.add_feature(annot_type, f"{name}:{i}", [pos[i]])
+            for i in range(num_match)
+        ]
+
+        return annot
+
 
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence. MolType set in moltype module."""

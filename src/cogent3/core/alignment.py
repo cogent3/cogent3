@@ -1917,25 +1917,25 @@ class _SequenceCollectionBase:
         exclude_unobserved=True,
         alert=False,
     ):
-        """returns the Shannon entropy per sequence
+        """Returns the Shannon entropy per sequence.
 
-                Parameters
-                ----------
-                motif_length
-                    number of characters per tuple.
-                include_ambiguity
-                    if True, motifs containing ambiguous characters
-                    from the seq moltype are included. No expansion of those is attempted.
-                allow_gap
-                    if True, motifs containing a gap character are included.
-                exclude_unobserved
-                    if True, unobserved motif combinations are excluded.
+        Parameters
+        ----------
+        motif_length: int
+            number of characters per tuple.
+        include_ambiguity: bool
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gap: bool
+            if True, motifs containing a gap character are included.
+        exclude_unobserved: bool
+            if True, unobserved motif combinations are excluded.
 
-                Notes
-                -----
-                For motif_length > 1, it's advisable to specify exclude_unobserved=True,
-                this avoids unnecessary calculations.
-                """
+        Notes
+        -----
+        For motif_length > 1, it's advisable to specify exclude_unobserved=True,
+        this avoids unnecessary calculations.
+        """
         probs = self.probs_per_seq(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
@@ -2012,6 +2012,14 @@ class Aligned(object):
             self.info = data.info
         if hasattr(data, "name"):
             self.name = data.name
+
+    def annotate_matches_to(self, pattern, annot_type, name, allow_multiple=False):
+        return self.data.annotate_matches_to(
+            pattern=pattern,
+            annot_type=annot_type,
+            name=name,
+            allow_multiple=allow_multiple,
+        )
 
     def _get_moltype(self):
         return self.data.moltype
@@ -2336,6 +2344,7 @@ class AlignmentI(object):
         exclude_unobserved=False,
         alert=False,
     ):
+
         """return MotifFreqsArray per sequence
 
         Parameters
@@ -2350,6 +2359,7 @@ class AlignmentI(object):
         exclude_unobserved
             if True, unobserved motif combinations are excluded.
         """
+
         counts = self.counts_per_seq(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
@@ -2383,11 +2393,12 @@ class AlignmentI(object):
         exclude_unobserved
             if True, unobserved motif combinations are excluded.
 
-        Notes
-        -----
-        For motif_length > 1, it's advisable to specify exclude_unobserved=True,
-        this avoids unnecessary calculations.
-        """
+                Notes
+                -----
+                For motif_length > 1, it's advisable to specify exclude_unobserved=True,
+                this avoids unnecessary calculations.
+                """
+
         probs = self.probs_per_seq(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,

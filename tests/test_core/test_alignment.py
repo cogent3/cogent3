@@ -2571,6 +2571,23 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
             ValueError, aln1.add_from_ref_aln, aln2_wrong_refseq
         )  # test wrong_refseq
 
+    def test_annotate_matches_to(self):
+        """Aligned.annotate_matches_to correctly delegates to sequence"""
+        aln = Alignment(dict(x="TTCCACTTCCGCTT"), moltype="dna")
+        seq = aln.named_seqs["x"]
+        pattern = "CCRC"
+        annot = seq.annotate_matches_to(
+            pattern=pattern, annot_type="domain", name="fred", allow_multiple=True
+        )
+        got = [a.get_slice() for a in annot]
+        matches = ["CCAC", "CCGC"]
+        self.assertEqual(got, matches)
+        annot = seq.annotate_matches_to(
+            pattern=pattern, annot_type="domain", name="fred", allow_multiple=False
+        )
+        got = [a.get_slice() for a in annot]
+        self.assertEqual(got, matches[:1])
+
     def test_deepcopy(self):
         """correctly deep copy aligned objects in an alignment"""
         path = "data/brca1_5.paml"
