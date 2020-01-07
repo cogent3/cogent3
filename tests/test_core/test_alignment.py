@@ -1993,7 +1993,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         seqs = {"seq1": "ACG", "seq2": "-CT"}
 
         aln = self.Class(data=seqs, moltype=DNA)
-        got = aln.to_html(longest_ref=True)  # name_order=['seq1', 'seq2'])
+        got = aln.to_html(ref_name="longest")  # name_order=['seq1', 'seq2'])
         # ensure balanced tags are in the txt
         for tag in ["<style>", "</style>", "<body>", "</body>", "<table>", "</table>"]:
             self.assertTrue(tag in got)

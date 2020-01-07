@@ -2702,11 +2702,9 @@ class AlignmentI(object):
         return names, output
 
     def _repr_html_(self):
-        # we put the longest sequence first
-
         html = self.to_html(
             name_order=self.names[: self._repr_policy["num_seqs"]],
-            longest_ref=True,
+            ref_name=self._repr_policy["ref_name"],
             limit=self._repr_policy["num_pos"],
         )
         return html
@@ -2716,7 +2714,7 @@ class AlignmentI(object):
         name_order=None,
         interleave_len=60,
         limit=None,
-        longest_ref=True,
+        ref_name="longest",
         colors=None,
         font_size=12,
         font_family="Lucida Console",
@@ -2732,9 +2730,10 @@ class AlignmentI(object):
             alignment length
         limit
             truncate alignment to this length
-        longest_ref
-            If True, the longest sequence (excluding gaps and
-            ambiguities) is selected as the reference.
+        ref_name
+            Name of an existing sequence or 'longest'. If the latter, the
+            longest sequence (excluding gaps and ambiguities) is selected as the
+            reference.
         colors
             {character
             moltype.
@@ -2753,21 +2752,22 @@ class AlignmentI(object):
             colors=colors, font_size=font_size, font_family=font_family
         )
 
-        if longest_ref and name_order is None:
-            length_names = []
-            for s in self.seqs:
-                try:
-                    l = len(s) - s.count_degenerate() - s.count_gaps()
-                except AttributeError:
-                    # We have the Aligned class, and Aligned.data is ungapped
-                    nd = s.data.count_degenerate()
-                    l = len(s.data) - nd
-                length_names.append((l, s.name))
+        if not name_order:
+            ref_name = ref_name or "longest"
+
+        if ref_name == "longest":
+            lengths = self.get_lengths(include_ambiguity=False, allow_gap=False)
+            length_names = [(l, n) for n, l in lengths.items()]
             length_names.sort(reverse=True)
             ref = length_names[0][1]
-            name_order = list(self.names)
-            name_order.remove(ref)
-            name_order.insert(0, ref)
+        elif ref_name:
+            if ref_name not in self.names:
+                raise ValueError(f"Unknown sequence name {ref_name}")
+            ref = ref_name
+
+        name_order = list(self.names)
+        name_order.remove(ref)
+        name_order.insert(0, ref)
 
         if limit is None:
             names, output = self._get_raw_pretty(name_order)
