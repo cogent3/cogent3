@@ -1390,6 +1390,13 @@ class SequenceCollectionBaseTests(object):
         seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
         seqs.set_repr_policy(num_seqs=5, num_pos=40, ref_name="a")
         self.assertEqual(seqs._repr_policy, dict(num_seqs=5, num_pos=40, ref_name="a"))
+        # should persist in slicing
+        if self.Class == SequenceCollection:
+            return True
+
+        self.assertEqual(
+            seqs[:2]._repr_policy, dict(num_seqs=5, num_pos=40, ref_name="a")
+        )
 
     def test_get_seq_entropy(self):
         """get_seq_entropy should get entropy of each seq"""

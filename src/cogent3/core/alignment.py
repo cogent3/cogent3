@@ -3689,13 +3689,15 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             data = vstack(data)
         else:
             data = self.array_seqs[:, item]
-        return self.__class__(
+        result = self.__class__(
             data.T,
             list(map(str, self.names)),
             self.alphabet,
             conversion_f=aln_from_array,
             info=self.info,
         )
+        result._repr_policy.update(self._repr_policy)
+        return result
 
     def _coerce_seqs(self, seqs, is_array):
         """Controls how seqs are coerced in _names_seqs_order.
