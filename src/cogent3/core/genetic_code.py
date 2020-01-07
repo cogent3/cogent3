@@ -47,7 +47,7 @@ def _simple_rc(seq):
 _bases = "TCAG"
 
 
-class GeneticCode(object):
+class GeneticCode:
     """Holds codon to amino acid mapping, and vice versa.
 
     Usage:  gc = GeneticCode(code_sequence)
@@ -302,6 +302,33 @@ class GeneticCode(object):
             if old != new:
                 changes[codon] = old + new
         return changes
+
+    def to_regex(self, seq):
+        """returns a regex pattern with an amino acid expanded to its codon set
+
+        Parameters
+        ----------
+        seq
+            a Sequence or string of amino acids
+        """
+        from .moltype import PROTEIN_WITH_STOP_ambiguities as ambigs
+
+        seq = list(str(seq))
+        mappings = []
+        for aa in seq:
+            if aa in ambigs:
+                aa = ambigs[aa]
+            else:
+                aa = [aa]
+
+            codons = []
+            for a in aa:
+                codons.extend(self[a])
+
+            # we create a regex non-capturing group for each amino acid
+            mappings.append(f"(?:{'|'.join(codons)})")
+
+        return "".join(mappings)
 
 
 NcbiGeneticCodeData = [
