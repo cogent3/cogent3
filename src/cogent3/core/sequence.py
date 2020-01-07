@@ -1070,14 +1070,21 @@ class Sequence(_Annotatable, SequenceI):
         -------
         Returns a list of Annotation instances.
         """
-        pattern = self.moltype.to_regex(seq=pattern)
+        try:
+            pattern = self.moltype.to_regex(seq=pattern)
+        except ValueError:
+            # assume already a regex
+            pass
+
         pos = [m.span() for m in re.finditer(pattern, self._seq)]
         if not pos:
             return []
 
         num_match = len(pos) if allow_multiple else 1
         annot = [
-            self.add_feature(annot_type, f"{name}:{i}", [pos[i]])
+            self.add_feature(
+                annot_type, f"{name}:{i}" if allow_multiple else name, [pos[i]]
+            )
             for i in range(num_match)
         ]
 
