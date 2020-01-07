@@ -1370,7 +1370,9 @@ class SequenceCollectionBaseTests(object):
         """repr_policy should remain unchanged"""
         seqs = self.Class({"a": "AAAAA"})
         seqs.set_repr_policy(num_seqs=None, num_pos=None)
-        self.assertEqual(seqs._repr_policy, dict(num_seqs=10, num_pos=60))
+        self.assertEqual(
+            seqs._repr_policy, dict(num_seqs=10, num_pos=60, ref_name="longest")
+        )
 
     def test_set_repr_policy_invalid_input(self):
         """repr_policy should remain unchanged"""
@@ -1379,13 +1381,15 @@ class SequenceCollectionBaseTests(object):
             seqs.set_repr_policy(num_seqs="foo", num_pos=4.2)
             self.fail("Inputs not detected as invalid")
         except AssertionError:
-            self.assertEqual(seqs._repr_policy, dict(num_seqs=10, num_pos=60))
+            self.assertEqual(
+                seqs._repr_policy, dict(num_seqs=10, num_pos=60, ref_name="longest")
+            )
 
     def test_set_repr_policy_valid_input(self):
         """repr_policy should be set to new values"""
-        seqs = self.Class({"a": "AAAAA"})
-        seqs.set_repr_policy(num_seqs=5, num_pos=40)
-        self.assertEqual(seqs._repr_policy, dict(num_seqs=5, num_pos=40))
+        seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
+        seqs.set_repr_policy(num_seqs=5, num_pos=40, ref_name="a")
+        self.assertEqual(seqs._repr_policy, dict(num_seqs=5, num_pos=40, ref_name="a"))
 
     def test_get_seq_entropy(self):
         """get_seq_entropy should get entropy of each seq"""
@@ -2015,6 +2019,23 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertTrue(other_row in got)
         self.assertTrue(got.find(ref_row) < got.find(other_row))
 
+        # using different ref sequence
+        ref_row = (
+            '<tr><td class="label">seq2</td>'
+            '<td><span class="terminal_ambig_dna">-</span>'
+            '<span class="C_dna">C</span>'
+            '<span class="T_dna">T</span></td></tr>'
+        )
+        other_row = (
+            '<tr><td class="label">seq1</td>'
+            '<td><span class="A_dna">A</span>'
+            '<span class="C_dna">.</span>'
+            '<span class="G_dna">G</span></td></tr>'
+        )
+        got = aln.to_html(ref_name="seq2")
+        # order now changes
+        self.assertTrue(got.find(ref_row) < got.find(other_row))
+
     def test_variable_positions(self):
         """correctly identify variable positions"""
         new_seqs = {"seq1": "ACGTACGT", "seq2": "ACCGACGT", "seq3": "ACGTACGT"}
@@ -2379,6 +2400,21 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         a = self.Class(dict(a="----", b="----"), moltype=DNA)
         entropy = a.entropy_per_seq()
         self.assertIs(entropy, None)
+
+    def test_repr_html(self):
+        """exercises method normally invoked in notebooks"""
+        aln = self.Class({"a": "AAAAA", "b": "AAA--"})
+        aln.set_repr_policy(num_seqs=5, num_pos=40)
+        self.assertEqual(aln[:3]._repr_policy, aln._repr_policy)
+        row_a = '<tr><td class="label">a</td>'
+        row_b = '<tr><td class="label">b</td>'
+        # default order is longest sequence at top
+        got = aln._repr_html_()
+        self.assertTrue(got.find(row_a) < got.find(row_b))
+        # change order, a should now be last
+        aln.set_repr_policy(num_seqs=5, num_pos=40, ref_name="b")
+        got = aln._repr_html_()
+        self.assertTrue(got.find(row_a) > got.find(row_b))
 
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
