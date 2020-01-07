@@ -519,7 +519,7 @@ class _SequenceCollectionBase:
         # both SequenceCollections and Alignments.
         self._set_additional_attributes(curr_seqs)
 
-        self._repr_policy = dict(num_seqs=10, num_pos=60)
+        self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest")
 
     def __str__(self):
         """Returns self in FASTA-format, respecting name order."""
@@ -1869,24 +1869,33 @@ class _SequenceCollectionBase:
 
         return array(result)
 
-    def set_repr_policy(self, num_seqs=None, num_pos=None):
+    def set_repr_policy(self, num_seqs=None, num_pos=None, ref_name=None):
         """specify policy for repr(self)
 
             Parameters
             ----------
-            num_seqs
+            num_seqs : int or None
                 number of sequences to include in represented display.
-            num_pos
+            num_pos : int or None
                 length of sequences to include in represented display.
+            ref_name : str or None
+                name of sequence to be placed first, or "longest" (default).
+                If latter, indicates longest sequence will be chosen.
             """
-        if not any([num_seqs, num_pos]):
-            return
         if num_seqs:
             assert isinstance(num_seqs, int), "num_seqs is not an integer"
             self._repr_policy["num_seqs"] = num_seqs
+
         if num_pos:
             assert isinstance(num_pos, int), "num_pos is not an integer"
             self._repr_policy["num_pos"] = num_pos
+
+        if ref_name:
+            assert isinstance(ref_name, str), "ref_name is not a string"
+            if ref_name != "longest" and ref_name not in self.names:
+                raise ValueError(f"no sequence name matching {ref_name}")
+
+            self._repr_policy["ref_name"] = ref_name
 
     def probs_per_seq(
         self,
@@ -2680,7 +2689,6 @@ class AlignmentI(object):
         if name_order is not None:
             assert set(name_order) <= set(self.names), "names don't match"
 
-        names = name_order or self.names
         output = defaultdict(list)
         names = name_order or self.names
         num_seqs = len(names)
@@ -3681,13 +3689,15 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             data = vstack(data)
         else:
             data = self.array_seqs[:, item]
-        return self.__class__(
+        result = self.__class__(
             data.T,
             list(map(str, self.names)),
             self.alphabet,
             conversion_f=aln_from_array,
             info=self.info,
         )
+        result._repr_policy.update(self._repr_policy)
+        return result
 
     def _coerce_seqs(self, seqs, is_array):
         """Controls how seqs are coerced in _names_seqs_order.
