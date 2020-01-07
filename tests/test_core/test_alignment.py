@@ -2616,6 +2616,8 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
 
     def test_annotate_matches_to(self):
         """Aligned.annotate_matches_to correctly delegates to sequence"""
+        from cogent3 import get_code
+
         aln = Alignment(dict(x="TTCCACTTCCGCTT"), moltype="dna")
         seq = aln.named_seqs["x"]
         pattern = "CCRC"
@@ -2630,6 +2632,16 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         )
         got = [a.get_slice() for a in annot]
         self.assertEqual(got, matches[:1])
+
+        # handles regex from aa
+        aln = Alignment(dict(x="TTCCACTTCCGCTT"), moltype="dna")
+        gc = get_code(1)
+        aa_regex = gc.to_regex("FHF")
+        s = aln.named_seqs["x"].annotate_matches_to(
+            aa_regex, "domain", "test", allow_multiple=False
+        )
+        a = list(aln.get_annotations_from_seq("x"))[0]
+        self.assertEqual(str(aln[a].named_seqs["x"]), "TTCCACTTC")
 
     def test_deepcopy(self):
         """correctly deep copy aligned objects in an alignment"""
