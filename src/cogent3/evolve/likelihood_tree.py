@@ -5,7 +5,7 @@ Each leaf holds a sequence.  Used by a likelihood function."""
 
 import numpy
 
-from . import likelihood_tree_numba as likelihood_tree_numba
+from . import likelihood_tree_numba as likelihood_tree
 
 
 numpy.seterr(all="ignore")
@@ -65,10 +65,12 @@ class _LikelihoodTreeEdge(object):
         self.uniq = numpy.asarray(uniq, self.integer_type)
 
         # For faster math, a contiguous index array for each child
-        self.indexes = [
-            numpy.array(list(ch), self.integer_type)
-            for ch in numpy.transpose(self.uniq)
-        ]
+        self.indexes = numpy.ascontiguousarray(
+            [
+                numpy.array(list(ch), self.integer_type)
+                for ch in numpy.transpose(self.uniq)
+            ]
+        )
 
         # If this is the root it will need to weight the total
         # log likelihoods by these counts:
@@ -169,10 +171,8 @@ class LikelihoodTreeEdge(_LikelihoodTreeEdge):
     LOG_BASE = numpy.log(BASE)
 
     def sum_input_likelihoodsR(self, result, *likelihoods):
-        return likelihood_tree_numba.sum_input_likelihoods(
-            numpy.ascontiguousarray(self.indexes),
-            numpy.ascontiguousarray(result),
-            likelihoods,
+        return likelihood_tree.sum_input_likelihoods(
+            self.indexes, numpy.ascontiguousarray(result), likelihoods,
         )
 
     # For root
@@ -188,11 +188,11 @@ class LikelihoodTreeEdge(_LikelihoodTreeEdge):
         return numpy.log(sum(state_probs)) + exponent * self.LOG_BASE
 
     def get_total_log_likelihood(self, input_likelihoods, mprobs):
-        lhs = likelihood_tree_numba.inner_product(input_likelihoods, mprobs)
+        lhs = likelihood_tree.inner_product(input_likelihoods, mprobs)
         return self.get_log_sum_across_sites(lhs)
 
     def get_log_sum_across_sites(self, lhs):
-        return likelihood_tree_numba.get_log_sum_across_sites(lhs, self.counts)
+        return likelihood_tree.get_log_sum_across_sites(lhs, self.counts)
 
 
 FLOAT_TYPE = LikelihoodTreeEdge.float_type
