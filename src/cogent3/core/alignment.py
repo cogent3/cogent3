@@ -2928,11 +2928,11 @@ class AlignmentI(object):
         for i in range(0, len(self) - motif_length + 1, motif_length):
             counts = CategoryCounter([s[i : i + motif_length] for s in data])
             if all_motifs is not None:
-                allow_gap.update(list(counts))
+                all_motifs.update(list(counts))
             result.append(counts)
 
         if all_motifs:
-            alpha.extend(list(sorted(set(alpha) ^ all_motifs)))
+            alpha += tuple(list(sorted(set(alpha) ^ all_motifs)))
 
         for i, counts in enumerate(result):
             result[i] = counts.tolist(alpha)
