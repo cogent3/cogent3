@@ -958,6 +958,7 @@ class SequenceSubclassTests(TestCase):
         self.assertEqual(DnaSequence("TTTAc").rc(), "GTAAA")
 
 
+# TODO move methods of this class onto the single class that inherits from it!
 class ModelSequenceTests(object):
     """base class for tests of specific ArraySequence objects."""
 

@@ -519,7 +519,7 @@ class _SequenceCollectionBase:
         # both SequenceCollections and Alignments.
         self._set_additional_attributes(curr_seqs)
 
-        self._repr_policy = dict(num_seqs=10, num_pos=60)
+        self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest")
 
     def __str__(self):
         """Returns self in FASTA-format, respecting name order."""
@@ -1869,24 +1869,33 @@ class _SequenceCollectionBase:
 
         return array(result)
 
-    def set_repr_policy(self, num_seqs=None, num_pos=None):
+    def set_repr_policy(self, num_seqs=None, num_pos=None, ref_name=None):
         """specify policy for repr(self)
 
             Parameters
             ----------
-            num_seqs
+            num_seqs : int or None
                 number of sequences to include in represented display.
-            num_pos
+            num_pos : int or None
                 length of sequences to include in represented display.
+            ref_name : str or None
+                name of sequence to be placed first, or "longest" (default).
+                If latter, indicates longest sequence will be chosen.
             """
-        if not any([num_seqs, num_pos]):
-            return
         if num_seqs:
             assert isinstance(num_seqs, int), "num_seqs is not an integer"
             self._repr_policy["num_seqs"] = num_seqs
+
         if num_pos:
             assert isinstance(num_pos, int), "num_pos is not an integer"
             self._repr_policy["num_pos"] = num_pos
+
+        if ref_name:
+            assert isinstance(ref_name, str), "ref_name is not a string"
+            if ref_name != "longest" and ref_name not in self.names:
+                raise ValueError(f"no sequence name matching {ref_name}")
+
+            self._repr_policy["ref_name"] = ref_name
 
     def probs_per_seq(
         self,
@@ -1917,25 +1926,25 @@ class _SequenceCollectionBase:
         exclude_unobserved=True,
         alert=False,
     ):
-        """returns the Shannon entropy per sequence
+        """Returns the Shannon entropy per sequence.
 
-                Parameters
-                ----------
-                motif_length
-                    number of characters per tuple.
-                include_ambiguity
-                    if True, motifs containing ambiguous characters
-                    from the seq moltype are included. No expansion of those is attempted.
-                allow_gap
-                    if True, motifs containing a gap character are included.
-                exclude_unobserved
-                    if True, unobserved motif combinations are excluded.
+        Parameters
+        ----------
+        motif_length: int
+            number of characters per tuple.
+        include_ambiguity: bool
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gap: bool
+            if True, motifs containing a gap character are included.
+        exclude_unobserved: bool
+            if True, unobserved motif combinations are excluded.
 
-                Notes
-                -----
-                For motif_length > 1, it's advisable to specify exclude_unobserved=True,
-                this avoids unnecessary calculations.
-                """
+        Notes
+        -----
+        For motif_length > 1, it's advisable to specify exclude_unobserved=True,
+        this avoids unnecessary calculations.
+        """
         probs = self.probs_per_seq(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
@@ -2012,6 +2021,14 @@ class Aligned(object):
             self.info = data.info
         if hasattr(data, "name"):
             self.name = data.name
+
+    def annotate_matches_to(self, pattern, annot_type, name, allow_multiple=False):
+        return self.data.annotate_matches_to(
+            pattern=pattern,
+            annot_type=annot_type,
+            name=name,
+            allow_multiple=allow_multiple,
+        )
 
     def _get_moltype(self):
         return self.data.moltype
@@ -2333,6 +2350,7 @@ class AlignmentI(object):
         exclude_unobserved=False,
         alert=False,
     ):
+
         """return MotifFreqsArray per sequence
 
         Parameters
@@ -2347,6 +2365,7 @@ class AlignmentI(object):
         exclude_unobserved
             if True, unobserved motif combinations are excluded.
         """
+
         counts = self.counts_per_seq(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
@@ -2380,11 +2399,12 @@ class AlignmentI(object):
         exclude_unobserved
             if True, unobserved motif combinations are excluded.
 
-        Notes
-        -----
-        For motif_length > 1, it's advisable to specify exclude_unobserved=True,
-        this avoids unnecessary calculations.
-        """
+                Notes
+                -----
+                For motif_length > 1, it's advisable to specify exclude_unobserved=True,
+                this avoids unnecessary calculations.
+                """
+
         probs = self.probs_per_seq(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
@@ -2669,7 +2689,6 @@ class AlignmentI(object):
         if name_order is not None:
             assert set(name_order) <= set(self.names), "names don't match"
 
-        names = name_order or self.names
         output = defaultdict(list)
         names = name_order or self.names
         num_seqs = len(names)
@@ -2691,11 +2710,9 @@ class AlignmentI(object):
         return names, output
 
     def _repr_html_(self):
-        # we put the longest sequence first
-
         html = self.to_html(
             name_order=self.names[: self._repr_policy["num_seqs"]],
-            longest_ref=True,
+            ref_name=self._repr_policy["ref_name"],
             limit=self._repr_policy["num_pos"],
         )
         return html
@@ -2705,7 +2722,7 @@ class AlignmentI(object):
         name_order=None,
         interleave_len=60,
         limit=None,
-        longest_ref=True,
+        ref_name="longest",
         colors=None,
         font_size=12,
         font_family="Lucida Console",
@@ -2721,9 +2738,10 @@ class AlignmentI(object):
             alignment length
         limit
             truncate alignment to this length
-        longest_ref
-            If True, the longest sequence (excluding gaps and
-            ambiguities) is selected as the reference.
+        ref_name
+            Name of an existing sequence or 'longest'. If the latter, the
+            longest sequence (excluding gaps and ambiguities) is selected as the
+            reference.
         colors
             {character
             moltype.
@@ -2742,21 +2760,22 @@ class AlignmentI(object):
             colors=colors, font_size=font_size, font_family=font_family
         )
 
-        if longest_ref and name_order is None:
-            length_names = []
-            for s in self.seqs:
-                try:
-                    l = len(s) - s.count_degenerate() - s.count_gaps()
-                except AttributeError:
-                    # We have the Aligned class, and Aligned.data is ungapped
-                    nd = s.data.count_degenerate()
-                    l = len(s.data) - nd
-                length_names.append((l, s.name))
+        if not name_order:
+            ref_name = ref_name or "longest"
+
+        if ref_name == "longest":
+            lengths = self.get_lengths(include_ambiguity=False, allow_gap=False)
+            length_names = [(l, n) for n, l in lengths.items()]
             length_names.sort(reverse=True)
             ref = length_names[0][1]
-            name_order = list(self.names)
-            name_order.remove(ref)
-            name_order.insert(0, ref)
+        elif ref_name:
+            if ref_name not in self.names:
+                raise ValueError(f"Unknown sequence name {ref_name}")
+            ref = ref_name
+
+        name_order = list(self.names)
+        name_order.remove(ref)
+        name_order.insert(0, ref)
 
         if limit is None:
             names, output = self._get_raw_pretty(name_order)
@@ -3670,13 +3689,15 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             data = vstack(data)
         else:
             data = self.array_seqs[:, item]
-        return self.__class__(
+        result = self.__class__(
             data.T,
             list(map(str, self.names)),
             self.alphabet,
             conversion_f=aln_from_array,
             info=self.info,
         )
+        result._repr_policy.update(self._repr_policy)
+        return result
 
     def _coerce_seqs(self, seqs, is_array):
         """Controls how seqs are coerced in _names_seqs_order.

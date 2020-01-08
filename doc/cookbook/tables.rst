@@ -19,7 +19,7 @@ Tabular data
 Loading delimited formats
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We load a comma separated data file using the generic ``LoadTable`` function.
+We load a comma separated data file using the generic ``load_table`` function.
 
 .. doctest::
 
@@ -39,7 +39,7 @@ We load a comma separated data file using the generic ``LoadTable`` function.
 Reading large files
 ^^^^^^^^^^^^^^^^^^^
 
-For really large files the automated conversion used by the standard read mechanism can be quite slow. If the data within a column is consistently of one type, set the ``LoadTable`` argument ``static_column_types=True``. This causes the ``Table`` object to create a custom reader.
+For really large files the automated conversion used by the standard read mechanism can be quite slow. If the data within a column is consistently of one type, set the ``load_table`` argument ``static_column_types=True``. This causes the ``Table`` object to create a custom reader.
 
 .. doctest::
 
