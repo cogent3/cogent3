@@ -94,7 +94,9 @@ class fast_slow_dist(ComposableDistance):
         return dist
 
     def __call__(self, aln):
-        aln = aln.to_moltype(self._moltype)
+        if self._moltype and self._moltype != aln.moltype:
+            aln = aln.to_moltype(self._moltype)
+
         if self.fast_calc:
             self.fast_calc(aln, show_progress=False)
             dists = self.fast_calc.get_pairwise_distances()

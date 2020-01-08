@@ -257,6 +257,15 @@ class AlphabetGroupTests(TestCase):
 class MolTypeTests(TestCase):
     """Tests of the MolType class. Should support same API as old Alphabet."""
 
+    def test_to_regex(self):
+        """returns a valid regex"""
+        seq = "ACYGR"
+        regular_expression = DNA.to_regex(seq=seq)
+        self.assertEqual(regular_expression, "AC[CT]G[AG]")
+        # raises an exception if a string is already a regex, or invalid
+        with self.assertRaises(ValueError):
+            DNA.to_regex("(?:GAT|GAC)(?:GGT|GGC|GGA|GGG)(?:GAT|GAC)(?:CAA|CAG)")
+
     def test_pickling(self):
         pkl = pickle.dumps(DNA)
         got = pickle.loads(pkl)

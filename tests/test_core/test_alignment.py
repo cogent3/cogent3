@@ -1235,6 +1235,12 @@ class SequenceCollectionBaseTests(object):
         rc = rna.rc().to_dict()
         expect = {"seq1": "UUUUAAAAAA", "seq2": "AAAAAAUUUU", "seq3": "UUUAAAAAUU"}
         self.assertEqual(rc, expect)
+        # calling with a null object should raise an exception
+        with self.assertRaises(ValueError):
+            seqs.to_moltype(None)
+
+        with self.assertRaises(ValueError):
+            seqs.to_moltype("")
 
     def test_to_moltype_info(self):
         """correctly convert to specified moltype"""
@@ -1364,7 +1370,9 @@ class SequenceCollectionBaseTests(object):
         """repr_policy should remain unchanged"""
         seqs = self.Class({"a": "AAAAA"})
         seqs.set_repr_policy(num_seqs=None, num_pos=None)
-        self.assertEqual(seqs._repr_policy, dict(num_seqs=10, num_pos=60))
+        self.assertEqual(
+            seqs._repr_policy, dict(num_seqs=10, num_pos=60, ref_name="longest")
+        )
 
     def test_set_repr_policy_invalid_input(self):
         """repr_policy should remain unchanged"""
@@ -1373,13 +1381,22 @@ class SequenceCollectionBaseTests(object):
             seqs.set_repr_policy(num_seqs="foo", num_pos=4.2)
             self.fail("Inputs not detected as invalid")
         except AssertionError:
-            self.assertEqual(seqs._repr_policy, dict(num_seqs=10, num_pos=60))
+            self.assertEqual(
+                seqs._repr_policy, dict(num_seqs=10, num_pos=60, ref_name="longest")
+            )
 
     def test_set_repr_policy_valid_input(self):
         """repr_policy should be set to new values"""
-        seqs = self.Class({"a": "AAAAA"})
-        seqs.set_repr_policy(num_seqs=5, num_pos=40)
-        self.assertEqual(seqs._repr_policy, dict(num_seqs=5, num_pos=40))
+        seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
+        seqs.set_repr_policy(num_seqs=5, num_pos=40, ref_name="a")
+        self.assertEqual(seqs._repr_policy, dict(num_seqs=5, num_pos=40, ref_name="a"))
+        # should persist in slicing
+        if self.Class == SequenceCollection:
+            return True
+
+        self.assertEqual(
+            seqs[:2]._repr_policy, dict(num_seqs=5, num_pos=40, ref_name="a")
+        )
 
     def test_get_seq_entropy(self):
         """get_seq_entropy should get entropy of each seq"""
@@ -1987,7 +2004,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         seqs = {"seq1": "ACG", "seq2": "-CT"}
 
         aln = self.Class(data=seqs, moltype=DNA)
-        got = aln.to_html(longest_ref=True)  # name_order=['seq1', 'seq2'])
+        got = aln.to_html(ref_name="longest")  # name_order=['seq1', 'seq2'])
         # ensure balanced tags are in the txt
         for tag in ["<style>", "</style>", "<body>", "</body>", "<table>", "</table>"]:
             self.assertTrue(tag in got)
@@ -2007,6 +2024,23 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
         self.assertTrue(ref_row in got)
         self.assertTrue(other_row in got)
+        self.assertTrue(got.find(ref_row) < got.find(other_row))
+
+        # using different ref sequence
+        ref_row = (
+            '<tr><td class="label">seq2</td>'
+            '<td><span class="terminal_ambig_dna">-</span>'
+            '<span class="C_dna">C</span>'
+            '<span class="T_dna">T</span></td></tr>'
+        )
+        other_row = (
+            '<tr><td class="label">seq1</td>'
+            '<td><span class="A_dna">A</span>'
+            '<span class="C_dna">.</span>'
+            '<span class="G_dna">G</span></td></tr>'
+        )
+        got = aln.to_html(ref_name="seq2")
+        # order now changes
         self.assertTrue(got.find(ref_row) < got.find(other_row))
 
     def test_variable_positions(self):
@@ -2374,6 +2408,21 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         entropy = a.entropy_per_seq()
         self.assertIs(entropy, None)
 
+    def test_repr_html(self):
+        """exercises method normally invoked in notebooks"""
+        aln = self.Class({"a": "AAAAA", "b": "AAA--"})
+        aln.set_repr_policy(num_seqs=5, num_pos=40)
+        self.assertEqual(aln[:3]._repr_policy, aln._repr_policy)
+        row_a = '<tr><td class="label">a</td>'
+        row_b = '<tr><td class="label">b</td>'
+        # default order is longest sequence at top
+        got = aln._repr_html_()
+        self.assertTrue(got.find(row_a) < got.find(row_b))
+        # change order, a should now be last
+        aln.set_repr_policy(num_seqs=5, num_pos=40, ref_name="b")
+        got = aln._repr_html_()
+        self.assertTrue(got.find(row_a) > got.find(row_b))
+
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
     Class = ArrayAlignment
@@ -2564,6 +2613,35 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertRaises(
             ValueError, aln1.add_from_ref_aln, aln2_wrong_refseq
         )  # test wrong_refseq
+
+    def test_annotate_matches_to(self):
+        """Aligned.annotate_matches_to correctly delegates to sequence"""
+        from cogent3 import get_code
+
+        aln = Alignment(dict(x="TTCCACTTCCGCTT"), moltype="dna")
+        seq = aln.named_seqs["x"]
+        pattern = "CCRC"
+        annot = seq.annotate_matches_to(
+            pattern=pattern, annot_type="domain", name="fred", allow_multiple=True
+        )
+        got = [a.get_slice() for a in annot]
+        matches = ["CCAC", "CCGC"]
+        self.assertEqual(got, matches)
+        annot = seq.annotate_matches_to(
+            pattern=pattern, annot_type="domain", name="fred", allow_multiple=False
+        )
+        got = [a.get_slice() for a in annot]
+        self.assertEqual(got, matches[:1])
+
+        # handles regex from aa
+        aln = Alignment(dict(x="TTCCACTTCCGCTT"), moltype="dna")
+        gc = get_code(1)
+        aa_regex = gc.to_regex("FHF")
+        s = aln.named_seqs["x"].annotate_matches_to(
+            aa_regex, "domain", "test", allow_multiple=False
+        )
+        a = list(aln.get_annotations_from_seq("x"))[0]
+        self.assertEqual(str(aln[a].named_seqs["x"]), "TTCCACTTC")
 
     def test_deepcopy(self):
         """correctly deep copy aligned objects in an alignment"""

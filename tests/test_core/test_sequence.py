@@ -220,6 +220,13 @@ class SequenceTests(TestCase):
         self.assertEqual(got.moltype.label, "rna")
         self.assertEqual(got.name, "test3")
 
+        # calling with a null object should raise an exception
+        with self.assertRaises(ValueError):
+            s.to_moltype(None)
+
+        with self.assertRaises(ValueError):
+            s.to_moltype("")
+
     def test_annotate_from_gff(self):
         """correctly annotates a Sequence from a gff file"""
         from cogent3.parse.fasta import FastaParser
@@ -951,6 +958,7 @@ class SequenceSubclassTests(TestCase):
         self.assertEqual(DnaSequence("TTTAc").rc(), "GTAAA")
 
 
+# TODO move methods of this class onto the single class that inherits from it!
 class ModelSequenceTests(object):
     """base class for tests of specific ArraySequence objects."""
 

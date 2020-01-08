@@ -90,6 +90,8 @@ class _Annotatable:
         new = self._mapped(map)
         sliced_annots = self._sliced_annotations(new, map)
         new.attach_annotations(sliced_annots)
+        if hasattr(self, "_repr_policy"):
+            new._repr_policy.update(self._repr_policy)
         return new
 
     def _mapped(self, map):

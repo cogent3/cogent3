@@ -742,6 +742,18 @@ class MolType(object):
         data = self.to_rich_dict(for_pickle=False)
         return json.dumps(data)
 
+    def to_regex(self, seq):
+        """returns a regex pattern with ambiguities expanded to a character set"""
+        if not self.is_valid(seq):
+            raise ValueError(f"'{seq}' is invalid for this moltype")
+
+        degen_indices = self.get_degenerate_positions(sequence=seq, include_gap=False)
+        seq = list(seq)  # seq can now be modified
+        for index in degen_indices:
+            expanded = self.ambiguities[seq[index]]
+            seq[index] = f"[{''.join(expanded)}]"
+        return "".join(seq)
+
     def gettype(self):
         """Returns type, e.g. 'dna', 'rna', 'protein'. Delete?"""
         return self.label
