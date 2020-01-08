@@ -172,7 +172,11 @@ class LikelihoodTreeEdge(_LikelihoodTreeEdge):
 
     def sum_input_likelihoodsR(self, result, *likelihoods):
         return likelihood_tree.sum_input_likelihoods(
-            self.indexes, numpy.ascontiguousarray(result), likelihoods,
+            self.indexes
+            if self.indexes.flags["C_CONTIGUOUS"]
+            else numpy.ascontiguousarray(self.indexes),
+            result if result.flags["C_CONTIGUOUS"] else numpy.ascontiguousarray(result),
+            likelihoods,
         )
 
     # For root
