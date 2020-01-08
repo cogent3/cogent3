@@ -2006,7 +2006,7 @@ Tables can be transposed.
 
 .. doctest::
 
-    >>> from cogent3 import LoadTable
+    >>> from cogent3 import make_table
     >>> title='#Full OTU Counts'
     >>> header = ['#OTU ID', '14SK041', '14SK802']
     >>> rows = [[-2920, '332', 294],

@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from cogent3 import DNA, make_aligned_seqs
+from cogent3 import ASCII, DNA, make_aligned_seqs
 from cogent3.core.annotation import Feature, Variable
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
@@ -723,6 +723,29 @@ class FeaturesTest(TestCase):
         self.assertEqual(
             new_nested_feature.to_rich_dict(), self.nested_feature.to_rich_dict()
         )
+
+    def test_annotate_matches_to(self):
+        """annotate_matches_to attaches annotations correctly to a Sequence
+        """
+        seq = DNA.make_seq("TTCCACTTCCGCTT", name="x")
+        pattern = "CCRC"
+        annot = seq.annotate_matches_to(
+            pattern=pattern, annot_type="domain", name="fred", allow_multiple=True
+        )
+        self.assertEqual([a.get_slice() for a in annot], ["CCAC", "CCGC"])
+        annot = seq.annotate_matches_to(
+            pattern=pattern, annot_type="domain", name="fred", allow_multiple=False
+        )
+        self.assertEqual(len(annot), 1)
+        fred = annot[0].get_slice()
+        self.assertEqual(str(fred), "CCAC")
+        # For Sequence objects of a non-IUPAC MolType, annotate_matches_to
+        # should return an empty annotation.
+        seq = ASCII.make_seq(seq="TTCCACTTCCGCTT")
+        annot = seq.annotate_matches_to(
+            pattern=pattern, annot_type="domain", name="fred", allow_multiple=False
+        )
+        self.assertEqual(annot, [])
 
 
 if __name__ == "__main__":

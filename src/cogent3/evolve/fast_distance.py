@@ -11,6 +11,8 @@ from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
 
+from .pairwise_distance_numba import fill_diversity_matrix
+
 
 __author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
@@ -266,14 +268,6 @@ def _logdet(matrix, use_tk_adjustment=True):
         var = (var_term / r ** 2 - 1) / total
 
     return total, p, d_xy, var
-
-
-try:
-    from ._pairwise_distance import _fill_diversity_matrix as fill_diversity_matrix
-
-    # raise ImportError # for testing
-except ImportError:
-    fill_diversity_matrix = _fill_diversity_matrix
 
 
 def _number_formatter(template):

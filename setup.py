@@ -169,7 +169,7 @@ setup(
     ],
     packages=find_packages(where="src"),
     package_dir={"": PACKAGE_DIR},
-    install_requires=["numpy", "pandas", "plotly", "scitrack", "tqdm", "tinydb"],
+    install_requires=["numpy", "numba", "pandas", "plotly", "scitrack", "tqdm", "tinydb"],
     extras_require={
         "dev": [
             "pytest-azurepipelines",
@@ -201,9 +201,6 @@ setup(
             CythonExtension("cogent3.align._compare"),
             CythonExtension("cogent3.align._pairwise_seqs"),
             CythonExtension("cogent3.align._pairwise_pogs"),
-            CythonExtension("cogent3.evolve._solved_models"),
-            CythonExtension("cogent3.evolve._likelihood_tree"),
-            CythonExtension("cogent3.evolve._pairwise_distance"),
             CythonExtension("cogent3.maths._period"),
         ]
     ),

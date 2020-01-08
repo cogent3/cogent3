@@ -92,7 +92,7 @@ class SequenceI(object):
     # String methods delegated to self._seq -- remember to override if self._seq
     # isn't a string in your base class, but it's probably better to make
     # self._seq a property that contains the string.
-    LineWrap = None  # used for formatting FASTA strings
+    line_wrap = None  # used for formatting FASTA strings
 
     def __str__(self):
         """__str__ returns self._seq unmodified."""
@@ -1050,6 +1050,46 @@ class Sequence(_Annotatable, SequenceI):
         """returns True if sequence has any annotations"""
         return len(self.annotations) != 0
 
+    def annotate_matches_to(self, pattern, annot_type, name, allow_multiple=False):
+        """Adds an annotation at sequence positions matching pattern.
+
+        Parameters
+        ----------
+        pattern : string
+            The search string for which annotations are made. IUPAC ambiguities
+            are converted to regex on sequences with the appropriate MolType.
+        annot_type : string
+            The type of the annotation (e.g. "domain").
+        name : string
+            The name of the annotation.
+        allow_multiple : boolean
+            If True, allows multiple occurrences of the input pattern. Otherwise
+            only the first match is used.
+
+        Returns
+        -------
+        Returns a list of Annotation instances.
+        """
+        try:
+            pattern = self.moltype.to_regex(seq=pattern)
+        except ValueError:
+            # assume already a regex
+            pass
+
+        pos = [m.span() for m in re.finditer(pattern, self._seq)]
+        if not pos:
+            return []
+
+        num_match = len(pos) if allow_multiple else 1
+        annot = [
+            self.add_feature(
+                annot_type, f"{name}:{i}" if allow_multiple else name, [pos[i]]
+            )
+            for i in range(num_match)
+        ]
+
+        return annot
+
 
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence. MolType set in moltype module."""
@@ -1297,7 +1337,7 @@ class ArraySequenceBase(object):
     such as FASTA.
 
     A sequence Class has an alphabet (which can be overridden in instances
-    where necessary), a delimiter used for string conversions, a LineWrap
+    where necessary), a delimiter used for string conversions, a line_wrap
     for wrapping characters into lines for e.g. FASTA output.
 
     Note that a ArraySequence _must_ have an Alphabet, not a MolType,
@@ -1307,8 +1347,8 @@ class ArraySequenceBase(object):
 
     alphabet = None  # REPLACE IN SUBCLASSES
     moltype = None  # REPLACE IN SUBCLASSES
-    Delimiter = ""  # Used for string conversions
-    LineWrap = 80  # Wrap sequences at 80 characters by default.
+    delimiter = ""  # Used for string conversions
+    line_wrap = 80  # Wrap sequences at 80 characters by default.
 
     def __init__(self, data="", alphabet=None, name=None, info=None, check="ignored"):
         """Initializes sequence from data and alphabet.
@@ -1375,7 +1415,7 @@ class ArraySequenceBase(object):
         if hasattr(self.alphabet, "to_string"):
             return self.alphabet.to_string(self._data)
         else:
-            return self.Delimiter.join(map(str, self.alphabet.from_indices(self._data)))
+            return self.delimiter.join(map(str, self.alphabet.from_indices(self._data)))
 
     def __len__(self):
         """Returns length of data."""
@@ -1760,7 +1800,7 @@ class ArrayCodonSequence(ArraySequence):
 
     def __str__(self):
         """Joins triplets together as string."""
-        return self.Delimiter.join(map("".join, self.alphabet.from_indices(self._data)))
+        return self.delimiter.join(map("".join, self.alphabet.from_indices(self._data)))
 
     def _from_string(self, s):
         """Reads from a raw string, rather than a DnaSequence."""

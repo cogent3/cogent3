@@ -384,6 +384,23 @@ class GeneticCodeTests(TestCase):
         # check there are 3 headers
         self.assertEqual(table.shape[1], 3)
 
+    def test_to_regex(self):
+        """creates a regex from aa seq to match a DNA sequence"""
+        import re
+        from cogent3 import make_seq
+
+        dna = "ACCGAACAGGGC"
+        aa = "TEQG"
+        pattern = DEFAULT.to_regex(aa)
+        self.assertTrue("".join(re.findall(pattern, dna)) == dna)
+        # note that Z is Q or E
+        aa = "TZQG"
+        pattern = DEFAULT.to_regex(aa)
+        self.assertTrue("".join(re.findall(pattern, dna)) == dna)
+        aa = make_seq(aa, moltype="protein")
+        pattern = DEFAULT.to_regex(aa)
+        self.assertTrue("".join(re.findall(pattern, dna)) == dna)
+
 
 # Run tests if called from command line
 if __name__ == "__main__":
