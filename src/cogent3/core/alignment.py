@@ -2932,7 +2932,7 @@ class AlignmentI(object):
             result.append(counts)
 
         if all_motifs:
-            alpha += tuple(list(sorted(set(alpha) ^ all_motifs)))
+            alpha += tuple(sorted(set(alpha) ^ all_motifs))
 
         for i, counts in enumerate(result):
             result[i] = counts.tolist(alpha)
