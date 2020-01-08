@@ -213,8 +213,8 @@ class GeneticCode:
         return self.code_sequence
 
     def __repr__(self):
-        """Returns reconstructable representation of the GeneticCode."""
-        return "GeneticCode(%s)" % str(self)
+        display = self.to_table()
+        return str(display)
 
     def _repr_html_(self):
         """Returns the html representation of GeneticCode."""
