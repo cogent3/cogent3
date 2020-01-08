@@ -2248,9 +2248,21 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             ]
         )
 
+        exp_gap = array(
+            [
+                [1, 1, 0, 1, 0],
+                [0, 2, 0, 0, 1],
+                [0, 0, 3, 0, 0],
+                [0, 2, 0, 1, 0],
+                [0, 1, 2, 0, 0],
+                [0, 2, 0, 1, 0]
+            ]
+        )
+
         s1 = DNA.make_seq("TCAGAG", name="s1")
         s2 = DNA.make_seq("CCACAC", name="s2")
         s3 = DNA.make_seq("AGATAT", name="s3")
+        s4 = DNA.make_seq("G-ACCC", name="s4")
         aln = self.Class([s1, s2, s3], moltype=DNA)
         obs = aln.counts_per_pos()
         self.assertEqual(obs.array, exp)
@@ -2259,6 +2271,9 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(obs[0, "TC"], 1)
         self.assertEqual(obs[1, "AC"], 1)
         self.assertEqual(obs[2, "AC"], 1)
+        aln = self.Class([s1, s2, s4], moltype=DNA)
+        obs = aln.counts_per_pos(allow_gap=True)
+        self.assertEqual(obs.array, exp_gap)
 
     def test_get_seq_entropy(self):
         """ArrayAlignment get_seq_entropy should get entropy of each seq"""
