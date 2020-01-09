@@ -189,7 +189,7 @@ class SequenceCollectionBaseTests(object):
     """
 
     Class = SequenceCollection
-    brca1_data = load_aligned_seqs("data/brca1.fasta").to_dict()
+    brca1_data = load_aligned_seqs("../data/brca1.fasta").to_dict()
 
     def setUp(self):
         """Define some standard SequenceCollection objects."""
@@ -1463,8 +1463,8 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
 
     def test_info_source(self):
         """info.source exists if load seqs given a filename"""
-        seqs = load_unaligned_seqs("data/brca1.fasta")
-        self.assertEqual(seqs.info.source, "data/brca1.fasta")
+        seqs = load_unaligned_seqs("../data/brca1.fasta")
+        self.assertEqual(seqs.info.source, "../data/brca1.fasta")
 
     def test_apply_pssm2(self):
         """apply_pssm fail if ragged sequences"""
@@ -2376,15 +2376,15 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # attribute
         coevo = aln.coevolution(method="nmi", drawable="box", show_progress=False)
         self.assertTrue(hasattr(coevo, "drawable"))
-        aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
+        aln = load_aligned_seqs("../data/brca1.fasta", moltype="dna")
         aln = aln.take_seqs(aln.names[:20])
         aln = aln.no_degenerates()[:20]
 
     def test_info_source(self):
         """info.source exists if load_aligned_seqs given a filename"""
         array_align = self.Class == ArrayAlignment
-        seqs = load_aligned_seqs("data/brca1.fasta", array_align=array_align)
-        self.assertEqual(seqs.info.source, "data/brca1.fasta")
+        seqs = load_aligned_seqs("../data/brca1.fasta", array_align=array_align)
+        self.assertEqual(seqs.info.source, "../data/brca1.fasta")
 
     def test_seq_entropy_just_gaps(self):
         """get_seq_entropy should get entropy of each seq"""
@@ -2923,10 +2923,27 @@ class ArrayAlignmentSpecificTests(TestCase):
         f = a.entropy_per_pos()
         e = array([0, 0, 1, 1])
         self.assertEqual(f, e)
+        f = a.entropy_per_pos(motif_length=2)
+        e = array([0, 1])
+        self.assertEqual(f, e)
+        seqs = []
+        for s in ["-GAT", "ACCT", "GAGT"]:
+            seqs.append(make_seq(s, moltype="dna"))
+        a = ArrayAlignment(seqs)
+        f = a.entropy_per_pos(allow_gap=True)
+        e = array([1.584962500721156, 1.584962500721156, 1.584962500721156, 0])
+        self.assertEqual(f, e)
+        seqs = []
+        for s in ["-RAT", "ACCT", "GTGT"]:
+            seqs.append(make_seq(s, moltype="dna"))
+        a = ArrayAlignment(seqs)
+        f = a.entropy_per_pos(include_ambiguity=True)
+        e = array([1.584962500721156, 1.584962500721156, 1.584962500721156, 0])
+        self.assertEqual(f, e)
 
     def test_coevolution_segments(self):
         """specifying coordinate segments produces matrix with just those"""
-        aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
+        aln = load_aligned_seqs("../data/brca1.fasta", moltype="dna")
         aln = aln.take_seqs(aln.names[:20])
         aln = aln.no_degenerates()[:20]
         coevo = aln.coevolution(segments=[(4, 6), (11, 13)], show_progress=False)
