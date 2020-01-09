@@ -395,7 +395,7 @@ class ancestral_states(ComposableTabular):
 class tabulate_stats(ComposableTabular):
     """Extracts all model statistics from model_result as Table."""
 
-    _input_types = MODEL_RESULT_TYPE
+    _input_types = (MODEL_RESULT_TYPE, SERIALISABLE_TYPE)
     _output_types = (RESULT_TYPE, TABULAR_RESULT_TYPE, SERIALISABLE_TYPE)
     _data_types = "model_result"
 
