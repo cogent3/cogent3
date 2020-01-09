@@ -29,10 +29,7 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-class _Exponentiator(object):
-    def __init__(self, Q):
-        self.Q = Q
-
+class _Exponentiator:
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, repr(self.Q))
 
