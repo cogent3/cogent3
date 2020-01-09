@@ -528,7 +528,6 @@ class _SequenceCollectionBase:
         fasta = FORMATTERS["fasta"](self.to_dict())
         return fasta
 
-
     def _make_named_seqs(self, names, seqs):
         """Returns named_seqs: dict of name:seq."""
         name_seq_tuples = list(zip(names, seqs))
