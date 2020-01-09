@@ -528,6 +528,7 @@ class _SequenceCollectionBase:
         fasta = FORMATTERS["fasta"](self.to_dict())
         return fasta
 
+
     def _make_named_seqs(self, names, seqs):
         """Returns named_seqs: dict of name:seq."""
         name_seq_tuples = list(zip(names, seqs))
@@ -553,6 +554,15 @@ class _SequenceCollectionBase:
         """Returns deep copy of self."""
         result = self.__class__(self, moltype=self.moltype, info=self.info)
         return result
+
+    def deepcopy(self, sliced=True):
+        """Returns deep copy of self."""
+        for seq in self.seqs:
+            try:
+                new_seq = seq.deepcopy(sliced=sliced)
+            except:
+                new_seq = seq.copy()
+        return self.__class__(self.map, new_seq, moltype=self.moltype, info=self.info.copy())
 
     def _get_alphabet_and_moltype(self, alphabet, moltype, data):
         """Returns alphabet and moltype, giving moltype precedence."""
