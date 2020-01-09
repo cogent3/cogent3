@@ -2337,9 +2337,12 @@ class AlignmentI(object):
         )
         return counts.to_freq_array()
 
-    def entropy_per_pos(self, motif_length=1):
+    def entropy_per_pos(self, motif_length=1, include_ambiguity=False, allow_gap=False, alert=False):
         """returns shannon entropy per position"""
-        probs = self.probs_per_pos(motif_length=motif_length)
+        probs = self.probs_per_pos(motif_length=motif_length,
+                                   include_ambiguity=include_ambiguity,
+                                   allow_gap=allow_gap,
+                                   alert=alert)
         return probs.entropy()
 
     def probs_per_seq(

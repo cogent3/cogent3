@@ -2978,6 +2978,23 @@ class ArrayAlignmentSpecificTests(TestCase):
         f = a.entropy_per_pos()
         e = array([0, 0, 1, 1])
         self.assertEqual(f, e)
+        f = a.entropy_per_pos(motif_length=2)
+        e = array([0, 1])
+        self.assertEqual(f, e)
+        seqs = []
+        for s in ["-GAT", "ACCT", "GAGT"]:
+            seqs.append(make_seq(s, moltype="dna"))
+        a = ArrayAlignment(seqs)
+        f = a.entropy_per_pos(allow_gap=True)
+        e = array([1.584962500721156, 1.584962500721156, 1.584962500721156, 0])
+        self.assertEqual(f, e)
+        seqs = []
+        for s in ["-RAT", "ACCT", "GTGT"]:
+            seqs.append(make_seq(s, moltype="dna"))
+        a = ArrayAlignment(seqs)
+        f = a.entropy_per_pos(include_ambiguity=True)
+        e = array([1.584962500721156, 1.584962500721156, 1.584962500721156, 0])
+        self.assertEqual(f, e)
 
     def test_coevolution_segments(self):
         """specifying coordinate segments produces matrix with just those"""
