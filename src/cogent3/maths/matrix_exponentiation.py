@@ -145,18 +145,14 @@ class PadeExponentiator(_Exponentiator):
         return F
 
 
-def chooseFastExponentiators(Q):
-    return (FastExponentiator, CheckedExponentiator)
-
-
 def FastExponentiator(Q):
-    (roots, evT) = eig(Q)
+    roots, evT = eig(Q)
     ev = evT.T
     return EigenExponentiator(Q, roots, ev, evT, inv(ev))
 
 
 def CheckedExponentiator(Q):
-    (roots, evT) = eig(Q)
+    roots, evT = eig(Q)
     ev = evT.T
     evI = inv(ev)
     reQ = numpy.inner(ev.T * roots, evI).real
