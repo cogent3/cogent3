@@ -554,14 +554,20 @@ class _SequenceCollectionBase:
         result = self.__class__(self, moltype=self.moltype, info=self.info)
         return result
 
-    def deepcopy(self, sliced=True):
+    def deepcopy(self, sliced=True, force_same_data=True):
         """Returns deep copy of self."""
+        new_seqs = dict()
         for seq in self.seqs:
             try:
                 new_seq = seq.deepcopy(sliced=sliced)
             except:
                 new_seq = seq.copy()
-        result = self.__class__(self.map, new_seq, moltype=self.moltype, info=self.info.copy())
+            new_seqs.update({seq.name: new_seq})
+            seq_names = list(new_seqs.keys())
+
+        if force_same_data:
+            self._force_same_data(new_seqs, seq_names)
+        result = self.__class__(new_seqs)
         result._repr_policy.update(self._repr_policy)
         return result
 
