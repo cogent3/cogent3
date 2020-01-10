@@ -30,27 +30,8 @@ from functools import total_ordering
 from itertools import combinations
 from types import GeneratorType
 
-import numpy
-
-from numpy import (
-    arange,
-    array,
-    logical_and,
-    logical_not,
-    logical_or,
-    ndarray,
-    nonzero,
-    ones,
-    put,
-    take,
-    transpose,
-    uint8,
-    vstack,
-    zeros,
-)
-from numpy.random import choice, permutation, randint
-
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
+import numpy
 
 from cogent3.core.annotation import Map, _Annotatable
 from cogent3.core.genetic_code import DEFAULT, get_code
@@ -73,6 +54,23 @@ from cogent3.util.misc import (
     get_object_provenance,
 )
 from cogent3.util.union_dict import UnionDict
+from numpy import (
+    arange,
+    array,
+    logical_and,
+    logical_not,
+    logical_or,
+    ndarray,
+    nonzero,
+    ones,
+    put,
+    take,
+    transpose,
+    uint8,
+    vstack,
+    zeros,
+)
+from numpy.random import choice, permutation, randint
 
 
 __author__ = "Peter Maxwell and Rob Knight"
@@ -2035,28 +2033,19 @@ class Aligned(object):
 
     moltype = property(_get_moltype)
 
-    def copy(self, memo=None, _nil=None, constructor="ignored"):
+    def copy(self):
         """Returns a shallow copy of self
-
-        WARNING: cogent3.core.sequence.Sequence does NOT implement a copy method,
-        as such, the data member variable of the copied object will maintain
-        reference to the original object.
-
-        WARNING: cogent3.core.location.Map does NOT implement a copy method, as
-        such, the data member variable of the copied object will maintain
-        reference to the original object.
         """
-        _nil = _nil or []
         return self.__class__(self.map, self.data)
 
     def deepcopy(self, sliced=True):
         """
-        does a proper slice on the copied sequence when sliced is True and returns a deep copy of self
         Parameters
         -----------
         sliced : bool
-            Slices underlying sequence with start/end of self coordinates. This has the effect of breaking the connection
-            to any longer parent sequence.
+            Slices underlying sequence with start/end of self coordinates. This
+            has the effect of breaking the connection to any longer parent sequence.
+
         Returns
         -------
         a copy of self
@@ -2337,12 +2326,16 @@ class AlignmentI(object):
         )
         return counts.to_freq_array()
 
-    def entropy_per_pos(self, motif_length=1, include_ambiguity=False, allow_gap=False, alert=False):
+    def entropy_per_pos(
+        self, motif_length=1, include_ambiguity=False, allow_gap=False, alert=False
+    ):
         """returns shannon entropy per position"""
-        probs = self.probs_per_pos(motif_length=motif_length,
-                                   include_ambiguity=include_ambiguity,
-                                   allow_gap=allow_gap,
-                                   alert=alert)
+        probs = self.probs_per_pos(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            alert=alert,
+        )
         return probs.entropy()
 
     def probs_per_seq(
