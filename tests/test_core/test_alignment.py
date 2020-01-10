@@ -247,60 +247,12 @@ class SequenceCollectionBaseTests(object):
     def test_deepcopy(self):
         """correctly deep copy aligned objects in an alignment"""
         path = "data/brca1_5.paml"
-        # generates an annotatable Alignment object
         aln = load_aligned_seqs(path, array_align=False, moltype="dna")
-        # when the annotation is outside(before) boundary of the slice
-        aln.named_seqs["NineBande"].data.add_annotation(
-            Feature, "exon", "annot1", [(0, 10)]
-        )
-        # when the annotation is across boundary of the slice
-        aln.named_seqs["Mouse"].data.add_annotation(
-            Feature, "exon", "annot2", [(10, 21)]
-        )
-        # when the annotation is within boundary of the slice
-        aln.named_seqs["Human"].data.add_annotation(
-            Feature, "exon", "annot3", [(20, 25)]
-        )
-        # when the annotation is across boundary of the slice
-        aln.named_seqs["HowlerMon"].data.add_annotation(
-            Feature, "exon", "annot4", [(25, 32)]
-        )
-        # when the annotation is outside(after) boundary of the slice
-        aln.named_seqs["DogFaced"].data.add_annotation(
-            Feature, "exon", "annot5", [(40, 45)]
-        )
+        aln = self.Class(aln.named_seqs)
         aln = aln[20:30]
-
-        # for these species, each has an annotation spanning slice boundary or within it
-        for name in ["Mouse", "Human", "HowlerMon"]:
-            new_seq = aln.named_seqs[name].deepcopy()
-            self.assertEqual(len(new_seq.data), 10)
-            self.assertTrue(new_seq.data.is_annotated())
-            self.assertEqual(len(new_seq.data.annotations), 1)
-            # tests the case when sliced argument if False
-            new_seq = aln.named_seqs[name].deepcopy(sliced=False)
-            self.assertEqual(len(new_seq.data), len(aln.named_seqs[name].data))
-            self.assertTrue(new_seq.data.is_annotated())
-        # for these species, each has an annotation outside slice
-        for name in ["NineBande", "DogFaced"]:
-            new_seq = aln.named_seqs[name].deepcopy()
-            self.assertEqual(len(new_seq.data), 10)
-            self.assertFalse(new_seq.data.is_annotated())
-            # tests the case when sliced argument if False
-            new_seq = aln.named_seqs[name].deepcopy(sliced=False)
-            self.assertEqual(len(new_seq.data), len(aln.named_seqs[name].data))
-            self.assertTrue(new_seq.data.is_annotated())
-            self.assertEqual(len(new_seq.data.annotations), 1)
-
-        # add another human annotation that is outside slice
-        aln.named_seqs["Human"].data.add_annotation(
-            Feature, "exon", "annot6", [(40, 45)]
-        )
-        # tests the case when sliced argument if False regarding the Human sequence
-        new_seq = aln.named_seqs["Human"].deepcopy(sliced=False)
-        self.assertEqual(len(new_seq.data), len(aln.named_seqs["Human"].data))
-        self.assertTrue(new_seq.data.is_annotated())
-        self.assertEqual(len(new_seq.data.annotations), 2)
+        new_seq = aln.deepcopy()
+        self.assertEqual(aln.to_rich_dict(), new_seq.to_rich_dict())
+        self.assertNotEqual(id(new_seq), id(aln))
 
     def test_guess_input_type(self):
         """SequenceCollection  _guess_input_type should figure out data type correctly"""
@@ -2524,6 +2476,18 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
 
 class AlignmentTests(AlignmentBaseTests, TestCase):
     Class = Alignment
+
+    def test_sliced_deepcopy(self):
+        """correctly deep copy aligned objects in an alignment"""
+        path = "data/brca1_5.paml"
+        aln = load_aligned_seqs(path, array_align=False, moltype="dna")
+        aln = self.Class(aln.named_seqs)
+        aln = aln[20:30]
+        for name in ["Mouse", "Human", "HowlerMon", "NineBande", "DogFaced"]:
+            new_seq = aln.named_seqs[name].deepcopy()
+            self.assertEqual(len(new_seq.data), 10)
+            new_seq = aln.named_seqs[name].deepcopy(sliced=False)
+            self.assertEqual(len(new_seq.data), len(aln.named_seqs[name].data))
 
     def test_sliding_windows(self):
         """sliding_windows should return slices of alignments."""
