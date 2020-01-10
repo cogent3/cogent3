@@ -30,8 +30,27 @@ from functools import total_ordering
 from itertools import combinations
 from types import GeneratorType
 
-import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 import numpy
+
+from numpy import (
+    arange,
+    array,
+    logical_and,
+    logical_not,
+    logical_or,
+    ndarray,
+    nonzero,
+    ones,
+    put,
+    take,
+    transpose,
+    uint8,
+    vstack,
+    zeros,
+)
+from numpy.random import choice, permutation, randint
+
+import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 
 from cogent3.core.annotation import Map, _Annotatable
 from cogent3.core.genetic_code import DEFAULT, get_code
@@ -54,23 +73,6 @@ from cogent3.util.misc import (
     get_object_provenance,
 )
 from cogent3.util.union_dict import UnionDict
-from numpy import (
-    arange,
-    array,
-    logical_and,
-    logical_not,
-    logical_or,
-    ndarray,
-    nonzero,
-    ones,
-    put,
-    take,
-    transpose,
-    uint8,
-    vstack,
-    zeros,
-)
-from numpy.random import choice, permutation, randint
 
 
 __author__ = "Peter Maxwell and Rob Knight"
