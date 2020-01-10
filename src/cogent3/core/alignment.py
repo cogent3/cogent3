@@ -561,7 +561,9 @@ class _SequenceCollectionBase:
                 new_seq = seq.deepcopy(sliced=sliced)
             except:
                 new_seq = seq.copy()
-        return self.__class__(self.map, new_seq, moltype=self.moltype, info=self.info.copy())
+        result = self.__class__(self.map, new_seq, moltype=self.moltype, info=self.info.copy())
+        result._repr_policy.update(self._repr_policy)
+        return result
 
     def _get_alphabet_and_moltype(self, alphabet, moltype, data):
         """Returns alphabet and moltype, giving moltype precedence."""
