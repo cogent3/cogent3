@@ -562,12 +562,12 @@ class _SequenceCollectionBase:
                 new_seq = seq.deepcopy(sliced=sliced)
             except:
                 new_seq = seq.copy()
-            new_seqs.update({seq.name: new_seq})
+            new_seqs[seq.name] = new_seq
             seq_names = list(new_seqs.keys())
 
         if force_same_data:
             self._force_same_data(new_seqs, seq_names)
-        result = self.__class__(new_seqs)
+        result = self.__class__(new_seqs, moltype=self.moltype, info=deepcopy(self.info))
         result._repr_policy.update(self._repr_policy)
         return result
 
