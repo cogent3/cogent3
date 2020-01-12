@@ -246,13 +246,13 @@ class SequenceCollectionBaseTests(object):
 
     def test_deepcopy(self):
         """correctly deep copy aligned objects in an alignment"""
-        path = "data/brca1_5.paml"
-        aln = load_aligned_seqs(path, array_align=False, moltype="dna")
-        aln = self.Class(aln.named_seqs)
-        aln = aln[20:30]
-        new_seq = aln.deepcopy()
-        self.assertEqual(aln.to_rich_dict(), new_seq.to_rich_dict())
-        self.assertNotEqual(id(new_seq), id(aln))
+        data = {"seq1": "ACGACGACG", "seq2": "ACGACGACG"}
+        seqs = self.Class(data)
+        copied = seqs.deepcopy(sliced=True)
+        self.assertEqual(seqs.to_rich_dict(), copied.to_rich_dict())
+        self.assertNotEqual(id(copied), id(seqs))
+        for name in seqs.names:
+            self.assertNotEqual(id(copied.named_seqs[name]), copied.named_seqs[name])
 
     def test_guess_input_type(self):
         """SequenceCollection  _guess_input_type should figure out data type correctly"""
@@ -2479,15 +2479,14 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
 
     def test_sliced_deepcopy(self):
         """correctly deep copy aligned objects in an alignment"""
-        path = "data/brca1_5.paml"
-        aln = load_aligned_seqs(path, array_align=False, moltype="dna")
-        aln = self.Class(aln.named_seqs)
-        aln = aln[20:30]
-        for name in ["Mouse", "Human", "HowlerMon", "NineBande", "DogFaced"]:
-            new_seq = aln.named_seqs[name].deepcopy()
-            self.assertEqual(len(new_seq.data), 10)
-            new_seq = aln.named_seqs[name].deepcopy(sliced=False)
-            self.assertEqual(len(new_seq.data), len(aln.named_seqs[name].data))
+        data = {"seq1": "ACGACGACG", "seq2": "ACGACGACG"}
+        orig = self.Class(data)
+        aln = orig[2:5]
+        for name in orig.names:
+            copied = aln.named_seqs[name].deepcopy()
+            self.assertNotEqual(len(copied.data), len(aln.named_seqs[name].data))
+            copied = aln.named_seqs[name].deepcopy(sliced=False)
+            self.assertEqual(len(copied.data), len(aln.named_seqs[name].data))
 
     def test_sliding_windows(self):
         """sliding_windows should return slices of alignments."""
