@@ -1281,8 +1281,10 @@ class SequenceCollectionBaseTests(object):
 
     def test_dotplot_annotated(self):
         """exercising dotplot method with annotated sequences"""
-        seqs = self.Class(data=self.brca1_data, moltype=DNA)
+        seqs = self.Class(data={"Human": "CAGATTTGGCAGTT-", "Mouse": "CAGATTCAGCAGGTG"})
+
         seqs = seqs.take_seqs(["Human", "Mouse"])
+
         if type(self.Class) != ArrayAlignment:
             # we annotated Human
             seq = seqs.get_seq("Human")
@@ -2255,7 +2257,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
                 [0, 0, 3, 0, 0],
                 [0, 2, 0, 1, 0],
                 [0, 1, 2, 0, 0],
-                [0, 2, 0, 1, 0]
+                [0, 2, 0, 1, 0],
             ]
         )
 
@@ -2659,7 +2661,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(str(aln[a].named_seqs["x"]), "TTCCACTTC")
 
     def test_deepcopy(self):
-        """correctly deep copy aligned objects in an alignment"""
+        """correctly deepcopy Aligned objects in an alignment"""
         path = "data/brca1_5.paml"
         # generates an annotatable Alignment object
         aln = load_aligned_seqs(path, array_align=False, moltype="dna")
@@ -2687,17 +2689,21 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
 
         # for these species, each has an annotation spanning slice boundary or within it
         for name in ["Mouse", "Human", "HowlerMon"]:
-            new_seq = aln.named_seqs[name].deepcopy()
+            new_seq = aln.named_seqs[name].deepcopy(sliced=True)
+            seq = aln.named_seqs[name]
+            self.assertNotEqual(new_seq.map.parent_length, seq.map.parent_length)
+
             self.assertEqual(len(new_seq.data), 10)
             self.assertTrue(new_seq.data.is_annotated())
             self.assertEqual(len(new_seq.data.annotations), 1)
             # tests the case when sliced argument if False
             new_seq = aln.named_seqs[name].deepcopy(sliced=False)
+            self.assertEqual(new_seq.map.parent_length, seq.map.parent_length)
             self.assertEqual(len(new_seq.data), len(aln.named_seqs[name].data))
             self.assertTrue(new_seq.data.is_annotated())
         # for these species, each has an annotation outside slice
         for name in ["NineBande", "DogFaced"]:
-            new_seq = aln.named_seqs[name].deepcopy()
+            new_seq = aln.named_seqs[name].deepcopy(sliced=True)
             self.assertEqual(len(new_seq.data), 10)
             self.assertFalse(new_seq.data.is_annotated())
             # tests the case when sliced argument if False
@@ -2715,6 +2721,23 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(len(new_seq.data), len(aln.named_seqs["Human"].data))
         self.assertTrue(new_seq.data.is_annotated())
         self.assertEqual(len(new_seq.data.annotations), 2)
+
+    def test_deepcopy2(self):
+        """"Aligned.deepcopy correctly handles gapped sequences"""
+        seqs = self.Class(
+            data={
+                "a": "CAGATTTGGCAGTT-",
+                "b": "-AGATTCAGCAGGTG",
+                "c": "CAGAT-CAGCAGGTG",
+                "d": "CAGATTCAGCAGGTG",
+            },
+            moltype="dna",
+        )
+        lengths = {len(s.deepcopy(sliced=True)) for s in seqs.seqs}
+        self.assertEqual(lengths, {len(seqs)})
+        rc = seqs.rc()
+        lengths = {len(s.deepcopy(sliced=True)) for s in rc.seqs}
+        self.assertEqual(lengths, {len(seqs)})
 
     def test_dotplot(self):
         """exercising dotplot method"""
