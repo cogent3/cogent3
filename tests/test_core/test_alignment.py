@@ -2248,9 +2248,21 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             ]
         )
 
+        exp_gap = array(
+            [
+                [1, 1, 0, 1, 0],
+                [0, 2, 0, 0, 1],
+                [0, 0, 3, 0, 0],
+                [0, 2, 0, 1, 0],
+                [0, 1, 2, 0, 0],
+                [0, 2, 0, 1, 0]
+            ]
+        )
+
         s1 = DNA.make_seq("TCAGAG", name="s1")
         s2 = DNA.make_seq("CCACAC", name="s2")
         s3 = DNA.make_seq("AGATAT", name="s3")
+        s4 = DNA.make_seq("G-ACCC", name="s4")
         aln = self.Class([s1, s2, s3], moltype=DNA)
         obs = aln.counts_per_pos()
         self.assertEqual(obs.array, exp)
@@ -2259,6 +2271,9 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(obs[0, "TC"], 1)
         self.assertEqual(obs[1, "AC"], 1)
         self.assertEqual(obs[2, "AC"], 1)
+        aln = self.Class([s1, s2, s4], moltype=DNA)
+        obs = aln.counts_per_pos(allow_gap=True)
+        self.assertEqual(obs.array, exp_gap)
 
     def test_get_seq_entropy(self):
         """ArrayAlignment get_seq_entropy should get entropy of each seq"""
@@ -2962,6 +2977,23 @@ class ArrayAlignmentSpecificTests(TestCase):
         a = self.a
         f = a.entropy_per_pos()
         e = array([0, 0, 1, 1])
+        self.assertEqual(f, e)
+        f = a.entropy_per_pos(motif_length=2)
+        e = array([0, 1])
+        self.assertEqual(f, e)
+        seqs = []
+        for s in ["-GAT", "ACCT", "GAGT"]:
+            seqs.append(make_seq(s, moltype="dna"))
+        a = ArrayAlignment(seqs)
+        f = a.entropy_per_pos(allow_gap=True)
+        e = array([1.584962500721156, 1.584962500721156, 1.584962500721156, 0])
+        self.assertEqual(f, e)
+        seqs = []
+        for s in ["-RAT", "ACCT", "GTGT"]:
+            seqs.append(make_seq(s, moltype="dna"))
+        a = ArrayAlignment(seqs)
+        f = a.entropy_per_pos(include_ambiguity=True)
+        e = array([1.584962500721156, 1.584962500721156, 1.584962500721156, 0])
         self.assertEqual(f, e)
 
     def test_coevolution_segments(self):
