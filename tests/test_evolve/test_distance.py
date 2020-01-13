@@ -16,9 +16,6 @@ from cogent3 import (
     make_aligned_seqs,
     make_unaligned_seqs,
 )
-from cogent3.evolve._pairwise_distance import (
-    _fill_diversity_matrix as pyx_fill_diversity_matrix,
-)
 from cogent3.evolve.distance import EstimateDistances
 from cogent3.evolve.fast_distance import (
     DistanceMatrix,
@@ -39,6 +36,9 @@ from cogent3.evolve.fast_distance import (
     seq_to_indices,
 )
 from cogent3.evolve.models import F81, HKY85, JC69
+from cogent3.evolve.pairwise_distance_numba import (
+    fill_diversity_matrix as numba_fill_diversity_matrix,
+)
 
 
 warnings.filterwarnings("ignore", "Not using MPI as mpi4py not found")
@@ -123,14 +123,14 @@ class TestPair(TestCase):
             ),
         )
 
-    def test_python_vs_cython_fill_matrix(self):
+    def test_python_vs_numba_fill_matrix(self):
         """python & cython fill_diversity_matrix give same answer"""
         s1 = seq_to_indices("RACGTACGTACN", self.dna_char_indices)
         s2 = seq_to_indices("AGTGTACGTACA", self.dna_char_indices)
         matrix1 = numpy.zeros((4, 4), float)
         _fill_diversity_matrix(matrix1, s1, s2)
         matrix2 = numpy.zeros((4, 4), float)
-        pyx_fill_diversity_matrix(matrix2, s1, s2)
+        numba_fill_diversity_matrix(matrix2, s1, s2)
         assert_allclose(matrix1, matrix2)
 
     def test_hamming_from_matrix(self):
