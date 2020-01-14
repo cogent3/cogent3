@@ -2480,15 +2480,29 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
     Class = Alignment
 
     def test_sliced_deepcopy(self):
-        """correctly deep copy aligned objects in an alignment"""
+        """correctly deep copy aligned objects in an alignment
+
+        Notes
+        -----
+        sliced=False is tested first due to the nature of the force_same_data
+        parameter.
+        """
         data = {"seq1": "ACGACGACG", "seq2": "ACGACGACG"}
         orig = self.Class(data)
         aln = orig[2:5]
+
+        notsliced = aln.deepcopy(sliced=False, force_same_data=True)
         for name in orig.names:
-            copied = aln.named_seqs[name].deepcopy()
-            self.assertNotEqual(len(copied.data), len(aln.named_seqs[name].data))
-            copied = aln.named_seqs[name].deepcopy(sliced=False)
-            self.assertEqual(len(copied.data), len(aln.named_seqs[name].data))
+            self.assertEqual(len(notsliced.named_seqs[name].data), len(orig.named_seqs[name].data))
+
+        sliced_different_data = aln.deepcopy(sliced=True, force_same_data=False)
+        for name in orig.names:
+            self.assertNotEqual(len(sliced_different_data.named_seqs[name].data), len(notsliced.named_seqs[name].data))
+
+        sliced_same_data = aln.deepcopy(sliced=True, force_same_data=True)
+        for name in orig.names:
+            self.assertLessThan(len(sliced_same_data.named_seqs[name].data), len(notsliced.named_seqs[name].data))
+            self.assertEqual(len(sliced_same_data.named_seqs[name].data), 3)
 
     def test_sliding_windows(self):
         """sliding_windows should return slices of alignments."""
