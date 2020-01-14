@@ -558,20 +558,18 @@ class _SequenceCollectionBase:
         result = self.__class__(self, moltype=self.moltype, info=self.info)
         return result
 
-    def deepcopy(self, sliced=True, force_same_data=True):
+    def deepcopy(self, sliced=True):
         """Returns deep copy of self."""
         new_seqs = dict()
         for seq in self.seqs:
             try:
                 new_seq = seq.deepcopy(sliced=sliced)
-            except:
+            except AttributeError:
                 new_seq = seq.copy()
             new_seqs[seq.name] = new_seq
-            seq_names = list(new_seqs.keys())
 
-        if force_same_data:
-            self._force_same_data(new_seqs, seq_names)
-        result = self.__class__(new_seqs, moltype=self.moltype, info=deepcopy(self.info))
+        info = deepcopy(self.info)
+        result = self.__class__(new_seqs, moltype=self.moltype, info=info, force_same_data=True)
         result._repr_policy.update(self._repr_policy)
         return result
 
@@ -4219,6 +4217,20 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
                 identical_sets.append(set(self.names[i] for i in group))
 
         return identical_sets
+
+    def deepcopy(self, sliced=True):
+        """Returns deep copy of self."""
+        info = deepcopy(self.info)
+        positions = deepcopy(self.array_seqs)
+        result = self.__class__(
+            positions,
+            force_same_data=True,
+            moltype=self.moltype,
+            info=info,
+            names=self.names,
+        )
+        result._repr_policy.update(self._repr_policy)
+        return result
 
 
 class CodonArrayAlignment(ArrayAlignment):
