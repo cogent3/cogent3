@@ -804,6 +804,32 @@ class Map(object):
         data["version"] = __version__
         return data
 
+    def zeroed(self):
+        """returns a new instance with the first span starting at 0
+
+        Note
+        ----
+
+        Useful when an Annotatable object is sliced, but the connection to
+        the original parent is being deliberately broken as in the
+        Sequence.deepcopy(sliced=True) case.
+        """
+        # todo there's probably a more efficient way to do this
+        # create the new instance
+        from cogent3.util.deserialise import deserialise_map_spans
+
+        data = self.to_rich_dict()
+        zeroed = deserialise_map_spans(data)
+        zeroed.parent_length = len(self)
+        min_val = min(zeroed.start, zeroed.end)
+        for span in zeroed.spans:
+            if span.lost:
+                continue
+            span.start -= min_val
+            span.end -= min_val
+
+        return zeroed
+
 
 class SpansOnly(ConstrainedList):
     """List that converts elements to Spans on addition."""

@@ -401,6 +401,14 @@ class GeneticCodeTests(TestCase):
         pattern = DEFAULT.to_regex(aa)
         self.assertTrue("".join(re.findall(pattern, dna)) == dna)
 
+    def test_repr_html(self):
+        """exercising the _repr_html_ method"""
+        gc = get_code(1)
+        got = gc._repr_html_().strip()
+        self.assertTrue(got.startswith("<table>"))
+        self.assertTrue(got.endswith("</table>"))
+        self.assertIn("Standard Nuclear", got)
+
 
 # Run tests if called from command line
 if __name__ == "__main__":
