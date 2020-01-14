@@ -1751,9 +1751,9 @@ class _SequenceCollectionBase:
 
         # Deep copying Aligned instance to ensure only region specified by Aligned.map is displayed.
         if isinstance(seq1, Aligned):
-            seq1 = seq1.deepcopy()
+            seq1 = seq1.deepcopy(sliced=True)
         if isinstance(seq2, Aligned):
-            seq2 = seq2.deepcopy()
+            seq2 = seq2.deepcopy(sliced=True)
 
         if seq1.is_annotated() or seq2.is_annotated():
             annotated = True
@@ -2052,28 +2052,19 @@ class Aligned(object):
 
     moltype = property(_get_moltype)
 
-    def copy(self, memo=None, _nil=None, constructor="ignored"):
+    def copy(self):
         """Returns a shallow copy of self
-
-        WARNING: cogent3.core.sequence.Sequence does NOT implement a copy method,
-        as such, the data member variable of the copied object will maintain
-        reference to the original object.
-
-        WARNING: cogent3.core.location.Map does NOT implement a copy method, as
-        such, the data member variable of the copied object will maintain
-        reference to the original object.
         """
-        _nil = _nil or []
         return self.__class__(self.map, self.data)
 
     def deepcopy(self, sliced=True):
         """
-        does a proper slice on the copied sequence when sliced is True and returns a deep copy of self
         Parameters
         -----------
         sliced : bool
-            Slices underlying sequence with start/end of self coordinates. This has the effect of breaking the connection
-            to any longer parent sequence.
+            Slices underlying sequence with start/end of self coordinates. This
+            has the effect of breaking the connection to any longer parent sequence.
+
         Returns
         -------
         a copy of self
@@ -2082,7 +2073,11 @@ class Aligned(object):
         if sliced:
             span = self.map.get_covering_span()
             new_seq = new_seq[span.start : span.end]
-        return self.__class__(self.map, new_seq)
+            new_map = self.map.zeroed()
+        else:
+            new_map = self.map
+
+        return self.__class__(new_map, new_seq)
 
     def __repr__(self):
         return "%s of %s" % (repr(self.map), repr(self.data))
@@ -2354,9 +2349,16 @@ class AlignmentI(object):
         )
         return counts.to_freq_array()
 
-    def entropy_per_pos(self, motif_length=1):
+    def entropy_per_pos(
+        self, motif_length=1, include_ambiguity=False, allow_gap=False, alert=False
+    ):
         """returns shannon entropy per position"""
-        probs = self.probs_per_pos(motif_length=motif_length)
+        probs = self.probs_per_pos(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            alert=alert,
+        )
         return probs.entropy()
 
     def probs_per_seq(

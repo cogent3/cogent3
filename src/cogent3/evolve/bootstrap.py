@@ -92,10 +92,10 @@ class ParametricBootstrapCore(object):
 
         # optimisations = pcs * (self._numreplicates + 1)
         init_work = pcs / (self._numreplicates + pcs)
-        ui.display("Original data", 0.0, init_work)
+        ui.display("Original data", 0.0)
         (starting_points, self.observed) = each_model(self.alignment)
 
-        ui.display("Randomness", init_work, 0.0)
+        ui.display("Randomness", init_work)
         alignment_random_state = random.Random(self.seed).getstate()
 
         def one_replicate(i):
