@@ -485,7 +485,10 @@ class _SequenceCollectionBase:
         # if we're forcing the same data, skip the validation
         if force_same_data:
             self._force_same_data(data, names)
-            curr_seqs = data
+            if isinstance(data, dict):
+                curr_seqs = list(data.values())
+            else:
+                curr_seqs = data
         # otherwise, figure out what we got and coerce it into the right type
         else:
             per_seq_names, curr_seqs, name_order = self._names_seqs_order(
@@ -546,6 +549,7 @@ class _SequenceCollectionBase:
 
     def _force_same_data(self, data, names):
         """Forces dict that was passed in to be used as self.named_seqs"""
+        assert isinstance(data, dict), "force_same_data requires input data is a dict"
         self.named_seqs = data
         self.names = names or list(data.keys())
 
@@ -3671,6 +3675,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         """Forces array that was passed in to be used as selfarray_positions"""
         if isinstance(data, ArrayAlignment):
             data = data._positions
+
         self.array_positions = data
         self.names = names or self._make_names(len(data[0]))
 
