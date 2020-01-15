@@ -2481,17 +2481,46 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
 
     def test_sliced_deepcopy(self):
         """correctly deep copy aligned objects in an alignment"""
-        data = {"seq1": "ACGACGACG", "seq2": "ACGACGACG"}
-        orig = self.Class(data)
-        aln = orig[2:5]
 
-        notsliced = aln.deepcopy(sliced=False)
-        sliced = aln.deepcopy(sliced=True)
-        for name in orig.names:
-            self.assertEqual(len(notsliced.named_seqs[name].data), len(orig.named_seqs[name].data))
-            self.assertLessThan(len(sliced.named_seqs[name].data), len(orig.named_seqs[name].data))
-            self.assertEqual(notsliced.named_seqs[name].map.parent_length, len(orig))
-            self.assertEqual(sliced.named_seqs[name].map.parent_length, 3)
+        def eval_data(data):
+            orig = self.Class(data)
+            aln = orig[2:5]
+
+            notsliced = aln.deepcopy(sliced=False)
+            sliced = aln.deepcopy(sliced=True)
+            for name in orig.names:
+                # if not sliced, underlying seq data should be same length
+                # as original
+                self.assertEqual(
+                    len(notsliced.named_seqs[name].data),
+                    len(orig.named_seqs[name].data),
+                )
+                # and the map.parent_length attributes should match
+                self.assertEqual(
+                    notsliced.named_seqs[name].map.parent_length,
+                    orig.named_seqs[name].map.parent_length,
+                )
+                # and map.parent_length and len(data) should match
+                self.assertEqual(
+                    sliced.named_seqs[name].map.parent_length,
+                    len(sliced.named_seqs[name].data),
+                )
+
+                # if sliced, seq data should be < orig
+                self.assertLessThan(
+                    len(sliced.named_seqs[name].data), len(orig.named_seqs[name].data)
+                )
+                # and map.parent_length and len(data) should match
+                self.assertEqual(
+                    sliced.named_seqs[name].map.parent_length,
+                    len(sliced.named_seqs[name].data),
+                )
+
+        eval_data({"seq1": "ACAACGACG", "seq2": "ACGACGACG"})
+        eval_data({"seq1": "-CAACGACG", "seq2": "ACGACGACG"})
+        eval_data({"seq1": "ACAACGAC-", "seq2": "ACGACGACG"})
+        eval_data({"seq1": "AC-ACGACG", "seq2": "ACGACGACG"})
+        eval_data({"seq1": "ACA-CGAC-", "seq2": "ACGACGACG"})
 
     def test_sliding_windows(self):
         """sliding_windows should return slices of alignments."""

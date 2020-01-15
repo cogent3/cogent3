@@ -569,7 +569,9 @@ class _SequenceCollectionBase:
             new_seqs[seq.name] = new_seq
 
         info = deepcopy(self.info)
-        result = self.__class__(new_seqs, moltype=self.moltype, info=info, force_same_data=True)
+        result = self.__class__(
+            new_seqs, moltype=self.moltype, info=info, force_same_data=True
+        )
         result._repr_policy.update(self._repr_policy)
         return result
 
