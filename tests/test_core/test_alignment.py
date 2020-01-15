@@ -244,6 +244,16 @@ class SequenceCollectionBaseTests(object):
         self.b = Alignment(["AAA", "AAA"])
         self.c = SequenceCollection(["AAA", "AAA"])
 
+    def test_deepcopy(self):
+        """correctly deep copy aligned objects in an alignment"""
+        data = {"seq1": "ACGACGACG", "seq2": "ACGACGACG"}
+        seqs = self.Class(data)
+        copied = seqs.deepcopy(sliced=True)
+        self.assertEqual(seqs.to_rich_dict(), copied.to_rich_dict())
+        self.assertNotEqual(id(copied), id(seqs))
+        for name in seqs.names:
+            self.assertNotEqual(id(copied.named_seqs[name]), copied.named_seqs[name])
+
     def test_guess_input_type(self):
         """SequenceCollection  _guess_input_type should figure out data type correctly"""
         git = self.a._guess_input_type
@@ -2468,6 +2478,20 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
 
 class AlignmentTests(AlignmentBaseTests, TestCase):
     Class = Alignment
+
+    def test_sliced_deepcopy(self):
+        """correctly deep copy aligned objects in an alignment"""
+        data = {"seq1": "ACGACGACG", "seq2": "ACGACGACG"}
+        orig = self.Class(data)
+        aln = orig[2:5]
+
+        notsliced = aln.deepcopy(sliced=False)
+        sliced = aln.deepcopy(sliced=True)
+        for name in orig.names:
+            self.assertEqual(len(notsliced.named_seqs[name].data), len(orig.named_seqs[name].data))
+            self.assertLessThan(len(sliced.named_seqs[name].data), len(orig.named_seqs[name].data))
+            self.assertEqual(notsliced.named_seqs[name].map.parent_length, len(orig))
+            self.assertEqual(sliced.named_seqs[name].map.parent_length, 3)
 
     def test_sliding_windows(self):
         """sliding_windows should return slices of alignments."""
