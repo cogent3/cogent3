@@ -820,7 +820,7 @@ class Map(object):
 
         data = self.to_rich_dict()
         zeroed = deserialise_map_spans(data)
-        zeroed.parent_length = len(self)
+        zeroed.parent_length = len(zeroed.get_covering_span())
         min_val = min(zeroed.start, zeroed.end)
         for span in zeroed.spans:
             if span.lost:
