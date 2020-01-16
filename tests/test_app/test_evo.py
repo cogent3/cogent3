@@ -283,6 +283,20 @@ class TestHypothesisResult(TestCase):
         expect = set(hyp.values())
         self.assertEqual(set(got), expect)
 
+    def test_model_moltype_mismatch(self):
+        """if model and alignment moltypes incompatible"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGA",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGA",
+            "Opossum": "TGACCAGTGAAAGTGGCGGCGGTGGCTGA",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        tree = "(Mouse,Human,Opossum)"
+        m1 = evo_app.model("JTT92", tree=tree)
+        r = m1(aln)
+        print(r)
+        self.assertEqual(r.origin, "model")
+
 
 class TestAncestralStates(TestCase):
     def test_ancestral(self):
