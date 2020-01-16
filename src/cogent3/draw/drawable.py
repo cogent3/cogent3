@@ -160,13 +160,16 @@ class Drawable:
 
     @property
     def figure(self):
-        if not self.traces:
+        if not self.traces and hasattr(self, "_build_fig"):
             self._build_fig()
+            traces = self.traces
+        else:
+            traces = [{}]
         xtitle = self.xtitle if not self.xtitle else dict(text=self.xtitle)
         ytitle = self.ytitle if not self.ytitle else dict(text=self.ytitle)
         self.layout.xaxis.title = xtitle
         self.layout.yaxis.title = ytitle
-        return UnionDict(data=self.traces, layout=self.layout)
+        return UnionDict(data=traces, layout=self.layout)
 
     def iplot(self, *args, **kwargs):
         from plotly.offline import iplot as _iplot
