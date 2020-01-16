@@ -2,12 +2,13 @@ from os.path import dirname, join
 from unittest import TestCase, main
 from unittest.mock import MagicMock
 
+from numpy.testing import assert_allclose, assert_raises
+
 from cogent3 import load_aligned_seqs, make_aligned_seqs, make_tree
 from cogent3.app import evo as evo_app
 from cogent3.app.result import hypothesis_result
 from cogent3.evolve.models import get_model
 from cogent3.util.deserialise import deserialise_object
-from numpy.testing import assert_allclose, assert_raises
 
 
 __author__ = "Gavin Huttley"
