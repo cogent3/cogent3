@@ -52,7 +52,7 @@ def get_rank():
         rank = COMM.Get_rank()
     else:
         process_name = multiprocessing.current_process().name
-        if process_name is not "MainProcess":
+        if process_name != "MainProcess":
             rank = int(process_name.split("-")[-1])
     return rank
 
