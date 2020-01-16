@@ -283,6 +283,50 @@ class TestHypothesisResult(TestCase):
         expect = set(hyp.values())
         self.assertEqual(set(got), expect)
 
+    def test_null_hyp_fail_error(self):
+        """if null fails NotCompleted.origin should be model"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        tree = "((Mouse,Rat),Human,Opossum)"
+        m1 = evo_app.model("F81", tree=tree)
+        m2 = evo_app.model("GTR", tree=tree)
+        hyp = evo_app.hypothesis(m1, m2)
+        r = hyp(aln)
+        self.assertEqual(r.origin, "model")
+
+    def test_alt_hyp_fail_error(self):
+        """if alt fails NotCompleted.origin should be model"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGA",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGA",
+            "Opossum": "TGACCAGTGAAAGTGGCGGCGGTGGCTGA",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        tree = "(Mouse,Human,Opossum)"
+        m1 = evo_app.model("F81", tree=tree)
+        m2 = evo_app.model("MG94HKY", tree=tree)
+        hyp = evo_app.hypothesis(m1, m2)
+        r = hyp(aln)
+        self.assertEqual(r.origin, "model")
+
+    def test_model_moltype_mismatch(self):
+        """if model and alignment moltypes incompatible"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGA",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGA",
+            "Opossum": "TGACCAGTGAAAGTGGCGGCGGTGGCTGA",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        tree = "(Mouse,Human,Opossum)"
+        m1 = evo_app.model("JTT92", tree=tree)
+        r = m1(aln)
+        print(r)
+        self.assertEqual(r.origin, "model")
+
 
 class TestAncestralStates(TestCase):
     def test_ancestral(self):

@@ -203,6 +203,14 @@ class model(ComposableModel):
         return lf
 
     def fit(self, aln, initialise=None, construct=True, **opt_args):
+        moltypes = {aln.moltype.label, self._sm.moltype.label}
+        if moltypes == {"protein", "dna"} or moltypes == {"protein", "rna"}:
+            msg = (
+                f"substitution model moltype '{self._sm.moltype.label}' and"
+                f" alignment moltype '{aln.moltype.label}' are incompatible"
+            )
+            return NotCompleted("ERROR", self, msg, source=aln)
+
         evaluation_limit = opt_args.get("max_evaluations", None)
         if self._tree is None:
             assert len(aln.names) == 3
@@ -295,11 +303,21 @@ class hypothesis(ComposableHypothesis):
         except ValueError as err:
             msg = f"Hypothesis null had bounds error {aln.info.source}"
             return NotCompleted("ERROR", self, msg, source=aln)
+
+        if not null:
+            return null
+
         try:
             alts = [alt for alt in self._initialised_alt_from_null(null, aln)]
         except ValueError as err:
             msg = f"Hypothesis alt had bounds error {aln.info.source}"
             return NotCompleted("ERROR", self, msg, source=aln)
+
+        # check if any did not complete
+        for alt in alts:
+            if not alt:
+                return alt
+
         results = {alt.name: alt for alt in alts}
         results.update({null.name: null})
 
