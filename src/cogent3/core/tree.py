@@ -1225,7 +1225,7 @@ class TreeNode(object):
                         for (n, v) in list(self.params.items())
                         if v is not None
                         and child.params.get(n) is not None
-                        and n is not "length"
+                        and n != "length"
                     ]
                     length = self.length + child.length
                     if length:
