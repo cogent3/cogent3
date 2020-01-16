@@ -1,11 +1,10 @@
 import os
 
-from tqdm import tqdm
-
 from cogent3 import load_tree, make_tree
 from cogent3.core.tree import TreeNode
 from cogent3.evolve.models import get_model
 from cogent3.util import misc, parallel
+from tqdm import tqdm
 
 from .composable import (
     ALIGNED_TYPE,
@@ -303,11 +302,21 @@ class hypothesis(ComposableHypothesis):
         except ValueError as err:
             msg = f"Hypothesis null had bounds error {aln.info.source}"
             return NotCompleted("ERROR", self, msg, source=aln)
+
+        if not null:
+            return null
+
         try:
             alts = [alt for alt in self._initialised_alt_from_null(null, aln)]
         except ValueError as err:
             msg = f"Hypothesis alt had bounds error {aln.info.source}"
             return NotCompleted("ERROR", self, msg, source=aln)
+
+        # check if any did not complete
+        for alt in alts:
+            if not alt:
+                return alt
+
         results = {alt.name: alt for alt in alts}
         results.update({null.name: null})
 

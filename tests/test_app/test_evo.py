@@ -2,13 +2,12 @@ from os.path import dirname, join
 from unittest import TestCase, main
 from unittest.mock import MagicMock
 
-from numpy.testing import assert_allclose, assert_raises
-
 from cogent3 import load_aligned_seqs, make_aligned_seqs, make_tree
 from cogent3.app import evo as evo_app
 from cogent3.app.result import hypothesis_result
 from cogent3.evolve.models import get_model
 from cogent3.util.deserialise import deserialise_object
+from numpy.testing import assert_allclose, assert_raises
 
 
 __author__ = "Gavin Huttley"
@@ -282,6 +281,36 @@ class TestHypothesisResult(TestCase):
         self.assertEqual(len(got), 3)
         expect = set(hyp.values())
         self.assertEqual(set(got), expect)
+
+    def test_null_hyp_fail_error(self):
+        """if null fails NotCompleted.origin should be model"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        tree = "((Mouse,Rat),Human,Opossum)"
+        m1 = evo_app.model("F81", tree=tree)
+        m2 = evo_app.model("GTR", tree=tree)
+        hyp = evo_app.hypothesis(m1, m2)
+        r = hyp(aln)
+        self.assertEqual(r.origin, "model")
+
+    def test_alt_hyp_fail_error(self):
+        """if alt fails NotCompleted.origin should be model"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGA",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGA",
+            "Opossum": "TGACCAGTGAAAGTGGCGGCGGTGGCTGA",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        tree = "(Mouse,Human,Opossum)"
+        m1 = evo_app.model("F81", tree=tree)
+        m2 = evo_app.model("MG94HKY", tree=tree)
+        hyp = evo_app.hypothesis(m1, m2)
+        r = hyp(aln)
+        self.assertEqual(r.origin, "model")
 
     def test_model_moltype_mismatch(self):
         """if model and alignment moltypes incompatible"""
