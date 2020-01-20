@@ -236,7 +236,7 @@ class model(ComposableModel):
                 codon_pos = aln[i::3]
                 lf = self._fit_aln(
                     codon_pos,
-                    identifier=str(i + 1),
+                    identifier=i + 1,
                     initialise=initialise,
                     construct=construct,
                     **opt_args,
