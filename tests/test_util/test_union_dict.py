@@ -99,6 +99,18 @@ class UnionDictTests(TestCase):
         self.assertEqual(d._getsubattr_([], "d"), UnionDict({"e": 5, "f": 6}))
         self.assertEqual(d._getsubattr_(["d"], "e"), 5)
 
+    def test_setitem(self):
+        """should work via property or key"""
+        d = UnionDict()
+        d.a = 23
+        d.b = dict(c=42)
+        self.assertEqual(d.a, 23)
+        self.assertEqual(d["a"], 23)
+        self.assertEqual(d.b, dict(c=42))
+        self.assertEqual(d.b.c, 42)
+        self.assertEqual(d["b"], dict(c=42))
+        self.assertIsInstance(d.b, UnionDict)
+
 
 if __name__ == "__main__":
     main()
