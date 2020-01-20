@@ -54,6 +54,12 @@ class UnionDict(dict):
 
         self.update({key: value})
 
+    def __setitem__(self, key, value):
+        if isinstance(value, dict):
+            value = UnionDict(value)
+
+        self.update({key: value})
+
     def __or__(self, other):
         self.union(other)
         return self
