@@ -159,6 +159,27 @@ class TestModel(TestCase):
         aln1 = result.lf[1].get_param_value("alignment").to_dict()
         self.assertEqual(aln1, aln[::3].to_dict())
 
+    def test_split_codon_model_result_json(self):
+        """round trip split_codon result"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        tree = make_tree(tip_names=aln.names)
+        mod = evo_app.model(
+            "F81",
+            tree=tree,
+            split_codons=True,
+            opt_args=dict(max_evaluations=5, limit_action="ignore"),
+        )
+        result = mod(aln)
+        lf1 = result.lf[1]
+        json = result.to_json()
+        deser = deserialise_object(json)
+        assert_allclose(deser.lf[1].lnL, lf1.lnL)
+
     def test_model_summed_branch_lengths(self):
         """returns summed branch lengths"""
         _data = {
