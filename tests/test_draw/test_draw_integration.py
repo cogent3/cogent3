@@ -47,6 +47,24 @@ class BaseDrawablesTests(unittest.TestCase):
             self._check_drawable_attrs(obj.drawable.figure, style)
 
 
+class CustomDrawable(BaseDrawablesTests):
+    """custom applications of Drawable"""
+
+    def test_no_trace(self):
+        """should still produce a valid figure"""
+        d = Drawable()
+        f = d.figure
+        self.assertEqual(f.data, [{}])
+
+    def test_one_trace(self):
+        """should still produce a valid figure"""
+        d = Drawable()
+        trace = dict(type="scatter", x=[0, 1], y=[0, 1])
+        d.add_trace(trace)
+        f = d.figure
+        self.assertEqual(f.data, [trace])
+
+
 class AlignmentDrawablesTests(BaseDrawablesTests):
     """methods on SequenceCollection produce Drawables"""
 

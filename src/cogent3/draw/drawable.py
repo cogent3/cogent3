@@ -162,9 +162,9 @@ class Drawable:
     def figure(self):
         if not self.traces and hasattr(self, "_build_fig"):
             self._build_fig()
-            traces = self.traces
-        else:
-            traces = [{}]
+
+        traces = self.traces if self.traces else [{}]
+
         xtitle = self.xtitle if not self.xtitle else dict(text=self.xtitle)
         ytitle = self.ytitle if not self.ytitle else dict(text=self.ytitle)
         self.layout.xaxis.title = xtitle
