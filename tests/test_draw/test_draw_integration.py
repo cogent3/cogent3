@@ -64,6 +64,18 @@ class CustomDrawable(BaseDrawablesTests):
         f = d.figure
         self.assertEqual(f.data, [trace])
 
+    def test_layout_with_titles(self):
+        """if provided layout has axis titles, keep them"""
+        layout = dict(xaxis=dict(title="X"), yaxis=dict(title="Y"))
+        d = Drawable(layout=layout)
+        fig = d.figure
+        self.assertEqual(fig.layout.xaxis.title, "X")
+        self.assertEqual(fig.layout.yaxis.title, "Y")
+        d = Drawable()
+        fig = d.figure
+        self.assertEqual(fig.layout.xaxis.title, None)
+        self.assertEqual(fig.layout.yaxis.title, None)
+
 
 class AlignmentDrawablesTests(BaseDrawablesTests):
     """methods on SequenceCollection produce Drawables"""

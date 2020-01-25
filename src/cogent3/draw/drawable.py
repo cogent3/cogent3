@@ -165,8 +165,16 @@ class Drawable:
 
         traces = self.traces if self.traces else [{}]
 
-        xtitle = self.xtitle if not self.xtitle else dict(text=self.xtitle)
-        ytitle = self.ytitle if not self.ytitle else dict(text=self.ytitle)
+        if self.xtitle:
+            xtitle = self.xtitle
+        else:
+            xtitle = self.layout.xaxis.get("title", None)
+
+        if self.ytitle:
+            ytitle = self.ytitle
+        else:
+            ytitle = self.layout.yaxis.get("title", None)
+
         self.layout.xaxis.title = xtitle
         self.layout.yaxis.title = ytitle
         return UnionDict(data=traces, layout=self.layout)
