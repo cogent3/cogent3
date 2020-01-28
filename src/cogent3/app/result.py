@@ -467,8 +467,13 @@ class hypothesis_result(generic_result):
         assert stat in ("aicc", "aic")
         second_order = stat == "aicc"
         results = []
-        for k, m in self.items():
-            val = m.lf.get_aic(second_order=second_order)
+        for m in self.values():
+            if isinstance(m.lf, dict):
+                # multiple lf's, e.g. split codon position analyses have 3
+                val = sum(lf.get_aic(second_order=second_order) for lf in m.lf.values())
+            else:
+                val = m.lf.get_aic(second_order=second_order)
+
             results.append((val, m))
         results.sort()
         min_model = results.pop(0)
