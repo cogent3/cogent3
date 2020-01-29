@@ -285,11 +285,11 @@ class MotifFreqsArray(_MotifNumberArray):
                 safe log operation applied.
         """
         entropies = safe_p_log_p(self.array)
-        return entropies
+        return self.template.wrap(entropies)
 
     def entropy(self):
         """Shannon entropy per position using safe log2"""
-        return self.entropy_terms().sum(axis=1)
+        return self.entropy_terms().array.sum(axis=1)
 
     def information(self):
         """returns information as -max_entropy - entropy"""
