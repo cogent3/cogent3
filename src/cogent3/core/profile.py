@@ -215,8 +215,12 @@ class MotifCountsArray(_MotifNumberArray):
         data = self.array
         if pseudocount:
             data = data + pseudocount
-        row_sum = data.sum(axis=1)
-        freqs = data / numpy.vstack(row_sum)
+        axis = None if self.array.ndim == 1 else 1
+        row_sum = data.sum(axis=axis)
+        if axis is not None:
+            freqs = data / numpy.vstack(row_sum)
+        else:
+            freqs = data / row_sum
         return freqs
 
     def to_freq_array(self, pseudocount=0):
@@ -231,9 +235,9 @@ class MotifCountsArray(_MotifNumberArray):
         a MotifFreqsArray
         """
         freqs = self._to_freqs(pseudocount=pseudocount)
-        return MotifFreqsArray(
-            freqs, self.template.names[1], row_indices=self.template.names[0]
-        )
+        motifs = self.template.names[-1]
+        row_indices = None if self.array.ndim == 1 else self.template.names[0]
+        return MotifFreqsArray(freqs, motifs, row_indices=row_indices)
 
     def to_pssm(self, background=None, pseudocount=0):
         """returns a PSSM array
