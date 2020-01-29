@@ -253,7 +253,7 @@ class MotifFreqsArrayTests(TestCase):
         got = MotifFreqsArray(array(data), "ABCD")
         entropy_terms = got.entropy_terms()
         expect = [[0.5, 0.5, 0.5, 0.5], [0.5, 0.5, 0, 0]]
-        assert_allclose(entropy_terms, expect)
+        assert_allclose(entropy_terms.array, expect)
 
     def test_entropy(self):
         """calculates entripies correctly"""
