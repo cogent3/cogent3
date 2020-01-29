@@ -247,6 +247,14 @@ class MotifFreqsArrayTests(TestCase):
         with self.assertRaises(ValueError):
             got = MotifFreqsArray(data, "AB")
 
+    def test_entropy_terms(self):
+        """Checks entropy_terms works correctly"""
+        data = [[0.25, 0.25, 0.25, 0.25], [0.5, 0.5, 0, 0]]
+        got = MotifFreqsArray(array(data), "ABCD")
+        entropy_terms = got.entropy_terms()
+        expect = [[0.5, 0.5, 0.5, 0.5], [0.5, 0.5, 0, 0]]
+        assert_allclose(entropy_terms, expect)
+
     def test_entropy(self):
         """calculates entripies correctly"""
         data = [[0.25, 0.25, 0.25, 0.25], [0.5, 0.5, 0, 0]]
