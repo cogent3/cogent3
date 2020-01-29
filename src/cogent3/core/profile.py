@@ -288,7 +288,7 @@ class MotifFreqsArray(_MotifNumberArray):
         return entropies
 
     def entropy(self):
-        """Shannon entropy per position using log2"""
+        """Shannon entropy per position using safe log2"""
         return self.entropy_terms().sum(axis=1)
 
     def information(self):
