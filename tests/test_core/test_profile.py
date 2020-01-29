@@ -124,6 +124,14 @@ class MotifCountsArrayTests(TestCase):
         expect = adj / vstack(adj.sum(axis=1))
         assert_allclose(got.array, expect)
 
+    def test_to_freqs_1d(self):
+        """produce a freqs array from 1D counts"""
+        data = [43, 48, 114, 95]
+        total = sum(data)
+        a = MotifCountsArray([43, 48, 114, 95], motifs=("T", "C", "A", "G"))
+        f = a.to_freq_array()
+        assert_allclose(f.array, array([v / total for v in data], dtype=float))
+
     def test_to_pssm(self):
         """produces a PSSM array"""
         data = array(
