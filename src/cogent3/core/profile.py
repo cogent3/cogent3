@@ -277,10 +277,19 @@ class MotifFreqsArray(_MotifNumberArray):
         axis = 0 if self.array.ndim == 1 else 1
         validate_freqs_array(self.array, axis=axis)
 
-    def entropy(self):
-        """Shannon entropy per position using log2"""
+    def entropy_terms(self):
+        """Returns
+           -------
+           entropies : array
+                Has same dimension as self.array with
+                safe log operation applied.
+        """
         entropies = safe_p_log_p(self.array)
-        return entropies.sum(axis=1)
+        return self.template.wrap(entropies)
+
+    def entropy(self):
+        """Shannon entropy per position using safe log2"""
+        return self.entropy_terms().row_sum()
 
     def information(self):
         """returns information as -max_entropy - entropy"""
