@@ -295,19 +295,19 @@ class MotifFreqsArray(_MotifNumberArray):
 
     def relative_entropy_terms(self, background=None):
         """
-            Parameters
-            ----------
-            background : dict
-                {motif_1: prob_1, motif_2: prob_2, ...} is the specified background distribution.
+        Parameters
+        ----------
+        background : dict
+            {motif_1: prob_1, motif_2: prob_2, ...} is the specified background distribution.
 
-            Returns
-            -------
-            self.template.wrap(ret) : array
-                The term wise relative entropy
+        Returns
+        -------
+        self.template.wrap(ret) : DictArray
+            The term wise relative entropy
 
-            Notes
-            -----
-            If background is type None, it defaults to equifrequent.
+        Notes
+        -----
+        If background is type None, it defaults to equifrequent.
 
         """
         if background is None:
@@ -323,19 +323,19 @@ class MotifFreqsArray(_MotifNumberArray):
 
     def relative_entropy(self, background=None):
         """
-            Parameters
-            ----------
-            background : dict
-                {motif_1: prob_1, motif_2: prob_2, ...} is the specified background distribution.
+        Parameters
+        ----------
+        background : dict
+            {motif_1: prob_1, motif_2: prob_2, ...} is the specified background distribution.
 
-            Returns
-            -------
-            result.array : array
-                Relative entropy.
+        Returns
+        -------
+        result.array : DictArray
+            Relative entropy.
 
-            Notes
-            -----
-            If background is type None, it defaults to equifrequent.
+        Notes
+        -----
+        If background is type None, it defaults to equifrequent.
         """
         result = self.relative_entropy_terms(background=background).row_sum()
         return result.array
