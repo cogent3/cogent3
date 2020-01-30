@@ -303,12 +303,11 @@ class MotifFreqsArray(_MotifNumberArray):
         Returns
         -------
         self.template.wrap(ret) : DictArray
-            The term wise relative entropy
+            returns a DictArray of position-wise relative entropy terms per motif
 
         Notes
         -----
         If background is type None, it defaults to equifrequent.
-
         """
         if background is None:
             num_motifs = len(self.motifs)
@@ -316,8 +315,7 @@ class MotifFreqsArray(_MotifNumberArray):
         else:
             background = array([background.get(m, 0) for m in self.motifs])
 
-        assert_allclose(background.sum(), 1.0)
-
+        validate_freqs_array(background)
         ret = background * (safe_log(background) - safe_log(self.array))
         return self.template.wrap(ret)
 
@@ -330,7 +328,7 @@ class MotifFreqsArray(_MotifNumberArray):
 
         Returns
         -------
-        result.array : DictArray
+        result.array : array
             Relative entropy.
 
         Notes
