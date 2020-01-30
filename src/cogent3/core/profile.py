@@ -1,7 +1,8 @@
 import numpy
 
-from numpy import digitize
+from numpy import digitize, array
 from numpy.random import random
+from numpy.testing import assert_allclose
 
 from cogent3.maths.util import safe_log, safe_p_log_p
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
@@ -290,6 +291,53 @@ class MotifFreqsArray(_MotifNumberArray):
     def entropy(self):
         """Shannon entropy per position using safe log2"""
         result = self.entropy_terms().row_sum()
+        return result.array
+
+    def relative_entropy_terms(self, background=None):
+        """
+            Parameters
+            ----------
+            background : dict
+                {motif_1: prob_1, motif_2: prob_2, ...} is the specified background distribution.
+
+            Returns
+            -------
+            self.template.wrap(ret) : array
+                The term wise relative entropy
+
+            Notes
+            -----
+            If background is type None, it defaults to equifrequent.
+
+        """
+        if background is None:
+            num_motifs = len(self.motifs)
+            background = array([1 / num_motifs] * num_motifs)
+        else:
+            background = array([background.get(m, 0) for m in self.motifs])
+
+        assert_allclose(background.sum(), 1.0)
+
+        ret = background * (safe_log(background) - safe_log(self.array))
+        return self.template.wrap(ret)
+
+    def relative_entropy(self, background=None):
+        """
+            Parameters
+            ----------
+            background : dict
+                {motif_1: prob_1, motif_2: prob_2, ...} is the specified background distribution.
+
+            Returns
+            -------
+            result.array : array
+                Relative entropy.
+
+            Notes
+            -----
+            If background is type None, it defaults to equifrequent.
+        """
+        result = self.relative_entropy_terms(background=background).row_sum()
         return result.array
 
     def information(self):
