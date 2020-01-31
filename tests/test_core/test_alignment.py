@@ -10,10 +10,15 @@ from tempfile import mktemp
 
 import numpy
 
-from numpy import arange, array, nan, transpose, log2
+from numpy import arange, array, log2, nan, transpose
 from numpy.testing import assert_allclose
 
-from cogent3 import load_aligned_seqs, load_unaligned_seqs, make_seq, make_aligned_seqs
+from cogent3 import (
+    load_aligned_seqs,
+    load_unaligned_seqs,
+    make_aligned_seqs,
+    make_seq,
+)
 from cogent3.core.alignment import (
     Aligned,
     Alignment,
@@ -1260,8 +1265,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(dna.info["key"], "value")
 
     def test_get_lengths(self):
-        """returns correct seq lengths"""
-        """SequenceCollection.test_get_lengths handles motif length, allow_gaps etc.."""
+        """get_lengths handles motif length, allow_gaps etc.."""
         data = {"a": "AAAA??????", "b": "CCCGGG--NN"}
         coll = self.Class(data=data, moltype=DNA)
         got = coll.get_lengths()
@@ -1534,44 +1538,39 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         """Tests that the alignment_quality generates the right alignment quality
         value based on the Hertz-Stormo metric. expected values are hand calculated
         using the formula in the paper."""
-        aln = make_aligned_seqs(["AATTGA",
-                                 "AGGTCC",
-                                 "AGGATG",
-                                 "AGGCGT"], moltype="dna")
+        aln = make_aligned_seqs(["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"], moltype="dna")
         got = aln.alignment_quality(equifreq_mprobs=True)
         expect = log2(4) + (3 / 2) * log2(3) + (1 / 2) * log2(2) + (1 / 2) * log2(2)
         assert_allclose(got, expect)
 
-        aln = make_aligned_seqs(["AAAC",
-                                 "ACGC",
-                                 "AGCC",
-                                 "A-TC"], moltype="dna")
+        aln = make_aligned_seqs(["AAAC", "ACGC", "AGCC", "A-TC"], moltype="dna")
         got = aln.alignment_quality(equifreq_mprobs=False)
-        expect = 2 * log2(1 / 0.4) + log2(1 / (4 * 0.4)) + (1 / 2) * log2(1 / (8 / 15)) + (
-                1 / 4) * log2(1 / (4 / 15))
+        expect = (
+            2 * log2(1 / 0.4)
+            + log2(1 / (4 * 0.4))
+            + (1 / 2) * log2(1 / (8 / 15))
+            + (1 / 4) * log2(1 / (4 / 15))
+        )
         assert_allclose(got, expect)
 
-        #1. Alignment just gaps (Gap chars need to be fixed for unspecified moltype, before uncommenting).
+        # 1. Alignment just gaps (Gap chars need to be fixed for unspecified moltype, before uncommenting).
         # aln = make_aligned_seqs(["----"])
         # got = aln.alignment_quality(equifreq_mprobs=True)
         # assert_allclose(got, 0)
 
-        #2 Just one sequence (I've made an assumption that if there is one sequence,
+        # 2 Just one sequence (I've made an assumption that if there is one sequence,
         # the alignment quality should also return None, correct me if I'm wrong).
         aln = make_aligned_seqs(["AAAC"])
         got = aln.alignment_quality(equifreq_mprobs=True)
         assert got is None
 
-        #3.1 Two seqs, one all gaps. (equifreq_mprobs=True)
-        aln = make_aligned_seqs(["----",
-                                "ACAT"])
+        # 3.1 Two seqs, one all gaps. (equifreq_mprobs=True)
+        aln = make_aligned_seqs(["----", "ACAT"])
         got = aln.alignment_quality(equifreq_mprobs=True)
         assert_allclose(got, 28)
 
-
-        #3.2 Two seqs, one all gaps. (equifreq_mprobs=False)
-        aln = make_aligned_seqs(["----",
-                                "AAAA"])
+        # 3.2 Two seqs, one all gaps. (equifreq_mprobs=False)
+        aln = make_aligned_seqs(["----", "AAAA"])
         got = aln.alignment_quality(equifreq_mprobs=False)
         assert_allclose(got, -2)
 
@@ -2275,22 +2274,28 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
     def test_counts_per_seq(self):
         """SequenceCollection.counts_per_seq handles motif length, allow_gaps etc.."""
         data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
-        coll = self.Class(data=data, moltype=DNA)
+        coll = self.Class(data=data, moltype="dna")
+        mtype = coll.moltype
         got = coll.counts_per_seq()
         self.assertEqual(got["a", "A"], 4)
-        self.assertEqual(len(got.motifs), 4)
+        self.assertEqual(len(got.motifs), len(mtype.alphabet))
         got = coll.counts_per_seq(include_ambiguity=True, allow_gap=True)
         # N, -, ? are the additional states
         self.assertEqual(len(got.motifs), 7)
-        self.assertEqual(
-            got["b"].to_dict(), {"-": 2, "?": 0, "A": 0, "C": 3, "G": 3, "N": 2, "T": 0}
-        )
+        expect = {"-": 2, "?": 0, "A": 0, "C": 3, "G": 3, "N": 2, "T": 0}
+        b = got["b"].to_dict()
+        for k in expect:
+            self.assertEqual(b[k], expect[k])
+
         got = coll.counts_per_seq(motif_length=2)
-        self.assertEqual(len(got.motifs), 16)
+        self.assertEqual(len(got.motifs), len(mtype.alphabet) ** 2)
         self.assertEqual(got["a", "AA"], 2)
         self.assertEqual(got["b", "GG"], 1)
         got = coll.counts_per_seq(exclude_unobserved=True)
-        self.assertEqual(got["c"].to_dict(), {"C": 4, "G": 2, "T": 2, "A": 2})
+        expect = {"C": 4, "G": 2, "T": 2, "A": 2}
+        c = got["c"].to_dict()
+        for k in expect:
+            self.assertEqual(c[k], expect[k])
 
     def test_counts_per_pos(self):
         """correctly count motifs"""
@@ -2331,6 +2336,18 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln = self.Class([s1, s2, s4], moltype=DNA)
         obs = aln.counts_per_pos(allow_gap=True)
         self.assertEqual(obs.array, exp_gap)
+
+    def test_counts_per_seq_default_moltype(self):
+        """produce correct counts per seq with default moltypes"""
+        data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
+        coll = self.Class(data=data)
+        got = coll.counts_per_seq()
+        try:
+            self.assertEqual(got.col_sum()["-"], 0)
+        except KeyError:
+            pass  # text moltype in Alignment excludes '-'
+        got = coll.counts_per_seq(include_ambiguity=True, allow_gap=True)
+        self.assertEqual(got.col_sum()["-"], 2)
 
     def test_get_seq_entropy(self):
         """ArrayAlignment get_seq_entropy should get entropy of each seq"""
