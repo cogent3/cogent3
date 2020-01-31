@@ -64,6 +64,7 @@ from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.nexus import nexus_from_alignment
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.maths.stats.number import CategoryCounter
+from cogent3.maths.util import safe_log
 from cogent3.parse.gff import gff_parser
 from cogent3.util import progress_display as UI
 from cogent3.util.dict_array import DictArrayTemplate
@@ -2234,6 +2235,34 @@ class AlignmentI(object):
 
     default_gap = "-"  # default gap character for padding
     gap_chars = dict.fromkeys("-?")  # default gap chars for comparisons
+
+    def alignment_quality(self, equifreq_mprobs=True):
+        """
+        Computes the alignment quality for an alignment based on eq. (2) in [1].
+
+        Parameters
+        ----------
+        equifreq_mprobs : bool
+            If true, specifies equally frequent motif probabilities.
+
+        Notes
+        -----
+        [1]. G. Z. Hertz, G. D. Stormo - Published 1999, Bioinformatics, vol. 15 pg. 563-577.
+        """
+        counts = self.counts_per_pos()
+        if equifreq_mprobs:
+            num_motifs = len(counts.motifs)
+            p = array([1 / num_motifs] * num_motifs)
+        else:
+            motif_probs = self.get_motif_probs()
+            p = array([motif_probs[b] for b in counts.motifs])
+        cols = p != 0
+        p = p[cols]
+        counts = counts.array[:, cols]
+        frequency = counts / self.num_seqs
+        log_f = safe_log(frequency / p)
+        I_seq = log_f * frequency
+        return I_seq.sum()
 
     def iter_positions(self, pos_order=None):
         """Iterates over positions in the alignment, in order.
