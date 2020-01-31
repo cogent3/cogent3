@@ -2248,8 +2248,13 @@ class AlignmentI(object):
         Notes
         -----
         G. Z. Hertz, G. D. Stormo - Published 1999, Bioinformatics, vol. 15 pg. 563-577.
+
+        The alignment quality statistic is a log-likelihood ratio (computed using log2)
+        of the observed alignment column freqs versus the expected.
         """
         counts = self.counts_per_pos()
+        if counts.array.max() == 0 or len(self.seqs) == 1:
+            return None
         if equifreq_mprobs:
             num_motifs = len(counts.motifs)
             p = array([1 / num_motifs] * num_motifs)
