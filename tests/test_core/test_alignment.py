@@ -2475,8 +2475,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
     Class = ArrayAlignment
 
-
-
     def test_slice_align(self):
         """slicing alignment should work correctly"""
         data = {"seq1": "ACGACGACG", "seq2": "ACGACGACG", "seq3": "ACGACGACG"}
