@@ -24,7 +24,7 @@ jobs:
       condition: succeededOrFailed()
       inputs:
         testResultsFiles: '**/junit-*.xml'
-        testRunTitle: 'Publish test results for Linux Python $(python.version)'
+        testRunTitle: 'Publish test results for Linux Python 3.6'
         failTaskOnFailedTests: true
 - job: Linux_Test_py37
   pool: {vmImage: 'ubuntu-latest'}
@@ -43,7 +43,7 @@ jobs:
       condition: succeededOrFailed()
       inputs:
         testResultsFiles: '**/junit-*.xml'
-        testRunTitle: 'Publish test results for Linux Python $(python.version)'
+        testRunTitle: 'Publish test results for Linux Python 3.7'
         failTaskOnFailedTests: true
 - job: Linux_Test_py38
   pool: {vmImage: 'ubuntu-latest'}
@@ -62,7 +62,7 @@ jobs:
       condition: succeededOrFailed()
       inputs:
         testResultsFiles: '**/junit-*.xml'
-        testRunTitle: 'Publish test results for Linux Python $(python.version)'
+        testRunTitle: 'Publish test results for Linux Python 3.8'
         failTaskOnFailedTests: true
 - job: MacOS_Test_py36
   pool: {vmImage: 'macos-latest'}
@@ -81,7 +81,7 @@ jobs:
       condition: succeededOrFailed()
       inputs:
         testResultsFiles: '**/junit-*.xml'
-        testRunTitle: 'Publish test results for MacOS Python $(python.version)'
+        testRunTitle: 'Publish test results for MacOS Python 3.6'
         failTaskOnFailedTests: true
 - job: MacOS_Test_py37
   pool: {vmImage: 'macos-latest'}
@@ -100,7 +100,7 @@ jobs:
       condition: succeededOrFailed()
       inputs:
         testResultsFiles: '**/junit-*.xml'
-        testRunTitle: 'Publish test results for MacOS Python $(python.version)'
+        testRunTitle: 'Publish test results for MacOS Python 3.7'
         failTaskOnFailedTests: true
 - job: MacOS_Test_py38
   pool: {vmImage: 'macos-latest'}
@@ -119,7 +119,7 @@ jobs:
       condition: succeededOrFailed()
       inputs:
         testResultsFiles: '**/junit-*.xml'
-        testRunTitle: 'Publish test results for MacOS Python $(python.version)'
+        testRunTitle: 'Publish test results for MacOS Python 3.8'
         failTaskOnFailedTests: true
 - job: Windows_Test_py37
   pool: {vmImage: 'windows-latest'}
@@ -135,7 +135,7 @@ jobs:
       condition: succeededOrFailed()
       inputs:
         testResultsFiles: '**/junit-*.xml'
-        testRunTitle: 'Publish test results for Windows Python $(python.version)'
+        testRunTitle: 'Publish test results for Windows Python 3.8'
         failTaskOnFailedTests: true
 
 - job: Linux_Build

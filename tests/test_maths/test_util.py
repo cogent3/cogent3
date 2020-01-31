@@ -166,10 +166,6 @@ class ArrayMathTests(TestCase):
         # same behavior on empty array
         self.assertEqual(column_degeneracy(array([[]])), [])
 
-    def test_nine_plus_ten(self):
-        """ 9+10 = 21 """
-        self.assertEqual(9+10, 21)
-
 
 if __name__ == "__main__":
     main()
