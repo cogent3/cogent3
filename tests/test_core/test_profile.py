@@ -275,6 +275,12 @@ class MotifFreqsArrayTests(TestCase):
         expected = [[0.5, 0, -0.125, -0.125], [0, -0.25, -0.375, -0.375]]
         assert_allclose(rel_entropy, expected)
 
+        with self.assertRaises(ValueError):
+            got.relative_entropy_terms(background=dict(A=-0.5, B=1.5))
+
+        with self.assertRaises(ValueError):
+            got.relative_entropy_terms(background={"A": 0.5, "B": 0.25, "C": 0.125})
+
     def test_relative_entropy(self):
         """calculates relative entropy correctly"""
         data = [[0.25, 0.25, 0.25, 0.25], [0.5, 0.5, 0, 0]]
@@ -283,8 +289,8 @@ class MotifFreqsArrayTests(TestCase):
         assert_allclose(rel_entropy, [0, -1.5])
 
         background = {"A": 0.5, "B": 0.25, "C": 0.125, "D": 0.125}
-        rel_entropy = got.relative_entropy_terms(background=background)
-        expected = [[0.5, 0, -0.125, -0.125], [0, -0.25, -0.375, -0.375]]
+        rel_entropy = got.relative_entropy(background=background)
+        expected = [0.25, -1]
         assert_allclose(rel_entropy, expected)
 
     def test_information(self):
