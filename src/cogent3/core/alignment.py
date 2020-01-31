@@ -3039,7 +3039,9 @@ class AlignmentI(object):
         motifs = set()
         for name in self.names:
             if is_array:
-                seq = self.named_seqs[name]
+                seq = self.moltype.make_array_seq(
+                    self.array_seqs[self.names.index(name)]
+                )
             else:
                 seq = self.get_gapped_seq(name)
             c = seq.counts(
