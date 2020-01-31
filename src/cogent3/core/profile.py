@@ -295,6 +295,8 @@ class MotifFreqsArray(_MotifNumberArray):
 
     def relative_entropy_terms(self, background=None):
         """
+        Computes a row-wise relative entropy terms per motif and stores them in a DictArray.
+
         Parameters
         ----------
         background : dict
@@ -302,8 +304,8 @@ class MotifFreqsArray(_MotifNumberArray):
 
         Returns
         -------
-        self.template.wrap(ret) : DictArray
-            returns a DictArray of position-wise relative entropy terms per motif
+        DictArray
+
 
         Notes
         -----
@@ -321,6 +323,8 @@ class MotifFreqsArray(_MotifNumberArray):
 
     def relative_entropy(self, background=None):
         """
+        Computes relative entropy for each row.
+
         Parameters
         ----------
         background : dict
@@ -328,8 +332,7 @@ class MotifFreqsArray(_MotifNumberArray):
 
         Returns
         -------
-        result.array : array
-            Relative entropy.
+        array
 
         Notes
         -----
