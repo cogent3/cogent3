@@ -10,10 +10,10 @@ from tempfile import mktemp
 
 import numpy
 
-from numpy import arange, array, nan, transpose
+from numpy import arange, array, nan, transpose, log2
 from numpy.testing import assert_allclose
 
-from cogent3 import load_aligned_seqs, load_unaligned_seqs, make_seq
+from cogent3 import load_aligned_seqs, load_unaligned_seqs, make_seq, make_aligned_seqs
 from cogent3.core.alignment import (
     Aligned,
     Alignment,
@@ -1530,6 +1530,27 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
     as a constructor.
     """
 
+    def test_alignment_quality(self):
+        """Tests that the alignment_quality generates the right alignment quality
+        value based on the Hertz-Stormo metric."""
+        aln = make_aligned_seqs(["AATTGA",
+                                 "AGGTCC",
+                                 "AGGATG",
+                                 "AGGCGT"], moltype="dna")
+        got = aln.alignment_quality(equifreq_mprobs=True)
+        expect = log2(4) + (3 / 2) * log2(3) + (1 / 2) * log2(2) + (1 / 2) * log2(2)
+        assert_allclose(got, expect)
+
+        aln = make_aligned_seqs(["AAAC",
+                                 "ACGC",
+                                 "AGCC",
+                                 "A-TC"], moltype="dna")
+        got = aln.alignment_quality(equifreq_mprobs=False)
+        expect = 2 * log2(1 / 0.4) + log2(1 / (4 * 0.4)) + (1 / 2) * log2(1 / (8 / 15)) + (
+                1 / 4) * log2(1 / (4 / 15))
+        assert_allclose(got, expect)
+
+
     def make_and_filter(self, raw, expected, motif_length, drop_remainder):
         # a simple filter func
         aln = self.Class(raw, info={"key": "value"})
@@ -2453,6 +2474,8 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
     Class = ArrayAlignment
+
+
 
     def test_slice_align(self):
         """slicing alignment should work correctly"""
