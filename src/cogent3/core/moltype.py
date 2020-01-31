@@ -714,7 +714,7 @@ class MolType(object):
             self.array_type = None
 
         # set modeling sequence
-        self.make_array_seq = array_seq_constructor
+        self._make_array_seq = array_seq_constructor
 
         self._colors = colors or defaultdict(_DefaultValue("black"))
 
@@ -761,6 +761,29 @@ class MolType(object):
     def make_seq(self, seq, name=None, **kwargs):
         """Returns sequence of correct type."""
         return self._make_seq(seq, name, **kwargs)
+
+    def make_array_seq(self, seq, name=None, **kwargs):
+        """
+        creates an array sequence
+
+        Parameters
+        ----------
+        seq
+            characters or array
+        name : str
+        kwargs
+            keyword arguments for the ArraySequence constructor.
+
+        Returns
+        -------
+        ArraySequence
+        """
+        alphabet = kwargs.pop("alphabet", None)
+        if alphabet is None and hasattr(self, "alphabets"):
+            alphabet = self.alphabets.degen_gapped
+        elif alphabet is None:
+            alphabet = self.alphabet
+        return self._make_array_seq(seq, alphabet=alphabet, name=name, **kwargs)
 
     def verify_sequence(self, seq, gaps_allowed=True, wildcards_allowed=True):
         """Checks whether sequence is valid on the default alphabet.
