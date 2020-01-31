@@ -2238,7 +2238,7 @@ class AlignmentI(object):
 
     def alignment_quality(self, equifreq_mprobs=True):
         """
-        Computes the alignment quality for an alignment based on eq. (2) in [1].
+        Computes the alignment quality for an alignment based on eq. (2) in noted reference.
 
         Parameters
         ----------
@@ -2247,7 +2247,7 @@ class AlignmentI(object):
 
         Notes
         -----
-        [1]. G. Z. Hertz, G. D. Stormo - Published 1999, Bioinformatics, vol. 15 pg. 563-577.
+        G. Z. Hertz, G. D. Stormo - Published 1999, Bioinformatics, vol. 15 pg. 563-577.
         """
         counts = self.counts_per_pos()
         if equifreq_mprobs:
