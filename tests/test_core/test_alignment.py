@@ -10,10 +10,10 @@ from tempfile import mktemp
 
 import numpy
 
-from numpy import arange, array, nan, transpose
+from numpy import arange, array, nan, transpose, log2
 from numpy.testing import assert_allclose
 
-from cogent3 import load_aligned_seqs, load_unaligned_seqs, make_seq
+from cogent3 import load_aligned_seqs, load_unaligned_seqs, make_seq, make_aligned_seqs
 from cogent3.core.alignment import (
     Aligned,
     Alignment,
@@ -1529,6 +1529,51 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
     type of Alignment. Override self.Constructor with your alignment class
     as a constructor.
     """
+
+    def test_alignment_quality(self):
+        """Tests that the alignment_quality generates the right alignment quality
+        value based on the Hertz-Stormo metric. expected values are hand calculated
+        using the formula in the paper."""
+        aln = make_aligned_seqs(["AATTGA",
+                                 "AGGTCC",
+                                 "AGGATG",
+                                 "AGGCGT"], moltype="dna")
+        got = aln.alignment_quality(equifreq_mprobs=True)
+        expect = log2(4) + (3 / 2) * log2(3) + (1 / 2) * log2(2) + (1 / 2) * log2(2)
+        assert_allclose(got, expect)
+
+        aln = make_aligned_seqs(["AAAC",
+                                 "ACGC",
+                                 "AGCC",
+                                 "A-TC"], moltype="dna")
+        got = aln.alignment_quality(equifreq_mprobs=False)
+        expect = 2 * log2(1 / 0.4) + log2(1 / (4 * 0.4)) + (1 / 2) * log2(1 / (8 / 15)) + (
+                1 / 4) * log2(1 / (4 / 15))
+        assert_allclose(got, expect)
+
+        #1. Alignment just gaps (Gap chars need to be fixed for unspecified moltype, before uncommenting).
+        # aln = make_aligned_seqs(["----"])
+        # got = aln.alignment_quality(equifreq_mprobs=True)
+        # assert_allclose(got, 0)
+
+        #2 Just one sequence (I've made an assumption that if there is one sequence,
+        # the alignment quality should also return None, correct me if I'm wrong).
+        aln = make_aligned_seqs(["AAAC"])
+        got = aln.alignment_quality(equifreq_mprobs=True)
+        assert got is None
+
+        #3.1 Two seqs, one all gaps. (equifreq_mprobs=True)
+        aln = make_aligned_seqs(["----",
+                                "ACAT"])
+        got = aln.alignment_quality(equifreq_mprobs=True)
+        assert_allclose(got, 28)
+
+
+        #3.2 Two seqs, one all gaps. (equifreq_mprobs=False)
+        aln = make_aligned_seqs(["----",
+                                "AAAA"])
+        got = aln.alignment_quality(equifreq_mprobs=False)
+        assert_allclose(got, -2)
 
     def make_and_filter(self, raw, expected, motif_length, drop_remainder):
         # a simple filter func
