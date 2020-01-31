@@ -25,6 +25,8 @@ jobs:
       inputs:
         testResultsFiles: '**/junit-*.xml'
         testRunTitle: 'Publish test results for Linux Python $(python.version)'
+        failTaskOnFailedTests: true
+        failOnStandardError: true
 - job: Linux_Test_py37
   pool: {vmImage: 'ubuntu-latest'}
   steps:
@@ -43,6 +45,8 @@ jobs:
       inputs:
         testResultsFiles: '**/junit-*.xml'
         testRunTitle: 'Publish test results for Linux Python $(python.version)'
+        failTaskOnFailedTests: true
+        failOnStandardError: true
 - job: Linux_Test_py38
   pool: {vmImage: 'ubuntu-latest'}
   steps:
@@ -61,6 +65,8 @@ jobs:
       inputs:
         testResultsFiles: '**/junit-*.xml'
         testRunTitle: 'Publish test results for Linux Python $(python.version)'
+        failTaskOnFailedTests: true
+        failOnStandardError: true
 - job: MacOS_Test_py36
   pool: {vmImage: 'macos-latest'}
   steps:
@@ -79,6 +85,8 @@ jobs:
       inputs:
         testResultsFiles: '**/junit-*.xml'
         testRunTitle: 'Publish test results for MacOS Python $(python.version)'
+        failTaskOnFailedTests: true
+        failOnStandardError: true
 - job: MacOS_Test_py37
   pool: {vmImage: 'macos-latest'}
   steps:
@@ -97,6 +105,8 @@ jobs:
       inputs:
         testResultsFiles: '**/junit-*.xml'
         testRunTitle: 'Publish test results for MacOS Python $(python.version)'
+        failTaskOnFailedTests: true
+        failOnStandardError: true
 - job: MacOS_Test_py38
   pool: {vmImage: 'macos-latest'}
   steps:
@@ -115,6 +125,8 @@ jobs:
       inputs:
         testResultsFiles: '**/junit-*.xml'
         testRunTitle: 'Publish test results for MacOS Python $(python.version)'
+        failTaskOnFailedTests: true
+        failOnStandardError: true
 - job: Windows_Test_py37
   pool: {vmImage: 'windows-latest'}
   steps:
@@ -130,6 +142,8 @@ jobs:
       inputs:
         testResultsFiles: '**/junit-*.xml'
         testRunTitle: 'Publish test results for Windows Python $(python.version)'
+        failTaskOnFailedTests: true
+        failOnStandardError: true
 
 - job: Linux_Build
   pool: {vmImage: 'ubuntu-latest'}
