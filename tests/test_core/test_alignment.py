@@ -2512,6 +2512,29 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         got = aln._repr_html_()
         self.assertTrue(got.find(row_a) > got.find(row_b))
 
+    def test_seqlogo(self):
+        """exercise producing a seq logo"""
+        data = {
+            "seq1": "CAGGTCGACCTCGGC---------CACGAC",
+            "seq2": "CAGATCGACCTCGGC---------CACGAC",
+            "seq3": "CAGATCGACCTCGGT---------CACGAT",
+            "seq4": "CAGATCGACCTCGGCGAACACGGCCATGAT",
+            "seq5": "CCGATCGACATGGGC---------CACGAT",
+            "seq6": "GCC---------------------------",
+        }
+        # with a defined moltype
+        aln = self.Class(data, moltype=DNA)
+        logo = aln.seqlogo()
+        # using wrap argument
+        logo = aln.seqlogo(wrap=20)
+        # should work for protein too
+        aa = aln.get_translation()
+        logo = aa.seqlogo()
+
+        # without a defined moltype
+        aln = self.Class(data)
+        logo = aln.seqlogo()
+
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
     Class = ArrayAlignment

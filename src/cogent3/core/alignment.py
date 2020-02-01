@@ -3459,6 +3459,36 @@ class AlignmentI(object):
 
         return result
 
+    def seqlogo(self, width=700, height=100, wrap=None, vspace=0.005, colours=None):
+        """returns Drawable sequence logo using mutual information
+
+        Parameters
+        ----------
+        width, height : float
+            plot dimensions in pixels
+        wrap : int
+            number of alignment columns per row
+        vspace : float
+            vertical separation between rows, as a proportion of total plot
+        colours : dict
+            mapping of characters to colours. If note provided, defaults to
+            custom for everything ecept protein, which uses protein moltype
+            colours.
+
+        Notes
+        -----
+        Computes MI based on log2 and includes the gap state, so the maximum
+        possible value is -log2(1/num_states)
+        """
+        assert 0 <= vspace <= 1, "vertical space must be in range 0, 1"
+        freqs = self.counts_per_pos(allow_gap=True).to_freq_array()
+        if colours is None and "protein" in self.moltype.label:
+            colours = self.moltype._colors
+
+        return freqs.logo(
+            width=width, height=height, wrap=wrap, vspace=vspace, colours=colours
+        )
+
 
 def _one_length(seqs):
     """raises ValueError if seqs not all same length"""

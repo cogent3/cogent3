@@ -1,6 +1,6 @@
 import numpy
 
-from numpy import digitize, array
+from numpy import array, digitize
 from numpy.random import random
 from numpy.testing import assert_allclose
 
@@ -370,6 +370,79 @@ class MotifFreqsArray(_MotifNumberArray):
             row_indices=self.template.names[0],
             background=background,
         )
+
+    def logo(
+        self, height=400, width=800, wrap=None, ylim=None, vspace=0.05, colours=None
+    ):
+        """returns a sequence logo Drawable"""
+        from cogent3.draw.logo import get_mi_char_heights, get_logo
+        from cogent3.draw.drawable import get_domain
+
+        assert 0 <= vspace <= 1, f"{vspace} not in range 0-1"
+        if ylim is None:
+            ylim = -numpy.log2(1 / self.shape[1]) * 1.1
+
+        if wrap is None:
+            mit = get_mi_char_heights(self)
+            logo = get_logo(mit, height=height, width=width, ylim=ylim, colours=colours)
+            return logo
+
+        wrap = min(wrap, self.shape[0])
+        rows, remainder = divmod(self.shape[0], wrap)
+        num_rows = rows + 1 if remainder else rows
+
+        axnum = 1
+        logo = None
+        xlim_text = {
+            "showarrow": False,
+            "text": "Position",
+            "x": None,
+            "xanchor": "center",
+            "xref": None,
+            "y": 0,
+            "yshift": 2,
+            "yanchor": "bottom",
+            "yref": None,
+        }
+        for i in range(0, self.shape[0], wrap):
+            axis = "axis" if axnum == 1 else f"axis{axnum}"
+            ydomain = get_domain(num_rows, axnum - 1, is_y=True, space=vspace)
+            segment = self[i : i + wrap, :]
+            mit = get_mi_char_heights(segment)
+            sublogo = get_logo(
+                mit,
+                height=height,
+                width=width,
+                axnum=axnum,
+                ydomain=ydomain,
+                ylim=ylim,
+                colours=colours,
+            )
+            xtick_vals = [j for j in range(0, segment.shape[0], 20)]
+            xtick_text = [f"{i + j}" for j in range(0, segment.shape[0], 20)]
+            sublogo.layout[f"x{axis}"].showticklabels = False
+            sublogo.layout[f"x{axis}"].domain = [0, segment.shape[0] / wrap]
+
+            # place the row limit x-coord
+            xtext = xlim_text.copy()
+            xtext["text"] = f"{i + segment.shape[0]}"
+            xtext["x"] = segment.shape[0] + 1
+            xtext["xref"] = f"x{'' if axnum == 1 else axnum}"
+            xtext["yref"] = f"y{'' if axnum == 1 else axnum}"
+            sublogo.layout.annotations = [xtext]
+
+            if logo is None:
+                logo = sublogo
+            else:
+                logo.layout.shapes.extend(sublogo.layout.shapes)
+                logo.layout.annotations.extend(sublogo.layout.annotations)
+
+                logo.layout[f"x{axis}"] = sublogo.layout[f"x{axis}"]
+                logo.layout[f"y{axis}"] = sublogo.layout[f"y{axis}"]
+
+            axnum += 1
+
+        return logo
 
 
 class PSSM(_MotifNumberArray):

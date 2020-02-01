@@ -19,6 +19,39 @@ __status__ = "Alpha"
 PLOTLY_RENDERER = os.environ.get("PLOTLY_RENDERER", None)
 
 
+def get_domain(total, element, is_y, space=0.01):
+    """returns evenly spaced domain for an element in a grid plot
+
+    Parameters
+    ----------
+    total : int
+        the total number of elements on the axis
+    element : int
+        the element number to compute the domain for
+    is_y : bool
+        if True, this is for a y-coordinate domain. This is reversed
+        so the result is in cartesian, not array, coordinates
+    space : float
+        the separation between elements
+    """
+    if total == 1:
+        return [0, 1]
+
+    if element > total - 1:
+        raise ValueError(f"{element} index too big for {total}")
+
+    per_element = 1 / total
+    space = min(space / 2, per_element / 10)
+    bounds = [per_element * i for i in range(total + 1)]
+    domains = [
+        (bounds[k] + space, bounds[k + 1] - space) for k in range(len(bounds) - 1)
+    ]
+    if is_y:
+        element = total - element - 1
+
+    return domains[element]
+
+
 def _show_(cls, renderer=None, **kwargs):
     """display figure
 

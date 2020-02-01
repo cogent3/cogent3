@@ -49,3 +49,5 @@ All data files referred to in the documentation can be download by clicking on t
 
 :download:`BRCA1-demo.fasta <data/BRCA1-demo.fasta>`
 
+:download:`tbp.jaspar <data/tbp.jaspar>`
+
