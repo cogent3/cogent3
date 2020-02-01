@@ -459,7 +459,7 @@ class CircularTreeGeometry(TreeGeometryBase):
 
         c = np.cos(textangle * (np.pi / 180))
         s = np.sin(textangle * (np.pi / 180))
-        m = np.matrix([[c, s], [-s, c]])
+        m = np.array([[c, s], [-s, c]])
         d = np.dot(m, [xshift, yshift])
 
         new_xshift = float(d.T[0])
