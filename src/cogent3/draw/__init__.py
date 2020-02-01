@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-__all__ = ["dendrogram", "dotplot", "drawable"]
+__all__ = ["dendrogram", "dotplot", "drawable", "letter", "logo"]
 
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __contributors__ = [
@@ -11,6 +11,7 @@ __contributors__ = [
     "Matthew Wakefield",
     "Stephanie Wilson",
     "Rahul Ghangas",
+    "Sheng Han Moses Koh",
 ]
 __license__ = "BSD-3"
 __version__ = "2019.12.6a"

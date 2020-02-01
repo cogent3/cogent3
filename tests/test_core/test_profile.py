@@ -351,6 +351,37 @@ class MotifFreqsArrayTests(TestCase):
         )
         assert_allclose(pssm.array, expect, atol=1e-3)
 
+    def test_logo(self):
+        """produces a Drawable with correct layout elements"""
+        data = [
+            [0.1, 0.3, 0.5, 0.1],
+            [0.25, 0.25, 0.25, 0.25],
+            [0.05, 0.8, 0.05, 0.1],
+            [0.7, 0.1, 0.1, 0.1],
+            [0.6, 0.15, 0.05, 0.2],
+        ]
+        farr = MotifFreqsArray(data, "ACTG")
+        # with defaults, has a single x/y axes and number of shapes
+        logo = farr.logo(ylim=0.5)
+        fig = logo.figure
+        self.assertEqual(fig.data, [{}])
+        self.assertTrue(len(fig.layout.xaxis) > 10)
+        self.assertTrue(len(fig.layout.yaxis) > 10)
+        self.assertEqual(fig.layout.yaxis.range, [0, 0.5])
+        # since the second row are equi-frequent, their information is 0 so
+        # we substract 4 shapes from that column
+        self.assertEqual(len(fig.layout.shapes), farr.shape[0] * farr.shape[1] - 4)
+        # wrapping across multiple rows should produce multiple axes
+        logo = farr.logo(ylim=0.5, wrap=3)
+        fig = logo.figure
+        for axis in ("axis", "axis2"):
+            self.assertIn(f"x{axis}", fig.layout)
+            self.assertIn(f"y{axis}", fig.layout)
+
+        # fails if vspace not in range 0-1
+        with self.assertRaises(AssertionError):
+            farr.logo(vspace=20)
+
 
 class PSSMTests(TestCase):
     def test_construct_succeeds(self):

@@ -1,4 +1,10 @@
-__all__ = ["test_dotplot", "test_dendrogram", "test_draw_integration", "test_shapes"]
+__all__ = [
+    "test_dotplot",
+    "test_dendrogram",
+    "test_draw_integration",
+    "test_logo",
+    "test_shapes",
+]
 
 __author__ = "Gavin Huttley and Rahul Ghangas"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
