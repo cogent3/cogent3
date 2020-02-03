@@ -77,7 +77,14 @@ _dna_colours = dict(A="green", T="red", C="blue", G="orange")
 
 
 def get_logo(
-    char_heights, axnum=1, height=400, width=800, ylim=None, ydomain=None, colours=None
+    char_heights,
+    axnum=1,
+    height=400,
+    width=800,
+    ylim=None,
+    ydomain=None,
+    colours=None,
+    layout=None,
 ):
     """
     Parameters
@@ -96,6 +103,8 @@ def get_logo(
     colours : dict
         dict mapping characters to colours. Defaults to custom 'dna' colours
         typically used for DNA
+    layout : UnionDict
+        Customised base layout
 
     Returns
     -------
