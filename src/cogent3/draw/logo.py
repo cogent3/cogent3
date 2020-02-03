@@ -1,5 +1,6 @@
 from cogent3.draw.drawable import Drawable
 from cogent3.draw.letter import letter_stack
+from cogent3.util.dict_array import DictArray
 from cogent3.util.union_dict import UnionDict
 
 
@@ -28,7 +29,7 @@ def get_mi_char_heights(fa):
     return fa.template.wrap(mit.T)
 
 
-def _get_base_logo_layout(axnum, xtick_fontsize, ytick_fontsize):
+def get_base_logo_layout(axnum, xtick_fontsize, ytick_fontsize):
     """creates default plotly layout for drawing a sequence logo
     Parameters
     ----------
@@ -101,7 +102,9 @@ def get_logo(
     Drawable
     """
     colours = colours or _dna_colours
-    layout = _get_base_logo_layout(axnum, 12, 12)
+    if layout is None:
+        layout = get_base_logo_layout(axnum, 12, 12)
+
     stack_data = []
     est_ylim = 0
     for i, d in enumerate(char_heights):
