@@ -73,6 +73,26 @@ def get_base_logo_layout(axnum, xtick_fontsize, ytick_fontsize):
     return layout
 
 
+def _char_hts_as_lists(data):
+    """returns a [[(base, height), ..], ..]"""
+    # data is assumed row-oriented
+    result = []
+    for d in data:
+        try:
+            d = d.to_dict()
+        except AttributeError:
+            # assume it's just a dict
+            pass
+
+        if d:
+            d = list(d.items())
+        else:
+            d = None
+        result.append(d)
+
+    return result
+
+
 _dna_colours = dict(A="green", T="red", C="blue", G="orange")
 
 
@@ -90,8 +110,8 @@ def get_logo(
     Parameters
     ----------
     char_heights
-        a DictArray or series of dicts with [{letter1: value, letter2: value}, ...]
-        If values are < 0, the letter is inverted. Empty elements are ignored.
+        a seris of [[(base, value), ..], ..] or series of dicts with [{letter1: value, letter2: value}, ...]
+        Dicts are coerced to list of lists. If values are < 0, the letter is inverted. Empty elements are ignored.
     axnum : int
         plotly axis number
     height, width: int
@@ -110,28 +130,30 @@ def get_logo(
     -------
     Drawable
     """
+    if isinstance(char_heights, DictArray) or isinstance(char_heights[0], dict):
+        char_heights = _char_hts_as_lists(char_heights)
+
     colours = colours or _dna_colours
     if layout is None:
         layout = get_base_logo_layout(axnum, 12, 12)
 
     stack_data = []
     est_ylim = 0
-    for i, d in enumerate(char_heights):
-        try:
-            d = d.to_dict()
-        except AttributeError:
-            # assume it's just a dict
-            pass
-
+    for d in char_heights:
         if not d:
+            stack_data.append(None)
             continue
 
+        d = sorted(d, key=lambda x: x[1])
+
         if ylim is None:
-            est_ylim = max(est_ylim, max(d.values()))
-        stack_data.append([(k, d[k]) for k in sorted(d, key=d.get) if d[k] != 0])
+            est_ylim = max(est_ylim, max([e[-1] for e in d]))
+        stack_data.append(d)
 
     stacks = []
     for index, stack in enumerate(stack_data):
+        if stack is None:
+            continue
         middle, stack_shapes = letter_stack(stack, index - 0.5, 1, colours, axnum)
         stacks += stack_shapes
 

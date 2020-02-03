@@ -1,7 +1,7 @@
 from unittest import TestCase, main
 
 from cogent3.draw.letter import get_character
-from cogent3.draw.logo import get_logo
+from cogent3.draw.logo import _char_hts_as_lists, get_logo
 from cogent3.util.dict_array import DictArrayTemplate
 
 
@@ -74,6 +74,25 @@ class LogoTests(TestCase):
         # invert changes the degree attr
         l.rotate(180)
         self.assertEqual(l.degrees, 180)
+
+    def test_input_conversion(self):
+        """correctly convert a series of dicts or a DictArray to lists"""
+        data = [dict(A=0.1, C=0.2), dict(A=0.1, C=0.2)]
+        base = [("A", 0.1), ("C", 0.2)]
+        expect = [base, base]
+        got = _char_hts_as_lists(data)
+        self.assertEqual(got, expect)
+        #
+        data = [dict(A=0.1, C=0.2), {}]
+        base = [("A", 0.1), ("C", 0.2)]
+        expect = [base, None]
+        got = _char_hts_as_lists(data)
+        self.assertEqual(got, expect)
+        data = [dict(A=0.1, C=0.2), None]
+        base = [("A", 0.1), ("C", 0.2)]
+        expect = [base, None]
+        got = _char_hts_as_lists(data)
+        self.assertEqual(got, expect)
 
 
 if __name__ == "__main__":
