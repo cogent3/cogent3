@@ -20,6 +20,13 @@ from cogent3.util.warning import deprecated, discontinued
 from .indel_positions import leaf2pog
 
 
+def _as_combined_arrays(preds):
+    pog1, pog2 = preds
+    j_sources, j_sources_offsets = pog2.as_combined_array()
+    i_sources, i_sources_offsets = pog1.as_combined_array()
+    return i_sources, i_sources_offsets, j_sources, j_sources_offsets
+
+
 def _importedPyrexAligningModule(name):
     try:
         return importVersionedModule(
@@ -31,23 +38,19 @@ def _importedPyrexAligningModule(name):
 
 try:
     from . import (
-        _pairwise_pogs as pyrex_align_module,
-        _pairwise_seqs as pyrex_seq_align_module,
+        pairwise_pogs_numba as align_module,
+        pairwise_seqs_numba as seq_align_module,
     )
 except ImportError:
-    pyrex_align_module = pyrex_seq_align_module = None
+    align_module = seq_align_module = None
 
-# pyrex_align_module = _importedPyrexAligningModule('_pairwise_pogs')
-# pyrex_seq_align_module = _importedPyrexAligningModule('_pairwise_seqs')
+# align_module = _importedPyrexAligningModule('_pairwise_pogs')
+# seq_align_module = _importedPyrexAligningModule('_pairwise_seqs')
 
 # Deal with minor API change between _pairwise_*.pyx versions 3.1 and 3.2
 # rather than forcing everyone to recompile immediately.
 # After 1.6 release this can be replaced by (3, 2) requirement above.
-versions = [
-    m.version_info
-    for m in [pyrex_seq_align_module, pyrex_align_module]
-    if m is not None
-]
+versions = [m.version_info for m in [seq_align_module, align_module] if m is not None]
 if len(versions) == 0 or min(versions) >= (3, 2):
     TRACK_INT_TYPE = numpy.uint8
 elif max(versions) < (3, 2):
@@ -247,10 +250,10 @@ class Pair(object):
         else:
             some_pogs = False
 
-        if some_pogs and pyrex_align_module is not None:
-            aligner = pyrex_align_module.calc_rows
-        elif (not some_pogs) and pyrex_seq_align_module is not None:
-            aligner = pyrex_seq_align_module.calc_rows
+        if some_pogs and align_module is not None:
+            aligner = align_module.calc_rows
+        elif (not some_pogs) and seq_align_module is not None:
+            aligner = seq_align_module.calc_rows
         else:
             aligner = py_calc_rows
 
@@ -382,6 +385,13 @@ class Pair(object):
         (match_scores, (xscores, yscores)) = scores
         track_enc = track_encoding and track_encoding.positions
         # print T
+
+        (
+            i_sources,
+            i_sources_offsets,
+            j_sources,
+            j_sources_offsets,
+        ) = _as_combined_arrays(self.children)
         return self.aligner(
             self.plan,
             self.x_index,
@@ -390,7 +400,10 @@ class Pair(object):
             i_high,
             j_low,
             j_high,
-            self.children,
+            i_sources,
+            i_sources_offsets,
+            j_sources,
+            j_sources_offsets,
             state_directions,
             T,
             xscores,

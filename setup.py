@@ -198,9 +198,7 @@ setup(
     },
     ext_modules=cythonize(
         [
-            CythonExtension("cogent3.align._compare"),
-            CythonExtension("cogent3.align._pairwise_seqs"),
-            CythonExtension("cogent3.align._pairwise_pogs"),
+            CythonExtension("cogent3.align._compare")
         ]
     ),
     include_dirs=[numpy_include_dir],
