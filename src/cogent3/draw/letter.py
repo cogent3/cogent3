@@ -1576,7 +1576,7 @@ def letter_stack(data, x, width, colours, axnum):
     yref = f"y{axnum}"
     for letter, value in data:
         if value == 0:
-            break
+            continue
 
         character = get_character(
             letter=letter,
