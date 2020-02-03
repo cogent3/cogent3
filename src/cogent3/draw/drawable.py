@@ -127,22 +127,32 @@ class Drawable:
         self._traces = traces or []
         title = title if title is None else dict(text=title)
         self._default_layout = UnionDict(
-            title=title,
             font=dict(family="Balto", size=14),
-            width=width,
-            height=height,
             autosize=False,
-            showlegend=showlegend,
-            xaxis=dict(visible=visible_axes),
-            yaxis=dict(visible=visible_axes),
             hovermode="closest",
             template=None,
             plot_bgcolor=None,
             margin=dict(l=50, r=50, t=50, b=50, pad=4),
+            xaxis=dict(visible=visible_axes),
+            yaxis=dict(visible=visible_axes),
+            title=title,
+            width=width,
+            height=height,
+            showlegend=showlegend,
         )
         layout = layout or {}
         self.layout = UnionDict(self._default_layout)
         self.layout |= layout
+        # constructor layout value over-rides
+        overrides = UnionDict(
+            title=title,
+            width=width,
+            height=height,
+            showlegend=showlegend,
+            xaxis=dict(visible=visible_axes),
+            yaxis=dict(visible=visible_axes),
+        )
+        self.layout |= overrides
         self.xtitle = xtitle
         self.ytitle = ytitle
         self.title = title
