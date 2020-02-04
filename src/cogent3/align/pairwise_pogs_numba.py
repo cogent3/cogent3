@@ -99,9 +99,6 @@ def calc_rows(
 
     assert j_low >= 0 and j_high > j_low and j_high <= row_length
 
-    # j_sources = preds.j_sources
-    # j_sources_offsets = preds.j_sources_offsets
-
     j_link_count = 0
     j_link_count = j_sources.shape[0]
     row_length1 = row_length + 1
