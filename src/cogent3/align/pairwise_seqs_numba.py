@@ -70,13 +70,11 @@ def calc_rows(
     SCALE_STEP = 2.0 ** 50
     MIN_FLOAT_VALUE = 1.0 / SCALE_STEP
 
-    N = T.shape[0]
+    N = max(T.shape[0], T.shape[1])
     row_count = plan.shape[0]
 
-    dest_states = state_directions.shape[0]
-    d4 = state_directions.shape[1]
-
-    assert d4 == 4
+    dest_states = max(0, state_directions.shape[0])
+    d4 = max(4, state_directions.shape[1])
 
     row_count = x_index.shape[0]
     row_length = y_index.shape[0]
@@ -90,10 +88,10 @@ def calc_rows(
     bin_count = max(ygap_scores.shape[0], bin_count)
     max_y = max(ygap_scores.shape[1], max_y)
 
-    for i in range(0, row_count):
+    for i in range(row_count):
         assert 0 <= x_index[i] <= max_x
 
-    for j in range(0, row_length):
+    for j in range(row_length):
         assert 0 <= y_index[j] <= max_y
 
     assert j_low >= 0 and j_high > j_low and j_high <= row_length
@@ -120,6 +118,7 @@ def calc_rows(
         N = max(track.shape[2], N)
         (tcode_x, tcode_y, tcode_s) = track_enc
     else:
+        track = None
         tcode_x = tcode_y = tcode_s = 0
 
     overall_max_exponent = MIN_SCALE
@@ -132,7 +131,7 @@ def calc_rows(
         current_row_index = plan[i]
         for j in range(j_low, j_high):
 
-            for dest_state in range(0, dest_states):
+            for dest_state in range(dest_states):
                 state = state_directions[dest_state, 0]
                 bin = state_directions[dest_state, 1]
                 dx = state_directions[dest_state, 2]
@@ -155,6 +154,9 @@ def calc_rows(
                 min_prev_state = 1
                 a = dx
                 b = dy
+
+                pointer_a = 0
+                pointer_b = 0
 
                 if (local and dx and dy) or (prev_j == 0 and source_i == 0):
                     partial_sum = max_mantissa = T[0, state]
