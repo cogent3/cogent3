@@ -197,9 +197,7 @@ setup(
         ]
     },
     ext_modules=cythonize(
-        [
-            CythonExtension("cogent3.align._compare")
-        ]
+        []
     ),
     include_dirs=[numpy_include_dir],
     cmdclass=extra_commands,
