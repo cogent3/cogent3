@@ -71,13 +71,11 @@ def calc_rows(
     MIN_FLOAT_VALUE = 1.0 / SCALE_STEP
     source_row_index_cache = np.zeros(256)
 
-    N = T.shape[0]
+    N = max(T.shape[0], T.shape[1])
     row_count = plan.shape[0]
 
-    dest_states = state_directions.shape[0]
-    d4 = state_directions.shape[1]
-
-    assert d4 == 4
+    dest_states = max(0, state_directions.shape[0])
+    d4 = max(4, state_directions.shape[1])
 
     row_count = x_index.shape[0]
     row_length = y_index.shape[0]
@@ -94,17 +92,15 @@ def calc_rows(
     for i in range(row_count):
         assert 0 <= x_index[i] <= max_x
 
-    for j in range(0, row_length):
+    for j in range(row_length):
         assert 0 <= y_index[j] <= max_y
 
     assert j_low >= 0 and j_high > j_low and j_high <= row_length
 
-    j_link_count = 0
     j_link_count = j_sources.shape[0]
     row_length1 = row_length + 1
     row_length1 = max(row_length1, j_sources_offsets.shape[0])
 
-    i_link_count = 0
     i_link_count = i_sources.shape[0]
     row_count1 = row_count + 1
     row_count1 = max(row_count1, i_sources_offsets.shape[0])
@@ -169,7 +165,7 @@ def calc_rows(
             j_sources_start = j_sources_end
             j_sources_end = j_sources_offsets[j + 1]
 
-            for dest_state in range(0, dest_states):
+            for dest_state in range(dest_states):
                 state = state_directions[dest_state, 0]
                 bin = state_directions[dest_state, 1]
                 dx = state_directions[dest_state, 2]
