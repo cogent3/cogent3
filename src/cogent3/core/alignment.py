@@ -1438,7 +1438,7 @@ class _SequenceCollectionBase:
         include_ambiguity
             if True, motifs containing ambiguous characters
             from the seq moltype are included. No expansion of those is attempted.
-        allow_gaps
+        allow_gap
             if True, motifs containing a gap character are included.
 
         Notes
@@ -2255,12 +2255,17 @@ class AlignmentI(object):
         counts = self.counts_per_pos()
         if counts.array.max() == 0 or len(self.seqs) == 1:
             return None
+
+        motif_probs = self.get_motif_probs()
+
         if equifreq_mprobs:
-            num_motifs = len(counts.motifs)
-            p = array([1 / num_motifs] * num_motifs)
-        else:
-            motif_probs = self.get_motif_probs()
-            p = array([motif_probs[b] for b in counts.motifs])
+            # we reduce motif_probs to observed states
+            motif_probs = {m: v for m, v in motif_probs.items() if v > 0}
+            num_motifs = len(motif_probs)
+            motif_probs = {m: 1 / num_motifs for m in motif_probs}
+
+        p = array([motif_probs.get(b, 0.0) for b in counts.motifs])
+
         cols = p != 0
         p = p[cols]
         counts = counts.array[:, cols]
@@ -2988,16 +2993,28 @@ class AlignmentI(object):
 
         data = list(self.to_dict().values())
         alpha = self.moltype.alphabet.get_word_alphabet(motif_length)
-        all_motifs = set() if allow_gap or include_ambiguity else None
+        all_motifs = set()
+        exclude_chars = set()
+        if not allow_gap:
+            exclude_chars.update(self.moltype.gap)
+
+        if not include_ambiguity:
+            ambigs = [c for c, v in self.moltype.ambiguities.items() if len(v) > 1]
+            exclude_chars.update(ambigs)
+
         result = []
         for i in range(0, len(self) - motif_length + 1, motif_length):
             counts = CategoryCounter([s[i : i + motif_length] for s in data])
-            if all_motifs is not None:
-                all_motifs.update(list(counts))
+            all_motifs.update(list(counts))
             result.append(counts)
 
         if all_motifs:
             alpha += tuple(sorted(set(alpha) ^ all_motifs))
+
+        if exclude_chars:
+            # this additional clause is required for the bytes moltype
+            # That moltype includes '-' as a character
+            alpha = [m for m in alpha if not (set(m) & exclude_chars)]
 
         for i, counts in enumerate(result):
             result[i] = counts.tolist(alpha)
