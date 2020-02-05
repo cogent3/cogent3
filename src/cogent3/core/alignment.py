@@ -1438,7 +1438,7 @@ class _SequenceCollectionBase:
         include_ambiguity
             if True, motifs containing ambiguous characters
             from the seq moltype are included. No expansion of those is attempted.
-        allow_gaps
+        allow_gap
             if True, motifs containing a gap character are included.
 
         Notes
