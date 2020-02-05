@@ -53,6 +53,7 @@ from cogent3.core.sequence import (
     Sequence,
     frac_same,
 )
+from cogent3.maths.util import safe_p_log_p
 from cogent3.parse.fasta import MinimalFastaParser
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.unit_test import TestCase, main
@@ -1538,12 +1539,16 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         """Tests that the alignment_quality generates the right alignment quality
         value based on the Hertz-Stormo metric. expected values are hand calculated
         using the formula in the paper."""
-        aln = make_aligned_seqs(["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"], moltype="dna")
+        aln = self.Class(["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"], moltype="dna")
         got = aln.alignment_quality(equifreq_mprobs=True)
         expect = log2(4) + (3 / 2) * log2(3) + (1 / 2) * log2(2) + (1 / 2) * log2(2)
         assert_allclose(got, expect)
+        # should be the same with the default moltype too
+        aln = self.Class(["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"])
+        got = aln.alignment_quality(equifreq_mprobs=True)
+        assert_allclose(got, expect)
 
-        aln = make_aligned_seqs(["AAAC", "ACGC", "AGCC", "A-TC"], moltype="dna")
+        aln = self.Class(["AAAC", "ACGC", "AGCC", "A-TC"], moltype="dna")
         got = aln.alignment_quality(equifreq_mprobs=False)
         expect = (
             2 * log2(1 / 0.4)
@@ -1553,24 +1558,23 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         )
         assert_allclose(got, expect)
 
-        # 1. Alignment just gaps (Gap chars need to be fixed for unspecified moltype, before uncommenting).
-        # aln = make_aligned_seqs(["----"])
-        # got = aln.alignment_quality(equifreq_mprobs=True)
-        # assert_allclose(got, 0)
-
-        # 2 Just one sequence (I've made an assumption that if there is one sequence,
-        # the alignment quality should also return None, correct me if I'm wrong).
-        aln = make_aligned_seqs(["AAAC"])
+        # 1. Alignment just gaps - alignment_quality returns None
+        aln = self.Class(["----", "----"])
         got = aln.alignment_quality(equifreq_mprobs=True)
-        assert got is None
+        self.assertIsNone(got)
+
+        # 2 Just one sequence - alignment_quality returns None
+        aln = self.Class(["AAAC"])
+        got = aln.alignment_quality(equifreq_mprobs=True)
+        self.assertIsNone(got)
 
         # 3.1 Two seqs, one all gaps. (equifreq_mprobs=True)
-        aln = make_aligned_seqs(["----", "ACAT"])
+        aln = self.Class(["----", "ACAT"])
         got = aln.alignment_quality(equifreq_mprobs=True)
-        assert_allclose(got, 28)
+        assert_allclose(got, 1.1699250014423124)
 
         # 3.2 Two seqs, one all gaps. (equifreq_mprobs=False)
-        aln = make_aligned_seqs(["----", "AAAA"])
+        aln = self.Class(["----", "AAAA"])
         got = aln.alignment_quality(equifreq_mprobs=False)
         assert_allclose(got, -2)
 
@@ -3175,13 +3179,41 @@ class ArrayAlignmentSpecificTests(TestCase):
         f = a.entropy_per_pos(allow_gap=True)
         e = array([1.584962500721156, 1.584962500721156, 1.584962500721156, 0])
         self.assertEqual(f, e)
+
         seqs = []
         for s in ["-RAT", "ACCT", "GTGT"]:
             seqs.append(make_seq(s, moltype="dna"))
         a = ArrayAlignment(seqs)
+
+        # "-RAT"
+        # "ACCT"
+        # "GTGT"
+        f = a.entropy_per_pos(allow_gap=False, include_ambiguity=False)
+        e = [
+            2 * safe_p_log_p(array([1 / 2])).sum(),
+            2 * safe_p_log_p(array([1 / 2])).sum(),
+            3 * safe_p_log_p(array([1 / 3])).sum(),
+            0,
+        ]
+        assert_allclose(f, e)
+
         f = a.entropy_per_pos(include_ambiguity=True)
-        e = array([1.584962500721156, 1.584962500721156, 1.584962500721156, 0])
-        self.assertEqual(f, e)
+        e = [
+            2 * safe_p_log_p(array([1 / 2])).sum(),
+            3 * safe_p_log_p(array([1 / 3])).sum(),
+            3 * safe_p_log_p(array([1 / 3])).sum(),
+            0,
+        ]
+        assert_allclose(f, e)
+
+        f = a.entropy_per_pos(allow_gap=True)
+        e = [
+            3 * safe_p_log_p(array([1 / 3])).sum(),
+            2 * safe_p_log_p(array([1 / 2])).sum(),
+            3 * safe_p_log_p(array([1 / 3])).sum(),
+            0,
+        ]
+        assert_allclose(f, e)
 
     def test_coevolution_segments(self):
         """specifying coordinate segments produces matrix with just those"""
