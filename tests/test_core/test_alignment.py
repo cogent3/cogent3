@@ -2336,6 +2336,9 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln = self.Class([s1, s2, s4], moltype=DNA)
         obs = aln.counts_per_pos(allow_gap=True)
         self.assertEqual(obs.array, exp_gap)
+        aln = self.Class(["-RAT", "ACCT", "GTGT"], moltype="dna")
+        c = aln.counts_per_pos(include_ambiguity=False, allow_gap=True)
+        self.assertEqual(set(c.motifs), set("ACGT-"))
 
     def test_counts_per_seq_default_moltype(self):
         """produce correct counts per seq with default moltypes"""
@@ -2348,6 +2351,29 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             pass  # text moltype in Alignment excludes '-'
         got = coll.counts_per_seq(include_ambiguity=True, allow_gap=True)
         self.assertEqual(got.col_sum()["-"], 2)
+
+    def test_counts_per_pos_default_moltype(self):
+        """produce correct counts per pos with default moltypes"""
+        data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
+        coll = self.Class(data=data)
+        got = coll.counts_per_pos()
+        # should not include gap character
+        self.assertNotIn("-", got.motifs)
+        # allowing gaps
+        got = coll.counts_per_pos(allow_gap=True)
+        # should include gap character
+        self.assertEqual(got[5, "-"], 0)
+        self.assertEqual(got[6, "-"], 1)
+
+        # now with motif-length 2
+        got = coll.counts_per_pos(motif_length=2)
+        found_motifs = set()
+        lengths = set()
+        for m in got.motifs:
+            lengths.add(len(m))
+            found_motifs.update(m)
+        self.assertTrue("-" not in found_motifs)
+        self.assertEqual(lengths, {2})
 
     def test_get_seq_entropy(self):
         """ArrayAlignment get_seq_entropy should get entropy of each seq"""

@@ -2988,16 +2988,28 @@ class AlignmentI(object):
 
         data = list(self.to_dict().values())
         alpha = self.moltype.alphabet.get_word_alphabet(motif_length)
-        all_motifs = set() if allow_gap or include_ambiguity else None
+        all_motifs = set()
+        exclude_chars = set()
+        if not allow_gap:
+            exclude_chars.update(self.moltype.gap)
+
+        if not include_ambiguity:
+            ambigs = [c for c, v in self.moltype.ambiguities.items() if len(v) > 1]
+            exclude_chars.update(ambigs)
+
         result = []
         for i in range(0, len(self) - motif_length + 1, motif_length):
             counts = CategoryCounter([s[i : i + motif_length] for s in data])
-            if all_motifs is not None:
-                all_motifs.update(list(counts))
+            all_motifs.update(list(counts))
             result.append(counts)
 
         if all_motifs:
             alpha += tuple(sorted(set(alpha) ^ all_motifs))
+
+        if exclude_chars:
+            # this additional clause is required for the bytes moltype
+            # That moltype includes '-' as a character
+            alpha = [m for m in alpha if not (set(m) & exclude_chars)]
 
         for i, counts in enumerate(result):
             result[i] = counts.tolist(alpha)
