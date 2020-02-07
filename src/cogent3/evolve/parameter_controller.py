@@ -18,7 +18,6 @@ from cogent3.evolve.likelihood_function import LikelihoodFunction as _LF
 from cogent3.maths.stats.information_criteria import aic, bic
 from cogent3.recalculation.scope import _indexed
 from cogent3.util.misc import adjusted_gt_minprob
-from cogent3.util.warning import deprecated, discontinued
 
 
 __author__ = "Peter Maxwell"
