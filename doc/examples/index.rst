@@ -1,12 +1,6 @@
-########################
-Cogent3 Usage Examples
-########################
-
-**************************************
-A Note on the Computable Documentation
-**************************************
-
-The following examples are all available as standalone text files which can be computed using the Python doctest module.
+##############
+Usage Examples
+##############
 
 *****************
 Data manipulation

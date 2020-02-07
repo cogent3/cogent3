@@ -9,7 +9,7 @@ This section is for those users comfortable with Python programming.
 .. toctree::
     :maxdepth: 3
 
-    examples/index
     cookbook/index
+    examples/index
     data_file_links
     api/index
