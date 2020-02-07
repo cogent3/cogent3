@@ -4,8 +4,6 @@ The Library
 
 This section is for those users comfortable with Python programming.
 
-**Contents**
-
 .. toctree::
     :maxdepth: 3
 
