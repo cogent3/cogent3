@@ -20,12 +20,7 @@ from cogent3.maths.measure import (
 from cogent3.recalculation.definition import ParameterController
 from cogent3.util import table
 from cogent3.util.dict_array import DictArrayTemplate
-from cogent3.util.misc import (
-    adjusted_gt_minprob,
-    adjusted_within_bounds,
-    get_object_provenance,
-)
-from cogent3.util.warning import deprecated, discontinued
+from cogent3.util.misc import adjusted_gt_minprob, get_object_provenance
 
 
 __author__ = "Peter Maxwell"

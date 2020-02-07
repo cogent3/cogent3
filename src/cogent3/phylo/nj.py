@@ -283,12 +283,10 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
     return ScoredTreeCollection(result)
 
 
-def nj(dists, no_negatives=True, show_progress=True):
+def nj(dists, show_progress=True):
     """Arguments:
         - dists: dict of (name1, name2): distance
-        - no_negatives: negative branch lengths will be set to 0
     """
-    assert no_negatives, "no_negatives=False is deprecated"
     (result,) = gnj(dists, keep=1, show_progress=show_progress)
     (score, tree) = result
     return tree

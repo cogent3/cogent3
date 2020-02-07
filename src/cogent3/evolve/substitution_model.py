@@ -170,8 +170,9 @@ class _SubstitutionModel(object):
            tuple-alphabet (including codon) motif probs are used.
 
         """
-        self._serialisable = locals()
-        self._serialisable.pop("self")
+        d = locals()
+        exclude = ("self", "__class__")
+        self._serialisable = {k: v for k, v in d.items() if k not in exclude}
         # MISC
         assert len(alphabet) < 65, (
             "Alphabet too big. Try explicitly " "setting alphabet to PROTEIN or DNA"
@@ -469,8 +470,10 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         """
 
         _SubstitutionModel.__init__(self, alphabet, **kw)
-        self._serialisable.update(locals())
-        self._serialisable.pop("self")
+        d = locals()
+        exclude = ("self", "__class__")
+        d = {k: v for k, v in d.items() if k not in exclude}
+        self._serialisable.update(d)
         alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
 
         # BINS
@@ -679,8 +682,10 @@ class Empirical(StationaryQ, _ContinuousSubstitutionModel):
          - rate_matrix: The instantaneous rate matrix
         """
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
-        self._serialisable.update(locals())
-        self._serialisable.pop("self")
+        d = locals()
+        exclude = ("self", "__class__")
+        d = {k: v for k, v in d.items() if k not in exclude}
+        self._serialisable.update(d)
 
         alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
         N = len(alphabet)
@@ -710,8 +715,10 @@ class Parametric(_ContinuousSubstitutionModel):
         self._canned_predicates = None
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
 
-        self._serialisable.update(locals())
-        self._serialisable.pop("self")
+        d = locals()
+        exclude = ("self", "__class__")
+        d = {k: v for k, v in d.items() if k not in exclude}
+        self._serialisable.update(d)
 
         (predicate_masks, predicate_order) = self._adapt_predicates(predicates or [])
 
