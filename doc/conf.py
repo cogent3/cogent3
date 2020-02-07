@@ -1,5 +1,6 @@
 import os
-
+import sys
+sys.path.append("../src")
 
 # Allow autosummary to generate stub files
 autosummary_generate = True
