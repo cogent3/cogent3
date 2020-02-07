@@ -1859,7 +1859,7 @@ static const char __pyx_k_getstate[] = "__getstate__";
 static const char __pyx_k_itemsize[] = "itemsize";
 static const char __pyx_k_pyx_type[] = "__pyx_type";
 static const char __pyx_k_setstate[] = "__setstate__";
-static const char __pyx_k_2020_2_6a[] = "('2020', '2', '6a')";
+static const char __pyx_k_2020_2_7a[] = "('2020', '2', '7a')";
 static const char __pyx_k_TypeError[] = "TypeError";
 static const char __pyx_k_enumerate[] = "enumerate";
 static const char __pyx_k_pyx_state[] = "__pyx_state";
@@ -1915,7 +1915,7 @@ static const char __pyx_k_got_differing_extents_in_dimensi[] = "got differing ex
 static const char __pyx_k_no_default___reduce___due_to_non[] = "no default __reduce__ due to non-trivial __cinit__";
 static const char __pyx_k_src_cogent3_evolve__solved_model[] = "src/cogent3/evolve/_solved_models.pyx";
 static const char __pyx_k_unable_to_allocate_shape_and_str[] = "unable to allocate shape and strides.";
-static PyObject *__pyx_kp_s_2020_2_6a;
+static PyObject *__pyx_kp_s_2020_2_7a;
 static PyObject *__pyx_n_s_ASCII;
 static PyObject *__pyx_kp_s_Buffer_view_does_not_expose_stri;
 static PyObject *__pyx_kp_s_Can_only_create_a_buffer_that_is;
@@ -16712,7 +16712,7 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
-  {&__pyx_kp_s_2020_2_6a, __pyx_k_2020_2_6a, sizeof(__pyx_k_2020_2_6a), 0, 0, 1, 0},
+  {&__pyx_kp_s_2020_2_7a, __pyx_k_2020_2_7a, sizeof(__pyx_k_2020_2_7a), 0, 0, 1, 0},
   {&__pyx_n_s_ASCII, __pyx_k_ASCII, sizeof(__pyx_k_ASCII), 0, 0, 1, 1},
   {&__pyx_kp_s_Buffer_view_does_not_expose_stri, __pyx_k_Buffer_view_does_not_expose_stri, sizeof(__pyx_k_Buffer_view_does_not_expose_stri), 0, 0, 1, 0},
   {&__pyx_kp_s_Can_only_create_a_buffer_that_is, __pyx_k_Can_only_create_a_buffer_that_is, sizeof(__pyx_k_Can_only_create_a_buffer_that_is), 0, 0, 1, 0},
@@ -17056,7 +17056,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *     double exp(double)
  * 
  * version_info = (3, 2)             # <<<<<<<<<<<<<<
- * __version__ = "('2020', '2', '6a')"
+ * __version__ = "('2020', '2', '7a')"
  * 
  */
   __pyx_tuple__20 = PyTuple_Pack(2, __pyx_int_3, __pyx_int_2); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(1, 9, __pyx_L1_error)
@@ -17483,17 +17483,17 @@ if (!__Pyx_RefNanny) {
   /* "src/include/numerical_pyrex.pyx":13
  * #
  * 
- * __version__ = "('2020', '2', '6a')"             # <<<<<<<<<<<<<<
+ * __version__ = "('2020', '2', '7a')"             # <<<<<<<<<<<<<<
  * 
  * cdef extern from "limits.h":
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2020_2_6a) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2020_2_7a) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
 
   /* "cogent3/evolve/_solved_models.pyx":9
  *     double exp(double)
  * 
  * version_info = (3, 2)             # <<<<<<<<<<<<<<
- * __version__ = "('2020', '2', '6a')"
+ * __version__ = "('2020', '2', '7a')"
  * 
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_version_info, __pyx_tuple__20) < 0) __PYX_ERR(1, 9, __pyx_L1_error)
@@ -17501,11 +17501,11 @@ if (!__Pyx_RefNanny) {
   /* "cogent3/evolve/_solved_models.pyx":10
  * 
  * version_info = (3, 2)
- * __version__ = "('2020', '2', '6a')"             # <<<<<<<<<<<<<<
+ * __version__ = "('2020', '2', '7a')"             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2020_2_6a) < 0) __PYX_ERR(1, 10, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_2020_2_7a) < 0) __PYX_ERR(1, 10, __pyx_L1_error)
 
   /* "cogent3/evolve/_solved_models.pyx":13
  * 

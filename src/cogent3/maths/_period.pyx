@@ -2,7 +2,7 @@ from numpy import pi, exp, sqrt, cos
 cimport numpy as np
 
 version_info = (3, 2)
-__version__ = "('2020', '2', '6a')"
+__version__ = "('2020', '2', '7a')"
 
 # TODO intro the version idea of peter's see email from him on Wednesday, 26 May 2010
 
