@@ -7,10 +7,10 @@ from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Thomas La"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -98,6 +98,18 @@ class UnionDictTests(TestCase):
         self.assertEqual(d._getsubattr_([], "a"), 1)
         self.assertEqual(d._getsubattr_([], "d"), UnionDict({"e": 5, "f": 6}))
         self.assertEqual(d._getsubattr_(["d"], "e"), 5)
+
+    def test_setitem(self):
+        """should work via property or key"""
+        d = UnionDict()
+        d.a = 23
+        d.b = dict(c=42)
+        self.assertEqual(d.a, 23)
+        self.assertEqual(d["a"], 23)
+        self.assertEqual(d.b, dict(c=42))
+        self.assertEqual(d.b.c, 42)
+        self.assertEqual(d["b"], dict(c=42))
+        self.assertIsInstance(d.b, UnionDict)
 
 
 if __name__ == "__main__":

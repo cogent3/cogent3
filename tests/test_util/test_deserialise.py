@@ -21,10 +21,10 @@ from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -246,6 +246,15 @@ class TestDeserialising(TestCase):
         # when we ask for the lf attribute, it's no longer a dict
         self.assertNotIsInstance(got_obj.lf, dict)
         self.assertEqual(got_obj.lf.nfp, got_obj.nfp)
+
+    def test_roundtrip_tuple_key(self):
+        """deserialise_result handles tuples as keys"""
+        from cogent3.app.result import generic_result
+
+        r = generic_result(source="none")
+        r[(1, 2)] = 24
+        got = deserialise_object(r.to_json())
+        self.assertEqual(got[(1, 2)], 24)
 
     def test_not_completed_result(self):
         """correctly reconstructs a NotCompletedResult object"""

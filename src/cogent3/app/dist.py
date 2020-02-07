@@ -16,10 +16,10 @@ from .composable import (
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -94,7 +94,9 @@ class fast_slow_dist(ComposableDistance):
         return dist
 
     def __call__(self, aln):
-        aln = aln.to_moltype(self._moltype)
+        if self._moltype and self._moltype != aln.moltype:
+            aln = aln.to_moltype(self._moltype)
+
         if self.fast_calc:
             self.fast_calc(aln, show_progress=False)
             dists = self.fast_calc.get_pairwise_distances()

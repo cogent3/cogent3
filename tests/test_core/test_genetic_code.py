@@ -15,10 +15,10 @@ from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Production"
@@ -383,6 +383,31 @@ class GeneticCodeTests(TestCase):
         self.assertEqual(table.shape[0], len(IUPAC_PROTEIN_code_aa))
         # check there are 3 headers
         self.assertEqual(table.shape[1], 3)
+
+    def test_to_regex(self):
+        """creates a regex from aa seq to match a DNA sequence"""
+        import re
+        from cogent3 import make_seq
+
+        dna = "ACCGAACAGGGC"
+        aa = "TEQG"
+        pattern = DEFAULT.to_regex(aa)
+        self.assertTrue("".join(re.findall(pattern, dna)) == dna)
+        # note that Z is Q or E
+        aa = "TZQG"
+        pattern = DEFAULT.to_regex(aa)
+        self.assertTrue("".join(re.findall(pattern, dna)) == dna)
+        aa = make_seq(aa, moltype="protein")
+        pattern = DEFAULT.to_regex(aa)
+        self.assertTrue("".join(re.findall(pattern, dna)) == dna)
+
+    def test_repr_html(self):
+        """exercising the _repr_html_ method"""
+        gc = get_code(1)
+        got = gc._repr_html_().strip()
+        self.assertTrue(got.startswith("<table>"))
+        self.assertTrue(got.endswith("</table>"))
+        self.assertIn("Standard Nuclear", got)
 
 
 # Run tests if called from command line

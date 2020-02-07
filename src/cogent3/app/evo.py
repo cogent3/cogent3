@@ -29,10 +29,10 @@ from .result import (
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -203,6 +203,14 @@ class model(ComposableModel):
         return lf
 
     def fit(self, aln, initialise=None, construct=True, **opt_args):
+        moltypes = {aln.moltype.label, self._sm.moltype.label}
+        if moltypes == {"protein", "dna"} or moltypes == {"protein", "rna"}:
+            msg = (
+                f"substitution model moltype '{self._sm.moltype.label}' and"
+                f" alignment moltype '{aln.moltype.label}' are incompatible"
+            )
+            return NotCompleted("ERROR", self, msg, source=aln)
+
         evaluation_limit = opt_args.get("max_evaluations", None)
         if self._tree is None:
             assert len(aln.names) == 3
@@ -228,7 +236,7 @@ class model(ComposableModel):
                 codon_pos = aln[i::3]
                 lf = self._fit_aln(
                     codon_pos,
-                    identifier=str(i + 1),
+                    identifier=i + 1,
                     initialise=initialise,
                     construct=construct,
                     **opt_args,
@@ -295,11 +303,21 @@ class hypothesis(ComposableHypothesis):
         except ValueError as err:
             msg = f"Hypothesis null had bounds error {aln.info.source}"
             return NotCompleted("ERROR", self, msg, source=aln)
+
+        if not null:
+            return null
+
         try:
             alts = [alt for alt in self._initialised_alt_from_null(null, aln)]
         except ValueError as err:
             msg = f"Hypothesis alt had bounds error {aln.info.source}"
             return NotCompleted("ERROR", self, msg, source=aln)
+
+        # check if any did not complete
+        for alt in alts:
+            if not alt:
+                return alt
+
         results = {alt.name: alt for alt in alts}
         results.update({null.name: null})
 
@@ -395,7 +413,7 @@ class ancestral_states(ComposableTabular):
 class tabulate_stats(ComposableTabular):
     """Extracts all model statistics from model_result as Table."""
 
-    _input_types = MODEL_RESULT_TYPE
+    _input_types = (MODEL_RESULT_TYPE, SERIALISABLE_TYPE)
     _output_types = (RESULT_TYPE, TABULAR_RESULT_TYPE, SERIALISABLE_TYPE)
     _data_types = "model_result"
 

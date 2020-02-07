@@ -13,10 +13,10 @@ from cogent3.util.table import Table
 
 
 __author__ = "Greg Caporaso and Rob Knight"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Production"
@@ -47,7 +47,7 @@ def _simple_rc(seq):
 _bases = "TCAG"
 
 
-class GeneticCode(object):
+class GeneticCode:
     """Holds codon to amino acid mapping, and vice versa.
 
     Usage:  gc = GeneticCode(code_sequence)
@@ -213,8 +213,8 @@ class GeneticCode(object):
         return self.code_sequence
 
     def __repr__(self):
-        """Returns reconstructable representation of the GeneticCode."""
-        return "GeneticCode(%s)" % str(self)
+        display = self.to_table()
+        return str(display)
 
     def _repr_html_(self):
         """Returns the html representation of GeneticCode."""
@@ -302,6 +302,33 @@ class GeneticCode(object):
             if old != new:
                 changes[codon] = old + new
         return changes
+
+    def to_regex(self, seq):
+        """returns a regex pattern with an amino acid expanded to its codon set
+
+        Parameters
+        ----------
+        seq
+            a Sequence or string of amino acids
+        """
+        from .moltype import PROTEIN_WITH_STOP_ambiguities as ambigs
+
+        seq = list(str(seq))
+        mappings = []
+        for aa in seq:
+            if aa in ambigs:
+                aa = ambigs[aa]
+            else:
+                aa = [aa]
+
+            codons = []
+            for a in aa:
+                codons.extend(self[a])
+
+            # we create a regex non-capturing group for each amino acid
+            mappings.append(f"(?:{'|'.join(codons)})")
+
+        return "".join(mappings)
 
 
 NcbiGeneticCodeData = [
@@ -418,31 +445,6 @@ for key, value in list(GeneticCodes.items()):
     GeneticCodes[str(key)] = value
 
 DEFAULT = GeneticCodes[1]
-
-
-def get_code(code_id):
-    """returns the genetic code
-    
-    Parameters
-    ----------
-    code_id
-        genetic code identifier, name, number or string(number)
-    """
-    if isinstance(code_id, GeneticCode):
-        return code_id
-
-    code = None
-    if str(code_id).isdigit():
-        code = GeneticCodes[code_id]
-    else:
-        for gc in GeneticCodes.values():
-            if gc.name == code_id:
-                code = gc
-
-    if code is None:
-        raise ValueError('No genetic code matching "%s"' % code_id)
-
-    return code
 
 
 def get_code(code_id=1):

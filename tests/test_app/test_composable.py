@@ -14,10 +14,10 @@ from cogent3.core.alignment import ArrayAlignment
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -299,6 +299,19 @@ class TestUserFunction(TestCase):
 
     def bar(self, val, *args, **kwargs):
         return val.distance_matrix(calc="hamming", show_progress=False)
+
+    def _demo(self, ctx, expect):
+        self.assertEqual(ctx.frame_start, expect)
+        return expect
+
+    def test_user_function_custom_variables(self):
+        demo = user_function(
+            self._demo, ("aligned", "serialisable"), ("aligned", "serialisable")
+        )
+        foo = demo
+        frame_start = 2
+        foo.frame_start = frame_start
+        foo(frame_start)
 
     def test_user_function(self):
         """composable functions should be user definable"""

@@ -1,7 +1,8 @@
 import numpy
 
-from numpy import digitize
+from numpy import array, digitize
 from numpy.random import random
+from numpy.testing import assert_allclose
 
 from cogent3.maths.util import safe_log, safe_p_log_p
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
@@ -9,10 +10,10 @@ from cogent3.util.misc import extend_docstring_from
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -215,8 +216,12 @@ class MotifCountsArray(_MotifNumberArray):
         data = self.array
         if pseudocount:
             data = data + pseudocount
-        row_sum = data.sum(axis=1)
-        freqs = data / numpy.vstack(row_sum)
+        axis = None if self.array.ndim == 1 else 1
+        row_sum = data.sum(axis=axis)
+        if axis is not None:
+            freqs = data / numpy.vstack(row_sum)
+        else:
+            freqs = data / row_sum
         return freqs
 
     def to_freq_array(self, pseudocount=0):
@@ -231,9 +236,9 @@ class MotifCountsArray(_MotifNumberArray):
         a MotifFreqsArray
         """
         freqs = self._to_freqs(pseudocount=pseudocount)
-        return MotifFreqsArray(
-            freqs, self.template.names[1], row_indices=self.template.names[0]
-        )
+        motifs = self.template.names[-1]
+        row_indices = None if self.array.ndim == 1 else self.template.names[0]
+        return MotifFreqsArray(freqs, motifs, row_indices=row_indices)
 
     def to_pssm(self, background=None, pseudocount=0):
         """returns a PSSM array
@@ -273,10 +278,68 @@ class MotifFreqsArray(_MotifNumberArray):
         axis = 0 if self.array.ndim == 1 else 1
         validate_freqs_array(self.array, axis=axis)
 
-    def entropy(self):
-        """Shannon entropy per position using log2"""
+    def entropy_terms(self):
+        """Returns
+           -------
+           entropies : array
+                Has same dimension as self.array with
+                safe log operation applied.
+        """
         entropies = safe_p_log_p(self.array)
-        return entropies.sum(axis=1)
+        return self.template.wrap(entropies)
+
+    def entropy(self):
+        """Shannon entropy per position using safe log2"""
+        result = self.entropy_terms().row_sum()
+        return result.array
+
+    def relative_entropy_terms(self, background=None):
+        """
+        Computes a row-wise relative entropy terms per motif and stores them in a DictArray.
+
+        Parameters
+        ----------
+        background : dict
+            {motif_1: prob_1, motif_2: prob_2, ...} is the specified background distribution.
+
+        Returns
+        -------
+        DictArray
+
+
+        Notes
+        -----
+        If background is type None, it defaults to equifrequent.
+        """
+        if background is None:
+            num_motifs = len(self.motifs)
+            background = array([1 / num_motifs] * num_motifs)
+        else:
+            background = array([background.get(m, 0) for m in self.motifs])
+
+        validate_freqs_array(background)
+        ret = background * (safe_log(background) - safe_log(self.array))
+        return self.template.wrap(ret)
+
+    def relative_entropy(self, background=None):
+        """
+        Computes relative entropy for each row.
+
+        Parameters
+        ----------
+        background : dict
+            {motif_1: prob_1, motif_2: prob_2, ...} is the specified background distribution.
+
+        Returns
+        -------
+        array
+
+        Notes
+        -----
+        If background is type None, it defaults to equifrequent.
+        """
+        result = self.relative_entropy_terms(background=background).row_sum()
+        return result.array
 
     def information(self):
         """returns information as -max_entropy - entropy"""
@@ -307,6 +370,79 @@ class MotifFreqsArray(_MotifNumberArray):
             row_indices=self.template.names[0],
             background=background,
         )
+
+    def logo(
+        self, height=400, width=800, wrap=None, ylim=None, vspace=0.05, colours=None
+    ):
+        """returns a sequence logo Drawable"""
+        from cogent3.draw.logo import get_mi_char_heights, get_logo
+        from cogent3.draw.drawable import get_domain
+
+        assert 0 <= vspace <= 1, f"{vspace} not in range 0-1"
+        if ylim is None:
+            ylim = -numpy.log2(1 / self.shape[1]) * 1.1
+
+        if wrap is None:
+            mit = get_mi_char_heights(self)
+            logo = get_logo(mit, height=height, width=width, ylim=ylim, colours=colours)
+            return logo
+
+        wrap = min(wrap, self.shape[0])
+        rows, remainder = divmod(self.shape[0], wrap)
+        num_rows = rows + 1 if remainder else rows
+
+        axnum = 1
+        logo = None
+        xlim_text = {
+            "showarrow": False,
+            "text": "Position",
+            "x": None,
+            "xanchor": "center",
+            "xref": None,
+            "y": 0,
+            "yshift": 2,
+            "yanchor": "bottom",
+            "yref": None,
+        }
+        for i in range(0, self.shape[0], wrap):
+            axis = "axis" if axnum == 1 else f"axis{axnum}"
+            ydomain = get_domain(num_rows, axnum - 1, is_y=True, space=vspace)
+            segment = self[i : i + wrap, :]
+            mit = get_mi_char_heights(segment)
+            sublogo = get_logo(
+                mit,
+                height=height,
+                width=width,
+                axnum=axnum,
+                ydomain=ydomain,
+                ylim=ylim,
+                colours=colours,
+            )
+            xtick_vals = [j for j in range(0, segment.shape[0], 20)]
+            xtick_text = [f"{i + j}" for j in range(0, segment.shape[0], 20)]
+            sublogo.layout[f"x{axis}"].showticklabels = False
+            sublogo.layout[f"x{axis}"].domain = [0, segment.shape[0] / wrap]
+
+            # place the row limit x-coord
+            xtext = xlim_text.copy()
+            xtext["text"] = f"{i + segment.shape[0]}"
+            xtext["x"] = segment.shape[0] + 1
+            xtext["xref"] = f"x{'' if axnum == 1 else axnum}"
+            xtext["yref"] = f"y{'' if axnum == 1 else axnum}"
+            sublogo.layout.annotations = [xtext]
+
+            if logo is None:
+                logo = sublogo
+            else:
+                logo.layout.shapes.extend(sublogo.layout.shapes)
+                logo.layout.annotations.extend(sublogo.layout.annotations)
+
+                logo.layout[f"x{axis}"] = sublogo.layout[f"x{axis}"]
+                logo.layout[f"y{axis}"] = sublogo.layout[f"y{axis}"]
+
+            axnum += 1
+
+        return logo
 
 
 class PSSM(_MotifNumberArray):

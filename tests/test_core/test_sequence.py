@@ -12,8 +12,17 @@ from numpy import array
 from numpy.testing import assert_allclose
 
 from cogent3.core.annotation import Feature, SimpleVariable, Variable
-from cogent3.core.moltype import ASCII, BYTES, DNA, PROTEIN, RNA, AlphabetError
+from cogent3.core.moltype import (
+    ASCII,
+    BYTES,
+    DNA,
+    PROTEIN,
+    RNA,
+    AlphabetError,
+    get_moltype,
+)
 from cogent3.core.sequence import (
+    ABSequence,
     ArrayCodonSequence,
     ArrayDnaCodonSequence,
     ArrayDnaSequence,
@@ -33,10 +42,10 @@ from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Rob Knight, Gavin Huttley and Peter Maxwell"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Peter Maxwell", "Matthew Wakefield"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -219,6 +228,13 @@ class SequenceTests(TestCase):
         self.assertEqual(annot4_slice[10:20], got_slice[10:20])
         self.assertEqual(got.moltype.label, "rna")
         self.assertEqual(got.name, "test3")
+
+        # calling with a null object should raise an exception
+        with self.assertRaises(ValueError):
+            s.to_moltype(None)
+
+        with self.assertRaises(ValueError):
+            s.to_moltype("")
 
     def test_annotate_from_gff(self):
         """correctly annotates a Sequence from a gff file"""
@@ -951,6 +967,7 @@ class SequenceSubclassTests(TestCase):
         self.assertEqual(DnaSequence("TTTAc").rc(), "GTAAA")
 
 
+# TODO move methods of this class onto the single class that inherits from it!
 class ModelSequenceTests(object):
     """base class for tests of specific ArraySequence objects."""
 
@@ -1102,6 +1119,7 @@ class ModelSequenceTests(SequenceTests):
     RNA = ArrayRnaSequence
     DNA = ArrayDnaSequence
     PROT = ArrayProteinSequence
+    AB = ABSequence
 
     def test_distance_indices(self):
         """ArraySequence distance should work with function of indices"""
@@ -1154,6 +1172,15 @@ class ModelSequenceTests(SequenceTests):
         r = self.RNA("-?")
         v = r.gap_indices()
         self.assertEqual(v, array([0, 1]))
+
+    def test_count_ab(self):
+        """abseq array seq should count characters"""
+        AB = get_moltype("ab")
+        seq = AB.make_array_seq("aaba-", alphabet=AB.alphabet.with_gap_motif())
+        c = seq.counts()
+        self.assertEqual(c.to_dict(), {"a": 3, "b": 1})
+        c = seq.counts(allow_gap=True)
+        self.assertEqual(c.to_dict(), {"a": 3, "b": 1, "-": 1})
 
 
 # run if called from command-line

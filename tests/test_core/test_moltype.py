@@ -31,10 +31,10 @@ from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Gavin Huttley, Peter Maxwell, and Rob Knight"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -256,6 +256,15 @@ class AlphabetGroupTests(TestCase):
 
 class MolTypeTests(TestCase):
     """Tests of the MolType class. Should support same API as old Alphabet."""
+
+    def test_to_regex(self):
+        """returns a valid regex"""
+        seq = "ACYGR"
+        regular_expression = DNA.to_regex(seq=seq)
+        self.assertEqual(regular_expression, "AC[CT]G[AG]")
+        # raises an exception if a string is already a regex, or invalid
+        with self.assertRaises(ValueError):
+            DNA.to_regex("(?:GAT|GAC)(?:GGT|GGC|GGA|GGG)(?:GAT|GAC)(?:CAA|CAG)")
 
     def test_pickling(self):
         pkl = pickle.dumps(DNA)

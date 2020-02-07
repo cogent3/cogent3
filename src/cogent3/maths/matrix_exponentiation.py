@@ -20,19 +20,16 @@ from cogent3.util.modules import ExpectedImportError, importVersionedModule
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Zongzhi Liu"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-class _Exponentiator(object):
-    def __init__(self, Q):
-        self.Q = Q
-
+class _Exponentiator:
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, repr(self.Q))
 
@@ -148,18 +145,14 @@ class PadeExponentiator(_Exponentiator):
         return F
 
 
-def chooseFastExponentiators(Q):
-    return (FastExponentiator, CheckedExponentiator)
-
-
 def FastExponentiator(Q):
-    (roots, evT) = eig(Q)
+    roots, evT = eig(Q)
     ev = evT.T
     return EigenExponentiator(Q, roots, ev, evT, inv(ev))
 
 
 def CheckedExponentiator(Q):
-    (roots, evT) = eig(Q)
+    roots, evT = eig(Q)
     ev = evT.T
     evI = inv(ev)
     reQ = numpy.inner(ev.T * roots, evI).real

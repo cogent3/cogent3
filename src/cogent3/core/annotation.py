@@ -12,10 +12,10 @@ from .location import Map, as_map
 
 
 __author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -90,6 +90,8 @@ class _Annotatable:
         new = self._mapped(map)
         sliced_annots = self._sliced_annotations(new, map)
         new.attach_annotations(sliced_annots)
+        if hasattr(self, "_repr_policy"):
+            new._repr_policy.update(self._repr_policy)
         return new
 
     def _mapped(self, map):
@@ -430,10 +432,9 @@ class Source(_Feature):
     type = "source"
 
     def __init__(self, seq, map, accession, basemap):
-        self._serialisable = locals()
-        for key in ("self", "__class__", "kw"):
-            self._serialisable.pop(key, None)
-        self._serialisable
+        d = locals()
+        exclude = ("self", "__class__")
+        self._serialisable = {k: v for k, v in d.items() if k not in exclude}
 
         self.accession = accession
         self.name = repr(basemap) + " of " + accession

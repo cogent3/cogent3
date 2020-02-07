@@ -1,13 +1,10 @@
-****************
-Cogent3 Cookbook
-****************
-
-Contents:
+********
+Cookbook
+********
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
     
-    introduction
     manipulating_biological_data
     building_alignments
     calc_genetic_distance
@@ -15,5 +12,3 @@ Contents:
     evo_modelling
     useful_utilities
 
-
-.. managing_alphabet

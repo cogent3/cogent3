@@ -1,5 +1,6 @@
 import os
-
+import sys
+sys.path.append("../src")
 
 # Allow autosummary to generate stub files
 autosummary_generate = True
@@ -37,11 +38,11 @@ master_doc = "index"
 
 # General information about the project.
 project = "cogent3"
-copyright = "2019, cogent3"
+copyright = "2020, cogent3"
 
-version = ""
+release = "2020.2.7a"
 
-release = "2019.12.6a"
+version = release
 
 # exclude_trees = ["_build"]
 
@@ -52,6 +53,23 @@ pygments_style = "sphinx"
 # -- Options for HTML output ---------------------------------------------------
 
 html_theme = "alabaster"
+
+sidebar_collapse = True
+
+html_sidebars = {
+    '**': [
+        'about.html',
+        'navigation.html',
+        'relations.html',
+        'searchbox.html',
+        # 'donate.html',
+    ]
+}
+
+
+html_theme_options = {
+    "fixed_sidebar": True,
+}
 
 html_static_path = ["_static"]
 

@@ -13,10 +13,10 @@ types and the MolType can be made after the objects are created.
 """
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -714,7 +714,7 @@ class MolType(object):
             self.array_type = None
 
         # set modeling sequence
-        self.make_array_seq = array_seq_constructor
+        self._make_array_seq = array_seq_constructor
 
         self._colors = colors or defaultdict(_DefaultValue("black"))
 
@@ -742,6 +742,18 @@ class MolType(object):
         data = self.to_rich_dict(for_pickle=False)
         return json.dumps(data)
 
+    def to_regex(self, seq):
+        """returns a regex pattern with ambiguities expanded to a character set"""
+        if not self.is_valid(seq):
+            raise ValueError(f"'{seq}' is invalid for this moltype")
+
+        degen_indices = self.get_degenerate_positions(sequence=seq, include_gap=False)
+        seq = list(seq)  # seq can now be modified
+        for index in degen_indices:
+            expanded = self.ambiguities[seq[index]]
+            seq[index] = f"[{''.join(expanded)}]"
+        return "".join(seq)
+
     def gettype(self):
         """Returns type, e.g. 'dna', 'rna', 'protein'. Delete?"""
         return self.label
@@ -749,6 +761,29 @@ class MolType(object):
     def make_seq(self, seq, name=None, **kwargs):
         """Returns sequence of correct type."""
         return self._make_seq(seq, name, **kwargs)
+
+    def make_array_seq(self, seq, name=None, **kwargs):
+        """
+        creates an array sequence
+
+        Parameters
+        ----------
+        seq
+            characters or array
+        name : str
+        kwargs
+            keyword arguments for the ArraySequence constructor.
+
+        Returns
+        -------
+        ArraySequence
+        """
+        alphabet = kwargs.pop("alphabet", None)
+        if alphabet is None and hasattr(self, "alphabets"):
+            alphabet = self.alphabets.degen_gapped
+        elif alphabet is None:
+            alphabet = self.alphabet
+        return self._make_array_seq(seq, alphabet=alphabet, name=name, **kwargs)
 
     def verify_sequence(self, seq, gaps_allowed=True, wildcards_allowed=True):
         """Checks whether sequence is valid on the default alphabet.

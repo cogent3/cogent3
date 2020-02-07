@@ -13,10 +13,10 @@ from cogent3.util.misc import open_, path_exists
 
 
 __author__ = ["Gavin Huttley"]
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -113,7 +113,10 @@ def deserialise_result(data):
         # required
         if type(value) == dict and "app.result" in str(value.get("type")):
             value = deserialise_object(value)
-        result[key] = value
+        try:
+            result[key] = value
+        except TypeError:
+            result[tuple(key)] = value
     return result
 
 

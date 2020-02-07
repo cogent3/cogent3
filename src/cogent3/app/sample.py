@@ -19,10 +19,10 @@ from .translate import get_fourfold_degenerate_sets
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -134,9 +134,10 @@ class omit_degenerates(ComposableAligned):
         self.func = self.filter_degenerates
 
     def filter_degenerates(self, aln):
-        if aln.moltype != self.moltype:
+        if self.moltype and aln.moltype != self.moltype:
             # try converting
             aln = aln.to_moltype(self.moltype)
+
         result = aln.no_degenerates(
             motif_length=self._motif_length, allow_gap=self._allow_gap
         )
@@ -184,9 +185,10 @@ class omit_gap_pos(ComposableAligned):
         self.func = self.omit
 
     def omit(self, aln):
-        if aln.moltype != self.moltype:
+        if self.moltype and aln.moltype != self.moltype:
             # try converting
             aln = aln.to_moltype(self.moltype)
+
         result = aln.omit_gap_pos(
             allowed_gap_frac=self._allowed_frac, motif_length=self._motif_length
         )
@@ -267,7 +269,9 @@ class take_codon_positions(ComposableAligned):
         self._positions = positions
 
     def take_fourfold_positions(self, aln):
-        aln = aln.to_moltype(self._moltype)
+        if self._moltype and self._moltype != aln.moltype:
+            aln = aln.to_moltype(self._moltype)
+
         fourfold_codon_sets = self._fourfold_degen_sets
 
         def ffold(x):
@@ -369,7 +373,7 @@ class min_length(ComposableSeq):
         self._moltype = moltype
 
     def if_long_enough(self, data):
-        if self._moltype:
+        if self._moltype and self._moltype != data.moltype:
             data = data.to_moltype(self._moltype)
 
         if self._subtract_degen:
@@ -473,7 +477,7 @@ class fixed_length(ComposableAligned):
         self.func = {False: self.truncated}.get(random, self.sample_positions)
 
     def truncated(self, aln):
-        if self._moltype:
+        if self._moltype and self._moltype != aln.moltype:
             aln = aln.to_moltype(self._moltype)
 
         if len(aln) < self._length:
@@ -486,7 +490,7 @@ class fixed_length(ComposableAligned):
         return result
 
     def sample_positions(self, aln):
-        if self._moltype:
+        if self._moltype and self._moltype != aln.moltype:
             aln = aln.to_moltype(self._moltype)
 
         indices = array(range(len(aln)))
@@ -552,7 +556,9 @@ class omit_bad_seqs(ComposableAligned):
         self.func = self.drop_bad_seqs
 
     def drop_bad_seqs(self, aln):
-        aln = aln.to_moltype(self._moltype)
+        if self._moltype and self._moltype != aln.moltype:
+            aln = aln.to_moltype(self._moltype)
+
         gaps_per_seq = aln.count_gaps_per_seq()
         length = len(aln)
         keep = [n for n, c in gaps_per_seq.items() if c / length < self._gap_fraction]
@@ -609,8 +615,9 @@ class omit_duplicated(ComposableSeq):
             self.func = self.take_unique
 
     def choose_longest(self, seqs):
-        if self._moltype:
+        if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)
+
         duplicates = seqs.get_identical_sets(mask_degen=self._mask_degen)
         lengths = seqs.get_lengths()
         excludes = []
@@ -623,8 +630,9 @@ class omit_duplicated(ComposableSeq):
         return seqs
 
     def choose_random(self, seqs):
-        if self._moltype:
+        if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)
+
         duplicates = seqs.get_identical_sets(mask_degen=self._mask_degen)
         excludes = []
         for group in duplicates:
@@ -636,8 +644,9 @@ class omit_duplicated(ComposableSeq):
         return seqs
 
     def take_unique(self, seqs):
-        if self._moltype:
+        if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)
+
         duplicates = seqs.get_identical_sets(mask_degen=self._mask_degen)
         names = set()
         for dupes in duplicates:

@@ -29,7 +29,7 @@ from cogent3.util import progress_display as UI
 
 
 __author__ = "Gavin Huttley, Andrew Butterfield and Peter Maxwell"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = [
     "Gavin Huttley",
     "Andrew Butterfield",
@@ -38,7 +38,7 @@ __credits__ = [
     "Peter Maxwell",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -92,10 +92,10 @@ class ParametricBootstrapCore(object):
 
         # optimisations = pcs * (self._numreplicates + 1)
         init_work = pcs / (self._numreplicates + pcs)
-        ui.display("Original data", 0.0, init_work)
+        ui.display("Original data", 0.0)
         (starting_points, self.observed) = each_model(self.alignment)
 
-        ui.display("Randomness", init_work, 0.0)
+        ui.display("Randomness", init_work)
         alignment_random_state = random.Random(self.seed).getstate()
 
         def one_replicate(i):
