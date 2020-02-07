@@ -71,9 +71,9 @@ class _LikelihoodParameterController(_LF):
         **kw,
     ):
         # cache of arguments used to construct
-        self._serialisable = locals()
-        for key in ("self", "__class__", "kw"):
-            self._serialisable.pop(key)
+        d = locals()
+        exclude = ("self", "__class__", "kw")
+        self._serialisable = {k: v for k, v in d.items() if k not in exclude}
         self._serialisable.update(kw)
 
         self.model = self._model = model

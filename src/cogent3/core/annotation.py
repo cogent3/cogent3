@@ -432,10 +432,9 @@ class Source(_Feature):
     type = "source"
 
     def __init__(self, seq, map, accession, basemap):
-        self._serialisable = locals()
-        for key in ("self", "__class__", "kw"):
-            self._serialisable.pop(key, None)
-        self._serialisable
+        d = locals()
+        exclude = ("self", "__class__")
+        self._serialisable = {k: v for k, v in d.items() if k not in exclude}
 
         self.accession = accession
         self.name = repr(basemap) + " of " + accession

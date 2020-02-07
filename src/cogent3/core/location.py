@@ -236,9 +236,9 @@ class Span(SpanI):
         value=None,
         reverse=False,
     ):
-        self._serialisable = locals()
-        for key in ("self", "__class__", "__slots__"):
-            self._serialisable.pop(key, None)
+        d = locals()
+        x = ("self", "__class__", "__slots__")
+        self._serialisable = {k: v for k, v in d.items() if k not in x}
 
         self._new_init(start, end, reverse)
         self.tidy_start = tidy_start
@@ -253,10 +253,9 @@ class Span(SpanI):
         If end is not supplied, it is set to start + 1 (providing a 1-element
         range).
         reverse defaults to False.
-
-        This should replace the current __init__ method when deprecated vars
-        are removed.
         """
+        # This should replace the current __init__ method when deprecated vars
+        # are removed.
         # special handling in case we were passed another Span
         if isinstance(start, Span):
             assert end is None
@@ -480,9 +479,9 @@ class _LostSpan(object):
     terminal = False
 
     def __init__(self, length, value=None):
-        self._serialisable = locals()
-        for key in ("self", "__class__", "__slots__"):
-            self._serialisable.pop(key, None)
+        d = locals()
+        exclude = ("self", "__class__", "__slots__")
+        self._serialisable = {k: v for k, v in d.items() if k not in exclude}
 
         self.length = length
         self.value = value
@@ -563,9 +562,9 @@ class Map(object):
         termini_unknown=False,
     ):
         assert parent_length is not None
-        self._serialisable = locals()
-        for key in ("self", "__class__", "__slots__"):
-            self._serialisable.pop(key, None)
+        d = locals()
+        exclude = ("self", "__class__", "__slots__")
+        self._serialisable = {k: v for k, v in d.items() if k not in exclude}
 
         if spans is None:
             spans = []
