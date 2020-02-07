@@ -3,7 +3,7 @@
 
 include "../../include/numerical_pyrex.pyx"
 version_info = (2, 2)
-__version__ = "('2019', '12', '6a')"
+__version__ = "('2020', '2', '6a')"
 
 cdef extern from "math.h":
     double log (double x)

@@ -47,10 +47,10 @@ Int = numerictypes(int)
 err = numpy.seterr(divide="raise")
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rob Knight", "Sandra Smit", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.6a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Development"

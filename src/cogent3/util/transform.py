@@ -14,10 +14,10 @@ of lists.
 """
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Sandra Smit", "Rob Knight", "Zongzhi Liu"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.6a"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"

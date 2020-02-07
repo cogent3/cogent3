@@ -38,11 +38,11 @@ master_doc = "index"
 
 # General information about the project.
 project = "cogent3"
-copyright = "2019, cogent3"
+copyright = "2020, cogent3"
 
-version = ""
+release = "2020.2.6a"
 
-release = "2019.12.6a"
+version = release
 
 # exclude_trees = ["_build"]
 

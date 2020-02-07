@@ -41,7 +41,7 @@ from cogent3.util.misc import get_object_provenance
 
 
 __author__ = "Gavin Huttley, Peter Maxwell and Rob Knight"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = [
     "Gavin Huttley",
     "Peter Maxwell",
@@ -55,7 +55,7 @@ __credits__ = [
     "Justin Kuczynski",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.6a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
