@@ -6,10 +6,10 @@ from cogent3.format.util import _AlignmentFormatter
 
 
 __author__ = "Jeremy Widmann"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Rob Knight", "Gavin Huttley", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Jeremy Widmann"
 __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Production"

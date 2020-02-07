@@ -14,10 +14,10 @@ from cogent3.parse.cigar import (
 
 
 __author__ = "Hua Ying"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Hua Ying", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Hua Ying"
 __email__ = "hua.ying@anu.edu.au"
 __status__ = "Production"
