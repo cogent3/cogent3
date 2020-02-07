@@ -9,5 +9,5 @@ This section is for those users comfortable with Python programming.
 
     cookbook/index
     examples/index
-    data_file_links
     api/index
+    data_file_links
