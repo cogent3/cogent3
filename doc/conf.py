@@ -54,6 +54,23 @@ pygments_style = "sphinx"
 
 html_theme = "alabaster"
 
+sidebar_collapse = True
+
+html_sidebars = {
+    '**': [
+        'about.html',
+        'navigation.html',
+        'relations.html',
+        'searchbox.html',
+        # 'donate.html',
+    ]
+}
+
+
+html_theme_options = {
+    "fixed_sidebar": True,
+}
+
 html_static_path = ["_static"]
 
 htmlhelp_basename = "cogent3doc"
