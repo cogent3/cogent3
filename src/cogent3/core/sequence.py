@@ -1316,7 +1316,7 @@ class ByteSequence(Sequence):
     """Used for storing arbitrary bytes."""
 
     def __init__(self, seq="", name=None, info=None, check=False, preserve_case=True):
-        return super(ByteSequence, self).__init__(
+        super(ByteSequence, self).__init__(
             seq, name=name, info=info, check=check, preserve_case=preserve_case
         )
 
