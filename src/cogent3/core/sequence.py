@@ -1316,7 +1316,7 @@ class ByteSequence(Sequence):
     """Used for storing arbitrary bytes."""
 
     def __init__(self, seq="", name=None, info=None, check=False, preserve_case=True):
-        return super(ByteSequence, self).__init__(
+        super(ByteSequence, self).__init__(
             seq, name=name, info=info, check=check, preserve_case=preserve_case
         )
 
@@ -1458,8 +1458,8 @@ class ArraySequenceBase(object):
         """iter returns characters of self, rather than slices."""
         if hasattr(self.alphabet, "to_string"):
             return iter(self.alphabet.to_string(self._data))
-        else:
-            return iter(self.Alpabet.from_indices(self._data))
+
+        return iter(self.alpabet.from_indices(self._data))
 
     def tostring(self):
         """to_string delegates to self._data."""
