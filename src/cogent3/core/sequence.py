@@ -1092,22 +1092,19 @@ class Sequence(_Annotatable, SequenceI):
 
 
 class ProteinSequence(Sequence):
-    """Holds the standard Protein sequence. MolType set in moltype module."""
+    """Holds the standard Protein sequence."""
 
     pass
 
 
 class ProteinWithStopSequence(Sequence):
-    """Holds the standard Protein sequence, allows for stop codon
-
-    MolType set in moltype module
-    """
+    """Holds the standard Protein sequence, allows for stop codon."""
 
     pass
 
 
 class NucleicAcidSequence(Sequence):
-    """base class for DNA and RNA sequences. Abstract."""
+    """Abstract base class for DNA and RNA sequences."""
 
     PROTEIN = None  # will set in moltype
     codon_alphabet = None  # will set in moltype
@@ -1279,6 +1276,8 @@ class NucleicAcidSequence(Sequence):
 
 
 class DnaSequence(NucleicAcidSequence):
+    """Holds the standard DNA sequence."""
+
     def get_colour_scheme(self, colours):
         return {
             "A": colours.black,
@@ -1293,6 +1292,8 @@ class DnaSequence(NucleicAcidSequence):
 
 
 class RnaSequence(NucleicAcidSequence):
+    """Holds the standard RNA sequence."""
+
     def get_colour_scheme(self, colours):
         return {
             "A": colours.black,
@@ -1307,7 +1308,7 @@ class RnaSequence(NucleicAcidSequence):
 
 
 class ABSequence(Sequence):
-    """Used for two-state modeling; MolType set in moltypes."""
+    """Holds a two-state sequence, with characters of 'a', 'b'"""
 
     pass
 
