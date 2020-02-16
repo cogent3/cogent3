@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import os
+import pathlib
 import re
 import subprocess
 import sys
-import pathlib
 
 from setuptools import Command, find_packages, setup
 from setuptools.extension import Extension
