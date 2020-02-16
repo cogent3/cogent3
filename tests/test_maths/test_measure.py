@@ -166,37 +166,37 @@ class TestJensenShannon(TestCase):
     def test_jsd(self):
         """case1 is testing if the jsd between two identical distributions is 0.0"""
         case1 = [
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0],
         ]
-        for pointer in range(10):
-            case1[0][pointer] = 1.0
-            case1[1][pointer] = 1.0
+        for index in range(len(case1[0])):
+            case1[0][index] = 1.0
+            case1[1][index] = 1.0
             assert_allclose(
                 jsd(case1[0], case1[1], validate=True),
                 0.0,
                 err_msg="Testing case1 for jsd failed",
             )
-            case1[0][pointer] = 0.0
-            case1[1][pointer] = 0.0
-        """case2 is testing the numerical output of jsd between two random distributions"""
-        case2 = [[1.0 / 10, 9.0 / 10, 0], [0, 1.0 / 10, 9.0 / 10]]
+            case1[0][index] = 0.0
+            case1[1][index] = 0.0
+        # case2 is testing the numerical output of jsd between two distant distributions
+        case2 = [[1 / 10, 9 / 10, 0], [0, 1 / 10, 9 / 10]]
         assert_allclose(
             jsd(case2[0], case2[1], validate=True),
             0.7655022032053593,
             err_msg="Testing case2 for jsd failed",
         )
-        """case3 is testing the numerical output of jsd between two random distributions"""
-        case3 = [[1.0, 0.0], [0.5, 0.5]]
+        # case3 is testing the numerical output of jsd between two distant distributions
+        case3 = [[1.0, 0.0], [1 / 2, 1 / 2]]
         assert_allclose(
             jsd(case3[0], case3[1], validate=True),
             0.3112781244591328,
             err_msg="Testing case3 for jsd failed",
         )
-        """case4 is testing if the jsd between two identical uniform distributions is 0.0"""
+        # case4 - the jsd between two identical uniform distributions is 0.0
         case4 = [
-            [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
-            [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+            [1 / 10] * 10,
+            [1 / 10] * 10,
         ]
         assert_allclose(
             jsd(case4[0], case4[1], validate=True),
@@ -207,37 +207,37 @@ class TestJensenShannon(TestCase):
     def test_jsm(self):
         """case1 is testing if the jsm between two identical distributions is 0.0"""
         case1 = [
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0],
         ]
-        for pointer in range(10):
-            case1[0][pointer] = 1.0
-            case1[1][pointer] = 1.0
+        for index in range(len(case1[0])):
+            case1[0][index] = 1.0
+            case1[1][index] = 1.0
             assert_allclose(
                 jsm(case1[0], case1[1], validate=True),
                 0.0,
                 err_msg="Testing case1 for jsm failed",
             )
-            case1[0][pointer] = 0.0
-            case1[1][pointer] = 0.0
-        """case2 is testing the numerical output of jsm between two random distributions"""
-        case2 = [[1.0 / 10, 9.0 / 10, 0], [0, 1.0 / 10, 9.0 / 10]]
+            case1[0][index] = 0.0
+            case1[1][index] = 0.0
+        # case2 is testing the numerical output of jsm between two random distributions
+        case2 = [[1 / 10, 9 / 10, 0], [0, 1 / 10, 9 / 10]]
         assert_allclose(
             jsm(case2[0], case2[1], validate=True),
             0.8749298275892526,
             err_msg="Testing case2 for jsm failed",
         )
-        """case3 is testing the numerical output of jsm between two random distributions"""
-        case3 = [[1.0, 0.0], [0.5, 0.5]]
+        # case3 is testing the numerical output of jsm between two random distributions
+        case3 = [[1.0, 0.0], [1 / 2, 1 / 2]]
         assert_allclose(
             jsm(case3[0], case3[1], validate=True),
             0.5579230452841438,
             err_msg="Testing case3 for jsm failed",
         )
-        """case4 is testing if the jsm between two identical uniform distributions is 0.0"""
+        # case4 is testing if the jsm between two identical uniform distributions is 0.0
         case4 = [
-            [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
-            [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+            [1 / 10] * 10,
+            [1 / 10] * 10,
         ]
         assert_allclose(
             jsm(case4[0], case4[1], validate=True),

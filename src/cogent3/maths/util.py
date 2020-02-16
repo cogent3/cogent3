@@ -200,3 +200,25 @@ def column_degeneracy(a, cutoff=0.5):
     # degen contains now the indices at which the cutoff was hit
     # to change to the number of characters, add 1
     return clip(array(degen) + 1, 0, a.shape[0])
+
+
+def validate_freqs_array(data, axis=None):
+    """input data is a valid frequency array
+    Parameters
+    ----------
+    data : ndarray
+        numpy array
+    axis : int or None
+        indicates along which axis the array should sum to 1
+
+    Notes
+    -----
+    Raises ValueError if any element < 0 or series do not sum to 1
+    """
+    if (data < 0).any():
+        raise ValueError("negative frequency not allowed")
+
+    # we explicitly ignore nan
+    result = data.sum(axis=axis)
+    if not numpy.allclose(result[numpy.isnan(result) == False], 1):
+        raise ValueError("invalid frequencies, sum(axis=1) is not equal to 1")
