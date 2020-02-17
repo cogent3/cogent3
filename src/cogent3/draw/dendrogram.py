@@ -10,10 +10,10 @@ from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rahul Ghangas"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -231,12 +231,19 @@ class TreeGeometryBase(PhyloNode):
         -------
         None if threshold not met, else params['support'] and coords
         """
+        if xshift is None:
+            xshift = -14
+
+        if yshift is None:
+            yshift = 7
+
         if self.is_tip():
             return None
 
         val = self.params.get("support", None)
         if val is None or val > threshold or self.is_tip():
             return None
+
         x = self.x
         data = UnionDict(
             x=x,
@@ -431,10 +438,45 @@ class CircularTreeGeometry(TreeGeometryBase):
 
     @extend_docstring_from(TreeGeometryBase.support_text_coord)
     def support_text_coord(self, xshift, yshift, threshold=1, max_attr_length=4):
-        from warnings import warn
+        if xshift is None:
+            xshift = -18
 
-        warn("Display of support on circular/radial not implemented yet", UserWarning)
-        return None
+        if yshift is None:
+            yshift = 3
+
+        if self.is_tip():
+            return None
+
+        val = self.params.get("support", None)
+        if val is None or val > threshold or self.is_tip():
+            return None
+
+        if 90 < self.theta <= 270:
+            textangle = 180 - self.theta
+        else:
+            textangle = 360 - self.theta
+            xshift = -xshift
+
+        c = np.cos(textangle * (np.pi / 180))
+        s = np.sin(textangle * (np.pi / 180))
+        m = np.array([[c, s], [-s, c]])
+        d = np.dot(m, [xshift, yshift])
+
+        new_xshift = float(d.T[0])
+        new_yshift = float(d.T[1])
+
+        x = self.x
+        data = UnionDict(
+            x=x,
+            y=self.y,
+            xshift=new_xshift,
+            yshift=new_yshift,
+            textangle=textangle,
+            showarrow=False,
+            text=f"{val:.2f}",
+            xanchor="center",
+        )
+        return data
 
     def get_segment_to_child(self, child):
         """returns coordinates connecting a child to self and descendants"""
@@ -527,8 +569,8 @@ class Dendrogram(Drawable):
             show_support = False
         self._show_support = show_support
         self._threshold = threshold
-        self._support_xshift = -14
-        self._support_yshift = 7
+        self._support_xshift = None
+        self._support_yshift = None
         self._default_layout.autosize = True
         self.layout = UnionDict(self._default_layout)
 

@@ -15,7 +15,6 @@ from cogent3.align.traceback import alignment_traceback, map_traceback
 from cogent3.core.alignment import Aligned
 from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge
 from cogent3.util.modules import ExpectedImportError, importVersionedModule
-from cogent3.util.warning import deprecated, discontinued
 
 from . import pairwise_pogs_numba as align_module
 from . import pairwise_seqs_numba as seq_align_module
@@ -30,10 +29,10 @@ def _as_combined_arrays(preds):
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"

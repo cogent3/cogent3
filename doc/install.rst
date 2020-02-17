@@ -1,14 +1,21 @@
 .. _quick-install:
 
-Quick Installation
-==================
+Installation
+============
 
-Until the library is officially released, these installation instructions explicitly reference the `GitHub repository <https://github.com/cogent3/cogent3>`_.
-
-Using ``pip``
--------------
+For the "released" version.
 
 ::
 
-    $ cd path/to/repo/or/tarball
-    $ pip install repo/or/tarball
+    $ pip install cogent3
+
+
+Installing the development version
+----------------------------------
+
+For the latest features and bug fixes (and possibly new bugs!), install from GitHub as
+
+::
+
+    $ pip install git+https://github.com/cogent3/cogent3.git@develop#egg=cogent3
+

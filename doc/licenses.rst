@@ -1,5 +1,5 @@
-Licenses
-========
+License
+=======
 
 .. toctree::
    :maxdepth: 1

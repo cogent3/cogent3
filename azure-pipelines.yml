@@ -1,3 +1,6 @@
+trigger:
+  - master
+
 variables:
   CODECOV_TOKEN: 504b0637-b4c1-4991-bc79-7a29aee41b44
   CIBW_BUILD: cp36-* cp37-* cp38-*
@@ -8,8 +11,6 @@ jobs:
   pool: {vmImage: 'ubuntu-latest'}
   steps:
     - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.7'
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
@@ -19,12 +20,16 @@ jobs:
     - bash: |
         tox -e py36
         codecov
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/junit-*.xml'
+        testRunTitle: 'Publish test results for Linux Python 3.6'
+        failTaskOnFailedTests: true
 - job: Linux_Test_py37
   pool: {vmImage: 'ubuntu-latest'}
   steps:
     - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.7'
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
@@ -34,12 +39,16 @@ jobs:
     - bash: |
         tox -e py37
         codecov
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/junit-*.xml'
+        testRunTitle: 'Publish test results for Linux Python 3.7'
+        failTaskOnFailedTests: true
 - job: Linux_Test_py38
   pool: {vmImage: 'ubuntu-latest'}
   steps:
     - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.7'
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
@@ -49,12 +58,16 @@ jobs:
     - bash: |
         tox -e py38
         codecov
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/junit-*.xml'
+        testRunTitle: 'Publish test results for Linux Python 3.8'
+        failTaskOnFailedTests: true
 - job: MacOS_Test_py36
   pool: {vmImage: 'macos-latest'}
   steps:
     - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.7'
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
@@ -64,12 +77,16 @@ jobs:
     - bash: |
         tox -e py36
         codecov
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/junit-*.xml'
+        testRunTitle: 'Publish test results for MacOS Python 3.6'
+        failTaskOnFailedTests: true
 - job: MacOS_Test_py37
   pool: {vmImage: 'macos-latest'}
   steps:
     - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.7'
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
@@ -79,12 +96,16 @@ jobs:
     - bash: |
         tox -e py37
         codecov
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/junit-*.xml'
+        testRunTitle: 'Publish test results for MacOS Python 3.7'
+        failTaskOnFailedTests: true
 - job: MacOS_Test_py38
   pool: {vmImage: 'macos-latest'}
   steps:
     - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.7'
     - bash: |
         python -m pip install --upgrade pip
         python -m pip install .[dev] codecov
@@ -94,6 +115,12 @@ jobs:
     - bash: |
         tox -e py38
         codecov
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/junit-*.xml'
+        testRunTitle: 'Publish test results for MacOS Python 3.8'
+        failTaskOnFailedTests: true
 - job: Windows_Test_py37
   pool: {vmImage: 'windows-latest'}
   steps:
@@ -104,9 +131,16 @@ jobs:
         python -m pip install .[dev] codecov
         tox -e py37
         codecov
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/junit-*.xml'
+        testRunTitle: 'Publish test results for Windows Python 3.8'
+        failTaskOnFailedTests: true
+
 - job: Linux_Build
   pool: {vmImage: 'ubuntu-latest'}
-  steps:
+  steps: 
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6'}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7'}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8'}}
@@ -121,7 +155,7 @@ jobs:
 
 - job: MacOS_Build
   pool: {vmImage: 'macos-latest'}
-  steps:
+  steps: 
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6'}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7'}}
     - {task: UsePythonVersion@0, inputs: {versionSpec: '3.8'}}

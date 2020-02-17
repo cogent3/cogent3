@@ -9,3 +9,4 @@
 
     DnaSequence
     RnaSequence
+    ProteinSequence

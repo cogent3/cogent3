@@ -1,8 +1,10 @@
 import pathlib
 import unittest
 
+from numpy.testing import assert_allclose
+
 from cogent3 import load_aligned_seqs, make_aligned_seqs, make_table
-from cogent3.draw.drawable import AnnotatedDrawable, Drawable
+from cogent3.draw.drawable import AnnotatedDrawable, Drawable, get_domain
 from cogent3.util.union_dict import UnionDict
 
 
@@ -10,7 +12,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -30,6 +32,50 @@ def load_alignment(annotate1=False, annotate2=False):
     return aln
 
 
+class UtilDrawablesTests(unittest.TestCase):
+    """testing utility functions"""
+
+    def test_get_domain_1(self):
+        """handles single domain"""
+        x = get_domain(1, 0, is_y=False)
+        y = get_domain(1, 0, is_y=True)
+        assert_allclose(x, [0, 1])
+        assert_allclose(y, [0, 1])
+
+    def test_get_domain_multi(self):
+        """produces reversed coordinates for y"""
+        # plotly coords are cartesian, index coords are array, so they need to
+        # be converted
+        y = get_domain(2, 0, is_y=True, space=0)
+        assert_allclose(y, [0.5, 1])
+        y = get_domain(2, 1, is_y=True, space=0)
+        assert_allclose(y, [0, 0.5])
+        # x-coords unaffected
+        x = get_domain(2, 0, is_y=False, space=0)
+        assert_allclose(x, [0, 0.5])
+        x = get_domain(2, 1, is_y=False, space=0)
+        assert_allclose(x, [0.5, 1])
+
+    def test_get_domain_sep(self):
+        """space argument shifts boundaries"""
+        sep = 0.1
+        x = get_domain(2, 0, is_y=False, space=sep)
+        assert_allclose(x, [0 + sep / 2, 0.5 - sep / 2])
+        x = get_domain(2, 1, is_y=False, space=sep)
+        assert_allclose(x, [0.5 + sep / 2, 1 - sep / 2])
+        # if space too big relative to the span of each domain, it's reduced
+        # to 1/10th the domain span
+        sep = 0.6
+        x = get_domain(2, 0, is_y=False, space=sep)
+        exp_sep = 0.5 / 10
+        assert_allclose(x, [0 + exp_sep, 0.5 - exp_sep])
+
+    def test_domain_element_size(self):
+        """domain element value must not exceed num domains - 1"""
+        with self.assertRaises(ValueError):
+            x = get_domain(2, 2, is_y=False)
+
+
 class BaseDrawablesTests(unittest.TestCase):
     """methods for checking drawables"""
 
@@ -45,6 +91,36 @@ class BaseDrawablesTests(unittest.TestCase):
         for style in styles:
             obj = method(drawable=style, **kwargs)
             self._check_drawable_attrs(obj.drawable.figure, style)
+
+
+class CustomDrawable(BaseDrawablesTests):
+    """custom applications of Drawable"""
+
+    def test_no_trace(self):
+        """should still produce a valid figure"""
+        d = Drawable()
+        f = d.figure
+        self.assertEqual(f.data, [{}])
+
+    def test_one_trace(self):
+        """should still produce a valid figure"""
+        d = Drawable()
+        trace = dict(type="scatter", x=[0, 1], y=[0, 1])
+        d.add_trace(trace)
+        f = d.figure
+        self.assertEqual(f.data, [trace])
+
+    def test_layout_with_titles(self):
+        """if provided layout has axis titles, keep them"""
+        layout = dict(xaxis=dict(title="X"), yaxis=dict(title="Y"))
+        d = Drawable(layout=layout)
+        fig = d.figure
+        self.assertEqual(fig.layout.xaxis.title, "X")
+        self.assertEqual(fig.layout.yaxis.title, "Y")
+        d = Drawable()
+        fig = d.figure
+        self.assertEqual(fig.layout.xaxis.title, None)
+        self.assertEqual(fig.layout.yaxis.title, None)
 
 
 class AlignmentDrawablesTests(BaseDrawablesTests):

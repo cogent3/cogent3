@@ -4,16 +4,16 @@ from numpy.testing import assert_allclose, assert_equal
 
 import cogent3.util.misc
 
-from cogent3.maths.util import safe_p_log_p
+from cogent3.maths.util import safe_p_log_p, validate_freqs_array
 
 from .util import safe_log
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -88,7 +88,8 @@ def paralinear_continuous_time(P, pi, Q, validate=False):
 
 
 def jsd(freqs1, freqs2, validate=False):
-    """
+    """calculate Jensen–Shannon divergence between two probability distributions
+
     Parameters
     ----------
     freqs1 : one dimensional array
@@ -96,10 +97,7 @@ def jsd(freqs1, freqs2, validate=False):
     freqs2 : one dimensional array
         row vector frequencies, sum to 1
     validate : bool
-    Returns
-    -------
-    the mathematical calculation of Jensen–Shannon divergence
-    between two probability distributions
+
     """
     # Convert input arrays into numpy arrays
     freqs1 = array(freqs1)
@@ -111,8 +109,11 @@ def jsd(freqs1, freqs2, validate=False):
         )
         assert freqs1.ndim == 1, "freqs1 has incorrect dimension"
         assert freqs2.ndim == 1, "freqs2 has incorrect dimension"
-        assert_allclose(sum(freqs1), 1, err_msg="invalid freqs1")
-        assert_allclose(sum(freqs2), 1, err_msg="invalid freqs2")
+        try:
+            validate_freqs_array(freqs1)
+            validate_freqs_array(freqs2)
+        except ValueError as err:
+            raise AssertionError("freqs not valid") from err
 
     H_mn = safe_p_log_p(freqs1 / 2 + freqs2 / 2).sum()
     mn_H = sum([sum(i) for i in map(safe_p_log_p, [freqs1, freqs2])]) / 2
