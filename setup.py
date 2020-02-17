@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 import os
+import pathlib
 import re
 import subprocess
 import sys
-import pathlib
 
 from setuptools import Command, find_packages, setup
 from setuptools.extension import Extension
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __contributors__ = [
     "Peter Maxwell",
     "Gavin Huttley",
@@ -19,7 +19,7 @@ __contributors__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -159,7 +159,7 @@ setup(
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: GNU General Public License (GPL)",
+        "License :: OSI Approved :: BSD License",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Operating System :: OS Independent",

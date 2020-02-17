@@ -17,7 +17,7 @@ from cogent3.util.misc import NestedSplitter, curry, identity, list_flatten
 
 
 __author__ = "Zongzhi Liu and Sandra Smit"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = [
     "Zongzhi Liu",
     "Sandra Smit",
@@ -26,7 +26,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Zongzhi Liu"
 __email__ = "zongzhi.liu@gmail.com"
 __status__ = "Development"

@@ -21,10 +21,10 @@ from cogent3.util import progress_display as UI
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -283,12 +283,10 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
     return ScoredTreeCollection(result)
 
 
-def nj(dists, no_negatives=True, show_progress=True):
+def nj(dists, show_progress=True):
     """Arguments:
         - dists: dict of (name1, name2): distance
-        - no_negatives: negative branch lengths will be set to 0
     """
-    assert no_negatives, "no_negatives=False is deprecated"
     (result,) = gnj(dists, keep=1, show_progress=show_progress)
     (score, tree) = result
     return tree

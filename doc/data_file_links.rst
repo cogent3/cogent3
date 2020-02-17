@@ -44,3 +44,10 @@ All data files referred to in the documentation can be download by clicking on t
 :download:`GN-tree.json <data/GN-tree.json>`
 
 :download:`tree-with-support.json <data/tree-with-support.json>`
+
+:download:`F9-demo.fa <data/F9-demo.fa>`
+
+:download:`BRCA1-demo.fasta <data/BRCA1-demo.fasta>`
+
+:download:`tbp.jaspar <data/tbp.jaspar>`
+

@@ -20,6 +20,12 @@ jobs:
     - bash: |
         tox -e py36
         codecov
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/junit-*.xml'
+        testRunTitle: 'Publish test results for Linux Python 3.6'
+        failTaskOnFailedTests: true
 - job: Linux_Test_py37
   pool: {vmImage: 'ubuntu-latest'}
   steps:
@@ -33,6 +39,12 @@ jobs:
     - bash: |
         tox -e py37
         codecov
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/junit-*.xml'
+        testRunTitle: 'Publish test results for Linux Python 3.7'
+        failTaskOnFailedTests: true
 - job: Linux_Test_py38
   pool: {vmImage: 'ubuntu-latest'}
   steps:
@@ -46,6 +58,12 @@ jobs:
     - bash: |
         tox -e py38
         codecov
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/junit-*.xml'
+        testRunTitle: 'Publish test results for Linux Python 3.8'
+        failTaskOnFailedTests: true
 - job: MacOS_Test_py36
   pool: {vmImage: 'macos-latest'}
   steps:
@@ -59,6 +77,12 @@ jobs:
     - bash: |
         tox -e py36
         codecov
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/junit-*.xml'
+        testRunTitle: 'Publish test results for MacOS Python 3.6'
+        failTaskOnFailedTests: true
 - job: MacOS_Test_py37
   pool: {vmImage: 'macos-latest'}
   steps:
@@ -72,6 +96,12 @@ jobs:
     - bash: |
         tox -e py37
         codecov
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/junit-*.xml'
+        testRunTitle: 'Publish test results for MacOS Python 3.7'
+        failTaskOnFailedTests: true
 - job: MacOS_Test_py38
   pool: {vmImage: 'macos-latest'}
   steps:
@@ -85,6 +115,12 @@ jobs:
     - bash: |
         tox -e py38
         codecov
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/junit-*.xml'
+        testRunTitle: 'Publish test results for MacOS Python 3.8'
+        failTaskOnFailedTests: true
 - job: Windows_Test_py37
   pool: {vmImage: 'windows-latest'}
   steps:
@@ -95,6 +131,12 @@ jobs:
         python -m pip install .[dev] codecov
         tox -e py37
         codecov
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/junit-*.xml'
+        testRunTitle: 'Publish test results for Windows Python 3.8'
+        failTaskOnFailedTests: true
 
 - job: Linux_Build
   pool: {vmImage: 'ubuntu-latest'}

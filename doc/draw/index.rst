@@ -16,6 +16,7 @@ Alignments
     display-gaps-per-seq
     draw-alignment-coevolution
     draw-alignment-info-plot
+    draw-seqlogo
 
 
 *****

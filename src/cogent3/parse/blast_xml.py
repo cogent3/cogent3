@@ -3,11 +3,11 @@
 """
 
 __author__ = "Kristian Rother"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __contributors__ = ["Micah Hamady"]
 __credits__ = ["Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Kristian Rother"
 __email__ = "krother@rubor.de"
 __status__ = "Prototype"

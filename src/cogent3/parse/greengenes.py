@@ -11,10 +11,10 @@ from cogent3.parse.record_finder import DelimitedRecordFinder
 
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 __status__ = "Prototype"
