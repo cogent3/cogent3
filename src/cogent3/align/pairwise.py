@@ -17,6 +17,8 @@ from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge
 from cogent3.util.modules import ExpectedImportError, importVersionedModule
 from cogent3.util.warning import deprecated, discontinued
 
+from . import pairwise_pogs_numba as align_module
+from . import pairwise_seqs_numba as seq_align_module
 from .indel_positions import leaf2pog
 
 
@@ -25,38 +27,6 @@ def _as_combined_arrays(preds):
     j_sources, j_sources_offsets = pog2.as_combined_array()
     i_sources, i_sources_offsets = pog1.as_combined_array()
     return i_sources, i_sources_offsets, j_sources, j_sources_offsets
-
-
-def _importedPyrexAligningModule(name):
-    try:
-        return importVersionedModule(
-            name, globals(), (3, 1), "slow Python alignment implementation"
-        )
-    except ExpectedImportError:
-        return None
-
-
-try:
-    from . import (
-        pairwise_pogs_numba as align_module,
-        pairwise_seqs_numba as seq_align_module,
-    )
-except ImportError:
-    align_module = seq_align_module = None
-
-# align_module = _importedPyrexAligningModule('_pairwise_pogs')
-# seq_align_module = _importedPyrexAligningModule('_pairwise_seqs')
-
-# Deal with minor API change between _pairwise_*.pyx versions 3.1 and 3.2
-# rather than forcing everyone to recompile immediately.
-# After 1.6 release this can be replaced by (3, 2) requirement above.
-versions = [m.version_info for m in [seq_align_module, align_module] if m is not None]
-if len(versions) == 0 or min(versions) >= (3, 2):
-    TRACK_INT_TYPE = numpy.uint8
-elif max(versions) < (3, 2):
-    TRACK_INT_TYPE = numpy.int8
-else:
-    raise ImportError("Incompatible _pairwise_*.pyx module versions. Recompile them")
 
 
 __author__ = "Peter Maxwell"
@@ -74,7 +44,7 @@ class PointerEncoding(object):
     whatever bits are left over after the x and y pointers have claimed what
     they need, which is expected to be only 2 bits each at most"""
 
-    dtype = TRACK_INT_TYPE
+    dtype = numpy.uint8
     bytes = 1
 
     def __init__(self, x, y):

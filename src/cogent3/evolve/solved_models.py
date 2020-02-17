@@ -17,14 +17,8 @@ from cogent3.evolve.substitution_model import (
 from cogent3.maths.matrix_exponentiation import FastExponentiator
 from cogent3.util.modules import ExpectedImportError, importVersionedModule
 
+from . import solved_models_numba as _solved_models
 
-try:
-    from . import solved_models_numba as _solved_models
-
-    # _solved_models = importVersionedModule('_solved_models', globals(),
-    # (1, 0), "only matrix exponentiating DNA models")
-except ImportError:
-    _solved_models = None
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"

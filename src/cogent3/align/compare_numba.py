@@ -6,15 +6,15 @@ from numba.types import List
 from numba.types.containers import Tuple
 
 
-@njit(
-    List(dtype=Tuple(types=(int64, int64)))(
-        numba.typeof(b"seq"), numba.typeof(b"seq"), int64, int64, int64, int64
-    ),
-    cache=True,
-)
+# @njit(
+#     List(dtype=Tuple(types=(int64, int64)))(
+#         numba.typeof(b"seq"), numba.typeof(b"seq"), int64, int64, int64, int64
+#     ),
+#     cache=True,
+# )
 def segments_from_diagonal(seq1, seq2, window, threshold, min_gap_length, diagonal):
-    scores = np.zeros(window)
     assert window < 100
+    scores = np.zeros(window)
 
     len1 = len(seq1)
     len2 = len(seq2)
