@@ -8,6 +8,7 @@ import numpy
 
 from cogent3.maths.stats import chisqprob
 from cogent3.util.misc import get_object_provenance
+from cogent3.util.table import Table
 
 
 __author__ = "Gavin Huttley"
@@ -21,8 +22,7 @@ __status__ = "Alpha"
 
 
 class generic_result(MutableMapping):
-    """a dict style container for storing results. All keys are
-    converted to strings to ensure the object can be json serialised"""
+    """A dict style container for storing results."""
 
     _type = "generic_result"
 
@@ -95,6 +95,8 @@ class generic_result(MutableMapping):
 
 @total_ordering
 class model_result(generic_result):
+    """Storage of model results."""
+
     _type = "model_result"
     _stat_attrs = ("lnL", "nfp", "DLC", "unique_Q")
 
@@ -135,8 +137,6 @@ class model_result(generic_result):
         self._unique_Q = None
 
     def _get_repr_data_(self):
-        from cogent3.util.table import Table
-
         self.lf  # making sure we're fully reloaded
         attrs = ["lnL", "nfp", "DLC", "unique_Q"]
         header = ["key"] + attrs[:]
@@ -365,88 +365,37 @@ class model_result(generic_result):
         return result
 
 
-class hypothesis_result(generic_result):
-    _type = "hypothesis_result"
+class model_collection_result(generic_result):
+    """Storage of a collection of model_result."""
 
-    def __init__(self, name_of_null, source=None):
+    _type = "model_collection_result"
+
+    def __init__(self, source=None):
         """
         alt
             either a likelihood function instance
         """
-        super(hypothesis_result, self).__init__(source)
-        self._construction_kwargs = dict(name_of_null=name_of_null, source=source)
-
-        self._name_of_null = name_of_null
+        super(model_collection_result, self).__init__(source)
 
     def _get_repr_data_(self):
-        from cogent3.util.table import Table
-
         rows = []
         attrs = ["lnL", "nfp", "DLC", "unique_Q"]
         for key, member in self.items():
             member.lf  # making sure we're fully reloaded
-            if key == self._name_of_null:
-                status_name = ["null", repr(key)]
-            else:
-                status_name = ["alt", (repr(key))]
-            row = status_name + [getattr(member, a) for a in attrs]
+            row = [repr(key)] + [getattr(member, a) for a in attrs]
             rows.append(row)
 
-        table = Table(header=["hypothesis", "key"] + attrs, rows=rows)
+        table = Table(header=["key"] + attrs, rows=rows)
         table = table.sorted(columns="nfp")
-        stats = [[self.LR, self.df, self.pvalue]]
-        stats = Table(header=["LR", "df", "pvalue"], rows=stats, title="Statistics")
-        return stats, table
+        return table
 
     def _repr_html_(self):
-        stats, table = self._get_repr_data_()
-        result = [t._repr_html_(include_shape=False) for t in (stats, table)]
-        return "\n".join(result)
+        table = self._get_repr_data_()
+        return table._repr_html_(include_shape=False)
 
     def __repr__(self):
-        stats, table = self._get_repr_data_()
-        result = []
-        for t in (stats, table):
-            r, _ = t._get_repr_()
-            result.append(str(r))
-
-        return "\n".join(result)
-
-    @property
-    def null(self):
-        return self[self._name_of_null]
-
-    @property
-    def alt(self):
-        alts = [self[k] for k in self if k != self._name_of_null]
-        alt = max(alts)
-        return alt
-
-    @property
-    def LR(self):
-        """returns 2 * (alt.lnL - null.lnL)"""
-        LR = self.alt.lnL - self.null.lnL
-        LR *= 2
-        return LR
-
-    @property
-    def df(self):
-        """returns the degrees-of-freedom (alt.nfp - null.nfp)"""
-        df = self.alt.nfp - self.null.nfp
-        return df
-
-    @property
-    def pvalue(self):
-        """returns p-value from chisqprob(LR, df)
-
-        None if LR < 0"""
-        if self.LR == 0:
-            pvalue = 1
-        elif self.LR > 0:
-            pvalue = chisqprob(self.LR, self.df)
-        else:
-            pvalue = None
-        return pvalue
+        table = self._get_repr_data_()
+        return str(table._get_repr_())
 
     def select_models(self, stat="aicc", threshold=0.05):
         """returns models satisfying stat threshold.
@@ -507,6 +456,91 @@ class hypothesis_result(generic_result):
             selected = selected[:1]
 
         return selected[0]
+
+
+class hypothesis_result(model_collection_result):
+    """Storage of a collection of model_result instances that are hierarchically
+    related."""
+
+    _type = "hypothesis_result"
+
+    def __init__(self, name_of_null, source=None):
+        """
+        alt
+            either a likelihood function instance
+        """
+        super(hypothesis_result, self).__init__(source)
+        self._construction_kwargs = dict(name_of_null=name_of_null, source=source)
+
+        self._name_of_null = name_of_null
+
+    def _get_repr_data_(self):
+        rows = []
+        attrs = ["lnL", "nfp", "DLC", "unique_Q"]
+        for key, member in self.items():
+            member.lf  # making sure we're fully reloaded
+            if key == self._name_of_null:
+                status_name = ["null", repr(key)]
+            else:
+                status_name = ["alt", repr(key)]
+            row = status_name + [getattr(member, a) for a in attrs]
+            rows.append(row)
+
+        table = Table(header=["hypothesis", "key"] + attrs, rows=rows)
+        table = table.sorted(columns="nfp")
+        stats = [[self.LR, self.df, self.pvalue]]
+        stats = Table(header=["LR", "df", "pvalue"], rows=stats, title="Statistics")
+        return stats, table
+
+    def _repr_html_(self):
+        stats, table = self._get_repr_data_()
+        result = [t._repr_html_(include_shape=False) for t in (stats, table)]
+        return "\n".join(result)
+
+    def __repr__(self):
+        stats, table = self._get_repr_data_()
+        result = []
+        for t in (stats, table):
+            r, _ = t._get_repr_()
+            result.append(str(r))
+
+        return "\n".join(result)
+
+    @property
+    def null(self):
+        return self[self._name_of_null]
+
+    @property
+    def alt(self):
+        alts = [self[k] for k in self if k != self._name_of_null]
+        alt = max(alts)
+        return alt
+
+    @property
+    def LR(self):
+        """returns 2 * (alt.lnL - null.lnL)"""
+        LR = self.alt.lnL - self.null.lnL
+        LR *= 2
+        return LR
+
+    @property
+    def df(self):
+        """returns the degrees-of-freedom (alt.nfp - null.nfp)"""
+        df = self.alt.nfp - self.null.nfp
+        return df
+
+    @property
+    def pvalue(self):
+        """returns p-value from chisqprob(LR, df)
+
+        None if LR < 0"""
+        if self.LR == 0:
+            pvalue = 1
+        elif self.LR > 0:
+            pvalue = chisqprob(self.LR, self.df)
+        else:
+            pvalue = None
+        return pvalue
 
 
 class bootstrap_result(generic_result):
