@@ -370,12 +370,14 @@ class model_collection_result(generic_result):
 
     _type = "model_collection_result"
 
-    def __init__(self, source=None):
+    def __init__(self, name=None, source=None):
         """
         alt
             either a likelihood function instance
         """
         super(model_collection_result, self).__init__(source)
+        self._construction_kwargs.update({"name": name})
+        self._name = name
 
     def _get_repr_data_(self):
         rows = []
@@ -385,7 +387,7 @@ class model_collection_result(generic_result):
             row = [repr(key)] + [getattr(member, a) for a in attrs]
             rows.append(row)
 
-        table = Table(header=["key"] + attrs, rows=rows)
+        table = Table(header=["key"] + attrs, rows=rows, title=self.name)
         table = table.sorted(columns="nfp")
         return table
 
@@ -396,6 +398,10 @@ class model_collection_result(generic_result):
     def __repr__(self):
         table = self._get_repr_data_()
         return str(table._get_repr_())
+
+    @property
+    def name(self):
+        return self._name
 
     def select_models(self, stat="aicc", threshold=0.05):
         """returns models satisfying stat threshold.
@@ -464,12 +470,12 @@ class hypothesis_result(model_collection_result):
 
     _type = "hypothesis_result"
 
-    def __init__(self, name_of_null, source=None):
+    def __init__(self, name_of_null, name=None, source=None):
         """
         alt
             either a likelihood function instance
         """
-        super(hypothesis_result, self).__init__(source)
+        super(hypothesis_result, self).__init__(name=name, source=source)
         self._construction_kwargs = dict(name_of_null=name_of_null, source=source)
 
         self._name_of_null = name_of_null
@@ -486,7 +492,7 @@ class hypothesis_result(model_collection_result):
             row = status_name + [getattr(member, a) for a in attrs]
             rows.append(row)
 
-        table = Table(header=["hypothesis", "key"] + attrs, rows=rows)
+        table = Table(header=["hypothesis", "key"] + attrs, rows=rows, title=self.name)
         table = table.sorted(columns="nfp")
         stats = [[self.LR, self.df, self.pvalue]]
         stats = Table(header=["LR", "df", "pvalue"], rows=stats, title="Statistics")

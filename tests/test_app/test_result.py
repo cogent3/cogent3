@@ -176,12 +176,16 @@ class TestModelCollectionResult(TestCase):
 
     def test_json_roundtrip(self):
         """roundtrip from json correct"""
-        coll = model_collection_result(None)
+        coll = model_collection_result(name="blah", source="blah2")
         coll.update(self._model_results)
+        self.assertEqual(coll.name, "blah")
+        self.assertEqual(coll.source, "blah2")
         orig = coll.__repr__()
         got = deserialise_object(coll.to_json())
         self.assertEqual(got.__repr__(), orig)
         self.assertIsInstance(got, model_collection_result)
+        self.assertEqual(got.name, coll.name)
+        self.assertEqual(got.source, coll.source)
 
 
 if __name__ == "__main__":
