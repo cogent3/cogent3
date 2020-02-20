@@ -7,7 +7,7 @@ from functools import total_ordering
 import numpy
 
 from cogent3.maths.stats import chisqprob
-from cogent3.util.misc import get_object_provenance
+from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.table import Table
 
 
@@ -131,10 +131,10 @@ class model_result(generic_result):
         self._elapsed_time = elapsed_time
         self._num_evaluations = num_evaluations
         self._evaluation_limit = evaluation_limit
-        self._lnL = None
-        self._nfp = None
-        self._DLC = None
-        self._unique_Q = None
+        self._lnL = lnL
+        self._nfp = nfp
+        self._DLC = DLC
+        self._unique_Q = unique_Q
 
     def _get_repr_data_(self):
         self.lf  # making sure we're fully reloaded
@@ -372,8 +372,10 @@ class model_collection_result(generic_result):
 
     def __init__(self, name=None, source=None):
         """
-        alt
-            either a likelihood function instance
+        name : str
+            name of this hypothesis
+        source : str
+            string describing source of the data, e.g. a path
         """
         super(model_collection_result, self).__init__(source)
         self._construction_kwargs.update({"name": name})
@@ -470,10 +472,11 @@ class hypothesis_result(model_collection_result):
 
     _type = "hypothesis_result"
 
+    @extend_docstring_from(model_collection_result.__init__, pre=True)
     def __init__(self, name_of_null, name=None, source=None):
         """
-        alt
-            either a likelihood function instance
+        name_of_null
+            key for the null hypothesis
         """
         super(hypothesis_result, self).__init__(name=name, source=source)
         self._construction_kwargs = dict(name_of_null=name_of_null, source=source)
