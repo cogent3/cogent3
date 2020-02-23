@@ -1,6 +1,15 @@
 import numpy as np
 
-from numba import boolean, float64, int64, jitclass, njit, optional, uint8
+from numba import (
+    boolean,
+    float64,
+    int32,
+    int64,
+    jitclass,
+    njit,
+    optional,
+    uint8,
+)
 from numba.types.containers import Tuple
 
 
@@ -26,7 +35,8 @@ __version__ = "2019.12.6a"
         float64[:, ::1],
         float64[:, ::1],
         float64[:, :, ::1],
-        Tuple(types=(optional(float64[:, :, ::1]), optional(int64[:, :, ::1]),)),
+        optional(float64[:, :, ::1]),
+        optional(int64[:, :, ::1]),
         optional(uint8[:, :, ::1]),
         optional(int64[::1]),
         boolean,
@@ -53,7 +63,8 @@ def calc_rows(
     xgap_scores,
     ygap_scores,
     match_scores,
-    rows,
+    mantissas,
+    exponents,
     track,
     track_enc,
     viterbi,
@@ -104,8 +115,6 @@ def calc_rows(
     i_link_count = i_sources.shape[0]
     row_count1 = row_count + 1
     row_count1 = max(row_count1, i_sources_offsets.shape[0])
-
-    mantissas, exponents = rows
 
     tmp_rows = mantissas.shape[0]
     row_length = max(mantissas.shape[1], row_length)

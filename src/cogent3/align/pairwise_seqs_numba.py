@@ -26,7 +26,8 @@ __version__ = "2019.12.6a"
         float64[:, ::1],
         float64[:, ::1],
         float64[:, :, ::1],
-        Tuple(types=(optional(float64[:, :, ::1]), optional(int64[:, :, ::1]),)),
+        optional(float64[:, :, ::1]),
+        optional(int64[:, :, ::1]),
         optional(uint8[:, :, ::1]),
         optional(int64[::1]),
         boolean,
@@ -53,7 +54,8 @@ def calc_rows(
     xgap_scores,
     ygap_scores,
     match_scores,
-    rows,
+    mantissas,
+    exponents,
     track,
     track_enc,
     viterbi,
@@ -95,8 +97,6 @@ def calc_rows(
         assert 0 <= y_index[j] <= max_y
 
     assert j_low >= 0 and j_high > j_low and j_high <= row_length
-
-    mantissas, exponents = rows
 
     tmp_rows = mantissas.shape[0]
     row_length = max(mantissas.shape[1], row_length)

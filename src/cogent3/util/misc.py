@@ -12,6 +12,8 @@ from random import choice, randint
 from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn
 
+import numpy
+
 from numpy import array, ceil, finfo, float64, floor, log10, logical_not, sum
 
 
@@ -1137,3 +1139,9 @@ def extend_docstring_from(source, pre=False):
         return dest
 
     return docstring_inheriting_decorator
+
+
+def ascontiguousarray(source_array, dtype=None):
+    if source_array is not None:
+        return numpy.ascontiguousarray(source_array, dtype=dtype)
+    return source_array

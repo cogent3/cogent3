@@ -14,6 +14,7 @@ import numpy
 from cogent3.align.traceback import alignment_traceback, map_traceback
 from cogent3.core.alignment import Aligned
 from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge
+from cogent3.util.misc import ascontiguousarray
 from cogent3.util.modules import ExpectedImportError, importVersionedModule
 
 from . import pairwise_pogs_numba as align_module
@@ -238,9 +239,11 @@ class Pair(object):
 
         self.size = [len(alignable1), len(alignable2)]
         self.uniq_size = [len(alignable1.plh), len(alignable2.plh)]
-        self.plan = numpy.array(alignable1.get_row_assignment_plan())
-        self.x_index = alignable1.index
-        self.y_index = alignable2.index
+        self.plan = ascontiguousarray(
+            alignable1.get_row_assignment_plan(), dtype="int64"
+        )
+        self.x_index = ascontiguousarray(alignable1.index, dtype="int64")
+        self.y_index = ascontiguousarray(alignable2.index, dtype="int64")
 
     def get_seq_name_pairs(self):
         return [(a.leaf.edge_name, a.leaf.sequence) for a in self.children]
@@ -334,7 +337,10 @@ class Pair(object):
             exponents = numpy.ones(shape, int) * -10000
         else:
             exponents = None
-        return (mantissas, exponents)
+        return (
+            ascontiguousarray(mantissas, dtype="float64"),
+            ascontiguousarray(exponents, dtype="int64"),
+        )
 
     def calc_rows(
         self,
@@ -352,8 +358,13 @@ class Pair(object):
         **kw,
     ):
         (match_scores, (xscores, yscores)) = scores
-        track_enc = track_encoding and track_encoding.positions
-        # print T
+        match_scores = ascontiguousarray(match_scores, dtype="float64")
+        xscores = ascontiguousarray(xscores, dtype="float64")
+        yscores = ascontiguousarray(yscores, dtype="float64")
+
+        track_enc = ascontiguousarray(
+            track_encoding and track_encoding.positions, dtype="int64"
+        )
 
         (
             i_sources,
@@ -361,6 +372,9 @@ class Pair(object):
             j_sources,
             j_sources_offsets,
         ) = _as_combined_arrays(self.children)
+
+        (mantissas, exponents) = rows
+
         return self.aligner(
             self.plan,
             self.x_index,
@@ -378,7 +392,8 @@ class Pair(object):
             xscores,
             yscores,
             match_scores,
-            rows,
+            mantissas,
+            exponents,
             track,
             track_enc,
             viterbi,
@@ -410,7 +425,10 @@ class _Alignable(object):
         offsets.append(len(pred))
         # provides the paths leading to a point (predecessors), and offsets
         # records index positions fdor each point (graph node)
-        return (numpy.array(pred), numpy.array(offsets))
+        return (
+            ascontiguousarray(pred, dtype="int64"),
+            ascontiguousarray(offsets, dtype="int64"),
+        )
 
     def as_combined_array(self):
         if not hasattr(self, "_combined"):
