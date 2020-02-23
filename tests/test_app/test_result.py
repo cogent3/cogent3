@@ -2,7 +2,8 @@ from unittest import TestCase, main
 
 from cogent3 import make_aligned_seqs
 from cogent3.app import evo as evo_app
-from cogent3.app.result import generic_result
+from cogent3.app.result import generic_result, model_collection_result
+from cogent3.util.deserialise import deserialise_object
 
 
 __author__ = "Gavin Huttley"
@@ -117,6 +118,74 @@ class TestGenericResult(TestCase):
         self.assertEqual(
             got.children[0].params["length"], got.children[0].params["paralinear"]
         )
+
+
+class TestModelCollectionResult(TestCase):
+    _model_results = {}
+
+    def setUp(self):
+        """constructs _model_results if they don't already exist"""
+        if self._model_results:
+            return
+
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        model1 = evo_app.model(
+            "F81", opt_args=dict(max_evaluations=25, limit_action="ignore")
+        )
+        model2 = evo_app.model(
+            "HKY85", opt_args=dict(max_evaluations=25, limit_action="ignore")
+        )
+        mr1 = model1(aln)
+        mr2 = model2(aln)
+        self._model_results[mr1.name] = mr1
+        self._model_results[mr2.name] = mr2
+
+    def test_get_best_model(self):
+        """should correctly identify the best model"""
+        coll = model_collection_result(None)
+        coll.update(self._model_results)
+        got = coll.get_best_model()
+        # we ensure a model_result instance is returned from the possible set
+        self.assertIn(got, self._model_results.values())
+
+    def test_select_model(self):
+        """correctly select models"""
+        # we ensure a series of model_result instances is returned
+        coll = model_collection_result(None)
+        coll.update(self._model_results)
+        got = coll.select_models()
+        self.assertTrue(len(got) > 0)
+        possible = list(self._model_results.values())
+        for m in got:
+            self.assertIn(m, possible)
+
+    def test_model_collection_result_repr(self):
+        """constructed result can do the different repr"""
+        result = model_collection_result(None)
+        coll = model_collection_result(None)
+        coll.update(self._model_results)
+        got = result.__repr__()
+        self.assertIsInstance(got, str)
+        got = result._repr_html_()
+        self.assertIsInstance(got, str)
+
+    def test_json_roundtrip(self):
+        """roundtrip from json correct"""
+        coll = model_collection_result(name="blah", source="blah2")
+        coll.update(self._model_results)
+        self.assertEqual(coll.name, "blah")
+        self.assertEqual(coll.source, "blah2")
+        orig = coll.__repr__()
+        got = deserialise_object(coll.to_json())
+        self.assertEqual(got.__repr__(), orig)
+        self.assertIsInstance(got, model_collection_result)
+        self.assertEqual(got.name, coll.name)
+        self.assertEqual(got.source, coll.source)
 
 
 if __name__ == "__main__":
