@@ -373,6 +373,10 @@ class Pair(object):
             j_sources_offsets,
         ) = _as_combined_arrays(self.children)
 
+        state_directions = ascontiguousarray(state_directions, dtype="int64")
+        T = ascontiguousarray(T, dtype="float64")
+        track = ascontiguousarray(track, dtype="uint8")
+
         (mantissas, exponents) = rows
 
         return self.aligner(
