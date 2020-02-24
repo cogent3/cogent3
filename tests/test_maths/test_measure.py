@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from numpy import diag_indices, dot
+from numpy import diag_indices, dot, finfo, float64
 from numpy.random import random
 from numpy.testing import assert_allclose
 
@@ -15,10 +15,10 @@ from cogent3.maths.measure import (
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Stephen Ka-Wah Ma"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -111,6 +111,11 @@ class ParalinearTest(TestCase):
 
 
 class TestJensenShannon(TestCase):
+    # the following value is 4x machine precision, used to handle
+    # architectures that have lower precision and do not produce 0.0 from
+    # numerical calcs involved in jsd/jsm
+    atol = 4 * finfo(float64).eps
+
     def test_jsd_validation(self):
         """jsd fails with malformed data"""
         freqs1 = random(5)
@@ -164,85 +169,94 @@ class TestJensenShannon(TestCase):
             jsd(normalised_freqs1, freqs2, validate=True)  # invalid freqs2
 
     def test_jsd(self):
-        """case1 is testing if the jsd between two identical distributions is 0.0"""
+        """evaluate jsd between identical, and non-identical distributions"""
+        # case1 is testing if the jsd between two identical distributions is 0.0
         case1 = [
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0],
         ]
-        for pointer in range(10):
-            case1[0][pointer] = 1.0
-            case1[1][pointer] = 1.0
+        for index in range(len(case1[0])):
+            case1[0][index] = 1.0
+            case1[1][index] = 1.0
             assert_allclose(
                 jsd(case1[0], case1[1], validate=True),
                 0.0,
                 err_msg="Testing case1 for jsd failed",
+                atol=self.atol,
             )
-            case1[0][pointer] = 0.0
-            case1[1][pointer] = 0.0
-        """case2 is testing the numerical output of jsd between two random distributions"""
-        case2 = [[1.0 / 10, 9.0 / 10, 0], [0, 1.0 / 10, 9.0 / 10]]
+            case1[0][index] = 0.0
+            case1[1][index] = 0.0
+        # case2 is testing the numerical output of jsd between two distant distributions
+        case2 = [[1 / 10, 9 / 10, 0], [0, 1 / 10, 9 / 10]]
         assert_allclose(
             jsd(case2[0], case2[1], validate=True),
             0.7655022032053593,
             err_msg="Testing case2 for jsd failed",
+            atol=self.atol,
         )
-        """case3 is testing the numerical output of jsd between two random distributions"""
-        case3 = [[1.0, 0.0], [0.5, 0.5]]
+        # case3 is testing the numerical output of jsd between two distant distributions
+        case3 = [[1.0, 0.0], [1 / 2, 1 / 2]]
         assert_allclose(
             jsd(case3[0], case3[1], validate=True),
             0.3112781244591328,
             err_msg="Testing case3 for jsd failed",
+            atol=self.atol,
         )
-        """case4 is testing if the jsd between two identical uniform distributions is 0.0"""
+        # case4 - the jsd between two identical uniform distributions is 0.0
         case4 = [
-            [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
-            [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+            [1 / 10] * 10,
+            [1 / 10] * 10,
         ]
         assert_allclose(
             jsd(case4[0], case4[1], validate=True),
             0.0,
             err_msg="Testing case4 for jsd failed",
+            atol=self.atol,
         )
 
     def test_jsm(self):
-        """case1 is testing if the jsm between two identical distributions is 0.0"""
+        """evaluate jsm between identical, and non-identical distributions"""
         case1 = [
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0],
         ]
-        for pointer in range(10):
-            case1[0][pointer] = 1.0
-            case1[1][pointer] = 1.0
+        for index in range(len(case1[0])):
+            case1[0][index] = 1.0
+            case1[1][index] = 1.0
             assert_allclose(
                 jsm(case1[0], case1[1], validate=True),
                 0.0,
                 err_msg="Testing case1 for jsm failed",
+                atol=self.atol,
             )
-            case1[0][pointer] = 0.0
-            case1[1][pointer] = 0.0
-        """case2 is testing the numerical output of jsm between two random distributions"""
-        case2 = [[1.0 / 10, 9.0 / 10, 0], [0, 1.0 / 10, 9.0 / 10]]
+            case1[0][index] = 0.0
+            case1[1][index] = 0.0
+        # case2 is testing the numerical output of jsm between two random distributions
+        case2 = [[1 / 10, 9 / 10, 0], [0, 1 / 10, 9 / 10]]
         assert_allclose(
             jsm(case2[0], case2[1], validate=True),
             0.8749298275892526,
             err_msg="Testing case2 for jsm failed",
+            atol=self.atol,
         )
-        """case3 is testing the numerical output of jsm between two random distributions"""
-        case3 = [[1.0, 0.0], [0.5, 0.5]]
+        # case3 is testing the numerical output of jsm between two random distributions
+        case3 = [[1.0, 0.0], [1 / 2, 1 / 2]]
         assert_allclose(
             jsm(case3[0], case3[1], validate=True),
             0.5579230452841438,
             err_msg="Testing case3 for jsm failed",
+            atol=self.atol,
         )
-        """case4 is testing if the jsm between two identical uniform distributions is 0.0"""
+        # case4 is testing if the jsm between two identical uniform distributions is 0.0
         case4 = [
-            [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
-            [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+            [1 / 10] * 10,
+            [1 / 10] * 10,
         ]
         assert_allclose(
             jsm(case4[0], case4[1], validate=True),
             0.0,
             err_msg="Testing case4 for jsm failed",
+            atol=self.atol,
         )
 
 

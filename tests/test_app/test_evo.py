@@ -12,10 +12,10 @@ from cogent3.util.deserialise import deserialise_object
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -159,6 +159,27 @@ class TestModel(TestCase):
         aln1 = result.lf[1].get_param_value("alignment").to_dict()
         self.assertEqual(aln1, aln[::3].to_dict())
 
+    def test_split_codon_model_result_json(self):
+        """round trip split_codon result"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        tree = make_tree(tip_names=aln.names)
+        mod = evo_app.model(
+            "F81",
+            tree=tree,
+            split_codons=True,
+            opt_args=dict(max_evaluations=5, limit_action="ignore"),
+        )
+        result = mod(aln)
+        lf1 = result.lf[1]
+        json = result.to_json()
+        deser = deserialise_object(json)
+        assert_allclose(deser.lf[1].lnL, lf1.lnL)
+
     def test_model_summed_branch_lengths(self):
         """returns summed branch lengths"""
         _data = {
@@ -282,6 +303,66 @@ class TestHypothesisResult(TestCase):
         self.assertEqual(len(got), 3)
         expect = set(hyp.values())
         self.assertEqual(set(got), expect)
+
+    def test_null_hyp_fail_error(self):
+        """if null fails NotCompleted.origin should be model"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        tree = "((Mouse,Rat),Human,Opossum)"
+        m1 = evo_app.model("F81", tree=tree)
+        m2 = evo_app.model("GTR", tree=tree)
+        hyp = evo_app.hypothesis(m1, m2)
+        r = hyp(aln)
+        self.assertEqual(r.origin, "model")
+
+    def test_hyp_split_codon_select_models(self):
+        """hypothesis_result identifies selects best model when split_codon"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        opt_args = dict(max_evaluations=10, limit_action="ignore")
+        m1 = evo_app.model("F81", split_codons=True, opt_args=opt_args)
+        m2 = evo_app.model("GTR", split_codons=True, opt_args=opt_args)
+        hyp = evo_app.hypothesis(m1, m2)
+        r = hyp(aln)
+        bm = r.select_models()
+        assert_allclose(bm[0].lnL, -85.00043312185628)
+
+    def test_alt_hyp_fail_error(self):
+        """if alt fails NotCompleted.origin should be model"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGA",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGA",
+            "Opossum": "TGACCAGTGAAAGTGGCGGCGGTGGCTGA",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        tree = "(Mouse,Human,Opossum)"
+        m1 = evo_app.model("F81", tree=tree)
+        m2 = evo_app.model("MG94HKY", tree=tree)
+        hyp = evo_app.hypothesis(m1, m2)
+        r = hyp(aln)
+        self.assertEqual(r.origin, "model")
+
+    def test_model_moltype_mismatch(self):
+        """if model and alignment moltypes incompatible"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGA",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGA",
+            "Opossum": "TGACCAGTGAAAGTGGCGGCGGTGGCTGA",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        tree = "(Mouse,Human,Opossum)"
+        m1 = evo_app.model("JTT92", tree=tree)
+        r = m1(aln)
+        print(r)
+        self.assertEqual(r.origin, "model")
 
 
 class TestAncestralStates(TestCase):

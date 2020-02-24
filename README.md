@@ -1,6 +1,8 @@
 [![Build Status](https://dev.azure.com/GavinHuttley/cogent3/_apis/build/status/cogent3.cogent3?branchName=master)](https://dev.azure.com/GavinHuttley/cogent3/_build/latest?definitionId=1&branchName=master)
 [![codecov](https://codecov.io/gh/cogent3/cogent3/branch/master/graph/badge.svg)](https://codecov.io/gh/cogent3/cogent3)
 ![Using Black Formatting](https://img.shields.io/badge/code%20style-black-000000.svg)
+[![Python 3.6+](https://img.shields.io/badge/python-3.6+-blue.svg)](https://www.python.org/downloads/release/python-360/)
+
 
 ## `cogent3`
 

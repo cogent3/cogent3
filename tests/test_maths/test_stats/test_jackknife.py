@@ -5,10 +5,10 @@ from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Anuj Pahwa, Gavin Huttley"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Anuj Pahwa", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -21,7 +21,7 @@ def pmcc(data, axis=1):
     is two dimensional: [[Y1], [Y2]] (trying to determine the correlation
     coefficient between data sets Y1 and Y2"""
 
-    if axis is 0:
+    if axis == 0:
         data = data.transpose()
         axis = 1
 
@@ -96,7 +96,7 @@ class JackknifeTests(TestCase):
         test_knife = JackknifeStats(data.shape[1], pmcc_stat)
         self.assertFloatEqual(test_knife.JackknifedStat, 1.2905845)
         self.assertFloatEqual(test_knife.Exception, 0.2884490)
-        self.assertTrue(test_knife._jackknifed_stat is not None)
+        self.assertTrue(test_knife._jackknifed_stat != None)
 
         # Vector
         mean_stat = stat_maker(mean, data, 1)

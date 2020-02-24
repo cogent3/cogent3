@@ -64,6 +64,7 @@ from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.nexus import nexus_from_alignment
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.maths.stats.number import CategoryCounter
+from cogent3.maths.util import safe_log
 from cogent3.parse.gff import gff_parser
 from cogent3.util import progress_display as UI
 from cogent3.util.dict_array import DictArrayTemplate
@@ -76,7 +77,7 @@ from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Peter Maxwell and Rob Knight"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = [
     "Peter Maxwell",
     "Rob Knight",
@@ -89,7 +90,7 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -485,7 +486,10 @@ class _SequenceCollectionBase:
         # if we're forcing the same data, skip the validation
         if force_same_data:
             self._force_same_data(data, names)
-            curr_seqs = data
+            if isinstance(data, dict):
+                curr_seqs = list(data.values())
+            else:
+                curr_seqs = data
         # otherwise, figure out what we got and coerce it into the right type
         else:
             per_seq_names, curr_seqs, name_order = self._names_seqs_order(
@@ -546,12 +550,30 @@ class _SequenceCollectionBase:
 
     def _force_same_data(self, data, names):
         """Forces dict that was passed in to be used as self.named_seqs"""
+        assert isinstance(data, dict), "force_same_data requires input data is a dict"
         self.named_seqs = data
         self.names = names or list(data.keys())
 
     def copy(self):
         """Returns deep copy of self."""
         result = self.__class__(self, moltype=self.moltype, info=self.info)
+        return result
+
+    def deepcopy(self, sliced=True):
+        """Returns deep copy of self."""
+        new_seqs = dict()
+        for seq in self.seqs:
+            try:
+                new_seq = seq.deepcopy(sliced=sliced)
+            except AttributeError:
+                new_seq = seq.copy()
+            new_seqs[seq.name] = new_seq
+
+        info = deepcopy(self.info)
+        result = self.__class__(
+            new_seqs, moltype=self.moltype, info=info, force_same_data=True
+        )
+        result._repr_policy.update(self._repr_policy)
         return result
 
     def _get_alphabet_and_moltype(self, alphabet, moltype, data):
@@ -1416,7 +1438,7 @@ class _SequenceCollectionBase:
         include_ambiguity
             if True, motifs containing ambiguous characters
             from the seq moltype are included. No expansion of those is attempted.
-        allow_gaps
+        allow_gap
             if True, motifs containing a gap character are included.
 
         Notes
@@ -2214,6 +2236,44 @@ class AlignmentI(object):
     default_gap = "-"  # default gap character for padding
     gap_chars = dict.fromkeys("-?")  # default gap chars for comparisons
 
+    def alignment_quality(self, equifreq_mprobs=True):
+        """
+        Computes the alignment quality for an alignment based on eq. (2) in noted reference.
+
+        Parameters
+        ----------
+        equifreq_mprobs : bool
+            If true, specifies equally frequent motif probabilities.
+
+        Notes
+        -----
+        G. Z. Hertz, G. D. Stormo - Published 1999, Bioinformatics, vol. 15 pg. 563-577.
+
+        The alignment quality statistic is a log-likelihood ratio (computed using log2)
+        of the observed alignment column freqs versus the expected.
+        """
+        counts = self.counts_per_pos()
+        if counts.array.max() == 0 or len(self.seqs) == 1:
+            return None
+
+        motif_probs = self.get_motif_probs()
+
+        if equifreq_mprobs:
+            # we reduce motif_probs to observed states
+            motif_probs = {m: v for m, v in motif_probs.items() if v > 0}
+            num_motifs = len(motif_probs)
+            motif_probs = {m: 1 / num_motifs for m in motif_probs}
+
+        p = array([motif_probs.get(b, 0.0) for b in counts.motifs])
+
+        cols = p != 0
+        p = p[cols]
+        counts = counts.array[:, cols]
+        frequency = counts / self.num_seqs
+        log_f = safe_log(frequency / p)
+        I_seq = log_f * frequency
+        return I_seq.sum()
+
     def iter_positions(self, pos_order=None):
         """Iterates over positions in the alignment, in order.
 
@@ -2933,16 +2993,28 @@ class AlignmentI(object):
 
         data = list(self.to_dict().values())
         alpha = self.moltype.alphabet.get_word_alphabet(motif_length)
-        all_motifs = set() if allow_gap or include_ambiguity else None
+        all_motifs = set()
+        exclude_chars = set()
+        if not allow_gap:
+            exclude_chars.update(self.moltype.gap)
+
+        if not include_ambiguity:
+            ambigs = [c for c, v in self.moltype.ambiguities.items() if len(v) > 1]
+            exclude_chars.update(ambigs)
+
         result = []
         for i in range(0, len(self) - motif_length + 1, motif_length):
             counts = CategoryCounter([s[i : i + motif_length] for s in data])
-            if all_motifs is not None:
-                all_motifs.update(list(counts))
+            all_motifs.update(list(counts))
             result.append(counts)
 
         if all_motifs:
             alpha += tuple(sorted(set(alpha) ^ all_motifs))
+
+        if exclude_chars:
+            # this additional clause is required for the bytes moltype
+            # That moltype includes '-' as a character
+            alpha = [m for m in alpha if not (set(m) & exclude_chars)]
 
         for i, counts in enumerate(result):
             result[i] = counts.tolist(alpha)
@@ -2984,7 +3056,9 @@ class AlignmentI(object):
         motifs = set()
         for name in self.names:
             if is_array:
-                seq = self.named_seqs[name]
+                seq = self.moltype.make_array_seq(
+                    self.array_seqs[self.names.index(name)]
+                )
             else:
                 seq = self.get_gapped_seq(name)
             c = seq.counts(
@@ -3402,6 +3476,36 @@ class AlignmentI(object):
 
         return result
 
+    def seqlogo(self, width=700, height=100, wrap=None, vspace=0.005, colours=None):
+        """returns Drawable sequence logo using mutual information
+
+        Parameters
+        ----------
+        width, height : float
+            plot dimensions in pixels
+        wrap : int
+            number of alignment columns per row
+        vspace : float
+            vertical separation between rows, as a proportion of total plot
+        colours : dict
+            mapping of characters to colours. If note provided, defaults to
+            custom for everything ecept protein, which uses protein moltype
+            colours.
+
+        Notes
+        -----
+        Computes MI based on log2 and includes the gap state, so the maximum
+        possible value is -log2(1/num_states)
+        """
+        assert 0 <= vspace <= 1, "vertical space must be in range 0, 1"
+        freqs = self.counts_per_pos(allow_gap=True).to_freq_array()
+        if colours is None and "protein" in self.moltype.label:
+            colours = self.moltype._colors
+
+        return freqs.logo(
+            width=width, height=height, wrap=wrap, vspace=vspace, colours=colours
+        )
+
 
 def _one_length(seqs):
     """raises ValueError if seqs not all same length"""
@@ -3654,6 +3758,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         """Forces array that was passed in to be used as selfarray_positions"""
         if isinstance(data, ArrayAlignment):
             data = data._positions
+
         self.array_positions = data
         self.names = names or self._make_names(len(data[0]))
 
@@ -4197,6 +4302,20 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
                 identical_sets.append(set(self.names[i] for i in group))
 
         return identical_sets
+
+    def deepcopy(self, sliced=True):
+        """Returns deep copy of self."""
+        info = deepcopy(self.info)
+        positions = deepcopy(self.array_seqs)
+        result = self.__class__(
+            positions,
+            force_same_data=True,
+            moltype=self.moltype,
+            info=info,
+            names=self.names,
+        )
+        result._repr_policy.update(self._repr_policy)
+        return result
 
 
 class CodonArrayAlignment(ArrayAlignment):

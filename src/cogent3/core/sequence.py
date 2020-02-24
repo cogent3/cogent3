@@ -60,7 +60,7 @@ from .annotation import Map, _Annotatable
 
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = [
     "Rob Knight",
     "Peter Maxwell",
@@ -69,7 +69,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -1092,22 +1092,19 @@ class Sequence(_Annotatable, SequenceI):
 
 
 class ProteinSequence(Sequence):
-    """Holds the standard Protein sequence. MolType set in moltype module."""
+    """Holds the standard Protein sequence."""
 
     pass
 
 
 class ProteinWithStopSequence(Sequence):
-    """Holds the standard Protein sequence, allows for stop codon
-
-    MolType set in moltype module
-    """
+    """Holds the standard Protein sequence, allows for stop codon."""
 
     pass
 
 
 class NucleicAcidSequence(Sequence):
-    """base class for DNA and RNA sequences. Abstract."""
+    """Abstract base class for DNA and RNA sequences."""
 
     PROTEIN = None  # will set in moltype
     codon_alphabet = None  # will set in moltype
@@ -1279,6 +1276,8 @@ class NucleicAcidSequence(Sequence):
 
 
 class DnaSequence(NucleicAcidSequence):
+    """Holds the standard DNA sequence."""
+
     def get_colour_scheme(self, colours):
         return {
             "A": colours.black,
@@ -1293,6 +1292,8 @@ class DnaSequence(NucleicAcidSequence):
 
 
 class RnaSequence(NucleicAcidSequence):
+    """Holds the standard RNA sequence."""
+
     def get_colour_scheme(self, colours):
         return {
             "A": colours.black,
@@ -1307,7 +1308,7 @@ class RnaSequence(NucleicAcidSequence):
 
 
 class ABSequence(Sequence):
-    """Used for two-state modeling; MolType set in moltypes."""
+    """Holds a two-state sequence, with characters of 'a', 'b'"""
 
     pass
 
@@ -1316,7 +1317,7 @@ class ByteSequence(Sequence):
     """Used for storing arbitrary bytes."""
 
     def __init__(self, seq="", name=None, info=None, check=False, preserve_case=True):
-        return super(ByteSequence, self).__init__(
+        super(ByteSequence, self).__init__(
             seq, name=name, info=info, check=check, preserve_case=preserve_case
         )
 
@@ -1458,8 +1459,8 @@ class ArraySequenceBase(object):
         """iter returns characters of self, rather than slices."""
         if hasattr(self.alphabet, "to_string"):
             return iter(self.alphabet.to_string(self._data))
-        else:
-            return iter(self.Alpabet.from_indices(self._data))
+
+        return iter(self.alpabet.from_indices(self._data))
 
     def tostring(self):
         """to_string delegates to self._data."""

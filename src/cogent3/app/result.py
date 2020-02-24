@@ -7,22 +7,22 @@ from functools import total_ordering
 import numpy
 
 from cogent3.maths.stats import chisqprob
-from cogent3.util.misc import get_object_provenance
+from cogent3.util.misc import extend_docstring_from, get_object_provenance
+from cogent3.util.table import Table
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
 class generic_result(MutableMapping):
-    """a dict style container for storing results. All keys are
-    converted to strings to ensure the object can be json serialised"""
+    """A dict style container for storing results."""
 
     _type = "generic_result"
 
@@ -95,6 +95,8 @@ class generic_result(MutableMapping):
 
 @total_ordering
 class model_result(generic_result):
+    """Storage of model results."""
+
     _type = "model_result"
     _stat_attrs = ("lnL", "nfp", "DLC", "unique_Q")
 
@@ -129,14 +131,12 @@ class model_result(generic_result):
         self._elapsed_time = elapsed_time
         self._num_evaluations = num_evaluations
         self._evaluation_limit = evaluation_limit
-        self._lnL = None
-        self._nfp = None
-        self._DLC = None
-        self._unique_Q = None
+        self._lnL = lnL
+        self._nfp = nfp
+        self._DLC = DLC
+        self._unique_Q = unique_Q
 
     def _get_repr_data_(self):
-        from cogent3.util.table import Table
-
         self.lf  # making sure we're fully reloaded
         attrs = ["lnL", "nfp", "DLC", "unique_Q"]
         header = ["key"] + attrs[:]
@@ -365,22 +365,125 @@ class model_result(generic_result):
         return result
 
 
-class hypothesis_result(generic_result):
+class model_collection_result(generic_result):
+    """Storage of a collection of model_result."""
+
+    _type = "model_collection_result"
+
+    def __init__(self, name=None, source=None):
+        """
+        name : str
+            name of this hypothesis
+        source : str
+            string describing source of the data, e.g. a path
+        """
+        super(model_collection_result, self).__init__(source)
+        self._construction_kwargs.update({"name": name})
+        self._name = name
+
+    def _get_repr_data_(self):
+        rows = []
+        attrs = ["lnL", "nfp", "DLC", "unique_Q"]
+        for key, member in self.items():
+            member.lf  # making sure we're fully reloaded
+            row = [repr(key)] + [getattr(member, a) for a in attrs]
+            rows.append(row)
+
+        table = Table(header=["key"] + attrs, rows=rows, title=self.name)
+        table = table.sorted(columns="nfp")
+        return table
+
+    def _repr_html_(self):
+        table = self._get_repr_data_()
+        return table._repr_html_(include_shape=False)
+
+    def __repr__(self):
+        table = self._get_repr_data_()
+        return str(table._get_repr_())
+
+    @property
+    def name(self):
+        return self._name
+
+    def select_models(self, stat="aicc", threshold=0.05):
+        """returns models satisfying stat threshold.
+        Parameters
+        ----------
+        stat : str
+            one of "aicc", "aic" which correspond to
+            AIC with correction or AIC.
+        threshold : float
+            models with exp((minimum stat - model stat) / 2) > threshold are
+            considered indistinguishable from the model with minimum stat. Such
+            models will be included in the returned result.
+
+        Returns
+        -------
+        list of models satisfying threshold condition
+        """
+        assert stat in ("aicc", "aic")
+        second_order = stat == "aicc"
+        results = []
+        for m in self.values():
+            if isinstance(m.lf, dict):
+                # multiple lf's, e.g. split codon position analyses have 3
+                val = sum(lf.get_aic(second_order=second_order) for lf in m.lf.values())
+            else:
+                val = m.lf.get_aic(second_order=second_order)
+
+            results.append((val, m))
+        results.sort()
+        min_model = results.pop(0)
+        min_stat = min_model[0]
+        selected = [min_model[1]]
+        for v, m in results:
+            rel_lik = numpy.exp((min_stat - v) / 2)
+            if rel_lik > threshold:
+                selected.append(m)
+
+        return selected
+
+    def get_best_model(self, stat="aicc", threshold=0.05):
+        """returns model with smallest value of stat
+        Parameters
+        ----------
+        stat : str
+            one of "aicc", "aic" which correspond to AIC with correction or AIC
+        threshold : float
+            models with exp((minimum stat - model stat) / 2) > threshold are
+            considered indistinguishable from the model with minimum stat.
+
+        Returns
+        -------
+        A single model. If multiple models satisfy threshold, the simplest model
+        (with the smallest number of free parameters) is returned.
+        """
+        selected = self.select_models(stat=stat, threshold=threshold)
+        if len(selected) != 1:
+            selected = list(sorted(self.values(), key=lambda x: x.nfp))
+            selected = selected[:1]
+
+        return selected[0]
+
+
+class hypothesis_result(model_collection_result):
+    """Storage of a collection of model_result instances that are hierarchically
+    related."""
+
     _type = "hypothesis_result"
 
-    def __init__(self, name_of_null, source=None):
+    @extend_docstring_from(model_collection_result.__init__, pre=True)
+    def __init__(self, name_of_null, name=None, source=None):
         """
-        alt
-            either a likelihood function instance
+        name_of_null
+            key for the null hypothesis
         """
-        super(hypothesis_result, self).__init__(source)
+        super(hypothesis_result, self).__init__(name=name, source=source)
         self._construction_kwargs = dict(name_of_null=name_of_null, source=source)
 
         self._name_of_null = name_of_null
 
     def _get_repr_data_(self):
-        from cogent3.util.table import Table
-
         rows = []
         attrs = ["lnL", "nfp", "DLC", "unique_Q"]
         for key, member in self.items():
@@ -388,11 +491,11 @@ class hypothesis_result(generic_result):
             if key == self._name_of_null:
                 status_name = ["null", repr(key)]
             else:
-                status_name = ["alt", (repr(key))]
+                status_name = ["alt", repr(key)]
             row = status_name + [getattr(member, a) for a in attrs]
             rows.append(row)
 
-        table = Table(header=["hypothesis", "key"] + attrs, rows=rows)
+        table = Table(header=["hypothesis", "key"] + attrs, rows=rows, title=self.name)
         table = table.sorted(columns="nfp")
         stats = [[self.LR, self.df, self.pvalue]]
         stats = Table(header=["LR", "df", "pvalue"], rows=stats, title="Statistics")
@@ -447,61 +550,6 @@ class hypothesis_result(generic_result):
         else:
             pvalue = None
         return pvalue
-
-    def select_models(self, stat="aicc", threshold=0.05):
-        """returns models satisfying stat threshold.
-        Parameters
-        ----------
-        stat : str
-            one of "aicc", "aic" which correspond to
-            AIC with correction or AIC.
-        threshold : float
-            models with exp((minimum stat - model stat) / 2) > threshold are
-            considered indistinguishable from the model with minimum stat. Such
-            models will be included in the returned result.
-
-        Returns
-        -------
-        list of models satisfying threshold condition
-        """
-        assert stat in ("aicc", "aic")
-        second_order = stat == "aicc"
-        results = []
-        for k, m in self.items():
-            val = m.lf.get_aic(second_order=second_order)
-            results.append((val, m))
-        results.sort()
-        min_model = results.pop(0)
-        min_stat = min_model[0]
-        selected = [min_model[1]]
-        for v, m in results:
-            rel_lik = numpy.exp((min_stat - v) / 2)
-            if rel_lik > threshold:
-                selected.append(m)
-
-        return selected
-
-    def get_best_model(self, stat="aicc", threshold=0.05):
-        """returns model with smallest value of stat
-        Parameters
-        ----------
-        stat : str
-            one of "aicc", "aic" which correspond to AIC with correction or AIC
-        threshold : float
-            models with exp((minimum stat - model stat) / 2) > threshold are
-            considered indistinguishable from the model with minimum stat.
-
-        Returns
-        -------
-        A single model. If multiple models satisfy threshold, the simplest model
-        (with the smallest number of free parameters) is returned.
-        """
-        selected = self.select_models(stat=stat, threshold=threshold)
-        if len(selected) != 1:
-            selected = list(sorted(self.values(), key=lambda x: x.nfp))
-            selected = selected[:1]
-
-        return selected[0]
 
 
 class bootstrap_result(generic_result):

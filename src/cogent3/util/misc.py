@@ -12,11 +12,13 @@ from random import choice, randint
 from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn
 
+import numpy
+
 from numpy import array, ceil, finfo, float64, floor, log10, logical_not, sum
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = [
     "Rob Knight",
     "Peter Maxwell",
@@ -28,7 +30,7 @@ __credits__ = [
     "Marcin Cieslik",
 ]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -1137,3 +1139,9 @@ def extend_docstring_from(source, pre=False):
         return dest
 
     return docstring_inheriting_decorator
+
+
+def ascontiguousarray(source_array, dtype=None):
+    if source_array is not None:
+        return numpy.ascontiguousarray(source_array, dtype=dtype)
+    return source_array

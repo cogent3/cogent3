@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 import numpy
 
@@ -7,16 +8,87 @@ from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Rahul Ghangas and Gavin Huttley"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rahul Ghangas", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
 
 # user specified environment variable for plotly renderer
 PLOTLY_RENDERER = os.environ.get("PLOTLY_RENDERER", None)
+
+
+def get_domain(total, element, is_y, space=0.01):
+    """returns evenly spaced domain for an element in a grid plot
+
+    Parameters
+    ----------
+    total : int
+        the total number of elements on the axis
+    element : int
+        the element number to compute the domain for
+    is_y : bool
+        if True, this is for a y-coordinate domain. This is reversed
+        so the result is in cartesian, not array, coordinates
+    space : float
+        the separation between elements
+    """
+    if total == 1:
+        return [0, 1]
+
+    if element > total - 1:
+        raise ValueError(f"{element} index too big for {total}")
+
+    per_element = 1 / total
+    space = min(space / 2, per_element / 10)
+    bounds = [per_element * i for i in range(total + 1)]
+    domains = [
+        (bounds[k] + space, bounds[k + 1] - space) for k in range(len(bounds) - 1)
+    ]
+    if is_y:
+        element = total - element - 1
+
+    return domains[element]
+
+
+def _customise_sphinx_gallery_renderer():
+    # this is an ugly hack to get around plotly's NOT robust handling of script path
+    # for automated file naming
+    import inspect
+    from plotly.io._renderers import renderers
+    from plotly.io import _base_renderers as base_render
+
+    class SphinxGalleryRenderer(base_render.ExternalRenderer):
+        def render(self, fig_dict):
+            # use the environment variable
+            # DOCUTILSCONFIG to get the location of the sphinx root doc dir
+            # and select the stack filename whose path is a sibling directory
+            # based on the maxinum number of matches to the root path
+            sphinx_root = pathlib.Path(os.environ.get("DOCUTILSCONFIG", "")).absolute()
+            sphinx_root = sphinx_root.resolve()
+            stack = inspect.stack()
+            max_match = 0
+            for level in stack:
+                # parent directory
+                path = pathlib.Path(level.filename).absolute().resolve()
+                for i, (a, b) in enumerate(zip(path.parts, sphinx_root.parts)):
+                    if a != b:
+                        break
+
+                if i > max_match:
+                    max_match = i
+                    filename = str(path)
+
+            filename_root, _ = os.path.splitext(filename)
+            filename_html = filename_root + ".html"
+            filename_png = filename_root + ".png"
+            figure = base_render.return_figure_from_figure_or_data(fig_dict, True)
+            _ = base_render.write_html(fig_dict, file=filename_html)
+            base_render.write_image(figure, filename_png)
+
+    renderers["sphinx_gallery"] = SphinxGalleryRenderer()
 
 
 def _show_(cls, renderer=None, **kwargs):
@@ -35,6 +107,9 @@ def _show_(cls, renderer=None, **kwargs):
         other arguments for plotly.io.show
     """
     from plotly.io import show
+
+    if renderer == "sphinx_gallery":
+        _customise_sphinx_gallery_renderer()
 
     if renderer is None and PLOTLY_RENDERER is None:
         renderer = "notebook_connected+plotly_mimetype"
@@ -94,22 +169,32 @@ class Drawable:
         self._traces = traces or []
         title = title if title is None else dict(text=title)
         self._default_layout = UnionDict(
-            title=title,
             font=dict(family="Balto", size=14),
-            width=width,
-            height=height,
             autosize=False,
-            showlegend=showlegend,
-            xaxis=dict(visible=visible_axes),
-            yaxis=dict(visible=visible_axes),
             hovermode="closest",
             template=None,
             plot_bgcolor=None,
             margin=dict(l=50, r=50, t=50, b=50, pad=4),
+            xaxis=dict(visible=visible_axes),
+            yaxis=dict(visible=visible_axes),
+            title=title,
+            width=width,
+            height=height,
+            showlegend=showlegend,
         )
         layout = layout or {}
         self.layout = UnionDict(self._default_layout)
         self.layout |= layout
+        # constructor layout value over-rides
+        overrides = UnionDict(
+            title=title,
+            width=width,
+            height=height,
+            showlegend=showlegend,
+            xaxis=dict(visible=visible_axes),
+            yaxis=dict(visible=visible_axes),
+        )
+        self.layout |= overrides
         self.xtitle = xtitle
         self.ytitle = ytitle
         self.title = title
@@ -160,13 +245,24 @@ class Drawable:
 
     @property
     def figure(self):
-        if not self.traces:
+        if not self.traces and hasattr(self, "_build_fig"):
             self._build_fig()
-        xtitle = self.xtitle if not self.xtitle else dict(text=self.xtitle)
-        ytitle = self.ytitle if not self.ytitle else dict(text=self.ytitle)
+
+        traces = self.traces if self.traces else [{}]
+
+        if self.xtitle:
+            xtitle = self.xtitle
+        else:
+            xtitle = self.layout.xaxis.get("title", None)
+
+        if self.ytitle:
+            ytitle = self.ytitle
+        else:
+            ytitle = self.layout.yaxis.get("title", None)
+
         self.layout.xaxis.title = xtitle
         self.layout.yaxis.title = ytitle
-        return UnionDict(data=self.traces, layout=self.layout)
+        return UnionDict(data=traces, layout=self.layout)
 
     def iplot(self, *args, **kwargs):
         from plotly.offline import iplot as _iplot

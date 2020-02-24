@@ -11,10 +11,10 @@ from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Sandra Smit", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -123,6 +123,14 @@ class MotifCountsArrayTests(TestCase):
         adj = data + 0.5
         expect = adj / vstack(adj.sum(axis=1))
         assert_allclose(got.array, expect)
+
+    def test_to_freqs_1d(self):
+        """produce a freqs array from 1D counts"""
+        data = [43, 48, 114, 95]
+        total = sum(data)
+        a = MotifCountsArray([43, 48, 114, 95], motifs=("T", "C", "A", "G"))
+        f = a.to_freq_array()
+        assert_allclose(f.array, array([v / total for v in data], dtype=float))
 
     def test_to_pssm(self):
         """produces a PSSM array"""
@@ -239,12 +247,51 @@ class MotifFreqsArrayTests(TestCase):
         with self.assertRaises(ValueError):
             got = MotifFreqsArray(data, "AB")
 
+    def test_entropy_terms(self):
+        """Checks entropy_terms works correctly"""
+        data = [[0.25, 0.25, 0.25, 0.25], [0.5, 0.5, 0, 0]]
+        got = MotifFreqsArray(array(data), "ABCD")
+        entropy_terms = got.entropy_terms()
+        expect = [[0.5, 0.5, 0.5, 0.5], [0.5, 0.5, 0, 0]]
+        assert_allclose(entropy_terms.array, expect)
+
     def test_entropy(self):
         """calculates entripies correctly"""
         data = [[0.25, 0.25, 0.25, 0.25], [0.5, 0.5, 0, 0]]
         got = MotifFreqsArray(array(data), "ABCD")
         entropy = got.entropy()
         assert_allclose(entropy, [2, 1])
+
+    def test_relative_entropy_terms(self):
+        """Check that relative_entropy_terms works for different background distributions"""
+        data = [[0.25, 0.25, 0.25, 0.25], [0.5, 0.5, 0, 0]]
+        got = MotifFreqsArray(array(data), "ABCD")
+        rel_entropy = got.relative_entropy_terms(background=None)
+        expected = [[0, 0, 0, 0], [-0.25, -0.25, -0.5, -0.5]]
+        assert_allclose(rel_entropy, expected)
+
+        background = {"A": 0.5, "B": 0.25, "C": 0.125, "D": 0.125}
+        rel_entropy = got.relative_entropy_terms(background=background)
+        expected = [[0.5, 0, -0.125, -0.125], [0, -0.25, -0.375, -0.375]]
+        assert_allclose(rel_entropy, expected)
+
+        with self.assertRaises(ValueError):
+            got.relative_entropy_terms(background=dict(A=-0.5, B=1.5))
+
+        with self.assertRaises(ValueError):
+            got.relative_entropy_terms(background={"A": 0.5, "B": 0.25, "C": 0.125})
+
+    def test_relative_entropy(self):
+        """calculates relative entropy correctly"""
+        data = [[0.25, 0.25, 0.25, 0.25], [0.5, 0.5, 0, 0]]
+        got = MotifFreqsArray(array(data), "ABCD")
+        rel_entropy = got.relative_entropy(background=None)
+        assert_allclose(rel_entropy, [0, -1.5])
+
+        background = {"A": 0.5, "B": 0.25, "C": 0.125, "D": 0.125}
+        rel_entropy = got.relative_entropy(background=background)
+        expected = [0.25, -1]
+        assert_allclose(rel_entropy, expected)
 
     def test_information(self):
         """calculates entr0pies correctly"""
@@ -303,6 +350,37 @@ class MotifFreqsArrayTests(TestCase):
             ]
         )
         assert_allclose(pssm.array, expect, atol=1e-3)
+
+    def test_logo(self):
+        """produces a Drawable with correct layout elements"""
+        data = [
+            [0.1, 0.3, 0.5, 0.1],
+            [0.25, 0.25, 0.25, 0.25],
+            [0.05, 0.8, 0.05, 0.1],
+            [0.7, 0.1, 0.1, 0.1],
+            [0.6, 0.15, 0.05, 0.2],
+        ]
+        farr = MotifFreqsArray(data, "ACTG")
+        # with defaults, has a single x/y axes and number of shapes
+        logo = farr.logo(ylim=0.5)
+        fig = logo.figure
+        self.assertEqual(fig.data, [{}])
+        self.assertTrue(len(fig.layout.xaxis) > 10)
+        self.assertTrue(len(fig.layout.yaxis) > 10)
+        self.assertEqual(fig.layout.yaxis.range, [0, 0.5])
+        # since the second row are equi-frequent, their information is 0 so
+        # we substract 4 shapes from that column
+        self.assertEqual(len(fig.layout.shapes), farr.shape[0] * farr.shape[1] - 4)
+        # wrapping across multiple rows should produce multiple axes
+        logo = farr.logo(ylim=0.5, wrap=3)
+        fig = logo.figure
+        for axis in ("axis", "axis2"):
+            self.assertIn(f"x{axis}", fig.layout)
+            self.assertIn(f"y{axis}", fig.layout)
+
+        # fails if vspace not in range 0-1
+        with self.assertRaises(AssertionError):
+            farr.logo(vspace=20)
 
 
 class PSSMTests(TestCase):

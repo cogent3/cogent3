@@ -5,10 +5,10 @@ from cogent3.util.misc import extend_docstring_from
 
 
 __author__ = "Thomas La"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -49,6 +49,12 @@ class UnionDict(dict):
             raise AttributeError(f"'{item}' not a key or attribute")
 
     def __setattr__(self, key, value):
+        if isinstance(value, dict):
+            value = UnionDict(value)
+
+        self.update({key: value})
+
+    def __setitem__(self, key, value):
         if isinstance(value, dict):
             value = UnionDict(value)
 
