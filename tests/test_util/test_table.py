@@ -181,6 +181,9 @@ class TableTests(TestCase):
         t2 = Table(header=self.t2_header, rows=self.t2_rows)
         t3 = Table(header=self.t3_header, rows=self.t3_rows)
 
+        # inner join with defaults
+        self.assertEqual(t2.joined(t3).shape[0], 0)
+
         # inner join test
         self.assertEqual(
             t2.joined(t3, columns_self="foo", columns_other="foo").shape[0], 4
@@ -189,7 +192,6 @@ class TableTests(TestCase):
         self.assertEqual(
             t2.joined(t3, columns_self="foo", columns_other="foo").shape[1], 5
         )
-
         # non-inner join test (cartesian product of rows)
         self.assertEqual(
             t2.joined(t3, inner_join=False).shape[0], t2.shape[0] * t3.shape[0]
