@@ -147,7 +147,7 @@ class model_result(generic_result):
                 row = [repr(key), self[key].lnL, self[key].nfp, "", ""]
                 rows.append(row)
 
-        table = Table(header=header, rows=rows, title=self.name)
+        table = Table(header=header, data=rows, title=self.name)
         return table
 
     def _repr_html_(self):
@@ -389,7 +389,7 @@ class model_collection_result(generic_result):
             row = [repr(key)] + [getattr(member, a) for a in attrs]
             rows.append(row)
 
-        table = Table(header=["key"] + attrs, rows=rows, title=self.name)
+        table = Table(header=["key"] + attrs, data=rows, title=self.name)
         table = table.sorted(columns="nfp")
         return table
 
@@ -495,10 +495,10 @@ class hypothesis_result(model_collection_result):
             row = status_name + [getattr(member, a) for a in attrs]
             rows.append(row)
 
-        table = Table(header=["hypothesis", "key"] + attrs, rows=rows, title=self.name)
+        table = Table(header=["hypothesis", "key"] + attrs, data=rows, title=self.name)
         table = table.sorted(columns="nfp")
         stats = [[self.LR, self.df, self.pvalue]]
-        stats = Table(header=["LR", "df", "pvalue"], rows=stats, title="Statistics")
+        stats = Table(header=["LR", "df", "pvalue"], data=stats, title="Statistics")
         return stats, table
 
     def _repr_html_(self):

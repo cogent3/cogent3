@@ -293,7 +293,7 @@ class TableDrawablesTest(BaseDrawablesTests):
 
     def test_to_plotly(self):
         """exercise producing a plotly table"""
-        table = make_table(header=["a", "b"], rows=[[0, 1]])
+        table = make_table(header=["a", "b"], data=[[0, 1]], row_ids="a")
         drawable = table.to_plotly()
         self.assertIsInstance(drawable, Drawable)
         self._check_drawable_attrs(drawable.figure, "table")
