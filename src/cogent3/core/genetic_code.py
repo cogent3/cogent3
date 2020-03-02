@@ -205,7 +205,7 @@ class GeneticCode:
             codons = ",".join(self[code])
             row = [aa, code, codons]
             rows.append(row)
-        t = Table(header=headers, rows=rows, title=self.name)
+        t = Table(header=headers, data=rows, title=self.name)
         return t
 
     def __str__(self):
@@ -484,7 +484,7 @@ def available_codes():
     table = Table(
         header=header,
         rows=rows,
-        row_ids=True,
+        row_ids="Code ID",
         title="Specify a genetic code using either 'Name' or "
         "Code ID (as an integer or string)",
     )

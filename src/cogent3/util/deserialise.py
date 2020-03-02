@@ -37,7 +37,11 @@ def deserialise_tabular(data):
     type_ = data.pop("type")
     klass = _get_class(type_)
     if type_.endswith("Table"):
-        result = klass(**data)
+        if "init_table" in data:
+            result = klass()
+            result.__setstate__(data)
+        else:
+            result = klass(**data)
     elif "dictarray" in type_.lower():
         named_dims = data.pop("names")
         array = data.pop("array")

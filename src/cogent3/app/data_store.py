@@ -841,7 +841,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             ]
             rows.append(row)
 
-        table = Table(header=header, rows=rows, title="incomplete records")
+        table = Table(header=header, data=rows, title="incomplete records")
         return table
 
     @property
