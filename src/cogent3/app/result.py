@@ -51,7 +51,7 @@ class generic_result(MutableMapping):
         num = len(self)
         types = [f"{repr(k)}: {self[k].__class__.__name__}" for k in self.keys()[:4]]
         types = ", ".join(types)
-        result = f"{len(self)}x {name}({types})"
+        result = f"{num}x {name}({types})"
         return result
 
     def __str__(self):
@@ -91,6 +91,8 @@ class generic_result(MutableMapping):
                 if "cogent3" in type_:
                     object = deserialise_object(value)
                     self[key] = object
+            elif hasattr(value, "deserialised_values"):
+                value.deserialised_values()
 
 
 @total_ordering
@@ -137,8 +139,8 @@ class model_result(generic_result):
         self._unique_Q = unique_Q
 
     def _get_repr_data_(self):
-        self.lf  # making sure we're fully reloaded
-        attrs = ["lnL", "nfp", "DLC", "unique_Q"]
+        self.deserialised_values()  # making sure we're fully reloaded
+        attrs = list(self._stat_attrs)
         header = ["key"] + attrs[:]
         rows = [[""] + [getattr(self, attr) for attr in attrs]]
         if len(self) > 1:
@@ -159,33 +161,23 @@ class model_result(generic_result):
         return repr(table)
 
     def __setitem__(self, key, lf):
-        super(self.__class__, self).__setitem__(key, lf)
-        if type(lf) != dict:
-            lf.set_name(key)
-            lnL = lf.lnL
-            nfp = lf.nfp
-            DLC = lf.all_psubs_DLC()
-            try:
-                unique_Q = lf.all_rate_matrices_unique()
-            except (NotImplementedError, KeyError):
-                # KeyError happens on discrete time model
-                unique_Q = None  # non-primary root issue
+        if isinstance(lf, dict):
+            type_name = lf.get("type", None)
+            type_name = type_name or ""
         else:
-            lnL = lf.get("lnL")
-            nfp = lf.get("nfp")
-            DLC = lf.get("DLC")
-            unique_Q = lf.get("unique_Q")
+            type_name = lf.__class__.__name__
 
-        if self._lnL is not None:
-            self._DLC = all([DLC, self.DLC])
-            self._unique_Q = all([unique_Q, self.unique_Q])
-            self._lnL = self._stat([lnL, self.lnL])
-            self._nfp = self._stat([nfp, self.nfp])
-        else:
-            self._lnL = lnL
-            self._nfp = nfp
-            self._DLC = DLC
-            self._unique_Q = unique_Q
+        if "AlignmentLikelihoodFunction" not in type_name:
+            msg = f"{type_name} not a supported type"
+            raise TypeError(msg)
+
+        super(self.__class__, self).__setitem__(key, lf)
+        self._init_stats()
+
+    def _init_stats(self):
+        """reset the values for stat attr to None, triggers recalc in properties"""
+        for attr in self._stat_attrs:
+            setattr(self, f"_{attr}", None)
 
     @property
     def num_evaluations(self):
@@ -211,6 +203,7 @@ class model_result(generic_result):
         return self._name
 
     def simulate_alignment(self):
+        self.deserialised_values()
         if len(self) == 1:
             aln = self.lf.simulate_alignment()
             return aln
@@ -240,18 +233,8 @@ class model_result(generic_result):
 
     @property
     def lf(self):
-        result = list(self.values())
-        if type(result[0]) == dict:
-            from cogent3.util import deserialise
-
-            # we reset the stat attributes to None
-            for attr in self._stat_attrs:
-                setattr(self, attr, None)
-
-            for k, v in self.items():
-                v = deserialise.deserialise_likelihood_function(v)
-                self[k] = v
-
+        self.deserialised_values()
+        self._init_stats()
         if len(self) == 1:
             result = list(self.values())[0]
         else:
@@ -266,35 +249,66 @@ class model_result(generic_result):
 
     @property
     def lnL(self):
-        return self._lnL
+        if self._lnL is None:
+            lnL = 0.0
+            for v in self.values():
+                if isinstance(v, dict):
+                    l = v.get("lnL")
+                else:
+                    l = v.lnL
+                lnL = self._stat([l, lnL])
 
-    @lnL.setter
-    def lnL(self, value):
-        self._lnL = value
+            self._lnL = lnL
+        return self._lnL
 
     @property
     def nfp(self):
-        return self._nfp
+        if self._nfp is None:
+            nfp = 0
+            for v in self.values():
+                if isinstance(v, dict):
+                    n = v.get("nfp")
+                else:
+                    n = v.nfp
+                nfp = self._stat([n, nfp])
 
-    @nfp.setter
-    def nfp(self, value):
-        self._nfp = value
+            self._nfp = nfp
+
+        return self._nfp
 
     @property
     def DLC(self):
-        return self._DLC
+        if self._DLC is None:
+            DLC = []
+            for v in self.values():
+                if isinstance(v, dict):
+                    d = v.get("DLC")
+                else:
+                    d = v.all_psubs_DLC()
+                DLC.append(d)
 
-    @DLC.setter
-    def DLC(self, value):
-        self._DLC = value
+            self._DLC = all(DLC)
+
+        return self._DLC
 
     @property
     def unique_Q(self):
-        return self._unique_Q
+        if self._unique_Q is None:
+            unique = []
+            for v in self.values():
+                if isinstance(v, dict):
+                    u = v.get("unique_Q")
+                else:
+                    try:
+                        u = v.all_rate_matrices_unique()
+                    except (NotImplementedError, KeyError):
+                        # KeyError happens on discrete time model
+                        u = None  # non-primary root issue
+                unique.append(u)
 
-    @unique_Q.setter
-    def unique_Q(self, value):
-        self._unique_Q = value
+            self._unique_Q = all(unique)
+
+        return self._unique_Q
 
     def total_length(self, length_as=None):
         """sum of all branch lengths on tree. If split codons, sums across trees
@@ -385,7 +399,7 @@ class model_collection_result(generic_result):
         rows = []
         attrs = ["lnL", "nfp", "DLC", "unique_Q"]
         for key, member in self.items():
-            member.lf  # making sure we're fully reloaded
+            member.deserialised_values()  # making sure we're fully reloaded
             row = [repr(key)] + [getattr(member, a) for a in attrs]
             rows.append(row)
 
@@ -487,7 +501,7 @@ class hypothesis_result(model_collection_result):
         rows = []
         attrs = ["lnL", "nfp", "DLC", "unique_Q"]
         for key, member in self.items():
-            member.lf  # making sure we're fully reloaded
+            member.deserialised_values()  # making sure we're fully reloaded
             if key == self._name_of_null:
                 status_name = ["null", repr(key)]
             else:
