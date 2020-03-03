@@ -989,7 +989,7 @@ In the above example, the data type in a column is static, e.g. all values in ``
        edge.1           root       4.0    1.0    3.0    6.0
     -------------------------------------------------------
 
-If you invoke the ``static_column_types`` argument and the column data are not static, you'll get a ``ValueError``. We show this by first creating a simple table with mixed data types in a column, write to file and then try to load with  ``static_column_types=True``.
+If you invoke the ``static_column_types`` argument and the column data are not static, you'll get back a string type.
 
 .. doctest::
 
@@ -1003,8 +1003,8 @@ If you invoke the ``static_column_types`` argument and the column data are not s
     ------
     >>> t3b.write('test3b.txt', sep='\t')
     >>> t3b = load_table('test3b.txt', sep='\t', static_column_types=True)
-    Traceback (most recent call last):
-    ValueError: invalid literal for int() with base 10: 'a'
+    >>> t3b.columns["A"]
+    array(['1', 'a'], dtype='<U1')
 
 We also test the reader function for a tab delimited format with missing data at the end.
 
