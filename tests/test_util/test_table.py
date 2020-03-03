@@ -157,6 +157,16 @@ class TableTests(TestCase):
         t = Table(header=self.t7_header, data=self.t7_rows, row_ids="gene")
         self.assertEqual(t["ENSG00000019485", "chrom"], "A")
 
+    def test_immutability_cells(self):
+        """table cells are immutable"""
+        t = Table(header=self.t7_header, data=self.t7_rows, row_ids="gene")
+        with self.assertRaises(TypeError):
+            t["ENSG00000019485", "chrom"] = "D"
+
+        # even via column instance
+        with self.assertRaises(ValueError):
+            t.columns["chrom"]["ENSG00000019485"] = "D"
+
     def test_slicing_table(self):
         """works using column names, ints, bool array"""
         t = Table(header=self.t5_header, data=self.t5_rows)
