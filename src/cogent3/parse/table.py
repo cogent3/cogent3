@@ -172,6 +172,11 @@ def load_delimited(
         f = open(filename, newline=None)
 
     reader = csv.reader(f, dialect="excel", delimiter=delimiter)
+    if with_title:
+        title = "".join(next(reader))
+    else:
+        title = ""
+
     rows = []
     num_lines = 0
     for row in reader:
