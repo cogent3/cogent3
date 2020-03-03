@@ -2,7 +2,11 @@ from unittest import TestCase, main
 
 from cogent3 import make_aligned_seqs
 from cogent3.app import evo as evo_app
-from cogent3.app.result import generic_result, model_collection_result
+from cogent3.app.result import (
+    generic_result,
+    model_collection_result,
+    model_result,
+)
 from cogent3.util.deserialise import deserialise_object
 
 
@@ -118,6 +122,25 @@ class TestGenericResult(TestCase):
         self.assertEqual(
             got.children[0].params["length"], got.children[0].params["paralinear"]
         )
+
+    def test_model_result_setitem(self):
+        """TypeError if value a likelihood function, or a dict with correct type"""
+        v = dict(type="arbitrary")
+        r = model_result(name="one", source="two")
+        with self.assertRaises(TypeError):
+            r["name"] = v
+
+        with self.assertRaises(TypeError):
+            r["name"] = 4
+
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        with self.assertRaises(TypeError):
+            r["name"] = aln
 
 
 class TestModelCollectionResult(TestCase):

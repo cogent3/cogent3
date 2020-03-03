@@ -161,33 +161,17 @@ class model_result(generic_result):
         return repr(table)
 
     def __setitem__(self, key, lf):
-        super(self.__class__, self).__setitem__(key, lf)
-        if type(lf) != dict:
-            lf.set_name(key)
-            lnL = lf.lnL
-            nfp = lf.nfp
-            DLC = lf.all_psubs_DLC()
-            try:
-                unique_Q = lf.all_rate_matrices_unique()
-            except (NotImplementedError, KeyError):
-                # KeyError happens on discrete time model
-                unique_Q = None  # non-primary root issue
+        if isinstance(lf, dict):
+            type_name = lf.get("type", None)
+            type_name = type_name or ""
         else:
-            lnL = lf.get("lnL")
-            nfp = lf.get("nfp")
-            DLC = lf.get("DLC")
-            unique_Q = lf.get("unique_Q")
+            type_name = lf.__class__.__name__
 
-        if self._lnL is not None:
-            self._DLC = all([DLC, self.DLC])
-            self._unique_Q = all([unique_Q, self.unique_Q])
-            self._lnL = self._stat([lnL, self.lnL])
-            self._nfp = self._stat([nfp, self.nfp])
-        else:
-            self._lnL = lnL
-            self._nfp = nfp
-            self._DLC = DLC
-            self._unique_Q = unique_Q
+        if "AlignmentLikelihoodFunction" not in type_name:
+            msg = f"{type_name} not a supported type"
+            raise TypeError(msg)
+
+        super(self.__class__, self).__setitem__(key, lf)
         self._init_stats()
 
     def _init_stats(self):
