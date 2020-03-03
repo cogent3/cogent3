@@ -203,6 +203,7 @@ class model_result(generic_result):
         return self._name
 
     def simulate_alignment(self):
+        self.deserialised_values()
         if len(self) == 1:
             aln = self.lf.simulate_alignment()
             return aln

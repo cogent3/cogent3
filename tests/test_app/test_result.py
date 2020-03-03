@@ -83,6 +83,23 @@ class TestGenericResult(TestCase):
             expect = aln[i - 1 :: 3]
             self.assertEqual(got.to_dict(), expect.to_dict())
 
+    def test_model_result_repr_split_pos_model(self):
+        """repr works for model_result of split codon positions"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        mod = evo_app.model(
+            "F81",
+            split_codons=True,
+            show_progress=False,
+            opt_args=dict(max_evaluations=55, limit_action="ignore"),
+        )
+        result = mod(aln)
+        s = repr(result)
+
     def test_model_result_tree_split_pos_model(self):
         """returns tree from lf with split codon positions"""
         _data = {
@@ -104,6 +121,25 @@ class TestGenericResult(TestCase):
         for i, t in result.tree.items():
             lengths.add(t.total_length())
         self.assertTrue(len(lengths) > 1)
+
+    def test_model_result_simulate_alignment(self):
+        """returns tree from lf with split codon positions"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        mod = evo_app.model(
+            "F81",
+            split_codons=True,
+            show_progress=False,
+            opt_args=dict(max_evaluations=55, limit_action="ignore"),
+        )
+        result = mod(aln)
+        got = result.simulate_alignment()
+        self.assertEqual(len(aln), len(got))
+        self.assertNotEqual(aln.to_dict(), got.to_dict())
 
     def test_model_result_tree_discrete_time(self):
         """returns paralinear lengths"""
@@ -209,6 +245,26 @@ class TestModelCollectionResult(TestCase):
         self.assertIsInstance(got, model_collection_result)
         self.assertEqual(got.name, coll.name)
         self.assertEqual(got.source, coll.source)
+
+
+class TestHypothesisResult(TestCase):
+    def test_pvalue(self):
+        """hypothesis test p-value property"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        model1 = evo_app.model(
+            "F81", opt_args=dict(max_evaluations=25, limit_action="ignore")
+        )
+        model2 = evo_app.model(
+            "HKY85", opt_args=dict(max_evaluations=25, limit_action="ignore")
+        )
+        hyp = evo_app.hypothesis(model1, model2)
+        result = hyp(aln)
+        self.assertTrue(0 <= result.pvalue <= 1)
 
 
 if __name__ == "__main__":
