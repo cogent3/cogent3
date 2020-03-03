@@ -91,6 +91,8 @@ class generic_result(MutableMapping):
                 if "cogent3" in type_:
                     object = deserialise_object(value)
                     self[key] = object
+            elif hasattr(value, "deserialised_values"):
+                value.deserialised_values()
 
 
 @total_ordering
@@ -246,18 +248,8 @@ class model_result(generic_result):
 
     @property
     def lf(self):
-        result = list(self.values())
-        if type(result[0]) == dict:
-            from cogent3.util import deserialise
-
-            # we reset the stat attributes to None
-            for attr in self._stat_attrs:
-                setattr(self, attr, None)
-
-            for k, v in self.items():
-                v = deserialise.deserialise_likelihood_function(v)
-                self[k] = v
-
+        self.deserialised_values()
+        self._init_stats()
         if len(self) == 1:
             result = list(self.values())[0]
         else:
