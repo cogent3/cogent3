@@ -46,6 +46,24 @@ class TestGenericResult(TestCase):
         got = result["key"]
         self.assertEqual(got, data)
 
+    def test_repr_str(self):
+        """it works"""
+        data = {"type": "cogent3.core.moltype.MolType", "moltype": "dna"}
+        result = generic_result(source="blah.json")
+        result["key"] = data
+        r = repr(result)
+        s = str(result)
+
+    def test_keys(self):
+        """it works"""
+        data = {"type": "cogent3.core.moltype.MolType", "moltype": "dna"}
+        result = generic_result(source="blah.json")
+        result["key"] = data
+        keys = result.keys()
+        self.assertEqual(keys, ["key"])
+
+
+class TestModelResult(TestCase):
     def test_model_result_alignment(self):
         """returns alignment from lf"""
         _data = {
