@@ -186,6 +186,12 @@ class model_result(generic_result):
             self._nfp = nfp
             self._DLC = DLC
             self._unique_Q = unique_Q
+        self._init_stats()
+
+    def _init_stats(self):
+        """reset the values for stat attr to None, triggers recalc in properties"""
+        for attr in self._stat_attrs:
+            setattr(self, f"_{attr}", None)
 
     @property
     def num_evaluations(self):
@@ -266,35 +272,66 @@ class model_result(generic_result):
 
     @property
     def lnL(self):
-        return self._lnL
+        if self._lnL is None:
+            lnL = 0.0
+            for v in self.values():
+                if isinstance(v, dict):
+                    l = v.get("lnL")
+                else:
+                    l = v.lnL
+                lnL = self._stat([l, lnL])
 
-    @lnL.setter
-    def lnL(self, value):
-        self._lnL = value
+            self._lnL = lnL
+        return self._lnL
 
     @property
     def nfp(self):
-        return self._nfp
+        if self._nfp is None:
+            nfp = 0
+            for v in self.values():
+                if isinstance(v, dict):
+                    n = v.get("nfp")
+                else:
+                    n = v.nfp
+                nfp = self._stat([n, nfp])
 
-    @nfp.setter
-    def nfp(self, value):
-        self._nfp = value
+            self._nfp = nfp
+
+        return self._nfp
 
     @property
     def DLC(self):
-        return self._DLC
+        if self._DLC is None:
+            DLC = []
+            for v in self.values():
+                if isinstance(v, dict):
+                    d = v.get("DLC")
+                else:
+                    d = v.all_psubs_DLC()
+                DLC.append(d)
 
-    @DLC.setter
-    def DLC(self, value):
-        self._DLC = value
+            self._DLC = all(DLC)
+
+        return self._DLC
 
     @property
     def unique_Q(self):
-        return self._unique_Q
+        if self._unique_Q is None:
+            unique = []
+            for v in self.values():
+                if isinstance(v, dict):
+                    u = v.get("unique_Q")
+                else:
+                    try:
+                        u = v.all_rate_matrices_unique()
+                    except (NotImplementedError, KeyError):
+                        # KeyError happens on discrete time model
+                        u = None  # non-primary root issue
+                unique.append(u)
 
-    @unique_Q.setter
-    def unique_Q(self, value):
-        self._unique_Q = value
+            self._unique_Q = all(unique)
+
+        return self._unique_Q
 
     def total_length(self, length_as=None):
         """sum of all branch lengths on tree. If split codons, sums across trees
