@@ -392,6 +392,7 @@ def load_table(
     static_column_types=False,
     limit=None,
     format="simple",
+    skip_inconsistent=False,
     **kwargs,
 ):
     """
@@ -445,13 +446,14 @@ def load_table(
         a pandas DataFrame, supersedes header/rows
     format
         output format when using str(Table)
-
+    skip_inconsistent
+        skips rows that have different length to header row
     """
     filename = str(filename)
     sep = sep or kwargs.pop("delimiter", None)
     file_format, compress_format = get_format_suffixes(filename)
 
-    if not (reader or static_column_types):
+    if not reader:
         if file_format == "pickle":
             f = open_(filename, mode="rb")
             loaded_table = pickle.load(f)
@@ -467,6 +469,15 @@ def load_table(
         header, rows, loaded_title, legend = load_delimited(
             filename, delimiter=sep, limit=limit, **kwargs
         )
+        if skip_inconsistent:
+            num_fields = len(header)
+            rows = [r for r in rows if len(r) == num_fields]
+        else:
+            lengths = set(map(len, [header] + rows))
+            if len(lengths) != 1:
+                msg = f"inconsistent number of fields {lengths}"
+                raise ValueError(msg)
+
         title = title or loaded_title
         data = {}
         for column in zip(header, *rows):
@@ -476,23 +487,10 @@ def load_table(
         rows = data
     else:
         f = open_(filename, newline=None)
-        if not reader:
-            if file_format == "csv":
-                sep = sep or ","
-            elif file_format == "tsv":
-                sep = sep or "\t"
-            elif not sep:
-                raise ValueError(
-                    "static_column_types option requires a value " "for sep"
-                )
-
-            reader = autogen_reader(
-                f, sep, limit=limit, with_title=kwargs.get("with_title", False)
-            )
-
         rows = [row for row in reader(f)]
         f.close()
         header = rows.pop(0)
+
     return make_table(
         header=header,
         data=rows,
