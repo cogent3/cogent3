@@ -180,10 +180,6 @@ def load_delimited(
         if limit is not None and num_lines >= limit:
             break
     f.close()
-    if with_title:
-        title = "".join(rows.pop(0))
-    else:
-        title = ""
     if header:
         header = rows.pop(0)
     else:
@@ -193,16 +189,4 @@ def load_delimited(
     else:
         legend = ""
     # now do type casting in the order int, float, default is string
-    # for row in rows:
-    #     for cdex, cell in enumerate(row):
-    #         try:
-    #             cell = int(cell)
-    #             row[cdex] = cell
-    #         except ValueError:
-    #             try:
-    #                 cell = float(cell)
-    #                 row[cdex] = cell
-    #             except ValueError:
-    #                 pass
-    #             pass
     return header, rows, title, legend
