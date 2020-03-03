@@ -157,6 +157,16 @@ class TableTests(TestCase):
         t = Table(header=self.t7_header, data=self.t7_rows, row_ids="gene")
         self.assertEqual(t["ENSG00000019485", "chrom"], "A")
 
+    def test_immutability_cells(self):
+        """table cells are immutable"""
+        t = Table(header=self.t7_header, data=self.t7_rows, row_ids="gene")
+        with self.assertRaises(TypeError):
+            t["ENSG00000019485", "chrom"] = "D"
+
+        # even via column instance
+        with self.assertRaises(ValueError):
+            t.columns["chrom"]["ENSG00000019485"] = "D"
+
     def test_slicing_table(self):
         """works using column names, ints, bool array"""
         t = Table(header=self.t5_header, data=self.t5_rows)
@@ -815,6 +825,33 @@ class TableTests(TestCase):
             r = load_table(path)
             self.assertEqual(str(t), str(r))
             self.assertTrue("float", r.columns["float"].dtype.name)
+
+    def test_load_mixed_static(self):
+        """load data, mixed data type columns remain as string"""
+        t = make_table(header=["A", "B"], data=[[1, 1], ["a", 2]])
+        with TemporaryDirectory(".") as dirname:
+            path = pathlib.Path(dirname) / "table.txt"
+            t.write(str(path), sep="\t")
+            # if static types, then mixed columns become strings
+            r = load_table(path, sep="\t", static_column_types=True)
+            self.assertTrue("str" in r.columns["A"].dtype.name)
+
+    def test_load_mixed_row_lengths(self):
+        """skip_inconsistent skips rows that have different length to header"""
+        h = list("ABCDE")
+        r = [list("12345"), list("000"), list("12345")]
+        text = "\n".join(["\t".join(l) for l in [h] + r])
+        with TemporaryDirectory(".") as dirname:
+            path = pathlib.Path(dirname) / "table.tsv"
+            with open(path, "w") as out:
+                out.write(text)
+            r = load_table(path, skip_inconsistent=True)
+            self.assertEqual(r.shape, (2, 5))
+            self.assertEqual(r.header, tuple(h))
+            self.assertEqual(r.array.tolist(), [list(range(1, 6))] * 2)
+            # loading without skip_inconsistent raise ValueError
+            with self.assertRaises(ValueError):
+                r = load_table(path, skip_inconsistent=False)
 
     def test_load_table_returns_static_columns(self):
         """for static data, load_table gives same dtypes for static_columns_type=True/False"""
