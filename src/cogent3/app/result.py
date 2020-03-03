@@ -51,7 +51,7 @@ class generic_result(MutableMapping):
         num = len(self)
         types = [f"{repr(k)}: {self[k].__class__.__name__}" for k in self.keys()[:4]]
         types = ", ".join(types)
-        result = f"{len(self)}x {name}({types})"
+        result = f"{num}x {name}({types})"
         return result
 
     def __str__(self):
@@ -137,8 +137,8 @@ class model_result(generic_result):
         self._unique_Q = unique_Q
 
     def _get_repr_data_(self):
-        self.lf  # making sure we're fully reloaded
-        attrs = ["lnL", "nfp", "DLC", "unique_Q"]
+        self.deserialised_values()  # making sure we're fully reloaded
+        attrs = list(self._stat_attrs)
         header = ["key"] + attrs[:]
         rows = [[""] + [getattr(self, attr) for attr in attrs]]
         if len(self) > 1:
@@ -385,7 +385,7 @@ class model_collection_result(generic_result):
         rows = []
         attrs = ["lnL", "nfp", "DLC", "unique_Q"]
         for key, member in self.items():
-            member.lf  # making sure we're fully reloaded
+            member.deserialised_values()  # making sure we're fully reloaded
             row = [repr(key)] + [getattr(member, a) for a in attrs]
             rows.append(row)
 
@@ -487,7 +487,7 @@ class hypothesis_result(model_collection_result):
         rows = []
         attrs = ["lnL", "nfp", "DLC", "unique_Q"]
         for key, member in self.items():
-            member.lf  # making sure we're fully reloaded
+            member.deserialised_values()  # making sure we're fully reloaded
             if key == self._name_of_null:
                 status_name = ["null", repr(key)]
             else:
