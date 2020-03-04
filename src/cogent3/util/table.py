@@ -430,6 +430,18 @@ class Columns(MutableMapping):
 
         self.__dict__.update(new.__dict__)
 
+    def __repr__(self):
+        d = [f"'{c}': {v.dtype}" for c, v in self.items()]
+        num = len(d)
+        v = d[:5]
+        if num > 5:
+            v.append(f"... + {num - 5} more")
+        txt = f"{self.__class__.__name__}({', '.join(v)})"
+        return txt
+
+    def __str__(self):
+        return repr(self)
+
     def iter_rows(self):
         columns = [self[c] for c in self]
         for row in zip(*columns):

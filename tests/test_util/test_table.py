@@ -133,6 +133,14 @@ class TableTests(TestCase):
         with self.assertRaises(ValueError):
             t.index_name
 
+    def test_column_repr_str(self):
+        """repr and str of Columns"""
+        t = Table(header=list("abcdefg"), data=[[0, 1.1, 2, 3, 4, 5.5, 6.0]])
+        r = repr(t.columns)
+        s = str(t.columns)
+        self.assertIsInstance(r, str)
+        self.assertEqual(r, s)
+
     def test_slicing_columns(self):
         """works using names, ints, bool array"""
         t = Table(header=self.t5_header, data=self.t5_rows)
