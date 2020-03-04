@@ -698,7 +698,6 @@ class Dendrogram(Drawable):
         return shape, annotation
 
     def _build_fig(self, **kwargs):
-        self.layout = UnionDict(self._default_layout)
         grouped = {}
 
         tree = self.tree
