@@ -76,25 +76,25 @@ class TestNumber(TestCase):
             ("Panc-AdenoCA", "Intron"),
         ]
         nums = number.CategoryCounter(data)
-        t = nums.to_table(expand_key=None)
+        t = nums.to_table(column_names=None)
         self.assertEqual(t.header, ("key", "count"))
         # if the key is a tuple, then the unexpanded column values are also
         self.assertIsInstance(t[0, 0], tuple)
         # you can use any data type as a key, but Table column is a str
-        t = nums.to_table(expand_key=2)
+        t = nums.to_table(column_names=2)
         self.assertEqual(t.header, ("2", "count"))
-        t = nums.to_table(expand_key="blah")
+        t = nums.to_table(column_names="blah")
         self.assertEqual(t.header, ("blah", "count"))
-        t = nums.to_table(expand_key=["A", "B"])
+        t = nums.to_table(column_names=["A", "B"])
         self.assertEqual(t.header, ("A", "B", "count"))
 
         with self.assertRaises(AssertionError):
             # key does not have 3 dimensions
-            _ = nums.to_table(expand_key=["A", "B", "C"])
+            _ = nums.to_table(column_names=["A", "B", "C"])
 
         with self.assertRaises(AssertionError):
-            # key does not have 3 dimensions
-            _ = nums.to_table(expand_key=[1])
+            # key does not have 1 dimension
+            _ = nums.to_table(column_names=[1])
 
     def test_valid(self):
         """correctly identify when numbers contains numbers"""

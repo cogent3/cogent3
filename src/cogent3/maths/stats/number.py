@@ -145,14 +145,14 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         data = numpy.array(data, dtype=int)
         return data
 
-    def to_table(self, expand_key=None):
+    def to_table(self, column_names=None):
         """converts to Table
 
         Parameters
         ----------
-        expand_key
-            the column name for the key, defaults to "key". If a series, must
-            match dimensions of keys, e.g. for (a, b) keys, expand_key=['A', 'B']
+        column_names
+            the column name(s) for the key, defaults to "key". If a series, must
+            match dimensions of keys, e.g. for (a, b) keys, column_names=['A', 'B']
             will result in a table with 3 columns ('A', 'B', 'count').
 
         Returns
@@ -162,11 +162,11 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         from cogent3.util.table import Table, cast_to_array
 
         if (
-            not expand_key
-            or isinstance(expand_key, str)
-            or not hasattr(expand_key, "__len__")
+            not column_names
+            or isinstance(column_names, str)
+            or not hasattr(column_names, "__len__")
         ):
-            key = expand_key if expand_key is not None else "key"
+            key = column_names if column_names is not None else "key"
             data = {c[0]: c[1:] for c in zip([key, "count"], *list(self.items()))}
             header = [key, "count"]
             # if keys are tuples, construct the numpy array manually so the
@@ -181,13 +181,13 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         else:
             for key in self:
                 break
-            assert len(key) == len(expand_key), "mismatched dimensions"
+            assert len(key) == len(column_names), "mismatched dimensions"
             data = defaultdict(list)
             for key, count in self.items():
-                for c, e in zip(expand_key, key):
+                for c, e in zip(column_names, key):
                     data[c].append(e)
                 data["count"].append(count)
-            header = list(expand_key) + ["count"]
+            header = list(column_names) + ["count"]
             data = dict(data)
         return Table(header=header, data=data)
 
