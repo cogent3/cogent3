@@ -145,7 +145,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         data = numpy.array(data, dtype=int)
         return data
 
-    def to_table(self, column_names=None):
+    def to_table(self, column_names=None, **kwargs):
         """converts to Table
 
         Parameters
@@ -154,12 +154,14 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
             the column name(s) for the key, defaults to "key". If a series, must
             match dimensions of keys, e.g. for (a, b) keys, column_names=['A', 'B']
             will result in a table with 3 columns ('A', 'B', 'count').
+        kwargs
+            passed to table constructor
 
         Returns
         -------
         cogent3 Table instance
         """
-        from cogent3.util.table import Table, cast_to_array
+        from cogent3.util.table import Table
 
         if (
             not column_names
@@ -189,7 +191,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
                 data["count"].append(count)
             header = list(column_names) + ["count"]
             data = dict(data)
-        return Table(header=header, data=data)
+        return Table(header=header, data=data, **kwargs)
 
     @property
     def entropy(self):

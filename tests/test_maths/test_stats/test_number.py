@@ -76,10 +76,11 @@ class TestNumber(TestCase):
             ("Panc-AdenoCA", "Intron"),
         ]
         nums = number.CategoryCounter(data)
-        t = nums.to_table(column_names=None)
+        t = nums.to_table(column_names=None, title="blah")
         self.assertEqual(t.header, ("key", "count"))
         # if the key is a tuple, then the unexpanded column values are also
         self.assertIsInstance(t[0, 0], tuple)
+        self.assertEqual(t.title, "blah")
         # you can use any data type as a key, but Table column is a str
         t = nums.to_table(column_names=2)
         self.assertEqual(t.header, ("2", "count"))
