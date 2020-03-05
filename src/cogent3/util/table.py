@@ -239,7 +239,7 @@ def cast_to_array(values):
     dtype = "U" if types == {str} else None
     try:
         result = numpy.array(values, dtype=dtype)
-    except:
+    except Exception:
         result = numpy.array(values, dtype=object)
 
     return result
