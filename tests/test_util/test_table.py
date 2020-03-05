@@ -715,11 +715,15 @@ class TableTests(TestCase):
 
     def test_take_columns(self):
         """correctly takes columns"""
-        t = Table(header=self.t5_header, data=self.t5_rows)
+        t = Table(header=self.t4_header, data=self.t4_rows)
         columns = list(t.columns)
         expect = tuple(columns[1:])
         n = t.columns.take_columns(expect)
         self.assertEqual(n.order, expect)
+        n = t.columns.take_columns(columns[0])
+        self.assertEqual(n.order, (columns[0],))
+        n = t.columns.take_columns(1)
+        self.assertEqual(n.order, (columns[1],))
 
     def test_with_new_column(self):
         """test the table with_new_column method"""

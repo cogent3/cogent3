@@ -485,10 +485,16 @@ class Columns(MutableMapping):
         self[name] = values
 
     def take_columns(self, columns):
+        """returns new Columns instance with just columns"""
         result = self.__class__()
-        columns = columns if isinstance(columns, str) else columns
+        if type(columns) in {int, str}:
+            columns = [columns]
+
+        columns = self._get_keys_(columns)
+
         for c in columns:
             result[c] = self[c]
+
         return result
 
     @property
