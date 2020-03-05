@@ -239,8 +239,9 @@ def cast_to_array(values):
     dtype = "U" if types == {str} else None
     try:
         result = numpy.array(values, dtype=dtype)
-    except:
+    except Exception:
         result = numpy.array(values, dtype=object)
+
     return result
 
 
@@ -381,6 +382,7 @@ class Columns(MutableMapping):
         return len(self._order)
 
     def __setitem__(self, key, val):
+        key = str(key)
         if isinstance(val, str):
             val = [val]
         try:

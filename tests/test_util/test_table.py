@@ -99,6 +99,11 @@ class TableTests(TestCase):
             self.assertEqual(len(t), 0)
             self.assertEqual(t.shape, (0, 2), f"failed with {data}")
 
+    def test_keys_are_str(self):
+        """all column headers converted to str"""
+        t = Table(header=["col 1", 2], data=[[0, 1]])
+        self.assertEqual(t.header, ("col 1", "2"))
+
     def test_no_index_name(self):
         """assigning None has no effect"""
         t = Table(header=self.t5_header, data=self.t5_rows)
