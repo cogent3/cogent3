@@ -1,0 +1,188 @@
+.. note::
+    :class: sphx-glr-download-link-note
+
+    Click :ref:`here <sphx_glr_download_draw_plot_draw-seqlogo.py>` to download the full example code
+.. rst-class:: sphx-glr-example-title
+
+.. _sphx_glr_draw_plot_draw-seqlogo.py:
+
+
+Draw sequence logos
+===================
+
+Sequence logo's display sequence information. They're extensively applied to transcription factor binding site (TFBS) display. They can also be applied to sequence alignments more generally.
+
+Drawing logo for a TFBS
+#######################
+
+We use the TFBS for the TAT box binding protein.
+
+
+.. code-block:: default
+
+
+    from cogent3.parse import jaspar
+
+    _, pwm = jaspar.read("../data/tbp.jaspar")
+    freqarr = pwm.to_freq_array()
+    freqarr[:5]  # illustrating the contents of the MotifFreqsArray
+
+
+
+
+
+
+
+.. only:: builder_html
+
+    .. raw:: html
+
+        <table>
+        <style>
+        tr:last-child {border-bottom: 1px solid #000;} tr > th {text-align: center !important;} tr > td {text-align: left !important;}
+        </style>
+        <thead style="background: rgba(161, 195, 209, 0.75); font-weight: bold; text-align: center;">
+        <th></th>
+        <th>T</th>
+        <th>C</th>
+        <th>A</th>
+        <th>G</th>
+        </thead>
+        <tbody>
+        <tr>
+        <td style="background: rgba(161, 195, 209, 0.25); font-weight: 600;">0</td>
+        <td style="font-family: monospace !important;">0.080</td>
+        <td style="font-family: monospace !important;">0.373</td>
+        <td style="font-family: monospace !important;">0.157</td>
+        <td style="font-family: monospace !important;">0.391</td>
+        </tr>
+        <tr>
+        <td style="background: rgba(161, 195, 209, 0.25); font-weight: 600;">1</td>
+        <td style="font-family: monospace !important;">0.794</td>
+        <td style="font-family: monospace !important;">0.118</td>
+        <td style="font-family: monospace !important;">0.041</td>
+        <td style="font-family: monospace !important;">0.046</td>
+        </tr>
+        <tr>
+        <td style="background: rgba(161, 195, 209, 0.25); font-weight: 600;">2</td>
+        <td style="font-family: monospace !important;">0.090</td>
+        <td style="font-family: monospace !important;">0.000</td>
+        <td style="font-family: monospace !important;">0.905</td>
+        <td style="font-family: monospace !important;">0.005</td>
+        </tr>
+        <tr>
+        <td style="background: rgba(161, 195, 209, 0.25); font-weight: 600;">3</td>
+        <td style="font-family: monospace !important;">0.961</td>
+        <td style="font-family: monospace !important;">0.026</td>
+        <td style="font-family: monospace !important;">0.008</td>
+        <td style="font-family: monospace !important;">0.005</td>
+        </tr>
+        <tr>
+        <td style="background: rgba(161, 195, 209, 0.25); font-weight: 600;">4</td>
+        <td style="font-family: monospace !important;">0.077</td>
+        <td style="font-family: monospace !important;">0.000</td>
+        <td style="font-family: monospace !important;">0.910</td>
+        <td style="font-family: monospace !important;">0.013</td>
+        </tr>
+        </tbody>
+        </table>
+
+        <br />
+        <br />
+
+
+.. code-block:: default
+
+    logo = freqarr.logo()
+    logo.show(renderer="sphinx_gallery", height=250, width=500)
+
+
+
+
+.. raw:: html
+    :file: images/sphx_glr_plot_draw-seqlogo_001.html
+
+
+
+
+
+Drawing a sequence logo from a multiple sequence alignment
+##########################################################
+
+This can be done for an entire alignment, but bear in mind it can take some time to render. Note that we include gap characters in the display.
+
+
+.. code-block:: default
+
+
+    from cogent3 import load_aligned_seqs
+
+    aln = load_aligned_seqs("../data/brca1-bats.fasta", moltype="dna")
+    l = aln[:311].seqlogo(height=300, width=500, wrap=60, vspace=0.05)
+    l.show(renderer="sphinx_gallery")
+
+
+
+
+.. raw:: html
+    :file: images/sphx_glr_plot_draw-seqlogo_002.html
+
+
+
+
+
+Sequence logo of protein alignment
+##################################
+
+No difference here except it uses the built-in colour scheme from the protein `MolType`.
+
+
+.. code-block:: default
+
+
+    aa = aln.get_translation(incomplete_ok=True)[:120]
+    logo = aa.seqlogo(width=500, height=300, wrap=50, vspace=0.1)
+    logo.show(renderer="sphinx_gallery")
+
+
+
+
+.. raw:: html
+    :file: images/sphx_glr_plot_draw-seqlogo_003.html
+
+
+
+
+
+
+.. rst-class:: sphx-glr-timing
+
+   **Total running time of the script:** ( 0 minutes  7.460 seconds)
+
+
+.. _sphx_glr_download_draw_plot_draw-seqlogo.py:
+
+
+.. only :: html
+
+ .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-example
+
+
+
+  .. container:: sphx-glr-download
+
+     :download:`Download Python source code: plot_draw-seqlogo.py <plot_draw-seqlogo.py>`
+
+
+
+  .. container:: sphx-glr-download
+
+     :download:`Download Jupyter notebook: plot_draw-seqlogo.ipynb <plot_draw-seqlogo.ipynb>`
+
+
+.. only:: html
+
+ .. rst-class:: sphx-glr-signature
+
+    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_

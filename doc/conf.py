@@ -19,6 +19,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinxcontrib.bibtex",
+    "sphinx_gallery.gen_gallery",
 ]
 
 # todo_include_todos=True # to expose the TODOs, uncomment this line
@@ -83,7 +84,27 @@ latex_documents = [
     ("index", "cogent3.tex", "cogent3 Documentation", "cogent3 Team", "manual")
 ]
 
+nbsphinx_requirejs_path = "require.js"
 
-def setup(app):
-    app.add_javascript("require.min.js")
-    app.add_javascript("plotly-latest.min.js")
+from plotly.io._sg_scraper import plotly_sg_scraper
+def plotly_sg_scraper_nb(*args, **kwargs):
+    try:
+        return plotly_sg_scraper(*args, **kwargs)
+    except Exception:
+        return ""
+
+image_scrapers = ("matplotlib", plotly_sg_scraper_nb,)
+
+from sphinx_gallery.sorting import ExplicitOrder
+
+sphinx_gallery_conf = {
+     "doc_module": ("plotly",),
+     "examples_dirs": ["draw_examples"],
+     "subsection_order": ExplicitOrder(["draw_examples/alignments",
+                                       "draw_examples/trees"]),
+     "gallery_dirs": ["draw"],
+     "backreferences_dir": "api/draw",
+     "reference_url": {"plotly": None,
+      },
+     "image_scrapers": image_scrapers,
+}

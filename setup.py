@@ -181,6 +181,7 @@ setup(
             "sphinx_rtd_theme",
             "sphinx-autobuild",
             "sphinxcontrib-bibtex",
+            "sphinx-gallery",
             "numpydoc",
             "nbformat",
             "nbconvert",
