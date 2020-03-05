@@ -1,3 +1,4 @@
+from collections import defaultdict
 from collections.abc import Mapping, MutableMapping
 
 import numpy
@@ -143,6 +144,52 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         data = self.tolist(keys=keys)
         data = numpy.array(data, dtype=int)
         return data
+
+    def to_table(self, expand_key=None):
+        """converts to Table
+
+        Parameters
+        ----------
+        expand_key
+            the column name for the key, defaults to "key". If a series, must
+            match dimensions of keys, e.g. for (a, b) keys, expand_key=['A', 'B']
+            will result in a table with 3 columns ('A', 'B', 'count').
+
+        Returns
+        -------
+        cogent3 Table instance
+        """
+        from cogent3.util.table import Table, cast_to_array
+
+        if (
+            not expand_key
+            or isinstance(expand_key, str)
+            or not hasattr(expand_key, "__len__")
+        ):
+            key = expand_key if expand_key is not None else "key"
+            data = {c[0]: c[1:] for c in zip([key, "count"], *list(self.items()))}
+            header = [key, "count"]
+            # if keys are tuples, construct the numpy array manually so the
+            # elements remain as tuples. numpy's object type casting converts
+            # these to lists otherwise
+            if type(next(iter(self))) == tuple:
+                num = len(data[key])
+                arr = numpy.empty(num, dtype=object)
+                for i in range(num):
+                    arr[i] = data[key][i]
+                data[key] = arr
+        else:
+            for key in self:
+                break
+            assert len(key) == len(expand_key), "mismatched dimensions"
+            data = defaultdict(list)
+            for key, count in self.items():
+                for c, e in zip(expand_key, key):
+                    data[c].append(e)
+                data["count"].append(count)
+            header = list(expand_key) + ["count"]
+            data = dict(data)
+        return Table(header=header, data=data)
 
     @property
     def entropy(self):
