@@ -492,6 +492,26 @@ class TableTests(TestCase):
         self.assertEqual(t2.count("bar % 2 == 0"), 2)
         self.assertEqual(t2.count("id == 0"), 0)
 
+    def test_count_unique(self):
+        """correctly computes unique values"""
+        data = {
+            "Project_Code": [
+                "Ovary-AdenoCA",
+                "Liver-HCC",
+                "Panc-AdenoCA",
+                "Panc-AdenoCA",
+            ],
+            "Donor_ID": ["DO46416", "DO45049", "DO51493", "DO32860"],
+            "Variant_Classification": ["IGR", "Intron", "Intron", "Intron"],
+        }
+        table = make_table(data=data)
+        co = table.count_unique(["Project_Code", "Variant_Classification"])
+        self.assertEqual(co[("Panc-AdenoCA", "Intron")], 2)
+        self.assertEqual(co[("Liver-HCC", "IGR")], 0)
+        co = table.count_unique("Variant_Classification")
+        self.assertEqual(co["Intron"], 3)
+        self.assertEqual(co["IGR"], 1)
+
     def test_distinct_values(self):
         """test the table distinct_values method"""
         t1 = Table(header=self.t1_header, data=self.t1_rows)

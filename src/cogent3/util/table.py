@@ -1192,6 +1192,32 @@ class Table:
         indices = self.get_row_indices(callback=callback, columns=columns)
         return indices.sum()
 
+    def count_unique(self, columns=None):
+        """count occurrences of unique combinations of columns
+
+        Parameters
+        ----------
+        columns
+            name of one or more columns. If None, all columns are used
+
+        Returns
+        -------
+        CategoryCounter instance
+        """
+        from cogent3.maths.stats.number import CategoryCounter
+
+        if columns is None:
+            columns = self.columns.order
+
+        subset = self.columns.take_columns(columns)
+        if len(subset) == 1:
+            data = subset[0].tolist()
+        else:
+            data = subset.array
+            data = list(tuple(e) for e in data)
+
+        return CategoryCounter(data=data)
+
     def distinct_values(self, columns):
         """returns the set of distinct values for the named column(s)"""
         data = [tuple(r) for r in self[:, columns].array.tolist()]
