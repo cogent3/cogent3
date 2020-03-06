@@ -485,10 +485,16 @@ class Columns(MutableMapping):
         self[name] = values
 
     def take_columns(self, columns):
+        """returns new Columns instance with just columns"""
         result = self.__class__()
-        columns = columns if isinstance(columns, str) else columns
+        if type(columns) in {int, str}:
+            columns = [columns]
+
+        columns = self._get_keys_(columns)
+
         for c in columns:
             result[c] = self[c]
+
         return result
 
     @property
@@ -1185,6 +1191,32 @@ class Table:
 
         indices = self.get_row_indices(callback=callback, columns=columns)
         return indices.sum()
+
+    def count_unique(self, columns=None):
+        """count occurrences of unique combinations of columns
+
+        Parameters
+        ----------
+        columns
+            name of one or more columns. If None, all columns are used
+
+        Returns
+        -------
+        CategoryCounter instance
+        """
+        from cogent3.maths.stats.number import CategoryCounter
+
+        if columns is None:
+            columns = self.columns.order
+
+        subset = self.columns.take_columns(columns)
+        if len(subset) == 1:
+            data = subset[0].tolist()
+        else:
+            data = subset.array
+            data = list(tuple(e) for e in data)
+
+        return CategoryCounter(data=data)
 
     def distinct_values(self, columns):
         """returns the set of distinct values for the named column(s)"""

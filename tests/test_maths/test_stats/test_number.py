@@ -67,6 +67,36 @@ class TestNumber(TestCase):
         assert_allclose(got, numpy.array([1, 3, 4, 4], dtype=int))
         self.assertEqual(nums.to_dict(), dict(A=4, C=3, G=4, T=1))
 
+    def test_to_table(self):
+        """produces correct Table structure"""
+        data = [
+            ("Ovary-AdenoCA", "IGR"),
+            ("Liver-HCC", "Intron"),
+            ("Panc-AdenoCA", "Intron"),
+            ("Panc-AdenoCA", "Intron"),
+        ]
+        nums = number.CategoryCounter(data)
+        t = nums.to_table(column_names=None, title="blah")
+        self.assertEqual(t.header, ("key", "count"))
+        # if the key is a tuple, then the unexpanded column values are also
+        self.assertIsInstance(t[0, 0], tuple)
+        self.assertEqual(t.title, "blah")
+        # you can use any data type as a key, but Table column is a str
+        t = nums.to_table(column_names=2)
+        self.assertEqual(t.header, ("2", "count"))
+        t = nums.to_table(column_names="blah")
+        self.assertEqual(t.header, ("blah", "count"))
+        t = nums.to_table(column_names=["A", "B"])
+        self.assertEqual(t.header, ("A", "B", "count"))
+
+        with self.assertRaises(AssertionError):
+            # key does not have 3 dimensions
+            _ = nums.to_table(column_names=["A", "B", "C"])
+
+        with self.assertRaises(AssertionError):
+            # key does not have 1 dimension
+            _ = nums.to_table(column_names=[1])
+
     def test_valid(self):
         """correctly identify when numbers contains numbers"""
         wrong = number.NumberCounter([0, "a", 1, 1])
