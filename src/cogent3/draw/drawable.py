@@ -108,13 +108,14 @@ def _show_(cls, renderer=None, **kwargs):
     """
     from plotly.io import show
 
-    if renderer == "sphinx_gallery":
-        _customise_sphinx_gallery_renderer()
-
     if renderer is None and PLOTLY_RENDERER is None:
         renderer = "notebook_connected+plotly_mimetype"
     elif renderer is None:
         renderer = PLOTLY_RENDERER
+
+    if renderer == "sphinx_gallery":
+        _customise_sphinx_gallery_renderer()
+
     kwargs["renderer"] = renderer
     drawable = getattr(cls, "drawable", None) or cls
     fig = getattr(drawable, "figure", None)
