@@ -7,15 +7,20 @@ import pathlib
 import pickle
 
 from tempfile import TemporaryDirectory
+from unittest import TestCase, main, skipIf
 
 import numpy
 
 from numpy.testing import assert_equal
-from pandas import DataFrame
 
 from cogent3 import load_table, make_table
 from cogent3.util.table import Table, cast_to_array, formatted_array
-from cogent3.util.unit_test import TestCase, main
+
+
+try:
+    from pandas import DataFrame
+except ImportError:
+    DataFrame = None
 
 
 __author__ = "Thomas La"
@@ -447,12 +452,13 @@ class TableTests(TestCase):
         r = repr(t)
         self.assertTrue(r.startswith(s))
 
+    @skipIf(DataFrame is None, "pandas not installed")
     def test_make_table_from_dataframe(self):
         """makes a table from a pandas data frame"""
         df = DataFrame(data=[[0, 1], [3, 7]], columns=["a", "b"])
         t = make_table(data_frame=df)
-        self.assertEqual(t.columns["a"], [0, 3])
-        self.assertEqual(t.columns["b"], [1, 7])
+        assert_equal(t.columns["a"], [0, 3])
+        assert_equal(t.columns["b"], [1, 7])
         with self.assertRaises(TypeError):
             make_table(data_frame="abcde")
 
@@ -753,10 +759,10 @@ class TableTests(TestCase):
         # now using a string expression
         t8 = Table(header=self.t8_header, data=self.t8_rows, row_ids="edge.name")
         n = t8.with_new_column("YZ", callback="y+z")
-        self.assertEqual(n.columns["YZ"], [9.0, 9.0])
+        assert_equal(n.columns["YZ"], [9.0, 9.0])
         # if the new column alreayb exists, the new table has the newest column
         n2 = t8.with_new_column("YZ", callback="y*z")
-        self.assertEqual(n2.columns["YZ"], [18.0, 18.0])
+        assert_equal(n2.columns["YZ"], [18.0, 18.0])
         self.assertNotEqual(id(n), id(n2))
         # bu the column arrays that have not changed should be equal
         for c in n.columns:
@@ -1031,6 +1037,7 @@ class TableTests(TestCase):
         self.assertEqual(tail.data.tolist(), self.t1_rows[-3:])
         table.display = display
 
+    @skipIf(DataFrame is None, "pandas not installed")
     def test_to_dataframe(self):
         """produces a dataframe"""
         t = Table(header=self.t1_header, data=self.t1_rows)
