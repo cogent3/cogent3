@@ -19,3 +19,4 @@ dependencies:
     - nbconvert!=5.4
     - sphinxcontrib-bibtex
     - sphinx-gallery
+    - ../
