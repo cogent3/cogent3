@@ -709,6 +709,14 @@ class TableTests(TestCase):
         self.assertEqual(t3.tolist("id"), [6, 7])
         self.assertEqual(t3.tolist("foo"), ["abc", "bca"])
 
+    def test_tolist_column_order(self):
+        """column order of input reflected in result"""
+        t3 = Table(header=self.t3_header, data=self.t3_rows)
+        rev_order = ["id", "foo", "bar"]
+        rev_order.reverse()
+        result = t3.tolist(rev_order)
+        self.assertEqual(result[0], list(reversed(self.t3_rows[0][:])))
+
     def test_to_dict(self):
         """cast to 2D dict"""
         t = Table(header=self.t7_header, data=self.t7_rows, digits=1)
