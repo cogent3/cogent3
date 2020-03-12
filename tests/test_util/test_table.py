@@ -14,7 +14,12 @@ import numpy
 from numpy.testing import assert_equal
 
 from cogent3 import load_table, make_table
-from cogent3.util.table import Table, cast_to_array, formatted_array
+from cogent3.util.table import (
+    Table,
+    cast_str_to_array,
+    cast_to_array,
+    formatted_array,
+)
 
 
 try:
@@ -1052,6 +1057,17 @@ class TableTests(TestCase):
         path = os.path.join(path, "data/sample.tsv")
         table = load_table(path)
         self.assertEqual(table.shape, (10, 3))
+
+    def test_cast_str_to_array(self):
+        """handle processing string series"""
+        d = [".123|.345", "123"]
+        r = cast_str_to_array(d, static_type=True)
+        self.assertTrue("str" in r.dtype.name)
+        r = cast_str_to_array(d, static_type=False)
+        self.assertEqual(r.dtype.name, "object")
+        d = [".123|.345", "123", "()"]
+        r = cast_str_to_array(d, static_type=False)
+        self.assertEqual(r[-1], ())
 
 
 if __name__ == "__main__":

@@ -210,7 +210,7 @@ def cast_str_to_array(values, static_type=False):
         try:
             v = eval(v)
             all_fail = False
-        except (NameError, SyntaxError):
+        except (TypeError, NameError, SyntaxError):
             # syntax error from empty strings
             pass
         result.append(v)
