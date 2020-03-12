@@ -1710,11 +1710,8 @@ class Table:
         if len(columns) == 1:
             result = self.columns[columns[0]].tolist()
             return result
-        if set(columns) == set(self.columns.order):
-            subtable = self
-        else:
-            subtable = self[:, columns]
 
+        subtable = self.get_columns(columns)
         result = subtable.columns.array.tolist()
 
         return result
