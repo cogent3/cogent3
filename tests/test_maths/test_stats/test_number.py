@@ -246,6 +246,63 @@ class TestNumber(TestCase):
             counts = number.CategoryCounter("AAAACCCGGGGT")
             nums.update_from_counts(counts)
 
+    def test_count(self):
+        """correctly counts across key dimensions"""
+        data = [
+            ("T", "C"),
+            ("T", "T"),
+            ("T", "A"),
+            ("G", "A"),
+            ("G", "A"),
+            ("A", "C"),
+            ("A", "G"),
+            ("T", "T"),
+            ("T", "A"),
+            ("T", "T"),
+            ("A", "T"),
+            ("A", "C"),
+            ("A", "C"),
+            ("T", "A"),
+            ("A", "A"),
+            ("A", "C"),
+        ]
+        nums = number.CategoryCounter(data)
+        i0 = nums.count(0)
+        self.assertEqual(i0["T"], 7)
+        self.assertEqual(i0["G"], 2)
+        self.assertEqual(i0["A"], 7)
+        self.assertEqual(i0["C"], 0)
+        # works same if keys are strings
+        nums = number.CategoryCounter(["".join(e) for e in data])
+        i0 = nums.count(0)
+        self.assertEqual(i0["T"], 7)
+        self.assertEqual(i0["G"], 2)
+        self.assertEqual(i0["A"], 7)
+        self.assertEqual(i0["C"], 0)
+        with self.assertRaises(IndexError):
+            _ = nums.count([0, 3])
+
+        i0 = nums.count([0])
+        self.assertEqual(i0["G"], 2)
+        with self.assertRaises(IndexError):
+            _ = nums.count([0, 3])
+        i1 = nums.count(1)
+        self.assertEqual(i1["A"], 6)
+        self.assertEqual(i1["C"], 5)
+        self.assertEqual(i1["T"], 4)
+
+        data = {
+            ("A", "C", "G"): 10,
+            ("A", "T", "G"): 4,
+            ("C", "C", "G"): 3,
+            ("G", "C", "G"): 6,
+        }
+        nums = number.CategoryCounter(data)
+        i02 = nums.count([0, 2])
+        self.assertEqual(i02[("A", "G")], 14)
+        self.assertEqual(i02[("C", "G")], 3)
+        self.assertEqual(i02[("G", "G")], 6)
+
 
 if __name__ == "__main__":
     main()
