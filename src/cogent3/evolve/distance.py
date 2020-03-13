@@ -344,7 +344,10 @@ class EstimateDistances(object):
                     row.append(d[(s2, s1)])
             twoD.append(row)
         T = table.Table(
-            [r"Seq1 \ Seq2"] + self._seqnames, twoD, row_ids=True, missing_data="*"
+            [r"Seq1 \ Seq2"] + self._seqnames,
+            twoD,
+            row_ids=r"Seq1 \ Seq2",
+            missing_data="*",
         )
         return T
 

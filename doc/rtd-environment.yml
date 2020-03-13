@@ -3,29 +3,21 @@ channels:
   - conda-forge
   - plotly
 dependencies:
-  - nodejs
-  - python=3.7
   - pandoc
+  - python=3.7
   - plotly
   - plotly-orca
   - pip
   - pip:
-    - numpy
     - numpydoc
-    - tqdm
-    - scitrack
-    - tinydb
-    - pandas
-    - jupyterlab
-    - jupyter_client
+    - psutil
     - ipython
     - ipykernel
     - ipywidgets
     - sphinx>=1.6
     - nbsphinx
     - nbformat
-    - jupyterlab
     - nbconvert!=5.4
-    - jupytext
     - sphinxcontrib-bibtex
-    - sphinx_rtd_theme
+    - sphinx-gallery
+    - ../

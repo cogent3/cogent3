@@ -48,7 +48,7 @@ class FormatBedgraph(TestCase):
         rows = [["1", i, i + 1, 0] for i in range(100, 121)] + [
             ["1", i, i + 1, 10] for i in range(150, 161)
         ]
-        table = Table(header=["chrom", "start", "end", "value"], rows=rows)
+        table = Table(header=["chrom", "start", "end", "value"], data=rows)
 
         bgraph = table.to_string(
             format="bedgraph",
@@ -74,7 +74,7 @@ class FormatBedgraph(TestCase):
             ["1", i, i + 1, 10] for i in range(150, 161)
         ]
         rows += [["2", i, i + 1, 0] for i in range(100, 121)]
-        table = Table(header=["chrom", "start", "end", "value"], rows=rows)
+        table = Table(header=["chrom", "start", "end", "value"], data=rows)
         bgraph = table.to_string(
             format="bedgraph",
             name="test track",
@@ -100,7 +100,7 @@ class FormatBedgraph(TestCase):
         rows = [["1", i, i + 1, 0] for i in range(100, 121)] + [
             ["1", i, i + 1, 10] for i in range(150, 161)
         ]
-        table = Table(header=["chrom", "start", "end", "value"], rows=rows)
+        table = Table(header=["chrom", "start", "end", "value"], data=rows)
 
         self.assertRaises(
             RuntimeError,
@@ -117,7 +117,7 @@ class FormatBedgraph(TestCase):
         rows = [["1", i, i + 1, 0, 1] for i in range(100, 121)] + [
             ["1", i, i + 1, 10, 1] for i in range(150, 161)
         ]
-        table = Table(header=["chrom", "start", "end", "value", "blah"], rows=rows)
+        table = Table(header=["chrom", "start", "end", "value", "blah"], data=rows)
 
         self.assertRaises(
             AssertionError,
@@ -134,7 +134,7 @@ class FormatBedgraph(TestCase):
         rows = [["1", i, i + 1, 0] for i in range(100, 121)] + [
             ["1", i, i + 1, 10] for i in range(150, 161)
         ]
-        table = Table(header=["chrom", "start", "end", "value"], rows=rows)
+        table = Table(header=["chrom", "start", "end", "value"], data=rows)
 
         bgraph = table.to_string(
             format="bedgraph",
@@ -161,7 +161,7 @@ class FormatBedgraph(TestCase):
         rows = [["1", i, i + 1, 0] for i in range(100, 121)] + [
             ["1", i, i + 1, 10] for i in range(150, 161)
         ]
-        table = Table(header=["chrom", "start", "end", "value"], rows=rows)
+        table = Table(header=["chrom", "start", "end", "value"], data=rows)
 
         bgraph = table.to_string(
             format="bedgraph",
@@ -188,7 +188,7 @@ class FormatBedgraph(TestCase):
         rows = [["1", i, i + 1, 0] for i in range(100, 121)] + [
             ["1", i, i + 1, 10] for i in range(150, 161)
         ]
-        table = Table(header=["chrom", "start", "end", "value"], rows=rows)
+        table = Table(header=["chrom", "start", "end", "value"], data=rows)
 
         self.assertRaises(
             AssertionError,
