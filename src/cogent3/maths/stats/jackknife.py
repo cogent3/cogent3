@@ -176,4 +176,4 @@ class JackknifeStats(object):
             (self._sample_statistic, self._jackknifed_stat, self._standard_error)
         )
         rows = rows.transpose()
-        return Table(header=header, rows=rows, title=title)
+        return Table(header=header, data=rows, title=title)

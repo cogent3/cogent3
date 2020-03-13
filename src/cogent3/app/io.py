@@ -18,7 +18,7 @@ from cogent3.format.alignment import FORMATTERS
 from cogent3.maths.util import safe_log
 from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
-from cogent3.util.table import Table, convert2DDict
+from cogent3.util.table import Table
 
 from .composable import (
     ALIGNED_TYPE,
@@ -309,7 +309,7 @@ class load_tabular(ComposableTabular):
             result = NotCompleted("ERROR", self, err.args[0], source=str(path))
 
         if self.as_type == "table":
-            return Table(header, rows=data, title=title)
+            return Table(header=header, data=data, title=title)
 
         assert data.shape[1] == 3, "Invalid tabular data"
 

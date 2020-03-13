@@ -42,6 +42,7 @@ from cogent3.parse.table import autogen_reader, load_delimited
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.util.misc import get_format_suffixes, open_
 from cogent3.util.table import Table as _Table
+from cogent3.util.table import cast_str_to_array
 
 
 __author__ = ""
@@ -292,7 +293,7 @@ def load_aligned_seqs(
 
 def make_table(
     header=None,
-    rows=None,
+    data=None,
     row_order=None,
     digits=4,
     space=4,
@@ -305,6 +306,7 @@ def make_table(
     dtype=None,
     data_frame=None,
     format="simple",
+    **kwargs,
 ):
     """
 
@@ -345,9 +347,18 @@ def make_table(
         output format when using str(Table)
 
     """
+    data = kwargs.get("rows", data)
+    if data_frame is not None:
+        from pandas import DataFrame
+
+        if not isinstance(data_frame, DataFrame):
+            raise TypeError(f"expecting a DataFrame, got{type(data_frame)}")
+
+        data = {c: data_frame[c].to_numpy() for c in data_frame}
+
     table = _Table(
         header=header,
-        rows=rows,
+        data=data,
         digits=digits,
         row_order=row_order,
         title=title,
@@ -381,6 +392,7 @@ def load_table(
     static_column_types=False,
     limit=None,
     format="simple",
+    skip_inconsistent=False,
     **kwargs,
 ):
     """
@@ -434,17 +446,21 @@ def load_table(
         a pandas DataFrame, supersedes header/rows
     format
         output format when using str(Table)
-
+    skip_inconsistent
+        skips rows that have different length to header row
     """
+    filename = str(filename)
     sep = sep or kwargs.pop("delimiter", None)
     file_format, compress_format = get_format_suffixes(filename)
 
-    if not (reader or static_column_types):
+    if not reader:
         if file_format == "pickle":
             f = open_(filename, mode="rb")
             loaded_table = pickle.load(f)
             f.close()
-            return _Table(**loaded_table)
+            r = _Table()
+            r.__setstate__(loaded_table)
+            return r
         elif file_format == "csv":
             sep = sep or ","
         elif file_format == "tsv":
@@ -453,29 +469,31 @@ def load_table(
         header, rows, loaded_title, legend = load_delimited(
             filename, delimiter=sep, limit=limit, **kwargs
         )
+        if skip_inconsistent:
+            num_fields = len(header)
+            rows = [r for r in rows if len(r) == num_fields]
+        else:
+            lengths = set(map(len, [header] + rows))
+            if len(lengths) != 1:
+                msg = f"inconsistent number of fields {lengths}"
+                raise ValueError(msg)
+
         title = title or loaded_title
+        data = {}
+        for column in zip(header, *rows):
+            data[column[0]] = cast_str_to_array(
+                column[1:], static_type=static_column_types
+            )
+        rows = data
     else:
         f = open_(filename, newline=None)
-        if not reader:
-            if file_format == "csv":
-                sep = sep or ","
-            elif file_format == "tsv":
-                sep = sep or "\t"
-            elif not sep:
-                raise ValueError(
-                    "static_column_types option requires a value " "for sep"
-                )
-
-            reader = autogen_reader(
-                f, sep, limit=limit, with_title=kwargs.get("with_title", False)
-            )
-
         rows = [row for row in reader(f)]
         f.close()
         header = rows.pop(0)
+
     return make_table(
         header=header,
-        rows=rows,
+        data=rows,
         digits=digits,
         title=title,
         dtype=dtype,
