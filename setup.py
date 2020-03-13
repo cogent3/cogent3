@@ -169,7 +169,7 @@ setup(
     ],
     packages=find_packages(where="src"),
     package_dir={"": PACKAGE_DIR},
-    install_requires=["numpy", "pandas", "plotly", "scitrack", "tqdm", "tinydb"],
+    install_requires=["numpy", "pandas", "scitrack", "tqdm", "tinydb"],
     extras_require={
         "dev": [
             "pytest-azurepipelines",
@@ -188,13 +188,15 @@ setup(
             "ipykernel",
             "nbsphinx",
             "jupytext",
+            "plotly",
             "pytest",
             "pytest-cov",
             "pytest>=4.3.0",
             "tox",
             "black",
             "isort",
-        ]
+        ],
+        "extra": ["pandas", "plotly", "psutil"],
     },
     ext_modules=cythonize(
         [
