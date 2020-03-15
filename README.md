@@ -28,7 +28,13 @@ Our `cogent3.app` module provides a very different approach to using the library
 $ pip install cogent3
 ```
 
-### Installing the development version
+### Installing with some other extra libraries, e.g. [plotly](https://github.com/plotly/plotly.py) and [pandas](https://github.com/pandas-dev/pandas) (optional)
+
+```bash
+$ pip install cogent3[extra]
+```
+
+### Installing the development version (optional)
 
 ```bash
 $ pip install git+https://github.com/cogent3/cogent3.git@develop#egg=cogent3
