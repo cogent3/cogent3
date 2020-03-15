@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Mapping, MutableMapping
 
 import numpy
@@ -204,6 +204,34 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         result = CategoryFreqs(self, total=self.sum)
         return result
 
+    def count(self, indices):
+        """
+        Parameters
+        ----------
+        indices
+            select element(s) from a multi-element tuple keys, must be int or
+            series of ints
+
+        Returns
+        -------
+        CategoryCounter
+        """
+        if isinstance(indices, int):
+            indices = [indices]
+
+        counts = Counter()
+        for key in self:
+            try:
+                sub_key = tuple(key[i] for i in indices)
+                sub_key = sub_key[0] if len(sub_key) == 1 else sub_key
+            except IndexError:
+                msg = f"indices {indices} too big for key {key}"
+                raise IndexError(msg)
+            counts[sub_key] += self[key]
+
+        result = self.__class__(data=counts)
+        return result
+
 
 class CategoryFreqs(MutableMapping, SummaryStatBase):
     """category frequencies with summary statistic attributes"""
@@ -287,6 +315,8 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
 
 
 class NumberCounter(CategoryCounter):
+    """counts occurrences of numbers"""
+
     def __init__(self, data=None):
         super(NumberCounter, self).__init__(data=data)
 
