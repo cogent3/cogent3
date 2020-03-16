@@ -1,13 +1,66 @@
 import os
-import pathlib
 import shutil
 import sys
-
+import subprocess
 from glob import glob
 
-from plotly.io._sg_scraper import figure_rst
 from sphinx_gallery.sorting import ExplicitOrder, FileNameSortKey
 
+
+def exec_command(cmnd):
+    """executes shell command and returns stdout if completes exit code 0"""
+    proc = subprocess.Popen(
+        cmnd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    out, err = proc.communicate()
+    if proc.returncode != 0:
+        raise SystemError(proc.returncode, "FAILED: %s\n%s" % (cmnd, err))
+
+    if out is not None:
+        r = out.decode("utf8")
+    else:
+        r = None
+
+    return r
+
+
+def not_installed_on_linux(packages):
+    # returns packages to be installed, if not Linux just an empty list
+    if "linux" not in sys.platform.lower():
+        return []
+
+    to_install = []
+    for package in packages:
+        cmnd = f"dpkg -l | grep {package}"
+        try:
+            result = exec_command(cmnd)
+        except SystemError:
+            to_install.append(package)
+
+    return to_install
+
+
+def apt_get_installs():
+    # need this to get around issues of no X11 on readthedocs
+    packages = not_installed_on_linux(
+        ["libgtk2.0-0", "libgconf-2-4", "xvfb", "chromium-browser"]
+    )
+
+    for package in packages:
+        print(f"Installing {package}")
+        cmnd = f"apt-get install {package} -y"
+        exec_command(cmnd)
+
+
+apt_get_installs()
+
+import plotly.io as pio
+
+try:
+    exec_command("dpkg -l | grep xvfb")
+    pio.orca.config.use_xvfb = True
+except SystemError:
+    pass
 
 # set the plotly renderer
 os.environ["PLOTLY_RENDERER"] = "sphinx_gallery"
@@ -41,10 +94,14 @@ templates_path = ["templates"]
 source_suffix = ".rst", ".ipynb"
 
 # ignore the cookbook/union_dict.rst file as it's specifically included
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store",
- "**.ipynb_checkpoints",
-"cookbook/union_dict.rst",
-                    "draw_examples/README.rst"]
+exclude_patterns = [
+    "_build",
+    "Thumbs.db",
+    ".DS_Store",
+    "**.ipynb_checkpoints",
+    "cookbook/union_dict.rst",
+    "draw_examples/README.rst",
+]
 
 # The encoding of source files.
 # source_encoding = 'utf-8'
@@ -73,11 +130,11 @@ html_theme = "alabaster"
 sidebar_collapse = True
 
 html_sidebars = {
-    '**': [
-        'about.html',
-        'navigation.html',
-        'relations.html',
-        'searchbox.html',
+    "**": [
+        "about.html",
+        "navigation.html",
+        "relations.html",
+        "searchbox.html",
         # 'donate.html',
     ]
 }
@@ -94,6 +151,7 @@ htmlhelp_basename = "cogent3doc"
 # -- Options for Sphinx Gallery
 
 nbsphinx_requirejs_path = "require.js"
+
 
 def plotly_sg_scraper(block, block_vars, gallery_conf, *args, **kwargs):
     examples_dirs = gallery_conf["examples_dirs"]
@@ -115,11 +173,12 @@ def plotly_sg_scraper(block, block_vars, gallery_conf, *args, **kwargs):
     # Use the `figure_rst` helper function to generate rST for image files
     return figure_rst(image_names, gallery_conf["src_dir"])
 
+
 def plotly_sg_scraper_nb(*args, **kwargs):
     try:
         result = plotly_sg_scraper(*args, **kwargs)
     except Exception:
-        result = ''
+        result = ""
     return result
 
 
@@ -130,17 +189,17 @@ gallery_dirs = ["draw"]
 
 
 sphinx_gallery_conf = {
-     # "doc_module": ("plotly",),
-     "examples_dirs": example_dirs,
-     'subsection_order': ExplicitOrder(["draw_examples/aln", "draw_examples/tree"]),
-    'abort_on_example_error': True,
-     'within_subsection_order': FileNameSortKey,
-     "gallery_dirs": gallery_dirs,
-     # "reference_url": {"plotly": None,
-      # },
-     "image_scrapers": image_scrapers,
-     "download_all_examples": False,
-    }
+    # "doc_module": ("plotly",),
+    "examples_dirs": example_dirs,
+    "subsection_order": ExplicitOrder(["draw_examples/aln", "draw_examples/tree"]),
+    "abort_on_example_error": True,
+    "within_subsection_order": FileNameSortKey,
+    "gallery_dirs": gallery_dirs,
+    # "reference_url": {"plotly": None,
+    # },
+    "image_scrapers": image_scrapers,
+    "download_all_examples": False,
+}
 
 # -- Options for LaTeX output --------------------------------------------------
 latex_documents = [
