@@ -14,7 +14,7 @@ def exec_command(cmnd):
     )
     out, err = proc.communicate()
     if proc.returncode != 0:
-        user = os.environ["USER"]
+        user = os.environ.get("USER", None)
         raise SystemError(proc.returncode, f"FAILED: {cmnd}\n{err} for '{user}'")
 
     if out is not None:
