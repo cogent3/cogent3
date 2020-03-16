@@ -14,7 +14,8 @@ def exec_command(cmnd):
     )
     out, err = proc.communicate()
     if proc.returncode != 0:
-        raise SystemError(proc.returncode, "FAILED: %s\n%s" % (cmnd, err))
+        user = os.environ["USER"]
+        raise SystemError(proc.returncode, f"FAILED: {cmnd}\n{err} for '{user}'")
 
     if out is not None:
         r = out.decode("utf8")
@@ -42,14 +43,33 @@ def not_installed_on_linux(packages):
 
 def apt_get_installs():
     # need this to get around issues of no X11 on readthedocs
+    # not really doing an apt-get install, but an apt-get download of a .deb
+    # then using dpkg to expand the packages locally
     packages = not_installed_on_linux(
         ["libgtk2.0-0", "libgconf-2-4", "xvfb", "chromium-browser"]
     )
 
     for package in packages:
         print(f"Installing {package}")
-        cmnd = f"apt-get install {package} -y"
+        cmnd = f"apt-get download {package} -y"
         exec_command(cmnd)
+        name = exec_command(f"ls {package}*").strip()
+        cmnd = f"dpkg -x {name} ."
+        exec_command(cmnd)
+
+    if packages:
+        # now delete the *.deb
+        exec_command("rm *.deb")
+
+    # now modify PATH and LD_LIBRARY_PATH
+    install_dir = os.getcwd()
+    for env, local in [("PATH", "bin"), ("LD_LIBRARY_PATH", "lib")]:
+        local = os.path.join(install_dir, "usr", local)
+        e = os.environ.get(env, "")
+        if local in e:
+            continue
+
+        os.environ[env] = ":".join([local, e])
 
 
 apt_get_installs()
@@ -101,6 +121,8 @@ exclude_patterns = [
     "**.ipynb_checkpoints",
     "cookbook/union_dict.rst",
     "draw_examples/README.rst",
+    "draw_examples/aln/README.rst",
+    "draw_examples/tree/README.rst",
 ]
 
 # The encoding of source files.
@@ -171,6 +193,8 @@ def plotly_sg_scraper(block, block_vars, gallery_conf, *args, **kwargs):
             shutil.move(png, this_image_path_png)
             shutil.move(html, this_image_path_html)
     # Use the `figure_rst` helper function to generate rST for image files
+    from plotly.io._sg_scraper import figure_rst
+
     return figure_rst(image_names, gallery_conf["src_dir"])
 
 
