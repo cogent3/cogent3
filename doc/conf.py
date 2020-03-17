@@ -1,8 +1,11 @@
 import os
 import shutil
-import sys
 import subprocess
+import sys
+
 from glob import glob
+
+import plotly.io as pio
 
 from sphinx_gallery.sorting import ExplicitOrder, FileNameSortKey
 
@@ -15,6 +18,7 @@ def exec_command(cmnd):
     out, err = proc.communicate()
     if proc.returncode != 0:
         user = os.environ.get("USER", None)
+        err = err.decode("utf8")
         raise SystemError(proc.returncode, f"FAILED: {cmnd}\n{err} for '{user}'")
 
     if out is not None:
@@ -30,13 +34,13 @@ def not_installed_on_linux(packages):
     if "linux" not in sys.platform.lower():
         return []
 
-    to_install = []
-    for package in packages:
-        cmnd = f"dpkg -l | grep {package}"
+    to_install = {}
+    for name, url in packages.items():
+        cmnd = f"dpkg -l | grep {name}"
         try:
             result = exec_command(cmnd)
         except SystemError:
-            to_install.append(package)
+            to_install[name] = url
 
     return to_install
 
@@ -46,15 +50,20 @@ def apt_get_installs():
     # not really doing an apt-get install, but an apt-get download of a .deb
     # then using dpkg to expand the packages locally
     packages = not_installed_on_linux(
-        ["libgtk2.0-0", "libgconf-2-4", "xvfb", "chromium-browser"]
+        {
+            "libgtk2.0-0": "http://nova.clouds.archive.ubuntu.com/ubuntu/pool/main/g/gtk+2.0/libgtk2.0-0_2.24.30-1ubuntu1.16.04.2_amd64.deb",
+            "libgconf-2-4": "http://nova.clouds.archive.ubuntu.com/ubuntu/pool/main/g/gconf/libgconf-2-4_3.2.6-3ubuntu6_amd64.deb",
+            "xvfb": "http://nova.clouds.archive.ubuntu.com/ubuntu/pool/universe/x/xorg-server/xvfb_1.18.4-0ubuntu0.8_amd64.deb",
+            "chromium-browser": "http://nova.clouds.archive.ubuntu.com/ubuntu/pool/universe/c/chromium-browser/chromium-browser_80.0.3987.87-0ubuntu0.16.04.1_amd64.deb",
+        }
     )
 
-    for package in packages:
-        print(f"Installing {package}")
-        cmnd = f"apt-get download {package} -y"
+    for name, package in packages.items():
+        print(f"Installing {name}")
+        cmnd = f"wget {package}"
         exec_command(cmnd)
-        name = exec_command(f"ls {package}*").strip()
-        cmnd = f"dpkg -x {name} ."
+        package = package.split("/")[-1]
+        cmnd = f"dpkg -x {package} ."
         exec_command(cmnd)
 
     if packages:
@@ -74,7 +83,6 @@ def apt_get_installs():
 
 apt_get_installs()
 
-import plotly.io as pio
 
 try:
     exec_command("dpkg -l | grep xvfb")
