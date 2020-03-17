@@ -80,9 +80,17 @@ def apt_get_installs():
 
         os.environ[env] = ":".join([local, e])
 
+    # write out a revised plot-orca command
+    orca = exec_command("which orca").strip()
+    cmnd = [
+        "#!/bin/bash",
+        f'exec {orca} "$@" --no-sandbox',
+    ]
+    with open(orca, "w") as out:
+        out.write("\n".join(cmnd))
+
 
 apt_get_installs()
-
 
 try:
     exec_command("dpkg -l | grep xvfb")
