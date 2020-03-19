@@ -314,7 +314,7 @@ def make_table(
     ----------
     header
         column headings
-    rows
+    data
         a 2D dict, list or tuple. If a dict, it must have column
         headings as top level keys, and common row labels as keys in each
         column.
