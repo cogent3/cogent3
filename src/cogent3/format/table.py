@@ -157,7 +157,15 @@ def rich_html(
     return data
 
 
-def latex(rows, header=None, caption=None, justify=None, label=None, position=None):
+def latex(
+    rows,
+    header=None,
+    caption=None,
+    legend=None,
+    justify=None,
+    label=None,
+    position=None,
+):
     """Returns the text a LaTeX table.
 
     Parameters
@@ -168,6 +176,9 @@ def latex(rows, header=None, caption=None, justify=None, label=None, position=No
         table header
     caption
         title text.
+    legend
+        If provided, the text is placed in a \\caption*{} command at the
+        bottom of the table and the caption is placed at the top.
     justify
         column justification, default is right aligned.
     label
@@ -175,6 +186,10 @@ def latex(rows, header=None, caption=None, justify=None, label=None, position=No
     position
         table page position, default is here, top separate page
 
+    Notes
+    -----
+    The \\caption*{} command is provided with the caption package. See
+    https://ctan.org/pkg/caption for more details.
     """
 
     if not justify:
@@ -190,18 +205,30 @@ def latex(rows, header=None, caption=None, justify=None, label=None, position=No
         r"\begin{table}[%s]" % position,
         r"\centering",
         r"\begin{tabular}%s" % justify,
+        r"\hline",
+        header,
+        r"\hline",
+        r"\hline",
     ]
-    table_format.append(r"\hline")
-    table_format.append(header)
-    table_format.append(r"\hline")
-    table_format.append(r"\hline")
     table_format += rows
     table_format.append(r"\hline")
     table_format.append(r"\end{tabular}")
-    if caption:
-        table_format.append(r"\caption{%s}" % caption)
-    if label:
-        table_format.append(r"\label{%s}" % label)
+
+    caption = r"\caption{%s}" % caption if caption else ""
+    label = r"\label{%s}" % label if label else ""
+    legend = r"\caption*{%s}" % legend if isinstance(legend, str) else None
+    if caption and label:
+        caption = f"{caption}\n{label}"
+    elif caption or label:
+        caption = caption or label
+
+    if caption and legend:
+        table_format.insert(2, caption)
+    elif caption:
+        table_format.append(caption)
+
+    if legend is not None:
+        table_format.append(legend)
     table_format.append(r"\end{table}")
 
     return "\n".join(table_format)

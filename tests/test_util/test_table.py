@@ -820,6 +820,62 @@ class TableTests(TestCase):
         md = md_table.to_string(format="md")
         self.assertTrue(r"has \| symbol" in md)
 
+    def test_str_tex_format(self):
+        """str() produces latex tabular table"""
+        tex_table = make_table(
+            header=["a", "b"], data=[["val1", "val2"], ["val3", "val4"]]
+        )
+        tex = tex_table.to_string(format="tex")
+        self.assertFalse("caption" in tex)
+        # with a title
+        tex_table = make_table(
+            header=["a", "b"],
+            data=[["val1", "val2"], ["val3", "val4"]],
+            title="a title",
+        )
+        tex = tex_table.to_string(format="tex")
+        tex = tex.splitlines()
+        self.assertEqual(tex[-2], r"\caption{a title}")
+
+        tex = tex_table.to_string(format="tex", label="tab:first")
+        tex = tex.splitlines()
+        self.assertEqual(tex[-3], r"\caption{a title}")
+        self.assertEqual(tex[-2], r"\label{tab:first}")
+
+        # with a legend, no title
+        tex_table = make_table(
+            header=["a", "b"],
+            data=[["val1", "val2"], ["val3", "val4"]],
+            legend="a legend",
+        )
+        tex = tex_table.to_string(format="tex")
+        tex = tex.splitlines()
+        # because it's treated as a title by default
+        self.assertEqual(tex[-2], r"\caption{a legend}")
+        # unless you say not to
+        tex = tex_table.to_string(format="tex", concat_title_legend=False)
+        tex = tex.splitlines()
+        self.assertEqual(tex[-2], r"\caption*{a legend}")
+        tex_table = make_table(
+            header=["a", "b"],
+            data=[["val1", "val2"], ["val3", "val4"]],
+            title="a title.",
+            legend="a legend",
+        )
+        tex = tex_table.to_string(format="tex")
+        tex = tex.splitlines()
+        self.assertEqual(tex[-2], r"\caption{a title. a legend}")
+        tex = tex_table.to_string(format="tex", concat_title_legend=False)
+        tex = tex.splitlines()
+        self.assertEqual(tex[2], r"\caption{a title.}")
+        self.assertEqual(tex[-2], r"\caption*{a legend}")
+        tex = tex_table.to_string(
+            format="tex", concat_title_legend=False, label="table"
+        )
+        tex = tex.splitlines()
+        self.assertEqual(tex[2], r"\caption{a title.}")
+        self.assertEqual(tex[3], r"\label{table}")
+
     def test_phylip(self):
         """generates phylip format"""
         rows = [
