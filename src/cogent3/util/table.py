@@ -1539,7 +1539,15 @@ class Table:
         formatted = list([list(e) for e in zip(*formatted)])
         return formatted
 
-    def to_string(self, format="", borders=True, sep=None, center=False, **kwargs):
+    def to_string(
+        self,
+        format="",
+        borders=True,
+        sep=None,
+        center=False,
+        concat_title_legend=True,
+        **kwargs,
+    ):
         """Return the table as a formatted string.
 
         Parameters
@@ -1551,9 +1559,11 @@ class Table:
         sep
             A string separator for delineating columns, e.g. ',' or
             '\t'. Overrides format.
-        center
+        center : bool
             content is centered in the column, default is right
             justified
+        concat_title_legend : bool
+            Concat the title and legend.
 
         Notes
         -----
@@ -1594,11 +1604,14 @@ class Table:
         elif format in ("markdown", "md"):
             return table_format.markdown(header, formatted_table, **kwargs)
         elif format.endswith("tex"):
-            caption = None
-            if self.title or self.legend:
-                caption = " ".join([self.title or "", self.legend or ""])
+            caption = self.title or None
+            legend = self.legend or None
+            if concat_title_legend and (caption or legend):
+                caption = " ".join([caption or "", legend or ""])
+                caption = caption.strip()
+                legend = None
             return table_format.latex(
-                formatted_table, header, caption=caption, **kwargs
+                formatted_table, header, caption=caption, legend=legend, **kwargs
             )
         elif format == "html":
             return self.to_rich_html(**kwargs)
