@@ -162,16 +162,18 @@ def latex(rows, header=None, caption=None, justify=None, label=None, position=No
 
     Parameters
     ----------
+    rows
+        table data in row orientation
     header
         table header
-    position
-        table page position, default is here, top separate page
+    caption
+        title text.
     justify
         column justification, default is right aligned.
-    caption
-        Table legend
     label
         for cross referencing
+    position
+        table page position, default is here, top separate page
 
     """
 
