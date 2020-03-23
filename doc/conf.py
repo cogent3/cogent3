@@ -1,4 +1,5 @@
 import os
+import pathlib
 import shutil
 import subprocess
 import sys
@@ -9,7 +10,8 @@ import plotly.io as pio
 
 from sphinx_gallery.sorting import ExplicitOrder, FileNameSortKey
 
-
+# following functions used to hack readthedocs build environment to include
+# required tools for plotly to work on a headless linux box as root
 def exec_command(cmnd):
     """executes shell command and returns stdout if completes exit code 0"""
     proc = subprocess.Popen(
@@ -45,10 +47,31 @@ def not_installed_on_linux(packages):
     return to_install
 
 
+def update_orca():
+    # write out a revised plot-orca command
+    orca = pathlib.Path(exec_command("which orca").strip())
+    txt = orca.read_text()
+    # get the linux line
+    cmnd = [l.strip() for l in txt.split("linux")[-1].splitlines() if "exec" in l]
+    cmnd = f"{cmnd[0]} --no-sandbox"
+    cmnd = [
+        "#!/bin/bash",
+        "",
+        cmnd,
+    ]
+    # copy the original
+    shutil.copy(str(orca), f"{orca}.orig")
+    # write the new
+    orca.write_text("\n".join(cmnd))
+
+
 def apt_get_installs():
     # need this to get around issues of no X11 on readthedocs
     # not really doing an apt-get install, but an apt-get download of a .deb
     # then using dpkg to expand the packages locally
+    if "linux" not in sys.platform.lower():
+        return
+
     packages = not_installed_on_linux(
         {
             "libgtk2.0-0": "http://nova.clouds.archive.ubuntu.com/ubuntu/pool/main/g/gtk+2.0/libgtk2.0-0_2.24.30-1ubuntu1.16.04.2_amd64.deb",
@@ -57,6 +80,8 @@ def apt_get_installs():
             "chromium-browser": "http://nova.clouds.archive.ubuntu.com/ubuntu/pool/universe/c/chromium-browser/chromium-browser_80.0.3987.87-0ubuntu0.16.04.1_amd64.deb",
         }
     )
+    if not packages:
+        return
 
     for name, package in packages.items():
         print(f"Installing {name}")
@@ -80,23 +105,22 @@ def apt_get_installs():
 
         os.environ[env] = ":".join([local, e])
 
-    # write out a revised plot-orca command
-    orca = exec_command("which orca").strip()
-    cmnd = [
-        "#!/bin/bash",
-        f'exec {orca} "$@" --no-sandbox',
-    ]
-    with open(orca, "w") as out:
-        out.write("\n".join(cmnd))
+    # modify orca for root exec on linux
+    update_orca()
 
 
 apt_get_installs()
 
+
 try:
-    exec_command("dpkg -l | grep xvfb")
+    # if Xvfb installed
+    r = exec_command("which xvfb-run")
     pio.orca.config.use_xvfb = True
-except SystemError:
-    pass
+except SystemError as msg:
+    if "linux" in sys.platform.lower():
+        print(msg)
+
+# end of hack attempt
 
 # set the plotly renderer
 os.environ["PLOTLY_RENDERER"] = "sphinx_gallery"
@@ -202,7 +226,7 @@ def plotly_sg_scraper(block, block_vars, gallery_conf, *args, **kwargs):
     seen = set()
     for html, png in zip(htmls, pngs):
         if png not in seen:
-            seen |= set([png])
+            seen |= {png}
             this_image_path_png = next(image_path_iterator)
             this_image_path_html = os.path.splitext(this_image_path_png)[0] + ".html"
             image_names.append(this_image_path_html)
