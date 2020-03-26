@@ -926,8 +926,18 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             data = record.read().splitlines()
             first = data.pop(0).split("\t")
             row = [first[0], record.name]
-            data = [r.split("\t")[-1].split(" : ", maxsplit=1) for r in data]
-            data = dict(data)
+            key = None
+            mapped = {}
+            for line in data:
+                line = line.split("\t")[-1].split(" : ", maxsplit=1)
+                if len(line) == 1:
+                    mapped[key] += line[0]
+                    continue
+
+                key = line[0]
+                mapped[key] = line[1]
+
+            data = mapped
             row.extend(
                 [
                     data["python"],
