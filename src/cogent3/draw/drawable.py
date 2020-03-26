@@ -5,6 +5,7 @@ import numpy
 
 from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
+from cogent3.util.warning import deprecated
 
 
 __author__ = "Rahul Ghangas and Gavin Huttley"
@@ -207,36 +208,6 @@ class Drawable:
     def traces(self):
         return self._traces
 
-    def get_trace_titles(self):
-        titles = [tr.name for tr in self.traces]
-        return titles
-
-    def pop_trace(self, title):
-        """removes the trace with a matching title attribute"""
-        try:
-            index = self.get_trace_titles().index(title)
-        except ValueError:
-            UserWarning(f"no trace with name {title}")
-            return
-
-        return self.traces.pop(index)
-
-    def remove_traces(self, names):
-        """removes traces by name
-
-        Parameters
-        ----------
-        names : str or iterable of str
-            trace names
-
-        """
-        if not self.traces:
-            self._build_fig()
-
-        names = names if type(names) != str else [names]
-        for name in names:
-            _ = self.pop_trace(name)
-
     def add_trace(self, trace):
         self.traces.append(trace)
 
@@ -268,6 +239,7 @@ class Drawable:
     def iplot(self, *args, **kwargs):
         from plotly.offline import iplot as _iplot
 
+        deprecated("method", "iplot", "show", "2020.6")
         _iplot(self.figure, *args, **kwargs)
 
     @extend_docstring_from(_show_)
