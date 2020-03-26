@@ -168,10 +168,13 @@ class Drawable:
         xtitle=None,
         ytitle=None,
     ):
-        if isinstance(traces, list):
-            self._traces = [UnionDict(trace) for trace in traces]
-        else:
+        if traces is None:
             self._traces = []
+        else:
+            try: 
+                self._traces = [UnionDict(trace) for trace in traces]
+            except ValueError as msg:
+                raise TypeError(f"expected a series of dicts, got {traces}")
         title = title if title is None else dict(text=title)
         self._default_layout = UnionDict(
             font=dict(family="Balto", size=14),
