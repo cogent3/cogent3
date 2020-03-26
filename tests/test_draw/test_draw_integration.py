@@ -76,6 +76,7 @@ class UtilDrawablesTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             x = get_domain(2, 2, is_y=False)
 
+
 class DrawableObjectTests(unittest.TestCase):
     """testing Drawable object methods and properties"""
 
@@ -87,13 +88,9 @@ class DrawableObjectTests(unittest.TestCase):
         d = Drawable(traces=[trace])
         self.assertEqual(d.traces, [trace])
         self.assertTrue(isinstance(d.traces[0], UnionDict))
-        
-        try:
+        with self.assertRaises(TypeError):
             trace = dict(type="scatter", x=[0, 1], y=[0, 1])
-            d = Drawable(traces=trace)
-            self.fail()
-        except TypeError:
-            pass
+            _ = Drawable(traces=trace)
 
     def test_add_traces(self):
         """test trace add method"""
@@ -106,9 +103,10 @@ class DrawableObjectTests(unittest.TestCase):
 
     def test_bound_to(self):
         """bound object should have the drawable object and show methods"""
+
         class TestObj:
             pass
-        
+
         o = TestObj()
         d = Drawable()
         b = d.bound_to(o)
@@ -124,6 +122,7 @@ class DrawableObjectTests(unittest.TestCase):
         f = d.figure
         self.assertEqual(f.data, d.traces)
         self.assertEqual(f.layout, d.layout)
+
 
 class AnnotatedDrawableObjectTests(unittest.TestCase):
     """testing AnnotatedDrawable object methods and properties"""
@@ -143,6 +142,7 @@ class AnnotatedDrawableObjectTests(unittest.TestCase):
         ad = AnnotatedDrawable(cd, layout=layout)
         f = ad._build_fig()
         self.assertEqual(f["data"][0]["yaxis"], "y3")
+
 
 class BaseDrawablesTests(unittest.TestCase):
     """methods for checking drawables"""

@@ -171,7 +171,7 @@ class Drawable:
         if traces is None:
             self._traces = []
         else:
-            try: 
+            try:
                 self._traces = [UnionDict(trace) for trace in traces]
             except ValueError as msg:
                 raise TypeError(f"expected a series of dicts, got {traces}")
