@@ -87,6 +87,13 @@ class DrawableObjectTests(unittest.TestCase):
         d = Drawable(traces=[trace])
         self.assertEqual(d.traces, [trace])
         self.assertTrue(isinstance(d.traces[0], UnionDict))
+        
+        try:
+            trace = dict(type="scatter", x=[0, 1], y=[0, 1])
+            d = Drawable(traces=trace)
+            self.fail()
+        except TypeError:
+            pass
 
     def test_add_traces(self):
         """test trace add method"""
