@@ -140,28 +140,30 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
             self._check_drawable_attrs(obj.drawable.figure, style)
 
     def test_dotplot_regression(self):
-        """Tests whether dotplot produces traces and in correct ordering. Also tests if pop_trace() works"""
+        """Tests whether dotplot produces traces and in correct ordering."""
         aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
         aln = aln.take_seqs(["Human", "Chimpanzee"])
         aln = aln[:200]
         dp = aln.dotplot()
         _ = dp.figure
-        trace_names = dp.get_trace_titles()
+        trace_names = [tr.name for tr in dp.traces]
 
         self.assertTrue(
-            dp.get_trace_titles() != [] and len(trace_names) == len(dp.traces),
+            [tr.name for tr in dp.traces] != [] and len(trace_names) == len(dp.traces),
             "No traces found for dotplot",
         )
         self.assertTrue(
             [trace_names[i] == dp.traces[i]["name"] for i in range(len(trace_names))],
-            "Order of traces don't match with get_trace_titles()",
+            "Order of traces don't match with dp traces",
         )
 
         for trace_name in trace_names:
-            dp.pop_trace(trace_name)
+            index = [tr.name for tr in dp.traces].index(trace_name)
+            dp.traces.pop(index)
+
             self.assertFalse(
-                trace_name in dp.get_trace_titles(),
-                "Trace name still present in get_trace_titles() even after popping off trace",
+                trace_name in [tr.name for tr in dp.traces],
+                "Trace name still present in dp traces even after popping off trace",
             )
 
     def test_dotplot_annotated(self):
