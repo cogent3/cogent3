@@ -7,15 +7,25 @@ import pathlib
 import pickle
 
 from tempfile import TemporaryDirectory
+from unittest import TestCase, main, skipIf
 
 import numpy
 
 from numpy.testing import assert_equal
-from pandas import DataFrame
 
 from cogent3 import load_table, make_table
-from cogent3.util.table import Table, cast_to_array, formatted_array
-from cogent3.util.unit_test import TestCase, main
+from cogent3.util.table import (
+    Table,
+    cast_str_to_array,
+    cast_to_array,
+    formatted_array,
+)
+
+
+try:
+    from pandas import DataFrame
+except ImportError:
+    DataFrame = None
 
 
 __author__ = "Thomas La"
@@ -98,6 +108,11 @@ class TableTests(TestCase):
             t = Table(header=["col 1", "col 2"], data=data)
             self.assertEqual(len(t), 0)
             self.assertEqual(t.shape, (0, 2), f"failed with {data}")
+
+    def test_keys_are_str(self):
+        """all column headers converted to str"""
+        t = Table(header=["col 1", 2], data=[[0, 1]])
+        self.assertEqual(t.header, ("col 1", "2"))
 
     def test_no_index_name(self):
         """assigning None has no effect"""
@@ -442,12 +457,13 @@ class TableTests(TestCase):
         r = repr(t)
         self.assertTrue(r.startswith(s))
 
+    @skipIf(DataFrame is None, "pandas not installed")
     def test_make_table_from_dataframe(self):
         """makes a table from a pandas data frame"""
         df = DataFrame(data=[[0, 1], [3, 7]], columns=["a", "b"])
         t = make_table(data_frame=df)
-        self.assertEqual(t.columns["a"], [0, 3])
-        self.assertEqual(t.columns["b"], [1, 7])
+        assert_equal(t.columns["a"], [0, 3])
+        assert_equal(t.columns["b"], [1, 7])
         with self.assertRaises(TypeError):
             make_table(data_frame="abcde")
 
@@ -486,6 +502,26 @@ class TableTests(TestCase):
         self.assertEqual(t2.count('foo == "cab"'), 1)
         self.assertEqual(t2.count("bar % 2 == 0"), 2)
         self.assertEqual(t2.count("id == 0"), 0)
+
+    def test_count_unique(self):
+        """correctly computes unique values"""
+        data = {
+            "Project_Code": [
+                "Ovary-AdenoCA",
+                "Liver-HCC",
+                "Panc-AdenoCA",
+                "Panc-AdenoCA",
+            ],
+            "Donor_ID": ["DO46416", "DO45049", "DO51493", "DO32860"],
+            "Variant_Classification": ["IGR", "Intron", "Intron", "Intron"],
+        }
+        table = make_table(data=data)
+        co = table.count_unique(["Project_Code", "Variant_Classification"])
+        self.assertEqual(co[("Panc-AdenoCA", "Intron")], 2)
+        self.assertEqual(co[("Liver-HCC", "IGR")], 0)
+        co = table.count_unique("Variant_Classification")
+        self.assertEqual(co["Intron"], 3)
+        self.assertEqual(co["IGR"], 1)
 
     def test_distinct_values(self):
         """test the table distinct_values method"""
@@ -673,6 +709,14 @@ class TableTests(TestCase):
         self.assertEqual(t3.tolist("id"), [6, 7])
         self.assertEqual(t3.tolist("foo"), ["abc", "bca"])
 
+    def test_tolist_column_order(self):
+        """column order of input reflected in result"""
+        t3 = Table(header=self.t3_header, data=self.t3_rows)
+        rev_order = ["id", "foo", "bar"]
+        rev_order.reverse()
+        result = t3.tolist(rev_order)
+        self.assertEqual(result[0], list(reversed(self.t3_rows[0][:])))
+
     def test_to_dict(self):
         """cast to 2D dict"""
         t = Table(header=self.t7_header, data=self.t7_rows, digits=1)
@@ -710,11 +754,15 @@ class TableTests(TestCase):
 
     def test_take_columns(self):
         """correctly takes columns"""
-        t = Table(header=self.t5_header, data=self.t5_rows)
+        t = Table(header=self.t4_header, data=self.t4_rows)
         columns = list(t.columns)
         expect = tuple(columns[1:])
         n = t.columns.take_columns(expect)
         self.assertEqual(n.order, expect)
+        n = t.columns.take_columns(columns[0])
+        self.assertEqual(n.order, (columns[0],))
+        n = t.columns.take_columns(1)
+        self.assertEqual(n.order, (columns[1],))
 
     def test_with_new_column(self):
         """test the table with_new_column method"""
@@ -724,10 +772,10 @@ class TableTests(TestCase):
         # now using a string expression
         t8 = Table(header=self.t8_header, data=self.t8_rows, row_ids="edge.name")
         n = t8.with_new_column("YZ", callback="y+z")
-        self.assertEqual(n.columns["YZ"], [9.0, 9.0])
+        assert_equal(n.columns["YZ"], [9.0, 9.0])
         # if the new column alreayb exists, the new table has the newest column
         n2 = t8.with_new_column("YZ", callback="y*z")
-        self.assertEqual(n2.columns["YZ"], [18.0, 18.0])
+        assert_equal(n2.columns["YZ"], [18.0, 18.0])
         self.assertNotEqual(id(n), id(n2))
         # bu the column arrays that have not changed should be equal
         for c in n.columns:
@@ -771,6 +819,62 @@ class TableTests(TestCase):
         )
         md = md_table.to_string(format="md")
         self.assertTrue(r"has \| symbol" in md)
+
+    def test_str_tex_format(self):
+        """str() produces latex tabular table"""
+        tex_table = make_table(
+            header=["a", "b"], data=[["val1", "val2"], ["val3", "val4"]]
+        )
+        tex = tex_table.to_string(format="tex")
+        self.assertFalse("caption" in tex)
+        # with a title
+        tex_table = make_table(
+            header=["a", "b"],
+            data=[["val1", "val2"], ["val3", "val4"]],
+            title="a title",
+        )
+        tex = tex_table.to_string(format="tex")
+        tex = tex.splitlines()
+        self.assertEqual(tex[-2], r"\caption{a title}")
+
+        tex = tex_table.to_string(format="tex", label="tab:first")
+        tex = tex.splitlines()
+        self.assertEqual(tex[-3], r"\caption{a title}")
+        self.assertEqual(tex[-2], r"\label{tab:first}")
+
+        # with a legend, no title
+        tex_table = make_table(
+            header=["a", "b"],
+            data=[["val1", "val2"], ["val3", "val4"]],
+            legend="a legend",
+        )
+        tex = tex_table.to_string(format="tex")
+        tex = tex.splitlines()
+        # because it's treated as a title by default
+        self.assertEqual(tex[-2], r"\caption{a legend}")
+        # unless you say not to
+        tex = tex_table.to_string(format="tex", concat_title_legend=False)
+        tex = tex.splitlines()
+        self.assertEqual(tex[-2], r"\caption*{a legend}")
+        tex_table = make_table(
+            header=["a", "b"],
+            data=[["val1", "val2"], ["val3", "val4"]],
+            title="a title.",
+            legend="a legend",
+        )
+        tex = tex_table.to_string(format="tex")
+        tex = tex.splitlines()
+        self.assertEqual(tex[-2], r"\caption{a title. a legend}")
+        tex = tex_table.to_string(format="tex", concat_title_legend=False)
+        tex = tex.splitlines()
+        self.assertEqual(tex[2], r"\caption{a title.}")
+        self.assertEqual(tex[-2], r"\caption*{a legend}")
+        tex = tex_table.to_string(
+            format="tex", concat_title_legend=False, label="table"
+        )
+        tex = tex.splitlines()
+        self.assertEqual(tex[2], r"\caption{a title.}")
+        self.assertEqual(tex[3], r"\label{table}")
 
     def test_phylip(self):
         """generates phylip format"""
@@ -1002,6 +1106,7 @@ class TableTests(TestCase):
         self.assertEqual(tail.data.tolist(), self.t1_rows[-3:])
         table.display = display
 
+    @skipIf(DataFrame is None, "pandas not installed")
     def test_to_dataframe(self):
         """produces a dataframe"""
         t = Table(header=self.t1_header, data=self.t1_rows)
@@ -1016,6 +1121,17 @@ class TableTests(TestCase):
         path = os.path.join(path, "data/sample.tsv")
         table = load_table(path)
         self.assertEqual(table.shape, (10, 3))
+
+    def test_cast_str_to_array(self):
+        """handle processing string series"""
+        d = [".123|.345", "123"]
+        r = cast_str_to_array(d, static_type=True)
+        self.assertTrue("str" in r.dtype.name)
+        r = cast_str_to_array(d, static_type=False)
+        self.assertEqual(r.dtype.name, "object")
+        d = [".123|.345", "123", "()"]
+        r = cast_str_to_array(d, static_type=False)
+        self.assertEqual(r[-1], ())
 
 
 if __name__ == "__main__":

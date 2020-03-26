@@ -4,7 +4,11 @@
 Also provides NumberList and FrequencyDistribution, two classes for
 working with statistical data.
 """
+from .distribution import chi_high as chisqprob
+
+
 __all__ = [
+    "chisqprob",
     "contingency",
     "distribution",
     "information_criteria",
@@ -13,8 +17,6 @@ __all__ = [
     "special",
     "test",
 ]
-
-from .distribution import chi_high as chisqprob
 
 
 __author__ = ""

@@ -210,7 +210,7 @@ def cast_str_to_array(values, static_type=False):
         try:
             v = eval(v)
             all_fail = False
-        except (NameError, SyntaxError):
+        except (TypeError, NameError, SyntaxError):
             # syntax error from empty strings
             pass
         result.append(v)
@@ -239,8 +239,9 @@ def cast_to_array(values):
     dtype = "U" if types == {str} else None
     try:
         result = numpy.array(values, dtype=dtype)
-    except:
+    except Exception:
         result = numpy.array(values, dtype=object)
+
     return result
 
 
@@ -381,6 +382,7 @@ class Columns(MutableMapping):
         return len(self._order)
 
     def __setitem__(self, key, val):
+        key = str(key)
         if isinstance(val, str):
             val = [val]
         try:
@@ -483,10 +485,16 @@ class Columns(MutableMapping):
         self[name] = values
 
     def take_columns(self, columns):
+        """returns new Columns instance with just columns"""
         result = self.__class__()
-        columns = columns if isinstance(columns, str) else columns
+        if type(columns) in {int, str}:
+            columns = [columns]
+
+        columns = self._get_keys_(columns)
+
         for c in columns:
             result[c] = self[c]
+
         return result
 
     @property
@@ -1184,6 +1192,32 @@ class Table:
         indices = self.get_row_indices(callback=callback, columns=columns)
         return indices.sum()
 
+    def count_unique(self, columns=None):
+        """count occurrences of unique combinations of columns
+
+        Parameters
+        ----------
+        columns
+            name of one or more columns. If None, all columns are used
+
+        Returns
+        -------
+        CategoryCounter instance
+        """
+        from cogent3.maths.stats.number import CategoryCounter
+
+        if columns is None:
+            columns = self.columns.order
+
+        subset = self.columns.take_columns(columns)
+        if len(subset) == 1:
+            data = subset[0].tolist()
+        else:
+            data = subset.array
+            data = list(tuple(e) for e in data)
+
+        return CategoryCounter(data=data)
+
     def distinct_values(self, columns):
         """returns the set of distinct values for the named column(s)"""
         data = [tuple(r) for r in self[:, columns].array.tolist()]
@@ -1505,7 +1539,15 @@ class Table:
         formatted = list([list(e) for e in zip(*formatted)])
         return formatted
 
-    def to_string(self, format="", borders=True, sep=None, center=False, **kwargs):
+    def to_string(
+        self,
+        format="",
+        borders=True,
+        sep=None,
+        center=False,
+        concat_title_legend=True,
+        **kwargs,
+    ):
         """Return the table as a formatted string.
 
         Parameters
@@ -1517,9 +1559,11 @@ class Table:
         sep
             A string separator for delineating columns, e.g. ',' or
             '\t'. Overrides format.
-        center
+        center : bool
             content is centered in the column, default is right
             justified
+        concat_title_legend : bool
+            Concat the title and legend.
 
         Notes
         -----
@@ -1560,11 +1604,14 @@ class Table:
         elif format in ("markdown", "md"):
             return table_format.markdown(header, formatted_table, **kwargs)
         elif format.endswith("tex"):
-            caption = None
-            if self.title or self.legend:
-                caption = " ".join([self.title or "", self.legend or ""])
+            caption = self.title or None
+            legend = self.legend or None
+            if concat_title_legend and (caption or legend):
+                caption = " ".join([caption or "", legend or ""])
+                caption = caption.strip()
+                legend = None
             return table_format.latex(
-                formatted_table, header, caption=caption, **kwargs
+                formatted_table, header, caption=caption, legend=legend, **kwargs
             )
         elif format == "html":
             return self.to_rich_html(**kwargs)
@@ -1676,11 +1723,8 @@ class Table:
         if len(columns) == 1:
             result = self.columns[columns[0]].tolist()
             return result
-        if set(columns) == set(self.columns.order):
-            subtable = self
-        else:
-            subtable = self[:, columns]
 
+        subtable = self.get_columns(columns)
         result = subtable.columns.array.tolist()
 
         return result
