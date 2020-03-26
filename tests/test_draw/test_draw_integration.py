@@ -1,3 +1,4 @@
+import os
 import pathlib
 import unittest
 
@@ -75,6 +76,81 @@ class UtilDrawablesTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             x = get_domain(2, 2, is_y=False)
 
+class DrawableObjectTests(unittest.TestCase):
+    """testing Drawable object methods and properties"""
+
+    def test_traces(self):
+        """test trace initialisation"""
+        d = Drawable()
+        self.assertEqual(d.traces, [])
+        trace = dict(type="scatter", x=[0, 1], y=[0, 1])
+        d = Drawable(traces=[trace])
+        self.assertEqual(d.traces, [trace])
+
+    def test_add_traces(self):
+        """test trace add method"""
+        d = Drawable()
+        self.assertEqual(d.traces, [])
+        trace = dict(type="scatter", x=[0, 1], y=[0, 1])
+        d.add_trace(trace)
+        self.assertEqual(d.traces, [trace])
+
+    def test_bound_to(self):
+        """bound object should have the drawable object and show methods"""
+        class TestObj:
+            pass
+        
+        o = TestObj()
+        d = Drawable()
+        b = d.bound_to(o)
+        self.assertEqual(b.drawable, d)
+        self.assertTrue(getattr(b, "iplot", False))
+        self.assertTrue(getattr(b, "show", False))
+
+    def test_figure(self):
+        """figure should contain the same data and layout as Drawable"""
+        trace = dict(type="scatter", x=[0, 1], y=[0, 1])
+        layout = dict(title="layout", width=20)
+        d = Drawable(traces=[trace], layout=layout)
+        f = d.figure
+        self.assertEqual(f.data, d.traces)
+        self.assertEqual(f.layout, d.layout)
+
+    def test_static_image(self):
+        """plot image should be create in the correct location with the correct binary data"""
+        try:
+            trace = dict(type="scatter", x=[0, 1], y=[0, 1])
+            layout = dict(title="layout", width=20)
+            d = Drawable(traces=[trace], layout=layout)
+            d.write("test.png")
+            self.assertTrue(pathlib.Path("test.png").is_file())
+
+            byteimage = d.to_image()
+            f = open("test.png", "rb")
+            self.assertEqual(byteimage, f.read())
+            f.close()
+            os.remove("test.png")
+        except FileNotFoundError:
+            pass
+
+class AnnotatedDrawableObjectTests(unittest.TestCase):
+    """testing AnnotatedDrawable object methods and properties"""
+
+    def test__build_fig(self):
+        """figure built should have the same traces as core and set yaxis to y3 if yaxis2 is overlaying"""
+        trace = dict(type="scatter", x=[0, 1], y=[0, 1], xaxis="x", yaxis="y")
+        layout = dict(title="layout", width=20, yaxis2=dict(overlaying="free"))
+        cd = Drawable(traces=[trace])
+
+        ad = AnnotatedDrawable(cd, layout=layout)
+        f = ad._build_fig()
+        self.assertEqual(ad._traces, f["data"])
+        self.assertNotEqual(f["data"][0]["yaxis"], "y3")
+
+        layout = dict(title="layout", width=20, yaxis2=dict(overlaying="y"))
+        ad = AnnotatedDrawable(cd, layout=layout)
+        f = ad._build_fig()
+        self.assertEqual(f["data"][0]["yaxis"], "y3")
 
 class BaseDrawablesTests(unittest.TestCase):
     """methods for checking drawables"""
@@ -121,6 +197,18 @@ class CustomDrawable(BaseDrawablesTests):
         fig = d.figure
         self.assertEqual(fig.layout.xaxis.title, None)
         self.assertEqual(fig.layout.yaxis.title, None)
+
+    def test_layout_with_overrides(self):
+        """provided layout attributes should be overridden with provided parameters"""
+        layout = dict(title="layout", width=20)
+        d = Drawable(layout=layout)
+        fig = d.figure
+        self.assertEqual(fig.layout.title, None)
+        self.assertEqual(fig.layout.width, None)
+        d = Drawable(layout=layout, title="parameter", width=50)
+        fig = d.figure
+        self.assertEqual(fig.layout.title.text, "parameter")
+        self.assertEqual(fig.layout.width, 50)
 
 
 class AlignmentDrawablesTests(BaseDrawablesTests):
