@@ -116,23 +116,6 @@ class DrawableObjectTests(unittest.TestCase):
         self.assertEqual(f.data, d.traces)
         self.assertEqual(f.layout, d.layout)
 
-    def test_static_image(self):
-        """plot image should be create in the correct location with the correct binary data"""
-        try:
-            trace = dict(type="scatter", x=[0, 1], y=[0, 1])
-            layout = dict(title="layout", width=20)
-            d = Drawable(traces=[trace], layout=layout)
-            d.write("test.png")
-            self.assertTrue(pathlib.Path("test.png").is_file())
-
-            byteimage = d.to_image()
-            f = open("test.png", "rb")
-            self.assertEqual(byteimage, f.read())
-            f.close()
-            os.remove("test.png")
-        except FileNotFoundError:
-            pass
-
 class AnnotatedDrawableObjectTests(unittest.TestCase):
     """testing AnnotatedDrawable object methods and properties"""
 
