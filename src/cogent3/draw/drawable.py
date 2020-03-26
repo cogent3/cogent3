@@ -168,7 +168,10 @@ class Drawable:
         xtitle=None,
         ytitle=None,
     ):
-        self._traces = traces or []
+        if isinstance(traces, list):
+            self._traces = [UnionDict(trace) for trace in traces]
+        else:
+            self._traces = []
         title = title if title is None else dict(text=title)
         self._default_layout = UnionDict(
             font=dict(family="Balto", size=14),
@@ -344,18 +347,15 @@ class AnnotatedDrawable(Drawable):
         except AttributeError:
             pass
 
-        try:
-            traces = f.traces
-            self.layout |= dict(f.layout)
-        except AttributeError:
-            traces = f["data"]
-            self.layout |= f["layout"]
+        traces = f.data
+        self.layout |= dict(f.layout)
         for trace in traces:
             trace.xaxis = xaxis
             if self._overlaying and "yaxis" in trace:
                 trace.yaxis = "y3"
             else:
                 trace.yaxis = yaxis
+
         self._traces = traces
         ticks_on = dict(_ticks_on)
         f.layout.xaxis.title = self.xtitle
