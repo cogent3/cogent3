@@ -86,6 +86,7 @@ class DrawableObjectTests(unittest.TestCase):
         trace = dict(type="scatter", x=[0, 1], y=[0, 1])
         d = Drawable(traces=[trace])
         self.assertEqual(d.traces, [trace])
+        self.assertTrue(isinstance(d.traces[0], UnionDict))
 
     def test_add_traces(self):
         """test trace add method"""
@@ -105,8 +106,8 @@ class DrawableObjectTests(unittest.TestCase):
         d = Drawable()
         b = d.bound_to(o)
         self.assertEqual(b.drawable, d)
-        self.assertTrue(hasattr(b, "iplot", False))
-        self.assertTrue(hasattr(b, "show", False))
+        self.assertTrue(hasattr(b, "iplot"))
+        self.assertTrue(hasattr(b, "show"))
 
     def test_figure(self):
         """figure should contain the same data and layout as Drawable"""
