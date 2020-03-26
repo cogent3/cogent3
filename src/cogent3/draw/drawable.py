@@ -323,10 +323,9 @@ class AnnotatedDrawable(Drawable):
             width=width,
             height=height,
             layout=layout,
+            xtitle=xtitle,
+            ytitle=ytitle,
         )
-
-        self.xtitle = xtitle
-        self.ytitle = ytitle
         self.yrange = yrange
         self.xrange = xrange
         self._overlaying = False
