@@ -212,7 +212,7 @@ class Drawable:
         return self._traces
 
     def add_trace(self, trace):
-        self.traces.append(trace)
+        self.traces.append(UnionDict(trace))
 
     def bound_to(self, obj):
         """returns obj with self bound to it"""
