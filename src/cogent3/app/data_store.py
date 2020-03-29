@@ -126,6 +126,7 @@ class ReadOnlyDataStoreBase:
         d = locals()
         self._persistent = UnionDict({k: v for k, v in d.items() if k != "self"})
 
+        source = str(source)
         suffix = suffix or ""
         if suffix != "*":  # wild card search for all
             suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix

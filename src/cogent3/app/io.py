@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 import zipfile
 
 import numpy
@@ -92,19 +93,21 @@ def get_data_store(base_path, suffix=None, limit=None, verbose=False):
     -------
     ReadOnlyDirectoryDataStore or ReadOnlyZippedDataStore
     """
-    if base_path.endswith("tinydb"):
+    base_path = pathlib.Path(base_path)
+    base_path = base_path.expanduser().absolute()
+    if base_path.suffix == ".tinydb":
         suffix = "json"
 
     if suffix is None:
         raise ValueError("suffix required")
 
-    if not os.path.exists(base_path):
+    if not base_path.exists():
         raise ValueError(f"'{base_path}' does not exist")
     if not type(suffix) == str:
         raise ValueError(f"{suffix} is not a string")
 
     zipped = zipfile.is_zipfile(base_path)
-    if base_path.endswith("tinydb"):
+    if base_path.suffix == ".tinydb":
         klass = ReadOnlyTinyDbDataStore
     elif zipped:
         klass = ReadOnlyZippedDataStore
