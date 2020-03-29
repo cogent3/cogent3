@@ -435,6 +435,7 @@ class model_collection_result(generic_result):
         -------
         list of models satisfying threshold condition
         """
+        self.deserialised_values()
         assert stat in ("aicc", "aic")
         second_order = stat == "aicc"
         results = []

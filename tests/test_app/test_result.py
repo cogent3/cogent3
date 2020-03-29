@@ -263,6 +263,10 @@ class TestModelCollectionResult(TestCase):
         self.assertIsInstance(got, model_collection_result)
         self.assertEqual(got.name, coll.name)
         self.assertEqual(got.source, coll.source)
+        # select_models() should not fail
+        got = deserialise_object(coll.to_json())
+        m = got.select_models()
+        self.assertIsInstance(m[0], model_result)
 
 
 class TestHypothesisResult(TestCase):
