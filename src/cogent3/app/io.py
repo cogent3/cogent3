@@ -4,8 +4,6 @@ import zipfile
 
 import numpy
 
-from cogent3 import load_aligned_seqs as _load_aligned_seqs
-from cogent3 import load_unaligned_seqs as _load_unaligned_seqs
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.moltype import get_moltype
 from cogent3.core.profile import (
@@ -15,7 +13,6 @@ from cogent3.core.profile import (
 )
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.format.alignment import FORMATTERS
-from cogent3.maths.util import safe_log
 from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
