@@ -563,6 +563,10 @@ class Table:
         self.columns = Columns()
         self._template = None
 
+        if isinstance(data, dict):
+            # convert containers like a defaultdict to a standard dict
+            data = dict(data)
+
         try:
             len(data[0])
             row_data = True

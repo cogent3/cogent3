@@ -6,6 +6,7 @@ import os
 import pathlib
 import pickle
 
+from collections import defaultdict
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main, skipIf
 
@@ -108,6 +109,14 @@ class TableTests(TestCase):
             t = Table(header=["col 1", "col 2"], data=data)
             self.assertEqual(len(t), 0)
             self.assertEqual(t.shape, (0, 2), f"failed with {data}")
+
+    def test_input_containers(self):
+        """should not fail on defaultdict"""
+        raw = dict(a=[1, 2, 3], b=[3, 4, 6])
+        data = defaultdict(list)
+        data.update(raw)
+        t = Table(data=data)
+        self.assertEqual(t.shape, (3, 2))
 
     def test_keys_are_str(self):
         """all column headers converted to str"""
