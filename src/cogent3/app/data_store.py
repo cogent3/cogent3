@@ -983,7 +983,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
 class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
     def __init__(self, *args, **kwargs):
         if_exists = kwargs.pop("if_exists", RAISE)
-        create = kwargs.pop("create", None)
+        create = kwargs.pop("create", True)
         ReadOnlyTinyDbDataStore.__init__(self, *args, **kwargs)
         WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
 
