@@ -1,5 +1,9 @@
 .. _contents:
 
+.. warning::
+
+    We will soon stop using Read The Docs for our latest documentation. Please check the cogent3_ github page for the up-to-date link!
+
 
 ####################
 ``cogent3`` Overview
