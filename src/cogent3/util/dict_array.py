@@ -544,8 +544,12 @@ class DictArray(object):
             A string separator for delineating columns, e.g. ',' or
             '\t'. Overrides format.
         """
-        if format.lower() in ("tsv", "csv"):
-            sep = sep or {"tsv": "\t", "csv": ","}[format.lower()]
+        if format.lower() not in ("tsv", "csv"):
+            msg = f"'{format}' not supported"
+            raise ValueError(msg)
+
+        sep = sep or {"tsv": "\t", "csv": ","}[format.lower()]
+
         data = self.to_dict(flatten=True)
         rows = [[f"dim-{i + 1}" for i in range(self.array.ndim)] + ["value"]] + [
             list(map(lambda x: str(x), row))
@@ -553,7 +557,7 @@ class DictArray(object):
         ]
         return "\n".join([sep.join(row) for row in rows])
 
-    def write(self, path, format="", sep="\t"):
+    def write(self, path, format="tsv", sep="\t"):
         """
         writes a flattened version to path
         Parameters
