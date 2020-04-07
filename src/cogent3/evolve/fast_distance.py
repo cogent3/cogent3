@@ -739,6 +739,18 @@ class DistanceMatrix(DictArray):
     def names(self):
         return self.template.names[0]
 
+    def to_table(self):
+        """converted to a Table"""
+        from cogent3.util.table import Table
+
+        data = {"names": self.names}
+        for i, name in enumerate(self.names):
+            column = self.array[:, i]
+            data[name] = column
+        header = ["names"] + list(self.names)
+        table = Table(header=header, data=data, row_ids="names")
+        return table
+
     def to_dict(self, **kwargs):
         """Returns a flattened dict with diagonal elements removed"""
         result = super(DistanceMatrix, self).to_dict(flatten=True)
