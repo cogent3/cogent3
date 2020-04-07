@@ -915,6 +915,23 @@ class DistancesTests(TestCase):
         d = EstimateDistances(al, submodel=HKY85())
         self.assertEqual(d.get_pairwise_distances(), None)
 
+    def test_to_table(self):
+        """converts a distance matrix to a Table"""
+        data = {
+            ("A", "B"): 2,
+            ("A", "C"): 3,
+            ("B", "C"): 1,
+            ("B", "A"): 2,
+            ("C", "A"): 3,
+            ("C", "B"): 1,
+        }
+        darr = DistanceMatrix(data)
+        table = darr.to_table()
+        self.assertEqual(table.shape, (3, 4))
+        self.assertEqual(table.columns["names"].tolist(), list(darr.names))
+        self.assertEqual(table["A", "B"], 2)
+        self.assertEqual(table["A", "A"], 0)
+
 
 if __name__ == "__main__":
     main()
