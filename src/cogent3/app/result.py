@@ -285,7 +285,7 @@ class model_result(generic_result):
                     d = v.get("DLC")
                 else:
                     d = v.all_psubs_DLC()
-                DLC.append(d)
+                DLC.append(d != False)
 
             self._DLC = all(DLC)
 
@@ -304,7 +304,7 @@ class model_result(generic_result):
                     except (NotImplementedError, KeyError):
                         # KeyError happens on discrete time model
                         u = None  # non-primary root issue
-                unique.append(u)
+                unique.append(u != False)
 
             self._unique_Q = all(unique)
 
