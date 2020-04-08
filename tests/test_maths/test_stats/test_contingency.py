@@ -142,6 +142,13 @@ class ContingencyTests(TestCase):
             matrix.expected.array.tolist(), [[1.875, 1.875, 1.25], [1.125, 1.125, 0.75]]
         )
 
+    def test_validate_expecteds(self):
+        """test provided expecteds total same as observed"""
+        obs = dict(a=10, b=2, c=2)
+        exp = [5, 5, 5]
+        with self.assertRaises(AssertionError):
+            CategoryCounts(obs, expected=exp)
+
     def test_repr_str_html(self):
         """exercising construction of different representations"""
         table = CategoryCounts(
