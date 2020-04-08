@@ -1,5 +1,6 @@
 from numpy import log, outer, sqrt, zeros
 from numpy.random import shuffle
+from numpy.testing import assert_allclose
 
 from cogent3.format.table import formatted_cells, rich_html, simple_format
 from cogent3.maths.stats import chisqprob
@@ -154,6 +155,11 @@ class CategoryCounts:
 
         if observed.array.min() < 0 or expected and expected.array.min() < 0:
             raise ValueError("negative values encountered")
+
+        if expected:
+            assert_allclose(
+                observed.array.sum(), expected.array.sum()
+            ), "unequal totals of observed and expected"
 
         self._observed = observed
         self._expected = expected
