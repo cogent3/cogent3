@@ -150,7 +150,13 @@ class atomic_write:
         return self._file
 
     def _close_rename_standard(self, p):
-        p.rename(self._path)
+        try:
+            f = Path(self._path)
+            f.unlink()
+        except FileNotFoundError:
+            pass
+        finally:
+            p.rename(self._path)
 
     def _close_rename_zip(self, p):
         with zipfile.ZipFile(self._in_zip, "a") as out:
