@@ -2,6 +2,7 @@
 
 """Unit tests for utility functions and classes.
 """
+import tempfile
 import pathlib
 
 from copy import copy, deepcopy
@@ -44,6 +45,7 @@ from cogent3.util.misc import (
     path_exists,
     recursive_flatten,
     remove_files,
+    atomic_write,
 )
 from cogent3.util.unit_test import TestCase, main
 
@@ -510,6 +512,22 @@ class UtilsTests(TestCase):
         # or string instance
         self.assertTrue(path_exists(__file__))
 
+class Atomic_writeTests(TestCase):
+    """Unit tests for the Atomic_write class."""
+
+    def test_rename(self):
+        """Renames file as expected """
+        # create temp file directory
+        with tempfile.TemporaryDirectory(".") as dirname:
+            # create temp filepath
+            dirname = pathlib.Path(dirname)
+            test_filepath = dirname / "Atomic_write_test"
+            # touch the filepath so it exists
+            f = open(test_filepath, "w").close()
+            self.assertTrue(exists(test_filepath))
+            # file should overwrite file if file already exists
+            with atomic_write(test_filepath, mode="w") as f:
+                f.write("abc")
 
 class _my_dict(dict):
     """Used for testing subclass behavior of ClassChecker"""
