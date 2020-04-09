@@ -134,16 +134,28 @@ def open_(filename, mode="rt", **kwargs):
 class atomic_write:
     """performs atomic write operations, cleans up if fails"""
 
-    def __init__(self, path, tmpdir=".", in_zip=None, mode="w"):
+    def __init__(self, path, tmpdir=None, in_zip=None, mode="w"):
         self._path = path
         self._mode = mode
         self._file = None
         self._in_zip = in_zip
-        self._tmpdir = tmpdir
         self.succeeded = None
         self._close_func = (
             self._close_rename_zip if in_zip else self._close_rename_standard
         )
+        if tmpdir is None:
+            tmpdir = self._get_tmp_dir()
+        self._tmpdir = tmpdir
+
+    def _get_tmp_dir(self):
+        """returns parent of destination file"""
+        if self._in_zip:
+            parent = Path(self._in_zip).parent
+        else:
+            parent = Path(self._path).parent
+        if not parent.exists():
+            raise FileNotFoundError(f"{parent} directory does not exist")
+        return parent
 
     def __enter__(self):
         self._file = NamedTemporaryFile(self._mode, delete=False, dir=self._tmpdir)
