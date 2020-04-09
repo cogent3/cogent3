@@ -2,7 +2,7 @@
 
 """Unit tests for utility functions and classes.
 """
-import zipfile
+import tempfile
 import pathlib
 
 from copy import copy, deepcopy
@@ -518,7 +518,7 @@ class Atomic_writeTests(TestCase):
     def test_rename(self):
         """Renames file as expected """
         # create temp filename
-        test_filepath = get_tmp_filename(prefix="Atomic_write_test", result_constructor=str)
+        test_filepath = tempfile.TemporaryFile(prefix="Atomic_write_test").name
         # touch the filepath so it exists
         open(test_filepath, "w").close()
         self.assertTrue(exists(test_filepath))
