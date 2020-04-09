@@ -517,15 +517,17 @@ class Atomic_writeTests(TestCase):
 
     def test_rename(self):
         """Renames file as expected """
-        # create temp filename
-        test_filepath = tempfile.TemporaryFile(prefix="Atomic_write_test").name
-        # touch the filepath so it exists
-        open(test_filepath, "w").close()
-        self.assertTrue(exists(test_filepath))
-
-        # file should overwrite file if file already exists
-        with atomic_write(test_filepath, mode="w") as f:
-            f.write("abc")
+        # create temp file directory
+        with tempfile.TemporaryDirectory(".") as dirname:
+            # create temp filepath
+            dirname = pathlib.Path(dirname)
+            test_filepath = dirname / "Atomic_write_test"
+            # touch the filepath so it exists
+            f = open(test_filepath, "w").close()
+            self.assertTrue(exists(test_filepath))
+            # file should overwrite file if file already exists
+            with atomic_write(test_filepath, mode="w") as f:
+                f.write("abc")
 
 class _my_dict(dict):
     """Used for testing subclass behavior of ClassChecker"""
