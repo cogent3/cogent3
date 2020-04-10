@@ -150,6 +150,9 @@ class CategoryCounts:
         if not isinstance(observed, DictArray):
             observed = DictArray(observed)
 
+        if observed.array.sum() == 0:
+            raise ValueError("at least one value must be > 0")
+
         if expected:
             expected = observed.template.wrap(expected)
 
