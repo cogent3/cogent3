@@ -74,6 +74,11 @@ class ContingencyTests(TestCase):
         assert_allclose(got.G, 9.849234)
         assert_allclose(got.pvalue, 0.04304536)
 
+    def test_zero_observeds(self):
+        """raises ValueError"""
+        with self.assertRaises(ValueError):
+            CategoryCounts(dict(a=0, b=0))
+
     def test_shuffling(self):
         """resampling works for G-independence"""
         table = CategoryCounts([[762, 327], [750, 340]])
