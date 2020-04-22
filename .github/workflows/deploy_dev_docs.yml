@@ -21,6 +21,7 @@ jobs:
       - shell: bash -l {0}
         run: |
           conda activate cogent3
+          conda install -c plotly plotly-orca
           conda info
           conda list
       - name: Build it
