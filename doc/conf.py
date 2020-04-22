@@ -1,126 +1,10 @@
 import os
-import pathlib
 import shutil
-import subprocess
 import sys
 
 from glob import glob
 
-import plotly.io as pio
-
 from sphinx_gallery.sorting import ExplicitOrder, FileNameSortKey
-
-# following functions used to hack readthedocs build environment to include
-# required tools for plotly to work on a headless linux box as root
-def exec_command(cmnd):
-    """executes shell command and returns stdout if completes exit code 0"""
-    proc = subprocess.Popen(
-        cmnd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-    out, err = proc.communicate()
-    if proc.returncode != 0:
-        user = os.environ.get("USER", None)
-        err = err.decode("utf8")
-        raise SystemError(proc.returncode, f"FAILED: {cmnd}\n{err} for '{user}'")
-
-    if out is not None:
-        r = out.decode("utf8")
-    else:
-        r = None
-
-    return r
-
-
-def not_installed_on_linux(packages):
-    # returns packages to be installed, if not Linux just an empty list
-    if "linux" not in sys.platform.lower():
-        return []
-
-    to_install = {}
-    for name, url in packages.items():
-        cmnd = f"dpkg -l | grep {name}"
-        try:
-            result = exec_command(cmnd)
-        except SystemError:
-            to_install[name] = url
-
-    return to_install
-
-
-def update_orca():
-    # write out a revised plot-orca command
-    orca = pathlib.Path(exec_command("which orca").strip())
-    txt = orca.read_text()
-    # get the linux line
-    cmnd = [l.strip() for l in txt.split("linux")[-1].splitlines() if "exec" in l]
-    cmnd = f"{cmnd[0]} --no-sandbox"
-    cmnd = [
-        "#!/bin/bash",
-        "",
-        cmnd,
-    ]
-    # copy the original
-    shutil.copy(str(orca), f"{orca}.orig")
-    # write the new
-    orca.write_text("\n".join(cmnd))
-
-
-def apt_get_installs():
-    # need this to get around issues of no X11 on readthedocs
-    # not really doing an apt-get install, but an apt-get download of a .deb
-    # then using dpkg to expand the packages locally
-    if "linux" not in sys.platform.lower():
-        return
-
-    packages = not_installed_on_linux(
-        {
-            "libgtk2.0-0": "http://nova.clouds.archive.ubuntu.com/ubuntu/pool/main/g/gtk+2.0/libgtk2.0-0_2.24.30-1ubuntu1.16.04.2_amd64.deb",
-            "libgconf-2-4": "http://nova.clouds.archive.ubuntu.com/ubuntu/pool/main/g/gconf/libgconf-2-4_3.2.6-3ubuntu6_amd64.deb",
-            "xvfb": "http://nova.clouds.archive.ubuntu.com/ubuntu/pool/universe/x/xorg-server/xvfb_1.18.4-0ubuntu0.8_amd64.deb",
-            "chromium-browser": "http://nova.clouds.archive.ubuntu.com/ubuntu/pool/universe/c/chromium-browser/chromium-browser_80.0.3987.87-0ubuntu0.16.04.1_amd64.deb",
-        }
-    )
-    if not packages:
-        return
-
-    for name, package in packages.items():
-        print(f"Installing {name}")
-        cmnd = f"wget {package}"
-        exec_command(cmnd)
-        package = package.split("/")[-1]
-        cmnd = f"dpkg -x {package} ."
-        exec_command(cmnd)
-
-    if packages:
-        # now delete the *.deb
-        exec_command("rm *.deb")
-
-    # now modify PATH and LD_LIBRARY_PATH
-    install_dir = os.getcwd()
-    for env, local in [("PATH", "bin"), ("LD_LIBRARY_PATH", "lib")]:
-        local = os.path.join(install_dir, "usr", local)
-        e = os.environ.get(env, "")
-        if local in e:
-            continue
-
-        os.environ[env] = ":".join([local, e])
-
-    # modify orca for root exec on linux
-    update_orca()
-
-
-apt_get_installs()
-
-
-try:
-    # if Xvfb installed
-    r = exec_command("which xvfb-run")
-    pio.orca.config.use_xvfb = True
-except SystemError as msg:
-    if "linux" in sys.platform.lower():
-        print(msg)
-
-# end of hack attempt
 
 # set the plotly renderer
 os.environ["PLOTLY_RENDERER"] = "sphinx_gallery"
@@ -137,6 +21,7 @@ extensions = [
     "numpydoc",
     "sphinx.ext.todo",
     "sphinx.ext.doctest",
+    "sphinx.ext.githubpages",
     "nbsphinx",
     "sphinx.ext.mathjax",
     "sphinx.ext.autodoc",

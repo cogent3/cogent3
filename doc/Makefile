@@ -41,6 +41,9 @@ html:
 	@echo "Build finished. The HTML pages are in _build/html."
 	-rm -rf draw/
 
+github:
+	@make html
+	@cp -a $(BUILDDIR)/html/. ../docs
 
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) _build/dirhtml
