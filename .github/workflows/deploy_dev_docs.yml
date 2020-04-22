@@ -12,7 +12,7 @@ jobs:
     runs-on: 'macos-latest'
     steps:
       - uses: actions/checkout@v2
-      - uses: goanpeca/setup-miniconda@enh/channels
+      - uses: goanpeca/setup-miniconda
         with:
            activate-environment: cogent3
            environment-file: doc/rtd-environment.yml
