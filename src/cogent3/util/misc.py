@@ -214,49 +214,6 @@ def get_format_suffixes(filename):
     return suffix, cmp_suffix
 
 
-class FilePath(str):
-    """ Hold paths for proper handling
-
-        Paths in this sense are filenames, directory paths, or filepaths.
-        Some examples include:
-         file.txt
-         ./path/to/file.txt
-         ./path/to/dir/
-         /path/to/file.txt
-         .
-         /
-
-        The purpose of this class is to allow all paths to be handled the
-         same since they sometimes need to be treated differently than
-         simple strings. For example, if a path has a space in it, and it
-         is being passed to system, it needs to be wrapped in quotes. But,
-         you wouldn't want it as a string wrapped in quotes b/c, e.g.,
-         isabs('"/absolute/path"') == False, b/c the first char is a ", not
-         a /.
-
-        * This would make more sense to call Path, but that conflicts with
-            the ResultPath.Path attribute. I'm not sure what to do about this
-            and want to see what others think. Once finalized, a global
-            replace should take care of making the switch.
-
-    """
-
-    def __new__(cls, path):
-        try:
-            return str.__new__(cls, path.strip('"'))
-        except AttributeError:
-            return str.__new__(cls, "")
-
-    def __str__(self):
-        """ wrap self in quotes, or return the empty string if self == '' """
-        if self == "":
-            return ""
-        return "".join(['"', self, '"'])
-
-    def __add__(self, other):
-        return FilePath("".join([self, other]))
-
-
 def iterable(item):
     """If item is iterable, returns item. Otherwise, returns [item].
 
