@@ -1,7 +1,7 @@
 name: cogent3
 channels:
-  - conda-forge
   - plotly
+  - conda-forge
 dependencies:
   - pandoc
   - python=3.7
@@ -12,6 +12,7 @@ dependencies:
   - pip:
     - numpydoc
     - psutil
+    - pillow
     - ipython
     - ipykernel
     - ipywidgets
