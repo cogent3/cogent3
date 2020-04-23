@@ -128,7 +128,8 @@ def bytes_to_string(data):
 
 def open_(filename, mode="rt", **kwargs):
     """open that handles different compression"""
-    op = {"gz": gzip_open, "bz2": bzip_open}.get(filename.split(".")[-1], open)
+    filename = Path(filename).expanduser().absolute()
+    op = {".gz": gzip_open, ".bz2": bzip_open}.get(filename.suffix, open)
     return op(filename, mode, **kwargs)
 
 
