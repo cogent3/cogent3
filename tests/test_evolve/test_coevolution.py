@@ -8,7 +8,7 @@ File created on 22 May 2007.
 
 from os import environ, remove
 from os.path import exists
-from tempfile import mktemp
+from tempfile import NamedTemporaryFile, mktemp
 
 from numpy import (
     arange,
@@ -105,7 +105,6 @@ from cogent3.evolve.models import DSO78_freqs, DSO78_matrix
 from cogent3.evolve.substitution_model import Empirical, Parametric
 from cogent3.maths.stats.distribution import binomial_exact
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.util.misc import get_tmp_filename
 from cogent3.util.unit_test import TestCase, main
 
 
@@ -586,7 +585,9 @@ class CoevolutionTests(TestCase):
         )
 
         # keep all seqs
-        tmp_filepath = get_tmp_filename(prefix="tmp_test_coevolution", suffix=".fasta")
+        tmp_filepath = NamedTemporaryFile(
+            prefix="tmp_test_coevolution", suffix=".fasta"
+        ).name
         coevolve_alignments(
             mi_alignment, aln1, aln2, max_num_seqs=3, merged_aln_filepath=tmp_filepath
         )

@@ -14,6 +14,8 @@ from warnings import warn
 
 from numpy import array, ceil, finfo, float64, floor, log10, logical_not, sum
 
+from cogent3.util.warning import deprecated
+
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
@@ -248,42 +250,6 @@ class FilePath(str):
 
     def __add__(self, other):
         return FilePath("".join([self, other]))
-
-
-def get_tmp_filename(
-    tmp_dir=gettempdir(), prefix="tmp", suffix=".txt", result_constructor=FilePath
-):
-    """ Generate a temporary filename and return as a FilePath object
-
-        tmp_dir: the directory to house the tmp_filename (default: '/tmp')
-        prefix: string to append to beginning of filename (default: 'tmp')
-            Note: It is very useful to have prefix be descriptive of the
-            process which is creating the temporary file. For example, if
-            your temp file will be used to build a temporary blast database,
-            you might pass prefix=TempBlastDB
-        suffix: the suffix to be appended to the temp filename (default '.txt')
-        result_constructor: the constructor used to build the result filename
-            (default: cogent3.app.parameters.FilePath). Note that joining
-            FilePath objects with one another or with strings, you must use
-            the + operator. If this causes trouble, you can pass str as the
-            the result_constructor.
-    """
-    # check not none
-    if not tmp_dir:
-        tmp_dir = ""
-    # if not current directory, append "/" if not already on path
-    elif not tmp_dir.endswith("/"):
-        tmp_dir += "/"
-
-    chars = "abcdefghigklmnopqrstuvwxyz"
-    picks = chars + chars.upper() + "0123456790"
-    return (
-        result_constructor(tmp_dir)
-        + result_constructor(prefix)
-        + result_constructor(
-            "%s%s" % ("".join([choice(picks) for i in range(20)]), suffix)
-        )
-    )
 
 
 def iterable(item):
