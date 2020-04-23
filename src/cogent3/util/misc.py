@@ -14,8 +14,6 @@ from warnings import warn
 
 from numpy import array, ceil, finfo, float64, floor, log10, logical_not, sum
 
-from cogent3.util.warning import deprecated
-
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
