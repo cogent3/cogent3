@@ -3,7 +3,8 @@
 import csv
 
 from collections.abc import Callable
-from gzip import open as open_
+
+from cogent3.util.misc import open_
 
 from .record_finder import is_empty
 
@@ -165,10 +166,7 @@ def load_delimited(
     if limit is not None:
         limit += 1  # don't count header line
 
-    if filename.endswith("gz"):
-        f = open_(filename, "rt")
-    else:
-        f = open(filename, newline=None)
+    f = open_(filename)
 
     reader = csv.reader(f, dialect="excel", delimiter=delimiter)
     if with_title:
