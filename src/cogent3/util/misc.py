@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Generally useful utility classes and methods.
 """
+import re
 import zipfile
 
 from bz2 import open as bzip_open
@@ -187,20 +188,25 @@ class atomic_write:
             p.unlink()
 
 
+_wout_period = re.compile(r"^\.")
+
+
 def get_format_suffixes(filename):
     """returns compression and/or file suffixes"""
-    if "." not in filename:
+    filename = Path(filename)
+    if not filename.suffix:
         return None, None
 
     compression_suffixes = ("bz2", "gz", "zip")
-    filename = filename.split(".")
-    suffixes = filename[1:] if len(filename) == 2 else filename[-2:]
+    suffixes = [_wout_period.sub("", sfx) for sfx in filename.suffixes[-2:]]
     if suffixes[-1] in compression_suffixes:
-        cmp_suffix = suffixes.pop(-1)
+        cmp_suffix = filename.suffix[1:]
     else:
         cmp_suffix = None
 
-    if suffixes:
+    if len(suffixes) == 2 and cmp_suffix is not None:
+        suffix = suffixes[0]
+    elif cmp_suffix is None:
         suffix = suffixes[-1]
     else:
         suffix = None
