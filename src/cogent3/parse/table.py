@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import csv
-import pickle
 
 from collections.abc import Callable
 from gzip import open as open_
