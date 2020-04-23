@@ -35,7 +35,6 @@ from cogent3.util.misc import (
     get_merged_overlapping_coords,
     get_object_provenance,
     get_run_start_indices,
-    get_tmp_filename,
     identity,
     is_char,
     is_char_or_noniterable,
@@ -280,7 +279,8 @@ class UtilsTests(TestCase):
         """Remove files functions as expected """
         # create list of temp file paths
         test_filepaths = [
-            get_tmp_filename(prefix="remove_files_test") for i in range(5)
+            tempfile.NamedTemporaryFile(prefix="remove_files_test").name
+            for i in range(5)
         ]
 
         # try to remove them with remove_files and verify that an IOError is
