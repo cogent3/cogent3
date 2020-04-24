@@ -442,6 +442,20 @@ class UtilsTests(TestCase):
         a, b = get_format_suffixes("suffixes.zip")
         self.assertTrue(a == None and b == "zip")
 
+    def test_get_format_suffixes_pathlib(self):
+        """correctly return suffixes for compressed etc.. formats from pathlib"""
+        Path = pathlib.Path
+        a, b = get_format_suffixes(Path("no_suffixes"))
+        self.assertTrue(a == b == None)
+        a, b = get_format_suffixes(Path("suffixes.gz"))
+        self.assertTrue(a == None and b == "gz")
+        a, b = get_format_suffixes(Path("suffixes.abcd"))
+        self.assertTrue(a == "abcd" and b == None)
+        a, b = get_format_suffixes(Path("suffixes.abcd.bz2"))
+        self.assertTrue(a == "abcd" and b == "bz2")
+        a, b = get_format_suffixes(Path("suffixes.zip"))
+        self.assertTrue(a == None and b == "zip")
+
     def test_get_object_provenance(self):
         """correctly deduce object provenance"""
         result = get_object_provenance("abncd")

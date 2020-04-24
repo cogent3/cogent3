@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Generally useful utility classes and methods.
 """
+import re
 import zipfile
 
 from bz2 import open as bzip_open
@@ -127,7 +128,8 @@ def bytes_to_string(data):
 
 def open_(filename, mode="rt", **kwargs):
     """open that handles different compression"""
-    op = {"gz": gzip_open, "bz2": bzip_open}.get(filename.split(".")[-1], open)
+    filename = Path(filename).expanduser().absolute()
+    op = {".gz": gzip_open, ".bz2": bzip_open}.get(filename.suffix, open)
     return op(filename, mode, **kwargs)
 
 
@@ -187,67 +189,29 @@ class atomic_write:
             p.unlink()
 
 
+_wout_period = re.compile(r"^\.")
+
+
 def get_format_suffixes(filename):
     """returns compression and/or file suffixes"""
-    if "." not in filename:
+    filename = Path(filename)
+    if not filename.suffix:
         return None, None
 
     compression_suffixes = ("bz2", "gz", "zip")
-    filename = filename.split(".")
-    suffixes = filename[1:] if len(filename) == 2 else filename[-2:]
+    suffixes = [_wout_period.sub("", sfx) for sfx in filename.suffixes[-2:]]
     if suffixes[-1] in compression_suffixes:
-        cmp_suffix = suffixes.pop(-1)
+        cmp_suffix = filename.suffix[1:]
     else:
         cmp_suffix = None
 
-    if suffixes:
+    if len(suffixes) == 2 and cmp_suffix is not None:
+        suffix = suffixes[0]
+    elif cmp_suffix is None:
         suffix = suffixes[-1]
     else:
         suffix = None
     return suffix, cmp_suffix
-
-
-class FilePath(str):
-    """ Hold paths for proper handling
-
-        Paths in this sense are filenames, directory paths, or filepaths.
-        Some examples include:
-         file.txt
-         ./path/to/file.txt
-         ./path/to/dir/
-         /path/to/file.txt
-         .
-         /
-
-        The purpose of this class is to allow all paths to be handled the
-         same since they sometimes need to be treated differently than
-         simple strings. For example, if a path has a space in it, and it
-         is being passed to system, it needs to be wrapped in quotes. But,
-         you wouldn't want it as a string wrapped in quotes b/c, e.g.,
-         isabs('"/absolute/path"') == False, b/c the first char is a ", not
-         a /.
-
-        * This would make more sense to call Path, but that conflicts with
-            the ResultPath.Path attribute. I'm not sure what to do about this
-            and want to see what others think. Once finalized, a global
-            replace should take care of making the switch.
-
-    """
-
-    def __new__(cls, path):
-        try:
-            return str.__new__(cls, path.strip('"'))
-        except AttributeError:
-            return str.__new__(cls, "")
-
-    def __str__(self):
-        """ wrap self in quotes, or return the empty string if self == '' """
-        if self == "":
-            return ""
-        return "".join(['"', self, '"'])
-
-    def __add__(self, other):
-        return FilePath("".join([self, other]))
 
 
 def iterable(item):

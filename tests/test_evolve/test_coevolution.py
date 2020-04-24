@@ -597,7 +597,8 @@ class CoevolutionTests(TestCase):
         coevolve_alignments(
             mi_alignment, aln1, aln2, max_num_seqs=2, merged_aln_filepath=tmp_filepath
         )
-        self.assertEqual(load_aligned_seqs(tmp_filepath).num_seqs, 2)
+        seqs = load_aligned_seqs(tmp_filepath)
+        self.assertEqual(seqs.num_seqs, 2)
 
         # error if no sequence filter
         self.assertRaises(

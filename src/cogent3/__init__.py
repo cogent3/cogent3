@@ -449,19 +449,19 @@ def load_table(
     skip_inconsistent
         skips rows that have different length to header row
     """
-    filename = str(filename)
     sep = sep or kwargs.pop("delimiter", None)
     file_format, compress_format = get_format_suffixes(filename)
 
+    if file_format in ("pickle", "pkl"):
+        f = open_(filename, mode="rb")
+        loaded_table = pickle.load(f)
+        f.close()
+        r = _Table()
+        r.__setstate__(loaded_table)
+        return r
+
     if not reader:
-        if file_format == "pickle":
-            f = open_(filename, mode="rb")
-            loaded_table = pickle.load(f)
-            f.close()
-            r = _Table()
-            r.__setstate__(loaded_table)
-            return r
-        elif file_format == "csv":
+        if file_format == "csv":
             sep = sep or ","
         elif file_format == "tsv":
             sep = sep or "\t"
