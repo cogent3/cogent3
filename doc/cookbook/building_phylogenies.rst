@@ -113,9 +113,9 @@ We illustrate the phylogeny reconstruction by least-squares using the F81 substi
 
 .. doctest::
 
-    >>> import pickle
+    >>> from cogent3.util.deserialise import deserialise_object
     >>> from cogent3.phylo.least_squares import WLS
-    >>> dists = pickle.load(open('data/dists_for_phylo.pickle', 'rb'))
+    >>> dists = deserialise_object('data/dists_for_phylo.json')
     >>> ls = WLS(dists)
     >>> stat, tree = ls.trex(a=5, k=5, show_progress=False)
 

@@ -13,8 +13,9 @@ Tabular data
     ... ('NP_005079', 'Con', 0.95165949788861326e+07),
     ... ('NP_005500', 'NonCon', 0.73827030202664901e-07),
     ... ('NP_055852', 'NonCon', 1.0933217708952725e+07))
-    >>> table = make_table(header=['Locus', 'Region', 'Ratio'], rows=rows)
+    >>> table = make_table(header=['Locus', 'Region', 'Ratio'], data=rows)
     >>> table.write('stats.txt', sep=',')
+    >>> table.write('../stats.txt', sep=',')
 
 Loading delimited formats
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -121,10 +122,10 @@ The table ``header`` is immutable. Changing column headings is done as follows.
 
     >>> table = load_table('stats.txt', sep=',')
     >>> print(table.header)
-    ['Locus', 'Region', 'Ratio']
+    ('Locus', 'Region', 'Ratio')
     >>> table = table.with_new_header('Ratio', 'Stat')
     >>> print(table.header)
-    ['Locus', 'Region', 'Stat']
+    ('Locus', 'Region', 'Stat')
 
 Creating new columns from existing ones
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -215,7 +216,7 @@ We define a strictly numerical table,
 
 .. doctest::
 
-    >>> all_numeric = make_table(header=['A', 'B', 'C'], rows=[range(3),
+    >>> all_numeric = make_table(header=['A', 'B', 'C'], data=[range(3),
     ...                                 range(3,6), range(6,9), range(9,12)])
     >>> print(all_numeric)
     =============
@@ -248,7 +249,7 @@ We define a table with mixed data, like a distance matrix.
 
 .. doctest::
 
-    >>> mixed = make_table(header=['A', 'B', 'C'], rows=[['*',1,2], [3,'*', 5],
+    >>> mixed = make_table(header=['A', 'B', 'C'], data=[['*',1,2], [3,'*', 5],
     ...                                                 [6,7,'*']])
     >>> print(mixed)
     ===========
@@ -483,7 +484,7 @@ SQL-like join operations requires tables have different ``title`` attributes whi
 
     >>> rows = [['NP_004893', True], ['NP_005079', True],
     ...         ['NP_005500', False], ['NP_055852', False]]
-    >>> region_type = make_table(header=['Locus', 'LargeCon'], rows=rows,
+    >>> region_type = make_table(header=['Locus', 'LargeCon'], data=rows,
     ...                 title='RegionClass')
     >>> stats_table = load_table('stats.txt', sep=',', title='Stats')
     >>> new = stats_table.joined(region_type, columns_self='Locus')

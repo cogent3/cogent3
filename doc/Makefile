@@ -6,6 +6,7 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
 
+
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
@@ -14,9 +15,9 @@ ALLSPHINXOPTS   = -d _build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 .PHONY: help clean html dirhtml pickle json htmlhelp qthelp latex changes linkcheck doctest
 
 # define plotly rendern environment settings
-html: export PLOTLY_RENDERER="notebook_connected+plotly_mimetype"
-livehtml: export PLOTLY_RENDERER="notebook_connected+plotly_mimetype"
-latex: export PLOTLY_RENDERER="pdf"
+
+livehtml: export PLOTLY_RENDERER=notebook_connected+plotly_mimetype
+latex: export PLOTLY_RENDERER=pdf
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -33,11 +34,17 @@ help:
 
 clean:
 	-rm -rf _build/*
+	-rm -rf draw/
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) _build/html
 	@echo
 	@echo "Build finished. The HTML pages are in _build/html."
+	-rm -rf draw/
+
+github:
+	@make html
+	@cp -a _build/html/. ../docs
 
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) _build/dirhtml

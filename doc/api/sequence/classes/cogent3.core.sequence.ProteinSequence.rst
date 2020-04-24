@@ -1,5 +1,5 @@
 ProteinSequence
-===============
+=============== 
 
 .. currentmodule:: cogent3.core.sequence
 

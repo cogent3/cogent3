@@ -302,7 +302,9 @@ def _make_stat_table(stats, names, **kwargs):
     for i in range(len(names)):
         rows[i].insert(0, names[i])
 
-    table = Table(header=header, rows=rows, row_ids=True, missing_data="*", **kwargs)
+    table = Table(
+        header=header, data=rows, row_ids=r"Seq1 \ Seq2", missing_data="*", **kwargs
+    )
     return table
 
 
@@ -700,7 +702,7 @@ def available_distances():
             "Specify a pairwise genetic distance calculator "
             "using 'Abbreviation' (case insensitive)."
         ),
-        row_ids=True,
+        row_ids="Abbreviation",
     )
     return table
 
@@ -730,6 +732,18 @@ class DistanceMatrix(DictArray):
     @property
     def names(self):
         return self.template.names[0]
+
+    def to_table(self):
+        """converted to a Table"""
+        from cogent3.util.table import Table
+
+        data = {"names": self.names}
+        for i, name in enumerate(self.names):
+            column = self.array[:, i]
+            data[name] = column
+        header = ["names"] + list(self.names)
+        table = Table(header=header, data=data, row_ids="names")
+        return table
 
     def to_dict(self, **kwargs):
         """Returns a flattened dict with diagonal elements removed"""

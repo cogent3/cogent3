@@ -11,6 +11,8 @@ import textwrap
 
 from xml.sax.saxutils import escape
 
+import numpy
+
 from cogent3.util.warning import discontinued
 
 
@@ -155,22 +157,39 @@ def rich_html(
     return data
 
 
-def latex(rows, header=None, caption=None, justify=None, label=None, position=None):
+def latex(
+    rows,
+    header=None,
+    caption=None,
+    legend=None,
+    justify=None,
+    label=None,
+    position=None,
+):
     """Returns the text a LaTeX table.
 
     Parameters
     ----------
+    rows
+        table data in row orientation
     header
         table header
-    position
-        table page position, default is here, top separate page
+    caption
+        title text.
+    legend
+        If provided, the text is placed in a \\caption*{} command at the
+        bottom of the table and the caption is placed at the top.
     justify
         column justification, default is right aligned.
-    caption
-        Table legend
     label
         for cross referencing
+    position
+        table page position, default is here, top separate page
 
+    Notes
+    -----
+    The \\caption*{} command is provided with the caption package. See
+    https://ctan.org/pkg/caption for more details.
     """
 
     if not justify:
@@ -186,18 +205,30 @@ def latex(rows, header=None, caption=None, justify=None, label=None, position=No
         r"\begin{table}[%s]" % position,
         r"\centering",
         r"\begin{tabular}%s" % justify,
+        r"\hline",
+        header,
+        r"\hline",
+        r"\hline",
     ]
-    table_format.append(r"\hline")
-    table_format.append(header)
-    table_format.append(r"\hline")
-    table_format.append(r"\hline")
     table_format += rows
     table_format.append(r"\hline")
     table_format.append(r"\end{tabular}")
-    if caption:
-        table_format.append(r"\caption{%s}" % caption)
-    if label:
-        table_format.append(r"\label{%s}" % label)
+
+    caption = r"\caption{%s}" % caption if caption else ""
+    label = r"\label{%s}" % label if label else ""
+    legend = r"\caption*{%s}" % legend if isinstance(legend, str) else None
+    if caption and label:
+        caption = f"{caption}\n{label}"
+    elif caption or label:
+        caption = caption or label
+
+    if caption and legend:
+        table_format.insert(2, caption)
+    elif caption:
+        table_format.append(caption)
+
+    if legend is not None:
+        table_format.append(legend)
     table_format.append(r"\end{table}")
 
     return "\n".join(table_format)
@@ -218,33 +249,45 @@ def get_continuation_tables(
     if len(space.join(header)) < max_width:
         return [(header, formatted_table)]
 
-    if not identifiers:
-        identifiers = 0
     # having determined the maximum string lengths we now need to
     # produce subtables of width <= max_width
     col_widths = [len(head) for head in header]
     sep = len(space)
-    min_length = sep * (identifiers - 1) + sum(col_widths[:identifiers])
+    min_length = col_widths[0]
 
     if min_length > max_width:
         raise RuntimeError("Maximum width too small for identifiers")
 
-    begin, width = identifiers, min_length
+    # if we have an index column, every new table block includes that width
+    # in calculating the number of columns; otherwise it's simply the sum
+    if identifiers:
+        id_width = col_widths[0] + sep
+        begin = 1
+    else:
+        id_width = 0
+        begin = 0
 
+    width = id_width
     boundaries = []
     for i in range(begin, len(header)):
         width += col_widths[i] + sep
         if width > max_width:
-            boundaries.append((begin, i, width - col_widths[i] - sep))
-            width = min_length + col_widths[i] + sep
+            boundaries.append((begin, i))
             begin = i
+            width = id_width + col_widths[i]
 
-    # add the last sub-table
-    boundaries.append((begin, len(header), width))
-    # generate the table
-    for start, end, width in boundaries:
-        subhead = header[:identifiers] + header[start:end]
-        rows = [row[:identifiers] + row[start:end] for row in formatted_table]
+    boundaries.append((begin, len(header)))
+    data = {c[0].strip(): c[1:] for c in zip(header, *formatted_table)}
+    for start, end in boundaries:
+        if identifiers:
+            subhead = header[:1] + header[start:end]
+        else:
+            subhead = header[start:end]
+        rows = numpy.array([data[c.strip()] for c in subhead], dtype="<U15")
+        if rows.ndim == 1:
+            rows = [rows.tolist()]
+        else:
+            rows = rows.T.tolist()
         tables.append((subhead, rows))
 
     return tables

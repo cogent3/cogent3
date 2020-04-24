@@ -4,7 +4,7 @@ import sys
 import threading
 import time
 
-from tqdm import tqdm, tqdm_notebook
+from tqdm import notebook, tqdm
 
 from cogent3.util import parallel as PAR
 
@@ -181,7 +181,7 @@ def display_wrap(slow_function):
             if sys.stdout.isatty():
                 klass = tqdm
             elif using_notebook():
-                klass = tqdm_notebook
+                klass = notebook.tqdm
             elif isinstance(sys.stdout, io.FileIO):
                 klass = LogFileOutput
             else:

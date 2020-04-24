@@ -88,5 +88,5 @@ def PslToTable(data):
     version = next(parser)
     header = next(parser)
     rows = [row for row in parser]
-    table = Table(header=header, rows=rows, title=version)
+    table = Table(header=header, data=rows, title=version)
     return table

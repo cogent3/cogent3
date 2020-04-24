@@ -28,7 +28,25 @@ Our `cogent3.app` module provides a very different approach to using the library
 $ pip install cogent3
 ```
 
-### Installing the development version
+### Install `extra` -- adds visualisation support
+
+**NOTE:** Only available in the development version until release ≥2020.3
+
+The `extra` group includes python libraries required for visualisation (i.e. [plotly](https://pypi.org/project/plotly/) and [psutil](https://pypi.org/project/psutil/) plus [pandas](https://pypi.org/project/pandas/) (optional)
+
+```bash
+$ pip install cogent3[extra]
+```
+
+### Install `dev` -- adds `cogent3` development related libraries
+
+The `dev` group includes python libraries required for development of `cogent3`.
+
+```bash
+$ pip install cogent3[dev]
+```
+
+### Install the development version
 
 ```bash
 $ pip install git+https://github.com/cogent3/cogent3.git@develop#egg=cogent3
