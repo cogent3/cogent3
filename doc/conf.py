@@ -59,7 +59,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "cogent3"
-copyright = "2020, cogent3"
+copyright = "2020, cogent3 Team"
 
 release = "2020.2.7a"
 
