@@ -25,7 +25,10 @@ and `non-stationary codon <https://www.ncbi.nlm.nih.gov/pubmed/28175284>`_ model
     install
     app/index
     draw/index
-    library
+    cookbook/index
+    examples/index
+    api/index
+    data_file_links
     licenses
     general
 
