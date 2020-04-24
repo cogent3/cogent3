@@ -1,5 +1,5 @@
-Complete version of manipulating sequence annotations
-=====================================================
+Annotating alignments and sequences
+===================================
 
 .. sectionauthor:: Peter Maxwell, Gavin Huttley
 

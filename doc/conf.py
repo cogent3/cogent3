@@ -5,6 +5,7 @@ import sys
 from glob import glob
 
 from sphinx_gallery.sorting import ExplicitOrder, FileNameSortKey
+import sphinx_bootstrap_theme
 
 # set the plotly renderer
 os.environ["PLOTLY_RENDERER"] = "sphinx_gallery"
@@ -71,24 +72,22 @@ show_authors = True
 pygments_style = "sphinx"
 
 # -- Options for HTML output ---------------------------------------------------
-
-html_theme = "alabaster"
-
-sidebar_collapse = True
-
-html_sidebars = {
-    "**": [
-        "about.html",
-        "navigation.html",
-        "relations.html",
-        "searchbox.html",
-        # 'donate.html',
-    ]
-}
+html_theme = "bootstrap"
+html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 
 html_theme_options = {
-    "fixed_sidebar": True,
+    "navbar_title": "cogent3",
+    "navbar_site_name": "Sections",
+    "navbar_links": [
+        ("Install", "install"),
+        ("Gallery", "draw/index.html", True),
+    ],
+    "navbar_class": "navbar navbar-inverse",
+    "navbar_fixed_top": "true",
+    "source_link_position": "skipped",
+    "bootswatch_theme": "cerulean",
+    "bootstrap_version": "3",
 }
 
 html_static_path = ["_static"]
