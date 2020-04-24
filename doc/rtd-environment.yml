@@ -22,4 +22,5 @@ dependencies:
     - nbconvert!=5.4
     - sphinxcontrib-bibtex
     - sphinx-gallery
+    - sphinx_bootstrap_theme
     - ../
