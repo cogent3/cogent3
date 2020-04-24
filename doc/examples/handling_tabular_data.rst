@@ -32,7 +32,7 @@ You can create a ``Table`` with no data.
     >>> t.shape == (0, 2)
     True
 
-Let's create a very simple, rather nonsensical, table first. To create a table requires a header series, and a 2D series (either of type ``tuple``, ``list``, ``dict``) or a `pandas DataFrame <http://pandas.pydata.org/>`_..
+Let's create a very simple, rather nonsensical, table first. To create a table requires a header series, and a 2D series (either of type ``tuple``, ``list``, ``dict``) or a `pandas DataFrame <https://pandas.pydata.org/>`_..
 
 .. doctest::
 
