@@ -747,7 +747,7 @@ The bedgraph formatter defaults to rounding values to 2 decimal places. You can 
 
 .. note:: Writing files in bedgraph format is done using the ``write(format='bedgraph', name='test track', description='test of bedgraph', color=(255,0,0))``.
 
-.. _bedGraph: https://cgwb.nci.nih.gov/goldenPath/help/bedgraph.html
+.. _bedGraph: https://genome.ucsc.edu/goldenPath/help/bedgraph.html
 
 Saving a table for reloading
 ----------------------------

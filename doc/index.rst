@@ -31,4 +31,4 @@ and `non-stationary codon <https://www.ncbi.nlm.nih.gov/pubmed/28175284>`_ model
     licenses
     general
 
-.. _cogent3: https://github.com/cogent3/cogent3
+.. _cogent3: https://cogent3.org
