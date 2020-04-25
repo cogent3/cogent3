@@ -20,7 +20,7 @@ and `non-stationary codon <https://www.ncbi.nlm.nih.gov/pubmed/28175284>`_ model
     :hidden:
     :maxdepth: 2
     
-    warning
+    pycogent
     install
     app/index
     draw/index
