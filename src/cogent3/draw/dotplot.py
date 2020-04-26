@@ -209,15 +209,18 @@ class Dotplot(Drawable):
         height = width * len2 / len1
 
         super(Dotplot, self).__init__(
-            visible_axes=True, showlegend=True, width=width, height=height
+            visible_axes=True,
+            showlegend=True,
+            width=width,
+            height=height,
+            xtitle=xtitle,
+            ytitle=ytitle,
         )
 
         self.seq1 = seq1
         self.seq2 = seq2
         self._aligned_coords = get_align_coords(map1, map2, aligned=is_aligned)
 
-        self.xtitle = xtitle
-        self.ytitle = ytitle
         self.title = title
         self._window = window
         self._min_gap = min_gap

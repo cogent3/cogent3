@@ -37,7 +37,6 @@ Find out how many stops in a frame
     >>> seq[stop_index:stop_index+3]
     DnaSequence(TAA)
 
-
 Translate a codon
 -----------------
 
@@ -65,8 +64,8 @@ Look up the amino acid corresponding to a single codon
     >>> standard_code['TTT']
     'F'
 
-Or get all the codons for one amino acid
-----------------------------------------
+Get all the codons for one amino acid
+-------------------------------------
 
 .. doctest::
 
@@ -75,8 +74,8 @@ Or get all the codons for one amino acid
     >>> standard_code['A']
     ['GCT', 'GCC', 'GCA', 'GCG']
 
-For a group of amino acids
---------------------------
+Get all the codons for a group of amino acids
+---------------------------------------------
 
 .. doctest::
 
@@ -113,6 +112,9 @@ Use the method ``get_in_motif_size``
     >>> print(codons)
     ['ATG', 'CAC', 'TGG', 'TAA']
 
+Translating a DNA sequence with a terminating stop codon
+--------------------------------------------------------
+
 You can't translate a sequence that contains a stop codon.
 
 .. doctest::
@@ -121,8 +123,8 @@ You can't translate a sequence that contains a stop codon.
     Traceback (most recent call last):
     cogent3.core.alphabet.AlphabetError: TAA
 
-Remove the stop codon first
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+By removing the trailing stop codon first
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
@@ -137,8 +139,8 @@ Remove the stop codon first
     >>> print(type(pep))
     <class 'cogent3.core.sequence.ProteinSequence'>
 
-Or we can just grab the correct slice from the ``DnaSequence`` object
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+By slicing the ``DnaSequence`` first
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 

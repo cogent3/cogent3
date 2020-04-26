@@ -24,26 +24,15 @@ Tables can be created directly using the Table object itself, or a convenience f
     >>> from cogent3 import load_table, make_table
     >>> from cogent3.util.table import Table
 
-First, if you try and create a ``Table`` without any data, it raises a ``ValueError``.
+You can create a ``Table`` with no data.
 
 .. doctest::
 
-    >>> t = Table()
-    Traceback (most recent call last):
-    ValueError: header must be provided to Table
-    >>> t = Table(header=[], rows=[])
-    Traceback (most recent call last):
-    ValueError: header must be provided to Table
-
-You can create a ``Table`` with no data, however.
-
-.. doctest::
-
-    >>> t = Table(header=["col 1", "col 2"], rows=[])
+    >>> t = Table(header=["col 1", "col 2"], data=[])
     >>> t.shape == (0, 2)
     True
 
-Let's create a very simple, rather nonsensical, table first. To create a table requires a header series, and a 2D series (either of type ``tuple``, ``list``, ``dict``) or a `pandas DataFrame <http://pandas.pydata.org/>`_..
+Let's create a very simple, rather nonsensical, table first. To create a table requires a header series, and a 2D series (either of type ``tuple``, ``list``, ``dict``) or a `pandas DataFrame <https://pandas.pydata.org/>`_..
 
 .. doctest::
 
@@ -70,7 +59,7 @@ We create the simplest of tables.
 
 .. doctest::
 
-    >>> t = Table(header=column_headings, rows=rows)
+    >>> t = Table(header=column_headings, data=rows)
     >>> print(t)
     ==================================
     chrom           stableid    length
@@ -93,7 +82,7 @@ We have several things we might want to specify when creating a table: the preci
 
 .. doctest::
 
-    >>> t = Table(column_headings, rows, title='Alignment lengths',
+    >>> t = Table(header=column_headings, data=rows, title='Alignment lengths',
     ...           legend='Some analysis',
     ...           digits=2, space='        ')
     >>> print(t)
@@ -142,47 +131,48 @@ The Table class cannot handle arbitrary python objects, unless they are passed i
 
 .. doctest::
 
-    >>> t2 = Table(['abcd', 'data'], [[str(list(range(1,6))), '0'],
-    ...                               ['x', 5.0], ['y', None]],
-    ...           missing_data='*')
+    >>> t2 = Table(header=['abcd', 'data'], data=[[str(list(range(1,6))), '0'],
+    ...                               ['x', 5.0],
+    ...                               ['y', None]],
+    ...           missing_data='*', digits=1)
     >>> print(t2)
-    =========================
-               abcd      data
-    -------------------------
-    [1, 2, 3, 4, 5]         0
-                  x    5.0000
-                  y         *
-    -------------------------
+    =======================
+               abcd    data
+    -----------------------
+    [1, 2, 3, 4, 5]       0
+                  x     5.0
+                  y    None
+    -----------------------
 
 Table column headings can be assessed from the ``table.header`` property
 
 .. doctest::
 
-    >>> assert t2.header == ['abcd', 'data']
+    >>> assert t2.header == ('abcd', 'data')
 
-and this is immutable (cannot be changed).
+this cannot be changed.
 
 .. doctest::
 
     >>> t2.header[1] = 'Data'
     Traceback (most recent call last):
-    RuntimeError: Table header is immutable, use with_new_header
+    TypeError: 'tuple' object does not support item assignment
 
 If you want to change the header, use the ``with_new_header`` method. This can be done one column at a time, or as a batch. The returned Table is identical aside from the modified column labels.
 
 .. doctest::
 
     >>> mod_header = t2.with_new_header('abcd', 'ABCD')
-    >>> assert mod_header.header == ['ABCD', 'data']
+    >>> assert mod_header.header == ('ABCD', 'data')
     >>> mod_header = t2.with_new_header(['abcd', 'data'], ['ABCD', 'DATA'])
     >>> print(mod_header)
-    =========================
-               ABCD      DATA
-    -------------------------
-    [1, 2, 3, 4, 5]         0
-                  x    5.0000
-                  y         *
-    -------------------------
+    =======================
+               ABCD    DATA
+    -----------------------
+    [1, 2, 3, 4, 5]       0
+                  x     5.0
+                  y    None
+    -----------------------
 
 Tables may also be created from 2-dimensional dictionaries. In this case, special capabilities are provided to enforce printing rows in a particular order.
 
@@ -205,7 +195,7 @@ Tables may also be created from 2-dimensional dictionaries. In this case, specia
     >>> d2D['edge.name'] = dict(zip(row_order, row_order))
     >>> t3 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
     ...            row_order=row_order, missing_data='*', space=8,
-    ...            max_width=50, row_ids=True, title='My title',
+    ...            max_width=50, row_ids='edge.name', title='My title',
     ...            legend='legend: this is a nonsense example.')
     >>> print(t3)
     My title
@@ -249,16 +239,16 @@ Tables may also be created from 2-dimensional dictionaries. In this case, specia
     <BLANKLINE>
     legend: this is a nonsense example.
 
-In the above we specify a maximum width of the table, and also specify row identifiers (using ``row_ids``, the integer corresponding to the column at which data begin, preceding columns are taken as the identifiers). This has the effect of forcing the table to wrap when the simple text format is used, but wrapping does not occur for any other format. The ``row_ids`` are keys for slicing the table by row, and as identifiers are presented in each wrapped sub-table.
+In the above we specify a maximum width of the table, and also specify row identifiers (using ``row_ids``, the name to use as row identifiers). This has the effect of forcing the table to wrap when the simple text format is used, but wrapping does not occur for any other format. The ``row_ids`` is a column containing data for slicing the table by row, and as identifiers are presented in each wrapped sub-table.
 
-Wrapping generate neat looking tables whether or not you index the table rows. We demonstrate here
+Wrapping generates neat looking tables whether or not you index the table rows. We demonstrate here
 
 .. doctest::
 
     >>> from cogent3 import make_table
     >>> h = ['A/C', 'A/G', 'A/T', 'C/A']
     >>> rows = [[0.0425, 0.1424, 0.0226, 0.0391]]
-    >>> wrap_table = make_table(header=h, rows=rows, max_width=30)
+    >>> wrap_table = make_table(header=h, data=rows, max_width=30)
     >>> print(wrap_table)
     ==========================
        A/C       A/G       A/T
@@ -273,8 +263,8 @@ Wrapping generate neat looking tables whether or not you index the table rows. W
     0.0391
     ------
     <BLANKLINE>
-    >>> wrap_table = make_table(header=h, rows=rows, max_width=30,
-    ...  row_ids=True)
+    >>> wrap_table = make_table(header=h, data=rows, max_width=30,
+    ...  row_ids="A/C")
     >>> print(wrap_table)
     ==========================
        A/C       A/G       A/T
@@ -321,7 +311,7 @@ We then format the ``LR`` column to use a scientific number format.
 .. doctest::
 
     >>> t46 = Table(['Gene', 'Type', 'LR'], rows)
-    >>> t46.format_column('LR', "%.4e")
+    >>> t46.format_column('LR', ".4e")
     >>> print(t46)
     ============================================
                       Gene    Type            LR
@@ -536,7 +526,7 @@ In the case of Markdown, the pipe character (``|``) is special and so cells cont
 .. doctest::
 
     >>> md_table = make_table(header=["a", "b"],
-    ...                      rows=[["val1", "val2"],
+    ...                      data=[["val1", "val2"],
     ...                            ["has | symbol", "val4"]])
     >>> print(md_table.to_string(format='md'))
     |             a |    b |
@@ -551,7 +541,7 @@ The display format can be specified for a ``Table`` using any valid argument to 
 .. doctest::
 
     >>> md_table = make_table(header=["a", "b"],
-    ...                      rows=[["val1", "val2"],
+    ...                      data=[["val1", "val2"],
     ...                            ["has | symbol", "val4"]],
     ...                      format="md")
     >>> print(md_table)
@@ -635,10 +625,10 @@ You can specify any standard text character that will work with your desired tar
 .. doctest::
 
     >>> print(t2.to_string(sep=', '))
-               abcd,   data
-    "[1, 2, 3, 4, 5]",      0
-                  x, 5.0000
-                  y,      *
+               abcd, data
+    "[1, 2, 3, 4, 5]",    0
+                  x,  5.0
+                  y, None
 
 Note that I introduced an extra space after the column just to make the result more readable in this example.
 
@@ -652,7 +642,7 @@ Test the writing of phylip distance matrix format.
     ...  0.088337278874079342, '', 0.44084000179090932], ['e',
     ...  0.44084000179091454, 0.44083999937417828, 0.44084000179090932, '']]
     >>> header = ['seq1/2', 'a', 'c', 'b', 'e']
-    >>> dist = Table(header=header, rows=rows, row_ids=True)
+    >>> dist = Table(header=header, data=rows, row_ids='seq1/2')
     >>> print(dist.to_string(format='phylip'))
        4
     a           0.0000  0.0883  0.1885  0.4408
@@ -699,7 +689,7 @@ If you have ``pandas`` installed, you can convert a ``Table`` instance to a ``Da
 
 .. doctest::
     
-    >>> tbl = Table(header=['a', 'b'], rows=[[0, 1], [3,7]])
+    >>> tbl = Table(header=['a', 'b'], data=[[0, 1], [3,7]])
     >>> df = tbl.to_dataframe()
     >>> type(df)
     <class 'pandas.core.frame.DataFrame'>
@@ -734,7 +724,7 @@ One export format available is bedGraph_. This format can be used for viewing da
     ...         ['1', 159, 160, 2], ['1', 160, 161, 2]]
     ... 
     >>> bgraph = make_table(header=['chrom', 'start', 'end', 'value'],
-    ...                   rows=rows)
+    ...                   data=rows)
     ...                     
     >>> print(bgraph.to_string(format='bedgraph', name='test track',
     ...     graphType='bar', description='test of bedgraph', color=(255,0,0))) # doctest: +NORMALIZE_WHITESPACE
@@ -757,7 +747,7 @@ The bedgraph formatter defaults to rounding values to 2 decimal places. You can 
 
 .. note:: Writing files in bedgraph format is done using the ``write(format='bedgraph', name='test track', description='test of bedgraph', color=(255,0,0))``.
 
-.. _bedGraph: https://cgwb.nci.nih.gov/goldenPath/help/bedgraph.html
+.. _bedGraph: https://genome.ucsc.edu/goldenPath/help/bedgraph.html
 
 Saving a table for reloading
 ----------------------------
@@ -769,7 +759,7 @@ Saving a table object to file for later reloading can be done using the standard
 
     >>> t3 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
     ...            row_order=row_order, missing_data='*', space=8,
-    ...            max_width=50, row_ids=True, title='My title',
+    ...            max_width=50, row_ids='edge.name', title='My title',
     ...            legend='legend: this is a nonsense example.')
     >>> t3.write("t3.pickle")
     >>> t3_loaded = load_table("t3.pickle")
@@ -874,9 +864,9 @@ A few things to note about the delimited file saving: formatting arguments are l
     >>> pickled = pickle.load(f)
     >>> f.close()
     >>> sorted(pickled.keys())
-    ['digits', 'format', 'header', 'legend', 'max_width', 'missing_data',...
-    >>> pickled['rows'][0]
-    ['Human', 'edge.0', 4.0, 1.0, 3.0, 6.0]
+    ['data', 'init_table']
+    >>> pickled['data']["columns"]["length"]
+    {'values': [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0], 'dtype': 'float64'}
 
 We can read in a delimited format using a custom reader. There are two approaches. The first one allows specifying different type conversions for different columns. The second allows specifying a whole line-based parser.
 
@@ -999,11 +989,11 @@ In the above example, the data type in a column is static, e.g. all values in ``
        edge.1           root       4.0    1.0    3.0    6.0
     -------------------------------------------------------
 
-If you invoke the ``static_column_types`` argument and the column data are not static, you'll get a ``ValueError``. We show this by first creating a simple table with mixed data types in a column, write to file and then try to load with  ``static_column_types=True``.
+If you invoke the ``static_column_types`` argument and the column data are not static, you'll get back a string type.
 
 .. doctest::
 
-    >>> t3b = make_table(header=['A', 'B'], rows=[[1,1], ['a', 2]])
+    >>> t3b = make_table(header=['A', 'B'], data=[[1,1], ['a', 2]])
     >>> print(t3b)
     ======
     A    B
@@ -1013,8 +1003,8 @@ If you invoke the ``static_column_types`` argument and the column data are not s
     ------
     >>> t3b.write('test3b.txt', sep='\t')
     >>> t3b = load_table('test3b.txt', sep='\t', static_column_types=True)
-    Traceback (most recent call last):
-    ValueError: invalid literal for int() with base 10: 'a'
+    >>> t3b.columns["A"]
+    array(['1', 'a'], dtype='<U1')
 
 We also test the reader function for a tab delimited format with missing data at the end.
 
@@ -1109,12 +1099,12 @@ We can likewise specify a writer, using a custom field formatter and provide thi
 Table slicing and iteration
 ---------------------------
 
-The Table class is capable of slicing by row, range of rows, column or range of columns headings or used to identify a single cell. Slicing using the method ``get_columns`` can also be used to reorder columns. In the case of columns, either the string headings or their position integers can be used. For rows, if ``row_ids`` was specified as ``True`` the 0'th cell in each row can also be used.
+The Table class is capable of slicing by row, range of rows, column or range of columns headings or used to identify a single cell. Slicing using the method ``get_columns`` can also be used to reorder columns. In the case of columns, either the string headings or their position integers can be used. For rows, if ``row_ids`` was specified, the cell values in that column can also be used.
 
 .. doctest::
 
     >>> t4 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
-    ...            row_order=row_order, row_ids=True, title='My title')
+    ...            row_order=row_order, row_ids='edge.name', title='My title')
 
 We subset ``t4`` by column and reorder them.
 
@@ -1443,7 +1433,7 @@ The distinct values can be obtained for a single column,
 .. doctest::
 
     >>> distinct = new.distinct_values("edge.name")
-    >>> assert distinct == set(['Rat', 'Mouse', 'Human'])
+    >>> assert distinct == set(['Rat', 'Mouse', 'Human']), distinct
 
 or multiple columns
 
@@ -1463,7 +1453,7 @@ We construct an example with mixed numerical and non-numerical data. We now comp
 .. doctest::
     :options: +NORMALIZE_WHITESPACE
 
-    >>> mix = make_table(header=['A', 'B'], rows=[[0,''],[1,2],[3,4]])
+    >>> mix = make_table(header=['A', 'B'], data=[[0,''],[1,2],[3,4]])
     >>> print(mix)
     ======
     A    B
@@ -1493,19 +1483,11 @@ We can compute the totals for all columns or rows too.
     >>> mix.summed(col_sum=False, strict=False)
     [0, 3, 7]
 
-It is not currently possible to do a subset of columns/rows. We show this for rows here.
-
-.. doctest::
-
-    >>> mix.summed([0, 2], col_sum=False, strict=False)
-    Traceback (most recent call last):
-    RuntimeError: unknown indices type: [0, 2]
-
 We test these for a strictly numerical table.
 
 .. doctest::
 
-    >>> non_mix = make_table(header=['A', 'B'], rows=[[0,1],[1,2],[3,4]])
+    >>> non_mix = make_table(header=['A', 'B'], data=[[0,1],[1,2],[3,4]])
     >>> non_mix.summed()
     [4, 7]
     >>> non_mix.summed(col_sum=False)
@@ -1569,7 +1551,7 @@ Extending tables
 In some cases it is desirable to compute an additional column from existing column values. This is done using the ``with_new_column`` method. We'll use t4 from above, adding two of the columns to create an additional column.
 
 .. doctest::
-
+    
     >>> t7 = t4.with_new_column('Sum', callback="z+x", digits=2)
     >>> print(t7)
     My title
@@ -1786,7 +1768,7 @@ The Table object is capable of joins or merging of records in two tables. There 
 .. doctest::
 
     >>> a=Table(header=["index", "col2","col3"],
-    ...         rows=[[1,2,3],[2,3,1],[2,6,5]], title="A")
+    ...         data=[[1,2,3],[2,3,1],[2,6,5]], title="A")
     >>> print(a)
     A
     =====================
@@ -1797,7 +1779,7 @@ The Table object is capable of joins or merging of records in two tables. There 
         2       6       5
     ---------------------
     >>> b=Table(header=["index", "col2","col3"],
-    ...         rows=[[1,2,3],[2,2,1],[3,6,3]], title="B")
+    ...         data=[[1,2,3],[2,2,1],[3,6,3]], title="B")
     >>> print(b)
     B
     =====================
@@ -1841,23 +1823,24 @@ For a standard inner join, the joined table should contain all columns from ``a`
     <BLANKLINE>
     3 rows x 4 columns
     >>> b.title = 'B'
-    >>> assert a.joined(b, "index").header == ["index", "col2", "col3",
-    ...                                        "B_col2", "B_col3"]
+    >>> assert a.joined(b, "index").header == ("index", "col2", "col3",
+    ...                                        "B_col2", "B_col3")
     ...
 
 Note that the table title's were used to prefix the column headings from the second table. We further test this using table ``c`` which has different dimensions.
 
 .. doctest::
 
-    >>> assert a.joined(c,"index").header == ["index","col2","col3",
-    ...                                       "C_col_c2"]
+    >>> assert a.joined(c,"index").header == ("index","col2","col3",
+    ...                                       "C_col_c2")
 
 It's also possible to specify index columns using numerical values, the results of which should be the same.
 
 .. doctest::
 
-    >>> assert a.joined(b,[0, 2]).tolist() ==\
-    ...                          a.joined(b,["index","col3"]).tolist()
+    >>> r1 = a.joined(b,[0, 2])
+    >>> r2 = a.joined(b,["index","col3"])
+    >>> assert r1.tolist() == r2.tolist()
 
 Additionally, it's possible to provide two series of indices for the two tables. Here, they have identical values.
 
@@ -1921,7 +1904,7 @@ We test the outer join by defining an additional table with different dimensions
 
 .. doctest::
 
-    >>> d=Table(header=["index", "col_c2"], rows=[[5,42],[6,23]], title="D")
+    >>> d=Table(header=["index", "col_c2"], data=[[5,42],[6,23]], title="D")
     >>> print(d)
     D
     ===============
@@ -1948,9 +1931,9 @@ We establish the ``joined`` method works for mixtures of character and numerical
 .. doctest::
 
     >>> a=Table(header=["index", "col2","col3"],
-    ...         rows=[[1,2,"3"],["2",3,1],[2,6,5]], title="A")
+    ...         data=[[1,2,"3"],["2",3,1],[2,6,5]], title="A")
     >>> b=Table(header=["index", "col2","col3"],
-    ...         rows=[[1,2,"3"],["2",2,1],[3,6,3]], title="B")
+    ...         data=[[1,2,"3"],["2",2,1],[3,6,3]], title="B")
     >>> assert a.joined(b, ["index", "col3"],["index", "col3"]).tolist()\
     ...         == a.joined(b,["index","col3"]).tolist()
 
@@ -1962,8 +1945,8 @@ We test that the ``joined`` method works when the column index orders differ.
     >>> t1_rows = [(1,2),(3,4)]
     >>> t2_header = ['b', 'c']
     >>> t2_rows = [(3,6),(4,8)]
-    >>> t1 = Table(t1_header, rows=t1_rows, title='t1')
-    >>> t2 = Table(t2_header, rows=t2_rows, title='t2')
+    >>> t1 = Table(t1_header, data=t1_rows, title='t1')
+    >>> t2 = Table(t2_header, data=t2_rows, title='t2')
     >>> t3 = t1.joined(t2, columns_self=["b"], columns_other=["b"])
     >>> print(t3)
     ==============
@@ -1978,7 +1961,7 @@ We then establish that a join with no values does not cause a failure, just retu
 
     >>> t4_header = ['b', 'c']
     >>> t4_rows = [(5,6),(7,8)]
-    >>> t4 = make_table(header=t4_header, rows=t4_rows)
+    >>> t4 = make_table(header=t4_header, data=t4_rows)
     >>> t4.title = 't4'
     >>> t5 = t1.joined(t4, columns_self=["b"], columns_other=["b"])
     >>> print(t5)
@@ -2045,6 +2028,7 @@ We now transpose this. We require a new column heading for header data and an id
     ...             select_as_header='#OTU ID', space=2)
     ...
     >>> print(tp)
+    #Full OTU Counts
     ==============================================================================
      sample  -2920  -1606  -393  -2109  -5439  -1834  -18588  -1350  -2160  -11632
     ------------------------------------------------------------------------------
@@ -2059,6 +2043,7 @@ We test transposition with default value is the same.
     >>> tp = table.transposed(new_column_name='sample', space=2)
     ...
     >>> print(tp)
+    #Full OTU Counts
     ==============================================================================
      sample  -2920  -1606  -393  -2109  -5439  -1834  -18588  -1350  -2160  -11632
     ------------------------------------------------------------------------------
@@ -2074,6 +2059,7 @@ We test transposition selecting a different column to become the header.
     ...             select_as_header='14SK802', space=2)
     ...
     >>> print(tp)
+    #Full OTU Counts
     ==============================================================================
      sample    294    229   125    120    117     75      47    113     52      36
     ------------------------------------------------------------------------------

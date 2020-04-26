@@ -1,31 +1,26 @@
 name: cogent3
 channels:
-  - conda-forge
   - plotly
+  - conda-forge
 dependencies:
-  - nodejs
-  - python=3.7
   - pandoc
+  - python=3.7
+  - matplotlib
   - plotly
   - plotly-orca
   - pip
   - pip:
-    - numpy
     - numpydoc
-    - tqdm
-    - scitrack
-    - tinydb
-    - pandas
-    - jupyterlab
-    - jupyter_client
+    - psutil
+    - pillow
     - ipython
     - ipykernel
     - ipywidgets
     - sphinx>=1.6
     - nbsphinx
     - nbformat
-    - jupyterlab
     - nbconvert!=5.4
-    - jupytext
     - sphinxcontrib-bibtex
-    - sphinx_rtd_theme
+    - sphinx-gallery
+    - sphinx_bootstrap_theme
+    - ../

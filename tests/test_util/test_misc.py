@@ -3,6 +3,7 @@
 """Unit tests for utility functions and classes.
 """
 import pathlib
+import tempfile
 
 from copy import copy, deepcopy
 from os import remove, rmdir
@@ -25,6 +26,7 @@ from cogent3.util.misc import (
     add_lowercase,
     adjusted_gt_minprob,
     adjusted_within_bounds,
+    atomic_write,
     curry,
     extend_docstring_from,
     get_format_suffixes,
@@ -33,7 +35,6 @@ from cogent3.util.misc import (
     get_merged_overlapping_coords,
     get_object_provenance,
     get_run_start_indices,
-    get_tmp_filename,
     identity,
     is_char,
     is_char_or_noniterable,
@@ -278,7 +279,8 @@ class UtilsTests(TestCase):
         """Remove files functions as expected """
         # create list of temp file paths
         test_filepaths = [
-            get_tmp_filename(prefix="remove_files_test") for i in range(5)
+            tempfile.NamedTemporaryFile(prefix="remove_files_test").name
+            for i in range(5)
         ]
 
         # try to remove them with remove_files and verify that an IOError is
@@ -440,6 +442,20 @@ class UtilsTests(TestCase):
         a, b = get_format_suffixes("suffixes.zip")
         self.assertTrue(a == None and b == "zip")
 
+    def test_get_format_suffixes_pathlib(self):
+        """correctly return suffixes for compressed etc.. formats from pathlib"""
+        Path = pathlib.Path
+        a, b = get_format_suffixes(Path("no_suffixes"))
+        self.assertTrue(a == b == None)
+        a, b = get_format_suffixes(Path("suffixes.gz"))
+        self.assertTrue(a == None and b == "gz")
+        a, b = get_format_suffixes(Path("suffixes.abcd"))
+        self.assertTrue(a == "abcd" and b == None)
+        a, b = get_format_suffixes(Path("suffixes.abcd.bz2"))
+        self.assertTrue(a == "abcd" and b == "bz2")
+        a, b = get_format_suffixes(Path("suffixes.zip"))
+        self.assertTrue(a == None and b == "zip")
+
     def test_get_object_provenance(self):
         """correctly deduce object provenance"""
         result = get_object_provenance("abncd")
@@ -509,6 +525,24 @@ class UtilsTests(TestCase):
         self.assertTrue(path_exists(p))
         # or string instance
         self.assertTrue(path_exists(__file__))
+
+
+class Atomic_writeTests(TestCase):
+    """Unit tests for the Atomic_write class."""
+
+    def test_rename(self):
+        """Renames file as expected """
+        # create temp file directory
+        with tempfile.TemporaryDirectory(".") as dirname:
+            # create temp filepath
+            dirname = pathlib.Path(dirname)
+            test_filepath = dirname / "Atomic_write_test"
+            # touch the filepath so it exists
+            f = open(test_filepath, "w").close()
+            self.assertTrue(exists(test_filepath))
+            # file should overwrite file if file already exists
+            with atomic_write(test_filepath, mode="w") as f:
+                f.write("abc")
 
 
 class _my_dict(dict):

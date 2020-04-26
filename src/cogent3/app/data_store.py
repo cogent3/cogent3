@@ -126,6 +126,7 @@ class ReadOnlyDataStoreBase:
         d = locals()
         self._persistent = UnionDict({k: v for k, v in d.items() if k != "self"})
 
+        source = str(source)
         suffix = suffix or ""
         if suffix != "*":  # wild card search for all
             suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
@@ -841,7 +842,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             ]
             rows.append(row)
 
-        table = Table(header=header, rows=rows, title="incomplete records")
+        table = Table(header=header, data=rows, title="incomplete records")
         return table
 
     @property
@@ -926,8 +927,18 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             data = record.read().splitlines()
             first = data.pop(0).split("\t")
             row = [first[0], record.name]
-            data = [r.split("\t")[-1].split(" : ", maxsplit=1) for r in data]
-            data = dict(data)
+            key = None
+            mapped = {}
+            for line in data:
+                line = line.split("\t")[-1].split(" : ", maxsplit=1)
+                if len(line) == 1:
+                    mapped[key] += line[0]
+                    continue
+
+                key = line[0]
+                mapped[key] = line[1]
+
+            data = mapped
             row.extend(
                 [
                     data["python"],
@@ -972,7 +983,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
 class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
     def __init__(self, *args, **kwargs):
         if_exists = kwargs.pop("if_exists", RAISE)
-        create = kwargs.pop("create", None)
+        create = kwargs.pop("create", True)
         ReadOnlyTinyDbDataStore.__init__(self, *args, **kwargs)
         WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
 

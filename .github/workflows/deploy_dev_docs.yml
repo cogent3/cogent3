@@ -1,0 +1,38 @@
+on:
+  push:
+    branches:
+    - 'develop'
+  pull_request:
+    branches:
+    - '*'
+
+jobs:
+  example-3:
+    name: Doc Build
+    runs-on: 'macos-latest'
+    steps:
+      - uses: actions/checkout@v2
+      - uses: goanpeca/setup-miniconda@v1
+        with:
+           activate-environment: cogent3
+           environment-file: doc/rtd-environment.yml
+           python-version: 3.7
+           channels: conda-forge,plotly
+      - shell: bash -l {0}
+        run: |
+          conda activate cogent3
+          conda install -c plotly plotly-orca
+          conda info
+          conda list
+      - name: Build it
+        shell: bash -l {0}
+        working-directory: doc/
+        run: |
+          conda activate cogent3
+          make github
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          personal_token: ${{ secrets.PERSONAL_TOKEN }}
+          publish_dir: ./docs

@@ -76,7 +76,7 @@ class TransitionMatrix(object):
             labels.append(label)
         heading = [""] + labels
         a = [[name] + list(row) for (name, row) in zip(labels, self.Matrix)]
-        return str(Table(header=heading, rows=a))
+        return str(Table(header=heading, data=a))
 
     def withoutSilentStates(self):
         """An equivalent matrix without any of the states that have a

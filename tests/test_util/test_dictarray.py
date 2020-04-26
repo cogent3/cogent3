@@ -233,7 +233,7 @@ class DictArrayTest(TestCase):
         # the wrap method creates a new array
         self.assertIsNot(got.array, b.array)
 
-    def test_convert_for_dictarray(self):
+    def test_convert_for_dictarray2(self):
         """convert_for_dictarray correctly delegates"""
         b = DictArrayTemplate("abc", "ABC").wrap(self.a)
         data_types = (
@@ -339,6 +339,8 @@ class DictArrayTest(TestCase):
             darr.to_string(sep=" "),
             "dim-1 dim-2 value\n0 0 3.123456789\n0 1 6.246913578\n1 0 9.370370367\n1 1 12.493827156",
         )
+        with self.assertRaises(ValueError):
+            darr.to_string(format="md"),
 
 
 if __name__ == "__main__":

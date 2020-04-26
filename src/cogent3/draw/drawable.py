@@ -5,6 +5,7 @@ import numpy
 
 from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
+from cogent3.util.warning import deprecated
 
 
 __author__ = "Rahul Ghangas and Gavin Huttley"
@@ -108,13 +109,14 @@ def _show_(cls, renderer=None, **kwargs):
     """
     from plotly.io import show
 
-    if renderer == "sphinx_gallery":
-        _customise_sphinx_gallery_renderer()
-
     if renderer is None and PLOTLY_RENDERER is None:
         renderer = "notebook_connected+plotly_mimetype"
     elif renderer is None:
         renderer = PLOTLY_RENDERER
+
+    if renderer == "sphinx_gallery":
+        _customise_sphinx_gallery_renderer()
+
     kwargs["renderer"] = renderer
     drawable = getattr(cls, "drawable", None) or cls
     fig = getattr(drawable, "figure", None)
@@ -166,7 +168,13 @@ class Drawable:
         xtitle=None,
         ytitle=None,
     ):
-        self._traces = traces or []
+        if traces is None:
+            self._traces = []
+        else:
+            try:
+                self._traces = [UnionDict(trace) for trace in traces]
+            except ValueError as msg:
+                raise TypeError(f"expected a series of dicts, got {traces}")
         title = title if title is None else dict(text=title)
         self._default_layout = UnionDict(
             font=dict(family="Balto", size=14),
@@ -206,38 +214,8 @@ class Drawable:
     def traces(self):
         return self._traces
 
-    def get_trace_titles(self):
-        titles = [tr.name for tr in self.traces]
-        return titles
-
-    def pop_trace(self, title):
-        """removes the trace with a matching title attribute"""
-        try:
-            index = self.get_trace_titles().index(title)
-        except ValueError:
-            UserWarning(f"no trace with name {title}")
-            return
-
-        return self.traces.pop(index)
-
-    def remove_traces(self, names):
-        """removes traces by name
-
-        Parameters
-        ----------
-        names : str or iterable of str
-            trace names
-
-        """
-        if not self.traces:
-            self._build_fig()
-
-        names = names if type(names) != str else [names]
-        for name in names:
-            _ = self.pop_trace(name)
-
     def add_trace(self, trace):
-        self.traces.append(trace)
+        self.traces.append(UnionDict(trace))
 
     def bound_to(self, obj):
         """returns obj with self bound to it"""
@@ -267,6 +245,7 @@ class Drawable:
     def iplot(self, *args, **kwargs):
         from plotly.offline import iplot as _iplot
 
+        deprecated("method", "iplot", "show", "2020.6")
         _iplot(self.figure, *args, **kwargs)
 
     @extend_docstring_from(_show_)
@@ -351,10 +330,9 @@ class AnnotatedDrawable(Drawable):
             width=width,
             height=height,
             layout=layout,
+            xtitle=xtitle,
+            ytitle=ytitle,
         )
-
-        self.xtitle = xtitle
-        self.ytitle = ytitle
         self.yrange = yrange
         self.xrange = xrange
         self._overlaying = False
@@ -372,18 +350,15 @@ class AnnotatedDrawable(Drawable):
         except AttributeError:
             pass
 
-        try:
-            traces = f.traces
-            self.layout |= dict(f.layout)
-        except AttributeError:
-            traces = f["data"]
-            self.layout |= f["layout"]
+        traces = f.data
+        self.layout |= dict(f.layout)
         for trace in traces:
             trace.xaxis = xaxis
             if self._overlaying and "yaxis" in trace:
                 trace.yaxis = "y3"
             else:
                 trace.yaxis = yaxis
+
         self._traces = traces
         ticks_on = dict(_ticks_on)
         f.layout.xaxis.title = self.xtitle

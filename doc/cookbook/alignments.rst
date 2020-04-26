@@ -1,5 +1,5 @@
-Collections and Alignments
---------------------------
+Sequence Collections and Alignments
+-----------------------------------
 
 .. authors, Gavin Huttley, Kristian Rother, Patrick Yannul, Tom Elliott, Jan Kosinski
 
@@ -682,7 +682,7 @@ This is done using the ``filtered`` method using the ``motif_length`` argument. 
 Then for the standard ``Alignment`` by first converting the ``ArrayAlignment``.
 
 .. doctest::
-    
+
     >>> aln = aln.to_type(array_align=False)
     >>> variable_codons = aln.filtered(lambda x: len(set(''.join(x))) > 1,
     ...                                motif_length=3)
@@ -760,7 +760,7 @@ We state the motif length we want and whether to allow gap or ambiguous characte
     Counter({'G': 14, 'A': 11, 'T': 7, 'N': 1})
 
 .. note::
-    
+
     Only the observed motifs are returned, rather than all defined by the alphabet.
 
 Computing motif probabilities from an alignment
