@@ -77,7 +77,7 @@ html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 
 html_theme_options = {
-    "navbar_title": "cogent3",
+    "navbar_title": "Docs",
     "navbar_site_name": "Sections",
     "navbar_links": [
         ("Install", "install"),

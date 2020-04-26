@@ -8,7 +8,7 @@ If you discover a bug please post a ticket at the issues_ page!
 Citation
 ########
 
-If you use this software for published work please cite -- `Knight et al., 2007, Genome Biol, 8, R171 <https://genomebiology.com/2007/8/8/R171>`_.
+If you use this software for published work please cite -- `Knight et al., 2007, Genome Biol, 8, R171 <https://www.ncbi.nlm.nih.gov/pubmed/17708774>`_.
 
 #######
 Support

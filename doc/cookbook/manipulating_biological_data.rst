@@ -10,13 +10,13 @@ Sequences and Alignments
 .. toctree::
     :maxdepth: 1
     
-    moltypes
     loading_sequences
-    alphabet
+    alignments
     DNA_and_RNA_sequences
     protein_sequences
-    alignments
     annotations
+    moltypes
+    alphabet
 
 Genetic code
 ============

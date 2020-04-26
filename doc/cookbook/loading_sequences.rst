@@ -1,17 +1,12 @@
 .. _load-seqs:
 
-Loading nucleotide, protein sequences
--------------------------------------
+Loading an alignment from a file
+--------------------------------------
 
 .. author, Tony Walters, Tom Elliott, Gavin Huttley
 
-Loading sequences from a file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-As an alignment
-"""""""""""""""
-
-The function ``load_unaligned_seqs()`` creates a sequence collection, ``load_aligned_seqs()`` an alignment.
+Loading aligned sequences
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
@@ -20,10 +15,19 @@ The function ``load_unaligned_seqs()`` creates a sequence collection, ``load_ali
     >>> type(aln)
     <class 'cogent3.core.alignment.ArrayAlignment'>
 
-This example and some of the following use the :download:`long_testseqs.fasta <../data/long_testseqs.fasta>` file.
+The load functions record the origin of the data in the ``info`` attribute under a `"source"` key.
 
-As a sequence collection (unaligned)
-""""""""""""""""""""""""""""""""""""
+.. doctest::
+    
+    >>> aln.info.source
+    'data/long_testseqs.fasta'
+
+.. note:: The function ``load_aligned_seqs()`` returns an ``ArrayAlignment`` by default. If you set the argument ``array_align=False``, you will get an ``Alignment``. (That class can be annotated.)
+
+.. todo:: add cross ref for description of Info class
+
+Loading unaligned sequences
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``load_unaligned_seqs()`` function returns a sequence collection.
 
@@ -31,15 +35,13 @@ The ``load_unaligned_seqs()`` function returns a sequence collection.
 
     >>> from cogent3 import load_unaligned_seqs
     >>> seqs = load_unaligned_seqs('data/long_testseqs.fasta', moltype="dna")
-    >>> print(type(seqs))
+    >>> type(seqs)
     <class 'cogent3.core.alignment.SequenceCollection'>
 
-.. note:: An alignment can be sliced, but a ``SequenceCollection`` can not.
-
 Specifying the file format
-""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`The loading functions use the filename suffix to infer the file format. This can be overridden using the ``format`` argument.
+The loading functions use the filename suffix to infer the file format. This can be overridden using the ``format`` argument.
 
 .. doctest::
 
@@ -50,40 +52,14 @@ Specifying the file format
     >>> aln
     5 x 2532 dna alignment: Human[TGTGGCACAAA...
 
-
-``make_aligned_seqs`` from a series of strings
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. doctest::
-
-    >>> from cogent3 import make_aligned_seqs
-    >>> seqs = ['>seq1','AATCG-A','>seq2','AATCGGA']
-    >>> seqs_loaded = make_aligned_seqs(seqs)
-    >>> print(seqs_loaded)
-    >seq1
-    AATCG-A
-    >seq2
-    AATCGGA
-    <BLANKLINE>
-
-``make_aligned_seqs`` from a dict of strings
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. doctest::
-
-    >>> from cogent3 import make_aligned_seqs
-    >>> seqs = {'seq1': 'AATCG-A','seq2': 'AATCGGA'}
-    >>> seqs_loaded = make_aligned_seqs(seqs)
-
 Specifying the sequence molecular type
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------
 
-Simple case of loading a ``list`` of aligned amino acid sequences in FASTA format, with and without molecule type specification. When the ``MolType`` is not specified it defaults to BYTES.
+Simple case of loading a ``list`` of aligned amino acid sequences in FASTA format, with and without ``moltype`` specification. When ``moltype`` is not specified it defaults to ``BYTES`` for the ``ArrayAlignment`` class, ``ASCII`` for the ``Alignment`` class.
 
 .. doctest::
 
     >>> from cogent3 import make_aligned_seqs
-    >>> from cogent3 import DNA
     >>> protein_seqs = ['>seq1','DEKQL-RG','>seq2','DDK--SRG']
     >>> proteins_loaded = make_aligned_seqs(protein_seqs)
     >>> proteins_loaded.moltype
@@ -101,6 +77,35 @@ Simple case of loading a ``list`` of aligned amino acid sequences in FASTA forma
     >seq2
     DDK--SRG
     <BLANKLINE>
+
+.. note:: This applies to both the ``load_*`` or ``make_*`` functions.
+
+Making an alignment from standard python objects
+------------------------------------------------
+
+From a series of strings
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> from cogent3 import make_aligned_seqs
+    >>> seqs = ['>seq1','AATCG-A','>seq2','AATCGGA']
+    >>> seqs_loaded = make_aligned_seqs(seqs)
+    >>> print(seqs_loaded)
+    >seq1
+    AATCG-A
+    >seq2
+    AATCGGA
+    <BLANKLINE>
+
+From a dict of strings
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> from cogent3 import make_aligned_seqs
+    >>> seqs = {'seq1': 'AATCG-A','seq2': 'AATCGGA'}
+    >>> seqs_loaded = make_aligned_seqs(seqs)
 
 Stripping label characters on loading
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -120,12 +125,12 @@ Load a list of aligned nucleotide sequences, while specifying the DNA molecule t
     <BLANKLINE>
 
 Loading sequences using format parsers
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------
 
 ``load_aligned_seqs()`` and ``load_unaligned_seqs()`` are just convenience interfaces to format parsers. It can sometimes be more effective to use the parsers directly, say when you don't want to load everything into memory.
 
 Loading FASTA sequences from an open file or list of lines
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To load FASTA formatted sequences directly, you can use the ``MinimalFastaParser``.
 
@@ -136,13 +141,13 @@ To load FASTA formatted sequences directly, you can use the ``MinimalFastaParser
     >>> from cogent3.parse.fasta import MinimalFastaParser
     >>> f=open('data/long_testseqs.fasta')
     >>> seqs = [(name, seq) for name, seq in MinimalFastaParser(f)]
-    >>> print(seqs)
+    >>> seqs
     [('Human', 'TGTGGCACAAATAC...
 
 Handling overloaded FASTA sequence labels
-"""""""""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The FASTA label field is frequently overloaded, with different information fields present in the field and separated by some delimiter. This can be flexibly addressed using the ``LabelParser``. By creating a custom label parser, we can decided which part we use as the sequence name. We show how convert a field into something specific.
+The FASTA label field is frequently overloaded, with different information fields present in the field and separated by some delimiter. This can be flexibly addressed using the ``LabelParser``. By creating a custom label parser, we can decide which part we use as the sequence name. We show how to convert a field into something specific.
 
 .. doctest::
 
@@ -158,7 +163,7 @@ The FASTA label field is frequently overloaded, with different information field
     human <class 'cogent3.parse.fasta.RichLabel'>
     chimp <class 'cogent3.parse.fasta.RichLabel'>
 
-The ``RichLabel`` objects have an ``Info`` object as an attribute, allowing specific reference to all the specified label fields.
+``RichLabel`` objects have an ``Info`` object as an attribute, allowing specific reference to all the specified label fields.
 
 .. doctest::
 
