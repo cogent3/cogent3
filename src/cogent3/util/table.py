@@ -712,11 +712,17 @@ class Table:
         self.__dict__.update(table.__dict__)
 
     def __repr__(self):
+        if self.shape == (0, 0):
+            return "0 rows x 0 columns"
+
         table, shape_info = self._get_repr_()
         result = "\n".join([str(table), shape_info])
         return result
 
     def __str__(self):
+        if self.shape == (0, 0):
+            return ""
+
         return self.to_string(self.format)
 
     def _get_repr_(self):
@@ -1542,6 +1548,27 @@ class Table:
         formatted = list([list(e) for e in zip(*formatted)])
         return formatted
 
+    def to_markdown(self, space=1, justify=None):
+        """
+        returns markdown formatted table
+
+        Parameters
+        ----------
+        space
+            number of spaces surrounding the cell contents, must be >= 1
+        justify
+            characters indicating alignment of columns
+
+        Returns
+        -------
+        str
+        """
+        formatted_table = self._formatted()
+        header = formatted_table.pop(0)
+        return table_format.markdown(
+            header, formatted_table, space=space, justify=justify
+        )
+
     def to_string(
         self,
         format="",
@@ -1605,7 +1632,7 @@ class Table:
         elif format in ("rest", "rst"):
             return table_format.grid_table_format(*args)
         elif format in ("markdown", "md"):
-            return table_format.markdown(header, formatted_table, **kwargs)
+            return self.to_markdown(**kwargs)
         elif format.endswith("tex"):
             caption = self.title or None
             legend = self.legend or None

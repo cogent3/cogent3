@@ -406,7 +406,8 @@ def markdown(header, formatted_table, space=1, justify=None):
         previously formatted to the same width within a column.
     space
         number of spaces surrounding the cell contents, must be >= 1
-
+    justify
+        characters indicating alignment of columns
     """
     assert space >= 1, "space must be >= 1"
     if justify is not None:
