@@ -827,6 +827,22 @@ class TableTests(TestCase):
             decimal = l[-1].strip().split(".")[-1]
             self.assertEqual(len(decimal), 1, l[-1])
 
+    def test_str_empty(self):
+        """empty table returns empty str"""
+        table = make_table()
+        self.assertEqual(str(table), "")
+
+    def test_repr_empty(self):
+        """empty table returns empty str"""
+        table = make_table()
+        got = repr(table)
+        self.assertEqual(got, "0 rows x 0 columns")
+
+    def test_str_zero_rows(self):
+        """table with no rows returns column heads"""
+        table = make_table(header=["a"])
+        self.assertEqual(str(table), "=\na\n-\n-")
+
     def test_str_md_format(self):
         """str() produces markdown table"""
         md_table = make_table(
@@ -1032,7 +1048,8 @@ class TableTests(TestCase):
         """Exercising the table markdown method"""
         from cogent3.format.table import markdown
 
-        markdown_table = markdown(self.t6_header, self.t6_rows, justify="crl")
+        table = make_table(self.t6_header, self.t6_rows, format="md")
+        markdown_table = table.to_markdown(justify="crl")
         markdown_list = markdown_table.split("\n")
         self.assertEqual(markdown_list[2].count(r"|"), 5)
         # the pipe symbol should have been escaped
