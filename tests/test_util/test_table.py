@@ -131,7 +131,7 @@ class TableTests(TestCase):
 
     def test_index_name(self):
         """correctly assigns"""
-        t = Table(header=self.t3_header, data=self.t3_rows, row_ids="foo")
+        t = Table(header=self.t3_header, data=self.t3_rows, index="foo")
         self.assertEqual(t.index_name, "foo")
         # fails if not an existing column
         with self.assertRaises(ValueError):
@@ -140,17 +140,17 @@ class TableTests(TestCase):
         data = t.columns.to_dict()
         # correctly handled when provided on construction
         with self.assertRaises(ValueError):
-            t = Table(data=data, row_ids="missing")
+            t = Table(data=data, index="missing")
 
-        t = Table(data=data, row_ids="foo")
+        t = Table(data=data, index="foo")
         self.assertEqual(t.index_name, "foo")
 
         # ... prior to providing columns
-        t = Table(row_ids="foo")
+        t = Table(index="foo")
         for c, v in data.items():
             t.columns[c] = v
         self.assertEqual(t.index_name, "foo")
-        t = Table(row_ids="missing")
+        t = Table(index="missing")
         for c, v in data.items():
             t.columns[c] = v
 
@@ -186,12 +186,12 @@ class TableTests(TestCase):
 
     def test_indexing_rows(self):
         """works using names or ints"""
-        t = Table(header=self.t7_header, data=self.t7_rows, row_ids="gene")
+        t = Table(header=self.t7_header, data=self.t7_rows, index="gene")
         self.assertEqual(t["ENSG00000019485", "chrom"], "A")
 
     def test_immutability_cells(self):
         """table cells are immutable"""
-        t = Table(header=self.t7_header, data=self.t7_rows, row_ids="gene")
+        t = Table(header=self.t7_header, data=self.t7_rows, index="gene")
         with self.assertRaises(TypeError):
             t["ENSG00000019485", "chrom"] = "D"
 
@@ -253,19 +253,19 @@ class TableTests(TestCase):
         t = Table(data=data)
         self.assertEqual(t.shape, (len(data["x"]), len(data)))
 
-    def test_wrapping_tables_row_ids_1row(self):
+    def test_wrapping_tables_index_1row(self):
         """correctly wraps table to <= maximum width"""
-        row_ids = "A/C"
+        index = "A/C"
         h = ["A/C", "A/G", "A/T", "C/A"]
         rows = [[0.0425, 0.1424, 0.0226, 0.0391]]
-        t = Table(header=h, data=rows, max_width=30, row_ids=row_ids)
+        t = Table(header=h, data=rows, max_width=30, index=index)
         wrapped = str(t)
         # index column occurs twice for these conditions
         for c in h:
-            expect = 2 if c == row_ids else 1
+            expect = 2 if c == index else 1
             self.assertEqual(wrapped.count(c), expect)
 
-    def test_wrapping_tables_row_ids_multirow(self):
+    def test_wrapping_tables_index_multirow(self):
         """correctly wraps table to <= maximum width"""
         # multi-row table
         d2D = {
@@ -283,7 +283,7 @@ class TableTests(TestCase):
             row_order=row_order,
             space=8,
             max_width=50,
-            row_ids="edge.name",
+            index="edge.name",
             title="My title",
             legend="legend: this is a nonsense example.",
         )
@@ -436,8 +436,8 @@ class TableTests(TestCase):
         with self.assertRaises(IndexError):
             _ = t["Human", "edge.parent"]
 
-        # applies row_ids as an index
-        t = make_table(data=data, row_ids="edge.names")
+        # use an index
+        t = make_table(data=data, index="edge.names")
         # index col is the first one, and the data can be indexed
         self.assertEqual(t.columns.order[0], "edge.names")
         self.assertEqual(t["Human", "edge.parent"], "edge.0")
@@ -586,7 +586,7 @@ class TableTests(TestCase):
         self.assertEqual(t1.get_columns(["chrom", "length"]).shape[0], t1.shape[0])
         self.assertEqual(t1.get_columns(["chrom", "length"]).shape[1], 2)
         # if name_index, includes that in return
-        t1 = Table(header=self.t1_header, data=self.t1_rows, row_ids="stableid")
+        t1 = Table(header=self.t1_header, data=self.t1_rows, index="stableid")
         r = t1.get_columns(["length"])
         self.assertEqual(r.header, ("stableid", "length"))
 
@@ -779,7 +779,7 @@ class TableTests(TestCase):
         t5_row_sum = t5.with_new_column("sum", sum, t5.header)
         self.assertEqual(t5_row_sum.get_columns("sum").tolist(), [4, 4, 8])
         # now using a string expression
-        t8 = Table(header=self.t8_header, data=self.t8_rows, row_ids="edge.name")
+        t8 = Table(header=self.t8_header, data=self.t8_rows, index="edge.name")
         n = t8.with_new_column("YZ", callback="y+z")
         assert_equal(n.columns["YZ"], [9.0, 9.0])
         # if the new column alreayb exists, the new table has the newest column
@@ -894,7 +894,7 @@ class TableTests(TestCase):
             ["e", 0.44084000179091454, 0.44083999937417828, 0.44084000179090932, ""],
         ]
         header = ["seq1/2", "a", "c", "b", "e"]
-        dist = Table(header=header, data=rows, row_ids="seq1/2")
+        dist = Table(header=header, data=rows, index="seq1/2")
         r = dist.to_string(format="phylip")
         r = r.splitlines()
         self.assertEqual(r[0].strip(), "4")
@@ -917,11 +917,7 @@ class TableTests(TestCase):
             "edge.name": {"NineBande": "NineBande", "edge.1": "edge.1",},
         }
         t = Table(
-            data=data,
-            max_width=50,
-            row_ids="edge.name",
-            title="My title",
-            legend="blah",
+            data=data, max_width=50, index="edge.name", title="My title", legend="blah",
         )
         # via string
         s = pickle.dumps(t)
@@ -1045,7 +1041,7 @@ class TableTests(TestCase):
         t = Table(header=self.t8_header, data=self.t8_rows)
         html = t._repr_html_()
         # without an index
-        t = Table(header=self.t8_header, data=self.t8_rows, row_ids="edge.name")
+        t = Table(header=self.t8_header, data=self.t8_rows, index="edge.name")
         html = t._repr_html_()
 
     def test_separator_format(self):

@@ -533,7 +533,7 @@ class Table:
         self,
         header=None,
         data=None,
-        row_ids=None,
+        index=None,
         title="",
         legend="",
         digits=4,
@@ -586,27 +586,26 @@ class Table:
         if header is None and isinstance(data, dict):
             header = list(data)
 
-        if row_ids:
-            if row_ids == True:
-                row_ids = header[0]
-                deprecated("argument", "row_ids: bool", "row_ids: string", "2020.6")
-                warnings.warn(
-                    "support for row_ids as bool discontinued in "
-                    "version 2020.6, use a column name instead",
-                    DeprecationWarning,
-                )
+        if "row_ids" in kwargs:
+            deprecated("argument", "row_ids", "index", "2020.6")
+            index = kwargs.pop("row_ids")
+
+        if index:
+            if index == True:
+                index = header[0]
+                deprecated("argument", "index: bool", "index: string", "2020.6")
 
         if data:
             row_order = kwargs.get("row_order", None)
             data = cast_to_1d_dict(data, row_order=row_order)
-            if row_ids:
+            if index:
                 try:
-                    self.columns[row_ids] = data[row_ids]
+                    self.columns[index] = data[index]
                 except KeyError:
-                    raise ValueError(f"'{row_ids}' not in data")
+                    raise ValueError(f"'{index}' not in data")
 
             for c in header:
-                if c == row_ids:
+                if c == index:
                     continue
                 self.columns[c] = data[c]
 
@@ -615,8 +614,8 @@ class Table:
             for c in header:
                 self.columns[c] = []
 
-        if row_ids:
-            self._index_name = row_ids
+        if index:
+            self._index_name = index
         else:
             self._index_name = None
 
@@ -666,7 +665,7 @@ class Table:
 
         columns = [self.columns._get_key_(c) for c in columns]
 
-        # if a row index has been specified, via row_ids, we need to interpret
+        # if a index_name has been specified we need to interpret
         # the provided values using the template
         if self._template:
             rows, _ = self._template.interpret_index(rows)
@@ -683,13 +682,13 @@ class Table:
             return self.columns[columns[0]][rows]
 
         attr = self._get_persistent_attrs()
-        row_ids = attr.pop("row_ids")
+        index_name = attr.pop("index")
         result = self.__class__(**attr)
         for c in columns:
             result.columns[c] = self.columns[c][rows]
 
-        if row_ids in result.columns:
-            result.index_name = row_ids
+        if index_name in result.columns:
+            result.index_name = index_name
 
         return result
 
@@ -706,10 +705,10 @@ class Table:
             data.pop(k, None)
 
         kwargs = data.pop("init_table")
-        row_ids = kwargs.pop("row_ids")
+        index = kwargs.pop("index")
         table = self.__class__(**kwargs)
         table.columns.__setstate__(data["data"])
-        table.index_name = row_ids
+        table.index_name = index
         self.__dict__.update(table.__dict__)
 
     def __repr__(self):
@@ -1302,7 +1301,7 @@ class Table:
             numpy type of result
         """
         attr = self._get_persistent_attrs()
-        row_ids = attr.pop("row_ids")
+        index = attr.pop("index")
         attr |= kwargs
         result = self.__class__(**attr)
         for c in self.columns:
@@ -1332,8 +1331,8 @@ class Table:
 
         result.columns[new_column] = values
 
-        if row_ids in result.columns:
-            result.index_name = row_ids
+        if index in result.columns:
+            result.index_name = index
 
         return result
 
@@ -1736,10 +1735,10 @@ class Table:
     @extend_docstring_from(DictArray.to_dict)
     def to_dict(self, flatten=False):
         if self.index_name:
-            row_ids = self.columns[self.index_name]
+            index = self.columns[self.index_name]
         else:
-            row_ids = self.shape[0]
-        template = DictArrayTemplate(row_ids, self.columns.order)
+            index = self.shape[0]
+        template = DictArrayTemplate(index, self.columns.order)
         darr = template.wrap(self.array)
         return darr.to_dict(flatten=flatten)
 

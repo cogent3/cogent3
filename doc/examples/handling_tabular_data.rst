@@ -195,7 +195,7 @@ Tables may also be created from 2-dimensional dictionaries. In this case, specia
     >>> d2D['edge.name'] = dict(zip(row_order, row_order))
     >>> t3 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
     ...            row_order=row_order, missing_data='*', space=8,
-    ...            max_width=50, row_ids='edge.name', title='My title',
+    ...            max_width=50, index='edge.name', title='My title',
     ...            legend='legend: this is a nonsense example.')
     >>> print(t3)
     My title
@@ -239,7 +239,7 @@ Tables may also be created from 2-dimensional dictionaries. In this case, specia
     <BLANKLINE>
     legend: this is a nonsense example.
 
-In the above we specify a maximum width of the table, and also specify row identifiers (using ``row_ids``, the name to use as row identifiers). This has the effect of forcing the table to wrap when the simple text format is used, but wrapping does not occur for any other format. The ``row_ids`` is a column containing data for slicing the table by row, and as identifiers are presented in each wrapped sub-table.
+In the above we specify a maximum width of the table, and also specify row identifiers (using ``index``, the name to use as row identifiers). This has the effect of forcing the table to wrap when the simple text format is used, but wrapping does not occur for any other format. The ``index`` is a column containing data for slicing the table by row, and as identifiers are presented in each wrapped sub-table.
 
 Wrapping generates neat looking tables whether or not you index the table rows. We demonstrate here
 
@@ -264,7 +264,7 @@ Wrapping generates neat looking tables whether or not you index the table rows. 
     ------
     <BLANKLINE>
     >>> wrap_table = make_table(header=h, data=rows, max_width=30,
-    ...  row_ids="A/C")
+    ...  index="A/C")
     >>> print(wrap_table)
     ==========================
        A/C       A/G       A/T
@@ -642,7 +642,7 @@ Test the writing of phylip distance matrix format.
     ...  0.088337278874079342, '', 0.44084000179090932], ['e',
     ...  0.44084000179091454, 0.44083999937417828, 0.44084000179090932, '']]
     >>> header = ['seq1/2', 'a', 'c', 'b', 'e']
-    >>> dist = Table(header=header, data=rows, row_ids='seq1/2')
+    >>> dist = Table(header=header, data=rows, index='seq1/2')
     >>> print(dist.to_string(format='phylip'))
        4
     a           0.0000  0.0883  0.1885  0.4408
@@ -759,7 +759,7 @@ Saving a table object to file for later reloading can be done using the standard
 
     >>> t3 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
     ...            row_order=row_order, missing_data='*', space=8,
-    ...            max_width=50, row_ids='edge.name', title='My title',
+    ...            max_width=50, index='edge.name', title='My title',
     ...            legend='legend: this is a nonsense example.')
     >>> t3.write("t3.pickle")
     >>> t3_loaded = load_table("t3.pickle")
@@ -1099,12 +1099,12 @@ We can likewise specify a writer, using a custom field formatter and provide thi
 Table slicing and iteration
 ---------------------------
 
-The Table class is capable of slicing by row, range of rows, column or range of columns headings or used to identify a single cell. Slicing using the method ``get_columns`` can also be used to reorder columns. In the case of columns, either the string headings or their position integers can be used. For rows, if ``row_ids`` was specified, the cell values in that column can also be used.
+The Table class is capable of slicing by row, range of rows, column or range of columns headings or used to identify a single cell. Slicing using the method ``get_columns`` can also be used to reorder columns. In the case of columns, either the string headings or their position integers can be used. For rows, if ``index`` was specified, the cell values in that column can also be used.
 
 .. doctest::
 
     >>> t4 = Table(['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], d2D,
-    ...            row_order=row_order, row_ids='edge.name', title='My title')
+    ...            row_order=row_order, index='edge.name', title='My title')
 
 We subset ``t4`` by column and reorder them.
 
