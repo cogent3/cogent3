@@ -613,6 +613,12 @@ class TableTests(TestCase):
             t2.joined(t3, inner_join=False).shape[1], t2.shape[1] + t3.shape[1]
         )
 
+        got = t2.cross_join(t3)
+        self.assertEqual(got.shape[0], t2.shape[0] * t3.shape[0])
+        self.assertEqual(
+            t2.joined(t3, inner_join=False).shape[1], t2.shape[1] + t3.shape[1]
+        )
+
     def test_joined_diff_indexing(self):
         """join handles different indexing"""
         a = Table(
