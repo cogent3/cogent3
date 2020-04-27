@@ -169,7 +169,7 @@ setup(
     ],
     packages=find_packages(where="src"),
     package_dir={"": PACKAGE_DIR},
-    install_requires=["numpy", "scitrack", "tqdm", "tinydb"],
+    install_requires=["numba==0.48.0", "numpy", "scitrack", "tqdm", "tinydb"],
     extras_require={
         "dev": [
             "black",
@@ -200,15 +200,7 @@ setup(
         "extra": ["pandas", "plotly", "psutil"],
     },
     ext_modules=cythonize(
-        [
-            CythonExtension("cogent3.align._compare"),
-            CythonExtension("cogent3.align._pairwise_seqs"),
-            CythonExtension("cogent3.align._pairwise_pogs"),
-            CythonExtension("cogent3.evolve._solved_models"),
-            CythonExtension("cogent3.evolve._likelihood_tree"),
-            CythonExtension("cogent3.evolve._pairwise_distance"),
-            CythonExtension("cogent3.maths._period"),
-        ]
+        []
     ),
     include_dirs=[numpy_include_dir],
     cmdclass=extra_commands,

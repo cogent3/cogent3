@@ -14,6 +14,8 @@ from numpy import (
     zeros,
 )
 
+from .period_numba import autocorr_inner, goertzel_inner, ipdft_inner
+
 
 __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
@@ -64,18 +66,6 @@ def _autocorr_inner(x, xc, N):  # naive python
         for n in range(N):
             if 0 <= n - m < N:
                 xc[m + N - 1] += x[n] * x[n - m]
-
-
-try:
-    # try using pyrexed versions
-    from ._period import ipdft_inner, autocorr_inner, goertzel_inner
-
-    # raise ImportError # for profiling
-except ImportError:
-    # fastest python versions
-    ipdft_inner = _ipdft_inner2
-    autocorr_inner = _autocorr_inner2
-    goertzel_inner = _goertzel_inner
 
 
 def goertzel(x, period):
@@ -194,7 +184,7 @@ class Goertzel(_PeriodEstimator):
 
     def evaluate(self, x):
         x = array(x, float64)
-        return _goertzel_inner(x, self.length, self.period)
+        return goertzel_inner(x, self.length, self.period)
 
     __call__ = evaluate
 

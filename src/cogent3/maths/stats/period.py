@@ -65,7 +65,7 @@ def g_statistic(X, p=None, idx=None):
     return g_obs, p_val
 
 
-def _seq_to_symbols(seq, motifs, motif_length, result=None):
+def seq_to_symbols(seq, motifs, motif_length, result=None):
     """return symbolic represetation of the sequence
 
     Parameters
@@ -91,12 +91,6 @@ def _seq_to_symbols(seq, motifs, motif_length, result=None):
             result[i] = 1
 
     return result
-
-
-try:
-    from cogent3.maths._period import seq_to_symbols
-except ImportError:
-    seq_to_symbols = _seq_to_symbols
 
 
 class SeqToSymbols(object):
