@@ -484,7 +484,7 @@ def available_codes():
     table = Table(
         header=header,
         rows=rows,
-        row_ids="Code ID",
+        index="Code ID",
         title="Specify a genetic code using either 'Name' or "
         "Code ID (as an integer or string)",
     )

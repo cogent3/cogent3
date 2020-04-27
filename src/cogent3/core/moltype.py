@@ -1507,6 +1507,6 @@ def available_moltypes():
     header = ["Abbreviation", "Number of states", "Moltype"]
     title = "Specify a moltype by the string 'Abbreviation' (case insensitive)."
 
-    result = Table(header=header, data=rows, title=title, row_ids="Abbreviation")
+    result = Table(header=header, data=rows, title=title, index="Abbreviation")
     result = result.sorted(columns=["Number of states", "Abbreviation"])
     return result

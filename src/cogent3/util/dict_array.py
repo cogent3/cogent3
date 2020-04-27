@@ -367,7 +367,7 @@ class DictArrayTemplate(object):
         else:
             return "%s dimensional %s" % (len(self.names), type(self).__name__)
 
-        t = Table(heading, data=a, digits=3, row_ids=heading[0], max_width=80)
+        t = Table(heading, data=a, digits=3, index=heading[0], max_width=80)
         return t._repr_html_(include_shape=False)
 
 

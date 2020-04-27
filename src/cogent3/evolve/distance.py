@@ -346,7 +346,7 @@ class EstimateDistances(object):
         T = table.Table(
             [r"Seq1 \ Seq2"] + self._seqnames,
             twoD,
-            row_ids=r"Seq1 \ Seq2",
+            index=r"Seq1 \ Seq2",
             missing_data="*",
         )
         return T
