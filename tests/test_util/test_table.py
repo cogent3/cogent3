@@ -1048,7 +1048,8 @@ class TableTests(TestCase):
         """Exercising the table markdown method"""
         from cogent3.format.table import markdown
 
-        markdown_table = markdown(self.t6_header, self.t6_rows, justify="crl")
+        table = make_table(self.t6_header, self.t6_rows, format="md")
+        markdown_table = table.to_markdown(justify="crl")
         markdown_list = markdown_table.split("\n")
         self.assertEqual(markdown_list[2].count(r"|"), 5)
         # the pipe symbol should have been escaped
