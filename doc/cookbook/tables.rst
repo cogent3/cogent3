@@ -151,39 +151,6 @@ or, for spacing at least, by modifying the attributes
     NP_055852    NonCon    10933217.7
     ---------------------------------
 
-Specify markdown as the ``str()`` format
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. doctest::
-
-    >>> from cogent3 import load_table
-    >>> table = load_table("data/stats.tsv", format="md")
-    >>> print(table)
-    |     Locus | Region |         Ratio |
-    |-----------|--------|---------------|
-    | NP_003077 |    Con |        2.5386 |
-    | NP_004893 |    Con |   121351.4264 |
-    | NP_005079 |    Con |  9516594.9789 |
-    | NP_005500 | NonCon |        0.0000 |
-    | NP_055852 | NonCon | 10933217.7090 |
-
-Specify latex as the ``str()`` format
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. doctest::
-
-    >>> from cogent3 import load_table
-    >>> table = load_table("data/stats.tsv", format="tex")
-    >>> print(table)
-    \begin{table}[htp!]
-    \centering
-    \begin{tabular}{ r r r }
-    \hline
-    \bf{Locus} & \bf{Region} & \bf{Ratio} \\
-    \hline
-    \hline
-    NP_003077 &    Con &        2.5386 \\...
-
 Changing column headings
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -614,7 +581,7 @@ Counting occurrences of values
 Joining or merging tables
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We do a standard inner join here for a restricted subset. We must specify the columns that will be used for the join. Here we just use ``Locus`` but multiple columns can be used, and their names can be different between the tables. Note that the second table's title becomes a part of the column names.
+We do a standard inner join here for a restricted subset. We must specify the columns that will be used for the join. Here we just use ``Locus``.
 
 .. doctest::
 
@@ -636,6 +603,43 @@ We do a standard inner join here for a restricted subset. We must specify the co
 .. note:: If the tables have titles, column names are prefixed with those instead of ``right_``.
 
 .. note:: The ``joined()`` method is just a wrapper for the ``inner_join()`` and ``cross_join()`` (row cartesian product) methods, which you can use directly.
+
+Specify markdown as the ``str()`` format
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Using the method provides finer control over formatting.
+
+.. doctest::
+
+    >>> from cogent3 import load_table
+    >>> table = load_table("data/stats.tsv", format="md")
+    >>> print(table)
+    |     Locus | Region |         Ratio |
+    |-----------|--------|---------------|
+    | NP_003077 |    Con |        2.5386 |
+    | NP_004893 |    Con |   121351.4264 |
+    | NP_005079 |    Con |  9516594.9789 |
+    | NP_005500 | NonCon |        0.0000 |
+    | NP_055852 | NonCon | 10933217.7090 |
+
+Specify latex as the ``str()`` format
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Using the method provides finer control over formatting.
+
+.. doctest::
+
+    >>> from cogent3 import load_table
+    >>> table = load_table("data/stats.tsv", format="tex")
+    >>> print(table)
+    \begin{table}[htp!]
+    \centering
+    \begin{tabular}{ r r r }
+    \hline
+    \bf{Locus} & \bf{Region} & \bf{Ratio} \\
+    \hline
+    \hline
+    NP_003077 &    Con &        2.5386 \\...
 
 Get a table as a markdown formatted string
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
