@@ -3,69 +3,107 @@ Tabular data
 
 .. authors, Gavin Huttley, Kristian Rother, Patrick Yannul
 
-.. doctest::
-    :hide:
+Table handles tabular data, storing as columns in a, you guessed it, ``columns`` attribute. The latter acts like a dictionary, with the column names as the keys and the column values being  ``numpy.ndarray`` instances. The table itself is iterable over rows.
 
-    >>> # just saving some tabular data for subsequent data
-    >>> from cogent3 import make_table, load_table
-    >>> rows = (('NP_003077', 'Con', 2.5386013224378985),
-    ... ('NP_004893', 'Con', 0.12135142635634111e+06),
-    ... ('NP_005079', 'Con', 0.95165949788861326e+07),
-    ... ('NP_005500', 'NonCon', 0.73827030202664901e-07),
-    ... ('NP_055852', 'NonCon', 1.0933217708952725e+07))
-    >>> table = make_table(header=['Locus', 'Region', 'Ratio'], data=rows)
-    >>> table.write('stats.txt', sep=',')
-    >>> table.write('../stats.txt', sep=',')
+.. note:: ``Table`` is immutable at the level of the individual ``ndarray`` not being writable.
 
-Loading delimited formats
+.. note:: ``Table`` can be interconverted from a ``pandas.DataFrame``.
+
+.. include:: ./loading_tabular.rst
+
+Iterating over table rows
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We load a comma separated data file using the generic ``load_table`` function.
+``Table`` is a row oriented object. Iterating on the table returns each row as a new ``Table`` instance.
 
 .. doctest::
 
     >>> from cogent3 import load_table
-    >>> table = load_table('stats.txt', sep=',')
-    >>> print(table)
-    ====================================
-        Locus    Region            Ratio
-    ------------------------------------
-    NP_003077       Con           2.5386
-    NP_004893       Con      121351.4264
-    NP_005079       Con     9516594.9789
-    NP_005500    NonCon           0.0000
-    NP_055852    NonCon    10933217.7090
-    ------------------------------------
+    >>> table = load_table("data/stats.tsv")
+    >>> for row in table:
+    ...     print(row)
+    ...     break
+    ...
+    =============================
+        Locus    Region     Ratio
+    -----------------------------
+    NP_003077       Con    2.5386
+    -----------------------------
 
-Reading large files
-^^^^^^^^^^^^^^^^^^^
-
-For really large files the automated conversion used by the standard read mechanism can be quite slow. If the data within a column is consistently of one type, set the ``load_table`` argument ``static_column_types=True``. This causes the ``Table`` object to create a custom reader.
+The resulting rows can be indexed using their column names.
 
 .. doctest::
 
-    >>> table = load_table('stats.txt', static_column_types=True, sep=",")
-    >>> print(table)
-    ====================================
-        Locus    Region            Ratio
-    ------------------------------------
-    NP_003077       Con           2.5386
-    NP_004893       Con      121351.4264
-    NP_005079       Con     9516594.9789
-    NP_005500    NonCon           0.0000
-    NP_055852    NonCon    10933217.7090
-    ------------------------------------
+    >>> for row in table:
+    ...     print(row["Locus"])
+    NP_003077
+    NP_004893
+    NP_005079
+    NP_005500
+    NP_055852
 
-Formatting
-^^^^^^^^^^
+Iterating over table columns
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``Table.columns`` attribute is a ``Columns`` instance, an object with ``dict`` attributes.
+
+.. doctest::
+
+    >>> from cogent3 import load_table
+    >>> table = load_table("data/stats.tsv")
+    >>> table.columns
+    Columns('Locus': <U9, 'Region': <U6, 'Ratio': float64)
+    >>> print(table.columns["Region"])
+    ['Con' 'Con' 'Con' 'NonCon' 'NonCon']
+
+So iteration is the same as for dicts.
+
+.. doctest::
+
+    >>> for name in table.columns:
+    ...     print(name)
+    ...
+    Locus
+    Region
+    Ratio
+
+Table slicing using column names
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> table = load_table("data/stats.tsv")
+    >>> print(table[:2, :'Region'])
+    =========
+        Locus
+    ---------
+    NP_003077
+    NP_004893
+    ---------
+
+Table slicing using column indices
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> table = load_table("data/stats.tsv")
+    >>> print(table[:2,: 1])
+    =========
+        Locus
+    ---------
+    NP_003077
+    NP_004893
+    ---------
 
 Changing displayed numerical precision
-""""""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We change the ``Ratio`` column to using scientific notation.
 
 .. doctest::
 
+    >>> from cogent3 import load_table
+    >>> table = load_table("data/stats.tsv")
     >>> table.format_column('Ratio', '%.1e')
     >>> print(table)
     ==============================
@@ -79,13 +117,13 @@ We change the ``Ratio`` column to using scientific notation.
     ------------------------------
 
 Change digits or column spacing
-"""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This can be done on table loading,
 
 .. doctest::
 
-    >>> table = load_table('stats.txt', sep=',', digits=1, space=2)
+    >>> table = load_table('data/stats.tsv', digits=1, space=2)
     >>> print(table)
     =============================
         Locus  Region       Ratio
@@ -113,6 +151,39 @@ or, for spacing at least, by modifying the attributes
     NP_055852    NonCon    10933217.7
     ---------------------------------
 
+Specify markdown as the ``str()`` format
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> from cogent3 import load_table
+    >>> table = load_table("data/stats.tsv", format="md")
+    >>> print(table)
+    |     Locus | Region |         Ratio |
+    |-----------|--------|---------------|
+    | NP_003077 |    Con |        2.5386 |
+    | NP_004893 |    Con |   121351.4264 |
+    | NP_005079 |    Con |  9516594.9789 |
+    | NP_005500 | NonCon |        0.0000 |
+    | NP_055852 | NonCon | 10933217.7090 |
+
+Specify latex as the ``str()`` format
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> from cogent3 import load_table
+    >>> table = load_table("data/stats.tsv", format="tex")
+    >>> print(table)
+    \begin{table}[htp!]
+    \centering
+    \begin{tabular}{ r r r }
+    \hline
+    \bf{Locus} & \bf{Region} & \bf{Ratio} \\
+    \hline
+    \hline
+    NP_003077 &    Con &        2.5386 \\...
+
 Changing column headings
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -120,21 +191,43 @@ The table ``header`` is immutable. Changing column headings is done as follows.
 
 .. doctest::
 
-    >>> table = load_table('stats.txt', sep=',')
+    >>> table = load_table("data/stats.tsv")
     >>> print(table.header)
     ('Locus', 'Region', 'Ratio')
     >>> table = table.with_new_header('Ratio', 'Stat')
     >>> print(table.header)
     ('Locus', 'Region', 'Stat')
 
-Creating new columns from existing ones
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Adding a new column
+^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> from cogent3 import make_table
+    >>> table = make_table()
+    >>> table
+    0 rows x 0 columns
+    >>> table.columns["a"] = [1, 3, 5]
+    >>> table.columns["b"] = [2, 4, 6]
+    >>> table
+    ======
+    a    b
+    ------
+    1    2
+    3    4
+    5    6
+    ------
+    <BLANKLINE>
+    3 rows x 2 columns
+
+Create a new column from existing ones
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This can be used to take a single, or multiple columns and generate a new column of values. Here we'll take 2 columns and return True/False based on a condition.
 
 .. doctest::
 
-    >>> table = load_table('stats.txt', sep=',')
+    >>> table = load_table("data/stats.tsv")
     >>> table = table.with_new_column('LargeCon',
     ...                     lambda r_v: r_v[0] == 'Con' and r_v[1]>10.0,
     ...                     columns=['Region', 'Ratio'])
@@ -149,6 +242,96 @@ This can be used to take a single, or multiple columns and generate a new column
     NP_055852    NonCon    10933217.7090       False
     ------------------------------------------------
 
+Get table data as a numpy array
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> table = load_table("data/stats.tsv")
+    >>> table.array
+    array([['NP_003077', 'Con', 2.5386013224378985],
+           ['NP_004893', 'Con', 121351.42635634111],
+           ['NP_005079', 'Con', 9516594.978886133],
+           ['NP_005500', 'NonCon', 7.382703020266491e-08],
+           ['NP_055852', 'NonCon', 10933217.708952725]], dtype=object)
+
+Get a table column as a list
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Via the ``Table.tolist()`` method.
+
+.. doctest::
+
+    >>> table = load_table("data/stats.tsv")
+    >>> locus = table.tolist("Locus")
+    >>> locus
+    ['NP_003077', 'NP_004893', 'NP_005079', 'NP_005500', 'NP_055852']
+
+Or directly from the column array object.
+
+.. doctest::
+
+    >>> table.columns["Locus"].tolist()
+    ['NP_003077', 'NP_004893', 'NP_005079', 'NP_005500', 'NP_055852']
+
+Get multiple table columns as a list
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This returns a row oriented list.
+
+.. doctest::
+
+    >>> table = load_table("data/stats.tsv")
+    >>> rows = table.tolist(["Region", "Locus"])
+    >>> rows
+    [['Con', 'NP_003077'], ['Con', 'NP_004893'], ...
+
+.. note:: column name order dictates the element order per row
+
+Get the table as a row oriented ``dict``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Keys in the resulting dict are the row indices, the value is a dict of column name, value pairs.
+
+.. doctest::
+
+    >>> table = load_table("data/stats.tsv")
+    >>> table.to_dict()
+    {0: {'Locus': 'NP_003077', 'Region': 'Con', 'Ratio': ...
+
+
+Get the table as a column oriented ``dict``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Keys in the resulting dict are the column names, the value is a list.
+
+.. doctest::
+
+    >>> table = load_table("data/stats.tsv")
+    >>> table.columns.to_dict()
+    {'Locus': ['NP_003077', 'NP_004893',...
+
+Get the table as a ``pandas.DataFrame``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> table = load_table("data/stats.tsv")
+    >>> df = table.to_dataframe()
+    >>> df
+           Locus  Region         Ratio
+    0  NP_003077     Con  2.538601e+00
+    1  NP_004893     Con  1.213514e+05
+    2  NP_005079     Con  9.516595e+06
+    3  NP_005500  NonCon  7.382703e-08
+    4  NP_055852  NonCon  1.093322e+07
+
+You can also specify column(s) are categories
+
+.. doctest::
+    
+    >>> df = table.to_dataframe(categories="Region")
+
 Appending tables
 ^^^^^^^^^^^^^^^^
 
@@ -156,8 +339,8 @@ Can be done without specifying a new column. Here we simply use the same table d
 
 .. doctest::
 
-    >>> table1 = load_table('stats.txt', sep=',')
-    >>> table2 = load_table('stats.txt', sep=',')
+    >>> table1 = load_table("data/stats.tsv")
+    >>> table2 = load_table("data/stats.tsv")
     >>> table = table1.appended(None, table2)
     >>> print(table)
     ====================================
@@ -205,8 +388,15 @@ Summing a single column
 
 .. doctest::
 
-    >>> table = load_table('stats.txt', sep=',')
+    >>> table = load_table("data/stats.tsv")
     >>> table.summed('Ratio')
+    20571166.652...
+
+Because each column is just a ``numpy.ndarray``, this also can be done directly via the array methods.
+
+.. doctest::
+
+    >>> table.columns["Ratio"].sum()
     20571166.652...
 
 Summing multiple columns or rows - strictly numerical data
@@ -216,6 +406,7 @@ We define a strictly numerical table,
 
 .. doctest::
 
+    >>> from cogent3 import make_table
     >>> all_numeric = make_table(header=['A', 'B', 'C'], data=[range(3),
     ...                                 range(3,6), range(6,9), range(9,12)])
     >>> print(all_numeric)
@@ -282,7 +473,7 @@ We can do this by providing a reference to an external function
 
 .. doctest::
 
-    >>> table = load_table('stats.txt', sep=',')
+    >>> table = load_table("data/stats.tsv")
     >>> sub_table = table.filtered(lambda x: x < 10.0, columns='Ratio')
     >>> print(sub_table)
     =============================
@@ -335,15 +526,12 @@ We select only columns that have a sum > 20 from the ``all_numeric`` table const
     10    11
     --------
 
-Sorting
-^^^^^^^
-
 Standard sorting
-""""""""""""""""
+^^^^^^^^^^^^^^^^
 
 .. doctest::
 
-    >>> table = load_table('stats.txt', sep=',')
+    >>> table = load_table("data/stats.tsv")
     >>> print(table.sorted(columns='Ratio'))
     ====================================
         Locus    Region            Ratio
@@ -356,7 +544,7 @@ Standard sorting
     ------------------------------------
 
 Reverse sorting
-"""""""""""""""
+^^^^^^^^^^^^^^^
 
 .. doctest::
 
@@ -372,7 +560,7 @@ Reverse sorting
     ------------------------------------
 
 Sorting involving multiple columns, one reversed
-""""""""""""""""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
@@ -387,136 +575,153 @@ Sorting involving multiple columns, one reversed
     NP_005500    NonCon           0.0000
     ------------------------------------
 
-Getting raw data
-^^^^^^^^^^^^^^^^
-
-For a single column
-"""""""""""""""""""
+Getting raw data for a single column
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
-    >>> table = load_table('stats.txt', sep=',')
+    >>> table = load_table("data/stats.tsv")
     >>> raw = table.tolist('Region')
     >>> print(raw)
     ['Con', 'Con', 'Con', 'NonCon', 'NonCon']
 
-For multiple columns
-""""""""""""""""""""
+Getting raw data for multiple columns
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
-    >>> table = load_table('stats.txt', sep=',')
+    >>> table = load_table("data/stats.tsv")
     >>> raw = table.tolist(['Locus', 'Region'])
     >>> print(raw)
     [['NP_003077', 'Con'], ['NP_004893', 'Con'], ...
 
-Iterating over table rows
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Getting distinct values
+^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
-    >>> table = load_table('stats.txt', sep=',')
-    >>> for row in table:
-    ...     print(row['Locus'])
-    ...
-    NP_003077
-    NP_004893
-    NP_005079
-    NP_005500
-    NP_055852
-
-Table slicing
-^^^^^^^^^^^^^
-
-Using column names
-""""""""""""""""""
-
-.. doctest::
-
-    >>> table = load_table('stats.txt', sep=',')
-    >>> print(table[:2, :'Region'])
-    =========
-        Locus
-    ---------
-    NP_003077
-    NP_004893
-    ---------
-
-Using column indices
-""""""""""""""""""""
-
-.. doctest::
-
-    >>> table = load_table('stats.txt', sep=',')
-    >>> print(table[:2,: 1])
-    =========
-        Locus
-    ---------
-    NP_003077
-    NP_004893
-    ---------
-
-SQL-like capabilities
-^^^^^^^^^^^^^^^^^^^^^
-
-Distinct values
-"""""""""""""""
-
-.. doctest::
-
-    >>> table = load_table('stats.txt', sep=',')
+    >>> table = load_table("data/stats.tsv")
     >>> assert table.distinct_values('Region') == set(['NonCon', 'Con'])
 
-Counting
-""""""""
+Counting occurrences of values
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doctest::
 
-    >>> table = load_table('stats.txt', sep=',')
+    >>> table = load_table("data/stats.tsv")
     >>> assert table.count("Region == 'NonCon' and Ratio > 1") == 1
 
-Joining tables
-""""""""""""""
+Joining or merging tables
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-SQL-like join operations requires tables have different ``title`` attributes which are not ``None``. We do a standard inner join here for a restricted subset. We must specify the columns that will be used for the join. Here we just use ``Locus`` but multiple columns can be used, and their names can be different between the tables. Note that the second table's title becomes a part of the column names.
+We do a standard inner join here for a restricted subset. We must specify the columns that will be used for the join. Here we just use ``Locus`` but multiple columns can be used, and their names can be different between the tables. Note that the second table's title becomes a part of the column names.
 
 .. doctest::
 
     >>> rows = [['NP_004893', True], ['NP_005079', True],
     ...         ['NP_005500', False], ['NP_055852', False]]
-    >>> region_type = make_table(header=['Locus', 'LargeCon'], data=rows,
-    ...                 title='RegionClass')
-    >>> stats_table = load_table('stats.txt', sep=',', title='Stats')
+    >>> region_type = make_table(header=['Locus', 'LargeCon'], data=rows)
+    >>> stats_table = load_table("data/stats.tsv")
     >>> new = stats_table.joined(region_type, columns_self='Locus')
     >>> print(new)
-    ============================================================
-        Locus    Region            Ratio    RegionClass_LargeCon
-    ------------------------------------------------------------
-    NP_004893       Con      121351.4264                    True
-    NP_005079       Con     9516594.9789                    True
-    NP_005500    NonCon           0.0000                   False
-    NP_055852    NonCon    10933217.7090                   False
-    ------------------------------------------------------------
+    ======================================================
+        Locus    Region            Ratio    right_LargeCon
+    ------------------------------------------------------
+    NP_004893       Con      121351.4264              True
+    NP_005079       Con     9516594.9789              True
+    NP_005500    NonCon           0.0000             False
+    NP_055852    NonCon    10933217.7090             False
+    ------------------------------------------------------
 
-Exporting
-^^^^^^^^^
+.. note:: If the tables have titles, column names are prefixed with those instead of ``right_``.
 
-Writing delimited formats
-"""""""""""""""""""""""""
+.. note:: The ``joined()`` method is just a wrapper for the ``inner_join()`` and ``cross_join()`` (row cartesian product) methods, which you can use directly.
+
+Get a table as a markdown formatted string
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We use the ``justify`` argument to indicate the column justification.
 
 .. doctest::
 
-    >>> table = load_table('stats.txt', sep=',')
+    >>> table = load_table("data/stats.tsv")
+    >>> print(table.to_markdown(justify="ccr"))
+    |     Locus | Region |         Ratio |
+    |:---------:|:------:|--------------:|
+    | NP_003077 |    Con |        2.5386 |
+    | NP_004893 |    Con |   121351.4264 |
+    | NP_005079 |    Con |  9516594.9789 |
+    | NP_005500 | NonCon |        0.0000 |
+    | NP_055852 | NonCon | 10933217.7090 |
+
+
+Get a table as a latex formatted string
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> table = load_table("data/stats.tsv", title="Some stats.",
+    ...                    legend="Derived from something.")
+    >>> print(table.to_latex(justify="ccr", label="tab:table1"))
+    \begin{table}[htp!]
+    \centering
+    \begin{tabular}{ c c r }...
+
+Get a table as a restructured text csv-table
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> table = load_table("data/stats.tsv", title="Some stats.",
+    ...                    legend="Derived from something.")
+    >>> print(table.to_rst(csv_table=True))
+    .. csv-table:: Some stats.
+        :header: "Locus", "Region", "Ratio"
+    <BLANKLINE>
+        NP_003077, Con, 2.5386...
+
+Get a table as a restructured text grid table
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> table = load_table("data/stats.tsv", title="Some stats.",
+    ...                    legend="Derived from something.")
+    >>> print(table.to_rst())
+    +------------------------------------+
+    |            Some stats.             |
+    +-----------+--------+---------------+
+    |     Locus | Region |         Ratio |
+    +===========+========+===============+
+    | NP_003077 |    Con |        2.5386 |
+    +-----------+--------+---------------...
+
+
+What formats can be written?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> from cogent3.format.table import known_formats
+    >>> known_formats
+    ('bedgraph', 'phylip', 'rest', 'rst', 'markdown', 'md', 'latex', 'tex', 'html', 'simple', 'csv', 'tsv')
+
+Writing delimited formats
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> table = load_table("data/stats.tsv")
     >>> table.write('stats_tab.txt', sep='\t')
 
 Writing latex format
-""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^
 
 It is also possible to specify column alignment, table caption and other arguments.
 
 .. doctest::
 
-    >>> table = load_table('stats.txt', sep=',')
+    >>> table = load_table("data/stats.tsv")
     >>> print(table.to_string(format='latex'))
     \begin{table}[htp!]
     \centering
@@ -534,17 +739,8 @@ It is also possible to specify column alignment, table caption and other argumen
     \end{tabular}
     \end{table}
 
-.. we remove the table data
-
-.. doctest::
-    :hide:
-
-    >>> import os
-    >>> os.remove('stats.txt')
-    >>> os.remove('stats_tab.txt')
-
 Writing bedGraph format
-"""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^
 
 This format allows display of annotation tracks on genome browsers.
 
