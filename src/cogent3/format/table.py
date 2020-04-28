@@ -441,6 +441,42 @@ def markdown(header, formatted_table, space=1, justify=None):
     return "\n".join(rows)
 
 
+def rst_csv_table(header, formatted_table, title=None, legend=None):
+    """Returns a table in restructured text csv-table format
+
+    Parameters
+    ----------
+    header
+        series of strings
+    formatted_table
+        formatted strings, row based
+    title, legend
+        combined in this format
+
+    Returns
+    -------
+    str
+
+    Notes
+    -----
+    We only support a subset of available attr, see
+    https://docutils.sourceforge.io/docs/ref/rst/directives.html#csv-table
+    """
+    header = ", ".join(f'"{c}"' for c in header)
+    header = f"    :header: {header}"
+    rows = "\n".join(f"    {', '.join(r)}" for r in formatted_table)
+
+    if title or legend:
+        title = f" {title}" if title else ""
+        title = f"{title} {legend}" if legend else title
+    else:
+        title = ""
+
+    table = [f".. csv-table::{title}", header, "", rows]
+
+    return "\n".join(table)
+
+
 def grid_table_format(header, formatted_table, title=None, legend=None):
     """Returns a table in restructured text grid format.
 

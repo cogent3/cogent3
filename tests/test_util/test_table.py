@@ -856,7 +856,12 @@ class TableTests(TestCase):
         tex_table = make_table(
             header=["a", "b"], data=[["val1", "val2"], ["val3", "val4"]]
         )
-        tex = tex_table.to_string(format="tex")
+        tex = tex_table.to_string(format="tex", justify="cr")
+        self.assertEqual(
+            tex_table.to_string(format="tex", justify="cr"),
+            tex_table.to_latex(justify="cr"),
+        )
+        self.assertEqual(tex.splitlines()[2], r"\begin{tabular}{ c r }")
         self.assertFalse("caption" in tex)
         # with a title
         tex_table = make_table(
@@ -1044,10 +1049,8 @@ class TableTests(TestCase):
         )
         self.assertEqual(len(formatted_grid.split("\n")), len(self.t6_rows) * 2 + 7 + 2)
 
-    def test_markdown(self):
+    def test_to_markdown(self):
         """Exercising the table markdown method"""
-        from cogent3.format.table import markdown
-
         table = make_table(self.t6_header, self.t6_rows, format="md")
         markdown_table = table.to_markdown(justify="crl")
         markdown_list = markdown_table.split("\n")
@@ -1056,7 +1059,75 @@ class TableTests(TestCase):
         self.assertEqual(markdown_list[2].count(r"\|"), 1)
 
         with self.assertRaises(ValueError):
-            _ = markdown(self.t6_header, self.t6_rows, justify="cr1")
+            _ = table.to_markdown(justify="cr1")
+
+    def test_to_csv(self):
+        """successfully create csv formatted string"""
+        table = Table(
+            header=self.t3_header,
+            data=self.t3_rows,
+            title="A title",
+            legend="A legend",
+        )
+        sv = table.to_csv()
+        expect = ["id,foo,bar", " 6,abc, 66", " 7,bca, 77"]
+        self.assertEqual(sv.splitlines(), expect)
+        sv = table.to_csv(with_title=True)
+        self.assertEqual(sv.splitlines(), ["A title"] + expect)
+        sv = table.to_csv(with_legend=True)
+        self.assertEqual(sv.splitlines(), expect + ["A legend"])
+        sv = table.to_csv(with_title=True, with_legend=True)
+        self.assertEqual(sv.splitlines(), ["A title"] + expect + ["A legend"])
+
+    def test_to_tsv(self):
+        """successfully create csv formatted string"""
+        table = Table(
+            header=self.t3_header,
+            data=self.t3_rows,
+            title="A title",
+            legend="A legend",
+        )
+
+        sv = table.to_tsv()
+        expect = ["id\tfoo\tbar", " 6\tabc\t 66", " 7\tbca\t 77"]
+        self.assertEqual(sv.splitlines(), expect)
+        sv = table.to_tsv(with_title=True)
+        self.assertEqual(sv.splitlines(), ["A title"] + expect)
+        sv = table.to_tsv(with_legend=True)
+        self.assertEqual(sv.splitlines(), expect + ["A legend"])
+        sv = table.to_tsv(with_title=True, with_legend=True)
+        self.assertEqual(sv.splitlines(), ["A title"] + expect + ["A legend"])
+
+    def test_to_rst_grid(self):
+        """generates a rst grid table"""
+        table = Table(header=["a", "b"], data=[[1, 2]], title="A title")
+        got = table.to_rst(csv_table=False).splitlines()
+        self.assertTrue(table.title in got[1])
+        self.assertEqual(set(got[0]), {"-", "+"})
+        self.assertEqual(set(got[4]), {"=", "+"})
+
+    def test_to_rst_csv(self):
+        """generates a rst csv-table"""
+        table = Table(
+            header=["a", "b"], data=[[1, 2]], title="A title", legend="A legend",
+        )
+        got = table.to_rst(csv_table=True)
+        self.assertEqual(
+            got.splitlines(),
+            [
+                ".. csv-table:: A title A legend",
+                '    :header: "a", "b"',
+                "",
+                "    1, 2",
+            ],
+        )
+        # try without a title/legend
+        table = Table(header=["a", "b"], data=[[1, 2]])
+        got = table.to_rst(csv_table=True)
+        self.assertEqual(
+            got.splitlines(),
+            [".. csv-table::", '    :header: "a", "b"', "", "    1, 2",],
+        )
 
     def test_repr_html_(self):
         """should produce html"""

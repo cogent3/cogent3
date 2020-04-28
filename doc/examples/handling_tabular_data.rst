@@ -624,13 +624,12 @@ You can specify any standard text character that will work with your desired tar
 
 .. doctest::
 
-    >>> print(t2.to_string(sep=', '))
-               abcd, data
-    "[1, 2, 3, 4, 5]",    0
-                  x,  5.0
-                  y, None
+    >>> print(t2.to_string(sep=','))
+               abcd,data
+    "[1, 2, 3, 4, 5]",   0
+                  x, 5.0
+                  y,None
 
-Note that I introduced an extra space after the column just to make the result more readable in this example.
 
 Test the writing of phylip distance matrix format.
 
