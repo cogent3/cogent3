@@ -1548,6 +1548,53 @@ class Table:
         formatted = list([list(e) for e in zip(*formatted)])
         return formatted
 
+    def to_latex(
+        self, concat_title_legend=True, justify=None, label=None, position=None
+    ):
+        """Returns the text a LaTeX table.
+
+        Parameters
+        ----------
+        rows
+            table data in row orientation
+        header
+            table header
+        caption
+            title text.
+        legend
+            If provided, the text is placed in a \\caption*{} command at the
+            bottom of the table and the caption is placed at the top.
+        justify
+            column justification, default is right aligned.
+        label
+            for cross referencing
+        position
+            table page position, default is here, top separate page
+
+        Notes
+        -----
+        The \\caption*{} command is provided with the caption package. See
+        https://ctan.org/pkg/caption for more details.
+        """
+        formatted_table = self._formatted()
+        header = formatted_table.pop(0)
+        caption = self.title or None
+        legend = self.legend or None
+        if concat_title_legend and (caption or legend):
+            caption = " ".join([caption or "", legend or ""])
+            caption = caption.strip()
+            legend = None
+        result = table_format.latex(
+            formatted_table,
+            header,
+            caption=caption,
+            legend=legend,
+            justify=justify,
+            label=label,
+            position=position,
+        )
+        return result
+
     def to_markdown(self, space=1, justify=None):
         """
         returns markdown formatted table
@@ -1634,15 +1681,7 @@ class Table:
         elif format in ("markdown", "md"):
             return self.to_markdown(**kwargs)
         elif format.endswith("tex"):
-            caption = self.title or None
-            legend = self.legend or None
-            if concat_title_legend and (caption or legend):
-                caption = " ".join([caption or "", legend or ""])
-                caption = caption.strip()
-                legend = None
-            return table_format.latex(
-                formatted_table, header, caption=caption, legend=legend, **kwargs
-            )
+            return self.to_latex(concat_title_legend=concat_title_legend, **kwargs)
         elif format == "html":
             return self.to_rich_html(**kwargs)
         elif format == "phylip":

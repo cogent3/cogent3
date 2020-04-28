@@ -856,7 +856,12 @@ class TableTests(TestCase):
         tex_table = make_table(
             header=["a", "b"], data=[["val1", "val2"], ["val3", "val4"]]
         )
-        tex = tex_table.to_string(format="tex")
+        tex = tex_table.to_string(format="tex", justify="cr")
+        self.assertEqual(
+            tex_table.to_string(format="tex", justify="cr"),
+            tex_table.to_latex(justify="cr"),
+        )
+        self.assertEqual(tex.splitlines()[2], r"\begin{tabular}{ c r }")
         self.assertFalse("caption" in tex)
         # with a title
         tex_table = make_table(
