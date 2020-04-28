@@ -1061,6 +1061,74 @@ class TableTests(TestCase):
         with self.assertRaises(ValueError):
             _ = table.to_markdown(justify="cr1")
 
+    def test_to_csv(self):
+        """successfully create csv formatted string"""
+        table = Table(
+            header=self.t3_header,
+            data=self.t3_rows,
+            title="A title",
+            legend="A legend",
+        )
+        sv = table.to_csv()
+        expect = ["id,foo,bar", " 6,abc, 66", " 7,bca, 77"]
+        self.assertEqual(sv.splitlines(), expect)
+        sv = table.to_csv(with_title=True)
+        self.assertEqual(sv.splitlines(), ["A title"] + expect)
+        sv = table.to_csv(with_legend=True)
+        self.assertEqual(sv.splitlines(), expect + ["A legend"])
+        sv = table.to_csv(with_title=True, with_legend=True)
+        self.assertEqual(sv.splitlines(), ["A title"] + expect + ["A legend"])
+
+    def test_to_tsv(self):
+        """successfully create csv formatted string"""
+        table = Table(
+            header=self.t3_header,
+            data=self.t3_rows,
+            title="A title",
+            legend="A legend",
+        )
+
+        sv = table.to_tsv()
+        expect = ["id\tfoo\tbar", " 6\tabc\t 66", " 7\tbca\t 77"]
+        self.assertEqual(sv.splitlines(), expect)
+        sv = table.to_tsv(with_title=True)
+        self.assertEqual(sv.splitlines(), ["A title"] + expect)
+        sv = table.to_tsv(with_legend=True)
+        self.assertEqual(sv.splitlines(), expect + ["A legend"])
+        sv = table.to_tsv(with_title=True, with_legend=True)
+        self.assertEqual(sv.splitlines(), ["A title"] + expect + ["A legend"])
+
+    def test_to_rst_grid(self):
+        """generates a rst grid table"""
+        table = Table(header=["a", "b"], data=[[1, 2]], title="A title")
+        got = table.to_rst(csv_table=False).splitlines()
+        self.assertTrue(table.title in got[1])
+        self.assertEqual(set(got[0]), {"-", "+"})
+        self.assertEqual(set(got[4]), {"=", "+"})
+
+    def test_to_rst_csv(self):
+        """generates a rst csv-table"""
+        table = Table(
+            header=["a", "b"], data=[[1, 2]], title="A title", legend="A legend",
+        )
+        got = table.to_rst(csv_table=True)
+        self.assertEqual(
+            got.splitlines(),
+            [
+                ".. csv-table:: A title A legend",
+                '    :header: "a", "b"',
+                "",
+                "    1, 2",
+            ],
+        )
+        # try without a title/legend
+        table = Table(header=["a", "b"], data=[[1, 2]])
+        got = table.to_rst(csv_table=True)
+        self.assertEqual(
+            got.splitlines(),
+            [".. csv-table::", '    :header: "a", "b"', "", "    1, 2",],
+        )
+
     def test_repr_html_(self):
         """should produce html"""
         # without an index
