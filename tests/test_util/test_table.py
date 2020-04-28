@@ -1044,10 +1044,8 @@ class TableTests(TestCase):
         )
         self.assertEqual(len(formatted_grid.split("\n")), len(self.t6_rows) * 2 + 7 + 2)
 
-    def test_markdown(self):
+    def test_to_markdown(self):
         """Exercising the table markdown method"""
-        from cogent3.format.table import markdown
-
         table = make_table(self.t6_header, self.t6_rows, format="md")
         markdown_table = table.to_markdown(justify="crl")
         markdown_list = markdown_table.split("\n")
@@ -1056,7 +1054,7 @@ class TableTests(TestCase):
         self.assertEqual(markdown_list[2].count(r"\|"), 1)
 
         with self.assertRaises(ValueError):
-            _ = markdown(self.t6_header, self.t6_rows, justify="cr1")
+            _ = table.to_markdown(justify="cr1")
 
     def test_repr_html_(self):
         """should produce html"""
