@@ -1,7 +1,7 @@
 import numpy as np
 
 from numba import boolean, float64, int64, jitclass, njit, optional, uint8
-from numba.types.containers import Tuple
+from numba.core.types.containers import Tuple
 
 
 version_info = (3, 2)

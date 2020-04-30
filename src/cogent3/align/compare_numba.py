@@ -2,8 +2,8 @@ import numba
 import numpy as np
 
 from numba import int64, njit
-from numba.types import List
-from numba.types.containers import Tuple
+from numba.core.types import List
+from numba.core.types.containers import Tuple
 
 
 # @njit(
