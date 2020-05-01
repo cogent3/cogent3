@@ -91,8 +91,8 @@ __credits__ = [
 ]
 __license__ = "BSD-3"
 __version__ = "2020.2.7a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 _compression = re.compile(r"\.(gz|bz2)$")
