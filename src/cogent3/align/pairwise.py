@@ -379,6 +379,10 @@ class Pair(object):
 
         (mantissas, exponents) = rows
 
+        mantissa = 0.0
+        if kw["use_scaling"]:
+            mantissa = numpy.log(0.0)
+
         return self.aligner(
             self.plan,
             self.x_index,
@@ -397,6 +401,7 @@ class Pair(object):
             yscores,
             match_scores,
             mantissas,
+            mantissa,
             exponents,
             track,
             track_enc,

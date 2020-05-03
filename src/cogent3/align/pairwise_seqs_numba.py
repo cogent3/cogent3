@@ -27,6 +27,7 @@ __version__ = "2019.12.6a"
         float64[:, ::1],
         float64[:, :, ::1],
         optional(float64[:, :, ::1]),
+        float64,
         optional(int64[:, :, ::1]),
         optional(uint8[:, :, ::1]),
         optional(int64[::1]),
@@ -55,6 +56,7 @@ def calc_rows(
     ygap_scores,
     match_scores,
     mantissas,
+    mantissa,
     exponents,
     track,
     track_enc,
@@ -124,6 +126,8 @@ def calc_rows(
     overall_max_exponent = MIN_SCALE
     overall_max_mantissa = impossible
     last_i = last_j = last_state = -1
+
+    max_exponent = MIN_SCALE
 
     for i in range(i_low, i_high):
         x = x_index[i]
