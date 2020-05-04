@@ -2,9 +2,6 @@ on:
   push:
     branches:
     - 'develop'
-  pull_request:
-    branches:
-    - '*'
 
 jobs:
   example-3:
