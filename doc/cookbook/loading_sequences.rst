@@ -1,9 +1,9 @@
 .. _load-seqs:
 
 Loading an alignment from a file
---------------------------------------
+--------------------------------
 
-.. author, Tony Walters, Tom Elliott, Gavin Huttley
+.. author, Gavin Huttley, Tony Walters, Tom Elliott
 
 Loading aligned sequences
 ^^^^^^^^^^^^^^^^^^^^^^^^^
