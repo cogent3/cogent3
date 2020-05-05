@@ -299,7 +299,7 @@ def make_table(
     space=4,
     title="",
     max_width=1e100,
-    row_ids=None,
+    index=None,
     legend="",
     missing_data="",
     column_templates=None,
@@ -328,7 +328,7 @@ def make_table(
         as implied
     max_width
         maximum column width for printing
-    row_ids
+    index
         if True, the 0'th column is used as row identifiers and keys
         for slicing.
     legend
@@ -367,7 +367,7 @@ def make_table(
         space=space,
         missing_data=missing_data,
         max_width=max_width,
-        row_ids=row_ids,
+        index=index,
         legend=legend,
         data_frame=data_frame,
         format=format,
@@ -385,7 +385,7 @@ def load_table(
     title="",
     missing_data="",
     max_width=1e100,
-    row_ids=None,
+    index=None,
     legend="",
     column_templates=None,
     dtype=None,
@@ -429,7 +429,7 @@ def load_table(
         character assigned if a row has no entry for a column
     max_width
         maximum column width for printing
-    row_ids
+    index
         if True, the 0'th column is used as row identifiers and keys
         for slicing.
     legend
@@ -501,7 +501,7 @@ def load_table(
         space=space,
         missing_data=missing_data,
         max_width=max_width,
-        row_ids=row_ids,
+        index=index,
         legend=legend,
         format=format,
     )

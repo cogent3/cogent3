@@ -169,7 +169,7 @@ setup(
     ],
     packages=find_packages(where="src"),
     package_dir={"": PACKAGE_DIR},
-    install_requires=["numba==0.48.0", "numpy", "scitrack", "tqdm", "tinydb"],
+    install_requires=["numba>0.48.0", "numpy", "scitrack", "tqdm", "tinydb"],
     extras_require={
         "dev": [
             "black",
@@ -193,7 +193,6 @@ setup(
             "pytest>=4.3.0",
             "sphinx",
             "sphinx-autobuild",
-            "sphinx_rtd_theme",
             "sphinxcontrib-bibtex",
             "tox",
         ],

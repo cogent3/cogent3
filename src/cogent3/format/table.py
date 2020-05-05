@@ -406,7 +406,8 @@ def markdown(header, formatted_table, space=1, justify=None):
         previously formatted to the same width within a column.
     space
         number of spaces surrounding the cell contents, must be >= 1
-
+    justify
+        characters indicating alignment of columns
     """
     assert space >= 1, "space must be >= 1"
     if justify is not None:
@@ -438,6 +439,42 @@ def markdown(header, formatted_table, space=1, justify=None):
         row_template % sep.join(r) for r in formatted_table
     ]
     return "\n".join(rows)
+
+
+def rst_csv_table(header, formatted_table, title=None, legend=None):
+    """Returns a table in restructured text csv-table format
+
+    Parameters
+    ----------
+    header
+        series of strings
+    formatted_table
+        formatted strings, row based
+    title, legend
+        combined in this format
+
+    Returns
+    -------
+    str
+
+    Notes
+    -----
+    We only support a subset of available attr, see
+    https://docutils.sourceforge.io/docs/ref/rst/directives.html#csv-table
+    """
+    header = ", ".join(f'"{c}"' for c in header)
+    header = f"    :header: {header}"
+    rows = "\n".join(f"    {', '.join(r)}" for r in formatted_table)
+
+    if title or legend:
+        title = f" {title}" if title else ""
+        title = f"{title} {legend}" if legend else title
+    else:
+        title = ""
+
+    table = [f".. csv-table::{title}", header, "", rows]
+
+    return "\n".join(table)
 
 
 def grid_table_format(header, formatted_table, title=None, legend=None):

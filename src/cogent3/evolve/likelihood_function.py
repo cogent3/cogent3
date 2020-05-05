@@ -827,16 +827,14 @@ class LikelihoodFunction(ParameterController):
                     list_table.append(row)
             if table_dims:
                 title = ["", "%s params" % " ".join(table_dims)][with_titles]
-                # row_ids = True
             else:
-                # row_ids = False
                 title = ["", "global params"][with_titles]
             row_ids = None
             stat_table = table.Table(
                 heading_names,
                 list_table,
                 max_width=80,
-                row_ids=row_ids,
+                index=row_ids,
                 title=title,
                 **self._format,
             )
