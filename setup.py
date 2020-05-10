@@ -72,7 +72,7 @@ class NullCommand(Command):
 
 
 class BuildDocumentation(NullCommand):
-    description = "Generate HTML documentation and .c files"
+    description = "Generate HTML documentation files"
 
     def run(self):
         # Restructured Text -> HTML
@@ -86,47 +86,6 @@ class BuildDocumentation(NullCommand):
         subprocess.call(["make", "html"])
         os.chdir(cwd)
         print("Built index.html")
-
-
-# Cython is now run via the Cythonize function rather than monkeypatched into
-# distutils, so these legacy commands don't need to do anything extra.
-extra_commands = {
-    "pyrexc": NullCommand,
-    "cython": NullCommand,
-    "predist": BuildDocumentation,
-}
-
-
-# Compiling Pyrex modules to .c and .so, if possible and necessary
-try:
-    if "DONT_USE_CYTHON" in os.environ:
-        raise ImportError
-    from Cython.Compiler.Version import version
-
-    version = tuple([int(v) for v in re.split("[^\d]", version) if v.isdigit()])
-    if version < (0, 17, 1):
-        print("Your Cython version is too old")
-        raise ImportError
-except ImportError:
-    source_suffix = ".c"
-    cythonize = lambda x: x
-    print("No Cython, will compile from .c files")
-    for cmd in extra_commands:
-        if cmd in sys.argv:
-            print("'%s' command not available without Cython" % cmd)
-            sys.exit(1)
-else:
-    from Cython.Build import cythonize
-
-    source_suffix = ".pyx"
-
-
-# Save some repetitive typing.  We have all compiled modules in place
-# with their python siblings, so their paths and names are the same.
-def CythonExtension(module_name, **kw):
-    path = [PACKAGE_DIR] + module_name.split(".")
-    path = os.path.join(*path) + source_suffix
-    return Extension(module_name, [path], **kw)
 
 
 short_description = "COmparative GENomics Toolkit 3"
@@ -198,9 +157,5 @@ setup(
         ],
         "extra": ["pandas", "plotly", "psutil"],
     },
-    ext_modules=cythonize(
-        []
-    ),
     include_dirs=[numpy_include_dir],
-    cmdclass=extra_commands,
 )
