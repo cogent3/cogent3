@@ -364,6 +364,7 @@ class DictArrayTemplate(object):
         elif len(a.shape) == 2:
             heading = [""] + [str(n) for n in self.names[1]]
             a = [[str(name)] + list(row) for (name, row) in zip(self.names[0], a)]
+            a = {d[0]: d[1:] for d in zip(heading, *a)}
         else:
             return "%s dimensional %s" % (len(self.names), type(self).__name__)
 

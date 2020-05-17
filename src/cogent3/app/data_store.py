@@ -14,7 +14,6 @@ from pathlib import Path
 from pprint import pprint
 from warnings import warn
 
-from scitrack import get_text_hexdigest
 from tinydb import Query, TinyDB
 from tinydb.middlewares import CachingMiddleware
 from tinydb.storages import JSONStorage
@@ -28,6 +27,7 @@ from cogent3.util.misc import (
 )
 from cogent3.util.table import Table
 from cogent3.util.union_dict import UnionDict
+from scitrack import get_text_hexdigest
 
 
 __author__ = "Gavin Huttley"
