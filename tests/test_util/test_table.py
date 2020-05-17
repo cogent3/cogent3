@@ -157,6 +157,17 @@ class TableTests(TestCase):
         with self.assertRaises(ValueError):
             t.index_name
 
+    def test_table_with_empty_string_index(self):
+        """handle an index of empty string"""
+        d = {
+            "": ["Chimpanzee", "Galago", "Gorilla"],
+            "Chimpanzee": [0.0, 0.19, 0.005],
+            "Galago": [0.19, 0.0, 0.19],
+        }
+        table = make_table(data=d, index="")
+        val = table["Galago", "Chimpanzee"]
+        self.assertEqual(val, 0.19)
+
     def test_column_repr_str(self):
         """repr and str of Columns"""
         t = Table(header=list("abcdefg"), data=[[0, 1.1, 2, 3, 4, 5.5, 6.0]])

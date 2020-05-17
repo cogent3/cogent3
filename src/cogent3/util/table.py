@@ -507,7 +507,7 @@ class Columns(MutableMapping):
     def order(self):
         """column order"""
         # if index_name not first, we re-order
-        if self._index_name and self._order[0] != self._index_name:
+        if self._index_name is not None and self._order[0] != self._index_name:
             order = [self._index_name] + [
                 c for c in self._order if c != self._index_name
             ]
@@ -562,6 +562,7 @@ class Table:
 
         self.columns = Columns()
         self._template = None
+        self._index_name = None
 
         if isinstance(data, dict):
             # convert containers like a defaultdict to a standard dict
@@ -585,20 +586,25 @@ class Table:
 
         if header is None and isinstance(data, dict):
             header = list(data)
+        elif header is None:
+            header = []
 
         if "row_ids" in kwargs:
             deprecated("argument", "row_ids", "index", "2020.6")
             index = kwargs.pop("row_ids")
 
-        if index:
-            if index == True:
-                index = header[0]
-                deprecated("argument", "index: bool", "index: string", "2020.6")
+        if index in header and index == True:
+            index = header[0]
+            deprecated("argument", "index: bool", "index: string", "2020.6")
+
+        has_index = index is not None
+        if has_index and not isinstance(index, str):
+            raise TypeError(f"only str type supported for index, not {type(index)}")
 
         if data:
             row_order = kwargs.get("row_order", None)
             data = cast_to_1d_dict(data, row_order=row_order)
-            if index:
+            if has_index:
                 try:
                     self.columns[index] = data[index]
                 except KeyError:
@@ -614,10 +620,12 @@ class Table:
             for c in header:
                 self.columns[c] = []
 
-        if index:
+        # this assignment triggers creation of row template if index specified
+        # but only if we have data
+        if len(self.columns) > 0:
+            self.index_name = index
+        elif has_index:
             self._index_name = index
-        else:
-            self._index_name = None
 
         # default title / legend to be empty strings
         self._title = str(title) if title else ""
@@ -632,9 +640,6 @@ class Table:
         # some attributes are not preserved in any file format, so always based
         # on args
         self._column_templates = column_templates or {}
-
-        self.format = format
-
         # define the repr() display policy
         random = 0
         self._repr_policy = dict(head=None, tail=None, random=random)
@@ -926,7 +931,7 @@ class Table:
 
     @property
     def index_name(self):
-        if self._index_name and not self._template:
+        if self._index_name is not None and not self._template:
             self.columns.index_name = self._index_name
             self.index_name = self._index_name
 
