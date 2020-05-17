@@ -35,21 +35,6 @@ if sys.version_info < min_version:
     raise RuntimeError(msg)
 
 
-# Check Numpy version, no point installing if unsupported version inplace
-try:
-    import numpy
-except ImportError:
-    raise RuntimeError("Numpy required but not found.")
-
-numpy_version = re.split("[^\d]", numpy.__version__)
-numpy_version_info = tuple([int(i) for i in numpy_version if i.isdigit()])
-if numpy_version_info < (1, 3):
-    raise RuntimeError("Numpy-1.3 is required, %s found." % numpy_version)
-
-# Find arrayobject.h on any system
-numpy_include_dir = numpy.get_include()
-
-
 # On windows with no commandline probably means we want to build an installer.
 if sys.platform == "win32" and len(sys.argv) < 2:
     sys.argv[1:] = ["bdist_wininst"]
@@ -157,5 +142,4 @@ setup(
         ],
         "extra": ["pandas", "plotly", "psutil"],
     },
-    include_dirs=[numpy_include_dir],
 )
