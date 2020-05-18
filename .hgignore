@@ -28,3 +28,4 @@ draw_results
 *.vscode
 *.code-workspace
 coverage.xml
+__pycache__
