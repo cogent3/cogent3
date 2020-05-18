@@ -7,11 +7,6 @@ Building alignments
 Using the cogent3 aligners
 ==========================
 
-Running a pairwise Needleman-Wunsch-Alignment
----------------------------------------------
-
-.. TODO look at the singapore workshop usage of cogent3.align.align
-
 Running a progressive aligner
 -----------------------------
 

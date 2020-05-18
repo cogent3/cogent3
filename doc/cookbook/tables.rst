@@ -1,9 +1,10 @@
+************
 Tabular data
-------------
+************
 
 .. authors, Gavin Huttley, Kristian Rother, Patrick Yannul
 
-Table handles tabular data, storing as columns in a, you guessed it, ``columns`` attribute. The latter acts like a dictionary, with the column names as the keys and the column values being  ``numpy.ndarray`` instances. The table itself is iterable over rows.
+``Table`` handles tabular data, storing as columns in a, you guessed it, ``columns`` attribute. The latter acts like a dictionary, with the column names as the keys and the column values being  ``numpy.ndarray`` instances. The table itself is iterable over rows.
 
 .. note:: ``Table`` is immutable at the level of the individual ``ndarray`` not being writable.
 
@@ -11,8 +12,104 @@ Table handles tabular data, storing as columns in a, you guessed it, ``columns``
 
 .. include:: ./loading_tabular.rst
 
+Load a table from file
+======================
+
+.. doctest::
+
+    >>> from cogent3 import load_table
+    >>> table = load_table("data/stats.tsv")
+
+Load a table from a csv, tsv or other delimited file type
+=========================================================
+
+If the filename ends with ``csv`` or ``tsv``, ``load_table`` gueses the delimiter as ``","`` and ``"\t"`` respectively. If the delimiter character is different from the file suffix, or just different, you specify it using the ``sep`` argument.
+
+.. doctest::
+
+    >>> from cogent3 import load_table
+    >>> table = load_table("data/stats.tsv", sep="\t")
+
+Create a table from header and rows
+===================================
+
+.. doctest::
+
+    >>> from cogent3 import make_table
+    >>> table = make_table(header=["a", "b"], data=[[0, "a"], [3, "c"]])
+    >>> table
+    ======
+    a    b
+    ------
+    0    a
+    3    c
+    ------
+    ...
+
+Create a table from dict
+========================
+
+``make_table()`` is the utility function for creating ``Table`` objects from standard python objects.
+
+.. doctest::
+
+    >>> from cogent3 import make_table
+    >>> data = dict(a=[0, 3], b=["a", "c"])
+    >>> table = make_table(data=data)
+    >>> table
+    ======
+    a    b
+    ------
+    0    a
+    3    c
+    ------
+    ...
+
+Create a table from a ``pandas.DataFrame``
+==========================================
+
+.. doctest::
+
+    >>> from pandas import DataFrame
+    >>> from cogent3 import make_table
+    >>> data = dict(a=[0, 3], b=["a", "c"])
+    >>> df = DataFrame(data=data)
+    >>> table = make_table(data_frame=df)
+    >>> table
+    ======
+    a    b
+    ------
+    0    a
+    3    c
+    ------
+    ...
+
+Adding a new column
+===================
+
+.. doctest::
+
+    >>> from cogent3 import make_table
+    >>> table = make_table()
+    >>> table
+    0 rows x 0 columns
+    >>> table.columns["a"] = [1, 3, 5]
+    >>> table.columns["b"] = [2, 4, 6]
+    >>> table
+    ======
+    a    b
+    ------
+    1    2
+    3    4
+    5    6
+    ------
+    <BLANKLINE>
+    3 rows x 2 columns
+
+
+
 Iterating over table rows
-^^^^^^^^^^^^^^^^^^^^^^^^^
+=========================
 
 ``Table`` is a row oriented object. Iterating on the table returns each row as a new ``Table`` instance.
 
@@ -43,7 +140,7 @@ The resulting rows can be indexed using their column names.
     NP_055852
 
 Iterating over table columns
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+============================
 
 The ``Table.columns`` attribute is a ``Columns`` instance, an object with ``dict`` attributes.
 
@@ -68,7 +165,7 @@ So iteration is the same as for dicts.
     Ratio
 
 Table slicing using column names
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+================================
 
 .. doctest::
 
@@ -82,7 +179,7 @@ Table slicing using column names
     ---------
 
 Table slicing using column indices
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==================================
 
 .. doctest::
 
@@ -96,7 +193,7 @@ Table slicing using column indices
     ---------
 
 Changing displayed numerical precision
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+======================================
 
 We change the ``Ratio`` column to using scientific notation.
 
@@ -117,7 +214,7 @@ We change the ``Ratio`` column to using scientific notation.
     ------------------------------
 
 Change digits or column spacing
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===============================
 
 This can be done on table loading,
 
@@ -152,7 +249,7 @@ or, for spacing at least, by modifying the attributes
     ---------------------------------
 
 Changing column headings
-^^^^^^^^^^^^^^^^^^^^^^^^
+========================
 
 The table ``header`` is immutable. Changing column headings is done as follows.
 
@@ -166,7 +263,7 @@ The table ``header`` is immutable. Changing column headings is done as follows.
     ('Locus', 'Region', 'Stat')
 
 Adding a new column
-^^^^^^^^^^^^^^^^^^^
+===================
 
 .. doctest::
 
@@ -188,7 +285,7 @@ Adding a new column
     3 rows x 2 columns
 
 Create a new column from existing ones
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+======================================
 
 This can be used to take a single, or multiple columns and generate a new column of values. Here we'll take 2 columns and return True/False based on a condition.
 
@@ -210,7 +307,7 @@ This can be used to take a single, or multiple columns and generate a new column
     ------------------------------------------------
 
 Get table data as a numpy array
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===============================
 
 .. doctest::
 
@@ -223,7 +320,7 @@ Get table data as a numpy array
            ['NP_055852', 'NonCon', 10933217.708952725]], dtype=object)
 
 Get a table column as a list
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+============================
 
 Via the ``Table.tolist()`` method.
 
@@ -242,7 +339,7 @@ Or directly from the column array object.
     ['NP_003077', 'NP_004893', 'NP_005079', 'NP_005500', 'NP_055852']
 
 Get multiple table columns as a list
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+====================================
 
 This returns a row oriented list.
 
@@ -256,7 +353,7 @@ This returns a row oriented list.
 .. note:: column name order dictates the element order per row
 
 Get the table as a row oriented ``dict``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+========================================
 
 Keys in the resulting dict are the row indices, the value is a dict of column name, value pairs.
 
@@ -268,7 +365,7 @@ Keys in the resulting dict are the row indices, the value is a dict of column na
 
 
 Get the table as a column oriented ``dict``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===========================================
 
 Keys in the resulting dict are the column names, the value is a list.
 
@@ -279,7 +376,7 @@ Keys in the resulting dict are the column names, the value is a list.
     {'Locus': ['NP_003077', 'NP_004893',...
 
 Get the table as a ``pandas.DataFrame``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=======================================
 
 .. doctest::
 
@@ -300,7 +397,7 @@ You can also specify column(s) are categories
     >>> df = table.to_dataframe(categories="Region")
 
 Appending tables
-^^^^^^^^^^^^^^^^
+================
 
 Can be done without specifying a new column. Here we simply use the same table data.
 
@@ -351,7 +448,7 @@ or with a new column
 .. note:: We assigned an empty string to ``title``, otherwise the resulting table has the same ``title`` attribute as that of ``table1``.
 
 Summing a single column
-^^^^^^^^^^^^^^^^^^^^^^^
+=======================
 
 .. doctest::
 
@@ -367,7 +464,7 @@ Because each column is just a ``numpy.ndarray``, this also can be done directly 
     20571166.652...
 
 Summing multiple columns or rows - strictly numerical data
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==========================================================
 
 We define a strictly numerical table,
 
@@ -401,7 +498,7 @@ and all rows
     [3, 12, 21, 30]
 
 Summing multiple columns or rows with mixed non-numeric/numeric data
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+====================================================================
 
 We define a table with mixed data, like a distance matrix.
 
@@ -434,7 +531,7 @@ and all rows
 
 
 Filtering table rows
-^^^^^^^^^^^^^^^^^^^^
+====================
 
 We can do this by providing a reference to an external function
 
@@ -476,7 +573,7 @@ You can also filter for values in multiple columns
     -----------------------------
 
 Filtering table columns
-^^^^^^^^^^^^^^^^^^^^^^^
+=======================
 
 We select only columns that have a sum > 20 from the ``all_numeric`` table constructed above.
 
@@ -494,7 +591,7 @@ We select only columns that have a sum > 20 from the ``all_numeric`` table const
     --------
 
 Standard sorting
-^^^^^^^^^^^^^^^^
+================
 
 .. doctest::
 
@@ -511,7 +608,7 @@ Standard sorting
     ------------------------------------
 
 Reverse sorting
-^^^^^^^^^^^^^^^
+===============
 
 .. doctest::
 
@@ -527,7 +624,7 @@ Reverse sorting
     ------------------------------------
 
 Sorting involving multiple columns, one reversed
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+================================================
 
 .. doctest::
 
@@ -543,7 +640,7 @@ Sorting involving multiple columns, one reversed
     ------------------------------------
 
 Getting raw data for a single column
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+====================================
 
 .. doctest::
 
@@ -553,7 +650,7 @@ Getting raw data for a single column
     ['Con', 'Con', 'Con', 'NonCon', 'NonCon']
 
 Getting raw data for multiple columns
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=====================================
 
 .. doctest::
 
@@ -563,7 +660,7 @@ Getting raw data for multiple columns
     [['NP_003077', 'Con'], ['NP_004893', 'Con'], ...
 
 Getting distinct values
-^^^^^^^^^^^^^^^^^^^^^^^
+=======================
 
 .. doctest::
 
@@ -571,7 +668,7 @@ Getting distinct values
     >>> assert table.distinct_values('Region') == set(['NonCon', 'Con'])
 
 Counting occurrences of values
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==============================
 
 .. doctest::
 
@@ -579,7 +676,7 @@ Counting occurrences of values
     >>> assert table.count("Region == 'NonCon' and Ratio > 1") == 1
 
 Joining or merging tables
-^^^^^^^^^^^^^^^^^^^^^^^^^
+=========================
 
 We do a standard inner join here for a restricted subset. We must specify the columns that will be used for the join. Here we just use ``Locus``.
 
@@ -605,7 +702,7 @@ We do a standard inner join here for a restricted subset. We must specify the co
 .. note:: The ``joined()`` method is just a wrapper for the ``inner_join()`` and ``cross_join()`` (row cartesian product) methods, which you can use directly.
 
 Specify markdown as the ``str()`` format
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+========================================
 
 Using the method provides finer control over formatting.
 
@@ -623,7 +720,7 @@ Using the method provides finer control over formatting.
     | NP_055852 | NonCon | 10933217.7090 |
 
 Specify latex as the ``str()`` format
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=====================================
 
 Using the method provides finer control over formatting.
 
@@ -642,7 +739,7 @@ Using the method provides finer control over formatting.
     NP_003077 &    Con &        2.5386 \\...
 
 Get a table as a markdown formatted string
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==========================================
 
 We use the ``justify`` argument to indicate the column justification.
 
@@ -660,7 +757,7 @@ We use the ``justify`` argument to indicate the column justification.
 
 
 Get a table as a latex formatted string
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=======================================
 
 .. doctest::
 
@@ -672,7 +769,7 @@ Get a table as a latex formatted string
     \begin{tabular}{ c c r }...
 
 Get a table as a restructured text csv-table
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+============================================
 
 .. doctest::
 
@@ -685,7 +782,7 @@ Get a table as a restructured text csv-table
         NP_003077, Con, 2.5386...
 
 Get a table as a restructured text grid table
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=============================================
 
 .. doctest::
 
@@ -702,7 +799,7 @@ Get a table as a restructured text grid table
 
 
 What formats can be written?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+============================
 
 .. doctest::
 
@@ -711,7 +808,7 @@ What formats can be written?
     ('bedgraph', 'phylip', 'rest', 'rst', 'markdown', 'md', 'latex', 'tex', 'html', 'simple', 'csv', 'tsv')
 
 Writing delimited formats
-^^^^^^^^^^^^^^^^^^^^^^^^^
+=========================
 
 .. doctest::
 
@@ -719,7 +816,7 @@ Writing delimited formats
     >>> table.write('stats_tab.txt', sep='\t')
 
 Writing latex format
-^^^^^^^^^^^^^^^^^^^^
+====================
 
 It is also possible to specify column alignment, table caption and other arguments.
 
@@ -744,7 +841,7 @@ It is also possible to specify column alignment, table caption and other argumen
     \end{table}
 
 Writing bedGraph format
-^^^^^^^^^^^^^^^^^^^^^^^
+=======================
 
 This format allows display of annotation tracks on genome browsers.
 
