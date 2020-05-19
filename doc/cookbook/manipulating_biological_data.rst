@@ -36,10 +36,3 @@ Trees
     simple_trees
     phylonodes
 
-Tables
-======
-
-.. toctree::
-    :maxdepth: 1
-
-    tables
