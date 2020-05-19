@@ -1,9 +1,7 @@
 Loading a csv file
 ^^^^^^^^^^^^^^^^^^
 
-.. authors, Gavin Huttley
-
-We load a tab separated data file using the ``load_table()`` function. The format is inferred from the filename suffix.
+We load a tab separated data file using the ``load_table()`` function. The format is inferred from the filename suffix and you will note, in this case, it's not actually a `csv` file.
 
 .. doctest::
 
@@ -25,7 +23,7 @@ We load a tab separated data file using the ``load_table()`` function. The forma
 Loading delimited specifying the format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Although unecessary in this case, it's possible to override the suffix by specifying the delimiter using the ``seq`` argument.
+Although unecessary in this case, it's possible to override the suffix by specifying the delimiter using the ``sep`` argument.
 
 .. doctest::
 

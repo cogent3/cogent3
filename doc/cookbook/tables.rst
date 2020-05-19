@@ -12,24 +12,6 @@ Tabular data
 
 .. include:: ./loading_tabular.rst
 
-Load a table from file
-======================
-
-.. doctest::
-
-    >>> from cogent3 import load_table
-    >>> table = load_table("data/stats.tsv")
-
-Load a table from a csv, tsv or other delimited file type
-=========================================================
-
-If the filename ends with ``csv`` or ``tsv``, ``load_table`` gueses the delimiter as ``","`` and ``"\t"`` respectively. If the delimiter character is different from the file suffix, or just different, you specify it using the ``sep`` argument.
-
-.. doctest::
-
-    >>> from cogent3 import load_table
-    >>> table = load_table("data/stats.tsv", sep="\t")
-
 Create a table from header and rows
 ===================================
 
