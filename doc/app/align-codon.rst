@@ -83,3 +83,10 @@ Any codon substitution model can be used. (See ``cogent3.available_models()``.) 
     >>> aligned
     6 x 2478 dna alignment...
 
+Alignment settings and file provenance are recorded in the ``info`` attribute
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> aligned.info
+    {'Refs': {}, 'source': 'data/SCA1-cds.fasta', 'align_params': {'omega': 0.1,...

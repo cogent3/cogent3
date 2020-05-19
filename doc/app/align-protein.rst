@@ -37,3 +37,11 @@ The distance measures available are percent or paralinear.
     >>> aligned = aa_aligner(seqs)
     >>> aligned
     6 x 825 protein alignment...
+
+Alignment settings and file provenance are recorded in the ``info`` attribute
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> aligned.info
+    {'Refs': {}, 'source': 'data/SCA1-cds.fasta', 'align_params': {'indel_length': 0.1...
