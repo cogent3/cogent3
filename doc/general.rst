@@ -16,10 +16,4 @@ Support
 
 We acknowledge the provision by `Wingware <https://wingware.com>`_ of free licenses for their professional IDE. Their commitment, over more than a decade, to supporting our development of Open Source software for science is greatly appreciated. (The port of PyCogent to Python 3 was made much easier by using Wing's refactor tools!)
 
-######
-Search
-######
-
-* :ref:`search`
-
 .. _issues: https://github.com/cogent3/cogent3/issues
