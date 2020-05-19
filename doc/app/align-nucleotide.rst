@@ -59,3 +59,11 @@ You can use any nucleotide substitution model. For a list of all available, see 
     >>> aligned = nt_aligner(seqs)
     >>> aligned
     6 x 2475 dna alignment...
+
+Alignment settings and file provenance are recorded in the ``info`` attribute
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doctest::
+
+    >>> aligned.info
+    {'Refs': {}, 'source': 'data/SCA1-cds.fasta', 'align_params': {'indel_length': 0.1...
