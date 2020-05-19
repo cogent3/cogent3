@@ -6,13 +6,13 @@ cogent3_ is a software library for genomic biology. It is a comprehensive framew
 
 .. raw:: html
 
-    <object type="image/svg+xml" data="./_static/svg/demo_fit_ns.svg"></object>
+    <object type="image/svg+xml" data="../_static/svg/demo_fit_ns.svg"></object>
 
 and `non-stationary codon <https://www.ncbi.nlm.nih.gov/pubmed/28175284>`_ models. Plus, the ability to manipulate biological sequences by their annotations.
 
 .. raw:: html
 
-    <object type="image/svg+xml" data="./_static/svg/annotate_domain.svg"></object>
+    <object type="image/svg+xml" data="../_static/svg/annotate_domain.svg"></object>
 
 .. toctree::
     :maxdepth: 2
