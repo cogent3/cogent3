@@ -81,6 +81,12 @@ long_description = readme_path.read_text()
 
 PACKAGE_DIR = "src"
 
+PROJECT_URLS = {
+    "Documentation": "https://www.cogent3.org/",
+    "Bug Tracker": "https://github.com/cogent3/cogent3/issues",
+    "Source Code": "https://github.com/cogent3/cogent3",
+}
+
 setup(
     name="cogent3",
     version=__version__,
@@ -142,4 +148,5 @@ setup(
         ],
         "extra": ["pandas", "plotly", "psutil"],
     },
+    project_urls=PROJECT_URLS,
 )
