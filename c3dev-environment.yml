@@ -18,5 +18,6 @@ dependencies:
   - scipy
   - pip:
     - --editable ./[dev]
+    - tox-gh-actions
     - sphinx-gallery
     - sphinx_bootstrap_theme
